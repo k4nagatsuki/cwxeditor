@@ -2762,11 +2762,11 @@ public:
 		return paths;
 	}
 
-	override void change(AreaId id) { }
+	override bool change(AreaId id) { return true; }
 
-	override void change(PathId id) { }
+	override bool change(PathId id) { return true; }
 
-	override void change(CouponId id) { }
+	override bool change(CouponId id) { return true; }
 }
 
 /// ファイル読み込み時の例外。

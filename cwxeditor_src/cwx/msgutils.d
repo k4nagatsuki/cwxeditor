@@ -278,6 +278,15 @@ string replTextUseStep(string text, string oldStep, string newStep) { mixin(S_TR
 	assert(replTextUseStep("aaa$aaa$%$置換前$%$置換前$a#$置換前$$aa%$置換前$", "置換前", "置換no後")
 		== "aaa$aaa$%$置換前$%$置換no後$a#$置換前$$aa%$置換no後$");
 }
+/// テキスト中で使用されている画像か。
+@property
+bool isSPFontFile(string file) { mixin(S_TRACE);
+	dstring dFile = toUTF32(.toLower(file.baseName()));
+	if (dFile.length != 10) return false;
+	if (!startsWith(dFile, "font_"d)) return false;
+	if (!endsWith(dFile, ".bmp"d)) return false;
+	return true;
+}
 /// テキストの中で使用されている画像のパスを置換する。
 /// Params:
 /// text = テキスト。
@@ -287,14 +296,11 @@ string replTextUseFont(string text, string oldFont, string newFont)
 in { mixin(S_TRACE);
 	dstring dold = toUTF32(.toLower(oldFont.baseName()));
 	dstring dnew = toUTF32(.toLower(newFont.baseName()));
-	assert(dold.length == 10, .text(dold));
 	assert(startsWith(dold, "font_"d), .text(dold));
 	assert(endsWith(dold, ".bmp"d), .text(dold));
 } body { mixin(S_TRACE);
-	dstring dNewFont = toUTF32(.toLower(newFont.baseName()));
-	if (dNewFont.length != 10) return text;
-	if (!startsWith(dNewFont, "font_"d)) return text;
-	if (!endsWith(dNewFont, ".bmp"d)) return text;
+	if (!oldFont.isSPFontFile) return text;
+	if (!newFont.isSPFontFile) return text;
 
 	dstring dtext = toUTF32(text);
 	dchar dnew = toUTF32(newFont.baseName())[5];

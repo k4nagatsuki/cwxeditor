@@ -12,7 +12,7 @@ import std.string;
 
 /// Kの使用者。
 interface User(K) : CWXPath {
-	void change(K newVal);
+	bool change(K newVal);
 }
 
 /// Kの使用者Uを登録し、変更通知等を受け取れるようにする。
@@ -90,17 +90,31 @@ public:
 		if (oldKey != newKey && (oldKey in _cont)) { mixin(S_TRACE);
 			if (newKey in _cont) { mixin(S_TRACE);
 				if (!dup) debugln(oldKey, " to ", newKey, " : ", _cont[newKey].size);
-				foreach (val; _cont[oldKey]) { mixin(S_TRACE);
-					val.change(newKey);
-					_cont[newKey].add(val);
-				}
-			} else { mixin(S_TRACE);
-				foreach (val; _cont[oldKey]) { mixin(S_TRACE);
-					val.change(newKey);
-				}
-				_cont[newKey] = _cont[oldKey];
 			}
-			_cont.remove(oldKey);
+			HashSet!U newCont;
+			auto oldCont = new HashSet!U;
+			if (newKey in _cont) { mixin(S_TRACE);
+				newCont = _cont[newKey];
+			} else { mixin(S_TRACE);
+				newCont = new HashSet!U;
+			}
+			foreach (val; _cont[oldKey]) { mixin(S_TRACE);
+				if (val.change(newKey)) { mixin(S_TRACE);
+					newCont.add(val);
+				} else { mixin(S_TRACE);
+					oldCont.add(val);
+				}
+			}
+			if (newCont.isEmpty) { mixin(S_TRACE);
+				if (newKey in _cont) _cont.remove(newKey);
+			} else { mixin(S_TRACE);
+				_cont[newKey] = newCont;
+			}
+			if (oldCont.isEmpty) { mixin(S_TRACE);
+				if (oldKey in _cont) _cont.remove(oldKey);
+			} else { mixin(S_TRACE);
+				_cont[oldKey] = oldCont;
+			}
 		}
 	}
 }
@@ -109,7 +123,7 @@ public:
 /// Chg*Callbackを実装する場合、change()が呼び出された
 /// 際にコールバックを受ける事ができる。
 interface TChgCallback(T) {
-	void changeCallback(T, T);
+	bool changeCallback(T, T);
 }
 /// ditto
 alias TChgCallback!(FlagId) ChgFlagCallback;
@@ -220,8 +234,10 @@ public:
 	/// 所有者がChgFlagCallbackであればコールバックが行われる。
 	@property
 	void id(FlagId newVal) { mixin(S_TRACE);
-		if (cast(ChgFlagCallback) _cwxPath) { mixin(S_TRACE);
-			(cast(ChgFlagCallback) _cwxPath).changeCallback(toFlagId(_flag), newVal);
+		if (cast(ChgFlagCallback)_cwxPath) { mixin(S_TRACE);
+			if (!(cast(ChgFlagCallback)_cwxPath).changeCallback(toFlagId(_flag), newVal)) { mixin(S_TRACE);
+				return;
+			}
 		}
 		flag = newVal.id;
 	}
@@ -267,12 +283,15 @@ public:
 		}
 		_uc = null;
 	}
-	override void change(FlagId newVal) { mixin(S_TRACE);
+	override bool change(FlagId newVal) { mixin(S_TRACE);
 		if (_flag != cast(string)newVal) changed();
-		if (cast(ChgFlagCallback) _cwxPath) { mixin(S_TRACE);
-			(cast(ChgFlagCallback) _cwxPath).changeCallback(toFlagId(_flag), newVal);
+		if (cast(ChgFlagCallback)_cwxPath) { mixin(S_TRACE);
+			if (!(cast(ChgFlagCallback)_cwxPath).changeCallback(toFlagId(_flag), newVal)) { mixin(S_TRACE);
+				return false;
+			}
 		}
 		_flag = cast(string)newVal;
+		return true;
 	}
 
 	mixin CWXFuncs;
@@ -333,8 +352,10 @@ public:
 	/// 所有者がChgStepCallbackであればコールバックが行われる。
 	@property
 	void id(StepId newVal) { mixin(S_TRACE);
-		if (cast(ChgStepCallback) _cwxPath) { mixin(S_TRACE);
-			(cast(ChgStepCallback) _cwxPath).changeCallback(toStepId(_step), newVal);
+		if (cast(ChgStepCallback)_cwxPath) { mixin(S_TRACE);
+			if (!(cast(ChgStepCallback)_cwxPath).changeCallback(toStepId(_step), newVal)) { mixin(S_TRACE);
+				return;
+			}
 		}
 		step = newVal.id;
 	}
@@ -380,12 +401,15 @@ public:
 		}
 		_uc = null;
 	}
-	override void change(StepId newVal) { mixin(S_TRACE);
+	override bool change(StepId newVal) { mixin(S_TRACE);
 		if (_step != cast(string)newVal) changed();
-		if (cast(ChgStepCallback) _cwxPath) { mixin(S_TRACE);
-			(cast(ChgStepCallback) _cwxPath).changeCallback(toStepId(_step), newVal);
+		if (cast(ChgStepCallback)_cwxPath) { mixin(S_TRACE);
+			if (!(cast(ChgStepCallback)_cwxPath).changeCallback(toStepId(_step), newVal)) { mixin(S_TRACE);
+				return false;
+			}
 		}
 		_step = cast(string) newVal;
+		return true;
 	}
 
 	mixin CWXFuncs;
@@ -462,10 +486,11 @@ public:
 		}
 		_uc = null;
 	}
-	override void change(AreaId newVal) { mixin(S_TRACE);
+	override bool change(AreaId newVal) { mixin(S_TRACE);
 		if (_id != newVal) changed();
 		if (_handleChange) _handleChange(newVal);
 		_id = newVal;
+		return true;
 	}
 	private void delegate(AreaId) _handleChange = null;
 	/// change呼出しをdlgに通知する。
@@ -546,10 +571,11 @@ public:
 		}
 		_uc = null;
 	}
-	override void change(BattleId newVal) { mixin(S_TRACE);
+	override bool change(BattleId newVal) { mixin(S_TRACE);
 		if (_id != newVal) changed();
 		if (_handleChange) _handleChange(newVal);
 		_id = newVal;
+		return true;
 	}
 	private void delegate(BattleId) _handleChange = null;
 	/// change呼出しをdlgに通知する。
@@ -631,9 +657,10 @@ public:
 		_uc = null;
 	}
 
-	override void change(PackageId newVal) { mixin(S_TRACE);
+	override bool change(PackageId newVal) { mixin(S_TRACE);
 		if (_id != newVal) changed();
 		_id = newVal;
+		return true;
 	}
 
 	mixin CWXFuncs;
@@ -772,8 +799,10 @@ public:
 	/// 所有者がChgPathCallbackであればコールバックが行われる。
 	@property
 	void id(PathId newVal) { mixin(S_TRACE);
-		if (cast(ChgPathCallback) _cwxPath) { mixin(S_TRACE);
-			(cast(ChgPathCallback) _cwxPath).changeCallback(_path, newVal);
+		if (cast(ChgPathCallback)_cwxPath) { mixin(S_TRACE);
+			if (!(cast(ChgPathCallback)_cwxPath).changeCallback(_path, newVal)) { mixin(S_TRACE);
+				return;
+			}
 		}
 		path = cast(string) newVal;
 	}
@@ -823,12 +852,15 @@ public:
 		_uc = null;
 	}
 
-	override void change(PathId newVal) { mixin(S_TRACE);
+	override bool change(PathId newVal) { mixin(S_TRACE);
 		if (_path != newVal) changed();
-		if (cast(ChgPathCallback) _cwxPath) { mixin(S_TRACE);
-			(cast(ChgPathCallback) _cwxPath).changeCallback(_path, newVal);
+		if (cast(ChgPathCallback)_cwxPath) { mixin(S_TRACE);
+			if (!(cast(ChgPathCallback)_cwxPath).changeCallback(_path, newVal)) { mixin(S_TRACE);
+				return false;
+			}
 		}
 		_path = newVal;
+		return true;
 	}
 
 	mixin CWXFuncs;
@@ -906,9 +938,10 @@ public:
 		_uc = null;
 	}
 
-	override void change(CastId newVal) { mixin(S_TRACE);
+	override bool change(CastId newVal) { mixin(S_TRACE);
 		if (_id != newVal) changed();
 		_id = newVal;
+		return true;
 	}
 
 	mixin CWXFuncs;
@@ -985,9 +1018,10 @@ public:
 		_uc = null;
 	}
 
-	override void change(SkillId newVal) { mixin(S_TRACE);
+	override bool change(SkillId newVal) { mixin(S_TRACE);
 		if (_id != newVal) changed();
 		_id = newVal;
+		return true;
 	}
 
 	mixin CWXFuncs;
@@ -1064,9 +1098,10 @@ public:
 		_uc = null;
 	}
 
-	override void change(ItemId newVal) { mixin(S_TRACE);
+	override bool change(ItemId newVal) { mixin(S_TRACE);
 		if (_id != newVal) changed();
 		_id = newVal;
+		return true;
 	}
 
 	mixin CWXFuncs;
@@ -1143,9 +1178,10 @@ public:
 		_uc = null;
 	}
 
-	override void change(BeastId newVal) { mixin(S_TRACE);
+	override bool change(BeastId newVal) { mixin(S_TRACE);
 		if (_id != newVal) changed();
 		_id = newVal;
+		return true;
 	}
 
 	mixin CWXFuncs;
@@ -1222,9 +1258,10 @@ public:
 		_uc = null;
 	}
 
-	override void change(InfoId newVal) { mixin(S_TRACE);
+	override bool change(InfoId newVal) { mixin(S_TRACE);
 		if (_id != newVal) changed();
 		_id = newVal;
+		return true;
 	}
 
 	mixin CWXFuncs;
@@ -1299,9 +1336,10 @@ public:
 		}
 		_uc = null;
 	}
-	override void change(CouponId newVal) { mixin(S_TRACE);
+	override bool change(CouponId newVal) { mixin(S_TRACE);
 		if (_coupon != newVal.id) changed();
 		_coupon = newVal.id;
+		return true;
 	}
 
 	mixin CWXFuncs;
@@ -1373,9 +1411,10 @@ public:
 		}
 		_uc = null;
 	}
-	override void change(GossipId newVal) { mixin(S_TRACE);
+	override bool change(GossipId newVal) { mixin(S_TRACE);
 		if (_gossip != newVal.id) changed();
 		_gossip = newVal.id;
+		return true;
 	}
 
 	mixin CWXFuncs;
@@ -1447,9 +1486,10 @@ public:
 		}
 		_uc = null;
 	}
-	override void change(CompleteStampId newVal) { mixin(S_TRACE);
+	override bool change(CompleteStampId newVal) { mixin(S_TRACE);
 		if (_completeStamp != newVal.id) changed();
 		_completeStamp = newVal.id;
+		return true;
 	}
 
 	mixin CWXFuncs;
@@ -1521,9 +1561,10 @@ public:
 		}
 		_uc = null;
 	}
-	override void change(KeyCodeId newVal) { mixin(S_TRACE);
+	override bool change(KeyCodeId newVal) { mixin(S_TRACE);
 		if (_keyCode != newVal.id) changed();
 		_keyCode = newVal.id;
+		return true;
 	}
 
 	mixin CWXFuncs;
@@ -1595,9 +1636,10 @@ public:
 		}
 		_uc = null;
 	}
-	override void change(CellNameId newVal) { mixin(S_TRACE);
+	override bool change(CellNameId newVal) { mixin(S_TRACE);
 		if (_cellName != newVal.id) changed();
 		_cellName = newVal.id;
+		return true;
 	}
 
 	mixin CWXFuncs;

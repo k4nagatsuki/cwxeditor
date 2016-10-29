@@ -110,8 +110,8 @@ public:
 		_user.removeUseCounter();
 		super.removeUseCounter();
 	}
-	override void change(PathId id) { mixin(S_TRACE);
-		_user.change(id);
+	override bool change(PathId id) { mixin(S_TRACE);
+		return _user.change(id);
 	}
 
 	override
@@ -819,8 +819,8 @@ public:
 		super.removeUseCounter();
 		_cellName.removeUseCounter();
 	}
-	override void change(CellNameId newVal) { mixin(S_TRACE);
-		_cellName.change(newVal);
+	override bool change(CellNameId newVal) { mixin(S_TRACE);
+		return _cellName.change(newVal);
 	}
 
 	@property
@@ -927,8 +927,8 @@ public:
 		return "";
 	}
 
-	override void change(FlagId id) { mixin(S_TRACE);
-		super.change(id);
+	override bool change(FlagId id) { mixin(S_TRACE);
+		return super.change(id);
 	}
 
 	static BgImage[] bgImagesFromNode(ref XNode node, bool canInherit, in XMLInfo ver) { mixin(S_TRACE);

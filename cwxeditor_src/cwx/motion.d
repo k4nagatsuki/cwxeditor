@@ -415,7 +415,7 @@ public:
 	/// ditto
 	static immutable maxNest_max = 999;
 
-	override void change(BeastId id) { }
+	override bool change(BeastId id) { return true; }
 
 	protected override void changed() { mixin(S_TRACE);
 		if (_change) _change();

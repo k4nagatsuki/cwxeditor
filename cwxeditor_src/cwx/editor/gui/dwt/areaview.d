@@ -319,7 +319,7 @@ private:
 			@property
 			CWXPath cwxParent() {return null;}
 			override
-			void change(PathId id) { }
+			bool change(PathId id) { return true; }
 			protected
 			override
 			void changed() { }

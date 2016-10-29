@@ -523,7 +523,7 @@ class Jpy1Sec : PathUser, CWXPath {
 	}
 
 	override
-	void change(PathId newVal) { mixin(S_TRACE);
+	bool change(PathId newVal) { mixin(S_TRACE);
 		super.change(newVal);
 		auto newName = fromMaterialPath(cast(string)newVal);
 		if (newName.filename != filename || newName.dirdepth != dirdepth) { mixin(S_TRACE);
@@ -531,6 +531,7 @@ class Jpy1Sec : PathUser, CWXPath {
 			dirdepth = newName.dirdepth;
 			needUpdate = true;
 		}
+		return true;
 	}
 
 	@property
@@ -1422,13 +1423,14 @@ class Jpdc : PathUser, CWXPath {
 	protected override void changed() { }
 
 	override
-	void change(PathId newVal) { mixin(S_TRACE);
+	bool change(PathId newVal) { mixin(S_TRACE);
 		super.change(newVal);
 		auto newName = fromMaterialPath(cast(string)newVal);
 		if (newName != saveFileName) { mixin(S_TRACE);
 			saveFileName = newName;
 			needUpdate = true;
 		}
+		return true;
 	}
 
 	@property

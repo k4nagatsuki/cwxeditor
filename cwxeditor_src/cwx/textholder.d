@@ -90,18 +90,22 @@ public:
 		super.removeTextUseCounter();
 	}
 	alias SimpleTextHolder.change change;
-	void change(PathId id) { mixin(S_TRACE);
+	bool change(PathId id) { mixin(S_TRACE);
+		if (!(cast(string)id).isSPFontFile) return false;
 		foreach (u; _fontusers) { mixin(S_TRACE);
 			u.change(id);
 		}
+		return true;
 	}
 	/// テキスト内のfont_X.bmp・フラグ・ステップを置換する。
 	void change(size_t index, PathId id) { mixin(S_TRACE);
 		_fontusers[index].change(id);
 	}
 	alias SimpleTextHolder.changeCallback changeCallback;
-	override void changeCallback(PathId oldVal, PathId newVal) { mixin(S_TRACE);
-		_text = replTextUseFont(_text, cast(string) oldVal, cast(string) newVal);
+	override bool changeCallback(PathId oldVal, PathId newVal) { mixin(S_TRACE);
+		if (!(cast(string)newVal).isSPFontFile) return false;
+		_text = replTextUseFont(_text, cast(string)oldVal, cast(string)newVal);
+		return true;
 	}
 }
 
@@ -213,15 +217,17 @@ public:
 		removeTextUseCounter();
 		_uc = null;
 	}
-	void change(FlagId id) { mixin(S_TRACE);
+	bool change(FlagId id) { mixin(S_TRACE);
 		foreach (u; _flagusers) { mixin(S_TRACE);
 			u.change(id);
 		}
+		return true;
 	}
-	void change(StepId id) { mixin(S_TRACE);
+	bool change(StepId id) { mixin(S_TRACE);
 		foreach (u; _stepusers) { mixin(S_TRACE);
 			u.change(id);
 		}
+		return true;
 	}
 	/// ditto
 	void change(size_t index, FlagId id) { mixin(S_TRACE);
@@ -231,11 +237,13 @@ public:
 	void change(size_t index, StepId id) { mixin(S_TRACE);
 		_stepusers[index].change(id);
 	}
-	override void changeCallback(FlagId oldVal, FlagId newVal) { mixin(S_TRACE);
+	override bool changeCallback(FlagId oldVal, FlagId newVal) { mixin(S_TRACE);
 		_text = replTextUseFlag(_text, cast(string) oldVal, cast(string) newVal);
+		return true;
 	}
-	override void changeCallback(StepId oldVal, StepId newVal) { mixin(S_TRACE);
+	override bool changeCallback(StepId oldVal, StepId newVal) { mixin(S_TRACE);
 		_text = replTextUseStep(_text, cast(string) oldVal, cast(string) newVal);
+		return true;
 	}
 
 	protected override void changed() { }

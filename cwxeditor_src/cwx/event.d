@@ -371,16 +371,16 @@ public:
 			c.removeUseCounter();
 		}
 	}
-	override void change(PathId id) { mixin(S_TRACE);
-		_text.change(id);
+	override bool change(PathId id) { mixin(S_TRACE);
+		return _text.change(id);
 	}
-	override void change(FlagId id) { mixin(S_TRACE);
-		_text.change(id);
+	override bool change(FlagId id) { mixin(S_TRACE);
+		return _text.change(id);
 	}
-	override void change(StepId id) { mixin(S_TRACE);
-		_text.change(id);
+	override bool change(StepId id) { mixin(S_TRACE);
+		return _text.change(id);
 	}
-	override void change(CouponId id) { }
+	override bool change(CouponId id) { return true; }
 
 	protected override void changed() { }
 
@@ -1805,8 +1805,9 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// スタートの使用回数カウンタ。
 	@property
 	SUseCounter startUseCounter() {return _suc;}
-	override void change(StartId newVal) { mixin(S_TRACE);
+	override bool change(StartId newVal) { mixin(S_TRACE);
 		_start = newVal;
+		return true;
 	}
 
 	private void idChangeImpl(T, Id)(ref T v, Id id) { mixin(S_TRACE);
@@ -1822,27 +1823,28 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			}
 		}
 	}
-	private void idChange(Id)(Id id) { mixin(S_TRACE);
+	private bool idChange(Id)(Id id) { mixin(S_TRACE);
 		foreach (v; this.tupleof) { mixin(S_TRACE);
 			idChangeImpl(v, id);
 		}
+		return true;
 	}
-	override void change(PathId id) {idChange(id);}
-	override void change(AreaId id) {idChange(id);}
-	override void change(BattleId id) {idChange(id);}
-	override void change(PackageId id) {idChange(id);}
-	override void change(FlagId id) {idChange(id);}
-	override void change(StepId id) {idChange(id);}
-	override void change(CastId id) {idChange(id);}
-	override void change(ItemId id) {idChange(id);}
-	override void change(SkillId id) {idChange(id);}
-	override void change(BeastId id) {idChange(id);}
-	override void change(InfoId id) {idChange(id);}
-	override void change(CouponId id) {idChange(id);}
-	override void change(GossipId id) {idChange(id);}
-	override void change(CompleteStampId id) {idChange(id);}
-	override void change(KeyCodeId id) {idChange(id);}
-	override void change(CellNameId id) {idChange(id);}
+	override bool change(PathId id) { return idChange(id); }
+	override bool change(AreaId id) { return idChange(id); }
+	override bool change(BattleId id) { return idChange(id); }
+	override bool change(PackageId id) { return idChange(id); }
+	override bool change(FlagId id) { return idChange(id); }
+	override bool change(StepId id) { return idChange(id); }
+	override bool change(CastId id) { return idChange(id); }
+	override bool change(ItemId id) { return idChange(id); }
+	override bool change(SkillId id) { return idChange(id); }
+	override bool change(BeastId id) { return idChange(id); }
+	override bool change(InfoId id) { return idChange(id); }
+	override bool change(CouponId id) { return idChange(id); }
+	override bool change(GossipId id) { return idChange(id); }
+	override bool change(CompleteStampId id) { return idChange(id); }
+	override bool change(KeyCodeId id) { return idChange(id); }
+	override bool change(CellNameId id) { return idChange(id); }
 
 	// テキスト内で使用されているfont_X.png等のパス。
 	@property
@@ -2532,7 +2534,7 @@ public:
 		if (_change) _change();
 	}
 
-	override void change(KeyCodeId id) { }
+	override bool change(KeyCodeId id) { return true; }
 
 	/// スタートコンテントのみが含まれている場合はtrue。
 	@property

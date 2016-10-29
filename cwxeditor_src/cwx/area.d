@@ -223,8 +223,8 @@ public:
 		_user.removeUseCounter();
 		super.removeUseCounter();
 	}
-	override void change(FlagId id) { mixin(S_TRACE);
-		_user.change(id);
+	override bool change(FlagId id) { mixin(S_TRACE);
+		return _user.change(id);
 	}
 
 	/// 指定されたノードにProperty情報を追加する。
@@ -370,8 +370,8 @@ public:
 		_user.removeUseCounter();
 		super.removeUseCounter();
 	}
-	override void change(CastId id) { mixin(S_TRACE);
-		_user.change(id);
+	override bool change(CastId id) { mixin(S_TRACE);
+		return _user.change(id);
 	}
 
 	static EnemyCard[] createCardsFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
@@ -597,10 +597,11 @@ public:
 		}
 		super.removeUseCounter();
 	}
-	override void change(PathId id) { mixin(S_TRACE);
+	override bool change(PathId id) { mixin(S_TRACE);
 		foreach (path; _paths) { mixin(S_TRACE);
 			path.change(id);
 		}
+		return true;
 	}
 
 	/// メニューカード以外のカードデータからメニューカードを生成する。
@@ -1584,8 +1585,8 @@ public:
 		super.removeUseCounter();
 	}
 
-	override void change(PathId id) { mixin(S_TRACE);
-		_music.change(id);
+	override bool change(PathId id) { mixin(S_TRACE);
+		return _music.change(id);
 	}
 
 	@property

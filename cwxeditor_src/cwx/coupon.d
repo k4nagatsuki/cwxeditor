@@ -64,8 +64,8 @@ public:
 		_coupon.removeUseCounter();
 	}
 	/// クーポン名の変更を通知する。
-	void change(CouponId id) { mixin(S_TRACE);
-		_coupon.change(id);
+	bool change(CouponId id) { mixin(S_TRACE);
+		return _coupon.change(id);
 	}
 
 	protected override void changed() { }

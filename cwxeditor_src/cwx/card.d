@@ -125,7 +125,7 @@ class CardImage : IPathUser {
 	/// ditto
 	void removeUseCounter() { _path.removeUseCounter(); }
 
-	override void change(PathId newVal) { _path.change(newVal); }
+	override bool change(PathId newVal) { return _path.change(newVal); }
 
 	/// ファイルパス。
 	@property
@@ -477,10 +477,11 @@ public:
 		}
 	}
 	/// 画像パスの変更を通知する。
-	void change(PathId id) { mixin(S_TRACE);
+	bool change(PathId id) { mixin(S_TRACE);
 		foreach (path; _paths) { mixin(S_TRACE);
 			path.change(id);
 		}
+		return true;
 	}
 
 	/// カードID。
@@ -807,7 +808,7 @@ public:
 		return copy;
 	}
 
-	override void change(CouponId id) { }
+	override bool change(CouponId id) { return true; }
 
 	/// 使用回数カウンタ。
 	@property
@@ -1869,7 +1870,7 @@ public:
 	protected abstract void setUseCounterImpl(UseCounter uc);
 	protected abstract void removeUseCounterImpl();
 
-	override void change(KeyCodeId id) { }
+	override bool change(KeyCodeId id) { return true; }
 
 	@property
 	inout
@@ -2153,7 +2154,7 @@ public:
 		_hold = hold;
 	}
 
-	override void change(SkillId id) { }
+	override bool change(SkillId id) { return true; }
 
 	/// XMLテキストに変換する。
 	const
@@ -2413,7 +2414,7 @@ public:
 		_hold = hold;
 	}
 
-	override void change(ItemId id) { }
+	override bool change(ItemId id) { return true; }
 
 	/// XMLテキストに変換する。
 	const
@@ -2635,7 +2636,7 @@ public:
 		return cast(CastCard)_owner !is null && !useLimit;
 	}
 
-	override void change(BeastId id) { }
+	override bool change(BeastId id) { return true; }
 
 	/// XMLテキストに変換する。
 	const

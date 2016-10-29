@@ -13,6 +13,8 @@ import cwx.menu;
 import cwx.path;
 import cwx.imagesize;
 import cwx.jpy;
+import cwx.msgutils;
+import cwx.textholder;
 
 import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.commons;
@@ -729,10 +731,7 @@ private:
 							} else { mixin(S_TRACE);
 								string p1 = toRelPath(from);
 								string p2 = toRelPath(to);
-								if (_summ.useCounter.get(toPathId(p1)) > 0) { mixin(S_TRACE);
-									_summ.useCounter.change(toPathId(p1), toPathId(p2), true);
-									_summ.changed();
-								}
+								updatePaths(p1, p2);
 								_comm.refPath.call(p1, p2, false);
 								std.file.rename(from, to);
 								foreach (ref jpy; _jpyData) { mixin(S_TRACE);
@@ -918,11 +917,6 @@ private:
 			debugln(e);
 			return null;
 		}
-		void updatePaths(string p1, string p2) { mixin(S_TRACE);
-			if (_summ.useCounter.get(toPathId(p1)) == 0) return;
-			_summ.useCounter.change(toPathId(p1), toPathId(p2));
-			_summ.changed();
-		}
 		string trp = toRelPath(to);
 		if (isdir) { mixin(S_TRACE);
 			string tod = nabs(to);
@@ -961,6 +955,11 @@ private:
 		_comm.refPath.call(frp, trp, isdir);
 		_comm.refUseCount.call();
 		return to;
+	}
+	private void updatePaths(string p1, string p2) { mixin(S_TRACE);
+		if (_summ.useCounter.get(toPathId(p1)) == 0) return;
+		_summ.useCounter.change(toPathId(p1), toPathId(p2));
+		_summ.changed();
 	}
 	void dirsEditEnd(TreeItem itm, Control c) { mixin(S_TRACE);
 		string text = (cast(Text) c).getText();
