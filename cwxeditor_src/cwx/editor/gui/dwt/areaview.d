@@ -479,12 +479,12 @@ private:
 			udb(vs);
 			scope (exit) uda(vs);
 			static if (UseCards) {
-				foreach (i; _cs.keys.sort) { mixin(S_TRACE);
+				foreach (i; std.algorithm.sort(_cs.keys)) { mixin(S_TRACE);
 					appendCardImpl(vs, comm, area, i, _cs[i], true, false, _cChks[i]);
 				}
 			}
 			static if (UseBacks) {
-				foreach (i; _bs.keys.sort) { mixin(S_TRACE);
+				foreach (i; std.algorithm.sort(_bs.keys)) { mixin(S_TRACE);
 					appendBgImageImpl(vs, comm, area, i, _bs[i], true, false, _bChks[i]);
 				}
 			}
@@ -1149,7 +1149,7 @@ private:
 		}
 	}
 	static void upImpl2(T)(AbstractAreaView[] vs, Table[] lists, void delegate(size_t, size_t) swap, int startIndex, int[] indices, int count) { mixin(S_TRACE);
-		indices = indices.sort;
+		std.algorithm.sort(indices);
 		if (!indices.length) return;
 		if (indices[0] != 0) { mixin(S_TRACE);
 			foreach (j; 0 .. count) { mixin(S_TRACE);
@@ -1168,7 +1168,7 @@ private:
 		foreach (v; vs) v.callModEvent();
 	}
 	static void downImpl2(T)(AbstractAreaView[] vs, Table[] lists, void delegate(size_t, size_t) swap, int startIndex, int[] indices, int cardsCount, int count) { mixin(S_TRACE);
-		indices = indices.sort;
+		std.algorithm.sort(indices);
 		if (!indices.length) return;
 		if (indices[$ - 1] + 1 < cardsCount) { mixin(S_TRACE);
 			foreach (j; 0 .. count) { mixin(S_TRACE);
@@ -3442,13 +3442,15 @@ public:
 		int[] cIdcs, bIdcs;
 		static if (UseCards) {
 			if (_viewCards) { mixin(S_TRACE);
-				cIdcs = _cards.getSelectionIndices().sort;
+				cIdcs = _cards.getSelectionIndices();
+				std.algorithm.sort(cIdcs);
 				if (cIdcs.length && cIdcs[0] <= 0) return false;
 			}
 		}
 		static if (UseBacks) {
 			if (_viewBacks) { mixin(S_TRACE);
-				bIdcs = _backs.getSelectionIndices().sort;
+				bIdcs = _backs.getSelectionIndices();
+				std.algorithm.sort(bIdcs);
 				if (bIdcs.length && bIdcs[0] <= 0) return false;
 			}
 		}
@@ -3461,13 +3463,15 @@ public:
 		int[] cIdcs, bIdcs;
 		static if (UseCards) {
 			if (_viewCards) { mixin(S_TRACE);
-				cIdcs = _cards.getSelectionIndices().sort;
+				cIdcs = _cards.getSelectionIndices();
+				std.algorithm.sort(cIdcs);
 				if (cIdcs.length && _cards.getItemCount() - 1 <= cIdcs[$ - 1]) return false;
 			}
 		}
 		static if (UseBacks) {
 			if (_viewBacks) { mixin(S_TRACE);
-				bIdcs = _backs.getSelectionIndices().sort;
+				bIdcs = _backs.getSelectionIndices();
+				std.algorithm.sort(bIdcs);
 				if (bIdcs.length && _backs.getItemCount() - 1 <= bIdcs[$ - 1]) return false;
 			}
 		}
@@ -3485,7 +3489,7 @@ public:
 		static if (UseCards) {
 			if (cards) { mixin(S_TRACE);
 				if (_viewCards) cIdcs = _cards.getSelectionIndices();
-				cIdcs = cIdcs.sort;
+				std.algorithm.sort(cIdcs);
 				if (cIdcs.length && cIdcs[0] < count) { mixin(S_TRACE);
 					count = cIdcs[0];
 				}
@@ -3494,7 +3498,7 @@ public:
 		static if (UseBacks) {
 			if (backs) { mixin(S_TRACE);
 				if (_viewBacks) bIdcs = _backs.getSelectionIndices();
-				bIdcs = bIdcs.sort;
+				std.algorithm.sort(bIdcs);
 				if (bIdcs.length && bIdcs[0] < count) { mixin(S_TRACE);
 					count = bIdcs[0];
 				}
@@ -3548,7 +3552,7 @@ public:
 		static if (UseCards) {
 			if (cards) { mixin(S_TRACE);
 				if (_viewCards) cIdcs = _cards.getSelectionIndices();
-				cIdcs = cIdcs.sort;
+				std.algorithm.sort(cIdcs);
 				if (cIdcs.length && _cards.getItemCount() - count <= cIdcs[$ - 1]) { mixin(S_TRACE);
 					count = _cards.getItemCount() - 1 - cIdcs[$ - 1];
 				}
@@ -3557,7 +3561,7 @@ public:
 		static if (UseBacks) {
 			if (backs) { mixin(S_TRACE);
 				if (_viewBacks) bIdcs = _backs.getSelectionIndices();
-				bIdcs = bIdcs.sort;
+				std.algorithm.sort(bIdcs);
 				if (bIdcs.length && _backs.getItemCount() - count <= bIdcs[$ - 1]) { mixin(S_TRACE);
 					count = _backs.getItemCount() - 1 - bIdcs[$ - 1];
 				}
@@ -4590,7 +4594,8 @@ public:
 		_imgp.gridY = _showGrid ? _gridY : 0;
 	}
 	private int insertIndex(Table list) { mixin(S_TRACE);
-		int[] indices = list.getSelectionIndices().sort;
+		int[] indices = list.getSelectionIndices();
+		std.algorithm.sort(indices);
 		return indices.length ? indices[$ - 1] + 1 : list.getItemCount();
 	}
 	static if (UseCards) {
@@ -5394,7 +5399,7 @@ public:
 	private static void delImpl2(AbstractAreaView[] vs, Commons comm, A area, int[] cIdcs, int[] bIdcs, bool store) { mixin(S_TRACE);
 		if (store && vs.length) vs[0]._undo ~= new UndoDelete(vs[0], comm, area, comm.summary, cIdcs, bIdcs);
 		static if (UseCards) {
-			foreach_reverse (i; cIdcs.sort) { mixin(S_TRACE);
+			foreach_reverse (i; std.algorithm.sort(cIdcs)) { mixin(S_TRACE);
 				foreach (v; vs) { mixin(S_TRACE);
 					removeCard(v, comm, area, v._cardTbl, i);
 				}
@@ -5403,7 +5408,7 @@ public:
 			}
 		}
 		static if (UseBacks) {
-			foreach_reverse (i; bIdcs.sort) { mixin(S_TRACE);
+			foreach_reverse (i; std.algorithm.sort(bIdcs)) { mixin(S_TRACE);
 				foreach (v; vs) { mixin(S_TRACE);
 					removeBack(v, comm, area, v._backTbl, i);
 				}

@@ -57,7 +57,7 @@ import lhafile.lzhlib;
 bool isLhaFile(string fileName) {
     try {
         new LhaFile(fileName);
-    } catch {
+    } catch (Exception) {
         return false;
     }
     return true;
@@ -271,7 +271,7 @@ class LhaFile {
             //print(os_level, year, month, day, hour, minute, second)
             try {
                 date_time = SysTime(DateTime(year, month, day, hour, minute, second));
-            } catch {
+            } catch (Exception) {
                 date_time = SysTime(DateTime(1970, 1, 1));
             }
             create_time = date_time;

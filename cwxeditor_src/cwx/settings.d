@@ -5,6 +5,7 @@ import cwx.perf;
 import cwx.utils : printStackTrace, debugln;
 import cwx.xml;
 
+static import std.algorithm;
 import std.conv;
 import std.string;
 import std.file;
@@ -140,7 +141,7 @@ struct AAProp(Key, Value) {
 	const
 	void toNode(ref XNode node) {
 		auto e = node.newElement(AA_KEY);
-		foreach (key; value.keys.sort) {
+		foreach (key; std.algorithm.sort(value.keys)) {
 			auto c = e.newElement(VALUE_NAME, to!string(value[key]));
 			c.newAttr(KEY_NAME, key);
 		}

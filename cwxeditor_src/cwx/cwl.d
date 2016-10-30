@@ -35,6 +35,7 @@ import cwx.structs;
 import cwx.system;
 
 import std.algorithm : min;
+static import std.algorithm;
 
 private bool sWith(string f, string s, out ulong id) { mixin(S_TRACE);
 	if (!fnstartsWith(f, s)) return false;
@@ -184,14 +185,14 @@ Summary loadLScenario(string p, string skin, const System sys, in LoadOption opt
 	ItemCard[] items = load1.items ~ load2.items;
 	BeastCard[] beasts = load1.beasts ~ load2.beasts;
 	InfoCard[] infos = load1.infos ~ load2.infos;
-	foreach (a; areas.sort) summ.add(a, false);
-	foreach (a; battles.sort) summ.add(a, false);
-	foreach (a; packages.sort) summ.add(a, false);
-	foreach (a; casts.sort) summ.add(a, false);
-	foreach (a; skills.sort) summ.add(a, false);
-	foreach (a; items.sort) summ.add(a, false);
-	foreach (a; beasts.sort) summ.add(a, false);
-	foreach (a; infos.sort) summ.add(a, false);
+	foreach (a; std.algorithm.sort(areas)) summ.add(a, false);
+	foreach (a; std.algorithm.sort(battles)) summ.add(a, false);
+	foreach (a; std.algorithm.sort(packages)) summ.add(a, false);
+	foreach (a; std.algorithm.sort(casts)) summ.add(a, false);
+	foreach (a; std.algorithm.sort(skills)) summ.add(a, false);
+	foreach (a; std.algorithm.sort(items)) summ.add(a, false);
+	foreach (a; std.algorithm.sort(beasts)) summ.add(a, false);
+	foreach (a; std.algorithm.sort(infos)) summ.add(a, false);
 	loadComment(summ);
 	loadImageRef(summ);
 	loadCardRef(summ);
@@ -2314,7 +2315,7 @@ string saveComment(in SData d) { mixin(S_TRACE);
 	if (!d.comment.length) return "";
 	auto node = XNode.create("comments");
 	node.newAttr("dataVersion", 1);
-	foreach (cwxPath; d.comment.keys.sort) { mixin(S_TRACE);
+	foreach (cwxPath; std.algorithm.sort(d.comment.keys)) { mixin(S_TRACE);
 		auto e = node.newElement("comment", d.comment[cwxPath]);
 		e.newAttr("path", cwxPath);
 	}
@@ -2326,7 +2327,7 @@ string saveImageRef(in SData d) { mixin(S_TRACE);
 	if (!d.imageRef.length) return "";
 	auto node = XNode.create("imageRefs");
 	node.newAttr("dataVersion", 1);
-	foreach (cwxPath; d.imageRef.keys.sort) { mixin(S_TRACE);
+	foreach (cwxPath; std.algorithm.sort(d.imageRef.keys)) { mixin(S_TRACE);
 		auto e = node.newElement("imageRef", encodePath(d.imageRef[cwxPath]));
 		e.newAttr("path", cwxPath);
 	}
@@ -2337,11 +2338,11 @@ string saveCardRef(in SData d) { mixin(S_TRACE);
 	if (!d.cardRef.length && !d.maxNest.length) return "";
 	auto node = XNode.create("cardRefs");
 	node.newAttr("dataVersion", 1);
-	foreach (cwxPath; d.maxNest.keys.sort) { mixin(S_TRACE);
+	foreach (cwxPath; std.algorithm.sort(d.maxNest.keys)) { mixin(S_TRACE);
 		auto e = node.newElement("maxNest", .text(d.maxNest[cwxPath]));
 		e.newAttr("path", cwxPath);
 	}
-	foreach (cwxPath; d.cardRef.keys.sort) { mixin(S_TRACE);
+	foreach (cwxPath; std.algorithm.sort(d.cardRef.keys)) { mixin(S_TRACE);
 		auto e = node.newElement("cardRef", .text(d.cardRef[cwxPath]));
 		e.newAttr("path", cwxPath);
 	}

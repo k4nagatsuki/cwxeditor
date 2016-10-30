@@ -25,6 +25,7 @@ import cwx.editor.gui.dwt.incsearch;
 import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.splitpane;
 
+static import std.algorithm;
 import std.algorithm : max, min, map;
 import std.range;
 import std.array;
@@ -888,7 +889,7 @@ package class UndoInsertDelete : FTVUndo {
 			_stepName ~= s.name;
 			dir.add(s);
 		}
-		foreach (index; _ds.keys.sort) { mixin(S_TRACE);
+		foreach (index; std.algorithm.sort(_ds.keys)) { mixin(S_TRACE);
 			auto d = _ds[index];
 			_dirIndices ~= index;
 			dir.insert(index, d);

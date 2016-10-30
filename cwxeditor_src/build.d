@@ -252,8 +252,8 @@ void build(string[] args) {
 	// ビルドフラグ
 	string[] test, option, dmdOption;
 	divide(args[1 .. $], test, option, dmdOption);
-	test = test.sort;
-	option = option.sort;
+	.sort(test);
+	.sort(option);
 	bool help = option.has("help");
 	bool release = option.has("release");
 	bool console = option.has("cui");
@@ -338,7 +338,7 @@ void build(string[] args) {
 	if (critical.length) {
 		exec(cmd ~ CRITICAL_FLAGS ~ res ~ critical ~ "-odobjs" ~ dmdOption);
 	}
-	static immutable mscoffbug = 2068 <= __VERSION__ && __VERSION__ <= 2071;
+	static immutable mscoffbug = 2068 <= __VERSION__ && __VERSION__ <= 2072;
 	static if (mscoffbug) {
 		// Internal error: backend\mscoffobj.c 2176 by dmd 2.068-2.069
 		// まとめてコンパイルするとエラーが出るため分割する

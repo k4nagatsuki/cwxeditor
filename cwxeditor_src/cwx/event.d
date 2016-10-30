@@ -1069,7 +1069,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			} else if (std.string.isNumeric(name)) { mixin(S_TRACE);
 				try { mixin(S_TRACE);
 					area = to!(ulong)(name);
-				} catch { mixin(S_TRACE);
+				} catch (Exception) { mixin(S_TRACE);
 					printStackTrace();
 					area = 0;
 				}
@@ -1083,7 +1083,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			} else if (std.string.isNumeric(name)) { mixin(S_TRACE);
 				try { mixin(S_TRACE);
 					battle = to!(ulong)(name);
-				} catch { mixin(S_TRACE);
+				} catch (Exception) { mixin(S_TRACE);
 					printStackTrace();
 					battle = 0;
 				}
@@ -1417,7 +1417,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			~ "setValUCs(this._" ~ Name ~ Get ~ ");"
 			~ "setValUCs(val, _uc, this);"
 			~ "_" ~ Name ~ Set ~ " = val;"
-		"}");
+		~ "}");
 		static if (New) {
 			static if (is(T2 == string)) {
 				mixin ("@property const T2 " ~ Name ~ "() {return _" ~ Name ~ " ? _" ~ Name ~ Get ~ " : Def;}");
@@ -2806,7 +2806,8 @@ public:
 		auto s = new HashSet!(uint);
 		foreach (r; _rounds) s.add(r);
 		foreach (r; rounds) s.add(r);
-		rounds = s.toArray().sort;
+		rounds = s.toArray();
+		std.algorithm.sort(rounds);
 		if (rounds != _rounds) { mixin(S_TRACE);
 			changed();
 			_rounds = rounds;
@@ -2818,7 +2819,7 @@ public:
 	void sortRounds() { mixin(S_TRACE);
 		if (!cwx.utils.isSorted(_rounds)) { mixin(S_TRACE);
 			changed();
-			_rounds.sort;
+			std.algorithm.sort(_rounds);
 		}
 	}
 	/// 指定されたラウンドで発火するか。

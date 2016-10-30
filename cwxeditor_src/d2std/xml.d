@@ -2346,7 +2346,7 @@ private
              if (s.startsWith("'yes'") || s.startsWith("\"yes\"")) n = 5;
         else if (s.startsWith("'no'" ) || s.startsWith("\"no\"" )) n = 4;
         else fail("standalone attribute value must be 'yes', \"yes\","
-            " 'no' or \"no\"");
+            ~ " 'no' or \"no\"");
         s = s[n..$];
     }
 
@@ -2682,7 +2682,7 @@ unittest
     catch(CheckException e)
     {
         int n = e.toString().indexOf("end tag name \"genres\" differs"
-            " from start tag name \"genre\"");
+            ~ " from start tag name \"genre\"");
         assert(n != -1);
     }
   }

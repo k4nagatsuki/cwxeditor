@@ -32,32 +32,32 @@ class Msgs : Properties {
 
 	auto dlgTitUsage = Msg("dlgTitUsage", "使い方 - CWXEditor");
 	auto usage = Msg("usage", "使い方: cwxeditor [-help | -putlangfile <PATH> | -conf <PATH>\n"
-		"                   | -create <NAME> [<SKIN>] | -createclassic <NAME> [<PATH>]\n"
-		"                   | -selectfile <PATH> | -noload] <SCENARIO> [<CWXPath ...>]\n"
-		"オプション:\n"
-		"  -help         起動オプションの説明を表示して終了します。\n"
-		"  -putlangfile <PATH> デフォルトの言語設定ファイル<PAHT>を出力して終了します。\n"
-		"  -conf <PATH>  指定されたパスの基本設定ファイルを使用します。\n"
-		"  -create        <NAME> [<SKIN>]  起動後にシナリオを新規作成します。\n"
-		"  -createclassic <NAME> [<PATH>]  起動後、<PATH>で指定されたフォルダに\n"
-		"                                  クラシックなシナリオを新規作成します。\n"
-		"  -selectfile  <PATH> 指定されたファイルをファイルビューで選択します。\n"
-		"  -noload       起動後、前回終了時の編集状態を復元しません。\n"
-		"  <SCENARIO>    起動と同時に指定されたシナリオを開きます。\n"
-		"                (*.wsn/Summary.xml/Summary.wsm/[フォルダ])\n"
-		"OpenID:\n"
-		"  -a <ID>       シナリオを開いた後、<ID>で指定したIDのエリアを開きます。\n"
-		"  -b <ID>       シナリオを開いた後、<ID>で指定したIDのバトルを開きます。\n"
-		"  -p <ID>       シナリオを開いた後、<ID>で指定したIDのパッケージを開きます。\n"
-		"CWXPath:\n"
-		"  <CWXPath>     シナリオを開いた後、<CWXPath>で指定したリソースを開きます。");
+		~ "                   | -create <NAME> [<SKIN>] | -createclassic <NAME> [<PATH>]\n"
+		~ "                   | -selectfile <PATH> | -noload] <SCENARIO> [<CWXPath ...>]\n"
+		~ "オプション:\n"
+		~ "  -help         起動オプションの説明を表示して終了します。\n"
+		~ "  -putlangfile <PATH> デフォルトの言語設定ファイル<PAHT>を出力して終了します。\n"
+		~ "  -conf <PATH>  指定されたパスの基本設定ファイルを使用します。\n"
+		~ "  -create        <NAME> [<SKIN>]  起動後にシナリオを新規作成します。\n"
+		~ "  -createclassic <NAME> [<PATH>]  起動後、<PATH>で指定されたフォルダに\n"
+		~ "                                  クラシックなシナリオを新規作成します。\n"
+		~ "  -selectfile  <PATH> 指定されたファイルをファイルビューで選択します。\n"
+		~ "  -noload       起動後、前回終了時の編集状態を復元しません。\n"
+		~ "  <SCENARIO>    起動と同時に指定されたシナリオを開きます。\n"
+		~ "                (*.wsn/Summary.xml/Summary.wsm/[フォルダ])\n"
+		~ "OpenID:\n"
+		~ "  -a <ID>       シナリオを開いた後、<ID>で指定したIDのエリアを開きます。\n"
+		~ "  -b <ID>       シナリオを開いた後、<ID>で指定したIDのバトルを開きます。\n"
+		~ "  -p <ID>       シナリオを開いた後、<ID>で指定したIDのパッケージを開きます。\n"
+		~ "CWXPath:\n"
+		~ "  <CWXPath>     シナリオを開いた後、<CWXPath>で指定したリソースを開きます。");
 
 	auto dlgTitError = Msg("dlgTitError", "エラー - CWXEditor");
 	auto dlgTitWarning = Msg("dlgTitWarning", "警告 - CWXEditor");
 	auto dlgTitQuestion = Msg("dlgTitQuestion", "確認 - CWXEditor");
 	auto unknownError = Msg("unknownError", "処理の途中でCWXEditorの制作者が意図していないエラーが発生しました。"
-		"データが壊れている可能性を考慮して、シナリオを保存せずに終了する事をお勧めします。\n"
-		"エラーの内容は%1$sに記録されます。");
+		~ "データが壊れている可能性を考慮して、シナリオを保存せずに終了する事をお勧めします。\n"
+		~ "エラーの内容は%1$sに記録されます。");
 	auto shutdown = Msg("shutdown", "強制終了");
 
 	auto targetVersion = Msg("targetVersion", "対象エンジン");

@@ -13,6 +13,7 @@ import cwx.imagesize;
 import cwx.background;
 import cwx.types;
 
+static import std.algorithm;
 import std.array;
 import std.path;
 import std.file;
@@ -180,13 +181,13 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 	// インポート先で重複しないようにエリア・カードのIDを振り直す。
 	void renumbering(T)(in T[] toList, ref T[ulong] list) { mixin(S_TRACE);
 		ulong minId = toList.length ? toList[$-1].id + 1 : 1;
-		foreach (i, id; list.keys().sort) { mixin(S_TRACE);
+		foreach (i, id; std.algorithm.sort(list.keys()).array()) { mixin(S_TRACE);
 			auto a = list[id];
 			a.id = ulong.max - list.length + i;
 			uc.change(T.toID(id), T.toID(a.id));
 		}
 		T[ulong] list2;
-		foreach (i, id; list.keys().sort) { mixin(S_TRACE);
+		foreach (i, id; std.algorithm.sort(list.keys()).array()) { mixin(S_TRACE);
 			auto a = list[id];
 			auto oldId = a.id;
 			a.id = minId;
@@ -265,7 +266,8 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 			void outputRefCard(T)(T c, ref T[ulong] table, in T[] toArr, T delegate(ulong) get) { mixin(S_TRACE);
 				if (opt.hands is ImportTypeIncluded.Exclude) {
 					if (c.linkId) return;
-					auto ids = table.keys().sort;
+					auto ids = table.keys();
+					std.algorithm.sort(ids);
 					auto id = ids.length ? ids[$-1] + 1 : (toArr.length ? toArr[$-1].id + 1 : 1);
 					auto index = cc.indexOf(c);
 					cc.remove(c);
@@ -300,7 +302,8 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 			auto childs = path.cwxChilds;
 			if (auto b = cast(Motion)path) { mixin(S_TRACE);
 				if (opt.beastsInMotions is ImportTypeIncluded.Exclude && b.beast && !b.beast.linkId) { mixin(S_TRACE);
-					auto ids = r.beasts.keys().sort;
+					auto ids = r.beasts.keys();
+					std.algorithm.sort(ids);
 					auto id = ids.length ? ids[$-1] + 1 : 1;
 					auto c = b.beast;
 					auto nc = new BeastCard(c.id, "", [], "");

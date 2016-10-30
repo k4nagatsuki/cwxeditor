@@ -1540,7 +1540,7 @@ public:
 				c.id = index == 0 ? 1L : arr[index - 1].id() + 1L;
 			}
 			arr = arr[0 .. index] ~ c ~ arr[index .. $];
-			ulong chg[ulong];
+			ulong[ulong] chg;
 			for (size_t i = index + 1; i < arr.length; i++) { mixin(S_TRACE);
 				if (arr[i - 1].id == arr[i].id) { mixin(S_TRACE);
 					ulong o = arr[i].id();
@@ -1558,7 +1558,7 @@ public:
 			c.changeHandler = &changeHandler;
 			c.owner = this;
 			c.changed();
-			foreach_reverse (o; chg.keys.sort) { mixin(S_TRACE);
+			foreach_reverse (o; std.algorithm.sort(chg.keys)) { mixin(S_TRACE);
 				_uc.change(ToID(o), ToID(chg[o]));
 			}
 			if (remv) { mixin(S_TRACE);
@@ -2042,7 +2042,7 @@ public:
 				}
 			}
 			// ID順でソート。
-			areas.sort;
+			std.algorithm.sort(areas);
 		}
 	}
 	private void loadXML2(A)(string[string][string] xmls,
@@ -2060,7 +2060,7 @@ public:
 			}
 		}
 		// ID順でソート。
-		areas.sort;
+		std.algorithm.sort(areas);
 	}
 
 	/// XMLを元にしたインスタンス。
@@ -2216,7 +2216,10 @@ public:
 						maxCount = c;
 					}
 				}
-				v = nv.length > 1u ? nv.sort : nv;
+				v = nv;
+				if (1u < nv.length) { mixin(S_TRACE);
+					std.algorithm.sort(v);
+				}
 			}
 		}
 		return r;

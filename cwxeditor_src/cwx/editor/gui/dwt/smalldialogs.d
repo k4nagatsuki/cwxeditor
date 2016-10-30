@@ -28,6 +28,7 @@ import cwx.editor.gui.dwt.settingsdialog;
 
 static import core.stdc.stdlib;
 
+static import std.algorithm;
 import std.string;
 import std.conv;
 import std.path;
@@ -661,15 +662,15 @@ private:
 				strs ~= objName!(typeof(a))(_comm.prop) ~ " - " ~ .text(a.id) ~ "." ~ a.name;
 				_editorTable ~= .text(a.id);
 			}
-			foreach (a; _summ.useCounter.coupon.keys.sort) { mixin(S_TRACE);
+			foreach (a; std.algorithm.sort(_summ.useCounter.coupon.keys)) { mixin(S_TRACE);
 				strs ~= _comm.prop.msgs.coupon ~ " - " ~ a;
 				_editorTable ~= CWXScript.createString(a);
 			}
-			foreach (a; _summ.useCounter.gossip.keys.sort) { mixin(S_TRACE);
+			foreach (a; std.algorithm.sort(_summ.useCounter.gossip.keys)) { mixin(S_TRACE);
 				strs ~= _comm.prop.msgs.gossip ~ " - " ~ a;
 				_editorTable ~= CWXScript.createString(a);
 			}
-			foreach (a; _summ.useCounter.completeStamp.keys.sort) { mixin(S_TRACE);
+			foreach (a; std.algorithm.sort(_summ.useCounter.completeStamp.keys)) { mixin(S_TRACE);
 				strs ~= _comm.prop.msgs.completeStamp ~ " - " ~ a;
 				_editorTable ~= CWXScript.createString(a);
 			}
@@ -1075,7 +1076,7 @@ class ImportResultDialog : AbsDialog {
 		putVars(_prop.images.flag, _result.flags);
 		putVars(_prop.images.step, _result.steps);
 		void putRes(T)(T[ulong] table) { mixin(S_TRACE);
-			foreach (id; table.keys.sort) { mixin(S_TRACE);
+			foreach (id; std.algorithm.sort(table.keys)) { mixin(S_TRACE);
 				auto itm = new TableItem(_list, SWT.NONE);
 				Image icon, icon2;
 				string text, text2;
@@ -1114,7 +1115,7 @@ class ImportResultDialog : AbsDialog {
 		putVars(_prop.images.flag, _result.flags, result2.flags);
 		putVars(_prop.images.step, _result.steps, result2.steps);
 		void putRes(T)(T[ulong] table, ref T[ulong] table2) { mixin(S_TRACE);
-			foreach (id; table.keys.sort) { mixin(S_TRACE);
+			foreach (id; std.algorithm.sort(table.keys)) { mixin(S_TRACE);
 				if (_list.getItem(i).getChecked()) table2[id] = table[id];
 				i++;
 			}

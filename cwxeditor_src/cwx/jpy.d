@@ -192,7 +192,7 @@ private {
 		auto sg = value[3 .. 5];
 		auto sb = value[5 .. 7];
 		try { mixin(S_TRACE);
-			return CRGB(toImpl!int(sr, 16), toImpl!int(sg, 16), toImpl!int(sb, 16));
+			return CRGB(.to!int(sr, 16), .to!int(sg, 16), .to!int(sb, 16));
 		} catch (Exception e) {
 			printStackTrace();
 			debugln(e);

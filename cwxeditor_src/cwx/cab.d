@@ -614,7 +614,7 @@ version (Windows) {
 	extern (Windows) {
 		private immutable _A_NAME_IS_UTF = 0x80;
 		private struct CFHEADER {
-			BYTE signature[4];
+			BYTE[4] signature;
 			DWORD reserved1;
 			DWORD cbCabinet;
 			DWORD reserved2;
@@ -635,7 +635,7 @@ version (Windows) {
 			WORD date;
 			WORD time;
 			WORD attribs;
-			BYTE szName[0];
+			BYTE[0] szName;
 		}
 	}
 } else {

@@ -41,6 +41,7 @@ import cwx.editor.gui.dwt.scripterrordialog;
 import cwx.editor.gui.dwt.incsearch;
 import cwx.editor.gui.dwt.etcsettings;
 
+static import std.algorithm;
 import std.algorithm : max, min, map;
 import std.path;
 import std.file;
@@ -365,7 +366,7 @@ private:
 				_language.add(_prop.msgs.defaultSelection(_prop.msgs.languageSystem));
 				_language.select(0);
 				string curLocale = _prop.msgs.locale;
-				foreach (locale; msgsTable.keys.sort) { mixin(S_TRACE);
+				foreach (locale; std.algorithm.sort(msgsTable.keys)) { mixin(S_TRACE);
 					_language.add(msgsTable[locale].localeName);
 					int index = _language.getItemCount() - 1;
 					_msgsTableIndex[index] = locale;
@@ -1919,7 +1920,8 @@ private:
 				del(e);
 			}
 			private string copyImpl() { mixin(S_TRACE);
-				auto indices = _featureName.getSelectionIndices().sort;
+				auto indices = _featureName.getSelectionIndices();
+				std.algorithm.sort(indices);
 				if (!indices.length) return [];
 				string text;
 				int i = 0;
@@ -1943,7 +1945,8 @@ private:
 				pasteImpl(a.array);
 			}
 			void pasteImpl(in char[] array) { mixin(S_TRACE);
-				auto indices = _featureName.getSelectionIndices().sort;
+				auto indices = _featureName.getSelectionIndices();
+				std.algorithm.sort(indices);
 				if (!indices.length) return;
 				int i = indices[0];
 				auto linesu = array.splitLines();

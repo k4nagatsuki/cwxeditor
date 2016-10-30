@@ -35,6 +35,7 @@ import cwx.editor.gui.dwt.chooser;
 import cwx.editor.gui.dwt.areaviewutils;
 import cwx.editor.gui.dwt.images;
 
+static import std.algorithm;
 import std.algorithm : map, max, remove;
 import std.string;
 import std.array;
@@ -302,7 +303,7 @@ private:
 			uint[] rounds;
 		}
 		private Vals _vals;
-		private bool _expand[EventTreeOwner];
+		private bool[EventTreeOwner] _expand;
 		this (Commons comm, EventTreeOwner area, EventTree tree) { mixin(S_TRACE);
 			super (comm, area);
 			auto eto = tree.owner;
@@ -1603,7 +1604,8 @@ public:
 	}
 	private void downCard(int[] indices, int count) { mixin(S_TRACE);
 		initial();
-		udCard(indices.reverse, &treeItemDown, 1, count);
+		std.algorithm.reverse(indices);
+		udCard(indices, &treeItemDown, 1, count);
 	}
 	private bool _initialed = false;
 	bool initial() { mixin(S_TRACE);

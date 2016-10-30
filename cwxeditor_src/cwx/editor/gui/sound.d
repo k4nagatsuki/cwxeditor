@@ -85,7 +85,7 @@ version (Windows) {
 				auto stop = ("stop " ~ to!wstring(name) ~ "\0"w).ptr;
 				_mciSendString(stop, null, 0, null);
 			}
-		} catch {
+		} catch (Exception) {
 			// 例外を握りつぶす
 		}
 		return DefWindowProcW(hWnd, message, wParam, lParam);
@@ -1019,7 +1019,7 @@ version (Windows) {
 			DWORD Data1;
 			WORD Data2;
 			WORD Data3;
-			BYTE Data4[8];
+			BYTE[8] Data4;
 		}
 		struct BASS_MIDI_FONT {
 			HSOUNDFONT font;

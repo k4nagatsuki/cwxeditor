@@ -3415,7 +3415,7 @@ fi`;
 		Symbol id(in InfoCard a, ulong id) {return idVar!("info")(a, id, _infos, _infosR);}
 		private static string[] vars(in string[ulong] arr) { mixin(S_TRACE);
 			string[] r;
-			foreach (id; arr.keys.sort) { mixin(S_TRACE);
+			foreach (id; std.algorithm.sort(arr.keys)) { mixin(S_TRACE);
 				r ~= arr[id] ~ " = " ~ to!(string)(id);
 			}
 			return r;

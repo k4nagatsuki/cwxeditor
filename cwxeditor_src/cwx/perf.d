@@ -39,7 +39,7 @@ debug {
 		}
 
 		__gshared ulong utperf = 0;
-		__gshared ulong t[1024u];
+		__gshared ulong[1024u] t;
 		shared static ~this () {
 			foreach (i, time; t) {
 				if (time > 0u) {

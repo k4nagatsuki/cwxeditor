@@ -126,6 +126,7 @@ private:
 			if (auto o = cast(inout BeastOwner)owner) {
 				return cast(inout(Card)[])(o.beasts);
 			}
+			break;
 		case CardType.Info:
 			if (auto o = cast(inout InfoOwner)owner) {
 				return cast(inout(Card)[])(o.infos);
@@ -765,7 +766,8 @@ private:
 		this (CardPane v, Commons comm, CWXPath owner, ulong[] ids, bool insert) { mixin(S_TRACE);
 			super (v, comm, owner);
 			_insert = insert;
-			_ids = ids.dup.sort;
+			_ids = ids.dup;
+			std.algorithm.sort(_ids);
 
 			if (!insert) { mixin(S_TRACE);
 				initUndoDelete();

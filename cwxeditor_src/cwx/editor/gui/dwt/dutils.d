@@ -45,6 +45,7 @@ import cwx.editor.gui.dwt.absdialog;
 
 import core.thread;
 
+static import std.algorithm;
 import std.algorithm : max, min;
 import std.array;
 import std.conv;
@@ -1419,7 +1420,8 @@ int[] toTreePath(TreeItem itm) { mixin(S_TRACE);
 		itm = par;
 	}
 	r ~= itm.getParent().indexOf(itm);
-	return r.reverse;
+	std.algorithm.reverse(r);
+	return r;
 }
 
 TreeItem fromTreePath(Tree tree, in int[] path) { mixin(S_TRACE);

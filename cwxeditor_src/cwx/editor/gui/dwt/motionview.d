@@ -249,12 +249,12 @@ private:
 	string[MType] _descs;
 
 	Table _motionElm;
-	Button _dmgTyp[DamageType];
+	Button[DamageType] _dmgTyp;
 	Scale _abiVal;
 	Spinner _rndRound;
 	Spinner _abiRound;
 	Spinner _valValue;
-	Button _skillPowerType[DamageType];
+	Button[DamageType] _skillPowerType;
 	Spinner _skillPowerValue;
 	Image[TypeInfo] _imgMsns;
 	Image[Element] _imgElm;

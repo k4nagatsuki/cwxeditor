@@ -547,7 +547,7 @@ class TableSorter(DataT) {
 			r.cursor = cursor && _col is cursor.getRow();
 			arr[i] = r;
 		}
-		arr.sort;
+		std.algorithm.sort(arr);
 		for (int i = 0; i < itms.length; i++) { mixin(S_TRACE);
 			auto c = arr[i];
 			auto row = tbl.getItem(i);

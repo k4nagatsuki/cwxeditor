@@ -29,6 +29,7 @@ import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.chooser;
 
+static import std.algorithm;
 import std.algorithm : map;
 import std.array;
 import std.datetime;
@@ -261,7 +262,7 @@ class CouponView(CVType Type) : Composite {
 	private bool canUp() { mixin(S_TRACE);
 		if (_readOnly) return false;
 		auto indices = _coupons.getSelectionIndices();
-		indices.sort;
+		std.algorithm.sort(indices);
 		return indices.length && 0 < indices[0];
 	}
 	private void upCoupon() { mixin(S_TRACE);
@@ -271,7 +272,7 @@ class CouponView(CVType Type) : Composite {
 		if (_tte1.isEditing) _tte1.enter();
 		if (_tte2.isEditing) _tte2.enter();
 		auto indices = _coupons.getSelectionIndices();
-		indices.sort;
+		std.algorithm.sort(indices);
 		storeCoupons();
 		foreach (index; indices) { mixin(S_TRACE);
 			_coupons.upItem(index);
@@ -284,7 +285,7 @@ class CouponView(CVType Type) : Composite {
 	private bool canDown() { mixin(S_TRACE);
 		if (_readOnly) return false;
 		auto indices = _coupons.getSelectionIndices();
-		indices.sort;
+		std.algorithm.sort(indices);
 		return indices.length && indices[$ - 1] + 1 < _coupons.getItemCount();
 	}
 	private void downCoupon() { mixin(S_TRACE);
@@ -294,7 +295,7 @@ class CouponView(CVType Type) : Composite {
 		if (_tte1.isEditing) _tte1.enter();
 		if (_tte2.isEditing) _tte2.enter();
 		auto indices = _coupons.getSelectionIndices();
-		indices.sort;
+		std.algorithm.sort(indices);
 		storeCoupons();
 		foreach_reverse (index; indices) { mixin(S_TRACE);
 			_coupons.downItem(index);
@@ -312,7 +313,7 @@ class CouponView(CVType Type) : Composite {
 		foreach (itm; _coupons.getItems()) { mixin(S_TRACE);
 			coupons ~= cast(Coupon)itm.getData();
 		}
-		coupons.reverse;
+		std.algorithm.reverse(coupons);
 		foreach (i, itm; _coupons.getItems()) { mixin(S_TRACE);
 			auto coupon = coupons[i];
 			itm.setImage(0, couponImage(coupon.value));

@@ -41,6 +41,7 @@ import cwx.editor.gui.dwt.chooser;
 import cwx.editor.gui.dwt.incsearch;
 import cwx.editor.gui.dwt.imagelistwindow;
 
+static import std.algorithm;
 import std.algorithm : max, sort, uniq;
 import std.array;
 import std.utf;
@@ -2311,7 +2312,8 @@ class PreviewValues : Composite {
 	class ValuesTCPD : TCPD {
 		void cut(SelectionEvent e) { assert (0); };
 		void copy(SelectionEvent e) { mixin(S_TRACE);
-			auto indices = _values.getSelectionIndices().sort;
+			auto indices = _values.getSelectionIndices();
+			std.algorithm.sort(indices);
 			if (!indices.length) return;
 			string text;
 			foreach (sel; indices[0] .. indices[$ - 1] + 1) { mixin(S_TRACE);
@@ -2333,7 +2335,8 @@ class PreviewValues : Composite {
 		void paste(SelectionEvent e) { mixin(S_TRACE);
 			auto a = cast(ArrayWrapperString) _comm.clipboard.getContents(TextTransfer.getInstance());
 			if (!a) return;
-			auto indices = _values.getSelectionIndices().sort;
+			auto indices = _values.getSelectionIndices();
+			std.algorithm.sort(indices);
 			if (!indices.length) return;
 			int i = indices[0];
 			auto linesu = a.array.splitLines();

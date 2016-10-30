@@ -265,7 +265,7 @@ T createKeyCodeCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bo
 
 		auto kcs = summ.useCounter.keyCode.keys;
 		string[] kcs2;
-		foreach (string kc; kcs.sort) { mixin(S_TRACE);
+		foreach (string kc; std.algorithm.sort(kcs)) { mixin(S_TRACE);
 			if (!.contains(stdKCs, kc)) { mixin(S_TRACE);
 				kcs2 ~= kc;
 			}

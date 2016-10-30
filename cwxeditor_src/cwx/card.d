@@ -649,8 +649,8 @@ private:
 	uint _slntRound = 0;
 	uint _faceUpRound = 0;
 	uint _antiMgcRound = 0;
-	int _rEnh[Enhance];
-	uint _rEnhRound[Enhance];
+	int[Enhance] _rEnh;
+	uint[Enhance] _rEnhRound;
 	Coupon[] _coupons;
 	ItemCard[] _items;
 	SkillCard[] _skills;
@@ -1330,7 +1330,7 @@ public:
 				r._items ~= c;
 			};
 			n.parse();
-			r._items.sort;
+			.sort(r._items);
 		};
 		cNode.onTag["SkillCards"] = (ref XNode n) { mixin(S_TRACE);
 			n.onTag[SkillCard.XML_NAME] = (ref XNode n) { mixin(S_TRACE);
@@ -1339,7 +1339,7 @@ public:
 				r._skills ~= c;
 			};
 			n.parse();
-			r._skills.sort;
+			.sort(r._skills);
 		};
 		cNode.onTag["BeastCards"] = (ref XNode n) { mixin(S_TRACE);
 			n.onTag[BeastCard.XML_NAME] = (ref XNode n) { mixin(S_TRACE);
@@ -1348,7 +1348,7 @@ public:
 				r._beasts ~= c;
 			};
 			n.parse();
-			r._beasts.sort;
+			.sort(r._beasts);
 		};
 		cNode.parse();
 		return r;

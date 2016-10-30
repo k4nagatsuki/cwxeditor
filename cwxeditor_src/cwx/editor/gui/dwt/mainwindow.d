@@ -2329,7 +2329,7 @@ private:
 		if (SOUND_TYPE_SAME_BGM == seType) seType = bgmType;
 		version (Windows) {
 			int engineTypeBGM = summary.legacy ? SOUND_TYPE_MCI : SOUND_TYPE_SDL;
-			string sfont[] = [];
+			string[] sfont = [];
 			string sfontDir = "";
 		} else { mixin(S_TRACE);
 			int engineTypeBGM = SOUND_TYPE_SDL;
@@ -4274,7 +4274,9 @@ public:
 				if (_dirWin) { mixin(S_TRACE);
 					return _dirWin.openCWXPath(path, shellActivate);
 				}
-			} default: return false;
+				return false;
+			} default:
+				return false;
 			}
 		}
 		bool r = true;

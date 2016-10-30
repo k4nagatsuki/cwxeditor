@@ -79,8 +79,8 @@ private:
 	Button _automaton;
 	Button _unholy;
 	Button _constructure;
-	Button _res[Element];
-	Button _weak[Element];
+	Button[Element] _res;
+	Button[Element] _weak;
 	int[Physical] _phyTbl;
 	Composite _phyParent;
 	RadarSpinner _phyR = null;

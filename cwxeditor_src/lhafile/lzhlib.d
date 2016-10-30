@@ -200,7 +200,7 @@ bit_stream_reader_init_fileio(ref bit_stream_reader self, ref ByteIO file)
     /* Read ahead data */
     try {
         file.read(read_obj);
-    } catch {
+    } catch (Exception) {
         destroy(read_obj);
         error_no = ERR_VALUE_ERROR;
         goto error;
@@ -296,7 +296,7 @@ bit_stream_reader_fetch(ref bit_stream_reader self, int n)
                 /* read ahead data*/
                 try {
                     self.fp.read(read_obj);
-                } catch {
+                } catch (Exception) {
                     destroy(read_obj);
                     ret = ERR_VALUE_ERROR;
                     goto error;
@@ -376,7 +376,7 @@ bit_stream_writer_flush(ref bit_stream_writer self)
 
             try {
                 self.fp.write(write_obj);
-            } catch {
+            } catch (Exception) {
                 error_no = ERR_IO_ERROR;
                 goto error;
             }
@@ -442,7 +442,7 @@ bit_stream_writer_write(ref bit_stream_writer self, int c)
 
         try {
             self.fp.write(self.write_buf);
-        } catch {
+        } catch (Exception) {
             self.error |= bit_stream_err_type.BIT_STREAM_ERR_OVERFLOW;
         }
 

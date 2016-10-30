@@ -4,6 +4,7 @@ module cwx.path;
 import cwx.perf;
 
 import std.algorithm;
+import std.array;
 import std.conv;
 import std.string;
 import std.typecons : rebindable;
@@ -83,7 +84,7 @@ string[] cpattr(string path) { mixin(S_TRACE);
 } unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	string path = "area:3/event:0/:5/:0/:1;shallow;deep";
-	assert (cpattr(path).sort == ["deep", "shallow"]);
+	assert (std.algorithm.sort(cpattr(path)).array() == ["deep", "shallow"]);
 	path = "area:3/event:0/:5/:0/:1";
 	assert (cpattr(path) == []);
 }

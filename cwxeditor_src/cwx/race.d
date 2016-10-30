@@ -65,11 +65,11 @@ template RaceParam(bool Set) {
 		bool _undead = false; /// 命を持たない
 		bool _unholy = false; /// 不浄な存在
 		bool _weaponRes = false, _magicRes = false; /// 武器・魔法が効かない
-		bool _res[Element];
-		bool _weak[Element];
-		uint _phy[Physical];
-		double _mtl[Mental];
-		int _dEnh[Enhance]; /// デフォルトの能力修正
+		bool[Element] _res;
+		bool[Element] _weak;
+		uint[Physical] _phy;
+		double[Mental] _mtl;
+		int[Enhance] _dEnh; /// デフォルトの能力修正
 	}
 
 	/// rからパラメータをコピーする。

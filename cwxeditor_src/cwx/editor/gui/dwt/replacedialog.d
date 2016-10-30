@@ -38,6 +38,7 @@ import cwx.editor.gui.dwt.incsearch;
 import core.thread;
 static import core.memory;
 
+static import std.algorithm;
 import std.algorithm : map, uniq, swap, count;
 import std.range;
 import std.ascii;
@@ -3127,7 +3128,7 @@ public:
 		_summ.changed();
 	}
 	private void searchCouponImpl(KeyType)(in KeyType[] keys, UseCounter uc, in bool[CWXPath] rangeT, Image delegate() image, ref size_t count) { mixin(S_TRACE);
-		foreach (key; keys.dup.sort) { mixin(S_TRACE);
+		foreach (key; std.algorithm.sort(keys.dup)) { mixin(S_TRACE);
 			if (cancel) break;
 			uint use = 0;
 			foreach (u; uc.values(key)) { mixin(S_TRACE);
