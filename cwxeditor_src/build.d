@@ -490,10 +490,14 @@ void build(string[] args) {
 				"archive.d",
 				"area.d",
 				"background.d",
+			],
+			[
 				"binary.d",
 				"cab.d",
 				"card.d",
 				"coupon.d",
+			],
+			[
 				"cwl.d",
 			],
 			[
@@ -517,8 +521,12 @@ void build(string[] args) {
 				"props.d",
 				"race.d",
 				"script.d",
+			],
+			[
 				"settings.d",
 				"sjis.d",
+			],
+			[
 				"skin.d",
 				"structs.d",
 				"summary.d",
@@ -526,9 +534,17 @@ void build(string[] args) {
 				"textholder.d",
 				"types.d",
 				"usecounter.d",
+			],
+			[
 				"utils.d",
+			],
+			[
 				"variables.d",
+			],
+			[
 				"versioninfo.d",
+			],
+			[
 				"warning.d",
 				"win32res.d",
 				"xml.d",
@@ -538,7 +554,7 @@ void build(string[] args) {
 	foreach (dir, array; files) {
 		if (!array.length) continue;
 		static if (mscoffbug) {
-			if (m64 && release) {
+			if (m64 && !console) {
 				auto splits = new string[][SPLITS_R.length];
 				string[] array2;
 				foreach (file; array) {
