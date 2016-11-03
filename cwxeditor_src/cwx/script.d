@@ -2166,6 +2166,14 @@ fi`;
 			case "next": i++; return StartAction.NextRound;
 			default: throwError(_prop.msgs.scriptErrorInvalidStartAction, attr[i].token);
 			}
+		} else static if (is(T == DeadEventHandling)) {
+			auto value = attrValue(attr[i], varTable, msgWidth);
+			switch (value) {
+			case "donotrun": i++; return DeadEventHandling.DoNotRun;
+			case "run": i++; return DeadEventHandling.Run;
+			case "incardused": i++; return DeadEventHandling.InCardUsed;
+			default: throwError(_prop.msgs.scriptErrorInvalidDeadEventHandling, attr[i].token);
+			}
 		} else static if (is(T == CRGB)) {
 			if (attr[i].type is NodeType.VALUES) { mixin(S_TRACE);
 				auto vals = attr[i].values;
@@ -2843,6 +2851,9 @@ fi`;
 			if (detail.use(CArg.START_ACTION)) { mixin(S_TRACE);
 				c.startAction = parseAttr!(StartAction)(opt, node.attr, i, c.startAction, varTable, 0);
 			}
+			if (detail.use(CArg.DEAD_EVENT_HANDLING)) { mixin(S_TRACE);
+				c.deadEventHandling = parseAttr!(DeadEventHandling)(opt, node.attr, i, c.deadEventHandling, varTable, 0);
+			}
 			Content autoWrap(Content c) { mixin(S_TRACE);
 				if (!c.detail.owner) { mixin(S_TRACE);
 					throwError(_prop.msgs.scriptErrorCanNotHaveContent, node.token);
@@ -3188,6 +3199,13 @@ fi`;
 			case StartAction.Now: attrs ~= "now"; break;
 			case StartAction.CurrentRound: attrs ~= "current"; break;
 			case StartAction.NextRound: attrs ~= "next"; break;
+			default: assert (0);
+			}
+		} else static if (is(T:DeadEventHandling)) {
+			switch (value) {
+			case DeadEventHandling.DoNotRun: attrs ~= "donotrun"; break;
+			case DeadEventHandling.Run: attrs ~= "run"; break;
+			case DeadEventHandling.InCardUsed: attrs ~= "incardused"; break;
 			default: assert (0);
 			}
 		} else static if (is(T : CRGB)) {
@@ -3737,6 +3755,9 @@ fi`;
 			}
 			if (detail.use(CArg.START_ACTION)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.startAction, indentValue, vars);
+			}
+			if (detail.use(CArg.DEAD_EVENT_HANDLING)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.deadEventHandling, indentValue, vars);
 			}
 			bool useIf = c.next.length > 1;
 			bool useSif = c.next.length == 1 && c.next[0].name.length;

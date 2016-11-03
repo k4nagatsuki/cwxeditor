@@ -1332,13 +1332,41 @@ private:
 	Button[CardVisual] _vis;
 	Button[Target.M] _targ;
 
+	private Combo _deadEventHandling;
+	private DeadEventHandling[] _deadEventHandlings;
+
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
 		ws ~= _mview.warnings;
+
+		if (summ) { mixin(S_TRACE);
+			auto deadEventHandling = _deadEventHandlings[_deadEventHandling.getSelectionIndex()];
+			if (deadEventHandling !is DeadEventHandling.DoNotRun && !prop.isTargetVersion(summ, "2")) { mixin(S_TRACE);
+				// Wsn.1以前は死亡イベントの扱いは指定不可
+				ws ~= .tryFormat(prop.msgs.warningDeadEventHandling);
+			}
+		}
+
 		if (_summ && _summ.legacy && _se.filePath != "" && !_se.selectedDefDir) ws ~= prop.msgs.warningNotDefaultSE;
 		warning = ws ~ comm.skin.warningSE(prop.parent, _se.filePath, summ.legacy, _prop.var.etc.targetVersion) ~ _se.warnings;
 	}
+
+	override
+	protected void refDataVersion() { mixin(S_TRACE);
+		if (summ && summ.legacy) { mixin(S_TRACE);
+			auto deadEventHandling = _deadEventHandlings[_deadEventHandling.getSelectionIndex()];
+			if (deadEventHandling !is DeadEventHandling.DoNotRun) { mixin(S_TRACE);
+				_deadEventHandling.select(cast(int)_deadEventHandlings.countUntil(DeadEventHandling.DoNotRun));
+				applyEnabled(true);
+			}
+			_deadEventHandling.setEnabled(false);
+		} else {
+			_deadEventHandling.setEnabled(true);
+		}
+		super.refDataVersion();
+	}
+
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
 		super (comm, prop, shell, summ, CType.EFFECT, parent, evt, true, prop.var.effEvtDlg, true);
@@ -1386,6 +1414,21 @@ protected:
 					_lev.setMaximum(_prop.var.etc.castLevelMax);
 					auto l = new Label(grp, SWT.NONE);
 					l.setText(.tryFormat(_prop.msgs.rangeHint, _lev.getMinimum(), _lev.getMaximum()));
+				}
+				{ mixin(S_TRACE);
+					auto grp = new Group(comp2, SWT.NONE);
+					grp.setText(_prop.msgs.deadEventHandling);
+					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+					grp.setLayout(new CenterLayout);
+					_deadEventHandling = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+					mod(_deadEventHandling);
+					_deadEventHandling.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
+					.listener(_deadEventHandling, SWT.Selection, &refDataVersion);
+					foreach (i, t; EnumMembers!DeadEventHandling) { mixin(S_TRACE);
+						auto s = prop.msgs.deadEventHandlingName(t);
+						_deadEventHandling.add(s);
+						_deadEventHandlings ~= t;
+					}
 				}
 				{ mixin(S_TRACE);
 					auto grp = new Group(comp2, SWT.NONE);
@@ -1495,6 +1538,7 @@ protected:
 			_res[_evt.resist].setSelection(true);
 			_vis[_evt.cardVisual].setSelection(true);
 			_targ[_evt.targetNS.m].setSelection(true);
+			_deadEventHandling.select(cast(int)_deadEventHandlings.countUntil(_evt.deadEventHandling));
 		} else { mixin(S_TRACE);
 			_mview.motions = [];
 			_lev.setSelection(0);
@@ -1504,8 +1548,9 @@ protected:
 			_res[Resist.UNFAIL].setSelection(true);
 			_vis[CardVisual.NONE].setSelection(true);
 			_targ[Target.M.SELECTED].setSelection(true);
+			_deadEventHandling.select(cast(int)_deadEventHandlings.countUntil(DeadEventHandling.DoNotRun));
 		}
-		refreshWarning();
+		refDataVersion();
 	}
 
 	override bool apply() { mixin(S_TRACE);
@@ -1520,6 +1565,7 @@ protected:
 		_evt.resist = getRadioValue!(Resist)(_res);
 		_evt.cardVisual = getRadioValue!(CardVisual)(_vis);
 		_evt.targetNS = Target(getRadioValue!(Target.M)(_targ), false);
+		_evt.deadEventHandling = _deadEventHandlings[_deadEventHandling.getSelectionIndex()];
 		return true;
 	}
 }

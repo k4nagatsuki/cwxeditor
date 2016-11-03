@@ -3120,7 +3120,8 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 			teff ~= .tryFormat(comm.prop.msgs.ctEffectMotion, comm.prop.msgs.motionName(m.type));
 			if (i + 1 < evt.motions.length) teff ~= " ";
 		}
-		return .tryFormat(comm.prop.msgs.ctEffect, tt, tl, tet, tr, tsf, ts, tsnd, tcv, teff);
+		auto deh = comm.prop.msgs.deadEventHandlingName(evt.deadEventHandling);
+		return .tryFormat(comm.prop.msgs.ctEffect, tt, tl, tet, tr, tsf, ts, tsnd, tcv, teff, deh);
 	} case CType.EFFECT_BREAK: { mixin(S_TRACE);
 		return comm.prop.msgs.ctEffectBreak;
 	} case CType.LINK_START: { mixin(S_TRACE);
