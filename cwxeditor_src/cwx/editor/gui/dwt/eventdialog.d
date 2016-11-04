@@ -1372,7 +1372,7 @@ private:
 	}
 
 	void updateEnabled() { mixin(S_TRACE);
-		_keyCodes.enabled = _ignite.getSelection();
+		_keyCodes.enabled = _ignite.getSelection() || _keyCodes.keyCodes.length;
 		refreshWarning();
 	}
 
@@ -1543,7 +1543,7 @@ protected:
 				_keyCodes = new KeyCodeView(comm, summ, grp, false, &catchMod);
 				_keyCodes.setLayoutData(new GridData(GridData.FILL_BOTH));
 				mod(_keyCodes);
-				_keyCodes.modEvent ~= &refreshWarning;
+				_keyCodes.modEvent ~= &updateEnabled;
 			}
 		}
 
