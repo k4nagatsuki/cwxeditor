@@ -37,6 +37,7 @@ import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.incsearch;
 import cwx.editor.gui.dwt.chooser;
 import cwx.editor.gui.dwt.couponview;
+import cwx.editor.gui.dwt.keycodeview;
 
 import std.algorithm : countUntil;
 import std.array;
@@ -1332,8 +1333,8 @@ private:
 	Button[CardVisual] _vis;
 	Button[Target.M] _targ;
 
-	private Combo _deadEventHandling;
-	private DeadEventHandling[] _deadEventHandlings;
+	Button _ignite;
+	KeyCodeView _keyCodes;
 
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
@@ -1341,30 +1342,38 @@ private:
 		ws ~= _mview.warnings;
 
 		if (summ) { mixin(S_TRACE);
-			auto deadEventHandling = _deadEventHandlings[_deadEventHandling.getSelectionIndex()];
-			if (deadEventHandling !is DeadEventHandling.DoNotRun && !prop.isTargetVersion(summ, "2")) { mixin(S_TRACE);
-				// Wsn.1以前は死亡イベントの扱いは指定不可
-				ws ~= .tryFormat(prop.msgs.warningDeadEventHandling);
+			if (_ignite.getSelection() && !prop.isTargetVersion(summ, "2")) { mixin(S_TRACE);
+				// Wsn.1以前はイベント発火の有無は指定不可
+				ws ~= .tryFormat(prop.msgs.warningIgnite);
 			}
+		}
+		if (!_ignite.getSelection() && _keyCodes.keyCodes.length) { mixin(S_TRACE);
+			ws ~= prop.msgs.warningIgnoreKeyCode;
+		}
+		if (_keyCodes.enabled) { mixin(S_TRACE);
+			ws ~= _keyCodes.warnings;
 		}
 
 		if (_summ && _summ.legacy && _se.filePath != "" && !_se.selectedDefDir) ws ~= prop.msgs.warningNotDefaultSE;
-		warning = ws ~ comm.skin.warningSE(prop.parent, _se.filePath, summ.legacy, _prop.var.etc.targetVersion) ~ _se.warnings;
+		ws ~= comm.skin.warningSE(prop.parent, _se.filePath, summ.legacy, _prop.var.etc.targetVersion) ~ _se.warnings;
+		warning = ws;
 	}
 
 	override
 	protected void refDataVersion() { mixin(S_TRACE);
 		if (summ && summ.legacy) { mixin(S_TRACE);
-			auto deadEventHandling = _deadEventHandlings[_deadEventHandling.getSelectionIndex()];
-			if (deadEventHandling !is DeadEventHandling.DoNotRun) { mixin(S_TRACE);
-				_deadEventHandling.select(cast(int)_deadEventHandlings.countUntil(DeadEventHandling.DoNotRun));
+			if (_ignite.getSelection()) { mixin(S_TRACE);
+				_ignite.setSelection(false);
 				applyEnabled(true);
 			}
-			_deadEventHandling.setEnabled(false);
-		} else {
-			_deadEventHandling.setEnabled(true);
 		}
+		updateEnabled();
 		super.refDataVersion();
+	}
+
+	void updateEnabled() { mixin(S_TRACE);
+		_keyCodes.enabled = _ignite.getSelection();
+		refreshWarning();
 	}
 
 public:
@@ -1414,21 +1423,6 @@ protected:
 					_lev.setMaximum(_prop.var.etc.castLevelMax);
 					auto l = new Label(grp, SWT.NONE);
 					l.setText(.tryFormat(_prop.msgs.rangeHint, _lev.getMinimum(), _lev.getMaximum()));
-				}
-				{ mixin(S_TRACE);
-					auto grp = new Group(comp2, SWT.NONE);
-					grp.setText(_prop.msgs.deadEventHandling);
-					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-					grp.setLayout(new CenterLayout);
-					_deadEventHandling = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
-					mod(_deadEventHandling);
-					_deadEventHandling.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
-					.listener(_deadEventHandling, SWT.Selection, &refDataVersion);
-					foreach (i, t; EnumMembers!DeadEventHandling) { mixin(S_TRACE);
-						auto s = prop.msgs.deadEventHandlingName(t);
-						_deadEventHandling.add(s);
-						_deadEventHandlings ~= t;
-					}
 				}
 				{ mixin(S_TRACE);
 					auto grp = new Group(comp2, SWT.NONE);
@@ -1524,6 +1518,35 @@ protected:
 				}
 			}
 		}
+		auto tabE = new CTabItem(tabf, SWT.NONE);
+		tabE.setText(_prop.msgs.eventIgnite);
+		{ mixin(S_TRACE);
+			auto comp = new Composite(tabf, SWT.NONE);
+			tabE.setControl(comp);
+			comp.setLayout(normalGridLayout(1, true));
+			{ mixin(S_TRACE);
+				auto grp = new Group(comp, SWT.NONE);
+				grp.setText(prop.msgs.igniteTitle);
+				grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				grp.setLayout(normalGridLayout(1, true));
+				_ignite = new Button(grp, SWT.CHECK);
+				mod(_ignite);
+				_ignite.setText(prop.msgs.ignite);
+				.listener(_ignite, SWT.Selection, &updateEnabled);
+			}
+			{ mixin(S_TRACE);
+				auto grp = new Group(comp, SWT.NONE);
+				grp.setText(prop.msgs.keyCodes);
+				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+				grp.setLayout(normalGridLayout(1, true));
+
+				_keyCodes = new KeyCodeView(comm, summ, grp, false, &catchMod);
+				_keyCodes.setLayoutData(new GridData(GridData.FILL_BOTH));
+				mod(_keyCodes);
+				_keyCodes.modEvent ~= &refreshWarning;
+			}
+		}
+
 		tabf.setLayoutData(area.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
@@ -1538,7 +1561,8 @@ protected:
 			_res[_evt.resist].setSelection(true);
 			_vis[_evt.cardVisual].setSelection(true);
 			_targ[_evt.targetNS.m].setSelection(true);
-			_deadEventHandling.select(cast(int)_deadEventHandlings.countUntil(_evt.deadEventHandling));
+			_ignite.setSelection(_evt.ignite);
+			_keyCodes.keyCodes = _evt.keyCodes;
 		} else { mixin(S_TRACE);
 			_mview.motions = [];
 			_lev.setSelection(0);
@@ -1548,7 +1572,8 @@ protected:
 			_res[Resist.UNFAIL].setSelection(true);
 			_vis[CardVisual.NONE].setSelection(true);
 			_targ[Target.M.SELECTED].setSelection(true);
-			_deadEventHandling.select(cast(int)_deadEventHandlings.countUntil(DeadEventHandling.DoNotRun));
+			_ignite.setSelection(false);
+			_keyCodes.keyCodes = [];
 		}
 		refDataVersion();
 	}
@@ -1565,7 +1590,8 @@ protected:
 		_evt.resist = getRadioValue!(Resist)(_res);
 		_evt.cardVisual = getRadioValue!(CardVisual)(_vis);
 		_evt.targetNS = Target(getRadioValue!(Target.M)(_targ), false);
-		_evt.deadEventHandling = _deadEventHandlings[_deadEventHandling.getSelectionIndex()];
+		_evt.ignite = _ignite.getSelection();
+		_evt.keyCodes = _keyCodes.keyCodes;
 		return true;
 	}
 }

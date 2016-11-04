@@ -676,10 +676,18 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				r ~= .tryFormat(prop.msgs.warningStartAction);
 			}
 		}
-		if (cd.use(CArg.DEAD_EVENT_HANDLING)) { mixin(S_TRACE);
-			if (c.deadEventHandling !is DeadEventHandling.DoNotRun && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
-				// Wsn.1以前は死亡イベントの扱いは指定不可
-				r ~= .tryFormat(prop.msgs.warningDeadEventHandling);
+		if (cd.use(CArg.IGNITE)) { mixin(S_TRACE);
+			if (c.ignite && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+				// Wsn.1以前はイベントの発火有無は指定不可
+				r ~= .tryFormat(prop.msgs.warningIgnite);
+			}
+		}
+		if (cd.use(CArg.KEY_CODES)) { mixin(S_TRACE);
+			if (!c.ignite && c.keyCodes.length) { mixin(S_TRACE);
+				r ~= prop.msgs.warningIgnoreKeyCode;
+			}
+			if (c.ignite && prop.sys.isRunaway(c.keyCodes)) { mixin(S_TRACE);
+				r ~= prop.msgs.warningRunawayCard;
 			}
 		}
 	}

@@ -1085,30 +1085,6 @@ string fromStartAction(StartAction t) { mixin(S_TRACE);
 	}
 }
 
-/// 効果コンテントにおける死亡イベントの取り扱い(Wsn.2)。
-enum DeadEventHandling {
-	DoNotRun, /// 発火しない。
-	Run, /// 発火する。
-	InCardUsed, /// 使用時イベントであれば発火する。
-}
-/// ditto
-DeadEventHandling toDeadEventHandling(string name) { mixin(S_TRACE);
-	switch (name) {
-	case "DoNotRun": return DeadEventHandling.DoNotRun;
-	case "Run": return DeadEventHandling.Run;
-	case "InCardUsed": return DeadEventHandling.InCardUsed;
-	default: throw new Exception("Unknown dead event handling: " ~ name);
-	}
-}
-/// ditto
-string fromDeadEventHandling(DeadEventHandling t) { mixin(S_TRACE);
-	final switch (t) {
-	case DeadEventHandling.DoNotRun: return "DoNotRun";
-	case DeadEventHandling.Run: return "Run";
-	case DeadEventHandling.InCardUsed: return "InCardUsed";
-	}
-}
-
 /// コンテントのタイプ。
 enum CType {
 	START,
@@ -1296,7 +1272,8 @@ enum CArg {
 	IGNORE_EFFECT_BOOSTER, /// エフェクトブースター関係のセルを無視する(Wsn.1)。
 	SELECTION_COLUMNS, /// 後続選択肢の列数(Wsn.1)。
 	START_ACTION, /// キャスト同行時の戦闘行動開始タイミング(Wsn.2)。
-	DEAD_EVENT_HANDLING, /// 死亡イベントの取り扱い(Wsn.2)。
+	IGNITE, /// イベントの発火有無(Wsn.2)。
+	KEY_CODES, /// イベント発火のキーコード(Wsn.2)。
 }
 
 /// 後続コンテントのnameの型。

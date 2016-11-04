@@ -550,13 +550,10 @@ class Msgs : Properties {
 	auto startActionNameCurrentRound = Msg("startActionNameCurrentRound", "加入ラウンドから行動");
 	auto startActionNameNextRound = Msg("startActionNameNextRound", "次のラウンドから行動");
 
-	auto deadEventHandling = Msg("deadEventHandling", "死亡イベントの扱い");
-	const string deadEventHandlingName(DeadEventHandling id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(DeadEventHandling, "deadEventHandlingName"));
-	}
-	auto deadEventHandlingNameDoNotRun = Msg("deadEventHandlingNameDoNotRun", "発火しない");
-	auto deadEventHandlingNameRun = Msg("deadEventHandlingNameRun", "発火する");
-	auto deadEventHandlingNameInCardUsed = Msg("deadEventHandlingNameInCardUsed", "使用時イベント中は発火する");
+	auto igniteTitle = Msg("igniteTitle", "イベント発火の有無");
+	auto ignite = Msg("ignite", "効果適用時にキーコードイベントと死亡イベントを発火させる");
+	auto igniteTrue = Msg("igniteTrue", "イベント発火あり");
+	auto igniteFalse = Msg("igniteFalse", "イベント発火無し");
 
 	/// イベント。
 	auto evtArrow = Msg("evtArrow", "イベント編集");
@@ -848,8 +845,10 @@ class Msgs : Properties {
 	auto ctChangeBgImageFile = Msg("ctChangeBgImageFile", "[%1$s]");
 	auto ctEffectSound = Msg("ctEffectSound", "「%1$s」を再生");
 	auto ctEffectNoSound = Msg("ctEffectNoSound", "音声無し");
-	auto ctEffect = Msg("ctEffect", "%1$s レベル%2$s %3$s/%4$s 成功率%5$s%6$s %7$s %8$s 効果 = %9$s 死亡イベント = %10$s");
+	auto ctEffect = Msg("ctEffect", "%1$s レベル%2$s %3$s/%4$s 成功率%5$s%6$s %7$s %8$s 効果 = %9$s %10$s %11$s");
 	auto ctEffectMotion = Msg("ctEffectMotion", "[%1$s]");
+	auto ctKeyCodes = Msg("ctKeyCodes", "キーコード = %1$s");
+	auto ctNoKeyCode = Msg("ctNoKeyCode", "キーコード無し");
 	auto ctEffectBreak = Msg("ctEffectBreak", "効果中断コンテント");
 	auto ctLinkStart = Msg("ctLinkStart", "スタートコンテント「%1$s」へのリンク");
 	auto ctLinkPackage = Msg("ctLinkPackage", "パッケージ「%1$s」へのリンク");
@@ -1779,7 +1778,8 @@ class Msgs : Properties {
 	auto warningCanNotGetSetCoupon = Msg("warningCanNotGetSetCoupon", "システムクーポン「%1$s」を操作する事はできません。"); // Wsn.2
 	auto warningCardImagePosition = Msg("warningCardImagePosition", "イメージの配置形式の指定は、Wsn.2以降の形式のシナリオでしか行えません。"); // Wsn.2
 	auto warningStartAction = Msg("warningStartAction", "戦闘行動開始タイミングの指定は、Wsn.2以降の形式のシナリオしか行えません。"); // Wsn.2
-	auto warningDeadEventHandling = Msg("warningDeadEventHandling", "死亡イベントの扱いの指定は、Wsn.2以降の形式のシナリオしか行えません。"); // Wsn.2
+	auto warningIgnite = Msg("warningIgnite", "イベントの発火有無の指定は、Wsn.2以降の形式のシナリオしか行えません。"); // Wsn.2
+	auto warningIgnoreKeyCode = Msg("warningIgnoreKeyCode", "イベント発火無しに指定されているため、設定されたキーコードは機能しません。"); // Wsn.2
 
 	auto unknownStepValue = Msg("unknownStepValue", "存在しないステップ値(%1$s)");
 
@@ -1793,6 +1793,7 @@ class Msgs : Properties {
 	auto cardProps = Msg("cardProps", "属性");
 	auto settings = Msg("settings", "設定");
 	auto seAndKeyCode = Msg("seAndKeyCode", "効果音/キーコード");
+	auto eventIgnite = Msg("eventIgnite", "イベント発火");
 
 	auto rangeHint = Msg("rangeHint", "(%1$s～%2$s)");
 	auto source = Msg("source", "出典");
@@ -2122,7 +2123,6 @@ class Msgs : Properties {
 	auto scriptErrorSystem = Msg("scriptErrorSystem", "サイズが大きすぎるため、CWXスクリプトをコンパイルできません。");
 	auto scriptErrorInvalidCardImagePosition = Msg("scriptErrorInvalidCardImagePosition", "イメージの配置形式が正しくありません。");
 	auto scriptErrorInvalidStartAction = Msg("scriptErrorInvalidStartAction", "未知の戦闘行動開始タイミングです。"); // Wsn.2
-	auto scriptErrorInvalidDeadEventHandling = Msg("scriptErrorInvalidDeadEventHandling", "未知の死亡イベントの扱いです。"); // Wsn.2
 
 	auto dlgTitScriptVarSet = Msg("dlgTitScriptVarSet", "値が未決定の変数の設定");
 	auto scriptVarSet = Msg("scriptVarSet", "変数に値を入力");

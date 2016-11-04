@@ -128,8 +128,8 @@ private void static_this () { mixin(S_TRACE);
 		CType.CHANGE_AREA:CDetail("Change", "Area", CNextType.NONE, false, [CArg.AREA:_("id"), CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed"]),
 		CType.CHANGE_BG_IMAGE:CDetail("Change", "BgImage", CNextType.NONE, true, [CArg.BG_IMAGES:_(null), CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed"]),
 		CType.EFFECT:CDetail("Effect", "", CNextType.NONE, true, [CArg.SIGNED_LEVEL:_("level"), CArg.TARGET_NS:"targetm", CArg.EFFECT_TYPE:"effecttype", CArg.RESIST:"resisttype",
-			CArg.SUCCESS_RATE:"successrate", CArg.SOUND_PATH:_("sound"), CArg.SOUND_VOLUME:"volume", CArg.SOUND_LOOP_COUNT:"loopcount", CArg.CARD_VISUAL:"visual", CArg.DEAD_EVENT_HANDLING:"deadevent",
-			CArg.MOTIONS:null]),
+			CArg.SUCCESS_RATE:"successrate", CArg.SOUND_PATH:_("sound"), CArg.SOUND_VOLUME:"volume", CArg.SOUND_LOOP_COUNT:"loopcount", CArg.CARD_VISUAL:"visual", CArg.IGNITE:"ignite",
+			CArg.KEY_CODES:null, CArg.MOTIONS:null]),
 		CType.EFFECT_BREAK:CDetail("Effect", "Break", CNextType.NONE, false),
 		CType.LINK_START:CDetail("Link", "Start", CNextType.NONE, false, [CArg.START:"link"]),
 		CType.LINK_PACKAGE:CDetail("Link", "Package", CNextType.NONE, false, [CArg.PACKAGE:"link"]),
@@ -587,7 +587,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		this.selectionColumns = c.selectionColumns;
 		this.startAction = c.startAction;
-		this.deadEventHandling = c.deadEventHandling;
+		this.ignite = c.ignite;
+		this.keyCodes = c.keyCodes.dup;
 
 		Motion[] motions;
 		foreach (m; c.motions) { mixin(S_TRACE);
@@ -724,7 +725,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 			&& selectionColumns == c.selectionColumns
 			&& startAction == c.startAction
-			&& deadEventHandling == c.deadEventHandling
+			&& ignite == c.ignite
+			&& keyCodes == c.keyCodes
 
 			&& motions == c.motions
 
@@ -898,7 +900,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		resetValue!(CArg.SELECTION_COLUMNS, uint, 1)(d, &selectionColumns);
 		resetValue!(CArg.START_ACTION, StartAction, StartAction.NextRound)(d, &startAction);
-		resetValue!(CArg.DEAD_EVENT_HANDLING, DeadEventHandling, DeadEventHandling.DoNotRun)(d, &deadEventHandling);
+		resetValue!(CArg.IGNITE, bool, false)(d, &ignite);
+		resetValue!(CArg.KEY_CODES, string[], [])(d, &keyCodes);
 
 		resetValue!(CArg.MOTIONS, Motion[], [])(d, &motions);
 
@@ -1706,8 +1709,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// キャスト同行時の戦闘行動開始タイミング(Wsn.2)。
 	mixin Prop!(StartAction, "startAction", StartAction.NextRound);
 
-	/// 死亡イベントの取り扱い(Wsn.2)。
-	mixin Prop!(DeadEventHandling, "deadEventHandling", DeadEventHandling.DoNotRun);
+	/// イベントの発火有無(Wsn.2)。
+	mixin Prop!(bool, "ignite", false);
+	/// イベント発火のキーコード(Wsn.2)。
+	mixin Prop!(string[], "keyCodes", []);
 
 	/// 背景画像群。
 	mixin Prop!(BgImage[], "backs", []);
@@ -2030,7 +2035,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		atnPut!(CArg.SELECTION_COLUMNS, "selectionColumns", "")(e, d);
 		atnPut!(CArg.START_ACTION, "startAction", "")(e, d);
-		atnPut!(CArg.DEAD_EVENT_HANDLING, "deadEventHandling", "fromDeadEventHandling")(e, d);
+		atnPut!(CArg.IGNITE, "ignite", "fromBool")(e, d);
 
 		// 多少複雑なもの
 		if (d.use(CArg.MOTIONS)) { mixin(S_TRACE);
@@ -2078,6 +2083,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			} else { mixin(S_TRACE);
 				e.newAttr("random", fromBool(selectionMethod is SelectionMethod.Random));
 			}
+		}
+
+		if (d.use(CArg.KEY_CODES)) { mixin(S_TRACE);
+			e.newElement("KeyCodes", encodeLf(keyCodes, false));
 		}
 	}
 	const
@@ -2240,7 +2249,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		cfnPut!(CArg.IGNORE_EFFECT_BOOSTER, "ignoreEffectBooster", "parseBool")(en, d, r);
 
 		cfnPut!(CArg.SELECTION_COLUMNS, "selectionColumns", "to!(uint)")(en, d, r);
-		cfnPut!(CArg.DEAD_EVENT_HANDLING, "deadEventHandling", "toDeadEventHandling")(en, d, r);
+		cfnPut!(CArg.IGNITE, "ignite", "parseBool")(en, d, r);
 
 		// CardWirthではラウンドイベントで加入したメンバは次ラウンドから
 		// 行動を開始するが、CardWirthPy 1では即時に行動していた。
@@ -2345,6 +2354,12 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			} else { mixin(S_TRACE);
 				r.selectionMethod = parseBool(en.attr("random", false, fromBool(false))) ? SelectionMethod.Random : SelectionMethod.Manual;
 			}
+		}
+
+		if (d.use(CArg.KEY_CODES)) { mixin(S_TRACE);
+			en.onTag["KeyCodes"] = (ref XNode n) { mixin(S_TRACE);
+				r.keyCodes = decodeLf(n.value, true);
+			};
 		}
 
 		if (d.owner) { mixin(S_TRACE);
