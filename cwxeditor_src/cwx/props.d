@@ -36,7 +36,7 @@ public:
 	@property const int summaryDescLine() {return 11;}
 	@property const int summaryPageY() {return 340;}
 	@property const CRGB summaryLevelColor() {return CRGB(32, 128, 128);}
-	@property const CInsets castCardInsets(){return CInsets(18, 11, 18, 11);}
+	@property const CInsets castCardInsets(){return CInsets(18, 11, 18, 10);}
 	@property const CInsets menuCardInsets(){return CInsets(13, 3, 3, 3);}
 	@property const CInsets cardInsets(){return menuCardInsets;}
 	@property const CPoint[] partyCardXY() { mixin(S_TRACE);
