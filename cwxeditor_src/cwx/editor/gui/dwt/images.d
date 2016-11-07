@@ -2935,6 +2935,16 @@ private:
 				drawAlphaImgData();
 			}
 
+			if (_rangeStartPos && _rangeEndPos) { mixin(S_TRACE);
+				int x1 = .min(_rangeStartPos.x, _rangeEndPos.x);
+				int y1 = .min(_rangeStartPos.y, _rangeEndPos.y);
+				int x2 = .max(_rangeStartPos.x, _rangeEndPos.x);
+				int y2 = .max(_rangeStartPos.y, _rangeEndPos.y);
+				int w = x2 - x1;
+				int h = y2 - y1;
+				gc.drawFocus(x1, y1, w, h);
+			}
+
 			e.gc.drawImage(buf, 0, 0, bWidth, bHeight,
 				rect.x, rect.y, _width * _imageScale, _height * _imageScale);
 
@@ -2977,16 +2987,6 @@ private:
 					e.gc.setLineStyle(SWT.LINE_SOLID);
 					drawHLines();
 				}
-			}
-
-			if (_rangeStartPos && _rangeEndPos) { mixin(S_TRACE);
-				int x1 = .min(_rangeStartPos.x, _rangeEndPos.x);
-				int y1 = .min(_rangeStartPos.y, _rangeEndPos.y);
-				int x2 = .max(_rangeStartPos.x, _rangeEndPos.x);
-				int y2 = .max(_rangeStartPos.y, _rangeEndPos.y);
-				int w = x2 - x1;
-				int h = y2 - y1;
-				e.gc.drawFocus(x1 * _imageScale, y1 * _imageScale, w * _imageScale, h * _imageScale);
 			}
 
 			// トグルの描画

@@ -2258,12 +2258,14 @@ private:
 			WIN32_FIND_DATA fd;
 			char[MAX_PATH] buf;
 			DWORD len;
-			auto handle = FindFirstFileW(r"\\.\pipe\cwxeditor_*".toUTFz!(wchar*), &fd);
+			auto handle = FindFirstFileW(r"\\.\pipe\*".toUTFz!(wchar*), &fd);
 			if (handle == INVALID_HANDLE_VALUE) return;
 			scope (exit) FindClose(handle);
 			do {
 				if (!next()) break;
-				auto pipeName = r"\\.\pipe".buildPath(fd.cFileName[0 .. core.stdc.wchar_.wcslen(fd.cFileName.ptr)].to!string);
+				auto fname = fd.cFileName[0 .. core.stdc.wchar_.wcslen(fd.cFileName.ptr)].to!string;
+				if (!std.string.startsWith(fname, "cwxeditor_")) continue;
+				auto pipeName = r"\\.\pipe".buildPath(fname);
 				if (_pipeName == pipeName) continue;
 				auto p = CreateFileW(toUTFz!(wchar*)(pipeName),
 					GENERIC_READ | GENERIC_WRITE, 0, null, OPEN_EXISTING, 0, null);

@@ -536,7 +536,8 @@ private:
 			if (_preview) { mixin(S_TRACE);
 				_preview.draw(_prevPanel.getDisplay(), image, gc, range);
 			}
-			e.gc.drawImage(image, 0, 0);
+			e.gc.drawImage(image, 0, 0, size.x, size.y,
+				0, 0, _prop.s(size.x), _prop.s(size.y));
 		}
 	}
 public:
@@ -582,6 +583,10 @@ protected:
 				gd.heightHint = _prop.var.etc.textCellPreviewHeight;
 				_prevPanel.setLayoutData(gd);
 				.listener(_prevPanel, SWT.Resize, &updatePreview);
+				_comm.refImageScale.add(&updatePreview);
+				.listener(_prevPanel, SWT.Dispose, { mixin(S_TRACE);
+					_comm.refImageScale.remove(&updatePreview);
+				});
 			}
 			{ mixin(S_TRACE);
 				auto grp = new Group(comp, SWT.NONE);
