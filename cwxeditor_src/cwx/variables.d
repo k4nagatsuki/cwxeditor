@@ -478,6 +478,7 @@ class FlexEtcProps : Properties {
 	auto replaceTextEndScenario = Prop!(bool)("replaceTextEndScenario", true);
 	auto replaceTextAreaName = Prop!(bool)("replaceTextAreaName", true);
 	auto replaceTextKeyCode = Prop!(bool)("replaceTextKeyCode", true);
+	auto replaceTextCellName = Prop!(bool)("replaceTextCellName", true);
 	auto replaceTextFile = Prop!(bool)("replaceTextFile", false);
 	auto replaceTextComment = Prop!(bool)("replaceTextComment", true);
 	auto replaceTextJptx = Prop!(bool)("replaceTextJptx", false);

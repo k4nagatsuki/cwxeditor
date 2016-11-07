@@ -292,6 +292,8 @@ private:
 	Button _area;
 	/// キーコード
 	Button _keyCode;
+	/// セル名称
+	Button _cellName;
 	/// ファイル
 	Button _file;
 	/// コメント
@@ -355,6 +357,7 @@ private:
 	bool _endSel;
 	bool _areaSel;
 	bool _keyCodeSel;
+	bool _cellNameSel;
 	bool _fileSel;
 	bool _commentSel;
 	bool _jptxSel;
@@ -934,9 +937,10 @@ private:
 				_end = createB(_prop.msgs.replTextEndScenario, 'D');
 				_area = createB(_prop.msgs.replTextAreaName, 'E');
 				_keyCode = createB(_prop.msgs.replTextKeyCode, 'G');
-				_file = createB(_prop.msgs.replTextFile, 'H');
-				_comment = createB(_prop.msgs.replTextComment, 'I');
-				_jptx = createB(_prop.msgs.replTextJptx, 'K');
+				_cellName = createB(_prop.msgs.replTextCellName, 'H');
+				_file = createB(_prop.msgs.replTextFile, 'I');
+				_comment = createB(_prop.msgs.replTextComment, 'K');
+				_jptx = createB(_prop.msgs.replTextJptx, 'L');
 			}
 			auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
 			sep.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -2176,6 +2180,7 @@ public:
 		_end.setSelection(_prop.var.etc.replaceTextEndScenario);
 		_area.setSelection(_prop.var.etc.replaceTextAreaName);
 		_keyCode.setSelection(_prop.var.etc.replaceTextKeyCode);
+		_cellName.setSelection(_prop.var.etc.replaceTextCellName);
 		_file.setSelection(_prop.var.etc.replaceTextFile);
 		_comment.setSelection(_prop.var.etc.replaceTextComment);
 		_jptx.setSelection(_prop.var.etc.replaceTextJptx);
@@ -2343,6 +2348,7 @@ public:
 			_prop.var.etc.replaceTextEndScenario = _end.getSelection();
 			_prop.var.etc.replaceTextAreaName = _area.getSelection();
 			_prop.var.etc.replaceTextKeyCode = _keyCode.getSelection();
+			_prop.var.etc.replaceTextCellName = _cellName.getSelection();
 			_prop.var.etc.replaceTextFile = _file.getSelection();
 			_prop.var.etc.replaceTextComment = _comment.getSelection();
 			_prop.var.etc.replaceTextJptx = _jptx.getSelection();
@@ -2611,6 +2617,7 @@ public:
 		_endSel = _end.getSelection();
 		_areaSel = _area.getSelection();
 		_keyCodeSel = _keyCode.getSelection();
+		_cellNameSel = _cellName.getSelection;
 		_fileSel = _file.getSelection();
 		_commentSel = _comment.getSelection();
 		_jptxSel = _jptx.getSelection();
@@ -4319,7 +4326,7 @@ public:
 		return false;
 	}
 
-	private bool replKeyCode(C)(CWXPath path, string pathPath, C targ, string targPath, ref size_t count, ref Undo[] uArr) { mixin(S_TRACE);
+	private bool replKeyCode(C)(CWXPath path, lazy string pathPath, C targ, string targPath, ref size_t count, ref Undo[] uArr) { mixin(S_TRACE);
 		if (_keyCodeSel) { mixin(S_TRACE);
 			auto kcs = targ.keyCodes.dup;
 			auto old = targ.keyCodes.dup;
@@ -4335,9 +4342,10 @@ public:
 					targ.keyCodes = kcs;
 				}
 				if (path) { mixin(S_TRACE);
-					if (_replMode) store(path, pathPath, old, kcs.dup, &targ.keyCodes);
+					auto p = pathPath;
+					if (_replMode) store(path, p, old, kcs.dup, &targ.keyCodes);
 					size_t dmy = 0;
-					addResult(path, pathPath, dmy);
+					addResult(path, p, dmy);
 				}
 				return true;
 			}
@@ -4370,7 +4378,7 @@ public:
 		}
 		return false;
 	}
-	private bool replCoupons(C)(CWXPath path, string pathPath, C targ, ref size_t count, ref Undo[] uArr) { mixin(S_TRACE);
+	private bool replCoupons(C)(CWXPath path, lazy string pathPath, C targ, ref size_t count, ref Undo[] uArr) { mixin(S_TRACE);
 		if (_couponSel) { mixin(S_TRACE);
 			auto coupons = targ.coupons.dup;
 			auto old = targ.coupons.dup;
@@ -4386,9 +4394,10 @@ public:
 					targ.coupons = coupons;
 				}
 				if (path) { mixin(S_TRACE);
-					if (_replMode) store(path, pathPath, old, coupons.dup, &targ.coupons);
+					auto p = pathPath;
+					if (_replMode) store(path, p, old, coupons.dup, &targ.coupons);
 					size_t dmy = 0;
-					addResult(path, pathPath, dmy);
+					addResult(path, p, dmy);
 				}
 				return true;
 			}
@@ -4405,6 +4414,9 @@ public:
 			} else { mixin(S_TRACE);
 				r |= repl(null, "", back.flag, &back.flag, count, uArr2);
 			}
+		}
+		if (_cellNameSel) { mixin(S_TRACE);
+			r |= repl(null, "", back.cellName, &back.cellName, count, uArr2);
 		}
 		auto ic = cast(ImageCell) back;
 		if (ic && _fileSel) { mixin(S_TRACE);
@@ -4595,6 +4607,13 @@ public:
 			if (d.use(CArg.TALKER_C)) r |= replImagePaths(e.cardPaths, (paths) { e.cardPaths = paths; }, count, uArr2);
 			if (d.use(CArg.BGM_PATH)) r |= replFilePath(e.bgmPath, &e.bgmPath, count, uArr2);
 			if (d.use(CArg.SOUND_PATH)) r |= replFilePath(e.soundPath, &e.soundPath, count, uArr2);
+		}
+		if (_keyCodeSel) { mixin(S_TRACE);
+			if (d.use(CArg.KEY_CODE)) r |= repl(null, "", e.keyCode, &e.keyCode, count, uArr2);
+			if (d.use(CArg.KEY_CODES)) r |= replKeyCode(e, e.cwxPath(true), e, "", count, uArr2);
+		}
+		if (_cellNameSel) { mixin(S_TRACE);
+			if (d.use(CArg.CELL_NAME)) r |= repl(null, "", e.cellName, &e.cellName, count, uArr2);
 		}
 		if (_commentSel) { mixin(S_TRACE);
 			r |= repl(null, "", e.comment, &e.comment, count, uArr2);
