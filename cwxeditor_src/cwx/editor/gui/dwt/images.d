@@ -2935,6 +2935,9 @@ private:
 				drawAlphaImgData();
 			}
 
+			// FIXME: 以下の選択範囲とトグルの描画は拡大後に行いたいが、
+			//        BitBlt呼び出し後にdrawFocusが効かなくなってしまうので
+			//        仕方なく拡大前に行う。
 			if (_rangeStartPos && _rangeEndPos) { mixin(S_TRACE);
 				int x1 = .min(_rangeStartPos.x, _rangeEndPos.x);
 				int y1 = .min(_rangeStartPos.y, _rangeEndPos.y);
@@ -2943,6 +2946,11 @@ private:
 				int w = x2 - x1;
 				int h = y2 - y1;
 				gc.drawFocus(x1, y1, w, h);
+			}
+
+			// トグルの描画
+			foreach_reverse (fi; drawToggleImgs) { mixin(S_TRACE);
+				fi.drawToggle(gc, 1);
 			}
 
 			e.gc.drawImage(buf, 0, 0, bWidth, bHeight,
@@ -2987,11 +2995,6 @@ private:
 					e.gc.setLineStyle(SWT.LINE_SOLID);
 					drawHLines();
 				}
-			}
-
-			// トグルの描画
-			foreach_reverse (fi; drawToggleImgs) { mixin(S_TRACE);
-				fi.drawToggle(e.gc, _imageScale);
 			}
 		}
 	}
