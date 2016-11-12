@@ -19,6 +19,7 @@ import cwx.editor.gui.dwt.materialselect;
 import cwx.editor.gui.dwt.imagelistwindow;
 import cwx.editor.gui.dwt.imagelayer;
 import cwx.editor.gui.dwt.dmenu;
+import cwx.editor.gui.dwt.undo;
 
 import std.algorithm : max, min;
 import std.file;
@@ -39,10 +40,65 @@ enum CardMode {
 
 /// 画像の選択を行うペイン。
 class ImageSelect(MtType Type, C : Control = Table) {
+	
+	static if (Type == MtType.CARD) {
+		private class ImagesUndo : Undo {
+			private int _imageIndex;
+			private CardImage[] _images;
+			this () { mixin(S_TRACE);
+				store();
+			}
+			void store() { mixin(S_TRACE);
+				assert (_msel.imageIndex < _msel.paths.length, .format("%s < %s", _msel.imageIndex, this.outer.images.length));
+				_imageIndex = _msel.imageIndex;
+				foreach (path; _images) { mixin(S_TRACE);
+					path.removeUseCounter();
+				}
+				_images = [];
+				foreach (path; _msel.paths) { mixin(S_TRACE);
+					path = new CardImage(null, path);;
+					_images ~= path;
+					path.setUseCounter(_summ.useCounter.sub);
+				}
+			}
+			private void impl() { mixin(S_TRACE);
+				_inUndo = true;
+				scope (exit) _inUndo = false;
+				CardImage[] images;
+				auto imageIndex = _imageIndex;
+				foreach (path; _images) { mixin(S_TRACE);
+					images ~= new CardImage(null, path);
+				}
+				store();
+				this.outer.setImages(images, false);
+				_msel.imageIndex = imageIndex;
+				if (_layers) _layers.list.setImages(_msel.paths, imageIndex);
+				refreshImageList();
+			}
+			override
+			void undo() { impl(); }
+			override
+			void redo() { impl(); }
+			override
+			void dispose() { mixin(S_TRACE);
+				foreach (path; _images) { mixin(S_TRACE);
+					path.removeUseCounter();
+				}
+			}
+		}
+		private void store() {
+			_undo ~= new ImagesUndo;
+		}
+		private void refUndoMax() { mixin(S_TRACE);
+			_undo.max = _prop.var.etc.undoMaxEtc;
+		}
+	}
+
 	/// パスの変更時に呼び出される。
 	void delegate()[] modEvent;
 	/// 画像の更新時に呼び出される。
 	void delegate()[] updateImageEvent;
+
 public:
 	/// Params:
 	/// parent = 親。
@@ -140,9 +196,21 @@ public:
 					_img = [];
 				});
 			}
+
+			static if (Type == MtType.CARD) {
+				_undo = new UndoManager(_prop.var.etc.undoMaxEtc);
+				_comm.refUndoMax.add(&refUndoMax);
+				.listener(compr, SWT.Dispose, { mixin(S_TRACE);
+					_comm.refUndoMax.remove(&refUndoMax);
+				});
+				void delegate() store = &this.store;
+			} else {
+				void delegate() store = null;
+			}
+
 			if (defs) { mixin(S_TRACE);
 				_msel = new MaterialSelect!(Type, Combo, C)
-					(comm, prop, summ, _readOnly != 0, &this.refresh, defs, canInclude, isMenuCard);
+					(comm, prop, summ, _readOnly != 0, &this.refresh, defs, canInclude, isMenuCard, _undo, store);
 			} else { mixin(S_TRACE);
 				defs = (included) { mixin(S_TRACE);
 					auto defs = [prop.msgs.defaultSelection(prop.msgs.imageNone)];
@@ -150,7 +218,7 @@ public:
 					return defs;
 				};
 				_msel = new MaterialSelect!(Type, Combo, C)
-					(comm, prop, summ, _readOnly != 0, &this.refresh, defs, canInclude, isMenuCard);
+					(comm, prop, summ, _readOnly != 0, &this.refresh, defs, canInclude, isMenuCard, _undo, store);
 				_msel.indexOfBinPath = (included) => included ? 1 : -1;
 				static if (Type == MtType.CARD) {
 					_msel.valueFromDef = (index, included, binPath) { mixin(S_TRACE);
@@ -233,6 +301,7 @@ public:
 					_layerButton.setToolTipText(_prop.msgs.menuText(MenuID.EditLayers));
 					.listener(_layerButton, SWT.Selection, &editLayers);
 					void update() { mixin(S_TRACE);
+						if (_inUndo) return;
 						if (!_layers) return;
 						_layers.list.images = _msel.paths;
 					}
@@ -336,7 +405,11 @@ public:
 		/// path = 画像のファイルパス。
 		@property
 		void images(CardImage[] paths) { mixin(S_TRACE);
-			_msel.paths = paths;
+			setImages(paths, false);
+		}
+		/// ditto
+		void setImages(CardImage[] paths, bool store) { mixin(S_TRACE);
+			_msel.setPaths(paths, store);
 			_image.redraw();
 		}
 		static struct MaterialPath {
@@ -752,7 +825,7 @@ private:
 					_layers.shell.setActive();
 					return;
 				}
-				_layers = new ImageLayerWindow(_comm, _summ, _mask, _readOnly != 0, _layerButton);
+				_layers = new ImageLayerWindow(_comm, _summ, _mask, _readOnly != 0, _layerButton, _undo, &store);
 				auto cloc = Display.getCurrent().getCursorLocation();
 				cloc.x++;
 				cloc.y++;
@@ -768,7 +841,7 @@ private:
 					_layerName.setText(.tryFormat(_prop.msgs.layerName, _layers.list.selection + 1));
 				};
 				_layers.list.modEvent ~= { mixin(S_TRACE);
-					_msel.paths = _layers.list.images;
+					_msel.setPaths(_layers.list.images, true);
 					refresh();
 				};
 				_layers.list.images = _msel.paths;
@@ -807,5 +880,7 @@ private:
 		ImageLayerWindow _layers = null;
 		Label _layerName = null;
 	}
-	Skin _summSkin;
+	Skin _summSkin = null;
+	UndoManager _undo = null;
+	bool _inUndo = false;
 }

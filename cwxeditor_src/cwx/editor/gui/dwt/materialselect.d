@@ -20,6 +20,7 @@ import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.incsearch;
 import cwx.editor.gui.dwt.timebar;
+import cwx.editor.gui.dwt.undo;
 
 import core.atomic;
 import core.thread;
@@ -63,7 +64,8 @@ class MaterialSelect(MtType Type, D, C) {
 	/// 格納リソースを示すdirsのindexを返す。
 	int delegate(bool included) indexOfBinPath = null;
 
-	this (Commons comm, Props prop, Summary summ, bool readOnly, void delegate() refresh, string[] delegate(bool included) defs, bool canInclude = false, bool isMenuCard = false) { mixin(S_TRACE);
+	this (Commons comm, Props prop, Summary summ, bool readOnly, void delegate() refresh, string[] delegate(bool included) defs, bool canInclude = false, bool isMenuCard = false,
+			UndoManager undo = null, void delegate() store = null) { mixin(S_TRACE);
 		_readOnly = readOnly ? SWT.READ_ONLY : SWT.NONE;
 		_comm = comm;
 		_prop = prop;
@@ -76,6 +78,8 @@ class MaterialSelect(MtType Type, D, C) {
 		static if (Type == MtType.CARD) {
 			_paths = [new CardImage("", CardImagePosition.Default)];
 		}
+		_undo = undo;
+		_store = store;
 	}
 	@property
 	const
@@ -227,6 +231,11 @@ class MaterialSelect(MtType Type, D, C) {
 		if (!_fileList) return;
 		auto menu = new Menu(_fileList.getShell(), SWT.POP_UP);
 		createMenuItem(_comm, menu, MenuID.IncSearch, &startIncSearch, () => !_readOnly);
+		if (_undo) { mixin(S_TRACE);
+			new MenuItem(menu, SWT.SEPARATOR);
+			createMenuItem(_comm, menu, MenuID.Undo, { _undo.undo(); }, &_undo.canUndo);
+			createMenuItem(_comm, menu, MenuID.Redo, { _undo.redo(); }, &_undo.canRedo);
+		}
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.OpenAtFileView, &openFilePath, () => filePath.length > 0 && !_readOnly);
 		createMenuItem(_comm, menu, MenuID.CopyFilePath, &copyFilePath, () => filePath.length > 0);
@@ -259,7 +268,7 @@ class MaterialSelect(MtType Type, D, C) {
 					imageSize(p, w, h);
 					auto cs = _prop.looks.cardSize;
 					if (cs.width != w || cs.height != h) { mixin(S_TRACE);
-						path2("", false);
+						path2("", false, -1, false);
 					}
 				}
 			}
@@ -832,6 +841,12 @@ class MaterialSelect(MtType Type, D, C) {
 		}
 		@property
 		void paths(CardImage[] paths) { mixin(S_TRACE);
+			setPaths(paths, false);
+		}
+		void setPaths(CardImage[] paths, bool store) { mixin(S_TRACE);
+			paths = paths.length ? paths : [new CardImage("", CardImagePosition.Default)];;
+			if (paths == _paths) return;
+
 			_dirs.setRedraw(false);
 			_fileList.setRedraw(false);
 			auto old = _paths;
@@ -843,7 +858,8 @@ class MaterialSelect(MtType Type, D, C) {
 				_dirs.setRedraw(true);
 				_fileList.setRedraw(true);
 			}
-			_paths = paths.length ? paths : [new CardImage("", CardImagePosition.Default)];
+			if (store && _store) _store();
+			_paths = paths;
 			_binPaths.length = _paths.length;
 			bool include = false;
 			foreach (i, path; paths) { mixin(S_TRACE);
@@ -859,16 +875,17 @@ class MaterialSelect(MtType Type, D, C) {
 		}
 		@property
 		void path(string path) { mixin(S_TRACE);
-			path2(path, true);
+			path2(path, true, -1, true);
 		}
-		void path2(string path, bool updateBinImg, ptrdiff_t index = -1) { mixin(S_TRACE);
+		void path2(string path, bool updateBinImg, ptrdiff_t index = -1, bool store = true) { mixin(S_TRACE);
 			if (index < 0) index = _imageIndex;
 			if (this.path(index) == path) return;
+			if (store && _store) _store();
 			scope (exit) {
 				foreach (dlg; modEvent) dlg();
 				refreshButtons();
 			}
-			selectPath(path, index);
+			selectPath(path, index, store);
 			if (updateBinImg) { mixin(S_TRACE);
 				_binPaths[index] = path.isBinImg ? path : "";
 				if (_binPaths[index].length) { mixin(S_TRACE);
@@ -878,9 +895,12 @@ class MaterialSelect(MtType Type, D, C) {
 			updateUseNoCardSizeImage();
 			refreshPaths();
 		}
-		private void selectPath(string path, ptrdiff_t index = -1) { mixin(S_TRACE);
+		private void selectPath(string path, ptrdiff_t index = -1, bool store = true) { mixin(S_TRACE);
 			if (index < 0) index = _imageIndex;
-			_paths[index] = new CardImage(path, _paths[index].positionType);
+			auto p = new CardImage(path, _paths[index].positionType);;
+			if (_paths[index] == p) return;
+			if (store && _store) _store();
+			_paths[index] = p;
 		}
 		private void updateUseNoCardSizeImage() { mixin(S_TRACE);
 			if (useNoCardSizeImage) return;
@@ -930,7 +950,7 @@ class MaterialSelect(MtType Type, D, C) {
 		void path(string path) { mixin(S_TRACE);
 			path2(path, true);
 		}
-		void path2(string path, bool updateBinImg) { mixin(S_TRACE);
+		void path2(string path, bool updateBinImg, ptrdiff_t index = -1, bool store = true) { mixin(S_TRACE);
 			auto old = _path;
 			scope (exit) {
 				if (old != _path) {
@@ -938,7 +958,7 @@ class MaterialSelect(MtType Type, D, C) {
 				}
 				refreshButtons();
 			}
-			selectPath(path);
+			selectPath(path, index, store);
 			static if (Type == MtType.BG_IMG) {
 				if (updateBinImg) { mixin(S_TRACE);
 					_binPaths[_imageIndex] = isBinImg(path) ? path : "";
@@ -949,7 +969,7 @@ class MaterialSelect(MtType Type, D, C) {
 				refDataVersion();
 			}
 		}
-		private void selectPath(string path) { mixin(S_TRACE);
+		private void selectPath(string path, ptrdiff_t index = -1, bool store = true) { mixin(S_TRACE);
 			_path = path;
 		}
 		@property
@@ -1071,10 +1091,10 @@ class MaterialSelect(MtType Type, D, C) {
 				if (valueFromDef) { mixin(S_TRACE);
 					_paths[_imageIndex] = valueFromDef(sel, 0 < binPath.length, binPath);
 				} else { mixin(S_TRACE);
-					path2("", false);
+					path2("", false, -1, true);
 				}
 			} else { mixin(S_TRACE);
-				path2("", false);
+				path2("", false, -1, true);
 			}
 			if (_selDir != sel) { mixin(S_TRACE);
 				foreach (dlg; modEvent) dlg();
@@ -1091,7 +1111,7 @@ class MaterialSelect(MtType Type, D, C) {
 				if (!p) return;
 				if (0 == _fileList.getItemCount()) return;
 				_fileList.select(0);
-				path2(std.path.buildPath(p, _fileList.getItem(0)), false);
+				path2(std.path.buildPath(p, _fileList.getItem(0)), false, -1, true);
 			}
 		}
 		_selDir = sel;
@@ -1208,7 +1228,7 @@ private:
 				_fileList.showSelection();
 			}
 			string p = currentDir;
-			path2(std.path.buildPath(p, file), false);
+			path2(std.path.buildPath(p, file), false, -1, true);
 			_selDir = _dirs.getSelectionIndex();
 			if (_refresh) _refresh();
 		} else { mixin(S_TRACE);
@@ -1223,7 +1243,7 @@ private:
 				p = currentDir;
 			}
 			if (p) { mixin(S_TRACE);
-				selectPath(std.path.buildPath(p, fileText(_fileList.getItem(_fileList.getSelectionIndex()))));
+				selectPath(std.path.buildPath(p, fileText(_fileList.getItem(_fileList.getSelectionIndex()))), -1, true);
 				_selDir = _dirs.getSelectionIndex();
 				if (_refresh) _refresh();
 			}
@@ -1682,7 +1702,7 @@ private:
 				}
 			}
 		} else { mixin(S_TRACE);
-			if (o == this.path) path2(n, false);
+			if (o == this.path) path2(n, false, -1, false);
 			int di = _dirs.getSelectionIndex();
 			auto op = o;
 			if (di >= 0 && cfnmatch(fromViewPath(_dirs.getItems()[di]), dirName(o))) { mixin(S_TRACE);
@@ -1726,10 +1746,10 @@ private:
 		static if (Type == MtType.CARD) {
 			foreach (i, path; _paths) {
 				if (path.type !is CardImageType.File) continue;
-				path2(update(path.path), false, i);
+				path2(update(path.path), false, i, false);
 			}
 		} else {
-			path2(update(path), false);
+			path2(update(path), false, -1, false);
 		}
 	}
 	void refSkin() { mixin(S_TRACE);
@@ -1770,5 +1790,7 @@ private:
 		static if (Type == MtType.BG_IMG) {
 			string[] _binPaths = [""];
 		}
-	} 
+	}
+	UndoManager _undo = null;
+	void delegate() _store = null;
 }

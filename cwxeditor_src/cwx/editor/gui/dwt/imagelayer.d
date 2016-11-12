@@ -17,6 +17,7 @@ import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.dutils;
+import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 
 import std.algorithm : max, min, map;
@@ -36,7 +37,8 @@ class ImageLayerWindow {
 	private ImageLayerList _list = null;
 	private ImageLayerPanel _layerPanel = null;
 
-	this (Commons comm, const Summary summ, bool mask, bool readOnly, Control parent) { mixin(S_TRACE);
+	this (Commons comm, const Summary summ, bool mask, bool readOnly, Control parent,
+			UndoManager undo, void delegate() store) { mixin(S_TRACE);
 		_comm = comm;
 
 		_win = new Shell(parent.getShell(), SWT.TITLE | SWT.RESIZE | SWT.CLOSE | SWT.TOOL);
@@ -56,7 +58,7 @@ class ImageLayerWindow {
 			_layerPanel = new ImageLayerPanel(comm, _win, readOnly);
 		}
 
-		_list = new ImageLayerList(comm, summ, _win, mask, readOnly);
+		_list = new ImageLayerList(comm, summ, _win, mask, undo, store, readOnly);
 		if (_layerPanel) _layerPanel.list = _list;
 		auto lgd = new GridData(GridData.FILL_BOTH);
 		lgd.horizontalSpan = 2;
@@ -156,11 +158,17 @@ class ImageLayerList : Composite, TCPD {
 	private ImageLayerItem[] _items = [];
 	private int _selection = -1;
 
-	this (Commons comm, const Summary summ, Composite parent, bool mask, bool readOnly) { mixin(S_TRACE);
+	private UndoManager _undo = null;
+	private void delegate() _store = null;
+
+	this (Commons comm, const Summary summ, Composite parent, bool mask,
+			UndoManager undo, void delegate() store, bool readOnly) { mixin(S_TRACE);
 		style = SWT.DOUBLE_BUFFERED | SWT.V_SCROLL;
 		if (!readOnly) style |= SWT.BORDER;
 		super (parent, style);
 		_readOnly = readOnly ? SWT.READ_ONLY : SWT.NONE;
+		_undo = undo;
+		_store = store;
 
 		auto d = parent.getDisplay();
 		setBackground(d.getSystemColor(SWT.COLOR_LIST_BACKGROUND));
@@ -175,6 +183,11 @@ class ImageLayerList : Composite, TCPD {
 			auto menu = new Menu(this.getShell(), SWT.POP_UP);
 			createMenuItem(comm, menu, MenuID.AddLayer, &addLayer, &canAddLayer);
 			createMenuItem(comm, menu, MenuID.RemoveLayer, &removeLayer, &canRemoveLayer);
+			if (_undo) { mixin(S_TRACE);
+				new MenuItem(menu, SWT.SEPARATOR);
+				createMenuItem(comm, menu, MenuID.Undo, { _undo.undo(); }, &_undo.canUndo);
+				createMenuItem(comm, menu, MenuID.Redo, { _undo.redo(); }, &_undo.canRedo);
+			}
 			new MenuItem(menu, SWT.SEPARATOR);
 			appendMenuTCPD(comm, menu, this, false, true, true, false, false);
 			new MenuItem(menu, SWT.SEPARATOR);
@@ -281,6 +294,11 @@ class ImageLayerList : Composite, TCPD {
 	@property
 	private Skin summSkin() { mixin(S_TRACE);
 		return _summSkin ? _summSkin : _comm.skin;
+	}
+
+	void setImages(CardImage[] cardPaths, int selection) { mixin(S_TRACE);
+		setImages(cardPaths);
+		this.selection = selection;
 	}
 
 	@property
