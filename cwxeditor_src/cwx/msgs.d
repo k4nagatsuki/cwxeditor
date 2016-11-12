@@ -2217,6 +2217,7 @@ class Msgs : Properties {
 	auto menuTextPasteInsert = Msg("menuTextPasteInsert", "クリップボードから挿入");
 	auto menuTextClone = Msg("menuTextClone", "複製");
 	auto menuTextSelectAll = Msg("menuTextSelectAll", "すべて選択");
+	auto menuTextCopyAll = Msg("menuTextCopyAll", "すべてコピー");
 	auto menuTextToXMLText = Msg("menuTextToXMLText", "コピーしたデータをXMLに変換");
 	auto menuTextTableView = Msg("menuTextTableView", "テーブルビュー");
 	auto menuTextVarView = Msg("menuTextVarView", "状態変数ビュー");

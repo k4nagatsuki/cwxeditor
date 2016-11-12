@@ -1428,6 +1428,7 @@ enum MenuID {
 	PasteInsert,
 	Clone,
 	SelectAll,
+	CopyAll,
 	ToXMLText,
 	TableView,
 	VarView,

@@ -2,6 +2,7 @@
 module cwx.editor.gui.dwt.imagelayer;
 
 import cwx.card;
+import cwx.menu;
 import cwx.skin;
 import cwx.summary;
 import cwx.types;
@@ -29,11 +30,15 @@ import org.eclipse.swt.all;
 
 /// CardImageのリストを管理する。
 class ImageLayerWindow {
+	private Commons _comm = null;
+
 	private Shell _win = null;
 	private ImageLayerList _list = null;
 	private ImageLayerPanel _layerPanel = null;
 
 	this (Commons comm, const Summary summ, bool mask, bool readOnly, Control parent) { mixin(S_TRACE);
+		_comm = comm;
+
 		_win = new Shell(parent.getShell(), SWT.TITLE | SWT.RESIZE | SWT.CLOSE | SWT.TOOL);
 		if (readOnly) { mixin(S_TRACE);
 			_win.setText(comm.prop.msgs.dlgTitImageLayerWindowReadOnly);
@@ -91,12 +96,34 @@ class ImageLayerWindow {
 				}
 			}
 		};
+		auto kdFilter = new KeyDownFilter;
+		d.addFilter(SWT.KeyDown, kdFilter);
 		d.addFilter(SWT.FocusOut, focusFilter);
 		d.addFilter(SWT.Selection, focusFilter);
 		.listener(_win, SWT.Dispose, { mixin(S_TRACE);
+			d.removeFilter(SWT.KeyDown, kdFilter);
 			d.removeFilter(SWT.FocusOut, focusFilter);
 			d.removeFilter(SWT.Selection, focusFilter);
 		});
+	}
+
+	private class KeyDownFilter : Listener {
+		override void handleEvent(Event e) { mixin(S_TRACE);
+			if (!e.doit) return;
+			auto c = cast(Control)e.widget;
+			if (!c || c.isDisposed() || c.getShell() !is shell) return;
+			if (c.getMenu() && findMenu(c.getMenu(), e.keyCode, e.character, e.stateMask)) return;
+			foreach (menu; _list.getMenu().getItems()) { mixin(S_TRACE);
+				auto data = cast(MenuData)menu.getData();
+				if (data) { mixin(S_TRACE);
+					auto acc = convertAccelerator(_comm.prop.buildMenu(data.id));
+					if (eqAcc(acc, e.keyCode, e.character, e.stateMask)) { mixin(S_TRACE);
+						.doMenu(menu, e);
+						break;
+					}
+				}
+			}
+		}
 	}
 
 	@property
@@ -150,6 +177,8 @@ class ImageLayerList : Composite, TCPD {
 			createMenuItem(comm, menu, MenuID.RemoveLayer, &removeLayer, &canRemoveLayer);
 			new MenuItem(menu, SWT.SEPARATOR);
 			appendMenuTCPD(comm, menu, this, false, true, true, false, false);
+			new MenuItem(menu, SWT.SEPARATOR);
+			createMenuItem(comm, menu, MenuID.CopyAll, &copyAll, &canCopyAll);
 			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(comm, menu, MenuID.Up, &upLayer, &canUpLayer);
 			createMenuItem(comm, menu, MenuID.Down, &downLayer, &canDownLayer);
@@ -286,11 +315,26 @@ class ImageLayerList : Composite, TCPD {
 		return _selection;
 	}
 
+	void copyAll() { mixin(S_TRACE);
+		auto node = CardImage.toNode(images);
+		if (_summ) node.newAttr("scenarioPath", nabs(_summ.scenarioPath));
+		XMLtoCB(_comm.prop, _comm.clipboard, node.text);
+		_comm.refreshToolBar();
+	}
+	@property
+	bool canCopyAll() { mixin(S_TRACE);
+		auto defValue = new CardImage("", CardImagePosition.Default);
+		foreach (item; _items) { mixin(S_TRACE);
+			if (item.cardPath != defValue) return true;
+		}
+		return false;
+	}
+
 	override
 	void cut(SelectionEvent se) { }
 	override
 	void copy(SelectionEvent se) { mixin(S_TRACE);
-		auto node = CardImage.toNode(images);
+		auto node = CardImage.toNode(images[selection .. selection + 1]);
 		if (_summ) node.newAttr("scenarioPath", nabs(_summ.scenarioPath));
 		XMLtoCB(_comm.prop, _comm.clipboard, node.text);
 		_comm.refreshToolBar();
@@ -305,14 +349,20 @@ class ImageLayerList : Composite, TCPD {
 				if (!paths.length) return;
 				auto defValue = new CardImage("", CardImagePosition.Default);
 				auto a = images;
-				CardImage[] r;
-				while (a.length && a[$ - 1] == defValue) { mixin(S_TRACE);
-					a = a[0 .. $ - 1];
+				CardImage[] before;
+				CardImage[] after;
+				assert (selection != -1);
+				if (a[selection] == defValue) { mixin(S_TRACE);
+					before = a[0 .. selection];
+					after = a[selection + 1 .. $];
+				} else { mixin(S_TRACE);
+					before = a[0 .. selection];
+					after = a[selection .. $];
 				}
 				paths = qMaterialCopy(node, paths);
-				r = a ~ paths;
+				auto r = before ~ paths ~ after;
 				if (r == a) return;
-				_selection = cast(int)r.length - 1;
+				_selection = cast(int)(before.length + paths.length - 1);
 				setImages(r);
 				showSelection();
 				_comm.refreshToolBar();
@@ -339,10 +389,7 @@ class ImageLayerList : Composite, TCPD {
 	override
 	bool canDoC() { mixin(S_TRACE);
 		auto defValue = new CardImage("", CardImagePosition.Default);
-		foreach (item; _items) { mixin(S_TRACE);
-			if (item.cardPath != defValue) return true;
-		}
-		return false;
+		return _items[selection].cardPath != defValue;
 	}
 	@property
 	override

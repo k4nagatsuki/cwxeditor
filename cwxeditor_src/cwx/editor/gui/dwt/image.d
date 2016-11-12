@@ -498,6 +498,7 @@ public:
 		case MenuID.PasteInsert: return imgd!("paste_insert.png");
 		case MenuID.Clone: return imgd!("clone.png");
 		case MenuID.SelectAll: return imgd!("select_all.png");
+		case MenuID.CopyAll: return imgd!("copy_all.png");
 		case MenuID.ToXMLText: return imgd!("toxml.png");
 		case MenuID.TableView: return imgd!("data_win.png");
 		case MenuID.VarView: return imgd!("flag_win.png");

@@ -3139,6 +3139,7 @@ public:
 						case MenuID.VersionInfo: act = &versionInfo; can = null; break;
 						case MenuID.IncSearch: actS = &doMenu!(MenuID.IncSearch); can = &canDoMenu!(MenuID.IncSearch); break;
 						case MenuID.SelectAll: actS = &doMenu!(MenuID.SelectAll); can = &canDoMenu!(MenuID.SelectAll); break;
+						case MenuID.CopyAll:
 						case MenuID.Undo:
 						case MenuID.Redo:
 						case MenuID.Cut:
@@ -3423,14 +3424,7 @@ public:
 	private void doMenu(MenuID ID)(SelectionEvent e) { mixin(S_TRACE);
 		auto menu = getMenu!ID;
 		if (!menu) return;
-		auto se = new Event;
-		se.type = SWT.Selection;
-		se.widget = menu;
-		se.time = e.time;
-		se.stateMask = e.stateMask;
-		se.doit = e.doit;
-		menu.notifyListeners(SWT.Selection, se);
-		e.doit = false;
+		.doMenu(menu, e);
 	}
 	@property
 	private MenuItem getMenu(MenuID ID)() { mixin(S_TRACE);

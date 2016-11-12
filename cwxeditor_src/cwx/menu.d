@@ -87,6 +87,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.PasteInsert] = "I";
 		_mnemonic[MenuID.Clone] = "L";
 		_mnemonic[MenuID.SelectAll] = "A";
+		_mnemonic[MenuID.CopyAll] = "A";
 		_mnemonic[MenuID.ToXMLText] = "X";
 		_mnemonic[MenuID.TableView] = "D";
 		_mnemonic[MenuID.VarView] = "V";
@@ -304,6 +305,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.PasteInsert] = "Ctrl+Shift+V";
 		_hotkey[MenuID.Clone] = "";
 		_hotkey[MenuID.SelectAll] = "Ctrl+A";
+		_hotkey[MenuID.CopyAll] = "Ctrl+Shift+C";
 		_hotkey[MenuID.ToXMLText] = "";
 		_hotkey[MenuID.TableView] = "";
 		_hotkey[MenuID.VarView] = "";
@@ -719,6 +721,7 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.PasteInsert:
 	case MenuID.Clone:
 	case MenuID.SelectAll:
+	case MenuID.CopyAll:
 	case MenuID.ToXMLText:
 	case MenuID.TableView:
 	case MenuID.VarView:
@@ -1014,6 +1017,7 @@ bool isGlobalMenu(MenuID id) {
 	case MenuID.PasteInsert:
 	case MenuID.Clone:
 	case MenuID.SelectAll:
+	case MenuID.CopyAll:
 	case MenuID.LockToolBar:
 	case MenuID.ResetToolBar:
 	case MenuID.CopyAsText:
@@ -1150,6 +1154,7 @@ bool isLocalMenu(MenuID id) {
 	case MenuID.PasteInsert:
 	case MenuID.Clone:
 	case MenuID.SelectAll:
+	case MenuID.CopyAll:
 	case MenuID.CopyAsText:
 	case MenuID.CreateContent:
 	case MenuID.ConvertContent:

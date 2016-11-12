@@ -876,3 +876,14 @@ void setupToolTips(ToolBar bar, in Props prop) { mixin(S_TRACE);
 	.listener(bar, SWT.MouseExit, &release);
 	.listener(bar, SWT.Dispose, &release);
 }
+
+void doMenu(E)(MenuItem menu, E e) { mixin(S_TRACE);
+	auto se = new Event;
+	se.type = SWT.Selection;
+	se.widget = menu;
+	se.time = e.time;
+	se.stateMask = e.stateMask;
+	se.doit = e.doit;
+	menu.notifyListeners(SWT.Selection, se);
+	e.doit = false;
+}
