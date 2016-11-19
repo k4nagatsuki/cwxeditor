@@ -755,8 +755,8 @@ private:
 			paste(se);
 		}
 		@property bool canDoTCPD() {return true;}
-		@property bool canDoT() {return _dlgsL.getSelectionIndex() > 0;}
-		@property bool canDoC() {return canDoT;}
+		@property bool canDoT() {return 1 < _dlgsL.getItemCount();}
+		@property bool canDoC() {return 0 < _dlgsL.getItemCount();}
 		@property bool canDoP() {return CBisXML(comm.clipboard);}
 		@property bool canDoD() {return canDoT;}
 		@property bool canDoClone() {return canDoC;}
