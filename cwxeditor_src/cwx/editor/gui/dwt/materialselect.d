@@ -77,6 +77,7 @@ class MaterialSelect(MtType Type, D, C) {
 		_isMenuCard = isMenuCard;
 		static if (Type == MtType.CARD) {
 			_paths = [new CardImage("", CardImagePosition.Default)];
+			_binPaths = [""];
 		}
 		_undo = undo;
 		_store = store;
@@ -130,6 +131,7 @@ class MaterialSelect(MtType Type, D, C) {
 		auto menu = new Menu(_dirs.getShell(), SWT.POP_UP);
 		createMenuItem(_comm, menu, MenuID.IncSearch, &startIncSearch, () => !_readOnly && !_loading);
 		_dirs.setMenu(menu);
+		if (_fileList) refreshPaths();
 		return _dirs;
 	}
 	static if (Type == MtType.BGM) {
@@ -225,6 +227,7 @@ class MaterialSelect(MtType Type, D, C) {
 		_incSearch.modEvent ~= { mixin(S_TRACE);
 			refreshList();
 		};
+		if (_dirs) refreshPaths();
 		return _fileList;
 	}
 	private void refreshFileListMenu() { mixin(S_TRACE);
