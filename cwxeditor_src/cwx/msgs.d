@@ -135,6 +135,7 @@ class Msgs : Properties {
 
 	auto image = Msg("image", "イメージ");
 	auto pathDef = Msg("pathDef", "デフォルト");
+	auto pathWsnBasic = Msg("pathWsnBasic", "%1$s 標準");
 	auto imageNone = Msg("imageNone", "イメージ無し");
 	auto fileNone = Msg("fileNone", "ファイルを選択");
 	auto imageIncluding = Msg("imageIncluding", "イメージ格納");

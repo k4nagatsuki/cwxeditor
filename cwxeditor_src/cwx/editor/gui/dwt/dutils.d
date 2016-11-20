@@ -2995,9 +2995,9 @@ string contentTextUseID(CIDKind Kind, ID)(Commons comm, Summary summ, ID id, str
 		noID = comm.prop.msgs.noBGM;
 		find = { mixin(S_TRACE);
 			if (summ) { mixin(S_TRACE);
-				return comm.skin.findPath(id, comm.skin.extBgm, comm.skin.bgmDir, summ.scenarioPath, summ.dataVersion).length > 0;
+				return comm.skin.findPath(id, comm.skin.extBgm, comm.skin.bgmDir, summ.scenarioPath, summ.dataVersion, comm.skin.wsnMusicDirs(summ.dataVersion)).length > 0;
 			} else { mixin(S_TRACE);
-				return comm.skin.findPath(id, comm.skin.extBgm, comm.skin.bgmDir, "", LATEST_VERSION).length > 0;
+				return comm.skin.findPath(id, comm.skin.extBgm, comm.skin.bgmDir, "", LATEST_VERSION, comm.skin.wsnMusicDirs(LATEST_VERSION)).length > 0;
 			}
 		};
 		use = id && id.length;
@@ -3007,9 +3007,9 @@ string contentTextUseID(CIDKind Kind, ID)(Commons comm, Summary summ, ID id, str
 		noID = comm.prop.msgs.noSE;
 		find = { mixin(S_TRACE);
 			if (summ) { mixin(S_TRACE);
-				return comm.skin.findPath(id, comm.skin.extSound, comm.skin.seDir, summ.scenarioPath, summ.dataVersion).length > 0;
+				return comm.skin.findPath(id, comm.skin.extSound, comm.skin.seDir, summ.scenarioPath, summ.dataVersion, comm.skin.wsnSoundDirs(summ.dataVersion)).length > 0;
 			} else { mixin(S_TRACE);
-				return comm.skin.findPath(id, comm.skin.extSound, comm.skin.seDir, "", LATEST_VERSION).length > 0;
+				return comm.skin.findPath(id, comm.skin.extSound, comm.skin.seDir, "", LATEST_VERSION, comm.skin.wsnSoundDirs(LATEST_VERSION)).length > 0;
 			}
 		};
 		use = id && id.length;

@@ -1101,7 +1101,7 @@ public:
 	}
 	static
 	bool isTargetVersionWith(bool legacy, string dataVersion, string ver) { mixin(S_TRACE);
-		return !legacy && XMLOption.isTargetVersion(dataVersion, ver);
+		return !legacy && .isTargetVersion(dataVersion, ver);
 	}
 
 	private void setNamesOne(C : EffectCard)(ref C card, string newAuthor, string newScenario) { mixin(S_TRACE);

@@ -33,3 +33,16 @@ immutable ENGINES = [
 	"CardWirthPy 1",
 	"CardWirthPy 0.12.3",
 ];
+
+/// 指定されたデータバージョンverがシナリオのdataVersion以下か。
+static bool isTargetVersion(string dataVersion, string ver) {
+	static ptrdiff_t[string] VER_TABLE;
+	synchronized {
+		if (VER_TABLE.length == 0) {
+			foreach (i, v; VERSIONS) {
+				VER_TABLE[v] = VERSIONS.length - i;
+			}
+		}
+	}
+	return VER_TABLE.get(ver, int.min) <= VER_TABLE.get(dataVersion, int.max);
+}

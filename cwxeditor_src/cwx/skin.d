@@ -1007,6 +1007,33 @@ class Skin {
 	const
 	const(string[dchar]) spChars() {return _spChars;}
 
+	/// 指定バージョンで使用可能なWSN標準素材が入ったディレクトリ群。
+	const
+	private string[] wsnResDirs(string dName, string wsnVer) { mixin(S_TRACE);
+		if (wsnVer == "" || _enginePath == "" || !_enginePath.exists()) return [];
+		auto engineDir = _enginePath.dirName();
+		string[] r;
+		foreach (ver; VERSIONS) { mixin(S_TRACE);
+			if (ver == "") continue;
+			if (!isTargetVersion(wsnVer, ver)) continue;
+			auto dir = engineDir.buildPath("Data/Materials/Wsn.%s/%s".format(ver, dName));
+			if (dir.exists()) r ~= dir;
+		}
+		return r;
+	}
+	/// ditto
+	@property
+	const
+	string[] wsnTableDirs(string wsnVer) { return wsnResDirs("Table", wsnVer); }
+	/// ditto
+	@property
+	const
+	string[] wsnMusicDirs(string wsnVer) { return wsnResDirs("Bgm", wsnVer); }
+	/// ditto
+	@property
+	const
+	string[] wsnSoundDirs(string wsnVer) { return wsnResDirs("Sound", wsnVer); }
+
 	const
 	private bool has(alias isT, Arg ...)(string dir, bool forceRefresh, Arg args) { mixin(S_TRACE);
 		synchronized (this) { mixin(S_TRACE);
@@ -1051,36 +1078,34 @@ class Skin {
 
 	/// 指定バージョンのWSN標準素材が存在すればtrueを返す。
 	const
-	private bool hasWsnRes(alias isT, Arg...)(string dName, string wsnVer, bool forceRefresh, Arg args) { mixin(S_TRACE);
+	private bool hasWsnRes(alias isT, Arg...)(in string[] dirs, string wsnVer, bool forceRefresh, Arg args) { mixin(S_TRACE);
 		if (wsnVer == "" || !_enginePath.exists()) return false;
 		auto engineDir = _enginePath.dirName();
 		string[] r;
 
-		foreach (ver; VERSIONS) { mixin(S_TRACE);
-			if (ver == "") continue;
-			auto dir = engineDir.buildPath("Data/Materials/Wsn.%s/%s".format(ver, dName));
+		foreach (dir; dirs) { mixin(S_TRACE);
 			if (has!(isT)(dir, forceRefresh, args)) return true;
 		}
 		return false;
 	}
 	const
 	bool hasWsnCardImage(string wsnVer, bool forceRefresh, bool ignoreSize) { mixin(S_TRACE);
-		return hasWsnRes!(isCardImage)("Table", wsnVer, forceRefresh, ignoreSize);
+		return hasWsnRes!(isCardImage)(wsnTableDirs(wsnVer), wsnVer, forceRefresh, ignoreSize);
 	}
 	/// ditto
 	const
 	bool hasWsnBgImage(string wsnVer, bool forceRefresh) { mixin(S_TRACE);
-		return hasWsnRes!(isBgImage)("Table", wsnVer, forceRefresh);
+		return hasWsnRes!(isBgImage)(wsnTableDirs(wsnVer), wsnVer, forceRefresh);
 	}
 	/// ditto
 	const
 	bool hasWsnBGM(string wsnVer, bool forceRefresh) { mixin(S_TRACE);
-		return hasWsnRes!(isBGM)("Bgm", wsnVer, forceRefresh);
+		return hasWsnRes!(isBGM)(wsnMusicDirs(wsnVer), wsnVer, forceRefresh);
 	}
 	/// ditto
 	const
 	bool hasWsnSE(string wsnVer, bool forceRefresh) { mixin(S_TRACE);
-		return hasWsnRes!(isSE)("Sound", wsnVer, forceRefresh);
+		return hasWsnRes!(isSE)(wsnSoundDirs(wsnVer), wsnVer, forceRefresh);
 	}
 
 	const
@@ -1153,14 +1178,12 @@ class Skin {
 
 	/// WSNの標準素材の一覧。
 	const
-	private string[] wsnList(alias isT, bool UseFlag)(string dName, string wsnVer, bool logicalSort, bool forceRefresh, bool ignoreSize) { mixin(S_TRACE);
+	private string[] wsnList(alias isT, bool UseFlag)(in string[] dirs, string wsnVer, bool logicalSort, bool forceRefresh, bool ignoreSize) { mixin(S_TRACE);
 		if (wsnVer == "" || !_enginePath.exists()) return [];
 		auto engineDir = _enginePath.dirName();
 		string[] r;
 
-		foreach (ver; VERSIONS) { mixin(S_TRACE);
-			if (ver == "") continue;
-			auto dir = engineDir.buildPath("Data/Materials/Wsn.%s/%s".format(ver, dName));
+		foreach (dir; dirs) { mixin(S_TRACE);
 			r ~= list!(isT, UseFlag)(dir, logicalSort, forceRefresh, ignoreSize, false);
 		}
 		if (logicalSort) { mixin(S_TRACE);
@@ -1174,22 +1197,22 @@ class Skin {
 	/// ditto
 	const
 	string[] wsnCards(string wsnVer, bool logicalSort, bool forceRefresh, bool ignoreSize) { mixin(S_TRACE);
-		return wsnList!(isCardImage, true)("Table", wsnVer, logicalSort, forceRefresh, ignoreSize);
+		return wsnList!(isCardImage, true)(wsnTableDirs(wsnVer), wsnVer, logicalSort, forceRefresh, ignoreSize);
 	}
 	/// ditto
 	const
 	string[] wsnTables(string wsnVer, bool logicalSort, bool forceRefresh) { mixin(S_TRACE);
-		return wsnList!(isBgImage, false)("Table", wsnVer, logicalSort, forceRefresh, false);
+		return wsnList!(isBgImage, false)(wsnTableDirs(wsnVer), wsnVer, logicalSort, forceRefresh, false);
 	}
 	/// ditto
 	const
 	string[] wsnMusics(string wsnVer, bool logicalSort, bool forceRefresh) { mixin(S_TRACE);
-		return wsnList!(isBGM, false)("Bgm", wsnVer, logicalSort, forceRefresh, false);
+		return wsnList!(isBGM, false)(wsnMusicDirs(wsnVer), wsnVer, logicalSort, forceRefresh, false);
 	}
 	/// ditto
 	const
 	string[] wsnSounds(string wsnVer, bool logicalSort, bool forceRefresh) { mixin(S_TRACE);
-		return wsnList!(isSE, false)("Sound", wsnVer, logicalSort, forceRefresh, false);
+		return wsnList!(isSE, false)(wsnSoundDirs(wsnVer), wsnVer, logicalSort, forceRefresh, false);
 	}
 
 	/// 標準素材ディレクトリのルート。
@@ -1257,7 +1280,7 @@ class Skin {
 	/// バトルを作成した際、最初に設定されているBGMの名前。
 	@property
 	const
-	string defBattle(string sPath) { return findPath("DefBattle.mid", extBgm, bgmDir, sPath, LATEST_VERSION).baseName(); }
+	string defBattle(string sPath, string wsnVer) { return findPath("DefBattle.mid", extBgm, bgmDir, sPath, wsnVer, wsnMusicDirs(wsnVer)).baseName(); }
 
 	/// 指定されたパスを元に、まずシナリオのディレクトリを、
 	/// 無ければ本体付属のディレクトリを検索し、見つかったパスを返す。
@@ -1267,24 +1290,26 @@ class Skin {
 	/// Params:
 	/// path = 検索対象のパス。
 	/// sPath = シナリオのディレクトリ。
-	/// def = 結果がシナリオのフォルダ内であればfalseが、
-	///       本体の付属ディレクトリ内であればtrueが入る。
+	/// isSkinMaterial = 結果がスキンまたはクラシックなエンジンの付属ディレクトリ内であればtrue。
+	/// isEngineMaterial = 結果がエンジンの付属ディレクトリ内であればtrue。
 	/// Returns: ファイルパス。見つからなかった場合は""。
 	const
-	string findImagePathF(string path, string sPath, string wsnVer, out bool def) { mixin(S_TRACE);
-		def = false;
-		return findPathF(path, extImage, tableDir, sPath, wsnVer, def);
+	string findImagePathF(string path, string sPath, string wsnVer, out bool isSkinMaterial, out bool isEngineMaterial) { mixin(S_TRACE);
+		isSkinMaterial = false;
+		isEngineMaterial = false;
+		return findPathF(path, extImage, tableDir, sPath, wsnVer, wsnTableDirs(wsnVer), isSkinMaterial, isEngineMaterial);
 	}
 	/// ditto
 	const
 	string findImagePath(string path, string sPath, string wsnVer) { mixin(S_TRACE);
 		bool dummy;
-		return findImagePathF(path, sPath, wsnVer, dummy);
+		return findImagePathF(path, sPath, wsnVer, dummy, dummy);
 	}
 	/// ditto
 	const
-	string findPathF(string path, in string[] exts, string defDir, string sPath, string wsnVer, out bool def) { mixin(S_TRACE);
-		def = false;
+	string findPathF(string path, in string[] exts, string defDir, string sPath, string wsnVer, in string[] wsnDirs, out bool isSkinMaterial, out bool isEngineMaterial) { mixin(S_TRACE);
+		isSkinMaterial = false;
+		isEngineMaterial = false;
 		if (path.length == 0) return "";
 		if (isBinImg(path)) return path;
 		string p;
@@ -1294,7 +1319,7 @@ class Skin {
 				return p;
 			}
 		}
-		def = true;
+		isSkinMaterial = true;
 		p = std.path.buildPath(defDir, baseName(path));
 		if (exists(p)) { mixin(S_TRACE);
 			return p;
@@ -1303,19 +1328,37 @@ class Skin {
 			p = setExtension(p, ext);
 			if (exists(p)) return p;
 		}
+		isSkinMaterial = false;
+		if (!legacy && _enginePath != "" && _enginePath.exists() && wsnVer != "") { mixin(S_TRACE);
+			isEngineMaterial = true;
+			auto engineDir = _enginePath.dirName();
+			auto dName = defDir.baseName();
+			foreach (dir; wsnDirs) { mixin(S_TRACE);
+				p = std.path.buildPath(dir, baseName(path));
+				if (exists(p)) { mixin(S_TRACE);
+					return p;
+				}
+				foreach (ext; exts) { mixin(S_TRACE);
+					p = setExtension(p, ext);
+					if (exists(p)) return p;
+				}
+			}
+			isEngineMaterial = false;
+		}
+
 		return "";
 	}
 	/// ditto
 	const
-	string findPath(string path, in string[] exts, string defDir, string sPath, string wsnVer) { mixin(S_TRACE);
+	string findPath(string path, in string[] exts, string defDir, string sPath, string wsnVer, in string[] wsnDirs) { mixin(S_TRACE);
 		bool dummy;
-		return findPathF(path, exts, defDir, sPath, wsnVer, dummy);
+		return findPathF(path, exts, defDir, sPath, wsnVer, wsnDirs, dummy, dummy);
 	}
 	/// 指定された素材がスキン付属のディレクトリに存在するものか。
 	const
 	bool isSkinResource(string path, in string[] exts, string defDir, string sPath) { mixin(S_TRACE);
-		bool r;
-		findPathF(path, exts, defDir, sPath, "", r);
+		bool r, dummy;
+		findPathF(path, exts, defDir, sPath, "", [], r, dummy);
 		return r;
 	}
 

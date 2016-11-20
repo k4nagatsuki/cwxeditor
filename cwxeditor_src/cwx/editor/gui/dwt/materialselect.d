@@ -105,6 +105,7 @@ class MaterialSelect(MtType Type, D, C) {
 
 		_comm.refSkin.add(&refSkin);
 		_comm.refDataVersion.add(&refreshFileListMenu);
+		_comm.refDataVersion.add(&refresh);
 		_comm.refPaths.add(&refPaths);
 		_comm.refPath.add(&refPath);
 		_comm.delPaths.add(&delPaths);
@@ -118,6 +119,7 @@ class MaterialSelect(MtType Type, D, C) {
 			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 				_comm.refSkin.remove(&refSkin);
 				_comm.refDataVersion.remove(&refreshFileListMenu);
+				_comm.refDataVersion.remove(&refresh);
 				_comm.refPaths.remove(&refPaths);
 				_comm.refPath.remove(&refPath);
 				_comm.delPaths.remove(&delPaths);
@@ -263,7 +265,8 @@ class MaterialSelect(MtType Type, D, C) {
 			if (_noCardSize == noCardSize) return;
 			_noCardSize = noCardSize;
 			if (!_noCardSize && path.length && !isBinImg(filePath)) { mixin(S_TRACE);
-				auto p = summSkin.findImagePath(path, _summ ? _summ.scenarioPath : "", _summ ? _summ.dataVersion : LATEST_VERSION);
+				auto wsnVer = _summ ? _summ.dataVersion : LATEST_VERSION;
+				auto p = summSkin.findImagePath(path, _summ ? _summ.scenarioPath : "", wsnVer);
 				if (p.length) { mixin(S_TRACE);
 					uint w, h;
 					imageSize(p, w, h);
@@ -911,9 +914,10 @@ class MaterialSelect(MtType Type, D, C) {
 			if (useNoCardSizeImage) return;
 			// カードサイズ以外の画像が存在する場合は
 			// カードサイズ以外選択可にチェックを入れておく
+			auto wsnVer = _summ ? _summ.dataVersion : LATEST_VERSION;
 			foreach (i, path; _paths) { mixin(S_TRACE);
 				if (!_binPaths[i].length && path.type == CardImageType.File && path.path != "") { mixin(S_TRACE);
-					auto p = summSkin.findImagePath(path.path, _summ ? _summ.scenarioPath : "", _summ ? _summ.dataVersion : LATEST_VERSION);
+					auto p = summSkin.findImagePath(path.path, _summ ? _summ.scenarioPath : "", wsnVer);
 					if (p.length) { mixin(S_TRACE);
 						uint w, h;
 						imageSize(p, w, h);
@@ -1001,6 +1005,11 @@ class MaterialSelect(MtType Type, D, C) {
 			string f = fileText(_fileList.getItem(_fileList.getSelectionIndex()));
 			if (_dirs.getSelectionIndex() == _tbl) { mixin(S_TRACE);
 				return std.path.buildPath(defDir, f);
+			} else if (_dirs.getSelectionIndex() == _tblEngine) { mixin(S_TRACE);
+				foreach (dir; engineDefDirs) { mixin(S_TRACE);
+					auto path = std.path.buildPath(dir, f);
+					if (path.exists()) return path;
+				}
 			} else { mixin(S_TRACE);
 				return std.path.buildPath(std.path.buildPath(_summ ? _summ.scenarioPath : "", p), f);
 			}
@@ -1134,29 +1143,37 @@ private:
 		private bool _noCardSize = false;
 		@property const(string)[] defExts() {return summSkin.extImage;}
 		@property string defDir() {return summSkin.tableDir;}
+		@property string[] engineDefDirs() { return summSkin.wsnTableDirs(_summ ? _summ.dataVersion : LATEST_VERSION); }
 		bool isTarg(string p) {return summSkin.isCardImage(p, _noCardSize);}
 		static bool hasTarg(Skin skin, string p, bool forceRefresh, bool noCardSize) { return skin.hasCardImage(p, forceRefresh, noCardSize); }
+		bool hasWsnTarg(bool forceRefresh, bool noCardSize) { return summSkin.hasWsnCardImage(_summ ? _summ.dataVersion : LATEST_VERSION, forceRefresh, noCardSize); }
 		string[] targsImpl(string dir, bool re) {return summSkin.cards(dir, _prop.var.etc.logicalSort, re, _noCardSize);}
 		@property Image image() {return _prop.images.cards;}
 	} else static if (Type == MtType.BG_IMG) {
 		@property const(string)[] defExts() {return summSkin.extImage;}
 		@property string defDir() {return summSkin.tableDir;}
+		@property string[] engineDefDirs() { return summSkin.wsnTableDirs(_summ ? _summ.dataVersion : LATEST_VERSION); }
 		bool isTarg(string p) {return summSkin.isBgImage(p);}
 		static bool hasTarg(Skin skin, string p, bool forceRefresh, bool noCardSize) { return skin.hasBgImage(p, forceRefresh); }
+		bool hasWsnTarg(bool forceRefresh, bool noCardSize) { return summSkin.hasWsnBgImage(_summ ? _summ.dataVersion : LATEST_VERSION, forceRefresh); }
 		string[] targsImpl(string dir, bool re) {return summSkin.tables(dir, _prop.var.etc.logicalSort, re);}
 		@property Image image() {return _prop.images.backs;}
 	} else static if (Type == MtType.BGM) {
 		@property const(string)[] defExts() {return summSkin.extBgm;}
 		@property string defDir() {return summSkin.bgmDir;}
+		@property string[] engineDefDirs() { return summSkin.wsnMusicDirs(_summ ? _summ.dataVersion : LATEST_VERSION); }
 		bool isTarg(string p) {return summSkin.isBGM(p);}
 		static bool hasTarg(Skin skin, string p, bool forceRefresh, bool noCardSize) { return skin.hasBGM(p, forceRefresh); }
+		bool hasWsnTarg(bool forceRefresh, bool noCardSize) { return summSkin.hasWsnBGM(_summ ? _summ.dataVersion : LATEST_VERSION, forceRefresh); }
 		string[] targsImpl(string dir, bool re) {return summSkin.musics(dir, _prop.var.etc.logicalSort, re);}
 		@property Image image() {return _prop.images.bgm;}
 	} else static if (Type == MtType.SE) {
 		@property const(string)[] defExts() {return summSkin.extSound;}
 		@property string defDir() {return summSkin.seDir;}
+		@property string[] engineDefDirs() { return summSkin.wsnSoundDirs(_summ ? _summ.dataVersion : LATEST_VERSION); }
 		bool isTarg(string p) {return summSkin.isSE(p);}
 		static bool hasTarg(Skin skin, string p, bool forceRefresh, bool noCardSize) { return skin.hasSE(p, forceRefresh); }
+		bool hasWsnTarg(bool forceRefresh, bool noCardSize) { return summSkin.hasWsnSE(_summ ? _summ.dataVersion : LATEST_VERSION, forceRefresh); }
 		string[] targsImpl(string dir, bool re) {return summSkin.sounds(dir, _prop.var.etc.logicalSort, re);}
 		@property Image image() {return _prop.images.se;}
 	} else static assert (0);
@@ -1168,6 +1185,9 @@ private:
 	private void doDirectory() { mixin(S_TRACE);
 		if (_dirs.getSelectionIndex() == _tbl) { mixin(S_TRACE);
 			openFolder(defDir);
+		} else if (_dirs.getSelectionIndex() == _tblEngine) { mixin(S_TRACE);
+			auto dir = _prop.enginePath.dirName().buildPath("Data/Materials");
+			openFolder(dir);
 		} else if (_summ) { mixin(S_TRACE);
 			string cur = currentDir;
 			if (cur) { mixin(S_TRACE);
@@ -1216,8 +1236,11 @@ private:
 					s = "/";
 				}
 				_dirs.setText(s);
-			} else { mixin(S_TRACE);
+			} else if (_tblEngineIndex == -1 || index < _tblEngineIndex) { mixin(S_TRACE);
 				_dirs.select(_tbl);
+				file = s;
+			} else {
+				_dirs.select(_tblEngine);
 				file = s;
 			}
 			refreshList();
@@ -1270,6 +1293,7 @@ private:
 		auto defs = _defs(0 < binPath.length);
 		if (dir < defs.length) return;
 		if (dir == _tbl) return;
+		if (dir == _tblEngine) return;
 		auto p = filePath;
 		if (p.length) { mixin(S_TRACE);
 			_comm.openFilePath(p, false, true);
@@ -1294,7 +1318,7 @@ private:
 		int sel = _dirs.getSelectionIndex();
 		auto defs = _defs(0 < binPath.length);
 		if (sel >= defs.length) { mixin(S_TRACE);
-			if (sel == _tbl) { mixin(S_TRACE);
+			if (sel == _tbl || sel == _tblEngine) { mixin(S_TRACE);
 				return "";
 			} else { mixin(S_TRACE);
 				return _dirs.getText() == "/" ? "" : toViewPath(_dirs.getText());
@@ -1358,6 +1382,8 @@ private:
 	}
 	void refreshListImpl(string path, bool forceRefresh, bool subThr = false) { mixin(S_TRACE);
 		if (!_display) _display = _fileList.getDisplay();
+		_tblIndex = -1;
+		_tblEngineIndex = -1;
 		void find() { mixin(S_TRACE);
 			auto tgs = targs(path, forceRefresh, subThr);
 			if (subThr) { mixin(S_TRACE);
@@ -1380,13 +1406,24 @@ private:
 			find();
 		}
 	}
-	void refreshListImpl(string[] paths, bool forceRefresh, bool subThr = false) { mixin(S_TRACE);
+	void refreshListImpl(string[] paths, bool forceRefresh, bool subThr, ptrdiff_t skinPos, ptrdiff_t enginePosFrom, ptrdiff_t enginePosTo) { mixin(S_TRACE);
 		if (!_display) _display = _fileList.getDisplay();
+		_tblIndex = -1;
+		_tblEngineIndex = -1;
 		void find() { mixin(S_TRACE);
-			string[] tgs;
-			foreach (path; paths) { mixin(S_TRACE);
+			string[] def;
+			string[] wsn;
+			string[] sc;
+			foreach (i, path; paths) { mixin(S_TRACE);
+				if (i == skinPos) { mixin(S_TRACE);
+					_tblIndex = def.length + wsn.length + sc.length;
+				}
+				if (i == enginePosFrom) { mixin(S_TRACE);
+					_tblEngineIndex = def.length + wsn.length + sc.length;
+				}
 				string parent;
-				if (cfnmatch(path, defDir)) { mixin(S_TRACE);
+				auto dirIndex = _dirs.getSelectionIndex();
+				if (i == skinPos || (enginePosFrom != -1 && enginePosFrom <= i && i < enginePosTo)) { mixin(S_TRACE);
 					parent = "";
 				} else { mixin(S_TRACE);
 					assert (_summ !is null);
@@ -1397,8 +1434,22 @@ private:
 				foreach (ref f; s) { mixin(S_TRACE);
 					f = encodePath(std.path.buildPath(parent, f));
 				}
-				tgs ~= s;
+				if (i == skinPos) { mixin(S_TRACE);
+					def ~= s;
+				} else if (enginePosFrom != -1 && enginePosFrom <= i && i < enginePosTo) { mixin(S_TRACE);
+					wsn ~= s;
+				} else { mixin(S_TRACE);
+					sc ~= s;
+				}
 			}
+			// WSN標準素材は複数のディレクトリに分かれている可能性があるので
+			// ここでまとめてソートする
+			if (_prop.var.etc.logicalSort) { mixin(S_TRACE);
+				wsn = cwx.utils.sort!(fnncmp)(wsn);
+			} else { mixin(S_TRACE);
+				wsn = cwx.utils.sort!(fncmp)(wsn);
+			}
+			auto tgs = def ~ wsn ~ sc;
 			if (subThr) { mixin(S_TRACE);
 				_display.asyncExec(new class Runnable {
 					override void run() { mixin(S_TRACE);
@@ -1434,7 +1485,7 @@ private:
 			auto index = flIndexOf(sel);
 			if (index >= 0) { mixin(S_TRACE);
 				_fileList.select(cast(int)index);
-			} else if (_dirs.getSelectionIndex() == _tbl) { mixin(S_TRACE);
+			} else { mixin(S_TRACE);
 				foreach (defExt; defExts) { mixin(S_TRACE);
 					index = flIndexOf(setExtension(sel, defExt));
 					if (0 <= index) { mixin(S_TRACE);
@@ -1454,21 +1505,35 @@ private:
 		foreach (dlg; loadedEvent) dlg();
 		_comm.refreshToolBar();
 	}
-	@property
-	string[] allDirs() { mixin(S_TRACE);
+	private string[] allDirs(out ptrdiff_t skinPos, out ptrdiff_t enginePosFrom, out ptrdiff_t enginePosTo) { mixin(S_TRACE);
 		string[] st;
+		skinPos = -1;
+		enginePosFrom = -1;
+		enginePosTo = -1;
 		auto defs = _defs(0 < binPath.length);
 		foreach (i; cast(int)defs.length .. _dirs.getItemCount()) { mixin(S_TRACE);
 			string t = _dirs.getItem(i);
 			if (i == _tbl) { mixin(S_TRACE);
+				skinPos = st.length;
 				st ~= defDir;
-			} else if (t == "/") { mixin(S_TRACE);
-				assert (_summ !is null);
-				st ~= nabs(_summ.scenarioPath);
+			} else if (i == _tblEngine) { mixin(S_TRACE);
+				enginePosFrom = st.length;
+				st ~= engineDefDirs;
 			} else { mixin(S_TRACE);
-				assert (_summ !is null);
-				st ~= nabs(std.path.buildPath(_summ.scenarioPath, fromViewPath(t)));
+				if (enginePosFrom != -1 && enginePosTo == -1) { mixin(S_TRACE);
+					enginePosTo = st.length;
+				}
+				if (t == "/") { mixin(S_TRACE);
+					assert (_summ !is null);
+					st ~= nabs(_summ.scenarioPath);
+				} else { mixin(S_TRACE);
+					assert (_summ !is null);
+					st ~= nabs(std.path.buildPath(_summ.scenarioPath, fromViewPath(t)));
+				}
 			}
+		}
+		if (enginePosFrom != -1 && enginePosTo == -1) { mixin(S_TRACE);
+			enginePosTo = st.length;
 		}
 		return st;
 	}
@@ -1477,7 +1542,8 @@ private:
 		_fnone = false;
 		auto defs = _defs(0 < binPath.length);
 		if (_dirs.getSelectionIndex() < defs.length) { mixin(S_TRACE);
-			auto dirs = allDirs;
+			ptrdiff_t skinPos, enginePosFrom, enginePosTo;
+			auto dirs = allDirs(skinPos, enginePosFrom, enginePosTo);
 			if (!dirs.length) { mixin(S_TRACE);
 				_fileList.setEnabled(false);
 				_loading = false;
@@ -1485,7 +1551,7 @@ private:
 				_comm.refreshToolBar();
 			} else { mixin(S_TRACE);
 				_fileList.setEnabled(!_readOnly);
-				refreshListImpl(dirs, forceRefresh, subThr);
+				refreshListImpl(dirs, forceRefresh, subThr, skinPos, enginePosFrom, enginePosTo);
 				static if (is(C : Combo) || is(C : CCombo)) {
 					_fileList.add(_prop.msgs.defaultSelection(_prop.msgs.fileNone), 0);
 					_fileList.select(0);
@@ -1496,6 +1562,9 @@ private:
 			}
 		} else if (_dirs.getSelectionIndex() == _tbl) { mixin(S_TRACE);
 			refreshListImpl(defDir, forceRefresh, subThr);
+		} else if (_dirs.getSelectionIndex() == _tblEngine) { mixin(S_TRACE);
+			auto dirs = engineDefDirs;
+			refreshListImpl(dirs, forceRefresh, subThr, -1, 0, dirs.length);
 		} else if (_summ) { mixin(S_TRACE);
 			string st;
 			if (_dirs.getText() == "/") { mixin(S_TRACE);
@@ -1539,6 +1608,9 @@ private:
 		}
 		auto tbl = defDir;
 		_tbl = -1;
+		_tblIndex = -1;
+		_tblEngine = -1;
+		_tblEngineIndex = -1;
 		auto skin = summSkin;
 		static if (Type == MtType.CARD) {
 			bool noCardSize = _noCardSize;
@@ -1548,6 +1620,12 @@ private:
 		if (hasTarg(skin, tbl, forceRefresh, noCardSize)) { mixin(S_TRACE);
 			_tbl = cast(int)items.length;
 			items ~= _prop.msgs.defaultSelection(_prop.msgs.pathDef);
+		}
+		if (hasWsnTarg(forceRefresh, noCardSize)) { mixin(S_TRACE);
+			_tblEngine = cast(int)items.length;
+			auto wsnVer = _summ ? _summ.dataVersion : LATEST_VERSION;
+			auto verName = VERSION_NAMES[.cCountUntil(VERSIONS, wsnVer)];
+			items ~= _prop.msgs.defaultSelection(.tryFormat(_prop.msgs.pathWsnBasic, verName));
 		}
 		ptrdiff_t dirsIndexOf(string path) { mixin(S_TRACE);
 			foreach (i, s; items) { mixin(S_TRACE);
@@ -1611,15 +1689,24 @@ private:
 				if (0 <= index) { mixin(S_TRACE);
 					dirsIndex = index;
 				} else { mixin(S_TRACE);
-					bool def;
-					auto p = summSkin.findPathF(path, defExts, defDir, _summ ? _summ.scenarioPath : "", _summ ? _summ.dataVersion : LATEST_VERSION, def);
+					bool isSkinMaterial, isEngineMaterial;
+					auto wsnVer = _summ ? _summ.dataVersion : LATEST_VERSION;
+					auto p = summSkin.findPathF(path, defExts, defDir, _summ ? _summ.scenarioPath : "", wsnVer,
+						engineDefDirs, isSkinMaterial, isEngineMaterial);
 					if (p.length > 0) { mixin(S_TRACE);
-						if (def) { mixin(S_TRACE);
+						if (isSkinMaterial) { mixin(S_TRACE);
 							if (_tbl == -1) { mixin(S_TRACE);
 								// ファイルが無い
 								selectOld();
 							} else { mixin(S_TRACE);
 								dirsIndex = _tbl;
+							}
+						} else if (isEngineMaterial) { mixin(S_TRACE);
+							if (_tblEngine == -1) { mixin(S_TRACE);
+								// ファイルが無い
+								selectOld();
+							} else { mixin(S_TRACE);
+								dirsIndex = _tblEngine;
 							}
 						} else if (_summ) { mixin(S_TRACE);
 							string pt = dirName(p);
@@ -1695,6 +1782,7 @@ private:
 			auto defs = _defs(0 < binPath.length);
 			int i = cast(int)defs.length;
 			if (_tbl >= 0) i++;
+			if (_tblEngine >= 0) i++;
 			for (; i < _dirs.getItemCount(); i++) { mixin(S_TRACE);
 				string name = fromViewPath(_dirs.getItem(i));
 				if (startsWith(name, o)) { mixin(S_TRACE);
@@ -1779,6 +1867,9 @@ private:
 	bool _canInclude = false;
 	bool _isMenuCard = false;
 	int _tbl = -1;
+	ptrdiff_t _tblIndex = -1;
+	int _tblEngine = -1;
+	ptrdiff_t _tblEngineIndex = -1;
 	bool _fnone = false;
 	C _fileList;
 	bool _allList = false;

@@ -946,9 +946,6 @@ protected:
 			_vis[_card.visual].setSelection(true);
 			_prem[_card.premium].setSelection(true);
 			_sucRate.setSelection(_card.successRate + Content.successRate_max);
-			string findPath(string path) { mixin(S_TRACE);
-				return baseName(skin.findPath(baseName(path), skin.extSound, skin.seDir, "", _summ.dataVersion));
-			}
 			_se1.path = _card.soundPath1;
 			_se1.volume = _card.volume1;
 			_se1.loopCount = _card.loopCount1;

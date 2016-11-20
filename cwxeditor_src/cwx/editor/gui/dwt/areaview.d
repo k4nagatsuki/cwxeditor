@@ -4077,8 +4077,7 @@ public:
 			if (!b) return;
 			strs ~= _prop.msgs.defaultSelection(_prop.msgs.imageNone);
 			str = _prop.msgs.defaultSelection(_prop.msgs.imageNone);
-			bool def;
-			string p = summSkin.findImagePathF(b.path, _summ ? _summ.scenarioPath : null, _summ ? _summ.dataVersion : LATEST_VERSION, def);
+			string p = summSkin.findImagePath(b.path, _summ ? _summ.scenarioPath : null, _summ ? _summ.dataVersion : LATEST_VERSION);
 			p = nabs(p);
 			foreach (t; summSkin.tables(_prop.var.etc.logicalSort)) { mixin(S_TRACE);
 				strs ~= t;

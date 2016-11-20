@@ -91,8 +91,8 @@ class ImageListWindow(MtType Type) {
 	ImageList widget() {return _list;}
 
 	private ImageData createImage(string path, bool mask) { mixin(S_TRACE);
-		bool def;
-		auto imgPath = _comm.skin.findPathF(path, defExts, defDir, _summ ? _summ.scenarioPath : "", _summ ? _summ.dataVersion : LATEST_VERSION, def);
+		auto wsnVer = _summ ? _summ.dataVersion : LATEST_VERSION;
+		auto imgPath = _comm.skin.findPath(path, defExts, defDir, _summ ? _summ.scenarioPath : "", wsnVer, _comm.skin.wsnTableDirs(wsnVer));
 		return loadImage(imgPath, mask);
 	}
 	static if (Type == MtType.CARD) {
