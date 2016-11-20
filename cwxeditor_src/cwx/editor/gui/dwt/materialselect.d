@@ -131,7 +131,6 @@ class MaterialSelect(MtType Type, D, C) {
 		auto menu = new Menu(_dirs.getShell(), SWT.POP_UP);
 		createMenuItem(_comm, menu, MenuID.IncSearch, &startIncSearch, () => !_readOnly && !_loading);
 		_dirs.setMenu(menu);
-		if (_fileList) refreshPaths();
 		return _dirs;
 	}
 	static if (Type == MtType.BGM) {
@@ -227,7 +226,6 @@ class MaterialSelect(MtType Type, D, C) {
 		_incSearch.modEvent ~= { mixin(S_TRACE);
 			refreshList();
 		};
-		if (_dirs) refreshPaths();
 		return _fileList;
 	}
 	private void refreshFileListMenu() { mixin(S_TRACE);
@@ -848,7 +846,11 @@ class MaterialSelect(MtType Type, D, C) {
 		}
 		void setPaths(CardImage[] paths, bool store) { mixin(S_TRACE);
 			paths = paths.length ? paths : [new CardImage("", CardImagePosition.Default)];;
-			if (paths == _paths) return;
+			if (paths == _paths && !_firstSet) return;
+			if (_firstSet) { mixin(S_TRACE);
+				store = false;
+				_firstSet = false;
+			}
 
 			_dirs.setRedraw(false);
 			_fileList.setRedraw(false);
@@ -1796,4 +1798,5 @@ private:
 	}
 	UndoManager _undo = null;
 	void delegate() _store = null;
+	bool _firstSet = true;
 }
