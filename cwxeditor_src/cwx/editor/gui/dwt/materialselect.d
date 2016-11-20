@@ -263,7 +263,7 @@ class MaterialSelect(MtType Type, D, C) {
 			if (_noCardSize == noCardSize) return;
 			_noCardSize = noCardSize;
 			if (!_noCardSize && path.length && !isBinImg(filePath)) { mixin(S_TRACE);
-				auto p = summSkin.findImagePath(path, _summ ? _summ.scenarioPath : "");
+				auto p = summSkin.findImagePath(path, _summ ? _summ.scenarioPath : "", _summ ? _summ.dataVersion : LATEST_VERSION);
 				if (p.length) { mixin(S_TRACE);
 					uint w, h;
 					imageSize(p, w, h);
@@ -913,7 +913,7 @@ class MaterialSelect(MtType Type, D, C) {
 			// カードサイズ以外選択可にチェックを入れておく
 			foreach (i, path; _paths) { mixin(S_TRACE);
 				if (!_binPaths[i].length && path.type == CardImageType.File && path.path != "") { mixin(S_TRACE);
-					auto p = summSkin.findImagePath(path.path, _summ ? _summ.scenarioPath : "");
+					auto p = summSkin.findImagePath(path.path, _summ ? _summ.scenarioPath : "", _summ ? _summ.dataVersion : LATEST_VERSION);
 					if (p.length) { mixin(S_TRACE);
 						uint w, h;
 						imageSize(p, w, h);
@@ -1612,7 +1612,7 @@ private:
 					dirsIndex = index;
 				} else { mixin(S_TRACE);
 					bool def;
-					auto p = summSkin.findPathF(path, defExts, defDir, _summ ? _summ.scenarioPath : "", def);
+					auto p = summSkin.findPathF(path, defExts, defDir, _summ ? _summ.scenarioPath : "", _summ ? _summ.dataVersion : LATEST_VERSION, def);
 					if (p.length > 0) { mixin(S_TRACE);
 						if (def) { mixin(S_TRACE);
 							if (_tbl == -1) { mixin(S_TRACE);

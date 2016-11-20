@@ -92,7 +92,7 @@ class ImageListWindow(MtType Type) {
 
 	private ImageData createImage(string path, bool mask) { mixin(S_TRACE);
 		bool def;
-		auto imgPath = _comm.skin.findPathF(path, defExts, defDir, _summ ? _summ.scenarioPath : "", def);
+		auto imgPath = _comm.skin.findPathF(path, defExts, defDir, _summ ? _summ.scenarioPath : "", _summ ? _summ.dataVersion : LATEST_VERSION, def);
 		return loadImage(imgPath, mask);
 	}
 	static if (Type == MtType.CARD) {

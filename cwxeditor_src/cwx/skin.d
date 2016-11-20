@@ -83,7 +83,7 @@ BgImage[] createBgImages(in Skin skin, in BgImageS[] bgs) { mixin(S_TRACE);
 	foreach (i, b; bgs) { mixin(S_TRACE);
 		switch (b.type) {
 		case "image":
-			auto path = skin.findImagePath(setExtension(b.name, ".bmp"), "");
+			auto path = skin.findImagePath(setExtension(b.name, ".bmp"), "", LATEST_VERSION);
 			if (path.length) { mixin(S_TRACE);
 				path = abs2rel(nabs(path), skin.tableDir);
 			} else { mixin(S_TRACE);
@@ -1180,7 +1180,7 @@ class Skin {
 	/// バトルを作成した際、最初に設定されているBGMの名前。
 	@property
 	const
-	string defBattle(string sPath) { return findPath("DefBattle.mid", extBgm, bgmDir, sPath).baseName(); }
+	string defBattle(string sPath) { return findPath("DefBattle.mid", extBgm, bgmDir, sPath, LATEST_VERSION).baseName(); }
 
 	/// 指定されたパスを元に、まずシナリオのディレクトリを、
 	/// 無ければ本体付属のディレクトリを検索し、見つかったパスを返す。
@@ -1194,19 +1194,19 @@ class Skin {
 	///       本体の付属ディレクトリ内であればtrueが入る。
 	/// Returns: ファイルパス。見つからなかった場合は""。
 	const
-	string findImagePathF(string path, string sPath, out bool def) { mixin(S_TRACE);
+	string findImagePathF(string path, string sPath, string wsnVer, out bool def) { mixin(S_TRACE);
 		def = false;
-		return findPathF(path, extImage, tableDir, sPath, def);
+		return findPathF(path, extImage, tableDir, sPath, wsnVer, def);
 	}
 	/// ditto
 	const
-	string findImagePath(string path, string sPath) { mixin(S_TRACE);
+	string findImagePath(string path, string sPath, string wsnVer) { mixin(S_TRACE);
 		bool dummy;
-		return findImagePathF(path, sPath, dummy);
+		return findImagePathF(path, sPath, wsnVer, dummy);
 	}
 	/// ditto
 	const
-	string findPathF(string path, in string[] exts, string defDir, string sPath, out bool def) { mixin(S_TRACE);
+	string findPathF(string path, in string[] exts, string defDir, string sPath, string wsnVer, out bool def) { mixin(S_TRACE);
 		def = false;
 		if (path.length == 0) return "";
 		if (isBinImg(path)) return path;
@@ -1230,15 +1230,15 @@ class Skin {
 	}
 	/// ditto
 	const
-	string findPath(string path, in string[] exts, string defDir, string sPath) { mixin(S_TRACE);
+	string findPath(string path, in string[] exts, string defDir, string sPath, string wsnVer) { mixin(S_TRACE);
 		bool dummy;
-		return findPathF(path, exts, defDir, sPath, dummy);
+		return findPathF(path, exts, defDir, sPath, wsnVer, dummy);
 	}
 	/// 指定された素材がスキン付属のディレクトリに存在するものか。
 	const
 	bool isSkinResource(string path, in string[] exts, string defDir, string sPath) { mixin(S_TRACE);
 		bool r;
-		findPathF(path, exts, defDir, sPath, r);
+		findPathF(path, exts, defDir, sPath, "", r);
 		return r;
 	}
 

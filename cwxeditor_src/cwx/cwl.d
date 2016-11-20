@@ -2697,7 +2697,7 @@ private void writeImageImpl(ref SData d, ref ByteIO f, CWXPath cp, string imgPat
 	if (isBinImg(imgPath)) { mixin(S_TRACE);
 		bytes = cast(ubyte[]) strToBImg(imgPath);
 	} else { mixin(S_TRACE);
-		auto path = d.skin.findImagePath(imgPath, d.sPath);
+		auto path = d.skin.findImagePath(imgPath, d.sPath, "");
 		if (exists(path)) { mixin(S_TRACE);
 			bytes = readBinaryFrom!ubyte(path, ptr);
 		}

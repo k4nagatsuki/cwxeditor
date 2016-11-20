@@ -2231,7 +2231,7 @@ private:
 							arr ~= _prop.msgs.noSelectImage;
 						} else if (isBinImg(path.path)) { mixin(S_TRACE);
 							arr ~= _prop.msgs.areaViewStatusImageIncluding;
-						} else if (!summSkin.findImagePath(path.path, _summ ? _summ.scenarioPath : "").length) { mixin(S_TRACE);
+						} else if (!summSkin.findImagePath(path.path, _summ ? _summ.scenarioPath : "", _summ ? _summ.dataVersion : LATEST_VERSION).length) { mixin(S_TRACE);
 							arr ~= .tryFormat(_prop.msgs.noImage, encodePath(path.path));
 						} else { mixin(S_TRACE);
 							arr ~= encodePath(path.path);
@@ -2288,7 +2288,7 @@ private:
 					path = encodePath(ic.path);
 					if (!path.length) { mixin(S_TRACE);
 						path = _prop.msgs.noSelectImage;
-					} else if (!summSkin.findImagePath(path, _summ ? _summ.scenarioPath : "").length) { mixin(S_TRACE);
+					} else if (!summSkin.findImagePath(path, _summ ? _summ.scenarioPath : "", _summ ? _summ.dataVersion : LATEST_VERSION).length) { mixin(S_TRACE);
 						path = .tryFormat(_prop.msgs.noImage, encodePath(path));
 					}
 				}
@@ -3285,7 +3285,7 @@ public:
 					static if (is(C:EnemyCard)) {
 						auto castCard = _summ.cwCast(c.id);
 						if (!castCard) continue; // カード名が表示されないため不要
-						img.setImageData(castCardImage(_prop, skin, castCard, _summ ? _summ.scenarioPath : "", _dbgMode));
+						img.setImageData(castCardImage(_prop, skin, castCard, _summ ? _summ.scenarioPath : "", _summ ? _summ.dataVersion : LATEST_VERSION, _dbgMode));
 					} else { mixin(S_TRACE);
 						img.title = name;
 					}
@@ -3827,17 +3827,17 @@ public:
 	}
 	PImg createCardImage(PImg, C2)(in C2 card, bool smoothing) { mixin(S_TRACE);
 		static if (is(C2 : MenuCard) || is(C2 : const MenuCard)) {
-			return createMenuCardImage!PImg(prop, summSkin, summary.scenarioPath, card.name,
+			return createMenuCardImage!PImg(prop, summSkin, summary.scenarioPath, summary.dataVersion, card.name,
 				cardImagePath(card), card.x, card.y, card.scale, smoothing, card.layer);
 		} else static if (is(C2 : EnemyCard) || is(C2 : const EnemyCard)) {
 			auto skin = summSkin;
 			auto castCard = summary.cwCast(card.id);
 			if (castCard) { mixin(S_TRACE);
 				return createCastCardImage!PImg(prop, skin, castCard, _summ.scenarioPath,
-					card.x, card.y, card.scale, smoothing, debugMode, card.layer);
+					_summ.dataVersion, card.x, card.y, card.scale, smoothing, debugMode, card.layer);
 			} else { mixin(S_TRACE);
 				return createCastCardImage!PImg(prop, skin, null, _summ.scenarioPath,
-					card.x, card.y, card.scale, smoothing, debugMode, card.layer);
+					_summ.dataVersion, card.x, card.y, card.scale, smoothing, debugMode, card.layer);
 			}
 		} else static assert (0, C2);
 	}
@@ -4078,7 +4078,7 @@ public:
 			strs ~= _prop.msgs.defaultSelection(_prop.msgs.imageNone);
 			str = _prop.msgs.defaultSelection(_prop.msgs.imageNone);
 			bool def;
-			string p = summSkin.findImagePathF(b.path, _summ ? _summ.scenarioPath : null, def);
+			string p = summSkin.findImagePathF(b.path, _summ ? _summ.scenarioPath : null, _summ ? _summ.dataVersion : LATEST_VERSION, def);
 			p = nabs(p);
 			foreach (t; summSkin.tables(_prop.var.etc.logicalSort)) { mixin(S_TRACE);
 				strs ~= t;
@@ -4835,7 +4835,7 @@ public:
 		}
 		private FlexImage create(ImageCell back) { mixin(S_TRACE);
 			auto skin = summSkin;
-			auto path = skin.findImagePath(back.path, _summ ? _summ.scenarioPath : "");
+			auto path = skin.findImagePath(back.path, _summ ? _summ.scenarioPath : "", _summ ? _summ.dataVersion : LATEST_VERSION);
 			return createBackgroundImage(_prop, skin, _summ, path, back.x, back.y, back.width, back.height, back.mask, back.layer);
 		}
 		private FlexImage create(TextCell back) { mixin(S_TRACE);
@@ -5310,7 +5310,7 @@ public:
 			foreach (i, c; area.cards) { mixin(S_TRACE);
 				if (castCard.id == _area.cards[i].id) { mixin(S_TRACE);
 					auto img = imagePane.images[cardsIndex + i];
-					img.setImageData(castCardImage(_prop, skin, castCard, _summ ? _summ.scenarioPath : "", _dbgMode));
+					img.setImageData(castCardImage(_prop, skin, castCard, _summ ? _summ.scenarioPath : "", _summ ? _summ.dataVersion : LATEST_VERSION, _dbgMode));
 					img.createImage();
 					imagePane.redrawImage(img);
 					if (cardList.getItem(cast(int)i).getText() != castCard.name) { mixin(S_TRACE);

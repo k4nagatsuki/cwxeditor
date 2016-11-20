@@ -138,11 +138,11 @@ PImg createCardImageCommon(PImg)(Props prop, ImageData card,
 /// キャストカード画像を生成する。
 /// Returns: カード画像。
 PImg createCastCardImage(PImg)(Props prop, Skin skin, CastCard card,
-		string sPath, int x, int y, uint scale, bool smoothing, bool dbgMode, int layer) { mixin(S_TRACE);
+		string sPath, string wsnVer, int x, int y, uint scale, bool smoothing, bool dbgMode, int layer) { mixin(S_TRACE);
 	auto matPad = prop.looks.castCardInsets;
 	PImg r;
 	if (card) { mixin(S_TRACE);
-		r = createCardImageCommon!PImg(prop, castCardImage(prop, skin, card, sPath, dbgMode),
+		r = createCardImageCommon!PImg(prop, castCardImage(prop, skin, card, sPath, wsnVer, dbgMode),
 			matPad, x, y, scale, smoothing, layer);
 	} else { mixin(S_TRACE);
 		r = createCardImageCommon!PImg(prop, castCard(skin), matPad, x, y, scale, smoothing, layer);
@@ -157,13 +157,13 @@ PImg createCastCardImage(PImg)(Props prop, Skin skin, CastCard card,
 
 /// メニューカード画像を生成する。
 /// Returns: カード画像。
-PImg createMenuCardImage(PImg)(Props prop, Skin skin, string sPath,
+PImg createMenuCardImage(PImg)(Props prop, Skin skin, string sPath, string wsnVer,
 		string title, in CardImage[] paths, int x, int y, uint scale, bool smoothing, int layer) { mixin(S_TRACE);
 	auto matPad = prop.looks.menuCardInsets;
 	auto card = menuCard(skin);
 	auto r = createCardImageCommon!PImg(prop, card, matPad, x, y, scale, smoothing, layer);
 	foreach (path; paths) { mixin(S_TRACE);
-		path.addToPileImage(r, prop, skin, sPath, matPad, ScaleType.Cut);
+		path.addToPileImage(r, prop, skin, sPath, wsnVer, matPad, ScaleType.Cut);
 	}
 	auto tx = prop.looks.menuCardNamePoint.x;
 	auto w = card.width;

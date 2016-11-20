@@ -82,6 +82,9 @@ private:
 		}
 		warning = ws;
 	}
+	string dataVersion() { mixin(S_TRACE);
+		return VERSIONS[_dataVersion.getSelectionIndex()];
+	}
 
 	void levMaxEnter(int enter) { mixin(S_TRACE);
 		if (_readOnly) return;
@@ -142,7 +145,7 @@ private:
 		int w;
 		if (visible) { mixin(S_TRACE);
 			if (_summImage) return;
-			_summImage = new SummaryPreview(_comm, _imgArea, SWT.NONE);
+			_summImage = new SummaryPreview(_comm, _imgArea, SWT.NONE, &dataVersion);
 			_summImage.setImageSelect(&_sname.getText, &_imgPath.images, &selectedSkin, {return _desc.getRRText();}, &_levMin.getSelection, &_levMax.getSelection);
 			_summImage.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 			w = _summImage.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
@@ -628,7 +631,7 @@ protected:
 		_comm.updateSkinMaterialsExtension(oldSkin, _comm.skin);
 		_comm.refCoupons.call();
 		getShell().setText(.tryFormat(_prop.msgs.dlgTitSummary, _summ.scenarioName));
-		auto ver = VERSIONS[_dataVersion.getSelectionIndex()];
+		auto ver = dataVersion();
 		if (_summ.dataVersion != ver) { mixin(S_TRACE);
 			_summ.dataVersion = ver;
 			if (!_summ.legacy) { mixin(S_TRACE);
@@ -645,6 +648,7 @@ private class SummaryPreview : Composite {
 	private Commons _comm;
 	private Props _prop;
 	private Summary _summ;
+	private string delegate() _dataVersion;
 
 	private Canvas _summImage;
 	private string delegate() _sname = null;
@@ -679,12 +683,14 @@ private class SummaryPreview : Composite {
 			if (_summImageBuf) gc.drawImage(_summImageBuf, 0, 0);
 
 			string imgFile(in CardImage imgPath) { mixin(S_TRACE);
-				return imgPath.type is CardImageType.File ? nabs(skin.findImagePath(imgPath.path, _summ.scenarioPath)) : "";
+				auto wsnVer = _dataVersion();
+				return imgPath.type is CardImageType.File ? nabs(skin.findImagePath(imgPath.path, _summ.scenarioPath, wsnVer)) : "";
 			}
+			auto wsnVer = _dataVersion();
 			foreach (i, imgPath; imgPaths) { mixin(S_TRACE);
 				final switch (imgPath.type) {
 				case CardImageType.File:
-					string p = skin.findImagePath(imgPath.path, _summ.scenarioPath);
+					string p = skin.findImagePath(imgPath.path, _summ.scenarioPath, wsnVer);
 					if (p.length) { mixin(S_TRACE);
 						auto image = new Image(d, loadImage(_prop, skin, _summ, p));
 						final switch (imgPath.positionType) {
@@ -780,11 +786,12 @@ private class SummaryPreview : Composite {
 		}
 	}
 
-	this (Commons comm, Composite parent, int style) { mixin(S_TRACE);
+	this (Commons comm, Composite parent, int style, string delegate() dataVersion) { mixin(S_TRACE);
 		super (parent, style);
 		_comm = comm;
 		_prop = comm.prop;
 		_summ = comm.summary;
+		_dataVersion = dataVersion;
 
 		this.setLayout(new FillLayout());
 

@@ -606,7 +606,7 @@ private class ImageLayerItem : Item {
 		final switch (path.type) {
 		case CardImageType.File:
 			if (path.path != "") { mixin(S_TRACE);
-				auto file = skin.findImagePath(path.path, _parent._summ ? _parent._summ.scenarioPath : "");
+				auto file = skin.findImagePath(path.path, _parent._summ ? _parent._summ.scenarioPath : "", _parent._summ ? _parent._summ.dataVersion : LATEST_VERSION);
 				if (file != "" && file.exists()) { mixin(S_TRACE);
 					auto data = loadImage(_parent._comm.prop, skin, _parent._summ, file, _parent._mask);
 					if (cRect.width < data.width || cRect.height < data.height) {

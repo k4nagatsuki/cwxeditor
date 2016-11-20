@@ -2667,7 +2667,7 @@ class MsgPreview : Composite {
 		foreach (imgPath; _imgPaths) { mixin(S_TRACE);
 			final switch (imgPath.type) {
 			case CardImageType.File:
-				tImg ~= loadImage(_comm.skin.findImagePath(imgPath.path, _summ.scenarioPath), true);
+				tImg ~= loadImage(_comm.skin.findImagePath(imgPath.path, _summ.scenarioPath, _summ.dataVersion), true);
 				pos ~= imgPath.positionType;
 				break;
 			case CardImageType.PCNumber:
@@ -2794,7 +2794,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] tal
 			auto c = decodeFontPath(path);
 			if (!isSJIS1ByteChar(c)) return false;
 		}
-		return comm.skin.findImagePath(path, comm.summary.scenarioPath).length != 0 || decodeFontPath(path) in comm.skin.spChars;
+		return comm.skin.findImagePath(path, comm.summary.scenarioPath, comm.summary.dataVersion).length != 0 || decodeFontPath(path) in comm.skin.spChars;
 	}, rFonts, rColors);
 	auto dmsg = to!dstring(message);
 
@@ -2837,7 +2837,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] tal
 	// フォントイメージ
 	auto wrgb = fc.getRGB();
 	void drawSPFont(GC gc, CPoint pt, string path, RGB c) { mixin(S_TRACE);
-		string fpath = comm.skin.findImagePath(path, sPath);
+		string fpath = comm.skin.findImagePath(path, sPath, comm.summary.dataVersion);
 		ImageData data = null;
 		if (fpath && fpath.length) { mixin(S_TRACE);
 			// シナリオ内特殊文字

@@ -1512,7 +1512,7 @@ void hemming(GC gc, string s, int tx, int ty, Color color) { mixin(S_TRACE);
 	gc.setForeground(color);
 	gc.wDrawText(s, tx, ty, true);
 }
-ImageData castCardImage(Props prop, Skin skin, in CastCard c, string sPath, bool dbgMode) { mixin(S_TRACE);
+ImageData castCardImage(Props prop, Skin skin, in CastCard c, string sPath, string wsnVer, bool dbgMode) { mixin(S_TRACE);
 	auto cardSize = prop.looks.cardSize;
 	auto matPad = prop.looks.castCardInsets;
 	int w = cardSize.width + matPad.e + matPad.w;
@@ -1555,7 +1555,7 @@ ImageData castCardImage(Props prop, Skin skin, in CastCard c, string sPath, bool
 			PileImage.TPos.RIGHT);
 	}
 	foreach (path; c.paths) { mixin(S_TRACE);
-		path.addToPileImage(r, prop, skin, sPath, matPad, ScaleType.Center);
+		path.addToPileImage(r, prop, skin, sPath, wsnVer, matPad, ScaleType.Center);
 	}
 	int stMax = prop.looks.statusVerMax;
 	if ((dbgMode || c.faceUpRound > 0) && 0 < c.life) { mixin(S_TRACE);
@@ -1706,7 +1706,7 @@ ImageData castCardImage(Props prop, Skin skin, in CastCard c, string sPath, bool
 	return r.createImageData();
 }
 
-void addToPileImage(in CardImage img, PileImage pile, Props prop, Skin skin, string sPath, CInsets matPad, ScaleType type) { mixin(S_TRACE);
+void addToPileImage(in CardImage img, PileImage pile, Props prop, Skin skin, string sPath, string wsnVer, CInsets matPad, ScaleType type) { mixin(S_TRACE);
 	final switch (img.type) {
 	case CardImageType.PCNumber:
 		if (0 < img.pcNumber) { mixin(S_TRACE);
@@ -1716,7 +1716,7 @@ void addToPileImage(in CardImage img, PileImage pile, Props prop, Skin skin, str
 		}
 		break;
 	case CardImageType.File:
-		auto path = skin.findImagePath(img.path, sPath);
+		auto path = skin.findImagePath(img.path, sPath, wsnVer);
 		if (path != "") { mixin(S_TRACE);
 			final switch (img.positionType) {
 			case CardImagePosition.Center:
@@ -1749,7 +1749,7 @@ void addToPileImage(in CardImage img, PileImage pile, Props prop, Skin skin, str
 	}
 }
 
-ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, CastCard owner, const(C) delegate(ulong) get, bool detail, bool preview) { mixin(S_TRACE);
+ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, string wsnVer, CastCard owner, const(C) delegate(ulong) get, bool detail, bool preview) { mixin(S_TRACE);
 	static if (is (C == SkillCard)) {
 		bool hold = base.hold;
 		auto card = skillCard(skin);
@@ -1812,7 +1812,7 @@ ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, CastCard 
 		}
 	}
 	foreach (path; c.paths) { mixin(S_TRACE);
-		path.addToPileImage(r, prop, skin, sPath, matPad, ScaleType.Cut);
+		path.addToPileImage(r, prop, skin, sPath, wsnVer, matPad, ScaleType.Cut);
 	}
 	static if (is(typeof(c.linkId))) {
 		if (link) { mixin(S_TRACE);
@@ -2907,9 +2907,9 @@ string contentTextUseID(CIDKind Kind, ID)(Commons comm, Summary summ, ID id, str
 		noID = comm.prop.msgs.noImage;
 		find = { mixin(S_TRACE);
 			if (summ) { mixin(S_TRACE);
-				return comm.skin.findImagePath(id, summ.scenarioPath).length > 0;
+				return comm.skin.findImagePath(id, summ.scenarioPath, summ.dataVersion).length > 0;
 			} else { mixin(S_TRACE);
-				return comm.skin.findImagePath(id, "").length > 0;
+				return comm.skin.findImagePath(id, "", LATEST_VERSION).length > 0;
 			}
 		};
 		use = id && id.length;
@@ -2923,9 +2923,9 @@ string contentTextUseID(CIDKind Kind, ID)(Commons comm, Summary summ, ID id, str
 			use = id.path != "";
 			find = { mixin(S_TRACE);
 				if (summ) { mixin(S_TRACE);
-					return comm.skin.findImagePath(id.path, summ.scenarioPath).length > 0;
+					return comm.skin.findImagePath(id.path, summ.scenarioPath, summ.dataVersion).length > 0;
 				} else { mixin(S_TRACE);
-					return comm.skin.findImagePath(id.path, "").length > 0;
+					return comm.skin.findImagePath(id.path, "", LATEST_VERSION).length > 0;
 				}
 			};
 			break;
@@ -2975,9 +2975,9 @@ string contentTextUseID(CIDKind Kind, ID)(Commons comm, Summary summ, ID id, str
 				final switch (path.type) {
 				case CardImageType.File:
 					if (summ) { mixin(S_TRACE);
-						return comm.skin.findImagePath(path.path, summ.scenarioPath).length > 0;
+						return comm.skin.findImagePath(path.path, summ.scenarioPath, summ.dataVersion).length > 0;
 					} else { mixin(S_TRACE);
-						return comm.skin.findImagePath(path.path, "").length > 0;
+						return comm.skin.findImagePath(path.path, "", LATEST_VERSION).length > 0;
 					}
 					break;
 				case CardImageType.PCNumber:
@@ -2995,9 +2995,9 @@ string contentTextUseID(CIDKind Kind, ID)(Commons comm, Summary summ, ID id, str
 		noID = comm.prop.msgs.noBGM;
 		find = { mixin(S_TRACE);
 			if (summ) { mixin(S_TRACE);
-				return comm.skin.findPath(id, comm.skin.extBgm, comm.skin.bgmDir, summ.scenarioPath).length > 0;
+				return comm.skin.findPath(id, comm.skin.extBgm, comm.skin.bgmDir, summ.scenarioPath, summ.dataVersion).length > 0;
 			} else { mixin(S_TRACE);
-				return comm.skin.findPath(id, comm.skin.extBgm, comm.skin.bgmDir, "").length > 0;
+				return comm.skin.findPath(id, comm.skin.extBgm, comm.skin.bgmDir, "", LATEST_VERSION).length > 0;
 			}
 		};
 		use = id && id.length;
@@ -3007,9 +3007,9 @@ string contentTextUseID(CIDKind Kind, ID)(Commons comm, Summary summ, ID id, str
 		noID = comm.prop.msgs.noSE;
 		find = { mixin(S_TRACE);
 			if (summ) { mixin(S_TRACE);
-				return comm.skin.findPath(id, comm.skin.extSound, comm.skin.seDir, summ.scenarioPath).length > 0;
+				return comm.skin.findPath(id, comm.skin.extSound, comm.skin.seDir, summ.scenarioPath, summ.dataVersion).length > 0;
 			} else { mixin(S_TRACE);
-				return comm.skin.findPath(id, comm.skin.extSound, comm.skin.seDir, "").length > 0;
+				return comm.skin.findPath(id, comm.skin.extSound, comm.skin.seDir, "", LATEST_VERSION).length > 0;
 			}
 		};
 		use = id && id.length;

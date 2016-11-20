@@ -86,7 +86,7 @@ private:
 					if (!ec) return;
 					auto canv = cast(Canvas)e.widget;
 					auto skin = _comm.skin;
-					auto imgData = castCardImage(_prop, skin, ec, _summ.scenarioPath, true);
+					auto imgData = castCardImage(_prop, skin, ec, _summ.scenarioPath, _summ.dataVersion, true);
 					scope img = new Image(Display.getCurrent(), imgData);
 					scope (exit) img.dispose();
 					auto ca = canv.getClientArea();

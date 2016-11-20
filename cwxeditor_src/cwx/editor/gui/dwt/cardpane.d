@@ -1893,6 +1893,15 @@ private:
 		}
 	}
 	@property
+	string ownerWsnVersion() { mixin(S_TRACE);
+		if (_ownerType is OwnerType.Cast) { mixin(S_TRACE);
+			return _summ.dataVersion;
+		} else { mixin(S_TRACE);
+			assert (cast(Summary)_owner !is null);
+			return (cast(Summary)_owner).dataVersion;
+		}
+	}
+	@property
 	string ownerId() { mixin(S_TRACE);
 		if (_ownerType is OwnerType.Cast) { mixin(S_TRACE);
 			return _summ.id;
@@ -1911,19 +1920,19 @@ private:
 		auto detail = _viewMode == CViewMode.LIFE || preview;
 		ImageData data;
 		if (cast(CastCard)c) { mixin(S_TRACE);
-			data = castCardImage(_prop, skin, cast(CastCard)c, ownerScenarioPath, detail);
+			data = castCardImage(_prop, skin, cast(CastCard)c, ownerScenarioPath, ownerWsnVersion, detail);
 		} else if (!cast(InfoCard)c && _ownerType is OwnerType.Cast) { mixin(S_TRACE);
 			final switch (_cardType) {
 			case CardType.Cast:
 				assert (0);
 			case CardType.Skill:
-				data = .cardImage(_prop, skin, cast(const SkillCard)c, ownerScenarioPath, cast(CastCard)_owner, (id) => cast(const SkillCard)pOwnerCard(id), detail, preview);
+				data = .cardImage(_prop, skin, cast(const SkillCard)c, ownerScenarioPath, ownerWsnVersion, cast(CastCard)_owner, (id) => cast(const SkillCard)pOwnerCard(id), detail, preview);
 				break;
 			case CardType.Item:
-				data = .cardImage(_prop, skin, cast(const ItemCard)c, ownerScenarioPath, cast(CastCard)_owner, (id) => cast(const ItemCard)pOwnerCard(id), detail, preview);
+				data = .cardImage(_prop, skin, cast(const ItemCard)c, ownerScenarioPath, ownerWsnVersion, cast(CastCard)_owner, (id) => cast(const ItemCard)pOwnerCard(id), detail, preview);
 				break;
 			case CardType.Beast:
-				data = .cardImage(_prop, skin, cast(const BeastCard)c, ownerScenarioPath, cast(CastCard)_owner, (id) => cast(const BeastCard)pOwnerCard(id), detail, preview);
+				data = .cardImage(_prop, skin, cast(const BeastCard)c, ownerScenarioPath, ownerWsnVersion, cast(CastCard)_owner, (id) => cast(const BeastCard)pOwnerCard(id), detail, preview);
 				break;
 			case CardType.Info:
 				assert (0);
@@ -1933,16 +1942,16 @@ private:
 			case CardType.Cast:
 				assert (0);
 			case CardType.Skill:
-				data = .cardImage(_prop, skin, cast(const SkillCard)c, ownerScenarioPath, cast(CastCard)null, (id) => cast(const SkillCard)pOwnerCard(id), detail, preview);
+				data = .cardImage(_prop, skin, cast(const SkillCard)c, ownerScenarioPath, ownerWsnVersion, cast(CastCard)null, (id) => cast(const SkillCard)pOwnerCard(id), detail, preview);
 				break;
 			case CardType.Item:
-				data = .cardImage(_prop, skin, cast(const ItemCard)c, ownerScenarioPath, cast(CastCard)null, (id) => cast(const ItemCard)pOwnerCard(id), detail, preview);
+				data = .cardImage(_prop, skin, cast(const ItemCard)c, ownerScenarioPath, ownerWsnVersion, cast(CastCard)null, (id) => cast(const ItemCard)pOwnerCard(id), detail, preview);
 				break;
 			case CardType.Beast:
-				data = .cardImage(_prop, skin, cast(const BeastCard)c, ownerScenarioPath, cast(CastCard)null, (id) => cast(const BeastCard)pOwnerCard(id), detail, preview);
+				data = .cardImage(_prop, skin, cast(const BeastCard)c, ownerScenarioPath, ownerWsnVersion, cast(CastCard)null, (id) => cast(const BeastCard)pOwnerCard(id), detail, preview);
 				break;
 			case CardType.Info:
-				data = .cardImage(_prop, skin, cast(const InfoCard)c, ownerScenarioPath, cast(CastCard)null, (id) => cast(const InfoCard)pOwnerCard(id), detail, preview);
+				data = .cardImage(_prop, skin, cast(const InfoCard)c, ownerScenarioPath, ownerWsnVersion, cast(CastCard)null, (id) => cast(const InfoCard)pOwnerCard(id), detail, preview);
 				break;
 			}
 		}

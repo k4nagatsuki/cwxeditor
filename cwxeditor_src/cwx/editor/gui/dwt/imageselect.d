@@ -714,7 +714,7 @@ private:
 		private void drawImage(GC gc, size_t i, CardImage path) { mixin(S_TRACE);
 			final switch (path.type) {
 			case CardImageType.File:
-				auto file = summSkin.findImagePath(path.path, _summ ? _summ.scenarioPath : "");
+				auto file = summSkin.findImagePath(path.path, _summ ? _summ.scenarioPath : "", _summ ? _summ.dataVersion : LATEST_VERSION);
 				if (file != "") { mixin(S_TRACE);
 					auto posType = path.positionType;
 					if (posType is CardImagePosition.Default) posType = _defPosType;
