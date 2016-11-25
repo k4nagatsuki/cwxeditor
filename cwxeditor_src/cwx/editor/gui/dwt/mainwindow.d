@@ -568,7 +568,7 @@ private:
 						auto v1_50 = 1 * 0x1000000L + 5 * 0x10000L + 0 * 0x100L + 0 * 0x1L;
 						bool is1_50 = v1_50 <= exeV;
 
-						if (mWithParty && !withPartyItem && is1_50) { mixin(S_TRACE);
+						if (mWithParty && !withPartyItem && is1_50 && mWithParty.getItemCount()) { mixin(S_TRACE);
 							new MenuItem(mWithParty, SWT.SEPARATOR);
 						}
 						withPartyItem |= is1_50;
