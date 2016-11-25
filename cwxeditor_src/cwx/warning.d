@@ -690,6 +690,21 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				r ~= prop.msgs.warningRunawayCard;
 			}
 		}
+		if (c.type is CType.BRANCH_KEY_CODE && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+			if (summ.legacy
+					&& !(c.targetIsSkill && c.targetIsItem && c.targetIsBeast && c.targetIsHand)
+					&& !(c.targetIsSkill && !c.targetIsItem && !c.targetIsBeast && !c.targetIsHand)
+					&& !(!c.targetIsSkill && c.targetIsItem && !c.targetIsBeast && c.targetIsHand)
+					&& !(!c.targetIsSkill && !c.targetIsItem && c.targetIsBeast && !c.targetIsHand)) { mixin(S_TRACE);
+				r ~= .tryFormat(prop.msgs.warningBranchKeyCodeAtClassic);
+			} else if (!summ.legacy
+					&& !(c.targetIsSkill && c.targetIsItem && c.targetIsBeast && !c.targetIsHand)
+					&& !(c.targetIsSkill && !c.targetIsItem && !c.targetIsBeast && !c.targetIsHand)
+					&& !(!c.targetIsSkill && c.targetIsItem && !c.targetIsBeast && !c.targetIsHand)
+					&& !(!c.targetIsSkill && !c.targetIsItem && c.targetIsBeast && !c.targetIsHand)) { mixin(S_TRACE);
+				r ~= .tryFormat(prop.msgs.warningBranchKeyCodeAtWsn1);
+			}
+		}
 	}
 	return r;
 }

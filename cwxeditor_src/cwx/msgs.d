@@ -1295,6 +1295,11 @@ class Msgs : Properties {
 	auto branchKeyCodeAllTypeFailure = Msg("branchKeyCodeAllTypeFailure", "キーコード「%1$s」を含むカードを所有していない(%2$s)");
 	auto branchKeyCodeSuccess = Msg("branchKeyCodeSuccess", "キーコード「%1$s」を含む%2$sを所有している(%3$s)");
 	auto branchKeyCodeFailure = Msg("branchKeyCodeFailure", "キーコード「%1$s」を含む%2$sを所有していない(%3$s)");
+	auto targetIsSkill = Msg("targetIsSkill", "特殊技能");
+	auto targetIsItem = Msg("targetIsItem", "アイテム");
+	auto targetIsBeast = Msg("targetIsBeast", "召喚獣");
+	auto targetIsHand = Msg("targetIsHand", "手札");
+	auto targetSeparator = Msg("targetSeparator", "・");
 	auto branchRound = Msg("branchRound", "バトルが%1$sラウンド%2$s");
 
 	const string physicalName(Physical id) { mixin(S_TRACE);
@@ -1497,6 +1502,7 @@ class Msgs : Properties {
 	auto effectCardTypeNameSkill = Msg("effectCardTypeNameSkill", "特殊技能カード");
 	auto effectCardTypeNameItem = Msg("effectCardTypeNameItem", "アイテムカード");
 	auto effectCardTypeNameBeast = Msg("effectCardTypeNameBeast", "召喚獣カード");
+	auto effectCardTypeNameHand = Msg("effectCardTypeNameHand", "戦闘時の手札"); // Wsn.2
 
 	const string comparison4Name(Comparison4 id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(Comparison4, "comparison4Name"));
@@ -1615,6 +1621,7 @@ class Msgs : Properties {
 	auto noSelectCompleteStamp = Msg("noSelectCompleteStamp", "(指定無し)");
 	auto noSelectGossip = Msg("noSelectGossip", "(指定無し)");
 	auto noSelectCellName = Msg("noSelectCellName", "(指定無し)");
+	auto noSelectTarget = Msg("noSelectTarget", "(指定無し)");
 
 	auto cardId = Msg("cardId", "ID");
 	auto cardName = Msg("cardName", "名称");
@@ -1781,6 +1788,9 @@ class Msgs : Properties {
 	auto warningStartAction = Msg("warningStartAction", "戦闘行動開始タイミングの指定は、Wsn.2以降の形式のシナリオしか行えません。"); // Wsn.2
 	auto warningIgnite = Msg("warningIgnite", "イベントの発火有無の指定は、Wsn.2以降の形式のシナリオしか行えません。"); // Wsn.2
 	auto warningIgnoreKeyCode = Msg("warningIgnoreKeyCode", "イベント発火無しに指定されているため、設定されたキーコードは機能しません。"); // Wsn.2
+	auto warningBranchKeyCodeAtClassic = Msg("warningBranchKeyCodeAtClassic", "クラシックなシナリオにおけるキーコード所持分岐は、カードの種類に特殊技能・アイテム及び手札・召喚獣のいずれか単独、またはそれら全てを指定しなければ正しく機能しません。"); // Wsn.2
+	auto warningBranchKeyCodeAtWsn1 = Msg("warningBranchKeyCodeAtWsn1", "Wsn.1以前のシナリオにおけるキーコード所持分岐は、カードの種類に特殊技能・アイテム・召喚獣のいずれか単独、またはそれら全てを指定しなければ正しく機能しません。"); // Wsn.2
+	auto warningBranchKeyCodeWithItem = Msg("warningBranchKeyCodeWithItem", "クラシックなシナリオにおけるキーコード所持分岐でカードの種類にアイテムが含まれている場合は、戦闘時の手札も検索対象となります。");
 
 	auto unknownStepValue = Msg("unknownStepValue", "存在しないステップ値(%1$s)");
 

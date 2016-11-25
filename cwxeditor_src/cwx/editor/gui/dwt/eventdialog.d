@@ -2930,18 +2930,117 @@ protected:
 class BrKeyCodeDialog : EventDialog {
 private:
 	Button[Range] _keyCodeRange;
-	Button[EffectCardType] _effectCardType;
+	Button[EffectCardType] _effectCardTypeWsn1 = null;
+	Button[EffectCardType] _effectCardTypeWsn2 = null;
+	Composite _typeComp;
 	Combo _keyCode;
 
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
-		if (!_prop.targetVersion(summ, "1.50")) { mixin(S_TRACE);
-			ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(CType.BRANCH_KEY_CODE), "1.50");
+		if (_effectCardTypeWsn1.length) { mixin(S_TRACE);
+			if (!_prop.targetVersion(summ, "1.50")) { mixin(S_TRACE);
+				ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(CType.BRANCH_KEY_CODE), "1.50");
+			}
+			if (summ && summ.legacy && (_effectCardTypeWsn1[EffectCardType.ALL].getSelection() || _effectCardTypeWsn1[EffectCardType.ITEM].getSelection())) { mixin(S_TRACE);
+				ws ~= _prop.msgs.warningBranchKeyCodeWithItem;
+			}
+		} else { mixin(S_TRACE);
+			assert (_effectCardTypeWsn2.length);
+			auto skill = _effectCardTypeWsn2[EffectCardType.SKILL].getSelection();
+			auto item = _effectCardTypeWsn2[EffectCardType.ITEM].getSelection();
+			auto beast = _effectCardTypeWsn2[EffectCardType.BEAST].getSelection();
+			auto hand = _effectCardTypeWsn2[EffectCardType.HAND].getSelection();
+			if (!_prop.isTargetVersion(summ, "2")
+					&& !(skill && item && beast && !hand)
+					&& !(skill && !item && !beast && !hand)
+					&& !(!skill && item && !beast && !hand)
+					&& !(!skill && !item && beast && !hand)) { mixin(S_TRACE);
+				ws ~= _prop.msgs.warningBranchKeyCodeAtWsn1;
+			}
 		}
 		warning = ws;
 	}
 
+	override
+	protected void refDataVersion() { mixin(S_TRACE);
+		if (summ && summ.legacy && _effectCardTypeWsn2.length) { mixin(S_TRACE);
+			auto skill = _effectCardTypeWsn2[EffectCardType.SKILL].getSelection();
+			auto item = _effectCardTypeWsn2[EffectCardType.ITEM].getSelection();
+			auto beast = _effectCardTypeWsn2[EffectCardType.BEAST].getSelection();
+			auto hand = _effectCardTypeWsn2[EffectCardType.HAND].getSelection();
+			foreach (radio; _effectCardTypeWsn2.byValue()) radio.dispose();
+			_effectCardTypeWsn2 = null;
+			createWsn1Panel();
+
+			if (skill && item && beast && hand) { mixin(S_TRACE);
+				_effectCardTypeWsn1[EffectCardType.ALL].setSelection(true);
+			} else if (skill && !item && !beast && !hand) { mixin(S_TRACE);
+				_effectCardTypeWsn1[EffectCardType.SKILL].setSelection(true);
+			} else if (!skill && item && !beast && hand) { mixin(S_TRACE);
+				_effectCardTypeWsn1[EffectCardType.ITEM].setSelection(true);
+			} else if (!skill && item && !beast && !hand) { mixin(S_TRACE);
+				_effectCardTypeWsn1[EffectCardType.ITEM].setSelection(true);
+				applyEnabled(true);
+			} else if (!skill && !item && beast && !hand) { mixin(S_TRACE);
+				_effectCardTypeWsn1[EffectCardType.BEAST].setSelection(true);
+			} else { mixin(S_TRACE);
+				_effectCardTypeWsn1[EffectCardType.ALL].setSelection(true);
+				applyEnabled(true);
+			}
+			getShell().layout(true, true);
+			getShell().pack();
+		} else if ((!summ || !summ.legacy) && _effectCardTypeWsn1.length) { mixin(S_TRACE);
+			auto v = getRadioValue!(EffectCardType)(_effectCardTypeWsn1);
+			foreach (radio; _effectCardTypeWsn1.byValue()) radio.dispose();
+			_effectCardTypeWsn1 = null;
+			createWsn2Panel();
+			final switch (v) {
+			case EffectCardType.ALL:
+				_effectCardTypeWsn2[EffectCardType.SKILL].setSelection(true);
+				_effectCardTypeWsn2[EffectCardType.ITEM].setSelection(true);
+				_effectCardTypeWsn2[EffectCardType.BEAST].setSelection(true);
+				_effectCardTypeWsn2[EffectCardType.HAND].setSelection(true);
+				break;
+			case EffectCardType.SKILL:
+				_effectCardTypeWsn2[EffectCardType.SKILL].setSelection(true);
+				break;
+			case EffectCardType.ITEM:
+				_effectCardTypeWsn2[EffectCardType.ITEM].setSelection(true);
+				_effectCardTypeWsn2[EffectCardType.HAND].setSelection(true);
+				break;
+			case EffectCardType.BEAST:
+				_effectCardTypeWsn2[EffectCardType.BEAST].setSelection(true);
+				break;
+			case EffectCardType.HAND:
+				assert (0);
+			}
+			getShell().layout(true, true);
+			getShell().pack();
+		}
+		super.refDataVersion();
+	}
+
+	void createWsn1Panel() { mixin(S_TRACE);
+		foreach (r; [EffectCardType.ALL, EffectCardType.SKILL, EffectCardType.ITEM, EffectCardType.BEAST]) { mixin(S_TRACE);
+			auto radio = new Button(_typeComp, SWT.RADIO);
+			mod(radio);
+			radio.setText(_prop.msgs.effectCardTypeName(r));
+			radio.setLayoutData(new GridData(GridData.FILL_BOTH));
+			.listener(radio, SWT.Selection, &refreshWarning);
+			_effectCardTypeWsn1[r] = radio;
+		}
+	}
+	void createWsn2Panel() { mixin(S_TRACE);
+		foreach (r; [EffectCardType.SKILL, EffectCardType.ITEM, EffectCardType.BEAST, EffectCardType.HAND]) { mixin(S_TRACE);
+			auto check = new Button(_typeComp, SWT.CHECK);
+			mod(check);
+			check.setText(_prop.msgs.effectCardTypeName(r));
+			check.setLayoutData(new GridData(GridData.FILL_BOTH));
+			.listener(check, SWT.Selection, &refreshWarning);
+			_effectCardTypeWsn2[r] = check;
+		}
+	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
 		super (comm, prop, shell, summ, CType.BRANCH_KEY_CODE, parent, evt, false, null, true);
@@ -2969,14 +3068,12 @@ protected:
 			grp.setText(_prop.msgs.cardType);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			grp.setLayout(new CenterLayout(SWT.HORIZONTAL));
-			auto comp = new Composite(grp, SWT.NONE);
-			comp.setLayout(zeroMarginGridLayout(1, true));
-			foreach (r; [EffectCardType.ALL, EffectCardType.SKILL, EffectCardType.ITEM, EffectCardType.BEAST]) { mixin(S_TRACE);
-				auto radio = new Button(comp, SWT.RADIO);
-				mod(radio);
-				radio.setText(_prop.msgs.effectCardTypeName(r));
-				radio.setLayoutData(new GridData(GridData.FILL_BOTH));
-				_effectCardType[r] = radio;
+			_typeComp = new Composite(grp, SWT.NONE);
+			_typeComp.setLayout(zeroMarginGridLayout(1, true));
+			if (summ && summ.legacy) { mixin(S_TRACE);
+				createWsn1Panel();
+			} else { mixin(S_TRACE);
+				createWsn2Panel();
 			}
 		}
 		{ mixin(S_TRACE);
@@ -2998,11 +3095,37 @@ protected:
 		scope (exit) ignoreMod = false;
 		if (_evt) { mixin(S_TRACE);
 			_keyCodeRange[_evt.keyCodeRange].setSelection(true);
-			_effectCardType[_evt.effectCardType].setSelection(true);
+			if (_effectCardTypeWsn1.length) { mixin(S_TRACE);
+				if (_evt.targetIsSkill && _evt.targetIsItem && _evt.targetIsBeast) { mixin(S_TRACE);
+					_effectCardTypeWsn1[EffectCardType.ALL].setSelection(true);
+				} else if (_evt.targetIsSkill) { mixin(S_TRACE);
+					_effectCardTypeWsn1[EffectCardType.SKILL].setSelection(true);
+				} else if (_evt.targetIsItem) { mixin(S_TRACE);
+					_effectCardTypeWsn1[EffectCardType.ITEM].setSelection(true);
+				} else if (_evt.targetIsBeast) { mixin(S_TRACE);
+					_effectCardTypeWsn1[EffectCardType.BEAST].setSelection(true);
+				} else { mixin(S_TRACE);
+					_effectCardTypeWsn1[EffectCardType.ALL].setSelection(true);
+				}
+			} else { mixin(S_TRACE);
+				assert (_effectCardTypeWsn2.length);
+				_effectCardTypeWsn2[EffectCardType.SKILL].setSelection(_evt.targetIsSkill);
+				_effectCardTypeWsn2[EffectCardType.ITEM].setSelection(_evt.targetIsItem);
+				_effectCardTypeWsn2[EffectCardType.BEAST].setSelection(_evt.targetIsBeast);
+				_effectCardTypeWsn2[EffectCardType.HAND].setSelection(_evt.targetIsHand);
+			}
 			_keyCode.setText(_evt.keyCode);
 		} else { mixin(S_TRACE);
 			_keyCodeRange[Range.SELECTED].setSelection(true);
-			_effectCardType[EffectCardType.ALL].setSelection(true);
+			if (_effectCardTypeWsn1.length) { mixin(S_TRACE);
+				_effectCardTypeWsn1[EffectCardType.ALL].setSelection(true);
+			} else { mixin(S_TRACE);
+				assert (_effectCardTypeWsn2.length);
+				_effectCardTypeWsn2[EffectCardType.SKILL].setSelection(true);
+				_effectCardTypeWsn2[EffectCardType.ITEM].setSelection(true);
+				_effectCardTypeWsn2[EffectCardType.BEAST].setSelection(true);
+				_effectCardTypeWsn2[EffectCardType.HAND].setSelection(false);
+			}
 			_keyCode.setText("");
 		}
 		refreshWarning();
@@ -3013,7 +3136,39 @@ protected:
 
 		_evt.keyCode = _keyCode.getText();
 		_evt.keyCodeRange = getRadioValue!(Range)(_keyCodeRange);
-		_evt.effectCardType = getRadioValue!(EffectCardType)(_effectCardType);
+		_evt.targetIsSkill = false;
+		_evt.targetIsItem = false;
+		_evt.targetIsBeast = false;
+		_evt.targetIsHand = false;
+		if (_effectCardTypeWsn1.length) { mixin(S_TRACE);
+			final switch (getRadioValue!(EffectCardType)(_effectCardTypeWsn1)) {
+			case EffectCardType.ALL:
+				_evt.targetIsSkill = true;
+				_evt.targetIsItem = true;
+				_evt.targetIsBeast = true;
+				if (summ && summ.legacy) _evt.targetIsHand = true;
+				break;
+			case EffectCardType.SKILL:
+				_evt.targetIsSkill = true;
+				break;
+			case EffectCardType.ITEM:
+				_evt.targetIsItem = true;
+				if (summ && summ.legacy) _evt.targetIsHand = true;
+				break;
+			case EffectCardType.BEAST:
+				_evt.targetIsBeast = true;
+				break;
+			case EffectCardType.HAND:
+				_evt.targetIsHand = true;
+				break;
+			}
+		} else { mixin(S_TRACE);
+			assert (_effectCardTypeWsn2.length);
+			_evt.targetIsSkill = _effectCardTypeWsn2[EffectCardType.SKILL].getSelection();
+			_evt.targetIsItem = _effectCardTypeWsn2[EffectCardType.ITEM].getSelection();
+			_evt.targetIsBeast = _effectCardTypeWsn2[EffectCardType.BEAST].getSelection();
+			_evt.targetIsHand = _effectCardTypeWsn2[EffectCardType.HAND].getSelection();
+		}
 
 		_comm.refKeyCodes.call();
 		return true;

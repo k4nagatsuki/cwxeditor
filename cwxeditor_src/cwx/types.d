@@ -860,6 +860,7 @@ enum EffectCardType {
 	SKILL, /// 特殊技能。
 	ITEM, /// アイテム。
 	BEAST, /// 召喚獣。
+	HAND, /// 手札(Wsn.2)。
 }
 /// ditto
 EffectCardType toEffectCardType(string name) { mixin(S_TRACE);
@@ -868,6 +869,7 @@ EffectCardType toEffectCardType(string name) { mixin(S_TRACE);
 	case "Skill": return EffectCardType.SKILL;
 	case "Item":  return EffectCardType.ITEM;
 	case "Beast": return EffectCardType.BEAST;
+	case "Hand":  return EffectCardType.HAND;
 	default: throw new Exception("Unknown card type: " ~ name);
 	}
 }
@@ -878,6 +880,7 @@ string fromEffectCardType(EffectCardType t) { mixin(S_TRACE);
 	case EffectCardType.SKILL: return "Skill";
 	case EffectCardType.ITEM:  return "Item";
 	case EffectCardType.BEAST: return "Beast";
+	case EffectCardType.HAND:  return "Hand";
 	}
 }
 
@@ -1254,7 +1257,6 @@ enum CArg {
 	LEVEL_MIN, /// 下限レベル(CardWirth Extender 1.30～)。
 	LEVEL_MAX, /// 上限レベル(CardWirth Extender 1.30～)。
 	KEY_CODE_RANGE, /// キーコード所持判定範囲(CardWirth 1.50)。
-	EFFECT_CARD_TYPE, /// 効果カード種別(CardWirth 1.50)。
 	KEY_CODE, /// キーコード(CardWirth 1.50)。
 	COUPONS, /// 得点付きクーポン群(CardWirth 1.50)。
 	INIT_VALUE, /// 評価メンバ初期点(CardWirth 1.50)。
@@ -1274,6 +1276,10 @@ enum CArg {
 	START_ACTION, /// キャスト同行時の戦闘行動開始タイミング(Wsn.2)。
 	IGNITE, /// イベントの発火有無(Wsn.2)。
 	KEY_CODES, /// イベント発火のキーコード(Wsn.2)。
+	TARGET_IS_SKILL, /// 特殊技能カードが対象か(Wsn.2)。
+	TARGET_IS_ITEM, /// アイテムカードが対象か(Wsn.2)。
+	TARGET_IS_BEAST, /// 召喚獣カードが対象か(Wsn.2)。
+	TARGET_IS_HAND, /// 戦闘時の手札が対象か(Wsn.2)。
 }
 
 /// 後続コンテントのnameの型。

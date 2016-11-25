@@ -194,7 +194,7 @@ private void static_this () { mixin(S_TRACE);
 		CType.BRANCH_STEP_CMP:CDetail("Branch", "StepValue", CNextType.TRIO, true, [CArg.STEP:"from", CArg.STEP_2:"to"]),
 		CType.BRANCH_FLAG_CMP:CDetail("Branch", "FlagValue", CNextType.BOOL, true, [CArg.FLAG:"from", CArg.FLAG_2:"to"]),
 		CType.BRANCH_RANDOM_SELECT:CDetail("Branch", "RandomSelect", CNextType.BOOL, true, [CArg.CAST_RANGE:null, CArg.LEVEL_MIN:"minLevel", CArg.LEVEL_MAX:"maxLevel", CArg.STATUS:"status"]),
-		CType.BRANCH_KEY_CODE:CDetail("Branch", "KeyCode", CNextType.BOOL, true, [CArg.KEY_CODE_RANGE:"targetkc", CArg.EFFECT_CARD_TYPE:"effectCardType", CArg.KEY_CODE:"keyCode"]),
+		CType.BRANCH_KEY_CODE:CDetail("Branch", "KeyCode", CNextType.BOOL, true, [CArg.KEY_CODE_RANGE:"targetkc", CArg.TARGET_IS_SKILL:"skill", CArg.TARGET_IS_ITEM:"item", CArg.TARGET_IS_BEAST:"beast", CArg.TARGET_IS_HAND:"hand", CArg.KEY_CODE:"keyCode"]),
 		CType.CHECK_STEP:CDetail("Check", "Step", CNextType.NONE, true, [CArg.STEP:"step", CArg.STEP_VALUE:"value", CArg.COMPARISON_4:"comparison"]),
 		CType.BRANCH_ROUND:CDetail("Branch", "Round", CNextType.BOOL, true, [CArg.ROUND:"round", CArg.COMPARISON_3:"comparison"]),
 		CType.MOVE_BG_IMAGE:CDetail("Move", "BgImage", CNextType.NONE, true, [CArg.CELL_NAME:"cellname", CArg.POSITION_TYPE:"positiontype", CArg.X:"x", CArg.Y:"y", CArg.SIZE_TYPE:"sizetype", CArg.WIDTH:"width", CArg.HEIGHT:"height", CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed", CArg.DO_ANIME:"doanime", CArg.IGNORE_EFFECT_BOOSTER:"ignoreeffectbooster"]),
@@ -564,7 +564,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		this.levelMax = c.levelMax;
 
 		this.keyCodeRange = c.keyCodeRange;
-		this.effectCardType = c.effectCardType;
+		this.targetIsSkill = c.targetIsSkill;
+		this.targetIsItem = c.targetIsItem;
+		this.targetIsBeast = c.targetIsBeast;
+		this.targetIsHand = c.targetIsHand;
 		this.keyCode = c.keyCode;
 
 		this.initValue = c.initValue;
@@ -702,7 +705,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			&& levelMax == c.levelMax
 
 			&& keyCodeRange == c.keyCodeRange
-			&& effectCardType == c.effectCardType
+			&& targetIsSkill == c.targetIsSkill
+			&& targetIsItem == c.targetIsItem
+			&& targetIsBeast == c.targetIsBeast
+			&& targetIsHand == c.targetIsHand
 			&& keyCode == c.keyCode
 
 			&& initValue == c.initValue
@@ -873,7 +879,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.LEVEL_MAX, int, 0)(d, &levelMax);
 
 		resetValue!(CArg.KEY_CODE_RANGE, Range, Range.PARTY_AND_BACKPACK)(d, &keyCodeRange);
-		resetValue!(CArg.EFFECT_CARD_TYPE, EffectCardType, EffectCardType.ALL)(d, &effectCardType);
+		resetValue!(CArg.TARGET_IS_SKILL, bool, true)(d, &targetIsSkill);
+		resetValue!(CArg.TARGET_IS_ITEM, bool, true)(d, &targetIsItem);
+		resetValue!(CArg.TARGET_IS_BEAST, bool, true)(d, &targetIsBeast);
+		resetValue!(CArg.TARGET_IS_HAND, bool, false)(d, &targetIsHand);
 		resetValue!(CArg.KEY_CODE, string, "")(d, &keyCode);
 
 		if (type is CType.TALK_DIALOG) { mixin(S_TRACE);
@@ -1666,8 +1675,11 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		default: return false;
 		}
 	}
-	/// 効果カード種別(CardWirth 1.50)。
-	mixin Prop!(EffectCardType, "effectCardType", EffectCardType.ALL);
+	/// 効果カード種別(CardWirth 1.50 / Wsn.2でHandを追加し複数選択可能に)。
+	mixin Prop!(bool, "targetIsSkill", true);
+	mixin Prop!(bool, "targetIsItem", true);
+	mixin Prop!(bool, "targetIsBeast", true);
+	mixin Prop!(bool, "targetIsHand", false);
 	/// キーコード(CardWirth 1.50)。
 	mixin Prop!(KeyCodeUser, string, "keyCode", "", ".keyCode", ".keyCode", true);
 
@@ -2012,7 +2024,6 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		atnPut!(CArg.LEVEL_MAX, "levelMax", "")(e, d);
 
 		atnPut!(CArg.KEY_CODE_RANGE, "keyCodeRange", "fromRange")(e, d);
-		atnPut!(CArg.EFFECT_CARD_TYPE, "effectCardType", "fromEffectCardType")(e, d);
 		atnPut!(CArg.KEY_CODE, "keyCode", "")(e, d);
 
 		atnPut!(CArg.INIT_VALUE, "initValue", "")(e, d);
@@ -2088,6 +2099,26 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		if (d.use(CArg.KEY_CODES)) { mixin(S_TRACE);
 			e.newElement("KeyCodes", encodeLf(keyCodes, false));
 		}
+
+		// Wsn.2以降はキーコード所持分岐の探索対象を複数選択可能になった
+		atnPut!(CArg.TARGET_IS_SKILL, "targetIsSkill", "fromBool")(e, d);
+		atnPut!(CArg.TARGET_IS_ITEM, "targetIsItem", "fromBool")(e, d);
+		atnPut!(CArg.TARGET_IS_BEAST, "targetIsBeast", "fromBool")(e, d);
+		atnPut!(CArg.TARGET_IS_HAND, "targetIsHand", "fromBool")(e, d);
+		if (!opt.isTargetVersion("2") && type is CType.BRANCH_KEY_CODE) { mixin(S_TRACE);
+			// Wsn.1以前のために"effectCardType"も付加しておく
+			auto effectCardType = EffectCardType.ALL;
+			if (targetIsSkill && targetIsItem && targetIsBeast) { mixin(S_TRACE);
+				effectCardType = EffectCardType.ALL;
+			} else if (targetIsSkill) { mixin(S_TRACE);
+				effectCardType = EffectCardType.SKILL;
+			} else if (targetIsItem) { mixin(S_TRACE);
+				effectCardType = EffectCardType.ITEM;
+			} else if (targetIsBeast) { mixin(S_TRACE);
+				effectCardType = EffectCardType.BEAST;
+			}
+			e.newAttr("effectCardType", fromEffectCardType(effectCardType));
+		}
 	}
 	const
 	private void toNodeImpl(ref XNode parent, CDetail d, XMLOption opt, ref XNode contentsLine) { mixin(S_TRACE);
@@ -2134,13 +2165,15 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		id = en.attr("contentId", false);
 		return createFromNode(en, ver);
 	}
-	private static void cfnPut(CArg ARG, string Name, string To)(in XNode en, in CDetail d, ref Content c) { mixin(S_TRACE);
+	private static bool cfnPut(CArg ARG, string Name, string To)(in XNode en, in CDetail d, ref Content c) { mixin(S_TRACE);
 		if (d.use(ARG)) { mixin(S_TRACE);
 			auto name = d.attr(ARG);
 			if (en.hasAttr(name)) { mixin(S_TRACE);
 				mixin ("c." ~ Name ~ " = " ~ To ~ "(en.attr(name, true));");
+				return true;
 			}
 		}
+		return false;
 	}
 	/// XMLノードからイベントを生成する。
 	static Content createFromNode(ref XNode en, in XMLInfo ver) { mixin(S_TRACE);
@@ -2227,7 +2260,6 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		cfnPut!(CArg.LEVEL_MAX, "levelMax", "to!(int)")(en, d, r);
 
 		cfnPut!(CArg.KEY_CODE_RANGE, "keyCodeRange", "toRange")(en, d, r);
-		cfnPut!(CArg.EFFECT_CARD_TYPE, "effectCardType", "toEffectCardType")(en, d, r);
 		cfnPut!(CArg.KEY_CODE, "keyCode", "")(en, d, r);
 
 		cfnPut!(CArg.INIT_VALUE, "initValue", "to!(int)")(en, d, r);
@@ -2362,11 +2394,57 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			};
 		}
 
+		bool hasTarget = false;
+		hasTarget |= cfnPut!(CArg.TARGET_IS_SKILL, "targetIsSkill", "parseBool")(en, d, r);
+		hasTarget |= cfnPut!(CArg.TARGET_IS_ITEM, "targetIsItem", "parseBool")(en, d, r);
+		hasTarget |= cfnPut!(CArg.TARGET_IS_BEAST, "targetIsBeast", "parseBool")(en, d, r);
+		hasTarget |= cfnPut!(CArg.TARGET_IS_HAND, "targetIsHand", "parseBool")(en, d, r);
+		if (cType is CType.BRANCH_KEY_CODE) { mixin(S_TRACE);
+			// Wsn.2以降はキーコード所持分岐の探索対象を複数選択可能になったが、
+			// 該当するパラメータが無い場合はWsn.1以前と仮定して読み込む
+			if (!hasTarget && en.hasAttr("effectCardType")) { mixin(S_TRACE);
+				auto effectCardType = toEffectCardType(en.attr("effectCardType", true));
+				final switch (effectCardType) {
+				case EffectCardType.ALL:
+					r.targetIsSkill = true;
+					r.targetIsItem = true;
+					r.targetIsBeast = true;
+					r.targetIsHand = false;
+					break;
+				case EffectCardType.SKILL:
+					r.targetIsSkill = true;
+					r.targetIsItem = false;
+					r.targetIsBeast = false;
+					r.targetIsHand = false;
+					break;
+				case EffectCardType.ITEM:
+					r.targetIsSkill = false;
+					r.targetIsItem = true;
+					r.targetIsBeast = false;
+					r.targetIsHand = false;
+					break;
+				case EffectCardType.BEAST:
+					r.targetIsSkill = false;
+					r.targetIsItem = false;
+					r.targetIsBeast = true;
+					r.targetIsHand = false;
+					break;
+				case EffectCardType.HAND:
+					r.targetIsSkill = false;
+					r.targetIsItem = false;
+					r.targetIsBeast = false;
+					r.targetIsHand = true;
+					break;
+				}
+			}
+		}
+
 		if (d.owner) { mixin(S_TRACE);
 			en.onTag["Contents"] = (ref XNode node) { mixin(S_TRACE);
 				Content.createContentsFromNode(node, ver, (c) => r.add(null, c));
 			};
 		}
+
 		en.parse();
 
 		// パース後にpathsの中身が入るのでここで設定

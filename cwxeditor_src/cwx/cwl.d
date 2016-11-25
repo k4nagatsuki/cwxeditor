@@ -1451,7 +1451,38 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 		case 71:
 			e = new Content(CType.BRANCH_KEY_CODE, name);
 			e.keyCodeRange = toKeyCodeRange(f.readByte);
-			e.effectCardType = toEffectCardType(f.readByte);
+			final switch (toEffectCardType(f.readByte)) {
+			case EffectCardType.ALL:
+				e.targetIsSkill = true;
+				e.targetIsItem = true;
+				e.targetIsBeast = true;
+				e.targetIsHand = true; // BUG: CardWirth 1.50ではアイテムが対象にあると手札も検索される
+				break;
+			case EffectCardType.SKILL:
+				e.targetIsSkill = true;
+				e.targetIsItem = false;
+				e.targetIsBeast = false;
+				e.targetIsHand = false;
+				break;
+			case EffectCardType.ITEM:
+				e.targetIsSkill = false;
+				e.targetIsItem = true;
+				e.targetIsBeast = false;
+				e.targetIsHand = true; // BUG: CardWirth 1.50ではアイテムが対象にあると手札も検索される
+				break;
+			case EffectCardType.BEAST:
+				e.targetIsSkill = false;
+				e.targetIsItem = false;
+				e.targetIsBeast = true;
+				e.targetIsHand = false;
+				break;
+			case EffectCardType.HAND: // 実際にはありえない
+				e.targetIsSkill = false;
+				e.targetIsItem = false;
+				e.targetIsBeast = false;
+				e.targetIsHand = true;
+				break;
+			}
 			e.keyCode = readString(f);
 			break;
 		case 72:
@@ -2508,6 +2539,7 @@ private byte fromEffectCardType(EffectCardType v) { mixin(S_TRACE);
 	case EffectCardType.SKILL: return 1;
 	case EffectCardType.ITEM: return 2;
 	case EffectCardType.BEAST: return 3;
+	case EffectCardType.HAND: assert (0);
 	default: throw new SummaryException("Unknown range value: " ~ to!(string)(cast(int) v));
 	}
 }
@@ -3421,7 +3453,17 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 			break;
 		case CType.BRANCH_KEY_CODE:
 			f.write(fromKeyCodeRange(e.keyCodeRange));
-			f.write(fromEffectCardType(e.effectCardType));
+			if (e.targetIsSkill && e.targetIsItem && e.targetIsBeast) { mixin(S_TRACE);
+				f.write(fromEffectCardType(EffectCardType.ALL));
+			} else if (e.targetIsSkill) { mixin(S_TRACE);
+				f.write(fromEffectCardType(EffectCardType.SKILL));
+			} else if (e.targetIsItem) { mixin(S_TRACE);
+				f.write(fromEffectCardType(EffectCardType.ITEM));
+			} else if (e.targetIsBeast) { mixin(S_TRACE);
+				f.write(fromEffectCardType(EffectCardType.BEAST));
+			} else { mixin(S_TRACE);
+				f.write(fromEffectCardType(EffectCardType.ALL));
+			}
 			writeString(f, e.keyCode);
 			break;
 		case CType.CHECK_STEP:

@@ -2114,6 +2114,7 @@ fi`;
 			case "skill": i++; return EffectCardType.SKILL;
 			case "item": i++; return EffectCardType.ITEM;
 			case "beast": i++; return EffectCardType.BEAST;
+			case "hand": i++; return EffectCardType.HAND;
 			default: throwError(_prop.msgs.scriptErrorInvalidEffectCardType, attr[i].token);
 			}
 		} else static if (is(T == Comparison4)) {
@@ -2652,8 +2653,33 @@ fi`;
 			if (detail.use(CArg.KEY_CODE_RANGE)) { mixin(S_TRACE);
 				c.keyCodeRange = parseAttr!(Range)(opt, node.attr, i, c.keyCodeRange, varTable, 0);
 			}
-			if (detail.use(CArg.EFFECT_CARD_TYPE)) { mixin(S_TRACE);
-				c.effectCardType = parseAttr!(EffectCardType)(opt, node.attr, i, c.effectCardType, varTable, 0);
+			if (detail.use(CArg.TARGET_IS_SKILL) || detail.use(CArg.TARGET_IS_ITEM) || detail.use(CArg.TARGET_IS_BEAST) || detail.use(CArg.TARGET_IS_HAND)) { mixin(S_TRACE);
+				auto effectCardTypes = parseAttr!(EffectCardType[])(opt, node.attr, i, [], varTable, 0);
+				if (detail.use(CArg.TARGET_IS_SKILL)) c.targetIsSkill = false;
+				if (detail.use(CArg.TARGET_IS_ITEM)) c.targetIsItem = false;
+				if (detail.use(CArg.TARGET_IS_BEAST)) c.targetIsBeast = false;
+				if (detail.use(CArg.TARGET_IS_HAND)) c.targetIsHand = false;
+				foreach (effectCardType; effectCardTypes) { mixin(S_TRACE);
+					final switch (effectCardType) {
+					case EffectCardType.ALL:
+						if (detail.use(CArg.TARGET_IS_SKILL)) c.targetIsSkill = true;
+						if (detail.use(CArg.TARGET_IS_ITEM)) c.targetIsItem = true;
+						if (detail.use(CArg.TARGET_IS_BEAST)) c.targetIsBeast = true;
+						break;
+					case EffectCardType.SKILL:
+						if (detail.use(CArg.TARGET_IS_SKILL)) c.targetIsSkill = true;
+						break;
+					case EffectCardType.ITEM:
+						if (detail.use(CArg.TARGET_IS_ITEM)) c.targetIsItem = true;
+						break;
+					case EffectCardType.BEAST:
+						if (detail.use(CArg.TARGET_IS_BEAST)) c.targetIsBeast = true;
+						break;
+					case EffectCardType.HAND:
+						if (detail.use(CArg.TARGET_IS_HAND)) c.targetIsHand = true;
+						break;
+					}
+				}
 			}
 			if (detail.use(CArg.AREA)) { mixin(S_TRACE);
 				c.area = parseAttr!(ulong)(opt, node.attr, i, c.area, varTable, 0);
@@ -3152,6 +3178,7 @@ fi`;
 			case EffectCardType.SKILL: attrs ~= "skill"; break;
 			case EffectCardType.ITEM: attrs ~= "item"; break;
 			case EffectCardType.BEAST: attrs ~= "beast"; break;
+			case EffectCardType.HAND: attrs ~= "hand"; break;
 			default: assert (0);
 			}
 		} else static if (is(T : Comparison4)) {
@@ -3517,8 +3544,21 @@ fi`;
 			if (detail.use(CArg.KEY_CODE_RANGE)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.keyCodeRange, indentValue, vars);
 			}
-			if (detail.use(CArg.EFFECT_CARD_TYPE)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.effectCardType, indentValue, vars);
+			if (detail.use(CArg.TARGET_IS_SKILL) || detail.use(CArg.TARGET_IS_ITEM) || detail.use(CArg.TARGET_IS_BEAST) || detail.use(CArg.TARGET_IS_HAND)) { mixin(S_TRACE);
+				EffectCardType[] effectCardTypes;
+				if (detail.use(CArg.TARGET_IS_SKILL) && c.targetIsSkill) { mixin(S_TRACE);
+					effectCardTypes ~= EffectCardType.SKILL;
+				}
+				if (detail.use(CArg.TARGET_IS_ITEM) && c.targetIsItem) { mixin(S_TRACE);
+					effectCardTypes ~= EffectCardType.ITEM;
+				}
+				if (detail.use(CArg.TARGET_IS_BEAST) && c.targetIsBeast) { mixin(S_TRACE);
+					effectCardTypes ~= EffectCardType.BEAST;
+				}
+				if (detail.use(CArg.TARGET_IS_HAND) && c.targetIsHand) { mixin(S_TRACE);
+					effectCardTypes ~= EffectCardType.HAND;
+				}
+				attrs ~= toAttr(effectCardTypes, indentValue, vars);
 			}
 			if (detail.use(CArg.AREA)) { mixin(S_TRACE);
 				auto a = _summ ? _summ.area(c.area) : null;
@@ -4060,9 +4100,10 @@ CWXScriptKeyword[] keywordInfos(in CProps prop) { mixin(S_TRACE);
 		CWXScriptKeyword("npc", prop.msgs.selectMember, .tryFormat(prop.msgs.castRange1, prop.msgs.castRangeName(CastRange.NPC))),
 
 		// カード種類
-		CWXScriptKeyword("skill", prop.msgs.cardType, prop.msgs.effectCardTypeName(EffectCardType.ALL)),
-		CWXScriptKeyword("all", prop.msgs.cardType, prop.msgs.effectCardTypeName(EffectCardType.SKILL)),
+		CWXScriptKeyword("all", prop.msgs.cardType, prop.msgs.effectCardTypeName(EffectCardType.ALL)),
+		CWXScriptKeyword("skill", prop.msgs.cardType, prop.msgs.effectCardTypeName(EffectCardType.SKILL)),
 		CWXScriptKeyword("item", prop.msgs.cardType, prop.msgs.effectCardTypeName(EffectCardType.ITEM)),
 		CWXScriptKeyword("beast", prop.msgs.cardType, prop.msgs.effectCardTypeName(EffectCardType.BEAST)),
+		CWXScriptKeyword("hand", prop.msgs.cardType, prop.msgs.effectCardTypeName(EffectCardType.HAND)),
 	];
 }

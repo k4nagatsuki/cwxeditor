@@ -861,7 +861,7 @@
 	<dd>終了印有無分岐</dd>
 	<dt class="content"><a href="#BRGOSSIP">brgossip <span class="args"><span class="arg">&lt;ゴシップ名&gt;</span></span></a></dt>
 	<dd>ゴシップ有無分岐</dd>
-	<dt class="content"><a href="#BRKEYCODE">brkeycode <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;カード種別&gt;</span>, <span class="arg">&lt;キーコード&gt;</span></span></a></dt>
+	<dt class="content"><a href="#BRKEYCODE">brkeycode <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;カード種別&gt;</span> ..., <span class="arg">&lt;キーコード&gt;</span></span></a></dt>
 	<dd>キーコード所持分岐</dd>
 	<dt class="content"><a href="#SETFLAG">setflag <span class="args"><span class="arg">&lt;フラグ名&gt;</span>, <span class="arg">&lt;値&gt;</span></span></a></dt>
 	<dd>フラグ値の設定</dd>
@@ -2482,7 +2482,7 @@
     <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">// 分岐終了</span></code></pre>
 
-<h3 class="content"><a id="BRKEYCODE" name="BRKEYCODE">brkeycode <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;カード種別&gt;</span>, <span class="arg">&lt;キーコード&gt;</span></span></a></h3>
+<h3 class="content"><a id="BRKEYCODE" name="BRKEYCODE">brkeycode <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;カード種別&gt;</span> ..., <span class="arg">&lt;キーコード&gt;</span></span></a></h3>
 
 <p class="fullname">(Branch with Key Code)</p>
 
@@ -2503,16 +2503,16 @@
 	<dt class="keyword"><code>party</code></dt>
 	<dd class="worddesc">荷物袋も含むパーティ全員の所持カード。</dd>
 </dl>
-<p class="desc">カード種別には、以下のいずれかを指定できます。</p>
+<p class="desc">カード種別には、以下の値を配列で指定します。<em class="warning">Wsn.2以降のWSN形式シナリオでない場合は、<code>skill</code>・<code>item</code>・<code>beast</code>を単独で指定した場合、またはこれらの値を3つとも指定した場合だけ正常に機能します。</em></p>
 <dl>
-	<dt class="keyword"><code>all</code></dt>
-	<dd class="worddesc">全てのカード。</dd>
 	<dt class="keyword"><code>skill</code></dt>
 	<dd class="worddesc">特殊技能カード。</dd>
 	<dt class="keyword"><code>item</code></dt>
 	<dd class="worddesc">アイテムカード。</dd>
 	<dt class="keyword"><code>beast</code></dt>
 	<dd class="worddesc">召喚獣カード。</dd>
+	<dt class="keyword"><code>hand</code></dt>
+	<dd class="worddesc">戦闘時の手札。</dd>
 </dl>
 <p class="desc">最後のパラメータで判定対象のキーコードを指定します。</p>
 
@@ -3194,6 +3194,7 @@ field
 fine
 fire
 getspilit
+hand
 has
 hasnot
 heal
