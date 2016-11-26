@@ -266,6 +266,10 @@ public:
 					});
 					_comm.put(_noCardSize, () => !_readOnly && !_msel.loading);
 				}
+				_comm.refImageScale.add(&refreshList);
+				.listener(comp, SWT.Dispose, { mixin(S_TRACE);
+					_comm.refImageScale.remove(&refreshList);
+				});
 			}
 		}
 		{ mixin(S_TRACE);
@@ -525,6 +529,15 @@ public:
 	C fileList() { mixin(S_TRACE);
 		return _msel.fileList;
 	}
+
+	@property
+	void loadScaledImage(bool delegate() loadScaledImage) { mixin(S_TRACE);
+		_msel.loadScaledImage = loadScaledImage;
+	}
+	void refreshList() { mixin(S_TRACE);
+		_msel.refreshList(false, true);
+	}
+
 	@property
 	void selectDir(int sel) { mixin(S_TRACE);
 		_msel.selectDir(sel);

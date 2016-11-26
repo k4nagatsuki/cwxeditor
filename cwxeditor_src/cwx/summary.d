@@ -120,6 +120,7 @@ private:
 	// TODO Tag
 	string _type;
 	string _dataVersion = DEFAULT_VERSION;
+	bool _loadScaledImage = false;
 
 	FlagDir _froot; /// フラグとステップのデータ。
 
@@ -1073,7 +1074,7 @@ public:
 	/// データバージョン。
 	@property
 	const
-	string dataVersion() {return _dataVersion;}
+	string dataVersion() { return _dataVersion; }
 	/// ditto
 	@property
 	void dataVersion(string ver) { mixin(S_TRACE);
@@ -1090,6 +1091,27 @@ public:
 			foreach (a; _info) a.changed();
 
 			_dataVersion = ver;
+		}
+	}
+
+	/// "file.x2.bmp"のようなファイル名のスケーリングされた
+	/// イメージファイルを使用するか。
+	@property
+	const
+	bool loadScaledImage() { return _loadScaledImage; }
+	/// ditto
+	@property
+	void loadScaledImage(bool v) { mixin(S_TRACE);
+		if (_loadScaledImage != v) { mixin(S_TRACE);
+			changed();
+
+			foreach (a; _cast) a.changed();
+			foreach (a; _skl) a.changed();
+			foreach (a; _itm) a.changed();
+			foreach (a; _bst) a.changed();
+			foreach (a; _info) a.changed();
+
+			_loadScaledImage = v;
 		}
 	}
 
@@ -1770,6 +1792,7 @@ public:
 	private string summaryToXML(in XMLOption opt) { mixin(S_TRACE);
 		auto root = XNode.create("Summary");
 		if (dataVersion != "") root.newAttr("dataVersion", dataVersion);
+		if (_loadScaledImage) root.newAttr("scaledimage", _loadScaledImage);
 		auto pNode = root.newElement("Property");
 		pNode.newElement("Name", _sname);
 		CardImage.toNode(pNode, _imgPaths);
@@ -1806,6 +1829,7 @@ public:
 	const
 	string[string][string] toXMLs(const System sys, in SaveOption saveOpt) { mixin(S_TRACE);
 		auto opt = new XMLOption(sys, dataVersion);
+		opt.loadScaledImage = loadScaledImage;
 		opt.includeCard = !isTargetVersion("1");
 		opt.skill = (id) => this.skill(id);
 		opt.item = (id) => this.item(id);
@@ -1876,6 +1900,7 @@ public:
 		}
 
 		auto xOpt = new XMLOption(sys, dataVersion);
+		xOpt.loadScaledImage = loadScaledImage;
 		xOpt.includeCard = !isTargetVersion("1");
 		xOpt.skill = (id) => skill(id);
 		xOpt.item = (id) => item(id);
@@ -1971,6 +1996,7 @@ public:
 		if (summNode.name == "Summary") { mixin(S_TRACE);
 			auto summ = new Summary(sPath);
 			summ.dataVersion = summNode.attr("dataVersion", false, "");
+			summ.loadScaledImage = summNode.attr!bool("scaledimage", false, false);
 			summNode.onTag["Property"] = (ref XNode propNode) { mixin(S_TRACE);
 				propNode.onTag["Name"] = (ref XNode node) {summ._sname = node.value;};
 				CardImage[] paths;
@@ -2568,6 +2594,7 @@ public:
 				_legacy = false;
 			}
 			if (legacyToX) dataVersion = DEFAULT_VERSION;
+			if (legacyToX) loadScaledImage = false;
 			if (legacyToX || (!useTemp && archive)) { mixin(S_TRACE);
 				_useTemp = true;
 				auto oldLegacy = _legacy;

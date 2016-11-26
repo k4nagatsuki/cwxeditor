@@ -64,6 +64,8 @@ private:
 	bool _hasLegacySkin;
 	ClassicEngine[] _classicEngines;
 	Combo _dataVersion;
+	Button _loadScaledImage;
+	bool _loadScaledImageValue;
 	SplitPane _tab2Sash, _tab3Sash;
 	// TODO Tag
 	// TODO Label
@@ -77,8 +79,11 @@ private:
 	void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
 		if (_dataVersion && _summ && _imgPath) { mixin(S_TRACE);
-			auto ver = VERSIONS[_dataVersion.getSelectionIndex()];
+			auto ver = dataVersion;
 			ws ~= _imgPath.warningsWith(_summ.legacy, ver, selectedSkin);
+			if (_loadScaledImage.getSelection() && !.isTargetVersion(ver, "2")) { mixin(S_TRACE);
+				ws ~= _prop.msgs.warningLoadScaledImage;
+			}
 		}
 		warning = ws;
 	}
@@ -348,8 +353,23 @@ private:
 						}
 					}
 					if (_dataVersion.getSelectionIndex() == -1) _dataVersion.select(0);
+
+					_loadScaledImage = new Button(grp, SWT.CHECK);
+					_loadScaledImage.setText(_prop.msgs.loadScaledImage);
+					_loadScaledImage.setToolTipText(_prop.msgs.loadScaledImageHint);
+					mod(_loadScaledImage);
+					_loadScaledImage.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+					_loadScaledImage.setSelection(_summ.loadScaledImage);
+					_loadScaledImageValue = _summ.loadScaledImage;
+
 					updateDataVersion();
 					.listener(_dataVersion, SWT.Selection, &refreshWarning);
+					.listener(_loadScaledImage, SWT.Selection, &refreshWarning);
+					_imgPath.loadScaledImage = () => _loadScaledImageValue;
+					.listener(_loadScaledImage, SWT.Selection, { mixin(S_TRACE);
+						_loadScaledImageValue = _loadScaledImage.getSelection();
+						_imgPath.refreshList();
+					});
 				}
 				{ mixin(S_TRACE);
 					auto grp = new Group(comp2, SWT.NONE);
@@ -410,6 +430,7 @@ private:
 	}
 	void updateDataVersion() { mixin(S_TRACE);
 		_dataVersion.setEnabled(!_readOnly && !_summ.legacy);
+		_loadScaledImage.setEnabled(!_readOnly && !_summ.legacy);
 	}
 	class RefreshTypes : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
@@ -637,7 +658,11 @@ protected:
 			if (!_summ.legacy) { mixin(S_TRACE);
 				_comm.refDataVersion.call();
 			}
-			refreshWarning();
+		}
+		auto loadScaledImage = _loadScaledImage.getSelection();
+		if (_summ.loadScaledImage != loadScaledImage) { mixin(S_TRACE);
+			_summ.loadScaledImage = loadScaledImage;
+			_comm.refImageScale.call();
 		}
 		return true;
 	}

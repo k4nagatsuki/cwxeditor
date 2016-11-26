@@ -1132,10 +1132,17 @@ class MaterialSelect(MtType Type, D, C) {
 	}
 
 	@property
-	IncSearch incSearch() {return _incSearch;}
+	IncSearch incSearch() { return _incSearch; }
 	void startIncSearch() { mixin(S_TRACE);
 		.forceFocus(_fileList, true);
 		_incSearch.startIncSearch();
+	}
+
+	static if (Type == MtType.CARD || Type == MtType.BG_IMG) {
+		@property
+		void loadScaledImage(bool delegate() loadScaledImage) { mixin(S_TRACE);
+			_loadScaledImage = loadScaledImage;
+		}
 	}
 
 private:
@@ -1374,6 +1381,22 @@ private:
 	string[] targs(string path, bool forceRefresh, bool subThr) { mixin(S_TRACE);
 		string[] r;
 		foreach (f; targsImpl(path, forceRefresh)) { mixin(S_TRACE);
+			static if (MtType.CARD == Type || MtType.BG_IMG == Type) {
+				if (!_summ || (_loadScaledImage ? _loadScaledImage() : _summ.loadScaledImage)) { mixin(S_TRACE);
+					// スケーリングされたイメージファイルを除外
+					auto ext = f.stripExtension().extension().toLower();
+					auto scaled = false;
+					if (ext != "") { mixin(S_TRACE);
+						foreach (scale; IMAGE_SCALES) { mixin(S_TRACE);
+							if (ext == .format(".x%s", scale)) { mixin(S_TRACE);
+								scaled = true;
+								break;
+							}
+						}
+						continue;
+					}
+				}
+			}
 			if (subThr || _incSearch.match(f.baseName())) { mixin(S_TRACE);
 				r ~= f;
 			}
@@ -1537,7 +1560,7 @@ private:
 		}
 		return st;
 	}
-	void refreshList(bool forceRefresh = false, bool subThr = false) { mixin(S_TRACE);
+	public void refreshList(bool forceRefresh = false, bool subThr = false) { mixin(S_TRACE);
 		_fileList.removeAll();
 		_fnone = false;
 		auto defs = _defs(0 < binPath.length);
@@ -1890,4 +1913,5 @@ private:
 	UndoManager _undo = null;
 	void delegate() _store = null;
 	bool _firstSet = true;
+	bool delegate() _loadScaledImage = null;
 }

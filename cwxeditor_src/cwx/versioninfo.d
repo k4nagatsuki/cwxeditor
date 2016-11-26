@@ -34,6 +34,9 @@ immutable ENGINES = [
 	"CardWirthPy 0.12.3",
 ];
 
+/// イメージのスケーリングにおいて使用可能なスケール。
+immutable IMAGE_SCALES = [ 2, 4, 8, 16 ];
+
 /// 指定されたデータバージョンverがシナリオのdataVersion以下か。
 static bool isTargetVersion(string dataVersion, string ver) {
 	static ptrdiff_t[string] VER_TABLE;

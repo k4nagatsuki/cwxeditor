@@ -24,6 +24,7 @@ import std.conv;
 class XMLOption {
 	const System sys; /// 対象システム情報。
 	string dataVersion = LATEST_VERSION; /// WSNバージョン。
+	bool loadScaledImage = false; /// "file.x2.bmp"のようなファイル名のスケーリングされたイメージファイルを使用するか。
 	bool includeCard = false; /// リンク先のカードの実体を格納する。
 	bool noLinkId = false; /// 実体を格納した時、参照IDを削除する。
 	const(SkillCard) delegate(ulong) skill = null; /// IDからスキルカードを取得。
@@ -1182,6 +1183,7 @@ public:
 	XNode toNode(XMLOption opt) { mixin(S_TRACE);
 		auto n = XNode.create(XML_NAME);
 		n.newAttr("dataVersion", opt.dataVersion);
+		if (opt.loadScaledImage) n.newAttr("scaledimage", opt.loadScaledImage);
 		toNodeImpl(n, opt);
 		return n;
 	}
@@ -1191,6 +1193,7 @@ public:
 	XNode toNode(ref XNode parent, XMLOption opt) { mixin(S_TRACE);
 		auto cNode = parent.newElement(XML_NAME);
 		cNode.newAttr("dataVersion", opt.dataVersion);
+		if (opt.loadScaledImage) cNode.newAttr("scaledimage", opt.loadScaledImage);
 		toNodeImpl(cNode, opt);
 		return cNode;
 	}
@@ -2163,6 +2166,7 @@ public:
 	XNode toNode(XMLOption opt) { mixin(S_TRACE);
 		auto n = XNode.create(XML_NAME);
 		n.newAttr("dataVersion", opt.dataVersion);
+		if (opt.loadScaledImage) n.newAttr("scaledimage", opt.loadScaledImage);
 		toNodeImpl(n, opt, null);
 		return n;
 	}
@@ -2175,6 +2179,7 @@ public:
 	XNode toNode(ref XNode parent, XMLOption opt, in OverData od) { mixin(S_TRACE);
 		auto cNode = parent.newElement(XML_NAME);
 		cNode.newAttr("dataVersion", opt.dataVersion);
+		if (opt.loadScaledImage) cNode.newAttr("scaledimage", opt.loadScaledImage);
 		toNodeImpl(cNode, opt, od);
 		return cNode;
 	}
@@ -2423,6 +2428,7 @@ public:
 	XNode toNode(XMLOption opt) { mixin(S_TRACE);
 		auto n = XNode.create(XML_NAME);
 		n.newAttr("dataVersion", opt.dataVersion);
+		if (opt.loadScaledImage) n.newAttr("scaledimage", opt.loadScaledImage);
 		toNodeImpl(n, opt, null);
 		return n;
 	}
@@ -2435,6 +2441,7 @@ public:
 	XNode toNode(ref XNode parent, XMLOption opt, in OverData od = null) { mixin(S_TRACE);
 		auto cNode = parent.newElement(XML_NAME);
 		cNode.newAttr("dataVersion", opt.dataVersion);
+		if (opt.loadScaledImage) cNode.newAttr("scaledimage", opt.loadScaledImage);
 		toNodeImpl(cNode, opt, od);
 		return cNode;
 	}
@@ -2636,6 +2643,7 @@ public:
 	XNode toNode(XMLOption opt) { mixin(S_TRACE);
 		auto n = XNode.create(XML_NAME);
 		n.newAttr("dataVersion", opt.dataVersion);
+		if (opt.loadScaledImage) n.newAttr("scaledimage", opt.loadScaledImage);
 		toNodeImpl(n, opt, null);
 		return n;
 	}
@@ -2648,6 +2656,7 @@ public:
 	XNode toNode(ref XNode parent, XMLOption opt, in OverData od = null) { mixin(S_TRACE);
 		auto cNode = parent.newElement(XML_NAME);
 		cNode.newAttr("dataVersion", opt.dataVersion);
+		if (opt.loadScaledImage) cNode.newAttr("scaledimage", opt.loadScaledImage);
 		toNodeImpl(cNode, opt, od);
 		return cNode;
 	}
@@ -2682,6 +2691,7 @@ public:
 	string toXML(XMLOption opt, in OverData od = null) { mixin(S_TRACE);
 		auto n = XNode.create(XML_NAME);
 		n.newAttr("dataVersion", opt.dataVersion);
+		if (opt.loadScaledImage) n.newAttr("scaledimage", opt.loadScaledImage);
 		toNodeImpl(n, opt, od);
 		return n.text;
 	}
@@ -2792,6 +2802,7 @@ public:
 	XNode toNode(XMLOption opt) { mixin(S_TRACE);
 		auto n = XNode.create(XML_NAME);
 		n.newAttr("dataVersion", opt.dataVersion);
+		if (opt.loadScaledImage) n.newAttr("scaledimage", opt.loadScaledImage);
 		toNodeImpl(n, opt);
 		return n;
 	}
@@ -2801,6 +2812,7 @@ public:
 	XNode toNode(ref XNode parent, XMLOption opt) { mixin(S_TRACE);
 		auto cNode = parent.newElement(XML_NAME);
 		cNode.newAttr("dataVersion", opt.dataVersion);
+		if (opt.loadScaledImage) cNode.newAttr("scaledimage", opt.loadScaledImage);
 		toNodeImpl(cNode, opt);
 		return cNode;
 	}

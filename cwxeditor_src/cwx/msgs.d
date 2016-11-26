@@ -1085,6 +1085,9 @@ class Msgs : Properties {
 	auto dataVersion = Msg("dataVersion", "データバージョン");
 	auto dataVersionName = Msg("dataVersionName", "%1$s - %2$s");
 
+	auto loadScaledImage = Msg("loadScaledImage", "スケーリングされたイメージを使用する");
+	auto loadScaledImageHint = Msg("loadScaledImageHint", "\"image.bmp\"という名前のファイルを2倍スケールで表示する時、\n\"image.x2.bmp\"があれば代わりに表示します");
+
 	auto pngMayNotCorrespond = Msg("pngMayNotCorrespond", "PNGイメージはプレイヤーの環境によって表示エラーとなる事があります。");
 	auto gifMayNotCorrespond = Msg("gifMayNotCorrespond", "GIFイメージはプレイヤーの環境によって表示エラーとなる事があります。");
 
@@ -1791,6 +1794,7 @@ class Msgs : Properties {
 	auto warningBranchKeyCodeAtClassic = Msg("warningBranchKeyCodeAtClassic", "クラシックなシナリオにおけるキーコード所持分岐は、カードの種類に特殊技能・アイテム及び手札・召喚獣のいずれか単独、またはそれら全てを指定しなければ正しく機能しません。"); // Wsn.2
 	auto warningBranchKeyCodeAtWsn1 = Msg("warningBranchKeyCodeAtWsn1", "Wsn.1以前のシナリオにおけるキーコード所持分岐は、カードの種類に特殊技能・アイテム・召喚獣のいずれか単独、またはそれら全てを指定しなければ正しく機能しません。"); // Wsn.2
 	auto warningBranchKeyCodeWithItem = Msg("warningBranchKeyCodeWithItem", "クラシックなシナリオにおけるキーコード所持分岐でカードの種類にアイテムが含まれている場合は、戦闘時の手札も検索対象となります。");
+	auto warningLoadScaledImage = Msg("warningLoadScaledImage", "スケーリングされたイメージファイルの読み込みは、Wsn.2以降の形式のシナリオに対応したエンジンでしか機能しません。"); // Wsn.2
 
 	auto unknownStepValue = Msg("unknownStepValue", "存在しないステップ値(%1$s)");
 
