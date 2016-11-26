@@ -1382,7 +1382,7 @@ private:
 		string[] r;
 		foreach (f; targsImpl(path, forceRefresh)) { mixin(S_TRACE);
 			static if (MtType.CARD == Type || MtType.BG_IMG == Type) {
-				if (!_summ || (_loadScaledImage ? _loadScaledImage() : _summ.loadScaledImage)) { mixin(S_TRACE);
+				if (!_summ || (!_summ.legacy && _loadScaledImage ? _loadScaledImage() : _summ.loadScaledImage)) { mixin(S_TRACE);
 					// スケーリングされたイメージファイルを除外
 					auto ext = f.stripExtension().extension().toLower();
 					auto scaled = false;
