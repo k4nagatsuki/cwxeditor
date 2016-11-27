@@ -165,7 +165,7 @@ protected:
 
 	Composite createPositionPanel(Composite comp, bool mask) { mixin(S_TRACE);
 		auto grp = new Group(comp, SWT.NONE);
-		grp.setText(_prop.msgs.cardPosition);
+		grp.setText(_prop.msgs.backPosition);
 		grp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
 		auto comp2 = new Composite(grp, SWT.NONE);
 		comp2.setLayout(normalGridLayout(mask ? 6 : 5, false));

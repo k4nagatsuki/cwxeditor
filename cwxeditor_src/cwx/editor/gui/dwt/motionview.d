@@ -763,11 +763,13 @@ private:
 		override void paintControl(PaintEvent e) { mixin(S_TRACE);
 			auto beast = selection.beast;
 			if (beast) { mixin(S_TRACE);
-				scope img = new Image(Display.getCurrent(),
-					cardImage!(BeastCard)(_prop, summSkin, beast, _summ.scenarioPath, _summ.dataVersion, null, (id) => _summ.beast(id), true, false));
-				scope data = img.getImageData();
-				auto pane = cast(Canvas) e.widget;
-				scope rect = pane.getClientArea();
+				auto data = cardImage!(BeastCard)(_prop, summSkin, beast, _summ.scenarioPath, _summ.dataVersion, null, (id) => _summ.beast(id), true, false);
+				if (1024 < _prop.s(1024)) { mixin(S_TRACE);
+					data = data.scaledTo(_prop.s(data.width), _prop.s(data.height));
+				}
+ 				auto img = new Image(Display.getCurrent(), data);
+				auto pane = cast(Canvas)e.widget;
+				auto rect = pane.getClientArea();
 				int x = (rect.width - data.width) / 2;
 				int y = (rect.height - data.height) / 2;
 				e.gc.drawImage(img, x, y);
@@ -1233,23 +1235,27 @@ public:
 				});
 				_beastImg.addListener(SWT.MouseDown, new class Listener {
 					override void handleEvent(Event e) { mixin(S_TRACE);
-						if (e.button == 1) (cast(Canvas) e.widget).setFocus();
+						if (e.button == 1) (cast(Canvas)e.widget).setFocus();
 					}
 				});
 				_beastImg.addListener(SWT.FocusOut, new class Listener {
 					override void handleEvent(Event e) { mixin(S_TRACE);
-						(cast(Canvas) e.widget).redraw();
+						(cast(Canvas)e.widget).redraw();
 					}
 				});
 				_beastImg.addListener(SWT.FocusIn, new class Listener {
 					override void handleEvent(Event e) { mixin(S_TRACE);
-						(cast(Canvas) e.widget).redraw();
+						(cast(Canvas)e.widget).redraw();
 					}
 				});
 				.listener(_beastImg, SWT.MouseMove, &updateBeastToolTip);
 				.listener(_beastImg, SWT.MouseEnter, &updateBeastToolTip);
 				.listener(_beastImg, SWT.MouseExit, &updateBeastToolTip);
 				_beastImg.addPaintListener(new PaintBeast);
+				_comm.refImageScale.add(&_beastImg.redraw);
+				.listener(_beastImg, SWT.Dispose, { mixin(S_TRACE);
+					_comm.refImageScale.remove(&_beastImg.redraw);
+				});
 				auto eb = new EditBeast;
 				_beastImg.addMouseListener(eb);
 				_beastImg.addMouseMoveListener(eb);
