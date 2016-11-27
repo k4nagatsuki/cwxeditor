@@ -560,7 +560,20 @@ public:
 					matImgData = loadImage(path, false);
 					dataSet.add(matImgData);
 					if (matImgData.width != initW || matImgData.height != initH) { mixin(S_TRACE);
-						matImgData = matImgData.scaledTo(initW, initH);
+						if (smoothing && 16 <= matImgData.depth) { mixin(S_TRACE);
+							matImgData = cast(ImageData)matImgData.clone();
+							auto data = cast(ubyte[])matImgData.data;
+							auto alpha = cast(ubyte[])matImgData.alphaData;
+							size_t bpl;
+							matImgData.data = cast(byte[])smoothResize(initW, initH, data, alpha,
+								matImgData.depth, matImgData.width, matImgData.height, matImgData.bytesPerLine, bpl);
+							matImgData.alphaData = cast(byte[])alpha;
+							matImgData.width = initW;
+							matImgData.height = initH;
+							matImgData.bytesPerLine = cast(int)bpl;
+						} else { mixin(S_TRACE);
+							matImgData = matImgData.scaledTo(initW, initH);
+						}
 						dataSet.add(matImgData);
 					}
 				} else { mixin(S_TRACE);

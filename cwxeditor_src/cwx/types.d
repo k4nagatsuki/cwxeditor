@@ -1088,6 +1088,30 @@ string fromStartAction(StartAction t) { mixin(S_TRACE);
 	}
 }
 
+/// 背景セルのスムージング設定(Wsn.2)。
+enum Smoothing {
+	Default, /// エンジンの設定を使用する。
+	True, /// 強制的にスムージングする。
+	False, /// 強制的にスムージングしない。
+}
+/// ditto
+Smoothing toSmoothing(string name) { mixin(S_TRACE);
+	switch (name) {
+	case "Default": return Smoothing.Default;
+	case "True": return Smoothing.True;
+	case "False": return Smoothing.False;
+	default: throw new Exception("Unknown smoothing: " ~ name);
+	}
+}
+/// ditto
+string fromSmoothing(Smoothing t) { mixin(S_TRACE);
+	final switch (t) {
+	case Smoothing.Default: return "Default";
+	case Smoothing.True: return "True";
+	case Smoothing.False: return "False";
+	}
+}
+
 /// コンテントのタイプ。
 enum CType {
 	START,
