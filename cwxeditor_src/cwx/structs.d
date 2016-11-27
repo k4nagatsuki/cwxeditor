@@ -459,6 +459,7 @@ struct BgImageS {
 	bool mask; /// マスク。
 	int layer; /// レイヤ。
 	string cellName; /// イベント操作用のセル名。
+	Smoothing smoothing = Smoothing.Default; /// ImageCellとPCCellで使用する背景のスムージング設定(Wsn.2)。
 
 	// ImageCell
 	string name; /// ファイル名。拡張子はスキンによるため、拡張子を含めない。
@@ -515,6 +516,7 @@ struct BgImageS {
 		switch (type) {
 		case "image":
 			r.newAttr("name", name);
+			r.newAttr("smoothing", fromSmoothing(smoothing));
 			break;
 		case "text":
 			r.value = text;
@@ -545,6 +547,7 @@ struct BgImageS {
 		case "pc":
 			r.newAttr("pcNumber", to!string(pcNumber));
 			r.newAttr("expand", fromBool(expand));
+			r.newAttr("smoothing", fromSmoothing(smoothing));
 			break;
 		default:
 			throw new Exception("Unknown type: " ~ type);
@@ -564,6 +567,7 @@ struct BgImageS {
 		switch (type) {
 		case "image":
 			name = node.attr!(string)("name", true);
+			smoothing = toSmoothing(node.attr("smoothing", false, "Default"));
 			break;
 		case "text":
 			text = node.value;
@@ -606,6 +610,7 @@ struct BgImageS {
 		case "pc":
 			pcNumber = node.attr!(uint)("pcNumber", true);
 			expand = node.attr!(bool)("expand", false, false);
+			smoothing = toSmoothing(node.attr("smoothing", false, "Default"));
 			node.parse();
 			break;
 		default:

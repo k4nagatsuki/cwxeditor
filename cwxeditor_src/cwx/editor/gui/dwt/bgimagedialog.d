@@ -59,6 +59,8 @@ private:
 	Spinner _h;
 	Button _mask;
 	Spinner _layer;
+	Combo _smoothing = null;
+	Smoothing[] _smoothings;
 	Combo _easy;
 	bool _selected;
 
@@ -67,8 +69,12 @@ private:
 	protected void refreshWarning() { mixin(S_TRACE);
 		// 処理無し
 	}
+
 	void refDataVersion() { mixin(S_TRACE);
-		_layer.setEnabled(!_summ || !_summ.legacy);
+		_layer.setEnabled(!_summ || !_summ.legacy || LAYER_BACK_CELL != _layer.getSelection());
+		if (_smoothing) { mixin(S_TRACE);
+			_smoothing.setEnabled(!_summ || !_summ.legacy || _smoothings[_smoothing.getSelectionIndex()] !is Smoothing.Default);
+		}
 		refreshWarning();
 	}
 	@property
@@ -77,8 +83,11 @@ private:
 		if (_summ && _cellName.getText() != "" && !_prop.isTargetVersion(_summ, "1")) { mixin(S_TRACE);
 			ws ~= _prop.msgs.warningBgImageCellName;
 		}
-		if (_layer.getEnabled() && _layer.getSelection() != LAYER_BACK_CELL && !_prop.isTargetVersion(_summ, "1")) {
+		if (_layer.getSelection() != LAYER_BACK_CELL && !_prop.isTargetVersion(_summ, "1")) {
 			ws ~= _prop.msgs.warningLayer;
+		}
+		if (_smoothing && _smoothings[_smoothing.getSelectionIndex()] !is Smoothing.Default && !_prop.isTargetVersion(_summ, "2")) { mixin(S_TRACE);
+			ws ~= _prop.msgs.warningBgImageSmoothing;
 		}
 		return ws;
 	}
@@ -163,12 +172,13 @@ protected:
 		return grp;
 	}
 
-	Composite createPositionPanel(Composite comp, bool mask) { mixin(S_TRACE);
+	Composite createPositionPanel(Composite comp, bool mask, bool smoothing) { mixin(S_TRACE);
 		auto grp = new Group(comp, SWT.NONE);
 		grp.setText(_prop.msgs.backPosition);
 		grp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
 		auto comp2 = new Composite(grp, SWT.NONE);
-		comp2.setLayout(normalGridLayout(mask ? 6 : 5, false));
+		auto rowNum = mask ? 6 : 5;
+		comp2.setLayout(normalGridLayout(rowNum, false));
 		Spinner createS(string name, int max, int min, string hint = "") { mixin(S_TRACE);
 			auto comp3 = new Composite(comp2, SWT.NONE);
 			auto gl = normalGridLayout((hint == "") ? 2 : 3, false);
@@ -203,7 +213,29 @@ protected:
 			_mask.addSelectionListener(new MaskListener);
 		}
 		_layer = createS(_prop.msgs.layer, _prop.var.etc.layerMax, LAYER_BACK_CELL, .tryFormat(_prop.msgs.layerHint, LAYER_BACK_CELL));
+		.listener(_layer, SWT.Selection, &refDataVersion);
 		_layer.setToolTipText(.tryFormat(_prop.msgs.layerValues, LAYER_BACK_CELL, LAYER_MENU_CARD, LAYER_PLAYER_CARD, LAYER_MESSAGE));
+
+		if (smoothing) { mixin(S_TRACE);
+			auto comp3 = new Composite(comp2, SWT.NONE);
+			comp3.setLayout(zeroMarginGridLayout(2, false));
+			auto cgd = new GridData(GridData.HORIZONTAL_ALIGN_END);
+			cgd.horizontalSpan = rowNum;
+			comp3.setLayoutData(cgd);
+			auto l = new Label(comp3, SWT.NONE);
+			l.setText(_prop.msgs.smoothing);
+			_smoothing = new Combo(comp3, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+			_smoothing.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
+			mod(_smoothing);
+			.listener(_smoothing, SWT.Selection, &refDataVersion);
+			foreach (s; [Smoothing.Default, Smoothing.True, Smoothing.False]) { mixin(S_TRACE);
+				_smoothing.add(_prop.msgs.smoothingName(s));
+				_smoothings ~= s;
+			}
+			_smoothing.select(0);
+			.listener(_smoothing, SWT.Selection, &refreshWarning);
+		}
+
 		return grp;
 	}
 	Composite createEasySettingsPanel(Composite comp) { mixin(S_TRACE);
@@ -239,8 +271,8 @@ protected:
 		_easy.select(0);
 		return comp2;
 	}
-	void createPosPanel(Composite comp, bool mask) { mixin(S_TRACE);
-		auto posPanel = createPositionPanel(comp, mask);
+	void createPosPanel(Composite comp, bool mask, bool smoothing) { mixin(S_TRACE);
+		auto posPanel = createPositionPanel(comp, mask, smoothing);
 		posPanel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		auto easyPanel = createEasySettingsPanel(comp);
 		easyPanel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -381,7 +413,7 @@ protected:
 				imgs(comp);
 				_imgPath.widget.setLayoutData(new GridData(GridData.FILL_BOTH));
 			}
-			createPosPanel(comp, true);
+			createPosPanel(comp, true, true);
 		}
 
 		setFirstParams(area);
@@ -391,9 +423,11 @@ protected:
 		if (_back) { mixin(S_TRACE);
 			_imgPath.image = _back.path;
 			_imgPath.mask = _back.mask;
+			_smoothing.select(cast(int).countUntil(_smoothings, _back.smoothing));
 		} else { mixin(S_TRACE);
 			_imgPath.image = "";
 			_imgPath.mask = false;
+			_smoothing.select(cast(int).countUntil(_smoothings, Smoothing.Default));
 		}
 		refDataVersion();
 	}
@@ -427,6 +461,7 @@ protected:
 			_back = new ImageCell;
 		}
 		_back.path = images.images;
+		_back.smoothing = _smoothings[_smoothing.getSelectionIndex()];
 		applyParams(_back);
 		getShell().setText(_prop.msgs.dlgTitBgImage);
 		return true;
@@ -744,7 +779,7 @@ protected:
 		}
 		.setupWeights(sash, _prop.var.etc.textCellVSashT, _prop.var.etc.textCellVSashB);
 
-		createPosPanel(comp, false);
+		createPosPanel(comp, false, false);
 
 		.listener(area, SWT.Dispose, { mixin(S_TRACE);
 			if (_preview) _preview.dispose();
@@ -998,7 +1033,7 @@ protected:
 				left(comp).setLayoutData(new GridData(GridData.FILL_BOTH));
 			}
 		}
-		createPosPanel(comp, false);
+		createPosPanel(comp, false, false);
 
 		.listener(area, SWT.Dispose, { mixin(S_TRACE);
 			if (_preview) _preview.dispose();
@@ -1219,7 +1254,7 @@ protected:
 				createFlagPanel(comp2).setLayoutData(new GridData(GridData.FILL_BOTH));
 			}
 		}
-		createPosPanel(comp, false);
+		createPosPanel(comp, false, true);
 
 		setFirstParams(area);
 
@@ -1228,9 +1263,11 @@ protected:
 		if (!_create) { mixin(S_TRACE);
 			_pcNumber.select(.min(_back.pcNumber - 1, _pcNumber.getItemCount() - 1));
 			_expand.setSelection(_back.expand);
+			_smoothing.select(cast(int).countUntil(_smoothings, _back.smoothing));
 		} else { mixin(S_TRACE);
 			_pcNumber.select(0);
 			_expand.setSelection(false);
+			_smoothing.select(cast(int).countUntil(_smoothings, Smoothing.Default));
 		}
 		refDataVersion();
 	}
@@ -1251,6 +1288,7 @@ protected:
 		}
 		_back.pcNumber = _pcNumber.getSelectionIndex() + 1;
 		_back.expand = _expand.getSelection();
+		_back.smoothing = _smoothings[_smoothing.getSelectionIndex()];
 
 		applyParams(_back);
 		getShell().setText(_prop.msgs.dlgTitPCCell);

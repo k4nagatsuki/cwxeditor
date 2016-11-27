@@ -121,8 +121,17 @@ class Msgs : Properties {
 	auto dlgTitImageLayerWindow = Msg("dlgTitImageLayerWindow", "レイヤの編集");
 	auto dlgTitImageLayerWindowReadOnly = Msg("dlgTitImageLayerWindowReadOnly", "レイヤの一覧");
 	auto layerName = Msg("layerName", "レイヤ %1$s");
-	auto warningLayer = Msg("warningLayer", "レイヤの指定はWsn.1以降の形式のシナリオしか行えません。");
+	auto warningLayer = Msg("warningLayer", "レイヤの指定はWsn.1以降の形式のシナリオでしか行えません。");
 	auto layerValues = Msg("layerValues", "%1$s = 背景セル\n%2$s = メニュー・エネミーカード\n%3$s = プレイヤーカード\n%4$s = メッセージ");
+	auto warningBgImageSmoothing = Msg("warningBgImageSmoothing", "背景セルを滑らかに拡大・縮小するかの指定はWsn.2以降の形式のシナリオでしか行えません。");
+
+	auto smoothing = Msg("smoothing", "サイズ変更時の処理");
+	const string smoothingName(Smoothing id) { mixin(S_TRACE);
+		mixin(EnumToStringSwitch!(Smoothing, "smoothingName"));
+	}
+	auto smoothingNameDefault = Msg("smoothingNameDefault", "指定しない");
+	auto smoothingNameTrue = Msg("smoothingNameTrue", "滑らかにする");
+	auto smoothingNameFalse = Msg("smoothingNameFalse", "滑らかにしない");
 
 	auto newFolder = Msg("newFolder", "新規" ~ DIR);
 
@@ -1152,7 +1161,7 @@ class Msgs : Properties {
 	auto refStep = Msg("refStep", "ステップ参照先");
 	auto noFlagRef = Msg("noFlagRef", "参照無し");
 	auto cardPosition = Msg("cardPosition", "カード位置");
-	auto backPosition = Msg("backPosition", "位置");
+	auto backPosition = Msg("backPosition", "配置");
 	auto bgImageSettings = Msg("bgImageSettings", "簡単設定");
 	auto bgImageSettingCustom = Msg("bgImageSettingCustom", "カスタム");
 	auto bgImageSettingOriginal = Msg("bgImageSettingOriginal", "元のサイズ");

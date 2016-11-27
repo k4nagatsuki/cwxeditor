@@ -4835,7 +4835,7 @@ public:
 		private FlexImage create(ImageCell back) { mixin(S_TRACE);
 			auto skin = summSkin;
 			auto path = skin.findImagePath(back.path, _summ ? _summ.scenarioPath : "", _summ ? _summ.dataVersion : LATEST_VERSION);
-			return createBackgroundImage(_prop, skin, _summ, path, back.x, back.y, back.width, back.height, back.mask, back.layer);
+			return createBackgroundImage(_prop, skin, _summ, path, back.x, back.y, back.width, back.height, back.mask, back.layer, back.smoothing is Smoothing.True);
 		}
 		private FlexImage create(TextCell back) { mixin(S_TRACE);
 			auto r = new FlexImage(back.text, back.fontName, back.size, back.color,

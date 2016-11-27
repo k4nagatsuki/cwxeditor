@@ -2298,6 +2298,11 @@ fi`;
 			}
 			r.cellName = parseAttr!(string)(opt, vals, j, r.cellName, varTable, msgWidth);
 			r.layer = parseAttr!(int)(opt, vals, j, r.layer, varTable, msgWidth);
+			if (auto ic = cast(ImageCell)r) { mixin(S_TRACE);
+				ic.smoothing = parseAttr!(Smoothing)(opt, vals, j, ic.smoothing, varTable, msgWidth);
+			} else if (auto pc = cast(PCCell)r) { mixin(S_TRACE);
+				pc.smoothing = parseAttr!(Smoothing)(opt, vals, j, pc.smoothing, varTable, msgWidth);
+			}
 			i++;
 			return r;
 		} else static if (is(T == Motion)) {
@@ -2406,14 +2411,27 @@ fi`;
 			if (attr[i].token.kind == Kind.SYMBOL) { mixin(S_TRACE);
 				switch (attrValue(attr[i], varTable, 0)) {
 				case "center":
+					i++; 
 					return CardImagePosition.Center;
 				case "topleft":
+					i++; 
 					return CardImagePosition.TopLeft;
 				case "default":
+					i++; 
 					return CardImagePosition.Default;
 				default:
 					throwError(_prop.msgs.scriptErrorInvalidCardImagePosition, attr[i].token);
 					break;
+				}
+			}
+		} else static if (is(T:Smoothing)) {
+			if (attr[i].token.kind == Kind.SYMBOL) { mixin(S_TRACE);
+				switch (attrValue(attr[i], varTable, 0)) {
+				case "default":
+					i++;
+					return Smoothing.Default;
+				default:
+					return parseAttr!bool(opt, attr, i, true, varTable, 0) ? Smoothing.True : Smoothing.False;
 				}
 			}
 		} else static if (is(T == int)) {
@@ -3223,6 +3241,13 @@ fi`;
 			case StartAction.NextRound: attrs ~= "next"; break;
 			default: assert (0);
 			}
+		} else static if (is(T:Smoothing)) {
+			switch (value) {
+			case Smoothing.Default: attrs ~= "default"; break;
+			case Smoothing.True: attrs ~= "true"; break;
+			case Smoothing.False: attrs ~= "false"; break;
+			default: assert (0);
+			}
 		} else static if (is(T : CRGB)) {
 			if (value.a == 255) { mixin(S_TRACE);
 				attrs ~= createString(.tryFormat("#%02X%02X%02X", value.r, value.g, value.b));
@@ -3299,6 +3324,12 @@ fi`;
 			}
 			if (value.layer) { mixin(S_TRACE);
 				attrs2 ~= toAttr(value.layer, indentValue, vars);
+			}
+			if (ic) { mixin(S_TRACE);
+				attrs2 ~= toAttr(ic.smoothing, indentValue, vars);
+			}
+			if (pc) { mixin(S_TRACE);
+				attrs2 ~= toAttr(pc.smoothing, indentValue, vars);
 			}
 			attrs ~= "[" ~ std.string.join(attrs2, ", ") ~ "]";
 		} else static if (is(Unqual!(T) : Motion)) {

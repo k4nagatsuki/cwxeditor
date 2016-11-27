@@ -28,6 +28,7 @@ public:
 public class ImageCell : BgImage, IPathUser {
 private:
 	PathUser _user;
+	Smoothing _smoothing = Smoothing.Default;
 public:
 	/// XML要素名。
 	static immutable XML_NAME = "BgImage";
@@ -37,6 +38,7 @@ public:
 		auto b = cast(ImageCell) o;
 		return b
 			&& path == b.path
+			&& smoothing == b.smoothing
 			&& super.opEquals(o);
 	}
 
@@ -78,6 +80,7 @@ public:
 	BgImage dup() { mixin(S_TRACE);
 		auto cell = new ImageCell(path, flag, x, y, width, height, mask);
 		dupImpl(cell);
+		cell.smoothing = smoothing;
 		return cell;
 	}
 
@@ -92,6 +95,17 @@ public:
 	void path(string path) { mixin(S_TRACE);
 		if (_user.path != path) changed();
 		_user.path = path;
+	}
+
+	/// 拡大・縮小時のスムージングの設定(Wsn.2)。
+	@property
+	const
+	Smoothing smoothing() { return _smoothing; }
+	/// ditto
+	@property
+	void smoothing(Smoothing v) { mixin(S_TRACE);
+		if (_smoothing != v) changed();
+		_smoothing = v;
 	}
 
 	@property
@@ -120,6 +134,7 @@ public:
 		assert (node.name == XML_NAME_M, node.name ~ " != BgImages");
 		auto e = node.newElement(XML_NAME);
 		e.newElement("ImagePath", encodePath(_user.path));
+		e.newAttr("smoothing", fromSmoothing(smoothing));
 		toNodeCommon(e, true);
 	}
 	static ImageCell createFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
@@ -131,6 +146,7 @@ public:
 		node.parse();
 		auto r = new ImageCell(path, "", 0, 0, 0, 0, false);
 		r.fromNodeCommon(node);
+		r.smoothing = toSmoothing(node.attr("smoothing", false, "Default"));
 		return r;
 	}
 }
@@ -638,6 +654,7 @@ public class PCCell : BgImage {
 private:
 	uint _pcNumber = 0;
 	bool _expand = false;
+	Smoothing _smoothing = Smoothing.Default;
 public:
 	/// XML要素名。
 	static immutable XML_NAME = "PCCell";
@@ -660,6 +677,7 @@ public:
 		return b
 			&& pcNumber == b.pcNumber
 			&& expand == b.expand
+			&& smoothing == b.smoothing
 			&& super.opEquals(o);
 	}
 
@@ -681,6 +699,7 @@ public:
 	BgImage dup() { mixin(S_TRACE);
 		auto cell = new PCCell(pcNumber, expand, flag, x, y, width, height, mask);
 		dupImpl(cell);
+		cell.smoothing = smoothing;
 		return cell;
 	}
 
@@ -711,6 +730,17 @@ public:
 		_expand = expand;
 	}
 
+	/// 拡大・縮小時のスムージングの設定(Wsn.2)。
+	@property
+	const
+	Smoothing smoothing() { return _smoothing; }
+	/// ditto
+	@property
+	void smoothing(Smoothing v) { mixin(S_TRACE);
+		if (_smoothing != v) changed();
+		_smoothing = v;
+	}
+
 	override
 	const
 	void toNode(ref XNode node, XMLOption opt) { mixin(S_TRACE);
@@ -719,6 +749,7 @@ public:
 
 		if (expand) e.newAttr("expand", expand);
 		e.newElement("PCNumber", .text(pcNumber));
+		e.newAttr("smoothing", fromSmoothing(smoothing));
 
 		toNodeCommon(e, false);
 	}
@@ -734,6 +765,7 @@ public:
 
 		auto r = new PCCell(pcNumber, expand, "", 0, 0, 0, 0, false);
 		r.fromNodeCommon(node);
+		r.smoothing = toSmoothing(node.attr("smoothing", false, "Default"));
 		return r;
 	}
 }

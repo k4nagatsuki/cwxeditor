@@ -217,6 +217,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (ic.path != "") { mixin(S_TRACE);
 			r ~= skin.warningImage(prop, ic.path, summ ? summ.legacy : false, true, targVer);
 		}
+		if (ic.smoothing !is Smoothing.Default && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+			r ~= prop.msgs.warningBgImageSmoothing;
+		}
 	}
 	auto tc = cast(TextCell) path;
 	if (tc) { mixin(S_TRACE);
@@ -235,6 +238,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	if (pc) { mixin(S_TRACE);
 		if (!prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningPCCell;
+		}
+		if (pc.smoothing !is Smoothing.Default && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+			r ~= prop.msgs.warningBgImageSmoothing;
 		}
 	}
 	auto btl = cast(Battle) path;

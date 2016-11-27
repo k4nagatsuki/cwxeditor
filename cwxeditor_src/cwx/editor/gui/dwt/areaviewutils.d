@@ -54,7 +54,7 @@ import java.lang.all;
 
 /// 背景画像を生成する。
 /// Returns: 背景画像。
-FlexImage createBackgroundImage(Props prop, in Skin skin, in Summary summ, string path, int x, int y, int w, int h, bool transparent, int layer) { mixin(S_TRACE);
+FlexImage createBackgroundImage(Props prop, in Skin skin, in Summary summ, string path, int x, int y, int w, int h, bool transparent, int layer, bool smoothing) { mixin(S_TRACE);
 	FlexImage r;
 	auto ext = .extension(path);
 	if (cfnmatch(ext, ".jpy1") || cfnmatch(ext, ".jptx") || cfnmatch(ext, ".jpdc")) { mixin(S_TRACE);
@@ -82,6 +82,7 @@ FlexImage createBackgroundImage(Props prop, in Skin skin, in Summary summ, strin
 	}
 	r.transparent = transparent;
 	r.layer = layer * 10;
+	r.smoothing = smoothing;
 	r.newWidth = w;
 	r.newHeight = h;
 	r.resize();
