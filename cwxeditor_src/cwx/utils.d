@@ -5,6 +5,7 @@ public import cwx.perf;
 public import cwx.versioninfo;
 
 import cwx.binary;
+import cwx.imagesize;
 import cwx.sjis;
 
 import std.algorithm;
@@ -1128,17 +1129,39 @@ string createNewName(string base, bool delegate(string) use, bool space = true, 
 }
 /// ditto
 string createNewFileName(string path, bool isdir) { mixin(S_TRACE);
-	string parent = dirName(path);
-	string name = baseName(path);
-	string ext = isdir ? "" : .extension(name);
-	if (!isdir) name = stripExtension(name);
+	auto parent = .dirName(path);
+	auto name = .baseName(path);
+	auto ext = isdir ? "" : .extension(name);
+	if (!isdir) name = .stripExtension(name);
+
+	auto ext2 = "";
+	if (!isdir && path.isImageExt) { mixin(S_TRACE);
+		// スケーリングされたイメージファイルの"xN"の部分はカウントアップしない
+		ext2 = name.extension().toLower();
+		auto scaled = false;
+		if (ext2 != "") { mixin(S_TRACE);
+			foreach (scale; IMAGE_SCALES) { mixin(S_TRACE);
+				if (ext2 == .format(".x%s", scale)) { mixin(S_TRACE);
+					scaled = true;
+					break;
+				}
+			}
+			if (scaled) { mixin(S_TRACE);
+				ext2 = name.extension();
+				name = name.stripExtension();
+			} else { mixin(S_TRACE);
+				ext2 = "";
+			}
+		}
+	}
+
 	name = createNewName(name, (string name) { mixin(S_TRACE);
 		name = std.path.buildPath(parent, name);
-		if (!isdir && ext.length) name = setExtension(name, ext);
+		if (!isdir) name = name ~ ext2 ~ ext;
 		return !.exists(name);
 	}, false);
 	name = std.path.buildPath(parent, name);
-	if (!isdir && ext.length) name = setExtension(name, ext);
+	if (!isdir) name = name ~ ext2 ~ ext;
 	return name;
 }
 
