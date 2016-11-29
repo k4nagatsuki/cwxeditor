@@ -1384,17 +1384,7 @@ private:
 			static if (MtType.CARD == Type || MtType.BG_IMG == Type) {
 				if (!_summ || (!_summ.legacy && _loadScaledImage ? _loadScaledImage() : _summ.loadScaledImage)) { mixin(S_TRACE);
 					// スケーリングされたイメージファイルを除外
-					auto ext = f.stripExtension().extension().toLower();
-					auto scaled = false;
-					if (ext != "") { mixin(S_TRACE);
-						foreach (scale; IMAGE_SCALES) { mixin(S_TRACE);
-							if (ext == .format(".x%s", scale)) { mixin(S_TRACE);
-								scaled = true;
-								break;
-							}
-						}
-						continue;
-					}
+					if (f.noScaledPath != "") continue;
 				}
 			}
 			if (subThr || _incSearch.match(f.baseName())) { mixin(S_TRACE);

@@ -663,6 +663,7 @@ protected:
 		if (_summ.loadScaledImage != loadScaledImage) { mixin(S_TRACE);
 			_summ.loadScaledImage = loadScaledImage;
 			_comm.refImageScale.call();
+			_comm.refUseCount.call();
 		}
 		return true;
 	}

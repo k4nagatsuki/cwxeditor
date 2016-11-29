@@ -31,6 +31,7 @@ import std.stdint;
 import std.range;
 import std.functional;
 import std.math;
+import std.typecons;
 
 static if ((void*).sizeof == 8) {
 	alias int c_int;
@@ -1135,23 +1136,12 @@ string createNewFileName(string path, bool isdir) { mixin(S_TRACE);
 	if (!isdir) name = .stripExtension(name);
 
 	auto ext2 = "";
-	if (!isdir && path.isImageExt) { mixin(S_TRACE);
+	if (!isdir) { mixin(S_TRACE);
 		// スケーリングされたイメージファイルの"xN"の部分はカウントアップしない
-		ext2 = name.extension().toLower();
-		auto scaled = false;
-		if (ext2 != "") { mixin(S_TRACE);
-			foreach (scale; IMAGE_SCALES) { mixin(S_TRACE);
-				if (ext2 == .format(".x%s", scale)) { mixin(S_TRACE);
-					scaled = true;
-					break;
-				}
-			}
-			if (scaled) { mixin(S_TRACE);
-				ext2 = name.extension();
-				name = name.stripExtension();
-			} else { mixin(S_TRACE);
-				ext2 = "";
-			}
+		auto info = path.scaledImageInfo;
+		if (info.path.length) {
+			name = info.path.stripExtension();
+			ext2 = .format(".x%s", info.scale);
 		}
 	}
 
@@ -1163,6 +1153,52 @@ string createNewFileName(string path, bool isdir) { mixin(S_TRACE);
 	name = std.path.buildPath(parent, name);
 	if (!isdir) name = name ~ ext2 ~ ext;
 	return name;
+}
+
+/// スケーリングされたイメージファイルのパスの情報。
+alias Tuple!(string, "path", uint, "scale") ScaledPathInfo;
+
+/// スケーリングされたイメージファイルのパスを分解し、
+/// スケーリングされていないパスとスケール値を返す。
+/// pathがスケーリングされたイメージファイルのパスでない場合は、
+/// ScaledPathInfo("", 0)を返す。
+@property
+ScaledPathInfo scaledImageInfo(string path) { mixin(S_TRACE);
+	if (path.isImageExt) { mixin(S_TRACE);
+		// スケーリングされたイメージファイルの"xN"の部分はカウントアップしない
+		auto ext = path.extension();
+		auto name = path.stripExtension();
+		auto ext2 = name.extension().toLower();
+		uint scale = 0;
+		if (ext2 != "") { mixin(S_TRACE);
+			foreach (s; IMAGE_SCALES) { mixin(S_TRACE);
+				if (ext2 == .format(".x%s", s)) { mixin(S_TRACE);
+					scale = s;
+					break;
+				}
+			}
+			if (scale) { mixin(S_TRACE);
+				return ScaledPathInfo(name.stripExtension() ~ ext, scale);
+			}
+		}
+	}
+	return ScaledPathInfo.init;
+} unittest { mixin(S_TRACE);
+	debug mixin(UTPerf);
+	assert ("/abc/def.x2.bmp".scaledImageInfo == ScaledPathInfo("/abc/def.bmp", 2));
+	assert ("/abc/def.x3.bmp".scaledImageInfo == ScaledPathInfo("", 0));
+	assert ("/abc/def.x4.bmp".scaledImageInfo == ScaledPathInfo("/abc/def.bmp", 4));
+}
+/// pathがスケーリングされたイメージファイルのパスであれば
+/// スケーリングされていないパスを返す。
+@property
+string noScaledPath(string path) { mixin(S_TRACE);
+	return path.scaledImageInfo.path;
+} unittest { mixin(S_TRACE);
+	debug mixin(UTPerf);
+	assert ("/abc/def.x2.bmp".noScaledPath == "/abc/def.bmp");
+	assert ("/abc/def.x3.bmp".noScaledPath == "");
+	assert ("/abc/def.x4.bmp".noScaledPath == "/abc/def.bmp");
 }
 
 /// 複数行の文字列を単行へ変換する。各行の左右の空白は切り詰められる。

@@ -198,8 +198,8 @@ private:
 		if (ad && bd) return compFExt(a, b);
 		if (!ad && bd) return false;
 		if (ad && !bd) return true;
-		int ac = _summ.useCounter.path.get(a.pathId);
-		int bc = _summ.useCounter.path.get(b.pathId);
+		int ac = _summ.useCounter.path.get(toUCPath(a));
+		int bc = _summ.useCounter.path.get(toUCPath(b));
 		int r = ac - bc;
 		return r != 0 ? r < 0 : compFName(a, b);
 	}
@@ -209,10 +209,19 @@ private:
 		if (ad && bd) return compFExt(a, b);
 		if (!ad && bd) return false;
 		if (ad && !bd) return true;
-		int ac = _summ.useCounter.path.get(a.pathId);
-		int bc = _summ.useCounter.path.get(b.pathId);
+		int ac = _summ.useCounter.path.get(toUCPath(a));
+		int bc = _summ.useCounter.path.get(toUCPath(b));
 		int r = ac - bc;
 		return r != 0 ? r > 0 : compFName(a, b);
+	}
+	PathId toUCPath(in FileNameObj a) { mixin(S_TRACE);
+		PathId aPathId = a.pathId;
+		if (_summ && !_summ.legacy && _summ.loadScaledImage) { mixin(S_TRACE);
+			if (auto nsp = (cast(string)aPathId).noScaledPath) { mixin(S_TRACE);
+				if (nsp.length) aPathId = toPathId(nsp);
+			}
+		}
+		return aPathId;
 	}
 
 	bool isDef(string p, bool isDir) { mixin(S_TRACE);
@@ -358,7 +367,7 @@ private:
 					} else if (p.material) { mixin(S_TRACE);
 						itm.setText(0, stripExtension(p.basename));
 						itm.setText(1, wrapExt(p.ext));
-						itm.setText(2, to!(string)(_summ.useCounter.path.get(p.pathId)));
+						itm.setText(2, to!(string)(_summ.useCounter.path.get(toUCPath(p))));
 					} else { mixin(S_TRACE);
 						itm.setText(0, stripExtension(p.basename));
 						itm.setText(1, wrapExt(p.ext));
@@ -1004,15 +1013,34 @@ private:
 	}
 
 	void refreshUseCount() { mixin(S_TRACE);
+		auto update = false;
 		foreach (itm; _files.getItems()) { mixin(S_TRACE);
 			try { mixin(S_TRACE);
 				auto file = cast(FileNameObj) itm.getData();
 				if (!.exists(file.array) || !file.material) continue;
-				auto c = _summ.useCounter.path.get(file.pathId);
-				itm.setText(2, to!(string)(c));
+				auto c = _summ.useCounter.path.get(toUCPath(file));
+				auto s = to!(string)(c);
+				if (itm.getText(2) != s) { mixin(S_TRACE);
+					itm.setText(2, s);
+					update = true;
+				}
 			} catch (Exception e) {
 				printStackTrace();
 				debugln(e);
+			}
+		}
+		if (update && _files.getSortColumn() is _sortCount.column) { mixin(S_TRACE);
+			auto sortDir = _prop.var.etc.filesSortDirection;
+			switch (sortDir) {
+			case SortDir.Up:
+				_sortCount.doSort(SWT.UP);
+				break;
+			case SortDir.Down:
+				_sortCount.doSort(SWT.DOWN);
+				break;
+			default:
+				_sortCount.doSort(SWT.UP);
+				break;
 			}
 		}
 	}

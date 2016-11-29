@@ -2723,6 +2723,10 @@ public:
 				}
 				auto p2 = abs2rel(p, scenarioPath);
 				auto pathId = toPathId(p2);
+				if (!legacy && loadScaledImage) { mixin(S_TRACE);
+					auto nsp = (cast(string)pathId).noScaledPath;
+					if (nsp.length) pathId = toPathId(nsp);
+				}
 				if (0 == useCounter.get(pathId)) { mixin(S_TRACE);
 					r ~= p2;
 					return 0;
