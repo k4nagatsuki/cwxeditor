@@ -939,6 +939,7 @@ private:
 					v.refreshControls();
 				}
 			}
+			_comm.refreshToolBar();
 		}
 		FlexImage backImage(int index) { mixin(S_TRACE);
 			return cast(FlexImage) _imgp.images[index];
@@ -1004,6 +1005,7 @@ private:
 			v.callModEvent();
 			if (v !is this) v.refreshControls();
 		}
+		_comm.refreshToolBar();
 	}
 	int cancelSpnImpl(string T, string SetFlexImage, B)(int[B] edits, int delegate(AbstractAreaView) startIndex, bool redraw) { mixin(S_TRACE);
 		if (_readOnly) return 0;
@@ -2593,6 +2595,7 @@ private:
 				if (v._customTMenu) v._customTMenu.setSelection(!value);
 				v.callModEvent();
 			}
+			_comm.refreshToolBar();
 		}
 		@property
 		bool canSelectConnectedResourceC() { mixin(S_TRACE);

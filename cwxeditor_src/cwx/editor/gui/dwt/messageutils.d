@@ -2695,7 +2695,7 @@ class MsgPreview : Composite {
 		string[char] names;
 		string[string] flags, steps;
 		_values.getValues(names, flags, steps);
-		_img = new Image(d, previewMessage(_comm, _prop, _summ.scenarioPath, tImg, pos, _message, [], names, flags, steps));
+		_img = new Image(d, previewMessage(_comm, _prop, _summ.scenarioPath, tImg, pos, _message, [], names, flags, steps, true));
 	}
 
 	@property
@@ -2707,7 +2707,7 @@ class MsgPreview : Composite {
 }
 
 /// メッセージのプレビューを生成する。
-ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] talkers, CardImagePosition[] poses, string message, in string[] sel, in string[char] names, in string[string] flags, in string[string] steps) { mixin(S_TRACE);
+ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] talkers, CardImagePosition[] poses, string message, in string[] sel, in string[char] names, in string[string] flags, in string[string] steps, bool scaled) { mixin(S_TRACE);
 	auto d = Display.getCurrent();
 	version (Windows) {
 		bool legacy = comm.skin.legacy;
@@ -3021,7 +3021,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] tal
 	}
 
 	auto data = canvas.getImageData();
-	if (1024 < prop.s(1024)) { mixin(S_TRACE);
+	if (scaled && 1024 < prop.s(1024)) { mixin(S_TRACE);
 		data = data.scaledTo(prop.s(data.width), prop.s(data.height));
 	}
 	return data;
