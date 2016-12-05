@@ -78,10 +78,12 @@ private static ImageData imgd(string path, MaskType maskType) { mixin(S_TRACE);
 		return ca.value;
 	} else { mixin(S_TRACE);
 		auto data = loadImage(path, maskType is MaskType.NormalMask);
-		if (maskType is MaskType.Mask1_1) { mixin(S_TRACE);
-			data.transparentPixel = data.getPixel(1, 1);
-		} else if (maskType is MaskType.RightMask) { mixin(S_TRACE);
-			data.transparentPixel = data.getPixel(data.width - 1, 0);
+		if (1 < data.width && 1 < data.height) { mixin(S_TRACE);
+			if (maskType is MaskType.Mask1_1) { mixin(S_TRACE);
+				data.transparentPixel = data.getPixel(1, 1);
+			} else if (maskType is MaskType.RightMask) { mixin(S_TRACE);
+				data.transparentPixel = data.getPixel(data.width - 1, 0);
+			}
 		}
 		putCache(path, data);
 		return data;
