@@ -19,6 +19,7 @@ import cwx.system;
 import cwx.structs;
 import cwx.types;
 import cwx.binary;
+import cwx.jpy;
 
 import lhafile.lhafile;
 
@@ -87,6 +88,7 @@ struct SaveOption {
 	string backupDir = ""; /// 保存時バックアップ先。
 	bool archiveInNewThread = false; /// 保存後の圧縮を別スレッドで行うか。
 	bool xmlFileNameIsIDOnly = false; /// XMLファイルの名称をIDのみで設定するか。
+	bool autoUpdateJpy1File = false; /// エフェクトブースターファイル内のパス情報を自動更新する。
 	void delegate() savedCallback = null; /// 保存完了通知を受け取る場合は設定する。
 }
 
@@ -106,6 +108,9 @@ private:
 
 	/// ファイル・ディレクトリの更新チェック用のパス一覧。
 	SysTime[string] _checkPaths, _noSaveCheckPaths;
+
+	Jpy1[] _jpyData; /// シナリオに含まれるJPY1ファイルの情報。
+	Jpdc[] _jpdcData; /// シナリオに含まれるJPDCファイルの情報。
 
 	string _sPath = null;
 	string _sname = "";
@@ -241,7 +246,8 @@ public:
 	}
 
 	/// tempPathにシナリオを新規作成する。
-	static Summary createScenario(const System sys, string tempPath, string name, Skin skin) { mixin(S_TRACE);
+	static Summary createScenario(in CProps prop, string tempPath, string name, Skin skin) { mixin(S_TRACE);
+		auto sys = prop.sys;
 		auto p = Summary.createTempDir(tempPath, name);
 		auto mFPath = std.path.buildPath(p, skin.materialPath);
 		if (!exists(mFPath) || !isDir(mFPath)) std.file.mkdir(mFPath);
@@ -251,6 +257,7 @@ public:
 			summ.saveXMLsImpl(summ.scenarioPath, sys, opt, true);
 		}
 		summ.refCheckPaths();
+		summ.updateJpy1List(prop);
 		return summ;
 	}
 
@@ -468,6 +475,7 @@ public:
 				r._origZipName = "";
 				r._tempPath = scDir;
 				r.refCheckPaths();
+				r.updateJpy1List(prop);
 				r.repairID0();
 				return r;
 			}
@@ -494,6 +502,7 @@ public:
 							r._origZipName = "";
 						}
 						r.refCheckPaths();
+						r.updateJpy1List(prop);
 						r.repairID0();
 						return r;
 					} else { mixin(S_TRACE);
@@ -505,6 +514,7 @@ public:
 						r._origZipName = fname;
 						r._tempPath = fn;
 						r.refCheckPaths();
+						r.updateJpy1List(prop);
 						r.repairID0();
 						if (scTemplate) { mixin(S_TRACE);
 							return createFromTemplate(r);
@@ -544,6 +554,7 @@ public:
 							return createFromTemplate(r);
 						} else { mixin(S_TRACE);
 							r.refCheckPaths();
+							r.updateJpy1List(prop);
 							r.repairID0();
 							return r;
 						}
@@ -566,6 +577,7 @@ public:
 							r.lock(r._tempPath, r._useTemp);
 						}
 						r.refCheckPaths();
+						r.updateJpy1List(prop);
 						r.repairID0();
 						return r;
 					} else if (isDir(fname)) { mixin(S_TRACE);
@@ -2156,7 +2168,8 @@ public:
 	}
 
 	/// XMLファイルまたはクラシックなシナリオを再読込し、新しいSummaryを生成して返す。
-	Summary reloadXMLs(const System sys, in LoadOption opt) { mixin(S_TRACE);
+	Summary reloadXMLs(in CProps prop, in LoadOption opt) { mixin(S_TRACE);
+		auto sys = prop.sys;
 		Summary summ;
 		if (legacy) { mixin(S_TRACE);
 			summ = loadLScenario(scenarioPath, "", sys, opt, scenarioName);
@@ -2174,6 +2187,7 @@ public:
 			summ._lock = _lock;
 		}
 		summ.refCheckPaths();
+		summ.updateJpy1List(prop);
 		return summ;
 	}
 
@@ -2193,7 +2207,20 @@ public:
 	/// シナリオのディレクトリ。
 	@property
 	void scenarioPath(string sPath) { mixin(S_TRACE);
-		_sPath = sPath;
+		if (_sPath != sPath) { mixin(S_TRACE);
+			_sPath = sPath;
+			foreach (ref jpy; _jpyData) { mixin(S_TRACE);
+				jpy.jpy1Path = .buildPath(sPath, jpy.jpy1Path.abs2rel(jpy.sPath));
+				foreach (ref sec; jpy.sections) {
+					sec.fPath = .buildPath(sPath, sec.fPath.abs2rel(sec.sPath));
+					sec.sPath = sPath;
+				}
+			}
+			foreach (ref jpdc; _jpdcData) { mixin(S_TRACE);
+				jpdc.jpdcPath = .buildPath(sPath, jpdc.jpdcPath.abs2rel(jpdc.sPath));
+				jpdc.sPath = sPath;
+			}
+		}
 	}
 	/// シナリオ名。
 	@property
@@ -2311,13 +2338,35 @@ public:
 				copyFail ~= p;
 			}
 		}
+		updateJpy1List(prop);
 		if (!mt.cfnmatch(temp)) { mixin(S_TRACE);
+			// エフェクトブースター関係ファイル内に書かれているパスは
+			// 全て相対パスなので書き換えの必要は無い
+			foreach (ref jpy; _jpyData) { mixin(S_TRACE);
+				jpy.removeUseCounter();
+			}
+			foreach (ref jpdc; _jpdcData) { mixin(S_TRACE);
+				jpdc.removeUseCounter();
+			}
+
 			foreach (key; uc.path.keys) { mixin(S_TRACE);
 				if (key.isBinImg) continue;
 				auto p = std.path.buildPath(scenarioPath, cast(string)key);
-				if (p.exists()) { mixin(S_TRACE);
-					uc.change(key, toPathId(std.path.buildPath(toSkin.materialPath, cast(string)key)));
+				uc.change(key, toPathId(std.path.buildPath(toSkin.materialPath, cast(string)key)));
+			}
+
+			// 各エフェクトブースターファイル情報の更新
+			auto sPath = scenarioPath;
+			foreach (ref jpy; _jpyData) { mixin(S_TRACE);
+				jpy.jpy1Path = .buildPath(sPath, toSkin.materialPath, jpy.jpy1Path.abs2rel(jpy.sPath));
+				foreach (ref sec; jpy.sections) { mixin(S_TRACE);
+					sec.fPath = .buildPath(sPath, toSkin.materialPath, sec.fPath.abs2rel(sec.sPath));
 				}
+				jpy.setUseCounter(uc);
+			}
+			foreach (ref jpdc; _jpdcData) { mixin(S_TRACE);
+				jpdc.jpdcPath = .buildPath(sPath, toSkin.materialPath, jpdc.jpdcPath.abs2rel(jpdc.sPath));
+				jpdc.setUseCounter(uc);
 			}
 		}
 		ubyte*[] ptrs;
@@ -2603,6 +2652,7 @@ public:
 					if (legacyToX) _legacy = oldLegacy;
 				}
 				refCheckPaths();
+				updateJpy1List(prop);
 				resetChanged();
 				void t3() { mixin(S_TRACE);
 					scope (exit) {
@@ -2617,8 +2667,9 @@ public:
 				} else { mixin(S_TRACE);
 					t3();
 				}
-			} else {
+			} else { mixin(S_TRACE);
 				refCheckPaths();
+				updateJpy1List(prop);
 				resetChanged();
 			}
 		} catch (Exception e) {
@@ -2801,6 +2852,58 @@ public:
 	override bool change(PathId id) { return true; }
 
 	override bool change(CouponId id) { return true; }
+
+	/// シナリオ内のエフェクトブースターファイルに使用回数カウンタを設定する。
+	void updateJpy1List(in CProps prop) { mixin(S_TRACE);
+		if (!scenarioPath.exists()) return;
+		foreach (ref jpy; _jpyData) jpy.removeUseCounter();
+		_jpyData.length = 0;
+		foreach (ref jpdc; _jpdcData) jpdc.removeUseCounter();
+		_jpdcData.length = 0;
+		auto sPath = scenarioPath;
+		foreach (string file; sPath.dirEntries(SpanMode.depth)) { mixin(S_TRACE);
+			try { mixin(S_TRACE);
+				if (.cfnmatch(file.extension(), ".jpy1")) { mixin(S_TRACE);
+					_jpyData ~= Jpy1.load(prop, sPath, file);
+					_jpyData[$-1].setUseCounter(useCounter);
+				} else if (.cfnmatch(file.extension(), ".jpdc")) { mixin(S_TRACE);
+					_jpdcData ~= Jpdc.load(prop, sPath, file);
+					_jpdcData[$-1].setUseCounter(useCounter);
+				}
+			} catch (EffectBoosterError e) {
+				clearStackTrace();
+				debug {
+					foreach (err; e.errors) { mixin(S_TRACE);
+						cdebugln(.tryFormat(prop.msgs.jpyError, err.msg, file, err.line));
+					}
+				}
+			} catch (Exception e) {
+				printStackTrace();
+				debugln(file);
+				debugln(e);
+			}
+		}
+	}
+
+	/// シナリオ内にあるJpy1ファイルの内容の上書きが必要であれば更新する。
+	void updateJpy1Files(in CProps prop, bool autoUpdateJpy1File) { mixin(S_TRACE);
+		foreach (ref jpy; _jpyData) { mixin(S_TRACE);
+			jpy.updateJpy1File(prop, autoUpdateJpy1File);
+		}
+		foreach (ref jpdc; _jpdcData) { mixin(S_TRACE);
+			jpdc.updateJpdcFile(prop, autoUpdateJpy1File);
+		}
+	}
+
+	/// ファイル名の変更を通知する。
+	void renameFile(string from, string to) { mixin(S_TRACE);
+		foreach (ref jpy; _jpyData) { mixin(S_TRACE);
+			jpy.renameFile(from, to);
+		}
+		foreach (ref jpdc; _jpdcData) { mixin(S_TRACE);
+			jpdc.renameFile(from, to);
+		}
+	}
 }
 
 /// ファイル読み込み時の例外。

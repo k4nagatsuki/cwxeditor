@@ -1351,6 +1351,6 @@ class Commons {
 
 	/// シナリオ内にあるJpy1ファイルの内容の上書きが必要であれば更新する。
 	void updateJpy1Files() { mixin(S_TRACE);
-		_dirWin.updateJpy1Files();
+		if (summary) summary.updateJpy1Files(prop.parent, prop.var.etc.autoUpdateJpy1File);
 	}
 }

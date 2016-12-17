@@ -340,7 +340,7 @@ protected:
 						resetCursors(cursors);
 					}
 					// 非シナリオのディレクトリをベースとする
-					summ = Summary.createScenario(_prop.sys, _prop.tempPath, name, findSkin2(_prop, skin, ""));
+					summ = Summary.createScenario(_prop.parent, _prop.tempPath, name, findSkin2(_prop, skin, ""));
 					tPath.copyAll(summ.scenarioPath);
 				} else { mixin(S_TRACE);
 					auto cursors = setWaitCursors(topShell(getShell()));
@@ -361,7 +361,7 @@ protected:
 				}
 				if (ok) { mixin(S_TRACE);
 					if (!summ) { mixin(S_TRACE);
-						summ = Summary.createScenario(_prop.sys, _prop.tempPath, name, findSkin2(_prop, skin, ""));
+						summ = Summary.createScenario(_prop.parent, _prop.tempPath, name, findSkin2(_prop, skin, ""));
 					}
 					summ.setBaseParams(name, _prop.var.etc.defaultAuthor);
 					_prop.var.etc.defaultScenarioTemplate = tPath;

@@ -891,7 +891,7 @@ private:
 				if (!dir.exists()) mkdirRecurse(dir);
 				summ = new Summary(dlg.name, dlg.skin, dir, false, true);
 			} else { mixin(S_TRACE);
-				summ = Summary.createScenario(_prop.sys, _prop.tempPath, dlg.name, findSkin2(_prop, dlg.skin, ""));
+				summ = Summary.createScenario(_prop.parent, _prop.tempPath, dlg.name, findSkin2(_prop, dlg.skin, ""));
 			}
 			summ.author = _prop.var.etc.defaultAuthor;
 			openScenario(summ);
@@ -942,7 +942,7 @@ private:
 				auto wsm = std.path.buildPath(old.scenarioPath, "Summary.wsm");
 				if (old.useTemp) { mixin(S_TRACE);
 					try { mixin(S_TRACE);
-						openScenario(old.reloadXMLs(_prop.sys, loadOption(old)));
+						openScenario(old.reloadXMLs(_prop.parent, loadOption(old)));
 					} catch (Exception e) {
 						printStackTrace();
 						debugln(e);
@@ -956,7 +956,7 @@ private:
 				}
 			} else if (expand) { mixin(S_TRACE);
 				try { mixin(S_TRACE);
-					openScenario(old.reloadXMLs(_prop.sys, loadOption(old)));
+					openScenario(old.reloadXMLs(_prop.parent, loadOption(old)));
 				} catch (Exception e) {
 					printStackTrace();
 					debugln(e);
@@ -965,7 +965,6 @@ private:
 						_prop.msgs.dlgTitWarning, _win);
 				}
 			} else { mixin(S_TRACE);
-				assert (old.origZipName.length);
 				loadScenarioFromFile(_prop, loadOption(old), _comm.mainShell, &setStatusLine, old, old.origZipName, &openScenario, &resetOpt);
 			}
 		}
@@ -1228,6 +1227,7 @@ private:
 		opt.backupDir = _prop.backupBeforeSavePath.buildPath(_prop.var.etc.backupBeforeSaveDir);
 		if (!opt.backupDir.exists()) mkdirRecurse(opt.backupDir);
 		opt.archiveInNewThread = _prop.var.etc.archiveInNewThread && summary.useTemp;
+		opt.autoUpdateJpy1File = _prop.var.etc.autoUpdateJpy1File;
 		if (opt.archiveInNewThread) { mixin(S_TRACE);
 			opt.savedCallback = { mixin(S_TRACE);
 				synchronized (_displayMutex) { mixin(S_TRACE);
@@ -4344,7 +4344,7 @@ public:
 			if (_opt.create) { mixin(S_TRACE);
 				string name = _opt.createName is null ? _prop.msgs.newScenarioName : _opt.createName;
 				string skin = _opt.createSkin is null ? _prop.var.etc.defaultSkin : _opt.createSkin;
-				auto summ = Summary.createScenario(_prop.sys, _prop.tempPath, name, findSkin2(_prop, skin, ""));
+				auto summ = Summary.createScenario(_prop.parent, _prop.tempPath, name, findSkin2(_prop, skin, ""));
 				summ.author = _prop.var.etc.defaultAuthor;
 				openScenario(summ);
 				statusLine = "";

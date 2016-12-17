@@ -294,6 +294,9 @@ private string stripValue(string eqAfter) { mixin(S_TRACE);
 struct Jpy1 {
 	/// ファイルに含まれるセクション。
 	Jpy1Sec[] sections;
+	/// 所属するシナリオのディレクトリ。
+	/// シナリオに所属していない場合は""。
+	string sPath;
 	/// ファイルパス。
 	string jpy1Path;
 	/// 改行コードを含めた全行をそのまま格納する。
@@ -306,6 +309,7 @@ struct Jpy1 {
 		Jpy1 r;
 		auto errInfo = new EffectBoosterError;
 		bool[string] secNames;
+		r.sPath = sPath;
 		r.jpy1Path = jpy1Path;
 		r.lines = .splitLines(readJPYFile(jpy1Path, prop, errInfo, r.isSJIS), KeepTerminator.yes);
 		auto hasExchange = false;

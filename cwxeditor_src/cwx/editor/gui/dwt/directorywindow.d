@@ -743,12 +743,7 @@ private:
 								updatePaths(p1, p2);
 								_comm.refPath.call(p1, p2, false);
 								std.file.rename(from, to);
-								foreach (ref jpy; _jpyData) { mixin(S_TRACE);
-									jpy.renameFile(from, to);
-								}
-								foreach (ref jpdc; _jpdcData) { mixin(S_TRACE);
-									jpdc.renameFile(from, to);
-								}
+								if (_summ) _summ.renameFile(from, to);
 							}
 						}
 						if (cfnmatch(parent, targ)) selfs ~= to;
@@ -776,8 +771,10 @@ private:
 				_comm.refPaths.call(this, toRelPath(selDirPath));
 
 				// Jpy1ファイルの内容を更新
-				updateJpy1Files();
-				updateJpy1List();
+				if (_summ) { mixin(S_TRACE);
+					_summ.updateJpy1Files(_prop.parent, _prop.var.etc.autoUpdateJpy1File);
+					_summ.updateJpy1List(_prop.parent);
+				}
 
 				if (dir) { mixin(S_TRACE);
 					refreshDirs(.exists(targ) ? targ : dir);
@@ -832,8 +829,6 @@ private:
 
 	Props _prop;
 	Summary _summ = null;
-	Jpy1[] _jpyData;
-	Jpdc[] _jpdcData;
 
 	Commons _comm;
 
@@ -914,12 +909,7 @@ private:
 			std.file.rename(path, to);
 			auto p1 = nabs(path);
 			auto p2 = nabs(to);
-			foreach (ref jpy; _jpyData) { mixin(S_TRACE);
-				jpy.renameFile(p1, p2);
-			}
-			foreach (ref jpdc; _jpdcData) { mixin(S_TRACE);
-				jpdc.renameFile(p1, p2);
-			}
+			if (_summ) _summ.renameFile(p1, p2);
 		} catch (Exception e) {
 			// 不正な名前
 			printStackTrace();
@@ -951,7 +941,7 @@ private:
 			_comm.refPath.call(p1, p2, false);
 		}
 		// Jpy1ファイルの内容を更新
-		updateJpy1Files();
+		if (_summ) _summ.updateJpy1Files(_prop.parent, _prop.var.etc.autoUpdateJpy1File);
 
 		itm.setData(new FileNameObj(to));
 		static if (is (T == TreeItem)) {
@@ -1046,41 +1036,6 @@ private:
 	}
 	void refreshTitle() { mixin(S_TRACE);
 		_comm.setTitle(_win, title);
-	}
-	void updateJpy1List() { mixin(S_TRACE);
-		if (!_summ) return;
-		if (!_summ.scenarioPath.exists()) return;
-		foreach (ref jpy; _jpyData) { mixin(S_TRACE);
-			jpy.removeUseCounter();
-		}
-		_jpyData.length = 0;
-		foreach (ref jpdc; _jpdcData) { mixin(S_TRACE);
-			jpdc.removeUseCounter();
-		}
-		_jpdcData.length = 0;
-		auto sPath = _summ.scenarioPath;
-		foreach (string file; sPath.dirEntries(SpanMode.depth)) { mixin(S_TRACE);
-			try { mixin(S_TRACE);
-				if (.cfnmatch(file.extension(), ".jpy1")) {
-					_jpyData ~= Jpy1.load(_prop.parent, sPath, file);
-					_jpyData[$-1].setUseCounter(_summ.useCounter);
-				} else if (.cfnmatch(file.extension(), ".jpdc")) {
-					_jpdcData ~= Jpdc.load(_prop.parent, sPath, file);
-					_jpdcData[$-1].setUseCounter(_summ.useCounter);
-				}
-			} catch (EffectBoosterError e) {
-				clearStackTrace();
-				debug {
-					foreach (err; e.errors) { mixin(S_TRACE);
-						cdebugln(.tryFormat(_prop.msgs.jpyError, err.msg, file, err.line));
-					}
-				}
-			} catch (Exception e) {
-				printStackTrace();
-				debugln(file);
-				debugln(e);
-			}
-		}
 	}
 	void delPaths(Object sender) { mixin(S_TRACE);
 		if (sender !is this) { mixin(S_TRACE);
@@ -1824,23 +1779,12 @@ public:
 
 	void refresh() { mixin(S_TRACE);
 		if (!_win || _win.isDisposed()) return;
-		updateJpy1List();
+		if (_summ) _summ.updateJpy1List(_prop.parent);
 		refreshDirs(selDirPath);
 		refreshFiles(selFiles);
 	}
 	void refresh(Summary summ) { mixin(S_TRACE);
-		foreach (ref jpy; _jpyData) { mixin(S_TRACE);
-			jpy.removeUseCounter();
-		}
-		_jpyData.length = 0;
-		foreach (ref jpdc; _jpdcData) { mixin(S_TRACE);
-			jpdc.removeUseCounter();
-		}
-		_jpdcData.length = 0;
-
 		_summ = summ;
-
-		updateJpy1List();
 		if (_win && !_win.isDisposed()) { mixin(S_TRACE);
 			refreshDirs(std.path.buildPath(_summ.scenarioPath, _comm.skin.materialPath));
 			refreshFiles(null);
@@ -1966,16 +1910,6 @@ public:
 		} catch (Throwable e) {
 			printStackTrace();
 			debugln(e);
-		}
-	}
-
-	/// シナリオ内にあるJpy1ファイルの内容の上書きが必要であれば更新する。
-	void updateJpy1Files() { mixin(S_TRACE);
-		foreach (ref jpy; _jpyData) { mixin(S_TRACE);
-			jpy.updateJpy1File(_prop.parent, _prop.var.etc.autoUpdateJpy1File);
-		}
-		foreach (ref jpdc; _jpdcData) { mixin(S_TRACE);
-			jpdc.updateJpdcFile(_prop.parent, _prop.var.etc.autoUpdateJpy1File);
 		}
 	}
 
