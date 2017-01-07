@@ -681,25 +681,29 @@ class Commons {
 	void updateSkinMaterialsExtension(Skin oldSkin, Skin newSkin) { mixin(S_TRACE);
 		if (!summary) return;
 		if (oldSkin is newSkin) return;
-		void proc(string oldDir, string newDir, in string[] exts) {
+		void proc(in string[] oldDirs, in string[] newDirs, in string[] exts) { mixin(S_TRACE);
 			try {
-				if (!oldDir.exists() || !oldDir.isDir()) return;
-				if (!newDir.exists() || !newDir.isDir()) return;
-				foreach (path; oldDir.dirEntries(SpanMode.depth)) { mixin(S_TRACE);
-					if (!path.isFile) continue;
-					auto oldRel = abs2rel(path, oldDir);
-					if (!summary.useCounter.get(toPathId(oldRel))) continue;
-					auto newAbs = newDir.buildPath(oldRel);
-					if (newAbs.exists()) continue;
-					// 拡張子を付け替えて探索する
-					foreach (ext; exts) { mixin(S_TRACE);
-						newAbs = newAbs.setExtension(ext);
-						if (!newAbs.exists()) continue;
-						// 発見したので変更
-						auto newRel = abs2rel(newAbs, newDir);
-						summary.useCounter.change(toPathId(oldRel), toPathId(newRel));
-						this.refPath.call(oldRel, newRel, false);
-						break;
+				foreach (oldDir; oldDirs) { mixin(S_TRACE);
+					if (!oldDir.exists() || !oldDir.isDir()) return;
+					foreach (path; oldDir.dirEntries(SpanMode.depth)) { mixin(S_TRACE);
+						if (!path.isFile) continue;
+						auto oldRel = abs2rel(path, oldDir);
+						if (!summary.useCounter.get(toPathId(oldRel))) continue;
+						nd: foreach (newDir; newDirs) { mixin(S_TRACE);
+							if (!newDir.exists() || !newDir.isDir()) continue;
+							auto newAbs = newDir.buildPath(oldRel);
+							if (newAbs.exists()) continue;
+							// 拡張子を付け替えて探索する
+							foreach (ext; exts) { mixin(S_TRACE);
+								newAbs = newAbs.setExtension(ext);
+								if (!newAbs.exists()) continue;
+								// 発見したので変更
+								auto newRel = abs2rel(newAbs, newDir);
+								summary.useCounter.change(toPathId(oldRel), toPathId(newRel));
+								this.refPath.call(oldRel, newRel, false);
+								break nd;
+							}
+						}
 					}
 				}
 			} catch (Exception e) {
@@ -707,9 +711,9 @@ class Commons {
 				debugln(e);
 			}
 		}
-		proc(oldSkin.tableDir, newSkin.tableDir, oldSkin.extImage);
-		proc(oldSkin.bgmDir, newSkin.bgmDir, oldSkin.extBgm);
-		proc(oldSkin.seDir, newSkin.seDir, oldSkin.extSound);
+		proc(oldSkin.tableDirs, newSkin.tableDirs, oldSkin.extImage);
+		proc(oldSkin.bgmDirs, newSkin.bgmDirs, oldSkin.extBgm);
+		proc(oldSkin.seDirs, newSkin.seDirs, oldSkin.extSound);
 	}
 
 	private void activate(Composite w, bool shellActivate) { mixin(S_TRACE);

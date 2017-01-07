@@ -4084,8 +4084,11 @@ public:
 			p = nabs(p);
 			foreach (t; summSkin.tables(_prop.var.etc.logicalSort)) { mixin(S_TRACE);
 				strs ~= t;
-				if (cfnmatch(p, nabs(std.path.buildPath(summSkin.tableDir, t)))) { mixin(S_TRACE);
-					str = t;
+				foreach (tableDir; summSkin.tableDirs) {mixin(S_TRACE);
+					if (cfnmatch(p, nabs(std.path.buildPath(tableDir, t)))) { mixin(S_TRACE);
+						str = t;
+						break;
+					}
 				}
 			}
 			_selectableBgImages = strs;

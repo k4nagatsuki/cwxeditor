@@ -25,7 +25,7 @@ import cwx.editor.gui.dwt.undo;
 import core.atomic;
 import core.thread;
 
-import std.algorithm : min;
+import std.algorithm : min, any;
 import std.array;
 import std.file;
 import std.path;
@@ -1004,7 +1004,10 @@ class MaterialSelect(MtType Type, D, C) {
 		if (p && _fileList.getSelectionIndex() >= 0) { mixin(S_TRACE);
 			string f = fileText(_fileList.getItem(_fileList.getSelectionIndex()));
 			if (_dirs.getSelectionIndex() == _tbl) { mixin(S_TRACE);
-				return std.path.buildPath(defDir, f);
+				foreach (defDir; defDirs) { mixin(S_TRACE);
+					auto path = std.path.buildPath(defDir, f);
+					if (path.exists()) return path;
+				}
 			} else if (_dirs.getSelectionIndex() == _tblEngine) { mixin(S_TRACE);
 				foreach (dir; engineDefDirs) { mixin(S_TRACE);
 					auto path = std.path.buildPath(dir, f);
@@ -1149,7 +1152,7 @@ private:
 	static if (Type == MtType.CARD) {
 		private bool _noCardSize = false;
 		@property const(string)[] defExts() {return summSkin.extImage;}
-		@property string defDir() {return summSkin.tableDir;}
+		@property string[] defDirs() {return summSkin.tableDirs;}
 		@property string[] engineDefDirs() { return summSkin.wsnTableDirs(_summ ? _summ.dataVersion : LATEST_VERSION); }
 		bool isTarg(string p) {return summSkin.isCardImage(p, _noCardSize);}
 		static bool hasTarg(Skin skin, string p, bool forceRefresh, bool noCardSize) { return skin.hasCardImage(p, forceRefresh, noCardSize); }
@@ -1158,7 +1161,7 @@ private:
 		@property Image image() {return _prop.images.cards;}
 	} else static if (Type == MtType.BG_IMG) {
 		@property const(string)[] defExts() {return summSkin.extImage;}
-		@property string defDir() {return summSkin.tableDir;}
+		@property string[] defDirs() {return summSkin.tableDirs;}
 		@property string[] engineDefDirs() { return summSkin.wsnTableDirs(_summ ? _summ.dataVersion : LATEST_VERSION); }
 		bool isTarg(string p) {return summSkin.isBgImage(p);}
 		static bool hasTarg(Skin skin, string p, bool forceRefresh, bool noCardSize) { return skin.hasBgImage(p, forceRefresh); }
@@ -1167,7 +1170,7 @@ private:
 		@property Image image() {return _prop.images.backs;}
 	} else static if (Type == MtType.BGM) {
 		@property const(string)[] defExts() {return summSkin.extBgm;}
-		@property string defDir() {return summSkin.bgmDir;}
+		@property string[] defDirs() {return summSkin.bgmDirs;}
 		@property string[] engineDefDirs() { return summSkin.wsnMusicDirs(_summ ? _summ.dataVersion : LATEST_VERSION); }
 		bool isTarg(string p) {return summSkin.isBGM(p);}
 		static bool hasTarg(Skin skin, string p, bool forceRefresh, bool noCardSize) { return skin.hasBGM(p, forceRefresh); }
@@ -1176,7 +1179,7 @@ private:
 		@property Image image() {return _prop.images.bgm;}
 	} else static if (Type == MtType.SE) {
 		@property const(string)[] defExts() {return summSkin.extSound;}
-		@property string defDir() {return summSkin.seDir;}
+		@property string[] defDirs() {return summSkin.seDirs;}
 		@property string[] engineDefDirs() { return summSkin.wsnSoundDirs(_summ ? _summ.dataVersion : LATEST_VERSION); }
 		bool isTarg(string p) {return summSkin.isSE(p);}
 		static bool hasTarg(Skin skin, string p, bool forceRefresh, bool noCardSize) { return skin.hasSE(p, forceRefresh); }
@@ -1191,7 +1194,21 @@ private:
 	}
 	private void doDirectory() { mixin(S_TRACE);
 		if (_dirs.getSelectionIndex() == _tbl) { mixin(S_TRACE);
-			openFolder(defDir);
+			static if (Type == MtType.CARD) {
+				bool noCardSize = _noCardSize;
+			} else {
+				bool noCardSize = false;
+			}
+			auto skin = summSkin;
+			foreach (defDir; defDirs) { mixin(S_TRACE);
+				if (defDir.exists()) { mixin(S_TRACE);
+					if (hasTarg(skin, defDir, false, noCardSize)) { mixin(S_TRACE);
+						openFolder(defDir);
+						return;
+					}
+				}
+			}
+			openFolder(defDirs[0]);
 		} else if (_dirs.getSelectionIndex() == _tblEngine) { mixin(S_TRACE);
 			auto dir = _prop.enginePath.dirName().buildPath("Data/Materials");
 			openFolder(dir);
@@ -1528,7 +1545,7 @@ private:
 			string t = _dirs.getItem(i);
 			if (i == _tbl) { mixin(S_TRACE);
 				skinPos = st.length;
-				st ~= defDir;
+				st ~= defDirs;
 			} else if (i == _tblEngine) { mixin(S_TRACE);
 				enginePosFrom = st.length;
 				st ~= engineDefDirs;
@@ -1574,7 +1591,8 @@ private:
 				}
 			}
 		} else if (_dirs.getSelectionIndex() == _tbl) { mixin(S_TRACE);
-			refreshListImpl(defDir, forceRefresh, subThr);
+			auto dirs = defDirs;
+			refreshListImpl(dirs, forceRefresh, subThr, -1, 0, dirs.length);
 		} else if (_dirs.getSelectionIndex() == _tblEngine) { mixin(S_TRACE);
 			auto dirs = engineDefDirs;
 			refreshListImpl(dirs, forceRefresh, subThr, -1, 0, dirs.length);
@@ -1619,7 +1637,7 @@ private:
 		foreach (def; defs) { mixin(S_TRACE);
 			items ~= def;
 		}
-		auto tbl = defDir;
+		auto tbl = defDirs;
 		_tbl = -1;
 		_tblIndex = -1;
 		_tblEngine = -1;
@@ -1630,7 +1648,7 @@ private:
 		} else {
 			bool noCardSize = false;
 		}
-		if (hasTarg(skin, tbl, forceRefresh, noCardSize)) { mixin(S_TRACE);
+		if (.any!(tbl => hasTarg(skin, tbl, forceRefresh, noCardSize))(tbl)) { mixin(S_TRACE);
 			_tbl = cast(int)items.length;
 			items ~= _prop.msgs.defaultSelection(_prop.msgs.pathDef);
 		}
@@ -1704,7 +1722,7 @@ private:
 				} else { mixin(S_TRACE);
 					bool isSkinMaterial, isEngineMaterial;
 					auto wsnVer = _summ ? _summ.dataVersion : LATEST_VERSION;
-					auto p = summSkin.findPathF(path, defExts, defDir, _summ ? _summ.scenarioPath : "", wsnVer,
+					auto p = summSkin.findPathF(path, defExts, defDirs, _summ ? _summ.scenarioPath : "", wsnVer,
 						engineDefDirs, isSkinMaterial, isEngineMaterial);
 					if (p.length > 0) { mixin(S_TRACE);
 						if (isSkinMaterial) { mixin(S_TRACE);
@@ -1842,10 +1860,12 @@ private:
 		if (!selectedDefDir || path != "") return;
 		string update(string path) { mixin(S_TRACE);
 			if (path.isBinImg) return path;
-			if (std.path.buildPath(defDir, path).exists()) return path;
-			foreach (ext; defExts) { mixin(S_TRACE);
-				auto path2 = path.setExtension(ext);
-				if (std.path.buildPath(defDir, path2).exists()) return path2;
+			foreach (defDir; defDirs) { mixin(S_TRACE);
+				if (std.path.buildPath(defDir, path).exists()) return path;
+				foreach (ext; defExts) { mixin(S_TRACE);
+					auto path2 = path.setExtension(ext);
+					if (std.path.buildPath(defDir, path2).exists()) return path2;
+				}
 			}
 			return path;
 		}

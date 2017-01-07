@@ -38,7 +38,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		bool warnPos = false;
 		foreach (imagePath; psumm.imagePaths) { mixin(S_TRACE);
 			if (imagePath.type !is CardImageType.File) continue;
-			if (imagePath.path != "" && !isBinImg(imagePath.path) && !skin.findPath(imagePath.path, skin.extImage, skin.tableDir, sPath, wsnVer, skin.wsnTableDirs(wsnVer)).length) { mixin(S_TRACE);
+			if (imagePath.path != "" && !isBinImg(imagePath.path) && !skin.findPath(imagePath.path, skin.extImage, skin.tableDirs, sPath, wsnVer, skin.wsnTableDirs(wsnVer)).length) { mixin(S_TRACE);
 				r ~= .tryFormat(prop.msgs.searchErrorImageNotFound, .encodePath(imagePath.path));
 			}
 			if (imagePath.path != "") { mixin(S_TRACE);
@@ -112,7 +112,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		bool warnPos = false;
 		foreach (imagePath; card.paths) { mixin(S_TRACE);
 			if (imagePath.type !is CardImageType.File) continue;
-			if (imagePath.path != "" && !isBinImg(imagePath.path) && !skin.findPath(imagePath.path, skin.extImage, skin.tableDir, sPath, wsnVer, skin.wsnTableDirs(wsnVer)).length) { mixin(S_TRACE);
+			if (imagePath.path != "" && !isBinImg(imagePath.path) && !skin.findPath(imagePath.path, skin.extImage, skin.tableDirs, sPath, wsnVer, skin.wsnTableDirs(wsnVer)).length) { mixin(S_TRACE);
 				r ~= .tryFormat(prop.msgs.searchErrorImageNotFound, .encodePath(imagePath.path));
 			}
 			if (imagePath.path != "") { mixin(S_TRACE);
@@ -211,7 +211,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			if (!prop.targetVersion("1.60", targVer)) { mixin(S_TRACE);
 				r ~= prop.msgs.warningBgImageIncluded;
 			}
-		} else if (ic.path.length && !skin.findPath(ic.path, skin.extImage, skin.tableDir, sPath, wsnVer, skin.wsnTableDirs(wsnVer)).length) { mixin(S_TRACE);
+		} else if (ic.path.length && !skin.findPath(ic.path, skin.extImage, skin.tableDirs, sPath, wsnVer, skin.wsnTableDirs(wsnVer)).length) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.searchErrorImageNotFound, .encodePath(ic.path));
 		}
 		if (ic.path != "") { mixin(S_TRACE);
@@ -263,7 +263,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		bool warnPos = false;
 		foreach (imagePath; mc.paths) { mixin(S_TRACE);
 			if (imagePath.type is CardImageType.File) { mixin(S_TRACE);
-				if (imagePath.path != "" && !isBinImg(imagePath.path) && !skin.findPath(imagePath.path, skin.extImage, skin.tableDir, sPath, wsnVer, skin.wsnTableDirs(wsnVer)).length) { mixin(S_TRACE);
+				if (imagePath.path != "" && !isBinImg(imagePath.path) && !skin.findPath(imagePath.path, skin.extImage, skin.tableDirs, sPath, wsnVer, skin.wsnTableDirs(wsnVer)).length) { mixin(S_TRACE);
 					r ~= .tryFormat(prop.msgs.searchErrorImageNotFound, .encodePath(imagePath.path));
 				}
 				if (imagePath.path != "") {
@@ -405,7 +405,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		bool warnPos = false;
 		foreach (cardPath; c.cardPaths) { mixin(S_TRACE);
 			if (cardPath.type !is CardImageType.File) continue;
-			if (cardPath.path != "" && !skin.findPath(cardPath.path, skin.extImage, skin.tableDir, sPath, wsnVer, skin.wsnTableDirs(wsnVer)).length) { mixin(S_TRACE);
+			if (cardPath.path != "" && !skin.findPath(cardPath.path, skin.extImage, skin.tableDirs, sPath, wsnVer, skin.wsnTableDirs(wsnVer)).length) { mixin(S_TRACE);
 				r ~= .tryFormat(prop.msgs.searchErrorImageNotFound, .encodePath(cardPath.path));
 			}
 			if (cardPath.path != "") { mixin(S_TRACE);
@@ -416,10 +416,10 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				warnPos = true;
 			}
 		}
-		if (c.bgmPath != "" && !skin.findPath(c.bgmPath, skin.extBgm, skin.bgmDir, sPath, wsnVer, skin.wsnMusicDirs(wsnVer)).length) { mixin(S_TRACE);
+		if (c.bgmPath != "" && !skin.findPath(c.bgmPath, skin.extBgm, skin.bgmDirs, sPath, wsnVer, skin.wsnMusicDirs(wsnVer)).length) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.searchErrorBGMNotFound, .encodePath(c.bgmPath));
 		}
-		if (c.soundPath != "" && !skin.findPath(c.soundPath, skin.extSound, skin.seDir, sPath, wsnVer, skin.wsnSoundDirs(wsnVer)).length) { mixin(S_TRACE);
+		if (c.soundPath != "" && !skin.findPath(c.soundPath, skin.extSound, skin.seDirs, sPath, wsnVer, skin.wsnSoundDirs(wsnVer)).length) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.searchErrorSENotFound, .encodePath(c.soundPath));
 		}
 		if (c.area != 0 && !(summ && summ.area(c.area))) { mixin(S_TRACE);
@@ -746,7 +746,7 @@ TextWarnings textWarnings(in CProps prop, in Skin skin, in Summary summ, string 
 				put = true;
 			}
 		}
-		if (!skin.findPath(font, skin.extImage, skin.tableDir, sPath, wsnVer, skin.wsnTableDirs(wsnVer)).length) { mixin(S_TRACE);
+		if (!skin.findPath(font, skin.extImage, skin.tableDirs, sPath, wsnVer, skin.wsnTableDirs(wsnVer)).length) { mixin(S_TRACE);
 			auto msg = .tryFormat(prop.msgs.searchErrorSPFontNotFound, .tryFormat("#%s", c));
 			all ~= msg;
 			if (!wFonts.get(font, false)) { mixin(S_TRACE);

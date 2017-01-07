@@ -96,45 +96,49 @@ private ImageData loadJPYImageImpl(Props prop, in Skin skin, in Summary summ, st
 			}
 		}
 		if (!data && sec.filename.length && !cfnmatch(.extension(sec.filename), ".wav")) { mixin(S_TRACE);
-			string dir;
+			string[] dirs;
 			switch (sec.dirtype) {
 			case Dirtype.CURRENT: { mixin(S_TRACE);
-				dir = dirName(path);
+				dirs = [dirName(path)];
 			} break;
 			case Dirtype.TABLE: { mixin(S_TRACE);
 				if (!skin) continue;
-				dir = skin.tableDir;
+				dirs = skin.tableDirs;
 			} break;
 			case Dirtype.SCHEME: { mixin(S_TRACE);
 				if (!skin) continue;
 				auto edir = dirName(skin.engine);
 				if (!exists(edir)) continue;
-				dir = std.path.buildPath(edir, "scheme");
+				dirs = [std.path.buildPath(edir, "scheme")];
 			} break;
 			case Dirtype.SCENARIO: { mixin(S_TRACE);
 				if (!summ) continue;
-				dir = summ.scenarioPath;
+				auto dir = summ.scenarioPath;
 				for (int dp = 0; dp < sec.dirdepth; dp++) { mixin(S_TRACE);
 					dir = dirName(dir);
 				}
+				dirs = [dir];
 			} break;
 			case Dirtype.WAV: { mixin(S_TRACE);
 				if (!skin) continue;
-				dir = skin.seDir;
+				dirs = skin.seDirs;
 			} break;
 			case Dirtype.PARENT: { mixin(S_TRACE);
-				dir = dirName(dirName(path));
+				dirs = [dirName(dirName(path))];
 			} break;
 			case Dirtype.PROGRAM: { mixin(S_TRACE);
 				if (!skin) continue;
-				dir = dirName(skin.engine);
+				dirs = [dirName(skin.engine)];
 			} break;
 			default: continue;
 			}
-			auto fname = std.path.buildPath(dir, sec.filename);
-			if (!exists(fname)) continue;
-			data = loadImage(prop, skin, summ, fname, false, 0, 0, stratum);
-			stratum ~= nabs(fname);
+			foreach (dir; dirs) { mixin(S_TRACE);
+				auto fname = std.path.buildPath(dir, sec.filename);
+				if (!exists(fname)) continue;
+				data = loadImage(prop, skin, summ, fname, false, 0, 0, stratum);
+				stratum ~= nabs(fname);
+				break;
+			}
 		}
 		int dtw = data && data.width > 0 ? data.width : pw;
 		int dth = data && data.height > 0 ? data.height : ph;
