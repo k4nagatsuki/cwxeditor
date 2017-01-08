@@ -1820,7 +1820,7 @@ private:
 		if (_dirMode) { mixin(S_TRACE);
 			if (!showTreeSummary) return;
 			auto itm = _dirTree.getItem(0);
-			itm.setText(NAME, _summ.scenarioName);
+			itm.setText(_summ.scenarioName);
 		} else {
 			if (!showSummary) return;
 			auto itm = _areas.getItem(0);
