@@ -180,6 +180,8 @@ public:
 	@property Image beastDup() {return imgd!("beast_dup.png");}
 	@property Image info() {return imgd!("info.png");}
 
+	@property Image playerCard() { return imgd!("party_cards.png"); }
+
 	@property Image flagDir() {return imgd!("flagdir.png");}
 	@property Image flag() {return imgd!("flag.png");}
 	@property Image step() {return imgd!("step.png");}

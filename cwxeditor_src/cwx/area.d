@@ -304,7 +304,7 @@ public:
 	@property
 	override size_t[] areaPath() { mixin(S_TRACE);
 		if (_owner) { mixin(S_TRACE);
-			return [.cCountUntil!("a is b")(_owner.cards, this) + 1];
+			return [.cCountUntil!("a is b")(_owner.cards, this) + 2];
 		} else { mixin(S_TRACE);
 			return [];
 		}
@@ -501,7 +501,7 @@ public:
 	@property
 	override size_t[] areaPath() { mixin(S_TRACE);
 		if (_owner) { mixin(S_TRACE);
-			return [.cCountUntil!("a is b")(_owner.cards, this) + 1];
+			return [.cCountUntil!("a is b")(_owner.cards, this) + 2];
 		} else { mixin(S_TRACE);
 			return [];
 		}
@@ -886,12 +886,66 @@ public:
 	}
 }
 
+/// プレイヤーカードのキーコード・死亡時イベント(Wsn.2)。
+class PlayerCardEvents : AbstractEventTreeOwner {
+	/// プレイヤーカードイベントが属するエリア・バトル。
+	private AbstractArea _owner;
+
+	/// 唯一のコンストラクタ。
+	this (AbstractArea owner) { mixin(S_TRACE);
+		_owner = owner;
+	}
+
+	/// プレイヤーカードイベントが属するエリア・バトル。
+	inout
+	inout(AbstractArea) owner() { return _owner; }
+
+	@property
+	const
+	override bool canHasFireLose() { return false; }
+	@property
+	const
+	override bool canHasFireEscape() { return false; }
+	@property
+	const
+	override bool canHasFireEveryRound() { return false; }
+	@property
+	const
+	override bool canHasFireRound0() { return false; }
+	@property
+	const
+	override bool canHasFireRound() { return false; }
+	@property
+	const
+	override bool canHasFireKeyCode() { return true; }
+
+	@property
+	override size_t[] areaPath() { return [1]; }
+
+	/// XMLノード化して返す。
+	const
+	void toNode(ref XNode e, XMLOption opt) { mixin(S_TRACE);
+		auto ce = e.newElement("PlayerCardEvents");
+		appendEventsToNode(ce, opt);
+	}
+
+	@property
+	string cwxPath(bool id) { mixin(S_TRACE);
+		return _owner ? .cpjoin(_owner, "playercard", id) : "";
+	}
+
+	@property
+	CWXPath cwxParent() { return _owner; }
+}
+
 /// エリア。
 public class Area : AbstractArea, BgImageOwner {
 private:
-	BgImage[] _bgImgs;
-	MenuCard[] _cards;
-	bool _auto = false;
+	BgImage[] _bgImgs; /// 背景セル。
+	MenuCard[] _cards; /// メニューカード。
+	bool _auto = false; /// カードの配置方法(カスタムはfalse・自動はtrue)。
+
+	PlayerCardEvents _playerEvents; /// プレイヤーカードのキーコード・死亡時イベント(Wsn.2)。
 
 public:
 	static immutable XML_NAME = "Area";
@@ -900,6 +954,7 @@ public:
 	/// 唯一のコンストラクタ。
 	this (ulong id, string name) { mixin(S_TRACE);
 		super(id, name);
+		_playerEvents = new PlayerCardEvents(this);
 	}
 	@property
 	protected override void delegate() changeHandler() {return super.changeHandler;}
@@ -911,6 +966,7 @@ public:
 		foreach (c; _cards) { mixin(S_TRACE);
 			c.changeHandler = changeHandler;
 		}
+		playerEvents.changeHandler = changeHandler;
 		super.changeHandler = change;
 	}
 
@@ -922,6 +978,7 @@ public:
 		r.spAuto = spAuto;
 		foreach (c; cards) r.append(cast(MenuCard)c.dup);
 		foreach (b; backs) r.append(b.dup);
+		r.playerEvents.deepCopyEventTreeOwner(playerEvents);
 		r.deepCopyEventTreeOwner(this);
 		return r;
 	}
@@ -947,10 +1004,17 @@ public:
 	override EventTree etFromPath(size_t[] path) { mixin(S_TRACE);
 		if (path[0] == 0) { mixin(S_TRACE);
 			return trees[path[1]];
+		} else if (path[0] == 1) { mixin(S_TRACE);
+			return playerEvents.trees[path[1]];
 		} else { mixin(S_TRACE);
-			return cards[path[0] - 1].trees[path[1]];
+			return cards[path[0] - 2].trees[path[1]];
 		}
 	}
+
+	/// プレイヤーカードのキーコード・死亡時イベント(Wsn.2)。
+	@property
+	inout
+	inout(PlayerCardEvents) playerEvents() { return _playerEvents; }
 
 	/// メニューカードのインデックスを交換する。
 	void swapCards(size_t index1, size_t index2) { mixin(S_TRACE);
@@ -1070,6 +1134,7 @@ public:
 		foreach (bg; _bgImgs) { mixin(S_TRACE);
 			bg.setUseCounter(uc);
 		}
+		playerEvents.setUseCounter(uc);
 		super.setUseCounter(uc);
 	}
 
@@ -1080,6 +1145,7 @@ public:
 		foreach (bg; _bgImgs) { mixin(S_TRACE);
 			bg.removeUseCounter();
 		}
+		playerEvents.removeUseCounter();
 		super.removeUseCounter();
 	}
 
@@ -1091,6 +1157,8 @@ public:
 	override void toNodeImpl(ref XNode e, XMLOption opt, string parentPath = "", string cutPath = "") { mixin(S_TRACE);
 		auto pNode = e.newElement("Property");
 		appendProp(pNode, opt, parentPath, cutPath);
+
+		playerEvents.toNode(e, opt);
 
 		BgImage.toNode(_bgImgs, true, e, opt);
 		auto ce = e.newElement("MenuCards");
@@ -1131,6 +1199,14 @@ public:
 		BgImage[] bgImgs;
 		MenuCard[] cards;
 		EventTree[] evt;
+		EventTree[] playerEventTrees;
+
+		aNode.onTag["PlayerCardEvents"] = (ref XNode n) { mixin(S_TRACE);
+			n.onTag["Events"] = (ref XNode n) { mixin(S_TRACE);
+				playerEventTrees = loadEventsFromNode(n, ver);
+			};
+			n.parse();
+		};
 		aNode.onTag["MenuCards"] = (ref XNode n) { mixin(S_TRACE);
 			spAuto = n.attr("spreadtype", true) == "Auto";
 			n.onTag["MenuCard"] = (ref XNode mcn) { mixin(S_TRACE);
@@ -1147,10 +1223,11 @@ public:
 		loadProp(aNode, id, name);
 
 		auto r = new Area(id, name);
+		r.addAll(evt);
+		r.playerEvents.addAll(playerEventTrees);
 		r.spAuto = spAuto;
 		foreach (c; cards) r.append(c);
 		foreach (b; bgImgs) r.append(b);
-		r.addAll(evt);
 
 		return r;
 	}
@@ -1251,6 +1328,9 @@ public:
 		if (cpempty(path)) return this;
 		auto cate = cpcategory(path);
 		switch (cate) {
+		case "playercard": { mixin(S_TRACE);
+			return playerEvents.findCWXPath(cpbottom(path));
+		}
 		case "menucard": { mixin(S_TRACE);
 			auto index = cpindex(path);
 			if (index >= cards.length) return null;
@@ -1270,6 +1350,7 @@ public:
 	inout
 	inout(CWXPath)[] cwxChilds() { mixin(S_TRACE);
 		inout(CWXPath)[] r;
+		r ~= playerEvents;
 		foreach (a; cards) r ~= a;
 		foreach (a; backs) r ~= a;
 		r ~= super.cwxChilds;
@@ -1405,6 +1486,8 @@ private:
 	uint _volume = 100;
 	uint _loopCount = 0;
 	uint _fadeIn = 0;
+
+	PlayerCardEvents _playerEvents; /// プレイヤーカードのキーコード・死亡時イベント(Wsn.2)。
 public:
 	static immutable XML_NAME = "Battle";
 	alias toBattleId toID;
@@ -1416,6 +1499,7 @@ public:
 		super(id, name);
 		_music = new PathUser(this);
 		_music.path = music;
+		_playerEvents = new PlayerCardEvents(this);
 	}
 	@property
 	protected override void delegate() changeHandler() {return super.changeHandler;}
@@ -1424,6 +1508,7 @@ public:
 		foreach (c; _cards) { mixin(S_TRACE);
 			c.changeHandler = changeHandler;
 		}
+		playerEvents.changeHandler = changeHandler;
 		super.changeHandler = change;
 	}
 
@@ -1434,6 +1519,7 @@ public:
 		auto r = new Battle(id, name, music);
 		r.spAuto = spAuto;
 		foreach (c; cards) r.append(cast(EnemyCard)c.dup);
+		r.playerEvents.deepCopyEventTreeOwner(playerEvents);
 		r.deepCopyEventTreeOwner(this);
 		return r;
 	}
@@ -1459,10 +1545,17 @@ public:
 	override EventTree etFromPath(size_t[] path) { mixin(S_TRACE);
 		if (path[0] == 0) { mixin(S_TRACE);
 			return trees[path[1]];
+		} else if (path[0] == 1) { mixin(S_TRACE);
+			return playerEvents.trees[path[1]];
 		} else { mixin(S_TRACE);
-			return cards[path[0] - 1].trees[path[1]];
+			return cards[path[0] - 2].trees[path[1]];
 		}
 	}
+
+	/// プレイヤーカードのキーコード・死亡時イベント(Wsn.2)。
+	@property
+	inout
+	inout(PlayerCardEvents) playerEvents() { return _playerEvents; }
 
 	/// BGMのファイルパス。
 	@property
@@ -1574,6 +1667,7 @@ public:
 			c.setUseCounter(uc);
 		}
 		_music.setUseCounter(uc);
+		playerEvents.setUseCounter(uc);
 		super.setUseCounter(uc);
 	}
 
@@ -1582,6 +1676,7 @@ public:
 			c.removeUseCounter();
 		}
 		_music.removeUseCounter();
+		playerEvents.removeUseCounter();
 		super.removeUseCounter();
 	}
 
@@ -1596,6 +1691,9 @@ public:
 	override void toNodeImpl(ref XNode e, XMLOption opt, string parentPath = "", string cutPath = "") { mixin(S_TRACE);
 		auto pe = e.newElement("Property");
 		appendProp(pe, opt, parentPath, cutPath);
+
+		playerEvents.toNode(e, opt);
+
 		auto me = pe.newElement("MusicPath", encodePath(_music.path));
 		if (volume != 100) me.newAttr("volume", volume);
 		if (loopCount != 0) me.newAttr("loopcount", loopCount);
@@ -1643,6 +1741,14 @@ public:
 		uint fadeIn = 0;
 		EnemyCard[] cards;
 		EventTree[] evt;
+		EventTree[] playerEventTrees;
+
+		aNode.onTag["PlayerCardEvents"] = (ref XNode n) { mixin(S_TRACE);
+			n.onTag["Events"] = (ref XNode n) { mixin(S_TRACE);
+				playerEventTrees = loadEventsFromNode(n, ver);
+			};
+			n.parse();
+		};
 		aNode.onTag["EnemyCards"] = (ref XNode node) { mixin(S_TRACE);
 			spAuto = node.attr("spreadtype", false) == "Auto";
 			node.onTag["EnemyCard"] = (ref XNode ecn) { mixin(S_TRACE);
@@ -1678,6 +1784,7 @@ public:
 
 		auto r = new Battle(id, name, music);
 		r.addAll(evt);
+		r.playerEvents.addAll(playerEventTrees);
 		foreach (c; cards) r.append(c);
 		r.spAuto = spAuto;
 		r.volume = volume;
@@ -1749,6 +1856,9 @@ public:
 		if (cpempty(path)) return this;
 		auto cate = cpcategory(path);
 		switch (cate) {
+		case "playercard": { mixin(S_TRACE);
+			return playerEvents.findCWXPath(cpbottom(path));
+		}
 		case "enemycard": { mixin(S_TRACE);
 			auto index = cpindex(path);
 			if (index >= cards.length) return null;
@@ -1763,6 +1873,7 @@ public:
 	inout
 	inout(CWXPath)[] cwxChilds() { mixin(S_TRACE);
 		inout(CWXPath)[] r;
+		r ~= playerEvents;
 		foreach (a; _cards) r ~= a;
 		r ~= super.cwxChilds;
 		return r;

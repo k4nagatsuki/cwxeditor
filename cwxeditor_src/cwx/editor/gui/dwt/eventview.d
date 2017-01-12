@@ -15,6 +15,7 @@ import cwx.system;
 import cwx.menu;
 import cwx.types;
 import cwx.xml;
+import cwx.warning;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
@@ -36,12 +37,13 @@ import cwx.editor.gui.dwt.areaviewutils;
 import cwx.editor.gui.dwt.images;
 
 static import std.algorithm;
-import std.algorithm : map, max, remove;
+import std.algorithm : map, max, remove, sort, uniq;
 import std.string;
 import std.array;
 import std.exception;
 import std.conv;
 import std.datetime;
+import std.ascii;
 
 import org.eclipse.swt.all;
 
@@ -62,11 +64,19 @@ private:
 	EventTreeOwner _area;
 	UndoManager _undo;
 
+	Skin _summSkin;
+	@property
+	Skin summSkin() { mixin(S_TRACE);
+		return _summSkin ? _summSkin : _comm.skin;
+	}
+
 	SplitPane _sash;
 	Tree _cards;
 	TreeEdit _edit;
 	EventTreeView _etree;
 	Object _lastFocus = null;
+
+	Warning[] _warningRects;
 
 	ToolBar _toolbar;
 	CCombo _treeKind;
@@ -151,10 +161,12 @@ private:
 		EventTreeOwner[] r;
 		r ~= eto;
 		if (auto area = cast(Area)eto) { mixin(S_TRACE);
+			r ~= area.playerEvents;
 			foreach (c; area.cards) { mixin(S_TRACE);
 				r ~= c;
 			}
 		} else if (auto area = cast(Battle)eto) { mixin(S_TRACE);
+			r ~= area.playerEvents;
 			foreach (c; area.cards) { mixin(S_TRACE);
 				r ~= c;
 			}
@@ -682,14 +694,17 @@ private:
 		if (tree.fireEnter) { mixin(S_TRACE);
 			if (cast(MenuCard)owner) {
 				treeName ~= prop.msgs.selectTree;
-			} else if (cast(EnemyCard)owner) {
+			} else if (cast(EnemyCard)owner) { mixin(S_TRACE);
 				treeName ~= prop.msgs.deadTree;
-				} else if (cast(Area)owner) {
+			} else if (cast(Area)owner) { mixin(S_TRACE);
 				treeName ~= prop.msgs.enterTree;
-			} else if (cast(Battle)owner) {
+			} else if (cast(Battle)owner) { mixin(S_TRACE);
 				treeName ~= prop.msgs.victoryTree;
-			} else if (cast(Package)owner) {
+			} else if (cast(Package)owner) { mixin(S_TRACE);
 				treeName ~= prop.msgs.packageTree;
+			} else if (cast(PlayerCardEvents)owner) { mixin(S_TRACE);
+				// Wsn.2
+				treeName ~= prop.msgs.playerCard;
 			} else { mixin(S_TRACE);
 				treeName ~= prop.msgs.useTree;
 			}
@@ -726,6 +741,8 @@ private:
 		}
 		auto parItm = selectionParent;
 		if (!parItm) return;
+		auto a = parItm.getData();
+		if (cast(PlayerCardEvents)a && _summ.legacy) return;
 		auto index = parItm.getParent().indexOf(parItm);
 		auto vs = views();
 		TreeItem[] parItms;
@@ -736,17 +753,18 @@ private:
 		auto fire = addingFire(parItm.getData());
 		if (!fire) return;
 		if (fire is ENTER) { mixin(S_TRACE);
-			auto a = parItm.getData();
-			if (cast(MenuCard)a) {
+			if (cast(MenuCard)a) { mixin(S_TRACE);
 				treeName = _prop.msgs.selectTree;
-			} else if (cast(EnemyCard)a) {
+			} else if (cast(EnemyCard)a) { mixin(S_TRACE);
 				treeName = _prop.msgs.deadTree;
-				} else if (cast(Area)a) {
+			} else if (cast(Area)a) { mixin(S_TRACE);
 				treeName = _prop.msgs.enterTree;
-			} else if (cast(Battle)a) {
+			} else if (cast(Battle)a) { mixin(S_TRACE);
 				treeName = _prop.msgs.victoryTree;
-			} else if (cast(Package)a) {
+			} else if (cast(Package)a) { mixin(S_TRACE);
 				treeName = _prop.msgs.packageTree;
+			} else if (cast(PlayerCardEvents)a) { mixin(S_TRACE);
+				treeName = _prop.msgs.deadTree;
 			} else { mixin(S_TRACE);
 				treeName = _prop.msgs.useTree;
 			}
@@ -909,6 +927,8 @@ private:
 				if (t.fireEnter) { mixin(S_TRACE);
 					if (cast(Area)eItm.getParentItem().getData()) { mixin(S_TRACE);
 						createTreeItem(eItm, ENTER, _prop.msgs.startEnter, _prop.images.defStart);
+					} else if (cast(PlayerCardEvents)eItm.getParentItem().getData()) { mixin(S_TRACE);
+						createTreeItem(eItm, ENTER, _prop.msgs.startDead, _prop.images.defStart);
 					} else { mixin(S_TRACE);
 						assert (cast(AbstractSpCard)eItm.getParentItem().getData());
 						createTreeItem(eItm, ENTER, _prop.msgs.startSelect, _prop.images.defStart);
@@ -931,6 +951,10 @@ private:
 					}
 					if (t.fireRound0) { mixin(S_TRACE);
 						createTreeItem(eItm, ROUND_0, _prop.msgs.startRound0, _prop.images.defStart);
+					}
+				} else if (cast(PlayerCardEvents)eItm.getParentItem().getData()) { mixin(S_TRACE);
+					if (t.fireEnter) { mixin(S_TRACE);
+						createTreeItem(eItm, ENTER, _prop.msgs.startDead, _prop.images.defStart);
 					}
 				} else { mixin(S_TRACE);
 					assert (cast(AbstractSpCard)eItm.getParentItem().getData());
@@ -1026,6 +1050,8 @@ private:
 				return new RoundObj(round);
 			default: assert (0);
 			}
+		} else if (cast(PlayerCardEvents)areaOrCard) { mixin(S_TRACE);
+			return addAreaAndEtc();
 		} else { mixin(S_TRACE);
 			return ENTER;
 		}
@@ -1079,7 +1105,7 @@ private:
 	int keyCodesIndex(TreeItem itm) { mixin(S_TRACE);
 		assert (cast(EventTree)itm.getData());
 		auto o = itm.getParentItem().getData();
-		if (cast(AbstractSpCard)o) { mixin(S_TRACE);
+		if (cast(AbstractSpCard)o || cast(PlayerCardEvents)o) { mixin(S_TRACE);
 			return (cast(EventTree)itm.getData()).fireEnter ? 1 : 0;
 		} else { mixin(S_TRACE);
 			auto tree = cast(EventTree)itm.getData();
@@ -1124,7 +1150,7 @@ private:
 				auto castCard = _summ.cwCast(c.id);
 				itm.setText(castCard ? castCard.name : "");
 			} else { mixin(S_TRACE);
-				assert (0);
+				assert (cast(PlayerCardEvents)data);
 			}
 			foreach (itm2; itm.getItems()) { mixin(S_TRACE);
 				auto et = cast(EventTree)itm2.getData();
@@ -1274,6 +1300,7 @@ public:
 		_area = area;
 		_undo = undo;
 		_readOnly = readOnly ? SWT.READ_ONLY : SWT.NONE;
+		if (_readOnly && _summ) _summSkin = findSkin(_comm, _prop, _summ);
 
 		_toolbar = new ToolBar(this, SWT.FLAT);
 		_comm.put(_toolbar);
@@ -1354,7 +1381,13 @@ public:
 			initTree(_comm, _cards, false);
 			_cards.addSelectionListener(new SListener);
 			.listener(_cards, SWT.FocusIn, { _lastFocus = _cards; });
+			.listener(_cards, SWT.Paint, &paintTree);
+			.listener(_cards, SWT.MouseMove, &updateToolTip);
 			_lastFocus = _cards;
+			_comm.refDataVersion.add(&_cards.redraw);
+			.listener(_cards, SWT.Dispose, { mixin(S_TRACE);
+				_comm.refDataVersion.remove(&_cards.redraw);
+			});
 
 			auto shell = _cards.getShell();
 			auto menu = new Menu(shell, SWT.POP_UP);
@@ -1557,26 +1590,26 @@ public:
 		} else if (cast(EnemyCard)c) {
 			imgCard = _prop.images.cards;
 		}
-		auto itm = createTreeItem(_cards, c, cardName(c), imgCard, index + 1);
+		auto itm = createTreeItem(_cards, c, cardName(c), imgCard, index + 2);
 		refreshTrees(itm);
 	}
 	private void removeCard(int index) { mixin(S_TRACE);
 		initial();
 		if (_selItm && !_selItm.isDisposed()
-				&& _selItm.getParentItem() is _cards.getItems()[index + 1]) { mixin(S_TRACE);
+				&& _selItm.getParentItem() is _cards.getItems()[index + 2]) { mixin(S_TRACE);
 			_etree.refresh(null);
 			_selItm = null;
 		}
-		_cards.getItems()[index + 1].dispose();
+		_cards.getItems()[index + 2].dispose();
 	}
 	private void renameCard(int index) { mixin(S_TRACE);
 		initial();
-		auto itm = _cards.getItems()[index + 1];
+		auto itm = _cards.getItems()[index + 2];
 		itm.setText(cardName(cast(AbstractSpCard)itm.getData()));
 	}
 	private void refCast(CastCard card) { mixin(S_TRACE);
 		assert (cast(Battle)_area !is null);
-		foreach (itm; _cards.getItems()[1 .. $]) { mixin(S_TRACE);
+		foreach (itm; _cards.getItems()[2 .. $]) { mixin(S_TRACE);
 			auto c = cast(EnemyCard)itm.getData();
 			assert (c !is null);
 			if (c.id == card.id) { mixin(S_TRACE);
@@ -1588,12 +1621,12 @@ public:
 		foreach (j; 0 .. count) { mixin(S_TRACE);
 			foreach (i; indices) { mixin(S_TRACE);
 				i += udVal * j;
-				if (_selItm && _selItm.getParentItem() is _cards.getItems()[i + 1]) { mixin(S_TRACE);
+				if (_selItm && _selItm.getParentItem() is _cards.getItems()[i + 2]) { mixin(S_TRACE);
 					int s = _selItm.getParentItem().indexOf(_selItm);
-					int newI = ud(_cards.getItems()[i + 1]) + udVal;
+					int newI = ud(_cards.getItems()[i + 2]) + udVal;
 					selectImpl(_cards.getItems()[newI].getItems()[s]);
 				} else { mixin(S_TRACE);
-					ud(_cards.getItems()[i + 1]);
+					ud(_cards.getItems()[i + 2]);
 				}
 			}
 		}
@@ -1655,6 +1688,21 @@ public:
 			}
 			aItm.setExpanded(true);
 		}
+		PlayerCardEvents playerEvents = null;
+		if (auto a = cast(Area)_area) { mixin(S_TRACE);
+			playerEvents = a.playerEvents;
+		} else if (auto a = cast(Battle)_area) { mixin(S_TRACE);
+			playerEvents = a.playerEvents;
+		}
+		if (playerEvents) { mixin(S_TRACE);
+			auto aItm = createTreeItem(_cards, playerEvents, _prop.msgs.playerCard, _prop.images.playerCard);
+			foreach (i, t; playerEvents.trees) { mixin(S_TRACE);
+				auto eItm = createTreeItem(aItm, t, t.name, etImage(t));
+				refreshFires(eItm);
+			}
+			aItm.setExpanded(true);
+		}
+
 		void spCardItm(AbstractSpCard c, Image imgCard) { mixin(S_TRACE);
 			auto cItm = createTreeItem(_cards, c, cardName(c), imgCard);
 			foreach (t; c.trees) { mixin(S_TRACE);
@@ -1946,7 +1994,12 @@ public:
 		if (!_readOnly) { mixin(S_TRACE);
 			auto treeKindItm = new ToolItem(bar, SWT.SEPARATOR);
 			_treeKind = new CCombo(bar, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
-			_treeKind.setEnabled(!_readOnly);
+			_comm.put(_treeKind, { mixin(S_TRACE);
+				if (_readOnly) return false;
+				auto itm = selection;
+				if (itm && cast(PlayerCardEvents)itm.getData() && _summ.legacy) return false;
+				return true;
+			});
 			createTextMenu!CCombo(_comm, _prop, _treeKind, null);
 			_treeKind.add(_prop.msgs.eventTreeKindSystem);
 			_treeKind.setText(_prop.msgs.eventTreeKindSystem);
@@ -1964,7 +2017,13 @@ public:
 		if (!_readOnly) { mixin(S_TRACE);
 			_fireItm = new ToolItem(bar, SWT.SEPARATOR);
 			_fireItm.setWidth(_prop.var.etc.firesWidth);
-			createCombo(true, areaDefVals);
+			auto fireCombo = createCombo(true, areaDefVals);
+			_comm.put(fireCombo, { mixin(S_TRACE);
+				if (_readOnly) return false;
+				auto itm = selection;
+				if (itm && cast(PlayerCardEvents)itm.getData() && _summ.legacy) return false;
+				return true;
+			});
 			if (cast(Area)_area || cast(Battle)_area) { mixin(S_TRACE);
 				new ToolItem(bar, SWT.SEPARATOR);
 				auto keyCodeTimItm = new ToolItem(bar, SWT.SEPARATOR);
@@ -1993,6 +2052,10 @@ public:
 						// エネミーカード選択中、かつラウンド条件選択中
 						return false;
 					}
+				}
+				if (cast(PlayerCardEvents)par.getData() && _summ.legacy) { mixin(S_TRACE);
+					// プレイヤーカードのキーコード・死亡時イベント(Wsn.2)
+					return false;
 				}
 				return true;
 			});
@@ -2080,13 +2143,13 @@ public:
 		string[] vals;
 		if (cast(MenuCard)data) {
 			return [_prop.msgs.startSelect];
-		} else if (cast(EnemyCard)data) { mixin(S_TRACE);
+		} else if (cast(EnemyCard)data || cast(PlayerCardEvents)data) { mixin(S_TRACE);
 			return [_prop.msgs.startDead];
 		} else { mixin(S_TRACE);
 			return areaDefVals;
 		}
 	}
-	private void createCombo(bool readOnly, string[] vals, bool visLong = false) { mixin(S_TRACE);
+	private CCombo createCombo(bool readOnly, string[] vals, bool visLong = false) { mixin(S_TRACE);
 		int style = SWT.BORDER | SWT.DROP_DOWN;
 		if (readOnly) style |= SWT.READ_ONLY;
 		auto c = new CCombo(_toolbar, style);
@@ -2098,6 +2161,7 @@ public:
 		}
 		createTextMenu!CCombo(_comm, _prop, c, null);
 		setFireControl(c);
+		return c;
 	}
 	private void createKCCombo() { mixin(S_TRACE);
 		auto combo = createKeyCodeCombo!CCombo(_comm, _summ, _toolbar, null, "");
@@ -2147,6 +2211,58 @@ public:
 				break;
 			default: assert (0);
 			}
+		}
+	}
+
+	/// 警告などを描画する。
+	private void paintTree(Event e) { mixin(S_TRACE);
+		_warningRects = [];
+		if (!cast(Area)_area && !cast(Battle)_area) return;
+		auto itm = _cards.getItem(1);
+		auto playerEvents = cast(PlayerCardEvents)itm.getData();
+		assert (playerEvents !is null);
+		auto skin = _comm.skin;
+		auto warnings = .warnings(_prop.parent, summSkin, _summ, playerEvents, _prop.var.etc.targetVersion);
+		if (!warnings.length) return;
+		if (!_prop.var.etc.drawContentWarnings) return;
+
+		auto wImg = .warningImage(_prop, _cards.getDisplay(), _prop.var.etc.warningImageWidthEventTree);
+		scope (exit) wImg.dispose();
+
+		auto ca = _cards.getClientArea();
+		warnings = warnings.sort().uniq().array();
+		auto b = itm.getBounds();
+		if (b.y + b.height <= ca.y) return;
+		if (ca.y + ca.height < b.y) return;
+		auto ib = itm.getImageBounds(0);
+		if (ca.width <= ib.x) return;
+		int ix = .max(ib.x, ca.width - _prop.var.etc.warningImageWidthEventTree);
+		e.gc.drawImage(wImg, 0, 0, _prop.var.etc.warningImageWidthEventTree, 1, ix, b.y, ca.width - ix, b.height);
+		auto bounds = _prop.images.warning.getBounds();
+		int wx = .max(b.x + b.width, ca.width - bounds.width - 1);
+		if (wx < ca.width) { mixin(S_TRACE);
+			e.gc.drawImage(_prop.images.warning, wx, b.y + (b.height - bounds.height) / 2);
+		}
+		auto rect = new Rectangle(ix, b.y, _prop.var.etc.warningImageWidthEventTree, b.height);
+		_warningRects ~= Warning(rect, warnings);
+
+		updateToolTip();
+	}
+	private void updateToolTip() { mixin(S_TRACE);
+		auto p = _cards.getDisplay().getCursorLocation();
+		p = _cards.toControl(p);
+		string toolTip = "";
+		if (_cards.getClientArea().contains(p)) { mixin(S_TRACE);
+			foreach (warn; _warningRects) { mixin(S_TRACE);
+				if (warn.rect.contains(p)) { mixin(S_TRACE);
+					toolTip = std.string.join(warn.warnings, .newline);
+					break;
+				}
+			}
+		}
+		toolTip = .replace(toolTip, "&", "&&");
+		if (_cards.getToolTipText() != toolTip) { mixin(S_TRACE);
+			_cards.setToolTipText(toolTip);
 		}
 	}
 
@@ -2331,11 +2447,10 @@ public:
 	class EventViewDropTarget : DropTargetAdapter {
 	private:
 		void move(DropTargetEvent e) { mixin(S_TRACE);
-			if (_readOnly) { mixin(S_TRACE);
-				e.detail = DND.DROP_NONE;
-				return;
-			}
-			e.detail = e.item ? DND.DROP_MOVE : DND.DROP_NONE;
+			e.detail = DND.DROP_NONE;
+			if (_readOnly || !e.item) return;
+			if (cast(PlayerCardEvents)e.item.getData() && _summ.legacy) return;
+			e.detail = DND.DROP_MOVE;
 		}
 	public:
 		override void dragEnter(DropTargetEvent e){ mixin(S_TRACE);
@@ -2345,7 +2460,8 @@ public:
 			move(e);
 		}
 		override void drop(DropTargetEvent e){ mixin(S_TRACE);
-			if (_readOnly) return;
+			if (_readOnly || !e.item) return;
+			if (cast(PlayerCardEvents)e.item.getData() && _summ.legacy) return;
 			e.detail = DND.DROP_NONE;
 			if (!isXMLBytes(e.data)) return;
 			assert (cast(TreeItem)e.item);
@@ -2546,6 +2662,7 @@ public:
 			auto par = cast(EventTreeOwner)parItm.getData();
 			auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
 			if (node.name == "Event") { mixin(S_TRACE);
+				if (cast(PlayerCardEvents)par && _summ.legacy) return false;
 				EventTree tree = EventTree.createFromNode(node, ver);
 				ptrdiff_t index = par.trees.length;
 				if (!appendToLast && parItm !is itm) { mixin(S_TRACE);
@@ -2727,6 +2844,8 @@ public:
 	override bool canDoP() { mixin(S_TRACE);
 		if (_readOnly) return false;
 		if (_lastFocus is _cards) { mixin(S_TRACE);
+			auto parItm = selectionParent;
+			if (parItm && cast(PlayerCardEvents)parItm.getData() && _summ.legacy) return false;
 			return CBisXML(_comm.clipboard) || CBisText(_comm.clipboard);
 		} else if (_lastFocus is _etree) { mixin(S_TRACE);
 			return _etree.canDoP;
@@ -2789,6 +2908,20 @@ public:
 		switch (cate) {
 		case "event": { mixin(S_TRACE);
 			return open(_cards.getItem(0));
+		} break;
+		case "playercard": { mixin(S_TRACE);
+			path = cpbottom(path);
+			if (cpempty(path)) {
+				selectImpl(_cards.getItem(1));
+				return true;
+			} else { mixin(S_TRACE);
+				cate = cpcategory(path);
+				if (cate == "event") { mixin(S_TRACE);
+					index = cpindex(path);
+					return open(_cards.getItem(1));
+				}
+				return false;
+			}
 		} break;
 		case "menucard": { mixin(S_TRACE);
 			if (cast(Area)_area) { mixin(S_TRACE);

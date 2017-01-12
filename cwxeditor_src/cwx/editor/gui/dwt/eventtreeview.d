@@ -891,7 +891,7 @@ private:
 		} case CType.BRANCH_FLAG, CType.SET_FLAG, CType.REVERSE_FLAG, CType.CHECK_FLAG, CType.SUBSTITUTE_FLAG, CType.BRANCH_FLAG_CMP: { mixin(S_TRACE);
 			return _summ.flagDirRoot.allFlags.length > 0;
 		} case CType.BRANCH_MULTI_STEP, CType.BRANCH_STEP, CType.SET_STEP, CType.SET_STEP_UP, CType.SET_STEP_DOWN, CType.SUBSTITUTE_STEP, CType.BRANCH_STEP_CMP: { mixin(S_TRACE);
-			return _summ.flagDirRoot.allSteps.length > 0;
+			return 0 < _summ.flagDirRoot.allSteps.length;
 		} case CType.BRANCH_CAST, CType.GET_CAST, CType.LOSE_CAST: { mixin(S_TRACE);
 			return _summ.casts.length > 0;
 		} case CType.BRANCH_ITEM, CType.GET_ITEM, CType.LOSE_ITEM: { mixin(S_TRACE);
@@ -904,6 +904,8 @@ private:
 			return _summ.beasts.length > 0;
 		} case CType.REDISPLAY: { mixin(S_TRACE);
 			return !_summ.legacy;
+		} case CType.CHECK_STEP: { mixin(S_TRACE);
+			return 0 < _summ.flagDirRoot.allSteps.length;
 		} default: { mixin(S_TRACE);
 			return true;
 		}
@@ -4358,9 +4360,10 @@ private string evtChildBrRound(in Props prop, in Content evt, ref string text) {
 	return .tryFormat(prop.msgs.branchRound, evt.round, cmp);
 }
 
-Image warningImage(Props prop, Display d) { mixin(S_TRACE);
+Image warningImage(Props prop, Display d, int warningImageWidth = -1) { mixin(S_TRACE);
+	if (warningImageWidth < 0) warningImageWidth = prop.var.etc.warningImageWidth;
 	auto height = 1;
-	auto buf = new Image(d, prop.var.etc.warningImageWidth, height);
+	auto buf = new Image(d, warningImageWidth, height);
 	scope (exit) buf.dispose();
 	auto gc = new GC(buf);
 	scope (exit) gc.dispose();
@@ -4370,15 +4373,15 @@ Image warningImage(Props prop, Display d) { mixin(S_TRACE);
 	scope (exit) color.dispose();
 	gc.setForeground(color);
 	gc.setBackground(color);
-	gc.fillRectangle(0, 0, prop.var.etc.warningImageWidth, height);
-	auto alphas = new byte[prop.var.etc.warningImageWidth];
+	gc.fillRectangle(0, 0, warningImageWidth, height);
+	auto alphas = new byte[warningImageWidth];
 	foreach (i, ref b; alphas) { mixin(S_TRACE);
-		b = cast(byte)(cast(real)i / prop.var.etc.warningImageWidth * alpha);
+		b = cast(byte)(cast(real)i / warningImageWidth * alpha);
 	}
 	alphas = .replicate(alphas, height);
-	assert (alphas.length == prop.var.etc.warningImageWidth * height);
+	assert (alphas.length == warningImageWidth * height);
 	auto imgData = buf.getImageData();
-	imgData.setAlphas(0, 0, prop.var.etc.warningImageWidth * height, alphas, 0);
+	imgData.setAlphas(0, 0, warningImageWidth * height, alphas, 0);
 	return new Image(d, imgData);
 }
 

@@ -3819,6 +3819,11 @@ void getSymbols(Commons comm, Summary summ, CWXPath path, out string text, out s
 		img = prop.images.packages;
 		text = .tryFormat(prop.msgs.searchResultIds, prop.msgs.cwPackage, pac.id, pac.name);
 	}
+	auto pce = cast(PlayerCardEvents)path;
+	if (pce && !par) { mixin(S_TRACE);
+		img = prop.images.playerCard;
+		text = prop.msgs.playerCard;
+	}
 	auto cas = cast(CastCard) path;
 	if (cas) { mixin(S_TRACE);
 		img = prop.images.casts;

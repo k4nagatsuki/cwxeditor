@@ -2740,11 +2740,13 @@ public:
 			}
 			auto area = cast(Area)path;
 			if (area) { mixin(S_TRACE);
+				searchAll(area.playerEvents, count, dlg, cpjoin(cwxPath, "playercard"));
 				foreach (i, o; area.cards) searchAll(o, count, dlg, cpjoin(cwxPath, "menucard", i));
 				foreach (i, o; area.backs) searchAll(o, count, dlg, cpjoin(cwxPath, "background", i));
 			}
 			auto battle = cast(Battle)path;
 			if (battle) { mixin(S_TRACE);
+				searchAll(battle.playerEvents, count, dlg, cpjoin(cwxPath, "playercard"));
 				foreach (i, o; battle.cards) searchAll(o, count, dlg, cpjoin(cwxPath, "enemycard", i));
 			}
 			auto mo = cast(MotionOwner)path;

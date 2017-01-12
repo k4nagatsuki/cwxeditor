@@ -3202,7 +3202,7 @@ public:
 		}
 		return false;
 	}
-	/// 「到着時発火」をXMLノードからロードし、成功すればtrueを返す。
+	/// 「到着時発火」「クリック時発火」「死亡時発火」をXMLノードからロードし、成功すればtrueを返す。
 	bool enterFromNode(EventTreeOwner owner, ref XNode node) { mixin(S_TRACE);
 		return owner.canHasFireEnter && fireFromNode(node, "FireEnter", &fireEnter, &enter);
 	}
@@ -3266,15 +3266,15 @@ public interface EventTreeOwner : CWXPath {
 	inout
 	inout(EventTree)[] trees();
 
-	/// 発火条件「到着時」に対応しているか。
+	/// 発火条件「到着」「クリック」「死亡」に対応しているか。
 	@property
 	const
 	bool canHasFireEnter();
-	/// 発火条件「敗北時」に対応しているか。
+	/// 発火条件「敗北」に対応しているか。
 	@property
 	const
 	bool canHasFireLose();
-	/// 発火条件「逃走時」に対応しているか。
+	/// 発火条件「逃走」に対応しているか。
 	@property
 	const
 	bool canHasFireEscape();
@@ -3282,7 +3282,7 @@ public interface EventTreeOwner : CWXPath {
 	@property
 	const
 	bool canHasFireEveryRound();
-	/// 発火条件「戦闘開始時」に対応しているか。
+	/// 発火条件「戦闘開始」に対応しているか。
 	@property
 	const
 	bool canHasFireRound0();
@@ -3425,7 +3425,7 @@ public:
 			_evts = _evts[0 .. index] ~ evt ~ _evts[index .. $];
 		}
 	}
-	/// このクラスを継承する場合、「到着時」は有効になる。
+	/// このクラスを継承する場合、「到着」「クリック」「死亡」は有効になる。
 	@property
 	const
 	bool canHasFireEnter() {return true;}

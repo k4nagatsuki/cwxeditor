@@ -558,12 +558,12 @@ class Commons {
 				} else { mixin(S_TRACE);
 					return;
 				}
-				auto toolItm = cast(ToolItem) itm;
+				auto toolItm = cast(ToolItem)itm;
 				if (toolItm) { mixin(S_TRACE);
-					toolItm.setEnabled(enbl);
+					if (toolItm.isEnabled() != enbl) toolItm.setEnabled(enbl);
 				} else { mixin(S_TRACE);
-					auto ctrl = cast(Control) itm;
-					ctrl.setEnabled(enbl);
+					auto ctrl = cast(Control)itm;
+					if (ctrl.isEnabled() != enbl) ctrl.setEnabled(enbl);
 				}
 			} catch (Throwable e) {
 				if (auto t = cast(ToolItem)itm) debugln(t.getText());
@@ -1043,15 +1043,17 @@ class Commons {
 		if (!mainWin.summary) return null;
 		auto a = mainWin.summary.findCWXPath(cwxPath);
 		if (!a) return [];
-		auto et = cast(EventTree) a;
+		auto et = cast(EventTree)a;
 		if (!et) return [];
 		auto eto = et.owner;
-		auto spc = cast(AbstractSpCard) eto;
+		auto spc = cast(AbstractSpCard)eto;
 		if (spc) eto = spc.abstractOwner;
+		auto pce = cast(PlayerCardEvents)eto;
+		if (pce) eto = pce.owner;
 		EventTreeView[] r;
 		foreach (w; _ws) { mixin(S_TRACE);
-			auto tlpData = (cast(TLPData) w.getData());
-			if (tlpData.main is cast(Object) eto) { mixin(S_TRACE);
+			auto tlpData = (cast(TLPData)w.getData());
+			if (tlpData.main is cast(Object)eto) { mixin(S_TRACE);
 				auto ew = cast(EventWindow)tlpData.tlp;
 				if (ew) r ~= ew.eventTreeView;
 			}

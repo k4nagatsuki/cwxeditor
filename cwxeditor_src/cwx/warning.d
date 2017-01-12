@@ -89,6 +89,12 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			r ~= prop.msgs.warningRound0;
 		}
 	}
+	auto playerEvents = cast(PlayerCardEvents)path;
+	if (playerEvents) { mixin(S_TRACE);
+		if (playerEvents.trees.length && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+			r ~= prop.msgs.warningPlayerCardEvents;
+		}
+	}
 	auto casts = cast(CastCard) path;
 	if (casts) { mixin(S_TRACE);
 		foreach (c; casts.skills) { mixin(S_TRACE);

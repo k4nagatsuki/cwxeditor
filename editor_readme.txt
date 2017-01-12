@@ -426,6 +426,7 @@ CWXEditorで開いたシナリオの各エリア・フラグ・コンテント�
  * beastcard  .... 召喚獣カード
  * infocard   .... 情報カード
 
+ * playercard .... エリア・バトルのプレイヤーカードイベント(Wsn.2以降)
  * menucard   .... エリアに配置されるカード
  * enemycard  .... バトルに配置されるカード
 
