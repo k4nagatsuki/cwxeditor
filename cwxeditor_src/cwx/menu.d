@@ -6,6 +6,7 @@ import cwx.props;
 import cwx.utils;
 import cwx.settings;
 import cwx.types;
+import cwx.enumutils;
 
 import std.array;
 import std.string;

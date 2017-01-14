@@ -6,7 +6,10 @@ import cwx.features;
 import cwx.structs;
 import cwx.settings;
 import cwx.versioninfo;
-import cwx.utils;
+import cwx.enumutils;
+import cwx.perf;
+
+import std.string : format;
 
 version (Windows) {
 	private immutable CARD_WIRTH_PY_EXE = "CardWirthPy.exe";
@@ -2543,7 +2546,7 @@ class Msgs : Properties {
 
 	const
 	string defaultSelection(string s) { mixin(S_TRACE);
-		return .tryFormat("[%1$s]", s);
+		return .format("[%s]", s);
 	}
 
 	mixin XMLFuncs!(typeof(this), "message");

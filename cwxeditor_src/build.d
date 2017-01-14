@@ -53,7 +53,7 @@ version (Windows) {
 	];
 	immutable LIB_32 = LIB_64 ~ "olepro32.lib";
 	immutable DEBUG_FLAGS = [
-		"-g",
+//		"-g",
 		"-debug",
 		"-unittest",
 	];
@@ -513,6 +513,8 @@ void build(string[] args) {
 			],
 			[
 				"msgs.d",
+			],
+			[
 				"msgutils.d",
 			],
 			[
