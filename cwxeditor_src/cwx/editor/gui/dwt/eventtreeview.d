@@ -2630,7 +2630,7 @@ public:
 		} case CType.BRANCH_LEVEL: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrLevel(_prop, evt.unsignedLevel, evt.average, name)")(data, c);
 		} case CType.BRANCH_STATUS: { mixin(S_TRACE);
-			return createBoolEditor!("evtChildBrState(_prop, evt.targetNS, evt.status, name)")(data, c);
+			return createBoolEditor!("evtChildBrState(_prop, evt.range, evt.holdingCoupon, evt.status, name)")(data, c);
 		} case CType.BRANCH_PARTY_NUMBER: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrNum(_prop, evt.partyNumber, name)")(data, c);
 		} case CType.BRANCH_AREA: { mixin(S_TRACE);
@@ -3865,7 +3865,7 @@ string eventText(Commons comm, Summary summ, Content parent, Content e, bool rea
 		r = evtChildBrLevel(prop, parent.unsignedLevel, parent.average, name);
 		break;
 	} case CType.BRANCH_STATUS: { mixin(S_TRACE);
-		r = evtChildBrState(prop, parent.targetNS, parent.status, name);
+		r = evtChildBrState(prop, parent.range, parent.holdingCoupon, parent.status, name);
 		break;
 	} case CType.BRANCH_PARTY_NUMBER: { mixin(S_TRACE);
 		r = evtChildBrNum(prop, parent.partyNumber, name);
@@ -4048,10 +4048,10 @@ private string evtChildBrLevel(in Props prop, int lev, bool avg, ref string text
 		return .tryFormat(prop.msgs.branchLevelFailure, ta, lev);
 	}
 }
-private string evtChildBrState(in Props prop, Target targ, Status stat, ref string text) { mixin(S_TRACE);
+private string evtChildBrState(in Props prop, Range range, string holdingCoupon, Status stat, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
-	string tt = prop.msgs.targetName(targ.m);
+	string tt = .rangeName(prop, range, holdingCoupon);
 	string ts = prop.msgs.statusName(stat);
 	if (val) { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.branchStatusSuccess, tt, ts);

@@ -347,7 +347,7 @@ private Target toTargetT(byte b) { mixin(S_TRACE);
 	default: throw new SummaryException("Unknown target T: " ~ to!(string)(b));
 	}
 }
-private Target toTargetE(byte b) { mixin(S_TRACE);
+private Target toTargetA(byte b) { mixin(S_TRACE);
 	switch (b) {
 	case 0: return Target(Target.M.SELECTED, false);
 	case 1: return Target(Target.M.RANDOM, false);
@@ -359,7 +359,6 @@ private Target toTargetE(byte b) { mixin(S_TRACE);
 	default: throw new SummaryException("Unknown target A: " ~ to!(string)(b));
 	}
 }
-private alias toTargetE toTargetA;
 
 private EffectType toEffectType(byte b) { mixin(S_TRACE);
 	switch (b) {
@@ -994,7 +993,7 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			}
 			e = new Content(CType.EFFECT, name);
 			e.signedLevel = effLev;
-			e.targetNS = toTargetE(effTarget);
+			e.range = toRange(effTarget);
 			e.effectType = toEffectType(effType);
 			e.resist = toResist(effResist);
 			e.successRate = effSuc;
@@ -1340,7 +1339,7 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			byte stat = f.readByte;
 			byte targ = f.readByte;
 			e = new Content(CType.BRANCH_STATUS, name);
-			e.targetNS = toTargetA(targ);
+			e.range = toRange(targ);
 			e.status = toStatus(stat);
 			break;
 		}
@@ -2433,15 +2432,6 @@ private byte fromTargetT(Target v) { mixin(S_TRACE);
 	default: throw new SummaryException("Unknown target T value: " ~ to!(string)(cast(int) v.m));
 	}
 }
-private byte fromTargetE(Target v) { mixin(S_TRACE);
-	if (v.m == Target.M.UNSELECTED) throw new SummaryException("Unknown target E value with sleep: " ~ to!(string)(cast(int) v.m));
-	switch (v.m) {
-	case Target.M.SELECTED: return 0;
-	case Target.M.RANDOM: return 1;
-	case Target.M.PARTY: return 6;
-	default: throw new SummaryException("Unknown target E value: " ~ to!(string)(cast(int) v.m));
-	}
-}
 private byte fromTargetA(Target v) { mixin(S_TRACE);
 	if (v.m == Target.M.UNSELECTED) throw new SummaryException("Unknown target A value with sleep: " ~ to!(string)(cast(int) v.m));
 	if (v.sleep) { mixin(S_TRACE);
@@ -3193,8 +3183,7 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 			break;
 		case CType.EFFECT:
 			f.writeL(cast(int) e.signedLevel);
-			byte targ = fromTargetE(e.targetNS);
-			if (targ == 6) targ = 2;
+			byte targ = fromRange(e.range);
 			f.write(targ);
 			f.write(fromEffectType(e.effectType));
 			f.write(fromResist(e.resist));
@@ -3368,7 +3357,7 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 			break;
 		case CType.BRANCH_STATUS:
 			f.write(fromStatus(e.status));
-			f.write(fromTargetA(e.targetNS));
+			f.write(fromRange(e.range));
 			break;
 		case CType.BRANCH_PARTY_NUMBER:
 			f.writeL(cast(uint) e.partyNumber);

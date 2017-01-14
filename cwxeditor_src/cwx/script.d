@@ -1913,6 +1913,7 @@ fi`;
 			case "m", "selected": i++; return Range.SELECTED;
 			case "r", "random", "one": i++; return Range.RANDOM;
 			case "t", "team": i++; return Range.PARTY;
+			case "coupon": i++; return Range.COUPON_HOLDER;
 			case "backpack":
 				static if (Within) goto default;
 				i++;
@@ -2656,9 +2657,6 @@ fi`;
 			if (detail.use(CArg.BG_IMAGES)) { mixin(S_TRACE);
 				c.backs = parseAttr!(BgImage[])(opt, node.attr, i, c.backs, varTable, 0);
 			}
-			if (detail.use(CArg.TARGET_NS)) { mixin(S_TRACE);
-				c.targetNS = parseAttr!(Target, true)(opt, node.attr, i, c.targetNS, varTable, 0);
-			}
 			if (detail.use(CArg.TARGET_S)) { mixin(S_TRACE);
 				c.targetS = parseAttr!(Target)(opt, node.attr, i, c.targetS, varTable, 0);
 			}
@@ -2699,6 +2697,9 @@ fi`;
 					}
 				}
 			}
+			if (detail.use(CArg.HOLDING_COUPON)) { mixin(S_TRACE);
+				c.holdingCoupon = parseAttr!(string)(opt, node.attr, i, c.holdingCoupon, varTable, 0);
+			}
 			if (detail.use(CArg.AREA)) { mixin(S_TRACE);
 				c.area = parseAttr!(ulong)(opt, node.attr, i, c.area, varTable, 0);
 			}
@@ -2735,7 +2736,7 @@ fi`;
 			if (detail.use(CArg.COUPON)) { mixin(S_TRACE);
 				c.coupon = parseAttr!(string)(opt, node.attr, i, c.coupon, varTable, 0);
 			}
-			if (detail.use(CArg.COUPON_VALUE)) { mixin(S_TRACE);
+			if (detail.use(CArg.COUPON_VALUE) && c.range is Range.COUPON_HOLDER) { mixin(S_TRACE);
 				c.couponValue = parseAttr!(int)(opt, node.attr, i, c.couponValue, varTable, 0);
 			}
 			if (detail.use(CArg.COMPLETE_STAMP)) { mixin(S_TRACE);
@@ -3026,6 +3027,7 @@ fi`;
 			case Range.BACKPACK: attrs ~= "backpack"; break;
 			case Range.PARTY_AND_BACKPACK: attrs ~= "party"; break;
 			case Range.FIELD: attrs ~= "field"; break;
+			case Range.COUPON_HOLDER: attrs ~= "coupon"; break;
 			default: assert (0);
 			}
 		} else static if (is(T : CastRange)) {
@@ -3560,9 +3562,6 @@ fi`;
 			if (detail.use(CArg.BG_IMAGES)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.backs, indentValue, vars);
 			}
-			if (detail.use(CArg.TARGET_NS)) { mixin(S_TRACE);
-				attrs ~= toAttr!(true)(c.targetNS, indentValue, vars);
-			}
 			if (detail.use(CArg.TARGET_S)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.targetS, indentValue, vars);
 			}
@@ -3590,6 +3589,9 @@ fi`;
 					effectCardTypes ~= EffectCardType.HAND;
 				}
 				attrs ~= toAttr(effectCardTypes, indentValue, vars);
+			}
+			if (detail.use(CArg.HOLDING_COUPON) && c.range is Range.COUPON_HOLDER) { mixin(S_TRACE);
+				attrs ~= toAttr(c.holdingCoupon, indentValue, vars);
 			}
 			if (detail.use(CArg.AREA)) { mixin(S_TRACE);
 				auto a = _summ ? _summ.area(c.area) : null;

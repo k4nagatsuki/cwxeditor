@@ -127,9 +127,9 @@ private void static_this () { mixin(S_TRACE);
 		CType.END_BAD_END:CDetail("End", "BadEnd", CNextType.NONE, false),
 		CType.CHANGE_AREA:CDetail("Change", "Area", CNextType.NONE, false, [CArg.AREA:_("id"), CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed"]),
 		CType.CHANGE_BG_IMAGE:CDetail("Change", "BgImage", CNextType.NONE, true, [CArg.BG_IMAGES:_(null), CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed"]),
-		CType.EFFECT:CDetail("Effect", "", CNextType.NONE, true, [CArg.SIGNED_LEVEL:_("level"), CArg.TARGET_NS:"targetm", CArg.EFFECT_TYPE:"effecttype", CArg.RESIST:"resisttype",
-			CArg.SUCCESS_RATE:"successrate", CArg.SOUND_PATH:_("sound"), CArg.SOUND_VOLUME:"volume", CArg.SOUND_LOOP_COUNT:"loopcount", CArg.CARD_VISUAL:"visual", CArg.IGNITE:"ignite",
-			CArg.KEY_CODES:null, CArg.MOTIONS:null]),
+		CType.EFFECT:CDetail("Effect", "", CNextType.NONE, true, [CArg.SIGNED_LEVEL:_("level"), CArg.RANGE:"targetm", CArg.EFFECT_TYPE:"effecttype", CArg.RESIST:"resisttype",
+			CArg.SUCCESS_RATE:"successrate", CArg.SOUND_PATH:_("sound"), CArg.SOUND_VOLUME:"volume", CArg.SOUND_LOOP_COUNT:"loopcount", CArg.CARD_VISUAL:"visual",
+			CArg.IGNITE:"ignite", CArg.HOLDING_COUPON:"holdingcoupon", CArg.KEY_CODES:null, CArg.MOTIONS:null]),
 		CType.EFFECT_BREAK:CDetail("Effect", "Break", CNextType.NONE, false),
 		CType.LINK_START:CDetail("Link", "Start", CNextType.NONE, false, [CArg.START:"link"]),
 		CType.LINK_PACKAGE:CDetail("Link", "Package", CNextType.NONE, false, [CArg.PACKAGE:"link"]),
@@ -148,7 +148,7 @@ private void static_this () { mixin(S_TRACE);
 		CType.BRANCH_ABILITY:CDetail("Branch", "Ability", CNextType.BOOL, true, [CArg.TARGET_S:_("targetm"), CArg.MENTAL:"mental", CArg.PHYSICAL:"physical", CArg.SIGNED_LEVEL:"value"]),
 		CType.BRANCH_RANDOM:CDetail("Branch", "Random", CNextType.BOOL, true, [CArg.PERCENT:"value"]),
 		CType.BRANCH_LEVEL:CDetail("Branch", "Level", CNextType.BOOL, true, [CArg.AVERAGE:_("average"), CArg.UNSIGNED_LEVEL:"value"]),
-		CType.BRANCH_STATUS:CDetail("Branch", "Status", CNextType.BOOL, true, [CArg.TARGET_NS:_("targetm"), CArg.STATUS:"status"]),
+		CType.BRANCH_STATUS:CDetail("Branch", "Status", CNextType.BOOL, true, [CArg.RANGE:_("targetm"), CArg.STATUS:"status"]),
 		CType.BRANCH_PARTY_NUMBER:CDetail("Branch", "PartyNumber", CNextType.BOOL, true, [CArg.PARTY_NUMBER:"value"]),
 		CType.BRANCH_AREA:CDetail("Branch", "Area", CNextType.ID_AREA, true),
 		CType.BRANCH_BATTLE:CDetail("Branch", "Battle", CNextType.ID_BATTLE, true),
@@ -592,6 +592,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		this.startAction = c.startAction;
 		this.ignite = c.ignite;
 		this.keyCodes = c.keyCodes.dup;
+		this.holdingCoupon = c.holdingCoupon;
 
 		Motion[] motions;
 		foreach (m; c.motions) { mixin(S_TRACE);
@@ -607,7 +608,6 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		this.dialogs = dialogs;
 
 		this.targetS = c.targetS;
-		this.targetNS = c.targetNS;
 		this.talkerNC = c.talkerNC;
 
 		BgImage[] backs;
@@ -733,6 +733,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			&& startAction == c.startAction
 			&& ignite == c.ignite
 			&& keyCodes == c.keyCodes
+			&& holdingCoupon == c.holdingCoupon
 
 			&& motions == c.motions
 
@@ -741,7 +742,6 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			&& dialogs == c.dialogs
 
 			&& targetS == c.targetS
-			&& targetNS == c.targetNS
 			&& talkerNC == c.talkerNC
 
 			&& backs == c.backs
@@ -778,6 +778,59 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	private void validate() { mixin(S_TRACE);
 		if (CType.BRANCH_STATUS is type) { mixin(S_TRACE);
 			if (Status.NONE is _status) _status = Status.ACTIVE;
+		}
+		if (CType.EFFECT is type) { mixin(S_TRACE);
+			switch (range) {
+			case Range.SELECTED:
+			case Range.RANDOM:
+			case Range.PARTY:
+			case Range.COUPON_HOLDER:
+				break;
+			default:
+				_range = Range.SELECTED;
+				break;
+			}
+		}
+		switch (type) {
+		case CType.BRANCH_STATUS:
+		case CType.GET_COUPON:
+		case CType.LOSE_COUPON:
+			switch (range) {
+			case Range.SELECTED:
+			case Range.RANDOM:
+			case Range.PARTY:
+				break;
+			default:
+				_range = Range.SELECTED;
+				break;
+			}
+			break;
+		case CType.BRANCH_COUPON:
+			switch (range) {
+			case Range.SELECTED:
+			case Range.RANDOM:
+			case Range.PARTY:
+			case Range.FIELD:
+				break;
+			default:
+				_range = Range.SELECTED;
+				break;
+			}
+			break;
+		default:
+			break;
+		}
+		if (CType.BRANCH_KEY_CODE is type) { mixin(S_TRACE);
+			switch (keyCodeRange) {
+			case Range.SELECTED:
+			case Range.RANDOM:
+			case Range.BACKPACK:
+			case Range.PARTY_AND_BACKPACK:
+				break;
+			default:
+				_keyCodeRange = Range.PARTY_AND_BACKPACK;
+				break;
+			}
 		}
 	}
 
@@ -911,6 +964,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.START_ACTION, StartAction, StartAction.NextRound)(d, &startAction);
 		resetValue!(CArg.IGNITE, bool, false)(d, &ignite);
 		resetValue!(CArg.KEY_CODES, string[], [])(d, &keyCodes);
+		resetValue!(CArg.HOLDING_COUPON, string, "")(d, &holdingCoupon);
 
 		resetValue!(CArg.MOTIONS, Motion[], [])(d, &motions);
 
@@ -918,7 +972,6 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.DIALOGS, SDialog[], [])(d, &dialogs);
 
 		resetValue!(CArg.TARGET_S, Target, Target(Target.M.SELECTED, true))(d, &targetS);
-		resetValue!(CArg.TARGET_NS, Target, Target(Target.M.SELECTED, false))(d, &targetNS);
 		resetValue!(CArg.TALKER_NC, Talker, Talker.SELECTED)(d, &talkerNC);
 
 		resetValue!(CArg.BG_IMAGES, BgImage[], [])(d, &backs);
@@ -1591,9 +1644,6 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	mixin Prop!(CardVisual, "cardVisual", CardVisual.NONE);
 	/// 対象(睡眠者判定含む)。
 	mixin Prop!(Target, "targetS", Target(Target.M.SELECTED, true));
-	/// 対象(睡眠者判定を行わない)。
-	mixin Prop!(Target, "targetNS", Target(Target.M.SELECTED, false));
-	private bool check_targetNS(Target val) {return !val.sleep;}
 	/// 話者(カード画像を含めない)。
 	mixin Prop!(Talker, "talkerNC", Talker.SELECTED);
 	private bool check_talkerNC(Talker val) { mixin(S_TRACE);
@@ -1682,6 +1732,9 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	mixin Prop!(bool, "targetIsHand", false);
 	/// キーコード(CardWirth 1.50)。
 	mixin Prop!(KeyCodeUser, string, "keyCode", "", ".keyCode", ".keyCode", true);
+
+	/// 範囲指定用クーポン名(Wsn.2)。
+	mixin Prop!(CouponUser, string, "holdingCoupon", "", ".coupon", ".coupon", true);
 
 	/// 評価メンバ初期値(CardWirth 1.50)。
 	mixin Prop!(int, "initValue", 0);
@@ -2047,6 +2100,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		atnPut!(CArg.SELECTION_COLUMNS, "selectionColumns", "")(e, d);
 		atnPut!(CArg.START_ACTION, "startAction", "")(e, d);
 		atnPut!(CArg.IGNITE, "ignite", "fromBool")(e, d);
+		atnPut!(CArg.HOLDING_COUPON, "holdingCoupon", "")(e, d);
 
 		// 多少複雑なもの
 		if (d.use(CArg.MOTIONS)) { mixin(S_TRACE);
@@ -2064,7 +2118,6 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			}
 		}
 
-		atnPut!(CArg.TARGET_NS, "targetNS", "fromTarget")(e, d);
 		atnPut!(CArg.TARGET_S, "targetS", "fromTarget")(e, d);
 		if (d.use(CArg.TALKER_C)) { mixin(S_TRACE);
 			CardImage.toNode(e, _cardPaths, true);
@@ -2282,6 +2335,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		cfnPut!(CArg.SELECTION_COLUMNS, "selectionColumns", "to!(uint)")(en, d, r);
 		cfnPut!(CArg.IGNITE, "ignite", "parseBool")(en, d, r);
+		cfnPut!(CArg.HOLDING_COUPON, "holdingCoupon", "")(en, d, r);
 
 		// CardWirthではラウンドイベントで加入したメンバは次ラウンドから
 		// 行動を開始するが、CardWirthPy 1では即時に行動していた。
@@ -2337,7 +2391,6 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			return targ;
 		}
 		if (d.use(CArg.TARGET_S)) r.targetS = loadTarget(true);
-		if (d.use(CArg.TARGET_NS)) r.targetNS = loadTarget(false);
 		if (d.use(CArg.TALKER_NC)) { mixin(S_TRACE);
 			auto targetm = en.attr("targetm", false, "");
 			foreach (talker; [Talker.SELECTED, Talker.UNSELECTED, Talker.RANDOM, Talker.VALUED]) { mixin(S_TRACE);

@@ -717,6 +717,14 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				r ~= .tryFormat(prop.msgs.warningBranchKeyCodeAtWsn1);
 			}
 		}
+		if (c.range is Range.COUPON_HOLDER) { mixin(S_TRACE);
+			if (!prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+				r ~= prop.msgs.warningCouponHolder;
+			}
+			if (c.holdingCoupon == "") { mixin(S_TRACE);
+				r ~= prop.msgs.warningNoHoldingCoupon;
+			}
+		}
 	}
 	return r;
 }

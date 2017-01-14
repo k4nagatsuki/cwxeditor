@@ -1301,6 +1301,12 @@ private:
 				_sel = b;
 			} else if (b !is _sel) { mixin(S_TRACE);
 				_sel.setSelection(false);
+				auto se = new Event;
+				se.widget = _sel;
+				se.time = cast(int)(0xFFFFFFFFL & Clock.currStdTime());
+				se.stateMask = 0;
+				se.doit = true;
+				_sel.notifyListeners(SWT.Selection, se);
 				_sel = b;
 			}
 		}
@@ -3061,6 +3067,18 @@ string contentTextUseID(CIDKind Kind, ID)(Commons comm, Summary summ, ID id, str
 	}
 }
 
+string rangeName(in Props prop, Range range, string coupon) { mixin(S_TRACE);
+	if (range is Range.COUPON_HOLDER) { mixin(S_TRACE);
+		if (coupon == "") { mixin(S_TRACE);
+			return prop.msgs.rangeWithNoCoupon;
+		} else { mixin(S_TRACE);
+			return .tryFormat(prop.msgs.rangeWithCoupon, coupon);
+		}
+	} else { mixin(S_TRACE);
+		return prop.msgs.rangeName(range);
+	}
+}
+
 string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 	string loseCardCount() { mixin(S_TRACE);
 		return evt.cardNumber == 0 ? comm.prop.msgs.ctLoseCardAll : .tryFormat(comm.prop.msgs.ctLoseCardCount, evt.cardNumber);
@@ -3107,7 +3125,7 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 			return .tryFormat(comm.prop.msgs.ctChangeBgImage, bgImageString, v, evt.transitionSpeed);
 		}
 	} case CType.EFFECT: { mixin(S_TRACE);
-		string tt = comm.prop.msgs.targetName(evt.targetNS.m);
+		string tt = .rangeName(comm.prop, evt.range, evt.holdingCoupon);
 		int tl = evt.signedLevel;
 		string tet = comm.prop.msgs.effectTypeName(evt.effectType);
 		string tr = comm.prop.msgs.resistName(evt.resist);
@@ -3263,7 +3281,7 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		auto l = evt.unsignedLevel;
 		return .tryFormat(comm.prop.msgs.ctBranchLevel, a, l);
 	} case CType.BRANCH_STATUS: { mixin(S_TRACE);
-		string t = comm.prop.msgs.targetName(evt.targetNS.m);
+		string t = .rangeName(comm.prop, evt.range, evt.holdingCoupon);
 		string s = comm.prop.msgs.statusName(evt.status);
 		return .tryFormat(comm.prop.msgs.ctBranchStatus, t, s);
 	} case CType.BRANCH_PARTY_NUMBER: { mixin(S_TRACE);
@@ -3278,21 +3296,21 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		return contentTextUseID!(CIDKind.Cast)(comm, summ, evt.casts, comm.prop.msgs.ctBranchCast, evt);
 	} case CType.BRANCH_ITEM: { mixin(S_TRACE);
 		string name = contentTextUseID!(CIDKind.Item)(comm, summ, evt.item, "%s", evt);
-		return .tryFormat(comm.prop.msgs.ctBranchItem, name, comm.prop.msgs.rangeName(evt.range), evt.cardNumber);
+		return .tryFormat(comm.prop.msgs.ctBranchItem, name, .rangeName(comm.prop, evt.range, evt.holdingCoupon), evt.cardNumber);
 	} case CType.BRANCH_SKILL: { mixin(S_TRACE);
 		string name = contentTextUseID!(CIDKind.Skill)(comm, summ, evt.skill, "%s", evt);
-		return .tryFormat(comm.prop.msgs.ctBranchSkill, name, comm.prop.msgs.rangeName(evt.range), evt.cardNumber);
+		return .tryFormat(comm.prop.msgs.ctBranchSkill, name, .rangeName(comm.prop, evt.range, evt.holdingCoupon), evt.cardNumber);
 	} case CType.BRANCH_INFO: { mixin(S_TRACE);
 		return contentTextUseID!(CIDKind.Info)(comm, summ, evt.info, comm.prop.msgs.ctBranchInfo, evt);
 	} case CType.BRANCH_BEAST: { mixin(S_TRACE);
 		string name = contentTextUseID!(CIDKind.Beast)(comm, summ, evt.beast, "%s", evt);
-		return .tryFormat(comm.prop.msgs.ctBranchBeast, name, comm.prop.msgs.rangeName(evt.range), evt.cardNumber);
+		return .tryFormat(comm.prop.msgs.ctBranchBeast, name, .rangeName(comm.prop, evt.range, evt.holdingCoupon), evt.cardNumber);
 	} case CType.BRANCH_MONEY: { mixin(S_TRACE);
 		return .tryFormat(comm.prop.msgs.ctBranchMoney, evt.money);
 	} case CType.BRANCH_COUPON: { mixin(S_TRACE);
 		string c = evt.coupon;
 		if (!c || !c.length) c = comm.prop.msgs.noSelectCoupon;
-		return .tryFormat(comm.prop.msgs.ctBranchCoupon, c, comm.prop.msgs.rangeName(evt.range));
+		return .tryFormat(comm.prop.msgs.ctBranchCoupon, c, .rangeName(comm.prop, evt.range, evt.holdingCoupon));
 	} case CType.BRANCH_COMPLETE_STAMP: { mixin(S_TRACE);
 		string c = evt.completeStamp;
 		if (!c || !c.length) c = comm.prop.msgs.noSelectCompleteStamp;
@@ -3341,15 +3359,15 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		return .tryFormat(comm.prop.msgs.ctGetCast, name, startAction);
 	} case CType.GET_ITEM: { mixin(S_TRACE);
 		string name = contentTextUseID!(CIDKind.Item)(comm, summ, evt.item, "%s", evt);
-		return .tryFormat(comm.prop.msgs.ctGetItem, name, comm.prop.msgs.rangeName(evt.range), evt.cardNumber);
+		return .tryFormat(comm.prop.msgs.ctGetItem, name, .rangeName(comm.prop, evt.range, evt.holdingCoupon), evt.cardNumber);
 	} case CType.GET_SKILL: { mixin(S_TRACE);
 		string name = contentTextUseID!(CIDKind.Skill)(comm, summ, evt.skill, "%s", evt);
-		return .tryFormat(comm.prop.msgs.ctGetSkill, name, comm.prop.msgs.rangeName(evt.range), evt.cardNumber);
+		return .tryFormat(comm.prop.msgs.ctGetSkill, name, .rangeName(comm.prop, evt.range, evt.holdingCoupon), evt.cardNumber);
 	} case CType.GET_INFO: { mixin(S_TRACE);
 		return contentTextUseID!(CIDKind.Info)(comm, summ, evt.info, comm.prop.msgs.ctGetInfo, evt);
 	} case CType.GET_BEAST: { mixin(S_TRACE);
 		string name = contentTextUseID!(CIDKind.Beast)(comm, summ, evt.beast, "%s", evt);
-		return .tryFormat(comm.prop.msgs.ctGetBeast, name, comm.prop.msgs.rangeName(evt.range), evt.cardNumber);
+		return .tryFormat(comm.prop.msgs.ctGetBeast, name, .rangeName(comm.prop, evt.range, evt.holdingCoupon), evt.cardNumber);
 	} case CType.GET_MONEY: { mixin(S_TRACE);
 		return .tryFormat(comm.prop.msgs.ctGetMoney, evt.money);
 	} case CType.GET_COUPON: { mixin(S_TRACE);
@@ -3361,7 +3379,7 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		} else { mixin(S_TRACE);
 			cvs = .tryFormat("+%d", evt.couponValue);
 		}
-		return .tryFormat(comm.prop.msgs.ctGetCoupon, c, cvs, comm.prop.msgs.rangeName(evt.range));
+		return .tryFormat(comm.prop.msgs.ctGetCoupon, c, cvs, .rangeName(comm.prop, evt.range, evt.holdingCoupon));
 	} case CType.GET_COMPLETE_STAMP: { mixin(S_TRACE);
 		string c = evt.completeStamp;
 		if (!c || !c.length) c = comm.prop.msgs.noSelectCompleteStamp;
@@ -3375,23 +3393,23 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 	} case CType.LOSE_ITEM: { mixin(S_TRACE);
 		string name = contentTextUseID!(CIDKind.Item)(comm, summ, evt.item, "%s", evt);
 		string count = loseCardCount();
-		return .tryFormat(comm.prop.msgs.ctLoseItem, name, comm.prop.msgs.rangeName(evt.range), count);
+		return .tryFormat(comm.prop.msgs.ctLoseItem, name, .rangeName(comm.prop, evt.range, evt.holdingCoupon), count);
 	} case CType.LOSE_SKILL: { mixin(S_TRACE);
 		string name = contentTextUseID!(CIDKind.Skill)(comm, summ, evt.skill, "%s", evt);
 		string count = loseCardCount();
-		return .tryFormat(comm.prop.msgs.ctLoseSkill, name, comm.prop.msgs.rangeName(evt.range), count);
+		return .tryFormat(comm.prop.msgs.ctLoseSkill, name, .rangeName(comm.prop, evt.range, evt.holdingCoupon), count);
 	} case CType.LOSE_INFO: { mixin(S_TRACE);
 		return contentTextUseID!(CIDKind.Info)(comm, summ, evt.info, comm.prop.msgs.ctLoseInfo, evt);
 	} case CType.LOSE_BEAST: { mixin(S_TRACE);
 		string name = contentTextUseID!(CIDKind.Beast)(comm, summ, evt.beast, "%s", evt);
 		string count = loseCardCount();
-		return .tryFormat(comm.prop.msgs.ctLoseBeast, name, comm.prop.msgs.rangeName(evt.range), count);
+		return .tryFormat(comm.prop.msgs.ctLoseBeast, name, .rangeName(comm.prop, evt.range, evt.holdingCoupon), count);
 	} case CType.LOSE_MONEY: { mixin(S_TRACE);
 		return .tryFormat(comm.prop.msgs.ctLoseMoney, evt.money);
 	} case CType.LOSE_COUPON: { mixin(S_TRACE);
 		string c = evt.coupon;
 		if (!c || !c.length) c = comm.prop.msgs.noSelectCoupon;
-		return .tryFormat(comm.prop.msgs.ctLoseCoupon, c, comm.prop.msgs.rangeName(evt.range));
+		return .tryFormat(comm.prop.msgs.ctLoseCoupon, c, .rangeName(comm.prop, evt.range, evt.holdingCoupon));
 	} case CType.LOSE_COMPLETE_STAMP: { mixin(S_TRACE);
 		string c = evt.completeStamp;
 		if (!c || !c.length) c = comm.prop.msgs.noSelectCompleteStamp;
@@ -3455,7 +3473,7 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 			return .tryFormat(comm.prop.msgs.ctRandomSelectN, r);
 		}
 	} case CType.BRANCH_KEY_CODE: { mixin(S_TRACE);
-		string range = comm.prop.msgs.rangeName(evt.keyCodeRange);
+		string range = .rangeName(comm.prop, evt.keyCodeRange, evt.holdingCoupon);
 		if (evt.targetIsSkill && evt.targetIsItem && evt.targetIsBeast && evt.targetIsHand) { mixin(S_TRACE);
 			return .tryFormat(comm.prop.msgs.ctBranchKeyCodeAllType, evt.keyCode, range);
 		} else { mixin(S_TRACE);

@@ -791,7 +791,7 @@
 	<dd>背景セルの置換</dd>
 	<dt class="content"><a href="#LOSEBACK">loseback <span class="args"><span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;画面切替スピード&gt;</span>, <span class="arg">&lt;切替方式&gt;</span>, <span class="arg">&lt;アニメーション有無&gt;</span>, <span class="arg">&lt;エフェクトブースター無視&gt;</span></span></a></dt>
 	<dd>背景セルの削除</dd>
-	<dt class="content"><a href="#EFFECT">effect <span class="args"> <span class="arg">&lt;効果対象&gt;</span>, <span class="array">[<span class="arg">&lt;効果種別&gt;</span>, (<span class="arg">&lt;ダメージタイプ&gt;</span>, <span class="arg">&lt;値&gt;</span> | <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;増減値&gt;</span>, <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;召喚獣ID&gt;</span>), <span class="arg">&lt;属性&gt;</span>] ...</span>, <span class="arg">&lt;視覚効果&gt;</span>, <span class="arg">&lt;効果レベル&gt;</span>, <span class="arg">&lt;成功率&gt;</span>, <span class="arg">&lt;効果属性&gt;</span>, <span class="arg">&lt;抵抗属性&gt;</span>, <span class="arg">&lt;音声パス&gt;</span>, <span class="arg">&lt;音量&gt;</span>, <span class="arg">&lt;ループ回数&gt;</span>, <span class="arg">&lt;イベント発火の有無&gt;</span>, <span class="arg">&lt;キーコード&gt;</span> ...</span></a></dt>
+	<dt class="content"><a href="#EFFECT">effect <span class="args"> (<span class="arg">&lt;効果対象&gt;</span> | <span class="arg">coupon</span> <span class="arg">&lt;称号名&gt;</span>), <span class="array">[<span class="arg">&lt;効果種別&gt;</span>, (<span class="arg">&lt;ダメージタイプ&gt;</span>, <span class="arg">&lt;値&gt;</span> | <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;増減値&gt;</span>, <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;召喚獣ID&gt;</span>), <span class="arg">&lt;属性&gt;</span>] ...</span>, <span class="arg">&lt;視覚効果&gt;</span>, <span class="arg">&lt;効果レベル&gt;</span>, <span class="arg">&lt;成功率&gt;</span>, <span class="arg">&lt;効果属性&gt;</span>, <span class="arg">&lt;抵抗属性&gt;</span>, <span class="arg">&lt;音声パス&gt;</span>, <span class="arg">&lt;音量&gt;</span>, <span class="arg">&lt;ループ回数&gt;</span>, <span class="arg">&lt;イベント発火の有無&gt;</span>, <span class="arg">&lt;キーコード&gt;</span> ...</span></a></dt>
 	<dd>効果</dd>
 	<dt class="content"><a href="#BREA">break</a></dt>
 	<dd>イベントの中断</dd>
@@ -1296,7 +1296,7 @@
 <pre><code class="samplecode"><span class="comment">// 背景セル"blue_filter"を削除する</span>
 <span class="keywords">loseback</span> <span class="str">"blue_filter"</span></code></pre>
 
-<h3 class="content"><a id="EFFECT" name="EFFECT">effect <span class="args"><span class="arg">&lt;効果対象&gt;</span>, <span class="array">[<span class="arg">&lt;効果種別&gt;</span>, (<span class="arg">&lt;ダメージタイプ&gt;</span>, <span class="arg">&lt;値&gt;</span> | <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;増減値&gt;</span>, <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;召喚獣ID&gt;</span>), <span class="arg">&lt;属性&gt;</span>] ...</span>, <span class="arg">&lt;視覚効果&gt;</span>, <span class="arg">&lt;効果レベル&gt;</span>, <span class="arg">&lt;成功率&gt;</span>, <span class="arg">&lt;効果属性&gt;</span>, <span class="arg">&lt;抵抗属性&gt;</span>, <span class="arg">&lt;音声パス&gt;</span>, <span class="arg">&lt;音量&gt;</span>, <span class="arg">&lt;ループ回数&gt;</span>, <span class="arg">&lt;イベント発火の有無&gt;</span>, <span class="arg">&lt;キーコード&gt;</span> ...</span></a></h3>
+<h3 class="content"><a id="EFFECT" name="EFFECT">effect <span class="args">(<span class="arg">&lt;効果対象&gt;</span> | <span class="arg">coupon</span> <span class="arg">&lt;称号名&gt;</span>), <span class="array">[<span class="arg">&lt;効果種別&gt;</span>, (<span class="arg">&lt;ダメージタイプ&gt;</span>, <span class="arg">&lt;値&gt;</span> | <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;増減値&gt;</span>, <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;召喚獣ID&gt;</span>), <span class="arg">&lt;属性&gt;</span>] ...</span>, <span class="arg">&lt;視覚効果&gt;</span>, <span class="arg">&lt;効果レベル&gt;</span>, <span class="arg">&lt;成功率&gt;</span>, <span class="arg">&lt;効果属性&gt;</span>, <span class="arg">&lt;抵抗属性&gt;</span>, <span class="arg">&lt;音声パス&gt;</span>, <span class="arg">&lt;音量&gt;</span>, <span class="arg">&lt;ループ回数&gt;</span>, <span class="arg">&lt;イベント発火の有無&gt;</span>, <span class="arg">&lt;キーコード&gt;</span> ...</span></a></h3>
 
 <p class="fullname">(Effect)</p>
 <p class="desc">パーティや選択中のメンバに対して回復やダメージ、カード配布等の効果を適用します。</p>
@@ -1439,7 +1439,10 @@
 	<dd class="worddesc">ランダムなメンバ。</dd>
 	<dt class="keyword"><code>T</code> または <code>team</code></dt>
 	<dd class="worddesc">パーティ全体。</dd>
+	<dt class="keyword"><code>coupon</code></dt>
+	<dd class="worddesc">称号所有者。</dd>
 </dl>
+<p class="desc">効果対象に称号所有者を指定した場合、称号名を文字列で指定します。</p>
 <p class="desc">効果レベルは、効果を発揮する際の判定の基準となるレベルです。整数で、マイナスの値も指定できます。省略した場合は0になります。</p>
 <p class="desc">視覚効果は、効果を受けたカードの動きです。以下の値が指定できます。省略した場合は視覚効果無しになります。</p>
 <dl>
@@ -3157,6 +3160,7 @@ center
 cheerf
 complete
 confuse
+coupon
 current
 damage
 dead

@@ -412,14 +412,23 @@ class Msgs : Properties {
 
 	auto couponHide = Msg("couponHide", "隠蔽クーポン");
 
-	const string couponTypeDesc(CouponType id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(CouponType, "couponTypeDesc"));
+	const string couponTypeLongDesc(CouponType id) { mixin(S_TRACE);
+		mixin(EnumToStringSwitch!(CouponType, "couponTypeLongDesc"));
 	}
-	auto couponTypeDescNormal = Msg("couponTypeDescNormal", "ノーマル");
-	auto couponTypeDescHide = Msg("couponTypeDescHide", "[＿...] 隠蔽(称号一覧で非表示)");
-	auto couponTypeDescSystem = Msg("couponTypeDescSystem", "[＠...] システム");
-	auto couponTypeDescDur = Msg("couponTypeDescDur", "[：...] 時限(点数分の時間経過及びシナリオ終了時に消滅)");
-	auto couponTypeDescDurBattle = Msg("couponTypeDescDurBattle", "[；...] 戦闘中時限(点数分の時間経過及び戦闘終了時に消滅)");
+	auto couponTypeLongDescNormal = Msg("couponTypeLongDescNormal", "ノーマル");
+	auto couponTypeLongDescHide = Msg("couponTypeLongDescHide", "[%1$s...] 隠蔽(称号一覧で非表示)");
+	auto couponTypeLongDescSystem = Msg("couponTypeLongDescSystem", "[%1$s...] システム");
+	auto couponTypeLongDescDur = Msg("couponTypeLongDescDur", "[%1$s...] 時限(点数分の時間経過及びシナリオ終了時に消滅)");
+	auto couponTypeLongDescDurBattle = Msg("couponTypeLongDescDurBattle", "[%1$s...] 戦闘中時限(点数分の時間経過及び戦闘終了時に消滅)");
+
+	const string couponTypeShortDesc(CouponType id) { mixin(S_TRACE);
+		mixin(EnumToStringSwitch!(CouponType, "couponTypeShortDesc"));
+	}
+	auto couponTypeShortDescNormal = Msg("couponTypeShortDescNormal", "一般");
+	auto couponTypeShortDescHide = Msg("couponTypeShortDescHide", "隠蔽");
+	auto couponTypeShortDescSystem = Msg("couponTypeShortDescSystem", "特殊");
+	auto couponTypeShortDescDur = Msg("couponTypeShortDescDur", "時限");
+	auto couponTypeShortDescDurBattle = Msg("couponTypeShortDescDurBattle", "戦闘");
 
 	const string couponTypeName(CouponType id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(CouponType, "couponTypeName"));
@@ -1469,6 +1478,9 @@ class Msgs : Properties {
 	auto rangeNameBackpack = Msg("rangeNameBackpack", "荷物袋");
 	auto rangeNamePartyAndBackpack = Msg("rangeNamePartyAndBackpack", "全体(荷物袋含む)");
 	auto rangeNameField = Msg("rangeNameField", "フィールド全体");
+	auto rangeNameCouponHolder = Msg("rangeNameCouponHolder", "称号所有者");
+	auto rangeWithCoupon = Msg("rangeWithCoupon", "称号所有者(%1$s)");
+	auto rangeWithNoCoupon = Msg("rangeWithNoCoupon", "称号所有者(指定無し)");
 	auto rangeDescField = Msg("rangeDescField", "パーティ・荷物袋・エネミーカードを含む");
 	const string castRangeName(CastRange id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(CastRange, "castRangeName"));
@@ -1806,6 +1818,8 @@ class Msgs : Properties {
 	auto warningBranchKeyCodeWithItem = Msg("warningBranchKeyCodeWithItem", "クラシックなシナリオにおけるキーコード所持分岐でカードの種類にアイテムが含まれている場合は、戦闘時の手札も検索対象となります。");
 	auto warningLoadScaledImage = Msg("warningLoadScaledImage", "スケーリングされたイメージファイルの読み込みは、Wsn.2以降の形式のシナリオに対応したエンジンでしか機能しません。"); // Wsn.2
 	auto warningPlayerCardEvents = Msg("warningPlayerCardEvents", "プレイヤーカードに対するイベント設定は、Wsn.2以降の形式のシナリオしか行なえません。"); // Wsn.2
+	auto warningCouponHolder = Msg("warningCouponHolder", "適用範囲 [称号所有者] の指定は、Wsn.2以降の形式のシナリオしか行なえません。"); // Wsn.2
+	auto warningNoHoldingCoupon = Msg("warningNoHoldingCoupon", "範囲指定用の称号が設定されていません。"); // Wsn.2
 
 	auto unknownStepValue = Msg("unknownStepValue", "存在しないステップ値(%1$s)");
 

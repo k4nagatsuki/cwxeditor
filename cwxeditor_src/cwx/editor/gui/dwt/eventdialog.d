@@ -170,6 +170,174 @@ class ContentCommentDialog : AbsDialog {
 	}
 }
 
+/// 適用範囲・判定対象の設定欄。
+private class RangePanel : Composite {
+	private Commons _comm;
+	private Summary _summ;
+
+	private Button[Range] _range;
+	private const Range[] _ranges;
+
+	private Combo _coupon = null;
+	private Combo _couponType = null;
+	private CouponType[] _couponTypes = [];
+
+	string[] warnings() { mixin(S_TRACE);
+		string[] ws;
+		auto b = _range.get(Range.COUPON_HOLDER, null);
+		if (b && b.getSelection()) { mixin(S_TRACE);
+			if (!_comm.prop.isTargetVersion(_summ, "2")) { mixin(S_TRACE);
+				ws ~= _comm.prop.msgs.warningCouponHolder;
+			}
+			ws ~= couponWarnings(_comm.prop.parent, _summ, _comm.prop.var.etc.targetVersion, _coupon.getText(), false);
+		}
+		return ws;
+	}
+
+	private void refDataVersion() { mixin(S_TRACE);
+		auto b = _range.get(Range.COUPON_HOLDER, null);
+		if (b && b.getSelection() && _summ.legacy) { mixin(S_TRACE);
+			b.setSelection(false);
+			_range[_ranges[0]].setSelection(true);
+		}
+		updateEnabled();
+	}
+	private void updateEnabled() { mixin(S_TRACE);
+		auto b = _range.get(Range.COUPON_HOLDER, null);
+		if (b) { mixin(S_TRACE);
+			if (b && b.getSelection()) { mixin(S_TRACE);
+				_coupon.setEnabled(true);
+				_couponType.setEnabled(true);
+			} else { mixin(S_TRACE);
+				_coupon.setEnabled(false);
+				_couponType.setEnabled(false);
+			}
+			b.setEnabled(!_summ.legacy);
+		}
+	}
+
+	this (Commons comm, Composite parent, in Range[] ranges, string title, bool horizontal, AbsDialog modDlg,
+			in Content evt, bool delegate() catchMod, void delegate() refreshWarning) { mixin(S_TRACE);
+		super (parent, SWT.NONE);
+		_comm = comm;
+		_summ = comm.summary;
+		_ranges = ranges;
+		auto prop = comm.prop;
+		setLayout(new FillLayout);
+		auto grp = new Group(this, SWT.NONE);
+		grp.setText(title);
+		if (horizontal) { mixin(S_TRACE);
+			grp.setLayout(normalGridLayout(cast(int)ranges.length, false));
+		} else {
+			grp.setLayout(normalGridLayout(1, false));
+		}
+		Composite couponComp = null;
+		auto radioGrp = new RadioGroup!Button;
+		foreach (range; ranges) { mixin(S_TRACE);
+			Button radio;
+			Control c;
+			int fillHorizontal = SWT.NONE;
+			if (range is Range.COUPON_HOLDER) { mixin(S_TRACE);
+				couponComp = new Composite(grp, SWT.NONE);
+				couponComp.setLayout(zeroMarginGridLayout(1, true));
+				fillHorizontal = GridData.FILL_HORIZONTAL;
+				radio = new Button(couponComp, SWT.RADIO);
+				c = couponComp;
+			} else { mixin(S_TRACE);
+				radio = new Button(grp, SWT.RADIO);
+				c = radio;
+			}
+			modDlg.mod(radio);
+			if (horizontal) { mixin(S_TRACE);
+				c.setLayoutData(new GridData(GridData.FILL_BOTH));
+			} else { mixin(S_TRACE);
+				c.setLayoutData(new GridData(GridData.GRAB_VERTICAL | fillHorizontal));
+			}
+			radio.setText(prop.msgs.rangeName(range));
+			.listener(radio, SWT.Selection, &updateEnabled);
+			.listener(radio, SWT.Selection, refreshWarning);
+			_range[range] = radio;
+			if (evt && evt.range is range) { mixin(S_TRACE);
+				radio.setSelection(true);
+			}
+			radioGrp.append(radio);
+		}
+		if (!evt || evt.range !in _range) { mixin(S_TRACE);
+			_range[_ranges[0]].setSelection(true);
+		}
+		if (Range.COUPON_HOLDER in _range) { mixin(S_TRACE);
+			auto comp = new Composite(couponComp, SWT.NONE);
+			auto cgd = new GridData(GridData.FILL_HORIZONTAL);
+			if (horizontal) cgd.horizontalSpan = cast(int)ranges.length;
+			comp.setLayoutData(cgd);
+
+			comp.setLayout(zeroGridLayout(2, false));
+
+			auto type = CouponComboType.AllCoupons;
+			_coupon = createCouponCombo(comm, _summ, comp, catchMod, type, evt ? evt.holdingCoupon : "");
+			modDlg.mod(_coupon);
+			_coupon.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+			_couponType = new Combo(comp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+			_couponType.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
+			_couponTypes = [CouponType.Normal, CouponType.Hide, CouponType.Dur, CouponType.DurBattle, CouponType.System];
+			foreach (coType; _couponTypes) { mixin(S_TRACE);
+				auto typeName = prop.msgs.couponTypeShortDesc(coType);
+				final switch (coType) {
+				case CouponType.Normal:
+					break;
+				case CouponType.Hide:
+					typeName = .tryFormat(typeName, prop.sys.couponHide);
+					break;
+				case CouponType.Dur:
+					typeName = .tryFormat(typeName, prop.sys.couponDur);
+					break;
+				case CouponType.DurBattle:
+					typeName = .tryFormat(typeName, prop.sys.couponDurBattle);
+					break;
+				case CouponType.System:
+					typeName = .tryFormat(typeName, prop.sys.couponSystem);
+					break;
+				}
+				_couponType.add(typeName);
+			}
+			.listener(_couponType, SWT.Selection, { mixin(S_TRACE);
+				_coupon.setText(prop.sys.convCoupon(_coupon.getText(), _couponTypes[_couponType.getSelectionIndex()], false));
+			});
+			void updateCouponTypeImpl() { mixin(S_TRACE);
+				auto t = prop.sys.couponType(_coupon.getText());
+				foreach (i, coType; _couponTypes) { mixin(S_TRACE);
+					if (coType is t) { mixin(S_TRACE);
+						_couponType.select(cast(int)i);
+					}
+				}
+			}
+			void updateCouponType() { mixin(S_TRACE);
+				updateCouponTypeImpl();
+				refreshWarning();
+			}
+			.listener(_coupon, SWT.Modify, &updateCouponType);
+			updateCouponTypeImpl();
+		}
+
+		comm.refDataVersion.add(&refDataVersion);
+		.listener(this, SWT.Dispose, { mixin(S_TRACE);
+			comm.refDataVersion.remove(&refDataVersion);
+		});
+
+		refDataVersion();
+	}
+
+	Range range() { mixin(S_TRACE);
+		foreach (range, b; _range) { mixin(S_TRACE);
+			if (b.getSelection()) return range;
+		}
+		return _ranges[0];
+	}
+
+	string holdingCoupon() { return _coupon.getText(); }
+}
+
 /// 背景切替方式と背景切替速度。
 class TransitionPanel : Composite {
 	private Combo _ts;
@@ -640,7 +808,7 @@ private:
 			_coType = coType;
 		}
 		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
-			_name.setText(prop.sys.convCoupon(_name.getText(), _coType, true));
+			_name.setText(prop.sys.convCoupon(_name.getText(), _coType, false));
 		}
 	}
 
@@ -701,9 +869,26 @@ protected:
 					gd.widthHint = _prop.var.etc.nameWidth;
 					_name.setLayoutData(gd);
 				}
-				foreach (coType; [CouponType.Normal, CouponType.Hide, CouponType.Dur, CouponType.DurBattle]) { mixin(S_TRACE);
+				foreach (coType; [CouponType.Normal, CouponType.Hide, CouponType.Dur, CouponType.DurBattle, CouponType.System]) { mixin(S_TRACE);
 					auto b = new Button(comp, SWT.RADIO);
-					b.setText(_prop.msgs.couponTypeDesc(coType));
+					auto typeName = _prop.msgs.couponTypeLongDesc(coType);
+					final switch (coType) {
+					case CouponType.Normal:
+						break;
+					case CouponType.Hide:
+						typeName = .tryFormat(typeName, prop.sys.couponHide);
+						break;
+					case CouponType.Dur:
+						typeName = .tryFormat(typeName, prop.sys.couponDur);
+						break;
+					case CouponType.DurBattle:
+						typeName = .tryFormat(typeName, prop.sys.couponDurBattle);
+						break;
+					case CouponType.System:
+						typeName = .tryFormat(typeName, prop.sys.couponSystem);
+						break;
+					}
+					b.setText(typeName);
 					auto gd = new GridData(GridData.FILL_HORIZONTAL);
 					gd.horizontalSpan = 3;
 					b.setLayoutData(gd);
@@ -1331,7 +1516,7 @@ private:
 	Button[EffectType] _effTyp;
 	Button[Resist] _res;
 	Button[CardVisual] _vis;
-	Button[Target.M] _targ;
+	RangePanel _range;
 
 	Button _ignite;
 	KeyCodeView _keyCodes;
@@ -1340,6 +1525,7 @@ private:
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
 		ws ~= _mview.warnings;
+		ws ~= _range.warnings;
 
 		if (summ) { mixin(S_TRACE);
 			if (_ignite.getSelection() && !prop.isTargetVersion(summ, "2")) { mixin(S_TRACE);
@@ -1408,7 +1594,7 @@ protected:
 			comp.setLayout(normalGridLayout(2, false));
 			{ mixin(S_TRACE);
 				auto comp2 = new Composite(comp, SWT.NONE);
-				comp2.setLayoutData(new GridData(GridData.FILL_BOTH));
+				comp2.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 				comp2.setLayout(zeroMarginGridLayout(1, true));
 				{ mixin(S_TRACE);
 					auto grp = new Group(comp2, SWT.NONE);
@@ -1466,7 +1652,7 @@ protected:
 				{ mixin(S_TRACE);
 					auto grp = new Group(comp2, SWT.NONE);
 					grp.setText(_prop.msgs.effectVisual);
-					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+					grp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 					grp.setLayout(normalGridLayout(1, false));
 					foreach (v; [CardVisual.NONE, CardVisual.REVERSE, CardVisual.HORIZONTAL, CardVisual.VERTICAL]) { mixin(S_TRACE);
 						auto radio = new Button(grp, SWT.RADIO);
@@ -1476,18 +1662,12 @@ protected:
 						_vis[v] = radio;
 					}
 				}
+
 				{ mixin(S_TRACE);
-					auto grp = new Group(comp2, SWT.NONE);
-					grp.setText(_prop.msgs.judgeTarget);
-					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-					grp.setLayout(normalGridLayout(1, true));
-					foreach (m; [Target.M.SELECTED, Target.M.RANDOM, Target.M.PARTY]) { mixin(S_TRACE);
-						auto radio = new Button(grp, SWT.RADIO);
-						mod(radio);
-						radio.setText(_prop.msgs.targetName(m));
-						radio.setLayoutData(new GridData(GridData.FILL_BOTH));
-						_targ[m] = radio;
-					}
+					auto ranges = [Range.SELECTED, Range.RANDOM, Range.PARTY, Range.COUPON_HOLDER];
+					auto title = _prop.msgs.cardEventRange;
+					_range = new RangePanel(comm, comp2, ranges, title, false, this, evt, &catchMod, &refreshWarning);
+					_range.setLayoutData(new GridData(GridData.FILL_BOTH));
 				}
 				{ mixin(S_TRACE);
 					auto grp = new Group(comp2, SWT.NONE);
@@ -1560,7 +1740,6 @@ protected:
 			_effTyp[_evt.effectType].setSelection(true);
 			_res[_evt.resist].setSelection(true);
 			_vis[_evt.cardVisual].setSelection(true);
-			_targ[_evt.targetNS.m].setSelection(true);
 			_ignite.setSelection(_evt.ignite);
 			_keyCodes.keyCodes = _evt.keyCodes;
 		} else { mixin(S_TRACE);
@@ -1571,7 +1750,6 @@ protected:
 			_effTyp[EffectType.NONE].setSelection(true);
 			_res[Resist.UNFAIL].setSelection(true);
 			_vis[CardVisual.NONE].setSelection(true);
-			_targ[Target.M.SELECTED].setSelection(true);
 			_ignite.setSelection(false);
 			_keyCodes.keyCodes = [];
 		}
@@ -1589,7 +1767,8 @@ protected:
 		_evt.effectType = getRadioValue!(EffectType)(_effTyp);
 		_evt.resist = getRadioValue!(Resist)(_res);
 		_evt.cardVisual = getRadioValue!(CardVisual)(_vis);
-		_evt.targetNS = Target(getRadioValue!(Target.M)(_targ), false);
+		_evt.range = _range.range;
+		_evt.holdingCoupon = _range.holdingCoupon;
 		_evt.ignite = _ignite.getSelection();
 		_evt.keyCodes = _keyCodes.keyCodes;
 		return true;
@@ -2391,7 +2570,7 @@ private Composite createStatusHint(Props prop, Composite area) { mixin(S_TRACE);
 /// 状態分岐の設定を行うダイアログ。
 class BrStateDialog : EventDialog {
 private:
-	Button[Target.M] _targ;
+	RangePanel _range;
 	Button[Status] _stat;
 
 	override
@@ -2422,17 +2601,10 @@ protected:
 	override void setup(Composite area) { mixin(S_TRACE);
 		area.setLayout(normalGridLayout(1, false));
 		{ mixin(S_TRACE);
-			auto grp = new Group(area, SWT.NONE);
-			grp.setText(_prop.msgs.judgeTarget);
-			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-			grp.setLayout(normalGridLayout(3, true));
-			foreach (m; [Target.M.SELECTED, Target.M.RANDOM, Target.M.PARTY]) { mixin(S_TRACE);
-				auto radio = new Button(grp, SWT.RADIO);
-				mod(radio);
-				radio.setText(_prop.msgs.targetName(m));
-				radio.setLayoutData(new GridData(GridData.FILL_BOTH));
-				_targ[m] = radio;
-			}
+			auto ranges = [Range.SELECTED, Range.RANDOM, Range.PARTY];
+			auto title = _prop.msgs.judgeTarget;
+			_range = new RangePanel(comm, area, ranges, title, true, this, evt, &catchMod, &refreshWarning);
+			_range.setLayoutData(new GridData(GridData.FILL_BOTH));
 		}
 		auto status = createStatusPane(prop, area, _stat, &mod!Button);
 		status.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -2445,10 +2617,8 @@ protected:
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_evt) { mixin(S_TRACE);
-			_targ[_evt.targetNS.m].setSelection(true);
 			_stat[_evt.status].setSelection(true);
 		} else { mixin(S_TRACE);
-			_targ[Target.M.SELECTED].setSelection(true);
 			_stat[Status.ACTIVE].setSelection(true);
 		}
 		refreshWarning();
@@ -2456,8 +2626,7 @@ protected:
 
 	override bool apply() { mixin(S_TRACE);
 		if (!_evt) _evt = new Content(CType.BRANCH_STATUS, "");
-		auto targ = Target(getRadioValue!(Target.M)(_targ), false);
-		_evt.targetNS = targ;
+		_evt.range = _range.range;
 		_evt.status = getRadioValue!(Status)(_stat);
 		return true;
 	}

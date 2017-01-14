@@ -604,6 +604,7 @@ enum Range {
 	BACKPACK, /// 荷物袋。
 	PARTY_AND_BACKPACK, /// 全員と荷物袋。
 	FIELD, /// フィールド全体。
+	COUPON_HOLDER, /// 称号所有者。
 }
 /// 文字列から適用範囲を生成。
 Range toRange(string name) { mixin(S_TRACE);
@@ -620,6 +621,8 @@ Range toRange(string name) { mixin(S_TRACE);
 		return Range.PARTY_AND_BACKPACK;
 	case "Field":
 		return Range.FIELD;
+	case "CouponHolder":
+		return Range.COUPON_HOLDER;
 	default:
 		throw new MotionException("Unknown targets: " ~ name);
 	}
@@ -639,6 +642,8 @@ string fromRange(Range r) { mixin(S_TRACE);
 		return "PartyAndBackpack";
 	case Range.FIELD:
 		return "Field";
+	case Range.COUPON_HOLDER:
+		return "CouponHolder";
 	}
 }
 /// 効果対象や話者選択時に現れる適用範囲。
@@ -1252,7 +1257,6 @@ enum CArg {
 	RANGE,
 	CARD_VISUAL,
 	TARGET_S,
-	TARGET_NS,
 	TALKER_C,
 	TALKER_NC,
 	EFFECT_TYPE,
@@ -1304,6 +1308,7 @@ enum CArg {
 	TARGET_IS_ITEM, /// アイテムカードが対象か(Wsn.2)。
 	TARGET_IS_BEAST, /// 召喚獣カードが対象か(Wsn.2)。
 	TARGET_IS_HAND, /// 戦闘時の手札が対象か(Wsn.2)。
+	HOLDING_COUPON, /// 範囲で称号所持者を指定した時の称号名(Wsn.2)。
 }
 
 /// 後続コンテントのnameの型。
