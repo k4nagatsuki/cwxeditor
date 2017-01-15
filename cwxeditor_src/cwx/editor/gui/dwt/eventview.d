@@ -1590,21 +1590,21 @@ public:
 		} else if (cast(EnemyCard)c) {
 			imgCard = _prop.images.cards;
 		}
-		auto itm = createTreeItem(_cards, c, cardName(c), imgCard, index + 2);
+		auto itm = createTreeItem(_cards, c, cardName(c), imgCard, index + cardsIndex);
 		refreshTrees(itm);
 	}
 	private void removeCard(int index) { mixin(S_TRACE);
 		initial();
 		if (_selItm && !_selItm.isDisposed()
-				&& _selItm.getParentItem() is _cards.getItems()[index + 2]) { mixin(S_TRACE);
+				&& _selItm.getParentItem() is _cards.getItems()[index + cardsIndex]) { mixin(S_TRACE);
 			_etree.refresh(null);
 			_selItm = null;
 		}
-		_cards.getItems()[index + 2].dispose();
+		_cards.getItems()[index + cardsIndex].dispose();
 	}
 	private void renameCard(int index) { mixin(S_TRACE);
 		initial();
-		auto itm = _cards.getItems()[index + 2];
+		auto itm = _cards.getItems()[index + cardsIndex];
 		itm.setText(cardName(cast(AbstractSpCard)itm.getData()));
 	}
 	private void refCast(CastCard card) { mixin(S_TRACE);
@@ -1621,12 +1621,12 @@ public:
 		foreach (j; 0 .. count) { mixin(S_TRACE);
 			foreach (i; indices) { mixin(S_TRACE);
 				i += udVal * j;
-				if (_selItm && _selItm.getParentItem() is _cards.getItems()[i + 2]) { mixin(S_TRACE);
+				if (_selItm && _selItm.getParentItem() is _cards.getItems()[i + cardsIndex]) { mixin(S_TRACE);
 					int s = _selItm.getParentItem().indexOf(_selItm);
-					int newI = ud(_cards.getItems()[i + 2]) + udVal;
+					int newI = ud(_cards.getItems()[i + cardsIndex]) + udVal;
 					selectImpl(_cards.getItems()[newI].getItems()[s]);
 				} else { mixin(S_TRACE);
-					ud(_cards.getItems()[i + 2]);
+					ud(_cards.getItems()[i + cardsIndex]);
 				}
 			}
 		}
@@ -2878,6 +2878,10 @@ public:
 		_comm.refreshToolBar();
 	}
 
+	@property
+	const
+	private int cardsIndex() { return (cast(Area)_area || cast(Battle)_area) ? 2 : 1; }
+
 	bool openCWXPath(string path, bool shellActivate) { mixin(S_TRACE);
 		initial();
 		auto cate = cpcategory(path);
@@ -2890,10 +2894,10 @@ public:
 			return _etree.openCWXPath(cpbottom(path), shellActivate);
 		}
 		bool card() { mixin(S_TRACE);
-			if (index + 1 >= _cards.getItemCount()) { mixin(S_TRACE);
+			if (index + cardsIndex >= _cards.getItemCount()) { mixin(S_TRACE);
 				return false;
 			}
-			auto itm = _cards.getItem(cast(int)index + 1);
+			auto itm = _cards.getItem(cast(int)index + cardsIndex);
 			path = cpbottom(path);
 			if (cpempty(path)) { mixin(S_TRACE);
 				if (!cphasattr(path, "nofocus")) .forceFocus(_cards, shellActivate);
