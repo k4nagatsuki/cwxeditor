@@ -203,9 +203,9 @@ private class RangePanel : Composite {
 	}
 
 	private void refDataVersion() { mixin(S_TRACE);
-		auto b = _range.get(Range.COUPON_HOLDER, null);
-		if (b && b.getSelection() && _summ.legacy) { mixin(S_TRACE);
-			b.setSelection(false);
+		auto range = this.range;
+		if ((range is Range.COUPON_HOLDER || range is Range.CARD_TARGET) && _summ.legacy) { mixin(S_TRACE);
+			_range[range].setSelection(false);
 			_range[_ranges[0]].setSelection(true);
 		}
 		updateEnabled();
@@ -220,6 +220,10 @@ private class RangePanel : Composite {
 				_coupon.setEnabled(false);
 				_couponType.setEnabled(false);
 			}
+			b.setEnabled(!_summ.legacy);
+		}
+		b = _range.get(Range.CARD_TARGET, null);
+		if (b) { mixin(S_TRACE);
 			b.setEnabled(!_summ.legacy);
 		}
 	}

@@ -2491,14 +2491,15 @@ private byte fromCardVisual(CardVisual v) { mixin(S_TRACE);
 	}
 }
 private byte fromRange(Range v) { mixin(S_TRACE);
-	switch (v) {
+	final switch (v) {
 	case Range.SELECTED: return 0;
 	case Range.RANDOM: return 1;
 	case Range.PARTY: return 2;
 	case Range.BACKPACK: return 3;
 	case Range.PARTY_AND_BACKPACK: return 4;
 	case Range.FIELD: return 5;
-	default: throw new SummaryException("Unknown range value: " ~ to!(string)(cast(int) v));
+	case Range.COUPON_HOLDER: return 0; // Wsn.2
+	case Range.CARD_TARGET: return 0; // Wsn.2
 	}
 }
 /// CardWirth 1.50
@@ -2508,6 +2509,7 @@ private byte fromKeyCodeRange(Range v) { mixin(S_TRACE);
 	case Range.RANDOM: return 1;
 	case Range.BACKPACK: return 2;
 	case Range.PARTY_AND_BACKPACK: return 3;
+	case Range.COUPON_HOLDER: return 0; // Wsn.2
 	default: throw new SummaryException("Unknown range value: " ~ to!(string)(cast(int) v));
 	}
 }
