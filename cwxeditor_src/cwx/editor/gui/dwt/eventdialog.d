@@ -193,6 +193,12 @@ private class RangePanel : Composite {
 			}
 			ws ~= couponWarnings(_comm.prop.parent, _summ, _comm.prop.var.etc.targetVersion, _coupon.getText(), false);
 		}
+		b = _range.get(Range.CARD_TARGET, null);
+		if (b && b.getSelection()) { mixin(S_TRACE);
+			if (!_comm.prop.isTargetVersion(_summ, "2")) { mixin(S_TRACE);
+				ws ~= _comm.prop.msgs.warningCardTarget;
+			}
+		}
 		return ws;
 	}
 
@@ -264,6 +270,9 @@ private class RangePanel : Composite {
 				radio.setSelection(true);
 			}
 			radioGrp.append(radio);
+			if (range is Range.CARD_TARGET) { mixin(S_TRACE);
+				radio.setToolTipText(prop.msgs.rangeDescCardTarget);
+			}
 		}
 		if (!evt || evt.range !in _range) { mixin(S_TRACE);
 			_range[_ranges[0]].setSelection(true);
@@ -1678,7 +1687,7 @@ protected:
 				}
 
 				{ mixin(S_TRACE);
-					auto ranges = [Range.SELECTED, Range.RANDOM, Range.PARTY, Range.COUPON_HOLDER];
+					auto ranges = [Range.SELECTED, Range.RANDOM, Range.PARTY, Range.COUPON_HOLDER, Range.CARD_TARGET];
 					auto title = _prop.msgs.cardEventRange;
 					auto initCoupon = (evt && evt.holdingCoupon != "") ? evt.holdingCoupon : prop.sys.effectTargetCoupon;
 					_range = new RangePanel(comm, comp2, ranges, initCoupon, title, false, this, evt, &catchMod, &refreshWarning);
@@ -1724,10 +1733,18 @@ protected:
 				grp.setText(prop.msgs.igniteTitle);
 				grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				grp.setLayout(normalGridLayout(1, true));
-				_ignite = new Button(grp, SWT.CHECK);
+				auto comp2 = new Composite(grp, SWT.NONE);
+				comp2.setLayoutData(new GridData(GridData.FILL_BOTH));
+				auto wgd = windowGridLayout(1, true);
+				wgd.marginWidth = 0;
+				wgd.marginHeight = 0;
+				comp2.setLayout(wgd);
+				_ignite = new Button(comp2, SWT.CHECK);
 				mod(_ignite);
 				_ignite.setText(prop.msgs.ignite);
 				.listener(_ignite, SWT.Selection, &updateEnabled);
+				auto l = new Label(comp2, SWT.NONE);
+				l.setText(prop.msgs.igniteHint);
 			}
 			{ mixin(S_TRACE);
 				auto grp = new Group(comp, SWT.NONE);

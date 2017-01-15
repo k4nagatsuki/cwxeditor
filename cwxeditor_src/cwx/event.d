@@ -785,6 +785,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			case Range.RANDOM:
 			case Range.PARTY:
 			case Range.COUPON_HOLDER:
+			case Range.CARD_TARGET:
 				break;
 			default:
 				_range = Range.SELECTED;
@@ -810,6 +811,28 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			case Range.SELECTED:
 			case Range.RANDOM:
 			case Range.PARTY:
+			case Range.FIELD:
+				break;
+			default:
+				_range = Range.SELECTED;
+				break;
+			}
+			break;
+		case CType.BRANCH_SKILL:
+		case CType.BRANCH_ITEM:
+		case CType.BRANCH_BEAST:
+		case CType.GET_SKILL:
+		case CType.GET_ITEM:
+		case CType.GET_BEAST:
+		case CType.LOSE_SKILL:
+		case CType.LOSE_ITEM:
+		case CType.LOSE_BEAST:
+			switch (range) {
+			case Range.SELECTED:
+			case Range.RANDOM:
+			case Range.PARTY:
+			case Range.BACKPACK:
+			case Range.PARTY_AND_BACKPACK:
 			case Range.FIELD:
 				break;
 			default:

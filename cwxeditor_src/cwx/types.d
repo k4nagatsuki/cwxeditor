@@ -604,7 +604,8 @@ enum Range {
 	BACKPACK, /// 荷物袋。
 	PARTY_AND_BACKPACK, /// 全員と荷物袋。
 	FIELD, /// フィールド全体。
-	COUPON_HOLDER, /// 称号所有者。
+	COUPON_HOLDER, /// 称号所有者(Wsn.2)。
+	CARD_TARGET, /// カードの効果対象(Wsn.2)。
 }
 /// 文字列から適用範囲を生成。
 Range toRange(string name) { mixin(S_TRACE);
@@ -623,6 +624,8 @@ Range toRange(string name) { mixin(S_TRACE);
 		return Range.FIELD;
 	case "CouponHolder":
 		return Range.COUPON_HOLDER;
+	case "CardTarget":
+		return Range.CARD_TARGET;
 	default:
 		throw new MotionException("Unknown targets: " ~ name);
 	}
@@ -644,6 +647,8 @@ string fromRange(Range r) { mixin(S_TRACE);
 		return "Field";
 	case Range.COUPON_HOLDER:
 		return "CouponHolder";
+	case Range.CARD_TARGET:
+		return "CardTarget";
 	}
 }
 /// 効果対象や話者選択時に現れる適用範囲。

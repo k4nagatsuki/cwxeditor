@@ -1914,6 +1914,7 @@ fi`;
 			case "r", "random", "one": i++; return Range.RANDOM;
 			case "t", "team": i++; return Range.PARTY;
 			case "coupon": i++; return Range.COUPON_HOLDER;
+			case "card": i++; return Range.CARD_TARGET;
 			case "backpack":
 				static if (Within) goto default;
 				i++;
@@ -2697,7 +2698,7 @@ fi`;
 					}
 				}
 			}
-			if (detail.use(CArg.HOLDING_COUPON)) { mixin(S_TRACE);
+			if (detail.use(CArg.HOLDING_COUPON) && c.range is Range.COUPON_HOLDER) { mixin(S_TRACE);
 				c.holdingCoupon = parseAttr!(string)(opt, node.attr, i, c.holdingCoupon, varTable, 0);
 			}
 			if (detail.use(CArg.AREA)) { mixin(S_TRACE);
@@ -3028,6 +3029,7 @@ fi`;
 			case Range.PARTY_AND_BACKPACK: attrs ~= "party"; break;
 			case Range.FIELD: attrs ~= "field"; break;
 			case Range.COUPON_HOLDER: attrs ~= "coupon"; break;
+			case Range.CARD_TARGET: attrs ~= "card"; break;
 			default: assert (0);
 			}
 		} else static if (is(T : CastRange)) {

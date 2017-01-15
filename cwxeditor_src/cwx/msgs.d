@@ -576,6 +576,7 @@ class Msgs : Properties {
 	auto ignite = Msg("ignite", "効果適用時にキーコードイベントと死亡イベントを発火させる");
 	auto igniteTrue = Msg("igniteTrue", "イベント発火あり");
 	auto igniteFalse = Msg("igniteFalse", "イベント発火無し");
+	auto igniteHint = Msg("igniteHint", "※ 発火したイベント内で選択メンバが変更される可能性があります");
 
 	/// イベント。
 	auto evtArrow = Msg("evtArrow", "イベント編集");
@@ -1485,6 +1486,8 @@ class Msgs : Properties {
 	auto rangeWithCoupon = Msg("rangeWithCoupon", "称号所有者(%1$s)");
 	auto rangeWithNoCoupon = Msg("rangeWithNoCoupon", "称号所有者(指定無し)");
 	auto rangeDescField = Msg("rangeDescField", "パーティ・荷物袋・エネミーカードを含む");
+	auto rangeNameCardTarget = Msg("rangeNameCardTarget", "カードの使用対象");
+	auto rangeDescCardTarget = Msg("rangeDescCardTarget", "使用時イベント中でない場合、対象無しになります");
 	const string castRangeName(CastRange id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(CastRange, "castRangeName"));
 	}
@@ -1823,6 +1826,7 @@ class Msgs : Properties {
 	auto warningPlayerCardEvents = Msg("warningPlayerCardEvents", "プレイヤーカードに対するイベント設定は、Wsn.2以降の形式のシナリオしか行なえません。"); // Wsn.2
 	auto warningCouponHolder = Msg("warningCouponHolder", "適用範囲 [称号所有者] の指定は、Wsn.2以降の形式のシナリオしか行なえません。"); // Wsn.2
 	auto warningNoHoldingCoupon = Msg("warningNoHoldingCoupon", "範囲指定用の称号が設定されていません。"); // Wsn.2
+	auto warningCardTarget = Msg("warningCardTarget", "適用範囲 [カードの使用対象] の指定は、Wsn.2以降の形式のシナリオしか行なえません。"); // Wsn.2
 
 	auto unknownStepValue = Msg("unknownStepValue", "存在しないステップ値(%1$s)");
 
