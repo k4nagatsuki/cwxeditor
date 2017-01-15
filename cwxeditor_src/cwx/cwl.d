@@ -399,6 +399,7 @@ private Range toRange(byte b) { mixin(S_TRACE);
 	}
 }
 private Range toRangeE(byte b) { mixin(S_TRACE);
+	switch (b) {
 	case 0: return Range.SELECTED;
 	case 1: return Range.RANDOM;
 	case 2: return Range.PARTY;
@@ -407,6 +408,7 @@ private Range toRangeE(byte b) { mixin(S_TRACE);
 	case 5: return Range.PARTY;
 	case 6: return Range.PARTY;
 	default: throw new SummaryException("Unknown range E: " ~ to!(string)(b));
+	}
 }
 /// CardWirth 1.50
 private Range toKeyCodeRange(byte b) { mixin(S_TRACE);
