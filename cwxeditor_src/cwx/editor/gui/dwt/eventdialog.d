@@ -181,6 +181,8 @@ private class RangePanel : Composite {
 	private Combo _coupon = null;
 	private Combo _couponType = null;
 	private CouponType[] _couponTypes = [];
+	private bool _couponUpdated = false;
+	private string _initCoupon = "";
 
 	string[] warnings() { mixin(S_TRACE);
 		string[] ws;
@@ -216,12 +218,13 @@ private class RangePanel : Composite {
 		}
 	}
 
-	this (Commons comm, Composite parent, in Range[] ranges, string title, bool horizontal, AbsDialog modDlg,
+	this (Commons comm, Composite parent, in Range[] ranges, string initCoupon, string title, bool horizontal, AbsDialog modDlg,
 			in Content evt, bool delegate() catchMod, void delegate() refreshWarning) { mixin(S_TRACE);
 		super (parent, SWT.NONE);
 		_comm = comm;
 		_summ = comm.summary;
 		_ranges = ranges;
+		if (evt) _initCoupon = evt.holdingCoupon;
 		auto prop = comm.prop;
 		setLayout(new FillLayout);
 		auto grp = new Group(this, SWT.NONE);
@@ -274,7 +277,7 @@ private class RangePanel : Composite {
 			comp.setLayout(zeroGridLayout(2, false));
 
 			auto type = CouponComboType.AllCoupons;
-			_coupon = createCouponCombo(comm, _summ, comp, catchMod, type, evt ? evt.holdingCoupon : "");
+			_coupon = createCouponCombo(comm, _summ, comp, catchMod, type, initCoupon);
 			modDlg.mod(_coupon);
 			_coupon.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
@@ -316,7 +319,10 @@ private class RangePanel : Composite {
 				updateCouponTypeImpl();
 				refreshWarning();
 			}
-			.listener(_coupon, SWT.Modify, &updateCouponType);
+			.listener(_coupon, SWT.Modify, {
+				updateCouponType();
+				_couponUpdated = true;
+			});
 			updateCouponTypeImpl();
 		}
 
@@ -328,6 +334,7 @@ private class RangePanel : Composite {
 		refDataVersion();
 	}
 
+	@property
 	Range range() { mixin(S_TRACE);
 		foreach (range, b; _range) { mixin(S_TRACE);
 			if (b.getSelection()) return range;
@@ -335,7 +342,14 @@ private class RangePanel : Composite {
 		return _ranges[0];
 	}
 
-	string holdingCoupon() { return _coupon.getText(); }
+	@property
+	string holdingCoupon() { mixin(S_TRACE);
+		if (_couponUpdated || range is Range.COUPON_HOLDER) { mixin(S_TRACE);
+			return _coupon.getText();
+		} else { mixin(S_TRACE);
+			return _initCoupon;
+		}
+	}
 }
 
 /// 背景切替方式と背景切替速度。
@@ -1666,7 +1680,8 @@ protected:
 				{ mixin(S_TRACE);
 					auto ranges = [Range.SELECTED, Range.RANDOM, Range.PARTY, Range.COUPON_HOLDER];
 					auto title = _prop.msgs.cardEventRange;
-					_range = new RangePanel(comm, comp2, ranges, title, false, this, evt, &catchMod, &refreshWarning);
+					auto initCoupon = (evt && evt.holdingCoupon != "") ? evt.holdingCoupon : prop.sys.effectTargetCoupon;
+					_range = new RangePanel(comm, comp2, ranges, initCoupon, title, false, this, evt, &catchMod, &refreshWarning);
 					_range.setLayoutData(new GridData(GridData.FILL_BOTH));
 				}
 				{ mixin(S_TRACE);
@@ -2603,7 +2618,8 @@ protected:
 		{ mixin(S_TRACE);
 			auto ranges = [Range.SELECTED, Range.RANDOM, Range.PARTY];
 			auto title = _prop.msgs.judgeTarget;
-			_range = new RangePanel(comm, area, ranges, title, true, this, evt, &catchMod, &refreshWarning);
+			auto initCoupon = evt ? evt.holdingCoupon : "";
+			_range = new RangePanel(comm, area, ranges, initCoupon, title, true, this, evt, &catchMod, &refreshWarning);
 			_range.setLayoutData(new GridData(GridData.FILL_BOTH));
 		}
 		auto status = createStatusPane(prop, area, _stat, &mod!Button);
