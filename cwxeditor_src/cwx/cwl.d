@@ -398,6 +398,16 @@ private Range toRange(byte b) { mixin(S_TRACE);
 	default: throw new SummaryException("Unknown range: " ~ to!(string)(b));
 	}
 }
+private Range toRangeE(byte b) { mixin(S_TRACE);
+	case 0: return Range.SELECTED;
+	case 1: return Range.RANDOM;
+	case 2: return Range.PARTY;
+	case 3: return Range.SELECTED;
+	case 4: return Range.RANDOM;
+	case 5: return Range.PARTY;
+	case 6: return Range.PARTY;
+	default: throw new SummaryException("Unknown range E: " ~ to!(string)(b));
+}
 /// CardWirth 1.50
 private Range toKeyCodeRange(byte b) { mixin(S_TRACE);
 	switch (b) {
@@ -993,7 +1003,7 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			}
 			e = new Content(CType.EFFECT, name);
 			e.signedLevel = effLev;
-			e.range = toRange(effTarget);
+			e.range = toRangeE(effTarget);
 			e.effectType = toEffectType(effType);
 			e.resist = toResist(effResist);
 			e.successRate = effSuc;
@@ -1339,7 +1349,7 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			byte stat = f.readByte;
 			byte targ = f.readByte;
 			e = new Content(CType.BRANCH_STATUS, name);
-			e.range = toRange(targ);
+			e.range = toRangeE(targ);
 			e.status = toStatus(stat);
 			break;
 		}
