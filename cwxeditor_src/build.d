@@ -556,7 +556,7 @@ void build(string[] args) {
 	foreach (dir, array; files) {
 		if (!array.length) continue;
 		static if (mscoffbug) {
-			if (m64 && !console) {
+			if (m64) {
 				auto splits = new string[][SPLITS_R.length];
 				string[] array2;
 				foreach (file; array) {
