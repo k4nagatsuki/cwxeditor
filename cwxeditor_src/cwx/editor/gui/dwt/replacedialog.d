@@ -4564,6 +4564,7 @@ public:
 		if (_couponSel) { mixin(S_TRACE);
 			if (d.use(CArg.COUPON)) r |= repl(null, "", e.coupon, &e.coupon, count, uArr2);
 			if (d.use(CArg.COUPONS)) r |= replCoupons(null, "", e, count, uArr2);
+			if (d.use(CArg.HOLDING_COUPON)) r |= repl(null, "", e.holdingCoupon, &e.holdingCoupon, count, uArr2);
 		}
 		if (_gossipSel) { mixin(S_TRACE);
 			if (d.use(CArg.GOSSIP)) r |= repl(null, "", e.gossip, &e.gossip, count, uArr2);

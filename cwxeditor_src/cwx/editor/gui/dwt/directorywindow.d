@@ -1996,25 +1996,22 @@ public:
 		if (!fname) return;
 
 		try { mixin(S_TRACE);
-			switch (dlg.getFilterIndex()) {
-			case cab:
+			auto fi = dlg.getFilterIndex();
+			if (fi == cab) { mixin(S_TRACE);
 				_comm.saveSync.lock();
 				scope (exit) _comm.saveSync.unlock();
 				_summ.createCab(fname, _prop.var.etc.ignorePaths);
 				_prop.var.etc.selectedArchiveFilter = ".cab";
-				break;
-			case wsn:
+			} else if (fi == wsn) { mixin(S_TRACE);
 				_comm.saveSync.lock();
 				scope (exit) _comm.saveSync.unlock();
 				_summ.createZip(fname, _prop.var.etc.ignorePaths, false);
 				_prop.var.etc.selectedArchiveFilter = ".wsn";
-				break;
-			default:
+			} else { mixin(S_TRACE);
 				_comm.saveSync.lock();
 				scope (exit) _comm.saveSync.unlock();
 				_summ.createZip(fname, _prop.var.etc.ignorePaths, true);
 				_prop.var.etc.selectedArchiveFilter = ".zip";
-				break;
 			}
 			_prop.var.etc.archivePath = dlg.getFilterPath();
 		} catch (Exception e) {
