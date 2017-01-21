@@ -791,7 +791,7 @@
 	<dd>背景セルの置換</dd>
 	<dt class="content"><a href="#LOSEBACK">loseback <span class="args"><span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;画面切替スピード&gt;</span>, <span class="arg">&lt;切替方式&gt;</span>, <span class="arg">&lt;アニメーション有無&gt;</span>, <span class="arg">&lt;エフェクトブースター無視&gt;</span></span></a></dt>
 	<dd>背景セルの削除</dd>
-	<dt class="content"><a href="#EFFECT">effect <span class="args"> (<span class="arg">&lt;効果対象&gt;</span> | <span class="arg">coupon</span> <span class="arg">&lt;称号名&gt;</span>), <span class="array">[<span class="arg">&lt;効果種別&gt;</span>, (<span class="arg">&lt;ダメージタイプ&gt;</span>, <span class="arg">&lt;値&gt;</span> | <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;増減値&gt;</span>, <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;召喚獣ID&gt;</span>), <span class="arg">&lt;属性&gt;</span>] ...</span>, <span class="arg">&lt;視覚効果&gt;</span>, <span class="arg">&lt;効果レベル&gt;</span>, <span class="arg">&lt;成功率&gt;</span>, <span class="arg">&lt;効果属性&gt;</span>, <span class="arg">&lt;抵抗属性&gt;</span>, <span class="arg">&lt;音声パス&gt;</span>, <span class="arg">&lt;音量&gt;</span>, <span class="arg">&lt;ループ回数&gt;</span>, <span class="arg">&lt;イベント発火の有無&gt;</span>, <span class="arg">&lt;キーコード&gt;</span> ...</span></a></dt>
+	<dt class="content"><a href="#EFFECT">effect <span class="args"> (<span class="arg">&lt;効果対象&gt;</span> | <span class="arg">coupon</span> <span class="arg">&lt;称号名&gt;</span>), <span class="array">[<span class="arg">&lt;効果種別&gt;</span>, (<span class="arg">&lt;ダメージタイプ&gt;</span>, <span class="arg">&lt;値&gt;</span> | <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;増減値&gt;</span>, <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;召喚獣ID&gt;</span>), <span class="arg">&lt;属性&gt;</span>] ...</span>, <span class="arg">&lt;視覚効果&gt;</span>, <span class="arg">&lt;効果レベル&gt;</span>, <span class="arg">&lt;成功率&gt;</span>, <span class="arg">&lt;効果属性&gt;</span>, <span class="arg">&lt;抵抗属性&gt;</span>, <span class="arg">&lt;音声パス&gt;</span>, <span class="arg">&lt;音量&gt;</span>, <span class="arg">&lt;ループ回数&gt;</span>, <span class="arg">&lt;選択メンバの能力参照&gt;</span>, <span class="arg">&lt;身体的要素&gt;</span>, <span class="arg">&lt;精神的要素&gt;</span>, <span class="arg">&lt;イベント発火の有無&gt;</span>, <span class="arg">&lt;キーコード&gt;</span> ...</span></a></dt>
 	<dd>効果</dd>
 	<dt class="content"><a href="#BREA">break</a></dt>
 	<dd>イベントの中断</dd>
@@ -1296,7 +1296,7 @@
 <pre><code class="samplecode"><span class="comment">// 背景セル"blue_filter"を削除する</span>
 <span class="keywords">loseback</span> <span class="str">"blue_filter"</span></code></pre>
 
-<h3 class="content"><a id="EFFECT" name="EFFECT">effect <span class="args">(<span class="arg">&lt;効果対象&gt;</span> | <span class="arg">coupon</span> <span class="arg">&lt;称号名&gt;</span>), <span class="array">[<span class="arg">&lt;効果種別&gt;</span>, (<span class="arg">&lt;ダメージタイプ&gt;</span>, <span class="arg">&lt;値&gt;</span> | <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;増減値&gt;</span>, <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;召喚獣ID&gt;</span>), <span class="arg">&lt;属性&gt;</span>] ...</span>, <span class="arg">&lt;視覚効果&gt;</span>, <span class="arg">&lt;効果レベル&gt;</span>, <span class="arg">&lt;成功率&gt;</span>, <span class="arg">&lt;効果属性&gt;</span>, <span class="arg">&lt;抵抗属性&gt;</span>, <span class="arg">&lt;音声パス&gt;</span>, <span class="arg">&lt;音量&gt;</span>, <span class="arg">&lt;ループ回数&gt;</span>, <span class="arg">&lt;イベント発火の有無&gt;</span>, <span class="arg">&lt;キーコード&gt;</span> ...</span></a></h3>
+<h3 class="content"><a id="EFFECT" name="EFFECT">effect <span class="args">(<span class="arg">&lt;効果対象&gt;</span> | <span class="arg">coupon</span> <span class="arg">&lt;称号名&gt;</span>), <span class="array">[<span class="arg">&lt;効果種別&gt;</span>, (<span class="arg">&lt;ダメージタイプ&gt;</span>, <span class="arg">&lt;値&gt;</span> | <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;増減値&gt;</span>, <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;召喚獣ID&gt;</span>), <span class="arg">&lt;属性&gt;</span>] ...</span>, <span class="arg">&lt;視覚効果&gt;</span>, <span class="arg">&lt;効果レベル&gt;</span>, <span class="arg">&lt;成功率&gt;</span>, <span class="arg">&lt;効果属性&gt;</span>, <span class="arg">&lt;抵抗属性&gt;</span>, <span class="arg">&lt;音声パス&gt;</span>, <span class="arg">&lt;音量&gt;</span>, <span class="arg">&lt;ループ回数&gt;</span>, <span class="arg">&lt;選択メンバの能力参照&gt;</span>, <span class="arg">&lt;身体的要素&gt;</span>, <span class="arg">&lt;精神的要素&gt;</span>, <span class="arg">&lt;イベント発火の有無&gt;</span>, <span class="arg">&lt;キーコード&gt;</span> ...</span></a></h3>
 
 <p class="fullname">(Effect)</p>
 <p class="desc">パーティや選択中のメンバに対して回復やダメージ、カード配布等の効果を適用します。</p>
@@ -1444,6 +1444,7 @@
 	<dt class="keyword"><code>card</code></dt>
 	<dd class="worddesc">カードの使用対象。使用時イベント中でなければ、対象無し。</dd>
 </dl>
+<p class="desc"><em class="warning">称号所有者・カードの使用対象はWsn.2以降のWSN形式シナリオでのみ機能します。</em></p>
 <p class="desc">効果対象に<code>coupon</code>を指定した場合、称号名を文字列で指定します。</p>
 <p class="desc">効果レベルは、効果を発揮する際の判定の基準となるレベルです。整数で、マイナスの値も指定できます。省略した場合は0になります。</p>
 <p class="desc">視覚効果は、効果を受けたカードの動きです。以下の値が指定できます。省略した場合は視覚効果無しになります。</p>
@@ -1483,9 +1484,49 @@
 <p class="desc">音声パスには、効果を適用した際に鳴る効果音のファイル名を指定します。省略した場合は効果音無しになります。</p>
 <p class="desc">音量には、再生音量をパーセンテージで指定します。この音量の値はエンジンの設定を最大値としてのものなので、エンジンの音量設定が50%となっている場合、ここで50%を指定すると最終的に25%の音量となります。省略した場合は100%です。</p>
 <p class="desc">ループ回数には、この音声を何回ループ再生するかを指定します。0は無限ループです。省略した場合は1です。</p>
-<p class="desc">イベント発火の有無には、効果適用時にキーコードイベント・死亡イベントが発火する<code class="code">true</code>、発火しない<code class="code">false</code>のいずれかが指定できます。省略した場合は<code class="code">false</code>です。</p>
+<p class="desc">選択メンバの能力参照には、成功率や効果値の計算に選択メンバのレベル・能力値を参照する<code class="code">true</code>、参照しない<code class="code">false</code>のいずれかを指定します。<code class="code">true</code>を指定した場合、効果レベルは無視されます。省略した場合は<code class="code">false</code>です。</p>
+<p class="desc">身体的要素は成功率や効果値の計算に使用する能力の種類で、以下が指定できます。選択メンバの能力参照が<code class="code">false</code>の場合は無視されます。省略した場合は<code class="code">dex</code>です。</p>
+<dl>
+	<dt class="keyword"><code>dex</code></dt>
+	<dd class="worddesc">器用度。</dd>
+	<dt class="keyword"><code>agl</code></dt>
+	<dd class="worddesc">敏捷度。</dd>
+	<dt class="keyword"><code>int</code></dt>
+	<dd class="worddesc">知力。</dd>
+	<dt class="keyword"><code>str</code></dt>
+	<dd class="worddesc">筋力。</dd>
+	<dt class="keyword"><code>vit</code></dt>
+	<dd class="worddesc">生命力。</dd>
+	<dt class="keyword"><code>min</code></dt>
+	<dd class="worddesc">精神力。</dd>
+</dl>
+<p class="desc">精神的要素は成功率や効果値の計算に使用する精神傾向の種類で、以下が指定できます。選択メンバの能力参照が<code class="code">false</code>の場合は無視されます。省略した場合は<code class="code">agg</code>です。</p>
+<dl>
+	<dt class="keyword"><code>agg</code></dt>
+	<dd class="worddesc">好戦性。</dd>
+	<dt class="keyword"><code>unagg</code></dt>
+	<dd class="worddesc">平和性。</dd>
+	<dt class="keyword"><code>cheerf</code></dt>
+	<dd class="worddesc">社交性。</dd>
+	<dt class="keyword"><code>uncheerf</code></dt>
+	<dd class="worddesc">内向性。</dd>
+	<dt class="keyword"><code>brave</code></dt>
+	<dd class="worddesc">勇猛性。</dd>
+	<dt class="keyword"><code>unbrave</code></dt>
+	<dd class="worddesc">臆病性。</dd>
+	<dt class="keyword"><code>caut</code></dt>
+	<dd class="worddesc">慎重性。</dd>
+	<dt class="keyword"><code>uncaut</code></dt>
+	<dd class="worddesc">大胆性。</dd>
+	<dt class="keyword"><code>trick</code></dt>
+	<dd class="worddesc">狡猾性。</dd>
+	<dt class="keyword"><code>untrick</code></dt>
+	<dd class="worddesc">正直性。</dd>
+</dl>
+
+<p class="desc">イベント発火の有無には、効果適用時にキーコードイベント・死亡イベントが発火する<code class="code">true</code>、発火しない<code class="code">false</code>のいずれかが指定します。省略した場合は<code class="code">false</code>です。</p>
 <p class="desc">キーコードには、イベント発火に用いられるキーコードを配列で指定します。イベント発火の有無で発火しない<code class="code">false</code>を指定した場合は機能しません。省略した場合はキーコード無しになります。</p>
-<p class="desc"><em class="warning">イベント発火の有無とキーコードはWsn.2以降のWSN形式シナリオでのみ機能します。</em></p>
+<p class="desc"><em class="warning">選択メンバの能力参照・身体的要素・精神的要素・イベント発火の有無・キーコードはWsn.2以降のWSN形式シナリオでのみ機能します。</em></p>
 
 <h4 class="example">例</h4>
 

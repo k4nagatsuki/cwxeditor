@@ -1314,6 +1314,7 @@ enum CArg {
 	TARGET_IS_BEAST, /// 召喚獣カードが対象か(Wsn.2)。
 	TARGET_IS_HAND, /// 戦闘時の手札が対象か(Wsn.2)。
 	HOLDING_COUPON, /// 範囲で称号所持者を指定した時の称号名(Wsn.2)。
+	REF_ABILITY, /// 選択メンバの能力参照(Wsn.2)。
 }
 
 /// 後続コンテントのnameの型。

@@ -1649,6 +1649,7 @@ fi`;
 			if (r.length > 0 && tok.kind is Kind.COMMA) { mixin(S_TRACE);
 				lastKind = Kind.COMMA;
 				i++;
+				if (tokens.length <= i) return r;
 				tok = tokens[i];
 			}
 			void putArray(ref Node node) { mixin(S_TRACE);
@@ -2794,12 +2795,6 @@ fi`;
 			if (detail.use(CArg.LEVEL_MAX)) { mixin(S_TRACE);
 				c.levelMax = parseAttr!(int)(opt, node.attr, i, c.levelMax, varTable, 0);
 			}
-			if (detail.use(CArg.PHYSICAL)) { mixin(S_TRACE);
-				c.physical = parseAttr!(Physical)(opt, node.attr, i, c.physical, varTable, 0);
-			}
-			if (detail.use(CArg.MENTAL)) { mixin(S_TRACE);
-				c.mental = parseAttr!(Mental)(opt, node.attr, i, c.mental, varTable, 0);
-			}
 			if (detail.use(CArg.WAIT)) { mixin(S_TRACE);
 				c.wait = parseAttr!(int)(opt, node.attr, i, c.wait, varTable, 0);
 			}
@@ -2859,6 +2854,15 @@ fi`;
 			}
 			if (detail.use(CArg.SOUND_LOOP_COUNT)) { mixin(S_TRACE);
 				c.soundLoopCount = parseAttr!(int)(opt, node.attr, i, c.soundLoopCount, varTable, 0);
+			}
+			if (detail.use(CArg.REF_ABILITY)) { mixin(S_TRACE);
+				c.refAbility = parseAttr!(bool)(opt, node.attr, i, c.refAbility, varTable, 0);
+			}
+			if (detail.use(CArg.PHYSICAL)) { mixin(S_TRACE);
+				c.physical = parseAttr!(Physical)(opt, node.attr, i, c.physical, varTable, 0);
+			}
+			if (detail.use(CArg.MENTAL)) { mixin(S_TRACE);
+				c.mental = parseAttr!(Mental)(opt, node.attr, i, c.mental, varTable, 0);
 			}
 			if (detail.use(CArg.ROUND)) { mixin(S_TRACE);
 				c.round = parseAttr!(int)(opt, node.attr, i, c.round, varTable, 0);
@@ -3716,12 +3720,6 @@ fi`;
 			if (detail.use(CArg.LEVEL_MAX)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.levelMax, indentValue, vars);
 			}
-			if (detail.use(CArg.PHYSICAL)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.physical, indentValue, vars);
-			}
-			if (detail.use(CArg.MENTAL)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.mental, indentValue, vars);
-			}
 			if (detail.use(CArg.WAIT)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.wait, indentValue, vars);
 			}
@@ -3785,6 +3783,15 @@ fi`;
 			}
 			if (detail.use(CArg.SOUND_LOOP_COUNT)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.soundLoopCount, indentValue, vars);
+			}
+			if (detail.use(CArg.REF_ABILITY)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.refAbility, indentValue, vars);
+			}
+			if (detail.use(CArg.PHYSICAL)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.physical, indentValue, vars);
+			}
+			if (detail.use(CArg.MENTAL)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.mental, indentValue, vars);
 			}
 			if (detail.use(CArg.ROUND)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.round, indentValue, vars);

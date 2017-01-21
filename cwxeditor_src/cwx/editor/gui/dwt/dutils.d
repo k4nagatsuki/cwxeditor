@@ -3133,14 +3133,14 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		int ts = std.math.abs(evt.successRate);
 		string tsnd = contentTextUseID!(CIDKind.SE)(comm, summ, evt.soundPath, comm.prop.msgs.ctEffectSound, evt);
 		string tcv = comm.prop.msgs.cardVisualName(evt.cardVisual);
-		string teff = "";
+		string teff = evt.motions ? "" : comm.prop.msgs.noEffect;
 		foreach (i, m; evt.motions) { mixin(S_TRACE);
 			teff ~= .tryFormat(comm.prop.msgs.ctEffectMotion, comm.prop.msgs.motionName(m.type));
 			if (i + 1 < evt.motions.length) teff ~= " ";
 		}
 		auto ignite = evt.ignite ? comm.prop.msgs.igniteTrue : comm.prop.msgs.igniteFalse;
 		string keyCode;
-		if (evt.keyCodes.length) {
+		if (evt.keyCodes.length) { mixin(S_TRACE);
 			string keyCodes = "";
 			foreach (i, kc; evt.keyCodes) { mixin(S_TRACE);
 				if (0 < i) keyCodes ~= " ";
@@ -3150,7 +3150,13 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		} else {
 			keyCode = comm.prop.msgs.ctNoKeyCode;
 		}
-		return .tryFormat(comm.prop.msgs.ctEffect, tt, tl, tet, tr, tsf, ts, tsnd, tcv, teff, ignite, keyCode);
+		if (evt.refAbility) { mixin(S_TRACE);
+			auto p = comm.prop.msgs.physicalName(evt.physical);
+			auto m = comm.prop.msgs.mentalName(evt.mental);
+			return .tryFormat(comm.prop.msgs.ctEffectRefAbility, tt, tet, tr, tsf, ts, tsnd, tcv, teff, m, p, ignite, keyCode);
+		} else { mixin(S_TRACE);
+			return .tryFormat(comm.prop.msgs.ctEffect, tt, tl, tet, tr, tsf, ts, tsnd, tcv, teff, ignite, keyCode);
+		}
 	} case CType.EFFECT_BREAK: { mixin(S_TRACE);
 		return comm.prop.msgs.ctEffectBreak;
 	} case CType.LINK_START: { mixin(S_TRACE);

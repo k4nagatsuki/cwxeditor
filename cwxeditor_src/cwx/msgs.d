@@ -578,6 +578,9 @@ class Msgs : Properties {
 	auto igniteFalse = Msg("igniteFalse", "イベント発火無し");
 	auto igniteHint = Msg("igniteHint", "※ 発火したイベント内で選択メンバが変更される可能性があります");
 
+	auto refAbilityTitle = Msg("refAbilityTitle", "能力参照");
+	auto refAbility = Msg("refAbility", "成功率と効果値の計算に選択中のメンバのレベルと能力を使用する");
+
 	/// イベント。
 	auto evtArrow = Msg("evtArrow", "イベント編集");
 
@@ -869,6 +872,7 @@ class Msgs : Properties {
 	auto ctEffectSound = Msg("ctEffectSound", "「%1$s」を再生");
 	auto ctEffectNoSound = Msg("ctEffectNoSound", "音声無し");
 	auto ctEffect = Msg("ctEffect", "%1$s レベル%2$s %3$s/%4$s 成功率%5$s%6$s %7$s %8$s 効果 = %9$s %10$s %11$s");
+	auto ctEffectRefAbility = Msg("ctEffectRefAbility", "%1$s %2$s/%3$s 成功率%4$s%5$s %6$s %7$s 効果 = %8$s 参照能力 = %9$sと%10$s %11$s %12$s");
 	auto ctEffectMotion = Msg("ctEffectMotion", "[%1$s]");
 	auto ctKeyCodes = Msg("ctKeyCodes", "キーコード = %1$s");
 	auto ctNoKeyCode = Msg("ctNoKeyCode", "キーコード無し");
@@ -1653,6 +1657,7 @@ class Msgs : Properties {
 	auto noSelectGossip = Msg("noSelectGossip", "(指定無し)");
 	auto noSelectCellName = Msg("noSelectCellName", "(指定無し)");
 	auto noSelectTarget = Msg("noSelectTarget", "(指定無し)");
+	auto noEffect = Msg("noEffect", "(指定無し)");
 
 	auto cardId = Msg("cardId", "ID");
 	auto cardName = Msg("cardName", "名称");
@@ -1827,6 +1832,7 @@ class Msgs : Properties {
 	auto warningCouponHolder = Msg("warningCouponHolder", "適用範囲 [称号所有者] の指定は、Wsn.2以降の形式のシナリオしか行なえません。"); // Wsn.2
 	auto warningNoHoldingCoupon = Msg("warningNoHoldingCoupon", "範囲指定用の称号が設定されていません。"); // Wsn.2
 	auto warningCardTarget = Msg("warningCardTarget", "適用範囲 [カードの使用対象] の指定は、Wsn.2以降の形式のシナリオしか行なえません。"); // Wsn.2
+	auto warningRefAbility = Msg("warningRefAbility", "選択メンバの能力参照は、Wsn.2以降の形式のシナリオでしか行なえません。"); // Wsn.2
 
 	auto unknownStepValue = Msg("unknownStepValue", "存在しないステップ値(%1$s)");
 

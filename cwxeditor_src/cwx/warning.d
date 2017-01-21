@@ -688,6 +688,12 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				r ~= .tryFormat(prop.msgs.warningStartAction);
 			}
 		}
+		if (cd.use(CArg.REF_ABILITY)) { mixin(S_TRACE);
+			if (c.refAbility && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+				// Wsn.1以前は選択者の能力参照は指定不可
+				r ~= .tryFormat(prop.msgs.warningRefAbility);
+			}
+		}
 		if (cd.use(CArg.IGNITE)) { mixin(S_TRACE);
 			if (c.ignite && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
 				// Wsn.1以前はイベントの発火有無は指定不可

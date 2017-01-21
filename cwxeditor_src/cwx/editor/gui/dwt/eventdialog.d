@@ -38,6 +38,7 @@ import cwx.editor.gui.dwt.incsearch;
 import cwx.editor.gui.dwt.chooser;
 import cwx.editor.gui.dwt.couponview;
 import cwx.editor.gui.dwt.keycodeview;
+import cwx.editor.gui.dwt.abilityview;
 
 import std.algorithm : countUntil;
 import std.array;
@@ -1548,6 +1549,9 @@ private:
 	Button _ignite;
 	KeyCodeView _keyCodes;
 
+	Button _refAbility;
+	AbilityView _ability;
+
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
@@ -1555,6 +1559,10 @@ private:
 		ws ~= _range.warnings;
 
 		if (summ) { mixin(S_TRACE);
+			if (_refAbility.getSelection() && !prop.isTargetVersion(summ, "2")) { mixin(S_TRACE);
+				// Wsn.1以前は選択メンバの能力参照は指定不可
+				ws ~= prop.msgs.warningRefAbility;
+			}
 			if (_ignite.getSelection() && !prop.isTargetVersion(summ, "2")) { mixin(S_TRACE);
 				// Wsn.1以前はイベント発火の有無は指定不可
 				ws ~= .tryFormat(prop.msgs.warningIgnite);
@@ -1575,6 +1583,10 @@ private:
 	override
 	protected void refDataVersion() { mixin(S_TRACE);
 		if (summ && summ.legacy) { mixin(S_TRACE);
+			if (_refAbility.getSelection()) { mixin(S_TRACE);
+				_refAbility.setSelection(false);
+				applyEnabled(true);
+			}
 			if (_ignite.getSelection()) { mixin(S_TRACE);
 				_ignite.setSelection(false);
 				applyEnabled(true);
@@ -1585,7 +1597,11 @@ private:
 	}
 
 	void updateEnabled() { mixin(S_TRACE);
+		_ignite.setEnabled(!summ || !summ.legacy);
 		_keyCodes.enabled = _ignite.getSelection() || _keyCodes.keyCodes.length;
+		_refAbility.setEnabled(!summ || !summ.legacy);
+		_ability.enabled = _refAbility.getSelection();
+		_lev.setEnabled(!_refAbility.getSelection());
 		refreshWarning();
 	}
 
@@ -1726,6 +1742,26 @@ protected:
 				}
 			}
 		}
+		auto tabA = new CTabItem(tabf, SWT.NONE);
+		tabA.setText(_prop.msgs.refAbilityTitle);
+		{ mixin(S_TRACE);
+			auto comp = new Composite(tabf, SWT.NONE);
+			tabA.setControl(comp);
+			comp.setLayout(normalGridLayout(1, true));
+			{ mixin(S_TRACE);
+				auto grp = new Group(comp, SWT.NONE);
+				grp.setText(prop.msgs.refAbilityTitle);
+				grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				grp.setLayout(normalGridLayout(1, true));
+				_refAbility = new Button(grp, SWT.CHECK);
+				mod(_refAbility);
+				_refAbility.setText(prop.msgs.refAbility);
+				.listener(_refAbility, SWT.Selection, &updateEnabled);
+			}
+			_ability = new AbilityView(_comm, comp, SWT.NONE);
+			mod(_ability);
+			_ability.setLayoutData(new GridData(GridData.FILL_BOTH));
+		}
 		auto tabE = new CTabItem(tabf, SWT.NONE);
 		tabE.setText(_prop.msgs.eventIgnite);
 		{ mixin(S_TRACE);
@@ -1776,6 +1812,9 @@ protected:
 			_effTyp[_evt.effectType].setSelection(true);
 			_res[_evt.resist].setSelection(true);
 			_vis[_evt.cardVisual].setSelection(true);
+			_refAbility.setSelection(_evt.refAbility);
+			_ability.physical = _evt.physical;
+			_ability.mental = _evt.mental;
 			_ignite.setSelection(_evt.ignite);
 			_keyCodes.keyCodes = _evt.keyCodes;
 		} else { mixin(S_TRACE);
@@ -1786,6 +1825,7 @@ protected:
 			_effTyp[EffectType.NONE].setSelection(true);
 			_res[Resist.UNFAIL].setSelection(true);
 			_vis[CardVisual.NONE].setSelection(true);
+			_refAbility.setSelection(false);
 			_ignite.setSelection(false);
 			_keyCodes.keyCodes = [];
 		}
@@ -1805,6 +1845,9 @@ protected:
 		_evt.cardVisual = getRadioValue!(CardVisual)(_vis);
 		_evt.range = _range.range;
 		_evt.holdingCoupon = _range.holdingCoupon;
+		_evt.refAbility = _refAbility.getSelection();
+		_evt.physical = _ability.physical;
+		_evt.mental = _ability.mental;
 		_evt.ignite = _ignite.getSelection();
 		_evt.keyCodes = _keyCodes.keyCodes;
 		return true;
@@ -2383,8 +2426,7 @@ private:
 	Button[Target.M] _targ;
 	// FIXME: KeyTypeにboolを使えない？
 	Button[2] _sleep;
-	Button[Physical] _phy;
-	Button[Mental] _mtl;
+	AbilityView _ability;
 
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
@@ -2436,59 +2478,21 @@ protected:
 				_sleep[0].setText(_prop.msgs.sleepEnabled);
 			}
 		}
-		{ mixin(S_TRACE);
-			auto grp = new Group(area, SWT.NONE);
-			grp.setText(_prop.msgs.aptPhysical);
-			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-			auto cl = new CenterLayout(SWT.HORIZONTAL, 0);
-			cl.fillVertical = true;
-			grp.setLayout(cl);
-			auto comp2 = new Composite(grp, SWT.NONE);
-			comp2.setLayout(normalGridLayout(1, true));
-			foreach (phy; [Physical.DEX, Physical.AGL, Physical.INT,
-					Physical.STR, Physical.VIT, Physical.MIN]) { mixin(S_TRACE);
-				auto radio = new Button(comp2, SWT.RADIO);
-				mod(radio);
-				radio.setLayoutData(new GridData(GridData.FILL_VERTICAL));
-				radio.setText(_prop.msgs.physicalName(phy));
-				_phy[phy] = radio;
-			}
-		}
-		{ mixin(S_TRACE);
-			auto grp = new Group(area, SWT.NONE);
-			grp.setText(_prop.msgs.aptMental);
-			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-			auto cl = new CenterLayout(SWT.HORIZONTAL, 0);
-			cl.fillVertical = true;
-			grp.setLayout(cl);
-			auto comp2 = new Composite(grp, SWT.NONE);
-			comp2.setLayout(normalGridLayout(2, true));
-			static const Ms = [Mental.AGGRESSIVE, Mental.UNAGGRESSIVE,
-				Mental.CHEERFUL, Mental.UNCHEERFUL,
-				Mental.BRAVE, Mental.UNBRAVE, Mental.CAUTIOUS, Mental.UNCAUTIOUS,
-				Mental.TRICKISH, Mental.UNTRICKISH];
-			foreach (i, m; Ms) { mixin(S_TRACE);
-				auto radio = new Button(comp2, SWT.RADIO);
-				mod(radio);
-				radio.setLayoutData(new GridData(GridData.FILL_BOTH));
-				radio.setText(_prop.msgs.mentalName(m));
-				_mtl[m] = radio;
-			}
-		}
+		_ability = new AbilityView(comm, area, SWT.NONE);
+		_ability.setLayoutData(new GridData(GridData.FILL_BOTH));
+
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_evt) { mixin(S_TRACE);
 			_lev.setSelection(_evt.signedLevel);
 			_targ[_evt.targetS.m].setSelection(true);
 			_sleep[_evt.targetS.sleep ? 0 : 1].setSelection(true);
-			_phy[_evt.physical].setSelection(true);
-			_mtl[_evt.mental].setSelection(true);
+			_ability.physical = _evt.physical;
+			_ability.mental = _evt.mental;
 		} else { mixin(S_TRACE);
 			_lev.setSelection(0);
 			_targ[Target.M.SELECTED].setSelection(true);
 			_sleep[1].setSelection(true);
-			_phy[Physical.DEX].setSelection(true);
-			_mtl[Mental.AGGRESSIVE].setSelection(true);
 		}
 	}
 
@@ -2497,8 +2501,8 @@ protected:
 		auto targ = Target(getRadioValue!(Target.M)(_targ), _sleep[0].getSelection());
 		_evt.signedLevel = _lev.getSelection();
 		_evt.targetS = targ;
-		_evt.physical = getRadioValue!(Physical)(_phy);
-		_evt.mental = getRadioValue!(Mental)(_mtl);
+		_evt.physical = _ability.physical;
+		_evt.mental = _ability.mental;
 		return true;
 	}
 }

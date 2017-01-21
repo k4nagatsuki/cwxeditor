@@ -129,7 +129,7 @@ private void static_this () { mixin(S_TRACE);
 		CType.CHANGE_BG_IMAGE:CDetail("Change", "BgImage", CNextType.NONE, true, [CArg.BG_IMAGES:_(null), CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed"]),
 		CType.EFFECT:CDetail("Effect", "", CNextType.NONE, true, [CArg.SIGNED_LEVEL:_("level"), CArg.RANGE:"targetm", CArg.EFFECT_TYPE:"effecttype", CArg.RESIST:"resisttype",
 			CArg.SUCCESS_RATE:"successrate", CArg.SOUND_PATH:_("sound"), CArg.SOUND_VOLUME:"volume", CArg.SOUND_LOOP_COUNT:"loopcount", CArg.CARD_VISUAL:"visual",
-			CArg.IGNITE:"ignite", CArg.HOLDING_COUPON:"holdingcoupon", CArg.KEY_CODES:null, CArg.MOTIONS:null]),
+			CArg.IGNITE:"ignite", CArg.HOLDING_COUPON:"holdingcoupon", CArg.REF_ABILITY:"refability", CArg.PHYSICAL:"physical", CArg.MENTAL:"mental", CArg.KEY_CODES:null, CArg.MOTIONS:null]),
 		CType.EFFECT_BREAK:CDetail("Effect", "Break", CNextType.NONE, false),
 		CType.LINK_START:CDetail("Link", "Start", CNextType.NONE, false, [CArg.START:"link"]),
 		CType.LINK_PACKAGE:CDetail("Link", "Package", CNextType.NONE, false, [CArg.PACKAGE:"link"]),
@@ -593,6 +593,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		this.ignite = c.ignite;
 		this.keyCodes = c.keyCodes.dup;
 		this.holdingCoupon = c.holdingCoupon;
+		this.refAbility = c.refAbility;
 
 		Motion[] motions;
 		foreach (m; c.motions) { mixin(S_TRACE);
@@ -734,6 +735,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			&& ignite == c.ignite
 			&& keyCodes == c.keyCodes
 			&& holdingCoupon == c.holdingCoupon
+			&& refAbility == c.refAbility
 
 			&& motions == c.motions
 
@@ -988,6 +990,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.IGNITE, bool, false)(d, &ignite);
 		resetValue!(CArg.KEY_CODES, string[], [])(d, &keyCodes);
 		resetValue!(CArg.HOLDING_COUPON, string, "")(d, &holdingCoupon);
+		resetValue!(CArg.REF_ABILITY, bool, false)(d, &refAbility);
 
 		resetValue!(CArg.MOTIONS, Motion[], [])(d, &motions);
 
@@ -1802,6 +1805,9 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// イベント発火のキーコード(Wsn.2)。
 	mixin Prop!(string[], "keyCodes", []);
 
+	/// 選択メンバの能力参照(Wsn.2)。
+	mixin Prop!(bool, "refAbility", false);
+
 	/// 背景画像群。
 	mixin Prop!(BgImage[], "backs", []);
 
@@ -2124,6 +2130,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		atnPut!(CArg.START_ACTION, "startAction", "")(e, d);
 		atnPut!(CArg.IGNITE, "ignite", "fromBool")(e, d);
 		atnPut!(CArg.HOLDING_COUPON, "holdingCoupon", "")(e, d);
+		atnPut!(CArg.REF_ABILITY, "refAbility", "")(e, d);
 
 		// 多少複雑なもの
 		if (d.use(CArg.MOTIONS)) { mixin(S_TRACE);
@@ -2359,6 +2366,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		cfnPut!(CArg.SELECTION_COLUMNS, "selectionColumns", "to!(uint)")(en, d, r);
 		cfnPut!(CArg.IGNITE, "ignite", "parseBool")(en, d, r);
 		cfnPut!(CArg.HOLDING_COUPON, "holdingCoupon", "")(en, d, r);
+		cfnPut!(CArg.REF_ABILITY, "refAbility", "parseBool")(en, d, r);
 
 		// CardWirthではラウンドイベントで加入したメンバは次ラウンドから
 		// 行動を開始するが、CardWirthPy 1では即時に行動していた。

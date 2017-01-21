@@ -31,6 +31,7 @@ import cwx.editor.gui.dwt.scales;
 import cwx.editor.gui.dwt.chooser;
 import cwx.editor.gui.dwt.cardpane;
 import cwx.editor.gui.dwt.keycodeview;
+import cwx.editor.gui.dwt.abilityview;
 
 import std.algorithm : max;
 import std.array;
@@ -61,8 +62,7 @@ private:
 	Button _needSpell;
 	Button[EffectType] _effTyp;
 	Button[Resist] _res;
-	Button[Physical] _phy;
-	Button[Mental] _mtl;
+	AbilityView _ability;
 	static if (is (C == SkillCard)) {
 		Spinner _level;
 		void calcPrice(int value) { mixin(S_TRACE);
@@ -459,50 +459,10 @@ private:
 	}
 	CTabItem constructApt(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout(normalGridLayout(2, false));
-		{ mixin(S_TRACE);
-			auto grp = new Group(comp, SWT.NONE);
-			grp.setText(_prop.msgs.aptPhysical);
-			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-			auto cl = new CenterLayout(SWT.HORIZONTAL, 0);
-			cl.fillVertical = true;
-			grp.setLayout(cl);
-			auto comp2 = new Composite(grp, SWT.NONE);
-			comp2.setLayout(normalGridLayout(1, true));
-			foreach (phy; [Physical.DEX, Physical.AGL, Physical.INT,
-					Physical.STR, Physical.VIT, Physical.MIN]) { mixin(S_TRACE);
-				auto radio = new Button(comp2, SWT.RADIO);
-				mod(radio);
-				radio.setEnabled(!_readOnly);
-				radio.setLayoutData(new GridData(GridData.FILL_VERTICAL));
-				radio.setText(_prop.msgs.physicalName(phy));
-				_phy[phy] = radio;
-			}
-		}
-		{ mixin(S_TRACE);
-			auto grp = new Group(comp, SWT.NONE);
-			grp.setText(_prop.msgs.aptMental);
-			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-			auto cl = new CenterLayout(SWT.HORIZONTAL, 0);
-			cl.fillVertical = true;
-			grp.setLayout(cl);
-			auto comp2 = new Composite(grp, SWT.NONE);
-			auto gl = normalGridLayout(2, true);
-			gl.horizontalSpacing = _prop.var.etc.radioGroupSeparatorWidth;
-			comp2.setLayout(gl);
-			static const Ms = [Mental.AGGRESSIVE, Mental.UNAGGRESSIVE,
-				Mental.CHEERFUL, Mental.UNCHEERFUL,
-				Mental.BRAVE, Mental.UNBRAVE, Mental.CAUTIOUS, Mental.UNCAUTIOUS,
-				Mental.TRICKISH, Mental.UNTRICKISH];
-			foreach (i, m; Ms) { mixin(S_TRACE);
-				auto radio = new Button(comp2, SWT.RADIO);
-				mod(radio);
-				radio.setEnabled(!_readOnly);
-				radio.setLayoutData(new GridData(GridData.FILL_BOTH));
-				radio.setText(_prop.msgs.mentalName(m));
-				_mtl[m] = radio;
-			}
-		}
+		comp.setLayout(normalGridLayout(1, true));
+		_ability = new AbilityView(_comm, comp, _readOnly);
+		_ability.setLayoutData(new GridData(GridData.FILL_BOTH));
+		mod(_ability);
 		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText(_prop.msgs.apt);
 		tab.setControl(comp);
@@ -903,8 +863,8 @@ protected:
 			_needSpell.setSelection(_card.spell);
 			_effTyp[_card.effectType].setSelection(true);
 			_res[_card.resist].setSelection(true);
-			_phy[_card.physical].setSelection(true);
-			_mtl[_card.mental].setSelection(true);
+			_ability.physical = _card.physical;
+			_ability.mental = _card.mental;
 			static if (is (C == SkillCard)) {
 				_level.setSelection(_card.level);
 			}
@@ -960,8 +920,6 @@ protected:
 			_author.setText(_summ.author);
 			_effTyp[EffectType.PHYSIC].setSelection(true);
 			_res[Resist.AVOID].setSelection(true);
-			_phy[Physical.DEX].setSelection(true);
-			_mtl[Mental.AGGRESSIVE].setSelection(true);
 			static if (is (C == SkillCard)) {
 				_level.setSelection(1);
 			}
@@ -1018,8 +976,8 @@ protected:
 		_card.spell = _needSpell.getSelection();
 		putRadioValue!(EffectType)(_effTyp, &_card.effectType);
 		putRadioValue!(Resist)(_res, &_card.resist);
-		putRadioValue!(Physical)(_phy, &_card.physical);
-		putRadioValue!(Mental)(_mtl, &_card.mental);
+		_card.physical = _ability.physical;
+		_card.mental = _ability.mental;
 		static if (is (C == SkillCard)) {
 			_card.level = _level.getSelection();
 		}
