@@ -2738,7 +2738,7 @@ fi`;
 			if (detail.use(CArg.COUPON)) { mixin(S_TRACE);
 				c.coupon = parseAttr!(string)(opt, node.attr, i, c.coupon, varTable, 0);
 			}
-			if (detail.use(CArg.COUPON_VALUE) && c.range is Range.COUPON_HOLDER) { mixin(S_TRACE);
+			if (detail.use(CArg.COUPON_VALUE)) { mixin(S_TRACE);
 				c.couponValue = parseAttr!(int)(opt, node.attr, i, c.couponValue, varTable, 0);
 			}
 			if (detail.use(CArg.COMPLETE_STAMP)) { mixin(S_TRACE);
