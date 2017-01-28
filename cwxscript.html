@@ -74,6 +74,7 @@
 	}
 	p.fullname {
 		margin-top: -0.7em;
+		margin-bottom: 0em;
 	}
 	h3.content {
 		font-family: monospace;
@@ -858,7 +859,7 @@
 	<dd>所持金判定分岐</dd>
 	<dt class="content"><a href="#BRCOUPON">brcoupon <span class="args"><span class="arg">&lt;判定対象&gt;</span>, <span class="arg">&lt;クーポン名&gt;</span></span></a></dt>
 	<dd>クーポン分岐</dd>
-	<dt class="content"><a href="#BRCOUPONM">brcouponm</a></dt>
+	<dt class="content"><a href="#BRCOUPONM">brcouponm</a> <span class="args"><span class="arg">&lt;判定対象&gt;</span></span></dt>
 	<dd>クーポン多岐分岐</dd>
 	<dt class="content"><a href="#BRSTAMP">brstamp <span class="args"><span class="arg">&lt;シナリオ名&gt;</span></span></a></dt>
 	<dd>終了印有無分岐</dd>
@@ -1184,6 +1185,7 @@
 
 <p class="fullname">(Move Background)</p>
 <p class="desc">背景セルの移動やサイズ変更を行います。</p>
+<p class="desc"><em class="warning">このイベントコンテントはWsn.1以降のWSN形式シナリオでしか使用できません。</em></p>
 
 <h4 class="argments">パラメータ</h4>
 
@@ -1234,6 +1236,7 @@
 
 <p class="fullname">(Replace Background)</p>
 <p class="desc">背景セルを置換します。指定されたセル名称の背景セルは削除され、削除された最初のセルがあった位置に新規セルが挿入されます。</p>
+<p class="desc"><em class="warning">このイベントコンテントはWsn.1以降のWSN形式シナリオでしか使用できません。</em></p>
 
 <h4 class="argments">パラメータ</h4>
 
@@ -1269,6 +1272,7 @@
 
 <p class="fullname">(Lose Background)</p>
 <p class="desc">背景セルを削除します。</p>
+<p class="desc"><em class="warning">このイベントコンテントはWsn.1以降のWSN形式シナリオでしか使用できません。</em></p>
 
 <h4 class="argments">パラメータ</h4>
 
@@ -2459,18 +2463,20 @@
 <h3 class="content"><a id="BRCOUPON" name="BRCOUPON">brcoupon <span class="args"><span class="arg">&lt;判定対象&gt;</span>, <span class="arg">&lt;クーポン名&gt;</span></span></a></h3>
 
 <p class="fullname">(Branch with Coupon)</p>
+<p class="desc">一人または複数のキャラクタがクーポン(称号)を所持しているかどうかで分岐を行います。</p>
 
 <h4 class="argments">パラメータ</h4>
 
-<p class="desc">クーポン(称号)を所持しているかどうかで分岐を行います。</p>
 <p class="desc">判定対象には、次のいずれかが指定できます。</p>
 <dl>
 	<dt class="keyword"><code>M</code> または <code>selected</code></dt>
-	<dd class="worddesc">選択中のメンバの所持クーポン。</dd>
+	<dd class="worddesc">選択中のメンバ。</dd>
 	<dt class="keyword"><code>R</code> または <code>one</code></dt>
-	<dd class="worddesc">誰か一人の所持クーポン。これによって判定に成功した場合、所持しているメンバが選択状態になります。</dd>
+	<dd class="worddesc">誰か一人。これによって判定に成功した場合、所持しているメンバが選択状態になります。</dd>
 	<dt class="keyword"><code>T</code> または <code>team</code></dt>
-	<dd class="worddesc">パーティ全員の所持クーポン。</dd>
+	<dd class="worddesc">パーティ全員。</dd>
+	<dt class="keyword"><code>field</code></dt>
+	<dd class="worddesc">プレイヤーカードとエネミーカードを含むフィールド全体。これによって判定に成功した場合、所持しているメンバが選択状態になります。</dd>
 </dl>
 <p class="desc">クーポン名には、文字列でクーポンの名前を指定します。</p>
 
@@ -2487,18 +2493,31 @@
     <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">// 分岐終了</span></code></pre>
 
-<h3 class="content"><a id="BRCOUPONM" name="BRCOUPONM">brcouponm</a></h3>
+<h3 class="content"><a id="BRCOUPONM" name="BRCOUPONM">brcouponm</a> <span class="args"><span class="arg">&lt;判定対象&gt;</span></span></h3>
 
 <p class="fullname">(Branch with Multiple Coupon)</p>
+<p class="desc">一人または複数のキャラクタが複数種類のクーポン(称号)を所有しているかどうかで分岐を行います。</p>
+<p class="desc"><em class="warning">このイベントコンテントはWsn.2以降のWSN形式シナリオでしか使用できません。</em></p>
 
 <h4 class="argments">パラメータ</h4>
 
-<p class="desc">選択中のメンバがクーポン(称号)を所有しているかどうかで分岐を行います。</p>
-<p class="desc"><code class="code">if-elif-fi</code>によってクーポン名を指定します。どのクーポンも所有していない場合、<span class="code">none</span>へ分岐します。</p>
+<p class="desc">判定対象には、次のいずれかが指定できます。</p>
+<dl>
+	<dt class="keyword"><code>M</code> または <code>selected</code></dt>
+	<dd class="worddesc">選択中のメンバ。</dd>
+	<dt class="keyword"><code>R</code> または <code>one</code></dt>
+	<dd class="worddesc">誰か一人。これによって判定に成功した場合、所持しているメンバが選択状態になります。</dd>
+	<dt class="keyword"><code>T</code> または <code>team</code></dt>
+	<dd class="worddesc">パーティ全員。</dd>
+	<dt class="keyword"><code>field</code></dt>
+	<dd class="worddesc">プレイヤーカードとエネミーカードを含むフィールド全体。これによって判定に成功した場合、所持しているメンバが選択状態になります。</dd>
+</dl>
+
+<p class="desc">後続コンテントに、<code class="code">if-elif-fi</code>によってクーポン名を指定します。どのクーポンの所有判定にも失敗した場合、<span class="code">none</span>へ分岐します。</p>
 
 <h4 class="example">例</h4>
 
-<pre><code class="samplecode"><span class="keywords">brcouponm</span>
+<pre><code class="samplecode"><span class="keywords">brcouponm <span class="code">M</span></span>
 <code class="code">if</code> <span class="code">"＿子供"</span>
     <span class="comment">// 選択中のメンバがクーポン「＿子供」を所持していればこちらへ分岐</span>
     <span class="comment">// ...</span>
