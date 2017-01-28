@@ -85,6 +85,7 @@ private void static_this () { mixin(S_TRACE);
 			CType.BRANCH_BEAST,
 			CType.BRANCH_MONEY,
 			CType.BRANCH_COUPON,
+			CType.BRANCH_MULTI_COUPON, // Wsn.2
 			CType.BRANCH_COMPLETE_STAMP,
 			CType.BRANCH_GOSSIP,
 			CType.BRANCH_KEY_CODE,
@@ -200,6 +201,7 @@ private void static_this () { mixin(S_TRACE);
 		CType.MOVE_BG_IMAGE:CDetail("Move", "BgImage", CNextType.NONE, true, [CArg.CELL_NAME:"cellname", CArg.POSITION_TYPE:"positiontype", CArg.X:"x", CArg.Y:"y", CArg.SIZE_TYPE:"sizetype", CArg.WIDTH:"width", CArg.HEIGHT:"height", CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed", CArg.DO_ANIME:"doanime", CArg.IGNORE_EFFECT_BOOSTER:"ignoreeffectbooster"]),
 		CType.REPLACE_BG_IMAGE:CDetail("Replace", "BgImage", CNextType.NONE, true, [CArg.CELL_NAME:"cellname", CArg.BG_IMAGES:_(null), CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed", CArg.DO_ANIME:"doanime", CArg.IGNORE_EFFECT_BOOSTER:"ignoreeffectbooster"]),
 		CType.LOSE_BG_IMAGE:CDetail("Lose", "BgImage", CNextType.NONE, true, [CArg.CELL_NAME:"cellname", CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed", CArg.DO_ANIME:"doanime", CArg.IGNORE_EFFECT_BOOSTER:"ignoreeffectbooster"]),
+		CType.BRANCH_MULTI_COUPON:CDetail("Branch", "MultiCoupon", CNextType.COUPON, true), // Wsn.2
 	];
 	foreach (cType, detail; _CONTENT_DETAILS) { mixin(S_TRACE);
 		foreach (name; detail.names) { mixin(S_TRACE);
@@ -471,7 +473,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		ICouponUser, IGossipUser, ICompleteStampUser, IKeyCodeUser,
 		ICellNameUser, IStartUser,
 		MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHolder,
-		CouponsOwner {
+		CouponsOwner, ChgCouponCallback {
 	private EventTree _tree = null;
 
 	/// 型と後続テキストnameを指定してインスタンスを生成。
@@ -1031,6 +1033,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 				_tree.startUseCounter.change(toStartId(_name.text), toStartId(name), true);
 			}
 			_name.text = name;
+
+			if (parent && parent.detail.nextType is CNextType.COUPON) { mixin(S_TRACE);
+				branchCouponCondition = name;
+			}
 		}
 	}
 	/// ditto
@@ -1128,6 +1134,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 				n.name = selectName([prop.sys.evtChildGreater, prop.sys.evtChildLesser, prop.sys.evtChildEq], prop.sys.evtChildGreater);
 			}
 		} break;
+		case CNextType.COUPON: break; // Wsn.2
 		}
 	}
 
@@ -1155,9 +1162,11 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	} body { mixin(S_TRACE);
 		if (_parent is parent) return;
 		bool oldAreaBr = _parent && _parent.detail.nextType == CNextType.ID_AREA;
-		bool oldBattleBr = _parent && _parent.detail.nextType == CNextType.ID_BATTLE;
 		bool newAreaBr = parent && parent.detail.nextType == CNextType.ID_AREA;
+		bool oldBattleBr = _parent && _parent.detail.nextType == CNextType.ID_BATTLE;
 		bool newBattleBr = parent && parent.detail.nextType == CNextType.ID_BATTLE;
+		bool oldCouponBr = _parent && _parent.detail.nextType == CNextType.COUPON;
+		bool newCouponBr = parent && parent.detail.nextType == CNextType.COUPON;
 		if (!oldAreaBr && newAreaBr) { mixin(S_TRACE);
 			if (icmp(name, "default") == 0) { mixin(S_TRACE);
 				area = 0;
@@ -1185,6 +1194,12 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			}
 		} else if (oldBattleBr && !newBattleBr) { mixin(S_TRACE);
 			battle = 0;
+		}
+		// Wsn.2
+		if (!oldCouponBr && newCouponBr) { mixin(S_TRACE);
+			branchCouponCondition = name;
+		} else if (oldCouponBr && !newCouponBr) { mixin(S_TRACE);
+			branchCouponCondition = "";
 		}
 		_parent = parent;
 	}
@@ -1814,6 +1829,9 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// 得点付きクーポン群(CardWirth 1.50)。
 	mixin Prop!(Coupon[], "coupons", []);
 
+	/// クーポン多岐分岐条件名(Wsn.2)。
+	mixin Prop!(CouponUser, string, "branchCouponCondition", "", ".coupon", ".coupon", true);
+
 	private void delegate() _change;
 	/// 変更ハンドラを登録する。
 	@property
@@ -1952,14 +1970,21 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	override bool change(KeyCodeId id) { return idChange(id); }
 	override bool change(CellNameId id) { return idChange(id); }
 
-	// テキスト内で使用されているfont_X.png等のパス。
+	override bool changeCallback(CouponId oldVal, CouponId newVal) { mixin(S_TRACE);
+		if (parent && parent.detail.nextType.COUPON && CouponId(name) == oldVal) { mixin(S_TRACE);
+			name = newVal;
+		}
+		return true;
+	}
+
+	/// テキスト内で使用されているfont_X.png等のパス。
 	@property
 	const
 	override string[] fontsInText() { mixin(S_TRACE);
 		if (!_text) return [];
 		return _text.fontsInText;
 	}
-	// テキスト内で使用されているフラグのパス。
+	/// テキスト内で使用されているフラグのパス。
 	@property
 	const
 	override string[] flagsInText() { mixin(S_TRACE);
@@ -1968,7 +1993,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		r ~= _name.flagsInText;
 		return r;
 	}
-	// テキスト内で使用されているステップのパス。
+	/// テキスト内で使用されているステップのパス。
 	@property
 	const
 	override string[] stepsInText() { mixin(S_TRACE);

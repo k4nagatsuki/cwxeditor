@@ -330,6 +330,7 @@
 					<li class="content"><a href="#BRINFO">brinfo</a></li>
 					<li class="content"><a href="#BRMONEY">brmoney</a></li>
 					<li class="content"><a href="#BRCOUPON">brcoupon</a></li>
+					<li class="content"><a href="#BRCOUPONM">brcouponm</a></li>
 					<li class="content"><a href="#BRSTAMP">brstamp</a></li>
 					<li class="content"><a href="#BRGOSSIP">brgossip</a></li>
 					<li class="content"><a href="#BRKEYCODE">brkeycode</a></li>
@@ -856,7 +857,9 @@
 	<dt class="content"><a href="#BRMONEY">brmoney <span class="args"><span class="arg">&lt;金額&gt;</span></span></a></dt>
 	<dd>所持金判定分岐</dd>
 	<dt class="content"><a href="#BRCOUPON">brcoupon <span class="args"><span class="arg">&lt;判定対象&gt;</span>, <span class="arg">&lt;クーポン名&gt;</span></span></a></dt>
-	<dd>クーポン所持分岐</dd>
+	<dd>クーポン分岐</dd>
+	<dt class="content"><a href="#BRCOUPONM">brcouponm</a></dt>
+	<dd>クーポン多岐分岐</dd>
 	<dt class="content"><a href="#BRSTAMP">brstamp <span class="args"><span class="arg">&lt;シナリオ名&gt;</span></span></a></dt>
 	<dd>終了印有無分岐</dd>
 	<dt class="content"><a href="#BRGOSSIP">brgossip <span class="args"><span class="arg">&lt;ゴシップ名&gt;</span></span></a></dt>
@@ -1832,7 +1835,7 @@
 
 <h3 class="content"><a id="BRSTEPM" name="BRSTEPM">brstepm <span class="args"><span class="arg">&lt;ステップ名&gt;</span></span></a></h3>
 
-<p class="fullname">(Branch with Step (Multi))</p>
+<p class="fullname">(Branch with Multiple Step)</p>
 <p class="desc">ステップによる多岐分岐を行います。</p>
 
 <h4 class="argments">パラメータ</h4>
@@ -2484,6 +2487,32 @@
     <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">// 分岐終了</span></code></pre>
 
+<h3 class="content"><a id="BRCOUPONM" name="BRCOUPONM">brcouponm</a></h3>
+
+<p class="fullname">(Branch with Multiple Coupon)</p>
+
+<h4 class="argments">パラメータ</h4>
+
+<p class="desc">選択中のメンバがクーポン(称号)を所有しているかどうかで分岐を行います。</p>
+<p class="desc"><code class="code">if-elif-fi</code>によってクーポン名を指定します。どのクーポンも所有していない場合、<span class="code">none</span>へ分岐します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">brcouponm</span>
+<code class="code">if</code> <span class="code">"＿子供"</span>
+    <span class="comment">// 選択中のメンバがクーポン「＿子供」を所持していればこちらへ分岐</span>
+    <span class="comment">// ...</span>
+    <span class="keywords">break</span>
+<code class="code">elif</code> <span class="code">"＿若者"</span>
+    <span class="comment">// 「＿若者」を所持していればこちらへ分岐</span>
+    <span class="comment">// ...</span>
+    <span class="keywords">break</span>
+<code class="code">elif</code> <span class="code">none</span>
+    <span class="comment">// どれも所持していない場合</span>
+    <span class="comment">// ...</span>
+    <span class="keywords">break</span>
+<code class="code">fi</code> <span class="comment">// 分岐終了</span></code></pre>
+
 <h3 class="content"><a id="BRSTAMP" name="BRSTAMP">brstamp <span class="args"><span class="arg">&lt;シナリオ名&gt;</span></span></a></h3>
 
 <p class="fullname">(Branch with Complete Stamp)</p>
@@ -3105,6 +3134,7 @@ brbeast
 brcast
 brcount
 brcoupon
+brcouponm
 break
 brflag
 brgossip

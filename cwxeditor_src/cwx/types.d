@@ -1190,26 +1190,28 @@ enum CType {
 	SHOW_PARTY,
 	HIDE_PARTY,
 	REDISPLAY,
-	SUBSTITUTE_STEP, /// ステップ代入(CardWirth Extender 1.30～)。
-	SUBSTITUTE_FLAG, /// フラグ代入(CardWirth Extender 1.30～)。
-	BRANCH_STEP_CMP, /// ステップ値分岐(CardWirth Extender 1.30～)。
-	BRANCH_FLAG_CMP, /// フラグ値分岐(CardWirth Extender 1.30～)。
-	BRANCH_RANDOM_SELECT, /// ランダム選択(CardWirth Extender 1.30～)。
+	SUBSTITUTE_STEP, /// ステップ代入(CardWirth Extender 1.30)。
+	SUBSTITUTE_FLAG, /// フラグ代入(CardWirth Extender 1.30)。
+	BRANCH_STEP_CMP, /// ステップ値分岐(CardWirth Extender 1.30)。
+	BRANCH_FLAG_CMP, /// フラグ値分岐(CardWirth Extender 1.30)。
+	BRANCH_RANDOM_SELECT, /// ランダム選択(CardWirth Extender 1.30)。
 	BRANCH_KEY_CODE, /// キーコード所持分岐(CardWirth 1.50)。
 	CHECK_STEP, /// ステップ判定(CardWirth 1.50)。
 	BRANCH_ROUND, /// ラウンド分岐(CardWirth 1.50)。
 	MOVE_BG_IMAGE, /// 背景再配置(Wsn.1)。
 	REPLACE_BG_IMAGE, /// 背景置換(Wsn.1)。
 	LOSE_BG_IMAGE, /// 背景削除(Wsn.1)。
+	BRANCH_MULTI_COUPON, /// クーポン多岐分岐(Wsn.2)。
 }
 
 /// WSN形式のシナリオでのみ使用できるイベントコンテントか。
 @property
 bool isWsnContent(CType cType) { mixin(S_TRACE);
 	with (CType) switch (cType) {
-	case MOVE_BG_IMAGE:
-	case REPLACE_BG_IMAGE:
-	case LOSE_BG_IMAGE:
+	case MOVE_BG_IMAGE: // Wsn.1
+	case REPLACE_BG_IMAGE: // Wsn.1
+	case LOSE_BG_IMAGE: // Wsn.1
+	case BRANCH_MULTI_COUPON: // Wsn.2
 		return true;
 	default:
 		return false;
@@ -1325,7 +1327,8 @@ enum CNextType {
 	STEP, /// ステップ値。
 	ID_AREA, /// エリアID。
 	ID_BATTLE, /// バトルID。
-	TRIO, /// 大なり、少なり、一致(CardWirth Extender 1.30～)。
+	TRIO, /// 大なり、少なり、一致(CardWirth Extender 1.30)。
+	COUPON, /// 称号(Wsn.2)。
 }
 /// ditto
 CNextType toCNextType(string name) { mixin(S_TRACE);
@@ -1337,6 +1340,7 @@ CNextType toCNextType(string name) { mixin(S_TRACE);
 	case "IdArea": return CNextType.ID_AREA;
 	case "IdBattle": return CNextType.ID_BATTLE;
 	case "Trio": return CNextType.TRIO;
+	case "Coupon": return CNextType.COUPON;
 	default: throw new Exception("Unknown content next type: " ~ name);
 	}
 }
@@ -1350,6 +1354,7 @@ string fromCNextType(CNextType t) { mixin(S_TRACE);
 	case CNextType.ID_AREA: return "IdArea";
 	case CNextType.ID_BATTLE: return "IdBattle";
 	case CNextType.TRIO: return "Trio";
+	case CNextType.COUPON: return "Coupon";
 	}
 }
 

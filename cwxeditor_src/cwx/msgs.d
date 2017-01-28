@@ -668,9 +668,10 @@ class Msgs : Properties {
 	auto contentNameBranchKeyCode = Msg("contentNameBranchKeyCode", "キーコード所持分岐");
 	auto contentNameCheckStep = Msg("contentNameCheckStep", "ステップ判定");
 	auto contentNameBranchRound = Msg("contentNameBranchRound", "ラウンド分岐");
-	auto contentNameMoveBgImage = Msg("contentNameMoveBgImage", "背景再配置");
-	auto contentNameReplaceBgImage = Msg("contentNameReplaceBgImage", "背景置換");
-	auto contentNameLoseBgImage = Msg("contentNameLoseBgImage", "背景削除");
+	auto contentNameMoveBgImage = Msg("contentNameMoveBgImage", "背景再配置"); // Wsn.1
+	auto contentNameReplaceBgImage = Msg("contentNameReplaceBgImage", "背景置換"); // Wsn.1
+	auto contentNameLoseBgImage = Msg("contentNameLoseBgImage", "背景削除"); // Wsn.1
+	auto contentNameBranchMultiCoupon = Msg("contentNameBranchMultiCoupon", "クーポン多岐分岐"); // Wsn.2
 
 	const string contentDesc(CType id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(CType, "contentDesc"));
@@ -749,9 +750,10 @@ class Msgs : Properties {
 	auto contentDescBranchKeyCode = Msg("contentDescBranchKeyCode", "キャラクタ・荷物袋・パーティ全体で任意のキーコードを持つカードを所持しているかいないかによって処理を分岐させます。該当カードを所持しているキャラクタは選択状態になります。");
 	auto contentDescCheckStep = Msg("contentDescCheckStep", "任意のステップが指定された状態の時だけ後続のイベントを実行します。メッセージや台詞の選択肢として使用した場合は、条件を満たす時だけ選択肢が表示されます。");
 	auto contentDescBranchRound = Msg("contentDescBranchRound", "現在のバトルのラウンド数が任意の値以上・未満のどちらかによって処理を分岐させます。バトル中でない場合は、常に未満側へ分岐します。");
-	auto contentDescMoveBgImage = Msg("contentDescMoveBgImage", "セル名称のつけられた背景セルを移動・サイズ変更します。");
-	auto contentDescReplaceBgImage = Msg("contentDescReplaceBgImage", "セル名称のつけられた背景セルを新しい背景セルに置換します。");
-	auto contentDescLoseBgImage = Msg("contentDescLoseBgImage", "セル名称のつけられた背景セルを削除します。");
+	auto contentDescMoveBgImage = Msg("contentDescMoveBgImage", "セル名称のつけられた背景セルを移動・サイズ変更します。"); // Wsn.1
+	auto contentDescReplaceBgImage = Msg("contentDescReplaceBgImage", "セル名称のつけられた背景セルを新しい背景セルに置換します。"); // Wsn.1
+	auto contentDescLoseBgImage = Msg("contentDescLoseBgImage", "セル名称のつけられた背景セルを削除します。"); // Wsn.1
+	auto contentDescBranchMultiCoupon = Msg("contentDescBranchMultiCoupon", "選択中のメンバがどのクーポン(称号)を所有しているかによって処理を分岐させます。どれも所有していない場合は「全て所有していない」へ分岐します。"); // Wsn.2
 	auto contentDescWsnN = Msg("contentDescWsnN", "%1$sWsn.%2$s以降のシナリオ形式で使用可能です。");
 
 	auto msnGroupVitality = Msg("msnGroupVitality", "生命力");
@@ -983,6 +985,7 @@ class Msgs : Properties {
 	auto ctReplaceBgImageClassic = Msg("ctReplaceBgImageClassic", "背景「%1$s」を置換(背景ファイル = %2$s)");
 	auto ctLoseBgImage = Msg("ctLoseBgImage", "背景「%1$s」を削除(切替方式 = %2$s ウェイト = %3$s)");
 	auto ctLoseBgImageClassic = Msg("ctLoseBgImageClassic", "背景「%1$s」を削除");
+	auto ctBranchMultiCoupon = Msg("ctBranchMultiCoupon", "クーポン多岐分岐コンテント"); // Wsn.2
 
 	auto nameWithID = Msg("nameWithID", "%1$s.%2$s");
 
@@ -1331,6 +1334,8 @@ class Msgs : Properties {
 	auto targetIsHand = Msg("targetIsHand", "手札");
 	auto targetSeparator = Msg("targetSeparator", "・");
 	auto branchRound = Msg("branchRound", "バトルが%1$sラウンド%2$s");
+	auto branchMultiCouponSuccess = Msg("branchMultiCouponSuccess", "選択メンバが称号「%1$s」を所有している"); // Wsn.2
+	auto branchMultiCouponFailure = Msg("branchMultiCouponFailure", "全て所有していない"); // Wsn.2
 
 	const string physicalName(Physical id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(Physical, "physicalName"));

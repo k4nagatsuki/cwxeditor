@@ -131,6 +131,8 @@ alias TChgCallback!(FlagId) ChgFlagCallback;
 alias TChgCallback!(StepId) ChgStepCallback;
 /// ditto
 alias TChgCallback!(PathId) ChgPathCallback;
+/// ditto
+alias TChgCallback!(CouponId) ChgCouponCallback;
 
 /// テキストをそのままキーとする場合のメソッド群を実装する。
 private mixin template StringId() {
@@ -804,7 +806,7 @@ public:
 				return;
 			}
 		}
-		path = cast(string) newVal;
+		path = cast(string)newVal;
 	}
 
 	/// ファイルパスを設定する。
@@ -1300,7 +1302,13 @@ public:
 	/// coupon = クーポン。
 	@property
 	void coupon(string coupon) { mixin(S_TRACE);
-		if (_coupon != coupon) changed();
+		if (_coupon == coupon) return;
+		changed();
+		if (cast(ChgCouponCallback)_cwxPath) { mixin(S_TRACE);
+			if (!(cast(ChgCouponCallback)_cwxPath).changeCallback(CouponId(_coupon), CouponId(coupon))) { mixin(S_TRACE);
+				return;
+			}
+		}
 		if (_uc !is null) { mixin(S_TRACE);
 			if (_coupon != "") _uc.coupon.remove(toCouponId(_coupon), this);
 			if (coupon != "") _uc.coupon.add(toCouponId(coupon), this);
@@ -1337,7 +1345,13 @@ public:
 		_uc = null;
 	}
 	override bool change(CouponId newVal) { mixin(S_TRACE);
-		if (_coupon != newVal.id) changed();
+		if (_coupon == newVal.id) return true;
+		changed();
+		if (cast(ChgCouponCallback)_cwxPath) { mixin(S_TRACE);
+			if (!(cast(ChgCouponCallback)_cwxPath).changeCallback(CouponId(_coupon), newVal)) { mixin(S_TRACE);
+				return false;
+			}
+		}
 		_coupon = newVal.id;
 		return true;
 	}

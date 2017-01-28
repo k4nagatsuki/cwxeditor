@@ -4536,7 +4536,8 @@ public:
 		assert (!eo || eo.detail.owner);
 		bool r = false;
 		Undo[] uArr2;
-		if (_eventSel && eo && eo.detail.nextType == CNextType.TEXT) { mixin(S_TRACE);
+		if ((_eventSel && eo && eo.detail.nextType == CNextType.TEXT)
+				|| (_couponSel && eo && eo.detail.nextType == CNextType.COUPON)) { mixin(S_TRACE);
 			r |= repl(null, "", e.name, &e.name, count, uArr2);
 		}
 		if (_flagSel) { mixin(S_TRACE);

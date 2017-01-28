@@ -3553,6 +3553,8 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 			string ts = comm.prop.msgs.transitionName(evt.transition);
 			return .tryFormat(comm.prop.msgs.ctLoseBgImage, cellName, ts, evt.transitionSpeed);
 		}
+	} case CType.BRANCH_MULTI_COUPON: { mixin(S_TRACE);
+		return comm.prop.msgs.ctBranchMultiCoupon;
 	}
 	}
 }

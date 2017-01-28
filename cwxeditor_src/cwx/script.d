@@ -1080,9 +1080,10 @@ class CWXScript {
 			cast(string) "brkeycode":CType.BRANCH_KEY_CODE,
 			cast(string) "chkstep":CType.CHECK_STEP,
 			cast(string) "brround":CType.BRANCH_ROUND,
-			cast(string) "mvback":CType.MOVE_BG_IMAGE,
-			cast(string) "rplback":CType.REPLACE_BG_IMAGE,
-			cast(string) "loseback":CType.LOSE_BG_IMAGE,
+			cast(string) "mvback":CType.MOVE_BG_IMAGE, // Wsn.1
+			cast(string) "rplback":CType.REPLACE_BG_IMAGE, // Wsn.1
+			cast(string) "loseback":CType.LOSE_BG_IMAGE, // Wsn.1
+			cast(string) "brcouponm":CType.BRANCH_MULTI_COUPON, // Wsn.2
 		];
 		string[CType] commands;
 		foreach (name, type; keywords) { mixin(S_TRACE);
@@ -2519,6 +2520,9 @@ fi`;
 			case "cancel", "under", "false", "failure", "no", "hasnot", "off":
 				r = _prop.sys.evtChildFalse;
 				break;
+			case "none":
+				r = "";
+				break;
 			default:
 				throwError(_prop.msgs.scriptErrorUndefinedSymbol, node.token);
 			}
@@ -3876,6 +3880,9 @@ fi`;
 					break;
 				case CNextType.TRIO:
 					buf ~= createString(chld.name);
+					break;
+				case CNextType.COUPON: // Wsn.2
+					buf ~= chld.name == "" ? "none" : createString(chld.name);
 					break;
 				}
 			}

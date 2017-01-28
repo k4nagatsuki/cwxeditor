@@ -276,9 +276,10 @@ public:
 		case CType.BRANCH_KEY_CODE: return imgd!("evt_br_keycode.png");
 		case CType.CHECK_STEP: return imgd!("evt_check_step.png");
 		case CType.BRANCH_ROUND: return imgd!("evt_br_round.png");
-		case CType.MOVE_BG_IMAGE: return imgd!("evt_mv_back.png");
-		case CType.REPLACE_BG_IMAGE: return imgd!("evt_rpl_back.png");
-		case CType.LOSE_BG_IMAGE: return imgd!("evt_lose_back.png");
+		case CType.MOVE_BG_IMAGE: return imgd!("evt_mv_back.png"); // Wsn.1
+		case CType.REPLACE_BG_IMAGE: return imgd!("evt_rpl_back.png"); // Wsn.1
+		case CType.LOSE_BG_IMAGE: return imgd!("evt_lose_back.png"); // Wsn.1
+		case CType.BRANCH_MULTI_COUPON: return imgd!("evt_br_multi_coupon.png"); // Wsn.2
 		}
 	}
 

@@ -33,6 +33,7 @@ import cwx.skin;
 import cwx.imagesize;
 import cwx.structs;
 import cwx.system;
+import cwx.props;
 
 import std.algorithm : min;
 static import std.algorithm;
@@ -2175,7 +2176,7 @@ bool isDebugYado(const System sys, string yadoDir) { mixin(S_TRACE);
 }
 
 struct SData {
-	const System sys;
+	const CProps prop;
 	string sPath;
 	const Skin skin;
 	bool saveInnerImagePath;
@@ -2198,7 +2199,7 @@ struct SData {
 	}
 }
 /// 4.0形式のCardWirthシナリオを保存する。
-void saveLScenario(Summary summ, const Skin skin, const System sys, in SaveOption opt) { mixin(S_TRACE);
+void saveLScenario(Summary summ, const Skin skin, const CProps prop, in SaveOption opt) { mixin(S_TRACE);
 	HashSet!Object changed = null;
 	if (opt.saveChangedOnly) changed = summ.changedResources;
 
@@ -2214,7 +2215,7 @@ void saveLScenario(Summary summ, const Skin skin, const System sys, in SaveOptio
 		InfoCard[] infos;
 		string[] wids;
 		this () {
-			d = SData(sys, summ.scenarioPath, skin, opt.saveInnerImagePath, (id) => summ.skill(id), (id) => summ.item(id), (id) => summ.beast(id), opt);
+			d = SData(prop, summ.scenarioPath, skin, opt.saveInnerImagePath, (id) => summ.skill(id), (id) => summ.item(id), (id) => summ.beast(id), opt);
 		}
 		void writeFile(CWXPath a, string name, void delegate(ref ByteIO f) write) { mixin(S_TRACE);
 			auto file = "~" ~ name;
@@ -3120,9 +3121,13 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 		case CType.BRANCH_KEY_CODE: type = 71; break;
 		case CType.CHECK_STEP: type = 72; break;
 		case CType.BRANCH_ROUND: type = 73; break;
-		case CType.MOVE_BG_IMAGE: type = 74; break;
+/+		case CType.MOVE_BG_IMAGE: type = 74; break;
 		case CType.LOSE_BG_IMAGE: type = 75; break;
 		case CType.REPLACE_BG_IMAGE: type = 76; break;
++/		case CType.MOVE_BG_IMAGE: type = 6; break; // Wsn.1
+		case CType.LOSE_BG_IMAGE: type = 6; break; // Wsn.1
+		case CType.REPLACE_BG_IMAGE: type = 6; break; // Wsn.1
+		case CType.BRANCH_MULTI_COUPON: type = 6; break; // Wsn.2
 		}
 		f.write(type);
 		string name = e2.name;
@@ -3478,7 +3483,7 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 			f.write(fromComparison3(e.comparison3));
 			f.writeL(cast(uint) e.round);
 			break;
-		case CType.MOVE_BG_IMAGE:
+/+		case CType.MOVE_BG_IMAGE:
 			writeExString(f, e.cellName);
 			ubyte ctrl = 0b00;
 			if (e.positionType !is CoordinateType.None) { mixin(S_TRACE);
@@ -3505,6 +3510,14 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 		case CType.REPLACE_BG_IMAGE:
 			writeExString(f, e.cellName);
 			writeBgImages(d, f, e.backs, true);
+			break;
++/		case CType.MOVE_BG_IMAGE: // Wsn.1
+		case CType.LOSE_BG_IMAGE: // Wsn.1
+		case CType.REPLACE_BG_IMAGE: // Wsn.1
+		case CType.BRANCH_MULTI_COUPON: // Wsn.2
+			// 非対応コンテントはメッセージコンテントの内容に説明を書いたものに置換する
+			writeString(f, "");
+			writeString(f, lastRet(d.prop.msgs.contentName(e.type)), true);
 			break;
 		}
 	}
@@ -3535,7 +3548,7 @@ private void writeEventTree(ref SData d, ref ByteIO f, EventTree tree) { mixin(S
 	}
 	string[] keyCodes;
 	foreach (keyCode; tree.keyCodes) { mixin(S_TRACE);
-		keyCodes ~= d.sys.convFireKeyCode(keyCode);
+		keyCodes ~= d.prop.sys.convFireKeyCode(keyCode);
 	}
 	if (KeyCodeMatchingType.And is tree.keyCodeMatchingType) { mixin(S_TRACE);
 		// CardWirth 1.50

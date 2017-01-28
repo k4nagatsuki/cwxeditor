@@ -2547,7 +2547,7 @@ public:
 				auto oldPath = scenarioPath;
 				scenarioPath = sPath;
 				scope (failure) scenarioPath = oldPath;
-				saveLScenario(this, skin, prop.sys, opt);
+				saveLScenario(this, skin, prop, opt);
 				bool useTemp = archive;
 				.enforce(useTemp == (0 < zipName.length));
 				if (useTemp) { mixin(S_TRACE);

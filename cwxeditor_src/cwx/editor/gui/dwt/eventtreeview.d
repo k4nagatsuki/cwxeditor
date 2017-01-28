@@ -38,6 +38,7 @@ import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.smalldialogs;
 import cwx.editor.gui.dwt.eventeditor;
 import cwx.editor.gui.dwt.eventview;
+import cwx.editor.gui.dwt.chooser;
 
 import std.algorithm;
 import std.array : array, replace, replicate;
@@ -874,6 +875,7 @@ private:
 		case CType.BRANCH_IS_BATTLE:
 		case CType.SHOW_PARTY:
 		case CType.HIDE_PARTY:
+		case CType.BRANCH_MULTI_COUPON:
 			return false;
 		default:
 			return true;
@@ -1454,13 +1456,17 @@ private:
 			return null;
 		}
 	}
+	private bool nTypeIsText(CNextType type) { mixin(S_TRACE);
+		return type is CNextType.TEXT || type is CNextType.COUPON;
+	}
 	private void adjustText(in Content owner, Content evt, string lastNextType) { mixin(S_TRACE);
 		if (_readOnly) return;
 		if (!_prop.var.etc.adjustContentName) return;
-		if (lastNextType != "" && owner.detail.nextType !is toCNextType(lastNextType)) { mixin(S_TRACE);
+		if (lastNextType != "" && owner.detail.nextType !is toCNextType(lastNextType)
+				&& !(nTypeIsText(owner.detail.nextType) && nTypeIsText(toCNextType(lastNextType)))) { mixin(S_TRACE);
 			// 後続タイプが異なるので一端後続テキストをクリア
 			evt.setName(_prop.parent, "");
-		} else if (owner.detail.nextType !is CNextType.TEXT) { mixin(S_TRACE);
+		} else if (owner.detail.nextType !is CNextType.TEXT && owner.detail.nextType !is CNextType.COUPON) { mixin(S_TRACE);
 			foreach (ct; owner.next) { mixin(S_TRACE);
 				if (ct.name == evt.name) { mixin(S_TRACE);
 					// すでに同じテキストの後続コンテントがいるので
@@ -2422,6 +2428,7 @@ public:
 	}
 	private void editEnd(Item itm, Control c) { mixin(S_TRACE);
 		if (_readOnly) return;
+		if (_ee) _ee.minimumWidth = SWT.DEFAULT;
 		auto t = cast(Text)c;
 		auto evt = (cast(Content)itm.getData());
 		auto vs = views();
@@ -2453,7 +2460,7 @@ public:
 				}
 			}
 		} else { mixin(S_TRACE);
-			auto combo = cast(Combo) c;
+			auto combo = cast(Combo)c;
 			int index = combo.getSelectionIndex();
 			auto data = cast(Content)_tree.getParentItem(itm).getData();
 			string name;
@@ -2496,6 +2503,9 @@ public:
 				default:
 					assert (0);
 				}
+				break;
+			} case CType.BRANCH_MULTI_COUPON: { mixin(S_TRACE);
+				name = combo.getText();
 				break;
 			} default:
 				assert (combo.getItemCount() == 2);
@@ -2590,6 +2600,11 @@ public:
 		}
 		return createComboEditor(_comm, _prop, _tree.control, vals, vals[index]);
 	}
+	private Combo createCouponEditor(string coupon) { mixin(S_TRACE);
+		if (_readOnly) return null;
+		if (_ee) _ee.minimumWidth = _prop.var.etc.couponWidth;
+		return createCouponCombo!Combo(_comm, _summ, _tree.control, null, CouponComboType.AllCoupons, coupon);
+	}
 	private Control createEditor(TreeItem itm) { mixin(S_TRACE);
 		return createEditor(cast(Item)itm);
 	}
@@ -2667,6 +2682,8 @@ public:
 			return createBoolEditor!("evtChildBrKeyCode(_prop, evt, name)")(data, c);
 		} case CType.BRANCH_ROUND: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrRound(_prop, evt, name)")(data, c);
+		} case CType.BRANCH_MULTI_COUPON: { mixin(S_TRACE);
+			return createCouponEditor(c.name);
 		} default:
 		}
 		return null;
@@ -3838,6 +3855,13 @@ string eventText(Commons comm, Summary summ, Content parent, Content e, bool rea
 			return simpleFormatMsg(e.name, flags, steps, names);
 		} else { mixin(S_TRACE);
 			return e.name;
+		}
+	}
+	if (parent.detail.nextType == CNextType.COUPON) { mixin(S_TRACE);
+		if (e.name == "") { mixin(S_TRACE);
+			return comm.prop.msgs.branchMultiCouponFailure;
+		} else { mixin(S_TRACE);
+			return .tryFormat(comm.prop.msgs.branchMultiCouponSuccess, e.name);
 		}
 	}
 	string name = e.name;

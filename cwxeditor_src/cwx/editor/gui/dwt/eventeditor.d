@@ -35,6 +35,7 @@ private class PosInfo {
 	int eventTextWidth;
 	int commentLineX = 0;
 	Rectangle commentRect = null;
+	bool nameVisible = true;
 
 	this (int depth1, int depth2, int relY, int height, int index, int lineNumber, Content content, string eventText, int eventTextWidth) {
 		this.depth1 = depth1;
@@ -1310,6 +1311,11 @@ class EventEditor : Composite {
 		});
 	}
 
+	private void nameVisible(int index, bool visible) { mixin(S_TRACE);
+		_pos[index].nameVisible = visible;
+		redraw();
+	}
+
 	private void onPaint(Event e) { mixin(S_TRACE);
 		if (!_et) return;
 		updatePosImpl2(true);
@@ -1470,6 +1476,7 @@ class EventEditor : Composite {
 			auto startInfo = possInfo[i];
 			auto image = _comm.prop.images.content(c.type);
 			e.gc.drawImage(image, calcX(pos) - sx, (startInfo.y + pos.relY) + _imgPos - sy);
+			if (!pos.nameVisible) continue;
 			string s;
 			if (c.name == "" && c.parent && c.parent.detail.nextType == CNextType.TEXT) { mixin(S_TRACE);
 				e.gc.setForeground(d.getSystemColor(SWT.COLOR_GRAY));
@@ -1875,6 +1882,8 @@ private:
 	Control _editor = null;
 	EventEditorItem _edit = null;
 	int _oldIndex = -1;
+	int _editIndex = -1;
+	int _minimumWidth = SWT.DEFAULT;
 
 	void delegate(EventEditorItem itm, Control ctrl) _editEnd;
 	Control delegate(EventEditorItem itm) _createEditor;
@@ -1904,6 +1913,8 @@ private:
 		_edit = null;
 		_editor = null;
 		_oldIndex = -1;
+		_list.nameVisible(_editIndex, true);
+		_editIndex = -1;
 	}
 
 	void startEdit(Item itm) { mixin(S_TRACE);
@@ -1922,9 +1933,9 @@ private:
 		int scrPos = _list.getVerticalBar().getSelection();
 		if (scrPos == _oldIndex) return;
 		_oldIndex = scrPos;
-		auto index = _list.indexOf(cast(Content)_edit.getData());
-		auto size = _editor.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-		auto pos = _list._pos[index];
+		_editIndex = _list.indexOf(cast(Content)_edit.getData());
+		auto size = _editor.computeSize(_minimumWidth, SWT.DEFAULT);
+		auto pos = _list._pos[_editIndex];
 		auto sy = _list.getVerticalBar().getSelection() * _list._lineHeight;
 		int x = _list.calcX(pos) + 20.ppis;
 		int w;
@@ -1939,6 +1950,7 @@ private:
 		auto startInfo = _list._startInfos[pos.content.parentStart.eventId];
 		int y = (startInfo.y + pos.relY) + (_list._lineHeight - h) / 2 - sy;
 		_editor.setBounds(x, y, w, h);
+		_list.nameVisible(_editIndex, false);
 	}
 public:
 	/// list = テキスト編集対象のEventEditor。
@@ -1965,6 +1977,9 @@ public:
 		if (sels.length == 1) { mixin(S_TRACE);
 			startEdit(sels[0]);
 		}
+	}
+	void minimumWidth(int minimumWidth) {
+		_minimumWidth = minimumWidth;
 	}
 	bool isEditing() { mixin(S_TRACE);
 		return _tee !is null;
