@@ -126,6 +126,10 @@ interface TChgCallback(T) {
 	bool changeCallback(T, T);
 }
 /// ditto
+alias TChgCallback!(AreaId) ChgAreaCallback;
+/// ditto
+alias TChgCallback!(BattleId) ChgBattleCallback;
+/// ditto
 alias TChgCallback!(FlagId) ChgFlagCallback;
 /// ditto
 alias TChgCallback!(StepId) ChgStepCallback;
@@ -434,12 +438,16 @@ private:
 	UseCounter _uc;
 	ulong _id = 0;
 	IAreaUser _cwxPath;
+	bool _callback;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (IAreaUser cwxPath) {_cwxPath = cwxPath;}
+	this (IAreaUser cwxPath, bool callback = false) { mixin(S_TRACE);
+		_cwxPath = cwxPath;
+		_callback = callback;
+	}
 	/// このオブジェクトの所有者。
 	@property
-	IAreaUser owner() {return _cwxPath;}
+	IAreaUser owner() { return _cwxPath; }
 
 	/// IDを設定する。
 	@property
@@ -452,7 +460,13 @@ public:
 	/// id = エリアID。
 	@property
 	void area(ulong id) { mixin(S_TRACE);
-		if (_id != id) changed();
+		if (_id == id) return;
+		changed();
+		if (_callback && cast(ChgAreaCallback)_cwxPath) { mixin(S_TRACE);
+			if (!(cast(ChgAreaCallback)_cwxPath).changeCallback(toAreaId(_id), toAreaId(id))) { mixin(S_TRACE);
+				return;
+			}
+		}
 		if (_uc !is null) { mixin(S_TRACE);
 			if (_id > 0) _uc.area.remove(toAreaId(_id), this);
 			if (id > 0) _uc.area.add(toAreaId(id), this);
@@ -489,7 +503,13 @@ public:
 		_uc = null;
 	}
 	override bool change(AreaId newVal) { mixin(S_TRACE);
-		if (_id != newVal) changed();
+		if (_id == newVal) return true;
+		changed();
+		if (_callback && cast(ChgAreaCallback)_cwxPath) { mixin(S_TRACE);
+			if (!(cast(ChgAreaCallback)_cwxPath).changeCallback(toAreaId(_id), newVal)) { mixin(S_TRACE);
+				return false;
+			}
+		}
 		if (_handleChange) _handleChange(newVal);
 		_id = newVal;
 		return true;
@@ -519,12 +539,16 @@ private:
 	UseCounter _uc;
 	ulong _id = 0;
 	IBattleUser _cwxPath;
+	bool _callback;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (IBattleUser cwxPath) {_cwxPath = cwxPath;}
+	this (IBattleUser cwxPath, bool callback = false) { mixin(S_TRACE);
+		_cwxPath = cwxPath;
+		_callback = callback;
+	}
 	/// このオブジェクトの所有者。
 	@property
-	IBattleUser owner() {return _cwxPath;}
+	IBattleUser owner() { return _cwxPath; }
 
 	/// IDを設定する。
 	@property
@@ -537,7 +561,13 @@ public:
 	/// id = バトルID。
 	@property
 	void battle(ulong id) { mixin(S_TRACE);
-		if (_id != id) changed();
+		if (_id == id) return;
+		changed();
+		if (_callback && cast(ChgBattleCallback)_cwxPath) { mixin(S_TRACE);
+			if (!(cast(ChgBattleCallback)_cwxPath).changeCallback(toBattleId(_id), toBattleId(id))) { mixin(S_TRACE);
+				return;
+			}
+		}
 		if (_uc !is null) { mixin(S_TRACE);
 			if (_id > 0) _uc.battle.remove(toBattleId(_id), this);
 			if (id > 0) _uc.battle.add(toBattleId(id), this);
@@ -574,7 +604,13 @@ public:
 		_uc = null;
 	}
 	override bool change(BattleId newVal) { mixin(S_TRACE);
-		if (_id != newVal) changed();
+		if (_id == newVal) return true;
+		changed();
+		if (_callback && cast(ChgBattleCallback)_cwxPath) { mixin(S_TRACE);
+			if (!(cast(ChgBattleCallback)_cwxPath).changeCallback(toBattleId(_id), newVal)) { mixin(S_TRACE);
+				return false;
+			}
+		}
 		if (_handleChange) _handleChange(newVal);
 		_id = newVal;
 		return true;
@@ -1287,12 +1323,16 @@ private:
 	UseCounter _uc;
 	string _coupon;
 	ICouponUser _cwxPath;
+	bool _callback;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (ICouponUser cwxPath) {_cwxPath = cwxPath;}
+	this (ICouponUser cwxPath, bool callback = false) { mixin(S_TRACE);
+		_cwxPath = cwxPath;
+		_callback = callback;
+	}
 	/// このオブジェクトの所有者。
 	@property
-	ICouponUser owner() {return _cwxPath;}
+	ICouponUser owner() { return _cwxPath; }
 	/// ditto
 	@property
 	void owner(ICouponUser u) { _cwxPath = u; }
@@ -1304,7 +1344,7 @@ public:
 	void coupon(string coupon) { mixin(S_TRACE);
 		if (_coupon == coupon) return;
 		changed();
-		if (cast(ChgCouponCallback)_cwxPath) { mixin(S_TRACE);
+		if (_callback && cast(ChgCouponCallback)_cwxPath) { mixin(S_TRACE);
 			if (!(cast(ChgCouponCallback)_cwxPath).changeCallback(CouponId(_coupon), CouponId(coupon))) { mixin(S_TRACE);
 				return;
 			}
@@ -1347,7 +1387,7 @@ public:
 	override bool change(CouponId newVal) { mixin(S_TRACE);
 		if (_coupon == newVal.id) return true;
 		changed();
-		if (cast(ChgCouponCallback)_cwxPath) { mixin(S_TRACE);
+		if (_callback && cast(ChgCouponCallback)_cwxPath) { mixin(S_TRACE);
 			if (!(cast(ChgCouponCallback)_cwxPath).changeCallback(CouponId(_coupon), newVal)) { mixin(S_TRACE);
 				return false;
 			}

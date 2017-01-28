@@ -473,7 +473,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		ICouponUser, IGossipUser, ICompleteStampUser, IKeyCodeUser,
 		ICellNameUser, IStartUser,
 		MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHolder,
-		CouponsOwner, ChgCouponCallback {
+		CouponsOwner, ChgAreaCallback, ChgBattleCallback, ChgCouponCallback {
 	private EventTree _tree = null;
 
 	/// 型と後続テキストnameを指定してインスタンスを生成。
@@ -1034,6 +1034,13 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			}
 			_name.text = name;
 
+			if (parent && parent.detail.nextType is CNextType.ID_AREA) { mixin(S_TRACE);
+				branchAreaCondition = icmp(name, "Default") == 0 ? 0UL : to!ulong(name);
+			}
+			if (parent && parent.detail.nextType is CNextType.ID_BATTLE) { mixin(S_TRACE);
+				branchBattleCondition = icmp(name, "Default") == 0 ? 0UL : to!ulong(name);
+			}
+			// Wsn.2
 			if (parent && parent.detail.nextType is CNextType.COUPON) { mixin(S_TRACE);
 				branchCouponCondition = name;
 			}
@@ -1169,31 +1176,31 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		bool newCouponBr = parent && parent.detail.nextType == CNextType.COUPON;
 		if (!oldAreaBr && newAreaBr) { mixin(S_TRACE);
 			if (icmp(name, "default") == 0) { mixin(S_TRACE);
-				area = 0;
+				branchAreaCondition = 0;
 			} else if (std.string.isNumeric(name)) { mixin(S_TRACE);
 				try { mixin(S_TRACE);
-					area = to!(ulong)(name);
+					branchAreaCondition = to!(ulong)(name);
 				} catch (Exception) { mixin(S_TRACE);
 					printStackTrace();
-					area = 0;
+					branchAreaCondition = 0;
 				}
 			}
 		} else if (oldAreaBr && !newAreaBr) { mixin(S_TRACE);
-			area = 0;
+			branchAreaCondition = 0;
 		}
 		if (!oldBattleBr && newBattleBr) { mixin(S_TRACE);
 			if (icmp(name, "default") == 0) { mixin(S_TRACE);
-				battle = 0;
+				branchBattleCondition = 0;
 			} else if (std.string.isNumeric(name)) { mixin(S_TRACE);
 				try { mixin(S_TRACE);
-					battle = to!(ulong)(name);
+					branchBattleCondition = to!(ulong)(name);
 				} catch (Exception) { mixin(S_TRACE);
 					printStackTrace();
-					battle = 0;
+					branchBattleCondition = 0;
 				}
 			}
 		} else if (oldBattleBr && !newBattleBr) { mixin(S_TRACE);
-			battle = 0;
+			branchBattleCondition = 0;
 		}
 		// Wsn.2
 		if (!oldCouponBr && newCouponBr) { mixin(S_TRACE);
@@ -1496,7 +1503,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// 	return _area ? _area.area : 0UL;
 	/// }
 	/// ---
-	private template Prop(T, T2, string Name, T2 Def, string Set = "", string Get = "", bool New = false) {
+	private template Prop(T, T2, string Name, T2 Def, string Set = "", string Get = "", bool New = false, bool Callback = false) {
 		static if (New) {
 			mixin ("private " ~ T.stringof ~ " _" ~ Name ~ ";");
 		} else {
@@ -1517,10 +1524,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 				? "if (!_" ~ Name ~ ") _" ~ Name ~ " = new " ~ T.stringof ~ ";"
 				~ "setValUCs(_" ~ Name ~ ", _uc, this);"
 				: "if (!_" ~ Name ~ ") {"
-				~ "    _" ~ Name ~ " = new " ~ T.stringof ~ "(this);"
+				~ "    _" ~ Name ~ " = new " ~ T.stringof ~ (Callback ? "(this, true);" : "(this);")
 				~ "    setValUCs(_" ~ Name ~ ", _uc, this);"
-				~ "    static if (is(T == AreaUser)) _" ~ Name ~ ".handleChange = &areaChg;"
-				~ "    static if (is(T == BattleUser)) _" ~ Name ~ ".handleChange = &battleChg;"
 				~ "}"
 			) : "")
 			~ "if (_" ~ Name ~ Get ~ " != val) changed();"
@@ -1574,26 +1579,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 	/// エリアID。
 	mixin Prop!(AreaUser, ulong, "area", 0UL, ".area", ".area", true);
-	private bool check_area(ulong id) { mixin(S_TRACE);
-		areaChg(toAreaId(id));
-		return true;
-	}
-	private void areaChg(AreaId id) { mixin(S_TRACE);
-		if (area != id && _parent && _parent.detail.nextType == CNextType.ID_AREA) { mixin(S_TRACE);
-			name = id == 0 ? "Default" : to!(string)(cast(ulong) id);
-		}
-	}
 	/// バトルID。
 	mixin Prop!(BattleUser, ulong, "battle", 0UL, ".battle", ".battle", true);
-	private bool check_battle(ulong id) { mixin(S_TRACE);
-		battleChg(toBattleId(id));
-		return true;
-	}
-	private void battleChg(BattleId id) { mixin(S_TRACE);
-		if (battle != id && _parent && _parent.detail.nextType == CNextType.ID_BATTLE) { mixin(S_TRACE);
-			name = id == 0 ? "Default" : to!(string)(cast(ulong) id);
-		}
-	}
 	/// パッケージID。
 	mixin Prop!(PackageUser, ulong, "packages", 0UL, ".packages", ".packages", true);
 	/// フラグ。
@@ -1829,8 +1816,12 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// 得点付きクーポン群(CardWirth 1.50)。
 	mixin Prop!(Coupon[], "coupons", []);
 
+	/// エリア分岐で使用するエリアID。
+	mixin Prop!(AreaUser, ulong, "branchAreaCondition", 0UL, ".area", ".area", true, true);
+	/// バトル分岐で使用するバトルID。
+	mixin Prop!(BattleUser, ulong, "branchBattleCondition", 0UL, ".battle", ".battle", true, true);
 	/// クーポン多岐分岐条件名(Wsn.2)。
-	mixin Prop!(CouponUser, string, "branchCouponCondition", "", ".coupon", ".coupon", true);
+	mixin Prop!(CouponUser, string, "branchCouponCondition", "", ".coupon", ".coupon", true, true);
 
 	private void delegate() _change;
 	/// 変更ハンドラを登録する。
@@ -1970,8 +1961,22 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	override bool change(KeyCodeId id) { return idChange(id); }
 	override bool change(CellNameId id) { return idChange(id); }
 
+	override bool changeCallback(AreaId oldVal, AreaId newVal) { mixin(S_TRACE);
+		auto id = icmp(name, "Default") == 0 ? 0UL : to!ulong(name);
+		if (parent && parent.detail.nextType is CNextType.ID_AREA && AreaId(id) == oldVal) { mixin(S_TRACE);
+			name = newVal == 0UL ? "Default" : to!string(newVal);
+		}
+		return true;
+	}
+	override bool changeCallback(BattleId oldVal, BattleId newVal) { mixin(S_TRACE);
+		auto id = icmp(name, "Default") == 0 ? 0UL : to!ulong(name);
+		if (parent && parent.detail.nextType is CNextType.ID_BATTLE && BattleId(id) == oldVal) { mixin(S_TRACE);
+			name = newVal == 0UL ? "Default" : to!string(newVal);
+		}
+		return true;
+	}
 	override bool changeCallback(CouponId oldVal, CouponId newVal) { mixin(S_TRACE);
-		if (parent && parent.detail.nextType.COUPON && CouponId(name) == oldVal) { mixin(S_TRACE);
+		if (parent && parent.detail.nextType is CNextType.COUPON && CouponId(name) == oldVal) { mixin(S_TRACE);
 			name = newVal;
 		}
 		return true;
