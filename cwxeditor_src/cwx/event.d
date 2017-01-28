@@ -201,7 +201,7 @@ private void static_this () { mixin(S_TRACE);
 		CType.MOVE_BG_IMAGE:CDetail("Move", "BgImage", CNextType.NONE, true, [CArg.CELL_NAME:"cellname", CArg.POSITION_TYPE:"positiontype", CArg.X:"x", CArg.Y:"y", CArg.SIZE_TYPE:"sizetype", CArg.WIDTH:"width", CArg.HEIGHT:"height", CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed", CArg.DO_ANIME:"doanime", CArg.IGNORE_EFFECT_BOOSTER:"ignoreeffectbooster"]),
 		CType.REPLACE_BG_IMAGE:CDetail("Replace", "BgImage", CNextType.NONE, true, [CArg.CELL_NAME:"cellname", CArg.BG_IMAGES:_(null), CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed", CArg.DO_ANIME:"doanime", CArg.IGNORE_EFFECT_BOOSTER:"ignoreeffectbooster"]),
 		CType.LOSE_BG_IMAGE:CDetail("Lose", "BgImage", CNextType.NONE, true, [CArg.CELL_NAME:"cellname", CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed", CArg.DO_ANIME:"doanime", CArg.IGNORE_EFFECT_BOOSTER:"ignoreeffectbooster"]),
-		CType.BRANCH_MULTI_COUPON:CDetail("Branch", "MultiCoupon", CNextType.COUPON, true), // Wsn.2
+		CType.BRANCH_MULTI_COUPON:CDetail("Branch", "MultiCoupon", CNextType.COUPON, true , [CArg.RANGE:"targets"]), // Wsn.2
 	];
 	foreach (cType, detail; _CONTENT_DETAILS) { mixin(S_TRACE);
 		foreach (name; detail.names) { mixin(S_TRACE);
@@ -493,7 +493,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			initValue = 1;
 			break;
 		default:
-			if (detail.use(CArg.COUPON)) { mixin(S_TRACE);
+			if (detail.use(CArg.COUPON) || type is CType.BRANCH_MULTI_COUPON) { mixin(S_TRACE);
 				range = Range.SELECTED;
 			}
 			break;
@@ -811,6 +811,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			}
 			break;
 		case CType.BRANCH_COUPON:
+		case CType.BRANCH_MULTI_COUPON:
 			switch (range) {
 			case Range.SELECTED:
 			case Range.RANDOM:
@@ -924,7 +925,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.MENTAL, Mental, Mental.init)(d, &mental);
 		resetValue!(CArg.PHYSICAL, Physical, Physical.init)(d, &physical);
 		resetValue!(CArg.STATUS, Status, Status.ACTIVE)(d, &status);
-		if (d.use(CArg.COUPON)) { mixin(S_TRACE);
+		if (d.use(CArg.COUPON) || type is CType.BRANCH_MULTI_COUPON) { mixin(S_TRACE);
 			resetValue!(CArg.RANGE, Range, Range.SELECTED)(d, &range);
 		} else { mixin(S_TRACE);
 			resetValue!(CArg.RANGE, Range, Range.FIELD)(d, &range);

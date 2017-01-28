@@ -240,10 +240,12 @@ private class RangePanel : Composite {
 		setLayout(new FillLayout);
 		auto grp = new Group(this, SWT.NONE);
 		grp.setText(title);
+		grp.setLayout(new CenterLayout);
+		auto mainComp = new Composite(grp, SWT.NONE);
 		if (horizontal) { mixin(S_TRACE);
-			grp.setLayout(normalGridLayout(cast(int)ranges.length, false));
+			mainComp.setLayout(zeroMarginGridLayout(cast(int)ranges.length, false));
 		} else {
-			grp.setLayout(normalGridLayout(1, false));
+			mainComp.setLayout(zeroMarginGridLayout(1, false));
 		}
 		Composite couponComp = null;
 		auto radioGrp = new RadioGroup!Button;
@@ -252,13 +254,13 @@ private class RangePanel : Composite {
 			Control c;
 			int fillHorizontal = SWT.NONE;
 			if (range is Range.COUPON_HOLDER) { mixin(S_TRACE);
-				couponComp = new Composite(grp, SWT.NONE);
+				couponComp = new Composite(mainComp, SWT.NONE);
 				couponComp.setLayout(zeroMarginGridLayout(1, true));
 				fillHorizontal = GridData.FILL_HORIZONTAL;
 				radio = new Button(couponComp, SWT.RADIO);
 				c = couponComp;
 			} else { mixin(S_TRACE);
-				radio = new Button(grp, SWT.RADIO);
+				radio = new Button(mainComp, SWT.RADIO);
 				c = radio;
 			}
 			modDlg.mod(radio);
@@ -3610,6 +3612,43 @@ protected:
 		_evt.transitionSpeed = _transition.transitionSpeed;
 		_evt.doAnime = _doAnime.getSelection();
 		_evt.ignoreEffectBooster = _ignoreEffectBooster.getSelection();
+		return true;
+	}
+}
+
+/// クーポン多岐分岐の設定を行うダイアログ(Wsn.2)。
+class BranchMultiCouponDialog : EventDialog {
+private:
+	RangePanel _range;
+
+	override
+	protected void refreshWarning() { mixin(S_TRACE);
+		string[] ws;
+		if (!prop.isTargetVersion(summ, "2")) { mixin(S_TRACE);
+			ws ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(CType.BRANCH_MULTI_COUPON), "2");
+		}
+		warning = ws;
+	}
+
+public:
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
+		super (comm, prop, shell, summ, CType.BRANCH_MULTI_COUPON, parent, evt, false, null, true);
+	}
+protected:
+	override void setup(Composite area) { mixin(S_TRACE);
+		area.setLayout(normalGridLayout(1, true));
+
+		auto ranges = [Range.SELECTED, Range.RANDOM, Range.PARTY, Range.FIELD];
+		auto title = _prop.msgs.judgeTarget;
+		_range = new RangePanel(comm, area, ranges, "", title, false, this, evt, &catchMod, &refreshWarning);
+		_range.setLayoutData(new GridData(GridData.FILL_BOTH));
+
+		refreshWarning();
+	}
+
+	override bool apply() { mixin(S_TRACE);
+		if (!_evt) _evt = new Content(CType.BRANCH_MULTI_COUPON, "");
+		_evt.range = _range.range;
 		return true;
 	}
 }

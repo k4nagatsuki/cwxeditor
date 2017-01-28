@@ -875,7 +875,6 @@ private:
 		case CType.BRANCH_IS_BATTLE:
 		case CType.SHOW_PARTY:
 		case CType.HIDE_PARTY:
-		case CType.BRANCH_MULTI_COUPON:
 			return false;
 		default:
 			return true;
@@ -1227,6 +1226,9 @@ private:
 			break;
 		} case CType.LOSE_BG_IMAGE: { mixin(S_TRACE);
 			dlg = new LoseBgImageDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
+			break;
+		} case CType.BRANCH_MULTI_COUPON: { mixin(S_TRACE);
+			dlg = new BranchMultiCouponDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
 		} default: assert (0);
 		}
@@ -3857,13 +3859,6 @@ string eventText(Commons comm, Summary summ, Content parent, Content e, bool rea
 			return e.name;
 		}
 	}
-	if (parent.detail.nextType == CNextType.COUPON) { mixin(S_TRACE);
-		if (e.name == "") { mixin(S_TRACE);
-			return comm.prop.msgs.branchMultiCouponFailure;
-		} else { mixin(S_TRACE);
-			return .tryFormat(comm.prop.msgs.branchMultiCouponSuccess, e.name);
-		}
-	}
 	string name = e.name;
 	string r;
 	switch (parent.type) {
@@ -3944,6 +3939,14 @@ string eventText(Commons comm, Summary summ, Content parent, Content e, bool rea
 		break;
 	} case CType.BRANCH_ROUND: { mixin(S_TRACE);
 		r = evtChildBrRound(prop, parent, name);
+		break;
+	} case CType.BRANCH_MULTI_COUPON: { mixin(S_TRACE);
+		auto range = .rangeName(prop, parent.range, parent.holdingCoupon);
+		if (e.name == "") { mixin(S_TRACE);
+			return .tryFormat(prop.msgs.branchMultiCouponFailure, range);
+		} else { mixin(S_TRACE);
+			return .tryFormat(prop.msgs.branchMultiCouponSuccess, range, e.name);
+		}
 		break;
 	} default:
 		name = "";

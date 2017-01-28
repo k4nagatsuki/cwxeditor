@@ -3554,7 +3554,8 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 			return .tryFormat(comm.prop.msgs.ctLoseBgImage, cellName, ts, evt.transitionSpeed);
 		}
 	} case CType.BRANCH_MULTI_COUPON: { mixin(S_TRACE);
-		return comm.prop.msgs.ctBranchMultiCoupon;
+		auto range = .rangeName(comm.prop, evt.range, evt.holdingCoupon);
+		return .tryFormat(comm.prop.msgs.ctBranchMultiCoupon, range);
 	}
 	}
 }

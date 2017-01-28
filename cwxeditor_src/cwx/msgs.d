@@ -985,7 +985,7 @@ class Msgs : Properties {
 	auto ctReplaceBgImageClassic = Msg("ctReplaceBgImageClassic", "背景「%1$s」を置換(背景ファイル = %2$s)");
 	auto ctLoseBgImage = Msg("ctLoseBgImage", "背景「%1$s」を削除(切替方式 = %2$s ウェイト = %3$s)");
 	auto ctLoseBgImageClassic = Msg("ctLoseBgImageClassic", "背景「%1$s」を削除");
-	auto ctBranchMultiCoupon = Msg("ctBranchMultiCoupon", "クーポン多岐分岐コンテント"); // Wsn.2
+	auto ctBranchMultiCoupon = Msg("ctBranchMultiCoupon", "%1$sの称号所有状態で分岐"); // Wsn.2
 
 	auto nameWithID = Msg("nameWithID", "%1$s.%2$s");
 
@@ -1334,8 +1334,8 @@ class Msgs : Properties {
 	auto targetIsHand = Msg("targetIsHand", "手札");
 	auto targetSeparator = Msg("targetSeparator", "・");
 	auto branchRound = Msg("branchRound", "バトルが%1$sラウンド%2$s");
-	auto branchMultiCouponSuccess = Msg("branchMultiCouponSuccess", "選択メンバが称号「%1$s」を所有している"); // Wsn.2
-	auto branchMultiCouponFailure = Msg("branchMultiCouponFailure", "全て所有していない"); // Wsn.2
+	auto branchMultiCouponSuccess = Msg("branchMultiCouponSuccess", "%1$sが称号「%2$s」を所有している"); // Wsn.2
+	auto branchMultiCouponFailure = Msg("branchMultiCouponFailure", "%1$sが全ての称号を所有していない"); // Wsn.2
 
 	const string physicalName(Physical id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(Physical, "physicalName"));
