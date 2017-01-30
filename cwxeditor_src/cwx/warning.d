@@ -648,6 +648,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (c.type is CType.BRANCH_MULTI_COUPON && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(CType.BRANCH_MULTI_COUPON), "2");
 		}
+		if (c.type is CType.BRANCH_MULTI_RANDOM && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+			r ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(CType.BRANCH_MULTI_RANDOM), "2");
+		}
 		if (cd.use(CArg.STEP_VALUE)) { mixin(S_TRACE);
 			if (froot && c.step != "") { mixin(S_TRACE);
 				auto s = froot.findStep(c.step);
