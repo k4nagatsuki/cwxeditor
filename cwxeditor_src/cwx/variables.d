@@ -402,6 +402,7 @@ class FlexEtcProps : Properties {
 	auto classicStyleTree = Prop!(bool)("classicStyleTree", false);
 	auto adjustContentName = Prop!(bool)("adjustContentName", true);
 	auto showEventTreeMark = Prop!(bool)("showEventTreeMark", true);
+	auto showEventTreeMarkAlways = Prop!(bool)("showEventTreeMarkAlways", true);
 	auto ignoreEmptyStart = Prop!(bool)("ignoreEmptyStart", true);
 	auto showSkillCardLevel = Prop!(bool)("showSkillCardLevel", true);
 	auto switchTabWheel = Prop!(bool)("switchTabWheel", true);

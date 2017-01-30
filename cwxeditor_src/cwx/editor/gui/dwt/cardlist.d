@@ -23,6 +23,9 @@ public:
 
 class CardList(C) : Composite {
 public:
+	/// 各カードに対して追加の描画を行う。
+	void delegate(Control canvas, GC gc, in C card, Rectangle bounds)[] additionalPaint;
+
 	/// Params:
 	/// parent = 親コンポーネント。
 	/// style = スタイル。使用可能なスタイルはSWT.MULTI、DWT.V_SCROLL、DWT.H_SCROLL。
@@ -606,6 +609,11 @@ public:
 		itm.createTitle();
 		redraw(itm.x, itm.y, itm.width, itm.height, false);
 	}
+	/// ditto
+	void refresh(int index) { mixin(S_TRACE);
+		auto itm = _items[index];
+		redraw(itm.x, itm.y, itm.width, itm.height, false);
+	}
 	/// Returns: カードの配列。
 	@property
 	C[] cards() { mixin(S_TRACE);
@@ -885,6 +893,9 @@ private:
 						itm.createImage();
 						auto image = itm.getImage();
 						gc.drawImage(image, x, y);
+						foreach (dlg; additionalPaint) { mixin(S_TRACE);
+							dlg(this, gc, cast(C)itm.getData(), itm.imageBounds());
+						}
 
 						itm.createTitle();
 						auto title = itm.cutText(gc);

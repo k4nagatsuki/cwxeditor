@@ -2185,6 +2185,8 @@ private:
 	}
 
 	class ListMouseMove : MouseMoveListener {
+		private int _index = -1;
+
 		override void mouseMove(MouseEvent e) { mixin(S_TRACE);
 			if (_cardType is CardType.Skill || _cardType is CardType.Item || _cardType is CardType.Beast) { mixin(S_TRACE);
 				if (!editMode) return;
@@ -2194,6 +2196,11 @@ private:
 					return;
 				}
 				int i = _list.searchIndex(e.x, e.y);
+				if (_index != i) { mixin(S_TRACE);
+					if (0 <= _index) _list.refresh(_index);
+					if (0 <= i) _list.refresh(i);
+					_index = i;
+				}
 				if (i < 0) { mixin(S_TRACE);
 					_list.setCursor(null);
 					_openEventTarget = null;
@@ -2206,13 +2213,13 @@ private:
 				case CardType.Cast:
 					assert (0);
 				case CardType.Skill:
-					rect = .eventTreeMarkRect(_prop, bounds.x, bounds.y, _summ, cast(SkillCard)c);
+					rect = .eventTreeMarkRect(_prop, true, bounds.x, bounds.y, _summ, cast(SkillCard)c);
 					break;
 				case CardType.Item:
-					rect = .eventTreeMarkRect(_prop, bounds.x, bounds.y, _summ, cast(ItemCard)c);
+					rect = .eventTreeMarkRect(_prop, true, bounds.x, bounds.y, _summ, cast(ItemCard)c);
 					break;
 				case CardType.Beast:
-					rect = .eventTreeMarkRect(_prop, bounds.x, bounds.y, _summ, cast(BeastCard)c);
+					rect = .eventTreeMarkRect(_prop, true, bounds.x, bounds.y, _summ, cast(BeastCard)c);
 					break;
 				case CardType.Info:
 					assert (0);
@@ -2453,6 +2460,16 @@ private:
 			_comm.refShowCardListTitle.remove(&updateCardListParams);
 			_comm.refImageScale.remove(&updateCardListParams);
 		});
+		_list.additionalPaint ~= (canvas, gc, c, bounds) { mixin(S_TRACE);
+			auto detail = _viewMode == CViewMode.LIFE;
+			if (auto card = cast(SkillCard)c) { mixin(S_TRACE);
+				.putEventTree(canvas, gc, _prop, _summ, detail, card, bounds);
+			} else if (auto card = cast(ItemCard)c) { mixin(S_TRACE);
+				.putEventTree(canvas, gc, _prop, _summ, detail, card, bounds);
+			} else if (auto card = cast(BeastCard)c) { mixin(S_TRACE);
+				.putEventTree(canvas, gc, _prop, _summ, detail, card, bounds);
+			}
+		};
 		if (editMode) { mixin(S_TRACE);
 			_cle = new CardListEdit!Card(_comm, _list, &listEditEnd, &listCreateEditor);
 		}

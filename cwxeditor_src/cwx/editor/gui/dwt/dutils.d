@@ -1868,16 +1868,7 @@ ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, string ws
 			r.titleColor = new RGB(255, 255, 255);
 		}
 	}
-	void putEventTree(bool useCount) { mixin(S_TRACE);
-		static if (is(C:EventTreeOwner)) {
-			if (preview || !prop.var.etc.showEventTreeMark) return;
-			auto et = useCount ? prop.looks.eventTreeXYWithCount : prop.looks.eventTreeXY;
-			if (detail && (prop.var.etc.ignoreEmptyStart ? !c.isEmpty : 0 < c.trees.length)) { mixin(S_TRACE);
-				auto iData = prop.images.eventTreeNoScale.getImageData();
-				r.append(iData, CInsets(et.y, w - et.x - iData.width, h - et.y - iData.height, et.x), ScaleType.Cut);
-			}
-		}
-	}
+
 	static if (is(C : ItemCard) || is(C : BeastCard)) {
 		bool res = prop.sys.isRecycle(c.keyCodes);
 		static if (is(C : ItemCard)) {
@@ -1886,8 +1877,6 @@ ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, string ws
 			auto ul = c.useLimit;
 		} else static assert (0);
 		if (ul > 0 || res) { mixin(S_TRACE);
-			putEventTree(true);
-
 			auto d = Display.getCurrent();
 			auto imgData = r.createImageData();
 			auto img = new Image(d, imgData);
@@ -1910,7 +1899,6 @@ ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, string ws
 			return img.getImageData();
 		}
 	}
-	putEventTree(false);
 	return r.createImageData();
 }
 
@@ -1944,8 +1932,46 @@ ubyte getRGBAverage(ImageData card, CRect nameArea) { mixin(S_TRACE);
 	return cast(ubyte)(rgbs / (nameArea.width * nameArea.height * 3));
 }
 
-Rectangle eventTreeMarkRect(C:EventTreeOwner)(Props prop, int left, int top, in Summary summ, in C c) { mixin(S_TRACE);
-	if (!prop.var.etc.showEventTreeMark) return null;
+/// 使用時イベントのマークを描画する。
+void putEventTree(C:EventTreeOwner)(Control canvas, GC gc, Props prop, in Summary summ, bool showMark, in C c, Rectangle bounds) { mixin(S_TRACE);
+	if (!prop.var.etc.showEventTreeMark || !showMark) return;
+
+	Rebindable!(const C) c2;
+	if (c.linkId == 0) { mixin(S_TRACE);
+		c2 = c;
+	} else { mixin(S_TRACE);
+		static if (is(C:SkillCard)) {
+			auto c3 = summ.skill(c.linkId);
+		} else static if (is(C:ItemCard)) {
+			auto c3 = summ.item(c.linkId);
+		} else static if (is(C:BeastCard)) {
+			auto c3 = summ.beast(c.linkId);
+		} else static assert (0);
+		if (c3 is null) return;
+		c2 = c3;
+	}
+
+	auto res = prop.sys.isRecycle(c2.keyCodes);
+	static if (is(C:ItemCard)) {
+		bool useCount = 0 < c2.useLimitMax || res;
+	} else static if (is(C:BeastCard)) {
+		bool useCount = 0 < c2.useLimit || res;
+	} else { mixin(S_TRACE);
+		bool useCount = false;
+	}
+
+	auto d = canvas.getDisplay();
+	auto curPos = canvas.toControl(d.getCursorLocation());
+
+	auto et = useCount ? prop.looks.eventTreeXYWithCount : prop.looks.eventTreeXY;
+	if ((prop.var.etc.showEventTreeMarkAlways && bounds.contains(curPos)) || (prop.var.etc.ignoreEmptyStart ? !c2.isEmpty : 0 < c2.trees.length)) { mixin(S_TRACE);
+		auto img = prop.images.eventTree;
+		gc.drawImage(img, bounds.x + prop.s(et.x), bounds.y + prop.s(et.y));
+	}
+}
+
+Rectangle eventTreeMarkRect(C:EventTreeOwner)(Props prop, bool showMark, int left, int top, in Summary summ, in C c) { mixin(S_TRACE);
+	if (!prop.var.etc.showEventTreeMark || !showMark) return null;
 
 	Rebindable!(const C) c2;
 	if (c.linkId == 0) { mixin(S_TRACE);
@@ -1962,16 +1988,17 @@ Rectangle eventTreeMarkRect(C:EventTreeOwner)(Props prop, int left, int top, in 
 		c2 = c3;
 	}
 
+	auto res = prop.sys.isRecycle(c2.keyCodes);
 	static if (is(C:ItemCard)) {
-		bool useCount = 0 < c2.useLimitMax;
+		bool useCount = 0 < c2.useLimitMax || res;
 	} else static if (is(C:BeastCard)) {
-		bool useCount = 0 < c2.useLimit;
+		bool useCount = 0 < c2.useLimit || res;
 	} else { mixin(S_TRACE);
 		bool useCount = false;
 	}
 
 	auto et = useCount ? prop.looks.eventTreeXYWithCount : prop.looks.eventTreeXY;
-	if (prop.var.etc.ignoreEmptyStart ? !c2.isEmpty : 0 < c2.trees.length) { mixin(S_TRACE);
+	if (prop.var.etc.showEventTreeMarkAlways || (prop.var.etc.ignoreEmptyStart ? !c2.isEmpty : 0 < c2.trees.length)) { mixin(S_TRACE);
 		auto bounds = prop.images.eventTreeNoScale.getBounds();
 		bounds.x = left + prop.s(et.x);
 		bounds.y = top + prop.s(et.y);

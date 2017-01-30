@@ -462,6 +462,7 @@ private:
 		return null;
 	}
 	class EditBeast : MouseAdapter, MouseMoveListener, KeyListener {
+		private bool _inBounds = false;
 		override void mouseDoubleClick(MouseEvent e) { mixin(S_TRACE);
 			if (e.button == 1) { mixin(S_TRACE);
 				editBeast();
@@ -478,12 +479,43 @@ private:
 			}
 		}
 		override void mouseMove(MouseEvent e) { mixin(S_TRACE);
+			auto bounds = cardBounds(e);
 			auto rect = eventTreeMarkRect(e);
+			if (bounds) { mixin(S_TRACE);
+				auto pane = cast(Canvas)e.widget;
+				auto d = pane.getDisplay();
+				auto curPos = pane.toControl(d.getCursorLocation());
+				auto inBounds = bounds.contains(curPos);
+				if (inBounds !is _inBounds) { mixin(S_TRACE);
+					_inBounds = inBounds;
+					pane.redraw(rect.x, rect.y, rect.width, rect.height, false);
+				}
+			}
+
 			if (rect && rect.contains(e.x, e.y)) { mixin(S_TRACE);
 				(cast(Control)e.widget).setCursor(e.widget.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 			} else { mixin(S_TRACE);
 				(cast(Control)e.widget).setCursor(null);
 			}
+		}
+		Rectangle cardBounds(MouseEvent e) { mixin(S_TRACE);
+			auto m = selection;
+			if (!m || !m.detail.use(MArg.BEAST)) return null;
+			auto b = m.beast;
+			if (!b) return null;
+			if (0 != b.linkId) { mixin(S_TRACE);
+				b = _summ.beast(b.linkId);
+				if (!b) return null;
+			}
+			auto cardSize = _prop.looks.cardSize;
+			auto matPad = _prop.looks.cardInsets;
+			int w = cardSize.width + matPad.e + matPad.w;
+			int h = cardSize.height + matPad.n + matPad.s;
+			auto pane = cast(Canvas)e.widget;
+			auto rect = pane.getClientArea();
+			int x = (rect.width - _prop.s(w)) / 2;
+			int y = (rect.height - _prop.s(h)) / 2;
+			return new Rectangle(x, y, _prop.s(w), _prop.s(h));
 		}
 		Rectangle eventTreeMarkRect(MouseEvent e) { mixin(S_TRACE);
 			auto m = selection;
@@ -500,9 +532,9 @@ private:
 			int h = cardSize.height + matPad.n + matPad.s;
 			auto pane = cast(Canvas)e.widget;
 			auto rect = pane.getClientArea();
-			int x = (rect.width - w) / 2;
-			int y = (rect.height - h) / 2;
-			return .eventTreeMarkRect(_prop, x, y, _summ, b);
+			int x = (rect.width - _prop.s(w)) / 2;
+			int y = (rect.height - _prop.s(h)) / 2;
+			return .eventTreeMarkRect(_prop, true, x, y, _summ, b);
 		}
 		override void keyReleased(KeyEvent e) {}
 		override void keyPressed(KeyEvent e) { mixin(S_TRACE);
@@ -757,7 +789,9 @@ private:
 				toolTip = .tryFormat(_prop.msgs.referencedCardIsNotFound, id);
 			}
 		}
-		_beastImg.setToolTipText(toolTip);
+		if (toolTip != _beastImg.getToolTipText) { mixin(S_TRACE);
+			_beastImg.setToolTipText(toolTip);
+		}
 	}
 	class PaintBeast : PaintListener {
 		override void paintControl(PaintEvent e) { mixin(S_TRACE);
@@ -773,6 +807,7 @@ private:
 				int x = (rect.width - data.width) / 2;
 				int y = (rect.height - data.height) / 2;
 				e.gc.drawImage(img, x, y);
+				.putEventTree(pane, e.gc, _prop, _summ, true, beast, new Rectangle(x, y, data.width, data.height));
 				img.dispose();
 				if (pane.isFocusControl()) { mixin(S_TRACE);
 					e.gc.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_LIST_SELECTION));
