@@ -755,7 +755,7 @@ class Msgs : Properties {
 	auto contentDescReplaceBgImage = Msg("contentDescReplaceBgImage", "セル名称のつけられた背景セルを新しい背景セルに置換します。"); // Wsn.1
 	auto contentDescLoseBgImage = Msg("contentDescLoseBgImage", "セル名称のつけられた背景セルを削除します。"); // Wsn.1
 	auto contentDescBranchMultiCoupon = Msg("contentDescBranchMultiCoupon", "選択中のメンバがどのクーポン(称号)を所有しているかによって処理を分岐させます。どれも所有していない場合は「全て所有していない」へ分岐します。"); // Wsn.2
-	auto contentDescBranchMultiRandom = Msg("contentDescBranchMultiRandom", "ランダムに処理を分岐します。"); // Wsn.2
+	auto contentDescBranchMultiRandom = Msg("contentDescBranchMultiRandom", "複数の後続コンテントへ等確率でランダムで分岐します。"); // Wsn.2
 	auto contentDescWsnN = Msg("contentDescWsnN", "%1$sWsn.%2$s以降のシナリオ形式で使用可能です。");
 
 	auto msnGroupVitality = Msg("msnGroupVitality", "生命力");
@@ -988,7 +988,7 @@ class Msgs : Properties {
 	auto ctLoseBgImage = Msg("ctLoseBgImage", "背景「%1$s」を削除(切替方式 = %2$s ウェイト = %3$s)");
 	auto ctLoseBgImageClassic = Msg("ctLoseBgImageClassic", "背景「%1$s」を削除");
 	auto ctBranchMultiCoupon = Msg("ctBranchMultiCoupon", "%1$sの称号所有状態で分岐"); // Wsn.2
-	auto ctBranchMultiRandom = Msg("ctBranchMultiRandom", "ランダムに分岐"); // Wsn.2
+	auto ctBranchMultiRandom = Msg("ctBranchMultiRandom", "ランダム多岐分岐コンテント"); // Wsn.2
 
 	auto nameWithID = Msg("nameWithID", "%1$s.%2$s");
 
