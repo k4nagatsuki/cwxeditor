@@ -1648,7 +1648,16 @@ private:
 		} else {
 			bool noCardSize = false;
 		}
-		if (.any!(tbl => hasTarg(skin, tbl, forceRefresh, noCardSize))(tbl)) { mixin(S_TRACE);
+		// BUG: dmd 2.073.0 64bit Releaseビルドでリンクエラーになる
+//		if (.any!(tbl => hasTarg(skin, tbl, forceRefresh, noCardSize))(tbl)) { mixin(S_TRACE);
+		auto tblHasTarg = false;
+		foreach (t; tbl) { mixin(S_TRACE);
+			if (hasTarg(skin, t, forceRefresh, noCardSize)) { mixin(S_TRACE);
+				tblHasTarg = true;
+				break;
+			}
+		}
+		if (tblHasTarg) { mixin(S_TRACE);
 			_tbl = cast(int)items.length;
 			items ~= _prop.msgs.defaultSelection(_prop.msgs.pathDef);
 		}
