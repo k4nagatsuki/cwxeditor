@@ -875,6 +875,7 @@ private:
 		case CType.BRANCH_IS_BATTLE:
 		case CType.SHOW_PARTY:
 		case CType.HIDE_PARTY:
+		case CType.BRANCH_MULTI_RANDOM:
 			return false;
 		default:
 			return true;
