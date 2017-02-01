@@ -273,6 +273,14 @@ struct CDetail {
 	}
 }
 
+/// 分岐主体のイベントコンテントか。
+@property
+bool isBranchContent(CType cType) { mixin(S_TRACE);
+	if (cType is CType.BRANCH_MULTI_RANDOM) return true;
+	auto d = CDetail.fromType(cType);
+	return !(d.nextType == CNextType.NONE || d.nextType == CNextType.TEXT);
+}
+
 /// スタートのID。
 alias string StartId;
 /// 文字列をスタートIDに変換。

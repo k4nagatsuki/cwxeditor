@@ -511,8 +511,7 @@ class EventEditor : Composite {
 				lineNumber += c.countChildren();
 				break;
 			}
-			auto d = c.detail;
-			if (type != CType.START && c.next.length == 1 && (!(_summ ? _comm.prop.var.etc.forceIndentBranchContent : forceIndentBranchContent) || d.nextType == CNextType.NONE || d.nextType == CNextType.TEXT)) { mixin(S_TRACE);
+			if (type != CType.START && c.next.length == 1 && (!(_summ ? _comm.prop.var.etc.forceIndentBranchContent : forceIndentBranchContent) || !c.type.isBranchContent)) { mixin(S_TRACE);
 				x += slope;
 				depth2++;
 				c = c.next[0];
