@@ -316,6 +316,7 @@
 					<li class="content"><a href="#SELMEMBER">selmember</a></li>
 					<li class="content"><a href="#BRABILITY">brability</a></li>
 					<li class="content"><a href="#BRRANDOM">brrandom</a></li>
+					<li class="content"><a href="#BRRANDOMM">brrandomm</a></li>
 					<li class="content"><a href="#BRLEVEL">brlevel</a></li>
 					<li class="content"><a href="#BRSTATUS">brstatus</a></li>
 					<li class="content"><a href="#BRCOUNT">brcount</a></li>
@@ -829,6 +830,8 @@
 	<dd>能力分岐</dd>
 	<dt class="content"><a href="#BRRANDOM">brrandom <span class="args"><span class="arg">&lt;パーセント値&gt;</span></span></a></dt>
 	<dd>ランダム分岐</dd>
+	<dt class="content"><a href="#BRRANDOMM">brrandomm</a></dt>
+	<dd>ランダム多岐分岐</dd>
 	<dt class="content"><a href="#BRLEVEL">brlevel <span class="args"><span class="arg">&lt;レベル&gt;</span>, <span class="arg">&lt;平均か&gt;</span></span></a></dt>
 	<dd>レベル判定分岐</dd>
 	<dt class="content"><a href="#BRSTATUS">brstatus <span class="args"><span class="arg">&lt;判定対象&gt;</span>, <span class="arg">&lt;ステータス&gt;</span></span></a></dt>
@@ -2012,6 +2015,20 @@
     <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">// 分岐終了</span></code></pre>
 
+<h3 class="content"><a id="BRRANDOMM" name="BRRANDOMM">brrandomm</a></h3>
+
+<p class="fullname">(Branch with Multiple Random)</p>
+<p class="desc">複数の後続コンテントへ等確率でランダムで分岐します。</p>
+<p class="desc"><em class="warning">このイベントコンテントはWsn.2以降のWSN形式シナリオでしか使用できません。</em></p>
+
+<h4 class="argments">パラメータ</h4>
+
+<p class="desc">パラメータはありません。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">brrandomm</span> <span class="comment">// ランダムに分岐</span></code></pre>
+
 <h3 class="content"><a id="BRLEVEL" name="BRLEVEL">brlevel <span class="args"><span class="arg">&lt;レベル&gt;</span>, <span class="arg">&lt;平均か&gt;</span></span></a></h3>
 
 <p class="fullname">(Branch with Level)</p>
@@ -3164,6 +3181,7 @@ brlevel
 brmoney
 bronbattle
 brrandom
+brraddomm
 brround
 brskill
 brstamp

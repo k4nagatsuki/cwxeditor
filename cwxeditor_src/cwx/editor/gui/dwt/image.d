@@ -280,6 +280,7 @@ public:
 		case CType.REPLACE_BG_IMAGE: return imgd!("evt_rpl_back.png"); // Wsn.1
 		case CType.LOSE_BG_IMAGE: return imgd!("evt_lose_back.png"); // Wsn.1
 		case CType.BRANCH_MULTI_COUPON: return imgd!("evt_br_multi_coupon.png"); // Wsn.2
+		case CType.BRANCH_MULTI_RANDOM: return imgd!("evt_br_multi_random.png"); // Wsn.2
 		}
 	}
 

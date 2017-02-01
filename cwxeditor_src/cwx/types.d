@@ -1202,6 +1202,7 @@ enum CType {
 	REPLACE_BG_IMAGE, /// 背景置換(Wsn.1)。
 	LOSE_BG_IMAGE, /// 背景削除(Wsn.1)。
 	BRANCH_MULTI_COUPON, /// クーポン多岐分岐(Wsn.2)。
+	BRANCH_MULTI_RANDOM, /// ランダム多岐分岐(Wsn.2)。
 }
 
 /// WSN形式のシナリオでのみ使用できるイベントコンテントか。
@@ -1212,6 +1213,7 @@ bool isWsnContent(CType cType) { mixin(S_TRACE);
 	case REPLACE_BG_IMAGE: // Wsn.1
 	case LOSE_BG_IMAGE: // Wsn.1
 	case BRANCH_MULTI_COUPON: // Wsn.2
+	case BRANCH_MULTI_RANDOM: // Wsn.2
 		return true;
 	default:
 		return false;

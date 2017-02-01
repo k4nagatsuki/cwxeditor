@@ -1084,6 +1084,7 @@ class CWXScript {
 			cast(string) "rplback":CType.REPLACE_BG_IMAGE, // Wsn.1
 			cast(string) "loseback":CType.LOSE_BG_IMAGE, // Wsn.1
 			cast(string) "brcouponm":CType.BRANCH_MULTI_COUPON, // Wsn.2
+			cast(string) "brrandomm":CType.BRANCH_MULTI_RANDOM, // Wsn.2
 		];
 		string[CType] commands;
 		foreach (name, type; keywords) { mixin(S_TRACE);
