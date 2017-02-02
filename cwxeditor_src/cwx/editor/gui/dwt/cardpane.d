@@ -2197,11 +2197,11 @@ private:
 				}
 				int i = _list.searchIndex(e.x, e.y);
 				if (_index != i) { mixin(S_TRACE);
-					if (0 <= _index) _list.refresh(_index);
-					if (0 <= i) _list.refresh(i);
+					if (0 <= _index && _index < _list.count) _list.refresh(_index);
+					if (0 <= i && i < _list.count) _list.refresh(i);
 					_index = i;
 				}
-				if (i < 0) { mixin(S_TRACE);
+				if (i < 0 || _list.count <= i) { mixin(S_TRACE);
 					_list.setCursor(null);
 					_openEventTarget = null;
 					return;
