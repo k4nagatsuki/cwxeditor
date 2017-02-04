@@ -59,11 +59,11 @@ public:
 		addListener(SWT.Paint, new class Listener {
 			public override void handleEvent(Event e) { mixin(S_TRACE);
 				auto area = getClientArea();
-				scope img = new Image(Display.getCurrent(), area.width, area.height);
-				scope gc = new GC(img);
+				auto img = new Image(Display.getCurrent(), area.width, area.height);
+				auto gc = new GC(img);
 				gc.setBackground(getBackground());
 				gc.fillRectangle(area);
-				repaint(gc);
+				gc = repaint(gc, img);
 				e.gc.drawImage(img, 0, 0);
 				gc.dispose();
 				img.dispose();
@@ -859,8 +859,8 @@ private:
 			y += _spaceY;
 		}
 	}
-	void repaint(GC gc) { mixin(S_TRACE);
-		if (_items.length == 0) return;
+	GC repaint(GC gc, Image canvas) { mixin(S_TRACE);
+		if (_items.length == 0) return gc;
 		auto rect = getClientArea();
 		int w = rect.width;
 		int index, iy, ix;
@@ -936,7 +936,10 @@ private:
 			y += _itmH;
 			y += _spaceY;
 		}
-		if (_startPos && _endPos) { mixin(S_TRACE);
+		if (_startPos && _endPos && gc) { mixin(S_TRACE);
+			gc.dispose();
+			gc = new GC(canvas);
+
 			auto left = .min(_startPos.x, _endPos.x);
 			auto top = .min(_startPos.y, _endPos.y);
 			auto right = .max(_startPos.x, _endPos.x);
@@ -958,6 +961,7 @@ private:
 			gc.setAlpha(lineAlpha);
 			gc.drawRectangle(left, top, right - left, bottom - top);
 		}
+		return gc;
 	}
 	void resize() { mixin(S_TRACE);
 		auto rect = getClientArea();
@@ -993,7 +997,7 @@ private:
 		setupBar(getHorizontalBar(), prW, rect.width, &scrollX);
 
 		refreshToolTip();
-		repaint(null);
+		repaint(null, null);
 		redraw();
 	}
 	void disposeItems() { mixin(S_TRACE);
