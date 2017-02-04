@@ -982,7 +982,7 @@ private:
 	}
 	public Skin findSkinFromHistory(in Summary summ, out OpenHistory hist) { mixin(S_TRACE);
 		hist = findHist(createHistString(summ));
-		if (summ.legacy && hist.path.length && (hist.skinType.length || hist.skinEngine.length)) { mixin(S_TRACE);
+		if (hist.path.length && (hist.skinType.length || hist.skinEngine.length)) { mixin(S_TRACE);
 			return findSkin(_comm, _prop, summ, hist.skinType, hist.skinName, hist.skinEngine);
 		}
 		return findSkin(_comm, _prop, summ);
