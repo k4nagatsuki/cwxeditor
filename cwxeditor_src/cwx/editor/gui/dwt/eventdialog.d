@@ -1184,8 +1184,10 @@ protected:
 			comp.setLayout(zeroMarginGridLayout(2, false));
 			_doAnime = new Button(comp, SWT.CHECK);
 			_doAnime.setText(prop.msgs.doAnime);
+			mod(_doAnime);
 			_ignoreEffectBooster = new Button(comp, SWT.CHECK);
 			_ignoreEffectBooster.setText(prop.msgs.ignoreEffectBooster);
+			mod(_ignoreEffectBooster);
 			comp.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 			.listener(_ignoreEffectBooster, SWT.Selection, &refreshWarning);
 		}
@@ -1273,8 +1275,10 @@ protected:
 			comp.setLayout(zeroMarginGridLayout(1, false));
 			_doAnime = new Button(comp, SWT.CHECK);
 			_doAnime.setText(prop.msgs.doAnime);
+			mod(_doAnime);
 			_ignoreEffectBooster = new Button(comp, SWT.CHECK);
 			_ignoreEffectBooster.setText(prop.msgs.ignoreEffectBooster);
+			mod(_ignoreEffectBooster);
 			comp.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 		}
 
@@ -3565,8 +3569,10 @@ protected:
 			comp.setLayout(zeroMarginGridLayout(1, false));
 			_doAnime = new Button(comp, SWT.CHECK);
 			_doAnime.setText(prop.msgs.doAnime);
+			mod(_doAnime);
 			_ignoreEffectBooster = new Button(comp, SWT.CHECK);
 			_ignoreEffectBooster.setText(prop.msgs.ignoreEffectBooster);
+			mod(_ignoreEffectBooster);
 			auto gd = new GridData(GridData.HORIZONTAL_ALIGN_END);
 			gd.horizontalSpan = 2;
 			comp.setLayoutData(gd);
