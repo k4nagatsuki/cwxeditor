@@ -529,9 +529,10 @@ class Msgs : Properties {
 	auto roundCondition = Msg("roundCondition", "ラウンド条件");
 	auto roundIs = Msg("roundIs", "バトルが");
 	auto roundCmpIs = Msg("roundCmpIs", "ラウンド");
-	auto doAnime = Msg("doAnime", "JPY1アニメーションを実行する");
-	auto ignoreEffectBooster = Msg("ignoreEffectBooster", "エフェクトブースター関係のセルを無視する");
-	auto selectionColumns = Msg("selectionColumns", "選択肢の列数");
+	auto doAnime = Msg("doAnime", "JPY1アニメーションを実行する"); // Wsn.1
+	auto ignoreEffectBooster = Msg("ignoreEffectBooster", "エフェクトブースター関係のセルを無視する"); // Wsn.1
+	auto selectionColumns = Msg("selectionColumns", "選択肢の列数"); // Wsn.1
+	auto centeringY = Msg("centeringY", "縦方向に中央寄せ"); // Wsn.2
 
 	const string blendModeName(BlendMode id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(BlendMode, "blendModeName"));
@@ -885,13 +886,14 @@ class Msgs : Properties {
 	auto ctLinkPackage = Msg("ctLinkPackage", "パッケージ「%1$s」へのリンク");
 	auto ctTalkMessageImage = Msg("ctTalkMessageImage", "[%1$s]");
 	auto ctTalkMessage = Msg("ctTalkMessage", "%1$s: %2$s");
-	auto ctTalkMessageWithColumns = Msg("ctTalkMessageWithColumns", "%1$s: %2$s (%3$s列の選択肢)");
+	auto ctTalkMessageWithAttrs = Msg("ctTalkMessageWithAttrs", "%1$s: %2$s (%3$s)");
 	auto ctTalkMessageNarration = Msg("ctTalkMessageNarration", "%1$s");
-	auto ctTalkMessageNarrationWithColumns = Msg("ctTalkMessageNarrationWithColumns", "%1$s (%2$s列の選択肢)");
+	auto ctTalkMessageNarrationWithAttrs = Msg("ctTalkMessageNarrationWithAttrs", "%1$s (%2$s)");
 	auto ctTalkDialog = Msg("ctTalkDialog", "%1$s %2$s: %3$s");
-	auto ctTalkDialogWithColumns = Msg("ctTalkDialogWithColumns", "%1$s %2$s: %3$s (%4$s列の選択肢)");
+	auto ctTalkDialogWithAttrs = Msg("ctTalkDialogWithAttrs", "%1$s %2$s: %3$s (%4$s)");
 	auto ctTalkDialogNoCoupon = Msg("ctTalkDialogNoCoupon", "%1$s: %2$s");
-	auto ctTalkDialogNoCouponWithColumns = Msg("ctTalkDialogNoCouponWithColumns", "%1$s: %2$s (%3$s列の選択肢)");
+	auto ctTalkDialogNoCouponWithAttrs = Msg("ctTalkDialogNoCouponWithAttrs", "%1$s: %2$s (%3$s)");
+	auto ctColumns = Msg("ctColumns", "%1$s列の選択肢");
 	auto ctPlayBGM = Msg("ctPlayBGM", "BGMとして「%1$s」を演奏 Ch. = %2$s フェードイン時間 = %3$s × 0.1秒 音量 = %4$s%% ループ回数 = %5$s");
 	auto ctStopBGM = Msg("ctStopBGM", "BGM停止 Ch. = %1$s フェードアウト時間 = %2$s × 0.1秒");
 	auto ctPlaySound = Msg("ctPlaySound", "効果音「%1$s」を鳴らす Ch. = %2$s フェードイン時間 = %3$s × 0.1秒 音量 = %4$s%% ループ回数 = %5$s");
@@ -1836,11 +1838,12 @@ class Msgs : Properties {
 	auto warningBranchKeyCodeAtWsn1 = Msg("warningBranchKeyCodeAtWsn1", "Wsn.1以前のシナリオにおけるキーコード所持分岐は、カードの種類に特殊技能・アイテム・召喚獣のいずれか単独、またはそれら全てを指定しなければ正しく機能しません。"); // Wsn.2
 	auto warningBranchKeyCodeWithItem = Msg("warningBranchKeyCodeWithItem", "クラシックなシナリオにおけるキーコード所持分岐でカードの種類にアイテムが含まれている場合は、戦闘時の手札も検索対象となります。");
 	auto warningLoadScaledImage = Msg("warningLoadScaledImage", "スケーリングされたイメージファイルの読み込みは、Wsn.2以降の形式のシナリオに対応したエンジンでしか機能しません。"); // Wsn.2
-	auto warningPlayerCardEvents = Msg("warningPlayerCardEvents", "プレイヤーカードに対するイベント設定は、Wsn.2以降の形式のシナリオしか行なえません。"); // Wsn.2
-	auto warningCouponHolder = Msg("warningCouponHolder", "適用範囲 [称号所有者] の指定は、Wsn.2以降の形式のシナリオしか行なえません。"); // Wsn.2
+	auto warningPlayerCardEvents = Msg("warningPlayerCardEvents", "プレイヤーカードに対するイベント設定は、Wsn.2以降の形式のシナリオしか行えません。"); // Wsn.2
+	auto warningCouponHolder = Msg("warningCouponHolder", "適用範囲 [称号所有者] の指定は、Wsn.2以降の形式のシナリオしか行えません。"); // Wsn.2
 	auto warningNoHoldingCoupon = Msg("warningNoHoldingCoupon", "範囲指定用の称号が設定されていません。"); // Wsn.2
-	auto warningCardTarget = Msg("warningCardTarget", "適用範囲 [カードの使用対象] の指定は、Wsn.2以降の形式のシナリオしか行なえません。"); // Wsn.2
-	auto warningRefAbility = Msg("warningRefAbility", "選択メンバの能力参照は、Wsn.2以降の形式のシナリオでしか行なえません。"); // Wsn.2
+	auto warningCardTarget = Msg("warningCardTarget", "適用範囲 [カードの使用対象] の指定は、Wsn.2以降の形式のシナリオしか行えません。"); // Wsn.2
+	auto warningRefAbility = Msg("warningRefAbility", "選択メンバの能力参照は、Wsn.2以降の形式のシナリオでしか行えません。"); // Wsn.2
+	auto warningCenteringY = Msg("warningCenteringY", "縦方向の中央寄せ表示は、Wsn.2以降の形式のシナリオでしか行えません。"); // Wsn.2
 
 	auto unknownStepValue = Msg("unknownStepValue", "存在しないステップ値(%1$s)");
 

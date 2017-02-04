@@ -42,9 +42,10 @@ import cwx.editor.gui.dwt.incsearch;
 import cwx.editor.gui.dwt.imagelistwindow;
 
 static import std.algorithm;
-import std.algorithm : max, sort, uniq;
+import std.algorithm : max, min, sort, uniq;
 import std.array;
 import std.utf;
+import std.uni;
 import std.string;
 import std.datetime;
 import std.conv;
@@ -60,6 +61,7 @@ import java.lang.all;
 /// 台詞コンテント・メッセージコンテントのダイアログの親クラス。
 class AbstractMessageDialog : EventDialog {
 	private Spinner _selectionColumns;
+	private Button _centerY;
 
 	private KeyDownFilter _kdFilter;
 	private MsgPreviewWindow _previewWin = null;
@@ -71,6 +73,28 @@ class AbstractMessageDialog : EventDialog {
 	@property
 	private Skin summSkin() { mixin(S_TRACE);
 		return _summSkin ? _summSkin : comm.skin;
+	}
+
+	protected override void refDataVersion() { mixin(S_TRACE);
+		_selectionColumns.setEnabled(!summ || !summ.legacy || _selectionColumns.getSelection() != 1);
+		_centerY.setEnabled(!summ || !summ.legacy || _centerY.getSelection());
+		refreshWarning();
+	}
+
+	@property
+	private string[] warnings() { mixin(S_TRACE);
+		string[] ws;
+		if (!prop.isTargetVersion(summ, "1")) { mixin(S_TRACE);
+			if (_selectionColumns.getSelection() != 1) { mixin(S_TRACE);
+				ws ~= prop.msgs.warningSelectionColumns;
+			}
+		}
+		if (!prop.isTargetVersion(summ, "2")) { mixin(S_TRACE);
+			if (_centerY.getSelection()) { mixin(S_TRACE);
+				ws ~= prop.msgs.warningCenteringY;
+			}
+		}
+		return ws;
 	}
 
 	private TextWarnings textWarnings(in string[] flags, in string[] steps, in string[] fonts, in char[] colors,
@@ -100,11 +124,11 @@ class AbstractMessageDialog : EventDialog {
 			auto s = wrapReturnCode(text);
 			if (_previewWin) { mixin(S_TRACE);
 				if (_previewWin.isVisible()) return;
-				_previewWin.text(imgPaths, s);
+				_previewWin.text(imgPaths, s, _centerY.getSelection());
 				_previewWin.open();
 			} else { mixin(S_TRACE);
 				if (rightGroup.isVisible()) return;
-				_preview.text(imgPaths, s);
+				_preview.text(imgPaths, s, _centerY.getSelection());
 				setPreviewLData(true);
 			}
 		} else { mixin(S_TRACE);
@@ -321,10 +345,10 @@ class AbstractMessageDialog : EventDialog {
 		if (!_previewWin && !_preview) return;
 		auto s = wrapReturnCode(text);
 		if (_previewWin) { mixin(S_TRACE);
-			_previewWin.text(imgPaths, s);
+			_previewWin.text(imgPaths, s, _centerY.getSelection());
 			_previewWin.refresh();
 		} else { mixin(S_TRACE);
-			_preview.text(imgPaths, s);
+			_preview.text(imgPaths, s, _centerY.getSelection());
 			_preview.refresh();
 		}
 	}
@@ -458,18 +482,9 @@ private:
 		_warningTip.setVisible(false);
 		_warningTip.setMessage("");
 
-		if (!prop.isTargetVersion(summ, "1")) { mixin(S_TRACE);
-			if (_selectionColumns.getSelection() != 1) { mixin(S_TRACE);
-				ws ~= prop.msgs.warningSelectionColumns;
-			}
-		}
+		ws ~= warnings;
 
 		warning = ws.sort().uniq().array();
-	}
-
-	protected override void refDataVersion() { mixin(S_TRACE);
-		_selectionColumns.setEnabled(!summ || !summ.legacy || _selectionColumns.getSelection() != 1);
-		refreshWarning();
 	}
 
 	class MouseMoveDlgsL : MouseTrackAdapter, MouseMoveListener {
@@ -917,11 +932,11 @@ protected:
 	override void setup(Composite area) { mixin(S_TRACE);
 		super.setup(area);
 
-		area.setLayout(windowGridLayout(2, false));
+		area.setLayout(windowGridLayout(3, false));
 
 		auto sash = new SplitPane(area, SWT.HORIZONTAL);
 		auto sgd = new GridData(GridData.FILL_BOTH);
-		sgd.horizontalSpan = 2;
+		sgd.horizontalSpan = 3;
 		sash.setLayoutData(sgd);
 		auto left = new Composite(sash, SWT.NONE);
 		left.setLayout(zeroMarginGridLayout(1, true));
@@ -1023,7 +1038,7 @@ protected:
 		{ mixin(S_TRACE);
 			auto msgComp = new Composite(right, SWT.NONE);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
-			gd.horizontalSpan = 2;
+			gd.horizontalSpan = 3;
 			msgComp.setLayoutData(gd);
 			msgComp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
 			_text = createMessagePane(comm, prop, true, msgComp, summ);
@@ -1036,18 +1051,23 @@ protected:
 		sChar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 		auto rows = createSelectionColumns(area);
+		_centerY = new Button(area, SWT.CHECK);
+		mod(_centerY);
+		_centerY.setText(prop.msgs.centeringY);
+		.listener(_centerY, SWT.Selection, &refDataVersion);
+		.listener(_centerY, SWT.Selection, &refreshPreview);
 
 		auto skinSChar = createSkinSCharBar(comm, area, &insert, prop, skin);
 		auto gdS = new GridData(GridData.FILL_HORIZONTAL);
-		gdS.horizontalSpan = 2;
+		gdS.horizontalSpan = 3;
 		skinSChar.setLayoutData(gdS);
 
 		auto var = createFlagStepBar(area, &insert, comm, prop, skin, summ, true);
 		auto gdV = new GridData(GridData.FILL_HORIZONTAL);
-		gdV.horizontalSpan = 2;
+		gdV.horizontalSpan = 3;
 		var.setLayoutData(gdV);
 
-		area.setTabList([sash, sChar, skinSChar, var, rows]);
+		area.setTabList([sash, sChar, skinSChar, var, rows, _centerY]);
 
 		.setupWeights(leftSash, prop.var.etc.talkLeftSashL, prop.var.etc.talkLeftSashR);
 		.setupWeights(sash, prop.var.etc.talkMainSashL, prop.var.etc.talkMainSashR);
@@ -1084,10 +1104,12 @@ protected:
 			_couponView.coupons = evt.coupons;
 			_initValue.setSelection(evt.initValue);
 			_selectionColumns.setSelection(evt.selectionColumns);
+			_centerY.setSelection(evt.centeringY);
 		} else { mixin(S_TRACE);
 			_talkers.select(0);
 			_dlgs = [new SDialog];
 			_selectionColumns.setSelection(1);
+			_centerY.setSelection(false);
 		}
 		refreshDlgList();
 
@@ -1112,6 +1134,7 @@ protected:
 			evt.initValue = 0;
 		}
 		evt.selectionColumns = _selectionColumns.getSelection();
+		evt.centeringY = _centerY.getSelection();
 		comm.refCoupons.call();
 		return true;
 	}
@@ -1143,18 +1166,9 @@ private:
 		ws ~= textWarnings(flags, steps, fonts, colors,
 			wFlags, wSteps, wFonts, wColors).all;
 
-		if (!prop.isTargetVersion(summ, "1")) { mixin(S_TRACE);
-			if (_selectionColumns.getSelection() != 1) { mixin(S_TRACE);
-				ws ~= prop.msgs.warningSelectionColumns;
-			}
-		}
+		ws ~= warnings;
 
 		warning = ws;
-	}
-
-	protected override void refDataVersion() { mixin(S_TRACE);
-		_selectionColumns.setEnabled(!summ || !summ.legacy || _selectionColumns.getSelection() != 1);
-		refreshWarning();
 	}
 
 	void tabChanged() { mixin(S_TRACE);
@@ -1223,11 +1237,11 @@ protected:
 	override void setup(Composite area) { mixin(S_TRACE);
 		super.setup(area);
 
-		area.setLayout(windowGridLayout(2, false));
+		area.setLayout(windowGridLayout(3, false));
 		_tabf = new CTabFolder(area, SWT.BORDER);
 		mod(_tabf);
 		auto gdT = new GridData(GridData.FILL_BOTH);
-		gdT.horizontalSpan = 2;
+		gdT.horizontalSpan = 3;
 		_tabf.setLayoutData(gdT);
 		auto skin = comm.skin;
 		{ mixin(S_TRACE);
@@ -1266,20 +1280,25 @@ protected:
 		sChar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 		auto rows = createSelectionColumns(area);
+		_centerY = new Button(area, SWT.CHECK);
+		mod(_centerY);
+		_centerY.setText(prop.msgs.centeringY);
+		.listener(_centerY, SWT.Selection, &refDataVersion);
+		.listener(_centerY, SWT.Selection, &refreshPreview);
 
 		auto skinSChar = createSkinSCharBar(comm, area, &insert, prop, skin);
 		auto gdS = new GridData(GridData.FILL_HORIZONTAL);
-		gdS.horizontalSpan = 2;
+		gdS.horizontalSpan = 3;
 		skinSChar.setLayoutData(gdS);
 
 		auto var = createFlagStepBar(area, &insert, comm, prop, skin, summ, true);
 		auto gdV = new GridData(GridData.FILL_HORIZONTAL);
-		gdV.horizontalSpan = 2;
+		gdV.horizontalSpan = 3;
 		var.setLayoutData(gdV);
 
 		_tabf.addSelectionListener(new SL);
 
-		area.setTabList([_tabf, sChar, skinSChar, var, rows]);
+		area.setTabList([_tabf, sChar, skinSChar, var, rows, _centerY]);
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
@@ -1290,9 +1309,11 @@ protected:
 				_tabf.setSelection(1);
 			}
 			_selectionColumns.setSelection(evt.selectionColumns);
+			_centerY.setSelection(evt.centeringY);
 		} else { mixin(S_TRACE);
 			_tabf.setSelection(1);
 			_selectionColumns.setSelection(1);
+			_centerY.setSelection(false);
 		}
 		tabChanged();
 
@@ -1310,6 +1331,7 @@ protected:
 		evt.text = text;
 		evt.cardPaths = paths;
 		evt.selectionColumns = _selectionColumns.getSelection();
+		evt.centeringY = _centerY.getSelection();
 		return true;
 	}
 }
@@ -1538,7 +1560,11 @@ private ToolBar createSkinSCharBar(Commons comm, Composite parent, void delegate
 	});
 	Image[] imgs;
 	foreach (spc; skin.spChars.keys) { mixin(S_TRACE);
-		auto img = new Image(Display.getCurrent(), spChar(skin, spc));
+		auto data = spChar(skin, spc);
+		if (1 < comm.prop.s(1)) { mixin(S_TRACE);
+			data = data.scaledTo(comm.prop.s(data.width), comm.prop.s(data.height));
+		}
+		auto img = new Image(Display.getCurrent(), data);
 		string name = toUTF8("#"d ~ spc);
 		auto scp = new PutC(insert, name);
 		createToolItem2(comm, bar, name, img, &scp.put, null);
@@ -1919,8 +1945,8 @@ class MsgPreviewWindow {
 		_win.dispose();
 	}
 
-	void text(CardImage[] imgPaths, string message) { mixin(S_TRACE);
-		_preview.text(imgPaths, message);
+	void text(CardImage[] imgPaths, string message, bool centerY) { mixin(S_TRACE);
+		_preview.text(imgPaths, message, centerY);
 	}
 
 	private void refresh() { mixin(S_TRACE);
@@ -2590,6 +2616,7 @@ class MsgPreview : Composite {
 
 	private CardImage[] _imgPaths = [];
 	private string _message = "";
+	private bool _centerY = false;
 
 	private class Paint : PaintListener {
 		override void paintControl(PaintEvent e) { mixin(S_TRACE);
@@ -2643,12 +2670,13 @@ class MsgPreview : Composite {
 		_canvas.setLayoutData(cgd);
 	}
 
-	void text(CardImage[] imgPaths, string message) { mixin(S_TRACE);
-		if (imgPaths == _imgPaths && message == _message) { mixin(S_TRACE);
+	void text(CardImage[] imgPaths, string message, bool centerY) { mixin(S_TRACE);
+		if (imgPaths == _imgPaths && message == _message && centerY is _centerY) { mixin(S_TRACE);
 			return;
 		}
 		_imgPaths = imgPaths;
 		_message = message;
+		_centerY = centerY;
 		if (isVisible()) refresh();
 	}
 
@@ -2695,7 +2723,7 @@ class MsgPreview : Composite {
 		string[char] names;
 		string[string] flags, steps;
 		_values.getValues(names, flags, steps);
-		_img = new Image(d, previewMessage(_comm, _prop, _summ.scenarioPath, tImg, pos, _message, [], names, flags, steps, true));
+		_img = new Image(d, previewMessage(_comm, _prop, _summ.scenarioPath, tImg, pos, _message, [], names, flags, steps, true, _centerY));
 	}
 
 	@property
@@ -2707,7 +2735,10 @@ class MsgPreview : Composite {
 }
 
 /// メッセージのプレビューを生成する。
-ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] talkers, CardImagePosition[] poses, string message, in string[] sel, in string[char] names, in string[string] flags, in string[string] steps, bool scaled) { mixin(S_TRACE);
+ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] talkers,
+		CardImagePosition[] poses, string message, in string[] sel, in string[char] names,
+		in string[string] flags, in string[string] steps, bool scaled,
+		bool centerY) { mixin(S_TRACE);
 	auto d = Display.getCurrent();
 	version (Windows) {
 		bool legacy = comm.skin.legacy;
@@ -2816,7 +2847,12 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] tal
 	auto selFont = .createFontFromPixels(prop.looks.messageSelectFont(legacy));
 	scope (exit) selFont.dispose();
 
+	gc.setFont(font);
+
 	auto start = prop.looks.messageStartPos(legacy, 0 < talkers.length);
+	// 縁取り分の位置ずれ
+	start.x -= 1;
+	start.y -= 1;
 	int x = start.x, y = start.y;
 	int lineH;
 	string old = "";
@@ -2829,14 +2865,21 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] tal
 		old = "";
 	}
 
-	auto textCanvas = new Image(d, rect.width, rect.height + bh * cast(int)sel.length);
-	scope (exit) textCanvas.dispose();
-	auto tgc = new GC(textCanvas);
-	scope (exit) tgc.dispose();
+	Rectangle drawRect = null;
+	void merge(int x, int y, int w, int h) { mixin(S_TRACE);
+		auto rect = new Rectangle(x, y, w, h);
+		if (drawRect) { mixin(S_TRACE);
+			drawRect.add(rect);
+		} else { mixin(S_TRACE);
+			drawRect = rect;
+		}
+	}
+	void delegate(int slideX, int slideY)[] drawer;
+	void delegate(GC tgc, int slideX, int slideY)[] textDrawer;
 
 	// フォントイメージ
 	auto wrgb = fc.getRGB();
-	void drawSPFont(GC gc, CPoint pt, string path, RGB c) { mixin(S_TRACE);
+	void drawSPFont(CPoint pt, string path, RGB c) { mixin(S_TRACE);
 		string fpath = comm.skin.findImagePath(path, sPath, comm.summary.dataVersion);
 		ImageData data = null;
 		if (fpath && fpath.length) { mixin(S_TRACE);
@@ -2862,28 +2905,26 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] tal
 				}
 				data.transparentPixel = data.getPixel(0, 0);
 			}
-			auto img = new Image(d, data);
-			scope (exit) img.dispose();
-			tgc.drawImage(img, pt.x, pt.y);
-		} else {
-			if (data) { mixin(S_TRACE);
+			textDrawer ~= (tgc, slideX, slideY) { mixin(S_TRACE);
 				auto img = new Image(d, data);
 				scope (exit) img.dispose();
-				gc.drawImage(img, pt.x, pt.y);
-			}
+				tgc.drawImage(img, pt.x + slideX, pt.y + slideY);
+			};
+			merge(pt.x, pt.y, data.width, data.height);
+		} else { mixin(S_TRACE);
+			drawer ~= (slideX, slideY) { mixin(S_TRACE);
+				auto img = new Image(d, data);
+				scope (exit) img.dispose();
+				gc.drawImage(img, slideX + pt.x + 1, slideY + pt.y + 1);
+			};
+			merge(pt.x, pt.y, data.width, data.height);
 		}
 	}
 
-	// FIXME: IPAフォントの使用とアンチエイリアス設定を
-	//        同時に行うと一部環境で問題が出る。
-	//tgc.setTextAntialias(SWT.OFF);
-	tgc.setFont(font);
-	tgc.setForeground(fc);
-	tgc.setBackground(hc);
-	tgc.fillRectangle(0, 0, rect.width, rect.height + bh * cast(int)sel.length);
+	auto foreground = fc;
 	lineH = prop.looks.messageLineHeight;
 	for (size_t i = 0; i < dmsg.length; i++) { mixin(S_TRACE);
-		if (rect.height - 6 < y + lineH) { mixin(S_TRACE);
+		if (!centerY && rect.height - 6 < y + lineH) { mixin(S_TRACE);
 			// 行数オーバー
 			break;
 		}
@@ -2899,13 +2940,13 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] tal
 				if (dmsg[i] != '\n') { mixin(S_TRACE);
 					ret();
 				}
-				if (rect.height - 6 < y + lineH) { mixin(S_TRACE);
+				if (!centerY && rect.height - 6 < y + lineH) { mixin(S_TRACE);
 					// 行数オーバー
 					break;
 				}
 			}
 			writeLen += 2;
-			drawSPFont(gc, CPoint(x - 2, y - 2), *cf, tgc.getForeground().getRGB());
+			drawSPFont(CPoint(x, y), *cf, foreground.getRGB());
 			x += w;
 			continue;
 		}
@@ -2913,15 +2954,15 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] tal
 		if (colorP) { mixin(S_TRACE);
 			// フォント色変更
 			switch (*colorP) {
-			case 'W': tgc.setForeground(fc); break;
-			case 'R': tgc.setForeground(cr); break;
-			case 'B': tgc.setForeground(cb); break;
-			case 'G': tgc.setForeground(cg); break;
-			case 'Y': tgc.setForeground(cy); break;
-			case 'O': tgc.setForeground(co); break;
-			case 'P': tgc.setForeground(cp); break;
-			case 'L': tgc.setForeground(cl); break;
-			case 'D': tgc.setForeground(cd); break;
+			case 'W': foreground = fc; break;
+			case 'R': foreground = cr; break;
+			case 'B': foreground = cb; break;
+			case 'G': foreground = cg; break;
+			case 'Y': foreground = cy; break;
+			case 'O': foreground = co; break;
+			case 'P': foreground = cp; break;
+			case 'L': foreground = cl; break;
+			case 'D': foreground = cd; break;
 			default: break;
 			}
 			i++;
@@ -2934,8 +2975,8 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] tal
 			break;
 		default:
 			auto s = to!string(c);
-			auto te = tgc.wTextExtent(s);
-			int len = (te.x + 1) / tgc.wTextExtent("#").x;
+			auto te = gc.wTextExtent(s);
+			int len = (te.x + 1) / gc.wTextExtent("#").x;
 			int w = prop.looks.messageCharWidth;
 			if (len < 2) w = prop.looks.messageCharWidth / 2;
 			// 行末が半角スペースの時だけ特別扱いする(CardWirthの挙動に合わせた処理)
@@ -2950,33 +2991,88 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] tal
 				}
 			}
 			writeLen += len;
-			static immutable JOINS = "―─＿￣";
-			if (std.string.indexOf(JOINS, s) != -1) { mixin(S_TRACE);
-				// 強制的に左右を接続する文字
-				tgc.wDrawText(s, x - 1, y, true);
-				tgc.wDrawText(s, x, y, true);
-				tgc.wDrawText(s, x + 1, y, true);
-			} else { mixin(S_TRACE);
-				tgc.wDrawText(s, x, y, true);
+			class TGCDrawer {
+				private Color foreground;
+				private string s;
+				private int x;
+				private int y;
+				this (Color foreground, string s, int x, int y) { mixin(S_TRACE);
+					this.foreground = foreground;
+					this.s = s;
+					this.x = x;
+					this.y = y;
+				}
+				void draw(GC tgc, int slideX, int slideY) { mixin(S_TRACE);
+					static immutable JOINS = "―─＿￣";
+					tgc.setForeground(foreground);
+					auto x = this.x + slideX;
+					auto y = this.y + slideY;
+					if (std.string.indexOf(JOINS, s) != -1) { mixin(S_TRACE);
+						// 強制的に左右を接続する文字
+						tgc.wDrawText(s, x - 1, y, true);
+						tgc.wDrawText(s, x, y, true);
+						tgc.wDrawText(s, x + 1, y, true);
+					} else { mixin(S_TRACE);
+						tgc.wDrawText(s, x, y, true);
+					}
+				}
 			}
+			textDrawer ~= &(new TGCDrawer(foreground, s, x, y)).draw;
+			merge(x, y, w, lineH);
 			x += w;
 			break;
 		}
 	}
 
-	// 選択肢
+	int slideX = 0, slideY = 0;
+	if (centerY && drawRect) { mixin(S_TRACE);
+		slideY = (rect.height - drawRect.height) / 2 - drawRect.y;
+	}
+
+	auto canvasHeight = rect.height;
+	if (drawRect) { mixin(S_TRACE);
+		canvasHeight = .max(canvasHeight, drawRect.height);
+	}
+	auto textCanvas = new Image(d, rect.width, canvasHeight + bh * cast(int)sel.length);
+	scope (exit) textCanvas.dispose();
+	auto tgc = new GC(textCanvas);
+	scope (exit) tgc.dispose();
+
+	// FIXME: IPAフォントの使用とアンチエイリアス設定を
+	//        同時に行うと一部環境で問題が出る。
+	//tgc.setTextAntialias(SWT.OFF);
+	tgc.setFont(font);
 	tgc.setForeground(fc);
-	tgc.setFont(selFont);
-	auto slh = tgc.getFontMetrics().getHeight();
-	int sx;
-	int sy = rect.height + ((bh - slh) / 2);
-	foreach (i, t; sel) { mixin(S_TRACE);
-		sx = (rect.width - tgc.wTextExtent(t).x) / 2;
-		tgc.wDrawText(t, sx, sy, true);
-		sy += bh;
+	tgc.setBackground(hc);
+	tgc.fillRectangle(textCanvas.getBounds());
+
+	foreach (dlg; textDrawer) { mixin(S_TRACE);
+		dlg(tgc, slideX, slideY);
+	}
+
+	// 枠
+	auto c1 = new Color(d, dwtData(prop.var.etc.messageLineColor1, alpha));
+	scope (exit) c1.dispose();
+	auto c2 = new Color(d, dwtData(prop.var.etc.messageLineColor2, alpha));
+	scope (exit) c2.dispose();
+	gc.setForeground(c1);
+	gc.drawRectangle(0, 0, rect.width - 1, rect.height - 1);
+	gc.drawRectangle(2, 2, rect.width - 5, rect.height - 5);
+	foreach (i; 0 .. sel.length) { mixin(S_TRACE);
+		gc.drawRectangle(0, rect.height + bh * cast(int)i, rect.width - 1, bh - 1);
+		gc.drawRectangle(2, rect.height + 2 + bh * cast(int)i, rect.width - 5, bh - 5);
+	}
+	gc.setForeground(c2);
+	gc.drawRectangle(1, 1, rect.width - 3, rect.height - 3);
+	foreach (i; 0 .. sel.length) { mixin(S_TRACE);
+		gc.drawRectangle(1, rect.height + 1 + bh * cast(int)i, rect.width - 3, bh - 3);
 	}
 
 	// 貼り付け
+	foreach (dlg; drawer) { mixin(S_TRACE);
+		dlg(slideX, slideY);
+	}
+
 	auto tImgData = textCanvas.getImageData();
 	tImgData.transparentPixel = tImgData.getPixel(0, 0);
 	auto hemImgData = new ImageData(tImgData.width, tImgData.height, 2, new PaletteData([new RGB(255, 255, 255), new RGB(0, 0, 0)]));
@@ -3002,22 +3098,16 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] tal
 	gc.drawImage(hemImg, -1, 0);
 	gc.drawImage(tImg, 0, 0);
 
-	// 枠
-	auto c1 = new Color(d, dwtData(prop.var.etc.messageLineColor1, alpha));
-	scope (exit) c1.dispose();
-	auto c2 = new Color(d, dwtData(prop.var.etc.messageLineColor2, alpha));
-	scope (exit) c2.dispose();
-	gc.setForeground(c1);
-	gc.drawRectangle(0, 0, rect.width - 1, rect.height - 1);
-	gc.drawRectangle(2, 2, rect.width - 5, rect.height - 5);
-	foreach (i; 0 .. sel.length) { mixin(S_TRACE);
-		gc.drawRectangle(0, rect.height + bh * cast(int)i, rect.width - 1, bh - 1);
-		gc.drawRectangle(2, rect.height + 2 + bh * cast(int)i, rect.width - 5, bh - 5);
-	}
-	gc.setForeground(c2);
-	gc.drawRectangle(1, 1, rect.width - 3, rect.height - 3);
-	foreach (i; 0 .. sel.length) { mixin(S_TRACE);
-		gc.drawRectangle(1, rect.height + 1 + bh * cast(int)i, rect.width - 3, bh - 3);
+	// 選択肢
+	gc.setForeground(fc);
+	gc.setFont(selFont);
+	auto slh = gc.getFontMetrics().getHeight();
+	int sx;
+	int sy = rect.height + ((bh - slh) / 2);
+	foreach (i, t; sel) { mixin(S_TRACE);
+		sx = (rect.width - gc.wTextExtent(t).x) / 2;
+		gc.wDrawText(t, sx, sy, true);
+		sy += bh;
 	}
 
 	auto data = canvas.getImageData();

@@ -740,6 +740,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (c.range is Range.CARD_TARGET && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningCardTarget;
 		}
+		if (c.centeringY && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+			r ~= prop.msgs.warningCenteringY;
+		}
 	}
 	return r;
 }

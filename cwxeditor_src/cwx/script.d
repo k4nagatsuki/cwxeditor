@@ -2895,6 +2895,9 @@ fi`;
 			if (detail.use(CArg.SELECTION_COLUMNS)) { mixin(S_TRACE);
 				c.selectionColumns = parseAttr!(int)(opt, node.attr, i, c.selectionColumns, varTable, 0);
 			}
+			if (detail.use(CArg.CENTERING_Y)) { mixin(S_TRACE);
+				c.centeringY = parseAttr!(bool)(opt, node.attr, i, c.centeringY, varTable, 0);
+			}
 			if (detail.use(CArg.START_ACTION)) { mixin(S_TRACE);
 				c.startAction = parseAttr!(StartAction)(opt, node.attr, i, c.startAction, varTable, 0);
 			}
@@ -3820,13 +3823,15 @@ fi`;
 				if (detail.use(CArg.INIT_VALUE)) { mixin(S_TRACE);
 					attrs ~= toAttr(c.initValue, indentValue, vars);
 				}
-				// 後続に選択肢値が出現する場合は必ず値を生成する必要がある
-				if (detail.use(CArg.COUPONS) && (c.coupons.length || (detail.use(CArg.SELECTION_COLUMNS) && c.selectionColumns != 1))) { mixin(S_TRACE);
+				if (detail.use(CArg.COUPONS)) { mixin(S_TRACE);
 					attrs ~= toAttr(c.coupons, indentValue, vars);
 				}
 			}
-			if (detail.use(CArg.SELECTION_COLUMNS) && c.selectionColumns != 1) { mixin(S_TRACE);
+			if (detail.use(CArg.SELECTION_COLUMNS)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.selectionColumns, indentValue, vars);
+			}
+			if (detail.use(CArg.CENTERING_Y)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.centeringY, indentValue, vars);
 			}
 			if (detail.use(CArg.START_ACTION)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.startAction, indentValue, vars);

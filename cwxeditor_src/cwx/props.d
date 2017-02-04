@@ -55,7 +55,7 @@ public:
 	@property const CRect messageBounds() {return CRect(81, 50, 470, 180);}
 	@property const int messageButtonHeight() {return 25;}
 	const CPoint messageStartPos(bool legacy, bool withTalker) { mixin(S_TRACE);
-		return withTalker ? CPoint(115, 11) : CPoint(16, 11);
+		return withTalker ? CPoint(115, 10) : CPoint(15, 10);
 	}
 	@property const uint messageLineHeight() { return 22; }
 	@property const uint messageCharWidth() { return 20; }
