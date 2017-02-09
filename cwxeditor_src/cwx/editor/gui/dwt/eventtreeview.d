@@ -3805,7 +3805,7 @@ public:
 				_tree.select(child);
 				_tree.showSelection();
 				refreshStatusLine();
-				if (cphasattr(path, "opendialog") || (!cpempty(path) && cpcategory(path) != "dialog")) { mixin(S_TRACE);
+				if (cphasattr(path, "opendialog") || (!cpempty(path) && cpcategory(path) != "dialog" && cpcategory(path) != "text")) { mixin(S_TRACE);
 					auto d = edit();
 					if (!d) { mixin(S_TRACE);
 						// ダイアログ無し、もしくは開けない状態のコンテント

@@ -903,6 +903,11 @@ public:
 			selectChanged();
 			.forceFocus(_dlgsL, shellActivate);
 			path = cpbottom(path);
+
+			cate = cpcategory(path);
+			if ("text" == cate) { mixin(S_TRACE);
+				path = cpbottom(path);
+			}
 			return cpempty(path);
 		}
 		return super.openCWXPath(path, shellActivate);
@@ -1233,6 +1238,17 @@ public:
 	override string text() { mixin(S_TRACE);
 		return wrapReturnCode(_text.getText());
 	}
+	
+	override
+	bool openCWXPath(string path, bool shellActivate) { mixin(S_TRACE);
+		auto cate = cpcategory(path);
+		if ("text" == cate) { mixin(S_TRACE);
+			path = cpbottom(path);
+			return cpempty(path);
+		}
+		return super.openCWXPath(path, shellActivate);
+	}
+
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
 		super.setup(area);
