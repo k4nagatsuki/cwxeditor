@@ -1721,7 +1721,7 @@ Composite createFlagStepBar(Composite parent, void delegate(string) insert, Comm
 				if (containsPath(prop.var.etc.ignorePaths, file)) continue;
 				if (summ.isSystemFile(sPath.buildPath(file))) continue;
 				auto u = to!dstring(file);
-				if (istartsWith(file, "font_") && u.length == 10 && file.extension().toLower() == ".bmp") { mixin(S_TRACE);
+				if (file.isSPFontFile) { mixin(S_TRACE);
 					if (summ.legacy) { mixin(S_TRACE);
 						auto n = u[5];
 						if (!isSJIS1ByteChar(n)) { mixin(S_TRACE);

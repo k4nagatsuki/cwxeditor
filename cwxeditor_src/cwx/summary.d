@@ -20,6 +20,7 @@ import cwx.structs;
 import cwx.types;
 import cwx.binary;
 import cwx.jpy;
+import cwx.msgutils;
 
 import lhafile.lhafile;
 
@@ -2251,7 +2252,7 @@ public:
 			if (v.length > 1u) { mixin(S_TRACE);
 				string[] nv;
 				foreach (file; v) { mixin(S_TRACE);
-					if (!cwx.utils.istartsWith(baseName(file), "font_")) { mixin(S_TRACE);
+					if (!baseName(file).isSPFontFile) { mixin(S_TRACE);
 						/// font_X.bmpはやむを得ずコピーした可能性があるため優先的に除外
 						nv ~= file;
 					}
@@ -2327,7 +2328,12 @@ public:
 							|| toSkin.isBgImage(p)
 							|| toSkin.isBGM(p)
 							|| toSkin.isSE(p)) { mixin(S_TRACE);
-						copy(p, std.path.buildPath(mt, baseName(p)));
+						auto fname = baseName(p);
+						if (fname.isSPFontFile) { mixin(S_TRACE);
+							copy(p, std.path.buildPath(temp, baseName(p)));
+						} else { mixin(S_TRACE);
+							copy(p, std.path.buildPath(mt, baseName(p)));
+						}
 					} else { mixin(S_TRACE);
 						copy(p, std.path.buildPath(temp, baseName(p)));
 					}
@@ -2351,8 +2357,10 @@ public:
 
 			foreach (key; uc.path.keys) { mixin(S_TRACE);
 				if (key.isBinImg) continue;
-				auto p = std.path.buildPath(scenarioPath, cast(string)key);
-				uc.change(key, toPathId(std.path.buildPath(toSkin.materialPath, cast(string)key)));
+				auto fname = cast(string)key;
+				if (istartsWith(fname, "font_") && fname.to!dstring.length == 10 && fname.extension().toLower() == ".bmp") continue;
+				auto p = std.path.buildPath(scenarioPath, fname);
+				uc.change(key, toPathId(std.path.buildPath(toSkin.materialPath, fname)));
 			}
 
 			// 各エフェクトブースターファイル情報の更新

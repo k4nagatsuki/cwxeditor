@@ -17,7 +17,7 @@ static import std.algorithm;
 
 /// "font_X.bmp"から"X"の部分を抽出する。
 dchar decodeFontPath(string path) { mixin(S_TRACE);
-	enforce(istartsWith(path, "font_"));
+	enforce(path.isSPFontFile);
 	auto dpath = to!dstring(path["font_".length .. $].stripExtension());
 	enforce(1 == dpath.length);
 	return std.uni.toUpper(dpath[0]);
