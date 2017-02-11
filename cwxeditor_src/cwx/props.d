@@ -94,7 +94,7 @@ public:
 	@property const int messageLine() {return 7;}
 
 	@property const dstring openChars() { return "\"'(<[`{‘“〈《≪「『【〔（＜［｛｢"d; }
-	@property const dstring closeChars() { return "!\"'),.:;>?]`}゜’”′″、。々＞》≫」』】〕〟゛°ゝゞヽヾ〻！），．：；＞？］｝｡｣､ﾞﾟぁぃぅぇぉァィゥェォｧｨｩｪｫヵっッｯゃゅょャュョｬｭｮゎヮㇵㇶㇷㇸㇹㇺ…―"d; }
+	@property const dstring closeChars() { return "!\"'),.:;>?]`}゜’”′″、。々＞》≫」』】〕〟゛°ゝゞヽヾ〻！），．：；＞？］｝｡｣､ﾞﾟぁぃぅぇぉァィゥェォｧｨｩｪｫヵっッｯゃゅょャュョｬｭｮゎヮㇵㇶㇷㇸㇹㇺ…―ーｰ"d; }
 	@property const dstring wordRegex() { return "[a-z0-9_]+|[ａ-ｚＡ-Ｚ０-９＿]+|."d; }
 
 	@property const int stepMaxCount() {return 10;}
