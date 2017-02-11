@@ -1530,7 +1530,7 @@ private:
 		} else static if (!is (C == Combo) && !is (C == CCombo)) {
 			static assert (false);
 		}
-		_fileList.setEnabled(!_readOnly && _fileList.getItemCount());
+		_fileList.setEnabled(!_readOnly);
 		_loading = false;
 		foreach (dlg; loadedEvent) dlg();
 		_comm.refreshToolBar();
@@ -1780,7 +1780,7 @@ private:
 						if (_dirs.isDisposed()) return;
 						updateList();
 						_dirs.setEnabled(!_readOnly);
-						_fileList.setEnabled(!_readOnly && _fileList.getItemCount());
+						_fileList.setEnabled(!_readOnly);
 					}
 				});
 			} else { mixin(S_TRACE);
