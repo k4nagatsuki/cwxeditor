@@ -3195,13 +3195,13 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		text = text.singleLine;
 		if (evt.cardPaths.length) {
 			auto t = contentTextUseID!(CIDKind.CardImages)(comm, summ, evt.cardPaths, comm.prop.msgs.ctTalkMessageImage, evt);
-			if (evt.selectionColumns == 1 && !evt.centeringY) { mixin(S_TRACE);
+			if (evt.selectionColumns == 1 && !evt.centeringY && !evt.boundaryCheck) { mixin(S_TRACE);
 				return .tryFormat(comm.prop.msgs.ctTalkMessage, t, text);
 			} else { mixin(S_TRACE);
 				return .tryFormat(comm.prop.msgs.ctTalkMessageWithAttrs, t, text, .msgAttrText(comm.prop, evt));
 			}
 		} else {
-			if (evt.selectionColumns == 1 && !evt.centeringY) { mixin(S_TRACE);
+			if (evt.selectionColumns == 1 && !evt.centeringY && !evt.boundaryCheck) { mixin(S_TRACE);
 				return .tryFormat(comm.prop.msgs.ctTalkMessageNarration, text);
 			} else { mixin(S_TRACE);
 				return .tryFormat(comm.prop.msgs.ctTalkMessageNarrationWithAttrs, text, .msgAttrText(comm.prop, evt));
@@ -3213,13 +3213,13 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 			string t = sdlg.text.singleLine;
 			if (sdlg.rCoupons.length) { mixin(S_TRACE);
 				auto cp = std.string.join(sdlg.rCoupons.dup, " ");
-				if (evt.selectionColumns == 1 && !evt.centeringY) { mixin(S_TRACE);
+				if (evt.selectionColumns == 1 && !evt.centeringY && !evt.boundaryCheck) { mixin(S_TRACE);
 					return .tryFormat(comm.prop.msgs.ctTalkDialog, tt, cp, t);
 				} else { mixin(S_TRACE);
 					return .tryFormat(comm.prop.msgs.ctTalkDialogWithAttrs, tt, cp, t, .msgAttrText(comm.prop, evt));
 				}
 			} else { mixin(S_TRACE);
-				if (evt.selectionColumns == 1 && !evt.centeringY) { mixin(S_TRACE);
+				if (evt.selectionColumns == 1 && !evt.centeringY && !evt.boundaryCheck) { mixin(S_TRACE);
 					return .tryFormat(comm.prop.msgs.ctTalkDialogNoCoupon, tt, t);
 				} else { mixin(S_TRACE);
 					return .tryFormat(comm.prop.msgs.ctTalkDialogNoCouponWithAttrs, tt, t, .msgAttrText(comm.prop, evt));
@@ -3591,7 +3591,8 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 
 string msgAttrText(in Props prop, in Content evt) { mixin(S_TRACE);
 	string[] attrs;
-	if (evt.centeringY) attrs ~= prop.msgs.centeringY;
+	if (evt.centeringY) attrs ~= prop.msgs.centeringYOn;
+	if (evt.boundaryCheck) attrs ~= prop.msgs.boundaryCheckOn;
 	if (evt.selectionColumns != 1) attrs ~= .tryFormat(prop.msgs.ctColumns, evt.selectionColumns);
 	return attrs.join(" ");
 }

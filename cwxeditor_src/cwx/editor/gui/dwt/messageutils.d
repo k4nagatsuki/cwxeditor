@@ -62,6 +62,7 @@ import java.lang.all;
 class AbstractMessageDialog : EventDialog {
 	private Spinner _selectionColumns;
 	private Button _centerY;
+	private Button _boundaryCheck;
 
 	private KeyDownFilter _kdFilter;
 	private MsgPreviewWindow _previewWin = null;
@@ -78,6 +79,7 @@ class AbstractMessageDialog : EventDialog {
 	protected override void refDataVersion() { mixin(S_TRACE);
 		_selectionColumns.setEnabled(!summ || !summ.legacy || _selectionColumns.getSelection() != 1);
 		_centerY.setEnabled(!summ || !summ.legacy || _centerY.getSelection());
+		_boundaryCheck.setEnabled(!summ || !summ.legacy || _boundaryCheck.getSelection());
 		refreshWarning();
 	}
 
@@ -92,6 +94,9 @@ class AbstractMessageDialog : EventDialog {
 		if (!prop.isTargetVersion(summ, "2")) { mixin(S_TRACE);
 			if (_centerY.getSelection()) { mixin(S_TRACE);
 				ws ~= prop.msgs.warningCenteringY;
+			}
+			if (_boundaryCheck.getSelection()) { mixin(S_TRACE);
+				ws ~= prop.msgs.warningBoundaryCheck;
 			}
 		}
 		return ws;
@@ -118,17 +123,24 @@ class AbstractMessageDialog : EventDialog {
 			}
 		}
 	}
+	private void updatePreview() { mixin(S_TRACE);
+		auto s = wrapReturnCode(text);
+		if (_previewWin) { mixin(S_TRACE);
+			_previewWin.text(imgPaths, s, _centerY.getSelection(), _boundaryCheck.getSelection());
+		} else { mixin(S_TRACE);
+			_preview.text(imgPaths, s, _centerY.getSelection(), _boundaryCheck.getSelection());
+		}
+	}
 	private void updateShowPreview() { mixin(S_TRACE);
 		auto btn = _prev;
 		if (btn.getSelection()) { mixin(S_TRACE);
-			auto s = wrapReturnCode(text);
 			if (_previewWin) { mixin(S_TRACE);
 				if (_previewWin.isVisible()) return;
-				_previewWin.text(imgPaths, s, _centerY.getSelection());
+				updatePreview();
 				_previewWin.open();
 			} else { mixin(S_TRACE);
 				if (rightGroup.isVisible()) return;
-				_preview.text(imgPaths, s, _centerY.getSelection());
+				updatePreview();
 				setPreviewLData(true);
 			}
 		} else { mixin(S_TRACE);
@@ -343,12 +355,10 @@ class AbstractMessageDialog : EventDialog {
 
 	void refreshPreview() { mixin(S_TRACE);
 		if (!_previewWin && !_preview) return;
-		auto s = wrapReturnCode(text);
+		updatePreview();
 		if (_previewWin) { mixin(S_TRACE);
-			_previewWin.text(imgPaths, s, _centerY.getSelection());
 			_previewWin.refresh();
 		} else { mixin(S_TRACE);
-			_preview.text(imgPaths, s, _centerY.getSelection());
 			_preview.refresh();
 		}
 	}
@@ -374,6 +384,27 @@ class AbstractMessageDialog : EventDialog {
 		.listener(_selectionColumns, SWT.Selection, &refDataVersion);
 		auto hint = new Label(comp, SWT.NONE);
 		hint.setText(.tryFormat(prop.msgs.rangeHint, 1, prop.var.etc.selectionColumnsMax));
+		return comp;
+	}
+
+	protected Composite createWsnSettingsBar(Composite parent) { mixin(S_TRACE);
+		auto comp = new Composite(parent, SWT.NONE);
+		comp.setLayout(zeroMarginGridLayout(3, false));
+		createSelectionColumns(comp);
+
+		_centerY = new Button(comp, SWT.CHECK);
+		mod(_centerY);
+		_centerY.setText(prop.msgs.centeringY);
+		.listener(_centerY, SWT.Selection, &refDataVersion);
+		.listener(_centerY, SWT.Selection, &refreshPreview);
+
+		_boundaryCheck = new Button(comp, SWT.CHECK);
+		mod(_boundaryCheck);
+		_boundaryCheck.setText(prop.msgs.boundaryCheck);
+		_boundaryCheck.setToolTipText(prop.msgs.boundaryCheckDesc);
+		.listener(_boundaryCheck, SWT.Selection, &refDataVersion);
+		.listener(_boundaryCheck, SWT.Selection, &refreshPreview);
+
 		return comp;
 	}
 }
@@ -937,12 +968,10 @@ protected:
 	override void setup(Composite area) { mixin(S_TRACE);
 		super.setup(area);
 
-		area.setLayout(windowGridLayout(3, false));
+		area.setLayout(windowGridLayout(1, false));
 
 		auto sash = new SplitPane(area, SWT.HORIZONTAL);
-		auto sgd = new GridData(GridData.FILL_BOTH);
-		sgd.horizontalSpan = 3;
-		sash.setLayoutData(sgd);
+		sash.setLayoutData(new GridData(GridData.FILL_BOTH));
 		auto left = new Composite(sash, SWT.NONE);
 		left.setLayout(zeroMarginGridLayout(1, true));
 		{ mixin(S_TRACE);
@@ -1055,24 +1084,14 @@ protected:
 		auto sChar = createSCharBar(comm, area, &insert, &put, prop, skin);
 		sChar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-		auto rows = createSelectionColumns(area);
-		_centerY = new Button(area, SWT.CHECK);
-		mod(_centerY);
-		_centerY.setText(prop.msgs.centeringY);
-		.listener(_centerY, SWT.Selection, &refDataVersion);
-		.listener(_centerY, SWT.Selection, &refreshPreview);
-
 		auto skinSChar = createSkinSCharBar(comm, area, &insert, prop, skin);
-		auto gdS = new GridData(GridData.FILL_HORIZONTAL);
-		gdS.horizontalSpan = 3;
-		skinSChar.setLayoutData(gdS);
+		skinSChar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 		auto var = createFlagStepBar(area, &insert, comm, prop, skin, summ, true);
-		auto gdV = new GridData(GridData.FILL_HORIZONTAL);
-		gdV.horizontalSpan = 3;
-		var.setLayoutData(gdV);
+		var.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-		area.setTabList([sash, sChar, skinSChar, var, rows, _centerY]);
+		auto wBar = createWsnSettingsBar(area);
+		wBar.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 
 		.setupWeights(leftSash, prop.var.etc.talkLeftSashL, prop.var.etc.talkLeftSashR);
 		.setupWeights(sash, prop.var.etc.talkMainSashL, prop.var.etc.talkMainSashR);
@@ -1110,11 +1129,13 @@ protected:
 			_initValue.setSelection(evt.initValue);
 			_selectionColumns.setSelection(evt.selectionColumns);
 			_centerY.setSelection(evt.centeringY);
+			_boundaryCheck.setSelection(evt.boundaryCheck);
 		} else { mixin(S_TRACE);
 			_talkers.select(0);
 			_dlgs = [new SDialog];
 			_selectionColumns.setSelection(1);
 			_centerY.setSelection(false);
+			_boundaryCheck.setSelection(false);
 		}
 		refreshDlgList();
 
@@ -1140,6 +1161,7 @@ protected:
 		}
 		evt.selectionColumns = _selectionColumns.getSelection();
 		evt.centeringY = _centerY.getSelection();
+		evt.boundaryCheck = _boundaryCheck.getSelection();
 		comm.refCoupons.call();
 		return true;
 	}
@@ -1295,13 +1317,6 @@ protected:
 		auto sChar = createSCharBar(comm, area, &insert, &put, prop, skin);
 		sChar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-		auto rows = createSelectionColumns(area);
-		_centerY = new Button(area, SWT.CHECK);
-		mod(_centerY);
-		_centerY.setText(prop.msgs.centeringY);
-		.listener(_centerY, SWT.Selection, &refDataVersion);
-		.listener(_centerY, SWT.Selection, &refreshPreview);
-
 		auto skinSChar = createSkinSCharBar(comm, area, &insert, prop, skin);
 		auto gdS = new GridData(GridData.FILL_HORIZONTAL);
 		gdS.horizontalSpan = 3;
@@ -1312,9 +1327,10 @@ protected:
 		gdV.horizontalSpan = 3;
 		var.setLayoutData(gdV);
 
-		_tabf.addSelectionListener(new SL);
+		auto wBar = createWsnSettingsBar(area);
+		wBar.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 
-		area.setTabList([_tabf, sChar, skinSChar, var, rows, _centerY]);
+		_tabf.addSelectionListener(new SL);
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
@@ -1326,10 +1342,12 @@ protected:
 			}
 			_selectionColumns.setSelection(evt.selectionColumns);
 			_centerY.setSelection(evt.centeringY);
+			_boundaryCheck.setSelection(evt.boundaryCheck);
 		} else { mixin(S_TRACE);
 			_tabf.setSelection(1);
 			_selectionColumns.setSelection(1);
 			_centerY.setSelection(false);
+			_boundaryCheck.setSelection(false);
 		}
 		tabChanged();
 
@@ -1348,6 +1366,7 @@ protected:
 		evt.cardPaths = paths;
 		evt.selectionColumns = _selectionColumns.getSelection();
 		evt.centeringY = _centerY.getSelection();
+		evt.boundaryCheck = _boundaryCheck.getSelection();
 		return true;
 	}
 }
@@ -1961,8 +1980,8 @@ class MsgPreviewWindow {
 		_win.dispose();
 	}
 
-	void text(CardImage[] imgPaths, string message, bool centerY) { mixin(S_TRACE);
-		_preview.text(imgPaths, message, centerY);
+	void text(CardImage[] imgPaths, string message, bool centerY, bool boundaryCheck) { mixin(S_TRACE);
+		_preview.text(imgPaths, message, centerY, boundaryCheck);
 	}
 
 	private void refresh() { mixin(S_TRACE);
@@ -2633,6 +2652,7 @@ class MsgPreview : Composite {
 	private CardImage[] _imgPaths = [];
 	private string _message = "";
 	private bool _centerY = false;
+	private bool _boundaryCheck = false;
 
 	private class Paint : PaintListener {
 		override void paintControl(PaintEvent e) { mixin(S_TRACE);
@@ -2686,13 +2706,14 @@ class MsgPreview : Composite {
 		_canvas.setLayoutData(cgd);
 	}
 
-	void text(CardImage[] imgPaths, string message, bool centerY) { mixin(S_TRACE);
-		if (imgPaths == _imgPaths && message == _message && centerY is _centerY) { mixin(S_TRACE);
+	void text(CardImage[] imgPaths, string message, bool centerY, bool boundaryCheck) { mixin(S_TRACE);
+		if (imgPaths == _imgPaths && message == _message && centerY is _centerY && boundaryCheck is _boundaryCheck) { mixin(S_TRACE);
 			return;
 		}
 		_imgPaths = imgPaths;
 		_message = message;
 		_centerY = centerY;
+		_boundaryCheck = boundaryCheck;
 		if (isVisible()) refresh();
 	}
 
@@ -2739,7 +2760,7 @@ class MsgPreview : Composite {
 		string[char] names;
 		string[string] flags, steps;
 		_values.getValues(names, flags, steps);
-		_img = new Image(d, previewMessage(_comm, _prop, _summ.scenarioPath, tImg, pos, _message, [], names, flags, steps, true, _centerY));
+		_img = new Image(d, previewMessage(_comm, _prop, _summ.scenarioPath, tImg, pos, _message, [], names, flags, steps, true, _centerY, _boundaryCheck));
 	}
 
 	@property
@@ -2754,7 +2775,7 @@ class MsgPreview : Composite {
 ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] talkers,
 		CardImagePosition[] poses, string message, in string[] sel, in string[char] names,
 		in string[string] flags, in string[string] steps, bool scaled,
-		bool centerY) { mixin(S_TRACE);
+		bool centerY, bool boundaryCheck) { mixin(S_TRACE);
 	auto d = Display.getCurrent();
 	version (Windows) {
 		bool legacy = comm.skin.legacy;
@@ -2828,7 +2849,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] tal
 		message = wrapReturnCode(message);
 		message = message.replace("\r\n", "\n");
 	}
-	message = formatMsg(message, &fValue, &sValue, delegate string (char name) { mixin(S_TRACE);
+	message = .formatMsg(message, &fValue, &sValue, delegate string (char name) { mixin(S_TRACE);
 		auto dc = std.ascii.toUpper(name);
 		foreach (c, v; names) { mixin(S_TRACE);
 			if (std.ascii.toUpper(c) == dc) { mixin(S_TRACE);
@@ -2843,16 +2864,6 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] tal
 		}
 		return comm.skin.findImagePath(path, comm.summary.scenarioPath, comm.summary.dataVersion).length != 0 || decodeFontPath(path) in comm.skin.spChars;
 	}, rFonts, rColors);
-	auto dmsg = to!dstring(message);
-
-	auto cr = d.getSystemColor(SWT.COLOR_RED);
-	auto cb = d.getSystemColor(SWT.COLOR_CYAN);
-	auto cg = d.getSystemColor(SWT.COLOR_GREEN);
-	auto cy = d.getSystemColor(SWT.COLOR_YELLOW);
-	auto co = new Color(d, new RGB(255, 165, 0)); scope (exit) co.dispose(); // CardWirth 1.50
-	auto cp = new Color(d, new RGB(204, 136, 255)); scope (exit) cp.dispose(); // CardWirth 1.50
-	auto cl = new Color(d, new RGB(169, 169, 169)); scope (exit) cl.dispose(); // CardWirth 1.50
-	auto cd = new Color(d, new RGB(105, 105, 105)); scope (exit) cd.dispose(); // CardWirth 1.50
 
 	auto font = .createFontFromPixels(prop.looks.messageFont(legacy));
 	scope (exit) font.dispose();
@@ -2865,6 +2876,27 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] tal
 
 	gc.setFont(font);
 
+	int msgLen = talkers.length ? prop.looks.messageImageLen : prop.looks.messageLen;
+	if (boundaryCheck) { mixin(S_TRACE);
+		auto openChars = prop.looks.openChars;
+		auto closeChars = prop.looks.closeChars;
+		auto wordRegex = prop.looks.wordRegex;
+		auto sw = gc.wTextExtent("#").x;
+		message = .wrapMsg(message, msgLen - 1, (s) => (gc.wTextExtent(s).x + 1) / sw, true, openChars, closeChars, wordRegex, rFonts, rColors);
+		msgLen = int.max;
+	}
+
+	auto dmsg = to!dstring(message);
+
+	auto cr = d.getSystemColor(SWT.COLOR_RED);
+	auto cb = d.getSystemColor(SWT.COLOR_CYAN);
+	auto cg = d.getSystemColor(SWT.COLOR_GREEN);
+	auto cy = d.getSystemColor(SWT.COLOR_YELLOW);
+	auto co = new Color(d, new RGB(255, 165, 0)); scope (exit) co.dispose(); // CardWirth 1.50
+	auto cp = new Color(d, new RGB(204, 136, 255)); scope (exit) cp.dispose(); // CardWirth 1.50
+	auto cl = new Color(d, new RGB(169, 169, 169)); scope (exit) cl.dispose(); // CardWirth 1.50
+	auto cd = new Color(d, new RGB(105, 105, 105)); scope (exit) cd.dispose(); // CardWirth 1.50
+
 	auto start = prop.looks.messageStartPos(legacy, 0 < talkers.length);
 	// 縁取り分の位置ずれ
 	start.x -= 1;
@@ -2872,7 +2904,6 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] tal
 	int x = start.x, y = start.y;
 	int lineH;
 	string old = "";
-	int msgLen =  talkers.length ? prop.looks.messageImageLen : prop.looks.messageLen;
 	int writeLen = 0;
 	void ret() { mixin(S_TRACE);
 		writeLen = 0;

@@ -2895,6 +2895,9 @@ fi`;
 			if (detail.use(CArg.SELECTION_COLUMNS)) { mixin(S_TRACE);
 				c.selectionColumns = parseAttr!(int)(opt, node.attr, i, c.selectionColumns, varTable, 0);
 			}
+			if (detail.use(CArg.BOUNDARY_CHECK)) { mixin(S_TRACE);
+				c.boundaryCheck = parseAttr!(bool)(opt, node.attr, i, c.boundaryCheck, varTable, 0);
+			}
 			if (detail.use(CArg.CENTERING_Y)) { mixin(S_TRACE);
 				c.centeringY = parseAttr!(bool)(opt, node.attr, i, c.centeringY, varTable, 0);
 			}
@@ -3829,6 +3832,9 @@ fi`;
 			}
 			if (detail.use(CArg.SELECTION_COLUMNS)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.selectionColumns, indentValue, vars);
+			}
+			if (detail.use(CArg.BOUNDARY_CHECK)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.boundaryCheck, indentValue, vars);
 			}
 			if (detail.use(CArg.CENTERING_Y)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.centeringY, indentValue, vars);

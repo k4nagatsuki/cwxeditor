@@ -1320,6 +1320,7 @@ enum CArg {
 	HOLDING_COUPON, /// 範囲で称号所持者を指定した時の称号名(Wsn.2)。
 	REF_ABILITY, /// 選択メンバの能力参照(Wsn.2)。
 	CENTERING_Y, /// メッセージを縦方向に中央寄せして表示する(Wsn.2)。
+	BOUNDARY_CHECK, /// メッセージの禁則処理(Wsn.2)。
 }
 
 /// 後続コンテントのnameの型。

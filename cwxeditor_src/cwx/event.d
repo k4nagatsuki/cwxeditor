@@ -135,8 +135,8 @@ private void static_this () { mixin(S_TRACE);
 		CType.EFFECT_BREAK:CDetail("Effect", "Break", CNextType.NONE, false),
 		CType.LINK_START:CDetail("Link", "Start", CNextType.NONE, false, [CArg.START:"link"]),
 		CType.LINK_PACKAGE:CDetail("Link", "Package", CNextType.NONE, false, [CArg.PACKAGE:"link"]),
-		CType.TALK_MESSAGE:CDetail("Talk", "Message", CNextType.TEXT, true, [CArg.TALKER_C:_("path"), CArg.TEXT:null, CArg.SELECTION_COLUMNS:"columns", CArg.CENTERING_Y:"centeringy"]),
-		CType.TALK_DIALOG:CDetail("Talk", "Dialog", CNextType.TEXT, true, [CArg.TALKER_NC:_("targetm"), CArg.DIALOGS:null, CArg.COUPONS:null, CArg.INIT_VALUE:"initialValue", CArg.SELECTION_COLUMNS:"columns", CArg.CENTERING_Y:"centeringy"]),
+		CType.TALK_MESSAGE:CDetail("Talk", "Message", CNextType.TEXT, true, [CArg.TALKER_C:_("path"), CArg.TEXT:null, CArg.SELECTION_COLUMNS:"columns", CArg.BOUNDARY_CHECK:"boundarycheck", CArg.CENTERING_Y:"centeringy"]),
+		CType.TALK_DIALOG:CDetail("Talk", "Dialog", CNextType.TEXT, true, [CArg.TALKER_NC:_("targetm"), CArg.DIALOGS:null, CArg.COUPONS:null, CArg.INIT_VALUE:"initialValue", CArg.SELECTION_COLUMNS:"columns", CArg.BOUNDARY_CHECK:"boundarycheck", CArg.CENTERING_Y:"centeringy"]),
 		CType.PLAY_BGM:CDetail("Play", "Bgm", CNextType.NONE, true, [CArg.BGM_PATH:"path", CArg.BGM_CHANNEL:"channel", CArg.BGM_VOLUME:"volume", CArg.BGM_LOOP_COUNT:"loopcount", CArg.BGM_FADE_IN:"fadein"]),
 		CType.PLAY_SOUND:CDetail("Play", "Sound", CNextType.NONE, true, [CArg.SOUND_PATH:"path", CArg.SOUND_CHANNEL:"channel", CArg.SOUND_VOLUME:"volume", CArg.SOUND_LOOP_COUNT:"loopcount", CArg.SOUND_FADE_IN:"fadein"]),
 		CType.WAIT:CDetail("Wait", "", CNextType.NONE, true, [CArg.WAIT:"value"]),
@@ -602,6 +602,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		this.selectionColumns = c.selectionColumns;
 		this.centeringY = c.centeringY;
+		this.boundaryCheck = c.boundaryCheck;
 		this.startAction = c.startAction;
 		this.ignite = c.ignite;
 		this.keyCodes = c.keyCodes.dup;
@@ -745,6 +746,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 			&& selectionColumns == c.selectionColumns
 			&& centeringY == c.centeringY
+			&& boundaryCheck == c.boundaryCheck
 			&& startAction == c.startAction
 			&& ignite == c.ignite
 			&& keyCodes == c.keyCodes
@@ -1002,6 +1004,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		resetValue!(CArg.SELECTION_COLUMNS, uint, 1)(d, &selectionColumns);
 		resetValue!(CArg.CENTERING_Y, bool, false)(d, &centeringY);
+		resetValue!(CArg.BOUNDARY_CHECK, bool, false)(d, &boundaryCheck);
 		resetValue!(CArg.START_ACTION, StartAction, StartAction.NextRound)(d, &startAction);
 		resetValue!(CArg.IGNITE, bool, false)(d, &ignite);
 		resetValue!(CArg.KEY_CODES, string[], [])(d, &keyCodes);
@@ -1814,6 +1817,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	mixin MaxMin!(uint, "selectionColumns", uint.max, 1u);
 	/// メッセージを縦方向にセンタリングする(Wsn.2)。
 	mixin Prop!(bool, "centeringY", false);
+	/// メッセージの禁則処理を行う(Wsn.2)。
+	mixin Prop!(bool, "boundaryCheck", false);
 
 	/// キャスト同行時の戦闘行動開始タイミング(Wsn.2)。
 	mixin Prop!(StartAction, "startAction", StartAction.NextRound);
@@ -2174,6 +2179,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		atnPut!(CArg.SELECTION_COLUMNS, "selectionColumns", "")(e, d);
 		atnPut!(CArg.CENTERING_Y, "centeringY", "fromBool")(e, d);
+		atnPut!(CArg.BOUNDARY_CHECK, "boundaryCheck", "fromBool")(e, d);
 		atnPut!(CArg.START_ACTION, "startAction", "")(e, d);
 		atnPut!(CArg.IGNITE, "ignite", "fromBool")(e, d);
 		atnPut!(CArg.HOLDING_COUPON, "holdingCoupon", "")(e, d);
@@ -2412,6 +2418,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		cfnPut!(CArg.SELECTION_COLUMNS, "selectionColumns", "to!(uint)")(en, d, r);
 		cfnPut!(CArg.CENTERING_Y, "centeringY", "parseBool")(en, d, r);
+		cfnPut!(CArg.BOUNDARY_CHECK, "boundaryCheck", "parseBool")(en, d, r);
 		cfnPut!(CArg.IGNITE, "ignite", "parseBool")(en, d, r);
 		cfnPut!(CArg.HOLDING_COUPON, "holdingCoupon", "")(en, d, r);
 		cfnPut!(CArg.REF_ABILITY, "refAbility", "parseBool")(en, d, r);
