@@ -927,10 +927,13 @@ private:
 				c.backs = createBgImages(summSkin, _prop.var.etc.bgImagesDefault);
 			} else if (type is CType.TALK_DIALOG) { mixin(S_TRACE);
 				c.dialogs = [new SDialog];
+				if (_prop.isTargetVersion(_summ, "2")) c.boundaryCheck = true;
 			} else if (type is CType.BRANCH_SKILL || type is CType.BRANCH_ITEM || type is CType.BRANCH_BEAST) { mixin(S_TRACE);
 				c.range = Range.FIELD;
 			} else if (type is CType.LOSE_SKILL || type is CType.LOSE_ITEM || type is CType.LOSE_BEAST) { mixin(S_TRACE);
 				c.range = Range.FIELD;
+			} else if (type is CType.TALK_MESSAGE) { mixin(S_TRACE);
+				if (_prop.isTargetVersion(_summ, "2")) c.boundaryCheck = true;
 			}
 		}
 		if (hasDialog(type)) { mixin(S_TRACE);
