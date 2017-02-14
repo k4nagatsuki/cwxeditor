@@ -441,7 +441,13 @@ class Msgs : Properties {
 	auto couponTypeNameSystem = Msg("couponTypeNameSystem", "システム");
 	auto couponTypeNameDur = Msg("couponTypeNameDur", "時限");
 	auto couponTypeNameDurBattle = Msg("couponTypeNameDurBattle", "戦時");
-
+	
+	const string couponTypeMulti(MultiCouponType id) { mixin(S_TRACE);
+		mixin(EnumToStringSwitch!(MultiCouponType, "couponTypeMulti"));
+	}
+	auto couponTypeMultiAnd = Msg("couponTypeMultiAnd", "AND条件");
+	auto couponTypeMultiOr = Msg("couponTypeMultiOr", "OR条件");
+	
 	auto imageMessage = Msg("imageMessage", "イメージ付きメッセージ");
 	auto noImageMessage = Msg("noImageMessage", "イメージ無しメッセージ");
 	auto spCharsTitle = Msg("spCharsTitle", "特殊文字");
@@ -933,6 +939,14 @@ class Msgs : Properties {
 	auto ctBranchInfo = Msg("ctBranchInfo", "情報カード「%1$s」の有無で分岐");
 	auto ctBranchMoney = Msg("ctBranchMoney", "分岐金額 = %1$ssp");
 	auto ctBranchCoupon = Msg("ctBranchCoupon", "称号「%1$s」の有無で分岐(%2$s)");
+	const string ctBranchCouponMulti(string[] couponNames, bool orFlg,string rangeName) { mixin(S_TRACE);
+		string message = "称号";
+		for(int i = 0;i < couponNames.length ;i++){
+			message ~= "「" ~ couponNames[i] ~ "」";
+			if(i < couponNames.length - 1) message ~= ",";
+		}
+		return  message ~ (couponNames.length == 1 ? "" : (orFlg ? "のどれか" : "の全て")) ~  "の有無で分岐(" ~ rangeName ~ ")";
+	}
 	auto ctBranchCompleteStamp = Msg("ctBranchCompleteStamp", "シナリオ「%1$s」が終了済みか否かで分岐");
 	auto ctBranchGossip = Msg("ctBranchGossip", "ゴシップ「%1$s」の有無で分岐");
 	auto ctSetFlag = Msg("ctSetFlag", "フラグ「%1$s」を[%2$s]に変更");
@@ -1315,8 +1329,24 @@ class Msgs : Properties {
 	auto branchInfoFailure = Msg("branchInfoFailure", "「%1$s」を所有していない");
 	auto branchMoneySuccess = Msg("branchMoneySuccess", "%1$ssp以上所持している");
 	auto branchMoneyFailure = Msg("branchMoneyFailure", "%1$ssp以上所持していない");
-	auto branchCouponSuccess = Msg("branchCouponSuccess", "クーポン「%2$s」を所有している(%1$s)");
-	auto branchCouponFailure = Msg("branchCouponFailure", "クーポン「%2$s」を所有していない(%1$s)");
+	const string branchCouponSuccess(string rangeName, string[] couponNames, bool orFlg) { mixin(S_TRACE);
+		string message = "クーポン";
+		for(int i = 0;i < couponNames.length;i++){
+			message ~= "「" ~ couponNames[i] ~ "」";
+			if(i < couponNames.length - 1) message ~= ",";
+		}
+		return  message ~ (couponNames.length == 1 ? "" :
+		(orFlg ? "のどれか" : "の全て")) ~  "を所有している(" ~ rangeName ~ ")";
+	}
+	const string branchCouponFailure(string rangeName, string[] couponNames, bool orFlg) { mixin(S_TRACE);
+		string message = "クーポン";
+		for(int i = 0;i < couponNames.length;i++){
+			message ~= "「" ~ couponNames[i] ~ "」";
+			if(i < couponNames.length - 1) message ~= ",";
+		}
+		return  message ~ (couponNames.length == 1 ? "" :
+		(orFlg ? "のどれか" : "の全て")) ~  "を所有していない(" ~ rangeName ~ ")";
+	}
 	auto branchCompleteSuccess = Msg("branchCompleteSuccess", "シナリオ「%1$s」が終了済みである");
 	auto branchCompleteFailure = Msg("branchCompleteFailure", "シナリオ「%1$s」が終了済みでない");
 	auto branchGossipSuccess = Msg("branchGossipSuccess", "ゴシップ「%1$s」が宿屋にある");
@@ -1849,6 +1879,7 @@ class Msgs : Properties {
 	auto warningRefAbility = Msg("warningRefAbility", "選択メンバの能力参照は、Wsn.2以降の形式のシナリオでしか行えません。"); // Wsn.2
 	auto warningCenteringY = Msg("warningCenteringY", "縦方向の中央寄せ表示は、Wsn.2以降の形式のシナリオでしか行えません。"); // Wsn.2
 	auto warningBoundaryCheck = Msg("warningBoundaryCheck", "メッセージの禁則処理は、Wsn.2以降の形式のシナリオでしか行えません。"); // Wsn.2
+	auto warningBranchCouponMulti = Msg("warningBranchCouponMulti", "クーポン分岐のクーポンの複数指定は、Wsn.2以降の形式のシナリオしか行えません。"); // Wsn.2
 
 	auto unknownStepValue = Msg("unknownStepValue", "存在しないステップ値(%1$s)");
 

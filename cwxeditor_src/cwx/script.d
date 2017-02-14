@@ -2910,6 +2910,12 @@ fi`;
 			if (detail.use(CArg.KEY_CODES)) { mixin(S_TRACE);
 				c.keyCodes = parseAttr!(string[])(opt, node.attr, i, c.keyCodes, varTable, 0);
 			}
+			if (detail.use(CArg.COUPON_NAMES)) { mixin(S_TRACE);
+				c.couponNames = parseAttr!(string[])(opt, node.attr, i, c.couponNames, varTable, 0);
+			}
+			if (detail.use(CArg.OR_FLG)) { mixin(S_TRACE);
+				c.orFlg = parseAttr!(bool)(opt, node.attr, i, c.orFlg, varTable, 0);
+			}
 			Content autoWrap(Content c) { mixin(S_TRACE);
 				if (!c.detail.owner) { mixin(S_TRACE);
 					throwError(_prop.msgs.scriptErrorCanNotHaveContent, node.token);
@@ -3847,6 +3853,12 @@ fi`;
 			}
 			if (detail.use(CArg.KEY_CODES)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.keyCodes, indentValue, vars);
+			}
+			if (detail.use(CArg.COUPON_NAMES)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.couponNames, indentValue, vars);
+			}
+			if (detail.use(CArg.OR_FLG)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.orFlg, indentValue, vars);
 			}
 			bool useIf = c.next.length > 1;
 			bool useSif = c.next.length == 1 && c.next[0].name.length;

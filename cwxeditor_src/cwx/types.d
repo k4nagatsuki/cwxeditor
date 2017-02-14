@@ -1321,6 +1321,8 @@ enum CArg {
 	REF_ABILITY, /// 選択メンバの能力参照(Wsn.2)。
 	CENTERING_Y, /// メッセージを縦方向に中央寄せして表示する(Wsn.2)。
 	BOUNDARY_CHECK, /// メッセージの禁則処理(Wsn.2)。
+	COUPON_NAMES, /// 複数クーポン名(Wsn.2)。
+	OR_FLG, /// ＯＲフラグ(Wsn.2)。
 }
 
 /// 後続コンテントのnameの型。
@@ -1666,4 +1668,9 @@ enum CardImagePosition {
 	Default, /// 指定無し(クラシックな位置に合わせる)。
 	Center, /// 中央寄せ。
 	TopLeft /// 左上起点。
+}
+/// クーポン分岐：複数クーポン指定（ＡＮＤ条件・ＯＲ条件）(Wsn.2)。
+enum MultiCouponType {
+	And, /// AND条件
+	Or   /// OR条件
 }
