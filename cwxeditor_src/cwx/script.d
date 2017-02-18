@@ -2174,7 +2174,7 @@ fi`;
 			}
 		} else static if (is(T == CRGB)) {
 			if (attr[i].type is NodeType.VALUES) { mixin(S_TRACE);
-				auto vals = attr[i].values;
+				auto vals = var(attr[i].values, varTable);
 				size_t j = 0;
 				int r = parseAttr!(int)(opt, vals, j, defValue.r, varTable, msgWidth);
 				int g = parseAttr!(int)(opt, vals, j, defValue.g, varTable, msgWidth);
@@ -2214,7 +2214,7 @@ fi`;
 				throwError(_prop.msgs.scriptErrorInvalidBgImage, attr[i].token);
 				return defValue;
 			}
-			auto vals = attr[i].values.dup;
+			auto vals = var(attr[i].values, varTable);
 			string type = "image";
 			if (vals && vals[0].token.kind is Kind.SYMBOL) { mixin(S_TRACE);
 				type = attrValue(vals[0], varTable, msgWidth);
@@ -2235,27 +2235,42 @@ fi`;
 				bool bold = false, italic = false, underline = false, strike = false, vertical = false;
 				BorderingType borderingType = BorderingType.None;
 				if (j < vals.length) { mixin(S_TRACE);
-					if (vals[j].type != NodeType.ARRAY) {
+					if (vals[j].values.length || vals[j].type is NodeType.ARRAY) { mixin(S_TRACE);
+						auto array = var(vals[j].values, varTable);
+						auto j2 = 0;
+						bgtw: while (j2 < array.length) { mixin(S_TRACE);
+							switch (attrValue(array[j2], varTable, msgWidth)) {
+							case "bold": j2++; bold = true; break;
+							case "italic": j2++; italic = true; break;
+							case "underline", "uline": j2++; underline = true; break;
+							case "strike": j2++; strike = true; break;
+							case "vertical": j2++; vertical = true; break;
+							case "border1": j2++; borderingType = BorderingType.Outline; break;
+							case "border2": j2++; borderingType = BorderingType.Inline; break;
+							default:
+								throwError(_prop.msgs.scriptErrorInvalidKeyword2, array[j2].token);
+								return new ImageCell("", "", 0, 0, 0, 0, false);
+							}
+						}
+						j++;
+					} else if (vals[j].token.kind is Kind.SYMBOL) { mixin(S_TRACE);
+						switch (attrValue(vals[j], varTable, 0)) {
+						case "bold": bold = true; break;
+						case "italic": italic = true; break;
+						case "underline", "uline": underline = true; break;
+						case "strike": strike = true; break;
+						case "vertical": vertical = true; break;
+						case "border1": borderingType = BorderingType.Outline; break;
+						case "border2": borderingType = BorderingType.Inline; break;
+						default:
+							throwError(_prop.msgs.scriptErrorInvalidKeyword2, vals[j].token);
+							return new ImageCell("", "", 0, 0, 0, 0, false);
+						}
+						j++;
+					} else { mixin(S_TRACE);
 						throwError(_prop.msgs.scriptErrorInvalidArray, vals[j].token);
 						return new ImageCell("", "", 0, 0, 0, 0, false);
 					}
-					auto array = vals[j].values;
-					auto j2 = 0;
-					bgtw: while (j2 < array.length) { mixin(S_TRACE);
-						switch (attrValue(array[j2], varTable, msgWidth)) {
-						case "bold": j2++; bold = true; break;
-						case "italic": j2++; italic = true; break;
-						case "underline", "uline": j2++; underline = true; break;
-						case "strike": j2++; strike = true; break;
-						case "vertical": j2++; vertical = true; break;
-						case "border1": j2++; borderingType = BorderingType.Outline; break;
-						case "border2": j2++; borderingType = BorderingType.Inline; break;
-						default:
-							throwError(_prop.msgs.scriptErrorInvalidKeyword2, array[j2].token);
-							return new ImageCell("", "", 0, 0, 0, 0, false);
-						}
-					}
-					j++;
 				}
 				CRGB borderingColor = CRGB(255, 255, 255, 255);
 				int borderingWidth = 1;
@@ -2315,7 +2330,7 @@ fi`;
 				throwError(_prop.msgs.scriptErrorInvalidMotion, attr[i].token);
 			}
 			size_t j = 0;
-			auto vals = attr[i].values;
+			auto vals = var(attr[i].values, varTable);
 			MType type = parseAttr!(MType)(opt, vals, j, MType.HEAL, varTable, msgWidth);
 			auto r = new Motion(type, Element.ALL);
 			auto detail = r.detail;
@@ -2372,7 +2387,7 @@ fi`;
 				return new Coupon(name, 1);
 			}
 			size_t j = 0;
-			auto vals = attr[i].values;
+			auto vals = var(attr[i].values, varTable);
 			string name = parseAttr!(string)(opt, vals, j, "", varTable, msgWidth);
 			int value = parseAttr!(int)(opt, vals, j, 0, varTable, msgWidth);
 			auto r = new Coupon(name, value);
@@ -2402,7 +2417,7 @@ fi`;
 				}
 			} else if (attr[i].type is NodeType.VALUES) { mixin(S_TRACE);
 				size_t j = 0;
-				auto vals = attr[i].values;
+				auto vals = var(attr[i].values, varTable);
 				auto path = parseAttr!(string)(opt, vals, j, "", varTable, 0);
 				auto posType = parseAttr!(CardImagePosition)(opt, vals, j, CardImagePosition.Default, varTable, 0);
 				i++;
@@ -3338,12 +3353,8 @@ fi`;
 			if (ic) { mixin(S_TRACE);
 				attrs2 ~= toAttr(ic.mask, indentValue, vars);
 			}
-			if (value.cellName != "" || value.layer) { mixin(S_TRACE);
-				attrs2 ~= toAttr(value.cellName, indentValue, vars);
-			}
-			if (value.layer) { mixin(S_TRACE);
-				attrs2 ~= toAttr(value.layer, indentValue, vars);
-			}
+			attrs2 ~= toAttr(value.cellName, indentValue, vars);
+			attrs2 ~= toAttr(value.layer, indentValue, vars);
 			if (ic) { mixin(S_TRACE);
 				attrs2 ~= toAttr(ic.smoothing, indentValue, vars);
 			}
