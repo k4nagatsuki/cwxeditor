@@ -815,7 +815,7 @@ private:
 	Button[CouponType] _type;
 	Combo _name;
 	CouponView!(CVType.NoValued) _couponView;
-	private Button[MultiCouponType] _multiType; // AND条件,OR条件(Wsn.2)
+	private Button[MatchingType] _multiType; // 全てに一致,どれか一つに一致(Wsn.2)
 	bool _orFlg;// OR条件かどうか(Wsn.2)
 	static if (EditValue) {
 		Spinner _value;
@@ -832,11 +832,11 @@ private:
 		comp.setLayout(normalGridLayout(2, false));
 		comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
-		foreach(i, type; [MultiCouponType.And, MultiCouponType.Or]){ mixin(S_TRACE);
+		foreach(i, type; [MatchingType.And, MatchingType.Or]){ mixin(S_TRACE);
 			auto radio = new Button(comp, SWT.RADIO);
 			mod(radio);
 			radio.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
-			radio.setText(comm.prop.msgs.couponTypeMulti(type));
+			radio.setText(comm.prop.msgs.matchingType(type));
 			/// .listener(radio, SWT.Selection, &refreshWarning);
 			_multiType[type] = radio;
 		}
@@ -1018,9 +1018,9 @@ protected:
 			if (!(summ && summ.legacy)) {
 				_couponView.couponNames = _evt.couponNames;
 				if(_evt.orFlg){
-					_multiType[MultiCouponType.Or].setSelection(true);
+					_multiType[MatchingType.Or].setSelection(true);
 				} else { mixin(S_TRACE);
-					_multiType[MultiCouponType.And].setSelection(true);
+					_multiType[MatchingType.And].setSelection(true);
 				}
 			} else { mixin(S_TRACE);
 				auto cType = prop.sys.couponType(_evt.coupon);
@@ -1038,11 +1038,11 @@ protected:
 			}
 		} else { mixin(S_TRACE);
 			_range[Range.SELECTED].setSelection(true);
-			if (summ && summ.legacy)
+			if (summ && summ.legacy) {
 				_type[CouponType.Normal].setSelection(true);
-			else { mixin(S_TRACE);
+			} else { mixin(S_TRACE);
 				_couponView.couponNames = null;
-				_multiType[MultiCouponType.And].setSelection(true);
+				_multiType[MatchingType.And].setSelection(true);
 			}
 			static if (EditValue) {
 				_value.setSelection(0);
@@ -1062,7 +1062,7 @@ protected:
 					_evt.coupon = _name.getText();
 				} else { mixin(S_TRACE);
 					_evt.couponNames = _couponView.couponNames;
-					_evt.orFlg = _multiType[MultiCouponType.Or].getSelection();
+					_evt.orFlg = _multiType[MatchingType.Or].getSelection();
 				}
 				
 				static if (EditValue) {

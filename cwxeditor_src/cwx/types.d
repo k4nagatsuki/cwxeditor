@@ -1669,8 +1669,8 @@ enum CardImagePosition {
 	Center, /// 中央寄せ。
 	TopLeft /// 左上起点。
 }
-/// クーポン分岐：複数クーポン指定（ＡＮＤ条件・ＯＲ条件）(Wsn.2)。
-enum MultiCouponType {
-	And, /// AND条件
-	Or   /// OR条件
+/// クーポン分岐：複数クーポン指定（全てに一致・どれか一つに一致）(Wsn.2)。
+enum MatchingType {
+	And, /// 全てに一致。
+	Or   /// どれか一つに一致。
 }

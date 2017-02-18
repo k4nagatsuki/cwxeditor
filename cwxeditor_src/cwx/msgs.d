@@ -442,11 +442,11 @@ class Msgs : Properties {
 	auto couponTypeNameDur = Msg("couponTypeNameDur", "時限");
 	auto couponTypeNameDurBattle = Msg("couponTypeNameDurBattle", "戦時");
 	
-	const string couponTypeMulti(MultiCouponType id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(MultiCouponType, "couponTypeMulti"));
+	const string matchingType(MatchingType id) { mixin(S_TRACE);
+		mixin(EnumToStringSwitch!(MatchingType, "matchingType"));
 	}
-	auto couponTypeMultiAnd = Msg("couponTypeMultiAnd", "AND条件");
-	auto couponTypeMultiOr = Msg("couponTypeMultiOr", "OR条件");
+	auto matchingTypeAnd = Msg("matchingTypeAnd", "全てに一致");
+	auto matchingTypeOr = Msg("matchingTypeOr", "どれか一つに一致");
 	
 	auto imageMessage = Msg("imageMessage", "イメージ付きメッセージ");
 	auto noImageMessage = Msg("noImageMessage", "イメージ無しメッセージ");
