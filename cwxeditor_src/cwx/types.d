@@ -1322,7 +1322,7 @@ enum CArg {
 	CENTERING_Y, /// メッセージを縦方向に中央寄せして表示する(Wsn.2)。
 	BOUNDARY_CHECK, /// メッセージの禁則処理(Wsn.2)。
 	COUPON_NAMES, /// 複数クーポン名(Wsn.2)。
-	MATCHING_TYPE, /// 全てに一致・どれか一つに一致(Wsn.2)。
+	MATCHING_TYPE, /// マッチングタイプ(Wsn.2)。
 }
 
 /// 後続コンテントのnameの型。
@@ -1669,7 +1669,7 @@ enum CardImagePosition {
 	Center, /// 中央寄せ。
 	TopLeft /// 左上起点。
 }
-/// 全てに一致・どれか一つに一致(Wsn.2)。
+/// マッチングタイプ(Wsn.2)。
 enum MatchingType {
 	And, /// 全てに一致。
 	Or   /// どれか一つに一致。

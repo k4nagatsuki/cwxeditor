@@ -815,8 +815,8 @@ private:
 	Button[CouponType] _type;
 	Combo _name;
 	CouponView!(CVType.NoValued) _couponView;
-	private Button[MatchingType] _matchType; // 全てに一致,どれか一つに一致(Wsn.2)
-	MatchingType _matchingType; // AND条件,OR条件(Wsn.2)
+	private Button[MatchingType] _matchType; // マッチングタイプ(Wsn.2)
+	MatchingType _matchingType; // マッチングタイプWsn.2)
 	static if (EditValue) {
 		Spinner _value;
 	}
