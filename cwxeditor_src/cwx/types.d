@@ -1674,7 +1674,7 @@ enum MatchingType {
 	And, /// 全てに一致。
 	Or   /// どれか一つに一致。
 }
-/// 文字列からAND・OR条件を生成。
+/// 文字列からマッチングタイプを生成。
 MatchingType toMatchingType(string name) { mixin(S_TRACE);
 	switch (name) {
 	case "And":
