@@ -613,6 +613,14 @@ private Premium toPremium(byte b) { mixin(S_TRACE);
 	default: throw new SummaryException("Unknown card premium: " ~ to!(string)(b));
 	}
 }
+// マッチングタイプ(Wsn.2)
+private MatchingType toMatchingType(byte b) { mixin(S_TRACE);
+	switch (b) {
+	case 0: return MatchingType.And;
+	case 1: return MatchingType.Or;
+	default: throw new SummaryException("Unknown matchingType: " ~ to!(string)(b));
+	}
+}
 private bool readBool(ref ByteIO f) { mixin(S_TRACE);
 	return f.readByte ? true : false;
 }
@@ -2709,6 +2717,13 @@ private byte fromPremium(Premium v) { mixin(S_TRACE);
 	case Premium.RARE: return 1;
 	case Premium.PREMIUM: return 2;
 	default: throw new SummaryException("Unknown card premium value: " ~ to!(string)(cast(int) v));
+	}
+}
+// マッチングタイプ(Wsn.2)
+private byte fromMatchingType(MatchingType v) { mixin(S_TRACE);
+	final switch (v) {
+	case MatchingType.And: return 0; // Wsn.2
+	case MatchingType.Or: return 1; // Wsn.2
 	}
 }
 private const B_IMG_REF = ":INNER_BINARY_IMAGE";

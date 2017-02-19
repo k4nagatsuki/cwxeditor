@@ -2481,10 +2481,11 @@
     <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">// 分岐終了</span></code></pre>
 
-<h3 class="content"><a id="BRCOUPON" name="BRCOUPON">brcoupon <span class="args"><span class="arg">&lt;判定対象&gt;</span>, <span class="arg">&lt;クーポン名&gt;</span> ..., <span class="arg">&lt;ＯＲフラグ&gt;</span></span></a></h3>
+<h3 class="content"><a id="BRCOUPON" name="BRCOUPON">brcoupon <span class="args"><span class="arg">&lt;判定対象&gt;</span>, <span class="arg">&lt;クーポン名&gt;</span> ..., <span class="arg">&lt;マッチングタイプ&gt;</span></span></a></h3>
 
 <p class="fullname">(Branch with Coupon)</p>
 <p class="desc">一人または複数のキャラクタがクーポン(称号)（複数指定可能）を所持しているかどうかで分岐を行います。</p>
+<p class="desc"><em class="warning">２つ以上のクーポン指定はWsn.2以降のWSN形式シナリオでのみ機能します。</em></p>
 
 <h4 class="argments">パラメータ</h4>
 
@@ -2500,11 +2501,18 @@
 	<dd class="worddesc">プレイヤーカードとエネミーカードを含むフィールド全体。これによって判定に成功した場合、所持しているメンバが選択状態になります。</dd>
 </dl>
 <p class="desc">クーポン名（複数指定可能）には、文字列でクーポンの名前を空白区切りで指定します。</p>
-<p class="desc">ＯＲフラグに<code class="code">true</code>を指定した場合、複数のクーポンのうちのどれか（ＯＲ条件）を所持しているかで分岐します。<code class="code">false</code>を指定した場合、複数のクーポンの全て（ＡＮＤ条件）を所持しているかで分岐します。指定しなかった場合は<code class="code">false</code>（ＡＮＤ条件）になります。</p>
+
+<p class="desc">マッチングタイプには、次のいずれかが指定できます。指定しなかった場合は、全てに一致になります。</p>
+<dl>
+	<dt class="keyword"><code>a</code> または <code>and</code></dt>
+	<dd class="worddesc">全てに一致。</dd>
+	<dt class="keyword"><code>o</code> または <code>or</code></dt>
+	<dd class="worddesc">どれか一つに一致。</dd>
+</dl>
 
 <h4 class="example">例</h4>
 
-<pre><code class="samplecode"><span class="keywords">brcoupon</span> <span class="code">M</span>, <span class="str">"＿粗野"</span> <span class="str">"＿愛に生きる"</span>, <span class="code">false</span>
+<pre><code class="samplecode"><span class="keywords">brcoupon</span> <span class="code">M</span>, <span class="str">"＿粗野"</span> <span class="str">"＿愛に生きる"</span>, <span class="code">and</span>
 <code class="code">if</code> <span class="code">true</span>
     <span class="comment">// 選択中のメンバがクーポン「＿粗野」,「＿愛に生きる」を全て所持していればこちらへ分岐</span>
     <span class="comment">// ...</span>

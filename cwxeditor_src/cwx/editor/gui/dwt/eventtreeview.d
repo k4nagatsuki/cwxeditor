@@ -2670,7 +2670,7 @@ public:
 		} case CType.BRANCH_MONEY: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrMoney(_prop, evt.money, name)")(data, c);
 		} case CType.BRANCH_COUPON: { mixin(S_TRACE);
-			return createBoolEditor!("evtChildBrCoupon(_prop, evt.range, evt.couponNames.dup, evt.orFlg, name)")(data, c);
+			return createBoolEditor!("evtChildBrCoupon(_prop, evt.range, evt.couponNames.dup, evt.matchingType, name)")(data, c);
 		} case CType.BRANCH_COMPLETE_STAMP: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrEnd(_prop, evt.completeStamp, name)")(data, c);
 		} case CType.BRANCH_GOSSIP: { mixin(S_TRACE);
@@ -3918,7 +3918,7 @@ string eventText(Commons comm, Summary summ, Content parent, Content e, bool rea
 		r = evtChildBrMoney(prop, parent.money, name);
 		break;
 	} case CType.BRANCH_COUPON: { mixin(S_TRACE);
-		r = evtChildBrCoupon(prop, parent.range, parent.couponNames.dup, parent.orFlg, name);
+		r = evtChildBrCoupon(prop, parent.range, parent.couponNames.dup, parent.matchingType, name);
 		break;
 	} case CType.BRANCH_COMPLETE_STAMP: { mixin(S_TRACE);
 		r = evtChildBrEnd(prop, parent.completeStamp, name);
@@ -4225,16 +4225,16 @@ private string evtChildBrMoney(in Props prop, uint sp, ref string text) { mixin(
 		return .tryFormat(prop.msgs.branchMoneyFailure, sp);
 	}
 }
-private string evtChildBrCoupon(in Props prop, Range r, string[] couponNames, bool orFlg, ref string text) { mixin(S_TRACE);
+private string evtChildBrCoupon(in Props prop, Range r, string[] couponNames, MatchingType matchingType, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
 	string coupon;
 	if (!couponNames || !couponNames.length) couponNames ~= prop.msgs.noSelectCoupon;
 	string tr = prop.msgs.rangeName(r);
 	if (val) { mixin(S_TRACE);
-		return prop.msgs.branchCouponSuccess(tr, couponNames, orFlg);
+		return prop.msgs.branchCouponSuccess(tr, couponNames, matchingType);
 	} else { mixin(S_TRACE);
-		return prop.msgs.branchCouponFailure(tr, couponNames, orFlg);
+		return prop.msgs.branchCouponFailure(tr, couponNames, matchingType);
 	}
 }
 private string evtChildBrEnd(in Props prop, string scenario, ref string text) { mixin(S_TRACE);

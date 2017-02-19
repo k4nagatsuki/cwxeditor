@@ -815,8 +815,8 @@ private:
 	Button[CouponType] _type;
 	Combo _name;
 	CouponView!(CVType.NoValued) _couponView;
-	private Button[MatchingType] _multiType; // 全てに一致,どれか一つに一致(Wsn.2)
-	bool _orFlg;// OR条件かどうか(Wsn.2)
+	private Button[MatchingType] _matchType; // 全てに一致,どれか一つに一致(Wsn.2)
+	MatchingType _matchingType; // AND条件,OR条件(Wsn.2)
 	static if (EditValue) {
 		Spinner _value;
 	}
@@ -836,9 +836,9 @@ private:
 			auto radio = new Button(comp, SWT.RADIO);
 			mod(radio);
 			radio.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
-			radio.setText(comm.prop.msgs.matchingType(type));
+			radio.setText(comm.prop.msgs.matchingTypeName(type));
 			/// .listener(radio, SWT.Selection, &refreshWarning);
-			_multiType[type] = radio;
+			_matchType[type] = radio;
 		}
 
 		auto comp2 = new Composite(grp, SWT.NONE);
@@ -1017,10 +1017,10 @@ protected:
 			
 			if (!(summ && summ.legacy)) {
 				_couponView.couponNames = _evt.couponNames;
-				if(_evt.orFlg){
-					_multiType[MatchingType.Or].setSelection(true);
+				if(_evt.matchingType == MatchingType.And){
+					_matchType[MatchingType.And].setSelection(true);
 				} else { mixin(S_TRACE);
-					_multiType[MatchingType.And].setSelection(true);
+					_matchType[MatchingType.Or].setSelection(true);
 				}
 			} else { mixin(S_TRACE);
 				auto cType = prop.sys.couponType(_evt.coupon);
@@ -1042,7 +1042,7 @@ protected:
 				_type[CouponType.Normal].setSelection(true);
 			} else { mixin(S_TRACE);
 				_couponView.couponNames = null;
-				_multiType[MatchingType.And].setSelection(true);
+				_matchType[MatchingType.And].setSelection(true);
 			}
 			static if (EditValue) {
 				_value.setSelection(0);
@@ -1062,7 +1062,7 @@ protected:
 					_evt.coupon = _name.getText();
 				} else { mixin(S_TRACE);
 					_evt.couponNames = _couponView.couponNames;
-					_evt.orFlg = _multiType[MatchingType.Or].getSelection();
+					_evt.matchingType = _matchType[MatchingType.And].getSelection() ? MatchingType.And : MatchingType.Or;
 				}
 				
 				static if (EditValue) {

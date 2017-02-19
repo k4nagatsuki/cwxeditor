@@ -188,7 +188,7 @@ class CouponView(CVType Type) : Composite {
 			}, true);
 			storeCoupons();
 			
-			static if (CVType.NoValued != Type){
+			static if (CVType.NoValued != Type) {
 				auto coupon = new Coupon(name, _couponVal.getSelection());
 			} else {
 				auto coupon = new Coupon(name, 0);
@@ -218,7 +218,7 @@ class CouponView(CVType Type) : Composite {
 			}
 			storeCoupons();
 			auto itm = _coupons.getItem(index);
-			static if (CVType.NoValued != Type){
+			static if (CVType.NoValued != Type) {
 				auto coupon = new Coupon(_newCoupon.getText(), _couponVal.getSelection());
 				itm.setImage(0, couponImage(coupon.value));
 				itm.setText(0, coupon.name);
@@ -235,7 +235,7 @@ class CouponView(CVType Type) : Composite {
 	}
 	void addCoupon(Coupon coupon) { mixin(S_TRACE);
 		if (_tte1.isEditing) _tte1.enter();
-		static if (CVType.NoValued != Type){
+		static if (CVType.NoValued != Type) {
 			if (_tte2.isEditing) _tte2.enter();
 		}
 		string name = createNewName(coupon.name, (string s) { mixin(S_TRACE);
@@ -377,13 +377,13 @@ class CouponView(CVType Type) : Composite {
 	}
 
 	private class CDropListener : DropTargetAdapter {
-		override void dragEnter(DropTargetEvent e){ mixin(S_TRACE);
+		override void dragEnter(DropTargetEvent e) { mixin(S_TRACE);
 			e.detail = _readOnly ? DND.DROP_NONE : DND.DROP_MOVE;
 		}
-		override void dragOver(DropTargetEvent e){ mixin(S_TRACE);
+		override void dragOver(DropTargetEvent e) { mixin(S_TRACE);
 			e.detail = _readOnly ? DND.DROP_NONE : DND.DROP_MOVE;
 		}
-		override void drop(DropTargetEvent e){ mixin(S_TRACE);
+		override void drop(DropTargetEvent e) { mixin(S_TRACE);
 			if (!isXMLBytes(e.data)) return;
 			e.detail = DND.DROP_NONE;
 			string xml = bytesToXML(e.data);
@@ -441,7 +441,7 @@ class CouponView(CVType Type) : Composite {
 		override void dragStart(DragSourceEvent e) { mixin(S_TRACE);
 			e.doit = (cast(DragSource) e.getSource()).getControl().isFocusControl();
 		}
-		override void dragSetData(DragSourceEvent e){ mixin(S_TRACE);
+		override void dragSetData(DragSourceEvent e) { mixin(S_TRACE);
 			if (XMLBytesTransfer.getInstance().isSupportedType(e.dataType)) { mixin(S_TRACE);
 				auto c = cast(Table)(cast(DragSource) e.getSource()).getControl();
 				_itms = c.getSelection();
@@ -594,7 +594,7 @@ class CouponView(CVType Type) : Composite {
 		auto o = this;
 		_id = format("%08X", &o) ~ "-" ~ to!(string)(Clock.currTime());
 
-		static if (CVType.NoValued == Type){
+		static if (CVType.NoValued == Type) {
 			_readOnly = style & SWT.READ_ONLY;
 		} else {
 			_readOnly = !SWT.READ_ONLY;
@@ -747,7 +747,7 @@ class CouponView(CVType Type) : Composite {
 			}
 		}
 		_coupons.addSelectionListener(new SelCoupon);
-		static if (CVType.NoValued != Type){
+		static if (CVType.NoValued != Type) {
 			this.setTabList([cast(Control)_toolbar, _newCoupon, _couponType, _couponVal, _coupons]);
 		} else {
 			this.setTabList([cast(Control)_toolbar, _newCoupon, _couponType, _coupons]);
@@ -835,7 +835,7 @@ class CouponView(CVType Type) : Composite {
 	@property
 	void couponNames(in string[] couponNames) { mixin(S_TRACE);
 		Coupon[] r;
-		foreach(name; couponNames){ mixin(S_TRACE);
+		foreach(name; couponNames) { mixin(S_TRACE);
 			r ~= new Coupon(name, 0);
 		}
 		coupons(r);
@@ -915,7 +915,7 @@ class CouponView(CVType Type) : Composite {
 		initSpinner(spn);
 		auto coupon = cast(Coupon)itm.getData();
 		assert (coupon !is null);
-		static if (CVType.NoValued != Type){
+		static if (CVType.NoValued != Type) {
 			spn.setMaximum(_couponVal.getMaximum());
 			spn.setMinimum(_couponVal.getMinimum());
 		}
@@ -939,7 +939,7 @@ class CouponView(CVType Type) : Composite {
 		foreach (itm2; itms) { mixin(S_TRACE);
 			auto coupon = cast(Coupon)itm2.getData();
 			coupon = new Coupon(coupon.name, value);
-			static if (CVType.NoValued != Type){
+			static if (CVType.NoValued != Type) {
 				itm2.setImage(0, couponImage(value));
 				itm2.setText(1, .text(value));
 				itm2.setData(coupon);

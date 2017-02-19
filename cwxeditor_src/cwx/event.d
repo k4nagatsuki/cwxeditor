@@ -161,7 +161,7 @@ private void static_this () { mixin(S_TRACE);
 		CType.BRANCH_INFO:CDetail("Branch", "Info", CNextType.BOOL, true, [CArg.INFO:"id"]),
 		CType.BRANCH_BEAST:CDetail("Branch", "Beast", CNextType.BOOL, true, [CArg.BEAST:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number"]),
 		CType.BRANCH_MONEY:CDetail("Branch", "Money", CNextType.BOOL, true, [CArg.MONEY:"value"]),
-		CType.BRANCH_COUPON:CDetail("Branch", "Coupon", CNextType.BOOL, true, [CArg.RANGE:"targets", CArg.COUPON_NAMES:"couponnames", CArg.OR_FLG:"orflg"]),
+		CType.BRANCH_COUPON:CDetail("Branch", "Coupon", CNextType.BOOL, true, [CArg.RANGE:"targets", CArg.COUPON_NAMES:"couponnames", CArg.MATCHING_TYPE:"matchingType"]),
 		CType.BRANCH_COMPLETE_STAMP:CDetail("Branch", "CompleteStamp", CNextType.BOOL, true, [CArg.COMPLETE_STAMP:"scenario"]),
 		CType.BRANCH_GOSSIP:CDetail("Branch", "Gossip", CNextType.BOOL, true, [CArg.GOSSIP:"gossip"]),
 		CType.SET_FLAG:CDetail("Set", "Flag", CNextType.NONE, true, [CArg.FLAG:_("flag"), CArg.FLAG_VALUE:"value"]),
@@ -608,7 +608,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		this.keyCodes = c.keyCodes.dup;
 		
 		this.couponNames = c.couponNames.dup;
-		this.orFlg = c.orFlg;
+		this.matchingType = c.matchingType;
 		
 		this.holdingCoupon = c.holdingCoupon;
 		this.refAbility = c.refAbility;
@@ -756,7 +756,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			&& keyCodes == c.keyCodes
 			
 			&& couponNames == c.couponNames
-			&& orFlg == c.orFlg
+			&& matchingType == c.matchingType
 			
 			&& holdingCoupon == c.holdingCoupon
 			&& refAbility == c.refAbility
@@ -1018,7 +1018,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.KEY_CODES, string[], [])(d, &keyCodes);
 		
 		resetValue!(CArg.COUPON_NAMES, string[], [])(d, &couponNames);
-		resetValue!(CArg.OR_FLG, bool, false)(d, &orFlg);
+		resetValue!(CArg.MATCHING_TYPE, MatchingType, MatchingType.And)(d, &matchingType);
 		
 		resetValue!(CArg.HOLDING_COUPON, string, "")(d, &holdingCoupon);
 		resetValue!(CArg.REF_ABILITY, bool, false)(d, &refAbility);
@@ -1842,8 +1842,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 	/// 複数のクーポン名(Wsn.2)。
 	mixin Prop!(string[], "couponNames", []);
-	/// ＯＲ条件フラグ(Wsn.2)。
-	mixin Prop!(bool, "orFlg", false);
+	/// マッチングタイプ(Wsn.2)。
+	mixin Prop!(MatchingType, "matchingType", MatchingType.And);
 
 	/// 選択メンバの能力参照(Wsn.2)。
 	mixin Prop!(bool, "refAbility", false);
@@ -2279,7 +2279,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		if (!opt.isTargetVersion("2") && type is CType.BRANCH_COUPON && couponNames.length > 0) { mixin(S_TRACE);
 			e.newAttr("coupon", couponNames[0]);
 		}
-		atnPut!(CArg.OR_FLG, "orFlg", "fromBool")(e, d);
+		atnPut!(CArg.MATCHING_TYPE, "matchingType", "fromMatchingType")(e, d);
 	}
 	const
 	private void toNodeImpl(ref XNode parent, CDetail d, XMLOption opt, ref XNode contentsLine) { mixin(S_TRACE);
@@ -2614,7 +2614,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			couponNames ~= en.attr("coupon", true);
 			r.couponNames = couponNames;
 		}
-		cfnPut!(CArg.OR_FLG, "orFlg", "parseBool")(en, d, r);
+		cfnPut!(CArg.MATCHING_TYPE, "matchingType", "toMatchingType")(en, d, r);
 
 		if (d.owner) { mixin(S_TRACE);
 			en.onTag["Contents"] = (ref XNode node) { mixin(S_TRACE);

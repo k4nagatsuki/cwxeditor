@@ -391,6 +391,7 @@ class Msgs : Properties {
 	auto couponValue = Msg("couponValue", "得点");
 	auto couponValueRange = Msg("couponValueRange", "(%1$s～%2$s)");
 	auto range = Msg("range", "適用範囲");
+	auto matchingType = Msg("matchingType", "マッチングタイプ"); // Wsn.2
 	auto gossipName = Msg("gossipName", "ゴシップ名");
 	auto endName = Msg("endName", "シナリオ名");
 	auto cardType = Msg("cardType", "カードの種類");
@@ -442,11 +443,11 @@ class Msgs : Properties {
 	auto couponTypeNameDur = Msg("couponTypeNameDur", "時限");
 	auto couponTypeNameDurBattle = Msg("couponTypeNameDurBattle", "戦時");
 	
-	const string matchingType(MatchingType id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(MatchingType, "matchingType"));
+	const string matchingTypeName(MatchingType id) { mixin(S_TRACE);
+		mixin(EnumToStringSwitch!(MatchingType, "matchingTypeName"));
 	}
-	auto matchingTypeAnd = Msg("matchingTypeAnd", "全てに一致");
-	auto matchingTypeOr = Msg("matchingTypeOr", "どれか一つに一致");
+	auto matchingTypeNameAnd = Msg("matchingTypeNameAnd", "全てに一致");
+	auto matchingTypeNameOr = Msg("matchingTypeNameOr", "どれか一つに一致");
 	
 	auto imageMessage = Msg("imageMessage", "イメージ付きメッセージ");
 	auto noImageMessage = Msg("noImageMessage", "イメージ無しメッセージ");
@@ -939,13 +940,13 @@ class Msgs : Properties {
 	auto ctBranchInfo = Msg("ctBranchInfo", "情報カード「%1$s」の有無で分岐");
 	auto ctBranchMoney = Msg("ctBranchMoney", "分岐金額 = %1$ssp");
 	auto ctBranchCoupon = Msg("ctBranchCoupon", "称号「%1$s」の有無で分岐(%2$s)");
-	const string ctBranchCouponMulti(string[] couponNames, bool orFlg,string rangeName) { mixin(S_TRACE);
+	const string ctBranchCouponMulti(string[] couponNames, MatchingType matchingType , string rangeName) { mixin(S_TRACE);
 		string message = "称号";
 		for(int i = 0;i < couponNames.length ;i++){
 			message ~= "「" ~ couponNames[i] ~ "」";
 			if(i < couponNames.length - 1) message ~= ",";
 		}
-		return  message ~ (couponNames.length == 1 ? "" : (orFlg ? "のどれか" : "の全て")) ~  "の有無で分岐(" ~ rangeName ~ ")";
+		return  message ~ (couponNames.length == 1 ? "" : (matchingType == MatchingType.And ? "の全て" : "のどれか")) ~  "の有無で分岐(" ~ rangeName ~ ")";
 	}
 	auto ctBranchCompleteStamp = Msg("ctBranchCompleteStamp", "シナリオ「%1$s」が終了済みか否かで分岐");
 	auto ctBranchGossip = Msg("ctBranchGossip", "ゴシップ「%1$s」の有無で分岐");
@@ -1329,23 +1330,23 @@ class Msgs : Properties {
 	auto branchInfoFailure = Msg("branchInfoFailure", "「%1$s」を所有していない");
 	auto branchMoneySuccess = Msg("branchMoneySuccess", "%1$ssp以上所持している");
 	auto branchMoneyFailure = Msg("branchMoneyFailure", "%1$ssp以上所持していない");
-	const string branchCouponSuccess(string rangeName, string[] couponNames, bool orFlg) { mixin(S_TRACE);
+	const string branchCouponSuccess(string rangeName, string[] couponNames, MatchingType matchingType) { mixin(S_TRACE);
 		string message = "クーポン";
 		for(int i = 0;i < couponNames.length;i++){
 			message ~= "「" ~ couponNames[i] ~ "」";
 			if(i < couponNames.length - 1) message ~= ",";
 		}
 		return  message ~ (couponNames.length == 1 ? "" :
-		(orFlg ? "のどれか" : "の全て")) ~  "を所有している(" ~ rangeName ~ ")";
+		(matchingType == MatchingType.And ? "の全て" : "のどれか")) ~  "を所有している(" ~ rangeName ~ ")";
 	}
-	const string branchCouponFailure(string rangeName, string[] couponNames, bool orFlg) { mixin(S_TRACE);
+	const string branchCouponFailure(string rangeName, string[] couponNames, MatchingType matchingType) { mixin(S_TRACE);
 		string message = "クーポン";
 		for(int i = 0;i < couponNames.length;i++){
 			message ~= "「" ~ couponNames[i] ~ "」";
 			if(i < couponNames.length - 1) message ~= ",";
 		}
 		return  message ~ (couponNames.length == 1 ? "" :
-		(orFlg ? "のどれか" : "の全て")) ~  "を所有していない(" ~ rangeName ~ ")";
+		(matchingType == MatchingType.And ? "の全て" : "のどれか")) ~  "を所有していない(" ~ rangeName ~ ")";
 	}
 	auto branchCompleteSuccess = Msg("branchCompleteSuccess", "シナリオ「%1$s」が終了済みである");
 	auto branchCompleteFailure = Msg("branchCompleteFailure", "シナリオ「%1$s」が終了済みでない");
@@ -2223,6 +2224,7 @@ class Msgs : Properties {
 	auto scriptErrorSystem = Msg("scriptErrorSystem", "サイズが大きすぎるため、CWXスクリプトをコンパイルできません。");
 	auto scriptErrorInvalidCardImagePosition = Msg("scriptErrorInvalidCardImagePosition", "イメージの配置形式が正しくありません。");
 	auto scriptErrorInvalidStartAction = Msg("scriptErrorInvalidStartAction", "未知の戦闘行動開始タイミングです。"); // Wsn.2
+	auto scriptErrorInvalidMatchingType = Msg("scriptErrorInvalidMatchingType", "未知の条件です。"); // Wsn.2
 
 	auto dlgTitScriptVarSet = Msg("dlgTitScriptVarSet", "値が未決定の変数の設定");
 	auto scriptVarSet = Msg("scriptVarSet", "変数に値を入力");

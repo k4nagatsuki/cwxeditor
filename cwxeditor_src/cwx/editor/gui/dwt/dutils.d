@@ -3344,7 +3344,7 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		string rangeName = .rangeName(comm.prop, evt.range, evt.holdingCoupon);
 		string[] c = evt.couponNames.dup;
 		if (!c || !c.length) c ~= comm.prop.msgs.noSelectCoupon;
-		return comm.prop.msgs.ctBranchCouponMulti(c, evt.orFlg, rangeName);
+		return comm.prop.msgs.ctBranchCouponMulti(c, evt.matchingType, rangeName);
 	} case CType.BRANCH_COMPLETE_STAMP: { mixin(S_TRACE);
 		string c = evt.completeStamp;
 		if (!c || !c.length) c = comm.prop.msgs.noSelectCompleteStamp;
