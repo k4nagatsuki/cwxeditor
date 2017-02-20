@@ -2274,10 +2274,17 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		}
 		// Wsn.2以降はクーポン分岐が複数クーポン指定になった
 		if (d.use(CArg.COUPON_NAMES)) { mixin(S_TRACE);
-			e.newAttr("couponnames", encodeLf(couponNames, false));
+			auto ce = e.newElement(Coupon.XML_NAME_M);
+			foreach (c; couponNames) { mixin(S_TRACE);
+				ce.newElement(Coupon.XML_NAME, c);
+			}
 		}
-		if (!opt.isTargetVersion("2") && type is CType.BRANCH_COUPON && couponNames.length > 0) { mixin(S_TRACE);
-			e.newAttr("coupon", couponNames[0]);
+		if (!opt.isTargetVersion("2") && type is CType.BRANCH_COUPON) { mixin(S_TRACE);
+			if (couponNames.length > 0) {
+				e.newAttr("coupon", couponNames[0]);
+			} else {
+				e.newAttr("coupon", "");
+			}
 		}
 		atnPut!(CArg.MATCHING_TYPE, "matchingType", "fromMatchingType")(e, d);
 	}
@@ -2603,11 +2610,15 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			}
 		}
 		// Wsn.2以降はクーポン分岐が複数クーポン指定になった(Wsn.2)
-		r.couponNames = [];
 		if (d.use(CArg.COUPON_NAMES)) { mixin(S_TRACE);
-			if (en.hasAttr("couponnames")) { mixin(S_TRACE);
-				r.couponNames = decodeLf(en.attr("couponnames", false, ""));
-			}
+			en.onTag[Coupon.XML_NAME_M] = (ref XNode node) { mixin(S_TRACE);
+				string[] couponNames;
+				node.onTag[Coupon.XML_NAME] = (ref XNode node) { mixin(S_TRACE);
+					couponNames ~= node.value;
+				};
+				node.parse();
+				r.couponNames = couponNames;
+			};
 		}
 		if (cType is CType.BRANCH_COUPON && !r.couponNames && en.hasAttr("coupon")) { mixin(S_TRACE);
 			string[] couponNames;
