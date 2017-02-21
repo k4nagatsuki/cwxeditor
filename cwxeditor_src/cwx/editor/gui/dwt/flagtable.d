@@ -175,6 +175,7 @@ private:
 		itm.setText(column, newText);
 		_valueCache[index] = newText;
 		_init.setItem(index, newText);
+		applyEnabled();
 	}
 
 	void delStep(cwx.flag.Flag[] flag, Step[] step) { mixin(S_TRACE);
@@ -1146,7 +1147,7 @@ private:
 
 	void editFlag(FlagDir parent, cwx.flag.Flag flag) { mixin(S_TRACE);
 		bool createMode = flag is null;
-		string old = createMode ? null : flag.path;
+		string old = createMode ? null : flag.name;
 		if (!flag) { mixin(S_TRACE);
 			string on = prop.var.etc.flagTrues.length > 0 ? prop.var.etc.flagTrues[0] : "";
 			string off = prop.var.etc.flagFalses.length > 0 ? prop.var.etc.flagFalses[0] : "";
@@ -1172,7 +1173,10 @@ private:
 		};
 		dlg.appliedEvent ~= { mixin(S_TRACE);
 			auto flag = dlg.flag;
-			if (old && old != flag.path) uc.change(toFlagId(old), toFlagId(flag.path), true);
+			if (old && old != flag.name) { mixin(S_TRACE);
+				uc.change(toFlagId(FlagDir.join(parent.path, old)), toFlagId(flag.path), true);
+				old = flag.name;
+			}
 			if (createMode) { mixin(S_TRACE);
 				string[] selsF;
 				string[] selsS;
@@ -1198,7 +1202,7 @@ private:
 	}
 	void editStep(FlagDir parent, Step step) { mixin(S_TRACE);
 		bool createMode = step is null;
-		string old = createMode ? null : step.path;
+		string old = createMode ? null : step.name;
 		if (!step) { mixin(S_TRACE);
 			string[] vals;
 			foreach (i; 0 .. prop.looks.stepMaxCount) { mixin(S_TRACE);
@@ -1226,7 +1230,10 @@ private:
 		};
 		dlg.appliedEvent ~= { mixin(S_TRACE);
 			auto step = dlg.step;
-			if (old && old != step.path) uc.change(toStepId(old), toStepId(step.path), true);
+			if (old && old != step.name) { mixin(S_TRACE);
+				uc.change(toStepId(FlagDir.join(parent.path, old)), toStepId(step.path), true);
+				old = step.name;
+			}
 			if (createMode) { mixin(S_TRACE);
 				string[] selsF;
 				string[] selsS;
