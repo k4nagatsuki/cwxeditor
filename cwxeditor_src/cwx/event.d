@@ -2280,7 +2280,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			}
 		}
 		if (!opt.isTargetVersion("2") && type is CType.BRANCH_COUPON) { mixin(S_TRACE);
-			string coupon = ""
+			string coupon = "";
 			if (couponNames.length > 0) {
 				coupon = couponNames[0];
 			}
