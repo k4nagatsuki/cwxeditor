@@ -2280,11 +2280,11 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			}
 		}
 		if (!opt.isTargetVersion("2") && type is CType.BRANCH_COUPON) { mixin(S_TRACE);
+			string coupon = ""
 			if (couponNames.length > 0) {
-				e.newAttr("coupon", couponNames[0]);
-			} else {
-				e.newAttr("coupon", "");
+				coupon = couponNames[0];
 			}
+			e.newAttr("coupon", coupon);
 		}
 		atnPut!(CArg.MATCHING_TYPE, "matchingType", "fromMatchingType")(e, d);
 	}
