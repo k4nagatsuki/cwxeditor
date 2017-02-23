@@ -1993,6 +1993,7 @@ class Msgs : Properties {
 	auto floatMessagePreview = Msg("floatMessagePreview", "台詞・メッセージのプレビューをフロートさせる");
 	auto selectVariableWithTree = Msg("selectVariableWithTree", "状態変数選択ビューでディレクトリの階層表示を行う");
 	auto useNamesAfterStandard = Msg("useNamesAfterStandard", "シナリオで使用中の称号・キーコードを標準の称号・キーコードの後に配置する");
+	auto expandChooserItems = Msg("expandChooserItems", "エリアや状態変数等を選択するビューでは全て開いた状態を初期状態とする");
 
 	auto etcSettingsCard = Msg("etcSettingsCard", "カードビューの設定");
 	auto showEventTreeMark = Msg("showEventTreeMark", "カードの詳細情報表示時に使用時イベントの有無を表示する");

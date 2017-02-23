@@ -573,7 +573,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 					_canIncSearch = true;
 				}
 				if (dirItm) {
-					dirItm.setExpanded(selItm || expandedTable.get(dir.path, true));
+					dirItm.setExpanded(selItm || expandedTable.get(dir.path, _prop.var.etc.expandChooserItems));
 				}
 				return selItm;
 			}
@@ -955,7 +955,7 @@ class AreaChooser(A, bool StartArea) : Composite {
 				}
 				foreach (dirName, itm; itmTable) {
 					if (!itm) continue;
-					itm.setExpanded(expandedTable.get(dirName, true));
+					itm.setExpanded(expandedTable.get(dirName, _prop.var.etc.expandChooserItems));
 				}
 				void selRecurse(TreeItem itm, bool forceExpand) { mixin(S_TRACE);
 					if (firstItem) return;

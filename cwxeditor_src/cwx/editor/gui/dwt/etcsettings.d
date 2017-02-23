@@ -177,6 +177,7 @@ class EtcSettings : Composite {
 		boolSetting(comp, prop.var.etc.floatMessagePreview, prop.msgs.floatMessagePreview);
 		boolSetting(comp, prop.var.etc.selectVariableWithTree, prop.msgs.selectVariableWithTree);
 		boolSetting(comp, prop.var.etc.useNamesAfterStandard, prop.msgs.useNamesAfterStandard);
+		boolSetting(comp, prop.var.etc.expandChooserItems, prop.msgs.expandChooserItems);
 
 		comp = createComp(prop.msgs.etcSettingsCard);
 		boolSetting(comp, prop.var.etc.showEventTreeMark, prop.msgs.showEventTreeMark);
