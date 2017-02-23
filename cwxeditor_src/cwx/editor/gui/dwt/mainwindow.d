@@ -1155,6 +1155,7 @@ private:
 			dStr ~= " - " ~ .text(__LINE__);
 			_win.redraw();
 			updateExecEngineWithPartyNameTI();
+			_comm.clearExpanded();
 			_comm.refreshToolBar();
 			dStr ~= " - " ~ .text(__LINE__);
 		} catch (Throwable e) {

@@ -431,6 +431,13 @@ class Commons {
 	bool[string] flagAreaExpanded;
 	bool[string] flagBattleExpanded;
 	bool[string] flagPackageExpanded;
+	void clearExpanded() { mixin(S_TRACE);
+		flagDirExpanded = null;
+		stepDirExpanded = null;
+		flagAreaExpanded = null;
+		flagBattleExpanded = null;
+		flagPackageExpanded = null;
+	}
 
 	private HashSet!(Composite) _ws;
 	private Object[Composite] _wos;
