@@ -949,7 +949,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.RESIST, Resist, Resist.UNFAIL)(d, &resist);
 		resetValue!(CArg.TRANSITION, Transition, Transition.DEFAULT)(d, &transition);
 
-		resetValue!(CArg.TARGET_ALL, bool, true)(d, &targetAll);
+		resetValue!(CArg.TARGET_ALL, bool, false)(d, &targetAll);
 		resetValue!(CArg.SELECTION_METHOD, SelectionMethod, SelectionMethod.Manual)(d, &selectionMethod);
 		resetValue!(CArg.AVERAGE, bool, false)(d, &average);
 		resetValue!(CArg.COMPLETE, bool, false)(d, &complete);
@@ -1016,7 +1016,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.TEXT, string, "")(d, &text);
 		resetValue!(CArg.DIALOGS, SDialog[], [])(d, &dialogs);
 
-		resetValue!(CArg.TARGET_S, Target, Target(Target.M.SELECTED, true))(d, &targetS);
+		resetValue!(CArg.TARGET_S, Target, Target(Target.M.SELECTED, false))(d, &targetS);
 		resetValue!(CArg.TALKER_NC, Talker, Talker.SELECTED)(d, &talkerNC);
 
 		resetValue!(CArg.BG_IMAGES, BgImage[], [])(d, &backs);
@@ -1688,7 +1688,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// カード視覚効果。
 	mixin Prop!(CardVisual, "cardVisual", CardVisual.NONE);
 	/// 対象(睡眠者判定含む)。
-	mixin Prop!(Target, "targetS", Target(Target.M.SELECTED, true));
+	mixin Prop!(Target, "targetS", Target(Target.M.SELECTED, false));
 	/// 話者(カード画像を含めない)。
 	mixin Prop!(Talker, "talkerNC", Talker.SELECTED);
 	private bool check_talkerNC(Talker val) { mixin(S_TRACE);
@@ -1705,7 +1705,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	mixin Prop!(Transition, "transition", Transition.DEFAULT);
 
 	/// 全員を対象とするか。
-	mixin Prop!(bool, "targetAll", true);
+	mixin Prop!(bool, "targetAll", false);
 	/// 対象選択方法。
 	mixin Prop!(SelectionMethod, "selectionMethod", SelectionMethod.Manual);
 	/// 平均を取るか。

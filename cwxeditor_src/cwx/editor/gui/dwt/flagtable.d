@@ -1241,7 +1241,7 @@ private:
 					selsF = selectionFlagNames;
 					selsS = selectionStepNames;
 				}
-				storeInsert(selsF, selsS, [step.name], []);
+				storeInsert(selsF, selsS, [], [step.name]);
 				createMode = false;
 			} else { mixin(S_TRACE);
 				storeEdit(indexOf(parent, step), oldName, oldValue, oldNames);
