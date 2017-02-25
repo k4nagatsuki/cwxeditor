@@ -2273,15 +2273,15 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			e.newAttr("effectCardType", fromEffectCardType(effectCardType));
 		}
 		// Wsn.2以降はクーポン分岐が複数クーポン指定になった
-		if (d.use(CArg.COUPON_NAMES)) { mixin(S_TRACE);
+		if (d.use(CArg.COUPON_NAMES) && couponNames.length > 1) { mixin(S_TRACE);
 			auto ce = e.newElement(Coupon.XML_NAME_M);
 			foreach (c; couponNames) { mixin(S_TRACE);
 				ce.newElement(Coupon.XML_NAME, c);
 			}
 		}
-		if (!opt.isTargetVersion("2") && type is CType.BRANCH_COUPON) { mixin(S_TRACE);
+		if (couponNames.length < 2 && type is CType.BRANCH_COUPON) { mixin(S_TRACE);
 			string coupon = "";
-			if (couponNames.length > 0) {
+			if (couponNames.length) {
 				coupon = couponNames[0];
 			}
 			e.newAttr("coupon", coupon);

@@ -940,14 +940,7 @@ class Msgs : Properties {
 	auto ctBranchInfo = Msg("ctBranchInfo", "情報カード「%1$s」の有無で分岐");
 	auto ctBranchMoney = Msg("ctBranchMoney", "分岐金額 = %1$ssp");
 	auto ctBranchCoupon = Msg("ctBranchCoupon", "称号「%1$s」の有無で分岐(%2$s)");
-	const string ctBranchCouponMulti(string[] couponNames, MatchingType matchingType , string rangeName) { mixin(S_TRACE);
-		string message = "称号";
-		for(int i = 0;i < couponNames.length ;i++){
-			message ~= "「" ~ couponNames[i] ~ "」";
-			if(i < couponNames.length - 1) message ~= ",";
-		}
-		return  message ~ (couponNames.length == 1 ? "" : (matchingType == MatchingType.And ? "の全て" : "のどれか")) ~  "の有無で分岐(" ~ rangeName ~ ")";
-	}
+	auto ctBranchCouponMulti = Msg("ctBranchCouponMulti", "称号 %1$s の%2$sの有無で分岐(%3$s)"); // Wsn.2
 	auto ctBranchCompleteStamp = Msg("ctBranchCompleteStamp", "シナリオ「%1$s」が終了済みか否かで分岐");
 	auto ctBranchGossip = Msg("ctBranchGossip", "ゴシップ「%1$s」の有無で分岐");
 	auto ctSetFlag = Msg("ctSetFlag", "フラグ「%1$s」を[%2$s]に変更");
@@ -1010,6 +1003,9 @@ class Msgs : Properties {
 	auto ctLoseBgImageClassic = Msg("ctLoseBgImageClassic", "背景「%1$s」を削除");
 	auto ctBranchMultiCoupon = Msg("ctBranchMultiCoupon", "%1$sの称号所有状態で分岐"); // Wsn.2
 	auto ctBranchMultiRandom = Msg("ctBranchMultiRandom", "ランダム多岐分岐コンテント"); // Wsn.2
+	auto couponNames = Msg("couponNames", "「%1$s」"); // Wsn.2
+	auto matchingTypeAnd = Msg("matchingTypeAnd", "全て"); // Wsn.2
+	auto matchingTypeOr = Msg("matchingTypeOr", "どれか"); // Wsn.2
 
 	auto nameWithID = Msg("nameWithID", "%1$s.%2$s");
 
@@ -1330,24 +1326,10 @@ class Msgs : Properties {
 	auto branchInfoFailure = Msg("branchInfoFailure", "「%1$s」を所有していない");
 	auto branchMoneySuccess = Msg("branchMoneySuccess", "%1$ssp以上所持している");
 	auto branchMoneyFailure = Msg("branchMoneyFailure", "%1$ssp以上所持していない");
-	const string branchCouponSuccess(string rangeName, string[] couponNames, MatchingType matchingType) { mixin(S_TRACE);
-		string message = "クーポン";
-		for(int i = 0;i < couponNames.length;i++){
-			message ~= "「" ~ couponNames[i] ~ "」";
-			if(i < couponNames.length - 1) message ~= ",";
-		}
-		return  message ~ (couponNames.length == 1 ? "" :
-		(matchingType == MatchingType.And ? "の全て" : "のどれか")) ~  "を所有している(" ~ rangeName ~ ")";
-	}
-	const string branchCouponFailure(string rangeName, string[] couponNames, MatchingType matchingType) { mixin(S_TRACE);
-		string message = "クーポン";
-		for(int i = 0;i < couponNames.length;i++){
-			message ~= "「" ~ couponNames[i] ~ "」";
-			if(i < couponNames.length - 1) message ~= ",";
-		}
-		return  message ~ (couponNames.length == 1 ? "" :
-		(matchingType == MatchingType.And ? "の全て" : "のどれか")) ~  "を所有していない(" ~ rangeName ~ ")";
-	}
+	auto branchCouponSuccess = Msg("branchCouponSuccess", "クーポン「%2$s」を所有している(%1$s)");
+	auto branchCouponFailure = Msg("branchCouponFailure", "クーポン「%2$s」を所有していない(%1$s)");
+	auto branchCouponMultiSuccess = Msg("branchCouponMultiSuccess", "クーポン %2$s を%3$s所有している(%1$s)"); // Wsn.2
+	auto branchCouponMultiFailure = Msg("branchCouponMultiFailure", "クーポン %2$s を%3$s所有していない(%1$s)"); // Wsn.2
 	auto branchCompleteSuccess = Msg("branchCompleteSuccess", "シナリオ「%1$s」が終了済みである");
 	auto branchCompleteFailure = Msg("branchCompleteFailure", "シナリオ「%1$s」が終了済みでない");
 	auto branchGossipSuccess = Msg("branchGossipSuccess", "ゴシップ「%1$s」が宿屋にある");
@@ -2224,7 +2206,7 @@ class Msgs : Properties {
 	auto scriptErrorSystem = Msg("scriptErrorSystem", "サイズが大きすぎるため、CWXスクリプトをコンパイルできません。");
 	auto scriptErrorInvalidCardImagePosition = Msg("scriptErrorInvalidCardImagePosition", "イメージの配置形式が正しくありません。");
 	auto scriptErrorInvalidStartAction = Msg("scriptErrorInvalidStartAction", "未知の戦闘行動開始タイミングです。"); // Wsn.2
-	auto scriptErrorInvalidMatchingType = Msg("scriptErrorInvalidMatchingType", "未知の条件です。"); // Wsn.2
+	auto scriptErrorInvalidMatchingType = Msg("scriptErrorInvalidMatchingType", "未知の判定条件です。"); // Wsn.2
 
 	auto dlgTitScriptVarSet = Msg("dlgTitScriptVarSet", "値が未決定の変数の設定");
 	auto scriptVarSet = Msg("scriptVarSet", "変数に値を入力");

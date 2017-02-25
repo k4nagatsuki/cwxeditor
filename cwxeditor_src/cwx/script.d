@@ -2442,8 +2442,8 @@ fi`;
 		} else static if (is(T == MatchingType)) { //Wsn.2
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			switch (value) {
-			case "a", "and": i++; return MatchingType.And;
-			case "o", "or": i++; return MatchingType.Or;
+			case "and": i++; return MatchingType.And;
+			case "or": i++; return MatchingType.Or;
 			default: throwError(_prop.msgs.scriptErrorInvalidMatchingType, attr[i].token);
 			}
 		} else static if (is(T == int)) {
@@ -2918,7 +2918,13 @@ fi`;
 				c.keyCodes = parseAttr!(string[])(opt, node.attr, i, c.keyCodes, varTable, 0);
 			}
 			if (detail.use(CArg.COUPON_NAMES)) { mixin(S_TRACE);
-				c.couponNames = parseAttr!(string[])(opt, node.attr, i, c.couponNames, varTable, 0);
+				string[] names;
+				foreach (coup; c.couponNames) { mixin(S_TRACE);
+					if (!names.contains(coup)) { mixin(S_TRACE);
+						names ~= coup;
+					}
+				}
+				c.couponNames = parseAttr!(string[])(opt, node.attr, i, names, varTable, 0);
 			}
 			if (detail.use(CArg.MATCHING_TYPE)) { mixin(S_TRACE);
 				c.matchingType = parseAttr!(MatchingType)(opt, node.attr, i, c.matchingType, varTable, 0);
@@ -3868,6 +3874,12 @@ fi`;
 				attrs ~= toAttr(c.keyCodes, indentValue, vars);
 			}
 			if (detail.use(CArg.COUPON_NAMES)) { mixin(S_TRACE);
+				string[] names;
+				foreach (coup; c.couponNames) { mixin(S_TRACE);
+					if (!names.contains(coup)) { mixin(S_TRACE);
+						names ~= coup;
+					}
+				}
 				attrs ~= toAttr(c.couponNames, indentValue, vars);
 			}
 			if (detail.use(CArg.MATCHING_TYPE)) { mixin(S_TRACE);

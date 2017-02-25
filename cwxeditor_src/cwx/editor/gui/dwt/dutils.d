@@ -3343,8 +3343,25 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 	} case CType.BRANCH_COUPON: { mixin(S_TRACE);
 		string rangeName = .rangeName(comm.prop, evt.range, evt.holdingCoupon);
 		string[] c = evt.couponNames.dup;
-		if (!c || !c.length) c ~= comm.prop.msgs.noSelectCoupon;
-		return comm.prop.msgs.ctBranchCouponMulti(c, evt.matchingType, rangeName);
+		string r;
+		if (!c || c.length < 2) { mixin(S_TRACE);
+			string c2 = comm.prop.msgs.noSelectCoupon;
+			if (c.length && c[0]) { mixin(S_TRACE);
+				c2 = c[0];
+			}
+			r = .tryFormat(comm.prop.msgs.ctBranchCoupon, c2, rangeName);
+		} else { mixin(S_TRACE);
+			string[] names;
+			foreach (name; c) { mixin(S_TRACE);
+				names ~= .tryFormat(comm.prop.msgs.couponNames, name);
+			}
+			string type = comm.prop.msgs.matchingTypeAnd;
+			if (evt.matchingType == MatchingType.Or) { mixin(S_TRACE);
+				type = comm.prop.msgs.matchingTypeOr;
+			}
+			r = .tryFormat(comm.prop.msgs.ctBranchCouponMulti, names.join(", "), type, rangeName);
+		}
+		return r;
 	} case CType.BRANCH_COMPLETE_STAMP: { mixin(S_TRACE);
 		string c = evt.completeStamp;
 		if (!c || !c.length) c = comm.prop.msgs.noSelectCompleteStamp;

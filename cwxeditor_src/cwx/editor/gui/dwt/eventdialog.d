@@ -816,7 +816,7 @@ private:
 	Combo _name;
 	CouponView!(CVType.NoValued) _couponView;
 	private Button[MatchingType] _matchType; // マッチングタイプ(Wsn.2)
-	MatchingType _matchingType; // マッチングタイプWsn.2)
+	MatchingType _matchingType; // マッチングタイプ(Wsn.2)
 	static if (EditValue) {
 		Spinner _value;
 	}
@@ -829,24 +829,23 @@ private:
 		grp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 		
 		auto comp = new Composite(grp, SWT.NONE);
-		comp.setLayout(normalGridLayout(2, false));
-		comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		comp.setLayout(normalGridLayout(1, true));
+		comp.setLayoutData(new GridData(GridData.FILL_BOTH));
+		
+		couponView = new CouponView!(CVType.NoValued)(comm, summ, comp, SWT.NONE, catchMod, false);
+		couponView.setLayoutData(new GridData(GridData.FILL_BOTH));
+		
+		auto comp2 = new Composite(grp, SWT.NONE);
+		comp2.setLayout(normalGridLayout(2, false));
+		comp2.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		foreach(i, type; [MatchingType.And, MatchingType.Or]){ mixin(S_TRACE);
-			auto radio = new Button(comp, SWT.RADIO);
+			auto radio = new Button(comp2, SWT.RADIO);
 			mod(radio);
 			radio.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
 			radio.setText(comm.prop.msgs.matchingTypeName(type));
-			/// .listener(radio, SWT.Selection, &refreshWarning);
 			_matchType[type] = radio;
 		}
-
-		auto comp2 = new Composite(grp, SWT.NONE);
-		comp2.setLayout(normalGridLayout(1, true));
-		comp2.setLayoutData(new GridData(GridData.FILL_BOTH));
-		
-		couponView = new CouponView!(CVType.NoValued)(comm, summ, comp2, SWT.NONE, catchMod, false);
-		couponView.setLayoutData(new GridData(GridData.FILL_BOTH));
 
 		return grp;
 	}
@@ -854,9 +853,11 @@ private:
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
-		if (!prop.isTargetVersion(summ, "2")) { mixin(S_TRACE);
-			if (_couponView.couponNames.length > 1) { mixin(S_TRACE);
-				ws ~= prop.msgs.warningBranchCouponMulti;
+		if (_couponView) { mixin(S_TRACE);
+			if(!prop.isTargetVersion(summ, "2")) {
+				if (_couponView.couponNames.length > 1) { mixin(S_TRACE);
+					ws ~= prop.msgs.warningBranchCouponMulti;
+				}
 			}
 			foreach (coupon; _couponView.coupons) { mixin(S_TRACE);
 				ws ~= couponWarnings(prop.parent, summ, prop.var.etc.targetVersion, coupon.name, false);
@@ -920,10 +921,11 @@ protected:
 			}
 		}
 		{ mixin(S_TRACE);
-			if (!(summ && summ.legacy)) { mixin(S_TRACE); /// Wsn.2
+			if (!(summ && summ.legacy) && Type is CType.BRANCH_COUPON) { mixin(S_TRACE); /// Wsn.2
 				auto comp = createView(_comm, _summ, area, &catchMod, _couponView);
 				mod(_couponView);
 				_couponView.modEvent ~= &refreshWarning;
+				comp.setLayout(zeroMarginGridLayout(1, true));
 				comp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			} else { mixin(S_TRACE);
 				auto grp = new Group(area, SWT.NONE);
@@ -1015,7 +1017,7 @@ protected:
 				_range[Range.SELECTED].setSelection(true);
 			}
 			
-			if (!(summ && summ.legacy)) {
+			if (!(summ && summ.legacy) && Type is CType.BRANCH_COUPON) {
 				_couponView.couponNames = _evt.couponNames;
 				if(_evt.matchingType == MatchingType.And){
 					_matchType[MatchingType.And].setSelection(true);
@@ -1038,7 +1040,7 @@ protected:
 			}
 		} else { mixin(S_TRACE);
 			_range[Range.SELECTED].setSelection(true);
-			if (summ && summ.legacy) {
+			if ((summ && summ.legacy) || !(Type is CType.BRANCH_COUPON)) {
 				_type[CouponType.Normal].setSelection(true);
 			} else { mixin(S_TRACE);
 				_couponView.couponNames = null;
@@ -1058,7 +1060,7 @@ protected:
 			if (radio.getSelection()) { mixin(S_TRACE);
 				_evt.range = range;
 				
-				if (summ && summ.legacy) {
+				if ((summ && summ.legacy) || !(Type is CType.BRANCH_COUPON)) {
 					_evt.coupon = _name.getText();
 				} else { mixin(S_TRACE);
 					_evt.couponNames = _couponView.couponNames;

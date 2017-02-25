@@ -641,7 +641,7 @@ class CouponView(CVType Type) : Composite {
 						if (type == CouponType.System) continue;
 						_couponType.add(_prop.msgs.couponTypeName(type));
 					} else { mixin(S_TRACE);
-						auto typeName = _prop.msgs.couponTypeLongDesc(type);
+						auto typeName = _prop.msgs.couponTypeShortDesc(type);
 						final switch (type) {
 							case CouponType.Normal:
 								break;
