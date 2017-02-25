@@ -2273,10 +2273,12 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			e.newAttr("effectCardType", fromEffectCardType(effectCardType));
 		}
 		// Wsn.2以降はクーポン分岐が複数クーポン指定になった
-		if (d.use(CArg.COUPON_NAMES) && couponNames.length > 1) { mixin(S_TRACE);
-			auto ce = e.newElement(Coupon.XML_NAME_M);
-			foreach (c; couponNames) { mixin(S_TRACE);
-				ce.newElement(Coupon.XML_NAME, c);
+		if (d.use(CArg.COUPON_NAMES)) { mixin(S_TRACE);
+			if (couponNames.length > 1) { mixin(S_TRACE);
+				auto ce = e.newElement(Coupon.XML_NAME_M);
+				foreach (c; couponNames) { mixin(S_TRACE);
+					ce.newElement(Coupon.XML_NAME, c);
+				}
 			}
 		}
 		if (couponNames.length < 2 && type is CType.BRANCH_COUPON) { mixin(S_TRACE);
@@ -2622,7 +2624,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		}
 		if (cType is CType.BRANCH_COUPON && !r.couponNames && en.hasAttr("coupon")) { mixin(S_TRACE);
 			string[] couponNames;
-			couponNames ~= en.attr("coupon", true);
+			string coupon = en.attr("coupon", true);
+			if (coupon != "") couponNames ~= coupon;
 			r.couponNames = couponNames;
 		}
 		cfnPut!(CArg.MATCHING_TYPE, "matchingType", "toMatchingType")(en, d, r);

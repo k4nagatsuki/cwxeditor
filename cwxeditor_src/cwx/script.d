@@ -3880,7 +3880,7 @@ fi`;
 						names ~= coup;
 					}
 				}
-				attrs ~= toAttr(c.couponNames, indentValue, vars);
+				attrs ~= toAttr(names, indentValue, vars);
 			}
 			if (detail.use(CArg.MATCHING_TYPE)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.matchingType, indentValue, vars);

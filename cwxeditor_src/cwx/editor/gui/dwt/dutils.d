@@ -3346,7 +3346,7 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		string r;
 		if (!c || c.length < 2) { mixin(S_TRACE);
 			string c2 = comm.prop.msgs.noSelectCoupon;
-			if (c.length && c[0]) { mixin(S_TRACE);
+			if (c.length && c[0] != "") { mixin(S_TRACE);
 				c2 = c[0];
 			}
 			r = .tryFormat(comm.prop.msgs.ctBranchCoupon, c2, rangeName);
