@@ -416,6 +416,15 @@ class Msgs : Properties {
 
 	auto couponHide = Msg("couponHide", "隠蔽クーポン");
 
+	const string couponTypeDesc(CouponType id) { mixin(S_TRACE);
+		mixin(EnumToStringSwitch!(CouponType, "couponTypeDesc"));
+	}
+	auto couponTypeDescNormal = Msg("couponTypeDescNormal", "ノーマル");
+	auto couponTypeDescHide = Msg("couponTypeDescHide", "隠蔽");
+	auto couponTypeDescSystem = Msg("couponTypeDescSystem", "システム");
+	auto couponTypeDescDur = Msg("couponTypeDescDur", "時限");
+	auto couponTypeDescDurBattle = Msg("couponTypeDescDurBattle", "戦闘中時限");
+
 	const string couponTypeLongDesc(CouponType id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(CouponType, "couponTypeLongDesc"));
 	}

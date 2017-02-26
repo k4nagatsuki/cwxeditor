@@ -299,8 +299,34 @@ class CouponView(CVType Type) : Composite {
 				// ノーマル
 				_couponType.select(0);
 			}
+			uppdateCouponTypeHint();
 		}
 	}
+	static if (CVType.Cast !is Type) {
+		private void uppdateCouponTypeHint() { mixin(S_TRACE);
+			auto coType = _couponTypeTable2[_couponType.getSelectionIndex()];
+			auto typeName = _prop.msgs.couponTypeLongDesc(coType);
+			string toolTip = "";
+			final switch (coType) {
+			case CouponType.Normal:
+				break;
+			case CouponType.Hide:
+				toolTip = .tryFormat(typeName, _prop.sys.couponHide);
+				break;
+			case CouponType.System:
+				toolTip = .tryFormat(typeName, _prop.sys.couponSystem);
+				break;
+			case CouponType.Dur:
+				toolTip = .tryFormat(typeName, _prop.sys.couponDur);
+				break;
+			case CouponType.DurBattle:
+				toolTip = .tryFormat(typeName, _prop.sys.couponDurBattle);
+				break;
+			}
+			_couponType.setToolTipText(toolTip);
+		}
+	}
+
 	@property
 	private bool canUp() { mixin(S_TRACE);
 		if (_readOnly) return false;
@@ -641,7 +667,7 @@ class CouponView(CVType Type) : Composite {
 						if (type == CouponType.System) continue;
 						_couponType.add(_prop.msgs.couponTypeName(type));
 					} else { mixin(S_TRACE);
-						auto typeName = _prop.msgs.couponTypeShortDesc(type);
+						auto typeName = _prop.msgs.couponTypeDesc(type);
 						final switch (type) {
 							case CouponType.Normal:
 								break;
@@ -667,6 +693,7 @@ class CouponView(CVType Type) : Composite {
 				.listener(_couponType, SWT.Selection, { mixin(S_TRACE);
 					auto type = _couponTypeTable2[_couponType.getSelectionIndex()];
 					_newCoupon.setText(_prop.sys.convCoupon(_newCoupon.getText(), type, false));
+					uppdateCouponTypeHint();
 				});
 			}
 		}
@@ -868,8 +895,10 @@ class CouponView(CVType Type) : Composite {
 	private Control nameCreateEditor(TableItem itm, int column) { mixin(S_TRACE);
 		static if (CVType.Cast == Type) {
 			auto type = CouponComboType.Cast;
-		} else { mixin(S_TRACE);
+		} else static if (CVType.Valued == Type) { mixin(S_TRACE);
 			auto type = CouponComboType.Talker;
+		} else { mixin(S_TRACE);
+			auto type = CouponComboType.AllCoupons;
 		}
 		return createCouponCombo!Combo(_comm, _summ, itm.getParent(), null, type, itm.getText());
 	}
