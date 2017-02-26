@@ -2911,7 +2911,15 @@ fi`;
 					c.initValue = parseAttr!(int)(opt, node.attr, i, c.initValue, varTable, 0);
 				}
 				if (detail.use(CArg.COUPONS)) { mixin(S_TRACE);
-					c.coupons = parseAttr!(Coupon[])(opt, node.attr, i, c.coupons, varTable, 0);
+					Coupon[] coupons;
+					bool[string] s;
+					foreach (coupon; parseAttr!(Coupon[])(opt, node.attr, i, c.coupons, varTable, 0)) { mixin(S_TRACE);
+						if (coupon.name !in s) { mixin(S_TRACE);
+							s[coupon.name] = true;
+							coupons ~= coupon;
+						}
+					}
+					c.coupons = coupons;
 				}
 			}
 			if (detail.use(CArg.SELECTION_COLUMNS)) { mixin(S_TRACE);
@@ -2934,12 +2942,14 @@ fi`;
 			}
 			if (detail.use(CArg.COUPON_NAMES)) { mixin(S_TRACE);
 				string[] names;
-				foreach (coup; c.couponNames) { mixin(S_TRACE);
-					if (!names.contains(coup)) { mixin(S_TRACE);
-						names ~= coup;
+				bool[string] s;
+				foreach (name; parseAttr!(string[])(opt, node.attr, i, names, varTable, 0)) { mixin(S_TRACE);
+					if (name !in s) { mixin(S_TRACE);
+						s[name] = true;
+						names ~= name;
 					}
 				}
-				c.couponNames = parseAttr!(string[])(opt, node.attr, i, names, varTable, 0);
+				c.couponNames = names;
 			}
 			if (detail.use(CArg.MATCHING_TYPE)) { mixin(S_TRACE);
 				c.matchingType = parseAttr!(MatchingType)(opt, node.attr, i, c.matchingType, varTable, 0);
@@ -3885,13 +3895,7 @@ fi`;
 				attrs ~= toAttr(c.keyCodes, indentValue, vars);
 			}
 			if (detail.use(CArg.COUPON_NAMES)) { mixin(S_TRACE);
-				string[] names;
-				foreach (coup; c.couponNames) { mixin(S_TRACE);
-					if (!names.contains(coup)) { mixin(S_TRACE);
-						names ~= coup;
-					}
-				}
-				attrs ~= toAttr(names, indentValue, vars);
+				attrs ~= toAttr(c.couponNames, indentValue, vars);
 			}
 			if (detail.use(CArg.MATCHING_TYPE)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.matchingType, indentValue, vars);

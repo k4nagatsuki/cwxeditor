@@ -2551,8 +2551,13 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		if (d.use(CArg.COUPONS)) { mixin(S_TRACE);
 			en.onTag[Coupon.XML_NAME_M] = (ref XNode node) { mixin(S_TRACE);
 				Coupon[] coupons;
+				bool[string] names;
 				node.onTag[Coupon.XML_NAME] = (ref XNode node) { mixin(S_TRACE);
-					coupons ~= Coupon.fromNode(node, ver);
+					auto coupon = Coupon.fromNode(node, ver);
+					if (coupon && coupon.name !in names) { mixin(S_TRACE);
+						names[coupon.name] = true;
+						coupons ~= coupon;
+					}
 				};
 				node.parse();
 				r.coupons = coupons;
@@ -2619,13 +2624,19 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		}
 		// Wsn.2以降はクーポン分岐が複数クーポン指定になった(Wsn.2)
 		if (d.use(CArg.COUPON_NAMES)) { mixin(S_TRACE);
+			bool[string] names;
 			if (en.hasAttr("coupon") && en.attr("coupon", true) != "") { mixin(S_TRACE);
-				r.couponNames = [en.attr("coupon", true)];
+				auto coupon = en.attr("coupon", true);
+				r.couponNames = [coupon];
+				names[coupon] = true;
 			}
 			en.onTag[Coupon.XML_NAME_M] = (ref XNode node) { mixin(S_TRACE);
 				string[] couponNames;
 				node.onTag[Coupon.XML_NAME] = (ref XNode node) { mixin(S_TRACE);
-					couponNames ~= node.value;
+					if (node.value !in names) { mixin(S_TRACE);
+						names[node.value] = true;
+						couponNames ~= node.value;
+					}
 				};
 				node.parse();
 				r.couponNames = r.couponNames ~ couponNames;

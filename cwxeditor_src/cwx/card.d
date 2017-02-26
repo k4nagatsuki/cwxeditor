@@ -1304,9 +1304,14 @@ public:
 				n.parse();
 			};
 			Coupon[] coupons;
+			bool[string] names;
 			pNode.onTag[Coupon.XML_NAME_M] = (ref XNode n) { mixin(S_TRACE);
 				n.onTag[Coupon.XML_NAME] = (ref XNode n) { mixin(S_TRACE);
-					coupons ~= Coupon.fromNode(n, ver);
+					auto coupon = Coupon.fromNode(n, ver);
+					if (coupon && coupon.name !in names) { mixin(S_TRACE);
+						names[coupon.name] = true;
+						coupons ~= coupon;
+					}
 				};
 				n.parse();
 			};
