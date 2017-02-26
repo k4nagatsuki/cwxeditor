@@ -4250,13 +4250,13 @@ private string evtChildBrCoupon(in Props prop, Range r, string[] couponNames, Ma
 		if (couponNames.length < 2) { mixin(S_TRACE);
 			s ~= .tryFormat(prop.msgs.branchCouponSuccess, tr, coupon);
 		} else {
-			s ~= .tryFormat(prop.msgs.branchCouponMultiSuccess, tr, names.join(", "), type);
+			s ~= .tryFormat(prop.msgs.branchCouponMultiSuccess, tr, names.join(prop.msgs.couponNamesSeparator.value), type);
 		}
 	} else { mixin(S_TRACE);
 		if (couponNames.length < 2) { mixin(S_TRACE);
 			s ~= .tryFormat(prop.msgs.branchCouponFailure, tr, coupon);
 		} else {
-			s ~= .tryFormat(prop.msgs.branchCouponMultiFailure, tr, names.join(", "), type);
+			s ~= .tryFormat(prop.msgs.branchCouponMultiFailure, tr, names.join(prop.msgs.couponNamesSeparator.value), type);
 		}
 	}
 	return s;

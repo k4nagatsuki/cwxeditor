@@ -3359,7 +3359,7 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 			if (evt.matchingType == MatchingType.Or) { mixin(S_TRACE);
 				type = comm.prop.msgs.matchingTypeOr;
 			}
-			r = .tryFormat(comm.prop.msgs.ctBranchCouponMulti, names.join(", "), type, rangeName);
+			r = .tryFormat(comm.prop.msgs.ctBranchCouponMulti, names.join(comm.prop.msgs.couponNamesSeparator.value), type, rangeName);
 		}
 		return r;
 	} case CType.BRANCH_COMPLETE_STAMP: { mixin(S_TRACE);

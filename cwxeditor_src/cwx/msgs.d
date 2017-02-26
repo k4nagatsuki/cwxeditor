@@ -442,13 +442,13 @@ class Msgs : Properties {
 	auto couponTypeNameSystem = Msg("couponTypeNameSystem", "システム");
 	auto couponTypeNameDur = Msg("couponTypeNameDur", "時限");
 	auto couponTypeNameDurBattle = Msg("couponTypeNameDurBattle", "戦時");
-	
+
 	const string matchingTypeName(MatchingType id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(MatchingType, "matchingTypeName"));
 	}
 	auto matchingTypeNameAnd = Msg("matchingTypeNameAnd", "全てに一致");
 	auto matchingTypeNameOr = Msg("matchingTypeNameOr", "どれか一つに一致");
-	
+
 	auto imageMessage = Msg("imageMessage", "イメージ付きメッセージ");
 	auto noImageMessage = Msg("noImageMessage", "イメージ無しメッセージ");
 	auto spCharsTitle = Msg("spCharsTitle", "特殊文字");
@@ -940,7 +940,7 @@ class Msgs : Properties {
 	auto ctBranchInfo = Msg("ctBranchInfo", "情報カード「%1$s」の有無で分岐");
 	auto ctBranchMoney = Msg("ctBranchMoney", "分岐金額 = %1$ssp");
 	auto ctBranchCoupon = Msg("ctBranchCoupon", "称号「%1$s」の有無で分岐(%2$s)");
-	auto ctBranchCouponMulti = Msg("ctBranchCouponMulti", "称号 %1$s の%2$sの有無で分岐(%3$s)"); // Wsn.2
+	auto ctBranchCouponMulti = Msg("ctBranchCouponMulti", "称号%1$sの%2$sの有無で分岐(%3$s)"); // Wsn.2
 	auto ctBranchCompleteStamp = Msg("ctBranchCompleteStamp", "シナリオ「%1$s」が終了済みか否かで分岐");
 	auto ctBranchGossip = Msg("ctBranchGossip", "ゴシップ「%1$s」の有無で分岐");
 	auto ctSetFlag = Msg("ctSetFlag", "フラグ「%1$s」を[%2$s]に変更");
@@ -1004,8 +1004,9 @@ class Msgs : Properties {
 	auto ctBranchMultiCoupon = Msg("ctBranchMultiCoupon", "%1$sの称号所有状態で分岐"); // Wsn.2
 	auto ctBranchMultiRandom = Msg("ctBranchMultiRandom", "ランダム多岐分岐コンテント"); // Wsn.2
 	auto couponNames = Msg("couponNames", "「%1$s」"); // Wsn.2
+	auto couponNamesSeparator = Msg("couponNamesSeparator", ""); // Wsn.2
 	auto matchingTypeAnd = Msg("matchingTypeAnd", "全て"); // Wsn.2
-	auto matchingTypeOr = Msg("matchingTypeOr", "どれか"); // Wsn.2
+	auto matchingTypeOr = Msg("matchingTypeOr", "どれか一つ"); // Wsn.2
 
 	auto nameWithID = Msg("nameWithID", "%1$s.%2$s");
 
@@ -1326,10 +1327,10 @@ class Msgs : Properties {
 	auto branchInfoFailure = Msg("branchInfoFailure", "「%1$s」を所有していない");
 	auto branchMoneySuccess = Msg("branchMoneySuccess", "%1$ssp以上所持している");
 	auto branchMoneyFailure = Msg("branchMoneyFailure", "%1$ssp以上所持していない");
-	auto branchCouponSuccess = Msg("branchCouponSuccess", "クーポン「%2$s」を所有している(%1$s)");
-	auto branchCouponFailure = Msg("branchCouponFailure", "クーポン「%2$s」を所有していない(%1$s)");
-	auto branchCouponMultiSuccess = Msg("branchCouponMultiSuccess", "クーポン %2$s を%3$s所有している(%1$s)"); // Wsn.2
-	auto branchCouponMultiFailure = Msg("branchCouponMultiFailure", "クーポン %2$s を%3$s所有していない(%1$s)"); // Wsn.2
+	auto branchCouponSuccess = Msg("branchCouponSuccess", "称号「%2$s」を所有している(%1$s)");
+	auto branchCouponFailure = Msg("branchCouponFailure", "称号「%2$s」を所有していない(%1$s)");
+	auto branchCouponMultiSuccess = Msg("branchCouponMultiSuccess", "称号%2$sを%3$s所有している(%1$s)"); // Wsn.2
+	auto branchCouponMultiFailure = Msg("branchCouponMultiFailure", "称号%2$sを%3$s所有していない(%1$s)"); // Wsn.2
 	auto branchCompleteSuccess = Msg("branchCompleteSuccess", "シナリオ「%1$s」が終了済みである");
 	auto branchCompleteFailure = Msg("branchCompleteFailure", "シナリオ「%1$s」が終了済みでない");
 	auto branchGossipSuccess = Msg("branchGossipSuccess", "ゴシップ「%1$s」が宿屋にある");
