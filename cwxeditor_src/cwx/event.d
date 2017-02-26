@@ -940,7 +940,6 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.INFO, ulong, 0)(d, &info);
 
 		resetValue!(CArg.START, string, "")(d, &start);
-		resetValue!(CArg.COUPON, string, "")(d, &coupon);
 		resetValue!(CArg.GOSSIP, string, "")(d, &gossip);
 		resetValue!(CArg.COMPLETE_STAMP, string, "")(d, &completeStamp);
 
@@ -1017,7 +1016,6 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.IGNITE, bool, false)(d, &ignite);
 		resetValue!(CArg.KEY_CODES, string[], [])(d, &keyCodes);
 
-		resetValue!(CArg.COUPON_NAMES, string[], [])(d, &couponNames);
 		resetValue!(CArg.MATCHING_TYPE, MatchingType, MatchingType.And)(d, &matchingType);
 
 		resetValue!(CArg.HOLDING_COUPON, string, "")(d, &holdingCoupon);
@@ -1044,6 +1042,19 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			// rangeの初期値がRange.FIELDになっているので、Range.SELECTEDにしておく
 			range = Range.SELECTED;
 		}
+
+		// 称号関係の相互変換
+		if (od.use(CArg.COUPON) && d.use(CArg.COUPON_NAMES)) { mixin(S_TRACE);
+			if (coupon != "") { mixin(S_TRACE);
+				couponNames = [coupon];
+			}
+		} else if (od.use(CArg.COUPON_NAMES) && d.use(CArg.COUPON)) { mixin(S_TRACE);
+			if (couponNames.length) { mixin(S_TRACE);
+				coupon = couponNames[0];
+			}
+		}
+		resetValue!(CArg.COUPON, string, "")(d, &coupon);
+		resetValue!(CArg.COUPON_NAMES, string[], [])(d, &couponNames);
 
 		validate();
 	}
