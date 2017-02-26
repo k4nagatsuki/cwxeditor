@@ -2454,6 +2454,13 @@ fi`;
 					return parseAttr!bool(opt, attr, i, true, varTable, 0) ? Smoothing.True : Smoothing.False;
 				}
 			}
+		} else static if (is(T == MatchingType)) { //Wsn.2
+			auto value = attrValue(attr[i], varTable, msgWidth);
+			switch (value) {
+			case "and": i++; return MatchingType.And;
+			case "or": i++; return MatchingType.Or;
+			default: throwError(_prop.msgs.scriptErrorInvalidMatchingType, attr[i].token);
+			}
 		} else static if (is(T == int)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			if (attr[i].token.kind is Kind.SYMBOL && value == "all") { mixin(S_TRACE);
@@ -2924,6 +2931,18 @@ fi`;
 			}
 			if (detail.use(CArg.KEY_CODES)) { mixin(S_TRACE);
 				c.keyCodes = parseAttr!(string[])(opt, node.attr, i, c.keyCodes, varTable, 0);
+			}
+			if (detail.use(CArg.COUPON_NAMES)) { mixin(S_TRACE);
+				string[] names;
+				foreach (coup; c.couponNames) { mixin(S_TRACE);
+					if (!names.contains(coup)) { mixin(S_TRACE);
+						names ~= coup;
+					}
+				}
+				c.couponNames = parseAttr!(string[])(opt, node.attr, i, names, varTable, 0);
+			}
+			if (detail.use(CArg.MATCHING_TYPE)) { mixin(S_TRACE);
+				c.matchingType = parseAttr!(MatchingType)(opt, node.attr, i, c.matchingType, varTable, 0);
 			}
 			Content autoWrap(Content c) { mixin(S_TRACE);
 				if (!c.detail.owner) { mixin(S_TRACE);
@@ -3415,6 +3434,12 @@ fi`;
 			case CoordinateType.Relative: attrs ~= "rel"; break;
 			case CoordinateType.Percentage: attrs ~= "per"; break;
 			}
+		} else static if (is(T : MatchingType)) { //Wsn.2
+			switch (value) {
+			case MatchingType.And: attrs ~= "and"; break;
+			case MatchingType.Or: attrs ~= "or"; break;
+			default: assert (0);
+			}
 		} else static if (is(T : int)) {
 			attrs ~= to!(string)(value);
 		} else static if (is(T : uint)) {
@@ -3859,6 +3884,18 @@ fi`;
 			if (detail.use(CArg.KEY_CODES)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.keyCodes, indentValue, vars);
 			}
+			if (detail.use(CArg.COUPON_NAMES)) { mixin(S_TRACE);
+				string[] names;
+				foreach (coup; c.couponNames) { mixin(S_TRACE);
+					if (!names.contains(coup)) { mixin(S_TRACE);
+						names ~= coup;
+					}
+				}
+				attrs ~= toAttr(names, indentValue, vars);
+			}
+			if (detail.use(CArg.MATCHING_TYPE)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.matchingType, indentValue, vars);
+			}
 			bool useIf = c.next.length > 1;
 			bool useSif = c.next.length == 1 && c.next[0].name.length;
 			if (!useIf) { mixin(S_TRACE);
@@ -4177,5 +4214,9 @@ CWXScriptKeyword[] keywordInfos(in CProps prop) { mixin(S_TRACE);
 		CWXScriptKeyword("item", prop.msgs.cardType, prop.msgs.effectCardTypeName(EffectCardType.ITEM)),
 		CWXScriptKeyword("beast", prop.msgs.cardType, prop.msgs.effectCardTypeName(EffectCardType.BEAST)),
 		CWXScriptKeyword("hand", prop.msgs.cardType, prop.msgs.effectCardTypeName(EffectCardType.HAND)),
+
+		// マッチングタイプ (Wsn.2)
+		CWXScriptKeyword("and", prop.msgs.matchingType, prop.msgs.matchingTypeName(MatchingType.And)),
+		CWXScriptKeyword("or", prop.msgs.matchingType, prop.msgs.matchingTypeName(MatchingType.Or)),
 	];
 }

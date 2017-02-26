@@ -2673,7 +2673,7 @@ public:
 		} case CType.BRANCH_MONEY: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrMoney(_prop, evt.money, name)")(data, c);
 		} case CType.BRANCH_COUPON: { mixin(S_TRACE);
-			return createBoolEditor!("evtChildBrCoupon(_prop, evt.range, evt.coupon, name)")(data, c);
+			return createBoolEditor!("evtChildBrCoupon(_prop, evt.range, evt.couponNames.dup, evt.matchingType, name)")(data, c);
 		} case CType.BRANCH_COMPLETE_STAMP: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrEnd(_prop, evt.completeStamp, name)")(data, c);
 		} case CType.BRANCH_GOSSIP: { mixin(S_TRACE);
@@ -3921,7 +3921,7 @@ string eventText(Commons comm, Summary summ, Content parent, Content e, bool rea
 		r = evtChildBrMoney(prop, parent.money, name);
 		break;
 	} case CType.BRANCH_COUPON: { mixin(S_TRACE);
-		r = evtChildBrCoupon(prop, parent.range, parent.coupon, name);
+		r = evtChildBrCoupon(prop, parent.range, parent.couponNames.dup, parent.matchingType, name);
 		break;
 	} case CType.BRANCH_COMPLETE_STAMP: { mixin(S_TRACE);
 		r = evtChildBrEnd(prop, parent.completeStamp, name);
@@ -4228,16 +4228,38 @@ private string evtChildBrMoney(in Props prop, uint sp, ref string text) { mixin(
 		return .tryFormat(prop.msgs.branchMoneyFailure, sp);
 	}
 }
-private string evtChildBrCoupon(in Props prop, Range r, string coupon, ref string text) { mixin(S_TRACE);
+private string evtChildBrCoupon(in Props prop, Range r, string[] couponNames, MatchingType matchingType, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
-	if (!coupon || !coupon.length) coupon = prop.msgs.noSelectCoupon;
-	string tr = prop.msgs.rangeName(r);
-	if (val) { mixin(S_TRACE);
-		return .tryFormat(prop.msgs.branchCouponSuccess, tr, coupon);
-	} else { mixin(S_TRACE);
-		return .tryFormat(prop.msgs.branchCouponFailure, tr, coupon);
+	string coupon = prop.msgs.noSelectCoupon;
+	string s;
+	string[] names;
+	if (couponNames.length == 1 && couponNames[0]) { mixin(S_TRACE);
+		coupon = couponNames[0];
+	} else if (couponNames.length > 1) {
+		foreach (name; couponNames) { mixin(S_TRACE);
+			names ~= .tryFormat(prop.msgs.couponNames, name);
+		}
 	}
+	string tr = prop.msgs.rangeName(r);
+	string type = prop.msgs.matchingTypeAnd;
+	if (matchingType == MatchingType.Or) { mixin(S_TRACE);
+		type = prop.msgs.matchingTypeOr;
+	}
+	if (val) { mixin(S_TRACE);
+		if (couponNames.length < 2) { mixin(S_TRACE);
+			s ~= .tryFormat(prop.msgs.branchCouponSuccess, tr, coupon);
+		} else {
+			s ~= .tryFormat(prop.msgs.branchCouponMultiSuccess, tr, names.join(", "), type);
+		}
+	} else { mixin(S_TRACE);
+		if (couponNames.length < 2) { mixin(S_TRACE);
+			s ~= .tryFormat(prop.msgs.branchCouponFailure, tr, coupon);
+		} else {
+			s ~= .tryFormat(prop.msgs.branchCouponMultiFailure, tr, names.join(", "), type);
+		}
+	}
+	return s;
 }
 private string evtChildBrEnd(in Props prop, string scenario, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);

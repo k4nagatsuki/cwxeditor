@@ -1321,6 +1321,8 @@ enum CArg {
 	REF_ABILITY, /// 選択メンバの能力参照(Wsn.2)。
 	CENTERING_Y, /// メッセージを縦方向に中央寄せして表示する(Wsn.2)。
 	BOUNDARY_CHECK, /// メッセージの禁則処理(Wsn.2)。
+	COUPON_NAMES, /// 複数クーポン名(Wsn.2)。
+	MATCHING_TYPE, /// マッチングタイプ(Wsn.2)。
 }
 
 /// 後続コンテントのnameの型。
@@ -1666,4 +1668,29 @@ enum CardImagePosition {
 	Default, /// 指定無し(クラシックな位置に合わせる)。
 	Center, /// 中央寄せ。
 	TopLeft /// 左上起点。
+}
+/// マッチングタイプ(Wsn.2)。
+enum MatchingType {
+	And, /// 全てに一致。
+	Or   /// どれか一つに一致。
+}
+/// 文字列からマッチングタイプを生成。
+MatchingType toMatchingType(string name) { mixin(S_TRACE);
+	switch (name) {
+	case "And":
+		return MatchingType.And;
+	case "Or":
+		return MatchingType.Or;
+	default:
+		throw new MotionException("Unknown matchingType: " ~ name);
+	}
+}
+/// マッチングタイプを文字列へ変換。
+string fromMatchingType(MatchingType r) { mixin(S_TRACE);
+	final switch (r) {
+	case MatchingType.And:
+		return "And";
+	case MatchingType.Or:
+		return "Or";
+	}
 }
