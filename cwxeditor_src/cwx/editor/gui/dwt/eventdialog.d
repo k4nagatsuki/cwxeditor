@@ -847,7 +847,7 @@ private:
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
 		if (_couponView) { mixin(S_TRACE);
-			if(!prop.isTargetVersion(summ, "2")) {
+			if(!prop.isTargetVersion(summ, "2")) { mixin(S_TRACE);
 				if (_couponView.couponNames.length > 1) { mixin(S_TRACE);
 					ws ~= prop.msgs.warningBranchCouponMulti;
 				}
@@ -1017,14 +1017,20 @@ protected:
 					_matchType[MatchingType.Or].setSelection(true);
 				}
 			} else { mixin(S_TRACE);
-				auto cType = prop.sys.couponType(_evt.coupon);
+				string coupon;
+				if (_evt.detail.use(CArg.COUPON_NAMES)) { mixin(S_TRACE);
+					coupon = _evt.couponNames.length ? _evt.couponNames[0] : "";
+				} else { mixin(S_TRACE);
+					coupon = _evt.coupon;
+				}
+				auto cType = prop.sys.couponType(coupon);
 				auto cTypeP = cType in _type;
 				if (cTypeP) { mixin(S_TRACE);
 					cTypeP.setSelection(true);
 				} else { mixin(S_TRACE);
 					_type[CouponType.Normal].setSelection(true);
 				}
-				_name.setText(_evt.coupon);
+				_name.setText(coupon);
 			}
 
 			static if (EditValue) {
@@ -1051,19 +1057,21 @@ protected:
 		foreach (range, radio; _range) { mixin(S_TRACE);
 			if (radio.getSelection()) { mixin(S_TRACE);
 				_evt.range = range;
-
-				if ((summ && summ.legacy) || !(Type is CType.BRANCH_COUPON)) {
-					_evt.coupon = _name.getText();
-				} else { mixin(S_TRACE);
-					_evt.couponNames = _couponView.couponNames;
-					_evt.matchingType = _matchType[MatchingType.And].getSelection() ? MatchingType.And : MatchingType.Or;
-				}
-
-				static if (EditValue) {
-					_evt.couponValue = _value.getSelection();
-				}
 				break;
 			}
+		}
+
+		if (_couponView) { mixin(S_TRACE);
+			_evt.couponNames = _couponView.couponNames;
+			_evt.matchingType = _matchType[MatchingType.And].getSelection() ? MatchingType.And : MatchingType.Or;
+		} else if (_evt.detail.use(CArg.COUPON_NAMES)) { mixin(S_TRACE);
+			_evt.couponNames = _name.getText().length ? [_name.getText()] : [];
+		} else { mixin(S_TRACE);
+			_evt.coupon = _name.getText();
+		}
+
+		static if (EditValue) {
+			_evt.couponValue = _value.getSelection();
 		}
 
 		comm.refCoupons.call();

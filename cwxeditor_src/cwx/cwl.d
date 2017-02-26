@@ -1131,7 +1131,7 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			f.readUIntL;
 			byte rng = f.readByte;
 			e = new Content(CType.BRANCH_COUPON, name);
-			e.coupon = coupon;
+			e.couponNames = [coupon];
 			e.range = toCouponRange(rng);
 			break;
 		}
@@ -3267,7 +3267,7 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 			f.writeL(cast(uint) e.money);
 			break;
 		case CType.BRANCH_COUPON:
-			writeString(f, e.coupon);
+			writeString(f, e.couponNames.length ? e.couponNames[0] : "");
 			f.writeL(cast(int) 0x0);
 			f.write(fromCouponRange(e.range));
 			break;

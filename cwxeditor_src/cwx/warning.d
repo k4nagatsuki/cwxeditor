@@ -468,8 +468,15 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (c.step != "" && c.step == c.step2) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorSourceIsTarget;
 		}
-		if (c.type is CType.BRANCH_COUPON) { mixin(S_TRACE);
-			couponWarnings(c.coupon, false);
+		if (cd.use(CArg.COUPON_NAMES)) { mixin(S_TRACE);
+			if(!prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+				if (1 < c.couponNames.length) { mixin(S_TRACE);
+					r ~= prop.msgs.warningBranchCouponMulti;
+				}
+			}
+			foreach (coupon; c.couponNames) { mixin(S_TRACE);
+				couponWarnings(c.coupon, false);
+			}
 		}
 		if ((c.type is CType.GET_COUPON || c.type is CType.LOSE_COUPON) && prop.sys.isCouponType(c.coupon, CouponType.System)) { mixin(S_TRACE);
 			couponWarnings(c.coupon, true);

@@ -161,7 +161,7 @@ private void static_this () { mixin(S_TRACE);
 		CType.BRANCH_INFO:CDetail("Branch", "Info", CNextType.BOOL, true, [CArg.INFO:"id"]),
 		CType.BRANCH_BEAST:CDetail("Branch", "Beast", CNextType.BOOL, true, [CArg.BEAST:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number"]),
 		CType.BRANCH_MONEY:CDetail("Branch", "Money", CNextType.BOOL, true, [CArg.MONEY:"value"]),
-		CType.BRANCH_COUPON:CDetail("Branch", "Coupon", CNextType.BOOL, true, [CArg.RANGE:"targets", CArg.COUPON_NAMES:"couponnames", CArg.MATCHING_TYPE:"matchingType"]),
+		CType.BRANCH_COUPON:CDetail("Branch", "Coupon", CNextType.BOOL, true, [CArg.RANGE:"targets", CArg.COUPON_NAMES:null, CArg.MATCHING_TYPE:"matchingType"]),
 		CType.BRANCH_COMPLETE_STAMP:CDetail("Branch", "CompleteStamp", CNextType.BOOL, true, [CArg.COMPLETE_STAMP:"scenario"]),
 		CType.BRANCH_GOSSIP:CDetail("Branch", "Gossip", CNextType.BOOL, true, [CArg.GOSSIP:"gossip"]),
 		CType.SET_FLAG:CDetail("Set", "Flag", CNextType.NONE, true, [CArg.FLAG:_("flag"), CArg.FLAG_VALUE:"value"]),
@@ -2273,19 +2273,14 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			e.newAttr("effectCardType", fromEffectCardType(effectCardType));
 		}
 		// Wsn.2以降はクーポン分岐が複数クーポン指定になった
-		if (type is CType.BRANCH_COUPON) { mixin(S_TRACE);
-			string coupon = "";
-			if (couponNames.length) {
-				coupon = couponNames[0];
-			}
-			e.newAttr("coupon", coupon);
-		}
 		if (d.use(CArg.COUPON_NAMES)) { mixin(S_TRACE);
 			if (couponNames.length > 1) { mixin(S_TRACE);
 				auto ce = e.newElement(Coupon.XML_NAME_M);
 				foreach (c; couponNames) { mixin(S_TRACE);
 					ce.newElement(Coupon.XML_NAME, c);
 				}
+			} else { mixin(S_TRACE);
+				e.newAttr("coupon", couponNames.length ? couponNames[0] : "");
 			}
 		}
 		atnPut!(CArg.MATCHING_TYPE, "matchingType", "fromMatchingType")(e, d);
@@ -2613,20 +2608,17 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		}
 		// Wsn.2以降はクーポン分岐が複数クーポン指定になった(Wsn.2)
 		if (d.use(CArg.COUPON_NAMES)) { mixin(S_TRACE);
+			if (en.hasAttr("coupon") && en.attr("coupon", true) != "") { mixin(S_TRACE);
+				r.couponNames = [en.attr("coupon", true)];
+			}
 			en.onTag[Coupon.XML_NAME_M] = (ref XNode node) { mixin(S_TRACE);
 				string[] couponNames;
 				node.onTag[Coupon.XML_NAME] = (ref XNode node) { mixin(S_TRACE);
 					couponNames ~= node.value;
 				};
 				node.parse();
-				r.couponNames = couponNames;
+				r.couponNames = r.couponNames ~ couponNames;
 			};
-		}
-		if (cType is CType.BRANCH_COUPON && en.hasAttr("coupon")) { mixin(S_TRACE);
-			string[] couponNames;
-			string coupon = en.attr("coupon", true);
-			if (coupon != "") couponNames ~= coupon;
-			r.couponNames = couponNames;
 		}
 		cfnPut!(CArg.MATCHING_TYPE, "matchingType", "toMatchingType")(en, d, r);
 
