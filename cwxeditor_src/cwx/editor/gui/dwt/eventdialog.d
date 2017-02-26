@@ -815,7 +815,7 @@ private:
 	Button[CouponType] _type;
 	Combo _name;
 	CouponView!(CVType.NoValued) _couponView;
-	private Button[MatchingType] _matchType; // マッチングタイプ(Wsn.2)
+	Button[MatchingType] _matchType; // マッチングタイプ(Wsn.2)
 	MatchingType _matchingType; // マッチングタイプ(Wsn.2)
 	static if (EditValue) {
 		Spinner _value;
@@ -826,23 +826,16 @@ private:
 		auto grp = new Group(parent, SWT.NONE);
 		grp.setText(comm.prop.msgs.couponName);
 		grp.setLayout(normalGridLayout(1, true));
-		grp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 
-		auto comp = new Composite(grp, SWT.NONE);
-		comp.setLayout(normalGridLayout(1, true));
-		comp.setLayoutData(new GridData(GridData.FILL_BOTH));
-
-		couponView = new CouponView!(CVType.NoValued)(comm, summ, comp, SWT.NONE, catchMod, false);
+		couponView = new CouponView!(CVType.NoValued)(comm, summ, grp, SWT.NONE, catchMod, false);
 		couponView.setLayoutData(new GridData(GridData.FILL_BOTH));
 
-		auto comp2 = new Composite(grp, SWT.NONE);
-		comp2.setLayout(normalGridLayout(2, false));
-		comp2.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
-		foreach(i, type; [MatchingType.And, MatchingType.Or]){ mixin(S_TRACE);
-			auto radio = new Button(comp2, SWT.RADIO);
+		auto radioComp = new Composite(grp, SWT.NONE);
+		radioComp.setLayout(zeroMarginGridLayout(2, false));
+		radioComp.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+		foreach(type; [MatchingType.And, MatchingType.Or]){ mixin(S_TRACE);
+			auto radio = new Button(radioComp, SWT.RADIO);
 			mod(radio);
-			radio.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
 			radio.setText(comm.prop.msgs.matchingTypeName(type));
 			_matchType[type] = radio;
 		}
@@ -925,7 +918,6 @@ protected:
 				auto comp = createView(_comm, _summ, area, &catchMod, _couponView);
 				mod(_couponView);
 				_couponView.modEvent ~= &refreshWarning;
-				comp.setLayout(zeroMarginGridLayout(1, true));
 				comp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			} else { mixin(S_TRACE);
 				auto grp = new Group(area, SWT.NONE);
@@ -1043,7 +1035,7 @@ protected:
 			if ((summ && summ.legacy) || !(Type is CType.BRANCH_COUPON)) {
 				_type[CouponType.Normal].setSelection(true);
 			} else { mixin(S_TRACE);
-				_couponView.couponNames = null;
+				_couponView.couponNames = [];
 				_matchType[MatchingType.And].setSelection(true);
 			}
 			static if (EditValue) {

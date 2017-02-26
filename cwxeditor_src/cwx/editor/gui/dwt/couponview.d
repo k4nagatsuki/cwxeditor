@@ -880,6 +880,7 @@ class CouponView(CVType Type) : Composite {
 		if (newText == "") { mixin(S_TRACE);
 			if ((cast(Coupon)itm.getData()).name != "") storeCoupons();
 			itm.dispose();
+			raiseModifyEvent();
 			_comm.refreshToolBar();
 			return;
 		}
@@ -906,6 +907,7 @@ class CouponView(CVType Type) : Composite {
 			itm2.setText(0, name);
 			itm2.setData(coupon);
 		}
+		raiseModifyEvent();
 		_comm.refreshToolBar();
 	}
 
@@ -947,6 +949,7 @@ class CouponView(CVType Type) : Composite {
 				itm2.setText(0, coupon.name);
 			}
 		}
+		raiseModifyEvent();
 		_comm.refreshToolBar();
 	}
 }
