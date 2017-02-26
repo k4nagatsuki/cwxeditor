@@ -2265,23 +2265,32 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		}
 
 		// Wsn.2以降はキーコード所持分岐の探索対象を複数選択可能になった
-		atnPut!(CArg.TARGET_IS_SKILL, "targetIsSkill", "fromBool")(e, d);
-		atnPut!(CArg.TARGET_IS_ITEM, "targetIsItem", "fromBool")(e, d);
-		atnPut!(CArg.TARGET_IS_BEAST, "targetIsBeast", "fromBool")(e, d);
-		atnPut!(CArg.TARGET_IS_HAND, "targetIsHand", "fromBool")(e, d);
-		if (!opt.isTargetVersion("2") && type is CType.BRANCH_KEY_CODE) { mixin(S_TRACE);
+		if (type is CType.BRANCH_KEY_CODE) { mixin(S_TRACE);
 			// Wsn.1以前のために"effectCardType"も付加しておく
 			auto effectCardType = EffectCardType.ALL;
-			if (targetIsSkill && targetIsItem && targetIsBeast) { mixin(S_TRACE);
+			if (targetIsSkill && targetIsItem && targetIsBeast && !targetIsHand) { mixin(S_TRACE);
 				effectCardType = EffectCardType.ALL;
-			} else if (targetIsSkill) { mixin(S_TRACE);
+				e.newAttr("effectCardType", fromEffectCardType(effectCardType));
+			} else if (targetIsSkill && !targetIsItem && !targetIsBeast && !targetIsHand) { mixin(S_TRACE);
 				effectCardType = EffectCardType.SKILL;
-			} else if (targetIsItem) { mixin(S_TRACE);
+				e.newAttr("effectCardType", fromEffectCardType(effectCardType));
+			} else if (!targetIsSkill && targetIsItem && !targetIsBeast && !targetIsHand) { mixin(S_TRACE);
 				effectCardType = EffectCardType.ITEM;
-			} else if (targetIsBeast) { mixin(S_TRACE);
+				e.newAttr("effectCardType", fromEffectCardType(effectCardType));
+			} else if (!targetIsSkill && !targetIsItem && targetIsBeast && !targetIsHand) { mixin(S_TRACE);
 				effectCardType = EffectCardType.BEAST;
+				e.newAttr("effectCardType", fromEffectCardType(effectCardType));
+			} else { mixin(S_TRACE);
+				atnPut!(CArg.TARGET_IS_SKILL, "targetIsSkill", "fromBool")(e, d);
+				atnPut!(CArg.TARGET_IS_ITEM, "targetIsItem", "fromBool")(e, d);
+				atnPut!(CArg.TARGET_IS_BEAST, "targetIsBeast", "fromBool")(e, d);
+				atnPut!(CArg.TARGET_IS_HAND, "targetIsHand", "fromBool")(e, d);
 			}
-			e.newAttr("effectCardType", fromEffectCardType(effectCardType));
+		} else { mixin(S_TRACE);
+			atnPut!(CArg.TARGET_IS_SKILL, "targetIsSkill", "fromBool")(e, d);
+			atnPut!(CArg.TARGET_IS_ITEM, "targetIsItem", "fromBool")(e, d);
+			atnPut!(CArg.TARGET_IS_BEAST, "targetIsBeast", "fromBool")(e, d);
+			atnPut!(CArg.TARGET_IS_HAND, "targetIsHand", "fromBool")(e, d);
 		}
 		// Wsn.2以降はクーポン分岐が複数クーポン指定になった
 		if (d.use(CArg.COUPON_NAMES)) { mixin(S_TRACE);

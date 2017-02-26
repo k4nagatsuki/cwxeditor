@@ -4375,13 +4375,14 @@ private string evtChildBrRandomSelect(in Props prop, in Content evt, ref string 
 private string evtChildBrKeyCode(in Props prop, in Content evt, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+	auto name = evt.keyCode == "" ? prop.msgs.noKeyCode : evt.keyCode;
 
 	string range = prop.msgs.rangeName(evt.keyCodeRange);
 	if (evt.targetIsSkill && evt.targetIsItem && evt.targetIsBeast && evt.targetIsHand) { mixin(S_TRACE);
 		if (val) { mixin(S_TRACE);
-			return .tryFormat(prop.msgs.branchKeyCodeAllTypeSuccess, evt.keyCode, range);
+			return .tryFormat(prop.msgs.branchKeyCodeAllTypeSuccess, name, range);
 		} else { mixin(S_TRACE);
-			return .tryFormat(prop.msgs.branchKeyCodeAllTypeFailure, evt.keyCode, range);
+			return .tryFormat(prop.msgs.branchKeyCodeAllTypeFailure, name, range);
 		}
 	} else { mixin(S_TRACE);
 		string[] targets;
@@ -4394,9 +4395,9 @@ private string evtChildBrKeyCode(in Props prop, in Content evt, ref string text)
 			target = targets.join(prop.msgs.targetSeparator.value);
 		}
 		if (val) { mixin(S_TRACE);
-			return .tryFormat(prop.msgs.branchKeyCodeSuccess, evt.keyCode, target, range);
+			return .tryFormat(prop.msgs.branchKeyCodeSuccess, name, target, range);
 		} else { mixin(S_TRACE);
-			return .tryFormat(prop.msgs.branchKeyCodeFailure, evt.keyCode, target, range);
+			return .tryFormat(prop.msgs.branchKeyCodeFailure, name, target, range);
 		}
 	}
 }

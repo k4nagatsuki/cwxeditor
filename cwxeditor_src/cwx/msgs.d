@@ -1695,6 +1695,7 @@ class Msgs : Properties {
 	auto noSelectCellName = Msg("noSelectCellName", "(指定無し)");
 	auto noSelectTarget = Msg("noSelectTarget", "(指定無し)");
 	auto noEffect = Msg("noEffect", "(指定無し)");
+	auto noKeyCode = Msg("noKeyCode", "(指定無し)");
 
 	auto cardId = Msg("cardId", "ID");
 	auto cardName = Msg("cardName", "名称");

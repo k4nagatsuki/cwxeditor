@@ -3525,8 +3525,9 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		}
 	} case CType.BRANCH_KEY_CODE: { mixin(S_TRACE);
 		string range = .rangeName(comm.prop, evt.keyCodeRange, evt.holdingCoupon);
+		auto name = evt.keyCode == "" ? comm.prop.msgs.noKeyCode : evt.keyCode;
 		if (evt.targetIsSkill && evt.targetIsItem && evt.targetIsBeast && evt.targetIsHand) { mixin(S_TRACE);
-			return .tryFormat(comm.prop.msgs.ctBranchKeyCodeAllType, evt.keyCode, range);
+			return .tryFormat(comm.prop.msgs.ctBranchKeyCodeAllType, name, range);
 		} else { mixin(S_TRACE);
 			string[] targets;
 			if (evt.targetIsSkill) targets ~= comm.prop.msgs.targetIsSkill;
@@ -3537,7 +3538,7 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 			if (targets.length) { mixin(S_TRACE);
 				target = targets.join(comm.prop.msgs.targetSeparator.value);
 			}
-			return .tryFormat(comm.prop.msgs.ctBranchKeyCode, evt.keyCode, target, range);
+			return .tryFormat(comm.prop.msgs.ctBranchKeyCode, name, target, range);
 		}
 	} case CType.CHECK_STEP: { mixin(S_TRACE);
 		string name = contentTextUseID!(CIDKind.Step)(comm, summ, evt.step, "%s", evt);
