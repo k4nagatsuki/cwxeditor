@@ -435,7 +435,6 @@ private void setPos(in Mix_Chunk* chunk, bool playingMCI, string mciName, HSTREA
 		getSymbol!(Mix_RewindMusic)(mixer, "Mix_RewindMusic")();
 		getSymbol!(Mix_SetMusicPosition)(mixer, "Mix_SetMusicPosition")(msecs * 1000.0);
 	}
-	
 }
 private ulong len(in Mix_Chunk* chunk, bool playingMCI, string mciName, HSTREAM bassStream) { mixin(S_TRACE);
 	version (Windows) {

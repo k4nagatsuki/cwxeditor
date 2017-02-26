@@ -553,7 +553,7 @@ protected:
 						auto a = _summ.beast(_area.linkId);
 						name = _prop.msgs.noSelectBeast;
 					} else static assert (0);
-					
+
 					if (a) name = a.name;
 				}
 			}

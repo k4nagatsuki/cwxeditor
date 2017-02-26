@@ -874,7 +874,7 @@ class RawFile {
 	void flush() { mixin(S_TRACE);
 		.fflush(_fp);
 	}
-	
+
 	/// ファイルポインタの位置を返す。
 	long tell() { mixin(S_TRACE);
 		return .ftell(_fp);

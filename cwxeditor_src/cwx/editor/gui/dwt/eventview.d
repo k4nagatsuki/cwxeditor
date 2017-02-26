@@ -2751,7 +2751,6 @@ public:
 			if (!itm) return;
 			EVUndo undo = null;
 			delItem(itm, true, undo);
-			
 		}
 	}
 	private void delItem(TreeItem itm, bool store, out EVUndo undo) { mixin(S_TRACE);

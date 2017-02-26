@@ -1535,5 +1535,4 @@ class Jpdc : PathUser, CWXPath {
 			std.file.write(jpdcPath, rLines);
 		}
 	}
-	
 }

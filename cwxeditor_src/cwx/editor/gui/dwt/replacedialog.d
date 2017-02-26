@@ -698,7 +698,7 @@ private:
 				_fromID.dispose();
 				_toID.dispose();
 			}
-			
+
 			_fromID = new Combo(_fromIDComp, SWT.BORDER | SWT.DROP_DOWN);
 			_fromID.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 			_toID = new Combo(_toIDComp, SWT.BORDER | SWT.DROP_DOWN);

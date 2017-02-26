@@ -84,7 +84,7 @@ string imageType(in ubyte[] b) { mixin(S_TRACE);
 /// Bitmap .... bmp
 /// PNG .... png
 /// Windows Icon .... ico
-/// 
+///
 /// Params:
 ///  pathOrBytes = ファイルパスまたはバイト配列。
 ///  x = 幅を返す。
@@ -129,7 +129,7 @@ private ulong getSizeT(T)(in T pathOrBytes) if (isSomeString!T || is(T:ubyte[]))
 /// 速度を最優先にするため、ファイル形式のチェックは大まかにしか行われない。
 /// また、ファイル自体が読込める場合は形式が誤っていても例外を投げない。
 /// 不正なファイルのはずなのに戻り値がtrueになることがあり得る。
-/// 
+///
 /// Params:
 ///  file = ファイルパスまたはバイト配列。
 ///  x = 幅を返す。
@@ -177,7 +177,7 @@ bool jpgSize(T)(in T file, out uint x, out uint y) if (isSomeString!T || is(T:ub
 /// 速度を最優先にするため、ファイル形式のチェックは大まかにしか行われない。
 /// また、ファイル自体が読込める場合は形式が誤っていても例外を投げない。
 /// 不正なファイルのはずなのに戻り値がtrueになることがあり得る。
-/// 
+///
 /// Params:
 ///  file = ファイルパスまたはバイト配列。
 ///  x = 幅を返す。
@@ -265,7 +265,7 @@ bool tifSize(T)(in T file, out uint x, out uint y, uint n = 0) if (isSomeString!
 /// 速度を最優先にするため、ファイル形式のチェックは大まかにしか行われない。
 /// また、ファイル自体が読込める場合は形式が誤っていても例外を投げない。
 /// 不正なファイルのはずなのに戻り値がtrueになることがあり得る。
-/// 
+///
 /// Params:
 ///  file = ファイルパスまたはバイト配列。
 ///  x = 幅を返す。
@@ -302,7 +302,7 @@ bool gifSize(T)(in T file, out uint x, out uint y) if (isSomeString!T || is(T:ub
 /// 速度を最優先にするため、ファイル形式のチェックは大まかにしか行われない。
 /// また、ファイル自体が読込める場合は形式が誤っていても例外を投げない。
 /// 不正なファイルのはずなのに戻り値がtrueになることがあり得る。
-/// 
+///
 /// Params:
 ///  file = ファイルパスまたはバイト配列。
 ///  x = 幅を返す。
@@ -349,7 +349,7 @@ bool bmpSize(T)(in T file, out uint x, out uint y) if (isSomeString!T || is(T:ub
 /// 速度を最優先にするため、ファイル形式のチェックは大まかにしか行われない。
 /// また、ファイル自体が読込める場合は形式が誤っていても例外を投げない。
 /// 不正なファイルのはずなのに戻り値がtrueになることがあり得る。
-/// 
+///
 /// Params:
 ///  file = ファイルパスまたはバイト配列。
 ///  x = 幅を返す。
@@ -395,14 +395,14 @@ bool pngSize(T)(in T file, out uint x, out uint y) if (isSomeString!T || is(T:ub
 /// 速度を最優先にするため、ファイル形式のチェックは大まかにしか行われない。
 /// また、ファイル自体が読込める場合は形式が誤っていても例外を投げない。
 /// 不正なファイルのはずなのに戻り値がtrueになることがあり得る。
-/// 
+///
 /// Params:
 ///  file = ファイルパスまたはバイト配列。
 ///  x = 幅を返す。
 ///  y = 高さを返す。
 ///  n = 何番目の画像のサイズを取得するか指定する。
 /// Returns: 形式が正しくない場合はfalseを返す。
-/// 
+///
 /// Throws:
 ///  FileException = ファイル読込失敗時。
 bool icoSize(T)(in T file, out uint x, out uint y, uint n = 0) if (isSomeString!T || is(T:ubyte[])) {

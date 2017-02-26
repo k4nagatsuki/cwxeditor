@@ -382,7 +382,7 @@ private ImageData loadJPTXImage(in Props prop, string path) { mixin(S_TRACE);
 		x += w;
 		if (x > autoW) autoW = x;
 		if (y + height > autoH) { mixin(S_TRACE);
-			autoH = y + height; 
+			autoH = y + height;
 			lineCount++;
 		}
 	});

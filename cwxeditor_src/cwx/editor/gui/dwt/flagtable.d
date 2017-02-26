@@ -1509,7 +1509,7 @@ private:
 			}
 			auto s = cast(Step)itm.getData();
 			if (selStep && s) { mixin(S_TRACE);
-				if (s.select == i) continue; 
+				if (s.select == i) continue;
 				indices ~= indexOf(s.parent, s);
 				oldNames ~= s.name;
 				oldValues ~= s.select;

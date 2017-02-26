@@ -1698,7 +1698,7 @@ public:
 		if (volume != 100) me.newAttr("volume", volume);
 		if (loopCount != 0) me.newAttr("loopcount", loopCount);
 		if (fadeIn != 0) me.newAttr("fadein", fadeIn);
-	
+
 		auto ce = e.newElement("EnemyCards");
 		ce.newAttr("spreadtype", _auto ? "Auto" : "Custom");
 		foreach (c; _cards) { mixin(S_TRACE);

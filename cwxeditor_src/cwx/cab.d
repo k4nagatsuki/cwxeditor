@@ -142,7 +142,7 @@ version (Windows) {
 			BOOL fError;
 		}
 		struct CCAB {
-			ULONG cb; 
+			ULONG cb;
 			ULONG cbFolderThresh;
 			UINT cbReserveCFHeader;
 			UINT cbReserveCFFolder;
@@ -461,7 +461,7 @@ version (Windows) {
 		ccab.szCab[] = '\0';
 		ccab.szCabPath[] = '\0';
 		strcpy(ccab.szCab.ptr, toMBSz(cab));
-		return FCICreate(&erf, &FNFCIFILEPLACED, &FNFCIALLOC, &FNFCIFREE, 
+		return FCICreate(&erf, &FNFCIFILEPLACED, &FNFCIALLOC, &FNFCIFREE,
 			&FNFCIOPEN, &FNFCIREAD, &FNFCIWRITE, &FNFCICLOSE, &FNFCISEEK, &FNFCIDELETE,
 			&FNFCIGETTEMPFILE, &ccab, null);
 	}

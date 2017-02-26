@@ -1066,7 +1066,7 @@ public:
 		sn.newAttr("width", "632");
 		sn.newAttr("height", "420");
 	}
-	
+
 	/// nodeから適切なインスタンスを生成して返す。
 	static BgImage createFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
 		if (node.name == ImageCell.XML_NAME) { mixin(S_TRACE);

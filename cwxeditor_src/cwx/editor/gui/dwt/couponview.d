@@ -157,7 +157,7 @@ class CouponView(CVType Type) : Composite {
 		} else { mixin(S_TRACE);
 			itm = new TableItem(_coupons, SWT.NONE);
 		}
-		
+
 		static if (CVType.NoValued != Type) {
 			itm.setImage(0, couponImage(coupon.value));
 			itm.setText(0, coupon.name);
@@ -187,13 +187,13 @@ class CouponView(CVType Type) : Composite {
 				return true;
 			}, true);
 			storeCoupons();
-			
+
 			static if (CVType.NoValued != Type) {
 				auto coupon = new Coupon(name, _couponVal.getSelection());
 			} else {
 				auto coupon = new Coupon(name, 0);
 			}
-			
+
 			if (_isHistoryView) { mixin(S_TRACE);
 				appendCoupon(coupon, _coupons.getSelectionIndex());
 			} else { mixin(S_TRACE);
@@ -227,7 +227,7 @@ class CouponView(CVType Type) : Composite {
 				auto coupon = new Coupon(_newCoupon.getText(), 0);
 				itm.setText(0, coupon.name);
 			}
-			
+
 			itm.setData(coupon);
 			raiseModifyEvent();
 			_comm.refreshToolBar();
@@ -618,7 +618,7 @@ class CouponView(CVType Type) : Composite {
 
 			auto gd = new GridData(GridData.HORIZONTAL_ALIGN_END);
 			gd.horizontalSpan = 2;
-			
+
 			static if (CVType.Cast == Type) { mixin(S_TRACE);
 				_couponType = new Button(this, SWT.CHECK);
 				_couponType.setEnabled(!_readOnly);
@@ -686,10 +686,10 @@ class CouponView(CVType Type) : Composite {
 			static if (CVType.NoValued != Type) {
 				gd.horizontalSpan = 2;
 			} else { mixin(S_TRACE);
-				gd.horizontalSpan = 3;			
+				gd.horizontalSpan = 3;
 			}
 			_newCoupon.setLayoutData(gd);
-			
+
 			static if (CVType.NoValued != Type) {
 				_couponVal = new Spinner(this, SWT.BORDER | _readOnly);
 				initSpinner(_couponVal);

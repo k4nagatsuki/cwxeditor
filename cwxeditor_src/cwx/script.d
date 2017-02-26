@@ -2431,13 +2431,13 @@ fi`;
 			if (attr[i].token.kind == Kind.SYMBOL) { mixin(S_TRACE);
 				switch (attrValue(attr[i], varTable, 0)) {
 				case "center":
-					i++; 
+					i++;
 					return CardImagePosition.Center;
 				case "topleft":
-					i++; 
+					i++;
 					return CardImagePosition.TopLeft;
 				case "default":
-					i++; 
+					i++;
 					return CardImagePosition.Default;
 				default:
 					throwError(_prop.msgs.scriptErrorInvalidCardImagePosition, attr[i].token);

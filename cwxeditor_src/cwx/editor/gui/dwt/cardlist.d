@@ -1049,7 +1049,7 @@ private:
 				}
 			}
 		}
-		if (_inRanges == inRanges2) return; 
+		if (_inRanges == inRanges2) return;
 
 		bool[int] indices;
 		foreach (i; _inRanges.byKey()) indices[i] = true;

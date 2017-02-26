@@ -827,18 +827,18 @@ private:
 		grp.setText(comm.prop.msgs.couponName);
 		grp.setLayout(normalGridLayout(1, true));
 		grp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
-		
+
 		auto comp = new Composite(grp, SWT.NONE);
 		comp.setLayout(normalGridLayout(1, true));
 		comp.setLayoutData(new GridData(GridData.FILL_BOTH));
-		
+
 		couponView = new CouponView!(CVType.NoValued)(comm, summ, comp, SWT.NONE, catchMod, false);
 		couponView.setLayoutData(new GridData(GridData.FILL_BOTH));
-		
+
 		auto comp2 = new Composite(grp, SWT.NONE);
 		comp2.setLayout(normalGridLayout(2, false));
 		comp2.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		
+
 		foreach(i, type; [MatchingType.And, MatchingType.Or]){ mixin(S_TRACE);
 			auto radio = new Button(comp2, SWT.RADIO);
 			mod(radio);
@@ -930,12 +930,12 @@ protected:
 			} else { mixin(S_TRACE);
 				auto grp = new Group(area, SWT.NONE);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-				
+
 				auto cl = new CenterLayout(SWT.VERTICAL, 0);
 				cl.fillHorizontal = true;
 				grp.setLayout(cl);
 				grp.setText(_prop.msgs.couponName);
-				
+
 				{ mixin(S_TRACE);
 					auto comp = new Composite(grp, SWT.NONE);
 					comp.setLayout(normalGridLayout(3, false));
@@ -1016,7 +1016,7 @@ protected:
 			} else { mixin(S_TRACE);
 				_range[Range.SELECTED].setSelection(true);
 			}
-			
+
 			if (!(summ && summ.legacy) && Type is CType.BRANCH_COUPON) {
 				_couponView.couponNames = _evt.couponNames;
 				if(_evt.matchingType == MatchingType.And){
@@ -1034,7 +1034,7 @@ protected:
 				}
 				_name.setText(_evt.coupon);
 			}
-			
+
 			static if (EditValue) {
 				_value.setSelection(_evt.couponValue);
 			}
@@ -1055,25 +1055,25 @@ protected:
 
 	override bool apply() { mixin(S_TRACE);
 		if (!_evt) _evt = new Content(Type, "");
-		
+
 		foreach (range, radio; _range) { mixin(S_TRACE);
 			if (radio.getSelection()) { mixin(S_TRACE);
 				_evt.range = range;
-				
+
 				if ((summ && summ.legacy) || !(Type is CType.BRANCH_COUPON)) {
 					_evt.coupon = _name.getText();
 				} else { mixin(S_TRACE);
 					_evt.couponNames = _couponView.couponNames;
 					_evt.matchingType = _matchType[MatchingType.And].getSelection() ? MatchingType.And : MatchingType.Or;
 				}
-				
+
 				static if (EditValue) {
 					_evt.couponValue = _value.getSelection();
 				}
 				break;
 			}
 		}
-		
+
 		comm.refCoupons.call();
 		return true;
 	}

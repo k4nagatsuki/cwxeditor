@@ -40,7 +40,7 @@ enum CardMode {
 
 /// 画像の選択を行うペイン。
 class ImageSelect(MtType Type, C : Control = Table) {
-	
+
 	static if (Type == MtType.CARD) {
 		private class ImagesUndo : Undo {
 			private int _imageIndex;

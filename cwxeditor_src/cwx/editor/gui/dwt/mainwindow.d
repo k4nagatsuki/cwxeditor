@@ -523,7 +523,7 @@ private:
 								}
 								if (enable) break;
 							}
-							
+
 							auto mi = (enable) { return createMenuItem2(_comm, mwpMenu, name, img, dummy, () => enable, SWT.CASCADE); }(enable);
 							mi.setEnabled(enable);
 							auto yMenu = new Menu(mi);
@@ -3340,7 +3340,7 @@ public:
 			if (cardRG.set.size) { mixin(S_TRACE);
 				_toolRG ~= cardRG;
 			}
-			
+
 			// ツールバーの表示切り替え(チェックボックス)
 			auto mtm = _tool.get(MenuID.ShowMainToolBar, null);
 			if (mtm) mtm.setSelection(_prop.var.etc.showMainToolBar);

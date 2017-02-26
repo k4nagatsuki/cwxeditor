@@ -1581,7 +1581,7 @@ private:
 				scope (exit) {
 					foreach (card; cards) {
 						auto pc = card in oldIDs;
-						if (pc && *pc != card.id) refCard(card); 
+						if (pc && *pc != card.id) refCard(card);
 					}
 					_comm.refreshToolBar();
 				}

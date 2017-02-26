@@ -1260,7 +1260,7 @@ public:
 	override string text() { mixin(S_TRACE);
 		return wrapReturnCode(_text.getText());
 	}
-	
+
 	override
 	bool openCWXPath(string path, bool shellActivate) { mixin(S_TRACE);
 		auto cate = cpcategory(path);

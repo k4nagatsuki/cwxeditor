@@ -606,10 +606,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		this.startAction = c.startAction;
 		this.ignite = c.ignite;
 		this.keyCodes = c.keyCodes.dup;
-		
+
 		this.couponNames = c.couponNames.dup;
 		this.matchingType = c.matchingType;
-		
+
 		this.holdingCoupon = c.holdingCoupon;
 		this.refAbility = c.refAbility;
 
@@ -754,10 +754,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			&& startAction == c.startAction
 			&& ignite == c.ignite
 			&& keyCodes == c.keyCodes
-			
+
 			&& couponNames == c.couponNames
 			&& matchingType == c.matchingType
-			
+
 			&& holdingCoupon == c.holdingCoupon
 			&& refAbility == c.refAbility
 
@@ -1016,10 +1016,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.START_ACTION, StartAction, StartAction.NextRound)(d, &startAction);
 		resetValue!(CArg.IGNITE, bool, false)(d, &ignite);
 		resetValue!(CArg.KEY_CODES, string[], [])(d, &keyCodes);
-		
+
 		resetValue!(CArg.COUPON_NAMES, string[], [])(d, &couponNames);
 		resetValue!(CArg.MATCHING_TYPE, MatchingType, MatchingType.And)(d, &matchingType);
-		
+
 		resetValue!(CArg.HOLDING_COUPON, string, "")(d, &holdingCoupon);
 		resetValue!(CArg.REF_ABILITY, bool, false)(d, &refAbility);
 
@@ -1518,7 +1518,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// Example:
 	/// ---
 	/// mixin Prop!(AreaUser, "area", 0UL, ".area", ".area", true);
-	/// 
+	///
 	/// private AreaUser _area;
 	/// void area(ulong val) { mixin(S_TRACE);
 	/// 	scope (exit) validate();
