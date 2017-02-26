@@ -330,6 +330,7 @@ class CouponView(CVType Type) : Composite {
 	@property
 	private bool canUp() { mixin(S_TRACE);
 		if (_readOnly) return false;
+		if (!_coupons || _coupons.isDisposed()) return false;
 		auto indices = _coupons.getSelectionIndices();
 		std.algorithm.sort(indices);
 		return indices.length && 0 < indices[0];
@@ -355,6 +356,7 @@ class CouponView(CVType Type) : Composite {
 	@property
 	private bool canDown() { mixin(S_TRACE);
 		if (_readOnly) return false;
+		if (!_coupons || _coupons.isDisposed()) return false;
 		auto indices = _coupons.getSelectionIndices();
 		std.algorithm.sort(indices);
 		return indices.length && indices[$ - 1] + 1 < _coupons.getItemCount();
@@ -583,22 +585,27 @@ class CouponView(CVType Type) : Composite {
 		}
 		@property
 		bool canDoT() { mixin(S_TRACE);
+			if (!_coupons || _coupons.isDisposed()) return false;
 			return !_readOnly && _coupons.getSelectionIndex() != -1;
 		}
 		@property
 		bool canDoC() { mixin(S_TRACE);
+			if (!_coupons || _coupons.isDisposed()) return false;
 			return _coupons.getSelectionIndex() != -1;
 		}
 		@property
 		bool canDoP() { mixin(S_TRACE);
+			if (!_coupons || _coupons.isDisposed()) return false;
 			return !_readOnly && CBisXML(_comm.clipboard);
 		}
 		@property
 		bool canDoD() { mixin(S_TRACE);
+			if (!_coupons || _coupons.isDisposed()) return false;
 			return !_readOnly && _coupons.getSelectionIndex() != -1;
 		}
 		@property
 		bool canDoClone() { mixin(S_TRACE);
+			if (!_coupons || _coupons.isDisposed()) return false;
 			return !_readOnly && canDoC;
 		}
 	}
@@ -635,9 +642,21 @@ class CouponView(CVType Type) : Composite {
 			_comm.put(_toolbar);
 			_toolbar.addListener(SWT.Traverse, new HTBTraverse);
 			_toolbar.addListener(SWT.KeyDown, new HTBKeyDown);
-			createToolItem2(_comm, _toolbar, _prop.msgs.addCoupon, _prop.images.addCoupon, &addCoupon, () => !_readOnly && _newCoupon.getText().length > 0);
-			createToolItem2(_comm, _toolbar, _prop.msgs.altCoupon, _prop.images.altCoupon, &altCoupon, () => !_readOnly && _newCoupon.getText().length > 0 && _coupons.getSelectionIndex() != -1);
-			createToolItem2(_comm, _toolbar, _prop.msgs.delCoupon, _prop.images.couponDelete, &delCoupon, () => !_readOnly && _coupons.getSelectionIndex() != -1);
+			bool canAddCoupon() { mixin(S_TRACE);
+				if (!_newCoupon || _newCoupon.isDisposed()) return false;
+				return !_readOnly && _newCoupon.getText().length > 0;
+			}
+			bool canAltCoupon() { mixin(S_TRACE);
+				if (!_newCoupon || _newCoupon.isDisposed()) return false;
+				return !_readOnly && _newCoupon.getText().length > 0 && _coupons.getSelectionIndex() != -1;
+			}
+			bool canDelCoupon() { mixin(S_TRACE);
+				if (!_coupons || _coupons.isDisposed()) return false;
+				return !_readOnly && _coupons.getSelectionIndex() != -1;
+			}
+			createToolItem2(_comm, _toolbar, _prop.msgs.addCoupon, _prop.images.addCoupon, &addCoupon, &canAddCoupon);
+			createToolItem2(_comm, _toolbar, _prop.msgs.altCoupon, _prop.images.altCoupon, &altCoupon, &canAltCoupon);
+			createToolItem2(_comm, _toolbar, _prop.msgs.delCoupon, _prop.images.couponDelete, &delCoupon, &canDelCoupon);
 			new ToolItem(_toolbar, SWT.SEPARATOR);
 			createToolItem(_comm, _toolbar, MenuID.Up, &upCoupon, &canUp);
 			createToolItem(_comm, _toolbar, MenuID.Down, &downCoupon, &canDown);
@@ -732,6 +751,7 @@ class CouponView(CVType Type) : Composite {
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.horizontalSpan = 3;
 			gd.widthHint = _prop.var.etc.couponWidth;
+			gd.heightHint = _prop.var.etc.couponHeight;
 			_coupons.setLayoutData(gd);
 			auto cc = new FullTableColumn(_coupons, SWT.NONE);
 			static if (CVType.NoValued != Type) {

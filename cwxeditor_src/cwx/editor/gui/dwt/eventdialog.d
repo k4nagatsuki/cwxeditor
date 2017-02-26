@@ -813,34 +813,12 @@ class CouponEventDialog(CType Type, bool EditValue, bool Field) : EventDialog {
 private:
 	Button[Range] _range;
 	Button[CouponType] _type;
-	Combo _name;
-	CouponView!(CVType.NoValued) _couponView;
-	Button[MatchingType] _matchType; // マッチングタイプ(Wsn.2)
-	MatchingType _matchingType; // マッチングタイプ(Wsn.2)
+	Composite _couponViewComp;
+	Combo _name = null;
+	CouponView!(CVType.NoValued) _couponView = null;
+	Button[MatchingType] _matchType = null; /// マッチングタイプ(Wsn.2)
 	static if (EditValue) {
 		Spinner _value;
-	}
-
-	/// ビューを生成する。
-	Composite createView(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, out CouponView!(CVType.NoValued) couponView) { mixin(S_TRACE);
-		auto grp = new Group(parent, SWT.NONE);
-		grp.setText(comm.prop.msgs.couponName);
-		grp.setLayout(normalGridLayout(1, true));
-
-		couponView = new CouponView!(CVType.NoValued)(comm, summ, grp, SWT.NONE, catchMod, false);
-		couponView.setLayoutData(new GridData(GridData.FILL_BOTH));
-
-		auto radioComp = new Composite(grp, SWT.NONE);
-		radioComp.setLayout(zeroMarginGridLayout(2, false));
-		radioComp.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
-		foreach(type; [MatchingType.And, MatchingType.Or]){ mixin(S_TRACE);
-			auto radio = new Button(radioComp, SWT.RADIO);
-			mod(radio);
-			radio.setText(comm.prop.msgs.matchingTypeName(type));
-			_matchType[type] = radio;
-		}
-
-		return grp;
 	}
 
 	override
@@ -855,8 +833,7 @@ private:
 			foreach (coupon; _couponView.coupons) { mixin(S_TRACE);
 				ws ~= couponWarnings(prop.parent, summ, prop.var.etc.targetVersion, coupon.name, false);
 			}
-		} else {
-			mixin(S_TRACE);
+		} else if (_name) { mixin(S_TRACE);
 			ws ~= couponWarnings(prop.parent, summ, prop.var.etc.targetVersion, _name.getText(), Type is CType.GET_COUPON || Type is CType.LOSE_COUPON);
 		}
 		static if (Field) {
@@ -867,6 +844,13 @@ private:
 			}
 		}
 		warning = ws;
+	}
+	override
+	protected void refDataVersion() { mixin(S_TRACE);
+		static if (Type is CType.BRANCH_COUPON) {
+			createCouponView(false);
+		}
+		super.refDataVersion();
 	}
 
 	class SelType : SelectionAdapter {
@@ -879,9 +863,132 @@ private:
 		}
 	}
 
+	void updateCouponName() { mixin(S_TRACE);
+		if (!_name) return;
+		auto t = prop.sys.couponType(_name.getText());
+		bool checked = false;
+		foreach (coType; _type.keys) { mixin(S_TRACE);
+			_type[coType].setSelection(coType == t);
+			checked |= (coType == t);
+		}
+		if (!checked) _type[CouponType.Normal].setSelection(true);
+		refreshWarning();
+	}
+
+	void createCouponView(bool init) { mixin(S_TRACE);
+		auto multi = !(summ && summ.legacy) && Type is CType.BRANCH_COUPON;
+		string[] couponNames;
+		if (_couponView) { mixin(S_TRACE);
+			if (multi) return;
+			couponNames = _couponView.couponNames;
+		} else if (_name) { mixin(S_TRACE);
+			if (!multi) return;
+			couponNames = _name.getText() == "" ? [] : [_name.getText()];
+		}
+		if (!init) getShell().setRedraw(false);
+		scope (exit) {
+			if (!init) getShell().setRedraw(true);
+		}
+
+		foreach (ctrl; _couponViewComp.getChildren()) ctrl.dispose();
+		_couponView = null;
+		_name = null;
+		_type = null;
+		_matchType = null;
+
+		if (multi) { mixin(S_TRACE);
+			// Wsn.2
+			_couponViewComp.setLayout(normalGridLayout(1, true));
+
+			_couponView = new CouponView!(CVType.NoValued)(comm, summ, _couponViewComp, SWT.NONE, &catchMod, false);
+			mod(_couponView);
+			_couponView.modEvent ~= &refreshWarning;
+			_couponView.setLayoutData(new GridData(GridData.FILL_BOTH));
+
+			auto radioComp = new Composite(_couponViewComp, SWT.NONE);
+			radioComp.setLayout(zeroMarginGridLayout(2, false));
+			radioComp.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+			foreach(type; [MatchingType.And, MatchingType.Or]){ mixin(S_TRACE);
+				auto radio = new Button(radioComp, SWT.RADIO);
+				mod(radio);
+				radio.setText(comm.prop.msgs.matchingTypeName(type));
+				_matchType[type] = radio;
+			}
+		} else { mixin(S_TRACE);
+			auto cl = new CenterLayout(SWT.VERTICAL, 0);
+			cl.fillHorizontal = true;
+			_couponViewComp.setLayout(cl);
+
+			{ mixin(S_TRACE);
+				auto comp = new Composite(_couponViewComp, SWT.NONE);
+				comp.setLayout(normalGridLayout(3, false));
+				{ mixin(S_TRACE);
+					static if (Type is CType.GET_COUPON || Type is CType.LOSE_COUPON) {
+						auto type = CouponComboType.GetLose;
+					} else static if (Type is CType.BRANCH_COUPON) {
+						auto type = CouponComboType.AllCoupons;
+					} else static assert (0);
+					_name = createCouponCombo(comm, summ, comp, &catchMod, type, _evt ? _evt.coupon : "");
+					mod(_name);
+					auto gd = new GridData(GridData.FILL_HORIZONTAL);
+					gd.horizontalSpan = 3;
+					gd.widthHint = _prop.var.etc.nameWidth;
+					_name.setLayoutData(gd);
+				}
+				foreach (coType; [CouponType.Normal, CouponType.Hide, CouponType.Dur, CouponType.DurBattle, CouponType.System]) { mixin(S_TRACE);
+					auto b = new Button(comp, SWT.RADIO);
+					auto typeName = _prop.msgs.couponTypeLongDesc(coType);
+					final switch (coType) {
+					case CouponType.Normal:
+						break;
+					case CouponType.Hide:
+						typeName = .tryFormat(typeName, prop.sys.couponHide);
+						break;
+					case CouponType.Dur:
+						typeName = .tryFormat(typeName, prop.sys.couponDur);
+						break;
+					case CouponType.DurBattle:
+						typeName = .tryFormat(typeName, prop.sys.couponDurBattle);
+						break;
+					case CouponType.System:
+						typeName = .tryFormat(typeName, prop.sys.couponSystem);
+						break;
+					}
+					b.setText(typeName);
+					auto gd = new GridData(GridData.FILL_HORIZONTAL);
+					gd.horizontalSpan = 3;
+					b.setLayoutData(gd);
+					b.addSelectionListener(new SelType(coType));
+					_type[coType] = b;
+				}
+				.listener(_name, SWT.Modify, &updateCouponName);
+			}
+		}
+
+		if (!init) { mixin(S_TRACE);
+			if (_couponView) { mixin(S_TRACE);
+				_couponView.couponNames = couponNames;
+				_matchType[MatchingType.And].setSelection(true);
+
+				windowSizeInfo = prop.var.multiCouponEvtDlg;
+			} else { mixin(S_TRACE);
+				assert (_name !is null);
+				if (couponNames.length) _name.setText(couponNames[0]);
+				updateCouponName();
+
+				windowSizeInfo = prop.var.couponEvtDlg;
+			}
+		}
+	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
-		super (comm, prop, shell, summ, Type, parent, evt, true, prop.var.couponEvtDlg, true);
+		DSize dSize;
+		if (!(summ && summ.legacy) && Type is CType.BRANCH_COUPON) { mixin(S_TRACE);
+			dSize = prop.var.multiCouponEvtDlg;
+		} else { mixin(S_TRACE);
+			dSize = prop.var.couponEvtDlg;
+		}
+		super (comm, prop, shell, summ, Type, parent, evt, true, dSize, true);
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
@@ -914,74 +1021,11 @@ protected:
 			}
 		}
 		{ mixin(S_TRACE);
-			if (!(summ && summ.legacy) && Type is CType.BRANCH_COUPON) { mixin(S_TRACE); /// Wsn.2
-				auto comp = createView(_comm, _summ, area, &catchMod, _couponView);
-				mod(_couponView);
-				_couponView.modEvent ~= &refreshWarning;
-				comp.setLayoutData(new GridData(GridData.FILL_BOTH));
-			} else { mixin(S_TRACE);
-				auto grp = new Group(area, SWT.NONE);
-				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-
-				auto cl = new CenterLayout(SWT.VERTICAL, 0);
-				cl.fillHorizontal = true;
-				grp.setLayout(cl);
-				grp.setText(_prop.msgs.couponName);
-
-				{ mixin(S_TRACE);
-					auto comp = new Composite(grp, SWT.NONE);
-					comp.setLayout(normalGridLayout(3, false));
-					{ mixin(S_TRACE);
-						static if (Type is CType.GET_COUPON || Type is CType.LOSE_COUPON) {
-							auto type = CouponComboType.GetLose;
-						} else static if (Type is CType.BRANCH_COUPON) {
-							auto type = CouponComboType.AllCoupons;
-						} else static assert (0);
-						_name = createCouponCombo(comm, summ, comp, &catchMod, type, _evt ? _evt.coupon : "");
-						mod(_name);
-						auto gd = new GridData(GridData.FILL_HORIZONTAL);
-						gd.horizontalSpan = 3;
-						gd.widthHint = _prop.var.etc.nameWidth;
-						_name.setLayoutData(gd);
-					}
-					foreach (coType; [CouponType.Normal, CouponType.Hide, CouponType.Dur, CouponType.DurBattle, CouponType.System]) { mixin(S_TRACE);
-						auto b = new Button(comp, SWT.RADIO);
-						auto typeName = _prop.msgs.couponTypeLongDesc(coType);
-						final switch (coType) {
-						case CouponType.Normal:
-							break;
-						case CouponType.Hide:
-							typeName = .tryFormat(typeName, prop.sys.couponHide);
-							break;
-						case CouponType.Dur:
-							typeName = .tryFormat(typeName, prop.sys.couponDur);
-							break;
-						case CouponType.DurBattle:
-							typeName = .tryFormat(typeName, prop.sys.couponDurBattle);
-							break;
-						case CouponType.System:
-							typeName = .tryFormat(typeName, prop.sys.couponSystem);
-							break;
-						}
-						b.setText(typeName);
-						auto gd = new GridData(GridData.FILL_HORIZONTAL);
-						gd.horizontalSpan = 3;
-						b.setLayoutData(gd);
-						b.addSelectionListener(new SelType(coType));
-						_type[coType] = b;
-					}
-					.listener(_name, SWT.Modify, { mixin(S_TRACE);
-						auto t = prop.sys.couponType(_name.getText());
-						bool checked = false;
-						foreach (coType; _type.keys) { mixin(S_TRACE);
-							_type[coType].setSelection(coType == t);
-							checked |= (coType == t);
-						}
-						if (!checked) _type[CouponType.Normal].setSelection(true);
-						refreshWarning();
-					});
-				}
-			}
+			auto grp = new Group(area, SWT.NONE);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setText(_prop.msgs.couponName);
+			_couponViewComp = grp;
+			createCouponView(true);
 		}
 		static if (EditValue) {
 			{ mixin(S_TRACE);

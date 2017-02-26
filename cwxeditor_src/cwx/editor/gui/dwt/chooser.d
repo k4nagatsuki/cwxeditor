@@ -46,6 +46,7 @@ T createCouponCombo(T = Combo)(Commons comm, Summary summ, Composite parent, boo
 	auto incSearch = new IncSearch(comm, combo);
 
 	void refreshCoupons() { mixin(S_TRACE);
+		if (combo.isDisposed()) return;
 		string id = combo.getText();
 		combo.removeAll();
 		auto values = allCoupons(comm, summ, type);

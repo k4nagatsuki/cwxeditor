@@ -133,7 +133,8 @@ class FlexEtcProps : Properties {
 	auto importHandCardsSortDirection = Prop!(int)("importHandCardsSortDirection", SortDir.Up);
 	auto linkCardMaskColor = Prop!(CRGB)("linkCardMaskColor", CRGB(0, 255, 0, 64), true);
 	auto negativeCardNameBorder = Prop!(int)("negativeCardNameBorder", 116, true);
-	auto couponWidth = Prop!(int, true, true)("couponWidth", 150);
+	auto couponWidth = Prop!(int, true, true)("couponWidth", 250);
+	auto couponHeight = Prop!(int, true, true)("couponHeight", 80);
 	auto couponValueColumn = Prop!(int, true, true)("couponValueColumn", 40);
 	auto idColumn = Prop!(int, false, true)("idColumn", 50);
 	auto valueNumberColumn = Prop!(int, false, true)("valueNumberColumn", 50);

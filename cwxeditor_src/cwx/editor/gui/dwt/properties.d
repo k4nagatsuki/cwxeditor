@@ -181,6 +181,7 @@ public class FlexProps {
 	DialogParam!("effectEventDialog") effEvtDlg;
 	DialogParam!("soundEventDialog") soundEvtDlg;
 	DialogParam!("couponEventDialog", SWT.DEFAULT, SWT.DEFAULT, 2017011400) couponEvtDlg;
+	DialogParam!("multiCouponEventDialog", SWT.DEFAULT, SWT.DEFAULT) multiCouponEvtDlg;
 	DialogParam!("inputEventDialog") inputEvtDlg;
 	DialogParam!("selectEventDialog") selEvtDlg;
 	DialogParam!("loseBgImageEventDialog") loseBgImageEvtDlg;

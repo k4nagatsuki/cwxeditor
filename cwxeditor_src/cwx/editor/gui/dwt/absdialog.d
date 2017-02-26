@@ -33,6 +33,8 @@ abstract class AbsDialog {
 	private Props _prop;
 	private Shell _win;
 	private DSize _size;
+	private void delegate(bool save) _clearSetupWin;
+
 	private Composite _area;
 	private Composite _addition;
 	private Composite _rightGroup;
@@ -245,6 +247,24 @@ abstract class AbsDialog {
 			}
 		}
 	}
+
+	/// 使用するサイズ情報を変更する。
+	@property
+	public void windowSizeInfo(DSize size) { mixin(S_TRACE);
+		clearWindowSizeInfo();
+		if (cast(WSize)_size && cast(WSize)size) {
+			(cast(WSize)size).x = (cast(WSize)_size).x;
+			(cast(WSize)size).y = (cast(WSize)_size).y;
+		}
+		_size = size;
+		calcBounds(false);
+	}
+	public void clearWindowSizeInfo() { mixin(S_TRACE);
+		if (!_clearSetupWin) return;
+		_clearSetupWin(true);
+		_clearSetupWin = null;
+	}
+
 	public void saveWin() { mixin(S_TRACE);
 		if (!_size) return;
 		auto ws = cast(WSize)_size;
@@ -295,9 +315,9 @@ abstract class AbsDialog {
 		if (!_win.isDisposed()) _win.close();
 	}
 
-	private void calcBounds() { mixin(S_TRACE);
-		auto rect = .setupWindow(_win, _size);
-		_win.layout(true);
+	private void calcBounds(bool setLocation) { mixin(S_TRACE);
+		auto rect = .setupWindow(_win, _size, _clearSetupWin, setLocation, true);
+		_win.layout(true, true);
 		foreach (dlg; calcBoundsEvent) { mixin(S_TRACE);
 			dlg(rect.x, rect.y, rect.width, rect.height);
 		}
@@ -307,7 +327,7 @@ abstract class AbsDialog {
 		if (_enterClose) { mixin(S_TRACE);
 			_win.setDefaultButton(_okBtn);
 		}
-		calcBounds();
+		calcBounds(true);
 		if (_apply && !_forceApplyEnabled) _apply.setEnabled(false);
 		_forceApplyEnabled = false;
 		auto par = cast(Shell)_win.getParent();

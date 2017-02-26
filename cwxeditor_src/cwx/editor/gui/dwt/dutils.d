@@ -4208,38 +4208,55 @@ void setupSpinner(Int)(Spinner spinner, ref Prop!(Int, false) value) { mixin(S_T
 }
 
 Rectangle setupWindow(Shell shell, DSize winProps) { mixin(S_TRACE);
-	auto wp = shell.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-	auto cs = new Point(wp.x, wp.y);
-	if (winProps) { mixin(S_TRACE);
-		if (winProps.width != SWT.DEFAULT) cs.x = winProps.width;
-		if (winProps.height != SWT.DEFAULT) cs.y = winProps.height;
-	}
-	shell.setSize(cs);
+	void delegate(bool) dummy;
+	return .setupWindow(shell, winProps, dummy, true, true);
+}
+Rectangle setupWindow(Shell shell, DSize winProps, out void delegate(bool save) clearSetup, bool setLocation, bool setSize) { mixin(S_TRACE);
+	if (setLocation || setSize) { mixin(S_TRACE);
+		auto wp = shell.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+		auto cs = new Point(wp.x, wp.y);
+		if (!setSize) { mixin(S_TRACE);
+			cs.x = shell.getSize().x;
+			cs.y = shell.getSize().y;
+		} else if (winProps) { mixin(S_TRACE);
+			if (winProps.width != SWT.DEFAULT) cs.x = winProps.width;
+			if (winProps.height != SWT.DEFAULT) cs.y = winProps.height;
+		}
+		shell.setSize(cs);
 
-	auto w = cast(WSize)winProps;
-	if (w) { mixin(S_TRACE);
-		shell.setMaximized(w.maximized);
-	}
+		auto w = cast(WSize)winProps;
+		if (w) { mixin(S_TRACE);
+			shell.setMaximized(w.maximized);
+		}
 
-	auto parent = shell.getParent();
-	auto parBounds = parent.getBounds();
-	int width = !winProps || winProps.width == SWT.DEFAULT ? wp.x : winProps.width;
-	int height = !winProps || winProps.height == SWT.DEFAULT ? wp.y : winProps.height;
-	int x, y;
-	if (parent) { mixin(S_TRACE);
-		x = !w || w.x == SWT.DEFAULT ? (parBounds.x + (parBounds.width / 2 - width / 2)) : (w.x + parBounds.x);
-		y = !w || w.y == SWT.DEFAULT ? (parBounds.y + (parBounds.height / 2 - height / 2)) : (w.y + parBounds.y);
-	} else { mixin(S_TRACE);
-		x = !w || w.x == SWT.DEFAULT ? shell.getBounds().x : w.x;
-		y = !w || w.y == SWT.DEFAULT ? shell.getBounds().y : w.y;
+		auto parent = shell.getParent();
+		auto parBounds = parent.getBounds();
+		int width = !winProps || winProps.width == SWT.DEFAULT ? wp.x : winProps.width;
+		int height = !winProps || winProps.height == SWT.DEFAULT ? wp.y : winProps.height;
+		int x, y;
+		if (!setLocation) { mixin(S_TRACE);
+			x = shell.getLocation().x;
+			y = shell.getLocation().y;
+		} else if (parent) { mixin(S_TRACE);
+			x = !w || w.x == SWT.DEFAULT ? (parBounds.x + (parBounds.width / 2 - width / 2)) : (w.x + parBounds.x);
+			y = !w || w.y == SWT.DEFAULT ? (parBounds.y + (parBounds.height / 2 - height / 2)) : (w.y + parBounds.y);
+		} else { mixin(S_TRACE);
+			x = !w || w.x == SWT.DEFAULT ? shell.getBounds().x : w.x;
+			y = !w || w.y == SWT.DEFAULT ? shell.getBounds().y : w.y;
+		}
+		
+		intoDisplay(x, y, width, height);
+		shell.setBounds(x, y, width, height);
 	}
-	intoDisplay(x, y, width, height);
-	shell.setBounds(x, y, width, height);
+	auto removed = false;
 	void saveWin(Event e) { mixin(S_TRACE);
+		if (removed) return;
+		auto w = cast(WSize)winProps;
 		if (!shell.getMaximized()) { mixin(S_TRACE);
 			.asyncExec(shell.getDisplay(), { mixin(S_TRACE);
 				// SplitPaneのSash位置の記録処理は再レイアウト後に
 				// 行う必要が有るため、実行を遅延する
+				if (removed) return;
 				if (shell.isDisposed()) return;
 				auto s = shell.getSize();
 				if (winProps.width != s.x || winProps.height != s.y) { mixin(S_TRACE);
@@ -4247,7 +4264,7 @@ Rectangle setupWindow(Shell shell, DSize winProps) { mixin(S_TRACE);
 					winProps.height = s.y;
 					void recurse(Control ctrl) { mixin(S_TRACE);
 						if (auto sash = cast(SplitPane)ctrl) { mixin(S_TRACE);
-							sash.notifySelectionListeners(e);
+							if (e) sash.notifySelectionListeners(e);
 						}
 						if (auto comp = cast(Composite)ctrl) { mixin(S_TRACE);
 							foreach (child; comp.getChildren()) recurse(child);
@@ -4267,8 +4284,19 @@ Rectangle setupWindow(Shell shell, DSize winProps) { mixin(S_TRACE);
 		}
 	}
 	if (winProps) { mixin(S_TRACE);
-		.listener(shell, SWT.Move, &saveWin);
-		.listener(shell, SWT.Resize, &saveWin);
+		auto ctrlL = new class Listener {
+			override void handleEvent(Event e) { mixin(S_TRACE);
+				saveWin(e);
+			}
+		};
+		shell.addListener(SWT.Move, ctrlL);
+		shell.addListener(SWT.Resize, ctrlL);
+		clearSetup = (save) { mixin(S_TRACE);
+			removed = true;
+			if (save) saveWin(null);
+			shell.removeListener(SWT.Move, ctrlL);
+			shell.removeListener(SWT.Resize, ctrlL);
+		};
 	}
 	return shell.getBounds();
 }
