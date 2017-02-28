@@ -132,6 +132,7 @@ class EtcSettings : Composite {
 		boolSetting(comp, prop.var.etc.addNewClassicEngine, prop.msgs.addNewClassicEngine);
 		boolSetting(comp, prop.var.etc.openLastScenario, prop.msgs.openLastScenario);
 		boolSetting(comp, prop.var.etc.reconstruction, prop.msgs.reconstruction);
+		boolSetting(comp, prop.var.etc.createStartArea, prop.msgs.createStartArea);
 
 		comp = createComp(prop.msgs.etcSettingsFile);
 		boolSetting(comp, prop.var.etc.traceDirectories, prop.msgs.traceDirectories);
