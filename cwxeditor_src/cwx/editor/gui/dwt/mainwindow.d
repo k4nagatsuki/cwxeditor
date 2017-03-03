@@ -890,8 +890,23 @@ private:
 				auto dir = dlg.classicDir;
 				if (!dir.exists()) mkdirRecurse(dir);
 				summ = new Summary(dlg.name, dlg.skin, dir, false, true);
+				// 開始エリア追加
+				if (_prop.var.etc.createStartArea) {
+					auto area = new Area(summ.newAreaId, _prop.msgs.newAreaName);
+					auto skinClassic = Skin.findLegacySkin(_prop.parent, _prop.enginePath, summ.scenarioPath(), _prop.var.etc.classicEngineRegex,
+						_prop.var.etc.classicDataDirRegex, _prop.var.etc.classicMatchKey, 
+						_prop.var.etc.classicEngines, _prop.var.etc.defaultSkin);
+					auto bgImages = createBgImages(skinClassic, _prop.var.etc.bgImagesDefault);
+					foreach (bg; bgImages) { mixin(S_TRACE);
+						area.append(bg);
+					}
+					auto tree = new EventTree(_prop.msgs.enterTree);
+					tree.enter = true;
+					area.add(tree);
+					summ.add(area);
+				}
 			} else { mixin(S_TRACE);
-				summ = Summary.createScenario(_prop.parent, _prop.tempPath, dlg.name, findSkin2(_prop, dlg.skin, ""));
+				summ = Summary.createScenario(_prop.parent, _prop.tempPath, dlg.name, findSkin2(_prop, dlg.skin, ""), _prop.var.etc);
 			}
 			summ.author = _prop.var.etc.defaultAuthor;
 			openScenario(summ);
@@ -4345,7 +4360,7 @@ public:
 			if (_opt.create) { mixin(S_TRACE);
 				string name = _opt.createName is null ? _prop.msgs.newScenarioName : _opt.createName;
 				string skin = _opt.createSkin is null ? _prop.var.etc.defaultSkin : _opt.createSkin;
-				auto summ = Summary.createScenario(_prop.parent, _prop.tempPath, name, findSkin2(_prop, skin, ""));
+				auto summ = Summary.createScenario(_prop.parent, _prop.tempPath, name, findSkin2(_prop, skin, ""), _prop.var.etc);
 				summ.author = _prop.var.etc.defaultAuthor;
 				openScenario(summ);
 				statusLine = "";

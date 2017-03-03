@@ -21,6 +21,7 @@ import cwx.types;
 import cwx.binary;
 import cwx.jpy;
 import cwx.msgutils;
+import cwx.variables;
 
 import lhafile.lhafile;
 
@@ -247,7 +248,7 @@ public:
 	}
 
 	/// tempPathにシナリオを新規作成する。
-	static Summary createScenario(in CProps prop, string tempPath, string name, Skin skin) { mixin(S_TRACE);
+	static Summary createScenario(in CProps prop, string tempPath, string name, Skin skin, FlexEtcProps etc) { mixin(S_TRACE);
 		auto sys = prop.sys;
 		auto p = Summary.createTempDir(tempPath, name);
 		auto mFPath = std.path.buildPath(p, skin.materialPath);
@@ -259,6 +260,18 @@ public:
 		}
 		summ.refCheckPaths();
 		summ.updateJpy1List(prop);
+		// 開始エリア追加
+		if (etc.createStartArea) {
+			auto area = new Area(summ.newAreaId, prop.msgs.newAreaName);
+			auto bgImages = createBgImages(skin, etc.bgImagesDefault);
+			foreach (bg; bgImages) { mixin(S_TRACE);
+				area.append(bg);
+			}
+			auto tree = new EventTree(prop.msgs.enterTree);
+			tree.enter = true;
+			area.add(tree);
+			summ.add(area);
+		}
 		return summ;
 	}
 

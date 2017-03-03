@@ -106,6 +106,7 @@ class Msgs : Properties {
 	auto notClassicWarning = Msg("notClassicWarning", "※ 「クラシック」以外のタイプはCardWirthPy専用形式となります");
 
 	auto newScenarioName = Msg("newScenarioName", "新規シナリオ");
+	auto newAreaName = Msg("newAreaName", "開始エリア");
 
 	auto dlgTitSaveBitmapImage = Msg("dlgTitSaveBitmapImage", "格納イメージの保存");
 	auto filterBitmapImage = Msg("filterBitmapImage", "ビットマップイメージ (*.bmp)");
