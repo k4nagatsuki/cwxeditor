@@ -21,7 +21,7 @@ import cwx.types;
 import cwx.binary;
 import cwx.jpy;
 import cwx.msgutils;
-import cwx.variables;
+import cwx.background;
 
 import lhafile.lhafile;
 
@@ -248,7 +248,7 @@ public:
 	}
 
 	/// tempPathにシナリオを新規作成する。
-	static Summary createScenario(in CProps prop, string tempPath, string name, Skin skin, FlexEtcProps etc) { mixin(S_TRACE);
+	static Summary createScenario(in CProps prop, string tempPath, string name, Skin skin, bool createStartArea, in BgImageS[] bgImagesDefault) { mixin(S_TRACE);
 		auto sys = prop.sys;
 		auto p = Summary.createTempDir(tempPath, name);
 		auto mFPath = std.path.buildPath(p, skin.materialPath);
@@ -260,10 +260,24 @@ public:
 		}
 		summ.refCheckPaths();
 		summ.updateJpy1List(prop);
-		// 開始エリア追加
-		if (etc.createStartArea) {
+		Summary.createStartArea(summ , prop, createStartArea, bgImagesDefault, skin);
+		return summ;
+	}
+
+	/// シナリオに開始エリアを追加する。
+	static void createStartArea(ref Summary summ, in CProps prop, bool createStartArea, in BgImageS[] bgImagesDefault, Skin skin = null,
+			string enginePath = null, string classicEngineRegex = null, string classicDataDirRegex = null, string classicMatchKey = null,
+			in ClassicEngine[] classicEngines = null, string defaultSkin = null) { mixin(S_TRACE);
+		if (createStartArea) {
 			auto area = new Area(summ.newAreaId, prop.msgs.newAreaName);
-			auto bgImages = createBgImages(skin, etc.bgImagesDefault);
+			BgImage[] bgImages;
+			if(summ && summ.legacy) { // クラシックシナリオ
+				auto skinClassic = Skin.findLegacySkin(prop, enginePath, summ.scenarioPath(), classicEngineRegex,
+					classicDataDirRegex, classicMatchKey, classicEngines, defaultSkin);
+				bgImages = createBgImages(skinClassic, bgImagesDefault);
+			} else { // Wsnシナリオ
+				bgImages = createBgImages(skin, bgImagesDefault);
+			}
 			foreach (bg; bgImages) { mixin(S_TRACE);
 				area.append(bg);
 			}
@@ -272,7 +286,7 @@ public:
 			area.add(tree);
 			summ.add(area);
 		}
-		return summ;
+		return;
 	}
 
 	/// シナリオを読込む。
