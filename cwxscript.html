@@ -734,7 +734,7 @@
 <h4><a name="IF_RULE" id="IF_RULE">if/elif/sifについての補足</a></h4>
 
 <p><code class="code">if/elif/sif</code>の後に記述するパラメータの種類は、分岐の直前に置くコンテントによって異なります。各コンテント毎の解説を参照してください。</p>
-<p>また、<code class="code">if/elif/sif</code>は、必ず、分岐条件となる一つのパラメータと、分岐先のイベントコンテントを持たなければなりません。</p>
+<p>また、CardWirthのイベントツリーの構造上、<code class="code">if/elif/sif</code>は、必ず分岐先のイベントコンテントを持たなければなりません。</p>
 
 <h3><a name="NEXT" id="NEXT">後続コンテントについて</a></h3>
 
@@ -2031,7 +2031,22 @@
 
 <h4 class="example">例</h4>
 
-<pre><code class="samplecode"><span class="keywords">brrandomm</span> <span class="comment">// ランダムに分岐</span></code></pre>
+<pre><code class="samplecode"><span class="keywords">msg</span> <span class="code">none</span>, <span class="str">"ダイスを振る！"</span>
+<span class="keywords">brrandomm</span> <span class="comment">// ランダムに分岐</span>
+<code class="code">if</code>
+    <span class="keywords">msg</span> <span class="code">none</span>, <span class="str">"1だ！"</span>
+<code class="code">elif</code>
+    <span class="keywords">msg</span> <span class="code">none</span>, <span class="str">"2だ！"</span>
+<code class="code">elif</code>
+    <span class="keywords">msg</span> <span class="code">none</span>, <span class="str">"3だ！"</span>
+<code class="code">elif</code>
+    <span class="keywords">msg</span> <span class="code">none</span>, <span class="str">"4だ！"</span>
+<code class="code">elif</code>
+    <span class="keywords">msg</span> <span class="code">none</span>, <span class="str">"5だ！"</span>
+<code class="code">elif</code>
+    <span class="keywords">msg</span> <span class="code">none</span>, <span class="str">"6だ！"</span>
+<code class="code">fi</code> <span class="comment">// 分岐終了</span></code></pre>
+</code></pre>
 
 <h3 class="content"><a id="BRLEVEL" name="BRLEVEL">brlevel <span class="args"><span class="arg">&lt;レベル&gt;</span>, <span class="arg">&lt;平均か&gt;</span></span></a></h3>
 
