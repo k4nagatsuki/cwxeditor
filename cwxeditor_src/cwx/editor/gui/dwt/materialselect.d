@@ -162,7 +162,9 @@ class MaterialSelect(MtType Type, D, C) {
 		} else { mixin(S_TRACE);
 			static assert (0);
 		}
-		_fileList.setEnabled(!_readOnly);
+		ptrdiff_t skinPos, enginePosFrom, enginePosTo;
+		auto dirs = allDirs(skinPos, enginePosFrom, enginePosTo);
+		_fileList.setEnabled(!_readOnly && dirs.length);
 		_fileList.addSelectionListener(new LSListener);
 		static if (is (C == Table)) {
 			static if (Type == MtType.BGM || Type == MtType.SE) {
@@ -1530,12 +1532,15 @@ private:
 		} else static if (!is (C == Combo) && !is (C == CCombo)) {
 			static assert (false);
 		}
-		_fileList.setEnabled(!_readOnly);
+		ptrdiff_t skinPos, enginePosFrom, enginePosTo;
+		auto dirs = allDirs(skinPos, enginePosFrom, enginePosTo);
+		_fileList.setEnabled(!_readOnly && dirs.length);
 		_loading = false;
 		foreach (dlg; loadedEvent) dlg();
 		_comm.refreshToolBar();
 	}
 	private string[] allDirs(out ptrdiff_t skinPos, out ptrdiff_t enginePosFrom, out ptrdiff_t enginePosTo) { mixin(S_TRACE);
+		if (!_dirs) return [];
 		string[] st;
 		skinPos = -1;
 		enginePosFrom = -1;
@@ -1780,7 +1785,9 @@ private:
 						if (_dirs.isDisposed()) return;
 						updateList();
 						_dirs.setEnabled(!_readOnly);
-						_fileList.setEnabled(!_readOnly);
+						ptrdiff_t skinPos, enginePosFrom, enginePosTo;
+						auto dirs = allDirs(skinPos, enginePosFrom, enginePosTo);
+						_fileList.setEnabled(!_readOnly && dirs.length);
 					}
 				});
 			} else { mixin(S_TRACE);
