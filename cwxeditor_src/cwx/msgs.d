@@ -2169,7 +2169,6 @@ class Msgs : Properties {
 	auto scriptErrorNoStartText = Msg("scriptErrorNoStartText", "スタートコンテントの名前がありません。");
 	auto scriptErrorInvalidStatement = Msg("scriptErrorInvalidStatement", "文が正しくありません。");
 	auto scriptErrorInvalidBranch = Msg("scriptErrorInvalidBranch", "分岐の構成が正しくありません。");
-	auto scriptErrorNoIfText = Msg("scriptErrorNoIfText", "ifの条件が見つかりません。");
 	auto scriptErrorNoIfContents = Msg("scriptErrorNoIfContents", "分岐先のコンテントが見つかりません。");
 	auto scriptErrorInvalidKeyword = Msg("scriptErrorInvalidKeyword", "未知のキーワードです。");
 	auto scriptErrorInvalidKeyword2 = Msg("scriptErrorInvalidKeyword2", "キーワードが正しくありません。");
@@ -2205,7 +2204,6 @@ class Msgs : Properties {
 	auto scriptErrorInvalidCoupon = Msg("scriptErrorInvalidCoupon", "評価条件が正しくありません。");
 	auto scriptErrorUndefinedSymbol = Msg("scriptErrorUndefinedSymbol", "未知のシンボルです。");
 	auto scriptErrorInvalidSif = Msg("scriptErrorInvalidSif", "ここにsifが現れる事はできません。");
-	auto scriptErrorNoSifText = Msg("scriptErrorNoSifText", "sifのテキストが見つかりません。");
 	auto scriptErrorInvalidCommand = Msg("scriptErrorInvalidCommand", "命令が正しくありません。");
 	auto scriptErrorCanNotHaveContent = Msg("scriptErrorCanNotHaveContent", "このコンテントが後続コンテントを持つ事はできません。");
 	auto scriptErrorInvalidStr = Msg("scriptErrorInvalidStr", "文字列が正しくありません。");
