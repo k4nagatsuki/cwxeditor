@@ -2442,18 +2442,13 @@ public:
 			auto text = t.getText();
 			if (!text) text = "";
 			if (text == evt.name) return;
+			assert (evt.type is CType.START);
 			store(evt);
-			if (evt.type == CType.START) { mixin(S_TRACE);
-				evt.setName(_prop.parent, createNewName(text, (string name) { mixin(S_TRACE);
-					auto s = _et.start(name);
-					return !(s && s !is evt);
-				}, true, EventView.eventTreeNames(_prop, _et)));
-				text = evt.name;
-			} else { mixin(S_TRACE);
-				evt.setName(_prop.parent, text);
-				text = eventText(evt.parent, evt);
-			}
-			auto isTop = evt.type == CType.START && _tree.indexOf(itm) == 0;
+			evt.setName(_prop.parent, createNewName(text, (string name) { mixin(S_TRACE);
+				auto s = _et.start(name);
+				return !(s && s !is evt);
+			}, true, EventView.eventTreeNames(_prop, _et)));
+			text = evt.name;
 			foreach (v; vs) { mixin(S_TRACE);
 				if (v._tree.tree) {
 					assert (cast(TreeItem)itm !is null);
@@ -2461,9 +2456,7 @@ public:
 				} else {
 					v._tree.editor.updateContentInfo(evt);
 				}
-				if (isTop) { mixin(S_TRACE);
-					v._refreshTopStart();
-				}
+				v._refreshTopStart();
 			}
 		} else { mixin(S_TRACE);
 			auto combo = cast(Combo)c;
@@ -2471,6 +2464,10 @@ public:
 			auto data = cast(Content)_tree.getParentItem(itm).getData();
 			string name;
 			switch (data.type) {
+			case CType.TALK_MESSAGE:
+			case CType.TALK_DIALOG:
+				name = combo.getText();
+				break;
 			case CType.BRANCH_MULTI_STEP: { mixin(S_TRACE);
 				if (index + 1 < combo.getItemCount()) { mixin(S_TRACE);
 					name = to!(string)(index);
@@ -2622,9 +2619,11 @@ public:
 		auto parent = _tree.getParentItem(itm);
 		if (parent) { mixin(S_TRACE);
 			if ((cast(Content)parent.getData()).detail.nextType == CNextType.TEXT) { mixin(S_TRACE);
-				return createTextEditor(_comm, _prop, _tree.control, (cast(Content)itm.getData()).name);
+				if (_ee) _ee.minimumWidth = _prop.var.etc.selectionWidth;
+				return createSelectionCombo(_comm, _tree.control, null, (cast(Content)itm.getData()).name);
 			}
 		} else { mixin(S_TRACE);
+			assert ((cast(Content)itm.getData()).type is CType.START);
 			return createTextEditor(_comm, _prop, _tree.control, (cast(Content)itm.getData()).name);
 		}
 		auto data = cast(Content)parent.getData();

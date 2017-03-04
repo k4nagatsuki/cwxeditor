@@ -1546,9 +1546,6 @@ fi`;
 				if (tokens[i].kind is Kind.IF || tokens[i].kind is Kind.ELIF) { mixin(S_TRACE);
 					i++;
 					texts = analyzeSyntaxAttr(tokens, i, keys);
-					if (!texts.length) { mixin(S_TRACE);
-						throwError(_prop.msgs.scriptErrorNoIfText, tok);
-					}
 					if (tokens.length <= i) { mixin(S_TRACE);
 						throwError(_prop.msgs.scriptErrorNoIfContents, tok);
 					}
@@ -1599,12 +1596,12 @@ fi`;
 			if (tok.kind is Kind.SIF) { mixin(S_TRACE);
 				i++;
 				if (tokens.length <= i) { mixin(S_TRACE);
-					throwError(_prop.msgs.scriptErrorNoSifText, tok);
-					return r;
-				}
-				sifTexts = analyzeSyntaxAttr(tokens, i, keys);
-				if (tokens.length <= i) { mixin(S_TRACE);
-					throwError(_prop.msgs.scriptErrorInvalidSif, tok);
+					sifTexts = [];
+				} else { mixin(S_TRACE);
+					sifTexts = analyzeSyntaxAttr(tokens, i, keys);
+					if (tokens.length <= i) { mixin(S_TRACE);
+						throwError(_prop.msgs.scriptErrorInvalidSif, tok);
+					}
 				}
 				tok = tokens[i];
 			} else if (tok.kind !is Kind.SYMBOL) { mixin(S_TRACE);
@@ -2531,7 +2528,7 @@ fi`;
 		if (value.kind is Kind.SYMBOL) { mixin(S_TRACE);
 			auto valStr = std.string.toLower(value.value);
 			if (valStr in keys.keywords) { mixin(S_TRACE);
-				throwError(_prop.msgs.scriptErrorUndefinedSymbol, node.token);
+				return "";
 			}
 			switch (valStr) {
 			case "default":
@@ -3919,13 +3916,15 @@ fi`;
 			void addIfs(size_t idx, in Content chld) { mixin(S_TRACE);
 				buf ~= "\n" ~ indentValue;
 				if (useSif) { mixin(S_TRACE);
-					buf ~= "sif ";
+					buf ~= "sif";
 				} else { mixin(S_TRACE);
-					buf ~= idx == 0 ? "if " : "elif ";
+					buf ~= idx == 0 ? "if" : "elif";
+				}
+				if (detail.nextType !is CNextType.NONE) { mixin(S_TRACE);
+					buf ~= " ";
 				}
 				final switch (detail.nextType) {
 				case CNextType.NONE:
-					buf ~= `""`;
 					break;
 				case CNextType.TEXT:
 					buf ~= createString(chld.name);
