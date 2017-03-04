@@ -1984,7 +1984,7 @@ class Msgs : Properties {
 	auto addNewClassicEngine = Msg("addNewClassicEngine", "未知のクラシックエンジンを見つけたら記憶する");
 	auto openLastScenario = Msg("openLastScenario", "終了時に開いていたシナリオを次の起動時に開く");
 	auto reconstruction = Msg("reconstruction", "シナリオごとにタブの配置を記憶する");
-	auto createStartArea = Msg("createStartArea", "シナリオ新規作成時に開始エリアを作成する");
+	auto createStartArea = Msg("createStartArea", "シナリオの新規作成時に開始エリアを作成する");
 
 	auto etcSettingsFile = Msg("etcSettingsFile", "ファイルの追跡");
 	auto traceDirectories = Msg("traceDirectories", "ファイル・" ~ DIR ~ "の変更を自動的に追跡する");

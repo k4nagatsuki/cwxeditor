@@ -4364,6 +4364,9 @@ public:
 						}
 						auto summ = new Summary(name, "", _opt.createclassicPath, false, true);
 						summ.author = _prop.var.etc.defaultAuthor;
+						Summary.createStartArea(summ , _prop.parent, _prop.var.etc.createStartArea, _prop.var.etc.bgImagesDefault, null, _prop.enginePath,
+							_prop.var.etc.classicEngineRegex, _prop.var.etc.classicDataDirRegex, _prop.var.etc.classicMatchKey,
+							_prop.var.etc.classicEngines, _prop.var.etc.defaultSkin);
 						openScenario(summ);
 						statusLine = "";
 					} catch (Exception e) {
