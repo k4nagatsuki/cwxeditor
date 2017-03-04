@@ -2061,7 +2061,8 @@ class Msgs : Properties {
 	auto wallpaperStyleNameExpandFull = Msg("wallpaperStyleNameExpandFull", "拡大して表示");
 	auto wallpaperStyleNameExpand = Msg("wallpaperStyleNameExpand", "はみ出さないように拡大");
 
-	auto bgImageAndKeyCode = Msg("bgImageAndKeyCode", "背景とキーコード");
+	auto bgImageAndSelections = Msg("bgImageAndSelections", "背景と選択肢");
+	auto standardSelections = Msg("standardSelections", "標準の選択肢");
 	auto standardKeyCode = Msg("standardKeyCode", "標準のキーコード");
 
 	auto errorEnginePath = Msg("errorEnginePath", "%1$sの場所が正しくありません。");

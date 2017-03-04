@@ -51,7 +51,7 @@ T createCouponCombo(T = Combo)(Commons comm, Summary summ, Composite parent, boo
 		combo.removeAll();
 		auto values = allCoupons(comm, summ, type);
 		if (initValue != "") values = cwx.utils.remove(values, initValue);
-		if (initValue != "") values = values.length ? ([initValue, ""] ~ values) : [initValue];
+		if (initValue != "") values = values.length && values[0] != "" ? ([initValue, ""] ~ values) : [initValue] ~ values;
 		foreach (i, coupon; values) { mixin(S_TRACE);
 			if (!incSearch.match(coupon)) continue;
 			combo.add(coupon);
@@ -152,7 +152,7 @@ T createGossipCombo(T = Combo)(Commons comm, Summary summ, Composite parent, boo
 
 		auto values = allGossips(comm, summ);
 		if (initValue != "") values = cwx.utils.remove(values, initValue);
-		if (initValue != "") values = values.length ? ([initValue, ""] ~ values) : [initValue];
+		if (initValue != "") values = values.length && values[0] != "" ? ([initValue, ""] ~ values) : [initValue] ~ values;
 		foreach (i, gossip; values) { mixin(S_TRACE);
 			if (!incSearch.match(gossip)) continue;
 			combo.add(gossip);
@@ -208,7 +208,7 @@ T createCompleteStampCombo(T = Combo)(Commons comm, Summary summ, Composite pare
 
 		auto values = allCompleteStamps(comm, summ);
 		if (initValue != "") values = cwx.utils.remove(values, initValue);
-		if (initValue != "") values = values.length ? ([initValue, ""] ~ values) : [initValue];
+		if (initValue != "") values = values.length && values[0] != "" ? ([initValue, ""] ~ values) : [initValue] ~ values;
 		foreach (i, stamp; values) { mixin(S_TRACE);
 			if (!incSearch.match(stamp)) continue;
 			combo.add(stamp);
@@ -285,7 +285,7 @@ T createKeyCodeCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bo
 		}
 		auto values = kcs2;
 		if (initValue != "") values = cwx.utils.remove(values, initValue);
-		if (initValue != "") values = values.length ? ([initValue, ""] ~ values) : [initValue];
+		if (initValue != "") values = values.length && values[0] != "" ? ([initValue, ""] ~ values) : [initValue] ~ values;
 		foreach (i, kc; values) { mixin(S_TRACE);
 			if (!incSearch.match(kc)) continue;
 			combo.add(kc);
@@ -360,7 +360,7 @@ T createCellNameCombo(T = Combo)(Commons comm, Summary summ, Composite parent, b
 
 		auto values = allCellNames(comm, summ);
 		if (initValue != "") values = cwx.utils.remove(values, initValue);
-		if (initValue != "") values = values.length ? ([initValue, ""] ~ values) : [initValue];
+		if (initValue != "") values = values.length && values[0] != "" ? ([initValue, ""] ~ values) : [initValue] ~ values;
 		foreach (i, kc; values) { mixin(S_TRACE);
 			if (!incSearch.match(kc)) continue;
 			combo.add(kc);
@@ -793,6 +793,46 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 		}
 		return _selected;
 	}
+}
+
+T createSelectionCombo(T = Combo)(Commons comm, Composite parent, bool delegate() catchMod, string initValue) { mixin(S_TRACE);
+	auto combo = new T(parent, SWT.BORDER | SWT.DROP_DOWN);
+	combo.setVisibleItemCount(comm.prop.var.etc.comboVisibleItemCount);
+	auto incSearch = new IncSearch(comm, combo);
+
+	void refStandardSelections() { mixin(S_TRACE);
+		string id = combo.getText();
+		combo.removeAll();
+
+		auto values = [""];
+		values ~= comm.prop.var.etc.standardSelections.dup;
+		if (initValue != "") values = cwx.utils.remove(values, initValue);
+		if (initValue != "") values = values.length && values[0] != "" ? ([initValue, ""] ~ values) : [initValue] ~ values;
+		foreach (i, kc; values) { mixin(S_TRACE);
+			if (!incSearch.match(kc)) continue;
+			combo.add(kc);
+		}
+		combo.setText(id);
+	}
+
+	incSearch.modEvent ~= &refStandardSelections;
+	comm.refStandardSelections.add(&refStandardSelections);
+	.listener(combo, SWT.Dispose, { mixin(S_TRACE);
+		comm.refStandardSelections.remove(&refStandardSelections);
+	});
+
+	auto menu = new Menu(combo.getShell(), SWT.POP_UP);
+	createMenuItem(comm, menu, MenuID.IncSearch, { mixin(S_TRACE);
+		.forceFocus(combo, true);
+		incSearch.startIncSearch();
+	}, null);
+	new MenuItem(menu, SWT.SEPARATOR);
+	combo.setMenu(menu);
+	createTextMenu!T(comm, comm.prop, combo, catchMod);
+
+	refStandardSelections();
+
+	return combo;
 }
 
 /// FIXME: ここで実体を作っておかないとリリースビルドがリンクエラーになる

@@ -311,8 +311,10 @@ class FlexEtcProps : Properties {
 	auto bgImagesDefault = Prop!(BgImageS[])("bgImagesDefault", [BgImageS("MapOfWirth", 0, 0, 632, 420, false)]);
 	auto bgImageSettingsSashL = Prop!(int)("bgImageSettingsSashL", 1);
 	auto bgImageSettingsSashR = Prop!(int)("bgImageSettingsSashR", 1);
-	auto bgImageKeyCodeSashL = Prop!(int)("bgImageKeyCodeSashL", 2);
-	auto bgImageKeyCodeSashR = Prop!(int)("bgImageKeyCodeSashR", 1);
+	auto selectionKeyCodeSashL = Prop!(int)("selectionKeyCodeSashL", 1);
+	auto selectionKeyCodeSashR = Prop!(int)("selectionKeyCodeSashR", 3);
+	auto bgImageSelectionSashL = Prop!(int)("bgImageSelectionSashL", 2);
+	auto bgImageSelectionSashR = Prop!(int)("bgImageSelectionSashR", 1);
 	auto outerToolsSashL = Prop!(int)("outerToolsSashL", 1);
 	auto outerToolsSashR = Prop!(int)("outerToolsSashR", 2);
 	auto outerToolShortcutSashL = Prop!(int)("outerToolShortcutSashL", 1, 2014103100);
@@ -338,6 +340,7 @@ class FlexEtcProps : Properties {
 	auto templatesSashR = Prop!(int)("templatesSashR", 1);
 	auto toolsClassicEnginesSashL = Prop!(int)("toolsClassicEnginesSashL", 1);
 	auto toolsClassicEnginesSashR = Prop!(int)("toolsClassicEnginesSashR", 1);
+	auto selectionWidth = Prop!(int, true, true)("selectionWidth", 100);
 	auto keyCodeWidth = Prop!(int, true, true)("keyCodeWidth", 100);
 	auto scenarioPath = Prop!(string)("scenarioPath", "");
 	auto tempPath = Prop!(string)("tempPath", "temp");
@@ -674,6 +677,14 @@ class FlexEtcProps : Properties {
 		"一撃",
 		"守備",
 	]);
+	auto standardSelections = Prop!(string[])("standardSelections", [
+		"はい",
+		"いいえ",
+		"キャンセル",
+		"Yes",
+		"No",
+		"Cancel",
+	], true);
 	version (Windows) {
 		auto outerTools = Prop!(OuterTool[])("outerTools", [
 			OuterTool("メモ帳", "notepad $F", "", "", ""),

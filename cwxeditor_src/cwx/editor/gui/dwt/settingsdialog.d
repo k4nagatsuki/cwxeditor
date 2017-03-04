@@ -42,7 +42,7 @@ import cwx.editor.gui.dwt.incsearch;
 import cwx.editor.gui.dwt.etcsettings;
 
 static import std.algorithm;
-import std.algorithm : max, min, map;
+import std.algorithm : max, min, map, stripRight;
 import std.path;
 import std.file;
 import std.string;
@@ -110,6 +110,7 @@ private:
 	CTabItem _tabS;
 	BgImageS[] _bgImagesDefault;
 	ToolsPane!BgImageSetting _bgStgs;
+	Text _selections;
 	Text _keyCodes;
 
 	CTabItem _tabT;
@@ -700,7 +701,7 @@ private:
 	void construct2(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
 		_tabS = new CTabItem(tabf, SWT.NONE);
-		_tabS.setText(_prop.msgs.bgImageAndKeyCode);
+		_tabS.setText(_prop.msgs.bgImageAndSelections);
 		_tabS.setControl(comp);
 		comp.setLayout(normalGridLayout(1, true));
 		auto sash = new SplitPane(comp, SWT.HORIZONTAL);
@@ -723,19 +724,36 @@ private:
 			_bgStgs.setLayoutData(new GridData(GridData.FILL_BOTH));
 		}
 		{ mixin(S_TRACE);
-			auto grp = new Group(sash, SWT.NONE);
-			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-			grp.setLayout(normalGridLayout(1, false));
-			grp.setText(_prop.msgs.standardKeyCode);
-			_keyCodes = new Text(grp, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
-			createTextMenu!Text(_comm, _prop, _keyCodes, &catchMod);
-			mod(_keyCodes);
-			auto gd = new GridData(GridData.FILL_BOTH);
-			gd.widthHint = _prop.var.etc.keyCodeWidth;
-			gd.heightHint = 0;
-			_keyCodes.setLayoutData(gd);
+			auto sashR = new SplitPane(sash, SWT.VERTICAL);
+			{ mixin(S_TRACE);
+				auto grp = new Group(sashR, SWT.NONE);
+				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+				grp.setLayout(normalGridLayout(1, false));
+				grp.setText(_prop.msgs.standardSelections);
+				_selections = new Text(grp, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
+				createTextMenu!Text(_comm, _prop, _selections, &catchMod);
+				mod(_selections);
+				auto gd = new GridData(GridData.FILL_BOTH);
+				gd.widthHint = _prop.var.etc.selectionWidth;
+				gd.heightHint = 0;
+				_selections.setLayoutData(gd);
+			}
+			{ mixin(S_TRACE);
+				auto grp = new Group(sashR, SWT.NONE);
+				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+				grp.setLayout(normalGridLayout(1, false));
+				grp.setText(_prop.msgs.standardKeyCode);
+				_keyCodes = new Text(grp, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
+				createTextMenu!Text(_comm, _prop, _keyCodes, &catchMod);
+				mod(_keyCodes);
+				auto gd = new GridData(GridData.FILL_BOTH);
+				gd.widthHint = _prop.var.etc.keyCodeWidth;
+				gd.heightHint = 0;
+				_keyCodes.setLayoutData(gd);
+			}
+			.setupWeights(sashR, _prop.var.etc.selectionKeyCodeSashL, _prop.var.etc.selectionKeyCodeSashR);
 		}
-		.setupWeights(sash, _prop.var.etc.bgImageKeyCodeSashL, _prop.var.etc.bgImageKeyCodeSashR);
+		.setupWeights(sash, _prop.var.etc.bgImageSelectionSashL, _prop.var.etc.bgImageSelectionSashR);
 	}
 
 	void construct3(CTabFolder tabf) { mixin(S_TRACE);
@@ -1205,11 +1223,8 @@ protected:
 		_flagInitValue.select(_prop.var.etc.flagInitValue ? 0 : 1);
 		_stepInitValue.select(.max(0, .min(_prop.looks.stepMaxCount - 1, _prop.var.etc.stepInitValue)));
 
-		string buf = "";
-		foreach (kc; _prop.var.etc.standardKeyCodes) { mixin(S_TRACE);
-			buf ~= kc ~ "\n";
-		}
-		_keyCodes.setText(buf);
+		_selections.setText(_prop.var.etc.standardSelections.value.join("\n") ~ "\n");
+		_keyCodes.setText(_prop.var.etc.standardKeyCodes.value.join("\n") ~ "\n");
 
 		refreshEnabled();
 	}
@@ -1381,16 +1396,9 @@ protected:
 		_prop.var.etc.flagInitValue = _flagInitValue.getSelectionIndex() == 0;
 		_prop.var.etc.stepInitValue = _stepInitValue.getSelectionIndex();
 
-		string[] lines = splitLines!string(_keyCodes.getText());
-		if (lines.length > 0) { mixin(S_TRACE);
-			ptrdiff_t i;
-			for (i = lines.length - 1; i >= 0 && lines[i].length == 0; i--) { mixin(S_TRACE);
-				;
-			}
-			_prop.var.etc.standardKeyCodes = lines[0 .. i + 1];
-		} else { mixin(S_TRACE);
-			_prop.var.etc.standardKeyCodes = [];
-		}
+		_prop.var.etc.standardSelections = _selections.getText().splitLines().stripRight("");
+		_prop.var.etc.standardKeyCodes = _keyCodes.getText().splitLines().stripRight("");
+
 		_prop.var.etc.outerTools = _tools.array;
 		_prop.var.etc.classicEngines = _cEngines.array;
 		_prop.var.etc.eventTemplates = _evTempls.array;
@@ -1419,6 +1427,7 @@ struct OldSettings {
 	bool findEnginePath;
 	string oldWallpaper;
 	int oldWallpaperStyle;
+	const string[] oldSelections;
 	const string[] oldKeyCodes;
 	const OuterTool[] tools;
 	const ClassicEngine[] cEngines;
@@ -1475,6 +1484,7 @@ struct OldSettings {
 		this.oldEnginePath = prop.var.etc.enginePath;
 		this.oldWallpaper = prop.var.etc.wallpaper;
 		this.oldWallpaperStyle = prop.var.etc.wallpaperStyle;
+		this.oldSelections = prop.var.etc.standardSelections;
 		this.oldKeyCodes = prop.var.etc.standardKeyCodes;
 		this.tools = prop.var.etc.outerTools;
 		this.cEngines = prop.var.etc.classicEngines;
@@ -1563,6 +1573,9 @@ struct OldSettings {
 		if (oldWallpaper != prop.var.etc.wallpaper || oldWallpaperStyle != prop.var.etc.wallpaperStyle) { mixin(S_TRACE);
 			comm.refreshWallpaper(prop);
 			comm.refWallpaper.call();
+		}
+		if (oldSelections != prop.var.etc.standardSelections) { mixin(S_TRACE);
+			comm.refStandardSelections.call();
 		}
 		if (oldKeyCodes != prop.var.etc.standardKeyCodes) { mixin(S_TRACE);
 			comm.refStandardKeyCodes.call();

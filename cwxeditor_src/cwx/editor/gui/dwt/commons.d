@@ -335,6 +335,7 @@ class Commons {
 	Dlg!() refClassicSkin;
 	Dlg!() refDataVersion;
 	Dlg!() refTargetVersion;
+	Dlg!() refStandardSelections;
 	Dlg!() refStandardKeyCodes;
 	Dlg!() refOuterTools;
 	Dlg!() refEventTemplates;
