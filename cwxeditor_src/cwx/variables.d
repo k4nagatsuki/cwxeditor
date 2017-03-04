@@ -1,4 +1,5 @@
-/// CWXEditorの変数�module cwx.variables;
+/// CWXEditorの変数。
+module cwx.variables;
 
 import cwx.xml;
 import cwx.structs;
@@ -251,8 +252,8 @@ class FlexEtcProps : Properties {
 	auto penaltyColorLow = Prop!(CRGB, true)("penaltyColorLow", CRGB(0, 0, 187));
 	auto textCellDefaultWidth = Prop!(int, true)("textCellDefaultWidth", 100);
 	auto textCellDefaultHeight = Prop!(int, true)("textCellDefaultHeight", 100);
-	auto textCellDefaultFontClassic = Prop!(string, true)("textCellDefaultFontClassic", "�� ゴシヂ�");
-	auto textCellDefaultFont = Prop!(string, true)("textCellDefaultFont", "IPA ゴシヂ�");
+	auto textCellDefaultFontClassic = Prop!(string, true)("textCellDefaultFontClassic", "ＭＳ ゴシック");
+	auto textCellDefaultFont = Prop!(string, true)("textCellDefaultFont", "IPA ゴシック");
 	auto textCellDefaultFontSize = Prop!(int, true)("textCellDefaultFontSize", 18);
 	auto textCellDefaultColor = Prop!(CRGB, true)("textCellDefaultColor", CRGB(0, 0, 0, 255));
 	auto textCellDefaultBorderingColor = Prop!(CRGB, true)("textCellDefaultBorderingColor", CRGB(255, 255, 255, 255));
@@ -596,89 +597,89 @@ class FlexEtcProps : Properties {
 
 	auto usedCouponToCombo = Prop!(bool, true)("usedCouponToCombo", true);
 
-	auto flagTrues = Prop!(string[])("flagTrues", ["TRUE", "表示", "ON", "�, "可", "済み"], true);
-	auto flagFalses = Prop!(string[])("flagFalses", ["FALSE", "非表示", "OFF", "無", "不可", "ま�"], true);
+	auto flagTrues = Prop!(string[])("flagTrues", ["TRUE", "表示", "ON", "有", "可", "済み"], true);
+	auto flagFalses = Prop!(string[])("flagFalses", ["FALSE", "非表示", "OFF", "無", "不可", "まだ"], true);
 
 	auto bgImageSettings = Prop!(BgImageSetting[])("bgImageSettings", [
-		BgImageSetting("冒険�宿", 116, 15, 400, 260, false, LAYER_BACK_CELL),
-		BgImageSetting("冒険�宿(フレー�)", 116, 14, 400, 261, true, LAYER_BACK_CELL),
+		BgImageSetting("冒険者の宿", 116, 15, 400, 260, false, LAYER_BACK_CELL),
+		BgImageSetting("冒険者の宿(フレーム)", 116, 14, 400, 261, true, LAYER_BACK_CELL),
 		BgImageSetting("フル", 0, 0, 632, 420, false, LAYER_BACK_CELL),
 		BgImageSetting("フル(マスク)", 0, 0, 632, 420, true, LAYER_BACK_CELL),
-		BgImageSetting("カー�, 0, 0, 74, 94, true, LAYER_BACK_CELL),
-		BgImageSetting("冒険耂�ー�, 0, 0, 95, 130, false, LAYER_BACK_CELL),
-		BgImageSetting("ゲー�オーバ�", 116, 55, 400, 260, false, LAYER_BACK_CELL),
+		BgImageSetting("カード", 0, 0, 74, 94, true, LAYER_BACK_CELL),
+		BgImageSetting("冒険者カード", 0, 0, 95, 130, false, LAYER_BACK_CELL),
+		BgImageSetting("ゲームオーバー", 116, 55, 400, 260, false, LAYER_BACK_CELL),
 		BgImageSetting("Qubes 地面", 160, 80, 320, 160, true, LAYER_BACK_CELL),
-		BgImageSetting("Qubes 左�, 80, 0, 240, 160, true, LAYER_BACK_CELL),
-		BgImageSetting("Qubes 右�, 320, 0, 240, 160, true, LAYER_BACK_CELL),
-		BgImageSetting("Qubes 左�, 80, 80, 240, 200, true, LAYER_BACK_CELL),
-		BgImageSetting("Qubes 右�, 320, 80, 240, 200, true, LAYER_BACK_CELL)
+		BgImageSetting("Qubes 左後", 80, 0, 240, 160, true, LAYER_BACK_CELL),
+		BgImageSetting("Qubes 右後", 320, 0, 240, 160, true, LAYER_BACK_CELL),
+		BgImageSetting("Qubes 左前", 80, 80, 240, 200, true, LAYER_BACK_CELL),
+		BgImageSetting("Qubes 右前", 320, 80, 240, 200, true, LAYER_BACK_CELL)
 	]);
 	auto standardCoupons = Prop!(string[])("standardCoupons", [
-		"�Ｒ", "�, "�, "�, "�, "�, "�, "�消滺��, "�レベル補正中"
+		"：Ｒ", "＿１", "＿２", "＿３", "＿４", "＿５", "＿６", "＿消滅予約", "：レベル補正中"
 	], true);
 	auto standardKeyCodes = Prop!(string[])("standardKeyCodes", [
-		"攻�,
-		"治�,
-		"魔�,
+		"攻撃",
+		"治療",
+		"魔法",
 		"召喚獣",
-		"気功�,
-		"�距離攻�,
-		"神聖な攻�,
-		"魔法による攻�,
-		"炎による攻�,
-		"冷気による攻�,
+		"気功法",
+		"遠距離攻撃",
+		"神聖な攻撃",
+		"魔法による攻撃",
+		"炎による攻撃",
+		"冷気による攻撃",
 		"暗殺",
 		"精神を回復",
 		"中毒を解除",
 		"麻痺を解除",
-		"��,
+		"眠り",
 		"麻痺",
-		"中�,
-		"呪�,
-		"沈�,
-		"召�,
-		"鑑�,
-		"解�",
+		"中毒",
+		"呪縛",
+		"沈黙",
+		"召喚",
+		"鑑定",
+		"解錠",
 		"呪縛を解除",
 		"沈黙を解除",
 		"魔法を解除",
 		"",
 		"魔力感知",
 		"生命感知",
-		"魔法�鍵",
+		"魔法の鍵",
 		"解読",
-		"石�,
+		"石化",
 		"石化を解除",
 		"蝙蝠変化",
-		"明か�,
-		"目つぶ�,
-		"魺,
-		"透�",
-		"召喚獣を付�,
+		"明かり",
+		"目つぶし",
+		"魅了",
+		"透明",
+		"召喚獣を付与",
 		"暴露",
 		"即死",
-		"一撿��",
+		"一撃必殺",
 		"対象消去",
-		"恐�",
-		"不流�攻�,
-		"呪�,
-		"飛�,
-		"浮�,
+		"恐慌",
+		"不浄な攻撃",
+		"呪い",
+		"飛行",
+		"浮遊",
 		"灯火",
 		"",
-		"フェイン�,
+		"フェイント",
 		"防御",
-		"逵�",
-		"カード交�,
-		"ペナルヂ�",
+		"逃走",
+		"カード交換",
+		"ペナルティ",
 		"リサイクル",
 		"",
-		"一�,
+		"一撃",
 		"守備",
 	]);
 	auto standardSelections = Prop!(string[])("standardSelections", [
-		"は�,
-		"ぁ��,
+		"はい",
+		"いいえ",
 		"キャンセル",
 		"Yes",
 		"No",
@@ -687,7 +688,7 @@ class FlexEtcProps : Properties {
 	version (Windows) {
 		auto outerTools = Prop!(OuterTool[])("outerTools", [
 			OuterTool("メモ帳", "notepad $F", "", "", ""),
-			OuterTool("ペイン�, "mspaint $F", "", "", "")
+			OuterTool("ペイント", "mspaint $F", "", "", "")
 		]);
 	} else {
 		auto outerTools = Prop!(OuterTool[])("outerTools", []);
@@ -746,11 +747,11 @@ class FlexEtcProps : Properties {
 	auto textVarValueColumn = Prop!(int, false, true)("textVarValueColumn", 180);
 	auto messageVarTableHeight = Prop!(int, true, true)("messageVarTableHeight", 300);
 	auto messageVarSelected = Prop!(string)("messageVarSelected", "[選択中----14]");
-	auto messageVarUnselected = Prop!(string)("messageVarUnselected", "[選択�---14]");
-	auto messageVarRandom = Prop!(string)("messageVarRandom", "[ランダ�--14]");
-	auto messageVarCard = Prop!(string)("messageVarCard", "[カー�-12]");
-	auto messageVarRef = Prop!(string)("messageVarRef", "[話�-----14]");
-	auto messageVarTeam = Prop!(string)("messageVarTeam", "[チ���-----------------30]");
+	auto messageVarUnselected = Prop!(string)("messageVarUnselected", "[選択外----14]");
+	auto messageVarRandom = Prop!(string)("messageVarRandom", "[ランダム--14]");
+	auto messageVarCard = Prop!(string)("messageVarCard", "[カード--12]");
+	auto messageVarRef = Prop!(string)("messageVarRef", "[話者------14]");
+	auto messageVarTeam = Prop!(string)("messageVarTeam", "[チーム名------------------30]");
 	auto messageVarYado = Prop!(string)("messageVarYado", "[宿屋名--------18]");
 	auto showVariableValuesInEventText = Prop!(bool)("showVariableValuesInEventText", false);
 
