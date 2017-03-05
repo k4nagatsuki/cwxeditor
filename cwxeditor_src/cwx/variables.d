@@ -715,6 +715,7 @@ class FlexEtcProps : Properties {
 	auto doubleIO = Prop!(bool)("doubleIO", true);
 	auto reconstruction = Prop!(bool)("reconstruction", true);
 	auto createStartArea = Prop!(bool)("createStartArea", true);
+	auto branchRandomFailureFormat = Prop!(bool)("branchRandomFailureFormat", true);
 	auto openLastScenario = Prop!(bool)("openLastScenario", true);
 	auto imageCache = Prop!(bool)("imageCache", true);
 

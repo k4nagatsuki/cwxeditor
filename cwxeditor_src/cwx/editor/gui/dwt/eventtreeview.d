@@ -4065,6 +4065,9 @@ private string evtChildBrRandom(in Props prop, int percent, ref string text) { m
 	if (val) { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.branchRandomSuccess, percent);
 	} else { mixin(S_TRACE);
+		if (prop.var.etc.branchRandomFailureFormat) { mixin(S_TRACE);
+			percent = 100 - percent;
+		}
 		return .tryFormat(prop.msgs.branchRandomFailure, percent);
 	}
 }
