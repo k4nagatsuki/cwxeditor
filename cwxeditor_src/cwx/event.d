@@ -1849,10 +1849,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// イベントの発火有無(Wsn.2)。
 	mixin Prop!(bool, "ignite", false);
 	/// イベント発火のキーコード(Wsn.2)。
-	mixin Prop!(string[], "keyCodes", []);
+	mixin Prop!(KeyCodesUser, string[], "keyCodes", [], ".keyCodes", ".keyCodes", true);
 
 	/// 複数のクーポン名(Wsn.2)。
-	mixin Prop!(string[], "couponNames", []);
+	mixin Prop!(CouponNamesUser, string[], "couponNames", [], ".couponNames", ".couponNames", true);
 	/// マッチングタイプ(Wsn.2)。
 	mixin Prop!(MatchingType, "matchingType", MatchingType.And);
 

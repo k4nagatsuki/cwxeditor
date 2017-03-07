@@ -1430,7 +1430,7 @@ private:
 	uint _volume2 = 100;
 	uint _loopCount1 = 1;
 	uint _loopCount2 = 1;
-	KeyCodeUser[] _keyCodes = [];
+	KeyCodesUser _keyCodes;
 	Premium _premi = Premium.NORMAL;
 	MotionUser _muser;
 	AbstractEventTreeOwner _ceto;
@@ -1479,6 +1479,7 @@ public:
 		_muser = new MotionUser(this);
 		_se1 = new PathUser(this);
 		_se2 = new PathUser(this);
+		_keyCodes = new KeyCodesUser(this);
 		_enh = [Enhance.AVOID:0, Enhance.RESIST:0, Enhance.DEFENSE:0];
 	}
 	/// cからパラメータをコピーする。
@@ -1505,7 +1506,7 @@ public:
 		soundPath2 = c.soundPath2;
 		volume2 = c.volume2;
 		loopCount2 = c.loopCount2;
-		keyCodes = c.keyCodes;
+		keyCodes = c.keyCodes.dup;
 		premium = c.premium;
 		Motion[] ms;
 		foreach (m; c.motions) { mixin(S_TRACE);
@@ -1787,31 +1788,14 @@ public:
 
 	/// キーコード。
 	@property
-	const
-	string[] keyCodes() { mixin(S_TRACE);
-		auto r = new string[_keyCodes.length];
-		foreach (i, ref kc; r) { mixin(S_TRACE);
-			kc = _keyCodes[i].keyCode;
-		}
-		return r;
+	inout
+	inout(string)[] keyCodes() { mixin(S_TRACE);
+		return _keyCodes.keyCodes;
 	}
 	/// ditto
 	@property
 	void keyCodes(string[] keyCodes) { mixin(S_TRACE);
-		if (this.keyCodes != keyCodes) { mixin(S_TRACE);
-			changed();
-			foreach (c; _keyCodes) { mixin(S_TRACE);
-				c.removeUseCounter();
-			}
-			_keyCodes.length = keyCodes.length;
-			foreach (i, ref c; _keyCodes) { mixin(S_TRACE);
-				c = new KeyCodeUser(this);
-				c.keyCode = keyCodes[i];
-				if (useCounter) { mixin(S_TRACE);
-					c.setUseCounter = useCounter;
-				}
-			}
-		}
+		_keyCodes.keyCodes = keyCodes;
 	}
 	/// カードの希少価値。
 	@property
@@ -1846,9 +1830,7 @@ public:
 		_muser.setUseCounter = uc;
 		_se1.setUseCounter = uc;
 		_se2.setUseCounter = uc;
-		foreach (ref kc; _keyCodes) { mixin(S_TRACE);
-			kc.setUseCounter = uc;
-		}
+		_keyCodes.setUseCounter = uc;
 		super.setUseCounter = uc;
 	}
 	@property
@@ -1858,9 +1840,7 @@ public:
 		_muser.removeUseCounter();
 		_se1.removeUseCounter();
 		_se2.removeUseCounter();
-		foreach (ref kc; _keyCodes) { mixin(S_TRACE);
-			kc.removeUseCounter();
-		}
+		_keyCodes.removeUseCounter();
 		super.removeUseCounter();
 	}
 	protected abstract void setUseCounterImpl(UseCounter uc);
@@ -2884,4 +2864,72 @@ XNode keyCodesToNode(in string[] keyCodes) { mixin(S_TRACE);
 string keyCodesToXML(in string[] keyCodes) { mixin(S_TRACE);
 	auto node = keyCodesToNode(keyCodes);
 	return node.text;
+}
+
+/// 一揃いのキーコードの保持者の親クラス。
+class KeyCodesUser {
+private:
+	KeyCodeUser[] _keyCodes;
+	void delegate() _change = null;
+	UseCounter _uc = null;
+	IKeyCodeUser _cwxPath;
+public:
+	/// パスを示すオブジェクトを指定してインスタンスを生成。
+	this (IKeyCodeUser cwxPath) { _cwxPath = cwxPath; }
+	@property
+	string cwxPath(bool id) { return _cwxPath.cwxPath(id); }
+
+	/// 変更ハンドラを登録する。
+	@property
+	void changeHandler(void delegate() change) { mixin(S_TRACE);
+		_change = change;
+	}
+	/// 変更ハンドラ。
+	private void changed() { mixin(S_TRACE);
+		if (_change) _change();
+	}
+
+	/// 使用回数カウンタ。
+	@property
+	UseCounter useCounter() {return _uc;}
+	/// 使用回数カウンタを登録・除去する。
+	@property
+	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+		foreach (u; _keyCodes) { mixin(S_TRACE);
+			u.setUseCounter(uc);
+		}
+		_uc = uc;
+	}
+	/// ditto
+	void removeUseCounter() { mixin(S_TRACE);
+		foreach (u; _keyCodes) { mixin(S_TRACE);
+			u.removeUseCounter();
+		}
+		_uc = null;
+	}
+	/// キーコード群。
+	@property
+	void keyCodes(string[] keyCodes) { mixin(S_TRACE);
+		if (this.keyCodes != keyCodes) { mixin(S_TRACE);
+			changed();
+			foreach (u; _keyCodes) { mixin(S_TRACE);
+				u.removeUseCounter();
+			}
+			_keyCodes = [];
+			foreach (keyCode; keyCodes) { mixin(S_TRACE);
+				auto u = new KeyCodeUser(_cwxPath);
+				u.keyCode = keyCode;
+				if (_uc) u.setUseCounter(_uc);
+				_keyCodes ~= u;
+			}
+		}
+	}
+	/// ditto
+	@property
+	inout
+	inout(string)[] keyCodes() { mixin(S_TRACE);
+		string[] keyCodes;
+		foreach (u; _keyCodes) keyCodes ~= u.keyCode;
+		return cast(inout)keyCodes;
+	}
 }

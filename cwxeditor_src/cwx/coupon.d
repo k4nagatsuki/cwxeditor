@@ -7,6 +7,8 @@ import cwx.path;
 import cwx.utils;
 import cwx.system;
 
+import std.algorithm;
+import std.array;
 import std.conv;
 
 /// クーポンの所有者。
@@ -130,3 +132,70 @@ public:
 	}
 }
 
+/// 一揃いのクーポン名の保持者の親クラス。
+class CouponNamesUser {
+private:
+	CouponUser[] _coupons;
+	void delegate() _change = null;
+	UseCounter _uc = null;
+	ICouponUser _cwxPath;
+public:
+	/// パスを示すオブジェクトを指定してインスタンスを生成。
+	this (ICouponUser cwxPath) { _cwxPath = cwxPath; }
+	@property
+	string cwxPath(bool id) { return _cwxPath.cwxPath(id); }
+
+	/// 変更ハンドラを登録する。
+	@property
+	void changeHandler(void delegate() change) { mixin(S_TRACE);
+		_change = change;
+	}
+	/// 変更ハンドラ。
+	private void changed() { mixin(S_TRACE);
+		if (_change) _change();
+	}
+
+	/// 使用回数カウンタ。
+	@property
+	UseCounter useCounter() {return _uc;}
+	/// 使用回数カウンタを登録・除去する。
+	@property
+	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+		foreach (u; _coupons) { mixin(S_TRACE);
+			u.setUseCounter(uc);
+		}
+		_uc = uc;
+	}
+	/// ditto
+	void removeUseCounter() { mixin(S_TRACE);
+		foreach (u; _coupons) { mixin(S_TRACE);
+			u.removeUseCounter();
+		}
+		_uc = null;
+	}
+	/// キーコード群。
+	@property
+	void couponNames(string[] coupons) { mixin(S_TRACE);
+		if (this.couponNames != coupons) { mixin(S_TRACE);
+			changed();
+			foreach (u; _coupons) { mixin(S_TRACE);
+				u.removeUseCounter();
+			}
+			_coupons = [];
+			foreach (coupon; coupons) { mixin(S_TRACE);
+				auto u = new CouponUser(_cwxPath);
+				u.coupon = coupon;
+				if (_uc) u.setUseCounter(_uc);
+				_coupons ~= u;
+			}
+		}
+	}
+	/// ditto
+	@property
+	inout
+	inout(string)[] couponNames() { mixin(S_TRACE);
+		string[] couponNames;
+		foreach (u; _coupons) couponNames ~= u.coupon;
+		return cast(inout)couponNames;
+	}
+}

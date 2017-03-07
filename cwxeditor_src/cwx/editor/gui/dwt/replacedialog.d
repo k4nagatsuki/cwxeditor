@@ -4406,6 +4406,32 @@ public:
 		}
 		return false;
 	}
+	private bool replCouponNames(C)(CWXPath path, lazy string pathPath, C targ, string targPath, ref size_t count, ref Undo[] uArr) { mixin(S_TRACE);
+		if (_couponSel) { mixin(S_TRACE);
+			auto cs = targ.couponNames.dup;
+			auto old = targ.couponNames.dup;
+			bool r = false;
+			Undo[] nArr;
+			foreach (i, c; cs) { mixin(S_TRACE);
+				r |= repl(null, "", c, (string t) { c = t; }, count, nArr);
+				if (_replMode) cs[i] = c;
+			}
+			if (r) { mixin(S_TRACE);
+				if (_replMode) { mixin(S_TRACE);
+					if (!path) uArr ~= new StrArrUndo(old, cs.dup, &targ.couponNames);
+					targ.couponNames = cs;
+				}
+				if (path) { mixin(S_TRACE);
+					auto p = pathPath;
+					if (_replMode) store(path, p, old, cs.dup, &targ.couponNames);
+					size_t dmy = 0;
+					addResult(path, p, dmy);
+				}
+				return true;
+			}
+		}
+		return false;
+	}
 
 	private bool replBgImage(CWXPath path, string pathPath, BgImage back, ref size_t count, ref Undo[] uArr) { mixin(S_TRACE);
 		bool r = false;
@@ -4565,6 +4591,7 @@ public:
 		if (_couponSel) { mixin(S_TRACE);
 			if (d.use(CArg.COUPON)) r |= repl(null, "", e.coupon, &e.coupon, count, uArr2);
 			if (d.use(CArg.COUPONS)) r |= replCoupons(null, "", e, count, uArr2);
+			if (d.use(CArg.COUPON_NAMES)) r |= replCouponNames(e, e.cwxPath(true), e, "", count, uArr2);
 			if (d.use(CArg.HOLDING_COUPON)) r |= repl(null, "", e.holdingCoupon, &e.holdingCoupon, count, uArr2);
 		}
 		if (_gossipSel) { mixin(S_TRACE);
