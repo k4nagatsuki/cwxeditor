@@ -282,9 +282,9 @@ class MenuProps : Properties {
 		_hotkey[MenuID.EditLayers] = "";
 		_hotkey[MenuID.AddLayer] = "";
 		_hotkey[MenuID.RemoveLayer] = "";
-		_hotkey[MenuID.ShowMainToolBar] = "Ctrl+Shift+M";
-		_hotkey[MenuID.ShowSceneToolBar] = "Ctrl+Shift+S";
-		_hotkey[MenuID.ShowEventToolBar] = "Ctrl+Shift+E";
+		_hotkey[MenuID.ShowMainToolBar] = "";
+		_hotkey[MenuID.ShowSceneToolBar] = "";
+		_hotkey[MenuID.ShowEventToolBar] = "";
 		_hotkey[MenuID.ChangeVH] = "";
 		_hotkey[MenuID.SelectConnectedResource] = "Ctrl+R";
 		_hotkey[MenuID.Find] = "Ctrl+F";
