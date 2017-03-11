@@ -755,6 +755,7 @@ class FlexEtcProps : Properties {
 	auto messageVarTeam = Prop!(string)("messageVarTeam", "[チーム名------------------30]");
 	auto messageVarYado = Prop!(string)("messageVarYado", "[宿屋名--------18]");
 	auto showVariableValuesInEventText = Prop!(bool)("showVariableValuesInEventText", false);
+	auto editSelectionWithCombo = Prop!(bool)("editSelectionWithCombo", true);
 
 	auto scenarioTemplates = Prop!(ScTemplate[])("scenarioTemplates", []);
 	auto defaultScenarioTemplate = Prop!(string)("defaultScenarioTemplate", "");

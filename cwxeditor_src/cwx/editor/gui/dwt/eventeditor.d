@@ -1938,7 +1938,7 @@ private:
 		auto sy = _list.getVerticalBar().getSelection() * _list._lineHeight;
 		int x = _list.calcX(pos) + 20.ppis;
 		int w;
-		if (cast(Combo)_editor || cast(CCombo)_editor) { mixin(S_TRACE);
+		if ((cast(Combo)_editor || cast(CCombo)_editor) && (_editor.getStyle() & SWT.READ_ONLY)) { mixin(S_TRACE);
 			w = size.x;
 		} else { mixin(S_TRACE);
 			auto ca = _list.getClientArea();

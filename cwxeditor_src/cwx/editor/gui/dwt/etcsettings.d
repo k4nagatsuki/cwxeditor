@@ -174,6 +174,7 @@ class EtcSettings : Composite {
 		boolSetting(comp, prop.var.etc.clickIconIsStartEdit, prop.msgs.clickIconIsStartEdit);
 		boolSetting(comp, prop.var.etc.adjustContentName, prop.msgs.adjustContentName);
 		boolSetting(comp, prop.var.etc.showVariableValuesInEventText, prop.msgs.showVariableValuesInEventText);
+		boolSetting(comp, prop.var.etc.editSelectionWithCombo, prop.msgs.editSelectionWithCombo);
 		boolSetting(comp, prop.var.etc.refCardsAtEditBgImage, prop.msgs.refCardsAtEditBgImage);
 		boolSetting(comp, prop.var.etc.floatMessagePreview, prop.msgs.floatMessagePreview);
 		boolSetting(comp, prop.var.etc.selectVariableWithTree, prop.msgs.selectVariableWithTree);

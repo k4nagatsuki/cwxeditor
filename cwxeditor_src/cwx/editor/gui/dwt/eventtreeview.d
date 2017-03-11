@@ -2442,19 +2442,27 @@ public:
 			auto text = t.getText();
 			if (!text) text = "";
 			if (text == evt.name) return;
-			assert (evt.type is CType.START);
 			store(evt);
-			evt.setName(_prop.parent, createNewName(text, (string name) { mixin(S_TRACE);
-				auto s = _et.start(name);
-				return !(s && s !is evt);
-			}, true, EventView.eventTreeNames(_prop, _et)));
-			text = evt.name;
+			if (evt.type == CType.START) { mixin(S_TRACE);
+				evt.setName(_prop.parent, createNewName(text, (string name) { mixin(S_TRACE);
+					auto s = _et.start(name);
+					return !(s && s !is evt);
+				}, true, EventView.eventTreeNames(_prop, _et)));
+				text = evt.name;
+			} else { mixin(S_TRACE);
+				evt.setName(_prop.parent, text);
+				text = eventText(evt.parent, evt);
+			}
+			auto isTop = evt.type == CType.START && _tree.indexOf(itm) == 0;
 			foreach (v; vs) { mixin(S_TRACE);
 				if (v._tree.tree) {
 					assert (cast(TreeItem)itm !is null);
 					.anotherTreeItem(v._tree.tree, cast(TreeItem)itm).setText(text);
 				} else {
 					v._tree.editor.updateContentInfo(evt);
+				}
+				if (isTop) { mixin(S_TRACE);
+					v._refreshTopStart();
 				}
 				v._refreshTopStart();
 			}
@@ -2619,8 +2627,12 @@ public:
 		auto parent = _tree.getParentItem(itm);
 		if (parent) { mixin(S_TRACE);
 			if ((cast(Content)parent.getData()).detail.nextType == CNextType.TEXT) { mixin(S_TRACE);
-				if (_ee) _ee.minimumWidth = _prop.var.etc.selectionWidth;
-				return createSelectionCombo(_comm, _tree.control, null, (cast(Content)itm.getData()).name);
+				if (_prop.var.etc.editSelectionWithCombo) { mixin(S_TRACE);
+					if (_ee) _ee.minimumWidth = _prop.var.etc.selectionWidth;
+					return createSelectionCombo(_comm, _tree.control, null, (cast(Content)itm.getData()).name);
+				} else { mixin(S_TRACE);
+					return createTextEditor(_comm, _prop, _tree.control, (cast(Content)itm.getData()).name);
+				}
 			}
 		} else { mixin(S_TRACE);
 			assert ((cast(Content)itm.getData()).type is CType.START);

@@ -2016,6 +2016,7 @@ class Msgs : Properties {
 	auto clickIconIsStartEdit = Msg("clickIconIsStartEdit", "イベントコンテントのアイコンのクリックでダイアログを開く");
 	auto adjustContentName = Msg("adjustContentName", "イベントコンテントの移動時にテキストを再設定する");
 	auto showVariableValuesInEventText = Msg("showVariableValuesInEventText", "選択肢のテキスト内の変数をプレビュー表示する(#M -> [選択中]...)");
+	auto editSelectionWithCombo = Msg("editSelectionWithCombo", "選択肢を編集する時、「標準の選択肢」をコンボボックスで選択可能にする");
 	auto refCardsAtEditBgImage = Msg("refCardsAtEditBgImage", "背景変更コンテントの編集を開始する際、最初からカード配置の参照を行う");
 	auto floatMessagePreview = Msg("floatMessagePreview", "台詞・メッセージのプレビューをフロートさせる");
 	auto selectVariableWithTree = Msg("selectVariableWithTree", "状態変数選択ビューでディレクトリの階層表示を行う");

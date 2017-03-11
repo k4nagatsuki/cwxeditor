@@ -798,6 +798,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 T createSelectionCombo(T = Combo)(Commons comm, Composite parent, bool delegate() catchMod, string initValue) { mixin(S_TRACE);
 	auto combo = new T(parent, SWT.BORDER | SWT.DROP_DOWN);
 	combo.setVisibleItemCount(comm.prop.var.etc.comboVisibleItemCount);
+	combo.setText(initValue);
 	auto incSearch = new IncSearch(comm, combo);
 
 	void refStandardSelections() { mixin(S_TRACE);
