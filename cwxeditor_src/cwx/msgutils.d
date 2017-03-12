@@ -467,7 +467,7 @@ private dstring wrapMsgImpl(dstring text, size_t width, size_t delegate(string) 
 		ref string[size_t] fonts, ref char[size_t] colors,
 		ref string[size_t] fonts2, ref char[size_t] colors2,
 		size_t startIndex, size_t resultIndex,
-		in Regex!dchar re) { mixin(S_TRACE);
+		ref Regex!dchar re) { mixin(S_TRACE);
 
 	dstring[] words2;
 	auto index = startIndex;
