@@ -270,8 +270,6 @@ private class RangePanel : Composite {
 				c.setLayoutData(new GridData(GridData.GRAB_VERTICAL | fillHorizontal));
 			}
 			radio.setText(prop.msgs.rangeName(range));
-			.listener(radio, SWT.Selection, &updateEnabled);
-			.listener(radio, SWT.Selection, refreshWarning);
 			_range[range] = radio;
 			if (evt && evt.range is range) { mixin(S_TRACE);
 				radio.setSelection(true);
@@ -281,6 +279,9 @@ private class RangePanel : Composite {
 				radio.setToolTipText(prop.msgs.rangeDescCardTarget);
 			}
 		}
+		radioGrp.modEvent ~= &updateEnabled;
+		radioGrp.modEvent ~= refreshWarning;
+
 		if (!evt || evt.range !in _range) { mixin(S_TRACE);
 			_range[_ranges[0]].setSelection(true);
 		}

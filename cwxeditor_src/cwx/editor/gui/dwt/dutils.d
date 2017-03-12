@@ -1267,6 +1267,8 @@ bool isDescendant(Composite comp, Control ctrl) { mixin(S_TRACE);
 
 class RadioGroup(B : Widget) {
 public:
+	void delegate()[] modEvent;
+
 	this () { mixin(S_TRACE);
 		_set = new HashSet!(B);
 		_l = new L;
@@ -1295,25 +1297,21 @@ public:
 		}
 		b.addListener(SWT.Selection, _l);
 	}
+
 private:
 	HashSet!(B) _set;
 	B _sel = null;
 	Listener _l;
 	class L : Listener {
 		public override void handleEvent(Event e) { mixin(S_TRACE);
-			auto b = cast(B) e.widget;
+			auto b = cast(B)e.widget;
 			if (_sel is null) { mixin(S_TRACE);
 				_sel = b;
 			} else if (b !is _sel) { mixin(S_TRACE);
 				_sel.setSelection(false);
-				auto se = new Event;
-				se.widget = _sel;
-				se.time = cast(int)(0xFFFFFFFFL & Clock.currStdTime());
-				se.stateMask = 0;
-				se.doit = true;
-				_sel.notifyListeners(SWT.Selection, se);
 				_sel = b;
 			}
+			foreach (dlg; modEvent) dlg();
 		}
 	}
 }
