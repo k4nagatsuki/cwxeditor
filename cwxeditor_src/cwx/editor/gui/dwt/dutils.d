@@ -553,11 +553,13 @@ public:
 				printStackTrace();
 				debugln(e);
 			}
-			auto hasFocus = ctrl.isFocusControl();
-			auto par = ctrl.getParent();
-			ctrl.dispose();
-			if (hasFocus && par) { mixin(S_TRACE);
-				par.setFocus();
+			if (!ctrl.isDisposed()) { mixin(S_TRACE);
+				auto hasFocus = ctrl.isFocusControl();
+				auto par = ctrl.getParent();
+				ctrl.dispose();
+				if (hasFocus && par) { mixin(S_TRACE);
+					par.setFocus();
+				}
 			}
 		} catch (Exception e) {
 			printStackTrace();
