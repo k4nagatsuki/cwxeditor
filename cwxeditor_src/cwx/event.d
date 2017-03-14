@@ -503,7 +503,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			initValue = 1;
 			break;
 		default:
-			if (detail.use(CArg.COUPON) || type is CType.BRANCH_MULTI_COUPON) { mixin(S_TRACE);
+			if (detail.use(CArg.COUPON) || detail.use(CArg.COUPON_NAMES) || type is CType.BRANCH_MULTI_COUPON) { mixin(S_TRACE);
 				range = Range.SELECTED;
 			}
 			break;
