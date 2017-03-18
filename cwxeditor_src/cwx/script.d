@@ -448,17 +448,25 @@ class CWXScript {
 		bool spaceAfter = false;
 		string docComment = "";
 		string fullComment = "";
+		size_t beforeLineLen = 0;
 		@property ptrdiff_t sLine() {return cast(ptrdiff_t)i + opt.startLine;}
 		@property ptrdiff_t sPos() {return (cast(ptrdiff_t)i == opt.addLines) ? (cast(ptrdiff_t)pos + opt.startPos) : pos;}
 		foreach (token; .match(dtext, reg)) { mixin(S_TRACE);
 			post = token.post;
 			string pre = token.pre;
+			if (0 < pre.length - index) { mixin(S_TRACE);
+				pos = index - beforeLineLen;
+				throwErrorToken(_prop.msgs.scriptErrorInvalidToken, sLine, sPos, "");
+				return r;
+			}
+			pos += pre.length - index;
 			index = pre.length;
 			auto dstr = token.hit;
 			void retCount2(string dstr) { mixin(S_TRACE);
 				size_t count = .count(dstr, "\n");
 				if (count > 0) { mixin(S_TRACE);
 					pos = dstr.length - std.string.lastIndexOf(dstr, '\n') - 1;
+					beforeLineLen += index + dstr.length;
 					i += count;
 				} else { mixin(S_TRACE);
 					pos += dstr.length;
@@ -668,6 +676,7 @@ class CWXScript {
 				docComment ~= str;
 			}
 			hits += dstr.length;
+			index += dstr.length;
 		}
 		if (0 < commentLevel) { mixin(S_TRACE);
 			throwErrorToken(_prop.msgs.scriptErrorUnCloseComment, lastCommentLine, lastCommentPos, "");
