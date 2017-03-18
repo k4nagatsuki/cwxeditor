@@ -171,6 +171,18 @@ class FlexEtcProps : Properties {
 	auto buttonWidth = Prop!(int, true, true)("buttonWidth", 100);
 	auto radioGroupSeparatorWidth = Prop!(int, true, true)("radioGroupSeparatorWidth", 15);
 	auto couponValueColumnWidth = Prop!(int, true, true)("couponValueColumnWidth", 40);
+	auto idNameColumn = Prop!(int, false, true)("idNameColumn", 330);
+	auto idCountColumn = Prop!(int, false, true)("idCountColumn", 60);
+	auto couponSortColumn = Prop!(int)("couponSortColumn", 0);
+	auto couponSortDirection = Prop!(int)("couponSortDirection", SortDir.Up);
+	auto gossipSortColumn = Prop!(int)("gossipSortColumn", 0);
+	auto gossipSortDirection = Prop!(int)("gossipSortDirection", SortDir.Up);
+	auto completeStampSortColumn = Prop!(int)("completeStampSortColumn", 0);
+	auto completeStampSortDirection = Prop!(int)("completeStampSortDirection", SortDir.Up);
+	auto keyCodeSortColumn = Prop!(int)("keyCodeSortColumn", 0);
+	auto keyCodeSortDirection = Prop!(int)("keyCodeSortDirection", SortDir.Up);
+	auto cellNameSortColumn = Prop!(int)("cellNameSortColumn", 0);
+	auto cellNameSortDirection = Prop!(int)("cellNameSortDirection", SortDir.Up);
 
 	auto partyMax = Prop!(uint, true)("partyMax", 6);
 	auto cardScaleMax = Prop!(int)("cardScaleMax", 300);

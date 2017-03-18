@@ -99,6 +99,11 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.BeastView] = "B";
 		_mnemonic[MenuID.InfoView] = "N";
 		_mnemonic[MenuID.FileView] = "F";
+		_mnemonic[MenuID.CouponView] = "O";
+		_mnemonic[MenuID.GossipView] = "G";
+		_mnemonic[MenuID.CompleteStampView] = "M";
+		_mnemonic[MenuID.KeyCodeView] = "K";
+		_mnemonic[MenuID.CellNameView] = "E";
 		_mnemonic[MenuID.ExecEngine] = "G";
 		_mnemonic[MenuID.ExecEngineAuto] = "G";
 		_mnemonic[MenuID.ExecEngineMain] = "P";
@@ -317,6 +322,11 @@ class MenuProps : Properties {
 		_hotkey[MenuID.BeastView] = "";
 		_hotkey[MenuID.InfoView] = "";
 		_hotkey[MenuID.FileView] = "";
+		_hotkey[MenuID.CouponView] = "";
+		_hotkey[MenuID.GossipView] = "";
+		_hotkey[MenuID.CompleteStampView] = "";
+		_hotkey[MenuID.KeyCodeView] = "";
+		_hotkey[MenuID.CellNameView] = "";
 		_hotkey[MenuID.ExecEngine] = "";
 		_hotkey[MenuID.ExecEngineAuto] = "F9";
 		_hotkey[MenuID.ExecEngineMain] = "";
@@ -732,6 +742,11 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.BeastView:
 	case MenuID.InfoView:
 	case MenuID.FileView:
+	case MenuID.CouponView:
+	case MenuID.GossipView:
+	case MenuID.CompleteStampView:
+	case MenuID.KeyCodeView:
+	case MenuID.CellNameView:
 	case MenuID.ExecEngine:
 	case MenuID.ExecEngineWithParty:
 	case MenuID.OuterTools:
@@ -941,6 +956,11 @@ bool isGlobalMenu(MenuID id) {
 	case MenuID.BeastView:
 	case MenuID.InfoView:
 	case MenuID.FileView:
+	case MenuID.CouponView:
+	case MenuID.GossipView:
+	case MenuID.CompleteStampView:
+	case MenuID.KeyCodeView:
+	case MenuID.CellNameView:
 	case MenuID.ExecEngine:
 	case MenuID.ExecEngineAuto:
 	case MenuID.ExecEngineMain:

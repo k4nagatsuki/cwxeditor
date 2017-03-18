@@ -1483,6 +1483,57 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		return null;
 	}
 
+	/// このイベントコンテントと強く関係するIDを返す。
+	CouponId[] connectedCoupons() { mixin(S_TRACE);
+		auto d = detail;
+		CouponId[] r;
+		if (d.use(CArg.COUPON)) r ~= toCouponId(coupon);
+		if (d.use(CArg.COUPONS)) { mixin(S_TRACE);
+			foreach (coupon; coupons) { mixin(S_TRACE);
+				r ~= toCouponId(coupon.name);
+			}
+		}
+		if (d.use(CArg.COUPON_NAMES)) { mixin(S_TRACE);
+			foreach (name; couponNames) { mixin(S_TRACE);
+				r ~= toCouponId(name);
+			}
+		}
+		return r;
+	}
+	/// ditto
+	GossipId[] connectedGossips() { mixin(S_TRACE);
+		auto d = detail;
+		GossipId[] r;
+		if (d.use(CArg.GOSSIP)) r ~= toGossipId(gossip);
+		return r;
+	}
+	/// ditto
+	CompleteStampId[] connectedCompleteStamps() { mixin(S_TRACE);
+		auto d = detail;
+		CompleteStampId[] r;
+		if (d.use(CArg.COMPLETE_STAMP)) r ~= toCompleteStampId(completeStamp);
+		return r;
+	}
+	/// ditto
+	KeyCodeId[] connectedKeyCodes() { mixin(S_TRACE);
+		auto d = detail;
+		KeyCodeId[] r;
+		if (d.use(CArg.KEY_CODE)) r ~= toKeyCodeId(keyCode);
+		if (d.use(CArg.KEY_CODES)) { mixin(S_TRACE);
+			foreach (keyCode; keyCodes) { mixin(S_TRACE);
+				r ~= toKeyCodeId(keyCode);
+			}
+		}
+		return r;
+	}
+	/// ditto
+	CellNameId[] connectedCellNames() { mixin(S_TRACE);
+		auto d = detail;
+		CellNameId[] r;
+		if (d.use(CArg.CELL_NAME)) r ~= toCellNameId(cellName);
+		return r;
+	}
+
 	/// このイベントコンテントと強く関係するファイルパスを返す。
 	/// そのようなファイルが無い場合は""を返す。
 	@property

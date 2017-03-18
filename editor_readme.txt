@@ -442,14 +442,19 @@ CWXEditorで開いたシナリオの各エリア・フラグ・コンテント�
 以下は、シナリオに含まれるリソースではないものの、各種のビューを開きたい
 場合に使用されるパスです:
 
- * tableview     .... テーブルビュー
- * variableview  .... 状態変数ビュー
- * castcardview  .... キャストカードビュー
- * skillcardview .... 特殊技能カードビュー
- * itemcardview  .... アイテムカードビュー
- * beastcardview .... 召喚獣カードビュー
- * infocardview  .... 情報カードビュー
- * fileview      .... ファイルビュー
+ * tableview         .... テーブルビュー
+ * variableview      .... 状態変数ビュー
+ * castcardview      .... キャストカードビュー
+ * skillcardview     .... 特殊技能カードビュー
+ * itemcardview      .... アイテムカードビュー
+ * beastcardview     .... 召喚獣カードビュー
+ * infocardview      .... 情報カードビュー
+ * fileview          .... ファイルビュー
+ * couponview        .... クーポンビュー
+ * gossipview        .... ゴシップビュー
+ * completestampview .... 終了印ビュー
+ * keycodeview       .... キーコードビュー
+ * cellnameview      .... セル名称ビュー
 
 CWXPathは、末尾に属性をつけて、開く際の細かい挙動を指示する事ができます。
 

@@ -1253,6 +1253,19 @@ class Msgs : Properties {
 
 	auto areaViewKeyboardHint = Msg("areaViewKeyboardHint", "選択+上下左右: 移動, Shift+上下左右: サイズ変更, Ctrl+Altで10ピクセル単位操作, Alt+クリックで範囲選択開始");
 
+	/// 称号・名称ビュー。
+	auto couponTabName = Msg("couponTabName", "クーポン");
+	auto gossipTabName = Msg("gossipTabName", "ゴシップ");
+	auto completeStampTabName = Msg("completeStampTabName", "終了印");
+	auto keyCodeTabName = Msg("keyCodeTabName", "キーコード");
+	auto cellNameTabName = Msg("cellNameTabName", "セル名称");
+
+	auto idName = Msg("idName", "名称");
+	auto idCount = Msg("idCount", "利用数");
+
+	auto idStatus = Msg("idStatus", "%2$s件の%1$s");
+	auto idStatusSel = Msg("idStatusSel", "%1$s (%2$s件を選択)");
+
 	/// イベントビュー。
 	auto playerCard = Msg("playerCard", "プレイヤーカード");
 	auto tools = Msg("tools", "イベントコンテント");
@@ -2326,6 +2339,11 @@ class Msgs : Properties {
 	auto menuTextBeastView = Msg("menuTextBeastView", "召喚獣カードビュー");
 	auto menuTextInfoView = Msg("menuTextInfoView", "情報カードビュー");
 	auto menuTextFileView = Msg("menuTextFileView", "ファイルビュー");
+	auto menuTextCouponView = Msg("menuTextCouponView", "クーポンビュー");
+	auto menuTextGossipView = Msg("menuTextGossipView", "ゴシップビュー");
+	auto menuTextCompleteStampView = Msg("menuTextCompleteStampView", "終了印ビュー");
+	auto menuTextKeyCodeView = Msg("menuTextKeyCodeView", "キーコードビュー");
+	auto menuTextCellNameView = Msg("menuTextCellNameView", "セル名称ビュー");
 	auto menuTextExecEngine = Msg("menuTextExecEngine", "エンジン起動");
 	auto menuTextExecEngineAuto = Msg("menuTextExecEngineAuto", "自動選択");
 	auto menuTextExecEngineMain = Msg("menuTextExecEngineMain", "CardWirthPy");

@@ -140,7 +140,10 @@ alias TChgCallback!(CouponId) ChgCouponCallback;
 
 /// テキストをそのままキーとする場合のメソッド群を実装する。
 private mixin template StringId() {
-	string opCast() { mixin(S_TRACE);
+	const
+	@safe
+	nothrow
+	string opCast() {
 		return id;
 	}
 	const
@@ -193,7 +196,10 @@ struct FlagId {
 		r.id = id;
 		return r;
 	}
-	string opCast() { mixin(S_TRACE);
+	const
+	@safe
+	nothrow
+	string opCast() {
 		return id;
 	}
 	const
@@ -311,7 +317,10 @@ struct StepId {
 		r.id = id;
 		return r;
 	}
-	string opCast() { mixin(S_TRACE);
+	const
+	@safe
+	nothrow
+	string opCast() {
 		return id;
 	}
 	const
@@ -1802,37 +1811,37 @@ public:
 	UCCont!(CellNameId, CellNameUser) cellName() {return _cellName;}
 	/// ID・Tの変更を通知する。
 	void change(T)(T oldId, T newId, bool dup = false) { mixin(S_TRACE);
-		static if (is (T == FlagId)) {
+		static if (is(T == FlagId)) {
 			flag.change(oldId, newId, dup);
-		} else static if (is (T == StepId)) {
+		} else static if (is(T == StepId)) {
 			step.change(oldId, newId, dup);
-		} else static if (is (T == AreaId)) {
+		} else static if (is(T == AreaId)) {
 			area.change(oldId, newId, dup);
-		} else static if (is (T == BattleId)) {
+		} else static if (is(T == BattleId)) {
 			battle.change(oldId, newId, dup);
-		} else static if (is (T == PackageId)) {
+		} else static if (is(T == PackageId)) {
 			packages.change(oldId, newId, dup);
-		} else static if (is (T == PathId)) {
+		} else static if (is(T == PathId)) {
 			path.change(oldId, newId, dup);
-		} else static if (is (T == CastId)) {
+		} else static if (is(T == CastId)) {
 			casts.change(oldId, newId, dup);
-		} else static if (is (T == SkillId)) {
+		} else static if (is(T == SkillId)) {
 			skill.change(oldId, newId, dup);
-		} else static if (is (T == ItemId)) {
+		} else static if (is(T == ItemId)) {
 			item.change(oldId, newId, dup);
-		} else static if (is (T == BeastId)) {
+		} else static if (is(T == BeastId)) {
 			beast.change(oldId, newId, dup);
-		} else static if (is (T == InfoId)) {
+		} else static if (is(T == InfoId)) {
 			info.change(oldId, newId, dup);
-		} else static if (is (T == CouponId)) {
+		} else static if (is(T == CouponId)) {
 			coupon.change(oldId, newId, dup);
-		} else static if (is (T == GossipId)) {
+		} else static if (is(T == GossipId)) {
 			gossip.change(oldId, newId, dup);
-		} else static if (is (T == CompleteStampId)) {
+		} else static if (is(T == CompleteStampId)) {
 			completeStamp.change(oldId, newId, dup);
-		} else static if (is (T == KeyCodeId)) {
+		} else static if (is(T == KeyCodeId)) {
 			keyCode.change(oldId, newId, dup);
-		} else static if (is (T == CellNameId)) {
+		} else static if (is(T == CellNameId)) {
 			cellName.change(oldId, newId, dup);
 		} else { mixin(S_TRACE);
 			static assert (0);
@@ -1842,37 +1851,37 @@ public:
 	/// ID・Tの使用回数を返す。
 	const
 	uint get(T)(T id) { mixin(S_TRACE);
-		static if (is (T == FlagId)) {
+		static if (is(T:FlagId)) {
 			return _flag.get(id);
-		} else static if (is (T == StepId)) {
+		} else static if (is(T:StepId)) {
 			return _step.get(id);
-		} else static if (is (T == AreaId)) {
+		} else static if (is(T:AreaId)) {
 			return _area.get(id);
-		} else static if (is (T == BattleId)) {
+		} else static if (is(T:BattleId)) {
 			return _battle.get(id);
-		} else static if (is (T == PackageId)) {
+		} else static if (is(T:PackageId)) {
 			return _package.get(id);
-		} else static if (is (T == PathId)) {
+		} else static if (is(T:PathId)) {
 			return _path.get(id);
-		} else static if (is (T == CastId)) {
+		} else static if (is(T:CastId)) {
 			return _cast.get(id);
-		} else static if (is (T == SkillId)) {
+		} else static if (is(T:SkillId)) {
 			return _skill.get(id);
-		} else static if (is (T == ItemId)) {
+		} else static if (is(T:ItemId)) {
 			return _item.get(id);
-		} else static if (is (T == BeastId)) {
+		} else static if (is(T:BeastId)) {
 			return _beast.get(id);
-		} else static if (is (T == InfoId)) {
+		} else static if (is(T:InfoId)) {
 			return _info.get(id);
-		} else static if (is (T == CouponId)) {
+		} else static if (is(T:CouponId)) {
 			return _coupon.get(id);
-		} else static if (is (T == GossipId)) {
+		} else static if (is(T:GossipId)) {
 			return _gossip.get(id);
-		} else static if (is (T == CompleteStampId)) {
+		} else static if (is(T:CompleteStampId)) {
 			return _completeStamp.get(id);
-		} else static if (is (T == KeyCodeId)) {
+		} else static if (is(T:KeyCodeId)) {
 			return _keyCode.get(id);
-		} else static if (is (T == CellNameId)) {
+		} else static if (is(T:CellNameId)) {
 			return _cellName.get(id);
 		} else { mixin(S_TRACE);
 			static assert (0);

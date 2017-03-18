@@ -37,6 +37,7 @@ import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.smalldialogs;
+import cwx.editor.gui.dwt.namewindow;
 
 import std.conv;
 import std.exception;
@@ -519,6 +520,12 @@ class Commons {
 	private CardWindow _infoWin = null;
 	private DirectoryWindow _dirWin = null;
 
+	private CouponWindow _couponWin = null;
+	private GossipWindow _gossipWin = null;
+	private CompleteStampWindow _completeStampWin = null;
+	private KeyCodeWindow _keyCodeWin = null;
+	private CellNameWindow _cellNameWin = null;
+
 	private ClipData _clipboard = null;
 
 	private HashSet!Control _toolbars;
@@ -537,6 +544,8 @@ class Commons {
 		refreshToolBar(null);
 	}
 	void refreshToolBar(Control fc) { mixin(S_TRACE);
+		if (!_main) return;
+		if (!_main.shell) return;
 		if (!fc) { mixin(S_TRACE);
 			auto display = _main.shell.getDisplay();
 			fc = display.getFocusControl();
@@ -617,7 +626,8 @@ class Commons {
 	}
 	void baseShell(MainWindow main, TableWindow tableWin, FlagWindow flagWin,
 			CardWindow castWin, CardWindow skillWin, CardWindow itemWin, CardWindow beastWin, CardWindow infoWin,
-			DirectoryWindow dirWin) { mixin(S_TRACE);
+			DirectoryWindow dirWin, CouponWindow couponWin, GossipWindow gossipWin, CompleteStampWindow completeStampWin,
+			KeyCodeWindow keyCodeWin, CellNameWindow cellNameWin) { mixin(S_TRACE);
 		_main = main;
 		_tableWin = tableWin;
 		_flagWin = flagWin;
@@ -627,8 +637,14 @@ class Commons {
 		_beastWin = beastWin;
 		_infoWin = infoWin;
 		_dirWin = dirWin;
+		_couponWin = couponWin;
+		_gossipWin = gossipWin;
+		_completeStampWin = completeStampWin;
+		_keyCodeWin = keyCodeWin;
+		_cellNameWin = cellNameWin;
 		_clipboard = new ClipData(new Clipboard(_main.shell.getDisplay()));
 	}
+
 	@property
 	MainWindow mainWin() {return _main;}
 	@property
@@ -972,6 +988,23 @@ class Commons {
 	void openDirWin(bool shellActivate) { mixin(S_TRACE);
 		openMain!("file", "data", Dir.N)(_dirWin, shellActivate);
 	}
+
+	void openCouponWin(bool shellActivate) { mixin(S_TRACE);
+		openMain!("coupon", "data", Dir.N)(_couponWin, shellActivate);
+	}
+	void openGossipWin(bool shellActivate) { mixin(S_TRACE);
+		openMain!("gossip", "data", Dir.N)(_gossipWin, shellActivate);
+	}
+	void openCompleteStampWin(bool shellActivate) { mixin(S_TRACE);
+		openMain!("completeStamp", "data", Dir.N)(_completeStampWin, shellActivate);
+	}
+	void openKeyCodeWin(bool shellActivate) { mixin(S_TRACE);
+		openMain!("keyCode", "data", Dir.N)(_keyCodeWin, shellActivate);
+	}
+	void openCellNameWin(bool shellActivate) { mixin(S_TRACE);
+		openMain!("cellName", "data", Dir.N)(_cellNameWin, shellActivate);
+	}
+
 	private void open(TopLevelPanel tlp, string pane) { mixin(S_TRACE);
 		_ws.add(tlp.shell);
 		_wos[tlp.shell] = tlp;
@@ -1300,6 +1333,25 @@ class Commons {
 	void replaceID(ID)(ID id, bool start) { mixin(S_TRACE);
 		auto replWin = _main.openReplWin();
 		if (replWin) replWin.replaceID(id, start);
+	}
+	void selectIDName(ID)(in ID[] ids, bool shellActivate) { mixin(S_TRACE);
+		if (!ids.length) return;
+		static if (is(ID:CouponId)) {
+			openCouponWin(shellActivate);
+			_couponWin.select(ids);
+		} else static if (is(ID:GossipId)) {
+			openGossipWin(shellActivate);
+			_gossipWin.select(ids);
+		} else static if (is(ID:CompleteStampId)) {
+			openCompleteStampWin(shellActivate);
+			_completeStampWin.select(ids);
+		} else static if (is(ID:KeyCodeId)) {
+			openKeyCodeWin(shellActivate);
+			_keyCodeWin.select(ids);
+		} else static if (is(ID:CellNameId)) {
+			openCellNameWin(shellActivate);
+			_cellNameWin.select(ids);
+		} else static assert (0);
 	}
 
 	void selectSummary(bool shellActivate) { mixin(S_TRACE);

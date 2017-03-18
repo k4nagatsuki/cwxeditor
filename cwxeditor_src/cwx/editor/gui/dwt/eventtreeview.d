@@ -2255,7 +2255,10 @@ public:
 		if (!selection) return false;
 		auto c = cast(Content)selection.getData();
 		if (!c) return false;
-		return c.connectedResource(_summ) || _summ.hasMaterial(c.connectedFile, _prop.var.etc.ignorePaths);
+		return c.connectedResource(_summ) || _summ.hasMaterial(c.connectedFile, _prop.var.etc.ignorePaths)
+			|| c.connectedCoupons.length || c.connectedGossips.length
+			|| c.connectedCompleteStamps.length
+			|| c.connectedKeyCodes.length || c.connectedCellNames.length;
 	}
 	void selectConnectedResource() { mixin(S_TRACE);
 		if (_readOnly) return;
@@ -2271,6 +2274,11 @@ public:
 			_comm.openFilePath(file, false, true);
 			return;
 		}
+		_comm.selectIDName(c.connectedCoupons, false);
+		_comm.selectIDName(c.connectedGossips, false);
+		_comm.selectIDName(c.connectedCompleteStamps, false);
+		_comm.selectIDName(c.connectedKeyCodes, false);
+		_comm.selectIDName(c.connectedCellNames, false);
 	}
 
 	@property

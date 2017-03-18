@@ -173,7 +173,7 @@ public:
 		}
 		_uc = null;
 	}
-	/// キーコード群。
+	/// クーポン群。
 	@property
 	void couponNames(string[] coupons) { mixin(S_TRACE);
 		if (this.couponNames != coupons) { mixin(S_TRACE);

@@ -2811,7 +2811,7 @@ public:
 	private bool[CWXPath] rangeTable() { mixin(S_TRACE);
 		return _rangeTable;
 	}
-	private bool dec(CWXPath path, in bool[CWXPath] range) { mixin(S_TRACE);
+	private static bool dec(CWXPath path, in bool[CWXPath] range) { mixin(S_TRACE);
 		assert (path);
 		auto p = path in range;
 		if (p) { mixin(S_TRACE);
@@ -3026,53 +3026,65 @@ public:
 	}
 
 	private void couponEditEnd(TableItem itm, int column, string text) { mixin(S_TRACE);
+		_inProc = true;
+		scope (exit) _inProc = false;
 		auto uc = _summ.useCounter;
 		if (itm.getImage() is _prop.images.couponNormal) { mixin(S_TRACE);
-			renameCoupon(itm, toCouponId(itm.getText()), toCouponId(text), uc.coupon);
+			renameCoupon(_comm, _summ, itm, toCouponId(itm.getText()), toCouponId(text), uc.coupon, _undo, rangeTable, true, _result, this);
 			_comm.refCoupons.call();
 		} else if (itm.getImage() is _prop.images.gossip) { mixin(S_TRACE);
-			renameCoupon(itm, toGossipId(itm.getText()), toGossipId(text), uc.gossip);
+			renameCoupon(_comm, _summ, itm, toGossipId(itm.getText()), toGossipId(text), uc.gossip, _undo, rangeTable, true, _result, this);
 			_comm.refGossips.call();
 		} else if (itm.getImage() is _prop.images.endScenario) { mixin(S_TRACE);
-			renameCoupon(itm, toCompleteStampId(itm.getText()), toCompleteStampId(text), uc.completeStamp);
+			renameCoupon(_comm, _summ, itm, toCompleteStampId(itm.getText()), toCompleteStampId(text), uc.completeStamp, _undo, rangeTable, true, _result, this);
 			_comm.refCompleteStamps.call();
 		} else if (itm.getImage() is _prop.images.keyCode) { mixin(S_TRACE);
-			renameCoupon(itm, toKeyCodeId(itm.getText()), toKeyCodeId(text), uc.keyCode);
+			renameCoupon(_comm, _summ, itm, toKeyCodeId(itm.getText()), toKeyCodeId(text), uc.keyCode, _undo, rangeTable, true, _result, this);
 			_comm.refKeyCodes.call();
-		} else { mixin(S_TRACE);
-			renameCoupon(itm, toCellNameId(itm.getText()), toCellNameId(text), uc.cellName);
+		} else if (itm.getImage() is _prop.images.backs) { mixin(S_TRACE);
+			renameCoupon(_comm, _summ, itm, toCellNameId(itm.getText()), toCellNameId(text), uc.cellName, _undo, rangeTable, true, _result, this);
 			_comm.refCellNames.call();
 		}
+		_summ.changed();
 		_comm.replText.call();
 	}
 	private bool canCouponEdit(TableItem itm, int column) { mixin(S_TRACE);
 		return _lastFind is _tabCoupon;
 	}
-	struct CouponParams {
+	static struct CouponParams {
 		Image image;
 		string name;
 		size_t count;
 	}
-	class CouponUndo(User, KeyType) : Undo {
+	static class CouponUndo(User, KeyType) : Undo {
+		private Commons _comm;
+		private Summary _summ;
 		private CouponParams[] _results;
 		private KeyType _oldVal, _newVal;
 		private UCCont!(KeyType, User) _uc;
+		private ReplaceDialog _dlg;
 		User[] users;
-		this (KeyType oldVal, KeyType newVal, UCCont!(KeyType, User) uc) { mixin(S_TRACE);
+		this (Commons comm, Summary summ, KeyType oldVal, KeyType newVal, UCCont!(KeyType, User) uc, ReplaceDialog dlg) { mixin(S_TRACE);
+			_comm = comm;
+			_summ = summ;
 			_oldVal = oldVal;
 			_newVal = newVal;
 			_uc = uc;
+			_dlg = dlg;
 			save();
 		}
 		private void save() { mixin(S_TRACE);
+			if (!_dlg) return;
 			_results = [];
-			foreach (itm; _result.getItems()) { mixin(S_TRACE);
+			foreach (itm; _dlg._result.getItems()) { mixin(S_TRACE);
 				_results ~= CouponParams(itm.getImage(), itm.getText(), itm.getText(1).to!uint());
 			}
 		}
 		private void impl() { mixin(S_TRACE);
-			resultRedraw(false);
-			scope(exit) resultRedraw(true);
+			if (_dlg) _dlg.resultRedraw(false);
+			scope(exit) {
+				if (_dlg) _dlg.resultRedraw(true);
+			}
 			auto results = _results;
 			save();
 
@@ -3082,20 +3094,38 @@ public:
 				_uc.add(_oldVal, u);
 			}
 
-			foreach (i, r; results) { mixin(S_TRACE);
-				auto itm = i < _result.getItemCount() ? _result.getItem(cast(int)i) : new TableItem(_result, SWT.NONE);
-				itm.setImage(r.image);
-				itm.setText(r.name);
-				itm.setText(1, r.count.text());
-			}
-			while (results.length < _result.getItemCount()) { mixin(S_TRACE);
-				_result.getItem(cast(int)results.length).dispose();
+			if (_dlg) { mixin(S_TRACE);
+				foreach (i, r; results) { mixin(S_TRACE);
+					auto itm = i < _dlg._result.getItemCount() ? _dlg._result.getItem(cast(int)i) : new TableItem(_dlg._result, SWT.NONE);
+					itm.setImage(r.image);
+					itm.setText(r.name);
+					itm.setText(1, r.count.text());
+				}
+				while (results.length < _dlg._result.getItemCount()) { mixin(S_TRACE);
+					_dlg._result.getItem(cast(int)results.length).dispose();
+				}
 			}
 
 			.swap(_oldVal, _newVal);
-			refResultStatus(_result.getItemCount(), false);
+			if (_dlg) { mixin(S_TRACE);
+				_dlg.refResultStatus(_dlg._result.getItemCount(), false);
+			}
 			_comm.replText.call();
 			_summ.changed();
+
+			if (!_dlg) { mixin(S_TRACE);
+				static if (is(KeyType:CouponId)) { mixin(S_TRACE);
+					_comm.refCoupons.call();
+				} else static if (is(KeyType:GossipId)) { mixin(S_TRACE);
+					_comm.refGossips.call();
+				} else static if (is(KeyType:CompleteStampId)) { mixin(S_TRACE);
+					_comm.refCompleteStamps.call();
+				} else static if (is(KeyType:KeyCodeId)) { mixin(S_TRACE);
+					_comm.refKeyCodes.call();
+				} else static if (is(KeyType:CellNameId)) { mixin(S_TRACE);
+					_comm.refCellNames.call();
+				} else static assert (0);
+			}
 		}
 		void undo() { mixin(S_TRACE);
 			impl();
@@ -3105,15 +3135,12 @@ public:
 		}
 		void dispose() { }
 	}
-	private void renameCoupon(KeyType, UC)(TableItem itm, KeyType oldVal, KeyType newVal, UC uc) { mixin(S_TRACE);
+	static void renameCoupon(KeyType, UC)(Commons comm, Summary summ, TableItem itm, KeyType oldVal, KeyType newVal, UC uc, UndoManager undoManager, in bool[CWXPath] rangeT, bool useRangeT, Table list, ReplaceDialog dlg) { mixin(S_TRACE);
 		if (cast(string)oldVal == cast(string)newVal) return;
 		if (cast(string)newVal == "") return;
-		_inProc = true;
-		scope (exit) _inProc = false;
-		auto rangeT = rangeTable;
-		auto undo = new CouponUndo!(ForeachType!(typeof(uc.values(oldVal))), KeyType)(oldVal, newVal, uc);
+		auto undo = new CouponUndo!(ForeachType!(typeof(uc.values(oldVal))), KeyType)(comm, summ, oldVal, newVal, uc, dlg);
 		foreach (u; uc.values(oldVal)) { mixin(S_TRACE);
-			if (dec(u.owner, rangeT)) { mixin(S_TRACE);
+			if (!useRangeT || dec(u.owner, rangeT)) { mixin(S_TRACE);
 				uc.remove(oldVal, u);
 				u.change(newVal);
 				uc.add(newVal, u);
@@ -3121,20 +3148,19 @@ public:
 				itm.setText(0, cast(string)newVal);
 			}
 		}
-		_undo ~= undo;
+		undoManager ~= undo;
 		// 変更の結果、他のキーと同一の名前になったら統合する
-		foreach (i, itm2; _result.getItems()) { mixin(S_TRACE);
+		foreach (i, itm2; list.getItems()) { mixin(S_TRACE);
 			if (itm is itm2) continue;
 			if (itm.getImage() !is itm2.getImage()) continue;
 			if (itm.getText() == itm2.getText()) { mixin(S_TRACE);
-				_result.select(cast(int)i);
-				_result.showSelection();
+				list.select(cast(int)i);
+				list.showSelection();
 				itm2.setText(1, uc.get(newVal).text());
 				itm.dispose();
 				break;
 			}
 		}
-		_summ.changed();
 	}
 	private void searchCouponImpl(KeyType)(in KeyType[] keys, UseCounter uc, in bool[CWXPath] rangeT, Image delegate() image, ref size_t count) { mixin(S_TRACE);
 		foreach (key; std.algorithm.sort(keys.dup)) { mixin(S_TRACE);

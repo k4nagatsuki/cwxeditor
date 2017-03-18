@@ -1980,6 +1980,7 @@ protected:
 		_evt.mental = _ability.mental;
 		_evt.ignite = _ignite.getSelection();
 		_evt.keyCodes = _keyCodes.keyCodes;
+		comm.refKeyCodes.call();
 		return true;
 	}
 }
@@ -2490,6 +2491,7 @@ protected:
 			_evt.coupons = [];
 			_evt.initValue = 1;
 		}
+		comm.refCoupons.call();
 		return true;
 	}
 }

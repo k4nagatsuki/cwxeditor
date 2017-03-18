@@ -46,6 +46,7 @@ import cwx.editor.gui.dwt.smalldialogs;
 import cwx.editor.gui.dwt.loader;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.customtoolbar;
+import cwx.editor.gui.dwt.namewindow;
 
 static import d2std.zlib;
 
@@ -137,6 +138,12 @@ private:
 	CardWindow _beastWin = null;
 	CardWindow _infoWin = null;
 	DirectoryWindow _dirWin = null;
+
+	CouponWindow _couponWin = null;
+	GossipWindow _gossipWin = null;
+	CompleteStampWindow _completeStampWin = null;
+	KeyCodeWindow _keyCodeWin = null;
+	CellNameWindow _cellNameWin = null;
 
 	string _bassDir = "";
 	RefreshTitle _refreshTitle;
@@ -1054,6 +1061,12 @@ private:
 			dStr ~= " - " ~ .text(__LINE__);
 			_dirWin.refresh(summ);
 			dStr ~= " - " ~ .text(__LINE__);
+			_couponWin.summary = summ;
+			_gossipWin.summary = summ;
+			_completeStampWin.summary = summ;
+			_keyCodeWin.summary = summ;
+			_cellNameWin.summary = summ;
+			dStr ~= " - " ~ .text(__LINE__);
 			_comm.refScenario.call(summ);
 			dStr ~= " - " ~ .text(__LINE__);
 			_comm.refScenarioName.call();
@@ -1545,6 +1558,21 @@ private:
 	}
 	private void openDirWindow() { mixin(S_TRACE);
 		_comm.openDirWin(true);
+	}
+	private void openCouponWindow() { mixin(S_TRACE);
+		_comm.openCouponWin(true);
+	}
+	private void openGossipWindow() { mixin(S_TRACE);
+		_comm.openGossipWin(true);
+	}
+	private void openCompleteStampWindow() { mixin(S_TRACE);
+		_comm.openCompleteStampWin(true);
+	}
+	private void openKeyCodeWindow() { mixin(S_TRACE);
+		_comm.openKeyCodeWin(true);
+	}
+	private void openCellNameWindow() { mixin(S_TRACE);
+		_comm.openCellNameWin(true);
 	}
 	void exitAll() { mixin(S_TRACE);
 		_win.close();
@@ -2584,6 +2612,12 @@ public:
 			_infoWin = new CardWindow(_comm, _prop, CardWindowKind.Info, null);
 			dStr ~= " - " ~ .text(__LINE__);
 			_dirWin = new DirectoryWindow(_comm, _prop, null);
+			dStr ~= " - " ~ .text(__LINE__);
+			_couponWin = new CouponWindow(_comm, _win, null, null, false);
+			_gossipWin = new GossipWindow(_comm, _win, null, null, false);
+			_completeStampWin = new CompleteStampWindow(_comm, _win, null, null, false);
+			_keyCodeWin = new KeyCodeWindow(_comm, _win, null, null, false);
+			_cellNameWin = new CellNameWindow(_comm, _win, null, null, false);
 
 			dStr ~= " - " ~ .text(__LINE__);
 			auto dockComp = new Composite(_sbshl.contentPane, SWT.NONE);
@@ -2637,6 +2671,31 @@ public:
 					dStr ~= " - " ~ .text(__LINE__);
 					_dirWin.reconstruct(parent);
 					return _dirWin.shell;
+				}
+				case "coupon": { mixin(S_TRACE);
+					dStr ~= " - " ~ .text(__LINE__);
+					_couponWin.reconstruct(parent);
+					return _couponWin.shell;
+				}
+				case "gossip": { mixin(S_TRACE);
+					dStr ~= " - " ~ .text(__LINE__);
+					_gossipWin.reconstruct(parent);
+					return _gossipWin.shell;
+				}
+				case "completeStamp": { mixin(S_TRACE);
+					dStr ~= " - " ~ .text(__LINE__);
+					_completeStampWin.reconstruct(parent);
+					return _completeStampWin.shell;
+				}
+				case "keyCode": { mixin(S_TRACE);
+					dStr ~= " - " ~ .text(__LINE__);
+					_keyCodeWin.reconstruct(parent);
+					return _keyCodeWin.shell;
+				}
+				case "cellName": { mixin(S_TRACE);
+					dStr ~= " - " ~ .text(__LINE__);
+					_cellNameWin.reconstruct(parent);
+					return _cellNameWin.shell;
 				}
 				default:
 					if (!std.string.startsWith(key, "side")) { mixin(S_TRACE);
@@ -2720,6 +2779,17 @@ public:
 				_dock.tabImage("file", _dirWin.image);
 				_dock.tabText("file", _dirWin.title);
 				dStr ~= " - " ~ .text(__LINE__);
+				_dock.tabImage("coupon", _couponWin.image);
+				_dock.tabText("coupon", _couponWin.title);
+				_dock.tabImage("gossip", _gossipWin.image);
+				_dock.tabText("gossip", _gossipWin.title);
+				_dock.tabImage("completeStamp", _completeStampWin.image);
+				_dock.tabText("completeStamp", _completeStampWin.title);
+				_dock.tabImage("keyCode", _keyCodeWin.image);
+				_dock.tabText("keyCode", _keyCodeWin.title);
+				_dock.tabImage("cellName", _cellNameWin.image);
+				_dock.tabText("cellName", _cellNameWin.title);
+				dStr ~= " - " ~ .text(__LINE__);
 			} else { mixin(S_TRACE);
 				dStr ~= " - " ~ .text(__LINE__);
 				_dock = new DockingFolderCTC(dockComp, SWT.NONE, "work");
@@ -2747,6 +2817,14 @@ public:
 				_dirWin = new DirectoryWindow(_comm, _prop, data);
 				_dock.add(_dirWin.shell, _dirWin.title, _dirWin.image, "file", false);
 				dStr ~= " - " ~ .text(__LINE__);
+				_couponWin = new CouponWindow(_comm, _win, data, null, false);
+				_dock.add(_couponWin.shell, _couponWin.title, _couponWin.image, "coupon", false);
+				dStr ~= " - " ~ .text(__LINE__);
+				_gossipWin = new GossipWindow(_comm, _win, null, null, false);
+				_completeStampWin = new CompleteStampWindow(_comm, _win, null, null, false);
+				_keyCodeWin = new KeyCodeWindow(_comm, _win, null, null, false);
+				_cellNameWin = new CellNameWindow(_comm, _win, null, null, false);
+				dStr ~= " - " ~ .text(__LINE__);
 			}
 			dStr ~= " - " ~ .text(__LINE__);
 
@@ -2766,6 +2844,11 @@ public:
 			_noSummMenu.add(MenuID.BeastView);
 			_noSummMenu.add(MenuID.InfoView);
 			_noSummMenu.add(MenuID.FileView);
+			_noSummMenu.add(MenuID.CouponView);
+			_noSummMenu.add(MenuID.GossipView);
+			_noSummMenu.add(MenuID.CompleteStampView);
+			_noSummMenu.add(MenuID.KeyCodeView);
+			_noSummMenu.add(MenuID.CellNameView);
 			_noSummMenu.add(MenuID.ShowMainToolBar);
 			_noSummMenu.add(MenuID.ShowSceneToolBar);
 			_noSummMenu.add(MenuID.ShowEventToolBar);
@@ -2838,6 +2921,12 @@ public:
 				mixin (MenuAction!("mv", MenuID.InfoView, SWT.PUSH, "openInfo", "null"));
 				new MenuItem(mv, SWT.SEPARATOR);
 				mixin (MenuAction!("mv", MenuID.FileView, SWT.PUSH, "openDirWindow", "null"));
+				new MenuItem(mv, SWT.SEPARATOR);
+				mixin (MenuAction!("mv", MenuID.CouponView, SWT.PUSH, "openCouponWindow", "null"));
+				mixin (MenuAction!("mv", MenuID.GossipView, SWT.PUSH, "openGossipWindow", "null"));
+				mixin (MenuAction!("mv", MenuID.CompleteStampView, SWT.PUSH, "openCompleteStampWindow", "null"));
+				mixin (MenuAction!("mv", MenuID.KeyCodeView, SWT.PUSH, "openKeyCodeWindow", "null"));
+				mixin (MenuAction!("mv", MenuID.CellNameView, SWT.PUSH, "openCellNameWindow", "null"));
 				dStr ~= " - " ~ .text(__LINE__);
 				new MenuItem(mv, SWT.SEPARATOR);
 				mixin (MenuAction!("mv", MenuID.Refresh, SWT.PUSH, "refreshAll", "() => summary !is null"));
@@ -2951,7 +3040,8 @@ public:
 			dStr ~= " - " ~ .text(__LINE__);
 			createMainToolBar();
 
-			_comm.baseShell(this, _tableWin, _flagWin, _castWin, _skillWin, _itemWin, _beastWin, _infoWin, _dirWin);
+			_comm.baseShell(this, _tableWin, _flagWin, _castWin, _skillWin, _itemWin, _beastWin, _infoWin, _dirWin,
+				_couponWin, _gossipWin, _completeStampWin, _keyCodeWin, _cellNameWin);
 			dStr ~= " - " ~ .text(__LINE__);
 			auto selectFilter = new class Listener {
 				override void handleEvent(Event e) { mixin(S_TRACE);
@@ -3109,6 +3199,11 @@ public:
 						case MenuID.BeastView: act = &openBeast; can = null; break;
 						case MenuID.InfoView: act = &openInfo; can = null; break;
 						case MenuID.FileView: act = &openDirWindow; can = null; break;
+						case MenuID.CouponView: act = &openCouponWindow; can = null; break;
+						case MenuID.GossipView: act = &openGossipWindow; can = null; break;
+						case MenuID.CompleteStampView: act = &openCompleteStampWindow; can = null; break;
+						case MenuID.KeyCodeView: act = &openKeyCodeWindow; can = null; break;
+						case MenuID.CellNameView: act = &openCellNameWindow; can = null; break;
 						case MenuID.EditSummary: act = &_tableWin.editSummary; can = () => summary !is null; break;
 						case MenuID.NewAreaDir: act = &_tableWin.createAreaDir; can = &_tableWin.canCreateAreaDir; break;
 						case MenuID.NewArea: act = &_tableWin.createArea; can = &_tableWin.canCreateArea; break;
@@ -4273,6 +4368,31 @@ public:
 			} case "fileview": { mixin(S_TRACE);
 				if (_dirWin) { mixin(S_TRACE);
 					return _dirWin.openCWXPath(path, shellActivate);
+				}
+				return false;
+			} case "couponview": { mixin(S_TRACE);
+				if (_couponWin) { mixin(S_TRACE);
+					return _couponWin.openCWXPath(path, shellActivate);
+				}
+				return false;
+			} case "gossipview": { mixin(S_TRACE);
+				if (_couponWin) { mixin(S_TRACE);
+					return _gossipWin.openCWXPath(path, shellActivate);
+				}
+				return false;
+			} case "completestampview": { mixin(S_TRACE);
+				if (_completeStampWin) { mixin(S_TRACE);
+					return _completeStampWin.openCWXPath(path, shellActivate);
+				}
+				return false;
+			} case "keycodeview": { mixin(S_TRACE);
+				if (_keyCodeWin) { mixin(S_TRACE);
+					return _keyCodeWin.openCWXPath(path, shellActivate);
+				}
+				return false;
+			} case "cellnameview": { mixin(S_TRACE);
+				if (_cellNameWin) { mixin(S_TRACE);
+					return _cellNameWin.openCWXPath(path, shellActivate);
 				}
 				return false;
 			} default:

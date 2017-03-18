@@ -200,6 +200,12 @@ public:
 	@property Image evtAutoOpen() {return imgd!("evt_auto_edit.png");}
 	@property Image evtInsertFirst() {return imgd!("evt_insert_first.png");}
 
+	@property Image couponView() { return imgd!("coupon_win.png"); }
+	@property Image gossipView() { return imgd!("gossip_win.png"); }
+	@property Image completeStampView() { return imgd!("complete_stamp_win.png"); }
+	@property Image keyCodeView() { return imgd!("key_code_win.png"); }
+	@property Image cellNameView() { return imgd!("cell_name_win.png"); }
+
 	Image content(CType type) { mixin(S_TRACE);
 		final switch (type) {
 		case CType.START: return imgd!("evt_start.png");
@@ -513,6 +519,11 @@ public:
 		case MenuID.BeastView: return imgd!("beast_win.png");
 		case MenuID.InfoView: return imgd!("info_win.png");
 		case MenuID.FileView: return imgd!("dir_win.png");
+		case MenuID.CouponView: return imgd!("coupon_win.png");
+		case MenuID.GossipView: return imgd!("gossip_win.png");
+		case MenuID.CompleteStampView: return imgd!("complete_stamp_win.png");
+		case MenuID.KeyCodeView: return imgd!("key_code_win.png");
+		case MenuID.CellNameView: return imgd!("cell_name_win.png");
 		case MenuID.ExecEngine: return imgd!("exec_engine.png");
 		case MenuID.ExecEngineAuto: return imgd!("exec_engine.png");
 		case MenuID.ExecEngineMain: return imgd!("exec_engine.png");
