@@ -451,7 +451,12 @@ class CWXScript {
 		size_t beforeLineLen = 0;
 		@property ptrdiff_t sLine() {return cast(ptrdiff_t)i + opt.startLine;}
 		@property ptrdiff_t sPos() {return (cast(ptrdiff_t)i == opt.addLines) ? (cast(ptrdiff_t)pos + opt.startPos) : pos;}
-		foreach (token; .match(dtext, reg)) { mixin(S_TRACE);
+		auto maches = .match(dtext, reg);
+		if (!maches && dtext.length) { mixin(S_TRACE);
+			throwErrorToken(_prop.msgs.scriptErrorInvalidToken, sLine, sPos, "");
+			return r;
+		}
+		foreach (token; maches) { mixin(S_TRACE);
 			post = token.post;
 			string pre = token.pre;
 			if (0 < pre.length - index) { mixin(S_TRACE);
