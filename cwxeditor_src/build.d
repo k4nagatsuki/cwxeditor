@@ -77,6 +77,7 @@ version (Windows) {
 		"-L" ~ NAME ~ ".res",
 		"-of" ~ EXE,
 		"-L/SUBSYSTEM:CONSOLE",
+		"-L/STACK:4194304",
 	];
 	immutable string[] WINDOW_FLAGS_L_32 = [
 		"-L/rc:" ~ NAME,
@@ -89,6 +90,7 @@ version (Windows) {
 		"-of" ~ EXE,
 		"-L/SUBSYSTEM:Windows",
 		"-L/ENTRY:mainCRTStartup",
+		"-L/STACK:4194304",
 	];
 	immutable O = "obj";
 } else {
