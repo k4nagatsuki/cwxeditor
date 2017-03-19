@@ -1977,6 +1977,7 @@ class Msgs : Properties {
 	auto openTabAtRightOfCurrentTab = Msg("openTabAtRightOfCurrentTab", "新しいタブを現在のタブの直後に開く");
 	auto showCloseButtonAllTab = Msg("showCloseButtonAllTab", "全てのタブに閉じるボタンを表示する");
 	auto comboListVisible = Msg("comboListVisible", "コンボボックスでの編集開始時にリストを開く");
+	auto showCurrentValueOnTopAlways = Msg("showCurrentValueOnTopAlways", "コンボボックスで現在の値を常に最上段に表示する");
 	auto editTriggerTypeIsQuick = Msg("editTriggerTypeIsQuick", "選択項目のクリックですぐにテキストの編集を開始する");
 	auto xmlCopy = Msg("xmlCopy", "コピーや切り取りを常にXML形式で行う");
 	auto logicalSort = Msg("logicalSort", "数値参照型ソートを行う(1, 10, 2, 3, ... → 1, 2, 3, 10, ...)");

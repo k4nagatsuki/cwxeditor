@@ -293,6 +293,7 @@ class FlexEtcProps : Properties {
 	auto contentsFloat = Prop!(bool)("contentsFloat", false);
 	auto contentsAutoHide = Prop!(bool)("contentsAutoHide", false);
 	auto comboListVisible = Prop!(bool)("comboListVisible", true);
+	auto showCurrentValueOnTopAlways = Prop!(bool)("showCurrentValueOnTopAlways", false);
 	auto showContentsBoxHeightWhenNoToolBar = Prop!(int, true)("showContentsBoxHeightWhenNoToolBar", 8);
 	auto showSummaryInAreaTable = Prop!(bool)("showSummaryInAreaTable", true);
 	auto clickIsOpenEvent = Prop!(bool)("clickIsOpenEvent", false);

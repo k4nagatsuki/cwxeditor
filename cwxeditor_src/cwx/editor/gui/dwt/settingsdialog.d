@@ -1513,6 +1513,7 @@ struct OldSettings {
 	bool showMessagePreview;
 	ToolBarSettings mainToolBar;
 	string stepValueName;
+	bool showCurrentValueOnTopAlways;
 	this (Props prop) { mixin(S_TRACE);
 		this.prop = prop;
 		this.imageScale = prop.var.etc.imageScale;
@@ -1574,6 +1575,7 @@ struct OldSettings {
 		this.showSummaryPreview = prop.var.etc.showSummaryPreview;
 		this.showMessagePreview = prop.var.etc.showMessagePreview;
 		this.stepValueName = prop.var.etc.stepValueName;
+		this.showCurrentValueOnTopAlways = prop.var.etc.showCurrentValueOnTopAlways;
 	}
 	void raiseEvent(Commons comm) { mixin(S_TRACE);
 		bool refSkin = false;
@@ -1611,7 +1613,7 @@ struct OldSettings {
 			comm.refreshWallpaper(prop);
 			comm.refWallpaper.call();
 		}
-		if (oldSelections != prop.var.etc.standardSelections) { mixin(S_TRACE);
+		if (oldSelections != prop.var.etc.standardSelections || this.showCurrentValueOnTopAlways != prop.var.etc.showCurrentValueOnTopAlways) { mixin(S_TRACE);
 			comm.refStandardSelections.call();
 		}
 		if (oldKeyCodes != prop.var.etc.standardKeyCodes) { mixin(S_TRACE);
@@ -1710,11 +1712,20 @@ struct OldSettings {
 		if (this.radarStyleParams != prop.var.etc.radarStyleParams) { mixin(S_TRACE);
 			comm.refRadarStyle.call();
 		}
-		if (this.showSpNature != prop.var.etc.showSpNature || this.useNamesAfterStandard != prop.var.etc.useNamesAfterStandard) { mixin(S_TRACE);
+		if (this.showSpNature != prop.var.etc.showSpNature || this.useNamesAfterStandard != prop.var.etc.useNamesAfterStandard || this.showCurrentValueOnTopAlways != prop.var.etc.showCurrentValueOnTopAlways) { mixin(S_TRACE);
 			comm.refCoupons.call();
 		}
-		if (this.useNamesAfterStandard != prop.var.etc.useNamesAfterStandard) { mixin(S_TRACE);
+		if (this.showCurrentValueOnTopAlways != prop.var.etc.showCurrentValueOnTopAlways) { mixin(S_TRACE);
+			comm.refGossips.call();
+		}
+		if (this.showCurrentValueOnTopAlways != prop.var.etc.showCurrentValueOnTopAlways) { mixin(S_TRACE);
+			comm.refCompleteStamps.call();
+		}
+		if (this.useNamesAfterStandard != prop.var.etc.useNamesAfterStandard || this.showCurrentValueOnTopAlways != prop.var.etc.showCurrentValueOnTopAlways) { mixin(S_TRACE);
 			comm.refKeyCodes.call();
+		}
+		if (this.showCurrentValueOnTopAlways != prop.var.etc.showCurrentValueOnTopAlways) { mixin(S_TRACE);
+			comm.refCellNames.call();
 		}
 		if (this.showVariableValuesInEventText != prop.var.etc.showVariableValuesInEventText) { mixin(S_TRACE);
 			comm.refPreviewValues.call();

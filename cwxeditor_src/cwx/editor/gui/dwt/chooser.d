@@ -49,9 +49,7 @@ T createCouponCombo(T = Combo)(Commons comm, Summary summ, Composite parent, boo
 		if (combo.isDisposed()) return;
 		string id = combo.getText();
 		combo.removeAll();
-		auto values = allCoupons(comm, summ, type);
-		if (initValue != "") values = cwx.utils.remove(values, initValue);
-		if (initValue != "") values = values.length && values[0] != "" ? ([initValue, ""] ~ values) : [initValue] ~ values;
+		auto values = .addInitValue(comm, allCoupons(comm, summ, type), initValue);
 		foreach (i, coupon; values) { mixin(S_TRACE);
 			if (!incSearch.match(coupon)) continue;
 			combo.add(coupon);
@@ -85,7 +83,19 @@ T createCouponCombo(T = Combo)(Commons comm, Summary summ, Composite parent, boo
 	return combo;
 }
 
-string[] allCoupons(Commons comm, Summary summ, CouponComboType type) {
+private string[] addInitValue(Commons comm, string[] values, string initValue) { mixin(S_TRACE);
+	if (initValue != "") { mixin(S_TRACE);
+		if (comm.prop.var.etc.showCurrentValueOnTopAlways) { mixin(S_TRACE);
+			values = cwx.utils.remove(values, initValue);
+			values = values.length && values[0] != "" ? ([initValue, ""] ~ values) : [initValue] ~ values;
+		} else if (!cwx.utils.contains(values, initValue)) { mixin(S_TRACE);
+			values = values.length && values[0] != "" ? ([initValue, ""] ~ values) : [initValue] ~ values;
+		}
+	}
+	return values;
+}
+
+string[] allCoupons(Commons comm, Summary summ, CouponComboType type) { mixin(S_TRACE);
 	string[] cs;
 	if (type !is CouponComboType.Cast) { mixin(S_TRACE);
 		cs = castCoupons(comm, type is CouponComboType.Talker, comm.skin.legacyName, type is CouponComboType.GetLose);
@@ -150,9 +160,7 @@ T createGossipCombo(T = Combo)(Commons comm, Summary summ, Composite parent, boo
 		string id = combo.getText();
 		combo.removeAll();
 
-		auto values = allGossips(comm, summ);
-		if (initValue != "") values = cwx.utils.remove(values, initValue);
-		if (initValue != "") values = values.length && values[0] != "" ? ([initValue, ""] ~ values) : [initValue] ~ values;
+		auto values = .addInitValue(comm, allGossips(comm, summ), initValue);
 		foreach (i, gossip; values) { mixin(S_TRACE);
 			if (!incSearch.match(gossip)) continue;
 			combo.add(gossip);
@@ -206,9 +214,7 @@ T createCompleteStampCombo(T = Combo)(Commons comm, Summary summ, Composite pare
 		string id = combo.getText();
 		combo.removeAll();
 
-		auto values = allCompleteStamps(comm, summ);
-		if (initValue != "") values = cwx.utils.remove(values, initValue);
-		if (initValue != "") values = values.length && values[0] != "" ? ([initValue, ""] ~ values) : [initValue] ~ values;
+		auto values = .addInitValue(comm, allCompleteStamps(comm, summ), initValue);
 		foreach (i, stamp; values) { mixin(S_TRACE);
 			if (!incSearch.match(stamp)) continue;
 			combo.add(stamp);
@@ -283,9 +289,7 @@ T createKeyCodeCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bo
 			}
 			kcs2 ~= stdKCs;
 		}
-		auto values = kcs2;
-		if (initValue != "") values = cwx.utils.remove(values, initValue);
-		if (initValue != "") values = values.length && values[0] != "" ? ([initValue, ""] ~ values) : [initValue] ~ values;
+		auto values = .addInitValue(comm, kcs2, initValue);
 		foreach (i, kc; values) { mixin(S_TRACE);
 			if (!incSearch.match(kc)) continue;
 			combo.add(kc);
@@ -358,9 +362,7 @@ T createCellNameCombo(T = Combo)(Commons comm, Summary summ, Composite parent, b
 		string id = combo.getText();
 		combo.removeAll();
 
-		auto values = allCellNames(comm, summ);
-		if (initValue != "") values = cwx.utils.remove(values, initValue);
-		if (initValue != "") values = values.length && values[0] != "" ? ([initValue, ""] ~ values) : [initValue] ~ values;
+		auto values = .addInitValue(comm, allCellNames(comm, summ), initValue);
 		foreach (i, kc; values) { mixin(S_TRACE);
 			if (!incSearch.match(kc)) continue;
 			combo.add(kc);
@@ -806,9 +808,7 @@ T createSelectionCombo(T = Combo)(Commons comm, Composite parent, bool delegate(
 		combo.removeAll();
 
 		auto values = [""];
-		values ~= comm.prop.var.etc.standardSelections.dup;
-		if (initValue != "") values = cwx.utils.remove(values, initValue);
-		if (initValue != "") values = values.length && values[0] != "" ? ([initValue, ""] ~ values) : [initValue] ~ values;
+		values ~= .addInitValue(comm, comm.prop.var.etc.standardSelections.dup, initValue);
 		foreach (i, kc; values) { mixin(S_TRACE);
 			if (!incSearch.match(kc)) continue;
 			combo.add(kc);
