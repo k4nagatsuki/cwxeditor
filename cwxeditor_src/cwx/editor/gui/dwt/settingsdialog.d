@@ -93,6 +93,7 @@ private:
 	Button _backupBeforeSaveRef;
 	Button _backupBeforeSaveDirOpen;
 	Text _author;
+	Text _newAreaName;
 	Text _wallpaper;
 	Combo _wallpaperStyle;
 	int[int] _wallpaperStyleTbl;
@@ -528,15 +529,29 @@ private:
 				comp3.setLayoutData(new GridData(GridData.FILL_BOTH));
 				comp3.setLayout(zeroMarginGridLayout(1, false));
 				{ mixin(S_TRACE);
-					auto grp = new Group(comp3, SWT.NONE);
-					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-					auto cl = new CenterLayout;
-					cl.fillHorizontal = true;
-					grp.setLayout(cl);
-					grp.setText(_prop.msgs.scenarioAuthor);
-					_author = new Text(grp, SWT.BORDER);
-					createTextMenu!Text(_comm, _prop, _author, &catchMod);
-					mod(_author);
+					auto sash = new SplitPane(comp3, SWT.HORIZONTAL);
+					sash.setLayoutData(new GridData(GridData.FILL_BOTH));
+					{ mixin(S_TRACE);
+						auto grp = new Group(sash, SWT.NONE);
+						auto cl = new CenterLayout;
+						cl.fillHorizontal = true;
+						grp.setLayout(cl);
+						grp.setText(_prop.msgs.scenarioAuthor);
+						_author = new Text(grp, SWT.BORDER);
+						createTextMenu!Text(_comm, _prop, _author, &catchMod);
+						mod(_author);
+					}
+					{ mixin(S_TRACE);
+						auto grp = new Group(sash, SWT.NONE);
+						auto cl = new CenterLayout;
+						cl.fillHorizontal = true;
+						grp.setLayout(cl);
+						grp.setText(_prop.msgs.startAreaName);
+						_newAreaName = new Text(grp, SWT.BORDER);
+						createTextMenu!Text(_comm, _prop, _newAreaName, &catchMod);
+						mod(_newAreaName);
+					}
+					.setupWeights(sash, _prop.var.etc.authorNewAreaNameSashL, _prop.var.etc.authorNewAreaNameSashR);
 				}
 				{ mixin(S_TRACE);
 					auto grp = new Group(comp3, SWT.NONE);
@@ -1188,6 +1203,7 @@ protected:
 		_backupBeforeSaveEnabled.setSelection(_prop.var.etc.backupBeforeSaveEnabled);
 
 		_author.setText(_prop.var.etc.defaultAuthor);
+		_newAreaName.setText(_prop.var.etc.newAreaName);
 		_wallpaper.setText(_prop.var.etc.wallpaper);
 		auto wsp = _prop.var.etc.wallpaperStyle in _wallpaperStyleTbl;
 		if (wsp) { mixin(S_TRACE);
@@ -1367,6 +1383,7 @@ protected:
 		_prop.var.etc.backupBeforeSaveEnabled = _backupBeforeSaveEnabled.getSelection();
 
 		_prop.var.etc.defaultAuthor = _author.getText();
+		_prop.var.etc.newAreaName = _newAreaName.getText();
 		_prop.var.etc.wallpaper = _wallpaper.getText();
 		_prop.var.etc.wallpaperStyle = cast(WallpaperStyle) _wallpaperStyleTbl2[_wallpaperStyle.getSelectionIndex()];
 		_prop.var.etc.historyMax = _histMax.getSelection();

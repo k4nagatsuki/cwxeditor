@@ -248,7 +248,7 @@ public:
 	}
 
 	/// tempPathにシナリオを新規作成する。
-	static Summary createScenario(in CProps prop, string tempPath, string name, Skin skin, bool createStartArea, in BgImageS[] bgImagesDefault) { mixin(S_TRACE);
+	static Summary createScenario(in CProps prop, string tempPath, string name, Skin skin, bool createStartArea, string newAreaName, in BgImageS[] bgImagesDefault) { mixin(S_TRACE);
 		auto sys = prop.sys;
 		auto p = Summary.createTempDir(tempPath, name);
 		auto mFPath = std.path.buildPath(p, skin.materialPath);
@@ -260,16 +260,16 @@ public:
 		}
 		summ.refCheckPaths();
 		summ.updateJpy1List(prop);
-		Summary.createStartArea(summ , prop, createStartArea, bgImagesDefault, skin);
+		Summary.createStartArea(summ , prop, createStartArea, newAreaName, bgImagesDefault, skin);
 		return summ;
 	}
 
 	/// シナリオに開始エリアを追加する。
-	static void createStartArea(ref Summary summ, in CProps prop, bool createStartArea, in BgImageS[] bgImagesDefault, Skin skin = null,
+	static void createStartArea(ref Summary summ, in CProps prop, bool createStartArea, string newAreaName, in BgImageS[] bgImagesDefault, Skin skin = null,
 			string enginePath = null, string classicEngineRegex = null, string classicDataDirRegex = null, string classicMatchKey = null,
 			in ClassicEngine[] classicEngines = null, string defaultSkin = null) { mixin(S_TRACE);
-		if (createStartArea) {
-			auto area = new Area(summ.newAreaId, prop.msgs.newAreaName);
+		if (createStartArea) { mixin(S_TRACE);
+			auto area = new Area(summ.newAreaId, newAreaName);
 			BgImage[] bgImages;
 			if(summ && summ.legacy) { // クラシックシナリオ
 				auto skinClassic = Skin.findLegacySkin(prop, enginePath, summ.scenarioPath(), classicEngineRegex,

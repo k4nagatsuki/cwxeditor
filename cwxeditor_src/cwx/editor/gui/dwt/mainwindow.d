@@ -897,11 +897,11 @@ private:
 				auto dir = dlg.classicDir;
 				if (!dir.exists()) mkdirRecurse(dir);
 				summ = new Summary(dlg.name, dlg.skin, dir, false, true);
-				Summary.createStartArea(summ , _prop.parent, _prop.var.etc.createStartArea, _prop.var.etc.bgImagesDefault, null, _prop.enginePath,
+				Summary.createStartArea(summ , _prop.parent, _prop.var.etc.newAreaName != "", _prop.var.etc.newAreaName, _prop.var.etc.bgImagesDefault, null, _prop.enginePath,
 					_prop.var.etc.classicEngineRegex, _prop.var.etc.classicDataDirRegex, _prop.var.etc.classicMatchKey,
 					_prop.var.etc.classicEngines, _prop.var.etc.defaultSkin);
 			} else { mixin(S_TRACE);
-				summ = Summary.createScenario(_prop.parent, _prop.tempPath, dlg.name, findSkin2(_prop, dlg.skin, ""), _prop.var.etc.createStartArea, _prop.var.etc.bgImagesDefault);
+				summ = Summary.createScenario(_prop.parent, _prop.tempPath, dlg.name, findSkin2(_prop, dlg.skin, ""), _prop.var.etc.newAreaName != "", _prop.var.etc.newAreaName, _prop.var.etc.bgImagesDefault);
 			}
 			summ.author = _prop.var.etc.defaultAuthor;
 			openScenario(summ);
@@ -4466,14 +4466,14 @@ public:
 			_win.open();
 			dStr ~= " - " ~ .text(__LINE__);
 			if (_opt.create) { mixin(S_TRACE);
-				string name = _opt.createName is null ? _prop.msgs.newScenarioName : _opt.createName;
+				string name = _opt.createName is null ? _prop.var.etc.newScenarioName : _opt.createName;
 				string skin = _opt.createSkin is null ? _prop.var.etc.defaultSkin : _opt.createSkin;
-				auto summ = Summary.createScenario(_prop.parent, _prop.tempPath, name, findSkin2(_prop, skin, ""), _prop.var.etc.createStartArea, _prop.var.etc.bgImagesDefault);
+				auto summ = Summary.createScenario(_prop.parent, _prop.tempPath, name, findSkin2(_prop, skin, ""), _prop.var.etc.newAreaName != "", _prop.var.etc.newAreaName, _prop.var.etc.bgImagesDefault);
 				summ.author = _prop.var.etc.defaultAuthor;
 				openScenario(summ);
 				statusLine = "";
 			} else if (_opt.createclassic) { mixin(S_TRACE);
-				string name = _opt.createName is null ? _prop.msgs.newScenarioName : _opt.createName;
+				string name = _opt.createName is null ? _prop.var.etc.newScenarioName : _opt.createName;
 				if (_opt.createclassicPath is null || !_opt.createclassicPath.length) { mixin(S_TRACE);
 					_opt.createclassicPath = CreateScenarioDialog.createClassicDir(_prop, _win);
 				}
@@ -4484,7 +4484,7 @@ public:
 						}
 						auto summ = new Summary(name, "", _opt.createclassicPath, false, true);
 						summ.author = _prop.var.etc.defaultAuthor;
-						Summary.createStartArea(summ , _prop.parent, _prop.var.etc.createStartArea, _prop.var.etc.bgImagesDefault, null, _prop.enginePath,
+						Summary.createStartArea(summ , _prop.parent, _prop.var.etc.newAreaName != "", _prop.var.etc.newAreaName, _prop.var.etc.bgImagesDefault, null, _prop.enginePath,
 							_prop.var.etc.classicEngineRegex, _prop.var.etc.classicDataDirRegex, _prop.var.etc.classicMatchKey,
 							_prop.var.etc.classicEngines, _prop.var.etc.defaultSkin);
 						openScenario(summ);

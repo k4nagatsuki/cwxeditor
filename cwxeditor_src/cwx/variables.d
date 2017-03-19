@@ -183,6 +183,8 @@ class FlexEtcProps : Properties {
 	auto keyCodeSortDirection = Prop!(int)("keyCodeSortDirection", SortDir.Up);
 	auto cellNameSortColumn = Prop!(int)("cellNameSortColumn", 0);
 	auto cellNameSortDirection = Prop!(int)("cellNameSortDirection", SortDir.Up);
+	auto authorNewAreaNameSashL = Prop!(int)("authorNewAreaNameSashL", 1);
+	auto authorNewAreaNameSashR = Prop!(int)("authorNewAreaNameSashR", 1);
 
 	auto partyMax = Prop!(uint, true)("partyMax", 6);
 	auto cardScaleMax = Prop!(int)("cardScaleMax", 300);
@@ -610,6 +612,9 @@ class FlexEtcProps : Properties {
 
 	auto usedCouponToCombo = Prop!(bool, true)("usedCouponToCombo", true);
 
+	auto newScenarioName = Prop!(string, true)("newScenarioName", "新規シナリオ");
+	auto newAreaName = Prop!(string)("newAreaName", "開始エリア");
+
 	auto flagTrues = Prop!(string[])("flagTrues", ["TRUE", "表示", "ON", "有", "可", "済み"], true);
 	auto flagFalses = Prop!(string[])("flagFalses", ["FALSE", "非表示", "OFF", "無", "不可", "まだ"], true);
 
@@ -727,7 +732,6 @@ class FlexEtcProps : Properties {
 
 	auto doubleIO = Prop!(bool)("doubleIO", true);
 	auto reconstruction = Prop!(bool)("reconstruction", true);
-	auto createStartArea = Prop!(bool)("createStartArea", true);
 	auto branchRandomFailureFormat = Prop!(bool)("branchRandomFailureFormat", true);
 	auto openLastScenario = Prop!(bool)("openLastScenario", true);
 	auto imageCache = Prop!(bool)("imageCache", true);

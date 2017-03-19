@@ -105,9 +105,6 @@ class Msgs : Properties {
 	auto createScenarioNameDir = Msg("createScenarioNameDir", "シナリオの" ~ DIR ~ "を新規作成する");
 	auto notClassicWarning = Msg("notClassicWarning", "※ 「クラシック」以外のタイプはCardWirthPy専用形式となります");
 
-	auto newScenarioName = Msg("newScenarioName", "新規シナリオ");
-	auto newAreaName = Msg("newAreaName", "開始エリア");
-
 	auto dlgTitSaveBitmapImage = Msg("dlgTitSaveBitmapImage", "格納イメージの保存");
 	auto filterBitmapImage = Msg("filterBitmapImage", "ビットマップイメージ (*.bmp)");
 	auto dlgMsgIncludeImage = Msg("dlgMsgIncludeImage", "%1$sをシナリオファイル内にコピーしますか？\n(元のファイルは削除されません)");
@@ -1952,6 +1949,7 @@ class Msgs : Properties {
 	auto backupBeforeSavePath = Msg("backupBeforeSavePath", "保存先");
 	auto skin = Msg("skin", "スキン");
 	auto scenarioAuthor = Msg("scenarioAuthor", "シナリオ作者(新規作成時に自動設定されます)");
+	auto startAreaName = Msg("startAreaName", "新規作成時の開始エリア名(空欄 = 開始エリア無し)");
 	auto historiesSettings = Msg("historiesSettings", "履歴");
 	auto openHistoryMax = Msg("openHistoryMax", "シナリオ履歴保存件数");
 	auto openHistoryClear = Msg("openHistoryClear", "クリア");
@@ -1996,7 +1994,6 @@ class Msgs : Properties {
 	auto addNewClassicEngine = Msg("addNewClassicEngine", "未知のクラシックエンジンを見つけたら記憶する");
 	auto openLastScenario = Msg("openLastScenario", "終了時に開いていたシナリオを次の起動時に開く");
 	auto reconstruction = Msg("reconstruction", "シナリオごとにタブの配置を記憶する");
-	auto createStartArea = Msg("createStartArea", "シナリオの新規作成時に開始エリアを作成する");
 
 	auto etcSettingsFile = Msg("etcSettingsFile", "ファイルの追跡");
 	auto traceDirectories = Msg("traceDirectories", "ファイル・" ~ DIR ~ "の変更を自動的に追跡する");

@@ -313,7 +313,7 @@ protected:
 	override bool close(bool ok, out bool cancel) { mixin(S_TRACE);
 		if (ok) { mixin(S_TRACE);
 			_nameVal = _name.getText();
-			if (!_nameVal.length) _nameVal = _prop.msgs.newScenarioName;
+			if (!_nameVal.length) _nameVal = _prop.var.etc.newScenarioName;
 
 			auto dir = classicDir;
 			if (legacy) { mixin(S_TRACE);
@@ -340,7 +340,7 @@ protected:
 						resetCursors(cursors);
 					}
 					// 非シナリオのディレクトリをベースとする
-					summ = Summary.createScenario(_prop.parent, _prop.tempPath, name, findSkin2(_prop, skin, ""), _prop.var.etc.createStartArea, _prop.var.etc.bgImagesDefault);
+					summ = Summary.createScenario(_prop.parent, _prop.tempPath, name, findSkin2(_prop, skin, ""), _prop.var.etc.newAreaName != "", _prop.var.etc.newAreaName, _prop.var.etc.bgImagesDefault);
 					tPath.copyAll(summ.scenarioPath);
 				} else { mixin(S_TRACE);
 					auto cursors = setWaitCursors(topShell(getShell()));
@@ -361,7 +361,7 @@ protected:
 				}
 				if (ok) { mixin(S_TRACE);
 					if (!summ) { mixin(S_TRACE);
-						summ = Summary.createScenario(_prop.parent, _prop.tempPath, name, findSkin2(_prop, skin, ""), _prop.var.etc.createStartArea, _prop.var.etc.bgImagesDefault);
+						summ = Summary.createScenario(_prop.parent, _prop.tempPath, name, findSkin2(_prop, skin, ""), _prop.var.etc.newAreaName != "", _prop.var.etc.newAreaName, _prop.var.etc.bgImagesDefault);
 					}
 					summ.setBaseParams(name, _prop.var.etc.defaultAuthor);
 					_prop.var.etc.defaultScenarioTemplate = tPath;
