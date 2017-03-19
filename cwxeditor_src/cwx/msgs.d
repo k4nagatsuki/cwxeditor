@@ -1115,7 +1115,6 @@ class Msgs : Properties {
 	auto dlgTitStep = Msg("dlgTitStep", "ステップの設定");
 	auto dlgLblStepName = Msg("dlgLblStepName", "ステップ名");
 	auto dlgLblStepInit = Msg("dlgLblStepInit", "初期値");
-	auto dlgTxtStep = Msg("dlgTxtStep", "Step - %1$s");
 	auto stepCount = Msg("stepCount", "段階数");
 
 	/// 貼紙設定ダイアログ関連。
@@ -2060,6 +2059,7 @@ class Msgs : Properties {
 
 	auto flagInitValue = Msg("flagInitValue", "フラグの初期値");
 	auto stepInitValue = Msg("stepInitValue", "ステップの初期値");
+	auto stepValueName = Msg("stepValueName", "ステップ値($N = 数値)");
 
 	auto keyBind = Msg("keyBind", "キーバインド");
 	auto mnemonic = Msg("mnemonic", "アクセスキー");

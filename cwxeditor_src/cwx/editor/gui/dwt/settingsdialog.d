@@ -53,6 +53,7 @@ import std.ascii;
 import std.exception;
 import std.range : iota;
 import std.math;
+import std.conv;
 
 import org.eclipse.swt.all;
 import java.lang.all;
@@ -147,6 +148,7 @@ private:
 
 	Combo _flagInitValue;
 	Combo _stepInitValue;
+	Text _stepValueName;
 
 	Text _mnemonic;
 	HotKeyField _hotkey;
@@ -1020,7 +1022,21 @@ private:
 				return combo;
 			}
 			_flagInitValue = createInitVarCombo(_prop.msgs.flagInitValue, [_prop.msgs.flagOn, _prop.msgs.flagOff]);
-			_stepInitValue = createInitVarCombo(_prop.msgs.stepInitValue, _prop.looks.stepMaxCount.iota().map!((a) => .tryFormat(_prop.msgs.dlgTxtStep, a)).array());
+			_stepInitValue = createInitVarCombo(_prop.msgs.stepInitValue, _prop.looks.stepMaxCount.iota().map!((a) => .parseDollarParams(_prop.var.etc.stepValueName, ['N':.to!string(a)])).array());
+
+			auto l = new Label(grp, SWT.NONE);
+			l.setText(_prop.msgs.stepValueName);
+			_stepValueName = new Text(grp, SWT.BORDER);
+			createTextMenu!Text(_comm, _prop, _stepValueName, &catchMod);
+			mod(_stepValueName);
+			auto gd = new GridData(GridData.FILL_HORIZONTAL);
+			gd.horizontalSpan = 4;
+			_stepValueName.setLayoutData(gd);
+			.listener(_stepValueName, SWT.Modify, { mixin(S_TRACE);
+				foreach (i; 0 .. _prop.looks.stepMaxCount) { mixin(S_TRACE);
+					_stepInitValue.setItem(i, .parseDollarParams(_stepValueName.getText(), ['N':.to!string(i)]));
+				}
+			});
 		}
 		{ mixin(S_TRACE);
 			auto sash = new SplitPane(comp, SWT.VERTICAL);
@@ -1222,6 +1238,7 @@ protected:
 
 		_flagInitValue.select(_prop.var.etc.flagInitValue ? 0 : 1);
 		_stepInitValue.select(.max(0, .min(_prop.looks.stepMaxCount - 1, _prop.var.etc.stepInitValue)));
+		_stepValueName.setText(_prop.var.etc.stepValueName);
 
 		_selections.setText(_prop.var.etc.standardSelections.value.join("\n") ~ "\n");
 		_keyCodes.setText(_prop.var.etc.standardKeyCodes.value.join("\n") ~ "\n");
@@ -1395,6 +1412,7 @@ protected:
 
 		_prop.var.etc.flagInitValue = _flagInitValue.getSelectionIndex() == 0;
 		_prop.var.etc.stepInitValue = _stepInitValue.getSelectionIndex();
+		_prop.var.etc.stepValueName = _stepValueName.getText();
 
 		_prop.var.etc.standardSelections = _selections.getText().splitLines().stripRight("");
 		_prop.var.etc.standardKeyCodes = _keyCodes.getText().splitLines().stripRight("");
@@ -1477,6 +1495,7 @@ struct OldSettings {
 	bool showSummaryPreview;
 	bool showMessagePreview;
 	ToolBarSettings mainToolBar;
+	string stepValueName;
 	this (Props prop) { mixin(S_TRACE);
 		this.prop = prop;
 		this.imageScale = prop.var.etc.imageScale;
@@ -1537,6 +1556,7 @@ struct OldSettings {
 		this.xmlFileNameIsIDOnly = prop.var.etc.xmlFileNameIsIDOnly;
 		this.showSummaryPreview = prop.var.etc.showSummaryPreview;
 		this.showMessagePreview = prop.var.etc.showMessagePreview;
+		this.stepValueName = prop.var.etc.stepValueName;
 	}
 	void raiseEvent(Commons comm) { mixin(S_TRACE);
 		bool refSkin = false;
@@ -1626,7 +1646,7 @@ struct OldSettings {
 				|| oldUndoMaxEtc != prop.var.etc.undoMaxEtc) { mixin(S_TRACE);
 			comm.refUndoMax.call();
 		}
-		if (oldDialogStatus != prop.var.etc.dialogStatus) { mixin(S_TRACE);
+		if (oldDialogStatus != prop.var.etc.dialogStatus || stepValueName != prop.var.etc.stepValueName) { mixin(S_TRACE);
 			comm.refContentText.call();
 		}
 		bool updateTool = false;

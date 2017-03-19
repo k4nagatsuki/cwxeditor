@@ -10,6 +10,7 @@ import cwx.types;
 import cwx.system;
 import cwx.card;
 import cwx.event;
+import cwx.structs;
 
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.dprops;
@@ -391,7 +392,7 @@ public:
 		new MenuItem(mEvt, SWT.SEPARATOR);
 		void ssValue(uint i) { mixin(S_TRACE);
 			string mnemonic = i < 10 ? .text(i) : "";
-			createMenuItem2(_comm, mEvt, MenuProps.buildMenu(.tryFormat(prop.msgs.setStepValue, .tryFormat(prop.msgs.dlgTxtStep, i)), mnemonic, "", false), prop.images.content(CType.SET_STEP), () => copyStepTree(i), () => current && current.hasStep);
+			createMenuItem2(_comm, mEvt, MenuProps.buildMenu(.tryFormat(prop.msgs.setStepValue, .parseDollarParams(prop.var.etc.stepValueName, ['N':.to!string(i)])), mnemonic, "", false), prop.images.content(CType.SET_STEP), () => copyStepTree(i), () => current && current.hasStep);
 		}
 		foreach (i; 0..prop.looks.stepMaxCount) { mixin(S_TRACE);
 			ssValue(i);

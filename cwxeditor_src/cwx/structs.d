@@ -7,6 +7,7 @@ import cwx.features;
 import cwx.types;
 import cwx.xml;
 
+import std.ascii;
 import std.conv;
 import std.path;
 
@@ -420,33 +421,52 @@ struct OuterTool {
 	}
 	/// コマンドをパースする。$Fをファイル名に置換、$Sをシナリオ名に置換する。
 	static string parse(string str, string file, string sPath) { mixin(S_TRACE);
-		dstring buf;
-		bool bs = false;
-		foreach (dchar c; str) { mixin(S_TRACE);
-			if (bs) { mixin(S_TRACE);
-				if (c == 'f' || c == 'F') { mixin(S_TRACE);
-					buf ~= to!dstring(file);
-				} else if (c == 's' || c == 'S') { mixin(S_TRACE);
-					buf ~= to!dstring(sPath);
-				} else if (c == '$') { mixin(S_TRACE);
-					buf ~= "$"d;
-				} else { mixin(S_TRACE);
-					buf ~= "$"d ~ c;
-				}
-				bs = false;
+		return .parseDollarParams(str, ['F':file, 'S':sPath]);
+	} unittest { mixin(S_TRACE);
+		debug mixin(UTPerf);
+
+		assert (parse("cwxeditor $F $S $$", "FILE", "SCENARIO") == "cwxeditor FILE SCENARIO $");
+		assert (parse("cwxeditor $s $f $$", "FILE", "SCENARIO") == "cwxeditor SCENARIO FILE $");
+	}
+}
+
+/// '$'記号で表されるフォーマット文字列を連想配列が持つパラメータに置換する。
+/// 例えば"name=$N"のような文字列と{ 'N':"VALUE" }のような連想配列を
+/// "name=VALUE"に変換する。
+/// "$$"は'$'に変換する。
+string parseDollarParams(in char[] format, in string[char] params) { mixin(S_TRACE);
+	char[] buf;
+	bool bs = false;
+	foreach (c; format) { mixin(S_TRACE);
+		if (bs) { mixin(S_TRACE);
+			if (auto p = c.toLower() in params) { mixin(S_TRACE);
+				buf ~= *p;
+			} else if (auto p = c.toUpper() in params) { mixin(S_TRACE);
+				buf ~= *p;
+			} else if (c == '$') { mixin(S_TRACE);
+				buf ~= '$';
 			} else { mixin(S_TRACE);
-				if (c == '$') { mixin(S_TRACE);
-					bs = true;
-				} else { mixin(S_TRACE);
-					buf ~= c;
-				}
+				buf ~= '$';
+				buf ~= c;
+			}
+			bs = false;
+		} else { mixin(S_TRACE);
+			if (c == '$') { mixin(S_TRACE);
+				bs = true;
+			} else { mixin(S_TRACE);
+				buf ~= c;
 			}
 		}
-		if (bs) { mixin(S_TRACE);
-			buf ~= "$";
-		}
-		return to!string(buf);
 	}
+	if (bs) { mixin(S_TRACE);
+		buf ~= '$';
+	}
+	return to!string(buf);
+} unittest { mixin(S_TRACE);
+	debug mixin(UTPerf);
+
+	assert (parseDollarParams("notepad $F", ['f':"filename"]) == "notepad filename");
+	assert (parseDollarParams(" $F / $s / $$ /", ['f':"fff", 'S':"ssss"]) == " fff / ssss / $ /");
 }
 
 /// デフォルト設定用の背景画像構造体。

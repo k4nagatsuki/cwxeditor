@@ -3283,7 +3283,7 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 	} case CType.BRANCH_STEP: { mixin(S_TRACE);
 		string s = contentTextUseID!(CIDKind.Step)(comm, summ, evt.step, "%s", evt);
 		auto step = summ ? summ.flagDirRoot.findStep(evt.step) : null;
-		string v = step ? getStepValue(comm.prop, step, evt.stepValue) : .tryFormat(comm.prop.msgs.dlgTxtStep, evt.stepValue);
+		string v = step ? getStepValue(comm.prop, step, evt.stepValue) : .parseDollarParams(comm.prop.var.etc.stepValueName, ['N':.to!string(evt.stepValue)]);
 		return .tryFormat(comm.prop.msgs.ctBranchStep, s, v);
 	} case CType.BRANCH_SELECT: { mixin(S_TRACE);
 		string t = evt.targetAll ? comm.prop.msgs.ctBranchSelectAll : comm.prop.msgs.ctBranchSelectActive;
@@ -3392,7 +3392,7 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		if (o) { mixin(S_TRACE);
 			value = getStepValue(comm.prop, o, evt.stepValue);
 		} else { mixin(S_TRACE);
-			value = .tryFormat(comm.prop.msgs.dlgTxtStep, evt.stepValue);
+			value = .parseDollarParams(comm.prop.var.etc.stepValueName, ['N':.to!string(evt.stepValue)]);
 		}
 		return .tryFormat(comm.prop.msgs.ctSetStep, name, value);
 	} case CType.SET_STEP_UP: { mixin(S_TRACE);
@@ -3552,7 +3552,7 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		if (o) { mixin(S_TRACE);
 			value = getStepValue(comm.prop, o, evt.stepValue);
 		} else { mixin(S_TRACE);
-			value = .tryFormat(comm.prop.msgs.dlgTxtStep, evt.stepValue);
+			value = .parseDollarParams(comm.prop.var.etc.stepValueName, ['N':.to!string(evt.stepValue)]);
 		}
 		string cmp = comm.prop.msgs.comparison4Name(evt.comparison4);
 		return .tryFormat(comm.prop.msgs.ctCheckStep, name, value, cmp);

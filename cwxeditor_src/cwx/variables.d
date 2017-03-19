@@ -214,6 +214,7 @@ class FlexEtcProps : Properties {
 	auto flagInitValue = Prop!(bool)("flagInitValue", true);
 	auto stepInitValue = Prop!(int)("stepInitValue", 0);
 	auto stepCountMax = Prop!(uint)("stepCountMax", 10000, true);
+	auto stepValueName = Prop!(string)("stepValueName", "Step - $N");
 
 	auto imageListWidth = Prop!(int, false, true)("imageListWidth", 380);
 	auto imageListHeight = Prop!(int, false, true)("imageListHeight", 300);

@@ -1520,7 +1520,7 @@ private:
 				_comm.replText.remove(&refreshCard);
 				_comm.replText.remove(&refreshEventText);
 				_comm.replID.remove(&refreshCard);
-				_comm.refContentText.remove(&refreshStatusLine);
+				_comm.refContentText.remove(&refreshEventText);
 				_comm.refPreviewValues.remove(&refreshEventText);
 				_comm.selContentTool.remove(&selContentTool);
 				_comm.refEventTemplates.remove(&refreshTemplates);
@@ -1853,7 +1853,7 @@ public:
 			_comm.replText.add(&refreshCard);
 			_comm.replText.add(&refreshEventText);
 			_comm.replID.add(&refreshCard);
-			_comm.refContentText.add(&refreshStatusLine);
+			_comm.refContentText.add(&refreshEventText);
 			_comm.refPreviewValues.add(&refreshEventText);
 			_comm.selContentTool.add(&selContentTool);
 			_comm.refEventTemplates.add(&refreshTemplates);
@@ -4009,7 +4009,7 @@ private string evtChildBrStepN(in Props prop, in Summary summ, string path, ref 
 		debugln(e);
 	}
 	string name = prop.msgs.noSelectStep;
-	string value = val >= 0 ? .tryFormat(prop.msgs.dlgTxtStep, val) : prop.msgs.etc;
+	string value = val >= 0 ? .parseDollarParams(prop.var.etc.stepValueName, ['N':.to!string(val)]) : prop.msgs.etc;
 	if (path.length && summ) { mixin(S_TRACE);
 		auto o = summ.flagDirRoot.findStep(path);
 		if (o) { mixin(S_TRACE);
@@ -4025,7 +4025,7 @@ private string evtChildBrStepUL(in Props prop, in Summary summ, string path, int
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
 	string name = prop.msgs.noSelectStep;
-	string value = .tryFormat(prop.msgs.dlgTxtStep, num);
+	string value = .parseDollarParams(prop.var.etc.stepValueName, ['N':.to!string(num)]);
 	if (path.length && summ) { mixin(S_TRACE);
 		auto o = summ.flagDirRoot.findStep(path);
 		if (o) { mixin(S_TRACE);

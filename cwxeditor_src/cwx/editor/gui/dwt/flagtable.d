@@ -12,6 +12,7 @@ import cwx.system;
 import cwx.card;
 import cwx.event;
 import cwx.xml;
+import cwx.structs;
 
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.dprops;
@@ -324,7 +325,7 @@ protected:
 			_valueCache = _step.values.dup;
 		} else { mixin(S_TRACE);
 			_name.setText("");
-			_valueCache = .iota(_comm.prop.looks.stepMaxCount).map!(i => .tryFormat(_comm.prop.msgs.dlgTxtStep, i)).array();
+			_valueCache = .iota(_comm.prop.looks.stepMaxCount).map!(i => .parseDollarParams(_comm.prop.var.etc.stepValueName, ['N':.to!string(i)])).array();
 		}
 		foreach (i, value; _valueCache) { mixin(S_TRACE);
 			auto item = new TableItem(_values, SWT.NONE);
@@ -1206,7 +1207,7 @@ private:
 		if (!step) { mixin(S_TRACE);
 			string[] vals;
 			foreach (i; 0 .. prop.looks.stepMaxCount) { mixin(S_TRACE);
-				vals ~= .tryFormat(prop.msgs.dlgTxtStep, i);
+				vals ~= .parseDollarParams(prop.var.etc.stepValueName, ['N':.to!string(i)]);
 			}
 			step = new Step("", vals, .min(prop.looks.stepMaxCount - 1, .max(0, prop.var.etc.stepInitValue.value)));
 		}
@@ -1665,7 +1666,7 @@ public:
 		new MenuItem(mEvt, SWT.SEPARATOR);
 		void ssValue(uint i) { mixin(S_TRACE);
 			string mnemonic = i < 10 ? .text(i) : "";
-			createMenuItem2(_comm, mEvt, MenuProps.buildMenu(.tryFormat(prop.msgs.setStepValue, .tryFormat(prop.msgs.dlgTxtStep, i)), mnemonic, "", false), prop.images.content(CType.SET_STEP), () => copyStepTree(i), () => 0 < selectionSteps.length);
+			createMenuItem2(_comm, mEvt, MenuProps.buildMenu(.tryFormat(prop.msgs.setStepValue, .parseDollarParams(prop.var.etc.stepValueName, ['N':.to!string(i)])), mnemonic, "", false), prop.images.content(CType.SET_STEP), () => copyStepTree(i), () => 0 < selectionSteps.length);
 		}
 		foreach (i; 0..prop.looks.stepMaxCount) { mixin(S_TRACE);
 			ssValue(i);
