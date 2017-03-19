@@ -8,27 +8,18 @@ CWXEditor ビルドガイド
 ライブラリ:
  : DWT at GitHub
 
-後はgitのクライアントがあると楽です。
+後はGitのクライアントがあると楽です。
+
+ * D言語のコンパイラであるdmdのインストールについては、[D言語友の会](http://dusers.dip.jp/modules/wiki/?Tools%2FDMD)の記事が参考になります。
+ * [Gitのインストールについても日本語記事があります](https://git-scm.com/book/ja/v1/%E4%BD%BF%E3%81%84%E5%A7%8B%E3%82%81%E3%82%8B-Git%E3%81%AE%E3%82%A4%E3%83%B3%E3%82%B9%E3%83%88%E3%83%BC%E3%83%AB)。
 
 
 Windowsの場合
 -------------
 
-パスを通すとは、Windowsのシステムの詳細設定の環境変数のPathにディレクトリ名（フォルダ名）を書いて、
-必要ならWindowsを再起動することです。
-
-dmdを落としてきて解凍して置きます。
-dmd2/windows/bin にパスを通します。
-
-gitのクライアントは、例えば、Git for Windows を落としてインストールします。
-Git/bin、Git/cmd にパスを通します。
-
 DWTをGitHubから取ってきます。
 
-submoduleがあるので、submodule initとupdateをしておきましょう。
-
-各submoduleが最新のcommitになっていない事が結構あるので、強制的に
-pullもしておきます。
+submoduleがあるので、submodule initとupdateをしておきましょう。各submoduleが最新のcommitになっていない事が結構あるので、強制的にpullもしておきます。
 
     git clone https://github.com/d-widget-toolkit/dwt.git
     cd dwt
@@ -43,8 +34,7 @@ pullもしておきます。
 
     rdmd build base swt -m64
 
-後は、dmd2/windows/bin/sc.iniを弄くってDWTのインポートフォルダやら
-リソースフォルダやらを探しに行くようにしておきましょう。
+後は、`dmd2/windows/bin/sc.ini`を弄くってDWTのインポートフォルダやらリソースフォルダやらを探しに行くようにしておきましょう。
 
     [Environment]
 
@@ -59,7 +49,7 @@ pullもしておきます。
 
 最後にリソースコンパイル用のrccを入手します(32ビット版のみ)。
 
-Digital MarsのサイトからBasic Utilitiesを入手して、パスを通しましょう。
+Digital MarsのサイトからBasic Utilitiesを入手して、パスを通しましょう(「パスを通す」などのキーワードで検索する事で、具体的な情報が見つかります)。
 
 http://www.digitalmars.com//download/freecompiler.html
 
@@ -89,31 +79,29 @@ rdmd等で実行してください。
 
 後はどうかDWTが死なないことを私と一緒に祈ってください。
 
-番外：
 
-マージする必要がある場合(TortoiseHg 付属の kdiff3 では日本語がバグる)、差分表示で WinMerge を使いたい場合、
-WinMergeを落としてきてインストール。
-WinMergeに、パスを通しましょう。
+### 番外: マージツールについて
 
-そして、TortoiseHg Workbench を起動し、ファイル(F)-設定(S) のユーザー設定のエクステンションを選択し、
-extdiff にチェックを入れ、左上のファイルを開くを押し、
+2017年3月現在、CWXEditorのバージョン管理には[Mercurial](https://www.mercurial-scm.org/)を使用していますが、MercurialのGUIクライアントTortoiseHgに付属しているマージツール(kdiff3)には、日本語ファイルをマージした時に内容が壊れてしまうバグが存在しています。
 
-[extensions]
-extdiff = 
+Windowsにおける有名なマージツールに[WinMerge](http://www.geocities.co.jp/SiliconValley-SanJose/8165/winmerge.html)があるので、そちらに差し替える事をお勧めします。
 
-[extdiff]
-cmd.wmdiff = [WinMergeのフルパス]/WinMergeU.exe
-opts.wmdiff = /r /e /x /ub
+WinMergeをインストールしたら、TortoiseHg Workbenchを起動し、`ファイル(F) > 設定(S)`の「ユーザー設定のエクステンション」を選択し、`extdiff`にチェックを入れ、左上の「ファイルを開く」を押し、以下のように記入して保存してください。
 
-[merge-tools]
-winmerge.args = /e /ub /dl other /dr local $other $local $output
-winmerge.regkey = Software\Thingamahoochie\WinMerge
-winmerge.regname = Executable
-winmerge.fixeol = True
-winmerge.checkchanged = True
-winmerge.gui = True
+    [extensions]
+    extdiff = 
 
-を記入して、保存する。
+    [extdiff]
+    cmd.wmdiff = <WinMergeのフルパス>/WinMergeU.exe
+    opts.wmdiff = /r /e /x /ub
+
+    [merge-tools]
+    winmerge.args = /e /ub /dl other /dr local $other $local $output
+    winmerge.regkey = Software\Thingamahoochie\WinMerge
+    winmerge.regname = Executable
+    winmerge.fixeol = True
+    winmerge.checkchanged = True
+    winmerge.gui = True
 
 
 linuxの場合
@@ -138,10 +126,7 @@ apt-get等で手に入れておきましょう。
 
 DWTをGitHubから取ってきます。
 
-submoduleがあるので、submodule initとupdateをしておきましょう。
-
-各submoduleが最新のcommitになっていない事が結構あるので、強制的に
-pullもしておきます。
+submoduleがあるので、submodule initとupdateをしておきましょう。各submoduleが最新のcommitになっていない事が結構あるので、強制的にpullもしておきます。
 
     git clone https://github.com/d-widget-toolkit/dwt.git
     cd dwt
@@ -152,21 +137,16 @@ pullもしておきます。
 
     rdmd build base swt
 
-ビルドが完了すると、以下のライブラリファイルがlibディレクトリに生成され
-るはずです。
+ビルドが完了すると、以下のライブラリファイルがlibディレクトリに生成されるはずです。
 
  * dwt-base.a
  * org.eclipse.swt.gtk.linux.x86.a
 
-dwt/libにある状態では何をどうしてもリンクできなかったので、cwxeditor_src/
-に放り込んでしまってください。
+`dwt/lib`にある状態では何をどうしてもリンクできなかったので、`cwxeditor_src/`に放り込んでしまってください。
 
-名前が"lib"から始まっていないのが悪いのですが、そのままリンクする方法が
-あるんでしょうか。自分は完膚無きまでにタコなので、分かっている人は教えて
-くださると助かります。
+名前が"lib"から始まっていないのが悪いのですが、そのままリンクする方法があるんでしょうか。自分は完膚無きまでにタコなので、分かっている人は教えてくださると助かります。
 
-後は"/etc/dmd.conf"のDFLAGSを弄くってDWTのインポートフォルダやらリソー
-スやらを探しに行くようにしておきましょう。
+後は"/etc/dmd.conf"のDFLAGSを弄くってDWTのインポートフォルダやらリソースやらを探しに行くようにしておきましょう。
 
 これでようやく準備完了です。
 
@@ -188,4 +168,4 @@ rdmd等で実行してください。
 
     rdmd build gui
 
-　後はどうかDWTが死なないことを私と一緒に祈ってください。
+後はどうかDWTが死なないことを私と一緒に祈ってください。
