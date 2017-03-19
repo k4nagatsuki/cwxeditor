@@ -14,6 +14,15 @@ CWXEditor ビルドガイド
 Windowsの場合
 -------------
 
+パスを通すとは、Windowsのシステムの詳細設定の環境変数のPathにディレクトリ名（フォルダ名）を書いて、
+必要ならWindowsを再起動することです。
+
+dmdを落としてきて解凍して置きます。
+dmd2/windows/bin にパスを通します。
+
+gitのクライアントは、例えば、Git for Windows を落としてインストールします。
+Git/bin、Git/cmd にパスを通します。
+
 DWTをGitHubから取ってきます。
 
 submoduleがあるので、submodule initとupdateをしておきましょう。
@@ -79,6 +88,32 @@ rdmd等で実行してください。
     rdmd build -m64
 
 後はどうかDWTが死なないことを私と一緒に祈ってください。
+
+番外：
+
+マージする必要がある場合(TortoiseHg 付属の kdiff3 では日本語がバグる)、差分表示で WinMerge を使いたい場合、
+WinMergeを落としてきてインストール。
+WinMergeに、パスを通しましょう。
+
+そして、TortoiseHg Workbench を起動し、ファイル(F)-設定(S) のユーザー設定のエクステンションを選択し、
+extdiff にチェックを入れ、左上のファイルを開くを押し、
+
+[extensions]
+extdiff = 
+
+[extdiff]
+cmd.wmdiff = [WinMergeのフルパス]/WinMergeU.exe
+opts.wmdiff = /r /e /x /ub
+
+[merge-tools]
+winmerge.args = /e /ub /dl other /dr local $other $local $output
+winmerge.regkey = Software\Thingamahoochie\WinMerge
+winmerge.regname = Executable
+winmerge.fixeol = True
+winmerge.checkchanged = True
+winmerge.gui = True
+
+を記入して、保存する。
 
 
 linuxの場合
