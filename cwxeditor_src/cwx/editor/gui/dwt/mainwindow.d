@@ -900,6 +900,11 @@ private:
 				Summary.createStartArea(summ , _prop.parent, _prop.var.etc.newAreaName != "", _prop.var.etc.newAreaName, _prop.var.etc.bgImagesDefault, null, _prop.enginePath,
 					_prop.var.etc.classicEngineRegex, _prop.var.etc.classicDataDirRegex, _prop.var.etc.classicMatchKey,
 					_prop.var.etc.classicEngines, _prop.var.etc.defaultSkin);
+				{ mixin(S_TRACE);
+					_saveSync.lock();
+					scope (exit) _saveSync.unlock();
+					summ.saveOverwrite(_prop.parent, findSkin(_comm, _prop, summ), createSaveOpt(true));
+				}
 			} else { mixin(S_TRACE);
 				summ = Summary.createScenario(_prop.parent, _prop.tempPath, dlg.name, findSkin2(_prop, dlg.skin, ""), _prop.var.etc.newAreaName != "", _prop.var.etc.newAreaName, _prop.var.etc.bgImagesDefault);
 			}
@@ -1234,18 +1239,18 @@ private:
 	void savec(Shell shell) { mixin(S_TRACE);
 		save(shell);
 	}
-	SaveOption createSaveOpt() { mixin(S_TRACE);
+	SaveOption createSaveOpt(bool initial) { mixin(S_TRACE);
 		SaveOption opt;
 		opt.doubleIO = _prop.var.etc.doubleIO;
 		opt.saveInnerImagePath = _prop.var.etc.saveInnerImagePath;
-		opt.saveChangedOnly = _prop.var.etc.saveChangedOnly;
+		opt.saveChangedOnly = _prop.var.etc.saveChangedOnly && !initial;
 		opt.xmlFileNameIsIDOnly = _prop.var.etc.xmlFileNameIsIDOnly;
-		opt.backup = _prop.var.etc.backupBeforeSaveEnabled;
+		opt.backup = _prop.var.etc.backupBeforeSaveEnabled && !initial;
 		opt.backupDir = _prop.backupBeforeSavePath.buildPath(_prop.var.etc.backupBeforeSaveDir);
-		if (!opt.backupDir.exists()) mkdirRecurse(opt.backupDir);
-		opt.archiveInNewThread = _prop.var.etc.archiveInNewThread && summary.useTemp;
+		if (opt.backup && !initial && !opt.backupDir.exists()) mkdirRecurse(opt.backupDir);
+		opt.archiveInNewThread = _prop.var.etc.archiveInNewThread && !initial && summary.useTemp;
 		opt.autoUpdateJpy1File = _prop.var.etc.autoUpdateJpy1File;
-		if (opt.archiveInNewThread) { mixin(S_TRACE);
+		if (opt.archiveInNewThread && !initial) { mixin(S_TRACE);
 			opt.savedCallback = { mixin(S_TRACE);
 				synchronized (_displayMutex) { mixin(S_TRACE);
 					if (_display) { mixin(S_TRACE);
@@ -1298,7 +1303,7 @@ private:
 					{ mixin(S_TRACE);
 						_saveSync.lock();
 						scope (exit) _saveSync.unlock();
-						summary.saveOverwrite(_prop.parent, _comm.skin, createSaveOpt());
+						summary.saveOverwrite(_prop.parent, _comm.skin, createSaveOpt(false));
 					}
 					_comm.saved.call();
 					refreshTitle();
@@ -1421,7 +1426,7 @@ private:
 					{ mixin(S_TRACE);
 						_saveSync.lock();
 						scope (exit) _saveSync.unlock();
-						summary.saveWithName(_prop.parent, _comm.skin, createSaveOpt(),
+						summary.saveWithName(_prop.parent, _comm.skin, createSaveOpt(false),
 							fname, tempPath, expandXMLs, defSkin, (string msg) { mixin(S_TRACE);
 								DWTMessageBox.showWarning(msg, _prop.msgs.dlgTitWarning, shell);
 							}, classic);
@@ -4487,6 +4492,11 @@ public:
 						Summary.createStartArea(summ , _prop.parent, _prop.var.etc.newAreaName != "", _prop.var.etc.newAreaName, _prop.var.etc.bgImagesDefault, null, _prop.enginePath,
 							_prop.var.etc.classicEngineRegex, _prop.var.etc.classicDataDirRegex, _prop.var.etc.classicMatchKey,
 							_prop.var.etc.classicEngines, _prop.var.etc.defaultSkin);
+						{ mixin(S_TRACE);
+							_saveSync.lock();
+							scope (exit) _saveSync.unlock();
+							summ.saveOverwrite(_prop.parent, findSkin(_comm, _prop, summ), createSaveOpt(true));
+						}
 						openScenario(summ);
 						statusLine = "";
 					} catch (Exception e) {
