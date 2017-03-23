@@ -395,8 +395,8 @@ class KeyCodeView : Composite {
 			_comm.put(_toolbar);
 			_toolbar.addListener(SWT.Traverse, new HTBTraverse);
 			_toolbar.addListener(SWT.KeyDown, new HTBKeyDown);
-			createToolItem2(_comm, _toolbar, _prop.msgs.addCoupon, _prop.images.addKeyCode, &add, () => !_readOnly && (_keyCodes.getItemCount() < _prop.looks.keyCodesMaxLegacy || !_summ || !_summ.legacy));
-			createToolItem2(_comm, _toolbar, _prop.msgs.delCoupon, _prop.images.delKeyCode, &del, () => !_readOnly && _keyCodes.getSelectionIndex() != -1);
+			createToolItem2(_comm, _toolbar, _prop.msgs.addKeyCode, _prop.images.addKeyCode, &add, () => !_readOnly && (_keyCodes.getItemCount() < _prop.looks.keyCodesMaxLegacy || !_summ || !_summ.legacy));
+			createToolItem2(_comm, _toolbar, _prop.msgs.delKeyCode, _prop.images.delKeyCode, &del, () => !_readOnly && _keyCodes.getSelectionIndex() != -1);
 			new ToolItem(_toolbar, SWT.SEPARATOR);
 			createToolItem(_comm, _toolbar, MenuID.Up, &up, &canUp);
 			createToolItem(_comm, _toolbar, MenuID.Down, &down, &canDown);
