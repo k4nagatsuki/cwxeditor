@@ -658,8 +658,18 @@ public:
 				auto image = _comm.prop.images.backs;
 			} else static assert (0);
 
+			auto topIndex = _list.getTopIndex();
 			int i = 0;
 			int[] selIndices;
+
+			version (Windows) {
+				// FIXME: Windows 7で_list.remove()を行うと落ちる
+				import org.eclipse.swt.internal.win32.OS;
+				if (OS.WIN32_VERSION < OS.VERSION(6, 2)) { mixin(S_TRACE);
+					_list.removeAll();
+				}
+			}
+
 			// 後からsort()を呼び出すと重いので事前にソートする
 			bool cmp(ID a, ID b) { mixin(S_TRACE);
 				if (_list.getSortDirection() is SWT.DOWN) { mixin(S_TRACE);
@@ -701,11 +711,16 @@ public:
 				i++;
 			}
 			if (i < _list.getItemCount()) { mixin(S_TRACE);
-				foreach_reverse (i2; i .. _list.getItemCount()) { mixin(S_TRACE);
-					_list.remove(i2);
+				if (i == 0) { mixin(S_TRACE);
+					_list.removeAll();
+				} else { mixin(S_TRACE);
+					foreach_reverse (i2; i .. _list.getItemCount()) { mixin(S_TRACE);
+						_list.remove(i2);
+					}
 				}
 			}
-			_list.select(selIndices);
+			if (selIndices.length) _list.select(selIndices);
+			_list.setTopIndex(topIndex);
 		} else { mixin(S_TRACE);
 			_list.removeAll();
 		}
