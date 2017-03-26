@@ -3081,7 +3081,7 @@ fi`;
 			attrs = [attrs.join(" ")];
 		} else static if (is(T : bool)) {
 			attrs ~= value ? "true": "false";
-		} else static if (is(T == Transition)) {
+		} else static if (is(T : Transition)) {
 			switch (value) {
 			case Transition.DEFAULT: attrs ~= "default"; break;
 			case Transition.NONE: attrs ~= "none"; break;
