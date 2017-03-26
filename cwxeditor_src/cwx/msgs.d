@@ -514,6 +514,8 @@ class Msgs : Properties {
 	auto step = Msg("step", "ステップ");
 	auto flagValue = Msg("flagValue", "値");
 	auto stepValue = Msg("stepValue", "段階");
+	auto expandSPChars = Msg("expandSPChars", "特殊文字を展開する");
+	auto expandSPCharsHint = Msg("expandSPCharsHint", "#M = 選択メンバ名, #R = ランダムメンバ名 ...");
 	auto selectMember = Msg("selectMember", "選択対象");
 	auto activeMember = Msg("activeMember", "動けるメンバから選択");
 	auto allMember = Msg("allMember", "パーティ全員から選択");
@@ -1884,6 +1886,7 @@ class Msgs : Properties {
 	auto warningCenteringY = Msg("warningCenteringY", "縦方向の中央寄せ表示は、Wsn.2以降の形式のシナリオでしか行えません。"); // Wsn.2
 	auto warningBoundaryCheck = Msg("warningBoundaryCheck", "メッセージの禁則処理は、Wsn.2以降の形式のシナリオでしか行えません。"); // Wsn.2
 	auto warningBranchCouponMulti = Msg("warningBranchCouponMulti", "クーポン分岐のクーポンの複数指定は、Wsn.2以降の形式のシナリオしか行えません。"); // Wsn.2
+	auto warningExpandSPChars = Msg("warningExpandSPChars", "状態変数内の特殊文字の展開は、Wsn.2以降の形式のシナリオしか行えません。"); // Wsn.2
 
 	auto unknownStepValue = Msg("unknownStepValue", "存在しないステップ値(%1$s)");
 

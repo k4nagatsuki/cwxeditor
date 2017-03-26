@@ -17,6 +17,7 @@ import cwx.structs;
 import cwx.sjis;
 import cwx.menu;
 import cwx.types;
+import cwx.msgutils;
 
 import cwx.editor.gui.sound;
 
@@ -214,7 +215,7 @@ BgImagesView createBgImagesViewAndMenu(Commons comm, Props prop, Summary summ, B
 PileImage createMessageImage(Commons comm, Props prop) { mixin(S_TRACE);
 	auto rect = prop.looks.messageBounds;
 	string[char] names;
-	string[string] flags, steps;
+	VarValue[string] flags, steps;
 	// 特殊文字が無いためシナリオパス不要
 	auto imgData = previewMessage(comm, prop, "", null, null, "", [""], names, flags, steps, false, false, false);
 	auto img = new PileImage(imgData, rect.x, rect.y, imgData.width, imgData.height, false, true);

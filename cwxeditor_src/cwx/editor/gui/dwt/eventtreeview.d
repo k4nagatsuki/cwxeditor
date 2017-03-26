@@ -3873,8 +3873,8 @@ string eventText(Commons comm, Summary summ, Content parent, Content e, bool rea
 	auto prop = comm.prop;
 	if (parent.detail.nextType == CNextType.TEXT) { mixin(S_TRACE);
 		if (prop.var.etc.showVariableValuesInEventText) { mixin(S_TRACE);
-			string[string] flags;
-			string[string] steps;
+			VarValue[string] flags;
+			VarValue[string] steps;
 			string[char] names;
 			getPreviewValues(prop, summ, SPCHAR_TEXT, names, flags, steps);
 			return simpleFormatMsg(e.name, flags, steps, names);

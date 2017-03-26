@@ -1,8 +1,8 @@
 
 module cwx.msgutils;
 
-import cwx.utils;
 import cwx.imagesize;
+import cwx.utils;
 
 import std.conv;
 import std.exception;
@@ -29,36 +29,32 @@ string encodeFontPath(dchar c, string ext) { mixin(S_TRACE);
 	return ("font_" ~ to!string(c)).setExtension(ext);
 }
 
+/// 状態変数の選択中の値と特殊文字展開の有無。
+struct VarValue {
+	bool exists; /// 状態変数が存在するか。
+	string value = ""; /// 状態変数の値。
+	bool expandSPChars = false; /// 特殊文字を展開するか。
+}
+
 /// テキストの中で使用されているフラグ・ステップ・画像パス・名前を置換し、
 /// 変換後のテキスト、及び外部イメージと色変更記号の位置を返す。
-string formatMsg(in string text,
-		string delegate(string) getFlag,
-		string delegate(string) getStep,
+string formatMsg(string text,
+		VarValue delegate(string) getFlag,
+		VarValue delegate(string) getStep,
 		string delegate(char) getName,
 		bool delegate(string) hasMaterial,
 		out string[size_t] fonts,
 		out char[size_t] colors) { mixin(S_TRACE);
-	return formatMsgImpl(text, getFlag, getStep, getName, hasMaterial, fonts, colors, true);
+	return formatMsgImpl(text, getFlag, getStep, getName, hasMaterial, fonts, colors, true, 0, 0);
 }
 /// ditto
-string simpleFormatMsg(in string text, string[string] flags, string[string] steps, string[char] names) { mixin(S_TRACE);
+string simpleFormatMsg(in string text, VarValue[string] flags, VarValue[string] steps, string[char] names) { mixin(S_TRACE);
 	string[size_t] fonts;
 	char[size_t] colors;
-	return formatMsgImpl(text, (string path) { mixin(S_TRACE);
-			foreach (f, v; flags) { mixin(S_TRACE);
-				if (f == path) { mixin(S_TRACE);
-					return v;
-				}
-			}
-			return null;
-		}, (string path) { mixin(S_TRACE);
-			foreach (f, v; steps) { mixin(S_TRACE);
-				if (f == path) { mixin(S_TRACE);
-					return v;
-				}
-			}
-			return null;
-		}, delegate string (char name) { mixin(S_TRACE);
+	return formatMsgImpl(text,
+		path => flags.get(path, VarValue(false)),
+		path => steps.get(path, VarValue(false)),
+		delegate string(char name) { mixin(S_TRACE);
 			auto dc = std.ascii.toUpper(name);
 			foreach (c, v; names) { mixin(S_TRACE);
 				if (std.ascii.toUpper(c) == dc) { mixin(S_TRACE);
@@ -66,34 +62,41 @@ string simpleFormatMsg(in string text, string[string] flags, string[string] step
 				}
 			}
 			return "#" ~ name;
-		}, (c) => false, fonts, colors, false);
+		}, (c) => false, fonts, colors, false, 0, 0);
 }
-private string formatMsgImpl(in string text,
-		string delegate(string) getFlag,
-		string delegate(string) getStep,
+private string formatMsgImpl(string text,
+		VarValue delegate(string) getFlag,
+		VarValue delegate(string) getStep,
 		string delegate(char) getName,
 		bool delegate(string) hasMaterial,
-		out string[size_t] fonts,
-		out char[size_t] colors,
-		bool full) { mixin(S_TRACE);
+		ref string[size_t] fonts,
+		ref char[size_t] colors,
+		bool full,
+		size_t startIndex,
+		size_t stack) { mixin(S_TRACE);
 	dchar[] result;
 	dstring dtext = to!dstring(text);
 	for (size_t i = 0; i < dtext.length; i++) { mixin(S_TRACE);
 		dchar c = dtext[i];
-		bool flag_step(string delegate(string) get, dchar cc) { mixin(S_TRACE);
+		bool flag_step(VarValue delegate(string) get, dchar cc) { mixin(S_TRACE);
 			ptrdiff_t next = .countUntil(dtext[i + 1 .. $], cc);
 			if (next < 0) return false;
 			dstring fl = dtext[i + 1 .. i + 1 + next];
-			auto val = get(to!string(fl));
-			if (val is null) { mixin(S_TRACE);
+			auto v = get(to!string(fl));
+			if (!v.exists) { mixin(S_TRACE);
 				if (!full) { mixin(S_TRACE);
-					// 選択肢などでは最初の1文字が欠ける
+					// BUG: 選択肢などでは最初の1文字が欠ける(CardWirth 1.50)
 					c = dchar.init;
 				}
 				return false;
 			}
 			i = i + 1 + next;
-			result ~= to!dstring(val);
+			auto s = v.value;
+			if (v.expandSPChars && stack == 0) { mixin(S_TRACE);
+				s = .formatMsgImpl(s, getFlag, getStep, getName, hasMaterial,
+					fonts, colors, full, result.length + startIndex, stack + 1);
+			}
+			result ~= to!dstring(s);
 			return true;
 		}
 		switch (c) {
@@ -104,7 +107,7 @@ private string formatMsgImpl(in string text,
 			if (full) { mixin(S_TRACE);
 				string path = encodeFontPath(dtext[i + 1], ".bmp");
 				if (hasMaterial && hasMaterial(path)) { mixin(S_TRACE);
-					fonts[result.length] = path;
+					fonts[result.length + startIndex] = path;
 				} else { mixin(S_TRACE);
 					switch (nc) {
 					case 'M', 'R', 'U', 'C', 'I', 'T', 'Y':
@@ -113,7 +116,7 @@ private string formatMsgImpl(in string text,
 						continue;
 					default:
 						if (!hasMaterial) { mixin(S_TRACE);
-							fonts[result.length] = path;
+							fonts[result.length + startIndex] = path;
 						}
 						break;
 					}
@@ -141,7 +144,7 @@ private string formatMsgImpl(in string text,
 			if ('\n' == dtext[i + 1]) goto default;
 			if (.isASCII(dtext[i + 1])) { mixin(S_TRACE);
 				auto nc = std.ascii.toUpper(dtext[i + 1]);
-				colors[result.length] = cast(char)nc;
+				colors[result.length + startIndex] = cast(char)nc;
 			}
 			goto default;
 		default:
@@ -155,11 +158,11 @@ private string formatMsgImpl(in string text,
 	string[size_t] rFonts;
 	char[size_t] rColors;
 	string result = formatMsg("%flag1%, %flag2%, $step1$, $step2$, &R, &W, #m, #r, #v, #+", (string flag) { mixin(S_TRACE);
-		if ("flag1" == flag) return "f1test";
-		return "f2";
+		if ("flag1" == flag) return VarValue(true, "f1test");
+		return VarValue(true, "f2");
 	}, (string step) { mixin(S_TRACE);
-		if ("step1" == step) return "s1test";
-		return " ";
+		if ("step1" == step) return VarValue(true, "s1test");
+		return VarValue(true, " ");
 	}, (char name) { mixin(S_TRACE);
 		if (name == 'R') return "R_test";
 		return "";
@@ -187,10 +190,10 @@ void textUseItems(in string text,
 	char[size_t] rColors;
 	formatMsg(text, (string flag) { mixin(S_TRACE);
 		flags ~= flag;
-		return "";
+		return VarValue(true);
 	}, (string step) { mixin(S_TRACE);
 		steps ~= step;
-		return "";
+		return VarValue(true);
 	}, (char name) { mixin(S_TRACE);
 		return "";
 	}, null, rFonts, rColors);

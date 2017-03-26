@@ -13,6 +13,8 @@ import cwx.card;
 import cwx.event;
 import cwx.xml;
 import cwx.structs;
+import cwx.msgutils;
+import cwx.sjis;
 
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.dprops;
@@ -40,6 +42,20 @@ import org.eclipse.swt.all;
 
 import java.lang.all;
 
+private string getSPCharPreviewValue(in Commons comm, char name) { mixin(S_TRACE);
+	auto dc = std.ascii.toUpper(name);
+	switch (dc) {
+	case 'M': return comm.prop.var.etc.messageVarSelected;
+	case 'U': return comm.prop.var.etc.messageVarUnselected;
+	case 'R': return comm.prop.var.etc.messageVarRandom;
+	case 'C': return comm.prop.var.etc.messageVarCard;
+	case 'I': return comm.prop.var.etc.messageVarRef;
+	case 'T': return comm.prop.var.etc.messageVarTeam;
+	case 'Y': return comm.prop.var.etc.messageVarYado;
+	default: return "";
+	}
+}
+
 /// ステップ設定用のダイアログ。
 public class StepEditDialog : AbsDialog {
 private:
@@ -54,7 +70,10 @@ private:
 	Table _values;
 	string[] _valueCache;
 	TableTextEdit _tte;
+	Text _valueEditor = null;
+	int _editIndex = -1;
 	Spinner _stepCount;
+	Button _expandSPChars;
 
 	UndoManager _undo;
 
@@ -126,6 +145,9 @@ private:
 		if (_values.getItemCount() != _comm.prop.looks.stepMaxCount && _summ && _summ.legacy) { mixin(S_TRACE);
 			ws ~= .tryFormat(_comm.prop.msgs.warningStepCount, _comm.prop.looks.stepMaxCount);
 		}
+		if (_expandSPChars.getSelection() && !_comm.prop.isTargetVersion(_summ, "2")) { mixin(S_TRACE);
+			ws ~= _comm.prop.msgs.warningExpandSPChars;
+		}
 		warning = ws;
 	}
 
@@ -170,6 +192,8 @@ private:
 	}
 
 	void valueEditEnd(TableItem itm, int column, string newText) { mixin(S_TRACE);
+		_valueEditor = null;
+		_editIndex = -1;
 		if (itm.getText(1) == newText) return;
 		auto index = _values.indexOf(itm);
 		storeSingle(index, itm.getText(1), newText);
@@ -186,12 +210,73 @@ private:
 				return;
 			}
 		}
+		updateToolTip();
+	}
+	void refFlagAndStep(cwx.flag.Flag[] flags, Step[] steps) { updateToolTip(); }
+	void refPath(string o, string n, bool isDir) { updateToolTip(); }
+	void refPaths(string parent) { updateToolTip(); }
+	void updateToolTip() { mixin(S_TRACE);
+		if (_valueEditor && !_valueEditor.isDisposed()) { mixin(S_TRACE);
+			auto toolTip = createToolTip(_valueEditor.getText());
+			if (toolTip != _valueEditor.getToolTipText()) { mixin(S_TRACE);
+				_valueEditor.setToolTipText(toolTip);
+			}
+		}
+		auto p = _values.toControl(_values.getDisplay().getCursorLocation());
+		auto itm = _values.getItem(p);
+		if (itm) { mixin(S_TRACE);
+			string value;
+			if (_valueEditor && !_valueEditor.isDisposed() && _editIndex == _values.indexOf(itm)) { mixin(S_TRACE);
+				value = _valueEditor.getText();
+			} else { mixin(S_TRACE);
+				value = itm.getText(1);
+			}
+			auto toolTip = createToolTip(value);
+			if (toolTip != _values.getToolTipText()) { mixin(S_TRACE);
+				_values.setToolTipText(toolTip);
+			}
+		}
+	}
+	string createToolTip(string text) { mixin(S_TRACE);
+		auto toolTip = "";
+		if (_expandSPChars.getSelection()) { mixin(S_TRACE);
+			VarValue fValue(string path) { mixin(S_TRACE);
+				auto flag = _summ.flagDirRoot.findFlag(path);
+				return flag ? VarValue(true, flag.onOff ? flag.on : flag.off, flag.expandSPChars) : VarValue(false);
+			}
+			VarValue sValue(string path) { mixin(S_TRACE);
+				auto step = _summ.flagDirRoot.findStep(path);
+				if (step && _step is step) { mixin(S_TRACE);
+					if (_init.getSelectionIndex() == _editIndex && _valueEditor && !_valueEditor.isDisposed()) { mixin(S_TRACE);
+						return VarValue(true, _valueEditor.getText(), _expandSPChars.getSelection());
+					}
+					return VarValue(true, _init.getText(), _expandSPChars.getSelection());
+				} else { mixin(S_TRACE);
+					return step ? VarValue(true, step.value, step.expandSPChars) : VarValue(false);
+				}
+			}
+			string getName(char name) { mixin(S_TRACE);
+				return .getSPCharPreviewValue(_comm, name);
+			}
+			bool hasMaterial(string path) { mixin(S_TRACE);
+				if (_summ.legacy) { mixin(S_TRACE);
+					auto c = .decodeFontPath(path);
+					if (!isSJIS1ByteChar(c)) return false;
+				}
+				return _comm.skin.findImagePath(path, _summ.scenarioPath, _summ.dataVersion).length != 0 || .decodeFontPath(path) in _comm.skin.spChars;
+			}
+			string[size_t] rFonts;
+			char[size_t] rColors;
+			toolTip = .formatMsg(text, &fValue, &sValue, &getName, &hasMaterial, rFonts, rColors);
+		}
+		return toolTip.replace("&", "&&");
 	}
 	void refScenario(Summary summ) { mixin(S_TRACE);
 		if (_summ is summ) forceCancel();
 	}
 	void refDataVersion() { mixin(S_TRACE);
 		_stepCount.setEnabled(!_summ.legacy || _stepCount.getSelection() != _comm.prop.looks.stepMaxCount);
+		_expandSPChars.setEnabled(!_summ.legacy || _expandSPChars.getSelection());
 		refreshWarning();
 	}
 public:
@@ -270,6 +355,7 @@ protected:
 			auto prop = _comm.prop;
 			saveColumnWidth!("prop.var.etc.valueNumberColumn")(_comm.prop, valueNumCol);
 			auto nameCol = new FullTableColumn(_values, SWT.NONE);
+			.listener(_values, SWT.MouseMove, &updateToolTip);
 
 			auto menu = new Menu(_values.getShell(), SWT.POP_UP);
 			createMenuItem(_comm, menu, MenuID.Undo, { _undo.undo(); }, &_undo.canUndo);
@@ -279,19 +365,22 @@ protected:
 			_values.setMenu(menu);
 
 			Control createEditor(TableItem itm, int editC) { mixin(S_TRACE);
-				auto editor = createTextEditor(_comm, _comm.prop, _values, itm.getText(editC));
-				auto menu = editor.getMenu();
+				_valueEditor = createTextEditor(_comm, _comm.prop, _values, itm.getText(editC));
+				_editIndex = itm.getParent().indexOf(itm);
+				auto menu = _valueEditor.getMenu();
 				new MenuItem(menu, SWT.SEPARATOR);
 				createMenuItem(_comm, menu, MenuID.CreateStepValues, &createStepValues, &canCreateStepValues);
-				return editor;
+				updateToolTip();
+				.listener(_valueEditor, SWT.Modify, &updateToolTip);
+				return _valueEditor;
 			}
 			_tte = new TableTextEdit(_comm, _comm.prop, _values, 1, &valueEditEnd, (itm, column) => true, &createEditor);
 			_tte.quickStart = true;
 		}
-		{
+		{ mixin(S_TRACE);
 			auto comp = new Composite(area, SWT.NONE);
 			comp.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
-			comp.setLayout(zeroMarginGridLayout(2, false));
+			comp.setLayout(zeroMarginGridLayout(3, false));
 
 			auto l = new Label(comp, SWT.NONE);
 			l.setText(_comm.prop.msgs.stepCount);
@@ -302,14 +391,30 @@ protected:
 			_stepCount.setMaximum(_comm.prop.var.etc.stepCountMax);
 			.listener(_stepCount, SWT.Selection, () => changeStepCount(true, _stepCount.getSelection()));
 			.listener(_stepCount, SWT.Modify, () => changeStepCount(true, _stepCount.getSelection()));
+
+			_expandSPChars = new Button(comp, SWT.CHECK);
+			mod(_expandSPChars);
+			_expandSPChars.setText(_comm.prop.msgs.expandSPChars);
+			_expandSPChars.setToolTipText(_comm.prop.msgs.expandSPCharsHint.replace("&", "&&"));
+			.listener(_expandSPChars, SWT.Selection, &refDataVersion);
 		}
 		_comm.delFlagAndStep.add(&delStep);
 		_comm.refScenario.add(&refScenario);
 		_comm.refDataVersion.add(&refDataVersion);
+		_comm.refPreviewValues.add(&updateToolTip);
+		_comm.refFlagAndStep.add(&refFlagAndStep);
+		_comm.refPath.add(&refPath);
+		_comm.refPaths.add(&refPaths);
+		_comm.replText.add(&updateToolTip);
 		.listener(area, SWT.Dispose, { mixin(S_TRACE);
 			_comm.delFlagAndStep.remove(&delStep);
 			_comm.refScenario.remove(&refScenario);
 			_comm.refDataVersion.remove(&refDataVersion);
+			_comm.refPreviewValues.remove(&updateToolTip);
+			_comm.refFlagAndStep.remove(&refFlagAndStep);
+			_comm.refPath.remove(&refPath);
+			_comm.refPaths.remove(&refPaths);
+			_comm.replText.remove(&updateToolTip);
 		});
 
 		ignoreMod = true;
@@ -335,6 +440,7 @@ protected:
 		setComboItems(_init, _valueCache);
 		_init.select(.min(_step is null ? 0 : _step.select, _step.count - 1));
 		_stepCount.setSelection(_values.getItemCount());
+		_expandSPChars.setSelection(_step ? _step.expandSPChars : false);
 		refDataVersion();
 	}
 
@@ -374,8 +480,10 @@ protected:
 		if (_step.parent) { mixin(S_TRACE);
 			_step.name = this.name;
 			_step.setValues(vals, _init.getSelectionIndex());
+			_step.expandSPChars = _expandSPChars.getSelection();
 		} else { mixin(S_TRACE);
 			_step = new Step(this.name, vals, _init.getSelectionIndex());
+			_step.expandSPChars = _expandSPChars.getSelection();
 			_dir.add(_step);
 		}
 		_comm.refFlagAndStep.call([], [_step]);
@@ -387,6 +495,7 @@ protected:
 public class FlagEditDialog : AbsDialog {
 private:
 	Commons _comm;
+	Summary _summ;
 	Props prop;
 	cwx.flag.Flag _flag;
 	FlagDir dir;
@@ -395,11 +504,15 @@ private:
 	Combo flagInit;
 	Combo flagTrue;
 	Combo flagFalse;
+	Button _expandSPChars;
 
 	void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
 		if (prop.sys.isSystemVar(flagName.getText())) { mixin(S_TRACE);
 			ws ~= .tryFormat(prop.msgs.warningSystemVarName, prop.sys.prefixSystemVarName);
+		}
+		if (_expandSPChars.getSelection() && !_comm.prop.isTargetVersion(_summ, "2")) { mixin(S_TRACE);
+			ws ~= _comm.prop.msgs.warningExpandSPChars;
 		}
 		warning = ws;
 	}
@@ -421,12 +534,19 @@ private:
 		}
 		override void modifyText(ModifyEvent e) { mixin(S_TRACE);
 			change(e);
+			updateToolTipImpl(index == 0 ? flagTrue : flagFalse);
 		}
 	}
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			_comm.delFlagAndStep.remove(&delFlag);
 			_comm.refScenario.remove(&refScenario);
+			_comm.refDataVersion.remove(&refDataVersion);
+			_comm.refPreviewValues.remove(&updateToolTip);
+			_comm.refFlagAndStep.remove(&refFlagAndStep);
+			_comm.refPath.remove(&refPath);
+			_comm.refPaths.remove(&refPaths);
+			_comm.replText.remove(&updateToolTip);
 		}
 	}
 	void delFlag(cwx.flag.Flag[] flag, Step[] step) { mixin(S_TRACE);
@@ -436,9 +556,55 @@ private:
 				return;
 			}
 		}
+		updateToolTip();
+	}
+	void refFlagAndStep(cwx.flag.Flag[] flags, Step[] steps) { updateToolTip(); }
+	void refPath(string o, string n, bool isDir) { updateToolTip(); }
+	void refPaths(string parent) { updateToolTip(); }
+	void updateToolTip() { mixin(S_TRACE);
+		updateToolTipImpl(flagTrue);
+		updateToolTipImpl(flagFalse);
+	}
+	void updateToolTipImpl(Combo combo) { mixin(S_TRACE);
+		auto toolTip = "";
+		if (_expandSPChars.getSelection()) { mixin(S_TRACE);
+			VarValue fValue(string path) { mixin(S_TRACE);
+				auto flag = _summ.flagDirRoot.findFlag(path);
+				if (flag && _flag is flag) { mixin(S_TRACE);
+					return VarValue(true, flagInit.getText(), _expandSPChars.getSelection());
+				} else { mixin(S_TRACE);
+					return flag ? VarValue(true, flag.onOff ? flag.on : flag.off, flag.expandSPChars) : VarValue(false);
+				}
+			}
+			VarValue sValue(string path) { mixin(S_TRACE);
+				auto step = _summ.flagDirRoot.findStep(path);
+				return step ? VarValue(true, step.value, step.expandSPChars) : VarValue(false);
+			}
+			string getName(char name) { mixin(S_TRACE);
+				return .getSPCharPreviewValue(_comm, name);
+			}
+			bool hasMaterial(string path) { mixin(S_TRACE);
+				if (_summ.legacy) { mixin(S_TRACE);
+					auto c = .decodeFontPath(path);
+					if (!isSJIS1ByteChar(c)) return false;
+				}
+				return _comm.skin.findImagePath(path, _summ.scenarioPath, _summ.dataVersion).length != 0 || .decodeFontPath(path) in _comm.skin.spChars;
+			}
+			string[size_t] rFonts;
+			char[size_t] rColors;
+			toolTip = .formatMsg(combo.getText(), &fValue, &sValue, &getName, &hasMaterial, rFonts, rColors);
+		}
+		toolTip = toolTip.replace("&", "&&");
+		if (toolTip != combo.getToolTipText()) { mixin(S_TRACE);
+			combo.setToolTipText(toolTip);
+		}
 	}
 	void refScenario(Summary summ) { mixin(S_TRACE);
 		forceCancel();
+	}
+	void refDataVersion() { mixin(S_TRACE);
+		_expandSPChars.setEnabled(!_summ.legacy || _expandSPChars.getSelection());
+		refreshWarning();
 	}
 public:
 	/// Params:
@@ -446,10 +612,12 @@ public:
 	/// shell = 親ウィンドウ。
 	/// dir = 設定するフラグの親ディレクトリ。
 	/// flag = 設定するフラグ。新規の場合はnull。
-	this(Commons comm, Props prop, Shell shell, FlagDir dir, cwx.flag.Flag flag = null) { mixin(S_TRACE);
-		super(prop, shell, false, prop.msgs.dlgTitFlag, prop.images.flag, true, prop.var.flagDlg, true);
+	this(Commons comm, Summary summ, Shell shell, FlagDir dir, cwx.flag.Flag flag = null) { mixin(S_TRACE);
+		super(comm.prop, shell, false, comm.prop.msgs.dlgTitFlag, comm.prop.images.flag, true,
+			comm.prop.var.flagDlg, true);
 		_comm = comm;
-		this.prop = prop;
+		this.prop = comm.prop;
+		_summ = summ;
 		this._flag = flag;
 		this.dir = dir;
 		enterClose = true;
@@ -554,8 +722,27 @@ protected:
 			flagFalse.addSelectionListener(fmod);
 			setGridMinW(flagFalse, prop.var.etc.flagValueWidth, GridData.FILL_HORIZONTAL);
 		}
+		(new Label(area, SWT.SEPARATOR | SWT.HORIZONTAL))
+			.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		{ mixin(S_TRACE);
+			auto comp = new Composite(area, SWT.NONE);
+			comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.HORIZONTAL_ALIGN_END));
+			comp.setLayout(normalGridLayout(1, true));
+			_expandSPChars = new Button(comp, SWT.CHECK);
+			mod(_expandSPChars);
+			_expandSPChars.setText(_comm.prop.msgs.expandSPChars);
+			_expandSPChars.setToolTipText(_comm.prop.msgs.expandSPCharsHint.replace("&", "&&"));
+			.listener(_expandSPChars, SWT.Selection, &refDataVersion);
+			.listener(_expandSPChars, SWT.Selection, &updateToolTip);
+		}
 		_comm.delFlagAndStep.add(&delFlag);
 		_comm.refScenario.add(&refScenario);
+		_comm.refDataVersion.add(&refDataVersion);
+		_comm.refPreviewValues.add(&updateToolTip);
+		_comm.refFlagAndStep.add(&refFlagAndStep);
+		_comm.refPath.add(&refPath);
+		_comm.refPaths.add(&refPaths);
+		_comm.replText.add(&updateToolTip);
 		getShell().addDisposeListener(new Dispose);
 
 		ignoreMod = true;
@@ -568,18 +755,21 @@ protected:
 			if (-1 == flagFalse.indexOf(_flag.off)) flagFalse.add(_flag.off, 0);
 			setComboItems(flagInit, [flagTrue.getText(), flagFalse.getText()]);
 			flagInit.select(_flag.onOff ? 0 : 1);
+			_expandSPChars.setSelection(_flag.expandSPChars);
 		} else { mixin(S_TRACE);
 			flagName.setText("");
 			flagTrue.setText(prop.var.etc.flagTrues.length > 0 ? prop.var.etc.flagTrues[0] : "");
 			flagFalse.setText(prop.var.etc.flagFalses.length > 0 ? prop.var.etc.flagFalses[0] : "");
 			setComboItems(flagInit, [flagTrue.getText(), flagFalse.getText()]);
 			flagInit.select(0);
+			_expandSPChars.setSelection(false);
 		}
 		if (!_flag.parent) { mixin(S_TRACE);
 			// 新規作成時
 			flagName.setText("");
 		}
 		flagName.selectAll();
+		refDataVersion();
 	}
 
 	override bool apply() { mixin(S_TRACE);
@@ -588,9 +778,11 @@ protected:
 			_flag.onOff = flagInit.getSelectionIndex() == 0;
 			_flag.on = flagTrue.getText();
 			_flag.off = flagFalse.getText();
+			_flag.expandSPChars = _expandSPChars.getSelection();
 		} else { mixin(S_TRACE);
 			_flag = new cwx.flag.Flag(this.name, flagTrue.getText(), flagFalse.getText(),
 				flagInit.getSelectionIndex() == 0);
+			_flag.expandSPChars = _expandSPChars.getSelection();
 			dir.add(_flag);
 		}
 		_comm.refFlagAndStep.call([_flag], []);
@@ -1159,7 +1351,7 @@ private:
 			p.active();
 			return;
 		}
-		auto dlg = new FlagEditDialog(_comm, prop, dlgParShl, parent, flag);
+		auto dlg = new FlagEditDialog(_comm, _comm.summary, dlgParShl, parent, flag);
 		string oldName = "";
 		int oldValue = 0;
 		string[] oldNames = [flag.on, flag.off];

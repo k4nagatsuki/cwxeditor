@@ -170,7 +170,7 @@ public class FlexProps {
 	DialogParam!("infoCardDialog", SWT.DEFAULT, SWT.DEFAULT, 2012101100) infoCardDlg;
 	DialogParam!("bgImagesDialog", 1000) bgImagesDlg;
 	DialogParam!("defaultBgImagesDialog", 900) defBgImagesDlg;
-	DialogParam!("flagDialog", 400, 200, 2015111500) flagDlg;
+	DialogParam!("flagDialog", 400, 200, 2017032600) flagDlg;
 	DialogParam!("stepDialog", 400, 400, 2015111500) stepDlg;
 	DialogParam!("newScenarioDialog", SWT.DEFAULT, SWT.DEFAULT, 2012072100) newScDlg;
 	WindowProps!("speakDialog", SWT.DEFAULT, SWT.DEFAULT, 2012111500) speakDlg;

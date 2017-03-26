@@ -553,8 +553,8 @@ private:
 	}
 	string previewText(string base) { mixin(S_TRACE);
 		string[char] names;
-		string[string] flags;
-		string[string] steps;
+		VarValue[string] flags;
+		VarValue[string] steps;
 		_values.getValues(names, flags, steps);
 		return simpleFormatMsg(base, flags, steps, names);
 	}

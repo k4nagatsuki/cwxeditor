@@ -186,6 +186,7 @@ private:
 		_uc = new UseCounter;
 		_froot = new FlagDir(this);
 		_froot.changeHandler = &changeHandler;
+		_froot.useCounter = useCounter;
 		_startAreaId = new AreaUser(this);
 		_startAreaId.setUseCounter(_uc);
 	}
@@ -2070,6 +2071,8 @@ public:
 				node.parse();
 			};
 			summ._froot = FlagDir.fromXmlNode(summNode, summ, &summ.changeHandler, new XMLInfo(sys, summ.dataVersion));
+			summ._froot.changeHandler = &summ.changeHandler;
+			summ._froot.useCounter = summ.useCounter;
 			summ._eventTemplates = evTemps;
 			return summ;
 		}

@@ -2539,18 +2539,17 @@ class PreviewValues : Composite {
 		new TableTCEdit(_comm, _values, 1, &createEditor, &editEnd, null);
 	}
 
-	void getValues(out string[char] names, out string[string] flags, out string[string] steps) { mixin(S_TRACE);
+	void getValues(out string[char] names, out VarValue[string] flags, out VarValue[string] steps) { mixin(S_TRACE);
 		foreach (i; _targetChars) { mixin(S_TRACE);
 			names[C_TBL[cast(SPChar)i]] = _values.getItem(_indexTable[cast(SPChar)i]).getText(1);
 		}
 		foreach (i; _targetChars.length .. _values.getItemCount()) { mixin(S_TRACE);
 			auto itm = _values.getItem(cast(int)i);
-			if (cast(FlagData) itm.getData()) { mixin(S_TRACE);
-				flags[itm.getText(0)] = itm.getText(1);
-			} else { mixin(S_TRACE);
-				assert (cast(StepData) itm.getData());
-				steps[itm.getText(0)] = itm.getText(1);
-			}
+			if (auto fd = cast(FlagData)itm.getData()) { mixin(S_TRACE);
+				flags[itm.getText(0)] = VarValue(true, itm.getText(1), fd.flag.expandSPChars);
+			} else if (auto sd = cast(StepData)itm.getData()) { mixin(S_TRACE);
+				steps[itm.getText(0)] = VarValue(true, itm.getText(1), sd.step.expandSPChars);
+			} else assert (0);
 		}
 	}
 	private void getValues2(out string[char] names, out bool[string] flags, out int[string] steps) { mixin(S_TRACE);
@@ -2559,11 +2558,11 @@ class PreviewValues : Composite {
 		}
 		foreach (i; _targetChars.length .. _values.getItemCount()) { mixin(S_TRACE);
 			auto itm = _values.getItem(cast(int)i);
-			auto fd = cast(FlagData) itm.getData();
+			auto fd = cast(FlagData)itm.getData();
 			if (fd) { mixin(S_TRACE);
 				flags[itm.getText(0)] = fd.onOff;
 			} else { mixin(S_TRACE);
-				auto sd = cast(StepData) itm.getData();
+				auto sd = cast(StepData)itm.getData();
 				assert (sd !is null);
 				steps[itm.getText(0)] = sd.select;
 			}
@@ -2575,7 +2574,7 @@ class PreviewValues : Composite {
 		}
 		foreach (i; _targetChars.length .. _values.getItemCount()) { mixin(S_TRACE);
 			auto itm = _values.getItem(cast(int)i);
-			auto fd = cast(FlagData) itm.getData();
+			auto fd = cast(FlagData)itm.getData();
 			if (fd) { mixin(S_TRACE);
 				auto p = itm.getText(0) in flags;
 				if (p) { mixin(S_TRACE);
@@ -2583,7 +2582,7 @@ class PreviewValues : Composite {
 					itm.setText(1, fd.onOff ? fd.flag.on : fd.flag.off);
 				}
 			} else { mixin(S_TRACE);
-				auto sd = cast(StepData) itm.getData();
+				auto sd = cast(StepData)itm.getData();
 				assert (sd !is null);
 				auto p = itm.getText(0) in steps;
 				if (p && 0 <= *p && *p < sd.step.values.length) { mixin(S_TRACE);
@@ -2603,7 +2602,7 @@ class PreviewValues : Composite {
 }
 
 void getPreviewValues(in Props prop, in Summary summ, in SPChar[] targetChars,
-		out string[char] names, out string[string] flags, out string[string] steps) { mixin(S_TRACE);
+		out string[char] names, out VarValue[string] flags, out VarValue[string] steps) { mixin(S_TRACE);
 	foreach (c; targetChars) { mixin(S_TRACE);
 		final switch (c) {
 		case SPChar.M:
@@ -2631,10 +2630,10 @@ void getPreviewValues(in Props prop, in Summary summ, in SPChar[] targetChars,
 	}
 	if (summ) { mixin(S_TRACE);
 		foreach (f; summ.flagDirRoot.allFlags) { mixin(S_TRACE);
-			flags[f.path] = f.onOff ? f.on : f.off;
+			flags[f.path] = VarValue(true, f.onOff ? f.on : f.off, f.expandSPChars);
 		}
 		foreach (f; summ.flagDirRoot.allSteps) { mixin(S_TRACE);
-			steps[f.path] = f.value;
+			steps[f.path] = VarValue(true, f.value, f.expandSPChars);
 		}
 	}
 }
@@ -2758,9 +2757,10 @@ class MsgPreview : Composite {
 		}
 
 		string[char] names;
-		string[string] flags, steps;
+		VarValue[string] flags, steps;
 		_values.getValues(names, flags, steps);
-		_img = new Image(d, previewMessage(_comm, _prop, _summ.scenarioPath, tImg, pos, _message, [], names, flags, steps, true, _centerY, _boundaryCheck));
+		_img = new Image(d, previewMessage(_comm, _prop, _summ.scenarioPath, tImg, pos, _message,
+			[], names, flags, steps, true, _centerY, _boundaryCheck));
 	}
 
 	@property
@@ -2774,7 +2774,7 @@ class MsgPreview : Composite {
 /// メッセージのプレビューを生成する。
 ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] talkers,
 		CardImagePosition[] poses, string message, in string[] sel, in string[char] names,
-		in string[string] flags, in string[string] steps, bool scaled,
+		in VarValue[string] flags, in VarValue[string] steps, bool scaled,
 		bool centerY, bool boundaryCheck) { mixin(S_TRACE);
 	auto d = Display.getCurrent();
 	version (Windows) {
@@ -2829,21 +2829,11 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] tal
 	// 特殊文字・フラグ・ステップ・色
 	string[size_t] rFonts;
 	char[size_t] rColors;
-	string fValue(string path) { mixin(S_TRACE);
-		foreach (f, v; flags) { mixin(S_TRACE);
-			if (f == path) { mixin(S_TRACE);
-				return v;
-			}
-		}
-		return null;
+	VarValue fValue(string path) { mixin(S_TRACE);
+		return flags.get(path, VarValue(false));
 	}
-	string sValue(string path) { mixin(S_TRACE);
-		foreach (f, v; steps) { mixin(S_TRACE);
-			if (f == path) { mixin(S_TRACE);
-				return v;
-			}
-		}
-		return null;
+	VarValue sValue(string path) { mixin(S_TRACE);
+		return steps.get(path, VarValue(false));
 	}
 	version (Windows) {
 		message = wrapReturnCode(message);

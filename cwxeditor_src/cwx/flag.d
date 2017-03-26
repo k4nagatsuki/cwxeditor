@@ -6,6 +6,7 @@ import cwx.xml;
 import cwx.path;
 import cwx.usecounter;
 import cwx.system;
+import cwx.textholder;
 
 import std.algorithm;
 import std.array;
@@ -13,7 +14,7 @@ import std.datetime;
 import std.string;
 import std.exception;
 import std.conv;
-import std.typecons : Rebindable;
+import std.typecons : Rebindable, rebindable;
 
 private static const {
 	string XML_ROOT_FLAGS_AND_STEPS = "FlagsAndSteps";
@@ -92,26 +93,35 @@ private void toNode(ref XNode ret, FlagDir dir) { mixin(S_TRACE);
 public class Flag : CWXPath {
 private:
 	string _name;
-	string _on;
-	string _off;
+	TextHolder _on;
+	TextHolder _off;
 	bool _onOff;
+	bool _expandSPChars = false;
 	FlagDir _parent;
 	void delegate() _change = null;
+	UseCounter _uc = null;
 public:
 	/// パスをIDに置換する。
 	alias toFlagId toID;
 
 	/// コピーコンストラクタ。
 	this (Flag copyBase) { mixin(S_TRACE);
+		_on = new TextHolder;
+		_off = new TextHolder;
+
 		_name = copyBase.name;
-		_on = copyBase.on;
-		_off = copyBase.off;
+		_on.text = copyBase.on;
+		_off.text = copyBase.off;
 		_onOff = copyBase.onOff;
+		_expandSPChars = copyBase.expandSPChars;
 	}
 	/// 名前・On/Off時のテキスト・On/Off状態を指定してインスタンスを生成。
 	this (string name, string on, string off, bool onOff) { mixin(S_TRACE);
-		_on = on;
-		_off = off;
+		_on = new TextHolder;
+		_off = new TextHolder;
+
+		_on.text = on;
+		_off.text = off;
 		_onOff = onOff;
 		_name = FlagDir.validName(name);
 	}
@@ -134,19 +144,15 @@ public:
 	/// flagのパラメータをコピーする。
 	void copyFrom(Flag flag) { mixin(S_TRACE);
 		name = flag.name;
-		on = flag.on;
-		off = flag.off;
+		on.text = flag.on;
+		off.text = flag.off;
 		onOff = flag.onOff;
+		expandSPChars = flag.expandSPChars;
 	}
 	/// このフラグの親ディレクトリ。
 	@property
-	FlagDir parent() { mixin(S_TRACE);
-		return _parent;
-	}
-	/// ditto
-	@property
-	const
-	const(FlagDir) parent() { mixin(S_TRACE);
+	inout
+	inout(FlagDir) parent() { mixin(S_TRACE);
 		return _parent;
 	}
 	/// ditto
@@ -157,13 +163,8 @@ public:
 	}
 	/// 最上位のディレクトリ。
 	@property
-	FlagDir root() { mixin(S_TRACE);
-		return _parent.root;
-	}
-	/// ditto
-	@property
-	const
-	const(FlagDir) root() { mixin(S_TRACE);
+	inout
+	inout(FlagDir) root() { mixin(S_TRACE);
 		return _parent.root;
 	}
 	/// 変更ハンドラを設定する。
@@ -171,6 +172,20 @@ public:
 	void changeHandler(void delegate() change) { mixin(S_TRACE);
 		_change = change;
 	}
+
+	/// 使用回数カウンタ。
+	@property
+	void useCounter(UseCounter uc) { mixin(S_TRACE);
+		_uc = uc;
+		if (expandSPChars && uc) { mixin(S_TRACE);
+			_on.setUseCounter(uc);
+			_off.setUseCounter(uc);
+		} else { mixin(S_TRACE);
+			_on.removeUseCounter();
+			_off.removeUseCounter();
+		}
+	}
+
 	/// フラグ名。同一のディレクトリ内では重複しない。
 	@property
 	const
@@ -192,25 +207,29 @@ public:
 	@property
 	const
 	string on() { mixin(S_TRACE);
-		return _on;
+		return _on.text;
 	}
 	/// ditto
 	@property
 	void on(string on) { mixin(S_TRACE);
-		if (_change && _on != on) _change();
-		_on = on;
+		if (this.on != on) { mixin(S_TRACE);
+			changed();
+			_on.text = on;
+		}
 	}
 	/// Off時のテキスト。
 	@property
 	const
 	string off() { mixin(S_TRACE);
-		return _off;
+		return _off.text;
 	}
 	/// ditto
 	@property
 	void off(string off) { mixin(S_TRACE);
-		if (_change && _off != off) _change();
-		_off = off;
+		if (this.off != off) { mixin(S_TRACE);
+			changed();
+			_off.text = off;
+		}
 	}
 	/// On/Off初期状態。
 	@property
@@ -224,9 +243,30 @@ public:
 		if (_change && _onOff != onOff) _change();
 		_onOff = onOff;
 	}
+
+	/// 特殊文字を展開するか(Wsn.2)。
+	@property
+	const
+	bool expandSPChars() { return _expandSPChars; }
+	/// ditto
+	@property
+	void expandSPChars(bool val) { mixin(S_TRACE);
+		if (val != _expandSPChars) { mixin(S_TRACE);
+			changed();
+			_expandSPChars = val;
+			if (expandSPChars && _uc) { mixin(S_TRACE);
+				_on.setUseCounter(_uc);
+				_off.setUseCounter(_uc);
+			} else { mixin(S_TRACE);
+				_on.removeUseCounter();
+				_off.removeUseCounter();
+			}
+		}
+	}
+
 	const
 	override int opCmp(Object o) { mixin(S_TRACE);
-		return cmp(name, (cast(Flag) o).name);
+		return cmp(name, (cast(Flag)o).name);
 	}
 	/// このフラグのフルパスを返す。
 	@property
@@ -252,18 +292,21 @@ public:
 		string tv = "TRUE";
 		string fv = "FALSE";
 		bool def = parseBool(fe.attr("default", true));
-		fe.onTag["Name"] = (ref XNode n) {name = FlagDir.basename(n.value);};
-		fe.onTag["True"] = (ref XNode n) {tv = n.value;};
-		fe.onTag["False"] = (ref XNode n) {fv = n.value;};
+		fe.onTag["Name"] = (ref XNode n) { name = FlagDir.basename(n.value); };
+		fe.onTag["True"] = (ref XNode n) { tv = n.value; };
+		fe.onTag["False"] = (ref XNode n) { fv = n.value; };
 		fe.parse();
 		if (!name) throw new FlagException("Flag name not found.");
-		return new Flag(name, tv, fv, def);
+		auto flag = new Flag(name, tv, fv, def);
+		flag.expandSPChars = fe.attr!bool("spchars", false, false);
+		return flag;
 	}
 	/// XMLノードへこのフラグのデータを追加する。
 	const
 	void toNode(ref XNode node) { mixin(S_TRACE);
 		auto e = node.newElement("Flag");
 		e.newAttr("default", fromBool(_onOff));
+		if (expandSPChars) e.newAttr("spchars", expandSPChars);
 		e.newElement("Name", path);
 		e.newElement("True", on);
 		e.newElement("False", off);
@@ -287,10 +330,12 @@ public:
 public class Step : CWXPath {
 private:
 	string _name;
-	string[] _vals;
+	TextHolder[] _vals;
 	uint _select;
+	bool _expandSPChars = false;
 	FlagDir _parent;
 	void delegate() _change = null;
+	UseCounter _uc = null;
 public:
 	/// パスをIDに置換する。
 	alias toStepId toID;
@@ -298,13 +343,12 @@ public:
 	/// コピーコンストラクタ。
 	this (Step copyBase) { mixin(S_TRACE);
 		_name = copyBase.name;
-		_vals = copyBase._vals.dup;
-		_select = copyBase._select;
+		setValues(copyBase.values, copyBase._select);
+		_expandSPChars = copyBase.expandSPChars;
 	}
 	/// ステップ名、各段階のステップ値、選択状態を指定してインスタンスを生成。
 	this (string name, string[] vals, uint select) { mixin(S_TRACE);
-		_vals = vals;
-		_select = select;
+		setValues(vals, select);
 		_name = FlagDir.validName(name);
 	}
 
@@ -327,16 +371,12 @@ public:
 	void copyFrom(Step step) { mixin(S_TRACE);
 		name = step.name;
 		setValues(step.values, step.select);
+		expandSPChars = step.expandSPChars;
 	}
 	/// このステップの親ディレクトリ。
 	@property
-	FlagDir parent() { mixin(S_TRACE);
-		return _parent;
-	}
-	/// ditto
-	@property
-	const
-	const(FlagDir) parent() { mixin(S_TRACE);
+	inout
+	inout(FlagDir) parent() { mixin(S_TRACE);
 		return _parent;
 	}
 	/// ditto
@@ -347,13 +387,8 @@ public:
 	}
 	/// 最上位のディレクトリ。
 	@property
-	FlagDir root() { mixin(S_TRACE);
-		return _parent.root;
-	}
-	/// ditto
-	@property
-	const
-	const(FlagDir) root() { mixin(S_TRACE);
+	inout
+	inout(FlagDir) root() { mixin(S_TRACE);
 		return _parent.root;
 	}
 	/// 変更ハンドラを設定する。
@@ -361,6 +396,7 @@ public:
 	void changeHandler(void delegate() change) { mixin(S_TRACE);
 		_change = change;
 	}
+
 	/// ステップ名。
 	@property
 	const
@@ -381,13 +417,15 @@ public:
 
 	/// ステップ値のテキストを変更する。
 	void setValue(uint index, string value) { mixin(S_TRACE);
-		if (_change && _vals[index] != value) _change();
-		_vals[index] = value;
+		if (getValue(index) != value) { mixin(S_TRACE);
+			changed();
+			_vals[index].text = value;
+		}
 	}
 	/// ステップ値のテキストを返す。
 	const
 	string getValue(uint index) { mixin(S_TRACE);
-		return _vals[index];
+		return _vals[index].text;
 	}
 
 	/// ステップの段階数を返す。
@@ -414,24 +452,56 @@ public:
 	@property
 	const
 	string value() { mixin(S_TRACE);
-		return _vals[_select];
+		return _vals[_select].text;
 	}
 	/// ステップ値群を返す。
 	@property
-	string[] values() { mixin(S_TRACE);
-		return _vals;
-	}
-	@property
 	const
-	const(string)[] values() { mixin(S_TRACE);
-		return _vals;
+	string[] values() { mixin(S_TRACE);
+		return .map!(a => a.text)(_vals).array();
 	}
 	/// ステップ値群と選択状態を設定する。
-	void setValues(string[] vals, int select) { mixin(S_TRACE);
+	void setValues(in string[] vals, int select) { mixin(S_TRACE);
 		assert (select < vals.length);
-		if (_change && (_vals != vals || _select != select)) _change();
-		_vals = vals;
-		_select = select;
+		if (_select != select) { mixin(S_TRACE);
+			changed();
+			_select = select;
+		}
+		if (values != vals) { mixin(S_TRACE);
+			if (vals.length < _vals.length) { mixin(S_TRACE);
+				foreach (th; _vals[vals.length .. $]) { mixin(S_TRACE);
+					th.removeUseCounter();
+				}
+				_vals = _vals[0 .. vals.length];
+			} else if (_vals.length < vals.length) { mixin(S_TRACE);
+				foreach (i; _vals.length .. vals.length) { mixin(S_TRACE);
+					auto th = new TextHolder;
+					if (expandSPChars && _uc) th.setUseCounter(_uc);
+					_vals ~= th;
+				}
+			}
+			foreach (i, th; _vals) th.text = vals[i];
+		}
+	}
+
+	/// 特殊文字を展開するか(Wsn.2)。
+	@property
+	const
+	bool expandSPChars() { return _expandSPChars; }
+	/// ditto
+	@property
+	void expandSPChars(bool val) { mixin(S_TRACE);
+		if (val != _expandSPChars) { mixin(S_TRACE);
+			changed();
+			_expandSPChars = val;
+			foreach (th; _vals) { mixin(S_TRACE);
+				if (expandSPChars && _uc) { mixin(S_TRACE);
+					th.setUseCounter(_uc);
+				} else { mixin(S_TRACE);
+					th.removeUseCounter();
+				}
+			}
+		}
 	}
 
 	const
@@ -448,6 +518,19 @@ public:
 
 	protected override void changed() { mixin(S_TRACE);
 		if (_change) _change();
+	}
+
+	/// 使用回数カウンタ。
+	@property
+	void useCounter(UseCounter uc) { mixin(S_TRACE);
+		_uc = uc;
+		foreach (th; _vals) { mixin(S_TRACE);
+			if (expandSPChars && uc) { mixin(S_TRACE);
+				th.setUseCounter(uc);
+			} else { mixin(S_TRACE);
+				th.removeUseCounter();
+			}
+		}
 	}
 
 	/// このステップをXMLテキストにする。
@@ -473,16 +556,19 @@ public:
 		if (def < 0 || vals.length <= def) { mixin(S_TRACE);
 			throw new FlagException("Step default value invalid. Count: " ~ to!(string)(vals.length) ~ ", default: " ~ to!(string)(def));
 		}
-		return new Step(name, vals, def);
+		auto step = new Step(name, vals, def);
+		step.expandSPChars = se.attr!bool("spchars", false, false);
+		return step;
 	}
 	/// 指定されたXMLノードにこのステップのデータを追加する。
 	const
 	void toNode(ref XNode node) { mixin(S_TRACE);
 		auto e = node.newElement("Step");
 		e.newAttr("default", _select);
+		if (expandSPChars) e.newAttr("spchars", expandSPChars);
 		e.newElement("Name", path);
 		for (int i = 0; i < _vals.length; i++) { mixin(S_TRACE);
-			e.newElement("Value", _vals[i]);
+			e.newElement("Value", _vals[i].text);
 		}
 	}
 	@property
@@ -512,6 +598,7 @@ private:
 	string _id;
 	int delegate(string, string) _sorter = null;
 	void delegate() _change = null;
+	UseCounter _uc = null;
 public:
 	/// パス区切り文字。
 	static immutable string SEPARATOR = "\\";
@@ -615,13 +702,8 @@ public:
 	}
 	/// 親ディレクトリ。
 	@property
-	FlagDir parent() { mixin(S_TRACE);
-		return _parent;
-	}
-	/// ditto
-	@property
-	const
-	const(FlagDir) parent() { mixin(S_TRACE);
+	inout
+	inout(FlagDir) parent() { mixin(S_TRACE);
 		return _parent;
 	}
 	/// ditto
@@ -629,6 +711,7 @@ public:
 	private void parent(FlagDir parent) { mixin(S_TRACE);
 		assert (!parent || !parent.getSubDir(name));
 		_parent = parent;
+		useCounter = parent ? parent.useCounter : null;
 	}
 	/// 変更ハンドラ。
 	@property
@@ -644,30 +727,43 @@ public:
 		}
 		_change = change;
 	}
+	/// ditto
 	@property
 	const
 	void delegate() changeHandler() { mixin(S_TRACE);
 		return _change;
 	}
 
-	/// 最上位のディレクトリ。
+	/// 使用回数カウンタ。
 	@property
-	FlagDir root() { mixin(S_TRACE);
-		auto dir = this;
-		while (dir.parent !is null) { mixin(S_TRACE);
-			dir = dir.parent;
+	void useCounter(UseCounter uc) { mixin(S_TRACE);
+		foreach (f; _flags) { mixin(S_TRACE);
+			f.useCounter = uc;
 		}
-		return dir;
+		foreach (s; _steps) { mixin(S_TRACE);
+			s.useCounter = uc;
+		}
+		foreach (s; _subdir) { mixin(S_TRACE);
+			s.useCounter = uc;
+		}
+		_uc = uc;
 	}
 	/// ditto
 	@property
-	const
-	const(FlagDir) root() { mixin(S_TRACE);
-		Rebindable!(const(FlagDir)) dir = this;
+	inout
+	inout(UseCounter) useCounter() { return _uc; }
+
+	/// 最上位のディレクトリ。
+	@property
+	inout
+	inout(FlagDir) root() { mixin(S_TRACE);
+		// BUG: Rebindable!(typeof(return))は
+		//      全然機能しないのでキャストを使う dmd 2.073.2
+		FlagDir dir = cast(FlagDir)this;
 		while (dir.parent !is null) { mixin(S_TRACE);
-			dir = dir.parent;
+			dir = cast(FlagDir)dir.parent;
 		}
-		return dir;
+		return cast(typeof(return))dir;
 	}
 
 	/// マシン上で一意なID。ドラッグ&ドロップ等で使用する。
@@ -776,6 +872,7 @@ public:
 			item.parent = this;
 			arr ~= item;
 			item.changeHandler = _change;
+			item.useCounter = _uc;
 			if (_change) _change();
 			return true;
 		}
@@ -808,6 +905,7 @@ public:
 			sub.parent = this;
 			_subdir = _subdir[0 .. index] ~ sub ~ _subdir[index .. $];
 			sub.changeHandler = _change;
+			sub.useCounter = _uc;
 			if (_change) _change();
 			return true;
 		}
@@ -818,6 +916,7 @@ public:
 			if (cmp(e.name, arr[i].name) == 0) { mixin(S_TRACE);
 				e.parent = null;
 				arr[i].changeHandler = null;
+				arr[i].useCounter = null;
 				arr = arr[0 .. i] ~ arr[i + 1 .. $];
 				if (_change) _change();
 				return true;
@@ -843,18 +942,21 @@ public:
 		foreach (e; _flags) {
 			e.parent = null;
 			e.changeHandler = null;
+			e.useCounter = null;
 			if (_change) _change();
 		}
 		_flags = [];
 		foreach (e; _steps) {
 			e.parent = null;
 			e.changeHandler = null;
+			e.useCounter = null;
 			if (_change) _change();
 		}
 		_steps = [];
 		foreach (e; _subdir) {
 			e.parent = null;
 			e.changeHandler = null;
+			e.useCounter = null;
 			if (_change) _change();
 		}
 		_subdir = [];
@@ -862,17 +964,20 @@ public:
 
 	/// サブディレクトリ群。
 	@property
-	FlagDir[] subDirs() { mixin(S_TRACE);
+	inout
+	inout(FlagDir)[] subDirs() { mixin(S_TRACE);
 		return _subdir;
 	}
 	/// フラグ群。
 	@property
-	Flag[] flags() { mixin(S_TRACE);
+	inout
+	inout(Flag)[] flags() { mixin(S_TRACE);
 		return _flags;
 	}
 	/// ステップ群。
 	@property
-	Step[] steps() { mixin(S_TRACE);
+	inout
+	inout(Step)[] steps() { mixin(S_TRACE);
 		return _steps;
 	}
 	/// 指定された名前のフラグ・ステップ・サブディレクトリが存在すればtrue。
@@ -946,8 +1051,9 @@ public:
 	/// このディレクトリとサブディレクトリの中にある
 	/// すべてのフラグ・ステップを返す。
 	@property
-	Flag[] allFlags() { mixin(S_TRACE);
-		Flag[] r;
+	inout
+	inout(Flag)[] allFlags() { mixin(S_TRACE);
+		inout(Flag)[] r;
 		foreach (flg; _flags) { mixin(S_TRACE);
 			r ~= flg;
 		}
@@ -958,34 +1064,9 @@ public:
 	}
 	/// ditto
 	@property
-	const
-	const(Flag)[] allFlags() { mixin(S_TRACE);
-		const(Flag)[] r;
-		foreach (flg; _flags) { mixin(S_TRACE);
-			r ~= flg;
-		}
-		foreach (dir; _subdir) { mixin(S_TRACE);
-			r ~= dir.allFlags;
-		}
-		return r;
-	}
-	/// ditto
-	@property
-	Step[] allSteps() { mixin(S_TRACE);
-		Step[] r;
-		foreach (step; _steps) { mixin(S_TRACE);
-			r ~= step;
-		}
-		foreach (dir; _subdir) { mixin(S_TRACE);
-			r ~= dir.allSteps;
-		}
-		return r;
-	}
-	/// ditto
-	@property
-	const
-	const(Step)[] allSteps() { mixin(S_TRACE);
-		const(Step)[] r;
+	inout
+	inout(Step)[] allSteps() { mixin(S_TRACE);
+		inout(Step)[] r;
 		foreach (step; _steps) { mixin(S_TRACE);
 			r ~= step;
 		}

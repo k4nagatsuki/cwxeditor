@@ -67,6 +67,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (flag.parent is froot && prop.sys.isSystemVar(flag.name)) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.searchErrorSystemVariable, flag.name);
 		}
+		if (flag.expandSPChars && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+			r ~= prop.msgs.warningExpandSPChars;
+		}
 	}
 	auto step = cast(Step) path;
 	if (step) { mixin(S_TRACE);
@@ -75,6 +78,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		}
 		if (step.count != prop.looks.stepMaxCount && summ && summ.legacy) {
 			r ~= .tryFormat(prop.msgs.warningStepCount, prop.looks.stepMaxCount);
+		}
+		if (step.expandSPChars && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+			r ~= prop.msgs.warningExpandSPChars;
 		}
 	}
 	auto eventTree = cast(EventTree) path;

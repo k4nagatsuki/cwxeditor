@@ -4140,8 +4140,8 @@ public:
 		}
 		string previewText(string base) { mixin(S_TRACE);
 			string[char] names;
-			string[string] flags;
-			string[string] steps;
+			VarValue[string] flags;
+			VarValue[string] steps;
 			getPreviewValues(_prop, _summ, SPCHAR_TEXT, names, flags, steps);
 			return simpleFormatMsg(base, flags, steps, names);
 		}
