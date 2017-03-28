@@ -1111,13 +1111,9 @@ public:
 			gc2.setForeground(borderColor);
 			gc2.setBackground(borderColor);
 			drawTextImpl(gc2, lines, -1, -1);
-			drawTextImpl(gc2, lines,  0, -1);
-			drawTextImpl(gc2, lines,  1, -1);
-			drawTextImpl(gc2, lines, -1,  0);
-			drawTextImpl(gc2, lines,  1,  0);
-			drawTextImpl(gc2, lines, -1,  1);
-			drawTextImpl(gc2, lines,  0,  1);
-			drawTextImpl(gc2, lines,  1,  1);
+			drawTextImpl(gc2, lines, -1, 1);
+			drawTextImpl(gc2, lines, 1, -1);
+			drawTextImpl(gc2, lines, 1, 1);
 		}
 
 		// テキスト本体を描画
