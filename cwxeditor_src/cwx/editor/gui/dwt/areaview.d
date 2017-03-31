@@ -2815,6 +2815,7 @@ public:
 			static if (UseBacks) {
 				_comm.refPreviewValues.add(&refreshTextCell);
 				_comm.refFlagAndStep.add(&refreshTextCellF);
+				_comm.refDataVersion.add(&refreshTextCell);
 			}
 			if (_summ) { mixin (S_TRACE);
 				_comm.refFlagAndStep.add(&refFlag);
@@ -2842,6 +2843,7 @@ public:
 					static if (UseBacks) {
 						_comm.refPreviewValues.remove(&refreshTextCell);
 						_comm.refFlagAndStep.remove(&refreshTextCellF);
+						_comm.refDataVersion.remove(&refreshTextCell);
 						foreach (dlg; _editDlgsB.values) { mixin(S_TRACE);
 							dlg.forceCancel();
 						}
@@ -4142,8 +4144,10 @@ public:
 			string[char] names;
 			VarValue[string] flags;
 			VarValue[string] steps;
-			getPreviewValues(_prop, _summ, SPCHAR_TEXT, names, flags, steps);
-			return simpleFormatMsg(base, flags, steps, names);
+			VarValue[string] sysSteps;
+			getPreviewValues(_prop, _summ, SPCHAR_TEXT, names, flags, steps, sysSteps);
+			return simpleFormatMsg(base, flags, steps, sysSteps, names, ver => _prop.isTargetVersion(_summ, ver),
+				_prop.sys.prefixSystemVarName);
 		}
 	}
 

@@ -555,8 +555,10 @@ private:
 		string[char] names;
 		VarValue[string] flags;
 		VarValue[string] steps;
-		_values.getValues(names, flags, steps);
-		return simpleFormatMsg(base, flags, steps, names);
+		VarValue[string] sysSteps;
+		_values.getValues(names, flags, steps, sysSteps);
+		return simpleFormatMsg(base, flags, steps, sysSteps, names, ver => _prop.isTargetVersion(_summ, ver),
+			_prop.sys.prefixSystemVarName);
 	}
 	class Paint : PaintListener {
 		override void paintControl(PaintEvent e) { mixin(S_TRACE);

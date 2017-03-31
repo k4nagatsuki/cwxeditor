@@ -42,18 +42,26 @@ string formatMsg(string text,
 		VarValue delegate(string) getFlag,
 		VarValue delegate(string) getStep,
 		string delegate(char) getName,
+		bool delegate(string ver) isTargetVersion,
+		string prefixSystemVarName,
 		bool delegate(string) hasMaterial,
 		out string[size_t] fonts,
 		out char[size_t] colors) { mixin(S_TRACE);
-	return formatMsgImpl(text, getFlag, getStep, getName, hasMaterial, fonts, colors, true, 0, 0);
+	return formatMsgImpl(text, getFlag, getStep, getName, isTargetVersion, prefixSystemVarName, hasMaterial, fonts, colors, true, 0, 0);
 }
 /// ditto
-string simpleFormatMsg(in string text, VarValue[string] flags, VarValue[string] steps, string[char] names) { mixin(S_TRACE);
+string simpleFormatMsg(in string text, VarValue[string] flags, VarValue[string] steps,
+		VarValue[string] sysSteps, string[char] names,
+		bool delegate(string ver) isTargetVersion, string prefixSystemVarName) { mixin(S_TRACE);
 	string[size_t] fonts;
 	char[size_t] colors;
 	return formatMsgImpl(text,
 		path => flags.get(path, VarValue(false)),
-		path => steps.get(path, VarValue(false)),
+		(path) { mixin(S_TRACE);
+			auto p = path in steps;
+			if (p) return *p;
+			return sysSteps.get(path.toLower(), VarValue(false));
+		},
 		delegate string(char name) { mixin(S_TRACE);
 			auto dc = std.ascii.toUpper(name);
 			foreach (c, v; names) { mixin(S_TRACE);
@@ -62,12 +70,14 @@ string simpleFormatMsg(in string text, VarValue[string] flags, VarValue[string] 
 				}
 			}
 			return "#" ~ name;
-		}, (c) => false, fonts, colors, false, 0, 0);
+		}, isTargetVersion, prefixSystemVarName, (c) => false, fonts, colors, false, 0, 0);
 }
 private string formatMsgImpl(string text,
 		VarValue delegate(string) getFlag,
 		VarValue delegate(string) getStep,
 		string delegate(char) getName,
+		bool delegate(string ver) isTargetVersion,
+		string prefixSystemVarName,
 		bool delegate(string) hasMaterial,
 		ref string[size_t] fonts,
 		ref char[size_t] colors,
@@ -81,9 +91,16 @@ private string formatMsgImpl(string text,
 		bool flag_step(VarValue delegate(string) get, dchar cc) { mixin(S_TRACE);
 			ptrdiff_t next = .countUntil(dtext[i + 1 .. $], cc);
 			if (next < 0) return false;
-			dstring fl = dtext[i + 1 .. i + 1 + next];
-			auto v = get(to!string(fl));
+			auto fl = dtext[i + 1 .. i + 1 + next];
+			auto fls = to!string(fl);
+			auto v = get(fls);
 			if (!v.exists) { mixin(S_TRACE);
+				if (isTargetVersion("2") && c == '$' && fls.startsWith(prefixSystemVarName)) { mixin(S_TRACE);
+					// CardWirth 1.60では、"??"で始まるステップ名は
+					// 該当ステップが存在しない場合、空文字列になる
+					i = i + 1 + next;
+					return true;
+				}
 				if (!full) { mixin(S_TRACE);
 					// BUG: 選択肢などでは最初の1文字が欠ける(CardWirth 1.50)
 					c = dchar.init;
@@ -93,8 +110,8 @@ private string formatMsgImpl(string text,
 			i = i + 1 + next;
 			auto s = v.value;
 			if (v.expandSPChars && stack == 0) { mixin(S_TRACE);
-				s = .formatMsgImpl(s, getFlag, getStep, getName, hasMaterial,
-					fonts, colors, full, result.length + startIndex, stack + 1);
+				s = .formatMsgImpl(s, getFlag, getStep, getName, isTargetVersion, prefixSystemVarName,
+					hasMaterial, fonts, colors, full, result.length + startIndex, stack + 1);
 			}
 			result ~= to!dstring(s);
 			return true;
@@ -166,7 +183,7 @@ private string formatMsgImpl(string text,
 	}, (char name) { mixin(S_TRACE);
 		if (name == 'R') return "R_test";
 		return "";
-	}, null, rFonts, rColors);
+	}, ver => true, "??", null, rFonts, rColors);
 	assert (result == "f1test, f2, s1test,  , &R, &W, , R_test, #v, #+", result);
 	assert (rFonts == [cast(size_t) 41:"font_v.bmp", cast(size_t) 45:"font_+.bmp"]);
 	assert (rColors == [cast(size_t) 23:'R', cast(size_t) 27:'W'], .text(rColors));
@@ -184,7 +201,7 @@ void sortChars(char[] chars) {
 	assert (a == "aabdeffjpqw");
 }
 /// テキストの中で使用されているフラグ・ステップ・画像パスを抽出する。
-void textUseItems(in string text,
+void textUseItems(string text,
 		out string[] flags, out string[] steps, out string[] fonts, out char[] colors) { mixin(S_TRACE);
 	string[size_t] rFonts;
 	char[size_t] rColors;
@@ -196,7 +213,7 @@ void textUseItems(in string text,
 		return VarValue(true);
 	}, (char name) { mixin(S_TRACE);
 		return "";
-	}, null, rFonts, rColors);
+	}, ver => false, "", null, rFonts, rColors);
 	fonts = rFonts.values;
 	colors = rColors.values;
 	.sortChars(colors);

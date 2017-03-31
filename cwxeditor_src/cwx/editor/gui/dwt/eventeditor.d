@@ -420,10 +420,10 @@ class EventEditor : Composite {
 						break;
 					}
 				}
-				if (update || branch) { mixin(S_TRACE);
+				if (update || branch || (_comm.prop.var.etc.showVariableValuesInEventText && c.parent && c.parent.detail.nextType is CNextType.TEXT)) { mixin(S_TRACE);
 					auto s = .eventText(_comm, _summ, c.parent, c, !(getStyle() & SWT.READ_ONLY));
 					_pos[i].eventText = s;
-					if (c.name == "" && c.parent && c.parent.detail.nextType == CNextType.TEXT) { mixin(S_TRACE);
+					if (c.name == "" && c.parent && c.parent.detail.nextType is CNextType.TEXT) { mixin(S_TRACE);
 						s = _comm.skin.evtChildOK;
 					}
 					_pos[i].eventTextWidth = gc.wTextExtent(s).x;

@@ -1498,13 +1498,17 @@ private FixedWidthText createMessagePane(Commons comm, Props prop, bool image, C
 
 private class PutC {
 	private void delegate(string) _insert;
-	private string _put;
+	private string delegate() _put;
 	this(void delegate(string) insert, string put) { mixin(S_TRACE);
+		_insert = insert;
+		_put = () => put;
+	}
+	this(void delegate(string) insert, string delegate() put) { mixin(S_TRACE);
 		_insert = insert;
 		_put = put;
 	}
 	void put() { mixin(S_TRACE);
-		_insert(_put);
+		_insert(_put());
 	}
 }
 private class PutColor {
@@ -1560,6 +1564,8 @@ private ToolBar createSCharBar(Commons comm, Composite parent,
 		&(new PutC(insert, "#C")).put, null);
 	createToolItem2(comm, bar, prop.msgs.scTeam, prop.images.scTeam, &(new PutC(insert, "#T")).put, null);
 	createToolItem2(comm, bar, prop.msgs.scYado, prop.images.scYado, &(new PutC(insert, "#Y")).put, null);
+	new ToolItem(bar, SWT.SEPARATOR);
+	createPCSPCharBar(comm, bar, insert);
 	return bar;
 }
 
@@ -1581,7 +1587,31 @@ ToolBar createSimpleSCharBar(Composite parent,
 		&(new PutC(insert, "#R")).put, null);
 	createToolItem2(comm, bar, prop.msgs.scTeam, prop.images.scTeam, &(new PutC(insert, "#T")).put, null);
 	createToolItem2(comm, bar, prop.msgs.scYado, prop.images.scYado, &(new PutC(insert, "#Y")).put, null);
+	new ToolItem(bar, SWT.SEPARATOR);
+	createPCSPCharBar(comm, bar, insert);
 	return bar;
+}
+
+private void createPCSPCharBar(Commons comm, ToolBar bar, void delegate(string) insert) { mixin(S_TRACE);
+	createToolItem2(comm, bar, comm.prop.msgs.selectedPlayerCardNumber, comm.prop.images.selectedPlayerCardNumber,
+		&(new PutC(insert, "$" ~ comm.prop.sys.selectedPlayerCardNumber ~ "$")).put, () => comm.prop.isTargetVersion(comm.summary, "2"));
+	Spinner spn = null;
+	auto t = createToolItem2(comm, bar, .tryFormat(comm.prop.msgs.playerCardName, comm.prop.var.etc.selectedPlayerCardName), comm.prop.images.playerCardName,
+		&(new PutC(insert, () => "$" ~ comm.prop.sys.playerCardName(spn.getSelection()) ~ "$")).put,
+		() => comm.prop.isTargetVersion(comm.summary, "2"));
+	spn = new Spinner(bar, SWT.BORDER);
+	initSpinner(spn);
+	spn.setMaximum(comm.prop.looks.partyMax);
+	spn.setMinimum(1);
+	spn.setSelection(1);
+	.setupSpinner(spn, comm.prop.var.etc.selectedPlayerCardName);
+	.createToolItemC(bar, spn);
+	void updatePCN() { mixin(S_TRACE);
+		t.setToolTipText(.tryFormat(comm.prop.msgs.playerCardName, spn.getSelection));
+	}
+	.listener(spn, SWT.Selection, &updatePCN);
+	.listener(spn, SWT.Modify, &updatePCN);
+	comm.put(spn, () => comm.prop.isTargetVersion(comm.summary, "2"));
 }
 
 private ToolBar createSkinSCharBar(Commons comm, Composite parent, void delegate(string) insert, Props prop, Skin skin) { mixin(S_TRACE);
@@ -2038,6 +2068,14 @@ class PreviewValues : Composite {
 		Step step;
 		int select;
 	}
+	private static class PlayerCardName {
+		uint number;
+		this (uint number) { this.number = number; }
+	}
+	private static Object SELECTED_PLAYER_NUMBER;
+	static this () {
+		SELECTED_PLAYER_NUMBER = new Object;
+	}
 
 	private Commons _comm;
 	private Props _prop;
@@ -2054,19 +2092,26 @@ class PreviewValues : Composite {
 		private string[char] _names;
 		private bool[string] _flags;
 		private int[string] _steps;
+		private uint _selectedPlayerCardNumber;
+		private string[] _playerCardName;
 		this () { mixin(S_TRACE);
-			getValues2(_names, _flags, _steps);
+			getValues2(_names, _flags, _steps, _selectedPlayerCardNumber, _playerCardName);
 		}
 		private void impl() { mixin(S_TRACE);
 			string[char] names;
 			bool[string] flags;
 			int[string] steps;
-			getValues2(names, flags, steps);
-			setValues2(_names, _flags, _steps);
+			uint selectedPlayerCardNumber;
+			string[] playerCardName;
+			getValues2(names, flags, steps, selectedPlayerCardNumber, playerCardName);
+			setValues2(_names, _flags, _steps, _selectedPlayerCardNumber, _playerCardName);
 			_names = names;
 			_flags = flags;
 			_steps = steps;
+			_selectedPlayerCardNumber = selectedPlayerCardNumber;
+			_playerCardName = playerCardName;
 			raiseModEvent();
+			savePreviewValues();
 		}
 		override void undo() { impl(); }
 		override void redo() { impl(); }
@@ -2086,22 +2131,41 @@ class PreviewValues : Composite {
 			_comm.refUndoMax.remove(&refUndoMax);
 			_comm.refFlagAndStep.remove(&refFlagAndStep);
 			_comm.delFlagAndStep.remove(&refFlagAndStep);
-			if (SPChar.M in _indexTable) _prop.var.etc.messageVarSelected = _values.getItem(_indexTable[SPChar.M]).getText(1);
-			if (SPChar.U in _indexTable) _prop.var.etc.messageVarUnselected = _values.getItem(_indexTable[SPChar.U]).getText(1);
-			if (SPChar.R in _indexTable) _prop.var.etc.messageVarRandom = _values.getItem(_indexTable[SPChar.R]).getText(1);
-			if (SPChar.C in _indexTable) _prop.var.etc.messageVarCard = _values.getItem(_indexTable[SPChar.C]).getText(1);
-			if (SPChar.I in _indexTable) _prop.var.etc.messageVarRef = _values.getItem(_indexTable[SPChar.I]).getText(1);
-			if (SPChar.T in _indexTable) _prop.var.etc.messageVarTeam = _values.getItem(_indexTable[SPChar.T]).getText(1);
-			if (SPChar.Y in _indexTable) _prop.var.etc.messageVarYado = _values.getItem(_indexTable[SPChar.Y]).getText(1);
-			if (_isMessage) { mixin(S_TRACE);
-				_prop.var.etc.messageVarKindColumn = _values.getColumn(0).getWidth();
-				_prop.var.etc.messageVarValueColumn = _values.getColumn(1).getWidth();
-			} else { mixin(S_TRACE);
-				_prop.var.etc.textVarKindColumn = _values.getColumn(0).getWidth();
-				_prop.var.etc.textVarValueColumn = _values.getColumn(1).getWidth();
-			}
-			_comm.refPreviewValues.call();
+			_comm.refDataVersion.remove(&refreshFlags);
+			savePreviewValues();
 		}
+	}
+
+	private void savePreviewValues() { mixin(S_TRACE);
+		if (SPChar.M in _indexTable) _prop.var.etc.messageVarSelected = _values.getItem(_indexTable[SPChar.M]).getText(1);
+		if (SPChar.U in _indexTable) _prop.var.etc.messageVarUnselected = _values.getItem(_indexTable[SPChar.U]).getText(1);
+		if (SPChar.R in _indexTable) _prop.var.etc.messageVarRandom = _values.getItem(_indexTable[SPChar.R]).getText(1);
+		if (SPChar.C in _indexTable) _prop.var.etc.messageVarCard = _values.getItem(_indexTable[SPChar.C]).getText(1);
+		if (SPChar.I in _indexTable) _prop.var.etc.messageVarRef = _values.getItem(_indexTable[SPChar.I]).getText(1);
+		if (SPChar.T in _indexTable) _prop.var.etc.messageVarTeam = _values.getItem(_indexTable[SPChar.T]).getText(1);
+		if (SPChar.Y in _indexTable) _prop.var.etc.messageVarYado = _values.getItem(_indexTable[SPChar.Y]).getText(1);
+
+		string[] playerCardName = [];
+		foreach (itm; _values.getItems()) { mixin(S_TRACE);
+			auto o = itm.getData();
+			if (o is SELECTED_PLAYER_NUMBER) { mixin(S_TRACE);
+				_prop.var.etc.messageVarSelectedPlayerCardNumber = .to!uint(itm.getText(1));
+			} else if (auto pcn = cast(PlayerCardName)o) { mixin(S_TRACE);
+				playerCardName ~= itm.getText(1);
+			}
+		}
+		if (playerCardName.length) { mixin(S_TRACE);
+			_prop.var.etc.messageVarPlayerCardName = playerCardName;
+		}
+
+		if (_isMessage) { mixin(S_TRACE);
+			_prop.var.etc.messageVarKindColumn = _values.getColumn(0).getWidth();
+			_prop.var.etc.messageVarValueColumn = _values.getColumn(1).getWidth();
+		} else { mixin(S_TRACE);
+			_prop.var.etc.textVarKindColumn = _values.getColumn(0).getWidth();
+			_prop.var.etc.textVarValueColumn = _values.getColumn(1).getWidth();
+		}
+		_comm.refPreviewValues.call();
 	}
 
 	private class Mod : ModifyListener {
@@ -2109,14 +2173,18 @@ class PreviewValues : Composite {
 		this (TableItem itm) { mixin(S_TRACE);
 			_itm = itm;
 		}
-		override void modifyText(ModifyEvent e) { mixin(S_TRACE);
+		private void mod(Control ctrl) { mixin(S_TRACE);
 			if (!_changedText) { mixin(S_TRACE);
 				store();
 				_changedText = true;
 			}
-			string text = ctrlText(cast(Control) e.widget);
+			string text = ctrlText(ctrl);
 			_itm.setText(1, text);
 			raiseModEvent();
+			savePreviewValues();
+		}
+		override void modifyText(ModifyEvent e) { mixin(S_TRACE);
+			mod(cast(Control)e.widget);
 		}
 	}
 
@@ -2131,22 +2199,54 @@ class PreviewValues : Composite {
 			_values.setTopIndex(topIndex);
 		}
 		int[string] pvs;
-		string selPath = null;
+		bool[string] selPaths;
 
 		if (_targetChars.length < _values.getItemCount()) { mixin(S_TRACE);
 			foreach (i; _targetChars.length .. _values.getItemCount()) { mixin(S_TRACE);
 				auto itm = _values.getItem(cast(int)i);
-				string key = .toLower(itm.getText(0));
+				string key;
 				auto o = itm.getData();
-				auto f = cast(FlagData) o;
-				if (f) pvs[key] = f.onOff ? 1 : 0;
-				auto s = cast(StepData) o;
-				if (s) pvs[key] = s.select;
-				if (i == _values.getSelectionIndex()) { mixin(S_TRACE);
-					selPath = key;
+				if (auto f = cast(FlagData)o) { mixin(S_TRACE);
+					pvs[key] = f.onOff ? 1 : 0;
+					key = .toLower(itm.getText(0));
+				} else if (auto s = cast(StepData)o) { mixin(S_TRACE);
+					pvs[key] = s.select;
+					key = .toLower(itm.getText(0));
+				} else if (o is SELECTED_PLAYER_NUMBER) { mixin(S_TRACE);
+					key = _prop.sys.selectedPlayerCardNumber;
+				} else if (auto pcn = cast(PlayerCardName)o) { mixin(S_TRACE);
+					key = _prop.sys.playerCardName(pcn.number);
+				} else assert (0);
+
+				if (_values.isSelected(i)) { mixin(S_TRACE);
+					selPaths[key] = true;
 				}
 			}
 			_values.remove(cast(int)_targetChars.length, _values.getItemCount() - 1);
+		}
+		if (_prop.isTargetVersion(_summ, "2")) { mixin(S_TRACE);
+			// 選択メンバ番号(Wsn.2)
+			{ mixin(S_TRACE);
+				auto itm = new TableItem(_values, SWT.NONE);
+				itm.setImage(0, _prop.images.selectedPlayerCardNumber);
+				itm.setText(0, _prop.msgs.selectedPlayerCardNumber);
+				itm.setText(1, .text(_prop.var.etc.messageVarSelectedPlayerCardNumber));
+				itm.setData(SELECTED_PLAYER_NUMBER);
+			}
+			// パーティメンバ名(Wsn.2)
+			foreach (pcn; 1 .. _prop.looks.partyMax + 1) { mixin(S_TRACE);
+				auto itm = new TableItem(_values, SWT.NONE);
+				itm.setImage(0, _prop.images.playerCardName);
+				itm.setText(0, .tryFormat(_prop.msgs.playerCardName, pcn));
+				string val;
+				if (pcn - 1 < _prop.var.etc.messageVarPlayerCardName.length) { mixin(S_TRACE);
+					val = _prop.var.etc.messageVarPlayerCardName[pcn - 1];
+				} else { mixin(S_TRACE);
+					val = .parseDollarParams(_prop.var.etc.messageVarPlayerCardNameDefault, ['N':.text(pcn)]);
+				}
+				itm.setText(1, val);
+				itm.setData(new PlayerCardName(pcn));
+			}
 		}
 		if (_summ) { mixin(S_TRACE);
 			foreach (f; _summ.flagDirRoot.allFlags) { mixin(S_TRACE);
@@ -2170,7 +2270,7 @@ class PreviewValues : Composite {
 						d.onOff = false;
 					}
 				}
-				if (selPath && selPath == lpath) { mixin(S_TRACE);
+				if (lpath in selPaths) { mixin(S_TRACE);
 					_values.select(_values.getItemCount() - 1);
 				}
 			}
@@ -2192,7 +2292,7 @@ class PreviewValues : Composite {
 						d.select = *p;
 					}
 				}
-				if (selPath && selPath == lpath) { mixin(S_TRACE);
+				if (lpath in selPaths) { mixin(S_TRACE);
 					_values.select(_values.getItemCount() - 1);
 				}
 			}
@@ -2205,42 +2305,53 @@ class PreviewValues : Composite {
 	}
 	private Control createEditor(TableItem itm, int editC) { mixin(S_TRACE);
 		_changedText = false;
-		auto fd = cast(FlagData) itm.getData();
-		if (fd) { mixin(S_TRACE);
+		auto o = itm.getData();
+		if (auto fd = cast(FlagData)o) { mixin(S_TRACE);
 			auto text = createComboEditor!Combo(_comm, _prop, itm.getParent(), [fd.flag.on, fd.flag.off], itm.getText(1));
 			text.addModifyListener(new Mod(itm));
 			return text;
 		}
-		auto sd = cast(StepData) itm.getData();
-		if (sd) { mixin(S_TRACE);
+		if (auto sd = cast(StepData)o) { mixin(S_TRACE);
 			auto text = createComboEditor!Combo(_comm, _prop, itm.getParent(), sd.step.values, itm.getText(1));
 			text.addModifyListener(new Mod(itm));
 			return text;
+		}
+		if (o is SELECTED_PLAYER_NUMBER) { mixin(S_TRACE);
+			auto spn = new Spinner(itm.getParent(), SWT.BORDER);
+			initSpinner(spn);
+			spn.setMaximum(_prop.looks.partyMax);
+			spn.setMinimum(0);
+			spn.setSelection(.to!uint(itm.getText(1)));
+			spn.addModifyListener(new Mod(itm));
+			return spn;
 		}
 		auto combo = createTextEditor(_comm, _prop, itm.getParent(), itm.getText(1));
 		combo.addModifyListener(new Mod(itm));
 		return combo;
 	}
 	private static string ctrlText(Control ctrl) { mixin(S_TRACE);
-		auto text = cast(Text) ctrl;
+		auto text = cast(Text)ctrl;
 		if (text) return text.getText();
-		auto combo = cast(Combo) ctrl;
+		auto combo = cast(Combo)ctrl;
 		if (combo) return combo.getText();
+		auto spn = cast(Spinner)ctrl;
+		if (spn) return .text(spn.getSelection());
 		assert (0);
 	}
 	private void editEnd(TableItem itm, int column, Control ctrl) { mixin(S_TRACE);
 		auto old = itm.getText(column);
-		auto text = cast(Text) ctrl;
-		if (text) itm.setText(column, text.getText());
-		auto combo = cast(Combo) ctrl;
-		if (combo) { mixin(S_TRACE);
+		if (auto text = cast(Text)ctrl) { mixin(S_TRACE);
+			itm.setText(column, text.getText());
+		} else if (auto combo = cast(Combo)ctrl) { mixin(S_TRACE);
 			itm.setText(column, combo.getText());
-			auto fd = cast(FlagData) itm.getData();
-			if (fd) fd.onOff = combo.getSelectionIndex() == 0;
-			auto sd = cast(StepData) itm.getData();
-			if (sd) sd.select = combo.getSelectionIndex();
-		}
+			auto o = itm.getData();
+			if (auto fd = cast(FlagData)o) fd.onOff = combo.getSelectionIndex() == 0;
+			if (auto sd = cast(StepData)o) sd.select = combo.getSelectionIndex();
+		} else if (auto spn = cast(Spinner)ctrl) { mixin(S_TRACE);
+			itm.setText(column, .text(spn.getSelection()));
+		} else assert (0);
 		if (old != itm.getText()) raiseModEvent();
+		savePreviewValues();
 	}
 
 	private void raiseModEvent() { mixin(S_TRACE);
@@ -2258,9 +2369,9 @@ class PreviewValues : Composite {
 		bool[int] set;
 		foreach (i; indices) set[i] = true;
 		store();
-		size_t i = 0;
+		int i = 0;
 		foreach (c; _targetChars) { mixin(S_TRACE);
-			if (cast(int)i in set) { mixin(S_TRACE);
+			if (i in set) { mixin(S_TRACE);
 				auto itm = _values.getItem(_indexTable[cast(SPChar)c]);
 				final switch (cast(SPChar)c) {
 				case SPChar.M:
@@ -2288,21 +2399,43 @@ class PreviewValues : Composite {
 			}
 			i++;
 		}
+		if (_values.getItem(i).getData() is SELECTED_PLAYER_NUMBER) { mixin(S_TRACE);
+			if (i in set) { mixin(S_TRACE);
+				_values.getItem(i).setText(1, .text(_prop.var.etc.messageVarSelectedPlayerCardNumber.INIT));
+			}
+			i++;
+		}
+		while (i < _values.getItemCount()) { mixin(S_TRACE);
+			auto itm = _values.getItem(i);
+			if (auto pcnObj = cast(PlayerCardName)itm.getData()) { mixin(S_TRACE);
+				if (i in set) { mixin(S_TRACE);
+					auto pcn = pcnObj.number;
+					if (pcn - 1 < _prop.var.etc.messageVarPlayerCardName.INIT.length) { mixin(S_TRACE);
+						itm.setText(1, _prop.var.etc.messageVarPlayerCardName.INIT[pcn - 1]);
+					} else { mixin(S_TRACE);
+						itm.setText(1, .parseDollarParams(_prop.var.etc.messageVarPlayerCardNameDefault, ['N':.text(pcn)]));
+					}
+				}
+				i++;
+			} else { mixin(S_TRACE);
+				break;
+			}
+		}
 		if (_summ) { mixin(S_TRACE);
 			foreach (f; _summ.flagDirRoot.allFlags) { mixin(S_TRACE);
-				if (cast(int)i in set) { mixin(S_TRACE);
-					auto itm = _values.getItem(cast(int)i);
+				if (i in set) { mixin(S_TRACE);
+					auto itm = _values.getItem(i);
 					itm.setText(1, f.onOff ? f.on : f.off);
-					auto data = cast(FlagData) itm.getData();
+					auto data = cast(FlagData)itm.getData();
 					data.onOff = f.onOff;
 				}
 				i++;
 			}
 			foreach (f; _summ.flagDirRoot.allSteps) { mixin(S_TRACE);
-				if (cast(int)i in set) { mixin(S_TRACE);
-					auto itm = _values.getItem(cast(int)i);
+				if (i in set) { mixin(S_TRACE);
+					auto itm = _values.getItem(i);
 					itm.setText(1, f.values[f.select]);
-					auto data = cast(StepData) itm.getData();
+					auto data = cast(StepData)itm.getData();
 					data.select = f.select;
 				}
 				i++;
@@ -2321,7 +2454,7 @@ class PreviewValues : Composite {
 		foreach (i; indices) set[i] = true;
 		size_t i = 0;
 		foreach (c; _targetChars) { mixin(S_TRACE);
-			if (cast(int)i in set) { mixin(S_TRACE);
+			if (i in set) { mixin(S_TRACE);
 				auto itm = _values.getItem(_indexTable[cast(SPChar)c]);
 				final switch (cast(SPChar)c) {
 				case SPChar.M:
@@ -2349,19 +2482,43 @@ class PreviewValues : Composite {
 			}
 			i++;
 		}
+		if (_values.getItem(i).getData() is SELECTED_PLAYER_NUMBER) { mixin(S_TRACE);
+			if (i in set) { mixin(S_TRACE);
+				if (_values.getItem(i).getText(1) != .text(_prop.var.etc.messageVarSelectedPlayerCardNumber.INIT)) return false;
+			}
+			i++;
+		}
+		while (i < _values.getItemCount()) { mixin(S_TRACE);
+			auto itm = _values.getItem(i);
+			if (auto pcnObj = cast(PlayerCardName)itm.getData()) { mixin(S_TRACE);
+				if (i in set) { mixin(S_TRACE);
+					auto pcn = pcnObj.number;
+					string s;
+					if (pcn - 1 < _prop.var.etc.messageVarPlayerCardName.INIT.length) { mixin(S_TRACE);
+						s = _prop.var.etc.messageVarPlayerCardName.INIT[pcn - 1];
+					} else { mixin(S_TRACE);
+						s = .parseDollarParams(_prop.var.etc.messageVarPlayerCardNameDefault, ['N':.text(pcn)]);
+					}
+					if (itm.getText(1) != s) return false;
+				}
+				i++;
+			} else { mixin(S_TRACE);
+				break;
+			}
+		}
 		if (_summ) { mixin(S_TRACE);
 			foreach (f; _summ.flagDirRoot.allFlags) { mixin(S_TRACE);
-				if (cast(int)i in set) { mixin(S_TRACE);
-					auto itm = _values.getItem(cast(int)i);
-					auto data = cast(FlagData) itm.getData();
+				if (i in set) { mixin(S_TRACE);
+					auto itm = _values.getItem(i);
+					auto data = cast(FlagData)itm.getData();
 					if (data.onOff != f.onOff) return false;
 				}
 				i++;
 			}
 			foreach (f; _summ.flagDirRoot.allSteps) { mixin(S_TRACE);
-				if (cast(int)i in set) { mixin(S_TRACE);
-					auto itm = _values.getItem(cast(int)i);
-					auto data = cast(StepData) itm.getData();
+				if (i in set) { mixin(S_TRACE);
+					auto itm = _values.getItem(i);
+					auto data = cast(StepData)itm.getData();
 					if (data.select != f.select) return false;
 				}
 				i++;
@@ -2379,8 +2536,8 @@ class PreviewValues : Composite {
 			string text;
 			foreach (sel; indices[0] .. indices[$ - 1] + 1) { mixin(S_TRACE);
 				auto itm = _values.getItem(sel);
-				auto fd = cast(FlagData) itm.getData();
-				auto sd = cast(StepData) itm.getData();
+				auto fd = cast(FlagData)itm.getData();
+				auto sd = cast(StepData)itm.getData();
 				if (fd) { mixin(S_TRACE);
 					text ~= to!string(fd.onOff);
 				} else if (sd) { mixin(S_TRACE);
@@ -2408,8 +2565,8 @@ class PreviewValues : Composite {
 			foreach (line; lines) { mixin(S_TRACE);
 				if (_values.getItemCount() <= i) break;
 				auto itm = _values.getItem(i);
-				auto fd = cast(FlagData) itm.getData();
-				auto sd = cast(StepData) itm.getData();
+				auto fd = cast(FlagData)itm.getData();
+				auto sd = cast(StepData)itm.getData();
 				try { mixin(S_TRACE);
 					if (fd) { mixin(S_TRACE);
 						fd.onOff = to!bool(line);
@@ -2420,6 +2577,16 @@ class PreviewValues : Composite {
 							sd.select = value;
 							itm.setText(1, sd.step.values[sd.select]);
 						}
+					} else if (itm.getData() is SELECTED_PLAYER_NUMBER) { mixin(S_TRACE);
+						uint value;
+						try { mixin(S_TRACE);
+							value = .to!(uint)(line);
+							if (_prop.looks.partyMax < value) value = _prop.looks.partyMax;
+						} catch (Exception) { mixin(S_TRACE);
+							printStackTrace();
+							value = 0;
+						}
+						itm.setText(1, .text(value));
 					} else { mixin(S_TRACE);
 						itm.setText(1, line);
 					}
@@ -2535,61 +2702,77 @@ class PreviewValues : Composite {
 		_comm.refUndoMax.add(&refUndoMax);
 		_comm.refFlagAndStep.add(&refFlagAndStep);
 		_comm.delFlagAndStep.add(&refFlagAndStep);
+		_comm.refDataVersion.add(&refreshFlags);
 
 		new TableTCEdit(_comm, _values, 1, &createEditor, &editEnd, null);
 	}
 
-	void getValues(out string[char] names, out VarValue[string] flags, out VarValue[string] steps) { mixin(S_TRACE);
+	void getValues(out string[char] names, out VarValue[string] flags, out VarValue[string] steps,
+			out VarValue[string] sysSteps) { mixin(S_TRACE);
 		foreach (i; _targetChars) { mixin(S_TRACE);
 			names[C_TBL[cast(SPChar)i]] = _values.getItem(_indexTable[cast(SPChar)i]).getText(1);
 		}
 		foreach (i; _targetChars.length .. _values.getItemCount()) { mixin(S_TRACE);
 			auto itm = _values.getItem(cast(int)i);
-			if (auto fd = cast(FlagData)itm.getData()) { mixin(S_TRACE);
+			auto o = itm.getData();
+			if (auto fd = cast(FlagData)o) { mixin(S_TRACE);
 				flags[itm.getText(0)] = VarValue(true, itm.getText(1), fd.flag.expandSPChars);
-			} else if (auto sd = cast(StepData)itm.getData()) { mixin(S_TRACE);
+			} else if (auto sd = cast(StepData)o) { mixin(S_TRACE);
 				steps[itm.getText(0)] = VarValue(true, itm.getText(1), sd.step.expandSPChars);
+			} else if (o is SELECTED_PLAYER_NUMBER) { mixin(S_TRACE);
+				sysSteps[_prop.sys.selectedPlayerCardNumber.toLower()] = VarValue(true, itm.getText(1), false);
+			} else if (auto pcnObj = cast(PlayerCardName)o) { mixin(S_TRACE);
+				sysSteps[_prop.sys.playerCardName(pcnObj.number).toLower()] = VarValue(true, itm.getText(1), false);
 			} else assert (0);
 		}
 	}
-	private void getValues2(out string[char] names, out bool[string] flags, out int[string] steps) { mixin(S_TRACE);
+	private void getValues2(out string[char] names, out bool[string] flags, out int[string] steps,
+			out uint selectedPlayerCardNumber, out string[] playerCardName) { mixin(S_TRACE);
 		foreach (i; _targetChars) { mixin(S_TRACE);
 			names[C_TBL[cast(SPChar)i]] = _values.getItem(_indexTable[cast(SPChar)i]).getText(1);
 		}
 		foreach (i; _targetChars.length .. _values.getItemCount()) { mixin(S_TRACE);
 			auto itm = _values.getItem(cast(int)i);
-			auto fd = cast(FlagData)itm.getData();
-			if (fd) { mixin(S_TRACE);
+			auto o = itm.getData();
+			if (auto fd = cast(FlagData)o) { mixin(S_TRACE);
 				flags[itm.getText(0)] = fd.onOff;
-			} else { mixin(S_TRACE);
-				auto sd = cast(StepData)itm.getData();
-				assert (sd !is null);
+			} else if (auto sd = cast(StepData)o) { mixin(S_TRACE);
 				steps[itm.getText(0)] = sd.select;
-			}
+			} else if (o is SELECTED_PLAYER_NUMBER) { mixin(S_TRACE);
+				selectedPlayerCardNumber = .to!uint(itm.getText(1));
+			} else if (auto pcnObj = cast(PlayerCardName)o) { mixin(S_TRACE);
+				playerCardName ~= itm.getText(1);
+			} else assert (0);
 		}
 	}
-	private void setValues2(in string[char] names, in bool[string] flags, in int[string] steps) { mixin(S_TRACE);
+	private void setValues2(in string[char] names, in bool[string] flags, in int[string] steps,
+			uint selectedPlayerCardNumber, in string[] playerCardName) { mixin(S_TRACE);
 		foreach (i; _targetChars) { mixin(S_TRACE);
 			_values.getItem(_indexTable[cast(SPChar)i]).setText(1, names[C_TBL[cast(SPChar)i]]);
 		}
+		size_t pcni = 0;
 		foreach (i; _targetChars.length .. _values.getItemCount()) { mixin(S_TRACE);
 			auto itm = _values.getItem(cast(int)i);
-			auto fd = cast(FlagData)itm.getData();
-			if (fd) { mixin(S_TRACE);
+			auto o = itm.getData();
+			if (auto fd = cast(FlagData)o) { mixin(S_TRACE);
 				auto p = itm.getText(0) in flags;
 				if (p) { mixin(S_TRACE);
 					fd.onOff = *p;
 					itm.setText(1, fd.onOff ? fd.flag.on : fd.flag.off);
 				}
-			} else { mixin(S_TRACE);
-				auto sd = cast(StepData)itm.getData();
+			} else if (auto sd = cast(StepData)o) { mixin(S_TRACE);
 				assert (sd !is null);
 				auto p = itm.getText(0) in steps;
 				if (p && 0 <= *p && *p < sd.step.values.length) { mixin(S_TRACE);
 					sd.select = *p;
 					itm.setText(1, sd.step.values[sd.select]);
 				}
-			}
+			} else if (o is SELECTED_PLAYER_NUMBER) { mixin(S_TRACE);
+				itm.setText(1, .text(selectedPlayerCardNumber));
+			} else if (auto pcnObj = cast(PlayerCardName)o) { mixin(S_TRACE);
+				itm.setText(1, playerCardName[pcni]);
+				pcni++;
+			} else assert (0);
 		}
 	}
 
@@ -2602,7 +2785,8 @@ class PreviewValues : Composite {
 }
 
 void getPreviewValues(in Props prop, in Summary summ, in SPChar[] targetChars,
-		out string[char] names, out VarValue[string] flags, out VarValue[string] steps) { mixin(S_TRACE);
+		out string[char] names, out VarValue[string] flags, out VarValue[string] steps,
+		out VarValue[string] sysSteps) { mixin(S_TRACE);
 	foreach (c; targetChars) { mixin(S_TRACE);
 		final switch (c) {
 		case SPChar.M:
@@ -2634,6 +2818,23 @@ void getPreviewValues(in Props prop, in Summary summ, in SPChar[] targetChars,
 		}
 		foreach (f; summ.flagDirRoot.allSteps) { mixin(S_TRACE);
 			steps[f.path] = VarValue(true, f.value, f.expandSPChars);
+		}
+	}
+	getPreviewSysSteps(prop, summ, sysSteps);
+}
+
+void getPreviewSysSteps(in Props prop, in Summary summ, out VarValue[string] sysSteps) { mixin(S_TRACE);
+	if (prop.isTargetVersion(summ, "2")) { mixin(S_TRACE);
+		// 選択メンバ番号(Wsn.2)
+		sysSteps[prop.sys.selectedPlayerCardNumber.toLower()] = VarValue(true, .text(prop.var.etc.messageVarSelectedPlayerCardNumber), false);
+		// パーティメンバ名(Wsn.2)
+		foreach (pcn; 1 .. prop.looks.partyMax + 1) { mixin(S_TRACE);
+			auto name = prop.sys.playerCardName(pcn).toLower();
+			if (pcn - 1 < prop.var.etc.messageVarPlayerCardName.length) { mixin(S_TRACE);
+				sysSteps[name] = VarValue(true, prop.var.etc.messageVarPlayerCardName[pcn - 1], false);
+			} else { mixin(S_TRACE);
+				sysSteps[name] = VarValue(true, .parseDollarParams(prop.var.etc.messageVarPlayerCardNameDefault, ['N':.text(pcn)]), false);
+			}
 		}
 	}
 }
@@ -2757,10 +2958,10 @@ class MsgPreview : Composite {
 		}
 
 		string[char] names;
-		VarValue[string] flags, steps;
-		_values.getValues(names, flags, steps);
+		VarValue[string] flags, steps, sysSteps;
+		_values.getValues(names, flags, steps, sysSteps);
 		_img = new Image(d, previewMessage(_comm, _prop, _summ.scenarioPath, tImg, pos, _message,
-			[], names, flags, steps, true, _centerY, _boundaryCheck));
+			[], names, flags, steps, sysSteps, true, _centerY, _boundaryCheck));
 	}
 
 	@property
@@ -2774,7 +2975,7 @@ class MsgPreview : Composite {
 /// メッセージのプレビューを生成する。
 ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] talkers,
 		CardImagePosition[] poses, string message, in string[] sel, in string[char] names,
-		in VarValue[string] flags, in VarValue[string] steps, bool scaled,
+		in VarValue[string] flags, in VarValue[string] steps, in VarValue[string] sysSteps, bool scaled,
 		bool centerY, bool boundaryCheck) { mixin(S_TRACE);
 	auto d = Display.getCurrent();
 	version (Windows) {
@@ -2833,7 +3034,9 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] tal
 		return flags.get(path, VarValue(false));
 	}
 	VarValue sValue(string path) { mixin(S_TRACE);
-		return steps.get(path, VarValue(false));
+		auto p = path in steps;
+		if (p) return *p;
+		return sysSteps.get(path.toLower(), VarValue(false));
 	}
 	version (Windows) {
 		message = wrapReturnCode(message);
@@ -2847,7 +3050,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] tal
 			}
 		}
 		return "";
-	}, (string path) { mixin(S_TRACE);
+	}, ver => prop.isTargetVersion(comm.summary, ver), prop.sys.prefixSystemVarName, (string path) { mixin(S_TRACE);
 		if (comm.summary.legacy) { mixin(S_TRACE);
 			auto c = decodeFontPath(path);
 			if (!isSJIS1ByteChar(c)) return false;

@@ -344,6 +344,18 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				set.add(cld.name);
 			}
 		}
+		if (c.parent && c.parent.detail.nextType == CNextType.TEXT) { mixin(S_TRACE);
+			auto fit = c.flagsInText;
+			auto sit = c.stepsInText;
+			bool[dchar] foit;
+			foreach (f; c.fontsInText) foit[f.decodeFontPath()] = true;
+			auto hasSPF = 'M' in foit || 'R' in foit || 'U' in foit || 'T' in foit || 'Y' in foit;
+			if (!prop.targetVersion("1.50", targVer) && (fit.length || sit.length || hasSPF)) { mixin(S_TRACE);
+				r ~= prop.msgs.warningSPCharsInSelections;
+			} else { mixin(S_TRACE);
+				r ~= checkTextRes2(fit, sit, [], []);
+			}
+		}
 
 		void couponWarnings(string coupon, bool getLose) { mixin(S_TRACE);
 			r ~= .couponWarnings(prop, summ, targVer, coupon, getLose);
@@ -816,7 +828,33 @@ TextWarnings textWarnings(in CProps prop, in Skin skin, in Summary summ, string 
 	}
 	foreach (step; steps) { mixin(S_TRACE);
 		if (!(froot && froot.findStep(step))) { mixin(S_TRACE);
-			auto msg = .tryFormat(prop.msgs.searchErrorStepNotFound, step);
+			auto msg = "";
+			if (step.startsWith(prop.sys.prefixSystemVarName)) { mixin(S_TRACE);
+				if (.icmp(prop.sys.selectedPlayerCardNumber, step) == 0) { mixin(S_TRACE);
+					// 選択メンバ番号(Wsn.2)
+					if (!prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+						msg ~= prop.msgs.warningSelectedPlayerCardNumber;
+					}
+				} else { mixin(S_TRACE);
+					auto isPC = false;
+					foreach (i; 1 .. prop.looks.partyMax + 1) { mixin(S_TRACE);
+						if (.icmp(prop.sys.playerCardName(i), step) == 0) { mixin(S_TRACE);
+							// プレイヤーキャラクタ名(Wsn.2)
+							if (!prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+								msg ~= .tryFormat(prop.msgs.warningPlayerCardName, i);
+							}
+							isPC = true;
+							break;
+						}
+					}
+					if (!isPC) { mixin(S_TRACE);
+						msg ~= .tryFormat(prop.msgs.warningUnknownSystemValue, step);
+					}
+				}
+			} else { mixin(S_TRACE);
+				msg = .tryFormat(prop.msgs.searchErrorStepNotFound, step);
+			}
+			if (msg == "") continue;
 			all ~= msg;
 			if (!wSteps.get(step, false)) { mixin(S_TRACE);
 				noDup ~= msg;

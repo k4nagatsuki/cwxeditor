@@ -3683,19 +3683,24 @@ public:
 			refreshStatusLine();
 		}
 	}
-	private void refSkin() {refreshCard();}
-	private void refDataVersion() {refreshCard();}
-	private void refreshCast(CastCard c) {refreshCard();}
-	private void refreshSkill(SkillCard c) {refreshCard();}
-	private void refreshItem(ItemCard c) {refreshCard();}
-	private void refreshBeast(BeastCard c) {refreshCard();}
-	private void delSkill(CWXPath owner, SkillCard c) {refreshCard();}
-	private void delItem(CWXPath owner, ItemCard c) {refreshCard();}
-	private void delBeast(CWXPath owner, BeastCard c) {refreshCard();}
-	private void refreshInfo(InfoCard c) {refreshCard();}
-	private void refreshArea(Area c) {refreshCard();}
-	private void refreshPackage(Package c) {refreshCard();}
-	private void refreshBattle(Battle c) {refreshCard();}
+	private void refSkin() { refreshCard(); }
+	private void refDataVersion() { mixin(S_TRACE);
+		refreshCard();
+		if (_summ ? _prop.var.etc.showVariableValuesInEventText : showVariableValuesInEventText) { mixin(S_TRACE);
+			refreshEventText();
+		}
+	}
+	private void refreshCast(CastCard c) { refreshCard(); }
+	private void refreshSkill(SkillCard c) { refreshCard(); }
+	private void refreshItem(ItemCard c) { refreshCard(); }
+	private void refreshBeast(BeastCard c) { refreshCard(); }
+	private void delSkill(CWXPath owner, SkillCard c) { refreshCard(); }
+	private void delItem(CWXPath owner, ItemCard c) { refreshCard(); }
+	private void delBeast(CWXPath owner, BeastCard c) { refreshCard(); }
+	private void refreshInfo(InfoCard c) { refreshCard(); }
+	private void refreshArea(Area c) { refreshCard(); }
+	private void refreshPackage(Package c) { refreshCard(); }
+	private void refreshBattle(Battle c) { refreshCard(); }
 	private void refreshFlagAndStep(cwx.flag.Flag[] flags, Step[] steps) { mixin(S_TRACE);
 		if (flags.length || steps.length) { mixin(S_TRACE);
 			refreshCard();
@@ -3704,10 +3709,10 @@ public:
 			}
 		}
 	}
-	private void refreshPath(string from, string to, bool isDir) {refreshStatusLine();}
-	private void refreshPaths(string path) {refreshStatusLine();}
-	private void deletePaths() {refreshStatusLine();}
-	private void replacePaths(string from, string to) {refreshStatusLine();}
+	private void refreshPath(string from, string to, bool isDir) { refreshStatusLine(); }
+	private void refreshPaths(string path) { refreshStatusLine(); }
+	private void deletePaths() { refreshStatusLine(); }
+	private void replacePaths(string from, string to) { refreshStatusLine(); }
 
 	private bool _straightEventTreeView = false;
 	private bool _showVariableValuesInEventText = false;
@@ -3875,9 +3880,11 @@ string eventText(Commons comm, Summary summ, Content parent, Content e, bool rea
 		if (prop.var.etc.showVariableValuesInEventText) { mixin(S_TRACE);
 			VarValue[string] flags;
 			VarValue[string] steps;
+			VarValue[string] sysSteps;
 			string[char] names;
-			getPreviewValues(prop, summ, SPCHAR_TEXT, names, flags, steps);
-			return simpleFormatMsg(e.name, flags, steps, names);
+			getPreviewValues(prop, summ, SPCHAR_TEXT, names, flags, steps, sysSteps);
+			return simpleFormatMsg(e.name, flags, steps, sysSteps, names, ver => comm.prop.isTargetVersion(summ, ver),
+				comm.prop.sys.prefixSystemVarName);
 		} else { mixin(S_TRACE);
 			return e.name;
 		}

@@ -459,6 +459,14 @@ class System {
 	@property const string randomValue() { mixin(S_TRACE);
 		return "??Random";
 	}
+	/// メッセージで表示する選択メンバ番号。
+	@property const string selectedPlayerCardNumber() { mixin(S_TRACE);
+		return "??SelectedPlayer";
+	}
+	/// メッセージで表示する選択メンバ番号。
+	@property const string playerCardName(uint num) { mixin(S_TRACE);
+		return .format("??Player%s", num);
+	}
 
 	/// 値の配列をenum値のテーブルに変換する。
 	private static const(R[T]) mod(T, R)(in R[] values...) { mixin(S_TRACE);

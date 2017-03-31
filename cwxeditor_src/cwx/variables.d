@@ -772,6 +772,17 @@ class FlexEtcProps : Properties {
 	auto messageVarRef = Prop!(string)("messageVarRef", "[話者------14]");
 	auto messageVarTeam = Prop!(string)("messageVarTeam", "[チーム名------------------30]");
 	auto messageVarYado = Prop!(string)("messageVarYado", "[宿屋名--------18]");
+	auto messageVarSelectedPlayerCardNumber = Prop!(uint)("messageVarSelectedPlayerCardNumber", 0); // Wsn.2
+	auto messageVarPlayerCardName = Prop!(string[])("messageVarPlayerCardName", [
+		"[PC名1-----14]",
+		"[PC名2-----14]",
+		"[PC名3-----14]",
+		"[PC名4-----14]",
+		"[PC名5-----14]",
+		"[PC名6-----14]",
+	]); // Wsn.2
+	auto messageVarPlayerCardNameDefault = Prop!(string, true)("messageVarPlayerCardNameDefault", "[PC名%N-----14]");
+	auto selectedPlayerCardName = Prop!(uint)("selectedPlayerCardName", 1);
 	auto showVariableValuesInEventText = Prop!(bool)("showVariableValuesInEventText", false);
 	auto editSelectionWithCombo = Prop!(bool)("editSelectionWithCombo", true);
 

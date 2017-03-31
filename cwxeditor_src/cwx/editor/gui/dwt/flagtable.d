@@ -27,6 +27,7 @@ import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.incsearch;
 import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.splitpane;
+import cwx.editor.gui.dwt.messageutils;
 
 static import std.algorithm;
 import std.algorithm : max, min, map;
@@ -244,6 +245,8 @@ private:
 				auto flag = _summ.flagDirRoot.findFlag(path);
 				return flag ? VarValue(true, flag.onOff ? flag.on : flag.off, flag.expandSPChars) : VarValue(false);
 			}
+			VarValue[string] sysSteps;
+			.getPreviewSysSteps(_comm.prop, _summ, sysSteps);
 			VarValue sValue(string path) { mixin(S_TRACE);
 				auto step = _summ.flagDirRoot.findStep(path);
 				if (step && _step is step) { mixin(S_TRACE);
@@ -252,7 +255,7 @@ private:
 					}
 					return VarValue(true, _init.getText(), _expandSPChars.getSelection());
 				} else { mixin(S_TRACE);
-					return step ? VarValue(true, step.value, step.expandSPChars) : VarValue(false);
+					return step ? VarValue(true, step.value, step.expandSPChars) : sysSteps.get(path.toLower(), VarValue(false));
 				}
 			}
 			string getName(char name) { mixin(S_TRACE);
@@ -267,7 +270,8 @@ private:
 			}
 			string[size_t] rFonts;
 			char[size_t] rColors;
-			toolTip = .formatMsg(text, &fValue, &sValue, &getName, &hasMaterial, rFonts, rColors);
+			toolTip = .formatMsg(text, &fValue, &sValue, &getName, ver => _comm.prop.isTargetVersion(_summ, ver),
+				_comm.prop.sys.prefixSystemVarName, &hasMaterial, rFonts, rColors);
 		}
 		return toolTip.replace("&", "&&");
 	}
@@ -277,6 +281,7 @@ private:
 	void refDataVersion() { mixin(S_TRACE);
 		_stepCount.setEnabled(!_summ.legacy || _stepCount.getSelection() != _comm.prop.looks.stepMaxCount);
 		_expandSPChars.setEnabled(!_summ.legacy || _expandSPChars.getSelection());
+		updateToolTip();
 		refreshWarning();
 	}
 public:
@@ -576,9 +581,11 @@ private:
 					return flag ? VarValue(true, flag.onOff ? flag.on : flag.off, flag.expandSPChars) : VarValue(false);
 				}
 			}
+			VarValue[string] sysSteps;
+			.getPreviewSysSteps(_comm.prop, _summ, sysSteps);
 			VarValue sValue(string path) { mixin(S_TRACE);
 				auto step = _summ.flagDirRoot.findStep(path);
-				return step ? VarValue(true, step.value, step.expandSPChars) : VarValue(false);
+				return step ? VarValue(true, step.value, step.expandSPChars) : sysSteps.get(path.toLower(), VarValue(false));
 			}
 			string getName(char name) { mixin(S_TRACE);
 				return .getSPCharPreviewValue(_comm, name);
@@ -592,7 +599,8 @@ private:
 			}
 			string[size_t] rFonts;
 			char[size_t] rColors;
-			toolTip = .formatMsg(combo.getText(), &fValue, &sValue, &getName, &hasMaterial, rFonts, rColors);
+			toolTip = .formatMsg(combo.getText(), &fValue, &sValue, &getName, ver => _comm.prop.isTargetVersion(_summ, ver),
+				_comm.prop.sys.prefixSystemVarName, &hasMaterial, rFonts, rColors);
 		}
 		toolTip = toolTip.replace("&", "&&");
 		if (toolTip != combo.getToolTipText()) { mixin(S_TRACE);
@@ -604,6 +612,7 @@ private:
 	}
 	void refDataVersion() { mixin(S_TRACE);
 		_expandSPChars.setEnabled(!_summ.legacy || _expandSPChars.getSelection());
+		updateToolTip();
 		refreshWarning();
 	}
 public:

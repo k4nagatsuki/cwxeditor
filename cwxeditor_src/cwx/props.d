@@ -49,6 +49,7 @@ public:
 			CPoint(528, 285)
 		];
 	}
+	@property const size_t partyMax() { return 6; }
 	@property const CRect cardNameArea() { return CRect(5, 5, 70, 15); }
 	@property const CRect castCardNameArea() { return CRect(5, 5, 85, 15); }
 
