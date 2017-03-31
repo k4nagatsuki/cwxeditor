@@ -622,9 +622,7 @@ C createComboEditor(C = Combo)(Commons comm, Props prop, Composite parent, strin
 			createTextMenu!C(comm, prop, combo, null);
 		}
 		foreach (s; strs) { mixin(S_TRACE);
-			if (s) { mixin(S_TRACE);
-				combo.add(s);
-			}
+			combo.add(s);
 		}
 		combo.setText(str ? str : "");
 		return combo;
