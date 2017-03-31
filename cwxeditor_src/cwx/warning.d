@@ -838,7 +838,7 @@ TextWarnings textWarnings(in CProps prop, in Skin skin, in Summary summ, string 
 				} else { mixin(S_TRACE);
 					auto isPC = false;
 					foreach (i; 1 .. prop.looks.partyMax + 1) { mixin(S_TRACE);
-						if (.icmp(prop.sys.playerCardName(i), step) == 0) { mixin(S_TRACE);
+						if (.icmp(prop.sys.playerCardName(cast(uint)i), step) == 0) { mixin(S_TRACE);
 							// プレイヤーキャラクタ名(Wsn.2)
 							if (!prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
 								msg ~= .tryFormat(prop.msgs.warningPlayerCardName, i);

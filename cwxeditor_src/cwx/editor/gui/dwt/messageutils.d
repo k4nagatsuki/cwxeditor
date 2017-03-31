@@ -1601,7 +1601,7 @@ private void createPCSPCharBar(Commons comm, ToolBar bar, void delegate(string) 
 		() => comm.prop.isTargetVersion(comm.summary, "2"));
 	spn = new Spinner(bar, SWT.BORDER);
 	initSpinner(spn);
-	spn.setMaximum(comm.prop.looks.partyMax);
+	spn.setMaximum(cast(int)comm.prop.looks.partyMax);
 	spn.setMinimum(1);
 	spn.setSelection(1);
 	.setupSpinner(spn, comm.prop.var.etc.selectedPlayerCardName);
@@ -2218,7 +2218,7 @@ class PreviewValues : Composite {
 					key = _prop.sys.playerCardName(pcn.number);
 				} else assert (0);
 
-				if (_values.isSelected(i)) { mixin(S_TRACE);
+				if (_values.isSelected(cast(int)i)) { mixin(S_TRACE);
 					selPaths[key] = true;
 				}
 			}
@@ -2245,7 +2245,7 @@ class PreviewValues : Composite {
 					val = .parseDollarParams(_prop.var.etc.messageVarPlayerCardNameDefault, ['N':.text(pcn)]);
 				}
 				itm.setText(1, val);
-				itm.setData(new PlayerCardName(pcn));
+				itm.setData(new PlayerCardName(cast(uint)pcn));
 			}
 		}
 		if (_summ) { mixin(S_TRACE);
@@ -2319,7 +2319,7 @@ class PreviewValues : Composite {
 		if (o is SELECTED_PLAYER_NUMBER) { mixin(S_TRACE);
 			auto spn = new Spinner(itm.getParent(), SWT.BORDER);
 			initSpinner(spn);
-			spn.setMaximum(_prop.looks.partyMax);
+			spn.setMaximum(cast(int)_prop.looks.partyMax);
 			spn.setMinimum(0);
 			spn.setSelection(.to!uint(itm.getText(1)));
 			spn.addModifyListener(new Mod(itm));
@@ -2452,7 +2452,7 @@ class PreviewValues : Composite {
 	bool isInitialValues(in int[] indices) { mixin(S_TRACE);
 		bool[int] set;
 		foreach (i; indices) set[i] = true;
-		size_t i = 0;
+		int i = 0;
 		foreach (c; _targetChars) { mixin(S_TRACE);
 			if (i in set) { mixin(S_TRACE);
 				auto itm = _values.getItem(_indexTable[cast(SPChar)c]);
@@ -2581,7 +2581,7 @@ class PreviewValues : Composite {
 						uint value;
 						try { mixin(S_TRACE);
 							value = .to!(uint)(line);
-							if (_prop.looks.partyMax < value) value = _prop.looks.partyMax;
+							if (_prop.looks.partyMax < value) value = cast(uint)_prop.looks.partyMax;
 						} catch (Exception) { mixin(S_TRACE);
 							printStackTrace();
 							value = 0;
@@ -2829,7 +2829,7 @@ void getPreviewSysSteps(in Props prop, in Summary summ, out VarValue[string] sys
 		sysSteps[prop.sys.selectedPlayerCardNumber.toLower()] = VarValue(true, .text(prop.var.etc.messageVarSelectedPlayerCardNumber), false);
 		// パーティメンバ名(Wsn.2)
 		foreach (pcn; 1 .. prop.looks.partyMax + 1) { mixin(S_TRACE);
-			auto name = prop.sys.playerCardName(pcn).toLower();
+			auto name = prop.sys.playerCardName(cast(uint)pcn).toLower();
 			if (pcn - 1 < prop.var.etc.messageVarPlayerCardName.length) { mixin(S_TRACE);
 				sysSteps[name] = VarValue(true, prop.var.etc.messageVarPlayerCardName[pcn - 1], false);
 			} else { mixin(S_TRACE);
