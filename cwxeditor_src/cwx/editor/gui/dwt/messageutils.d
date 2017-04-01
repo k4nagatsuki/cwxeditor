@@ -1869,6 +1869,8 @@ Composite createFlagStepBar(Composite parent, void delegate(string) insert, Comm
 					});
 					auto menu = new Menu(imgListWin.shell, SWT.POP_UP);
 					createMenuItem(comm, menu, MenuID.IncSearch, () => fontIncSearch.startIncSearch(), null);
+					new MenuItem(menu, SWT.SEPARATOR);
+					createMenuItem(comm, menu, MenuID.CloseWin, &imgListWin.close, null);
 					imgListWin.widget.setMenu(menu);
 
 					auto cloc = Display.getCurrent().getCursorLocation();

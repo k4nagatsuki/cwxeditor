@@ -649,6 +649,8 @@ private:
 				});
 				auto menu = new Menu(_imgList.shell, SWT.POP_UP);
 				createMenuItem(_comm, menu, MenuID.IncSearch, &_msel.startIncSearch, null);
+				new MenuItem(menu, SWT.SEPARATOR);
+				createMenuItem(_comm, menu, MenuID.CloseWin, &_imgList.close, null);
 				_imgList.widget.setMenu(menu);
 
 				auto cloc = Display.getCurrent().getCursorLocation();

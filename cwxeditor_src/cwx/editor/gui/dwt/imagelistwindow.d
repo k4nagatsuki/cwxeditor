@@ -86,9 +86,14 @@ class ImageListWindow(MtType Type) {
 	}
 
 	@property
-	Shell shell() {return _shl;}
+	Shell shell() { return _shl; }
 	@property
-	ImageList widget() {return _list;}
+	ImageList widget() { return _list; }
+
+	void close() { mixin(S_TRACE);
+		_shl.close();
+		_shl.dispose();
+	}
 
 	private ImageData createImage(string path, bool mask) { mixin(S_TRACE);
 		auto wsnVer = _summ ? _summ.dataVersion : LATEST_VERSION;
