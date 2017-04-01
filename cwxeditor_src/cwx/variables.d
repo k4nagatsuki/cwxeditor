@@ -448,6 +448,7 @@ class FlexEtcProps : Properties {
 	auto showTerminalMark = Prop!(bool)("showTerminalMark", true);
 	auto clickIconIsStartEdit = Prop!(bool)("clickIconIsStartEdit", false);
 	auto showAreaDirTree = Prop!(bool)("showAreaDirTree", true);
+	auto incrementNewAreaName = Prop!(bool)("incrementNewAreaName", true);
 	auto sortFlagDirs = Prop!(bool)("sortFlagDirs", true);
 	auto saveNeedChanged = Prop!(bool)("saveNeedChanged", true);
 	auto canVanishWorkAreaInMainWindow = Prop!(bool)("canVanishWorkAreaInMainWindow", false);

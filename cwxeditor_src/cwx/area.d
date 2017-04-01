@@ -760,9 +760,7 @@ public:
 	@property
 	const
 	string dirName() { mixin(S_TRACE);
-		ptrdiff_t i = .lastIndexOf(_name, '\\');
-		if (i == -1) return "";
-		return _name[0 .. i];
+		return toDirName(_name);
 	}
 	/// ditto
 	@property
@@ -770,21 +768,31 @@ public:
 		if (name != "" && name[$ - 1] != '\\') name ~= "\\";
 		this.name = name ~ baseName;
 	}
+	/// ditto
+	static string toDirName(string name) { mixin(S_TRACE);
+		ptrdiff_t i = .lastIndexOf(name, '\\');
+		if (i == -1) return "";
+		return name[0 .. i];
+	}
 
 	/// 名前を'\'で分割してディレクトリ構造と看做した時、
 	/// このエリアからディレクトリパスを除いた名前。
 	@property
 	const
 	string baseName() { mixin(S_TRACE);
-		ptrdiff_t i = .lastIndexOf(_name, '\\');
-		if (i == -1) return _name;
-		return _name[i + 1 .. $];
+		return toBaseName(_name);
 	}
 	/// ditto
 	@property
 	void baseName(string name) { mixin(S_TRACE);
 		name = name.replace("\\", "");
 		this.name = _name[0 .. $ - baseName.length] ~ name;
+	}
+	/// ditto
+	static string toBaseName(string name) { mixin(S_TRACE);
+		ptrdiff_t i = .lastIndexOf(name, '\\');
+		if (i == -1) return name;
+		return name[i + 1 .. $];
 	}
 
 	/// 並び順によってイベントビューを検索して返す。

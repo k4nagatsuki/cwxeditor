@@ -2017,6 +2017,7 @@ class Msgs : Properties {
 	auto showAreaDirTree = Msg("showAreaDirTree", "テーブルビューを階層表示する");
 	auto showSummaryInAreaTable = Msg("showSummaryInAreaTable", "テーブルビューにシナリオの概要を表示する");
 	auto clickIsOpenEvent = Msg("clickIsOpenEvent", "左クリックでイベントビューを開く");
+	auto incrementNewAreaName = Msg("incrementNewAreaName", "エリア等の作成時に既存のアイテムと重複しない名前を生成する");
 
 	auto etcSettingsScene = Msg("etcSettingsScene", "シーンビューの設定");
 	auto smoothingCard = Msg("smoothingCard", "カードのサイズ変更時にスムージングを行う");

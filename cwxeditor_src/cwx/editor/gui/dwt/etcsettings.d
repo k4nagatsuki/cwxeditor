@@ -146,6 +146,7 @@ class EtcSettings : Composite {
 		boolSetting(comp, prop.var.etc.showAreaDirTree, prop.msgs.showAreaDirTree);
 		boolSetting(comp, prop.var.etc.showSummaryInAreaTable, prop.msgs.showSummaryInAreaTable);
 		boolSetting(comp, prop.var.etc.clickIsOpenEvent, prop.msgs.clickIsOpenEvent);
+		boolSetting(comp, prop.var.etc.incrementNewAreaName, prop.msgs.incrementNewAreaName);
 
 		comp = createComp(prop.msgs.etcSettingsScene);
 		boolSetting(comp, prop.var.etc.smoothingCard, prop.msgs.smoothingCard);

@@ -693,7 +693,7 @@ private:
 		} else { mixin(S_TRACE);
 			auto dir = cast(DirTree)itm.getData();
 			auto oldPath = dir.path;
-			dir.name = createNewName(newText, (s) { mixin(S_TRACE);
+			dir.name = .createNewName(newText, (s) { mixin(S_TRACE);
 				foreach (n; dir.parent.subDirs) { mixin(S_TRACE);
 					if (n is dir) continue;
 					if (0 == icmp(n.name, s)) { mixin(S_TRACE);
@@ -2141,7 +2141,7 @@ public:
 		storeEmpty();
 		auto itm = findDirTree(_dir);
 		auto dir = cast(DirTree)itm.getData();
-		auto sub = new DirTree(dir, createNewName(_prop.msgs.areaDirNew, (s) { mixin(S_TRACE);
+		auto sub = new DirTree(dir, .createNewName(_prop.msgs.areaDirNew, (s) { mixin(S_TRACE);
 			foreach (dir; dir.subDirs) { mixin(S_TRACE);
 				if (0 == icmp(dir.name, s)) return false;
 			}
@@ -2330,12 +2330,27 @@ public:
 		_comm.refreshToolBar();
 	}
 
+	private string createNewName(A)(string name, in A[] areas) { mixin(S_TRACE);
+		if (!_prop.var.etc.incrementNewAreaName) return name;
+		bool[string] names;
+		foreach (a; areas) names[a.name.toLower()] = true;
+		if (_dirMode) { mixin(S_TRACE);
+			return .createNewName(name, (string name) { mixin(S_TRACE);
+				return (_dir == "" ? name : _dir ~ "\\" ~ name).toLower() !in names;
+			}, true);
+		} else { mixin(S_TRACE);
+			return .createNewName(name, (string name) { mixin(S_TRACE);
+				return name.toLower() !in names;
+			}, true);
+		}
+	}
+
 	/// 新規エリアが作成され、名前の入力待ちになる。
 	void createArea() { mixin(S_TRACE);
 		if (_readOnly) return;
 		ulong[] a, b, p;
 		saveIDs(_summ, a, b, p);
-		auto area = new Area(_summ.newAreaId, _prop.msgs.areaNew);
+		auto area = new Area(_summ.newAreaId, createNewName(_prop.msgs.areaNew, _summ.areas));
 		if (_dirMode) area.dirName = _dir;
 		auto bgImages = createBgImages(_comm.skin, _prop.var.etc.bgImagesDefault);
 		foreach (bg; bgImages) { mixin(S_TRACE);
@@ -2362,7 +2377,7 @@ public:
 		if (_readOnly) return;
 		ulong[] a, b, p;
 		saveIDs(_summ, a, b, p);
-		auto btl = new Battle(_summ.newBattleId, _prop.msgs.battleNew, _comm.skin.defBattle(_summ.scenarioPath, _summ.dataVersion));
+		auto btl = new Battle(_summ.newBattleId, createNewName(_prop.msgs.battleNew, _summ.battles), _comm.skin.defBattle(_summ.scenarioPath, _summ.dataVersion));
 		if (_dirMode) btl.dirName = _dir;
 		_summ.add(btl);
 		storeInsert(btl.id, typeid(Battle), a, b, p);
@@ -2395,7 +2410,7 @@ public:
 		if (_readOnly) return 0UL;
 		ulong[] a, b, p;
 		saveIDs(_summ, a, b, p);
-		auto pkg = new Package(_summ.newPackageId, name && name != "" ? name : _prop.msgs.packageNew);
+		auto pkg = new Package(_summ.newPackageId, createNewName(name && name != "" ? name : _prop.msgs.packageNew, _summ.packages));
 		if (_dirMode) pkg.dirName = _dir;
 		EventTree et;
 		if (baseTree) { mixin(S_TRACE);
@@ -2967,7 +2982,7 @@ public:
 			// すでに存在するフォルダであれば(2)等をつける
 			auto dirs = dir.split("\\");
 			auto firstDir = dirs[0];
-			firstDir = createNewName(firstDir, (s) { mixin(S_TRACE);
+			firstDir = .createNewName(firstDir, (s) { mixin(S_TRACE);
 				if (_dir != "") s = _dir ~ "\\" ~ s;
 				return !existsDirs.contains(s.toLower());
 			});
@@ -2986,6 +3001,12 @@ public:
 			node.parse();
 		}
 
+		bool[string] areaNames;
+		bool[string] battleNames;
+		bool[string] packageNames;
+		foreach (a; _summ.areas) areaNames[a.name.toLower()] = true;
+		foreach (a; _summ.battles) battleNames[a.name.toLower()] = true;
+		foreach (a; _summ.packages) packageNames[a.name.toLower()] = true;
 		foreach (area; areas) { mixin(S_TRACE);
 			sel = area;
 			if (_dirMode) { mixin(S_TRACE);
@@ -3003,6 +3024,10 @@ public:
 			ulong[] a, b, p;
 			saveIDs(_summ, a, b, p);
 			if (cast(Area)area) { mixin(S_TRACE);
+				if (_prop.var.etc.incrementNewAreaName) { mixin(S_TRACE);
+					area.baseName = .createNewName(area.baseName, name => (area.dirName == "" ? name : area.dirName ~ "\\" ~ name).toLower() !in areaNames);
+					areaNames[area.baseName] = true;
+				}
 				_summ.add(cast(Area)area);
 				undos ~= new UndoInsertDelete(this, _comm, _summ, area.id, typeid(Area), true, a, b, p);
 				_comm.refArea.call(cast(Area)area);
@@ -3010,14 +3035,22 @@ public:
 					_summ.useCounter.change(toAreaId(oldId), toAreaId(area.id));
 				}
 			} else if (cast(Battle)area) { mixin(S_TRACE);
-				_summ.add(cast(Battle) area);
+				if (_prop.var.etc.incrementNewAreaName) { mixin(S_TRACE);
+					area.baseName = .createNewName(area.baseName, name => (area.dirName == "" ? name : area.dirName ~ "\\" ~ name).toLower() !in battleNames);
+					battleNames[area.baseName] = true;
+				}
+				_summ.add(cast(Battle)area);
 				undos ~= new UndoInsertDelete(this, _comm, _summ, area.id, typeid(Battle), true, a, b, p);
 				_comm.refBattle.call(cast(Battle)area);
 				if (sameSummary && !_summ.hasBattleId(oldId)) { mixin(S_TRACE);
 					_summ.useCounter.change(toBattleId(oldId), toBattleId(area.id));
 				}
 			} else if (cast(Package)area) { mixin(S_TRACE);
-				_summ.add(cast(Package) area);
+				if (_prop.var.etc.incrementNewAreaName) { mixin(S_TRACE);
+					area.baseName = .createNewName(area.baseName, name => (area.dirName == "" ? name : area.dirName ~ "\\" ~ name).toLower() !in packageNames);
+					packageNames[area.baseName] = true;
+				}
+				_summ.add(cast(Package)area);
 				undos ~= new UndoInsertDelete(this, _comm, _summ, area.id, typeid(Package), true, a, b, p);
 				_comm.refPackage.call(cast(Package)area);
 				if (sameSummary && !_summ.hasPackageId(oldId)) { mixin(S_TRACE);
