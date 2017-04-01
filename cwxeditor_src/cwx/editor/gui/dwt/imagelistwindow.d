@@ -36,12 +36,21 @@ class ImageListWindow(MtType Type) {
 		_summ = summ;
 		_selection = selection;
 		_shl = new Shell(parent, SWT.RESIZE | SWT.MODELESS);
-		_shl.setSize(_prop.var.etc.imageListWidth, _prop.var.etc.imageListHeight);
 		_shl.setLayout(new FillLayout);
-		void saveWin() { mixin(S_TRACE);
-			auto size = _shl.getSize();
-			_prop.var.etc.imageListWidth = size.x;
-			_prop.var.etc.imageListHeight = size.y;
+		static if (Type == MtType.CARD) {
+			_shl.setSize(_prop.var.etc.imageListWidth, _prop.var.etc.imageListHeight);
+			void saveWin() { mixin(S_TRACE);
+				auto size = _shl.getSize();
+				_prop.var.etc.imageListWidth = size.x;
+				_prop.var.etc.imageListHeight = size.y;
+			}
+		} else {
+			_shl.setSize(_prop.var.etc.imageListForBgImagesWidth, _prop.var.etc.imageListForBgImagesHeight);
+			void saveWin() { mixin(S_TRACE);
+				auto size = _shl.getSize();
+				_prop.var.etc.imageListForBgImagesWidth = size.x;
+				_prop.var.etc.imageListForBgImagesHeight = size.y;
+			}
 		}
 		.listener(_shl, SWT.Move, &saveWin);
 		.listener(_shl, SWT.Resize, &saveWin);

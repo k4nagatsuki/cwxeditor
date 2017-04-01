@@ -220,6 +220,8 @@ class FlexEtcProps : Properties {
 
 	auto imageListWidth = Prop!(int, false, true)("imageListWidth", 380);
 	auto imageListHeight = Prop!(int, false, true)("imageListHeight", 300);
+	auto imageListForBgImagesWidth = Prop!(int, false, true)("imageListForBgImagesWidth", 380);
+	auto imageListForBgImagesHeight = Prop!(int, false, true)("imageListForBgImagesHeight", 300);
 	auto layerListWidth = Prop!(int, false, true)("layerListWidth", 300);
 	auto layerListHeight = Prop!(int, false, true)("layerListHeight", 350);
 	auto cardLife = Prop!(bool)("cardLife", false);

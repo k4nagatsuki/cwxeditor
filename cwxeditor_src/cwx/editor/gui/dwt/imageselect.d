@@ -656,7 +656,7 @@ private:
 				auto cloc = Display.getCurrent().getCursorLocation();
 				cloc.x++;
 				cloc.y++;
-				auto p = new Point(_prop.var.etc.imageListWidth, _prop.var.etc.imageListHeight);
+				auto p = _imgList.shell.getSize();
 				intoDisplay(cloc.x, cloc.y, p.x, p.y);
 				_imgList.shell.setBounds(cloc.x, cloc.y, p.x, p.y);
 				_imgList.images(dirsCombo.getText(), _msel.showingPaths);

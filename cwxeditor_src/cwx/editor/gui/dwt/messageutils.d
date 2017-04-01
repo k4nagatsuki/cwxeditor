@@ -1876,7 +1876,7 @@ Composite createFlagStepBar(Composite parent, void delegate(string) insert, Comm
 					auto cloc = Display.getCurrent().getCursorLocation();
 					cloc.x++;
 					cloc.y++;
-					auto p = new Point(prop.var.etc.imageListWidth, prop.var.etc.imageListHeight);
+					auto p = imgListWin.shell.getSize();
 					intoDisplay(cloc.x, cloc.y, p.x, p.y);
 					imgListWin.shell.setBounds(cloc.x, cloc.y, p.x, p.y);
 					imgListWin.images("/", fonts.getItems());
