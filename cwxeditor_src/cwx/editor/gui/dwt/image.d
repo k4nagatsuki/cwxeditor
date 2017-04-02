@@ -376,6 +376,7 @@ public:
 
 	@property Image eventTree() {return imgd!("event_tree.png");}
 	@property Image eventTreeNoScale() {return imgd!("event_tree.png")(false);}
+	@property Image eventTreeEmpty() {return imgd!("event_tree_empty.png");}
 	@property Image eventTreeAnd() {return imgd!("event_tree_and.png");}
 	@property Image defStart() {return imgd!("def_start.png");}
 	@property Image keyCode() {return imgd!("key_code.png");}

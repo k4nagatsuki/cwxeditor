@@ -1967,8 +1967,9 @@ void putEventTree(C:EventTreeOwner)(Control canvas, GC gc, Props prop, in Summar
 	auto curPos = canvas.toControl(d.getCursorLocation());
 
 	auto et = useCount ? prop.looks.eventTreeXYWithCount : prop.looks.eventTreeXY;
-	if ((prop.var.etc.showEventTreeMarkAlways && bounds.contains(curPos)) || (prop.var.etc.ignoreEmptyStart ? !c2.isEmpty : 0 < c2.trees.length)) { mixin(S_TRACE);
-		auto img = prop.images.eventTree;
+	auto hasEventTree = prop.var.etc.ignoreEmptyStart ? !c2.isEmpty : 0 < c2.trees.length;
+	if ((prop.var.etc.showEventTreeMarkAlways && bounds.contains(curPos)) || hasEventTree) { mixin(S_TRACE);
+		auto img = hasEventTree ? prop.images.eventTree : prop.images.eventTreeEmpty;
 		gc.drawImage(img, bounds.x + prop.s(et.x), bounds.y + prop.s(et.y));
 	}
 }

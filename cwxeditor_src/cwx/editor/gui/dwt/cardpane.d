@@ -1322,6 +1322,8 @@ private:
 			}
 			if (c2 && _prop.var.etc.showEventTreeMark && ((_prop.var.etc.ignoreEmptyStart ? !c2.isEmpty : 0 < c2.trees.length))) { mixin(S_TRACE);
 				itm.setImage(colIndex(CardTableColumn.Desc), _prop.images.eventTree);
+			} else if (c2 && _prop.var.etc.showEventTreeMark) { mixin(S_TRACE);
+				itm.setImage(colIndex(CardTableColumn.Desc), _prop.images.eventTreeEmpty);
 			} else { mixin(S_TRACE);
 				itm.setImage(colIndex(CardTableColumn.Desc), null);
 			}
