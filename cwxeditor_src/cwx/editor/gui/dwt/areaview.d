@@ -1661,6 +1661,16 @@ private:
 			sc.setMinSize(rect.x, rect.y);
 			_imgp.setSize(rect.x, rect.y);
 		}
+		static if (UseCards) {
+			void refImagePaneSelectionFilter() { mixin(S_TRACE);
+				foreach (i, itm; _cards.getItems()) { mixin(S_TRACE);
+					auto fi = cast(FlexImage)_imgp.images[cardsIndex + i];
+					assert (fi !is null);
+					fi.hasSelectionFilter = _prop.var.etc.showSceneViewSelectionFilter;
+					if (fi.selected && fi.visible) _imgp.redrawImage(fi);
+				}
+			}
+		}
 
 		static if (UseCards && UseBacks) {
 			_imgp.cancelFullRedraw();
@@ -1678,11 +1688,17 @@ private:
 		_imgp.gridHighlightColor(new Color(d, dwtData(_prop.var.etc.gridHighlightColor, alpha)));
 		_comm.refWallpaper.add(&refreshWallpaper);
 		_comm.refImageScale.add(&refImageScale);
+		static if (UseCards) {
+			_comm.refImagePaneSelectionFilter.add(&refImagePaneSelectionFilter);
+		}
 		_imgp.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 				_imgp.setBackgroundImage(cast(Image)null);
 				_comm.refWallpaper.remove(&refreshWallpaper);
 				_comm.refImageScale.remove(&refImageScale);
+				static if (UseCards) {
+					_comm.refImagePaneSelectionFilter.remove(&refImagePaneSelectionFilter);
+				}
 			}
 		});
 		refreshWallpaper();

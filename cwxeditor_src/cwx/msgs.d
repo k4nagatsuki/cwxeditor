@@ -2020,6 +2020,7 @@ class Msgs : Properties {
 	auto incrementNewAreaName = Msg("incrementNewAreaName", "エリア等の作成時に既存のアイテムと重複しない名前を生成する");
 
 	auto etcSettingsScene = Msg("etcSettingsScene", "シーンビューの設定");
+	auto showSceneViewSelectionFilter = Msg("showSceneViewSelectionFilter", "選択されたカードの上に半透明のカーテンをかける");
 	auto smoothingCard = Msg("smoothingCard", "カードのサイズ変更時にスムージングを行う");
 	auto ignoreBackgroundInRange = Msg("ignoreBackgroundInRange", "範囲選択でフルサイズの背景セルを無視する");
 	auto copyDesc = Msg("copyDesc", "カードをエリアに貼り付け・ドロップした時、解説もコピーする");

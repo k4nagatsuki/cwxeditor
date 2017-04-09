@@ -8,6 +8,7 @@ import cwx.types;
 import cwx.graphics;
 import cwx.jpy;
 
+import cwx.editor.gui.dwt.customtable : fillColor;
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dmenu;
@@ -1570,6 +1571,14 @@ public:
 	}
 }
 
+private static immutable SELECTION_LINE_WIDTH = 3;
+@property
+static
+private int slHalf() { return SELECTION_LINE_WIDTH / 2; }
+@property
+static
+private int slFull() { return SELECTION_LINE_WIDTH; }
+
 /// ImagePaneと組合わせて使用する移動可能な画像。
 /// See_Also: ImagePane
 public class FlexImage : PileImage {
@@ -1587,6 +1596,8 @@ private:
 	Rectangle newR;
 	uint _newScale = 100;
 	uint tglSize = 5;
+
+	bool _hasSelectionFilter = false;
 
 	Rectangle[Toggle] tgls;
 
@@ -1785,6 +1796,14 @@ public:
 		}
 		retoggle();
 	}
+
+	/// 選択中に色フィルタをかけるか。
+	@property
+	const
+	bool hasSelectionFilter() { return _hasSelectionFilter; }
+	@property
+	void hasSelectionFilter(bool v) { _hasSelectionFilter = v; }
+
 	/// トグルを描画する。
 	void drawToggle(GC gc, int imageScale, bool drawXORSelectionLine) { mixin(S_TRACE);
 		if (visible && selected) { mixin(S_TRACE);
@@ -1792,6 +1811,9 @@ public:
 			if (drawXORSelectionLine) { mixin(S_TRACE);
 				gc.setXORMode(true);
 				scope (exit) gc.setXORMode(false);
+				auto lineWidth = gc.getLineWidth();
+				gc.setLineWidth(SELECTION_LINE_WIDTH);
+				scope (exit) gc.setLineWidth(lineWidth);
 				gc.setForeground(d.getSystemColor(SWT.COLOR_WHITE));
 				gc.drawRectangle(newX * imageScale, newY * imageScale, newWidth * imageScale - 1, newHeight * imageScale - 1);
 			} else { mixin(S_TRACE);
@@ -1799,6 +1821,7 @@ public:
 				gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
 				gc.drawFocus(newX * imageScale, newY * imageScale, newWidth * imageScale, newHeight * imageScale);
 			}
+
 			gc.setBackground(d.getSystemColor(SWT.COLOR_WHITE));
 			gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
 			gc.setLineStyle(SWT.LINE_SOLID);
@@ -2057,7 +2080,7 @@ public:
 	@property
 	const
 	Rectangle drawNewArea() { mixin(S_TRACE);
-		if (fixed) { mixin(S_TRACE);
+		if (fixed && !selected) { mixin(S_TRACE);
 			return new Rectangle(newR.x - 1, newR.y - 1, newWidth + 2, newHeight + 2);
 		} else { mixin(S_TRACE);
 			return new Rectangle(newR.x - tglSize, newR.y - tglSize,
@@ -2070,7 +2093,7 @@ public:
 	const
 	Rectangle drawArea() { mixin(S_TRACE);
 		auto r = bounds;
-		if (fixed) return r;
+		if (fixed && !selected) return r;
 		return new Rectangle(r.x - tglSize, r.y - tglSize,
 			r.width + tglSize * 2, r.height + tglSize * 2);
 	}
@@ -2290,10 +2313,10 @@ private:
 		int y2 = .max(_rangeStartPos.y, _rangeEndPos.y);
 		int w = x2 - x1;
 		int h = y2 - y1;
-		addRedraw(x1, y1, w, 1);
-		addRedraw(x1, y2 - 1, w, 1);
-		addRedraw(x1, y1, 1, h);
-		addRedraw(x2 - 1, y1, 1, h);
+		addRedraw(x1 - slHalf, y1 - slHalf, w + slFull, slFull);
+		addRedraw(x1 - slHalf, y2 - 1 - slHalf, w + slFull, slFull);
+		addRedraw(x1 - slHalf, y1 - slHalf, slFull, h + slFull);
+		addRedraw(x2 - slHalf - 1, y1 - slHalf, slFull, h + slFull);
 	}
 	private void updateRangeSelection() { mixin(S_TRACE);
 		int x1 = .min(_rangeStartPos.x, _rangeEndPos.x);
@@ -2949,6 +2972,19 @@ private:
 					}
 					befAlpha = -1;
 					img.draw(d, buf, gc, range);
+					auto fi = cast(FlexImage)img;
+					if (fi && fi.selected && fi.hasSelectionFilter) {
+						int fillAlpha;
+						auto fillRGB = .dwtData(.fillColor, fillAlpha);
+
+						auto fillColor = new Color(d, fillRGB);
+						scope (exit) fillColor.dispose();
+						gc.setBackground(fillColor);
+						auto alpha = gc.getAlpha();
+						gc.setAlpha(fillAlpha);
+						scope (exit) gc.setAlpha(alpha);
+						gc.fillRectangle(fi.rect);
+					}
 				}
 			}
 			if (alphaImgs.length) { mixin(S_TRACE);
@@ -2969,6 +3005,9 @@ private:
 					gc.setForeground(d.getSystemColor(SWT.COLOR_WHITE));
 					gc.setXORMode(true);
 					scope (exit) gc.setXORMode(false);
+					auto lineWidth = gc.getLineWidth();
+					gc.setLineWidth(SELECTION_LINE_WIDTH);
+					scope (exit) gc.setLineWidth(lineWidth);
 					gc.drawRectangle(x1, y1, w - 1, h - 1);
 				} else { mixin(S_TRACE);
 					gc.drawFocus(x1, y1, w, h);

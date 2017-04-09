@@ -149,7 +149,8 @@ PImg createCastCardImage(PImg)(Props prop, Skin skin, CastCard card,
 	} else { mixin(S_TRACE);
 		r = createCardImageCommon!PImg(prop, castCard(skin), matPad, x, y, scale, smoothing, layer);
 	}
-	static if (is(PImg : FlexImage)) {
+	static if (is(PImg:FlexImage)) {
+		r.hasSelectionFilter = prop.var.etc.showSceneViewSelectionFilter;
 		r.resize();
 	} else { mixin(S_TRACE);
 		r.createImage();
@@ -176,7 +177,8 @@ PImg createMenuCardImage(PImg)(Props prop, Skin skin, string sPath, string wsnVe
 			r.titleColor = new RGB(255, 255, 255);
 		}
 	}
-	static if (is(PImg : FlexImage)) {
+	static if (is(PImg:FlexImage)) {
+		r.hasSelectionFilter = prop.var.etc.showSceneViewSelectionFilter;
 		r.resize();
 	} else { mixin(S_TRACE);
 		r.createImage();
