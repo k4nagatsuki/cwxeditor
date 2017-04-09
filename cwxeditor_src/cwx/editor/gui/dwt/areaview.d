@@ -1646,6 +1646,7 @@ private:
 
 		auto vs = _prop.looks.viewSize;
 		_imgp = new ImagePane(sc, SWT.BORDER | SWT.NO_BACKGROUND, vs.width, vs.height, _prop.var.etc.imageScale);
+		_imgp.drawXORSelectionLine = _prop.var.etc.drawXORSelectionLine;
 
 		void refImageScale() { mixin(S_TRACE);
 			auto vs = _prop.looks.viewSize;

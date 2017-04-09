@@ -1786,11 +1786,21 @@ public:
 		retoggle();
 	}
 	/// トグルを描画する。
-	void drawToggle(GC gc, int imageScale) { mixin(S_TRACE);
+	void drawToggle(GC gc, int imageScale, bool drawXORSelectionLine) { mixin(S_TRACE);
 		if (visible && selected) { mixin(S_TRACE);
-			gc.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_WHITE));
-			gc.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_BLACK));
-			gc.drawFocus(newX * imageScale, newY * imageScale, newWidth * imageScale, newHeight * imageScale);
+			auto d = Display.getCurrent();
+			if (drawXORSelectionLine) { mixin(S_TRACE);
+				gc.setXORMode(true);
+				scope (exit) gc.setXORMode(false);
+				gc.setForeground(d.getSystemColor(SWT.COLOR_WHITE));
+				gc.drawRectangle(newX * imageScale, newY * imageScale, newWidth * imageScale - 1, newHeight * imageScale - 1);
+			} else { mixin(S_TRACE);
+				gc.setBackground(d.getSystemColor(SWT.COLOR_WHITE));
+				gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
+				gc.drawFocus(newX * imageScale, newY * imageScale, newWidth * imageScale, newHeight * imageScale);
+			}
+			gc.setBackground(d.getSystemColor(SWT.COLOR_WHITE));
+			gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
 			gc.setLineStyle(SWT.LINE_SOLID);
 			foreach (rect; tgls.values) { mixin(S_TRACE);
 				gc.fillRectangle(rect.x * imageScale + 1, rect.y * imageScale + 1,
@@ -2121,6 +2131,7 @@ private:
 
 	int _width, _height;
 	int _imageScale = 1;
+	bool _drawXORSelectionLine = true;
 
 	int _gridX = 0, _gridY = 0;
 	int _gridRange = 5;
@@ -2954,12 +2965,19 @@ private:
 				int y2 = .max(_rangeStartPos.y, _rangeEndPos.y);
 				int w = x2 - x1;
 				int h = y2 - y1;
-				gc.drawFocus(x1, y1, w, h);
+				if (drawXORSelectionLine) { mixin(S_TRACE);
+					gc.setForeground(d.getSystemColor(SWT.COLOR_WHITE));
+					gc.setXORMode(true);
+					scope (exit) gc.setXORMode(false);
+					gc.drawRectangle(x1, y1, w - 1, h - 1);
+				} else { mixin(S_TRACE);
+					gc.drawFocus(x1, y1, w, h);
+				}
 			}
 
 			// トグルの描画
 			foreach_reverse (fi; drawToggleImgs) { mixin(S_TRACE);
-				fi.drawToggle(gc, 1);
+				fi.drawToggle(gc, 1, drawXORSelectionLine);
 			}
 
 			e.gc.drawImage(buf, 0, 0, bWidth, bHeight,
@@ -3055,6 +3073,19 @@ public:
 	void gridHighlightColor(Color v) {_gridHighlightColor = v;}
 	@property
 	Color gridHighlightColor() {return _gridHighlightColor;}
+
+	@property
+	void drawXORSelectionLine(bool v) { _drawXORSelectionLine = v; }
+	@property
+	const
+	bool drawXORSelectionLine() { mixin(S_TRACE);
+		version (OSX) {
+			// BUG: SWTのドキュメントによればMac OS XではXOR描画は非対応
+			return false;
+		} else {
+			return _drawXORSelectionLine;
+		}
+	}
 
 	@property
 	PileImage[] images() { mixin(S_TRACE);
