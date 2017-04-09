@@ -2856,7 +2856,17 @@ public:
 			scope (exit) _display.syncExec(exit);
 
 			try { mixin(S_TRACE);
-				foreach (u; users) { mixin(S_TRACE);
+				class U {
+					ElementType!(typeof(users)) obj = null;
+					string[] path;
+					this (typeof(this.obj) obj) { mixin(S_TRACE);
+						this.obj = obj;
+						path= obj.cwxPath(true).cpsplit();
+					}
+				}
+				auto sorted = std.algorithm.sort!((a, b) => .cpcmp(a.path, b.path) < 0)(.map!(a => new U(a))(users).array());
+				foreach (ou; sorted) { mixin(S_TRACE);
+					auto u = ou.obj;
 					if (!dec(u.owner, range)) continue;
 					if (_replMode) { mixin(S_TRACE);
 						static if (is(ID:FlagId)) {
@@ -2971,7 +2981,13 @@ public:
 		reset();
 		_lastFind = _tabf.getSelection();
 
-		new FullTableColumn(_result, SWT.NONE);
+		_result.setHeaderVisible(true);
+		auto mainColumn = new TableColumn(_result, SWT.NONE);
+		mainColumn.setText(_prop.msgs.searchResultColumnMain);
+		saveColumnWidth!("prop.var.etc.searchResultColumnMain")(_prop, mainColumn);
+		auto subColumn = new TableColumn(_result, SWT.NONE);
+		subColumn.setText(_prop.msgs.searchResultColumnParent);
+		saveColumnWidth!("prop.var.etc.searchResultColumnParent")(_prop, subColumn);
 
 		auto range = rangeTable;
 

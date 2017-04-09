@@ -35,6 +35,83 @@ interface CWXPath {
 	protected void changed();
 }
 
+/// カテゴリを比較するための値を返す。
+private int cpTypeValue(string cate) { mixin(S_TRACE);
+	switch (cate) {
+	case "variable": return 0;
+	case "dir": return 1;
+	case "flag": return 2;
+	case "step": return 3;
+	case "area": return 4;
+	case "battle": return 5;
+	case "package": return 6;
+	case "castcard": return 7;
+	case "skillcard": return 8;
+	case "itemcard": return 9;
+	case "beastcard": return 10;
+	case "infocard": return 11;
+	case "playercard": return 12;
+	case "menucard": return 13;
+	case "enemycard": return 14;
+	default: return -1;
+	}
+}
+
+/// シナリオ内パスを比較用に分割する。
+string[] cpsplit(string path) { mixin(S_TRACE);
+	return .cpbody(path).split("/");
+}
+
+/// シナリオ内パスを比較する。
+int cpcmp(in string[] a, in string[] b) { mixin(S_TRACE);
+	for (size_t i = 0; i < a.length || i < b.length; i++) { mixin(S_TRACE);
+		if (a.length <= i) return -1;
+		if (b.length <= i) return 1;
+		auto ac = .cpcategory(a[i]);
+		auto bc = .cpcategory(b[i]);
+		auto at = .cpTypeValue(ac);
+		auto bt = .cpTypeValue(bc);
+		if (at != -1 && bt != -1) { mixin(S_TRACE);
+			if (at < bt) return -1;
+			if (bt < at) return 1;
+		} else { mixin(S_TRACE);
+			auto c = .cmp(ac, bc);
+			if (c != 0) return c;
+		}
+		auto ai = .cpindex(a[i]);
+		auto bi = .cpindex(b[i]);
+		if (ai < bi) return -1;
+		if (bi < ai) return 1;
+	}
+	return 0;
+} unittest { mixin(S_TRACE);
+	debug mixin(UTPerf);
+	auto a = "area:3/event:0/:5/:0/:1;shallow;deep";
+	auto b = "area:3/event:0/:5/:0/:1";
+	assert (.cpcmp(a.cpsplit(), b.cpsplit()) == 0);
+	a = "itemcard:3/event:0";
+	b = "skillcard:3/event:0";
+	assert (.cpcmp(a.cpsplit(), b.cpsplit()) > 0);
+	a = "itemcard:3/event:0";
+	b = "beastcard:3/event:0";
+	assert (.cpcmp(a.cpsplit(), b.cpsplit()) < 0);
+	a = "itemcard:4/event:0";
+	b = "itemcard:3/event:0";
+	assert (.cpcmp(a.cpsplit(), b.cpsplit()) > 0);
+	a = "itemcard:3";
+	b = "itemcard:3/event:0";
+	assert (.cpcmp(a.cpsplit(), b.cpsplit()) < 0);
+	a = "itemcard:3/event:0";
+	b = "itemcard:3";
+	assert (.cpcmp(a.cpsplit(), b.cpsplit()) > 0);
+	a = "package:3/event:10";
+	b = "package:3/event:2";
+	assert (.cpcmp(a.cpsplit(), b.cpsplit()) > 0);
+	a = "package:3/xsb:2";
+	b = "package:3/sdf:2";
+	assert (.cpcmp(a.cpsplit(), b.cpsplit()) > 0);
+}
+
 /// シナリオ内パスを結合する。
 string cpjoin(CWXPath owner, size_t index, bool id) { mixin(S_TRACE);
 	return cpjoin(owner, "", index, id);
