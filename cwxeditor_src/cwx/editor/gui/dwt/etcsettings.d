@@ -150,6 +150,11 @@ class EtcSettings : Composite {
 
 		comp = createComp(prop.msgs.etcSettingsScene);
 		boolSetting(comp, prop.var.etc.showSceneViewSelectionFilter, prop.msgs.showSceneViewSelectionFilter);
+		version (OSX) {
+			// OSXではXOR描画はサポート無し
+		} else {
+			boolSetting(comp, prop.var.etc.drawXORSelectionLine, prop.msgs.drawXORSelectionLine);
+		}
 		boolSetting(comp, prop.var.etc.smoothingCard, prop.msgs.smoothingCard);
 		boolSetting(comp, prop.var.etc.ignoreBackgroundInRange, prop.msgs.ignoreBackgroundInRange);
 		boolSetting(comp, prop.var.etc.copyDesc, prop.msgs.copyDesc);

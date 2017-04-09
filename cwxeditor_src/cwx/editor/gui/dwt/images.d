@@ -1571,7 +1571,7 @@ public:
 	}
 }
 
-private static immutable SELECTION_LINE_WIDTH = 3;
+private static immutable SELECTION_LINE_WIDTH = 1;
 @property
 static
 private int slHalf() { return SELECTION_LINE_WIDTH / 2; }
@@ -2983,12 +2983,17 @@ private:
 						auto alpha = gc.getAlpha();
 						gc.setAlpha(fillAlpha);
 						scope (exit) gc.setAlpha(alpha);
-						gc.fillRectangle(fi.rect);
+						gc.fillRectangle(fi.bounds);
 					}
 				}
 			}
 			if (alphaImgs.length) { mixin(S_TRACE);
 				drawAlphaImgData();
+			}
+			version (Windows) {
+				// BUG: XOR描画が効かなくなるのでグラフィックコンテキストを作り直す
+				gc.dispose();
+				gc = new GC(buf);
 			}
 
 			// FIXME: 以下の選択範囲とトグルの描画は拡大後に行いたいが、
@@ -3114,7 +3119,10 @@ public:
 	Color gridHighlightColor() {return _gridHighlightColor;}
 
 	@property
-	void drawXORSelectionLine(bool v) { _drawXORSelectionLine = v; }
+	void drawXORSelectionLine(bool v) { mixin(S_TRACE);
+		_drawXORSelectionLine = v;
+		redrawAll();
+	}
 	@property
 	const
 	bool drawXORSelectionLine() { mixin(S_TRACE);

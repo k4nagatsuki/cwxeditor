@@ -452,8 +452,8 @@ class FlexEtcProps : Properties {
 	auto sortFlagDirs = Prop!(bool)("sortFlagDirs", true);
 	auto saveNeedChanged = Prop!(bool)("saveNeedChanged", true);
 	auto canVanishWorkAreaInMainWindow = Prop!(bool)("canVanishWorkAreaInMainWindow", false);
-	auto drawXORSelectionLine = Prop!(bool)("drawXORSelectionLine", true);
-	auto showSceneViewSelectionFilter = Prop!(bool)("showSceneViewSelectionFilter", false);
+	auto drawXORSelectionLine = Prop!(bool)("drawXORSelectionLine", false);
+	auto showSceneViewSelectionFilter = Prop!(bool)("showSceneViewSelectionFilter", true);
 
 	auto showEventTreeLineNumber = Prop!(bool)("showEventTreeLineNumber", true);
 	auto showEventTreeDetail = Prop!(bool)("showEventTreeDetail", true);

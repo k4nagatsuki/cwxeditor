@@ -1514,6 +1514,7 @@ struct OldSettings {
 	ToolBarSettings mainToolBar;
 	string stepValueName;
 	bool showCurrentValueOnTopAlways;
+	bool drawXORSelectionLine;
 	bool showSceneViewSelectionFilter;
 	this (Props prop) { mixin(S_TRACE);
 		this.prop = prop;
@@ -1529,6 +1530,7 @@ struct OldSettings {
 		this.eventTemplates = prop.var.etc.eventTemplates;
 		this.oldIgnorePaths = prop.var.etc.ignorePaths;
 		this.oldSmoothingCard = prop.var.etc.smoothingCard;
+		this.drawXORSelectionLine = prop.var.etc.drawXORSelectionLine;
 		this.showSceneViewSelectionFilter = prop.var.etc.showSceneViewSelectionFilter;
 		this.oldLogicalSort = prop.var.etc.logicalSort;
 		this.oldOpenHistories = prop.var.etc.openHistories;
@@ -1636,7 +1638,7 @@ struct OldSettings {
 		if (oldSmoothingCard != prop.var.etc.smoothingCard) { mixin(S_TRACE);
 			comm.refCardState.call();
 		}
-		if (showSceneViewSelectionFilter != prop.var.etc.showSceneViewSelectionFilter) { mixin(S_TRACE);
+		if (drawXORSelectionLine != prop.var.etc.drawXORSelectionLine || showSceneViewSelectionFilter != prop.var.etc.showSceneViewSelectionFilter) { mixin(S_TRACE);
 			comm.refImagePaneSelectionFilter.call();
 		}
 		if (oldLogicalSort != prop.var.etc.logicalSort) { mixin(S_TRACE);

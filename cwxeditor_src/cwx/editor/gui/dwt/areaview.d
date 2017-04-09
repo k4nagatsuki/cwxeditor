@@ -1663,6 +1663,7 @@ private:
 		}
 		static if (UseCards) {
 			void refImagePaneSelectionFilter() { mixin(S_TRACE);
+				_imgp.drawXORSelectionLine = _prop.var.etc.drawXORSelectionLine;
 				foreach (i, itm; _cards.getItems()) { mixin(S_TRACE);
 					auto fi = cast(FlexImage)_imgp.images[cardsIndex + i];
 					assert (fi !is null);
