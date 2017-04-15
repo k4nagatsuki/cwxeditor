@@ -802,9 +802,9 @@
 	<dd>スタートコンテントへの移動</dd>
 	<dt class="content"><a href="#GOPACK">gopack <span class="args"><span class="arg">&lt;ID&gt;</span></span></a></dt>
 	<dd>パッケージへの移動</dd>
-	<dt class="content"><a href="#MSG">msg <span class="args"><span class="arg">&lt;話者&gt;</span> ..., <span class="arg">&lt;テキスト&gt;</span>, <span class="arg">&lt;選択肢の列数&gt;</span>, <span class="arg">&lt;禁則処理の有無&gt;</span>, <span class="arg">&lt;縦方向の中央寄せ&gt;</span></span></a></dt>
+	<dt class="content"><a href="#MSG">msg <span class="args"><span class="arg">&lt;話者&gt;</span> ..., <span class="arg">&lt;テキスト&gt;</span>, <span class="arg">&lt;選択肢の列数&gt;</span>, <span class="arg">&lt;禁則処理の有無&gt;</span>, <span class="arg">&lt;横方向の中央寄せ&gt;</span>, <span class="arg">&lt;縦方向の中央寄せ&gt;</span></span></a></dt>
 	<dd>メッセージ</dd>
-	<dt class="content"><a href="#DIALOG">dialog <span class="args"><span class="arg">&lt;話者&gt;</span>, <span class="array">[<span class="arg">&lt;クーポン&gt;</span> ..., <span class="arg">&lt;メッセージ&gt;</span>] ...</span>, <span class="arg">&lt;評価初期値&gt;</span>, <span class="array">[<span class="arg">&lt;評価クーポン&gt;</span>, <span class="arg">&lt;得点&gt;</span>] ...</span>, <span class="arg">&lt;選択肢の列数&gt;</span>, <span class="arg">&lt;禁則処理の有無&gt;</span>, <span class="arg">&lt;縦方向の中央寄せ&gt;</span></span></a></dt>
+	<dt class="content"><a href="#DIALOG">dialog <span class="args"><span class="arg">&lt;話者&gt;</span>, <span class="array">[<span class="arg">&lt;クーポン&gt;</span> ..., <span class="arg">&lt;メッセージ&gt;</span>] ...</span>, <span class="arg">&lt;評価初期値&gt;</span>, <span class="array">[<span class="arg">&lt;評価クーポン&gt;</span>, <span class="arg">&lt;得点&gt;</span>] ...</span>, <span class="arg">&lt;選択肢の列数&gt;</span>, <span class="arg">&lt;禁則処理の有無&gt;</span>, <span class="arg">&lt;横方向の中央寄せ&gt;</span>, <span class="arg">&lt;縦方向の中央寄せ&gt;</span></span></a></dt>
 	<dd>台詞</dd>
 	<dt class="content"><a href="#BGM">bgm <span class="args"><span class="arg">&lt;ファイル名&gt;</span>, <span class="arg">&lt;再生チャンネル&gt;</span>, <span class="arg">&lt;フェードイン時間&gt;</span>, <span class="arg">&lt;音量(%)&gt;</span>, <span class="arg">&lt;ループ回数&gt;</span></span></a></dt>
 	<dd>BGMの演奏</dd>
@@ -1593,7 +1593,7 @@
 
 <pre><code class="samplecode"><span class="keywords">gopack</span> <span class="num">4</span> <span class="comment">// パッケージ4へ処理を移動</span></code></pre>
 
-<h3 class="content"><a id="MSG" name="MSG">msg <span class="args"><span class="arg">&lt;話者&gt;</span> ..., <span class="arg">&lt;テキスト&gt;</span>, <span class="arg">&lt;選択肢の列数&gt;</span>, <span class="arg">&lt;禁則処理の有無&gt;</span>, <span class="arg">&lt;縦方向の中央寄せ&gt;</span></span></a></h3>
+<h3 class="content"><a id="MSG" name="MSG">msg <span class="args"><span class="arg">&lt;話者&gt;</span> ..., <span class="arg">&lt;テキスト&gt;</span>, <span class="arg">&lt;選択肢の列数&gt;</span>, <span class="arg">&lt;禁則処理の有無&gt;</span>, <span class="arg">&lt;横方向の中央寄せ&gt;</span>, <span class="arg">&lt;縦方向の中央寄せ&gt;</span></span></a></h3>
 
 <p class="fullname">(Message)</p>
 <p class="desc">メッセージを表示します。</p>
@@ -1633,6 +1633,7 @@
 <p class="desc">通常の<code class="str">""</code>や<code class="str">''</code>で囲った文字列の他、<code class="str">@</code>を使用して複数行の文字列を記述できます。以下の例を参照してください。</p>
 <p class="desc">選択肢の列数には、メッセージの下に表示される選択肢を横何列で表示するかを指定します。省略した場合は<span class="num">1</span>になります。<em class="warning">このパラメータはWsn.1以降のWSN形式シナリオでしか機能しません。</em></p>
 <p class="desc">禁則処理の有無に<code class="code">true</code>を指定すると、メッセージの折り返しで禁則処理が行われます。省略した場合は<code class="code">false</code>になります。<em class="warning">このパラメータはWsn.2以降のWSN形式シナリオでしか機能できません。</em></p>
+<p class="desc">横方向の中央寄せに<code class="code">true</code>を指定すると、メッセージの各行が横方向に中央寄せして表示されます。省略した場合は<code class="code">false</code>になります。<em class="warning">このパラメータはWsn.2以降のWSN形式シナリオでしか機能できません。</em></p>
 <p class="desc">縦方向の中央寄せに<code class="code">true</code>を指定すると、メッセージ全体が縦方向に中央寄せして表示されます。省略した場合は<code class="code">false</code>になります。<em class="warning">このパラメータはWsn.2以降のWSN形式シナリオでしか機能できません。</em></p>
 
 <h4 class="example">例</h4>
@@ -1661,7 +1662,7 @@
     <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">// 分岐終了</span></code></pre>
 
-<h3 class="content"><a id="DIALOG" name="DIALOG">dialog <span class="args"><span class="arg">&lt;話者&gt;</span>, <span class="array">[<span class="arg">&lt;クーポン&gt;</span> ..., <span class="arg">&lt;メッセージ&gt;</span>] ...</span>, <span class="arg">&lt;評価初期値&gt;</span>, <span class="array">[<span class="arg">&lt;評価クーポン&gt;</span>, <span class="arg">&lt;得点&gt;</span>] ...</span>, <span class="arg">&lt;選択肢の列数&gt;</span>, <span class="arg">&lt;禁則処理の有無&gt;</span>, <span class="arg">&lt;縦方向の中央寄せ&gt;</span></span></a></h3>
+<h3 class="content"><a id="DIALOG" name="DIALOG">dialog <span class="args"><span class="arg">&lt;話者&gt;</span>, <span class="array">[<span class="arg">&lt;クーポン&gt;</span> ..., <span class="arg">&lt;メッセージ&gt;</span>] ...</span>, <span class="arg">&lt;評価初期値&gt;</span>, <span class="array">[<span class="arg">&lt;評価クーポン&gt;</span>, <span class="arg">&lt;得点&gt;</span>] ...</span>, <span class="arg">&lt;選択肢の列数&gt;</span>, <span class="arg">&lt;禁則処理の有無&gt;</span>, <span class="arg">&lt;横方向の中央寄せ&gt;</span>, <span class="arg">&lt;縦方向の中央寄せ&gt;</span></span></a></h3>
 
 <p class="fullname">(Dialog)</p>
 <p class="desc">口調分けして台詞を表示します。</p>
@@ -1686,6 +1687,7 @@
 <p class="desc">評価クーポンと得点には、話者を選択する際の評価条件を配列で指定します。</p>
 <p class="desc">選択肢の列数には、メッセージの下に表示される選択肢を横何列で表示するかを指定します。省略した場合は<span class="num">1</span>になります。<em class="warning">このパラメータはWsn.1以降のWSN形式シナリオでしか機能しません。</em></p>
 <p class="desc">禁則処理の有無に<code class="code">true</code>を指定すると、メッセージの折り返しで禁則処理が行われます。省略した場合は<code class="code">false</code>になります。<em class="warning">このパラメータはWsn.2以降のWSN形式シナリオでしか機能できません。</em></p>
+<p class="desc">横方向の中央寄せに<code class="code">true</code>を指定すると、メッセージの各行が横方向に中央寄せして表示されます。省略した場合は<code class="code">false</code>になります。<em class="warning">このパラメータはWsn.2以降のWSN形式シナリオでしか機能できません。</em></p>
 <p class="desc">縦方向の中央寄せに<code class="code">true</code>を指定すると、メッセージ全体が縦方向に中央寄せして表示されます。省略した場合は<code class="code">false</code>になります。<em class="warning">このパラメータはWsn.2以降のWSN形式シナリオでしか機能できません。</em></p>
 
 <h4 class="example">例</h4>

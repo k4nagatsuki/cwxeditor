@@ -61,6 +61,7 @@ import java.lang.all;
 /// 台詞コンテント・メッセージコンテントのダイアログの親クラス。
 class AbstractMessageDialog : EventDialog {
 	private Spinner _selectionColumns;
+	private Button _centerX;
 	private Button _centerY;
 	private Button _boundaryCheck;
 
@@ -78,6 +79,7 @@ class AbstractMessageDialog : EventDialog {
 
 	protected override void refDataVersion() { mixin(S_TRACE);
 		_selectionColumns.setEnabled(!summ || !summ.legacy || _selectionColumns.getSelection() != 1);
+		_centerX.setEnabled(!summ || !summ.legacy || _centerX.getSelection());
 		_centerY.setEnabled(!summ || !summ.legacy || _centerY.getSelection());
 		_boundaryCheck.setEnabled(!summ || !summ.legacy || _boundaryCheck.getSelection());
 		refreshWarning();
@@ -92,6 +94,9 @@ class AbstractMessageDialog : EventDialog {
 			}
 		}
 		if (!prop.isTargetVersion(summ, "2")) { mixin(S_TRACE);
+			if (_centerX.getSelection()) { mixin(S_TRACE);
+				ws ~= prop.msgs.warningCenteringX;
+			}
 			if (_centerY.getSelection()) { mixin(S_TRACE);
 				ws ~= prop.msgs.warningCenteringY;
 			}
@@ -126,9 +131,10 @@ class AbstractMessageDialog : EventDialog {
 	private void updatePreview() { mixin(S_TRACE);
 		auto s = wrapReturnCode(text);
 		if (_previewWin) { mixin(S_TRACE);
-			_previewWin.text(imgPaths, s, _centerY.getSelection(), _boundaryCheck.getSelection());
+			_previewWin.text(imgPaths, s, _centerX.getSelection(), _centerY.getSelection(), _boundaryCheck.getSelection());
+			_previewWin.text(imgPaths, s, _centerX.getSelection(), _centerY.getSelection(), _boundaryCheck.getSelection());
 		} else { mixin(S_TRACE);
-			_preview.text(imgPaths, s, _centerY.getSelection(), _boundaryCheck.getSelection());
+			_preview.text(imgPaths, s, _centerX.getSelection(), _centerY.getSelection(), _boundaryCheck.getSelection());
 		}
 	}
 	private void updateShowPreview() { mixin(S_TRACE);
@@ -389,9 +395,14 @@ class AbstractMessageDialog : EventDialog {
 
 	protected Composite createWsnSettingsBar(Composite parent) { mixin(S_TRACE);
 		auto comp = new Composite(parent, SWT.NONE);
-		comp.setLayout(zeroMarginGridLayout(3, false));
+		comp.setLayout(zeroMarginGridLayout(4, false));
 		createSelectionColumns(comp);
 
+		_centerX = new Button(comp, SWT.CHECK);
+		mod(_centerX);
+		_centerX.setText(prop.msgs.centeringX);
+		.listener(_centerX, SWT.Selection, &refDataVersion);
+		.listener(_centerX, SWT.Selection, &refreshPreview);
 		_centerY = new Button(comp, SWT.CHECK);
 		mod(_centerY);
 		_centerY.setText(prop.msgs.centeringY);
@@ -1128,12 +1139,14 @@ protected:
 			_couponView.coupons = evt.coupons;
 			_initValue.setSelection(evt.initValue);
 			_selectionColumns.setSelection(evt.selectionColumns);
+			_centerX.setSelection(evt.centeringX);
 			_centerY.setSelection(evt.centeringY);
 			_boundaryCheck.setSelection(evt.boundaryCheck);
 		} else { mixin(S_TRACE);
 			_talkers.select(0);
 			_dlgs = [new SDialog];
 			_selectionColumns.setSelection(1);
+			_centerX.setSelection(false);
 			_centerY.setSelection(false);
 			_boundaryCheck.setSelection(false);
 		}
@@ -1160,6 +1173,7 @@ protected:
 			evt.initValue = 0;
 		}
 		evt.selectionColumns = _selectionColumns.getSelection();
+		evt.centeringX = _centerX.getSelection();
 		evt.centeringY = _centerY.getSelection();
 		evt.boundaryCheck = _boundaryCheck.getSelection();
 		comm.refCoupons.call();
@@ -1341,11 +1355,13 @@ protected:
 				_tabf.setSelection(1);
 			}
 			_selectionColumns.setSelection(evt.selectionColumns);
+			_centerX.setSelection(evt.centeringX);
 			_centerY.setSelection(evt.centeringY);
 			_boundaryCheck.setSelection(evt.boundaryCheck);
 		} else { mixin(S_TRACE);
 			_tabf.setSelection(1);
 			_selectionColumns.setSelection(1);
+			_centerX.setSelection(false);
 			_centerY.setSelection(false);
 			_boundaryCheck.setSelection(false);
 		}
@@ -1365,6 +1381,7 @@ protected:
 		evt.text = text;
 		evt.cardPaths = paths;
 		evt.selectionColumns = _selectionColumns.getSelection();
+		evt.centeringX = _centerX.getSelection();
 		evt.centeringY = _centerY.getSelection();
 		evt.boundaryCheck = _boundaryCheck.getSelection();
 		return true;
@@ -2012,8 +2029,8 @@ class MsgPreviewWindow {
 		_win.dispose();
 	}
 
-	void text(CardImage[] imgPaths, string message, bool centerY, bool boundaryCheck) { mixin(S_TRACE);
-		_preview.text(imgPaths, message, centerY, boundaryCheck);
+	void text(CardImage[] imgPaths, string message, bool centerX, bool centerY, bool boundaryCheck) { mixin(S_TRACE);
+		_preview.text(imgPaths, message, centerX, centerY, boundaryCheck);
 	}
 
 	private void refresh() { mixin(S_TRACE);
@@ -2853,6 +2870,7 @@ class MsgPreview : Composite {
 
 	private CardImage[] _imgPaths = [];
 	private string _message = "";
+	private bool _centerX = false;
 	private bool _centerY = false;
 	private bool _boundaryCheck = false;
 
@@ -2908,12 +2926,13 @@ class MsgPreview : Composite {
 		_canvas.setLayoutData(cgd);
 	}
 
-	void text(CardImage[] imgPaths, string message, bool centerY, bool boundaryCheck) { mixin(S_TRACE);
-		if (imgPaths == _imgPaths && message == _message && centerY is _centerY && boundaryCheck is _boundaryCheck) { mixin(S_TRACE);
+	void text(CardImage[] imgPaths, string message, bool centerX, bool centerY, bool boundaryCheck) { mixin(S_TRACE);
+		if (imgPaths == _imgPaths && message == _message && centerX is _centerX && centerY is _centerY && boundaryCheck is _boundaryCheck) { mixin(S_TRACE);
 			return;
 		}
 		_imgPaths = imgPaths;
 		_message = message;
+		_centerX = centerX;
 		_centerY = centerY;
 		_boundaryCheck = boundaryCheck;
 		if (isVisible()) refresh();
@@ -2963,7 +2982,7 @@ class MsgPreview : Composite {
 		VarValue[string] flags, steps, sysSteps;
 		_values.getValues(names, flags, steps, sysSteps);
 		_img = new Image(d, previewMessage(_comm, _prop, _summ.scenarioPath, tImg, pos, _message,
-			[], names, flags, steps, sysSteps, true, _centerY, _boundaryCheck));
+			[], names, flags, steps, sysSteps, true, _centerX, _centerY, _boundaryCheck));
 	}
 
 	@property
@@ -2978,7 +2997,7 @@ class MsgPreview : Composite {
 ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] talkers,
 		CardImagePosition[] poses, string message, in string[] sel, in string[char] names,
 		in VarValue[string] flags, in VarValue[string] steps, in VarValue[string] sysSteps, bool scaled,
-		bool centerY, bool boundaryCheck) { mixin(S_TRACE);
+		bool centerX, bool centerY, bool boundaryCheck) { mixin(S_TRACE);
 	auto d = Display.getCurrent();
 	version (Windows) {
 		bool legacy = comm.skin.legacy;
@@ -3092,7 +3111,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] tal
 	auto cl = new Color(d, new RGB(169, 169, 169)); scope (exit) cl.dispose(); // CardWirth 1.50
 	auto cd = new Color(d, new RGB(105, 105, 105)); scope (exit) cd.dispose(); // CardWirth 1.50
 
-	auto start = prop.looks.messageStartPos(legacy, 0 < talkers.length);
+	auto start = prop.looks.messageStartPos(legacy, 0 < talkers.length, centerX);
 	// 縁取り分の位置ずれ
 	start.x -= 1;
 	start.y -= 1;
@@ -3100,14 +3119,18 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] tal
 	int lineH;
 	string old = "";
 	int writeLen = 0;
+
+	Rectangle drawRect = null;
+	Rectangle lDrawRect = null;
+
 	void ret() { mixin(S_TRACE);
 		writeLen = 0;
 		x = start.x;
 		y += lineH;
 		old = "";
+		lDrawRect = null;
 	}
 
-	Rectangle drawRect = null;
 	void merge(int x, int y, int w, int h) { mixin(S_TRACE);
 		auto rect = new Rectangle(x, y, w, h);
 		if (drawRect) { mixin(S_TRACE);
@@ -3115,13 +3138,18 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] tal
 		} else { mixin(S_TRACE);
 			drawRect = rect;
 		}
+		if (lDrawRect) { mixin(S_TRACE);
+			lDrawRect.add(rect);
+		} else { mixin(S_TRACE);
+			lDrawRect = new Rectangle(x, y, w, h);
+		}
 	}
 	void delegate(int slideX, int slideY)[] drawer;
 	void delegate(GC tgc, int slideX, int slideY)[] textDrawer;
 
 	// フォントイメージ
 	auto wrgb = fc.getRGB();
-	void drawSPFont(CPoint pt, string path, RGB c) { mixin(S_TRACE);
+	void drawSPFont(CPoint pt, string path, RGB c, lazy Rectangle lDrawRect) { mixin(S_TRACE);
 		string fpath = comm.skin.findImagePath(path, sPath, comm.summary.dataVersion);
 		ImageData data = null;
 		if (fpath && fpath.length) { mixin(S_TRACE);
@@ -3147,19 +3175,27 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] tal
 				}
 				data.transparentPixel = data.getPixel(0, 0);
 			}
+			merge(pt.x, pt.y, data.width, data.height);
+			auto lineRect = lDrawRect;
 			textDrawer ~= (tgc, slideX, slideY) { mixin(S_TRACE);
 				auto img = new Image(d, data);
 				scope (exit) img.dispose();
+				if (centerX) { mixin(S_TRACE);
+					slideX += (rect.width - lineRect.width) / 2;
+				}
 				tgc.drawImage(img, pt.x + slideX, pt.y + slideY);
 			};
-			merge(pt.x, pt.y, data.width, data.height);
 		} else { mixin(S_TRACE);
+			merge(pt.x, pt.y, data.width, data.height);
+			auto lineRect = lDrawRect;
 			drawer ~= (slideX, slideY) { mixin(S_TRACE);
 				auto img = new Image(d, data);
 				scope (exit) img.dispose();
+				if (centerX) { mixin(S_TRACE);
+					slideX += (rect.width - lineRect.width) / 2;
+				}
 				gc.drawImage(img, slideX + pt.x + 1, slideY + pt.y + 1);
 			};
-			merge(pt.x, pt.y, data.width, data.height);
 		}
 	}
 
@@ -3188,7 +3224,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] tal
 				}
 			}
 			writeLen += 2;
-			drawSPFont(CPoint(x, y), *cf, foreground.getRGB());
+			drawSPFont(CPoint(x, y), *cf, foreground.getRGB(), lDrawRect);
 			x += w;
 			continue;
 		}
@@ -3238,15 +3274,20 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] tal
 				private string s;
 				private int x;
 				private int y;
-				this (Color foreground, string s, int x, int y) { mixin(S_TRACE);
+				private Rectangle lineRect;
+				this (Color foreground, string s, int x, int y, Rectangle lineRect) { mixin(S_TRACE);
 					this.foreground = foreground;
 					this.s = s;
 					this.x = x;
 					this.y = y;
+					this.lineRect = lineRect;
 				}
 				void draw(GC tgc, int slideX, int slideY) { mixin(S_TRACE);
 					static immutable JOINS = "―─＿￣";
 					tgc.setForeground(foreground);
+					if (centerX) { mixin(S_TRACE);
+						slideX += (rect.width - lineRect.width) / 2;
+					}
 					auto x = this.x + slideX;
 					auto y = this.y + slideY;
 					if (std.string.indexOf(JOINS, s) != -1) { mixin(S_TRACE);
@@ -3259,8 +3300,8 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] tal
 					}
 				}
 			}
-			textDrawer ~= &(new TGCDrawer(foreground, s, x, y)).draw;
 			merge(x, y, w, lineH);
+			textDrawer ~= &(new TGCDrawer(foreground, s, x, y, lDrawRect)).draw;
 			x += w;
 			break;
 		}

@@ -554,8 +554,11 @@ class Msgs : Properties {
 	auto doAnime = Msg("doAnime", "JPY1アニメーションを実行する"); // Wsn.1
 	auto ignoreEffectBooster = Msg("ignoreEffectBooster", "エフェクトブースター関係のセルを無視する"); // Wsn.1
 	auto selectionColumns = Msg("selectionColumns", "選択肢の列数"); // Wsn.1
+	auto centeringX = Msg("centeringX", "横方向に中央寄せ"); // Wsn.2
+	auto centeringXOn = Msg("centeringXOn", "横の中央寄せ"); // Wsn.2
 	auto centeringY = Msg("centeringY", "縦方向に中央寄せ"); // Wsn.2
 	auto centeringYOn = Msg("centeringYOn", "縦の中央寄せ"); // Wsn.2
+	auto centeringXYOn = Msg("centeringXYOn", "縦横の中央寄せ"); // Wsn.2
 	auto boundaryCheck = Msg("boundaryCheck", "禁則処理"); // Wsn.2
 	auto boundaryCheckOn = Msg("boundaryCheckOn", "禁則処理あり"); // Wsn.2
 	auto boundaryCheckDesc = Msg("boundaryCheckDesc", "禁則処理の結果は将来変化するかもしれません。\nメッセージの行数には余裕を持たせておく事をお勧めします。"); // Wsn.2
@@ -1889,6 +1892,7 @@ class Msgs : Properties {
 	auto warningNoHoldingCoupon = Msg("warningNoHoldingCoupon", "範囲指定用の称号が設定されていません。"); // Wsn.2
 	auto warningCardTarget = Msg("warningCardTarget", "適用範囲 [カードの使用対象] の指定は、Wsn.2以降の形式のシナリオしか行えません。"); // Wsn.2
 	auto warningRefAbility = Msg("warningRefAbility", "選択メンバの能力参照は、Wsn.2以降の形式のシナリオでしか行えません。"); // Wsn.2
+	auto warningCenteringX = Msg("warningCenteringX", "横方向の中央寄せ表示は、Wsn.2以降の形式のシナリオでしか行えません。"); // Wsn.2
 	auto warningCenteringY = Msg("warningCenteringY", "縦方向の中央寄せ表示は、Wsn.2以降の形式のシナリオでしか行えません。"); // Wsn.2
 	auto warningBoundaryCheck = Msg("warningBoundaryCheck", "メッセージの禁則処理は、Wsn.2以降の形式のシナリオでしか行えません。"); // Wsn.2
 	auto warningBranchCouponMulti = Msg("warningBranchCouponMulti", "クーポン分岐のクーポンの複数指定は、Wsn.2以降の形式のシナリオしか行えません。"); // Wsn.2

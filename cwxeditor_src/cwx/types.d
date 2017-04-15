@@ -1319,6 +1319,7 @@ enum CArg {
 	TARGET_IS_HAND, /// 戦闘時の手札が対象か(Wsn.2)。
 	HOLDING_COUPON, /// 範囲で称号所持者を指定した時の称号名(Wsn.2)。
 	REF_ABILITY, /// 選択メンバの能力参照(Wsn.2)。
+	CENTERING_X, /// メッセージを横方向に中央寄せして表示する(Wsn.2)。
 	CENTERING_Y, /// メッセージを縦方向に中央寄せして表示する(Wsn.2)。
 	BOUNDARY_CHECK, /// メッセージの禁則処理(Wsn.2)。
 	COUPON_NAMES, /// 複数クーポン名(Wsn.2)。
