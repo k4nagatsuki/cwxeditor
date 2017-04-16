@@ -127,6 +127,7 @@ class MaterialSelect(MtType Type, D, C) {
 				_comm.refIgnorePaths.remove(&refresh);
 				static if (Type == MtType.BGM) {
 					cwx.utils.remove(stopBGMEvent, &stopBGM);
+					if (_playing) .stopBGM();
 				}
 			}
 		});
