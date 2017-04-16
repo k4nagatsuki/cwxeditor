@@ -1808,7 +1808,7 @@ private:
 
 	void refPaths(Object sender, string parent) { mixin(S_TRACE);
 		if (this !is sender) { mixin(S_TRACE);
-			refreshPaths(currentDir);
+			refreshPaths();
 		}
 		if (_refresh) _refresh();
 	}
