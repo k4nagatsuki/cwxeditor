@@ -1256,7 +1256,6 @@ private:
 					if (_display) { mixin(S_TRACE);
 						_display.asyncExec(new class Runnable {
 							override void run() { mixin(S_TRACE);
-								_dirWin.resumeTrace();
 								_inSaving = false;
 								if (!_win.isDisposed()) {
 									updateExecEngineWithPartyNameTI();
@@ -1280,13 +1279,16 @@ private:
 			}
 		}
 		if (_prop.var.etc.archiveInNewThread && summary.useTemp) { mixin(S_TRACE);
-			_dirWin.pauseTrace();
 			_inSaving = true;
 			_comm.refreshToolBar();
 		}
 	}
 	bool save(Shell shell, bool backupSave = false) { mixin(S_TRACE);
 		if (summary) { mixin(S_TRACE);
+			_dirWin.pauseTrace();
+			scope (exit) {
+				_dirWin.resumeTrace();
+			}
 			if (!summary.isSaved) { mixin(S_TRACE);
 				// いまだ保存されていない場合は名前をつけて保存
 				if (backupSave) return false;
