@@ -797,6 +797,7 @@ class Msgs : Properties {
 	auto msnGroupVanish = Msg("msnGroupVanish", "消滅");
 	auto msnGroupCard = Msg("msnGroupCard", "カード");
 	auto msnGroupBeast = Msg("msnGroupBeast", "召喚");
+	auto msnGroupEtc = Msg("msnGroupEtc", "その他");
 
 	auto msnDelete = Msg("msnDelete", "効果削除");
 
@@ -845,6 +846,7 @@ class Msgs : Properties {
 	auto motionNameDealSkillCard = Msg("motionNameDealSkillCard", "特殊技能");
 	auto motionNameSummonBeast = Msg("motionNameSummonBeast", "召喚獣召喚");
 	auto motionNameCancelAction = Msg("motionNameCancelAction", "行動キャンセル"); // CardWirth 1.50
+	auto motionNameNoEffect = Msg("motionNameNoEffect", "効果無し"); // Wsn.2
 
 	const string motionDesc(MType id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(MType, "motionDesc"));
@@ -889,6 +891,7 @@ class Msgs : Properties {
 	auto motionDescDealSkillCard = Msg("motionDescDealSkillCard", "対象の山札の一番上に、対象が使用できる特殊技能カードを配付します。使用回数が尽きている場合は配付されません。");
 	auto motionDescSummonBeast = Msg("motionDescSummonBeast", "対象に任意の召喚獣カードを付与します。");
 	auto motionDescCancelAction = Msg("motionDescCancelAction", "対象の現在のラウンドの行動をキャンセルします。すでに行動済みの場合は何もしません。"); // CardWirth 1.50
+	auto motionDescNoEffect = Msg("motionDescNoEffect", "いかなる効果も発生しません。視覚効果だけを適用したいなどの時に使用します。"); // Wsn.2
 
 	auto dialogText = Msg("dialogText", "%2$s: %1$s");
 	auto dialogTextNoCoupon = Msg("dialogTextNoCoupon", "%1$s");
@@ -1867,6 +1870,7 @@ class Msgs : Properties {
 	auto warningEveryRound = Msg("warningEveryRound", "イベント発火条件「毎ラウンド」は、CardWirth 1.50より前のバージョンでは使用できません。");
 	auto warningRound0 = Msg("warningRound0", "イベント発火条件「バトル開始」は、CardWirth 1.50より前のバージョンでは使用できません。");
 	auto warningUnknownMotion = Msg("warningUnknownMotion", "効果 [%1$s] は、CardWirth %2$sより前のバージョンでは使用できません。");
+	auto warningUnknownMotionWsn = Msg("warningUnknownMotionWsn", "効果 [%1$s] は、Wsn.%2$sより前のバージョンでは使用できません。");
 	auto warningTextColor = Msg("warningTextColor", "テキスト色 [%1$s] は、CardWirth %2$sより前のバージョンでは使用できません。");
 	auto warningStepCount = Msg("warningStepCount", "%1$s段階以外のステップはクラシックなシナリオでは使用できません。");
 	auto warningStepOverCount = Msg("warningStepOverCount", "ステップ「%1$s」の段階数 [%2$s] より大きなステップ値 [%3$s] が指定されています。");

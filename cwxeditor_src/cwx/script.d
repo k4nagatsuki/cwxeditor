@@ -2101,6 +2101,7 @@ fi`;
 			case "dealskill": i++; return MType.DEAL_SKILL_CARD;
 			case "summon": i++; return MType.SUMMON_BEAST;
 			case "cancelaction": i++; return MType.CANCEL_ACTION;
+			case "noeffect", "none": i++; return MType.NO_EFFECT;
 			default: throwError(_prop.msgs.scriptErrorInvalidMotionType, attr[i].token);
 			}
 		} else static if (is(T == Element)) {
@@ -3247,6 +3248,7 @@ fi`;
 			case MType.DEAL_SKILL_CARD: attrs ~= "dealskill"; break;
 			case MType.SUMMON_BEAST: attrs ~= "summon"; break;
 			case MType.CANCEL_ACTION: attrs ~= "cancelaction"; break;
+			case MType.NO_EFFECT: attrs ~= "noeffect"; break;
 			default: assert (0);
 			}
 		} else static if (is(T : Element)) {
@@ -4127,6 +4129,7 @@ CWXScriptKeyword[] keywordInfos(in CProps prop) { mixin(S_TRACE);
 		CWXScriptKeyword("dealskill", prop.msgs.motion, prop.msgs.motionName(MType.DEAL_SKILL_CARD)),
 		CWXScriptKeyword("cancelaction", prop.msgs.motion, prop.msgs.motionName(MType.CANCEL_ACTION)),
 		CWXScriptKeyword("summon", prop.msgs.motion, prop.msgs.motionName(MType.SUMMON_BEAST)),
+		CWXScriptKeyword("noeffect", prop.msgs.motion, prop.msgs.motionName(MType.NO_EFFECT)),
 
 		// 効果値計算方式
 		CWXScriptKeyword("level", prop.msgs.calcType, prop.msgs.damageTypeName(DamageType.LEVEL_RATIO)),

@@ -1406,6 +1406,7 @@ enum MType {
 	DEAL_SKILL_CARD,
 	SUMMON_BEAST,
 	CANCEL_ACTION, // CardWirth 1.50
+	NO_EFFECT, // Wsn.2
 }
 
 enum MArg {

@@ -148,6 +148,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			if (m.type is MType.CANCEL_ACTION && !prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
 				put(.tryFormat(prop.msgs.warningUnknownMotion, prop.msgs.motionName(m.type), "1.50"));
 			}
+			if (m.type is MType.NO_EFFECT && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+				put(.tryFormat(prop.msgs.warningUnknownMotion, prop.msgs.motionName(m.type), "2"));
+			}
 			if (m.type == MType.SUMMON_BEAST && !m.beast) { mixin(S_TRACE);
 				put(prop.msgs.searchErrorNoBeast);
 			}

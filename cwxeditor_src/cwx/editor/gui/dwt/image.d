@@ -337,6 +337,7 @@ public:
 		case MType.DEAL_SKILL_CARD: return imgd!("hand_skill.png");
 		case MType.SUMMON_BEAST: return imgd!("msn_summon.png");
 		case MType.CANCEL_ACTION: return imgd!("msn_cancel_action.png"); // CardWirth 1.50
+		case MType.NO_EFFECT: return imgd!("msn_no_effect.png"); // Wsn.2
 		}
 	}
 

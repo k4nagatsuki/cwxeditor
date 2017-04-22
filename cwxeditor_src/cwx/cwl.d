@@ -2978,6 +2978,10 @@ private void writeMotion(ref SData d, ref ByteIO f, Motion m) { mixin(S_TRACE);
 		tType = 7;
 		type = 8;
 		break;
+	case MType.NO_EFFECT: // Wsn.2(ダメージに変換)
+		tType = 0;
+		type = 1;
+		break;
 	default: assert (0);
 	}
 	f.write(tType);

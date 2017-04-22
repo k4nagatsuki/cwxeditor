@@ -374,7 +374,7 @@ private:
 		return oldVal;
 	}
 
-	void createMT(MotionView v, ToolBar tbar, string group, MType type) { mixin(S_TRACE);
+	void createMT(MotionView v, ToolBar tbar, string group, MType type, bool delegate() isEnabled = null) { mixin(S_TRACE);
 		string tt = _prop.msgs.motionName(type);
 		_descs[type] = .tryFormat(_prop.msgs.msnDesc, group, tt);
 		class MT {
@@ -405,7 +405,7 @@ private:
 		if (_prop.var.etc.showMotionDescription) { mixin(S_TRACE);
 			text = .format("%s\v%s", tt, _prop.msgs.motionDesc(type));
 		}
-		createToolItem2(_comm, tbar, text, _prop.images.motion(type), &mt.create, () => !_readOnly);
+		createToolItem2(_comm, tbar, text, _prop.images.motion(type), &mt.create, () => !_readOnly && (!isEnabled || isEnabled()));
 	}
 	ptrdiff_t indexOf(Motion m) { mixin(S_TRACE);
 		foreach (i, itm; _motions.getItems()) { mixin(S_TRACE);
@@ -1062,6 +1062,7 @@ public:
 			auto vanishBar = createBar(_prop.msgs.msnGroupVanish);
 			auto cardBar = createBar(_prop.msgs.msnGroupCard);
 			auto beastBar = createBar(_prop.msgs.msnGroupBeast);
+			auto etcBar = createBar(_prop.msgs.msnGroupEtc);
 
 			void addDefItems(ToolBar bar) { mixin(S_TRACE);
 				createToolItem2(_comm, bar, _prop.msgs.msnDelete, _prop.images.msnDelete, &removeMotion, () => _motions.getSelectionIndex() != -1);
@@ -1146,6 +1147,11 @@ public:
 				foreach (itm; beastBar.getItems()) itm.dispose();
 				addDefItems(beastBar);
 				createMT(this, beastBar, g, MType.SUMMON_BEAST);
+
+				g = _prop.msgs.msnGroupEtc;
+				foreach (itm; etcBar.getItems()) itm.dispose();
+				addDefItems(etcBar);
+				createMT(this, etcBar, g, MType.NO_EFFECT, () => !_summ || !_summ.legacy);
 
 				if (!init) _comm.refreshToolBar();
 			}
@@ -1822,6 +1828,9 @@ public:
 			auto m = cast(Motion)itm.getData();
 			if (m.type is MType.CANCEL_ACTION && !_prop.targetVersion(_summ, "1.50")) { mixin(S_TRACE);
 				put(.tryFormat(_prop.msgs.warningUnknownMotion, _prop.msgs.motionName(m.type), "1.50"));
+			}
+			if (m.type is MType.NO_EFFECT && !_prop.isTargetVersion(_summ, "2")) { mixin(S_TRACE);
+				put(.tryFormat(_prop.msgs.warningUnknownMotionWsn, _prop.msgs.motionName(m.type), "2"));
 			}
 			if (m.type == MType.SUMMON_BEAST && m.beast && 0 != m.beast.linkId && !(_summ && _summ.beast(m.beast.linkId))) { mixin(S_TRACE);
 				put(.tryFormat(_prop.msgs.searchErrorLinkIdBeastNotFound, m.beast.linkId));
