@@ -1860,6 +1860,10 @@ fi`;
 				/// ステップ・フラグ代入のランダム値
 				i++;
 				return _prop.sys.randomValue;
+			} else if (attr[i].token.kind is Kind.SYMBOL && (value == "m" || value == "selected")) { mixin(S_TRACE);
+				/// 選択メンバ番号(Wsn.2)
+				i++;
+				return _prop.sys.selectedPlayerCardNumber;
 			}
 			i++;
 			return value;
@@ -3736,25 +3740,19 @@ fi`;
 				}
 			}
 			if (detail.use(CArg.FLAG_2)) { mixin(S_TRACE);
-				if (_prop && _prop.sys.randomValue == c.flag2) { mixin(S_TRACE);
-					attrs ~= toAttr(Symbol("random"), indentValue, vars);
-				} else { mixin(S_TRACE);
-					attrs ~= toAttr(c.flag2, indentValue, vars);
-				}
+				attrs ~= toAttr(c.flag2, indentValue, vars);
 			}
 			if (detail.use(CArg.STEP)) { mixin(S_TRACE);
 				if (_prop && _prop.sys.randomValue == c.step) { mixin(S_TRACE);
 					attrs ~= toAttr(Symbol("random"), indentValue, vars);
+				} else if (_prop && _prop.sys.selectedPlayerCardNumber == c.step) { mixin(S_TRACE);
+					attrs ~= toAttr(Symbol("selected"), indentValue, vars); // Wsn.2
 				} else { mixin(S_TRACE);
 					attrs ~= toAttr(c.step, indentValue, vars);
 				}
 			}
 			if (detail.use(CArg.STEP_2)) { mixin(S_TRACE);
-				if (_prop && _prop.sys.randomValue == c.step2) { mixin(S_TRACE);
-					attrs ~= toAttr(Symbol("random"), indentValue, vars);
-				} else { mixin(S_TRACE);
-					attrs ~= toAttr(c.step2, indentValue, vars);
-				}
+				attrs ~= toAttr(c.step2, indentValue, vars);
 			}
 			if (detail.use(CArg.COMPARISON_4)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.comparison4, indentValue, vars);

@@ -481,7 +481,7 @@ class Msgs : Properties {
 	auto scRef = Msg("scRef", "話者(#I)");
 	auto scTeam = Msg("scTeam", "チーム名(#T)");
 	auto scYado = Msg("scYado", "宿屋名(#Y)");
-	auto selectedPlayerCardNumber = Msg("selectedPlayerCardNumber", "選択メンバ番号($??SelectedMember$)"); // Wsn.2
+	auto selectedPlayerCardNumber = Msg("selectedPlayerCardNumber", "選択メンバ番号($??SelectedPlayer$)"); // Wsn.2
 	auto playerCardName = Msg("playerCardName", "プレイヤーカード名%1$s($??Player%1$s$)"); // Wsn.2
 	auto addMsgRefFlag = Msg("addMsgRefFlag", "フラグ参照の追加");
 	auto addMsgRefStep = Msg("addMsgRefStep", "ステップ参照の追加");
@@ -497,9 +497,10 @@ class Msgs : Properties {
 	auto messageVarKindColumn = Msg("messageVarKindColumn", "状態変数");
 	auto messageVarValueColumn = Msg("messageVarValueColumn", "サンプル値");
 	auto warningSPCharsInSelections = Msg("warningSPCharsInSelections", "選択肢内の特殊文字は、CardWirth 1.50より前のバージョンでは展開されません。"); // CardWirth 1.50
-	auto warningSelectedPlayerCardNumber = Msg("warningSelectedPlayerCardNumber", "選択メンバ番号($??SelectedMember$)の表示は、Wsn.2以降の形式のシナリオでしか行えません。"); // Wsn.2
+	auto warningSelectedPlayerCardNumber = Msg("warningSelectedPlayerCardNumber", "選択メンバ番号($??SelectedPlayer$)の表示は、Wsn.2以降の形式のシナリオでしか行えません。"); // Wsn.2
 	auto warningPlayerCardName = Msg("warningPlayerCardName", "プレイヤーカード名($??Player%1$s$)の表示は、Wsn.2以降の形式のシナリオでしか行えません。"); // Wsn.2
 	auto warningUnknownSystemValue = Msg("warningUnknownSystemValue", "未知のシステム値(%1$s)です。");
+	auto warningSelectedPlayerValue = Msg("warningSelectedPlayerValue", "選択メンバ番号の代入は、Wsn.2以降の形式のシナリオでしか行えません。"); // Wsn.2
 
 	auto transition = Msg("transition", "背景切替方式");
 	const string transitionName(Transition id) { mixin(S_TRACE);
@@ -999,8 +1000,10 @@ class Msgs : Properties {
 	auto ctBranchStepCmp = Msg("ctBranchStepCmp", "ステップ [%1$s] と [%2$s] の値を比較");
 	auto ctBranchFlagCmp = Msg("ctBranchFlagCmp", "フラグ [%1$s] と [%2$s] の値を比較");
 	auto ctSubstituteStepFromRandom = Msg("ctSubstituteStepFromRandom", "ランダム値をステップ [%1$s] に代入");
+	auto ctSubstituteStepFromSelectedPlayer = Msg("ctSubstituteStepFromSelectedPlayer", "選択メンバ番号をステップ [%1$s] に代入"); // Wsn.2
 	auto ctSubstituteFlagFromRandom = Msg("ctSubstituteFlagFromRandom", "ランダム値をフラグ [%1$s] に代入");
 	auto randomValue = Msg("randomValue", "ランダム値");
+	auto selectedPlayerValue = Msg("selectedPlayerValue", "選択メンバ番号"); // Wsn.2
 	auto ctRandomSelect = Msg("ctRandomSelect", "%2$sのキャラクタを選択(%1$s)");
 	auto ctRandomSelectN = Msg("ctRandomSelectN", "キャラクタを選択(%1$s)");
 	auto castRange0 = Msg("castRange0", "対象無し");

@@ -171,8 +171,10 @@ public:
 	@property Image debugYado() {return imgd!("debug_yado.png");}
 	@property Image team() {return imgd!("sc_t.png");}
 
-	@property Image selectedPlayerCardNumber() { return imgd!("sc_sel_pc_num.png"); }
 	@property Image playerCardName() { return imgd!("sc_pc_name.png"); }
+
+	@property Image selectedPlayerCardNumber() { return imgd!("sc_sel_pc_num.png"); }
+	@property Image randomValue() { return imgd!("random_value.png"); }
 
 	@property Image casts() {return imgd!("cast.png");}
 	@property Image skill() {return imgd!("skill.png");}

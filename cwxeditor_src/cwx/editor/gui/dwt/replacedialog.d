@@ -516,13 +516,14 @@ private:
 			if (_summ) { mixin(S_TRACE);
 				static if (is(T:cwx.flag.Flag)) {
 					foreach (key; _summ.useCounter.flag.keys) { mixin(S_TRACE);
-						if (_prop.sys.randomValue == cast(string)key) continue;
+						if (.icmp(_prop.sys.randomValue, cast(string)key) == 0) continue;
 						if (!incSearch.match(cast(string)key)) continue;
 						set.add(cast(string)key);
 					}
 				} else static if (is(T:Step)) {
 					foreach (key; _summ.useCounter.step.keys) { mixin(S_TRACE);
-						if (_prop.sys.randomValue == cast(string)key) continue;
+						if (.icmp(_prop.sys.randomValue, cast(string)key) == 0) continue;
+						if (.icmp(_prop.sys.selectedPlayerCardNumber, cast(string)key) == 0) continue;
 						if (!incSearch.match(cast(string)key)) continue;
 						set.add(cast(string)key);
 					}

@@ -468,6 +468,7 @@ public:
 			_select = select;
 		}
 		if (values != vals) { mixin(S_TRACE);
+			changed();
 			if (vals.length < _vals.length) { mixin(S_TRACE);
 				foreach (th; _vals[vals.length .. $]) { mixin(S_TRACE);
 					th.removeUseCounter();

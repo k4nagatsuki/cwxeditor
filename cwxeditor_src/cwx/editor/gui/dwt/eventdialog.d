@@ -46,7 +46,7 @@ import std.conv;
 import std.math;
 import std.path;
 import std.traits;
-import std.string : toLower;
+import std.string : toLower, icmp;
 
 import org.eclipse.swt.all;
 
@@ -2274,6 +2274,11 @@ private:
 		if (!_prop.targetVersion(summ, "1.30")) { mixin(S_TRACE);
 			ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(Type), "1.30");
 		}
+		static if (Type == CType.SUBSTITUTE_STEP) {
+			if (.icmp(_flags1.selected, prop.sys.selectedPlayerCardNumber) == 0 && !prop.isTargetVersion(summ, "2")) { mixin(S_TRACE);
+				ws ~= _prop.msgs.warningSelectedPlayerValue;
+			}
+		}
 		warning = ws;
 	}
 
@@ -2335,6 +2340,9 @@ protected:
 		}
 		_flags1 = new FlagChooser!(F, false, Random)(comm, summ, left);
 		_flags1.setLayoutData(new GridData(GridData.FILL_BOTH));
+		static if (Type == CType.SUBSTITUTE_STEP) {
+			_flags1.modEvent ~= &refreshWarning;
+		}
 		_flags2 = new FlagChooser!(F, false, false)(comm, summ, right, false);
 		_flags2.setLayoutData(new GridData(GridData.FILL_BOTH));
 

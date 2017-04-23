@@ -3486,15 +3486,18 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		}
 	} case CType.SUBSTITUTE_STEP: { mixin(S_TRACE);
 		auto t2 = contentTextUseID!(CIDKind.Step)(comm, summ, evt.step2, "%s", evt);
-		if (evt.step == comm.prop.sys.randomValue) { mixin(S_TRACE);
+		auto notHas = summ && !summ.flagDirRoot.findStep(evt.step);
+		if (notHas && .icmp(evt.step, comm.prop.sys.randomValue) == 0) { mixin(S_TRACE);
 			return .tryFormat(comm.prop.msgs.ctSubstituteStepFromRandom, t2);
+		} else if (notHas && .icmp(evt.step, comm.prop.sys.selectedPlayerCardNumber) == 0) { mixin(S_TRACE);
+			return .tryFormat(comm.prop.msgs.ctSubstituteStepFromSelectedPlayer, t2);
 		} else { mixin(S_TRACE);
 			auto t1 = contentTextUseID!(CIDKind.Step)(comm, summ, evt.step, "%s", evt);
 			return .tryFormat(comm.prop.msgs.ctSubstituteStep, t1, t2);
 		}
 	} case CType.SUBSTITUTE_FLAG: { mixin(S_TRACE);
 		auto t2 = contentTextUseID!(CIDKind.Flag)(comm, summ, evt.flag2, "%s", evt);
-		if (evt.flag == comm.prop.sys.randomValue) { mixin(S_TRACE);
+		if (summ && !summ.flagDirRoot.findFlag(evt.flag) && .icmp(evt.flag, comm.prop.sys.randomValue) == 0) { mixin(S_TRACE);
 			return .tryFormat(comm.prop.msgs.ctSubstituteFlagFromRandom, t2);
 		} else { mixin(S_TRACE);
 			auto t1 = contentTextUseID!(CIDKind.Flag)(comm, summ, evt.flag, "%s", evt);
