@@ -237,6 +237,7 @@ class CIgnoreHotkey : IgnoreHotkey {
 }
 
 bool eqAcc(int acc, int keyCode, wchar character, int stateMask) { mixin(S_TRACE);
+	stateMask &= SWT.MODIFIER_MASK; // WindowsのスクリーンキーボードがCtrlと同時に0x80000を送ってくるので取り除く
 	if (keyCode && (acc & SWT.MODIFIER_MASK) == acc) { mixin(S_TRACE);
 		return (keyCode | stateMask) == acc;
 	} else if (keyCode && toUpper(keyCode) == toUpper(character)) { mixin(S_TRACE);
