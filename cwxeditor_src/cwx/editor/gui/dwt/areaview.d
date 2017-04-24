@@ -2840,7 +2840,6 @@ public:
 				_comm.delFlagAndStep.add(&refFlag);
 			}
 		}
-		_comm.refShowToolBar.add(&refShowToolBar);
 		_preview = new Preview(_prop, this);
 		addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
@@ -2871,7 +2870,6 @@ public:
 						_comm.delFlagAndStep.remove(&refFlag);
 					}
 				}
-				_comm.refShowToolBar.remove(&refShowToolBar);
 			}
 		});
 		static if (is (C == EnemyCard) || RefCards) {

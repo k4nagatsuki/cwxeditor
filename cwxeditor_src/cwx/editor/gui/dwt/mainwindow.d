@@ -1646,49 +1646,6 @@ private:
 		return true;
 	}
 
-	void revShowMainToolBar(SelectionEvent e) { mixin(S_TRACE);
-		if (auto item = cast(MenuItem)e.widget) { mixin(S_TRACE);
-			_prop.var.etc.showMainToolBar = item.getSelection();
-		} else if (auto item = cast(ToolItem)e.widget) {
-			_prop.var.etc.showMainToolBar = item.getSelection();
-		}
-		if (auto item = _menu.get(MenuID.ShowMainToolBar, null)) {
-			item.setSelection(_prop.var.etc.showMainToolBar);
-		}
-		if (auto item = _tool.get(MenuID.ShowMainToolBar, null)) {
-			item.setSelection(_prop.var.etc.showMainToolBar);
-		}
-		_comm.refShowToolBar.call();
-	}
-	void revShowSceneToolBar(SelectionEvent e) { mixin(S_TRACE);
-		if (auto item = cast(MenuItem)e.widget) { mixin(S_TRACE);
-			_prop.var.etc.showSceneToolBar = item.getSelection();
-		} else if (auto item = cast(ToolItem)e.widget) {
-			_prop.var.etc.showSceneToolBar = item.getSelection();
-		}
-		if (auto item = _menu.get(MenuID.ShowSceneToolBar, null)) {
-			item.setSelection(_prop.var.etc.showSceneToolBar);
-		}
-		if (auto item = _tool.get(MenuID.ShowSceneToolBar, null)) {
-			item.setSelection(_prop.var.etc.showSceneToolBar);
-		}
-		_comm.refShowToolBar.call();
-	}
-	void revShowEventToolBar(SelectionEvent e) { mixin(S_TRACE);
-		if (auto item = cast(MenuItem)e.widget) { mixin(S_TRACE);
-			_prop.var.etc.showEventToolBar = item.getSelection();
-		} else if (auto item = cast(ToolItem)e.widget) {
-			_prop.var.etc.showEventToolBar = item.getSelection();
-		}
-		if (auto item = _menu.get(MenuID.ShowEventToolBar, null)) {
-			item.setSelection(_prop.var.etc.showEventToolBar);
-		}
-		if (auto item = _tool.get(MenuID.ShowEventToolBar, null)) {
-			item.setSelection(_prop.var.etc.showEventToolBar);
-		}
-		_comm.refShowToolBar.call();
-	}
-
 	void refShowMainToolBar() { mixin(S_TRACE);
 		if (_win.isVisible()) _win.setRedraw(false);
 		scope (exit) {
@@ -1733,7 +1690,6 @@ private:
 			_comm.refSkin.remove(&refSkin);
 			_comm.refScenario.remove(&refScenario);
 			_comm.refSoundType.remove(&refSoundType);
-			_comm.refShowToolBar.remove(&refShowMainToolBar);
 			version (Console) {
 				debug writeln("Removed Receivers");
 			}
@@ -2585,7 +2541,6 @@ public:
 			_comm.refSkin.add(&refSkin);
 			_comm.refScenario.add(&refScenario);
 			_comm.refSoundType.add(&refSoundType);
-			_comm.refShowToolBar.add(&refShowMainToolBar);
 			_win.addDisposeListener(new DListener);
 			_win.addShellListener(new SListener);
 			_comm.refreshWallpaper(_prop);
@@ -2854,9 +2809,6 @@ public:
 			_noSummMenu.add(MenuID.CompleteStampView);
 			_noSummMenu.add(MenuID.KeyCodeView);
 			_noSummMenu.add(MenuID.CellNameView);
-			_noSummMenu.add(MenuID.ShowMainToolBar);
-			_noSummMenu.add(MenuID.ShowSceneToolBar);
-			_noSummMenu.add(MenuID.ShowEventToolBar);
 			_noSummMenu.add(MenuID.ChangeVH);
 			_noSummMenu.add(MenuID.ShowCardProp);
 			_noSummMenu.add(MenuID.ShowCardImage);
@@ -2935,16 +2887,6 @@ public:
 				dStr ~= " - " ~ .text(__LINE__);
 				new MenuItem(mv, SWT.SEPARATOR);
 				mixin (MenuAction!("mv", MenuID.Refresh, SWT.PUSH, "refreshAll", "() => summary !is null"));
-				new MenuItem(mv, SWT.SEPARATOR);
-				mixin (MenuAction!("mv", MenuID.ShowMainToolBar, SWT.CHECK, "revShowMainToolBar", "null"));
-				auto mtm = _menu[MenuID.ShowMainToolBar];
-				mtm.setSelection(_prop.var.etc.showMainToolBar);
-				mixin (MenuAction!("mv", MenuID.ShowSceneToolBar, SWT.CHECK, "revShowSceneToolBar", "null"));
-				auto stm = _menu[MenuID.ShowSceneToolBar];
-				stm.setSelection(_prop.var.etc.showSceneToolBar);
-				mixin (MenuAction!("mv", MenuID.ShowEventToolBar, SWT.CHECK, "revShowEventToolBar", "null"));
-				auto etm = _menu[MenuID.ShowEventToolBar];
-				etm.setSelection(_prop.var.etc.showEventToolBar);
 				new MenuItem(mv, SWT.SEPARATOR);
 				mixin (MenuAction!("mv", MenuID.ChangeVH));
 				dStr ~= " - " ~ .text(__LINE__);
@@ -3234,9 +3176,6 @@ public:
 						case MenuID.OuterTools: createOuterToolsTI(bar); continue;
 						case MenuID.Settings: act = &settings; can = null; break;
 						case MenuID.DelNotUsedFile: actS = &_dirWin.deleteUnuse; can = &_dirWin.canDeleteUnuse; break;
-						case MenuID.ShowMainToolBar: actS = &revShowMainToolBar; can = null; style = SWT.CHECK; break;
-						case MenuID.ShowSceneToolBar: actS = &revShowSceneToolBar; can = null; style = SWT.CHECK; break;
-						case MenuID.ShowEventToolBar: actS = &revShowEventToolBar; can = null; style = SWT.CHECK; break;
 						case MenuID.NewAtNewWindow: act = &createScenarioNewWin; can = null; break;
 						case MenuID.OpenAtNewWindow: act = &openScenarioNewWin; can = null; break;
 						case MenuID.Close: act = &exitAll; can = null; break;
@@ -3443,14 +3382,6 @@ public:
 			if (cardRG.set.size) { mixin(S_TRACE);
 				_toolRG ~= cardRG;
 			}
-
-			// ツールバーの表示切り替え(チェックボックス)
-			auto mtm = _tool.get(MenuID.ShowMainToolBar, null);
-			if (mtm) mtm.setSelection(_prop.var.etc.showMainToolBar);
-			auto stm = _tool.get(MenuID.ShowSceneToolBar, null);
-			if (stm) stm.setSelection(_prop.var.etc.showSceneToolBar);
-			auto etm = _tool.get(MenuID.ShowEventToolBar, null);
-			if (etm) etm.setSelection(_prop.var.etc.showEventToolBar);
 		}, (menu) { mixin(S_TRACE);
 			createMenuItem(_comm, menu, MenuID.CustomizeToolBar, &customizeToolBar, null);
 			new MenuItem(menu, SWT.SEPARATOR);
@@ -4022,7 +3953,7 @@ public:
 		foreach (bar; _toolBar) { mixin(S_TRACE);
 			foreach (itm; bar.getItems()) { mixin(S_TRACE);
 				if (itm.getStyle() & SWT.SEPARATOR) continue;
-				auto d = cast(MenuData) itm.getData();
+				auto d = cast(MenuData)itm.getData();
 				if (!d) continue;
 				try { mixin(S_TRACE);
 					auto cMenuE = d.id in cMenuTbl;

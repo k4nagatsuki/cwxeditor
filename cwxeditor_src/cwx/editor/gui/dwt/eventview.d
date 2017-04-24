@@ -1306,7 +1306,6 @@ public:
 		_comm.put(_toolbar);
 
 		_sash = new SplitPane(this, SWT.HORIZONTAL);
-		_comm.refShowToolBar.add(&refShowToolBar);
 		_comm.refEventTreeSlope.add(&refEventTreeSlope);
 		if (!_readOnly) { mixin(S_TRACE);
 			_comm.replText.add(&replText);
@@ -1343,7 +1342,6 @@ public:
 					_preview.dispose();
 				}
 
-				_comm.refShowToolBar.remove(&refShowToolBar);
 				_comm.refEventTreeSlope.remove(&refEventTreeSlope);
 				if (!_readOnly) { mixin(S_TRACE);
 					_comm.replText.remove(&replText);

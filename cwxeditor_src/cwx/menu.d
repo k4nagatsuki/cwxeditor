@@ -64,9 +64,6 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.EditLayers] = "Y";
 		_mnemonic[MenuID.AddLayer] = "A";
 		_mnemonic[MenuID.RemoveLayer] = "R";
-		_mnemonic[MenuID.ShowMainToolBar] = "M";
-		_mnemonic[MenuID.ShowSceneToolBar] = "E";
-		_mnemonic[MenuID.ShowEventToolBar] = "T";
 		_mnemonic[MenuID.ChangeVH] = "H";
 		_mnemonic[MenuID.SelectConnectedResource] = "S";
 		_mnemonic[MenuID.Find] = "F";
@@ -287,9 +284,6 @@ class MenuProps : Properties {
 		_hotkey[MenuID.EditLayers] = "";
 		_hotkey[MenuID.AddLayer] = "";
 		_hotkey[MenuID.RemoveLayer] = "";
-		_hotkey[MenuID.ShowMainToolBar] = "";
-		_hotkey[MenuID.ShowSceneToolBar] = "";
-		_hotkey[MenuID.ShowEventToolBar] = "";
 		_hotkey[MenuID.ChangeVH] = "";
 		_hotkey[MenuID.SelectConnectedResource] = "Ctrl+R";
 		_hotkey[MenuID.Find] = "Ctrl+F";
@@ -709,9 +703,6 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.Reload:
 	case MenuID.OpenDir:
 	case MenuID.OpenBackupDir:
-	case MenuID.ShowMainToolBar:
-	case MenuID.ShowSceneToolBar:
-	case MenuID.ShowEventToolBar:
 	case MenuID.ChangeVH:
 	case MenuID.SelectConnectedResource:
 	case MenuID.Find:
@@ -941,9 +932,6 @@ bool isGlobalMenu(MenuID id) {
 	case MenuID.Reload:
 	case MenuID.OpenDir:
 	case MenuID.OpenBackupDir:
-	case MenuID.ShowMainToolBar:
-	case MenuID.ShowSceneToolBar:
-	case MenuID.ShowEventToolBar:
 	case MenuID.Find:
 	case MenuID.Refresh:
 	case MenuID.ToXMLText:

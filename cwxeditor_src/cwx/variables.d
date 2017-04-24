@@ -155,9 +155,9 @@ class FlexEtcProps : Properties {
 	auto talkersWidth = Prop!(int, true, true)("talkersWidth", 100);
 	auto motionsWidth = Prop!(int, true, true)("motionsWidth", 150);
 	auto incrementalSearchBoxWidth = Prop!(int, true, true)("incrementalSearchBoxWidth", 100);
-	auto showMainToolBar = Prop!(bool)("showMainToolBar", true);
-	auto showSceneToolBar = Prop!(bool)("showSceneToolBar", true);
-	auto showEventToolBar = Prop!(bool)("showEventToolBar", true);
+	auto showMainToolBar = Prop!(bool, true)("showMainToolBar", true, 2017042400);
+	auto showSceneToolBar = Prop!(bool, true)("showSceneToolBar", true, 2017042400);
+	auto showEventToolBar = Prop!(bool, true)("showEventToolBar", true, 2017042400);
 	auto flagCombiSashL = Prop!(int)("flagCombiSashL", 1);
 	auto flagCombiSashR = Prop!(int)("flagCombiSashR", 1);
 	auto mainToolBarCustomSashL = Prop!(int)("mainToolBarCustomSashL", 1);

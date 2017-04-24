@@ -2325,9 +2325,6 @@ class Msgs : Properties {
 	auto menuTextEditLayers = Msg("menuTextEditLayers", "レイヤの編集");
 	auto menuTextAddLayer = Msg("menuTextAddLayer", "レイヤの追加");
 	auto menuTextRemoveLayer = Msg("menuTextRemoveLayer", "レイヤの削除");
-	auto menuTextShowMainToolBar = Msg("menuTextShowMainToolBar", "全体ツールバーを表示");
-	auto menuTextShowSceneToolBar = Msg("menuTextShowSceneToolBar", "シーンビューのツールバーを表示");
-	auto menuTextShowEventToolBar = Msg("menuTextShowEventToolBar", "イベントビューのツールバーを表示");
 	auto menuTextChangeVH = Msg("menuTextChangeVH", "分割領域の縦横を切替");
 	auto menuTextSelectConnectedResource = Msg("menuTextSelectConnectedResource", "関係するリソースを選択");
 	auto menuTextFind = Msg("menuTextFind", "検索と置換");

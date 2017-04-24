@@ -491,9 +491,6 @@ public:
 		case MenuID.EditLayers: return imgd!("imagelayer_edit.png");
 		case MenuID.AddLayer: return imgd!("imagelayer_add.png");
 		case MenuID.RemoveLayer: return imgd!("imagelayer_remove.png");
-		case MenuID.ShowMainToolBar: return imgd!("main_tools.png");
-		case MenuID.ShowSceneToolBar: return imgd!("scene_tools.png");
-		case MenuID.ShowEventToolBar: return imgd!("event_tools.png");
 		case MenuID.ChangeVH: return imgd!("chg_vh.png");
 		case MenuID.SelectConnectedResource: return imgd!("sel_connect.png");
 		case MenuID.Find: return imgd!("replace.png");
