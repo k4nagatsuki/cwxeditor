@@ -154,6 +154,7 @@ class Msgs : Properties {
 	auto bgmStop = Msg("bgmStop", "BGM停止");
 	auto bgmNone = Msg("bgmNone", "BGM無し");
 	auto useNoCardSizeImage = Msg("useNoCardSizeImage", "%1$s×%2$s以外も許容");
+	auto excludeCardSizeImage = Msg("excludeCardSizeImage", "カードイメージを除外する");
 	auto dlgMsgForceCancelDialogs = Msg("dlgMsgForceCancelDialogs", "%1$s件のダイアログが変更されたまま適用されていません。無視して操作を続行しますか？");
 	auto dlgMsgForceCancelDialogsQuit = Msg("dlgMsgForceCancelDialogsQuit", "%1$s件のダイアログが変更されたまま適用されていません。無視して終了しますか？");
 	auto dlgMsgIsSaveBeforeReload = Msg("dlgMsgIsSaveBeforeReload", "「%1$s」は変更されています。再読込しますか？");

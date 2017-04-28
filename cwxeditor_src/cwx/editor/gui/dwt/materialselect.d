@@ -312,7 +312,32 @@ class MaterialSelect(MtType Type, D, C) {
 				}
 			}
 		}
+	} else static if (Type == MtType.BG_IMG) {
+		@property
+		void excludeCardSizeImage(bool excludeCardSize) { mixin(S_TRACE);
+			if (_prop.var.etc.excludeCardSizeImage == excludeCardSize) return;
+			_prop.var.etc.excludeCardSizeImage = excludeCardSize;
+			if (_prop.var.etc.excludeCardSizeImage && path.length && !isBinImg(filePath)) { mixin(S_TRACE);
+				auto wsnVer = _summ ? _summ.dataVersion : LATEST_VERSION;
+				auto p = summSkin.findImagePath(path, _summ ? _summ.scenarioPath : "", wsnVer);
+				if (p.length) { mixin(S_TRACE);
+					uint w, h;
+					imageSize(p, w, h);
+					auto cs = _prop.looks.cardSize;
+					if (cs.width == w && cs.height == h) { mixin(S_TRACE);
+						path2("", false, -1, false);
+					}
+				}
+			}
+			refresh();
+		}
+		@property
+		const
+		bool excludeCardSizeImage() { mixin(S_TRACE);
+			return _prop.var.etc.excludeCardSizeImage;
+		}
 	}
+
 	static if (Type == MtType.BGM || Type == MtType.SE) {
 		private Button _bgmBtn = null;
 
@@ -927,7 +952,15 @@ class MaterialSelect(MtType Type, D, C) {
 						auto cs = _prop.looks.cardSize;
 						if (cs.width != w || cs.height != h) { mixin(S_TRACE);
 							useNoCardSizeImage = true;
-							if (_refresh) _refresh();
+							if (_refresh) { mixin(S_TRACE);
+								_dirs.setRedraw(false);
+								_fileList.setRedraw(false);
+								scope (exit) {
+									_dirs.setRedraw(true);
+									_fileList.setRedraw(true);
+								}
+								_refresh();
+							}
 							break;
 						}
 					}
@@ -976,6 +1009,9 @@ class MaterialSelect(MtType Type, D, C) {
 					_binPaths[_imageIndex] = isBinImg(path) ? path : "";
 				}
 			}
+			static if (Type == MtType.BG_IMG) {
+				updateExcludeCardSizeImage();
+			}
 			refreshPaths();
 			static if (Type == MtType.BGM || Type == MtType.SE) {
 				refDataVersion();
@@ -990,6 +1026,34 @@ class MaterialSelect(MtType Type, D, C) {
 				return _binPaths[_imageIndex];
 			} else {
 				return "";
+			}
+		}
+		static if (Type == MtType.BG_IMG) {
+			private void updateExcludeCardSizeImage() { mixin(S_TRACE);
+				if (excludeCardSizeImage) return;
+				// カードサイズの画像が選択されている場合は
+				// カードサイズを除外のチェックを外しておく
+				auto wsnVer = _summ ? _summ.dataVersion : LATEST_VERSION;
+				if (!_binPaths[_imageIndex].length && path != "") { mixin(S_TRACE);
+					auto p = summSkin.findImagePath(path, _summ ? _summ.scenarioPath : "", wsnVer);
+					if (p.length) { mixin(S_TRACE);
+						uint w, h;
+						imageSize(p, w, h);
+						auto cs = _prop.looks.cardSize;
+						if (cs.width == w && cs.height == h) { mixin(S_TRACE);
+							excludeCardSizeImage = true;
+							if (_refresh) { mixin(S_TRACE);
+								_dirs.setRedraw(false);
+								_fileList.setRedraw(false);
+								scope (exit) {
+									_dirs.setRedraw(true);
+									_fileList.setRedraw(true);
+								}
+								_refresh();
+							}
+						}
+					}
+				}
 			}
 		}
 	}
@@ -1166,10 +1230,10 @@ private:
 		@property const(string)[] defExts() {return summSkin.extImage;}
 		@property string[] defDirs() {return summSkin.tableDirs;}
 		@property string[] engineDefDirs() { return summSkin.wsnTableDirs(_summ ? _summ.dataVersion : LATEST_VERSION); }
-		bool isTarg(string p) {return summSkin.isBgImage(p);}
-		static bool hasTarg(Skin skin, string p, bool forceRefresh, bool noCardSize) { return skin.hasBgImage(p, forceRefresh); }
-		bool hasWsnTarg(bool forceRefresh, bool noCardSize) { return summSkin.hasWsnBgImage(_summ ? _summ.dataVersion : LATEST_VERSION, forceRefresh); }
-		string[] targsImpl(string dir, bool re) {return summSkin.tables(dir, _prop.var.etc.logicalSort, re);}
+		bool isTarg(string p) {return summSkin.isBgImage(p, excludeCardSizeImage);}
+		static bool hasTarg(Skin skin, string p, bool forceRefresh, bool excludeCardSize) { return skin.hasBgImage(p, forceRefresh, excludeCardSize); }
+		bool hasWsnTarg(bool forceRefresh, bool excludeCardSize) { return summSkin.hasWsnBgImage(_summ ? _summ.dataVersion : LATEST_VERSION, forceRefresh, excludeCardSize); }
+		string[] targsImpl(string dir, bool re) {return summSkin.tables(dir, _prop.var.etc.logicalSort, re, excludeCardSizeImage);}
 		@property Image image() {return _prop.images.backs;}
 	} else static if (Type == MtType.BGM) {
 		@property const(string)[] defExts() {return summSkin.extBgm;}
@@ -1199,6 +1263,8 @@ private:
 		if (_dirs.getSelectionIndex() == _tbl) { mixin(S_TRACE);
 			static if (Type == MtType.CARD) {
 				bool noCardSize = _noCardSize;
+			} else static if (Type == MtType.BG_IMG) {
+				bool noCardSize = _prop.var.etc.excludeCardSizeImage;
 			} else {
 				bool noCardSize = false;
 			}
@@ -1616,6 +1682,8 @@ private:
 		string[] r = [];
 		static if (Type == MtType.CARD) {
 			bool noCardSize = _noCardSize;
+		} else static if (Type == MtType.BG_IMG) {
+			bool noCardSize = _prop.var.etc.excludeCardSizeImage;
 		} else {
 			bool noCardSize = false;
 		}
@@ -1651,6 +1719,8 @@ private:
 		auto skin = summSkin;
 		static if (Type == MtType.CARD) {
 			bool noCardSize = _noCardSize;
+		} else static if (Type == MtType.BG_IMG) {
+			bool noCardSize = _prop.var.etc.excludeCardSizeImage;
 		} else {
 			bool noCardSize = false;
 		}

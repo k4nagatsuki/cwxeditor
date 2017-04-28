@@ -265,6 +265,19 @@ public:
 						_msel.useNoCardSizeImage = _noCardSize.getSelection();
 					});
 					_comm.put(_noCardSize, () => !_readOnly && !_msel.loading);
+				} else static if (Type is MtType.BG_IMG) {
+					_excludeCardSize = new Button(compl, SWT.CHECK);
+					_excludeCardSize.setEnabled(!_readOnly);
+					auto cs = prop.looks.cardSize;
+					_excludeCardSize.setText(prop.msgs.excludeCardSizeImage);
+					auto ncsgd = new GridData(GridData.HORIZONTAL_ALIGN_END);
+					ncsgd.horizontalSpan = 3;
+					_excludeCardSize.setLayoutData(ncsgd);
+					_excludeCardSize.setSelection(_msel.excludeCardSizeImage);
+					.listener(_excludeCardSize, SWT.Selection, { mixin(S_TRACE);
+						_msel.excludeCardSizeImage = _excludeCardSize.getSelection();
+					});
+					_comm.put(_excludeCardSize, () => !_readOnly && !_msel.loading);
 				}
 				_comm.refImageScale.add(&refreshList);
 				.listener(comp, SWT.Dispose, { mixin(S_TRACE);
@@ -826,6 +839,8 @@ private:
 		}
 		static if (Type is MtType.CARD) {
 			_noCardSize.setSelection(_msel.useNoCardSizeImage);
+		} else static if (Type is MtType.BG_IMG) {
+			_excludeCardSize.setSelection(_msel.excludeCardSizeImage);
 		}
 	}
 	@property
@@ -894,6 +909,8 @@ private:
 		Button _layerButton = null;
 		ImageLayerWindow _layers = null;
 		Label _layerName = null;
+	} else static if (Type is MtType.BG_IMG) {
+		Button _excludeCardSize;
 	}
 	Skin _summSkin = null;
 	UndoManager _undo = null;

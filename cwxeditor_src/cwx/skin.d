@@ -813,7 +813,7 @@ class Skin {
 	/// (現行バージョンでは内容チェックは背景イメージのみ)
 	const
 	bool isMaterial(string path, bool check = false) { mixin(S_TRACE);
-		return isSE(path, check) || isBGM(path, check) || isBgImage(path, check);
+		return isSE(path, check) || isBGM(path, check) || isBgImage(path, false, check);
 	}
 
 	/// pathが効果音として使用可能か。
@@ -943,7 +943,7 @@ class Skin {
 
 	/// pathが背景画像として使用可能か。
 	const
-	bool isBgImage(string path, bool check = false) { mixin(S_TRACE);
+	bool isBgImage(string path, bool excludeCardSize = false, bool check = false) { mixin(S_TRACE);
 		if (isBinImg(path)) return true;
 		auto ext = .toLower(.extension(path));
 		if (ext == ".jpy1"
@@ -956,6 +956,9 @@ class Skin {
 				&& ext != ".jpeg"
 				&& ext != ".png"
 				&& ext != ".gif") { mixin(S_TRACE);
+			return false;
+		}
+		if (excludeCardSize && isCardImage(path, false)) { mixin(S_TRACE);
 			return false;
 		}
 		if (check) { mixin(S_TRACE);
@@ -1075,7 +1078,7 @@ class Skin {
 	bool hasCardImage(string dir, bool forceRefresh, bool ignoreSize) { return has!(isCardImage)(dir, forceRefresh, ignoreSize); }
 	/// ditto
 	const
-	bool hasBgImage(string dir, bool forceRefresh) { return has!(isBgImage)(dir, forceRefresh); }
+	bool hasBgImage(string dir, bool forceRefresh, bool excludeCardSize) { return has!(isBgImage)(dir, forceRefresh, excludeCardSize); }
 	/// ditto
 	const
 	bool hasBGM(string dir, bool forceRefresh) { return has!(isBGM)(dir, forceRefresh); }
@@ -1101,8 +1104,8 @@ class Skin {
 	}
 	/// ditto
 	const
-	bool hasWsnBgImage(string wsnVer, bool forceRefresh) { mixin(S_TRACE);
-		return hasWsnRes!(isBgImage)(wsnTableDirs(wsnVer), wsnVer, forceRefresh);
+	bool hasWsnBgImage(string wsnVer, bool forceRefresh, bool excludeCardSize) { mixin(S_TRACE);
+		return hasWsnRes!(isBgImage)(wsnTableDirs(wsnVer), wsnVer, forceRefresh, excludeCardSize);
 	}
 	/// ditto
 	const
@@ -1163,38 +1166,52 @@ class Skin {
 
 	/// dirに含まれるカード画像の一覧。
 	const
-	string[] cards(string dir, bool logicalSort, bool forceRefresh, bool ignoreSize) { return list!(isCardImage, true)([dir], logicalSort, forceRefresh, ignoreSize); }
+	string[] cards(string dir, bool logicalSort, bool forceRefresh, bool ignoreSize) { mixin(S_TRACE);
+		return list!(isCardImage, true)([dir], logicalSort, forceRefresh, ignoreSize);
+	}
 
 	/// 標準の背景画像。
 	const
-	string[] tables(bool logicalSort, bool forceRefresh = false) { return list!(isBgImage)(tableDirs, logicalSort, forceRefresh, false); }
+	string[] tables(bool logicalSort, bool forceRefresh = false, bool excludeCardSize = false) { mixin(S_TRACE);
+		return list!(isBgImage, true)(tableDirs, logicalSort, forceRefresh, excludeCardSize, false);
+	}
 
 	/// dirに含まれる背景画像の一覧。
 	const
-	string[] tables(string dir, bool logicalSort, bool forceRefresh) { return list!(isBgImage)([dir], logicalSort, forceRefresh, false); }
+	string[] tables(string dir, bool logicalSort, bool forceRefresh, bool excludeCardSize) { mixin(S_TRACE);
+		return list!(isBgImage, true)([dir], logicalSort, forceRefresh, excludeCardSize, false);
+	}
 
 	/// 標準のBGM。
 	const
-	string[] musics(bool logicalSort, bool forceRefresh = false) { return list!(isBGM)(bgmDirs, logicalSort, forceRefresh, false); }
+	string[] musics(bool logicalSort, bool forceRefresh = false) { mixin(S_TRACE);
+		return list!(isBGM)(bgmDirs, logicalSort, forceRefresh, false);
+	}
 
 	/// dirに含まれるBGMの一覧。
 	const
-	string[] musics(string dir, bool logicalSort, bool forceRefresh) { return list!(isBGM)([dir], logicalSort, forceRefresh, false); }
+	string[] musics(string dir, bool logicalSort, bool forceRefresh) { mixin(S_TRACE);
+		return list!(isBGM)([dir], logicalSort, forceRefresh, false);
+	}
 
 	/// 標準のSE。
 	const
-	string[] sounds(bool logicalSort, bool forceRefresh = false) { return list!(isSE)(seDirs, logicalSort, forceRefresh, false); }
+	string[] sounds(bool logicalSort, bool forceRefresh = false) { mixin(S_TRACE);
+		return list!(isSE)(seDirs, logicalSort, forceRefresh, false);
+	}
 
 	/// dirに含まれるSEの一覧。
 	const
-	string[] sounds(string dir, bool logicalSort, bool forceRefresh) { return list!(isSE)([dir], logicalSort, forceRefresh, false); }
+	string[] sounds(string dir, bool logicalSort, bool forceRefresh) { mixin(S_TRACE);
+		return list!(isSE)([dir], logicalSort, forceRefresh, false);
+	}
 
 	/// WSNの標準素材の一覧。
 	const
-	private string[] wsnList(alias isT, bool UseFlag)(in string[] dirs, string wsnVer, bool logicalSort, bool forceRefresh, bool ignoreSize) { mixin(S_TRACE);
+	private string[] wsnList(alias isT, bool UseFlag)(in string[] dirs, string wsnVer, bool logicalSort, bool forceRefresh, bool flag) { mixin(S_TRACE);
 		if (wsnVer == "" || !_enginePath.exists()) return [];
 		auto engineDir = _enginePath.dirName();
-		return list!(isT, UseFlag)(dirs, logicalSort, forceRefresh, ignoreSize, true);
+		return list!(isT, UseFlag)(dirs, logicalSort, forceRefresh, flag, true);
 	}
 	/// ditto
 	const
@@ -1203,8 +1220,8 @@ class Skin {
 	}
 	/// ditto
 	const
-	string[] wsnTables(string wsnVer, bool logicalSort, bool forceRefresh) { mixin(S_TRACE);
-		return wsnList!(isBgImage, false)(wsnTableDirs(wsnVer), wsnVer, logicalSort, forceRefresh, false);
+	string[] wsnTables(string wsnVer, bool logicalSort, bool forceRefresh, bool excludeCardSize) { mixin(S_TRACE);
+		return wsnList!(isBgImage, true)(wsnTableDirs(wsnVer), wsnVer, logicalSort, forceRefresh, excludeCardSize);
 	}
 	/// ditto
 	const

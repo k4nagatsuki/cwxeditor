@@ -468,6 +468,7 @@ class FlexEtcProps : Properties {
 
 	auto loopCountMax = Prop!(uint)("loopCountMax", 100, true);
 	auto fadeInMax = Prop!(uint)("fadeInMax", 1000, true);
+	auto excludeCardSizeImage = Prop!(bool)("excludeCardSizeImage", true);
 
 	auto selectionColumnsMax = Prop!(uint)("selectionColumnsMax", 4, true);
 
