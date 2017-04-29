@@ -653,7 +653,7 @@ private:
 				}
 				auto parent = (cast(Control) e.widget).getShell();
 				_imgList = new ImageListWindow!Type(_prop, _comm, _summ, parent, (string path) { mixin(S_TRACE);
-					_msel.path2(path, false);
+					_msel.path2(path, false, false);
 					_image.redraw();
 					refresh();
 				}, b);

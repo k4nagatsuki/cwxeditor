@@ -275,7 +275,7 @@ class MaterialSelect(MtType Type, D, C) {
 					imageSize(p, w, h);
 					auto cs = _prop.looks.cardSize;
 					if (cs.width != w || cs.height != h) { mixin(S_TRACE);
-						path2("", false, -1, false);
+						path2("", false, false, -1, false);
 					}
 				}
 			}
@@ -321,11 +321,8 @@ class MaterialSelect(MtType Type, D, C) {
 				auto wsnVer = _summ ? _summ.dataVersion : LATEST_VERSION;
 				auto p = summSkin.findImagePath(path, _summ ? _summ.scenarioPath : "", wsnVer);
 				if (p.length) { mixin(S_TRACE);
-					uint w, h;
-					imageSize(p, w, h);
-					auto cs = _prop.looks.cardSize;
-					if (cs.width == w && cs.height == h) { mixin(S_TRACE);
-						path2("", false, -1, false);
+					if (summSkin.isCardImage(p, false)) { mixin(S_TRACE);
+						path2("", false, false, -1, false);
 					}
 				}
 			}
@@ -911,9 +908,9 @@ class MaterialSelect(MtType Type, D, C) {
 		}
 		@property
 		void path(string path) { mixin(S_TRACE);
-			path2(path, true, -1, true);
+			path2(path, true, true, -1, true);
 		}
-		void path2(string path, bool updateBinImg, ptrdiff_t index = -1, bool store = true) { mixin(S_TRACE);
+		void path2(string path, bool refreshPaths, bool updateBinImg, ptrdiff_t index = -1, bool store = true) { mixin(S_TRACE);
 			if (index < 0) index = _imageIndex;
 			if (this.path(index) == path) return;
 			if (store && _store) _store();
@@ -929,7 +926,7 @@ class MaterialSelect(MtType Type, D, C) {
 				}
 			}
 			updateUseNoCardSizeImage();
-			refreshPaths();
+			this.refreshPaths(null, false, refreshPaths);
 		}
 		private void selectPath(string path, ptrdiff_t index = -1, bool store = true) { mixin(S_TRACE);
 			if (index < 0) index = _imageIndex;
@@ -993,9 +990,9 @@ class MaterialSelect(MtType Type, D, C) {
 		}
 		@property
 		void path(string path) { mixin(S_TRACE);
-			path2(path, true);
+			path2(path, true, true);
 		}
-		void path2(string path, bool updateBinImg, ptrdiff_t index = -1, bool store = true) { mixin(S_TRACE);
+		void path2(string path, bool refreshPaths, bool updateBinImg, ptrdiff_t index = -1, bool store = true) { mixin(S_TRACE);
 			auto old = _path;
 			scope (exit) {
 				if (old != _path) {
@@ -1012,7 +1009,7 @@ class MaterialSelect(MtType Type, D, C) {
 			static if (Type == MtType.BG_IMG) {
 				updateExcludeCardSizeImage();
 			}
-			refreshPaths();
+			this.refreshPaths(null, false, refreshPaths);
 			static if (Type == MtType.BGM || Type == MtType.SE) {
 				refDataVersion();
 			}
@@ -1030,17 +1027,14 @@ class MaterialSelect(MtType Type, D, C) {
 		}
 		static if (Type == MtType.BG_IMG) {
 			private void updateExcludeCardSizeImage() { mixin(S_TRACE);
-				if (excludeCardSizeImage) return;
+				if (!excludeCardSizeImage) return;
 				// カードサイズの画像が選択されている場合は
 				// カードサイズを除外のチェックを外しておく
 				auto wsnVer = _summ ? _summ.dataVersion : LATEST_VERSION;
 				if (!_binPaths[_imageIndex].length && path != "") { mixin(S_TRACE);
 					auto p = summSkin.findImagePath(path, _summ ? _summ.scenarioPath : "", wsnVer);
 					if (p.length) { mixin(S_TRACE);
-						uint w, h;
-						imageSize(p, w, h);
-						auto cs = _prop.looks.cardSize;
-						if (cs.width == w && cs.height == h) { mixin(S_TRACE);
+						if (summSkin.isCardImage(p, false)) { mixin(S_TRACE);
 							excludeCardSizeImage = true;
 							if (_refresh) { mixin(S_TRACE);
 								_dirs.setRedraw(false);
@@ -1164,7 +1158,6 @@ class MaterialSelect(MtType Type, D, C) {
 	@property
 	void selectDir(int sel) { mixin(S_TRACE);
 		_dirs.select(sel);
-		refreshList();
 		scope (exit) {
 			refreshButtons();
 			if (_refresh) _refresh();
@@ -1173,12 +1166,13 @@ class MaterialSelect(MtType Type, D, C) {
 		if (sel < defs.length) { mixin(S_TRACE);
 			static if (Type == MtType.CARD) {
 				if (valueFromDef) { mixin(S_TRACE);
+					refreshList();
 					_paths[_imageIndex] = valueFromDef(sel, 0 < binPath.length, binPath);
 				} else { mixin(S_TRACE);
-					path2("", false, -1, true);
+					path2("", true, false, -1, true);
 				}
 			} else { mixin(S_TRACE);
-				path2("", false, -1, true);
+				path2("", true, false, -1, true);
 			}
 			if (_selDir != sel) { mixin(S_TRACE);
 				foreach (dlg; modEvent) dlg();
@@ -1195,7 +1189,9 @@ class MaterialSelect(MtType Type, D, C) {
 				if (!p) return;
 				if (0 == _fileList.getItemCount()) return;
 				_fileList.select(0);
-				path2(std.path.buildPath(p, _fileList.getItem(0)), false, -1, true);
+				path2(std.path.buildPath(p, _fileList.getItem(0)), true, false, -1, true);
+			} else { mixin(S_TRACE);
+				refreshList();
 			}
 		}
 		_selDir = sel;
@@ -1349,7 +1345,7 @@ private:
 				_fileList.showSelection();
 			}
 			string p = currentDir;
-			path2(std.path.buildPath(p, file), false, -1, true);
+			path2(std.path.buildPath(p, file), true, false, -1, true);
 			_selDir = _dirs.getSelectionIndex();
 			if (_refresh) _refresh();
 		} else { mixin(S_TRACE);
@@ -1699,10 +1695,31 @@ private:
 		}
 		return r;
 	}
-	void refreshPaths(string select = null, bool forceRefresh = false) { mixin(S_TRACE);
+	void refreshPaths(string select = null, bool forceRefresh = false, bool updateList = true) { mixin(S_TRACE);
+		if (_scheduleRefreshPaths) return;
+		_scheduleRefreshPaths = true;
+		.asyncExec(_fileList.getDisplay(), { mixin(S_TRACE);
+			refreshPathsImpl(select, forceRefresh, updateList);
+			_scheduleRefreshPaths = false;
+		});
+	}
+	void refreshPathsImpl(string select, bool forceRefresh, bool updateList) { mixin(S_TRACE);
 		int oldSel = _dirs.getSelectionIndex();
+		if (!updateList && _tbl <= oldSel) { mixin(S_TRACE);
+			if (select is null) select = this.path;
+			foreach (i, sp; showingPaths) { mixin(S_TRACE);
+				if (.cfnmatch(sp, select)) { mixin(S_TRACE);
+					_fileList.select(i);
+					static if (is (C:Table)) {
+						_fileList.showSelection();
+					}
+					return;
+				}
+			}
+		}
+
 		if (oldSel < 0) oldSel = 0;
-		string oldSelS = _dirs.getText();
+		auto oldSelS = _dirs.getText();
 
 		_dirs.removeAll();
 
@@ -1913,7 +1930,7 @@ private:
 				}
 			}
 		} else { mixin(S_TRACE);
-			if (o == this.path) path2(n, false, -1, false);
+			if (o == this.path) path2(n, true, false, -1, false);
 			int di = _dirs.getSelectionIndex();
 			auto op = o;
 			if (di >= 0 && cfnmatch(fromViewPath(_dirs.getItems()[di]), dirName(o))) { mixin(S_TRACE);
@@ -1959,10 +1976,10 @@ private:
 		static if (Type == MtType.CARD) {
 			foreach (i, path; _paths) {
 				if (path.type !is CardImageType.File) continue;
-				path2(update(path.path), false, i, false);
+				path2(update(path.path), true, false, i, false);
 			}
 		} else {
-			path2(update(path), false, -1, false);
+			path2(update(path), true, false, -1, false);
 		}
 	}
 	void refSkin() { mixin(S_TRACE);
@@ -2011,4 +2028,5 @@ private:
 	void delegate() _store = null;
 	bool _firstSet = true;
 	bool delegate() _loadScaledImage = null;
+	bool _scheduleRefreshPaths = false;
 }
