@@ -1709,7 +1709,7 @@ private:
 			if (select is null) select = this.path;
 			foreach (i, sp; showingPaths) { mixin(S_TRACE);
 				if (.cfnmatch(sp, select)) { mixin(S_TRACE);
-					_fileList.select(i);
+					_fileList.select(cast(int)i);
 					static if (is (C:Table)) {
 						_fileList.showSelection();
 					}
