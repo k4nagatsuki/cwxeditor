@@ -306,11 +306,7 @@ public:
 	@property
 	string name() { mixin(S_TRACE);
 		auto name = FlagDir.validName(_name.getText());
-		if (_step.parent) { mixin(S_TRACE);
-			return name;
-		} else { mixin(S_TRACE);
-			return _dir.createNewStepName(name, _step ? _step.name : "");
-		}
+		return _dir.createNewStepName(name, _step ? _step.name : "");
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
@@ -641,11 +637,7 @@ public:
 	@property
 	string name() { mixin(S_TRACE);
 		auto name = FlagDir.validName(flagName.getText());
-		if (_flag.parent) { mixin(S_TRACE);
-			return name;
-		} else { mixin(S_TRACE);
-			return dir.createNewFlagName(name, _flag ? _flag.name : "");
-		}
+		return dir.createNewFlagName(name, _flag ? _flag.name : "");
 	}
 protected:
 	private static void setMinW(Control c, int minW, int gridStyle = SWT.NULL) { mixin(S_TRACE);
