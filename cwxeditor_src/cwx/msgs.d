@@ -1499,9 +1499,9 @@ class Msgs : Properties {
 	const string premiumName(Premium id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(Premium, "premiumName"));
 	}
-	auto premiumNameNormal = Msg("premiumNameNormal", "日用品 (買戻し不可/破棄可)");
-	auto premiumNameRare = Msg("premiumNameRare", "希少品 (買戻し可/破棄可)");
-	auto premiumNamePremium = Msg("premiumNamePremium", "貴重品 (買戻し可/破棄不可)");
+	auto premiumNameNormal = Msg("premiumNameNormal", "日用品 (破棄可)");
+	auto premiumNameRare = Msg("premiumNameRare", "希少品 (破棄可)");
+	auto premiumNamePremium = Msg("premiumNamePremium", "貴重品 (破棄不可)");
 	const string enhanceName(Enhance id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(Enhance, "enhanceName"));
 	}
