@@ -834,7 +834,7 @@ T createSelectionCombo(T = Combo)(Commons comm, Composite parent, bool delegate(
 		string id = combo.getText();
 		combo.removeAll();
 
-		auto values = [""];
+		auto values = initValue == "" ? [""] : [];
 		values ~= .addInitValue(comm, comm.prop.var.etc.standardSelections.dup, initValue);
 		foreach (i, kc; values) { mixin(S_TRACE);
 			if (!incSearch.match(kc)) continue;
