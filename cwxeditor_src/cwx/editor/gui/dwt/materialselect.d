@@ -1699,6 +1699,7 @@ private:
 		if (_scheduleRefreshPaths) return;
 		_scheduleRefreshPaths = true;
 		.asyncExec(_fileList.getDisplay(), { mixin(S_TRACE);
+			if (_fileList.isDisposed()) return;
 			refreshPathsImpl(select, forceRefresh, updateList);
 			_scheduleRefreshPaths = false;
 		});
