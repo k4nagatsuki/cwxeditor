@@ -1344,7 +1344,7 @@ private:
 				_fileList.showSelection();
 			}
 			string p = currentDir;
-			path2(std.path.buildPath(p, file), true, false, -1, true);
+			path2(std.path.buildPath(p, file), false, false, -1, true);
 			_selDir = _dirs.getSelectionIndex();
 			if (_refresh) _refresh();
 		} else { mixin(S_TRACE);
@@ -1500,7 +1500,7 @@ private:
 			find();
 		}
 	}
-	void refreshListImpl(string[] paths, bool forceRefresh, bool subThr, ptrdiff_t skinPos, ptrdiff_t enginePosFrom, ptrdiff_t enginePosTo) { mixin(S_TRACE);
+	void refreshListImpl(string[] paths, bool allList, bool forceRefresh, bool subThr, ptrdiff_t skinPos, ptrdiff_t enginePosFrom, ptrdiff_t enginePosTo) { mixin(S_TRACE);
 		if (!_display) _display = _fileList.getDisplay();
 		_tblIndex = -1;
 		_tblEngineIndex = -1;
@@ -1549,12 +1549,12 @@ private:
 					override void run() { mixin(S_TRACE);
 						if (_fileList.isDisposed()) return;
 						refreshListImpl2(tgs);
-						_allList = true;
+						_allList = allList;
 					}
 				});
 			} else { mixin(S_TRACE);
 				refreshListImpl2(tgs);
-				_allList = true;
+				_allList = allList;
 			}
 		}
 		if (subThr) { mixin(S_TRACE);
@@ -1648,7 +1648,7 @@ private:
 				_comm.refreshToolBar();
 			} else { mixin(S_TRACE);
 				_fileList.setEnabled(!_readOnly);
-				refreshListImpl(dirs, forceRefresh, subThr, skinPos, enginePosFrom, enginePosTo);
+				refreshListImpl(dirs, true, forceRefresh, subThr, skinPos, enginePosFrom, enginePosTo);
 				static if (is(C : Combo) || is(C : CCombo)) {
 					_fileList.add(_prop.msgs.defaultSelection(_prop.msgs.fileNone), 0);
 					_fileList.select(0);
@@ -1659,10 +1659,10 @@ private:
 			}
 		} else if (_dirs.getSelectionIndex() == _tbl) { mixin(S_TRACE);
 			auto dirs = defDirs;
-			refreshListImpl(dirs, forceRefresh, subThr, -1, 0, dirs.length);
+			refreshListImpl(dirs, false, forceRefresh, subThr, -1, 0, dirs.length);
 		} else if (_dirs.getSelectionIndex() == _tblEngine) { mixin(S_TRACE);
 			auto dirs = engineDefDirs;
-			refreshListImpl(dirs, forceRefresh, subThr, -1, 0, dirs.length);
+			refreshListImpl(dirs, false, forceRefresh, subThr, -1, 0, dirs.length);
 		} else if (_summ) { mixin(S_TRACE);
 			string st;
 			if (_dirs.getText() == "/") { mixin(S_TRACE);
@@ -1695,13 +1695,18 @@ private:
 		return r;
 	}
 	void refreshPaths(string select = null, bool forceRefresh = false, bool updateList = true) { mixin(S_TRACE);
-		if (_scheduleRefreshPaths) return;
-		_scheduleRefreshPaths = true;
-		.asyncExec(_fileList.getDisplay(), { mixin(S_TRACE);
+		void thr() { mixin(S_TRACE);
 			if (_fileList.isDisposed()) return;
 			refreshPathsImpl(select, forceRefresh, updateList);
 			_scheduleRefreshPaths = false;
-		});
+		}
+		if (updateList) { mixin(S_TRACE);
+			if (_scheduleRefreshPaths) return;
+			_scheduleRefreshPaths = true;
+			.asyncExec(_fileList.getDisplay(), &thr);
+		} else { mixin(S_TRACE);
+			thr();
+		}
 	}
 	void refreshPathsImpl(string select, bool forceRefresh, bool updateList) { mixin(S_TRACE);
 		int oldSel = _dirs.getSelectionIndex();

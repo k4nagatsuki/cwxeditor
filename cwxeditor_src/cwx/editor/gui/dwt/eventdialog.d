@@ -1526,7 +1526,7 @@ protected:
 		{ mixin(S_TRACE);
 			auto skin = _comm.skin;
 			_msel = new MaterialSelect!(MtType.SE, Combo, Table)
-				(_comm, _prop, _summ, false, null, included => cast(string[])[]);
+				(_comm, _prop, _summ, false, null, included => [_prop.msgs.defaultSelection(_prop.msgs.noSelect)]);
 			_msel.createDirsCombo(comp).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			mod(_msel);
 			_msel.modEvent ~= &refreshWarning;

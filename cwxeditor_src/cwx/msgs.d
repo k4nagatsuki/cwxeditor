@@ -1847,6 +1847,7 @@ class Msgs : Properties {
 	auto se1 = Msg("se1", "初期効果");
 	auto se2 = Msg("se2", "二次効果");
 	auto soundNone = Msg("soundNone", "効果音無し");
+	auto noSelect = Msg("noSelect", "指定無し");
 	auto keyCodes = Msg("keyCodes", "イベント発火のキーコード");
 	auto addKeyCode = Msg("addKeyCode", "キーコードの追加");
 	auto delKeyCode = Msg("delKeyCode", "キーコードの削除");
