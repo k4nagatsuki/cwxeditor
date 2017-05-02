@@ -35,13 +35,13 @@ class Msgs : Properties {
 
 	auto dlgTitUsage = Msg("dlgTitUsage", "使い方 - CWXEditor");
 	auto usage = Msg("usage", "使い方: cwxeditor [-help | -putlangfile <PATH> | -conf <PATH>\n"
-		~ "                   | -create <NAME> [<SKIN>] | -createclassic <NAME> [<PATH>]\n"
+		~ "                   | -create <NAME> [<SKIN TYPE> [<SKIN NAME>]] | -createclassic <NAME> [<PATH>]\n"
 		~ "                   | -selectfile <PATH> | -noload] <SCENARIO> [<CWXPath ...>]\n"
 		~ "オプション:\n"
 		~ "  -help         起動オプションの説明を表示して終了します。\n"
 		~ "  -putlangfile <PATH> デフォルトの言語設定ファイル<PAHT>を出力して終了します。\n"
 		~ "  -conf <PATH>  指定されたパスの基本設定ファイルを使用します。\n"
-		~ "  -create        <NAME> [<SKIN>]  起動後にシナリオを新規作成します。\n"
+		~ "  -create        <NAME> [<SKIN TYPE> [<SKIN NAME>]]  起動後にシナリオを新規作成します。\n"
 		~ "  -createclassic <NAME> [<PATH>]  起動後、<PATH>で指定されたフォルダに\n"
 		~ "                                  クラシックなシナリオを新規作成します。\n"
 		~ "  -selectfile  <PATH> 指定されたファイルをファイルビューで選択します。\n"
@@ -1069,12 +1069,12 @@ class Msgs : Properties {
 	auto filterScenario = Msg("filterScenario", "シナリオファイル (%1$s)");
 	auto filterParts = Msg("filterParts", "エリア・カードファイル (%1$s)");
 	auto dlgTitSaveScenario = Msg("dlgTitSaveScenario", "名前を付けて保存");
-	auto filterScenarioSave = Msg("filterScenarioSave", "XML形式のシナリオ (*.wsn)");
-	auto filterScenarioSaveDir = Msg("filterScenarioSaveDir", "展開されたXML形式シナリオ (Summary.xml)");
+	auto filterScenarioSave = Msg("filterScenarioSave", "WSN(XML)形式のシナリオ (*.wsn)");
+	auto filterScenarioSaveDir = Msg("filterScenarioSaveDir", "展開されたWSN(XML)形式シナリオ (Summary.xml)");
 	auto filterScenarioSaveClassic = Msg("filterScenarioSaveClassic", "クラシックシナリオ (Summary.wsm)");
 	auto filterScenarioSaveZip = Msg("filterScenarioSaveZip", "ZIP圧縮されたクラシックシナリオ (*.zip)");
 	auto filterScenarioSaveCab = Msg("filterScenarioSaveCab", "CAB圧縮されたクラシックシナリオ (*.cab)");
-	auto warningXToClassic = Msg("warningXToClassic", "XML形式のシナリオをクラシック形式に変換すると一部データが失われる可能性がある他、対応していない形式の素材で不具合が発生する恐れがあります。\nクラシック形式で保存しますか？");
+	auto warningXToClassic = Msg("warningXToClassic", "WSN(XML)形式のシナリオをクラシック形式に変換すると一部データが失われる可能性がある他、対応していない形式の素材で不具合が発生する恐れがあります。\nクラシック形式で保存しますか？");
 	auto saveToNotEmptyDir = Msg("saveToNotEmptyDir", "%1$sは空ではありません。\n本当にここにシナリオを保存しますか？");
 	auto notScenario = Msg("notScenario", "%1$sはシナリオ圧縮ファイルではありません");
 	auto zipError = Msg("zipError", "%1$sの展開に失敗しました。");
@@ -2005,6 +2005,7 @@ class Msgs : Properties {
 	auto canVanishWorkAreaInMainWindow = Msg("canVanishWorkAreaInMainWindow", "サブウィンドウに編集エリアがあればメインウィンドウの編集エリアを閉じる");
 
 	auto etcSettingsLoad = Msg("etcSettingsLoad", "読込と保存");
+	auto saveSkinName = Msg("saveSkinName", "WSN(XML)形式のシナリオでスキンタイプに加えてスキン名称も保存する");
 	auto saveNeedChanged = Msg("saveNeedChanged", "変更があった時だけ上書き保存を有効にする");
 	auto applyDialogsBeforeSave = Msg("applyDialogsBeforeSave", "保存前にダイアログの編集内容を適用する");
 	auto doubleIO = Msg("doubleIO", "分割読込・保存を行う(デュアルコア以上の環境で高速化)");

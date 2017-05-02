@@ -464,7 +464,7 @@ private:
 	}
 	void refreshTypes(Skin skin) { mixin(S_TRACE);
 		string selType = skin ? skin.type : _summ.type;
-		string selName = skin ? skin.name : "";
+		string selName = skin ? skin.name : _summ.skinName;
 		string selClassic = null;
 
 		if (!_typeSkin.getSelection() && !_typeClassic.getSelection()) { mixin(S_TRACE);
@@ -643,9 +643,12 @@ protected:
 		_summ.rCouponNum = _rCouponNum.getSelection();
 		_summ.startArea = _startArea.selected;
 		if (_typeSkin.getSelection()) { mixin(S_TRACE);
-			_summ.type = _skinInfo[_type.getSelectionIndex()].type;
+			auto t = _skinInfo[_type.getSelectionIndex()];
+			_summ.type = t.type;
+			_summ.skinName = t.name;
 		} else { mixin(S_TRACE);
 			_summ.type = "";
+			_summ.skinName = "";
 		}
 		auto oldSkin = _comm.skin;
 		_comm.skin = selectedSkin;

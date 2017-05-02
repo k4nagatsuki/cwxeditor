@@ -356,6 +356,7 @@ private:
 			int levelMin, levelMax;
 			string desc;
 			string type;
+			string skinName;
 			string[] rCoupons;
 			uint rCouponNum;
 			ulong startArea;
@@ -368,6 +369,7 @@ private:
 				levelMax = summ.levelMax;
 				desc = summ.desc;
 				type = summ.type;
+				skinName = summ.skinName;
 				rCoupons = summ.rCoupons.dup;
 				rCouponNum = summ.rCouponNum;
 				startArea = summ.startArea;
@@ -381,6 +383,7 @@ private:
 				summ.levelMax = levelMax;
 				summ.desc = desc;
 				summ.type = type;
+				summ.skinName = skinName;
 				summ.rCoupons = rCoupons;
 				summ.rCouponNum = rCouponNum;
 				summ.startArea = startArea;

@@ -878,7 +878,7 @@ private:
 		if (dlg.legacy) { mixin(S_TRACE);
 			r = exec("\"" ~ _prop.parent.appPath ~ "\" -createclassic \"" ~ dlg.name ~ "\" \"" ~ dlg.classicDir ~ "\"");
 		} else { mixin(S_TRACE);
-			r = exec("\"" ~ _prop.parent.appPath ~ "\" -create \"" ~ dlg.name ~ "\" \"" ~ dlg.skin ~ "\"");
+			r = exec("\"" ~ _prop.parent.appPath ~ "\" -create \"" ~ dlg.name ~ "\" \"" ~ dlg.skinType ~ "\" \"" ~ dlg.skinName ~ "\"");
 		}
 		if (!r) { mixin(S_TRACE);
 			DWTMessageBox.showWarning
@@ -896,7 +896,7 @@ private:
 			} else if (dlg.legacy) { mixin(S_TRACE);
 				auto dir = dlg.classicDir;
 				if (!dir.exists()) mkdirRecurse(dir);
-				summ = new Summary(dlg.name, dlg.skin, dir, false, true);
+				summ = new Summary(dlg.name, dlg.skinType, dlg.skinName, dir, false, true);
 				Summary.createStartArea(summ , _prop.parent, _prop.var.etc.newAreaName != "", _prop.var.etc.newAreaName, _prop.var.etc.bgImagesDefault, null, _prop.enginePath,
 					_prop.var.etc.classicEngineRegex, _prop.var.etc.classicDataDirRegex, _prop.var.etc.classicMatchKey,
 					_prop.var.etc.classicEngines, _prop.var.etc.defaultSkin);
@@ -906,7 +906,9 @@ private:
 					summ.saveOverwrite(_prop.parent, findSkin(_comm, _prop, summ), createSaveOpt(true));
 				}
 			} else { mixin(S_TRACE);
-				summ = Summary.createScenario(_prop.parent, _prop.tempPath, dlg.name, findSkin2(_prop, dlg.skin, ""), _prop.var.etc.newAreaName != "", _prop.var.etc.newAreaName, _prop.var.etc.bgImagesDefault);
+				summ = Summary.createScenario(_prop.parent, _prop.tempPath, dlg.name,
+					findSkin2(_prop, dlg.skinType, dlg.skinName), _prop.var.etc.newAreaName != "",
+					_prop.var.etc.newAreaName, _prop.var.etc.bgImagesDefault, _prop.var.etc.saveSkinName);
 			}
 			summ.author = _prop.var.etc.defaultAuthor;
 			openScenario(summ);
@@ -1013,8 +1015,14 @@ private:
 			if (summ.legacy && hist.path.length && (hist.skinType.length || hist.skinEngine.length)) { mixin(S_TRACE);
 				summ.type = hist.skinType;
 			}
+			if (summ.legacy && hist.skinName.length) { mixin(S_TRACE);
+				summ.skinName = hist.skinName;
+			}
 			if (summ.type == "" && !summ.legacy) { mixin(S_TRACE);
 				summ.type = _prop.var.etc.defaultSkin;
+			}
+			if (summ.skinName == "" && !summ.legacy) { mixin(S_TRACE);
+				summ.skinName = _prop.var.etc.defaultSkinName;
 			}
 			dStr ~= " - " ~ .text(__LINE__);
 			_lastBackup = Clock.currTime();
@@ -1250,6 +1258,7 @@ private:
 		if (opt.backup && !initial && !opt.backupDir.exists()) mkdirRecurse(opt.backupDir);
 		opt.archiveInNewThread = _prop.var.etc.archiveInNewThread && !initial && summary.useTemp;
 		opt.autoUpdateJpy1File = _prop.var.etc.autoUpdateJpy1File;
+		opt.saveSkinName = _prop.var.etc.saveSkinName;
 		if (opt.archiveInNewThread && !initial) { mixin(S_TRACE);
 			opt.savedCallback = { mixin(S_TRACE);
 				synchronized (_displayMutex) { mixin(S_TRACE);
@@ -1776,8 +1785,8 @@ private:
 	void setHistSkin() { mixin(S_TRACE);
 		if (!summary) return;
 		string skinType = summary.type;
-		string skinName = "";
-		if (summary.type == _comm.skin.type) skinName = _comm.skin.name;
+		string skinName = summary.skinName;
+		if (summary.type == _comm.skin.type && skinName == "") skinName = _comm.skin.name;
 		string skinEngine = _comm.skin.legacyEngine;
 		auto hist = createHistString(summary);
 		auto hists = _prop.var.etc.openHistories.dup;
@@ -4402,9 +4411,12 @@ public:
 			_win.open();
 			dStr ~= " - " ~ .text(__LINE__);
 			if (_opt.create) { mixin(S_TRACE);
-				string name = _opt.createName is null ? _prop.var.etc.newScenarioName : _opt.createName;
-				string skin = _opt.createSkin is null ? _prop.var.etc.defaultSkin : _opt.createSkin;
-				auto summ = Summary.createScenario(_prop.parent, _prop.tempPath, name, findSkin2(_prop, skin, ""), _prop.var.etc.newAreaName != "", _prop.var.etc.newAreaName, _prop.var.etc.bgImagesDefault);
+				auto name = _opt.createName is null ? _prop.var.etc.newScenarioName : _opt.createName;
+				auto skinType = _opt.createSkinType is null ? _prop.var.etc.defaultSkin : _opt.createSkinType;
+				auto skinName = _opt.createSkinName is null ? _prop.var.etc.defaultSkinName : _opt.createSkinName;
+				auto summ = Summary.createScenario(_prop.parent, _prop.tempPath, name,
+					findSkin2(_prop, skinType, skinName), _prop.var.etc.newAreaName != "",
+					_prop.var.etc.newAreaName, _prop.var.etc.bgImagesDefault, _prop.var.etc.saveSkinName);
 				summ.author = _prop.var.etc.defaultAuthor;
 				openScenario(summ);
 				statusLine = "";
@@ -4418,7 +4430,7 @@ public:
 						if (!.exists(_opt.createclassicPath)) { mixin(S_TRACE);
 							mkdirRecurse(_opt.createclassicPath);
 						}
-						auto summ = new Summary(name, "", _opt.createclassicPath, false, true);
+						auto summ = new Summary(name, "", "", _opt.createclassicPath, false, true);
 						summ.author = _prop.var.etc.defaultAuthor;
 						Summary.createStartArea(summ , _prop.parent, _prop.var.etc.newAreaName != "", _prop.var.etc.newAreaName, _prop.var.etc.bgImagesDefault, null, _prop.enginePath,
 							_prop.var.etc.classicEngineRegex, _prop.var.etc.classicDataDirRegex, _prop.var.etc.classicMatchKey,

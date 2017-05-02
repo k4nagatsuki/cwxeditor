@@ -1163,6 +1163,9 @@ private:
 					if (cc.type == "" && !cc.legacy) { mixin(S_TRACE);
 						cc.type = prop.var.etc.defaultSkin;
 					}
+					if (cc.skinName == "" && !cc.legacy) { mixin(S_TRACE);
+						cc.skinName = prop.var.etc.defaultSkinName;
+					}
 					auto shl = cast(Shell) parent;
 					auto pane = comm.sidePane;
 					auto acw = new CardWindow(comm, prop, CardWindowKind.ImportSource, pane, cc, cc, toc);

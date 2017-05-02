@@ -400,7 +400,11 @@ class FlexEtcProps : Properties {
 	auto dataDir = Prop!(string, true)("dataDir", "Data");
 	auto findEnginePath = Prop!(bool)("findEnginePath", true);
 	auto defaultSkin = Prop!(string, true)("defaultSkin", "MedievalFantasy");
+	auto defaultSkinName = Prop!(string, true)("defaultSkinName", "Classic");
 	auto defaultAuthor = Prop!(string)("defaultAuthor", "");
+	auto lastSkinType = Prop!(string)("lastSkinType", "");
+	auto lastSkinName = Prop!(string)("lastSkinName", "");
+	auto saveSkinName = Prop!(bool)("saveSkinName", true);
 
 	auto classicEngineRegex = Prop!(string)("classicEngineRegex", "^(CW´|.+Wirth(_.+|Next)?)\\.exe$");
 	auto classicDataDirRegex = Prop!(string)("classicDataDirRegex", "^Data|D_[A-Z]1|[A-Z]_dt$");

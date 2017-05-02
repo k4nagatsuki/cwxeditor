@@ -47,10 +47,11 @@ private:
 
 	Text _name;
 	Combo _skinC;
-	string[] _skinTypes;
+	Tuple!(string, "type", string, "name")[] _skinTypes;
 	Combo _templateC;
 	string _nameVal;
-	string _skinVal = "";
+	string _skinType = "";
+	string _skinName = "";
 	Button _baseSkin;
 	Button _baseTemplate;
 	ScTemplate[int] _tTbl;
@@ -74,9 +75,11 @@ private:
 	void refSkinVal() { mixin(S_TRACE);
 		auto index = _skinC.getSelectionIndex();
 		if (index == _skinC.getItemCount() - 1) { mixin(S_TRACE);
-			_skinVal = "";
+			_skinName = "";
+			_skinType = "";
 		} else { mixin(S_TRACE);
-			_skinVal = _skinTypes[index];
+			_skinName = _skinTypes[index].name;
+			_skinType = _skinTypes[index].type;
 		}
 	}
 	void refClassic() { mixin(S_TRACE);
@@ -108,7 +111,7 @@ private:
 				}
 			}
 		} else { mixin(S_TRACE);
-			_classic = skin.length == 0;
+			_classic = skinType.length == 0;
 		}
 	}
 public:
@@ -132,8 +135,12 @@ public:
 		return _nameVal;
 	}
 	@property
-	string skin() { mixin(S_TRACE);
-		return _skinVal;
+	string skinType() { mixin(S_TRACE);
+		return _skinType;
+	}
+	@property
+	string skinName() { mixin(S_TRACE);
+		return _skinName;
 	}
 	@property
 	Summary fromTemplate() { mixin(S_TRACE);
@@ -212,30 +219,45 @@ protected:
 			_skinC.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			_skinTypes = [];
 			foreach (key, value; skinTable(_prop)) { mixin(S_TRACE);
-				if (!.contains(_skinTypes, value.type)) { mixin(S_TRACE);
-					_skinTypes ~= value.type;
+				_skinTypes ~= typeof(_skinTypes[0])(value.type, value.name);
+			}
+			int skinCmp(in typeof(_skinTypes[0]) skin1, in typeof(_skinTypes[0]) skin2) { mixin(S_TRACE);
+				if (_prop.var.etc.logicalSort) { mixin(S_TRACE);
+					int i = ncmp(skin1.name, skin2.name);
+					if (i == 0) i = ncmp(skin1.type, skin2.type);
+					return i;
+				} else { mixin(S_TRACE);
+					int i = cmp(skin1.name, skin2.name);
+					if (i == 0) i = cmp(skin1.type, skin2.type);
+					return i;
 				}
 			}
-			if (_prop.var.etc.logicalSort) { mixin(S_TRACE);
-				_skinTypes = sort!(ncmp)(_skinTypes);
-			} else { mixin(S_TRACE);
-				_skinTypes = sort!(cmp)(_skinTypes);
+			_skinTypes = sort!(skinCmp)(_skinTypes);
+			int lastIndex = -1;
+			foreach (ref t; _skinTypes) { mixin(S_TRACE);
+				_skinC.add(.tryFormat("%s(%s)", t.name, t.type));
+				if (t.name == _prop.var.etc.lastSkinName && t.type == _prop.var.etc.lastSkinType) { mixin(S_TRACE);
+					lastIndex = _skinC.getItemCount() - 1;
+				}
 			}
-			foreach (type; _skinTypes) { mixin(S_TRACE);
-				_skinC.add(type);
-			}
+			auto defText = .tryFormat("%s(%s)", _prop.var.etc.defaultSkinName, _prop.var.etc.defaultSkin);
 			if (!_skinC.getItemCount()) { mixin(S_TRACE);
 				// スキンが無い
-				_skinC.add(_prop.var.etc.defaultSkin);
-				_skinTypes ~= _prop.var.etc.defaultSkin;
+				_skinC.add(defText);
+				_skinTypes ~= typeof(_skinTypes[0])(_prop.var.etc.defaultSkin, _prop.var.etc.defaultSkinName);
 			}
 			_skinC.add(_prop.msgs.defaultSelection(_prop.msgs.classic));
-			_skinC.setText(_prop.var.etc.defaultSkin);
-			if (_prop.var.etc.targetVersion != "CardWirthPy") {
-				// ターゲットバージョンはクラシック
-				_skinC.select(_skinC.getItemCount() - 1);
-			} else if (_skinTypes) {
-				_skinC.select(0);
+			if (lastIndex == -1) { mixin(S_TRACE);
+				auto defIndex = _skinC.indexOf(defText);
+				_skinC.select(defIndex);
+				if (_prop.var.etc.targetVersion != "CardWirthPy") {
+					// ターゲットバージョンはクラシック
+					_skinC.select(_skinC.getItemCount() - 1);
+				} else if (_skinC.getSelectionIndex() == -1) {
+					_skinC.select(0);
+				}
+			} else {
+				_skinC.select(lastIndex);
 			}
 
 			_baseTemplate = new Button(grp, SWT.RADIO);
@@ -315,6 +337,12 @@ protected:
 			_nameVal = _name.getText();
 			if (!_nameVal.length) _nameVal = _prop.var.etc.newScenarioName;
 
+			auto skinIndex = _skinC.getSelectionIndex();
+			if (0 <= skinIndex && skinIndex < _skinTypes.length) { mixin(S_TRACE);
+				_prop.var.etc.lastSkinName = _skinTypes[skinIndex].name;
+				_prop.var.etc.lastSkinType = _skinTypes[skinIndex].type;
+			}
+
 			auto dir = classicDir;
 			if (legacy) { mixin(S_TRACE);
 				if (dir.exists() && clistdir(dir).length) { mixin(S_TRACE);
@@ -333,14 +361,16 @@ protected:
 				string tPath = _tTbl[_templateC.getSelectionIndex()].path;
 				if (!.exists(tPath)) { mixin(S_TRACE);
 					if (!dir.exists()) mkdirRecurse(dir);
-					summ = new Summary(_nameVal, skin, dir, false, true);
+					summ = new Summary(_nameVal, skinType, skinName, dir, false, true);
 				} else if (.isDir(tPath) && !tPath.buildPath("Summary.wsm").exists() && !tPath.buildPath("Summary.xml").exists()) { mixin(S_TRACE);
 					auto cursors = setWaitCursors(topShell(getShell()));
 					scope (exit) {
 						resetCursors(cursors);
 					}
 					// 非シナリオのディレクトリをベースとする
-					summ = Summary.createScenario(_prop.parent, _prop.tempPath, name, findSkin2(_prop, skin, ""), _prop.var.etc.newAreaName != "", _prop.var.etc.newAreaName, _prop.var.etc.bgImagesDefault);
+					summ = Summary.createScenario(_prop.parent, _prop.tempPath, name,
+						findSkin2(_prop, skinType, skinName), _prop.var.etc.newAreaName != "",
+						_prop.var.etc.newAreaName, _prop.var.etc.bgImagesDefault, _prop.var.etc.saveSkinName);
 					tPath.copyAll(summ.scenarioPath);
 				} else { mixin(S_TRACE);
 					auto cursors = setWaitCursors(topShell(getShell()));
@@ -361,7 +391,9 @@ protected:
 				}
 				if (ok) { mixin(S_TRACE);
 					if (!summ) { mixin(S_TRACE);
-						summ = Summary.createScenario(_prop.parent, _prop.tempPath, name, findSkin2(_prop, skin, ""), _prop.var.etc.newAreaName != "", _prop.var.etc.newAreaName, _prop.var.etc.bgImagesDefault);
+						summ = Summary.createScenario(_prop.parent, _prop.tempPath, name,
+							findSkin2(_prop, skinType, skinName), _prop.var.etc.newAreaName != "",
+							_prop.var.etc.newAreaName, _prop.var.etc.bgImagesDefault, _prop.var.etc.saveSkinName);
 					}
 					summ.setBaseParams(name, _prop.var.etc.defaultAuthor);
 					_prop.var.etc.defaultScenarioTemplate = tPath;

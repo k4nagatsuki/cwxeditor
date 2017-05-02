@@ -122,6 +122,7 @@ class EtcSettings : Composite {
 		boolSetting(comp, prop.var.etc.canVanishWorkAreaInMainWindow, prop.msgs.canVanishWorkAreaInMainWindow);
 
 		comp = createComp(prop.msgs.etcSettingsLoad);
+		boolSetting(comp, prop.var.etc.saveSkinName, prop.msgs.saveSkinName);
 		boolSetting(comp, prop.var.etc.saveNeedChanged, prop.msgs.saveNeedChanged);
 		boolSetting(comp, prop.var.etc.applyDialogsBeforeSave, prop.msgs.applyDialogsBeforeSave);
 		boolSetting(comp, prop.var.etc.doubleIO, prop.msgs.doubleIO);

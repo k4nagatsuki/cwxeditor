@@ -1516,6 +1516,7 @@ struct OldSettings {
 	bool showCurrentValueOnTopAlways;
 	bool drawXORSelectionLine;
 	bool showSceneViewSelectionFilter;
+	bool saveSkinName;
 	this (Props prop) { mixin(S_TRACE);
 		this.prop = prop;
 		this.imageScale = prop.var.etc.imageScale;
@@ -1580,6 +1581,7 @@ struct OldSettings {
 		this.showMessagePreview = prop.var.etc.showMessagePreview;
 		this.stepValueName = prop.var.etc.stepValueName;
 		this.showCurrentValueOnTopAlways = prop.var.etc.showCurrentValueOnTopAlways;
+		this.saveSkinName = prop.var.etc.saveSkinName;
 	}
 	void raiseEvent(Commons comm) { mixin(S_TRACE);
 		bool refSkin = false;
@@ -1785,6 +1787,9 @@ struct OldSettings {
 			} else { mixin(S_TRACE);
 				comm.summary.changed();
 			}
+		}
+		if (this.saveSkinName != prop.var.etc.saveSkinName) { mixin(S_TRACE);
+			comm.summary.changed();
 		}
 	}
 }

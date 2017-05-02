@@ -91,6 +91,7 @@ struct SaveOption {
 	bool archiveInNewThread = false; /// 保存後の圧縮を別スレッドで行うか。
 	bool xmlFileNameIsIDOnly = false; /// XMLファイルの名称をIDのみで設定するか。
 	bool autoUpdateJpy1File = false; /// エフェクトブースターファイル内のパス情報を自動更新する。
+	bool saveSkinName = true; /// スキンタイプに加えてスキン名称も保存するか。
 	void delegate() savedCallback = null; /// 保存完了通知を受け取る場合は設定する。
 }
 
@@ -126,6 +127,7 @@ private:
 	AreaUser _startAreaId; /// スタートエリアのID。
 	// TODO Tag
 	string _type;
+	string _skinName;
 	string _dataVersion = DEFAULT_VERSION;
 	bool _loadScaledImage = false;
 
@@ -192,9 +194,10 @@ private:
 	}
 public:
 	/// シナリオ名、スキン、シナリオのパスを指定してインスタンスを生成。
-	this (string sname, string type, string sPath, bool temp, bool legacy) { mixin(S_TRACE);
+	this (string sname, string type, string skinName, string sPath, bool temp, bool legacy) { mixin(S_TRACE);
 		this(sPath);
 		_type = type;
+		_skinName = skinName;
 		_sname = sname;
 		_legacy = legacy;
 		_useTemp = temp;
@@ -249,14 +252,17 @@ public:
 	}
 
 	/// tempPathにシナリオを新規作成する。
-	static Summary createScenario(in CProps prop, string tempPath, string name, Skin skin, bool createStartArea, string newAreaName, in BgImageS[] bgImagesDefault) { mixin(S_TRACE);
+	static Summary createScenario(in CProps prop, string tempPath, string name, Skin skin,
+			bool createStartArea, string newAreaName, in BgImageS[] bgImagesDefault,
+			bool saveSkinName) { mixin(S_TRACE);
 		auto sys = prop.sys;
 		auto p = Summary.createTempDir(tempPath, name);
 		auto mFPath = std.path.buildPath(p, skin.materialPath);
 		if (!exists(mFPath) || !isDir(mFPath)) std.file.mkdir(mFPath);
-		auto summ = new Summary(name, skin.type, p, true, false);
+		auto summ = new Summary(name, skin.type, skin.name, p, true, false);
 		if (summ.expandXMLs) { mixin(S_TRACE);
 			SaveOption opt;
+			opt.saveSkinName = saveSkinName;
 			summ.saveXMLsImpl(summ.scenarioPath, sys, opt, true);
 		}
 		summ.refCheckPaths();
@@ -486,7 +492,7 @@ public:
 			return r;
 		}
 		Summary loadLegacy(string p) { mixin(S_TRACE);
-			Summary r = loadLScenario(p, "", prop.sys, opt, newName);
+			Summary r = loadLScenario(p, "", "", prop.sys, opt, newName);
 			return r;
 		}
 		Summary createFromTemplate(Summary r) { mixin(S_TRACE);
@@ -1242,7 +1248,9 @@ public:
 		setBaseParams(scenarioName, author);
 	}
 
-	/// シナリオのタイプ。スキンを決定する。
+	/// シナリオの使用するスキンのタイプ。
+	/// skinNameに該当するスキンが見つからなかった時の
+	/// 代替スキンの選択に用いられる。
 	@property
 	const
 	string type() { mixin(S_TRACE);
@@ -1254,6 +1262,19 @@ public:
 		/// クラシックなシナリオの場合はタイプは保存されない
 		if (_type != type && !legacy) changeHandler();
 		_type = type;
+	}
+	/// シナリオの使用するスキン名。タイプよりも優先される。
+	@property
+	const
+	string skinName() { mixin(S_TRACE);
+		return _skinName;
+	}
+	/// ditto
+	@property
+	void skinName(string skinName) { mixin(S_TRACE);
+		/// クラシックなシナリオの場合はタイプは保存されない
+		if (_skinName != skinName && !legacy) changeHandler();
+		_skinName = skinName;
 	}
 
 	/// 貼紙の画像。
@@ -1846,7 +1867,8 @@ public:
 		rc.newAttr("number", _rCouponNum);
 		pNode.newElement("StartAreaId", _startAreaId.area);
 		pNode.newElement("Tags");
-		pNode.newElement("Type", _type);
+		auto eType = pNode.newElement("Type", _type);
+		if (opt.saveSkinName) eType.newAttr("skinname", _skinName);
 		flagDirRoot.toNodeAll(root);
 		root.newElement("Labels");
 		auto et = root.newElement("EventTemplates");
@@ -1875,6 +1897,7 @@ public:
 		opt.skill = (id) => this.skill(id);
 		opt.item = (id) => this.item(id);
 		opt.beast = (id) => this.beast(id);
+		opt.saveSkinName = saveOpt.saveSkinName;
 
 		string e = "";
 		string[string] s = ["Summary.xml":summaryToXML(opt)];
@@ -1946,6 +1969,7 @@ public:
 		xOpt.skill = (id) => skill(id);
 		xOpt.item = (id) => item(id);
 		xOpt.beast = (id) => beast(id);
+		xOpt.saveSkinName = opt.saveSkinName;
 		std.file.write(summFile, summaryToXML(xOpt));
 
 		HashSet!Object changed = null;
@@ -2056,7 +2080,10 @@ public:
 				propNode.onTag["StartAreaId"] = (ref XNode node) { mixin(S_TRACE);
 					summ._startAreaId.area = node.valueTo!(ulong);
 				};
-				propNode.onTag["Type"] = (ref XNode node) {summ._type = node.value;};
+				propNode.onTag["Type"] = (ref XNode node) { mixin(S_TRACE);
+					summ._type = node.value;
+					summ._skinName = node.attr("skinname", false, "");
+				};
 				propNode.parse();
 				summ.imagePaths = paths;
 				summ.rCoupons = rCoupons;
@@ -2203,7 +2230,7 @@ public:
 		auto sys = prop.sys;
 		Summary summ;
 		if (legacy) { mixin(S_TRACE);
-			summ = loadLScenario(scenarioPath, "", sys, opt, scenarioName);
+			summ = loadLScenario(scenarioPath, "", "", sys, opt, scenarioName);
 		} else { mixin(S_TRACE);
 			summ = summaryFromXML(sys, scenarioPath,
 				std.file.readText(std.path.buildPath(scenarioPath, "Summary.xml")));
@@ -2507,6 +2534,7 @@ public:
 			bool toX = false;
 			if (this.legacy) { mixin(S_TRACE);
 				if (type == "") type = defSkin.type;
+				if (skinName == "") skinName = defSkin.name;
 				sPath = classicToX(prop, temp, tempPath, defSkin, copyFail);
 				toX = true;
 				_legacy = false;
@@ -2522,8 +2550,9 @@ public:
 			assert (!useTemp);
 			string zipName = "";
 			saveProc(prop, skin, opt2, useTemp, zipName, temp, sPath, false, false, defExpandXMLs, true, { mixin(S_TRACE);
-				if (!type.length) { mixin(S_TRACE);
-					type = defSkin.type;
+				if (type == "" || skinName == "") { mixin(S_TRACE);
+					if (type == "") type = defSkin.type;
+					if (skinName == "") skinName = defSkin.name;
 					resetChanged();
 				}
 			});
@@ -2537,7 +2566,8 @@ public:
 				showWarn(.tryFormat(prop.msgs.fileCopyError, fail));
 			}
 			scope (failure) delAll(temp);
-			if (!type.length) type = defSkin.type;
+			if (type == "") type = defSkin.type;
+			if (skinName == "") skinName = defSkin.name;
 			saveProc(prop, skin, opt2, true, fname, temp, scenarioPath, legacy, true, defExpandXMLs, true);
 		} else if (useTemp) { mixin(S_TRACE);
 			// 新しいアーカイブを作成
@@ -2625,6 +2655,7 @@ public:
 				_tempPath = temp;
 				_legacy = true;
 				_type = "";
+				_skinName = "";
 			} else if (archive || useTemp || (archive && legacyToX)) { mixin(S_TRACE);
 				auto oldPath = scenarioPath;
 				if (expandXMLs || !archive) { mixin(S_TRACE);

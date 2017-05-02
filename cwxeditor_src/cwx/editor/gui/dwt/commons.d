@@ -48,21 +48,23 @@ import core.sync.mutex;
 
 import org.eclipse.swt.all;
 
-Skin findSkin(Commons comm, Props prop, in Summary summ, string type = null, string name = "", string legacyEngine = "", bool appendClassicSkin = true) { mixin(S_TRACE);
+Skin findSkin(Commons comm, Props prop, in Summary summ, string type = null, string name = null, string legacyEngine = "", bool appendClassicSkin = true) { mixin(S_TRACE);
 	auto legacy = summ ? summ.legacy : false;
 	auto sPath = summ ? (summ.useTemp ? summ.origZipName : summ.scenarioPath) : "";
 	if (type is null) type = summ ? summ.type : "";
+	if (name is null) name = summ ? summ.skinName : "";
 	return findSkin(comm, prop, summ, legacy, sPath, type, name, legacyEngine, appendClassicSkin);
 }
 
-Skin findSkin(Commons comm, Props prop, in Summary summ, bool legacy, string sPath, string type, string name = "", string legacyEngine = "", bool appendClassicSkin = true) { mixin(S_TRACE);
+Skin findSkin(Commons comm, Props prop, in Summary summ, bool legacy, string sPath, string type, string name = null, string legacyEngine = "", bool appendClassicSkin = true) { mixin(S_TRACE);
 	if (summ) { mixin(S_TRACE);
 		findCWPy(prop, sPath);
 	}
 	if (!summ) { mixin(S_TRACE);
-		return findSkin2(prop, prop.var.etc.defaultSkin, "");
+		return findSkin2(prop, prop.var.etc.defaultSkin, prop.var.etc.defaultSkinName);
 	}
 	if (type is null) type = summ.type;
+	if (name is null) name = summ ? summ.skinName : "";
 	if (legacy && !type.length) { mixin(S_TRACE);
 		if (legacyEngine.length) { mixin(S_TRACE);
 			auto lEngine = prop.toAppAbs(legacyEngine);

@@ -58,13 +58,15 @@ private struct RData {
 	const System sys;
 	bool cardOnly;
 	string sPath;
-	string skin;
+	string skinType;
+	string skinName;
 	int dataVersion;
-	this (const System sys, bool cardOnly, string sPath, string skin) { mixin(S_TRACE);
+	this (const System sys, bool cardOnly, string sPath, string skinType, string skinName) { mixin(S_TRACE);
 		this.sys = sys;
 		this.cardOnly = cardOnly;
 		this.sPath = sPath;
-		this.skin = skin;
+		this.skinType = skinType;
+		this.skinName = skinName;
 		this.dataVersion = 0;
 	}
 }
@@ -72,14 +74,14 @@ private struct RData {
 /// Params:
 /// newName = シナリオ名。null以外が指定された場合、
 ///           Summary.wsmが存在しない際はこの名前で新規に作成する。
-Summary loadLScenario(string p, string skin, const System sys, in LoadOption opt, string newName = null) { mixin(S_TRACE);
+Summary loadLScenario(string p, string skinType, string skinName, const System sys, in LoadOption opt, string newName = null) { mixin(S_TRACE);
 	auto sPath = p;
 	string summPath = std.path.buildPath(p, "Summary.wsm");
 	Summary summ;
 	RData* d;
 	ulong startAreaId;
 	if (.exists(summPath)) { mixin(S_TRACE);
-		d = new RData(sys, opt.cardOnly, sPath, skin);
+		d = new RData(sys, opt.cardOnly, sPath, skinType, skinName);
 		{ mixin(S_TRACE);
 			ubyte* ptr = null;
 			auto bytes = ByteIO(readBinaryFrom!ubyte(summPath, ptr));
@@ -88,8 +90,8 @@ Summary loadLScenario(string p, string skin, const System sys, in LoadOption opt
 		}
 	} else { mixin(S_TRACE);
 		if (!newName) throw new SummaryException("Not Scenario: " ~ p);
-		d = new RData(sys, opt.cardOnly, sPath, skin);
-		summ = new Summary(newName, d.skin, d.sPath, false, true);
+		d = new RData(sys, opt.cardOnly, sPath, skinType, skinName);
+		summ = new Summary(newName, d.skinType, d.skinName, d.sPath, false, true);
 	}
 	class Load {
 		Area[] areas;
@@ -708,7 +710,7 @@ private string[] readStrings(ref ByteIO f) { mixin(S_TRACE);
 private Summary loadSummary(ref RData d, ref ByteIO f, out ulong startAreaId) { mixin(S_TRACE);
 	string img = readImage(d, f);
 	byte b;
-	auto summ = new Summary(readString(f), d.skin, d.sPath, false, true);
+	auto summ = new Summary(readString(f), d.skinType, d.skinName, d.sPath, false, true);
 	summ.imagePaths = img.length ? [new CardImage(img, CardImagePosition.Default)] : [];
 	summ.desc = readString(f, true);
 	summ.author = readString(f);
@@ -2152,7 +2154,7 @@ private InfoCard loadInfo(ref RData d, ref ByteIO f, ulong fid) { mixin(S_TRACE)
 
 /// パーティ見出しデータ(*.wpl)からパーティ名を取得する。
 string readPartyName(const System sys, string wpl) { mixin(S_TRACE);
-	auto d = RData(sys, false, "", "");
+	auto d = RData(sys, false, "", "", "");
 	ubyte* ptr = null;
 	auto f = ByteIO(readBinaryFrom!ubyte(wpl, ptr));
 	scope (exit) freeAll(ptr);
@@ -2165,7 +2167,7 @@ string readPartyName(const System sys, string wpl) { mixin(S_TRACE);
 
 /// 宿情報(Environment.wyd)からデバッグ宿か否かを取得する。
 bool isDebugYado(const System sys, string yadoDir) { mixin(S_TRACE);
-	auto d = RData(sys, false, "", "");
+	auto d = RData(sys, false, "", "", "");
 	auto env = yadoDir.buildPath("Environment.wyd");
 	ubyte* ptr = null;
 	auto f = ByteIO(readBinaryFrom!ubyte(env, ptr));

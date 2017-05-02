@@ -32,6 +32,7 @@ class XMLOption {
 	const(BeastCard) delegate(ulong) beast = null; /// IDから召喚獣カードを取得。
 	uint[ulong] nestCount; /// 召喚獣カードのCWXパスとネストされた回数。
 	bool shallow = false; /// イベントコンテントのコピーの際、子コンテントを無視する。
+	bool saveSkinName = true; /// スキンタイプに加えてスキン名称も保存するか。
 
 	/// インスタンスを生成する。
 	this (const System sys, string dataVersion) { mixin(S_TRACE);

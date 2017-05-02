@@ -45,7 +45,8 @@ struct LaunchOption {
 	bool create = false;
 	bool createclassic = false;
 	string createName = null;
-	string createSkin = null;
+	string createSkinType = null;
+	string createSkinName = null;
 	string createclassicPath = "";
 	string[] openPaths = [];
 	string scenario = null;
@@ -82,8 +83,9 @@ struct LaunchOption {
 				case "-create": // 起動と同時に新規作成
 					create = true;
 					if (i + 1 < args.length) createName = args[i + 1];
-					if (i + 2 < args.length) createSkin = args[i + 2];
-					sc = i + 3u;
+					if (i + 2 < args.length) createSkinType = args[i + 2];
+					if (i + 3 < args.length) createSkinName = args[i + 3];
+					sc = i + 4u;
 					i += 2;
 					break;
 				case "-createclassic": // 起動と同時に新規作成(クラシック)
