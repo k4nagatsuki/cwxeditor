@@ -1188,8 +1188,9 @@ class MaterialSelect(MtType Type, D, C) {
 				string p = currentDir;
 				if (!p) return;
 				if (0 == _fileList.getItemCount()) return;
+				refreshList();
 				_fileList.select(0);
-				path2(std.path.buildPath(p, _fileList.getItem(0)), true, false, -1, true);
+				path2(std.path.buildPath(p, _fileList.getItem(0)), false, false, -1, true);
 			} else { mixin(S_TRACE);
 				refreshList();
 			}
