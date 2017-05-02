@@ -1659,6 +1659,7 @@ class Skin {
 			_spChars = spCharsInit;
 			auto fd = std.path.buildPath(resourceDir, "Font");
 			foreach (path; clistdir(fd)) { mixin(S_TRACE);
+				if (path.noScaledPath != "") continue;
 				path = std.path.buildPath(fd, path);
 				if (!isDir(path) && .isImageExt(path)) { mixin(S_TRACE);
 					auto dp = toUTF32(stripExtension(baseName(path)));

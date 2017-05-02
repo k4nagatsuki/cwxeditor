@@ -420,7 +420,7 @@ class EventEditor : Composite {
 						break;
 					}
 				}
-				if (update || branch || (_comm.prop.var.etc.showVariableValuesInEventText && c.parent && c.parent.detail.nextType is CNextType.TEXT)) { mixin(S_TRACE);
+				if (update || branch || (c.parent && c.parent.detail.nextType is CNextType.TEXT)) { mixin(S_TRACE);
 					auto s = .eventText(_comm, _summ, c.parent, c, !(getStyle() & SWT.READ_ONLY));
 					_pos[i].eventText = s;
 					if (c.name == "" && c.parent && c.parent.detail.nextType is CNextType.TEXT) { mixin(S_TRACE);
