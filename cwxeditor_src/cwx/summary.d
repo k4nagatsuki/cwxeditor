@@ -201,6 +201,7 @@ public:
 		_sname = sname;
 		_legacy = legacy;
 		_useTemp = temp;
+		if (!_legacy) _loadScaledImage = true;
 		if (_useTemp) { mixin(S_TRACE);
 			_tempPath = _sPath;
 			lock(_tempPath, _useTemp);
