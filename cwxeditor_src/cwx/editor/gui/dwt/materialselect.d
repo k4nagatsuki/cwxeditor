@@ -1759,7 +1759,7 @@ private:
 			_tbl = cast(int)items.length;
 			items ~= _prop.msgs.defaultSelection(_prop.msgs.pathDef);
 		}
-		if (hasWsnTarg(forceRefresh, noCardSize)) { mixin(S_TRACE);
+		if ((!_summ || !_summ.legacy) && hasWsnTarg(forceRefresh, noCardSize)) { mixin(S_TRACE);
 			_tblEngine = cast(int)items.length;
 			auto wsnVer = _summ ? _summ.dataVersion : LATEST_VERSION;
 			auto verName = VERSION_NAMES[.cCountUntil(VERSIONS, wsnVer)];
