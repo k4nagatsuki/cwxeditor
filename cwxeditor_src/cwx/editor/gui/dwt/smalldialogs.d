@@ -247,16 +247,18 @@ protected:
 				_skinTypes ~= typeof(_skinTypes[0])(_prop.var.etc.defaultSkin, _prop.var.etc.defaultSkinName);
 			}
 			_skinC.add(_prop.msgs.defaultSelection(_prop.msgs.classic));
-			if (lastIndex == -1) { mixin(S_TRACE);
+
+			if (_prop.var.etc.targetVersion != "CardWirthPy") {
+				// ターゲットバージョンはクラシック
+				_skinC.select(_skinC.getItemCount() - 1);
+			} else if (lastIndex == -1) { mixin(S_TRACE);
 				auto defIndex = _skinC.indexOf(defText);
-				_skinC.select(defIndex);
-				if (_prop.var.etc.targetVersion != "CardWirthPy") {
-					// ターゲットバージョンはクラシック
-					_skinC.select(_skinC.getItemCount() - 1);
-				} else if (_skinC.getSelectionIndex() == -1) {
+				if (defIndex == -1) { mixin(S_TRACE);
 					_skinC.select(0);
+				} else { mixin(S_TRACE);
+					_skinC.select(defIndex);
 				}
-			} else {
+			} else { mixin(S_TRACE);
 				_skinC.select(lastIndex);
 			}
 
