@@ -2072,7 +2072,7 @@ class Msgs : Properties {
 
 	auto soundPlayType = Msg("soundPlayType", "BGM再生方式");
 	auto soundPlayTypeDef = Msg("soundPlayTypeDef", "自動選択");
-	auto soundPlayTypeSDL = Msg("soundPlayTypeSDL", "SDL(CardWirthPy方式)");
+	auto soundPlayTypeSDL = Msg("soundPlayTypeSDL", "SDL_mixer(旧方式)");
 	auto soundPlayTypeMCI = Msg("soundPlayTypeMCI", "WinMM(CardWirth方式)");
 	auto soundPlayTypeApp = Msg("soundPlayTypeApp", "関連付けされたアプリケーションで開く");
 	auto soundEffectPlayType = Msg("soundEffectPlayType", "効果音再生方式");
