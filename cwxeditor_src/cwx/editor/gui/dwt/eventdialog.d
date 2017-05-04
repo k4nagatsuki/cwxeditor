@@ -240,7 +240,9 @@ private class RangePanel : Composite {
 		setLayout(new FillLayout);
 		auto grp = new Group(this, SWT.NONE);
 		grp.setText(title);
-		grp.setLayout(new CenterLayout);
+		auto cl = new CenterLayout;
+		cl.fillHorizontal = true;
+		grp.setLayout(cl);
 		auto mainComp = new Composite(grp, SWT.NONE);
 		if (horizontal) { mixin(S_TRACE);
 			mainComp.setLayout(zeroMarginGridLayout(cast(int)ranges.length, false));
