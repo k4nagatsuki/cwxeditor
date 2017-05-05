@@ -1068,14 +1068,11 @@ class Commons {
 		}
 		return r;
 	}
-	EventView[] eventViewsFrom(string cwxPath, bool shellActivate) { mixin(S_TRACE);
-		if (!mainWin.summary) return [];
-		auto a = mainWin.summary.findCWXPath(cwxPath);
-		if (!a) return [];
+	EventView[] eventViewsFrom(in CWXPath path, bool shellActivate) { mixin(S_TRACE);
 		EventView[] r;
 		foreach (w; _ws) { mixin(S_TRACE);
 			auto tlpData = (cast(TLPData)w.getData());
-			if (tlpData.main is cast(Object)a) { mixin(S_TRACE);
+			if (tlpData.main is cast(Object)path) { mixin(S_TRACE);
 				if (auto ew = cast(EventWindow)tlpData.tlp) {
 					r ~= ew.eventView;
 				}
@@ -1083,21 +1080,12 @@ class Commons {
 		}
 		return r;
 	}
-	EventTreeView[] eventTreeViewFrom(string cwxPath, bool shellActivate) { mixin(S_TRACE);
-		if (!mainWin.summary) return null;
-		auto a = mainWin.summary.findCWXPath(cwxPath);
-		if (!a) return [];
-		auto et = cast(EventTree)a;
-		if (!et) return [];
-		auto eto = et.owner;
-		auto spc = cast(AbstractSpCard)eto;
-		if (spc) eto = spc.abstractOwner;
-		auto pce = cast(PlayerCardEvents)eto;
-		if (pce) eto = pce.owner;
+	EventTreeView[] eventTreeViewFrom(in EventTree et, bool shellActivate) { mixin(S_TRACE);
+		auto owner = et.owner;
 		EventTreeView[] r;
 		foreach (w; _ws) { mixin(S_TRACE);
 			auto tlpData = (cast(TLPData)w.getData());
-			if (tlpData.main is cast(Object)eto) { mixin(S_TRACE);
+			if (tlpData.main is cast(Object)owner) { mixin(S_TRACE);
 				auto ew = cast(EventWindow)tlpData.tlp;
 				if (ew) r ~= ew.eventTreeView;
 			}

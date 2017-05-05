@@ -263,7 +263,7 @@ private:
 			_selPath = _selPath2;
 		}
 		protected EventView[] views() { mixin(S_TRACE);
-			return comm.eventViewsFrom(area.cwxPath(true), false);
+			return comm.eventViewsFrom(area, false);
 		}
 	}
 	static class UndoSeq : EVUndo {
@@ -567,7 +567,7 @@ private:
 	}
 
 	private EventView[] views() { mixin(S_TRACE);
-		auto vs = _comm.eventViewsFrom(_area.cwxPath(true), false);
+		auto vs = _comm.eventViewsFrom(_area, false);
 		foreach (v; vs) { mixin(S_TRACE);
 			if (v.setupToolBar()) _comm.refreshToolBar();
 		}

@@ -400,7 +400,7 @@ private:
 			_selPath = _selPath2;
 		}
 		EventTreeView[] views() { mixin(S_TRACE);
-			return comm.eventTreeViewFrom(et.cwxPath(true), false);
+			return comm.eventTreeViewFrom(et, false);
 		}
 		abstract override void undo();
 		abstract override void redo();
@@ -683,7 +683,7 @@ private:
 	}
 
 	private EventTreeView[] views() { mixin(S_TRACE);
-		return _comm.eventTreeViewFrom(_et.cwxPath(true), false);
+		return _comm.eventTreeViewFrom(_et, false);
 	}
 
 	private EventDialog[string] _editDlgs;
