@@ -16,6 +16,7 @@ import cwx.textholder;
 import cwx.system;
 import cwx.summary;
 import cwx.flag;
+import cwx.structs;
 
 import std.algorithm;
 import std.datetime;
@@ -900,7 +901,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		}
 	}
 	/// コンテントの型を変換。
-	void convertType(CType type, in CProps prop) { mixin(S_TRACE);
+	void convertType(CType type, in CProps prop, DialogStatus dialogStatus) { mixin(S_TRACE);
 		if (!canConvert(type)) throw new Exception("can not convert: " ~ prop.msgs.contentName(type));
 		if (_type == type) return;
 		changed();
@@ -1025,6 +1026,32 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.REF_ABILITY, bool, false)(d, &refAbility);
 
 		resetValue!(CArg.MOTIONS, Motion[], [])(d, &motions);
+
+		// セリフ・メッセージ間の変換
+		if (d.use(CArg.TEXT) && !d.use(CArg.DIALOGS) && dialogs.length) { mixin(S_TRACE);
+			auto text = "";
+			final switch (dialogStatus) {
+			case DialogStatus.Top:
+				text = dialogs[0].text;
+				break;
+			case DialogStatus.Under:
+				text = dialogs[$ - 1].text;
+				break;
+			case DialogStatus.UnderWithCoupon:
+				auto exists = false;
+				foreach_reverse (dlg; dialogs) { mixin(S_TRACE);
+					if (dlg.rCoupons.length) { mixin(S_TRACE);
+						text = dlg.text;
+						exists = true;
+					}
+				}
+				if (!exists) text = dialogs[$ - 1].text;
+				break;
+			}
+			this.text = text;
+		} else if (d.use(CArg.DIALOGS) && !d.use(CArg.TEXT)) { mixin(S_TRACE);
+			dialogs = [new SDialog(text)];
+		}
 
 		resetValue!(CArg.TEXT, string, "")(d, &text);
 		resetValue!(CArg.DIALOGS, SDialog[], [])(d, &dialogs);

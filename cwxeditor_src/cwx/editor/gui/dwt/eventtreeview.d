@@ -190,12 +190,12 @@ private:
 			_comm.delContent.call(c);
 			assert (c.canConvert(type), "convert menu item enabled");
 			auto oldd = c.detail;
-			c.convertType(type, _prop.parent);
+			c.convertType(type, _prop.parent, .toDialogStatus(_prop.var.etc.dialogStatus));
 			auto newd = c.detail;
 			if (newd.use(CArg.BG_IMAGES) && !oldd.use(CArg.BG_IMAGES)) { mixin(S_TRACE);
 				c.backs = createBgImages(summSkin, _prop.var.etc.bgImagesDefault);
 			}
-			if (newd.use(CArg.DIALOGS) && !oldd.use(CArg.DIALOGS)) { mixin(S_TRACE);
+			if (newd.use(CArg.DIALOGS) && !c.dialogs.length) { mixin(S_TRACE);
 				c.dialogs = [new SDialog];
 			}
 			auto img = _prop.images.content(type);
@@ -2211,11 +2211,11 @@ public:
 			auto c = cast(Content)itm.getData();
 			switch (c.type) {
 			case CType.LINK_START: { mixin(S_TRACE);
-				c.convertType(CType.LINK_PACKAGE, _prop.parent);
+				c.convertType(CType.LINK_PACKAGE, _prop.parent, .toDialogStatus(_prop.var.etc.dialogStatus));
 				c.packages = id;
 			} break;
 			case CType.CALL_START: { mixin(S_TRACE);
-				c.convertType(CType.CALL_PACKAGE, _prop.parent);
+				c.convertType(CType.CALL_PACKAGE, _prop.parent, .toDialogStatus(_prop.var.etc.dialogStatus));
 				c.packages = id;
 			} break;
 			default: assert (0);

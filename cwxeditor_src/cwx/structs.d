@@ -33,6 +33,17 @@ enum DialogStatus {
 	UnderWithCoupon = 2, /// 最下位(条件クーポンあり)を表示。
 }
 
+DialogStatus toDialogStatus(int dialogStatus) { mixin(S_TRACE);
+	switch (dialogStatus) {
+	case DialogStatus.Top:
+	case DialogStatus.Under:
+	case DialogStatus.UnderWithCoupon:
+		return cast(DialogStatus)dialogStatus;
+	default:
+		return DialogStatus.Top;
+	}
+}
+
 /// 編集開始方法。
 enum EditTrigger {
 	Quick = 0, /// 2度のクリックで即編集開始。
