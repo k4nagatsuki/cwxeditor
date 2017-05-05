@@ -105,11 +105,8 @@ public:
 	}
 	/// このカードの所属先を返す。
 	@property
-	AbstractArea abstractOwner();
-	/// ditto
-	@property
-	const
-	const(AbstractArea) abstractOwner();
+	inout
+	inout(AbstractArea) abstractOwner();
 
 	/// ディープコピーを返す。
 	@property
@@ -310,23 +307,15 @@ public:
 		}
 	}
 	@property
-	override AbstractArea abstractOwner() { mixin(S_TRACE);
-		return _owner;
-	}
-	@property
-	const
-	override const(AbstractArea) abstractOwner() { mixin(S_TRACE);
+	override
+	inout
+	inout(AbstractArea) abstractOwner() { mixin(S_TRACE);
 		return _owner;
 	}
 	/// このカードの所属先を返す。
 	@property
-	Battle owner() { mixin(S_TRACE);
-		return _owner;
-	}
-	/// ditto
-	@property
-	const
-	const(Battle) owner() { mixin(S_TRACE);
+	inout
+	inout(Battle) owner() { mixin(S_TRACE);
 		return _owner;
 	}
 
@@ -507,23 +496,15 @@ public:
 		}
 	}
 	@property
-	override AbstractArea abstractOwner() { mixin(S_TRACE);
-		return _owner;
-	}
-	@property
-	const
-	override const(AbstractArea) abstractOwner() { mixin(S_TRACE);
+	override
+	inout
+	inout(AbstractArea) abstractOwner() { mixin(S_TRACE);
 		return _owner;
 	}
 	/// このカードの所属先を返す。
 	@property
-	Area owner() { mixin(S_TRACE);
-		return _owner;
-	}
-	/// ditto
-	@property
-	const
-	const(Area) owner() { mixin(S_TRACE);
+	inout
+	inout(Area) owner() { mixin(S_TRACE);
 		return _owner;
 	}
 

@@ -43,6 +43,7 @@ import std.conv;
 import std.exception;
 import std.path;
 import std.file;
+import std.typecons;
 
 import core.sync.mutex;
 
@@ -361,8 +362,8 @@ class Commons {
 	Dlg!(InfoCard) delInfo;
 	Dlg!(FlagDir[]) refFlagDir;
 	Dlg!(FlagDir[]) delFlagDir;
-	Dlg!(Flag[], Step[]) refFlagAndStep;
-	Dlg!(Flag[], Step[]) delFlagAndStep;
+	Dlg!(cwx.flag.Flag[], Step[]) refFlagAndStep;
+	Dlg!(cwx.flag.Flag[], Step[]) delFlagAndStep;
 	Dlg!() replText;
 	Dlg!() replID;
 	Dlg!() refIgnorePaths;
@@ -1081,7 +1082,9 @@ class Commons {
 		return r;
 	}
 	EventTreeView[] eventTreeViewFrom(in EventTree et, bool shellActivate) { mixin(S_TRACE);
-		auto owner = et.owner;
+		auto owner = .rebindable(et.owner);
+		if (auto c = cast(AbstractSpCard)owner) owner = c.abstractOwner;
+		if (auto c = cast(PlayerCardEvents)owner) owner = c.owner;
 		EventTreeView[] r;
 		foreach (w; _ws) { mixin(S_TRACE);
 			auto tlpData = (cast(TLPData)w.getData());
