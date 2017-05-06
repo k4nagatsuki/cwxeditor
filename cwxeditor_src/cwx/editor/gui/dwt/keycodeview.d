@@ -236,7 +236,7 @@ class KeyCodeView : Composite {
 	}
 	bool appendFromNode(ref XNode node, int index, bool force) { mixin(S_TRACE);
 		if (node.name != KEY_CODES_XML_NAME) return false;
-		if (!force && _summ.legacy && _prop.looks.keyCodesMaxLegacy <= _keyCodes.getItemCount()) return false;
+		if (!force && _summ && _summ.legacy && _prop.looks.keyCodesMaxLegacy <= _keyCodes.getItemCount()) return false;
 		auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
 		auto keyCodes = keyCodesFromNode(node, ver);
 		if (!keyCodes.length) return false;
@@ -246,7 +246,7 @@ class KeyCodeView : Composite {
 		storeKeyCodes();
 		TableItem[] itms = [];
 		foreach (keyCode; keyCodes) { mixin(S_TRACE);
-			if (!force && _summ.legacy && _prop.looks.keyCodesMaxLegacy <= _keyCodes.getItemCount()) break;
+			if (!force && _summ && _summ.legacy && _prop.looks.keyCodesMaxLegacy <= _keyCodes.getItemCount()) break;
 			itms ~= append(keyCode, index);
 			index++;
 		}
@@ -339,7 +339,7 @@ class KeyCodeView : Composite {
 		}
 		@property
 		bool canDoP() { mixin(S_TRACE);
-			return !_readOnly && CBisXML(_comm.clipboard) && (!_summ.legacy || _keyCodes.getItemCount() < _prop.looks.keyCodesMaxLegacy);
+			return !_readOnly && CBisXML(_comm.clipboard) && (!_summ || !_summ.legacy || _keyCodes.getItemCount() < _prop.looks.keyCodesMaxLegacy);
 		}
 		@property
 		bool canDoD() { mixin(S_TRACE);

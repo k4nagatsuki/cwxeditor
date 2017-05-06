@@ -27,13 +27,13 @@ import std.typecons : Tuple;
 
 /// pathの内容を調査し、警告すべき点があればメッセージ群を返す。
 string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path, string targVer) { mixin(S_TRACE);
-	if (!summ.legacy) targVer = "";
+	if (!summ || !summ.legacy) targVer = "";
 	auto wsnVer = summ ? summ.dataVersion : LATEST_VERSION;
 	auto sPath = summ ? summ.scenarioPath : "";
 	auto froot = summ ? summ.flagDirRoot : null;
 	string[] r;
 
-	auto psumm = cast(Summary) path;
+	auto psumm = cast(Summary)path;
 	if (psumm) { mixin(S_TRACE);
 		bool warnPos = false;
 		foreach (imagePath; psumm.imagePaths) { mixin(S_TRACE);
@@ -798,16 +798,16 @@ TextWarnings textWarnings(in CProps prop, in Skin skin, in Summary summ, string 
 	string[] all = [];
 	string[] noDup = [];
 
-	auto sPath = summ.scenarioPath;
+	auto sPath = summ ? summ.scenarioPath : "";
 	auto spChars = skin.spChars;
-	auto froot = summ.flagDirRoot;
-	auto wsnVer = summ.dataVersion;
+	auto froot = summ ? summ.flagDirRoot : null;
+	auto wsnVer = summ ? summ.dataVersion : LATEST_VERSION;
 
 	foreach (font; fonts) { mixin(S_TRACE);
 		dchar c = decodeFontPath(font);
 		if (c in spChars) continue;
 		bool put = false;
-		if (summ.legacy && !.isSJIS1ByteChar(c)) { mixin(S_TRACE);
+		if (summ && summ.legacy && !.isSJIS1ByteChar(c)) { mixin(S_TRACE);
 			auto msg = .tryFormat(prop.msgs.searchErrorSPFontIsNotSJIS1ByteChar, .tryFormat("#%s", c));
 			all ~= msg;
 			if (!wFonts.get(font, false)) { mixin(S_TRACE);

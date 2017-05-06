@@ -219,7 +219,7 @@ PileImage createMessageImage(Commons comm, Props prop) { mixin(S_TRACE);
 	string[char] names;
 	VarValue[string] flags, steps, sysSteps;
 	// 特殊文字が無いためシナリオパス不要
-	auto imgData = previewMessage(comm, prop, "", null, null, "", [""], names, flags, steps, sysSteps, false, false, false, false);
+	auto imgData = previewMessage(comm, prop, null, null, null, "", [""], names, flags, steps, sysSteps, false, false, false, false);
 	auto img = new PileImage(imgData, rect.x, rect.y, imgData.width, imgData.height, false, true);
 	img.layer = LAYER_MESSAGE * 10 - 1;
 	img.alpha = prop.var.etc.messageAlpha;

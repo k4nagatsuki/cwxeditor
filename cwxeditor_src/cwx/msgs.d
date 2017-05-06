@@ -382,6 +382,10 @@ class Msgs : Properties {
 	/// イベント設定。
 	auto dlgTitContent = Msg("dlgTitContent", "イベントの設定 [ %1$s ]");
 
+	auto contentInitializer = Msg("contentInitializer", "コンテントの初期値");
+	auto baseInitializers = Msg("baseInitializers", "基本");
+	auto editedInitializer = Msg("editedInitializer", "*");
+
 	auto afterClear = Msg("afterClear", "シナリオ終了後");
 	auto afterClearEndMark = Msg("afterClearEndMark", "シナリオに済印を付ける");
 	auto afterClearNoEndMark = Msg("afterClearNoEndMark", "何もしない");
@@ -2504,8 +2508,8 @@ class Msgs : Properties {
 	auto menuTextExpand = Msg("menuTextExpand", "ツリーを開く");
 	auto menuTextCollapse = Msg("menuTextCollapse", "ツリーを閉じる");
 	auto menuTextSelectCurrentEvent = Msg("menuTextSelectCurrentEvent", "表示中のイベントを選択");
-	auto menuTextResetPreviewValues = Msg("menuTextResetPreviewValues", "初期値に戻す");
-	auto menuTextResetPreviewValuesAll = Msg("menuTextResetPreviewValuesAll", "全て初期値に戻す");
+	auto menuTextResetValues = Msg("menuTextResetValues", "初期値に戻す");
+	auto menuTextResetValuesAll = Msg("menuTextResetValuesAll", "全て初期値に戻す");
 	auto menuTextCustomizeToolBar = Msg("menuTextCustomizeToolBar", "ツールバーの編集");
 	auto menuTextAddTool = Msg("menuTextAddTool", "追加");
 	auto menuTextAddToolBar = Msg("menuTextAddToolBar", "バーの追加");

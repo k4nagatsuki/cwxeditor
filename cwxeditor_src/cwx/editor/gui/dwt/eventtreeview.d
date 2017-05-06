@@ -39,6 +39,7 @@ import cwx.editor.gui.dwt.smalldialogs;
 import cwx.editor.gui.dwt.eventeditor;
 import cwx.editor.gui.dwt.eventview;
 import cwx.editor.gui.dwt.chooser;
+import cwx.editor.gui.dwt.contentinitializer;
 
 import std.algorithm;
 import std.array : array, replace, replicate;
@@ -864,23 +865,6 @@ private:
 		}
 	}
 
-	bool hasDialog(CType type) { mixin(S_TRACE);
-		switch (type) {
-		case CType.START:
-		case CType.END_BAD_END:
-		case CType.EFFECT_BREAK:
-		case CType.ELAPSE_TIME:
-		case CType.BRANCH_AREA:
-		case CType.BRANCH_BATTLE:
-		case CType.BRANCH_IS_BATTLE:
-		case CType.SHOW_PARTY:
-		case CType.HIDE_PARTY:
-		case CType.BRANCH_MULTI_RANDOM:
-			return false;
-		default:
-			return true;
-		}
-	}
 	bool checkOpenDialog(CType type) { mixin(S_TRACE);
 		if (_readOnly) return false;
 		switch (type) {
@@ -923,18 +907,26 @@ private:
 			_comm.refreshToolBar();
 		}
 		void initial(Content c) { mixin(S_TRACE);
-			if (type is CType.CHANGE_BG_IMAGE) { mixin(S_TRACE);
-				c.backs = createBgImages(summSkin, _prop.var.etc.bgImagesDefault);
-			} else if (type is CType.TALK_DIALOG) { mixin(S_TRACE);
-				c.dialogs = [new SDialog];
-				if (_prop.isTargetVersion(_summ, "2")) c.boundaryCheck = true;
-			} else if (type is CType.BRANCH_SKILL || type is CType.BRANCH_ITEM || type is CType.BRANCH_BEAST) { mixin(S_TRACE);
-				c.range = Range.FIELD;
-			} else if (type is CType.LOSE_SKILL || type is CType.LOSE_ITEM || type is CType.LOSE_BEAST) { mixin(S_TRACE);
-				c.range = Range.FIELD;
-			} else if (type is CType.TALK_MESSAGE) { mixin(S_TRACE);
-				if (_prop.isTargetVersion(_summ, "2")) c.boundaryCheck = true;
+			auto ver = (_summ && _summ.legacy) ? "Classic" : _summ.dataVersion;
+			foreach (ref initializer; _prop.var.etc.contentInitializers) { mixin(S_TRACE);
+				if (initializer.dataVersion == "Basic") continue;
+				if (initializer.dataVersion == ver) { mixin(S_TRACE);
+					if (c.type in initializer.initializer) {
+						c.shallowCopy(initializer.initializer[c.type]);
+						return;
+					}
+				}
 			}
+			foreach (ref initializer; _prop.var.etc.contentInitializers) { mixin(S_TRACE);
+				if (initializer.dataVersion == "Basic") { mixin(S_TRACE);
+					if (c.type in initializer.initializer) { mixin(S_TRACE);
+						c.shallowCopy(initializer.initializer[c.type]);
+						return;
+					}
+				}
+			}
+
+			.initial(_comm, summSkin, _summ && _summ.legacy, _summ.dataVersion, _prop.var.etc.bgImagesDefault, c);
 		}
 		if (hasDialog(type)) { mixin(S_TRACE);
 			if (!_box.isAutoOpen || !checkOpenDialog(type)) { mixin(S_TRACE);
@@ -1011,232 +1003,8 @@ private:
 		return dlg;
 	}
 
-	EventDialog createEventDialog(Content evt, Content parent, bool create) {
-		EventDialog dlg;
-		switch (evt.type) {
-		case CType.START_BATTLE: { mixin(S_TRACE);
-			dlg = new AreaSelectDialog!(CType.START_BATTLE, Battle, "summary.battles")
-				(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.END: { mixin(S_TRACE);
-			dlg = new ClearEventDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.CHANGE_AREA: { mixin(S_TRACE);
-			dlg = new AreaSelectDialog!(CType.CHANGE_AREA, Area, "summary.areas")
-				(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.CHANGE_BG_IMAGE: { mixin(S_TRACE);
-			if (create) { mixin(S_TRACE);
-				evt.backs = createBgImages(summSkin, _prop.var.etc.bgImagesDefault);
-			}
-			dlg = new BgImagesDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, refTarget, CType.CHANGE_BG_IMAGE);
-			break;
-		} case CType.EFFECT: { mixin(S_TRACE);
-			dlg = new EffectDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.LINK_START: { mixin(S_TRACE);
-			dlg = new StartSelectDialog!(CType.LINK_START)(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.LINK_PACKAGE: { mixin(S_TRACE);
-			dlg = new AreaSelectDialog!(CType.LINK_PACKAGE, Package, "summary.packages")
-				(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.TALK_MESSAGE: { mixin(S_TRACE);
-			dlg = new MessageDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.TALK_DIALOG: { mixin(S_TRACE);
-			dlg = new SpeakDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.PLAY_BGM: { mixin(S_TRACE);
-			dlg = new BgmDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.PLAY_SOUND: { mixin(S_TRACE);
-			dlg = new SeDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.WAIT: { mixin(S_TRACE);
-			dlg = new WaitEventDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.CALL_START: { mixin(S_TRACE);
-			dlg = new StartSelectDialog!(CType.CALL_START)(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.CALL_PACKAGE: { mixin(S_TRACE);
-			dlg = new AreaSelectDialog!(CType.CALL_PACKAGE, Package, "summary.packages")
-				(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.BRANCH_FLAG: { mixin(S_TRACE);
-			dlg = new BrFlagDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
-			break;
-		} case CType.BRANCH_MULTI_STEP: { mixin(S_TRACE);
-			dlg = new BrStepNDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
-			break;
-		} case CType.BRANCH_STEP: { mixin(S_TRACE);
-			dlg = new BrStepULDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
-			break;
-		} case CType.BRANCH_SELECT: { mixin(S_TRACE);
-			dlg = new BrMemberDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.BRANCH_ABILITY: { mixin(S_TRACE);
-			dlg = new BrPowerDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.BRANCH_RANDOM: { mixin(S_TRACE);
-			dlg = new BrRandomEventDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.BRANCH_LEVEL: { mixin(S_TRACE);
-			dlg = new BrLevelDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.BRANCH_STATUS: { mixin(S_TRACE);
-			dlg = new BrStateDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.BRANCH_PARTY_NUMBER: { mixin(S_TRACE);
-			dlg = new BrNumEventDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.BRANCH_CAST: { mixin(S_TRACE);
-			dlg = new AreaSelectDialog!(CType.BRANCH_CAST, CastCard, "summary.casts")
-				(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.BRANCH_ITEM: { mixin(S_TRACE);
-			dlg = new BrItemDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.BRANCH_SKILL: { mixin(S_TRACE);
-			dlg = new BrSkillDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.BRANCH_INFO: { mixin(S_TRACE);
-			dlg = new AreaSelectDialog!(CType.BRANCH_INFO, InfoCard, "summary.infos")
-				(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.BRANCH_BEAST: { mixin(S_TRACE);
-			dlg = new BrBeastDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.BRANCH_MONEY: { mixin(S_TRACE);
-			dlg = new MoneyEventDialog!(CType.BRANCH_MONEY)(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.BRANCH_COUPON: { mixin(S_TRACE);
-			dlg = new BranchCouponDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.BRANCH_COMPLETE_STAMP: { mixin(S_TRACE);
-			dlg = new EndEventDialog!(CType.BRANCH_COMPLETE_STAMP)(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.BRANCH_GOSSIP: { mixin(S_TRACE);
-			dlg = new GossipEventDialog!(CType.BRANCH_GOSSIP)(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.SET_FLAG: { mixin(S_TRACE);
-			dlg = new FlagSetDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
-			break;
-		} case CType.SET_STEP: { mixin(S_TRACE);
-			dlg = new StepSetDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
-			break;
-		} case CType.SET_STEP_UP: { mixin(S_TRACE);
-			dlg = new StepPlusDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
-			break;
-		} case CType.SET_STEP_DOWN: { mixin(S_TRACE);
-			dlg = new StepMinusDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
-			break;
-		} case CType.REVERSE_FLAG: { mixin(S_TRACE);
-			dlg = new FlagRDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
-			break;
-		} case CType.CHECK_FLAG: { mixin(S_TRACE);
-			dlg = new FlagJudgeDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
-			break;
-		} case CType.GET_CAST: { mixin(S_TRACE);
-			dlg = new AreaSelectDialog!(CType.GET_CAST, CastCard, "summary.casts")
-				(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.GET_ITEM: { mixin(S_TRACE);
-			dlg = new GetItemDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.GET_SKILL: { mixin(S_TRACE);
-			dlg = new GetSkillDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.GET_INFO: { mixin(S_TRACE);
-			dlg = new AreaSelectDialog!(CType.GET_INFO, InfoCard, "summary.infos")
-				(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.GET_BEAST: { mixin(S_TRACE);
-			dlg = new GetBeastDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.GET_MONEY: { mixin(S_TRACE);
-			dlg = new MoneyEventDialog!(CType.GET_MONEY)(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.GET_COUPON: { mixin(S_TRACE);
-			dlg = new GetCouponDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.GET_COMPLETE_STAMP: { mixin(S_TRACE);
-			dlg = new EndEventDialog!(CType.GET_COMPLETE_STAMP)(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.GET_GOSSIP: { mixin(S_TRACE);
-			dlg = new GossipEventDialog!(CType.GET_GOSSIP)(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.LOSE_CAST: { mixin(S_TRACE);
-			dlg = new AreaSelectDialog!(CType.LOSE_CAST, CastCard, "summary.casts")
-				(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.LOSE_ITEM: { mixin(S_TRACE);
-			dlg = new LostItemDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.LOSE_SKILL: { mixin(S_TRACE);
-			dlg = new LostSkillDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.LOSE_INFO: { mixin(S_TRACE);
-			dlg = new AreaSelectDialog!(CType.LOSE_INFO, InfoCard, "summary.infos")
-				(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.LOSE_BEAST: { mixin(S_TRACE);
-			dlg = new LostBeastDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.LOSE_MONEY: { mixin(S_TRACE);
-			dlg = new MoneyEventDialog!(CType.LOSE_MONEY)(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.LOSE_COUPON: { mixin(S_TRACE);
-			dlg = new LoseCouponDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.LOSE_COMPLETE_STAMP: { mixin(S_TRACE);
-			dlg = new EndEventDialog!(CType.LOSE_COMPLETE_STAMP)(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.LOSE_GOSSIP: { mixin(S_TRACE);
-			dlg = new GossipEventDialog!(CType.LOSE_GOSSIP)(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.REDISPLAY: { mixin(S_TRACE);
-			dlg = new RefreshDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.SUBSTITUTE_STEP: { mixin(S_TRACE);
-			dlg = new SubstituteStepDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
-			break;
-		} case CType.SUBSTITUTE_FLAG: { mixin(S_TRACE);
-			dlg = new SubstituteFlagDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
-			break;
-		} case CType.BRANCH_STEP_CMP: { mixin(S_TRACE);
-			dlg = new BrStepCmpDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
-			break;
-		} case CType.BRANCH_FLAG_CMP: { mixin(S_TRACE);
-			dlg = new BrFlagCmpDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
-			break;
-		} case CType.BRANCH_RANDOM_SELECT: { mixin(S_TRACE);
-			dlg = new BrRandomSelectDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.BRANCH_KEY_CODE: { mixin(S_TRACE);
-			dlg = new BrKeyCodeDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.CHECK_STEP: { mixin(S_TRACE);
-			dlg = new CheckStepDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
-			break;
-		} case CType.BRANCH_ROUND: { mixin(S_TRACE);
-			dlg = new BranchRoundDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.MOVE_BG_IMAGE: { mixin(S_TRACE);
-			dlg = new MoveBgImageDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.REPLACE_BG_IMAGE: { mixin(S_TRACE);
-			dlg = new BgImagesDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, refTarget, CType.REPLACE_BG_IMAGE);
-			break;
-		} case CType.LOSE_BG_IMAGE: { mixin(S_TRACE);
-			dlg = new LoseBgImageDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} case CType.BRANCH_MULTI_COUPON: { mixin(S_TRACE);
-			dlg = new BranchMultiCouponDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
-			break;
-		} default: assert (0);
-		}
-		return dlg;
+	EventDialog createEventDialog(Content evt, Content parent, bool create) { mixin(S_TRACE);
+		return .createEventDialog(_comm, _summ, _tree.control.getShell(), evt, parent, create);
 	}
 
 	@property

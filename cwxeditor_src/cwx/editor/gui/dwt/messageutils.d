@@ -211,11 +211,13 @@ class AbstractMessageDialog : EventDialog {
 			comm.refMenu.remove(&refMenu);
 			comm.refUndoMax.remove(&refUndoMax);
 			comm.refTargetVersion.remove(&refreshWarning);
-			comm.refFlagAndStep.remove(&refFlagAndStep);
-			comm.delFlagAndStep.remove(&refFlagAndStep);
-			comm.refPaths.remove(&refPaths);
-			comm.refPath.remove(&refPath);
-			comm.delPaths.remove(&refreshWarning);
+			if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
+				comm.refFlagAndStep.remove(&refFlagAndStep);
+				comm.delFlagAndStep.remove(&refFlagAndStep);
+				comm.refPaths.remove(&refPaths);
+				comm.refPath.remove(&refPath);
+				comm.delPaths.remove(&refreshWarning);
+			}
 			comm.refImageScale.remove(&refImageScale);
 			getShell().getDisplay().removeFilter(SWT.KeyDown, _kdFilter);
 		}
@@ -348,11 +350,13 @@ class AbstractMessageDialog : EventDialog {
 		comm.refMenu.add(&refMenu);
 		comm.refUndoMax.add(&refUndoMax);
 		comm.refTargetVersion.add(&refreshWarning);
-		comm.refFlagAndStep.add(&refFlagAndStep);
-		comm.delFlagAndStep.add(&refFlagAndStep);
-		comm.refPaths.add(&refPaths);
-		comm.refPath.add(&refPath);
-		comm.delPaths.add(&refreshWarning);
+		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
+			comm.refFlagAndStep.add(&refFlagAndStep);
+			comm.delFlagAndStep.add(&refFlagAndStep);
+			comm.refPaths.add(&refPaths);
+			comm.refPath.add(&refPath);
+			comm.delPaths.add(&refreshWarning);
+		}
 		comm.refImageScale.add(&refImageScale);
 	}
 	private void refFlagAndStep(cwx.flag.Flag[] flags, Step[] steps) { refreshWarning(); }
@@ -1092,13 +1096,13 @@ protected:
 			_text.widget.addModifyListener(new ModL);
 		}
 
-		auto sChar = createSCharBar(comm, area, &insert, &put, prop, skin);
+		auto sChar = createSCharBar(comm, summ, area, &insert, &put, prop, skin);
 		sChar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 		auto skinSChar = createSkinSCharBar(comm, area, &insert, prop, skin);
 		skinSChar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-		auto var = createFlagStepBar(area, &insert, comm, prop, skin, summ, true);
+		auto var = createFlagStepBar(area, &insert, comm, prop, summ, skin, true);
 		var.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 		auto wBar = createWsnSettingsBar(area);
@@ -1176,7 +1180,9 @@ protected:
 		evt.centeringX = _centerX.getSelection();
 		evt.centeringY = _centerY.getSelection();
 		evt.boundaryCheck = _boundaryCheck.getSelection();
-		comm.refCoupons.call();
+		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
+			comm.refCoupons.call();
+		}
 		return true;
 	}
 }
@@ -1328,7 +1334,7 @@ protected:
 			tab.setControl(_msgCompB);
 		}
 
-		auto sChar = createSCharBar(comm, area, &insert, &put, prop, skin);
+		auto sChar = createSCharBar(comm, summ, area, &insert, &put, prop, skin);
 		sChar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 		auto skinSChar = createSkinSCharBar(comm, area, &insert, prop, skin);
@@ -1336,7 +1342,7 @@ protected:
 		gdS.horizontalSpan = 3;
 		skinSChar.setLayoutData(gdS);
 
-		auto var = createFlagStepBar(area, &insert, comm, prop, skin, summ, true);
+		auto var = createFlagStepBar(area, &insert, comm, prop, summ, skin, true);
 		auto gdV = new GridData(GridData.FILL_HORIZONTAL);
 		gdV.horizontalSpan = 3;
 		var.setLayoutData(gdV);
@@ -1540,7 +1546,7 @@ private class PutColor {
 	}
 }
 
-private ToolBar createSCharBar(Commons comm, Composite parent,
+private ToolBar createSCharBar(Commons comm, Summary summ, Composite parent,
 		void delegate(string) insert, void delegate(dchar) putColor, Props prop, Skin skin) { mixin(S_TRACE);
 	auto bar = new ToolBar(parent, SWT.FLAT);
 	comm.put(bar);
@@ -1582,12 +1588,12 @@ private ToolBar createSCharBar(Commons comm, Composite parent,
 	createToolItem2(comm, bar, prop.msgs.scTeam, prop.images.scTeam, &(new PutC(insert, "#T")).put, null);
 	createToolItem2(comm, bar, prop.msgs.scYado, prop.images.scYado, &(new PutC(insert, "#Y")).put, null);
 	new ToolItem(bar, SWT.SEPARATOR);
-	createPCSPCharBar(comm, bar, insert);
+	createPCSPCharBar(comm, summ, bar, insert);
 	return bar;
 }
 
 ToolBar createSimpleSCharBar(Composite parent,
-		void delegate(string) insert, Commons comm, Props prop, Skin skin) { mixin(S_TRACE);
+		void delegate(string) insert, Commons comm, Props prop, Summary summ, Skin skin) { mixin(S_TRACE);
 	auto bar = new ToolBar(parent, SWT.FLAT);
 	comm.put(bar);
 	bar.addListener(SWT.Traverse, new class Listener {
@@ -1605,17 +1611,17 @@ ToolBar createSimpleSCharBar(Composite parent,
 	createToolItem2(comm, bar, prop.msgs.scTeam, prop.images.scTeam, &(new PutC(insert, "#T")).put, null);
 	createToolItem2(comm, bar, prop.msgs.scYado, prop.images.scYado, &(new PutC(insert, "#Y")).put, null);
 	new ToolItem(bar, SWT.SEPARATOR);
-	createPCSPCharBar(comm, bar, insert);
+	createPCSPCharBar(comm, summ, bar, insert);
 	return bar;
 }
 
-private void createPCSPCharBar(Commons comm, ToolBar bar, void delegate(string) insert) { mixin(S_TRACE);
+private void createPCSPCharBar(Commons comm, Summary summ, ToolBar bar, void delegate(string) insert) { mixin(S_TRACE);
 	createToolItem2(comm, bar, comm.prop.msgs.selectedPlayerCardNumber, comm.prop.images.selectedPlayerCardNumber,
-		&(new PutC(insert, "$" ~ comm.prop.sys.selectedPlayerCardNumber ~ "$")).put, () => comm.prop.isTargetVersion(comm.summary, "2"));
+		&(new PutC(insert, "$" ~ comm.prop.sys.selectedPlayerCardNumber ~ "$")).put, () => comm.prop.isTargetVersion(summ, "2"));
 	Spinner spn = null;
 	auto t = createToolItem2(comm, bar, .tryFormat(comm.prop.msgs.playerCardName, comm.prop.var.etc.selectedPlayerCardName), comm.prop.images.playerCardName,
 		&(new PutC(insert, () => "$" ~ comm.prop.sys.playerCardName(spn.getSelection()) ~ "$")).put,
-		() => comm.prop.isTargetVersion(comm.summary, "2"));
+		() => comm.prop.isTargetVersion(summ, "2"));
 	spn = new Spinner(bar, SWT.BORDER);
 	initSpinner(spn);
 	spn.setMaximum(cast(int)comm.prop.looks.partyMax);
@@ -1628,7 +1634,7 @@ private void createPCSPCharBar(Commons comm, ToolBar bar, void delegate(string) 
 	}
 	.listener(spn, SWT.Selection, &updatePCN);
 	.listener(spn, SWT.Modify, &updatePCN);
-	comm.put(spn, () => comm.prop.isTargetVersion(comm.summary, "2"));
+	comm.put(spn, () => comm.prop.isTargetVersion(summ, "2"));
 }
 
 private ToolBar createSkinSCharBar(Commons comm, Composite parent, void delegate(string) insert, Props prop, Skin skin) { mixin(S_TRACE);
@@ -1664,7 +1670,7 @@ private ToolBar createSkinSCharBar(Commons comm, Composite parent, void delegate
 	return bar;
 }
 
-Composite createFlagStepBar(Composite parent, void delegate(string) insert, Commons comm, Props prop, Skin skin, Summary summ, bool imageFont) { mixin(S_TRACE);
+Composite createFlagStepBar(Composite parent, void delegate(string) insert, Commons comm, Props prop, Summary summ, Skin skin, bool imageFont) { mixin(S_TRACE);
 	auto bar = new Composite(parent, SWT.NONE);
 	bar.setLayout(zeroMarginGridLayout((imageFont && summ) ? 2 : 1, false));
 	Composite create(Composite parent, out Combo list, out Button put, string puts, Image image, string delegate(string) lc, int colNum) { mixin(S_TRACE);
@@ -1722,39 +1728,50 @@ Composite createFlagStepBar(Composite parent, void delegate(string) insert, Comm
 	}
 
 	void refListF() { mixin(S_TRACE);
-		auto root = comm.summary.flagDirRoot;
-		auto fSel = flags.getText();
-		flags.removeAll();
-		auto list = root.allFlags;
-		size_t i = 0;
-		foreach (flag; list) { mixin(S_TRACE);
-			auto p = flag.path;
-			if (!flagIncSearch.match(p)) continue;
-			flags.add(p);
-			if (0 == i || p == fSel) flags.select(cast(int)i);
-			i++;
+		if (summ) { mixin(S_TRACE);
+			auto root = summ.flagDirRoot;
+			auto fSel = flags.getText();
+			flags.removeAll();
+			auto list = root.allFlags;
+			size_t i = 0;
+			foreach (flag; list) { mixin(S_TRACE);
+				auto p = flag.path;
+				if (!flagIncSearch.match(p)) continue;
+				flags.add(p);
+				if (0 == i || p == fSel) flags.select(cast(int)i);
+				i++;
+			}
+			flags.setEnabled(list.length > 0);
+			putFlag.setEnabled(flags.getItemCount() > 0);
+		} else { mixin(S_TRACE);
+			flags.setEnabled(false);
+			putFlag.setEnabled(false);
 		}
-		flags.setEnabled(list.length > 0);
-		putFlag.setEnabled(flags.getItemCount() > 0);
 	}
 	void refListS() { mixin(S_TRACE);
-		auto root = comm.summary.flagDirRoot;
-		auto sSel = steps.getText();
-		steps.removeAll();
-		auto list = root.allSteps;
-		size_t i = 0;
-		foreach (step; list) { mixin(S_TRACE);
-			auto p = step.path;
-			if (!stepIncSearch.match(p)) continue;
-			steps.add(p);
-			if (0 == i || p == sSel) steps.select(cast(int)i);
-			i++;
+		if (summ) { mixin(S_TRACE);
+			auto root = summ.flagDirRoot;
+			auto sSel = steps.getText();
+			steps.removeAll();
+			auto list = root.allSteps;
+			size_t i = 0;
+			foreach (step; list) { mixin(S_TRACE);
+				auto p = step.path;
+				if (!stepIncSearch.match(p)) continue;
+				steps.add(p);
+				if (0 == i || p == sSel) steps.select(cast(int)i);
+				i++;
+			}
+			steps.setEnabled(list.length > 0);
+			putStep.setEnabled(steps.getItemCount() > 0);
+		} else { mixin(S_TRACE);
+			steps.setEnabled(false);
+			putStep.setEnabled(false);
 		}
-		steps.setEnabled(list.length > 0);
-		putStep.setEnabled(steps.getItemCount() > 0);
 	}
 
 	flagIncSearch = createIncs(flags, &refListF, MenuID.OpenAtVarView, { mixin(S_TRACE);
+		if (!summ) return;
 		auto flag = summ.flagDirRoot.findFlag(flags.getText());
 		if (!flag) return;
 		try { mixin(S_TRACE);
@@ -1765,6 +1782,7 @@ Composite createFlagStepBar(Composite parent, void delegate(string) insert, Comm
 		}
 	});
 	stepIncSearch = createIncs(steps, &refListS, MenuID.OpenAtVarView, { mixin(S_TRACE);
+		if (!summ) return;
 		auto step = summ.flagDirRoot.findStep(steps.getText());
 		if (!step) return;
 		try { mixin(S_TRACE);
@@ -1782,18 +1800,21 @@ Composite createFlagStepBar(Composite parent, void delegate(string) insert, Comm
 		refListF();
 		refListS();
 	}
-	comm.refFlagAndStep.add(&refFlagAndStep);
-	comm.delFlagAndStep.add(&refFlagAndStep);
-	bar.addDisposeListener(new class DisposeListener {
-		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-			comm.refFlagAndStep.remove(&refFlagAndStep);
-			comm.delFlagAndStep.remove(&refFlagAndStep);
-		}
-	});
+	if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
+		comm.refFlagAndStep.add(&refFlagAndStep);
+		comm.delFlagAndStep.add(&refFlagAndStep);
+		bar.addDisposeListener(new class DisposeListener {
+			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
+				comm.refFlagAndStep.remove(&refFlagAndStep);
+				comm.delFlagAndStep.remove(&refFlagAndStep);
+			}
+		});
+	}
 
 	if (fonts) { mixin(S_TRACE);
 		ImageListWindow!(MtType.CARD) imgListWin = null;
 		void refListSPF() { mixin(S_TRACE);
+			if (!summ) return;
 			auto sel = fonts.getText();
 			fonts.removeAll();
 			auto sPath = summ.scenarioPath;
@@ -1848,18 +1869,22 @@ Composite createFlagStepBar(Composite parent, void delegate(string) insert, Comm
 
 		void refPath(string o, string n, bool isDir) { refListSPF(); }
 		void refPaths(string parent) { refListSPF(); }
-		comm.refPath.add(&refPath);
-		comm.refPaths.add(&refPaths);
-		comm.delPaths.add(&refListSPF);
+		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
+			comm.refPath.add(&refPath);
+			comm.refPaths.add(&refPaths);
+			comm.delPaths.add(&refListSPF);
+			comm.refSkin.add(&refListSPF);
+		}
 		comm.refIgnorePaths.add(&refListSPF);
-		comm.refSkin.add(&refListSPF);
 		bar.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-				comm.refPath.remove(&refPath);
-				comm.refPaths.remove(&refPaths);
-				comm.delPaths.remove(&refListSPF);
+				if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
+					comm.refPath.remove(&refPath);
+					comm.refPaths.remove(&refPaths);
+					comm.delPaths.remove(&refListSPF);
+					comm.refSkin.remove(&refListSPF);
+				}
 				comm.refIgnorePaths.remove(&refListSPF);
-				comm.refSkin.remove(&refListSPF);
 			}
 		});
 
@@ -2148,8 +2173,10 @@ class PreviewValues : Composite {
 	private class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			_comm.refUndoMax.remove(&refUndoMax);
-			_comm.refFlagAndStep.remove(&refFlagAndStep);
-			_comm.delFlagAndStep.remove(&refFlagAndStep);
+			if (_summ && _summ.scenarioPath != "") { mixin(S_TRACE);
+				_comm.refFlagAndStep.remove(&refFlagAndStep);
+				_comm.delFlagAndStep.remove(&refFlagAndStep);
+			}
 			_comm.refDataVersion.remove(&refreshFlags);
 			savePreviewValues();
 		}
@@ -2656,8 +2683,8 @@ class PreviewValues : Composite {
 		createMenuItem(comm, menu, MenuID.Undo, {_undo.undo();}, &_undo.canUndo);
 		createMenuItem(comm, menu, MenuID.Redo, {_undo.redo();}, &_undo.canRedo);
 		new MenuItem(menu, SWT.SEPARATOR);
-		createMenuItem(comm, menu, MenuID.ResetPreviewValues, &resetValues, () => !isInitialValues());
-		createMenuItem(comm, menu, MenuID.ResetPreviewValuesAll, &resetValuesAll, () => !isInitialValuesAll());
+		createMenuItem(comm, menu, MenuID.ResetValues, &resetValues, () => !isInitialValues());
+		createMenuItem(comm, menu, MenuID.ResetValuesAll, &resetValuesAll, () => !isInitialValuesAll());
 		new MenuItem(menu, SWT.SEPARATOR);
 		appendMenuTCPD(comm, menu, new ValuesTCPD, false, true, true, false, false);
 		new MenuItem(menu, SWT.SEPARATOR);
@@ -2719,8 +2746,10 @@ class PreviewValues : Composite {
 		}
 		refreshFlags();
 		_comm.refUndoMax.add(&refUndoMax);
-		_comm.refFlagAndStep.add(&refFlagAndStep);
-		_comm.delFlagAndStep.add(&refFlagAndStep);
+		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
+			_comm.refFlagAndStep.add(&refFlagAndStep);
+			_comm.delFlagAndStep.add(&refFlagAndStep);
+		}
 		_comm.refDataVersion.add(&refreshFlags);
 
 		new TableTCEdit(_comm, _values, 1, &createEditor, &editEnd, null);
@@ -2885,7 +2914,9 @@ class MsgPreview : Composite {
 	private class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			if (_img) _img.dispose();
-			_comm.refSkin.remove(&refresh);
+			if (_summ && _summ.scenarioPath != "") { mixin(S_TRACE);
+				_comm.refSkin.remove(&refresh);
+			}
 			_comm.refImageScale.remove(&refImageScale);
 		}
 	}
@@ -2909,7 +2940,9 @@ class MsgPreview : Composite {
 		vgd.heightHint = _prop.var.etc.messageVarTableHeight;
 		_values.setLayoutData(vgd);
 		_values.modEvent ~= &refresh;
-		_comm.refSkin.add(&refresh);
+		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
+			_comm.refSkin.add(&refresh);
+		}
 		_comm.refImageScale.add(&refImageScale);
 	}
 
@@ -2953,7 +2986,7 @@ class MsgPreview : Composite {
 		foreach (imgPath; _imgPaths) { mixin(S_TRACE);
 			final switch (imgPath.type) {
 			case CardImageType.File:
-				tImg ~= loadImage(_comm.skin.findImagePath(imgPath.path, _summ.scenarioPath, _summ.dataVersion), true);
+				tImg ~= loadImage(_comm.skin.findImagePath(imgPath.path, _summ ? _summ.scenarioPath : "", _summ ? _summ.dataVersion : LATEST_VERSION), true);
 				pos ~= imgPath.positionType;
 				break;
 			case CardImageType.PCNumber:
@@ -2981,7 +3014,7 @@ class MsgPreview : Composite {
 		string[char] names;
 		VarValue[string] flags, steps, sysSteps;
 		_values.getValues(names, flags, steps, sysSteps);
-		_img = new Image(d, previewMessage(_comm, _prop, _summ.scenarioPath, tImg, pos, _message,
+		_img = new Image(d, previewMessage(_comm, _prop, _summ, tImg, pos, _message,
 			[], names, flags, steps, sysSteps, true, _centerX, _centerY, _boundaryCheck));
 	}
 
@@ -2994,7 +3027,7 @@ class MsgPreview : Composite {
 }
 
 /// メッセージのプレビューを生成する。
-ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] talkers,
+ImageData previewMessage(Commons comm, Props prop, Summary summ, ImageData[] talkers,
 		CardImagePosition[] poses, string message, in string[] sel, in string[char] names,
 		in VarValue[string] flags, in VarValue[string] steps, in VarValue[string] sysSteps, bool scaled,
 		bool centerX, bool centerY, bool boundaryCheck) { mixin(S_TRACE);
@@ -3004,6 +3037,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] tal
 	} else { mixin(S_TRACE);
 		bool legacy = false;
 	}
+	auto sPath = summ ? summ.scenarioPath : "";
 	auto rect = prop.looks.messageBounds;
 	auto bh = prop.looks.messageButtonHeight;
 	auto canvas = new Image(d, rect.width, rect.height + bh * cast(int)sel.length);
@@ -3071,12 +3105,12 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] tal
 			}
 		}
 		return "";
-	}, ver => prop.isTargetVersion(comm.summary, ver), prop.sys.prefixSystemVarName, (string path) { mixin(S_TRACE);
-		if (comm.summary.legacy) { mixin(S_TRACE);
+	}, ver => prop.isTargetVersion(summ, ver), prop.sys.prefixSystemVarName, (string path) { mixin(S_TRACE);
+		if (summ && summ.legacy) { mixin(S_TRACE);
 			auto c = decodeFontPath(path);
 			if (!isSJIS1ByteChar(c)) return false;
 		}
-		return comm.skin.findImagePath(path, comm.summary.scenarioPath, comm.summary.dataVersion).length != 0 || decodeFontPath(path) in comm.skin.spChars;
+		return comm.skin.findImagePath(path, summ ? summ.scenarioPath : "", summ ? summ.dataVersion : LATEST_VERSION).length != 0 || decodeFontPath(path) in comm.skin.spChars;
 	}, rFonts, rColors);
 
 	auto font = .createFontFromPixels(prop.looks.messageFont(legacy));
@@ -3150,7 +3184,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] tal
 	// フォントイメージ
 	auto wrgb = fc.getRGB();
 	void drawSPFont(CPoint pt, string path, RGB c, lazy Rectangle lDrawRect) { mixin(S_TRACE);
-		string fpath = comm.skin.findImagePath(path, sPath, comm.summary.dataVersion);
+		string fpath = comm.skin.findImagePath(path, sPath, summ ? summ.dataVersion : LATEST_VERSION);
 		ImageData data = null;
 		if (fpath && fpath.length) { mixin(S_TRACE);
 			// シナリオ内特殊文字

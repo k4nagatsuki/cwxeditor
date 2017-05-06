@@ -103,28 +103,32 @@ class MaterialSelect(MtType Type, D, C) {
 		_dirs.setEnabled(!_readOnly);
 		_dirs.addSelectionListener(new CSListener);
 
-		_comm.refSkin.add(&refSkin);
 		_comm.refDataVersion.add(&refreshFileListMenu);
 		_comm.refDataVersion.add(&refresh);
-		_comm.refPaths.add(&refPaths);
-		_comm.refPath.add(&refPath);
-		_comm.delPaths.add(&delPaths);
-		_comm.replPath.add(&replPath);
 		_comm.refIgnorePaths.add(&refresh);
+		if (_summ && _summ.scenarioPath != "") { mixin(S_TRACE);
+			_comm.refSkin.add(&refSkin);
+			_comm.refPaths.add(&refPaths);
+			_comm.refPath.add(&refPath);
+			_comm.delPaths.add(&delPaths);
+			_comm.replPath.add(&replPath);
+		}
 		static if (Type == MtType.BGM) {
 			if (!_display) _display = parent.getDisplay();
 			stopBGMEvent ~= &stopBGM;
 		}
 		_dirs.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-				_comm.refSkin.remove(&refSkin);
 				_comm.refDataVersion.remove(&refreshFileListMenu);
 				_comm.refDataVersion.remove(&refresh);
-				_comm.refPaths.remove(&refPaths);
-				_comm.refPath.remove(&refPath);
-				_comm.delPaths.remove(&delPaths);
-				_comm.replPath.remove(&replPath);
 				_comm.refIgnorePaths.remove(&refresh);
+				if (_summ && _summ.scenarioPath != "") { mixin(S_TRACE);
+					_comm.refSkin.remove(&refSkin);
+					_comm.refPaths.remove(&refPaths);
+					_comm.refPath.remove(&refPath);
+					_comm.delPaths.remove(&delPaths);
+					_comm.replPath.remove(&replPath);
+				}
 				static if (Type == MtType.BGM) {
 					cwx.utils.remove(stopBGMEvent, &stopBGM);
 					if (_playing) .stopBGM();
@@ -189,7 +193,7 @@ class MaterialSelect(MtType Type, D, C) {
 				super(c);
 			}
 		protected override:
-			bool canDrop() {return _summ !is null && !_readOnly;}
+			bool canDrop() {return _summ !is null && _summ.scenarioPath != "" && !_readOnly;}
 			string[] doAll(string[] files) { mixin(S_TRACE);
 				assert (_summ !is null);
 				string[] r;
@@ -503,6 +507,7 @@ class MaterialSelect(MtType Type, D, C) {
 			return comp;
 		}
 		private void refDataVersion() { mixin(S_TRACE);
+			if (!_summ) return;
 			if (_volume) _volume.setEnabled(!_readOnly && (!_summ.legacy || _volume.getSelection() != 100) && path != "");
 			static immutable loopDef = (Type == MtType.BGM) ? 0 : 1;
 			if (_loopCount) _loopCount.setEnabled(!_readOnly && (!_summ.legacy || _loopCount.getSelection() != loopDef) && path != "");
@@ -828,7 +833,7 @@ class MaterialSelect(MtType Type, D, C) {
 		return refBtn;
 	}
 	@property
-	bool canRefresh() { return !_loading; }
+	bool canRefresh() { return !_loading && _summ && _summ.scenarioPath != ""; }
 	Button createDirectoryButton(Composite parent, bool text) { mixin(S_TRACE);
 		_dirBtn = new Button(parent, SWT.PUSH);
 		_dirBtn.setLayoutData(new GridData(GridData.FILL_VERTICAL));
@@ -1517,7 +1522,7 @@ private:
 				}
 				string parent;
 				auto dirIndex = _dirs.getSelectionIndex();
-				if (i == skinPos || (enginePosFrom != -1 && enginePosFrom <= i && i < enginePosTo)) { mixin(S_TRACE);
+				if (!_summ || _summ.scenarioPath == "" || i == skinPos || (enginePosFrom != -1 && enginePosFrom <= i && i < enginePosTo)) { mixin(S_TRACE);
 					parent = "";
 				} else { mixin(S_TRACE);
 					assert (_summ !is null);

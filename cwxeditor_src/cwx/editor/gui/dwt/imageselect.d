@@ -313,7 +313,7 @@ public:
 
 				static if (Type == MtType.CARD) {
 					_layerButton = new Button(dirsComp2, SWT.TOGGLE);
-					_layerButton.setEnabled(!_summ.legacy);
+					_layerButton.setEnabled(!_summ || !_summ.legacy);
 					_layerButton.setImage(_prop.images.menu(MenuID.EditLayers));
 					_layerButton.setToolTipText(_prop.msgs.menuText(MenuID.EditLayers));
 					.listener(_layerButton, SWT.Selection, &editLayers);
@@ -325,10 +325,10 @@ public:
 					modEvent ~= &update;
 					updateImageEvent ~= &update;
 					if (_readOnly) { mixin(S_TRACE);
-						_comm.put(_layerButton, () => !_summ.legacy && 1 <= _msel.paths.length && !_msel.binPath.length);
+						_comm.put(_layerButton, () => (!_summ || !_summ.legacy) && 1 <= _msel.paths.length && !_msel.binPath.length);
 					} else { mixin(S_TRACE);
 						// すでに2枚以上レイヤがある場合は編集可能にしておく
-						_comm.put(_layerButton, () => (!_summ.legacy || 1 < _msel.paths.length) && !_msel.binPath.length);
+						_comm.put(_layerButton, () => ((!_summ || !_summ.legacy) || 1 < _msel.paths.length) && !_msel.binPath.length);
 					}
 				}
 

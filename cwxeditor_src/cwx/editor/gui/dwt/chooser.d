@@ -58,16 +58,18 @@ T createCouponCombo(T = Combo)(Commons comm, Summary summ, Composite parent, boo
 	}
 
 	incSearch.modEvent ~= &refreshCoupons;
-	comm.refSkin.add(&refreshCoupons);
-	comm.refCoupons.add(&refreshCoupons);
-	comm.replText.add(&refreshCoupons);
-	comm.refDataVersion.add(&refreshCoupons);
-	.listener(combo, SWT.Dispose, { mixin(S_TRACE);
-		comm.refSkin.remove(&refreshCoupons);
-		comm.refCoupons.remove(&refreshCoupons);
-		comm.replText.remove(&refreshCoupons);
-		comm.refDataVersion.remove(&refreshCoupons);
-	});
+	if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
+		comm.refSkin.add(&refreshCoupons);
+		comm.refCoupons.add(&refreshCoupons);
+		comm.replText.add(&refreshCoupons);
+		comm.refDataVersion.add(&refreshCoupons);
+		.listener(combo, SWT.Dispose, { mixin(S_TRACE);
+			comm.refSkin.remove(&refreshCoupons);
+			comm.refCoupons.remove(&refreshCoupons);
+			comm.replText.remove(&refreshCoupons);
+			comm.refDataVersion.remove(&refreshCoupons);
+		});
+	}
 
 	auto menu = new Menu(combo.getShell(), SWT.POP_UP);
 	createMenuItem(comm, menu, MenuID.IncSearch, { mixin(S_TRACE);
@@ -132,9 +134,11 @@ string[] allCoupons(Commons comm, Summary summ, CouponComboType type) { mixin(S_
 			sysCoupons[comm.skin.makingsCoupon(e)] = true;
 			sysCoupons[comm.skin.makingsCoupon(comm.skin.reverseMakings(e))] = true;
 		}
-		foreach (coupon; .sortDlg(summ.useCounter.coupon.keys, cmps)) { mixin(S_TRACE);
-			if (coupon.id in sysCoupons || comm.prop.sys.isCouponType(coupon.id, CouponType.System)) continue;
-			if (!.contains(cs, coupon.id)) dcs ~= coupon;
+		if (summ) { mixin(S_TRACE);
+			foreach (coupon; .sortDlg(summ.useCounter.coupon.keys, cmps)) { mixin(S_TRACE);
+				if (coupon.id in sysCoupons || comm.prop.sys.isCouponType(coupon.id, CouponType.System)) continue;
+				if (!.contains(cs, coupon.id)) dcs ~= coupon;
+			}
 		}
 	}
 	if (comm.prop.var.etc.useNamesAfterStandard) { mixin(S_TRACE);
@@ -169,12 +173,14 @@ T createGossipCombo(T = Combo)(Commons comm, Summary summ, Composite parent, boo
 	}
 
 	incSearch.modEvent ~= &refGossip;
-	comm.refGossips.add(&refGossip);
-	comm.replText.add(&refGossip);
-	.listener(combo, SWT.Dispose, { mixin(S_TRACE);
-		comm.refGossips.remove(&refGossip);
-		comm.replText.remove(&refGossip);
-	});
+	if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
+		comm.refGossips.add(&refGossip);
+		comm.replText.add(&refGossip);
+		.listener(combo, SWT.Dispose, { mixin(S_TRACE);
+			comm.refGossips.remove(&refGossip);
+			comm.replText.remove(&refGossip);
+		});
+	}
 
 	auto menu = new Menu(combo.getShell(), SWT.POP_UP);
 	createMenuItem(comm, menu, MenuID.IncSearch, { mixin(S_TRACE);
@@ -190,7 +196,7 @@ T createGossipCombo(T = Combo)(Commons comm, Summary summ, Composite parent, boo
 	return combo;
 }
 
-string[] allGossips(Commons comm, Summary summ) {
+string[] allGossips(Commons comm, Summary summ) { mixin(S_TRACE);
 	string[] cs;
 
 	bool delegate(GossipId a, GossipId b) cmps;
@@ -199,8 +205,10 @@ string[] allGossips(Commons comm, Summary summ) {
 	} else { mixin(S_TRACE);
 		cmps = (a, b) => icmp(cast(string)a, cast(string)b) < 0;
 	}
-	foreach (gossip; .sortDlg(summ.useCounter.gossip.keys, cmps)) { mixin(S_TRACE);
-		cs ~= gossip;
+	if (summ) { mixin(S_TRACE);
+		foreach (gossip; .sortDlg(summ.useCounter.gossip.keys, cmps)) { mixin(S_TRACE);
+			cs ~= gossip;
+		}
 	}
 	return cs;
 }
@@ -223,12 +231,14 @@ T createCompleteStampCombo(T = Combo)(Commons comm, Summary summ, Composite pare
 	}
 
 	incSearch.modEvent ~= &refCompleteStamp;
-	comm.refCompleteStamps.add(&refCompleteStamp);
-	comm.replText.add(&refCompleteStamp);
-	.listener(combo, SWT.Dispose, { mixin(S_TRACE);
-		comm.refCompleteStamps.remove(&refCompleteStamp);
-		comm.replText.remove(&refCompleteStamp);
-	});
+	if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
+		comm.refCompleteStamps.add(&refCompleteStamp);
+		comm.replText.add(&refCompleteStamp);
+		.listener(combo, SWT.Dispose, { mixin(S_TRACE);
+			comm.refCompleteStamps.remove(&refCompleteStamp);
+			comm.replText.remove(&refCompleteStamp);
+		});
+	}
 
 	auto menu = new Menu(combo.getShell(), SWT.POP_UP);
 	createMenuItem(comm, menu, MenuID.IncSearch, { mixin(S_TRACE);
@@ -244,7 +254,7 @@ T createCompleteStampCombo(T = Combo)(Commons comm, Summary summ, Composite pare
 	return combo;
 }
 
-string[] allCompleteStamps(Commons comm, Summary summ) {
+string[] allCompleteStamps(Commons comm, Summary summ) { mixin(S_TRACE);
 	string[] cs;
 
 	bool delegate(CompleteStampId a, CompleteStampId b) cmps;
@@ -253,8 +263,10 @@ string[] allCompleteStamps(Commons comm, Summary summ) {
 	} else { mixin(S_TRACE);
 		cmps = (a, b) => icmp(cast(string)a, cast(string)b) < 0;
 	}
-	foreach (compStamp; .sortDlg(summ.useCounter.completeStamp.keys, cmps)) { mixin(S_TRACE);
-		cs ~= compStamp;
+	if (summ) { mixin(S_TRACE);
+		foreach (compStamp; .sortDlg(summ.useCounter.completeStamp.keys, cmps)) { mixin(S_TRACE);
+			cs ~= compStamp;
+		}
 	}
 	return cs;
 }
@@ -270,7 +282,7 @@ T createKeyCodeCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bo
 
 		string[] stdKCs = comm.prop.var.etc.standardKeyCodes.dup;
 
-		auto kcs = summ.useCounter.keyCode.keys;
+		auto kcs = summ ? summ.useCounter.keyCode.keys : [];
 		string[] kcs2;
 		foreach (string kc; std.algorithm.sort(kcs)) { mixin(S_TRACE);
 			if (!.contains(stdKCs, kc)) { mixin(S_TRACE);
@@ -299,12 +311,16 @@ T createKeyCodeCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bo
 
 	incSearch.modEvent ~= &refStandardKeyCodes;
 	comm.refStandardKeyCodes.add(&refStandardKeyCodes);
-	comm.refKeyCodes.add(&refStandardKeyCodes);
-	comm.replText.add(&refStandardKeyCodes);
+	if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
+		comm.refKeyCodes.add(&refStandardKeyCodes);
+		comm.replText.add(&refStandardKeyCodes);
+	}
 	.listener(combo, SWT.Dispose, { mixin(S_TRACE);
 		comm.refStandardKeyCodes.remove(&refStandardKeyCodes);
-		comm.refKeyCodes.remove(&refStandardKeyCodes);
-		comm.replText.remove(&refStandardKeyCodes);
+		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
+			comm.refKeyCodes.remove(&refStandardKeyCodes);
+			comm.replText.remove(&refStandardKeyCodes);
+		}
 	});
 
 	auto menu = new Menu(combo.getShell(), SWT.POP_UP);
@@ -321,7 +337,7 @@ T createKeyCodeCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bo
 	return combo;
 }
 
-string[] allKeyCodes(Commons comm, Summary summ) {
+string[] allKeyCodes(Commons comm, Summary summ) { mixin(S_TRACE);
 	string[] stdKCs = comm.prop.var.etc.standardKeyCodes.dup;
 
 	bool delegate(KeyCodeId a, KeyCodeId b) cmps;
@@ -330,11 +346,13 @@ string[] allKeyCodes(Commons comm, Summary summ) {
 	} else {
 		cmps = (a, b) => icmp(cast(string)a, cast(string)b) < 0;
 	}
-	auto kcs = summ.useCounter.keyCode.keys;
 	string[] kcs2;
-	foreach (string kc; .sortDlg(kcs, cmps)) { mixin(S_TRACE);
-		if (!.contains(stdKCs, kc)) { mixin(S_TRACE);
-			kcs2 ~= kc;
+	if (summ) { mixin(S_TRACE);
+		auto kcs = summ.useCounter.keyCode.keys;
+		foreach (string kc; .sortDlg(kcs, cmps)) { mixin(S_TRACE);
+			if (!.contains(stdKCs, kc)) { mixin(S_TRACE);
+				kcs2 ~= kc;
+			}
 		}
 	}
 
@@ -371,12 +389,14 @@ T createCellNameCombo(T = Combo)(Commons comm, Summary summ, Composite parent, b
 	}
 
 	incSearch.modEvent ~= &refCellNames;
-	comm.refCellNames.add(&refCellNames);
-	comm.replText.add(&refCellNames);
-	.listener(combo, SWT.Dispose, { mixin(S_TRACE);
-		comm.refCellNames.remove(&refCellNames);
-		comm.replText.remove(&refCellNames);
-	});
+	if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
+		comm.refCellNames.add(&refCellNames);
+		comm.replText.add(&refCellNames);
+		.listener(combo, SWT.Dispose, { mixin(S_TRACE);
+			comm.refCellNames.remove(&refCellNames);
+			comm.replText.remove(&refCellNames);
+		});
+	}
 
 	auto menu = new Menu(combo.getShell(), SWT.POP_UP);
 	createMenuItem(comm, menu, MenuID.IncSearch, { mixin(S_TRACE);
@@ -392,7 +412,8 @@ T createCellNameCombo(T = Combo)(Commons comm, Summary summ, Composite parent, b
 	return combo;
 }
 
-string[] allCellNames(Commons comm, Summary summ) {
+string[] allCellNames(Commons comm, Summary summ) { mixin(S_TRACE);
+	if (!summ) return [];
 	bool delegate(CellNameId a, CellNameId b) cmps;
 	if (comm.prop.var.etc.logicalSort) {
 		cmps = (a, b) => incmp(cast(string)a, cast(string)b) < 0;
@@ -603,7 +624,9 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 				}
 				return selItm;
 			}
-			recurse(_tree, _summ.flagDirRoot, _prop.msgs.flagDirRoot);
+			if (_summ) { mixin(S_TRACE);
+				recurse(_tree, _summ.flagDirRoot, _prop.msgs.flagDirRoot);
+			}
 			checkAllExpanded(_allExpanded, _tree);
 
 			void selRecurse(TreeItem itm, bool forceExpand) { mixin(S_TRACE);
@@ -625,9 +648,9 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 
 		} else { mixin(S_TRACE);
 			static if (is(F:cwx.flag.Flag)) {
-				auto flags = _summ.flagDirRoot.allFlags;
+				auto flags = _summ ? _summ.flagDirRoot.allFlags : [];
 			} else static if (is(F:Step)) {
-				auto flags = _summ.flagDirRoot.allSteps;
+				auto flags = _summ ? _summ.flagDirRoot.allSteps : [];
 			} else static assert (0);
 			foreach (flag; flags) { mixin(S_TRACE);
 				auto path = flag.path;
@@ -667,6 +690,14 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 				}
 			}
 		}
+
+		if (_tree && !_tree.isDisposed()) { mixin(S_TRACE);
+			_tree.setEnabled(0 < _tree.getItemCount());
+			_allExpanded.setEnabled(0 < _tree.getItemCount());
+		} else if (_list && !_list.isDisposed()) { mixin(S_TRACE);
+			_list.setEnabled(0 < _list.getItemCount());
+		}
+
 		if (_selected != sel) { mixin(S_TRACE);
 			foreach (dlg; modEvent) dlg();
 		}
@@ -793,14 +824,16 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 
 		initControl();
 
-		_comm.refVarSelectStyle.add(&initControl);
-		_comm.refFlagAndStep.add(&refFlags);
-		_comm.delFlagAndStep.add(&delFlags);
-		.listener(this, SWT.Dispose, { mixin(S_TRACE);
-			_comm.refVarSelectStyle.remove(&initControl);
-			_comm.refFlagAndStep.remove(&refFlags);
-			_comm.delFlagAndStep.remove(&delFlags);
-		});
+		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
+			_comm.refVarSelectStyle.add(&initControl);
+			_comm.refFlagAndStep.add(&refFlags);
+			_comm.delFlagAndStep.add(&delFlags);
+			.listener(this, SWT.Dispose, { mixin(S_TRACE);
+				_comm.refVarSelectStyle.remove(&initControl);
+				_comm.refFlagAndStep.remove(&refFlags);
+				_comm.delFlagAndStep.remove(&delFlags);
+			});
+		}
 	}
 
 	@property
@@ -943,15 +976,15 @@ class AreaChooser(A, bool StartArea) : Composite {
 		bool has = false;
 		Item firstItem = null;
 		static if (is(A:Area)) {
-			auto arr = _summ.areas;
+			auto arr = _summ ? _summ.areas : [];
 		} else static if (is(A:Battle)) {
-			auto arr = _summ.battles;
+			auto arr = _summ ? _summ.battles : [];
 		} else static if (is(A:Package)) {
-			auto arr = _summ.packages;
+			auto arr = _summ ? _summ.packages : [];
 		} else static if (is(A:CastCard)) {
-			auto arr = _summ.casts;
+			auto arr = _summ ? _summ.casts : [];
 		} else static if (is(A:InfoCard)) {
-			auto arr = _summ.infos;
+			auto arr = _summ ? _summ.infos : [];
 		} else static assert (0);
 		if (_tree) { mixin(S_TRACE);
 			static if (is(A:AbstractArea)) {
@@ -1078,6 +1111,14 @@ class AreaChooser(A, bool StartArea) : Composite {
 			}
 			firstItem.setImage(image(firstItem));
 		}
+
+		if (_tree && !_tree.isDisposed()) { mixin(S_TRACE);
+			_tree.setEnabled(0 < _tree.getItemCount());
+			_allExpanded.setEnabled(0 < _tree.getItemCount());
+		} else if (_list && !_list.isDisposed()) { mixin(S_TRACE);
+			_list.setEnabled(0 < _list.getItemCount());
+		}
+
 		if (_selected != sel) { mixin(S_TRACE);
 			foreach (dlg; modEvent) dlg();
 		}
@@ -1224,45 +1265,47 @@ class AreaChooser(A, bool StartArea) : Composite {
 
 		initControl();
 
-		_comm.refTableViewStyle.add(&initControl);
-		static if (is(A : Area)) {
-			_comm.refArea.add(&refA);
-			_comm.delArea.add(&refA);
-		} else static if (is(A : Battle)) {
-			_comm.refBattle.add(&refA);
-			_comm.delBattle.add(&refA);
-		} else static if (is(A : Package)) {
-			_comm.refPackage.add(&refA);
-			_comm.delPackage.add(&refA);
-		} else static if (is(A : CastCard)) {
-			_comm.refCast.add(&refA);
-			_comm.delCast.add(&refA);
-		} else static if (is(A : InfoCard)) {
-			_comm.refInfo.add(&refA);
-			_comm.delInfo.add(&refA);
-		} else static assert (0);
-		.listener(this, SWT.Dispose, { mixin(S_TRACE);
-			static if (is(A:AbstractArea)) {
-				saveExpanded();
-			}
-			_comm.refTableViewStyle.remove(&initControl);
+		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
+			_comm.refTableViewStyle.add(&initControl);
 			static if (is(A : Area)) {
-				_comm.refArea.remove(&refA);
-				_comm.delArea.remove(&refA);
+				_comm.refArea.add(&refA);
+				_comm.delArea.add(&refA);
 			} else static if (is(A : Battle)) {
-				_comm.refBattle.remove(&refA);
-				_comm.delBattle.remove(&refA);
+				_comm.refBattle.add(&refA);
+				_comm.delBattle.add(&refA);
 			} else static if (is(A : Package)) {
-				_comm.refPackage.remove(&refA);
-				_comm.delPackage.remove(&refA);
+				_comm.refPackage.add(&refA);
+				_comm.delPackage.add(&refA);
 			} else static if (is(A : CastCard)) {
-				_comm.refCast.remove(&refA);
-				_comm.delCast.remove(&refA);
+				_comm.refCast.add(&refA);
+				_comm.delCast.add(&refA);
 			} else static if (is(A : InfoCard)) {
-				_comm.refInfo.remove(&refA);
-				_comm.delInfo.remove(&refA);
+				_comm.refInfo.add(&refA);
+				_comm.delInfo.add(&refA);
 			} else static assert (0);
-		});
+			.listener(this, SWT.Dispose, { mixin(S_TRACE);
+				static if (is(A:AbstractArea)) {
+					saveExpanded();
+				}
+				_comm.refTableViewStyle.remove(&initControl);
+				static if (is(A : Area)) {
+					_comm.refArea.remove(&refA);
+					_comm.delArea.remove(&refA);
+				} else static if (is(A : Battle)) {
+					_comm.refBattle.remove(&refA);
+					_comm.delBattle.remove(&refA);
+				} else static if (is(A : Package)) {
+					_comm.refPackage.remove(&refA);
+					_comm.delPackage.remove(&refA);
+				} else static if (is(A : CastCard)) {
+					_comm.refCast.remove(&refA);
+					_comm.delCast.remove(&refA);
+				} else static if (is(A : InfoCard)) {
+					_comm.refInfo.remove(&refA);
+					_comm.delInfo.remove(&refA);
+				} else static assert (0);
+			});
+		}
 	}
 
 	@property

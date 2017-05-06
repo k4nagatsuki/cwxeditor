@@ -52,12 +52,14 @@ private:
 	static class MVUndo : Undo {
 		protected MotionView _v = null;
 		protected Commons comm;
+		protected Summary summ;
 
 		private int _selected = -1, _selectedB = -1;
 
-		this (MotionView v, Commons comm) { mixin(S_TRACE);
+		this (MotionView v, Commons comm, Summary summ) { mixin(S_TRACE);
 			_v = v;
 			this.comm = comm;
+			this.summ = summ;
 
 			save(v);
 		}
@@ -86,10 +88,10 @@ private:
 	static class UndoEdit : MVUndo {
 		private Motion _old;
 		private ptrdiff_t _index;
-		this (MotionView v, Commons comm, ptrdiff_t index) { mixin(S_TRACE);
-			super (v, comm);
+		this (MotionView v, Commons comm, Summary summ, ptrdiff_t index) { mixin(S_TRACE);
+			super (v, comm, summ);
 			_old = v.motion(index).dup;
-			_old.setUseCounter(comm.summary.useCounter.sub);
+			_old.setUseCounter(summ.useCounter.sub);
 			_index = index;
 		}
 		private void impl() { mixin(S_TRACE);
@@ -100,7 +102,7 @@ private:
 			auto old = _old;
 			_old.removeUseCounter();
 			_old = v.motion(_index).dup;
-			_old.setUseCounter(comm.summary.useCounter.sub);
+			_old.setUseCounter(summ.useCounter.sub);
 			auto m = v.motion(_index);
 			v.motion(_index, old, false);
 		}
@@ -111,12 +113,12 @@ private:
 		}
 	}
 	void storeEdit(ptrdiff_t index) { mixin(S_TRACE);
-		_undo ~= new UndoEdit(this, _comm, index);
+		_undo ~= new UndoEdit(this, _comm, _summ, index);
 	}
 	static class UndoSwap : MVUndo {
 		private int _index1, _index2;
-		this (MotionView v, Commons comm, int index1, int index2) { mixin(S_TRACE);
-			super (v, comm);
+		this (MotionView v, Commons comm, Summary summ, int index1, int index2) { mixin(S_TRACE);
+			super (v, comm, summ);
 			_index1 = index1;
 			_index2 = index2;
 		}
@@ -132,12 +134,12 @@ private:
 		override void dispose() {}
 	}
 	void storeSwap(int index1, int index2) { mixin(S_TRACE);
-		_undo ~= new UndoSwap(this, _comm, index1, index2);
+		_undo ~= new UndoSwap(this, _comm, _summ, index1, index2);
 	}
 	static class UndoMove : MVUndo {
 		private int _from, _to;
-		this (MotionView v, Commons comm, int from, int to) { mixin(S_TRACE);
-			super (v, comm);
+		this (MotionView v, Commons comm, Summary summ, int from, int to) { mixin(S_TRACE);
+			super (v, comm, summ);
 			_from = from;
 			_to = to;
 			if (_from < _to) _to--;
@@ -159,7 +161,7 @@ private:
 		override void dispose() {}
 	}
 	void storeMove(int from, int to) { mixin(S_TRACE);
-		_undo ~= new UndoMove(this, _comm, from, to);
+		_undo ~= new UndoMove(this, _comm, _summ, from, to);
 	}
 	static class UndoInsertDelete : MVUndo {
 		private bool _insert;
@@ -168,8 +170,8 @@ private:
 
 		private Motion _m = null;
 
-		this (MotionView v, Commons comm, int index, bool insert) { mixin(S_TRACE);
-			super (v, comm);
+		this (MotionView v, Commons comm, Summary summ, int index, bool insert) { mixin(S_TRACE);
+			super (v, comm, summ);
 			_insert = insert;
 			_index = index;
 
@@ -180,7 +182,7 @@ private:
 		private void initUndoDelete(MotionView v) { mixin(S_TRACE);
 			if (!v || v.isDisposed()) return;
 			_m = v.motion(_index).dup;
-			_m.setUseCounter(comm.summary.useCounter.sub);
+			_m.setUseCounter(summ.useCounter.sub);
 		}
 		private void undoInsert() { mixin(S_TRACE);
 			auto v = view();
@@ -219,10 +221,10 @@ private:
 		}
 	}
 	void storeInsert(int index) { mixin(S_TRACE);
-		_undo ~= new UndoInsertDelete(this, _comm, index, true);
+		_undo ~= new UndoInsertDelete(this, _comm, _summ, index, true);
 	}
 	void storeDelete(int index) { mixin(S_TRACE);
-		_undo ~= new UndoInsertDelete(this, _comm, index, false);
+		_undo ~= new UndoInsertDelete(this, _comm, _summ, index, false);
 	}
 
 	string _id;
@@ -266,6 +268,7 @@ private:
 
 	HashSet!EventWindow _beWin;
 	EventWindow openBeastEventWin(BeastCard beast) { mixin(S_TRACE);
+		if (!_summ) return null;
 		if (0 != beast.linkId) { mixin(S_TRACE);
 			auto b = _summ.beast(beast.linkId);
 			if (!b) return null;
@@ -285,6 +288,7 @@ private:
 		openBeastEventWin(b);
 	}
 	bool canEditBeast() { mixin(S_TRACE);
+		if (!_summ) return false;
 		auto m = selection;
 		if (!m || !m.beast) return false;
 		if (0 != m.beast.linkId && !_summ.beast(m.beast.linkId)) return false;
@@ -299,7 +303,7 @@ private:
 		auto itm = _motions.getItem(cast(int)index);
 		auto o = cast(Motion) itm.getData();
 		assert (o);
-		if (o.beast) { mixin(S_TRACE);
+		if (_summ && _summ.scenarioPath != "" && o.beast) { mixin(S_TRACE);
 			_comm.delBeast.call(o, o.beast);
 		}
 		itm.setData(m);
@@ -419,7 +423,7 @@ private:
 	}
 	CardDialog editBeast() { mixin(S_TRACE);
 		auto m = selection;
-		if (m && m.detail.use(MArg.BEAST)) { mixin(S_TRACE);
+		if (m && m.detail.use(MArg.BEAST) && _summ) { mixin(S_TRACE);
 			auto b = m.beast;
 			if (b) { mixin(S_TRACE);
 				if (0 != b.linkId) { mixin(S_TRACE);
@@ -499,6 +503,7 @@ private:
 			}
 		}
 		Rectangle cardBounds(MouseEvent e) { mixin(S_TRACE);
+			if (!_summ) return null;
 			auto m = selection;
 			if (!m || !m.detail.use(MArg.BEAST)) return null;
 			auto b = m.beast;
@@ -518,6 +523,7 @@ private:
 			return new Rectangle(x, y, _prop.s(w), _prop.s(h));
 		}
 		Rectangle eventTreeMarkRect(MouseEvent e) { mixin(S_TRACE);
+			if (!_summ) return null;
 			auto m = selection;
 			if (!m || !m.detail.use(MArg.BEAST)) return null;
 			auto b = m.beast;
@@ -597,7 +603,7 @@ private:
 			if (store) storeDelete(index);
 			auto m = cast(Motion) _motions.getItem(index).getData();
 			assert (m);
-			if (m.beast) { mixin(S_TRACE);
+			if (_summ && _summ.scenarioPath != "" && m.beast) { mixin(S_TRACE);
 				_comm.delBeast.call(m, m.beast);
 			}
 			_motions.remove(index);
@@ -736,11 +742,11 @@ private:
 			auto b = _selectedBeast;
 			int mi = _motions.getSelectionIndex();
 			assert (-1 != mi);
-			auto sb = cast(Motion) _motions.getItem(mi).getData();
+			auto sb = cast(Motion)_motions.getItem(mi).getData();
 			if (b) { mixin(S_TRACE);
 				if (!sb.beast && !b) return;
 				storeEdit(mi);
-				if (sb.beast) _comm.delBeast.call(sb, sb.beast);
+				if (_summ && _summ.scenarioPath != "" && sb.beast) _comm.delBeast.call(sb, sb.beast);
 				if (_prop.var.etc.linkCard || !_summ || !_summ.legacy) { mixin(S_TRACE);
 					sb.beast = new BeastCard(1UL, "", [], "");
 					sb.beast.linkId = b.id;
@@ -750,7 +756,9 @@ private:
 			} else { mixin(S_TRACE);
 				if (!sb.beast) return;
 				storeEdit(mi);
-				_comm.delBeast.call(sb, sb.beast);
+				if (_summ && _summ.scenarioPath != "") { mixin(S_TRACE);
+					_comm.delBeast.call(sb, sb.beast);
+				}
 				sb.beast = null;
 			}
 			resetMaxNest(sb);
@@ -761,6 +769,7 @@ private:
 		}
 	}
 	void removeRef() { mixin(S_TRACE);
+		if (!_summ) return;
 		auto m = selection;
 		if (!m || !m.beast || 0 == m.beast.linkId) return;
 		auto targ = _summ.beast(m.beast.linkId);
@@ -777,7 +786,7 @@ private:
 		refEnabled();
 	}
 	void updateBeastToolTip() { mixin(S_TRACE);
-		if (!selection) return;
+		if (!_summ || !selection) return;
 		auto beast = selection.beast;
 		string toolTip = "";
 		if (beast && beast.linkId) { mixin(S_TRACE);
@@ -795,6 +804,7 @@ private:
 	}
 	class PaintBeast : PaintListener {
 		override void paintControl(PaintEvent e) { mixin(S_TRACE);
+			if (!_summ) return;
 			auto beast = selection.beast;
 			if (beast) { mixin(S_TRACE);
 				auto data = cardImage!(BeastCard)(_prop, summSkin, beast, _summ.scenarioPath, _summ.dataVersion, null, (id) => _summ.beast(id), true, false);
@@ -927,10 +937,12 @@ private:
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			_comm.refMenu.remove(&refMenu);
-			_comm.refBeast.remove(&refBeast);
-			_comm.delBeast.remove(&delBeast);
+			if (_summ && _summ.scenarioPath != "") { mixin(S_TRACE);
+				_comm.refBeast.remove(&refBeast);
+				_comm.delBeast.remove(&delBeast);
+				_comm.refSkin.remove(&_beastImg.redraw);
+			}
 			_comm.refUndoMax.remove(&refUndoMax);
-			_comm.refSkin.remove(&_beastImg.redraw);
 			_comm.refCardImageStatus.remove(&_beastImg.redraw);
 			_comm.refDataVersion.remove(&refEnabled);
 			getDisplay().removeFilter(SWT.KeyDown, _kdFilter);
@@ -971,6 +983,7 @@ private:
 		refBeasts();
 	}
 	void refBeasts() { mixin(S_TRACE);
+		if (!_summ) return;
 		setRedraw(false);
 		scope (exit) setRedraw(true);
 		ulong selId = 0;
@@ -1237,7 +1250,7 @@ public:
 				grp.setText(_prop.msgs.motionBeast);
 				_beasts = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 				_beasts.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
-				_beasts.setEnabled(!_readOnly);
+				_beasts.setEnabled(!_readOnly && _summ && _summ.scenarioPath != "");
 				_beasts.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				_beasts.addSelectionListener(new class SelectionAdapter {
 					override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
@@ -1310,7 +1323,7 @@ public:
 				new MenuItem(menu, SWT.SEPARATOR);
 				createMenuItem(_comm, menu, MenuID.EditEventAtTimeOfUsing, &editBeastUseEvent, &canEditBeast);
 				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(_comm, menu, MenuID.RemoveRef, &removeRef, () => !_readOnly && selection && selection.beast && 0 != selection.beast.linkId && _summ.beast(selection.beast.linkId));
+				createMenuItem(_comm, menu, MenuID.RemoveRef, &removeRef, () => !_readOnly && selection && selection.beast && 0 != selection.beast.linkId && _summ && _summ.beast(selection.beast.linkId));
 				new MenuItem(menu, SWT.SEPARATOR);
 				createMenuItem(_comm, menu, MenuID.Undo, &this.undo, () => !_readOnly && _undo.canUndo);
 				createMenuItem(_comm, menu, MenuID.Redo, &this.redo, () => !_readOnly && _undo.canRedo);
@@ -1351,7 +1364,7 @@ public:
 				_maxNest.setMinimum(1);
 				_maxNest.setMaximum(_prop.var.etc.beastMaxNest);
 
-				if (!_readOnly) { mixin(S_TRACE);
+				if (!_readOnly && _summ && _summ.scenarioPath != "") { mixin(S_TRACE);
 					auto drop = new DropTarget(_beastImg, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_LINK);
 					drop.setTransfer([XMLBytesTransfer.getInstance()]);
 					drop.addDropListener(new BeastDropListener);
@@ -1466,10 +1479,12 @@ public:
 		addDisposeListener(new Dispose);
 		_kdFilter = new KeyDownFilter();
 		_comm.refMenu.add(&refMenu);
-		_comm.refBeast.add(&refBeast);
-		_comm.delBeast.add(&delBeast);
+		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
+			_comm.refBeast.add(&refBeast);
+			_comm.delBeast.add(&delBeast);
+			_comm.refSkin.add(&_beastImg.redraw);
+		}
 		_comm.refUndoMax.add(&refUndoMax);
-		_comm.refSkin.add(&_beastImg.redraw);
 		_comm.refCardImageStatus.add(&_beastImg.redraw);
 		_comm.refDataVersion.add(&refEnabled);
 		getDisplay().addFilter(SWT.KeyDown, _kdFilter);
@@ -1477,7 +1492,7 @@ public:
 	class BeastDragListener : DragSourceAdapter {
 		override void dragStart(DragSourceEvent e) { mixin(S_TRACE);
 			auto m = selection;
-			e.doit = m && m.beast;
+			e.doit = m && m.beast && _summ;
 		}
 		override void dragSetData(DragSourceEvent e){ mixin(S_TRACE);
 			if (XMLBytesTransfer.getInstance().isSupportedType(e.dataType)) { mixin(S_TRACE);
@@ -1496,10 +1511,10 @@ public:
 	}
 	class BeastDropListener : DropTargetAdapter {
 		override void dragEnter(DropTargetEvent e){ mixin(S_TRACE);
-			e.detail = _readOnly ? DND.DROP_NONE : DND.DROP_COPY;
+			e.detail = _readOnly || !_summ || _summ.scenarioPath == "" ? DND.DROP_NONE : DND.DROP_COPY;
 		}
 		override void dragOver(DropTargetEvent e){ mixin(S_TRACE);
-			e.detail = _readOnly ? DND.DROP_NONE : DND.DROP_COPY;
+			e.detail = _readOnly || !_summ || _summ.scenarioPath == "" ? DND.DROP_NONE : DND.DROP_COPY;
 		}
 		override void drop(DropTargetEvent e){ mixin(S_TRACE);
 			assert (!_readOnly);
@@ -1540,6 +1555,7 @@ public:
 	}
 	@property
 	private bool canSelectConnectedResource() { mixin(S_TRACE);
+		if (!_summ) return false;
 		if (!selection) return false;
 		auto m = selection;
 		if (!m.beast) return false;
@@ -1550,6 +1566,7 @@ public:
 		return _summ.hasMaterial(file, _prop.var.etc.ignorePaths);
 	}
 	private void selectConnectedResource() { mixin(S_TRACE);
+		if (!_summ) return;
 		if (!selection) return;
 		auto m = selection;
 		if (!m.beast) return;
@@ -1663,6 +1680,7 @@ public:
 	}
 
 	private bool qCardMaterialCopy(BeastCard card, string fromSPath) { mixin(S_TRACE);
+		if (!_summ || _summ.scenarioPath == "") return false;
 		if (fromSPath.length && !cfnmatch(nabs(fromSPath), nabs(_summ.scenarioPath))) { mixin(S_TRACE);
 			auto uc = new UseCounter;
 			card.setUseCounter(uc);
@@ -1677,6 +1695,7 @@ public:
 		return true;
 	}
 	private int pasteBeast(ref XNode node) { mixin(S_TRACE);
+		if (!_summ || _summ.scenarioPath == "") return false;
 		auto m = selection;
 		int detail = DND.DROP_NONE;
 		if (m && m.detail.use(MArg.BEAST)) { mixin(S_TRACE);
@@ -1723,6 +1742,7 @@ public:
 	}
 	private class BeastTCPD : TCPD {
 		private bool copyImpl() { mixin(S_TRACE);
+			if (!_summ) return false;
 			auto m = selection;
 			if (m) { mixin(S_TRACE);
 				assert (m.detail.use(MArg.BEAST));
@@ -1766,7 +1786,7 @@ public:
 				assert (m.detail.use(MArg.BEAST));
 				if (m.beast) { mixin(S_TRACE);
 					storeEdit(_motions.getSelectionIndex());
-					if (m.beast) _comm.delBeast.call(m, m.beast);
+					if (_summ && _summ.scenarioPath != "" && m.beast) _comm.delBeast.call(m, m.beast);
 					m.beast = null;
 					resetMaxNest(m);
 					_beastImg.redraw();

@@ -5,6 +5,7 @@ import cwx.xml;
 import cwx.structs;
 import cwx.settings;
 import cwx.types;
+import cwx.event;
 
 import std.path;
 
@@ -805,6 +806,8 @@ class FlexEtcProps : Properties {
 	auto scriptVarTableHeight = Prop!(int, true, true)("scriptVarTableHeight", 300);
 
 	auto archivePath = Prop!(string)("archivePath", "");
+
+	auto contentInitializers = Prop!(ContentInitializer[])("contentInitializers", []);
 
 	auto mainToolBar = Prop!(ToolBarSettings)("mainToolBar", ToolBarSettings([
 		[

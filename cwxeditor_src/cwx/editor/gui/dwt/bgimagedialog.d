@@ -142,8 +142,10 @@ private:
 	}
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-			_comm.delBgImage.remove(&delBgImage);
-			_comm.refDataVersion.remove(&refDataVersion);
+			if (_summ && _summ.scenarioPath != "") { mixin(S_TRACE);
+				_comm.delBgImage.remove(&delBgImage);
+				_comm.refDataVersion.remove(&refDataVersion);
+			}
 			_comm.refTargetVersion.remove(&refDataVersion);
 		}
 	}
@@ -284,8 +286,10 @@ protected:
 	}
 	void setFirstParams(Composite area) { mixin(S_TRACE);
 		area.addDisposeListener(new Dispose);
-		_comm.delBgImage.add(&delBgImage);
-		_comm.refDataVersion.add(&refDataVersion);
+		if (_summ && _summ.scenarioPath != "") { mixin(S_TRACE);
+			_comm.delBgImage.add(&delBgImage);
+			_comm.refDataVersion.add(&refDataVersion);
+		}
 		_comm.refTargetVersion.add(&refDataVersion);
 
 		ignoreMod = true;
@@ -328,7 +332,9 @@ protected:
 		if (_mask) back.mask = _mask.getSelection();
 		if (back.cellName != _cellName.getText()) {
 			back.cellName = _cellName.getText();
-			_comm.refCellNames.call();
+			if (_summ && _summ.scenarioPath != "") { mixin(S_TRACE);
+				_comm.refCellNames.call();
+			}
 		}
 		_create = false;
 	}
@@ -769,9 +775,9 @@ protected:
 			_text.setLayoutData(gd1);
 			.listener(_text, SWT.Modify, &refreshWarning);
 			.listener(_text, SWT.Modify, &updatePreview);
-			createSimpleSCharBar(grp, &_text.insert, _comm, _prop, skin);
+			createSimpleSCharBar(grp, &_text.insert, _comm, _prop, _summ, skin);
 			if (_summ) { mixin(S_TRACE);
-				createFlagStepBar(grp, &_text.insert, _comm, _prop, skin, _summ, false).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				createFlagStepBar(grp, &_text.insert, _comm, _prop, _summ, skin, false).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			}
 
 			_values = new PreviewValues(sash2, _comm, _prop, _summ, false);

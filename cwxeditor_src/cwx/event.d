@@ -2337,7 +2337,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			}
 		}
 		if (d.use(CArg.SELECTION_METHOD)) { mixin(S_TRACE);
-			if (opt.isTargetVersion("1") || selectionMethod is SelectionMethod.Valued) { mixin(S_TRACE);
+			if ((opt && opt.isTargetVersion("1")) || selectionMethod is SelectionMethod.Valued) { mixin(S_TRACE);
 				e.newAttr("method", fromSelectionMethod(selectionMethod));
 			} else { mixin(S_TRACE);
 				e.newAttr("random", fromBool(selectionMethod is SelectionMethod.Random));
@@ -3897,5 +3897,46 @@ public class EventException : Exception {
 public:
 	this (string msg) { mixin(S_TRACE);
 		super(msg);
+	}
+}
+
+/// イベントコンテントの初期値設定
+struct ContentInitializer {
+	static const XML_NAME = "contentInitializer";
+
+	string dataVersion;
+	Content[CType] initializer;
+
+	/// XMLノードとして取り扱うための関数群。
+	const
+	XNode toNode() { mixin(S_TRACE);
+		auto e = XNode.create(XML_NAME);
+		toNodeImpl(e);
+		return e;
+	}
+	/// ditto
+	const
+	void toNode(ref XNode node) { mixin(S_TRACE);
+		auto e = node.newElement(XML_NAME);
+		toNodeImpl(e);
+	}
+	/// ditto
+	const
+	private void toNodeImpl(ref XNode e) { mixin(S_TRACE);
+		e.newAttr("dataVersion", dataVersion);
+		foreach (c; initializer) { mixin(S_TRACE);
+			c.toNode(e, null);
+		}
+	}
+	/// ditto
+	void fromNode(ref XNode node) { mixin(S_TRACE);
+		if (node.name != XML_NAME) throw new Exception("Node is not content initializer");
+		dataVersion = node.attr!(string)("dataVersion", true);
+		initializer = null;
+		node.onTag[null] = (ref XNode node) { mixin(S_TRACE);
+			auto c = Content.createFromNode(node, null);
+			initializer[c.type] = c;
+		};
+		node.parse();
 	}
 }

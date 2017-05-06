@@ -481,10 +481,9 @@ class Commons {
 	private void clearPackageDirExpanded() { flagDirExpanded = null; }
 
 	@property
-	Props prop() {return _prop;}
-	@property
-	const
-	const(Props) prop() {return _prop;}
+	inout
+	inout(Props) prop() {return _prop;}
+
 	void dispose() { mixin(S_TRACE);
 		if (_wallpaper) _wallpaper.dispose();
 		refScenario.remove(&clearFlagDirExpandedS);
@@ -699,7 +698,8 @@ class Commons {
 	void skin(Skin skin) {_skin = skin;}
 	/// ditto
 	@property
-	Skin skin() {return _skin;}
+	inout
+	inout(Skin) skin() {return _skin;}
 	/// 履歴を見て適用するべきスキンを探す。
 	Skin findSkinFromHistory(in Summary summ) { mixin(S_TRACE);
 		OpenHistory hist;

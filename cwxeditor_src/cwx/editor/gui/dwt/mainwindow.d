@@ -3350,8 +3350,8 @@ public:
 						case MenuID.Expand:
 						case MenuID.Collapse:
 						case MenuID.SelectCurrentEvent:
-						case MenuID.ResetPreviewValues:
-						case MenuID.ResetPreviewValuesAll:
+						case MenuID.ResetValues:
+						case MenuID.ResetValuesAll:
 						case MenuID.CustomizeToolBar:
 						case MenuID.AddTool:
 						case MenuID.AddToolBar:

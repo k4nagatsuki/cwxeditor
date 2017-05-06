@@ -17,6 +17,7 @@ import cwx.features;
 import cwx.types;
 import cwx.imagesize;
 import cwx.settings;
+import cwx.event;
 
 import cwx.editor.gui.sound;
 
@@ -40,6 +41,7 @@ import cwx.editor.gui.dwt.loader;
 import cwx.editor.gui.dwt.scripterrordialog;
 import cwx.editor.gui.dwt.incsearch;
 import cwx.editor.gui.dwt.etcsettings;
+import cwx.editor.gui.dwt.contentinitializer;
 
 static import std.algorithm;
 import std.algorithm : max, min, map, stripRight;
@@ -122,6 +124,12 @@ private:
 	CTabItem _tabC;
 	ToolsPane!ScTemplate _scTempls;
 	ToolsPane!EvTemplate _evTempls;
+
+	ContentInitialValueEditor _initializer;
+	ContentInitializer[] _initializers = [];
+	string[] _initializerKeys = [];
+	UndoManager[] _initializerUndos = [];
+	int _selectedInitializer = 0;
 
 	CTabItem _tabE;
 	Combo _imageScale;
@@ -707,6 +715,7 @@ private:
 			_dlg = new DefBgImgDialog(_comm, _prop, getShell(), _bgImagesDefault);
 			_dlg.appliedEvent ~= { mixin(S_TRACE);
 				_bgImagesDefault = _dlg.backs;
+				_initializer.bgImagesDefault = _bgImagesDefault;
 				applyEnabled();
 			};
 			_dlg.closeEvent ~= { mixin(S_TRACE);
@@ -775,7 +784,7 @@ private:
 
 	void construct3(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout(normalGridLayout(1, false));
+		comp.setLayout(normalGridLayout(2, false));
 		_tabT = new CTabItem(tabf, SWT.NONE);
 		_tabT.setText(_prop.msgs.templates);
 		_tabT.setControl(comp);
@@ -789,6 +798,87 @@ private:
 		_scTempls.setLayoutData(new GridData(GridData.FILL_BOTH));
 
 		.setupWeights(sash, _prop.var.etc.templatesSashL, _prop.var.etc.templatesSashR);
+
+		auto initGrp = new Group(comp, SWT.NONE);
+		initGrp.setText(_prop.msgs.contentInitializer);
+		initGrp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
+		initGrp.setLayout(normalGridLayout(1, true));
+		auto inits = new Combo(initGrp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+		mod(inits);
+		inits.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		inits.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
+
+		inits.add(_prop.msgs.defaultSelection(_prop.msgs.baseInitializers));
+		_initializerKeys ~= "Basic";
+		_initializerUndos ~= new UndoManager(_comm.prop.var.etc.undoMaxEtc);
+		inits.add(_prop.msgs.defaultSelection(_prop.msgs.classic));
+		_initializerKeys ~= "Classic";
+		_initializerUndos ~= new UndoManager(_comm.prop.var.etc.undoMaxEtc);
+		_selectedInitializer = 0;
+		foreach (i, ver; VERSION_NAMES) { mixin(S_TRACE);
+			inits.add(ver);
+			_initializerKeys ~= VERSIONS[i];
+			_initializerUndos ~= new UndoManager(_comm.prop.var.etc.undoMaxEtc);
+		}
+
+		inits.select(_selectedInitializer);
+
+		_initializer = new ContentInitialValueEditor(_comm, initGrp);
+		mod(_initializer);
+		_initializer.widget.setLayoutData(new GridData(GridData.FILL_BOTH));
+		_initializer.bgImagesDefault = _prop.var.etc.bgImagesDefault;
+		_initializers = _prop.var.etc.contentInitializers.dup;
+		selectInitializers2();
+		.listener(inits, SWT.Selection, &selectInitializers);
+
+		void refUndoMax() { mixin(S_TRACE);
+			foreach (undo; _initializerUndos) { mixin(S_TRACE);
+				undo.max = _comm.prop.var.etc.undoMaxEtc;
+			}
+		}
+		_comm.refUndoMax.add(&refUndoMax);
+		.listener(_initializer.widget, SWT.Dispose, { mixin(S_TRACE);
+			_comm.refUndoMax.remove(&refUndoMax);
+		});
+	}
+	void selectInitializers(Event e) { mixin(S_TRACE);
+		updateInitializers();
+
+		auto combo = cast(Combo)e.widget;
+		_selectedInitializer = combo.getSelectionIndex();
+		selectInitializers2();
+	}
+	void updateInitializers() { mixin(S_TRACE);
+		auto key = _initializerKeys[_selectedInitializer];
+		foreach (ref initializer; _initializers) { mixin(S_TRACE);
+			if (initializer.dataVersion == key) { mixin(S_TRACE);
+				initializer = ContentInitializer(key, _initializer.getInitializer());
+				return;
+			}
+		}
+		_initializers ~= ContentInitializer(key, _initializer.getInitializer());
+	}
+	void selectInitializers2() { mixin(S_TRACE);
+		auto undo = _initializerUndos[_selectedInitializer];
+		foreach (ref initializer; _initializers) { mixin(S_TRACE);
+			if (initializer.dataVersion == _initializerKeys[_selectedInitializer]) { mixin(S_TRACE);
+				if (initializer.dataVersion == "Basic") { mixin(S_TRACE);
+					_initializer.setInitializer(initializer.initializer, false, LATEST_VERSION, undo);
+				} else if (initializer.dataVersion == "Classic") { mixin(S_TRACE);
+					_initializer.setInitializer(initializer.initializer, true, "", undo);
+				} else { mixin(S_TRACE);
+					_initializer.setInitializer(initializer.initializer, false, initializer.dataVersion, undo);
+				}
+				return;
+			}
+		}
+		if (_initializerKeys[_selectedInitializer] == "Basic") { mixin(S_TRACE);
+			_initializer.setInitializer((Content[CType]).init, false, LATEST_VERSION, undo);
+		} else if (_initializerKeys[_selectedInitializer] == "Classic") { mixin(S_TRACE);
+			_initializer.setInitializer((Content[CType]).init, true, "", undo);
+		} else { mixin(S_TRACE);
+			_initializer.setInitializer((Content[CType]).init, false, _initializerKeys[_selectedInitializer], undo);
+		}
 	}
 
 	void construct4(CTabFolder tabf) { mixin(S_TRACE);
@@ -1438,6 +1528,13 @@ protected:
 		_prop.var.etc.classicEngines = _cEngines.array;
 		_prop.var.etc.eventTemplates = _evTempls.array;
 		_prop.var.etc.scenarioTemplates = _scTempls.array;
+
+		updateInitializers();
+		_prop.var.etc.contentInitializers = [];
+		foreach (ref initializer; _initializers) { mixin(S_TRACE);
+			if (initializer.initializer.length) _prop.var.etc.contentInitializers ~= initializer;
+		}
+
 		foreach (itm; _menu.getItems()) { mixin(S_TRACE);
 			auto data = cast(SMenuData) itm.getData();
 			_prop.var.menu.mnemonic(data.id, data.mnemonic);
@@ -1810,7 +1907,7 @@ public:
 		_prop = prop;
 
 		BgImage[] bgImages;
-		auto skin = _comm.skin;
+		auto skin = findSkin(_comm, _prop, null);
 		_cont = new BgImageContainer(createBgImages(skin, bgImagesDefault));
 	}
 

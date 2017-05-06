@@ -79,7 +79,6 @@ abstract class EventDialog : AbsDialog {
 
 	this (Commons comm, Props prop, Shell shell, Summary summ, CType type, Content parent, Content evt, bool resizable, DSize size, bool eClose, bool rightGroup = false) in { mixin(S_TRACE);
 		assert (!evt || evt.type is type);
-		assert (summ);
 	} body { mixin(S_TRACE);
 		super (prop, shell, false, .tryFormat(prop.msgs.dlgTitContent, prop.msgs.contentName(type)), prop.images.content(type), resizable, size, true, true, [], rightGroup);
 		enterClose = eClose;
@@ -89,11 +88,13 @@ abstract class EventDialog : AbsDialog {
 		_type = type;
 		_parent = parent;
 		_evt = evt;
-		_comm.delContent.add(&delContent);
-		_comm.refSkin.add(&refSkin);
-		_comm.refDataVersion.add(&refDataVersion);
-		_comm.refTargetVersion.add(&refreshWarning);
-		getShell().addDisposeListener(new Dispose);
+		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
+			_comm.delContent.add(&delContent);
+			_comm.refSkin.add(&refSkin);
+			_comm.refDataVersion.add(&refDataVersion);
+			_comm.refTargetVersion.add(&refreshWarning);
+			getShell().addDisposeListener(new Dispose);
+		}
 	}
 
 	@property
@@ -229,11 +230,11 @@ private class RangePanel : Composite {
 		}
 	}
 
-	this (Commons comm, Composite parent, in Range[] ranges, string initCoupon, string title, bool horizontal, AbsDialog modDlg,
+	this (Commons comm, Summary summ, Composite parent, in Range[] ranges, string initCoupon, string title, bool horizontal, AbsDialog modDlg,
 			in Content evt, bool delegate() catchMod, void delegate() refreshWarning) { mixin(S_TRACE);
 		super (parent, SWT.NONE);
 		_comm = comm;
-		_summ = comm.summary;
+		_summ = summ;
 		_ranges = ranges;
 		if (evt) _initCoupon = evt.holdingCoupon;
 		auto prop = comm.prop;
@@ -241,7 +242,7 @@ private class RangePanel : Composite {
 		auto grp = new Group(this, SWT.NONE);
 		grp.setText(title);
 		auto cl = new CenterLayout;
-		cl.fillHorizontal = true;
+		if (ranges.contains(Range.COUPON_HOLDER)) cl.fillHorizontal = true;
 		grp.setLayout(cl);
 		auto mainComp = new Composite(grp, SWT.NONE);
 		if (horizontal) { mixin(S_TRACE);
@@ -345,10 +346,12 @@ private class RangePanel : Composite {
 			updateCouponTypeImpl();
 		}
 
-		comm.refDataVersion.add(&refDataVersion);
-		.listener(this, SWT.Dispose, { mixin(S_TRACE);
-			comm.refDataVersion.remove(&refDataVersion);
-		});
+		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
+			comm.refDataVersion.add(&refDataVersion);
+			.listener(this, SWT.Dispose, { mixin(S_TRACE);
+				comm.refDataVersion.remove(&refDataVersion);
+			});
+		}
 
 		refDataVersion();
 	}
@@ -378,10 +381,10 @@ class TransitionPanel : Composite {
 	private Transition[int] _tsTbl;
 	private const Summary _summ;
 
-	this (Commons comm, Composite parent, bool horizontal, in Content evt, AbsDialog modDlg) { mixin(S_TRACE);
+	this (Commons comm, Summary summ, Composite parent, bool horizontal, in Content evt, AbsDialog modDlg) { mixin(S_TRACE);
 		super (parent, SWT.NONE);
 		auto prop = comm.prop;
-		_summ = comm.summary;
+		_summ = summ;
 		if (horizontal) { mixin(S_TRACE);
 			this.setLayout(zeroMarginGridLayout(5, false));
 		} else {
@@ -422,15 +425,17 @@ class TransitionPanel : Composite {
 			_tsSpeed.setSelection(.transitionSpeedDef);
 		}
 		refreshTS();
-		comm.refDataVersion.add(&refreshTS);
-		.listener(this, SWT.Dispose, { mixin(S_TRACE);
-			comm.refDataVersion.remove(&refreshTS);
-		});
+		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
+			comm.refDataVersion.add(&refreshTS);
+			.listener(this, SWT.Dispose, { mixin(S_TRACE);
+				comm.refDataVersion.remove(&refreshTS);
+			});
+		}
 	}
 
 	private void refreshTS() { mixin(S_TRACE);
-		_ts.setEnabled(!_summ.legacy);
-		_tsSpeed.setEnabled(!_summ.legacy && transition !is Transition.DEFAULT && transition !is Transition.NONE);
+		_ts.setEnabled(!_summ || !_summ.legacy);
+		_tsSpeed.setEnabled((!_summ || !_summ.legacy) && transition !is Transition.DEFAULT && transition !is Transition.NONE);
 	}
 
 	@property
@@ -492,6 +497,7 @@ private:
 	}
 
 	void delA(A a) { mixin(S_TRACE);
+		if (!_summ) return;
 		auto summary = _summ;
 		auto areas = mixin (Areas);
 		if (!areas.length) { mixin(S_TRACE);
@@ -540,7 +546,7 @@ protected:
 				auto comp = new Composite(area, SWT.NONE);
 				comp.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 				comp.setLayout(normalGridLayout(1, false));
-				_transition = new TransitionPanel(comm, comp, false, _evt, this);
+				_transition = new TransitionPanel(comm, summ, comp, false, _evt, this);
 			}
 		}
 		static if (Type == CType.GET_CAST) {
@@ -558,18 +564,20 @@ protected:
 			}
 			.listener(_startAction, SWT.Selection, &refreshWarning);
 		}
-		static if (is(A : Area)) {
-			_comm.delArea.add(&delA);
-		} else static if (is(A : Battle)) {
-			_comm.delBattle.add(&delA);
-		} else static if (is(A : Package)) {
-			_comm.delPackage.add(&delA);
-		} else static if (is(A : CastCard)) {
-			_comm.delCast.add(&delA);
-		} else static if (is(A : InfoCard)) {
-			_comm.delInfo.add(&delA);
-		} else static assert (0);
-		_list.addDisposeListener(new Dispose);
+		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
+			static if (is(A : Area)) {
+				_comm.delArea.add(&delA);
+			} else static if (is(A : Battle)) {
+				_comm.delBattle.add(&delA);
+			} else static if (is(A : Package)) {
+				_comm.delPackage.add(&delA);
+			} else static if (is(A : CastCard)) {
+				_comm.delCast.add(&delA);
+			} else static if (is(A : InfoCard)) {
+				_comm.delInfo.add(&delA);
+			} else static assert (0);
+			_list.addDisposeListener(new Dispose);
+		}
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
@@ -605,7 +613,6 @@ protected:
 	}
 
 	override bool apply() { mixin(S_TRACE);
-		assert (_list.selected != 0UL);
 		auto id = _list.selected;
 		if (!_evt) { mixin(S_TRACE);
 			_evt = new Content(Type, "");
@@ -670,6 +677,7 @@ private:
 		refreshStarts(null);
 	}
 	void refreshStarts(Content del) { mixin(S_TRACE);
+		if (!_et) return;
 		string sel = _selected;
 
 		_list.removeAll();
@@ -709,7 +717,7 @@ private:
 	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
-		_et = parent.tree;
+		_et = parent ? parent.tree : null;
 		super (comm, prop, shell, summ, Type, parent, evt, true, prop.var.selEvtDlg, true);
 	}
 
@@ -734,10 +742,13 @@ protected:
 		_incSearch.modEvent ~= &refreshStarts;
 
 		refreshStarts();
-		_comm.refContent.add(&refContent);
-		_comm.delContent.add(&delContent);
-		_comm.replText.add(&refreshStarts);
-		_list.addDisposeListener(new Dispose);
+		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
+			_comm.refContent.add(&refContent);
+			_comm.delContent.add(&delContent);
+			_comm.replText.add(&refreshStarts);
+			_list.addDisposeListener(new Dispose);
+		}
+		if (!summ) _list.setEnabled(false);
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
@@ -750,9 +761,9 @@ protected:
 				}
 			}
 		}
-		if (-1 == _list.getSelectionIndex()) { mixin(S_TRACE);
+		if (-1 == _list.getSelectionIndex() && _list.getItemCount()) { mixin(S_TRACE);
 			_list.select(0);
-			_selected = (cast(Content) _list.getItem(0).getData()).name;
+			_selected = (cast(Content)_list.getItem(0).getData()).name;
 		}
 		_list.showSelection();
 	}
@@ -1121,7 +1132,9 @@ protected:
 			_evt.couponValue = _value.getSelection();
 		}
 
-		comm.refCoupons.call();
+		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
+			comm.refCoupons.call();
+		}
 		return true;
 	}
 }
@@ -1187,14 +1200,16 @@ protected:
 		if (!_evt) _evt = new Content(Type, "");
 		string text = _name.getText();
 		mixin (Set);
-		if (CDetail.fromType(Type).use(CArg.GOSSIP)) { mixin(S_TRACE);
-			comm.refGossips.call();
-		}
-		if (CDetail.fromType(Type).use(CArg.COMPLETE_STAMP)) { mixin(S_TRACE);
-			comm.refCompleteStamps.call();
-		}
-		if (CDetail.fromType(Type).use(CArg.CELL_NAME)) { mixin(S_TRACE);
-			comm.refCellNames.call();
+		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
+			if (CDetail.fromType(Type).use(CArg.GOSSIP)) { mixin(S_TRACE);
+				comm.refGossips.call();
+			}
+			if (CDetail.fromType(Type).use(CArg.COMPLETE_STAMP)) { mixin(S_TRACE);
+				comm.refCompleteStamps.call();
+			}
+			if (CDetail.fromType(Type).use(CArg.CELL_NAME)) { mixin(S_TRACE);
+				comm.refCellNames.call();
+			}
 		}
 		return true;
 	}
@@ -1298,9 +1313,9 @@ protected:
 				auto gd = new GridData(GridData.FILL_VERTICAL);
 				gd.heightHint = 0;
 				(new Label(comp, SWT.SEPARATOR | SWT.VERTICAL)).setLayoutData(gd);
-				_transition = new TransitionPanel(comm, comp, true, _evt, this);
+				_transition = new TransitionPanel(comm, summ, comp, true, _evt, this);
 			} else {
-				_transition = new TransitionPanel(comm, area, true, _evt, this);
+				_transition = new TransitionPanel(comm, summ, area, true, _evt, this);
 				_transition.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 			}
 		}
@@ -1392,7 +1407,7 @@ protected:
 			gd.widthHint = _prop.var.etc.nameWidth;
 			_name.setLayoutData(gd);
 		}
-		_transition = new TransitionPanel(comm, area, true, _evt, this);
+		_transition = new TransitionPanel(comm, summ, area, true, _evt, this);
 		_transition.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 
 		{ mixin(S_TRACE);
@@ -1428,7 +1443,9 @@ protected:
 		_evt.transitionSpeed = _transition.transitionSpeed;
 		_evt.doAnime = _doAnime.getSelection();
 		_evt.ignoreEffectBooster = _ignoreEffectBooster.getSelection();
-		comm.refCellNames.call();
+		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
+			comm.refCellNames.call();
+		}
 		return true;
 	}
 }
@@ -1440,7 +1457,7 @@ private:
 
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
-		auto ws = comm.skin.warningBGM(prop.parent, _msel.filePath, summ.legacy, _prop.var.etc.targetVersion);
+		auto ws = comm.skin.warningBGM(prop.parent, _msel.filePath, summ && summ.legacy, _prop.var.etc.targetVersion);
 		ws ~= _msel.warnings;
 		warning = ws;
 	}
@@ -1511,7 +1528,7 @@ private:
 
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
-		auto ws = comm.skin.warningSE(prop.parent, _msel.filePath, summ.legacy, _prop.var.etc.targetVersion);
+		auto ws = comm.skin.warningSE(prop.parent, _msel.filePath, summ && summ.legacy, _prop.var.etc.targetVersion);
 		ws ~= _msel.warnings;
 		warning = ws;
 	}
@@ -1708,7 +1725,7 @@ private:
 		}
 
 		if (_summ && _summ.legacy && _se.filePath != "" && !_se.selectedDefDir) ws ~= prop.msgs.warningNotDefaultSE;
-		ws ~= comm.skin.warningSE(prop.parent, _se.filePath, summ.legacy, _prop.var.etc.targetVersion) ~ _se.warnings;
+		ws ~= comm.skin.warningSE(prop.parent, _se.filePath, summ && summ.legacy, _prop.var.etc.targetVersion) ~ _se.warnings;
 		warning = ws;
 	}
 
@@ -1842,7 +1859,7 @@ protected:
 					auto ranges = [Range.SELECTED, Range.RANDOM, Range.PARTY, Range.COUPON_HOLDER, Range.CARD_TARGET];
 					auto title = _prop.msgs.cardEventRange;
 					auto initCoupon = (evt && evt.holdingCoupon != "") ? evt.holdingCoupon : prop.sys.effectTargetCoupon;
-					_range = new RangePanel(comm, comp2, ranges, initCoupon, title, false, this, evt, &catchMod, &refreshWarning);
+					_range = new RangePanel(comm, summ, comp2, ranges, initCoupon, title, false, this, evt, &catchMod, &refreshWarning);
 					_range.setLayoutData(new GridData(GridData.FILL_BOTH));
 				}
 				{ mixin(S_TRACE);
@@ -1982,7 +1999,9 @@ protected:
 		_evt.mental = _ability.mental;
 		_evt.ignite = _ignite.getSelection();
 		_evt.keyCodes = _keyCodes.keyCodes;
-		comm.refKeyCodes.call();
+		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
+			comm.refKeyCodes.call();
+		}
 		return true;
 	}
 }
@@ -2014,6 +2033,7 @@ private:
 	}
 
 	void refreshValues() { mixin(S_TRACE);
+		if (!summ) return;
 		static if (is(F:cwx.flag.Flag)) {
 			F flag = summ.flagDirRoot.findFlag(_flags.selected);
 		} else static if (is(F:Step)) {
@@ -2081,6 +2101,7 @@ private:
 		_values.select(sel);
 	}
 	void delFS(cwx.flag.Flag[] f, Step[] s) { mixin(S_TRACE);
+		if (!_root) return;
 		static if (is(F : cwx.flag.Flag)) {
 			if (!f.length) return;
 		} else { mixin(S_TRACE);
@@ -2105,6 +2126,7 @@ private:
 		Combo _cmp = null;
 		Comparison4[] _cmps;
 		void updateLabel() { mixin(S_TRACE);
+			if (!summ) return;
 			static if (is(F:cwx.flag.Flag)) {
 				F step = summ.flagDirRoot.findFlag(_flags.selected);
 			} else static if (is(F:Step)) {
@@ -2169,7 +2191,7 @@ protected:
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.heightHint = _prop.var.etc.nameTableHeight;
 			_values.setLayoutData(gd);
-			_values.setEnabled(SelValue);
+			_values.setEnabled(SelValue && summ && summ.scenarioPath != "");
 			_values.addSelectionListener(new ValSListener);
 		}
 		static if (Type is CType.CHECK_STEP) {
@@ -2187,9 +2209,11 @@ protected:
 			}
 		}
 
-		_comm.refFlagAndStep.add(&refFS);
-		_comm.delFlagAndStep.add(&delFS);
-		_flags.addDisposeListener(new Dispose);
+		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
+			_comm.refFlagAndStep.add(&refFS);
+			_comm.delFlagAndStep.add(&delFS);
+			_flags.addDisposeListener(new Dispose);
+		}
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
@@ -2228,7 +2252,6 @@ protected:
 	}
 
 	override bool apply() { mixin(S_TRACE);
-		assert (_flags.selected != "");
 		if (!_evt) _evt = new Content(Type, "");
 		static if (is (F == cwx.flag.Flag)) {
 			_evt.flag = _flags.selected;
@@ -2290,6 +2313,7 @@ private:
 		}
 	}
 	void delFS(cwx.flag.Flag[] f, Step[] s) { mixin(S_TRACE);
+		if (!_root) return;
 		static if (is(F : cwx.flag.Flag)) {
 			if (!_root.allFlags.length) { mixin(S_TRACE);
 				forceCancel();
@@ -2348,8 +2372,10 @@ protected:
 		_flags2 = new FlagChooser!(F, false, false)(comm, summ, right, false);
 		_flags2.setLayoutData(new GridData(GridData.FILL_BOTH));
 
-		_comm.delFlagAndStep.add(&delFS);
-		_sash.addDisposeListener(new Dispose);
+		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
+			_comm.delFlagAndStep.add(&delFS);
+			_sash.addDisposeListener(new Dispose);
+		}
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
@@ -2416,14 +2442,14 @@ private:
 
 	protected override void refDataVersion() { mixin(S_TRACE);
 		auto valued = _method[cast(size_t)SelectionMethod.Valued];
-		valued.setEnabled(!summ.legacy);
+		valued.setEnabled(!summ || !summ.legacy);
 		if (!valued.isEnabled() && valued.getSelection()) { mixin(S_TRACE);
 			valued.setSelection(false);
 			_method[cast(size_t)SelectionMethod.Manual].setSelection(true);
 			applyEnabled(true);
 		}
-		_couponView.enabled = !summ.legacy && valued.getSelection();
-		_initValue.setEnabled(!summ.legacy && valued.getSelection());
+		_couponView.enabled = (!summ || !summ.legacy) && valued.getSelection();
+		_initValue.setEnabled((!summ || !summ.legacy) && valued.getSelection());
 		refreshWarning();
 	}
 
@@ -2501,7 +2527,9 @@ protected:
 			_evt.coupons = [];
 			_evt.initValue = 1;
 		}
-		comm.refCoupons.call();
+		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
+			comm.refCoupons.call();
+		}
 		return true;
 	}
 }
@@ -2621,6 +2649,7 @@ protected:
 			}
 		}
 		_ability = new AbilityView(comm, area, SWT.NONE);
+		mod(_ability);
 		_ability.setLayoutData(new GridData(GridData.FILL_BOTH));
 
 		ignoreMod = true;
@@ -2786,7 +2815,7 @@ protected:
 			auto ranges = [Range.SELECTED, Range.RANDOM, Range.PARTY];
 			auto title = _prop.msgs.judgeTarget;
 			auto initCoupon = evt ? evt.holdingCoupon : "";
-			_range = new RangePanel(comm, area, ranges, initCoupon, title, true, this, evt, &catchMod, &refreshWarning);
+			_range = new RangePanel(comm, summ, area, ranges, initCoupon, title, true, this, evt, &catchMod, &refreshWarning);
 			_range.setLayoutData(new GridData(GridData.FILL_BOTH));
 		}
 		auto status = createStatusPane(prop, area, _stat, &mod!Button);
@@ -2844,6 +2873,7 @@ private:
 	}
 
 	void refreshList() { mixin(S_TRACE);
+		if (!summ) return;
 		ulong id = _selectedID;
 		_list.removeAll();
 		size_t i = 0;
@@ -2886,6 +2916,7 @@ private:
 		refreshList();
 	}
 	void delCard(CWXPath owner, C c) { mixin(S_TRACE);
+		if (!summ) return;
 		auto cards = mixin (Cards);
 		if (cards.length) { mixin(S_TRACE);
 			refreshList();
@@ -2990,17 +3021,19 @@ protected:
 
 			refreshList();
 		}
-		static if (is (C == SkillCard)) {
-			_comm.refSkill.add(&refCard);
-			_comm.delSkill.add(&delCard);
-		} else static if (is (C == ItemCard)) {
-			_comm.refItem.add(&refCard);
-			_comm.delItem.add(&delCard);
-		} else static if (is (C == BeastCard)) {
-			_comm.refBeast.add(&refCard);
-			_comm.delBeast.add(&delCard);
-		} else static assert (0);
-		_list.addDisposeListener(new Dispose);
+		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
+			static if (is (C == SkillCard)) {
+				_comm.refSkill.add(&refCard);
+				_comm.delSkill.add(&delCard);
+			} else static if (is (C == ItemCard)) {
+				_comm.refItem.add(&refCard);
+				_comm.delItem.add(&delCard);
+			} else static if (is (C == BeastCard)) {
+				_comm.refBeast.add(&refCard);
+				_comm.delBeast.add(&delCard);
+			} else static assert (0);
+			_list.addDisposeListener(new Dispose);
+		}
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
@@ -3041,15 +3074,14 @@ protected:
 			_num.setSelection(1);
 			_range[RangeDef].setSelection(true);
 		}
-		assert (_list.getItemCount());
-		if (-1 == _list.getSelectionIndex()) { mixin(S_TRACE);
+		_list.setEnabled(0 < _list.getItemCount());
+		if (-1 == _list.getSelectionIndex() && _list.getItemCount()) { mixin(S_TRACE);
 			_list.select(0);
 			_selectedID = (cast(C) _list.getItem(0).getData()).id;
 		}
 	}
 
 	override bool apply() { mixin(S_TRACE);
-		assert (_list.getItemCount());
 		if (!_evt) _evt = new Content(Type, "");
 		static if (is (C == SkillCard)) {
 			_evt.skill = _selectedID;
@@ -3102,7 +3134,7 @@ protected:
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			grp.setLayout(new CenterLayout);
 
-			_transition = new TransitionPanel(comm, grp, false, _evt, this);
+			_transition = new TransitionPanel(comm, summ, grp, false, _evt, this);
 		}
 	}
 
@@ -3522,7 +3554,9 @@ protected:
 			_evt.targetIsHand = _effectCardTypeWsn2[EffectCardType.HAND].getSelection();
 		}
 
-		_comm.refKeyCodes.call();
+		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
+			_comm.refKeyCodes.call();
+		}
 		return true;
 	}
 }
@@ -3693,7 +3727,7 @@ protected:
 		createGrp(prop.msgs.resizeCell, _sizeType, _w, _h, prop.var.etc.backWidthMax, prop.var.etc.backHeightMax);
 
 		{ mixin(S_TRACE);
-			_transition = new TransitionPanel(comm, area, true, _evt, this);
+			_transition = new TransitionPanel(comm, summ, area, true, _evt, this);
 			auto gd = new GridData(GridData.HORIZONTAL_ALIGN_END);
 			gd.horizontalSpan = 2;
 			_transition.setLayoutData(gd);
@@ -3782,7 +3816,7 @@ protected:
 
 		auto ranges = [Range.SELECTED, Range.RANDOM, Range.PARTY, Range.FIELD];
 		auto title = _prop.msgs.judgeTarget;
-		_range = new RangePanel(comm, area, ranges, "", title, false, this, evt, &catchMod, &refreshWarning);
+		_range = new RangePanel(comm, summ, area, ranges, "", title, false, this, evt, &catchMod, &refreshWarning);
 		_range.setLayoutData(new GridData(GridData.FILL_BOTH));
 
 		refreshWarning();
