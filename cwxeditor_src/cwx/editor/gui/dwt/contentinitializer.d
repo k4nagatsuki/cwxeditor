@@ -57,6 +57,8 @@ class ContentInitialValueEditor : TCPD {
 				itm.setText(1, edited ? _comm.prop.msgs.editedInitializer : "");
 			}
 			foreach (modDlg; modEvent) modDlg();
+			_comm.refreshToolBar();
+			updateToolTip();
 		}
 
 		override void undo() { impl(); }
@@ -76,6 +78,7 @@ class ContentInitialValueEditor : TCPD {
 
 	private bool _legacy = false;
 	private string _dataVersion = LATEST_VERSION;
+	private Summary _summ = null;
 
 	private UndoManager _undo = null;
 
@@ -116,6 +119,8 @@ class ContentInitialValueEditor : TCPD {
 
 		.listener(_list, SWT.Selection, &_comm.refreshToolBar);
 		.listener(_list, SWT.MouseDoubleClick, &editContent);
+		.listener(_list, SWT.MouseEnter, &updateToolTipFrom);
+		.listener(_list, SWT.MouseMove, &updateToolTipFrom);
 		.listener(_list, SWT.KeyDown, (e) { mixin(S_TRACE);
 			if (e.character == SWT.CR) { mixin(S_TRACE);
 				editContent();
@@ -133,6 +138,24 @@ class ContentInitialValueEditor : TCPD {
 	@property
 	void bgImagesDefault(BgImageS[] bgImgs) { _bgImgs = bgImgs; }
 
+	private void updateToolTipFrom(Event e) { mixin(S_TRACE);
+		updateToolTipImpl(_list.getItem(new Point(e.x, e.y)));
+	}
+	private void updateToolTip() { mixin(S_TRACE);
+		auto itm = _list.getItem(_list.toControl(_list.getDisplay().getCursorLocation()));
+		updateToolTipImpl(itm);
+	}
+	private void updateToolTipImpl(TableItem itm) { mixin(S_TRACE);
+		auto toolTip = "";
+		if (itm) { mixin(S_TRACE);
+			auto c = cast(Content)itm.getData();
+			toolTip = .contentText(_comm, c, _summ);
+		}
+		if (toolTip != _list.getToolTipText()) { mixin(S_TRACE);
+			_list.setToolTipText(toolTip);
+		}
+	}
+
 	void setInitializer(Content[CType] initializer, bool legacy, string dataVersion, UndoManager undo) { mixin(S_TRACE);
 		_undo = undo;
 		_legacy = legacy;
@@ -140,6 +163,8 @@ class ContentInitialValueEditor : TCPD {
 		auto skin = findSkin(_comm, _comm.prop, null);
 		_edited = null;
 		_inits = null;
+		_summ = new Summary("", _comm.prop.var.etc.defaultSkin, _comm.prop.var.etc.defaultSkinName, "", false, _legacy);
+		_summ.dataVersion = _dataVersion;
 		foreach (cGrp; EnumMembers!CTypeGroup) { mixin(S_TRACE);
 			foreach (cType; CTYPE_GROUP[cGrp]) { mixin(S_TRACE);
 				if (!cType.hasDialog(false)) continue;
@@ -164,6 +189,7 @@ class ContentInitialValueEditor : TCPD {
 		}
 		_list.deselectAll();
 		_comm.refreshToolBar();
+		updateToolTip();
 	}
 	Content[CType] getInitializer() { mixin(S_TRACE);
 		Content[CType] r;
@@ -198,9 +224,7 @@ class ContentInitialValueEditor : TCPD {
 				return;
 			}
 
-			auto summ = new Summary("", _comm.prop.var.etc.defaultSkin, _comm.prop.var.etc.defaultSkinName, "", false, _legacy);
-			summ.dataVersion = _dataVersion;
-			auto dlg = .createEventDialog(_comm, summ, _list.getShell(), c, null, false);
+			auto dlg = .createEventDialog(_comm, _summ, _list.getShell(), c, null, false);
 			dlg.appliedEvent ~= { mixin(S_TRACE);
 				if (c == cc) return;
 				store([cc]);
@@ -210,6 +234,7 @@ class ContentInitialValueEditor : TCPD {
 				sel.setText(1, edited ? _comm.prop.msgs.editedInitializer : "");
 				foreach (modDlg; modEvent) modDlg();
 				_comm.refreshToolBar();
+				updateToolTip();
 			};
 			_editDlgs[i] = dlg;
 			dlg.closeEvent ~= { mixin(S_TRACE);
@@ -245,6 +270,7 @@ class ContentInitialValueEditor : TCPD {
 		}
 		foreach (modDlg; modEvent) modDlg();
 		_comm.refreshToolBar();
+		updateToolTip();
 	}
 
 	bool isInitialValues() { mixin(S_TRACE);
@@ -322,6 +348,7 @@ class ContentInitialValueEditor : TCPD {
 		if (stored.length) { mixin(S_TRACE);
 			foreach (modDlg; modEvent) modDlg();
 			_comm.refreshToolBar();
+			updateToolTip();
 		}
 	}
 	override
