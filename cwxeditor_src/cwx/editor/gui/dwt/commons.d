@@ -706,8 +706,9 @@ class Commons {
 		return _main.findSkinFromHistory(summ, hist);
 	}
 	/// スキンに属する素材の拡張子が変更された場合は追従する。
-	void updateSkinMaterialsExtension(Skin oldSkin, Skin newSkin) { mixin(S_TRACE);
-		if (!summary) return;
+	void updateSkinMaterialsExtension(UseCounter useCounter, Skin oldSkin, Skin newSkin) { mixin(S_TRACE);
+		if (!useCounter) return;
+		if (!oldSkin) oldSkin = findSkin2(prop, prop.var.etc.defaultSkin, prop.var.etc.defaultSkinName);
 		if (oldSkin is newSkin) return;
 		void proc(in string[] oldDirs, in string[] newDirs, in string[] exts) { mixin(S_TRACE);
 			try {
@@ -716,7 +717,7 @@ class Commons {
 					foreach (path; oldDir.dirEntries(SpanMode.depth)) { mixin(S_TRACE);
 						if (!path.isFile) continue;
 						auto oldRel = abs2rel(path, oldDir);
-						if (!summary.useCounter.get(toPathId(oldRel))) continue;
+						if (!useCounter.get(toPathId(oldRel))) continue;
 						nd: foreach (newDir; newDirs) { mixin(S_TRACE);
 							if (!newDir.exists() || !newDir.isDir()) continue;
 							auto newAbs = newDir.buildPath(oldRel);
@@ -727,7 +728,7 @@ class Commons {
 								if (!newAbs.exists()) continue;
 								// 発見したので変更
 								auto newRel = abs2rel(newAbs, newDir);
-								summary.useCounter.change(toPathId(oldRel), toPathId(newRel));
+								useCounter.change(toPathId(oldRel), toPathId(newRel));
 								this.refPath.call(oldRel, newRel, false);
 								break nd;
 							}

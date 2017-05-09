@@ -185,13 +185,15 @@ private:
 		void convert() { mixin(S_TRACE);
 			auto sel = selection;
 			if (!sel) return;
-			auto c = cast(Content) sel.getData();
+			auto c = cast(Content)sel.getData();
 			if (c.type == type) return;
 			store(c);
 			_comm.delContent.call(c);
 			assert (c.canConvert(type), "convert menu item enabled");
 			auto oldd = c.detail;
-			c.convertType(type, _prop.parent, .toDialogStatus(_prop.var.etc.dialogStatus));
+			auto init = new Content(type, "");
+			initial(init);
+			c.convertType(type, init, _prop.parent, .toDialogStatus(_prop.var.etc.dialogStatus));
 			auto newd = c.detail;
 			if (newd.use(CArg.BG_IMAGES) && !oldd.use(CArg.BG_IMAGES)) { mixin(S_TRACE);
 				c.backs = createBgImages(summSkin, _prop.var.etc.bgImagesDefault);
@@ -898,6 +900,45 @@ private:
 		}
 	}
 
+	void updateSkinMaterialsExtension(Content c) { mixin(S_TRACE);
+		auto uc = c.useCounter;
+		c.setUseCounter(new UseCounter);
+		scope (exit) {
+			if (uc) {
+				c.setUseCounter(uc);
+			} else {
+				c.removeUseCounter();
+			}
+		}
+		_comm.updateSkinMaterialsExtension(c.useCounter, null, summSkin);
+	}
+
+	void initial(Content c) { mixin(S_TRACE);
+		auto ver = (_summ && _summ.legacy) ? "Classic" : _summ.dataVersion;
+		foreach (ref initializer; _prop.var.etc.contentInitializers) { mixin(S_TRACE);
+			if (initializer.dataVersion == "Basic") continue;
+			if (initializer.dataVersion == ver) { mixin(S_TRACE);
+				if (c.type in initializer.initializer) {
+					c.shallowCopy(initializer.initializer[c.type]);
+					updateSkinMaterialsExtension(c);
+					return;
+				}
+			}
+		}
+		foreach (ref initializer; _prop.var.etc.contentInitializers) { mixin(S_TRACE);
+			if (initializer.dataVersion == "Basic") { mixin(S_TRACE);
+				if (c.type in initializer.initializer) { mixin(S_TRACE);
+					c.shallowCopy(initializer.initializer[c.type]);
+					updateSkinMaterialsExtension(c);
+					return;
+				}
+			}
+		}
+
+		.initial(_comm, summSkin, _summ && _summ.legacy, _summ.dataVersion, _prop.var.etc.bgImagesDefault, c);
+		updateSkinMaterialsExtension(c);
+	}
+
 	void create(Content parent, CType type, string name, void delegate(Content) applied) { mixin(S_TRACE);
 		if (!_box) return;
 		if (_readOnly) return;
@@ -905,28 +946,6 @@ private:
 		if (_box && _box._putMode !is MenuID.PutContinue) { mixin(S_TRACE);
 			_box.arrow();
 			_comm.refreshToolBar();
-		}
-		void initial(Content c) { mixin(S_TRACE);
-			auto ver = (_summ && _summ.legacy) ? "Classic" : _summ.dataVersion;
-			foreach (ref initializer; _prop.var.etc.contentInitializers) { mixin(S_TRACE);
-				if (initializer.dataVersion == "Basic") continue;
-				if (initializer.dataVersion == ver) { mixin(S_TRACE);
-					if (c.type in initializer.initializer) {
-						c.shallowCopy(initializer.initializer[c.type]);
-						return;
-					}
-				}
-			}
-			foreach (ref initializer; _prop.var.etc.contentInitializers) { mixin(S_TRACE);
-				if (initializer.dataVersion == "Basic") { mixin(S_TRACE);
-					if (c.type in initializer.initializer) { mixin(S_TRACE);
-						c.shallowCopy(initializer.initializer[c.type]);
-						return;
-					}
-				}
-			}
-
-			.initial(_comm, summSkin, _summ && _summ.legacy, _summ.dataVersion, _prop.var.etc.bgImagesDefault, c);
 		}
 		if (hasDialog(type)) { mixin(S_TRACE);
 			if (!_box.isAutoOpen || !checkOpenDialog(type)) { mixin(S_TRACE);
@@ -1579,7 +1598,9 @@ public:
 		_area = area;
 		_undo = undo;
 		_readOnly = (readOnly || !_summ) ? SWT.READ_ONLY : SWT.NONE;
-		if (_readOnly && _summ) _summSkin = findSkin(_comm, _prop, _summ);
+		if (_readOnly || !_summ || _summ.scenarioPath == "") { mixin(S_TRACE);
+			_summSkin = findSkin(_comm, _prop, _summ);
+		}
 		_forceSel = forceSel;
 		_refreshTopStart = refreshTopStart;
 		_contentsBoxArea = contentsBoxArea;
@@ -1979,11 +2000,11 @@ public:
 			auto c = cast(Content)itm.getData();
 			switch (c.type) {
 			case CType.LINK_START: { mixin(S_TRACE);
-				c.convertType(CType.LINK_PACKAGE, _prop.parent, .toDialogStatus(_prop.var.etc.dialogStatus));
+				c.convertType(CType.LINK_PACKAGE, null, _prop.parent, .toDialogStatus(_prop.var.etc.dialogStatus));
 				c.packages = id;
 			} break;
 			case CType.CALL_START: { mixin(S_TRACE);
-				c.convertType(CType.CALL_PACKAGE, _prop.parent, .toDialogStatus(_prop.var.etc.dialogStatus));
+				c.convertType(CType.CALL_PACKAGE, null, _prop.parent, .toDialogStatus(_prop.var.etc.dialogStatus));
 				c.packages = id;
 			} break;
 			default: assert (0);

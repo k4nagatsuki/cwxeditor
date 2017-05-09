@@ -83,7 +83,9 @@ public:
 		_card = card;
 		_prop = prop;
 		_readOnly = readOnly ? SWT.READ_ONLY : SWT.NONE;
-		if (_readOnly) _summSkin = findSkin(_comm, _prop, _summ);
+		if (_readOnly || !_summ || _summ.scenarioPath == "") { mixin(S_TRACE);
+			_summSkin = findSkin(_comm, _prop, _summ);
+		}
 		super(prop, shell, _readOnly, false, _card ? .tryFormat(_prop.msgs.dlgTitInfo, _card.name) : _prop.msgs.dlgTitNewInfo,
 			_prop.images.info, true, _prop.var.infoCardDlg, true);
 		enterClose = true;

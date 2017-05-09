@@ -1300,7 +1300,9 @@ public:
 		_area = area;
 		_undo = undo;
 		_readOnly = readOnly ? SWT.READ_ONLY : SWT.NONE;
-		if (_readOnly && _summ) _summSkin = findSkin(_comm, _prop, _summ);
+		if (_readOnly || !_summ || _summ.scenarioPath == "") { mixin(S_TRACE);
+			_summSkin = findSkin(_comm, _prop, _summ);
+		}
 
 		_toolbar = new ToolBar(this, SWT.FLAT);
 		_comm.put(_toolbar);

@@ -38,12 +38,12 @@ BgImageS[] createBgImageSs(in BgImage[] bgs) { mixin(S_TRACE);
 		s.mask = bg.mask;
 		s.layer = bg.layer;
 		s.cellName = bg.cellName;
-		auto ic = cast(ImageCell) bg;
+		auto ic = cast(ImageCell)bg;
 		if (ic) { mixin(S_TRACE);
 			s.type = "image";
 			s.name = stripExtension(ic.path);
 		}
-		auto tc = cast(TextCell) bg;
+		auto tc = cast(TextCell)bg;
 		if (tc) { mixin(S_TRACE);
 			s.type = "text";
 			s.text = tc.text;
@@ -59,7 +59,7 @@ BgImageS[] createBgImageSs(in BgImage[] bgs) { mixin(S_TRACE);
 			s.borderingColor = tc.borderingColor;
 			s.borderingWidth = tc.borderingWidth;
 		}
-		auto cc = cast(ColorCell) bg;
+		auto cc = cast(ColorCell)bg;
 		if (cc) { mixin(S_TRACE);
 			s.type = "color";
 			s.blendMode = cc.blendMode;
@@ -73,6 +73,7 @@ BgImageS[] createBgImageSs(in BgImage[] bgs) { mixin(S_TRACE);
 			s.pcNumber = pc.pcNumber;
 			s.expand = pc.expand;
 		}
+		r ~= s;
 	}
 	return r;
 }

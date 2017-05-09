@@ -121,7 +121,9 @@ public:
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
-		if (_readOnly) _summSkin = findSkin(_comm, _prop, _summ);
+		if (_readOnly || !_summ || _summ.scenarioPath == "") { mixin(S_TRACE);
+			_summSkin = findSkin(_comm, _prop, _summ);
+		}
 		_refresh = refresh;
 		_w = w;
 		_h = h;

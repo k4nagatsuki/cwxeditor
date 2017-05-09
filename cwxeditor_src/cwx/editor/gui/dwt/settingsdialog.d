@@ -715,7 +715,7 @@ private:
 			_dlg = new DefBgImgDialog(_comm, _prop, getShell(), _bgImagesDefault);
 			_dlg.appliedEvent ~= { mixin(S_TRACE);
 				_bgImagesDefault = _dlg.backs;
-				_initializer.bgImagesDefault = _bgImagesDefault;
+				_initializer.bgImagesDefault = _dlg.backs;
 				applyEnabled();
 			};
 			_dlg.closeEvent ~= { mixin(S_TRACE);
@@ -1906,8 +1906,9 @@ public:
 		_comm = comm;
 		_prop = prop;
 
-		BgImage[] bgImages;
-		auto skin = findSkin(_comm, _prop, null);
+		auto summ = new Summary("", prop.var.etc.defaultSkin, prop.var.etc.defaultSkinName, "", false, false);
+		summ.dataVersion = LATEST_VERSION;
+		auto skin = findSkin(_comm, _prop, summ);
 		_cont = new BgImageContainer(createBgImages(skin, bgImagesDefault));
 	}
 
@@ -1917,7 +1918,10 @@ public:
 	bool noScenario() { return true; }
 
 	@property
-	BgImageS[] backs() {return createBgImageSs(_cont.backs);}
+	BgImageS[] backs() { mixin(S_TRACE);
+		return createBgImageSs(_cont.backs);
+	}
+
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
 		area.setLayout(normalGridLayout(1, false));

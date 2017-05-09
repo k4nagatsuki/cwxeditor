@@ -2847,7 +2847,9 @@ public:
 		_comm = comm;
 		_undo = undo;
 		_tlp = tlp;
-		if (_readOnly) _summSkin = findSkin(_comm, _prop, _summ);
+		if (_readOnly || !_summ || _summ.scenarioPath == "") { mixin(S_TRACE);
+			_summSkin = findSkin(_comm, _prop, _summ);
+		}
 		if (_summ && _summ.scenarioPath != "" && !_readOnly) { mixin(S_TRACE);
 			_comm.refSkin.add(&refresh);
 			_comm.refDataVersion.add(&refreshControls);

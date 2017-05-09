@@ -2525,7 +2525,7 @@ protected:
 			_evt.initValue = _initValue.getSelection();
 		} else { mixin(S_TRACE);
 			_evt.coupons = [];
-			_evt.initValue = 1;
+			_evt.initValue = 0;
 		}
 		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
 			comm.refCoupons.call();

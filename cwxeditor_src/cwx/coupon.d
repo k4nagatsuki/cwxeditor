@@ -41,6 +41,11 @@ public:
 		_val = c.value;
 	}
 
+	/// コピーを生成する。
+	@property
+	const
+	Coupon dup() { return new Coupon(this); }
+
 	@property
 	package void owner(CouponsOwner owner) { mixin(S_TRACE);
 		_owner = owner;

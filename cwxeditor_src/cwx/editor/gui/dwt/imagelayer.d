@@ -177,7 +177,9 @@ class ImageLayerList : Composite, TCPD {
 		_comm = comm;
 		_summ = summ;
 		_mask = mask;
-		if (_readOnly) _summSkin = findSkin(_comm, _comm.prop, _summ);
+		if (_readOnly || !_summ || _summ.scenarioPath == "") { mixin(S_TRACE);
+			_summSkin = findSkin(_comm, _comm.prop, _summ);
+		}
 
 		if (!_readOnly) { mixin(S_TRACE);
 			auto menu = new Menu(this.getShell(), SWT.POP_UP);

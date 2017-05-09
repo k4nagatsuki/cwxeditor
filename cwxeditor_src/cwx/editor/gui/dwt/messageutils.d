@@ -1174,7 +1174,7 @@ protected:
 			evt.initValue = _initValue.getSelection();
 		} else { mixin(S_TRACE);
 			evt.coupons = [];
-			evt.initValue = 0;
+			evt.initValue = 1;
 		}
 		evt.selectionColumns = _selectionColumns.getSelection();
 		evt.centeringX = _centerX.getSelection();

@@ -136,7 +136,29 @@ class ContentInitialValueEditor : TCPD {
 	Control widget() { return _list; }
 
 	@property
-	void bgImagesDefault(BgImageS[] bgImgs) { _bgImgs = bgImgs; }
+	void bgImagesDefault(BgImageS[] bgImgs) { mixin(S_TRACE);
+		_bgImgs = bgImgs;
+		auto p = CType.CHANGE_BG_IMAGE in _inits;
+		if (p) { mixin(S_TRACE);
+			auto itm = _list.getItem(_cTypeTable[CType.CHANGE_BG_IMAGE]);
+			auto c = cast(Content)itm.getData();
+
+			auto skin = findSkin(_comm, _comm.prop, _summ);
+			auto init = initial(skin, c.type);
+			_inits[CType.CHANGE_BG_IMAGE] = init;
+			if (!_edited.get(c.type, false)) { mixin(S_TRACE);
+				store([c]);
+				c = init.dup;
+				itm.setData(c);
+			}
+
+			auto edited = (c != init);
+			itm.setText(1, edited ? _comm.prop.msgs.editedInitializer : "");
+			_edited[c.type] = edited;
+
+			updateToolTip();
+		}
+	}
 
 	private void updateToolTipFrom(Event e) { mixin(S_TRACE);
 		updateToolTipImpl(_list.getItem(new Point(e.x, e.y)));
@@ -160,11 +182,11 @@ class ContentInitialValueEditor : TCPD {
 		_undo = undo;
 		_legacy = legacy;
 		_dataVersion = dataVersion;
-		auto skin = findSkin(_comm, _comm.prop, null);
-		_edited = null;
-		_inits = null;
 		_summ = new Summary("", _comm.prop.var.etc.defaultSkin, _comm.prop.var.etc.defaultSkinName, "", false, _legacy);
 		_summ.dataVersion = _dataVersion;
+		auto skin = findSkin(_comm, _comm.prop, _summ);
+		_edited = null;
+		_inits = null;
 		foreach (cGrp; EnumMembers!CTypeGroup) { mixin(S_TRACE);
 			foreach (cType; CTYPE_GROUP[cGrp]) { mixin(S_TRACE);
 				if (!cType.hasDialog(false)) continue;
@@ -293,7 +315,7 @@ class ContentInitialValueEditor : TCPD {
 	void copy(SelectionEvent se) { mixin(S_TRACE);
 		auto sels = _list.getSelection();
 		if (!sels.length) return;
-		auto e = XNode.create("ContentInitializer");
+		auto e = XNode.create("Contents");
 		foreach (itm; sels) { mixin(S_TRACE);
 			auto c = cast(Content)itm.getData();
 			c.toNode(e, null);
@@ -310,20 +332,52 @@ class ContentInitialValueEditor : TCPD {
 		if (xml) { mixin(S_TRACE);
 			try { mixin(S_TRACE);
 				auto node = XNode.parse(xml);
-				if (node.name == "ContentInitializer") { mixin(S_TRACE);
+				if (node.name == "Contents") { mixin(S_TRACE);
 					node.onTag[null] = (ref XNode node) {
 						cs ~= Content.createFromNode(node, null);
 					};
 					node.parse();
+				} else { mixin(S_TRACE);
+					auto c = Content.createFromNode(node, null, false);
+					if (c) cs ~= c;
 				}
 			} catch (Exception e) { mixin (S_TRACE);
 				printStackTrace();
 				debugln(e);
 			}
+		} else if (auto scriptObj = cast(ArrayWrapperString)_comm.clipboard.getContents(TextTransfer.getInstance())) { mixin(S_TRACE);
+			auto script = scriptObj.array.idup;
+			auto base = script;
+			CompileOption opt;
+			try { mixin(S_TRACE);
+				try { mixin(S_TRACE);
+					auto compiler = new CWXScript(_comm.prop.parent, _summ);
+					auto vars = compiler.eatEmptyVars(script, opt);
+					if (vars.length) { mixin(S_TRACE);
+						auto dlg = new ScriptVarSetDialog(_comm, _summ, _list.getShell(), vars, script, base, opt);
+						dlg.appliedEvent ~= { mixin(S_TRACE);
+							cs ~= dlg.contents;
+						};
+						dlg.open();
+					} else { mixin(S_TRACE);
+						cs ~= cwx.script.compile(_comm.prop.parent, _summ, script, opt);
+					}
+				} catch (CWXScriptException e) {
+					throw e;
+				} catch (Throwable e) {
+					printStackTrace();
+					debugln(e);
+					throw new CWXScriptException(__FILE__, __LINE__, "", [CWXSError(_comm.prop.msgs.scriptErrorSystem, 0, 0, __FILE__, __LINE__)], false);
+				}
+			} catch (CWXScriptException e) {
+				auto dlg = new ScriptErrorDialog(_comm, _comm.prop, _list, e, base, opt);
+				dlg.open();
+			}
 		}
 
 		Content[] stored;
 		foreach (c; cs) { mixin(S_TRACE);
+			if (c.type !in _cTypeTable) continue;
 			auto i = _cTypeTable[c.type];
 			auto cc = cast(Content)_list.getItem(i).getData();
 			if (c == cc) continue;
@@ -334,6 +388,7 @@ class ContentInitialValueEditor : TCPD {
 
 		_list.deselectAll();
 		foreach (c; cs) { mixin(S_TRACE);
+			if (c.type !in _cTypeTable) continue;
 			auto i = _cTypeTable[c.type];
 			auto itm = _list.getItem(i);
 			auto cc = itm.getData();
@@ -366,7 +421,7 @@ class ContentInitialValueEditor : TCPD {
 	bool canDoC() { return _list.getSelectionIndex() != -1; }
 	@property
 	override
-	bool canDoP() { return CBisXML(_comm.clipboard); }
+	bool canDoP() { return CBisXML(_comm.clipboard) || CBisText(_comm.clipboard); }
 	@property
 	override
 	bool canDoClone() { return false; }
@@ -433,9 +488,6 @@ EventDialog createEventDialog(Commons comm, Summary summ, Shell parentShell, Con
 			(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
 	} case CType.CHANGE_BG_IMAGE: { mixin(S_TRACE);
-		if (create) { mixin(S_TRACE);
-			evt.backs = createBgImages(findSkin(comm, comm.prop, summ), comm.prop.var.etc.bgImagesDefault);
-		}
 		dlg = new BgImagesDialog(comm, comm.prop, parentShell, summ, parent, evt, null, CType.CHANGE_BG_IMAGE);
 		break;
 	} case CType.EFFECT: { mixin(S_TRACE);

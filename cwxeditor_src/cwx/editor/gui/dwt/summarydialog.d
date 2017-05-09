@@ -123,7 +123,7 @@ private:
 			}
 			return .createClassicSkin(_prop, _classicEngines[i]);
 		}
-		return .findSkin2(_prop, _prop.var.etc.defaultSkin, "");
+		return .findSkin2(_prop, _prop.var.etc.defaultSkin, _prop.var.etc.defaultSkinName);
 	}
 	void constructImage(Composite area) { mixin(S_TRACE);
 		_imgArea = area;
@@ -585,7 +585,9 @@ public:
 		_comm = comm;
 		_summ = summ;
 		_prop = prop;
-		if (_readOnly) _summSkin = findSkin(_comm, _prop, _summ);
+		if (_readOnly || !_summ || _summ.scenarioPath == "") { mixin(S_TRACE);
+			_summSkin = findSkin(_comm, _prop, _summ);
+		}
 		super(prop, shell, _readOnly, false, .tryFormat(_prop.msgs.dlgTitSummary, _summ.scenarioName),
 			_prop.images.summary, true, _prop.var.summaryDlg, true);
 	}
@@ -652,7 +654,7 @@ protected:
 		}
 		auto oldSkin = _comm.skin;
 		_comm.skin = selectedSkin;
-		_comm.updateSkinMaterialsExtension(oldSkin, _comm.skin);
+		_comm.updateSkinMaterialsExtension(_summ.useCounter, oldSkin, _comm.skin);
 		_comm.refCoupons.call();
 		getShell().setText(.tryFormat(_prop.msgs.dlgTitSummary, _summ.scenarioName));
 		auto ver = dataVersion();

@@ -766,7 +766,9 @@ public:
 		_card = card;
 		_prop = prop;
 		_readOnly = readOnly ? SWT.READ_ONLY : SWT.NONE;
-		if (_readOnly) _summSkin = findSkin(_comm, _prop, _summ);
+		if (_readOnly || !_summ || _summ.scenarioPath == "") { mixin(S_TRACE);
+			_summSkin = findSkin(_comm, _prop, _summ);
+		}
 		static if (is (C == SkillCard)) {
 			string text = _card ? .tryFormat(_prop.msgs.dlgTitSkill, _card.name) : _prop.msgs.dlgTitNewSkill;
 			auto img = _prop.images.skill;

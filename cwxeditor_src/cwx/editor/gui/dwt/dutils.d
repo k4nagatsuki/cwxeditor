@@ -3196,8 +3196,7 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		return contentTextUseID!(CIDKind.Package)(comm, summ, evt.packages, comm.prop.msgs.ctLinkPackage, evt);
 	} case CType.TALK_MESSAGE: { mixin(S_TRACE);
 		string text = evt.text;
-		text = text.singleLine;
-		if (text == "") text = comm.prop.msgs.noText;
+		text = (text == "") ? comm.prop.msgs.noText : text.singleLine;
 		if (evt.cardPaths.length) {
 			auto t = contentTextUseID!(CIDKind.CardImages)(comm, summ, evt.cardPaths, comm.prop.msgs.ctTalkMessageImage, evt);
 			if (evt.selectionColumns == 1 && !evt.centeringX && !evt.centeringY && !evt.boundaryCheck) { mixin(S_TRACE);
@@ -3216,7 +3215,7 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		string r(in SDialog sdlg) { mixin(S_TRACE);
 			string tt = .tryFormat(comm.prop.msgs.ctTalkMessageImage, comm.prop.msgs.talkerName(evt.talkerNC));
 			string t = sdlg.text.singleLine;
-			if (t == "") t = comm.prop.msgs.noText;
+			t = (t == "") ? comm.prop.msgs.noText : t.singleLine;
 			if (sdlg.rCoupons.length) { mixin(S_TRACE);
 				auto cp = std.string.join(sdlg.rCoupons.dup, " ");
 				if (evt.selectionColumns == 1 && !evt.centeringX && !evt.centeringY && !evt.boundaryCheck) { mixin(S_TRACE);

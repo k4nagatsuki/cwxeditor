@@ -1424,14 +1424,14 @@ private:
 				scope (exit) _dirWin.resumeTrace();
 				string tempPath = _prop.tempPath;
 				bool expandXMLs = _prop.var.etc.expandXMLs;
-				Skin defSkin = .findSkin2(_prop, _prop.var.etc.defaultSkin, "");
+				Skin defSkin = .findSkin2(_prop, _prop.var.etc.defaultSkin, _prop.var.etc.defaultSkinName);
 				try { mixin(S_TRACE);
 					beforeSave();
 					auto oldClassic = summary.legacy;
 					auto oldSkin = _comm.skin;
 					_comm.skin = findSkin(_comm, _prop, summary, classic, fname, classic ? "" : summary.type);
 					if (_comm.skin.isEmpty) _comm.skin = defSkin;
-					_comm.updateSkinMaterialsExtension(oldSkin, _comm.skin);
+					_comm.updateSkinMaterialsExtension(summary.useCounter, oldSkin, _comm.skin);
 					{ mixin(S_TRACE);
 						_saveSync.lock();
 						scope (exit) _saveSync.unlock();
@@ -2510,7 +2510,7 @@ public:
 			dStr ~= " - " ~ .text(__LINE__);
 			_comm = new Commons(_prop);
 			_comm.saveSync = _saveSync;
-			_comm.skin = findSkin2(_prop, _prop.var.etc.defaultSkin, "");
+			_comm.skin = findSkin2(_prop, _prop.var.etc.defaultSkin, _prop.var.etc.defaultSkinName);
 			dStr ~= " - " ~ .text(__LINE__);
 
 			string engineDir = "";
