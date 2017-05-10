@@ -708,7 +708,7 @@ private void initBass() { mixin(S_TRACE);
 					return;
 				}
 			}
-			if (!getSymbol!(BASS_Init)(bass, "BASS_Init")(-1, 44100, BASS_DEFAULT, null, null)) { mixin(S_TRACE);
+			if (!getSymbol!(BASS_Init)(bass, "BASS_Init")(-1, 44100, BASS_DEVICE_DEFAULT, null, null)) { mixin(S_TRACE);
 				disposeBass();
 				return;
 			}
@@ -820,7 +820,7 @@ private bool playBass(string file, uint loopCount, bool spLoop, ref DWORD stream
 				return false;
 			}
 			bool midi = isMidi(file);
-			int flag = BASS_MUSIC_RAMP | BASS_MUSIC_POSRESET | BASS_MUSIC_PRESCAN;
+			int flag = BASS_MUSIC_STOPBACK | BASS_MUSIC_POSRESET | BASS_MUSIC_PRESCAN;
 			if (midi) { mixin(S_TRACE);
 				stream = getSymbol!(BASS_MIDI_StreamCreateFile)(bassMidi, "BASS_MIDI_StreamCreateFile")(false, file.toMBSz(), 0, 0, flag, 44100);
 				if (!stream) { mixin(S_TRACE);
@@ -1031,7 +1031,10 @@ version (Windows) {
 		alias DWORD HPLUGIN;
 		alias DWORD HSAMPLE;
 		alias ulong QWORD;
-		immutable BASS_DEVICE_DEFAULT = 2;
+		immutable BASS_DEVICE_DEFAULT = 0;
+		immutable BASS_DEVICE_8BITS = 1;
+		immutable BASS_DEVICE_MONO = 2;
+		immutable BASS_DEVICE_3D = 4;
 		immutable BASS_DEFAULT = 0;
 		immutable BASS_SAMPLE_LOOP = 4;
 		immutable BASS_ATTRIB_VOL = 2;
@@ -1051,6 +1054,7 @@ version (Windows) {
 		immutable BASS_MUSIC_RAMPS = 0x400;
 		immutable BASS_MUSIC_POSRESET = 0x8000;
 		immutable BASS_MUSIC_PRESCAN = 0x20000;
+		immutable BASS_MUSIC_STOPBACK = 0x80000;
 		immutable BASS_STREAM_DECODE = 0x200000;
 		struct  BASS_MIDI_EVENT {
 			DWORD event;
