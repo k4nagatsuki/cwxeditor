@@ -2538,6 +2538,17 @@ public:
 			_win.setData(new TLPData(this));
 			_win.setImages(_prop.images.icon);
 
+			// FIXME: 最大化中に最小化・最小化解除を行うと最大化前の
+			//        サイズでのレイアウト処理が発生するのを防ぐ
+			.listener(_win, SWT.Resize, (e) { mixin(S_TRACE);
+				auto shl = cast(Shell)e.widget;
+				if (shl.getMinimized()) { mixin(S_TRACE);
+					shl.setLayoutDeferred(true);
+				} else if (shl.getLayoutDeferred()) { mixin(S_TRACE);
+					shl.setLayoutDeferred(false);
+				}
+			});
+
 			dStr ~= " - " ~ .text(__LINE__);
 			_comm.save.add(&savec);
 			_comm.refScenarioName.add(&refreshTitle);
