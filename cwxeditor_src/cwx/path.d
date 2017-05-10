@@ -38,21 +38,26 @@ interface CWXPath {
 /// カテゴリを比較するための値を返す。
 private int cpTypeValue(string cate) { mixin(S_TRACE);
 	switch (cate) {
-	case "variable": return 0;
-	case "dir": return 1;
-	case "flag": return 2;
-	case "step": return 3;
-	case "area": return 4;
-	case "battle": return 5;
-	case "package": return 6;
-	case "castcard": return 7;
-	case "skillcard": return 8;
-	case "itemcard": return 9;
-	case "beastcard": return 10;
-	case "infocard": return 11;
-	case "playercard": return 12;
-	case "menucard": return 13;
-	case "enemycard": return 14;
+	case "motion": return 0;
+	case "dialog": return 1;
+	case "text": return 2;
+	case "background": return 3;
+	case "variable": return 4;
+	case "dir": return 5;
+	case "flag": return 6;
+	case "step": return 7;
+	case "area": return 8;
+	case "battle": return 9;
+	case "package": return 10;
+	case "castcard": return 11;
+	case "skillcard": return 12;
+	case "itemcard": return 13;
+	case "beastcard": return 14;
+	case "infocard": return 15;
+	case "playercard": return 16;
+	case "menucard": return 17;
+	case "enemycard": return 18;
+	case "": return 16; // イベントコンテント
 	default: return -1;
 	}
 }
@@ -89,6 +94,12 @@ int cpcmp(in string[] a, in string[] b) { mixin(S_TRACE);
 	auto a = "area:3/event:0/:5/:0/:1;shallow;deep";
 	auto b = "area:3/event:0/:5/:0/:1";
 	assert (.cpcmp(a.cpsplit(), b.cpsplit()) == 0);
+	a = "area:3/event:0/:5/:0/:1";
+	b = "area:3/event:0/:5/:0/:1/:0";
+	assert (.cpcmp(a.cpsplit(), b.cpsplit()) < 0);
+	a = "event:0/:0/dialog:4";
+	b = "event:0/:0/:0/:0/dialog:4";
+	assert (.cpcmp(a.cpsplit(), b.cpsplit()) < 0);
 	a = "itemcard:3/event:0";
 	b = "skillcard:3/event:0";
 	assert (.cpcmp(a.cpsplit(), b.cpsplit()) > 0);

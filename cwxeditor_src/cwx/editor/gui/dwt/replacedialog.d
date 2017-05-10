@@ -2820,6 +2820,17 @@ public:
 		}
 		return dec(path.cwxParent, range);
 	}
+	private auto sortedPaths(T)(T[] paths) { mixin(S_TRACE);
+		class U {
+			ElementType!(typeof(paths)) obj = null;
+			string[] path;
+			this (typeof(this.obj) obj) { mixin(S_TRACE);
+				this.obj = obj;
+				path= obj.cwxPath(true).cpsplit();
+			}
+		}
+		return .map!(a => a.obj)(std.algorithm.sort!((a, b) => .cpcmp(a.path, b.path) < 0)(.map!(a => new U(a))(paths).array()));
+	}
 	private void replaceIDImpl2(ID)(ID from, ID to) { mixin(S_TRACE);
 		if (!_summ) return;
 		reset();
@@ -2857,17 +2868,7 @@ public:
 			scope (exit) _display.syncExec(exit);
 
 			try { mixin(S_TRACE);
-				class U {
-					ElementType!(typeof(users)) obj = null;
-					string[] path;
-					this (typeof(this.obj) obj) { mixin(S_TRACE);
-						this.obj = obj;
-						path= obj.cwxPath(true).cpsplit();
-					}
-				}
-				auto sorted = std.algorithm.sort!((a, b) => .cpcmp(a.path, b.path) < 0)(.map!(a => new U(a))(users).array());
-				foreach (ou; sorted) { mixin(S_TRACE);
-					auto u = ou.obj;
+				foreach (u; sortedPaths(users)) { mixin(S_TRACE);
 					if (!dec(u.owner, range)) continue;
 					if (_replMode) { mixin(S_TRACE);
 						static if (is(ID:FlagId)) {
@@ -2976,8 +2977,14 @@ public:
 		string fromName = .tryFormat(_prop.msgs.replaceValue, _fromPath.getText());
 		string toName = toText.length ? .tryFormat(_prop.msgs.replaceValue, toText) : _prop.msgs.emptyPath;
 		if (!cautionReplace(fromName, toName)) return;
-		auto from = toPathId(_fromPath.getText());
-		auto to = toPathId(_toPath.getText());
+		auto fromT = _fromPath.getText();
+		auto toT = _toPath.getText();
+		if (_summ.loadScaledImage) { mixin(S_TRACE);
+			fromT = fromT.noScaledPath;
+			toT = toT.noScaledPath;
+		}
+		auto from = toPathId(fromT);
+		auto to = toPathId(toT);
 		if (from == to) _replMode = false;
 		reset();
 		_lastFind = _tabf.getSelection();
@@ -3018,21 +3025,25 @@ public:
 
 			try { mixin(S_TRACE);
 				auto wildcard = Wildcard((cast(string)from).encodePath(), 0 == filenameCharCmp('A', 'a'));
+				PathUser[] users;
 				foreach (key; uc.path.keys) { mixin(S_TRACE);
 					if (wildcard.match((cast(string)key).encodePath())) { mixin(S_TRACE);
 						foreach (u; uc.path.values(key)) { mixin(S_TRACE);
 							if (!(cast(Jpy1Sec)u || cast(Jpdc)u) && !dec(u.owner, range)) continue;
-							if (_replMode) { mixin(S_TRACE);
-								auto id = u.path;
-								u.path = cast(string)to;
-								storeID(u.owner, u, cast(string)id, cast(string)to, (string id) { mixin(S_TRACE);
-									u.path = id;
-								});
-								fromTos ~= [cast(string)id, cast(string)to];
-							}
-							addResult(u.owner, u.owner.cwxPath(true), count);
+							users ~= u;
 						}
 					}
+				}
+				foreach (u; sortedPaths(users)) { mixin(S_TRACE);
+					if (_replMode) { mixin(S_TRACE);
+						auto id = u.path;
+						u.path = cast(string)to;
+						storeID(u.owner, u, cast(string)id, cast(string)to, (string id) { mixin(S_TRACE);
+							u.path = id;
+						});
+						fromTos ~= [cast(string)id, cast(string)to];
+					}
+					addResult(u.owner, u.owner.cwxPath(true), count);
 				}
 			} catch (Throwable e) {
 				printStackTrace();
