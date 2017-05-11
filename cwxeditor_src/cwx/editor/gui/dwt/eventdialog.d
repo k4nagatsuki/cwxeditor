@@ -1295,7 +1295,8 @@ protected:
 		area.setLayout(normalGridLayout(1, false));
 		auto skin = _comm.skin;
 		{ mixin(S_TRACE);
-			_view = createBgImagesViewAndMenu(_comm, _prop, _summ, _cont, area, _refTarget, false);
+			auto showInheritBacks = type !is CType.REPLACE_BG_IMAGE && _prop.var.etc.showInheritBackground;
+			_view = createBgImagesViewAndMenu(_comm, _prop, _summ, _cont, area, _refTarget, showInheritBacks, false);
 			mod(_view);
 			_view.setLayoutData(new GridData(GridData.FILL_BOTH));
 			_view.modEvent ~= &refreshWarning;

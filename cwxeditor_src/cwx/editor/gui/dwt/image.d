@@ -144,6 +144,9 @@ public:
 	@property Image pcCellWithFlag() {return imgd!("pc_cell_flag.png");}
 	@property Image imageFont() {return imgd!("backs.png");}
 
+	@property Image inheritBackground() {return imgd!("inherit_backs.png");}
+	@property Image notInheritBackground() {return imgd!("not_inherit_backs.png");}
+
 	@property Image bgm() {return imgd!("evt_bgm.png");}
 	@property Image se() {return imgd!("evt_se.png");}
 	@property Image unknown() {return imgd!("unknown.png");}

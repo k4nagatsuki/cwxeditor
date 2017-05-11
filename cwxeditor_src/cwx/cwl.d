@@ -1808,7 +1808,7 @@ private BgImage[] readBgImages(in RData d, ref ByteIO f, bool area, bool replBgI
 	}
 	if (replBgImg) return bgImgs;
 	if (!bgImgs.length) return bgImgs;
-	auto b = cast(ImageCell) bgImgs[0u];
+	auto b = cast(ImageCell)bgImgs[0u];
 	if (b && b.path == "" && b.flag == ""
 			&& b.x == 0 && b.y == 0 && b.width == 632 && b.height == 420 && !b.mask && b.cellName == "") { mixin(S_TRACE);
 		// クラシックなエンジンでは必ず1枚以上の背景画像が必要であるため、

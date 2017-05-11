@@ -477,6 +477,7 @@ class FlexEtcProps : Properties {
 
 	auto selectionColumnsMax = Prop!(uint)("selectionColumnsMax", 4, true);
 
+	auto showInheritBackground = Prop!(bool, true)("showInheritBackground", true);
 	auto detailAreaWidth = Prop!(int, false, true)("detailAreaWidth", 200);
 
 	auto searchPlan = Prop!(int)("searchPlan", 0);

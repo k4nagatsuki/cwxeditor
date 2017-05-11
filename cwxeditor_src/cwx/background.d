@@ -1224,3 +1224,11 @@ public:
 		return false;
 	}
 }
+
+/// bgImgsが背景継承を伴うものか。
+bool isInheritBackground(in BgImage[] bgImgs) {
+	if (!bgImgs.length) return true;
+	auto b = cast(ImageCell)bgImgs[0];
+	return !(b && b.path != "" && b.flag == "" && b.x == 0 && b.y == 0 && b.width == 632 && b.height == 420
+		&& !b.mask && b.cellName == "" && b.layer == LAYER_BACK_CELL);
+}

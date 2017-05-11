@@ -849,6 +849,8 @@ private:
 		BgImage[PileImage] _backTbl;
 		int[BgImage] _editB;
 		Table _backs;
+		CLabel _inheritBgImgs = null;
+		bool _showInheritBacks = true;
 		MenuItem _vfbMenu;
 		ToolItem _vfbTMenu;
 		MenuItem _vffbMenu;
@@ -956,7 +958,20 @@ private:
 			_comm.refreshToolBar();
 		}
 		FlexImage backImage(int index) { mixin(S_TRACE);
-			return cast(FlexImage) _imgp.images[index];
+			return cast(FlexImage)_imgp.images[index];
+		}
+
+		void updateInheritBacks() { mixin(S_TRACE);
+			if (!_inheritBgImgs) return;
+			if (.isInheritBackground(_area.backs)) { mixin(S_TRACE);
+				_inheritBgImgs.setText(_prop.msgs.inheritBackground);
+				_inheritBgImgs.setToolTipText(_prop.msgs.inheritBackgroundHint);
+				_inheritBgImgs.setImage(_prop.images.inheritBackground);
+			} else { mixin(S_TRACE);
+				_inheritBgImgs.setText(_prop.msgs.notInheritBackground);
+				_inheritBgImgs.setToolTipText(_prop.msgs.notInheritBackgroundHint);
+				_inheritBgImgs.setImage(_prop.images.notInheritBackground);
+			}
 		}
 	}
 
@@ -2182,6 +2197,7 @@ private:
 					_layerSpn.setSelection(layer == spnValue!("a.layer", BgImage, int)(_editB.keys, 0) ? layer : 0);
 				}
 			}
+			updateInheritBacks();
 		} else static if (UseCards) {
 			if (!valid(_imgp, _xSpn, _ySpn, _layerSpn, _scaleSpn)) return;
 			static if (is (C == EnemyCard)) {
@@ -2251,6 +2267,7 @@ private:
 				_maskTMenu.setSelection(spnValue!("a.mask", BgImage, bool)(ics, false));
 				_layerSpn.setSelection(spnValue!("a.layer", BgImage, int)(_editB.keys, 0));
 			}
+			updateInheritBacks();
 		} else { mixin(S_TRACE);
 			static assert (0);
 		}
@@ -2541,6 +2558,24 @@ private:
 				}
 			}
 			list.setMenu(menu);
+		}
+		static if (is(C:BgImage)) {
+			if (_showInheritBacks) { mixin(S_TRACE);
+				_inheritBgImgs = new CLabel(comp, SWT.NONE);
+
+				auto width = 0;
+				_inheritBgImgs.setText(_prop.msgs.inheritBackground);
+				_inheritBgImgs.setImage(_prop.images.inheritBackground);
+				width = .max(width, _inheritBgImgs.computeSize(SWT.DEFAULT, SWT.DEFAULT).x);
+				_inheritBgImgs.setText(_prop.msgs.notInheritBackground);
+				_inheritBgImgs.setImage(_prop.images.notInheritBackground);
+				width = .max(width, _inheritBgImgs.computeSize(SWT.DEFAULT, SWT.DEFAULT).x);
+
+				auto ibd = new GridData(GridData.HORIZONTAL_ALIGN_END);
+				ibd.horizontalSpan = 2;
+				ibd.widthHint = width;
+				_inheritBgImgs.setLayoutData(ibd);
+			}
 		}
 		return list;
 	}
@@ -2836,7 +2871,7 @@ private:
 
 	private TopLevelPanel _tlp;
 public:
-	this(Commons comm, Props prop, Summary summ, A area, Composite parent, TopLevelPanel tlp, UndoManager undo, bool readOnly) { mixin(S_TRACE);
+	this(Commons comm, Props prop, Summary summ, A area, Composite parent, TopLevelPanel tlp, bool showInheritBacks, UndoManager undo, bool readOnly) { mixin(S_TRACE);
 		super(parent, SWT.NONE);
 		_readOnly = readOnly ? SWT.READ_ONLY : SWT.NONE;
 		auto o = this;
@@ -2847,6 +2882,7 @@ public:
 		_comm = comm;
 		_undo = undo;
 		_tlp = tlp;
+		static if (UseBacks) _showInheritBacks = showInheritBacks;
 		if (_readOnly || !_summ || _summ.scenarioPath == "") { mixin(S_TRACE);
 			_summSkin = findSkin(_comm, _prop, _summ);
 		}
@@ -5943,10 +5979,10 @@ alias AbstractAreaView!(Area, MenuCard, true, true) AreaView;
 alias AbstractAreaView!(Battle, EnemyCard, true, false) BattleView;
 
 class BgImagesView : AbstractAreaView!(BgImageContainer, void, false, true) {
-	this(Commons comm, Props prop, Summary summ, BgImageContainer bic, Composite parent, AbstractArea refTarget, UndoManager undo, bool readOnly) { mixin(S_TRACE);
+	this(Commons comm, Props prop, Summary summ, BgImageContainer bic, Composite parent, AbstractArea refTarget, bool showInheritBacks, UndoManager undo, bool readOnly) { mixin(S_TRACE);
 		if (prop.var.etc.refCardsAtEditBgImage) { mixin(S_TRACE);
 			_refTarget = refTarget;
 		}
-		super(comm, prop, summ, bic, parent, null, undo, readOnly);
+		super(comm, prop, summ, bic, parent, null, showInheritBacks, undo, readOnly);
 	}
 }

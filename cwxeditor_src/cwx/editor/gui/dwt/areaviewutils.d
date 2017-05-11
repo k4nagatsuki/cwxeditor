@@ -186,12 +186,13 @@ PImg createMenuCardImage(PImg)(Props prop, Skin skin, string sPath, string wsnVe
 	return r;
 }
 
-BgImagesView createBgImagesViewAndMenu(Commons comm, Props prop, Summary summ, BgImageContainer cont, Composite parent, AbstractArea refTarget, bool readOnly) { mixin(S_TRACE);
+BgImagesView createBgImagesViewAndMenu(Commons comm, Props prop, Summary summ, BgImageContainer cont, 
+		Composite parent, AbstractArea refTarget, bool showInheritBacks, bool readOnly) { mixin(S_TRACE);
 	auto undo = new UndoManager(prop.var.etc.undoMaxEvent);
 	void refUndoMax() { mixin(S_TRACE);
 		undo.max = prop.var.etc.undoMaxEvent;
 	}
-	auto view = new BgImagesView(comm, prop, summ, cont, parent, refTarget, undo, readOnly);
+	auto view = new BgImagesView(comm, prop, summ, cont, parent, refTarget, showInheritBacks, undo, readOnly);
 	comm.refUndoMax.add(&refUndoMax);
 	view.addDisposeListener(new class DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);

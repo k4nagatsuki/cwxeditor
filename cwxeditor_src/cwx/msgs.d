@@ -1176,6 +1176,11 @@ class Msgs : Properties {
 	auto refFlags = Msg("refFlags", "参照フラグ");
 	auto allCheckFlag = Msg("allCheckFlag", "全てTRUE/全てFALSE");
 
+	auto inheritBackground = Msg("inheritBackground", "背景継承あり");
+	auto inheritBackgroundHint = Msg("inheritBackgroundHint", "これまでに表示されている背景セルを消去せず、新しいセルを追加します。\nフラグ・セル名称・レイヤ設定の無いフルサイズのイメージセルを1枚目に設定した場合は、\n背景継承を行いません。");
+	auto notInheritBackground = Msg("notInheritBackground", "背景継承無し");
+	auto notInheritBackgroundHint = Msg("notInheritBackgroundHint", "これまでに表示されている背景セルを消去して新しいセルを表示します。\nフラグ・セル名称・レイヤ設定の無いフルサイズのイメージセルを1枚目に設定した場合は、\n背景継承を行いません。");
+
 	auto left = Msg("left", "X");
 	auto top = Msg("top", "Y");
 	auto width = Msg("width", "幅");
