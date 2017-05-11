@@ -3199,16 +3199,18 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		text = (text == "") ? comm.prop.msgs.noText : text.singleLine;
 		if (evt.cardPaths.length) {
 			auto t = contentTextUseID!(CIDKind.CardImages)(comm, summ, evt.cardPaths, comm.prop.msgs.ctTalkMessageImage, evt);
-			if (evt.selectionColumns == 1 && !evt.centeringX && !evt.centeringY && !evt.boundaryCheck) { mixin(S_TRACE);
+			auto attrs = .msgAttrText(comm.prop, evt);
+			if (attrs == "") { mixin(S_TRACE);
 				return .tryFormat(comm.prop.msgs.ctTalkMessage, t, text);
 			} else { mixin(S_TRACE);
-				return .tryFormat(comm.prop.msgs.ctTalkMessageWithAttrs, t, text, .msgAttrText(comm.prop, evt));
+				return .tryFormat(comm.prop.msgs.ctTalkMessageWithAttrs, t, text, attrs);
 			}
 		} else {
-			if (evt.selectionColumns == 1 && !evt.centeringX && !evt.centeringY && !evt.boundaryCheck) { mixin(S_TRACE);
+			auto attrs = .msgAttrText(comm.prop, evt);
+			if (attrs == "") { mixin(S_TRACE);
 				return .tryFormat(comm.prop.msgs.ctTalkMessageNarration, text);
 			} else { mixin(S_TRACE);
-				return .tryFormat(comm.prop.msgs.ctTalkMessageNarrationWithAttrs, text, .msgAttrText(comm.prop, evt));
+				return .tryFormat(comm.prop.msgs.ctTalkMessageNarrationWithAttrs, text, attrs);
 			}
 		}
 	} case CType.TALK_DIALOG: { mixin(S_TRACE);
@@ -3218,16 +3220,18 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 			t = (t == "") ? comm.prop.msgs.noText : t.singleLine;
 			if (sdlg.rCoupons.length) { mixin(S_TRACE);
 				auto cp = std.string.join(sdlg.rCoupons.dup, " ");
-				if (evt.selectionColumns == 1 && !evt.centeringX && !evt.centeringY && !evt.boundaryCheck) { mixin(S_TRACE);
+				auto attrs = .msgAttrText(comm.prop, evt);
+				if (attrs == "") { mixin(S_TRACE);
 					return .tryFormat(comm.prop.msgs.ctTalkDialog, tt, cp, t);
 				} else { mixin(S_TRACE);
-					return .tryFormat(comm.prop.msgs.ctTalkDialogWithAttrs, tt, cp, t, .msgAttrText(comm.prop, evt));
+					return .tryFormat(comm.prop.msgs.ctTalkDialogWithAttrs, tt, cp, t, attrs);
 				}
 			} else { mixin(S_TRACE);
-				if (evt.selectionColumns == 1 && !evt.centeringX && !evt.centeringY && !evt.boundaryCheck) { mixin(S_TRACE);
+				auto attrs = .msgAttrText(comm.prop, evt);
+				if (attrs == "") { mixin(S_TRACE);
 					return .tryFormat(comm.prop.msgs.ctTalkDialogNoCoupon, tt, t);
 				} else { mixin(S_TRACE);
-					return .tryFormat(comm.prop.msgs.ctTalkDialogNoCouponWithAttrs, tt, t, .msgAttrText(comm.prop, evt));
+					return .tryFormat(comm.prop.msgs.ctTalkDialogNoCouponWithAttrs, tt, t, attrs);
 				}
 			}
 		}
@@ -3619,14 +3623,14 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 string msgAttrText(in Props prop, in Content evt) { mixin(S_TRACE);
 	string[] attrs;
 	if (evt.centeringX && evt.centeringY) { mixin(S_TRACE);
-		attrs ~= prop.msgs.centeringXYOn;
+		if (prop.msgs.centeringXYOn != "") attrs ~= prop.msgs.centeringXYOn;
 	} else if (evt.centeringX) { mixin(S_TRACE);
-		attrs ~= prop.msgs.centeringXOn;
+		if (prop.msgs.centeringXOn != "") attrs ~= prop.msgs.centeringXOn;
 	} else if (evt.centeringY) { mixin(S_TRACE);
-		attrs ~= prop.msgs.centeringYOn;
+		if (prop.msgs.centeringYOn != "") attrs ~= prop.msgs.centeringYOn;
 	}
-	if (evt.boundaryCheck) attrs ~= prop.msgs.boundaryCheckOn;
-	if (evt.selectionColumns != 1) attrs ~= .tryFormat(prop.msgs.ctColumns, evt.selectionColumns);
+	if (evt.boundaryCheck && prop.msgs.boundaryCheckOn != "") attrs ~= prop.msgs.boundaryCheckOn;
+	if (evt.selectionColumns != 1 && prop.msgs.ctColumns != "") attrs ~= .tryFormat(prop.msgs.ctColumns, evt.selectionColumns);
 	return attrs.join(" ");
 }
 
