@@ -2119,6 +2119,7 @@ public:
 	}
 
 	void refresh(EventTree et) { mixin(S_TRACE);
+		editCancel();
 		_comm.setStatusLine(_tree.control, "");
 		_statusLine = "";
 		if (_et !is et) { mixin(S_TRACE);
