@@ -339,7 +339,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (cd.owner && cd.nextType != CNextType.TEXT) { mixin(S_TRACE);
 			auto set = new HashSet!(string);
 			foreach (cld; c.next) { mixin(S_TRACE);
-				if (cld.name == "") continue;
+				if (cld.name == "" && c.type !is CType.BRANCH_MULTI_COUPON) continue;
 				if (set.contains(cld.name)) { mixin(S_TRACE);
 					r ~= prop.msgs.searchErrorDupNextContent;
 					break;
