@@ -444,11 +444,10 @@ class CWXScript {
 		size_t lastCommentLine = 0;
 		size_t lastCommentPos = 0;
 		size_t lastCommentIndex = 0;
-		string post;
+		string post, pre;
 		bool spaceAfter = false;
 		string docComment = "";
 		string fullComment = "";
-		size_t beforeLineLen = 0;
 		@property ptrdiff_t sLine() {return cast(ptrdiff_t)i + opt.startLine;}
 		@property ptrdiff_t sPos() {return (cast(ptrdiff_t)i == opt.addLines) ? (cast(ptrdiff_t)pos + opt.startPos) : pos;}
 		auto maches = .match(dtext, reg);
@@ -457,21 +456,21 @@ class CWXScript {
 			return r;
 		}
 		foreach (token; maches) { mixin(S_TRACE);
-			post = token.post;
-			string pre = token.pre;
-			if (0 < pre.length - index) { mixin(S_TRACE);
-				pos = index - beforeLineLen;
+			if (0 < token.pre.length - index) { mixin(S_TRACE);
+				auto li = std.string.lastIndexOf(pre, '\n');
+				pos = li == -1 ? pre.length : pre.length - li;
 				throwErrorToken(_prop.msgs.scriptErrorInvalidToken, sLine, sPos, "");
 				return r;
 			}
+			post = token.post;
+			pre = token.pre;
 			pos += pre.length - index;
 			index = pre.length;
 			auto dstr = token.hit;
 			void retCount2(string dstr) { mixin(S_TRACE);
 				size_t count = .count(dstr, "\n");
-				if (count > 0) { mixin(S_TRACE);
+				if (0 < count) { mixin(S_TRACE);
 					pos = dstr.length - std.string.lastIndexOf(dstr, '\n') - 1;
-					beforeLineLen += index + dstr.length;
 					i += count;
 				} else { mixin(S_TRACE);
 					pos += dstr.length;
@@ -483,7 +482,7 @@ class CWXScript {
 			auto c = dstr[0];
 			string str = to!string(dstr);
 
-			if (cast(int) pre.length - cast(int) hits > 0) { mixin(S_TRACE);
+			if (cast(int)pre.length - cast(int)hits > 0) { mixin(S_TRACE);
 				if (0 < commentLevel) { mixin(S_TRACE);
 					/// in comment
 					retCount2(pre[hits .. $]);
