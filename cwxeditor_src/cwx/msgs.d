@@ -310,22 +310,22 @@ class Msgs : Properties {
 
 	auto searchResultSummary = Msg("searchResultSummary", "シナリオの概要 - %1$s");
 
-	auto searchResultImageCell = Msg("searchResultBgImage", "背景画像 [%1$s]");
-	auto searchResultTextCell = Msg("searchResultTextCell", "テキストセル [%1$s]");
-	auto searchResultColorCell = Msg("searchResultColorCell", "カラーセル [%1$s]");
-	auto searchResultPCCell = Msg("searchResultPCCell", "プレイヤーキャラクタセル [%1$s]");
-	auto searchResultIds = Msg("searchResultIds", "%1$s [%2$s.%3$s]");
+	auto searchResultImageCell = Msg("searchResultBgImage", "背景画像「%1$s」");
+	auto searchResultTextCell = Msg("searchResultTextCell", "テキストセル「%1$s」");
+	auto searchResultColorCell = Msg("searchResultColorCell", "カラーセル「%1$s」");
+	auto searchResultPCCell = Msg("searchResultPCCell", "プレイヤーキャラクタセル「%1$s」");
+	auto searchResultIds = Msg("searchResultIds", "%1$s「%2$s.%3$s」");
 
-	auto searchResultFlag = Msg("searchResultFlag", "フラグ [%1$s]");
-	auto searchResultStep = Msg("searchResultStep", "ステップ [%1$s]");
-	auto searchResultFlagDir = Msg("searchResultFlagDir", "ディレクトリ [%1$s]");
-	auto searchResultEventTree = Msg("searchResultEventTree", "イベントツリー [%1$s]");
-	auto searchResultMenuCard = Msg("searchResultMenuCard", "メニューカード [%1$s]");
-	auto searchResultMenuCardWithDesc = Msg("searchResultMenuCardWithDesc", "メニューカード [%1$s] - %2$s");
-	auto searchResultEnemyCard = Msg("searchResultEnemyCard", "エネミーカード [%1$s]");
+	auto searchResultFlag = Msg("searchResultFlag", "フラグ「%1$s」");
+	auto searchResultStep = Msg("searchResultStep", "ステップ「%1$s」");
+	auto searchResultFlagDir = Msg("searchResultFlagDir", "ディレクトリ「%1$s」");
+	auto searchResultEventTree = Msg("searchResultEventTree", "イベントツリー「%1$s」");
+	auto searchResultMenuCard = Msg("searchResultMenuCard", "メニューカード「%1$s」");
+	auto searchResultMenuCardWithDesc = Msg("searchResultMenuCardWithDesc", "メニューカード「%1$s」 - %2$s");
+	auto searchResultEnemyCard = Msg("searchResultEnemyCard", "エネミーカード「%1$s」");
 
-	auto searchResultJpy1 = Msg("searchResultJpy1", "JPY1ファイル [%1$s]");
-	auto searchResultJpdc = Msg("searchResultJpdc", "JPDCファイル [%1$s]");
+	auto searchResultJpy1 = Msg("searchResultJpy1", "JPY1ファイル「%1$s」");
+	auto searchResultJpdc = Msg("searchResultJpdc", "JPDCファイル「%1$s」");
 
 	auto searchErrorReversalLevel = Msg("searchErrorReversalLevel", "レベルの上限と下限が逆転しています。");
 	auto searchErrorNoImage = Msg("searchErrorNoImage", "イメージが指定されていません。");
