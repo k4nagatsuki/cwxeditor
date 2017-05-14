@@ -905,6 +905,7 @@ class CouponView(CVType Type) : Composite {
 
 	@property
 	void toolTip(string t) { mixin(S_TRACE);
+		if (t == toolTip) return;
 		_coupons.setToolTipText(t);
 	}
 	@property

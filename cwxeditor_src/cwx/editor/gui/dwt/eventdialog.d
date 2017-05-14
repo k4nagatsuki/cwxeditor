@@ -2555,6 +2555,10 @@ Composite createValueEditor(Commons comm, Summary summ, Composite parent, bool d
 	couponView.setLayoutData(gd);
 
 	updateValue = { mixin(S_TRACE);
+		if (talker && !couponView.coupons.length) { mixin(S_TRACE);
+			couponView.toolTip = "";
+			return;
+		}
 		int max = initValue.getSelection();
 		int min = max;
 		foreach (cp; couponView.coupons) { mixin(S_TRACE);
@@ -2564,7 +2568,7 @@ Composite createValueEditor(Commons comm, Summary summ, Composite parent, bool d
 				max += cp.value;
 			}
 		}
-		if (0 >= max) {
+		if (0 >= max) { mixin(S_TRACE);
 			if (talker) { mixin(S_TRACE);
 				couponView.toolTip = .replace(.tryFormat(comm.prop.msgs.valuedTalkerMaxIsLess0, max, min), "&", "&&");
 			} else { mixin(S_TRACE);
@@ -2584,6 +2588,7 @@ Composite createValueEditor(Commons comm, Summary summ, Composite parent, bool d
 			}
 		}
 	};
+	.listener(initValue, SWT.Modify, updateValue);
 	.listener(initValue, SWT.Selection, updateValue);
 	couponView.modEvent ~= updateValue;
 

@@ -825,7 +825,9 @@ private:
 
 		_initializer = new ContentInitialValueEditor(_comm, initGrp);
 		mod(_initializer);
-		_initializer.widget.setLayoutData(new GridData(GridData.FILL_BOTH));
+		auto igd = new GridData(GridData.FILL_BOTH);
+		igd.heightHint = 0;
+		_initializer.widget.setLayoutData(igd);
 		_initializer.bgImagesDefault = _prop.var.etc.bgImagesDefault;
 		_initializers = _prop.var.etc.contentInitializers.dup;
 		selectInitializers2();
