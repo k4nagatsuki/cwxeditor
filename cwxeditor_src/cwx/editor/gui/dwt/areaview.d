@@ -1855,7 +1855,7 @@ private:
 		label.setText(_prop.msgs.refFlags);
 		label.setImage(_prop.images.flag);
 
-		_flagList = .rangeSelectableTable(comp, SWT.SINGLE | SWT.CHECK | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL | SWT.VIRTUAL);
+		_flagList = .rangeSelectableTable(comp, SWT.SINGLE | SWT.CHECK | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
 		new FullTableColumn(_flagList, SWT.NONE);
 		auto gd = new GridData(GridData.FILL_BOTH);
 		gd.widthHint = 0;
@@ -2500,7 +2500,7 @@ private:
 			}
 		}
 
-		auto list = .rangeSelectableTable(comp, SWT.MULTI | SWT.CHECK | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL | SWT.VIRTUAL);
+		auto list = .rangeSelectableTable(comp, SWT.MULTI | SWT.CHECK | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
 		new FullTableColumn(list, SWT.NONE);
 		auto mkl = new MKListener!(C)(edit, items);
 		auto closePreview = new ClosePreview;

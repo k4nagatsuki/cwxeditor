@@ -2011,7 +2011,7 @@ public:
 			_tabf.addSelectionListener(new TSListener);
 		}
 		{ mixin(S_TRACE);
-			_result = .rangeSelectableTable(left, SWT.BORDER | SWT.MULTI | SWT.FULL_SELECTION | SWT.V_SCROLL | SWT.VIRTUAL);
+			_result = .rangeSelectableTable(left, SWT.BORDER | SWT.MULTI | SWT.FULL_SELECTION | SWT.V_SCROLL);
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.widthHint = _prop.var.etc.searchResultTableWidth;
 			gd.heightHint = _prop.var.etc.searchResultTableHeight;

@@ -350,7 +350,7 @@ protected:
 			setEVS(_init);
 		}
 		{ mixin(S_TRACE);
-			_values = .rangeSelectableTable(area, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.VIRTUAL);
+			_values = .rangeSelectableTable(area, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER);
 			_values.setLayoutData(new GridData(GridData.FILL_BOTH));
 			auto valueNumCol = new TableColumn(_values, SWT.NONE);
 			auto prop = _comm.prop;

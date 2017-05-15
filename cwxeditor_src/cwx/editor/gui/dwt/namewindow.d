@@ -344,7 +344,7 @@ public:
 
 		auto comp = new Composite(parent, SWT.NONE);
 		comp.setLayout(windowGridLayout(1, true));
-		_list = .rangeSelectableTable(comp, SWT.MULTI | SWT.BORDER | SWT.FULL_SELECTION | SWT.VIRTUAL);
+		_list = .rangeSelectableTable(comp, SWT.MULTI | SWT.BORDER | SWT.FULL_SELECTION);
 		_list.setLayoutData(new GridData(GridData.FILL_BOTH));
 		_list.setHeaderVisible(true);
 		auto nameCol = new TableColumn(_list, SWT.NULL);
@@ -662,14 +662,6 @@ public:
 			int i = 0;
 			int[] selIndices;
 
-			version (Windows) {
-				// FIXME: Windows 7で_list.remove()を行うと落ちる
-				import org.eclipse.swt.internal.win32.OS;
-				if (OS.WIN32_VERSION < OS.VERSION(6, 2)) { mixin(S_TRACE);
-					_list.removeAll();
-				}
-			}
-
 			// 後からsort()を呼び出すと重いので事前にソートする
 			bool cmp(ID a, ID b) { mixin(S_TRACE);
 				if (_list.getSortDirection() is SWT.DOWN) { mixin(S_TRACE);
@@ -714,9 +706,7 @@ public:
 				if (i == 0) { mixin(S_TRACE);
 					_list.removeAll();
 				} else { mixin(S_TRACE);
-					foreach_reverse (i2; i .. _list.getItemCount()) { mixin(S_TRACE);
-						_list.remove(i2);
-					}
+					_list.remove(i, _list.getItemCount() - 1);
 				}
 			}
 			if (selIndices.length) _list.select(selIndices);

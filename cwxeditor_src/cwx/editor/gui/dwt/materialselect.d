@@ -157,7 +157,7 @@ class MaterialSelect(MtType Type, D, C) {
 	}
 	C createFileList(Composite parent) { mixin(S_TRACE);
 		static if (is (C == Table)) {
-			_fileList = new C(parent, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL | SWT.SINGLE | SWT.FULL_SELECTION | SWT.VIRTUAL);
+			_fileList = new C(parent, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL | SWT.SINGLE | SWT.FULL_SELECTION);
 			new FullTableColumn(_fileList, SWT.NONE);
 		} else static if (is (C == Combo)) {
 			_fileList = new C(parent, SWT.BORDER | SWT.READ_ONLY | SWT.DROP_DOWN);
