@@ -2000,3 +2000,16 @@ version (Windows) {
 		return info.WorkingSetSize;
 	}
 }
+
+/// itrの構成要素が全て同一か。
+@property
+static bool isUniform(Itr)(Itr itr) { mixin(S_TRACE);
+	ElementType!Itr i1;
+	auto e = false;
+	foreach (i; itr) { mixin(S_TRACE);
+		if (e && i != i1) return false;
+		e = true;
+		i1 = i;
+	}
+	return true;
+}

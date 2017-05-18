@@ -1258,55 +1258,26 @@ private:
 			v.refreshControls();
 		}
 	}
-	void posEvenImpl(string X, string Wid, string SetX, string XC, T)(int startIndex, T[] cs) { mixin(S_TRACE);
+	void posEvenImpl(T)(int startIndex, T[] cs) { mixin(S_TRACE);
 		if (_readOnly) return;
-		FlexImage[] targs;
-		int right_w = int.min;
-		scope int[FlexImage] indices;
-		for (int i = 0; i < cs.length; i++) { mixin(S_TRACE);
-			auto a = cast(FlexImage) _imgp.images[i + startIndex];
-			if (a.selected) { mixin(S_TRACE);
-				indices[a] = i;
-				targs ~= a;
-				int rw = mixin(X) + mixin (Wid);
-				if (right_w < rw) right_w = rw;
-			}
-		}
-		int[const FlexImage] baseIndices;
-		foreach (i, fimg; targs) { mixin(S_TRACE);
-			baseIndices[fimg] = cast(int)i;
-		}
+		int right_w;
+		int[FlexImage] indices;
+		bool delegate(in FlexImage fi1, in FlexImage fi2) ficmpX;
+		auto targs = posEvenTargs(startIndex, cs, indices, right_w, ficmpX);
+
 		if (targs.length > 1) { mixin(S_TRACE);
-			bool ficmp(in FlexImage fi1, in FlexImage fi2) { mixin(S_TRACE);
-				int x1, x2;
-				{ mixin(S_TRACE);
-					auto a = fi1;
-					x1 = mixin (X);
-				}
-				{ mixin(S_TRACE);
-					auto a = fi2;
-					x2 = mixin (X);
-				}
-				if (x1 == x2) { mixin(S_TRACE);
-					return baseIndices[fi1] < baseIndices[fi2];
-				} else { mixin(S_TRACE);
-					return x1 < x2;
-				}
-			}
-			targs = .sortDlg!(FlexImage)(targs, &ficmp);
-			auto a = targs[0];
-			int left = mixin (X);
-			a = targs[$ - 1];
-			int right = right_w - mixin (Wid);
+			targs = .sortDlg(targs, ficmpX);
+			int left = targs[0].x;
+			int right = right_w - targs[$ - 1].width;
 			for (int i = 0; i < targs.length; i++) { mixin(S_TRACE);
-				a = targs[i];
-				auto b = left + cast(int) rndtol(((right - left) / (targs.length - 1.0)) * i);
+				auto a = targs[i];
+				auto b = left + cast(int)rndtol(((right - left) / (targs.length - 1.0)) * i);
 				_imgp.redrawImage(a);
-				mixin (SetX ~ ";");
+				a.newX = b;
 				a.resize();
 				_imgp.redrawImage(a);
 				auto c = cs[indices[a]];
-				mixin (XC ~ ";");
+				c.x = b;
 				if (_summ && _summ.scenarioPath != "") { mixin(S_TRACE);
 					static if (is(T : AbstractSpCard)) {
 						_comm.refMenuCard.call(c.cwxPath(true));
@@ -1317,6 +1288,51 @@ private:
 			}
 		}
 		callModEvent();
+	}
+	bool canPosEvenImpl(T)(int startIndex, T[] cs) { mixin(S_TRACE);
+		if (_readOnly) return false;
+		if (!canChangePos) return false;
+		int right_w;
+		int[FlexImage] indices;
+		bool delegate(in FlexImage fi1, in FlexImage fi2) ficmpX;
+		auto targs = posEvenTargs(startIndex, cs, indices, right_w, ficmpX);
+		if (targs.length > 1) { mixin(S_TRACE);
+			targs = .sortDlg(targs, ficmpX);
+			int left = targs[0].x;
+			int right = right_w - targs[$ - 1].width;
+			for (int i = 0; i < targs.length; i++) { mixin(S_TRACE);
+				auto b = left + cast(int)rndtol(((right - left) / (targs.length - 1.0)) * i);
+				if (targs[i].x != b) return true;
+			}
+		}
+		return false;
+	}
+	FlexImage[] posEvenTargs(T)(int startIndex, in T[] cs, out int[FlexImage] indices, out int right_w, out bool delegate(in FlexImage fi1, in FlexImage fi2) ficmpX) { mixin(S_TRACE);
+		FlexImage[] targs;
+		right_w = int.min;
+		for (int i = 0; i < cs.length; i++) { mixin(S_TRACE);
+			auto a = cast(FlexImage)_imgp.images[i + startIndex];
+			if (a.selected) { mixin(S_TRACE);
+				indices[a] = i;
+				targs ~= a;
+				int rw = a.x + a.width;
+				if (right_w < rw) right_w = rw;
+			}
+		}
+		int[const FlexImage] baseIndices;
+		foreach (i, fimg; targs) { mixin(S_TRACE);
+			baseIndices[fimg] = cast(int)i;
+		}
+		ficmpX = (fi1, fi2) { mixin(S_TRACE);
+			auto x1 = fi1.x;
+			auto x2 = fi2.x;
+			if (x1 == x2) { mixin(S_TRACE);
+				return baseIndices[fi1] < baseIndices[fi2];
+			} else { mixin(S_TRACE);
+				return x1 < x2;
+			}
+		};
+		return targs;
 	}
 	static if (UseCards) {
 		private void scaleC(uint scale) { mixin(S_TRACE);
@@ -1348,6 +1364,12 @@ private:
 		private void scaleCMin() { mixin(S_TRACE);
 			if (_readOnly) return;
 			scaleC(_prop.var.etc.cardScaleMin);
+		}
+		@property
+		bool canScaleCAny(int scale) { mixin(S_TRACE);
+			if (!canChangePos) return false;
+			auto cScales = _cards.getSelectionIndices().map!(i => _imgp.images[cardsIndex + i].scale)();
+			return cScales.any!(a => a != scale)();
 		}
 	}
 	void scaleEvenImpl(int First, string Cmp, string CSet, T)(int delegate(AbstractAreaView) startIndex, T[] cs) { mixin(S_TRACE);
@@ -1400,6 +1422,29 @@ private:
 			v.refreshControls();
 		}
 	}
+	@property
+	bool canPosAny(int delegate(in PileImage) func) { mixin(S_TRACE);
+		if (_readOnly) return false;
+		if (!canChangePos) return false;
+		static if (UseCards) {
+			auto cVals = _cards.getSelectionIndices().map!(i => func(_imgp.images[cardsIndex + i]))();
+			if (!cVals.isUniform) return true;
+		}
+		static if (UseBacks) {
+			auto bVals = _backs.getSelectionIndices().map!(i => func(_imgp.images[i]))();
+			if (!bVals.isUniform) return true;
+		}
+		return false;
+	}
+	@property
+	bool canPosTop() { return canPosAny(fi => fi.y); }
+	@property
+	bool canPosBottom() { return canPosAny(fi => fi.y + fi.height); }
+	@property
+	bool canPosLeft() { return canPosAny(fi => fi.x); }
+	@property
+	bool canPosRight() { return canPosAny(fi => fi.x + fi.width); }
+
 	void posTopImpl(T)(int startIndex, T[] cs) { mixin(S_TRACE);
 		if (_readOnly) return;
 		posImpl!(int.max, "a.y < b", "a.y", "a.newY = b", "c.y = a.y", T)(startIndex, cs);
@@ -1415,10 +1460,6 @@ private:
 	void posRightImpl(T)(int startIndex, T[] cs) { mixin(S_TRACE);
 		if (_readOnly) return;
 		posImpl!(int.min, "a.x + a.width > b", "a.x + a.width", "a.newX = b - a.width", "c.x = a.x", T)(startIndex, cs);
-	}
-	void posEvenImpl(T)(int startIndex, T[] cs) { mixin(S_TRACE);
-		if (_readOnly) return;
-		posEvenImpl!("a.x", "a.width", "a.newX = b", "c.x = b", T)(startIndex, cs);
 	}
 	bool canChangePos() { mixin(S_TRACE);
 		bool r = false;
@@ -1456,11 +1497,34 @@ private:
 		static if (UseCards) posEvenImpl!(C)(cardsIndex, _area.cards);
 		static if (UseBacks) posEvenImpl!(BgImage)(0, _area.backs);
 	}
+	@property
+	bool canPosEven() {
+		if (_readOnly) return false;
+		if (!canChangePos) return false;
+		static if (UseCards) {
+			if (canPosEvenImpl!C(cardsIndex, _area.cards)) return true;
+		}
+		static if (UseBacks) {
+			if (canPosEvenImpl!BgImage(0, _area.backs)) return true;
+		}
+		return false;
+	}
 	void nearTop() { mixin(S_TRACE);
 		if (_readOnly) return;
 		_undo ~= createUndoEdit();
 		static if (UseCards) nearTopImpl((v) => v.cardsIndex, _area.cards, true);
 		static if (UseBacks) nearTopImpl((v) => 0, _area.backs, false);
+	}
+	bool canNearTop() { mixin(S_TRACE);
+		if (_readOnly) return false;
+		if (!canChangePos) return false;
+		static if (UseCards) {
+			if (canNearTopImpl((v) => v.cardsIndex, _area.cards, true)) return true;
+		}
+		static if (UseBacks) {
+			if (canNearTopImpl((v) => 0, _area.backs, false)) return true;
+		}
+		return false;
 	}
 	void nearBottom() { mixin(S_TRACE);
 		if (_readOnly) return;
@@ -1468,17 +1532,50 @@ private:
 		static if (UseCards) nearBottomImpl((v) => v.cardsIndex, _area.cards, true);
 		static if (UseBacks) nearBottomImpl((v) => 0, _area.backs, false);
 	}
+	bool canNearBottom() { mixin(S_TRACE);
+		if (_readOnly) return false;
+		if (!canChangePos) return false;
+		static if (UseCards) {
+			if (canNearBottomImpl((v) => v.cardsIndex, _area.cards, true)) return true;
+		}
+		static if (UseBacks) {
+			if (canNearBottomImpl((v) => 0, _area.backs, false)) return true;
+		}
+		return false;
+	}
 	void nearLeft() { mixin(S_TRACE);
 		if (_readOnly) return;
 		_undo ~= createUndoEdit();
 		static if (UseCards) nearLeftImpl((v) => v.cardsIndex, _area.cards, true);
 		static if (UseBacks) nearLeftImpl((v) => 0, _area.backs, false);
 	}
+	bool canNearLeft() { mixin(S_TRACE);
+		if (_readOnly) return false;
+		if (!canChangePos) return false;
+		static if (UseCards) {
+			if (canNearLeftImpl((v) => v.cardsIndex, _area.cards, true)) return true;
+		}
+		static if (UseBacks) {
+			if (canNearLeftImpl((v) => 0, _area.backs, false)) return true;
+		}
+		return false;
+	}
 	void nearRight() { mixin(S_TRACE);
 		if (_readOnly) return;
 		_undo ~= createUndoEdit();
 		static if (UseCards) nearRightImpl((v) => v.cardsIndex, _area.cards, true);
 		static if (UseBacks) nearRightImpl((v) => 0, _area.backs, false);
+	}
+	bool canNearRight() { mixin(S_TRACE);
+		if (_readOnly) return false;
+		if (!canChangePos) return false;
+		static if (UseCards) {
+			if (canNearRightImpl((v) => v.cardsIndex, _area.cards, true)) return true;
+		}
+		static if (UseBacks) {
+			if (canNearRightImpl((v) => 0, _area.backs, false)) return true;
+		}
+		return false;
 	}
 	void nearCenterH() { nearCenterImpl1(true, false); }
 	void nearCenterV() { nearCenterImpl1(false, true); }
@@ -1489,34 +1586,73 @@ private:
 		static if (UseCards) nearCenterImpl2((v) => v.cardsIndex, _area.cards, true, h, v);
 		static if (UseBacks) nearCenterImpl2((v) => 0, _area.backs, false, h, v);
 	}
+	bool canNearCenter(bool h, bool v) { mixin(S_TRACE);
+		if (_readOnly) return false;
+		if (!canChangePos) return false;
+		static if (UseCards) {
+			if (canNearCenterImpl((v) => v.cardsIndex, _area.cards, true, h, v)) return true;
+		}
+		static if (UseBacks) {
+			if (canNearCenterImpl((v) => 0, _area.backs, false, h, v)) return true;
+		}
+		return false;
+	}
 	void nearTopImpl(T)(int delegate(AbstractAreaView) startIndex, T[] cs, bool refParty) { mixin(S_TRACE);
 		if (_readOnly) return;
 		int canvasW, canvasH, itemsL, itemsT, itemsW, itemsH;
-		getItemPositions(startIndex(this), cast(int)cs.length, refParty, canvasW, canvasH, itemsL, itemsT, itemsW, itemsH);
+		if (!getItemPositions(startIndex(this), cs.length, refParty, canvasW, canvasH, itemsL, itemsT, itemsW, itemsH)) return;
 		nearImpl(startIndex, cs, 0, -itemsT);
+	}
+	bool canNearTopImpl(T)(int delegate(AbstractAreaView) startIndex, T[] cs, bool refParty) { mixin(S_TRACE);
+		if (_readOnly) return false;
+		if (!canChangePos) return false;
+		int canvasW, canvasH, itemsL, itemsT, itemsW, itemsH;
+		if (!getItemPositions(startIndex(this), cs.length, refParty, canvasW, canvasH, itemsL, itemsT, itemsW, itemsH)) return false;
+		return itemsT != 0;
 	}
 	void nearBottomImpl(T)(int delegate(AbstractAreaView) startIndex, T[] cs, bool refParty) { mixin(S_TRACE);
 		if (_readOnly) return;
 		int canvasW, canvasH, itemsL, itemsT, itemsW, itemsH;
-		getItemPositions(startIndex(this), cast(int)cs.length, refParty, canvasW, canvasH, itemsL, itemsT, itemsW, itemsH);
+		if (!getItemPositions(startIndex(this), cs.length, refParty, canvasW, canvasH, itemsL, itemsT, itemsW, itemsH)) return;
 		nearImpl(startIndex, cs, 0, canvasH - itemsH - itemsT);
+	}
+	bool canNearBottomImpl(T)(int delegate(AbstractAreaView) startIndex, T[] cs, bool refParty) { mixin(S_TRACE);
+		if (_readOnly) return false;
+		if (!canChangePos) return false;
+		int canvasW, canvasH, itemsL, itemsT, itemsW, itemsH;
+		if (!getItemPositions(startIndex(this), cs.length, refParty, canvasW, canvasH, itemsL, itemsT, itemsW, itemsH)) return false;
+		return canvasH - itemsH - itemsT != 0;
 	}
 	void nearLeftImpl(T)(int delegate(AbstractAreaView) startIndex, T[] cs, bool refParty) { mixin(S_TRACE);
 		if (_readOnly) return;
 		int canvasW, canvasH, itemsL, itemsT, itemsW, itemsH;
-		getItemPositions(startIndex(this), cast(int)cs.length, refParty, canvasW, canvasH, itemsL, itemsT, itemsW, itemsH);
+		if (!getItemPositions(startIndex(this), cs.length, refParty, canvasW, canvasH, itemsL, itemsT, itemsW, itemsH)) return;
 		nearImpl(startIndex, cs, -itemsL, 0);
+	}
+	bool canNearLeftImpl(T)(int delegate(AbstractAreaView) startIndex, T[] cs, bool refParty) { mixin(S_TRACE);
+		if (_readOnly) return false;
+		if (!canChangePos) return false;
+		int canvasW, canvasH, itemsL, itemsT, itemsW, itemsH;
+		if (!getItemPositions(startIndex(this), cs.length, refParty, canvasW, canvasH, itemsL, itemsT, itemsW, itemsH)) return false;
+		return itemsL != 0;
 	}
 	void nearRightImpl(T)(int delegate(AbstractAreaView) startIndex, T[] cs, bool refParty) { mixin(S_TRACE);
 		if (_readOnly) return;
 		int canvasW, canvasH, itemsL, itemsT, itemsW, itemsH;
-		getItemPositions(startIndex(this), cast(int)cs.length, refParty, canvasW, canvasH, itemsL, itemsT, itemsW, itemsH);
+		if (!getItemPositions(startIndex(this), cs.length, refParty, canvasW, canvasH, itemsL, itemsT, itemsW, itemsH)) return;
 		nearImpl(startIndex, cs, canvasW - itemsW - itemsL, 0);
+	}
+	bool canNearRightImpl(T)(int delegate(AbstractAreaView) startIndex, T[] cs, bool refParty) { mixin(S_TRACE);
+		if (_readOnly) return false;
+		if (!canChangePos) return false;
+		int canvasW, canvasH, itemsL, itemsT, itemsW, itemsH;
+		if (!getItemPositions(startIndex(this), cs.length, refParty, canvasW, canvasH, itemsL, itemsT, itemsW, itemsH)) return false;
+		return canvasW - itemsW - itemsL != 0;
 	}
 	void nearCenterImpl2(T)(int delegate(AbstractAreaView) startIndex, T[] cs, bool refParty, bool h, bool v) { mixin(S_TRACE);
 		if (_readOnly) return;
 		int canvasW, canvasH, itemsL, itemsT, itemsW, itemsH;
-		getItemPositions(startIndex(this), cast(int)cs.length, refParty, canvasW, canvasH, itemsL, itemsT, itemsW, itemsH);
+		if (!getItemPositions(startIndex(this), cs.length, refParty, canvasW, canvasH, itemsL, itemsT, itemsW, itemsH)) return;
 
 		int x = h ? (canvasW - itemsW) / 2 : itemsL;
 		int y = v ? (canvasH - itemsH) / 2 : itemsT;
@@ -1524,7 +1660,19 @@ private:
 		int moveY = y - itemsT;
 		nearImpl(startIndex, cs, moveX, moveY);
 	}
-	void getItemPositions(int startIndex, int count, bool refParty,
+	bool canNearCenterImpl(T)(int delegate(AbstractAreaView) startIndex, T[] cs, bool refParty, bool h, bool v) { mixin(S_TRACE);
+		if (_readOnly) return false;
+		if (!canChangePos) return false;
+		int canvasW, canvasH, itemsL, itemsT, itemsW, itemsH;
+		if (!getItemPositions(startIndex(this), cs.length, refParty, canvasW, canvasH, itemsL, itemsT, itemsW, itemsH)) return false;
+
+		int x = h ? (canvasW - itemsW) / 2 : itemsL;
+		int y = v ? (canvasH - itemsH) / 2 : itemsT;
+		int moveX = x - itemsL;
+		int moveY = y - itemsT;
+		return moveX || moveY;
+	}
+	bool getItemPositions(int startIndex, size_t count, bool refParty,
 			out int canvasW, out int canvasH,
 			out int itemsL, out int itemsT,
 			out int itemsW, out int itemsH) { mixin(S_TRACE);
@@ -1535,10 +1683,12 @@ private:
 		itemsL = int.max;
 		itemsT = int.max;
 		int itemsR = int.min, itemsB = int.min;
+		auto selected = false;
 		foreach (i; startIndex .. startIndex + count) { mixin(S_TRACE);
 			auto img = cast(FlexImage)_imgp.images[i];
 			assert (img !is null);
 			if (img.selected) { mixin(S_TRACE);
+				selected = true;
 				itemsL = .min(itemsL, img.x);
 				itemsT = .min(itemsT, img.y);
 				itemsR = .max(itemsR, img.x + img.width);
@@ -1547,6 +1697,7 @@ private:
 		}
 		itemsW = itemsR - itemsL;
 		itemsH = itemsB - itemsT;
+		return selected;
 	}
 	void nearImpl(T)(int delegate(AbstractAreaView) startIndex, T[] cs, int moveX, int moveY) { mixin(S_TRACE);
 		if (_readOnly) return;
@@ -1613,6 +1764,19 @@ private:
 				v.refreshControls();
 			}
 		}
+		@property
+		bool canExpandBacks() { mixin(S_TRACE);
+			if (_readOnly || 0 == _backs.getSelectionCount()) return false;
+			auto vSize = _prop.looks.viewSize;
+			foreach (i, back; _area.backs) { mixin(S_TRACE);
+				auto img = cast(FlexImage)_imgp.images[0 + i];
+				assert (img !is null);
+				if (img.selected) { mixin(S_TRACE);
+					if (back.x != 0 || back.y != 0 || back.width != vSize.width || back.height != vSize.height) return true;
+				}
+			}
+			return false;
+		}
 	}
 	static if (UseCards) {
 		void scaleEvenC(int First, string Cmp)() { mixin(S_TRACE);
@@ -1637,6 +1801,19 @@ private:
 		_undo ~= createUndoEdit();
 		static if (UseCards) scaleEvenC!(int.max, "a < b")();
 		static if (UseBacks) scaleEvenB!(int.max, "a < b")();
+	}
+	@property
+	bool canScaleEvenAny() { mixin(S_TRACE);
+		if (!canChangePos) return false;
+		static if (UseCards) {
+			auto cScales = _cards.getSelectionIndices().map!(i => _imgp.images[cardsIndex + i].scale)();
+			if (!cScales.isUniform) return true;
+		}
+		static if (UseBacks) {
+			auto bScales = _backs.getSelectionIndices().map!(i => _imgp.images[i].scale)();
+			if (!bScales.isUniform) return true;
+		}
+		return false;
 	}
 	class IPEditListener : MouseAdapter {
 		override void mouseDoubleClick(MouseEvent e) { mixin(S_TRACE);
@@ -1807,31 +1984,31 @@ private:
 				auto chgPosMI = createMenuItem(_comm, menu, MenuID.ChangePos, dummy, &canChangePos, SWT.CASCADE);
 				auto chgPos = new Menu(chgPosMI);
 				chgPosMI.setMenu(chgPos);
-				createMenuItem(_comm, chgPos, MenuID.NearTop, &nearTop, &canChangePos);
-				createMenuItem(_comm, chgPos, MenuID.NearBottom, &nearBottom, &canChangePos);
-				createMenuItem(_comm, chgPos, MenuID.NearLeft, &nearLeft, &canChangePos);
-				createMenuItem(_comm, chgPos, MenuID.NearRight, &nearRight, &canChangePos);
-				createMenuItem(_comm, chgPos, MenuID.NearCenterH, &nearCenterH, &canChangePos);
-				createMenuItem(_comm, chgPos, MenuID.NearCenterV, &nearCenterV, &canChangePos);
-				createMenuItem(_comm, chgPos, MenuID.NearCenter, &nearCenter, &canChangePos);
+				createMenuItem(_comm, chgPos, MenuID.NearTop, &nearTop, &canNearTop);
+				createMenuItem(_comm, chgPos, MenuID.NearBottom, &nearBottom, &canNearBottom);
+				createMenuItem(_comm, chgPos, MenuID.NearLeft, &nearLeft, &canNearLeft);
+				createMenuItem(_comm, chgPos, MenuID.NearRight, &nearRight, &canNearRight);
+				createMenuItem(_comm, chgPos, MenuID.NearCenterH, &nearCenterH, () => canNearCenter(true, false));
+				createMenuItem(_comm, chgPos, MenuID.NearCenterV, &nearCenterV, () => canNearCenter(false, true));
+				createMenuItem(_comm, chgPos, MenuID.NearCenter, &nearCenter, () => canNearCenter(true, true));
 				new MenuItem(chgPos, SWT.SEPARATOR);
-				createMenuItem(_comm, chgPos, MenuID.PosTop, &posTop, &canChangePos);
-				createMenuItem(_comm, chgPos, MenuID.PosBottom, &posBottom, &canChangePos);
-				createMenuItem(_comm, chgPos, MenuID.PosLeft, &posLeft, &canChangePos);
-				createMenuItem(_comm, chgPos, MenuID.PosRight, &posRight, &canChangePos);
-				createMenuItem(_comm, chgPos, MenuID.PosEven, &posEven, &canChangePos);
+				createMenuItem(_comm, chgPos, MenuID.PosTop, &posTop, &canPosTop);
+				createMenuItem(_comm, chgPos, MenuID.PosBottom, &posBottom, &canPosBottom);
+				createMenuItem(_comm, chgPos, MenuID.PosLeft, &posLeft, &canPosLeft);
+				createMenuItem(_comm, chgPos, MenuID.PosRight, &posRight, &canPosRight);
+				createMenuItem(_comm, chgPos, MenuID.PosEven, &posEven, &canPosEven);
 				static if (UseCards) {
 					new MenuItem(chgPos, SWT.SEPARATOR);
-					createMenuItem(_comm, chgPos, MenuID.ScaleMin, &scaleCMin, &canChangePos);
-		 			createMenuItem(_comm, chgPos, MenuID.ScaleMiddle, &scaleCMiddle, &canChangePos);
-					createMenuItem(_comm, chgPos, MenuID.ScaleMax, &scaleCMax, &canChangePos);
+					createMenuItem(_comm, chgPos, MenuID.ScaleMin, &scaleCMin, () => canScaleCAny(_prop.var.etc.cardScaleMin));
+		 			createMenuItem(_comm, chgPos, MenuID.ScaleMiddle, &scaleCMiddle, () => canScaleCAny(100));
+					createMenuItem(_comm, chgPos, MenuID.ScaleMax, &scaleCMax, () => canScaleCAny(_prop.var.etc.cardScaleMax));
 				}
 				new MenuItem(chgPos, SWT.SEPARATOR);
-				createMenuItem(_comm, chgPos, MenuID.ScaleBig, &scaleEvenBig, &canChangePos);
-				createMenuItem(_comm, chgPos, MenuID.ScaleSmall, &scaleEvenSmall, &canChangePos);
+				createMenuItem(_comm, chgPos, MenuID.ScaleBig, &scaleEvenBig, &canScaleEvenAny);
+				createMenuItem(_comm, chgPos, MenuID.ScaleSmall, &scaleEvenSmall, &canScaleEvenAny);
 				static if (UseBacks) {
 					new MenuItem(chgPos, SWT.SEPARATOR);
-					createMenuItem(_comm, chgPos, MenuID.ExpandBack, &expandBacks, () => !_readOnly && 0 < _backs.getSelectionCount());
+					createMenuItem(_comm, chgPos, MenuID.ExpandBack, &expandBacks, &canExpandBacks);
 				}
 			}
 
