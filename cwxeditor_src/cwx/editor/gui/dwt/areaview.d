@@ -1325,7 +1325,7 @@ private:
 				auto fi = cast(FlexImage)_imgp.images[cardsIndex + i];
 				if (fi.selected) { mixin(S_TRACE);
 					c.scale = scale;
-					fi.scale = scale;
+					fi.newScale = scale;
 					_imgp.redrawImage(fi);
 					fi.resize();
 					_imgp.redrawImage(fi);
@@ -1354,6 +1354,7 @@ private:
 		if (_readOnly) return;
 		int w = First;
 		int h = First;
+		int scale = First;
 		for (int i = 0; i < cs.length; i++) { mixin(S_TRACE);
 			auto fi = cast(FlexImage)_imgp.images[startIndex(this) + i];
 			if (fi.selected) { mixin(S_TRACE);
@@ -1361,10 +1362,13 @@ private:
 				int a, b;
 				a = fi.width;
 				b = w;
-				if (mixin (Cmp)) w = a;
+				if (mixin(Cmp)) w = a;
 				a = fi.height;
 				b = h;
-				if (mixin (Cmp)) h = a;
+				if (mixin(Cmp)) h = a;
+				a = fi.scale;
+				b = scale;
+				if (mixin(Cmp)) scale = a;
 				_imgp.redrawImage(fi);
 			}
 		}
@@ -1375,13 +1379,17 @@ private:
 				foreach (v; vs) { mixin(S_TRACE);
 					auto fi2 = cast(FlexImage)v._imgp.images[startIndex(v) + i];
 					v._imgp.redrawImage(fi2);
-					fi2.newWidth = w;
-					fi2.newHeight = h;
+					if (fi2.scaleMode) { mixin(S_TRACE);
+						fi2.newScale = scale;
+					} else { mixin(S_TRACE);
+						fi2.newWidth = w;
+						fi2.newHeight = h;
+					}
 					fi2.resize();
 					v._imgp.redrawImage(fi2);
 				}
 				auto a = cs[i];
-				mixin (CSet);
+				mixin(CSet);
 				if (_summ && _summ.scenarioPath != "") { mixin(S_TRACE);
 					_comm.refMenuCard.call(a.cwxPath(true));
 				}
