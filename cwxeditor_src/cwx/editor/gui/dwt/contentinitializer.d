@@ -82,7 +82,7 @@ class ContentInitialValueEditor : TCPD {
 
 	private UndoManager _undo = null;
 
-	private EventDialog[int] _editDlgs;
+	private EventDialog[CType] _editDlgs;
 
 	this (Commons comm, Composite parent) { mixin(S_TRACE);
 		_comm = comm;
@@ -235,36 +235,40 @@ class ContentInitialValueEditor : TCPD {
 	void editContent() { mixin(S_TRACE);
 		if (!canEditContent) return;
 		foreach (sel; _list.getSelection()) { mixin(S_TRACE);
-			auto c = cast(Content)sel.getData();
-			auto cc = c.dup;
-			assert (c !is null);
-			auto i = _cTypeTable[c.type];
-
-			auto p = i in _editDlgs;
-			if (p) { mixin(S_TRACE);
-				p.active();
-				return;
-			}
-
-			auto dlg = .createEventDialog(_comm, _summ, _list.getShell(), c, null, false);
-			dlg.appliedEvent ~= { mixin(S_TRACE);
-				if (c == cc) return;
-				store([cc]);
-				cc = c.dup;
-				auto edited = c != _inits[c.type];
-				_edited[c.type] = edited;
-				sel.setText(1, edited ? _comm.prop.msgs.editedInitializer : "");
-				foreach (modDlg; modEvent) modDlg();
-				_comm.refreshToolBar();
-				updateToolTip();
-			};
-			_editDlgs[i] = dlg;
-			dlg.closeEvent ~= { mixin(S_TRACE);
-				_editDlgs.remove(i);
-			};
-			dlg.open();
+			editContentImpl(sel);
 		}
 	}
+	private void editContentImpl(TableItem sel) {
+		auto c = cast(Content)sel.getData();
+		auto cc = c.dup;
+		assert (c !is null);
+		auto i = _cTypeTable[c.type];
+
+		auto p = c.type in _editDlgs;
+		if (p) { mixin(S_TRACE);
+			p.active();
+			return;
+		}
+
+		auto dlg = .createEventDialog(_comm, _summ, _list.getShell(), c, null, false);
+		dlg.appliedEvent ~= { mixin(S_TRACE);
+			if (c == cc) return;
+			store([cc]);
+			cc = c.dup;
+			auto edited = c != _inits[c.type];
+			_edited[c.type] = edited;
+			sel.setText(1, edited ? _comm.prop.msgs.editedInitializer : "");
+			foreach (modDlg; modEvent) modDlg();
+			_comm.refreshToolBar();
+			updateToolTip();
+		};
+		_editDlgs[c.type] = dlg;
+		dlg.closeEvent ~= { mixin(S_TRACE);
+			_editDlgs.remove(c.type);
+		};
+		dlg.open();
+	}
+
 	@property
 	bool canEditContent() { mixin(S_TRACE);
 		return _list.getSelectionIndex() != -1;
