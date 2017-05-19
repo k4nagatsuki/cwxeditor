@@ -1682,7 +1682,7 @@ public:
 			_tree.editor.slope = _prop.var.etc.eventTreeSlope;
 			_ee = new EventEdit(_comm, _tree.editor, &editEnd, &createEditor);
 		} else { mixin(S_TRACE);
-			_tree.tree = new Tree(_comp, SWT.SINGLE | SWT.BORDER | SWT.VIRTUAL);
+			_tree.tree = new Tree(_comp, SWT.SINGLE | SWT.BORDER);
 			initTree(_comm, _tree.tree, true, true, () => _summ ? _prop.var.etc.classicStyleTree.value : classicStyleTree);
 			if (!_readOnly) { mixin(S_TRACE);
 				_te = new TreeEdit(_comm, _tree.tree, &editEnd, &createEditor);

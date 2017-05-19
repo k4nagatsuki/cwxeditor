@@ -409,7 +409,7 @@ class ToolBarCustomizer : Composite, TCPD {
 			auto comp = new Composite(sash, SWT.NONE);
 			comp.setLayout(zeroMarginGridLayout(1, false));
 
-			_toolTree = new Tree(comp, SWT.SINGLE | SWT.BORDER | SWT.VIRTUAL);
+			_toolTree = new Tree(comp, SWT.SINGLE | SWT.BORDER);
 			initTree(_comm, _toolTree, false);
 			_toolTree.setLayoutData(new GridData(GridData.FILL_BOTH));
 			.listener(_toolTree, SWT.Selection, &_comm.refreshToolBar);

@@ -761,7 +761,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 			_list = null;
 		}
 		if (_prop.var.etc.selectVariableWithTree) { mixin(S_TRACE);
-			_tree = new Tree(this, SWT.SINGLE | SWT.BORDER | SWT.VIRTUAL);
+			_tree = new Tree(this, SWT.SINGLE | SWT.BORDER);
 			initTree(_comm, _tree, false, false);
 			if (_saveExpanded) { mixin(S_TRACE);
 				.listener(_tree, SWT.Dispose, &saveExpanded);
@@ -1208,7 +1208,7 @@ class AreaChooser(A, bool StartArea) : Composite {
 			_list = null;
 		}
 		if (is(A:AbstractArea) && _prop.var.etc.showAreaDirTree) { mixin(S_TRACE);
-			_tree = new Tree(this, SWT.SINGLE | SWT.BORDER | SWT.VIRTUAL);
+			_tree = new Tree(this, SWT.SINGLE | SWT.BORDER);
 			initTree(_comm, _tree, false, false);
 			_allExpanded = createAllExpandedButton(_comm.prop, this, _tree);
 		} else { mixin(S_TRACE);

@@ -1377,7 +1377,7 @@ public:
 		});
 		_sash.setLayoutData(new GridData(GridData.FILL_BOTH));
 		{ mixin(S_TRACE);
-			_cards = new Tree(_sash, SWT.SINGLE | SWT.BORDER | SWT.VIRTUAL);
+			_cards = new Tree(_sash, SWT.SINGLE | SWT.BORDER);
 			initTree(_comm, _cards, false);
 			_cards.addSelectionListener(new SListener);
 			.listener(_cards, SWT.FocusIn, { _lastFocus = _cards; });

@@ -1549,7 +1549,7 @@ public:
 		_sash.setLayoutData(new GridData(GridData.FILL_BOTH));
 		auto dirsComp = new Composite(_sash, SWT.NONE);
 		dirsComp.setLayout(new FillLayout);
-		_dirs = new Tree(dirsComp, SWT.SINGLE | SWT.BORDER | SWT.VIRTUAL);
+		_dirs = new Tree(dirsComp, SWT.SINGLE | SWT.BORDER);
 		initTree(_comm, _dirs, false);
 		{ mixin(S_TRACE);
 			_dirs.addSelectionListener(new DirsSelection);

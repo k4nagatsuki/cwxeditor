@@ -50,14 +50,15 @@ debug {
 		/// mixin(FPerf!N)でスコープ内の実行時間を計測する。
 		template FPerf(int I) {
 			static const FPerf
-				= "scope f_timer = std.datetime.StopWatch(std.datetime.AutoStart.yes);"
+				= "import std.datetime;"
+				~ "auto f_timer = std.datetime.StopWatch(std.datetime.AutoStart.yes);"
 				~ "scope (exit) {"
 				~ "f_timer.stop();"
 				~ ".t[" ~ .to!string(I) ~ "] += f_timer.peek().msecs;"
 				~ "}";
 		}
 		/// mixin(BPerfS)とmixin(BPerf!N)でブロックの実行時間を計測する。
-		const BPerfS = "scope b_timer = new std.datetime.StopWatch(std.datetime.AutoStart.yes);";
+		const BPerfS = "auto b_timer = std.datetime.StopWatch(std.datetime.AutoStart.yes);";
 		template BPerf(int I) {
 			static const BPerf
 				= "b_timer.stop();"
@@ -68,7 +69,7 @@ debug {
 		/// unittestの実行時間を計測する。
 		static const UTPerf
 			= "static import std.datetime;"
-			~ "scope f_timer = std.datetime.StopWatch(std.datetime.AutoStart.yes);"
+			~ "auto f_timer = std.datetime.StopWatch(std.datetime.AutoStart.yes);"
 			~ "scope (exit) {"
 			~ "f_timer.stop();"
 			~ ".utperf += f_timer.peek().msecs;"

@@ -530,39 +530,43 @@ class TableSorter(DataT) {
 		auto tbl = _col.getParent();
 		tbl.setSortDirection(dir);
 		if (dir == SWT.NONE) return;
-		auto itms = tbl.getItems();
-		int count = tbl.getColumnCount();
-		scope RowData[] arr;
-		arr.length = itms.length;
-		auto cursor = cast(TableCursor) tbl.getCursor();
-		foreach (i, c; itms) { mixin(S_TRACE);
-			auto r = new RowData;
-			for (int j = 0; j < count; j++) { mixin(S_TRACE);
-				string text = c.getText(j);
-				r.text ~= text ? text : "";
-				r.image ~= c.getImage(j);
+		if (tbl.getStyle() & SWT.VIRTUAL) { mixin(S_TRACE);
+			tbl.clearAll();
+		} else { mixin(S_TRACE);
+			auto itms = tbl.getItems();
+			int count = tbl.getColumnCount();
+			RowData[] arr;
+			arr.length = itms.length;
+			auto cursor = cast(TableCursor)tbl.getCursor();
+			foreach (i, c; itms) { mixin(S_TRACE);
+				auto r = new RowData;
+				for (int j = 0; j < count; j++) { mixin(S_TRACE);
+					string text = c.getText(j);
+					r.text ~= text ? text : "";
+					r.image ~= c.getImage(j);
+				}
+				r.data = c.getData();
+				r.select = tbl.isSelected(cast(int)i);
+				r.cursor = cursor && _col is cursor.getRow();
+				arr[i] = r;
 			}
-			r.data = c.getData();
-			r.select = tbl.isSelected(cast(int)i);
-			r.cursor = cursor && _col is cursor.getRow();
-			arr[i] = r;
-		}
-		std.algorithm.sort(arr);
-		for (int i = 0; i < itms.length; i++) { mixin(S_TRACE);
-			auto c = arr[i];
-			auto row = tbl.getItem(i);
-			row.setData(c.data);
-			for (int j = 0; j < count; j++) { mixin(S_TRACE);
-				row.setImage(j, c.image[j]);
-				row.setText(j, c.text[j]);
-			}
-			if (c.select) { mixin(S_TRACE);
-				tbl.select(i);
-			} else { mixin(S_TRACE);
-				tbl.deselect(i);
-			}
-			if (c.cursor) { mixin(S_TRACE);
-				cursor.setSelection(i, cursor.getColumn());
+			std.algorithm.sort(arr);
+			for (int i = 0; i < itms.length; i++) { mixin(S_TRACE);
+				auto c = arr[i];
+				auto row = tbl.getItem(i);
+				row.setData(c.data);
+				for (int j = 0; j < count; j++) { mixin(S_TRACE);
+					row.setImage(j, c.image[j]);
+					row.setText(j, c.text[j]);
+				}
+				if (c.select) { mixin(S_TRACE);
+					tbl.select(i);
+				} else { mixin(S_TRACE);
+					tbl.deselect(i);
+				}
+				if (c.cursor) { mixin(S_TRACE);
+					cursor.setSelection(i, cursor.getColumn());
+				}
 			}
 		}
 		tbl.setSortColumn(_col);

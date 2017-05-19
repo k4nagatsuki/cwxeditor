@@ -1627,8 +1627,7 @@ private:
 		foreach (a; _summ.infos) { mixin(S_TRACE);
 			add(null, .tryFormat("%s.%s", a.id, a.name), a.name, a);
 		}
-		// FIXME: 謎のAccess Violation
-		//_range.setSelection(newSels);
+		_range.setSelection(newSels);
 		_range.treeExpandedAll();
 		_range.showSelection();
 		_comm.refreshToolBar();
@@ -2062,7 +2061,7 @@ public:
 			grp.setText(_prop.msgs.searchRange);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			grp.setLayout(normalGridLayout(1, true));
-			_range = new Tree(grp, SWT.MULTI | SWT.BORDER | SWT.VIRTUAL | SWT.CHECK);
+			_range = new Tree(grp, SWT.MULTI | SWT.BORDER | SWT.CHECK);
 			initTree(_comm, _range, false);
 			_range.addSelectionListener(new RefRangeAllCheck);
 			auto gd = new GridData(GridData.FILL_BOTH);

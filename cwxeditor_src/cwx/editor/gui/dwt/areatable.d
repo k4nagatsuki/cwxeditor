@@ -1873,7 +1873,7 @@ public:
 			auto panel2 = new Composite(sash, SWT.NONE);
 			panel2.setLayout(cl2);
 			tableParent = panel2;
-			_dirTree = new Tree(panel1, SWT.SINGLE | SWT.BORDER | SWT.VIRTUAL);
+			_dirTree = new Tree(panel1, SWT.SINGLE | SWT.BORDER);
 			initTree(_comm, _dirTree, false);
 			.listener(_dirTree, SWT.Selection, &updateDirSel);
 			if (!_readOnly) { mixin(S_TRACE);

@@ -22,6 +22,7 @@ import std.algorithm;
 import std.ascii;
 import std.conv;
 import std.string;
+import std.typecons;
 
 import org.eclipse.swt.all;
 
@@ -186,13 +187,6 @@ public:
 
 class NameView(ID) : TCPD {
 private:
-	private class IDObj {
-		ID id;
-		this (ID id) {
-			this.id = id;
-		}
-	}
-
 	static if (is(ID:CouponId)) {
 		alias toCouponId ToID;
 	} else static if (is(ID:GossipId)) {
@@ -217,6 +211,7 @@ private:
 	TableTextEdit _nameEdit;
 	TableSorter!Object _nameSorter;
 	TableSorter!Object _ucSorter;
+	ID[] _nameList = [];
 
 	IncSearch _incSearch = null;
 	private void incSearch() { mixin(S_TRACE);
@@ -224,57 +219,6 @@ private:
 
 		.forceFocus(_list, true);
 		_incSearch.startIncSearch();
-	}
-
-	bool compName(const Object o1, const Object o2) { mixin(S_TRACE);
-		auto a1 = cast(const IDObj)o1;
-		auto a2 = cast(const IDObj)o2;
-
-		int c;
-		if (_comm.prop.var.etc.logicalSort) { mixin(S_TRACE);
-			c = incmp(cast(string)a1.id, cast(string)a2.id);
-		} else { mixin(S_TRACE);
-			c = icmp(cast(string)a1.id, cast(string)a2.id);
-		}
-		return c < 0;
-	}
-	bool compUC(const Object o1, const Object o2) { mixin(S_TRACE);
-		int uc1 = 0;
-		int uc2 = 0;
-		auto a1 = cast(const IDObj)o1;
-		auto a2 = cast(const IDObj)o2;
-		if (a1 && a2) { mixin(S_TRACE);
-			uc1 = _summ.useCounter.get(a1.id);
-			uc2 = _summ.useCounter.get(a2.id);
-		}
-		if (uc1 < uc2) return true;
-		if (uc1 > uc2) return false;
-		return compName(o1, o2);
-	}
-	bool revCompName(const Object o1, const Object o2) { mixin(S_TRACE);
-		auto a1 = cast(const IDObj)o1;
-		auto a2 = cast(const IDObj)o2;
-
-		int c;
-		if (_comm.prop.var.etc.logicalSort) { mixin(S_TRACE);
-			c = incmp(cast(string)a2.id, cast(string)a1.id);
-		} else { mixin(S_TRACE);
-			c = icmp(cast(string)a2.id, cast(string)a1.id);
-		}
-		return c < 0;
-	}
-	bool revCompUC(const Object o1, const Object o2) { mixin(S_TRACE);
-		int uc1 = 0;
-		int uc2 = 0;
-		auto a1 = cast(const IDObj)o1;
-		auto a2 = cast(const IDObj)o2;
-		if (a1 && a2) { mixin(S_TRACE);
-			uc1 = _summ.useCounter.get(a1.id);
-			uc2 = _summ.useCounter.get(a2.id);
-		}
-		if (uc2 < uc1) return true;
-		if (uc2 > uc1) return false;
-		return revCompName(o1, o2);
 	}
 
 	void editEnd(TableItem itm, int column, string newText) { mixin(S_TRACE);
@@ -300,7 +244,6 @@ private:
 		} else static assert (0);
 
 		ReplaceDialog.renameCoupon(_comm, _summ, itm, ToID(itm.getText(0)), ToID(newText), uc, _undo, null, false, _list, null);
-		itm.setData(new IDObj(ToID(newText)));
 
 		static if (is(ID:CouponId)) { mixin(S_TRACE);
 			_comm.refCoupons.call(this);
@@ -324,6 +267,7 @@ private:
 		if (!_refUndo) return;
 		_undo.max = _comm.prop.var.etc.undoMaxReplace;
 	}
+
 public:
 	this (Commons comm, Composite parentShell, Composite parent, UndoManager undo, bool readOnly) { mixin(S_TRACE);
 		_comm = comm;
@@ -344,9 +288,10 @@ public:
 
 		auto comp = new Composite(parent, SWT.NONE);
 		comp.setLayout(windowGridLayout(1, true));
-		_list = .rangeSelectableTable(comp, SWT.MULTI | SWT.BORDER | SWT.FULL_SELECTION);
+		_list = .rangeSelectableTable(comp, SWT.MULTI | SWT.BORDER | SWT.FULL_SELECTION | SWT.VIRTUAL);
 		_list.setLayoutData(new GridData(GridData.FILL_BOTH));
 		_list.setHeaderVisible(true);
+		.listener(_list, SWT.SetData, &setData);
 		auto nameCol = new TableColumn(_list, SWT.NULL);
 		nameCol.setText(_comm.prop.msgs.idName);
 		auto countCol = new TableColumn(_list, SWT.NULL);
@@ -406,8 +351,8 @@ public:
 			} else static assert (0);
 		});
 
-		_nameSorter = new TableSorter!(Object)(nameCol, &compName, &revCompName);
-		_ucSorter = new TableSorter!(Object)(countCol, &compUC, &revCompUC);
+		_nameSorter = new TableSorter!(Object)(nameCol, null, null);
+		_ucSorter = new TableSorter!(Object)(countCol, null, null);
 		auto st = _nameSorter;
 		static if (is(ID:CouponId)) { mixin(S_TRACE);
 			auto sortColumn = _comm.prop.var.etc.couponSortColumn;
@@ -447,6 +392,7 @@ public:
 			break;
 		}
 		void storeSortParams() { mixin (S_TRACE);
+			updateList();
 			int sortDir;
 			switch (_list.getSortDirection()) {
 			case SWT.UP:
@@ -596,14 +542,14 @@ public:
 
 	void select(in ID[] ids) { mixin(S_TRACE);
 		if (!_list || _list.isDisposed()) return;
-		bool[string] sels;
-		foreach (id; ids) sels[cast(string)id] = true;
+		bool[ID] sels;
+		foreach (id; ids) sels[id] = true;
 		_incSearch.close();
 
 		_list.deselectAll();
 		int[] indices;
-		foreach (i, itm; _list.getItems()) { mixin(S_TRACE);
-			if (sels.get(itm.getText(0), false)) { mixin(S_TRACE);
+		foreach (i, key; _nameList) { mixin(S_TRACE);
+			if (sels.get(key, false)) { mixin(S_TRACE);
 				indices ~= cast(int)i;
 			}
 		}
@@ -630,6 +576,23 @@ public:
 			_ucSorter.doSort(_list.getSortDirection());
 		} else assert (0);
 	}
+	private auto getKeys() { mixin(S_TRACE);
+		if (_summ) { mixin(S_TRACE);
+			static if (is(ID:CouponId)) {
+				return _summ.useCounter.coupon.keys;
+			} else static if (is(ID:GossipId)) {
+				return _summ.useCounter.gossip.keys;
+			} else static if (is(ID:CompleteStampId)) {
+				return _summ.useCounter.completeStamp.keys;
+			} else static if (is(ID:KeyCodeId)) {
+				return _summ.useCounter.keyCode.keys;
+			} else static if (is(ID:CellNameId)) {
+				return _summ.useCounter.cellName.keys;
+			} else static assert (0);
+		} else { mixin(S_TRACE);
+			return typeof(return).init;
+		}
+	}
 
 	private void updateList() { mixin(S_TRACE);
 		if (!_list || _list.isDisposed()) return;
@@ -641,86 +604,100 @@ public:
 				sels[itm.getText(0)] = true;
 			}
 			_list.deselectAll();
-			static if (is(ID:CouponId)) {
-				auto keys = _summ.useCounter.coupon.keys;
-				auto image = _comm.prop.images.couponNormal;
-			} else static if (is(ID:GossipId)) {
-				auto keys = _summ.useCounter.gossip.keys;
-				auto image = _comm.prop.images.gossip;
-			} else static if (is(ID:CompleteStampId)) {
-				auto keys = _summ.useCounter.completeStamp.keys;
-				auto image = _comm.prop.images.endScenario;
-			} else static if (is(ID:KeyCodeId)) {
-				auto keys = _summ.useCounter.keyCode.keys;
-				auto image = _comm.prop.images.keyCode;
-			} else static if (is(ID:CellNameId)) {
-				auto keys = _summ.useCounter.cellName.keys;
-				auto image = _comm.prop.images.backs;
-			} else static assert (0);
+			_list.clearAll();
+			auto keys = getKeys();
 
 			auto topIndex = _list.getTopIndex();
 			int i = 0;
 			int[] selIndices;
 
-			// 後からsort()を呼び出すと重いので事前にソートする
+			auto down = _list.getSortDirection() is SWT.DOWN;
+			auto isUC = _list.getSortColumn() is _ucSorter.column;
 			bool cmp(ID a, ID b) { mixin(S_TRACE);
-				if (_list.getSortDirection() is SWT.DOWN) { mixin(S_TRACE);
-					if (_list.getSortColumn() is _ucSorter.column) {
+				auto r = 0;
+				if (down) { mixin(S_TRACE);
+					if (isUC) { mixin(S_TRACE);
 						auto uc1 = _summ.useCounter.get(a);
 						auto uc2 = _summ.useCounter.get(b);
-						if (uc2 < uc1) return true;
-						if (uc2 > uc1) return false;
+						if (uc2 < uc1) r = -1;
+						if (uc2 > uc1) r = 1;
 					}
-					if (_comm.prop.var.etc.logicalSort) { mixin(S_TRACE);
-						return incmp(cast(string)b, cast(string)a) < 0;
-					} else { mixin(S_TRACE);
-						return icmp(cast(string)b, cast(string)a) < 0;
+					if (!r) { mixin(S_TRACE);
+						if (_comm.prop.var.etc.logicalSort) { mixin(S_TRACE);
+							r = incmp(cast(string)b, cast(string)a);
+						} else { mixin(S_TRACE);
+							r = icmp(cast(string)b, cast(string)a);
+						}
 					}
 				} else { mixin(S_TRACE);
-					if (_list.getSortColumn() is _ucSorter.column) {
+					if (isUC) { mixin(S_TRACE);
 						auto uc1 = _summ.useCounter.get(a);
 						auto uc2 = _summ.useCounter.get(b);
-						if (uc1 < uc2) return true;
-						if (uc1 > uc2) return false;
+						if (uc1 < uc2) r = -1;
+						if (uc1 > uc2) r = 1;
 					}
-					if (_comm.prop.var.etc.logicalSort) { mixin(S_TRACE);
-						return incmp(cast(string)a, cast(string)b) < 0;
-					} else { mixin(S_TRACE);
-						return icmp(cast(string)a, cast(string)b) < 0;
+					if (!r) { mixin(S_TRACE);
+						if (_comm.prop.var.etc.logicalSort) { mixin(S_TRACE);
+							r = incmp(cast(string)a, cast(string)b);
+						} else { mixin(S_TRACE);
+							r = icmp(cast(string)a, cast(string)b);
+						}
 					}
 				}
+				return r < 0;
 			}
-			foreach (key; std.algorithm.sort!cmp(keys)) { mixin(S_TRACE);
+
+			_nameList = [];
+			ID[] keys2;
+			foreach (key; keys) { mixin(S_TRACE);
 				if (!_incSearch.match(cast(string)key)) continue;
-				auto itm = i < _list.getItemCount() ? _list.getItem(i) : new TableItem(_list, SWT.NONE);
-				itm.setImage(0, image);
-				itm.setText(0, cast(string)key);
-				itm.setText(1, .to!string(_summ.useCounter.get(key)));
-				itm.setData(new IDObj(key));
+				keys2 ~= key;
+			}
+			foreach (key; std.algorithm.sort!cmp(keys2)) { mixin(S_TRACE);
+				_nameList ~= key;
 				if (sels.get(cast(string)key, false)) { mixin(S_TRACE);
 					selIndices ~= i;
 				}
 				i++;
 			}
-			if (i < _list.getItemCount()) { mixin(S_TRACE);
-				if (i == 0) { mixin(S_TRACE);
-					_list.removeAll();
-				} else { mixin(S_TRACE);
-					_list.remove(i, _list.getItemCount() - 1);
-				}
-			}
+			_list.setItemCount(cast(int)_nameList.length);
 			if (selIndices.length) _list.select(selIndices);
 			_list.setTopIndex(topIndex);
 		} else { mixin(S_TRACE);
-			_list.removeAll();
+			_list.setItemCount(0);
 		}
 		refreshStatusLine();
+	}
+
+	private void setData(Event e) { mixin(S_TRACE);
+		if (!_summ) return;
+		auto itm = cast(TableItem)e.item;
+		auto i = e.index;
+		auto key = _nameList[i];
+		static if (is(ID:CouponId)) {
+			auto image = _comm.prop.images.couponNormal;
+		} else static if (is(ID:GossipId)) {
+			auto image = _comm.prop.images.gossip;
+		} else static if (is(ID:CompleteStampId)) {
+			auto image = _comm.prop.images.endScenario;
+		} else static if (is(ID:KeyCodeId)) {
+			auto image = _comm.prop.images.keyCode;
+		} else static if (is(ID:CellNameId)) {
+			auto image = _comm.prop.images.backs;
+		} else static assert (0);
+		itm.setImage(0, image);
+		itm.setText(0, cast(string)key);
+		itm.setText(1, .to!string(_summ.useCounter.get(key)));
 	}
 
 	private void refUseCount() { mixin(S_TRACE);
 		if (!_list || _list.isDisposed()) return;
 		if (!_summ) return;
-		updateList();
+		if (_nameList.length == getKeys().length) { mixin(S_TRACE);
+			_list.clearAll();
+		} else { mixin(S_TRACE);
+			updateList();
+		}
 	}
 
 	override
