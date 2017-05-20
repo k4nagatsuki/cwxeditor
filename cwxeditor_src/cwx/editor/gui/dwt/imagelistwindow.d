@@ -4,6 +4,7 @@ module cwx.editor.gui.dwt.imagelistwindow;
 import cwx.summary;
 import cwx.utils;
 import cwx.structs;
+import cwx.skin;
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.dutils;
@@ -23,6 +24,12 @@ class ImageListWindow(MtType Type) {
 	private Props _prop;
 	private Commons _comm;
 
+	Skin _summSkin = null;
+	@property
+	Skin summSkin() { mixin(S_TRACE);
+		return _summSkin ? _summSkin : _comm.skin;
+	}
+
 	private Summary _summ;
 
 	private Shell _shl;
@@ -34,6 +41,9 @@ class ImageListWindow(MtType Type) {
 		_prop = prop;
 		_comm = comm;
 		_summ = summ;
+		if (!_summ || _summ.scenarioPath == "") { mixin(S_TRACE);
+			_summSkin = findSkin(_comm, _prop, _summ);
+		}
 		_selection = selection;
 		_shl = new Shell(parent, SWT.RESIZE | SWT.MODELESS);
 		_shl.setLayout(new FillLayout);
@@ -107,7 +117,7 @@ class ImageListWindow(MtType Type) {
 	private ImageData createImage(string path, bool mask) { mixin(S_TRACE);
 		auto wsnVer = _summ ? _summ.dataVersion : LATEST_VERSION;
 		auto imgPath = _comm.skin.findPath(path, defExts, defDirs, _summ ? _summ.scenarioPath : "", wsnVer, _comm.skin.wsnTableDirs(wsnVer));
-		return loadImage(imgPath, mask);
+		return loadImage(_prop, summSkin, _summ, imgPath, mask);
 	}
 	static if (Type == MtType.CARD) {
 		@property

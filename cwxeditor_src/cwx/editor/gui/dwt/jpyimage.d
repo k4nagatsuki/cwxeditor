@@ -67,7 +67,7 @@ ImageData loadJPYImage(Props prop, in Skin skin, in Summary summ, string path, s
 }
 
 private ImageData loadJPYImageImpl(Props prop, in Skin skin, in Summary summ, string path, string[] stratum) { mixin(S_TRACE);
-	Jpy1 jpy = Jpy1.load(prop.parent, summ.scenarioPath, path);
+	Jpy1 jpy = Jpy1.load(prop.parent, summ ? summ.scenarioPath : "", path);
 	if (!jpy.sections.length) return blankImage;
 	auto init = jpy.sections[0];
 	int width = 632, height = 420;
