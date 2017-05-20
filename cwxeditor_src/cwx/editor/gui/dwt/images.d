@@ -515,6 +515,7 @@ public:
 		_needCreate = true;
 	}
 	private void createImageImpl() { mixin(S_TRACE);
+		if (!_needCreate) return;
 		_needCreate = false;
 		auto cur = Display.getCurrent();
 		if (_imgData) { mixin(S_TRACE);
