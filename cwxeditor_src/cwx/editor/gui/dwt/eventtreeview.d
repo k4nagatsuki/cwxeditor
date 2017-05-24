@@ -3087,11 +3087,11 @@ public:
 		_comm.refreshToolBar();
 	}
 
-	void editCancel() {
+	void editCancel() { mixin(S_TRACE);
 		if (_ee) _ee.cancel();
 		if (_te) _te.cancel();
 	}
-	void editEnter() {
+	void editEnter() { mixin(S_TRACE);
 		if (_ee) _ee.enter();
 		if (_te) _te.enter();
 	}

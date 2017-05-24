@@ -1908,6 +1908,10 @@ private:
 	void end(Control ctrl) { mixin(S_TRACE);
 		assert (_edit !is null);
 		_editEnd(_edit, ctrl);
+		clearEdit();
+	}
+
+	void clearEdit() { mixin(S_TRACE);
 		_tee = null;
 		_edit = null;
 		_editor = null;
@@ -1986,6 +1990,7 @@ public:
 	void cancel() { mixin(S_TRACE);
 		if (!isEditing) return;
 		_tee.cancel();
+		clearEdit();
 	}
 	void enter() { mixin(S_TRACE);
 		if (!isEditing) return;

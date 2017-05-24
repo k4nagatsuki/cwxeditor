@@ -464,13 +464,13 @@ public:
 			ctrl.addKeyListener(this);
 
 			auto focusIn = new class Listener {
-				override void handleEvent(Event e) {
+				override void handleEvent(Event e) { mixin(S_TRACE);
 					focusOut();
 				}
 			};
 			ctrl.getDisplay().addFilter(SWT.FocusIn, focusIn);
 			ctrl.getDisplay().addFilter(SWT.Deactivate, focusIn);
-			.listener(ctrl, SWT.Dispose, {
+			.listener(ctrl, SWT.Dispose, { mixin(S_TRACE);
 				ctrl.getDisplay().removeFilter(SWT.FocusIn, focusIn);
 				ctrl.getDisplay().removeFilter(SWT.Deactivate, focusIn);
 			});
