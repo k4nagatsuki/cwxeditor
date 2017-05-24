@@ -598,18 +598,7 @@ public:
 	}
 	static if (Type == MtType.CARD || Type == MtType.BG_IMG) {
 		private string[] warningFrom(string img, bool legacy, in Skin skin) { mixin(S_TRACE);
-			string[] ws;
-			if (isBinImg(img)) { mixin(S_TRACE);
-				auto bin =  cast(ubyte[])strToBImg(img);
-				auto type = imageType(bin);
-				if ("" != type) { mixin(S_TRACE);
-					img = "image".setExtension(type);
-					ws ~= skin.warningImage(_prop.parent, img, legacy, _msel.canInclude, _prop.var.etc.targetVersion);
-				}
-			} else { mixin(S_TRACE);
-				ws ~= skin.warningImage(_prop.parent, img, legacy, _msel.canInclude && !_msel.isMenuCard, _prop.var.etc.targetVersion);
-			}
-			return ws;
+			return skin.warningImage(_prop.parent, img, legacy, _msel.canInclude && !_msel.isMenuCard, _prop.var.etc.targetVersion);
 		}
 	}
 

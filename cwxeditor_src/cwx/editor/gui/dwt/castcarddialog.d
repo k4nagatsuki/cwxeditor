@@ -1042,6 +1042,7 @@ private:
 			_comm.refScenario.remove(&refScenario);
 			_comm.refSkin.remove(&refSkin);
 			_comm.refDataVersion.remove(&refDataVersion);
+			_comm.refTargetVersion.remove(&refDataVersion);
 			_comm.refCoupons.remove(&updateNature);
 		}
 	}
@@ -1208,6 +1209,7 @@ protected:
 		_comm.refScenario.add(&refScenario);
 		_comm.refSkin.add(&refSkin);
 		_comm.refDataVersion.add(&refDataVersion);
+		_comm.refTargetVersion.add(&refDataVersion);
 		_comm.refCoupons.add(&updateNature);
 		_comm.refRadarStyle.add(&initPhysical);
 		_comm.refRadarStyle.add(&initEnhance);

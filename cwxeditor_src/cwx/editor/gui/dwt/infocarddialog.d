@@ -73,6 +73,7 @@ private:
 			_comm.refScenario.remove(&refScenario);
 			_comm.refSkin.remove(&refSkin);
 			_comm.refDataVersion.remove(&refDataVersion);
+			_comm.refTargetVersion.remove(&refDataVersion);
 		}
 	}
 public:
@@ -147,6 +148,7 @@ protected:
 		_comm.refScenario.add(&refScenario);
 		_comm.refSkin.add(&refSkin);
 		_comm.refDataVersion.add(&refDataVersion);
+		_comm.refTargetVersion.add(&refDataVersion);
 		area.addDisposeListener(new Dispose);
 
 		refCard(_card);

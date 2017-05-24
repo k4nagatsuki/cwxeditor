@@ -107,6 +107,7 @@ class MaterialSelect(MtType Type, D, C) {
 
 		_comm.refDataVersion.add(&refreshFileListMenu);
 		_comm.refDataVersion.add(&refresh);
+		_comm.refTargetVersion.add(&refresh);
 		_comm.refIgnorePaths.add(&refresh);
 		if (_summ && _summ.scenarioPath != "") { mixin(S_TRACE);
 			_comm.refSkin.add(&refSkin);
@@ -123,6 +124,7 @@ class MaterialSelect(MtType Type, D, C) {
 			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 				_comm.refDataVersion.remove(&refreshFileListMenu);
 				_comm.refDataVersion.remove(&refresh);
+				_comm.refTargetVersion.remove(&refresh);
 				_comm.refIgnorePaths.remove(&refresh);
 				if (_summ && _summ.scenarioPath != "") { mixin(S_TRACE);
 					_comm.refSkin.remove(&refSkin);
@@ -1572,11 +1574,15 @@ private:
 		}
 	}
 	void refreshListImpl2(string[] tgs) { mixin(S_TRACE);
+		auto skin = summSkin;
+		auto legacy = _summ && _summ.legacy;
 		foreach (f; tgs) { mixin(S_TRACE);
 			static if (is(C : Table)) {
 				auto itm = new TableItem(_fileList, SWT.NONE);
 				itm.setText(f);
 				itm.setImage(image);
+				auto ws = skin.warningImage(_prop.parent, f, legacy, canInclude && !isMenuCard, _prop.var.etc.targetVersion);
+				if (ws.length) itm.setImage(_prop.images.warning);
 			} else static if (is(C : Combo) || is(C : CCombo)) {
 				_fileList.add(f);
 			} else static assert (0);

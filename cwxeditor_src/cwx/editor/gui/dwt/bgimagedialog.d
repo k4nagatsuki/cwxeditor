@@ -362,7 +362,7 @@ private:
 				ws ~= _prop.msgs.warningBgImageIncluded;
 			}
 		}
-		ws ~= _comm.skin.warningImage(_prop.parent, _imgPath.filePath, _summ ? _summ.legacy : false, false, _prop.var.etc.targetVersion);
+		ws ~= _imgPath.warnings;
 		warning = ws;
 	}
 

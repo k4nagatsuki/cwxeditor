@@ -749,6 +749,7 @@ private:
 			} else static assert (0);
 			_comm.refSkin.remove(&refSkin);
 			_comm.refDataVersion.remove(&refDataVersion);
+			_comm.refTargetVersion.remove(&refDataVersion);
 			_comm.refScenario.remove(&refScenario);
 			_comm.refEventTree.remove(&refEventTree);
 			_comm.delEventTree.remove(&refEventTree);
@@ -827,6 +828,7 @@ protected:
 		} else static assert (0);
 		_comm.refSkin.add(&refSkin);
 		_comm.refDataVersion.add(&refDataVersion);
+		_comm.refTargetVersion.add(&refDataVersion);
 		_comm.refScenario.add(&refScenario);
 		_comm.refEventTree.add(&refEventTree);
 		_comm.delEventTree.add(&refEventTree);

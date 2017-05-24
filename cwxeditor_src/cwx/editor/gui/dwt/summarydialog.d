@@ -445,6 +445,7 @@ private:
 			_comm.refSkin.remove(&refSkin);
 			_comm.refClassicSkin.remove(&refreshTypes);
 			_comm.refDataVersion.remove(&updateDataVersion);
+			_comm.refTargetVersion.remove(&refreshWarning);
 		}
 	}
 
@@ -608,6 +609,7 @@ protected:
 		_comm.refSkin.add(&refSkin);
 		_comm.refClassicSkin.add(&refreshTypes);
 		_comm.refDataVersion.add(&updateDataVersion);
+		_comm.refTargetVersion.add(&refreshWarning);
 		area.addDisposeListener(new Dispose);
 
 		void closeAdds(Summary summ) { mixin(S_TRACE);

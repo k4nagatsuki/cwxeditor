@@ -977,16 +977,23 @@ class Skin {
 	}
 	/// pathを使用する際の警告(一部環境で表示不可等)。
 	static string[] warningImage(in CProps prop, string path, bool legacy, bool includeType, string targVer) { mixin(S_TRACE);
-		auto ext = .toLower(.extension(path));
+		string ext;
+		if (path.isBinImg) { mixin(S_TRACE);
+			auto bin =  cast(ubyte[])strToBImg(path);
+			ext = imageType(bin);
+			includeType = true;
+		} else { mixin(S_TRACE);
+			ext = .toLower(.extension(path));
+		}
 		if (legacy) { mixin(S_TRACE);
 			switch (ext) {
 			case ".png": // PNG
 				if (includeType) {
 					// 格納画像は1.50までは使用不可
 					if (!prop.targetVersion("1.60", targVer)) { mixin(S_TRACE);
-						return [prop.msgs.pngMayNotCorrespond];
+						return [prop.msgs.warningIncludedPNGImage];
 					}
-				} else {
+				} else { mixin(S_TRACE);
 					if (!prop.targetVersion("1.30", targVer)) { mixin(S_TRACE);
 						return [prop.msgs.pngMayNotCorrespond];
 					}
@@ -996,9 +1003,9 @@ class Skin {
 				if (includeType) {
 					// 格納画像は1.50までは使用不可
 					if (!prop.targetVersion("1.60", targVer)) { mixin(S_TRACE);
-						return [prop.msgs.gifMayNotCorrespond];
+						return [prop.msgs.warningIncludedGIFImage];
 					}
-				} else {
+				} else { mixin(S_TRACE);
 					if (!prop.targetVersion("1.30", targVer)) { mixin(S_TRACE);
 						return [prop.msgs.gifMayNotCorrespond];
 					}

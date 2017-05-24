@@ -1166,6 +1166,8 @@ class Msgs : Properties {
 	auto loadScaledImage = Msg("loadScaledImage", "スケーリングされたイメージを使用する");
 	auto loadScaledImageHint = Msg("loadScaledImageHint", "\"image.bmp\"という名前のファイルを2倍スケールで表示する時、\n\"image.x2.bmp\"があれば代わりに表示します");
 
+	auto warningIncludedPNGImage = Msg("warningIncludedPNGImage", "CardWirth 1.50以前では、格納されたPNGイメージの読み込みでエラーが発生します。メニューカード・背景セル・メッセージの話者以外では使用しないでください。");
+	auto warningIncludedGIFImage = Msg("warningIncludedGIFImage", "CardWirth 1.50以前では、格納されたGIFイメージの読み込みでエラーが発生します。メニューカード・背景セル・メッセージの話者以外では使用しないでください。");
 	auto pngMayNotCorrespond = Msg("pngMayNotCorrespond", "PNGイメージはプレイヤーの環境によって表示エラーとなる事があります。");
 	auto gifMayNotCorrespond = Msg("gifMayNotCorrespond", "GIFイメージはプレイヤーの環境によって表示エラーとなる事があります。");
 

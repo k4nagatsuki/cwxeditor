@@ -56,13 +56,13 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			r ~= prop.msgs.searchErrorStartAreaNotFound;
 		}
 	}
-	auto flagDir = cast(FlagDir) path;
+	auto flagDir = cast(FlagDir)path;
 	if (flagDir) { mixin(S_TRACE);
 		if (flagDir.parent is froot && prop.sys.isSystemVar(flagDir.name)) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.searchErrorSystemVariable, flagDir.name);
 		}
 	}
-	auto flag = cast(cwx.flag.Flag) path;
+	auto flag = cast(cwx.flag.Flag)path;
 	if (flag) { mixin(S_TRACE);
 		if (flag.parent is froot && prop.sys.isSystemVar(flag.name)) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.searchErrorSystemVariable, flag.name);
@@ -71,7 +71,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			r ~= prop.msgs.warningExpandSPChars;
 		}
 	}
-	auto step = cast(Step) path;
+	auto step = cast(Step)path;
 	if (step) { mixin(S_TRACE);
 		if (step.parent is froot && prop.sys.isSystemVar(step.name)) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.searchErrorSystemVariable, step.name);
@@ -83,7 +83,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			r ~= prop.msgs.warningExpandSPChars;
 		}
 	}
-	auto eventTree = cast(EventTree) path;
+	auto eventTree = cast(EventTree)path;
 	if (eventTree) { mixin(S_TRACE);
 		if (eventTree.keyCodes.length && prop.sys.convFireKeyCode(eventTree.keyCodes[0]) == "MatchingType=All") { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorKeyCodeMatchingAll;
@@ -101,7 +101,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			r ~= prop.msgs.warningPlayerCardEvents;
 		}
 	}
-	auto casts = cast(CastCard) path;
+	auto casts = cast(CastCard)path;
 	if (casts) { mixin(S_TRACE);
 		foreach (c; casts.skills) { mixin(S_TRACE);
 			if (0 != c.linkId && !(summ && summ.skill(c.linkId))) { mixin(S_TRACE);
@@ -119,7 +119,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			}
 		}
 	}
-	auto card = cast(Card) path;
+	auto card = cast(Card)path;
 	if (card) { mixin(S_TRACE);
 		bool warnPos = false;
 		foreach (imagePath; card.paths) { mixin(S_TRACE);
@@ -197,7 +197,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		bool[char] wColors;
 		return checkTextRes(flags, steps, fonts, colors, wFlags, wSteps, wFonts, wColors).all;
 	}
-	auto bi = cast(BgImage) path;
+	auto bi = cast(BgImage)path;
 	if (bi) { mixin(S_TRACE);
 		if (bi.flag != "" && !(froot && froot.findFlag(bi.flag))) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.searchErrorFlagNotFound, bi.flag);
@@ -217,7 +217,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			}
 		}
 	}
-	auto ic = cast(ImageCell) path;
+	auto ic = cast(ImageCell)path;
 	if (ic) { mixin(S_TRACE);
 		if (!ic.path.length) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorNoImage;
@@ -230,26 +230,26 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			r ~= .tryFormat(prop.msgs.searchErrorImageNotFound, .encodePath(ic.path));
 		}
 		if (ic.path != "") { mixin(S_TRACE);
-			r ~= skin.warningImage(prop, ic.path, summ ? summ.legacy : false, true, targVer);
+			r ~= skin.warningImage(prop, ic.path, summ ? summ.legacy : false, false, targVer);
 		}
 		if (ic.smoothing !is Smoothing.Default && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningBgImageSmoothing;
 		}
 	}
-	auto tc = cast(TextCell) path;
+	auto tc = cast(TextCell)path;
 	if (tc) { mixin(S_TRACE);
 		r ~= checkTextRes2(tc.flagsInText, tc.stepsInText, [], []);
 		if (!prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
 			r ~= prop.msgs.warningTextCell;
 		}
 	}
-	auto cc = cast(ColorCell) path;
+	auto cc = cast(ColorCell)path;
 	if (cc) { mixin(S_TRACE);
 		if (!prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
 			r ~= prop.msgs.warningColorCell;
 		}
 	}
-	auto pc = cast(PCCell) path;
+	auto pc = cast(PCCell)path;
 	if (pc) { mixin(S_TRACE);
 		if (!prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningPCCell;
@@ -258,7 +258,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			r ~= prop.msgs.warningBgImageSmoothing;
 		}
 	}
-	auto btl = cast(Battle) path;
+	auto btl = cast(Battle)path;
 	if (btl) { mixin(S_TRACE);
 		if (btl.music != "") { mixin(S_TRACE);
 			r ~= skin.warningBGM(prop, btl.music, summ ? summ.legacy : false, targVer);
@@ -273,7 +273,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			}
 		}
 	}
-	auto mc = cast(MenuCard) path;
+	auto mc = cast(MenuCard)path;
 	if (mc) { mixin(S_TRACE);
 		bool warnPos = false;
 		foreach (imagePath; mc.paths) { mixin(S_TRACE);
@@ -282,16 +282,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 					r ~= .tryFormat(prop.msgs.searchErrorImageNotFound, .encodePath(imagePath.path));
 				}
 				if (imagePath.path != "") {
-					if (isBinImg(imagePath.path)) { mixin(S_TRACE);
-						auto bin =  cast(ubyte[])strToBImg(imagePath.path);
-						auto type = imageType(bin);
-						if (type != "") {
-							auto img = "image".setExtension(type);
-							r ~= skin.warningImage(prop, img, summ ? summ.legacy : false, true, targVer);
-						}
-					} else {
-						r ~= skin.warningImage(prop, imagePath.path, summ ? summ.legacy : false, false, targVer);
-					}
+					r ~= skin.warningImage(prop, imagePath.path, summ ? summ.legacy : false, false, targVer);
 				}
 			}
 			if (imagePath.type is CardImageType.PCNumber && !prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
@@ -306,7 +297,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			r ~= .tryFormat(prop.msgs.searchErrorFlagNotFound, mc.flag);
 		}
 	}
-	auto ec = cast(EnemyCard) path;
+	auto ec = cast(EnemyCard)path;
 	if (ec) { mixin(S_TRACE);
 		if (ec.id == 0) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorNoCast;
@@ -330,7 +321,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			}
 		}
 	}
-	auto c = cast(Content) path;
+	auto c = cast(Content)path;
 	if (c) { mixin(S_TRACE);
 		auto cd = c.detail;
 		if ((summ ? summ.legacy : false) && c.type == CType.WAIT && !c.next.length) { mixin(S_TRACE);
