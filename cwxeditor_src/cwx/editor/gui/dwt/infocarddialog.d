@@ -90,6 +90,7 @@ public:
 		super(prop, shell, _readOnly, false, _card ? .tryFormat(_prop.msgs.dlgTitInfo, _card.name) : _prop.msgs.dlgTitNewInfo,
 			_prop.images.info, true, _prop.var.infoCardDlg, true);
 		enterClose = true;
+		if (!_card) applyEnabled(true);
 	}
 
 	@property

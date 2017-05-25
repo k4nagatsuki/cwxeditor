@@ -95,18 +95,22 @@ abstract class EventDialog : AbsDialog {
 			_comm.refTargetVersion.add(&refreshWarning);
 			getShell().addDisposeListener(new Dispose);
 		}
+		// コンテントの作成時は、すぐに適用を押してコンテントを配置できるように
+		// 適用ボタンを有効化する(ただしparentが無い場合は初期値設定なので除外)
+		if ((!_evt || !_evt.parent) && _parent) applyEnabled(true);
 	}
 
 	@property
 	Content event() { mixin(S_TRACE);
 		return _evt;
 	}
-	@property protected Commons comm() {return _comm;}
-	@property protected Props prop() {return _prop;}
-	@property protected Summary summ() {return _summ;}
-	@property protected Content evt() {return _evt;}
-	@property protected void evt(Content evt) {_evt = evt;}
-	@property protected CType type() {return _type;}
+	@property protected Commons comm() { return _comm; }
+	@property protected Props prop() { return _prop; }
+	@property protected Summary summ() { return _summ; }
+	@property protected Content evt() { return _evt; }
+	@property protected Content parent() { return _parent; }
+	@property protected void evt(Content evt) { _evt = evt; }
+	@property protected CType type() { return _type; }
 
 	protected void refSkin() { }
 	protected void refDataVersion() { mixin(S_TRACE);
@@ -671,6 +675,7 @@ private:
 		refreshStarts(null);
 	}
 	void delContent(Content c) { mixin(S_TRACE);
+		if ((evt && evt.isDescendant(c)) || (parent && parent.isDescendant(c))) return;
 		refreshStarts(c);
 	}
 	void refreshStarts() { mixin(S_TRACE);

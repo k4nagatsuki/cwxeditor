@@ -158,6 +158,7 @@ public:
 		_create = create;
 		super (_prop, parent, false, text, img, resizable, size, true);
 		enterClose = true;
+		if (create) applyEnabled(true);
 	}
 
 	@property

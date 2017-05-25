@@ -261,6 +261,7 @@ public:
 		}
 		super(prop, shell, false, text, _prop.images.cards, true, size, true);
 		enterClose = true;
+		if (create) applyEnabled(true);
 	}
 
 	@property

@@ -786,6 +786,7 @@ public:
 			static assert (0);
 		}
 		super(prop, shell, _readOnly, false, text, img, true, size, true);
+		if (!_card) applyEnabled(true);
 	}
 
 	@property
