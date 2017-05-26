@@ -783,8 +783,6 @@ private void disposeBass() { mixin(S_TRACE);
 				dlclose(bass);
 				bass = null;
 			}
-			_initBassDir = "";
-			_initBassSFont = [];
 		} catch (Exception e) {
 			printStackTrace();
 			debugln(e);
