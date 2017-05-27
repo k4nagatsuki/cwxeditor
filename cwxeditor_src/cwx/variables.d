@@ -6,7 +6,10 @@ import cwx.structs;
 import cwx.settings;
 import cwx.types;
 import cwx.event;
+import cwx.perf;
+import cwx.enumutils;
 
+import std.conv;
 import std.path;
 
 class FlexEtcProps : Properties {
@@ -523,83 +526,16 @@ class FlexEtcProps : Properties {
 	auto replaceNameKeyCode = Prop!(bool)("replaceNameKeyCode", true);
 	auto replaceNameCellName = Prop!(bool)("replaceNameCellName", true);
 
-	auto searchContentsStart = Prop!(bool)("searchContentsStart", false);
-	auto searchContentsStartBattle = Prop!(bool)("searchContentsStartBattle", false);
-	auto searchContentsEnd = Prop!(bool)("searchContentsEnd", false);
-	auto searchContentsEndBadEnd = Prop!(bool)("searchContentsEndBadEnd", false);
-	auto searchContentsChangeArea = Prop!(bool)("searchContentsChangeArea", false);
-	auto searchContentsChangeBgImage = Prop!(bool)("searchContentsChangeBgImage", false);
-	auto searchContentsEffect = Prop!(bool)("searchContentsEffect", false);
-	auto searchContentsEffectBreak = Prop!(bool)("searchContentsEffectBreak", false);
-	auto searchContentsLinkStart = Prop!(bool)("searchContentsLinkStart", false);
-	auto searchContentsLinkPackage = Prop!(bool)("searchContentsLinkPackage", false);
-	auto searchContentsTalkMessage = Prop!(bool)("searchContentsTalkMessage", false);
-	auto searchContentsTalkDialog = Prop!(bool)("searchContentsTalkDialog", false);
-	auto searchContentsPlayBgm = Prop!(bool)("searchContentsPlayBgm", false);
-	auto searchContentsPlaySound = Prop!(bool)("searchContentsPlaySound", false);
-	auto searchContentsWait = Prop!(bool)("searchContentsWait", false);
-	auto searchContentsElapseTime = Prop!(bool)("searchContentsElapseTime", false);
-	auto searchContentsCallStart = Prop!(bool)("searchContentsCallStart", false);
-	auto searchContentsCallPackage = Prop!(bool)("searchContentsCallPackage", false);
-	auto searchContentsBranchFlag = Prop!(bool)("searchContentsBranchFlag", false);
-	auto searchContentsBranchMultiStep = Prop!(bool)("searchContentsBranchMultiStep", false);
-	auto searchContentsBranchStep = Prop!(bool)("searchContentsBranchStep", false);
-	auto searchContentsBranchSelect = Prop!(bool)("searchContentsBranchSelect", false);
-	auto searchContentsBranchAbility = Prop!(bool)("searchContentsBranchAbility", false);
-	auto searchContentsBranchRandom = Prop!(bool)("searchContentsBranchRandom", false);
-	auto searchContentsBranchLevel = Prop!(bool)("searchContentsBranchLevel", false);
-	auto searchContentsBranchStatus = Prop!(bool)("searchContentsBranchStatus", false);
-	auto searchContentsBranchPartyNumber = Prop!(bool)("searchContentsBranchPartyNumber", false);
-	auto searchContentsBranchArea = Prop!(bool)("searchContentsBranchArea", false);
-	auto searchContentsBranchBattle = Prop!(bool)("searchContentsBranchBattle", false);
-	auto searchContentsBranchIsBattle = Prop!(bool)("searchContentsBranchIsBattle", false);
-	auto searchContentsBranchCast = Prop!(bool)("searchContentsBranchCast", false);
-	auto searchContentsBranchItem = Prop!(bool)("searchContentsBranchItem", false);
-	auto searchContentsBranchSkill = Prop!(bool)("searchContentsBranchSkill", false);
-	auto searchContentsBranchInfo = Prop!(bool)("searchContentsBranchInfo", false);
-	auto searchContentsBranchBeast = Prop!(bool)("searchContentsBranchBeast", false);
-	auto searchContentsBranchMoney = Prop!(bool)("searchContentsBranchMoney", false);
-	auto searchContentsBranchCoupon = Prop!(bool)("searchContentsBranchCoupon", false);
-	auto searchContentsBranchCompleteStamp = Prop!(bool)("searchContentsBranchCompleteStamp", false);
-	auto searchContentsBranchGossip = Prop!(bool)("searchContentsBranchGossip", false);
-	auto searchContentsSetFlag = Prop!(bool)("searchContentsSetFlag", false);
-	auto searchContentsSetStep = Prop!(bool)("searchContentsSetStep", false);
-	auto searchContentsSetStepUp = Prop!(bool)("searchContentsSetStepUp", false);
-	auto searchContentsSetStepDown = Prop!(bool)("searchContentsSetStepDown", false);
-	auto searchContentsReverseFlag = Prop!(bool)("searchContentsReverseFlag", false);
-	auto searchContentsCheckFlag = Prop!(bool)("searchContentsCheckFlag", false);
-	auto searchContentsGetCast = Prop!(bool)("searchContentsGetCast", false);
-	auto searchContentsGetItem = Prop!(bool)("searchContentsGetItem", false);
-	auto searchContentsGetSkill = Prop!(bool)("searchContentsGetSkill", false);
-	auto searchContentsGetInfo = Prop!(bool)("searchContentsGetInfo", false);
-	auto searchContentsGetBeast = Prop!(bool)("searchContentsGetBeast", false);
-	auto searchContentsGetMoney = Prop!(bool)("searchContentsGetMoney", false);
-	auto searchContentsGetCoupon = Prop!(bool)("searchContentsGetCoupon", false);
-	auto searchContentsGetCompleteStamp = Prop!(bool)("searchContentsGetCompleteStamp", false);
-	auto searchContentsGetGossip = Prop!(bool)("searchContentsGetGossip", false);
-	auto searchContentsLoseCast = Prop!(bool)("searchContentsLoseCast", false);
-	auto searchContentsLoseItem = Prop!(bool)("searchContentsLoseItem", false);
-	auto searchContentsLoseSkill = Prop!(bool)("searchContentsLoseSkill", false);
-	auto searchContentsLoseInfo = Prop!(bool)("searchContentsLoseInfo", false);
-	auto searchContentsLoseBeast = Prop!(bool)("searchContentsLoseBeast", false);
-	auto searchContentsLoseMoney = Prop!(bool)("searchContentsLoseMoney", false);
-	auto searchContentsLoseCoupon = Prop!(bool)("searchContentsLoseCoupon", false);
-	auto searchContentsLoseCompleteStamp = Prop!(bool)("searchContentsLoseCompleteStamp", false);
-	auto searchContentsLoseGossip = Prop!(bool)("searchContentsLoseGossip", false);
-	auto searchContentsShowParty = Prop!(bool)("searchContentsShowParty", false);
-	auto searchContentsHideParty = Prop!(bool)("searchContentsHideParty", false);
-	auto searchContentsRedisplay = Prop!(bool)("searchContentsRedisplay", false);
-	auto searchContentsSubstituteStep = Prop!(bool)("searchContentsSubstituteStep", false);
-	auto searchContentsSubstituteFlag = Prop!(bool)("searchContentsSubstituteFlag", false);
-	auto searchContentsBranchStepCmp = Prop!(bool)("searchContentsBranchStepCmp", false);
-	auto searchContentsBranchFlagCmp = Prop!(bool)("searchContentsBranchFlagCmp", false);
-	auto searchContentsBranchRandomSelect = Prop!(bool)("searchContentsBranchRandomSelect", false);
-	auto searchContentsBranchKeyCode = Prop!(bool)("searchContentsBranchKeyCode", false);
-	auto searchContentsCheckStep = Prop!(bool)("searchContentsCheckStep", false);
-	auto searchContentsBranchRound = Prop!(bool)("searchContentsBranchRound", false);
-	auto searchContentsReplaceBgImage = Prop!(bool)("searchContentsReplaceBgImage", false);
-	auto searchContentsMoveBgImage = Prop!(bool)("searchContentsMoveBgImage", false);
-	auto searchContentsLoseBgImage = Prop!(bool)("searchContentsLoseBgImage", false);
+	mixin EnumToMembers!(CType, cType => "auto searchContents" ~ .upperToCap(.text(cType))
+		~ " = Prop!(bool)(\"searchContents" ~ .upperToCap(.text(cType)) ~ "\", false);\n");
+
+	const
+	bool searchContents(CType id) { mixin(S_TRACE);
+		mixin(EnumToStringSwitch!(CType, "searchContents"));
+	}
+	void searchContents(CType id, bool value) { mixin(S_TRACE);
+		mixin(EnumToStringSwitch!(CType, "searchContents", "value"));
+	}
 
 	auto searchUnusedFlag = Prop!(bool)("searchUnusedFlag", true);
 	auto searchUnusedStep = Prop!(bool)("searchUnusedStep", true);
