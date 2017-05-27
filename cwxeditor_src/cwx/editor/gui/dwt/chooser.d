@@ -778,6 +778,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 
 		.listener(widget, SWT.Selection, { mixin(S_TRACE);
 			Item[] sels;
+			auto sel = _selected;
 			if (_tree) { mixin(S_TRACE);
 				sels = cast(Item[])_tree.getSelection();
 			} else { mixin(S_TRACE);
@@ -798,7 +799,9 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 					}
 				}
 			}
-			foreach (dlg; modEvent) dlg();
+			if (_selected != sel) { mixin(S_TRACE);
+				foreach (dlg; modEvent) dlg();
+			}
 		});
 		.listener(widget, SWT.MouseDoubleClick, &openFlagView);
 

@@ -2372,11 +2372,13 @@ protected:
 		}
 		_flags1 = new FlagChooser!(F, false, Random)(comm, summ, left);
 		_flags1.setLayoutData(new GridData(GridData.FILL_BOTH));
+		_flags1.modEvent ~= &applyEnabled;
 		static if (Type == CType.SUBSTITUTE_STEP) {
 			_flags1.modEvent ~= &refreshWarning;
 		}
 		_flags2 = new FlagChooser!(F, false, false)(comm, summ, right, false);
 		_flags2.setLayoutData(new GridData(GridData.FILL_BOTH));
+		_flags2.modEvent ~= &applyEnabled;
 
 		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
 			_comm.delFlagAndStep.add(&delFS);
