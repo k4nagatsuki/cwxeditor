@@ -1416,7 +1416,10 @@ protected:
 		if (period && !cContains(tblCoupons, period)) cs ~= period;
 		auto nature = createCoupon!(Nature)(_nature, &skin.natureCoupon);
 		if (nature && !cContains(tblCoupons, nature)) cs ~= nature;
-		foreach (m, radio; _makings) { mixin(S_TRACE);
+		auto mKeys = _makings.keys;
+		.sort(mKeys);
+		foreach (m; mKeys) { mixin(S_TRACE);
+			auto radio = _makings[m];
 			if (radio.getSelection()) { mixin(S_TRACE);
 				auto mc = new Coupon(skin.makingsCoupon(m), 0);
 				if (!cContains(tblCoupons, mc)) cs ~= mc;
