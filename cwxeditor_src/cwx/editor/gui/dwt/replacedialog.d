@@ -1349,7 +1349,7 @@ private:
 				static if (Del) {
 					itm.dispose();
 				} else { mixin(S_TRACE);
-					itm.setText(a.name);
+					itm.setText(.text(a.id) ~ "." ~ a.name);
 				}
 				return true;
 			} else { mixin(S_TRACE);
@@ -2790,8 +2790,8 @@ public:
 			string from = _fromID.getText();
 			string to = _toID.getText();
 			if (from == "") return;
-			if (from == to) _replMode = false;
 			if (!cautionReplace(from, to)) return;
+			if (from == to) _replMode = false;
 			switch (_idKind.getSelectionIndex()) {
 			case ID_FLAG: replaceIDImpl2(toFlagId(from), toFlagId(to)); break;
 			case ID_STEP: replaceIDImpl2(toStepId(from), toStepId(to)); break;
@@ -2806,8 +2806,8 @@ public:
 			ulong from = getID(_fromID, _fromIDVal, _fromIDTbl);
 			ulong to = getID(_toID, _toIDVal, _toIDTbl);
 			if (0 == from) return;
-			if (from == to) _replMode = false;
 			if (!cautionReplace(getIDName(_fromID, _fromIDVal), getIDName(_toID, _toIDVal))) return;
+			if (from == to) _replMode = false;
 			switch (_idKind.getSelectionIndex()) {
 			case ID_AREA: replaceIDImpl2(toAreaId(from), toAreaId(to)); break;
 			case ID_BATTLE: replaceIDImpl2(toBattleId(from), toBattleId(to)); break;
