@@ -1482,9 +1482,9 @@ private:
 		bool[CWXPath] rangeTable;
 		scope (exit) _rangeTable = rangeTable;
 		_range.removeAll();
-		TreeItem add(lazy TreeItem par, string name, string matchName, CWXPath path) { mixin(S_TRACE);
+		TreeItem add(lazy TreeItem par, string name, bool hasMatchName, string matchName, CWXPath path) { mixin(S_TRACE);
 			rangeTable[path] = _rangeTable.get(path, true);
-			if (matchName !is null && !_incSearch.match(matchName)) { mixin(S_TRACE);
+			if (hasMatchName && !_incSearch.match(matchName)) { mixin(S_TRACE);
 				return null;
 			}
 			TreeItem itm;
@@ -1505,8 +1505,8 @@ private:
 			}
 			return itm;
 		}
-		add(null, _prop.msgs.summary, null, _summ);
-		add(null, _prop.msgs.flagsAndSteps, null, _summ.flagDirRoot);
+		add(null, _prop.msgs.summary, false, null, _summ);
+		add(null, _prop.msgs.flagsAndSteps, false, null, _summ.flagDirRoot);
 		if (_prop.var.etc.showAreaDirTree) { mixin(S_TRACE);
 			TreeItem[string] itmTable;
 			auto dirSet = new HashSet!string;
@@ -1560,7 +1560,7 @@ private:
 			}
 			void put(A)(A[] arr) { mixin (S_TRACE);
 				foreach (a; arr) { mixin (S_TRACE);
-					add(itmTable[a.dirName.toLower()], .tryFormat("%s.%s", a.id, a.baseName), a.baseName, a);
+					add(itmTable[a.dirName.toLower()], .tryFormat("%s.%s", a.id, a.baseName), true, a.baseName, a);
 				}
 			}
 			put(_summ.areas);
@@ -1584,48 +1584,48 @@ private:
 			}
 		} else { mixin(S_TRACE);
 			foreach (a; _summ.areas) { mixin(S_TRACE);
-				add(null, .tryFormat("%s.%s", a.id, a.name), a.name, a);
+				add(null, .tryFormat("%s.%s", a.id, a.name), true, a.name, a);
 			}
 			foreach (a; _summ.battles) { mixin(S_TRACE);
-				add(null, .tryFormat("%s.%s", a.id, a.name), a.name, a);
+				add(null, .tryFormat("%s.%s", a.id, a.name), true, a.name, a);
 			}
 			foreach (a; _summ.packages) { mixin(S_TRACE);
-				add(null, .tryFormat("%s.%s", a.id, a.name), a.name, a);
+				add(null, .tryFormat("%s.%s", a.id, a.name), true, a.name, a);
 			}
 		}
 		foreach (a; _summ.casts) { mixin(S_TRACE);
-			auto par = add(null, .tryFormat("%s.%s", a.id, a.name), a.name, a);
+			auto par = add(null, .tryFormat("%s.%s", a.id, a.name), true, a.name, a);
 			void createParent() { mixin(S_TRACE);
 				if (par) return;
-				par = add(null, .tryFormat("%s.%s", a.id, a.name), null, a);
+				par = add(null, .tryFormat("%s.%s", a.id, a.name), false, null, a);
 			}
 			foreach (c; a.skills) { mixin(S_TRACE);
 				if (0 != c.linkId) continue;
 				if (_incSearch.match(c.name)) createParent();
-				add(par, .tryFormat("%s.%s", c.id, c.name), c.name, c);
+				add(par, .tryFormat("%s.%s", c.id, c.name), true, c.name, c);
 			}
 			foreach (c; a.items) { mixin(S_TRACE);
 				if (0 != c.linkId) continue;
 				if (_incSearch.match(c.name)) createParent();
-				add(par, .tryFormat("%s.%s", c.id, c.name), c.name, c);
+				add(par, .tryFormat("%s.%s", c.id, c.name), true, c.name, c);
 			}
 			foreach (c; a.beasts) { mixin(S_TRACE);
 				if (0 != c.linkId) continue;
 				if (_incSearch.match(c.name)) createParent();
-				add(par, .tryFormat("%s.%s", c.id, c.name), c.name, c);
+				add(par, .tryFormat("%s.%s", c.id, c.name), true, c.name, c);
 			}
 		}
 		foreach (a; _summ.skills) { mixin(S_TRACE);
-			add(null, .tryFormat("%s.%s", a.id, a.name), a.name, a);
+			add(null, .tryFormat("%s.%s", a.id, a.name), true, a.name, a);
 		}
 		foreach (a; _summ.items) { mixin(S_TRACE);
-			add(null, .tryFormat("%s.%s", a.id, a.name), a.name, a);
+			add(null, .tryFormat("%s.%s", a.id, a.name), true, a.name, a);
 		}
 		foreach (a; _summ.beasts) { mixin(S_TRACE);
-			add(null, .tryFormat("%s.%s", a.id, a.name), a.name, a);
+			add(null, .tryFormat("%s.%s", a.id, a.name), true, a.name, a);
 		}
 		foreach (a; _summ.infos) { mixin(S_TRACE);
-			add(null, .tryFormat("%s.%s", a.id, a.name), a.name, a);
+			add(null, .tryFormat("%s.%s", a.id, a.name), true, a.name, a);
 		}
 		_range.setSelection(newSels);
 		_range.treeExpandedAll();
