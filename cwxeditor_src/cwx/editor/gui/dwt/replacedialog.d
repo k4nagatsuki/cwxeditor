@@ -2790,7 +2790,7 @@ public:
 			string from = _fromID.getText();
 			string to = _toID.getText();
 			if (from == "") return;
-			if (!cautionReplace(from, to)) return;
+			if (!cautionReplace(.tryFormat(_prop.msgs.replaceValue, from), to != "" ? .tryFormat(_prop.msgs.replaceValue, to) : _prop.msgs.emptyText)) return;
 			if (from == to) _replMode = false;
 			switch (_idKind.getSelectionIndex()) {
 			case ID_FLAG: replaceIDImpl2(toFlagId(from), toFlagId(to)); break;
