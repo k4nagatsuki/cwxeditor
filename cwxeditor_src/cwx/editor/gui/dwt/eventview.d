@@ -1162,8 +1162,9 @@ private:
 				ptrdiff_t startKC = -1;
 				foreach (i, itm3; itm2.getItems()) { mixin(S_TRACE);
 					auto kc = cast(KeyCodeObj)itm3.getData();
-					if (kc && startKC < 0) startKC = i;
-					if (startKC >= 0 && itm3.getText() != _prop.sys.convFireKeyCode(et.keyCodes[i - startKC])) { mixin(S_TRACE);
+					if (!kc) continue;
+					if (startKC < 0) startKC = i;
+					if (itm3.getText() != _prop.sys.convFireKeyCode(et.keyCodes[i - startKC])) { mixin(S_TRACE);
 						itm3.setText(_prop.sys.convFireKeyCode(et.keyCodes[i - startKC]));
 						chg = true;
 					}
