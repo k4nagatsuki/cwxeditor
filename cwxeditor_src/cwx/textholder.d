@@ -64,6 +64,13 @@ public:
 		return r;
 	}
 
+	@property
+	const
+	override
+	char[] namesInText() { mixin(S_TRACE);
+		return .namesInText(text, true);
+	}
+
 	/// テキスト内で使用されている色。
 	@property
 	const
@@ -177,6 +184,7 @@ public:
 		}
 		return r;
 	}
+
 	/// テキスト内で使用されているステップのパス。
 	@property
 	const
@@ -186,6 +194,13 @@ public:
 			r ~= u.step;
 		}
 		return r;
+	}
+
+	/// テキスト内で使用されている選択メンバ名などの特殊文字。
+	@property
+	const
+	char[] namesInText() { mixin(S_TRACE);
+		return .namesInText(text, false);
 	}
 
 	/// 使用回数カウンタ。

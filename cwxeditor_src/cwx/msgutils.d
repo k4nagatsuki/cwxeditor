@@ -70,7 +70,7 @@ string simpleFormatMsg(in string text, VarValue[string] flags, VarValue[string] 
 				}
 			}
 			return "#" ~ name;
-		}, isTargetVersion, prefixSystemVarName, (c) => false, fonts, colors, false, 0, 0);
+		}, isTargetVersion, "", (c) => false, fonts, colors, false, 0, 0);
 }
 private string formatMsgImpl(string text,
 		VarValue delegate(string) getFlag,
@@ -95,7 +95,7 @@ private string formatMsgImpl(string text,
 			auto fls = to!string(fl);
 			auto v = get(fls);
 			if (!v.exists) { mixin(S_TRACE);
-				if (isTargetVersion("2") && c == '$' && fls.startsWith(prefixSystemVarName)) { mixin(S_TRACE);
+				if ((!isTargetVersion || isTargetVersion("2")) && c == '$' && prefixSystemVarName != "" && fls.startsWith(prefixSystemVarName)) { mixin(S_TRACE);
 					// CardWirth 1.60では、"??"で始まるステップ名は
 					// 該当ステップが存在しない場合、空文字列になる
 					i = i + 1 + next;
@@ -226,6 +226,26 @@ void textUseItems(string text,
 	assert(std.algorithm.sort(flags).array() == std.algorithm.sort(["tes#t", "aaa", "#", "vv"]).array(), .text(flags));
 	assert(std.algorithm.sort(steps).array() == std.algorithm.sort(["test", "あああ\t2", "#tes%t3"]).array(), .text(steps));
 	assert(std.algorithm.sort(fonts).array() == std.algorithm.sort(["font_a.bmp", "font_Z.bmp", "font_1.bmp", "font_2.bmp", "font_3.bmp", "font_;.bmp", "font_表.bmp"]).array(), .text(fonts));
+}
+/// テキストの中で使用されている選択メンバ名などの特殊文字を抽出する。
+char[] namesInText(string text, bool full) { mixin(S_TRACE);
+	char[] r;
+	string[size_t] fonts;
+	char[size_t] colors;
+	.formatMsgImpl(text,
+		path => VarValue(true),
+		path => VarValue(true),
+		(char name) { mixin(S_TRACE);
+			r ~= name;
+			return "#" ~ name;
+		}, null, "", (c) => false, fonts, colors, full, 0, 0);
+	return r;
+} unittest { mixin(S_TRACE);
+	debug mixin(UTPerf);
+	auto fonts = .namesInText("#M#R#U#C#I#T#Yaaa$test$$あああ\t2$$#tes%t3$%tes#t%#a#Z#1#2#33d$dd%aaa%%#%#;%vv%#表%#", true);
+	assert(fonts == ['M', 'R', 'U', 'C', 'I', 'T', 'Y'], .text(fonts));
+	fonts = .namesInText("#M#R#U#C#I#T#Yaaa$test$$あああ\t2$$#tes%t3$%tes#t%#a#Z#1#2#33d$dd%aaa%%#%#;%vv%#表%#", false);
+	assert(fonts == ['M', 'R', 'U', 'T', 'Y'], .text(fonts));
 }
 
 private void replOn(ref dstring dtext, ref dstring buf, ref size_t i, dstring dold, dstring dnew, dchar targC) { mixin(S_TRACE);

@@ -1965,7 +1965,6 @@ string exeName(string args0) { mixin(S_TRACE);
 		char[1024] buf;
 		buf[] = '\0';
 		if (-1 != .readlink("/proc/self/exe", buf.ptr, buf.sizeof)) { mixin(S_TRACE);
-			cdebugln(buf);
 			return buf[0 .. .strlen(buf.ptr)].idup;
 		}
 	}

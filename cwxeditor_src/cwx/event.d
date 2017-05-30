@@ -1175,7 +1175,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// ditto
 	@property
 	const
-	string name() {return _name.text;}
+	string name() { return _name.text; }
 
 	/// nameを後続コンテントとして適切な名前に変換して返す。
 	private void validText(in CProps prop, Content n) { mixin(S_TRACE);
@@ -2174,19 +2174,15 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	@property
 	const
 	override string[] flagsInText() { mixin(S_TRACE);
-		string[] r;
-		if (_text) r ~= _text.flagsInText;
-		r ~= _name.flagsInText;
-		return r;
+		if (!_text) return [];
+		return _text.flagsInText;
 	}
 	/// テキスト内で使用されているステップのパス。
 	@property
 	const
 	override string[] stepsInText() { mixin(S_TRACE);
-		string[] r;
-		if (_text) r ~= _text.stepsInText;
-		r ~= _name.stepsInText;
-		return r;
+		if (!_text) return [];
+		return _text.stepsInText;
 	}
 	/// テキスト内で使用されている色。
 	@property
@@ -2196,6 +2192,26 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	override void changeInText(size_t index, PathId id) { mixin(S_TRACE);
 		if (_text) _text.change(index, id);
 	}
+
+	/// 選択肢内で使用されている選択メンバ名等のパス。
+	@property
+	const
+	char[] namesInName() { mixin(S_TRACE);
+		return parent && parent.detail.nextType is CNextType.TEXT ? _name.namesInText : [];
+	}
+	/// 選択肢内で使用されているフラグのパス。
+	@property
+	const
+	string[] flagsInName() { mixin(S_TRACE);
+		return parent && parent.detail.nextType is CNextType.TEXT ? _name.flagsInText : [];
+	}
+	/// 選択肢内で使用されているステップのパス。
+	@property
+	const
+	string[] stepsInName() { mixin(S_TRACE);
+		return parent && parent.detail.nextType is CNextType.TEXT ? _name.stepsInText : [];
+	}
+
 	/// ditto
 	override void changeInText(size_t index, FlagId id) { mixin(S_TRACE);
 		if (_text) _text.change(index, id);

@@ -339,12 +339,10 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			}
 		}
 		if (c.parent && c.parent.detail.nextType == CNextType.TEXT) { mixin(S_TRACE);
-			auto fit = c.flagsInText;
-			auto sit = c.stepsInText;
-			bool[dchar] foit;
-			foreach (f; c.fontsInText) foit[f.decodeFontPath()] = true;
-			auto hasSPF = 'M' in foit || 'R' in foit || 'U' in foit || 'T' in foit || 'Y' in foit;
-			if (!prop.targetVersion("1.50", targVer) && (fit.length || sit.length || hasSPF)) { mixin(S_TRACE);
+			auto fit = c.flagsInName;
+			auto sit = c.stepsInName;
+			auto foit = c.namesInName;
+			if (!prop.targetVersion("1.50", targVer) && (fit.length || sit.length || foit.length)) { mixin(S_TRACE);
 				r ~= prop.msgs.warningSPCharsInSelections;
 			} else { mixin(S_TRACE);
 				r ~= checkTextRes2(fit, sit, [], []);
