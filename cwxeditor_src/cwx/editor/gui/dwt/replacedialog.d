@@ -2888,9 +2888,9 @@ public:
 				foreach (u; sortedPaths(users)) { mixin(S_TRACE);
 					if (_replMode) { mixin(S_TRACE);
 						auto id = u.path;
-						u.path = cast(string)to;
+						u.change(to);
 						storeID(u.owner, u, cast(string)id, cast(string)to, (string id) { mixin(S_TRACE);
-							u.path = id;
+							u.change(toPathId(id));
 						});
 						fromTos ~= [cast(string)id, cast(string)to];
 					}
