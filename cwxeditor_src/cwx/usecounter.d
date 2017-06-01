@@ -845,13 +845,14 @@ public:
 	/// IDを設定する。
 	/// 所有者がChgPathCallbackであればコールバックが行われる。
 	@property
-	void id(PathId newVal) { mixin(S_TRACE);
+	bool id(PathId newVal) { mixin(S_TRACE);
 		if (cast(ChgPathCallback)_cwxPath) { mixin(S_TRACE);
 			if (!(cast(ChgPathCallback)_cwxPath).changeCallback(_path, newVal)) { mixin(S_TRACE);
-				return;
+				return false;
 			}
 		}
 		path = cast(string)newVal;
+		return true;
 	}
 
 	/// ファイルパスを設定する。

@@ -7,7 +7,7 @@ import cwx.path;
 import cwx.usecounter;
 
 /// メッセージやダイアログが持つテキスト。
-class TextHolder : SimpleTextHolder, IPathUser, ChgPathCallback {
+class TextHolder : SimpleTextHolder, ITextHolder, IPathUser, ChgPathCallback {
 private:
 	PathUser[] _fontusers;
 	char[] _colors;
@@ -56,6 +56,7 @@ public:
 	/// テキスト内で使用されているfont_X.png等のパス。
 	@property
 	const
+	override
 	string[] fontsInText() { mixin(S_TRACE);
 		string[] r;
 		foreach (u; _fontusers) { mixin(S_TRACE);
@@ -104,8 +105,10 @@ public:
 		}
 		return true;
 	}
+	alias SimpleTextHolder.changeInText changeInText;
 	/// テキスト内のfont_X.bmp・フラグ・ステップを置換する。
-	void change(size_t index, PathId id) { mixin(S_TRACE);
+	override
+	void changeInText(size_t index, PathId id) { mixin(S_TRACE);
 		_fontusers[index].change(id);
 	}
 	alias SimpleTextHolder.changeCallback changeCallback;
@@ -123,7 +126,6 @@ interface ITextHolder : ISimpleTextHolder {
 	const string[] fontsInText();
 	/// テキスト内のfont_X.bmpを置換する。
 	void changeInText(size_t index, PathId id);
-	alias ISimpleTextHolder.changeInText changeInText;
 }
 
 /// ファイル以外の特殊文字に対応したテキスト。
@@ -245,19 +247,19 @@ public:
 		return true;
 	}
 	/// ditto
-	void change(size_t index, FlagId id) { mixin(S_TRACE);
+	void changeInText(size_t index, FlagId id) { mixin(S_TRACE);
 		_flagusers[index].change(id);
 	}
 	/// ditto
-	void change(size_t index, StepId id) { mixin(S_TRACE);
+	void changeInText(size_t index, StepId id) { mixin(S_TRACE);
 		_stepusers[index].change(id);
 	}
 	override bool changeCallback(FlagId oldVal, FlagId newVal) { mixin(S_TRACE);
-		_text = replTextUseFlag(_text, cast(string) oldVal, cast(string) newVal);
+		_text = replTextUseFlag(_text, cast(string)oldVal, cast(string)newVal);
 		return true;
 	}
 	override bool changeCallback(StepId oldVal, StepId newVal) { mixin(S_TRACE);
-		_text = replTextUseStep(_text, cast(string) oldVal, cast(string) newVal);
+		_text = replTextUseStep(_text, cast(string)oldVal, cast(string)newVal);
 		return true;
 	}
 

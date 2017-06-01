@@ -386,9 +386,9 @@ public:
 	override string[] stepsInText() { return _text.stepsInText; }
 
 	/// テキスト内のフラグ・ステップを置換する。
-	override void changeInText(size_t index, FlagId id) { _text.change(index, id); }
+	override void changeInText(size_t index, FlagId id) { _text.changeInText(index, id); }
 	/// ditto
-	override void changeInText(size_t index, StepId id) { _text.change(index, id); }
+	override void changeInText(size_t index, StepId id) { _text.changeInText(index, id); }
 
 	override
 	const

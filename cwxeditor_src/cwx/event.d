@@ -422,15 +422,15 @@ public:
 	const(char)[] colorsInText() { return _text.colorsInText; }
 	/// テキスト内のfont_X.bmp・フラグ・ステップを置換する。
 	override void changeInText(size_t index, PathId id) { mixin(S_TRACE);
-		_text.change(index, id);
+		_text.changeInText(index, id);
 	}
 	/// ditto
 	override void changeInText(size_t index, FlagId id) { mixin(S_TRACE);
-		_text.change(index, id);
+		_text.changeInText(index, id);
 	}
 	/// ditto
 	override void changeInText(size_t index, StepId id) { mixin(S_TRACE);
-		_text.change(index, id);
+		_text.changeInText(index, id);
 	}
 	const
 	XNode toNode() { mixin(S_TRACE);
@@ -2190,7 +2190,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	const(char)[] colorsInText() { return _text ? _text.colorsInText : []; }
 	/// テキスト内のfont_X.bmp・フラグ・ステップを置換する。
 	override void changeInText(size_t index, PathId id) { mixin(S_TRACE);
-		if (_text) _text.change(index, id);
+		if (_text) _text.changeInText(index, id);
 	}
 
 	/// 選択肢内で使用されている選択メンバ名等のパス。
@@ -2214,13 +2214,13 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 	/// ditto
 	override void changeInText(size_t index, FlagId id) { mixin(S_TRACE);
-		if (_text) _text.change(index, id);
-		_name.change(index, id);
+		if (_text) _text.changeInText(index, id);
+		_name.changeInText(index, id);
 	}
 	/// ditto
 	override void changeInText(size_t index, StepId id) { mixin(S_TRACE);
-		if (_text) _text.change(index, id);
-		_name.change(index, id);
+		if (_text) _text.changeInText(index, id);
+		_name.changeInText(index, id);
 	}
 
 	/// コンテントをXMLテキストにして返す。
