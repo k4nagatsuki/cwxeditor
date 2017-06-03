@@ -1312,6 +1312,7 @@ private:
 	void selectFile() { mixin(S_TRACE);
 		int index = _fileList.getSelectionIndex();
 		if (index < 0) return;
+		if (_fnone && index == 0) return;
 		auto old = this.path;
 		scope (exit) {
 			if (old != this.path) {
