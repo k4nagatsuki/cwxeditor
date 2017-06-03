@@ -1899,6 +1899,7 @@ public:
 		return false;
 	}
 	void up() { mixin(S_TRACE);
+		if (!canUp) return;
 		initial();
 		up(selection, true, false, false);
 	}
@@ -1915,6 +1916,7 @@ public:
 		_comm.refreshToolBar();
 	}
 	void down() { mixin(S_TRACE);
+		if (!canDown) return;
 		initial();
 		down(selection, true, false, false);
 	}

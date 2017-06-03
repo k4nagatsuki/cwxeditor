@@ -4122,6 +4122,9 @@ public:
 		return dockCanVanish(dock, key);
 	}
 	private bool dockCloseCtrl(string key) { mixin(S_TRACE);
+		_tlp = null;
+		setupMenu(_menu);
+		setupMenu(_tool);
 		statusLine = "";
 		return true;
 	}
