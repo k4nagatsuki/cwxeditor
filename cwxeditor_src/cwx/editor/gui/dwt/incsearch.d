@@ -71,7 +71,7 @@ class IncSearch {
 
 	private Shell _win = null;
 	private Text _text = null;
-	private CCombo _type = null;
+	private Combo _type = null;
 	private Control _parent = null;
 	private Wildcard _wild = null;
 	private Regex!dchar _regex;
@@ -162,8 +162,8 @@ class IncSearch {
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.CloseIncSearch, &close, null);
 
-		_type = new CCombo(_win, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
-		createTextMenu!CCombo(_comm, _comm.prop, _type, null);
+		_type = new Combo(_win, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+		createTextMenu!Combo(_comm, _comm.prop, _type, null);
 		_type.add(_comm.prop.msgs.incSearchContains);
 		_type.add(_comm.prop.msgs.incSearchWildcard);
 		_type.add(_comm.prop.msgs.incSearchRegex);
@@ -325,6 +325,7 @@ class IncSearch {
 		}
 	}
 	void close() { mixin(S_TRACE);
+		return;
 		if (!_win) initialize();
 		if (_win.isVisible()) { mixin(S_TRACE);
 			_win.setVisible(false);
