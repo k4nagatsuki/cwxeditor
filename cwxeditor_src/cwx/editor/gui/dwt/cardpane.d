@@ -106,6 +106,7 @@ private:
 		}
 	}
 	private static inout(Card)[] cardsFrom(CardType cardType, inout CWXPath owner) { mixin(S_TRACE);
+		if (!owner) return [];
 		final switch (cardType) {
 		case CardType.Cast:
 			if (auto o = cast(inout CastOwner)owner) {
@@ -159,6 +160,7 @@ private:
 		}
 	}
 	public static inout(Card) cardFrom(inout CWXPath owner, CardType cardType, ulong id) { mixin(S_TRACE);
+		if (!owner) return null;
 		final switch (cardType) {
 		case CardType.Cast:
 			if (auto o = cast(inout CastOwner)owner) return o.cwCast(id);
