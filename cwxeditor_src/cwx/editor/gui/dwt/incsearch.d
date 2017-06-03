@@ -325,7 +325,6 @@ class IncSearch {
 		}
 	}
 	void close() { mixin(S_TRACE);
-		return;
 		if (!_win) initialize();
 		if (_win.isVisible()) { mixin(S_TRACE);
 			_win.setVisible(false);
