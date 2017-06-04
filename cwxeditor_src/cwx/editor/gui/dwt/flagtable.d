@@ -167,7 +167,7 @@ private:
 			_values.setItemCount(num);
 			foreach (index; ic .. num) { mixin(S_TRACE);
 				if (store && _valueCache.length <= index) { mixin(S_TRACE);
-					auto lastValue = _valueCache[ic - 1];
+					auto lastValue = _valueCache[index - 1];
 					lastValue = createNewName(lastValue, (string name) { mixin(S_TRACE);
 						return name != lastValue;
 					});
