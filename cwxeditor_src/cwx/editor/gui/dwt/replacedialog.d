@@ -2605,7 +2605,7 @@ public:
 			if (mo) { mixin(S_TRACE);
 				foreach (i, m; mo.motions) { mixin(S_TRACE);
 					if (m.beast && 0 == m.beast.linkId) { mixin(S_TRACE);
-						searchAll(m.beast, count, dlg, cpjoin(cwxPath, "motion", i));
+						searchAll(m.beast, count, dlg, cpjoin(cpjoin(cwxPath, "motion", i), cpjoin("", "beastcard", 0)));
 					}
 				}
 			}
