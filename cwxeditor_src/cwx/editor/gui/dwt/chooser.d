@@ -426,6 +426,7 @@ string[] allCellNames(Commons comm, Summary summ) { mixin(S_TRACE);
 
 class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 	void delegate()[] modEvent;
+	void delegate()[] modEventWithSame;
 
 	private Tree _tree = null;
 	private Table _list = null;
@@ -802,6 +803,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 			if (_selected != sel) { mixin(S_TRACE);
 				foreach (dlg; modEvent) dlg();
 			}
+			foreach (dlg; modEventWithSame) dlg();
 		});
 		.listener(widget, SWT.MouseDoubleClick, &openFlagView);
 

@@ -2077,8 +2077,11 @@ private:
 		string selPath = _flags.selectedWithDir;
 		if (_oldSel == selPath) { mixin(S_TRACE);
 			static if (SelValue) {
-				_values.select(0);
-				updateLabel();
+				if (_values.getSelectionIndex() != 0) { mixin(S_TRACE);
+					_values.select(0);
+					updateLabel();
+					applyEnabled();
+				}
 			}
 		} else { mixin(S_TRACE);
 			_oldSel = _flags.selectedWithDir;
@@ -2185,9 +2188,9 @@ protected:
 			l2.setLayoutData(gd);
 		}
 		{ mixin(S_TRACE);
-			_flags = new FlagChooser!(F, false, false)(comm, summ, left);
+			_flags = new FlagChooser!(F, false, false)(comm, summ, left, true);
 			mod(_flags);
-			_flags.modEvent ~= &selectedFlag;
+			_flags.modEventWithSame ~= &selectedFlag;
 			_flags.setLayoutData(new GridData(GridData.FILL_BOTH));
 		}
 		{ mixin(S_TRACE);
