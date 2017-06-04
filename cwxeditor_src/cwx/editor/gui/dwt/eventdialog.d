@@ -2027,6 +2027,7 @@ private:
 	}
 
 	FlagDir _root;
+	F _flag = null;
 
 	SplitPane _sash;
 	FlagChooser!(F, false) _flags;
@@ -2041,36 +2042,30 @@ private:
 	void refreshValues() { mixin(S_TRACE);
 		if (!summ) return;
 		static if (is(F:cwx.flag.Flag)) {
-			F flag = summ.flagDirRoot.findFlag(_flags.selected);
+			_flag = summ.flagDirRoot.findFlag(_flags.selected);
 		} else static if (is(F:Step)) {
-			F flag = summ.flagDirRoot.findStep(_flags.selected);
+			_flag = summ.flagDirRoot.findStep(_flags.selected);
 		} else static assert (0);
 		static if (SelValue) {
 			int sel = _values.getSelectionIndex();
 		}
-		_values.removeAll();
-		if (flag) { mixin(S_TRACE);
-			static if (is (F == cwx.flag.Flag)) {
-				auto itm1 = new TableItem(_values, SWT.NONE);
-				itm1.setText(flag.on);
-				auto itm2 = new TableItem(_values, SWT.NONE);
-				itm2.setText(flag.off);
-			} else static if (is (F == Step)) {
-				foreach (val; flag.values) { mixin(S_TRACE);
-					auto itm = new TableItem(_values, SWT.NONE);
-					itm.setText(val);
-				}
-			} else { mixin(S_TRACE);
-				static assert (0);
-			}
+		if (_flag) { mixin(S_TRACE);
+			static if (is(F:cwx.flag.Flag)) {
+				_values.setItemCount(2);
+			} else static if (is(F:Step)) {
+				_values.setItemCount(cast(int)_flag.values.length);
+			} else static assert (0);
 			static if (SelValue) {
 				if (sel < 0) sel = 0;
 				static if (is (F == Step)) {
-					if (sel >= flag.values.length) sel = cast(int)flag.values.length - 1;
+					if (sel >= _flag.values.length) sel = cast(int)_flag.values.length - 1;
 				}
 				_values.select(sel);
 			}
+		} else { mixin(S_TRACE);
+			_values.setItemCount(0);
 		}
+		_values.clearAll();
 		updateLabel();
 	}
 	void selectedFlag() { mixin(S_TRACE);
@@ -2194,7 +2189,7 @@ protected:
 			_flags.setLayoutData(new GridData(GridData.FILL_BOTH));
 		}
 		{ mixin(S_TRACE);
-			_values = .rangeSelectableTable(right, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL);
+			_values = .rangeSelectableTable(right, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL | SWT.VIRTUAL);
 			new FullTableColumn(_values, SWT.NONE);
 			mod(_values);
 			auto gd = new GridData(GridData.FILL_BOTH);
@@ -2202,6 +2197,19 @@ protected:
 			_values.setLayoutData(gd);
 			_values.setEnabled(SelValue && summ && summ.scenarioPath != "");
 			_values.addSelectionListener(new ValSListener);
+			.listener(_values, SWT.SetData, (e) { mixin(S_TRACE);
+				assert (_flag !is null);
+				auto itm = cast(TableItem)e.item;
+				static if (is (F:cwx.flag.Flag)) {
+					if (e.index == 0) { mixin(S_TRACE);
+						itm.setText(_flag.on);
+					} else if (e.index == 1) { mixin(S_TRACE);
+						itm.setText(_flag.off);
+					} else assert (0);
+				} else static if (is (F:Step)) {
+					itm.setText(_flag.values[e.index]);
+				} else static assert (0);
+			});
 		}
 		static if (Type is CType.CHECK_STEP) {
 			auto comp = new Composite(area, SWT.NONE);

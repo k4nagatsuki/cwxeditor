@@ -68,6 +68,8 @@ private:
 
 	Text _name;
 	Combo _init;
+	bool _initInit = false;
+	int _initSelected = -1;
 	Table _values;
 	string[] _valueCache;
 	TableTextEdit _tte;
@@ -90,9 +92,11 @@ private:
 		private void impl() { mixin(S_TRACE);
 			if (_tte.isEditing) _tte.cancel();
 			_valueCache[_index] = _oldName;
-			_values.getItem(_index).setText(1, _oldName);
-			if (_index == _init.getSelectionIndex()) { mixin(S_TRACE);
+			_values.clear(_index);
+			if (_initInit) { mixin(S_TRACE);
 				_init.setItem(_index, _oldName);
+			} else if (_index == _initSelected) { mixin(S_TRACE);
+				_init.setItem(0, _oldName);
 			}
 			auto temp = _oldName;
 			_oldName = _newName;
@@ -121,7 +125,7 @@ private:
 
 			changeStepCount(false, cast(int)values.length);
 			foreach (i; 0 .. cast(int)values.length) { mixin(S_TRACE);
-				this.outer._values.getItem(i).setText(1, values[i]);
+				this.outer._values.clear(i);
 			}
 			updateInitCombo();
 			refDataVersion();
@@ -160,21 +164,14 @@ private:
 		if (ic < num) { mixin(S_TRACE);
 			_values.setRedraw(false);
 			scope (exit) _values.setRedraw(true);
-			auto lastValue = _values.getItem(ic - 1).getText(1);
+			_values.setItemCount(num);
 			foreach (index; ic .. num) { mixin(S_TRACE);
-				auto item = new TableItem(_values, SWT.NONE);
-				item.setText(0, .text(index));
-
-				if (store) { mixin(S_TRACE);
-					if (index < _valueCache.length) { mixin(S_TRACE);
-						lastValue = _valueCache[index];
-					} else { mixin(S_TRACE);
-						lastValue = createNewName(lastValue, (string name) { mixin(S_TRACE);
-							return name != lastValue;
-						});
-						_valueCache ~= lastValue;
-					}
-					item.setText(1, lastValue);
+				if (store && _valueCache.length <= index) { mixin(S_TRACE);
+					auto lastValue = _valueCache[ic - 1];
+					lastValue = createNewName(lastValue, (string name) { mixin(S_TRACE);
+						return name != lastValue;
+					});
+					_valueCache ~= lastValue;
 				}
 			}
 		} else if (num < ic) { mixin(S_TRACE);
@@ -187,9 +184,11 @@ private:
 		refDataVersion();
 	}
 	void updateInitCombo() { mixin(S_TRACE);
-		auto index = _init.getSelectionIndex();
-		setComboItems(_init, _valueCache[0 .. _values.getItemCount()]);
-		_init.select(.min(_init.getItemCount() - 1, index));
+		_initSelected = .min(_initSelected, _values.getItemCount() - 1);
+		_initInit = false;
+		_init.removeAll();
+		_init.add(_valueCache[_initSelected]);
+		_init.select(0);
 	}
 
 	void valueEditEnd(TableItem itm, int column, string newText) { mixin(S_TRACE);
@@ -200,7 +199,11 @@ private:
 		storeSingle(index, itm.getText(1), newText);
 		itm.setText(column, newText);
 		_valueCache[index] = newText;
-		_init.setItem(index, newText);
+		if (_initInit) { mixin(S_TRACE);
+			_init.setItem(index, newText);
+		} else if (index == _initSelected) { mixin(S_TRACE);
+			_init.setItem(0, newText);
+		}
 		applyEnabled();
 	}
 
@@ -250,10 +253,10 @@ private:
 			VarValue sValue(string path) { mixin(S_TRACE);
 				auto step = _summ.flagDirRoot.findStep(path);
 				if (step && _step is step) { mixin(S_TRACE);
-					if (_init.getSelectionIndex() == _editIndex && _valueEditor && !_valueEditor.isDisposed()) { mixin(S_TRACE);
+					if (_initSelected == _editIndex && _valueEditor && !_valueEditor.isDisposed()) { mixin(S_TRACE);
 						return VarValue(true, _valueEditor.getText(), _expandSPChars.getSelection());
 					}
-					return VarValue(true, _init.getText(), _expandSPChars.getSelection());
+					return VarValue(true, _valueCache[_initSelected], _expandSPChars.getSelection());
 				} else { mixin(S_TRACE);
 					return step ? VarValue(true, step.value, step.expandSPChars) : sysSteps.get(path.toLower(), VarValue(false));
 				}
@@ -350,7 +353,7 @@ protected:
 			setEVS(_init);
 		}
 		{ mixin(S_TRACE);
-			_values = .rangeSelectableTable(area, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER);
+			_values = .rangeSelectableTable(area, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.VIRTUAL);
 			_values.setLayoutData(new GridData(GridData.FILL_BOTH));
 			auto valueNumCol = new TableColumn(_values, SWT.NONE);
 			auto prop = _comm.prop;
@@ -433,13 +436,30 @@ protected:
 			_name.setText("");
 			_valueCache = .iota(_comm.prop.looks.stepMaxCount).map!(i => .parseDollarParams(_comm.prop.var.etc.stepValueName, ['N':.to!string(i)])).array();
 		}
-		foreach (i, value; _valueCache) { mixin(S_TRACE);
-			auto item = new TableItem(_values, SWT.NONE);
+
+		.listener(_values, SWT.SetData, (e) { mixin(S_TRACE);
+			auto item = cast(TableItem)e.item;
+			auto i = e.index;
 			item.setText(0, .text(i));
-			item.setText(1, value);
-		}
-		setComboItems(_init, _valueCache);
-		_init.select(.min(_step is null ? 0 : _step.select, _step.count - 1));
+			item.setText(1, _valueCache[i]);
+		});
+		_values.setItemCount(cast(int)_valueCache.length);
+
+		.listener(_init, SWT.FocusIn, { mixin(S_TRACE);
+			if (!_initInit) { mixin(S_TRACE);
+				auto index = _initSelected;
+				setComboItems(_init, _valueCache[0 .. _values.getItemCount()]);
+				_init.select(.min(_init.getItemCount() - 1, index));
+				_initInit = true;
+			}
+		});
+		.listener(_init, SWT.Selection, { mixin(S_TRACE);
+			_initSelected = _init.getSelectionIndex();
+		});
+		_initSelected = _step.select;
+		auto selValue = _valueCache[.min(_step is null ? 0 : _step.select, _step.count - 1)];
+		_init.add(selValue);
+		_init.select(0);
 		_stepCount.setSelection(_values.getItemCount());
 		_expandSPChars.setSelection(_step ? _step.expandSPChars : false);
 		refDataVersion();
@@ -469,8 +489,8 @@ protected:
 					stored = true;
 					storeAll();
 				}
-				_values.getItem(i).setText(1, lastValue);
 				_valueCache[i] = lastValue;
+				_values.clear(i);
 			}
 		}
 		updateInitCombo();
@@ -480,10 +500,10 @@ protected:
 		auto vals = _valueCache[0 .. _stepCount.getSelection()];
 		if (_step.parent) { mixin(S_TRACE);
 			_step.name = this.name;
-			_step.setValues(vals, _init.getSelectionIndex());
+			_step.setValues(vals, _initSelected);
 			_step.expandSPChars = _expandSPChars.getSelection();
 		} else { mixin(S_TRACE);
-			_step = new Step(this.name, vals, _init.getSelectionIndex());
+			_step = new Step(this.name, vals, _initSelected);
 			_step.expandSPChars = _expandSPChars.getSelection();
 			_dir.add(_step);
 		}
