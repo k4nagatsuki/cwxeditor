@@ -1165,7 +1165,9 @@ private:
 					if (!kc) continue;
 					if (startKC < 0) startKC = i;
 					if (itm3.getText() != _prop.sys.convFireKeyCode(et.keyCodes[i - startKC])) { mixin(S_TRACE);
-						itm3.setText(_prop.sys.convFireKeyCode(et.keyCodes[i - startKC]));
+						auto kcWithTiming = _prop.sys.convFireKeyCode(et.keyCodes[i - startKC]);
+						itm3.setText(kcWithTiming);
+						kc.array = kcWithTiming.dup;
 						chg = true;
 					}
 				}
@@ -1238,7 +1240,7 @@ private:
 		if (_readOnly) return false;
 		auto itm = selectionKeyCode;
 		if (!itm) return false;
-		auto keyCode = (cast(KeyCodeObj) itm.getData()).array.idup;
+		auto keyCode = (cast(KeyCodeObj)itm.getData()).array.idup;
 		if (Kind is _prop.sys.fireKeyCodeKind(keyCode)) { mixin(S_TRACE);
 			return false;
 		}
@@ -1246,7 +1248,7 @@ private:
 		auto conv = _prop.sys.convFireKeyCode(keyCode, Kind);
 		foreach (child; parItm.getItems()) { mixin(S_TRACE);
 			if (child is itm) continue;
-			auto kco = cast(KeyCodeObj) child.getData();
+			auto kco = cast(KeyCodeObj)child.getData();
 			if (!kco) continue;
 			if (conv == kco.array) { mixin(S_TRACE);
 				return false;
@@ -2622,9 +2624,9 @@ public:
 			node = EventTree.everyRoundToNode();
 		} else if (ROUND_0 is data) { mixin(S_TRACE);
 			node = EventTree.round0ToNode();
-		} else if (cast(KeyCodeObj) data) { mixin(S_TRACE);
+		} else if (cast(KeyCodeObj)data) { mixin(S_TRACE);
 			node = EventTree.keyCodeToNode(_prop.sys.toFKeyCode((cast(KeyCodeObj)data).array.idup), _prop.sys);
-		} else if (cast(RoundObj) data) { mixin(S_TRACE);
+		} else if (cast(RoundObj)data) { mixin(S_TRACE);
 			node = EventTree.roundToNode((cast(RoundObj)data).intValue());
 		} else { mixin(S_TRACE);
 			assert (0);
@@ -2789,10 +2791,10 @@ public:
 					tree.everyRound = false;
 				} else if (ROUND_0 is data) { mixin(S_TRACE);
 					tree.round0 = false;
-				} else if (cast(KeyCodeObj) data) { mixin(S_TRACE);
-					tree.removeKeyCode(_prop.sys.toFKeyCode((cast(KeyCodeObj) data).array.idup));
-				} else if (cast(RoundObj) data) { mixin(S_TRACE);
-					tree.removeRound((cast(RoundObj) data).intValue());
+				} else if (cast(KeyCodeObj)data) { mixin(S_TRACE);
+					tree.removeKeyCode(_prop.sys.toFKeyCode((cast(KeyCodeObj)data).array.idup));
+				} else if (cast(RoundObj)data) { mixin(S_TRACE);
+					tree.removeRound((cast(RoundObj)data).intValue());
 				} else { mixin(S_TRACE);
 					assert (0);
 				}
