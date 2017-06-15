@@ -1171,6 +1171,9 @@ class Msgs : Properties {
 	auto pngMayNotCorrespond = Msg("pngMayNotCorrespond", "PNGイメージはプレイヤーの環境によって表示エラーとなる事があります。");
 	auto gifMayNotCorrespond = Msg("gifMayNotCorrespond", "GIFイメージはプレイヤーの環境によって表示エラーとなる事があります。");
 
+	auto warningInvalidFileExtensionImage = Msg("warningInvalidFileExtensionImage", "イメージとして使用できない拡張子のファイルが指定されています。");
+	auto warningInvalidFileExtensionSound = Msg("warningInvalidFileExtensionSound", "音声として使用できない拡張子のファイルが指定されています。");
+
 	/// エリア・戦闘・パッケージウィンドウ。
 	auto noRefArea = Msg("noRefArea", "カード配置参照無し");
 	auto areaViewFlagDesc = Msg("areaViewFlagDesc", "フラグ");

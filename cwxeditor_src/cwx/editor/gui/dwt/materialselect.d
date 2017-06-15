@@ -1582,8 +1582,10 @@ private:
 				auto itm = new TableItem(_fileList, SWT.NONE);
 				itm.setText(f);
 				itm.setImage(image);
-				auto ws = skin.warningImage(_prop.parent, f, legacy, canInclude && !isMenuCard, _prop.var.etc.targetVersion);
-				if (ws.length) itm.setImage(_prop.images.warning);
+				static if (Type == MtType.CARD || Type == MtType.BG_IMG) {
+					auto ws = skin.warningImage(_prop.parent, f, legacy, canInclude && !isMenuCard, _prop.var.etc.targetVersion);
+					if (ws.length) itm.setImage(_prop.images.warning);
+				}
 			} else static if (is(C : Combo) || is(C : CCombo)) {
 				_fileList.add(f);
 			} else static assert (0);
@@ -1823,7 +1825,11 @@ private:
 						auto index = dirsIndex;
 						if (index < defs.length) { mixin(S_TRACE);
 							if (valueFromDef) { mixin(S_TRACE);
-								_paths[_imageIndex] = valueFromDef(index, 0 < binPath.length, binPath);
+								auto defPath = valueFromDef(index, 0 < binPath.length, binPath);
+								if (_paths[_imageIndex] != defPath) { mixin(S_TRACE);
+									_paths[_imageIndex] = defPath;
+									foreach (dlg; modEvent) dlg();
+								}
 							}
 						}
 					}

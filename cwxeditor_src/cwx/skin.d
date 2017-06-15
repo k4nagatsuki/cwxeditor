@@ -846,19 +846,24 @@ class Skin {
 	}
 	/// pathを使用する際の警告(一部環境で再生不可等)。
 	static string[] warningSE(in CProps prop, string path, bool legacy, string targVer) { mixin(S_TRACE);
+		if (path == "") return [];
 		auto ext = .toLower(.extension(path));
+		string[] r;
 		if (legacy) { mixin(S_TRACE);
 			switch (ext) {
 			case ".ogg", ".ogv", ".oga", ".ogx": // Ogg
 				if (!prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
-					return [prop.msgs.oggMayNotCorrespond];
+					r ~= prop.msgs.oggMayNotCorrespond;
 				}
 				break;
 			default:
-				return [];
+				break;
 			}
 		}
-		return [];
+		if (!_extSound.contains(ext)) { mixin(S_TRACE);
+			r ~= prop.msgs.warningInvalidFileExtensionSound;
+		}
+		return r;
 	}
 	/// pathがBGMとして使用可能か。
 	const
@@ -892,24 +897,29 @@ class Skin {
 	}
 	/// pathを使用する際の警告(一部環境で再生不可等)。
 	static string[] warningBGM(in CProps prop, string path, bool legacy, string targVer) { mixin(S_TRACE);
+		if (path == "") return [];
 		auto ext = .toLower(.extension(path));
+		string[] r;
 		if (legacy) { mixin(S_TRACE);
 			switch (ext) {
 			case ".mp3": // MP3
 				if (!prop.targetVersion("1.29", targVer)) { mixin(S_TRACE);
-					return [prop.msgs.mp3LoopMayNotCorrespond];
+					r ~= prop.msgs.mp3LoopMayNotCorrespond;
 				}
 				break;
 			case ".ogg", ".ogv", ".oga", ".ogx": // Ogg
 				if (!prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
-					return [prop.msgs.oggMayNotCorrespond];
+					r ~= prop.msgs.oggMayNotCorrespond;
 				}
 				break;
 			default:
-				return [];
+				break;
 			}
 		}
-		return [];
+		if (!_extBgm.contains(ext)) { mixin(S_TRACE);
+			r ~= prop.msgs.warningInvalidFileExtensionSound;
+		}
+		return r;
 	}
 	/// pathがカード画像として使用可能か。
 	const
@@ -977,6 +987,8 @@ class Skin {
 	}
 	/// pathを使用する際の警告(一部環境で表示不可等)。
 	static string[] warningImage(in CProps prop, string path, bool legacy, bool includeType, string targVer) { mixin(S_TRACE);
+		if (path == "") return [];
+		string[] r;
 		string ext;
 		if (path.isBinImg) { mixin(S_TRACE);
 			auto bin =  cast(ubyte[])strToBImg(path);
@@ -991,11 +1003,11 @@ class Skin {
 				if (includeType) {
 					// 格納画像は1.50までは使用不可
 					if (!prop.targetVersion("1.60", targVer)) { mixin(S_TRACE);
-						return [prop.msgs.warningIncludedPNGImage];
+						r ~= prop.msgs.warningIncludedPNGImage;
 					}
 				} else { mixin(S_TRACE);
 					if (!prop.targetVersion("1.30", targVer)) { mixin(S_TRACE);
-						return [prop.msgs.pngMayNotCorrespond];
+						r ~= prop.msgs.pngMayNotCorrespond;
 					}
 				}
 				break;
@@ -1003,19 +1015,22 @@ class Skin {
 				if (includeType) {
 					// 格納画像は1.50までは使用不可
 					if (!prop.targetVersion("1.60", targVer)) { mixin(S_TRACE);
-						return [prop.msgs.warningIncludedGIFImage];
+						r ~= prop.msgs.warningIncludedGIFImage;
 					}
 				} else { mixin(S_TRACE);
 					if (!prop.targetVersion("1.30", targVer)) { mixin(S_TRACE);
-						return [prop.msgs.gifMayNotCorrespond];
+						r ~= prop.msgs.gifMayNotCorrespond;
 					}
 				}
 				break;
 			default:
-				return [];
+				break;
 			}
 		}
-		return [];
+		if (!path.isBinImg && !_extImg.contains(ext)) { mixin(S_TRACE);
+			r ~= prop.msgs.warningInvalidFileExtensionImage;
+		}
+		return r;
 	}
 
 	/// 特殊文字の情報。

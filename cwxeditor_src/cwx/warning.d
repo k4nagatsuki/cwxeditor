@@ -168,12 +168,18 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		putMotions(effCard.motions);
 		if (effCard.soundPath1 != "") { mixin(S_TRACE);
 			r ~= skin.warningSE(prop, effCard.soundPath1, summ ? summ.legacy : false, targVer);
+			if (!skin.findPath(effCard.soundPath1, skin.extSound, skin.seDirs, sPath, wsnVer, skin.wsnSoundDirs(wsnVer)).length) { mixin(S_TRACE);
+				r ~= .tryFormat(prop.msgs.searchErrorSENotFound, .encodePath(effCard.soundPath1));
+			}
 			if ((effCard.volume1 != 100 || effCard.volume2 != 100) && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningVolume;
 			}
 		}
 		if (effCard.soundPath2 != "") { mixin(S_TRACE);
 			r ~= skin.warningSE(prop, effCard.soundPath2, summ ? summ.legacy : false, targVer);
+			if (!skin.findPath(effCard.soundPath2, skin.extSound, skin.seDirs, sPath, wsnVer, skin.wsnSoundDirs(wsnVer)).length) { mixin(S_TRACE);
+				r ~= .tryFormat(prop.msgs.searchErrorSENotFound, .encodePath(effCard.soundPath2));
+			}
 			if ((effCard.loopCount1 != 1 || effCard.loopCount2 != 1) && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningLoopCount;
 			}
@@ -262,6 +268,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	if (btl) { mixin(S_TRACE);
 		if (btl.music != "") { mixin(S_TRACE);
 			r ~= skin.warningBGM(prop, btl.music, summ ? summ.legacy : false, targVer);
+			if (!skin.findPath(btl.music, skin.extBgm, skin.bgmDirs, sPath, wsnVer, skin.wsnMusicDirs(wsnVer)).length) { mixin(S_TRACE);
+				r ~= .tryFormat(prop.msgs.searchErrorBGMNotFound, .encodePath(btl.music));
+			}
 			if (btl.volume != 100 && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningVolume;
 			}
@@ -435,8 +444,14 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				warnPos = true;
 			}
 		}
+		if (c.bgmPath != "") { mixin(S_TRACE);
+			r ~= skin.warningBGM(prop, c.bgmPath, summ ? summ.legacy : false, targVer);
+		}
 		if (c.bgmPath != "" && !skin.findPath(c.bgmPath, skin.extBgm, skin.bgmDirs, sPath, wsnVer, skin.wsnMusicDirs(wsnVer)).length) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.searchErrorBGMNotFound, .encodePath(c.bgmPath));
+		}
+		if (c.soundPath != "") { mixin(S_TRACE);
+			r ~= skin.warningSE(prop, c.soundPath, summ ? summ.legacy : false, targVer);
 		}
 		if (c.soundPath != "" && !skin.findPath(c.soundPath, skin.extSound, skin.seDirs, sPath, wsnVer, skin.wsnSoundDirs(wsnVer)).length) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.searchErrorSENotFound, .encodePath(c.soundPath));
@@ -512,9 +527,6 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				cwxPath = cwxPath.cwxParent();
 			}
 		}
-		if (c.bgmPath != "") { mixin(S_TRACE);
-			r ~= skin.warningBGM(prop, c.bgmPath, summ ? summ.legacy : false, targVer);
-		}
 		if (c.bgmChannel != 0 && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningChannel;
 		}
@@ -530,7 +542,6 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			}
 		}
 		if (c.soundPath != "") { mixin(S_TRACE);
-			r ~= skin.warningSE(prop, c.soundPath, summ ? summ.legacy : false, targVer);
 			if (c.soundFadeIn != 0 && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningFadeIn;
 			}
