@@ -349,7 +349,10 @@ class Skin {
 	private ModData[Nature] _natures;
 	private ModData[Makings] _makings;
 
-	private static immutable _extImg = [".bmp", ".jpg", ".jpeg", ".png", ".gif"];
+	private static immutable _extImg = [
+		".bmp", ".jpg", ".jpeg", ".png", ".gif",
+		".jpy1", ".jpdc", ".jptx",
+	];
 	private static immutable _extBgm = [
 		".aiff", // AIFF
 		".mid", ".midi", // MIDI
