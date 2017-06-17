@@ -590,10 +590,14 @@ public:
 		MenuCard parse(ref XNode node) { mixin(S_TRACE);
 			auto pNode = node.child("Property", false);
 			if (!pNode.valid) return null;
-			string name = null;
-			string desc = "";
+			auto create = false;
+			auto name = "";
+			auto desc = "";
 			CardImage[] paths;
-			pNode.onTag["Name"] = (ref XNode node) {name = node.value;};
+			pNode.onTag["Name"] = (ref XNode node) { mixin(S_TRACE);
+				name = node.value;
+				create = true;
+			};
 			CardImage.setOnTag(pNode, paths);
 			if (copyDesc) { mixin(S_TRACE);
 				pNode.onTag["Description"] = (ref XNode node) { mixin(S_TRACE);
@@ -601,7 +605,7 @@ public:
 				};
 			}
 			pNode.parse();
-			if (!name) return null;
+			if (!create) return null;
 			return new MenuCard(name, paths, desc, "", 0, 0, 100, LAYER_MENU_CARD);
 		}
 		auto pNode = node.child("Property", false);
