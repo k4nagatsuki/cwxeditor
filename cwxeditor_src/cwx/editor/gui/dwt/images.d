@@ -618,7 +618,7 @@ public:
 		auto bmp = new Image(cur, matImgData);
 		scope (exit) bmp.dispose();
 		ImageData bmpData;
-		if (appends.length || _title !is null) { mixin(S_TRACE);
+		if (appends.length || _title !is null || 0 != _maskA) { mixin(S_TRACE);
 			auto dc = new GC(bmp);
 			scope (exit) dc.dispose();
 
