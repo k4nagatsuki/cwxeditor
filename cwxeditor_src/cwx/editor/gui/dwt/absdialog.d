@@ -423,6 +423,12 @@ abstract class AbsDialog {
 
 	@property
 	protected final void warning(string[] ws) { mixin(S_TRACE);
+		.asyncExec(_okBtn.getDisplay(), { mixin(S_TRACE);
+			warningImpl(ws);
+		});
+	}
+	private void warningImpl(string[] ws) { mixin(S_TRACE);
+		if (!_okBtn || _okBtn.isDisposed()) return;
 		if ((_okBtn.getImage() !is null) != (0 != ws.length)) { mixin(S_TRACE);
 			// FIXME:
 			// 画像の有無を切り替えるとOKボタンの文字が
