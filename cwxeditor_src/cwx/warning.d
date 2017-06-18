@@ -185,7 +185,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			}
 		}
 		if (prop.sys.isRunaway(effCard.keyCodes)) { mixin(S_TRACE);
-			r ~= prop.msgs.warningRunawayCard;
+			r ~= .tryFormat(prop.msgs.warningRunawayCard, prop.sys.runaway);
 		}
 		if (prop.looks.keyCodesMaxLegacy < effCard.keyCodes.length && summ && summ.legacy) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.warningKeyCodeCount, prop.looks.keyCodesMaxLegacy);
@@ -742,7 +742,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				r ~= prop.msgs.warningIgnoreKeyCode;
 			}
 			if (c.ignite && prop.sys.isRunaway(c.keyCodes)) { mixin(S_TRACE);
-				r ~= prop.msgs.warningRunawayCard;
+				r ~= .tryFormat(prop.msgs.warningRunawayCard, prop.sys.runaway);
 			}
 		}
 		if (c.type is CType.BRANCH_KEY_CODE && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);

@@ -228,18 +228,32 @@ class System {
 	/// ペナルティカードであればtrue。
 	const
 	bool isPenalty(in string[] keyCodes) { mixin(S_TRACE);
-		return 0 < keyCodes.find("ペナルティ").length;
+		return 0 < keyCodes.find(penalty).length;
 	}
+	/// ペナルティキーコード。
+	@property
+	const
+	string penalty() { return "ペナルティ"; }
+
 	/// リサイクルカードであればtrue。
 	const
 	bool isRecycle(in string[] keyCodes) { mixin(S_TRACE);
-		return 0 < keyCodes.find("リサイクル").length;
+		return 0 < keyCodes.find(recycle).length;
 	}
+	/// リサイクルキーコード。
+	@property
+	const
+	string recycle() { return "リサイクル"; }
+
 	/// 逃走カードであればtrue。
 	const
 	bool isRunaway(in string[] keyCodes) { mixin(S_TRACE);
-		return 0 < keyCodes.find("逃走").length;
+		return 0 < keyCodes.find(runaway).length;
 	}
+	/// 逃走キーコード。
+	@property
+	const
+	string runaway() { return "逃走"; }
 
 	private static immutable FKC_SUCCESS = "○";
 	private static immutable FKC_FAILURE = "×";
