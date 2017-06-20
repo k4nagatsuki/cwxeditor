@@ -188,6 +188,7 @@ public:
 			}
 			_coupons = [];
 			foreach (coupon; coupons) { mixin(S_TRACE);
+				if (coupon == "") continue;
 				auto u = new CouponUser(_cwxPath);
 				u.coupon = coupon;
 				if (_uc) u.setUseCounter(_uc);

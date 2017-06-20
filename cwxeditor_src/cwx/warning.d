@@ -497,6 +497,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			r ~= prop.msgs.searchErrorSourceIsTarget;
 		}
 		if (cd.use(CArg.COUPON_NAMES)) { mixin(S_TRACE);
+			if (!c.couponNames.length) { mixin(S_TRACE);
+				r ~= prop.msgs.searchErrorNoCoupon;
+			}
 			if(!prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
 				if (1 < c.couponNames.length) { mixin(S_TRACE);
 					r ~= prop.msgs.warningBranchCouponMulti;
