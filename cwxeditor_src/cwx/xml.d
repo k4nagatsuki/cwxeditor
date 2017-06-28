@@ -25,8 +25,10 @@ struct XNode {
 	}
 	/// xmlの処理を開始する。
 	static XNode parse(string xml) { mixin(S_TRACE);
-		if (!xml.stripLeft().startsWith("<")) throw new Exception("Invalid XML: " ~ xml);
+		xml = xml.stripLeft();
+		if (!xml.startsWith("<")) throw new Exception("Invalid XML: " ~ xml);
 		XNode node;
+		if (xml[1..$].indexOf("<") == -1) throw new Exception("Invalid XML: " ~ xml);
 		node._el = ps!(Document)(new DocumentParser(xml));
 		return node;
 	}
