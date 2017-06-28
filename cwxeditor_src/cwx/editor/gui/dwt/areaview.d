@@ -1972,8 +1972,10 @@ private:
 				auto itm = createMenuItem(_comm, menu, MenuID.EditEvent, () => openEvent(false), null);
 				itm.setImage(_prop.images.editEventBattle);
 			}
-			new MenuItem(menu, SWT.SEPARATOR);
-			createMenuItem(_comm, menu, MenuID.SelectConnectedResource, &selectConnectedResource, &canSelectConnectedResource);
+			if (_summ) { mixin(S_TRACE);
+				new MenuItem(menu, SWT.SEPARATOR);
+				createMenuItem(_comm, menu, MenuID.SelectConnectedResource, &selectConnectedResource, &canSelectConnectedResource);
+			}
 			new MenuItem(menu, SWT.SEPARATOR);
 			_sgPMenu = createMenuItem(_comm, menu, MenuID.ShowGrid, &reverseShowGrid, null, SWT.CHECK);
 			.setupToggle(_sgPMenu, _prop.var.etc.showGrid);
@@ -2000,7 +2002,7 @@ private:
 				static if (UseCards) {
 					new MenuItem(chgPos, SWT.SEPARATOR);
 					createMenuItem(_comm, chgPos, MenuID.ScaleMin, &scaleCMin, () => canScaleCAny(_prop.var.etc.cardScaleMin));
-		 			createMenuItem(_comm, chgPos, MenuID.ScaleMiddle, &scaleCMiddle, () => canScaleCAny(100));
+					createMenuItem(_comm, chgPos, MenuID.ScaleMiddle, &scaleCMiddle, () => canScaleCAny(100));
 					createMenuItem(_comm, chgPos, MenuID.ScaleMax, &scaleCMax, () => canScaleCAny(_prop.var.etc.cardScaleMax));
 				}
 				new MenuItem(chgPos, SWT.SEPARATOR);
@@ -2729,13 +2731,15 @@ private:
 					itm.setImage(_prop.images.editEventBattle);
 				} else static assert (0);
 			}
-			static if (is(C:AbstractSpCard)) {
-				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(_comm, menu, MenuID.SelectConnectedResource, &selectConnectedResourceC, &canSelectConnectedResourceC);
-			} else static if (is(C:BgImage)) {
-				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(_comm, menu, MenuID.SelectConnectedResource, &selectConnectedResourceB, &canSelectConnectedResourceB);
-			} else static assert (0);
+			if (_summ) { mixin (S_TRACE);
+				static if (is(C:AbstractSpCard)) {
+					new MenuItem(menu, SWT.SEPARATOR);
+					createMenuItem(_comm, menu, MenuID.SelectConnectedResource, &selectConnectedResourceC, &canSelectConnectedResourceC);
+				} else static if (is(C:BgImage)) {
+					new MenuItem(menu, SWT.SEPARATOR);
+					createMenuItem(_comm, menu, MenuID.SelectConnectedResource, &selectConnectedResourceB, &canSelectConnectedResourceB);
+				} else static assert (0);
+			}
 			static if (is(C:BgImage)) {
 				if (!_readOnly) { mixin (S_TRACE);
 					new MenuItem(menu, SWT.SEPARATOR);
@@ -2915,6 +2919,7 @@ private:
 		}
 	}
 	private bool canSelectConnectedResourceImpl(CWXPath c) { mixin(S_TRACE);
+		if (!_summ) return false;
 		if (auto card = cast(AbstractSpCard)c) { mixin(S_TRACE);
 			if (auto path = card.connectedResource(_summ)) { mixin(S_TRACE);
 				return true;
@@ -2933,6 +2938,7 @@ private:
 		return false;
 	}
 	private bool selectConnectedResourceImpl(CWXPath c) { mixin(S_TRACE);
+		if (!_summ) return false;
 		if (auto card = cast(AbstractSpCard)c) { mixin(S_TRACE);
 			if (auto path = card.connectedResource(_summ)) { mixin(S_TRACE);
 				_comm.openCWXPath(cpaddattr(cpaddattr(path.cwxPath(true), "shallow"), "only"), false);
