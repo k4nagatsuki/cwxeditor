@@ -2167,8 +2167,13 @@ public:
 			if (!_dir) return;
 			auto c = CBtoXML(_comm.clipboard);
 			if (c) { mixin(S_TRACE);
-				auto node = XNode.parse(c);
-				pasteImpl(node);
+				try { mixin(S_TRACE);
+					auto node = XNode.parse(c);
+					pasteImpl(node);
+				} catch (Exception e) {
+					printStackTrace();
+					debugln(e);
+				}
 			}
 		}
 		void del(SelectionEvent se) { mixin(S_TRACE);
