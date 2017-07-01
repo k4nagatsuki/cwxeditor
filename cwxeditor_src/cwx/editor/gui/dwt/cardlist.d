@@ -1326,17 +1326,32 @@ public override:
 
 /// nameの表示幅がmaxWより大きくなる場合、
 /// はみ出す分を"..."に置換する。
-string cutText(string name, GC gc, int maxW) { mixin(S_TRACE);
+string cutText(string name, GC gc, int maxW, string dottes = "...", bool includeLastChar = false) { mixin(S_TRACE);
+	if (name == "") return name;
 	int tw = gc.wTextExtent(name).x;
-	if (tw > maxW) { mixin(S_TRACE);
-		int dotw = gc.wTextExtent("...").x;
-		dstring dname = to!dstring(name);
-		while (dname.length && tw + dotw > maxW) { mixin(S_TRACE);
-			dname = dname[0 .. $ - 1];
-			tw = gc.wTextExtent(to!string(dname)).x;
+	if (maxW < tw) { mixin(S_TRACE);
+		auto dotw = gc.wTextExtent(dottes).x;
+		auto dname = to!dstring(name);
+		auto base = dname;
+		auto pos = dname.length / 2;
+		dchar[] result;
+		auto resW = 0;
+		while (pos) { mixin(S_TRACE);
+			tw = gc.wTextExtent(.to!string(dname[0 .. pos])).x;
+			if (tw + resW + dotw <= maxW) { mixin(S_TRACE);
+				result ~= dname[0 .. pos];
+				resW += tw;
+				dname = dname[pos .. $];
+				pos = dname.length / 2;
+			} else { mixin(S_TRACE);
+				pos /= 2;
+			}
 		}
-		name = to!string(dname) ~ "...";
-		tw = gc.wTextExtent(name).x;
+		if (includeLastChar && result.length < base.length) {
+			result ~= base[result.length];
+		}
+		name = .to!string(result);
+		name ~= dottes;
 	}
 	return name;
 }

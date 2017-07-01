@@ -12,6 +12,7 @@ import cwx.editor.gui.dwt.image;
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.eventtreeview;
+import cwx.editor.gui.dwt.cardlist : cutText;
 
 import std.algorithm;
 import std.array : array, replace;
@@ -877,8 +878,8 @@ class EventEditor : Composite {
 					auto c = pos.content;
 					auto startInfo = _startInfos[c.parentStart.eventId];
 					if (p.y - (startInfo.y + pos.relY) < _lineHeight) { mixin(S_TRACE);
-						auto s = .contentText(_comm, c, _summ);
 						auto gc = new GC(this);
+						auto s = .cutText(.contentText(_comm, c, _summ), gc, getDisplay().getBounds().width);
 						scope (exit) gc.dispose();
 						int dw = detailAreaWidth - 2.ppis - 18.ppis;
 						if (dw < gc.wTextExtent(s).x) { mixin(S_TRACE);
@@ -1547,7 +1548,7 @@ class EventEditor : Composite {
 			auto c = pos.content;
 			auto startInfo = possInfo[i];
 			if (detailAreaWidth) {
-				auto s = .contentText(_comm, c, _summ);
+				auto s = .cutText(.contentText(_comm, c, _summ), e.gc, detailAreaWidth - 2.ppis - 18.ppis, "", true);
 				int x = ca.width - detailAreaWidth + 2.ppis;
 				auto image = _comm.prop.images.content(c.type);
 				setAlpha(128);

@@ -1,6 +1,8 @@
 
 module cwx.editor.gui.dwt.cwxeditor;
 
+private extern(C) __gshared string[] rt_options = [ "scanDataSeg=precise" ];
+
 import cwx.utils;
 import cwx.system;
 import cwx.props;
