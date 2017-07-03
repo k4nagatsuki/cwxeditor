@@ -2831,7 +2831,8 @@ public:
 		auto fromT = _fromPath.getText();
 		auto toT = _toPath.getText();
 		if (_summ.loadScaledImage) { mixin(S_TRACE);
-			if (auto fromT2 = fromT.noScaledPath) fromT = fromT2;
+			auto fromT2 = fromT.noScaledPath;
+			if (fromT2 != "") fromT = fromT2;
 		}
 		auto from = toPathId(fromT);
 		auto to = toPathId(toT);
