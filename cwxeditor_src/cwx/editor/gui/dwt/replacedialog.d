@@ -3954,7 +3954,13 @@ public:
 		foreach (itm; [_result.getItem(i)] ~ _result.getItems()) { mixin(S_TRACE);
 			auto d = itm.getData();
 			auto rp = cast(CWXPathString)d;
-			if (rp) { mixin(S_TRACE);
+			if (auto jpy1 = cast(Jpy1Sec)rp.path) { mixin(S_TRACE);
+				_comm.openFilePath(.abs2rel(jpy1.fPath, jpy1.sPath), false, true);
+				return;
+			} else if (auto jpdc = cast(Jpdc)rp.path) { mixin(S_TRACE);
+				_comm.openFilePath(.abs2rel(jpdc.jpdcPath, jpdc.sPath), false, true);
+				return;
+			} else if (rp) { mixin(S_TRACE);
 				auto path = rp.array;
 				if (_prop.var.etc.searchOpenDialog) { mixin(S_TRACE);
 					path = cpaddattr(path, "opendialog");
@@ -3978,7 +3984,7 @@ public:
 				return;
 			}
 			if (!_summ) return;
-			auto p = cast(FilePathString) d;
+			auto p = cast(FilePathString)d;
 			if (p) { mixin(S_TRACE);
 				auto path = nabs(std.path.buildPath(_summ.scenarioPath, p.array));
 				if (p.scPath !is null) { mixin(S_TRACE);
