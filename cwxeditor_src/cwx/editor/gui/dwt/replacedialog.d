@@ -3954,13 +3954,14 @@ public:
 		foreach (itm; [_result.getItem(i)] ~ _result.getItems()) { mixin(S_TRACE);
 			auto d = itm.getData();
 			auto rp = cast(CWXPathString)d;
-			if (auto jpy1 = cast(Jpy1Sec)rp.path) { mixin(S_TRACE);
-				_comm.openFilePath(.abs2rel(jpy1.fPath, jpy1.sPath), false, true);
-				return;
-			} else if (auto jpdc = cast(Jpdc)rp.path) { mixin(S_TRACE);
-				_comm.openFilePath(.abs2rel(jpdc.jpdcPath, jpdc.sPath), false, true);
-				return;
-			} else if (rp) { mixin(S_TRACE);
+			if (rp) { mixin(S_TRACE);
+				if (auto jpy1 = cast(Jpy1Sec)rp.path) { mixin(S_TRACE);
+					_comm.openFilePath(.abs2rel(jpy1.fPath, jpy1.sPath), false, true);
+					return;
+				} else if (auto jpdc = cast(Jpdc)rp.path) { mixin(S_TRACE);
+					_comm.openFilePath(.abs2rel(jpdc.jpdcPath, jpdc.sPath), false, true);
+					return;
+				} 
 				auto path = rp.array;
 				if (_prop.var.etc.searchOpenDialog) { mixin(S_TRACE);
 					path = cpaddattr(path, "opendialog");
