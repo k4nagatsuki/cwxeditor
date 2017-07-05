@@ -447,6 +447,8 @@ private:
 			auto vs = views();
 			udb(vs);
 			scope (exit) uda(vs);
+			auto et = this.et;
+			assert (et !is null);
 			bool empty = et.owner.isEmpty;
 			scope (exit) {
 				if (empty != et.owner.isEmpty) comm.refEventTree.call(et);
@@ -454,6 +456,7 @@ private:
 			foreach (i, c; _c.dup) { mixin(S_TRACE);
 				auto index = _path[i][$ - 1];
 				auto tc = et.fromPath(_path[i]);
+				assert (tc !is null);
 				auto pc = tc.parent;
 				_c[i] = tc.dup;
 				if (!pc) { mixin(S_TRACE);
@@ -1973,7 +1976,7 @@ public:
 		_undo ~= ucp;
 		if (isTopStart) { mixin(S_TRACE);
 			foreach_reverse (child; _tree.getItems(startItm)) { mixin(S_TRACE);
-				delImpl(child, false, false, true);
+				delImpl(child, start, false, false, true);
 			}
 			auto evt = new Content(CType.LINK_PACKAGE, "");
 			start.add(_prop.parent, evt);
@@ -1993,7 +1996,7 @@ public:
 				if (v is this) v._tree.showSelection();
 			}
 		} else { mixin(S_TRACE);
-			delImpl(startItm, false, false, true);
+			delImpl(startItm, start, false, false, true);
 		}
 		auto vs = views();
 		foreach (itm; users) { mixin(S_TRACE);
@@ -3126,7 +3129,7 @@ public:
 			if (itm && itm !is _tree.getItem(0)) { mixin(S_TRACE);
 				_tree.control.setRedraw(false);
 				scope(exit) _tree.control.setRedraw(true);
-				delImpl(itm, true, false, true);
+				delImpl(itm, (cast(Content)itm.getData()).parentStart, true, false, true);
 				_comm.refUseCount.call();
 				_comm.refreshToolBar();
 			}
@@ -3367,7 +3370,7 @@ public:
 		foreach (v; views()) v.redraw();
 		_comm.refreshToolBar();
 	}
-	private void delImpl(Item itm, bool store, bool viewOnly = false, bool refOtherView = false) { mixin(S_TRACE);
+	private void delImpl(Item itm, Content parentStart, bool store, bool viewOnly = false, bool refOtherView = false) { mixin(S_TRACE);
 		if (_readOnly) return;
 		auto vs = [this];
 		if (refOtherView) vs = views();
@@ -3378,8 +3381,7 @@ public:
 			if (empty != _et.owner.isEmpty) _comm.refEventTree.call(_et);
 		}
 		auto ownerItm = _tree.getParentItem(itm);
-		auto c = cast(Content) itm.getData();
-		auto parentStart = c.parentStart;
+		auto c = cast(Content)itm.getData();
 		if (!viewOnly) { mixin(S_TRACE);
 			_comm.delContent.call(c);
 			if (ownerItm) { mixin(S_TRACE);
@@ -3403,8 +3405,9 @@ public:
 		if (vs.length) { mixin(S_TRACE);
 			Item[] itms;
 			foreach (v; vs) itms ~= v.fromPath(c.ctPath);
+			auto parentStart = c.parentStart;
 			foreach (i, v; vs) { mixin(S_TRACE);
-				v.delImpl(itms[i], false, 0 < i);
+				v.delImpl(itms[i], parentStart, false, 0 < i);
 			}
 		} else { mixin(S_TRACE);
 			bool empty = et.owner.isEmpty;
