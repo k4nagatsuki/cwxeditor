@@ -2726,7 +2726,6 @@ public:
 				_dock.memoryPane = &isSystemPaneName;
 				_dock.memoryControl = &isSystemCtrlName;
 				_dock.closeTabWithMiddleClick = (key) => _prop.var.etc.closeTabWithMiddleClick != false;
-				_dock.addCreatePaneEvent(&createPaneEvent);
 				_dock.area.setLayoutData(new GridData(GridData.FILL_BOTH));
 				dStr ~= " - " ~ .text(__LINE__);
 				_prop.var.delNodeTemp();
@@ -2806,6 +2805,7 @@ public:
 				_cellNameWin = new CellNameWindow(_comm, _win, null, null, false);
 				dStr ~= " - " ~ .text(__LINE__);
 			}
+			_dock.addCreatePaneEvent(&createPaneEvent);
 			dStr ~= " - " ~ .text(__LINE__);
 
 			_noSummMenu = new HashSet!(MenuID);
@@ -3605,6 +3605,17 @@ public:
 					return se;
 				}
 				if (tlp.doMenu(_comm, e.keyCode, e.character, e.stateMask, &selEvent)) return;
+
+				auto key = _dock.keyFromCtrl(tlp.shell);
+				auto paneKey = _dock.paneKeyFromCtrlKey(key);
+				auto tabMenu = _dock.getMenu(paneKey);
+				if (tabMenu) { mixin(S_TRACE);
+					menu = findMenu(tabMenu, e.keyCode, e.character, e.stateMask);
+					if (menu && .menuEnabled(menu)) { mixin(S_TRACE);
+						raiseEvent(menu);
+						return;
+					}
+				}
 			}
 		}
 	}

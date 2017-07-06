@@ -521,7 +521,7 @@ public class FlexProps {
 						dStr ~= " - " ~ .text(__LINE__);
 						void df(ref XNode node) { mixin(S_TRACE);
 							dStr ~= " - " ~ .text(__LINE__);
-							r = DockingFolderCTC.fromNode(node, parent, style, hasCloseButton, canVanish, create, null, firstResize);
+							r = DockingFolderCTC.fromNode(node, parent, style, hasCloseButton, canVanish, create, firstResize);
 							dStr ~= " - " ~ .text(__LINE__);
 						}
 						node.onTag["dockingFolder"] = &df;

@@ -610,11 +610,24 @@ class DockingFolder(TabF, int Style) {
 		this.add(c, tabText, tabImage, key, select, loc);
 	}
 
-	/// keyに該当するペインにmenuを登録する。
-	void setMenu(string key, Menu menu) { mixin(S_TRACE);
-		auto p = pane(key);
+	/// paneKeyに該当するペインにmenuを登録する。
+	void setMenu(string paneKey, Menu menu) { mixin(S_TRACE);
+		auto p = pane(paneKey);
 		if (p) p.setMenu(menu);
 	}
+	/// paneKeyに該当するペインに設定されたメニューを返す。
+	Menu getMenu(string paneKey) { mixin(S_TRACE);
+		auto p = pane(paneKey);
+		return p ? p.getMenu() : null;
+	}
+	/// keyに該当するペインのkeyを返す。
+	string paneKeyFromCtrlKey(string key) { mixin(S_TRACE);
+		auto ctrl = control(key);
+		if (!ctrl) return "";
+		auto p = cast(CTabFolder)ctrl.getParent() in _tabfs;
+		return p ? *p : "";
+	}
+
 	/// prefixから始まるペインのkeyを全て返す。
 	string[] findPane(string prefix, bool includeSubShells) { mixin(S_TRACE);
 		string[] r;
@@ -1878,7 +1891,6 @@ class DockingFolder(TabF, int Style) {
 			bool delegate(string) hasCloseButton,
 			bool delegate(typeof(this), string) canVanish,
 			Control delegate(Composite, string) create,
-			void delegate(Composite, string) createPaneEvent = null,
 			bool delegate(string) firstResize = null) { mixin(S_TRACE);
 		assert (node.name == "dockingFolder", "dockingfolder#fromNode");
 		DockingFolder r = null;
@@ -1927,7 +1939,6 @@ class DockingFolder(TabF, int Style) {
 				node.parse();
 			};
 
-			if (createPaneEvent) r.createPaneEvent ~= createPaneEvent;
 			TabF[] removeList;
 			Shell[] subShells;
 			Rectangle[] subShellRects;
