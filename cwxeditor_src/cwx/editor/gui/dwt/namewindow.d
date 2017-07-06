@@ -613,49 +613,38 @@ public:
 
 			auto down = _list.getSortDirection() is SWT.DOWN;
 			auto isUC = _list.getSortColumn() is _ucSorter.column;
-			bool cmp(ID a, ID b) { mixin(S_TRACE);
+			bool cmp(ref const Tuple!(NCompare, uint) a, ref const Tuple!(NCompare, uint) b) { mixin(S_TRACE);
 				auto r = 0;
 				if (down) { mixin(S_TRACE);
 					if (isUC) { mixin(S_TRACE);
-						auto uc1 = _summ.useCounter.get(a);
-						auto uc2 = _summ.useCounter.get(b);
-						if (uc2 < uc1) r = -1;
-						if (uc2 > uc1) r = 1;
+						if (b[1] < a[1]) r = -1;
+						if (b[1] > a[1]) r = 1;
 					}
 					if (!r) { mixin(S_TRACE);
-						if (_comm.prop.var.etc.logicalSort) { mixin(S_TRACE);
-							r = incmp(cast(string)b, cast(string)a);
-						} else { mixin(S_TRACE);
-							r = icmp(cast(string)b, cast(string)a);
-						}
+						return b[0] < a[0];
 					}
 				} else { mixin(S_TRACE);
 					if (isUC) { mixin(S_TRACE);
-						auto uc1 = _summ.useCounter.get(a);
-						auto uc2 = _summ.useCounter.get(b);
-						if (uc1 < uc2) r = -1;
-						if (uc1 > uc2) r = 1;
+						if (a[1] < b[1]) r = -1;
+						if (a[1] > b[1]) r = 1;
 					}
 					if (!r) { mixin(S_TRACE);
-						if (_comm.prop.var.etc.logicalSort) { mixin(S_TRACE);
-							r = incmp(cast(string)a, cast(string)b);
-						} else { mixin(S_TRACE);
-							r = icmp(cast(string)a, cast(string)b);
-						}
+						return a[0] < b[0];
 					}
 				}
 				return r < 0;
 			}
 
 			_nameList = [];
-			ID[] keys2;
+			Tuple!(NCompare, uint)[] keys2;
 			foreach (key; keys) { mixin(S_TRACE);
 				if (!_incSearch.match(cast(string)key)) continue;
-				keys2 ~= key;
+				keys2 ~= .tuple(NCompare(cast(string)key, true, _comm.prop.var.etc.logicalSort), isUC ? _summ.useCounter.get(key) : 0);
 			}
-			foreach (key; std.algorithm.sort!cmp(keys2)) { mixin(S_TRACE);
-				_nameList ~= key;
-				if (sels.get(cast(string)key, false)) { mixin(S_TRACE);
+			auto sorted = std.algorithm.sort!cmp(keys2);
+			foreach (key; sorted) { mixin(S_TRACE);
+				_nameList ~= ToID(key[0].value);
+				if (sels.get(key[0].value, false)) { mixin(S_TRACE);
 					selIndices ~= i;
 				}
 				i++;

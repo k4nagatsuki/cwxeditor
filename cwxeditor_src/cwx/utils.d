@@ -10,6 +10,7 @@ import cwx.sjis;
 
 import std.algorithm;
 import std.array;
+import std.bigint;
 import std.conv;
 import std.uni;
 import std.string;
@@ -1424,6 +1425,103 @@ int fnncmp(C1, C2)(in C1[] a, in C2[] b) { mixin(S_TRACE);
 	return ncmpImpl!(C1, C2, fncmp)(a, b);
 }
 
+/// 選択タイプ。
+private enum NCompareType {
+	str, /// 文字列。
+	dec, /// 数値。
+}
+/// 比較を行うための文字列の分割結果。
+private struct NCompareItem {
+	NCompareType type; /// 値のタイプ。
+	const(char)[] str; /// 文字列として表現した値。
+	BigInt bigInt; /// 巨大な数値として表現した値。
+
+	const
+	bool opEquals(ref const(typeof(this)) s) { mixin(S_TRACE);
+		return type == s.type && str == s.str;
+	}
+	const
+	int opCmp(ref const(typeof(this)) s) { mixin(S_TRACE);
+		if (type == s.type && type == NCompareType.dec) { mixin(S_TRACE);
+			if (bigInt < s.bigInt) return -1;
+			if (bigInt > s.bigInt) return 1;
+		}
+		return cmp(str, s.str);
+	}
+}
+/// 文字列内に含まれる数値を論理的に比較するために解析した結果。
+struct NCompare {
+	string value;
+	private NCompareItem[] items;
+
+	/// strを比較用に解析する。
+	static NCompare opCall(string str, bool ignoreCase = false, bool logicalSort = true) { mixin(S_TRACE);
+		NCompare r;
+		r.value = str;
+		if (str == "") return r;
+		if (!logicalSort) { mixin(S_TRACE);
+			if (ignoreCase) { mixin(S_TRACE);
+				r.items ~= NCompareItem(NCompareType.str, str.toLower());
+			} else { mixin(S_TRACE);
+				r.items ~= NCompareItem(NCompareType.str, str);
+			}
+			return r;
+		}
+		size_t from = 0;
+		NCompareType type, type2;
+		foreach (i, c; str) { mixin(S_TRACE);
+			if (std.ascii.isDigit(c)) { mixin(S_TRACE);
+				type2 = NCompareType.dec;
+			} else { mixin(S_TRACE);
+				type2 = NCompareType.str;
+			}
+			if (type != type2) { mixin(S_TRACE);
+				if (from < i) { mixin(S_TRACE);
+					if (type is NCompareType.str) { mixin(S_TRACE);
+						auto s = ignoreCase ? str[from .. i].toLower() : str[from .. i];
+						r.items ~= NCompareItem(type, s);
+					} else { mixin(S_TRACE);
+						auto s = str[from .. i];
+						r.items ~= NCompareItem(type, s, BigInt(s));
+					}
+				}
+				from = i;
+				type = type2;
+			}
+		}
+		if (type is NCompareType.str) { mixin(S_TRACE);
+			auto s = ignoreCase ? str[from .. $].toLower() : str[from .. $];
+			r.items ~= NCompareItem(type, s);
+		} else { mixin(S_TRACE);
+			auto s = str[from .. $];
+			r.items ~= NCompareItem(type, s, BigInt(s));
+		}
+		return r;
+	}
+
+	const
+	bool opEquals(in NCompare s) { mixin(S_TRACE);
+		return items == s.items;
+	}
+	const
+	int opCmp(in NCompare s) { mixin(S_TRACE);
+		for (size_t i = 0; i < items.length || s.items.length; i++) { mixin(S_TRACE);
+			if (items.length < i) return -1;
+			if (s.items.length <= i) return 1;
+			auto r = items[i].opCmp(s.items[i]);
+			if (r != 0) return r;
+		}
+		return 0;
+	}
+} unittest { mixin(S_TRACE);
+	debug mixin(UTPerf);
+	assert (NCompare("42") > NCompare("2"));
+	assert (NCompare("02") < NCompare("2"));
+	assert (NCompare("abc42") > NCompare("abc4"));
+	assert (NCompare("abc4a") < NCompare("abc4b"));
+	assert (NCompare("abc") < NCompare("def"));
+}
+
 private int ncmpImpl(C1, C2, alias Cmp)(in C1[] a0, in C2[] b0) { mixin(S_TRACE);
 	auto a = to!dstring(a0);
 	auto b = to!dstring(b0);
@@ -1465,6 +1563,7 @@ private int ncmpImpl(C1, C2, alias Cmp)(in C1[] a0, in C2[] b0) { mixin(S_TRACE)
 	assert (ncmp("02", "2") < 0);
 	assert (ncmp("abc42", "abc4") > 0);
 	assert (ncmp("abc4a", "abc4b") < 0);
+	assert (ncmp("abc4", "abc4b") < 0);
 	assert (ncmp("abc", "def") < 0);
 }
 

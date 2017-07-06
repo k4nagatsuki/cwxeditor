@@ -58,7 +58,9 @@ debug {
 				~ "}";
 		}
 		/// mixin(BPerfS)とmixin(BPerf!N)でブロックの実行時間を計測する。
-		const BPerfS = "auto b_timer = std.datetime.StopWatch(std.datetime.AutoStart.yes);";
+		const BPerfS
+				= "static import std.datetime;"
+				~ "auto b_timer = std.datetime.StopWatch(std.datetime.AutoStart.yes);";
 		template BPerf(int I) {
 			static const BPerf
 				= "b_timer.stop();"

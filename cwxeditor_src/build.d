@@ -159,6 +159,9 @@ immutable CRITICAL_FLAGS = [
 ];
 immutable RELEASE_FLAGS = [
 	"-release",
+/+ BUG: コンパイルが終わらなくなる。dmd 2.074.0
+	"-O",
++/
 ];
 
 immutable CONSOLE_FLAGS = [
