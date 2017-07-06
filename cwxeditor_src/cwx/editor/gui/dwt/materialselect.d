@@ -727,7 +727,7 @@ class MaterialSelect(MtType Type, D, C) {
 			}
 			override void keyReleased(KeyEvent e) {}
 			override void keyPressed(KeyEvent e) { mixin(S_TRACE);
-				if (e.character == SWT.CR) { mixin(S_TRACE);
+				if (e.keyCode == SWT.CR) { mixin(S_TRACE);
 					playBGM(false);
 				}
 			}
@@ -815,7 +815,7 @@ class MaterialSelect(MtType Type, D, C) {
 			}
 			override void keyReleased(KeyEvent e) {}
 			override void keyPressed(KeyEvent e) { mixin(S_TRACE);
-				if (e.character == SWT.CR) { mixin(S_TRACE);
+				if (e.keyCode == SWT.CR) { mixin(S_TRACE);
 					playSE();
 				}
 			}
@@ -1383,7 +1383,7 @@ private:
 		}
 		override void keyReleased(KeyEvent e) {}
 		override void keyPressed(KeyEvent e) { mixin(S_TRACE);
-			if (SWT.CR == e.character) openFilePath();
+			if (e.keyCode == SWT.CR) openFilePath();
 		}
 	}
 	private void openFilePath() { mixin(S_TRACE);

@@ -544,7 +544,7 @@ private:
 		}
 		override void keyReleased(KeyEvent e) {}
 		override void keyPressed(KeyEvent e) { mixin(S_TRACE);
-			if (e.character == SWT.CR) { mixin(S_TRACE);
+			if (e.keyCode == SWT.CR) { mixin(S_TRACE);
 				if (editBeast()) { mixin(S_TRACE);
 					e.doit = false;
 				}

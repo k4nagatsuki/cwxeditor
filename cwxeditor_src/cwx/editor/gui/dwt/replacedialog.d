@@ -487,7 +487,7 @@ private:
 	}
 	class KL : KeyAdapter {
 		public override void keyPressed(KeyEvent e) { mixin(S_TRACE);
-			if (_result.isFocusControl() && e.character == SWT.CR) { mixin(S_TRACE);
+			if (_result.isFocusControl() && e.keyCode == SWT.CR) { mixin(S_TRACE);
 				openPath();
 			}
 		}
@@ -1976,7 +1976,7 @@ public:
 		}
 		override void keyReleased(KeyEvent e) {}
 		override void keyPressed(KeyEvent e) { mixin(S_TRACE);
-			if (SWT.CR == e.character) openRangePath();
+			if (e.keyCode == SWT.CR) openRangePath();
 		}
 	}
 	private void setup() { mixin(S_TRACE);
@@ -2146,7 +2146,7 @@ public:
 			override void handleEvent(Event e) { mixin(S_TRACE);
 				auto fc = d.getFocusControl();
 				if (!fc || !_tabf.isDescendant(fc)) return;
-				if (e.character == SWT.CR) { mixin(S_TRACE);
+				if (e.keyCode == SWT.CR) { mixin(S_TRACE);
 					search();
 				}
 			}
