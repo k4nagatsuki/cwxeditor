@@ -3961,11 +3961,11 @@ void getSymbols(Commons comm, Summary summ, CWXPath path, out string text, out s
 		img = prop.images.content(con.type);
 		text = .contentText(comm, con, summ);
 	}
-	auto tex = cast(TextHolder) path;
+	auto tex = cast(SimpleTextHolder) path;
 	if (tex && !par) { mixin(S_TRACE);
-		Content c = cast(Content) tex.owner;
+		Content c = cast(Content)tex.owner;
 		if (!c) { mixin(S_TRACE);
-			auto dlg = cast(SDialog) tex.owner;
+			auto dlg = cast(SDialog)tex.owner;
 			if (dlg) c = dlg.parent;
 		}
 		if (c) { mixin(S_TRACE);
