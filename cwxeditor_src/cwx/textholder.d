@@ -13,9 +13,12 @@ private:
 	char[] _colors;
 public:
 	/// コンストラクタ。
-	this () {}
+	this (string cwxPathCategory = "text") { mixin(S_TRACE);
+		super (cwxPathCategory);
+	}
 	/// コピーコンストラクタ。
 	this (in TextHolder base) { mixin(S_TRACE);
+		super (base._cwxPathCategory);
 		this.text = base.text;
 	}
 	alias SimpleTextHolder.text text;
@@ -135,11 +138,15 @@ private:
 	FlagUser[] _flagusers;
 	StepUser[] _stepusers;
 	UseCounter _uc;
+	string _cwxPathCategory;
 public:
 	/// コンストラクタ。
-	this () {}
+	this (string cwxPathCategory = "text") { mixin(S_TRACE);
+		_cwxPathCategory = cwxPathCategory;
+	}
 	/// コピーコンストラクタ。
 	this (in SimpleTextHolder base) { mixin(S_TRACE);
+		this (base._cwxPathCategory);
 		this.text = base.text;
 	}
 	/// テキスト。
@@ -274,7 +281,7 @@ public:
 	@property
 	string cwxPath(bool id) { mixin(S_TRACE);
 		if (_owner) { mixin(S_TRACE);
-			return cpjoin(_owner, "text", id);
+			return cpjoin(_owner, _cwxPathCategory, id);
 		}
 		return "";
 	}

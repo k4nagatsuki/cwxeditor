@@ -500,7 +500,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		_id = format("%08X", &o) ~ "-" ~ to!(string)(Clock.currTime()) ~ "-" ~ to!string(idCount);
 		idCount++;
 		_type = type;
-		_name = new SimpleTextHolder;
+		_name = new SimpleTextHolder("name");
 		_name.text = name;
 		_name.owner = this;
 
@@ -1368,6 +1368,11 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			auto index = cpindex(path);
 			if (index > 0) return null;
 			return _text.findCWXPath(cpbottom(path));
+		}
+		case "name": { mixin(S_TRACE);
+			auto index = cpindex(path);
+			if (index > 0) return null;
+			return _name.findCWXPath(cpbottom(path));
 		}
 		case "background": { mixin(S_TRACE);
 			auto index = cpindex(path);
