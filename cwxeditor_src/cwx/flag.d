@@ -127,15 +127,6 @@ public:
 	}
 
 	const
-	override hash_t toHash() {
-		hash_t hash = 0;
-		foreach (c; _name) {
-			hash = hash * 37 + c;
-		}
-		return cast(hash_t)(hash * 37);
-	}
-
-	const
 	override
 	bool opEquals(Object o) {
 		return this is o;
@@ -350,15 +341,6 @@ public:
 	this (string name, string[] vals, uint select) { mixin(S_TRACE);
 		setValues(vals, select);
 		_name = FlagDir.validName(name);
-	}
-
-	const
-	override hash_t toHash() {
-		hash_t hash = 0;
-		foreach (c; _name) {
-			hash = hash * 37 + c;
-		}
-		return cast(hash_t)(hash * 37);
 	}
 
 	const
