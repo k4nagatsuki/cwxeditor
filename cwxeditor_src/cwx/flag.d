@@ -135,8 +135,8 @@ public:
 	/// flagのパラメータをコピーする。
 	void copyFrom(Flag flag) { mixin(S_TRACE);
 		name = flag.name;
-		on.text = flag.on;
-		off.text = flag.off;
+		on = flag.on;
+		off = flag.off;
 		onOff = flag.onOff;
 		expandSPChars = flag.expandSPChars;
 	}
