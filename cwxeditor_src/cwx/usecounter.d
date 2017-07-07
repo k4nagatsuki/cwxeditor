@@ -10,6 +10,25 @@ import std.ascii;
 import std.path;
 import std.string;
 
+/// 各型の使用回数カウント対象リソースをID型に変換する。
+template ToID(ID) {
+	static if (is(ID:FlagId)) {
+		alias toFlagId ToID;
+	} else static if (is(ID:StepId)) {
+		alias toStepId ToID;
+	} else static if (is(ID:CouponId)) {
+		alias toCouponId ToID;
+	} else static if (is(ID:GossipId)) {
+		alias toGossipId ToID;
+	} else static if (is(ID:CompleteStampId)) {
+		alias toCompleteStampId ToID;
+	} else static if (is(ID:KeyCodeId)) {
+		alias toKeyCodeId ToID;
+	} else static if (is(ID:CellNameId)) {
+		alias toCellNameId ToID;
+	} else static assert (0);
+}
+
 /// Kの使用者。
 interface User(K) : CWXPath {
 	bool change(K newVal);

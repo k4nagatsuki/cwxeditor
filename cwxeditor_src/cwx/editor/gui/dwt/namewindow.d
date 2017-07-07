@@ -187,18 +187,6 @@ public:
 
 class NameView(ID) : TCPD {
 private:
-	static if (is(ID:CouponId)) {
-		alias toCouponId ToID;
-	} else static if (is(ID:GossipId)) {
-		alias toGossipId ToID;
-	} else static if (is(ID:CompleteStampId)) {
-		alias toCompleteStampId ToID;
-	} else static if (is(ID:KeyCodeId)) {
-		alias toKeyCodeId ToID;
-	} else static if (is(ID:CellNameId)) {
-		alias toCellNameId ToID;
-	} else static assert (0);
-
 	int _readOnly = 0;
 	Summary _summ = null;
 
@@ -243,7 +231,7 @@ private:
 			auto uc = _summ.useCounter.cellName;
 		} else static assert (0);
 
-		ReplaceDialog.renameCoupon(_comm, _summ, itm, ToID(itm.getText(0)), ToID(newText), uc, _undo, null, false, _list, null);
+		ReplaceDialog.renameCoupon(_comm, _summ, itm, ToID!ID(itm.getText(0)), ToID!ID(newText), uc, _undo, null, false, _list, null);
 
 		static if (is(ID:CouponId)) { mixin(S_TRACE);
 			_comm.refCoupons.call(this);
@@ -537,7 +525,7 @@ public:
 		if (!canFindID) return;
 		auto sels = _list.getSelection();
 		assert (sels.length);
-		_comm.replaceID(ToID(sels[0].getText(0)), true);
+		_comm.replaceID(ToID!ID(sels[0].getText(0)), true);
 	}
 
 	void select(in ID[] ids) { mixin(S_TRACE);
@@ -643,7 +631,7 @@ public:
 			}
 			auto sorted = std.algorithm.sort!cmp(keys2);
 			foreach (key; sorted) { mixin(S_TRACE);
-				_nameList ~= ToID(key[0].value);
+				_nameList ~= ToID!ID(key[0].value);
 				if (sels.get(key[0].value, false)) { mixin(S_TRACE);
 					selIndices ~= i;
 				}

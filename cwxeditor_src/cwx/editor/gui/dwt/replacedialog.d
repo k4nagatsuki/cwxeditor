@@ -2723,11 +2723,11 @@ public:
 					if (!dec(u.owner, range)) continue;
 					if (_replMode) { mixin(S_TRACE);
 						static if (is(ID:FlagId)) {
-							u.flag = cast(string)to;
-							storeID(u.owner, u, cast(string)from, cast(string)to, &u.flag);
+							u.id = to;
+							storeID(u.owner, u, from, to, &u.id);
 						} else static if (is(ID:StepId)) {
-							u.step = cast(string)to;
-							storeID(u.owner, u, cast(string)from, cast(string)to, &u.step);
+							u.id = to;
+							storeID(u.owner, u, from, to, &u.id);
 						} else static if (is(ID:CouponId)) {
 							u.coupon = cast(string)to;
 							storeID(u.owner, u, cast(string)from, cast(string)to, &u.coupon);
