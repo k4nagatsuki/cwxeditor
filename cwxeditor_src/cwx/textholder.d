@@ -290,7 +290,7 @@ public:
 }
 
 /// 一部特殊文字対応テキストの保持者。
-interface ISimpleTextHolder {
+interface ISimpleTextHolder : IFlagUser, IStepUser {
 	/// テキスト。
 	@property
 	const string text();

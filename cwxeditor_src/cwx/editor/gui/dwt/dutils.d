@@ -3972,6 +3972,10 @@ void getSymbols(Commons comm, Summary summ, CWXPath path, out string text, out s
 			img = prop.images.content(c.type);
 			text = .contentText(comm, c, summ);
 		}
+		if (auto tc = cast(TextCell)tex.owner) { mixin(S_TRACE);
+			img = prop.images.textCell;
+			text = .tryFormat(prop.msgs.searchResultTextCell, tc.name(prop.parent));
+		}
 	}
 	auto sdlg = cast(SDialog) path;
 	if (sdlg && !par) { mixin(S_TRACE);

@@ -376,6 +376,23 @@ public:
 		}
 	}
 
+	@property
+	override void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+		_text.setUseCounter(uc);
+		super.setUseCounter(uc);
+	}
+	override void removeUseCounter() { mixin(S_TRACE);
+		_text.removeUseCounter();
+		super.removeUseCounter();
+	}
+	override bool change(FlagId id) { mixin(S_TRACE);
+		_text.change(id);
+		return super.change(id);
+	}
+	override bool change(StepId id) { mixin(S_TRACE);
+		return _text.change(id);
+	}
+
 	// テキスト内で使用されているフラグのパス。
 	@property
 	const
@@ -475,6 +492,12 @@ public:
 			borderingType, borderingColor, borderingWidth, "", 0, 0, 0, 0, false);
 		r.fromNodeCommon(node);
 		return r;
+	}
+
+	override CWXPath findCWXPath(string path) { mixin(S_TRACE);
+		if (cpempty(path)) return this;
+		auto cate = cpcategory(path);
+		return cate == "text" ? _text.findCWXPath(cpbottom(path)) : null;
 	}
 }
 
