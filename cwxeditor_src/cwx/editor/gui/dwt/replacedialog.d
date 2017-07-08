@@ -2889,9 +2889,12 @@ public:
 					if (_replMode) { mixin(S_TRACE);
 						auto id = u.path;
 						if (!(u.id = to)) continue;
-						storeID(u.owner, u, cast(string)id, cast(string)to, (string id) { mixin(S_TRACE);
-							u.id = toPathId(id);
-						});
+						void store(PathUser u, string id) { mixin(S_TRACE);
+							storeID!(PathUser, PathId)(cast(CWXPath)u.owner, u, toPathId(id), to, (id) { mixin(S_TRACE);
+								u.id = id;
+							});
+						}
+						store(u, id);
 						fromTos ~= [cast(string)id, cast(string)to];
 					}
 					addResult(u.owner, u.owner.cwxPath(true), count);
