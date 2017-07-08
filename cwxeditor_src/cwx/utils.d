@@ -1506,7 +1506,7 @@ struct NCompare {
 	const
 	int opCmp(in NCompare s) { mixin(S_TRACE);
 		for (size_t i = 0; i < items.length || s.items.length; i++) { mixin(S_TRACE);
-			if (items.length < i) return -1;
+			if (items.length <= i) return -1;
 			if (s.items.length <= i) return 1;
 			auto r = items[i].opCmp(s.items[i]);
 			if (r != 0) return r;
