@@ -2350,7 +2350,7 @@ public:
 		resultRedraw(false);
 		scope (exit) resultRedraw(true);
 		_undo.undo();
-		_comm.updateJpy1Files();
+		_comm.updateJpy1Files(true);
 	}
 	private void redo() { mixin(S_TRACE);
 		if (!_undo.canRedo) return;
@@ -2364,7 +2364,7 @@ public:
 		resultRedraw(false);
 		scope (exit) resultRedraw(true);
 		_undo.redo();
-		_comm.updateJpy1Files();
+		_comm.updateJpy1Files(true);
 	}
 	/// 外部で検索した結果を表示する。
 	void setFindResult(CWXPath[] paths, string kind) { mixin(S_TRACE);
@@ -2867,7 +2867,7 @@ public:
 							_comm.replPath.call(fromTo[0], fromTo[1]);
 						}
 					}
-					_comm.updateJpy1Files();
+					_comm.updateJpy1Files(true);
 					resetCursors(cursors);
 					after();
 				}
