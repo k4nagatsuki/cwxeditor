@@ -214,7 +214,7 @@ void loadComment(Summary summ) { mixin(S_TRACE);
 		node.onTag["comment"] = (ref XNode node) { mixin(S_TRACE);
 			string path = node.attr("path", false, INVALID_CWX_PATH);
 			if (INVALID_CWX_PATH == path) return;
-			auto ct = cast(Content) summ.findCWXPath(path);
+			auto ct = cast(Content)summ.findCWXPath(path);
 			if (!ct) return;
 			// BUG: 2.10以前のバグで\rが混在する可能性があるため置換
 			ct.comment = node.value.replace("\r\n", "\n").replace("\r", "");
@@ -232,15 +232,15 @@ void loadImageRef(Summary summ) { mixin(S_TRACE);
 			string path = node.attr("path", false, INVALID_CWX_PATH);
 			if (INVALID_CWX_PATH == path) return;
 			auto cp = summ.findCWXPath(path);
-			auto card = cast(Card) cp;
+			auto card = cast(Card)cp;
 			if (card) { mixin(S_TRACE);
 				card.paths = node.value.length ? [new CardImage(decodePath(node.value), CardImagePosition.Default)] : [];
 			}
-			auto mCard = cast(MenuCard) cp;
+			auto mCard = cast(MenuCard)cp;
 			if (mCard) { mixin(S_TRACE);
 				mCard.paths = node.value.length ? [new CardImage(decodePath(node.value), CardImagePosition.Default)] : [];
 			}
-			auto summ2 = cast(Summary) cp;
+			auto summ2 = cast(Summary)cp;
 			if (summ2) { mixin(S_TRACE);
 				summ2.imagePaths = node.value.length ? [new CardImage(decodePath(node.value), CardImagePosition.Default)] : [];
 			}
@@ -257,7 +257,7 @@ void loadCardRef(Summary summ) { mixin(S_TRACE);
 		node.onTag["maxNest"] = (ref XNode node) { mixin(S_TRACE);
 			string path = node.attr("path", false, INVALID_CWX_PATH);
 			if (INVALID_CWX_PATH == path) return;
-			auto m = cast(Motion) summ.findCWXPath(path);
+			auto m = cast(Motion)summ.findCWXPath(path);
 			if (!m) return;
 			string value = node.value;
 			try { mixin(S_TRACE);
@@ -274,21 +274,21 @@ void loadCardRef(Summary summ) { mixin(S_TRACE);
 			string value = node.value;
 			try { mixin(S_TRACE);
 				auto id = .to!ulong(value);
-				auto skill = cast(SkillCard) cp;
+				auto skill = cast(SkillCard)cp;
 				if (skill) { mixin(S_TRACE);
 					bool hold = skill.hold;
 					skill.clearData();
 					skill.linkId = id;
 					skill.hold = hold;
 				}
-				auto item = cast(ItemCard) cp;
+				auto item = cast(ItemCard)cp;
 				if (item) { mixin(S_TRACE);
 					bool hold = item.hold;
 					item.clearData();
 					item.linkId = id;
 					item.hold = hold;
 				}
-				auto beast = cast(BeastCard) cp;
+				auto beast = cast(BeastCard)cp;
 				if (beast) { mixin(S_TRACE);
 					beast.clearData();
 					beast.linkId = id;
@@ -637,7 +637,7 @@ private string readStringImpl(in RData d, ref ByteIO f, uint delegate() readSize
 			}
 		}
 		if (index != size_t.max) { mixin(S_TRACE);
-			auto s = cast(string) img[index .. $ - B_IMG_REF.length];
+			auto s = cast(string)img[index .. $ - B_IMG_REF.length];
 			if (.exists(std.path.buildPath(d.sPath, s))) { mixin(S_TRACE);
 				return s;
 			} else { mixin(S_TRACE);
@@ -656,7 +656,7 @@ private string readString(ref ByteIO f, bool lns = false, bool cutText = false) 
 private string readStringImpl(ref ByteIO f, bool lns, bool cutText, uint delegate() readSize) { mixin(S_TRACE);
 	uint len = readSize();
 	if (!len) return "";
-	string str = cast(string) f.read(len);
+	string str = cast(string)f.read(len);
 	if (!lns && str[$ - 1] == '\0') str = str[0 .. $ - 1];
 	auto zi = indexOf(str, '\0');
 	if (-1 != zi) str = str[zi + 1 .. $];
@@ -676,7 +676,7 @@ private string readStringImpl(ref ByteIO f, bool lns, bool cutText, uint delegat
 private string readString(ref ByteIO f, ref string[string] addInfo, bool lns = false, bool cutText = false) { mixin(S_TRACE);
 	uint len = f.readUIntL;
 	if (!len) return "";
-	string str = cast(string) f.read(len);
+	string str = cast(string)f.read(len);
 	if (!lns && str[$ - 1] == '\0') str = str[0 .. $ - 1];
 	while (true) { mixin(S_TRACE);
 		auto zi = indexOf(str, '\0');
@@ -753,6 +753,7 @@ private Summary loadSummary(ref RData d, ref ByteIO f, out ulong startAreaId) { 
 		for (uint j = 0u; j < 10u; j++) { mixin(S_TRACE);
 			vals[j] = readString(f);
 		}
+		if (vals.length <= sel) sel = cast(uint)vals.length - 1;
 		if (!flagsParent(path).add(new Step(FlagDir.basename(path), vals, sel))) { mixin(S_TRACE);
 			throw new SummaryException("Invalid step path: " ~ path);
 		}
@@ -1060,6 +1061,7 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 		case 18: { mixin(S_TRACE);
 			string step = readString(f);
 			uint val = f.readUIntL;
+			if (10u <= val) val = 10u - 1u;
 			e = new Content(CType.SET_STEP, name);
 			e.step = step;
 			e.stepValue = val;
@@ -1334,6 +1336,7 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 		case 44: { mixin(S_TRACE);
 			string step = readString(f);
 			uint val = f.readUIntL;
+			if (10u <= val) val = 10u - 1u;
 			e = new Content(CType.BRANCH_STEP, name);
 			e.step = step;
 			e.stepValue = val;
@@ -1503,6 +1506,7 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			e = new Content(CType.CHECK_STEP, name);
 			e.step = readString(f);
 			e.stepValue = f.readUIntL;
+			if (10u <= e.stepValue) e.stepValue = 10u - 1u;
 			e.comparison4 = toComparison4(f.readByte);
 			break;
 		case 73:
@@ -2444,24 +2448,24 @@ private byte fromTargetT(Target v) { mixin(S_TRACE);
 	case Target.M.SELECTED: return 0;
 	case Target.M.RANDOM: return 1;
 	case Target.M.UNSELECTED: return 2;
-	default: throw new SummaryException("Unknown target T value: " ~ to!(string)(cast(int) v.m));
+	default: throw new SummaryException("Unknown target T value: " ~ to!(string)(cast(int)v.m));
 	}
 }
 private byte fromTargetA(Target v) { mixin(S_TRACE);
-	if (v.m == Target.M.UNSELECTED) throw new SummaryException("Unknown target A value with sleep: " ~ to!(string)(cast(int) v.m));
+	if (v.m == Target.M.UNSELECTED) throw new SummaryException("Unknown target A value with sleep: " ~ to!(string)(cast(int)v.m));
 	if (v.sleep) { mixin(S_TRACE);
 		switch (v.m) {
 		case Target.M.SELECTED: return 3;
 		case Target.M.RANDOM: return 4;
 		case Target.M.PARTY: return 5;
-		default: throw new SummaryException("Unknown target A value with sleep: " ~ to!(string)(cast(int) v.m));
+		default: throw new SummaryException("Unknown target A value with sleep: " ~ to!(string)(cast(int)v.m));
 		}
 	} else { mixin(S_TRACE);
 		switch (v.m) {
 		case Target.M.SELECTED: return 0;
 		case Target.M.RANDOM: return 1;
 		case Target.M.PARTY: return 2;
-		default: throw new SummaryException("Unknown target A value: " ~ to!(string)(cast(int) v.m));
+		default: throw new SummaryException("Unknown target A value: " ~ to!(string)(cast(int)v.m));
 		}
 	}
 }
@@ -2473,7 +2477,7 @@ private byte fromEffectType(EffectType v) { mixin(S_TRACE);
 	case EffectType.MAGICAL_PHYSIC: return 2;
 	case EffectType.PHYSICAL_MAGIC: return 3;
 	case EffectType.NONE: return 4;
-	default: throw new SummaryException("Unknown effect type value: " ~ to!(string)(cast(int) v));
+	default: throw new SummaryException("Unknown effect type value: " ~ to!(string)(cast(int)v));
 	}
 }
 private byte fromResist(Resist v) { mixin(S_TRACE);
@@ -2481,7 +2485,7 @@ private byte fromResist(Resist v) { mixin(S_TRACE);
 	case Resist.AVOID: return 0;
 	case Resist.RESIST: return 1;
 	case Resist.UNFAIL: return 2;
-	default: throw new SummaryException("Unknown resist value: " ~ to!(string)(cast(int) v));
+	default: throw new SummaryException("Unknown resist value: " ~ to!(string)(cast(int)v));
 	}
 }
 private byte fromCardVisual(CardVisual v) { mixin(S_TRACE);
@@ -2490,7 +2494,7 @@ private byte fromCardVisual(CardVisual v) { mixin(S_TRACE);
 	case CardVisual.REVERSE: return 1;
 	case CardVisual.HORIZONTAL: return 2;
 	case CardVisual.VERTICAL: return 3;
-	default: throw new SummaryException("Unknown card visual value: " ~ to!(string)(cast(int) v));
+	default: throw new SummaryException("Unknown card visual value: " ~ to!(string)(cast(int)v));
 	}
 }
 private byte fromRange(Range v) { mixin(S_TRACE);
@@ -2513,7 +2517,7 @@ private byte fromKeyCodeRange(Range v) { mixin(S_TRACE);
 	case Range.BACKPACK: return 2;
 	case Range.PARTY_AND_BACKPACK: return 3;
 	case Range.COUPON_HOLDER: return 0; // Wsn.2
-	default: throw new SummaryException("Unknown range value: " ~ to!(string)(cast(int) v));
+	default: throw new SummaryException("Unknown range value: " ~ to!(string)(cast(int)v));
 	}
 }
 /// CardWirth Extender 1.30～
@@ -2523,7 +2527,7 @@ private byte fromCouponRange(Range v) { mixin(S_TRACE);
 	case Range.RANDOM: return 1;
 	case Range.PARTY: return 2;
 	case Range.FIELD: return 3;
-	default: throw new SummaryException("Unknown range value: " ~ to!(string)(cast(int) v));
+	default: throw new SummaryException("Unknown range value: " ~ to!(string)(cast(int)v));
 	}
 }
 /// CardWirth Extender 1.30～
@@ -2534,7 +2538,7 @@ private byte fromCastRanges(in CastRange[] v) { mixin(S_TRACE);
 		case CastRange.PARTY: r |= 0b0001; break;
 		case CastRange.ENEMY: r |= 0b0010; break;
 		case CastRange.NPC:   r |= 0b0100; break;
-		default: throw new SummaryException("Unknown cast range value: " ~ to!(string)(cast(int) e));
+		default: throw new SummaryException("Unknown cast range value: " ~ to!(string)(cast(int)e));
 		}
 	}
 	return r;
@@ -2547,7 +2551,7 @@ private byte fromEffectCardType(EffectCardType v) { mixin(S_TRACE);
 	case EffectCardType.ITEM: return 2;
 	case EffectCardType.BEAST: return 3;
 	case EffectCardType.HAND: assert (0);
-	default: throw new SummaryException("Unknown range value: " ~ to!(string)(cast(int) v));
+	default: throw new SummaryException("Unknown range value: " ~ to!(string)(cast(int)v));
 	}
 }
 /// CardWirth 1.50
@@ -2557,7 +2561,7 @@ private byte fromComparison4(Comparison4 v) { mixin(S_TRACE);
 	case Comparison4.Ne: return 1;
 	case Comparison4.Lt: return 2;
 	case Comparison4.Gt: return 3;
-	default: throw new SummaryException("Unknown 4 way comparison value: " ~ to!(string)(cast(int) v));
+	default: throw new SummaryException("Unknown 4 way comparison value: " ~ to!(string)(cast(int)v));
 	}
 }
 /// CardWirth 1.50
@@ -2566,7 +2570,7 @@ private byte fromComparison3(Comparison3 v) { mixin(S_TRACE);
 	case Comparison3.Eq: return 0;
 	case Comparison3.Lt: return 1;
 	case Comparison3.Gt: return 2;
-	default: throw new SummaryException("Unknown 3 way comparison value: " ~ to!(string)(cast(int) v));
+	default: throw new SummaryException("Unknown 3 way comparison value: " ~ to!(string)(cast(int)v));
 	}
 }
 /// CardWirth 1.50
@@ -2574,7 +2578,7 @@ private byte fromBorderingType(BorderingType v) { mixin(S_TRACE);
 	switch (v) {
 	case BorderingType.Outline: return 0;
 	case BorderingType.Inline: return 1;
-	default: throw new SummaryException("Unknown bordering type value: " ~ to!(string)(cast(int) v));
+	default: throw new SummaryException("Unknown bordering type value: " ~ to!(string)(cast(int)v));
 	}
 }
 /// CardWirth 1.50
@@ -2585,7 +2589,7 @@ private byte fromBlendMode(BlendMode v, bool mask) { mixin(S_TRACE);
 	case BlendMode.Add: return 2;
 	case BlendMode.Subtract: return 3;
 	case BlendMode.Multiply: return 4;
-	default: throw new SummaryException("Unknown blend mode value: " ~ to!(string)(cast(int) v));
+	default: throw new SummaryException("Unknown blend mode value: " ~ to!(string)(cast(int)v));
 	}
 }
 /// CardWirth 1.50
@@ -2594,7 +2598,7 @@ private byte fromGradientDir(GradientDir v) { mixin(S_TRACE);
 	case GradientDir.None: return 0;
 	case GradientDir.LeftToRight: return 1;
 	case GradientDir.TopToBottom: return 2;
-	default: throw new SummaryException("Unknown gradient direction value: " ~ to!(string)(cast(int) v));
+	default: throw new SummaryException("Unknown gradient direction value: " ~ to!(string)(cast(int)v));
 	}
 }
 /// CardWirth 1.60
@@ -2603,7 +2607,7 @@ private byte fromCoordinateType(CoordinateType v) { mixin(S_TRACE);
 	case CoordinateType.Absolute: return 0;
 	case CoordinateType.Relative: return 1;
 	case CoordinateType.Percentage: return 2;
-	default: throw new SummaryException("Unknown coordinate type value: " ~ to!(string)(cast(int) v));
+	default: throw new SummaryException("Unknown coordinate type value: " ~ to!(string)(cast(int)v));
 	}
 }
 private byte fromStatus(Status v) { mixin(S_TRACE);
@@ -2635,7 +2639,7 @@ private byte fromStatus(Status v) { mixin(S_TRACE);
 	case Status.DOWN_AVOID: return 24;
 	case Status.DOWN_RESIST: return 25;
 	case Status.DOWN_DEFENSE: return 26;
-	default: throw new SummaryException("Unknown status value: " ~ to!(string)(cast(int) v));
+	default: throw new SummaryException("Unknown status value: " ~ to!(string)(cast(int)v));
 	}
 }
 private byte fromElement(Element v) { mixin(S_TRACE);
@@ -2647,7 +2651,7 @@ private byte fromElement(Element v) { mixin(S_TRACE);
 	case Element.MAGIC: return 4;
 	case Element.FIRE: return 5;
 	case Element.ICE: return 6;
-	default: throw new SummaryException("Unknown element value: " ~ to!(string)(cast(int) v));
+	default: throw new SummaryException("Unknown element value: " ~ to!(string)(cast(int)v));
 	}
 }
 private byte fromDamageType(DamageType v) { mixin(S_TRACE);
@@ -2655,7 +2659,7 @@ private byte fromDamageType(DamageType v) { mixin(S_TRACE);
 	case DamageType.LEVEL_RATIO: return 0;
 	case DamageType.NORMAL: return 1;
 	case DamageType.MAX: return 2;
-	default: throw new SummaryException("Unknown damage type value: " ~ to!(string)(cast(int) v));
+	default: throw new SummaryException("Unknown damage type value: " ~ to!(string)(cast(int)v));
 	}
 }
 private uint fromPhysical(Physical v) { mixin(S_TRACE);
@@ -2666,7 +2670,7 @@ private uint fromPhysical(Physical v) { mixin(S_TRACE);
 	case Physical.STR: return 3;
 	case Physical.VIT: return 4;
 	case Physical.MIN: return 5;
-	default: throw new SummaryException("Unknown pysical value: " ~ to!(string)(cast(int) v));
+	default: throw new SummaryException("Unknown pysical value: " ~ to!(string)(cast(int)v));
 	}
 }
 private int fromMental(Mental v) { mixin(S_TRACE);
@@ -2681,7 +2685,7 @@ private int fromMental(Mental v) { mixin(S_TRACE);
 	case Mental.UNBRAVE: return -3;
 	case Mental.UNCAUTIOUS: return -4;
 	case Mental.UNTRICKISH: return -5;
-	default: throw new SummaryException("Unknown mental value: " ~ to!(string)(cast(int) v));
+	default: throw new SummaryException("Unknown mental value: " ~ to!(string)(cast(int)v));
 	}
 }
 private byte fromMentality(Mentality v) { mixin(S_TRACE);
@@ -2692,7 +2696,7 @@ private byte fromMentality(Mentality v) { mixin(S_TRACE);
 	case Mentality.OVERHEAT: return 3;
 	case Mentality.BRAVE: return 4;
 	case Mentality.PANIC: return 5;
-	default: throw new SummaryException("Unknown mentality value: " ~ to!(string)(cast(int) v));
+	default: throw new SummaryException("Unknown mentality value: " ~ to!(string)(cast(int)v));
 	}
 }
 private byte fromCardTarget(CardTarget v) { mixin(S_TRACE);
@@ -2702,7 +2706,7 @@ private byte fromCardTarget(CardTarget v) { mixin(S_TRACE);
 	case CardTarget.PARTY: return 2;
 	case CardTarget.ENEMY: return 3;
 	case CardTarget.BOTH: return 4;
-	default: throw new SummaryException("Unknown card target value: " ~ to!(string)(cast(int) v));
+	default: throw new SummaryException("Unknown card target value: " ~ to!(string)(cast(int)v));
 	}
 }
 private byte fromPremium(Premium v) { mixin(S_TRACE);
@@ -2710,12 +2714,12 @@ private byte fromPremium(Premium v) { mixin(S_TRACE);
 	case Premium.NORMAL: return 0;
 	case Premium.RARE: return 1;
 	case Premium.PREMIUM: return 2;
-	default: throw new SummaryException("Unknown card premium value: " ~ to!(string)(cast(int) v));
+	default: throw new SummaryException("Unknown card premium value: " ~ to!(string)(cast(int)v));
 	}
 }
 private const B_IMG_REF = ":INNER_BINARY_IMAGE";
 private void writeBool(ref ByteIO f, bool b) { mixin(S_TRACE);
-	f.writeL(cast(byte) (b ? 1 : 0));
+	f.writeL(cast(byte)(b ? 1 : 0));
 }
 private void writeExImage(ref SData d, ref ByteIO f, CWXPath cp, string imgPath) { mixin(S_TRACE);
 	writeImageImpl(d, f, cp, imgPath, (val) => f.writeExInt(val));
@@ -2761,14 +2765,14 @@ private void writeStringImpl(ref ByteIO f, string str, bool lns, bool cutText, v
 	if (str.length) { mixin(S_TRACE);
 		str = tosjis(str);
 		if (!lns) str ~= "\0";
-		writeSize(cast(uint) str.length);
+		writeSize(cast(uint)str.length);
 		f.writeL(cast(ubyte[]) str);
 	} else { mixin(S_TRACE);
 		if (lns) { mixin(S_TRACE);
-			writeSize(cast(uint) 0);
+			writeSize(cast(uint)0);
 		} else { mixin(S_TRACE);
-			writeSize(cast(uint) 1);
-			f.writeL(cast(char) 0x0);
+			writeSize(cast(uint)1);
+			f.writeL(cast(char)0x0);
 		}
 	}
 }
@@ -2778,7 +2782,7 @@ private void writeStrings(ref ByteIO f, string[] strs) { mixin(S_TRACE);
 		if (s.length && s[$ - 1] != '\n') s ~= '\n';
 		writeString(f,  s, true);
 	} else { mixin(S_TRACE);
-		f.writeL(cast(uint) 0);
+		f.writeL(cast(uint)0);
 	}
 }
 
@@ -2789,13 +2793,13 @@ private void writeSummary(ref SData d, ref ByteIO f, Summary summ) { mixin(S_TRA
 	writeString(f, summ.desc, true);
 	writeString(f, summ.author);
 	writeStrings(f, summ.rCoupons);
-	f.writeL(cast(uint) summ.rCouponNum);
-	f.writeL(cast(uint) (summ.startArea + 40000u));
+	f.writeL(cast(uint)summ.rCouponNum);
+	f.writeL(cast(uint)(summ.startArea + 40000u));
 	auto steps = summ.flagDirRoot.allSteps;
-	f.writeL(cast(uint) steps.length);
+	f.writeL(cast(uint)steps.length);
 	foreach (step; steps) { mixin(S_TRACE);
 		writeString(f, step.path);
-		f.writeL(cast(uint) step.select);
+		f.writeL((step.select < 10u) ? cast(uint)step.select : (10u - 1u));
 		for (uint i = 0u; i < 10u; i++) { mixin(S_TRACE);
 			if (i < step.count) { mixin(S_TRACE);
 				writeString(f, step.getValue(i));
@@ -2805,16 +2809,16 @@ private void writeSummary(ref SData d, ref ByteIO f, Summary summ) { mixin(S_TRA
 		}
 	}
 	auto flags = summ.flagDirRoot.allFlags;
-	f.writeL(cast(uint) flags.length);
+	f.writeL(cast(uint)flags.length);
 	foreach (flag; flags) { mixin(S_TRACE);
 		writeString(f, flag.path);
 		writeBool(f, flag.onOff);
 		writeString(f, flag.on);
 		writeString(f, flag.off);
 	}
-	f.writeL(cast(uint) 0u);
-	f.writeL(cast(uint) summ.levelMin);
-	f.writeL(cast(uint) summ.levelMax);
+	f.writeL(cast(uint)0u);
+	f.writeL(cast(uint)summ.levelMin);
+	f.writeL(cast(uint)summ.levelMax);
 }
 private void writeMotion(ref SData d, ref ByteIO f, Motion m) { mixin(S_TRACE);
 	byte tType;
@@ -2987,11 +2991,11 @@ private void writeMotion(ref SData d, ref ByteIO f, Motion m) { mixin(S_TRACE);
 	default: assert (0);
 	}
 	f.write(tType);
-	f.writeL(cast(byte) 0x8);
-	f.writeL(cast(byte) 0x4);
-	f.writeL(cast(byte) 0x0);
-	f.writeL(cast(byte) 0x0);
-	f.writeL(cast(byte) 0x0);
+	f.writeL(cast(byte)0x8);
+	f.writeL(cast(byte)0x4);
+	f.writeL(cast(byte)0x0);
+	f.writeL(cast(byte)0x0);
+	f.writeL(cast(byte)0x0);
 	f.write(fromElement(m.element));
 	if (tType != 8) { mixin(S_TRACE);
 		f.write(type);
@@ -2999,16 +3003,16 @@ private void writeMotion(ref SData d, ref ByteIO f, Motion m) { mixin(S_TRACE);
 	switch (tType) {
 	case 0, 1:
 		f.write(fromDamageType(m.damageType));
-		f.writeL(cast(uint) m.uValue);
+		f.writeL(cast(uint)m.uValue);
 		break;
 	case 2:
 		break;
 	case 3, 4:
-		f.writeL(cast(uint) m.detail.use(MArg.ROUND) ? m.round : 0xA);
+		f.writeL(cast(uint)m.detail.use(MArg.ROUND) ? m.round : 0xA);
 		break;
 	case 5:
-		f.writeL(cast(uint) m.aValue);
-		f.writeL(cast(uint) m.round);
+		f.writeL(cast(uint)m.aValue);
+		f.writeL(cast(uint)m.round);
 		break;
 	case 6, 7:
 		break;
@@ -3027,10 +3031,10 @@ private void writeMotion(ref SData d, ref ByteIO f, Motion m) { mixin(S_TRACE);
 
 				d.nestCount[beast.linkId] = nestCount;
 				if (nestCount <= m.maxNest) { mixin(S_TRACE);
-					f.writeL(cast(uint) 0x1);
+					f.writeL(cast(uint)0x1);
 					writeBeast(d, f, beast);
 				} else { mixin(S_TRACE);
-					f.writeL(cast(uint) 0x0);
+					f.writeL(cast(uint)0x0);
 				}
 				if (1 >= nestCount) { mixin(S_TRACE);
 					d.nestCount.remove(beast.linkId);
@@ -3038,11 +3042,11 @@ private void writeMotion(ref SData d, ref ByteIO f, Motion m) { mixin(S_TRACE);
 					d.nestCount[beast.linkId] = nestCount - 1;
 				}
 			} else { mixin(S_TRACE);
-				f.writeL(cast(uint) 0x1);
+				f.writeL(cast(uint)0x1);
 				writeBeast(d, f, beast);
 			}
 		} else { mixin(S_TRACE);
-			f.writeL(cast(uint) 0x0);
+			f.writeL(cast(uint)0x0);
 		}
 		break;
 	default: throw new SummaryException("Unknown motion: " ~ to!(string)(tType) ~ ", " ~ to!(string)(type));
@@ -3166,7 +3170,7 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 			writeString(f, e.start);
 			break;
 		case CType.START_BATTLE:
-			f.writeL(cast(uint) e.battle);
+			f.writeL(cast(uint)e.battle);
 			break;
 		case CType.END:
 			writeBool(f, e.complete);
@@ -3174,7 +3178,7 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 		case CType.END_BAD_END:
 			break;
 		case CType.CHANGE_AREA:
-			f.writeL(cast(uint) e.area);
+			f.writeL(cast(uint)e.area);
 			break;
 		case CType.TALK_MESSAGE:
 			string path = "";
@@ -3205,18 +3209,18 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 			writeString(f, encodePathLegacy(e.soundPath));
 			break;
 		case CType.WAIT:
-			f.writeL(cast(uint) e.wait);
+			f.writeL(cast(uint)e.wait);
 			break;
 		case CType.EFFECT:
-			f.writeL(cast(int) e.signedLevel);
+			f.writeL(cast(int)e.signedLevel);
 			byte targ = fromRange(e.range);
 			f.write(targ);
 			f.write(fromEffectType(e.effectType));
 			f.write(fromResist(e.resist));
-			f.writeL(cast(int) e.successRate);
+			f.writeL(cast(int)e.successRate);
 			writeString(f, e.soundPath.length ? encodePathLegacy(e.soundPath) : "（なし）");
 			f.write(fromCardVisual(e.cardVisual));
-			f.writeL(cast(uint) e.motions.length);
+			f.writeL(cast(uint)e.motions.length);
 			foreach (m; e.motions) { mixin(S_TRACE);
 				writeMotion(d, f, m);
 			}
@@ -3226,13 +3230,13 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 			writeBool(f, e.selectionMethod is SelectionMethod.Random);
 			break;
 		case CType.BRANCH_ABILITY:
-			f.writeL(cast(int) e.signedLevel);
+			f.writeL(cast(int)e.signedLevel);
 			f.write(fromTargetA(e.targetS));
-			f.writeL(cast(uint) fromPhysical(e.physical));
-			f.writeL(cast(int) fromMental(e.mental));
+			f.writeL(cast(uint)fromPhysical(e.physical));
+			f.writeL(cast(int)fromMental(e.mental));
 			break;
 		case CType.BRANCH_RANDOM:
-			f.writeL(cast(uint) e.percent);
+			f.writeL(cast(uint)e.percent);
 			break;
 		case CType.BRANCH_FLAG:
 			writeString(f, e.flag);
@@ -3246,117 +3250,117 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 			break;
 		case CType.SET_STEP:
 			writeString(f, e.step);
-			f.writeL(cast(uint) e.stepValue);
+			f.writeL(e.stepValue < 10u ? cast(uint)e.stepValue : 10u - 1u);
 			break;
 		case CType.BRANCH_CAST:
-			f.writeL(cast(uint) e.casts);
+			f.writeL(cast(uint)e.casts);
 			break;
 		case CType.BRANCH_ITEM:
-			f.writeL(cast(uint) e.item);
-			f.writeL(cast(uint) e.cardNumber);
+			f.writeL(cast(uint)e.item);
+			f.writeL(cast(uint)e.cardNumber);
 			f.write(fromRange(e.range));
 			break;
 		case CType.BRANCH_SKILL:
-			f.writeL(cast(uint) e.skill);
-			f.writeL(cast(uint) e.cardNumber);
+			f.writeL(cast(uint)e.skill);
+			f.writeL(cast(uint)e.cardNumber);
 			f.write(fromRange(e.range));
 			break;
 		case CType.BRANCH_INFO:
-			f.writeL(cast(uint) e.info);
+			f.writeL(cast(uint)e.info);
 			break;
 		case CType.BRANCH_BEAST:
-			f.writeL(cast(uint) e.beast);
-			f.writeL(cast(uint) e.cardNumber);
+			f.writeL(cast(uint)e.beast);
+			f.writeL(cast(uint)e.cardNumber);
 			f.write(fromRange(e.range));
 			break;
 		case CType.BRANCH_MONEY:
-			f.writeL(cast(uint) e.money);
+			f.writeL(cast(uint)e.money);
 			break;
 		case CType.BRANCH_COUPON:
 			writeString(f, e.couponNames.length ? e.couponNames[0] : "");
-			f.writeL(cast(int) 0x0);
+			f.writeL(cast(int)0x0);
 			f.write(fromCouponRange(e.range));
 			break;
 		case CType.GET_CAST:
-			f.writeL(cast(uint) e.casts);
+			f.writeL(cast(uint)e.casts);
 			break;
 		case CType.GET_ITEM:
-			f.writeL(cast(uint) e.item);
-			f.writeL(cast(uint) e.cardNumber);
+			f.writeL(cast(uint)e.item);
+			f.writeL(cast(uint)e.cardNumber);
 			f.write(fromRange(e.range));
 			break;
 		case CType.GET_SKILL:
-			f.writeL(cast(uint) e.skill);
-			f.writeL(cast(uint) e.cardNumber);
+			f.writeL(cast(uint)e.skill);
+			f.writeL(cast(uint)e.cardNumber);
 			f.write(fromRange(e.range));
 			break;
 		case CType.GET_INFO:
-			f.writeL(cast(uint) e.info);
+			f.writeL(cast(uint)e.info);
 			break;
 		case CType.GET_BEAST:
-			f.writeL(cast(uint) e.beast);
-			f.writeL(cast(uint) e.cardNumber);
+			f.writeL(cast(uint)e.beast);
+			f.writeL(cast(uint)e.cardNumber);
 			f.write(fromRange(e.range));
 			break;
 		case CType.GET_MONEY:
-			f.writeL(cast(uint) e.money);
+			f.writeL(cast(uint)e.money);
 			break;
 		case CType.GET_COUPON:
 			writeString(f, e.coupon);
-			f.writeL(cast(int) e.couponValue);
+			f.writeL(cast(int)e.couponValue);
 			f.write(fromRange(e.range));
 			break;
 		case CType.LOSE_CAST:
-			f.writeL(cast(uint) e.casts);
+			f.writeL(cast(uint)e.casts);
 			break;
 		case CType.LOSE_ITEM:
-			f.writeL(cast(uint) e.item);
-			f.writeL(cast(uint) e.cardNumber);
+			f.writeL(cast(uint)e.item);
+			f.writeL(cast(uint)e.cardNumber);
 			f.write(fromRange(e.range));
 			break;
 		case CType.LOSE_SKILL:
-			f.writeL(cast(uint) e.skill);
-			f.writeL(cast(uint) e.cardNumber);
+			f.writeL(cast(uint)e.skill);
+			f.writeL(cast(uint)e.cardNumber);
 			f.write(fromRange(e.range));
 			break;
 		case CType.LOSE_INFO:
-			f.writeL(cast(uint) e.info);
+			f.writeL(cast(uint)e.info);
 			break;
 		case CType.LOSE_BEAST:
-			f.writeL(cast(uint) e.beast);
-			f.writeL(cast(uint) e.cardNumber);
+			f.writeL(cast(uint)e.beast);
+			f.writeL(cast(uint)e.cardNumber);
 			f.write(fromRange(e.range));
 			break;
 		case CType.LOSE_MONEY:
-			f.writeL(cast(uint) e.money);
+			f.writeL(cast(uint)e.money);
 			break;
 		case CType.LOSE_COUPON:
 			writeString(f, e.coupon);
-			f.writeL(cast(int) 0x0);
+			f.writeL(cast(int)0x0);
 			f.write(fromRange(e.range));
 			break;
 		case CType.TALK_DIALOG:
 			switch (e.talkerNC) {
-			case Talker.SELECTED: f.writeL(cast(byte) 0); break;
-			case Talker.RANDOM: f.writeL(cast(byte) 1); break;
-			case Talker.UNSELECTED: f.writeL(cast(byte) 2); break;
-			case Talker.VALUED: f.writeL(cast(byte) 3); break;
-			default: throw new SummaryException("Unknown talker value: " ~ to!(string)(cast(int) e.talkerNC));
+			case Talker.SELECTED: f.writeL(cast(byte)0); break;
+			case Talker.RANDOM: f.writeL(cast(byte)1); break;
+			case Talker.UNSELECTED: f.writeL(cast(byte)2); break;
+			case Talker.VALUED: f.writeL(cast(byte)3); break;
+			default: throw new SummaryException("Unknown talker value: " ~ to!(string)(cast(int)e.talkerNC));
 			}
 			if (Talker.VALUED == e.talkerNC) { mixin(S_TRACE);
 				if (0 == e.initValue) { mixin(S_TRACE);
-					f.writeL(cast(uint) e.coupons.length);
+					f.writeL(cast(uint)e.coupons.length);
 				} else { mixin(S_TRACE);
-					f.writeL(cast(uint) e.coupons.length + 1);
+					f.writeL(cast(uint)e.coupons.length + 1);
 					writeString(f, "");
-					f.writeL(cast(int) e.initValue);
+					f.writeL(cast(int)e.initValue);
 				}
 				foreach (c; e.coupons) { mixin(S_TRACE);
 					writeString(f, c.name);
-					f.writeL(cast(int) c.value);
+					f.writeL(cast(int)c.value);
 				}
 			}
-			f.writeL(cast(uint) e.dialogs.length);
+			f.writeL(cast(uint)e.dialogs.length);
 			foreach (dlg; e.dialogs) { mixin(S_TRACE);
 				writeStrings(f, dlg.rCoupons);
 				writeString(f, lastRet(dlg.text), true);
@@ -3373,20 +3377,20 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 			break;
 		case CType.BRANCH_STEP:
 			writeString(f, e.step);
-			f.writeL(cast(uint) e.stepValue);
+			f.writeL(e.stepValue < 10u ? cast(uint)e.stepValue : 10u - 1u);
 			break;
 		case CType.ELAPSE_TIME:
 			break;
 		case CType.BRANCH_LEVEL:
 			writeBool(f, e.average);
-			f.writeL(cast(uint) e.unsignedLevel);
+			f.writeL(cast(uint)e.unsignedLevel);
 			break;
 		case CType.BRANCH_STATUS:
 			f.write(fromStatus(e.status));
 			f.write(fromRange(e.range));
 			break;
 		case CType.BRANCH_PARTY_NUMBER:
-			f.writeL(cast(uint) e.partyNumber);
+			f.writeL(cast(uint)e.partyNumber);
 			break;
 		case CType.SHOW_PARTY:
 			break;
@@ -3398,10 +3402,10 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 			writeString(f, e.start);
 			break;
 		case CType.LINK_PACKAGE:
-			f.writeL(cast(uint) e.packages);
+			f.writeL(cast(uint)e.packages);
 			break;
 		case CType.CALL_PACKAGE:
-			f.writeL(cast(uint) e.packages);
+			f.writeL(cast(uint)e.packages);
 			break;
 		case CType.BRANCH_AREA:
 			break;
@@ -3483,12 +3487,12 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 			break;
 		case CType.CHECK_STEP:
 			writeString(f, e.step);
-			f.writeL(cast(uint) e.stepValue);
+			f.writeL(e.stepValue < 10u ? cast(uint)e.stepValue : 10u - 1u);
 			f.write(fromComparison4(e.comparison4));
 			break;
 		case CType.BRANCH_ROUND:
 			f.write(fromComparison3(e.comparison3));
-			f.writeL(cast(uint) e.round);
+			f.writeL(cast(uint)e.round);
 			break;
 /+		case CType.MOVE_BG_IMAGE:
 			writeExString(f, e.cellName);
@@ -3531,13 +3535,13 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 	}
 }
 private void writeCEventTree(ref SData d, ref ByteIO f, EventTree tree) { mixin(S_TRACE);
-	f.writeL(cast(uint) tree.starts.length);
+	f.writeL(cast(uint)tree.starts.length);
 	foreach (evt; tree.starts) { mixin(S_TRACE);
 		writeContent(d, f, evt);
 	}
 }
 private void writeEventTree(ref SData d, ref ByteIO f, EventTree tree) { mixin(S_TRACE);
-	f.writeL(cast(uint) tree.starts.length);
+	f.writeL(cast(uint)tree.starts.length);
 	foreach (evt; tree.starts) { mixin(S_TRACE);
 		writeContent(d, f, evt);
 	}
@@ -3548,11 +3552,11 @@ private void writeEventTree(ref SData d, ref ByteIO f, EventTree tree) { mixin(S
 	if (tree.fireEveryRound) igs ~= 4;
 	if (tree.fireRound0) igs ~= 5;
 	foreach (rnd; tree.rounds) { mixin(S_TRACE);
-		igs ~= -(cast(int) rnd);
+		igs ~= -(cast(int)rnd);
 	}
-	f.writeL(cast(uint) igs.length);
+	f.writeL(cast(uint)igs.length);
 	foreach (ig; igs) { mixin(S_TRACE);
-		f.writeL(cast(int) ig);
+		f.writeL(cast(int)ig);
 	}
 	string[] keyCodes;
 	foreach (keyCode; tree.keyCodes) { mixin(S_TRACE);
@@ -3566,7 +3570,7 @@ private void writeEventTree(ref SData d, ref ByteIO f, EventTree tree) { mixin(S
 	}
 }
 private void writeBgImage(ref SData d, ref ByteIO f, BgImage b) { mixin(S_TRACE);
-	auto ic = cast(ImageCell) b;
+	auto ic = cast(ImageCell)b;
 	if (ic) { mixin(S_TRACE);
 		bool included = isBinImg(ic.path);
 		// 1.60
@@ -3585,31 +3589,31 @@ private void writeBgImage(ref SData d, ref ByteIO f, BgImage b) { mixin(S_TRACE)
 				writeString(f, encodePathLegacy(ic.path));
 			}
 			writeString(f, ic.flag);
-			f.writeL(cast(byte) 0x0);
+			f.writeL(cast(byte)0x0);
 			writeExString(f, ic.cellName);
 		} else +/{ mixin(S_TRACE);
-			f.writeL(cast(int) ic.x);
-			f.writeL(cast(int) ic.y);
-			f.writeL(cast(uint) ic.width + 40000u);
-			f.writeL(cast(uint) ic.height);
+			f.writeL(cast(int)ic.x);
+			f.writeL(cast(int)ic.y);
+			f.writeL(cast(uint)ic.width + 40000u);
+			f.writeL(cast(uint)ic.height);
 			writeString(f, encodePathLegacy(ic.path));
 			writeBool(f, ic.mask);
 			writeString(f, ic.flag);
-			f.writeL(cast(byte) 0x0);
+			f.writeL(cast(byte)0x0);
 		}
 	}
-	auto tc = cast(TextCell) b;
+	auto tc = cast(TextCell)b;
 	if (tc) { mixin(S_TRACE);
-		f.writeL(cast(int) tc.x);
-		f.writeL(cast(int) tc.y);
+		f.writeL(cast(int)tc.x);
+		f.writeL(cast(int)tc.y);
 		// 1.60
 		/+if (tc.foreground || tc.cellName != "") {
 			f.writeL(cast(uint)tc.width + 70000u);
 		} else +/{
 			f.writeL(cast(uint)tc.width + 60000u);
 		}
-		f.writeL(cast(uint) tc.height);
-		f.write(cast(byte) 2);
+		f.writeL(cast(uint)tc.height);
+		f.write(cast(byte)2);
 		writeBool(f, tc.mask);
 		// 1.60
 /+		if (tc.foreground || tc.cellName != "") {
@@ -3617,12 +3621,12 @@ private void writeBgImage(ref SData d, ref ByteIO f, BgImage b) { mixin(S_TRACE)
 		}
 +/		writeString(f, tc.text);
 		writeString(f, tc.fontName);
-		f.writeL(cast(uint) tc.size);
+		f.writeL(cast(uint)tc.size);
 		auto color = tc.color;
-		f.write(cast(ubyte) color.r);
-		f.write(cast(ubyte) color.g);
-		f.write(cast(ubyte) color.b);
-		f.write(cast(ubyte) color.a);
+		f.write(cast(ubyte)color.r);
+		f.write(cast(ubyte)color.g);
+		f.write(cast(ubyte)color.b);
+		f.write(cast(ubyte)color.a);
 		bool bordering = tc.borderingType !is BorderingType.None;
 		ubyte style = 0;
 		if (tc.bold)      style |= 0b0000001;
@@ -3636,36 +3640,36 @@ private void writeBgImage(ref SData d, ref ByteIO f, BgImage b) { mixin(S_TRACE)
 		if (bordering) { mixin(S_TRACE);
 			f.write(fromBorderingType(tc.borderingType));
 			auto bColor = tc.borderingColor;
-			f.write(cast(ubyte) bColor.r);
-			f.write(cast(ubyte) bColor.g);
-			f.write(cast(ubyte) bColor.b);
-			f.write(cast(ubyte) bColor.a);
-			f.writeL(cast(uint) tc.borderingWidth);
+			f.write(cast(ubyte)bColor.r);
+			f.write(cast(ubyte)bColor.g);
+			f.write(cast(ubyte)bColor.b);
+			f.write(cast(ubyte)bColor.a);
+			f.writeL(cast(uint)tc.borderingWidth);
 		}
-		f.write(cast(byte) 100);
-		f.writeL(cast(uint) 0);
-		f.writeL(cast(uint) 0);
-		f.write(cast(byte) (tc.vertical ? 2 : 0));
+		f.write(cast(byte)100);
+		f.writeL(cast(uint)0);
+		f.writeL(cast(uint)0);
+		f.write(cast(byte)(tc.vertical ? 2 : 0));
 
 		writeString(f, tc.flag);
-		f.writeL(cast(byte) 0x0);
+		f.writeL(cast(byte)0x0);
 		// 1.60
 /+		if (tc.foreground || tc.cellName != "") {
 			writeExString(f, tc.cellName);
 		}
 +/	}
-	auto cc = cast(ColorCell) b;
+	auto cc = cast(ColorCell)b;
 	if (cc) { mixin(S_TRACE);
-		f.writeL(cast(int) cc.x);
-		f.writeL(cast(int) cc.y);
+		f.writeL(cast(int)cc.x);
+		f.writeL(cast(int)cc.y);
 		// 1.60
 		/+if (cc.foreground || cc.cellName != "") {
 			f.writeL(cast(uint)cc.width + 70000u);
 		} else +/{
 			f.writeL(cast(uint)cc.width + 60000u);
 		}
-		f.writeL(cast(uint) cc.height);
-		f.write(cast(byte) 3);
+		f.writeL(cast(uint)cc.height);
+		f.write(cast(byte)3);
 		f.write(fromBlendMode(cc.blendMode, cc.mask));
 		// 1.60
 /+		if (cc.foreground || cc.cellName != "") {
@@ -3673,25 +3677,25 @@ private void writeBgImage(ref SData d, ref ByteIO f, BgImage b) { mixin(S_TRACE)
 		}
 +/		f.write(fromGradientDir(cc.gradientDir));
 		auto color1 = cc.color1;
-		f.write(cast(ubyte) color1.b);
-		f.write(cast(ubyte) color1.g);
-		f.write(cast(ubyte) color1.r);
-		f.write(cast(ubyte) color1.a);
+		f.write(cast(ubyte)color1.b);
+		f.write(cast(ubyte)color1.g);
+		f.write(cast(ubyte)color1.r);
+		f.write(cast(ubyte)color1.a);
 		if (cc.gradientDir !is GradientDir.None) { mixin(S_TRACE);
 			auto color2 = cc.color2;
-			f.write(cast(ubyte) color2.b);
-			f.write(cast(ubyte) color2.g);
-			f.write(cast(ubyte) color2.r);
-			f.write(cast(ubyte) color2.a);
+			f.write(cast(ubyte)color2.b);
+			f.write(cast(ubyte)color2.g);
+			f.write(cast(ubyte)color2.r);
+			f.write(cast(ubyte)color2.a);
 		}
 		writeString(f, cc.flag);
-		f.writeL(cast(byte) 0x0);
+		f.writeL(cast(byte)0x0);
 		// 1.60
 /+		if (cc.foreground || cc.cellName != "") {
 			writeExString(f, cc.cellName);
 		}
 +/	}
-	auto pc = cast(PCCell) b;
+	auto pc = cast(PCCell)b;
 	if (pc) { mixin(S_TRACE);
 		f.writeL(cast(int)pc.x);
 		f.writeL(cast(int)pc.y);
@@ -3710,7 +3714,7 @@ private void writeBgImage(ref SData d, ref ByteIO f, BgImage b) { mixin(S_TRACE)
 		}
 +/		f.write(cast(ubyte)pc.pcNumber);
 		writeString(f, pc.flag);
-		f.writeL(cast(byte) 0x0);
+		f.writeL(cast(byte)0x0);
 		// 1.60
 /+		if (pc.foreground || pc.cellName != "") {
 			writeExString(f, pc.cellName);
@@ -3721,12 +3725,12 @@ private void writeBgImages(ref SData d, ref ByteIO f, BgImage[] backs, bool repl
 	if (replBgImg)  { mixin(S_TRACE);
 		f.writeExUInt(cast(uint)backs.length);
 	} else { mixin(S_TRACE);
-		auto b = backs.length ? cast(ImageCell) backs[0] : null;
+		auto b = backs.length ? cast(ImageCell)backs[0] : null;
 		if (b && b.path != "" && b.flag == "" && b.x == 0 && b.y == 0
 				&& b.width == 632 && b.height == 420 && !b.mask && b.cellName == "") { mixin(S_TRACE);
-			f.writeL(cast(uint) backs.length);
+			f.writeL(cast(uint)backs.length);
 		} else { mixin(S_TRACE);
-			f.writeL(cast(uint) backs.length + 1u);
+			f.writeL(cast(uint)backs.length + 1u);
 			writeBgImage(d, f, new ImageCell("", "", 0, 0, 632, 420, false));
 		}
 	}
@@ -3735,18 +3739,18 @@ private void writeBgImages(ref SData d, ref ByteIO f, BgImage[] backs, bool repl
 	}
 }
 private void writeArea(ref SData d, ref ByteIO f, Area a) { mixin(S_TRACE);
-	f.writeL(cast(byte) 0x0);
-	f.writeL(cast(uint) 0x0);
+	f.writeL(cast(byte)0x0);
+	f.writeL(cast(uint)0x0);
 	writeString(f, a.name);
-	f.writeL(cast(uint) (a.id + 40000u));
-	f.writeL(cast(uint) a.trees.length);
+	f.writeL(cast(uint)(a.id + 40000u));
+	f.writeL(cast(uint)a.trees.length);
 	foreach (tree; a.trees) { mixin(S_TRACE);
 		writeEventTree(d, f, tree);
 	}
 	writeBool(f, !a.spAuto);
-	f.writeL(cast(uint) a.cards.length);
+	f.writeL(cast(uint)a.cards.length);
 	foreach (c; a.cards) { mixin(S_TRACE);
-		f.writeL(cast(byte) 0x0);
+		f.writeL(cast(byte)0x0);
 		bool saveBinImg;
 		auto paths = c.paths;
 		auto path = paths.length ? paths[0] : null;
@@ -3758,12 +3762,12 @@ private void writeArea(ref SData d, ref ByteIO f, Area a) { mixin(S_TRACE);
 			saveBinImg = false;
 		}
 		writeString(f, c.name);
-		f.writeL(cast(byte) 0x40);
-		f.writeL(cast(byte) 0x9C);
-		f.writeL(cast(byte) 0x0);
-		f.writeL(cast(byte) 0x0);
+		f.writeL(cast(byte)0x40);
+		f.writeL(cast(byte)0x9C);
+		f.writeL(cast(byte)0x0);
+		f.writeL(cast(byte)0x0);
 		writeString(f, c.desc);
-		f.writeL(cast(uint) c.trees.length);
+		f.writeL(cast(uint)c.trees.length);
 		foreach (tree; c.trees) { mixin(S_TRACE);
 			writeEventTree(d, f, tree);
 		}
@@ -3782,19 +3786,19 @@ private void writeArea(ref SData d, ref ByteIO f, Area a) { mixin(S_TRACE);
 	writeBgImages(d, f, a.backs);
 }
 private void writeBattle(ref SData d, ref ByteIO f, Battle a) { mixin(S_TRACE);
-	f.writeL(cast(byte) 0x1);
-	f.writeL(cast(uint) 0x0);
+	f.writeL(cast(byte)0x1);
+	f.writeL(cast(uint)0x0);
 	writeString(f, a.name);
-	f.writeL(cast(uint) (a.id + 40000u));
-	f.writeL(cast(uint) a.trees.length);
+	f.writeL(cast(uint)(a.id + 40000u));
+	f.writeL(cast(uint)a.trees.length);
 	foreach (tree; a.trees) { mixin(S_TRACE);
 		writeEventTree(d, f, tree);
 	}
 	writeBool(f, !a.spAuto);
-	f.writeL(cast(uint) a.cards.length);
+	f.writeL(cast(uint)a.cards.length);
 	foreach (c; a.cards) { mixin(S_TRACE);
-		f.writeL(cast(uint) c.id);
-		f.writeL(cast(uint) c.trees.length);
+		f.writeL(cast(uint)c.id);
+		f.writeL(cast(uint)c.trees.length);
 		foreach (tree; c.trees) { mixin(S_TRACE);
 			writeEventTree(d, f, tree);
 		}
@@ -3807,20 +3811,20 @@ private void writeBattle(ref SData d, ref ByteIO f, Battle a) { mixin(S_TRACE);
 	writeString(f, encodePathLegacy(a.music));
 }
 private void writePackage(ref SData d, ref ByteIO f, Package a) { mixin(S_TRACE);
-	f.writeL(cast(uint) 0x4);
+	f.writeL(cast(uint)0x4);
 	writeString(f, a.name);
-	f.writeL(cast(uint) a.id);
-	f.writeL(cast(uint) a.trees.length);
+	f.writeL(cast(uint)a.id);
+	f.writeL(cast(uint)a.trees.length);
 	foreach (tree; a.trees) { mixin(S_TRACE);
 		writeCEventTree(d, f, tree);
 	}
 }
 private void writeCast(ref SData d, ref ByteIO f, CastCard c) { mixin(S_TRACE);
-	f.writeL(cast(byte) 0x2);
+	f.writeL(cast(byte)0x2);
 	auto paths = c.paths;
 	writeImage(d, f, c, paths.length && paths[0].type is CardImageType.File ? paths[0].path : "");
 	writeString(f, c.name);
-	f.writeL(cast(uint) (c.id + 40000u));
+	f.writeL(cast(uint)(c.id + 40000u));
 	writeBool(f, c.weaponResist);
 	writeBool(f, c.magicResist);
 	writeBool(f, c.undead);
@@ -3831,33 +3835,33 @@ private void writeCast(ref SData d, ref ByteIO f, CastCard c) { mixin(S_TRACE);
 	writeBool(f, c.resist(Element.ICE));
 	writeBool(f, c.weakness(Element.FIRE));
 	writeBool(f, c.weakness(Element.ICE));
-	f.writeL(cast(uint) c.level);
-	f.writeL(cast(uint) 0u); // 所持金。現行エンジンでは未使用
+	f.writeL(cast(uint)c.level);
+	f.writeL(cast(uint)0u); // 所持金。現行エンジンでは未使用
 	writeString(f, c.desc, true, true);
-	f.writeL(cast(uint) c.life);
-	f.writeL(cast(uint) c.lifeMax);
-	f.writeL(cast(uint) c.paralyze);
-	f.writeL(cast(uint) c.poison);
-	f.writeL(cast(int) c.defaultEnhance(Enhance.AVOID));
-	f.writeL(cast(int) c.defaultEnhance(Enhance.RESIST));
-	f.writeL(cast(int) c.defaultEnhance(Enhance.DEFENSE));
-	f.writeL(cast(uint) c.physical(Physical.DEX));
-	f.writeL(cast(uint) c.physical(Physical.AGL));
-	f.writeL(cast(uint) c.physical(Physical.INT));
-	f.writeL(cast(uint) c.physical(Physical.STR));
-	f.writeL(cast(uint) c.physical(Physical.VIT));
-	f.writeL(cast(uint) c.physical(Physical.MIN));
-	f.writeL(cast(int) c.mental(Mental.AGGRESSIVE));
-	f.writeL(cast(int) c.mental(Mental.CHEERFUL));
-	f.writeL(cast(int) c.mental(Mental.BRAVE));
-	f.writeL(cast(int) c.mental(Mental.CAUTIOUS));
-	f.writeL(cast(int) c.mental(Mental.TRICKISH));
+	f.writeL(cast(uint)c.life);
+	f.writeL(cast(uint)c.lifeMax);
+	f.writeL(cast(uint)c.paralyze);
+	f.writeL(cast(uint)c.poison);
+	f.writeL(cast(int)c.defaultEnhance(Enhance.AVOID));
+	f.writeL(cast(int)c.defaultEnhance(Enhance.RESIST));
+	f.writeL(cast(int)c.defaultEnhance(Enhance.DEFENSE));
+	f.writeL(cast(uint)c.physical(Physical.DEX));
+	f.writeL(cast(uint)c.physical(Physical.AGL));
+	f.writeL(cast(uint)c.physical(Physical.INT));
+	f.writeL(cast(uint)c.physical(Physical.STR));
+	f.writeL(cast(uint)c.physical(Physical.VIT));
+	f.writeL(cast(uint)c.physical(Physical.MIN));
+	f.writeL(cast(int)c.mental(Mental.AGGRESSIVE));
+	f.writeL(cast(int)c.mental(Mental.CHEERFUL));
+	f.writeL(cast(int)c.mental(Mental.BRAVE));
+	f.writeL(cast(int)c.mental(Mental.CAUTIOUS));
+	f.writeL(cast(int)c.mental(Mental.TRICKISH));
 	f.write(fromMentality(c.mentality));
-	f.writeL(cast(uint) c.mentalityRound);
-	f.writeL(cast(uint) c.bindRound);
-	f.writeL(cast(uint) c.silenceRound);
-	f.writeL(cast(uint) c.faceUpRound);
-	f.writeL(cast(uint) c.antiMagicRound);
+	f.writeL(cast(uint)c.mentalityRound);
+	f.writeL(cast(uint)c.bindRound);
+	f.writeL(cast(uint)c.silenceRound);
+	f.writeL(cast(uint)c.faceUpRound);
+	f.writeL(cast(uint)c.antiMagicRound);
 	foreach (enh; [Enhance.ACTION, Enhance.AVOID, Enhance.RESIST, Enhance.DEFENSE]) { mixin(S_TRACE);
 		int val = c.enhance(enh);
 		uint round = c.enhanceRound(enh);
@@ -3865,22 +3869,22 @@ private void writeCast(ref SData d, ref ByteIO f, CastCard c) { mixin(S_TRACE);
 		f.writeL(val);
 		f.writeL(round);
 	}
-	f.writeL(cast(uint) c.items.length);
+	f.writeL(cast(uint)c.items.length);
 	foreach (cc; c.items) { mixin(S_TRACE);
 		writeItem(d, f, cc);
 	}
-	f.writeL(cast(uint) c.skills.length);
+	f.writeL(cast(uint)c.skills.length);
 	foreach (cc; c.skills) { mixin(S_TRACE);
 		writeSkill(d, f, cc);
 	}
-	f.writeL(cast(uint) c.beasts.length);
+	f.writeL(cast(uint)c.beasts.length);
 	foreach (cc; c.beasts) { mixin(S_TRACE);
 		writeBeast(d, f, cc);
 	}
-	f.writeL(cast(uint) c.coupons.length);
+	f.writeL(cast(uint)c.coupons.length);
 	foreach (cc; c.coupons) { mixin(S_TRACE);
 		writeString(f, cc.coupon);
-		f.writeL(cast(int) cc.value);
+		f.writeL(cast(int)cc.value);
 	}
 }
 private void writeEffCard(ref SData d, ref ByteIO f, EffectCard c, byte type, ulong id) { mixin(S_TRACE);
@@ -3888,24 +3892,24 @@ private void writeEffCard(ref SData d, ref ByteIO f, EffectCard c, byte type, ul
 	auto paths = c.paths;
 	writeImage(d, f, c, paths.length && paths[0].type is CardImageType.File ? paths[0].path : "");
 	writeString(f, c.name);
-	f.writeL(cast(uint) (id + 40000u));
+	f.writeL(cast(uint)(id + 40000u));
 	writeString(f, c.desc);
-	f.writeL(cast(uint) fromPhysical(c.physical));
-	f.writeL(cast(int) fromMental(c.mental));
+	f.writeL(cast(uint)fromPhysical(c.physical));
+	f.writeL(cast(int)fromMental(c.mental));
 	writeBool(f, c.spell);
 	writeBool(f, c.allRange);
 	f.write(fromCardTarget(c.target));
 	f.write(fromEffectType(c.effectType));
 	f.write(fromResist(c.resist));
-	f.writeL(cast(int) c.successRate);
+	f.writeL(cast(int)c.successRate);
 	f.write(fromCardVisual(c.visual));
-	f.writeL(cast(uint) c.motions.length);
+	f.writeL(cast(uint)c.motions.length);
 	foreach (m; c.motions) { mixin(S_TRACE);
 		writeMotion(d, f, m);
 	}
-	f.writeL(cast(int) c.enhance(Enhance.AVOID));
-	f.writeL(cast(int) c.enhance(Enhance.RESIST));
-	f.writeL(cast(int) c.enhance(Enhance.DEFENSE));
+	f.writeL(cast(int)c.enhance(Enhance.AVOID));
+	f.writeL(cast(int)c.enhance(Enhance.RESIST));
+	f.writeL(cast(int)c.enhance(Enhance.DEFENSE));
 	writeString(f, c.soundPath1.length ? encodePathLegacy(c.soundPath1) : "（なし）");
 	writeString(f, c.soundPath2.length ? encodePathLegacy(c.soundPath2) : "（なし）");
 	for (uint i = 0u; i < 5u; i++) { mixin(S_TRACE);
@@ -3918,7 +3922,7 @@ private void writeEffCard(ref SData d, ref ByteIO f, EffectCard c, byte type, ul
 	f.write(fromPremium(c.premium));
 	writeString(f, c.scenario);
 	writeString(f, c.author);
-	f.writeL(cast(uint) c.trees.length);
+	f.writeL(cast(uint)c.trees.length);
 	foreach (tree; c.trees) { mixin(S_TRACE);
 		writeCEventTree(d, f, tree);
 	}
@@ -3934,8 +3938,8 @@ private void writeSkill(ref SData d, ref ByteIO f, SkillCard c) { mixin(S_TRACE)
 	}
 	writeEffCard(d, f, c, 0x5, id);
 	writeBool(f, hold);
-	f.writeL(cast(uint) c.level);
-	f.writeL(cast(uint) c.useLimit);
+	f.writeL(cast(uint)c.level);
+	f.writeL(cast(uint)c.useLimit);
 }
 private void writeItem(ref SData d, ref ByteIO f, ItemCard c) { mixin(S_TRACE);
 	ulong id = c.id;
@@ -3948,12 +3952,12 @@ private void writeItem(ref SData d, ref ByteIO f, ItemCard c) { mixin(S_TRACE);
 	}
 	writeEffCard(d, f, c, 0x3, id);
 	writeBool(f, hold);
-	f.writeL(cast(uint) c.useLimit);
-	f.writeL(cast(uint) c.useLimitMax);
-	f.writeL(cast(uint) c.price);
-	f.writeL(cast(int) c.enhanceOwner(Enhance.AVOID));
-	f.writeL(cast(int) c.enhanceOwner(Enhance.RESIST));
-	f.writeL(cast(int) c.enhanceOwner(Enhance.DEFENSE));
+	f.writeL(cast(uint)c.useLimit);
+	f.writeL(cast(uint)c.useLimitMax);
+	f.writeL(cast(uint)c.price);
+	f.writeL(cast(int)c.enhanceOwner(Enhance.AVOID));
+	f.writeL(cast(int)c.enhanceOwner(Enhance.RESIST));
+	f.writeL(cast(int)c.enhanceOwner(Enhance.DEFENSE));
 }
 private void writeBeast(ref SData d, ref ByteIO f, BeastCard c) { mixin(S_TRACE);
 	ulong id = c.id;
@@ -3965,13 +3969,13 @@ private void writeBeast(ref SData d, ref ByteIO f, BeastCard c) { mixin(S_TRACE)
 	}
 	writeEffCard(d, f, c, 0x6, id);
 	writeBool(f, false); // Hold
-	f.writeL(cast(uint) c.useLimit);
+	f.writeL(cast(uint)c.useLimit);
 }
 private void writeInfo(ref SData d, ref ByteIO f, InfoCard c) { mixin(S_TRACE);
-	f.writeL(cast(byte) 0x4);
+	f.writeL(cast(byte)0x4);
 	auto paths = c.paths;
 	writeImage(d, f, c, paths.length && paths[0].type is CardImageType.File ? paths[0].path : "");
 	writeString(f, c.name);
-	f.writeL(cast(uint) (c.id + 40000u));
+	f.writeL(cast(uint)(c.id + 40000u));
 	writeString(f, c.desc);
 }
