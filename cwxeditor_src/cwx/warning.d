@@ -417,13 +417,13 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		}
 		if (c.flag != "" && !(froot && froot.findFlag(c.flag))) { mixin(S_TRACE);
 			// 代入コンテントではランダム値が有効
-			if (!c.type == CType.SUBSTITUTE_FLAG || .icmp(prop.sys.randomValue, c.flag) == 0) { mixin(S_TRACE);
+			if (c.type != CType.SUBSTITUTE_FLAG || .icmp(prop.sys.randomValue, c.flag) != 0) { mixin(S_TRACE);
 				r ~= .tryFormat(prop.msgs.searchErrorFlagNotFound, c.flag);
 			}
 		}
 		if (c.step != "" && !(froot && froot.findStep(c.step))) { mixin(S_TRACE);
 			// 代入コンテントではランダム値・選択メンバ番号が有効
-			if (!c.type == CType.SUBSTITUTE_STEP || (.icmp(prop.sys.randomValue, c.flag) == 0 && .icmp(prop.sys.selectedPlayerCardNumber, c.step) == 0)) { mixin(S_TRACE);
+			if (c.type != CType.SUBSTITUTE_STEP || (.icmp(prop.sys.randomValue, c.step) != 0 && .icmp(prop.sys.selectedPlayerCardNumber, c.step) != 0)) { mixin(S_TRACE);
 				r ~= .tryFormat(prop.msgs.searchErrorStepNotFound, c.step);
 			}
 			if (c.type == CType.SUBSTITUTE_STEP && .icmp(prop.sys.selectedPlayerCardNumber, c.step) == 0 && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
