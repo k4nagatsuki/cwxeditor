@@ -2535,19 +2535,17 @@ public:
 	private CWXPath[] searchRange() { mixin(S_TRACE);
 		CWXPath[] r;
 		void recurse(TreeItem itm) { mixin(S_TRACE);
-			auto data = cast(CWXPath)itm.getData();
-			if (data) r ~= data;
+			if (itm.getChecked()) { mixin(S_TRACE);
+				auto data = cast(CWXPath)itm.getData();
+				if (data) r ~= data;
+			}
 			foreach (child; itm.getItems()) { mixin(S_TRACE);
-				if (child.getChecked()) { mixin(S_TRACE);
-					recurse(child);
-				}
+				recurse(child);
 			}
 		}
 		_incSearch.close();
 		foreach (itm; _range.getItems()) { mixin(S_TRACE);
-			if (itm.getChecked()) { mixin(S_TRACE);
-				recurse(itm);
-			}
+			recurse(itm);
 		}
 		return r;
 	}
@@ -3241,7 +3239,7 @@ public:
 				foreach (path; range) { mixin(S_TRACE);
 					searchAll(path, count, (CWXPath path, ref size_t count, string cwxPath) { mixin(S_TRACE);
 						if (cancel) return;
-						auto et = cast(EventTree) path;
+						auto et = cast(EventTree)path;
 						if (et) { mixin(S_TRACE);
 							foreach (i, s; et.starts[1 .. $]) { mixin(S_TRACE);
 								if (et.startUseCounter.get(toStartId(s.name)) == 0) { mixin(S_TRACE);
