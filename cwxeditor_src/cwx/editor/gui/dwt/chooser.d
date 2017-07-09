@@ -434,7 +434,9 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 
 	static if (Random) {
 		private Item _random = null;
-		private Item _selectedPlayer = null;
+		static if (is(F:Step)) {
+			private Item _selectedPlayer = null;
+		}
 	}
 
 	private Commons _comm;
@@ -544,23 +546,25 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 			}
 			if (!firstItem) firstItem = _random;
 
-			if (!_summ || !_summ.legacy) { mixin(S_TRACE);
-				// 選択メンバ番号(Wsn.2)
-				if (_tree) { mixin(S_TRACE);
-					_selectedPlayer = new TreeItem(_tree, SWT.NONE);
-				} else { mixin(S_TRACE);
-					_selectedPlayer = new TableItem(_list, SWT.NONE);
-				}
-				_selectedPlayer.setText(_prop.msgs.defaultSelection(_prop.msgs.selectedPlayerValue));
-				_selectedPlayer.setImage(_prop.images.selectedPlayerCardNumber);
-				if (.icmp(sel, _prop.sys.selectedPlayerCardNumber) == 0) { mixin(S_TRACE);
-					has = true;
+			static if (is(F:Step)) {
+				if (!_summ || !_summ.legacy) { mixin(S_TRACE);
+					// 選択メンバ番号(Wsn.2)
 					if (_tree) { mixin(S_TRACE);
-						_tree.setSelection([cast(TreeItem)_selectedPlayer]);
+						_selectedPlayer = new TreeItem(_tree, SWT.NONE);
 					} else { mixin(S_TRACE);
-						_list.select(_list.getItemCount() - 1);
+						_selectedPlayer = new TableItem(_list, SWT.NONE);
 					}
-					_selected = sel;
+					_selectedPlayer.setText(_prop.msgs.defaultSelection(_prop.msgs.selectedPlayerValue));
+					_selectedPlayer.setImage(_prop.images.selectedPlayerCardNumber);
+					if (.icmp(sel, _prop.sys.selectedPlayerCardNumber) == 0) { mixin(S_TRACE);
+						has = true;
+						if (_tree) { mixin(S_TRACE);
+							_tree.setSelection([cast(TreeItem)_selectedPlayer]);
+						} else { mixin(S_TRACE);
+							_list.select(_list.getItemCount() - 1);
+						}
+						_selected = sel;
+					}
 				}
 			}
 		}
@@ -685,8 +689,12 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 				static if (Random) {
 					if (firstItem is _random) { mixin(S_TRACE);
 						_selected = _prop.sys.randomValue;
-					} else if (_selectedPlayer && firstItem is _selectedPlayer) { mixin(S_TRACE);
-						_selected = _prop.sys.selectedPlayerCardNumber;
+					} else { mixin(S_TRACE);
+						static if (is(F:Step)) {
+							if (_selectedPlayer && firstItem is _selectedPlayer) { mixin(S_TRACE);
+								_selected = _prop.sys.selectedPlayerCardNumber;
+							}
+						}
 					}
 				}
 			}
@@ -794,8 +802,12 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 					static if (Random) {
 						if (sels[0] is _random) { mixin(S_TRACE);
 							_selected = _prop.sys.randomValue;
-						} else if (_selectedPlayer && sels[0] is _selectedPlayer) { mixin(S_TRACE);
-							_selected = _prop.sys.selectedPlayerCardNumber;
+						} else { mixin(S_TRACE);
+							static if (is(F:Step)) {
+								if (_selectedPlayer && sels[0] is _selectedPlayer) { mixin(S_TRACE);
+									_selected = _prop.sys.selectedPlayerCardNumber;
+								}
+							}
 						}
 					}
 				}
