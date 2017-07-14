@@ -2070,11 +2070,12 @@ private:
 		_flagAllCheck = new Button(comp, SWT.CHECK);
 		_flagAllCheck.setText(_prop.msgs.allCheckFlag);
 		_flagAllCheck.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		.listener(_flagAllCheck, SWT.Selection, (Event e) { mixin(S_TRACE);
+		.listener(_flagAllCheck, SWT.Selection, { mixin(S_TRACE);
 			foreach (itm; _flagList.getItems()) { mixin(S_TRACE);
 				itm.setChecked(_flagAllCheck.getSelection());
+				itm.setGrayed(false);
 			}
-			checkFlag(e);
+			checkFlagImpl();
 		});
 		.listener(_flagList, SWT.Selection, &checkFlag);
 
@@ -2175,11 +2176,15 @@ private:
 		if (!_flagList) return;
 		if (e.detail != SWT.CHECK) return;
 		updateChecked(e);
-		bool[string] useFlags;
 		if (e && cast(TableItem)e.item) { mixin(S_TRACE);
 			auto itm = cast(TableItem)e.item;
 			itm.setGrayed(false);
 		}
+		auto allChecked = checkFlagImpl();
+		_flagAllCheck.setSelection(allChecked && _flagList.getItemCount());
+	}
+	bool checkFlagImpl() { mixin(S_TRACE);
+		bool[string] useFlags;
 		bool allChecked = true;
 		foreach (itm; _flagList.getItems()) { mixin(S_TRACE);
 			if (itm.getGrayed()) { mixin(S_TRACE);
@@ -2194,7 +2199,6 @@ private:
 				useFlags[itm.getText().toLower()] = checked;
 			}
 		}
-		_flagAllCheck.setSelection(allChecked && _flagList.getItemCount());
 		static if (UseCards) {
 			foreach (itm; _cards.getItems()) { mixin(S_TRACE);
 				auto c = cast(C)itm.getData();
@@ -2210,6 +2214,7 @@ private:
 			}
 		}
 		checked();
+		return allChecked;
 	}
 	void updateFlagChecks() { mixin(S_TRACE);
 		if (!_flagList) return;
