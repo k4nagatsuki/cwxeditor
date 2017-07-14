@@ -3036,7 +3036,7 @@ public:
 						} else if (!_noMode) {
 							shl.setImeInputMode(_prop.var.etc.imeMode);
 						}
-						if (!control || control.getParent() !is _cbar) _comm.refreshToolBar();
+						_comm.refreshToolBar();
 					} else { mixin(S_TRACE);
 						assert (e.type is SWT.FocusOut);
 						if (cast(Spinner)control || cast(NoIME)control) { mixin(S_TRACE);
@@ -4049,19 +4049,6 @@ public:
 	}
 	private void delegate(SelectionEvent) menuActionDlg(MenuID id) { mixin(S_TRACE);
 		return (SelectionEvent se) { mixin(S_TRACE);
-			auto fc = _comm.focusControlAfterRefreshToolBar;
-			if (fc) { mixin(S_TRACE);
-				auto menu = fc.getMenu();
-				if (menu) { mixin(S_TRACE);
-					foreach (itm; menu.getItems()) { mixin(S_TRACE);
-						auto d = cast(MenuData)itm.getData();
-						if (d && d.id is id && (!d.enabled || d.enabled())) { mixin(S_TRACE);
-							raiseEvent(itm, se);
-							return;
-						}
-					}
-				}
-			}
 			if (!_tlp) return;
 			auto act = _tlp.menuAction(id);
 			assert (act, .text(id) ~ " " ~ .text(_tlp));
