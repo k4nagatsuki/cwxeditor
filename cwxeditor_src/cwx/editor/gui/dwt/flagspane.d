@@ -111,6 +111,12 @@ public:
 		_prop.var.etc.flagSashV = (_sash.getStyle() & SWT.VERTICAL) != 0;
 	}
 
+	/// 状態変数のパスをコピーする。
+	@property
+	bool canCopyVariablePath() { return _flags.canCopyVariablePath; }
+	/// ditto
+	void copyVariablePath() { _flags.copyVariablePath(); }
+
 	/// フラグのディレクトリツリーを設定し、各コンポーネントに
 	/// 指定されたツリーのデータを表示させる。
 	/// Params:

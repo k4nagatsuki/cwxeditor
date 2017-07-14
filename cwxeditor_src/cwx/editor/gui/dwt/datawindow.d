@@ -157,6 +157,7 @@ public:
 			putMenuAction(MenuID.NewFlag, &createFlag, &canCreateFlag);
 			putMenuAction(MenuID.NewStep, &createStep, &canCreateStep);
 			putMenuAction(MenuID.EditProp, &_flags.edit, &_flags.canEdit);
+			putMenuAction(MenuID.CopyVariablePath, &_flags.copyVariablePath, &_flags.canCopyVariablePath);
 		}
 		putMenuAction(MenuID.ChangeVH, &changeVHSide, &canChangeVH);
 		putMenuAction(MenuID.Undo, &undo, &canUndo);

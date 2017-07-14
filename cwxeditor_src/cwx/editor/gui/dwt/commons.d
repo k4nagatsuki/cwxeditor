@@ -546,6 +546,11 @@ class Commons {
 	void refreshToolBar() { mixin(S_TRACE);
 		refreshToolBar(null);
 	}
+	private Control _focusControlAfterRefreshToolBar = null;
+	@property
+	Control focusControlAfterRefreshToolBar() { mixin(S_TRACE);
+		return _focusControlAfterRefreshToolBar;
+	}
 	void refreshToolBar(Control fc) { mixin(S_TRACE);
 		if (!_main) return;
 		if (!_main.shell) return;
@@ -553,12 +558,13 @@ class Commons {
 			auto display = _main.shell.getDisplay();
 			fc = display.getFocusControl();
 		}
+		_focusControlAfterRefreshToolBar = fc;
 		bool delegate()[MenuID] cMenuTbl;
-		if (cast(Text) fc || cast(Combo) fc || cast(CCombo) fc) { mixin(S_TRACE);
+		if (fc) { mixin(S_TRACE);
 			auto menu = fc.getMenu();
 			if (menu) { mixin(S_TRACE);
 				foreach (itm; menu.getItems()) { mixin(S_TRACE);
-					auto d = cast(MenuData) itm.getData();
+					auto d = cast(MenuData)itm.getData();
 					if (d && d.enabled) { mixin(S_TRACE);
 						cMenuTbl[d.id] = d.enabled;
 					}

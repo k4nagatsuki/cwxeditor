@@ -1798,22 +1798,6 @@ private:
 		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys, LATEST_VERSION)));
 		_comm.refreshToolBar();
 	}
-	void copyVariablePath() { mixin(S_TRACE);
-		if (0 == flags.getSelectionCount()) return;
-
-		char[] buf;
-		foreach (itm; flags.getSelection()) { mixin(S_TRACE);
-			if (buf.length) buf ~= .newline;
-			auto f = cast(cwx.flag.Flag)itm.getData();
-			if (f) buf ~= f.path;
-			auto s = cast(Step)itm.getData();
-			if (s) buf ~= s.path;
-			assert (f || s);
-		}
-		_comm.clipboard.setContents([new ArrayWrapperString(buf)],
-			[TextTransfer.getInstance()]);
-		_comm.refreshToolBar();
-	}
 public:
 	this (Commons comm, Props prop, UndoManager undo) { mixin(S_TRACE);
 		auto o = this;
@@ -1888,7 +1872,7 @@ public:
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.FindID, &replaceID, &canReplaceID);
 		new MenuItem(menu, SWT.SEPARATOR);
-		createMenuItem(_comm, menu, MenuID.CopyVariablePath, &copyVariablePath, () => 0 < flags.getSelectionCount());
+		createMenuItem(_comm, menu, MenuID.CopyVariablePath, &copyVariablePath, &canCopyVariablePath);
 		flags.setMenu(menu);
 
 		auto ds = new DragSource(flags, DND.DROP_MOVE | DND.DROP_COPY);
@@ -2128,6 +2112,29 @@ public:
 	}
 	void deselectAll() { mixin(S_TRACE);
 		flags.deselectAll();
+	}
+
+	/// 状態変数のパスをコピーする。
+	@property
+	bool canCopyVariablePath() { mixin(S_TRACE);
+		return 0 < flags.getSelectionCount();
+	}
+	/// ditto
+	void copyVariablePath() { mixin(S_TRACE);
+		if (!canCopyVariablePath) return;
+
+		char[] buf;
+		foreach (itm; flags.getSelection()) { mixin(S_TRACE);
+			if (buf.length) buf ~= .newline;
+			auto f = cast(cwx.flag.Flag)itm.getData();
+			if (f) buf ~= f.path;
+			auto s = cast(Step)itm.getData();
+			if (s) buf ~= s.path;
+			assert (f || s);
+		}
+		_comm.clipboard.setContents([new ArrayWrapperString(buf)],
+			[TextTransfer.getInstance()]);
+		_comm.refreshToolBar();
 	}
 
 	/// コントロールを解放する。

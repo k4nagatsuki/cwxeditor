@@ -3036,7 +3036,7 @@ public:
 						} else if (!_noMode) {
 							shl.setImeInputMode(_prop.var.etc.imeMode);
 						}
-						_comm.refreshToolBar();
+						if (!control || control.getParent() !is _cbar) _comm.refreshToolBar();
 					} else { mixin(S_TRACE);
 						assert (e.type is SWT.FocusOut);
 						if (cast(Spinner)control || cast(NoIME)control) { mixin(S_TRACE);
@@ -3533,35 +3533,10 @@ public:
 			if (cast(IgnoreHotkey)fc.getData()) { mixin(S_TRACE);
 				return;
 			}
-			void raiseEvent(MenuItem menu) { mixin(S_TRACE);
-				_comm.isMenuAccelerating = .convertAccelerator(menu.getText());
-				scope (exit) _comm.isMenuAccelerating = 0;
-				if (menu.getStyle() & SWT.CHECK) { mixin(S_TRACE);
-					menu.setSelection(!menu.getSelection());
-				}
-				if (menu.getStyle() & SWT.RADIO) { mixin(S_TRACE);
-					menu.setSelection(!menu.getSelection());
-					if (menu.getSelection()) { mixin(S_TRACE);
-						foreach (etc; menu.getParent().getItems()) { mixin(S_TRACE);
-							if (etc !is menu) { mixin(S_TRACE);
-								menu.setSelection(false);
-							}
-						}
-					}
-				}
-				auto se = new Event;
-				se.type = SWT.Selection;
-				se.widget = menu;
-				se.time = e.time;
-				se.stateMask = e.stateMask;
-				se.doit = e.doit;
-				menu.notifyListeners(SWT.Selection, se);
-				e.doit = false;
-			}
 			if (fc.getMenu()) { mixin(S_TRACE);
 				auto menu = findMenu(fc.getMenu(), e.keyCode, e.character, e.stateMask);
 				if (menu && .menuEnabled(menu)) { mixin(S_TRACE);
-					raiseEvent(menu);
+					raiseEvent(menu, e);
 					return;
 				}
 			}
@@ -3591,7 +3566,7 @@ public:
 				}
 			}
 			if (menu && .menuEnabled(menu)) { mixin(S_TRACE);
-				raiseEvent(menu);
+				raiseEvent(menu, e);
 				return;
 			}
 			auto tlp = getTopLevelPanel(fc);
@@ -3612,12 +3587,37 @@ public:
 				if (tabMenu) { mixin(S_TRACE);
 					menu = findMenu(tabMenu, e.keyCode, e.character, e.stateMask);
 					if (menu && .menuEnabled(menu)) { mixin(S_TRACE);
-						raiseEvent(menu);
+						raiseEvent(menu, e);
 						return;
 					}
 				}
 			}
 		}
+	}
+	private void raiseEvent(E)(MenuItem menu, E e) { mixin(S_TRACE);
+		_comm.isMenuAccelerating = .convertAccelerator(menu.getText());
+		scope (exit) _comm.isMenuAccelerating = 0;
+		if (menu.getStyle() & SWT.CHECK) { mixin(S_TRACE);
+			menu.setSelection(!menu.getSelection());
+		}
+		if (menu.getStyle() & SWT.RADIO) { mixin(S_TRACE);
+			menu.setSelection(!menu.getSelection());
+			if (menu.getSelection()) { mixin(S_TRACE);
+				foreach (etc; menu.getParent().getItems()) { mixin(S_TRACE);
+					if (etc !is menu) { mixin(S_TRACE);
+						menu.setSelection(false);
+					}
+				}
+			}
+		}
+		auto se = new Event;
+		se.type = SWT.Selection;
+		se.widget = menu;
+		se.time = e.time;
+		se.stateMask = e.stateMask;
+		se.doit = e.doit;
+		menu.notifyListeners(SWT.Selection, se);
+		e.doit = false;
 	}
 	private class SwitchTab : Listener {
 		private Control _oldFocus = null;
@@ -4049,6 +4049,19 @@ public:
 	}
 	private void delegate(SelectionEvent) menuActionDlg(MenuID id) { mixin(S_TRACE);
 		return (SelectionEvent se) { mixin(S_TRACE);
+			auto fc = _comm.focusControlAfterRefreshToolBar;
+			if (fc) { mixin(S_TRACE);
+				auto menu = fc.getMenu();
+				if (menu) { mixin(S_TRACE);
+					foreach (itm; menu.getItems()) { mixin(S_TRACE);
+						auto d = cast(MenuData)itm.getData();
+						if (d && d.id is id && (!d.enabled || d.enabled())) { mixin(S_TRACE);
+							raiseEvent(itm, se);
+							return;
+						}
+					}
+				}
+			}
 			if (!_tlp) return;
 			auto act = _tlp.menuAction(id);
 			assert (act, .text(id) ~ " " ~ .text(_tlp));
