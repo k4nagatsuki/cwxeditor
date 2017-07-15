@@ -2411,35 +2411,44 @@ string saveTemplate(in Summary summ) { mixin(S_TRACE);
 
 /// 保存用の拡張データ情報をdへ記録する。
 void putExData(ref SData d, CWXPath cp) { mixin(S_TRACE);
-	void putInnerImagePath(ref SData d, CWXPath cp, in CardImage imgPath) { mixin(S_TRACE);
-		if (!d.saveInnerImagePath) return;
-		if (imgPath.type !is CardImageType.File) return;
-		if (!imgPath.path.length) return;
-		if (isBinImg(imgPath.path)) return;
-		d.imageRef[cp.cwxPath(true)] = encodePathLegacy(imgPath.path);
-	}
-	if (auto summ = cast(Summary)cp) { mixin(S_TRACE);
-		auto paths = summ.imagePaths;
-		if (paths.length) putInnerImagePath(d, cp, paths[0]);
-	} else if (auto m = cast(Motion)cp) { mixin(S_TRACE);
-		if (Motion.maxNest_init != m.maxNest) { mixin(S_TRACE);
-			d.maxNest[m.cwxPath(true)] = m.maxNest;
+	while (true) { mixin(S_TRACE);
+		void putInnerImagePath(ref SData d, CWXPath cp, in CardImage imgPath) { mixin(S_TRACE);
+			if (!d.saveInnerImagePath) return;
+			if (imgPath.type !is CardImageType.File) return;
+			if (!imgPath.path.length) return;
+			if (isBinImg(imgPath.path)) return;
+			d.imageRef[cp.cwxPath(true)] = encodePathLegacy(imgPath.path);
 		}
-	} else if (auto e = cast(Content)cp) { mixin(S_TRACE);
-		if (e.comment.length) { mixin(S_TRACE);
-			d.comment[e.cwxPath(true)] = e.comment;
-		}
-	} else if (auto c = cast(Card)cp) { mixin(S_TRACE);
-		auto paths = c.paths;
-		if (paths.length) putInnerImagePath(d, cp, paths[0]);
-		if (auto ec = cast(EffectCard)cp) { mixin(S_TRACE);
-			if (0 != ec.linkId) {
-				d.cardRef[ec.cwxPath(true)] = ec.linkId;
+		if (auto summ = cast(Summary)cp) { mixin(S_TRACE);
+			auto paths = summ.imagePaths;
+			if (paths.length) putInnerImagePath(d, cp, paths[0]);
+		} else if (auto m = cast(Motion)cp) { mixin(S_TRACE);
+			if (Motion.maxNest_init != m.maxNest) { mixin(S_TRACE);
+				d.maxNest[m.cwxPath(true)] = m.maxNest;
+			}
+		} else if (auto e = cast(Content)cp) { mixin(S_TRACE);
+			if (e.comment.length) { mixin(S_TRACE);
+				d.comment[e.cwxPath(true)] = e.comment;
+			}
+		} else if (auto c = cast(Card)cp) { mixin(S_TRACE);
+			auto paths = c.paths;
+			if (paths.length) putInnerImagePath(d, cp, paths[0]);
+			if (auto ec = cast(EffectCard)cp) { mixin(S_TRACE);
+				if (0 != ec.linkId) {
+					d.cardRef[ec.cwxPath(true)] = ec.linkId;
+				}
 			}
 		}
-	}
-	foreach (child; cp.cwxChilds) { mixin(S_TRACE);
-		putExData(d, child);
+		auto children = cp.cwxChilds;
+		if (children.length == 1) { mixin(S_TRACE);
+			// 再帰回避
+			cp = children[0];
+			continue;
+		}
+		foreach (child; children) { mixin(S_TRACE);
+			putExData(d, child);
+		}
+		break;
 	}
 }
 
