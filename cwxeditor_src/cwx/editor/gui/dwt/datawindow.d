@@ -542,6 +542,7 @@ public:
 	private bool openCWXPathAfCommon(A)(A a, ref string path, bool shellActivate) { mixin(S_TRACE);
 		path = cpbottom(path);
 		if (cpattr(path).contains("shallow") && cpempty(path)) { mixin(S_TRACE);
+			_comm.openDataWin(shellActivate);
 			if (!cphasattr(path, "nofocus")) .forceFocus(_areas.table, shellActivate);
 			_areas.select(a);
 			_comm.refreshToolBar();
