@@ -924,6 +924,9 @@ class AreaChooser(A, bool StartArea) : Composite {
 	private Props _prop;
 	private Summary _summ = null;
 	private ulong _selected = 0UL;
+	static if (StartArea) {
+		private ulong _startArea = 0UL;
+	}
 	private IncSearch _areaIncSearch;
 	private bool _canIncSearch = false;
 
@@ -973,8 +976,9 @@ class AreaChooser(A, bool StartArea) : Composite {
 		}
 	}
 	private void refreshAreas() { mixin(S_TRACE);
-		ulong sel = _selected;
+		auto sel = _selected;
 		_selected = 0UL;
+		static if (StartArea) auto existsStartArea = false;
 		if (_tree) { mixin(S_TRACE);
 			_tree.setRedraw(false);
 			_tree.removeAll();
@@ -1051,6 +1055,9 @@ class AreaChooser(A, bool StartArea) : Composite {
 					itmTable[dirName.toLower()] = itm;
 				}
 				foreach (a; arr) { mixin(S_TRACE);
+					static if (StartArea) {
+						if (a.id == _startArea) existsStartArea = true;
+					}
 					if (!_areaIncSearch.match(a.name)) continue;
 
 					auto itm = itmTable[a.dirName().toLower()];
@@ -1098,6 +1105,9 @@ class AreaChooser(A, bool StartArea) : Composite {
 				if (!has && a.id == sel) { mixin(S_TRACE);
 					has = true;
 				}
+				static if (StartArea) {
+					if (a.id == _startArea) existsStartArea = true;
+				}
 				if (!_areaIncSearch.match(a.name)) continue;
 				auto itm = new TableItem(_list, SWT.NONE);
 				itm.setData(a);
@@ -1136,8 +1146,15 @@ class AreaChooser(A, bool StartArea) : Composite {
 			_list.setEnabled(0 < _list.getItemCount());
 		}
 
-		if (_selected != sel) { mixin(S_TRACE);
-			foreach (dlg; modEvent) dlg();
+		static if (StartArea) {
+			if (!existsStartArea) { mixin(S_TRACE);
+				_startArea = arr.length ? arr[0].id : 0UL;
+				foreach (dlg; modEvent) dlg();
+			}
+		} else {
+			if (_selected != sel) { mixin(S_TRACE);
+				foreach (dlg; modEvent) dlg();
+			}
 		}
 	}
 	private void updateImages() { mixin(S_TRACE);
@@ -1162,14 +1179,9 @@ class AreaChooser(A, bool StartArea) : Composite {
 		if (!itm.getData()) return _prop.images.areaDir;
 		static if (is(A:Area)) {
 			static if (StartArea) {
-				if (_tree) { mixin(S_TRACE);
-					if (_tree.getSelection().contains(itm)) { mixin(S_TRACE);
-						return _prop.images.startArea;
-					}
-				} else { mixin(S_TRACE);
-					if (_list.getSelection().contains(itm)) { mixin(S_TRACE);
-						return _prop.images.startArea;
-					}
+				auto a = cast(Area)itm.getData();
+				if (a.id == _startArea) { mixin(S_TRACE);
+					return _prop.images.startArea;
 				}
 			}
 			return _prop.images.area;
@@ -1253,9 +1265,47 @@ class AreaChooser(A, bool StartArea) : Composite {
 					updateImages();
 				}
 			}
-			foreach (dlg; modEvent) dlg();
+			static if (!StartArea) {
+				foreach (dlg; modEvent) dlg();
+			}
 		});
-		.listener(widget, SWT.MouseDoubleClick, &openAreaView);
+		static if (StartArea) {
+			static assert (is(A:Area));
+			void selected(Item itm) { mixin(S_TRACE);
+				auto a = cast(A)itm.getData();
+				if (!a) return;
+				if (_startArea != a.id) { mixin(S_TRACE);
+					_startArea = a.id;
+					updateImages();
+					foreach (dlg; modEvent) dlg();
+				}
+			}
+			.listener(widget, SWT.MouseDoubleClick, (e) { mixin(S_TRACE);
+				Item itm;
+				if (_tree) { mixin(S_TRACE);
+					itm = _tree.getItem(new Point(e.x, e.y));
+				} else { mixin(S_TRACE);
+					itm = _list.getItem(new Point(e.x, e.y));
+				}
+				if (!itm) return;
+				selected(itm);
+			});
+			.listener(widget, SWT.KeyDown, (e) { mixin(S_TRACE);
+				if (e.keyCode == SWT.CR) { mixin(S_TRACE);
+					if (_tree) { mixin(S_TRACE);
+						auto sels = _tree.getSelection();
+						if (!sels.length) return;
+						selected(sels[0]);
+					} else { mixin(S_TRACE);
+						auto sels = _list.getSelection();
+						if (!sels.length) return;
+						selected(sels[0]);
+					}
+				}
+			});
+		} else {
+			.listener(widget, SWT.MouseDoubleClick, &openAreaView);
+		}
 
 		auto menu = new Menu(getShell(), SWT.POP_UP);
 		createMenuItem(_comm, menu, MenuID.IncSearch, &areaIncSearch, () => _canIncSearch);
@@ -1333,6 +1383,17 @@ class AreaChooser(A, bool StartArea) : Composite {
 	@property
 	const
 	ulong selected() { return _selected; }
+
+	static if (StartArea) {
+		@property
+		void startArea(ulong id) { mixin(S_TRACE);
+			_startArea = id;
+			updateImages();
+		}
+		@property
+		const
+		ulong startArea() { return _startArea; }
+	}
 }
 
 void checkAllExpanded(Button b, Tree tree) { mixin(S_TRACE);

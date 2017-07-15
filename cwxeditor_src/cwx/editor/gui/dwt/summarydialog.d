@@ -420,7 +420,7 @@ private:
 				mod(_startArea);
 				setCDataXY(_startArea, new GridData(GridData.FILL_BOTH));
 
-				_startArea.selected = _summ.startArea;
+				_startArea.startArea = _summ.startArea;
 			}
 			.setupWeights(_tab3Sash, _prop.var.etc.rCouponsStartAreaSashL, _prop.var.etc.rCouponsStartAreaSashR);
 		}
@@ -645,7 +645,7 @@ protected:
 		}
 		_summ.rCoupons = rcs;
 		_summ.rCouponNum = _rCouponNum.getSelection();
-		_summ.startArea = _startArea.selected;
+		_summ.startArea = _startArea.startArea;
 		if (_typeSkin.getSelection()) { mixin(S_TRACE);
 			auto t = _skinInfo[_type.getSelectionIndex()];
 			_summ.type = t.type;
