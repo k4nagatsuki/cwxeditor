@@ -41,9 +41,6 @@ private:
 	void storeEditDir(FlagDir dir, string oldName) { mixin(S_TRACE);
 		_undo ~= new UndoEditDir(flags, _comm, dir, oldName);
 	}
-	void storeSwap(FlagDir par, int index1, int index2) { mixin(S_TRACE);
-		_undo ~= new UndoSwap(flags, _comm, cast(FlagDir) selectedItem.getData(), par, index1, index2);
-	}
 
 	Props prop;
 	UseCounter uc;
@@ -460,61 +457,6 @@ public:
 			}
 		}
 		return root;
-	}
-
-	private bool canUdImpl(int plus) { mixin(S_TRACE);
-		if (!dirs.isFocusControl()) return false;
-		if (prop.var.etc.sortFlagDirs) return false;
-		auto sel = selectedItem;
-		if (!sel) return false;
-		auto dir = cast(FlagDir) sel.getData();
-		auto par = dir.parent;
-		if (!par) return false;
-		auto index1 = par.indexOf(dir.name);
-		assert (-1 != index1);
-		auto index2 = index1 + plus;
-		if (index2 < 0 || par.subDirs.length <= index2) return false;
-		return true;
-	}
-	private void udImpl(int plus) { mixin(S_TRACE);
-		if (!dirs.isFocusControl()) return;
-		if (prop.var.etc.sortFlagDirs) return;
-		auto sel = selectedItem;
-		if (!sel) return;
-		auto dir = cast(FlagDir) sel.getData();
-		auto par = dir.parent;
-		if (!par) return;
-		int index1 = cast(int)par.indexOf(dir.name);
-		assert (-1 != index1);
-		int index2 = index1 + plus;
-		if (index2 < 0 || par.subDirs.length <= index2) return;
-		storeSwap(par, index1, index2);
-		par.swapDir(index1, index2);
-		auto parItm = sel.getParentItem();
-		assert (parItm);
-		auto dir1 = par.subDirs[index1], dir2 = par.subDirs[index2];
-		auto itm1 = parItm.getItem(index1), itm2 = parItm.getItem(index2);
-		itm1.setData(dir1);
-		itm1.setText(dir1.name);
-		itm2.setData(dir2);
-		itm2.setText(dir2.name);
-		refresh(dir2.path);
-		_comm.refFlagAndStep.call(dir1.allFlags ~ dir2.allFlags, dir1.allSteps ~ dir2.allSteps);
-		_comm.refreshToolBar();
-	}
-	void up() { mixin(S_TRACE);
-		udImpl(-1);
-	}
-	void down() { mixin(S_TRACE);
-		udImpl(1);
-	}
-	@property
-	bool canUp() { mixin(S_TRACE);
-		return canUdImpl(-1);
-	}
-	@property
-	bool canDown() { mixin(S_TRACE);
-		return canUdImpl(1);
 	}
 
 	override {

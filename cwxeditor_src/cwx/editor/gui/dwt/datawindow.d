@@ -151,6 +151,8 @@ public:
 			putMenuAction(MenuID.NewPackage, &createPackage, &canCreatePackage);
 			putMenuAction(MenuID.ReNumbering, &_areas.reNumbering, &_areas.canReNumbering);
 			putMenuAction(MenuID.SetStartArea, &_areas.setStartArea, &_areas.canSetStartArea);
+			putMenuAction(MenuID.Up, &up, &canUp);
+			putMenuAction(MenuID.Down, &down, &canDown);
 		}
 		static if (UseFlag) {
 			putMenuAction(MenuID.NewFlagDir, &createFlagDir, &canCreateFlagDir);
@@ -162,8 +164,6 @@ public:
 		putMenuAction(MenuID.ChangeVH, &changeVHSide, &canChangeVH);
 		putMenuAction(MenuID.Undo, &undo, &canUndo);
 		putMenuAction(MenuID.Redo, &redo, &canRedo);
-		putMenuAction(MenuID.Up, &up, &canUp);
-		putMenuAction(MenuID.Down, &down, &canDown);
 		putMenuAction(MenuID.FindID, &replaceID, &canReplaceID);
 
 		_comm.refScenarioName.add(&refreshTitle);
@@ -395,63 +395,45 @@ public:
 		}
 	}
 
-	@property
-	bool canUp() { mixin(S_TRACE);
-		static if (UseArea && UseFlag) {
-			if (tabf.getSelection() is tabA) { mixin(S_TRACE);
+	static if (UseArea) {
+		@property
+		bool canUp() { mixin(S_TRACE);
+			static if (UseArea && UseFlag) {
+				if (tabf.getSelection() is tabA) { mixin(S_TRACE);
+					return _areas.canUp();
+				}
+			} else {
 				return _areas.canUp();
-			} else { mixin(S_TRACE);
-				assert (tabf.getSelection() is tabF);
-				return _flags.canUp();
 			}
-		} else static if (UseArea) {
-			return _areas.canUp();
-		} else static if (UseFlag) {
-			return _flags.canUp();
-		} else static assert (0);
-	}
-	@property
-	bool canDown() { mixin(S_TRACE);
-		static if (UseArea && UseFlag) {
-			if (tabf.getSelection() is tabA) { mixin(S_TRACE);
+		}
+		@property
+		bool canDown() { mixin(S_TRACE);
+			static if (UseArea && UseFlag) {
+				if (tabf.getSelection() is tabA) { mixin(S_TRACE);
+					return _areas.canDown();
+				}
+			} else {
 				return _areas.canDown();
-			} else { mixin(S_TRACE);
-				assert (tabf.getSelection() is tabF);
-				return _flags.canDown();
 			}
-		} else static if (UseArea) {
-			return _areas.canDown();
-		} else static if (UseFlag) {
-			return _flags.canDown();
-		} else static assert (0);
-	}
-	void up() { mixin(S_TRACE);
-		static if (UseArea && UseFlag) {
-			if (tabf.getSelection() is tabA) { mixin(S_TRACE);
+		}
+		void up() { mixin(S_TRACE);
+			static if (UseArea && UseFlag) {
+				if (tabf.getSelection() is tabA) { mixin(S_TRACE);
+					_areas.up();
+				}
+			} else {
 				_areas.up();
-			} else { mixin(S_TRACE);
-				assert (tabf.getSelection() is tabF);
-				_flags.up();
 			}
-		} else static if (UseArea) {
-			_areas.up();
-		} else static if (UseFlag) {
-			_flags.up();
-		} else static assert (0);
-	}
-	void down() { mixin(S_TRACE);
-		static if (UseArea && UseFlag) {
-			if (tabf.getSelection() is tabA) { mixin(S_TRACE);
+		}
+		void down() { mixin(S_TRACE);
+			static if (UseArea && UseFlag) {
+				if (tabf.getSelection() is tabA) { mixin(S_TRACE);
+					_areas.down();
+				}
+			} else {
 				_areas.down();
-			} else { mixin(S_TRACE);
-				assert (tabf.getSelection() is tabF);
-				_flags.down();
 			}
-		} else static if (UseArea) {
-			_areas.down();
-		} else static if (UseFlag) {
-			_flags.down();
-		} else static assert (0);
+		}
 	}
 
 	/// 指定されたディレクトリにあるSummary.xmlからシナリオをロードする。

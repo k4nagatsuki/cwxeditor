@@ -209,21 +209,6 @@ public:
 	}
 
 	@property
-	bool canUp() { mixin(S_TRACE);
-		return _dirs.canUp;
-	}
-	@property
-	bool canDown() { mixin(S_TRACE);
-		return _dirs.canDown;
-	}
-	void up() { mixin(S_TRACE);
-		_dirs.up();
-	}
-	void down() { mixin(S_TRACE);
-		_dirs.down();
-	}
-
-	@property
 	bool canUndo() { mixin(S_TRACE);
 		return _undo.canUndo();
 	}

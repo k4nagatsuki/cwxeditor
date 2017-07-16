@@ -1225,28 +1225,6 @@ package class UndoEditDir : FTVUndo {
 	override void redo() {impl();}
 	override void dispose() {}
 }
-package class UndoSwap : FTVUndo {
-	private FlagDir _parent;
-	private int _index1, _index2;
-	this (FlagTable v, Commons comm, FlagDir dir, FlagDir parent, int index1, int index2) { mixin(S_TRACE);
-		super (v, comm, dir);
-		_parent = parent;
-		_index1 = index1;
-		_index2 = index2;
-	}
-	private void impl() { mixin(S_TRACE);
-		auto v = view();
-		udb(v);
-		scope (exit) uda(v);
-
-		_parent.swapDir(_index1, _index2);
-
-		comm.refFlagDir.call([_parent, _parent.subDirs[_index1], _parent.subDirs[_index2]]);
-	}
-	override void undo() {impl();}
-	override void redo() {impl();}
-	override void dispose() {}
-}
 
 public class FlagTable : TCPD {
 private:
