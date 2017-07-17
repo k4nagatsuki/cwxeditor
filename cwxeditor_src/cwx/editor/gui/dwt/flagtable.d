@@ -816,28 +816,35 @@ private abstract class FTVUndo : Undo {
 	protected Commons comm;
 	protected string _dir;
 	private string _selectedDir;
-	private string[] _selectedF;
-	private string[] _selectedS;
-	private string[] _selectedFB;
-	private string[] _selectedSB;
+	private ptrdiff_t[] _selectedF;
+	private ptrdiff_t[] _selectedS;
+	private ptrdiff_t[] _selectedFB;
+	private ptrdiff_t[] _selectedSB;
 	protected FlagDir selDir = null;
 	this (FlagTable v, Commons comm, FlagDir dir) { mixin(S_TRACE);
 		_v = v;
-		_dir = dir.path;
+		_dir = dir.cwxPath(true);
 		this.comm = comm;
 		saveSelected(v);
 	}
+	this (FlagTable v, Commons comm, FlagDir dir, ptrdiff_t[] selectedF, ptrdiff_t[] selectedS) { mixin(S_TRACE);
+		_v = v;
+		_dir = dir.cwxPath(true);
+		this.comm = comm;
+		_selectedF = selectedF;
+		_selectedS = selectedS;
+	}
 	@property
 	protected FlagDir dir() { mixin(S_TRACE);
-		return cast(FlagDir) comm.summary.flagDirRoot.findPath(_dir, false);
+		return cast(FlagDir)comm.summary.findCWXPath(_dir);
 	}
 	private void saveSelected(FlagTable v) { mixin(S_TRACE);
 		auto dir = this.dir();
 		if (!dir) return;
 		_selectedDir = dir.cwxPath(true);
 		if (v && v.flags && !v.flags.isDisposed()) { mixin(S_TRACE);
-			_selectedF = v.selectionFlagNames;
-			_selectedS = v.selectionStepNames;
+			_selectedF = v.selectionFlagIndices;
+			_selectedS = v.selectionStepIndices;
 		} else { mixin(S_TRACE);
 			_selectedF.length = 0;
 			_selectedS.length = 0;
@@ -860,8 +867,8 @@ private abstract class FTVUndo : Undo {
 			} else { mixin(S_TRACE);
 				if (comm.openCWXPath(_selectedDir, true)) { mixin(S_TRACE);
 					v.flags.deselectAll();
-					v.selectFlagNames(_selectedFB);
-					v.selectStepNames(_selectedSB);
+					v.selectFlagIndices(_selectedFB);
+					v.selectStepIndices(_selectedSB);
 				}
 			}
 			v.refreshStatusLine();
@@ -904,13 +911,13 @@ package class UndoAllVariables : FTVUndo {
 }
 package class UndoEditN {
 	private CWXPath _f;
-	private string _name;
+	private ptrdiff_t _index;
 	this (FlagDir dir, int index, string oldName, int value, string[] names) { mixin(S_TRACE);
 		auto p = FlagTable.fromIndex(dir, index);
 		auto f = cast(cwx.flag.Flag)p;
 		if (f) { mixin(S_TRACE);
 			auto flag = new cwx.flag.Flag(f);
-			_name = flag.name;
+			_index = f.parent.indexOf(f);
 			flag.name = oldName;
 			if (-1 != value) flag.onOff = value == 0;
 			if (names.length) { mixin(S_TRACE);
@@ -922,7 +929,7 @@ package class UndoEditN {
 		auto s = cast(Step)p;
 		if (s) { mixin(S_TRACE);
 			auto step = new Step(s);
-			_name = step.name;
+			_index = s.parent.indexOf(s);
 			step.name = oldName;
 			if (-1 != value) step.select = value;
 			if (names.length) { mixin(S_TRACE);
@@ -935,11 +942,10 @@ package class UndoEditN {
 		assert (dir);
 		auto fB = _f;
 		if (cast(cwx.flag.Flag)fB) { mixin(S_TRACE);
-			auto f = dir.getFlag(_name);
+			auto f = dir.flags[_index];
 			_f = new cwx.flag.Flag(f);
 			auto o = cast(cwx.flag.Flag)fB;
 			assert (o);
-			_name = o.name;
 			bool refVal = o.on != f.on || o.off != f.off;
 			newName = o.name;
 			o.name = f.name;
@@ -950,11 +956,10 @@ package class UndoEditN {
 			}
 		} else { mixin(S_TRACE);
 			assert (cast(Step)fB);
-			auto s = dir.getStep(_name);
+			auto s = dir.steps[_index];
 			_f = new Step(s);
 			auto o = cast(Step)fB;
 			assert (o);
-			_name = o.name;
 			bool refVal = o.values != s.values;
 			newName = o.name;
 			o.name = s.name;
@@ -1013,63 +1018,72 @@ package class UndoInsertDelete : FTVUndo {
 	private bool _insert;
 
 	/// insert
-	private int[] _dirIndices;
-	private string[] _flagName;
-	private string[] _stepName;
+	private ptrdiff_t[] _dirIndices;
+	private ptrdiff_t[] _flagIndices;
+	private ptrdiff_t[] _stepIndices;
 	/// delete
-	private FlagDir[int] _ds;
-	private cwx.flag.Flag[] _fs;
-	private Step[] _ss;
+	private FlagDir[ptrdiff_t] _ds;
+	private cwx.flag.Flag[ptrdiff_t] _fs;
+	private Step[ptrdiff_t] _ss;
 
 	/// 追加を元に戻す。
-	this (FlagTable v, Commons comm, FlagDir dir, string[] selectedF, string[] selectedS, int[] dirIndices, string[] flagName, string[] stepName) { mixin(S_TRACE);
-		super (v, comm, dir);
-		_selectedF = selectedF.dup;
-		_selectedS = selectedS.dup;
+	this (FlagTable v, Commons comm, FlagDir dir, ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, ptrdiff_t[] dirIndices, ptrdiff_t[] flagIndices, ptrdiff_t[] stepIndices) { mixin(S_TRACE);
+		super (v, comm, dir, selectedF.dup, selectedS.dup);
 		_dirIndices = dirIndices.dup;
-		_flagName = flagName.dup;
-		_stepName = stepName.dup;
+		_flagIndices = flagIndices.dup;
+		_stepIndices = stepIndices.dup;
 		_insert = true;
 	}
 	/// 削除を元に戻す。
-	this (FlagTable v, Commons comm, FlagDir dir, string[] selectedF, string[] selectedS, FlagDir[int] ds, cwx.flag.Flag[] fs, Step[] ss) { mixin(S_TRACE);
-		super (v, comm, dir);
-		_selectedF = selectedF.dup;
-		_selectedS = selectedS.dup;
+	this (FlagTable v, Commons comm, FlagDir dir, ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, FlagDir[ptrdiff_t] ds, cwx.flag.Flag[ptrdiff_t] fs, Step[ptrdiff_t] ss) { mixin(S_TRACE);
+		super (v, comm, dir, selectedF.dup, selectedS.dup);
 		save(ds, fs, ss);
 		_insert = false;
 	}
-	private void save(FlagDir[int] ds, cwx.flag.Flag[] fs, Step[] ss) { mixin(S_TRACE);
-		_ds = ds;
-		foreach (index, d; _ds) { mixin(S_TRACE);
+	private void save(FlagDir[ptrdiff_t] ds, cwx.flag.Flag[ptrdiff_t] fs, Step[ptrdiff_t] ss) { mixin(S_TRACE);
+		_ds = null;
+		foreach (index, d; ds) { mixin(S_TRACE);
 			_ds[index] = new FlagDir(d);
 		}
-		_fs.length = 0;
-		foreach (f; fs) { mixin(S_TRACE);
-			_fs ~= new cwx.flag.Flag(f);
+		_fs = null;
+		foreach (index, f; fs) { mixin(S_TRACE);
+			_fs[index] = new cwx.flag.Flag(f);
 		}
-		_ss.length = 0;
-		foreach (s; ss) { mixin(S_TRACE);
-			_ss ~= new Step(s);
+		_ss = null;
+		foreach (index, s; ss) { mixin(S_TRACE);
+			_ss[index] = new Step(s);
 		}
 	}
 	private void undoInsert(FlagTable v) { mixin(S_TRACE);
+		cwx.flag.Flag[] rfs;
+		Step[] rss;
+		FlagDir[] rds;
+		undoInsertImpl(rfs, rss, rds);
+		if (v && v.flags && !v.flags.isDisposed()) { mixin(S_TRACE);
+			v.refresh();
+		}
+		if (rds.length) comm.delFlagDir.call(rds);
+		if (rfs.length || rss.length) { mixin(S_TRACE);
+			comm.delFlagAndStep.call(rfs, rss);
+		}
+	}
+	private void undoInsertImpl(ref cwx.flag.Flag[] rfs, ref Step[] rss, ref FlagDir[] rds) { mixin(S_TRACE);
 		_insert = false;
-		FlagDir[int] ds;
-		cwx.flag.Flag[] fs;
-		Step[] ss;
+		FlagDir[ptrdiff_t] ds;
+		cwx.flag.Flag[ptrdiff_t] fs;
+		Step[ptrdiff_t] ss;
 		auto dir = this.dir();
 		foreach (i; _dirIndices) { mixin(S_TRACE);
 			auto d = dir.subDirs[i];
 			if (d) ds[i] = d;
 		}
-		foreach (n; _flagName) { mixin(S_TRACE);
-			auto f = dir.getFlag(n);
-			if (f) fs ~= f;
+		foreach (i; _flagIndices) { mixin(S_TRACE);
+			auto f = dir.flags[i];
+			if (f) fs[i] = f;
 		}
-		foreach (n; _stepName) { mixin(S_TRACE);
-			auto s = dir.getStep(n);
-			if (s) ss ~= s;
+		foreach (i; _stepIndices) { mixin(S_TRACE);
+			auto s = dir.steps[i];
+			if (s) ss[i] = s;
 		}
 		save(ds, fs, ss);
 		foreach (f; fs) { mixin(S_TRACE);
@@ -1080,42 +1094,55 @@ package class UndoInsertDelete : FTVUndo {
 		}
 		foreach (d; ds) { mixin(S_TRACE);
 			dir.remove(d);
-			fs ~= d.allFlags;
-			ss ~= d.allSteps;
+			rfs ~= d.allFlags;
+			rss ~= d.allSteps;
+			rds ~= d.allSubDirs;
 		}
+		rds ~= ds.values;
+		rfs ~= fs.values;
+		rss ~= ss.values;
+	}
+	private void undoDelete(FlagTable v) { mixin(S_TRACE);
+		cwx.flag.Flag[] rfs;
+		Step[] rss;
+		FlagDir[] rds;
+		undoDeleteImpl(rfs, rss, rds);
 		if (v && v.flags && !v.flags.isDisposed()) { mixin(S_TRACE);
 			v.refresh();
 		}
-		if (ds.length) comm.delFlagDir.call(ds.values);
-		if (fs.length || ss.length) comm.delFlagAndStep.call(fs, ss);
+		if (rds.length) comm.delFlagDir.call(rds);
+		if (rfs.length || rss.length) { mixin(S_TRACE);
+			comm.delFlagAndStep.call(rfs, rss);
+		}
 	}
-	private void undoDelete(FlagTable v) { mixin(S_TRACE);
+	private void undoDeleteImpl(ref cwx.flag.Flag[] rfs, ref Step[] rss, ref FlagDir[] rds) { mixin(S_TRACE);
 		_insert = true;
 		auto dir = this.dir();
 		_dirIndices.length = 0;
-		_flagName.length = 0;
-		_stepName.length = 0;
+		_flagIndices.length = 0;
+		_stepIndices.length = 0;
 		selDir = (_ds.length == 1 && !_fs.length && !_ss.length) ? _ds.values[0] : null;
-		foreach (f; _fs) { mixin(S_TRACE);
-			_flagName ~= f.name;
-			dir.add(f);
+		foreach (index; std.algorithm.sort(_fs.keys)) { mixin(S_TRACE);
+			auto f = _fs[index];
+			_flagIndices ~= index;
+			dir.insert(index, f);
 		}
-		foreach (s; _ss) { mixin(S_TRACE);
-			_stepName ~= s.name;
-			dir.add(s);
+		foreach (index; std.algorithm.sort(_ss.keys)) { mixin(S_TRACE);
+			auto s = _ss[index];
+			_stepIndices ~= index;
+			dir.insert(index, s);
 		}
 		foreach (index; std.algorithm.sort(_ds.keys)) { mixin(S_TRACE);
 			auto d = _ds[index];
 			_dirIndices ~= index;
 			dir.insert(index, d);
-			_fs ~= d.allFlags;
-			_ss ~= d.allSteps;
+			rfs ~= d.allFlags;
+			rss ~= d.allSteps;
+			rds ~= d.allSubDirs;
 		}
-		if (v && v.flags && !v.flags.isDisposed()) { mixin(S_TRACE);
-			v.refresh();
-		}
-		if (_ds.length) comm.refFlagDir.call(_ds.values);
-		if (_fs.length || _ss.length) comm.refFlagAndStep.call(_fs, _ss);
+		rds ~= _ds.values;
+		rfs ~= _fs.values;
+		rss ~= _ss.values;
 	}
 	override void undo() { mixin(S_TRACE);
 		auto v = view();
@@ -1144,57 +1171,79 @@ package class UndoInsertDelete : FTVUndo {
 package class UndoMove : FTVUndo {
 	private UndoInsertDelete _dir1;
 	private UndoInsertDelete _dir2;
-	private string[string] _cFlags;
-	private string[string] _cSteps;
 
-	this (FlagTable v, Commons comm, string[] selectedF, string[] selectedS, FlagDir to, int[] dirIndices, string[] flagName, string[] stepName, FlagDir from, FlagDir[int] ds, cwx.flag.Flag[] fs, Step[] ss, cwx.flag.Flag[string] cFlags, Step[string] cSteps) { mixin(S_TRACE);
-		super (v, comm, from);
-		_selectedF = selectedF.dup;
-		_selectedS = selectedS.dup;
+	this (FlagTable v, Commons comm, ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, FlagDir to, ptrdiff_t[] dirIndices, ptrdiff_t[] flagIndices, ptrdiff_t[] stepIndices, FlagDir from, FlagDir[ptrdiff_t] ds, cwx.flag.Flag[ptrdiff_t] fs, Step[ptrdiff_t] ss) { mixin(S_TRACE);
+		super (v, comm, from, selectedF.dup, selectedS.dup);
 		assert (dirIndices.length == ds.length);
-		assert (flagName.length == fs.length);
-		assert (stepName.length == ss.length);
-		_dir1 = new UndoInsertDelete(v, comm, to, selectedF, selectedS, dirIndices, flagName, stepName);
+		assert (flagIndices.length == fs.length);
+		assert (stepIndices.length == ss.length);
+		_dir1 = new UndoInsertDelete(v, comm, to, selectedF, selectedS, dirIndices, flagIndices, stepIndices);
 		_dir2 = new UndoInsertDelete(v, comm, from, selectedF, selectedS, ds, fs, ss);
-		foreach (oPath, flag; cFlags) { mixin(S_TRACE);
-			_cFlags[oPath] = flag.path;
-		}
-		foreach (oPath, step; cSteps) { mixin(S_TRACE);
-			_cSteps[oPath] = step.path;
-		}
 	}
-	private void change(FlagTable v) { mixin(S_TRACE);
-		string[string] cFlags;
-		string[string] cSteps;
-		foreach (nPath, oPath; _cFlags) { mixin(S_TRACE);
-			cFlags[oPath] = nPath;
-			comm.summary.useCounter.change(toFlagId(oPath), toFlagId(nPath));
+	private void paths(UndoInsertDelete ins, FlagDir dir, out FlagId[] flagIDs, out StepId[] stepIDs, out cwx.flag.Flag[] flags, out Step[] steps) { mixin(S_TRACE);
+		assert (dir !is null);
+		foreach (i; std.algorithm.sort(ins._dirIndices.dup)) { mixin(S_TRACE);
+			foreach (f; dir.subDirs[i].allFlags) flags ~= f;
+			foreach (f; dir.subDirs[i].allSteps) steps ~= f;
 		}
-		foreach (nPath, oPath; _cSteps) { mixin(S_TRACE);
-			cSteps[oPath] = nPath;
-			comm.summary.useCounter.change(toStepId(oPath), toStepId(nPath));
+		foreach (i; std.algorithm.sort(ins._flagIndices.dup)) { mixin(S_TRACE);
+			flags ~= dir.flags[i];
 		}
-		_cFlags = cFlags;
-		_cSteps = cSteps;
+		foreach (i; std.algorithm.sort(ins._stepIndices.dup)) { mixin(S_TRACE);
+			steps ~= dir.steps[i];
+		}
+		foreach (f; flags) flagIDs ~= toFlagId(f.path);
+		foreach (f; steps) stepIDs ~= toStepId(f.path);
+	}
+	private void change(FlagTable v, FlagId[] oldF, FlagId[] newF, StepId[] oldS, StepId[] newS) { mixin(S_TRACE);
+		foreach (nPath, oPath; .zip(newF, oldF)) { mixin(S_TRACE);
+			comm.summary.useCounter.change(oPath, nPath);
+		}
+		foreach (nPath, oPath; .zip(newS, oldS)) { mixin(S_TRACE);
+			comm.summary.useCounter.change(oPath, nPath);
+		}
 		if (v && v.flags && !v.flags.isDisposed()) { mixin(S_TRACE);
 			v.refreshUseCount();
 		}
 	}
-	override void undo() { mixin(S_TRACE);
+	private void impl(UndoInsertDelete del, UndoInsertDelete ins) { mixin(S_TRACE);
 		auto v = view();
 		udb(v);
 		scope (exit) uda(v);
-		_dir1.undoImpl(v);
-		_dir2.undoImpl(v);
-		change(v);
+		FlagId[] oldF, newF;
+		StepId[] oldS, newS;
+		cwx.flag.Flag[] flags;
+		Step[] steps;
+		auto delDir = del.dir();
+		auto insDir = ins.dir();
+		paths(del, del.dir(), oldF, oldS, flags, steps);
+		cwx.flag.Flag[] rfs;
+		Step[] rss;
+		FlagDir[] rds;
+		del.undoInsertImpl(rfs, rss, rds);
+		ins.undoDeleteImpl(rfs, rss, rds);
+		paths(ins, ins.dir(), newF, newS, flags, steps);
+		change(v, oldF, newF, oldS, newS);
+
+		bool[cwx.flag.Flag] fSet;
+		bool[Step] sSet;
+		bool[FlagDir] dSet;
+		foreach (f; rfs) fSet[f] = true;
+		foreach (f; rss) sSet[f] = true;
+		foreach (f; rds) dSet[f] = true;
+		if (v && v.flags && !v.flags.isDisposed()) { mixin(S_TRACE);
+			v.refresh();
+		}
+		if (rds.length) comm.delFlagDir.call(dSet.keys);
+		if (rfs.length || rss.length) { mixin(S_TRACE);
+			comm.delFlagAndStep.call(fSet.keys, sSet.keys);
+		}
+	}
+	override void undo() { mixin(S_TRACE);
+		impl(_dir1, _dir2);
 	}
 	override void redo() { mixin(S_TRACE);
-		auto v = view();
-		udb(v);
-		scope (exit) uda(v);
-		_dir2.redoImpl(v);
-		_dir1.redoImpl(v);
-		change(v);
+		impl(_dir2, _dir1);
 	}
 	override void dispose() { mixin(S_TRACE);
 		_dir1.dispose();
@@ -1215,7 +1264,6 @@ package class UndoEditDir : FTVUndo {
 
 		string oldName = dir.name;
 		dir.rename(_oldName, comm.summary.useCounter);
-		if (dir.parent) dir.parent.sortSubDirs(false);
 		_oldName = oldName;
 
 		comm.refFlagDir.call([dir]);
@@ -1234,12 +1282,11 @@ private:
 	void storeEdit(int index, string oldName, int oldValue, string[] oldNames = []) { mixin(S_TRACE);
 		_undo ~= new UndoEdit(this, _comm, _dir, [index], [oldName], [oldValue], [oldNames]);
 	}
-	void storeInsert(string[] selectedF, string[] selectedS, string[] flagName, string[] stepName) { mixin(S_TRACE);
-		_undo ~= new UndoInsertDelete(this, _comm, _dir, selectedF, selectedS, [], flagName, stepName);
+	void storeInsert(ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, ptrdiff_t[] flagIndices, ptrdiff_t[] stepIndices) { mixin(S_TRACE);
+		_undo ~= new UndoInsertDelete(this, _comm, _dir, selectedF, selectedS, [], flagIndices, stepIndices);
 	}
-	void storeDelete(string[] selectedF, string[] selectedS, cwx.flag.Flag[] fs, Step[] ss) { mixin(S_TRACE);
-		FlagDir[int] ds;
-		_undo ~= new UndoInsertDelete(this, _comm, _dir, selectedF, selectedS, ds, fs, ss);
+	void storeDelete(ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, cwx.flag.Flag[ptrdiff_t] fs, Step[ptrdiff_t] ss) { mixin(S_TRACE);
+		_undo ~= new UndoInsertDelete(this, _comm, _dir, selectedF, selectedS, null, fs, ss);
 	}
 
 	static int indexOf(FlagDir dir, CWXPath p) { mixin(S_TRACE);
@@ -1277,8 +1324,8 @@ private:
 	void refreshFlags() { mixin(S_TRACE);
 		if (_dir) { mixin(S_TRACE);
 			int i = 0;
-			foreach (f; _dir.steps) { mixin(S_TRACE);
-				if (!_incSearch.match(f.name, f)) continue;
+			.sortedWithName(_dir.steps, prop.var.etc.logicalSort, (Step f) { mixin(S_TRACE);
+				if (!_incSearch.match(f.name, f)) return;
 				TableItem itm;
 				if (i < flags.getItemCount()) { mixin(S_TRACE);
 					itm = flags.getItem(i);
@@ -1291,9 +1338,9 @@ private:
 				itm.setText(UC, to!(string)(uc.get(toStepId(f.path))));
 				itm.setData(f);
 				i++;
-			}
-			foreach (f; _dir.flags) { mixin(S_TRACE);
-				if (!_incSearch.match(f.name, f)) continue;
+			});
+			.sortedWithName(_dir.flags, prop.var.etc.logicalSort, (cwx.flag.Flag f) { mixin(S_TRACE);
+				if (!_incSearch.match(f.name, f)) return;
 				TableItem itm;
 				if (i < flags.getItemCount()) { mixin(S_TRACE);
 					itm = flags.getItem(i);
@@ -1306,7 +1353,7 @@ private:
 				itm.setText(UC, to!(string)(uc.get(toFlagId(f.path))));
 				itm.setData(f);
 				i++;
-			}
+			});
 			if (i < flags.getItemCount()) { mixin(S_TRACE);
 				flags.remove(i, flags.getItemCount() - 1);
 			}
@@ -1370,13 +1417,13 @@ private:
 				old = flag.name;
 			}
 			if (createMode) { mixin(S_TRACE);
-				string[] selsF;
-				string[] selsS;
+				ptrdiff_t[] selsF;
+				ptrdiff_t[] selsS;
 				if (flags && !flags.isDisposed()) { mixin(S_TRACE);
-					selsF = selectionFlagNames;
-					selsS = selectionStepNames;
+					selsF = selectionFlagIndices;
+					selsS = selectionStepIndices;
 				}
-				storeInsert(selsF, selsS, [flag.name], []);
+				storeInsert(selsF, selsS, [flag.parent.indexOf(flag)], []);
 				createMode = false;
 			} else { mixin(S_TRACE);
 				storeEdit(indexOf(parent, flag), oldName, oldValue, oldNames);
@@ -1427,13 +1474,13 @@ private:
 				old = step.name;
 			}
 			if (createMode) { mixin(S_TRACE);
-				string[] selsF;
-				string[] selsS;
+				ptrdiff_t[] selsF;
+				ptrdiff_t[] selsS;
 				if (flags && !flags.isDisposed()) { mixin(S_TRACE);
-					selsF = selectionFlagNames;
-					selsS = selectionStepNames;
+					selsF = selectionFlagIndices;
+					selsS = selectionStepIndices;
 				}
-				storeInsert(selsF, selsS, [], [step.name]);
+				storeInsert(selsF, selsS, [], [step.parent.indexOf(step)]);
 				createMode = false;
 			} else { mixin(S_TRACE);
 				storeEdit(indexOf(parent, step), oldName, oldValue, oldNames);
@@ -1488,9 +1535,16 @@ private:
 			return false;
 		}
 	}
-	void selectNamesImpl(F)(string[] names) { mixin(S_TRACE);
+	void getSelectionFlagAndStepWithIndex(out cwx.flag.Flag[ptrdiff_t] fs, out Step[ptrdiff_t] ss) { mixin(S_TRACE);
+		cwx.flag.Flag[] fsi;
+		Step[] ssi;
+		getSelectionFlagAndStep(fsi, ssi);
+		foreach (f; fsi) fs[f.parent.indexOf(f)] = f;
+		foreach (f; ssi) ss[f.parent.indexOf(f)] = f;
+	}
+	void selectIndicesImpl(F)(in ptrdiff_t[] indices, in F[] arr) { mixin(S_TRACE);
 		auto set = new HashSet!string;
-		foreach (name; names) set.add(name);
+		foreach (i; indices) set.add(arr[i].name);
 		foreach (i, itm; flags.getItems()) { mixin(S_TRACE);
 			if (auto f = cast(F)itm.getData()) { mixin(S_TRACE);
 				if (set.contains(f.name)) { mixin(S_TRACE);
@@ -1499,15 +1553,15 @@ private:
 			}
 		}
 	}
-	void selectFlagNames(string[] names) { mixin(S_TRACE);
-		selectNamesImpl!(cwx.flag.Flag)(names);
+	void selectFlagIndices(in ptrdiff_t[] indices) { mixin(S_TRACE);
+		selectIndicesImpl!(cwx.flag.Flag)(indices, _dir.flags);
 	}
-	void selectStepNames(string[] names) { mixin(S_TRACE);
-		selectNamesImpl!Step(names);
+	void selectStepIndices(in ptrdiff_t[] indices) { mixin(S_TRACE);
+		selectIndicesImpl!Step(indices, _dir.steps);
 	}
 
-	cwx.flag.Flag[] _dragFlags;
-	Step[] _dragSteps;
+	cwx.flag.Flag[ptrdiff_t] _dragFlags;
+	Step[ptrdiff_t] _dragSteps;
 	class FlagDragListener : DragSourceListener {
 	private:
 		int[] dragIndices;
@@ -1518,9 +1572,9 @@ private:
 		override void dragSetData(DragSourceEvent e) { mixin(S_TRACE);
 			if (XMLBytesTransfer.getInstance().isSupportedType(e.dataType)) { mixin(S_TRACE);
 				// XML化して転送する。
-				getSelectionFlagAndStep(_dragFlags, _dragSteps);
+				getSelectionFlagAndStepWithIndex(_dragFlags, _dragSteps);
 				XNode node;
-				getNode(_dir, _dragFlags, _dragSteps, node);
+				getNode(_dir, _dragFlags.values, _dragSteps.values, node);
 				node.newAttr("paneId", _id);
 				e.data = bytesFromXML(node.text);
 			}
@@ -1534,11 +1588,11 @@ private:
 					step.parent.remove(step);
 				}
 				refresh();
-				_comm.delFlagAndStep.call(_dragFlags, _dragSteps);
+				_comm.delFlagAndStep.call(_dragFlags.values, _dragSteps.values);
 				_comm.refreshToolBar();
 			}
-			_dragFlags.length = 0;
-			_dragSteps.length = 0;
+			_dragFlags = null;
+			_dragSteps = null;
 		}
 	}
 	class FlagDrop : DropTargetAdapter {
@@ -1885,9 +1939,9 @@ public:
 	Control widget() {return _comp;}
 
 	@property
-	package cwx.flag.Flag[] dragFlags() {return _dragFlags;}
+	package cwx.flag.Flag[ptrdiff_t] dragFlags() { return _dragFlags; }
 	@property
-	package Step[] dragSteps() {return _dragSteps;}
+	package Step[ptrdiff_t] dragSteps() { return _dragSteps; }
 
 	private void refreshStatusLine() { mixin(S_TRACE);
 		string s = "";
@@ -1937,8 +1991,6 @@ public:
 				}
 			}
 			flags.deselectAll();
-			_dir.sortSteps();
-			_dir.sortFlags();
 			refreshFlags();
 			foreach (i, itm; flags.getItems()) { mixin(S_TRACE);
 				if (.contains(sels, itm.getData())) { mixin(S_TRACE);
@@ -1992,19 +2044,23 @@ public:
 	}
 	/// ditto
 	@property
-	string[] selectionFlagNames() { mixin(S_TRACE);
-		string[] r;
+	ptrdiff_t[] selectionFlagIndices() { mixin(S_TRACE);
+		ptrdiff_t[] r;
 		foreach (f; selectionFlags) { mixin(S_TRACE);
-			r ~= f.name;
+			assert (f !is null);
+			assert (f.parent !is null);
+			r ~= f.parent.indexOf(f);
 		}
 		return r;
 	}
 	/// ditto
 	@property
-	string[] selectionStepNames() { mixin(S_TRACE);
-		string[] r;
+	ptrdiff_t[] selectionStepIndices() { mixin(S_TRACE);
+		ptrdiff_t[] r;
 		foreach (f; selectionSteps) { mixin(S_TRACE);
-			r ~= f.name;
+			assert (f !is null);
+			assert (f.parent !is null);
+			r ~= f.parent.indexOf(f);
 		}
 		return r;
 	}
@@ -2163,25 +2219,31 @@ public:
 		}
 		void del(SelectionEvent se) { mixin(S_TRACE);
 			if (!_dir) return;
-			auto selsF = selectionFlagNames;
-			auto selsS = selectionStepNames;
-			cwx.flag.Flag[] fs;
-			Step[] ss;
-			foreach (itm; flags.getSelection()) { mixin(S_TRACE);
+			auto selsF = selectionFlagIndices;
+			auto selsS = selectionStepIndices;
+			cwx.flag.Flag[ptrdiff_t] fs;
+			Step[ptrdiff_t] ss;
+			auto sels = flags.getSelection();
+			foreach (itm; sels) { mixin(S_TRACE);
 				auto data = itm.getData();
-				auto flag = cast(cwx.flag.Flag) data;
-				if (flag) { mixin(S_TRACE);
-					fs ~= flag;
+				if (auto flag = cast(cwx.flag.Flag)data) { mixin(S_TRACE);
+					fs[flag.parent.indexOf(flag)] = flag;
+				}
+				if (auto step = cast(Step)data) { mixin(S_TRACE);
+					ss[step.parent.indexOf(step)] = step;
+				}
+			}
+			foreach (itm; sels) { mixin(S_TRACE);
+				auto data = itm.getData();
+				if (auto flag = cast(cwx.flag.Flag)data) { mixin(S_TRACE);
 					_dir.remove(flag);
 				}
-				auto step = cast(Step) data;
-				if (step) { mixin(S_TRACE);
-					ss ~= step;
+				if (auto step = cast(Step)data) { mixin(S_TRACE);
 					_dir.remove(step);
 				}
 			}
 			storeDelete(selsF, selsS, fs, ss);
-			_comm.delFlagAndStep.call(fs, ss);
+			_comm.delFlagAndStep.call(fs.values, ss.values);
 			refresh();
 			_comm.refreshToolBar();
 		}
@@ -2222,20 +2284,20 @@ public:
 			string rootId;
 			cwx.flag.Flag[string] cFlags;
 			Step[string] cSteps;
-			auto selsF = selectionFlagNames;
-			auto selsS = selectionStepNames;
+			auto selsF = selectionFlagIndices;
+			auto selsS = selectionStepIndices;
 			auto ver = new XMLInfo(prop.sys, LATEST_VERSION);
 			if (_dir.appendFromNode(node, ver, true, false, cFlags, cSteps, newPath, rootId)) { mixin(S_TRACE);
-				string[] flagName;
-				string[] stepName;
+				ptrdiff_t[] flagIndices;
+				ptrdiff_t[] stepIndices;
 				if (!cFlags.length && !cSteps.length) return false;
 				foreach (f; cFlags) { mixin(S_TRACE);
-					flagName ~= f.name;
+					flagIndices ~= f.parent.indexOf(f);
 				}
 				foreach (s; cSteps) { mixin(S_TRACE);
-					stepName ~= s.name;
+					stepIndices ~= s.parent.indexOf(s);
 				}
-				storeInsert(selsF, selsS, flagName, stepName);
+				storeInsert(selsF, selsS, flagIndices, stepIndices);
 				Object[] objs;
 				objs ~= cFlags.values;
 				objs ~= cSteps.values;

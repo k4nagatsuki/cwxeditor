@@ -1743,17 +1743,6 @@ struct OldSettings {
 			comm.refImagePaneSelectionFilter.call();
 		}
 		if (oldLogicalSort != prop.var.etc.logicalSort) { mixin(S_TRACE);
-			if (comm.summary) { mixin(S_TRACE);
-				if (prop.var.etc.logicalSort) { mixin(S_TRACE);
-					comm.summary.flagDirRoot.sorter = (string a, string b) { mixin(S_TRACE);
-						return ncmp(a, b);
-					};
-				} else { mixin(S_TRACE);
-					comm.summary.flagDirRoot.sorter = (string a, string b) { mixin(S_TRACE);
-						return cmp(a, b);
-					};
-				}
-			}
 			comm.refSortCondition.call();
 		}
 		if (refSkin) { mixin(S_TRACE);

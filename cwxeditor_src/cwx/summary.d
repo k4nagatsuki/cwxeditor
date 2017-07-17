@@ -85,6 +85,7 @@ struct LoadOption {
 struct SaveOption {
 	bool doubleIO = false; /// 書込みの多重化を行うか。
 	bool saveInnerImagePath = false; /// 格納イメージの参照先を保存するか。
+	bool logicalSort = false; /// 状態変数などで論理ソートを行うか。
 	bool saveChangedOnly = false; /// 更新されたファイルだけを保存するか。
 	bool backup = false; /// 保存時バックアップを行うか。
 	string backupDir = ""; /// 保存時バックアップ先。
@@ -1870,7 +1871,7 @@ public:
 		pNode.newElement("Tags");
 		auto eType = pNode.newElement("Type", _type);
 		if (opt.saveSkinName) eType.newAttr("skinname", _skinName);
-		flagDirRoot.toNodeAll(root);
+		flagDirRoot.toNodeAll(root, opt.logicalSort);
 		root.newElement("Labels");
 		auto et = root.newElement("EventTemplates");
 		foreach (t; _eventTemplates) { mixin(S_TRACE);
@@ -1899,6 +1900,7 @@ public:
 		opt.item = (id) => this.item(id);
 		opt.beast = (id) => this.beast(id);
 		opt.saveSkinName = saveOpt.saveSkinName;
+		opt.logicalSort = saveOpt.logicalSort;
 
 		string e = "";
 		string[string] s = ["Summary.xml":summaryToXML(opt)];
@@ -1971,6 +1973,7 @@ public:
 		xOpt.item = (id) => item(id);
 		xOpt.beast = (id) => beast(id);
 		xOpt.saveSkinName = opt.saveSkinName;
+		xOpt.logicalSort = opt.logicalSort;
 		std.file.write(summFile, summaryToXML(xOpt));
 
 		HashSet!Object changed = null;

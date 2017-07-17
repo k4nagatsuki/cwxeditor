@@ -193,9 +193,6 @@ public:
 				}
 			}
 		}
-		_dirs.rootDir.sortFlags(true);
-		_dirs.rootDir.sortSteps(true);
-		_dirs.rootDir.sortSubDirs(true);
 		if (lastDir) { mixin(S_TRACE);
 			_dirs.refresh(lastDir.path);
 			_flags.deselectAll();

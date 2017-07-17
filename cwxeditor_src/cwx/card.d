@@ -27,6 +27,7 @@ class XMLOption {
 	bool loadScaledImage = false; /// "file.x2.bmp"のようなファイル名のスケーリングされたイメージファイルを使用するか。
 	bool includeCard = false; /// リンク先のカードの実体を格納する。
 	bool noLinkId = false; /// 実体を格納した時、参照IDを削除する。
+	bool logicalSort = false; /// 状態変数などの論理ソートを行うか。
 	const(SkillCard) delegate(ulong) skill = null; /// IDからスキルカードを取得。
 	const(ItemCard) delegate(ulong) item = null; /// IDからアイテムカードを取得。
 	const(BeastCard) delegate(ulong) beast = null; /// IDから召喚獣カードを取得。

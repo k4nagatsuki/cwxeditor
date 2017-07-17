@@ -29,14 +29,14 @@ import java.lang.all;
 
 public class FlagDirTree : TCPD {
 private:
-	void storeInsert(FlagDir dir, string[] selectedF, string[] selectedS, int[] dirIndices, string[] flagName, string[] stepName) { mixin(S_TRACE);
-		_undo ~= new UndoInsertDelete(flags, _comm, dir, selectedF, selectedS, dirIndices, flagName, stepName);
+	void storeInsert(FlagDir dir, ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, ptrdiff_t[] dirIndices, ptrdiff_t[] flagIndices, ptrdiff_t[] stepIndices) { mixin(S_TRACE);
+		_undo ~= new UndoInsertDelete(flags, _comm, dir, selectedF, selectedS, dirIndices, flagIndices, stepIndices);
 	}
-	void storeDelete(FlagDir dir, string[] selectedF, string[] selectedS, FlagDir[int] ds, cwx.flag.Flag[] fs, Step[] ss) { mixin(S_TRACE);
+	void storeDelete(FlagDir dir, ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, FlagDir[ptrdiff_t] ds, cwx.flag.Flag[ptrdiff_t] fs, Step[ptrdiff_t] ss) { mixin(S_TRACE);
 		_undo ~= new UndoInsertDelete(flags, _comm, dir, selectedF, selectedS, ds, fs, ss);
 	}
-	void storeMove(string[] selectedF, string[] selectedS, FlagDir to, int[] dirIndices, string[] flagName, string[] stepName, FlagDir from, FlagDir[int] ds, cwx.flag.Flag[] fs, Step[] ss, cwx.flag.Flag[string] cFlags, Step[string] cSteps) { mixin(S_TRACE);
-		_undo ~= new UndoMove(flags, _comm, selectedF, selectedS, to, dirIndices, flagName, stepName, from, ds, fs, ss, cFlags, cSteps);
+	void storeMove(ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, FlagDir to, ptrdiff_t[] dirIndices, ptrdiff_t[] flagIndices, ptrdiff_t[] stepIndices, FlagDir from, FlagDir[ptrdiff_t] ds, cwx.flag.Flag[ptrdiff_t] fs, Step[ptrdiff_t] ss) { mixin(S_TRACE);
+		_undo ~= new UndoMove(flags, _comm, selectedF, selectedS, to, dirIndices, flagIndices, stepIndices, from, ds, fs, ss);
 	}
 	void storeEditDir(FlagDir dir, string oldName) { mixin(S_TRACE);
 		_undo ~= new UndoEditDir(flags, _comm, dir, oldName);
@@ -76,14 +76,14 @@ private:
 			}
 		}
 		override void dragFinished(DragSourceEvent e) { mixin(S_TRACE);
-			if (e.detail == DND.DROP_MOVE) { mixin(S_TRACE);
-				_moveDir.parent.remove(_moveDir);
-				refresh();
-				_comm.delFlagAndStep.call(_moveDir.allFlags, _moveDir.allSteps);
-				_comm.refreshToolBar();
-			}
 			_moveDir = null;
 		}
+	}
+	void dropMove() { mixin(S_TRACE);
+		_moveDir.parent.remove(_moveDir);
+		refresh();
+		_comm.delFlagAndStep.call(_moveDir.allFlags, _moveDir.allSteps);
+		_comm.refreshToolBar();
 	}
 	class FlagsDropListener : DropTargetAdapter {
 	private:
@@ -107,67 +107,64 @@ private:
 				assert (dir !is null, .text(e.item.getData()));
 				string newPath;
 				string rootId;
-				cwx.flag.Flag[] fs = flags.dragFlags;
-				Step[] ss = flags.dragSteps;
+				cwx.flag.Flag[ptrdiff_t] fs = flags.dragFlags;
+				Step[ptrdiff_t] ss = flags.dragSteps;
 				cwx.flag.Flag[string] cFlags;
 				Step[string] cSteps;
-				string[] tblSelsF, tblSelsS;
+				ptrdiff_t[] tblSelsF, tblSelsS;
 				FlagDir moveDirParent = null;
 				if (current is dir) { mixin(S_TRACE);
-					tblSelsF = flags.selectionFlagNames();
-					tblSelsS = flags.selectionStepNames();
+					tblSelsF = flags.selectionFlagIndices();
+					tblSelsS = flags.selectionStepIndices();
 				}
 				ptrdiff_t dirIndex = -1;
 				if (_moveDir) { mixin(S_TRACE);
 					moveDirParent = _moveDir.parent;
-					dirIndex = moveDirParent.indexOf(_moveDir.name);
+					dirIndex = moveDirParent.indexOf(_moveDir);
 				}
 				@property
-				string[] flagName() { mixin(S_TRACE);
-					string[] name;
+				ptrdiff_t[] flagIndices() { mixin(S_TRACE);
+					ptrdiff_t[] r;
 					foreach (f; cFlags) { mixin(S_TRACE);
-						name ~= f.name;
+						r ~= f.parent.indexOf(f);
 					}
-					return name;
+					return r;
 				}
 				@property
-				string[] stepName() { mixin(S_TRACE);
-					string[] name;
+				ptrdiff_t[] stepIndices() { mixin(S_TRACE);
+					ptrdiff_t[] r;
 					foreach (s; cSteps) { mixin(S_TRACE);
-						name ~= s.name;
+						r ~= s.parent.indexOf(s);
 					}
-					return name;
+					return r;
 				}
 				auto ver = new XMLInfo(prop.sys, LATEST_VERSION);
 				auto ret = dir.appendFromXML(data, ver, false, true, cFlags, cSteps, newPath, rootId);
 				bool samePane = dir.root.id == rootId;
 				final switch (ret) {
 				case FlagDir.AppendXmlResult.DIR_SUCCESS:
-					string dirName = FlagDir.basename(newPath);
-					if (prop.var.etc.sortFlagDirs) dir.sortSubDirs();
+					auto newDir = root.findPath(newPath, false);
 					if (samePane) { mixin(S_TRACE);
 						e.detail = DND.DROP_MOVE;
 						assert (moveDirParent);
-						storeMove(tblSelsF, tblSelsS, dir, [cast(int)dir.indexOf(dirName)], [], [], moveDirParent, [cast(int)dirIndex:_moveDir], [], [], cFlags, cSteps);
+						dropMove();
+						storeMove(tblSelsF, tblSelsS, dir, [dir.indexOf(newDir)], [], [], moveDirParent, [dirIndex:_moveDir], null, null);
 						_comm.delFlagDir.call(this.outer, [_moveDir]);
 						_comm.refFlagDir.call(this.outer, [_moveDir]);
 					} else { mixin(S_TRACE);
 						e.detail = DND.DROP_COPY;
-						storeInsert(dir, tblSelsF, tblSelsS, [cast(int)dir.indexOf(dirName)], [], []);
-						_comm.refFlagDir.call(this.outer, [root.findPath(newPath, false)]);
+						storeInsert(dir, tblSelsF, tblSelsS, [dir.indexOf(newDir)], [], []);
+						_comm.refFlagDir.call(this.outer, [newDir]);
 					}
 					refresh(newPath);
 					break;
 				case FlagDir.AppendXmlResult.FLAG_STEP_SUCCESS:
-					if (cFlags.length > 0) dir.sortFlags();
-					if (cSteps.length > 0) dir.sortSteps();
 					if (samePane) { mixin(S_TRACE);
 						e.detail = DND.DROP_MOVE;
-						FlagDir[int] ds;
-						storeMove(tblSelsF, tblSelsS, dir, [], flagName, stepName, current, ds, fs, ss, cFlags, cSteps);
+						storeMove(tblSelsF, tblSelsS, dir, [], flagIndices, stepIndices, current, null, fs, ss);
 					} else { mixin(S_TRACE);
 						e.detail = DND.DROP_COPY;
-						storeInsert(dir, tblSelsF, tblSelsS, [], flagName, stepName);
+						storeInsert(dir, tblSelsF, tblSelsS, [], flagIndices, stepIndices);
 					}
 					flags.refresh();
 					break;
@@ -211,7 +208,6 @@ private:
 			storeEditDir(dir, oldName);
 			_comm.refFlagDir.call(this, [dir]);
 			assert (dir.parent !is null);
-			if (prop.var.etc.sortFlagDirs) dir.parent.sortSubDirs();
 			refresh();
 			_comm.refreshToolBar();
 		}
@@ -238,7 +234,7 @@ private:
 	private bool[string] expandAll() { mixin(S_TRACE);
 		bool[string]  r;
 		void all(TreeItem itm) { mixin(S_TRACE);
-			auto dir = cast(FlagDir) itm.getData();
+			auto dir = cast(FlagDir)itm.getData();
 			r[dir.path] = itm.getItemCount() == 0 || itm.getExpanded();
 			foreach (sub; itm.getItems()) { mixin(S_TRACE);
 				all(sub);
@@ -258,9 +254,7 @@ private:
 			sItm.setText(dir.name);
 		}
 		sItm.setData(dir);
-		foreach (sub; dir.subDirs) { mixin(S_TRACE);
-			newItem(sub, sItm, exAll);
-		}
+		.sortedWithName(dir.subDirs, prop.var.etc.logicalSort, (FlagDir sub) { newItem(sub, sItm, exAll); });
 		auto ep = dir.path in exAll;
 		if (!ep || *ep) { mixin(S_TRACE);
 			sItm.setExpanded(true);
@@ -274,9 +268,7 @@ private:
 			auto exAll = expandAll();
 			auto sel = current;
 			itm.removeAll();
-			foreach (sub; targ.subDirs) { mixin(S_TRACE);
-				newItem(sub, itm, exAll);
-			}
+			.sortedWithName(targ.subDirs, prop.var.etc.logicalSort, (FlagDir sub) { newItem(sub, itm, exAll); });
 			if (sel) current = sel;
 		}
 		_comm.refreshToolBar();
@@ -427,10 +419,9 @@ public:
 		if (!cur) return;
 		_comm.openCWXPath(cur.cwxPath(true), true);
 		string name = cur.createNewDirName(prop.msgs.flagDirNew, null);
-		storeInsert(cur, flags.selectionFlagNames, flags.selectionStepNames, [cast(int) cur.subDirs.length], [], []);
+		storeInsert(cur, flags.selectionFlagIndices, flags.selectionStepIndices, [cast(ptrdiff_t)cur.subDirs.length], [], []);
 		auto dir = new FlagDir(name);
 		cur.add(dir);
-		if (prop.var.etc.sortFlagDirs) cur.sortSubDirs();
 		refreshDirs(cur);
 		current = dir;
 		edit.startEdit();
@@ -484,30 +475,29 @@ public:
 					string rootId;
 					cwx.flag.Flag[string] cFlags;
 					Step[string] cSteps;
-					auto tblSelsF = flags.selectionFlagNames;
-					auto tblSelsS = flags.selectionStepNames;
+					auto tblSelsF = flags.selectionFlagIndices;
+					auto tblSelsS = flags.selectionStepIndices;
 					auto ver = new XMLInfo(prop.sys, LATEST_VERSION);
 					switch (cur.appendFromXML(c, ver, true, true, cFlags, cSteps, newPath, rootId)) {
 					case FlagDir.AppendXmlResult.DIR_SUCCESS:
 						refresh(newPath);
 						auto dir = root.findPath(newPath, false);
-						if (prop.var.etc.sortFlagDirs) dir.parent.sortSubDirs();
-						storeInsert(dir.parent, tblSelsF, tblSelsS, [cast(int)dir.parent.indexOf(dir.name)], [], []);
+						storeInsert(dir.parent, tblSelsF, tblSelsS, [dir.parent.indexOf(dir)], [], []);
 						_comm.refFlagDir.call(this, [dir]);
 						refresh();
 						auto itm = find(current);
 						if (itm) treeExpandedAll(itm);
 						break;
 					case FlagDir.AppendXmlResult.FLAG_STEP_SUCCESS:
-						string[] flagName;
-						string[] stepName;
+						ptrdiff_t[] flagIndices;
+						ptrdiff_t[] stepIndices;
 						foreach (f; cFlags) { mixin(S_TRACE);
-							flagName ~= f.name;
+							flagIndices ~= f.parent.indexOf(f);
 						}
 						foreach (s; cSteps) { mixin(S_TRACE);
-							stepName ~= s.name;
+							stepIndices ~= s.parent.indexOf(s);
 						}
-						storeInsert(cur, tblSelsF, tblSelsS, [], flagName, stepName);
+						storeInsert(cur, tblSelsF, tblSelsS, [], flagIndices, stepIndices);
 						flags.refresh();
 						break;
 					case FlagDir.AppendXmlResult.FLAG_STEP_ON_DIR:
@@ -527,10 +517,10 @@ public:
 			if (!root) return;
 			auto cur = current;
 			if (cur != root) { mixin(S_TRACE);
-				auto tblSelsF = flags.selectionFlagNames;
-				auto tblSelsS = flags.selectionStepNames;
-				int index = cast(int)cur.parent.indexOf(cur.name);
-				storeDelete(cur.parent, tblSelsF, tblSelsS, [index:cur], [], []);
+				auto tblSelsF = flags.selectionFlagIndices;
+				auto tblSelsS = flags.selectionStepIndices;
+				auto index = cur.parent.indexOf(cur);
+				storeDelete(cur.parent, tblSelsF, tblSelsS, [index:cur], null, null);
 				cwx.flag.Flag[] cFlags = cur.allFlags;
 				Step[] cSteps = cur.allSteps;
 				auto p = cur.parent;

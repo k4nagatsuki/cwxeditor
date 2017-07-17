@@ -1031,15 +1031,6 @@ private:
 			dStr ~= " - " ~ .text(__LINE__);
 			scope (exit) _dirWin.resumeTrace();
 			dStr ~= " - " ~ .text(__LINE__);
-			if (_prop.var.etc.logicalSort) { mixin(S_TRACE);
-				summ.flagDirRoot.sorter = &ncmp;
-			} else { mixin(S_TRACE);
-				summ.flagDirRoot.sorter = &cmp;
-			}
-			dStr ~= " - " ~ .text(__LINE__);
-			summ.flagDirRoot.sortFlags(true);
-			summ.flagDirRoot.sortSteps(true);
-			dStr ~= " - " ~ .text(__LINE__);
 			auto old = summary;
 			if (old) { mixin(S_TRACE);
 				addHistory();
@@ -1251,6 +1242,7 @@ private:
 		SaveOption opt;
 		opt.doubleIO = _prop.var.etc.doubleIO;
 		opt.saveInnerImagePath = _prop.var.etc.saveInnerImagePath;
+		opt.logicalSort = _prop.var.etc.logicalSort;
 		opt.saveChangedOnly = _prop.var.etc.saveChangedOnly && !initial;
 		opt.xmlFileNameIsIDOnly = _prop.var.etc.xmlFileNameIsIDOnly;
 		opt.backup = _prop.var.etc.backupBeforeSaveEnabled && !initial;

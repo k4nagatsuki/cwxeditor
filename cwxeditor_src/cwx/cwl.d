@@ -758,7 +758,6 @@ private Summary loadSummary(ref RData d, ref ByteIO f, out ulong startAreaId) { 
 			throw new SummaryException("Invalid step path: " ~ path);
 		}
 	}
-	summ.flagDirRoot.sortSteps(true);
 	uint flagNum = f.readUIntL;
 	for (uint i = 0u; i < flagNum; i++) { mixin(S_TRACE);
 		string path = readString(f);
@@ -769,8 +768,6 @@ private Summary loadSummary(ref RData d, ref ByteIO f, out ulong startAreaId) { 
 			throw new SummaryException("Invalid flag path: " ~ path);
 		}
 	}
-	summ.flagDirRoot.sortFlags(true);
-	summ.flagDirRoot.sortSubDirs(true);
 	f.readUIntL;
 	if (d.dataVersion != 0) { mixin(S_TRACE);
 		summ.levelMin = f.readUIntL;
@@ -2186,6 +2183,7 @@ struct SData {
 	string sPath;
 	const Skin skin;
 	bool saveInnerImagePath;
+	bool logicalSort;
 	SkillCard delegate(ulong) skill;
 	ItemCard delegate(ulong) item;
 	BeastCard delegate(ulong) beast;
@@ -2221,7 +2219,7 @@ void saveLScenario(Summary summ, const Skin skin, const CProps prop, in SaveOpti
 		InfoCard[] infos;
 		string[] wids;
 		this () {
-			d = SData(prop, summ.scenarioPath, skin, opt.saveInnerImagePath, (id) => summ.skill(id), (id) => summ.item(id), (id) => summ.beast(id), opt);
+			d = SData(prop, summ.scenarioPath, skin, opt.saveInnerImagePath, opt.logicalSort, (id) => summ.skill(id), (id) => summ.item(id), (id) => summ.beast(id), opt);
 		}
 		void writeFile(CWXPath a, string name, void delegate(ref ByteIO f) write) { mixin(S_TRACE);
 			auto file = "~" ~ name;
@@ -2806,7 +2804,7 @@ private void writeSummary(ref SData d, ref ByteIO f, Summary summ) { mixin(S_TRA
 	f.writeL(cast(uint)(summ.startArea + 40000u));
 	auto steps = summ.flagDirRoot.allSteps;
 	f.writeL(cast(uint)steps.length);
-	foreach (step; steps) { mixin(S_TRACE);
+	void putStep(Step step) { mixin(S_TRACE);
 		writeString(f, step.path);
 		f.writeL((step.select < 10u) ? cast(uint)step.select : (10u - 1u));
 		for (uint i = 0u; i < 10u; i++) { mixin(S_TRACE);
@@ -2817,14 +2815,16 @@ private void writeSummary(ref SData d, ref ByteIO f, Summary summ) { mixin(S_TRA
 			}
 		}
 	}
+	.sortedWithPath(steps, d.logicalSort, &putStep);
 	auto flags = summ.flagDirRoot.allFlags;
 	f.writeL(cast(uint)flags.length);
-	foreach (flag; flags) { mixin(S_TRACE);
+	void putFlag(Flag flag) { mixin(S_TRACE);
 		writeString(f, flag.path);
 		writeBool(f, flag.onOff);
 		writeString(f, flag.on);
 		writeString(f, flag.off);
 	}
+	.sortedWithPath(flags, d.logicalSort, &putFlag);
 	f.writeL(cast(uint)0u);
 	f.writeL(cast(uint)summ.levelMin);
 	f.writeL(cast(uint)summ.levelMax);
