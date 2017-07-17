@@ -841,7 +841,7 @@ public:
 				item.parent.remove(item);
 			}
 			item.parent = this;
-			if (arr.length <= index) { mixin(S_TRACE);
+			if (arr.length <= index || index < 0) { mixin(S_TRACE);
 				arr ~= item;
 			} else { mixin(S_TRACE);
 				arr = arr[0 .. index] ~ item ~ arr[index .. $];
@@ -1683,9 +1683,13 @@ public:
 	void toNodeAll(ref XNode node, bool logicalSort) { mixin(S_TRACE);
 		auto fe = node.newElement("Flags");
 		// BUG: std.algorithm.sortがconstレンジを受け付けない
-		.sortedWithPath(cast(Flag[])flags, logicalSort, (Flag flag) { flag.toNode(fe); });
+		.sortedWithPath(cast(Flag[])allFlags, logicalSort, (Flag flag) { mixin(S_TRACE);
+			flag.toNode(fe);
+		});
 		auto se = node.newElement("Steps");
-		.sortedWithPath(cast(Step[])allSteps, logicalSort, (Step step) { step.toNode(se); });
+		.sortedWithPath(cast(Step[])allSteps, logicalSort, (Step step) { mixin(S_TRACE);
+			step.toNode(se);
+		});
 	}
 
 	/// XMLノードを元に、フラグディレクトリのツリーを生成して返す。
