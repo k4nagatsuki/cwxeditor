@@ -113,15 +113,17 @@ private:
 				Step[string] cSteps;
 				ptrdiff_t[] tblSelsF, tblSelsS;
 				FlagDir moveDirParent = null;
-				if (current is dir) { mixin(S_TRACE);
-					tblSelsF = flags.selectionFlagIndices();
-					tblSelsS = flags.selectionStepIndices();
-				}
 				ptrdiff_t dirIndex = -1;
 				if (_moveDir) { mixin(S_TRACE);
 					moveDirParent = _moveDir.parent;
 					dirIndex = moveDirParent.indexOf(_moveDir);
+					if (_moveDir.parent is dir) return;
 				}
+				if (current is dir) { mixin(S_TRACE);
+					tblSelsF = flags.selectionFlagIndices();
+					tblSelsS = flags.selectionStepIndices();
+				}
+
 				@property
 				ptrdiff_t[] flagIndices() { mixin(S_TRACE);
 					ptrdiff_t[] r;

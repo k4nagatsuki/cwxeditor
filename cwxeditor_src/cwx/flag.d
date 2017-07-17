@@ -834,14 +834,16 @@ public:
 	private bool addImpl(F)(ref F[] arr, F item, bool delegate(in F) canAppend, ptrdiff_t index) { mixin(S_TRACE);
 		if (index == -1) index = arr.length;
 		if (canAppend(item) || item.parent is this) { mixin(S_TRACE);
-			if (item.parent is this && arr[index] is item) return true;
-			if (item.parent !is null) { mixin(S_TRACE);
+			if (item.parent is this && 0 <= index && index < arr.length && arr[index] is item) { mixin(S_TRACE);
+				return true;
+			}
+			if (item.parent) { mixin(S_TRACE);
 				auto i = item.parent.indexOf(item);
-				if (i < index) index--;
+				if (item.parent is this && i < index) index--;
 				item.parent.remove(item);
 			}
 			item.parent = this;
-			if (arr.length <= index || index < 0) { mixin(S_TRACE);
+			if (index < 0 || arr.length <= index) { mixin(S_TRACE);
 				arr ~= item;
 			} else { mixin(S_TRACE);
 				arr = arr[0 .. index] ~ item ~ arr[index .. $];
