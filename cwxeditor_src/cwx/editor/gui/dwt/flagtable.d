@@ -1203,6 +1203,7 @@ package class UndoMove : FTVUndo {
 			comm.summary.useCounter.change(oPath, nPath);
 		}
 		if (v && v.flags && !v.flags.isDisposed()) { mixin(S_TRACE);
+			v.refresh();
 			v.refreshUseCount();
 		}
 	}
@@ -1231,9 +1232,6 @@ package class UndoMove : FTVUndo {
 		foreach (f; rfs) fSet[f] = true;
 		foreach (f; rss) sSet[f] = true;
 		foreach (f; rds) dSet[f] = true;
-		if (v && v.flags && !v.flags.isDisposed()) { mixin(S_TRACE);
-			v.refresh();
-		}
 		if (rds.length) comm.delFlagDir.call(dSet.keys);
 		if (rfs.length || rss.length) { mixin(S_TRACE);
 			comm.delFlagAndStep.call(fSet.keys, sSet.keys);
@@ -1968,11 +1966,11 @@ public:
 
 	private void refreshUseCount() { mixin(S_TRACE);
 		foreach (itm; flags.getItems()) { mixin(S_TRACE);
-			if (cast(cwx.flag.Flag) itm.getData()) { mixin(S_TRACE);
-				itm.setText(2, to!(string)(uc.flag.get(toFlagId((cast(cwx.flag.Flag) itm.getData()).path))));
+			if (cast(cwx.flag.Flag)itm.getData()) { mixin(S_TRACE);
+				itm.setText(2, to!(string)(uc.flag.get(toFlagId((cast(cwx.flag.Flag)itm.getData()).path))));
 			} else { mixin(S_TRACE);
-				assert (cast(Step) itm.getData());
-				itm.setText(2, to!(string)(uc.step.get(toStepId((cast(Step) itm.getData()).path))));
+				assert (cast(Step)itm.getData() !is null);
+				itm.setText(2, to!(string)(uc.step.get(toStepId((cast(Step)itm.getData()).path))));
 			}
 		}
 	}
