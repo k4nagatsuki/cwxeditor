@@ -663,7 +663,7 @@ T[] readBinaryFrom(T)(string fileName, out T* ptr) { mixin(S_TRACE);
 		auto bin = cast(T*).calloc(T.sizeof, len);
 		ptr = bin;
 		DWORD read;
-		enforce(ReadFile(file, bin, len, &read, null),  new Exception("ReadFile() error: " ~ fileName));
+		enforce(ReadFile(file, bin, len, &read, null), new Exception("ReadFile() error: " ~ fileName));
 		return bin[0 .. read];
 	} else {
 		import core.stdc.stdio;

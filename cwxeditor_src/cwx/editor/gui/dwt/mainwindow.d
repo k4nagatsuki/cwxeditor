@@ -948,7 +948,7 @@ private:
 	void reload() { mixin(S_TRACE);
 		if (!summary) return;
 		auto old = summary;
-		if (old.useTemp && !old.zipName.length) { mixin(S_TRACE);
+		if (old.useTemp && !old.origZipName.length) { mixin(S_TRACE);
 			DWTMessageBox.showWarning(.tryFormat(_prop.msgs.reloadBeforeSaveError, old.scenarioName),
 				_prop.msgs.dlgTitWarning, _win);
 			return;
@@ -959,7 +959,8 @@ private:
 				auto wsm = std.path.buildPath(old.scenarioPath, "Summary.wsm");
 				if (old.useTemp) { mixin(S_TRACE);
 					try { mixin(S_TRACE);
-						openScenario(old.reloadXMLs(_prop.parent, loadOption(old)));
+						auto summ = old.reloadXMLs(_prop.parent, loadOption(old));
+						openScenario(summ);
 					} catch (Exception e) {
 						printStackTrace();
 						debugln(e);

@@ -94,6 +94,7 @@ Summary loadLScenario(string p, string skinType, string skinName, const System s
 		summ = new Summary(newName, d.skinType, d.skinName, d.sPath, false, true);
 	}
 	class Load {
+		RData d;
 		Area[] areas;
 		Battle[] battles;
 		Package[] packages;
@@ -104,6 +105,9 @@ Summary loadLScenario(string p, string skinType, string skinName, const System s
 		InfoCard[] infos;
 		string[] files;
 		ulong wait = 0L;
+		this (ref RData d) {
+			this.d = d;
+		}
 		void load() { mixin(S_TRACE);
 			version (Console) {
 				debug std.stdio.writeln("Start Classic Load Thread");
@@ -120,29 +124,29 @@ Summary loadLScenario(string p, string skinType, string skinName, const System s
 					ulong id;
 					if (!d.cardOnly) { mixin(S_TRACE);
 						if (sWith(base, "Area", id)) { mixin(S_TRACE);
-							areas ~= .loadArea(*d, f, id);
+							areas ~= .loadArea(d, f, id);
 						}
 						if (sWith(base, "Battle", id)) { mixin(S_TRACE);
-							battles ~= .loadBattle(*d, f, id);
+							battles ~= .loadBattle(d, f, id);
 						}
 						if (sWith(base, "Package", id)) { mixin(S_TRACE);
-							packages ~= .loadPackage(*d, f, id);
+							packages ~= .loadPackage(d, f, id);
 						}
 					}
 					if (sWith(base, "Mate", id)) { mixin(S_TRACE);
-						casts ~= .loadCast(*d, f, id);
+						casts ~= .loadCast(d, f, id);
 					}
 					if (sWith(base, "Skill", id)) { mixin(S_TRACE);
-						skills ~= .loadSkill(*d, f, id);
+						skills ~= .loadSkill(d, f, id);
 					}
 					if (sWith(base, "Item", id)) { mixin(S_TRACE);
-						items ~= .loadItem(*d, f, id);
+						items ~= .loadItem(d, f, id);
 					}
 					if (sWith(base, "Beast", id)) { mixin(S_TRACE);
-						beasts ~= .loadBeast(*d, f, id);
+						beasts ~= .loadBeast(d, f, id);
 					}
 					if (sWith(base, "Info", id)) { mixin(S_TRACE);
-						infos ~= .loadInfo(*d, f, id);
+						infos ~= .loadInfo(d, f, id);
 					}
 				} catch (Exception e) {
 					printStackTrace();
@@ -156,8 +160,8 @@ Summary loadLScenario(string p, string skinType, string skinName, const System s
 		}
 	}
 	if (opt.summaryOnly) return summ;
-	auto load1 = new Load;
-	auto load2 = new Load;
+	auto load1 = new Load(*d);
+	auto load2 = new Load(*d);
 	foreach (file; clistdir(sPath)) { mixin(S_TRACE);
 		if (cfnmatch(extension(file), ".wid")) { mixin(S_TRACE);
 			file = std.path.buildPath(sPath, file);
@@ -775,9 +779,9 @@ private Summary loadSummary(ref RData d, ref ByteIO f, out ulong startAreaId) { 
 	}
 	return summ;
 }
-private Motion readMotion(ref RData d, ref ByteIO f, size_t index) { mixin(S_TRACE);
+private Motion readMotion(ref RData d, int dataVersion, ref ByteIO f, size_t index) { mixin(S_TRACE);
 	byte tType = f.readByte;
-	if (d.dataVersion > 2) { mixin(S_TRACE);
+	if (dataVersion > 2) { mixin(S_TRACE);
 		f.readByte;
 		f.readByte;
 		f.readByte;
@@ -827,7 +831,7 @@ private Motion readMotion(ref RData d, ref ByteIO f, size_t index) { mixin(S_TRA
 	}
 	case 3, 4: { mixin(S_TRACE);
 		uint rnd;
-		if (d.dataVersion > 2) { mixin(S_TRACE);
+		if (dataVersion > 2) { mixin(S_TRACE);
 			rnd = f.readUIntL;
 		} else { mixin(S_TRACE);
 			rnd = 10;
@@ -862,7 +866,7 @@ private Motion readMotion(ref RData d, ref ByteIO f, size_t index) { mixin(S_TRA
 	case 5: { mixin(S_TRACE);
 		uint val = f.readUIntL;
 		uint rnd;
-		if (d.dataVersion > 2) { mixin(S_TRACE);
+		if (dataVersion > 2) { mixin(S_TRACE);
 			rnd = f.readUIntL;
 		} else { mixin(S_TRACE);
 			rnd = 10;
@@ -917,7 +921,7 @@ private Motion readMotion(ref RData d, ref ByteIO f, size_t index) { mixin(S_TRA
 	}
 }
 private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_TRACE);
-	static Content readImpl(ref RData d, ref ByteIO f, byte type, string name, ref string[string] info) { mixin(S_TRACE);
+	static Content readImpl(ref RData d, ref ByteIO f, int dataVersion, byte type, string name, ref string[string] info) { mixin(S_TRACE);
 		Content e;
 		switch (type) {
 		case 0:
@@ -1002,7 +1006,7 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			Motion[] effMotions;
 			effMotions.length = effMotionNum;
 			for (uint i = 0u; i < effMotionNum; i++) { mixin(S_TRACE);
-				effMotions[i] = readMotion(d, f, i);
+				effMotions[i] = readMotion(d, dataVersion, f, i);
 			}
 			e = new Content(CType.EFFECT, name);
 			e.signedLevel = effLev;
@@ -1070,7 +1074,7 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			break;
 		case 20: { mixin(S_TRACE);
 			ulong id = f.readUIntL;
-			if (d.dataVersion <= 2) { mixin(S_TRACE);
+			if (dataVersion <= 2) { mixin(S_TRACE);
 				e = new Content(CType.BRANCH_ITEM, name);
 				e.item = id;
 				e.range = Range.PARTY_AND_BACKPACK;
@@ -1087,7 +1091,7 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 		}
 		case 21: { mixin(S_TRACE);
 			ulong id = f.readUIntL;
-			if (d.dataVersion <= 2) { mixin(S_TRACE);
+			if (dataVersion <= 2) { mixin(S_TRACE);
 				e = new Content(CType.BRANCH_SKILL, name);
 				e.item = id;
 				e.range = Range.PARTY_AND_BACKPACK;
@@ -1108,7 +1112,7 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			break;
 		case 23: { mixin(S_TRACE);
 			ulong id = f.readUIntL;
-			if (d.dataVersion <= 2) { mixin(S_TRACE);
+			if (dataVersion <= 2) { mixin(S_TRACE);
 				e = new Content(CType.BRANCH_BEAST, name);
 				e.item = id;
 				e.range = Range.PARTY_AND_BACKPACK;
@@ -1142,7 +1146,7 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			break;
 		case 27: { mixin(S_TRACE);
 			ulong id = f.readUIntL;
-			if (d.dataVersion <= 2) { mixin(S_TRACE);
+			if (dataVersion <= 2) { mixin(S_TRACE);
 				e = new Content(CType.GET_ITEM, name);
 				e.item = id;
 				e.range = Range.PARTY_AND_BACKPACK;
@@ -1159,7 +1163,7 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 		}
 		case 28: { mixin(S_TRACE);
 			ulong id = f.readUIntL;
-			if (d.dataVersion <= 2) { mixin(S_TRACE);
+			if (dataVersion <= 2) { mixin(S_TRACE);
 				e = new Content(CType.GET_SKILL, name);
 				e.item = id;
 				e.range = Range.PARTY_AND_BACKPACK;
@@ -1180,7 +1184,7 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			break;
 		case 30: { mixin(S_TRACE);
 			ulong id = f.readUIntL;
-			if (d.dataVersion <= 2) { mixin(S_TRACE);
+			if (dataVersion <= 2) { mixin(S_TRACE);
 				e = new Content(CType.GET_BEAST, name);
 				e.item = id;
 				e.range = Range.PARTY_AND_BACKPACK;
@@ -1215,7 +1219,7 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			break;
 		case 34: { mixin(S_TRACE);
 			ulong id = f.readUIntL;
-			if (d.dataVersion <= 2) { mixin(S_TRACE);
+			if (dataVersion <= 2) { mixin(S_TRACE);
 				e = new Content(CType.LOSE_ITEM, name);
 				e.item = id;
 				e.range = Range.PARTY_AND_BACKPACK;
@@ -1232,7 +1236,7 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 		}
 		case 35: { mixin(S_TRACE);
 			ulong id = f.readUIntL;
-			if (d.dataVersion <= 2) { mixin(S_TRACE);
+			if (dataVersion <= 2) { mixin(S_TRACE);
 				e = new Content(CType.LOSE_SKILL, name);
 				e.item = id;
 				e.range = Range.PARTY_AND_BACKPACK;
@@ -1253,7 +1257,7 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			break;
 		case 37: { mixin(S_TRACE);
 			ulong id = f.readUIntL;
-			if (d.dataVersion <= 2) { mixin(S_TRACE);
+			if (dataVersion <= 2) { mixin(S_TRACE);
 				e = new Content(CType.LOSE_BEAST, name);
 				e.item = id;
 				e.range = Range.PARTY_AND_BACKPACK;
@@ -1549,6 +1553,7 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 		}
 		return e;
 	}
+	int[] dataVersions;
 	byte[] types;
 	string[string][] infos;
 	string[] names;
@@ -1557,12 +1562,18 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 		byte type = f.readByte;
 		string[string] info;
 		string name = readString(f, info, false, false);
-		uint cNum;
-		if (d.dataVersion <= 2) { mixin(S_TRACE);
-			cNum = f.readUIntL;
+		auto cNum = f.readUIntL;
+		int dataVersion;
+		if (cNum < 19999) { mixin(S_TRACE);
+			dataVersion = 0;
+		} else if (cNum < 39999) { mixin(S_TRACE);
+			dataVersion = 2;
+			cNum -= 20000u;
 		} else { mixin(S_TRACE);
-			cNum = f.readUIntL - 40000u;
+			dataVersion = 4;
+			cNum -= 40000u;
 		}
+		dataVersions ~= dataVersion;
 		types ~= type;
 		infos ~= info;
 		names ~= name;
@@ -1581,7 +1592,7 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 	}
 	Content e = null;
 	foreach_reverse (i, type; types) { mixin(S_TRACE);
-		e = readImpl(d, f, type, names[i], infos[i]);
+		e = readImpl(d, f, dataVersions[i], type, names[i], infos[i]);
 		if (e.detail.owner) { mixin(S_TRACE);
 			foreach (c; children) { mixin(S_TRACE);
 				e.add(null, c);
@@ -2071,7 +2082,7 @@ private C readEffCard(C)(ref RData d, ref ByteIO f) { mixin(S_TRACE);
 	Motion[] motions;
 	motions.length = mNum;
 	for (uint i = 0u; i < mNum; i++) { mixin(S_TRACE);
-		motions[i] = readMotion(d, f, i);
+		motions[i] = readMotion(d, d.dataVersion, f, i);
 	}
 	r.motions = motions;
 	r.enhance(Enhance.AVOID, f.readIntL);

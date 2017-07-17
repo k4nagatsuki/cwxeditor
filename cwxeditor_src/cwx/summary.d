@@ -2242,7 +2242,7 @@ public:
 		}
 		summ._expandXMLs = expandXMLs;
 		summ._zipName = zipName;
-		summ._origZipName = zipName;
+		summ._origZipName = origZipName;
 		summ._useTemp = useTemp;
 		summ._legacy = legacy;
 		if (useTemp) { mixin(S_TRACE);
