@@ -1284,21 +1284,27 @@ public:
 	}
 	private bool loadFlagAndSteps(ref XNode node, ref Flag[string] cFlags, ref Step[string] cSteps, bool copy, in XMLInfo ver) { mixin(S_TRACE);
 		try { mixin(S_TRACE);
-			if (!loadFS!("Flags", "Flag", Flag)(node, this, cFlags, &createNewFlagName, copy, ver)) { mixin(S_TRACE);
+			Flag[string] cFlags2;
+			if (!loadFS!("Flags", "Flag", Flag)(node, this, cFlags2, &createNewFlagName, copy, ver)) { mixin(S_TRACE);
 				.removeAll(cFlags);
 				.removeAll(cSteps);
 				return false;
 			}
-			if (!loadFS!("Steps", "Step", Step)(node, this, cSteps, &createNewStepName, copy, ver)) { mixin(S_TRACE);
+			Step[string] cSteps2;
+			if (!loadFS!("Steps", "Step", Step)(node, this, cSteps2, &createNewStepName, copy, ver)) { mixin(S_TRACE);
 				.removeAll(cFlags);
 				.removeAll(cSteps);
 				return false;
 			}
-			foreach (v; cFlags.values) { mixin(S_TRACE);
-				this.add(v);
+			foreach (k, v; cFlags2) { mixin(S_TRACE);
+				auto r = this.add(v);
+				assert (r);
+				cFlags[k] = v;
 			}
-			foreach (v; cSteps.values) { mixin(S_TRACE);
-				this.add(v);
+			foreach (k, v; cSteps2) { mixin(S_TRACE);
+				auto r = this.add(v);
+				assert (r);
+				cSteps[k] = v;
 			}
 			return true;
 		} catch (Exception e) {
