@@ -1259,13 +1259,13 @@ package class UndoEditDir : FTVUndo {
 		udb(v);
 		scope (exit) uda(v);
 		auto dir = this.dir();
+		assert (dir !is null);
 
 		string oldName = dir.name;
 		dir.rename(_oldName, comm.summary.useCounter);
 		_oldName = oldName;
 
 		comm.refFlagDir.call([dir]);
-		_dir = dir.path;
 	}
 	override void undo() {impl();}
 	override void redo() {impl();}

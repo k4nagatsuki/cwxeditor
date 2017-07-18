@@ -185,9 +185,13 @@ private:
 						|| ret == FlagDir.AppendXmlResult.FLAG_STEP_SUCCESS)
 						&& samePane) { mixin(S_TRACE);
 					foreach (oldPath; cFlags.keys) { mixin(S_TRACE);
+						assert (cFlags[oldPath].parent !is null);
 						uc.change(toFlagId(oldPath), toFlagId(cFlags[oldPath].path));
 					}
 					foreach (oldPath; cSteps.keys) { mixin(S_TRACE);
+						assert (cSteps[oldPath].parent !is null);
+cdebugln(oldPath);
+cdebugln(cSteps[oldPath].name);
 						uc.change(toStepId(oldPath), toStepId(cSteps[oldPath].path));
 					}
 					_comm.refFlagAndStep.call(cFlags.values, cSteps.values);
