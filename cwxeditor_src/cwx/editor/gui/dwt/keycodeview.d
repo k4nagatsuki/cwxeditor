@@ -136,7 +136,7 @@ class KeyCodeView : Composite {
 	}
 
 	private TableItem append(string keyCode, int index = -1) { mixin(S_TRACE);
-		if (_tte.isEditing) _tte.enter();
+		if (_tte && _tte.isEditing) _tte.enter();
 		TableItem itm;
 		if (index != -1) { mixin(S_TRACE);
 			itm = new TableItem(_keyCodes, SWT.NONE, index);
@@ -148,7 +148,7 @@ class KeyCodeView : Composite {
 		return itm;
 	}
 	private void add() { mixin(S_TRACE);
-		if (_tte.isEditing) _tte.enter();
+		if (_tte && _tte.isEditing) _tte.enter();
 		storeKeyCodes();
 		auto itm = append("", -1);
 		_keyCodes.deselectAll();
@@ -160,14 +160,14 @@ class KeyCodeView : Composite {
 		_tte.startEdit();
 	}
 	private void del() { mixin(S_TRACE);
-		if (_tte.isEditing) _tte.enter();
+		if (_tte && _tte.isEditing) _tte.enter();
 		storeKeyCodes();
 		_keyCodes.remove(_keyCodes.getSelectionIndices());
 		raiseModifyEvent();
 		_comm.refreshToolBar();
 	}
 	private void up() { mixin(S_TRACE);
-		if (_tte.isEditing) _tte.enter();
+		if (_tte && _tte.isEditing) _tte.enter();
 		auto indices = _keyCodes.getSelectionIndices();
 		std.algorithm.sort(indices);
 		if (!indices.length || indices[0] <= 0) return;
@@ -185,7 +185,7 @@ class KeyCodeView : Composite {
 		_comm.refreshToolBar();
 	}
 	private void down() { mixin(S_TRACE);
-		if (_tte.isEditing) _tte.enter();
+		if (_tte && _tte.isEditing) _tte.enter();
 		auto indices = _keyCodes.getSelectionIndices();
 		std.algorithm.sort(indices);
 		if (!indices.length || _keyCodes.getItemCount() <= indices[$ - 1] + 1) return;
@@ -242,7 +242,7 @@ class KeyCodeView : Composite {
 		if (!keyCodes.length) return false;
 		_keyCodes.setRedraw(false);
 		scope (exit) _keyCodes.setRedraw(true);
-		if (_tte.isEditing) _tte.enter();
+		if (_tte && _tte.isEditing) _tte.enter();
 		storeKeyCodes();
 		TableItem[] itms = [];
 		foreach (keyCode; keyCodes) { mixin(S_TRACE);
@@ -266,7 +266,7 @@ class KeyCodeView : Composite {
 		}
 		override void dragSetData(DragSourceEvent e){ mixin(S_TRACE);
 			if (XMLBytesTransfer.getInstance().isSupportedType(e.dataType)) { mixin(S_TRACE);
-				if (_tte.isEditing) _tte.enter();
+				if (_tte && _tte.isEditing) _tte.enter();
 				auto c = cast(Table)(cast(DragSource)e.getSource()).getControl();
 				_itms = c.getSelection();
 				if (!_itms.length) return;
@@ -280,7 +280,7 @@ class KeyCodeView : Composite {
 		}
 		override void dragFinished(DragSourceEvent e) { mixin(S_TRACE);
 			if (!_readOnly && e.detail == DND.DROP_MOVE) { mixin(S_TRACE);
-				if (_tte.isEditing) _tte.enter();
+				if (_tte && _tte.isEditing) _tte.enter();
 				_keyCodes.setRedraw(false);
 				scope (exit) _keyCodes.setRedraw(true);
 				foreach_reverse (itm; _itms) itm.dispose();
@@ -300,7 +300,7 @@ class KeyCodeView : Composite {
 		}
 		override void copy(SelectionEvent se) { mixin(S_TRACE);
 			if (canDoC) { mixin(S_TRACE);
-				if (_tte.isEditing) _tte.enter();
+				if (_tte && _tte.isEditing) _tte.enter();
 				auto keyCodes = _keyCodes.getSelection().map!(itm => itm.getText())().array();
 				XMLtoCB(_prop, _comm.clipboard, keyCodesToXML(keyCodes));
 				_comm.refreshToolBar();
@@ -309,7 +309,7 @@ class KeyCodeView : Composite {
 		override void paste(SelectionEvent se) { mixin(S_TRACE);
 			auto xml = CBtoXML(_comm.clipboard);
 			if (xml) { mixin(S_TRACE);
-				if (_tte.isEditing) _tte.enter();
+				if (_tte && _tte.isEditing) _tte.enter();
 				try { mixin(S_TRACE);
 					auto node = XNode.parse(xml);
 					appendFromNode(node, _keyCodes.getItemCount(), false);
@@ -436,7 +436,9 @@ class KeyCodeView : Composite {
 			drop.addDropListener(new CDropListener);
 		}
 
-		_tte = new TableTextEdit(_comm, _prop, _keyCodes, 0, &editEnd, (itm, column) => true, &createEditor);
+		if (!_readOnly) { mixin(S_TRACE);
+			_tte = new TableTextEdit(_comm, _prop, _keyCodes, 0, &editEnd, (itm, column) => true, &createEditor);
+		}
 
 		auto d = this.getDisplay();
 		_comm.refMenu.add(&refMenu);

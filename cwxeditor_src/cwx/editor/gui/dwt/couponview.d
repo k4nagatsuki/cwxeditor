@@ -120,8 +120,8 @@ class CouponView(CVType Type) : Composite {
 			this.outer._coupons.showSelection();
 			_comm.refreshToolBar();
 		}
-		override void undo() {impl();}
-		override void redo() {impl();}
+		override void undo() { impl(); }
+		override void redo() { impl(); }
 		override void dispose() { mixin(S_TRACE);
 			// Nothing
 		}
@@ -275,15 +275,17 @@ class CouponView(CVType Type) : Composite {
 		}
 	}
 	private void selCoupon() { mixin(S_TRACE);
-		auto i = _coupons.getSelectionIndex();
-		if (-1 != i) { mixin(S_TRACE);
-			auto c = cast(Coupon)_coupons.getItem(i).getData();
-			_newCoupon.setText(c.name);
-			_newCouponTM.reset();
-			static if (CVType.NoValued != Type) {
-				_couponVal.setSelection(c.value);
+		if (!_readOnly) { mixin(S_TRACE);
+			auto i = _coupons.getSelectionIndex();
+			if (-1 != i) { mixin(S_TRACE);
+				auto c = cast(Coupon)_coupons.getItem(i).getData();
+				_newCoupon.setText(c.name);
+				_newCouponTM.reset();
+				static if (CVType.NoValued != Type) {
+					_couponVal.setSelection(c.value);
+				}
+				updateCouponType();
 			}
-			updateCouponType();
 		}
 		_comm.refreshToolBar();
 	}
@@ -627,18 +629,15 @@ class CouponView(CVType Type) : Composite {
 		auto o = this;
 		_id = format("%08X", &o) ~ "-" ~ to!(string)(Clock.currTime());
 
-		static if (CVType.NoValued == Type) {
-			_readOnly = style & SWT.READ_ONLY;
-		} else {
-			_readOnly = !SWT.READ_ONLY;
-		}
+		_readOnly = style & SWT.READ_ONLY;
+
 		_comm = comm;
 		_summ = summ;
 		_prop = comm.prop;
 		_undoCoupons = new UndoManager(_prop.var.etc.undoMaxEtc);
 		this.setLayout(zeroMarginGridLayout(3, false));
-		_toolbar = new ToolBar(this, SWT.FLAT);
-		{ mixin(S_TRACE);
+		if (!_readOnly) { mixin(S_TRACE);
+			_toolbar = new ToolBar(this, SWT.FLAT);
 			_comm.put(_toolbar);
 			_toolbar.addListener(SWT.Traverse, new HTBTraverse);
 			_toolbar.addListener(SWT.KeyDown, new HTBKeyDown);
@@ -716,7 +715,7 @@ class CouponView(CVType Type) : Composite {
 				});
 			}
 		}
-		{ mixin(S_TRACE);
+		if (!_readOnly) { mixin(S_TRACE);
 			static if (CVType.Cast == Type) {
 				_newCoupon = createCouponCombo!Combo(_comm, _summ, this, catchMod, CouponComboType.Cast, "", _newCouponTM);
 				.listener(_newCoupon, SWT.Modify, &updateCouponType);
@@ -794,17 +793,19 @@ class CouponView(CVType Type) : Composite {
 			}
 		}
 		_coupons.addSelectionListener(new SelCoupon);
-		static if (CVType.NoValued != Type) {
-			this.setTabList([cast(Control)_toolbar, _newCoupon, _couponType, _couponVal, _coupons]);
-		} else {
-			this.setTabList([cast(Control)_toolbar, _newCoupon, _couponType, _coupons]);
+		if (!_readOnly) { mixin(S_TRACE);
+			static if (CVType.NoValued != Type) {
+				this.setTabList([cast(Control)_toolbar, _newCoupon, _couponType, _couponVal, _coupons]);
+			} else {
+				this.setTabList([cast(Control)_toolbar, _newCoupon, _couponType, _coupons]);
+			}
+			auto drop = new DropTarget(_coupons, DND.DROP_DEFAULT | DND.DROP_MOVE | DND.DROP_COPY);
+			drop.setTransfer([XMLBytesTransfer.getInstance()]);
+			drop.addDropListener(new CDropListener);
 		}
 		auto drag = new DragSource(_coupons, DND.DROP_MOVE | DND.DROP_COPY);
 		drag.setTransfer([XMLBytesTransfer.getInstance()]);
 		drag.addDragListener(new CDragListener);
-		auto drop = new DropTarget(_coupons, DND.DROP_DEFAULT | DND.DROP_MOVE | DND.DROP_COPY);
-		drop.setTransfer([XMLBytesTransfer.getInstance()]);
-		drop.addDropListener(new CDropListener);
 
 		_comm.refMenu.add(&refMenu);
 		_comm.refUndoMax.add(&refUndoMax);
