@@ -1143,7 +1143,7 @@ class Commons {
 	bool poolContentsToolBox(ContentsToolBox box) {
 		EventTreeView view = null;
 		foreachEventTreeView((v) { mixin(S_TRACE);
-			if (v && !v.contentsToolBox && box.owner !is v && box.owner.widget.getShell() is v.widget.getShell()) { mixin(S_TRACE);
+			if (v && !v.readOnly && !v.contentsToolBox && box.owner !is v && box.owner.widget.getShell() is v.widget.getShell()) { mixin(S_TRACE);
 				view = v;
 				return false;
 			}

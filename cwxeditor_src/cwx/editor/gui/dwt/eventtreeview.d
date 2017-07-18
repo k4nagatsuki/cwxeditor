@@ -1837,6 +1837,10 @@ public:
 	private Composite boxOwner() { return _cbarPar; }
 
 	@property
+	const
+	bool readOnly() { return _readOnly != 0; }
+
+	@property
 	string statusLine() {return _statusLine;}
 
 	void undo() { mixin(S_TRACE);

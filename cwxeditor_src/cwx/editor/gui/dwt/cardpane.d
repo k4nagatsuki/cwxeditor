@@ -2193,7 +2193,6 @@ private:
 
 		override void mouseMove(MouseEvent e) { mixin(S_TRACE);
 			if (_cardType is CardType.Skill || _cardType is CardType.Item || _cardType is CardType.Beast) { mixin(S_TRACE);
-				if (!editMode) return;
 				if (_viewMode !is CViewMode.LIFE) { mixin(S_TRACE);
 					_list.setCursor(null);
 					_openEventTarget = null;
