@@ -1125,17 +1125,17 @@ package class UndoInsertDelete : FTVUndo {
 		foreach (index; std.algorithm.sort(_fs.keys)) { mixin(S_TRACE);
 			auto f = _fs[index];
 			_flagIndices ~= index;
-			dir.insert(index, f);
+			dir.insert(index, f, true);
 		}
 		foreach (index; std.algorithm.sort(_ss.keys)) { mixin(S_TRACE);
 			auto s = _ss[index];
 			_stepIndices ~= index;
-			dir.insert(index, s);
+			dir.insert(index, s, true);
 		}
 		foreach (index; std.algorithm.sort(_ds.keys)) { mixin(S_TRACE);
 			auto d = _ds[index];
 			_dirIndices ~= index;
-			dir.insert(index, d);
+			dir.insert(index, d, true);
 			rfs ~= d.allFlags;
 			rss ~= d.allSteps;
 			rds ~= d.allSubDirs;

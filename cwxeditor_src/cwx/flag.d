@@ -831,9 +831,14 @@ public:
 		return canAppendSub(ndir.name);
 	}
 
-	private bool addImpl(F)(ref F[] arr, F item, bool delegate(in F) canAppend, ptrdiff_t index) { mixin(S_TRACE);
+	private bool addImpl(F)(ref F[] arr, F item, bool delegate(in F) canAppend, ptrdiff_t index, bool rename) { mixin(S_TRACE);
 		if (index == -1) index = arr.length;
-		if (canAppend(item) || item.parent is this) { mixin(S_TRACE);
+		auto duplicate = item.parent !is this && !canAppend(item);
+		if (duplicate && rename) { mixin(S_TRACE);
+			item._name = createNewName!F(item.name, "");
+			duplicate = false;
+		}
+		if (!duplicate) { mixin(S_TRACE);
 			if (item.parent is this && 0 <= index && index < arr.length && arr[index] is item) { mixin(S_TRACE);
 				return true;
 			}
@@ -856,28 +861,30 @@ public:
 		return false;
 	}
 	/// フラグ・ステップ・サブディレクトリを追加する。
-	bool add(Flag flag) { mixin(S_TRACE);
-		return addImpl!(Flag)(_flags, flag, &canAppendFlag, -1);
+	/// 同一名称のリソースがすでに存在する場合は追加を行わずにfalseを返す。
+	/// ただしrenameがtrueの場合は名前を変更して追加する。
+	bool add(Flag flag, bool rename = false) { mixin(S_TRACE);
+		return addImpl!(Flag)(_flags, flag, &canAppendFlag, -1, rename);
 	}
 	/// ditto
-	bool insert(ptrdiff_t index, Flag flag) { mixin(S_TRACE);
-		return addImpl!(Flag)(_flags, flag, &canAppendFlag, index);
+	bool insert(ptrdiff_t index, Flag flag, bool rename = false) { mixin(S_TRACE);
+		return addImpl!(Flag)(_flags, flag, &canAppendFlag, index, rename);
 	}
 	/// ditto
-	bool add(Step step) { mixin(S_TRACE);
-		return addImpl!(Step)(_steps, step, &canAppendStep, -1);
+	bool add(Step step, bool rename = false) { mixin(S_TRACE);
+		return addImpl!(Step)(_steps, step, &canAppendStep, -1, rename);
 	}
 	/// ditto
-	bool insert(ptrdiff_t index, Step step) { mixin(S_TRACE);
-		return addImpl!(Step)(_steps, step, &canAppendStep, index);
+	bool insert(ptrdiff_t index, Step step, bool rename = false) { mixin(S_TRACE);
+		return addImpl!(Step)(_steps, step, &canAppendStep, index, rename);
 	}
 	/// ditto
-	bool add(FlagDir sub) { mixin(S_TRACE);
-		return addImpl!(FlagDir)(_subdir, sub, &canAppendSub2, -1);
+	bool add(FlagDir sub, bool rename = false) { mixin(S_TRACE);
+		return addImpl!(FlagDir)(_subdir, sub, &canAppendSub2, -1, rename);
 	}
 	/// ditto
-	bool insert(ptrdiff_t index, FlagDir sub) { mixin(S_TRACE);
-		return addImpl!(FlagDir)(_subdir, sub, &canAppendSub2, index);
+	bool insert(ptrdiff_t index, FlagDir sub, bool rename = false) { mixin(S_TRACE);
+		return addImpl!(FlagDir)(_subdir, sub, &canAppendSub2, index, rename);
 	}
 	private bool removeImpl(T)(ref T[] arr, T e) { mixin(S_TRACE);
 		for (int i = 0; i < arr.length; i++) { mixin(S_TRACE);
@@ -1517,25 +1524,36 @@ public:
 	/// さらにxxxx (2)というフラグが存在すればxxxx (3)……というように、
 	/// 付記した数字をインクリメントしていく。
 	string createNewFlagName(string base, string oldName) { mixin(S_TRACE);
-		return createNewName(validName(base), (string name) { mixin(S_TRACE);
+		return .createNewName(validName(base), (string name) { mixin(S_TRACE);
 			if (oldName && oldName.length && oldName == name) return true;
 			return canAppend!Flag(name);
 		});
 	}
 	/// ditto
 	string createNewStepName(string base, string oldName) { mixin(S_TRACE);
-		return createNewName(validName(base), (string name) { mixin(S_TRACE);
+		return .createNewName(validName(base), (string name) { mixin(S_TRACE);
 			if (oldName && oldName.length && oldName == name) return true;
 			return canAppend!Step(name);
 		});
 	}
 	/// ditto
 	string createNewDirName(string base, string oldName) { mixin(S_TRACE);
-		return createNewName(validName(base), (string name) { mixin(S_TRACE);
+		return .createNewName(validName(base), (string name) { mixin(S_TRACE);
 			if (oldName && oldName.length && oldName == name) return true;
 			return canAppendSub(name);
 		});
 	}
+	/// ditto
+	string createNewName(F)(string base, string oldName) { mixin(S_TRACE);
+		static if (is(F:Flag)) {
+			return createNewFlagName(base, oldName);
+		} else static if (is(F:Step)) {
+			return createNewStepName(base, oldName);
+		} else static if (is(F:FlagDir)) {
+			return createNewDirName(base, oldName);
+		} else static assert (0);
+	}
+
 	/// 新しい名前をn件生成して返す。
 	private string[] createNewNames(F)(string base, size_t n, in string[] oldNames)
 	out (value) { mixin(S_TRACE);
@@ -1546,7 +1564,7 @@ public:
 		auto set = new HashSet!string;
 		string[] r;
 		foreach (i; 0..n) { mixin(S_TRACE);
-			auto name = createNewName(validName(base), (string name) { mixin(S_TRACE);
+			auto name = .createNewName(validName(base), (string name) { mixin(S_TRACE);
 				return (canAppend!F(name) || oldSet.contains(name.toLower())) && !set.contains(name.toLower());
 			});
 			set.add(name.toLower());

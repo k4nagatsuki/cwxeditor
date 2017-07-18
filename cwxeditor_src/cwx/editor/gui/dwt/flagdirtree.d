@@ -190,8 +190,6 @@ private:
 					}
 					foreach (oldPath; cSteps.keys) { mixin(S_TRACE);
 						assert (cSteps[oldPath].parent !is null);
-cdebugln(oldPath);
-cdebugln(cSteps[oldPath].name);
 						uc.change(toStepId(oldPath), toStepId(cSteps[oldPath].path));
 					}
 					_comm.refFlagAndStep.call(cFlags.values, cSteps.values);
