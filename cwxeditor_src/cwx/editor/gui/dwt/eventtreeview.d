@@ -3210,7 +3210,6 @@ public:
 		}
 	}
 	void copy1Content() { mixin(S_TRACE);
-		if (_readOnly) return;
 		auto itm = selection;
 		if (itm) { mixin(S_TRACE);
 			foreach (v; views()) v.editEnter();
