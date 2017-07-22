@@ -146,6 +146,19 @@ ImageData loadImage(Props prop, in Skin skin, in Summary summ, string path, bool
 				}
 			}
 			if (mask && (!data.alphaData || !data.alphaData.length)) { mixin(S_TRACE);
+				if (data.palette !is null) { mixin(S_TRACE);
+					// パレットを使用しているイメージは透過色と同一の色が
+					// 別に存在する時にその色が透過されない
+					auto d = Display.getCurrent();
+					auto canvas = new Image(d, data.width, data.height);
+					scope (exit) canvas.dispose();
+					auto gc = new GC(canvas);
+					scope (exit) gc.dispose();
+					auto image = new Image(d, data);
+					scope (exit) image.dispose();
+					gc.drawImage(image, 0, 0);
+					data = canvas.getImageData();
+				}
 				data.transparentPixel = data.getPixel(maskX, maskY);
 			}
 			return data;
