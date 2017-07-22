@@ -122,7 +122,7 @@ ImageData loadImage(Props prop, in Skin skin, in Summary summ, string path, bool
 				auto s = new ByteArrayInputStream(bytes);
 				scope (exit) s.close();
 				data = new ImageData(s);
-			} catch (Throwable e) { mixin(S_TRACE);
+			} catch (Throwable e) {
 				// 壊れたビットマップとして再読込を試みる
 				printStackTrace();
 				debugln(e);
@@ -138,7 +138,7 @@ ImageData loadImage(Props prop, in Skin skin, in Summary summ, string path, bool
 				foreach (y; 0 .. data.height) { mixin(S_TRACE);
 					foreach (x; 0 .. data.width) { mixin(S_TRACE);
 						auto b = cast(ubyte)data.data[y * data.bytesPerLine + x * 4 + 3];
-						if (b != 0) {
+						if (!(b == 0 || b == 255)) {
 							if (!data.alphaData) data.alphaData = new byte[data.width * data.height];
 							data.alphaData[y * data.width + x] = b;
 						}
@@ -153,6 +153,9 @@ ImageData loadImage(Props prop, in Skin skin, in Summary summ, string path, bool
 			printStackTrace();
 			debugln(e);
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
+		} catch (core.exception.RangeError e) {
 			printStackTrace();
 			debugln(e);
 		}
