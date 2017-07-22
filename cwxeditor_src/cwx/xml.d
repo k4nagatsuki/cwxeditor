@@ -6,7 +6,7 @@ import cwx.utils : debugln;
 
 import std.conv;
 import std.string;
-import d2std.xml;
+import std.xml;
 
 /// XML文書処理用の構造体。
 struct XNode {

@@ -10,7 +10,11 @@ import std.algorithm;
 import std.array;
 import std.file;
 import std.path;
-import d2std.zip;
+version (Win64) {
+	import std.zip;
+} else {
+	import d2std.zip;
+}
 import std.utf;
 import std.datetime;
 import std.string;

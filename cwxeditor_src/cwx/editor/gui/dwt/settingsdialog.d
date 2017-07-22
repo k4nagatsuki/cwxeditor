@@ -1487,9 +1487,7 @@ protected:
 		string[] ipLines = splitLines!string(_ignorePaths.getText());
 		if (ipLines.length > 0) { mixin(S_TRACE);
 			ptrdiff_t i;
-			for (i = ipLines.length - 1; i >= 0 && ipLines[i].length == 0; i--) { mixin(S_TRACE);
-				;
-			}
+			for (i = ipLines.length - 1; i >= 0 && ipLines[i].length == 0; i--) { }
 			_prop.var.etc.ignorePaths = ipLines[0 .. i + 1];
 		} else { mixin(S_TRACE);
 			_prop.var.etc.ignorePaths = [];

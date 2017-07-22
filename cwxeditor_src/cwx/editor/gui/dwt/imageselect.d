@@ -56,7 +56,7 @@ class ImageSelect(MtType Type, C : Control = Table) {
 				}
 				_images = [];
 				foreach (path; _msel.paths) { mixin(S_TRACE);
-					path = new CardImage(null, path);;
+					path = new CardImage(null, path);
 					_images ~= path;
 					path.setUseCounter(_summ.useCounter.sub);
 				}

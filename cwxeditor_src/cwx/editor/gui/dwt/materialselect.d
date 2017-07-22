@@ -882,7 +882,7 @@ class MaterialSelect(MtType Type, D, C) {
 			setPaths(paths, false);
 		}
 		void setPaths(CardImage[] paths, bool store) { mixin(S_TRACE);
-			paths = paths.length ? paths : [new CardImage("", CardImagePosition.Default)];;
+			paths = paths.length ? paths : [new CardImage("", CardImagePosition.Default)];
 			if (paths == _paths && !_firstSet) return;
 			if (_firstSet) { mixin(S_TRACE);
 				store = false;
@@ -939,7 +939,7 @@ class MaterialSelect(MtType Type, D, C) {
 		}
 		private void selectPath(string path, ptrdiff_t index = -1, bool store = true) { mixin(S_TRACE);
 			if (index < 0) index = _imageIndex;
-			auto p = new CardImage(path, _paths[index].positionType);;
+			auto p = new CardImage(path, _paths[index].positionType);
 			if (_paths[index] == p) return;
 			if (store && _store) _store();
 			_paths[index] = p;

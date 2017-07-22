@@ -652,7 +652,10 @@ class Wildcard {
 alias std.file.read readBinary;
 /// ditto
 T[] readBinaryFrom(T)(string fileName, out T* ptr) { mixin(S_TRACE);
-	version (Windows) {
+	version (Win64) {
+		ptr = null;
+		return cast(T[]).readBinary(fileName);
+	} else version (Windows) {
 		SECURITY_ATTRIBUTES secAttr;
 		auto file = CreateFileW(toUTFz!(wchar*)(fileName), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
 			&secAttr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, null);

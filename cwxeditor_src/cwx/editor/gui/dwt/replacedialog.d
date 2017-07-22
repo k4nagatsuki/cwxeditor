@@ -3795,6 +3795,7 @@ public:
 					findSumm(dir);
 				} catch (Exception e) {
 					printStackTrace();
+					debugln(dir);
 					debugln(e);
 				}
 			}
@@ -3812,6 +3813,7 @@ public:
 					}
 				} catch (Exception e) {
 					printStackTrace();
+					debugln(file);
 					debugln(e);
 				}
 			}

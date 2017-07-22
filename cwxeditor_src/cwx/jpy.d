@@ -1384,6 +1384,7 @@ class Jpdc : PathUser, CWXPath {
 					auto eq = .cCountUntil(line, '=');
 					if (eq == -1) { mixin(S_TRACE);
 						errInfo.add(.tryFormat(prop.msgs.jpyErrorInvalidLine, line), fPath, lineNum);
+						continue;
 					}
 					auto key = astrip(line[0 .. eq]);
 					auto value = stripValue(line[eq + 1 .. $]);

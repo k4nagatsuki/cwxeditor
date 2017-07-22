@@ -444,7 +444,7 @@ string wrapMsg(string text, size_t width, size_t delegate(string) getWidth,
 		auto wrapped = .wrapMsgImpl(line, width, getWidth, boundaryCheck,
 			sortedOp, sortedCl, fonts, colors, fonts2, colors2, index, resultIndex, re);
 		lines ~= wrapped.to!string();
-		index += line.length + "\n"d.length;;
+		index += line.length + "\n"d.length;
 		resultIndex += wrapped.length + "\n"d.length;
 	}
 	fonts = fonts2;

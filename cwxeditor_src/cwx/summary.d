@@ -31,7 +31,11 @@ import std.algorithm;
 import std.array;
 import std.file;
 import std.path;
-import d2std.zip;
+version (Win64) {
+	import std.zip;
+} else {
+	import d2std.zip;
+}
 import std.datetime;
 import std.stdio;
 import std.string;

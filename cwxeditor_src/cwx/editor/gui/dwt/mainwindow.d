@@ -48,8 +48,6 @@ import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.customtoolbar;
 import cwx.editor.gui.dwt.namewindow;
 
-static import d2std.zlib;
-
 import core.memory;
 import core.thread;
 import core.sync.mutex;
@@ -67,7 +65,12 @@ import std.algorithm;
 import std.csv;
 import std.functional;
 import std.exception;
-import d2std.zip;
+version (Win64) {
+	import std.zip;
+} else {
+	import d2std.zip;
+	static import d2std.zlib;
+}
 import std.typecons;
 debug import std.stdio;
 
@@ -4587,8 +4590,12 @@ public:
 			}
 			_prop.var.cleanup();
 			version (Console) {
-				debug writefln("d2std.zlib.allocCount: %s", d2std.zlib.allocCount);
-				debug writeln("Exit Main Thread");
+				version (Win64) {
+					debug writeln("Exit Main Thread");
+				} else {
+					debug writefln("d2std.zlib.allocCount: %s", d2std.zlib.allocCount);
+					debug writeln("Exit Main Thread");
+				}
 			}
 		} catch (Throwable e) {
 			// 起動・終了失敗
