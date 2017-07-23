@@ -893,6 +893,7 @@ private:
 		auto kcIndex = p.indexOf(itm) - keyCodesIndex(p);
 		auto old = tree.keyCodes[kcIndex];
 		if (_prop.sys.convFireKeyCode(old) == text) return;
+		if (_prop.sys.toFKeyCode(text).keyCode == "") return;
 		store(tree);
 		tree.setKeyCode(kcIndex, _prop.sys.toFKeyCode(text));
 		foreach (v; views()) { mixin(S_TRACE);
@@ -993,26 +994,26 @@ private:
 		}
 	}
 
+	Object addKeyCodes() { mixin(S_TRACE);
+		auto kc = (cast(CCombo)_fireItm.getControl()).getText();
+		final switch (_keyCodeTim.getSelectionIndex()) {
+		case 0:
+			// 入力値をそのまま使用
+			break;
+		case 1:
+			kc = _prop.sys.convFireKeyCode(kc, FKCKind.Success);
+			break;
+		case 2:
+			kc = _prop.sys.convFireKeyCode(kc, FKCKind.Failure);
+			break;
+		case 3:
+			kc = _prop.sys.convFireKeyCode(kc, FKCKind.HasNot);
+			break;
+		}
+		return _prop.sys.toFKeyCode(kc).keyCode != "" ? new KeyCodeObj(kc) : null;
+	}
 	Object addingFire(Object areaOrCard) { mixin(S_TRACE);
 		if (_readOnly) return null;
-		Object addKeyCodes() { mixin(S_TRACE);
-			auto kc = (cast(CCombo)_fireItm.getControl()).getText();
-			final switch (_keyCodeTim.getSelectionIndex()) {
-			case 0:
-				// 入力値をそのまま使用
-				break;
-			case 1:
-				kc = _prop.sys.convFireKeyCode(kc, FKCKind.Success);
-				break;
-			case 2:
-				kc = _prop.sys.convFireKeyCode(kc, FKCKind.Failure);
-				break;
-			case 3:
-				kc = _prop.sys.convFireKeyCode(kc, FKCKind.HasNot);
-				break;
-			}
-			return kc.length > 0 ? new KeyCodeObj(kc) : null;
-		}
 		Object addAreaAndEtc() { mixin(S_TRACE);
 			switch (_treeKind.getSelectionIndex()) {
 			case 0:
@@ -2061,7 +2062,11 @@ public:
 				if (_readOnly) return false;
 				auto par = selectionParent;
 				if (!par) return false;
-				if (cast(Battle)_area) {
+				if ((cast(Area)_area || cast(Battle)_area) && 1 == _treeKind.getSelectionIndex()) { mixin(S_TRACE);
+					// キーコード発火条件
+					if (!addKeyCodes()) return false;
+				}
+				if (cast(Battle)_area) { mixin(S_TRACE);
 					auto eto = cast(EventTreeOwner)par.getData();
 					assert (eto !is null);
 					if (cast(AbstractSpCard)eto && 2 == _treeKind.getSelectionIndex()) { mixin(S_TRACE);
@@ -2079,7 +2084,11 @@ public:
 				createToolItem2(_comm, bar, _prop.msgs.newIgnition, _prop.images.newIgnition, &createEventFire, { mixin(S_TRACE);
 					if (_readOnly) return false;
 					if (selectionEventTree is null) return false;
-					if (cast(Battle)_area) {
+					if ((cast(Area)_area || cast(Battle)_area) && 1 == _treeKind.getSelectionIndex()) { mixin(S_TRACE);
+						// キーコード発火条件
+						if (!addKeyCodes()) return false;
+					}
+					if (cast(Battle)_area) { mixin(S_TRACE);
 						auto par = selectionParent;
 						assert (par !is null);
 						auto eto = cast(EventTreeOwner)par.getData();
