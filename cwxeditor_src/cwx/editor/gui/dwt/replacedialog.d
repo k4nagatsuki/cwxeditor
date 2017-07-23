@@ -4321,7 +4321,7 @@ public:
 		}
 		return false;
 	}
-	private bool replCouponNames(C)(CWXPath path, lazy string pathPath, C targ, string targPath, ref size_t count, ref Undo[] uArr) { mixin(S_TRACE);
+	private bool replCouponNames(C)(CWXPath path, lazy string pathPath, C targ, ref size_t count, ref Undo[] uArr) { mixin(S_TRACE);
 		if (_couponSel) { mixin(S_TRACE);
 			auto cs = targ.couponNames.dup;
 			auto old = targ.couponNames.dup;
@@ -4506,7 +4506,7 @@ public:
 		if (_couponSel) { mixin(S_TRACE);
 			if (d.use(CArg.COUPON)) r |= repl(null, "", e.coupon, &e.coupon, count, uArr2);
 			if (d.use(CArg.COUPONS)) r |= replCoupons(null, "", e, count, uArr2);
-			if (d.use(CArg.COUPON_NAMES)) r |= replCouponNames(e, e.cwxPath(true), e, "", count, uArr2);
+			if (d.use(CArg.COUPON_NAMES)) r |= replCouponNames(null, "", e, count, uArr2);
 			if (d.use(CArg.HOLDING_COUPON)) r |= repl(null, "", e.holdingCoupon, &e.holdingCoupon, count, uArr2);
 		}
 		if (_gossipSel) { mixin(S_TRACE);
