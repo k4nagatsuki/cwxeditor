@@ -39,7 +39,7 @@ import core.thread;
 static import core.memory;
 
 static import std.algorithm;
-import std.algorithm : map, uniq, swap, count;
+import std.algorithm : map, uniq, swap, count, filter;
 import std.range;
 import std.ascii;
 import std.conv;
@@ -2717,6 +2717,21 @@ public:
 			scope (exit) _display.syncExec(exit);
 
 			try { mixin(S_TRACE);
+				// 以下は空白を許容しないため、空文字列に
+				// 置換した時は配列ごと取り替える。
+				//  * シナリオの開始条件
+				//  * キャラクターの経歴
+				//  * 口調選択クーポン
+				//  * クーポン分岐のクーポン名
+				//  * 評価条件
+				//  * キーコード発火条件
+				static if (is(ID:CouponId)) {
+					CWXPath[] elems;
+					string[][CWXPath] arrElem;
+					Coupon[][CWXPath] csElem;
+				} else static if (is(ID:KeyCodeId)) {
+					FKeyCode[][CWXPath] kcsElem;
+				}
 				foreach (u; sortedPaths(users)) { mixin(S_TRACE);
 					if (!dec(u.owner, range)) continue;
 					if (_replMode) { mixin(S_TRACE);
@@ -2727,8 +2742,46 @@ public:
 							u.id = to;
 							storeID(u.owner, u, from, to, &u.id);
 						} else static if (is(ID:CouponId)) {
+							auto store = true;
+							if (cast(string)to == "") { mixin(S_TRACE);
+								if (auto c = cast(Summary)u.owner) { mixin(S_TRACE);
+									if (c !in arrElem) { mixin(S_TRACE);
+										elems ~= c;
+										arrElem[c] = c.rCoupons;
+									}
+									store = false;
+								} else if (auto c = cast(CastCard)u.owner) { mixin(S_TRACE);
+									if (c !in csElem) { mixin(S_TRACE);
+										elems ~= c;
+										csElem[c] = c.coupons;
+									}
+									store = false;
+								} else if (auto c = cast(SDialog)u.owner) { mixin(S_TRACE);
+									if (c !in arrElem) { mixin(S_TRACE);
+										elems ~= c;
+										arrElem[c] = c.rCoupons;
+									}
+									store = false;
+								} else if (auto c = cast(Content)u.owner) { mixin(S_TRACE);
+									auto d = c.detail;
+									if (d.use(CArg.COUPONS)) { mixin(S_TRACE);
+										if (c !in csElem) { mixin(S_TRACE);
+											elems ~= c;
+											csElem[c] = c.coupons;
+										}
+										store = false;
+									}
+									if (d.use(CArg.COUPON_NAMES)) { mixin(S_TRACE);
+										if (c !in arrElem) { mixin(S_TRACE);
+											elems ~= c;
+											arrElem[c] = c.couponNames;
+										}
+										store = false;
+									}
+								}
+							}
 							u.coupon = cast(string)to;
-							storeID(u.owner, u, cast(string)from, cast(string)to, &u.coupon);
+							if (store) storeID(u.owner, u, cast(string)from, cast(string)to, &u.coupon);
 						} else static if (is(ID:GossipId)) {
 							u.gossip = cast(string)to;
 							storeID(u.owner, u, cast(string)from, cast(string)to, &u.gossip);
@@ -2736,8 +2789,15 @@ public:
 							u.completeStamp = cast(string)to;
 							storeID(u.owner, u, cast(string)from, cast(string)to, &u.completeStamp);
 						} else static if (is(ID:KeyCodeId)) {
+							auto store = true;
+							if (cast(string)to == "") { mixin(S_TRACE);
+								if (auto c = cast(EventTree)u.owner) { mixin(S_TRACE);
+									if (c !in kcsElem) kcsElem[c] = c.keyCodes;
+									store = false;
+								}
+							}
 							u.keyCode = cast(string)to;
-							storeID(u.owner, u, cast(string)from, cast(string)to, &u.keyCode);
+							if (store) storeID(u.owner, u, cast(string)from, cast(string)to, &u.keyCode);
 						} else static if (is(ID:CellNameId)) {
 							u.cellName = cast(string)to;
 							storeID(u.owner, u, cast(string)from, cast(string)to, &u.cellName);
@@ -2748,6 +2808,48 @@ public:
 					}
 					addResult(u.owner, u.owner.cwxPath(true), count);
 				}
+				static if (is(ID:CouponId)) {
+					foreach (path; elems) { mixin(S_TRACE);
+						if (auto p = path in arrElem) { mixin(S_TRACE);
+							void f(CWXPath path, string[] arr) { mixin(S_TRACE);
+								if (auto targ = cast(Summary)path) { mixin(S_TRACE);
+									store(targ, targ.cwxPath(true), [new StrArrUndo(arr, targ.rCoupons.dup, (a) { targ.rCoupons = a.filter!(a => a != "").array(); })]);
+									targ.rCoupons = targ.rCoupons.filter!(a => a != "").array();
+								} else if (auto targ = cast(SDialog)path) { mixin(S_TRACE);
+									store(targ, targ.cwxPath(true), [new StrArrUndo(arr, targ.rCoupons.dup, (a) { targ.rCoupons = a.filter!(a => a != "").array(); })]);
+									targ.rCoupons = targ.rCoupons.filter!(a => a != "").array();
+								} else if (auto targ = cast(Content)path) { mixin(S_TRACE);
+									assert (targ.detail.use(CArg.COUPON_NAMES));
+									store(targ, targ.cwxPath(true), [new StrArrUndo(arr, targ.couponNames.dup, (a) { targ.couponNames = a.filter!(a => a != "").array(); })]);
+									targ.couponNames = targ.couponNames.filter!(a => a != "").array();
+								} else assert (0);
+							}
+							f(path, *p);
+						} else if (auto p = path in csElem) { mixin(S_TRACE);
+							void f2(CWXPath path, Coupon[] cs) { mixin(S_TRACE);
+								if (auto targ = cast(CastCard)path) { mixin(S_TRACE);
+									store(targ, targ.cwxPath(true), [new CouponsUndo(cs, targ.coupons.dup, (a) { targ.coupons = a.filter!(a => a.name != "").array(); })]);
+									targ.coupons = targ.coupons.filter!(a => a.name != "").array();
+								} else if (auto targ = cast(Content)path) { mixin(S_TRACE);
+									assert (targ.detail.use(CArg.COUPONS));
+									store(targ, targ.cwxPath(true), [new CouponsUndo(cs, targ.coupons.dup, (a) { targ.coupons = a.filter!(a => a.name != "").array(); })]);
+									targ.coupons = targ.coupons.filter!(a => a.name != "").array();
+								} else assert (0);
+							}
+							f2(path, *p);
+						}
+					}
+				} else static if (is(ID:KeyCodeId)) {
+					foreach (path, arr; kcsElem) { mixin(S_TRACE);
+						void f(CWXPath path, FKeyCode[] arr) { mixin(S_TRACE);
+							if (auto targ = cast(EventTree)path) { mixin(S_TRACE);
+								store(targ, targ.cwxPath(true), [new FKeyCodesUndo(arr, targ.keyCodes.dup, (fkc) { targ.keyCodes = fkc.filter!(a => a.keyCode != "").array(); })]);
+								targ.keyCodes = targ.keyCodes.filter!(a => a.keyCode != "").array();
+							} else assert (0);
+						}
+						f(path, arr);
+					}
+				}
 			} catch (Throwable e) {
 				printStackTrace();
 				debugln(e);
@@ -2756,9 +2858,9 @@ public:
 		thr.start();
 	}
 	private bool canReplID() {
-		if (idKindIsString) {
+		if (idKindIsString) { mixin(S_TRACE);
 			return _fromID.getText() != "";
-		} else {
+		} else { mixin(S_TRACE);
 			return getID(_fromID, _fromIDVal, _fromIDTbl) !is 0;
 		}
 	}

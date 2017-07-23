@@ -1160,15 +1160,26 @@ private:
 					chg = true;
 				}
 				ptrdiff_t startKC = -1;
+				auto keyCodes = 0;
 				foreach (i, itm3; itm2.getItems()) { mixin(S_TRACE);
 					auto kc = cast(KeyCodeObj)itm3.getData();
 					if (!kc) continue;
 					if (startKC < 0) startKC = i;
-					if (itm3.getText() != _prop.sys.convFireKeyCode(et.keyCodes[i - startKC])) { mixin(S_TRACE);
+					keyCodes++;
+					if (et.keyCodes.length <= i - startKC) { mixin(S_TRACE);
+						itm3.dispose();
+						chg = true;
+					} else if (itm3.getText() != _prop.sys.convFireKeyCode(et.keyCodes[i - startKC])) { mixin(S_TRACE);
 						auto kcWithTiming = _prop.sys.convFireKeyCode(et.keyCodes[i - startKC]);
 						itm3.setText(kcWithTiming);
 						kc.array = kcWithTiming.dup;
 						chg = true;
+					}
+				}
+				if (keyCodes < et.keyCodes.length) { mixin(S_TRACE);
+					foreach (keyCode; et.keyCodes[keyCodes .. $]) { mixin(S_TRACE);
+						auto kc = _prop.sys.convFireKeyCode(keyCode);
+						createTreeItem(itm2, new KeyCodeObj(kc), kc, keyCodeImage(kc));
 					}
 				}
 				if (chg) { mixin(S_TRACE);
