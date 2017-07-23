@@ -2753,7 +2753,7 @@ public:
 								} else if (auto c = cast(CastCard)u.owner) { mixin(S_TRACE);
 									if (c !in csElem) { mixin(S_TRACE);
 										elems ~= c;
-										csElem[c] = c.coupons;
+										csElem[c] = c.coupons.map!(a => new Coupon(a)).array();
 									}
 									store = false;
 								} else if (auto c = cast(SDialog)u.owner) { mixin(S_TRACE);
@@ -2767,7 +2767,7 @@ public:
 									if (d.use(CArg.COUPONS)) { mixin(S_TRACE);
 										if (c !in csElem) { mixin(S_TRACE);
 											elems ~= c;
-											csElem[c] = c.coupons;
+											csElem[c] = c.coupons.map!(a => new Coupon(a)).array();
 										}
 										store = false;
 									}
