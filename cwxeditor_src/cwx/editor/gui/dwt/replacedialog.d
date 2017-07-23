@@ -3533,17 +3533,7 @@ public:
 		if (cc) { mixin(S_TRACE);
 			Undo[] uArr;
 			bool r = replCard!(CastCard)(null, "", cc, cwxPath, count, uArr);
-			if (_couponSel) { mixin(S_TRACE);
-				Coupon[] coupons = null;
-				if (_replMode) coupons = new Coupon[cc.coupons.length];
-				foreach (i, cp; cc.coupons) { mixin(S_TRACE);
-					Coupon cp2 = null;
-					r |= repl(null, "", cp.name,
-						(string t) {cp2 = new Coupon(t, cp.value);}, count, uArr);
-					if (_replMode) coupons[i] = cp2 ? cp2 : new Coupon(cp);
-				}
-				if (_replMode) cc.coupons = coupons;
-			}
+			r |= replCoupons(null, "", cc, count, uArr);
 			if (r) { mixin(S_TRACE);
 				if (_replMode) store(cc, cwxPath, uArr);
 				addResult(cc, cwxPath, dmy);
@@ -4332,11 +4322,11 @@ public:
 		}
 		if (r) { mixin(S_TRACE);
 			if (_replMode) { mixin(S_TRACE);
-				if (!path || storeToArr) uArr ~= new StrArrUndo(old, coupons.dup, &targ.rCoupons);
-				targ.rCoupons = coupons;
+				if (!path || storeToArr) uArr ~= new StrArrUndo(old, coupons.dup, (arr) { targ.rCoupons = arr.filter!(a => a != "").array(); });
+				targ.rCoupons = coupons.filter!(a => a != "").array();
 			}
 			if (path) { mixin(S_TRACE);
-				if (_replMode && !storeToArr) store(path, pathPath, old, coupons.dup, &targ.rCoupons);
+				if (_replMode && !storeToArr) store(path, pathPath, old, coupons.dup, (arr) { targ.rCoupons = arr.filter!(a => a != "").array(); });
 				size_t dmy = 0;
 				addResult(targ, targPath, dmy);
 			}
@@ -4379,16 +4369,16 @@ public:
 			Undo[] nArr;
 			foreach (i, fkc; kcs) { mixin(S_TRACE);
 				auto kc = _prop.sys.convFireKeyCode(fkc);
-				r |= repl(null, "", kc, (string t) {kc = t;}, count, nArr);
+				r |= repl(null, "", kc, (string t) { kc = t; }, count, nArr);
 				if (_replMode) kcs[i] = _prop.sys.toFKeyCode(kc);
 			}
 			if (r) { mixin(S_TRACE);
 				if (_replMode) { mixin(S_TRACE);
-					if (!path) uArr ~= new FKeyCodesUndo(old, kcs.dup, (FKeyCode[] fkc) {targ.keyCodes = fkc;});
-					targ.keyCodes = kcs;
+					if (!path) uArr ~= new FKeyCodesUndo(old, kcs.dup, (fkc) { targ.keyCodes = fkc.filter!(a => a.keyCode != "").array(); });
+					targ.keyCodes = kcs.filter!(a => a.keyCode != "").array();
 				}
 				if (path) { mixin(S_TRACE);
-					if (_replMode) store(path, pathPath, old, kcs.dup, (FKeyCode[] fkc) {targ.keyCodes = fkc;});
+					if (_replMode) store(path, pathPath, old, kcs.dup, (fkc) { targ.keyCodes = fkc.filter!(a => a.keyCode != "").array(); });
 					size_t dmy = 0;
 					addResult(path, pathPath, dmy);
 				}
@@ -4404,17 +4394,17 @@ public:
 			bool r = false;
 			Undo[] nArr;
 			foreach (i, coupon; coupons) { mixin(S_TRACE);
-				r |= repl(null, "", coupon.name, (string t) {coupon = new Coupon(t, coupon.value);}, count, nArr);
+				r |= repl(null, "", coupon.name, (string t) { coupon = new Coupon(t, coupon.value); }, count, nArr);
 				if (_replMode) coupons[i] = coupon;
 			}
 			if (r) { mixin(S_TRACE);
 				if (_replMode) { mixin(S_TRACE);
-					if (!path) uArr ~= new CouponsUndo(old, coupons.dup, &targ.coupons);
-					targ.coupons = coupons;
+					if (!path) uArr ~= new CouponsUndo(old, coupons.dup, (arr) { targ.coupons = arr.filter!(a => a.name != "").array(); });
+					targ.coupons = coupons.filter!(a => a.name != "").array();
 				}
 				if (path) { mixin(S_TRACE);
 					auto p = pathPath;
-					if (_replMode) store(path, p, old, coupons.dup, &targ.coupons);
+					if (_replMode) store(path, p, old, coupons.dup, (arr) { targ.coupons = arr.filter!(a => a.name != "").array(); });
 					size_t dmy = 0;
 					addResult(path, p, dmy);
 				}
@@ -4435,12 +4425,12 @@ public:
 			}
 			if (r) { mixin(S_TRACE);
 				if (_replMode) { mixin(S_TRACE);
-					if (!path) uArr ~= new StrArrUndo(old, cs.dup, &targ.couponNames);
-					targ.couponNames = cs;
+					if (!path) uArr ~= new StrArrUndo(old, cs.dup, (arr) { targ.couponNames = arr.filter!(a => a != "").array(); });
+					targ.couponNames = cs.filter!(a => a != "").array();
 				}
 				if (path) { mixin(S_TRACE);
 					auto p = pathPath;
-					if (_replMode) store(path, p, old, cs.dup, &targ.couponNames);
+					if (_replMode) store(path, p, old, cs.dup, (arr) { targ.couponNames = arr.filter!(a => a != "").array(); });
 					size_t dmy = 0;
 					addResult(path, p, dmy);
 				}
