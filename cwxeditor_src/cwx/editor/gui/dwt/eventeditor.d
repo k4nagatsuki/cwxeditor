@@ -1306,6 +1306,7 @@ class EventEditor : Composite {
 		}
 		vbar.setSelection(val);
 		.asyncExec(getDisplay(), { mixin(S_TRACE);
+			if (isDisposed()) return;
 			setRedraw(true);
 			updateLightup();
 		});
