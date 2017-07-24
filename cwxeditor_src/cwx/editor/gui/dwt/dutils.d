@@ -138,7 +138,7 @@ ImageData loadImage(Props prop, in Skin skin, in Summary summ, string path, bool
 				foreach (y; 0 .. data.height) { mixin(S_TRACE);
 					foreach (x; 0 .. data.width) { mixin(S_TRACE);
 						auto b = cast(ubyte)data.data[y * data.bytesPerLine + x * 4 + 3];
-						if (!(b == 0 || b == 255)) {
+						if (b != 0) { mixin(S_TRACE);
 							if (!data.alphaData) data.alphaData = new byte[data.width * data.height];
 							data.alphaData[y * data.width + x] = b;
 						}
