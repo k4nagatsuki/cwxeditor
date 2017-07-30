@@ -1267,20 +1267,16 @@ public:
 	}
 
 	private static bool loadFS(string Fs, string Fg, F)
-			(ref XNode node, FlagDir p, ref F[string] c, string delegate(string, string) createNewName, bool copy, in XMLInfo ver) { mixin(S_TRACE);
+			(ref XNode node, FlagDir p, ref F[string] c, bool copy, in XMLInfo ver) { mixin(S_TRACE);
 		bool ret = true;
 		node.onTag[Fs] = (ref XNode node) { mixin(S_TRACE);
 			if (!ret) return;
 			node.onTag[Fg] = (ref XNode n) { mixin(S_TRACE);
 				if (!ret) return;
 				auto f = F.createFromNode(n, ver);
-				if (!p.canAppend!F(f.name)) { mixin(S_TRACE);
-					if (copy) { mixin(S_TRACE);
-						f.name = createNewName(f.name, "");
-					} else { mixin(S_TRACE);
-						ret = false;
-						return;
-					}
+				if (!copy && !p.canAppend!F(f.name)) { mixin(S_TRACE);
+					ret = false;
+					return;
 				}
 				c[n.childText("Name", true)] = f;
 			};
@@ -1292,23 +1288,29 @@ public:
 	private bool loadFlagAndSteps(ref XNode node, ref Flag[string] cFlags, ref Step[string] cSteps, bool copy, in XMLInfo ver) { mixin(S_TRACE);
 		try { mixin(S_TRACE);
 			Flag[string] cFlags2;
-			if (!loadFS!("Flags", "Flag", Flag)(node, this, cFlags2, &createNewFlagName, copy, ver)) { mixin(S_TRACE);
+			if (!loadFS!("Flags", "Flag", Flag)(node, this, cFlags2, copy, ver)) { mixin(S_TRACE);
 				.removeAll(cFlags);
 				.removeAll(cSteps);
 				return false;
 			}
 			Step[string] cSteps2;
-			if (!loadFS!("Steps", "Step", Step)(node, this, cSteps2, &createNewStepName, copy, ver)) { mixin(S_TRACE);
+			if (!loadFS!("Steps", "Step", Step)(node, this, cSteps2, copy, ver)) { mixin(S_TRACE);
 				.removeAll(cFlags);
 				.removeAll(cSteps);
 				return false;
 			}
 			foreach (k, v; cFlags2) { mixin(S_TRACE);
+				if (copy && !canAppend!Flag(v.name)) { mixin(S_TRACE);
+					v.name = createNewFlagName(v.name, "");
+				}
 				auto r = this.add(v);
 				assert (r);
 				cFlags[k] = v;
 			}
 			foreach (k, v; cSteps2) { mixin(S_TRACE);
+				if (copy && !canAppend!Step(v.name)) { mixin(S_TRACE);
+					v.name = createNewStepName(v.name, "");
+				}
 				auto r = this.add(v);
 				assert (r);
 				cSteps[k] = v;
