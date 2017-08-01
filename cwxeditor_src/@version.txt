@@ -1,3 +1,3 @@
-﻿Version.5 β3
+﻿Version.5 β4
 2017042400
 http://bitbucket.org/k4nagatsuki/cwxeditor/
