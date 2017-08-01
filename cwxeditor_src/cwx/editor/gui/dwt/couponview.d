@@ -720,7 +720,7 @@ class CouponView(CVType Type) : Composite {
 				_newCoupon = createCouponCombo!Combo(_comm, _summ, this, catchMod, CouponComboType.Cast, "", _newCouponTM);
 				.listener(_newCoupon, SWT.Modify, &updateCouponType);
 			} else static if (CVType.Valued == Type) { mixin(S_TRACE);
-				_newCoupon = createCouponCombo!Combo(_comm, _summ, this, catchMod, CouponComboType.Talker, "", _newCouponTM);
+				_newCoupon = createCouponCombo!Combo(_comm, _summ, this, catchMod, CouponComboType.AllCoupons, "", _newCouponTM);
 				.listener(_newCoupon, SWT.Modify, &updateCouponType);
 			} else { mixin(S_TRACE);
 				_newCoupon = createCouponCombo!Combo(_comm, _summ, this, catchMod, CouponComboType.AllCoupons, "", _newCouponTM);
@@ -918,7 +918,7 @@ class CouponView(CVType Type) : Composite {
 		static if (CVType.Cast == Type) {
 			auto type = CouponComboType.Cast;
 		} else static if (CVType.Valued == Type) { mixin(S_TRACE);
-			auto type = CouponComboType.Talker;
+			auto type = CouponComboType.AllCoupons;
 		} else { mixin(S_TRACE);
 			auto type = CouponComboType.AllCoupons;
 		}
