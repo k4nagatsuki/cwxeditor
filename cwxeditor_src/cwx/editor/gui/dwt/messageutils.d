@@ -445,6 +445,7 @@ private:
 		scope (exit) ignoreMod = oldIgnoreMod;
 		auto apd = cast(APData)o;
 		assert (apd);
+		_dlgs.length = apd.dlgs.length;
 		foreach (i, d; apd.dlgs) { mixin(S_TRACE);
 			_dlgs[i] = new SDialog(d);
 		}
