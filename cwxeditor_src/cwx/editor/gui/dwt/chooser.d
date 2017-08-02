@@ -116,6 +116,7 @@ string[] allCoupons(Commons comm, Summary summ, CouponComboType type) { mixin(S_
 		bool[string] sysCoupons;
 		auto stds = type is CouponComboType.Valued ? comm.prop.var.etc.standardCouponsForValued : comm.prop.var.etc.standardCoupons;
 		foreach (coupon; stds) { mixin(S_TRACE);
+			coupon = comm.skin.replaceSystemCouponName(comm.prop.sys, coupon);
 			sysCoupons[coupon] = true;
 		}
 		foreach (e; comm.skin.allSexes) { mixin(S_TRACE);

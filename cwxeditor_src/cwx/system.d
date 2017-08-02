@@ -225,6 +225,16 @@ class System {
 		return "＿" ~ makingsName(m, legacyName);
 	}
 
+	/// パーティ先頭のメンバを指すシステムクーポンを返す。
+	@property
+	const
+	string number1Coupon(string legacyName) { mixin(S_TRACE);
+		switch (toLower(legacyName)) {
+		case "darkwirth": return "＿妖";
+		default: return "＿１";
+		}
+	}
+
 	/// ペナルティカードであればtrue。
 	const
 	bool isPenalty(in string[] keyCodes) { mixin(S_TRACE);

@@ -348,6 +348,7 @@ class Skin {
 	private ModData[Period] _periods;
 	private ModData[Nature] _natures;
 	private ModData[Makings] _makings;
+	private string _number1Coupon = "";
 
 	private static immutable _extImg = [
 		".bmp", ".jpg", ".jpeg", ".png", ".gif",
@@ -1632,6 +1633,25 @@ class Skin {
 		return _prop.sys.mentalMod!E(legacyName).get(e, init).get(mtl, 0.0);
 	}
 
+	/// パーティ先頭のメンバを指すシステムクーポンを返す。
+	@property
+	const
+	string number1Coupon(in System sys) { mixin(S_TRACE);
+		if (!legacy && _number1Coupon != "") { mixin(S_TRACE);
+			return _number1Coupon;
+		}
+		return sys.number1Coupon(legacyName);
+	}
+
+	/// couponがシステムクーポン名であれば、スキン定義に応じて置換する。
+	const
+	string replaceSystemCouponName(in System sys, string coupon) { mixin(S_TRACE);
+		if (coupon == sys.number1Coupon("")) { mixin(S_TRACE);
+			return number1Coupon(sys);
+		}
+		return coupon;
+	}
+
 	/// XMLファイルからスキンデータをロードする。
 	void loadFromXML(string fname, in XMLInfo ver) { mixin(S_TRACE);
 		try { mixin(S_TRACE);
@@ -1643,11 +1663,12 @@ class Skin {
 			_periods = null;
 			_natures = null;
 			_makings = null;
-			sNode.onTag["Property"] = (ref XNode pNode) { mixin(S_TRACE);
-				pNode.onTag["Name"] = (ref XNode n) {_name = n.value;};
-				pNode.onTag["Type"] = (ref XNode n) {_type = n.value;};
-				pNode.onTag["Author"] = (ref XNode n) {_author = n.value;};
-				pNode.onTag["Description"] = (ref XNode n) {_desc = n.value;};
+			_number1Coupon = "";
+			sNode.onTag["Property"] = (ref XNode pNode) {  mixin(S_TRACE);
+				pNode.onTag["Name"] = (ref XNode n) { _name = n.value; };
+				pNode.onTag["Type"] = (ref XNode n) { _type = n.value; };
+				pNode.onTag["Author"] = (ref XNode n) { _author = n.value; };
+				pNode.onTag["Description"] = (ref XNode n) { _desc = n.value; };
 				pNode.parse();
 			};
 			sNode.onTag["Races"] = (ref XNode node) { mixin(S_TRACE);
@@ -1677,6 +1698,14 @@ class Skin {
 			sNode.onTag["Makings"] = (ref XNode node) { mixin(S_TRACE);
 				node.onTag["Making"] = (ref XNode node) { mixin(S_TRACE);
 					_makings[Makings(_makings.length)] = ModData.fromNode(node, ver);
+				};
+				node.parse();
+			};
+			sNode.onTag["Messages"] = (ref XNode node) { mixin(S_TRACE);
+				node.onTag["Message"] = (ref XNode node) { mixin(S_TRACE);
+					if (node.attr("key", false, "") == "number_1_coupon") { mixin(S_TRACE);
+						_number1Coupon = node.value;
+					}
 				};
 				node.parse();
 			};

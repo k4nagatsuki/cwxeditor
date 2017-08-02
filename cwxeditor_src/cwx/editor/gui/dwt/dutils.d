@@ -2034,7 +2034,7 @@ string[] castCoupons(Commons comm, bool talker, string legacyName, bool getLose,
 	if (!talker) { mixin(S_TRACE);
 		if (!forValued && comm.prop.var.etc.standardCoupons.length) { mixin(S_TRACE);
 			foreach (c; comm.prop.var.etc.standardCoupons) { mixin(S_TRACE);
-				r ~= c;
+				r ~= comm.skin.replaceSystemCouponName(comm.prop.sys, c);
 			}
 		}
 		if (comm.prop.isTargetVersion(comm.summary, "2")) { mixin(S_TRACE);
@@ -2069,7 +2069,7 @@ string[] castCoupons(Commons comm, bool talker, string legacyName, bool getLose,
 	}
 	if (!talker && forValued && comm.prop.var.etc.standardCouponsForValued.length) { mixin(S_TRACE);
 		foreach (c; comm.prop.var.etc.standardCouponsForValued) { mixin(S_TRACE);
-			r ~= c;
+			r ~= comm.skin.replaceSystemCouponName(comm.prop.sys, c);
 		}
 	}
 	return r;
