@@ -34,6 +34,7 @@ enum CouponComboType {
 	GetLose, /// 獲得・喪失が可能なクーポンを選択肢とする。
 	Talker, /// 話者用のクーポンを選択肢とする。
 	Cast, /// キャストの経歴用のクーポンを選択肢とする。
+	Valued, /// 評価条件のクーポンを選択肢とする。
 }
 T createCouponCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, CouponComboType type, string initValue) { mixin(S_TRACE);
 	TextMenuModify tmm;
@@ -100,7 +101,8 @@ private string[] addInitValue(Commons comm, string[] values, string initValue) {
 string[] allCoupons(Commons comm, Summary summ, CouponComboType type) { mixin(S_TRACE);
 	string[] cs;
 	if (type !is CouponComboType.Cast) { mixin(S_TRACE);
-		cs = castCoupons(comm, type is CouponComboType.Talker, comm.skin.legacyName, type is CouponComboType.GetLose);
+		cs = castCoupons(comm, type is CouponComboType.Talker, comm.skin.legacyName,
+			type is CouponComboType.GetLose, type is CouponComboType.Valued);
 	}
 
 	string[] dcs;
@@ -112,7 +114,8 @@ string[] allCoupons(Commons comm, Summary summ, CouponComboType type) { mixin(S_
 			cmps = (a, b) => icmp(cast(string)a, cast(string)b) < 0;
 		}
 		bool[string] sysCoupons;
-		foreach (coupon; comm.prop.var.etc.standardCoupons) { mixin(S_TRACE);
+		auto stds = type is CouponComboType.Valued ? comm.prop.var.etc.standardCouponsForValued : comm.prop.var.etc.standardCoupons;
+		foreach (coupon; stds) { mixin(S_TRACE);
 			sysCoupons[coupon] = true;
 		}
 		foreach (e; comm.skin.allSexes) { mixin(S_TRACE);

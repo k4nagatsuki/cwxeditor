@@ -2029,11 +2029,13 @@ Rectangle eventTreeMarkRect(C:EventTreeOwner)(Props prop, bool showMark, int lef
 	return null;
 }
 
-string[] castCoupons(Commons comm, bool talker, string legacyName, bool getLose) { mixin(S_TRACE);
+string[] castCoupons(Commons comm, bool talker, string legacyName, bool getLose, bool forValued) { mixin(S_TRACE);
 	string[] r;
 	if (!talker) { mixin(S_TRACE);
-		foreach (c; comm.prop.var.etc.standardCoupons) { mixin(S_TRACE);
-			r ~= c;
+		if (!forValued && comm.prop.var.etc.standardCoupons.length) { mixin(S_TRACE);
+			foreach (c; comm.prop.var.etc.standardCoupons) { mixin(S_TRACE);
+				r ~= c;
+			}
 		}
 		if (comm.prop.isTargetVersion(comm.summary, "2")) { mixin(S_TRACE);
 			if (!getLose) { mixin(S_TRACE);
@@ -2064,6 +2066,11 @@ string[] castCoupons(Commons comm, bool talker, string legacyName, bool getLose)
 	foreach (e; comm.skin.leftMakings) { mixin(S_TRACE);
 		r ~= comm.skin.makingsCoupon(e);
 		r ~= comm.skin.makingsCoupon(comm.skin.reverseMakings(e));
+	}
+	if (!talker && forValued && comm.prop.var.etc.standardCouponsForValued.length) { mixin(S_TRACE);
+		foreach (c; comm.prop.var.etc.standardCouponsForValued) { mixin(S_TRACE);
+			r ~= c;
+		}
 	}
 	return r;
 }

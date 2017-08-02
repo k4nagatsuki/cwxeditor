@@ -583,6 +583,9 @@ class FlexEtcProps : Properties {
 	auto standardCoupons = Prop!(string[])("standardCoupons", [
 		"：Ｒ", "＿１", "＿２", "＿３", "＿４", "＿５", "＿６", "＿消滅予約", "：レベル補正中"
 	], true);
+	auto standardCouponsForValued = Prop!(string[])("standardCouponsForValued", [
+		"＿１", "＿２", "＿３", "＿４", "＿５", "＿６"
+	], true);
 	auto standardKeyCodes = Prop!(string[])("standardKeyCodes", [
 		"攻撃",
 		"治療",
