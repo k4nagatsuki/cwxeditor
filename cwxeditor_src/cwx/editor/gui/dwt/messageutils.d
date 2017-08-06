@@ -1735,13 +1735,13 @@ Composite createFlagStepBar(Composite parent, void delegate(string) insert, Comm
 			flags.removeAll();
 			auto list = root.allFlags;
 			size_t i = 0;
-			foreach (flag; list) { mixin(S_TRACE);
+			.sortedWithPath(list, prop.var.etc.logicalSort, (cwx.flag.Flag flag) { mixin(S_TRACE);
 				auto p = flag.path;
-				if (!flagIncSearch.match(p)) continue;
+				if (!flagIncSearch.match(p)) return;
 				flags.add(p);
 				if (0 == i || p == fSel) flags.select(cast(int)i);
 				i++;
-			}
+			});
 			flags.setEnabled(list.length > 0);
 			putFlag.setEnabled(flags.getItemCount() > 0);
 		} else { mixin(S_TRACE);
@@ -1756,13 +1756,13 @@ Composite createFlagStepBar(Composite parent, void delegate(string) insert, Comm
 			steps.removeAll();
 			auto list = root.allSteps;
 			size_t i = 0;
-			foreach (step; list) { mixin(S_TRACE);
+			.sortedWithPath(list, prop.var.etc.logicalSort, (Step step) { mixin(S_TRACE);
 				auto p = step.path;
-				if (!stepIncSearch.match(p)) continue;
+				if (!stepIncSearch.match(p)) return;
 				steps.add(p);
 				if (0 == i || p == sSel) steps.select(cast(int)i);
 				i++;
-			}
+			});
 			steps.setEnabled(list.length > 0);
 			putStep.setEnabled(steps.getItemCount() > 0);
 		} else { mixin(S_TRACE);
@@ -2296,7 +2296,7 @@ class PreviewValues : Composite {
 			}
 		}
 		if (_summ) { mixin(S_TRACE);
-			foreach (f; _summ.flagDirRoot.allFlags) { mixin(S_TRACE);
+			.sortedWithPath(_summ.flagDirRoot.allFlags, _prop.var.etc.logicalSort, (cwx.flag.Flag f) { mixin(S_TRACE);
 				auto itm = new TableItem(_values, SWT.NONE);
 				auto path = f.path;
 				itm.setImage(0, _prop.images.flag);
@@ -2320,8 +2320,8 @@ class PreviewValues : Composite {
 				if (lpath in selPaths) { mixin(S_TRACE);
 					_values.select(_values.getItemCount() - 1);
 				}
-			}
-			foreach (f; _summ.flagDirRoot.allSteps) { mixin(S_TRACE);
+			});
+			.sortedWithPath(_summ.flagDirRoot.allSteps, _prop.var.etc.logicalSort, (Step f) { mixin(S_TRACE);
 				auto itm = new TableItem(_values, SWT.NONE);
 				auto path = f.path;
 				itm.setImage(0, _prop.images.step);
@@ -2342,7 +2342,7 @@ class PreviewValues : Composite {
 				if (lpath in selPaths) { mixin(S_TRACE);
 					_values.select(_values.getItemCount() - 1);
 				}
-			}
+			});
 		}
 	}
 	private void refFlagAndStep(cwx.flag.Flag[] flags, Step[] steps) { mixin(S_TRACE);
@@ -2469,7 +2469,7 @@ class PreviewValues : Composite {
 			}
 		}
 		if (_summ) { mixin(S_TRACE);
-			foreach (f; _summ.flagDirRoot.allFlags) { mixin(S_TRACE);
+			.sortedWithPath(_summ.flagDirRoot.allFlags, _prop.var.etc.logicalSort, (cwx.flag.Flag f) { mixin(S_TRACE);
 				if (i in set) { mixin(S_TRACE);
 					auto itm = _values.getItem(i);
 					itm.setText(1, f.onOff ? f.on : f.off);
@@ -2477,8 +2477,8 @@ class PreviewValues : Composite {
 					data.onOff = f.onOff;
 				}
 				i++;
-			}
-			foreach (f; _summ.flagDirRoot.allSteps) { mixin(S_TRACE);
+			});
+			.sortedWithPath(_summ.flagDirRoot.allSteps, _prop.var.etc.logicalSort, (Step f) { mixin(S_TRACE);
 				if (i in set) { mixin(S_TRACE);
 					auto itm = _values.getItem(i);
 					itm.setText(1, f.values[f.select]);
@@ -2486,7 +2486,7 @@ class PreviewValues : Composite {
 					data.select = f.select;
 				}
 				i++;
-			}
+			});
 		}
 		raiseModEvent();
 	}
@@ -2554,7 +2554,9 @@ class PreviewValues : Composite {
 			}
 		}
 		if (_summ) { mixin(S_TRACE);
-			foreach (f; _summ.flagDirRoot.allFlags) { mixin(S_TRACE);
+			cwx.flag.Flag[] fs;
+			.sortedWithPath(_summ.flagDirRoot.allFlags, _prop.var.etc.logicalSort, (cwx.flag.Flag f) { fs ~= f; });
+			foreach (f; fs) { mixin(S_TRACE);
 				if (i in set) { mixin(S_TRACE);
 					auto itm = _values.getItem(i);
 					auto data = cast(FlagData)itm.getData();
@@ -2562,7 +2564,9 @@ class PreviewValues : Composite {
 				}
 				i++;
 			}
-			foreach (f; _summ.flagDirRoot.allSteps) { mixin(S_TRACE);
+			Step[] ss;
+			.sortedWithPath(_summ.flagDirRoot.allSteps, _prop.var.etc.logicalSort, (Step s) { ss ~= s; });
+			foreach (f; ss) { mixin(S_TRACE);
 				if (i in set) { mixin(S_TRACE);
 					auto itm = _values.getItem(i);
 					auto data = cast(StepData)itm.getData();
@@ -2833,7 +2837,7 @@ class PreviewValues : Composite {
 	bool redo() { return _undo.redo(); }
 }
 
-void getPreviewValues(in Props prop, in Summary summ, in SPChar[] targetChars,
+void getPreviewValues(in Props prop, Summary summ, in SPChar[] targetChars,
 		out string[char] names, out VarValue[string] flags, out VarValue[string] steps,
 		out VarValue[string] sysSteps) { mixin(S_TRACE);
 	foreach (c; targetChars) { mixin(S_TRACE);
@@ -2862,12 +2866,12 @@ void getPreviewValues(in Props prop, in Summary summ, in SPChar[] targetChars,
 		}
 	}
 	if (summ) { mixin(S_TRACE);
-		foreach (f; summ.flagDirRoot.allFlags) { mixin(S_TRACE);
+		.sortedWithPath(summ.flagDirRoot.allFlags, prop.var.etc.logicalSort, (cwx.flag.Flag f) { mixin(S_TRACE);
 			flags[f.path] = VarValue(true, f.onOff ? f.on : f.off, f.expandSPChars);
-		}
-		foreach (f; summ.flagDirRoot.allSteps) { mixin(S_TRACE);
+		});
+		.sortedWithPath(summ.flagDirRoot.allSteps, prop.var.etc.logicalSort, (Step f) { mixin(S_TRACE);
 			steps[f.path] = VarValue(true, f.value, f.expandSPChars);
-		}
+		});
 	}
 	getPreviewSysSteps(prop, summ, sysSteps);
 }

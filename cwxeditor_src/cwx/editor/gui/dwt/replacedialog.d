@@ -615,8 +615,16 @@ private:
 		case ID_ITEM: setupIDsImpl1(_summ.items, clear, from, to); break;
 		case ID_BEAST: setupIDsImpl1(_summ.beasts, clear, from, to); break;
 		case ID_INFO: setupIDsImpl1(_summ.infos, clear, from, to); break;
-		case ID_FLAG: setupIDsImpl1(_summ.flagDirRoot.allFlags, clear, from, to); break;
-		case ID_STEP: setupIDsImpl1(_summ.flagDirRoot.allSteps, clear, from, to); break;
+		case ID_FLAG:
+			cwx.flag.Flag[] fs;
+			.sortedWithPath(_summ.flagDirRoot.allFlags, _prop.var.etc.logicalSort, (cwx.flag.Flag f) { fs ~= f; });
+			setupIDsImpl1(fs, clear, from, to);
+			break;
+		case ID_STEP:
+			Step[] fs;
+			.sortedWithPath(_summ.flagDirRoot.allSteps, _prop.var.etc.logicalSort, (Step f) { fs ~= f; });
+			setupIDsImpl1(fs, clear, from, to);
+			break;
 		case ID_COUPON: setupIDsImpl1(_summ.useCounter.coupon.keys, clear, from, to); break;
 		case ID_GOSSIP: setupIDsImpl1(_summ.useCounter.gossip.keys, clear, from, to); break;
 		case ID_COMPLETE_STAMP: setupIDsImpl1(_summ.useCounter.completeStamp.keys, clear, from, to); break;
@@ -3308,10 +3316,14 @@ public:
 
 		void search() { mixin(S_TRACE);
 			if (unuseFlagSel) { mixin(S_TRACE);
-				searchUnuseImpl2!("toFlagId(o.path)")(_summ.flagDirRoot.allFlags, count);
+				cwx.flag.Flag[] fs;
+				.sortedWithPath(_summ.flagDirRoot.allFlags, _prop.var.etc.logicalSort, (cwx.flag.Flag f) { fs ~= f; });
+				searchUnuseImpl2!("toFlagId(o.path)")(fs, count);
 			}
 			if (unuseStepSel) { mixin(S_TRACE);
-				searchUnuseImpl2!("toStepId(o.path)")(_summ.flagDirRoot.allSteps, count);
+				Step[] fs;
+				.sortedWithPath(_summ.flagDirRoot.allSteps, _prop.var.etc.logicalSort, (Step f) { fs ~= f; });
+				searchUnuseImpl2!("toStepId(o.path)")(fs, count);
 			}
 			if (unuseAreaSel) { mixin(S_TRACE);
 				searchUnuseImpl2!("toAreaId(o.id)")(_summ.areas, count);

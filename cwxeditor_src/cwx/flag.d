@@ -1811,12 +1811,28 @@ void sortedWithName(F)(F[] vars, bool logicalSort, void delegate(F) yield) { mix
 void sortedWithPath(F)(F[] vars, bool logicalSort, void delegate(F) yield) { mixin(S_TRACE);
 	if (logicalSort) { mixin(S_TRACE);
 		bool cmpsN(in F f1, in F f2) { mixin(S_TRACE);
-			return .ncmp(f1.path, f2.path) < 0;
+			auto a = std.string.split(f1.path, FlagDir.SEPARATOR);
+			auto b = std.string.split(f2.path, FlagDir.SEPARATOR);
+			for (size_t i = 0; i < a.length || i < b.length; i++) { mixin(S_TRACE);
+				if (a.length <= i) return true;
+				if (b.length <= i) return false;
+				auto c = .ncmp(a[i], b[i]);
+				if (c != 0) return c < 0;
+			}
+			return false;
 		}
 		foreach (f; std.algorithm.sort!cmpsN(vars.dup)) yield(f);
 	} else { mixin(S_TRACE);
 		bool cmps(in F f1, in F f2) { mixin(S_TRACE);
-			return .cmp(f1.path, f2.path) < 0;
+			auto a = std.string.split(f1.path, FlagDir.SEPARATOR);
+			auto b = std.string.split(f2.path, FlagDir.SEPARATOR);
+			for (size_t i = 0; i < a.length || i < b.length; i++) { mixin(S_TRACE);
+				if (a.length <= i) return true;
+				if (b.length <= i) return false;
+				auto c = .cmp(a[i], b[i]);
+				if (c != 0) return c < 0;
+			}
+			return false;
 		}
 		foreach (f; std.algorithm.sort!cmps(vars.dup)) yield(f);
 	}

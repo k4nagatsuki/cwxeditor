@@ -4784,12 +4784,12 @@ public:
 		_flag.removeAll();
 		_flag.add(_prop.msgs.defaultSelection(_prop.msgs.noFlagRef));
 		_flag.select(0);
-		foreach (i, fl; _summ.flagDirRoot.allFlags) { mixin(S_TRACE);
+		.sortedWithPath(_summ.flagDirRoot.allFlags, _prop.var.etc.logicalSort, (cwx.flag.Flag fl) { mixin(S_TRACE);
 			auto path = fl.path;
-			if (!_flagIncSearch.match(path)) continue;
+			if (!_flagIncSearch.match(path)) return;
 			_flag.add(path);
 			if (path == f) _flag.setText(path);
-		}
+		});
 	}
 
 	void reverseViewParty() { mixin(S_TRACE);

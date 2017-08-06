@@ -656,14 +656,16 @@ private:
 		string[] strs;
 		_editorTable.length = 0;
 		if (_summ) { mixin(S_TRACE);
-			foreach (f; _summ.flagDirRoot.allFlags) { mixin(S_TRACE);
+			auto flags = _summ.flagDirRoot.allFlags;
+			sortedWithPath(flags, _comm.prop.var.etc.logicalSort, (cwx.flag.Flag f) { mixin(S_TRACE);
 				strs ~= objName!(typeof(f))(_comm.prop) ~ " - " ~ f.path;
 				_editorTable ~= CWXScript.createString(f.path);
-			}
-			foreach (f; _summ.flagDirRoot.allSteps) { mixin(S_TRACE);
+			});
+			auto steps = _summ.flagDirRoot.allSteps;
+			sortedWithPath(steps, _comm.prop.var.etc.logicalSort, (Step f) { mixin(S_TRACE);
 				strs ~= objName!(typeof(f))(_comm.prop) ~ " - " ~ f.path;
 				_editorTable ~= CWXScript.createString(f.path);
-			}
+			});
 			foreach (a; _summ.areas) { mixin(S_TRACE);
 				strs ~= objName!(typeof(a))(_comm.prop) ~ " - " ~ .text(a.id) ~ "." ~ a.name;
 				_editorTable ~= .text(a.id);

@@ -586,7 +586,8 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 					dirItm.setImage(_prop.images.flagDir);
 					dirItm.setText(name);
 				}
-				foreach (child; dir.subDirs) { mixin(S_TRACE);
+				auto dirs = dir.subDirs;
+				sortedWithName(dirs, _prop.var.etc.logicalSort, (FlagDir child) { mixin(S_TRACE);
 					static if (is(F:cwx.flag.Flag)) {
 						auto flags = child.allFlags;
 					} else static if (is(F:Step)) {
@@ -598,20 +599,20 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 						hasChild = true;
 						break;
 					}
-					if (!hasChild) continue;
+					if (!hasChild) return;
 					selItm |= recurse(dirItm, child, child.name);
-				}
+				});
 				static if (is(F:cwx.flag.Flag)) {
 					auto flags = dir.flags;
 				} else static if (is(F:Step)) {
 					auto flags = dir.steps;
 				} else static assert (0);
-				foreach (flag; flags) { mixin(S_TRACE);
+				.sortedWithName(flags, _prop.var.etc.logicalSort, (F flag) { mixin(S_TRACE);
 					auto path = flag.path;
 					if (!has && path == sel) { mixin(S_TRACE);
 						has = true;
 					}
-					if (!_flagIncSearch.match(path)) continue;
+					if (!_flagIncSearch.match(path)) return;
 					TreeItem itm;
 					if (dirItm) {
 						itm = new TreeItem(dirItm, SWT.NONE);
@@ -627,7 +628,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 						_selected = path;
 					}
 					_canIncSearch = true;
-				}
+				});
 				if (dirItm) {
 					dirItm.setExpanded(selItm || expandedTable.get(dir.path, _prop.var.etc.expandChooserItems));
 				}
@@ -661,12 +662,12 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 			} else static if (is(F:Step)) {
 				auto flags = _summ ? _summ.flagDirRoot.allSteps : [];
 			} else static assert (0);
-			foreach (flag; flags) { mixin(S_TRACE);
+			.sortedWithPath(flags, _prop.var.etc.logicalSort, (F flag) { mixin(S_TRACE);
 				auto path = flag.path;
 				if (!has && path == sel) { mixin(S_TRACE);
 					has = true;
 				}
-				if (!_flagIncSearch.match(path)) continue;
+				if (!_flagIncSearch.match(path)) return;
 				auto itm = new TableItem(_list, SWT.NONE);
 				itm.setData(flag);
 				itm.setImage(icon);
@@ -677,7 +678,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 				}
 				if (!firstItem) firstItem = itm;
 				_canIncSearch = true;
-			}
+			});
 		}
 		if (!has && firstItem) { mixin(S_TRACE);
 			if (_tree) { mixin(S_TRACE);
