@@ -3240,7 +3240,7 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		string r(in SDialog sdlg) { mixin(S_TRACE);
 			string tt = .tryFormat(comm.prop.msgs.ctTalkMessageImage, comm.prop.msgs.talkerName(evt.talkerNC));
 			string t = sdlg.text.singleLine;
-			t = (t == "") ? comm.prop.msgs.noText : t.singleLine;
+			t = (sdlg.text == "") ? comm.prop.msgs.noText : t.singleLine;
 			if (sdlg.rCoupons.length) { mixin(S_TRACE);
 				auto cp = std.string.join(sdlg.rCoupons.dup, " ");
 				auto attrs = .msgAttrText(comm.prop, evt);

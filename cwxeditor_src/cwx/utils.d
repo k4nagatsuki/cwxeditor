@@ -843,6 +843,7 @@ string lastRet(string text) { mixin(S_TRACE);
 	} else { mixin(S_TRACE);
 		text ~= '\n';
 	}
+	if (text == "\n") text = "";
 	return text;
 } unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
@@ -850,6 +851,7 @@ string lastRet(string text) { mixin(S_TRACE);
 	assert (lastRet("test") == "test\n");
 	assert (lastRet("t\n\nes\nt\n\n") == "t\n\nes\nt\n");
 	assert (lastRet("test\n") == "test\n");
+	assert (lastRet("\n\n") == "");
 }
 
 /// arrをin-placeでソートして返す。
