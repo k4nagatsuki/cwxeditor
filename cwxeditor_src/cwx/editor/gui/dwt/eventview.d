@@ -1174,6 +1174,7 @@ private:
 						auto kcWithTiming = _prop.sys.convFireKeyCode(et.keyCodes[i - startKC]);
 						itm3.setText(kcWithTiming);
 						kc.array = kcWithTiming.dup;
+						itm3.setImage(keyCodeImage(kcWithTiming));
 						chg = true;
 					}
 				}
@@ -1220,10 +1221,10 @@ private:
 		string keyCode = _prop.sys.convFireKeyCode(old.keyCode, kind);
 		auto etItm = selectionEventTree;
 		assert (etItm);
-		auto et = cast(EventTree) etItm.getData();
+		auto et = cast(EventTree)etItm.getData();
 		assert (et);
 		store(et);
-		auto i = cCountUntil(et.keyCodes, old);
+		auto i = .cCountUntil(et.keyCodes, old);
 		assert (-1 != i);
 		et.setKeyCode(i, _prop.sys.toFKeyCode(keyCode));
 		foreach (v; views()) { mixin(S_TRACE);
@@ -2565,7 +2566,7 @@ public:
 
 	private void pasteScript(Clipboard cb) { mixin(S_TRACE);
 		if (_readOnly) return;
-		auto array = cast(ArrayWrapperString) cb.getContents(TextTransfer.getInstance());
+		auto array = cast(ArrayWrapperString)cb.getContents(TextTransfer.getInstance());
 		if (!array) return;
 		CompileOption opt;
 		string script = array.array.idup;
