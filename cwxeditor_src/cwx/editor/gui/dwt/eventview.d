@@ -242,6 +242,11 @@ private:
 						auto itm = v._cards.getItem(selPath[0]);
 						selPath = selPath[1 .. $];
 						while (selPath.length) { mixin(S_TRACE);
+							if (itm.getItemCount() <= selPath[0]) { mixin(S_TRACE);
+								// キーコードを空白で置換した時に項目が減っており、
+								// 選択状態を再現できない場合がある
+								break;
+							}
 							itm = itm.getItem(selPath[0]);
 							selPath = selPath[1 .. $];
 						}
