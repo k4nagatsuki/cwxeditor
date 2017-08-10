@@ -378,8 +378,8 @@ private:
 			comm.refEventTree.call(tree);
 			comm.refKeyCodes.call();
 		}
-		override void undo() {impl();}
-		override void redo() {impl();}
+		override void undo() { impl(); }
+		override void redo() { impl(); }
 		override void dispose() {}
 	}
 	EVUndo store(EventTree tree, bool put = true) { mixin(S_TRACE);
@@ -428,8 +428,8 @@ private:
 			comm.refEventTree.call(tree);
 			comm.refKeyCodes.call();
 		}
-		override void undo() {impl();}
-		override void redo() {impl();}
+		override void undo() { impl(); }
+		override void redo() { impl(); }
 		override void dispose() { mixin(S_TRACE);
 			foreach (s; _starts) s.removeUseCounter();
 		}
@@ -561,8 +561,8 @@ private:
 				staticUDImpl(comm, etos(area)[_ownerIndex], _swapIndex1, _swapIndex2);
 			}
 		}
-		override void undo() {impl();}
-		override void redo() {impl();}
+		override void undo() { impl(); }
+		override void redo() { impl(); }
 		override void dispose() {}
 	}
 	EVUndo store(int ownerIndex, int swapIndex1, int swapIndex2, bool put = true) { mixin(S_TRACE);
@@ -857,9 +857,9 @@ private:
 	}
 	void editEnd(TreeItem itm, Control c) { mixin(S_TRACE);
 		if (_readOnly) return;
-		string text = (cast(Text) c).getText();
+		string text = (cast(Text)c).getText();
 		if (!text) text = "";
-		auto tree = cast(EventTree) itm.getData();
+		auto tree = cast(EventTree)itm.getData();
 		if (tree) { mixin(S_TRACE);
 			if (text == tree.name) return;
 			store(tree);
@@ -1477,7 +1477,7 @@ public:
 			hint.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			hint.setText(_prop.msgs.eventTreeViewHint);
 			if (!_readOnly) { mixin(S_TRACE);
-				auto _edit = new TreeEdit(_comm, _cards, &editEnd, &createEditor);
+				_edit = new TreeEdit(_comm, _cards, &editEnd, &createEditor);
 			}
 			auto fi = new class Listener {
 				override void handleEvent(Event e) { mixin(S_TRACE);
@@ -1732,16 +1732,21 @@ public:
 			}
 			cItm.setExpanded(true);
 		}
-		if (auto a = cast(Area)_area) {
+		if (auto a = cast(Area)_area) { mixin(S_TRACE);
 			foreach (c; a.cards) { mixin(S_TRACE);
 				spCardItm(c, _prop.images.cards);
 			}
-		} else if (auto a = cast(Battle)_area) {
+		} else if (auto a = cast(Battle)_area) { mixin(S_TRACE);
 			foreach (c; a.cards) { mixin(S_TRACE);
 				spCardItm(c, _prop.images.cards);
 			}
 		}
 		_comm.refreshToolBar();
+	}
+
+	void editCancel() { mixin(S_TRACE);
+		if (_edit) _edit.cancel();
+		_etree.editCancel();
 	}
 
 	private bool _resetToolBar = false;
@@ -2899,11 +2904,13 @@ public:
 	}
 	void undo() { mixin(S_TRACE);
 		if (_readOnly) return;
+		editCancel();
 		_undo.undo();
 		_comm.refreshToolBar();
 	}
 	void redo() { mixin(S_TRACE);
 		if (_readOnly) return;
+		editCancel();
 		_undo.redo();
 		_comm.refreshToolBar();
 	}

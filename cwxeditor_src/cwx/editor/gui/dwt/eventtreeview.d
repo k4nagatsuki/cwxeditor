@@ -337,7 +337,7 @@ private:
 	static EventTreeView mainEventTreeView(EventTreeView[] vs) { mixin(S_TRACE);
 		if (!vs.length) return null;
 		auto ct = Display.getCurrent().getFocusControl();
-		if (!ct) return;
+		if (!ct) return null;
 		foreach (v; vs) { mixin(S_TRACE);
 			while (ct.getParent()) { mixin(S_TRACE);
 				if (ct is v) { mixin(S_TRACE);
@@ -507,8 +507,8 @@ private:
 			}
 			comm.refUseCount.call();
 		}
-		override void undo() {impl();}
-		override void redo() {impl();}
+		override void undo() { impl(); }
+		override void redo() { impl(); }
 		override void dispose() { mixin(S_TRACE);
 			foreach (c; _c) { mixin(S_TRACE);
 				c.removeUseCounter();
@@ -530,8 +530,8 @@ private:
 			scope (exit) uda(vs);
 			udImpl!(-1)(vs, comm, et, et.starts[_upIndex], false);
 		}
-		override void undo() {impl();}
-		override void redo() {impl();}
+		override void undo() { impl(); }
+		override void redo() { impl(); }
 		override void dispose() {}
 	}
 	void storeSwap(int swapIndex1, int swapIndex2) { mixin(S_TRACE);
@@ -1846,11 +1846,13 @@ public:
 
 	void undo() { mixin(S_TRACE);
 		if (_readOnly) return;
+		editCancel();
 		_undo.undo();
 		_comm.refreshToolBar();
 	}
 	void redo() { mixin(S_TRACE);
 		if (_readOnly) return;
+		editCancel();
 		_undo.redo();
 		_comm.refreshToolBar();
 	}
