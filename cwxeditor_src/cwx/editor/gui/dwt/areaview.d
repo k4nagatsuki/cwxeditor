@@ -254,8 +254,9 @@ private:
 		abstract override void dispose();
 		protected void udb(AbstractAreaView[] vs) { mixin(S_TRACE);
 			if (!vs.length) return;
+			auto ct = Display.getCurrent().getFocusControl();
+			if (!ct) return;
 			foreach (v; vs) { mixin(S_TRACE);
-				auto ct = Display.getCurrent().getFocusControl();
 				while (ct.getParent()) { mixin(S_TRACE);
 					if (ct is v) { mixin(S_TRACE);
 						return;

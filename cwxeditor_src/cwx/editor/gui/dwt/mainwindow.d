@@ -1237,7 +1237,7 @@ private:
 	}
 	void saveScenario() { mixin(S_TRACE);
 		auto fc = _win.getDisplay().getFocusControl();
-		save(fc.getShell());
+		save(fc ? fc.getShell() : _win);
 	}
 	void savec(Shell shell) { mixin(S_TRACE);
 		save(shell);
@@ -4101,6 +4101,7 @@ public:
 	private void dockShellClosedEvent() { mixin(S_TRACE);
 		auto d = _win.getDisplay();
 		auto fc = d.getFocusControl();
+		if (!fc) return;
 		_tlp = getTopLevelPanel(fc);
 		if (!_tlp) return;
 		statusLine = _tlp.statusLine;

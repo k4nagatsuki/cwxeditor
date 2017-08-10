@@ -139,6 +139,10 @@ private class InTCPD {
 	TCPD tcpd;
 	void cut(SelectionEvent se) { mixin(S_TRACE);
 		auto fc = Display.getCurrent().getFocusControl();
+		if (!fc) { mixin(S_TRACE);
+			tcpd.cut(se);
+			return;
+		}
 		bool ro = !(fc.getStyle() & SWT.READ_ONLY);
 		if (ro && cast(Text)fc) { mixin(S_TRACE);
 			(cast(Text)fc).cut();
@@ -152,6 +156,10 @@ private class InTCPD {
 	}
 	void copy(SelectionEvent se) { mixin(S_TRACE);
 		auto fc = Display.getCurrent().getFocusControl();
+		if (!fc) { mixin(S_TRACE);
+			tcpd.copy(se);
+			return;
+		}
 		bool ro = !(fc.getStyle() & SWT.READ_ONLY);
 		if (ro && cast(Text)fc) { mixin(S_TRACE);
 			(cast(Text)fc).copy();
@@ -165,6 +173,10 @@ private class InTCPD {
 	}
 	void paste(SelectionEvent se) { mixin(S_TRACE);
 		auto fc = Display.getCurrent().getFocusControl();
+		if (!fc) { mixin(S_TRACE);
+			tcpd.paste(se);
+			return;
+		}
 		bool ro = !(fc.getStyle() & SWT.READ_ONLY);
 		if (ro && cast(Text)fc) { mixin(S_TRACE);
 			(cast(Text)fc).paste();
@@ -178,6 +190,10 @@ private class InTCPD {
 	}
 	void del(SelectionEvent se) { mixin(S_TRACE);
 		auto fc = Display.getCurrent().getFocusControl();
+		if (!fc) { mixin(S_TRACE);
+			tcpd.del(se);
+			return;
+		}
 		bool ro = !(fc.getStyle() & SWT.READ_ONLY);
 		if (ro && cast(Text)fc) { mixin(S_TRACE);
 			(cast(Text)fc).insert("");
@@ -195,6 +211,10 @@ private class InTCPD {
 	}
 	void clone(SelectionEvent se) { mixin(S_TRACE);
 		auto fc = Display.getCurrent().getFocusControl();
+		if (!fc) { mixin(S_TRACE);
+			tcpd.clone(se);
+			return;
+		}
 		bool ro = !(fc.getStyle() & SWT.READ_ONLY);
 		if (ro && cast(Text)fc) { mixin(S_TRACE);
 			cloneImpl(cast(Text)fc);

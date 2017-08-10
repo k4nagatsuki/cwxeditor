@@ -1250,6 +1250,7 @@ public:
 
 bool hasFocus(Control c) { mixin(S_TRACE);
 	auto ctrl = Display.getCurrent().getFocusControl();
+	if (!ctrl) return false;
 	if (c is ctrl) return true;
 	auto parent = ctrl.getParent();
 	while (parent) { mixin(S_TRACE);
