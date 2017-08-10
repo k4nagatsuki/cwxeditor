@@ -367,7 +367,8 @@ private:
 			_etPath = et.areaPath;
 			auto vs = views();
 			if (vs.length) { mixin(S_TRACE);
-				auto sel = mainEventTreeView(vs).selection;
+				auto mainV = mainEventTreeView(vs);
+				auto sel = mainV ? mainV.selection : null;
 				_selPath = sel ? (cast(Content)sel.getData()).ctPath : null;
 			}
 		}
