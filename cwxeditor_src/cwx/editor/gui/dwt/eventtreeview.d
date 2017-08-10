@@ -336,8 +336,9 @@ private:
 
 	static EventTreeView mainEventTreeView(EventTreeView[] vs) { mixin(S_TRACE);
 		if (!vs.length) return null;
+		auto ct = Display.getCurrent().getFocusControl();
+		if (!ct) return;
 		foreach (v; vs) { mixin(S_TRACE);
-			auto ct = Display.getCurrent().getFocusControl();
 			while (ct.getParent()) { mixin(S_TRACE);
 				if (ct is v) { mixin(S_TRACE);
 					return v;
@@ -382,7 +383,7 @@ private:
 				v.editCancel();
 				v._forceSel(_etPath);
 			}
-			auto sel = mainV.selection;
+			auto sel = mainV ? mainV.selection : null;
 			_selPath2 = sel ? (cast(Content)sel.getData()).ctPath : null;
 			if (ct && !ct.isDisposed()) { mixin(S_TRACE);
 				foreach (v; vs) { mixin(S_TRACE);
@@ -394,7 +395,7 @@ private:
 					}
 				}
 			}
-			.forceFocus(mainV._tree.control, false);
+			if (mainV) .forceFocus(mainV._tree.control, false);
 		}
 		void uda(EventTreeView[] vs) { mixin(S_TRACE);
 			scope (exit) comm.refreshToolBar();
