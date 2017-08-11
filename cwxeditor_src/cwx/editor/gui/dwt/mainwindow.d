@@ -4046,9 +4046,23 @@ public:
 	private void delegate(SelectionEvent) menuActionDlg(MenuID id) { mixin(S_TRACE);
 		return (SelectionEvent se) { mixin(S_TRACE);
 			if (!_tlp) return;
-			auto act = _tlp.menuAction(id);
-			assert (act, .text(id) ~ " " ~ .text(_tlp));
-			act(se);
+			if (_comm.lastFocusEditor) { mixin(S_TRACE);
+				auto menu = _comm.lastFocusEditor.getMenu();
+				if (menu) { mixin(S_TRACE);
+					foreach (itm; menu.getItems()) { mixin(S_TRACE);
+						auto d = cast(MenuData)itm.getData();
+						if (d && d.id is id && (!d.enabled || d.enabled())) { mixin(S_TRACE);
+							raiseEvent(itm, se);
+							_comm.refreshToolBar();
+							break;
+						}
+					}
+				}
+			} else { mixin(S_TRACE);
+				auto act = _tlp.menuAction(id);
+				assert (act, .text(id) ~ " " ~ .text(_tlp));
+				act(se);
+			}
 			menuActionAfter(id);
 		};
 	}

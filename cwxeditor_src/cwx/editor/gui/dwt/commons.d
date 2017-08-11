@@ -543,10 +543,15 @@ class Commons {
 		_toolbars.add(w);
 		w.addDisposeListener(new CloseRemover!Control(_toolbars, w));
 	}
+	private Control _lastFocusEditor = null;
+	@property
+	Control lastFocusEditor() { return _lastFocusEditor; }
+
 	void refreshToolBar() { mixin(S_TRACE);
 		refreshToolBar(null);
 	}
 	void refreshToolBar(Control fc) { mixin(S_TRACE);
+		_lastFocusEditor = null;
 		if (!_main) return;
 		if (!_main.shell) return;
 		if (!fc) { mixin(S_TRACE);
@@ -563,6 +568,7 @@ class Commons {
 						cMenuTbl[d.id] = d.enabled;
 					}
 				}
+				_lastFocusEditor = fc;
 			}
 		}
 		void s(Widget itm) { mixin(S_TRACE);
