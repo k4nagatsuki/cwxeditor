@@ -4046,6 +4046,7 @@ public:
 	private void delegate(SelectionEvent) menuActionDlg(MenuID id) { mixin(S_TRACE);
 		return (SelectionEvent se) { mixin(S_TRACE);
 			if (!_tlp) return;
+			scope (exit) menuActionAfter(id);
 			if (_comm.lastFocusEditor) { mixin(S_TRACE);
 				auto menu = _comm.lastFocusEditor.getMenu();
 				if (menu) { mixin(S_TRACE);
@@ -4054,16 +4055,14 @@ public:
 						if (d && d.id is id && (!d.enabled || d.enabled())) { mixin(S_TRACE);
 							raiseEvent(itm, se);
 							_comm.refreshToolBar();
-							break;
+							return;
 						}
 					}
 				}
-			} else { mixin(S_TRACE);
-				auto act = _tlp.menuAction(id);
-				assert (act, .text(id) ~ " " ~ .text(_tlp));
-				act(se);
 			}
-			menuActionAfter(id);
+			auto act = _tlp.menuAction(id);
+			assert (act, .text(id) ~ " " ~ .text(_tlp));
+			act(se);
 		};
 	}
 	private void menuActionAfter(MenuID id) { mixin(S_TRACE);
