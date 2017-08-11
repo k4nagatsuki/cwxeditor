@@ -863,6 +863,8 @@ private:
 	CardList!Card _list;
 	CardListEdit!Card _cle = null;
 	Table _tbl;
+	TableTextEdit _tte = null;
+	TableTCEdit _ttce = null;
 	Image _cimg;
 	CViewMode _viewMode = CViewMode.INIT;
 	TCPD[] _tcpd;
@@ -1429,6 +1431,7 @@ private:
 		if (!card) return;
 		remove(owner, card);
 		if (v && v.widget && !v.widget.isDisposed()) { mixin(S_TRACE);
+			v.enterEdit();
 			if (v._viewMode == CViewMode.TABLE) { mixin(S_TRACE);
 				ptrdiff_t index = -1;
 				foreach (i, itm; v._tbl.getItems()) { mixin(S_TRACE);
@@ -1462,6 +1465,7 @@ private:
 		mixin CopyAndPaste;
 		override void del(SelectionEvent se) { mixin(S_TRACE);
 			if (editMode) { mixin(S_TRACE);
+				enterEdit();
 				auto cards = selectedCards;
 				auto ids = .map!(card => card.id)(cards).array();
 				storeDelete(ids);
@@ -1498,6 +1502,7 @@ private:
 		delCard(this, _comm, _owner, c);
 	}
 	static void delCard(CardPane v, Commons comm, CWXPath owner, Card card) { mixin(S_TRACE);
+		if (v) v.enterEdit();
 		if (auto c = cast(CastCard)card) {
 			foreach (hc; c.skills) { mixin(S_TRACE);
 				comm.delSkill.call(owner, hc);
@@ -1545,6 +1550,7 @@ private:
 			if (editMode) { mixin(S_TRACE);
 				auto indices = _tbl.getSelectionIndices();
 				if (!indices.length) return;
+				enterEdit();
 				.sort(indices);
 				TableItem[] itms;
 				Card[] cards;
@@ -1575,6 +1581,7 @@ private:
 			string xml = bytesToXML(e.data);
 			try { mixin(S_TRACE);
 				auto node = XNode.parse(xml);
+				enterEdit();
 				auto p = (cast(DropTarget)e.getSource()).getControl().toControl(e.x, e.y);
 				int index = indexOf(p);
 				bool samePane = _id == node.attr("paneId", false);
@@ -1677,6 +1684,7 @@ private:
 		}
 	}
 	void moveCards(Card[] adds, int index, bool store) { mixin(S_TRACE);
+		enterEdit();
 		if (store) { mixin(S_TRACE);
 			int[] oldIndexes;
 			foreach (card; adds) { mixin(S_TRACE);
@@ -1707,7 +1715,8 @@ private:
 	}
 	void refreshLink(ref Card card, bool samePane, bool sameSc, bool topLevel) { mixin(S_TRACE);
 		assert (editMode);
-		if (cast(EffectCard)card) {
+		if (cast(EffectCard)card) { mixin(S_TRACE);
+			enterEdit();
 			if (sameSc && _ownerType is OwnerType.Summary && 0 != linkId(card)) { mixin(S_TRACE);
 				card = pOwnerCard(linkId(card));
 				if (card) { mixin(S_TRACE);
@@ -1792,6 +1801,7 @@ private:
 	}
 	private void insert(Card c, bool move) { mixin(S_TRACE);
 		assert (editMode);
+		enterEdit();
 		refresh();
 		int index = cast(int)indexOf(_owner, _cardType, c);
 		if (_viewMode == CViewMode.TABLE) { mixin(S_TRACE);
@@ -1834,6 +1844,7 @@ private:
 		}
 		private void insert(Card c, bool move) { mixin(S_TRACE);
 			assert (editMode);
+			enterEdit();
 			refresh();
 			foreach (i, itm; _tbl.getItems()) { mixin(S_TRACE);
 				if (c is itm.getData()) { mixin(S_TRACE);
@@ -1980,6 +1991,7 @@ private:
 	void refList() { mixin(S_TRACE);
 		auto sels = _tbl.getSelectionIndices();
 		int index = _tbl.getSelectionIndex();
+		enterEdit();
 		refresh();
 		if (-1 != index) { mixin(S_TRACE);
 			_list.selectionIndices(sels);
@@ -1991,6 +2003,7 @@ private:
 	}
 	void refTbl() { mixin(S_TRACE);
 		auto sels = _list.selectionIndices;
+		enterEdit();
 		refresh();
 		if (sels.length > 0) { mixin(S_TRACE);
 			_tbl.setSelection(sels);
@@ -2428,11 +2441,13 @@ private:
 		_comm.refCardTableColumnWidth.add(&refColumnWidth);
 		_tbl.addDisposeListener(new DisposeTable);
 		if (editMode) { mixin(S_TRACE);
-			new TableTextEdit(_comm, _prop, _tbl, colIndex(CardTableColumn.Name), &nameEditEnd, &canEditT);
+			_tte = new TableTextEdit(_comm, _prop, _tbl, colIndex(CardTableColumn.Name), &nameEditEnd, &canEditT);
 			if (useNum) { mixin(S_TRACE);
-				new TableTCEdit(_comm, _tbl, colIndex(CardTableColumn.Num), &numCreateEditor, &numEditEnd, &canEditT);
+				_ttce = new TableTCEdit(_comm, _tbl, colIndex(CardTableColumn.Num), &numCreateEditor, &numEditEnd, &canEditT);
 			}
 		}
+		TableTextEdit _tte = null;
+		TableTCEdit _ttce = null;
 
 		_list = new CardList!Card(_pane, SWT.VIRTUAL | SWT.V_SCROLL | SWT.MULTI);
 		void updateCardListParamsImpl() { mixin(S_TRACE);
@@ -2611,6 +2626,7 @@ private:
 	}
 	void refScenario(Summary summ) { mixin(S_TRACE);
 		assert (editMode);
+		cancelEdit();
 		_undo.reset();
 	}
 	private void delegate() _openHand = null;
@@ -2651,6 +2667,7 @@ private:
 	void hold(SelectionEvent e) { mixin(S_TRACE);
 		assert (canHold);
 		assert (editMode);
+		enterEdit();
 		Card[] cards;
 		auto mi = cast(MenuItem)e.widget;
 		foreach (c; selectedCards) { mixin(S_TRACE);
@@ -2697,6 +2714,7 @@ private:
 	public void removeRef() { mixin(S_TRACE);
 		assert (_ownerType is OwnerType.Cast);
 		assert (editMode);
+		enterEdit();
 		Card[] cards;
 		Card[] targs;
 		foreach (card; selectedCards) { mixin(S_TRACE);
@@ -2987,6 +3005,7 @@ public:
 
 	void refresh() { mixin(S_TRACE);
 		if (!_tbl || _tbl.isDisposed()) return;
+		enterEdit();
 		if (_owner) { mixin(S_TRACE);
 			refreshImpl();
 		}
@@ -3032,6 +3051,7 @@ public:
 	}
 	private void showCardListImpl(CViewMode mode) { mixin(S_TRACE);
 		if (_viewMode != mode) { mixin(S_TRACE);
+			enterEdit();
 			_viewMode = mode;
 			refList();
 			updateLayout();
@@ -3039,6 +3059,7 @@ public:
 	}
 	void showCardTable() { mixin(S_TRACE);
 		if (_viewMode != CViewMode.TABLE) { mixin(S_TRACE);
+			enterEdit();
 			_viewMode = CViewMode.TABLE;
 			refTbl();
 			updateLayout();
@@ -3228,6 +3249,7 @@ public:
 	}
 	void create() { mixin(S_TRACE);
 		assert (editMode);
+		enterEdit();
 		Card c;
 		CardDialog dlg;
 		final switch (_cardType) {
@@ -3316,6 +3338,7 @@ public:
 	}
 	bool addFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
 		assert (editMode);
+		enterEdit();
 		Card[] adds;
 		bool inPane = false;
 		auto sameSumm = node.attr("summId", false) == ownerId;
@@ -3355,6 +3378,7 @@ public:
 	}
 	void addCardsImpl(Card[] allAdds, bool inPane, bool samePane, bool sameSc, bool topLevel) { mixin(S_TRACE);
 		assert (editMode);
+		enterEdit();
 		Card[][CardType] adds;
 		auto lastType = _cardType;
 		foreach (card; allAdds) { mixin(S_TRACE);
@@ -3392,6 +3416,7 @@ public:
 	void pasteRefresh(Card[] cs) { mixin(S_TRACE);
 		assert (editMode);
 		assert (cs.length);
+		enterEdit();
 		deselectAll();
 		if (_viewMode == CViewMode.TABLE) { mixin(S_TRACE);
 			foreach (c; cs) { mixin(S_TRACE);
@@ -3426,6 +3451,7 @@ public:
 	}
 
 	void refreshAll(Summary summ, CWXPath owner) { mixin(S_TRACE);
+		enterEdit();
 		_owner = owner;
 		_summ = summ;
 		refresh();
@@ -3462,6 +3488,7 @@ public:
 	}
 	void reNumbering() { mixin(S_TRACE);
 		assert (editMode);
+		enterEdit();
 		_incSearch.close();
 		auto index = selectionIndex;
 		auto dlg = new ReNumDialog!(Card)(_prop, dlgParShl, _summ, cards[index],
@@ -3476,6 +3503,7 @@ public:
 		if (index < 0 || cards.length <= index) return;
 		if (newId == 0) return;
 		if (index > 0 && cards[index - 1].id >= newId) return;
+		enterEdit();
 		auto undo = new UndoIDs(this, _comm, _owner);
 		ulong[] oldIDs;
 		for (size_t i = index; i < cards.length; i++) { mixin(S_TRACE);
@@ -3507,6 +3535,7 @@ public:
 
 	private CardDialog[Card] _editDlgs;
 	CardDialog edit(Card c) { mixin(S_TRACE);
+		enterEdit();
 		auto p = c in _editDlgs;
 		if (p) { mixin(S_TRACE);
 			(cast(AbsDialog)(*p)).active();
@@ -3593,6 +3622,7 @@ public:
 	}
 	void editUseEvent(Card c, bool canDuplicate = false) { mixin(S_TRACE);
 		assert (_cardType is CardType.Skill || _cardType is CardType.Item || _cardType is CardType.Beast);
+		enterEdit();
 		if (0 != linkId(c)) { mixin(S_TRACE);
 			if (editMode) { mixin(S_TRACE);
 				auto c2 = cardFrom(_summ, _cardType, linkId(c));
@@ -3627,6 +3657,7 @@ public:
 	void editHand() { mixin(S_TRACE);
 		assert (_cardType is CardType.Cast);
 		assert (editMode);
+		enterEdit();
 		foreach (card; selectedCards) { mixin(S_TRACE);
 			assert(cast(CastCard)card !is null);
 			_comm.openHands(_prop, _summ, cast(CastCard)card, true);
@@ -3636,6 +3667,7 @@ public:
 	private void udImpl(bool up) { mixin(S_TRACE);
 		assert (editMode);
 		if (!(_tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column)) return;
+		enterEdit();
 		int[] indices;
 		auto arr = cardsFrom(_cardType, _owner);
 		foreach (index; selectionIndices) { mixin(S_TRACE);
@@ -3682,6 +3714,7 @@ public:
 		_comm.refreshToolBar();
 	}
 	private static void udImpl(CardPane v, Commons comm, CWXPath owner, CardType cardType, in int[] indices, bool up) { mixin(S_TRACE);
+		if (v) v.enterEdit();
 		bool[int] refIndices;
 		int[] selIndices;
 		if (up) { mixin(S_TRACE);
@@ -3838,11 +3871,13 @@ public:
 
 	void undo() { mixin(S_TRACE);
 		assert (editMode);
+		cancelEdit();
 		_undo.undo();
 		_comm.refreshToolBar();
 	}
 	void redo() { mixin(S_TRACE);
 		assert (editMode);
+		cancelEdit();
 		_undo.redo();
 		_comm.refreshToolBar();
 	}
@@ -3857,6 +3892,7 @@ public:
 
 	void replaceID() { mixin(S_TRACE);
 		assert (editMode);
+		enterEdit();
 		auto sel = selection;
 		if (sel) { mixin(S_TRACE);
 			final switch (_cardType) {
@@ -3907,6 +3943,18 @@ public:
 		if (_summ.hasMaterial(file, _prop.var.etc.ignorePaths)) { mixin(S_TRACE);
 			_comm.openFilePath(file, false, true);
 		}
+	}
+
+	void enterEdit() {
+		if (_cle) _cle.enter();
+		if (_tte) _tte.enter();
+		if (_ttce) _ttce.enter();
+	}
+
+	void cancelEdit() {
+		if (_cle) _cle.cancel();
+		if (_tte) _tte.cancel();
+		if (_ttce) _ttce.cancel();
 	}
 
 	@property

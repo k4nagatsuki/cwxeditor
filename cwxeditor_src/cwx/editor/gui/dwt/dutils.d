@@ -1242,6 +1242,10 @@ public:
 	bool isEditing() { mixin(S_TRACE);
 		return _tee !is null;
 	}
+	void enter() { mixin(S_TRACE);
+		if (!isEditing) return;
+		_tee.enter();
+	}
 	void cancel() { mixin(S_TRACE);
 		if (!isEditing) return;
 		_tee.cancel();
