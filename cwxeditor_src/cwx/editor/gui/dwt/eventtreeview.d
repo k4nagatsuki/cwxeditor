@@ -126,7 +126,7 @@ private:
 		}
 		refreshConvMenu();
 	}
-	private void initCreateMenu(CType type, Menu menu, string text, Image img) {
+	private void initCreateMenu(CType type, Menu menu, string text, Image img) { mixin(S_TRACE);
 		createMenuItem2(_comm, menu, text, img, {
 			if (!_box) return;
 			auto itm = selection;
@@ -150,7 +150,7 @@ private:
 	private bool canConvTerminal() { mixin(S_TRACE);
 		auto itm = selection;
 		if (!itm) return false;
-		auto evt = cast(Content) itm.getData();
+		auto evt = cast(Content)itm.getData();
 		return !evt.next.length;
 	}
 	private Menu cTypeGroupMenu(Menu menu, CTypeGroup g) { mixin(S_TRACE);
@@ -723,12 +723,12 @@ private:
 		_comm.refUseCount.call();
 		_comm.refreshToolBar();
 	}
-	void editM() {edit();}
+	void editM() { edit(); }
 	public EventDialog edit() { mixin(S_TRACE);
 		if (_readOnly) return null;
 		auto sels = _tree.getSelection();
 		if (sels.length > 0) { mixin(S_TRACE);
-			auto c = cast(Content) sels[0].getData();
+			auto c = cast(Content)sels[0].getData();
 			return edit(c);
 		}
 		return null;
@@ -950,6 +950,7 @@ private:
 		if (!_box) return;
 		if (_readOnly) return;
 		assert (parent is null || parent.detail.owner);
+		foreach (v; views()) v.editEnter();
 		if (_box && _box._putMode !is MenuID.PutContinue) { mixin(S_TRACE);
 			_box.arrow();
 			_comm.refreshToolBar();
@@ -1010,6 +1011,7 @@ private:
 	EventDialog edit(Content evt) { mixin(S_TRACE);
 		if (_readOnly) return null;
 		if (!hasDialog(evt.type) || !checkOpenDialog(evt.type)) return null;
+		foreach (v; views()) v.editEnter();
 		auto p = evt.eventId in _editDlgs;
 		if (p) { mixin(S_TRACE);
 			p.active();
@@ -1830,7 +1832,7 @@ public:
 	private Composite _cbarPar = null;
 
 	@property
-	Composite widget() {return _comp;}
+	Composite widget() { return _comp; }
 
 	@property
 	ContentsToolBox contentsToolBox() { return _box; }
@@ -1843,17 +1845,17 @@ public:
 	bool readOnly() { return _readOnly != 0; }
 
 	@property
-	string statusLine() {return _statusLine;}
+	string statusLine() { return _statusLine; }
 
 	void undo() { mixin(S_TRACE);
 		if (_readOnly) return;
-		editCancel();
+		foreach (v; views()) v.editCancel();
 		_undo.undo();
 		_comm.refreshToolBar();
 	}
 	void redo() { mixin(S_TRACE);
 		if (_readOnly) return;
-		editCancel();
+		foreach (v; views()) v.editCancel();
 		_undo.redo();
 		_comm.refreshToolBar();
 	}
@@ -1918,8 +1920,9 @@ public:
 		if (_readOnly) return;
 		auto itm = selection;
 		if (!itm) return;
+		foreach (v; views()) v.editEnter();
 		.forceFocus(_tree.control, false);
-		auto c = cast(Content) itm.getData();
+		auto c = cast(Content)itm.getData();
 		auto p = c.eventId in _commentDlgs;
 		if (p) { mixin(S_TRACE);
 			p.active();

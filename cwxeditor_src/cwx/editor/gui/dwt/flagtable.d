@@ -1267,8 +1267,8 @@ package class UndoEditDir : FTVUndo {
 
 		comm.refFlagDir.call([dir]);
 	}
-	override void undo() {impl();}
-	override void redo() {impl();}
+	override void undo() { impl(); }
+	override void redo() { impl(); }
 	override void dispose() {}
 }
 
@@ -1381,8 +1381,20 @@ private:
 	}
 
 	UndoManager _undo;
+	TableTextEdit _tte;
+	TableComboEdit!Combo _tce;
+
+	void cancelEdit() { mixin(S_TRACE);
+		if (_tte) _tte.cancel();
+		if (_tce) _tce.cancel();
+	}
+	void enterEdit() { mixin(S_TRACE);
+		if (_tte) _tte.enter();
+		if (_tce) _tce.enter();
+	}
 
 	void editFlag(FlagDir parent, cwx.flag.Flag flag) { mixin(S_TRACE);
+		enterEdit();
 		bool createMode = flag is null;
 		string old = createMode ? null : flag.name;
 		if (!flag) { mixin(S_TRACE);
@@ -1438,6 +1450,7 @@ private:
 		dlg.open();
 	}
 	void editStep(FlagDir parent, Step step) { mixin(S_TRACE);
+		enterEdit();
 		bool createMode = step is null;
 		string old = createMode ? null : step.name;
 		if (!step) { mixin(S_TRACE);
@@ -1917,8 +1930,8 @@ public:
 		flags.addSelectionListener(new SListener);
 		flags.addDisposeListener(new DListener);
 
-		new TableTextEdit(_comm, prop, flags, 0, &nameEditEnd, null);
-		new TableComboEdit!Combo(_comm, prop, flags, 1, &initCombo, &initEditEnd, null);
+		_tte = new TableTextEdit(_comm, prop, flags, 0, &nameEditEnd, null);
+		_tce = new TableComboEdit!Combo(_comm, prop, flags, 1, &initCombo, &initEditEnd, null);
 
 		_comp.addDisposeListener(new Dispose);
 
@@ -1934,7 +1947,7 @@ public:
 	}
 	private Composite _comp = null;
 	@property
-	Control widget() {return _comp;}
+	Control widget() { return _comp; }
 
 	@property
 	package cwx.flag.Flag[ptrdiff_t] dragFlags() { return _dragFlags; }
@@ -1979,6 +1992,7 @@ public:
 	}
 	void refresh(in Object[] selObjs) { mixin(S_TRACE);
 		if (!flags || flags.isDisposed()) return;
+		enterEdit();
 		if (_dir) { mixin(S_TRACE);
 			const(Object)[] sels;
 			if (selObjs.length) { mixin(S_TRACE);
@@ -2107,6 +2121,7 @@ public:
 	/// dir = ディレクトリ。
 	void setDir(FlagDir dir, bool forceRefresh = false) { mixin(S_TRACE);
 		if (!forceRefresh && _dir is dir) return;
+		cancelEdit();
 		foreach (dlg; _editDlgsF.values) { mixin(S_TRACE);
 			dlg.forceCancel();
 		}
@@ -2217,6 +2232,7 @@ public:
 		}
 		void del(SelectionEvent se) { mixin(S_TRACE);
 			if (!_dir) return;
+			enterEdit();
 			auto selsF = selectionFlagIndices;
 			auto selsS = selectionStepIndices;
 			cwx.flag.Flag[ptrdiff_t] fs;
@@ -2278,6 +2294,7 @@ public:
 	}
 	private bool pasteImpl(ref XNode node) { mixin(S_TRACE);
 		try { mixin(S_TRACE);
+			enterEdit();
 			string newPath;
 			string rootId;
 			cwx.flag.Flag[string] cFlags;
@@ -2311,10 +2328,12 @@ public:
 		return false;
 	}
 	void undo() { mixin(S_TRACE);
+		cancelEdit();
 		_undo.undo();
 		_comm.refreshToolBar();
 	}
 	void redo() { mixin(S_TRACE);
+		cancelEdit();
 		_undo.redo();
 		_comm.refreshToolBar();
 	}

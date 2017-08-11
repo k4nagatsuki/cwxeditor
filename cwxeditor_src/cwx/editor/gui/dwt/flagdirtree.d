@@ -101,6 +101,7 @@ private:
 		override void drop(DropTargetEvent e){ mixin(S_TRACE);
 			if (!isXMLBytes(e.data)) return;
 			assert (cast(TreeItem) e.item);
+			if (edit) edit.enter();
 			if (cast(FlagDir) e.item.getData()) { mixin(S_TRACE);
 				auto data = bytesToXML(e.data);
 				auto dir = cast(FlagDir)e.item.getData();
@@ -316,12 +317,13 @@ public:
 	}
 	private Composite _comp = null;
 	@property
-	Control widget() {return _comp;}
+	Control widget() { return _comp; }
 
 	void refresh() { mixin(S_TRACE);
 		refresh(null);
 	}
 	void refresh(string selPath) { mixin(S_TRACE);
+		if (edit) edit.enter();
 		if (!selPath) { mixin(S_TRACE);
 			selPath = current.path;
 		}
@@ -421,6 +423,7 @@ public:
 	void createDir() { mixin(S_TRACE);
 		auto cur = current;
 		if (!cur) return;
+		if (edit) edit.enter();
 		_comm.openCWXPath(cur.cwxPath(true), true);
 		string name = cur.createNewDirName(prop.msgs.flagDirNew, null);
 		storeInsert(cur, flags.selectionFlagIndices, flags.selectionStepIndices, [cast(ptrdiff_t)cur.subDirs.length], [], []);
@@ -694,10 +697,12 @@ public:
 		return r;
 	}
 	void undo() { mixin(S_TRACE);
+		if (edit) edit.cancel();
 		_undo.undo();
 		_comm.refreshToolBar();
 	}
 	void redo() { mixin(S_TRACE);
+		if (edit) edit.cancel();
 		_undo.redo();
 		_comm.refreshToolBar();
 	}

@@ -2333,6 +2333,11 @@ public:
 		_comm.refreshToolBar();
 	}
 
+	void cancelEdit() { mixin(S_TRACE);
+		if (_areasEdit) _areasEdit.cancel();
+		if (_areaDirEdit) _areaDirEdit.cancel();
+	}
+
 	private string createNewName(A)(string name, in A[] areas) { mixin(S_TRACE);
 		if (!_prop.var.etc.incrementNewAreaName) return name;
 		bool[string] names;
@@ -3149,11 +3154,13 @@ public:
 	}
 	void undo() { mixin(S_TRACE);
 		if (_readOnly) return;
+		cancelEdit();
 		_undo.undo();
 		_comm.refreshToolBar();
 	}
 	void redo() { mixin(S_TRACE);
 		if (_readOnly) return;
+		cancelEdit();
 		_undo.redo();
 		_comm.refreshToolBar();
 	}
