@@ -101,7 +101,7 @@ private:
 		override void drop(DropTargetEvent e){ mixin(S_TRACE);
 			if (!isXMLBytes(e.data)) return;
 			assert (cast(TreeItem) e.item);
-			if (edit) edit.enter();
+			cancelEdit();
 			if (cast(FlagDir) e.item.getData()) { mixin(S_TRACE);
 				auto data = bytesToXML(e.data);
 				auto dir = cast(FlagDir)e.item.getData();
@@ -323,7 +323,7 @@ public:
 		refresh(null);
 	}
 	void refresh(string selPath) { mixin(S_TRACE);
-		if (edit) edit.enter();
+		enterEdit();
 		if (!selPath) { mixin(S_TRACE);
 			selPath = current.path;
 		}
@@ -423,7 +423,7 @@ public:
 	void createDir() { mixin(S_TRACE);
 		auto cur = current;
 		if (!cur) return;
-		if (edit) edit.enter();
+		enterEdit();
 		_comm.openCWXPath(cur.cwxPath(true), true);
 		string name = cur.createNewDirName(prop.msgs.flagDirNew, null);
 		storeInsert(cur, flags.selectionFlagIndices, flags.selectionStepIndices, [cast(ptrdiff_t)cur.subDirs.length], [], []);
@@ -697,13 +697,22 @@ public:
 		return r;
 	}
 	void undo() { mixin(S_TRACE);
-		if (edit) edit.cancel();
+		cancelEdit();
+		if (flags) flags.cancelEdit();
 		_undo.undo();
 		_comm.refreshToolBar();
 	}
 	void redo() { mixin(S_TRACE);
-		if (edit) edit.cancel();
+		cancelEdit();
+		if (flags) flags.cancelEdit();
 		_undo.redo();
 		_comm.refreshToolBar();
+	}
+
+	void cancelEdit() { mixin(S_TRACE);
+		if (edit) edit.cancel();
+	}
+	void enterEdit() { mixin(S_TRACE);
+		if (edit) edit.enter();
 	}
 }

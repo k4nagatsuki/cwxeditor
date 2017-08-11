@@ -46,6 +46,9 @@ private:
 	UndoManager _undo;
 
 	void refScenario(Summary summ) { mixin(S_TRACE);
+		_dirs.enterEdit();
+		_flags.enterEdit();
+
 		_undo.reset();
 	}
 	void refUndoMax() { mixin(S_TRACE);
@@ -100,9 +103,12 @@ public:
 	}
 
 	@property
-	string statusLine() {return _flags.statusLine;}
+	string statusLine() { return _flags.statusLine; }
 
 	void changeVHSide() { mixin(S_TRACE);
+		_dirs.enterEdit();
+		_flags.enterEdit();
+
 		_sash.removeDisposeListener(_sdl);
 		_sash = .changeVHSide(_sash);
 		.setupWeights(_sash, _prop.var.etc.flagSashL, _prop.var.etc.flagSashR);
@@ -123,6 +129,9 @@ public:
 	/// root = ツリーのルートディレクトリ。
 	/// uc = 使用回数カウンタ。
 	void setFlagDirTree(FlagDir root, UseCounter uc) { mixin(S_TRACE);
+		_dirs.enterEdit();
+		_flags.enterEdit();
+
 		_flags.useCounter = uc;
 		_dirs.useCounter = uc;
 		_dirs.rootDir = root;
@@ -161,6 +170,9 @@ public:
 	/// 重複するパスのものがあれば、上書きする。
 	void addFlagsAndSteps(ImportFlag[][string] flags, ImportStep[][string]steps) { mixin(S_TRACE);
 		if (!flags.length && !steps.length) return;
+		_dirs.enterEdit();
+		_flags.enterEdit();
+
 		storeAll();
 		Flag[] fr;
 		Step[] sr;
@@ -214,15 +226,24 @@ public:
 		return _undo.canRedo();
 	}
 	void undo() { mixin(S_TRACE);
+		_dirs.cancelEdit();
+		_flags.cancelEdit();
+
 		_undo.undo();
 		_comm.refreshToolBar();
 	}
 	void redo() { mixin(S_TRACE);
+		_dirs.cancelEdit();
+		_flags.cancelEdit();
+
 		_undo.redo();
 		_comm.refreshToolBar();
 	}
 
 	void replaceID() {
+		_dirs.enterEdit();
+		_flags.enterEdit();
+
 		_flags.replaceID();
 	}
 	@property

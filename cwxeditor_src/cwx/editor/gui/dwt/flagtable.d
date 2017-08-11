@@ -1384,15 +1384,6 @@ private:
 	TableTextEdit _tte;
 	TableComboEdit!Combo _tce;
 
-	void cancelEdit() { mixin(S_TRACE);
-		if (_tte) _tte.cancel();
-		if (_tce) _tce.cancel();
-	}
-	void enterEdit() { mixin(S_TRACE);
-		if (_tte) _tte.enter();
-		if (_tce) _tce.enter();
-	}
-
 	void editFlag(FlagDir parent, cwx.flag.Flag flag) { mixin(S_TRACE);
 		enterEdit();
 		bool createMode = flag is null;
@@ -2336,6 +2327,15 @@ public:
 		cancelEdit();
 		_undo.redo();
 		_comm.refreshToolBar();
+	}
+
+	void cancelEdit() { mixin(S_TRACE);
+		if (_tte) _tte.cancel();
+		if (_tce) _tce.cancel();
+	}
+	void enterEdit() { mixin(S_TRACE);
+		if (_tte) _tte.enter();
+		if (_tce) _tce.enter();
 	}
 
 	void replaceID() {
