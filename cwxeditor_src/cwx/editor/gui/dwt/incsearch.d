@@ -34,7 +34,7 @@ class IncSearch {
 
 	/// 文字列がマッチすればtrue。
 	bool match(string text, in Object additionalData = null) { mixin(S_TRACE);
-		if (!_win) return true;
+		if (!_win || _win.isDisposed()) return true;
 		if (!_win.isVisible()) return true;
 		if (!_wild) return matchAdditional(additionalData);
 		if (!_text.getText().length) return matchAdditional(additionalData);
@@ -49,7 +49,7 @@ class IncSearch {
 	}
 	@property
 	bool isSearching() { mixin(S_TRACE);
-		if (!_win) return false;
+		if (!_win || _win.isDisposed()) return false;
 		if (!_win.isVisible()) return false;
 		foreach (chk, dlg; _additionCheckers) { mixin(S_TRACE);
 			if (!chk.getSelection()) return true;
@@ -269,12 +269,13 @@ class IncSearch {
 	}
 	private void resize() { mixin(S_TRACE);
 		if (!_win) initialize();
-		if (!_win) return;
+		if (!_win || _win.isDisposed()) return;
 		_win.setLocation(_parent.toDisplay(0, -_win.getSize().y));
 	}
 	private void modified() { mixin(S_TRACE);
 		if (_inMod) return;
 		if (!_open) return;
+		if (!_win || _win.isDisposed()) return;
 		if (!_win.isVisible()) return;
 		_inMod = true;
 		scope (exit) _inMod = false;
@@ -311,7 +312,7 @@ class IncSearch {
 
 	void startIncSearch(string first = "") { mixin(S_TRACE);
 		if (!_win) initialize();
-		if (!_win) return;
+		if (!_win || _win.isDisposed()) return;
 		if (!_win.isVisible()) { mixin(S_TRACE);
 			_text.setText(first);
 			_text.setSelection(cast(int)first.length);
@@ -329,7 +330,7 @@ class IncSearch {
 	}
 	void close() { mixin(S_TRACE);
 		if (!_win) initialize();
-		if (!_win) return;
+		if (!_win || _win.isDisposed()) return;
 		if (_win.isVisible()) { mixin(S_TRACE);
 			_win.setVisible(false);
 			_wild = null;
