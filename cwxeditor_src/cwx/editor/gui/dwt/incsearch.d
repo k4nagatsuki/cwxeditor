@@ -146,6 +146,7 @@ class IncSearch {
 		});
 	}
 	private void initialize() { mixin(S_TRACE);
+		if (_parent.isDisposed()) return;
 		_win = new Shell(_parent.getShell(), SWT.BORDER | SWT.MODELESS);
 		_win.setData(this);
 		auto wgl = windowGridLayout(3, false);
@@ -268,6 +269,7 @@ class IncSearch {
 	}
 	private void resize() { mixin(S_TRACE);
 		if (!_win) initialize();
+		if (!_win) return;
 		_win.setLocation(_parent.toDisplay(0, -_win.getSize().y));
 	}
 	private void modified() { mixin(S_TRACE);
@@ -309,6 +311,7 @@ class IncSearch {
 
 	void startIncSearch(string first = "") { mixin(S_TRACE);
 		if (!_win) initialize();
+		if (!_win) return;
 		if (!_win.isVisible()) { mixin(S_TRACE);
 			_text.setText(first);
 			_text.setSelection(cast(int)first.length);
@@ -326,6 +329,7 @@ class IncSearch {
 	}
 	void close() { mixin(S_TRACE);
 		if (!_win) initialize();
+		if (!_win) return;
 		if (_win.isVisible()) { mixin(S_TRACE);
 			_win.setVisible(false);
 			_wild = null;
