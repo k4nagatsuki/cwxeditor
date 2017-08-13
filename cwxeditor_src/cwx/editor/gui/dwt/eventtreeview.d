@@ -554,9 +554,7 @@ private:
 			foreach (v; vs) v._tree.control.setRedraw(false);
 			scope (exit) foreach (v; vs) v._tree.control.setRedraw(true);
 			for (size_t i = 0; i < _count; i++) { mixin(S_TRACE);
-				auto node = et.starts[_index].toNode(new XMLOption(prop.sys, LATEST_VERSION));
-				auto ver = new XMLInfo(prop.sys, LATEST_VERSION);
-				auto c = Content.createFromNode(node, ver);
+				auto c = et.starts[_index].dup;
 				c.setUseCounter(summ.useCounter.sub);
 				_c ~= c;
 				delImpl(vs, comm, et, et.starts[_index]);
@@ -572,7 +570,7 @@ private:
 			udb(vs);
 			scope (exit) uda(vs);
 			foreach_reverse (c; _c) { mixin(S_TRACE);
-				insertStart(vs, comm, et, _index, c);
+				insertStart(vs, comm, et, _index, c.dup);
 			}
 			_c = [];
 		}
@@ -591,16 +589,14 @@ private:
 		this (Commons comm, Props prop, Summary summ, EventTree et, CWXPath area, int index, Content del) { mixin(S_TRACE);
 			super (comm, prop, summ, et, area);
 			_index = index;
-			auto node = del.toNode(new XMLOption(prop.sys, LATEST_VERSION));
-			auto ver = new XMLInfo(prop.sys, LATEST_VERSION);
-			_c = Content.createFromNode(node, ver);
+			_c = del.dup;
 			_c.setUseCounter(summ.useCounter.sub);
 		}
 		override void undo() { mixin(S_TRACE);
 			auto vs = views();
 			udb(vs);
 			scope (exit) uda(vs);
-			insertStart(vs, comm, et, _index, _c);
+			insertStart(vs, comm, et, _index, _c.dup);
 		}
 		override void redo() { mixin(S_TRACE);
 			auto vs = views();
