@@ -1851,7 +1851,7 @@ public:
 					if (to < 0) break;
 					auto eto = (cast(EventTreeOwner)parent.getData());
 					if (!viewOnly) { mixin(S_TRACE);
-						if (store) undos ~= this.store(_cards.indexOf(parent), from, to);
+						if (store) undos ~= this.store(_cards.indexOf(parent), from, to, false);
 						eto.swapEventTree(from, to);
 						_comm.refEventTree.call(eto.trees[from]);
 						if (i == 0) { mixin(S_TRACE);
