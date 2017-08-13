@@ -150,6 +150,11 @@ string cpjoin(string ownerPath, string category, size_t index) { mixin(S_TRACE);
 	return ownerPath.length ? ownerPath ~ "/" ~ cn : cn;
 }
 /// ditto
+char[] cpjoin2(char[] ownerPath, char[] category, size_t index) { mixin(S_TRACE);
+	char[] cn = category ~ ":" ~ to!(char[])(index);
+	return ownerPath.length ? ownerPath ~ '/' ~ cn : cn;
+}
+/// ditto
 string cpjoinid(string ownerPath, string category, ulong id) { mixin(S_TRACE);
 	string cn = category ~ ":id:" ~ to!(string)(id);
 	return ownerPath.length ? ownerPath ~ "/" ~ cn : cn;

@@ -2680,13 +2680,15 @@ public:
 	private auto sortedPaths(T)(T[] paths) { mixin(S_TRACE);
 		class U {
 			ElementType!(typeof(paths)) obj = null;
+			string cwxPath;
 			string[] path;
 			this (typeof(this.obj) obj) { mixin(S_TRACE);
 				this.obj = obj;
-				path= obj.cwxPath(true).cpsplit();
+				cwxPath = obj.cwxPath(true);
+				path= cwxPath.cpsplit();
 			}
 		}
-		return .map!(a => a.obj)(std.algorithm.sort!((a, b) => .cpcmp(a.path, b.path) < 0)(.map!(a => new U(a))(paths).array()));
+		return std.algorithm.sort!((a, b) => .cpcmp(a.path, b.path) < 0)(.map!(a => new U(a))(paths).array());
 	}
 	private void replaceIDImpl2(ID)(ID from, ID to) { mixin(S_TRACE);
 		if (!_summ) return;
@@ -2740,7 +2742,8 @@ public:
 				} else static if (is(ID:KeyCodeId)) {
 					FKeyCode[][CWXPath] kcsElem;
 				}
-				foreach (u; sortedPaths(users)) { mixin(S_TRACE);
+				foreach (su; sortedPaths(users)) { mixin(S_TRACE);
+					auto u = su.obj;
 					if (!dec(u.owner, range)) continue;
 					if (_replMode) { mixin(S_TRACE);
 						static if (is(ID:FlagId)) {
@@ -2814,7 +2817,7 @@ public:
 							storeID(u.owner, u, from, to, &u.id);
 						}
 					}
-					addResult(u.owner, u.owner.cwxPath(true), count);
+					addResult(u.owner, su.cwxPath, count);
 				}
 				static if (is(ID:CouponId)) {
 					foreach (path; elems) { mixin(S_TRACE);
@@ -2993,7 +2996,8 @@ public:
 						}
 					}
 				}
-				foreach (u; sortedPaths(users)) { mixin(S_TRACE);
+				foreach (su; sortedPaths(users)) { mixin(S_TRACE);
+					auto u = su.obj;
 					if (_replMode) { mixin(S_TRACE);
 						auto id = u.path;
 						if (!(u.id = to)) continue;
@@ -3005,7 +3009,7 @@ public:
 						store(u, id);
 						fromTos ~= [cast(string)id, cast(string)to];
 					}
-					addResult(u.owner, u.owner.cwxPath(true), count);
+					addResult(u.owner, su.cwxPath, count);
 				}
 			} catch (Throwable e) {
 				printStackTrace();

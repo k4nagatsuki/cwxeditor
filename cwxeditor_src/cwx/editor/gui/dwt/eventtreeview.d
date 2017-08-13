@@ -2019,7 +2019,7 @@ public:
 				c.convertType(CType.CALL_PACKAGE, null, _prop.parent, .toDialogStatus(_prop.var.etc.dialogStatus));
 				c.packages = id;
 			} break;
-			default: assert (0);
+			default: assert (0, .text(c.type));
 			}
 			foreach (v; vs) { mixin(S_TRACE);
 				if (v._tree.tree) { mixin(S_TRACE);
@@ -3621,39 +3621,44 @@ public:
 		}
 	}
 
-	private bool openCWXPathImpl(T)(T itm, string path, bool shellActivate) { mixin(S_TRACE);
-		auto cate = cpcategory(path);
-		if (cate == "") { mixin(S_TRACE);
-			auto index = cpindex(path);
-			if (index >= _tree.getItemCount(itm)) return false;
-			auto child = _tree.getItem(itm, cast(int)index);
-			path = cpbottom(path);
-			if (cpempty(path) || cpcategory(path) != "") { mixin(S_TRACE);
-				if (!cphasattr(path, "nofocus")) .forceFocus(_tree.control, shellActivate);
-				_tree.select(child);
-				_tree.showSelection();
-				refreshStatusLine();
-				if (cpcategory(path) != "name" && (cphasattr(path, "opendialog") || (!cpempty(path) && cpcategory(path) != "dialog" && cpcategory(path) != "text"))) { mixin(S_TRACE);
-					auto d = edit();
-					if (!d) { mixin(S_TRACE);
-						// ダイアログ無し、もしくは開けない状態のコンテント
-						_comm.refreshToolBar();
-						return true;
+	private bool openCWXPathImpl(string path, bool shellActivate) { mixin(S_TRACE);
+		Item itm = null;
+		while (true) { mixin(S_TRACE);
+			auto cate = cpcategory(path);
+			if (cate == "") { mixin(S_TRACE);
+				auto index = cpindex(path);
+				auto count = itm ? _tree.getItemCount(itm) : _tree.getItemCount();
+				if (count <= index) return false;
+				itm = itm ? _tree.getItem(itm, cast(int)index) : _tree.getItem(cast(int)index);
+				path = cpbottom(path);
+				if (cpempty(path) || cpcategory(path) != "") { mixin(S_TRACE);
+					if (!cphasattr(path, "nofocus")) .forceFocus(_tree.control, shellActivate);
+					_tree.select(itm);
+					_tree.showSelection();
+					refreshStatusLine();
+					if (cpcategory(path) != "name" && (cphasattr(path, "opendialog") || (!cpempty(path) && cpcategory(path) != "dialog" && cpcategory(path) != "text"))) { mixin(S_TRACE);
+						auto d = edit();
+						if (!d) { mixin(S_TRACE);
+							// ダイアログ無し、もしくは開けない状態のコンテント
+							_comm.refreshToolBar();
+							return true;
+						}
+						if (!cpempty(path)) { mixin(S_TRACE);
+							return d.openCWXPath(path, shellActivate);
+						}
 					}
-					if (!cpempty(path)) { mixin(S_TRACE);
-						return d.openCWXPath(path, shellActivate);
-					}
+					_comm.refreshToolBar();
+					return true;
+				} else { mixin(S_TRACE);
+					continue;
 				}
-				_comm.refreshToolBar();
-				return true;
-			} else { mixin(S_TRACE);
-				return openCWXPathImpl(child, path, shellActivate);
 			}
+			break;
 		}
 		return false;
 	}
 	bool openCWXPath(string path, bool shellActivate) { mixin(S_TRACE);
-		return openCWXPathImpl(_tree, path, shellActivate);
+		return openCWXPathImpl(path, shellActivate);
 	}
 	@property
 	string[] openedCWXPath() { mixin(S_TRACE);

@@ -20,6 +20,7 @@ import cwx.structs;
 
 import std.algorithm;
 import std.datetime;
+import std.exception;
 import std.string;
 import std.traits;
 import std.typecons;
@@ -479,9 +480,9 @@ public:
 	}
 	@property
 	inout
-	inout(CWXPath)[] cwxChilds() {return _text.cwxChilds;}
+	inout(CWXPath)[] cwxChilds() { return _text.cwxChilds; }
 	@property
-	CWXPath cwxParent() {return _parent;}
+	CWXPath cwxParent() { return _parent; }
 }
 
 class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
@@ -1331,17 +1332,27 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	}
 	/// ditto
 	@property
-	Content parent() {return _parent;}
+	Content parent() { return _parent; }
 	/// ditto
 	@property
 	const
-	const(Content) parent() {return _parent;}
+	const(Content) parent() { return _parent; }
 	@property
 	override string cwxPath(bool id) { mixin(S_TRACE);
 		if (_parent) { mixin(S_TRACE);
-			return cpjoin(_parent, .cCountUntil!("a is b")(_parent.next, this), id);
+			// 再帰は回避する
+			auto c = this;
+			size_t[] paths;
+			while (c.parent) { mixin(S_TRACE);
+				paths ~= .countUntil!("a is b")(c.parent.next, c);
+				c = c.parent;
+			}
+			char[] path;
+			foreach_reverse (i; paths) path = .cpjoin2(path, [], i);
+			auto ip = .assumeUnique(path);
+			return .cpjoin(c, ip, id);
 		} else if (_tree) { mixin(S_TRACE);
-			return cpjoin(_tree, .cCountUntil!("a is b")(_tree.starts, this), id);
+			return .cpjoin(_tree, .countUntil!("a is b")(_tree.starts, this), id);
 		}
 		return "";
 	}
@@ -1350,9 +1361,16 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		auto cate = cpcategory(path);
 		switch (cate) {
 		case "": { mixin(S_TRACE);
-			auto index = cpindex(path);
-			if (index >= _next.length) return null;
-			return _next[index].findCWXPath(cpbottom(path));
+			// 再帰は回避する
+			auto c = this;
+			while (true) { mixin(S_TRACE);
+				auto index = .cpindex(path);
+				if (index >= c.next.length) return null;
+				c = c.next[index];
+				path = .cpbottom(path);
+				if (.cpempty(path)) return c;
+			}
+			break;
 		}
 		case "motion": { mixin(S_TRACE);
 			auto index = cpindex(path);
@@ -1409,13 +1427,20 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	@property
 	size_t[] ctPath() { mixin(S_TRACE);
 		if (parent) { mixin(S_TRACE);
-			assert (contains!("a is b")(parent.next, this));
-			size_t[] r = parent.ctPath;
-			r ~= .cCountUntil!("a is b")(parent.next, this);
+			auto c = this;
+			size_t[] r;
+			while (c.parent) { mixin(S_TRACE);
+				assert (.contains!("a is b")(c.parent.next, c));
+				r ~= .countUntil!("a is b")(c.parent.next, c);
+				c = c.parent;
+			}
+			assert (c.tree !is null);
+			r ~= .countUntil!("a is b")(c.tree.starts, c);
+			std.algorithm.reverse(r);
 			return r;
 		} else { mixin(S_TRACE);
 			assert (contains!("a is b")(_tree.starts, this));
-			return [.cCountUntil!("a is b")(_tree.starts, this)];
+			return [.countUntil!("a is b")(_tree.starts, this)];
 		}
 	}
 	/// このコンテントが属すツリーを返す。
@@ -1444,22 +1469,32 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	@property
 	const
 	const(Content) parentStart() { mixin(S_TRACE);
-		if (type is CType.START) return this;
-		if (!parent) return null;
-		return parent.parentStart;
+		Rebindable!(typeof(return)) c = this;
+		while (c) { mixin(S_TRACE);
+			if (c.type is CType.START) return c;
+			c = c.parent;
+		}
+		return null;
 	}
 	/// パスを辿って子孫のコンテントを返す。
 	Content fromPath(size_t[] path) { mixin(S_TRACE);
-		if (!path.length) return this;
-		if (path.length == 1) return next[path[0]];
-		return next[path[0]].fromPath(path[1 .. $]);
+		auto c = this;
+		while (true) { mixin(S_TRACE);
+			if (!path.length) return c;
+			if (path.length == 1) return c.next[path[0]];
+			c = c.next[path[0]];
+			path = path[1 .. $];
+		}
 	}
 	/// このコンテントが指定されたコンテントそのもの、
 	/// もしくは子孫であればtrueを返す。
 	bool isDescendant(in Content c) { mixin(S_TRACE);
-		if (this is c) return true;
-		if (!parent) return false;
-		return parent.isDescendant(c);
+		auto cc = this;
+		while (cc) { mixin(S_TRACE);
+			if (cc is c) return true;
+			cc = cc.parent;
+		}
+		return false;
 	}
 
 	private Content[] _next = [];
@@ -2013,9 +2048,18 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// 変更ハンドラを登録する。
 	@property
 	void changeHandler(void delegate() change) { mixin(S_TRACE);
-		_change = change;
-		foreach (c; _next) { mixin(S_TRACE);
-			c.changeHandler = changeHandler;
+		// 再帰は回避する
+		auto c = this;
+		while (true) { mixin(S_TRACE);
+			c._change = change;
+			if (c.next.length == 1) { mixin(S_TRACE);
+				c = c.next[0];
+			} else { mixin(S_TRACE);
+				foreach (cc; c.next) { mixin(S_TRACE);
+					cc.changeHandler = changeHandler;
+				}
+				break;
+			}
 		}
 	}
 	/// 変更ハンドラ。
@@ -2082,26 +2126,45 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	@property
 	void setSUseCounter(SUseCounter suc) { mixin(S_TRACE);
 		if (_suc is suc) return;
-		if (suc && detail.use(CArg.START)) { mixin(S_TRACE);
-			suc.add(toStartId(_start), this);
+		// 再帰は回避する
+		auto c = this;
+		while (true) { mixin(S_TRACE);
+			if (suc && c.detail.use(CArg.START)) { mixin(S_TRACE);
+				suc.add(toStartId(c._start), c);
+			}
+			if (c._suc && c.detail.use(CArg.START)) { mixin(S_TRACE);
+				c._suc.remove(toStartId(c._start), c);
+			}
+			c._suc = suc;
+			if (c.next.length == 1) { mixin(S_TRACE);
+				c = c.next[0];
+			} else { mixin(S_TRACE);
+				foreach (cc; c.next) { mixin(S_TRACE);
+					cc.setSUseCounter(suc);
+				}
+				break;
+			}
 		}
-		if (_suc && detail.use(CArg.START)) { mixin(S_TRACE);
-			_suc.remove(toStartId(_start), this);
-		}
-		foreach (c; next) { mixin(S_TRACE);
-			c.setSUseCounter(suc);
-		}
-		_suc = suc;
 	}
 	/// ditto
 	void removeSUseCounter() { mixin(S_TRACE);
-		if (_suc && detail.use(CArg.START)) { mixin(S_TRACE);
-			_suc.remove(toStartId(_start), this);
+		if (!_suc) return;
+		// 再帰は回避する
+		auto c = this;
+		while (true) { mixin(S_TRACE);
+			if (c._suc && c.detail.use(CArg.START)) { mixin(S_TRACE);
+				c._suc.remove(toStartId(c._start), c);
+			}
+			c._suc = null;
+			if (c.next.length == 1) { mixin(S_TRACE);
+				c = c.next[0];
+			} else {
+				foreach (cc; c.next) { mixin(S_TRACE);
+					cc.removeSUseCounter();
+				}
+				break;
+			}
 		}
-		foreach (c; next) { mixin(S_TRACE);
-			c.removeSUseCounter();
-		}
-		_suc = null;
 	}
 	/// スタートの使用回数カウンタ。
 	@property
