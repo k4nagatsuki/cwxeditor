@@ -1965,12 +1965,20 @@ public:
 		Content[] conts = [start];
 		void find(Item itm) { mixin(S_TRACE);
 			if (itm == startItm) return;
-			auto c = cast(Content)itm.getData();
-			if (c.start == start.name) { mixin(S_TRACE);
-				users ~= itm;
-				conts ~= c;
+			while (true) { mixin(S_TRACE);
+				auto c = cast(Content)itm.getData();
+				if (c.detail.use(CArg.START) && c.start == start.name) { mixin(S_TRACE);
+					users ~= itm;
+					conts ~= c;
+				}
+				auto itms = _tree.getItems(itm);
+				if (itms.length == 1) { mixin(S_TRACE);
+					itm = itms[0];
+				} else { mixin(S_TRACE);
+					foreach (cld; itms) find(cld);
+					break;
+				}
 			}
-			foreach (cld; _tree.getItems(itm)) find(cld);
 		}
 		foreach (i; 0 .. _tree.getItemCount()) { mixin(S_TRACE);
 			find(_tree.getItem(i));
