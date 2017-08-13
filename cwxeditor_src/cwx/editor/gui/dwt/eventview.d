@@ -754,6 +754,7 @@ private:
 		auto vs = views();
 		TreeItem[] parItms;
 		foreach (v; vs) { mixin(S_TRACE);
+			v.editEnter();
 			parItms ~= v._cards.getItem(index);
 		}
 		string treeName = "";
@@ -1072,6 +1073,7 @@ private:
 		auto tree = cast(EventTree)treeItm.getData();
 		auto fire = addingFire(treeItm.getParentItem().getData());
 		if (!fire) return;
+		foreach (v; views()) v.editEnter();
 		store(tree);
 		addFire(treeItm, fire);
 		refreshFires(treeItm, fire);
@@ -1205,6 +1207,7 @@ private:
 		if (!etItm) return;
 		auto parItm = selectionParent;
 		if (!parItm || !(cast(Battle) parItm.getData())) return;
+		foreach (v; views()) v.editEnter();
 		auto dlg = new ManyRoundsDialog(_prop, _cards.getShell());
 		if (dlg.open()) { mixin(S_TRACE);
 			auto et = cast(EventTree) etItm.getData();
@@ -1224,6 +1227,7 @@ private:
 		if (!itm) return;
 		auto kc = cast(KeyCodeObj)itm.getData();
 		if (!kc) return;
+		foreach (v; views()) v.editEnter();
 		auto old = _prop.sys.toFKeyCode(kc.array.idup);
 		string keyCode = _prop.sys.convFireKeyCode(old.keyCode, kind);
 		auto etItm = selectionEventTree;
@@ -1673,6 +1677,7 @@ public:
 	}
 	void refresh() { mixin(S_TRACE);
 		_initialed = true;
+		foreach (v; views()) v.editCancel();
 		_cards.removeAll();
 		{ mixin(S_TRACE);
 			Image imgArea;
@@ -1843,9 +1848,9 @@ public:
 		if (_readOnly) return;
 		if (itm && itm.getParentItem()) { mixin(S_TRACE);
 			if (store) { mixin(S_TRACE);
-				editCancel();
+				foreach (v; views()) v.editCancel();
 			} else { mixin(S_TRACE);
-				editEnter();
+				foreach (v; views()) v.editEnter();
 			}
 			auto data = itm.getData();
 			auto parent = itm.getParentItem();
@@ -2477,6 +2482,7 @@ public:
 			}
 		}
 		override void dragFinished(DragSourceEvent e) { mixin(S_TRACE);
+			foreach (v; views()) v.editCancel();
 			_dragItm = null;
 			auto itm = _targ;
 			if (itm && e.detail == DND.DROP_MOVE) { mixin(S_TRACE);
@@ -2512,6 +2518,7 @@ public:
 			e.detail = DND.DROP_NONE;
 			if (!isXMLBytes(e.data)) return;
 			assert (cast(TreeItem)e.item);
+			foreach (v; views()) v.editEnter();
 			auto ti = cast(TreeItem)e.item;
 			if (_dragItm) { mixin(S_TRACE);
 				if (ti is _dragItm) return;
@@ -2681,6 +2688,7 @@ public:
 	override void paste(SelectionEvent se) { mixin(S_TRACE);
 		if (_readOnly) return;
 		initial();
+		foreach (v; views()) v.editEnter();
 		if (_lastFocus is _etree) { mixin(S_TRACE);
 			_etree.paste(se);
 		} else { mixin(S_TRACE);
@@ -2791,6 +2799,7 @@ public:
 	override void del(SelectionEvent se) { mixin(S_TRACE);
 		if (_readOnly) return;
 		initial();
+		foreach (v; views()) v.editEnter();
 		if (_lastFocus is _etree) { mixin(S_TRACE);
 			_etree.del(se);
 		} else { mixin(S_TRACE);
@@ -2808,6 +2817,7 @@ public:
 		auto data = itm.getData();
 		auto tree = cast(EventTree)data;
 		auto vs = views();
+		foreach (v; vs) v.editCancel();
 		if (tree) { mixin(S_TRACE);
 			undo = storeD(tree, store);
 			(cast(EventTreeOwner)par).remove(tree);
@@ -2853,6 +2863,7 @@ public:
 	}
 	override void clone(SelectionEvent se) { mixin(S_TRACE);
 		if (_readOnly) return;
+		foreach (v; views()) v.editEnter();
 		if (_lastFocus is _etree) { mixin(S_TRACE);
 			_etree.clone(se);
 		} else { mixin(S_TRACE);
@@ -2915,13 +2926,13 @@ public:
 	}
 	void undo() { mixin(S_TRACE);
 		if (_readOnly) return;
-		editCancel();
+		foreach (v; views()) v.editCancel();
 		_undo.undo();
 		_comm.refreshToolBar();
 	}
 	void redo() { mixin(S_TRACE);
 		if (_readOnly) return;
-		editCancel();
+		foreach (v; views()) v.editCancel();
 		_undo.redo();
 		_comm.refreshToolBar();
 	}
