@@ -71,7 +71,13 @@ public:
 	const
 	U[] values(K key) { mixin(S_TRACE);
 		auto p = key in _cont;
-		return p ? p.toArray() : cast(U[]) [];
+		return p ? p.toArray() : cast(U[])[];
+	}
+	/// ditto
+	inout
+	inout(HashSet!U) valueSet(K key) { mixin(S_TRACE);
+		auto p = key in _cont;
+		return p ? *p : null;
 	}
 
 	/// キーの使用者を追加する。
@@ -1910,50 +1916,99 @@ public:
 	/// idの使用者一覧を返す。
 	@property
 	const
-	FlagUser[] values(FlagId id) {return _flag.values(id);}
+	FlagUser[] values(FlagId id) { return _flag.values(id); }
 	@property
 	const
-	StepUser[] values(StepId id) {return _step.values(id);} /// ditto
+	StepUser[] values(StepId id) { return _step.values(id); } /// ditto
 	@property
 	const
-	AreaUser[] values(AreaId id) {return _area.values(id);} /// ditto
+	AreaUser[] values(AreaId id) { return _area.values(id); } /// ditto
 	@property
 	const
-	BattleUser[] values(BattleId id) {return _battle.values(id);} /// ditto
+	BattleUser[] values(BattleId id) { return _battle.values(id); } /// ditto
 	@property
 	const
-	PackageUser[] values(PackageId id) {return _package.values(id);} /// ditto
+	PackageUser[] values(PackageId id) { return _package.values(id); } /// ditto
 	@property
 	const
-	PathUser[] values(PathId id) {return _path.values(id);} /// ditto
+	PathUser[] values(PathId id) { return _path.values(id); } /// ditto
 	@property
 	const
-	CastUser[] values(CastId id) {return _cast.values(id);} /// ditto
+	CastUser[] values(CastId id) { return _cast.values(id); } /// ditto
 	@property
 	const
-	SkillUser[] values(SkillId id) {return _skill.values(id);} /// ditto
+	SkillUser[] values(SkillId id) { return _skill.values(id); } /// ditto
 	@property
 	const
-	ItemUser[] values(ItemId id) {return _item.values(id);} /// ditto
+	ItemUser[] values(ItemId id) { return _item.values(id); } /// ditto
 	@property
 	const
-	BeastUser[] values(BeastId id) {return _beast.values(id);} /// ditto
+	BeastUser[] values(BeastId id) { return _beast.values(id); } /// ditto
 	@property
 	const
-	InfoUser[] values(InfoId id) {return _info.values(id);} /// ditto
+	InfoUser[] values(InfoId id) { return _info.values(id); } /// ditto
 	@property
 	const
-	CouponUser[] values(CouponId id) {return _coupon.values(id);} /// ditto
+	CouponUser[] values(CouponId id) { return _coupon.values(id); } /// ditto
 	@property
 	const
-	GossipUser[] values(GossipId id) {return _gossip.values(id);} /// ditto
+	GossipUser[] values(GossipId id) { return _gossip.values(id); } /// ditto
 	@property
 	const
-	CompleteStampUser[] values(CompleteStampId id) {return _completeStamp.values(id);} /// ditto
+	CompleteStampUser[] values(CompleteStampId id) { return _completeStamp.values(id); } /// ditto
 	@property
 	const
-	KeyCodeUser[] values(KeyCodeId id) {return _keyCode.values(id);} /// ditto
+	KeyCodeUser[] values(KeyCodeId id) { return _keyCode.values(id); } /// ditto
 	@property
 	const
-	CellNameUser[] values(CellNameId id) {return _cellName.values(id);} /// ditto
+	CellNameUser[] values(CellNameId id) { return _cellName.values(id); } /// ditto
+
+	@property
+	inout
+	inout(HashSet!FlagUser) valueSet(FlagId id) { return _flag.valueSet(id); } /// ditto
+	@property
+	inout
+	inout(HashSet!StepUser) valueSet(StepId id) { return _step.valueSet(id); } /// ditto
+	@property
+	inout
+	inout(HashSet!AreaUser) valueSet(AreaId id) { return _area.valueSet(id); } /// ditto
+	@property
+	inout
+	inout(HashSet!BattleUser) valueSet(BattleId id) { return _battle.valueSet(id); } /// ditto
+	@property
+	inout
+	inout(HashSet!PackageUser) valueSet(PackageId id) { return _package.valueSet(id); } /// ditto
+	@property
+	inout
+	inout(HashSet!PathUser) valueSet(PathId id) { return _path.valueSet(id); } /// ditto
+	@property
+	inout
+	inout(HashSet!CastUser) valueSet(CastId id) { return _cast.valueSet(id); } /// ditto
+	@property
+	inout
+	inout(HashSet!SkillUser) valueSet(SkillId id) { return _skill.valueSet(id); } /// ditto
+	@property
+	inout
+	inout(HashSet!ItemUser) valueSet(ItemId id) { return _item.valueSet(id); } /// ditto
+	@property
+	inout
+	inout(HashSet!BeastUser) valueSet(BeastId id) { return _beast.valueSet(id); } /// ditto
+	@property
+	inout
+	inout(HashSet!InfoUser) valueSet(InfoId id) { return _info.valueSet(id); } /// ditto
+	@property
+	inout
+	inout(HashSet!CouponUser) valueSet(CouponId id) { return _coupon.valueSet(id); } /// ditto
+	@property
+	inout
+	inout(HashSet!GossipUser) valueSet(GossipId id) { return _gossip.valueSet(id); } /// ditto
+	@property
+	inout
+	inout(HashSet!CompleteStampUser) valueSet(CompleteStampId id) { return _completeStamp.valueSet(id); } /// ditto
+	@property
+	inout
+	inout(HashSet!KeyCodeUser) valueSet(KeyCodeId id) { return _keyCode.valueSet(id); } /// ditto
+	@property
+	inout
+	inout(HashSet!CellNameUser) valueSet(CellNameId id) { return _cellName.valueSet(id); } /// ditto
 }

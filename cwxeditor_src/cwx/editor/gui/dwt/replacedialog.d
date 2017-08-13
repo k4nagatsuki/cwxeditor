@@ -2558,60 +2558,60 @@ public:
 		return r;
 	}
 	private void searchAll(CWXPath path, ref size_t count,
-			void delegate(CWXPath path, ref size_t count, string cwxPath) dlg, string cwxPath) { mixin(S_TRACE);
+			void delegate(CWXPath path, ref size_t count, const(char)[] cwxPath) dlg, char[] cwxPath) { mixin(S_TRACE);
 		if (cancel) return;
 		while (true) {
 			dlg(path, count, cwxPath);
 			// _rangeに含まれる要素は再帰的検索から除外する
 			auto fdir = cast(FlagDir)path;
 			if (fdir) { mixin(S_TRACE);
-				foreach (i, o; fdir.flags) searchAll(o, count, dlg, cpjoin(cwxPath, "flag", i));
-				foreach (i, o; fdir.steps) searchAll(o, count, dlg, cpjoin(cwxPath, "step", i));
+				foreach (i, o; fdir.flags) searchAll(o, count, dlg, cpjoin2(cwxPath, "flag".dup, i));
+				foreach (i, o; fdir.steps) searchAll(o, count, dlg, cpjoin2(cwxPath, "step".dup, i));
 				auto subDirs = fdir.subDirs;
 				if (subDirs.length == 1) { mixin(S_TRACE);
 					path = subDirs[0];
-					cwxPath = cpjoin(cwxPath, "dir", 0);
+					cwxPath = cpjoin2(cwxPath, "dir".dup, 0);
 					continue; // 再帰回避
 				} else { mixin(S_TRACE);
-					foreach (i, o; subDirs) searchAll(o, count, dlg, cpjoin(cwxPath, "dir", i));
+					foreach (i, o; subDirs) searchAll(o, count, dlg, cpjoin2(cwxPath, "dir".dup, i));
 				}
 			}
 			auto eto = cast(EventTreeOwner)path;
 			if (eto) { mixin(S_TRACE);
-				foreach (i, o; eto.trees) searchAll(o, count, dlg, cpjoin(cwxPath, "event", i));
+				foreach (i, o; eto.trees) searchAll(o, count, dlg, cpjoin2(cwxPath, "event".dup, i));
 			}
 			auto et = cast(EventTree)path;
 			if (et) { mixin(S_TRACE);
-				foreach (i, o; et.starts) searchAll(o, count, dlg, cpjoin(cwxPath, "", i));
+				foreach (i, o; et.starts) searchAll(o, count, dlg, cpjoin2(cwxPath, "".dup, i));
 			}
 			auto c = cast(Content)path;
 			if (c) { mixin(S_TRACE);
-				foreach (i, o; c.backs) searchAll(o, count, dlg, cpjoin(cwxPath, "background", i));
+				foreach (i, o; c.backs) searchAll(o, count, dlg, cpjoin2(cwxPath, "background".dup, i));
 				auto next = c.next;
 				if (next.length == 1) { mixin(S_TRACE);
 					path = next[0];
-					cwxPath = cpjoin(cwxPath, "", 0);
+					cwxPath = cpjoin2(cwxPath, "".dup, 0);
 					continue; // 再帰回避
 				} else { mixin(S_TRACE);
-					foreach (i, o; next) searchAll(o, count, dlg, cpjoin(cwxPath, "", i));
+					foreach (i, o; next) searchAll(o, count, dlg, cpjoin2(cwxPath, "".dup, i));
 				}
 			}
 			auto area = cast(Area)path;
 			if (area) { mixin(S_TRACE);
-				searchAll(area.playerEvents, count, dlg, cpjoin(cwxPath, "playercard"));
-				foreach (i, o; area.cards) searchAll(o, count, dlg, cpjoin(cwxPath, "menucard", i));
-				foreach (i, o; area.backs) searchAll(o, count, dlg, cpjoin(cwxPath, "background", i));
+				searchAll(area.playerEvents, count, dlg, cpjoin2(cwxPath, "playercard".dup));
+				foreach (i, o; area.cards) searchAll(o, count, dlg, cpjoin2(cwxPath, "menucard".dup, i));
+				foreach (i, o; area.backs) searchAll(o, count, dlg, cpjoin2(cwxPath, "background".dup, i));
 			}
 			auto battle = cast(Battle)path;
 			if (battle) { mixin(S_TRACE);
-				searchAll(battle.playerEvents, count, dlg, cpjoin(cwxPath, "playercard"));
-				foreach (i, o; battle.cards) searchAll(o, count, dlg, cpjoin(cwxPath, "enemycard", i));
+				searchAll(battle.playerEvents, count, dlg, cpjoin2(cwxPath, "playercard".dup));
+				foreach (i, o; battle.cards) searchAll(o, count, dlg, cpjoin2(cwxPath, "enemycard".dup, i));
 			}
 			auto mo = cast(MotionOwner)path;
 			if (mo) { mixin(S_TRACE);
 				foreach (i, m; mo.motions) { mixin(S_TRACE);
 					if (m.beast && 0 == m.beast.linkId) { mixin(S_TRACE);
-						searchAll(m.beast, count, dlg, cpjoin(cpjoin(cwxPath, "motion", i), cpjoin("", "beastcard", 0)));
+						searchAll(m.beast, count, dlg, cpjoin2(cpjoin2(cwxPath, "motion".dup, i), cpjoin2("".dup, "beastcard".dup, 0)));
 					}
 				}
 			}
@@ -2677,18 +2677,42 @@ public:
 		}
 		return dec(path.cwxParent, range);
 	}
-	private auto sortedPaths(T)(T[] paths) { mixin(S_TRACE);
-		class U {
-			ElementType!(typeof(paths)) obj = null;
-			string cwxPath;
-			string[] path;
-			this (typeof(this.obj) obj) { mixin(S_TRACE);
-				this.obj = obj;
-				cwxPath = obj.cwxPath(true);
-				path= cwxPath.cpsplit();
+	private class U(T) {
+		T obj = null;
+		string cwxPath;
+		string[] path;
+		this (T obj) { mixin(S_TRACE);
+			this.obj = obj;
+			cwxPath = obj.cwxPath(true);
+			path= cwxPath.cpsplit();
+		}
+		this (T obj, string cwxPath) { mixin(S_TRACE);
+			this.obj = obj;
+			this.cwxPath = cwxPath;
+		}
+	}
+	private void sortedPaths(T)(HashSet!T paths, CWXPath[] range, void delegate(U!T) yield) { mixin(S_TRACE);
+		if (!paths) return;
+		if (paths.size < 1024) { mixin(S_TRACE);
+			auto array = .map!(a => new U!T(a))(paths.toArray()).array();
+			foreach (u; std.algorithm.sort!((a, b) => .cpcmp(a.path, b.path) < 0)(array)) { mixin(S_TRACE);
+				yield(u);
+			}
+		} else { mixin(S_TRACE);
+			// ある程度の数になるとシナリオ全体をサーチした方が速い
+			T[CWXPath] owners;
+			foreach (t; paths) owners[t.owner] = t;
+			foreach (path; range) { mixin(S_TRACE);
+				size_t count = 0;
+				searchAll(path, count, (CWXPath path, ref size_t count, const(char)[] cwxPath) { mixin(S_TRACE);
+					if (auto t = path in owners) { mixin(S_TRACE);
+						count++;
+						auto u = new U!T(*t, cwxPath.idup);
+						yield(u);
+					}
+				}, path.cwxPath(true).dup);
 			}
 		}
-		return std.algorithm.sort!((a, b) => .cpcmp(a.path, b.path) < 0)(.map!(a => new U(a))(paths).array());
 	}
 	private void replaceIDImpl2(ID)(ID from, ID to) { mixin(S_TRACE);
 		if (!_summ) return;
@@ -2704,11 +2728,12 @@ public:
 		saveColumnWidth!("prop.var.etc.searchResultColumnParent")(_prop, subColumn);
 
 		auto range = rangeTable;
+		auto sRange = searchRange;
 
 		auto uc = _summ.useCounter;
-		auto users = uc.values(from);
+		auto users = uc.valueSet(from);
 		_inProc = true;
-		scope (exit) _inProc = false;
+		_comm.refreshToolBar();
 		size_t count = 0;
 
 		auto cursors = setWaitCursors(_win);
@@ -2742,9 +2767,9 @@ public:
 				} else static if (is(ID:KeyCodeId)) {
 					FKeyCode[][CWXPath] kcsElem;
 				}
-				foreach (su; sortedPaths(users)) { mixin(S_TRACE);
+				sortedPaths(users, sRange, (U!(typeof(users.toArray()[0])) su) { mixin(S_TRACE);
 					auto u = su.obj;
-					if (!dec(u.owner, range)) continue;
+					if (!dec(u.owner, range)) return;
 					if (_replMode) { mixin(S_TRACE);
 						static if (is(ID:FlagId)) {
 							u.id = to;
@@ -2818,7 +2843,7 @@ public:
 						}
 					}
 					addResult(u.owner, su.cwxPath, count);
-				}
+				});
 				static if (is(ID:CouponId)) {
 					foreach (path; elems) { mixin(S_TRACE);
 						if (auto p = path in arrElem) { mixin(S_TRACE);
@@ -2960,10 +2985,11 @@ public:
 		saveColumnWidth!("prop.var.etc.searchResultColumnParent")(_prop, subColumn);
 
 		auto range = rangeTable;
+		auto sRange = searchRange;
 
 		auto uc = _summ.useCounter;
 		_inProc = true;
-		scope (exit) _inProc = false;
+		_comm.refreshToolBar();
 		size_t count = 0;
 
 		auto cursors = setWaitCursors(_win);
@@ -2987,20 +3013,20 @@ public:
 
 			try { mixin(S_TRACE);
 				auto wildcard = Wildcard((cast(string)from).encodePath(), 0 == filenameCharCmp('A', 'a'));
-				PathUser[] users;
+				auto users = new HashSet!PathUser;
 				foreach (key; uc.path.keys) { mixin(S_TRACE);
 					if (wildcard.match((cast(string)key).encodePath())) { mixin(S_TRACE);
 						foreach (u; uc.path.values(key)) { mixin(S_TRACE);
 							if (!(cast(Jpy1Sec)u || cast(Jpdc)u) && !dec(u.owner, range)) continue;
-							users ~= u;
+							users.add(u);
 						}
 					}
 				}
-				foreach (su; sortedPaths(users)) { mixin(S_TRACE);
+				sortedPaths(users, sRange, (U!(typeof(users.toArray()[0])) su) { mixin(S_TRACE);
 					auto u = su.obj;
 					if (_replMode) { mixin(S_TRACE);
 						auto id = u.path;
-						if (!(u.id = to)) continue;
+						if (!(u.id = to)) return;
 						void store(PathUser u, string id) { mixin(S_TRACE);
 							storeID!(PathUser, PathId)(cast(CWXPath)u.owner, u, toPathId(id), to, (id) { mixin(S_TRACE);
 								u.id = id;
@@ -3010,7 +3036,7 @@ public:
 						fromTos ~= [cast(string)id, cast(string)to];
 					}
 					addResult(u.owner, su.cwxPath, count);
-				}
+				});
 			} catch (Throwable e) {
 				printStackTrace();
 				debugln(e);
@@ -3268,14 +3294,14 @@ public:
 			scope (exit) _display.syncExec(exit);
 			try { mixin(S_TRACE);
 				foreach (path; range) { mixin(S_TRACE);
-					searchAll(path, count, (CWXPath path, ref size_t count, string cwxPath) { mixin(S_TRACE);
+					searchAll(path, count, (CWXPath path, ref size_t count, const(char)[] cwxPath) { mixin(S_TRACE);
 						if (cancel) return;
 						auto c = cast(Content)path;
 						if (!c) return;
 						assert (c.type in _contents);
 						if (!contents[c.type]) return;
-						addResult(path, cwxPath, count);
-					}, path.cwxPath(true));
+						addResult(path, cwxPath.idup, count);
+					}, path.cwxPath(true).dup);
 				}
 			} catch (Throwable e) {
 				printStackTrace();
@@ -3355,17 +3381,17 @@ public:
 			}
 			if (unuseStartSel) { mixin(S_TRACE);
 				foreach (path; range) { mixin(S_TRACE);
-					searchAll(path, count, (CWXPath path, ref size_t count, string cwxPath) { mixin(S_TRACE);
+					searchAll(path, count, (CWXPath path, ref size_t count, const(char)[] cwxPath) { mixin(S_TRACE);
 						if (cancel) return;
 						auto et = cast(EventTree)path;
 						if (et) { mixin(S_TRACE);
 							foreach (i, s; et.starts[1 .. $]) { mixin(S_TRACE);
 								if (et.startUseCounter.get(toStartId(s.name)) == 0) { mixin(S_TRACE);
-									addResult(s, cpjoin(cwxPath, "", i + 1), count);
+									addResult(s, cpjoin(cwxPath.idup, "", i + 1).idup, count);
 								}
 							}
 						}
-					}, path.cwxPath(true));
+					}, path.cwxPath(true).dup);
 				}
 			}
 			if (unusePathSel) { mixin(S_TRACE);
@@ -3423,13 +3449,13 @@ public:
 		auto range = searchRange;
 
 		void search(CWXPath path) { mixin(S_TRACE);
-			searchAll(path, count, (CWXPath path, ref size_t count, string cwxPath) { mixin(S_TRACE);
+			searchAll(path, count, (CWXPath path, ref size_t count, const(char)[] cwxPath) { mixin(S_TRACE);
 				if (cancel) return;
 				auto warnings = .warnings(_prop.parent, skin, _summ, path, targVer);
 				foreach (warning; warnings) { mixin(S_TRACE);
-					addResult(path, cwxPath, count, warning);
+					addResult(path, cwxPath.idup, count, warning);
 				}
-			}, path.cwxPath(true));
+			}, path.cwxPath(true).dup);
 		}
 		void searchFileErrors() { mixin(S_TRACE);
 			string sPath = _summ.scenarioPath;
@@ -3515,8 +3541,9 @@ public:
 		});
 		thr.start();
 	}
-	private void replaceTextImpl(CWXPath c, ref size_t count, string cwxPath) { mixin(S_TRACE);
+	private void replaceTextImpl(CWXPath c, ref size_t count, const(char)[] cwxPath) { mixin(S_TRACE);
 		if (cancel) return;
+		auto icwxPath = cwxPath.idup;
 		bool oldIgnoreMod = ignoreMod;
 		ignoreMod = true;
 		scope (exit) ignoreMod = oldIgnoreMod;
@@ -3538,28 +3565,28 @@ public:
 				sr |= repl(null, "", summ.author, &summ.author, count, uArr);
 			}
 			if (_couponSel) { mixin(S_TRACE);
-				sr |= replRqCoupons(null, "", summ, cwxPath, count, uArr);
+				sr |= replRqCoupons(null, "", summ, icwxPath, count, uArr);
 			}
 			if (sr) { mixin(S_TRACE);
-				if (_replMode) store(summ, cwxPath, uArr);
-				addResult(summ, cwxPath, dmy);
+				if (_replMode) store(summ, icwxPath, uArr);
+				addResult(summ, icwxPath, dmy);
 			}
 		}
 		auto cc = cast(CastCard)c;
 		if (cc) { mixin(S_TRACE);
 			Undo[] uArr;
-			bool r = replCard!(CastCard)(null, "", cc, cwxPath, count, uArr);
+			bool r = replCard!(CastCard)(null, "", cc, icwxPath, count, uArr);
 			r |= replCoupons(null, "", cc, count, uArr);
 			if (r) { mixin(S_TRACE);
-				if (_replMode) store(cc, cwxPath, uArr);
-				addResult(cc, cwxPath, dmy);
+				if (_replMode) store(cc, icwxPath, uArr);
+				addResult(cc, icwxPath, dmy);
 				if (_replMode) _refCall ~= { _comm.refCast.call(cc); };
 			}
 		}
 		Undo[] nArr;
 		auto eff = cast(EffectCard)c;
 		if (eff) { mixin(S_TRACE);
-			auto r = replCard(eff, cwxPath, eff, cwxPath, count, nArr);
+			auto r = replCard(eff, icwxPath, eff, icwxPath, count, nArr);
 			if (r && _replMode) { mixin(S_TRACE);
 				_refCall ~= { mixin(S_TRACE);
 					if (auto aa = cast(SkillCard)eff) { mixin(S_TRACE);
@@ -3574,7 +3601,7 @@ public:
 		}
 		auto info = cast(InfoCard)c;
 		if (info) { mixin(S_TRACE);
-			auto r = replCard(info, cwxPath, info, cwxPath, count, nArr);
+			auto r = replCard(info, icwxPath, info, icwxPath, count, nArr);
 			if (r && _replMode) { mixin(S_TRACE);
 				_refCall ~= { _comm.refInfo.call(info); };
 			}
@@ -3582,7 +3609,7 @@ public:
 		auto a = cast(AbstractArea)c;
 		if (a) { mixin(S_TRACE);
 			if (_areaSel) { mixin(S_TRACE);
-				auto r = repl(a, cwxPath, a.name, &a.name, count, nArr);
+				auto r = repl(a, icwxPath, a.name, &a.name, count, nArr);
 				if (r && _replMode) { mixin(S_TRACE);
 					_refCall ~= { mixin(S_TRACE);
 						if (auto aa = cast(Area)a) { mixin(S_TRACE);
@@ -3598,19 +3625,19 @@ public:
 		}
 		auto menu = cast(MenuCard)c;
 		if (menu) { mixin(S_TRACE);
-			replCard(menu, cwxPath, menu, cwxPath, count, nArr);
+			replCard(menu, icwxPath, menu, icwxPath, count, nArr);
 		}
 		auto back = cast(BgImage)c;
 		if (back) { mixin(S_TRACE);
-			replBgImage(back, cwxPath, back, count, nArr);
+			replBgImage(back, icwxPath, back, count, nArr);
 		}
 		auto fDir = cast(FlagDir)c;
 		if (fDir && _flagSel) { mixin(S_TRACE);
 			Undo[] uArr = new Undo[0];
 			bool r = replFlagDirName(fDir, count, uArr);
 			if (r) { mixin(S_TRACE);
-				if (_replMode) store(fDir, cwxPath, uArr);
-				addResult(fDir, cwxPath, dmy);
+				if (_replMode) store(fDir, icwxPath, uArr);
+				addResult(fDir, icwxPath, dmy);
 			}
 		}
 		auto f = cast(cwx.flag.Flag)c;
@@ -3620,8 +3647,8 @@ public:
 			r |= repl(null, "", f.on, &f.on, count, uArr);
 			r |= repl(null, "", f.off, &f.off, count, uArr);
 			if (r) { mixin(S_TRACE);
-				if (_replMode) store(f, cwxPath, uArr);
-				addResult(f, cwxPath, dmy);
+				if (_replMode) store(f, icwxPath, uArr);
+				addResult(f, icwxPath, dmy);
 				if (_replMode) { mixin(S_TRACE);
 					_refCall ~= { mixin(S_TRACE);
 						_comm.refFlagAndStep.call([f], []);
@@ -3637,8 +3664,8 @@ public:
 				r |= repl(null, "", v, (string t) {s.setValue(cast(int)i, t);}, count, uArr);
 			}
 			if (r) { mixin(S_TRACE);
-				if (_replMode) store(s, cwxPath, uArr);
-				addResult(s, cwxPath, dmy);
+				if (_replMode) store(s, icwxPath, uArr);
+				addResult(s, icwxPath, dmy);
 				if (_replMode) { mixin(S_TRACE);
 					_refCall ~= { mixin(S_TRACE);
 						_comm.refFlagAndStep.call([], [s]);
@@ -3648,11 +3675,11 @@ public:
 		}
 		auto et = cast(EventTree) c;
 		if (et) { mixin(S_TRACE);
-			replFKeyCode(et, cwxPath, et, cwxPath, count, nArr);
+			replFKeyCode(et, icwxPath, et, icwxPath, count, nArr);
 		}
 		auto content = cast(Content) c;
 		if (content) { mixin(S_TRACE);
-			replContent(content, cwxPath, count);
+			replContent(content, icwxPath, count);
 		}
 	}
 	private void initText(string from, string to) { mixin(S_TRACE);
@@ -3728,12 +3755,12 @@ public:
 		auto range = searchRange;
 		_inProc = true;
 		_comm.refreshToolBar();
-		bool addH = addHist(_from, (string[] s) {_prop.var.etc.searchHistories = s;},
-			{return _prop.var.etc.searchHistories.dup;},
+		bool addH = addHist(_from, (string[] s) { _prop.var.etc.searchHistories = s; },
+			{ return _prop.var.etc.searchHistories.dup; },
 			_prop.var.etc.searchHistoryMax, from);
 		if (_replMode) { mixin(S_TRACE);
-			addH |= addHist(_to, (string[] s) {_prop.var.etc.replaceHistories = s;},
-				{return _prop.var.etc.replaceHistories.dup;},
+			addH |= addHist(_to, (string[] s) { _prop.var.etc.replaceHistories = s; },
+				{ return _prop.var.etc.replaceHistories.dup; },
 				_prop.var.etc.searchHistoryMax, to);
 		}
 		_comm.refSearchHistories.call(this);
@@ -3741,7 +3768,7 @@ public:
 
 		void search() { mixin(S_TRACE);
 			foreach (path; range) { mixin(S_TRACE);
-				searchAll(path, count, &replaceTextImpl, path.cwxPath(true));
+				searchAll(path, count, &replaceTextImpl, path.cwxPath(true).dup);
 			}
 			if (_jptxSel) { mixin(S_TRACE);
 				foreach (string file; .dirEntries(_summ.scenarioPath, SpanMode.depth, false)) { mixin(S_TRACE);
@@ -3868,7 +3895,7 @@ public:
 			auto range = rangeTree(summ);
 			foreach (path; range) { mixin(S_TRACE);
 				if (cancel) return;
-				searchAll(path, count, &replaceTextImpl, path.cwxPath(true));
+				searchAll(path, count, &replaceTextImpl, path.cwxPath(true).dup);
 			}
 			if (_jptxSel) { mixin(S_TRACE);
 				foreach (string file; .dirEntries(summ.scenarioPath, SpanMode.depth, false)) { mixin(S_TRACE);

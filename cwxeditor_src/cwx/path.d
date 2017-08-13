@@ -163,6 +163,10 @@ string cpjoinid(string ownerPath, string category, ulong id) { mixin(S_TRACE);
 string cpjoin(string ownerPath, string subPath) { mixin(S_TRACE);
 	return ownerPath.length ? ownerPath ~ "/" ~ subPath : subPath;
 }
+/// ditto
+char[] cpjoin2(char[] ownerPath, char[] subPath) { mixin(S_TRACE);
+	return ownerPath.length ? ownerPath ~ "/" ~ subPath : subPath;
+}
 
 /// シナリオ内パスの属性を返す。
 string[] cpattr(string path) { mixin(S_TRACE);
