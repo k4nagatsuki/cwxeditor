@@ -1746,6 +1746,10 @@ public:
 		_comm.refreshToolBar();
 	}
 
+	void editEnter() { mixin(S_TRACE);
+		if (_edit) _edit.enter();
+		_etree.editEnter();
+	}
 	void editCancel() { mixin(S_TRACE);
 		if (_edit) _edit.cancel();
 		_etree.editCancel();
@@ -1838,6 +1842,11 @@ public:
 			(TreeItem itm, int function(TreeItem) treeSwap, bool store, bool viewOnly, uint count) { mixin(S_TRACE);
 		if (_readOnly) return;
 		if (itm && itm.getParentItem()) { mixin(S_TRACE);
+			if (store) { mixin(S_TRACE);
+				editCancel();
+			} else { mixin(S_TRACE);
+				editEnter();
+			}
 			auto data = itm.getData();
 			auto parent = itm.getParentItem();
 			if (cast(EventTree)data) { mixin(S_TRACE);
