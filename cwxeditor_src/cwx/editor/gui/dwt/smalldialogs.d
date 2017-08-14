@@ -1114,9 +1114,9 @@ class ImportResultDialog : AbsDialog {
 		void putRes(T)(T[ulong] table) { mixin(S_TRACE);
 			foreach (id; std.algorithm.sort(table.keys)) { mixin(S_TRACE);
 				auto itm = new TableItem(_list, SWT.NONE);
-				Image icon, icon2;
-				string text, text2;
-				getSymbols(_comm, _summ, table[id], text, text2, icon, icon2);
+				Image icon;
+				string text;
+				getSymbols(_comm, _summ, table[id], text, icon);
 				itm.setImage(icon);
 				itm.setText(text);
 				itm.setChecked(true);

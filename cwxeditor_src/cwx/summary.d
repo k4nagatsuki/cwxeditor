@@ -3067,3 +3067,16 @@ void decScenarioPath(ref string scenarioPath, ref string[] openPaths, bool event
 		scenarioPath = dirName(scenarioPath);
 	}
 }
+
+/// リソースの「所属先」を返す。
+/// たとえばイベントコンテントであれば所属する
+/// エリア・バトル・パッケージ・使用時イベントを持つカードを返す。
+/// キャストの所持カードだった場合は所持するキャストを返す。
+/// 状態変数は最上位のディレクトリを返す。
+@property
+CWXPath cwxPlace(CWXPath path) { mixin(S_TRACE);
+	while (path.cwxParent && !cast(Summary)path.cwxParent) { mixin(S_TRACE);
+		path = path.cwxParent;
+	}
+	return path;
+}

@@ -3900,201 +3900,182 @@ public static Image fimage(Props prop, string file, Skin skin) { mixin(S_TRACE);
 }
 
 /// pathの内容を端的に表すアイコンとテキストを返す。
-void getSymbols(Commons comm, Summary summ, CWXPath path, out string text, out string text2, out Image img, out Image img2, bool par = false) { mixin(S_TRACE);
+void getSymbols(Commons comm, Summary summ, CWXPath path, out string text, out Image img) { mixin(S_TRACE);
 	img = null;
-	text = par ? "" : "*Error*";
+	text = "*Error*";
 	if (!path) return;
-	string text1 = "";
-	Image img1 = null;
-	while (true) { mixin(S_TRACE);
-		auto prop = comm.prop;
-		auto sum = cast(Summary)path;
-		if (sum && !par) { mixin(S_TRACE);
-			img = prop.images.summary;
-			text = .tryFormat(prop.msgs.searchResultSummary, sum.desc.singleLine);
-		}
-		auto bgi = cast(BgImage)path;
-		if (bgi && !par) { mixin(S_TRACE);
-			auto ic = cast(ImageCell) bgi;
-			if (ic) { mixin(S_TRACE);
-				img = prop.images.backs;
-				text = .tryFormat(prop.msgs.searchResultImageCell, ic.name(prop.parent));
-			}
-			auto tc = cast(TextCell) bgi;
-			if (tc) { mixin(S_TRACE);
-				img = prop.images.textCell;
-				text = .tryFormat(prop.msgs.searchResultTextCell, tc.name(prop.parent));
-			}
-			auto cc = cast(ColorCell) bgi;
-			if (cc) { mixin(S_TRACE);
-				img = prop.images.colorCell;
-				text = .tryFormat(prop.msgs.searchResultColorCell, cc.name(prop.parent));
-			}
-			auto pc = cast(PCCell)bgi;
-			if (pc) { mixin(S_TRACE);
-				img = prop.images.pcCell;
-				text = .tryFormat(prop.msgs.searchResultPCCell, pc.name(prop.parent));
-			}
-		}
-		auto are = cast(Area)path;
-		if (are) { mixin(S_TRACE);
-			img = prop.images.area;
-			text = .tryFormat(prop.msgs.searchResultIds, prop.msgs.area, are.id, are.name);
-		}
-		auto bat = cast(Battle)path;
-		if (bat) { mixin(S_TRACE);
-			img = prop.images.battle;
-			text = .tryFormat(prop.msgs.searchResultIds, prop.msgs.battle, bat.id, bat.name);
-		}
-		auto pac = cast(Package)path;
-		if (pac) { mixin(S_TRACE);
-			img = prop.images.packages;
-			text = .tryFormat(prop.msgs.searchResultIds, prop.msgs.cwPackage, pac.id, pac.name);
-		}
-		auto pce = cast(PlayerCardEvents)path;
-		if (pce && !par) { mixin(S_TRACE);
-			img = prop.images.playerCard;
-			text = prop.msgs.playerCard;
-		}
-		auto cas = cast(CastCard)path;
-		if (cas) { mixin(S_TRACE);
-			img = prop.images.casts;
-			text = .tryFormat(prop.msgs.searchResultIds, prop.msgs.cwCast, cas.id, cas.name);
-		}
-		auto ski = cast(SkillCard)path;
-		if (ski) { mixin(S_TRACE);
-			if (ski.linkId != 0) ski = summ.skill(ski.linkId);
-			if (!ski) return;
-			img = prop.images.skill;
-			text = .tryFormat(prop.msgs.searchResultIds, prop.msgs.skill, ski.id, ski.name);
-		}
-		auto ite = cast(ItemCard)path;
-		if (ite) { mixin(S_TRACE);
-			if (ite.linkId != 0) ite = summ.item(ite.linkId);
-			if (!ite) return;
-			img = prop.images.item;
-			text = .tryFormat(prop.msgs.searchResultIds, prop.msgs.item, ite.id, ite.name);
-		}
-		auto bea = cast(BeastCard)path;
-		if (bea) { mixin(S_TRACE);
-			if (bea.linkId != 0) bea = summ.beast(bea.linkId);
-			if (!bea) return;
-			img = prop.images.beast;
-			text = .tryFormat(prop.msgs.searchResultIds, prop.msgs.beast, bea.id, bea.name);
-		}
-		auto inf = cast(InfoCard)path;
-		if (inf) { mixin(S_TRACE);
-			img = prop.images.info;
-			text = .tryFormat(prop.msgs.searchResultIds, prop.msgs.info, inf.id, inf.name);
-		}
-		auto con = cast(Content)path;
-		if (con && !par) { mixin(S_TRACE);
-			img = prop.images.content(con.type);
-			text = .contentText(comm, con, summ);
-		}
-		auto tex = cast(SimpleTextHolder)path;
-		if (tex && !par) { mixin(S_TRACE);
-			Content c = cast(Content)tex.owner;
-			if (!c) { mixin(S_TRACE);
-				auto dlg = cast(SDialog)tex.owner;
-				if (dlg) c = dlg.parent;
-			}
-			if (c) { mixin(S_TRACE);
-				img = prop.images.content(c.type);
-				text = .contentText(comm, c, summ);
-			}
-			if (auto tc = cast(TextCell)tex.owner) { mixin(S_TRACE);
-				img = prop.images.textCell;
-				text = .tryFormat(prop.msgs.searchResultTextCell, tc.name(prop.parent));
-			}
-		}
-		auto sdlg = cast(SDialog)path;
-		if (sdlg && !par) { mixin(S_TRACE);
-			con = sdlg.parent;
-			assert (con);
-			img = prop.images.content(con.type);
-			string t = sdlg.text.singleLine;
-			if (sdlg.rCoupons.length) { mixin(S_TRACE);
-				text = .tryFormat(prop.msgs.dialogText, t, std.string.join(sdlg.rCoupons.dup, " "));
-			} else { mixin(S_TRACE);
-				text = .tryFormat(prop.msgs.dialogTextNoCoupon, t);
-			}
-		}
-		auto fla = cast(cwx.flag.Flag)path;
-		if (fla && !par) { mixin(S_TRACE);
-			img = prop.images.flag;
-			text = .tryFormat(prop.msgs.searchResultFlag, fla.path);
-		}
-		auto ste = cast(Step)path;
-		if (ste && !par) { mixin(S_TRACE);
-			img = prop.images.step;
-			text = .tryFormat(prop.msgs.searchResultStep, ste.path);
-		}
-		auto fld = cast(FlagDir)path;
-		if (fld) { mixin(S_TRACE);
-			img = prop.images.flagDir;
-			string fldPath = fld.path;
-			if ("" == fldPath) { mixin(S_TRACE);
-				// Rootディレクトリ
-				text = prop.msgs.flagsAndSteps;
-			} else { mixin(S_TRACE);
-				text = .tryFormat(prop.msgs.searchResultFlagDir, fldPath);
-			}
-		}
-		auto eve = cast(EventTree)path;
-		if (eve && !par) { mixin(S_TRACE);
-			img = prop.images.eventTree;
-			text = .tryFormat(prop.msgs.searchResultEventTree, eve.name);
-		}
-		auto men = cast(MenuCard)path;
-		if (men) { mixin(S_TRACE);
-			img = prop.images.cards;
-			if (men.desc == "") { mixin(S_TRACE);
-				text = .tryFormat(prop.msgs.searchResultMenuCard, men.name);
-			} else { mixin(S_TRACE);
-				text = .tryFormat(prop.msgs.searchResultMenuCardWithDesc, men.name, .singleLine(men.desc));
-			}
-		}
-		auto ene = cast(EnemyCard)path;
-		if (ene) { mixin(S_TRACE);
-			img = prop.images.cards;
-			string cName = prop.msgs.noSelectCast;
-			if (0 != ene.id) { mixin(S_TRACE);
-				auto card = summ.cwCast(ene.id);
-				cName = card ? card.name : .tryFormat(prop.msgs.noCast, ene.id);
-			}
-			text = .tryFormat(prop.msgs.searchResultEnemyCard, cName);
-		}
-		auto jpy1Sec = cast(Jpy1Sec)path;
-		if (jpy1Sec) { mixin(S_TRACE);
-			img = prop.images.backs;
-			auto fPath = nabs(jpy1Sec.fPath).abs2rel(nabs(summ.scenarioPath));
-			text = .tryFormat(prop.msgs.searchResultJpy1, encodePath(fPath));
-		}
-		auto jpdc = cast(Jpdc)path;
-		if (jpdc) { mixin(S_TRACE);
-			img = prop.images.backs;
-			auto fPath = nabs(jpdc.jpdcPath).abs2rel(nabs(summ.scenarioPath));
-			text = .tryFormat(prop.msgs.searchResultJpdc, encodePath(fPath));
-		}
-		assert (par || img, .text(path) ~ ", " ~ typeid(path).toString());
-		if (!par) { mixin(S_TRACE);
-			text1 = text;
-			img1 = img;
-		}
-		if (path.cwxParent) { mixin(S_TRACE);
-			path = path.cwxParent;
-			par = true;
-			continue;
-		}
-		if (text != "" && text1 != "") { mixin(S_TRACE);
-			text2 = text;
-			img2 = img;
-			text = text1;
-			img = img1;
-		}
-		break;
+
+	auto prop = comm.prop;
+	auto sum = cast(Summary)path;
+	if (sum) { mixin(S_TRACE);
+		img = prop.images.summary;
+		text = .tryFormat(prop.msgs.searchResultSummary, sum.desc.singleLine);
 	}
+	auto bgi = cast(BgImage)path;
+	if (bgi) { mixin(S_TRACE);
+		auto ic = cast(ImageCell) bgi;
+		if (ic) { mixin(S_TRACE);
+			img = prop.images.backs;
+			text = .tryFormat(prop.msgs.searchResultImageCell, ic.name(prop.parent));
+		}
+		auto tc = cast(TextCell) bgi;
+		if (tc) { mixin(S_TRACE);
+			img = prop.images.textCell;
+			text = .tryFormat(prop.msgs.searchResultTextCell, tc.name(prop.parent));
+		}
+		auto cc = cast(ColorCell) bgi;
+		if (cc) { mixin(S_TRACE);
+			img = prop.images.colorCell;
+			text = .tryFormat(prop.msgs.searchResultColorCell, cc.name(prop.parent));
+		}
+		auto pc = cast(PCCell)bgi;
+		if (pc) { mixin(S_TRACE);
+			img = prop.images.pcCell;
+			text = .tryFormat(prop.msgs.searchResultPCCell, pc.name(prop.parent));
+		}
+	}
+	auto are = cast(Area)path;
+	if (are) { mixin(S_TRACE);
+		img = prop.images.area;
+		text = .tryFormat(prop.msgs.searchResultIds, prop.msgs.area, are.id, are.name);
+	}
+	auto bat = cast(Battle)path;
+	if (bat) { mixin(S_TRACE);
+		img = prop.images.battle;
+		text = .tryFormat(prop.msgs.searchResultIds, prop.msgs.battle, bat.id, bat.name);
+	}
+	auto pac = cast(Package)path;
+	if (pac) { mixin(S_TRACE);
+		img = prop.images.packages;
+		text = .tryFormat(prop.msgs.searchResultIds, prop.msgs.cwPackage, pac.id, pac.name);
+	}
+	auto pce = cast(PlayerCardEvents)path;
+	if (pce) { mixin(S_TRACE);
+		img = prop.images.playerCard;
+		text = prop.msgs.playerCard;
+	}
+	auto cas = cast(CastCard)path;
+	if (cas) { mixin(S_TRACE);
+		img = prop.images.casts;
+		text = .tryFormat(prop.msgs.searchResultIds, prop.msgs.cwCast, cas.id, cas.name);
+	}
+	auto ski = cast(SkillCard)path;
+	if (ski) { mixin(S_TRACE);
+		if (ski.linkId != 0) ski = summ.skill(ski.linkId);
+		if (!ski) return;
+		img = prop.images.skill;
+		text = .tryFormat(prop.msgs.searchResultIds, prop.msgs.skill, ski.id, ski.name);
+	}
+	auto ite = cast(ItemCard)path;
+	if (ite) { mixin(S_TRACE);
+		if (ite.linkId != 0) ite = summ.item(ite.linkId);
+		if (!ite) return;
+		img = prop.images.item;
+		text = .tryFormat(prop.msgs.searchResultIds, prop.msgs.item, ite.id, ite.name);
+	}
+	auto bea = cast(BeastCard)path;
+	if (bea) { mixin(S_TRACE);
+		if (bea.linkId != 0) bea = summ.beast(bea.linkId);
+		if (!bea) return;
+		img = prop.images.beast;
+		text = .tryFormat(prop.msgs.searchResultIds, prop.msgs.beast, bea.id, bea.name);
+	}
+	auto inf = cast(InfoCard)path;
+	if (inf) { mixin(S_TRACE);
+		img = prop.images.info;
+		text = .tryFormat(prop.msgs.searchResultIds, prop.msgs.info, inf.id, inf.name);
+	}
+	auto con = cast(Content)path;
+	if (con) { mixin(S_TRACE);
+		img = prop.images.content(con.type);
+		text = .contentText(comm, con, summ);
+	}
+	auto tex = cast(SimpleTextHolder)path;
+	if (tex) { mixin(S_TRACE);
+		Content c = cast(Content)tex.owner;
+		if (!c) { mixin(S_TRACE);
+			auto dlg = cast(SDialog)tex.owner;
+			if (dlg) c = dlg.parent;
+		}
+		if (c) { mixin(S_TRACE);
+			img = prop.images.content(c.type);
+			text = .contentText(comm, c, summ);
+		}
+		if (auto tc = cast(TextCell)tex.owner) { mixin(S_TRACE);
+			img = prop.images.textCell;
+			text = .tryFormat(prop.msgs.searchResultTextCell, tc.name(prop.parent));
+		}
+	}
+	auto sdlg = cast(SDialog)path;
+	if (sdlg) { mixin(S_TRACE);
+		con = sdlg.parent;
+		assert (con);
+		img = prop.images.content(con.type);
+		string t = sdlg.text.singleLine;
+		if (sdlg.rCoupons.length) { mixin(S_TRACE);
+			text = .tryFormat(prop.msgs.dialogText, t, std.string.join(sdlg.rCoupons.dup, " "));
+		} else { mixin(S_TRACE);
+			text = .tryFormat(prop.msgs.dialogTextNoCoupon, t);
+		}
+	}
+	auto fla = cast(cwx.flag.Flag)path;
+	if (fla) { mixin(S_TRACE);
+		img = prop.images.flag;
+		text = .tryFormat(prop.msgs.searchResultFlag, fla.path);
+	}
+	auto ste = cast(Step)path;
+	if (ste) { mixin(S_TRACE);
+		img = prop.images.step;
+		text = .tryFormat(prop.msgs.searchResultStep, ste.path);
+	}
+	auto fld = cast(FlagDir)path;
+	if (fld) { mixin(S_TRACE);
+		img = prop.images.flagDir;
+		string fldPath = fld.path;
+		if ("" == fldPath) { mixin(S_TRACE);
+			// Rootディレクトリ
+			text = prop.msgs.flagsAndSteps;
+		} else { mixin(S_TRACE);
+			text = .tryFormat(prop.msgs.searchResultFlagDir, fldPath);
+		}
+	}
+	auto eve = cast(EventTree)path;
+	if (eve) { mixin(S_TRACE);
+		img = prop.images.eventTree;
+		text = .tryFormat(prop.msgs.searchResultEventTree, eve.name);
+	}
+	auto men = cast(MenuCard)path;
+	if (men) { mixin(S_TRACE);
+		img = prop.images.cards;
+		if (men.desc == "") { mixin(S_TRACE);
+			text = .tryFormat(prop.msgs.searchResultMenuCard, men.name);
+		} else { mixin(S_TRACE);
+			text = .tryFormat(prop.msgs.searchResultMenuCardWithDesc, men.name, .singleLine(men.desc));
+		}
+	}
+	auto ene = cast(EnemyCard)path;
+	if (ene) { mixin(S_TRACE);
+		img = prop.images.cards;
+		string cName = prop.msgs.noSelectCast;
+		if (0 != ene.id) { mixin(S_TRACE);
+			auto card = summ.cwCast(ene.id);
+			cName = card ? card.name : .tryFormat(prop.msgs.noCast, ene.id);
+		}
+		text = .tryFormat(prop.msgs.searchResultEnemyCard, cName);
+	}
+	auto jpy1Sec = cast(Jpy1Sec)path;
+	if (jpy1Sec) { mixin(S_TRACE);
+		img = prop.images.backs;
+		auto fPath = nabs(jpy1Sec.fPath).abs2rel(nabs(summ.scenarioPath));
+		text = .tryFormat(prop.msgs.searchResultJpy1, encodePath(fPath));
+	}
+	auto jpdc = cast(Jpdc)path;
+	if (jpdc) { mixin(S_TRACE);
+		img = prop.images.backs;
+		auto fPath = nabs(jpdc.jpdcPath).abs2rel(nabs(summ.scenarioPath));
+		text = .tryFormat(prop.msgs.searchResultJpdc, encodePath(fPath));
+	}
+	assert (img !is null, .text(path) ~ ", " ~ typeid(path).toString());
 }
 
 /// BUG: GDI+でOpenTypeフォントを使用しようとした時の問題を避ける

@@ -1357,45 +1357,45 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		return "";
 	}
 	override CWXPath findCWXPath(string path) { mixin(S_TRACE);
-		if (cpempty(path)) return this;
-		auto cate = cpcategory(path);
-		switch (cate) {
-		case "": { mixin(S_TRACE);
+		if (.cpempty(path)) return this;
+		auto cate = .cpcategory(path);
+		auto c = this;
+		if (cate == "") { mixin(S_TRACE);
 			// 再帰は回避する
-			auto c = this;
-			while (true) { mixin(S_TRACE);
+			while (cate == "") { mixin(S_TRACE);
 				auto index = .cpindex(path);
 				if (index >= c.next.length) return null;
 				c = c.next[index];
 				path = .cpbottom(path);
 				if (.cpempty(path)) return c;
+				cate = .cpcategory(path);
 			}
-			break;
 		}
+		switch (cate) {
 		case "motion": { mixin(S_TRACE);
-			auto index = cpindex(path);
-			if (index >= motions.length) return null;
-			return motions[index].findCWXPath(cpbottom(path));
+			auto index = .cpindex(path);
+			if (index >= c.motions.length) return null;
+			return c.motions[index].findCWXPath(.cpbottom(path));
 		}
 		case "dialog": { mixin(S_TRACE);
-			auto index = cpindex(path);
-			if (index >= dialogs.length) return null;
-			return dialogs[index].findCWXPath(cpbottom(path));
+			auto index = .cpindex(path);
+			if (index >= c.dialogs.length) return null;
+			return c.dialogs[index].findCWXPath(.cpbottom(path));
 		}
 		case "text": { mixin(S_TRACE);
-			auto index = cpindex(path);
+			auto index = .cpindex(path);
 			if (index > 0) return null;
-			return _text.findCWXPath(cpbottom(path));
+			return c._text.findCWXPath(.cpbottom(path));
 		}
 		case "name": { mixin(S_TRACE);
-			auto index = cpindex(path);
+			auto index = .cpindex(path);
 			if (index > 0) return null;
-			return _name.findCWXPath(cpbottom(path));
+			return c._name.findCWXPath(.cpbottom(path));
 		}
 		case "background": { mixin(S_TRACE);
-			auto index = cpindex(path);
-			if (index >= backs.length) return null;
-			return backs[index];
+			auto index = .cpindex(path);
+			if (index >= c.backs.length) return null;
+			return c.backs[index];
 		}
 		default: break;
 		}

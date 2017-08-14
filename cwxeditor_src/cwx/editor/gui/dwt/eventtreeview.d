@@ -2056,7 +2056,7 @@ public:
 		foreach (s; start.tree.startUseCounter.values(start.name)) { mixin(S_TRACE);
 			arr ~= cast(Content)s;
 		}
-		replWin.setFindResult(arr, _prop.msgs.replStartUsers);
+		replWin.setFindResult(.cwxPlace(_et), arr, _prop.msgs.replStartUsers);
 	}
 	@property
 	bool canSelectConnectedResource() { mixin(S_TRACE);
