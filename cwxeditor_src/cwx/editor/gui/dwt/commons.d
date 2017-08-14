@@ -1088,7 +1088,14 @@ class Commons {
 		}
 		return r;
 	}
-	EventTreeView[] eventTreeViewFrom(in EventTree et, bool shellActivate) { mixin(S_TRACE);
+	EventTreeView[] eventTreeViewFrom(in CWXPath path, in EventTree et, bool shellActivate) { mixin(S_TRACE);
+		if (!et) { mixin(S_TRACE);
+			EventTreeView[] r;
+			foreach (v; eventViewsFrom(path, shellActivate)) { mixin(S_TRACE);
+				r ~= v.eventTreeView;
+			}
+			return r;
+		}
 		auto owner = .rebindable(et.owner);
 		if (auto c = cast(AbstractSpCard)owner) owner = c.abstractOwner;
 		if (auto c = cast(PlayerCardEvents)owner) owner = c.owner;
