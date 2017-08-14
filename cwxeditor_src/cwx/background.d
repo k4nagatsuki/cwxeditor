@@ -42,6 +42,17 @@ public:
 			&& super.opEquals(o);
 	}
 
+	override
+	void deepCopy(BgImage b) { mixin(S_TRACE);
+		if (auto c = cast(ImageCell)b) { mixin(S_TRACE);
+			super.deepCopy(c);
+			path = c.path;
+			smoothing = c.smoothing;
+		} else { mixin(S_TRACE);
+			throw new Exception("b is not ImageCell.");
+		}
+	}
+
 	/// 空のインスタンスを生成する。
 	this () { mixin(S_TRACE);
 		this ("", "", 0, 0, 0, 0, false);
@@ -216,6 +227,27 @@ public:
 			&& borderingColor == b.borderingColor
 			&& borderingWidth == b.borderingWidth
 			&& super.opEquals(o);
+	}
+
+	override
+	void deepCopy(BgImage b) { mixin(S_TRACE);
+		if (auto c = cast(TextCell)b) { mixin(S_TRACE);
+			super.deepCopy(c);
+			text = c.text;
+			fontName = c.fontName;
+			size = c.size;
+			color = c.color;
+			bold = c.bold;
+			italic = c.italic;
+			underline = c.underline;
+			strike = c.strike;
+			vertical = c.vertical;
+			borderingType = c.borderingType;
+			borderingColor = c.borderingColor;
+			borderingWidth = c.borderingWidth;
+		} else { mixin(S_TRACE);
+			throw new Exception("b is not TextCell.");
+		}
 	}
 
 	@property
@@ -538,6 +570,19 @@ public:
 			&& super.opEquals(o);
 	}
 
+	override
+	void deepCopy(BgImage b) { mixin(S_TRACE);
+		if (auto c = cast(ColorCell)b) { mixin(S_TRACE);
+			super.deepCopy(c);
+			blendMode = c.blendMode;
+			gradientDir = c.gradientDir;
+			color1 = c.color1;
+			color2 = c.color2;
+		} else { mixin(S_TRACE);
+			throw new Exception("b is not ColorCell.");
+		}
+	}
+
 	@property
 	const
 	override
@@ -704,6 +749,18 @@ public:
 			&& super.opEquals(o);
 	}
 
+	override
+	void deepCopy(BgImage b) { mixin(S_TRACE);
+		if (auto c = cast(PCCell)b) { mixin(S_TRACE);
+			super.deepCopy(c);
+			pcNumber = c.pcNumber;
+			expand = c.expand;
+			smoothing = c.smoothing;
+		} else { mixin(S_TRACE);
+			throw new Exception("b is not PCCell.");
+		}
+	}
+
 	@property
 	const
 	override
@@ -828,6 +885,18 @@ public:
 			&& mask == b.mask
 			&& cellName == b.cellName
 			&& layer == b.layer;
+	}
+
+	/// bの内容をコピーする。
+	void deepCopy(BgImage b) { mixin(S_TRACE);
+		flag = b.flag;
+		x = b.y;
+		y = b.y;
+		width = b.width;
+		height = b.height;
+		mask = b.mask;
+		cellName = b.cellName;
+		layer = b.layer;
 	}
 
 	/// この背景画像を簡単に表現した名前を返す。
