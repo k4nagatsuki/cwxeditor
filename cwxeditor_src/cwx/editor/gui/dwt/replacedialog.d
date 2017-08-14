@@ -4224,7 +4224,7 @@ public:
 		if (!path) return;
 		auto summ = _grepSumm ? _grepSumm : _summ;
 		getSymbols(_comm, summ, path, text, img);
-		if (parent && path != parent) { mixin(S_TRACE);
+		if (parent && path.cwxParent && !cast(Summary)path.cwxParent) { mixin(S_TRACE);
 			getSymbols(_comm, summ, parent, text2, img2);
 		}
 	}
