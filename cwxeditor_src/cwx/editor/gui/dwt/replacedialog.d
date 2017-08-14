@@ -2589,18 +2589,6 @@ public:
 			if (et) { mixin(S_TRACE);
 				foreach (i, o; et.starts) searchAll(parent, o, count, dlg, cpjoin2(cwxPath, "".dup, i));
 			}
-			auto c = cast(Content)path;
-			if (c) { mixin(S_TRACE);
-				foreach (i, o; c.backs) searchAll(parent, o, count, dlg, cpjoin2(cwxPath, "background".dup, i));
-				auto next = c.next;
-				if (next.length == 1) { mixin(S_TRACE);
-					path = next[0];
-					cwxPath = cpjoin2(cwxPath, "".dup, 0);
-					continue; // 再帰回避
-				} else { mixin(S_TRACE);
-					foreach (i, o; next) searchAll(parent, o, count, dlg, cpjoin2(cwxPath, "".dup, i));
-				}
-			}
 			auto area = cast(Area)path;
 			if (area) { mixin(S_TRACE);
 				searchAll(parent, area.playerEvents, count, dlg, cpjoin2(cwxPath, "playercard".dup));
@@ -2618,6 +2606,18 @@ public:
 					if (m.beast && 0 == m.beast.linkId) { mixin(S_TRACE);
 						searchAll(parent, m.beast, count, dlg, cpjoin2(cpjoin2(cwxPath, "motion".dup, i), cpjoin2("".dup, "beastcard".dup, 0)));
 					}
+				}
+			}
+			auto c = cast(Content)path;
+			if (c) { mixin(S_TRACE);
+				foreach (i, o; c.backs) searchAll(parent, o, count, dlg, cpjoin2(cwxPath, "background".dup, i));
+				auto next = c.next;
+				if (next.length == 1) { mixin(S_TRACE);
+					path = next[0];
+					cwxPath = cpjoin2(cwxPath, "".dup, 0);
+					continue; // 再帰回避
+				} else { mixin(S_TRACE);
+					foreach (i, o; next) searchAll(parent, o, count, dlg, cpjoin2(cwxPath, "".dup, i));
 				}
 			}
 			break;
