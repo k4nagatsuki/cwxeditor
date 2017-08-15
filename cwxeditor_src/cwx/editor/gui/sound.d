@@ -11,7 +11,9 @@ import std.path;
 import std.exception;
 import std.file;
 import std.process : environment;
+import core.memory;
 import core.stdc.stdio;
+import core.stdc.stdlib;
 import core.stdc.string;
 
 import core.sync.mutex;
@@ -356,11 +358,41 @@ shared static this () { mixin(S_TRACE);
 	version (Windows) {
 		winmmSync = new Mutex;
 	}
+	// FIXME: GCが動くとbassLoopコールバックでアクセス違反。
+	//        GCを無効にする事で対策できるが、確実にメモリ不足に陥る。
+	//        以下は効果無し。
+	GC.setAttr(cast(void*)&bassLoop, GC.BlkAttr.NO_MOVE);
+	GC.setAttr(bassLoopPtr, GC.BlkAttr.NO_MOVE);
+	GC.setAttr(cast(void*)&bassLoop, GC.BlkAttr.NO_SCAN);
+	GC.setAttr(bassLoopPtr, GC.BlkAttr.NO_SCAN);
+	GC.removeRange(cast(void*)&bassLoop);
+	GC.removeRange(bassLoopPtr);
+	GC.removeRoot(cast(void*)&bassLoop);
+	GC.removeRoot(bassLoopPtr);
+	bassLoopPtr = &bassLoop;
+}
+shared static ~this () { mixin(S_TRACE);
+	foreach (value; loopKeys.byValue()) {
+		.free(value);
+	}
 }
 
 private __gshared uint[string] loopCounts;
 private __gshared ptrdiff_t[string] loopStarts;
-private __gshared immutable(char)*[string] loopKeys;
+private __gshared ptrdiff_t[string] loopEnds;
+private __gshared char*[string] loopKeys;
+private __gshared extern (Windows) void bassLoop(HSYNC handle, DWORD channel, DWORD data, void* user) {
+	auto loopKey = fromStringz(cast(immutable(char)*)user);
+	auto pos = loopStarts[loopKey];
+	auto loops = loopCounts[loopKey];
+	if (loops != 1) { mixin(S_TRACE);
+		if (0 < loops) loopCounts[loopKey] = loops - 1;
+		getSymbol!(BASS_ChannelSetPosition)(bass, "BASS_ChannelSetPosition")(channel, pos, BASS_POS_BYTE);
+	} else { mixin(S_TRACE);
+		//core.memory.GC.enable();
+	}
+}
+private __gshared extern (Windows) void function (HSYNC handle, DWORD channel, DWORD data, void* user) bassLoopPtr;
 
 private __gshared bool bgmOnLegacy = false;
 private __gshared Mix_Music* bgmMusic = null;
@@ -853,32 +885,26 @@ private bool playBass(string file, uint loopCount, bool spLoop, ref DWORD stream
 			auto keyPtr = loopKeys.get(loopKey, null);
 			if (keyPtr is null) { mixin(S_TRACE);
 				// キーがGCに回収されないようにする
-				keyPtr = toStringz(loopKey);
+				keyPtr = cast(char*).malloc(loopKey.length + 1);
+				.strcpy(keyPtr, toStringz(loopKey));
 				loopKeys[loopKey] = keyPtr;
 			}
 			loopCounts[loopKey] = loopCount;
 
-			static __gshared extern (Windows) void bassLoop(HSYNC handle, DWORD channel, DWORD data, void* user) {
-				auto loopKey = fromStringz(cast(immutable(char)*)user);
-				auto pos = loopStarts[loopKey];
-				auto loops = loopCounts[loopKey];
-				if (loops != 1) { mixin(S_TRACE);
-					if (0 < loops) loopCounts[loopKey] = loops - 1;
-					getSymbol!(BASS_ChannelSetPosition)(bass, "BASS_ChannelSetPosition")(channel, pos, BASS_POS_BYTE);
-				}
-			}
-			static __gshared func = &bassLoop;
-
+			//core.memory.GC.disable();
 			if (loopStart != -1 && loopEnd != -1) { mixin(S_TRACE);
 				loopStarts[loopKey] = loopStart;
-				BASS_ChannelSetSync(stream, BASS_SYNC_POS | BASS_SYNC_MIXTIME, loopEnd, func, cast(void*)keyPtr);
-				BASS_ChannelSetSync(stream, BASS_SYNC_END | BASS_SYNC_MIXTIME, 0, func, cast(void*)keyPtr);
+				loopEnds[loopKey] = loopEnd;
+				BASS_ChannelSetSync(stream, BASS_SYNC_POS | BASS_SYNC_MIXTIME, loopEnd, bassLoopPtr, cast(void*)keyPtr);
+				BASS_ChannelSetSync(stream, BASS_SYNC_END | BASS_SYNC_MIXTIME, 0, bassLoopPtr, cast(void*)keyPtr);
 			} else if (loopStart != -1) { mixin(S_TRACE);
 				loopStarts[loopKey] = loopStart;
-				BASS_ChannelSetSync(stream, BASS_SYNC_END | BASS_SYNC_MIXTIME, 0, func, cast(void*)keyPtr);
+				loopEnds[loopKey] = -1;
+				BASS_ChannelSetSync(stream, BASS_SYNC_END | BASS_SYNC_MIXTIME, 0, bassLoopPtr, cast(void*)keyPtr);
 			} else { mixin(S_TRACE);
 				loopStarts[loopKey] = 0;
-				BASS_ChannelSetSync(stream, BASS_SYNC_END | BASS_SYNC_MIXTIME, 0, func, cast(void*)keyPtr);
+				loopEnds[loopKey] = -1;
+				BASS_ChannelSetSync(stream, BASS_SYNC_END | BASS_SYNC_MIXTIME, 0, bassLoopPtr, cast(void*)keyPtr);
 			}
 
 			volume = .min(100, volume);
@@ -992,6 +1018,7 @@ private void getLoopInfo(string file, bool midi, HSTREAM stream, out ptrdiff_t l
 }
 
 private void stopBass(ref DWORD stream) { mixin(S_TRACE);
+	//core.memory.GC.enable();
 	version (Windows) {
 		try { mixin(S_TRACE);
 			if (!bass) return;

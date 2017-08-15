@@ -3922,8 +3922,8 @@ public:
 				_grepSkin = null;
 				destroy(summ);
 				_grepSumm = null;
-				core.memory.GC.collect();
-				core.memory.GC.minimize();
+				//core.memory.GC.collect();
+				//core.memory.GC.minimize();
 			}
 			if (!_fromText.length) { mixin(S_TRACE);
 				addResult(.cwxPlace(summ), summ, summ.cwxPath(true), count);

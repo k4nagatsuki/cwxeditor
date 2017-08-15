@@ -559,7 +559,7 @@ class Commons {
 			fc = display.getFocusControl();
 		}
 		bool delegate()[MenuID] cMenuTbl;
-		if (cast(Text)fc || cast(Combo)fc || cast(CCombo)fc) { mixin(S_TRACE);
+		if ((cast(Text)fc || cast(Combo)fc || cast(CCombo)fc) && fc.getShell() is mainWin.shell) { mixin(S_TRACE);
 			auto menu = fc.getMenu();
 			if (menu) { mixin(S_TRACE);
 				foreach (itm; menu.getItems()) { mixin(S_TRACE);

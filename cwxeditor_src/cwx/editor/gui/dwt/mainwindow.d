@@ -1175,7 +1175,7 @@ private:
 			dStr ~= " - " ~ .text(__LINE__);
 			refreshExecEngine();
 			dStr ~= " - " ~ .text(__LINE__);
-			core.memory.GC.collect();
+			//core.memory.GC.collect();
 			dStr ~= " - " ~ .text(__LINE__);
 			_win.redraw();
 			updateExecEngineWithPartyNameTI();
@@ -1313,7 +1313,7 @@ private:
 					_comm.saved.call();
 					refreshTitle();
 					addHistory();
-					core.memory.GC.collect();
+					//core.memory.GC.collect();
 					playSavedSound();
 					_comm.refreshToolBar();
 					return true;
@@ -1443,7 +1443,7 @@ private:
 					if (oldClassic != summary.legacy) _comm.refDataVersion.call();
 					_comm.refPaths.call("");
 					addHistory();
-					core.memory.GC.collect();
+					//core.memory.GC.collect();
 					playSavedSound();
 				} catch (SummaryException e) {
 					printStackTrace();
@@ -4185,13 +4185,13 @@ public:
 
 	@property
 	override
-	string title() {return _win.getText();}
+	string title() { return _win.getText(); }
 	@property
 	override
-	Image image() {return _win.getImage();}
+	Image image() { return _win.getImage(); }
 	@property
 	override
-	Composite shell() {return _win;}
+	Composite shell() { return _win; }
 	@property
 	override
 	void delegate(string) statusText() {return &_sbshl.statusLine;}
