@@ -2422,6 +2422,12 @@ public:
 			return;
 		}
 		storeContents(et);
+		auto vs = views();
+		foreach (v; vs) { mixin(S_TRACE);
+			if (v.eventTreeView.eventTree is et) { mixin(S_TRACE);
+				v.eventTreeView.closeAllEditDialogs();
+			}
+		}
 
 		auto c = new Content(CType.LINK_PACKAGE, "");
 		c.packages = id;
@@ -2429,7 +2435,6 @@ public:
 		s.add(_prop.parent, c);
 		et.starts = [s];
 
-		auto vs = views();
 		foreach (v; vs) { mixin(S_TRACE);
 			if (v._etree && v._etree.eventTree is et) { mixin(S_TRACE);
 				v._etree.refresh(null);

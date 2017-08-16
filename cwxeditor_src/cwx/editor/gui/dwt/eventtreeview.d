@@ -2018,6 +2018,10 @@ public:
 		auto vs = views();
 		foreach (itm; users) { mixin(S_TRACE);
 			auto c = cast(Content)itm.getData();
+			foreach (v; vs) { mixin(S_TRACE);
+				auto dlg = c.eventId in v._editDlgs;
+				if (dlg) (*dlg).forceCancel();
+			}
 			switch (c.type) {
 			case CType.LINK_START: { mixin(S_TRACE);
 				c.convertType(CType.LINK_PACKAGE, null, _prop.parent, .toDialogStatus(_prop.var.etc.dialogStatus));
@@ -2040,6 +2044,12 @@ public:
 		}
 		_comm.refUseCount.call();
 		_comm.refreshToolBar();
+	}
+
+	void closeAllEditDialogs() { mixin(S_TRACE);
+		foreach (dlg; _editDlgs.values) { mixin(S_TRACE);
+			dlg.forceCancel();
+		}
 	}
 
 	@property
