@@ -3990,7 +3990,11 @@ public:
 						itm.setEnabled(d.enabled());
 					} else if (_tlp) { mixin(S_TRACE);
 						auto enabled = _tlp.menuEnabled(d.id);
-						if (enabled) itm.setEnabled(enabled());
+						if (enabled) { mixin(S_TRACE);
+							itm.setEnabled(enabled());
+						} else if (!_mainMenu.contains(d.id)) { mixin(S_TRACE);
+							itm.setEnabled(false);
+						}
 					}
 				} catch (Throwable e) {
 					printStackTrace();
