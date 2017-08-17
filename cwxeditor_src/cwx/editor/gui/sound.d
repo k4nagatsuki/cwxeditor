@@ -358,41 +358,7 @@ shared static this () { mixin(S_TRACE);
 	version (Windows) {
 		winmmSync = new Mutex;
 	}
-	// FIXME: GCが動くとbassLoopコールバックでアクセス違反。
-	//        GCを無効にする事で対策できるが、確実にメモリ不足に陥る。
-	//        以下は効果無し。
-	GC.setAttr(cast(void*)&bassLoop, GC.BlkAttr.NO_MOVE);
-	GC.setAttr(bassLoopPtr, GC.BlkAttr.NO_MOVE);
-	GC.setAttr(cast(void*)&bassLoop, GC.BlkAttr.NO_SCAN);
-	GC.setAttr(bassLoopPtr, GC.BlkAttr.NO_SCAN);
-	GC.removeRange(cast(void*)&bassLoop);
-	GC.removeRange(bassLoopPtr);
-	GC.removeRoot(cast(void*)&bassLoop);
-	GC.removeRoot(bassLoopPtr);
-	bassLoopPtr = &bassLoop;
 }
-shared static ~this () { mixin(S_TRACE);
-	foreach (value; loopKeys.byValue()) {
-		.free(value);
-	}
-}
-
-private __gshared uint[string] loopCounts;
-private __gshared ptrdiff_t[string] loopStarts;
-private __gshared ptrdiff_t[string] loopEnds;
-private __gshared char*[string] loopKeys;
-private __gshared extern (Windows) void bassLoop(HSYNC handle, DWORD channel, DWORD data, void* user) {
-	auto loopKey = fromStringz(cast(immutable(char)*)user);
-	auto pos = loopStarts[loopKey];
-	auto loops = loopCounts[loopKey];
-	if (loops != 1) { mixin(S_TRACE);
-		if (0 < loops) loopCounts[loopKey] = loops - 1;
-		getSymbol!(BASS_ChannelSetPosition)(bass, "BASS_ChannelSetPosition")(channel, pos, BASS_POS_BYTE);
-	} else { mixin(S_TRACE);
-		//core.memory.GC.enable();
-	}
-}
-private __gshared extern (Windows) void function (HSYNC handle, DWORD channel, DWORD data, void* user) bassLoopPtr;
 
 private __gshared bool bgmOnLegacy = false;
 private __gshared Mix_Music* bgmMusic = null;
@@ -746,7 +712,10 @@ private void initBass() { mixin(S_TRACE);
 			}
 			if (!loadBassSoundFont(_initBassSFont)) { mixin(S_TRACE);
 				disposeBass();
+				return;
 			}
+			set_BASS_ChannelSetPosition(getSymbol!(BASS_ChannelSetPosition)(bass, "BASS_ChannelSetPosition"));
+
 		} catch (Exception e) {
 			printStackTrace();
 			debugln(e);
@@ -803,6 +772,7 @@ private void disposeBass() { mixin(S_TRACE);
 		try { mixin(S_TRACE);
 			stopBGM();
 			stopSE();
+			set_BASS_ChannelSetPosition(null);
 			if (bassMidi) { mixin(S_TRACE);
 				releaseBassSoundFont();
 				dlclose(bassMidi);
@@ -834,6 +804,30 @@ version (Windows) {
 	private __gshared HSTREAM bassSEStream = 0;
 	private __gshared _initBassDir = "";
 	private __gshared const(string)[] _initBassSFont = [];
+	private __gshared uint[string] loopCounts;
+	private __gshared ptrdiff_t[string] loopStarts;
+
+	private __gshared ptrdiff_t[2] loopEnds;
+	// FIXME: GCが動くとbassLoopコールバックでアクセス違反。
+	//        GCを無効にする事で対策できるが、確実にメモリ不足に陥る。
+	//        Cのオブジェクト上にループ処理を配置する事で問題を回避する。
+	private __gshared extern (C) void setLoopStart(size_t index, ulong loopStart);
+	private __gshared extern (C) void setLoopCount(size_t index, uint loopCount);
+	private __gshared extern (C) void set_BASS_ChannelSetPosition(BASS_ChannelSetPosition func);
+	private __gshared extern (Windows) void bassLoop(HSYNC handle, DWORD channel, DWORD data, void* user);
+/+	private __gshared extern (Windows) void bassLoop(HSYNC handle, DWORD channel, DWORD data, void* user) {
+		assert (_BASS_ChannelSetPosition !is null);
+		auto loopKey = fromStringz(cast(immutable(char)*)user);
+		auto pos = loopStarts[loopKey];
+		auto loops = loopCounts[loopKey];
+		if (loops != 1) { mixin(S_TRACE);
+			if (0 < loops) loopCounts[loopKey] = loops - 1;
+			_BASS_ChannelSetPosition(channel, pos, BASS_POS_BYTE);
+		} else { mixin(S_TRACE);
+			//core.memory.GC.enable();
+		}
+	}
++/
 }
 
 /// fileがMIDIファイルであればtrue。
@@ -882,29 +876,29 @@ private bool playBass(string file, uint loopCount, bool spLoop, ref DWORD stream
 			ptrdiff_t loopStart = -1, loopEnd = -1;
 			if (spLoop) getLoopInfo(file, midi, stream, loopStart, loopEnd);
 			auto BASS_ChannelSetSync = getSymbol!(BASS_ChannelSetSync)(bass, "BASS_ChannelSetSync");
-			auto keyPtr = loopKeys.get(loopKey, null);
-			if (keyPtr is null) { mixin(S_TRACE);
-				// キーがGCに回収されないようにする
-				keyPtr = cast(char*).malloc(loopKey.length + 1);
-				.strcpy(keyPtr, toStringz(loopKey));
-				loopKeys[loopKey] = keyPtr;
+
+			size_t loopIndex = 0;
+			switch (loopKey) {
+			case "cwbgm": loopIndex = 0; break;
+			case "cwse": loopIndex = 1; break;
+			default: throw new Exception("Invalid loop key: " ~ loopKey);
 			}
-			loopCounts[loopKey] = loopCount;
+			setLoopCount(loopIndex, loopCount);
 
 			//core.memory.GC.disable();
 			if (loopStart != -1 && loopEnd != -1) { mixin(S_TRACE);
-				loopStarts[loopKey] = loopStart;
-				loopEnds[loopKey] = loopEnd;
-				BASS_ChannelSetSync(stream, BASS_SYNC_POS | BASS_SYNC_MIXTIME, loopEnd, bassLoopPtr, cast(void*)keyPtr);
-				BASS_ChannelSetSync(stream, BASS_SYNC_END | BASS_SYNC_MIXTIME, 0, bassLoopPtr, cast(void*)keyPtr);
+				setLoopStart(loopIndex, loopStart);
+				loopEnds[loopIndex] = loopEnd;
+				BASS_ChannelSetSync(stream, BASS_SYNC_POS | BASS_SYNC_MIXTIME, loopEnd, &bassLoop, cast(void*)loopIndex);
+				BASS_ChannelSetSync(stream, BASS_SYNC_END | BASS_SYNC_MIXTIME, 0, &bassLoop, cast(void*)loopIndex);
 			} else if (loopStart != -1) { mixin(S_TRACE);
-				loopStarts[loopKey] = loopStart;
-				loopEnds[loopKey] = -1;
-				BASS_ChannelSetSync(stream, BASS_SYNC_END | BASS_SYNC_MIXTIME, 0, bassLoopPtr, cast(void*)keyPtr);
+				setLoopStart(loopIndex, loopStart);
+				loopEnds[loopIndex] = -1;
+				BASS_ChannelSetSync(stream, BASS_SYNC_END | BASS_SYNC_MIXTIME, 0, &bassLoop, cast(void*)loopIndex);
 			} else { mixin(S_TRACE);
-				loopStarts[loopKey] = 0;
-				loopEnds[loopKey] = -1;
-				BASS_ChannelSetSync(stream, BASS_SYNC_END | BASS_SYNC_MIXTIME, 0, bassLoopPtr, cast(void*)keyPtr);
+				setLoopStart(loopIndex, 0);
+				loopEnds[loopIndex] = -1;
+				BASS_ChannelSetSync(stream, BASS_SYNC_END | BASS_SYNC_MIXTIME, 0, &bassLoop, cast(void*)loopIndex);
 			}
 
 			volume = .min(100, volume);

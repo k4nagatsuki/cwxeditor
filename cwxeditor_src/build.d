@@ -61,11 +61,13 @@ version (Windows) {
 //		"-g",
 		"-debug",
 		"-unittest",
+		"bassloop32.obj",
 	];
 	immutable string[] DEBUG_FLAGS_L_64 = [
 		"-g",
 		"-debug",
 		"-unittest",
+		"bassloop64.obj",
 	];
 	immutable CONSOLE_FLAGS_L_32 = [
 		"-L/rc:" ~ NAME,

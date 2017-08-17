@@ -3,7 +3,7 @@ CWXEditor ビルドガイド
 ----------------------
 
 ビルドツール:
- : dmd 2.075.0
+ : dmd 2.075.1
  : Digital Mars rcc
 ライブラリ:
  : DWT at GitHub
@@ -54,6 +54,23 @@ submoduleがあるので、submodule initとupdateをしておきましょう。
 Digital MarsのサイトからBasic Utilitiesを入手して、パスを通しましょう(「パスを通す」などのキーワードで検索する事で、具体的な情報が見つかります)。
 
 http://www.digitalmars.com//download/freecompiler.html
+
+---
+
+Dの処理系のバグにより音声ループ処理で問題が発生するため、その部分だけC言語のモジュールになっており、場合によってはcwxeditor本体より先にそちらをビルドする必要があります。
+
+32-bit版はrccと同じ場所で入手できるDigital Mars C/C++ Compiler(dmc)、64-bit版はVisual Studio 2015が必要です。
+
+以下のようにしてビルドします。
+
+    rem 使用するVisual C++のコンパイラを64-bit版に切り替える
+    "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
+    rem 64-bit版をビルド
+    cl /c cwx\editor\gui\bassloop.c /Ox /Fobassloop64.obj
+    rem 32-bit版をビルド
+    dmc -obassloop32 -c -o .\cwx\editor\gui\bassloop.c
+
+---
 
 これでようやく準備完了です。
 
