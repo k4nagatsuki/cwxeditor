@@ -2659,11 +2659,11 @@ public:
 			text = .tryFormat(_prop.msgs.replResult, num, kind);
 		} else { mixin(S_TRACE);
 			if (_grepSumm) { mixin(S_TRACE);
-				text = .tryFormat(_prop.msgs.searchResultGrep2, _grepCount, num, _grepFile);
+				text = .tryFormat(_prop.msgs.searchResultGrep2, .formatNum(_grepCount), num, _grepFile);
 			} else if (_grepFile.length) { mixin(S_TRACE);
-				text = .tryFormat(_prop.msgs.searchResultGrep1, _grepCount, num, _grepFile);
+				text = .tryFormat(_prop.msgs.searchResultGrep1, .formatNum(_grepCount), num, _grepFile);
 			} else if (0 <= _grepCount) { mixin(S_TRACE);
-				text = .tryFormat(_prop.msgs.searchResultGrep3, _grepCount, num, kind);
+				text = .tryFormat(_prop.msgs.searchResultGrep3, .formatNum(_grepCount), num, kind);
 			} else { mixin(S_TRACE);
 				text = .tryFormat(_prop.msgs.searchResult, num, kind);
 			}
@@ -3922,8 +3922,8 @@ public:
 				_grepSkin = null;
 				destroy(summ);
 				_grepSumm = null;
-				//core.memory.GC.collect();
-				//core.memory.GC.minimize();
+				core.memory.GC.collect();
+				core.memory.GC.minimize();
 			}
 			if (!_fromText.length) { mixin(S_TRACE);
 				addResult(.cwxPlace(summ), summ, summ.cwxPath(true), count);
