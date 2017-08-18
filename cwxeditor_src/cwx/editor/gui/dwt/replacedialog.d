@@ -4659,7 +4659,7 @@ public:
 		Undo[] uArr2;
 		if ((_eventSel && eo && eo.detail.nextType == CNextType.TEXT)
 				|| (_couponSel && eo && eo.detail.nextType == CNextType.COUPON)) { mixin(S_TRACE);
-			r |= repl(parent, null, "", e.name, &e.name, count, uArr2);
+			r |= repl(parent, null, "", e.name, name => e.setName(_prop.parent, name), count, uArr2);
 		}
 		if (_flagSel) { mixin(S_TRACE);
 			if (_flagDirOnRange) { mixin(S_TRACE);
@@ -4680,7 +4680,7 @@ public:
 			// ここでは置換しない
 			if (d.use(CArg.START)) r |= repl(parent, null, "", e.start, null, count, uArr2);
 			if (e.type == CType.START) { mixin(S_TRACE);
-				r |= repl(parent, null, "", e.name, &e.name, count, uArr2);
+				r |= repl(parent, null, "", e.name, name => e.setName(_prop.parent, name), count, uArr2);
 			}
 		}
 		if (_couponSel) { mixin(S_TRACE);

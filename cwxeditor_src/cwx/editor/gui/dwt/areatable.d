@@ -342,7 +342,7 @@ private:
 			udb(v);
 			scope (exit) uda(v);
 		}
-		override void dispose() {}
+		override void dispose() { }
 	}
 	static class UndoEdit : ATUndo {
 		private string _name;
@@ -436,7 +436,7 @@ private:
 		override void redo() { mixin(S_TRACE);
 			impl();
 		}
-		override void dispose() {}
+		override void dispose() { }
 	}
 	void storeEdit(int index) { mixin(S_TRACE);
 		ulong id;
@@ -484,7 +484,7 @@ private:
 		override void redo() { mixin(S_TRACE);
 			impl();
 		}
-		override void dispose() {}
+		override void dispose() { }
 	}
 	void storeMove(int removeIndex, int insertIndex, TypeInfo type) { mixin(S_TRACE);
 		assert (_areas.getSortColumn() is null || _areas.getSortColumn() is _idSorter.column);
@@ -525,7 +525,7 @@ private:
 		override void redo() { mixin(S_TRACE);
 			impl();
 		}
-		override void dispose() {}
+		override void dispose() { }
 	}
 	void storeSwap(int index1, int index2) { mixin(S_TRACE);
 		assert (_areas.getSortColumn() is null || _areas.getSortColumn() is _idSorter.column);
@@ -557,7 +557,7 @@ private:
 		private void initUndoDelete() { mixin(S_TRACE);
 			auto area = areaFromInfo(summ, uid(_id, _type), _type);
 			_delIndex = toIndexFrom(summ, uid(_id, _type), _type);
-			_isStartArea = cast(Area) area && summ.startArea == area.id;
+			_isStartArea = cast(Area)area && summ.startArea == area.id;
 			_area = area.dup;
 			_area.setUseCounter(summ.useCounter.sub);
 		}
@@ -574,7 +574,7 @@ private:
 			auto area = areaFromInfo(summ, uid(_id, _type), _type);
 			delCalls ~= area;
 			summ.remove(area);
-			comm.refUseCount.call();
+			if (one) comm.refUseCount.call();
 		}
 		void undoDelete() { mixin(S_TRACE);
 			auto v = view();
@@ -583,27 +583,27 @@ private:
 			scope (exit) _area = null;
 			_insert = true;
 			_area.removeUseCounter();
-			auto a = cast(Area) _area;
+			auto a = cast(Area)_area;
 			calls ~= _area;
 			if (a) { mixin(S_TRACE);
 				summ.insert(_delIndex, a);
-				if (v && v._areas && !v._areas.isDisposed()) v.refreshAreas();
+				if (one && v && v._areas && !v._areas.isDisposed()) v.refreshAreas();
 				if (_isStartArea) { mixin(S_TRACE);
 					summ.startArea = a.id;
 					_isStartArea = false;
 				}
 				return;
 			}
-			auto b = cast(Battle) _area;
+			auto b = cast(Battle)_area;
 			if (b) { mixin(S_TRACE);
 				summ.insert(_delIndex, b);
-				if (v && v._areas && !v._areas.isDisposed()) v.refreshAreas();
+				if (one && v && v._areas && !v._areas.isDisposed()) v.refreshAreas();
 				return;
 			}
-			auto p = cast(Package) _area;
+			auto p = cast(Package)_area;
 			if (p) { mixin(S_TRACE);
 				summ.insert(_delIndex, p);
-				if (v && v._areas && !v._areas.isDisposed()) v.refreshAreas();
+				if (one && v && v._areas && !v._areas.isDisposed()) v.refreshAreas();
 				return;
 			}
 			assert (0);
@@ -674,7 +674,7 @@ private:
 		override void redo() { mixin(S_TRACE);
 			impl();
 		}
-		override void dispose() {}
+		override void dispose() { }
 	}
 	void storeRenameDir(string oldPath, string newPath) {
 		_undo ~= new UndoRenameDir(this, _comm, _summ, oldPath, newPath);

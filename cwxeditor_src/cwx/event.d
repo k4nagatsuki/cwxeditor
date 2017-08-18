@@ -666,7 +666,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 	override
 	bool opEquals(Object o) { mixin(S_TRACE);
-		auto c = cast(const(Content)) o;
+		auto c = cast(const(Content))o;
 		if (!c) return false;
 		auto d = detail;
 		return type == c.type
@@ -1142,7 +1142,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	private SimpleTextHolder _name;
 	/// テキスト。
 	@property
-	private void name(string name) { mixin(S_TRACE);
+	private void setNameImpl(string name, bool fromCallback) { mixin(S_TRACE);
 		if (_name.text != name) { mixin(S_TRACE);
 			changed();
 			if (type is CType.START && tree) { mixin(S_TRACE);
@@ -1154,21 +1154,21 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			}
 			_name.text = name;
 
-			if (parent && parent.detail.nextType is CNextType.ID_AREA) { mixin(S_TRACE);
+			if (!fromCallback && parent && parent.detail.nextType is CNextType.ID_AREA) { mixin(S_TRACE);
 				branchAreaCondition = icmp(name, "Default") == 0 ? 0UL : to!ulong(name);
 			}
-			if (parent && parent.detail.nextType is CNextType.ID_BATTLE) { mixin(S_TRACE);
+			if (!fromCallback && parent && parent.detail.nextType is CNextType.ID_BATTLE) { mixin(S_TRACE);
 				branchBattleCondition = icmp(name, "Default") == 0 ? 0UL : to!ulong(name);
 			}
 			// Wsn.2
-			if (parent && parent.detail.nextType is CNextType.COUPON) { mixin(S_TRACE);
+			if (!fromCallback && parent && parent.detail.nextType is CNextType.COUPON) { mixin(S_TRACE);
 				branchCouponCondition = name;
 			}
 		}
 	}
 	/// ditto
 	void setName(in CProps prop, string name) { mixin(S_TRACE);
-		this.name = name;
+		setNameImpl(name, false);
 		if (parent) { mixin(S_TRACE);
 			parent.validText(prop, this);
 		}
@@ -1190,7 +1190,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		}
 		bool setNum() { mixin(S_TRACE);
 			if (prop.sys.evtChildDefault != n.name && !std.string.isNumeric(n.name) || n.name == "0") { mixin(S_TRACE);
-				n.name = prop.sys.evtChildDefault;
+				n.setNameImpl(prop.sys.evtChildDefault, false);
 				return true;
 			}
 			return false;
@@ -1200,11 +1200,11 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		auto summ = cast(Summary)root;
 
 		final switch (detail.nextType) {
-		case CNextType.NONE: n.name = ""; break;
+		case CNextType.NONE: n.setNameImpl("", false); break;
 		case CNextType.TEXT: break;
 		case CNextType.BOOL: { mixin(S_TRACE);
 			if (prop.sys.evtChildTrue != n.name && prop.sys.evtChildFalse != n.name) { mixin(S_TRACE);
-				n.name = selectName([prop.sys.evtChildTrue, prop.sys.evtChildFalse], prop.sys.evtChildTrue);
+				n.setNameImpl(selectName([prop.sys.evtChildTrue, prop.sys.evtChildFalse], prop.sys.evtChildTrue), false);
 			}
 		} break;
 		case CNextType.STEP: { mixin(S_TRACE);
@@ -1233,7 +1233,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 					array ~= .text(i);
 				}
 				array ~= prop.sys.evtChildDefault;
-				n.name = selectName(array, prop.sys.evtChildDefault);
+				n.setNameImpl(selectName(array, prop.sys.evtChildDefault), false);
 			}
 		} break;
 		case CNextType.ID_AREA: { mixin(S_TRACE);
@@ -1243,7 +1243,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 					array ~= .text(a.id);
 				}
 				array ~= prop.sys.evtChildDefault;
-				n.name = selectName(array, prop.sys.evtChildDefault);
+				n.setNameImpl(selectName(array, prop.sys.evtChildDefault), false);
 			}
 		} break;
 		case CNextType.ID_BATTLE: { mixin(S_TRACE);
@@ -1253,12 +1253,12 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 					array ~= .text(a.id);
 				}
 				array ~= prop.sys.evtChildDefault;
-				n.name = selectName(array, prop.sys.evtChildDefault);
+				n.setNameImpl(selectName(array, prop.sys.evtChildDefault), false);
 			}
 		} break;
 		case CNextType.TRIO: { mixin(S_TRACE);
 			if (prop.sys.evtChildGreater != n.name && prop.sys.evtChildLesser != n.name && prop.sys.evtChildEq != n.name) { mixin(S_TRACE);
-				n.name = selectName([prop.sys.evtChildGreater, prop.sys.evtChildLesser, prop.sys.evtChildEq], prop.sys.evtChildGreater);
+				n.setNameImpl(selectName([prop.sys.evtChildGreater, prop.sys.evtChildLesser, prop.sys.evtChildEq], prop.sys.evtChildGreater), false);
 			}
 		} break;
 		case CNextType.COUPON: break; // Wsn.2
@@ -2213,20 +2213,20 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	override bool changeCallback(AreaId oldVal, AreaId newVal) { mixin(S_TRACE);
 		auto id = icmp(name, "Default") == 0 ? 0UL : to!ulong(name);
 		if (parent && parent.detail.nextType is CNextType.ID_AREA && AreaId(id) == oldVal) { mixin(S_TRACE);
-			name = newVal == 0UL ? "Default" : to!string(newVal);
+			setNameImpl(newVal == 0UL ? "Default" : to!string(newVal), true);
 		}
 		return true;
 	}
 	override bool changeCallback(BattleId oldVal, BattleId newVal) { mixin(S_TRACE);
 		auto id = icmp(name, "Default") == 0 ? 0UL : to!ulong(name);
 		if (parent && parent.detail.nextType is CNextType.ID_BATTLE && BattleId(id) == oldVal) { mixin(S_TRACE);
-			name = newVal == 0UL ? "Default" : to!string(newVal);
+			setNameImpl(newVal == 0UL ? "Default" : to!string(newVal), true);
 		}
 		return true;
 	}
 	override bool changeCallback(CouponId oldVal, CouponId newVal) { mixin(S_TRACE);
 		if (parent && parent.detail.nextType is CNextType.COUPON && CouponId(name) == oldVal) { mixin(S_TRACE);
-			name = newVal;
+			setNameImpl(newVal, true);
 		}
 		return true;
 	}
@@ -3088,7 +3088,7 @@ public:
 		if (_starts[0].name != name) {
 			changed();
 			_startNames.remove(_starts[0].name);
-			_starts[0].name = name;
+			_starts[0].setNameImpl(name, false);
 			_startNames[name] = _starts[0];
 		}
 	}
