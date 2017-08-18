@@ -418,6 +418,9 @@ private:
 			udb(vs);
 			scope (exit) uda(vs);
 			auto tree = etos(area)[_ownerIndex].trees[_index];
+			foreach (s; tree.starts) { mixin(S_TRACE);
+				comm.delContent.call(s);
+			}
 			auto starts = _starts;
 			save(tree);
 			tree.starts = starts;
@@ -2423,10 +2426,8 @@ public:
 		}
 		storeContents(et);
 		auto vs = views();
-		foreach (v; vs) { mixin(S_TRACE);
-			if (v.eventTreeView.eventTree is et) { mixin(S_TRACE);
-				v.eventTreeView.closeAllEditDialogs();
-			}
+		foreach (s; et.starts) { mixin(S_TRACE);
+			_comm.delContent.call(s);
 		}
 
 		auto c = new Content(CType.LINK_PACKAGE, "");

@@ -2018,16 +2018,14 @@ public:
 		auto vs = views();
 		foreach (itm; users) { mixin(S_TRACE);
 			auto c = cast(Content)itm.getData();
-			foreach (v; vs) { mixin(S_TRACE);
-				auto dlg = c.eventId in v._editDlgs;
-				if (dlg) (*dlg).forceCancel();
-			}
 			switch (c.type) {
 			case CType.LINK_START: { mixin(S_TRACE);
+				_comm.delContent.call(c);
 				c.convertType(CType.LINK_PACKAGE, null, _prop.parent, .toDialogStatus(_prop.var.etc.dialogStatus));
 				c.packages = id;
 			} break;
 			case CType.CALL_START: { mixin(S_TRACE);
+				_comm.delContent.call(c);
 				c.convertType(CType.CALL_PACKAGE, null, _prop.parent, .toDialogStatus(_prop.var.etc.dialogStatus));
 				c.packages = id;
 			} break;
@@ -2044,12 +2042,6 @@ public:
 		}
 		_comm.refUseCount.call();
 		_comm.refreshToolBar();
-	}
-
-	void closeAllEditDialogs() { mixin(S_TRACE);
-		foreach (dlg; _editDlgs.values) { mixin(S_TRACE);
-			dlg.forceCancel();
-		}
 	}
 
 	@property
