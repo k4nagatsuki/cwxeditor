@@ -890,7 +890,7 @@ public:
 	/// bの内容をコピーする。
 	void deepCopy(BgImage b) { mixin(S_TRACE);
 		flag = b.flag;
-		x = b.y;
+		x = b.x;
 		y = b.y;
 		width = b.width;
 		height = b.height;
