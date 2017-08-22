@@ -1337,6 +1337,7 @@ private:
 	static if (UseCards) {
 		private void scaleC(uint scale) { mixin(S_TRACE);
 			if (_readOnly) return;
+			_undo ~= createUndoEdit();
 			foreach (i, c; _area.cards) { mixin(S_TRACE);
 				auto fi = cast(FlexImage)_imgp.images[cardsIndex + i];
 				if (fi.selected) { mixin(S_TRACE);
@@ -1781,7 +1782,7 @@ private:
 	static if (UseCards) {
 		void scaleEvenC(int First, string Cmp)() { mixin(S_TRACE);
 			if (_readOnly) return;
-			scaleEvenImpl!(First, Cmp, "a.scale = fi.baseWidth * 100 / w;", C)((v) => v.cardsIndex, _area.cards);
+			scaleEvenImpl!(First, Cmp, "a.scale = scale;", C)((v) => v.cardsIndex, _area.cards);
 		}
 	}
 	static if (UseBacks) {
