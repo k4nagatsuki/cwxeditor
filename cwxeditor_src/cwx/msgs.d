@@ -1338,6 +1338,10 @@ class Msgs : Properties {
 
 	auto startUseCount = Msg("startUseCount", "利用数");
 
+	auto unknownBranchCondition = Msg("unknownBranchCondition", "不明な分岐条件「%1$s」が指定されています。");
+	auto unknownBranchConditionNoText = Msg("unknownBranchConditionNoText", "分岐条件が空文字列になっています。");
+	auto invalidNextName = Msg("invalidNextName", "不正なコンテント名「%1$s」が指定されています。");
+
 	auto flagOn = Msg("flagOn", "TRUE");
 	auto flagOff = Msg("flagOff", "FALSE");
 	auto evtChildBrVar = Msg("evtChildBrVar", "%1$s = %2$s");

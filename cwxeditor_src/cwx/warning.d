@@ -336,6 +336,10 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if ((summ ? summ.legacy : false) && c.type == CType.WAIT && !c.next.length) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorIgnoreWait;
 		}
+		if (c.parent) { mixin(S_TRACE);
+			auto wNC = .warningNextCondition(prop, c.parent.detail.nextType, c.name);
+			if (wNC) r ~= wNC;
+		}
 		if (cd.owner && cd.nextType != CNextType.TEXT) { mixin(S_TRACE);
 			auto set = new HashSet!(string);
 			foreach (cld; c.next) { mixin(S_TRACE);
@@ -911,4 +915,62 @@ string[] couponWarnings(in CProps prop, in Summary summ, string targVer, string 
 		r ~= .tryFormat(prop.msgs.warningSystemCoupon, coupon);
 	}
 	return r;
+}
+
+/// cNextTypeに後続コンテントの名称nameが適合しない場合は警告を返す。
+/// 適合する場合はnullを返す。
+string warningNextCondition(in CProps prop, CNextType cNextType, string name) { mixin(S_TRACE);
+	final switch (cNextType) {
+	case CNextType.NONE:
+		if (name != "") return .tryFormat(prop.msgs.invalidNextName, name);
+		return null;
+	case CNextType.TEXT:
+	case CNextType.COUPON:
+		return null;
+	case CNextType.BOOL:
+		return warningBoolCondition(prop, name);
+	case CNextType.STEP:
+	case CNextType.ID_AREA:
+	case CNextType.ID_BATTLE:
+		return warningNumberCondition(prop, name);
+	case CNextType.TRIO:
+		return warningTrioCondition(prop, name);
+	}
+}
+private string warningBoolCondition(in CProps prop, string text) { mixin(S_TRACE);
+	if (text == prop.sys.evtChildTrue || text == prop.sys.evtChildFalse) { mixin(S_TRACE);
+		return null;
+	} else if (text == "") { mixin(S_TRACE);
+		return prop.msgs.unknownBranchConditionNoText;
+	} else { mixin(S_TRACE);
+		return .tryFormat(prop.msgs.unknownBranchCondition, text);
+	}
+}
+private string warningNumberCondition(in CProps prop, string text) { mixin(S_TRACE);
+	if (text == prop.sys.evtChildDefault) { mixin(S_TRACE);
+		return null;
+	} else if (std.string.isNumeric(text)) { mixin(S_TRACE);
+		try {
+			auto value = .to!uint(text);
+			return null;
+		} catch (ConvException e) {
+			// 処理無し
+			printStackTrace();
+		}
+	}
+
+	if (text == "") { mixin(S_TRACE);
+		return prop.msgs.unknownBranchConditionNoText;
+	} else { mixin(S_TRACE);
+		return .tryFormat(prop.msgs.unknownBranchCondition, text);
+	}
+}
+private string warningTrioCondition(in CProps prop, string text) { mixin(S_TRACE);
+	if (text == "<" || text == ">" || text == "=") { mixin(S_TRACE);
+		return null;
+	} else if (text == "") { mixin(S_TRACE);
+		return prop.msgs.unknownBranchConditionNoText;
+	} else { mixin(S_TRACE);
+		return .tryFormat(prop.msgs.unknownBranchCondition, text);
+	}
 }
