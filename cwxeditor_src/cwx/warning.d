@@ -966,7 +966,7 @@ private string warningNumberCondition(in CProps prop, string text) { mixin(S_TRA
 	}
 }
 private string warningTrioCondition(in CProps prop, string text) { mixin(S_TRACE);
-	if (text == "<" || text == ">" || text == "=") { mixin(S_TRACE);
+	if (text == prop.sys.evtChildGreater || text == prop.sys.evtChildLesser || text == prop.sys.evtChildEq) { mixin(S_TRACE);
 		return null;
 	} else if (text == "") { mixin(S_TRACE);
 		return prop.msgs.unknownBranchConditionNoText;
