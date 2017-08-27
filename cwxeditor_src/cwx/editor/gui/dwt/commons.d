@@ -550,7 +550,20 @@ class Commons {
 	void refreshToolBar() { mixin(S_TRACE);
 		refreshToolBar(null);
 	}
+	private bool _refreshToolBar = false;
+	private Control _refreshToolBarArg = null;
 	void refreshToolBar(Control fc) { mixin(S_TRACE);
+		_refreshToolBarArg = fc;
+		if (_refreshToolBar) return;
+		_refreshToolBar = true;
+		auto display = _main.shell.getDisplay();
+		.asyncExec(display, { mixin(S_TRACE);
+			if (_main.shell.isDisposed()) return;
+			_refreshToolBar = false;
+			refreshToolBarImpl(_refreshToolBarArg);
+		});
+	}
+	private void refreshToolBarImpl(Control fc) { mixin(S_TRACE);
 		_lastFocusEditor = null;
 		if (!_main) return;
 		if (!_main.shell) return;
