@@ -61,31 +61,32 @@ version (Windows) {
 //		"-g",
 		"-debug",
 		"-unittest",
-		"bassloop32.obj",
 	];
 	immutable string[] DEBUG_FLAGS_L_64 = [
 		"-g",
 		"-debug",
 		"-unittest",
-		"bassloop64.obj",
 	];
 	immutable CONSOLE_FLAGS_L_32 = [
 		"-L/rc:" ~ NAME,
 		"-L/NOM",
 		"-of" ~ EXE,
 		"-L/exet:nt/su:console:4.0",
+		"bassloop32.obj",
 	];
 	immutable CONSOLE_FLAGS_L_64 = [
 		"-L" ~ NAME ~ ".res",
 		"-of" ~ EXE,
 		"-L/SUBSYSTEM:CONSOLE",
 		"-L/STACK:4194304",
+		"bassloop64.obj",
 	];
 	immutable string[] WINDOW_FLAGS_L_32 = [
 		"-L/rc:" ~ NAME,
 		"-L/NOM",
 		"-of" ~ EXE,
 		"-L/exet:nt/su:windows:4.0",
+		"bassloop32.obj",
 	];
 	immutable string[] WINDOW_FLAGS_L_64 = [
 		"-L" ~ NAME ~ ".res",
@@ -93,6 +94,7 @@ version (Windows) {
 		"-L/SUBSYSTEM:Windows",
 		"-L/ENTRY:mainCRTStartup",
 		"-L/STACK:4194304",
+		"bassloop64.obj",
 	];
 	immutable O = "obj";
 } else {
