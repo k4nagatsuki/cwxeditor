@@ -1193,11 +1193,11 @@ private:
 								} else { mixin(S_TRACE);
 									store(cast(Content)_tree.getParentItem(_dragItm).getData(), owner);
 								}
+								if (cast(Content)_tree.getParentItem(_dragItm).getData() !is owner) { mixin(S_TRACE);
+									adjustText(owner, evt, lastNextType);
+								}
 							} else { mixin(S_TRACE);
 								store(owner);
-							}
-							if (cast(Content)_tree.getParentItem(_dragItm).getData() !is owner) { mixin(S_TRACE);
-								adjustText(owner, evt, lastNextType);
 							}
 							int insertIndex = -1;
 							if (_box.isInsertFirst) { mixin(S_TRACE);
