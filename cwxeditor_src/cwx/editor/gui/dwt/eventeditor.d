@@ -202,7 +202,7 @@ class EventEditor : Composite {
 	private bool _updatedPos = false; /// 位置計算を行って再描画が完了するまでの間はtrue。
 
 	this (Commons comm, Composite parent, int style, Summary summ, EventTree et) { mixin(S_TRACE);
-		super (parent, style | SWT.V_SCROLL | SWT.H_SCROLL);
+		super (parent, style | SWT.V_SCROLL | SWT.H_SCROLL | SWT.DOUBLE_BUFFERED);
 		auto d = getDisplay();
 		_comm = comm;
 		_summ = summ;
