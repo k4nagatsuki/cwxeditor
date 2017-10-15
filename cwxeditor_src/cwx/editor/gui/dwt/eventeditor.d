@@ -1910,7 +1910,6 @@ private:
 	void end(Control ctrl) { mixin(S_TRACE);
 		assert (_edit !is null);
 		_editEnd(_edit, ctrl);
-		clearEdit();
 	}
 
 	void clearEdit() { mixin(S_TRACE);
@@ -1929,6 +1928,7 @@ private:
 			_edit = cast(EventEditorItem)itm;
 			_list.showSelection();
 			_tee = new EditEnd(_comm, _list, _editor, &end);
+			_tee.exitEvent ~= &clearEdit;
 			layout();
 			_tee.setFocus();
 		}
@@ -1992,7 +1992,6 @@ public:
 	void cancel() { mixin(S_TRACE);
 		if (!isEditing) return;
 		_tee.cancel();
-		clearEdit();
 	}
 	void enter() { mixin(S_TRACE);
 		if (!isEditing) return;

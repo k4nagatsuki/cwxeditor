@@ -463,6 +463,8 @@ public:
 }
 
 class EditEnd : KeyAdapter, FocusListener {
+	void delegate()[] exitEvent;
+
 private:
 	Commons _comm;
 	Control ctrl;
@@ -521,7 +523,7 @@ public:
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
-	override void focusGained(FocusEvent e) {}
+	override void focusGained(FocusEvent e) { }
 	override void focusLost(FocusEvent e) { mixin(S_TRACE);
 		try { mixin(S_TRACE);
 			focusOut();
@@ -542,7 +544,7 @@ public:
 			if (e.keyCode == SWT.CR) { mixin(S_TRACE);
 				enter();
 			} else if (e.keyCode == SWT.ESC) { mixin(S_TRACE);
-				ctrl.dispose();
+				cancel();
 			}
 		} catch (Exception e) {
 			printStackTrace();
@@ -577,6 +579,7 @@ public:
 					par.setFocus();
 				}
 			}
+			foreach (dlg; exitEvent) dlg();
 		} catch (Exception e) {
 			printStackTrace();
 			debugln(e);
@@ -586,6 +589,7 @@ public:
 	void cancel() { mixin(S_TRACE);
 		if (ctrl && !ctrl.isDisposed()) { mixin(S_TRACE);
 			ctrl.dispose();
+			foreach (dlg; exitEvent) dlg();
 		}
 	}
 }
