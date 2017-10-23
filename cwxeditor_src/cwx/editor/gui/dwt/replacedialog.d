@@ -4671,8 +4671,8 @@ public:
 			} else { mixin(S_TRACE);
 				if (d.use(CArg.FLAG)) r |= repl(parent, null, "", e.flag, &e.flag, count, uArr2);
 				if (d.use(CArg.STEP)) r |= repl(parent, null, "", e.step, &e.step, count, uArr2);
-				if (d.use(CArg.FLAG_2)) r |= repl(parent, null, "", e.flag2, &e.flag, count, uArr2);
-				if (d.use(CArg.STEP_2)) r |= repl(parent, null, "", e.step2, &e.step, count, uArr2);
+				if (d.use(CArg.FLAG_2)) r |= repl(parent, null, "", e.flag2, &e.flag2, count, uArr2);
+				if (d.use(CArg.STEP_2)) r |= repl(parent, null, "", e.step2, &e.step2, count, uArr2);
 			}
 		}
 		if (_startSel) { mixin(S_TRACE);
