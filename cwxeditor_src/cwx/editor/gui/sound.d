@@ -844,7 +844,7 @@ private bool playBass(string file, uint loopCount, bool spLoop, ref DWORD stream
 				return false;
 			}
 			bool midi = isMidi(file);
-			int flag = BASS_MUSIC_STOPBACK | BASS_MUSIC_POSRESET | BASS_MUSIC_PRESCAN | BASS_SAMPLE_FLOAT;
+			int flag = BASS_MUSIC_STOPBACK | BASS_MUSIC_POSRESET | BASS_MUSIC_PRESCAN;
 			if (midi) { mixin(S_TRACE);
 				stream = getSymbol!(BASS_MIDI_StreamCreateFile)(bassMidi, "BASS_MIDI_StreamCreateFile")(false, file.toMBSz(), 0, 0, flag, 44100);
 				if (!stream) { mixin(S_TRACE);
