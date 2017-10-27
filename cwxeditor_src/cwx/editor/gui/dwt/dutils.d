@@ -1581,7 +1581,11 @@ ImageData castCardImage(Props prop, Skin skin, in CastCard c, string sPath, stri
 	auto r = new PileImage(id, w, h, true);
 	auto stp = prop.looks.castLifeBarPoint;
 	if (dbgMode || c.faceUpRound > 0) { mixin(S_TRACE);
-		auto levelColor = OS.VERSION(6, 0) <= OS.WIN32_VERSION ? prop.looks.castCardLevelColor : CRGB(128, 128, 128);
+		version (Windows) {
+			auto levelColor = OS.VERSION(6, 0) <= OS.WIN32_VERSION ? prop.looks.castCardLevelColor : CRGB(128, 128, 128);
+		} else {
+			auto levelColor = prop.looks.castCardLevelColor;
+		}
 		r.append(to!(string)(c.level),
 			prop.looks.castCardLevelInsets,
 			prop.looks.castCardLevelFont(skin.legacy),
@@ -1837,7 +1841,11 @@ ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, string ws
 	}
 	static if (is(C:SkillCard)) {
 		if (prop.var.etc.showSkillCardLevel && !noData) { mixin(S_TRACE);
-			auto levelColor = OS.VERSION(6, 0) <= OS.WIN32_VERSION ? prop.looks.skillCardLevelColor : CRGB(128, 128, 128);
+			version (Windows) {
+				auto levelColor = OS.VERSION(6, 0) <= OS.WIN32_VERSION ? prop.looks.skillCardLevelColor : CRGB(128, 128, 128);
+			} else {
+				auto levelColor = prop.looks.skillCardLevelColor;
+			}
 			r.append(to!(string)(c.level),
 				prop.looks.skillCardLevelInsets,
 				prop.looks.skillCardLevelFont(skin.legacy),

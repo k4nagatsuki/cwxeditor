@@ -6,17 +6,20 @@ import cwx.sjis;
 
 import org.eclipse.swt.all;
 
+import std.string;
+
 version (Windows) {
-    import std.string;
-    import std.stdio;
-    import std.utf;
-    import std.windows.charset;
+	import std.stdio;
+	import std.utf;
+	import std.windows.charset;
 
 	import org.eclipse.swt.internal.win32.OS;
 	import org.eclipse.swt.internal.win32.WINTYPES;
 	extern (Windows) {
 		HWND CreateStatusWindowW(LONG, LPCWSTR, HWND, UINT);
 	}
+} else {
+	import cwx.editor.gui.dwt.dutils : normalGridLayout;
 }
 
 /// ステータスバーつきのShell。
@@ -97,7 +100,7 @@ class SBShell {
 		}
 		@property
 		void statusLine(string text) { mixin(S_TRACE);
-			_sbar.setText(std.array.replace(text, "&", "&&"));
+			_sbar.setText(std.string.replace(text, "&", "&&"));
 		}
 	}
 }

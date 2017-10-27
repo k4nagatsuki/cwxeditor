@@ -346,9 +346,9 @@ void disposeSdl() { mixin(S_TRACE);
 void disposeSound() { mixin(S_TRACE);
 	stopBGM();
 	stopSE();
-	disposeWinmm();
 	disposeSdl();
 	version (Windows) {
+		disposeWinmm();
 		disposeBass();
 	}
 }
@@ -415,6 +415,14 @@ private ulong pos(in Mix_Chunk* chunk, clock_t start, bool playingMCI, string mc
 		}
 	}
 	return 0;
+}
+version (Windows) {
+} else {
+	private alias int HWND;
+	private HWND bassBGMStream = 0;
+	private HWND bassSEStream = 0;
+	private HWND _mciNotifyHandleBGM = 0;
+	private HWND _mciNotifyHandleSE = 0;
 }
 private void setPos(in Mix_Chunk* chunk, bool playingMCI, string mciName, HSTREAM bassStream, ulong msecs, HWND mciHandler) { mixin(S_TRACE);
 	version (Windows) {
@@ -513,8 +521,10 @@ private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref clock_t start,
 	}
 	static immutable mciType = [".mid", ".midi", ".mp3", ".wav"];
 	auto ext = file.extension().toLower();
-	if (soundPlayType == SOUND_TYPE_MCI && !mciType.contains(ext)) { mixin(S_TRACE);
-		soundPlayType = SOUND_TYPE_SDL;
+	version (Windows) {
+		if (soundPlayType == SOUND_TYPE_MCI && !mciType.contains(ext)) { mixin(S_TRACE);
+			soundPlayType = SOUND_TYPE_SDL;
+		}
 	}
 	try { mixin(S_TRACE);
 		version (Windows) {
@@ -672,15 +682,19 @@ version (Windows) {
 
 /// 指定されたディレクトリにあるBASSのDLLをロードし、初期化する。
 bool initBass(string bassDir, in string[] bassSoundFonts) { mixin(S_TRACE);
-	_initBassDir = bassDir;
-	_initBassSFont = bassSoundFonts.dup;
-	disposeBass();
-	return _initBassDir.buildPath("bass.dll").exists() && _initBassDir.buildPath("bassmidi.dll").exists();
+	version (Windows) {
+		_initBassDir = bassDir;
+		_initBassSFont = bassSoundFonts.dup;
+		disposeBass();
+		return _initBassDir.buildPath("bass.dll").exists() && _initBassDir.buildPath("bassmidi.dll").exists();
+	} else {
+		return false;
+	}
 }
 
 private void initBass() { mixin(S_TRACE);
-	if (bass) return;
 	version (Windows) {
+		if (bass) return;
 		version (Console) {
 			debug std.stdio.writeln("Initialize BASS Audio Start");
 		}
@@ -762,7 +776,9 @@ private void releaseBassSoundFont() { mixin(S_TRACE);
 }
 /// BASSのサウンドフォントとDLLを解放する。
 private void disposeBass() { mixin(S_TRACE);
-	if (!bass) return;
+	version (Windows) {
+		if (!bass) return;
+	}
 	version (Console) {
 		debug std.stdio.writeln("Release BASS Audio Start");
 	}
@@ -930,19 +946,25 @@ private void getLoopInfo(string file, bool midi, HSTREAM stream, out ptrdiff_t l
 	loopStart = -1;
 	loopEnd = -1;
 
-	BASS_CHANNELINFO info;
-	if (!getSymbol!(BASS_ChannelGetInfo)(bass, "BASS_ChannelGetInfo")(stream, &info)) { mixin(S_TRACE);
-		return;
-	}
-	auto sampPerBytes = 44100.0 / info.freq;
-	auto sampToBytes = info.chans;
-	if (info.flags & BASS_SAMPLE_FLOAT) {
-		sampToBytes *= 4;
-	} else if (info.flags & BASS_SAMPLE_8BITS) {
-		sampToBytes *= 1;
+	version (Windows) {
+		BASS_CHANNELINFO info;
+		if (!getSymbol!(BASS_ChannelGetInfo)(bass, "BASS_ChannelGetInfo")(stream, &info)) { mixin(S_TRACE);
+			return;
+		}
+		auto sampPerBytes = 44100.0 / info.freq;
+		auto sampToBytes = info.chans;
+		if (info.flags & BASS_SAMPLE_FLOAT) {
+			sampToBytes *= 4;
+		} else if (info.flags & BASS_SAMPLE_8BITS) {
+			sampToBytes *= 1;
+		} else {
+			sampToBytes *= 2;
+		}
 	} else {
-		sampToBytes *= 2;
+		auto sampPerBytes = 0.0;
+		auto sampToBytes = 0.0;
 	}
+
 	ptrdiff_t posToBytes(ptrdiff_t pos) { mixin(S_TRACE);
 		return cast(ptrdiff_t)((pos / sampPerBytes) * sampToBytes);
 	}
@@ -973,40 +995,42 @@ private void getLoopInfo(string file, bool midi, HSTREAM stream, out ptrdiff_t l
 		}
 	}
 
-	if (midi) { mixin(S_TRACE);
-		// RPGツクールのMIDI拡張イベント(CC#111)によってループ位置を指定する
-		auto BASS_MIDI_StreamGetEvents = getSymbol!(BASS_MIDI_StreamGetEvents)(bassMidi, "BASS_MIDI_StreamGetEvents");
-		auto count = BASS_MIDI_StreamGetEvents(stream, -1, MIDI_EVENT_CONTROL, null);
-		if (count) { mixin(S_TRACE);
-			auto events = new BASS_MIDI_EVENT[count];
-			count = BASS_MIDI_StreamGetEvents(stream, -1, MIDI_EVENT_CONTROL, events.ptr);
-			foreach (i; 0 .. count) { mixin(S_TRACE);
-				if ((events[i].param & 0xFF) == 111) { mixin(S_TRACE);
-					loopStart = events[i].pos;
-					loopEnd = -1;
+	version (Windows) {
+		if (midi) { mixin(S_TRACE);
+			// RPGツクールのMIDI拡張イベント(CC#111)によってループ位置を指定する
+			auto BASS_MIDI_StreamGetEvents = getSymbol!(BASS_MIDI_StreamGetEvents)(bassMidi, "BASS_MIDI_StreamGetEvents");
+			auto count = BASS_MIDI_StreamGetEvents(stream, -1, MIDI_EVENT_CONTROL, null);
+			if (count) { mixin(S_TRACE);
+				auto events = new BASS_MIDI_EVENT[count];
+				count = BASS_MIDI_StreamGetEvents(stream, -1, MIDI_EVENT_CONTROL, events.ptr);
+				foreach (i; 0 .. count) { mixin(S_TRACE);
+					if ((events[i].param & 0xFF) == 111) { mixin(S_TRACE);
+						loopStart = events[i].pos;
+						loopEnd = -1;
+					}
 				}
 			}
 		}
-	}
 
-	// RPGツクールVXのOgg Vorbisコメント埋め込み形式によってループ位置を指定する
-	auto comments = getSymbol!(BASS_ChannelGetTags)(bass, "BASS_ChannelGetTags")(stream, BASS_TAG_OGG);
-	if (comments) { mixin(S_TRACE);
-		ptrdiff_t loopLength = -1;
-		while (*comments) { mixin(S_TRACE);
-			auto comment = fromStringz(comments);
-			auto keyValue = comment.split("=");
-			if (keyValue[0].strip() == "LOOPSTART") { mixin(S_TRACE);
-				loopStart = keyValue[1].to!ptrdiff_t();
-			} else if (keyValue[0].strip() == "LOOPLENGTH") { mixin(S_TRACE);
-				loopLength = keyValue[1].to!ptrdiff_t();
+		// RPGツクールVXのOgg Vorbisコメント埋め込み形式によってループ位置を指定する
+		auto comments = getSymbol!(BASS_ChannelGetTags)(bass, "BASS_ChannelGetTags")(stream, BASS_TAG_OGG);
+		if (comments) { mixin(S_TRACE);
+			ptrdiff_t loopLength = -1;
+			while (*comments) { mixin(S_TRACE);
+				auto comment = fromStringz(comments);
+				auto keyValue = comment.split("=");
+				if (keyValue[0].strip() == "LOOPSTART") { mixin(S_TRACE);
+					loopStart = keyValue[1].to!ptrdiff_t();
+				} else if (keyValue[0].strip() == "LOOPLENGTH") { mixin(S_TRACE);
+					loopLength = keyValue[1].to!ptrdiff_t();
+				}
+				comments += comment.length + 1;
 			}
-			comments += comment.length + 1;
-		}
-		if (0 <= loopStart) { mixin(S_TRACE);
-			loopEnd = posToBytes(loopLength + loopStart);
-			loopStart = posToBytes(loopStart);
-			return;
+			if (0 <= loopStart) { mixin(S_TRACE);
+				loopEnd = posToBytes(loopLength + loopStart);
+				loopStart = posToBytes(loopStart);
+				return;
+			}
 		}
 	}
 }

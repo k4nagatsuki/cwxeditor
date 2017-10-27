@@ -347,7 +347,11 @@ void build(string[] args) {
 	if (critical.length) {
 		exec(cmd ~ CRITICAL_FLAGS ~ res ~ critical ~ "-odobjs" ~ dmdOption);
 	}
-	static immutable mscoffbug = 2068 <= __VERSION__ && __VERSION__ <= 2073;
+	version (Windows) {
+		static immutable mscoffbug = 2068 <= __VERSION__ && __VERSION__ <= 2073;
+	} else {
+		static immutable mscoffbug = true;
+	}
 	static if (mscoffbug) {
 		// Internal error: backend\mscoffobj.c 2176 by dmd 2.068-2.069
 		// まとめてコンパイルするとエラーが出るため分割する
@@ -636,7 +640,7 @@ void build(string[] args) {
 			flags ~= window ? WINDOW_FLAGS_L_32 : CONSOLE_FLAGS_L_32;
 		}
 	} else {
-		flags = LIB.map!((a) => "-L+" ~ a)();
+		flags = LIB.dup;
 		flags ~= release ? RELEASE_FLAGS_L : DEBUG_FLAGS_L;
 		flags ~= window ? WINDOW_FLAGS_L : CONSOLE_FLAGS_L;
 	}

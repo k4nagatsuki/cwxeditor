@@ -977,7 +977,9 @@ public:
 			drawFilter(buf, gc, range);
 			break;
 		case ImageType.Drawer:
-			import org.eclipse.swt.internal.win32.OS;
+			version (Windows) {
+				import org.eclipse.swt.internal.win32.OS;
+			}
 			auto fore = gc.getForeground();
 			scope (exit) gc.setForeground(fore);
 			auto back = gc.getBackground();
@@ -989,13 +991,17 @@ public:
 			scope (exit) img2.dispose();
 			scope (exit) gc2.dispose();
 
-			if (OS.VERSION(6, 0) <= OS.WIN32_VERSION) { mixin(S_TRACE);
-				auto a = gc.getAlpha();
-				scope (exit) gc.setAlpha(a);
-				auto antialias = gc.getAntialias();
-				scope (exit) gc.setAntialias(antialias);
-				_drawer(this, gc2);
-			} else { mixin(S_TRACE);
+			version (Windows) {
+				if (OS.VERSION(6, 0) <= OS.WIN32_VERSION) { mixin(S_TRACE);
+					auto a = gc.getAlpha();
+					scope (exit) gc.setAlpha(a);
+					auto antialias = gc.getAntialias();
+					scope (exit) gc.setAntialias(antialias);
+					_drawer(this, gc2);
+				} else { mixin(S_TRACE);
+					_drawer(this, gc2);
+				}
+			} else {
 				_drawer(this, gc2);
 			}
 			// 元のバッファへ描き戻す

@@ -5172,17 +5172,21 @@ public:
 			auto skin = summSkin;
 			auto size = _prop.looks.cardSize;
 			auto r = new FlexImage((img, gc) { mixin(S_TRACE);
-				import org.eclipse.swt.internal.win32.OS;
-				if (OS.VERSION(6, 0) <= OS.WIN32_VERSION) { mixin(S_TRACE);
-					gc.setAntialias(SWT.ON);
+				version (Windows) {
+					import org.eclipse.swt.internal.win32.OS;
+					if (OS.VERSION(6, 0) <= OS.WIN32_VERSION) { mixin(S_TRACE);
+						gc.setAntialias(SWT.ON);
+					}
 				}
 				auto d = _imgp.getDisplay();
 				int alpha;
 				auto back2 = new Color(d, .dwtData(_prop.looks.pcCellBackColor, alpha));
 				scope (exit) back2.dispose();
 				gc.setBackground(back2);
-				if (OS.VERSION(6, 0) <= OS.WIN32_VERSION) { mixin(S_TRACE);
-					gc.setAlpha(alpha);
+				version (Windows) {
+					if (OS.VERSION(6, 0) <= OS.WIN32_VERSION) { mixin(S_TRACE);
+						gc.setAlpha(alpha);
+					}
 				}
 				auto width = size.width;
 				auto height = size.height;
@@ -5194,8 +5198,10 @@ public:
 				auto fore2 = new Color(d, .dwtData(_prop.looks.pcCellForeColor, alpha));
 				scope (exit) fore2.dispose();
 				gc.setForeground(fore2);
-				if (OS.VERSION(6, 0) <= OS.WIN32_VERSION) { mixin(S_TRACE);
-					gc.setAlpha(alpha);
+				version (Windows) {
+					if (OS.VERSION(6, 0) <= OS.WIN32_VERSION) { mixin(S_TRACE);
+						gc.setAlpha(alpha);
+					}
 				}
 				gc.drawOval(0, 0, width - 1, height - 1);
 				auto font = _prop.looks.pcNumberFont(skin.legacy);

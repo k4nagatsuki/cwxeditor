@@ -60,7 +60,10 @@ version (Windows) {
 	}
 } else version (linux) {
 	import core.stdc.errno;
-	import core.sys.linux.linux;
+	import core.sys.linux.sys.inotify;
+	import core.sys.posix.unistd;
+	import core.sys.posix.sys.time;
+	import core.sys.posix.sys.socket;
 	private extern (C) {
 		c_uint sleep(c_uint);
 		c_int inotify_init();
@@ -1234,7 +1237,7 @@ private:
 			closeTraceHandleImpl();
 		}
 		private void closeTraceHandleImpl() { mixin(S_TRACE);
-			if (_traceHandle !is -1) close(_traceHandle);
+			if (_traceHandle !is -1) .close(_traceHandle);
 			_traceHandle = -1;
 		}
 	} else { mixin(S_TRACE);
@@ -1389,7 +1392,7 @@ private:
 								sleep();
 								continue;
 							}
-							len = core.sys.linux.linux.read(_traceHandle, buf.ptr, buf.sizeof);
+							len = core.sys.posix.unistd.read(_traceHandle, buf.ptr, buf.sizeof);
 						}
 						if (-1 == len) break;
 						if (0 == len) { mixin(S_TRACE);

@@ -95,11 +95,13 @@ version (Windows) {
 } else {
 	import core.stdc.errno;
 	version (linux) {
-		import core.sys.linux.linux;
-		import core.sys.linux.socket;
-		alias core.sys.linux.linux.read cread;
-		alias core.sys.linux.linux.write cwrite;
-		alias core.sys.linux.socket.bind cbind;
+		import core.sys.posix.fcntl;
+		import core.sys.posix.unistd;
+		import core.sys.posix.sys.socket;
+		import core.sys.posix.sys.time;
+		alias core.sys.posix.unistd.read cread;
+		alias core.sys.posix.unistd.write cwrite;
+		alias core.sys.posix.sys.socket.bind cbind;
 	} else { mixin(S_TRACE);
 		import core.sys.unix.unix;
 		alias core.sys.unix.unix.read cread;
@@ -2282,7 +2284,10 @@ private:
 			} while (FindNextFileW(handle, &fd));
 		} else { mixin(S_TRACE);
 			char[4096] buf;
-			foreach (entry; .dirEntries("/etc", SpanMode.shallow).filter(a => a.baseName.fnstartsWith("cwxeditor_pipe_"))) {
+			foreach (entry; .dirEntries("/etc", SpanMode.shallow)) { mixin(S_TRACE);
+				if (!entry.baseName.fnstartsWith("cwxeditor_pipe_")) { mixin(S_TRACE);
+					continue;
+				}
 				auto pipeName = entry.name;
 				if (!next()) break;
 				if (_pipeName == pipeName) continue;

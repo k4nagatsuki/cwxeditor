@@ -791,7 +791,7 @@ struct PathId {
 				} catch (Throwable) {
 					// 握り潰す
 				}
-			} else { mixin(S_TRACE);
+			} else {
 				s = id;
 			}
 		}
