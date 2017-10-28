@@ -683,6 +683,9 @@ private:
 	private TreeItem selectionEventTree() { mixin(S_TRACE);
 		auto itm = selection;
 		if (!itm) return null;
+		return eventItemFrom(itm);
+	}
+	private TreeItem eventItemFrom(TreeItem itm) { mixin(S_TRACE);
 		auto data = itm.getData();
 		if (cast(EventTreeOwner)data) return null;
 		if (cast(EventTree)data) { mixin(S_TRACE);
@@ -2526,9 +2529,12 @@ public:
 			assert (cast(TreeItem)e.item);
 			foreach (v; views()) v.editEnter();
 			auto ti = cast(TreeItem)e.item;
+			if (!ti) return;
 			if (_dragItm) { mixin(S_TRACE);
 				if (ti is _dragItm) return;
-				if (auto tree = cast(EventTree)_dragItm.getData()) { mixin(S_TRACE);
+				auto tip = eventItemFrom(ti);
+				auto dip = eventItemFrom(_dragItm);
+				if (auto tree = cast(EventTree)_dragItm.getData() && tip is dip) { mixin(S_TRACE);
 					auto fromTop = topParent(_dragItm);
 					auto toTop = topParent(ti);
 					if (fromTop is toTop) { mixin(S_TRACE);
@@ -2552,8 +2558,9 @@ public:
 						return;
 					}
 				}
-				if (auto kco = cast(KeyCodeObj)_dragItm.getData()) { mixin(S_TRACE);
+				if (cast(KeyCodeObj)_dragItm.getData() && tip is dip) { mixin(S_TRACE);
 					// 単一のイベントツリー内でキーコードを移動する場合
+					auto kco = cast(KeyCodeObj)_dragItm.getData();
 					if (cast(EventTreeOwner)ti.getData()) return;
 					auto keyCode = kco.array.idup;
 					auto fromTreeItm = _dragItm.getParentItem();
