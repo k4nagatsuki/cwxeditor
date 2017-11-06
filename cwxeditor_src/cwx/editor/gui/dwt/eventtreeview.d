@@ -4819,7 +4819,9 @@ class ContentsToolBox {
 				} else { mixin(S_TRACE);
 					createCoolItem(cbar, eBar);
 				}
-				.setupToolTips(eBar, _prop);
+				if (_prop.var.etc.showEventContentDescription) { mixin(S_TRACE);
+					.setupToolTips(eBar, _prop);
+				}
 				_comm.put(eBar);
 			}
 			updatePutMode();
