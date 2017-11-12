@@ -74,7 +74,7 @@ private struct RData {
 /// Params:
 /// newName = シナリオ名。null以外が指定された場合、
 ///           Summary.wsmが存在しない際はこの名前で新規に作成する。
-Summary loadLScenario(string p, string skinType, string skinName, const System sys, in LoadOption opt, string newName = null) { mixin(S_TRACE);
+Summary loadLScenario(string p, string skinType, string skinName, const System sys, in LoadOption opt, out string[] errorFiles, string newName = null) { mixin(S_TRACE);
 	auto sPath = p;
 	string summPath = std.path.buildPath(p, "Summary.wsm");
 	Summary summ;
@@ -104,6 +104,7 @@ Summary loadLScenario(string p, string skinType, string skinName, const System s
 		BeastCard[] beasts;
 		InfoCard[] infos;
 		string[] files;
+		string[] errorFiles;
 		ulong wait = 0L;
 		this (ref RData d) {
 			this.d = d;
@@ -151,7 +152,7 @@ Summary loadLScenario(string p, string skinType, string skinName, const System s
 				} catch (Exception e) {
 					printStackTrace();
 					debugln(file ~ " - " ~ e.msg);
-					throw e;
+					errorFiles ~= file.baseName();
 				}
 			}
 			version (Console) {
@@ -206,6 +207,8 @@ Summary loadLScenario(string p, string skinType, string skinName, const System s
 	loadTemplate(summ);
 	summ.startArea = startAreaId;
 	summ.resetChanged();
+	errorFiles ~= load1.errorFiles;
+	errorFiles ~= load2.errorFiles;
 	return summ;
 }
 

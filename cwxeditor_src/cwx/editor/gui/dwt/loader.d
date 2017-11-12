@@ -18,36 +18,44 @@ import cwx.event;
 import cwx.variables;
 
 import cwx.editor.gui.sound;
-import cwx.editor.gui.dwt.images;
-import cwx.editor.gui.dwt.dprops;
-import cwx.editor.gui.dwt.properties;
-import cwx.editor.gui.dwt.dskin;
-import cwx.editor.gui.dwt.commons;
-import cwx.editor.gui.dwt.splitpane;
-import cwx.editor.gui.dwt.xmlbytestransfer;
+import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.centerlayout;
-import cwx.editor.gui.dwt.jpyimage;
-import cwx.editor.gui.dwt.undo;
+import cwx.editor.gui.dwt.commons;
+import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.customtext;
-import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.dmenu;
+import cwx.editor.gui.dwt.dprops;
+import cwx.editor.gui.dwt.dskin;
+import cwx.editor.gui.dwt.dutils;
+import cwx.editor.gui.dwt.images;
+import cwx.editor.gui.dwt.jpyimage;
+import cwx.editor.gui.dwt.properties;
+import cwx.editor.gui.dwt.splitpane;
+import cwx.editor.gui.dwt.undo;
+import cwx.editor.gui.dwt.xmlbytestransfer;
 
 import core.thread;
 
 import std.array;
-import std.conv;
-import std.utf;
 import std.ascii;
-import std.file;
+import std.conv;
 import std.datetime;
+import std.file;
 import std.path;
 import std.process;
+import std.range;
 import std.stdio;
+import std.string;
+import std.typecons;
+import std.utf;
 
 import org.eclipse.swt.all;
 
 import java.lang.all;
 import java.io.ByteArrayInputStream;
+
+/// シナリオデータと読込時にエラーの出たファイル。
+alias Tuple!(Summary, "summary", const string[], "errorFiles") LoadResult;
 
 private class LSFFThr(bool Array) {
 	Display display;
@@ -63,14 +71,14 @@ private class LSFFThr(bool Array) {
 		void clear() { mixin(S_TRACE);
 			foreach (temp; temps) delAll(temp);
 		}
-		void delegate(Summary[]) loaded;
+		void delegate(LoadResult[]) loaded;
 	} else {
 		Summary old;
 		string temp = "";
 		void clear() { mixin(S_TRACE);
 			if (temp.length) delAll(temp);
 		}
-		void delegate(Summary) loaded;
+		void delegate(Summary, in string[] errorFiles) loaded;
 	}
 	void delegate() failure;
 	void delegate(string) status;
@@ -119,27 +127,32 @@ private class LSFFThr(bool Array) {
 	}
 	class Load : Runnable {
 		static if (Array) {
-			Summary[] r;
-			this (Summary[] r) {this.r = r;}
-			bool success() {return r.length > 0;}
+			LoadResult[] r;
+			this (LoadResult[] r) { this.r = r; }
+			bool success() { return r.length > 0; }
 		} else {
 			Summary r;
-			this (Summary r) {this.r = r;}
-			bool success() {return r !is null;}
+			const string[] errorFiles;
+			this (Summary r, const string[] errorFiles) {
+				this.r = r;
+				this.errorFiles = errorFiles;
+			}
+			bool success() { return r !is null; }
 		}
 		void run() { mixin(S_TRACE);
 			if (success()) { mixin(S_TRACE);
 				try { mixin(S_TRACE);
 					static if (Array) {
 						if (r.length == 1) { mixin(S_TRACE);
-							status(.tryFormat(prop.msgs.loaded, r[0].scenarioName));
+							status(.tryFormat(prop.msgs.loaded, r[0].summary.scenarioName));
 						} else { mixin(S_TRACE);
 							status(.tryFormat(prop.msgs.loadedCount, r.length));
 						}
+						loaded(r);
 					} else { mixin(S_TRACE);
 						status(.tryFormat(prop.msgs.loaded, r.scenarioName));
+						loaded(r, errorFiles);
 					}
-					loaded(r);
 				} catch (Exception e) {
 					printStackTrace();
 					debugln(e);
@@ -147,7 +160,7 @@ private class LSFFThr(bool Array) {
 					static if (Array) {
 						string[] names;
 						foreach (s; r) { mixin(S_TRACE);
-							names ~= s.scenarioName;
+							names ~= s.summary.scenarioName;
 						}
 						if (1 == names.length) { mixin(S_TRACE);
 							status(.tryFormat(prop.msgs.loadErrorStatus, names[0]));
@@ -167,7 +180,7 @@ private class LSFFThr(bool Array) {
 	}
 	class SError : Runnable {
 		SummaryException e;
-		this (SummaryException e) {this.e = e;}
+		this (SummaryException e) { this.e = e; }
 		void run() { mixin(S_TRACE);
 			try { mixin(S_TRACE);
 				MessageBox.showWarning(e.msg, prop.msgs.dlgTitWarning, w);
@@ -208,14 +221,15 @@ private class LSFFThr(bool Array) {
 		}
 		working = new Working;
 		static if (Array) {
-			Summary[] r;
+			LoadResult[] r;
 			foreach (i, path; files) { mixin(S_TRACE);
 				fname = path;
 				display.syncExec(new Start);
-				Summary s = loadScenarioFromFileImpl(prop, opt, w, status,
+				string[] errorFiles;
+				auto s = loadScenarioFromFileImpl(prop, opt, errorFiles, w, status,
 					null, path, null, null, false, display, &setMax, &setWork);
 				if (s) { mixin(S_TRACE);
-					r ~= s;
+					r ~= LoadResult(s, errorFiles);
 					if (s.useTemp) temps ~= s.scenarioPath;
 				} else { mixin(S_TRACE);
 					break;
@@ -225,11 +239,12 @@ private class LSFFThr(bool Array) {
 		} else { mixin(S_TRACE);
 			display.syncExec(new Start);
 			try { mixin(S_TRACE);
+				string[] errorFiles;
 				Summary r = Summary.loadScenarioFromFile(prop.parent, opt,
-					fname, prop.tempPath, null, old, &setMax, &setWork,
+					errorFiles, fname, prop.tempPath, null, old, &setMax, &setWork,
 					isDir(fname) ? baseName(fname) : baseName(dirName(fname)));
 				temp = r.useTemp ? r.scenarioPath : "";
-				display.syncExec(new Load(r));
+				display.syncExec(new Load(r, errorFiles));
 			} catch (SummaryException e) {
 				printStackTrace();
 				debugln(e);
@@ -264,8 +279,8 @@ string[] scenarioFilterDesc(Props prop) { mixin(S_TRACE);
 	return r;
 }
 
-Summary[] loadScenarios(Props prop, in LoadOption opt, Shell w, void delegate(string) status,
-		string dlgTitle, void delegate(Summary[]) loaded = null, void delegate() failure = null, bool oThr = true) { mixin(S_TRACE);
+LoadResult[] loadScenarios(Props prop, in LoadOption opt, Shell w, void delegate(string) status,
+		string dlgTitle, void delegate(LoadResult[]) loaded = null, void delegate() failure = null, bool oThr = true) { mixin(S_TRACE);
 	auto dlg = new FileDialog(w, SWT.PRIMARY_MODAL | SWT.APPLICATION_MODAL | SWT.MULTI | SWT.OPEN);
 	dlg.setFilterExtensions(scenarioFilter);
 	dlg.setFilterNames(scenarioFilterDesc(prop));
@@ -276,11 +291,11 @@ Summary[] loadScenarios(Props prop, in LoadOption opt, Shell w, void delegate(st
 		auto put = new class Object {
 			Props prop;
 			string filterPath;
-			void delegate (Summary[]) loaded;
-			void put(Summary[] r) { mixin(S_TRACE);
+			void delegate (LoadResult[]) loaded;
+			void put(LoadResult[] r) { mixin(S_TRACE);
 				if (r.length) { mixin(S_TRACE);
 					filterPath = nabs(filterPath);
-					prop.var.etc.scenarioPath = r[0u].useTemp ? filterPath : dirName(filterPath);
+					prop.var.etc.scenarioPath = r[0u].summary.useTemp ? filterPath : dirName(filterPath);
 				}
 				if (loaded) loaded(r);
 			}
@@ -296,7 +311,7 @@ Summary[] loadScenarios(Props prop, in LoadOption opt, Shell w, void delegate(st
 			}
 			files.add(nabs(std.path.buildPath(dlg.getFilterPath(), file)));
 		}
-		Summary[] r = loadScenariosFromFile(prop, opt, w, status,
+		auto r = loadScenariosFromFile(prop, opt, w, status,
 			files.toArray(), &put.put, failure, oThr);
 		if (!oThr && r.length) put.put(r);
 		return r;
@@ -304,8 +319,8 @@ Summary[] loadScenarios(Props prop, in LoadOption opt, Shell w, void delegate(st
 	return [];
 }
 
-Summary[] loadScenariosFromFile(Props prop, in LoadOption opt, Shell w, void delegate(string) status,
-		string[] files, void delegate(Summary[]) loaded = null, void delegate() failure = null, bool oThr = true) { mixin(S_TRACE);
+LoadResult[] loadScenariosFromFile(Props prop, in LoadOption opt, Shell w, void delegate(string) status,
+		string[] files, void delegate(LoadResult[]) loaded = null, void delegate() failure = null, bool oThr = true) { mixin(S_TRACE);
 	auto display = Display.getCurrent();
 	if (oThr && loaded) { mixin(S_TRACE);
 		auto thr = new LSFFThr!(true);
@@ -324,11 +339,12 @@ Summary[] loadScenariosFromFile(Props prop, in LoadOption opt, Shell w, void del
 	} else { mixin(S_TRACE);
 		auto cursors = setWaitCursors(w);
 		scope (exit) resetCursors(cursors);
-		Summary[] r;
+		LoadResult[] r;
 		foreach (i, path; files) { mixin(S_TRACE);
-			Summary s = loadScenarioFromFileImpl(prop, opt, w, status, null, path, null, null, false, display);
+			string[] errorFiles;
+			auto s = loadScenarioFromFileImpl(prop, opt, errorFiles, w, status, null, path, null, null, false, display);
 			if (s) { mixin(S_TRACE);
-				r ~= s;
+				r ~= LoadResult(s, errorFiles);
 			} else { mixin(S_TRACE);
 				break;
 			}
@@ -355,31 +371,33 @@ string selectScenario(Props prop, Shell w, string dlgTitle) { mixin(S_TRACE);
 	return dlg.open();
 }
 
-Summary loadScenario(Props prop, in LoadOption opt, Shell w, void delegate(string) status,
-		Summary old, string dlgTitle, ref string[] openPaths, void delegate(Summary) loaded = null, void delegate() failure = null, bool oThr = true) { mixin(S_TRACE);
+Summary loadScenario(Props prop, in LoadOption opt, out string[] errorFiles, Shell w, void delegate(string) status,
+		Summary old, string dlgTitle, ref string[] openPaths,
+		void delegate(Summary, in string[] errorFiles) loaded = null,
+		void delegate() failure = null, bool oThr = true) { mixin(S_TRACE);
 	string fname = selectScenario(prop, w, dlgTitle);
 	if (fname) { mixin(S_TRACE);
 		decScenarioPath(fname, openPaths, prop.var.etc.clickIsOpenEvent);
 		auto put = new class Object {
-			void delegate(Summary) loaded;
-			void put(Summary r) { mixin(S_TRACE);
-				if (loaded) loaded(r);
+			void delegate(Summary, in string[] errorFiles) loaded;
+			void put(Summary r, in string[] errorFiles) { mixin(S_TRACE);
+				if (loaded) loaded(r, errorFiles);
 			}
 		};
 		put.loaded = loaded;
-		Summary r = loadScenarioFromFile(prop, opt, w, status, old, fname, &put.put, failure, oThr);
-		if (!oThr && r) put.put(r);
+		auto r = loadScenarioFromFile(prop, opt, errorFiles, w, status, old, fname, &put.put, failure, oThr);
+		if (!oThr && r) put.put(r, errorFiles);
 		return r;
 	}
 	return null;
 }
 
-Summary loadScenarioFromFile(Props prop, in LoadOption opt, Shell w, void delegate(string) status,
-		Summary old, string fname, void delegate(Summary) loaded = null, void delegate() failure = null, bool oThr = true) { mixin(S_TRACE);
-	return loadScenarioFromFileImpl(prop, opt, w, status, old, fname, loaded, failure, oThr, null);
+Summary loadScenarioFromFile(Props prop, in LoadOption opt, out string[] errorFiles, Shell w, void delegate(string) status,
+		Summary old, string fname, void delegate(Summary, in string[] errorFiles) loaded = null, void delegate() failure = null, bool oThr = true) { mixin(S_TRACE);
+	return loadScenarioFromFileImpl(prop, opt, errorFiles, w, status, old, fname, loaded, failure, oThr, null);
 }
-private Summary loadScenarioFromFileImpl(Props prop, in LoadOption opt, Shell w, void delegate(string) status,
-		Summary old, string fname, void delegate(Summary) loaded = null, void delegate() failure = null, bool oThr = true, Display current = null,
+private Summary loadScenarioFromFileImpl(Props prop, in LoadOption opt, out string[] errorFiles, Shell w, void delegate(string) status,
+		Summary old, string fname, void delegate(Summary, in string[] errorFiles) loaded = null, void delegate() failure = null, bool oThr = true, Display current = null,
 		void delegate (uint) setMax = null, void delegate (uint) worked = null) { mixin(S_TRACE);
 	if (oThr && loaded) { mixin(S_TRACE);
 		auto thr = new LSFFThr!(false);
@@ -408,7 +426,7 @@ private Summary loadScenarioFromFileImpl(Props prop, in LoadOption opt, Shell w,
 			if (!current) resetCursors(cursors);
 		}
 		try { mixin(S_TRACE);
-			return Summary.loadScenarioFromFile(prop.parent, opt, fname,
+			return Summary.loadScenarioFromFile(prop.parent, opt, errorFiles, fname,
 				prop.tempPath, null, old, setMax, worked,
 				isDir(fname) ? baseName(fname) : baseName(dirName(fname)));
 		} catch (SummaryException e) {
@@ -419,4 +437,78 @@ private Summary loadScenarioFromFileImpl(Props prop, in LoadOption opt, Shell w,
 		}
 	}
 	return null;
+}
+
+/// シナリオロード時にエラーの出たファイルの一覧を示し、
+/// シナリオを実際に読み込むかを指定させる。
+class ScenarioErrorFilesDialog : AbsDialog {
+
+	private Commons _comm = null;
+	private const Summary _summ = null;
+	private const string[] _errorFiles = [];
+
+	private Table _files = null;
+
+	this (Commons comm, Shell shell, const Summary summ, const string[] errorFiles)
+	in {
+		assert (summ !is null);
+		assert (errorFiles.length);
+	} body { mixin(S_TRACE);
+		_comm = comm;
+		_summ = summ;
+		_errorFiles = errorFiles;
+		super (_comm.prop, shell, true, _comm.prop.msgs.dlgTitScenarioLoadErrors,
+			_comm.prop.images.warning, true, _comm.prop.var.scenarioLoadErrorsDlg);
+		enterClose = true;
+		firstFocusIsOK = true;
+	}
+
+protected:
+	override void setup(Composite area) { mixin(S_TRACE);
+		area.setLayout(normalGridLayout(1, true));
+
+		auto fileName = (_summ.useTemp ? _summ.origZipName : _summ.scenarioPath).baseName();
+
+		auto l = new Label(area, SWT.WRAP);
+		l.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		if (fileName == "") { mixin(S_TRACE);
+			l.setText(.tryFormat(_comm.prop.msgs.scenarioLoadErrorsNoFileName, _summ.scenarioName));
+		} else { mixin(S_TRACE);
+			l.setText(.tryFormat(_comm.prop.msgs.scenarioLoadErrors, _summ.scenarioName, fileName));
+		}
+
+		_files = .rangeSelectableTable(area, SWT.BORDER | SWT.MULTI | SWT.FULL_SELECTION);
+		_files.setLayoutData(new GridData(GridData.FILL_BOTH));
+		new FullTableColumn(_files, SWT.NONE);
+		auto menu = new Menu(_files.getShell());
+		createMenuItem(_comm, menu, MenuID.Copy, &copy, () => _files.getSelectionIndex() != -1);
+		new MenuItem(menu, SWT.SEPARATOR);
+		createMenuItem(_comm, menu, MenuID.SelectAll, &selectAll, () => _files.getSelectionCount() < _files.getItemCount());
+		_files.setMenu(menu);
+
+		auto files = _errorFiles.dup;
+		if (_comm.prop.var.etc.logicalSort) { mixin(S_TRACE);
+			.sort!fnncmp(files);
+		} else { mixin(S_TRACE);
+			.sort!fncmp(files);
+		}
+		foreach (file; files) { mixin(S_TRACE);
+			auto itm = new TableItem(_files, SWT.NONE);
+			itm.setText(file);
+		}
+	}
+
+	private void copy() { mixin(S_TRACE);
+		string[] files;
+		foreach (itm; _files.getSelection()) { mixin(S_TRACE);
+			files ~= itm.getText();
+		}
+		auto text = new ArrayWrapperString(std.string.join(files, .newline));
+		_comm.clipboard.setContents([text], [TextTransfer.getInstance()]);
+		_comm.refreshToolBar();
+	}
+
+	private void selectAll() { mixin(S_TRACE);
+		_files.selectAll();
+	}
 }

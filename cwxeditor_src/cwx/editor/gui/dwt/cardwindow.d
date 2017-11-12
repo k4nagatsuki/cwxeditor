@@ -1156,9 +1156,10 @@ private:
 			this.toc = toc;
 			this.addScenario = addScenario;
 		}
-		void addS(Summary[] ccs) { mixin(S_TRACE);
+		void addS(LoadResult[] ccs) { mixin(S_TRACE);
 			CardWindow[] r;
-			foreach (i, cc; ccs) { mixin(S_TRACE);
+			foreach (i, t; ccs) { mixin(S_TRACE);
+				auto cc = t.summary;
 				if (cc) { mixin(S_TRACE);
 					if (cc.type == "" && !cc.legacy) { mixin(S_TRACE);
 						cc.type = prop.var.etc.defaultSkin;
@@ -1166,7 +1167,7 @@ private:
 					if (cc.skinName == "" && !cc.legacy) { mixin(S_TRACE);
 						cc.skinName = prop.var.etc.defaultSkinName;
 					}
-					auto shl = cast(Shell) parent;
+					auto shl = cast(Shell)parent;
 					auto pane = comm.sidePane;
 					auto acw = new CardWindow(comm, prop, CardWindowKind.ImportSource, pane, cc, cc, toc);
 					acw.shell.addDisposeListener(new DelTemp(cc));
@@ -1176,9 +1177,9 @@ private:
 			addScenario(r);
 		}
 	}
-	this() {}
+	this() { }
 	static Composite pane(Composite parent) { mixin(S_TRACE);
-		auto shl = cast(Shell) parent;
+		auto shl = cast(Shell)parent;
 		if (shl) { mixin(S_TRACE);
 			return topShell(shl);
 		} else { mixin(S_TRACE);

@@ -76,7 +76,7 @@ class Msgs : Properties {
 	auto apply = Msg("apply", "適用");
 	auto del = Msg("del", "削除");
 
-	auto filterAll = Msg("filterAll", "すべてのファイル (*.*)");
+	auto filterAll = Msg("filterAll", "全てのファイル (*.*)");
 
 	auto fileCopyError = Msg("fileCopyError", "%1$sのコピー中にエラーが発生しました。");
 	auto reloadError = Msg("reloadError", "%1$sの再読込中にエラーが発生しました。");
@@ -1082,11 +1082,15 @@ class Msgs : Properties {
 	auto saveToNotEmptyDir = Msg("saveToNotEmptyDir", "%1$sは空ではありません。\n本当にここにシナリオを保存しますか？");
 	auto notScenario = Msg("notScenario", "%1$sはシナリオ圧縮ファイルではありません");
 	auto zipError = Msg("zipError", "%1$sの展開に失敗しました。");
-	auto loadError = Msg("loadError", "%1$sの読込みに失敗しました。");
+	auto loadError = Msg("loadError", "%1$sの読み込みに失敗しました。");
 	auto saveError = Msg("saveError", "%1$sの保存に失敗しました。");
-	auto loadErrorStatus = Msg("loadErrorStatus", "%1$sの読込みに失敗");
-	auto loadErrorStatusCount = Msg("loadErrorStatusCount", "%1$s件のシナリオの読込みに失敗");
+	auto loadErrorStatus = Msg("loadErrorStatus", "%1$sの読み込みに失敗");
+	auto loadErrorStatusCount = Msg("loadErrorStatusCount", "%1$s件のシナリオの読み込みに失敗");
 	auto scenarioNotFound = Msg("scenarioNotFound", "%1$sは存在しないか、シナリオではありません。履歴から削除しますか？");
+
+	auto dlgTitScenarioLoadErrors = Msg("dlgTitScenarioLoadErrors", "シナリオファイル読込エラー");
+	auto scenarioLoadErrors = Msg("scenarioLoadErrors", "「%1$s(%2$s)」の読み込み中に、以下のファイルでエラーが発生しました。これらのファイルは無視され、次回の保存時に削除されます。\nこのままシナリオを開いてよろしいですか？");
+	auto scenarioLoadErrorsNoFileName = Msg("scenarioLoadErrorsNoFileName", "「%1$s」の読み込み中に、以下のファイルでエラーが発生しました。これらのファイルは無視され、次回の保存時に削除されます。\nこのままシナリオを開いてよろしいですか？");
 
 	/// データウィンドウ
 	auto areasTabName = Msg("areasTabName", "テーブル");
@@ -2029,6 +2033,7 @@ class Msgs : Properties {
 	auto saveNeedChanged = Msg("saveNeedChanged", "変更があった時だけ上書き保存を有効にする");
 	auto applyDialogsBeforeSave = Msg("applyDialogsBeforeSave", "保存前にダイアログの編集内容を適用する");
 	auto doubleIO = Msg("doubleIO", "分割読込・保存を行う(デュアルコア以上の環境で高速化)");
+	auto cautionToScenarioLoadErrors = Msg("cautionToScenarioLoadErrors", "シナリオの一部ファイルの読み込みに失敗した場合に警告する");
 	auto archiveInNewThread = Msg("archiveInNewThread", "保存時の圧縮を別スレッドで行う(圧縮シナリオの保存の高速化)");
 	auto saveChangedOnly = Msg("saveChangedOnly", "上書き時に更新されたファイルだけを保存する");
 	auto expandXMLs = Msg("expandXMLs", "圧縮されたシナリオの読込み時にXMLファイルを展開する");
@@ -2160,7 +2165,7 @@ class Msgs : Properties {
 	auto dlgTitScTemplate = Msg("dlgTitScTemplate", "テンプレートシナリオの選択");
 
 	auto exeFileDescExe = Msg("exeFileDescExe", "実行ファイル (*.exe)");
-	auto exeFileDescAll = Msg("exeFileDescAll", "すべてのファイル (*.*)");
+	auto exeFileDescAll = Msg("exeFileDescAll", "全てのファイル (*.*)");
 
 	auto classicEnginesTitle = Msg("classicEnginesTitle", "クラシックエンジンの設定");
 	auto classicEngineName = Msg("classicEngineName", "エンジン名");
@@ -2367,8 +2372,8 @@ class Msgs : Properties {
 	auto menuTextDelete1Content = Msg("menuTextDelete1Content", "1コンテント削除");
 	auto menuTextPasteInsert = Msg("menuTextPasteInsert", "クリップボードから挿入");
 	auto menuTextClone = Msg("menuTextClone", "複製");
-	auto menuTextSelectAll = Msg("menuTextSelectAll", "すべて選択");
-	auto menuTextCopyAll = Msg("menuTextCopyAll", "すべてコピー");
+	auto menuTextSelectAll = Msg("menuTextSelectAll", "全て選択");
+	auto menuTextCopyAll = Msg("menuTextCopyAll", "全てコピー");
 	auto menuTextToXMLText = Msg("menuTextToXMLText", "コピーしたデータをXMLに変換");
 	auto menuTextTableView = Msg("menuTextTableView", "テーブルビュー");
 	auto menuTextVarView = Msg("menuTextVarView", "状態変数ビュー");

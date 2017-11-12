@@ -3913,7 +3913,8 @@ public:
 			_grepFile = summFile;
 			scope (exit) _grepFile = "";
 			refResultStatus(count, true);
-			auto summ = Summary.loadScenarioFromFile(_prop.parent, opt, summFile, _prop.tempPath);
+			string[] errorFiles;
+			auto summ = Summary.loadScenarioFromFile(_prop.parent, opt, errorFiles, summFile, _prop.tempPath);
 			if (!summ) return;
 			_grepSumm = summ;
 			_grepCount++;

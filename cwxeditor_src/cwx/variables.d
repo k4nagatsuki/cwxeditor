@@ -682,6 +682,7 @@ class FlexEtcProps : Properties {
 	auto warningImageColor = Prop!(CRGB, true)("warningImageColor", CRGB(255, 128, 128));
 
 	auto doubleIO = Prop!(bool)("doubleIO", true);
+	auto cautionToScenarioLoadErrors = Prop!(bool)("cautionToScenarioLoadErrors", true);
 	auto reconstruction = Prop!(bool)("reconstruction", true);
 	auto branchRandomFailureFormat = Prop!(bool)("branchRandomFailureFormat", true);
 	auto openLastScenario = Prop!(bool)("openLastScenario", true);

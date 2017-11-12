@@ -121,7 +121,7 @@ public:
 		_useTemplate = currentWin;
 		string title = currentWin ? _prop.msgs.dlgTitNewScenario : _prop.msgs.dlgTitNewScenarioAtNewWin;
 		auto img = currentWin ? _prop.images.menu(MenuID.New) : _prop.images.menu(MenuID.NewAtNewWindow);
-		super(_prop, shell, title, img, true, _prop.var.newScDlg);
+		super (_prop, shell, title, img, true, _prop.var.newScDlg);
 		enterClose = true;
 	}
 
@@ -385,7 +385,8 @@ protected:
 						opt.textOnly = false;
 						opt.doubleIO = _prop.var.etc.doubleIO;
 						opt.expandXMLs = _prop.var.etc.expandXMLs;
-						summ = Summary.loadScenarioFromFile(_prop.parent, opt, tPath, _prop.tempPath, () => dir);
+						string[] errorFiles;
+						summ = Summary.loadScenarioFromFile(_prop.parent, opt, errorFiles, tPath, _prop.tempPath, () => dir);
 					} catch (SummaryException e) {
 						printStackTrace();
 						debugln(e);
@@ -423,7 +424,7 @@ private:
 	}
 public:
 	this(Commons comm, Props prop, Shell shell) { mixin(S_TRACE);
-		super(prop, shell, true, prop.msgs.dlgTitVersion, prop.images.menu(MenuID.VersionInfo), false, null, false, false);
+		super (prop, shell, true, prop.msgs.dlgTitVersion, prop.images.menu(MenuID.VersionInfo), false, null, false, false);
 		_comm = comm;
 		_prop = prop;
 		enterClose = true;
@@ -549,7 +550,7 @@ public:
 		_summ = summ;
 		_area = area;
 		_minId = minId;
-		super(prop, shell, prop.msgs.dlgTitReNumbering, prop.images.menu(MenuID.ReNumbering), false);
+		super (prop, shell, prop.msgs.dlgTitReNumbering, prop.images.menu(MenuID.ReNumbering), false);
 		enterClose = true;
 	}
 
@@ -750,7 +751,7 @@ public:
 		_base = base;
 		_opt = opt;
 		auto size = comm.prop.var.scriptVarSetDlg;
-		super(comm.prop, shell, true, comm.prop.msgs.dlgTitScriptVarSet, comm.prop.images.menu(MenuID.EvTemplates), true, size);
+		super (comm.prop, shell, true, comm.prop.msgs.dlgTitScriptVarSet, comm.prop.images.menu(MenuID.EvTemplates), true, size);
 		enterClose = false;
 	}
 

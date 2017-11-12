@@ -916,7 +916,7 @@ private:
 					_prop.var.etc.newAreaName, _prop.var.etc.bgImagesDefault, _prop.var.etc.saveSkinName);
 			}
 			summ.author = _prop.var.etc.defaultAuthor;
-			openScenario(summ);
+			openScenario(summ, []);
 			statusLine = "";
 		}
 	}
@@ -964,8 +964,9 @@ private:
 				auto wsm = std.path.buildPath(old.scenarioPath, "Summary.wsm");
 				if (old.useTemp) { mixin(S_TRACE);
 					try { mixin(S_TRACE);
-						auto summ = old.reloadXMLs(_prop.parent, loadOption(old));
-						openScenario(summ);
+						string[] errorFiles;
+						auto summ = old.reloadXMLs(_prop.parent, loadOption(old), errorFiles);
+						openScenario(summ, errorFiles);
 					} catch (Exception e) {
 						printStackTrace();
 						debugln(e);
@@ -975,11 +976,13 @@ private:
 					}
 				} else { mixin(S_TRACE);
 					if (!.exists(wsm)) wsm = old.scenarioPath;
-					loadScenarioFromFile(_prop, loadOption(old), _comm.mainShell, &setStatusLine, old, wsm, &openScenario, &resetOpt);
+					string[] errorFiles;
+					loadScenarioFromFile(_prop, loadOption(old), errorFiles, _comm.mainShell, &setStatusLine, old, wsm, &openScenario, &resetOpt);
 				}
 			} else if (expand) { mixin(S_TRACE);
 				try { mixin(S_TRACE);
-					openScenario(old.reloadXMLs(_prop.parent, loadOption(old)));
+					string[] errorFiles;
+					openScenario(old.reloadXMLs(_prop.parent, loadOption(old), errorFiles), errorFiles);
 				} catch (Exception e) {
 					printStackTrace();
 					debugln(e);
@@ -988,7 +991,8 @@ private:
 						_prop.msgs.dlgTitWarning, _win);
 				}
 			} else { mixin(S_TRACE);
-				loadScenarioFromFile(_prop, loadOption(old), _comm.mainShell, &setStatusLine, old, old.origZipName, &openScenario, &resetOpt);
+				string[] errorFiles;
+				loadScenarioFromFile(_prop, loadOption(old), errorFiles, _comm.mainShell, &setStatusLine, old, old.origZipName, &openScenario, &resetOpt);
 			}
 		}
 	}
@@ -1010,8 +1014,13 @@ private:
 		}
 		return findSkin(_comm, _prop, summ);
 	}
-	void openScenario(Summary summ) { mixin(S_TRACE);
+	void openScenario(Summary summ, const string[] errorFiles) { mixin(S_TRACE);
 		string dStr = .text(__LINE__);
+		if (_prop.var.etc.cautionToScenarioLoadErrors && errorFiles.length) { mixin(S_TRACE);
+			auto d = new ScenarioErrorFilesDialog(_comm, _win, summ, errorFiles);
+			if (!d.open()) return;
+		}
+		dStr ~= " - " ~ .text(__LINE__);
 		try { mixin(S_TRACE);
 			assert (summ);
 			dStr ~= " - " ~ .text(__LINE__);
@@ -1198,9 +1207,9 @@ private:
 		_opt.noload = false;
 	}
 
-	void openScenarioImpl(Summary summ) { mixin(S_TRACE);
+	void openScenarioImpl(Summary summ, const string[] errorFiles) { mixin(S_TRACE);
 		if (summ) { mixin(S_TRACE);
-			openScenario(summ);
+			openScenario(summ, errorFiles);
 			foreach (path; _opt.openPaths) { mixin(S_TRACE);
 				try { mixin(S_TRACE);
 					if (openCWXPath(path, true)) { mixin(S_TRACE);
@@ -1218,7 +1227,8 @@ private:
 	}
 	void openScenario() { mixin(S_TRACE);
 		auto old = summary;
-		loadScenario(_prop, loadOption(null), _comm.mainShell, &setStatusLine,
+		string[] errorFiles;
+		loadScenario(_prop, loadOption(null), errorFiles, _comm.mainShell, &setStatusLine,
 			old, _prop.msgs.dlgTitOpenScenario,
 			_opt.openPaths, &openScenarioImpl, &resetOpt);
 	}
@@ -1228,7 +1238,8 @@ private:
 		}
 		decScenarioPath(fname, _opt.openPaths, _prop.var.etc.clickIsOpenEvent);
 		auto old = summary;
-		loadScenarioFromFile(_prop, loadOption(null), _comm.mainShell, &setStatusLine,
+		string[] errorFiles;
+		loadScenarioFromFile(_prop, loadOption(null), errorFiles, _comm.mainShell, &setStatusLine,
 			old, fname, &openScenarioImpl, failure);
 	}
 	void playSavedSound() { mixin(S_TRACE);
@@ -4462,7 +4473,7 @@ public:
 					findSkin2(_prop, skinType, skinName), _prop.var.etc.newAreaName != "",
 					_prop.var.etc.newAreaName, _prop.var.etc.bgImagesDefault, _prop.var.etc.saveSkinName);
 				summ.author = _prop.var.etc.defaultAuthor;
-				openScenario(summ);
+				openScenario(summ, []);
 				statusLine = "";
 			} else if (_opt.createclassic) { mixin(S_TRACE);
 				string name = _opt.createName is null ? _prop.var.etc.newScenarioName : _opt.createName;
@@ -4484,7 +4495,7 @@ public:
 							scope (exit) _saveSync.unlock();
 							summ.saveOverwrite(_prop.parent, findSkin(_comm, _prop, summ), createSaveOpt(true));
 						}
-						openScenario(summ);
+						openScenario(summ, []);
 						statusLine = "";
 					} catch (Exception e) {
 						printStackTrace();
