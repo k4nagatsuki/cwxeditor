@@ -382,7 +382,7 @@ class Commons {
 	Dlg!() refRadarStyle;
 	Dlg!() refVarSelectStyle;
 	Dlg!() refEventTreeViewStyle;
-	Dlg!() refTerminalMark;
+	Dlg!() refEventEditorStyle;
 	Dlg!() refContentsToolBoxStyle;
 	Dlg!(int) refEventTreeSlope;
 	Dlg!() refFloatMessagePreview;

@@ -454,6 +454,7 @@ class FlexEtcProps : Properties {
 	auto eventTreeSlope = Prop!(int)("eventTreeSlope", 16);
 	auto forceIndentBranchContent = Prop!(bool)("forceIndentBranchContent", true);
 	auto showTerminalMark = Prop!(bool)("showTerminalMark", true);
+	auto showTargetStartLineNumber = Prop!(bool)("showTargetStartLineNumber", true);
 	auto clickIconIsStartEdit = Prop!(bool)("clickIconIsStartEdit", false);
 	auto showAreaDirTree = Prop!(bool)("showAreaDirTree", true);
 	auto incrementNewAreaName = Prop!(bool)("incrementNewAreaName", true);

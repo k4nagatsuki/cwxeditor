@@ -177,6 +177,8 @@ class EventEditor : Composite {
 	/// スタートコンテントの位置と前後情報。
 	private StartInfo[string] _startInfos;
 	private StartInfo _firstStartInfo = null;
+	/// 名前をキーにしたスタートコンテントのテーブル。
+	private StartInfo[string] _startInfoWithName;
 
 	private Color _lineColor = null;
 	private Color _selectedColor = null;
@@ -241,7 +243,7 @@ class EventEditor : Composite {
 		_lightupColor = new Color(d, new RGB(191, 224, 255));
 		_warningImage = .warningImage(_comm.prop, d);
 		setForeground(color);
-		if (_summ) _comm.refTerminalMark.add(&updatePosAll);
+		if (_summ) _comm.refEventEditorStyle.add(&updatePosAll);
 		.listener(this, SWT.Dispose, { mixin(S_TRACE);
 			_lineColor.dispose();
 			_selectedColor.dispose();
@@ -249,7 +251,7 @@ class EventEditor : Composite {
 			color.dispose();
 			_warningImage.dispose();
 			clearInfo();
-			if (_summ) _comm.refTerminalMark.remove(&updatePosAll);
+			if (_summ) _comm.refEventEditorStyle.remove(&updatePosAll);
 		});
 		.listener(this, SWT.Paint, &onPaint);
 		.listener(this, SWT.MouseWheel, &onMouseWheel);
@@ -291,6 +293,7 @@ class EventEditor : Composite {
 		_pos = [];
 		_posTable = null;
 		_startInfos = null;
+		_startInfoWithName = null;
 		_firstStartInfo = null;
 		_items = null;
 		_warningRects = [];
@@ -392,7 +395,9 @@ class EventEditor : Composite {
 		_widthSum = 0;
 		auto posY = new int[_pos.length];
 		auto startInfo = _firstStartInfo;
+		_startInfoWithName = null;
 		while (startInfo) { mixin(S_TRACE);
+			_startInfoWithName[startInfo.start.name] = startInfo;
 			assert (startInfo.start.tree is _et);
 			// テキストが更新されたイベントコンテントの位置は
 			// スタートコンテントのupdateCounterで検知できる
@@ -422,12 +427,6 @@ class EventEditor : Composite {
 					}
 				}
 				if (update || branch || (c.parent && c.parent.detail.nextType is CNextType.TEXT)) { mixin(S_TRACE);
-					auto s = .eventText(_comm, _summ, c.parent, c, !(getStyle() & SWT.READ_ONLY));
-					_pos[i].eventText = s;
-					if (c.name == "" && c.parent && c.parent.detail.nextType is CNextType.TEXT) { mixin(S_TRACE);
-						s = _comm.skin.evtChildOK;
-					}
-					_pos[i].eventTextWidth = gc.wTextExtent(s).x;
 					_posTable[c.eventId] = _pos[i];
 				}
 
@@ -476,6 +475,29 @@ class EventEditor : Composite {
 		});
 	}
 
+	private int calcEventTextWidth(GC gc, Content c, out string s) { mixin(S_TRACE);
+		auto eventTextWidth = 0;
+		s = .eventText(_comm, _summ, c.parent, c, !(getStyle() & SWT.READ_ONLY));
+		StartInfo *p = null;
+		if (_comm.prop.var.etc.showTargetStartLineNumber && c.name == "" && c.detail.use(CArg.START)) { mixin(S_TRACE);
+			p = c.start in _startInfoWithName;
+			if (p) { mixin(S_TRACE);
+				auto startInfo = *p;
+				auto line = _posTable[startInfo.start.eventId].lineNumber;
+				eventTextWidth = gc.wTextExtent(.text(line)).x;
+				auto ay = _lineHeight / 4;
+				eventTextWidth += ay * 3;
+			}
+		}
+		if (!p) { mixin(S_TRACE);
+			if (c.name == "" && c.parent && c.parent.detail.nextType is CNextType.TEXT) { mixin(S_TRACE);
+				s = _comm.skin.evtChildOK;
+			}
+			if (s.length) eventTextWidth = gc.wTextExtent(s).x;
+		}
+		return eventTextWidth;
+	}
+
 	private void createPosInfoRecurse(GC gc, int x, int depth1, int depth2, Content c, ref PosInfo[] pos, ref int[] posY, ref int index, ref int lineNumber, ref int relY, ref int heightSum, ref int width, ref bool[string] expanded2) { mixin(S_TRACE);
 		while (true) { mixin(S_TRACE);
 			auto type = c.type;
@@ -486,17 +508,8 @@ class EventEditor : Composite {
 				height = _lineHeight * 2;
 				heightSum++;
 			}
-			auto eventText = .eventText(_comm, _summ, c.parent, c, !(getStyle() & SWT.READ_ONLY));
-			auto s = eventText;
-			if (c.name == "" && c.parent && c.parent.detail.nextType == CNextType.TEXT) { mixin(S_TRACE);
-				s = _comm.skin.evtChildOK;
-			}
-			auto eventTextWidth = 0;
-			if (s != "") { mixin(S_TRACE);
-				eventTextWidth = gc.wTextExtent(s).x;
-			}
 
-			pos ~= new PosInfo(depth1, depth2, relY, height, index, lineNumber, c, s, eventTextWidth);
+			pos ~= new PosInfo(depth1, depth2, relY, height, index, lineNumber, c, "", 0);
 			posY ~= y;
 			_posTable[c.eventId] = pos[$ - 1];
 			relY += height;
@@ -615,6 +628,7 @@ class EventEditor : Composite {
 		StartInfo beforeInfo = null;
 		StartInfo[string] newStartInfos;
 		_firstStartInfo = null;
+		_startInfoWithName = null;
 		foreach (start; _et.starts) { mixin(S_TRACE);
 			StartInfo startInfo = null;
 			auto fromIndex = pos.length;
@@ -682,6 +696,8 @@ class EventEditor : Composite {
 
 			beforeInfo = startInfo;
 			if (!_firstStartInfo) _firstStartInfo = startInfo;
+
+			_startInfoWithName[start.name] = startInfo;
 		}
 		if (beforeInfo) beforeInfo.next = null;
 
@@ -742,6 +758,11 @@ class EventEditor : Composite {
 			_updateCommentPos = true;
 			return;
 		}
+
+		foreach (ptrdiff_t i, ref pos; _pos) { mixin(S_TRACE);
+			pos.eventTextWidth = calcEventTextWidth(gc, pos.content, pos.eventText);
+		}
+
 		_updateCommentPos = false;
 		auto ca = getClientArea();
 		Rectangle[] boxes;
@@ -908,15 +929,10 @@ class EventEditor : Composite {
 		return calcRight(pos, x);
 	}
 	private int calcRight(in PosInfo pos, int x) { mixin(S_TRACE);
-		auto c = pos.content;
-		string s = pos.eventText;
-		if (c.name == "" && c.parent && c.parent.detail.nextType == CNextType.TEXT) { mixin(S_TRACE);
-			s = _comm.skin.evtChildOK;
-		}
-		if (s == "") { mixin(S_TRACE);
-			return x + 16.ppis;
-		} else { mixin(S_TRACE);
+		if (pos.eventTextWidth) { mixin(S_TRACE);
 			return x + 20.ppis + pos.eventTextWidth;
+		} else { mixin(S_TRACE);
+			return x + 16.ppis;
 		}
 	}
 
@@ -1479,15 +1495,44 @@ class EventEditor : Composite {
 			e.gc.drawImage(image, calcX(pos) - sx, (startInfo.y + pos.relY) + _imgPos - sy);
 			if (!pos.nameVisible) continue;
 			string s;
-			if (c.name == "" && c.parent && c.parent.detail.nextType == CNextType.TEXT) { mixin(S_TRACE);
-				e.gc.setForeground(d.getSystemColor(SWT.COLOR_GRAY));
-				s = _comm.skin.evtChildOK;
-			} else { mixin(S_TRACE);
-				e.gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
-				s = pos.eventText;
+			StartInfo *p = null;
+			auto ctx = 0.ppis;
+			auto cy = (startInfo.y + pos.relY) - sy;
+			if (_comm.prop.var.etc.showTargetStartLineNumber && c.name == "" && c.detail.use(CArg.START)) { mixin(S_TRACE);
+				p = c.start in _startInfoWithName;
+				if (p) { mixin(S_TRACE);
+					// 対象スタートコンテントと行番号と矢印
+					e.gc.setForeground(d.getSystemColor(SWT.COLOR_GRAY));
+					auto line = _posTable[p.start.eventId].lineNumber;
+					e.gc.setLineWidth(2.ppis);
+					scope (exit) e.gc.setLineWidth(1);
+					ctx = calcX(pos) + 20.ppis;
+					auto ay = _lineHeight / 4;
+					auto ps = [
+						ctx - sx, cy + (_lineHeight / 2) - ay,
+						ctx - sx + ay, cy + (_lineHeight / 2),
+						ctx - sx, cy + (_lineHeight / 2) + ay,
+					];
+					e.gc.drawPolyline(ps);
+					ps[0] += ay;
+					ps[2] += ay;
+					ps[4] += ay;
+					e.gc.drawPolyline(ps);
+					ctx += ay * 3;
+					e.gc.wDrawText(.text(line), ctx - sx, (startInfo.y + pos.relY) - sy + _lineTextY, true);
+				}
 			}
-			auto ctx = calcX(pos) + 20.ppis;
-			e.gc.wDrawText(s, ctx - sx, (startInfo.y + pos.relY) - sy + _lineTextY, true);
+			if (!p) { mixin(S_TRACE);
+				if (c.name == "" && c.parent && c.parent.detail.nextType == CNextType.TEXT) { mixin(S_TRACE);
+					e.gc.setForeground(d.getSystemColor(SWT.COLOR_GRAY));
+					s = _comm.skin.evtChildOK;
+				} else { mixin(S_TRACE);
+					e.gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
+					s = pos.eventText;
+				}
+				ctx = calcX(pos) + 20.ppis;
+				e.gc.wDrawText(s, ctx - sx, cy + _lineTextY, true);
+			}
 			if ((_summ ? _comm.prop.var.etc.drawCountOfUseOfStart : drawCountOfUseOfStart) && c.type == CType.START) { mixin(S_TRACE);
 				// スタート使用数
 				auto count = _et.startUseCounter.get(toStartId(c.name));

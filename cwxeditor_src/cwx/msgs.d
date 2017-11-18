@@ -2072,6 +2072,7 @@ class Msgs : Properties {
 	auto straightEventTreeView = Msg("straightEventTreeView", "イベントツリーを垂直に表示する");
 	auto forceIndentBranchContent = Msg("forceIndentBranchContent", "垂直表示時に分岐コンテントの後続コンテントは必ず右へ移動する");
 	auto showTerminalMark = Msg("showTerminalMark", "垂直表示時にイベントツリーの終端を明示する");
+	auto showTargetStartLineNumber = Msg("showTargetStartLineNumber", "スタートへのリンク及びコールの隣にリンク・コール先の行番号を表示する");
 	auto classicStyleTree = Msg("classicStyleTree", "ツリー表示時、イベントツリーの開閉ボタンを省略する");
 	auto clickIconIsStartEdit = Msg("clickIconIsStartEdit", "イベントコンテントのアイコンのクリックでダイアログを開く");
 	auto adjustContentName = Msg("adjustContentName", "イベントコンテントの移動時にテキストを再設定する");

@@ -179,6 +179,7 @@ class EtcSettings : Composite {
 		boolSetting(comp, prop.var.etc.straightEventTreeView, prop.msgs.straightEventTreeView);
 		boolSetting(comp, prop.var.etc.forceIndentBranchContent, prop.msgs.forceIndentBranchContent);
 		boolSetting(comp, prop.var.etc.showTerminalMark, prop.msgs.showTerminalMark);
+		boolSetting(comp, prop.var.etc.showTargetStartLineNumber, prop.msgs.showTargetStartLineNumber);
 		boolSetting(comp, prop.var.etc.classicStyleTree, prop.msgs.classicStyleTree);
 		boolSetting(comp, prop.var.etc.clickIconIsStartEdit, prop.msgs.clickIconIsStartEdit);
 		boolSetting(comp, prop.var.etc.adjustContentName, prop.msgs.adjustContentName);

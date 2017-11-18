@@ -1597,6 +1597,7 @@ struct OldSettings {
 	bool straightEventTreeView;
 	bool forceIndentBranchContent;
 	bool showTerminalMark;
+	bool showTargetStartLineNumber;
 	bool showSummaryInAreaTable;
 	bool showAreaDirTree;
 	bool showContentsGroupName;
@@ -1664,6 +1665,7 @@ struct OldSettings {
 		this.straightEventTreeView = prop.var.etc.straightEventTreeView;
 		this.forceIndentBranchContent = prop.var.etc.forceIndentBranchContent;
 		this.showTerminalMark = prop.var.etc.showTerminalMark;
+		this.showTargetStartLineNumber = prop.var.etc.showTargetStartLineNumber;
 		this.showSummaryInAreaTable = prop.var.etc.showSummaryInAreaTable;
 		this.showAreaDirTree = prop.var.etc.showAreaDirTree;
 		this.showContentsGroupName = prop.var.etc.showContentsGroupName;
@@ -1837,8 +1839,8 @@ struct OldSettings {
 		if (this.straightEventTreeView != prop.var.etc.straightEventTreeView || this.forceIndentBranchContent != prop.var.etc.forceIndentBranchContent) { mixin(S_TRACE);
 			comm.refEventTreeViewStyle.call();
 		}
-		if (this.showTerminalMark != prop.var.etc.showTerminalMark) { mixin(S_TRACE);
-			comm.refTerminalMark.call();
+		if (this.showTerminalMark != prop.var.etc.showTerminalMark || this.showTargetStartLineNumber != prop.var.etc.showTargetStartLineNumber) { mixin(S_TRACE);
+			comm.refEventEditorStyle.call();
 		}
 		if (this.showSummaryInAreaTable != prop.var.etc.showSummaryInAreaTable) { mixin(S_TRACE);
 			comm.refAreaTable.call();
