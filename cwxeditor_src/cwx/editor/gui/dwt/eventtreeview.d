@@ -1222,7 +1222,7 @@ private:
 								v.procTreeItem(itm);
 								if (v is this) v._tree.setSelection([itm]);
 								v.refreshStatusLine();
-								if (evt.detail.owner) { mixin(S_TRACE);
+								if (owner.detail.owner) { mixin(S_TRACE);
 									v.createChilds(itm, evt);
 									v._tree.setExpanded(itm, true);
 									auto parItm = v._tree.getParentItem(itm);
