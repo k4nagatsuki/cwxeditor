@@ -472,7 +472,10 @@ private:
 				}
 				auto ownItm = v._cards.getItem(cast(int)_ownerIndex);
 				auto itm = ownItm.getItem(cast(int)_insertIndex);
-				if (v._selItm is itm) v._selItm = null;
+				if (v._selItm is itm) { mixin(S_TRACE);
+					v._selItm.setImage(v.etImage(tree));
+					v._selItm = null;
+				}
 				itm.dispose();
 			}
 			comm.delEventTree.call(tree);
@@ -608,9 +611,15 @@ private:
 
 	void selectImpl(TreeItem itm, bool sel = true, bool forceRefresh = false) { mixin(S_TRACE);
 		if (sel) _cards.setSelection([itm]);
-		if (cast(EventTree)itm.getData()) { mixin(S_TRACE);
+		if (auto et = cast(EventTree)itm.getData()) { mixin(S_TRACE);
+			auto old = _etree.eventTree;
+			_etree.refresh(et);
+			if (_selItm) { mixin(S_TRACE);
+				assert (old !is null);
+				_selItm.setImage(etImage(old));
+			}
 			_selItm = itm;
-			_etree.refresh(cast(EventTree)itm.getData());
+			_selItm.setImage(etImage(et));
 		}
 		if (_fireItm) { mixin(S_TRACE);
 			auto parItm = selectionParent;
@@ -844,9 +853,16 @@ private:
 		_comm.refreshToolBar();
 	}
 	Image etImage(in EventTree tree) { mixin(S_TRACE);
-		final switch (tree.keyCodeMatchingType) {
-		case KeyCodeMatchingType.Or: return _prop.images.eventTree;
-		case KeyCodeMatchingType.And: return _prop.images.eventTreeAnd;
+		if (_prop.var.etc.specifySelectedEventTree && _etree.eventTree is tree) { mixin(S_TRACE);
+			final switch (tree.keyCodeMatchingType) {
+			case KeyCodeMatchingType.Or: return _prop.images.eventTreeSelected;
+			case KeyCodeMatchingType.And: return _prop.images.eventTreeAndSelected;
+			}
+		} else { mixin(S_TRACE);
+			final switch (tree.keyCodeMatchingType) {
+			case KeyCodeMatchingType.Or: return _prop.images.eventTree;
+			case KeyCodeMatchingType.And: return _prop.images.eventTreeAnd;
+			}
 		}
 	}
 	TreeItem appendTreeItem(TreeItem parItm, int index, Object defFire, bool thisOnly) { mixin(S_TRACE);
@@ -1631,6 +1647,7 @@ public:
 		if (_selItm && !_selItm.isDisposed()
 				&& _selItm.getParentItem() is _cards.getItems()[index + cardsIndex]) { mixin(S_TRACE);
 			_etree.refresh(null);
+			_selItm.setImage(etImage(cast(EventTree)_selItm.getData()));
 			_selItm = null;
 		}
 		_cards.getItems()[index + cardsIndex].dispose();
@@ -2837,8 +2854,9 @@ public:
 			foreach (v; vs) { mixin(S_TRACE);
 				auto itm2 = .anotherTreeItem(v._cards, itm);
 				if (v._selItm is itm2) { mixin(S_TRACE);
-					v._selItm = null;
 					v._etree.refresh(null);
+					v._selItm.setImage(etImage(tree));
+					v._selItm = null;
 				}
 			}
 			_comm.delEventTree.call(tree);

@@ -384,6 +384,8 @@ public:
 	@property Image eventTreeNoScale() {return imgd!("event_tree.png")(false);}
 	@property Image eventTreeEmpty() {return imgd!("event_tree_empty.png");}
 	@property Image eventTreeAnd() {return imgd!("event_tree_and.png");}
+	@property Image eventTreeSelected() {return imgd!("event_tree_selected.png");}
+	@property Image eventTreeAndSelected() {return imgd!("event_tree_and_selected.png");}
 	@property Image defStart() {return imgd!("def_start.png");}
 	@property Image keyCode() {return imgd!("key_code.png");}
 	@property Image round() {return imgd!("round.png");}

@@ -466,6 +466,7 @@ class FlexEtcProps : Properties {
 	auto showEventTreeLineNumber = Prop!(bool)("showEventTreeLineNumber", true);
 	auto showEventTreeDetail = Prop!(bool)("showEventTreeDetail", true);
 	auto editTriggerType = Prop!(int)("editTriggerType", EditTrigger.Slow);
+	auto specifySelectedEventTree = Prop!(bool)("specifySelectedEventTree", true);
 
 	auto spinnerUpDownWithWheel = Prop!(bool)("spinnerUpDownWithWheel", true);
 
