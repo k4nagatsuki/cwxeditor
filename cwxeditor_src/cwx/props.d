@@ -41,12 +41,12 @@ public:
 	@property const CInsets cardInsets(){return menuCardInsets;}
 	@property const CPoint[] partyCardXY() { mixin(S_TRACE);
 		return [
-			CPoint(8, 285),
-			CPoint(112, 285),
-			CPoint(216, 285),
+			CPoint(9, 285),
+			CPoint(113, 285),
+			CPoint(217, 285),
 			CPoint(320, 285),
-			CPoint(424, 285),
-			CPoint(528, 285)
+			CPoint(425, 285),
+			CPoint(529, 285)
 		];
 	}
 	@property const size_t partyMax() { return 6; }
