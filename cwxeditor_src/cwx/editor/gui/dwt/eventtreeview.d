@@ -4327,6 +4327,36 @@ class ContentsToolBox {
 	private DisposeListener _disposeParent = null;
 	private AHTCListener _autoResize = null;
 
+	version (Windows) {
+		// FIXME: キーイベントの確実性がないのでシステムコールでキー状態を取得する
+		private import org.eclipse.swt.internal.win32.OS;
+		private import org.eclipse.swt.internal.win32.WINTYPES;
+
+		@property
+		private bool isShiftDown() {
+			return (OS.GetAsyncKeyState(OS.VK_SHIFT) & 0x8000) != 0;
+		}
+
+		@property
+		private bool isCtrlDown() {
+			return (OS.GetAsyncKeyState(OS.VK_CONTROL) & 0x8000) != 0;
+		}
+
+		@property
+		private bool isAltDown() {
+			return (OS.GetAsyncKeyState(OS.VK_MENU) & 0x8000) != 0;
+		}
+	} else {
+		@property
+		private bool isShiftDown() { return _shiftDown; }
+
+		@property
+		private bool isCtrlDown() { return _ctrlDown; }
+
+		@property
+		private bool isAltDown() { return _altDown; }
+	}
+
 	private void autoOpen() { mixin(S_TRACE);
 		_autoOpen = _autoOpenTI.getSelection();
 		_comm.selContentTool.call(this, _arrowMode, _cType, _putMode, _autoOpen, _insertFirst);
