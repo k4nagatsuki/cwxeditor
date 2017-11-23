@@ -176,11 +176,12 @@ class EtcSettings : Composite {
 				contentsFloat.setSelection(false);
 			}
 		});
-		boolSetting(comp, prop.var.etc.straightEventTreeView, prop.msgs.straightEventTreeView);
-		boolSetting(comp, prop.var.etc.forceIndentBranchContent, prop.msgs.forceIndentBranchContent);
-		boolSetting(comp, prop.var.etc.showTerminalMark, prop.msgs.showTerminalMark);
-		boolSetting(comp, prop.var.etc.showTargetStartLineNumber, prop.msgs.showTargetStartLineNumber);
-		boolSetting(comp, prop.var.etc.classicStyleTree, prop.msgs.classicStyleTree);
+		auto straightEventTreeView = boolSetting(comp, prop.var.etc.straightEventTreeView, prop.msgs.straightEventTreeView);
+		auto restorePositionOfEventTreeView = boolSetting(comp, prop.var.etc.restorePositionOfEventTreeView, prop.msgs.restorePositionOfEventTreeView);
+		auto forceIndentBranchContent = boolSetting(comp, prop.var.etc.forceIndentBranchContent, prop.msgs.forceIndentBranchContent);
+		auto showTerminalMark = boolSetting(comp, prop.var.etc.showTerminalMark, prop.msgs.showTerminalMark);
+		auto showTargetStartLineNumber = boolSetting(comp, prop.var.etc.showTargetStartLineNumber, prop.msgs.showTargetStartLineNumber);
+		auto classicStyleTree = boolSetting(comp, prop.var.etc.classicStyleTree, prop.msgs.classicStyleTree);
 		boolSetting(comp, prop.var.etc.clickIconIsStartEdit, prop.msgs.clickIconIsStartEdit);
 		boolSetting(comp, prop.var.etc.adjustContentName, prop.msgs.adjustContentName);
 		boolSetting(comp, prop.var.etc.showVariableValuesInEventText, prop.msgs.showVariableValuesInEventText);
@@ -190,6 +191,17 @@ class EtcSettings : Composite {
 		boolSetting(comp, prop.var.etc.selectVariableWithTree, prop.msgs.selectVariableWithTree);
 		boolSetting(comp, prop.var.etc.useNamesAfterStandard, prop.msgs.useNamesAfterStandard);
 		boolSetting(comp, prop.var.etc.expandChooserItems, prop.msgs.expandChooserItems);
+
+		void updateStraightEventTreeView() { mixin(S_TRACE);
+			auto st = straightEventTreeView.getSelection();
+			forceIndentBranchContent.setEnabled(st);
+			classicStyleTree.setEnabled(!st);
+			showTerminalMark.setEnabled(st);
+			showTargetStartLineNumber.setEnabled(st);
+			restorePositionOfEventTreeView.setEnabled(st);
+		}
+		.listener(straightEventTreeView, SWT.Selection, &updateStraightEventTreeView);
+		updateStraightEventTreeView();
 
 		comp = createComp(prop.msgs.etcSettingsCard);
 		boolSetting(comp, prop.var.etc.showEventTreeMark, prop.msgs.showEventTreeMark);

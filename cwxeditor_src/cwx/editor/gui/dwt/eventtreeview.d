@@ -2182,6 +2182,9 @@ public:
 			_comm.refreshToolBar();
 		}
 	}
+	void removeStoredLine(string eventTreeId) { mixin(S_TRACE);
+		if (_tree.editor) _tree.editor.removeStoredLine(eventTreeId);
+	}
 	void treeOpen() { mixin(S_TRACE);
 		_tree.treeExpandedAll();
 		_comm.refreshToolBar();

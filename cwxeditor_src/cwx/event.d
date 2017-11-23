@@ -2922,6 +2922,8 @@ private struct FKeyCodeU {
 /// イベントツリー。発火条件と実行するイベント群を持つ。
 public class EventTree : IKeyCodeUser {
 private:
+	string _id;
+
 	EventTreeOwner _owner;
 
 	/// 開始条件群
@@ -2943,11 +2945,15 @@ private:
 
 	this () { mixin(S_TRACE);
 		_suc = new SUseCounter;
+		static ulong idCount = 0;
+		auto o = this;
+		_id = format("%08X", &o) ~ "-" ~ to!(string)(Clock.currTime()) ~ "-" ~ to!string(idCount);
+		idCount++;
 	}
 public:
 	/// イベントツリー名を指定してインスタンスを生成。
 	this (string name) { mixin(S_TRACE);
-		this(new Content(CType.START, name));
+		this (new Content(CType.START, name));
 	}
 	/// スタートコンテントを指定してインスタンスを生成。
 	/// startがすでにイベントツリーに所属している場合、
@@ -2955,7 +2961,7 @@ public:
 	this (Content start) in { mixin(S_TRACE);
 		assert (start.type == CType.START);
 	} body { mixin(S_TRACE);
-		_suc = new SUseCounter;
+		this ();
 		if (start.tree) { mixin(S_TRACE);
 			start = start.dup;
 		}
@@ -2967,7 +2973,7 @@ public:
 			assert (c.type is CType.START);
 		}
 	} body { mixin(S_TRACE);
-		_suc = new SUseCounter;
+		this ();
 		_starts = starts;
 		foreach (s; _starts) { mixin(S_TRACE);
 			if (s._tree) s._tree._startNames.remove(s.name);
@@ -2977,16 +2983,22 @@ public:
 		foreach (start; starts) _startNames[start.name] = start;
 	}
 
+	/// イベントツリーのID。
+	@property
+	const
+	string eventTreeId() { return _id; }
+
 	/// このツリーの所有者。
 	@property
 	inout
-	inout(EventTreeOwner) owner() {return _owner;}
+	inout(EventTreeOwner) owner() { return _owner; }
 
 	/// ディープコピーを作成する。
 	@property
 	const
 	EventTree dup() { mixin(S_TRACE);
 		auto copy = new EventTree;
+		copy._id = _id;
 		copy.enter = fireEnter;
 		copy.escape = fireEscape;
 		copy.lose = fireLose;

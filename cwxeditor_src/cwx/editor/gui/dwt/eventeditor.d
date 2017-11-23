@@ -20,6 +20,7 @@ import std.ascii;
 import std.conv;
 import std.datetime;
 import std.string;
+import std.typecons;
 
 import org.eclipse.swt.all;
 import java.lang.all;
@@ -279,9 +280,27 @@ class EventEditor : Composite {
 	@property
 	void eventTree(EventTree et) { mixin(S_TRACE);
 		if (_et is et) return;
+		if (_et) { mixin(S_TRACE);
+			auto lineNumber = getVerticalBar().getSelection();
+			if (_selectedIndex == -1 || (lineNumber == 0 && _selectedIndex == 0)) { mixin(S_TRACE);
+				removeStoredLine(_et.eventTreeId);
+			} else { mixin(S_TRACE);
+				_storedLine[_et.eventTreeId] = StoredLine(lineNumber, _selectedIndex);
+			}
+		}
 		_et = et;
+
+		if (_et && _comm.prop.var.etc.restorePositionOfEventTreeView && _et.eventTreeId in _storedLine) { mixin(S_TRACE);
+			_restoreLine = true;
+		}
 		updateEventTree();
 	}
+	void removeStoredLine(string eventTreeId) { mixin(S_TRACE);
+		if (eventTreeId in _storedLine) _storedLine.remove(eventTreeId);
+	}
+	private alias Tuple!(int, "lineNumber", int, "selected") StoredLine;
+	private StoredLine[string] _storedLine;
+	private bool _restoreLine = false;
 
 	private void clearInfo() { mixin(S_TRACE);
 		_expanded = null;
@@ -1061,12 +1080,12 @@ class EventEditor : Composite {
 			return pos.index;
 		}
 	}
-	private void select(int index) { mixin(S_TRACE);
+	private void select(int index, bool redraw) { mixin(S_TRACE);
 		auto c = _pos[index].content;
 		_selected = c;
 		_selectedParentStart = c ? c.parentStart : null;
 		_selectedIndex = c ? indexOf(c) : -1;
-		redraw();
+		if (redraw) this.redraw();
 	}
 
 	/// 選択の変更をlistenerに通知する。
@@ -1170,9 +1189,9 @@ class EventEditor : Composite {
 		case SWT.ARROW_UP:
 			if (_selected) { mixin(S_TRACE);
 				int i = _selectedIndex;
-				if (0 < i) select(i - 1);
+				if (0 < i) select(i - 1, true);
 			} else { mixin(S_TRACE);
-				select(0);
+				select(0, true);
 			}
 			showSelection();
 			callSelectChanged();
@@ -1181,10 +1200,10 @@ class EventEditor : Composite {
 			if (_selected) { mixin(S_TRACE);
 				int i = _selectedIndex;
 				if (i + 1 < _pos.length) { mixin(S_TRACE);
-					select(i + 1);
+					select(i + 1, true);
 				}
 			} else { mixin(S_TRACE);
-				select(0);
+				select(0, true);
 			}
 			showSelection();
 			callSelectChanged();
@@ -1336,10 +1355,21 @@ class EventEditor : Composite {
 	private void onPaint(Event e) { mixin(S_TRACE);
 		if (!_et) return;
 		updatePosImpl2(true);
-		if (_showSelection) { mixin(S_TRACE);
-			_showSelection = false;
-			showSelection();
+		if (_pos.length) { mixin(S_TRACE);
+			if (_restoreLine) { mixin(S_TRACE);
+				if (auto p = _et.eventTreeId in _storedLine) { mixin(S_TRACE);
+					getVerticalBar().setSelection(p.lineNumber);
+					auto index = p.selected;
+					if (index < 0) index = 0;
+					if (_pos.length <= index) index = cast(int)_pos.length - 1;
+					select(index, false);
+				}
+			} else if (_showSelection) { mixin(S_TRACE);
+				showSelection();
+			}
 		}
+		_restoreLine = false;
+		_showSelection = false;
 		if (!_pos.length) return;
 		if (_updateCommentPos) { mixin(S_TRACE);
 			auto posY = new int[_pos.length];

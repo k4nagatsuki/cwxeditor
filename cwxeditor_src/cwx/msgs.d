@@ -2070,10 +2070,10 @@ class Msgs : Properties {
 	auto contentsFloat = Msg("contentsFloat", "コンテンツボックスを別ウィンドウで表示する");
 	auto contentsAutoHide = Msg("contentsAutoHide", "コンテンツボックスを自動的に隠す");
 	auto straightEventTreeView = Msg("straightEventTreeView", "イベントツリーを垂直に表示する");
-	auto forceIndentBranchContent = Msg("forceIndentBranchContent", "垂直表示時に分岐コンテントの後続コンテントは必ず右へ移動する");
-	auto showTerminalMark = Msg("showTerminalMark", "垂直表示時にイベントツリーの終端を明示する");
+	auto forceIndentBranchContent = Msg("forceIndentBranchContent", "分岐コンテントの後続コンテントは必ず右へ移動する");
+	auto showTerminalMark = Msg("showTerminalMark", "イベントツリーの終端を明示する");
 	auto showTargetStartLineNumber = Msg("showTargetStartLineNumber", "スタートへのリンク及びコールの隣にリンク・コール先の行番号を表示する");
-	auto classicStyleTree = Msg("classicStyleTree", "ツリー表示時、イベントツリーの開閉ボタンを省略する");
+	auto classicStyleTree = Msg("classicStyleTree", "イベントツリーの開閉ボタンを省略する");
 	auto clickIconIsStartEdit = Msg("clickIconIsStartEdit", "イベントコンテントのアイコンのクリックでダイアログを開く");
 	auto adjustContentName = Msg("adjustContentName", "イベントコンテントの移動時にテキストを再設定する");
 	auto showVariableValuesInEventText = Msg("showVariableValuesInEventText", "選択肢のテキスト内の変数をプレビュー表示する(#M -> [選択中]...)");
@@ -2083,6 +2083,7 @@ class Msgs : Properties {
 	auto selectVariableWithTree = Msg("selectVariableWithTree", "状態変数選択ビューでディレクトリの階層表示を行う");
 	auto useNamesAfterStandard = Msg("useNamesAfterStandard", "シナリオで使用中の称号・キーコードを標準の称号・キーコードの後に配置する");
 	auto expandChooserItems = Msg("expandChooserItems", "エリアや状態変数等を選択するビューでは全て開いた状態を初期状態とする");
+	auto restorePositionOfEventTreeView = Msg("restorePositionOfEventTreeView", "イベントごとにイベントツリービューの表示位置を記憶する");
 
 	auto etcSettingsCard = Msg("etcSettingsCard", "カードビューの設定");
 	auto showEventTreeMark = Msg("showEventTreeMark", "カードの詳細情報表示時に使用時イベントの有無を表示する");

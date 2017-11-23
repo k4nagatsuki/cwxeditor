@@ -540,6 +540,9 @@ private:
 		override void dispose() { mixin(S_TRACE);
 			_tree.removeUseCounter();
 			if (_istUndo) _istUndo.dispose();
+			foreach (v; views()) { mixin(S_TRACE);
+				v.removeStoredLine(_tree.eventTreeId);
+			}
 		}
 	}
 	EVUndo storeD(EventTree tree, bool put = true) { mixin(S_TRACE);
@@ -571,7 +574,7 @@ private:
 		}
 		override void undo() { impl(); }
 		override void redo() { impl(); }
-		override void dispose() {}
+		override void dispose() { }
 	}
 	EVUndo store(int ownerIndex, int swapIndex1, int swapIndex2, bool put = true) { mixin(S_TRACE);
 		auto undo = new UndoSwap(_comm, _area, ownerIndex, swapIndex1, swapIndex2);
@@ -607,6 +610,10 @@ private:
 			}
 		}
 		assert (0);
+	}
+
+	void removeStoredLine(string eventTreeId) { mixin(S_TRACE);
+		_etree.removeStoredLine(eventTreeId);
 	}
 
 	void selectImpl(TreeItem itm, bool sel = true, bool forceRefresh = false) { mixin(S_TRACE);
