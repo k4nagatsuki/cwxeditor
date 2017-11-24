@@ -54,7 +54,6 @@ private class PosInfo {
 private class StartInfo {
 	Content start;
 	int y = 0;
-	int width = 0;
 	int cHeight = 0;
 	ulong updateCounter = 0;
 	size_t fromIndex = 0;
@@ -381,6 +380,7 @@ class EventEditor : Composite {
 	@property
 	void showLineNumber(bool v) { mixin(S_TRACE);
 		_showLineNumber = v;
+		updateWidthSum();
 		updateScrollBar();
 		redraw();
 	}
@@ -411,7 +411,6 @@ class EventEditor : Composite {
 		if (!_startInfos.length) return;
 		auto gc = new GC(this);
 		scope (exit) gc.dispose();
-		_widthSum = 0;
 		auto posY = new int[_pos.length];
 		auto startInfo = _firstStartInfo;
 		_startInfoWithName = null;
@@ -422,7 +421,6 @@ class EventEditor : Composite {
 			// スタートコンテントのupdateCounterで検知できる
 			// いくつかのイベントコンテントに限っては外的要因(ステップ値の編集など)で
 			// updateCounterが更新されずにテキストが変化する可能性がある。
-			startInfo.width = 0;
 			auto update = startInfo.updateCounter != startInfo.start.updateCounter;
 			for (auto i = startInfo.fromIndex; i < startInfo.toIndex; i++) { mixin(S_TRACE);
 				auto c = _pos[i].content;
@@ -449,11 +447,9 @@ class EventEditor : Composite {
 					_posTable[c.eventId] = _pos[i];
 				}
 
-				startInfo.width = .max(startInfo.width, calcRight(_pos[i]));
 				posY[i] = startInfo.y + _pos[i].relY;
 			}
 			startInfo.updateCounter = startInfo.start.updateCounter;
-			_widthSum = .max(_widthSum, startInfo.width);
 
 			startInfo = startInfo.next;
 		}
@@ -498,21 +494,20 @@ class EventEditor : Composite {
 		auto eventTextWidth = 0;
 		s = .eventText(_comm, _summ, c.parent, c, !(getStyle() & SWT.READ_ONLY));
 		StartInfo *p = null;
-		if (_comm.prop.var.etc.showTargetStartLineNumber && c.name == "" && c.detail.use(CArg.START)) { mixin(S_TRACE);
+		if (c.name == "" && c.parent && c.parent.detail.nextType is CNextType.TEXT) { mixin(S_TRACE);
+			s = _comm.skin.evtChildOK;
+		}
+		if (s.length) eventTextWidth = gc.wTextExtent(s).x;
+		if (_comm.prop.var.etc.showTargetStartLineNumber && c.detail.use(CArg.START)) { mixin(S_TRACE);
 			p = c.start in _startInfoWithName;
 			if (p) { mixin(S_TRACE);
 				auto startInfo = *p;
 				auto line = _posTable[startInfo.start.eventId].lineNumber;
-				eventTextWidth = gc.wTextExtent(.text(line)).x;
+				eventTextWidth += gc.wTextExtent(.text(line)).x;
 				auto ay = _lineHeight / 4;
+				if (s.length) eventTextWidth += ay * 2;
 				eventTextWidth += ay * 3;
 			}
-		}
-		if (!p) { mixin(S_TRACE);
-			if (c.name == "" && c.parent && c.parent.detail.nextType is CNextType.TEXT) { mixin(S_TRACE);
-				s = _comm.skin.evtChildOK;
-			}
-			if (s.length) eventTextWidth = gc.wTextExtent(s).x;
 		}
 		return eventTextWidth;
 	}
@@ -638,7 +633,6 @@ class EventEditor : Composite {
 		}
 
 		_heightSum = 0;
-		_widthSum = 0;
 		PosInfo[] pos;
 		_posTable = null;
 		int index = 0;
@@ -658,7 +652,6 @@ class EventEditor : Composite {
 				int relY = 0;
 				createPosInfoRecurse(gc, 0, 0, 0, start, pos, posY, index, lineNumber, relY, _heightSum, width, expanded2);
 				startInfo.cHeight = _heightSum - heightSumB;
-				startInfo.width = width;
 			}
 			auto p = _startInfos.length ? start.eventId in _startInfos : null;
 			if (!p) { mixin(S_TRACE);
@@ -691,7 +684,6 @@ class EventEditor : Composite {
 						auto s = _startInfos[start.eventId];
 						addPoss(s);
 						startInfo.cHeight = s.cHeight;
-						startInfo.width = s.width;
 					} else { mixin(S_TRACE);
 						// ツリーの内容が更新されている
 						createInfos();
@@ -706,7 +698,6 @@ class EventEditor : Composite {
 			startInfo.updateCounter = start.updateCounter;
 			startInfo.fromIndex = fromIndex;
 			startInfo.toIndex = pos.length;
-			_widthSum = .max(startInfo.width, _widthSum);
 			newStartInfos[start.eventId] = startInfo;
 			startInfo.prev = beforeInfo;
 			if (beforeInfo) { mixin(S_TRACE);
@@ -745,14 +736,12 @@ class EventEditor : Composite {
 		auto startInfo = _firstStartInfo;
 		size_t removedPosCount = 0;
 		int removedHeight = 0;
-		_widthSum = 0;
 		while (startInfo) { mixin(S_TRACE);
 			startInfo.fromIndex -= removedPosCount;
 			startInfo.toIndex -= removedPosCount;
 
 			if (startInfo.start.tree is _et) { mixin(S_TRACE);
 				startInfo.y -= removedHeight * _lineHeight;
-				_widthSum = .max(_widthSum, startInfo.width);
 				startInfo = startInfo.next;
 				continue;
 			}
@@ -778,8 +767,10 @@ class EventEditor : Composite {
 			return;
 		}
 
+		_widthSum = 0;
 		foreach (ptrdiff_t i, ref pos; _pos) { mixin(S_TRACE);
 			pos.eventTextWidth = calcEventTextWidth(gc, pos.content, pos.eventText);
+			_widthSum = .max(_widthSum, calcRight(pos));
 		}
 
 		_updateCommentPos = false;
@@ -810,7 +801,7 @@ class EventEditor : Composite {
 				auto uc = .text(count);
 				auto tw = gc.wTextExtent(uc).x;
 				auto tw2 = ucExtent.x;
-				_widthSum = .max(_widthSum, startInfo.width  + tw + 4.ppis + tw2 + 4.ppis);
+				_widthSum = .max(_widthSum, calcRight(pos) + tw + 4.ppis + tw2 + 4.ppis);
 			}
 			if (c.comment == "") { mixin(S_TRACE);
 				_pos[i].commentLineX = 0;
@@ -885,9 +876,6 @@ class EventEditor : Composite {
 
 		auto hbar = getHorizontalBar();
 		auto cw = ca.width - detailAreaWidth;
-		if (_showLineNumber && _pos.length) { mixin(S_TRACE);
-			cw -= _lineNumWidth;
-		}
 		hbar.setVisible(cw < _widthSum);
 		hbar.setMaximum(_widthSum);
 		hbar.setThumb(cw);
@@ -1528,7 +1516,19 @@ class EventEditor : Composite {
 			StartInfo *p = null;
 			auto ctx = 0.ppis;
 			auto cy = (startInfo.y + pos.relY) - sy;
-			if (_comm.prop.var.etc.showTargetStartLineNumber && c.name == "" && c.detail.use(CArg.START)) { mixin(S_TRACE);
+			if (c.name == "" && c.parent && c.parent.detail.nextType == CNextType.TEXT) { mixin(S_TRACE);
+				e.gc.setForeground(d.getSystemColor(SWT.COLOR_GRAY));
+				s = _comm.skin.evtChildOK;
+			} else { mixin(S_TRACE);
+				e.gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
+				s = pos.eventText;
+			}
+			ctx = calcX(pos) + 20.ppis;
+			if (s.length) { mixin(S_TRACE);
+				e.gc.wDrawText(s, ctx - sx, cy + _lineTextY, true);
+				ctx += e.gc.wTextExtent(s).x;
+			}
+			if (_comm.prop.var.etc.showTargetStartLineNumber && c.detail.use(CArg.START)) { mixin(S_TRACE);
 				p = c.start in _startInfoWithName;
 				if (p) { mixin(S_TRACE);
 					// 対象スタートコンテントと行番号と矢印
@@ -1536,8 +1536,8 @@ class EventEditor : Composite {
 					auto line = _posTable[p.start.eventId].lineNumber;
 					e.gc.setLineWidth(2.ppis);
 					scope (exit) e.gc.setLineWidth(1);
-					ctx = calcX(pos) + 20.ppis;
 					auto ay = _lineHeight / 4;
+					if (s.length) ctx += ay * 2;
 					auto ps = [
 						ctx - sx, cy + (_lineHeight / 2) - ay,
 						ctx - sx + ay, cy + (_lineHeight / 2),
@@ -1551,17 +1551,6 @@ class EventEditor : Composite {
 					ctx += ay * 3;
 					e.gc.wDrawText(.text(line), ctx - sx, (startInfo.y + pos.relY) - sy + _lineTextY, true);
 				}
-			}
-			if (!p) { mixin(S_TRACE);
-				if (c.name == "" && c.parent && c.parent.detail.nextType == CNextType.TEXT) { mixin(S_TRACE);
-					e.gc.setForeground(d.getSystemColor(SWT.COLOR_GRAY));
-					s = _comm.skin.evtChildOK;
-				} else { mixin(S_TRACE);
-					e.gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
-					s = pos.eventText;
-				}
-				ctx = calcX(pos) + 20.ppis;
-				e.gc.wDrawText(s, ctx - sx, cy + _lineTextY, true);
 			}
 			if ((_summ ? _comm.prop.var.etc.drawCountOfUseOfStart : drawCountOfUseOfStart) && c.type == CType.START) { mixin(S_TRACE);
 				// スタート使用数
@@ -1715,6 +1704,11 @@ class EventEditor : Composite {
 		if (!_startInfos.length) return;
 
 		// コメント位置と水平方向スクロールバーを更新して再描画
+		updateWidthSum();
+		updateScrollBar();
+		redraw();
+	}
+	private void updateWidthSum() { mixin(S_TRACE);
 		auto gc = new GC(this);
 		scope (exit) gc.dispose();
 		_widthSum = 0;
@@ -1728,8 +1722,6 @@ class EventEditor : Composite {
 			startInfo = startInfo.next;
 		}
 		updateCommentPos(gc, posY);
-		updateScrollBar();
-		redraw();
 	}
 
 	/// ditto
