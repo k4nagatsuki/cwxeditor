@@ -241,7 +241,7 @@ private:
 			this.outer.edit();
 		}
 		override void keyPressed(KeyEvent e) { mixin(S_TRACE);
-			if (e.keyCode == SWT.CR) { mixin(S_TRACE);
+			if (.isEnterKey(e.keyCode)) { mixin(S_TRACE);
 				edit();
 			}
 		}

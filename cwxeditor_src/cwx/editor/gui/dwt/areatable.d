@@ -1365,7 +1365,7 @@ private:
 	}
 	class TreeKListener : KeyAdapter {
 		public override void keyPressed(KeyEvent e) { mixin(S_TRACE);
-			if (_dirTree.isFocusControl() && e.keyCode == SWT.CR) { mixin(S_TRACE);
+			if (_dirTree.isFocusControl() && .isEnterKey(e.keyCode)) { mixin(S_TRACE);
 				auto sels = _dirTree.getSelection();
 				if (!sels.length) return;
 				auto sel = sels[0];
@@ -1409,7 +1409,7 @@ private:
 	}
 	class KListener : KeyAdapter {
 		public override void keyPressed(KeyEvent e) { mixin(S_TRACE);
-			if (_areas.isFocusControl() && e.keyCode == SWT.CR) { mixin(S_TRACE);
+			if (_areas.isFocusControl() && .isEnterKey(e.keyCode)) { mixin(S_TRACE);
 				auto sel = _areas.getSelectionIndex();
 				if (sel == -1) return;
 				if (cast(Summary)_areas.getItem(sel).getData()) { mixin(S_TRACE);

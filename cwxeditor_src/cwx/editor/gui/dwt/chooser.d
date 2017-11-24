@@ -1296,7 +1296,7 @@ class AreaChooser(A, bool StartArea) : Composite {
 				selected(itm);
 			});
 			.listener(widget, SWT.KeyDown, (e) { mixin(S_TRACE);
-				if (e.keyCode == SWT.CR) { mixin(S_TRACE);
+				if (.isEnterKey(e.keyCode)) { mixin(S_TRACE);
 					if (_tree) { mixin(S_TRACE);
 						auto sels = _tree.getSelection();
 						if (!sels.length) return;

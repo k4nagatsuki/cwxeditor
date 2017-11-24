@@ -2093,7 +2093,7 @@ private:
 	}
 	class LKey : KeyAdapter {
 		override void keyPressed(KeyEvent e) { mixin(S_TRACE);
-			bool keyMatch = e.keyCode == SWT.CR;
+			bool keyMatch = .isEnterKey(e.keyCode);
 			if (keyMatch && _list.selection >= 0) { mixin(S_TRACE);
 				edit(_list.selectionCard);
 			}
@@ -2101,7 +2101,7 @@ private:
 	}
 	class TKey : KeyAdapter {
 		override void keyPressed(KeyEvent e) { mixin(S_TRACE);
-			bool keyMatch = e.keyCode == SWT.CR;
+			bool keyMatch = .isEnterKey(e.keyCode);
 			int i = _tbl.getSelectionIndex();
 			if (keyMatch && -1 != i) { mixin(S_TRACE);
 				edit(cast(Card)_tbl.getItem(i).getData());

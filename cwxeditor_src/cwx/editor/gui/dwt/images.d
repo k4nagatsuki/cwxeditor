@@ -2266,7 +2266,9 @@ private:
 				redrawProc((FlexImage img) {img.resize();}, true);
 			} break;
 			default: { mixin(S_TRACE);
-				if (ke.character == ' ') { mixin(S_TRACE);
+				if (.isEnterKey(ke.keyCode)) { mixin(S_TRACE);
+					redrawProc((FlexImage img) {img.resize();}, true);
+				} else if (ke.character == ' ') { mixin(S_TRACE);
 					redrawProc((FlexImage img) {img.resize();}, true);
 				}
 			} break;

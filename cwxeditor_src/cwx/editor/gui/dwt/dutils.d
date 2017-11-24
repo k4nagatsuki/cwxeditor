@@ -228,7 +228,7 @@ private:
 	}
 	class KListener : KeyAdapter {
 		public override void keyPressed(KeyEvent e) { mixin(S_TRACE);
-			if (e.keyCode == SWT.CR) { mixin(S_TRACE);
+			if (.isEnterKey(e.keyCode)) { mixin(S_TRACE);
 				enter();
 			} else if (e.character == SWT.ESC) { mixin(S_TRACE);
 				_noEdit = true;
@@ -541,7 +541,7 @@ public:
 	}
 	override void keyPressed(KeyEvent e) { mixin(S_TRACE);
 		try { mixin(S_TRACE);
-			if (e.keyCode == SWT.CR) { mixin(S_TRACE);
+			if (.isEnterKey(e.keyCode)) { mixin(S_TRACE);
 				enter();
 			} else if (e.keyCode == SWT.ESC) { mixin(S_TRACE);
 				cancel();
@@ -4397,4 +4397,9 @@ Font createFontFromPixels(string face, int pixels, bool bold = false, bool itali
 		auto fontData = new FontData(face, h, fStyle);
 		return new Font(d, fontData);
 	}
+}
+
+bool isEnterKey(int keyCode) { mixin(S_TRACE);
+	// BUG: テンキーのEnterを押すと0x1000050が発行される。
+	return keyCode == SWT.CR || keyCode == 0x1000050;
 }

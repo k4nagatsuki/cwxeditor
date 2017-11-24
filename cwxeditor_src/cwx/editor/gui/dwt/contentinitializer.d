@@ -122,7 +122,7 @@ class ContentInitialValueEditor : TCPD {
 		.listener(_list, SWT.MouseEnter, &updateToolTipFrom);
 		.listener(_list, SWT.MouseMove, &updateToolTipFrom);
 		.listener(_list, SWT.KeyDown, (e) { mixin(S_TRACE);
-			if (e.keyCode == SWT.CR) { mixin(S_TRACE);
+			if (.isEnterKey(e.keyCode)) { mixin(S_TRACE);
 				editContent();
 			}
 		});

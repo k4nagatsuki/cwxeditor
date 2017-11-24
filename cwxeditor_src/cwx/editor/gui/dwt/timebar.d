@@ -60,7 +60,7 @@ class TimeBar : Canvas {
 			_setCur += dur!"seconds"(1);
 			_setCur = .min(_setCur, length);
 			redraw();
-		} else if ((e.keyCode == SWT.ARROW_DOWN || e.keyCode == SWT.ARROW_UP || e.keyCode == SWT.CR || e.character == ' ') && _keyMoving) { mixin(S_TRACE);
+		} else if ((e.keyCode == SWT.ARROW_DOWN || e.keyCode == SWT.ARROW_UP || .isEnterKey(e.keyCode) || e.character == ' ') && _keyMoving) { mixin(S_TRACE);
 			current = _setCur;
 			_keyMoving = false;
 			foreach (dlg; updateCurrentEvent) dlg();
