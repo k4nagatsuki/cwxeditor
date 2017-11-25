@@ -4543,7 +4543,7 @@ public:
 			bool openErrDlg = false;
 			version (Console) debug {
 				initTimer.stop();
-				cwriteln(.format("Starting time: %d msecs", initTimer.peek().msecs));
+				cwriteln(.format("Starting time: %d msecs", initTimer.peek().total!"msecs"));
 			}
 			while (!_win.isDisposed()) {
 				version (nocatch) {
