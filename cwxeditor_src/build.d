@@ -17,15 +17,16 @@ immutable string[] IGNORE_DIR = [
 ];
 
 import std.algorithm;
+import std.array;
+import std.container;
+import std.datetime.stopwatch;
+import std.datetime;
+import std.exception;
 import std.file;
 import std.path;
 import std.process;
-import std.exception;
-import std.array;
-import std.string : splitLines;
 import std.stdio : writeln, writefln;
-import std.datetime;
-import std.container;
+import std.string : splitLines;
 
 version (Windows) {
 	immutable RCC = "rcc";
@@ -184,10 +185,10 @@ immutable DMD = "dmd";
 void exec(string[] cmd ...) {
 	string line = cmd.join(" ");
 	writeln(line);
-	auto timer = StopWatch(AutoStart.yes);
+	auto timer = std.datetime.stopwatch.StopWatch(AutoStart.yes);
 	enforce(0 == spawnShell(line).wait(), new Exception(line));
 	timer.stop();
-	writefln("%d msecs", timer.peek().msecs);
+	writefln("%d msecs", timer.peek().total!"msecs");
 }
 /// ファイル名が一致するか。
 bool equalsFilename(string a, string b) {
@@ -256,7 +257,7 @@ int main(string[] args) {
 }
 
 void build(string[] args) {
-	auto timer = StopWatch(AutoStart.yes);
+	auto timer = std.datetime.stopwatch.StopWatch(AutoStart.yes);
 
 	// ビルドフラグ
 	string[] test, option, dmdOption;
@@ -624,7 +625,7 @@ void build(string[] args) {
 			writefln("%s: %s KB", obj, obj.getSize() / 1024);
 		}
 		timer.stop();
-		writefln("Compiled: %d msecs", timer.peek().msecs);
+		writefln("Compiled: %d msecs", timer.peek().total!"msecs");
 		return;
 	}
 
@@ -648,7 +649,7 @@ void build(string[] args) {
 	exec(cmd ~ flags ~ objs.values ~ dmdOption);
 
 	timer.stop();
-	writefln("Compiled: %d msecs", timer.peek().msecs);
+	writefln("Compiled: %d msecs", timer.peek().total!"msecs");
 
 	// 不要なファイルを削除
 	version (Windows) {

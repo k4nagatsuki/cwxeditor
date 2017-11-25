@@ -3,7 +3,7 @@ CWXEditor ビルドガイド
 ----------------------
 
 ビルドツール:
- : dmd 2.075.1
+ : dmd 2.077.0
  : Digital Mars rcc
 ライブラリ:
  : DWT at GitHub

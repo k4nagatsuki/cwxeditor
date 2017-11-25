@@ -50,31 +50,31 @@ debug {
 		/// mixin(FPerf!N)でスコープ内の実行時間を計測する。
 		template FPerf(int I) {
 			static const FPerf
-				= "import std.datetime;"
-				~ "auto f_timer = std.datetime.StopWatch(std.datetime.AutoStart.yes);"
+				= "import std.datetime.stopwatch;"
+				~ "auto f_timer = std.datetime.stopwatch.StopWatch(std.datetime.stopwatch.AutoStart.yes);"
 				~ "scope (exit) {"
 				~ "f_timer.stop();"
-				~ ".t[" ~ .to!string(I) ~ "] += f_timer.peek().msecs;"
+				~ ".t[" ~ .to!string(I) ~ "] += f_timer.peek().total!\"msecs\";"
 				~ "}";
 		}
 		/// mixin(BPerfS)とmixin(BPerf!N)でブロックの実行時間を計測する。
 		const BPerfS
-				= "static import std.datetime;"
-				~ "auto b_timer = std.datetime.StopWatch(std.datetime.AutoStart.yes);";
+				= "static import std.datetime.stopwatch;"
+				~ "auto b_timer = std.datetime.stopwatch.StopWatch(std.datetime.stopwatch.AutoStart.yes);";
 		template BPerf(int I) {
 			static const BPerf
 				= "b_timer.stop();"
-				~ ".t[" ~ .to!string(I) ~ "] += b_timer.peek().msecs;"
+				~ ".t[" ~ .to!string(I) ~ "] += b_timer.peek().total!\"msecs\";"
 				~ "b_timer.reset();"
 				~ "b_timer.start();";
 		}
 		/// unittestの実行時間を計測する。
 		static const UTPerf
-			= "static import std.datetime;"
-			~ "auto f_timer = std.datetime.StopWatch(std.datetime.AutoStart.yes);"
+			= "static import std.datetime.stopwatch;"
+			~ "auto f_timer = std.datetime.stopwatch.StopWatch(std.datetime.stopwatch.AutoStart.yes);"
 			~ "scope (exit) {"
 			~ "f_timer.stop();"
-			~ ".utperf += f_timer.peek().msecs;"
+			~ ".utperf += f_timer.peek().total!\"msecs\";"
 			~ "}";
 		static assert (FPerf!(10));
 		static assert (BPerf!(10));
