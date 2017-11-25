@@ -28,12 +28,12 @@ void saveStack() {
 
 debug {
 	version (Console) {
-		import std.datetime;
+		import std.datetime.stopwatch;
 		import std.string;
 		import std.conv;
 		import std.stdio;
 
-		StopWatch initTimer;
+		std.datetime.stopwatch.StopWatch initTimer;
 		static this () {
 			initTimer.start();
 		}
