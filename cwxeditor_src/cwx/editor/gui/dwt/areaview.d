@@ -2772,6 +2772,26 @@ private:
 				_inheritBgImgs.setLayoutData(ibd);
 			}
 		}
+		.listener(list, SWT.Paint, (e) { mixin(S_TRACE);
+			if (_prop.var.etc.showItemNumberOfSceneAndEventView) { mixin(S_TRACE);
+				auto count = list.getItemCount();
+				auto h = list.getSize().y;
+				auto cw = list.getColumn(0).getWidth();
+				e.gc.setForeground(list.getDisplay().getSystemColor(SWT.COLOR_GRAY));
+				for (auto i = list.getTopIndex(); i < count; i++) { mixin(S_TRACE);
+					auto itm = list.getItem(i);
+					auto b = itm.getBounds();
+					if (h <= b.y) { mixin(S_TRACE);
+						break;
+					}
+					auto s = .text(i + 1);
+					auto te = e.gc.wTextExtent(s);
+					auto x = cw - 5.ppis - te.x;
+					auto y = b.y + (b.height - te.y) / 2;
+					e.gc.wDrawText(s, x, y, true);
+				}
+			}
+		});
 		return list;
 	}
 	static if (is(C:EnemyCard)) {
@@ -3452,6 +3472,13 @@ public:
 				createRefCard();
 			}
 		}
+
+		static if (UseCards) _comm.refMenuCardAndBgImageList.add(&_cards.redraw);
+		static if (UseBacks) _comm.refMenuCardAndBgImageList.add(&_backs.redraw);
+		.listener(this, SWT.Dispose, { mixin(S_TRACE);
+			static if (UseCards) _comm.refMenuCardAndBgImageList.remove(&_cards.redraw);
+			static if (UseBacks) _comm.refMenuCardAndBgImageList.remove(&_backs.redraw);
+		});
 
 		auto fi = new class Listener {
 			override void handleEvent(Event e) { mixin(S_TRACE);

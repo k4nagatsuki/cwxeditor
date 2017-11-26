@@ -387,6 +387,7 @@ class Commons {
 	Dlg!(int) refEventTreeSlope;
 	Dlg!() refFloatMessagePreview;
 	Dlg!() refUpdateMotionBarStyle;
+	Dlg!() refMenuCardAndBgImageList;
 
 	Dlg!() refTableViewStyle;
 	Dlg!(Area) refArea;

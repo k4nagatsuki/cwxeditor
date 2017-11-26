@@ -1615,6 +1615,7 @@ struct OldSettings {
 	bool drawXORSelectionLine;
 	bool showSceneViewSelectionFilter;
 	bool saveSkinName;
+	bool showItemNumberOfSceneAndEventView;
 	this (Props prop) { mixin(S_TRACE);
 		this.prop = prop;
 		this.imageScale = prop.var.etc.imageScale;
@@ -1681,6 +1682,7 @@ struct OldSettings {
 		this.stepValueName = prop.var.etc.stepValueName;
 		this.showCurrentValueOnTopAlways = prop.var.etc.showCurrentValueOnTopAlways;
 		this.saveSkinName = prop.var.etc.saveSkinName;
+		this.showItemNumberOfSceneAndEventView = prop.var.etc.showItemNumberOfSceneAndEventView;
 	}
 	void raiseEvent(Commons comm) { mixin(S_TRACE);
 		bool refSkin = false;
@@ -1861,6 +1863,9 @@ struct OldSettings {
 		}
 		if (this.mainToolBar != prop.var.etc.mainToolBar) { mixin(S_TRACE);
 			comm.mainWin.updateMainToolBar();
+		}
+		if (this.showItemNumberOfSceneAndEventView != prop.var.etc.showItemNumberOfSceneAndEventView) { mixin(S_TRACE);
+			comm.refMenuCardAndBgImageList.call();
 		}
 		if (comm.summary && !comm.summary.legacy && this.xmlFileNameIsIDOnly != prop.var.etc.xmlFileNameIsIDOnly) { mixin(S_TRACE);
 			if (comm.summary.expandXMLs) { mixin(S_TRACE);

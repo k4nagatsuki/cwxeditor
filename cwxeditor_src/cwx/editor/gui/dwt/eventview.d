@@ -1444,6 +1444,37 @@ public:
 			.listener(_cards, SWT.Dispose, { mixin(S_TRACE);
 				_comm.refDataVersion.remove(&_cards.redraw);
 			});
+			if (cast(Area)_area || cast(Battle)_area) { mixin (S_TRACE);
+				.listener(_cards, SWT.Paint, (e) { mixin(S_TRACE);
+					if (_prop.var.etc.showItemNumberOfSceneAndEventView) { mixin(S_TRACE);
+						auto ti = .topItem(_cards.getTopItem());
+						auto count = _cards.getItemCount();
+						auto h = _cards.getSize().y;
+						auto ca = _cards.getClientArea();
+						e.gc.setForeground(_cards.getDisplay().getSystemColor(SWT.COLOR_GRAY));
+						for (auto i = _cards.indexOf(ti); i < count; i++) { mixin(S_TRACE);
+							auto itm = _cards.getItem(i);
+							if (!cast(AbstractSpCard)itm.getData()) continue;
+							auto b = itm.getBounds();
+							if (b.y + b.height < ca.y) { mixin(S_TRACE);
+								continue;
+							}
+							if (h <= b.y) { mixin(S_TRACE);
+								break;
+							}
+							auto s = .text(i - 1);
+							auto te = e.gc.wTextExtent(s);
+							auto x = ca.width - 5.ppis - te.x;
+							auto y = b.y + (b.height - te.y) / 2;
+							e.gc.wDrawText(s, x, y, true);
+						}
+					}
+				});
+				_comm.refMenuCardAndBgImageList.add(&_cards.redraw);
+				.listener(_cards, SWT.Dispose, { mixin(S_TRACE);
+					_comm.refMenuCardAndBgImageList.remove(&_cards.redraw);
+				});
+			}
 
 			auto shell = _cards.getShell();
 			auto menu = new Menu(shell, SWT.POP_UP);
@@ -1452,7 +1483,7 @@ public:
 				createMenuItem(_comm, menu, MenuID.Redo, &this.redo, () => _undo.canRedo && !_readOnly);
 				new MenuItem(menu, SWT.SEPARATOR);
 				appendMenuTCPD(_comm, menu, this, true, true, true, true, true);
-				if (cast(Area)_area || cast(Battle)_area) {
+				if (cast(Area)_area || cast(Battle)_area) { mixin (S_TRACE);
 					new MenuItem(menu, SWT.SEPARATOR);
 					void delegate() dlg = null;
 					auto cascade = createMenuItem(_comm, menu, MenuID.KeyCodeTiming, dlg, () => !_readOnly && selectionKeyCode !is null, SWT.CASCADE);

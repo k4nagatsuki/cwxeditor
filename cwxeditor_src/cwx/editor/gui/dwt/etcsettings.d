@@ -160,6 +160,7 @@ class EtcSettings : Composite {
 		boolSetting(comp, prop.var.etc.smoothingCard, prop.msgs.smoothingCard);
 		boolSetting(comp, prop.var.etc.ignoreBackgroundInRange, prop.msgs.ignoreBackgroundInRange);
 		boolSetting(comp, prop.var.etc.copyDesc, prop.msgs.copyDesc);
+		boolSetting(comp, prop.var.etc.showItemNumberOfSceneAndEventView, prop.msgs.showItemNumberOfSceneAndEventView);
 
 		comp = createComp(prop.msgs.etcSettingsEvent);
 		boolSetting(comp, prop.var.etc.showContentsGroupName, prop.msgs.showContentsGroupName);

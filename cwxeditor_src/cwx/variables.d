@@ -463,6 +463,7 @@ class FlexEtcProps : Properties {
 	auto canVanishWorkAreaInMainWindow = Prop!(bool)("canVanishWorkAreaInMainWindow", false);
 	auto drawXORSelectionLine = Prop!(bool)("drawXORSelectionLine", false);
 	auto showSceneViewSelectionFilter = Prop!(bool)("showSceneViewSelectionFilter", true);
+	auto showItemNumberOfSceneAndEventView = Prop!(bool)("showItemNumberOfSceneAndEventView", true);
 
 	auto showEventTreeLineNumber = Prop!(bool)("showEventTreeLineNumber", true);
 	auto showEventTreeDetail = Prop!(bool)("showEventTreeDetail", true);
