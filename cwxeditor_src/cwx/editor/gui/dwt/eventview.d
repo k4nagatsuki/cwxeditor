@@ -1693,7 +1693,9 @@ public:
 	private void renameCard(int index) { mixin(S_TRACE);
 		initial();
 		auto itm = _cards.getItems()[index + cardsIndex];
-		itm.setText(cardName(cast(AbstractSpCard)itm.getData()));
+		auto card = cast(AbstractSpCard)itm.getData();
+		itm.setText(cardName(card));
+		itm.setImage(cardIcon(card));
 	}
 	private void refCast(CastCard card) { mixin(S_TRACE);
 		assert (cast(Battle)_area !is null);
@@ -1792,8 +1794,8 @@ public:
 			aItm.setExpanded(true);
 		}
 
-		void spCardItm(AbstractSpCard c, Image imgCard) { mixin(S_TRACE);
-			auto cItm = createTreeItem(_cards, c, cardName(c), imgCard);
+		void spCardItm(AbstractSpCard c) { mixin(S_TRACE);
+			auto cItm = createTreeItem(_cards, c, cardName(c), cardIcon(c));
 			foreach (t; c.trees) { mixin(S_TRACE);
 				auto eItm = createTreeItem(cItm, t, t.name, etImage(t));
 				refreshFires(eItm);
@@ -1802,14 +1804,17 @@ public:
 		}
 		if (auto a = cast(Area)_area) { mixin(S_TRACE);
 			foreach (c; a.cards) { mixin(S_TRACE);
-				spCardItm(c, _prop.images.cards);
+				spCardItm(c);
 			}
 		} else if (auto a = cast(Battle)_area) { mixin(S_TRACE);
 			foreach (c; a.cards) { mixin(S_TRACE);
-				spCardItm(c, _prop.images.cards);
+				spCardItm(c);
 			}
 		}
 		_comm.refreshToolBar();
+	}
+	private Image cardIcon(AbstractSpCard card) { mixin(S_TRACE);
+		return card.flag == "" ? _prop.images.cards : _prop.images.cardsWithFlag;
 	}
 
 	void editEnter() { mixin(S_TRACE);
