@@ -1497,26 +1497,32 @@ private Composite createTalkerPane
 	return comp;
 }
 
-private class DisposeText : DisposeListener {
-	private Color _back, _fore;
-	this (Color back, Color fore) { mixin(S_TRACE);
-		_back = back;
-		_fore = fore;
-	}
-	override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-		_back.dispose();
-		_fore.dispose();
-	}
-}
 private FixedWidthText createMessagePane(Commons comm, Props prop, bool image, Composite parent, Summary summ) { mixin(S_TRACE);
 	int len = image ? prop.looks.messageImageLen : prop.looks.messageLen;
 	auto r = new FixedWidthText(prop.looks.messageFont(comm.skin.legacy), len, parent, SWT.BORDER, true);
 	auto d = r.widget.getDisplay();
+	auto normBack = r.widget.getBackground();
+	auto normFore = r.widget.getForeground();
 	auto back = new Color(d, new RGB(prop.var.etc.msgBackR, prop.var.etc.msgBackG, prop.var.etc.msgBackB));
 	auto fore = new Color(d, new RGB(prop.var.etc.msgForeR, prop.var.etc.msgForeG, prop.var.etc.msgForeB));
-	r.widget.setBackground(back);
-	r.widget.setForeground(fore);
-	r.widget.addDisposeListener(new DisposeText(back, fore));
+
+	void updateMsgColor() { mixin(S_TRACE);
+		if (prop.var.etc.useMessageWindowColorInTextContentDialog) { mixin(S_TRACE);
+			r.widget.setBackground(back);
+			r.widget.setForeground(fore);
+		} else { mixin(S_TRACE);
+			r.widget.setBackground(normBack);
+			r.widget.setForeground(normFore);
+		}
+	}
+	updateMsgColor();
+
+	comm.refUseMessageWindowColorInTextContentDialog.add(&updateMsgColor);
+	.listener(r.widget, SWT.Dispose, { mixin(S_TRACE);
+		comm.refUseMessageWindowColorInTextContentDialog.remove(&updateMsgColor);
+		back.dispose();
+		fore.dispose();
+	});
 	return r;
 }
 

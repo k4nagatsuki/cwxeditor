@@ -190,6 +190,7 @@ class EtcSettings : Composite {
 		boolSetting(comp, prop.var.etc.editSelectionWithCombo, prop.msgs.editSelectionWithCombo);
 		boolSetting(comp, prop.var.etc.refCardsAtEditBgImage, prop.msgs.refCardsAtEditBgImage);
 		boolSetting(comp, prop.var.etc.floatMessagePreview, prop.msgs.floatMessagePreview);
+		boolSetting(comp, prop.var.etc.useMessageWindowColorInTextContentDialog, prop.msgs.useMessageWindowColorInTextContentDialog);
 		boolSetting(comp, prop.var.etc.selectVariableWithTree, prop.msgs.selectVariableWithTree);
 		boolSetting(comp, prop.var.etc.useNamesAfterStandard, prop.msgs.useNamesAfterStandard);
 		boolSetting(comp, prop.var.etc.expandChooserItems, prop.msgs.expandChooserItems);

@@ -1579,6 +1579,7 @@ struct OldSettings {
 	string[MenuID] oldMnemonic;
 	string[MenuID] oldHotkey;
 	bool floatMessagePreview;
+	bool useMessageWindowColorInTextContentDialog;
 	int bgmVolume;
 	int seVolume;
 	int soundPlayType;
@@ -1648,6 +1649,7 @@ struct OldSettings {
 			oldHotkey[id] = prop.var.menu.hotkey(id);
 		}
 		this.floatMessagePreview = prop.var.etc.floatMessagePreview;
+		this.useMessageWindowColorInTextContentDialog = prop.var.etc.useMessageWindowColorInTextContentDialog;
 		this.bgmVolume = prop.var.etc.bgmVolume;
 		this.seVolume = prop.var.etc.seVolume;
 		this.soundPlayType = prop.var.etc.soundPlayType;
@@ -1792,6 +1794,9 @@ struct OldSettings {
 				prop.var.speakDlg.width = .max(1, prop.var.speakDlg.width + wg);
 			}
 			comm.refFloatMessagePreview.call();
+		}
+		if (this.useMessageWindowColorInTextContentDialog != prop.var.etc.useMessageWindowColorInTextContentDialog) { mixin(S_TRACE);
+			comm.refUseMessageWindowColorInTextContentDialog.call();
 		}
 		if (this.bgmVolume != prop.var.etc.bgmVolume) { mixin(S_TRACE);
 			.bgmVolume = prop.var.etc.bgmVolume;

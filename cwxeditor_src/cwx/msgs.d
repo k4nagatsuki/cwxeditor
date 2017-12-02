@@ -203,7 +203,7 @@ class Msgs : Properties {
 	auto allCheck = Msg("allCheck", "全てチェック/全てチェックを外す(&L)");
 	auto allSelect = Msg("allSelect", "全て選択/全て選択を外す(&L)");
 
-	auto replError = Msg("replError", "重複する分岐(フラグ分岐が両方ともTRUEになっている等)・条件クーポンに抜けがある台詞コンテント・存在しない素材を参照しているコンテント等を検索します。");
+	auto replError = Msg("replError", "重複する分岐(フラグ分岐が両方ともTRUEになっている等)・条件クーポンに抜けがあるセリフコンテント・存在しない素材を参照しているコンテント等を検索します。");
 
 	auto replFrom = Msg("replFrom", "検索(置換前)");
 	auto replTo = Msg("replTo", "置換後");
@@ -491,11 +491,11 @@ class Msgs : Properties {
 	auto addMsgRefFlag = Msg("addMsgRefFlag", "フラグ参照の追加");
 	auto addMsgRefStep = Msg("addMsgRefStep", "ステップ参照の追加");
 	auto addMsgRefImageFont = Msg("addMsgRefImageFont", "画像参照の追加");
-	auto createDialog = Msg("createDialog", "台詞の作成");
-	auto deleteDialog = Msg("deleteDialog", "台詞の削除");
-	auto copyToDialogs = Msg("copyToDialogs", "台詞を全体にコピー");
-	auto copyToUpper = Msg("copyToUpper", "台詞を上方にコピー");
-	auto copyToLower = Msg("copyToLower", "台詞を下方にコピー");
+	auto createDialog = Msg("createDialog", "セリフの作成");
+	auto deleteDialog = Msg("deleteDialog", "セリフの削除");
+	auto copyToDialogs = Msg("copyToDialogs", "セリフを全体にコピー");
+	auto copyToUpper = Msg("copyToUpper", "セリフを上方にコピー");
+	auto copyToLower = Msg("copyToLower", "セリフを下方にコピー");
 	auto setTalkerCoupon = Msg("setTalkerCoupon", "追加");
 	auto messagePreview = Msg("messagePreview", "プレビュー(&P)");
 	auto dlgTitMessagePreview = Msg("dlgTitMessagePreview", "プレビュー");
@@ -757,7 +757,7 @@ class Msgs : Properties {
 	auto contentDescSetStepUp = Msg("contentDescSetStepUp", "任意のステップの値を1段階増加させます。すでに段階数の最大に達している場合は何もしません。");
 	auto contentDescSetStepDown = Msg("contentDescSetStepDown", "任意のステップの値を1段階減少させます。すでに段階数の最小に達している場合は何もしません。");
 	auto contentDescReverseFlag = Msg("contentDescReverseFlag", "任意のフラグの値がTRUEの時はFALSEに、FALSEの時はTRUEに設定します。");
-	auto contentDescCheckFlag = Msg("contentDescCheckFlag", "任意のフラグの値がTRUEの時だけ後続のイベントを実行します。メッセージや台詞の選択肢として使用した場合は、TRUEの時だけ選択肢が表示されます。");
+	auto contentDescCheckFlag = Msg("contentDescCheckFlag", "任意のフラグの値がTRUEの時だけ後続のイベントを実行します。メッセージやセリフの選択肢として使用した場合は、TRUEの時だけ選択肢が表示されます。");
 	auto contentDescGetCast = Msg("contentDescGetCast", "任意のキャストをパーティに同行させます。すでに同行している場合は何もしません。");
 	auto contentDescGetItem = Msg("contentDescGetItem", "任意のアイテムカードを、キャラクタの所持カードや荷物袋に追加します。所持カードに追加しようとしてできなかった場合は、荷物袋に入ります。");
 	auto contentDescGetSkill = Msg("contentDescGetSkill", "任意の特殊技能カードを、キャラクタの所持カードや荷物袋に追加します。所持カードに追加しようとしてできなかった場合は、荷物袋に入ります。");
@@ -785,7 +785,7 @@ class Msgs : Properties {
 	auto contentDescBranchFlagCmp = Msg("contentDescBranchFlagCmp", "任意の2つのフラグの値を比較した結果によって処理を分岐させます。");
 	auto contentDescBranchRandomSelect = Msg("contentDescBranchRandomSelect", "パーティメンバ・エネミー・同行キャストの中から任意の条件で選択を行い、選択に成功したか失敗したかによって処理を分岐させます。");
 	auto contentDescBranchKeyCode = Msg("contentDescBranchKeyCode", "キャラクタ・荷物袋・パーティ全体で任意のキーコードを持つカードを所持しているかいないかによって処理を分岐させます。該当カードを所持しているキャラクタは選択状態になります。");
-	auto contentDescCheckStep = Msg("contentDescCheckStep", "任意のステップが指定された状態の時だけ後続のイベントを実行します。メッセージや台詞の選択肢として使用した場合は、条件を満たす時だけ選択肢が表示されます。");
+	auto contentDescCheckStep = Msg("contentDescCheckStep", "任意のステップが指定された状態の時だけ後続のイベントを実行します。メッセージやセリフの選択肢として使用した場合は、条件を満たす時だけ選択肢が表示されます。");
 	auto contentDescBranchRound = Msg("contentDescBranchRound", "現在のバトルのラウンド数が任意の値以上・未満のどちらかによって処理を分岐させます。バトル中でない場合は、常に未満側へ分岐します。");
 	auto contentDescMoveBgImage = Msg("contentDescMoveBgImage", "セル名称のつけられた背景セルを移動・サイズ変更します。"); // Wsn.1
 	auto contentDescReplaceBgImage = Msg("contentDescReplaceBgImage", "セル名称のつけられた背景セルを新しい背景セルに置換します。"); // Wsn.1
@@ -2081,7 +2081,8 @@ class Msgs : Properties {
 	auto showVariableValuesInEventText = Msg("showVariableValuesInEventText", "選択肢のテキスト内の変数をプレビュー表示する(#M -> [選択中]...)");
 	auto editSelectionWithCombo = Msg("editSelectionWithCombo", "選択肢を編集する時、「標準の選択肢」をコンボボックスで選択可能にする");
 	auto refCardsAtEditBgImage = Msg("refCardsAtEditBgImage", "背景変更コンテントの編集を開始する際、最初からカード配置の参照を行う");
-	auto floatMessagePreview = Msg("floatMessagePreview", "台詞・メッセージのプレビューをフロートさせる");
+	auto floatMessagePreview = Msg("floatMessagePreview", "セリフ・メッセージのプレビューをフロートさせる");
+	auto useMessageWindowColorInTextContentDialog = Msg("useMessageWindowColorInTextContentDialog", "セリフ・メッセージの編集欄でメッセージウィンドウの色を使用する");
 	auto selectVariableWithTree = Msg("selectVariableWithTree", "状態変数選択ビューでディレクトリの階層表示を行う");
 	auto useNamesAfterStandard = Msg("useNamesAfterStandard", "シナリオで使用中の称号・キーコードを標準の称号・キーコードの後に配置する");
 	auto expandChooserItems = Msg("expandChooserItems", "エリアや状態変数等を選択するビューでは全て開いた状態を初期状態とする");
@@ -2202,13 +2203,13 @@ class Msgs : Properties {
 	auto undoMaxReplace = Msg("undoMaxReplace", "置換");
 	auto undoMaxEtc = Msg("undoMaxEtc", "テキスト/その他");
 
-	auto dialogStatus = Msg("dialogStatus", "台詞コンテントのステータス");
+	auto dialogStatus = Msg("dialogStatus", "セリフコンテントのステータス");
 	const string dialogStatusName(DialogStatus id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(DialogStatus, "dialogStatusName"));
 	}
-	auto dialogStatusNameTop = Msg("dialogStatusNameTop", "最上位の台詞");
-	auto dialogStatusNameUnder = Msg("dialogStatusNameUnder", "最下位の台詞");
-	auto dialogStatusNameUnderWithCoupon = Msg("dialogStatusNameUnderWithCoupon", "最下位の台詞(条件クーポン設定あり)");
+	auto dialogStatusNameTop = Msg("dialogStatusNameTop", "最上位のセリフ");
+	auto dialogStatusNameUnder = Msg("dialogStatusNameUnder", "最下位のセリフ");
+	auto dialogStatusNameUnderWithCoupon = Msg("dialogStatusNameUnderWithCoupon", "最下位のセリフ(条件クーポン設定あり)");
 
 	auto dlgTitEvTemplates = Msg("dlgTitEvTemplates", "イベントテンプレート - %1$s");
 	auto eventTemplateHint1 = Msg("eventTemplateHint1", "下記のようにスクリプトの冒頭に値の無い変数を置くと、テンプレートからの配置時に値を設定できます。");
@@ -2268,7 +2269,7 @@ class Msgs : Properties {
 	auto scriptErrorInvalidBlendMode = Msg("scriptErrorInvalidBlendMode", "未知の合成方式です。");
 	auto scriptErrorInvalidGradientDir = Msg("scriptErrorInvalidGradientDir", "未知のグラデーション方向です。");
 	auto scriptErrorInvalidSelectionMethod = Msg("scriptErrorInvalidSelectionMethod", "未知のメンバ選択方法です。");
-	auto scriptErrorInvalidDialog = Msg("scriptErrorInvalidDialog", "台詞が正しくありません。");
+	auto scriptErrorInvalidDialog = Msg("scriptErrorInvalidDialog", "セリフが正しくありません。");
 	auto scriptErrorInvalidTalker = Msg("scriptErrorInvalidTalker", "話者が正しくありません。");
 	auto scriptErrorInvalidCoupon = Msg("scriptErrorInvalidCoupon", "評価条件が正しくありません。");
 	auto scriptErrorUndefinedSymbol = Msg("scriptErrorUndefinedSymbol", "未知のシンボルです。");
@@ -2442,8 +2443,8 @@ class Msgs : Properties {
 	auto menuTextReverse = Msg("menuTextReverse", "逆順にする");
 	auto menuTextSwapToParent = Msg("menuTextSwapToParent", "親コンテントと入れ替える");
 	auto menuTextSwapToChild = Msg("menuTextSwapToChild", "子コンテントと入れ替える");
-	auto menuTextOverDialog = Msg("menuTextOverDialog", "上の台詞へ移動");
-	auto menuTextUnderDialog = Msg("menuTextUnderDialog", "下の台詞へ移動");
+	auto menuTextOverDialog = Msg("menuTextOverDialog", "上のセリフへ移動");
+	auto menuTextUnderDialog = Msg("menuTextUnderDialog", "下のセリフへ移動");
 	auto menuTextShowParty = Msg("menuTextShowParty", "パーティカードの表示");
 	auto menuTextShowMsg = Msg("menuTextShowMsg", "メッセージ枠の表示");
 	auto menuTextShowRefCards = Msg("menuTextShowRefCards", "カード参照の表示");

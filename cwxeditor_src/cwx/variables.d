@@ -714,6 +714,7 @@ class FlexEtcProps : Properties {
 	auto showSummaryPreview = Prop!(bool)("showSummaryPreview", true);
 
 	auto floatMessagePreview = Prop!(bool)("floatMessagePreview", false);
+	auto useMessageWindowColorInTextContentDialog = Prop!(bool)("useMessageWindowColorInTextContentDialog", true);
 	auto showDialogPreview = Prop!(bool)("showDialogPreview", true);
 	auto showMessagePreview = Prop!(bool)("showMessagePreview", true);
 	auto messageVarKindColumn = Prop!(int, false, true)("messageVarKindColumn", 200);

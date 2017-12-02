@@ -386,6 +386,7 @@ class Commons {
 	Dlg!() refContentsToolBoxStyle;
 	Dlg!(int) refEventTreeSlope;
 	Dlg!() refFloatMessagePreview;
+	Dlg!() refUseMessageWindowColorInTextContentDialog;
 	Dlg!() refUpdateMotionBarStyle;
 	Dlg!() refMenuCardAndBgImageList;
 
