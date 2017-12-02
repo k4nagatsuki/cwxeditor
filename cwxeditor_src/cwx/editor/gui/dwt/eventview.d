@@ -149,11 +149,31 @@ private:
 		}
 	}
 	class PreviewTrigger : MouseTrackAdapter, MouseMoveListener {
+		private Object _lastData = null;
+		override void mouseEnter(MouseEvent e) { mixin(S_TRACE);
+			if (_prop.var.etc.showCardStatusUnderPointer) _etree.refreshStatusLine();
+		}
 		override void mouseExit(MouseEvent e) { mixin(S_TRACE);
 			closePreview();
+			if (_prop.var.etc.showCardStatusUnderPointer) _etree.refreshStatusLine();
 		}
 		override void mouseMove(MouseEvent e) { mixin(S_TRACE);
 			previewTrigger(e.x, e.y);
+
+			auto itm = _cards.getItem(new Point(e.x, e.y));
+			auto d = itm ? itm.getData() : null;
+			if (d !is _lastData) { mixin(S_TRACE);
+				_lastData = d;
+				if (_prop.var.etc.showCardStatusUnderPointer) { mixin(S_TRACE);
+					if (auto card = cast(MenuCard)d) { mixin(S_TRACE);
+						_etree.statusLine = .createAreaViewStatusLine(_comm, _summ, summSkin, card);
+					} else if (auto card = cast(EnemyCard)d) { mixin(S_TRACE);
+						_etree.statusLine = .createAreaViewStatusLine(_comm, _summ, summSkin, card);
+					} else { mixin(S_TRACE);
+						_etree.refreshStatusLine();
+					}
+				}
+			}
 		}
 	}
 

@@ -1046,16 +1046,21 @@ private:
 		return null;
 	}
 
-	void refreshStatusLine() { mixin(S_TRACE);
+	public void refreshStatusLine() { mixin(S_TRACE);
 		if (!_summ) return;
 		auto itm = selection;
 		if (itm && cast(Content)itm.getData()) { mixin(S_TRACE);
-			_statusLine = .contentText(_comm, cast(Content)itm.getData(), _summ);
+			statusLine = .contentText(_comm, cast(Content)itm.getData(), _summ);
 		} else { mixin(S_TRACE);
-			_statusLine = "";
+			statusLine = "";
 		}
+	}
+	@property
+	public void statusLine(string statusLine) { mixin(S_TRACE);
+		_statusLine = statusLine;
 		_comm.setStatusLine(_tree.control, _statusLine);
 	}
+
 	class TListener : TreeListener {
 		override void treeCollapsed(TreeEvent e) { mixin(S_TRACE);
 			_comm.refreshToolBar();

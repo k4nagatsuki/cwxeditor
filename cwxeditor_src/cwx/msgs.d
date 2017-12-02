@@ -2064,6 +2064,7 @@ class Msgs : Properties {
 	auto ignoreBackgroundInRange = Msg("ignoreBackgroundInRange", "範囲選択でフルサイズの背景セルを無視する");
 	auto copyDesc = Msg("copyDesc", "カードをエリアに貼り付け・ドロップした時、解説もコピーする");
 	auto showItemNumberOfSceneAndEventView = Msg("showItemNumberOfSceneAndEventView", "メニュー・エネミーカード及び背景セルの番号を表示する");
+	auto showCardStatusUnderPointer = Msg("showCardStatusUnderPointer", "マウスカーソル下のメニュー・エネミーカードの情報をステータスバーに表示する");
 
 	auto etcSettingsEvent = Msg("etcSettingsEvent", "イベントビューの設定");
 	auto showContentsGroupName = Msg("showContentsGroupName", "コンテンツボックスにグループ名を表示する");

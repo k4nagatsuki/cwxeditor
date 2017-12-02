@@ -130,12 +130,34 @@ private:
 		}
 	}
 	class PreviewTrigger : MouseTrackAdapter, MouseMoveListener {
+		private Object _lastData = null;
+		override void mouseEnter(MouseEvent e) { mixin(S_TRACE);
+			if (_prop.var.etc.showCardStatusUnderPointer) refreshStatusLine();
+		}
 		override void mouseExit(MouseEvent e) { mixin(S_TRACE);
 			_preview.close();
+			if (_prop.var.etc.showCardStatusUnderPointer) refreshStatusLine();
 		}
 		override void mouseMove(MouseEvent e) { mixin(S_TRACE);
 			auto list = cast(Table)e.widget;
 			previewTrigger(list, e.x, e.y);
+
+			auto itm = list.getItem(new Point(e.x, e.y));
+			auto d = itm ? itm.getData() : null;
+			if (d !is _lastData) { mixin(S_TRACE);
+				_lastData = d;
+				if (_prop.var.etc.showCardStatusUnderPointer) { mixin(S_TRACE);
+					if (auto card = cast(MenuCard)d) { mixin(S_TRACE);
+						statusLine = .createAreaViewStatusLine(_comm, _summ, summSkin, card);
+					} else if (auto card = cast(EnemyCard)d) { mixin(S_TRACE);
+						statusLine = .createAreaViewStatusLine(_comm, _summ, summSkin, card);
+					} else if (auto back = cast(BgImage)d) { mixin(S_TRACE);
+						statusLine = .createAreaViewStatusLine(_comm, _summ, summSkin, back);
+					} else { mixin(S_TRACE);
+						refreshStatusLine();
+					}
+				}
+			}
 		}
 	}
 
@@ -2468,115 +2490,14 @@ private:
 		refreshStatusLine();
 		_comm.refreshToolBar();
 	}
+
 	void refreshStatusLine() { mixin(S_TRACE);
 		string line = "";
-		string flag(string path) { mixin(S_TRACE);
-			if (!path.length) return _prop.msgs.areaViewStatusNoFlag;
-			if (_summ) { mixin(S_TRACE);
-				auto f = _summ.flagDirRoot.findFlag(path);
-				if (f) return .tryFormat(_prop.msgs.areaViewStatusWithFlag, path);
-			}
-			return .tryFormat(_prop.msgs.areaViewStatusInvalidFlag, path);
-		}
-		static if (is(C : MenuCard)) {
-			string cardName = _prop.msgs.menuCard;
-			string path(in C card) { mixin(S_TRACE);
-				string[] arr;
-				foreach (path; card.paths) { mixin(S_TRACE);
-					final switch (path.type) {
-					case CardImageType.File:
-						if (!path.path.length) { mixin(S_TRACE);
-							arr ~= _prop.msgs.noSelectImage;
-						} else if (isBinImg(path.path)) { mixin(S_TRACE);
-							arr ~= _prop.msgs.areaViewStatusImageIncluding;
-						} else if (!summSkin.findImagePath(path.path, _summ ? _summ.scenarioPath : "", _summ ? _summ.dataVersion : LATEST_VERSION).length) { mixin(S_TRACE);
-							arr ~= .tryFormat(_prop.msgs.noImage, encodePath(path.path));
-						} else { mixin(S_TRACE);
-							arr ~= encodePath(path.path);
-						}
-						break;
-					case CardImageType.PCNumber:
-						if (0 < path.pcNumber) { mixin(S_TRACE);
-							arr ~= .tryFormat(_prop.msgs.pcNumber, path.pcNumber);
-						}
-						break;
-					case CardImageType.Talker:
-						final switch (path.talker) {
-						case Talker.SELECTED:
-						case Talker.UNSELECTED:
-						case Talker.RANDOM:
-						case Talker.VALUED:
-						case Talker.CARD:
-							arr ~= _prop.msgs.talkerName(path.talker);
-							break;
-						}
-						break;
-					}
-				}
-				if (arr.length == 0) arr ~= _prop.msgs.noSelectImage;
-				return std.string.join(arr, " ");
-			}
-		} else static if (is(C : EnemyCard)) {
-			string cardName = _prop.msgs.enemyCard;
-			string path(in C card) { mixin(S_TRACE);
-				if (_summ) { mixin(S_TRACE);
-					if (0 == card.id) return _prop.msgs.noSelectCast;
-					auto c = _summ.cwCast(card.id);
-					if (!c) return .tryFormat(_prop.msgs.noCast, card.id);
-					return .tryFormat(_prop.msgs.areaViewStatusEnemyCard, c.id, c.name);
-				}
-				assert (0);
-			}
-		}
-		static if (UseCards) {
-			void putOneCard(in C card) { mixin(S_TRACE);
-				if (_summ) { mixin(S_TRACE);
-					line = .tryFormat(_prop.msgs.areaViewStatus, cardName, path(card), flag(card.flag));
-				} else { mixin(S_TRACE);
-					line = .tryFormat(_prop.msgs.areaViewStatusNoSummary, cardName, path(card));
-				}
-			}
-		}
-		static if (UseBacks) {
-			void putOneBack(in BgImage back) { mixin(S_TRACE);
-				string path, name;
-				auto ic = cast(ImageCell)back;
-				if (ic) { mixin(S_TRACE);
-					name = _prop.msgs.back;
-					path = encodePath(ic.path);
-					if (!path.length) { mixin(S_TRACE);
-						path = _prop.msgs.noSelectImage;
-					} else if (!summSkin.findImagePath(path, _summ ? _summ.scenarioPath : "", _summ ? _summ.dataVersion : LATEST_VERSION).length) { mixin(S_TRACE);
-						path = .tryFormat(_prop.msgs.noImage, encodePath(path));
-					}
-				}
-				auto tc = cast(TextCell)back;
-				if (tc) { mixin(S_TRACE);
-					name = _prop.msgs.textCell;
-					path = back.name(_prop.parent);
-				}
-				auto cc = cast(ColorCell)back;
-				if (cc) { mixin(S_TRACE);
-					name = _prop.msgs.colorCell;
-					path = back.name(_prop.parent);
-				}
-				auto pc = cast(PCCell)back;
-				if (pc) { mixin(S_TRACE);
-					name = _prop.msgs.pcCell;
-					path = back.name(_prop.parent);
-				}
-				if (_summ) { mixin(S_TRACE);
-					line = .tryFormat(_prop.msgs.areaViewStatus, name, path, flag(back.flag));
-				} else { mixin(S_TRACE);
-					line = .tryFormat(_prop.msgs.areaViewStatusNoSummary, name, path);
-				}
-			}
-		}
 		static if (UseCards && UseBacks) {
 			if (_editC.length == 1 && !_editB.length) { mixin(S_TRACE);
-				putOneCard(_editC.keys[0]);
+				line = createAreaViewStatusLine(_comm, _summ, summSkin, _editC.keys[0]);
 			} else if (!_editC.length && _editB.length == 1) { mixin(S_TRACE);
-				putOneBack(_editB.keys[0]);
+				line = createAreaViewStatusLine(_comm, _summ, summSkin, _editB.keys[0]);
 			} else if (_editC.length + _editB.length) { mixin(S_TRACE);
 				if (_editC.length) { mixin(S_TRACE);
 					line = .tryFormat(_prop.msgs.areaViewStatusSelCard, _editC.length);
@@ -2588,13 +2509,13 @@ private:
 			}
 		} else static if (UseCards) {
 			if (1 == _editC.length) { mixin(S_TRACE);
-				putOneCard(_editC.keys[0]);
+				line = createAreaViewStatusLine(_comm, _summ, summSkin, _editC.keys[0]);
 			} else if (1 < _editC.length) { mixin(S_TRACE);
 				line = .tryFormat(_prop.msgs.areaViewStatusSelCard, _editC.length);
 			}
 		} else static if (UseBacks) {
 			if (1 == _editB.length) { mixin(S_TRACE);
-				putOneBack(_editB.keys[0]);
+				line = createAreaViewStatusLine(_comm, _summ, summSkin, _editB.keys[0]);
 			} else if (1 < _editB.length) { mixin(S_TRACE);
 				line = .tryFormat(_prop.msgs.areaViewStatusSelBack, _editB.length);
 			}
@@ -3550,7 +3471,7 @@ public:
 		_comm.setStatusLine(_imgp, statusLine);
 	}
 	@property
-	string statusLine() {return _statusLine;}
+	string statusLine() { return _statusLine; }
 
 	@property
 	A area() { mixin(S_TRACE);

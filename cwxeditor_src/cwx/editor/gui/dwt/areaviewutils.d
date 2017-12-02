@@ -229,6 +229,110 @@ PileImage createMessageImage(Commons comm, Props prop) { mixin(S_TRACE);
 	return img;
 }
 
+private string createFlagName(in Commons comm, in Summary summ, string path) { mixin(S_TRACE);
+	if (!path.length) return comm.prop.msgs.areaViewStatusNoFlag;
+	if (summ) { mixin(S_TRACE);
+		auto f = summ.flagDirRoot.findFlag(path);
+		if (f) return .tryFormat(comm.prop.msgs.areaViewStatusWithFlag, path);
+	}
+	return .tryFormat(comm.prop.msgs.areaViewStatusInvalidFlag, path);
+}
+string createAreaViewStatusLine(in Commons comm, in Summary summ, in Skin skin, in MenuCard card) { mixin(S_TRACE);
+	string path(in MenuCard card) { mixin(S_TRACE);
+		string[] arr;
+		foreach (path; card.paths) { mixin(S_TRACE);
+			final switch (path.type) {
+			case CardImageType.File:
+				if (!path.path.length) { mixin(S_TRACE);
+					arr ~= comm.prop.msgs.noSelectImage;
+				} else if (isBinImg(path.path)) { mixin(S_TRACE);
+					arr ~= comm.prop.msgs.areaViewStatusImageIncluding;
+				} else if (!skin.findImagePath(path.path, summ ? summ.scenarioPath : "", summ ? summ.dataVersion : LATEST_VERSION).length) { mixin(S_TRACE);
+					arr ~= .tryFormat(comm.prop.msgs.noImage, encodePath(path.path));
+				} else { mixin(S_TRACE);
+					arr ~= encodePath(path.path);
+				}
+				break;
+			case CardImageType.PCNumber:
+				if (0 < path.pcNumber) { mixin(S_TRACE);
+					arr ~= .tryFormat(comm.prop.msgs.pcNumber, path.pcNumber);
+				}
+				break;
+			case CardImageType.Talker:
+				final switch (path.talker) {
+				case Talker.SELECTED:
+				case Talker.UNSELECTED:
+				case Talker.RANDOM:
+				case Talker.VALUED:
+				case Talker.CARD:
+					arr ~= comm.prop.msgs.talkerName(path.talker);
+					break;
+				}
+				break;
+			}
+		}
+		if (arr.length == 0) arr ~= comm.prop.msgs.noSelectImage;
+		return std.string.join(arr, " ");
+	}
+	if (summ) { mixin(S_TRACE);
+		return .tryFormat(comm.prop.msgs.areaViewStatus, comm.prop.msgs.menuCard, path(card), createFlagName(comm, summ, card.flag));
+	} else { mixin(S_TRACE);
+		return .tryFormat(comm.prop.msgs.areaViewStatusNoSummary, comm.prop.msgs.menuCard, path(card));
+	}
+}
+string createAreaViewStatusLine(in Commons comm, in Summary summ, in Skin skin, in EnemyCard card) { mixin(S_TRACE);
+	string name = comm.prop.msgs.noSelectCast;
+	if (summ) { mixin(S_TRACE);
+		if (0 != card.id) { mixin(S_TRACE);
+			auto c = summ.cwCast(card.id);
+			if (c) { mixin(S_TRACE);
+				name = .tryFormat(comm.prop.msgs.areaViewStatusEnemyCard, c.id, c.name);
+			} else { mixin(S_TRACE);
+				name = .tryFormat(comm.prop.msgs.noCast, card.id);
+			}
+		}
+		return .tryFormat(comm.prop.msgs.areaViewStatus, comm.prop.msgs.enemyCard, name, createFlagName(comm, summ, card.flag));
+	} else { mixin(S_TRACE);
+		if (0 != card.id) { mixin(S_TRACE);
+			name = .tryFormat(comm.prop.msgs.noCast, card.id);
+		}
+		return .tryFormat(comm.prop.msgs.areaViewStatusNoSummary, comm.prop.msgs.enemyCard, name);
+	}
+}
+string createAreaViewStatusLine(in Commons comm, in Summary summ, in Skin skin, in BgImage back) { mixin(S_TRACE);
+	string path, name;
+	auto ic = cast(ImageCell)back;
+	if (ic) { mixin(S_TRACE);
+		name = comm.prop.msgs.back;
+		path = .encodePath(ic.path);
+		if (!path.length) { mixin(S_TRACE);
+			path = comm.prop.msgs.noSelectImage;
+		} else if (!skin.findImagePath(path, summ ? summ.scenarioPath : "", summ ? summ.dataVersion : LATEST_VERSION).length) { mixin(S_TRACE);
+			path = .tryFormat(comm.prop.msgs.noImage, encodePath(path));
+		}
+	}
+	auto tc = cast(TextCell)back;
+	if (tc) { mixin(S_TRACE);
+		name = comm.prop.msgs.textCell;
+		path = back.name(comm.prop.parent);
+	}
+	auto cc = cast(ColorCell)back;
+	if (cc) { mixin(S_TRACE);
+		name = comm.prop.msgs.colorCell;
+		path = back.name(comm.prop.parent);
+	}
+	auto pc = cast(PCCell)back;
+	if (pc) { mixin(S_TRACE);
+		name = comm.prop.msgs.pcCell;
+		path = back.name(comm.prop.parent);
+	}
+	if (summ) { mixin(S_TRACE);
+		return .tryFormat(comm.prop.msgs.areaViewStatus, name, path, createFlagName(comm, summ, back.flag));
+	} else { mixin(S_TRACE);
+		return .tryFormat(comm.prop.msgs.areaViewStatusNoSummary, name, path);
+	}
+}
+
 class Preview {
 	private Props _prop;
 	private Shell _shell;

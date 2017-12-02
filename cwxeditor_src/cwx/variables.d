@@ -464,6 +464,7 @@ class FlexEtcProps : Properties {
 	auto drawXORSelectionLine = Prop!(bool)("drawXORSelectionLine", false);
 	auto showSceneViewSelectionFilter = Prop!(bool)("showSceneViewSelectionFilter", true);
 	auto showItemNumberOfSceneAndEventView = Prop!(bool)("showItemNumberOfSceneAndEventView", true);
+	auto showCardStatusUnderPointer = Prop!(bool)("showCardStatusUnderPointer", true);
 
 	auto showEventTreeLineNumber = Prop!(bool)("showEventTreeLineNumber", true);
 	auto showEventTreeDetail = Prop!(bool)("showEventTreeDetail", true);
