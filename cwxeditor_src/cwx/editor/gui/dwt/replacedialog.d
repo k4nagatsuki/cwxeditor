@@ -1354,7 +1354,7 @@ private:
 
 	void refFunc(bool Del, A : CWXPath)(A a) { mixin(S_TRACE);
 		if (_incSearch.isSearching) { mixin(S_TRACE);
-			refreshRangeTree();
+			refreshRangeTree(false);
 			return;
 		}
 		bool recurse(TreeItem itm) { mixin(S_TRACE);
@@ -1381,7 +1381,7 @@ private:
 		}
 		static if (!Del) {
 			// 追加
-			refreshRangeTree();
+			refreshRangeTree(false);
 		}
 	}
 	void delArea(Area a) { mixin(S_TRACE);
@@ -1410,21 +1410,21 @@ private:
 	}
 	void refArea(Area a) { mixin(S_TRACE);
 		if (_prop.var.etc.showAreaDirTree) {
-			refreshRangeTree();
+			refreshRangeTree(false);
 		} else {
 			refFunc!false(a);
 		}
 	}
 	void refBattle(Battle a) { mixin(S_TRACE);
 		if (_prop.var.etc.showAreaDirTree) {
-			refreshRangeTree();
+			refreshRangeTree(false);
 		} else {
 			refFunc!false(a);
 		}
 	}
 	void refPackage(Package a) { mixin(S_TRACE);
 		if (_prop.var.etc.showAreaDirTree) {
-			refreshRangeTree();
+			refreshRangeTree(false);
 		} else {
 			refFunc!false(a);
 		}
@@ -1472,7 +1472,8 @@ private:
 		foreach (a; summ.infos) r ~= a;
 		return r;
 	}
-	void refreshRangeTree() { mixin(S_TRACE);
+	void refreshRangeTree2() { refreshRangeTree(false); }
+	void refreshRangeTree(bool clearChecked) { mixin(S_TRACE);
 		_range.setRedraw(false);
 		scope (exit) _range.setRedraw(true);
 		if (!_summ) { mixin(S_TRACE);
@@ -1480,6 +1481,7 @@ private:
 			_range.removeAll();
 			return;
 		}
+		if (clearChecked) _rangeTable = null;
  		bool[CWXPath] sels;
  		bool[string] selsStr;
  		foreach (itm; _range.getSelection()) { mixin(S_TRACE);
@@ -1641,6 +1643,7 @@ private:
 			add(null, .tryFormat("%s.%s", a.id, a.name), true, a.name, a);
 		}
 		_range.setSelection(newSels);
+		if (_rangeAllCheck) refreshRangeAllCheck();
 		_range.treeExpandedAll();
 		_range.showSelection();
 		_comm.refreshToolBar();
@@ -1758,7 +1761,7 @@ public:
 		} else { mixin(S_TRACE);
 			_summ = summ;
 			reset();
-			refreshRangeTree();
+			refreshRangeTree(true);
 			setupIDs(true, true, true);
 		}
 		_undo.reset();
@@ -2082,7 +2085,7 @@ public:
 			gd.heightHint = 0;
 			_range.setLayoutData(gd);
 			_incSearch = new IncSearch(_comm, _range);
-			refreshRangeTree();
+			refreshRangeTree(false);
 			_rangeAllCheck = new Button(grp, SWT.CHECK);
 			_rangeAllCheck.setText(_prop.msgs.allCheckRange);
 			refreshRangeAllCheck();
@@ -2108,7 +2111,7 @@ public:
 			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(_comm, menu, MenuID.OpenAtView, &openRangePath, () => _range.getSelection().length > 0 && cast(CWXPath)_range.getSelection()[0].getData());
 			_range.setMenu(menu);
-			_incSearch.modEvent ~= &refreshRangeTree;
+			_incSearch.modEvent ~= () => refreshRangeTree(false);
 		}
 		{ mixin(S_TRACE);
 			auto sep = new Label(_win, SWT.SEPARATOR | SWT.HORIZONTAL);
@@ -2236,7 +2239,7 @@ public:
 
 		.setupWeights(sash, _prop.var.etc.replaceRangeSashL, _prop.var.etc.replaceRangeSashR);
 
-		_comm.refTableViewStyle.add(&refreshRangeTree);
+		_comm.refTableViewStyle.add(&refreshRangeTree2);
 		_comm.refArea.add(&refArea);
 		_comm.refBattle.add(&refBattle);
 		_comm.refPackage.add(&refPackage);
@@ -2315,7 +2318,7 @@ public:
 			_prop.var.etc.searchUnusedStart = _unuseStart.getSelection();
 			_prop.var.etc.searchUnusedPath = _unusePath.getSelection();
 
-			_comm.refTableViewStyle.remove(&refreshRangeTree);
+			_comm.refTableViewStyle.remove(&refreshRangeTree2);
 			_comm.refArea.remove(&refArea);
 			_comm.refBattle.remove(&refBattle);
 			_comm.refPackage.remove(&refPackage);
