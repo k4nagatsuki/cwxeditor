@@ -100,7 +100,6 @@ private:
 			_refCall = refCall;
 		}
 		override void undo() { mixin(S_TRACE);
-			reset(false);
 			super.undo();
 			refContentText();
 			_status.setText(.tryFormat(_prop.msgs.replaceUndo, .formatNum(_result.getItemCount())));
@@ -108,7 +107,6 @@ private:
 			_comm.replText.call();
 		}
 		override void redo() { mixin(S_TRACE);
-			reset(false);
 			super.redo();
 			refContentText();
 			_status.setText(.tryFormat(_prop.msgs.replaceRedo, .formatNum(_result.getItemCount())));
@@ -136,14 +134,12 @@ private:
 		void undo() { mixin(S_TRACE);
 			size_t dmy = 0;
 			foreach_reverse (u; _uArr) u.undo();
-			if (_path) addResult(_parent, _path, _cwxPath is null ? _path.cwxPath(true) : _cwxPath, dmy);
-			if (_filePath) addResult(_filePath, dmy);
+			_result.clearAll();
 		}
 		void redo() { mixin(S_TRACE);
 			size_t dmy = 0;
 			foreach_reverse (u; _uArr) u.redo();
-			if (_path) addResult(_parent, _path, _cwxPath is null ? _path.cwxPath(true) : _cwxPath, dmy);
-			if (_filePath) addResult(_filePath, dmy);
+			_result.clearAll();
 		}
 		void dispose() { mixin(S_TRACE);
 			foreach (u; _uArr) u.dispose();
@@ -330,6 +326,8 @@ private:
 	TableTextEdit _edit;
 	Tree _range;
 
+	AddResult[] _results;
+
 	bool[CWXPath] _rangeTable;
 	IncSearch _incSearch = null;
 	private void incSearch() { mixin(S_TRACE);
@@ -379,15 +377,25 @@ private:
 		}
 	}
 
-	class AddResultPath : Runnable {
+	static interface AddResult : Runnable {
+		void setData(TableItem itm);
+	}
+
+	class AddResultPath : AddResult {
 		size_t count = 0;
 		string path;
 		string desc;
+		Summary _grepSumm;
 		void run() { mixin(S_TRACE);
 			if (cancel) return;
 			if (!_win || _win.isDisposed()) return;
 			if (_inProc && !_prop.var.etc.searchResultRealtime) resultRedraw(false);
-			auto itm = new TableItem(_result, SWT.NONE);
+			_grepSumm = this.outer._grepSumm;
+			refResultStatus(cast(int)count, false);
+			_results ~= this;
+			if (_prop.var.etc.searchResultRealtime) _result.setItemCount(cast(int)_results.length);
+		}
+		override void setData(TableItem itm) { mixin(S_TRACE);
 			auto summ = _grepSumm ? _grepSumm : _summ;
 			auto fullPath = std.path.buildPath(summ.scenarioPath, path);
 			if (_grepSumm) { mixin(S_TRACE);
@@ -410,26 +418,29 @@ private:
 				itm.setImage(2, _prop.images.summary);
 			}
 			itm.setData(new FilePathString(scPath, path));
-			refResultStatus(cast(int)count, false);
 		}
 	}
-	class AddResultCWXPath : Runnable {
+	class AddResultCWXPath : AddResult {
 		CWXPath parent;
 		CWXPath path;
 		string cwxPath;
-		int index;
 		string desc;
 		size_t count = 0;
+		Summary _grepSumm;
 		void run() { mixin(S_TRACE);
 			if (cancel) return;
 			if (!_win || _win.isDisposed()) return;
 			if (_inProc && !_prop.var.etc.searchResultRealtime) resultRedraw(false);
-			addResultImpl(parent, path, cwxPath, index, desc);
+			_grepSumm = this.outer._grepSumm;
 			refResultStatus(cast(int)count, false);
+			_results ~= this;
+			if (_prop.var.etc.searchResultRealtime) _result.setItemCount(cast(int)_results.length);
+		}
+		override void setData(TableItem itm) { mixin(S_TRACE);
+			addResultImpl(itm, _grepSumm, parent, path, cwxPath, desc);
 		}
 	}
-	private void addResultImpl(CWXPath parent, CWXPath path, string cwxPath, int index = -1, string desc = "") {
-		auto itm = new TableItem(_result, SWT.NONE, -1 == index ? _result.getItemCount() : index);
+	private void addResultImpl(TableItem itm, Summary grepSumm, CWXPath parent, CWXPath path, string cwxPath, string desc = "") {
 		string text1, text2;
 		Image img1, img2;
 		getPathParams(parent, path, text1, text2, img1, img2);
@@ -442,43 +453,47 @@ private:
 			itm.setImage(2, _prop.images.warning);
 		}
 		string scPath = null;
-		if (_grepSumm) { mixin(S_TRACE);
-			scPath = _grepSumm.useTemp ? _grepSumm.origZipName : _grepSumm.scenarioPath;
-			itm.setText(2, .tryFormat(_prop.msgs.grepScenario, _grepSumm.scenarioName, scPath));
+		if (grepSumm) { mixin(S_TRACE);
+			scPath = grepSumm.useTemp ? grepSumm.origZipName : grepSumm.scenarioPath;
+			itm.setText(2, .tryFormat(_prop.msgs.grepScenario, grepSumm.scenarioName, scPath));
 			itm.setImage(2, _prop.images.summary);
 		}
-		itm.setData(new CWXPathString(scPath, parent, _grepSumm ? null : path, cwxPath));
+		itm.setData(new CWXPathString(scPath, parent, grepSumm ? null : path, cwxPath));
 	}
-	class AddResultMsg : Runnable {
+	class AddResultMsg : AddResult {
 		string name;
 		Image delegate() image;
-		int index;
 		size_t count = 0;
 		void run() { mixin(S_TRACE);
 			if (cancel) return;
 			if (!_win || _win.isDisposed()) return;
 			if (_inProc && !_prop.var.etc.searchResultRealtime) resultRedraw(false);
-			auto itm = new TableItem(_result, SWT.NONE, -1 == index ? _result.getItemCount() : index);
+			refResultStatus(cast(int)count, false);
+			_results ~= this;
+			if (_prop.var.etc.searchResultRealtime) _result.setItemCount(cast(int)_results.length);
+		}
+		override void setData(TableItem itm) { mixin(S_TRACE);
 			itm.setText(name);
 			itm.setImage(image());
-			refResultStatus(cast(int)count, false);
 		}
 	}
-	class AddResultUse : Runnable {
+	class AddResultUse : AddResult {
 		string name;
 		uint use;
 		Image delegate() image;
-		int index;
 		size_t count = 0;
 		void run() { mixin(S_TRACE);
 			if (cancel) return;
 			if (!_win || _win.isDisposed()) return;
 			if (_inProc && !_prop.var.etc.searchResultRealtime) resultRedraw(false);
-			auto itm = new TableItem(_result, SWT.NONE, -1 == index ? _result.getItemCount() : index);
+			refResultStatus(cast(int)count, false);
+			_results ~= this;
+			if (_prop.var.etc.searchResultRealtime) _result.setItemCount(cast(int)_results.length);
+		}
+		override void setData(TableItem itm) { mixin(S_TRACE);
 			itm.setText(0, name);
 			itm.setImage(0, image());
 			itm.setText(1, .text(use));
-			refResultStatus(cast(int)count, false);
 		}
 	}
 	Display _display;
@@ -2026,7 +2041,7 @@ public:
 			_tabf.addSelectionListener(new TSListener);
 		}
 		{ mixin(S_TRACE);
-			_result = .rangeSelectableTable(left, SWT.BORDER | SWT.MULTI | SWT.FULL_SELECTION | SWT.V_SCROLL);
+			_result = .rangeSelectableTable(left, SWT.BORDER | SWT.MULTI | SWT.FULL_SELECTION | SWT.V_SCROLL | SWT.VIRTUAL);
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.widthHint = _prop.var.etc.searchResultTableWidth;
 			gd.heightHint = _prop.var.etc.searchResultTableHeight;
@@ -2047,6 +2062,11 @@ public:
 			createMenuItem(_comm, menu, MenuID.OpenAtView, &openPath, &canOpenPath);
 			_result.setMenu(menu);
 			_edit = new TableTextEdit(_comm, _prop, _result, 0, &couponEditEnd, &canCouponEdit);
+
+			.listener(_result, SWT.SetData, (e) { mixin(S_TRACE);
+				if (_results.length <= e.index) return;
+				_results[e.index].setData(cast(TableItem)e.item);
+			});
 		}
 		{ mixin(S_TRACE);
 			auto comp = new Composite(left, SWT.NONE);
@@ -2390,9 +2410,14 @@ public:
 		reset();
 		initReplaceText();
 		foreach (path; paths) { mixin(S_TRACE);
-			addResultImpl(parent, path, path.cwxPath(true));
+			auto addResultCWXPath = new AddResultCWXPath;
+			addResultCWXPath.parent = parent;
+			addResultCWXPath.path = path;
+			addResultCWXPath.cwxPath = path.cwxPath(true);
+			_results ~= addResultCWXPath;
 		}
 		refResultStatusImpl(cast(int)paths.length, kind);
+		setResultStatus(_results.length);
 	}
 	private void search() { mixin(S_TRACE);
 		auto c = _win.getDisplay().getFocusControl();
@@ -2410,7 +2435,8 @@ public:
 		if (!_inUndo && !_inProc) { mixin(S_TRACE);
 			_undo.reset();
 		}
-		_result.removeAll();
+		_result.setItemCount(0);
+		_results = [];
 		_grepCount = -1;
 		if (removeColumns && _result.getColumnCount()) { mixin(S_TRACE);
 			foreach (column; _result.getColumns()) { mixin(S_TRACE);
@@ -2640,6 +2666,7 @@ public:
 			}
 		}
 		_inProc = false;
+		_result.setItemCount(cast(int)_results.length);
 		resultRedraw(true);
 		refResultStatus(count, true);
 	}
@@ -3102,6 +3129,15 @@ public:
 		string name;
 		size_t count;
 	}
+	static class AddResultCouponParams : AddResult {
+		CouponParams params;
+		override void run() { }
+		override void setData(TableItem itm) { mixin(S_TRACE);
+			itm.setImage(params.image);
+			itm.setText(params.name);
+			itm.setText(1, params.count.text());
+		}
+	}
 	static class CouponUndo(User, KeyType) : Undo {
 		private Commons _comm;
 		private Summary _summ;
@@ -3141,14 +3177,13 @@ public:
 			}
 
 			if (_dlg) { mixin(S_TRACE);
+				_dlg._result.setItemCount(cast(int)results.length);
+				_dlg._result.clearAll();
+				_dlg._results = [];
 				foreach (i, r; results) { mixin(S_TRACE);
-					auto itm = i < _dlg._result.getItemCount() ? _dlg._result.getItem(cast(int)i) : new TableItem(_dlg._result, SWT.NONE);
-					itm.setImage(r.image);
-					itm.setText(r.name);
-					itm.setText(1, r.count.text());
-				}
-				while (results.length < _dlg._result.getItemCount()) { mixin(S_TRACE);
-					_dlg._result.getItem(cast(int)results.length).dispose();
+					auto a = new AddResultCouponParams;
+					a.params = r;
+					_dlg._results ~= a;
 				}
 			}
 
@@ -4232,36 +4267,33 @@ public:
 			getSymbols(_comm, summ, parent, text2, img2);
 		}
 	}
-	private void addResult(CWXPath parent, CWXPath path, string cwxPath, ref size_t count, string desc = "", int index = -1) { mixin(S_TRACE);
+	private void addResult(CWXPath parent, CWXPath path, string cwxPath, ref size_t count, string desc = "") { mixin(S_TRACE);
 		if (cancel) return;
 		count++;
 		auto addResultCWXPath = new AddResultCWXPath;
 		addResultCWXPath.parent = parent;
 		addResultCWXPath.path = path;
 		addResultCWXPath.cwxPath = cwxPath;
-		addResultCWXPath.index = index;
 		addResultCWXPath.desc = desc;
 		addResultCWXPath.count = count;
 		_display.syncExec(addResultCWXPath);
 	}
-	private void addResult(string name, Image delegate() image, ref size_t count, int index = -1) { mixin(S_TRACE);
+	private void addResult(string name, Image delegate() image, ref size_t count) { mixin(S_TRACE);
 		if (cancel) return;
 		count++;
 		auto addResultMsg = new AddResultMsg;
 		addResultMsg.name = name;
 		addResultMsg.image = image;
-		addResultMsg.index = index;
 		addResultMsg.count = count;
 		_display.syncExec(addResultMsg);
 	}
-	private void addResult(string name, uint use, Image delegate() image, ref size_t count, int index = -1) { mixin(S_TRACE);
+	private void addResult(string name, uint use, Image delegate() image, ref size_t count) { mixin(S_TRACE);
 		if (cancel) return;
 		count++;
 		auto addResultUse = new AddResultUse;
 		addResultUse.name = name;
 		addResultUse.use = use;
 		addResultUse.image = image;
-		addResultUse.index = index;
 		addResultUse.count = count;
 		_display.syncExec(addResultUse);
 	}
