@@ -879,11 +879,13 @@ public:
 	protected override void end(Control c) { mixin(S_TRACE);
 		try { mixin(S_TRACE);
 			string newText = null;
-			if (auto t = cast(Text) c) { mixin(S_TRACE);
+			if (auto t = cast(Text)c) { mixin(S_TRACE);
 				newText = t.getText();
-			} else if (auto t = cast(Combo) c) { mixin(S_TRACE);
+			} else if (auto t = cast(StyledText)c) { mixin(S_TRACE);
 				newText = t.getText();
-			} else if (auto t = cast(CCombo) c) { mixin(S_TRACE);
+			} else if (auto t = cast(Combo)c) { mixin(S_TRACE);
+				newText = t.getText();
+			} else if (auto t = cast(CCombo)c) { mixin(S_TRACE);
 				newText = t.getText();
 			}
 			if (!newText) newText = "";
@@ -1005,11 +1007,13 @@ public:
 			}
 			auto spinner = cast(Spinner) c;
 			if (spinner) set(spinner.getText());
-			auto text = cast(Text) c;
+			auto text = cast(Text)c;
 			if (text) set(text.getText());
-			auto combo = cast(Combo) c;
+			auto stext = cast(StyledText)c;
+			if (stext) set(stext.getText());
+			auto combo = cast(Combo)c;
 			if (combo) set(combo.getText());
-			auto ccombo = cast(CCombo) c;
+			auto ccombo = cast(CCombo)c;
 			if (ccombo) set(ccombo.getText());
 		} catch (Exception e) {
 			printStackTrace();

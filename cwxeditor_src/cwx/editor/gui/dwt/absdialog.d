@@ -406,7 +406,6 @@ abstract class AbsDialog {
 	}
 	private class MListener : ModifyListener {
 		override void modifyText(ModifyEvent e) { mixin(S_TRACE);
-			auto t = cast(Text) e.widget;
 			check();
 		}
 	}

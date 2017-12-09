@@ -3519,7 +3519,7 @@ public:
 	private class KeyDownFilter : Listener {
 		override void handleEvent(Event e) { mixin(S_TRACE);
 			if (!e.doit) return;
-			auto text = cast(Text) e.widget;
+			auto text = cast(Text)e.widget;
 			if (text && cast(CCombo)text.getParent()) { mixin(S_TRACE);
 				// CComboは本体に加えて内部のTextからもイベントが発生する
 				return;
@@ -3537,7 +3537,7 @@ public:
 			if (ro && cast(Spinner)fc) { mixin(S_TRACE);
 				return;
 			}
-			if (ro && (cast(Spinner)fc || cast(Text)fc || cast(Combo)fc || cast(CCombo)fc)) { mixin(S_TRACE);
+			if (ro && (cast(Spinner)fc || cast(Text)fc || cast(StyledText)fc || cast(Combo)fc || cast(CCombo)fc)) { mixin(S_TRACE);
 				if (!(e.stateMask & SWT.CTRL) && !.contains!("a == b", int, int)(F, e.keyCode)) { mixin(S_TRACE);
 					return;
 				}

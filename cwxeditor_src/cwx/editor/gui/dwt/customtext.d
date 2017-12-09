@@ -83,13 +83,13 @@ class HotKeyField {
 }
 
 /// 折り返しを反映したテキストを取得可能なText。
-class FixedWidthText {
-	private Text _widget;
+class FixedWidthText(T = Text) {
+	private T _widget;
 	private GC _gc = null;
 	private int _width;
 	private int _num;
 	this (in CFont fontData, int num, Composite parent, int style, bool wordWrap = false) { mixin(S_TRACE);
-		_widget = new Text(parent, style | SWT.MULTI | SWT.WRAP);
+		_widget = new T(parent, style | SWT.MULTI | SWT.WRAP);
 		_num = num;
 		font = fontData;
 
@@ -127,7 +127,7 @@ class FixedWidthText {
 		if (_num & 1) _width += _gc.wTextExtent(" ").x;
 	}
 	@property
-	Text widget() { mixin(S_TRACE);
+	T widget() { mixin(S_TRACE);
 		return _widget;
 	}
 	Point computeTextBaseSize(int line) { mixin(S_TRACE);
@@ -322,11 +322,13 @@ class GBLimitText {
 
 // FIXME: TextMenuModifyをテンプレート化できない
 immutable TMM_T = 0;
-immutable TMM_C = 1;
-immutable TMM_CC = 2;
+immutable TMM_ST = 1;
+immutable TMM_C = 2;
+immutable TMM_CC = 3;
 struct TMM {
 	union {
 		Text text;
+		StyledText styledText;
 		Combo combo;
 		CCombo ccombo;
 	}
@@ -349,6 +351,12 @@ struct TMM {
 		r.kind = TMM_CC;
 		return r;
 	}
+	static TMM opCall(StyledText styledText) {
+		TMM r;
+		r.styledText = styledText;
+		r.kind = TMM_ST;
+		return r;
+	}
 	string getText() { mixin(S_TRACE);
 		final switch (kind) {
 		case TMM_T:
@@ -357,6 +365,8 @@ struct TMM {
 			return combo.getText();
 		case TMM_CC:
 			return ccombo.getText();
+		case TMM_ST:
+			return styledText.getText();
 		}
 	}
 	void setText(string v) { mixin(S_TRACE);
@@ -370,6 +380,9 @@ struct TMM {
 		case TMM_CC:
 			ccombo.setText(v);
 			break;
+		case TMM_ST:
+			styledText.setText(v);
+			break;
 		}
 	}
 	Point getSelection() { mixin(S_TRACE);
@@ -380,6 +393,8 @@ struct TMM {
 			return combo.getSelection();
 		case TMM_CC:
 			return ccombo.getSelection();
+		case TMM_ST:
+			return styledText.getSelection();
 		}
 	}
 	void setSelection(Point v) { mixin(S_TRACE);
@@ -393,6 +408,9 @@ struct TMM {
 		case TMM_CC:
 			ccombo.setSelection(v);
 			break;
+		case TMM_ST:
+			styledText.setSelection(v);
+			break;
 		}
 	}
 	void addListener(int type, Listener l) { mixin(S_TRACE);
@@ -405,6 +423,9 @@ struct TMM {
 			break;
 		case TMM_CC:
 			ccombo.addListener(type, l);
+			break;
+		case TMM_ST:
+			styledText.addListener(type, l);
 			break;
 		}
 	}

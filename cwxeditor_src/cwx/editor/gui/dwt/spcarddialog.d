@@ -71,7 +71,7 @@ private:
 
 	static if (is (C == MenuCard)) {
 		ImageSelect!(MtType.CARD) _imgPath;
-		FixedWidthText _desc;
+		FixedWidthText!Text _desc;
 		Text _name;
 
 	} else static if (is (C == EnemyCard)) {
@@ -449,7 +449,7 @@ protected:
 					grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 					grp.setLayout(new CenterLayout(SWT.HORIZONTAL));
 					grp.setText(_prop.msgs.desc);
-					_desc = new FixedWidthText(_prop.looks.cardDescFont(summSkin.legacy), _prop.looks.cardDescLen, grp, SWT.BORDER);
+					_desc = new FixedWidthText!Text(_prop.looks.cardDescFont(summSkin.legacy), _prop.looks.cardDescLen, grp, SWT.BORDER);
 					createTextMenu!Text(_comm, _prop, _desc.widget, &catchMod);
 					mod(_desc.widget);
 					_desc.widget.setLayoutData(_desc.computeTextBaseSize(_prop.looks.cardDescLine));

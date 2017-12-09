@@ -233,7 +233,8 @@ class AbstractMessageDialog : EventDialog {
 			auto c = cast(Control)e.widget;
 			if (!c || c.isDisposed() || c.getShell() !is getShell()) return;
 			if (!canHookKeyDown(c)) return;
-			if (cast(Text) c) return;
+			if (cast(Text)c) return;
+			if (cast(StyledText)c) return;
 			if (eqAcc(_undoAcc, e.keyCode, e.character, e.stateMask)) { mixin(S_TRACE);
 				_undo.undo();
 				e.doit = false;
@@ -575,7 +576,7 @@ private:
 	ToolTip _warningTip;
 	Text _rCoupons;
 	Combo _rCouponsList;
-	FixedWidthText _text;
+	FixedWidthText!Text _text;
 	TextMenuModify _textTM, _rCouponsTM;
 	CouponView!(CVType.Valued) _couponView;
 	Spinner _initValue;
@@ -1157,8 +1158,8 @@ protected:
 		}
 		refreshDlgList();
 
-		_textTM = createTextMenu!Text(comm, prop, _rCoupons, &catchMod, _undo, TMAppendData(&readAPD, &writeAPD));
-		_rCouponsTM = createTextMenu!Text(comm, prop, _text.widget, &catchMod, _undo, TMAppendData(&readAPD, &writeAPD));
+		_rCouponsTM = createTextMenu!Text(comm, prop, _rCoupons, &catchMod, _undo, TMAppendData(&readAPD, &writeAPD));
+		_textTM = createTextMenu!Text(comm, prop, _text.widget, &catchMod, _undo, TMAppendData(&readAPD, &writeAPD));
 
 		initPreview(area, prop.var.dlgPrev);
 		updateValue();
@@ -1193,7 +1194,7 @@ class MessageDialog : AbstractMessageDialog {
 private:
 	CTabFolder _tabf;
 	Composite _msgCompA, _msgCompB;
-	FixedWidthText _text;
+	FixedWidthText!Text _text;
 	ImageSelect!(MtType.CARD, Combo) _msel;
 
 	override
@@ -1497,9 +1498,9 @@ private Composite createTalkerPane
 	return comp;
 }
 
-private FixedWidthText createMessagePane(Commons comm, Props prop, bool image, Composite parent, Summary summ) { mixin(S_TRACE);
+private FixedWidthText!Text createMessagePane(Commons comm, Props prop, bool image, Composite parent, Summary summ) { mixin(S_TRACE);
 	int len = image ? prop.looks.messageImageLen : prop.looks.messageLen;
-	auto r = new FixedWidthText(prop.looks.messageFont(comm.skin.legacy), len, parent, SWT.BORDER, true);
+	auto r = new FixedWidthText!Text(prop.looks.messageFont(comm.skin.legacy), len, parent, SWT.BORDER, true);
 	auto d = r.widget.getDisplay();
 	auto normBack = r.widget.getBackground();
 	auto normFore = r.widget.getForeground();
@@ -1947,7 +1948,7 @@ Composite createFlagStepBar(Composite parent, void delegate(string) insert, Comm
 	return bar;
 }
 
-private void putColor(FixedWidthText text, dchar put) { mixin(S_TRACE);
+private void putColor(FixedWidthText!Text text, dchar put) { mixin(S_TRACE);
 	auto sel = text.widget.getSelection();
 	auto old = toUTF32(text.getText());
 	auto newt = cwx.msgutils.putColor(old, put, sel.x, sel.y);
@@ -2385,6 +2386,8 @@ class PreviewValues : Composite {
 	private static string ctrlText(Control ctrl) { mixin(S_TRACE);
 		auto text = cast(Text)ctrl;
 		if (text) return text.getText();
+		auto stext = cast(StyledText)ctrl;
+		if (stext) return stext.getText();
 		auto combo = cast(Combo)ctrl;
 		if (combo) return combo.getText();
 		auto spn = cast(Spinner)ctrl;
@@ -2394,6 +2397,8 @@ class PreviewValues : Composite {
 	private void editEnd(TableItem itm, int column, Control ctrl) { mixin(S_TRACE);
 		auto old = itm.getText(column);
 		if (auto text = cast(Text)ctrl) { mixin(S_TRACE);
+			itm.setText(column, text.getText());
+		} else if (auto text = cast(StyledText)ctrl) { mixin(S_TRACE);
 			itm.setText(column, text.getText());
 		} else if (auto combo = cast(Combo)ctrl) { mixin(S_TRACE);
 			itm.setText(column, combo.getText());

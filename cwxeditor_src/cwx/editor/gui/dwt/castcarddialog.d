@@ -58,7 +58,7 @@ private:
 	CastCard _card;
 
 	ImageSelect!(MtType.CARD) _imgPath;
-	FixedWidthText _desc;
+	FixedWidthText!Text _desc;
 	GBLimitText _name;
 	Spinner _level;
 	Spinner _lifeMax;
@@ -337,7 +337,7 @@ private:
 			cl.fillVertical = true;
 			grp.setLayout(cl);
 			grp.setText(_prop.msgs.desc);
-			_desc = new FixedWidthText(_prop.looks.cardDescFont(summSkin.legacy), _prop.looks.cardDescLen, grp, SWT.BORDER | _readOnly);
+			_desc = new FixedWidthText!Text(_prop.looks.cardDescFont(summSkin.legacy), _prop.looks.cardDescLen, grp, SWT.BORDER | _readOnly);
 			mod(_desc.widget);
 			createTextMenu!Text(_comm, _prop, _desc.widget, &catchMod);
 			auto p = _desc.computeTextBaseSize(1);

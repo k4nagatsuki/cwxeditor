@@ -57,7 +57,7 @@ private:
 	C _card;
 
 	ImageSelect!(MtType.CARD) _imgPath;
-	FixedWidthText _desc;
+	FixedWidthText!Text _desc;
 	GBLimitText _name;
 	Button _needSpell;
 	Button[EffectType] _effTyp;
@@ -414,7 +414,7 @@ private:
 			grp.setLayoutData(gd);
 			grp.setLayout(new CenterLayout(SWT.HORIZONTAL));
 			grp.setText(_prop.msgs.desc);
-			_desc = new FixedWidthText(_prop.looks.cardDescFont(summSkin.legacy), _prop.looks.cardDescLen, grp, SWT.BORDER | _readOnly);
+			_desc = new FixedWidthText!Text(_prop.looks.cardDescFont(summSkin.legacy), _prop.looks.cardDescLen, grp, SWT.BORDER | _readOnly);
 			mod(_desc.widget);
 			createTextMenu!Text(_comm, _prop, _desc.widget, &catchMod);
 			_desc.widget.setLayoutData(_desc.computeTextBaseSize(_prop.looks.cardDescLine));

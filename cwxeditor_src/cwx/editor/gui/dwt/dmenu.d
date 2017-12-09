@@ -146,6 +146,8 @@ private class InTCPD {
 		bool ro = !(fc.getStyle() & SWT.READ_ONLY);
 		if (ro && cast(Text)fc) { mixin(S_TRACE);
 			(cast(Text)fc).cut();
+		} else if (ro && cast(StyledText)fc) { mixin(S_TRACE);
+			(cast(StyledText)fc).cut();
 		} else if (ro && cast(Combo)fc) { mixin(S_TRACE);
 			(cast(Combo)fc).cut();
 		} else if (ro && cast(CCombo)fc) { mixin(S_TRACE);
@@ -163,6 +165,10 @@ private class InTCPD {
 		bool ro = !(fc.getStyle() & SWT.READ_ONLY);
 		if (ro && cast(Text)fc) { mixin(S_TRACE);
 			(cast(Text)fc).copy();
+		} else if (ro && cast(StyledText)fc) { mixin(S_TRACE);
+			(cast(StyledText)fc).copy();
+		} else if (ro && cast(StyledText)fc) { mixin(S_TRACE);
+			(cast(StyledText)fc).copy();
 		} else if (ro && cast(Combo)fc) { mixin(S_TRACE);
 			(cast(Combo)fc).copy();
 		} else if (ro && cast(CCombo)fc) { mixin(S_TRACE);
@@ -180,6 +186,10 @@ private class InTCPD {
 		bool ro = !(fc.getStyle() & SWT.READ_ONLY);
 		if (ro && cast(Text)fc) { mixin(S_TRACE);
 			(cast(Text)fc).paste();
+		} else if (ro && cast(StyledText)fc) { mixin(S_TRACE);
+			(cast(StyledText)fc).paste();
+		} else if (ro && cast(StyledText)fc) { mixin(S_TRACE);
+			(cast(StyledText)fc).paste();
 		} else if (ro && cast(Combo)fc) { mixin(S_TRACE);
 			(cast(Combo)fc).paste();
 		} else if (ro && cast(CCombo)fc) { mixin(S_TRACE);
@@ -197,6 +207,10 @@ private class InTCPD {
 		bool ro = !(fc.getStyle() & SWT.READ_ONLY);
 		if (ro && cast(Text)fc) { mixin(S_TRACE);
 			(cast(Text)fc).insert("");
+		} else if (ro && cast(StyledText)fc) { mixin(S_TRACE);
+			(cast(StyledText)fc).insert("");
+		} else if (ro && cast(StyledText)fc) { mixin(S_TRACE);
+			(cast(StyledText)fc).insert("");
 		} else if (tcpd.canDoD) { mixin(S_TRACE);
 			tcpd.del(se);
 		}
@@ -218,6 +232,10 @@ private class InTCPD {
 		bool ro = !(fc.getStyle() & SWT.READ_ONLY);
 		if (ro && cast(Text)fc) { mixin(S_TRACE);
 			cloneImpl(cast(Text)fc);
+		} else if (ro && cast(StyledText)fc) { mixin(S_TRACE);
+			cloneImpl(cast(StyledText)fc);
+		} else if (ro && cast(StyledText)fc) { mixin(S_TRACE);
+			cloneImpl(cast(StyledText)fc);
 		} else if (ro && cast(Combo)fc) { mixin(S_TRACE);
 			cloneImpl(cast(Combo)fc);
 		} else if (ro && cast(CCombo)fc) { mixin(S_TRACE);
