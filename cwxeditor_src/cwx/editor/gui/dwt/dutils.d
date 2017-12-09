@@ -1,30 +1,31 @@
 
 module cwx.editor.gui.dwt.dutils;
 
-import cwx.cwl;
-import cwx.area;
-import cwx.card;
-import cwx.types;
-import cwx.utils;
-import cwx.features;
 import cwx.archive;
-import cwx.summary;
-import cwx.usecounter;
-import cwx.props;
-import cwx.imagesize;
-import cwx.skin;
-import cwx.cab;
-import cwx.structs;
-import cwx.event;
-import cwx.graphics;
-import cwx.path;
-import cwx.menu;
-import cwx.variables;
-import cwx.flag;
+import cwx.area;
 import cwx.background;
+import cwx.cab;
+import cwx.card;
+import cwx.cwl;
+import cwx.event;
+import cwx.features;
+import cwx.flag;
+import cwx.graphics;
+import cwx.imagesize;
 import cwx.jpy;
-import cwx.textholder;
+import cwx.menu;
+import cwx.motion;
+import cwx.path;
+import cwx.props;
 import cwx.settings;
+import cwx.skin;
+import cwx.structs;
+import cwx.summary;
+import cwx.textholder;
+import cwx.types;
+import cwx.usecounter;
+import cwx.utils;
+import cwx.variables;
 
 import cwx.editor.gui.sound;
 import cwx.editor.gui.dwt.images;
@@ -3916,7 +3917,7 @@ public static Image fimage(Props prop, string file, Skin skin) { mixin(S_TRACE);
 }
 
 /// pathの内容を端的に表すアイコンとテキストを返す。
-void getSymbols(Commons comm, Summary summ, CWXPath path, out string text, out Image img) { mixin(S_TRACE);
+void getSymbols(Commons comm, Summary summ, CWXPath path, bool desc, out string text, out Image img) { mixin(S_TRACE);
 	img = null;
 	text = "*Error*";
 	if (!path) return;
@@ -3925,7 +3926,7 @@ void getSymbols(Commons comm, Summary summ, CWXPath path, out string text, out I
 	auto sum = cast(Summary)path;
 	if (sum) { mixin(S_TRACE);
 		img = prop.images.summary;
-		text = .tryFormat(prop.msgs.searchResultSummary, sum.desc.singleLine);
+		text = desc ? .tryFormat(prop.msgs.searchResultSummary, sum.desc.singleLine) : sum.scenarioName;
 	}
 	auto bgi = cast(BgImage)path;
 	if (bgi) { mixin(S_TRACE);
@@ -4063,7 +4064,7 @@ void getSymbols(Commons comm, Summary summ, CWXPath path, out string text, out I
 	auto men = cast(MenuCard)path;
 	if (men) { mixin(S_TRACE);
 		img = prop.images.cards;
-		if (men.desc == "") { mixin(S_TRACE);
+		if (!desc || men.desc == "") { mixin(S_TRACE);
 			text = .tryFormat(prop.msgs.searchResultMenuCard, men.name);
 		} else { mixin(S_TRACE);
 			text = .tryFormat(prop.msgs.searchResultMenuCardWithDesc, men.name, .singleLine(men.desc));
@@ -4090,6 +4091,11 @@ void getSymbols(Commons comm, Summary summ, CWXPath path, out string text, out I
 		img = prop.images.backs;
 		auto fPath = nabs(jpdc.jpdcPath).abs2rel(nabs(summ.scenarioPath));
 		text = .tryFormat(prop.msgs.searchResultJpdc, encodePath(fPath));
+	}
+	auto motion = cast(Motion)path;
+	if (motion) { mixin(S_TRACE);
+		img = prop.images.motion(motion.type);
+		text = prop.msgs.motionName(motion.type);
 	}
 	assert (img !is null, .text(path) ~ ", " ~ typeid(path).toString());
 }

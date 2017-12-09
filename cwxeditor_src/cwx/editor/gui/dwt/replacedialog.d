@@ -38,20 +38,21 @@ import cwx.editor.gui.dwt.incsearch;
 import core.thread;
 static import core.memory;
 
-static import std.algorithm;
 import std.algorithm : map, uniq, swap, count, filter;
-import std.range;
+import std.array;
 import std.ascii;
 import std.conv;
-import std.array;
-import std.string;
+import std.exception;
 import std.file;
 import std.path;
+import std.range;
 import std.regex : Regex, regex, RegexMatch, match;
-static import std.regex;
-import std.utf;
+import std.string;
 import std.traits;
 import std.typecons : Tuple;
+import std.utf;
+static import std.algorithm;
+static import std.regex;
 
 import org.eclipse.swt.all;
 
@@ -443,7 +444,7 @@ private:
 	private void addResultImpl(TableItem itm, Summary grepSumm, CWXPath parent, CWXPath path, string cwxPath, string desc = "") {
 		string text1, text2;
 		Image img1, img2;
-		getPathParams(parent, path, text1, text2, img1, img2);
+		getPathParams(grepSumm, parent, path, text1, text2, img1, img2);
 		itm.setImage(0, img1);
 		itm.setText(0, text1);
 		itm.setImage(1, img2);
@@ -1525,7 +1526,7 @@ private:
 			}
 			string text1;
 			Image img1;
-			getSymbols(_comm, _summ, path, text1, img1);
+			getSymbols(_comm, _summ, path, false, text1, img1);
 			itm.setText(name);
 			itm.setImage(img1);
 			itm.setData(cast(Object)path);
@@ -4251,7 +4252,7 @@ public:
 			if (c) { mixin(S_TRACE);
 				string text1, text2;
 				Image img1, img2;
-				getPathParams(c.parent, c.path, text1, text2, img1, img2);
+				getPathParams(_summ, c.parent, c.path, text1, text2, img1, img2);
 				itm.setImage(0, img1);
 				itm.setText(0, text1);
 				itm.setImage(1, img2);
@@ -4259,12 +4260,49 @@ public:
 			}
 		}
 	}
-	private void getPathParams(CWXPath parent, CWXPath path, out string text, out string text2, out Image img, out Image img2) { mixin(S_TRACE);
+	private void getPathParams(Summary grepSumm, CWXPath parent, CWXPath path, out string text, out string text2, out Image img, out Image img2) { mixin(S_TRACE);
 		if (!path) return;
-		auto summ = _grepSumm ? _grepSumm : _summ;
-		getSymbols(_comm, summ, path, text, img);
+		auto summ = grepSumm ? grepSumm : _summ;
+		getSymbols(_comm, summ, path, true, text, img);
 		if (parent && path.cwxParent && !cast(Summary)path.cwxParent) { mixin(S_TRACE);
-			getSymbols(_comm, summ, parent, text2, img2);
+			if (_prop.var.etc.showRouteOfSearchResult) { mixin(S_TRACE);
+				// 所属先を最上位からの経路で表示する
+				auto par = path.cwxParent;
+				CWXPath[] route;
+				while (par && !cast(Summary)par) { mixin(S_TRACE);
+					if (auto c = cast(Content)par) { mixin(S_TRACE);
+						if (c.type !is CType.START) { mixin(S_TRACE);
+							par = par.cwxParent;
+							continue;
+						}
+					} else if (auto dir = cast(FlagDir)par) { mixin(S_TRACE);
+						if (cast(FlagDir)dir.cwxParent) { mixin(S_TRACE);
+							par = par.cwxParent;
+							continue;
+						}
+					}
+					route ~= par;
+					par = par.cwxParent;
+				}
+				char[] routeStr;
+				CWXPath before = null;
+				foreach_reverse (i, p; route) { mixin(S_TRACE);
+					string text3;
+					Image img3;
+					getSymbols(_comm, summ, p, false, text3, img3);
+					if (routeStr.length) { mixin(S_TRACE);
+						routeStr ~= " > ";
+					} else { mixin(S_TRACE);
+						img2 = img3;
+					}
+					routeStr ~= text3;
+					before = p;
+				}
+				text2 = .assumeUnique(routeStr);
+			} else { mixin(S_TRACE);
+				// 所属先を最上位だけ表示する
+				getSymbols(_comm, summ, parent, false, text2, img2);
+			}
 		}
 	}
 	private void addResult(CWXPath parent, CWXPath path, string cwxPath, ref size_t count, string desc = "") { mixin(S_TRACE);

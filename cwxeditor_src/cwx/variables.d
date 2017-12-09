@@ -504,6 +504,7 @@ class FlexEtcProps : Properties {
 	auto grepSubDir = Prop!(bool)("grepSubDir", true);
 	auto searchResultRefreshCount = Prop!(int, true)("searchResultRefreshCount", 100);
 	auto searchResultRealtime = Prop!(bool)("searchResultRealtime", false);
+	auto showRouteOfSearchResult = Prop!(bool, true)("showRouteOfSearchResult", true);
 
 	auto replaceTextSummary = Prop!(bool)("replaceTextSummary", true);
 	auto replaceTextScenario = Prop!(bool)("replaceTextScenario", false);

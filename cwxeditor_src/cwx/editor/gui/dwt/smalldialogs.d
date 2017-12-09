@@ -1117,7 +1117,7 @@ class ImportResultDialog : AbsDialog {
 				auto itm = new TableItem(_list, SWT.NONE);
 				Image icon;
 				string text;
-				getSymbols(_comm, _summ, table[id], text, icon);
+				getSymbols(_comm, _summ, table[id], true, text, icon);
 				itm.setImage(icon);
 				itm.setText(text);
 				itm.setChecked(true);
