@@ -1167,6 +1167,7 @@ public:
 
 			final switch (gradientDir) {
 			case GradientDir.None:
+				if (alpha == 0) break;
 				gc.setBackground(color);
 				gc.setAlpha(alpha);
 				gc.fillRectangle(iRect);
