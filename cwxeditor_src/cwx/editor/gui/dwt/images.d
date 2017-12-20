@@ -1195,6 +1195,7 @@ public:
 					ubyte g = calcN(_color1.g, _color2.g, per);
 					ubyte b = calcN(_color1.b, _color2.b, per);
 					ubyte a = calcN(_color1.a, _color2.a, per);
+					if (a == 0) continue;
 					if (cr != r || cg != g || cb != b) { mixin(S_TRACE);
 						color.dispose();
 						color = new Color(cur, r, g, b);
