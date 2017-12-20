@@ -3104,19 +3104,19 @@ public:
 		scope (exit) _inProc = false;
 		auto uc = _summ.useCounter;
 		if (itm.getImage() is _prop.images.couponNormal) { mixin(S_TRACE);
-			renameCoupon(_comm, _summ, itm, toCouponId(itm.getText()), toCouponId(text), uc.coupon, _undo, rangeTable, true, _result, this);
+			renameCoupon(_comm, _summ, itm, toCouponId(itm.getText()), toCouponId(text), uc.coupon, _undo, rangeTable, true, _result, this, _results);
 			_comm.refCoupons.call();
 		} else if (itm.getImage() is _prop.images.gossip) { mixin(S_TRACE);
-			renameCoupon(_comm, _summ, itm, toGossipId(itm.getText()), toGossipId(text), uc.gossip, _undo, rangeTable, true, _result, this);
+			renameCoupon(_comm, _summ, itm, toGossipId(itm.getText()), toGossipId(text), uc.gossip, _undo, rangeTable, true, _result, this, _results);
 			_comm.refGossips.call();
 		} else if (itm.getImage() is _prop.images.endScenario) { mixin(S_TRACE);
-			renameCoupon(_comm, _summ, itm, toCompleteStampId(itm.getText()), toCompleteStampId(text), uc.completeStamp, _undo, rangeTable, true, _result, this);
+			renameCoupon(_comm, _summ, itm, toCompleteStampId(itm.getText()), toCompleteStampId(text), uc.completeStamp, _undo, rangeTable, true, _result, this, _results);
 			_comm.refCompleteStamps.call();
 		} else if (itm.getImage() is _prop.images.keyCode) { mixin(S_TRACE);
-			renameCoupon(_comm, _summ, itm, toKeyCodeId(itm.getText()), toKeyCodeId(text), uc.keyCode, _undo, rangeTable, true, _result, this);
+			renameCoupon(_comm, _summ, itm, toKeyCodeId(itm.getText()), toKeyCodeId(text), uc.keyCode, _undo, rangeTable, true, _result, this, _results);
 			_comm.refKeyCodes.call();
 		} else if (itm.getImage() is _prop.images.backs) { mixin(S_TRACE);
-			renameCoupon(_comm, _summ, itm, toCellNameId(itm.getText()), toCellNameId(text), uc.cellName, _undo, rangeTable, true, _result, this);
+			renameCoupon(_comm, _summ, itm, toCellNameId(itm.getText()), toCellNameId(text), uc.cellName, _undo, rangeTable, true, _result, this, _results);
 			_comm.refCellNames.call();
 		}
 		_summ.changed();
@@ -3195,19 +3195,17 @@ public:
 			_comm.replText.call();
 			_summ.changed();
 
-			if (!_dlg) { mixin(S_TRACE);
-				static if (is(KeyType:CouponId)) { mixin(S_TRACE);
-					_comm.refCoupons.call();
-				} else static if (is(KeyType:GossipId)) { mixin(S_TRACE);
-					_comm.refGossips.call();
-				} else static if (is(KeyType:CompleteStampId)) { mixin(S_TRACE);
-					_comm.refCompleteStamps.call();
-				} else static if (is(KeyType:KeyCodeId)) { mixin(S_TRACE);
-					_comm.refKeyCodes.call();
-				} else static if (is(KeyType:CellNameId)) { mixin(S_TRACE);
-					_comm.refCellNames.call();
-				} else static assert (0);
-			}
+			static if (is(KeyType:CouponId)) { mixin(S_TRACE);
+				_comm.refCoupons.call();
+			} else static if (is(KeyType:GossipId)) { mixin(S_TRACE);
+				_comm.refGossips.call();
+			} else static if (is(KeyType:CompleteStampId)) { mixin(S_TRACE);
+				_comm.refCompleteStamps.call();
+			} else static if (is(KeyType:KeyCodeId)) { mixin(S_TRACE);
+				_comm.refKeyCodes.call();
+			} else static if (is(KeyType:CellNameId)) { mixin(S_TRACE);
+				_comm.refCellNames.call();
+			} else static assert (0);
 		}
 		void undo() { mixin(S_TRACE);
 			impl();
@@ -3217,7 +3215,7 @@ public:
 		}
 		void dispose() { }
 	}
-	static void renameCoupon(KeyType, UC)(Commons comm, Summary summ, TableItem itm, KeyType oldVal, KeyType newVal, UC uc, UndoManager undoManager, in bool[CWXPath] rangeT, bool useRangeT, Table list, ReplaceDialog dlg) { mixin(S_TRACE);
+	static void renameCoupon(KeyType, UC, RType)(Commons comm, Summary summ, TableItem itm, KeyType oldVal, KeyType newVal, UC uc, UndoManager undoManager, in bool[CWXPath] rangeT, bool useRangeT, Table list, ReplaceDialog dlg, RType[] nameList) { mixin(S_TRACE);
 		if (cast(string)oldVal == cast(string)newVal) return;
 		if (cast(string)newVal == "") return;
 		auto undo = new CouponUndo!(ForeachType!(typeof(uc.values(oldVal))), KeyType)(comm, summ, oldVal, newVal, uc, dlg);
@@ -3232,14 +3230,19 @@ public:
 		}
 		undoManager ~= undo;
 		// 変更の結果、他のキーと同一の名前になったら統合する
+		auto i1 = list.indexOf(itm);
 		foreach (i, itm2; list.getItems()) { mixin(S_TRACE);
 			if (itm is itm2) continue;
 			if (itm.getImage() !is itm2.getImage()) continue;
 			if (itm.getText() == itm2.getText()) { mixin(S_TRACE);
 				list.select(cast(int)i);
 				list.showSelection();
-				itm2.setText(1, uc.get(newVal).text());
-				itm.dispose();
+				static if (is(RType:AddResult)) {
+					(cast(AddResultUse)nameList[i]).use += (cast(AddResultUse)nameList[i1]).use;
+				}
+				list.clear(cast(int)i, list.getItemCount() - 1);
+				list.setItemCount(list.getItemCount() - 1);
+				std.algorithm.remove(nameList, i);
 				break;
 			}
 		}

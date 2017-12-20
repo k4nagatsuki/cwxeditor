@@ -231,7 +231,7 @@ private:
 			auto uc = _summ.useCounter.cellName;
 		} else static assert (0);
 
-		ReplaceDialog.renameCoupon(_comm, _summ, itm, ToID!ID(itm.getText(0)), ToID!ID(newText), uc, _undo, null, false, _list, null);
+		ReplaceDialog.renameCoupon(_comm, _summ, itm, ToID!ID(itm.getText(0)), ToID!ID(newText), uc, _undo, null, false, _list, null, _nameList, (a) => cast(string)a);
 
 		static if (is(ID:CouponId)) { mixin(S_TRACE);
 			_comm.refCoupons.call(this);
