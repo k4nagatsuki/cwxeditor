@@ -641,7 +641,7 @@ private:
 		if (auto et = cast(EventTree)itm.getData()) { mixin(S_TRACE);
 			auto old = _etree.eventTree;
 			_etree.refresh(et);
-			if (_selItm) { mixin(S_TRACE);
+			if (_selItm && !_selItm.isDisposed() && old) { mixin(S_TRACE);
 				assert (old !is null);
 				_selItm.setImage(etImage(old));
 			}
