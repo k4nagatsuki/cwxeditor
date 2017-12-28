@@ -1525,6 +1525,28 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		return count;
 	}
 
+	/// このコンテントを親にしたツリーにある
+	/// イベントコンテントをリスト化して返す。
+	@property
+	Content[] allChildren() { mixin(S_TRACE);
+		Content[] r;
+		auto c = .rebindable(this);
+		while (c.next.length) { mixin(S_TRACE);
+			if (c.next.length == 1) { mixin(S_TRACE);
+				// 再帰回避
+				r ~= c.next[0];
+				c = c.next[0];
+			} else { mixin(S_TRACE);
+				foreach (n; c.next) { mixin(S_TRACE);
+					r ~= n;
+					r ~= n.allChildren;
+				}
+				break;
+			}
+		}
+		return r;
+	}
+
 	/// 後続コンテントのインデックスを交換する。
 	void swapContent(size_t index1, size_t index2) { mixin(S_TRACE);
 		if (index1 != index2) changed();
@@ -2168,7 +2190,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	}
 	/// スタートの使用回数カウンタ。
 	@property
-	SUseCounter startUseCounter() {return _suc;}
+	SUseCounter startUseCounter() { return _suc; }
 	override bool change(StartId newVal) { mixin(S_TRACE);
 		_start = newVal;
 		return true;
