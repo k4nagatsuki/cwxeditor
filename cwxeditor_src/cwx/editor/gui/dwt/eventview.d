@@ -1734,6 +1734,7 @@ public:
 				if (_selItm && _selItm.getParentItem() is _cards.getItems()[i + cardsIndex]) { mixin(S_TRACE);
 					int s = _selItm.getParentItem().indexOf(_selItm);
 					int newI = ud(_cards.getItems()[i + cardsIndex]) + udVal;
+					_selItm = null;
 					selectImpl(_cards.getItems()[newI].getItems()[s]);
 				} else { mixin(S_TRACE);
 					ud(_cards.getItems()[i + cardsIndex]);
