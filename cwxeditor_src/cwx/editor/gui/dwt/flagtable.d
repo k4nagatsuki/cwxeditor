@@ -30,14 +30,15 @@ import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.messageutils;
 
 static import std.algorithm;
-import std.algorithm : max, min, map;
-import std.range;
+import std.algorithm: map, max, min;
 import std.array;
 import std.ascii;
 import std.conv;
 import std.datetime;
-import std.string;
 import std.exception;
+import std.range;
+import std.string;
+import std.typecons;
 
 import org.eclipse.swt.all;
 
@@ -138,6 +139,83 @@ private:
 		_undo ~= new UndoValues;
 	}
 
+	alias Tuple!(size_t, "fromIndex", size_t, "toIndex") URange;
+	class UndoValueRange : Undo {
+		private size_t[] _fromIndices;
+		private string[][] _values;
+		this (in URange[] ranges) { mixin(S_TRACE);
+			foreach (range; ranges) { mixin(S_TRACE);
+				_fromIndices ~= range.fromIndex;
+				_values ~= _valueCache[range.fromIndex .. range.toIndex].dup;
+			}
+		}
+		private void impl() { mixin(S_TRACE);
+			if (_tte.isEditing) _tte.cancel();
+			this.outer._values.setRedraw(false);
+			scope (exit) this.outer._values.setRedraw(true);
+			foreach (fromIndex, values; .zip(_fromIndices, _values)) { mixin(S_TRACE);
+				auto temp = _valueCache[fromIndex .. fromIndex + values.length].dup;
+				_valueCache[fromIndex .. fromIndex + values.length] = values[];
+				values[] = temp[];
+				this.outer._values.clear(cast(int)fromIndex, cast(int)(fromIndex + values.length) - 1);
+			}
+			updateInitCombo();
+			refDataVersion();
+		}
+		void undo() { impl(); }
+		void redo() { impl(); }
+		void dispose() { }
+	}
+	void storeRange(URange[] ranges) { mixin(S_TRACE);
+		_undo ~= new UndoValueRange(ranges);
+	}
+
+	class UndoInsertDelete : Undo {
+		private size_t[] _indices;
+		private string[] _values;
+		this (in size_t[] indices, bool insert) { mixin(S_TRACE);
+			foreach (index; indices) { mixin(S_TRACE);
+				_indices ~= index;
+				if (!insert) _values ~= _valueCache[index];
+			}
+		}
+		private void impl() { mixin(S_TRACE);
+			if (_tte.isEditing) _tte.cancel();
+			this.outer._values.setRedraw(false);
+			scope (exit) this.outer._values.setRedraw(true);
+
+			if (_values.length) { mixin(S_TRACE);
+				// 削除のアンドゥ(挿入を行う)
+				foreach (index, value; .zip(_indices, _values)) { mixin(S_TRACE);
+					_valueCache = _valueCache[0 .. index] ~ value ~ _valueCache[index .. $];
+				}
+				_values = [];
+				this.outer._values.clear(cast(int)_indices[0], this.outer._values.getItemCount() - 1);
+				this.outer._values.setItemCount(this.outer._values.getItemCount() + cast(int)_indices.length);
+			} else { mixin(S_TRACE);
+				// 挿入のアンドゥ(削除を行う)
+				foreach_reverse (index; _indices) { mixin(S_TRACE);
+					_values ~= _valueCache[index];
+					std.algorithm.remove(_valueCache, index);
+				}
+				std.algorithm.reverse(_values);
+				this.outer._values.setItemCount(this.outer._values.getItemCount() - cast(int)_indices.length);
+				this.outer._values.clear(cast(int)_indices[0], this.outer._values.getItemCount() - 1);
+			}
+			updateInitCombo();
+			refDataVersion();
+		}
+		void undo() { impl(); }
+		void redo() { impl(); }
+		void dispose() { }
+	}
+	void storeInsert(in size_t[] indices) { mixin(S_TRACE);
+		_undo ~= new UndoInsertDelete(indices, true);
+	}
+	void storeDelete(in size_t[] indices) { mixin(S_TRACE);
+		_undo ~= new UndoInsertDelete(indices, false);
+	}
+
 	void refUndoMax() { mixin(S_TRACE);
 		_undo.max = _comm.prop.var.etc.undoMaxEtc;
 	}
@@ -160,7 +238,6 @@ private:
 		if (num == 0) return;
 		auto ic = _values.getItemCount();
 		if (ic == num) return;
-		if (store) storeAll();
 		if (ic < num) { mixin(S_TRACE);
 			_values.setRedraw(false);
 			scope (exit) _values.setRedraw(true);
@@ -174,10 +251,12 @@ private:
 					_valueCache ~= lastValue;
 				}
 			}
+			if (store) storeInsert(.iota(cast(size_t)ic, cast(size_t)_values.getItemCount()).array());
 		} else if (num < ic) { mixin(S_TRACE);
 			_values.setRedraw(false);
 			scope (exit) _values.setRedraw(true);
 			_values.setItemCount(num);
+			if (store) storeDelete(.iota(cast(size_t)_values.getItemCount(), cast(size_t)ic).array());
 		}
 		if (_stepCount.getSelection() != num) _stepCount.setSelection(num);
 		if (store) updateInitCombo();
@@ -353,7 +432,7 @@ protected:
 			setEVS(_init);
 		}
 		{ mixin(S_TRACE);
-			_values = .rangeSelectableTable(area, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.VIRTUAL);
+			_values = new Table(area, SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER | SWT.VIRTUAL);
 			_values.setLayoutData(new GridData(GridData.FILL_BOTH));
 			auto valueNumCol = new TableColumn(_values, SWT.NONE);
 			auto prop = _comm.prop;
@@ -364,7 +443,12 @@ protected:
 			auto menu = new Menu(_values.getShell(), SWT.POP_UP);
 			createMenuItem(_comm, menu, MenuID.Undo, { _undo.undo(); }, &_undo.canUndo);
 			createMenuItem(_comm, menu, MenuID.Redo, { _undo.redo(); }, &_undo.canRedo);
+/+			new MenuItem(menu, SWT.SEPARATOR);
+			createMenuItem(_comm, menu, MenuID.Up, &upValues, &canUpValues);
+			createMenuItem(_comm, menu, MenuID.Down, &downValues, &canDownValues);
 			new MenuItem(menu, SWT.SEPARATOR);
+			appendMenuTCPD(_comm, menu, this, true, true, true, true, true);
++/			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(_comm, menu, MenuID.CreateStepValues, &createStepValues, &canCreateStepValues);
 			_values.setMenu(menu);
 
@@ -479,7 +563,7 @@ protected:
 	}
 
 	private void createStepValues(int index, string lastValue) { mixin(S_TRACE);
-		bool stored = false;
+		auto stored = false;
 		foreach (i; index + 1 .. _values.getItemCount()) { mixin(S_TRACE);
 			lastValue = createNewName(lastValue, (string name) { mixin(S_TRACE);
 				return name != lastValue;
@@ -487,7 +571,7 @@ protected:
 			if (_valueCache[i] != lastValue) { mixin(S_TRACE);
 				if (!stored) { mixin(S_TRACE);
 					stored = true;
-					storeAll();
+					storeRange([URange(index + 1, _values.getItemCount())]);
 				}
 				_valueCache[i] = lastValue;
 				_values.clear(i);
