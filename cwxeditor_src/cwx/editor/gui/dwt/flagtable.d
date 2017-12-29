@@ -81,7 +81,27 @@ private:
 
 	UndoManager _undo;
 
-	class UndoValue : Undo {
+	abstract class SVUndo : Undo {
+		private int[] _selected;
+		private int[] _selected2;
+		this () { mixin(S_TRACE);
+			_selected = _values.getSelectionIndices();
+		}
+		protected void udb() { mixin(S_TRACE);
+			if (_tte.isEditing) _tte.cancel();
+			_values.setRedraw(false);
+			_selected2 = _selected;
+			_selected = _values.getSelectionIndices();
+		}
+		protected void uda() { mixin(S_TRACE);
+			_values.deselectAll();
+			_values.select(_selected2);
+			_selected2 = [];
+			_values.setRedraw(true);
+		}
+	}
+
+	class UndoValue : SVUndo {
 		private int _index;
 		private string _oldName;
 		private string _newName;
@@ -91,7 +111,9 @@ private:
 			_newName = newName;
 		}
 		private void impl() { mixin(S_TRACE);
-			if (_tte.isEditing) _tte.cancel();
+			udb();
+			scope (exit) uda();
+
 			_valueCache[_index] = _oldName;
 			_values.clear(_index);
 			if (_initInit) { mixin(S_TRACE);
@@ -110,15 +132,15 @@ private:
 	void storeSingle(int index, string oldName, string newName) { mixin(S_TRACE);
 		_undo ~= new UndoValue(index, oldName, newName);
 	}
-	class UndoValues : Undo {
+	class UndoValues : SVUndo {
 		private string[] _values;
 		this () { mixin(S_TRACE);
 			_values = _valueCache[0 .. this.outer._values.getItemCount()].dup;
 		}
 		private void impl() { mixin(S_TRACE);
-			if (_tte.isEditing) _tte.cancel();
-			this.outer._values.setRedraw(false);
-			scope (exit) this.outer._values.setRedraw(true);
+			udb();
+			scope (exit) uda();
+
 			auto values = _values;
 			auto num = _stepCount.getSelection();
 			_values = _valueCache[0 .. this.outer._values.getItemCount()].dup;
@@ -140,7 +162,7 @@ private:
 	}
 
 	alias Tuple!(size_t, "fromIndex", size_t, "toIndex") URange;
-	class UndoValueRange : Undo {
+	class UndoValueRange : SVUndo {
 		private size_t[] _fromIndices;
 		private string[][] _values;
 		this (in URange[] ranges) { mixin(S_TRACE);
@@ -150,9 +172,9 @@ private:
 			}
 		}
 		private void impl() { mixin(S_TRACE);
-			if (_tte.isEditing) _tte.cancel();
-			this.outer._values.setRedraw(false);
-			scope (exit) this.outer._values.setRedraw(true);
+			udb();
+			scope (exit) uda();
+
 			foreach (fromIndex, values; .zip(_fromIndices, _values)) { mixin(S_TRACE);
 				auto temp = _valueCache[fromIndex .. fromIndex + values.length].dup;
 				_valueCache[fromIndex .. fromIndex + values.length] = values[];
@@ -170,7 +192,7 @@ private:
 		_undo ~= new UndoValueRange(ranges);
 	}
 
-	class UndoInsertDelete : Undo {
+	class UndoInsertDelete : SVUndo {
 		private size_t[] _indices;
 		private string[] _values;
 		this (in size_t[] indices, bool insert) { mixin(S_TRACE);
@@ -180,9 +202,8 @@ private:
 			}
 		}
 		private void impl() { mixin(S_TRACE);
-			if (_tte.isEditing) _tte.cancel();
-			this.outer._values.setRedraw(false);
-			scope (exit) this.outer._values.setRedraw(true);
+			udb();
+			scope (exit) uda();
 
 			if (_values.length) { mixin(S_TRACE);
 				// 削除のアンドゥ(挿入を行う)
@@ -202,6 +223,7 @@ private:
 				this.outer._values.setItemCount(this.outer._values.getItemCount() - cast(int)_indices.length);
 				this.outer._values.clear(cast(int)_indices[0], this.outer._values.getItemCount() - 1);
 			}
+			_stepCount.setSelection(this.outer._values.getItemCount());
 			updateInitCombo();
 			refDataVersion();
 		}
@@ -366,6 +388,7 @@ private:
 		updateToolTip();
 		refreshWarning();
 	}
+
 public:
 	/// Params:
 	/// dir = 設定するステップの親ディレクトリ。
@@ -443,12 +466,10 @@ protected:
 			auto menu = new Menu(_values.getShell(), SWT.POP_UP);
 			createMenuItem(_comm, menu, MenuID.Undo, { _undo.undo(); }, &_undo.canUndo);
 			createMenuItem(_comm, menu, MenuID.Redo, { _undo.redo(); }, &_undo.canRedo);
-/+			new MenuItem(menu, SWT.SEPARATOR);
+			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(_comm, menu, MenuID.Up, &upValues, &canUpValues);
 			createMenuItem(_comm, menu, MenuID.Down, &downValues, &canDownValues);
 			new MenuItem(menu, SWT.SEPARATOR);
-			appendMenuTCPD(_comm, menu, this, true, true, true, true, true);
-+/			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(_comm, menu, MenuID.CreateStepValues, &createStepValues, &canCreateStepValues);
 			_values.setMenu(menu);
 
@@ -578,6 +599,53 @@ protected:
 			}
 		}
 		updateInitCombo();
+	}
+
+	@property
+	private bool canUpValues() { mixin(S_TRACE);
+		return _values.getSelectionCount() && !_values.isSelected(0);
+	}
+	private void upValues() { mixin(S_TRACE);
+		if (!canUpValues) return;
+		_tte.enter();
+		auto indices = _values.getSelectionIndices();
+		std.algorithm.sort(indices);
+		storeRange([URange(indices[0] - 1, indices[$ - 1] + 1)]);
+		foreach (ref index; indices) { mixin(S_TRACE);
+			std.algorithm.swap(_valueCache[index - 1], _valueCache[index]);
+			_values.clear(index - 1);
+			_values.clear(index);
+			index--;
+		}
+		_values.deselectAll();
+		_values.select(indices[0]);
+		_values.showSelection();
+		_values.select(indices);
+		_tte.startEdit(_values.getItem(indices[0]));
+	}
+
+	@property
+	private bool canDownValues() { mixin(S_TRACE);
+		return _values.getSelectionCount() && !_values.isSelected(_values.getItemCount() - 1);
+	}
+	private void downValues() { mixin(S_TRACE);
+		if (!canDownValues) return;
+		_tte.enter();
+		auto itm = _values.getItem(_values.getSelectionIndex());
+		auto indices = _values.getSelectionIndices();
+		std.algorithm.sort(indices);
+		storeRange([URange(indices[0], indices[$ - 1] + 2)]);
+		foreach_reverse (ref index; indices) { mixin(S_TRACE);
+			std.algorithm.swap(_valueCache[index + 1], _valueCache[index]);
+			_values.clear(index);
+			_values.clear(index + 1);
+			index++;
+		}
+		_values.deselectAll();
+		_values.select(indices[$ - 1]);
+		_values.showSelection();
+		_values.select(indices);
+		_tte.startEdit(_values.getItem(indices[$ - 1]));
 	}
 
 	override bool apply() { mixin(S_TRACE);

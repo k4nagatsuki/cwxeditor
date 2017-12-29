@@ -3551,8 +3551,17 @@ public:
 					raiseEvent(menu, e);
 					return;
 				}
+				if (!menu && (cast(Tree)fc.getParent() || cast(Table)fc.getParent())) { mixin(S_TRACE);
+					// ツリー・テーブルアイテムの項目編集中
+					menu = findMenu(fc.getParent().getMenu(), e.keyCode, e.character, e.stateMask);
+					if (menu && .menuEnabled(menu)) { mixin(S_TRACE);
+						raiseEvent(menu, e);
+						return;
+					}
+				}
 			}
 			if (!.isDescendant(_win, fc.getShell())) return;
+
 			// フォーカスのあるコントロールのShellのメニューを探し、
 			// 該当するメニューが無かった場合は
 			// 順に上位のShellを探索する

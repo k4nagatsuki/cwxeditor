@@ -255,7 +255,7 @@ private:
 		}
 	}
 public:
-	this(Spinner spn, void delegate(int value) enter,
+	this (Spinner spn, void delegate(int value) enter,
 			void delegate(int value) edit = null, int delegate(int oldVal) cancel = null) { mixin(S_TRACE);
 		_spn = spn;
 		_enter = enter;
