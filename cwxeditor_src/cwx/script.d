@@ -2819,6 +2819,9 @@ fi`;
 			if (detail.use(CArg.CARD_NUMBER)) { mixin(S_TRACE);
 				c.cardNumber = parseAttr!(int)(opt, node.attr, i, c.cardNumber, varTable, 0);
 			}
+			if (detail.use(CArg.SELECT_CARD)) { mixin(S_TRACE);
+				c.selectCard = parseAttr!(bool)(opt, node.attr, i, c.selectCard, varTable, 0);
+			}
 			if (detail.use(CArg.MOTIONS)) { mixin(S_TRACE);
 				c.motions = parseAttr!(Motion[])(opt, node.attr, i, c.motions, varTable, 0);
 			}
@@ -3771,6 +3774,9 @@ fi`;
 				} else { mixin(S_TRACE);
 					attrs ~= toAttr(Symbol("all"), indentValue, vars);
 				}
+			}
+			if (detail.use(CArg.SELECT_CARD)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.selectCard, indentValue, vars);
 			}
 			if (detail.use(CArg.MOTIONS)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.motions, indentValue, vars);

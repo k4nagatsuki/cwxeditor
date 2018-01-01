@@ -414,6 +414,7 @@ class Msgs : Properties {
 	auto resizeCell = Msg("resizeCell", "サイズの変更");
 	auto horizontalValue = Msg("horizontalValue", "横の値");
 	auto verticalValue = Msg("verticalValue", "縦の値");
+	auto selectCardWithKeyCode = Msg("selectCardWithKeyCode", "キーコードを持つカードを選択状態にする");
 
 	auto canNotGetMusicLength = Msg("canNotGetMusicLength", "SDL方式では音声の長さを取得できません");
 
@@ -1015,8 +1016,10 @@ class Msgs : Properties {
 	auto castRange1 = Msg("castRange1", "%1$s全体");
 	auto castRange2 = Msg("castRange2", "%1$s全体または%2$s全体");
 	auto castRange3 = Msg("castRange3", "フィールド全体");
-	auto ctBranchKeyCodeAllType = Msg("ctBranchKeyCodeAllType", "キーコード「%1$s」を含むカードの有無で分岐(%2$s)");
-	auto ctBranchKeyCode = Msg("ctBranchKeyCode", "キーコード「%1$s」を含む%2$sの有無で分岐(%3$s)");
+	auto ctBranchKeyCodeAllType = Msg("ctBranchKeyCodeAllType", "キーコード「%1$s」を含むカードの有無で分岐(%2$s) %3$s");
+	auto ctBranchKeyCode = Msg("ctBranchKeyCode", "キーコード「%1$s」を含む%2$sの有無で分岐(%3$s) %4$s");
+	auto selectFoundCard = Msg("selectFoundCard", "該当カードを選択する");
+	auto noSelectFoundCard = Msg("noSelectFoundCard", "該当カードを選択しない");
 	auto ctCheckStep = Msg("ctCheckStep", "ステップ「%1$s」が[%2$s]%3$s後続のイベントが出現");
 	auto ctBranchRound = Msg("ctBranchRound", "バトルが%1$sラウンド%2$sか否かで分岐");
 	auto ctMoveAndResizeBgImage = Msg("ctMoveAndResizeBgImage", "背景「%1$s」を%2$sで右へ%3$s、下へ%4$sポイント移動し、%5$sで%6$s×%7$sにリサイズ(切替方式 = %8$s ウェイト = %9$s)");
@@ -1929,6 +1932,7 @@ class Msgs : Properties {
 	auto warningBoundaryCheck = Msg("warningBoundaryCheck", "メッセージの禁則処理は、Wsn.2以降の形式のシナリオでしか行えません。"); // Wsn.2
 	auto warningBranchCouponMulti = Msg("warningBranchCouponMulti", "クーポン分岐のクーポンの複数指定は、Wsn.2以降の形式のシナリオしか行えません。"); // Wsn.2
 	auto warningExpandSPChars = Msg("warningExpandSPChars", "状態変数内の特殊文字の展開は、Wsn.2以降の形式のシナリオしか行えません。"); // Wsn.2
+	auto warningSelectCard = Msg("warningSelectCard", "選択カードの変更は、Wsn.2以降の形式のシナリオしか行えません。"); // Wsn.3
 
 	auto unknownStepValue = Msg("unknownStepValue", "存在しないステップ値(%1$s)");
 

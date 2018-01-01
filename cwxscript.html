@@ -868,7 +868,7 @@
 	<dd>終了印有無分岐</dd>
 	<dt class="content"><a href="#BRGOSSIP">brgossip <span class="args"><span class="arg">&lt;ゴシップ名&gt;</span></span></a></dt>
 	<dd>ゴシップ有無分岐</dd>
-	<dt class="content"><a href="#BRKEYCODE">brkeycode <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;カード種別&gt;</span> ..., <span class="arg">&lt;キーコード&gt;</span></span></a></dt>
+	<dt class="content"><a href="#BRKEYCODE">brkeycode <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;カード種別&gt;</span> ..., <span class="arg">&lt;キーコード&gt;</span>, <span class="arg">&lt;カード選択の有無&gt;</span></span></a></dt>
 	<dd>キーコード所持分岐</dd>
 	<dt class="content"><a href="#SETFLAG">setflag <span class="args"><span class="arg">&lt;フラグ名&gt;</span>, <span class="arg">&lt;値&gt;</span></span></a></dt>
 	<dd>フラグ値の設定</dd>
@@ -2622,7 +2622,7 @@
     <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">// 分岐終了</span></code></pre>
 
-<h3 class="content"><a id="BRKEYCODE" name="BRKEYCODE">brkeycode <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;カード種別&gt;</span> ..., <span class="arg">&lt;キーコード&gt;</span></span></a></h3>
+<h3 class="content"><a id="BRKEYCODE" name="BRKEYCODE">brkeycode <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;カード種別&gt;</span> ..., <span class="arg">&lt;キーコード&gt;</span>, <span class="arg">&lt;カード選択の有無&gt;</span></span></a></h3>
 
 <p class="fullname">(Branch with Key Code)</p>
 
@@ -2654,7 +2654,8 @@
 	<dt class="keyword"><code>hand</code></dt>
 	<dd class="worddesc">戦闘時の手札。</dd>
 </dl>
-<p class="desc">最後のパラメータで判定対象のキーコードを指定します。</p>
+<p class="desc">キーコードには、判定対象のキーコードを指定します。</p>
+<p class="desc">カード選択の有無は、<code class="code">true/false</code>で指定します。<code class="code">true</code>を指定していた場合、見つかったカードが選択状態になります。<em class="warning">Wsn.3以降のWSN形式シナリオでのみ機能します。</em></p>
 
 <h4 class="example">例</h4>
 

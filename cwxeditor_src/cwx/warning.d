@@ -787,6 +787,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (c.centeringY && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningCenteringY;
 		}
+		if (c.type is CType.BRANCH_KEY_CODE && c.selectCard && !prop.isTargetVersion(summ, targVer, "3")) { mixin(S_TRACE);
+			r ~= prop.msgs.warningSelectCard;
+		}
 	}
 	return r;
 }

@@ -198,7 +198,7 @@ private void static_this () { mixin(S_TRACE);
 		CType.BRANCH_STEP_CMP:CDetail("Branch", "StepValue", CNextType.TRIO, true, [CArg.STEP:"from", CArg.STEP_2:"to"]),
 		CType.BRANCH_FLAG_CMP:CDetail("Branch", "FlagValue", CNextType.BOOL, true, [CArg.FLAG:"from", CArg.FLAG_2:"to"]),
 		CType.BRANCH_RANDOM_SELECT:CDetail("Branch", "RandomSelect", CNextType.BOOL, true, [CArg.CAST_RANGE:null, CArg.LEVEL_MIN:"minLevel", CArg.LEVEL_MAX:"maxLevel", CArg.STATUS:"status"]),
-		CType.BRANCH_KEY_CODE:CDetail("Branch", "KeyCode", CNextType.BOOL, true, [CArg.KEY_CODE_RANGE:"targetkc", CArg.TARGET_IS_SKILL:"skill", CArg.TARGET_IS_ITEM:"item", CArg.TARGET_IS_BEAST:"beast", CArg.TARGET_IS_HAND:"hand", CArg.KEY_CODE:"keyCode"]),
+		CType.BRANCH_KEY_CODE:CDetail("Branch", "KeyCode", CNextType.BOOL, true, [CArg.KEY_CODE_RANGE:"targetkc", CArg.TARGET_IS_SKILL:"skill", CArg.TARGET_IS_ITEM:"item", CArg.TARGET_IS_BEAST:"beast", CArg.TARGET_IS_HAND:"hand", CArg.KEY_CODE:"keyCode", CArg.SELECT_CARD:"selectcard"]),
 		CType.CHECK_STEP:CDetail("Check", "Step", CNextType.NONE, true, [CArg.STEP:"step", CArg.STEP_VALUE:"value", CArg.COMPARISON_4:"comparison"]),
 		CType.BRANCH_ROUND:CDetail("Branch", "Round", CNextType.BOOL, true, [CArg.ROUND:"round", CArg.COMPARISON_3:"comparison"]),
 		CType.MOVE_BG_IMAGE:CDetail("Move", "BgImage", CNextType.NONE, true, [CArg.CELL_NAME:"cellname", CArg.POSITION_TYPE:"positiontype", CArg.X:"x", CArg.Y:"y", CArg.SIZE_TYPE:"sizetype", CArg.WIDTH:"width", CArg.HEIGHT:"height", CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed", CArg.DO_ANIME:"doanime", CArg.IGNORE_EFFECT_BOOSTER:"ignoreeffectbooster"]),
@@ -622,6 +622,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		this.holdingCoupon = c.holdingCoupon;
 		this.refAbility = c.refAbility;
 
+		this.selectCard = c.selectCard;
+
 		Motion[] motions;
 		foreach (m; c.motions) { mixin(S_TRACE);
 			motions ~= m.dup;
@@ -772,6 +774,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			&& (!d.use(CArg.HOLDING_COUPON) || holdingCoupon == c.holdingCoupon)
 			&& (!d.use(CArg.REF_ABILITY) || refAbility == c.refAbility)
 
+			&& (!d.use(CArg.SELECT_CARD) || selectCard == c.selectCard)
+
 			&& (!d.use(CArg.MOTIONS) || motions == c.motions)
 
 			&& (!d.use(CArg.TEXT) || text == c.text)
@@ -784,6 +788,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			&& (!d.use(CArg.BG_IMAGES) || backs == c.backs)
 
 			&& (!d.use(CArg.COUPONS) || coupons == c.coupons)
+
+			&& (!d.use(CArg.SELECT_CARD) || selectCard == c.selectCard)
 
 			&& next == c.next;
 	}
@@ -1042,6 +1048,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		resetValue!(CArg.HOLDING_COUPON, string, "")(d, od, &holdingCoupon, base, base.holdingCoupon);
 		resetValue!(CArg.REF_ABILITY, bool, false)(d, od, &refAbility, base, base.refAbility);
+
+		resetValue!(CArg.SELECT_CARD, bool, false)(d, od, &selectCard, base, base.selectCard);
 
 		resetValue!(CArg.MOTIONS, Motion[], [])(d, od, &motions, base, base.motions);
 
@@ -2053,6 +2061,9 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// 選択メンバの能力参照(Wsn.2)。
 	mixin Prop!(bool, "refAbility", false);
 
+	/// 選択カードを変更する(Wsn.3)。
+	mixin Prop!(bool, "selectCard", false);
+
 	/// 背景画像群。
 	mixin Prop!(BgImage[], "backs", []);
 
@@ -2543,6 +2554,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			}
 		}
 		atnPut!(CArg.MATCHING_TYPE, "matchingType", "fromMatchingType")(e, d);
+		atnPut!(CArg.SELECT_CARD, "selectCard", "fromBool")(e, d);
 	}
 	const
 	private void toNodeImpl(ref XNode parent, CDetail d, XMLOption opt, ref XNode contentsLine) { mixin(S_TRACE);
@@ -2893,6 +2905,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			};
 		}
 		cfnPut!(CArg.MATCHING_TYPE, "matchingType", "toMatchingType")(en, d, r);
+		cfnPut!(CArg.SELECT_CARD, "selectCard", "parseBool")(en, d, r);
 
 		if (d.owner && nextContent) { mixin(S_TRACE);
 			en.onTag["Contents"] = (ref XNode node) { mixin(S_TRACE);

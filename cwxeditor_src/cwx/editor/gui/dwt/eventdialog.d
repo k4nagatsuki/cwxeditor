@@ -3342,6 +3342,7 @@ private:
 	Button[EffectCardType] _effectCardTypeWsn2 = null;
 	Composite _typeComp;
 	Combo _keyCode;
+	Button _selectCard;
 
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
@@ -3365,6 +3366,9 @@ private:
 					&& !(!skill && item && !beast && !hand)
 					&& !(!skill && !item && beast && !hand)) { mixin(S_TRACE);
 				ws ~= _prop.msgs.warningBranchKeyCodeAtWsn1;
+			}
+			if (!_prop.isTargetVersion(summ, "3") && _selectCard.getSelection()) { mixin(S_TRACE);
+				ws ~= _prop.msgs.warningSelectCard;
 			}
 		}
 		warning = ws;
@@ -3426,7 +3430,14 @@ private:
 			getShell().layout(true, true);
 			getShell().pack();
 		}
+
+		updateEnabled();
+
 		super.refDataVersion();
+	}
+
+	private void updateEnabled() { mixin(S_TRACE);
+		_selectCard.setEnabled(!summ || !summ.legacy || _selectCard.getSelection());
 	}
 
 	void createWsn1Panel() { mixin(S_TRACE);
@@ -3498,6 +3509,18 @@ protected:
 			kgd.widthHint = _prop.var.etc.nameWidth;
 			_keyCode.setLayoutData(kgd);
 		}
+		{ mixin(S_TRACE);
+			_selectCard = new Button(area, SWT.CHECK);
+			mod(_selectCard);
+			_selectCard.setText(_prop.msgs.selectCard);
+			auto gd = new GridData(GridData.HORIZONTAL_ALIGN_END);
+			gd.horizontalSpan = 2;
+			_selectCard.setLayoutData(gd);
+			.listener(_selectCard, SWT.Selection, { mixin(S_TRACE);
+				refreshWarning();
+				updateEnabled();
+			});
+		}
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
@@ -3523,6 +3546,7 @@ protected:
 				_effectCardTypeWsn2[EffectCardType.HAND].setSelection(_evt.targetIsHand);
 			}
 			_keyCode.setText(_evt.keyCode);
+			_selectCard.setSelection(_evt.selectCard);
 		} else { mixin(S_TRACE);
 			_keyCodeRange[Range.SELECTED].setSelection(true);
 			if (_effectCardTypeWsn1.length) { mixin(S_TRACE);
@@ -3535,8 +3559,10 @@ protected:
 				_effectCardTypeWsn2[EffectCardType.HAND].setSelection(false);
 			}
 			_keyCode.setText("");
+			_selectCard.setSelection(false);
 		}
 		refreshWarning();
+		updateEnabled();
 	}
 
 	override bool apply() { mixin(S_TRACE);
@@ -3577,6 +3603,7 @@ protected:
 			_evt.targetIsBeast = _effectCardTypeWsn2[EffectCardType.BEAST].getSelection();
 			_evt.targetIsHand = _effectCardTypeWsn2[EffectCardType.HAND].getSelection();
 		}
+		_evt.selectCard = _selectCard.getSelection();
 
 		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
 			_comm.refKeyCodes.call();

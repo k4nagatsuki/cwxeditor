@@ -1324,6 +1324,7 @@ enum CArg {
 	BOUNDARY_CHECK, /// メッセージの禁則処理(Wsn.2)。
 	COUPON_NAMES, /// 複数クーポン名(Wsn.2)。
 	MATCHING_TYPE, /// マッチングタイプ(Wsn.2)。
+	SELECT_CARD, /// 選択カードを変更する(Wsn.3)。
 }
 
 /// 後続コンテントのnameの型。
