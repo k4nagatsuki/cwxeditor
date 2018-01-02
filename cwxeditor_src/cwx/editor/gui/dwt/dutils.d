@@ -26,6 +26,7 @@ import cwx.types;
 import cwx.usecounter;
 import cwx.utils;
 import cwx.variables;
+import cwx.warning;
 
 import cwx.editor.gui.sound;
 import cwx.editor.gui.dwt.images;
@@ -3677,6 +3678,7 @@ string msgAttrText(in Props prop, in Content evt) { mixin(S_TRACE);
 	}
 	if (evt.boundaryCheck && prop.msgs.boundaryCheckOn != "") attrs ~= prop.msgs.boundaryCheckOn;
 	if (evt.selectionColumns != 1 && prop.msgs.ctColumns != "") attrs ~= .tryFormat(prop.msgs.ctColumns, evt.selectionColumns);
+	if (evt.selectTalker && hasCharacterTalker(evt) && prop.msgs.ctSelectTalker != "") attrs ~= prop.msgs.ctSelectTalker;
 	return attrs.join(" ");
 }
 

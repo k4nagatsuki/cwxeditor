@@ -790,8 +790,25 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (c.type is CType.BRANCH_KEY_CODE && c.selectCard && !prop.isTargetVersion(summ, targVer, "3")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningSelectCard;
 		}
+		if (cd.use(CArg.SELECT_TALKER) && c.selectTalker && hasCharacterTalker(c) && !prop.isTargetVersion(summ, targVer, "3")) { mixin(S_TRACE);
+			r ~= prop.msgs.warningSelectTalker;
+		}
 	}
 	return r;
+}
+
+@property
+bool hasCharacterTalker(in Content evt) { mixin(S_TRACE);
+	if (evt.type is CType.TALK_MESSAGE) { mixin(S_TRACE);
+		foreach (imgPath; evt.cardPaths) { mixin(S_TRACE);
+			if (imgPath.type is CardImageType.Talker && imgPath.talker !is Talker.CARD) { mixin(S_TRACE);
+				return true;
+			}
+		}
+		return false;
+	} else if (evt.type is CType.TALK_DIALOG) { mixin(S_TRACE);
+		return true;
+	} else assert (0);
 }
 
 /// 台詞・メッセージ内で使用されているデータに対する警告のリスト。

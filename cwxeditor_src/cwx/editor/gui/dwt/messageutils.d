@@ -64,6 +64,7 @@ class AbstractMessageDialog : EventDialog {
 	private Button _centerX;
 	private Button _centerY;
 	private Button _boundaryCheck;
+	private Button _selectTalker;
 
 	private KeyDownFilter _kdFilter;
 	private MsgPreviewWindow _previewWin = null;
@@ -82,8 +83,16 @@ class AbstractMessageDialog : EventDialog {
 		_centerX.setEnabled(!summ || !summ.legacy || _centerX.getSelection());
 		_centerY.setEnabled(!summ || !summ.legacy || _centerY.getSelection());
 		_boundaryCheck.setEnabled(!summ || !summ.legacy || _boundaryCheck.getSelection());
+		updateSelectTalkerEnabled();
 		refreshWarning();
 	}
+
+	protected void updateSelectTalkerEnabled() { mixin(S_TRACE);
+		_selectTalker.setEnabled((!summ || !summ.legacy || _selectTalker.getSelection()) && hasCharacterTalker);
+	}
+
+	@property
+	protected bool hasCharacterTalker() { return true; }
 
 	@property
 	private string[] warnings() { mixin(S_TRACE);
@@ -102,6 +111,11 @@ class AbstractMessageDialog : EventDialog {
 			}
 			if (_boundaryCheck.getSelection()) { mixin(S_TRACE);
 				ws ~= prop.msgs.warningBoundaryCheck;
+			}
+		}
+		if (!prop.isTargetVersion(summ, "3")) { mixin(S_TRACE);
+			if (_selectTalker.getSelection() && hasCharacterTalker) { mixin(S_TRACE);
+				ws ~= prop.msgs.warningSelectTalker;
 			}
 		}
 		return ws;
@@ -400,7 +414,7 @@ class AbstractMessageDialog : EventDialog {
 
 	protected Composite createWsnSettingsBar(Composite parent) { mixin(S_TRACE);
 		auto comp = new Composite(parent, SWT.NONE);
-		comp.setLayout(zeroMarginGridLayout(4, false));
+		comp.setLayout(zeroMarginGridLayout(5, false));
 		createSelectionColumns(comp);
 
 		_centerX = new Button(comp, SWT.CHECK);
@@ -420,6 +434,11 @@ class AbstractMessageDialog : EventDialog {
 		_boundaryCheck.setToolTipText(prop.msgs.boundaryCheckDesc);
 		.listener(_boundaryCheck, SWT.Selection, &refDataVersion);
 		.listener(_boundaryCheck, SWT.Selection, &refreshPreview);
+
+		_selectTalker = new Button(comp, SWT.CHECK);
+		mod(_selectTalker);
+		_selectTalker.setText(prop.msgs.selectTalker);
+		.listener(_selectTalker, SWT.Selection, &refDataVersion);
 
 		return comp;
 	}
@@ -1148,6 +1167,7 @@ protected:
 			_centerX.setSelection(evt.centeringX);
 			_centerY.setSelection(evt.centeringY);
 			_boundaryCheck.setSelection(evt.boundaryCheck);
+			_selectTalker.setSelection(evt.selectTalker);
 		} else { mixin(S_TRACE);
 			_talkers.select(0);
 			_dlgs = [new SDialog];
@@ -1155,6 +1175,7 @@ protected:
 			_centerX.setSelection(false);
 			_centerY.setSelection(false);
 			_boundaryCheck.setSelection(false);
+			_selectTalker.setSelection(false);
 		}
 		refreshDlgList();
 
@@ -1182,6 +1203,7 @@ protected:
 		evt.centeringX = _centerX.getSelection();
 		evt.centeringY = _centerY.getSelection();
 		evt.boundaryCheck = _boundaryCheck.getSelection();
+		evt.selectTalker = _selectTalker.getSelection();
 		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
 			comm.refCoupons.call();
 		}
@@ -1220,6 +1242,16 @@ private:
 		warning = ws;
 	}
 
+	@property
+	protected override bool hasCharacterTalker() { mixin(S_TRACE);
+		foreach (imgPath; selectedTalkerParam) { mixin(S_TRACE);
+			if (imgPath.type is CardImageType.Talker && imgPath.talker !is Talker.CARD) { mixin(S_TRACE);
+				return true;
+			}
+		}
+		return false;
+	}
+
 	void tabChanged() { mixin(S_TRACE);
 		switch (_tabf.getSelectionIndex()) {
 		case 0:
@@ -1237,6 +1269,8 @@ private:
 		if (0 == _tabf.getSelectionIndex()) { mixin(S_TRACE);
 			_text.widget.getParent().getParent().layout();
 		}
+		updateSelectTalkerEnabled();
+		refreshWarning();
 		refreshPreview();
 	}
 	class SL : SelectionAdapter {
@@ -1261,7 +1295,7 @@ private:
 	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
-		super(comm, prop, shell, summ, CType.TALK_MESSAGE, parent, evt, prop.var.msgDlg);
+		super (comm, prop, shell, summ, CType.TALK_MESSAGE, parent, evt, prop.var.msgDlg);
 	}
 
 	CardImage[] selectedTalkerParam() { mixin(S_TRACE);
@@ -1366,17 +1400,20 @@ protected:
 			_centerX.setSelection(evt.centeringX);
 			_centerY.setSelection(evt.centeringY);
 			_boundaryCheck.setSelection(evt.boundaryCheck);
+			_selectTalker.setSelection(evt.selectTalker);
 		} else { mixin(S_TRACE);
 			_tabf.setSelection(1);
 			_selectionColumns.setSelection(1);
 			_centerX.setSelection(false);
 			_centerY.setSelection(false);
 			_boundaryCheck.setSelection(false);
+			_selectTalker.setSelection(false);
 		}
 		tabChanged();
 
 		initPreview(area, prop.var.msgPrev);
 		_msel.modEvent ~= &refreshPreview;
+		_msel.modEvent ~= &updateSelectTalkerEnabled;
 		_msel.updateImageEvent ~= &refreshPreview;
 		refDataVersion();
 	}
@@ -1392,6 +1429,7 @@ protected:
 		evt.centeringX = _centerX.getSelection();
 		evt.centeringY = _centerY.getSelection();
 		evt.boundaryCheck = _boundaryCheck.getSelection();
+		evt.selectTalker = _selectTalker.getSelection();
 		return true;
 	}
 }
@@ -1442,9 +1480,8 @@ private Composite createTalkerPane2(Composite parent, Commons comm, Props prop, 
 	return comp;
 }
 
-private Composite createTalkerPane
-		(Composite parent, Commons comm, Props prop, Summary summ, CardImage[] paths,
-		out ImageSelect!(MtType.CARD, Combo) msel) { mixin(S_TRACE);
+private Composite createTalkerPane(Composite parent, Commons comm, Props prop, Summary summ,
+		CardImage[] paths, out ImageSelect!(MtType.CARD, Combo) msel) { mixin(S_TRACE);
 	auto comp = new Composite(parent, SWT.NONE);
 	{ mixin(S_TRACE);
 		comp.setLayout(zeroMarginGridLayout(1, true));

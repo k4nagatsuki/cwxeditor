@@ -137,8 +137,8 @@ private void static_this () { mixin(S_TRACE);
 		CType.EFFECT_BREAK:CDetail("Effect", "Break", CNextType.NONE, false),
 		CType.LINK_START:CDetail("Link", "Start", CNextType.NONE, false, [CArg.START:"link"]),
 		CType.LINK_PACKAGE:CDetail("Link", "Package", CNextType.NONE, false, [CArg.PACKAGE:"link"]),
-		CType.TALK_MESSAGE:CDetail("Talk", "Message", CNextType.TEXT, true, [CArg.TALKER_C:_("path"), CArg.TEXT:null, CArg.SELECTION_COLUMNS:"columns", CArg.BOUNDARY_CHECK:"boundarycheck", CArg.CENTERING_X:"centeringx", CArg.CENTERING_Y:"centeringy"]),
-		CType.TALK_DIALOG:CDetail("Talk", "Dialog", CNextType.TEXT, true, [CArg.TALKER_NC:_("targetm"), CArg.DIALOGS:null, CArg.COUPONS:null, CArg.INIT_VALUE:"initialValue", CArg.SELECTION_COLUMNS:"columns", CArg.BOUNDARY_CHECK:"boundarycheck", CArg.CENTERING_X:"centeringx", CArg.CENTERING_Y:"centeringy"]),
+		CType.TALK_MESSAGE:CDetail("Talk", "Message", CNextType.TEXT, true, [CArg.TALKER_C:_("path"), CArg.TEXT:null, CArg.SELECTION_COLUMNS:"columns", CArg.BOUNDARY_CHECK:"boundarycheck", CArg.CENTERING_X:"centeringx", CArg.CENTERING_Y:"centeringy", CArg.SELECT_TALKER:"selecttalker"]),
+		CType.TALK_DIALOG:CDetail("Talk", "Dialog", CNextType.TEXT, true, [CArg.TALKER_NC:_("targetm"), CArg.DIALOGS:null, CArg.COUPONS:null, CArg.INIT_VALUE:"initialValue", CArg.SELECTION_COLUMNS:"columns", CArg.BOUNDARY_CHECK:"boundarycheck", CArg.CENTERING_X:"centeringx", CArg.CENTERING_Y:"centeringy", CArg.SELECT_TALKER:"selecttalker"]),
 		CType.PLAY_BGM:CDetail("Play", "Bgm", CNextType.NONE, true, [CArg.BGM_PATH:"path", CArg.BGM_CHANNEL:"channel", CArg.BGM_VOLUME:"volume", CArg.BGM_LOOP_COUNT:"loopcount", CArg.BGM_FADE_IN:"fadein"]),
 		CType.PLAY_SOUND:CDetail("Play", "Sound", CNextType.NONE, true, [CArg.SOUND_PATH:"path", CArg.SOUND_CHANNEL:"channel", CArg.SOUND_VOLUME:"volume", CArg.SOUND_LOOP_COUNT:"loopcount", CArg.SOUND_FADE_IN:"fadein"]),
 		CType.WAIT:CDetail("Wait", "", CNextType.NONE, true, [CArg.WAIT:"value"]),
@@ -623,6 +623,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		this.refAbility = c.refAbility;
 
 		this.selectCard = c.selectCard;
+		this.selectTalker = c.selectTalker;
 
 		Motion[] motions;
 		foreach (m; c.motions) { mixin(S_TRACE);
@@ -775,6 +776,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			&& (!d.use(CArg.REF_ABILITY) || refAbility == c.refAbility)
 
 			&& (!d.use(CArg.SELECT_CARD) || selectCard == c.selectCard)
+			&& (!d.use(CArg.SELECT_TALKER) || selectTalker == c.selectTalker)
 
 			&& (!d.use(CArg.MOTIONS) || motions == c.motions)
 
@@ -788,8 +790,6 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			&& (!d.use(CArg.BG_IMAGES) || backs == c.backs)
 
 			&& (!d.use(CArg.COUPONS) || coupons == c.coupons)
-
-			&& (!d.use(CArg.SELECT_CARD) || selectCard == c.selectCard)
 
 			&& next == c.next;
 	}
@@ -1050,6 +1050,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.REF_ABILITY, bool, false)(d, od, &refAbility, base, base.refAbility);
 
 		resetValue!(CArg.SELECT_CARD, bool, false)(d, od, &selectCard, base, base.selectCard);
+		resetValue!(CArg.SELECT_TALKER, bool, false)(d, od, &selectTalker, base, base.selectTalker);
 
 		resetValue!(CArg.MOTIONS, Motion[], [])(d, od, &motions, base, base.motions);
 
@@ -2063,6 +2064,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 	/// 選択カードを変更する(Wsn.3)。
 	mixin Prop!(bool, "selectCard", false);
+	/// 話者を選択する(Wsn.3)。
+	mixin Prop!(bool, "selectTalker", false);
 
 	/// 背景画像群。
 	mixin Prop!(BgImage[], "backs", []);
@@ -2555,6 +2558,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		}
 		atnPut!(CArg.MATCHING_TYPE, "matchingType", "fromMatchingType")(e, d);
 		atnPut!(CArg.SELECT_CARD, "selectCard", "fromBool")(e, d);
+		atnPut!(CArg.SELECT_TALKER, "selectTalker", "fromBool")(e, d);
 	}
 	const
 	private void toNodeImpl(ref XNode parent, CDetail d, XMLOption opt, ref XNode contentsLine) { mixin(S_TRACE);
@@ -2906,6 +2910,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		}
 		cfnPut!(CArg.MATCHING_TYPE, "matchingType", "toMatchingType")(en, d, r);
 		cfnPut!(CArg.SELECT_CARD, "selectCard", "parseBool")(en, d, r);
+		cfnPut!(CArg.SELECT_TALKER, "selectTalker", "parseBool")(en, d, r);
 
 		if (d.owner && nextContent) { mixin(S_TRACE);
 			en.onTag["Contents"] = (ref XNode node) { mixin(S_TRACE);

@@ -2952,6 +2952,9 @@ fi`;
 			if (detail.use(CArg.CENTERING_Y)) { mixin(S_TRACE);
 				c.centeringY = parseAttr!(bool)(opt, node.attr, i, c.centeringY, varTable, 0);
 			}
+			if (detail.use(CArg.SELECT_TALKER)) { mixin(S_TRACE);
+				c.selectTalker = parseAttr!(bool)(opt, node.attr, i, c.selectTalker, varTable, 0);
+			}
 			if (detail.use(CArg.START_ACTION)) { mixin(S_TRACE);
 				c.startAction = parseAttr!(StartAction)(opt, node.attr, i, c.startAction, varTable, 0);
 			}
@@ -3906,6 +3909,9 @@ fi`;
 			}
 			if (detail.use(CArg.CENTERING_Y)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.centeringY, indentValue, vars);
+			}
+			if (detail.use(CArg.SELECT_TALKER)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.selectTalker, indentValue, vars);
 			}
 			if (detail.use(CArg.START_ACTION)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.startAction, indentValue, vars);

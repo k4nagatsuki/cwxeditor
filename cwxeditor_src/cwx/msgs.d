@@ -415,6 +415,7 @@ class Msgs : Properties {
 	auto horizontalValue = Msg("horizontalValue", "横の値");
 	auto verticalValue = Msg("verticalValue", "縦の値");
 	auto selectCardWithKeyCode = Msg("selectCardWithKeyCode", "キーコードを持つカードを選択状態にする");
+	auto selectTalker = Msg("selectTalker", "話者を選択状態にする");
 
 	auto canNotGetMusicLength = Msg("canNotGetMusicLength", "SDL方式では音声の長さを取得できません");
 
@@ -933,6 +934,7 @@ class Msgs : Properties {
 	auto ctTalkDialogNoCoupon = Msg("ctTalkDialogNoCoupon", "%1$s: %2$s");
 	auto ctTalkDialogNoCouponWithAttrs = Msg("ctTalkDialogNoCouponWithAttrs", "%1$s: %2$s (%3$s)");
 	auto ctColumns = Msg("ctColumns", "%1$s列の選択肢");
+	auto ctSelectTalker = Msg("ctSelectTalker", "話者を選択する");
 	auto ctPlayBGM = Msg("ctPlayBGM", "BGMとして「%1$s」を演奏 Ch. = %2$s フェードイン時間 = %3$s × 0.1秒 音量 = %4$s%% ループ回数 = %5$s");
 	auto ctStopBGM = Msg("ctStopBGM", "BGM停止 Ch. = %1$s フェードアウト時間 = %2$s × 0.1秒");
 	auto ctPlaySound = Msg("ctPlaySound", "効果音「%1$s」を鳴らす Ch. = %2$s フェードイン時間 = %3$s × 0.1秒 音量 = %4$s%% ループ回数 = %5$s");
@@ -1933,6 +1935,7 @@ class Msgs : Properties {
 	auto warningBranchCouponMulti = Msg("warningBranchCouponMulti", "クーポン分岐のクーポンの複数指定は、Wsn.2以降の形式のシナリオしか行えません。"); // Wsn.2
 	auto warningExpandSPChars = Msg("warningExpandSPChars", "状態変数内の特殊文字の展開は、Wsn.2以降の形式のシナリオしか行えません。"); // Wsn.2
 	auto warningSelectCard = Msg("warningSelectCard", "選択カードの変更は、Wsn.2以降の形式のシナリオしか行えません。"); // Wsn.3
+	auto warningSelectTalker = Msg("warningSelectTalker", "話者の選択は、Wsn.3以降の形式のシナリオしか行えません。"); // Wsn.3
 
 	auto unknownStepValue = Msg("unknownStepValue", "存在しないステップ値(%1$s)");
 

@@ -3512,7 +3512,7 @@ protected:
 		{ mixin(S_TRACE);
 			_selectCard = new Button(area, SWT.CHECK);
 			mod(_selectCard);
-			_selectCard.setText(_prop.msgs.selectCard);
+			_selectCard.setText(_prop.msgs.selectCardWithKeyCode);
 			auto gd = new GridData(GridData.HORIZONTAL_ALIGN_END);
 			gd.horizontalSpan = 2;
 			_selectCard.setLayoutData(gd);

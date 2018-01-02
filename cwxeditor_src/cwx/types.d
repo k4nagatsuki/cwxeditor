@@ -1325,6 +1325,7 @@ enum CArg {
 	COUPON_NAMES, /// 複数クーポン名(Wsn.2)。
 	MATCHING_TYPE, /// マッチングタイプ(Wsn.2)。
 	SELECT_CARD, /// 選択カードを変更する(Wsn.3)。
+	SELECT_TALKER, /// 話者を選択する(Wsn.3)。
 }
 
 /// 後続コンテントのnameの型。
