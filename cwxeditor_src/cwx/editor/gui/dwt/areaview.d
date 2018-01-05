@@ -1982,7 +1982,7 @@ private:
 					createMenuItem(_comm, menu, MenuID.NewBack, &createBackground, () => !_readOnly);
 					createMenuItem(_comm, menu, MenuID.NewTextCell, &createTextCell, () => !_readOnly);
 					createMenuItem(_comm, menu, MenuID.NewColorCell, &createColorCell, () => !_readOnly);
-					createMenuItem(_comm, menu, MenuID.NewPCCell, &createPCCell, () => !_readOnly);
+					createMenuItem(_comm, menu, MenuID.NewPCCell, &createPCCell, () => !_readOnly && !(_summ && _summ.legacy));
 				}
 			}
 			new MenuItem(menu, SWT.SEPARATOR);
@@ -2610,7 +2610,7 @@ private:
 				createToolItem(_comm, bar, MenuID.NewBack, &createBackground, () => !_readOnly);
 				createToolItem(_comm, bar, MenuID.NewTextCell, &createTextCell, () => !_readOnly);
 				createToolItem(_comm, bar, MenuID.NewColorCell, &createColorCell, () => !_readOnly);
-				createToolItem(_comm, bar, MenuID.NewPCCell, &createPCCell, () => !_readOnly);
+				createToolItem(_comm, bar, MenuID.NewPCCell, &createPCCell, () => !_readOnly && !(_summ && _summ.legacy));
 			}
 		}
 
@@ -2642,7 +2642,7 @@ private:
 					createMenuItem(_comm, menu, MenuID.NewBack, &createBackground, () => !_readOnly);
 					createMenuItem(_comm, menu, MenuID.NewTextCell, &createTextCell, () => !_readOnly);
 					createMenuItem(_comm, menu, MenuID.NewColorCell, &createColorCell, () => !_readOnly);
-					createMenuItem(_comm, menu, MenuID.NewPCCell, &createPCCell, () => !_readOnly);
+					createMenuItem(_comm, menu, MenuID.NewPCCell, &createPCCell, () => !_readOnly && !(_summ && _summ.legacy));
 				}
 			}
 			new MenuItem(menu, SWT.SEPARATOR);
@@ -4516,7 +4516,7 @@ public:
 				createMenuItem(_comm, mv, MenuID.NewBack, &createBackground, () => !_readOnly);
 				createMenuItem(_comm, mv, MenuID.NewTextCell, &createTextCell, () => !_readOnly);
 				createMenuItem(_comm, mv, MenuID.NewColorCell, &createColorCell, () => !_readOnly);
-				createMenuItem(_comm, mv, MenuID.NewPCCell, &createPCCell, () => !_readOnly);
+				createMenuItem(_comm, mv, MenuID.NewPCCell, &createPCCell, () => !_readOnly && !(_summ && _summ.legacy));
 			}
 		}
 	}
