@@ -302,6 +302,7 @@ class FlexEtcProps : Properties {
 	auto showCurrentValueOnTopAlways = Prop!(bool)("showCurrentValueOnTopAlways", false);
 	auto showContentsBoxHeightWhenNoToolBar = Prop!(int, true)("showContentsBoxHeightWhenNoToolBar", 8);
 	auto showSummaryInAreaTable = Prop!(bool)("showSummaryInAreaTable", true);
+	auto saveTableViewSelection = Prop!(bool)("saveTableViewSelection", true);
 	auto clickIsOpenEvent = Prop!(bool)("clickIsOpenEvent", false);
 	auto smoothingCard = Prop!(bool)("smoothingCard", true);
 	auto ignorePathsWidth = Prop!(int, true, true)("ignorePathsWidth", 50);
