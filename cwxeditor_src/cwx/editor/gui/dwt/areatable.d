@@ -860,7 +860,7 @@ private:
 		}
 		foreach (i, itm; _areas.getItems()) { mixin(S_TRACE);
 			auto a = cast(AbstractArea)itm.getData();
-			if (_areas.isSelected(i)) { mixin(S_TRACE);
+			if (_areas.isSelected(cast(int)i)) { mixin(S_TRACE);
 				if (cast(Area)a) _selectionsA[a.id] = true;
 				if (cast(Battle)a) _selectionsB[a.id] = true;
 				if (cast(Package)a) _selectionsP[a.id] = true;
@@ -1745,9 +1745,9 @@ private:
 			_areas.deselectAll();
 			foreach (i, itm; _areas.getItems()) { mixin(S_TRACE);
 				auto a = cast(AbstractArea)itm.getData();
-				if (cast(Area)a && _selectionsA.get(a.id, false)) _areas.select(i);
-				if (cast(Battle)a && _selectionsB.get(a.id, false)) _areas.select(i);
-				if (cast(Package)a && _selectionsP.get(a.id, false)) _areas.select(i);
+				if (cast(Area)a && _selectionsA.get(a.id, false)) _areas.select(cast(int)i);
+				if (cast(Battle)a && _selectionsB.get(a.id, false)) _areas.select(cast(int)i);
+				if (cast(Package)a && _selectionsP.get(a.id, false)) _areas.select(cast(int)i);
 			}
 			if (_areas.getSelectionIndex() == -1 && _areas.getItemCount()) { mixin(S_TRACE);
 				_areas.select(0);
