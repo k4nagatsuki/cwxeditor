@@ -2472,6 +2472,9 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		atnPutD!(CArg.HOLDING_COUPON, "holdingCoupon", "", "")(e, d);
 		atnPutD!(CArg.REF_ABILITY, "refAbility", "", false)(e, d);
 
+		atnPutD!(CArg.SELECT_CARD, "selectCard", "fromBool", false)(e, d);
+		atnPutD!(CArg.SELECT_TALKER, "selectTalker", "fromBool", false)(e, d);
+
 		// 多少複雑なもの
 		if (d.use(CArg.MOTIONS)) { mixin(S_TRACE);
 			auto me = e.newElement("Motions");
@@ -2568,8 +2571,6 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		} else { mixin(S_TRACE);
 			atnPutD!(CArg.MATCHING_TYPE, "matchingType", "fromMatchingType", MatchingType.And)(e, d);
 		}
-		atnPutD!(CArg.SELECT_CARD, "selectCard", "fromBool", false)(e, d);
-		atnPutD!(CArg.SELECT_TALKER, "selectTalker", "fromBool", false)(e, d);
 	}
 	const
 	private void toNodeImpl(ref XNode parent, CDetail d, XMLOption opt, ref XNode contentsLine) { mixin(S_TRACE);
@@ -2621,6 +2622,20 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			auto name = d.attr(ARG);
 			if (en.hasAttr(name)) { mixin(S_TRACE);
 				mixin ("c." ~ Name ~ " = " ~ To ~ "(en.attr(name, true));");
+				return true;
+			}
+		}
+		return false;
+	}
+	private static bool cfnPutD(CArg ARG, string Name, string To, alias DefValue)(in XNode en, in CDetail d, ref Content c) { mixin(S_TRACE);
+		if (d.use(ARG)) { mixin(S_TRACE);
+			auto name = d.attr(ARG);
+			if (en.hasAttr(name)) { mixin(S_TRACE);
+				mixin ("c." ~ Name ~ " = " ~ To ~ "(en.attr(name, true));");
+				return true;
+			} else { mixin(S_TRACE);
+				auto a = DefValue;
+				mixin ("c." ~ Name ~ " = a;");
 				return true;
 			}
 		}
@@ -2721,24 +2736,27 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		cfnPut!(CArg.ROUND, "round", "to!(uint)")(en, d, r);
 
-		cfnPut!(CArg.CELL_NAME, "cellName", "")(en, d, r);
-		cfnPut!(CArg.POSITION_TYPE, "positionType", "toCoordinateType")(en, d, r);
-		cfnPut!(CArg.X, "x", "to!(int)")(en, d, r);
-		cfnPut!(CArg.Y, "y", "to!(int)")(en, d, r);
-		cfnPut!(CArg.SIZE_TYPE, "sizeType", "toCoordinateType")(en, d, r);
-		cfnPut!(CArg.WIDTH, "width", "to!(int)")(en, d, r);
-		cfnPut!(CArg.HEIGHT, "height", "to!(int)")(en, d, r);
+		cfnPutD!(CArg.CELL_NAME, "cellName", "", "")(en, d, r);
+		cfnPutD!(CArg.POSITION_TYPE, "positionType", "toCoordinateType", CoordinateType.None)(en, d, r);
+		cfnPutD!(CArg.X, "x", "to!(int)", 0)(en, d, r);
+		cfnPutD!(CArg.Y, "y", "to!(int)", 0)(en, d, r);
+		cfnPutD!(CArg.SIZE_TYPE, "sizeType", "toCoordinateType", CoordinateType.None)(en, d, r);
+		cfnPutD!(CArg.WIDTH, "width", "to!(int)", 0)(en, d, r);
+		cfnPutD!(CArg.HEIGHT, "height", "to!(int)", 0)(en, d, r);
 
-		cfnPut!(CArg.DO_ANIME, "doAnime", "parseBool")(en, d, r);
-		cfnPut!(CArg.IGNORE_EFFECT_BOOSTER, "ignoreEffectBooster", "parseBool")(en, d, r);
+		cfnPutD!(CArg.DO_ANIME, "doAnime", "parseBool", true)(en, d, r);
+		cfnPutD!(CArg.IGNORE_EFFECT_BOOSTER, "ignoreEffectBooster", "parseBool", false)(en, d, r);
 
-		cfnPut!(CArg.SELECTION_COLUMNS, "selectionColumns", "to!(uint)")(en, d, r);
-		cfnPut!(CArg.CENTERING_X, "centeringX", "parseBool")(en, d, r);
-		cfnPut!(CArg.CENTERING_Y, "centeringY", "parseBool")(en, d, r);
-		cfnPut!(CArg.BOUNDARY_CHECK, "boundaryCheck", "parseBool")(en, d, r);
-		cfnPut!(CArg.IGNITE, "ignite", "parseBool")(en, d, r);
-		cfnPut!(CArg.HOLDING_COUPON, "holdingCoupon", "")(en, d, r);
-		cfnPut!(CArg.REF_ABILITY, "refAbility", "parseBool")(en, d, r);
+		cfnPutD!(CArg.SELECTION_COLUMNS, "selectionColumns", "to!(uint)", 1)(en, d, r);
+		cfnPutD!(CArg.CENTERING_X, "centeringX", "parseBool", false)(en, d, r);
+		cfnPutD!(CArg.CENTERING_Y, "centeringY", "parseBool", false)(en, d, r);
+		cfnPutD!(CArg.BOUNDARY_CHECK, "boundaryCheck", "parseBool", false)(en, d, r);
+		cfnPutD!(CArg.IGNITE, "ignite", "parseBool", false)(en, d, r);
+		cfnPutD!(CArg.HOLDING_COUPON, "holdingCoupon", "", "")(en, d, r);
+		cfnPutD!(CArg.REF_ABILITY, "refAbility", "parseBool", false)(en, d, r);
+
+		cfnPutD!(CArg.SELECT_CARD, "selectCard", "parseBool", false)(en, d, r);
+		cfnPutD!(CArg.SELECT_TALKER, "selectTalker", "parseBool", false)(en, d, r);
 
 		// CardWirthではラウンドイベントで加入したメンバは次ラウンドから
 		// 行動を開始するが、CardWirthPy 1では即時に行動していた。
@@ -2748,10 +2766,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		//    `startaction="Now"`として扱う。
 		//  * クラシックなシナリオを変換した時は`startaction="NextRound"`とする。
 		// ここはXMLデータのパースなので、初期値を`Now`しておく。
-		if (d.use(CArg.START_ACTION)) { mixin(S_TRACE);
-			r.startAction = StartAction.Now;
-			cfnPut!(CArg.START_ACTION, "startAction", "toStartAction")(en, d, r);
-		}
+		cfnPutD!(CArg.START_ACTION, "startAction", "toStartAction", StartAction.Now)(en, d, r);
 
 		// 多少複雑なもの
 		if (d.use(CArg.TRANSITION)) { mixin(S_TRACE);
@@ -2920,8 +2935,6 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			};
 		}
 		cfnPut!(CArg.MATCHING_TYPE, "matchingType", "toMatchingType")(en, d, r);
-		cfnPut!(CArg.SELECT_CARD, "selectCard", "parseBool")(en, d, r);
-		cfnPut!(CArg.SELECT_TALKER, "selectTalker", "parseBool")(en, d, r);
 
 		if (d.owner && nextContent) { mixin(S_TRACE);
 			en.onTag["Contents"] = (ref XNode node) { mixin(S_TRACE);
