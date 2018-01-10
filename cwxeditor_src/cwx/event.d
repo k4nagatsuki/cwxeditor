@@ -2562,7 +2562,13 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 				e.newAttr("coupon", couponNames.length ? couponNames[0] : "");
 			}
 		}
-		atnPut!(CArg.MATCHING_TYPE, "matchingType", "fromMatchingType")(e, d);
+		if (d.use(CArg.COUPON_NAMES)) { mixin(S_TRACE);
+			if (1 < couponNames.length) { mixin(S_TRACE);
+				atnPut!(CArg.MATCHING_TYPE, "matchingType", "fromMatchingType")(e, d);
+			}
+		} else { mixin(S_TRACE);
+			atnPut!(CArg.MATCHING_TYPE, "matchingType", "fromMatchingType")(e, d);
+		}
 		atnPutD!(CArg.SELECT_CARD, "selectCard", "fromBool", false)(e, d);
 		atnPutD!(CArg.SELECT_TALKER, "selectTalker", "fromBool", false)(e, d);
 	}
