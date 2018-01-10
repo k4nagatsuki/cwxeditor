@@ -123,7 +123,7 @@ private void static_this () { mixin(S_TRACE);
 		]
 	];
 
-	string _(string v) {return v;}
+	string _(string v) { return v; }
 	_CONTENT_DETAILS = [
 		CType.START:CDetail("Start", "", CNextType.NONE, true),
 		CType.START_BATTLE:CDetail("Start", "Battle", CNextType.NONE, false, [CArg.BATTLE:"id"]),
@@ -799,17 +799,17 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// 自分自身を識別するために使用する。
 	@property
 	const
-	string eventId() {return _id;}
+	string eventId() { return _id; }
 
 	private CType _type;
 	/// コンテントの型。
 	@property
 	const
-	CType type() {return _type;}
+	CType type() { return _type; }
 	/// コンテントの概要。
 	@property
 	const
-	CDetail detail() {return CONTENT_DETAILS[type];}
+	CDetail detail() { return CONTENT_DETAILS[type]; }
 
 	/// スタートコンテントの場合、ツリーが変更された回数をカウントする。
 	private ulong _updateCounter = 0;
@@ -2356,6 +2356,12 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			mixin ("en.newAttr(d.attr(ARG), " ~ From ~ "(this." ~ Name ~ "));");
 		}
 	}
+	const
+	private void atnPutD(CArg ARG, string Name, string From, alias DefValue)(ref XNode en, in CDetail d) { mixin(S_TRACE);
+		if (d.use(ARG) && mixin("this." ~ Name) != DefValue) { mixin(S_TRACE);
+			mixin ("en.newAttr(d.attr(ARG), " ~ From ~ "(this." ~ Name ~ "));");
+		}
+	}
 	/// 指定されたXMLノードにインスタンスのデータを追加する。
 	const
 	XNode toNode(ref XNode parent, XMLOption opt) { mixin(S_TRACE);
@@ -2446,25 +2452,25 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		atnPut!(CArg.ROUND, "round", "")(e, d);
 
-		atnPut!(CArg.CELL_NAME, "cellName", "")(e, d);
-		atnPut!(CArg.POSITION_TYPE, "positionType", "fromCoordinateType")(e, d);
-		atnPut!(CArg.X, "x", "")(e, d);
-		atnPut!(CArg.Y, "y", "")(e, d);
-		atnPut!(CArg.SIZE_TYPE, "sizeType", "fromCoordinateType")(e, d);
-		atnPut!(CArg.WIDTH, "width", "")(e, d);
-		atnPut!(CArg.HEIGHT, "height", "")(e, d);
+		atnPutD!(CArg.CELL_NAME, "cellName", "", "")(e, d);
+		atnPutD!(CArg.POSITION_TYPE, "positionType", "fromCoordinateType", CoordinateType.None)(e, d);
+		atnPutD!(CArg.X, "x", "", 0)(e, d);
+		atnPutD!(CArg.Y, "y", "", 0)(e, d);
+		atnPutD!(CArg.SIZE_TYPE, "sizeType", "fromCoordinateType", CoordinateType.None)(e, d);
+		atnPutD!(CArg.WIDTH, "width", "", 0)(e, d);
+		atnPutD!(CArg.HEIGHT, "height", "", 0)(e, d);
 
-		atnPut!(CArg.DO_ANIME, "doAnime", "fromBool")(e, d);
-		atnPut!(CArg.IGNORE_EFFECT_BOOSTER, "ignoreEffectBooster", "fromBool")(e, d);
+		atnPutD!(CArg.DO_ANIME, "doAnime", "fromBool", true)(e, d);
+		atnPutD!(CArg.IGNORE_EFFECT_BOOSTER, "ignoreEffectBooster", "fromBool", false)(e, d);
 
-		atnPut!(CArg.SELECTION_COLUMNS, "selectionColumns", "")(e, d);
-		atnPut!(CArg.CENTERING_X, "centeringX", "fromBool")(e, d);
-		atnPut!(CArg.CENTERING_Y, "centeringY", "fromBool")(e, d);
-		atnPut!(CArg.BOUNDARY_CHECK, "boundaryCheck", "fromBool")(e, d);
-		atnPut!(CArg.START_ACTION, "startAction", "")(e, d);
-		atnPut!(CArg.IGNITE, "ignite", "fromBool")(e, d);
-		atnPut!(CArg.HOLDING_COUPON, "holdingCoupon", "")(e, d);
-		atnPut!(CArg.REF_ABILITY, "refAbility", "")(e, d);
+		atnPutD!(CArg.SELECTION_COLUMNS, "selectionColumns", "", 1)(e, d);
+		atnPutD!(CArg.CENTERING_X, "centeringX", "fromBool", false)(e, d);
+		atnPutD!(CArg.CENTERING_Y, "centeringY", "fromBool", false)(e, d);
+		atnPutD!(CArg.BOUNDARY_CHECK, "boundaryCheck", "fromBool", false)(e, d);
+		atnPutD!(CArg.START_ACTION, "startAction", "", StartAction.Now)(e, d);
+		atnPutD!(CArg.IGNITE, "ignite", "fromBool", false)(e, d);
+		atnPutD!(CArg.HOLDING_COUPON, "holdingCoupon", "", "")(e, d);
+		atnPutD!(CArg.REF_ABILITY, "refAbility", "", false)(e, d);
 
 		// 多少複雑なもの
 		if (d.use(CArg.MOTIONS)) { mixin(S_TRACE);
@@ -2557,8 +2563,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			}
 		}
 		atnPut!(CArg.MATCHING_TYPE, "matchingType", "fromMatchingType")(e, d);
-		atnPut!(CArg.SELECT_CARD, "selectCard", "fromBool")(e, d);
-		atnPut!(CArg.SELECT_TALKER, "selectTalker", "fromBool")(e, d);
+		atnPutD!(CArg.SELECT_CARD, "selectCard", "fromBool", false)(e, d);
+		atnPutD!(CArg.SELECT_TALKER, "selectTalker", "fromBool", false)(e, d);
 	}
 	const
 	private void toNodeImpl(ref XNode parent, CDetail d, XMLOption opt, ref XNode contentsLine) { mixin(S_TRACE);
