@@ -4553,6 +4553,15 @@ class ContentsToolBox {
 					if (!_summ.legacy) goto default;
 					desc = .tryFormat(_prop.msgs.contentDescWsnN, _prop.msgs.contentDesc(type), "1");
 					break;
+				case BRANCH_MULTI_COUPON:
+				case BRANCH_MULTI_RANDOM:
+					if (!_summ.legacy) goto default;
+					desc = .tryFormat(_prop.msgs.contentDescWsnN, _prop.msgs.contentDesc(type), "2");
+					break;
+				case MOVE_CARD:
+					if (!_summ.legacy) goto default;
+					desc = .tryFormat(_prop.msgs.contentDescWsnN, _prop.msgs.contentDesc(type), "3");
+					break;
 				default:
 					desc = _prop.msgs.contentDesc(type);
 					break;

@@ -1203,6 +1203,7 @@ enum CType {
 	LOSE_BG_IMAGE, /// 背景削除(Wsn.1)。
 	BRANCH_MULTI_COUPON, /// クーポン多岐分岐(Wsn.2)。
 	BRANCH_MULTI_RANDOM, /// ランダム多岐分岐(Wsn.2)。
+	MOVE_CARD, /// カード再配置(Wsn.3)。
 }
 
 /// WSN形式のシナリオでのみ使用できるイベントコンテントか。
@@ -1327,6 +1328,8 @@ enum CArg {
 	SELECT_CARD, /// 選択カードを変更する(Wsn.3)。
 	SELECT_TALKER, /// 話者を選択する(Wsn.3)。
 	CARD_GROUP, /// カードグループ(Wsn.3)。
+	SCALE, /// スケール(Wsn.3)。
+	LAYER, /// レイヤ(Wsn.3)。
 }
 
 /// 後続コンテントのnameの型。

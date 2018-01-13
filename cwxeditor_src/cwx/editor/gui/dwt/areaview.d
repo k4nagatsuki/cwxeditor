@@ -5622,11 +5622,12 @@ public:
 			foreach (i, c; area.cards) { mixin(S_TRACE);
 				if (castCard.id == _area.cards[i].id) { mixin(S_TRACE);
 					auto img = imagePane.images[cardsIndex + i];
+					auto name = img.title;
 					img.setImageData(castCardImage(_prop, skin, castCard, _summ ? _summ.scenarioPath : "", _summ ? _summ.dataVersion : LATEST_VERSION, _dbgMode));
 					img.createImage();
 					imagePane.redrawImage(img);
-					if (cardList.getItem(cast(int)i).getText() != castCard.name) { mixin(S_TRACE);
-						cardList.getItem(cast(int)i).setText(castCard.name);
+					if (name != castCard.name) { mixin(S_TRACE);
+						cardList.getItem(cast(int)i).setText(c.cardGroup == "" ? castCard.name : .tryFormat(_prop.msgs.nameWithCardGroup, c.cardGroup, castCard.name));
 						_comm.refMenuCard.call(_area.cards[i].cwxPath(true));
 					}
 				}

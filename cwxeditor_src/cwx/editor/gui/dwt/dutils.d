@@ -3663,6 +3663,18 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		return .tryFormat(comm.prop.msgs.ctBranchMultiCoupon, range);
 	} case CType.BRANCH_MULTI_RANDOM: { mixin(S_TRACE);
 		return comm.prop.msgs.ctBranchMultiRandom;
+	} case CType.MOVE_CARD: { mixin(S_TRACE);
+		auto cardGroup = evt.cardGroup;
+		if (!cardGroup || !cardGroup.length) cardGroup = comm.prop.msgs.noSelectCardGroup;
+		auto posType = comm.prop.msgs.coordinateTypeName(evt.positionType);
+		auto scale = evt.scale == -1 ? comm.prop.msgs.noChangeScale : .format("%s%%", evt.scale);
+		auto layer = evt.layer == -1 ? comm.prop.msgs.noChangeLayer : .text(evt.layer);
+
+		if (evt.positionType is CoordinateType.None) { mixin(S_TRACE);
+			return .tryFormat(comm.prop.msgs.ctMoveCardNoSet, cardGroup, scale, layer);
+		} else { mixin(S_TRACE);
+			return .tryFormat(comm.prop.msgs.ctMoveCard, cardGroup, posType, evt.x, evt.y, scale, layer);
+		}
 	}
 	}
 }

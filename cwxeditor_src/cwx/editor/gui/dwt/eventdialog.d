@@ -40,7 +40,7 @@ import cwx.editor.gui.dwt.couponview;
 import cwx.editor.gui.dwt.keycodeview;
 import cwx.editor.gui.dwt.abilityview;
 
-import std.algorithm : countUntil;
+import std.algorithm : countUntil, max;
 import std.array;
 import std.conv;
 import std.math;
@@ -3684,7 +3684,49 @@ protected:
 	}
 }
 
-/// 背景再配置の設定を行うダイアログ。
+private void createPositionOrSizePanel(Props prop, AbsDialog dlg, Composite area, GridData gd, string name, ref Button[CoordinateType] type, ref Spinner x, ref Spinner y, ref void delegate() updateEnabled, int max1, int max2) { mixin(S_TRACE);
+	auto grp = new Group(area, SWT.NONE);
+	grp.setLayoutData(gd);
+	grp.setText(name);
+	grp.setLayout(new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0));
+
+	auto comp = new Composite(grp, SWT.NONE);
+	comp.setLayout(normalGridLayout(4, false));
+
+	updateEnabled = { mixin(S_TRACE);
+		auto p = !type[CoordinateType.None].getSelection();
+		x.setEnabled(p);
+		y.setEnabled(p);
+	};
+	void putRadio(CoordinateType ct) { mixin(S_TRACE);
+		auto radio = new Button(comp, SWT.RADIO);
+		dlg.mod(radio);
+		radio.setText(prop.msgs.coordinateTypeName(ct));
+		.listener(radio, SWT.Selection, updateEnabled);
+		auto gd = new GridData;
+		gd.horizontalSpan = 4;
+		radio.setLayoutData(gd);
+		type[ct] = radio;
+	}
+	foreach (ct; EnumMembers!CoordinateType) { mixin(S_TRACE);
+		putRadio(ct);
+	}
+
+	Spinner putSpinner(string name, int max) { mixin(S_TRACE);
+		auto l1 = new Label(comp, SWT.NONE);
+		l1.setText(name);
+		auto spn = new Spinner(comp, SWT.BORDER);
+		initSpinner(spn);
+		dlg.mod(spn);
+		spn.setMinimum(-max);
+		spn.setMaximum(max);
+		return spn;
+	}
+	x = putSpinner(prop.msgs.horizontalValue, max1);
+	y = putSpinner(prop.msgs.verticalValue, max2);
+}
+
+/// 背景再配置の設定を行うダイアログ(Wsn.2)。
 class MoveBgImageDialog : EventDialog {
 private:
 	Combo _cellName;
@@ -3709,14 +3751,6 @@ private:
 		warning = ws;
 	}
 
-	private void updateEnabled() { mixin(S_TRACE);
-		auto p = !_positionType[CoordinateType.None].getSelection();
-		_x.setEnabled(p);
-		_y.setEnabled(p);
-		auto s = !_sizeType[CoordinateType.None].getSelection();
-		_w.setEnabled(s);
-		_h.setEnabled(s);
-	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
 		super (comm, prop, shell, summ, CType.MOVE_BG_IMAGE, parent, evt, false, null, true);
@@ -3738,44 +3772,14 @@ protected:
 			_cellName.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		}
 
-		void createGrp(string name, ref Button[CoordinateType] type, ref Spinner x, ref Spinner y, int max1, int max2) { mixin(S_TRACE);
-			auto grp = new Group(area, SWT.NONE);
-			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-			grp.setText(name);
-			grp.setLayout(new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0));
-
-			auto comp = new Composite(grp, SWT.NONE);
-			comp.setLayout(normalGridLayout(4, false));
-
-			void putRadio(CoordinateType ct) { mixin(S_TRACE);
-				auto radio = new Button(comp, SWT.RADIO);
-				mod(radio);
-				radio.setText(_prop.msgs.coordinateTypeName(ct));
-				.listener(radio, SWT.Selection, &updateEnabled);
-				auto gd = new GridData;
-				gd.horizontalSpan = 4;
-				radio.setLayoutData(gd);
-				type[ct] = radio;
-			}
-			foreach (ct; EnumMembers!CoordinateType) { mixin(S_TRACE);
-				putRadio(ct);
-			}
-
-			Spinner putSpinner(string name, int max) { mixin(S_TRACE);
-				auto l1 = new Label(comp, SWT.NONE);
-				l1.setText(name);
-				auto spn = new Spinner(comp, SWT.BORDER);
-				initSpinner(spn);
-				mod(spn);
-				spn.setMinimum(-max);
-				spn.setMaximum(max);
-				return spn;
-			}
-			x = putSpinner(prop.msgs.horizontalValue, max1);
-			y = putSpinner(prop.msgs.verticalValue, max2);
-		}
-		createGrp(prop.msgs.moveCell, _positionType, _x, _y, prop.var.etc.posLeftMax, prop.var.etc.posTopMax);
-		createGrp(prop.msgs.resizeCell, _sizeType, _w, _h, prop.var.etc.backWidthMax, prop.var.etc.backHeightMax);
+		void delegate() updateEnabledPosition;
+		void delegate() updateEnabledSize;
+		createPositionOrSizePanel(prop, this, area, new GridData(GridData.FILL_BOTH),
+			prop.msgs.moveCell, _positionType, _x, _y,
+			updateEnabledPosition, prop.var.etc.posLeftMax, prop.var.etc.posTopMax);
+		createPositionOrSizePanel(prop, this, area, new GridData(GridData.FILL_BOTH),
+			prop.msgs.resizeCell, _sizeType, _w, _h,
+			updateEnabledSize, prop.var.etc.backWidthMax, prop.var.etc.backHeightMax);
 
 		{ mixin(S_TRACE);
 			_transition = new TransitionPanel(comm, summ, area, true, _evt, this);
@@ -3822,7 +3826,8 @@ protected:
 			_doAnime.setSelection(true);
 			_ignoreEffectBooster.setSelection(false);
 		}
-		updateEnabled();
+		updateEnabledPosition();
+		updateEnabledSize();
 		refreshWarning();
 	}
 
@@ -3839,6 +3844,158 @@ protected:
 		_evt.transitionSpeed = _transition.transitionSpeed;
 		_evt.doAnime = _doAnime.getSelection();
 		_evt.ignoreEffectBooster = _ignoreEffectBooster.getSelection();
+		return true;
+	}
+}
+
+/// 背景再配置の設定を行うダイアログ(Wsn.3)。
+class MoveCardDialog : EventDialog {
+private:
+	Combo _cardGroup;
+	Button[CoordinateType] _positionType;
+	Spinner _x;
+	Spinner _y;
+	Button _changeLayer;
+	Spinner _layer;
+	Button _changeScale;
+	Spinner _scale;
+
+	override
+	protected void refreshWarning() { mixin(S_TRACE);
+		string[] ws;
+		if (!_prop.isTargetVersion(summ, "3")) { mixin(S_TRACE);
+			ws ~= .tryFormat(_prop.msgs.warningUnknownContentWsn, _prop.msgs.contentName(CType.MOVE_CARD), "3");
+		}
+		warning = ws;
+	}
+
+	private void updateEnabled() { mixin(S_TRACE);
+		_scale.setEnabled(_changeScale.getSelection());
+		_layer.setEnabled(_changeLayer.getSelection());
+	}
+
+public:
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
+		super (comm, prop, shell, summ, CType.MOVE_CARD, parent, evt, false, null, true);
+	}
+protected:
+	override void setup(Composite area) { mixin(S_TRACE);
+		area.setLayout(normalGridLayout(2, true));
+
+		{ mixin(S_TRACE);
+			auto grp = new Group(area, SWT.NONE);
+			auto ggd = new GridData(GridData.FILL_HORIZONTAL);
+			ggd.horizontalSpan = 2;
+			grp.setLayoutData(ggd);
+			grp.setLayout(normalGridLayout(1, true));
+			grp.setText(prop.msgs.targetCardGroup);
+
+			_cardGroup = createCardGroupCombo(comm, summ, grp, &catchMod, _evt ? _evt.cardGroup : "");
+			mod(_cardGroup);
+			_cardGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		}
+
+		void delegate() updateEnabledPosition;
+		{ mixin(S_TRACE);
+			auto gd = new GridData(GridData.FILL_BOTH);
+			gd.verticalSpan = 2;
+			createPositionOrSizePanel(prop, this, area, gd, prop.msgs.moveCard, _positionType, _x, _y, updateEnabledPosition, prop.var.etc.posLeftMax, prop.var.etc.posTopMax);
+		}
+
+		{ mixin(S_TRACE);
+			auto grp = new Group(area, SWT.NONE);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setText(prop.msgs.scale);
+			auto cl = new CenterLayout;
+			cl.fillHorizontal = true;
+			grp.setLayout(cl);
+
+			auto comp = new Composite(grp, SWT.NONE);
+			comp.setLayout(normalGridLayout(2, false));
+
+			_changeScale = new Button(comp, SWT.CHECK);
+			mod(_changeScale);
+			_changeScale.setText(prop.msgs.changeScale);
+			.listener(_changeScale, SWT.Selection, &updateEnabled);
+
+			auto comp2 = new Composite(comp, SWT.NONE);
+			auto wgd = windowGridLayout(2, false);
+			wgd.marginWidth = 0;
+			wgd.marginHeight = 0;
+			comp2.setLayout(wgd);
+			_scale = new Spinner(comp2, SWT.BORDER);
+			initSpinner(_scale);
+			mod(_scale);
+			_scale.setMinimum(prop.var.etc.cardScaleMin);
+			_scale.setMaximum(prop.var.etc.cardScaleMax);
+			auto l = new Label(comp2, SWT.NONE);
+			l.setText("%");
+		}
+
+		{ mixin(S_TRACE);
+			auto grp = new Group(area, SWT.NONE);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setText(prop.msgs.layer);
+			auto cl = new CenterLayout;
+			cl.fillHorizontal = true;
+			grp.setLayout(cl);
+
+			auto comp = new Composite(grp, SWT.NONE);
+			comp.setLayout(normalGridLayout(2, false));
+
+			_changeLayer = new Button(comp, SWT.CHECK);
+			mod(_changeLayer);
+			_changeLayer.setText(prop.msgs.changeLayer);
+			.listener(_changeLayer, SWT.Selection, &updateEnabled);
+
+			_layer = new Spinner(comp, SWT.BORDER);
+			initSpinner(_layer);
+			mod(_layer);
+			_layer.setMinimum(LAYER_BACK_CELL);
+			_layer.setMaximum(prop.var.etc.layerMax);
+		}
+		auto lsw = .max(_changeScale.computeSize(SWT.DEFAULT, SWT.DEFAULT).x, _changeLayer.computeSize(SWT.DEFAULT, SWT.DEFAULT).x);
+		auto sgd = new GridData;
+		sgd.widthHint = lsw;
+		_changeScale.setLayoutData(sgd);
+		auto lgd = new GridData;
+		lgd.widthHint = lsw;
+		_changeLayer.setLayoutData(lgd);
+
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
+		if (_evt) { mixin(S_TRACE);
+			_cardGroup.setText(_evt.cardGroup);
+			_positionType[_evt.positionType].setSelection(true);
+			_x.setSelection(_evt.x);
+			_y.setSelection(_evt.y);
+			_changeScale.setSelection(_evt.scale != -1);
+			_scale.setSelection(_evt.scale == -1 ? 100 : _evt.scale);
+			_changeLayer.setSelection(_evt.layer != -1);
+			_layer.setSelection(_evt.layer == -1 ? LAYER_MENU_CARD : _evt.layer);
+		} else { mixin(S_TRACE);
+			_cardGroup.setText("");
+			_positionType[CoordinateType.None].setSelection(true);
+			_x.setSelection(0);
+			_y.setSelection(0);
+			_changeScale.setSelection(false);
+			_scale.setSelection(100);
+			_changeLayer.setSelection(false);
+			_layer.setSelection(LAYER_MENU_CARD);
+		}
+		updateEnabledPosition();
+		updateEnabled();
+		refreshWarning();
+	}
+
+	override bool apply() { mixin(S_TRACE);
+		if (!_evt) _evt = new Content(type, "");
+		_evt.cardGroup = _cardGroup.getText();
+		_evt.positionType = getRadioValue(_positionType);
+		_evt.x = _x.getSelection();
+		_evt.y = _y.getSelection();
+		_evt.scale = _changeScale.getSelection() ? _scale.getSelection() : -1;
+		_evt.layer = _changeLayer.getSelection() ? _layer.getSelection() : -1;
 		return true;
 	}
 }

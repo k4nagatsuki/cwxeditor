@@ -294,10 +294,6 @@
 					<li class="content"><a href="#ENDSC">endsc</a></li>
 					<li class="content"><a href="#GAMEOVE">gameover</a></li>
 					<li class="content"><a href="#GOAREA">goarea</a></li>
-					<li class="content"><a href="#CHBACK">chback</a></li>
-					<li class="content"><a href="#MVBACK">mvback</a></li>
-					<li class="content"><a href="#RPLBACK">rplback</a></li>
-					<li class="content"><a href="#LOSEBACK">loseback</a></li>
 					<li class="content"><a href="#EFFECT">effect</a></li>
 					<li class="content"><a href="#BREA">break</a></li>
 					<li class="content"><a href="#GOSTART">gostart</a></li>
@@ -367,6 +363,11 @@
 					<li class="content"><a href="#LOSEGOSSIP">losegossip</a></li>
 					<li class="content"><a href="#SHOWPART">showparty</a></li>
 					<li class="content"><a href="#HIDEPART">hideparty</a></li>
+					<li class="content"><a href="#MVCARD">mvcard</a></li>
+					<li class="content"><a href="#CHBACK">chback</a></li>
+					<li class="content"><a href="#MVBACK">mvback</a></li>
+					<li class="content"><a href="#RPLBACK">rplback</a></li>
+					<li class="content"><a href="#LOSEBACK">loseback</a></li>
 					<li class="content"><a href="#REDRAW">redraw</a></li>
 				</ol>
 			</li>
@@ -784,16 +785,6 @@
 | [<span class="arg">pc</span>, <span class="arg">&lt;表示メンバ&gt;</span>, <span class="arg">&lt;拡大・縮小有無&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>), <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>]
 ...</span>, <span class="arg">&lt;画面切替スピード&gt;</span>, <span class="arg">&lt;切替方式&gt;</span></span></a></dt>
 	<dd>背景の変更</dd>
-	<dt class="content"><a href="#MVBACK">mvback <span class="args"><span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;移動方式&gt;</span>, <span class="arg">&lt;X移動量&gt;</span>, <span class="arg">&lt;Y移動量&gt;</span>, <span class="arg">&lt;サイズ変更方式&gt;</span>, <span class="arg">&lt;幅変更量&gt;</span>, <span class="arg">&lt;高さ変更量&gt;</span>, <span class="arg">&lt;画面切替スピード&gt;</span>, <span class="arg">&lt;切替方式&gt;</span>, <span class="arg">&lt;アニメーション有無&gt;</span>, <span class="arg">&lt;エフェクトブースター無視&gt;</span></span></a></dt>
-	<dd>背景セルの再配置</dd>
-	<dt class="content"><a href="#RPLBACK">rplback <span class="args"><span class="arg">&lt;セル名称&gt;</span>, <span class="array">([<span class="arg">&lt;画像パス&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;透明化有無&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>]
-| [<span class="arg">text</span>, <span class="arg">&lt;テキスト&gt;</span>, <span class="arg">&lt;フォント名&gt;</span>, <span class="arg">&lt;文字サイズ&gt;</span>, <span class="arg">&lt;文字色&gt;</span>, <span class="arg">&lt;書式&gt;</span> ..., (<span class="arg">&lt;縁取り色&gt;</span>), (<span class="arg">&lt;縁取り幅&gt;</span>), <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>]
-| [<span class="arg">color</span>, <span class="arg">&lt;合成方式&gt;</span>, <span class="arg">&lt;基本色&gt;</span>, <span class="arg">&lt;グラデーション方向&gt;</span>, <span class="arg">&lt;終端色&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>]
-| [<span class="arg">pc</span>, <span class="arg">&lt;表示メンバ&gt;</span>, <span class="arg">&lt;拡大・縮小有無&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>), <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>]
-...</span>, <span class="arg">&lt;画面切替スピード&gt;</span>, <span class="arg">&lt;切替方式&gt;</span>, <span class="arg">&lt;アニメーション有無&gt;</span>, <span class="arg">&lt;エフェクトブースター無視&gt;</span></span></a></dt>
-	<dd>背景セルの置換</dd>
-	<dt class="content"><a href="#LOSEBACK">loseback <span class="args"><span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;画面切替スピード&gt;</span>, <span class="arg">&lt;切替方式&gt;</span>, <span class="arg">&lt;アニメーション有無&gt;</span>, <span class="arg">&lt;エフェクトブースター無視&gt;</span></span></a></dt>
-	<dd>背景セルの削除</dd>
 	<dt class="content"><a href="#EFFECT">effect <span class="args"> (<span class="arg">&lt;効果対象&gt;</span> | <span class="arg">coupon</span> <span class="arg">&lt;称号名&gt;</span>), <span class="array">[<span class="arg">&lt;効果種別&gt;</span>, (<span class="arg">&lt;ダメージタイプ&gt;</span>, <span class="arg">&lt;値&gt;</span> | <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;増減値&gt;</span>, <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;召喚獣ID&gt;</span>), <span class="arg">&lt;属性&gt;</span>] ...</span>, <span class="arg">&lt;視覚効果&gt;</span>, <span class="arg">&lt;効果レベル&gt;</span>, <span class="arg">&lt;成功率&gt;</span>, <span class="arg">&lt;効果属性&gt;</span>, <span class="arg">&lt;抵抗属性&gt;</span>, <span class="arg">&lt;音声パス&gt;</span>, <span class="arg">&lt;音量&gt;</span>, <span class="arg">&lt;ループ回数&gt;</span>, <span class="arg">&lt;選択メンバの能力参照&gt;</span>, <span class="arg">&lt;身体的要素&gt;</span>, <span class="arg">&lt;精神的要素&gt;</span>, <span class="arg">&lt;イベント発火の有無&gt;</span>, <span class="arg">&lt;キーコード&gt;</span> ...</span></a></dt>
 	<dd>効果</dd>
 	<dt class="content"><a href="#BREA">break</a></dt>
@@ -932,6 +923,18 @@
 	<dd>パーティ表示</dd>
 	<dt class="content"><a href="#HIDEPART">hideparty</a></dt>
 	<dd>パーティ隠蔽</dd>
+	<dt class="content"><a href="#MVCARD">mvcard <span class="args"><span class="arg">&lt;カードグループ&gt;</span>, <span class="arg">&lt;移動方式&gt;</span>, <span class="arg">&lt;X移動量&gt;</span>, <span class="arg">&lt;Y移動量&gt;</span>, <span class="arg">&lt;拡大率&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span></span></a></dt>
+	<dd>カードの再配置</dd>
+	<dt class="content"><a href="#MVBACK">mvback <span class="args"><span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;移動方式&gt;</span>, <span class="arg">&lt;X移動量&gt;</span>, <span class="arg">&lt;Y移動量&gt;</span>, <span class="arg">&lt;サイズ変更方式&gt;</span>, <span class="arg">&lt;幅変更量&gt;</span>, <span class="arg">&lt;高さ変更量&gt;</span>, <span class="arg">&lt;画面切替スピード&gt;</span>, <span class="arg">&lt;切替方式&gt;</span>, <span class="arg">&lt;アニメーション有無&gt;</span>, <span class="arg">&lt;エフェクトブースター無視&gt;</span></span></a></dt>
+	<dd>背景セルの再配置</dd>
+	<dt class="content"><a href="#RPLBACK">rplback <span class="args"><span class="arg">&lt;セル名称&gt;</span>, <span class="array">([<span class="arg">&lt;画像パス&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;透明化有無&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>]
+| [<span class="arg">text</span>, <span class="arg">&lt;テキスト&gt;</span>, <span class="arg">&lt;フォント名&gt;</span>, <span class="arg">&lt;文字サイズ&gt;</span>, <span class="arg">&lt;文字色&gt;</span>, <span class="arg">&lt;書式&gt;</span> ..., (<span class="arg">&lt;縁取り色&gt;</span>), (<span class="arg">&lt;縁取り幅&gt;</span>), <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>]
+| [<span class="arg">color</span>, <span class="arg">&lt;合成方式&gt;</span>, <span class="arg">&lt;基本色&gt;</span>, <span class="arg">&lt;グラデーション方向&gt;</span>, <span class="arg">&lt;終端色&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>]
+| [<span class="arg">pc</span>, <span class="arg">&lt;表示メンバ&gt;</span>, <span class="arg">&lt;拡大・縮小有無&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>), <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>]
+...</span>, <span class="arg">&lt;画面切替スピード&gt;</span>, <span class="arg">&lt;切替方式&gt;</span>, <span class="arg">&lt;アニメーション有無&gt;</span>, <span class="arg">&lt;エフェクトブースター無視&gt;</span></span></a></dt>
+	<dd>背景セルの置換</dd>
+	<dt class="content"><a href="#LOSEBACK">loseback <span class="args"><span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;画面切替スピード&gt;</span>, <span class="arg">&lt;切替方式&gt;</span>, <span class="arg">&lt;アニメーション有無&gt;</span>, <span class="arg">&lt;エフェクトブースター無視&gt;</span></span></a></dt>
+	<dd>背景セルの削除</dd>
 	<dt class="content"><a href="#REDRAW">redraw <span class="args"><span class="arg">&lt;画面切替スピード&gt;</span>, <span class="arg">&lt;切替方式&gt;</span></span></a></dt>
 	<dd>画面の再描画</dd>
 </dl>
@@ -1183,128 +1186,6 @@
        [<span class="str">"AdventurersInn.bmp"</span>, <span class="str">""</span>, <span class="num">116</span>, <span class="num">15</span>, <span class="num">400</span>, <span class="num">260</span>, <span class="code">false</span>] <span class="comment">// 宿の画像を標準の位置に表示</span>
        [<span class="code">color</span>, <span class="code">add</span>, <span class="str">"#909090"</span>], <span class="comment">// 画面全体を明るくする</span>
        <span class="num">8</span> <span class="comment">// ゆっくり背景を切り替える</span></code></pre>
-
-<h3 class="content"><a id="MVBACK" name="MVBACK">mvback <span class="args"><span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;移動方式&gt;</span>, <span class="arg">&lt;X移動量&gt;</span>, <span class="arg">&lt;Y移動量&gt;</span>, <span class="arg">&lt;サイズ変更方式&gt;</span>, <span class="arg">&lt;幅変更量&gt;</span>, <span class="arg">&lt;高さ変更量&gt;</span>, <span class="arg">&lt;画面切替スピード&gt;</span>, <span class="arg">&lt;切替方式&gt;</span>, <span class="arg">&lt;アニメーション有無&gt;</span>, <span class="arg">&lt;エフェクトブースター無視&gt;</span></span></a></h3>
-
-<p class="fullname">(Move Background)</p>
-<p class="desc">背景セルの移動やサイズ変更を行います。</p>
-<p class="desc"><em class="warning">このイベントコンテントはWsn.1以降のWSN形式シナリオでしか使用できません。</em></p>
-
-<h4 class="argments">パラメータ</h4>
-
-<p class="desc">再配置対象のセルの名称を文字列で指定します。</p>
-<p class="desc">移動方式やサイズ変更方式には次のいずれかが指定でき、それによって移動量・サイズ変更量の役割が変化します。</p>
-<dl>
-	<dt class="keyword"><code>none</code></dt>
-	<dd class="worddesc">移動・サイズ変更を行いません。</dd>
-	<dt class="keyword"><code>abs</code></dt>
-	<dd class="worddesc">指定した位置やサイズをそのまま使用します。例えば移動方式に<code class="keyword">abs</code>を指定してX移動量とY移動量を<span class="num">50</span>と<span class="num">100</span>にした場合、そのまま<span class="num">50</span>, <span class="num">100</span>の位置にセルが移動します。</dd>
-	<dt class="keyword"><code>rel</code></dt>
-	<dd class="worddesc">指定した位置やサイズを操作前の値に加算します。例えばサイズが<span class="num">100</span>×<span class="num">100</span>のセルに対して幅<span class="num">50</span>と高さ<span class="num">200</span>を指定すると、操作後のサイズは<span class="num">150</span>×<span class="num">300</span>になります。</dd>
-	<dt class="keyword"><code>per</code></dt>
-	<dd class="worddesc">移動・サイズ変更量を操作前の値に対するパーセンテージで計算します。例えばX座標<span class="num">200</span>に対して<span class="num">50</span>を指定すると<span class="num">200</span>の50%で結果はX座標<span class="num">100</span>になります。サイズについても同様で、高さ<span class="num">200</span>を指定すると元のサイズの200%となり、倍の高さになります。</dd>
-</dl>
-
-<p class="desc">CardWirthPy形式のシナリオに限り、画面切替スピードと切替方式を指定できます。</p>
-<p class="desc">指定しなかった場合はエンジンの設定が採用されます。</p>
-<p class="desc">切替スピードには0～10の値が指定でき、数値が少ないほど素早く切り替わります。</p>
-<p class="desc">0の場合はエフェクト無しで即座に切り替わります。</p>
-<p class="desc">切替方式には以下の値が指定できます。</p>
-<dl>
-	<dt class="keyword"><code>default</code></dt>
-	<dd class="worddesc">エンジンの設定を使用します。</dd>
-	<dt class="keyword"><code>none</code></dt>
-	<dd class="worddesc">切替エフェクト無しで即座に画面を切替えます。切替速度は無視されます。</dd>
-	<dt class="keyword"><code>thread</code></dt>
-	<dd class="worddesc">短冊(スレッド)式。画面を短冊のような縦長の領域に区切り、各区画毎に次の画面へ切替えます。</dd>
-	<dt class="keyword"><code>shave</code></dt>
-	<dd class="worddesc">ドット置換(シェーブ)式。画面を無数の領域に分割し、各領域をランダムな順序で次の画面に置換します。</dd>
-	<dt class="keyword"><code>fade</code></dt>
-	<dd class="worddesc">色置換(フェード)式。画面の全体の色を徐々に変更し、滑らかに次の画面へ切替えます。</dd>
-</dl>
-
-<p class="desc">アニメーション有無に<code class="code">true</code>を指定すると、JPY1アニメーションが実行されます。<code class="code">false</code>を指定した場合、アニメーションは省略されます。指定しなかった場合は<code class="code">true</code>になります。</p>
-<p class="desc">エフェクトブースター無視に<code class="code">true</code>を指定すると、エフェクトブースター関係のイメージセル(ファイルの拡張子が<code class="code">`.jpy1`</code>、<code class="code">`.jptx`</code>、<code class="code">`.jpdc`</code>のもの)は処理から除外されます。指定しなかった場合は<code class="code">false</code>になります。</p>
-
-<h4 class="example">例</h4>
-
-<pre><code class="samplecode"><span class="comment">// 背景セル"blue_filter"の高さを半分にし、画面の下側へ移動する</span>
-<span class="keywords">mvback</span> <span class="str">"blue_filter"</span>, <span class="code">abs</span>, <span class="num">0</span>, <span class="num">210</span>, <span class="code">per</span>, <span class="num">100</span>, <span class="num">50</span></code></pre>
-
-<h3 class="content"><a id="RPLBACK" name="RPLBACK">rplback <span class="args"><span class="arg">&lt;セル名称&gt;</span>, <span class="array">([<span class="arg">&lt;画像パス&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;透明化有無&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>]
-| [<span class="arg">text</span>, <span class="arg">&lt;テキスト&gt;</span>, <span class="arg">&lt;フォント名&gt;</span>, <span class="arg">&lt;文字サイズ&gt;</span>, <span class="arg">&lt;文字色&gt;</span>, <span class="arg">&lt;書式&gt;</span> ..., (<span class="arg">&lt;縁取り色&gt;</span>), (<span class="arg">&lt;縁取り幅&gt;</span>), <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>]
-| [<span class="arg">color</span>, <span class="arg">&lt;合成方式&gt;</span>, <span class="arg">&lt;基本色&gt;</span>, <span class="arg">&lt;グラデーション方向&gt;</span>, <span class="arg">&lt;終端色&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>]
-| [<span class="arg">pc</span>, <span class="arg">&lt;表示メンバ&gt;</span>, <span class="arg">&lt;拡大・縮小有無&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>), <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>]
-...</span>, <span class="arg">&lt;画面切替スピード&gt;</span>, <span class="arg">&lt;切替方式&gt;</span>, <span class="arg">&lt;アニメーション有無&gt;</span>, <span class="arg">&lt;エフェクトブースター無視&gt;</span></span></a></h3>
-
-<p class="fullname">(Replace Background)</p>
-<p class="desc">背景セルを置換します。指定されたセル名称の背景セルは削除され、削除された最初のセルがあった位置に新規セルが挿入されます。</p>
-<p class="desc"><em class="warning">このイベントコンテントはWsn.1以降のWSN形式シナリオでしか使用できません。</em></p>
-
-<h4 class="argments">パラメータ</h4>
-
-<p class="desc">置換対象のセルの名称を文字列で指定します。</p>
-<p class="desc">続けて、指定した名称のセルをどのようなセルに置換するかを指定します。<a href="#CHBACK">chback</a>のパラメータと同様ですので、<a href="#CHBACK">chback</a>の説明をご覧ください。</p>
-<p class="desc">CardWirthPy形式のシナリオに限り、画面切替スピードと切替方式を指定できます。</p>
-<p class="desc">指定しなかった場合はエンジンの設定が採用されます。</p>
-<p class="desc">切替スピードには0～10の値が指定でき、数値が少ないほど素早く切り替わります。</p>
-<p class="desc">0の場合はエフェクト無しで即座に切り替わります。</p>
-<p class="desc">切替方式には以下の値が指定できます。</p>
-<dl>
-	<dt class="keyword"><code>default</code></dt>
-	<dd class="worddesc">エンジンの設定を使用します。</dd>
-	<dt class="keyword"><code>none</code></dt>
-	<dd class="worddesc">切替エフェクト無しで即座に画面を切替えます。切替速度は無視されます。</dd>
-	<dt class="keyword"><code>thread</code></dt>
-	<dd class="worddesc">短冊(スレッド)式。画面を短冊のような縦長の領域に区切り、各区画毎に次の画面へ切替えます。</dd>
-	<dt class="keyword"><code>shave</code></dt>
-	<dd class="worddesc">ドット置換(シェーブ)式。画面を無数の領域に分割し、各領域をランダムな順序で次の画面に置換します。</dd>
-	<dt class="keyword"><code>fade</code></dt>
-	<dd class="worddesc">色置換(フェード)式。画面の全体の色を徐々に変更し、滑らかに次の画面へ切替えます。</dd>
-</dl>
-
-<p class="desc">アニメーション有無に<code class="code">true</code>を指定すると、JPY1アニメーションが実行されます。<code class="code">false</code>を指定した場合、アニメーションは省略されます。指定しなかった場合は<code class="code">true</code>になります。</p>
-<p class="desc">エフェクトブースター無視に<code class="code">true</code>を指定すると、エフェクトブースター関係のイメージセル(ファイルの拡張子が<code class="code">`.jpy1`</code>、<code class="code">`.jptx`</code>、<code class="code">`.jpdc`</code>のもの)は処理から除外されます。指定しなかった場合は<code class="code">false</code>になります。</p>
-
-<h4 class="example">例</h4>
-
-<pre><code class="samplecode"><span class="comment">// 画面全体にかかった青色フィルタを赤色フィルタに置換する</span>
-<span class="keywords">rplback</span> <span class="str">"blue_filter"</span> [<span class="code">color</span>, <span class="code">mul</span>, <span class="str">"#FF7070"</span>, <span class="code">vertical</span>, <span class="str">"#301010"</span>, <span class="str">""</span>, <span class="num">0</span>, <span class="num">0</span>, <span class="num">632</span>, <span class="num">420</span>, <span class="str">"red_filter"</span>, <span class="code">true</span>]</code></pre>
-
-<h3 class="content"><a id="LOSEBACK" name="LOSEBACK">loseback <span class="args"><span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;画面切替スピード&gt;</span>, <span class="arg">&lt;切替方式&gt;</span>, <span class="arg">&lt;アニメーション有無&gt;</span>, <span class="arg">&lt;エフェクトブースター無視&gt;</span></span></a></h3>
-
-<p class="fullname">(Lose Background)</p>
-<p class="desc">背景セルを削除します。</p>
-<p class="desc"><em class="warning">このイベントコンテントはWsn.1以降のWSN形式シナリオでしか使用できません。</em></p>
-
-<h4 class="argments">パラメータ</h4>
-
-<p class="desc">再配置対象のセルの名称を文字列で指定します。</p>
-<p class="desc">CardWirthPy形式のシナリオに限り、画面切替スピードと切替方式を指定できます。</p>
-<p class="desc">指定しなかった場合はエンジンの設定が採用されます。</p>
-<p class="desc">切替スピードには0～10の値が指定でき、数値が少ないほど素早く切り替わります。</p>
-<p class="desc">0の場合はエフェクト無しで即座に切り替わります。</p>
-<p class="desc">切替方式には以下の値が指定できます。</p>
-<dl>
-	<dt class="keyword"><code>default</code></dt>
-	<dd class="worddesc">エンジンの設定を使用します。</dd>
-	<dt class="keyword"><code>none</code></dt>
-	<dd class="worddesc">切替エフェクト無しで即座に画面を切替えます。切替速度は無視されます。</dd>
-	<dt class="keyword"><code>thread</code></dt>
-	<dd class="worddesc">短冊(スレッド)式。画面を短冊のような縦長の領域に区切り、各区画毎に次の画面へ切替えます。</dd>
-	<dt class="keyword"><code>shave</code></dt>
-	<dd class="worddesc">ドット置換(シェーブ)式。画面を無数の領域に分割し、各領域をランダムな順序で次の画面に置換します。</dd>
-	<dt class="keyword"><code>fade</code></dt>
-	<dd class="worddesc">色置換(フェード)式。画面の全体の色を徐々に変更し、滑らかに次の画面へ切替えます。</dd>
-</dl>
-
-<p class="desc">アニメーション有無に<code class="code">true</code>を指定すると、JPY1アニメーションが実行されます。<code class="code">false</code>を指定した場合、アニメーションは省略されます。指定しなかった場合は<code class="code">true</code>になります。</p>
-<p class="desc">エフェクトブースター無視に<code class="code">true</code>を指定すると、エフェクトブースター関係のイメージセル(ファイルの拡張子が<code class="code">`.jpy1`</code>、<code class="code">`.jptx`</code>、<code class="code">`.jpdc`</code>のもの)は処理から除外されます。指定しなかった場合は<code class="code">false</code>になります。</p>
-
-<h4 class="example">例</h4>
-
-<pre><code class="samplecode"><span class="comment">// 背景セル"blue_filter"を削除する</span>
-<span class="keywords">loseback</span> <span class="str">"blue_filter"</span></code></pre>
 
 <h3 class="content"><a id="EFFECT" name="EFFECT">effect <span class="args">(<span class="arg">&lt;効果対象&gt;</span> | <span class="arg">coupon</span> <span class="arg">&lt;称号名&gt;</span>), <span class="array">[<span class="arg">&lt;効果種別&gt;</span>, (<span class="arg">&lt;ダメージタイプ&gt;</span>, <span class="arg">&lt;値&gt;</span> | <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;増減値&gt;</span>, <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;召喚獣ID&gt;</span>), <span class="arg">&lt;属性&gt;</span>] ...</span>, <span class="arg">&lt;視覚効果&gt;</span>, <span class="arg">&lt;効果レベル&gt;</span>, <span class="arg">&lt;成功率&gt;</span>, <span class="arg">&lt;効果属性&gt;</span>, <span class="arg">&lt;抵抗属性&gt;</span>, <span class="arg">&lt;音声パス&gt;</span>, <span class="arg">&lt;音量&gt;</span>, <span class="arg">&lt;ループ回数&gt;</span>, <span class="arg">&lt;選択メンバの能力参照&gt;</span>, <span class="arg">&lt;身体的要素&gt;</span>, <span class="arg">&lt;精神的要素&gt;</span>, <span class="arg">&lt;イベント発火の有無&gt;</span>, <span class="arg">&lt;キーコード&gt;</span> ...</span></a></h3>
 
@@ -3152,6 +3033,155 @@
 
 <pre><code class="samplecode"><span class="keywords">hideparty</span> <span class="comment">// パーティを隠す</span></code></pre>
 
+<h3 class="content"><a id="MVCARD" name="MVCARD">mvcard <span class="args"><span class="arg">&lt;カードグループ&gt;</span>, <span class="arg">&lt;移動方式&gt;</span>, <span class="arg">&lt;X移動量&gt;</span>, <span class="arg">&lt;Y移動量&gt;</span>, <span class="arg">&lt;拡大率&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span></span></a></h3>
+
+<p class="fullname">(Move Card)</p>
+<p class="desc">メニューカードやエネミーカードの移動や、拡大率・表示レイヤの変更を行います。</p>
+<p class="desc"><em class="warning">このイベントコンテントはWsn.3以降のWSN形式シナリオでしか使用できません。</em></p>
+
+<h4 class="argments">パラメータ</h4>
+
+<p class="desc">再配置対象のカードグループの名称を文字列で指定します。</p>
+<p class="desc">移動方式には次のいずれかが指定でき、それによって移動量の役割が変化します。</p>
+<dl>
+	<dt class="keyword"><code>none</code></dt>
+	<dd class="worddesc">移動を行いません。</dd>
+	<dt class="keyword"><code>abs</code></dt>
+	<dd class="worddesc">指定した位置をそのまま使用します。例えば移動方式に<code class="keyword">abs</code>を指定してX移動量とY移動量を<span class="num">50</span>と<span class="num">100</span>にした場合、そのまま<span class="num">50</span>, <span class="num">100</span>の位置にカードが移動します。</dd>
+	<dt class="keyword"><code>rel</code></dt>
+	<dd class="worddesc">指定した位置を操作前の値に加算します。例えばX座標が<span class="num">100</span>のカードに対してX移動量<span class="num">50</span>を指定すると、操作後のX座標は<span class="num">150</span>になります。</dd>
+	<dt class="keyword"><code>per</code></dt>
+	<dd class="worddesc">移動量を操作前の値に対するパーセンテージで計算します。例えばX座標<span class="num">200</span>に対して<span class="num">50</span>を指定すると<span class="num">200</span>の50%で結果はX座標<span class="num">100</span>になります。</dd>
+</dl>
+
+<p class="desc">拡大率に<code class="code">none</code>以外の値を指定すると、カードの拡大率が指定した値に変更されます。省略した場合は<code class="code">none</code>になります。</p>
+<p class="desc">レイヤに<code class="code">none</code>以外の値を指定すると、カードのレイヤ(前後位置)が指定した値に変更されます。省略した場合は<code class="code">none</code>になります。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="comment">// カードグループ"enemies_1"を画面中央付近に大きく表示されるように移動する</span>
+<span class="keywords">mvcard</span> <span class="str">"enemies_1"</span>, <span class="code">abs</span>, <span class="num">236</span>, <span class="num">30</span>, <span class="num">200</span>, <span class="code">none</span></code></pre>
+
+<h3 class="content"><a id="MVBACK" name="MVBACK">mvback <span class="args"><span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;移動方式&gt;</span>, <span class="arg">&lt;X移動量&gt;</span>, <span class="arg">&lt;Y移動量&gt;</span>, <span class="arg">&lt;サイズ変更方式&gt;</span>, <span class="arg">&lt;幅変更量&gt;</span>, <span class="arg">&lt;高さ変更量&gt;</span>, <span class="arg">&lt;画面切替スピード&gt;</span>, <span class="arg">&lt;切替方式&gt;</span>, <span class="arg">&lt;アニメーション有無&gt;</span>, <span class="arg">&lt;エフェクトブースター無視&gt;</span></span></a></h3>
+
+<p class="fullname">(Move Background)</p>
+<p class="desc">背景セルの移動やサイズ変更を行います。</p>
+<p class="desc"><em class="warning">このイベントコンテントはWsn.1以降のWSN形式シナリオでしか使用できません。</em></p>
+
+<h4 class="argments">パラメータ</h4>
+
+<p class="desc">再配置対象のセルの名称を文字列で指定します。</p>
+<p class="desc">移動方式やサイズ変更方式には次のいずれかが指定でき、それによって移動量・サイズ変更量の役割が変化します。</p>
+<dl>
+	<dt class="keyword"><code>none</code></dt>
+	<dd class="worddesc">移動・サイズ変更を行いません。</dd>
+	<dt class="keyword"><code>abs</code></dt>
+	<dd class="worddesc">指定した位置やサイズをそのまま使用します。例えば移動方式に<code class="keyword">abs</code>を指定してX移動量とY移動量を<span class="num">50</span>と<span class="num">100</span>にした場合、そのまま<span class="num">50</span>, <span class="num">100</span>の位置にセルが移動します。</dd>
+	<dt class="keyword"><code>rel</code></dt>
+	<dd class="worddesc">指定した位置やサイズを操作前の値に加算します。例えばサイズが<span class="num">100</span>×<span class="num">100</span>のセルに対して幅<span class="num">50</span>と高さ<span class="num">200</span>を指定すると、操作後のサイズは<span class="num">150</span>×<span class="num">300</span>になります。</dd>
+	<dt class="keyword"><code>per</code></dt>
+	<dd class="worddesc">移動・サイズ変更量を操作前の値に対するパーセンテージで計算します。例えばX座標<span class="num">200</span>に対して<span class="num">50</span>を指定すると<span class="num">200</span>の50%で結果はX座標<span class="num">100</span>になります。サイズについても同様で、高さ<span class="num">200</span>を指定すると元のサイズの200%となり、倍の高さになります。</dd>
+</dl>
+
+<p class="desc">画面切替スピードと切替方式を指定する事ができます。指定しなかった場合はエンジンの設定が採用されます。</p>
+<p class="desc">切替スピードには0～10の値が指定でき、数値が少ないほど素早く切り替わります。</p>
+<p class="desc">0の場合はエフェクト無しで即座に切り替わります。</p>
+<p class="desc">切替方式には以下の値が指定できます。</p>
+<dl>
+	<dt class="keyword"><code>default</code></dt>
+	<dd class="worddesc">エンジンの設定を使用します。</dd>
+	<dt class="keyword"><code>none</code></dt>
+	<dd class="worddesc">切替エフェクト無しで即座に画面を切替えます。切替速度は無視されます。</dd>
+	<dt class="keyword"><code>thread</code></dt>
+	<dd class="worddesc">短冊(スレッド)式。画面を短冊のような縦長の領域に区切り、各区画毎に次の画面へ切替えます。</dd>
+	<dt class="keyword"><code>shave</code></dt>
+	<dd class="worddesc">ドット置換(シェーブ)式。画面を無数の領域に分割し、各領域をランダムな順序で次の画面に置換します。</dd>
+	<dt class="keyword"><code>fade</code></dt>
+	<dd class="worddesc">色置換(フェード)式。画面の全体の色を徐々に変更し、滑らかに次の画面へ切替えます。</dd>
+</dl>
+
+<p class="desc">アニメーション有無に<code class="code">true</code>を指定すると、JPY1アニメーションが実行されます。<code class="code">false</code>を指定した場合、アニメーションは省略されます。指定しなかった場合は<code class="code">true</code>になります。</p>
+<p class="desc">エフェクトブースター無視に<code class="code">true</code>を指定すると、エフェクトブースター関係のイメージセル(ファイルの拡張子が<code class="code">`.jpy1`</code>、<code class="code">`.jptx`</code>、<code class="code">`.jpdc`</code>のもの)は処理から除外されます。指定しなかった場合は<code class="code">false</code>になります。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="comment">// 背景セル"blue_filter"の高さを半分にし、画面の下側へ移動する</span>
+<span class="keywords">mvback</span> <span class="str">"blue_filter"</span>, <span class="code">abs</span>, <span class="num">0</span>, <span class="num">210</span>, <span class="code">per</span>, <span class="num">100</span>, <span class="num">50</span></code></pre>
+
+<h3 class="content"><a id="RPLBACK" name="RPLBACK">rplback <span class="args"><span class="arg">&lt;セル名称&gt;</span>, <span class="array">([<span class="arg">&lt;画像パス&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;透明化有無&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>]
+| [<span class="arg">text</span>, <span class="arg">&lt;テキスト&gt;</span>, <span class="arg">&lt;フォント名&gt;</span>, <span class="arg">&lt;文字サイズ&gt;</span>, <span class="arg">&lt;文字色&gt;</span>, <span class="arg">&lt;書式&gt;</span> ..., (<span class="arg">&lt;縁取り色&gt;</span>), (<span class="arg">&lt;縁取り幅&gt;</span>), <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>]
+| [<span class="arg">color</span>, <span class="arg">&lt;合成方式&gt;</span>, <span class="arg">&lt;基本色&gt;</span>, <span class="arg">&lt;グラデーション方向&gt;</span>, <span class="arg">&lt;終端色&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>]
+| [<span class="arg">pc</span>, <span class="arg">&lt;表示メンバ&gt;</span>, <span class="arg">&lt;拡大・縮小有無&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>), <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>]
+...</span>, <span class="arg">&lt;画面切替スピード&gt;</span>, <span class="arg">&lt;切替方式&gt;</span>, <span class="arg">&lt;アニメーション有無&gt;</span>, <span class="arg">&lt;エフェクトブースター無視&gt;</span></span></a></h3>
+
+<p class="fullname">(Replace Background)</p>
+<p class="desc">背景セルを置換します。指定されたセル名称の背景セルは削除され、削除された最初のセルがあった位置に新規セルが挿入されます。</p>
+<p class="desc"><em class="warning">このイベントコンテントはWsn.1以降のWSN形式シナリオでしか使用できません。</em></p>
+
+<h4 class="argments">パラメータ</h4>
+
+<p class="desc">置換対象のセルの名称を文字列で指定します。</p>
+<p class="desc">続けて、指定した名称のセルをどのようなセルに置換するかを指定します。<a href="#CHBACK">chback</a>のパラメータと同様ですので、<a href="#CHBACK">chback</a>の説明をご覧ください。</p>
+<p class="desc">CardWirthPy形式のシナリオに限り、画面切替スピードと切替方式を指定できます。</p>
+<p class="desc">指定しなかった場合はエンジンの設定が採用されます。</p>
+<p class="desc">切替スピードには0～10の値が指定でき、数値が少ないほど素早く切り替わります。</p>
+<p class="desc">0の場合はエフェクト無しで即座に切り替わります。</p>
+<p class="desc">切替方式には以下の値が指定できます。</p>
+<dl>
+	<dt class="keyword"><code>default</code></dt>
+	<dd class="worddesc">エンジンの設定を使用します。</dd>
+	<dt class="keyword"><code>none</code></dt>
+	<dd class="worddesc">切替エフェクト無しで即座に画面を切替えます。切替速度は無視されます。</dd>
+	<dt class="keyword"><code>thread</code></dt>
+	<dd class="worddesc">短冊(スレッド)式。画面を短冊のような縦長の領域に区切り、各区画毎に次の画面へ切替えます。</dd>
+	<dt class="keyword"><code>shave</code></dt>
+	<dd class="worddesc">ドット置換(シェーブ)式。画面を無数の領域に分割し、各領域をランダムな順序で次の画面に置換します。</dd>
+	<dt class="keyword"><code>fade</code></dt>
+	<dd class="worddesc">色置換(フェード)式。画面の全体の色を徐々に変更し、滑らかに次の画面へ切替えます。</dd>
+</dl>
+
+<p class="desc">アニメーション有無に<code class="code">true</code>を指定すると、JPY1アニメーションが実行されます。<code class="code">false</code>を指定した場合、アニメーションは省略されます。指定しなかった場合は<code class="code">true</code>になります。</p>
+<p class="desc">エフェクトブースター無視に<code class="code">true</code>を指定すると、エフェクトブースター関係のイメージセル(ファイルの拡張子が<code class="code">`.jpy1`</code>、<code class="code">`.jptx`</code>、<code class="code">`.jpdc`</code>のもの)は処理から除外されます。指定しなかった場合は<code class="code">false</code>になります。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="comment">// 画面全体にかかった青色フィルタを赤色フィルタに置換する</span>
+<span class="keywords">rplback</span> <span class="str">"blue_filter"</span> [<span class="code">color</span>, <span class="code">mul</span>, <span class="str">"#FF7070"</span>, <span class="code">vertical</span>, <span class="str">"#301010"</span>, <span class="str">""</span>, <span class="num">0</span>, <span class="num">0</span>, <span class="num">632</span>, <span class="num">420</span>, <span class="str">"red_filter"</span>, <span class="code">true</span>]</code></pre>
+
+<h3 class="content"><a id="LOSEBACK" name="LOSEBACK">loseback <span class="args"><span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;画面切替スピード&gt;</span>, <span class="arg">&lt;切替方式&gt;</span>, <span class="arg">&lt;アニメーション有無&gt;</span>, <span class="arg">&lt;エフェクトブースター無視&gt;</span></span></a></h3>
+
+<p class="fullname">(Lose Background)</p>
+<p class="desc">背景セルを削除します。</p>
+<p class="desc"><em class="warning">このイベントコンテントはWsn.1以降のWSN形式シナリオでしか使用できません。</em></p>
+
+<h4 class="argments">パラメータ</h4>
+
+<p class="desc">再配置対象のセルの名称を文字列で指定します。</p>
+<p class="desc">画面切替スピードと切替方式を指定する事ができます。指定しなかった場合はエンジンの設定が採用されます。</p>
+<p class="desc">切替スピードには0～10の値が指定でき、数値が少ないほど素早く切り替わります。</p>
+<p class="desc">0の場合はエフェクト無しで即座に切り替わります。</p>
+<p class="desc">切替方式には以下の値が指定できます。</p>
+<dl>
+	<dt class="keyword"><code>default</code></dt>
+	<dd class="worddesc">エンジンの設定を使用します。</dd>
+	<dt class="keyword"><code>none</code></dt>
+	<dd class="worddesc">切替エフェクト無しで即座に画面を切替えます。切替速度は無視されます。</dd>
+	<dt class="keyword"><code>thread</code></dt>
+	<dd class="worddesc">短冊(スレッド)式。画面を短冊のような縦長の領域に区切り、各区画毎に次の画面へ切替えます。</dd>
+	<dt class="keyword"><code>shave</code></dt>
+	<dd class="worddesc">ドット置換(シェーブ)式。画面を無数の領域に分割し、各領域をランダムな順序で次の画面に置換します。</dd>
+	<dt class="keyword"><code>fade</code></dt>
+	<dd class="worddesc">色置換(フェード)式。画面の全体の色を徐々に変更し、滑らかに次の画面へ切替えます。</dd>
+</dl>
+
+<p class="desc">アニメーション有無に<code class="code">true</code>を指定すると、JPY1アニメーションが実行されます。<code class="code">false</code>を指定した場合、アニメーションは省略されます。指定しなかった場合は<code class="code">true</code>になります。</p>
+<p class="desc">エフェクトブースター無視に<code class="code">true</code>を指定すると、エフェクトブースター関係のイメージセル(ファイルの拡張子が<code class="code">`.jpy1`</code>、<code class="code">`.jptx`</code>、<code class="code">`.jpdc`</code>のもの)は処理から除外されます。指定しなかった場合は<code class="code">false</code>になります。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="comment">// 背景セル"blue_filter"を削除する</span>
+<span class="keywords">loseback</span> <span class="str">"blue_filter"</span></code></pre>
+
 <h3 class="content"><a id="REDRAW" name="REDRAW">redraw <span class="args"><span class="arg">&lt;画面切替スピード&gt;</span>, <span class="arg">&lt;切替方式&gt;</span></span></a></h3>
 
 <p class="fullname">(Redraw)</p>
@@ -3160,8 +3190,7 @@
 
 <h4 class="argments">パラメータ</h4>
 
-<p class="desc">CardWirthPy形式のシナリオに限り、画面切替スピードと切替方式を指定できます。</p>
-<p class="desc">指定しなかった場合はエンジンの設定が採用されます。</p>
+<p class="desc">画面切替スピードと切替方式を指定する事ができます。指定しなかった場合はエンジンの設定が採用されます。</p>
 <p class="desc">切替スピードには0～10の値が指定でき、数値が少ないほど素早く切り替わります。</p>
 <p class="desc">0の場合はエフェクト無しで即座に切り替わります。</p>
 <p class="desc">切替方式には以下の値が指定できます。</p>
@@ -3249,8 +3278,7 @@ gobattle
 gopack
 gostart
 hideparty
-<!-- FIXME: CardWirth 1.60 背景関係イベントコンテント -->
-<!-- loseback -->
+loseback
 losebeast
 losecast
 losecoupon
@@ -3261,12 +3289,11 @@ losemoney
 loseskill
 losestamp
 msg
-<!-- FIXME: CardWirth 1.60 背景関係イベントコンテント -->
-<!-- mvback -->
+mvback
+mvcard
 redraw
 revflag
-<!-- FIXME: CardWirth 1.60 背景関係イベントコンテント -->
-<!-- rplback -->
+rplback
 se
 selmember
 selrandom

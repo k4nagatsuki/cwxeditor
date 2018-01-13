@@ -1098,6 +1098,7 @@ class CWXScript {
 			cast(string) "loseback":CType.LOSE_BG_IMAGE, // Wsn.1
 			cast(string) "brcouponm":CType.BRANCH_MULTI_COUPON, // Wsn.2
 			cast(string) "brrandomm":CType.BRANCH_MULTI_RANDOM, // Wsn.2
+			cast(string) "mvcard":CType.MOVE_CARD, // Wsn.3
 		];
 		string[CType] commands;
 		foreach (name, type; keywords) { mixin(S_TRACE);
@@ -2479,7 +2480,12 @@ fi`;
 		} else static if (is(T == int)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			if (attr[i].token.kind is Kind.SYMBOL && value == "all") { mixin(S_TRACE);
+				i++;
 				return 0; // カード削除用
+			}
+			if (attr[i].token.kind is Kind.SYMBOL && value == "none") { mixin(S_TRACE);
+				i++;
+				return -1; // スケール・レイヤ用
 			}
 			try { mixin(S_TRACE);
 				auto r = to!(int)(value);
@@ -2700,6 +2706,12 @@ fi`;
 			}
 			if (detail.use(CArg.HEIGHT)) { mixin(S_TRACE);
 				c.height = parseAttr!(int)(opt, node.attr, i, c.height, varTable, 0);
+			}
+			if (detail.use(CArg.SCALE)) { mixin(S_TRACE);
+				c.scale = parseAttr!(int)(opt, node.attr, i, c.scale, varTable, 0);
+			}
+			if (detail.use(CArg.LAYER)) { mixin(S_TRACE);
+				c.layer = parseAttr!(int)(opt, node.attr, i, c.layer, varTable, 0);
 			}
 			if (detail.use(CArg.BG_IMAGES)) { mixin(S_TRACE);
 				c.backs = parseAttr!(BgImage[])(opt, node.attr, i, c.backs, varTable, 0);
@@ -3652,6 +3664,20 @@ fi`;
 			}
 			if (detail.use(CArg.HEIGHT)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.height, indentValue, vars);
+			}
+			if (detail.use(CArg.SCALE)) { mixin(S_TRACE);
+				if (c.scale == -1) { mixin(S_TRACE);
+					attrs ~= toAttr(Symbol("none"), indentValue, vars);
+				} else { mixin(S_TRACE);
+					attrs ~= toAttr(c.scale, indentValue, vars);
+				}
+			}
+			if (detail.use(CArg.LAYER)) { mixin(S_TRACE);
+				if (c.layer == -1) { mixin(S_TRACE);
+					attrs ~= toAttr(Symbol("none"), indentValue, vars);
+				} else { mixin(S_TRACE);
+					attrs ~= toAttr(c.layer, indentValue, vars);
+				}
 			}
 			if (detail.use(CArg.BG_IMAGES)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.backs, indentValue, vars);

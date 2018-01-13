@@ -115,6 +115,7 @@ private void static_this () { mixin(S_TRACE);
 		], CTypeGroup.Visual:[
 			CType.SHOW_PARTY,
 			CType.HIDE_PARTY,
+			CType.MOVE_CARD,
 			CType.CHANGE_BG_IMAGE,
 			CType.MOVE_BG_IMAGE,
 			CType.REPLACE_BG_IMAGE,
@@ -206,6 +207,7 @@ private void static_this () { mixin(S_TRACE);
 		CType.LOSE_BG_IMAGE:CDetail("Lose", "BgImage", CNextType.NONE, true, [CArg.CELL_NAME:"cellname", CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed", CArg.DO_ANIME:"doanime", CArg.IGNORE_EFFECT_BOOSTER:"ignoreeffectbooster"]),
 		CType.BRANCH_MULTI_COUPON:CDetail("Branch", "MultiCoupon", CNextType.COUPON, true , [CArg.RANGE:"targets"]), // Wsn.2
 		CType.BRANCH_MULTI_RANDOM:CDetail("Branch", "MultiRandom", CNextType.NONE, true), // Wsn.2
+		CType.MOVE_CARD:CDetail("Move", "Card", CNextType.NONE, true, [CArg.CARD_GROUP:"cardgroup", CArg.POSITION_TYPE:"positiontype", CArg.X:"x", CArg.Y:"y", CArg.SCALE:"scale", CArg.LAYER:"layer"]), // Wsn.3
 	];
 	foreach (cType, detail; _CONTENT_DETAILS) { mixin(S_TRACE);
 		foreach (name; detail.names) { mixin(S_TRACE);
@@ -605,6 +607,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		this.sizeType = c.sizeType;
 		this.width = c.width;
 		this.height = c.height;
+		this.scale = c.scale;
+		this.layer = c.layer;
 
 		this.doAnime = c.doAnime;
 		this.ignoreEffectBooster = c.ignoreEffectBooster;
@@ -759,6 +763,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			&& (!d.use(CArg.SIZE_TYPE) || sizeType == c.sizeType)
 			&& (!d.use(CArg.WIDTH) || width == c.width)
 			&& (!d.use(CArg.HEIGHT) || height == c.height)
+			&& (!d.use(CArg.SCALE) || scale == c.scale)
+			&& (!d.use(CArg.LAYER) || layer == c.layer)
 
 			&& (!d.use(CArg.DO_ANIME) || doAnime == c.doAnime)
 			&& (!d.use(CArg.IGNORE_EFFECT_BOOSTER) || ignoreEffectBooster == c.ignoreEffectBooster)
@@ -1035,6 +1041,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.SIZE_TYPE, CoordinateType, CoordinateType.None)(d, od, &sizeType, base, base.sizeType);
 		resetValue!(CArg.WIDTH, int, 0)(d, od, &width, base, base.width);
 		resetValue!(CArg.HEIGHT, int, 0)(d, od, &height, base, base.height);
+		resetValue!(CArg.SCALE, int, -1)(d, od, &scale, base, base.scale);
+		resetValue!(CArg.LAYER, int, -1)(d, od, &layer, base, base.layer);
 
 		resetValue!(CArg.DO_ANIME, bool, false)(d, od, &doAnime, base, base.doAnime);
 		resetValue!(CArg.IGNORE_EFFECT_BOOSTER, bool, true)(d, od, &ignoreEffectBooster, base, base.ignoreEffectBooster);
@@ -2042,6 +2050,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	mixin Prop!(int, "width", 0);
 	/// 高さ(Wsn.1)。
 	mixin Prop!(int, "height", 0);
+	/// スケール(Wsn.3)。
+	mixin Prop!(int, "scale", -1);
+	/// レイヤ(Wsn.3)。
+	mixin Prop!(int, "layer", -1);
 
 	/// JPY1アニメーションを実行する(Wsn.1)。
 	mixin Prop!(bool, "doAnime", false);
@@ -2473,6 +2485,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		atnPutD!(CArg.SIZE_TYPE, "sizeType", "fromCoordinateType", CoordinateType.None)(e, d);
 		atnPutD!(CArg.WIDTH, "width", "", 0)(e, d);
 		atnPutD!(CArg.HEIGHT, "height", "", 0)(e, d);
+		atnPutD!(CArg.SCALE, "scale", "", -1)(e, d);
+		atnPutD!(CArg.LAYER, "layer", "", -1)(e, d);
 
 		atnPutD!(CArg.DO_ANIME, "doAnime", "fromBool", true)(e, d);
 		atnPutD!(CArg.IGNORE_EFFECT_BOOSTER, "ignoreEffectBooster", "fromBool", false)(e, d);
@@ -2758,6 +2772,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		cfnPutD!(CArg.SIZE_TYPE, "sizeType", "toCoordinateType", CoordinateType.None)(en, d, r);
 		cfnPutD!(CArg.WIDTH, "width", "to!(int)", 0)(en, d, r);
 		cfnPutD!(CArg.HEIGHT, "height", "to!(int)", 0)(en, d, r);
+		cfnPutD!(CArg.SCALE, "scale", "to!(int)", -1)(en, d, r);
+		cfnPutD!(CArg.LAYER, "layer", "to!(int)", -1)(en, d, r);
 
 		cfnPutD!(CArg.DO_ANIME, "doAnime", "parseBool", true)(en, d, r);
 		cfnPutD!(CArg.IGNORE_EFFECT_BOOSTER, "ignoreEffectBooster", "parseBool", false)(en, d, r);

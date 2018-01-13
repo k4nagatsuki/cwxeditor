@@ -415,11 +415,14 @@ class Msgs : Properties {
 	auto cellName = Msg("cellName", "対象セル名称");
 	auto targetCardGroup = Msg("targetCardGroup", "対象カードグループ");
 	auto moveCell = Msg("moveCell", "位置の変更");
+	auto moveCard = Msg("moveCard", "位置の変更");
 	auto resizeCell = Msg("resizeCell", "サイズの変更");
 	auto horizontalValue = Msg("horizontalValue", "横の値");
 	auto verticalValue = Msg("verticalValue", "縦の値");
 	auto selectCardWithKeyCode = Msg("selectCardWithKeyCode", "キーコードを持つカードを選択状態にする");
 	auto selectTalker = Msg("selectTalker", "話者を選択状態にする");
+	auto changeLayer = Msg("changeLayer", "レイヤを変更する");
+	auto changeScale = Msg("changeScale", "拡大率を変更する");
 
 	auto canNotGetMusicLength = Msg("canNotGetMusicLength", "SDL方式では音声の長さを取得できません");
 
@@ -715,6 +718,7 @@ class Msgs : Properties {
 	auto contentNameLoseBgImage = Msg("contentNameLoseBgImage", "背景削除"); // Wsn.1
 	auto contentNameBranchMultiCoupon = Msg("contentNameBranchMultiCoupon", "クーポン多岐分岐"); // Wsn.2
 	auto contentNameBranchMultiRandom = Msg("contentNameBranchMultiRandom", "ランダム多岐分岐"); // Wsn.2
+	auto contentNameMoveCard = Msg("contentNameMoveCard", "カード再配置"); // Wsn.3
 
 	const string contentDesc(CType id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(CType, "contentDesc"));
@@ -798,6 +802,7 @@ class Msgs : Properties {
 	auto contentDescLoseBgImage = Msg("contentDescLoseBgImage", "セル名称のつけられた背景セルを削除します。"); // Wsn.1
 	auto contentDescBranchMultiCoupon = Msg("contentDescBranchMultiCoupon", "選択中のメンバがどのクーポン(称号)を所有しているかによって処理を分岐させます。どれも所有していない場合は「全て所有していない」へ分岐します。"); // Wsn.2
 	auto contentDescBranchMultiRandom = Msg("contentDescBranchMultiRandom", "複数の後続コンテントへ等確率でランダムで分岐します。"); // Wsn.2
+	auto contentDescMoveCard = Msg("contentDescMoveCard", "メニューカードやエネミーカードを移動・サイズ変更します。"); // Wsn.3
 	auto contentDescWsnN = Msg("contentDescWsnN", "%1$sWsn.%2$s以降のシナリオ形式で使用可能です。");
 
 	auto msnGroupVitality = Msg("msnGroupVitality", "生命力");
@@ -1045,6 +1050,10 @@ class Msgs : Properties {
 	auto couponNamesSeparator = Msg("couponNamesSeparator", ""); // Wsn.2
 	auto matchingTypeAnd = Msg("matchingTypeAnd", "全て"); // Wsn.2
 	auto matchingTypeOr = Msg("matchingTypeOr", "どれか一つ"); // Wsn.2
+	auto ctMoveCard = Msg("ctMoveCard", "カードグループ「%1$s」を%2$sで右へ%3$s、下へ%4$sポイント移動(スケール = %5$s レイヤ = %6$s)"); // Wsn.3
+	auto ctMoveCardNoSet = Msg("ctMoveCardNoSet", "カードグループ「%1$s」を移動しない(スケール = %2$s レイヤ = %3$s)"); // Wsn.3
+	auto noChangeScale = Msg("noChangeScale", "変更無し"); // Wsn.3
+	auto noChangeLayer = Msg("noChangeLayer", "変更無し"); // Wsn.3
 
 	auto nameWithID = Msg("nameWithID", "%1$s.%2$s");
 
