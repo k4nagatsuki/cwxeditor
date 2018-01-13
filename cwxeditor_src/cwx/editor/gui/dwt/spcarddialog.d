@@ -48,6 +48,8 @@ private:
 	Summary _summ;
 	C _card;
 
+	Combo _cardGroup;
+
 	Skin _summSkin;
 	@property
 	Skin summSkin() { mixin(S_TRACE);
@@ -62,10 +64,14 @@ private:
 		if (_layer.getEnabled() && _layer.getSelection() != LAYER_MENU_CARD && !_prop.isTargetVersion(_summ, "1")) {
 			ws ~= _prop.msgs.warningLayer;
 		}
+		if (_summ && _cardGroup.getText() != "" && !_prop.isTargetVersion(_summ, "3")) { mixin(S_TRACE);
+			ws ~= _prop.msgs.warningCardGroup;
+		}
 		warning = ws;
 	}
 	void refDataVersion() { mixin(S_TRACE);
-		_layer.setEnabled(!_summ || !_summ.legacy);
+		_layer.setEnabled(!_summ || !_summ.legacy || _layer.getSelection() != LAYER_MENU_CARD);
+		_cardGroup.setEnabled(!_summ || !_summ.legacy || _cardGroup.getText() != "");
 		refreshWarning();
 	}
 
@@ -455,6 +461,17 @@ protected:
 					_desc.widget.setLayoutData(_desc.computeTextBaseSize(_prop.looks.cardDescLine));
 				}
 			}
+			{ mixin(S_TRACE);
+				auto grp = new Group(comp, SWT.NONE);
+				grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				grp.setLayout(normalGridLayout(1, true));
+				grp.setText(_prop.msgs.cardGroup);
+				_cardGroup = createCardGroupCombo(_comm, _summ, grp, &catchMod, _card ? _card.cardGroup : "");
+				mod(_cardGroup);
+				_cardGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				.listener(_cardGroup, SWT.Selection, &refDataVersion);
+				.listener(_cardGroup, SWT.Modify, &refDataVersion);
+			}
 			comp.setLayoutData(area.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		}
 
@@ -503,6 +520,7 @@ protected:
 			_y.setSelection(_card.y);
 			_scale.setSelection(_card.scale);
 			_layer.setSelection(_card.layer);
+			_cardGroup.setText(_card.cardGroup);
 		} else { mixin(S_TRACE);
 			static if (is (C == MenuCard)) {
 				_imgPath.images = [];
@@ -523,6 +541,7 @@ protected:
 			_y.setSelection(0);
 			_scale.setSelection(100);
 			_layer.setSelection(LAYER_MENU_CARD);
+			_cardGroup.setText("");
 		}
 		refDataVersion();
 	}
@@ -546,18 +565,31 @@ protected:
 			_card.y = _y.getSelection();
 			_card.scale = _scale.getSelection();
 			_card.layer = _layer.getSelection();
+			if (_card.cardGroup != _cardGroup.getText()) {
+				_card.cardGroup = _cardGroup.getText();
+				if (_summ && _summ.scenarioPath != "") { mixin(S_TRACE);
+					_comm.refCardGroups.call();
+				}
+			}
 		} else { mixin(S_TRACE);
 			static if (is (C == MenuCard)) {
 				auto images = _imgPath.materialPath;
 				if (images.cancel) return false;
 				_card = new C(_name.getText(), images.images,
 					wrapReturnCode(_desc.getText()), _flag.selected,
-					_x.getSelection(), _y.getSelection(), _scale.getSelection(), _layer.getSelection());
+					_x.getSelection(), _y.getSelection(),
+					_scale.getSelection(), _layer.getSelection(),
+					_cardGroup.getText());
 			} else static if (is (C == EnemyCard)) {
 				_card = new C(_selectedID, _escape.getSelection(),
-					_flag.selected, _x.getSelection(), _y.getSelection(), _scale.getSelection(), _layer.getSelection());
+					_flag.selected, _x.getSelection(), _y.getSelection(),
+					_scale.getSelection(), _layer.getSelection(),
+					_cardGroup.getText());
 			} else { mixin(S_TRACE);
 				static assert (0);
+			}
+			if (_cardGroup.getText() != "" && _summ && _summ.scenarioPath != "") { mixin(S_TRACE);
+				_comm.refCardGroups.call();
 			}
 		}
 		static if (is (C == MenuCard)) {

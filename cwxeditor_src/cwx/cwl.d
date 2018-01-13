@@ -1908,7 +1908,7 @@ private Area loadArea(ref RData d, ref ByteIO f, ulong fid) { mixin(S_TRACE);
 				imgPath = new CardImage(img, CardImagePosition.Default);
 			}
 		}
-		auto c = new MenuCard(cName, imgPath ? [imgPath] : [], desc, flag, x, y, scale, LAYER_MENU_CARD);
+		auto c = new MenuCard(cName, imgPath ? [imgPath] : [], desc, flag, x, y, scale, LAYER_MENU_CARD, "");
 		foreach (tree; trees) { mixin(S_TRACE);
 			c.add(tree);
 		}
@@ -1943,7 +1943,7 @@ private Battle loadBattle(ref RData d, ref ByteIO f, ulong fid) { mixin(S_TRACE)
 		int x = f.readIntL;
 		int y = f.readIntL;
 		bool escape = readBool(f);
-		auto c = new EnemyCard(cId, escape, flag, x, y, scale, LAYER_MENU_CARD);
+		auto c = new EnemyCard(cId, escape, flag, x, y, scale, LAYER_MENU_CARD, "");
 		foreach (tree; cTrees) { mixin(S_TRACE);
 			c.add(tree);
 		}

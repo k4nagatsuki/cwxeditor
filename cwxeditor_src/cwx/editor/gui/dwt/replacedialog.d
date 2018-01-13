@@ -295,6 +295,8 @@ private:
 	Button _keyCode;
 	/// セル名称
 	Button _cellName;
+	/// カードグループ
+	Button _cardGroup;
 	/// ファイル
 	Button _file;
 	/// コメント
@@ -322,6 +324,7 @@ private:
 	Button _cEnd;
 	Button _cKeyCode;
 	Button _cCellName;
+	Button _cCardGroup;
 
 	Table _result;
 	TableTextEdit _edit;
@@ -361,6 +364,7 @@ private:
 	bool _areaSel;
 	bool _keyCodeSel;
 	bool _cellNameSel;
+	bool _cardGroupSel;
 	bool _fileSel;
 	bool _commentSel;
 	bool _jptxSel;
@@ -528,6 +532,7 @@ private:
 	static const ID_COMPLETE_STAMP = 12;
 	static const ID_KEY_CODE = 13;
 	static const ID_CELL_NAME = 14;
+	static const ID_CARD_GROUP = 15;
 	private void setupIDsImpl2(T)(T[] arr, Combo combo, Spinner spn, ref ulong[int] tbl, bool clear, IncSearch incSearch) { mixin(S_TRACE);
 		ulong[int] tbl2;
 		string oldSel = clear ? "" : combo.getText();
@@ -573,7 +578,7 @@ private:
 				combo.select(0);
 			}
 			spn.setEnabled(false);
-		} else static if (is(T:CouponId) || is(T:GossipId) || is(T:CompleteStampId) || is(T:KeyCodeId) || is(T:CellNameId)) {
+		} else static if (is(T:CouponId) || is(T:GossipId) || is(T:CompleteStampId) || is(T:KeyCodeId) || is(T:CellNameId) || is(T:CardGroupId)) {
 			string[] arr2;
 			static if (is(T:CouponId)) {
 				arr2 = .allCoupons(_comm, _summ, CouponComboType.AllCoupons);
@@ -585,6 +590,8 @@ private:
 				arr2 = .allKeyCodes(_comm, _summ);
 			} else static if (is(T:CellNameId)) {
 				arr2 = .allCellNames(_comm, _summ);
+			} else static if (is(T:CardGroupId)) {
+				arr2 = .allCardGroups(_comm, _summ);
 			} else static assert (0);
 			foreach (a; arr2) {
 				if (!incSearch.match(a)) continue;
@@ -651,6 +658,7 @@ private:
 		case ID_COMPLETE_STAMP: setupIDsImpl1(_summ.useCounter.completeStamp.keys, clear, from, to); break;
 		case ID_KEY_CODE: setupIDsImpl1(_summ.useCounter.keyCode.keys, clear, from, to); break;
 		case ID_CELL_NAME: setupIDsImpl1(_summ.useCounter.cellName.keys, clear, from, to); break;
+		case ID_CARD_GROUP: setupIDsImpl1(_summ.useCounter.cardGroup.keys, clear, from, to); break;
 		default: assert (0);
 		}
 	}
@@ -719,7 +727,7 @@ private:
 	@property
 	private bool idKindIsString() {
 		auto index = _idKind.getSelectionIndex();
-		return index == ID_FLAG || index == ID_STEP || index == ID_COUPON || index == ID_GOSSIP || index == ID_COMPLETE_STAMP || index == ID_KEY_CODE || index == ID_CELL_NAME;
+		return index == ID_FLAG || index == ID_STEP || index == ID_COUPON || index == ID_GOSSIP || index == ID_COMPLETE_STAMP || index == ID_KEY_CODE || index == ID_CELL_NAME || index == ID_CARD_GROUP;
 	}
 	private void updateIDCombo() { mixin(S_TRACE);
 		if (idKindIsString) { mixin(S_TRACE);
@@ -968,9 +976,10 @@ private:
 				_area = createB(_prop.msgs.replTextAreaName, 'E');
 				_keyCode = createB(_prop.msgs.replTextKeyCode, 'G');
 				_cellName = createB(_prop.msgs.replTextCellName, 'H');
-				_file = createB(_prop.msgs.replTextFile, 'I');
-				_comment = createB(_prop.msgs.replTextComment, 'K');
-				_jptx = createB(_prop.msgs.replTextJptx, 'L');
+				_cardGroup = createB(_prop.msgs.replTextCardGroup, 'I');
+				_file = createB(_prop.msgs.replTextFile, 'K');
+				_comment = createB(_prop.msgs.replTextComment, 'L');
+				_jptx = createB(_prop.msgs.replTextJptx, 'M');
 			}
 			auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
 			sep.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -1019,6 +1028,7 @@ private:
 				_idKind.add(_prop.msgs.replIDCompleteStamp);
 				_idKind.add(_prop.msgs.replIDKeyCode);
 				_idKind.add(_prop.msgs.replIDCellName);
+				_idKind.add(_prop.msgs.replIDCardGroup);
 				_idKind.select(0);
 				if (0 <= _prop.var.etc.searchIDKind && _prop.var.etc.searchIDKind < _idKind.getItemCount()) { mixin(S_TRACE);
 					_idKind.select(_prop.var.etc.searchIDKind);
@@ -1203,6 +1213,7 @@ private:
 				_cEnd = createB(_prop.msgs.replTextEndScenario, '3');
 				_cKeyCode = createB(_prop.msgs.replTextKeyCode, '4');
 				_cCellName = createB(_prop.msgs.replTextCellName, '5');
+				_cCardGroup = createB(_prop.msgs.replTextCardGroup, '6');
 			}
 			auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
 			sep.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -1921,6 +1932,8 @@ public:
 			replaceID(toKeyCodeId(str), true);
 		} else if (img is _prop.images.backs && data is null) { mixin(S_TRACE);
 			replaceID(toCellNameId(str), true);
+		} else if (img is _prop.images.cards && data is null) { mixin(S_TRACE);
+			replaceID(toCardGroupId(str), true);
 		} else if (auto id = cast(Content)data) { mixin(S_TRACE);
 			if (id.type !is CType.START) return;
 			auto tree = id.tree;
@@ -1964,6 +1977,8 @@ public:
 			_idKind.select(ID_KEY_CODE);
 		} else static if (is(ID:CellNameId)) {
 			_idKind.select(ID_CELL_NAME);
+		} else static if (is(ID:CardGroupId)) {
+			_idKind.select(ID_CARD_GROUP);
 		} else static assert (0);
 		selIDKind();
 		static if (is(typeof(from.id):ulong)) {
@@ -2218,6 +2233,7 @@ public:
 		_area.setSelection(_prop.var.etc.replaceTextAreaName);
 		_keyCode.setSelection(_prop.var.etc.replaceTextKeyCode);
 		_cellName.setSelection(_prop.var.etc.replaceTextCellName);
+		_cardGroup.setSelection(_prop.var.etc.replaceTextCardGroup);
 		_file.setSelection(_prop.var.etc.replaceTextFile);
 		_comment.setSelection(_prop.var.etc.replaceTextComment);
 		_jptx.setSelection(_prop.var.etc.replaceTextJptx);
@@ -2237,6 +2253,7 @@ public:
 		_cEnd.setSelection(_prop.var.etc.replaceNameEndScenario);
 		_cKeyCode.setSelection(_prop.var.etc.replaceNameKeyCode);
 		_cCellName.setSelection(_prop.var.etc.replaceNameCellName);
+		_cCardGroup.setSelection(_prop.var.etc.replaceNameCardGroup);
 
 		_unuseFlag.setSelection(_prop.var.etc.searchUnusedFlag);
 		_unuseStep.setSelection(_prop.var.etc.searchUnusedStep);
@@ -2312,6 +2329,7 @@ public:
 			_prop.var.etc.replaceTextAreaName = _area.getSelection();
 			_prop.var.etc.replaceTextKeyCode = _keyCode.getSelection();
 			_prop.var.etc.replaceTextCellName = _cellName.getSelection();
+			_prop.var.etc.replaceTextCardGroup = _cardGroup.getSelection();
 			_prop.var.etc.replaceTextFile = _file.getSelection();
 			_prop.var.etc.replaceTextComment = _comment.getSelection();
 			_prop.var.etc.replaceTextJptx = _jptx.getSelection();
@@ -2325,6 +2343,7 @@ public:
 			_prop.var.etc.replaceNameEndScenario = _cEnd.getSelection();
 			_prop.var.etc.replaceNameKeyCode = _cKeyCode.getSelection();
 			_prop.var.etc.replaceNameCellName = _cCellName.getSelection();
+			_prop.var.etc.replaceNameCardGroup = _cCardGroup.getSelection();
 
 			_prop.var.etc.searchUnusedFlag = _unuseFlag.getSelection();
 			_prop.var.etc.searchUnusedStep = _unuseStep.getSelection();
@@ -2512,7 +2531,8 @@ public:
 		_endSel = _end.getSelection();
 		_areaSel = _area.getSelection();
 		_keyCodeSel = _keyCode.getSelection();
-		_cellNameSel = _cellName.getSelection;
+		_cellNameSel = _cellName.getSelection();
+		_cardGroupSel = _cardGroup.getSelection();
 		_fileSel = _file.getSelection();
 		_commentSel = _comment.getSelection();
 		_jptxSel = _jptx.getSelection();
@@ -2889,6 +2909,9 @@ public:
 						} else static if (is(ID:CellNameId)) {
 							u.cellName = cast(string)to;
 							storeID(su.parent, u.owner, u, cast(string)from, cast(string)to, &u.cellName);
+						} else static if (is(ID:CardGroupId)) {
+							u.cardGroup = cast(string)to;
+							storeID(su.parent, u.owner, u, cast(string)from, cast(string)to, &u.cardGroup);
 						} else {
 							u.id = to;
 							storeID(su.parent, u.owner, u, from, to, &u.id);
@@ -2988,6 +3011,7 @@ public:
 			case ID_COMPLETE_STAMP: replaceIDImpl2(toCompleteStampId(from), toCompleteStampId(to)); break;
 			case ID_KEY_CODE: replaceIDImpl2(toKeyCodeId(from), toKeyCodeId(to)); break;
 			case ID_CELL_NAME: replaceIDImpl2(toCellNameId(from), toCellNameId(to)); break;
+			case ID_CARD_GROUP: replaceIDImpl2(toCardGroupId(from), toCardGroupId(to)); break;
 			default: assert (0);
 			}
 		} else {
@@ -3118,6 +3142,9 @@ public:
 		} else if (itm.getImage() is _prop.images.backs) { mixin(S_TRACE);
 			renameCoupon(_comm, _summ, itm, toCellNameId(itm.getText()), toCellNameId(text), uc.cellName, _undo, rangeTable, true, _result, this, _results);
 			_comm.refCellNames.call();
+		} else if (itm.getImage() is _prop.images.cards) { mixin(S_TRACE);
+			renameCoupon(_comm, _summ, itm, toCardGroupId(itm.getText()), toCardGroupId(text), uc.cardGroup, _undo, rangeTable, true, _result, this, _results);
+			_comm.refCardGroups.call();
 		}
 		_summ.changed();
 		_comm.replText.call();
@@ -3205,6 +3232,8 @@ public:
 				_comm.refKeyCodes.call();
 			} else static if (is(KeyType:CellNameId)) { mixin(S_TRACE);
 				_comm.refCellNames.call();
+			} else static if (is(KeyType:CardGroupId)) { mixin(S_TRACE);
+				_comm.refCardGroups.call();
 			} else static assert (0);
 		}
 		void undo() { mixin(S_TRACE);
@@ -3280,6 +3309,7 @@ public:
 		bool cGossipSel = _cGossip.getSelection();
 		bool cEndSel = _cEnd.getSelection();
 		bool cCellName = _cCellName.getSelection();
+		bool cCardGroup = _cCardGroup.getSelection();
 
 		auto rangeT = rangeTable;
 		auto uc = _summ.useCounter;
@@ -3298,6 +3328,9 @@ public:
 			}
 			if (cCellName) { mixin(S_TRACE);
 				searchCouponImpl(uc.cellName.keys, uc, rangeT, &_prop.images.backs, count);
+			}
+			if (cCardGroup) { mixin(S_TRACE);
+				searchCouponImpl(uc.cardGroup.keys, uc, rangeT, &_prop.images.cards, count);
 			}
 		}
 
@@ -4618,11 +4651,11 @@ public:
 		if (_cellNameSel) { mixin(S_TRACE);
 			r |= repl(parent, null, "", back.cellName, &back.cellName, count, uArr2);
 		}
-		auto ic = cast(ImageCell) back;
+		auto ic = cast(ImageCell)back;
 		if (ic && _fileSel) { mixin(S_TRACE);
 			r |= replFilePath(ic.path, &ic.path, count, uArr2);
 		}
-		auto tc = cast(TextCell) back;
+		auto tc = cast(TextCell)back;
 		if (tc) { mixin(S_TRACE);
 			if (_jptxSel) { mixin(S_TRACE);
 				r |= repl(parent, null, "", tc.text, &tc.text, count, uArr2, true);
@@ -4656,6 +4689,11 @@ public:
 			}
 			if (_authorSel) { mixin(S_TRACE);
 				r |= repl(parent, null, "", card.author, &card.author, count, uArr2);
+			}
+		}
+		static if (is(C:AbstractSpCard)) {
+			if (_cardGroupSel) { mixin(S_TRACE);
+				r |= repl(parent, null, "", card.cardGroup, &card.cardGroup, count, uArr2);
 			}
 		}
 		if (_flagSel) { mixin(S_TRACE);
@@ -4817,6 +4855,9 @@ public:
 		}
 		if (_cellNameSel) { mixin(S_TRACE);
 			if (d.use(CArg.CELL_NAME)) r |= repl(parent, null, "", e.cellName, &e.cellName, count, uArr2);
+		}
+		if (_cardGroupSel) { mixin(S_TRACE);
+			if (d.use(CArg.CARD_GROUP)) r |= repl(parent, null, "", e.cardGroup, &e.cardGroup, count, uArr2);
 		}
 		if (_commentSel) { mixin(S_TRACE);
 			r |= repl(parent, null, "", e.comment, &e.comment, count, uArr2);

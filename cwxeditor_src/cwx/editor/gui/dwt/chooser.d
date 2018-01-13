@@ -428,6 +428,60 @@ string[] allCellNames(Commons comm, Summary summ) { mixin(S_TRACE);
 	return .map!((a) => cast(string)a)(s).array();
 }
 
+T createCardGroupCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, string initValue) { mixin(S_TRACE);
+	auto combo = new T(parent, SWT.BORDER | SWT.DROP_DOWN);
+	combo.setVisibleItemCount(comm.prop.var.etc.comboVisibleItemCount);
+	auto incSearch = new IncSearch(comm, combo);
+
+	void refCardGroups() { mixin(S_TRACE);
+		if (!summ) return;
+		string id = combo.getText();
+		combo.removeAll();
+
+		auto values = .addInitValue(comm, allCardGroups(comm, summ), initValue);
+		foreach (i, kc; values) { mixin(S_TRACE);
+			if (!incSearch.match(kc)) continue;
+			combo.add(kc);
+		}
+		combo.setText(id);
+	}
+
+	incSearch.modEvent ~= &refCardGroups;
+	if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
+		comm.refCardGroups.add(&refCardGroups);
+		comm.replText.add(&refCardGroups);
+		.listener(combo, SWT.Dispose, { mixin(S_TRACE);
+			comm.refCardGroups.remove(&refCardGroups);
+			comm.replText.remove(&refCardGroups);
+		});
+	}
+
+	auto menu = new Menu(combo.getShell(), SWT.POP_UP);
+	createMenuItem(comm, menu, MenuID.IncSearch, { mixin(S_TRACE);
+		.forceFocus(combo, true);
+		incSearch.startIncSearch();
+	}, null);
+	new MenuItem(menu, SWT.SEPARATOR);
+	combo.setMenu(menu);
+	createTextMenu!T(comm, comm.prop, combo, catchMod);
+
+	refCardGroups();
+
+	return combo;
+}
+
+string[] allCardGroups(Commons comm, Summary summ) { mixin(S_TRACE);
+	if (!summ) return [];
+	bool delegate(CardGroupId a, CardGroupId b) cmps;
+	if (comm.prop.var.etc.logicalSort) {
+		cmps = (a, b) => incmp(cast(string)a, cast(string)b) < 0;
+	} else {
+		cmps = (a, b) => icmp(cast(string)a, cast(string)b) < 0;
+	}
+	auto s = .sortDlg(summ.useCounter.cardGroup.keys, cmps);
+	return .map!((a) => cast(string)a)(s).array();
+}
+
 class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 	void delegate()[] modEvent;
 	void delegate()[] modEventWithSame;

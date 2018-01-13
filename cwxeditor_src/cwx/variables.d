@@ -187,6 +187,8 @@ class FlexEtcProps : Properties {
 	auto keyCodeSortDirection = Prop!(int)("keyCodeSortDirection", SortDir.Up);
 	auto cellNameSortColumn = Prop!(int)("cellNameSortColumn", 0);
 	auto cellNameSortDirection = Prop!(int)("cellNameSortDirection", SortDir.Up);
+	auto cardGroupSortColumn = Prop!(int)("cardGroupSortColumn", 0);
+	auto cardGroupSortDirection = Prop!(int)("cardGroupSortDirection", SortDir.Up);
 	auto authorNewAreaNameSashL = Prop!(int)("authorNewAreaNameSashL", 1);
 	auto authorNewAreaNameSashR = Prop!(int)("authorNewAreaNameSashR", 1);
 
@@ -522,6 +524,7 @@ class FlexEtcProps : Properties {
 	auto replaceTextAreaName = Prop!(bool)("replaceTextAreaName", true);
 	auto replaceTextKeyCode = Prop!(bool)("replaceTextKeyCode", true);
 	auto replaceTextCellName = Prop!(bool)("replaceTextCellName", true);
+	auto replaceTextCardGroup = Prop!(bool)("replaceTextCardGroup", true);
 	auto replaceTextFile = Prop!(bool)("replaceTextFile", false);
 	auto replaceTextComment = Prop!(bool)("replaceTextComment", true);
 	auto replaceTextJptx = Prop!(bool)("replaceTextJptx", false);
@@ -531,6 +534,7 @@ class FlexEtcProps : Properties {
 	auto replaceNameEndScenario = Prop!(bool)("replaceNameEndScenario", true);
 	auto replaceNameKeyCode = Prop!(bool)("replaceNameKeyCode", true);
 	auto replaceNameCellName = Prop!(bool)("replaceNameCellName", true);
+	auto replaceNameCardGroup = Prop!(bool)("replaceNameCardGroup", true);
 
 	mixin EnumToMembers!(CType, cType => "auto searchContents" ~ .upperToCap(.text(cType))
 		~ " = Prop!(bool)(\"searchContents" ~ .upperToCap(.text(cType)) ~ "\", false);\n");

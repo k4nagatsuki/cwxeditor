@@ -427,6 +427,7 @@ class Commons {
 	Dlg!() refCompleteStamps;
 	Dlg!() refKeyCodes;
 	Dlg!() refCellNames;
+	Dlg!() refCardGroups;
 
 	Dlg!(Summary) closeAdds;
 
@@ -530,6 +531,7 @@ class Commons {
 	private CompleteStampWindow _completeStampWin = null;
 	private KeyCodeWindow _keyCodeWin = null;
 	private CellNameWindow _cellNameWin = null;
+	private CardGroupWindow _cardGroupWin = null;
 
 	private ClipData _clipboard = null;
 
@@ -651,7 +653,7 @@ class Commons {
 	void baseShell(MainWindow main, TableWindow tableWin, FlagWindow flagWin,
 			CardWindow castWin, CardWindow skillWin, CardWindow itemWin, CardWindow beastWin, CardWindow infoWin,
 			DirectoryWindow dirWin, CouponWindow couponWin, GossipWindow gossipWin, CompleteStampWindow completeStampWin,
-			KeyCodeWindow keyCodeWin, CellNameWindow cellNameWin) { mixin(S_TRACE);
+			KeyCodeWindow keyCodeWin, CellNameWindow cellNameWin, CardGroupWindow cardGroupWin) { mixin(S_TRACE);
 		_main = main;
 		_tableWin = tableWin;
 		_flagWin = flagWin;
@@ -666,6 +668,7 @@ class Commons {
 		_completeStampWin = completeStampWin;
 		_keyCodeWin = keyCodeWin;
 		_cellNameWin = cellNameWin;
+		_cardGroupWin = cardGroupWin;
 		_clipboard = new ClipData(new Clipboard(_main.shell.getDisplay()));
 	}
 
@@ -1030,6 +1033,9 @@ class Commons {
 	void openCellNameWin(bool shellActivate) { mixin(S_TRACE);
 		openMain!("cellName", "data", Dir.N)(_cellNameWin, shellActivate);
 	}
+	void openCardGroupWin(bool shellActivate) { mixin(S_TRACE);
+		openMain!("cardGroup", "data", Dir.N)(_cardGroupWin, shellActivate);
+	}
 
 	private void open(TopLevelPanel tlp, string pane) { mixin(S_TRACE);
 		_ws.add(tlp.shell);
@@ -1374,6 +1380,9 @@ class Commons {
 		} else static if (is(ID:CellNameId)) {
 			openCellNameWin(shellActivate);
 			_cellNameWin.select(ids);
+		} else static if (is(ID:CardGroupId)) {
+			openCardGroupWin(shellActivate);
+			_cardGroupWin.select(ids);
 		} else static assert (0);
 	}
 

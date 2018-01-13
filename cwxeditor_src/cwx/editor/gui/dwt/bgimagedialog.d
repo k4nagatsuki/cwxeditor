@@ -72,6 +72,7 @@ private:
 
 	void refDataVersion() { mixin(S_TRACE);
 		_layer.setEnabled(!_summ || !_summ.legacy || LAYER_BACK_CELL != _layer.getSelection());
+		_cellName.setEnabled(!_summ || !_summ.legacy || _cellName.getText() != "");
 		if (_smoothing) { mixin(S_TRACE);
 			_smoothing.setEnabled(!_summ || !_summ.legacy || _smoothings[_smoothing.getSelectionIndex()] !is Smoothing.Default);
 		}
@@ -252,8 +253,8 @@ protected:
 			_cellName = createCellNameCombo(_comm, _summ, grp, &catchMod, back ? back.cellName : "");
 			mod(_cellName);
 			_cellName.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			.listener(_cellName, SWT.Selection, &refreshWarning);
-			.listener(_cellName, SWT.Modify, &refreshWarning);
+			.listener(_cellName, SWT.Selection, &refDataVersion);
+			.listener(_cellName, SWT.Modify, &refDataVersion);
 		}
 		{
 			auto grp = new Group(comp2, SWT.NONE);

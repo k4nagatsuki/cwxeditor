@@ -208,12 +208,12 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (bi.flag != "" && !(froot && froot.findFlag(bi.flag))) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.searchErrorFlagNotFound, bi.flag);
 		}
-		if (bi.cellName != "") {
+		if (bi.cellName != "") { mixin(S_TRACE);
 			if (!prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningBgImageCellName;
 			}
 		}
-		if (bi.layer != LAYER_BACK_CELL) {
+		if (bi.layer != LAYER_BACK_CELL) { mixin(S_TRACE);
 			// 1.60
 /+			if (!prop.targetVersion("1.60", targVer)) { mixin(S_TRACE);
 				r ~= prop.msgs.warningBgImageForeground;
@@ -327,6 +327,11 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			}
 +/			if (!prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningLayer;
+			}
+		}
+		if (spc.cardGroup != "") {
+			if (!prop.isTargetVersion(summ, targVer, "3")) { mixin(S_TRACE);
+				r ~= prop.msgs.warningCardGroup;
 			}
 		}
 	}
@@ -606,6 +611,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		}
 		if (cd.use(CArg.CELL_NAME) && c.cellName == "") { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorNoCellName;
+		}
+		if (cd.use(CArg.CARD_GROUP) && c.cardGroup == "") { mixin(S_TRACE);
+			r ~= prop.msgs.searchErrorNoCardGroup;
 		}
 		uint maxNextLen(in Content c) { mixin(S_TRACE);
 			if (c.type is CType.TALK_MESSAGE) { mixin(S_TRACE);

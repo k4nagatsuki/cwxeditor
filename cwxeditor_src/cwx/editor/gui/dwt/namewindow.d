@@ -84,6 +84,8 @@ public:
 			return _comm.prop.images.keyCodeView;
 		} else static if (is(ID:CellNameId)) {
 			return _comm.prop.images.cellNameView;
+		} else static if (is(ID:CardGroupId)) {
+			return _comm.prop.images.cardGroupView;
 		} else static assert (0);
 	}
 	@property
@@ -99,6 +101,8 @@ public:
 			return _comm.prop.msgs.keyCodeTabName;
 		} else static if (is(ID:CellNameId)) {
 			return _comm.prop.msgs.cellNameTabName;
+		} else static if (is(ID:CardGroupId)) {
+			return _comm.prop.msgs.cardGroupTabName;
 		} else static assert (0);
 	}
 
@@ -181,6 +185,8 @@ public:
 			return ["keycodeview"];
 		} else static if (is(ID:CellNameId)) {
 			return ["cellnameview"];
+		} else static if (is(ID:CardGroupId)) {
+			return ["cardgroupview"];
 		} else static assert (0);
 	}
 }
@@ -229,6 +235,8 @@ private:
 			auto uc = _summ.useCounter.keyCode;
 		} else static if (is(ID:CellNameId)) {
 			auto uc = _summ.useCounter.cellName;
+		} else static if (is(ID:CardGroupId)) {
+			auto uc = _summ.useCounter.cardGroup;
 		} else static assert (0);
 
 		ReplaceDialog.renameCoupon(_comm, _summ, itm, ToID!ID(itm.getText(0)), ToID!ID(newText), uc, _undo, null, false, _list, null, _nameList);
@@ -243,6 +251,8 @@ private:
 			_comm.refKeyCodes.call(this);
 		} else static if (is(ID:CellNameId)) { mixin(S_TRACE);
 			_comm.refCellNames.call(this);
+		} else static if (is(ID:CardGroupId)) { mixin(S_TRACE);
+			_comm.refCardGroups.call(this);
 		} else static assert (0);
 		_summ.changed();
 		_comm.replText.call();
@@ -322,6 +332,8 @@ public:
 			_comm.refKeyCodes.add(&refID);
 		} else static if (is(ID:CellNameId)) { mixin(S_TRACE);
 			_comm.refCellNames.add(&refID);
+		} else static if (is(ID:CardGroupId)) { mixin(S_TRACE);
+			_comm.refCardGroups.add(&refID);
 		}
 
 		.listener(_list, SWT.Dispose, { mixin(S_TRACE);
@@ -336,6 +348,8 @@ public:
 				_comm.refKeyCodes.remove(&refID);
 			} else static if (is(ID:CellNameId)) { mixin(S_TRACE);
 				_comm.refCellNames.remove(&refID);
+			} else static if (is(ID:CardGroupId)) { mixin(S_TRACE);
+				_comm.refCardGroups.remove(&refID);
 			} else static assert (0);
 		});
 
@@ -357,6 +371,9 @@ public:
 		} else static if (is(ID:CellNameId)) { mixin(S_TRACE);
 			auto sortColumn = _comm.prop.var.etc.cellNameSortColumn;
 			auto sortDir = _comm.prop.var.etc.cellNameSortDirection;
+		} else static if (is(ID:CardGroupId)) { mixin(S_TRACE);
+			auto sortColumn = _comm.prop.var.etc.cardGroupSortColumn;
+			auto sortDir = _comm.prop.var.etc.cardGroupSortDirection;
 		} else static assert (0);
 		switch (sortColumn) {
 		case 0:
@@ -417,6 +434,9 @@ public:
 			} else static if (is(ID:CellNameId)) { mixin(S_TRACE);
 				_comm.prop.var.etc.cellNameSortColumn = sortColumn;
 				_comm.prop.var.etc.cellNameSortDirection = sortDir;
+			} else static if (is(ID:CardGroupId)) { mixin(S_TRACE);
+				_comm.prop.var.etc.cardGroupSortColumn = sortColumn;
+				_comm.prop.var.etc.cardGroupSortDirection = sortDir;
 			} else static assert (0);
 
 			_comm.refreshToolBar();
@@ -453,6 +473,8 @@ public:
 			auto typeName = _comm.prop.msgs.keyCode;
 		} else static if (is(ID:CellNameId)) { mixin(S_TRACE);
 			auto typeName = _comm.prop.msgs.cellName;
+		} else static if (is(ID:CardGroupId)) { mixin(S_TRACE);
+			auto typeName = _comm.prop.msgs.cardGroup;
 		} else static assert (0);
 		auto statusLine = .tryFormat(_comm.prop.msgs.idStatus, typeName, count);
 		if (0 < selCount) { mixin(S_TRACE);
@@ -576,6 +598,8 @@ public:
 				return _summ.useCounter.keyCode.keys;
 			} else static if (is(ID:CellNameId)) {
 				return _summ.useCounter.cellName.keys;
+			} else static if (is(ID:CardGroupId)) {
+				return _summ.useCounter.cardGroup.keys;
 			} else static assert (0);
 		} else { mixin(S_TRACE);
 			return typeof(return).init;
@@ -661,6 +685,8 @@ public:
 			auto image = _comm.prop.images.keyCode;
 		} else static if (is(ID:CellNameId)) {
 			auto image = _comm.prop.images.backs;
+		} else static if (is(ID:CardGroupId)) {
+			auto image = _comm.prop.images.cards;
 		} else static assert (0);
 		itm.setImage(0, image);
 		itm.setText(0, cast(string)key);
@@ -742,3 +768,4 @@ alias NameWindow!GossipId GossipWindow;
 alias NameWindow!CompleteStampId CompleteStampWindow;
 alias NameWindow!KeyCodeId KeyCodeWindow;
 alias NameWindow!CellNameId CellNameWindow;
+alias NameWindow!CardGroupId CardGroupWindow;

@@ -224,6 +224,7 @@ class Msgs : Properties {
 	auto replTextAreaName = Msg("replTextAreaName", "エリア/バトル/パッケージ名");
 	auto replTextKeyCode = Msg("replTextKeyCode", "キーコード");
 	auto replTextCellName = Msg("replTextCellName", "セル名称");
+	auto replTextCardGroup = Msg("replTextCardGroup", "カードグループ");
 	auto replTextFile = Msg("replTextFile", "ファイル名");
 	auto replTextComment = Msg("replTextComment", "コメント");
 	auto replTextJptx = Msg("replTextJptx", "JPTX/テキストセル");
@@ -247,6 +248,7 @@ class Msgs : Properties {
 	auto replIDCompleteStamp = Msg("replIDCompleteStamp", "終了印");
 	auto replIDKeyCode = Msg("replIDKeyCode", "キーコード");
 	auto replIDCellName = Msg("replIDCellName", "セル名称");
+	auto replIDCardGroup = Msg("replIDCardGroup", "カードグループ");
 	auto replSetID = Msg("replSetID", "IDを直接指定");
 
 	auto replPath = Msg("replPath", "検索/置換する素材");
@@ -376,6 +378,7 @@ class Msgs : Properties {
 	auto searchErrorNoCompleteStamp = Msg("searchErrorNoCompleteStamp", "シナリオ名が指定されていません。");
 	auto searchErrorNoKeyCode = Msg("searchErrorNoKeyCode", "キーコードが指定されていません。");
 	auto searchErrorNoCellName = Msg("searchErrorNoCellName", "セル名称が指定されていません。");
+	auto searchErrorNoCardGroup = Msg("searchErrorNoCardGroup", "カードグループが指定されていません。");
 
 	auto searchOpenDialog = Msg("searchOpenDialog", "検索結果へジャンプする時、ダイアログを開く(&J)");
 
@@ -410,6 +413,7 @@ class Msgs : Properties {
 	auto selectMemberValuedMaxMin = Msg("selectMemberValuedMaxMin", "最大値 = %1$s\n最小値 = %2$s");
 	auto selectMemberValuedMaxMinLess0 = Msg("selectMemberValuedMaxMinLess0", "最大値 = %1$s\n最小値 = %2$s (選択失敗)");
 	auto cellName = Msg("cellName", "対象セル名称");
+	auto targetCardGroup = Msg("targetCardGroup", "対象カードグループ");
 	auto moveCell = Msg("moveCell", "位置の変更");
 	auto resizeCell = Msg("resizeCell", "サイズの変更");
 	auto horizontalValue = Msg("horizontalValue", "横の値");
@@ -1236,8 +1240,10 @@ class Msgs : Properties {
 	auto pcCellNoSet = Msg("pcCellNoSet", "(指定無し)");
 	auto cellPCNumber = Msg("cellPCNumber", "表示するキャラクタ");
 	auto cellNoSet = Msg("cellNoSet", "(指定無し)");
+	auto cardGroup = Msg("cardGroup", "カードグループ");
 
 	auto nameWithCellName = Msg("nameWithCellName", "[%1$s] %2$s");
+	auto nameWithCardGroup = Msg("nameWithCardGroup", "[%1$s] %2$s");
 
 	/// カード/背景配置領域関連。
 	auto dlgTitDropCard = Msg("dlgTitDropCard", "カード画像の追加");
@@ -1296,6 +1302,7 @@ class Msgs : Properties {
 	auto completeStampTabName = Msg("completeStampTabName", "終了印");
 	auto keyCodeTabName = Msg("keyCodeTabName", "キーコード");
 	auto cellNameTabName = Msg("cellNameTabName", "セル名称");
+	auto cardGroupTabName = Msg("cardGroupTabName", "カードグループ");
 
 	auto idName = Msg("idName", "名称");
 	auto idCount = Msg("idCount", "利用数");
@@ -1748,6 +1755,7 @@ class Msgs : Properties {
 	auto noSelectCompleteStamp = Msg("noSelectCompleteStamp", "(指定無し)");
 	auto noSelectGossip = Msg("noSelectGossip", "(指定無し)");
 	auto noSelectCellName = Msg("noSelectCellName", "(指定無し)");
+	auto noSelectCardGroup = Msg("noSelectCardGroup", "(指定無し)");
 	auto noSelectTarget = Msg("noSelectTarget", "(指定無し)");
 	auto noEffect = Msg("noEffect", "(指定無し)");
 	auto noKeyCode = Msg("noKeyCode", "(指定無し)");
@@ -1899,6 +1907,7 @@ class Msgs : Properties {
 	auto warningBgImageIncluded = Msg("warningBgImageForeground", "背景セルのイメージ格納は、CardWirth 1.60より前のバージョンでは行えません。");
 	auto warningBgImageForeground = Msg("warningBgImageForeground", "カードよりも前の表示は、CardWirth 1.60より前のバージョンでは行えません。");
 	auto warningBgImageCellName = Msg("warningBgImageCellName", "背景セル名称は、Wsn.1以降の形式のシナリオでしか設定できません。");
+	auto warningCardGroup = Msg("warningCardGroup", "カードグループは、Wsn.3以降の形式のシナリオでしか設定できません。");
 	auto warningSelectionBarIsMany = Msg("warningSelectionBarIsMany", "選択肢が%1$s行ありますが、%2$s行までしか表示できません。");
 	auto warningEveryRound = Msg("warningEveryRound", "イベント発火条件「毎ラウンド」は、CardWirth 1.50より前のバージョンでは使用できません。");
 	auto warningRound0 = Msg("warningRound0", "イベント発火条件「バトル開始」は、CardWirth 1.50より前のバージョンでは使用できません。");
@@ -2401,6 +2410,7 @@ class Msgs : Properties {
 	auto menuTextCompleteStampView = Msg("menuTextCompleteStampView", "終了印ビュー");
 	auto menuTextKeyCodeView = Msg("menuTextKeyCodeView", "キーコードビュー");
 	auto menuTextCellNameView = Msg("menuTextCellNameView", "セル名称ビュー");
+	auto menuTextCardGroupView = Msg("menuTextCardGroupView", "カードグループビュー");
 	auto menuTextExecEngine = Msg("menuTextExecEngine", "エンジン起動");
 	auto menuTextExecEngineAuto = Msg("menuTextExecEngineAuto", "自動選択");
 	auto menuTextExecEngineMain = Msg("menuTextExecEngineMain", "CardWirthPy");

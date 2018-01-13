@@ -26,6 +26,8 @@ template ToID(ID) {
 		alias toKeyCodeId ToID;
 	} else static if (is(ID:CellNameId)) {
 		alias toCellNameId ToID;
+	} else static if (is(ID:CardGroupId)) {
+		alias toCardGroupId ToID;
 	} else static assert (0);
 }
 
@@ -1734,6 +1736,81 @@ public:
 	mixin CWXFuncs;
 }
 
+/// カードグループのID。
+struct CardGroupId {
+	string id;
+	alias id this;
+	mixin StringId;
+}
+/// 文字列をカードグループIDに変換。
+CardGroupId toCardGroupId(string id) {return CardGroupId(id);}
+/// カードグループの使用者。
+interface ICardGroupUser : User!(CardGroupId) {
+}
+/// カードグループを使用するクラスの雛形。
+/// 継承か委譲により、カードグループの使用者を容易に実装できる。
+class CardGroupUser : ICardGroupUser {
+private:
+	UseCounter _uc;
+	string _cardGroup;
+	ICardGroupUser _cwxPath;
+public:
+	/// パスを示すオブジェクトを指定してインスタンスを生成。
+	this (ICardGroupUser cwxPath) { _cwxPath = cwxPath; }
+	/// このオブジェクトの所有者。
+	@property
+	ICardGroupUser owner() { return _cwxPath; }
+
+	/// カードグループを設定する。
+	/// Params:
+	/// cardGroup = カードグループ。
+	@property
+	void cardGroup(string cardGroup) { mixin(S_TRACE);
+		if (_cardGroup != cardGroup) changed();
+		if (_uc !is null) { mixin(S_TRACE);
+			if (_cardGroup != "") _uc.cardGroup.remove(toCardGroupId(_cardGroup), this);
+			if (cardGroup != "") _uc.cardGroup.add(toCardGroupId(cardGroup), this);
+		}
+		_cardGroup = cardGroup;
+	}
+
+	/// Returns: カードグループ。
+	@property
+	const
+	string cardGroup() { mixin(S_TRACE);
+		return _cardGroup;
+	}
+
+	/// 使用回数カウンタ。
+	@property
+	UseCounter useCounter() { return _uc; }
+	/// 使用回数カウンタを登録・除去する。
+	@property
+	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+		if (uc && _cardGroup != "") { mixin(S_TRACE);
+			uc.cardGroup.add(toCardGroupId(_cardGroup), this);
+		}
+		if (_uc && _cardGroup != "") { mixin(S_TRACE);
+			_uc.cardGroup.remove(toCardGroupId(_cardGroup), this);
+		}
+		_uc = uc;
+	}
+	/// ditto
+	void removeUseCounter() { mixin(S_TRACE);
+		if (_uc && _cardGroup != "") { mixin(S_TRACE);
+			_uc.cardGroup.remove(toCardGroupId(_cardGroup), this);
+		}
+		_uc = null;
+	}
+	override bool change(CardGroupId newVal) { mixin(S_TRACE);
+		if (_cardGroup != newVal.id) changed();
+		_cardGroup = newVal.id;
+		return true;
+	}
+
+	mixin CWXFuncs;
+}
+
 /// 使用回数カウンタ。
 /// IDやパスの変更を通知する役割も持つ。
 class UseCounter {
@@ -1754,6 +1831,7 @@ private:
 	UCCont!(CompleteStampId, CompleteStampUser) _completeStamp;
 	UCCont!(KeyCodeId, KeyCodeUser) _keyCode;
 	UCCont!(CellNameId, CellNameUser) _cellName;
+	UCCont!(CardGroupId, CardGroupUser) _cardGroup;
 	UseCounter _child = null;
 public:
 	/// 唯一のコンストラクタ。
@@ -1777,6 +1855,7 @@ public:
 		_completeStamp = new UCCont!(CompleteStampId, CompleteStampUser);
 		_keyCode = new UCCont!(KeyCodeId, KeyCodeUser);
 		_cellName = new UCCont!(CellNameId, CellNameUser);
+		_cardGroup = new UCCont!(CardGroupId, CardGroupUser);
 		if (useChild) { mixin(S_TRACE);
 			_child = new UseCounter(false);
 		}
@@ -1835,6 +1914,10 @@ public:
 	/// ditto
 	@property
 	UCCont!(CellNameId, CellNameUser) cellName() {return _cellName;}
+	/// ditto
+	@property
+	UCCont!(CardGroupId, CardGroupUser) cardGroup() {return _cardGroup;}
+
 	/// ID・Tの変更を通知する。
 	void change(T)(T oldId, T newId, bool dup = false) { mixin(S_TRACE);
 		static if (is(T == FlagId)) {
@@ -1869,6 +1952,8 @@ public:
 			keyCode.change(oldId, newId, dup);
 		} else static if (is(T == CellNameId)) {
 			cellName.change(oldId, newId, dup);
+		} else static if (is(T == CardGroupId)) {
+			cardGroup.change(oldId, newId, dup);
 		} else { mixin(S_TRACE);
 			static assert (0);
 		}
@@ -1909,6 +1994,8 @@ public:
 			return _keyCode.get(id);
 		} else static if (is(T:CellNameId)) {
 			return _cellName.get(id);
+		} else static if (is(T:CardGroupId)) {
+			return _cardGroup.get(id);
 		} else { mixin(S_TRACE);
 			static assert (0);
 		}
@@ -1962,6 +2049,9 @@ public:
 	@property
 	const
 	CellNameUser[] values(CellNameId id) { return _cellName.values(id); } /// ditto
+	@property
+	const
+	CardGroupUser[] values(CardGroupId id) { return _cardGroup.values(id); } /// ditto
 
 	@property
 	inout
@@ -2011,4 +2101,7 @@ public:
 	@property
 	inout
 	inout(HashSet!CellNameUser) valueSet(CellNameId id) { return _cellName.valueSet(id); } /// ditto
+	@property
+	inout
+	inout(HashSet!CardGroupUser) valueSet(CardGroupId id) { return _cardGroup.valueSet(id); } /// ditto
 }

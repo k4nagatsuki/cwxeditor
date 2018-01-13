@@ -213,6 +213,7 @@ public:
 	@property Image completeStampView() { return imgd!("complete_stamp_win.png"); }
 	@property Image keyCodeView() { return imgd!("key_code_win.png"); }
 	@property Image cellNameView() { return imgd!("cell_name_win.png"); }
+	@property Image cardGroupView() { return imgd!("card_group_win.png"); }
 
 	Image content(CType type) { mixin(S_TRACE);
 		final switch (type) {
@@ -533,6 +534,7 @@ public:
 		case MenuID.CompleteStampView: return imgd!("complete_stamp_win.png");
 		case MenuID.KeyCodeView: return imgd!("key_code_win.png");
 		case MenuID.CellNameView: return imgd!("cell_name_win.png");
+		case MenuID.CardGroupView: return imgd!("card_group_win.png");
 		case MenuID.ExecEngine: return imgd!("exec_engine.png");
 		case MenuID.ExecEngineAuto: return imgd!("exec_engine.png");
 		case MenuID.ExecEngineMain: return imgd!("exec_engine.png");

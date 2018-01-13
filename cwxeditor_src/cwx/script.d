@@ -2680,6 +2680,9 @@ fi`;
 			if (detail.use(CArg.CELL_NAME)) { mixin(S_TRACE);
 				c.cellName = parseAttr!(string)(opt, node.attr, i, c.cellName, varTable, 0);
 			}
+			if (detail.use(CArg.CARD_GROUP)) { mixin(S_TRACE);
+				c.cardGroup = parseAttr!(string)(opt, node.attr, i, c.cardGroup, varTable, 0);
+			}
 			if (detail.use(CArg.POSITION_TYPE)) { mixin(S_TRACE);
 				c.positionType = parseAttr!(CoordinateType)(opt, node.attr, i, c.positionType, varTable, 0);
 			}
@@ -3628,6 +3631,9 @@ fi`;
 			}
 			if (detail.use(CArg.CELL_NAME)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.cellName, indentValue, vars);
+			}
+			if (detail.use(CArg.CARD_GROUP)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.cardGroup, indentValue, vars);
 			}
 			if (detail.use(CArg.POSITION_TYPE)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.positionType, indentValue, vars);

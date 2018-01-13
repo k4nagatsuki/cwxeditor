@@ -149,6 +149,7 @@ private:
 	CompleteStampWindow _completeStampWin = null;
 	KeyCodeWindow _keyCodeWin = null;
 	CellNameWindow _cellNameWin = null;
+	CardGroupWindow _cardGroupWin = null;
 
 	string _bassDir = "";
 	RefreshTitle _refreshTitle;
@@ -1085,6 +1086,7 @@ private:
 			_completeStampWin.summary = summ;
 			_keyCodeWin.summary = summ;
 			_cellNameWin.summary = summ;
+			_cardGroupWin.summary = summ;
 			dStr ~= " - " ~ .text(__LINE__);
 			_comm.refScenario.call(summ);
 			dStr ~= " - " ~ .text(__LINE__);
@@ -1596,6 +1598,9 @@ private:
 	}
 	private void openCellNameWindow() { mixin(S_TRACE);
 		_comm.openCellNameWin(true);
+	}
+	private void openCardGroupWindow() { mixin(S_TRACE);
+		_comm.openCardGroupWin(true);
 	}
 	void exitAll() { mixin(S_TRACE);
 		_win.close();
@@ -2610,6 +2615,7 @@ public:
 			_completeStampWin = new CompleteStampWindow(_comm, _win, null, null, false);
 			_keyCodeWin = new KeyCodeWindow(_comm, _win, null, null, false);
 			_cellNameWin = new CellNameWindow(_comm, _win, null, null, false);
+			_cardGroupWin = new CardGroupWindow(_comm, _win, null, null, false);
 
 			dStr ~= " - " ~ .text(__LINE__);
 			auto dockComp = new Composite(_sbshl.contentPane, SWT.NONE);
@@ -2688,6 +2694,11 @@ public:
 					dStr ~= " - " ~ .text(__LINE__);
 					_cellNameWin.reconstruct(parent);
 					return _cellNameWin.shell;
+				}
+				case "cardGroup": { mixin(S_TRACE);
+					dStr ~= " - " ~ .text(__LINE__);
+					_cardGroupWin.reconstruct(parent);
+					return _cardGroupWin.shell;
 				}
 				default:
 					if (!std.string.startsWith(key, "side")) { mixin(S_TRACE);
@@ -2780,6 +2791,8 @@ public:
 				_dock.tabText("keyCode", _keyCodeWin.title);
 				_dock.tabImage("cellName", _cellNameWin.image);
 				_dock.tabText("cellName", _cellNameWin.title);
+				_dock.tabImage("cardGroup", _cardGroupWin.image);
+				_dock.tabText("cardGroup", _cardGroupWin.title);
 				dStr ~= " - " ~ .text(__LINE__);
 			} else { mixin(S_TRACE);
 				dStr ~= " - " ~ .text(__LINE__);
@@ -2815,6 +2828,7 @@ public:
 				_completeStampWin = new CompleteStampWindow(_comm, _win, null, null, false);
 				_keyCodeWin = new KeyCodeWindow(_comm, _win, null, null, false);
 				_cellNameWin = new CellNameWindow(_comm, _win, null, null, false);
+				_cardGroupWin = new CardGroupWindow(_comm, _win, null, null, false);
 				dStr ~= " - " ~ .text(__LINE__);
 			}
 			_dock.addCreatePaneEvent(&createPaneEvent);
@@ -2841,6 +2855,7 @@ public:
 			_noSummMenu.add(MenuID.CompleteStampView);
 			_noSummMenu.add(MenuID.KeyCodeView);
 			_noSummMenu.add(MenuID.CellNameView);
+			_noSummMenu.add(MenuID.CardGroupView);
 			_noSummMenu.add(MenuID.ChangeVH);
 			_noSummMenu.add(MenuID.ShowCardProp);
 			_noSummMenu.add(MenuID.ShowCardImage);
@@ -2916,6 +2931,7 @@ public:
 				mixin (MenuAction!("mv", MenuID.CompleteStampView, SWT.PUSH, "openCompleteStampWindow", "null"));
 				mixin (MenuAction!("mv", MenuID.KeyCodeView, SWT.PUSH, "openKeyCodeWindow", "null"));
 				mixin (MenuAction!("mv", MenuID.CellNameView, SWT.PUSH, "openCellNameWindow", "null"));
+				mixin (MenuAction!("mv", MenuID.CardGroupView, SWT.PUSH, "openCardGroupWindow", "null"));
 				dStr ~= " - " ~ .text(__LINE__);
 				new MenuItem(mv, SWT.SEPARATOR);
 				mixin (MenuAction!("mv", MenuID.Refresh, SWT.PUSH, "refreshAll", "() => summary !is null"));
@@ -3020,7 +3036,7 @@ public:
 			createMainToolBar();
 
 			_comm.baseShell(this, _tableWin, _flagWin, _castWin, _skillWin, _itemWin, _beastWin, _infoWin, _dirWin,
-				_couponWin, _gossipWin, _completeStampWin, _keyCodeWin, _cellNameWin);
+				_couponWin, _gossipWin, _completeStampWin, _keyCodeWin, _cellNameWin, _cardGroupWin);
 			dStr ~= " - " ~ .text(__LINE__);
 			auto selectFilter = new class Listener {
 				override void handleEvent(Event e) { mixin(S_TRACE);
@@ -3183,6 +3199,7 @@ public:
 						case MenuID.CompleteStampView: act = &openCompleteStampWindow; can = null; break;
 						case MenuID.KeyCodeView: act = &openKeyCodeWindow; can = null; break;
 						case MenuID.CellNameView: act = &openCellNameWindow; can = null; break;
+						case MenuID.CardGroupView: act = &openCardGroupWindow; can = null; break;
 						case MenuID.EditSummary: act = &_tableWin.editSummary; can = () => summary !is null; break;
 						case MenuID.NewAreaDir: act = &_tableWin.createAreaDir; can = &_tableWin.canCreateAreaDir; break;
 						case MenuID.NewArea: act = &_tableWin.createArea; can = &_tableWin.canCreateArea; break;
@@ -4402,6 +4419,11 @@ public:
 			} case "cellnameview": { mixin(S_TRACE);
 				if (_cellNameWin) { mixin(S_TRACE);
 					return _cellNameWin.openCWXPath(path, shellActivate);
+				}
+				return false;
+			} case "cardgroupview": { mixin(S_TRACE);
+				if (_cardGroupWin) { mixin(S_TRACE);
+					return _cardGroupWin.openCWXPath(path, shellActivate);
 				}
 				return false;
 			} default:

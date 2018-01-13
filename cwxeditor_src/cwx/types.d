@@ -1326,6 +1326,7 @@ enum CArg {
 	MATCHING_TYPE, /// マッチングタイプ(Wsn.2)。
 	SELECT_CARD, /// 選択カードを変更する(Wsn.3)。
 	SELECT_TALKER, /// 話者を選択する(Wsn.3)。
+	CARD_GROUP, /// カードグループ(Wsn.3)。
 }
 
 /// 後続コンテントのnameの型。
@@ -1497,6 +1498,7 @@ enum MenuID {
 	CompleteStampView,
 	KeyCodeView,
 	CellNameView,
+	CardGroupView,
 	ExecEngine,
 	ExecEngineAuto,
 	ExecEngineMain,

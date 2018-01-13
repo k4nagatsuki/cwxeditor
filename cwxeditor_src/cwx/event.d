@@ -489,7 +489,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		IFlagUser, IStepUser,
 		ICastUser, IItemUser, ISkillUser, IBeastUser, IInfoUser,
 		ICouponUser, IGossipUser, ICompleteStampUser, IKeyCodeUser,
-		ICellNameUser, IStartUser,
+		ICellNameUser, ICardGroupUser, IStartUser,
 		MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHolder,
 		CouponsOwner, ChgAreaCallback, ChgBattleCallback, ChgCouponCallback {
 	private EventTree _tree = null;
@@ -598,6 +598,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		this.round = c.round;
 
 		this.cellName = c.cellName;
+		this.cardGroup = c.cardGroup;
 		this.positionType = c.positionType;
 		this.x = c.x;
 		this.y = c.y;
@@ -751,6 +752,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			&& (!d.use(CArg.ROUND) || round == c.round)
 
 			&& (!d.use(CArg.CELL_NAME) || cellName == c.cellName)
+			&& (!d.use(CArg.CARD_GROUP) || cardGroup == c.cardGroup)
 			&& (!d.use(CArg.POSITION_TYPE) || positionType == c.positionType)
 			&& (!d.use(CArg.X) || x == c.x)
 			&& (!d.use(CArg.Y) || y == c.y)
@@ -1026,6 +1028,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.ROUND, uint, 0)(d, od, &round, base, base.round);
 
 		resetValue!(CArg.CELL_NAME, string, "")(d, od, &cellName, base, base.cellName);
+		resetValue!(CArg.CARD_GROUP, string, "")(d, od, &cardGroup, base, base.cardGroup);
 		resetValue!(CArg.POSITION_TYPE, CoordinateType, CoordinateType.None)(d, od, &positionType, base, base.positionType);
 		resetValue!(CArg.X, int, 0)(d, od, &x, base, base.x);
 		resetValue!(CArg.Y, int, 0)(d, od, &y, base, base.y);
@@ -1683,6 +1686,13 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		if (d.use(CArg.CELL_NAME)) r ~= toCellNameId(cellName);
 		return r;
 	}
+	/// ditto
+	CardGroupId[] connectedCardGroups() { mixin(S_TRACE);
+		auto d = detail;
+		CardGroupId[] r;
+		if (d.use(CArg.CARD_GROUP)) r ~= toCardGroupId(cardGroup);
+		return r;
+	}
 
 	/// このイベントコンテントと強く関係するファイルパスを返す。
 	/// そのようなファイルが無い場合は""を返す。
@@ -2018,6 +2028,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 	/// セル名称(Wsn.1)。
 	mixin Prop!(CellNameUser, string, "cellName", "", ".cellName", ".cellName", true);
+	/// メニューカードグループ(Wsn.2)。
+	mixin Prop!(CardGroupUser, string, "cardGroup", "", ".cardGroup", ".cardGroup", true);
 	/// 位置形式(Wsn.1)。
 	mixin Prop!(CoordinateType, "positionType", CoordinateType.None);
 	/// X座標(Wsn.1)。
@@ -2245,6 +2257,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	override bool change(CompleteStampId id) { return idChange(id); }
 	override bool change(KeyCodeId id) { return idChange(id); }
 	override bool change(CellNameId id) { return idChange(id); }
+	override bool change(CardGroupId id) { return idChange(id); }
 
 	override bool changeCallback(AreaId oldVal, AreaId newVal) { mixin(S_TRACE);
 		auto id = icmp(name, "Default") == 0 ? 0UL : to!ulong(name);
@@ -2453,6 +2466,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		atnPut!(CArg.ROUND, "round", "")(e, d);
 
 		atnPutD!(CArg.CELL_NAME, "cellName", "", "")(e, d);
+		atnPutD!(CArg.CARD_GROUP, "cardGroup", "", "")(e, d);
 		atnPutD!(CArg.POSITION_TYPE, "positionType", "fromCoordinateType", CoordinateType.None)(e, d);
 		atnPutD!(CArg.X, "x", "", 0)(e, d);
 		atnPutD!(CArg.Y, "y", "", 0)(e, d);
@@ -2737,6 +2751,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		cfnPut!(CArg.ROUND, "round", "to!(uint)")(en, d, r);
 
 		cfnPutD!(CArg.CELL_NAME, "cellName", "", "")(en, d, r);
+		cfnPutD!(CArg.CARD_GROUP, "cardGroup", "", "")(en, d, r);
 		cfnPutD!(CArg.POSITION_TYPE, "positionType", "toCoordinateType", CoordinateType.None)(en, d, r);
 		cfnPutD!(CArg.X, "x", "to!(int)", 0)(en, d, r);
 		cfnPutD!(CArg.Y, "y", "to!(int)", 0)(en, d, r);

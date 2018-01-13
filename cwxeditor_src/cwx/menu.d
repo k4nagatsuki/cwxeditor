@@ -101,6 +101,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.CompleteStampView] = "M";
 		_mnemonic[MenuID.KeyCodeView] = "K";
 		_mnemonic[MenuID.CellNameView] = "E";
+		_mnemonic[MenuID.CardGroupView] = "E";
 		_mnemonic[MenuID.ExecEngine] = "G";
 		_mnemonic[MenuID.ExecEngineAuto] = "G";
 		_mnemonic[MenuID.ExecEngineMain] = "P";
@@ -321,6 +322,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.CompleteStampView] = "";
 		_hotkey[MenuID.KeyCodeView] = "";
 		_hotkey[MenuID.CellNameView] = "";
+		_hotkey[MenuID.CardGroupView] = "";
 		_hotkey[MenuID.ExecEngine] = "";
 		_hotkey[MenuID.ExecEngineAuto] = "F9";
 		_hotkey[MenuID.ExecEngineMain] = "";
@@ -738,6 +740,7 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.CompleteStampView:
 	case MenuID.KeyCodeView:
 	case MenuID.CellNameView:
+	case MenuID.CardGroupView:
 	case MenuID.ExecEngine:
 	case MenuID.ExecEngineWithParty:
 	case MenuID.OuterTools:
@@ -949,6 +952,7 @@ bool isGlobalMenu(MenuID id) {
 	case MenuID.CompleteStampView:
 	case MenuID.KeyCodeView:
 	case MenuID.CellNameView:
+	case MenuID.CardGroupView:
 	case MenuID.ExecEngine:
 	case MenuID.ExecEngineAuto:
 	case MenuID.ExecEngineMain:

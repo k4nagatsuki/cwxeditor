@@ -546,9 +546,9 @@ private:
 				foreach (i; indices) { mixin(S_TRACE);
 					auto c = area.cards[i];
 					static if (is(C == MenuCard)) {
-						c = new C(c.name, c.paths, c.desc, c.flag, c.x, c.y, c.scale, c.layer);
+						c = new C(c.name, c.paths, c.desc, c.flag, c.x, c.y, c.scale, c.layer, c.cardGroup);
 					} else static if (is(C == EnemyCard)) {
-						c = new C(c.id, c.escape, c.flag, c.x, c.y, c.scale, c.layer);
+						c = new C(c.id, c.escape, c.flag, c.x, c.y, c.scale, c.layer, c.cardGroup);
 					} else static assert (0);
 					if (summ) c.setUseCounter(summ.useCounter.sub);
 					cs[i] = c;
@@ -1160,7 +1160,7 @@ private:
 				itm.setImage(cardImg(c));
 				itm.setData(c);
 				itm.setChecked(true);
-				itm.setText(cardName(c));
+				itm.setText(cardNameWithGroup(c));
 			}
 			_cards.setSelection(idx);
 		}
@@ -2667,10 +2667,12 @@ private:
 					createMenuItem(_comm, menu, MenuID.SelectConnectedResource, &selectConnectedResourceB, &canSelectConnectedResourceB);
 				} else static assert (0);
 			}
-			static if (is(C:BgImage)) {
-				if (!_readOnly) { mixin (S_TRACE);
-					new MenuItem(menu, SWT.SEPARATOR);
+			if (!_readOnly) { mixin (S_TRACE);
+				new MenuItem(menu, SWT.SEPARATOR);
+				static if (is(C:BgImage)) {
 					createMenuItem(_comm, menu, MenuID.FindID, &findCellName, &canFindCellName);
+				} else {
+					createMenuItem(_comm, menu, MenuID.FindID, &findCardGroup, &canFindCardGroup);
 				}
 			}
 			list.setMenu(menu);
@@ -2756,13 +2758,32 @@ private:
 			return comp;
 		}
 	}
+
+	static if (UseCards) {
+		void findCardGroup() { mixin (S_TRACE);
+			foreach (itm; _cards.getSelection()) { mixin (S_TRACE);
+				auto cardGroup = (cast(AbstractSpCard)itm.getData()).cardGroup;
+				if (cardGroup != "") { mixin (S_TRACE);
+					_comm.replaceID(toCardGroupId(cardGroup), true);
+					return;
+				}
+			}
+		}
+		@property
+		bool canFindCardGroup() { mixin (S_TRACE);
+			foreach (itm; _cards.getSelection()) { mixin (S_TRACE);
+				if ((cast(AbstractSpCard)itm.getData()).cardGroup != "") return true;
+			}
+			return false;
+		}
+	}
 	static if (UseBacks) {
 		void findCellName() { mixin (S_TRACE);
 			foreach (itm; _backs.getSelection()) { mixin (S_TRACE);
 				auto cellName = (cast(BgImage)itm.getData()).cellName;
 				if (cellName != "") { mixin (S_TRACE);
 					_comm.replaceID(toCellNameId(cellName), true);
-					break;
+					return;
 				}
 			}
 		}
@@ -2773,6 +2794,9 @@ private:
 			}
 			return false;
 		}
+	}
+
+	static if (UseBacks) {
 		@property
 		bool canSelectConnectedResourceB() { mixin(S_TRACE);
 			auto index = _backs.getSelectionIndex();
@@ -3520,7 +3544,7 @@ public:
 						img.title = name;
 					}
 					img.createImage();
-					itm.setText(name);
+					itm.setText(cardNameWithGroup(c));
 					_imgp.redrawImage(img);
 					_comm.refMenuCard.call(c.cwxPath(true));
 				}
@@ -3554,7 +3578,7 @@ public:
 				auto fi = create(c);
 				fi.visible = v;
 				_imgp.set(cardsIndex + cast(int)i, fi);
-				itm.setText(cardName(c));
+				itm.setText(cardNameWithGroup(c));
 				itm.setImage(cardImg(c));
 				itm.setData(c);
 			}
@@ -3884,7 +3908,7 @@ public:
 						auto fi = v.create(card);
 						v._imgp.set(v.cardsIndex + cast(int)i, fi);
 						if (v._cards.isSelected(cast(int)i) && v._viewCards) v._imgp.select(fi);
-						v._cards.getItem(cast(int)i).setText(v.cardName(c));
+						v._cards.getItem(cast(int)i).setText(v.cardNameWithGroup(c));
 						v._cards.getItem(cast(int)i).setImage(v.cardImg(c));
 						v._cards.getItem(cast(int)i).setData(c);
 						v.refreshControls();
@@ -3907,11 +3931,11 @@ public:
 				if (!_summ.casts.length) return;
 			}
 			static if (is(C : MenuCard)) {
-				auto c = new MenuCard("", [], "", "", 0, 0, 100, LAYER_MENU_CARD);
+				auto c = new MenuCard("", [], "", "", 0, 0, 100, LAYER_MENU_CARD, "");
 			} else static if (is(C : EnemyCard)) {
 				if (!_summ) return;
 				if (_summ.casts.length == 0) return;
-				auto c = new EnemyCard(0, false, "", 0, 0, 100, LAYER_MENU_CARD);
+				auto c = new EnemyCard(0, false, "", 0, 0, 100, LAYER_MENU_CARD, "");
 			} else static assert (0);
 			auto dlg = new SpCardDialog!(C)(_comm, _prop, getShell(), _summ, c, true);
 			dlg.appliedEvent ~= { mixin(S_TRACE);
@@ -4033,7 +4057,7 @@ public:
 						foreach (index; indices) { mixin(S_TRACE);
 							auto itm = v._cards.getItem(index);
 							auto c = cast(C)itm.getData();
-							itm.setText(column, v.cardName(c));
+							itm.setText(column, v.cardNameWithGroup(c));
 						}
 						v.refreshPanel();
 						v.callModEvent();
@@ -4092,6 +4116,14 @@ public:
 			auto castCard = summary.cwCast(card.id);
 			return castCard ? castCard.name : "";
 		} else static assert (0, C2);
+	}
+	string cardNameWithGroup(C2)(in C2 card) { mixin(S_TRACE);
+		auto name = cardName(card);
+		if (card.cardGroup == "") { mixin(S_TRACE);
+			return name;
+		} else { mixin(S_TRACE);
+			return .tryFormat(_prop.msgs.nameWithCardGroup, card.cardGroup, name);
+		}
 	}
 	CardImage[] cardImagePath(C2)(in C2 card) { mixin(S_TRACE);
 		static if (is(typeof(card.paths))) {
@@ -4879,7 +4911,7 @@ public:
 				itm.setImage(v.cardImg(card));
 				itm.setData(card);
 				itm.setChecked(check);
-				itm.setText(v.cardName(card));
+				itm.setText(v.cardNameWithGroup(card));
 				if (select && v.isViewCards) { mixin(S_TRACE);
 					v._imgp.select(img);
 					if (refresh) { mixin(S_TRACE);
@@ -4922,7 +4954,7 @@ public:
 					itm.setImage(v.cardImg(c));
 					itm.setData(c);
 					itm.setChecked(true);
-					itm.setText(v.cardName(c));
+					itm.setText(v.cardNameWithGroup(c));
 				}
 				if (select && v._viewCards) v._imgp.select(imgs);
 				if (!initialize) v.callModEvent();
@@ -4945,7 +4977,7 @@ public:
 						return -1;
 					}
 				}
-				auto card = new MenuCard(baseName(.stripExtension(fname)), fname.length ? [new CardImage(fname, CardImagePosition.Default)] : [], "", "", x, y, 100, LAYER_MENU_CARD);
+				auto card = new MenuCard(baseName(.stripExtension(fname)), fname.length ? [new CardImage(fname, CardImagePosition.Default)] : [], "", "", x, y, 100, LAYER_MENU_CARD, "");
 				return appendCard(card, true, true, fromImgPane);
 			}
 			private class CLDropTarget : DropTargetAdapter {
