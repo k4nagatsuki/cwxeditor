@@ -1215,6 +1215,7 @@ bool isWsnContent(CType cType) { mixin(S_TRACE);
 	case LOSE_BG_IMAGE: // Wsn.1
 	case BRANCH_MULTI_COUPON: // Wsn.2
 	case BRANCH_MULTI_RANDOM: // Wsn.2
+	case MOVE_CARD: // Wsn.3
 		return true;
 	default:
 		return false;
