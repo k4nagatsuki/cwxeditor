@@ -687,6 +687,7 @@ class FlexEtcProps : Properties {
 	auto drawCountOfUseOfStart = Prop!(bool)("drawCountOfUseOfStart", true);
 	auto drawContentTreeLine = Prop!(bool)("drawContentTreeLine", true);
 	auto drawContentWarnings = Prop!(bool)("drawContentWarnings", true);
+	auto drawContentIconOnDetail = Prop!(bool)("drawContentIconOnDetail", true);
 	auto commentBoxDistance = Prop!(int, true, true)("commentBoxDistance", 50);
 	auto warningImageWidth = Prop!(int, true, true)("warningImageWidth", 200);
 	auto warningImageWidthEventTree = Prop!(int, true, true)("warningImageWidthEventTree", 80);

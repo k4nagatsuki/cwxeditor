@@ -1710,14 +1710,17 @@ class EventEditor : Composite {
 			// イベントコンテント内容
 			auto c = pos.content;
 			auto startInfo = possInfo[i];
-			if (detailAreaWidth) {
-				auto s = .cutText(.contentText(_comm, c, _summ), e.gc, detailAreaWidth - 2.ppis - 18.ppis, "", true);
+			if (detailAreaWidth) { mixin(S_TRACE);
+				auto iconW = _comm.prop.var.etc.drawContentIconOnDetail ? 18.ppis : 4.ppis;
+				auto s = .cutText(.contentText(_comm, c, _summ), e.gc, detailAreaWidth - 2.ppis - iconW, "", true);
 				int x = ca.width - detailAreaWidth + 2.ppis;
-				auto image = _comm.prop.images.content(c.type);
-				setAlpha(128);
-				e.gc.drawImage(image, x, (startInfo.y + pos.relY) + _imgPos - sy);
-				setAlpha(255);
-				e.gc.wDrawText(s, x + 18.ppis, (startInfo.y + pos.relY) - sy + _lineTextY, true);
+				if (_comm.prop.var.etc.drawContentIconOnDetail) { mixin(S_TRACE);
+					auto image = _comm.prop.images.content(c.type);
+					setAlpha(128);
+					e.gc.drawImage(image, x, (startInfo.y + pos.relY) + _imgPos - sy);
+					setAlpha(255);
+				}
+				e.gc.wDrawText(s, x + iconW, (startInfo.y + pos.relY) - sy + _lineTextY, true);
 			}
 
 			// 警告
