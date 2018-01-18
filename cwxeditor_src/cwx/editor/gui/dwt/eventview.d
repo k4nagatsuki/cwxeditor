@@ -1474,6 +1474,7 @@ public:
 						e.gc.setForeground(_cards.getDisplay().getSystemColor(SWT.COLOR_GRAY));
 						for (auto i = _cards.indexOf(ti); i < count; i++) { mixin(S_TRACE);
 							auto itm = _cards.getItem(i);
+							if (itm.isDisposed()) continue;
 							if (!cast(AbstractSpCard)itm.getData()) continue;
 							auto b = itm.getBounds();
 							if (b.y + b.height < ca.y) { mixin(S_TRACE);

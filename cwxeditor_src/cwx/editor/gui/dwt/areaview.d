@@ -2703,6 +2703,7 @@ private:
 				e.gc.setForeground(list.getDisplay().getSystemColor(SWT.COLOR_GRAY));
 				for (auto i = list.getTopIndex(); i < count; i++) { mixin(S_TRACE);
 					auto itm = list.getItem(i);
+					if (itm.isDisposed()) continue;
 					auto b = itm.getBounds();
 					if (h <= b.y) { mixin(S_TRACE);
 						break;
