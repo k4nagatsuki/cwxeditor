@@ -1897,6 +1897,11 @@ class Msgs : Properties {
 	auto addKeyCode = Msg("addKeyCode", "キーコードの追加");
 	auto delKeyCode = Msg("delKeyCode", "キーコードの削除");
 
+	auto behaviorOfBeastCard = Msg("behaviorOfBeastCard", "発動/消滅");
+	auto invocationCondition = Msg("invocationCondition", "発動条件");
+	auto removalCondition = Msg("removalCondition", "消滅条件");
+	auto removeWithUnconscious = Msg("removeWithUnconscious", "意識不明時に消滅する");
+
 	auto warningNotDefaultSE = Msg("warningNotDefaultSE", "標準以外の効果音はシナリオの外では鳴らない可能性があります。");
 	auto warningEffectTypeNone = Msg("warningEffectTypeNone", "無属性のカードをシナリオ外に持ち出した場合、予期せぬ動作の原因になります。");
 	auto warningVanishCast = Msg("warningVanishCast", "神聖属性以外の対象消去効果を持つカードをシナリオ外に持ち出した場合、予期せぬ動作の原因になります。");
@@ -1954,6 +1959,10 @@ class Msgs : Properties {
 	auto warningExpandSPChars = Msg("warningExpandSPChars", "状態変数内の特殊文字の展開は、Wsn.2以降の形式のシナリオしか行えません。"); // Wsn.2
 	auto warningSelectCard = Msg("warningSelectCard", "選択カードの変更は、Wsn.2以降の形式のシナリオしか行えません。"); // Wsn.3
 	auto warningSelectTalker = Msg("warningSelectTalker", "話者の選択は、Wsn.3以降の形式のシナリオしか行えません。"); // Wsn.3
+	auto warningInvocationCondition = Msg("warningInvocationCondition", "「生存」以外の条件で発動する召喚獣は、Wsn.3以降の形式のシナリオでしか機能しません。"); // Wsn.3
+	auto warningRemoveWithUnconscious = Msg("warningRemoveWithUnconscious", "意識不明時に消滅しない召喚獣は、Wsn.3以降の形式のシナリオでしか機能しません。"); // Wsn.3
+	auto warningInconsistencyStatus = Msg("warningInconsistencyStatus", "%1$s状態と%2$s状態を同時に設定する事はできません。");
+	auto warningUnconsciousCondition = Msg("warningUnconsciousCondition", "意識不明時に消滅するにもかかわらず意識不明状態が発動条件になっています。");
 
 	auto unknownStepValue = Msg("unknownStepValue", "存在しないステップ値(%1$s)");
 

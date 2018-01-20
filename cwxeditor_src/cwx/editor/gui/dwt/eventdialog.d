@@ -2765,9 +2765,9 @@ protected:
 	}
 }
 
-private Composite createStatusPane(Props prop, Composite area, ref Button[Status] stat, void delegate(Button) mod) { mixin(S_TRACE);
+Composite createStatusPane(Props prop, Composite area, string title, ref Button[Status] stat, void delegate(Button) mod, int type = SWT.RADIO) { mixin(S_TRACE);
 	auto grp = new Group(area, SWT.NONE);
-	grp.setText(prop.msgs.judgeState);
+	grp.setText(title);
 	grp.setLayout(normalGridLayout(4, true));
 	auto statuses = [Status.ACTIVE, Status.INACTIVE, Status.ALIVE, Status.DEAD,
 			Status.FINE, Status.INJURED, Status.HEAVY_INJURED, Status.UNCONSCIOUS,
@@ -2777,7 +2777,7 @@ private Composite createStatusPane(Props prop, Composite area, ref Button[Status
 			Status.UP_ACTION, Status.UP_AVOID, Status.UP_RESIST, Status.UP_DEFENSE,
 			Status.DOWN_ACTION, Status.DOWN_AVOID, Status.DOWN_RESIST, Status.DOWN_DEFENSE];
 	foreach (s; statuses) { mixin(S_TRACE);
-		auto radio = new Button(grp, SWT.RADIO);
+		auto radio = new Button(grp, type);
 		mod(radio);
 		radio.setText(prop.msgs.statusName(s));
 		radio.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -2785,7 +2785,7 @@ private Composite createStatusPane(Props prop, Composite area, ref Button[Status
 	}
 	return grp;
 }
-private Composite createStatusHint(Props prop, Composite area) { mixin(S_TRACE);
+Composite createStatusHint(Props prop, Composite area) { mixin(S_TRACE);
 	auto grp = new Group(area, SWT.NONE);
 	grp.setText(prop.msgs.stateHint);
 	grp.setLayout(new CenterLayout);
@@ -2842,7 +2842,7 @@ protected:
 			_range = new RangePanel(comm, summ, area, ranges, initCoupon, title, true, this, evt, &catchMod, &refreshWarning);
 			_range.setLayoutData(new GridData(GridData.FILL_BOTH));
 		}
-		auto status = createStatusPane(prop, area, _stat, &mod!Button);
+		auto status = createStatusPane(prop, area, prop.msgs.judgeState, _stat, &mod!Button);
 		status.setLayoutData(new GridData(GridData.FILL_BOTH));
 		foreach (st, b; _stat) { mixin(S_TRACE);
 			.listener(b, SWT.Selection, &refreshWarning);
@@ -3272,7 +3272,7 @@ protected:
 			auto lHint = new Label(comp, SWT.NONE);
 			lHint.setText(.tryFormat(_prop.msgs.rangeHint, 1, _prop.var.etc.castLevelMax));
 		}
-		auto status = createStatusPane(prop, area, _status, &mod!Button);
+		auto status = createStatusPane(prop, area, prop.msgs.judgeState, _status, &mod!Button);
 		status.setLayoutData(new GridData(GridData.FILL_BOTH));
 		auto hint = createStatusHint(prop, area);
 		hint.setLayoutData(new GridData(GridData.FILL_BOTH));

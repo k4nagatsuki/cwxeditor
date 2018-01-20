@@ -1,41 +1,44 @@
 
 module cwx.editor.gui.dwt.effectcarddialog;
 
-import cwx.summary;
 import cwx.card;
-import cwx.types;
-import cwx.motion;
-import cwx.utils;
-import cwx.skin;
 import cwx.event;
 import cwx.imagesize;
+import cwx.motion;
 import cwx.path;
+import cwx.skin;
+import cwx.summary;
+import cwx.types;
+import cwx.utils;
+import cwx.warning;
 
 import cwx.editor.gui.sound;
 
+import cwx.editor.gui.dwt.abilityview;
+import cwx.editor.gui.dwt.absdialog;
+import cwx.editor.gui.dwt.cardpane;
+import cwx.editor.gui.dwt.centerlayout;
+import cwx.editor.gui.dwt.chooser;
+import cwx.editor.gui.dwt.commons;
+import cwx.editor.gui.dwt.customtable;
+import cwx.editor.gui.dwt.customtext;
+import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.dutils;
-import cwx.editor.gui.dwt.commons;
-import cwx.editor.gui.dwt.materialselect;
+import cwx.editor.gui.dwt.eventdialog;
 import cwx.editor.gui.dwt.imageselect;
-import cwx.editor.gui.dwt.customtext;
-import cwx.editor.gui.dwt.customtable;
-import cwx.editor.gui.dwt.centerlayout;
+import cwx.editor.gui.dwt.keycodeview;
+import cwx.editor.gui.dwt.materialselect;
 import cwx.editor.gui.dwt.motionview;
 import cwx.editor.gui.dwt.radarspinner;
-import cwx.editor.gui.dwt.absdialog;
-import cwx.editor.gui.dwt.splitpane;
-import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.scales;
-import cwx.editor.gui.dwt.chooser;
-import cwx.editor.gui.dwt.cardpane;
-import cwx.editor.gui.dwt.keycodeview;
-import cwx.editor.gui.dwt.abilityview;
+import cwx.editor.gui.dwt.splitpane;
 
-import std.algorithm : max;
+import std.algorithm : equal, max;
 import std.array;
 import std.path;
+import std.traits;
 
 import org.eclipse.swt.all;
 
@@ -63,7 +66,7 @@ private:
 	Button[EffectType] _effTyp;
 	Button[Resist] _res;
 	AbilityView _ability;
-	static if (is (C == SkillCard)) {
+	static if (is(C:SkillCard)) {
 		Spinner _level;
 		void calcPrice(int value) { mixin(S_TRACE);
 			_price.setMinimum(_prop.looks.skillPrice(value));
@@ -74,8 +77,8 @@ private:
 			calcPrice(oldVal);
 			return oldVal;
 		}
-	}
-	static if (is (C == ItemCard)) {
+		void updateEnabled() { }
+	} else static if (is(C:ItemCard)) {
 		Spinner _useCount;
 		static if (SetUseCountCur) {
 			Spinner _useCountCur;
@@ -87,8 +90,8 @@ private:
 				}
 			}
 		}
-	}
-	static if (is (C == BeastCard)) {
+		void updateEnabled() { }
+	} else static if (is(C:BeastCard)) {
 		Spinner _useCount;
 		void calcPrice(int value) { mixin(S_TRACE);
 			_price.setMinimum(_prop.looks.beastPrice);
@@ -99,7 +102,28 @@ private:
 			calcPrice(oldVal);
 			return oldVal;
 		}
-	}
+		Button[Status] _invokeCond;
+		Button _removeWithUncons;
+
+		@property
+		Status[] invokeCond() { mixin(S_TRACE);
+			Status[] r;
+			foreach (s; EnumMembers!Status) { mixin(S_TRACE);
+				auto p = s in _invokeCond;
+				if (!p) continue;
+				if (p.getSelection()) r ~= s;
+			}
+			return r;
+		}
+		void updateEnabled() { mixin(S_TRACE);
+			auto sEnbl = !_summ || !_summ.legacy || !.equal(invokeCond, [Status.ALIVE]);
+			foreach (b; _invokeCond.byValue()) { mixin(S_TRACE);
+				b.setEnabled(sEnbl);
+			}
+			_removeWithUncons.setEnabled(!_summ || !_summ.legacy || !_removeWithUncons.getSelection());
+		}
+	} else static assert (0);
+
 	Spinner _price;
 	MotionView _motions;
 	Composite _useModParent;
@@ -165,6 +189,20 @@ private:
 			if (m.type == MType.VANISH_TARGET && m.element != cast(int) Element.MIRACLE) { mixin(S_TRACE);
 				ws ~= _prop.msgs.warningVanishCast;
 				break;
+			}
+		}
+		static if (is(C:BeastCard)) {
+			if (!_prop.isTargetVersion(_summ, "3")) { mixin(S_TRACE);
+				if (!.equal(invokeCond, [Status.ALIVE])) { mixin(S_TRACE);
+					ws ~= _prop.msgs.warningInvocationCondition;
+				}
+				if (!_removeWithUncons.getSelection()) { mixin(S_TRACE);
+					ws ~= _prop.msgs.warningRemoveWithUnconscious;
+				}
+			}
+			ws ~= .warningInconsistency(_prop.parent, invokeCond);
+			if (_invokeCond[Status.UNCONSCIOUS].getSelection() && _removeWithUncons.getSelection()) { mixin(S_TRACE);
+				ws ~= _prop.msgs.warningUnconsciousCondition;
 			}
 		}
 		if (_summ && _summ.legacy && _se1.filePath != "" && !_se1.selectedDefDir) { mixin(S_TRACE);
@@ -663,6 +701,40 @@ private:
 		tab.setControl(comp);
 		return tab;
 	}
+	static if (is(C:BeastCard)) {
+		CTabItem constructBehavior(CTabFolder tabf) { mixin(S_TRACE);
+			auto comp = new Composite(tabf, SWT.NONE);
+			comp.setLayout(normalGridLayout(1, true));
+
+			auto invokeCond = .createStatusPane(_prop, comp, _prop.msgs.invocationCondition, _invokeCond, &mod!Button, SWT.CHECK);
+			invokeCond.setLayoutData(new GridData(GridData.FILL_BOTH));
+
+			{ mixin(S_TRACE);
+				auto grp = new Group(comp, SWT.NONE);
+				grp.setText(_prop.msgs.removalCondition);
+				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+				auto cl = new CenterLayout;
+				cl.fillHorizontal = true;
+				grp.setLayout(cl);
+				auto comp2 = new Composite(grp, SWT.NONE);
+				comp2.setLayout(zeroMarginGridLayout(1, true));
+				_removeWithUncons = new Button(comp2, SWT.CHECK);
+				_removeWithUncons.setText(_prop.msgs.removeWithUnconscious);
+				.listener(_removeWithUncons, SWT.Selection, &refDataVersion);
+			}
+
+			auto hint = .createStatusHint(_prop, comp);
+			hint.setLayoutData(new GridData(GridData.FILL_BOTH));
+			foreach (b; _invokeCond.byValue()) { mixin(S_TRACE);
+				.listener(b, SWT.Selection, &refDataVersion);
+			}
+
+			auto tab = new CTabItem(tabf, SWT.NONE);
+			tab.setText(_prop.msgs.behaviorOfBeastCard);
+			tab.setControl(comp);
+			return tab;
+		}
+	}
 	CTabItem constructKeyCode(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(normalGridLayout(1, true));
@@ -736,6 +808,7 @@ private:
 		_desc.font = _prop.looks.cardDescFont(summSkin.legacy);
 	}
 	void refDataVersion() { mixin(S_TRACE);
+		updateEnabled();
 		refreshWarning();
 	}
 	class Dispose : DisposeListener {
@@ -816,9 +889,10 @@ protected:
 		}
 		constructMotion(tabf);
 		constructProps(tabf);
+		static if (is(C:BeastCard)) {
+			constructBehavior(tabf);
+		}
 		constructKeyCode(tabf);
-
-		refDataVersion();
 
 		static if (is(C : SkillCard)) {
 			_comm.delSkill.add(&delCard);
@@ -853,6 +927,8 @@ protected:
 		tabf.setLayoutData(gd);
 
 		refCard(_card);
+
+		refDataVersion();
 	}
 	private void refCard(C card) { mixin(S_TRACE);
 		if (_card && _card !is card) return;
@@ -883,6 +959,18 @@ protected:
 				}
 			} else static if (is (C == BeastCard)) {
 				_useCount.setSelection(_card.useLimit);
+				bool[Status] ss;
+				foreach (s; _card.invocationCondition) { mixin(S_TRACE);
+					auto p = s in _invokeCond;
+					if (p) { mixin(S_TRACE);
+						p.setSelection(true);
+						ss[s] = true;
+					}
+				}
+				foreach (s, b; _invokeCond) { mixin(S_TRACE);
+					if (s !in ss) b.setSelection(false);
+				}
+				_removeWithUncons.setSelection(_card.removeWithUnconscious);
 			}
 			static if (is (C == ItemCard)) {
 				_price.setSelection(_card.price);
@@ -944,6 +1032,12 @@ protected:
 					}
 				}
 			}
+			static if (is(C:BeastCard)) {
+				foreach (s, b; _invokeCond) { mixin(S_TRACE);
+					b.setSelection(s is Status.ALIVE);
+				}
+				_removeWithUncons.setSelection(true);
+			}
 			_targ[CardTarget.NONE].setSelection(true);
 			_one.setSelection(true);
 			refreshEnblOneAll();
@@ -995,6 +1089,8 @@ protected:
 			}
 		} else static if (is (C == BeastCard)) {
 			_card.useLimit = _useCount.getSelection();
+			_card.invocationCondition = invokeCond;
+			_card.removeWithUnconscious = _removeWithUncons.getSelection();
 		}
 		static if (is (C == ItemCard)) {
 			_card.price = _price.getSelection();

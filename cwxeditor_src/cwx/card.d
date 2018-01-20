@@ -2523,6 +2523,8 @@ class BeastCard : EffectCard, IBeastUser {
 private:
 	BeastUser _linkId;
 	uint _useLimit = 0;
+	Status[] _invocationCondition = [Status.ALIVE];
+	bool _removeWithUnconscious = true;
 public:
 	/// 召喚獣カードのXML要素名。
 	static const string XML_NAME = "BeastCard";
@@ -2551,11 +2553,15 @@ public:
 	}
 	private void copyImpl(in BeastCard c) {
 		useLimit = c.useLimit;
+		invocationCondition = c.invocationCondition;
+		removeWithUnconscious = c.removeWithUnconscious;
 	}
 	/// IDを除く内部データをクリアする。
 	override void clearData() { mixin(S_TRACE);
 		super.clearData();
 		useLimit = 0;
+		invocationCondition = [Status.ALIVE];
+		removeWithUnconscious = true;
 	}
 
 	override
@@ -2574,7 +2580,9 @@ public:
 	}
 	const
 	private bool eqImpl(const(BeastCard) c) { mixin(S_TRACE);
-		return useLimit == c.useLimit;
+		return useLimit == c.useLimit
+			&& invocationCondition == c.invocationCondition
+			&& removeWithUnconscious == c.removeWithUnconscious;
 	}
 
 	/// 持ち札である時のリンク先ID。0の場合は実体を持つ。
@@ -2616,6 +2624,34 @@ public:
 	const
 	bool isOption() { mixin(S_TRACE);
 		return cast(CastCard)_owner !is null && !useLimit;
+	}
+
+	/// 発動条件。
+	@property
+	inout
+	inout(Status)[] invocationCondition() { mixin(S_TRACE);
+		return _invocationCondition;
+	}
+	/// ditto
+	@property
+	void invocationCondition(in Status[] invocationCondition) { mixin(S_TRACE);
+		auto arr = invocationCondition.dup;
+		std.algorithm.sort(arr);
+		if (_invocationCondition != arr) changed();
+		_invocationCondition = arr;
+	}
+
+	/// 意識不明で消滅するか。
+	@property
+	const
+	bool removeWithUnconscious() { mixin(S_TRACE);
+		return _removeWithUnconscious;
+	}
+	/// ditto
+	@property
+	void removeWithUnconscious(bool removeWithUnconscious) { mixin(S_TRACE);
+		if (_removeWithUnconscious != removeWithUnconscious) changed();
+		_removeWithUnconscious = removeWithUnconscious;
 	}
 
 	override bool change(BeastId id) { return true; }
@@ -2662,6 +2698,16 @@ public:
 		auto pNode = setEffProp(cNode, opt, od);
 		if (0 == linkId || (opt && opt.includeCard)) { mixin(S_TRACE);
 			pNode.newElement("UseLimit", useLimit);
+			if (invocationCondition != [Status.ALIVE]) { mixin(S_TRACE);
+				auto icNode = pNode.newElement("InvocationCondition");
+				foreach (status; invocationCondition) { mixin(S_TRACE);
+					icNode.newElement("Status", fromStatus(status));
+				}
+			}
+			if (!removeWithUnconscious) { mixin(S_TRACE);
+				// 除去条件無しにしておく
+				pNode.newElement("RemovalCondition");
+			}
 		}
 	}
 	/// コピーを生成する。
@@ -2701,6 +2747,19 @@ public:
 		}
 		cNode.onTag["Property"] = (ref XNode pNode) { mixin(S_TRACE);
 			pNode.onTag["UseLimit"] = (ref XNode n) { r._useLimit = n.valueTo!int; };
+			pNode.onTag["InvocationCondition"] = (ref XNode n) { mixin(S_TRACE);
+				Status[] statuses;
+				n.onTag["Status"] = (ref XNode n) { statuses ~= .toStatus(n.value); };
+				n.parse();
+				r.invocationCondition = statuses;
+			};
+			pNode.onTag["RemovalCondition"] = (ref XNode n) { mixin(S_TRACE);
+				r.removeWithUnconscious = false;
+				n.onTag["Status"] = (ref XNode n) { mixin(S_TRACE);
+					if (.toStatus(n.value) is Status.UNCONSCIOUS) r.removeWithUnconscious = true;
+				};
+				n.parse();
+			};
 			r.loadEffProp(pNode, ver);
 		};
 		r.loadEffV(cNode, ver);

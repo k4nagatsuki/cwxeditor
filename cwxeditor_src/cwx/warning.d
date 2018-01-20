@@ -19,10 +19,12 @@ import cwx.motion;
 import cwx.sjis;
 import cwx.motion;
 
+import std.algorithm;
 import std.ascii;
 import std.conv;
 import std.path;
 import std.string;
+import std.traits;
 import std.typecons : Tuple;
 
 /// pathの内容を調査し、警告すべき点があればメッセージ群を返す。
@@ -166,6 +168,19 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	auto effCard = cast(EffectCard)path;
 	if (effCard) { mixin(S_TRACE);
 		putMotions(effCard.motions);
+		auto beast = cast(BeastCard)effCard;
+		if (beast) { mixin(S_TRACE);
+			if (!.equal(beast.invocationCondition, [Status.ALIVE])) { mixin(S_TRACE);
+				r ~= prop.msgs.warningInvocationCondition;
+			}
+			if (!beast.removeWithUnconscious) { mixin(S_TRACE);
+				r ~= prop.msgs.warningRemoveWithUnconscious;
+			}
+			r ~= .warningInconsistency(prop, beast.invocationCondition);
+			if (beast.removeWithUnconscious && beast.invocationCondition.contains(Status.UNCONSCIOUS)) { mixin(S_TRACE);
+				r ~= prop.msgs.warningUnconsciousCondition;
+			}
+		}
 		if (effCard.soundPath1 != "") { mixin(S_TRACE);
 			r ~= skin.warningSE(prop, effCard.soundPath1, summ ? summ.legacy : false, targVer);
 			if (!skin.findPath(effCard.soundPath1, skin.extSound, skin.seDirs, sPath, wsnVer, skin.wsnSoundDirs(wsnVer)).length) { mixin(S_TRACE);
@@ -1004,4 +1019,114 @@ private string warningTrioCondition(in CProps prop, string text) { mixin(S_TRACE
 	} else { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.unknownBranchCondition, text);
 	}
+}
+
+/// ステータス群が両立しないものを含んでいる場合は警告を返す。
+@property
+string[] warningInconsistency(in CProps prop, in Status[] statuses) { mixin(S_TRACE);
+	auto tbl = new bool[(EnumMembers!Status).length];
+	foreach (s; statuses) tbl[cast(size_t)s] = true;
+	string[] ws;
+
+	void w(Status s1, Status s2) { mixin(S_TRACE);
+		if (s1 < s2) { mixin(S_TRACE);
+			ws ~= .tryFormat(prop.msgs.warningInconsistencyStatus, prop.msgs.statusName(s1), prop.msgs.statusName(s2));
+		} else { mixin(S_TRACE);
+			ws ~= .tryFormat(prop.msgs.warningInconsistencyStatus, prop.msgs.statusName(s2), prop.msgs.statusName(s1));
+		}
+	}
+
+	with (Status) { mixin(S_TRACE);
+		if (tbl[ACTIVE]) { mixin(S_TRACE);
+			if (tbl[INACTIVE]) w(ACTIVE, INACTIVE);
+			if (tbl[DEAD]) w(ACTIVE, DEAD);
+			if (tbl[UNCONSCIOUS]) w(ACTIVE, UNCONSCIOUS);
+			if (tbl[SLEEP]) w(ACTIVE, SLEEP);
+			if (tbl[BIND]) w(ACTIVE, BIND);
+			if (tbl[PARALYZE]) w(ACTIVE, PARALYZE);
+		}
+		if (tbl[ALIVE]) { mixin(S_TRACE);
+			if (tbl[DEAD]) w(ALIVE, DEAD);
+			if (tbl[UNCONSCIOUS]) w(ALIVE, UNCONSCIOUS);
+			if (tbl[PARALYZE]) w(ALIVE, PARALYZE);
+		}
+		if (tbl[DEAD]) { mixin(S_TRACE);
+			if (tbl[SLEEP]) w(DEAD, SLEEP);
+			if (tbl[CONFUSE]) w(DEAD, CONFUSE);
+			if (tbl[OVERHEAT]) w(DEAD, OVERHEAT);
+			if (tbl[BRAVE]) w(DEAD, BRAVE);
+			if (tbl[PANIC]) w(DEAD, PANIC);
+		}
+		if (tbl[FINE]) { mixin(S_TRACE);
+			if (tbl[INJURED]) w(FINE, INJURED);
+			if (tbl[HEAVY_INJURED]) w(FINE, HEAVY_INJURED);
+			if (tbl[UNCONSCIOUS]) w(FINE, UNCONSCIOUS);
+		}
+		if (tbl[INJURED]) { mixin(S_TRACE);
+			if (tbl[HEAVY_INJURED]) w(INJURED, HEAVY_INJURED);
+			if (tbl[UNCONSCIOUS]) w(INJURED, UNCONSCIOUS);
+		}
+		if (tbl[HEAVY_INJURED]) { mixin(S_TRACE);
+			if (tbl[UNCONSCIOUS]) w(HEAVY_INJURED, UNCONSCIOUS);
+		}
+		if (tbl[UNCONSCIOUS]) { mixin(S_TRACE);
+			if (tbl[SLEEP]) w(UNCONSCIOUS, SLEEP);
+			if (tbl[BIND]) w(UNCONSCIOUS, BIND);
+			if (tbl[CONFUSE]) w(UNCONSCIOUS, CONFUSE);
+			if (tbl[OVERHEAT]) w(UNCONSCIOUS, OVERHEAT);
+			if (tbl[BRAVE]) w(UNCONSCIOUS, BRAVE);
+			if (tbl[PANIC]) w(UNCONSCIOUS, PANIC);
+			if (tbl[SILENCE]) w(UNCONSCIOUS, SILENCE);
+			if (tbl[FACE_UP]) w(UNCONSCIOUS, FACE_UP);
+			if (tbl[ANTI_MAGIC]) w(UNCONSCIOUS, ANTI_MAGIC);
+			if (tbl[UP_ACTION]) w(UNCONSCIOUS, UP_ACTION);
+			if (tbl[UP_AVOID]) w(UNCONSCIOUS, UP_AVOID);
+			if (tbl[UP_RESIST]) w(UNCONSCIOUS, UP_RESIST);
+			if (tbl[UP_DEFENSE]) w(UNCONSCIOUS, UP_DEFENSE);
+			if (tbl[DOWN_ACTION]) w(UNCONSCIOUS, DOWN_ACTION);
+			if (tbl[DOWN_AVOID]) w(UNCONSCIOUS, DOWN_AVOID);
+			if (tbl[DOWN_RESIST]) w(UNCONSCIOUS, DOWN_RESIST);
+			if (tbl[DOWN_DEFENSE]) w(UNCONSCIOUS, DOWN_DEFENSE);
+		}
+		if (tbl[SLEEP]) { mixin(S_TRACE);
+			if (tbl[PARALYZE]) w(SLEEP, PARALYZE);
+			if (tbl[CONFUSE]) w(SLEEP, CONFUSE);
+			if (tbl[OVERHEAT]) w(SLEEP, OVERHEAT);
+			if (tbl[BRAVE]) w(SLEEP, BRAVE);
+			if (tbl[PANIC]) w(SLEEP, PANIC);
+		}
+		if (tbl[PARALYZE]) { mixin(S_TRACE);
+			if (tbl[CONFUSE]) w(PARALYZE, CONFUSE);
+			if (tbl[OVERHEAT]) w(PARALYZE, OVERHEAT);
+			if (tbl[BRAVE]) w(PARALYZE, BRAVE);
+			if (tbl[PANIC]) w(PARALYZE, PANIC);
+		}
+		if (tbl[CONFUSE]) { mixin(S_TRACE);
+			if (tbl[OVERHEAT]) w(CONFUSE, OVERHEAT);
+			if (tbl[BRAVE]) w(CONFUSE, BRAVE);
+			if (tbl[PANIC]) w(CONFUSE, PANIC);
+		}
+		if (tbl[OVERHEAT]) { mixin(S_TRACE);
+			if (tbl[BRAVE]) w(OVERHEAT, BRAVE);
+			if (tbl[PANIC]) w(OVERHEAT, PANIC);
+		}
+		if (tbl[BRAVE]) { mixin(S_TRACE);
+			if (tbl[PANIC]) w(BRAVE, PANIC);
+		}
+		if (tbl[UP_ACTION]) { mixin(S_TRACE);
+			if (tbl[DOWN_ACTION]) w(UP_ACTION, DOWN_ACTION);
+		}
+		if (tbl[UP_AVOID]) { mixin(S_TRACE);
+			if (tbl[DOWN_AVOID]) w(UP_AVOID, DOWN_AVOID);
+		}
+		if (tbl[UP_RESIST]) { mixin(S_TRACE);
+			if (tbl[DOWN_RESIST]) w(UP_RESIST, DOWN_RESIST);
+		}
+		if (tbl[UP_DEFENSE]) { mixin(S_TRACE);
+			if (tbl[DOWN_DEFENSE]) w(UP_DEFENSE, DOWN_DEFENSE);
+		}
+	}
+	std.algorithm.sort(ws);
+	std.algorithm.uniq(ws);
+	return ws;
 }

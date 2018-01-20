@@ -1,44 +1,45 @@
 
 module cwx.editor.gui.dwt.castcarddialog;
 
-import cwx.coupon;
-import cwx.summary;
 import cwx.card;
-import cwx.types;
+import cwx.coupon;
 import cwx.features;
-import cwx.utils;
-import cwx.race;
-import cwx.xml;
-import cwx.skin;
+import cwx.imagesize;
+import cwx.menu;
 import cwx.motion;
 import cwx.path;
-import cwx.menu;
+import cwx.race;
+import cwx.skin;
+import cwx.summary;
 import cwx.types;
-import cwx.imagesize;
+import cwx.types;
+import cwx.utils;
+import cwx.warning;
+import cwx.xml;
 
+import cwx.editor.gui.dwt.absdialog;
+import cwx.editor.gui.dwt.cardpane;
+import cwx.editor.gui.dwt.centerlayout;
+import cwx.editor.gui.dwt.commons;
+import cwx.editor.gui.dwt.couponview;
+import cwx.editor.gui.dwt.customtable;
+import cwx.editor.gui.dwt.customtext;
+import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.dutils;
-import cwx.editor.gui.dwt.commons;
-import cwx.editor.gui.dwt.materialselect;
 import cwx.editor.gui.dwt.imageselect;
-import cwx.editor.gui.dwt.customtext;
-import cwx.editor.gui.dwt.customtable;
-import cwx.editor.gui.dwt.centerlayout;
+import cwx.editor.gui.dwt.materialselect;
 import cwx.editor.gui.dwt.radarspinner;
-import cwx.editor.gui.dwt.xmlbytestransfer;
-import cwx.editor.gui.dwt.absdialog;
-import cwx.editor.gui.dwt.undo;
-import cwx.editor.gui.dwt.dmenu;
-import cwx.editor.gui.dwt.couponview;
 import cwx.editor.gui.dwt.scales;
-import cwx.editor.gui.dwt.cardpane;
+import cwx.editor.gui.dwt.undo;
+import cwx.editor.gui.dwt.xmlbytestransfer;
 
 import std.algorithm : sort;
 import std.array;
+import std.conv;
 import std.datetime;
 import std.string;
-import std.conv;
 
 import org.eclipse.swt.all;
 
@@ -117,7 +118,90 @@ private:
 		if (_name.over) { mixin(S_TRACE);
 			ws ~= .tryFormat(_prop.msgs.warningNameLenOver, _prop.looks.castNameLimit, _prop.looks.castNameLimit / 2);
 		}
-		ws ~= _imgPath.warnings;
+		Status[] statuses;
+		if (_lifeUseMax.getSelection()) { mixin(S_TRACE);
+			statuses ~= Status.FINE;
+		} else if (_life.getSelection() == 0) { mixin(S_TRACE);
+			statuses ~= Status.UNCONSCIOUS;
+		} else if (_life.getSelection() <= _lifeMax.getSelection() / 5) { mixin(S_TRACE);
+			statuses ~= Status.HEAVY_INJURED;
+		} else if (_life.getSelection() < _lifeMax.getSelection()) { mixin(S_TRACE);
+			statuses ~= Status.INJURED;
+		} else { mixin(S_TRACE);
+			statuses ~= Status.FINE;
+		}
+		foreach (enh, spn; _liveEnh) { mixin(S_TRACE);
+			if (spn.getSelection() < 0) { mixin(S_TRACE);
+				final switch (Enhance.ACTION) {
+				case Enhance.ACTION:
+					statuses ~= Status.DOWN_ACTION;
+					break;
+				case Enhance.AVOID:
+					statuses ~= Status.DOWN_AVOID;
+					break;
+				case Enhance.RESIST:
+					statuses ~= Status.DOWN_RESIST;
+					break;
+				case Enhance.DEFENSE:
+					statuses ~= Status.DOWN_DEFENSE;
+					break;
+				}
+			} else if (0 < spn.getSelection()) {
+				final switch (Enhance.ACTION) {
+				case Enhance.ACTION:
+					statuses ~= Status.UP_ACTION;
+					break;
+				case Enhance.AVOID:
+					statuses ~= Status.UP_AVOID;
+					break;
+				case Enhance.RESIST:
+					statuses ~= Status.UP_RESIST;
+					break;
+				case Enhance.DEFENSE:
+					statuses ~= Status.UP_DEFENSE;
+					break;
+				}
+			}
+		}
+		if (0 < _paralyze.getSelection()) { mixin(S_TRACE);
+			statuses ~= Status.PARALYZE;
+		}
+		if (0 < _poison.getSelection()) { mixin(S_TRACE);
+			statuses ~= Status.POISON;
+		}
+		if (0 < _bind.getSelection()) { mixin(S_TRACE);
+			statuses ~= Status.BIND;
+		}
+		if (0 < _silence.getSelection()) { mixin(S_TRACE);
+			statuses ~= Status.SILENCE;
+		}
+		if (0 < _faceUp.getSelection()) { mixin(S_TRACE);
+			statuses ~= Status.FACE_UP;
+		}
+		if (0 < _antiMagic.getSelection()) { mixin(S_TRACE);
+			statuses ~= Status.ANTI_MAGIC;
+		}
+		auto mtly = _mtlyTbl.get(_mtly.getSelectionIndex(), Mentality.NORMAL);
+		final switch (mtly) {
+		case Mentality.NORMAL:
+			break;
+		case Mentality.SLEEP:
+			statuses ~= Status.SLEEP;
+			break;
+		case Mentality.CONFUSE:
+			statuses ~= Status.CONFUSE;
+			break;
+		case Mentality.OVERHEAT:
+			statuses ~= Status.OVERHEAT;
+			break;
+		case Mentality.BRAVE:
+			statuses ~= Status.BRAVE;
+			break;
+		case Mentality.PANIC:
+			statuses ~= Status.PANIC;
+			break;
+		}
+		ws ~= .warningInconsistency(_prop.parent, statuses);
 
 		warning = ws;
 	}
@@ -306,7 +390,6 @@ private:
 				_race.add(race.name);
 			}
 			_race.addSelectionListener(new SelectRace);
-			refDataVersion();
 		}
 		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText(_prop.msgs.card);
@@ -879,11 +962,14 @@ private:
 				_life = new Spinner(comp2, SWT.BORDER | _readOnly);
 				initSpinner(_life);
 				mod(_life);
+				.listener(_life, SWT.Selection, &refreshWarning);
+				.listener(_life, SWT.Modify, &refreshWarning);
 				_lifeUseMax = new Button(comp2, SWT.CHECK);
 				mod(_lifeUseMax);
 				_lifeUseMax.setEnabled(!_readOnly);
 				_lifeUseMax.setText(_prop.msgs.useMax);
 				_lifeUseMax.addSelectionListener(new LifeUseMax);
+				.listener(_lifeUseMax, SWT.Selection, &refreshWarning);
 			}
 			{ mixin(S_TRACE);
 				auto comp2 = createComp(grp);
@@ -904,6 +990,7 @@ private:
 				}
 				if (_mtly.getSelectionIndex() < 0) _mtly.select(0);
 				_mtly.addSelectionListener(new SelMentality);
+				.listener(_mtly, SWT.Selection, &refreshWarning);
 				_mtlyRound = createSpn(comp2, _prop.var.etc.roundMax, Motion.round_min);
 				auto lm2  = new Label(comp2, SWT.NONE);
 				lm2.setText(_prop.msgs.unitRound);
@@ -924,6 +1011,8 @@ private:
 				l2.setText(_prop.msgs.unitRound);
 				spn.addSelectionListener(new LiveEnh);
 				spn.addModifyListener(new LiveEnh);
+				.listener(spn, SWT.Selection, &refreshWarning);
+				.listener(spn, SWT.Modify, &refreshWarning);
 			}
 		}
 		Spinner createStSpn(Composite grp, string name, uint max, string val) { mixin(S_TRACE);
@@ -935,6 +1024,8 @@ private:
 			auto l2  = new Label(comp2, SWT.NONE);
 			l2.setText(val);
 			lbls2 ~= l2;
+			.listener(spn, SWT.Selection, &refreshWarning);
+			.listener(spn, SWT.Modify, &refreshWarning);
 			return spn;
 		}
 		{ mixin(S_TRACE);
@@ -1025,6 +1116,7 @@ private:
 		changeLiveEnhance();
 		changeMentality();
 		changeLifeUseMax();
+		refreshWarning();
 	}
 	void delCard(CastCard c) { mixin(S_TRACE);
 		if (_card is c) { mixin(S_TRACE);
@@ -1230,6 +1322,7 @@ protected:
 		tabf.setLayoutData(gd);
 
 		refCard(_card);
+		refDataVersion();
 	}
 	private void refCard(CastCard card) { mixin(S_TRACE);
 		if (_card && _card !is card) return;
