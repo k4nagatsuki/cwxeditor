@@ -120,6 +120,91 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				r ~= .tryFormat(prop.msgs.searchErrorLinkIdBeastNotFound, c.linkId);
 			}
 		}
+
+		Status[] statuses;
+		if (casts.life == 0) { mixin(S_TRACE);
+			statuses ~= Status.UNCONSCIOUS;
+		} else if (casts.life <= casts.lifeMax / 5) { mixin(S_TRACE);
+			statuses ~= Status.HEAVY_INJURED;
+		} else if (casts.life < casts.lifeMax) { mixin(S_TRACE);
+			statuses ~= Status.INJURED;
+		} else { mixin(S_TRACE);
+			statuses ~= Status.FINE;
+		}
+		foreach (enh; EnumMembers!Enhance) { mixin(S_TRACE);
+			if (casts.enhanceRound(enh) <= 0) continue;
+			if (casts.enhance(enh) < 0) { mixin(S_TRACE);
+				final switch (Enhance.ACTION) {
+				case Enhance.ACTION:
+					statuses ~= Status.DOWN_ACTION;
+					break;
+				case Enhance.AVOID:
+					statuses ~= Status.DOWN_AVOID;
+					break;
+				case Enhance.RESIST:
+					statuses ~= Status.DOWN_RESIST;
+					break;
+				case Enhance.DEFENSE:
+					statuses ~= Status.DOWN_DEFENSE;
+					break;
+				}
+			} else if (0 < casts.enhance(enh)) {
+				final switch (Enhance.ACTION) {
+				case Enhance.ACTION:
+					statuses ~= Status.UP_ACTION;
+					break;
+				case Enhance.AVOID:
+					statuses ~= Status.UP_AVOID;
+					break;
+				case Enhance.RESIST:
+					statuses ~= Status.UP_RESIST;
+					break;
+				case Enhance.DEFENSE:
+					statuses ~= Status.UP_DEFENSE;
+					break;
+				}
+			}
+		}
+		if (0 < casts.paralyze) { mixin(S_TRACE);
+			statuses ~= Status.PARALYZE;
+		}
+		if (0 < casts.poison) { mixin(S_TRACE);
+			statuses ~= Status.POISON;
+		}
+		if (0 < casts.bindRound) { mixin(S_TRACE);
+			statuses ~= Status.BIND;
+		}
+		if (0 < casts.silenceRound) { mixin(S_TRACE);
+			statuses ~= Status.SILENCE;
+		}
+		if (0 < casts.faceUpRound) { mixin(S_TRACE);
+			statuses ~= Status.FACE_UP;
+		}
+		if (0 < casts.antiMagicRound) { mixin(S_TRACE);
+			statuses ~= Status.ANTI_MAGIC;
+		}
+		if (0 < casts.mentalityRound) { mixin(S_TRACE);
+			final switch (casts.mentality) {
+			case Mentality.NORMAL:
+				break;
+			case Mentality.SLEEP:
+				statuses ~= Status.SLEEP;
+				break;
+			case Mentality.CONFUSE:
+				statuses ~= Status.CONFUSE;
+				break;
+			case Mentality.OVERHEAT:
+				statuses ~= Status.OVERHEAT;
+				break;
+			case Mentality.BRAVE:
+				statuses ~= Status.BRAVE;
+				break;
+			case Mentality.PANIC:
+				statuses ~= Status.PANIC;
+				break;
+			}
+		}
+		r ~= .warningInconsistency(prop, statuses);
 	}
 	auto card = cast(Card)path;
 	if (card) { mixin(S_TRACE);
@@ -176,7 +261,6 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			if (!beast.removeWithUnconscious) { mixin(S_TRACE);
 				r ~= prop.msgs.warningRemoveWithUnconscious;
 			}
-			r ~= .warningInconsistency(prop, beast.invocationCondition);
 			if (beast.removeWithUnconscious && beast.invocationCondition.contains(Status.UNCONSCIOUS)) { mixin(S_TRACE);
 				r ~= prop.msgs.warningUnconsciousCondition;
 			}
