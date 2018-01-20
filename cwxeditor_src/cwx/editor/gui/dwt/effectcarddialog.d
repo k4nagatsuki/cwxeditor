@@ -200,7 +200,6 @@ private:
 					ws ~= _prop.msgs.warningRemoveWithUnconscious;
 				}
 			}
-			ws ~= .warningInconsistency(_prop.parent, invokeCond);
 			if (_invokeCond[Status.UNCONSCIOUS].getSelection() && _removeWithUncons.getSelection()) { mixin(S_TRACE);
 				ws ~= _prop.msgs.warningUnconsciousCondition;
 			}
