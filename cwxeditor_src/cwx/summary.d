@@ -2884,6 +2884,7 @@ public:
 		auto tbl = new HashSet!(PathId);
 		string[] paths;
 		void find(string p) { mixin(S_TRACE);
+			if (!p.exists()) return;
 			if (isSystemFile(p) || .containsPath(ignorePaths, baseName(p))) { mixin(S_TRACE);
 				return;
 			}
