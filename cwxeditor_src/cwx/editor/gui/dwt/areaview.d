@@ -3656,14 +3656,20 @@ public:
 			v.removeImpl(index, tbl, staticCardsIndex(area));
 			if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
 				comm.delMenuCard.call(area.cards[index].cwxPath(true));
+			} else { mixin(S_TRACE);
+				auto p = area.cards[index] in v._editDlgsC;
+				if (p) p.forceCancel();
 			}
 		}
 		private void removeCardRange(int fromIndex, int toIndex) { mixin(S_TRACE);
 			if (_readOnly) return;
 			removeRangeImpl(fromIndex, toIndex, _cardTbl, cardsIndex);
-			if (_summ && _summ.scenarioPath != "") { mixin(S_TRACE);
-				for (int i = toIndex; i >= fromIndex; i--) { mixin(S_TRACE);
+			for (int i = toIndex; i >= fromIndex; i--) { mixin(S_TRACE);
+				if (_summ && _summ.scenarioPath != "") { mixin(S_TRACE);
 					_comm.delMenuCard.call(_area.cards[i].cwxPath(true));
+				} else { mixin(S_TRACE);
+					auto p = _area.cards[i] in _editDlgsC;
+					if (p) p.forceCancel();
 				}
 			}
 		}
@@ -3673,14 +3679,20 @@ public:
 			v.removeImpl(index, tbl, 0);
 			if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
 				comm.delBgImage.call(area.backs[index].cwxPath(true));
+			} else { mixin(S_TRACE);
+				auto p = area.backs[index] in v._editDlgsB;
+				if (p) p.forceCancel();
 			}
 		}
 		private void removeBackRange(int fromIndex, int toIndex) { mixin(S_TRACE);
 			if (_readOnly) return;
 			removeRangeImpl(fromIndex, toIndex, _backTbl, 0);
-			if (_summ && _summ.scenarioPath != "") { mixin(S_TRACE);
-				for (int i = toIndex; i >= fromIndex; i--) { mixin(S_TRACE);
+			for (int i = toIndex; i >= fromIndex; i--) { mixin(S_TRACE);
+				if (_summ && _summ.scenarioPath != "") { mixin(S_TRACE);
 					_comm.delBgImage.call(_area.backs[i].cwxPath(true));
+				} else { mixin(S_TRACE);
+					auto p = _area.backs[i] in _editDlgsB;
+					if (p) p.forceCancel();
 				}
 			}
 		}
