@@ -2494,7 +2494,7 @@ class PreviewValues : Composite {
 			}
 			i++;
 		}
-		if (_values.getItem(i).getData() is SELECTED_PLAYER_NUMBER) { mixin(S_TRACE);
+		if (i < _values.getItemCount() && _values.getItem(i).getData() is SELECTED_PLAYER_NUMBER) { mixin(S_TRACE);
 			if (i in set) { mixin(S_TRACE);
 				_values.getItem(i).setText(1, .text(_prop.var.etc.messageVarSelectedPlayerCardNumber.INIT));
 			}
