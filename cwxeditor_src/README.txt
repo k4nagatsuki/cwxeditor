@@ -3,7 +3,7 @@ CWXEditor ビルドガイド
 ----------------------
 
 ビルドツール:
- : dmd 2.077.0
+ : dmd 2.078.2
  : Digital Mars rcc
 ライブラリ:
  : DWT at GitHub
@@ -19,35 +19,36 @@ Windowsの場合
 
 DWTをGitHubから取ってきます。
 
-submoduleがあるので、submodule initとupdateをしておきましょう。各submoduleが最新のcommitになっていない事が結構あるので、強制的にpullもしておきます。
+今はDWTも[dub](https://code.dlang.org/)で使えますが、CWXEditorの規模になると工夫無しではリンカがエラーを吐いてしまうので自前でライブラリを用意する必要があります。
+
+以下のようにしてDWTをビルドします。
 
     git clone https://github.com/d-widget-toolkit/dwt.git
     cd dwt
-    git submodule update --init
-    git submodule foreach git pull origin master
-
-準備ができたらビルドします。
-
-    rdmd build base swt
+    dub --build=release :base
+    dub --build=release
 
 64ビット版のライブラリを作成する場合は次のようにします。
 
-    rdmd build base swt -m64
+    dub --build=release :base --arch=x86_64
+    dub --build=release --arch=x86_64
 
 (ただし64ビットのビルド環境を整える事は簡単ではありません。[英文の参考文書もあります](https://wiki.dlang.org/Installing_DMD_on_64-bit_Windows_7_(COFF-compatible))が、英語が読めたとしても難しいので、無理に64ビットビルドを行おうとしない方がいいかもしれません)
 
 後は、`dmd2/windows/bin/sc.ini`を弄くってDWTのインポートフォルダやらリソースフォルダやらを探しに行くようにしておきましょう。
 
+たとえば:
+
     [Environment]
 
-    DFLAGS="-I%@P%\..\..\src\phobos" "-I%@P%\..\..\src\druntime\import" "-I%@P%\..\..\import" "-I%@P%\..\..\dwt\imp" "-J%@P%\..\..\dwt\res"
+    DFLAGS="-I%@P%\..\..\src\phobos" "-I%@P%\..\..\src\druntime\import" "-I%@P%\..\..\import" "-I%@P%\..\..\..\lib\dwt32\base\src" "-I%@P%\..\..\..\lib\dwt32\org.eclipse.swt.win32.win32.x86\src" "-J%@P%\..\..\..\lib\dwt32\base\res" "-J%@P%\..\..\..\lib\dwt32\org.eclipse.swt.win32.win32.x86\res"
       :
     [Environment32]
-    LIB="%@P%\..\lib";"%@P%\..\..\dwt\lib"
+    LIB=%LIB%;"%@P%\..\..\..\lib\dwt32";"%@P%\..\..\..\lib\dwt32\org.eclipse.swt.win32.win32.x86\lib"
       :
     [Environment64]
       :
-    LIB=%LIB%;"%@P%\..\..\dwt\lib"
+    LIB=%LIB%;"%@P%\..\..\..\lib\dwt64";"%@P%\..\..\..\lib\dwt64\org.eclipse.swt.win32.win32.x86\lib"
 
 最後にリソースコンパイル用のrccを入手します(32ビット版のみ)。
 
@@ -96,12 +97,10 @@ rdmd等で実行してください。
 
     rdmd build -m64
 
-後はどうかDWTが死なないことを私と一緒に祈ってください。
-
 
 ### 番外: マージツールについて
 
-2017年3月現在、CWXEditorのバージョン管理には[Mercurial](https://www.mercurial-scm.org/)を使用していますが、MercurialのGUIクライアントTortoiseHgに付属しているマージツール(kdiff3)には、日本語ファイルをマージした時に内容が壊れてしまうバグが存在しています。
+2018年2月現在、CWXEditorのバージョン管理には[Mercurial](https://www.mercurial-scm.org/)を使用していますが、MercurialのGUIクライアントTortoiseHgに付属しているマージツール(kdiff3)には、日本語ファイルをマージした時に内容が壊れてしまうバグが存在しています。
 
 Windowsにおける有名なマージツールに[WinMerge](http://www.geocities.co.jp/SiliconValley-SanJose/8165/winmerge.html)があるので、そちらに差し替える事をお勧めします。
 
@@ -143,48 +142,9 @@ apt-get等で手に入れておきましょう。
 
 ### DライブラリとCWXEditorのビルド
 
-DWTをGitHubから取ってきます。
+DWTのビルドが完了すると、以下のライブラリファイルがlibディレクトリに生成されるはずです。
 
-submoduleがあるので、submodule initとupdateをしておきましょう。各submoduleが最新のcommitになっていない事が結構あるので、強制的にpullもしておきます。
-
-    git clone https://github.com/d-widget-toolkit/dwt.git
-    cd dwt
-    git submodule update --init
-    git submodule foreach git pull origin master
-
-準備ができたらビルドします。
-
-    rdmd build base swt
-
-ビルドが完了すると、以下のライブラリファイルがlibディレクトリに生成されるはずです。
-
- * dwt-base.a
- * org.eclipse.swt.gtk.linux.x86.a
-
-`dwt/lib`にある状態では何をどうしてもリンクできなかったので、`cwxeditor_src/`に放り込んでしまってください。
-
-名前が"lib"から始まっていないのが悪いのですが、そのままリンクする方法があるんでしょうか。自分は完膚無きまでにタコなので、分かっている人は教えてくださると助かります。
+ * libdwt_base.a
+ * libdwt.a
 
 後は"/etc/dmd.conf"のDFLAGSを弄くってDWTのインポートフォルダやらリソースやらを探しに行くようにしておきましょう。
-
-これでようやく準備完了です。
-
-cwxeditor本体のビルドはビルドスクリプトbuild.dで行います。
-
-rdmd等で実行してください。
-
-    rdmd build
-
-リリースビルドなら:
-
-    rdmd build release
-
-クリーンするなら:
-
-    rdmd build clean
-
-デバグビルドでコンソールを出さないなら:
-
-    rdmd build gui
-
-後はどうかDWTが死なないことを私と一緒に祈ってください。

@@ -49,8 +49,8 @@ version (Windows) {
 		"msimg32.lib",
 		"opengl32.lib",
 		"shlwapi.lib",
-		"dwt-base.lib",
-		"org.eclipse.swt.win32.win32.x86.lib",
+		"dwt_base.lib",
+		"dwt.lib"
 	];
 	immutable LIB_32 = LIB_64 ~ "olepro32.lib";
 	immutable DEBUG_FLAGS = [
@@ -101,8 +101,8 @@ version (Windows) {
 } else {
 	immutable EXE = NAME;
 	immutable LIB = [
-		"-Lorg.eclipse.swt.gtk.linux.x86.a",
-		"-Ldwt-base.a",
+		"-Ldwt_base.a",
+		"-Ldwt.a",
 		"-L-lgnomeui-2",
 		"-L-lcairo",
 		"-L-lglib-2.0",
