@@ -1040,7 +1040,6 @@ public:
 				return cast(bool).cfnmatch(fl, "Summary.xml");
 			}
 		}
-		return false;
 	}
 	/// シナリオ内に含まれるシステムファイル・ディレクトリ以外のパスを返す。
 	@property

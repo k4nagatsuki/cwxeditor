@@ -596,16 +596,20 @@ public:
 				return openCWXPathAf(_comm.openAreaScene(_prop, _summ, a, shellActivate, false),
 					_comm.openAreaEvent(_prop, _summ, a, shellActivate, false),
 					a, path, shellActivate);
+			} else {
+				break;
 			}
-		} break;
+		}
 		case "area:id": { mixin(S_TRACE);
 			static if (UseArea) {
 				auto a = _summ.area(index);
 				return openCWXPathAf(_comm.openAreaScene(_prop, _summ, a, shellActivate, false),
 					_comm.openAreaEvent(_prop, _summ, a, shellActivate, false),
 					a, path, shellActivate);
+			} else {
+				break;
 			}
-		} break;
+		}
 		case "battle": { mixin(S_TRACE);
 			static if (UseArea) {
 				if (index >= _summ.battles.length) return false;
@@ -613,48 +617,62 @@ public:
 				return openCWXPathAf(_comm.openAreaScene(_prop, _summ, a, shellActivate, false),
 					_comm.openAreaEvent(_prop, _summ, a, shellActivate, false),
 					a, path, shellActivate);
+			} else {
+				break;
 			}
-		} break;
+		}
 		case "battle:id": { mixin(S_TRACE);
 			static if (UseArea) {
 				auto a = _summ.battle(index);
 				return openCWXPathAf(_comm.openAreaScene(_prop, _summ, a, shellActivate, false),
 					_comm.openAreaEvent(_prop, _summ, a, shellActivate, false),
 					a, path, shellActivate);
+			} else {
+				break;
 			}
-		} break;
+		}
 		case "package": { mixin(S_TRACE);
 			static if (UseArea) {
 				if (index >= _summ.packages.length) return false;
 				auto a = _summ.packages[index];
 				return openCWXPathAf(_comm.openArea(_prop, _summ, a, shellActivate, false),
 					a, path, shellActivate);
+			} else {
+				break;
 			}
-		} break;
+		}
 		case "package:id": { mixin(S_TRACE);
 			static if (UseArea) {
 				auto a = _summ.cwPackage(index);
 				return openCWXPathAf(_comm.openArea(_prop, _summ, a, shellActivate, false),
 					a, path, shellActivate);
+			} else {
+				break;
 			}
-		} break;
+		}
 		case "tableview": { mixin(S_TRACE);
 			static if (UseArea) {
 				.forceFocus(_areas.table, shellActivate);
 				return true;
+			} else {
+				break;
 			}
-		} break;
+		}
 		case "variable": { mixin(S_TRACE);
 			static if (UseFlag) {
 				return _flags.openCWXPath(cpbottom(path), shellActivate);
+			} else {
+				break;
 			}
-		} break;
+		}
 		case "variableview": { mixin(S_TRACE);
 			static if (UseFlag) {
 				.forceFocus(_flags.flags.widget, shellActivate);
 				return true;
+			} else {
+				break;
 			}
-		} break;
+		}
 		default: break;
 		}
 		return false;

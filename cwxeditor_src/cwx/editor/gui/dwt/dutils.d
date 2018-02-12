@@ -3062,7 +3062,6 @@ string contentTextUseID(CIDKind Kind, ID)(Commons comm, Summary summ, ID id, str
 					} else { mixin(S_TRACE);
 						return comm.skin.findImagePath(path.path, "", LATEST_VERSION).length > 0;
 					}
-					break;
 				case CardImageType.PCNumber:
 					// 非対応
 					break;

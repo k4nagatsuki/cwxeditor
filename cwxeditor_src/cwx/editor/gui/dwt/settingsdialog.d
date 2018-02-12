@@ -958,20 +958,20 @@ private:
 		}
 		_menu.removeAll();
 		foreach (id; EnumMembers!MenuID) { mixin(S_TRACE);
-			if (id == MenuID.None) continue;
-			if (isNoKeyBindMenu(id)) continue;
-			string name = _prop.var.menu.buildMenuSample(_prop.parent, id);
-			if (!_menuIncSearch.match(name)) continue;
-			auto itm = new TableItem(_menu, SWT.NONE);
-			itm.setText(name);
-			itm.setImage(_prop.images.menu(id));
-			auto data = new SMenuData();
-			data.id = id;
-			data.mnemonic = _prop.var.menu.mnemonic(id);
-			data.hotkey = _prop.var.menu.hotkey(id);
-			itm.setData(data);
-			if (id == selID) { mixin(S_TRACE);
-				_menu.select(_menu.getItemCount() - 1);
+			if (id !is MenuID.None && !isNoKeyBindMenu(id)) { mixin(S_TRACE);
+				string name = _prop.var.menu.buildMenuSample(_prop.parent, id);
+				if (!_menuIncSearch.match(name)) continue;
+				auto itm = new TableItem(_menu, SWT.NONE);
+				itm.setText(name);
+				itm.setImage(_prop.images.menu(id));
+				auto data = new SMenuData();
+				data.id = id;
+				data.mnemonic = _prop.var.menu.mnemonic(id);
+				data.hotkey = _prop.var.menu.hotkey(id);
+				itm.setData(data);
+				if (id == selID) { mixin(S_TRACE);
+					_menu.select(_menu.getItemCount() - 1);
+				}
 			}
 		}
 		if (-1 == _menu.getSelectionIndex()) _menu.select(0);

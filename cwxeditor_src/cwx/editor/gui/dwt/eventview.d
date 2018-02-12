@@ -1113,7 +1113,6 @@ private:
 		} else { mixin(S_TRACE);
 			return ENTER;
 		}
-		return null;
 	}
 	void createEventFire() { mixin(S_TRACE);
 		if (_readOnly) return;
@@ -3067,7 +3066,7 @@ public:
 		switch (cate) {
 		case "event": { mixin(S_TRACE);
 			return open(_cards.getItem(0));
-		} break;
+		}
 		case "playercard": { mixin(S_TRACE);
 			path = cpbottom(path);
 			if (cpempty(path)) {
@@ -3081,7 +3080,7 @@ public:
 				}
 				return false;
 			}
-		} break;
+		}
 		case "menucard": { mixin(S_TRACE);
 			if (cast(Area)_area) { mixin(S_TRACE);
 				return card();
@@ -3096,7 +3095,7 @@ public:
 			.forceFocus(_cards, shellActivate);
 			_comm.refreshToolBar();
 			return true;
-		} break;
+		}
 		default: break;
 		}
 		return false;

@@ -984,12 +984,13 @@ protected:
 					auto comp2 = new Composite(grp, SWT.NONE);
 					comp2.setLayout(zeroMarginGridLayout(EnumMembers!BlendMode.length - 1, true));
 					foreach (mode; EnumMembers!BlendMode) { mixin(S_TRACE);
-						if (mode is BlendMode.Mask) continue;
-						auto radio = new Button(comp2, SWT.RADIO);
-						mod(radio);
-						.listener(radio, SWT.Selection, &updatePreview);
-						radio.setText(_prop.msgs.blendModeName(mode));
-						_blendMode[mode] = radio;
+						if (mode !is BlendMode.Mask) { mixin(S_TRACE);
+							auto radio = new Button(comp2, SWT.RADIO);
+							mod(radio);
+							.listener(radio, SWT.Selection, &updatePreview);
+							radio.setText(_prop.msgs.blendModeName(mode));
+							_blendMode[mode] = radio;
+						}
 					}
 				}
 				{ mixin(S_TRACE);

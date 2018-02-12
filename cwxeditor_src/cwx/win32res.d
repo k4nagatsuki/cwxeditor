@@ -110,10 +110,12 @@ struct ResID {
 		}
 	}
 
+	@safe
 	const
-	hash_t toHash() { mixin(S_TRACE);
+	nothrow
+	hash_t toHash() {
 		hash_t hash = 0;
-		foreach (c; name) { mixin(S_TRACE);
+		foreach (c; name) {
 			hash = hash * 37 + c;
 		}
 		hash = hash * 37 + id;

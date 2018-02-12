@@ -2135,19 +2135,22 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 	private UseCounter _uc = null;
 	private void setUseCounterImpl(T)(ref T v, UseCounter uc) { mixin(S_TRACE);
-		static if (is(T : EventTree)) return;
-		static if (is(T : Content)) if (parent is v) return;
-		static if (is(typeof(v.setUseCounter(uc)))) {
-			static if (is(typeof(v is null))) if (!v) return;
-			if (uc) { mixin(S_TRACE);
-				v.setUseCounter(uc);
-			} else { mixin(S_TRACE);
-				v.removeUseCounter();
-			}
-		} else static if (!isSomeString!(T) && is(typeof(v[0u]))) {
-			foreach (i, vc; v) { mixin(S_TRACE);
-				setUseCounterImpl(vc, uc);
-				v[i] = vc;
+		static if (is(T : EventTree)) {
+			return;
+		} else {
+			static if (is(T : Content)) if (parent is v) return;
+			static if (is(typeof(v.setUseCounter(uc)))) {
+				static if (is(typeof(v is null))) if (!v) return;
+				if (uc) { mixin(S_TRACE);
+					v.setUseCounter(uc);
+				} else { mixin(S_TRACE);
+					v.removeUseCounter();
+				}
+			} else static if (!isSomeString!(T) && is(typeof(v[0u]))) {
+				foreach (i, vc; v) { mixin(S_TRACE);
+					setUseCounterImpl(vc, uc);
+					v[i] = vc;
+				}
 			}
 		}
 	}
@@ -2235,15 +2238,18 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	}
 
 	private void idChangeImpl(T, Id)(ref T v, Id id) { mixin(S_TRACE);
-		static if (is(T : EventTree)) return;
-		static if (is(T : Content)) if (parent is v) return;
-		static if (is(typeof(v.change(id)))) {
-			static if (is(typeof(v is null))) if (!v) return;
-			v.change(id);
-		} else static if (!isSomeString!(T) && is(typeof(v[0u]))) {
-			foreach (i, vc; v) { mixin(S_TRACE);
-				idChangeImpl(vc, id);
-				v[i] = vc;
+		static if (is(T : EventTree)) {
+			return;
+		} else {
+			static if (is(T : Content)) if (parent is v) return;
+			static if (is(typeof(v.change(id)))) {
+				static if (is(typeof(v is null))) if (!v) return;
+				v.change(id);
+			} else static if (!isSomeString!(T) && is(typeof(v[0u]))) {
+				foreach (i, vc; v) { mixin(S_TRACE);
+					idChangeImpl(vc, id);
+					v[i] = vc;
+				}
 			}
 		}
 	}

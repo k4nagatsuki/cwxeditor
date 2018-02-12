@@ -801,8 +801,9 @@ class Skin {
 	bool useLegacyRes() { mixin(S_TRACE);
 		version (Windows) {
 			return legacyEngine.length > 0;
+		} else {
+			return false;
 		}
-		return false;
 	}
 
 	/// シナリオの素材を置くディレクトリの標準。シナリオのルートからの相対パス。

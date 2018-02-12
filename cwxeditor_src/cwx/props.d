@@ -130,33 +130,38 @@ public:
 	@property const string monospace() { mixin(S_TRACE);
 		version (Windows) {
 			return "ＭＳ ゴシック";
+		} else {
+			return "IPAゴシック";
 		}
-		return "IPAゴシック";
 	}
 
 	private static string gothic(bool legacy) { mixin(S_TRACE);
 		version (Windows) {
 			return "ＭＳ ゴシック";
+		} else {
+			return "IPAゴシック";
 		}
-		return "IPAゴシック";
 	}
 	private static string pgothic(bool legacy) { mixin(S_TRACE);
 		version (Windows) {
 			return "ＭＳ Ｐゴシック";
+		} else {
+			return "IPA Pゴシック";
 		}
-		return "IPA Pゴシック";
 	}
 	private static string mincho(bool legacy) { mixin(S_TRACE);
 		version (Windows) {
 			return "ＭＳ 明朝";
+		} else {
+			return "IPA明朝";
 		}
-		return "IPA明朝";
 	}
 	private static string uigothic(bool legacy) { mixin(S_TRACE);
 		version (Windows) {
 			return "MS UI Gothic";
+		} else {
+			return "IPA UIゴシック";
 		}
-		return "IPA UIゴシック";
 	}
 	const CFont textDlgFont(uint defSize) { mixin(S_TRACE);
 		return CFont(gothic(true), defSize <= 0 ? 12 : defSize, false, false);

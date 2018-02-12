@@ -174,9 +174,11 @@ private mixin template StringId() {
 		return id;
 	}
 	const
-	hash_t toHash() { mixin(S_TRACE);
+	@safe
+	nothrow
+	hash_t toHash() {
 		hash_t hash = 0;
-		foreach (c; id) { mixin(S_TRACE);
+		foreach (c; id) {
 			hash = (hash * 9) + c;
 		}
 		return hash;
@@ -230,9 +232,11 @@ struct FlagId {
 		return id;
 	}
 	const
-	hash_t toHash() { mixin(S_TRACE);
+	@safe
+	nothrow
+	hash_t toHash() {
 		hash_t hash = 0;
-		foreach (c; id) { mixin(S_TRACE);
+		foreach (c; id) {
 			hash = (hash * 9) + c;
 		}
 		return hash;
@@ -351,9 +355,11 @@ struct StepId {
 		return id;
 	}
 	const
-	hash_t toHash() { mixin(S_TRACE);
+	@safe
+	nothrow
+	hash_t toHash() {
 		hash_t hash = 0;
-		foreach (c; id) { mixin(S_TRACE);
+		foreach (c; id) {
 			hash = (hash * 9) + c;
 		}
 		return hash;

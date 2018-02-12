@@ -2266,7 +2266,6 @@ private:
 				}
 			}
 		}
-		return "";
 	}
 	/// CWXEditorのプロセスに対してパイプを通じてメッセージを送る。
 	void sendToPipe(string delegate(string) sendRecv, bool delegate() next) { mixin(S_TRACE);

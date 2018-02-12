@@ -618,7 +618,7 @@ class Jpy1Sec : PathUser, CWXPath {
 		switch (dirtype) {
 		case Dirtype.CURRENT: { mixin(S_TRACE);
 			return FromMaterialPathResult(relPath(dirName(fPath.abs2rel(sPath)), dirName(filename)).buildPath(filename.baseName()), dirdepth);
-		} break;
+		}
 		case Dirtype.TABLE: break;
 		case Dirtype.SCHEME: break;
 		case Dirtype.SCENARIO: { mixin(S_TRACE);
@@ -632,12 +632,12 @@ class Jpy1Sec : PathUser, CWXPath {
 			}
 			dir = relPath(sPath, dir);
 			return FromMaterialPathResult(relPath(dir, filename), dirdepth);
-		} break;
+		}
 		case Dirtype.WAV: break;
 		case Dirtype.PARENT: { mixin(S_TRACE);
 			string dir = dirName(dirName(fPath.abs2rel(sPath)));
 			return FromMaterialPathResult(relPath(dir, filename), dirdepth);
-		} break;
+		}
 		case Dirtype.PROGRAM: break;
 		default: break;
 		}
@@ -1374,7 +1374,7 @@ class Jpdc : PathUser, CWXPath {
 				case "jpdc:init": { mixin(S_TRACE);
 					init = true;
 					continue;
-				} break;
+				}
 				default:
 				}
 			}

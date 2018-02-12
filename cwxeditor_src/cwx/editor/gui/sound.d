@@ -1154,8 +1154,9 @@ bool useBass() { mixin(S_TRACE);
 		mutex.lock();
 		scope (exit) mutex.unlock();
 		return bass !is null;
+	} else {
+		return false;
 	}
-	return false;
 }
 /// BASSでfileを再生できる状態であればtrue。
 bool canPlayBass(string file) { mixin(S_TRACE);
@@ -1166,8 +1167,9 @@ bool canPlayBass(string file) { mixin(S_TRACE);
 		scope (exit) mutex.unlock();
 		initBass();
 		return .useBass && (isMidi(file) ? (bassMidi && soundFonts.length) : true);
+	} else {
+		return false;
 	}
-	return false;
 }
 
 /// BGMを再生する。

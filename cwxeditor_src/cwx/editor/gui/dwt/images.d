@@ -2279,14 +2279,14 @@ private:
 	}
 	int toGridX(int p) { mixin(S_TRACE);
 		if (1 < _gridX) { mixin(S_TRACE);
-			p += _gridX / 2.0;
+			p += _gridX / 2;
 			p = p - (p % _gridX);
 		}
 		return p;
 	}
 	int toGridY(int p) { mixin(S_TRACE);
 		if (1 < _gridY) { mixin(S_TRACE);
-			p += _gridY / 2.0;
+			p += _gridY / 2;
 			p = p - (p % _gridY);
 		}
 		return p;

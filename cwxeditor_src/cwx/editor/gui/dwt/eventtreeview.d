@@ -3803,7 +3803,6 @@ string eventText(Commons comm, Summary summ, Content parent, Content e, bool rea
 		} else { mixin(S_TRACE);
 			return .tryFormat(prop.msgs.branchMultiCouponSuccess, range, e.name);
 		}
-		break;
 	} default:
 		name = "";
 		r = "";

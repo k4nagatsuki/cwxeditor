@@ -359,7 +359,7 @@ private ImageData loadJPTXImage(in Props prop, string path) { mixin(S_TRACE);
 		int height = gc.getFontMetrics().getHeight();
 		if (text == "\n") { mixin(S_TRACE);
 			// wrap
-			height *= param.lineheight / 100.0;
+			height *= param.lineheight / 100;
 			y += height;
 			x = 0;
 			return;

@@ -1652,7 +1652,6 @@ fi`;
 				return r ~ node;
 			}
 		}
-		return r;
 	}
 	private Node[] analyzeSyntaxAttr(in Token[] tokens, ref size_t i, in Keywords keys) { mixin(S_TRACE);
 		Node[] r;
@@ -1915,6 +1914,7 @@ fi`;
 				return false;
 			default: throwError(_prop.msgs.scriptErrorInvalidBoolVal, attr[i].token);
 			}
+			return T.init;
 		} else static if (is(T == Transition)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			switch (value) {
@@ -1925,6 +1925,7 @@ fi`;
 			case "fade": i++; return Transition.FADE;
 			default: throwError(_prop.msgs.scriptErrorInvalidTransition, attr[i].token);
 			}
+			return T.init;
 		} else static if (is(T == Range)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			switch (value) {
@@ -1947,6 +1948,7 @@ fi`;
 				return Range.FIELD;
 			default: throwError(_prop.msgs.scriptErrorInvalidRange, attr[i].token);
 			}
+			return T.init;
 		} else static if (is(T == Status)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			switch (value) {
@@ -1980,6 +1982,7 @@ fi`;
 			case "none": i++; return Status.NONE;
 			default: throwError(_prop.msgs.scriptErrorInvalidStatus, attr[i].token);
 			}
+			return T.init;
 		} else static if (is(T == Target)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			bool sleep = false;
@@ -2007,6 +2010,7 @@ fi`;
 				return Target(Target.M.PARTY, sleep);
 			default: throwError(_prop.msgs.scriptErrorInvalidTarget, attr[i].token);
 			}
+			return T.init;
 		} else static if (is(T == EffectType)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			switch (value) {
@@ -2017,6 +2021,7 @@ fi`;
 			case "none": i++; return EffectType.NONE;
 			default: throwError(_prop.msgs.scriptErrorInvalidEffectType, attr[i].token);
 			}
+			return T.init;
 		} else static if (is(T == Resist)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			switch (value) {
@@ -2025,6 +2030,7 @@ fi`;
 			case "unfail": i++; return Resist.UNFAIL;
 			default: throwError(_prop.msgs.scriptErrorInvalidResist, attr[i].token);
 			}
+			return T.init;
 		} else static if (is(T == CardVisual)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			switch (value) {
@@ -2034,6 +2040,7 @@ fi`;
 			case "vswing": i++; return CardVisual.VERTICAL;
 			default: throwError(_prop.msgs.scriptErrorInvalidCardVisual, attr[i].token);
 			}
+			return T.init;
 		} else static if (is(T == Mental)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			switch (value) {
@@ -2049,6 +2056,7 @@ fi`;
 			case "untrick": i++; return Mental.UNTRICKISH;
 			default: throwError(_prop.msgs.scriptErrorInvalidMental, attr[i].token);
 			}
+			return T.init;
 		} else static if (is(T == Physical)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			switch (value) {
@@ -2060,6 +2068,7 @@ fi`;
 			case "min": i++; return Physical.MIN;
 			default: throwError(_prop.msgs.scriptErrorInvalidPhysical, attr[i].token);
 			}
+			return T.init;
 		} else static if (is(T == Talker)) {
 			return parseTalker!(Within)(attr, i, varTable);
 		} else static if (is(T == MType)) {
@@ -2108,6 +2117,7 @@ fi`;
 			case "noeffect", "none": i++; return MType.NO_EFFECT;
 			default: throwError(_prop.msgs.scriptErrorInvalidMotionType, attr[i].token);
 			}
+			return T.init;
 		} else static if (is(T == Element)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			switch (value) {
@@ -2120,6 +2130,7 @@ fi`;
 			case "ice": i++; return Element.ICE;
 			default: throwError(_prop.msgs.scriptErrorInvalidElement, attr[i].token);
 			}
+			return T.init;
 		} else static if (is(T == DamageType)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			switch (value) {
@@ -2128,6 +2139,7 @@ fi`;
 			case "max": i++; return DamageType.MAX;
 			default: throwError(_prop.msgs.scriptErrorInvalidDamageType, attr[i].token);
 			}
+			return T.init;
 		} else static if (is(T == EffectCardType)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			switch (value) {
@@ -2138,6 +2150,7 @@ fi`;
 			case "hand": i++; return EffectCardType.HAND;
 			default: throwError(_prop.msgs.scriptErrorInvalidEffectCardType, attr[i].token);
 			}
+			return T.init;
 		} else static if (is(T == Comparison4)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			switch (value) {
@@ -2147,6 +2160,7 @@ fi`;
 			case "<": i++; return Comparison4.Gt;
 			default: throwError(_prop.msgs.scriptErrorInvalidComparison4, attr[i].token);
 			}
+			return T.init;
 		} else static if (is(T == Comparison3)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			switch (value) {
@@ -2155,6 +2169,7 @@ fi`;
 			case "<": i++; return Comparison3.Gt;
 			default: throwError(_prop.msgs.scriptErrorInvalidComparison3, attr[i].token);
 			}
+			return T.init;
 		} else static if (is(T == BlendMode)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			switch (value) {
@@ -2164,6 +2179,7 @@ fi`;
 			case "mul": i++; return BlendMode.Multiply;
 			default: throwError(_prop.msgs.scriptErrorInvalidBlendMode, attr[i].token);
 			}
+			return T.init;
 		} else static if (is(T == GradientDir)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			switch (value) {
@@ -2172,6 +2188,7 @@ fi`;
 			case "v", "vertical": i++; return GradientDir.TopToBottom;
 			default: throwError(_prop.msgs.scriptErrorInvalidGradientDir, attr[i].token);
 			}
+			return T.init;
 		} else static if (is(T == SelectionMethod)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			switch (value) {
@@ -2180,6 +2197,7 @@ fi`;
 			case "valued": i++; return SelectionMethod.Valued;
 			default: throwError(_prop.msgs.scriptErrorInvalidSelectionMethod, attr[i].token);
 			}
+			return T.init;
 		} else static if (is(T == StartAction)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			switch (value) {
@@ -2188,6 +2206,7 @@ fi`;
 			case "next": i++; return StartAction.NextRound;
 			default: throwError(_prop.msgs.scriptErrorInvalidStartAction, attr[i].token);
 			}
+			return T.init;
 		} else static if (is(T == CRGB)) {
 			if (attr[i].type is NodeType.VALUES) { mixin(S_TRACE);
 				auto vals = var(attr[i].values, varTable);
@@ -2418,6 +2437,7 @@ fi`;
 			case "per", "percent", "percentage": i++; return CoordinateType.Percentage;
 			default: throwError(_prop.msgs.scriptErrorInvalidCoordinateType, attr[i].token);
 			}
+			return T.init;
 		} else static if (is(T == CardImage)) {
 			CardImage imgPath = null;
 			if (attr[i].token.kind == Kind.STRING) { mixin(S_TRACE);
@@ -2460,6 +2480,7 @@ fi`;
 					break;
 				}
 			}
+			return T.init;
 		} else static if (is(T:Smoothing)) {
 			if (attr[i].token.kind == Kind.SYMBOL) { mixin(S_TRACE);
 				switch (attrValue(attr[i], varTable, 0)) {
@@ -2470,6 +2491,7 @@ fi`;
 					return parseAttr!bool(opt, attr, i, true, varTable, 0) ? Smoothing.True : Smoothing.False;
 				}
 			}
+			return T.init;
 		} else static if (is(T == MatchingType)) { //Wsn.2
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			switch (value) {
@@ -2477,6 +2499,7 @@ fi`;
 			case "or": i++; return MatchingType.Or;
 			default: throwError(_prop.msgs.scriptErrorInvalidMatchingType, attr[i].token);
 			}
+			return T.init;
 		} else static if (is(T == int)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			if (attr[i].token.kind is Kind.SYMBOL && value == "all") { mixin(S_TRACE);
@@ -2496,6 +2519,7 @@ fi`;
 				debugln(e);
 				throwError(_prop.msgs.scriptErrorReqNumber, attr[i].token);
 			}
+			return T.init;
 		} else static if (is(T == ulong)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			try { mixin(S_TRACE);
@@ -2507,6 +2531,7 @@ fi`;
 				debugln(e);
 				throwError(_prop.msgs.scriptErrorReqID, attr[i].token);
 			}
+			return T.init;
 		} else static if (is(T == real)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			try { mixin(S_TRACE);
@@ -2518,8 +2543,8 @@ fi`;
 				debugln(e);
 				throwError(_prop.msgs.scriptErrorReqNumber, attr[i].token);
 			}
+			return T.init;
 		} else static assert (0, T.stringof);
-		return T.init;
 	}
 
 	private Talker parseTalker(bool Within)(in Node[] attr, ref size_t i, in const(Node)[][string] varTable) { mixin(S_TRACE);
@@ -2532,9 +2557,12 @@ fi`;
 		case "u", "unselected": i++; return Talker.UNSELECTED;
 		case "r", "random": i++; return Talker.RANDOM;
 		case "c", "card":
-			static if (Within) goto default;
-			i++;
-			return Talker.CARD;
+			static if (Within) {
+				goto default;
+			} else {
+				i++;
+				return Talker.CARD;
+			}
 		case "v", "valued": i++; return Talker.VALUED;
 		default:
 			throwError(_prop.msgs.scriptErrorInvalidTalker, node.token);

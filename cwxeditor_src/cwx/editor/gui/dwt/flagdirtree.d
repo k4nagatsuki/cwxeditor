@@ -655,7 +655,7 @@ public:
 			}
 			_comm.refreshToolBar();
 			return true;
-		} break;
+		}
 		case "step": { mixin(S_TRACE);
 			if (index >= dir.steps.length) return false;
 			_comm.openFlagWin(shellActivate);
@@ -668,12 +668,12 @@ public:
 			}
 			_comm.refreshToolBar();
 			return true;
-		} break;
+		}
 		case "dir": { mixin(S_TRACE);
 			if (index >= dir.subDirs.length) return false;
 			_comm.openFlagWin(shellActivate);
 			return openCWXPathImpl(dir.subDirs[index], cpbottom(path), shellActivate);
-		} break;
+		}
 		case "": { mixin(S_TRACE);
 			_comm.openFlagWin(shellActivate);
 			forceFocus(dirs, shellActivate);

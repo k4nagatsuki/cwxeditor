@@ -427,8 +427,8 @@ class Preview {
 				real ws = cast(real) _prop.var.etc.previewMaxWidth / _w;
 				real hs = cast(real) _prop.var.etc.previewMaxHeight / _h;
 				real s = std.algorithm.min(ws, hs);
-				_w *= s;
-				_h *= s;
+				_w = cast(int)(_w * s);
+				_h = cast(int)(_h * s);
 				_w = .max(1, _w);
 				_h = .max(1, _h);
 			}

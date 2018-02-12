@@ -373,7 +373,7 @@ version (Windows) {
 					if (!exists(dir)) mkdirRecurse(dir);
 					prm.onExpand = path.ptr;
 					return cast(INT) CreateFileA(path.ptr, GENERIC_WRITE, 0, null, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, null);
-				} break;
+				}
 				case FDINOTIFICATIONTYPE.fdintCLOSE_FILE_INFO: { mixin(S_TRACE);
 					auto h = cast(HANDLE) pNotify.hf;
 					scope (exit) CloseHandle(h);
@@ -383,7 +383,7 @@ version (Windows) {
 					SetFileTime(h, &lft, null, &ft);
 					SetFileAttributesA((cast(Prm*) pNotify.pv).onExpand, pNotify.attribs);
 					return TRUE;
-				} break;
+				}
 				case FDINOTIFICATIONTYPE.fdintENUMERATE: return 0;
 				default: assert (0);
 				}

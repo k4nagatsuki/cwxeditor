@@ -1072,7 +1072,7 @@ public:
 					"skillcardview", "itemcardview", "beastcardview": { mixin(S_TRACE);
 				if (!cphasattr(path, "nofocus")) forceFocus(_paneTbl[cardType].widget, shellActivate);
 				return _comm.openHands(_prop, _summ, cast(CastCard)card, shellActivate).openCWXPath(path, shellActivate);
-			} break;
+			}
 			default: break;
 			}
 		} else if (cardType is CardType.Skill || cardType is CardType.Item || cardType is CardType.Beast) {
@@ -1090,19 +1090,19 @@ public:
 		switch (cate) {
 		case "castcard", "castcard:id", "castcardview": { mixin(S_TRACE);
 			return openCWXPathEff(CardType.Cast, path, shellActivate);
-		} break;
+		}
 		case "skillcard", "skillcard:id", "skillcardview": { mixin(S_TRACE);
 			return openCWXPathEff(CardType.Skill, path, shellActivate);
-		} break;
+		}
 		case "itemcard", "itemcard:id", "itemcardview": { mixin(S_TRACE);
 			return openCWXPathEff(CardType.Item, path, shellActivate);
-		} break;
+		}
 		case "beastcard", "beastcard:id", "beastcardview": { mixin(S_TRACE);
 			return openCWXPathEff(CardType.Beast, path, shellActivate);
-		} break;
+		}
 		case "infocard", "infocard:id", "infocardview": { mixin(S_TRACE);
 			return openCWXPathEff(CardType.Info, path, shellActivate);
-		} break;
+		}
 		default: break;
 		}
 		return false;
