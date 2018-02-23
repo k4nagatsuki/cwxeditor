@@ -139,12 +139,12 @@ PImg createCardImageCommon(PImg)(Props prop, ImageData card,
 
 /// キャストカード画像を生成する。
 /// Returns: カード画像。
-PImg createCastCardImage(PImg)(Props prop, Skin skin, CastCard card,
+PImg createCastCardImage(PImg)(Props prop, Skin skin, Summary summ, CastCard card,
 		string sPath, string wsnVer, int x, int y, uint scale, bool smoothing, bool dbgMode, int layer) { mixin(S_TRACE);
 	auto matPad = prop.looks.castCardInsets;
 	PImg r;
 	if (card) { mixin(S_TRACE);
-		r = createCardImageCommon!PImg(prop, castCardImage(prop, skin, card, sPath, wsnVer, dbgMode),
+		r = createCardImageCommon!PImg(prop, castCardImage(prop, skin, summ, card, sPath, wsnVer, dbgMode),
 			matPad, x, y, scale, smoothing, layer);
 	} else { mixin(S_TRACE);
 		r = createCardImageCommon!PImg(prop, castCard(skin), matPad, x, y, scale, smoothing, layer);

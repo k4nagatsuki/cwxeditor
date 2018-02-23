@@ -3540,7 +3540,7 @@ public:
 					static if (is(C:EnemyCard)) {
 						auto castCard = _summ.cwCast(c.id);
 						if (!castCard) continue; // カード名が表示されないため不要
-						img.setImageData(castCardImage(_prop, skin, castCard, _summ ? _summ.scenarioPath : "", _summ ? _summ.dataVersion : LATEST_VERSION, _dbgMode));
+						img.setImageData(castCardImage(_prop, skin, _summ, castCard, _summ ? _summ.scenarioPath : "", _summ ? _summ.dataVersion : LATEST_VERSION, _dbgMode));
 					} else { mixin(S_TRACE);
 						img.title = name;
 					}
@@ -4115,10 +4115,10 @@ public:
 			auto skin = summSkin;
 			auto castCard = summary.cwCast(card.id);
 			if (castCard) { mixin(S_TRACE);
-				return createCastCardImage!PImg(prop, skin, castCard, _summ.scenarioPath,
+				return createCastCardImage!PImg(prop, skin, _summ, castCard, _summ.scenarioPath,
 					_summ.dataVersion, card.x, card.y, card.scale, smoothing, debugMode, card.layer);
 			} else { mixin(S_TRACE);
-				return createCastCardImage!PImg(prop, skin, null, _summ.scenarioPath,
+				return createCastCardImage!PImg(prop, skin, _summ, null, _summ.scenarioPath,
 					_summ.dataVersion, card.x, card.y, card.scale, smoothing, debugMode, card.layer);
 			}
 		} else static assert (0, C2);
@@ -5637,7 +5637,7 @@ public:
 				if (castCard.id == _area.cards[i].id) { mixin(S_TRACE);
 					auto img = imagePane.images[cardsIndex + i];
 					auto name = img.title;
-					img.setImageData(castCardImage(_prop, skin, castCard, _summ ? _summ.scenarioPath : "", _summ ? _summ.dataVersion : LATEST_VERSION, _dbgMode));
+					img.setImageData(castCardImage(_prop, skin, _summ, castCard, _summ ? _summ.scenarioPath : "", _summ ? _summ.dataVersion : LATEST_VERSION, _dbgMode));
 					img.createImage();
 					imagePane.redrawImage(img);
 					if (name != castCard.name) { mixin(S_TRACE);

@@ -1552,7 +1552,7 @@ void hemming(GC gc, string s, int tx, int ty, Color color) { mixin(S_TRACE);
 	gc.setForeground(color);
 	gc.wDrawText(s, tx, ty, true);
 }
-ImageData castCardImage(Props prop, Skin skin, in CastCard c, string sPath, string wsnVer, bool dbgMode) { mixin(S_TRACE);
+ImageData castCardImage(Props prop, Skin skin, in Summary summ, in CastCard c, string sPath, string wsnVer, bool dbgMode) { mixin(S_TRACE);
 	auto d = Display.getCurrent();
 	auto cardSize = prop.looks.cardSize;
 	auto matPad = prop.looks.castCardInsets;
@@ -1746,7 +1746,15 @@ ImageData castCardImage(Props prop, Skin skin, in CastCard c, string sPath, stri
 	int beastCountMax = prop.looks.beastCardMaxNum(c.level);
 	int beastCount = 0;
 	foreach (b; c.beasts) { mixin(S_TRACE);
-		if (b.useLimit > 0) { mixin(S_TRACE);
+		uint useLimit;
+		if (summ && 0 != b.linkId) { mixin(S_TRACE);
+			auto b2 = summ.beast(b.linkId);
+			if (!b2) continue;
+			useLimit = b2.useLimit;
+		} else { mixin(S_TRACE);
+			useLimit = b.useLimit;
+		}
+		if (0 < useLimit) { mixin(S_TRACE);
 			beastCount++;
 			if (beastCount >= beastCountMax) break;
 		}

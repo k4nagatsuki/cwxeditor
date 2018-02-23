@@ -1935,7 +1935,7 @@ private:
 		auto detail = _viewMode == CViewMode.LIFE || preview;
 		ImageData data;
 		if (cast(CastCard)c) { mixin(S_TRACE);
-			data = castCardImage(_prop, skin, cast(CastCard)c, ownerScenarioPath, ownerWsnVersion, detail);
+			data = castCardImage(_prop, skin, _summ, cast(CastCard)c, ownerScenarioPath, ownerWsnVersion, detail);
 		} else if (!cast(InfoCard)c && _ownerType is OwnerType.Cast) { mixin(S_TRACE);
 			final switch (_cardType) {
 			case CardType.Cast:
@@ -3315,9 +3315,7 @@ public:
 				_comm.refInfo.call(this, cast(InfoCard)c);
 				break;
 			}
-			if (_ownerType is OwnerType.Cast && _cardType is CardType.Beast) { mixin(S_TRACE);
-				_comm.refCast.call(cast(CastCard)_owner);
-			}
+			refOwnerCastCard(c);
 			_comm.refreshToolBar();
 			_comm.refUseCount.call();
 			absDlg.appliedEvent.length = 0;
@@ -3327,6 +3325,7 @@ public:
 			absDlg.appliedEvent ~= { mixin(S_TRACE);
 				refresh();
 				refCard(c);
+				refOwnerCastCard(c);
 				_comm.refreshToolBar();
 			};
 		};
@@ -3335,6 +3334,19 @@ public:
 			_editDlgs.remove(c);
 		};
 		absDlg.open();
+	}
+	private void refOwnerCastCard(in Card c) { mixin(S_TRACE);
+		if (_cardType !is CardType.Beast) return;
+		if (_ownerType is OwnerType.Cast) { mixin(S_TRACE);
+			_comm.refCast.call(cast(CastCard)_owner);
+		}
+		if (_ownerType is OwnerType.Summary) { mixin(S_TRACE);
+			foreach (o; _summ.useCounter.values(toBeastId(c.id))) { mixin(S_TRACE);
+				if (auto bc = cast(BeastCard)o.owner) { mixin(S_TRACE);
+					if (auto cc = cast(CastCard)bc.cwxParent) _comm.refCast.call(cc);
+				}
+			}
+		}
 	}
 	bool addFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
 		assert (editMode);
@@ -3593,6 +3605,7 @@ public:
 			absDlg.appliedEvent ~= { mixin(S_TRACE);
 				refresh();
 				refCard(c);
+				refOwnerCastCard(c);
 				_comm.refreshToolBar();
 				_comm.refUseCount.call();
 			};

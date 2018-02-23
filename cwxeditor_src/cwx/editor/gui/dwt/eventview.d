@@ -135,10 +135,10 @@ private:
 				dbgMode |= areaView.debugMode;
 			}
 			if (castCard) { mixin(S_TRACE);
-				return createCastCardImage!PileImage(_prop, skin, castCard, _summ.scenarioPath, _summ.dataVersion,
+				return createCastCardImage!PileImage(_prop, skin, _summ, castCard, _summ.scenarioPath, _summ.dataVersion,
 					0, 0, 100, _prop.var.etc.smoothingCard, dbgMode, spCard.layer);
 			} else { mixin(S_TRACE);
-				return createCastCardImage!PileImage(_prop, skin, null, _summ.scenarioPath, _summ.dataVersion,
+				return createCastCardImage!PileImage(_prop, skin, _summ, null, _summ.scenarioPath, _summ.dataVersion,
 					0, 0, 100, _prop.var.etc.smoothingCard, dbgMode, spCard.layer);
 			}
 		} else assert (0);
