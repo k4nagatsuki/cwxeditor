@@ -488,7 +488,6 @@ public:
 	/// index = インデックス。
 	@property
 	void select(int index) { mixin(S_TRACE);
-		if (index < 0 || count <= index) return;
 		if (!(index in _sels)) { mixin(S_TRACE);
 			if ((getStyle() & SWT.MULTI) == 0) { mixin(S_TRACE);
 				deselectAll();
@@ -505,7 +504,6 @@ public:
 	/// Params:
 	/// index = インデックス。
 	void deselect(int index) { mixin(S_TRACE);
-		if (index < 0 || count <= index) return;
 		if (index in _sels) { mixin(S_TRACE);
 			_sels.remove(index);
 			redrawCard(index);
@@ -525,6 +523,12 @@ public:
 	/// createTitle = 要素から画像タイトルを作成する関数。
 	///               タイトルが不要な場合はnullを指定する。
 	void refresh(C[] cards, ImageData delegate(in C) createImage, string delegate(in C) createTitle) { mixin(S_TRACE);
+		if (_shiftP != -1 && cards.length <= _shiftP) { mixin(S_TRACE);
+			_shiftP = cast(int)cards.length - 1;
+		}
+		if (_mouseP != -1 && cards.length <= _mouseP) { mixin(S_TRACE);
+			_mouseP = cast(int)cards.length - 1;
+		}
 		int ox = _origin.x;
 		int oy = _origin.y;
 		auto sels = new HashSet!(C);
