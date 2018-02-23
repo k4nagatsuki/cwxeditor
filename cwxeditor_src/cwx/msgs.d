@@ -1726,6 +1726,14 @@ class Msgs : Properties {
 	auto handCardStatusSelOne = Msg("handCardStatusSelOne", "%1$s枚のカード (有効枚数 = %2$s) (ID = %3$s)");
 	auto handCardStatusSelMulti = Msg("handCardStatusSelMulti", "%1$s枚のカード (有効枚数 = %2$s) (%3$s枚を選択中)");
 
+	auto showStatusTime = Msg("showStatusTime", "状態の強度と持続時間");
+	const string showStatusTimeName(ShowStatusTime id) { mixin(S_TRACE);
+		mixin(EnumToStringSwitch!(ShowStatusTime, "showStatusTimeName"));
+	}
+	auto showStatusTimeNameAlways = Msg("showStatusTimeNameAlways", "常に表示");
+	auto showStatusTimeNameWithSkin = Msg("showStatusTimeNameWithSkin", "スキン使用時のみ表示");
+	auto showStatusTimeNameNo = Msg("showStatusTimeNameNo", "表示しない");
+
 	auto cwCast = Msg("cwCast", "キャスト");
 	auto skill = Msg("skill", "特殊技能");
 	auto item = Msg("item", "アイテム");

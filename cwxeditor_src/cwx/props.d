@@ -174,7 +174,15 @@ public:
 	@property const CPoint castLifeBarPoint() {return CPoint(8, 110);}
 	@property const int statusX() {return 7;}
 	@property const uint statusVerMax() {return 6;}
-	@property const CFont beastNumFont(bool legacy) {return CFont(pgothic(legacy), 12, false, false);}
+	@property const CFont statusTimeFont(bool legacy, uint number) { mixin(S_TRACE);
+		if (100 <= number) { mixin(S_TRACE);
+			return CFont(pgothic(legacy), 8, false, false);
+		} else if (10 <= number) { mixin(S_TRACE);
+			return CFont(pgothic(legacy), 10, false, false);
+		} else { mixin(S_TRACE);
+			return CFont(pgothic(legacy), 12, false, false);
+		}
+	}
 
 	const CFont skillCardLevelFont(bool legacy) {return CFont(mincho(legacy), 27, true, true);}
 	@property const CRGB skillCardLevelColor() {return CRGB(0, 0, 0, 128);}

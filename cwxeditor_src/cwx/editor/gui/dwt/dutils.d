@@ -1553,6 +1553,7 @@ void hemming(GC gc, string s, int tx, int ty, Color color) { mixin(S_TRACE);
 	gc.wDrawText(s, tx, ty, true);
 }
 ImageData castCardImage(Props prop, Skin skin, in CastCard c, string sPath, string wsnVer, bool dbgMode) { mixin(S_TRACE);
+	auto d = Display.getCurrent();
 	auto cardSize = prop.looks.cardSize;
 	auto matPad = prop.looks.castCardInsets;
 	int w = cardSize.width + matPad.e + matPad.w;
@@ -1603,7 +1604,6 @@ ImageData castCardImage(Props prop, Skin skin, in CastCard c, string sPath, stri
 	}
 	int stMax = prop.looks.statusVerMax;
 	if ((dbgMode || c.faceUpRound > 0) && 0 < c.life) { mixin(S_TRACE);
-		auto d = Display.getCurrent();
 		auto lgid = lifeGuage(skin);
 		int lgw = lgid.width;
 		int lgh = lgid.height;
@@ -1639,7 +1639,39 @@ ImageData castCardImage(Props prop, Skin skin, in CastCard c, string sPath, stri
 	stp.y -= 3;
 	int styf = stp.y;
 	int stc = 0;
-	void status(ImageData id) { mixin(S_TRACE);
+	auto showSleepAndBind = prop.var.etc.showStatusTime is ShowStatusTime.Always
+		|| (prop.var.etc.showStatusTime is ShowStatusTime.WithSkin && !skin.legacy);
+	auto showStatusTime = showSleepAndBind && (dbgMode || 0 < c.faceUpRound);
+
+	ImageData putNumber(ImageData id, uint number, RGB backColor = null) { mixin(S_TRACE);
+		auto bmp = new Image(d, id.width, id.height);
+		scope (exit) bmp.dispose();
+		auto gc = new GC(bmp);
+		scope (exit) gc.dispose();
+		auto img = new Image(d, id);
+		scope (exit) img.dispose();
+		if (backColor) { mixin(S_TRACE);
+			auto color = new Color(d, backColor);
+			scope (exit) color.dispose();
+			gc.setBackground(color);
+			gc.fillRectangle(0, 0, id.width, id.height);
+		}
+		gc.drawImage(img, 0, 0);
+		auto font = .createFontFromPixels(prop.looks.statusTimeFont(skin.legacy, number));
+		scope (exit) font.dispose();
+		gc.setFont(font);
+		string s = to!(string)(number);
+		auto cw = gc.wTextExtent(s).x;
+		auto mt = gc.getFontMetrics();
+		auto tx = id.width - cw - 1;
+		auto ty = id.height - mt.getAscent() - 2;
+		hemming(gc, s, tx, ty, d.getSystemColor(SWT.COLOR_WHITE));
+		return bmp.getImageData();
+	}
+	void status(ImageData id, uint number, RGB backColor = null) { mixin(S_TRACE);
+		if (showStatusTime) { mixin(S_TRACE);
+			id = putNumber(id, number, backColor);
+		}
 		r.append(id, stp, ScaleType.Cut);
 		stc++;
 		if (stc >= stMax) { mixin(S_TRACE);
@@ -1653,24 +1685,34 @@ ImageData castCardImage(Props prop, Skin skin, in CastCard c, string sPath, stri
 	if (c.mentalityRound > 0) { mixin(S_TRACE);
 		switch (c.mentality) {
 		case Mentality.NORMAL: break;
-		case Mentality.SLEEP: break;
+		case Mentality.SLEEP:
+			if (showSleepAndBind) goto case Mentality.CONFUSE;
+			break;
 		case Mentality.CONFUSE, Mentality.OVERHEAT, Mentality.BRAVE, Mentality.PANIC: { mixin(S_TRACE);
-			status(mentality(skin, c.mentality));
+			status(mentality(skin, c.mentality), c.mentalityRound);
 		} break;
 		default: assert (0);
 		}
 	}
-	if (c.poison > 0) status(poison(skin));
-	if (c.silenceRound > 0) status(silence(skin));
-	if (c.faceUpRound > 0) status(faceUp(skin));
-	if (c.antiMagicRound > 0) status(antiMagic(skin));
+	if (c.poison > 0) status(poison(skin), c.poison);
+	if (c.bindRound > 0 && showSleepAndBind) status(bind(skin), c.bindRound);
+	if (c.silenceRound > 0) status(silence(skin), c.silenceRound);
+	if (c.faceUpRound > 0) status(faceUp(skin), c.faceUpRound);
+	if (c.antiMagicRound > 0) status(antiMagic(skin), c.antiMagicRound);
 	void enh(Enhance enh) { mixin(S_TRACE);
-		void colorBlock(ImageData iData, CRGB rgb) { mixin(S_TRACE);
-			auto id = new ImageData(iData.width, iData.height, 1, new PaletteData([new RGB(rgb.r, rgb.g, rgb.b), new RGB(0, 0, 0)]));
-			r.append(id, stp, ScaleType.Cut);
-		}
 		auto value = c.enhance(enh);
 		auto round = c.enhanceRound(enh);
+		void put(ImageData iData, in CRGB crgb) { mixin(S_TRACE);
+			int alpha;
+			auto rgb = .dwtData(crgb, alpha);
+			if (showStatusTime) { mixin(S_TRACE);
+				status(iData, round, rgb);
+			} else { mixin(S_TRACE);
+				auto id = new ImageData(iData.width, iData.height, 1, new PaletteData([rgb, new RGB(0, 0, 0)]));
+				r.append(id, stp, ScaleType.Cut);
+				status(iData, round);
+			}
+		}
 		if (value > 0 && round > 0) { mixin(S_TRACE);
 			CRGB back;
 			if (prop.var.etc.enhanceMaxVal <= value) { mixin(S_TRACE);
@@ -1682,9 +1724,7 @@ ImageData castCardImage(Props prop, Skin skin, in CastCard c, string sPath, stri
 			} else if (1 <= value) { mixin(S_TRACE);
 				back = prop.var.etc.enhanceColorLow;
 			}
-			auto iData = enhanceUp(skin, enh);
-			colorBlock(iData, back);
-			status(iData);
+			put(enhanceUp(skin, enh), back);
 		} else if (value < 0 && round > 0) { mixin(S_TRACE);
 			CRGB back;
 			if (-(cast(int) prop.var.etc.enhanceMaxVal) >= value) { mixin(S_TRACE);
@@ -1696,9 +1736,7 @@ ImageData castCardImage(Props prop, Skin skin, in CastCard c, string sPath, stri
 			} else if (-1 >= value) { mixin(S_TRACE);
 				back = prop.var.etc.penaltyColorLow;
 			}
-			auto iData = enhanceDown(skin, enh);
-			colorBlock(iData, back);
-			status(iData);
+			put(enhanceDown(skin, enh), back);
 		}
 	}
 	enh(Enhance.ACTION);
@@ -1714,25 +1752,9 @@ ImageData castCardImage(Props prop, Skin skin, in CastCard c, string sPath, stri
 		}
 	}
 	if (beastCount > 0) { mixin(S_TRACE);
-		auto d = Display.getCurrent();
 		auto bid = summon(skin);
-		auto bmp = new Image(d, bid.width, bid.height);
-		scope (exit) bmp.dispose();
-		auto gc = new GC(bmp);
-		scope (exit) gc.dispose();
-		auto bi = new Image(d, bid);
-		scope (exit) bi.dispose();
-		gc.drawImage(bi, 0, 0);
-		auto bff = .createFontFromPixels(prop.looks.beastNumFont(skin.legacy));
-		scope (exit) bff.dispose();
-		gc.setFont(bff);
-		string s = to!(string)(beastCount);
-		auto cw = gc.wTextExtent(s).x;
-		auto mt = gc.getFontMetrics();
-		auto tx = bid.width - cw - 1;
-		auto ty = bid.height - mt.getAscent() - 2;
-		hemming(gc, s, tx, ty, d.getSystemColor(SWT.COLOR_WHITE));
-		r.append(bmp.getImageData(), stp, ScaleType.Cut);
+		bid = putNumber(bid, beastCount);
+		r.append(bid, stp, ScaleType.Cut);
 	}
 	auto x = prop.looks.castCardNamePoint.x;
 	r.setTitle(c.name, prop.looks.castCardNameFont(skin.legacy), dwtData(prop.looks.castCardNamePoint),

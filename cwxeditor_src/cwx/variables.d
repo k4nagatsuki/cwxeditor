@@ -468,6 +468,7 @@ class FlexEtcProps : Properties {
 	auto showSceneViewSelectionFilter = Prop!(bool)("showSceneViewSelectionFilter", true);
 	auto showItemNumberOfSceneAndEventView = Prop!(bool)("showItemNumberOfSceneAndEventView", true);
 	auto showCardStatusUnderPointer = Prop!(bool)("showCardStatusUnderPointer", true);
+	auto showStatusTime = Prop!(int)("showStatusTime", ShowStatusTime.Always);
 
 	auto showEventTreeLineNumber = Prop!(bool)("showEventTreeLineNumber", true);
 	auto showEventTreeDetail = Prop!(bool)("showEventTreeDetail", true);

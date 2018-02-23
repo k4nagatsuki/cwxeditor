@@ -3562,10 +3562,11 @@ public:
 	}
 	static if (UseCards) {
 		private void refreshCardState() { mixin(S_TRACE);
-			for (int i = 0; i < _area.cards.length; i++) { mixin(S_TRACE);
-				auto fi = cast(FlexImage)_imgp.images[cardsIndex + i];
-				fi.smoothing = _prop.var.etc.smoothingCard;
-				fi.createImage();
+			foreach (i, c; _area.cards) { mixin(S_TRACE);
+				auto v = _imgp.images[cardsIndex + i].visible;
+				auto fi = create(c);
+				fi.visible = v;
+				_imgp.set(cardsIndex + cast(int)i, fi);
 				_imgp.redrawImage(fi);
 			}
 		}

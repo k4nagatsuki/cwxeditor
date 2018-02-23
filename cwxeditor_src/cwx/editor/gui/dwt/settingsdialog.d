@@ -153,6 +153,9 @@ private:
 	Combo _dialogStatus;
 	int[int] _dialogStatusTbl;
 	int[int] _dialogStatusTbl2;
+	Combo _showStatusTime;
+	int[int] _showStatusTimeTbl;
+	int[int] _showStatusTimeTbl2;
 	Text _savedSound;
 
 	Combo _flagInitValue;
@@ -1107,14 +1110,24 @@ private:
 			volc.setLayoutData(volcgd);
 
 			_dialogStatus = createEnumC(grp, _prop.msgs.dialogStatus, [
-				cast(int) DialogStatus.Top,
-				cast(int) DialogStatus.Under,
-				cast(int) DialogStatus.UnderWithCoupon,
+				cast(int)DialogStatus.Top,
+				cast(int)DialogStatus.Under,
+				cast(int)DialogStatus.UnderWithCoupon,
 			], [
 				_prop.msgs.dialogStatusName(DialogStatus.Top),
 				_prop.msgs.dialogStatusName(DialogStatus.Under),
 				_prop.msgs.dialogStatusName(DialogStatus.UnderWithCoupon),
 			], _dialogStatusTbl, _dialogStatusTbl2, 4);
+
+			_showStatusTime = createEnumC(grp, _prop.msgs.showStatusTime, [
+				cast(int)ShowStatusTime.Always,
+				cast(int)ShowStatusTime.WithSkin,
+				cast(int)ShowStatusTime.No,
+			], [
+				_prop.msgs.showStatusTimeName(ShowStatusTime.Always),
+				_prop.msgs.showStatusTimeName(ShowStatusTime.WithSkin),
+				_prop.msgs.showStatusTimeName(ShowStatusTime.No),
+			], _showStatusTimeTbl, _showStatusTimeTbl2, 4);
 
 			Combo createInitVarCombo(string name, string[] values) { mixin(S_TRACE);
 				auto l = new Label(grp, SWT.NONE);
@@ -1341,6 +1354,12 @@ protected:
 		} else { mixin(S_TRACE);
 			_dialogStatus.select(DialogStatus.Top);
 		}
+		auto sst = _prop.var.etc.showStatusTime in _showStatusTimeTbl;
+		if (sst) { mixin(S_TRACE);
+			_showStatusTime.select(*sst);
+		} else { mixin(S_TRACE);
+			_showStatusTime.select(ShowStatusTime.Always);
+		}
 		_savedSound.setText(_prop.var.etc.savedSound);
 		_bgImagesDefault = _prop.var.etc.bgImagesDefault.dup;
 
@@ -1500,7 +1519,8 @@ protected:
 		_prop.var.etc.bgmVolume = _bgmVolume.getSelection();
 		_prop.var.etc.soundEffectPlayType = _soundEffectPlayTypeTbl2[_soundEffectPlayType.getSelectionIndex()];
 		_prop.var.etc.seVolume = _seVolume.getSelection();
-		_prop.var.etc.dialogStatus = cast(DialogStatus) _dialogStatusTbl2[_dialogStatus.getSelectionIndex()];
+		_prop.var.etc.dialogStatus = cast(DialogStatus)_dialogStatusTbl2[_dialogStatus.getSelectionIndex()];
+		_prop.var.etc.showStatusTime = cast(ShowStatusTime)_showStatusTimeTbl2[_showStatusTime.getSelectionIndex()];
 		_prop.var.etc.savedSound = _savedSound.getText();
 		if (_prop.var.etc.historyMax < _prop.var.etc.openHistories.length) { mixin(S_TRACE);
 			_prop.var.etc.openHistories
@@ -1576,6 +1596,7 @@ struct OldSettings {
 	int oldUndoMaxReplace;
 	int oldUndoMaxEtc;
 	int oldDialogStatus;
+	int showStatusTime;
 	string[MenuID] oldMnemonic;
 	string[MenuID] oldHotkey;
 	bool floatMessagePreview;
@@ -1643,6 +1664,7 @@ struct OldSettings {
 		this.oldUndoMaxReplace = prop.var.etc.undoMaxReplace;
 		this.oldUndoMaxEtc = prop.var.etc.undoMaxEtc;
 		this.oldDialogStatus = prop.var.etc.dialogStatus;
+		this.showStatusTime = prop.var.etc.showStatusTime;
 		foreach (id; EnumMembers!MenuID) { mixin(S_TRACE);
 			if (isNoKeyBindMenu(id)) continue;
 			oldMnemonic[id] = prop.var.menu.mnemonic(id);
@@ -1740,7 +1762,7 @@ struct OldSettings {
 		if (oldIgnorePaths != prop.var.etc.ignorePaths) { mixin(S_TRACE);
 			comm.refIgnorePaths.call();
 		}
-		if (oldSmoothingCard != prop.var.etc.smoothingCard) { mixin(S_TRACE);
+		if (oldSmoothingCard != prop.var.etc.smoothingCard || this.showStatusTime != prop.var.etc.showStatusTime) { mixin(S_TRACE);
 			comm.refCardState.call();
 		}
 		if (drawXORSelectionLine != prop.var.etc.drawXORSelectionLine || showSceneViewSelectionFilter != prop.var.etc.showSceneViewSelectionFilter) { mixin(S_TRACE);
@@ -1807,7 +1829,8 @@ struct OldSettings {
 		if (this.soundPlayType != prop.var.etc.soundPlayType || this.soundEffectPlayType != prop.var.etc.soundEffectPlayType) { mixin(S_TRACE);
 			comm.refSoundType.call();
 		}
-		if (this.showEventTreeMark != prop.var.etc.showEventTreeMark || this.showSkillCardLevel != prop.var.etc.showSkillCardLevel || this.ignoreEmptyStart != prop.var.etc.ignoreEmptyStart) { mixin(S_TRACE);
+		if (this.showEventTreeMark != prop.var.etc.showEventTreeMark || this.showSkillCardLevel != prop.var.etc.showSkillCardLevel || this.ignoreEmptyStart != prop.var.etc.ignoreEmptyStart
+				|| this.showStatusTime != prop.var.etc.showStatusTime) { mixin(S_TRACE);
 			comm.refCardImageStatus.call();
 		}
 		if (this.classicStyleTree != prop.var.etc.classicStyleTree) { mixin(S_TRACE);

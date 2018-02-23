@@ -44,6 +44,24 @@ DialogStatus toDialogStatus(int dialogStatus) { mixin(S_TRACE);
 	}
 }
 
+/// 状態の強度と持続時間の表示。
+enum ShowStatusTime {
+	No = 0, /// 表示しない。
+	Always = 1, /// 常に表示。
+	WithSkin = 2, /// スキン使用時のみ表示。
+}
+
+ShowStatusTime toShowStatusTime(int showStatusTime) { mixin(S_TRACE);
+	switch (showStatusTime) {
+	case ShowStatusTime.No:
+	case ShowStatusTime.Always:
+	case ShowStatusTime.WithSkin:
+		return cast(ShowStatusTime)showStatusTime;
+	default:
+		return ShowStatusTime.Always;
+	}
+}
+
 /// 編集開始方法。
 enum EditTrigger {
 	Quick = 0, /// 2度のクリックで即編集開始。
