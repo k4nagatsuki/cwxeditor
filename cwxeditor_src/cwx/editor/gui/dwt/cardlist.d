@@ -488,6 +488,7 @@ public:
 	/// index = インデックス。
 	@property
 	void select(int index) { mixin(S_TRACE);
+		if (index < 0 || count <= index) return;
 		if (!(index in _sels)) { mixin(S_TRACE);
 			if ((getStyle() & SWT.MULTI) == 0) { mixin(S_TRACE);
 				deselectAll();
@@ -504,6 +505,7 @@ public:
 	/// Params:
 	/// index = インデックス。
 	void deselect(int index) { mixin(S_TRACE);
+		if (index < 0 || count <= index) return;
 		if (index in _sels) { mixin(S_TRACE);
 			_sels.remove(index);
 			redrawCard(index);
