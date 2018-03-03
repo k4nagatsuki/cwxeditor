@@ -2660,6 +2660,7 @@ public:
 			}
 			auto c = cast(Content)path;
 			if (c) { mixin(S_TRACE);
+				foreach (i, o; c.dialogs) searchAll(parent, o, count, dlg, cpjoin2(cwxPath, "dialog".dup, i));
 				foreach (i, o; c.backs) searchAll(parent, o, count, dlg, cpjoin2(cwxPath, "background".dup, i));
 				auto next = c.next;
 				if (next.length == 1) { mixin(S_TRACE);
