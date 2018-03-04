@@ -270,7 +270,7 @@ class CWXScript {
 		}
 		if (tok.value[0] == '@') { mixin(S_TRACE);
 			char[] buf;
-			auto linesBase = .splitLines!string(tok.value[0 .. $ - 1].idup);
+			auto linesBase = .splitLines(tok.value[0 .. $ - 1].idup);
 			string firstLine = linesBase[0];
 			string[] lines;
 			string[] resultLines;
@@ -2621,7 +2621,7 @@ fi`;
 		auto commentReg = .regex(`^[\s|\*|\/]*(.*)[\s|\*|\/]*$`);
 		string parseComment(string comment) { mixin(S_TRACE);
 			string r = "";
-			foreach (i, line; splitLines!string(comment)) { mixin(S_TRACE);
+			foreach (i, line; splitLines(comment)) { mixin(S_TRACE);
 				auto m = .match(line, commentReg);
 				if (!m.empty) { mixin(S_TRACE);
 					line = m.captures[1];
@@ -3091,7 +3091,7 @@ fi`;
 			attrs ~= value;
 		} else static if (is(Unqual!(T) == string)) {
 			string attr;
-			auto lines = splitLines!string(value.idup);
+			auto lines = splitLines(value.idup);
 			if (lines.length == 0) { mixin(S_TRACE);
 				attr ~= `""`;
 			} else if (lines.length == 1) { mixin(S_TRACE);
@@ -3638,7 +3638,7 @@ fi`;
 			buf ~= indentValue;
 			auto detail = c.detail;
 			if (c.comment.length) { mixin(S_TRACE);
-				foreach (line; splitLines!string(lastRet(c.comment))) { mixin(S_TRACE);
+				foreach (line; splitLines(lastRet(c.comment))) { mixin(S_TRACE);
 					buf ~= "// " ~ line;
 					buf ~= "\n";
 					buf ~= indentValue;

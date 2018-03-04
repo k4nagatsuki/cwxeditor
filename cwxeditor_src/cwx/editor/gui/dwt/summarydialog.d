@@ -638,7 +638,7 @@ protected:
 		_summ.levelMin = _levMin.getSelection();
 		_summ.levelMax = _levMax.getSelection();
 		string[] rcs;
-		foreach (s; splitLines!string(_rCoupons.getText())) { mixin(S_TRACE);
+		foreach (s; splitLines(_rCoupons.getText())) { mixin(S_TRACE);
 			if (s.length > 0) { mixin(S_TRACE);
 				rcs ~= s;
 			}
@@ -801,7 +801,7 @@ private class SummaryPreview : Composite {
 				int y = _prop.looks.summaryDescXY.y;
 				string desc = _desc();
 				if (_comm.skin.legacy) { mixin(S_TRACE);
-					foreach (line; splitLines!string(desc)) { mixin(S_TRACE);
+					foreach (line; splitLines(desc)) { mixin(S_TRACE);
 						gc.wDrawText(line, x, y, SWT.DRAW_DELIMITER | SWT.DRAW_TRANSPARENT);
 						y += _prop.looks.summaryDescLineHeightClassic;
 					}

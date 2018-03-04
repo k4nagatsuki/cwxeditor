@@ -1555,11 +1555,11 @@ public:
 	private void del(ImageData data) { mixin(S_TRACE);
 		if (_baseSizeData !is data && this.data !is data) { mixin(S_TRACE);
 			data.data[] = 0;
-			delete data.data;
+			destroy(data.data);
 			data.alphaData[] = 0;
-			delete data.alphaData;
+			destroy(data.alphaData);
 			data.maskData[] = 0;
-			delete data.maskData;
+			destroy(data.maskData);
 		}
 	}
 
@@ -1568,11 +1568,11 @@ public:
 		void del(ImageData data) { mixin(S_TRACE);
 			if (this.data is data) return;
 			data.data[] = 0;
-			delete data.data;
+			destroy(data.data);
 			data.alphaData[] = 0;
-			delete data.alphaData;
+			destroy(data.alphaData);
 			data.maskData[] = 0;
-			delete data.maskData;
+			destroy(data.maskData);
 		}
 		if (_imgData) del(_imgData);
 		if (_baseSizeData) del(_baseSizeData);
@@ -2818,11 +2818,11 @@ private:
 			void delImg(ImageData imageData) { mixin(S_TRACE);
 				if (!imageData) return;
 				imageData.alphaData[] = 0;
-				delete imageData.alphaData;
+				destroy(imageData.alphaData);
 				imageData.maskData[] = 0;
-				delete imageData.maskData;
+				destroy(imageData.maskData);
 				imageData.data[] = 0;
-				delete imageData.data;
+				destroy(imageData.data);
 			}
 			auto backSize = new Point(_background.width, _background.height);
 			auto bp = backSize in tempBack;
@@ -2934,8 +2934,8 @@ private:
 					auto iPixels = new int[aw];
 					auto iAlphas = new byte[aw];
 					iAlphas[] = cast(byte)img.alpha;
-					scope (exit) delete iPixels;
-					scope (exit) delete iAlphas;
+					scope (exit) destroy(iPixels);
+					scope (exit) destroy(iAlphas);
 					auto iData = img.imageData;
 					foreach (iy; .max(0, -img.y) .. img.height) { mixin(S_TRACE);
 						int y2 = iy + img.y;

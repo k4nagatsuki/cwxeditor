@@ -5,7 +5,8 @@ import cwx.perf;
 import cwx.structs;
 import cwx.utils : debugln, cdebugln;
 
-import cwx.editor.gui.dwt.dutils : dwtData, ppis;
+import cwx.editor.gui.dwt.dprops : dwtData;
+import cwx.editor.gui.dwt.dutils : ppis;
 
 import core.thread;
 

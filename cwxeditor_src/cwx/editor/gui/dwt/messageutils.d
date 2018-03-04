@@ -749,7 +749,7 @@ private:
 	}
 	void putRCoupons(SDialog dlg) { mixin(S_TRACE);
 		string[] rcs;
-		foreach (rc; splitLines!string(_rCoupons.getText())) { mixin(S_TRACE);
+		foreach (rc; splitLines(_rCoupons.getText())) { mixin(S_TRACE);
 			if (rc.length > 0) { mixin(S_TRACE);
 				rcs ~= rc;
 			}

@@ -5,11 +5,11 @@ import std.string;
 import std.conv;
 
 /// CWXEditorのバージョン。
-immutable APP_VERSION = splitLines!string(import("@version.txt"))[0];
+immutable APP_VERSION = splitLines(import("@version.txt"))[0];
 /// 設定ファイルのバージョン。
-immutable APP_VERSION_NUM = to!ulong(splitLines!string(import("@version.txt"))[1]);
+immutable APP_VERSION_NUM = to!ulong(splitLines(import("@version.txt"))[1]);
 /// 公式サイトのURI。
-immutable APP_WEB_SITE_URI =  splitLines!string(import("@version.txt"))[2];
+immutable APP_WEB_SITE_URI =  splitLines(import("@version.txt"))[2];
 
 /// 最新のWSNデータバージョン。
 immutable LATEST_VERSION = "3";

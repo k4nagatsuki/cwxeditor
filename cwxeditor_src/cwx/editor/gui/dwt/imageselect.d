@@ -192,7 +192,7 @@ public:
 					foreach (img; _img) { mixin(S_TRACE);
 						if (img) { mixin(S_TRACE);
 							img.data[] = 0;
-							delete img.data;
+							destroy(img.data);
 						}
 					}
 					_img = [];
@@ -715,7 +715,7 @@ private:
 					foreach (i; _msel.paths.length .. _paintedPaths.length) { mixin(S_TRACE);
 						if (_img[i]) { mixin(S_TRACE);
 							_img[i].data[] = 0;
-							delete _img[i].data;
+							destroy(_img[i].data);
 						}
 					}
 				}
@@ -774,7 +774,7 @@ private:
 					imgData = loadImage(_prop, summSkin, _summ, path, _mask);
 					if (_img[i]) { mixin(S_TRACE);
 						_img[i].data[] = 0;
-						delete _img[i].data;
+						destroy(_img[i].data);
 					}
 					_img[i] = imgData;
 				}

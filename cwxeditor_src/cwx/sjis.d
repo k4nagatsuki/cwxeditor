@@ -32,7 +32,7 @@ private void init() { mixin(S_TRACE);
 		SJIS_UNI[sjis] = uni;
 		UNI_SJIS[uni] = sjis;
 	}
-	delete SJIS_UNICODE;
+	destroy(SJIS_UNICODE);
 }
 
 import std.string;

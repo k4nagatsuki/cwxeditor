@@ -151,7 +151,7 @@ class FixedWidthText(T = Text) {
 	private static string toRRText(string targ, int width, GC gc, bool lastRet) { mixin(S_TRACE);
 		if (targ == "") return "";
 		dstring[] buf;
-		string[] text = splitLines!string(targ);
+		string[] text = splitLines(targ);
 		foreach (t8; text) { mixin(S_TRACE);
 			dstring t = toUTF32(t8);
 			if (gc.wTextExtent(t8).x > width) { mixin(S_TRACE);

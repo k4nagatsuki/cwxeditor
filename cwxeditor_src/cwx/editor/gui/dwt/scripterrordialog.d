@@ -69,8 +69,8 @@ protected:
 		cl.fillVertical = true;
 		area.setLayout(cl);
 		string buf = _prop.msgs.scriptError ~ "\n";
-		auto lines = splitLines!string(_base);
-		auto lines2 = _base != _ex.text ? splitLines!string(_ex.text) : lines;
+		auto lines = splitLines(_base);
+		auto lines2 = _base != _ex.text ? splitLines(_ex.text) : lines;
 		foreach (err; _ex.errors) { mixin(S_TRACE);
 			buf ~= "\n";
 			buf ~= err.message ~ "\n";

@@ -712,7 +712,7 @@ private string readString(ref ByteIO f, ref string[string] addInfo, bool lns = f
 }
 private string[] readStrings(ref ByteIO f) { mixin(S_TRACE);
 	auto str = readString(f, true);
-	return str.length ? splitLines!string(str) : cast(string[]) [];
+	return str.length ? splitLines(str) : cast(string[]) [];
 }
 private Summary loadSummary(ref RData d, ref ByteIO f, out ulong startAreaId) { mixin(S_TRACE);
 	string img = readImage(d, f);

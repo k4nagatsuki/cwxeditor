@@ -895,7 +895,7 @@ private struct JptxParser {
 			~ ">"d;
 		if (autoline) { mixin(S_TRACE);
 			auto r = .regex!(dstring)("^" ~ TAG ~ "$", "i");
-			auto lines = splitLines!string(text);
+			auto lines = splitLines(text);
 			text = "";
 			foreach (i, ln; lines) { mixin(S_TRACE);
 				text ~= ln;
@@ -1188,7 +1188,7 @@ struct Jptx {
 		bool textFirst = true;
 		bool init = false;
 		bool text = false;
-		foreach (i, line; splitLines!string(readJPYFile(path, prop, errInfo))) { mixin(S_TRACE);
+		foreach (i, line; splitLines(readJPYFile(path, prop, errInfo))) { mixin(S_TRACE);
 			auto lineNum = i + 1;
 			auto sline = astrip(line);
 			if (!text && sline.length && sline[0] == ';') continue;
@@ -1361,7 +1361,7 @@ class Jpdc : PathUser, CWXPath {
 		r.jpdcPath = fPath;
 		auto errInfo = new EffectBoosterError;
 		bool init = false;
-		r.lines = .splitLines!string(readJPYFile(fPath, prop, errInfo, r.isSJIS), KeepTerminator.yes);
+		r.lines = .splitLines(readJPYFile(fPath, prop, errInfo, r.isSJIS), KeepTerminator.yes);
 		foreach (i, line; r.lines) { mixin(S_TRACE);
 			auto origLine = line;
 			auto lineNum = i + 1;

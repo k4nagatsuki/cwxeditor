@@ -843,7 +843,7 @@ class EventEditor : Composite {
 			// 改行文字があると横幅がおかしくなるため
 			// 測り直す
 			te.x = 0.ppis;
-			auto lines = splitLines!string(cm);
+			auto lines = splitLines(cm);
 			foreach (line; lines) { mixin(S_TRACE);
 				te.x = max(gc.wTextExtent(line).x, te.x);
 			}

@@ -208,7 +208,7 @@ string createDebugln(bool BuildInfo = true, string F = __FILE__, size_t L = __LI
 	int min = d.minute;
 	int second = d.second;
 	static if (BuildInfo) {
-		buf = format("%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, min, second) ~ " [" ~ .splitLines!string(APP_BUILD)[0] ~ "]\t" ~ buf;
+		buf = format("%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, min, second) ~ " [" ~ .splitLines(APP_BUILD)[0] ~ "]\t" ~ buf;
 	} else {
 		buf = format("%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, min, second) ~ " " ~ buf;
 	}
@@ -687,7 +687,7 @@ void freeAll(T)(T*[] data) {
 	foreach (p; data) {
 		.free(p);
 	}
-	delete data;
+	destroy(data);
 }
 
 /// データのMD5ダイジェストを取得する。
@@ -1154,13 +1154,13 @@ string[] decodeLf(string str, bool useEmpty = false) { mixin(S_TRACE);
 	string[] r;
 	if (useEmpty) { mixin(S_TRACE);
 		size_t last = 0;
-		foreach (i, s; splitLines!string(decodeLf2(str))) { mixin(S_TRACE);
+		foreach (i, s; splitLines(decodeLf2(str))) { mixin(S_TRACE);
 			r ~= s;
 			if (s.length > 0) last = i + 1;
 		}
 		r.length = last;
 	} else { mixin(S_TRACE);
-		foreach (s; splitLines!string(decodeLf2(str))) { mixin(S_TRACE);
+		foreach (s; splitLines(decodeLf2(str))) { mixin(S_TRACE);
 			if (s.length > 0) { mixin(S_TRACE);
 				r ~= s;
 			}
@@ -1869,7 +1869,7 @@ size_t lineCount(in string[] lines) { mixin(S_TRACE);
 	return to - from;
 } unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
-	assert (lineCount(splitLines!string("\na\nb\n\nc\n\n")) == 4);
+	assert (lineCount(splitLines("\na\nb\n\nc\n\n")) == 4);
 }
 /// std.algorithm.countUntilはconst配列に対する検索が通らない
 sizediff_t cCountUntil(string pred = "a == b", R1, R2)(R1 arr, R2 b) { mixin(S_TRACE);

@@ -1503,7 +1503,7 @@ protected:
 		_prop.var.etc.undoMaxEvent = _undoMaxEvent.getSelection();
 		_prop.var.etc.undoMaxReplace = _undoMaxReplace.getSelection();
 		_prop.var.etc.undoMaxEtc = _undoMaxEtc.getSelection();
-		string[] ipLines = splitLines!string(_ignorePaths.getText());
+		string[] ipLines = splitLines(_ignorePaths.getText());
 		if (ipLines.length > 0) { mixin(S_TRACE);
 			ptrdiff_t i;
 			for (i = ipLines.length - 1; i >= 0 && ipLines[i].length == 0; i--) { }
