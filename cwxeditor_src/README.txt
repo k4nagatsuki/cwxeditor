@@ -3,7 +3,7 @@ CWXEditor ビルドガイド
 ----------------------
 
 ビルドツール:
- : dmd 2.078.2
+ : dmd 2.079.0
  : Digital Mars rcc
 ライブラリ:
  : DWT at GitHub
@@ -32,8 +32,6 @@ DWTをGitHubから取ってきます。
 
     dub --build=release :base --arch=x86_64
     dub --build=release --arch=x86_64
-
-(ただし64ビットのビルド環境を整える事は簡単ではありません。[英文の参考文書もあります](https://wiki.dlang.org/Installing_DMD_on_64-bit_Windows_7_(COFF-compatible))が、英語が読めたとしても難しいので、無理に64ビットビルドを行おうとしない方がいいかもしれません)
 
 後は、`dmd2/windows/bin/sc.ini`を弄くってDWTのインポートフォルダやらリソースフォルダやらを探しに行くようにしておきましょう。
 
