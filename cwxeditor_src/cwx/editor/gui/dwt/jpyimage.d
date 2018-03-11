@@ -107,9 +107,16 @@ private ImageData loadJPYImageImpl(Props prop, in Skin skin, in Summary summ, st
 			} break;
 			case Dirtype.SCHEME: { mixin(S_TRACE);
 				if (!skin) continue;
-				auto edir = dirName(skin.engine);
-				if (!exists(edir)) continue;
-				dirs = [std.path.buildPath(edir, "scheme")];
+				if (skin.legacy) { mixin(S_TRACE);
+					auto edir = dirName(skin.engine);
+					if (!exists(edir)) continue;
+					dirs = [std.path.buildPath(edir, "scheme")];
+				} else { mixin(S_TRACE);
+					if (skin.path == "") continue;
+					auto dir = std.path.buildPath(skin.path, "EffectBooster");
+					if (!exists(dir)) continue;
+					dirs = [dir];
+				}
 			} break;
 			case Dirtype.SCENARIO: { mixin(S_TRACE);
 				if (!summ) continue;

@@ -411,7 +411,7 @@ struct Jpy1 {
 		if (errInfo.errors.length) throw errInfo;
 
 		foreach (ref sec; r.sections) { mixin(S_TRACE);
-			sec.path = sec.toMaterialPath();
+			sec.path = sec.toMaterialPath;
 			sec.needUpdate = false;
 		}
 		return r;
@@ -449,6 +449,7 @@ struct Jpy1 {
 				switch (sec.dirtype) {
 				case Dirtype.CURRENT:
 				case Dirtype.SCENARIO:
+				case Dirtype.PARENT:
 					sec.path = filename;
 					break;
 				default:
@@ -464,6 +465,14 @@ struct Jpy1 {
 	void updateJpy1File(in CProps prop, bool rewrite) { mixin(S_TRACE);
 		bool update = false;
 		foreach (ref sec; sections) { mixin(S_TRACE);
+			switch (sec.dirtype) {
+			case Dirtype.CURRENT:
+			case Dirtype.SCENARIO:
+			case Dirtype.PARENT:
+				break;
+			default:
+				continue;
+			}
 			if (sec.needUpdate) { mixin(S_TRACE);
 				if (sec.filenameIndex != -1) { mixin(S_TRACE);
 					auto eq = sec.filenameLine.cCountUntil('=');
@@ -562,8 +571,8 @@ class Jpy1Sec : PathUser, CWXPath {
 		case Dirtype.CURRENT: { mixin(S_TRACE);
 			dir = dirName(fPath);
 		} break;
-		case Dirtype.TABLE: return "";
-		case Dirtype.SCHEME: return "";
+		case Dirtype.TABLE: return filename;
+		case Dirtype.SCHEME: return filename;
 		case Dirtype.SCENARIO: { mixin(S_TRACE);
 			if (sPath == "") return "";
 			dir = dirName(fPath);
@@ -571,11 +580,11 @@ class Jpy1Sec : PathUser, CWXPath {
 				dir = dirName(dir);
 			}
 		} break;
-		case Dirtype.WAV: return "";
+		case Dirtype.WAV: return filename;
 		case Dirtype.PARENT: { mixin(S_TRACE);
 			dir = dirName(dirName(fPath));
 		} break;
-		case Dirtype.PROGRAM: return "";
+		case Dirtype.PROGRAM: return filename;
 		default: return "";
 		}
 		auto fname = std.path.buildPath(dir, filename);
@@ -619,7 +628,7 @@ class Jpy1Sec : PathUser, CWXPath {
 		case Dirtype.CURRENT: { mixin(S_TRACE);
 			return FromMaterialPathResult(relPath(dirName(fPath.abs2rel(sPath)), dirName(filename)).buildPath(filename.baseName()), dirdepth);
 		}
-		case Dirtype.TABLE: break;
+		case Dirtype.TABLE:
 		case Dirtype.SCHEME: break;
 		case Dirtype.SCENARIO: { mixin(S_TRACE);
 			string dir = dirName(fPath);
@@ -662,6 +671,8 @@ class Jpy1Sec : PathUser, CWXPath {
 		assert (p == "d/e/f/a.bmp", p);
 		p = fromMaterialPathImpl("a/b/a.bmp", "/dir/sc", "/dir/sc/a/b/c/b.jpy1", Dirtype.PARENT, 0).filename.encodePath();
 		assert (p == "a.bmp", p);
+		p = fromMaterialPathImpl("a/b/a.bmp", "/dir/sc", "/dir/sc/a/b/c/b.jpy1", Dirtype.TABLE, 0).filename.encodePath();
+		assert (p == "a/b/a.bmp", p);
 	}
 
 	/// 所属するシナリオのディレクトリ。
