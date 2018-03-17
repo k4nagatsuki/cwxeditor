@@ -3416,14 +3416,16 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		if (evt.range is Range.SELECTED_CARD) { mixin(S_TRACE);
 			return .tryFormat(comm.prop.msgs.ctBranchItemForSelectedCard, name);
 		} else { mixin(S_TRACE);
-			return .tryFormat(comm.prop.msgs.ctBranchItem, name, .rangeName(comm.prop, evt.range, evt.holdingCoupon), evt.cardNumber);
+			auto selectCard = evt.selectCard ? comm.prop.msgs.ctSelectFoundCard : comm.prop.msgs.noSelectFoundCard;
+			return .tryFormat(comm.prop.msgs.ctBranchItem, name, .rangeName(comm.prop, evt.range, evt.holdingCoupon), evt.cardNumber, selectCard);
 		}
 	} case CType.BRANCH_SKILL: { mixin(S_TRACE);
 		string name = contentTextUseID!(CIDKind.Skill)(comm, summ, evt.skill, "%s", evt);
 		if (evt.range is Range.SELECTED_CARD) { mixin(S_TRACE);
 			return .tryFormat(comm.prop.msgs.ctBranchSkillForSelectedCard, name);
 		} else { mixin(S_TRACE);
-			return .tryFormat(comm.prop.msgs.ctBranchSkill, name, .rangeName(comm.prop, evt.range, evt.holdingCoupon), evt.cardNumber);
+			auto selectCard = evt.selectCard ? comm.prop.msgs.ctSelectFoundCard : comm.prop.msgs.noSelectFoundCard;
+			return .tryFormat(comm.prop.msgs.ctBranchSkill, name, .rangeName(comm.prop, evt.range, evt.holdingCoupon), evt.cardNumber, selectCard);
 		}
 	} case CType.BRANCH_INFO: { mixin(S_TRACE);
 		return contentTextUseID!(CIDKind.Info)(comm, summ, evt.info, comm.prop.msgs.ctBranchInfo, evt);
@@ -3432,7 +3434,8 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		if (evt.range is Range.SELECTED_CARD) { mixin(S_TRACE);
 			return .tryFormat(comm.prop.msgs.ctBranchBeastForSelectedCard, name);
 		} else { mixin(S_TRACE);
-			return .tryFormat(comm.prop.msgs.ctBranchBeast, name, .rangeName(comm.prop, evt.range, evt.holdingCoupon), evt.cardNumber);
+			auto selectCard = evt.selectCard ? comm.prop.msgs.ctSelectFoundCard : comm.prop.msgs.noSelectFoundCard;
+			return .tryFormat(comm.prop.msgs.ctBranchBeast, name, .rangeName(comm.prop, evt.range, evt.holdingCoupon), evt.cardNumber, selectCard);
 		}
 	} case CType.BRANCH_MONEY: { mixin(S_TRACE);
 		return .tryFormat(comm.prop.msgs.ctBranchMoney, evt.money);
@@ -3649,7 +3652,7 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 	} case CType.BRANCH_KEY_CODE: { mixin(S_TRACE);
 		auto range = .rangeName(comm.prop, evt.keyCodeRange, evt.holdingCoupon);
 		auto name = evt.keyCode == "" ? comm.prop.msgs.noKeyCode : evt.keyCode;
-		auto selectCard = evt.selectCard ? comm.prop.msgs.selectFoundCard : comm.prop.msgs.noSelectFoundCard;
+		auto selectCard = evt.selectCard ? comm.prop.msgs.ctSelectFoundCard : comm.prop.msgs.noSelectFoundCard;
 		if (evt.targetIsSkill && evt.targetIsItem && evt.targetIsBeast && evt.targetIsHand) { mixin(S_TRACE);
 			return .tryFormat(comm.prop.msgs.ctBranchKeyCodeAllType, name, range, selectCard);
 		} else { mixin(S_TRACE);

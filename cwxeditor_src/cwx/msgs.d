@@ -419,7 +419,7 @@ class Msgs : Properties {
 	auto resizeCell = Msg("resizeCell", "サイズの変更");
 	auto horizontalValue = Msg("horizontalValue", "横の値");
 	auto verticalValue = Msg("verticalValue", "縦の値");
-	auto selectCardWithKeyCode = Msg("selectCardWithKeyCode", "キーコードを持つカードを選択状態にする");
+	auto selectFoundCard = Msg("selectFoundCard", "見つかったカードを選択状態にする"); // Wsn.3
 	auto selectTalker = Msg("selectTalker", "話者を選択状態にする");
 	auto changeLayer = Msg("changeLayer", "レイヤを変更する");
 	auto changeScale = Msg("changeScale", "拡大率を変更する");
@@ -973,9 +973,9 @@ class Msgs : Properties {
 	auto ctBranchBattle = Msg("ctBranchBattle", "バトル分岐コンテント");
 	auto ctBranchIsBattle = Msg("ctBranchIsBattle", "戦闘中判定分岐コンテント");
 	auto ctBranchCast = Msg("ctBranchCast", "キャストカード「%1$s」の同行有無で分岐");
-	auto ctBranchSkill = Msg("ctBranchSkill", "特殊技能カード「%1$s」の有無で分岐(%2$sに%3$s枚)");
-	auto ctBranchItem = Msg("ctBranchItem", "アイテムカード「%1$s」の有無で分岐(%2$sに%3$s枚)");
-	auto ctBranchBeast = Msg("ctBranchBeast", "召喚獣カード「%1$s」の有無で分岐(%2$sに%3$s枚)");
+	auto ctBranchSkill = Msg("ctBranchSkill", "特殊技能カード「%1$s」の有無で分岐(%2$sに%3$s枚) %4$s");
+	auto ctBranchItem = Msg("ctBranchItem", "アイテムカード「%1$s」の有無で分岐(%2$sに%3$s枚) %4$s");
+	auto ctBranchBeast = Msg("ctBranchBeast", "召喚獣カード「%1$s」の有無で分岐(%2$sに%3$s枚) %4$s");
 	auto ctBranchInfo = Msg("ctBranchInfo", "情報カード「%1$s」の有無で分岐");
 	auto ctBranchMoney = Msg("ctBranchMoney", "分岐金額 = %1$ssp");
 	auto ctBranchCoupon = Msg("ctBranchCoupon", "称号「%1$s」の有無で分岐(%2$s)");
@@ -1029,7 +1029,7 @@ class Msgs : Properties {
 	auto castRange3 = Msg("castRange3", "フィールド全体");
 	auto ctBranchKeyCodeAllType = Msg("ctBranchKeyCodeAllType", "キーコード「%1$s」を含むカードの有無で分岐(%2$s) %3$s");
 	auto ctBranchKeyCode = Msg("ctBranchKeyCode", "キーコード「%1$s」を含む%2$sの有無で分岐(%3$s) %4$s");
-	auto selectFoundCard = Msg("selectFoundCard", "該当カードを選択する");
+	auto ctSelectFoundCard = Msg("ctSelectFoundCard", "該当カードを選択する");
 	auto noSelectFoundCard = Msg("noSelectFoundCard", "該当カードを選択しない");
 	auto ctCheckStep = Msg("ctCheckStep", "ステップ「%1$s」が[%2$s]%3$s後続のイベントが出現");
 	auto ctBranchRound = Msg("ctBranchRound", "バトルが%1$sラウンド%2$sか否かで分岐");

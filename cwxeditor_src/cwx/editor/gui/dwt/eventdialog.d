@@ -2882,6 +2882,9 @@ private:
 	}
 	Button[Range] _range;
 	Table _list;
+	static if (Type is CType.BRANCH_SKILL || Type is CType.BRANCH_ITEM || Type is CType.BRANCH_BEAST) {
+		Button _selectCard;
+	}
 	IncSearch _incSearch;
 	void incSearch() { mixin(S_TRACE);
 		.forceFocus(_list, true);
@@ -2900,6 +2903,11 @@ private:
 			} else static if (is(C:BeastCard)) {
 				ws ~= prop.msgs.searchErrorNoBeast;
 			} else static assert (0);
+		}
+		static if (is(typeof(_selectCard))) {
+			if (!_prop.isTargetVersion(summ, "3") && _selectCard.getSelection()) { mixin(S_TRACE);
+				ws ~= _prop.msgs.warningSelectCard;
+			}
 		}
 		if (!_prop.isTargetVersion(summ, "3") && range is Range.SELECTED_CARD) { mixin(S_TRACE);
 			ws ~= .tryFormat(_prop.msgs.warningRangeSelectedCard);
@@ -2927,6 +2935,9 @@ private:
 		}
 		auto b = _range[Range.SELECTED_CARD];
 		b.setEnabled(!summ || !summ.legacy || b.getSelection());
+		static if (is(typeof(_selectCard))) {
+			_selectCard.setEnabled(!b.getSelection() && (!summ || !summ.legacy || _selectCard.getSelection()));
+		}
 	}
 
 	ulong _selectedID = 0;
@@ -3124,6 +3135,18 @@ protected:
 			} else static assert (0);
 			_list.addDisposeListener(new Dispose);
 		}
+		static if (is(typeof(_selectCard))) {
+			_selectCard = new Button(area, SWT.CHECK);
+			mod(_selectCard);
+			_selectCard.setText(_prop.msgs.selectFoundCard);
+			auto gd = new GridData(GridData.HORIZONTAL_ALIGN_END);
+			gd.horizontalSpan = 2;
+			_selectCard.setLayoutData(gd);
+			.listener(_selectCard, SWT.Selection, { mixin(S_TRACE);
+				refreshWarning();
+				updateEnabled();
+			});
+		}
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
@@ -3157,12 +3180,18 @@ protected:
 				_num.setSelection(_evt.cardNumber);
 			}
 			_range[_evt.range].setSelection(true);
+			static if (is(typeof(_selectCard))) {
+				_selectCard.setSelection(_evt.selectCard);
+			}
 		} else { mixin(S_TRACE);
 			static if (Delete) {
 				_allDel.setSelection(false);
 			}
 			_num.setSelection(1);
 			_range[RangeDef].setSelection(true);
+			static if (is(typeof(_selectCard))) {
+				_selectCard.setSelection(false);
+			}
 		}
 		refreshList();
 		refDataVersion();
@@ -3188,6 +3217,9 @@ protected:
 			}
 		} else { mixin(S_TRACE);
 			_evt.cardNumber = _num.getSelection();
+		}
+		static if (is(typeof(_selectCard))) {
+			_evt.selectCard = _selectCard.getSelection();
 		}
 		return true;
 	}
@@ -3589,7 +3621,7 @@ protected:
 		{ mixin(S_TRACE);
 			_selectCard = new Button(area, SWT.CHECK);
 			mod(_selectCard);
-			_selectCard.setText(_prop.msgs.selectCardWithKeyCode);
+			_selectCard.setText(_prop.msgs.selectFoundCard);
 			auto gd = new GridData(GridData.HORIZONTAL_ALIGN_END);
 			gd.horizontalSpan = 2;
 			_selectCard.setLayoutData(gd);

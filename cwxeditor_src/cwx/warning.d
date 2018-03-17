@@ -903,7 +903,8 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (c.centeringY && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningCenteringY;
 		}
-		if (c.type is CType.BRANCH_KEY_CODE && c.selectCard && !prop.isTargetVersion(summ, targVer, "3")) { mixin(S_TRACE);
+		if ((c.type is CType.BRANCH_KEY_CODE || c.type is CType.BRANCH_SKILL || c.type is CType.BRANCH_ITEM || c.type is CType.BRANCH_BEAST)
+				&& c.selectCard && !prop.isTargetVersion(summ, targVer, "3")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningSelectCard;
 		}
 		if (cd.use(CArg.SELECT_TALKER) && c.selectTalker && hasCharacterTalker(c) && !prop.isTargetVersion(summ, targVer, "3")) { mixin(S_TRACE);
