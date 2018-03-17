@@ -576,13 +576,13 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (c.casts != 0 && !(summ && summ.cwCast(c.casts))) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.searchErrorCastNotFound, c.casts);
 		}
-		if (c.item != 0 && !(summ && summ.item(c.item))) { mixin(S_TRACE);
+		if (c.item != 0 && !(c.range is Range.SELECTED_CARD && c.type is CType.LOSE_ITEM) && !(summ && summ.item(c.item))) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.searchErrorItemNotFound, c.item);
 		}
-		if (c.skill != 0 && !(summ && summ.skill(c.skill))) { mixin(S_TRACE);
+		if (c.skill != 0 && !(c.range is Range.SELECTED_CARD && c.type is CType.LOSE_SKILL) && !(summ && summ.skill(c.skill))) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.searchErrorSkillNotFound, c.skill);
 		}
-		if (c.beast != 0 && !(summ && summ.beast(c.beast))) { mixin(S_TRACE);
+		if (c.beast != 0 && !(c.range is Range.SELECTED_CARD && c.type is CType.LOSE_BEAST) && !(summ && summ.beast(c.beast))) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.searchErrorBeastNotFound, c.beast);
 		}
 		if (c.info != 0 && !(summ && summ.info(c.info))) { mixin(S_TRACE);
@@ -679,13 +679,19 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			r ~= prop.msgs.searchErrorNoCast;
 		}
 		if (cd.use(CArg.ITEM) && c.item == 0) { mixin(S_TRACE);
-			r ~= prop.msgs.searchErrorNoItem;
+			if (!(c.range is Range.SELECTED_CARD && c.type is CType.LOSE_ITEM)) { mixin(S_TRACE);
+				r ~= prop.msgs.searchErrorNoItem;
+			}
 		}
 		if (cd.use(CArg.SKILL) && c.skill == 0) { mixin(S_TRACE);
-			r ~= prop.msgs.searchErrorNoSkill;
+			if (!(c.range is Range.SELECTED_CARD && c.type is CType.LOSE_SKILL)) { mixin(S_TRACE);
+				r ~= prop.msgs.searchErrorNoSkill;
+			}
 		}
 		if (cd.use(CArg.BEAST) && c.beast == 0) { mixin(S_TRACE);
-			r ~= prop.msgs.searchErrorNoBeast;
+			if (!(c.range is Range.SELECTED_CARD && c.type is CType.LOSE_BEAST)) { mixin(S_TRACE);
+				r ~= prop.msgs.searchErrorNoBeast;
+			}
 		}
 		if (cd.use(CArg.INFO) && c.info == 0) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorNoInfo;

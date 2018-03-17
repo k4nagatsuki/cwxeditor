@@ -606,6 +606,7 @@ enum Range {
 	FIELD, /// フィールド全体。
 	COUPON_HOLDER, /// 称号所有者(Wsn.2)。
 	CARD_TARGET, /// カードの効果対象(Wsn.2)。
+	SELECTED_CARD, /// 選択カード(Wsn.3)。
 }
 /// 文字列から適用範囲を生成。
 Range toRange(string name) { mixin(S_TRACE);
@@ -626,6 +627,8 @@ Range toRange(string name) { mixin(S_TRACE);
 		return Range.COUPON_HOLDER;
 	case "CardTarget":
 		return Range.CARD_TARGET;
+	case "SelectedCard":
+		return Range.SELECTED_CARD;
 	default:
 		throw new MotionException("Unknown targets: " ~ name);
 	}
@@ -649,6 +652,8 @@ string fromRange(Range r) { mixin(S_TRACE);
 		return "CouponHolder";
 	case Range.CARD_TARGET:
 		return "CardTarget";
+	case Range.SELECTED_CARD:
+		return "SelectedCard";
 	}
 }
 /// 効果対象や話者選択時に現れる適用範囲。

@@ -2158,10 +2158,13 @@
 	<dd class="worddesc">荷物袋も含むパーティ全員の所持カード。</dd>
 	<dt class="keyword"><code>field</code></dt>
 	<dd class="worddesc">パーティ・荷物袋に加えて敵なども含めたフィールド全体。</dd>
+	<dt class="keyword"><code>selcard</code></dt>
+	<dd class="worddesc">選択カードとIDで指定したカードを比較します。</dd>
 </dl>
+<p class="desc"><em class="warning">選択カードとの比較はWsn.3以降のWSN形式シナリオでのみ機能します。</em></p>
 <p class="desc">IDには、カードのIDを整数で指定します。</p>
-<p class="desc">枚数には、カードの枚数を整数で指定します。</p>
-<p class="desc">この枚数以上カードが存在しない場合、判定は失敗します。省略した場合は1になります。</p>
+<p class="desc">枚数には、カードの枚数を整数で指定します。この枚数以上カードが存在しない場合、判定は失敗します。省略した場合は1になります。</p>
+<p class="desc">範囲に<code>selcard</code>を指定した場合、枚数は無視されます。</p>
 
 <h4 class="example">例</h4>
 
@@ -2364,7 +2367,10 @@
 	<dd class="worddesc">荷物袋。</dd>
 	<dt class="keyword"><code>party</code></dt>
 	<dd class="worddesc">荷物袋も含むパーティ全員の所持カード。</dd>
+	<dt class="keyword"><code>selcard</code></dt>
+	<dd class="worddesc">選択カード。</dd>
 </dl>
+<p class="desc"><em class="warning">選択カードはWsn.3以降のWSN形式シナリオでのみ機能します。</em></p>
 <p class="desc">カード種別には、以下の値を配列で指定します。<em class="warning">Wsn.2以降のWSN形式シナリオでない場合は、<code>skill</code>・<code>item</code>・<code>beast</code>を単独で指定した場合、またはこれらの値を3つとも指定した場合だけ正常に機能します。</em></p>
 <dl>
 	<dt class="keyword"><code>skill</code></dt>
@@ -2639,9 +2645,13 @@
 	<dd class="worddesc">荷物袋も含むパーティ全員。</dd>
 	<dt class="keyword"><code>field</code></dt>
 	<dd class="worddesc">パーティ・荷物袋に加えて敵なども含めたフィールド全体。</dd>
+	<dt class="keyword"><code>selcard</code></dt>
+	<dd class="worddesc">選択カードとの交換。選択カードが無いか、カードの種類が一致しなかった場合は処理されません。</dd>
 </dl>
+<p class="desc"><em class="warning">選択カードとの交換はWsn.3以降のWSN形式シナリオでのみ機能します。</em></p>
 <p class="desc">IDには、カードのIDを整数で指定します。</p>
 <p class="desc">枚数には、カードの枚数を整数で指定します。</p>
+<p class="desc">範囲に<code>selcard</code>を指定した場合、枚数は無視されます。</p>
 
 <h4 class="example">例</h4>
 
@@ -2764,9 +2774,13 @@
 	<dd class="worddesc">荷物袋も含むパーティ全員。</dd>
 	<dt class="keyword"><code>field</code></dt>
 	<dd class="worddesc">パーティ・荷物袋に加えて敵なども含めたフィールド全体。</dd>
+	<dt class="keyword"><code>selcard</code></dt>
+	<dd class="worddesc">選択カード。</dd>
 </dl>
+<p class="desc"><em class="warning">選択カードはWsn.3以降のWSN形式シナリオでのみ機能します。</em></p>
 <p class="desc">IDには、カードのIDを整数で指定します。</p>
 <p class="desc">枚数には、カードの枚数を整数で指定します。0またはallを指定すると全て喪失します。省略した場合は1になります。</p>
+<p class="desc">範囲に<code>selcard</code>を指定した場合、IDと枚数は無視されます。</p>
 
 <h4 class="example">例</h4>
 
@@ -3418,6 +3432,7 @@ random
 resetmind
 resist
 reverse
+selcard
 select
 selected
 shave

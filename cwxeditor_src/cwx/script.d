@@ -1946,6 +1946,7 @@ fi`;
 				static if (Within) goto default;
 				i++;
 				return Range.FIELD;
+			case "selcard": i++; return Range.SELECTED_CARD;
 			default: throwError(_prop.msgs.scriptErrorInvalidRange, attr[i].token);
 			}
 			return T.init;
@@ -3154,8 +3155,9 @@ fi`;
 			case Range.BACKPACK: attrs ~= "backpack"; break;
 			case Range.PARTY_AND_BACKPACK: attrs ~= "party"; break;
 			case Range.FIELD: attrs ~= "field"; break;
-			case Range.COUPON_HOLDER: attrs ~= "coupon"; break;
-			case Range.CARD_TARGET: attrs ~= "card"; break;
+			case Range.COUPON_HOLDER: attrs ~= "coupon"; break; // Wsn.2
+			case Range.CARD_TARGET: attrs ~= "card"; break; // Wsn.2
+			case Range.SELECTED_CARD: attrs ~= "selcard"; break; // Wsn.3
 			default: assert (0);
 			}
 		} else static if (is(T : CastRange)) {
@@ -4247,6 +4249,7 @@ CWXScriptKeyword[] keywordInfos(in CProps prop) { mixin(S_TRACE);
 		CWXScriptKeyword("backpack", prop.msgs.range, prop.msgs.rangeName(Range.BACKPACK)),
 		CWXScriptKeyword("party", prop.msgs.range, prop.msgs.rangeName(Range.PARTY_AND_BACKPACK)),
 		CWXScriptKeyword("field", prop.msgs.range, prop.msgs.rangeName(Range.FIELD)),
+		CWXScriptKeyword("selcard", prop.msgs.range, prop.msgs.rangeName(Range.SELECTED_CARD)),
 
 		// 身体特性
 		CWXScriptKeyword("dex", prop.msgs.aptPhysical, prop.msgs.physicalName(Physical.DEX)),

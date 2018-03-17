@@ -2528,6 +2528,7 @@ private byte fromRange(Range v) { mixin(S_TRACE);
 	case Range.FIELD: return 5;
 	case Range.COUPON_HOLDER: return 0; // Wsn.2
 	case Range.CARD_TARGET: return 0; // Wsn.2
+	case Range.SELECTED_CARD: return 0; // Wsn.3
 	}
 }
 /// CardWirth 1.50
@@ -2538,6 +2539,7 @@ private byte fromKeyCodeRange(Range v) { mixin(S_TRACE);
 	case Range.BACKPACK: return 2;
 	case Range.PARTY_AND_BACKPACK: return 3;
 	case Range.COUPON_HOLDER: return 0; // Wsn.2
+	case Range.SELECTED_CARD: return 0; // Wsn.3
 	default: throw new SummaryException("Unknown range value: " ~ to!(string)(cast(int)v));
 	}
 }

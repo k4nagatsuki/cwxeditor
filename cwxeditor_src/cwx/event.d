@@ -886,6 +886,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			case Range.BACKPACK:
 			case Range.PARTY_AND_BACKPACK:
 			case Range.FIELD:
+			case Range.SELECTED_CARD: // Wsn.3
 				break;
 			default:
 				_range = Range.SELECTED;
@@ -901,6 +902,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			case Range.RANDOM:
 			case Range.BACKPACK:
 			case Range.PARTY_AND_BACKPACK:
+			case Range.SELECTED_CARD: // Wsn.3
 				break;
 			default:
 				_keyCodeRange = Range.PARTY_AND_BACKPACK;
@@ -2008,8 +2010,14 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	mixin Prop!(Range, "keyCodeRange", Range.PARTY_AND_BACKPACK);
 	private bool check_keyCodeRange(Range val) { mixin(S_TRACE);
 		switch (val) {
-		case Range.SELECTED, Range.RANDOM, Range.BACKPACK, Range.PARTY_AND_BACKPACK: return true;
-		default: return false;
+		case Range.SELECTED:
+		case Range.RANDOM:
+		case Range.BACKPACK:
+		case Range.PARTY_AND_BACKPACK:
+		case Range.SELECTED_CARD: // Wsn.3
+			return true;
+		default:
+			return false;
 		}
 	}
 	/// 効果カード種別(CardWirth 1.50 / Wsn.2でHandを追加し複数選択可能に)。

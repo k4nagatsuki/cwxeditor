@@ -103,7 +103,7 @@ class Msgs : Properties {
 	auto newClassicDirDesc = Msg("newClassicDirDesc", "シナリオを作成する" ~ DIR ~ "を選択してください。");
 	auto notEmptyDir = Msg("notEmptyDir", "%1$sは空ではありません。\n本当にここでシナリオを作成しますか？");
 	auto createScenarioNameDir = Msg("createScenarioNameDir", "シナリオの" ~ DIR ~ "を新規作成する");
-	auto notClassicWarning = Msg("notClassicWarning", "※ 「クラシック」以外のタイプはCardWirthPy専用形式となります");
+	auto notClassicWarning = Msg("notClassicWarning", "※ 「クラシック」以外のタイプはWSN形式となります");
 
 	auto dlgTitSaveBitmapImage = Msg("dlgTitSaveBitmapImage", "格納イメージの保存");
 	auto filterBitmapImage = Msg("filterBitmapImage", "ビットマップイメージ (*.bmp)");
@@ -1055,6 +1055,16 @@ class Msgs : Properties {
 	auto noChangeScale = Msg("noChangeScale", "変更無し"); // Wsn.3
 	auto noChangeLayer = Msg("noChangeLayer", "変更無し"); // Wsn.3
 
+	auto ctBranchSkillForSelectedCard = Msg("ctBranchSkillForSelectedCard", "特殊技能カード「%1$s」と選択カードを比較して分岐");
+	auto ctBranchItemForSelectedCard = Msg("ctBranchItemForSelectedCard", "アイテムカード「%1$s」と選択カードを比較して分岐");
+	auto ctBranchBeastForSelectedCard = Msg("ctBranchBeastForSelectedCard", "召喚獣カード「%1$s」と選択カードを比較して分岐");
+	auto ctGetSkillForSelectedCard = Msg("ctGetSkillForSelectedCard", "特殊技能カード「%1$s」を獲得(選択カードと交換)");
+	auto ctGetItemForSelectedCard = Msg("ctGetItemForSelectedCard", "アイテムカード「%1$s」を獲得(選択カードと交換)");
+	auto ctGetBeastForSelectedCard = Msg("ctGetBeastForSelectedCard", "召喚獣カード「%1$s」を獲得(選択カードと交換)");
+	auto ctLoseSkillForSelectedCard = Msg("ctLoseSkillForSelectedCard", "特殊技能カードを喪失(選択カード)");
+	auto ctLoseItemForSelectedCard = Msg("ctLoseItemForSelectedCard", "アイテムカードを喪失(選択カード)");
+	auto ctLoseBeastForSelectedCard = Msg("ctLoseBeastForSelectedCard", "召喚獣カードを喪失(選択カード)");
+
 	auto nameWithID = Msg("nameWithID", "%1$s.%2$s");
 
 	auto defaultStartName = Msg("defaultStartName", "イベント開始");
@@ -1403,6 +1413,8 @@ class Msgs : Properties {
 	auto branchCastFailure = Msg("branchCastFailure", "「%1$s」が加わっていない");
 	auto branchEffectCardSuccess = Msg("branchEffectCardSuccess", "「%2$s」を所有している(%1$s)");
 	auto branchEffectCardFailure = Msg("branchEffectCardFailure", "「%2$s」を所有していない(%1$s)");
+	auto branchEffectCardForSelectedCardSuccess = Msg("branchEffectCardForSelectedCardSuccess", "「%1$s」と選択カードが一致する");
+	auto branchEffectCardForSelectedCardFailure = Msg("branchEffectCardForSelectedCardFailure", "「%1$s」と選択カードが一致しない");
 	auto branchInfoSuccess = Msg("branchInfoSuccess", "「%1$s」を所有している");
 	auto branchInfoFailure = Msg("branchInfoFailure", "「%1$s」を所有していない");
 	auto branchMoneySuccess = Msg("branchMoneySuccess", "%1$ssp以上所持している");
@@ -1598,8 +1610,10 @@ class Msgs : Properties {
 	auto rangeWithCoupon = Msg("rangeWithCoupon", "称号所有者(%1$s)");
 	auto rangeWithNoCoupon = Msg("rangeWithNoCoupon", "称号所有者(指定無し)");
 	auto rangeDescField = Msg("rangeDescField", "パーティ・荷物袋・エネミーカードを含む");
-	auto rangeNameCardTarget = Msg("rangeNameCardTarget", "カードの使用対象");
-	auto rangeDescCardTarget = Msg("rangeDescCardTarget", "使用時イベント中でない場合、対象無しになります");
+	auto rangeNameCardTarget = Msg("rangeNameCardTarget", "カードの使用対象"); // Wsn.2
+	auto rangeDescCardTarget = Msg("rangeDescCardTarget", "使用時イベント中でない場合、対象無しになります"); // Wsn.2
+	auto rangeNameSelectedCard = Msg("rangeNameSelectedCard", "選択カード"); // Wsn.3
+	auto rangeNameSelectedCardForReplace = Msg("rangeNameSelectedCardForReplace", "選択カード(交換)"); // Wsn.3
 	const string castRangeName(CastRange id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(CastRange, "castRangeName"));
 	}
@@ -1965,7 +1979,8 @@ class Msgs : Properties {
 	auto warningBoundaryCheck = Msg("warningBoundaryCheck", "メッセージの禁則処理は、Wsn.2以降の形式のシナリオでしか行えません。"); // Wsn.2
 	auto warningBranchCouponMulti = Msg("warningBranchCouponMulti", "クーポン分岐のクーポンの複数指定は、Wsn.2以降の形式のシナリオしか行えません。"); // Wsn.2
 	auto warningExpandSPChars = Msg("warningExpandSPChars", "状態変数内の特殊文字の展開は、Wsn.2以降の形式のシナリオしか行えません。"); // Wsn.2
-	auto warningSelectCard = Msg("warningSelectCard", "選択カードの変更は、Wsn.2以降の形式のシナリオしか行えません。"); // Wsn.3
+	auto warningSelectCard = Msg("warningSelectCard", "選択カードの変更は、Wsn.3以降の形式のシナリオしか行えません。"); // Wsn.3
+	auto warningRangeSelectedCard = Msg("warningRangeSelectedCard", "選択カードは、Wsn.3以降の形式のシナリオでしか指定できません。"); // Wsn.3
 	auto warningSelectTalker = Msg("warningSelectTalker", "話者の選択は、Wsn.3以降の形式のシナリオしか行えません。"); // Wsn.3
 	auto warningInvocationCondition = Msg("warningInvocationCondition", "「生存」以外の条件で発動する召喚獣は、Wsn.3以降の形式のシナリオでしか機能しません。"); // Wsn.3
 	auto warningRemoveWithUnconscious = Msg("warningRemoveWithUnconscious", "意識不明時に消滅しない召喚獣は、Wsn.3以降の形式のシナリオでしか機能しません。"); // Wsn.3

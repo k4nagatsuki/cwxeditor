@@ -873,33 +873,38 @@ private:
 	bool checkOpenDialog(CType type) { mixin(S_TRACE);
 		if (_readOnly) return false;
 		switch (type) {
-		case CType.START_BATTLE: { mixin(S_TRACE);
+		case CType.START_BATTLE: mixin(S_TRACE);
 			return _summ.battles.length > 0;
-		} case CType.CHANGE_AREA: { mixin(S_TRACE);
+		case CType.CHANGE_AREA: mixin(S_TRACE);
 			return _summ.areas.length > 0;
-		} case CType.LINK_PACKAGE, CType.CALL_PACKAGE: { mixin(S_TRACE);
+		case CType.LINK_PACKAGE, CType.CALL_PACKAGE: mixin(S_TRACE);
 			return _summ.packages.length > 0;
-		} case CType.BRANCH_FLAG, CType.SET_FLAG, CType.REVERSE_FLAG, CType.CHECK_FLAG, CType.SUBSTITUTE_FLAG, CType.BRANCH_FLAG_CMP: { mixin(S_TRACE);
+		case CType.BRANCH_FLAG, CType.SET_FLAG, CType.REVERSE_FLAG, CType.CHECK_FLAG, CType.SUBSTITUTE_FLAG, CType.BRANCH_FLAG_CMP: mixin(S_TRACE);
 			return _summ.flagDirRoot.allFlags.length > 0;
-		} case CType.BRANCH_MULTI_STEP, CType.BRANCH_STEP, CType.SET_STEP, CType.SET_STEP_UP, CType.SET_STEP_DOWN, CType.SUBSTITUTE_STEP, CType.BRANCH_STEP_CMP: { mixin(S_TRACE);
+		case CType.BRANCH_MULTI_STEP, CType.BRANCH_STEP, CType.SET_STEP, CType.SET_STEP_UP, CType.SET_STEP_DOWN, CType.SUBSTITUTE_STEP, CType.BRANCH_STEP_CMP: mixin(S_TRACE);
 			return 0 < _summ.flagDirRoot.allSteps.length;
-		} case CType.BRANCH_CAST, CType.GET_CAST, CType.LOSE_CAST: { mixin(S_TRACE);
+		case CType.BRANCH_CAST, CType.GET_CAST, CType.LOSE_CAST: mixin(S_TRACE);
 			return _summ.casts.length > 0;
-		} case CType.BRANCH_ITEM, CType.GET_ITEM, CType.LOSE_ITEM: { mixin(S_TRACE);
+		case CType.BRANCH_ITEM, CType.GET_ITEM: mixin(S_TRACE);
 			return _summ.items.length > 0;
-		} case CType.BRANCH_SKILL, CType.GET_SKILL, CType.LOSE_SKILL: { mixin(S_TRACE);
+		case CType.LOSE_ITEM: mixin(S_TRACE);
+			return _summ.items.length > 0 || !_summ.legacy;
+		case CType.BRANCH_SKILL, CType.GET_SKILL: mixin(S_TRACE);
 			return _summ.skills.length > 0;
-		} case CType.BRANCH_INFO, CType.GET_INFO, CType.LOSE_INFO: { mixin(S_TRACE);
+		case CType.LOSE_SKILL: mixin(S_TRACE);
+			return _summ.skills.length > 0 || !_summ.legacy;
+		case CType.BRANCH_INFO, CType.GET_INFO, CType.LOSE_INFO: mixin(S_TRACE);
 			return _summ.infos.length > 0;
-		} case CType.BRANCH_BEAST, CType.GET_BEAST, CType.LOSE_BEAST: { mixin(S_TRACE);
+		case CType.BRANCH_BEAST, CType.GET_BEAST: mixin(S_TRACE);
 			return _summ.beasts.length > 0;
-		} case CType.REDISPLAY: { mixin(S_TRACE);
+		case CType.LOSE_BEAST: mixin(S_TRACE);
+			return _summ.beasts.length > 0 || !_summ.legacy;
+		case CType.REDISPLAY: mixin(S_TRACE);
 			return !_summ.legacy;
-		} case CType.CHECK_STEP: { mixin(S_TRACE);
+		case CType.CHECK_STEP: mixin(S_TRACE);
 			return 0 < _summ.flagDirRoot.allSteps.length;
-		} default: { mixin(S_TRACE);
+		default: mixin(S_TRACE);
 			return true;
-		}
 		}
 	}
 
@@ -4017,46 +4022,70 @@ private string evtChildBrCast(in Props prop, in Summary summ, ulong id, ref stri
 private string evtChildBrItem(in Props prop, in Summary summ, ulong id, Range r, uint num, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
-	string tr = prop.msgs.rangeName(r);
 	string name = prop.msgs.noSelectItem;
 	if (0 != id && summ) { mixin(S_TRACE);
 		auto c = summ.item(id);
 		name = c ? .format(prop.msgs.nameWithID, c.id, c.name) : .tryFormat(prop.msgs.noItem, id);
 	}
-	if (val) { mixin(S_TRACE);
-		return .tryFormat(prop.msgs.branchEffectCardSuccess, tr, name);
+	if (r is Range.SELECTED_CARD) { mixin(S_TRACE);
+		if (val) { mixin(S_TRACE);
+			return .tryFormat(prop.msgs.branchEffectCardForSelectedCardSuccess, name);
+		} else { mixin(S_TRACE);
+			return .tryFormat(prop.msgs.branchEffectCardForSelectedCardFailure, name);
+		}
 	} else { mixin(S_TRACE);
-		return .tryFormat(prop.msgs.branchEffectCardFailure, tr, name);
+		string tr = prop.msgs.rangeName(r);
+		if (val) { mixin(S_TRACE);
+			return .tryFormat(prop.msgs.branchEffectCardSuccess, tr, name);
+		} else { mixin(S_TRACE);
+			return .tryFormat(prop.msgs.branchEffectCardFailure, tr, name);
+		}
 	}
 }
 private string evtChildBrSkill(in Props prop, in Summary summ, ulong id, Range r, uint num, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
-	string tr = prop.msgs.rangeName(r);
 	string name = prop.msgs.noSelectSkill;
 	if (0 != id && summ) { mixin(S_TRACE);
 		auto c = summ.skill(id);
 		name = c ? .format(prop.msgs.nameWithID, c.id, c.name) : .tryFormat(prop.msgs.noSkill, id);
 	}
-	if (val) { mixin(S_TRACE);
-		return .tryFormat(prop.msgs.branchEffectCardSuccess, tr, name);
+	if (r is Range.SELECTED_CARD) { mixin(S_TRACE);
+		if (val) { mixin(S_TRACE);
+			return .tryFormat(prop.msgs.branchEffectCardForSelectedCardSuccess, name);
+		} else { mixin(S_TRACE);
+			return .tryFormat(prop.msgs.branchEffectCardForSelectedCardFailure, name);
+		}
 	} else { mixin(S_TRACE);
-		return .tryFormat(prop.msgs.branchEffectCardFailure, tr, name);
+		string tr = prop.msgs.rangeName(r);
+		if (val) { mixin(S_TRACE);
+			return .tryFormat(prop.msgs.branchEffectCardSuccess, tr, name);
+		} else { mixin(S_TRACE);
+			return .tryFormat(prop.msgs.branchEffectCardFailure, tr, name);
+		}
 	}
 }
 private string evtChildBrBeast(in Props prop, in Summary summ, ulong id, Range r, uint num, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
-	string tr = prop.msgs.rangeName(r);
 	string name = prop.msgs.noSelectBeast;
 	if (0 != id && summ) { mixin(S_TRACE);
 		auto c = summ.beast(id);
 		name = c ? .format(prop.msgs.nameWithID, c.id, c.name) : .tryFormat(prop.msgs.noBeast, id);
 	}
-	if (val) { mixin(S_TRACE);
-		return .tryFormat(prop.msgs.branchEffectCardSuccess, tr, name);
+	if (r is Range.SELECTED_CARD) { mixin(S_TRACE);
+		if (val) { mixin(S_TRACE);
+			return .tryFormat(prop.msgs.branchEffectCardForSelectedCardSuccess, name);
+		} else { mixin(S_TRACE);
+			return .tryFormat(prop.msgs.branchEffectCardForSelectedCardFailure, name);
+		}
 	} else { mixin(S_TRACE);
-		return .tryFormat(prop.msgs.branchEffectCardFailure, tr, name);
+		string tr = prop.msgs.rangeName(r);
+		if (val) { mixin(S_TRACE);
+			return .tryFormat(prop.msgs.branchEffectCardSuccess, tr, name);
+		} else { mixin(S_TRACE);
+			return .tryFormat(prop.msgs.branchEffectCardFailure, tr, name);
+		}
 	}
 }
 private string evtChildBrInfo(in Props prop, in Summary summ, ulong id, ref string text) { mixin(S_TRACE);

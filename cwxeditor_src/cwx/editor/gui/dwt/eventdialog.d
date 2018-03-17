@@ -2876,7 +2876,7 @@ private:
 		Button _allDel;
 		class DelSListener : SelectionAdapter {
 			override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
-				_num.setEnabled(!_allDel.getSelection());
+				updateEnabled();
 			}
 		}
 	}
@@ -2888,11 +2888,54 @@ private:
 		_incSearch.startIncSearch();
 	}
 
+	override
+	protected void refreshWarning() { mixin(S_TRACE);
+		string[] ws;
+		auto range = this.range;
+		if (range !is Range.SELECTED_CARD && _selectedID == 0) { mixin(S_TRACE);
+			static if (is(C:SkillCard)) {
+				ws ~= prop.msgs.searchErrorNoSkill;
+			} else static if (is(C:ItemCard)) {
+				ws ~= prop.msgs.searchErrorNoItem;
+			} else static if (is(C:BeastCard)) {
+				ws ~= prop.msgs.searchErrorNoBeast;
+			} else static assert (0);
+		}
+		if (!_prop.isTargetVersion(summ, "3") && range is Range.SELECTED_CARD) { mixin(S_TRACE);
+			ws ~= .tryFormat(_prop.msgs.warningRangeSelectedCard);
+		}
+		warning = ws;
+	}
+	override
+	protected void refDataVersion() { mixin(S_TRACE);
+		refreshWarning();
+		updateEnabled();
+		static if (Delete) {
+			if (summ && summ.legacy && !_list.getItemCount()) { mixin(S_TRACE);
+				forceCancel();
+			}
+		}
+	}
+	void updateEnabled() { mixin(S_TRACE);
+		static if (Delete) {
+			_allDel.setEnabled(range !is Range.SELECTED_CARD);
+			_num.setEnabled(!_allDel.getSelection() && range !is Range.SELECTED_CARD);
+			_list.setEnabled(range !is Range.SELECTED_CARD && _list.getItemCount());
+		} else {
+			_num.setEnabled(range !is Range.SELECTED_CARD);
+			_list.setEnabled(0 < _list.getItemCount());
+		}
+		auto b = _range[Range.SELECTED_CARD];
+		b.setEnabled(!summ || !summ.legacy || b.getSelection());
+	}
+
 	ulong _selectedID = 0;
 	void selected() { mixin(S_TRACE);
 		auto index = _list.getSelectionIndex();
 		if (-1 != index) { mixin(S_TRACE);
-			_selectedID = (cast(C) _list.getItem(index).getData()).id;
+			_selectedID = (cast(C)_list.getItem(index).getData()).id;
+		} else { mixin(S_TRACE);
+			_selectedID = 0;
 		}
 	}
 
@@ -2918,6 +2961,15 @@ private:
 			itm.setText(1, c.name);
 			if (id == c.id) _list.select(cast(int)i);
 			i++;
+		}
+		updateEnabled();
+		if (-1 == _list.getSelectionIndex()) { mixin(S_TRACE);
+			if (_list.getItemCount() && _list.getEnabled()) { mixin(S_TRACE);
+				_list.select(0);
+				_selectedID = (cast(C)_list.getItem(0).getData()).id;
+			} else { mixin(S_TRACE);
+				_selectedID = 0;
+			}
 		}
 		_list.showSelection();
 	}
@@ -2945,7 +2997,13 @@ private:
 		if (cards.length) { mixin(S_TRACE);
 			refreshList();
 		} else { mixin(S_TRACE);
-			forceCancel();
+			static if (Type is CType.LOSE_SKILL || Type is CType.LOSE_ITEM || Type is CType.LOSE_BEAST) {
+				if (summ && summ.legacy) { mixin(S_TRACE);
+					forceCancel();
+				}
+			} else { mixin(S_TRACE);
+				forceCancel();
+			}
 		}
 	}
 
@@ -2966,6 +3024,10 @@ private:
 			openView();
 		}
 	}
+
+	@property
+	Range range() { return getRadioValue!(Range)(_range); }
+
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
 		super (comm, prop, shell, summ, Type, parent, evt, true, prop.var.cardEvtDlg, true);
@@ -3010,14 +3072,20 @@ protected:
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				grp.setLayout(normalGridLayout(1, true));
 				foreach (r; [Range.SELECTED, Range.RANDOM, Range.PARTY,
-						Range.BACKPACK, Range.PARTY_AND_BACKPACK, Range.FIELD]) { mixin(S_TRACE);
+						Range.BACKPACK, Range.PARTY_AND_BACKPACK, Range.FIELD, 
+						Range.SELECTED_CARD]) { mixin(S_TRACE);
 					auto radio = new Button(grp, SWT.RADIO);
 					mod(radio);
-					radio.setText(_prop.msgs.rangeName(r));
+					if ((Type is CType.GET_SKILL || Type is CType.GET_ITEM || Type is CType.GET_BEAST) && r is Range.SELECTED_CARD) { mixin(S_TRACE);
+						radio.setText(_prop.msgs.rangeNameSelectedCardForReplace);
+					} else { mixin(S_TRACE);
+						radio.setText(_prop.msgs.rangeName(r));
+					}
 					if (r is Range.FIELD) { mixin(S_TRACE);
 						radio.setToolTipText(_prop.msgs.rangeDescField);
 					}
 					radio.setLayoutData(new GridData(GridData.FILL_BOTH));
+					.listener(radio, SWT.Selection, &refDataVersion);
 					_range[r] = radio;
 				}
 			}
@@ -3042,8 +3110,6 @@ protected:
 			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(comm, menu, MenuID.OpenAtCardView, &openView, () => _list.getSelectionIndex() != -1);
 			_list.setMenu(menu);
-
-			refreshList();
 		}
 		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
 			static if (is (C == SkillCard)) {
@@ -3098,11 +3164,8 @@ protected:
 			_num.setSelection(1);
 			_range[RangeDef].setSelection(true);
 		}
-		_list.setEnabled(0 < _list.getItemCount());
-		if (-1 == _list.getSelectionIndex() && _list.getItemCount()) { mixin(S_TRACE);
-			_list.select(0);
-			_selectedID = (cast(C) _list.getItem(0).getData()).id;
-		}
+		refreshList();
+		refDataVersion();
 	}
 
 	override bool apply() { mixin(S_TRACE);
@@ -3116,7 +3179,7 @@ protected:
 		} else { mixin(S_TRACE);
 			static assert (0);
 		}
-		_evt.range = getRadioValue!(Range)(_range);
+		_evt.range = this.range;
 		static if (Delete) {
 			if (_allDel.getSelection()) { mixin(S_TRACE);
 				_evt.cardNumber = 0u;
@@ -3371,6 +3434,9 @@ private:
 				ws ~= _prop.msgs.warningSelectCard;
 			}
 		}
+		if (!_prop.isTargetVersion(summ, "3") && range is Range.SELECTED_CARD) { mixin(S_TRACE);
+			ws ~= .tryFormat(_prop.msgs.warningRangeSelectedCard);
+		}
 		warning = ws;
 	}
 
@@ -3437,7 +3503,9 @@ private:
 	}
 
 	private void updateEnabled() { mixin(S_TRACE);
-		_selectCard.setEnabled(!summ || !summ.legacy || _selectCard.getSelection());
+		auto b = _keyCodeRange[Range.SELECTED_CARD];
+		b.setEnabled(!summ || !summ.legacy || b.getSelection());
+		_selectCard.setEnabled(!b.getSelection() && (!summ || !summ.legacy || _selectCard.getSelection()));
 	}
 
 	void createWsn1Panel() { mixin(S_TRACE);
@@ -3460,6 +3528,10 @@ private:
 			_effectCardTypeWsn2[r] = check;
 		}
 	}
+
+	@property
+	Range range() { return getRadioValue!(Range)(_keyCodeRange); }
+
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
 		super (comm, prop, shell, summ, CType.BRANCH_KEY_CODE, parent, evt, false, null, true);
@@ -3474,11 +3546,16 @@ protected:
 			grp.setLayout(new CenterLayout(SWT.HORIZONTAL));
 			auto comp = new Composite(grp, SWT.NONE);
 			comp.setLayout(zeroMarginGridLayout(1, true));
-			foreach (r; [Range.SELECTED, Range.RANDOM, Range.BACKPACK, Range.PARTY_AND_BACKPACK]) { mixin(S_TRACE);
+			foreach (r; [Range.SELECTED, Range.RANDOM, Range.BACKPACK,
+					Range.PARTY_AND_BACKPACK, Range.SELECTED_CARD]) { mixin(S_TRACE);
 				auto radio = new Button(comp, SWT.RADIO);
 				mod(radio);
 				radio.setText(_prop.msgs.rangeName(r));
 				radio.setLayoutData(new GridData(GridData.FILL_BOTH));
+				.listener(radio, SWT.Selection, { mixin(S_TRACE);
+					refreshWarning();
+					updateEnabled();
+				});
 				_keyCodeRange[r] = radio;
 			}
 		}
@@ -3569,7 +3646,7 @@ protected:
 		if (!_evt) _evt = new Content(CType.BRANCH_KEY_CODE, "");
 
 		_evt.keyCode = _keyCode.getText();
-		_evt.keyCodeRange = getRadioValue!(Range)(_keyCodeRange);
+		_evt.keyCodeRange = this.range;
 		_evt.targetIsSkill = false;
 		_evt.targetIsItem = false;
 		_evt.targetIsBeast = false;
