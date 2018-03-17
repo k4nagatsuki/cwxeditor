@@ -341,6 +341,9 @@ class EventEditor : Composite {
 		}
 		_showSelection = false;
 		updatePosImpl2(false);
+		showSelectionImpl();
+	}
+	private void showSelectionImpl() { mixin(S_TRACE);
 		if (!_selected) return;
 		if (_selected.eventId !in _posTable) return;
 		auto pos = _posTable[_selected.eventId];
@@ -355,7 +358,7 @@ class EventEditor : Composite {
 		int thumb = getClientArea().height / _lineHeight;
 		if (pos < vPos) { mixin(S_TRACE);
 			vbar.setSelection(pos);
-		} else if (vPos + thumb <= pos) { mixin(S_TRACE);
+		} else if (vPos + thumb <= pos + (height / _lineHeight)) { mixin(S_TRACE);
 			vbar.setSelection(pos - thumb + (height / _lineHeight));
 		}
 	}
@@ -1380,7 +1383,7 @@ class EventEditor : Composite {
 					select(index, false);
 				}
 			} else if (_showSelection) { mixin(S_TRACE);
-				showSelection();
+				showSelectionImpl();
 			}
 		}
 		_restoreLine = false;
