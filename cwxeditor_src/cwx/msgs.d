@@ -1029,6 +1029,8 @@ class Msgs : Properties {
 	auto castRange3 = Msg("castRange3", "フィールド全体");
 	auto ctBranchKeyCodeAllType = Msg("ctBranchKeyCodeAllType", "キーコード「%1$s」を含むカードの有無で分岐(%2$s) %3$s");
 	auto ctBranchKeyCode = Msg("ctBranchKeyCode", "キーコード「%1$s」を含む%2$sの有無で分岐(%3$s) %4$s");
+	auto ctBranchKeyCodeAllTypeForSelectedCard = Msg("ctBranchKeyCodeAllTypeForSelectedCard", "選択カードがキーコード「%1$s」を含むか否かで分岐 %2$s");
+	auto ctBranchKeyCodeForSelectedCard = Msg("ctBranchKeyCodeForSelectedCard", "選択カードがキーコード「%1$s」を含む%2$sか否かで分岐 %3$s");
 	auto ctSelectFoundCard = Msg("ctSelectFoundCard", "該当カードを選択する");
 	auto noSelectFoundCard = Msg("noSelectFoundCard", "該当カードを選択しない");
 	auto ctCheckStep = Msg("ctCheckStep", "ステップ「%1$s」が[%2$s]%3$s後続のイベントが出現");
@@ -1443,6 +1445,10 @@ class Msgs : Properties {
 	auto branchKeyCodeAllTypeFailure = Msg("branchKeyCodeAllTypeFailure", "キーコード「%1$s」を含むカードを所有していない(%2$s)");
 	auto branchKeyCodeSuccess = Msg("branchKeyCodeSuccess", "キーコード「%1$s」を含む%2$sを所有している(%3$s)");
 	auto branchKeyCodeFailure = Msg("branchKeyCodeFailure", "キーコード「%1$s」を含む%2$sを所有していない(%3$s)");
+	auto branchKeyCodeAllTypeForSelectedCardSuccess = Msg("branchKeyCodeAllTypeForSelectedCardSuccess", "選択カードがキーコード「%1$s」を含む");
+	auto branchKeyCodeAllTypeForSelectedCardFailure = Msg("branchKeyCodeAllTypeForSelectedCardFailure", "選択カードがキーコード「%1$s」を含まない");
+	auto branchKeyCodeForSelectedCardSuccess = Msg("branchKeyCodeForSelectedCardSuccess", "選択カードはキーコード「%1$s」を含む%2$sである");
+	auto branchKeyCodeForSelectedCardFailure = Msg("branchKeyCodeForSelectedCardFailure", "選択カードはキーコード「%1$s」を含む%2$sではない");
 	auto targetIsSkill = Msg("targetIsSkill", "特殊技能");
 	auto targetIsItem = Msg("targetIsItem", "アイテム");
 	auto targetIsBeast = Msg("targetIsBeast", "召喚獣");

@@ -4260,12 +4260,20 @@ private string evtChildBrKeyCode(in Props prop, in Content evt, ref string text)
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
 	auto name = evt.keyCode == "" ? prop.msgs.noKeyCode : evt.keyCode;
 
-	string range = prop.msgs.rangeName(evt.keyCodeRange);
 	if (evt.targetIsSkill && evt.targetIsItem && evt.targetIsBeast && evt.targetIsHand) { mixin(S_TRACE);
-		if (val) { mixin(S_TRACE);
-			return .tryFormat(prop.msgs.branchKeyCodeAllTypeSuccess, name, range);
+		if (evt.keyCodeRange is Range.SELECTED_CARD) { mixin(S_TRACE);
+			if (val) { mixin(S_TRACE);
+				return .tryFormat(prop.msgs.branchKeyCodeAllTypeForSelectedCardSuccess, name);
+			} else { mixin(S_TRACE);
+				return .tryFormat(prop.msgs.branchKeyCodeAllTypeForSelectedCardFailure, name);
+			}
 		} else { mixin(S_TRACE);
-			return .tryFormat(prop.msgs.branchKeyCodeAllTypeFailure, name, range);
+			auto range = prop.msgs.rangeName(evt.keyCodeRange);
+			if (val) { mixin(S_TRACE);
+				return .tryFormat(prop.msgs.branchKeyCodeAllTypeSuccess, name, range);
+			} else { mixin(S_TRACE);
+				return .tryFormat(prop.msgs.branchKeyCodeAllTypeFailure, name, range);
+			}
 		}
 	} else { mixin(S_TRACE);
 		string[] targets;
@@ -4277,10 +4285,19 @@ private string evtChildBrKeyCode(in Props prop, in Content evt, ref string text)
 		if (targets.length) { mixin(S_TRACE);
 			target = targets.join(prop.msgs.targetSeparator.value);
 		}
-		if (val) { mixin(S_TRACE);
-			return .tryFormat(prop.msgs.branchKeyCodeSuccess, name, target, range);
+		if (evt.keyCodeRange is Range.SELECTED_CARD) { mixin(S_TRACE);
+			if (val) { mixin(S_TRACE);
+				return .tryFormat(prop.msgs.branchKeyCodeForSelectedCardSuccess, name, target);
+			} else { mixin(S_TRACE);
+				return .tryFormat(prop.msgs.branchKeyCodeForSelectedCardFailure, name, target);
+			}
 		} else { mixin(S_TRACE);
-			return .tryFormat(prop.msgs.branchKeyCodeFailure, name, target, range);
+			auto range = prop.msgs.rangeName(evt.keyCodeRange);
+			if (val) { mixin(S_TRACE);
+				return .tryFormat(prop.msgs.branchKeyCodeSuccess, name, target, range);
+			} else { mixin(S_TRACE);
+				return .tryFormat(prop.msgs.branchKeyCodeFailure, name, target, range);
+			}
 		}
 	}
 }
