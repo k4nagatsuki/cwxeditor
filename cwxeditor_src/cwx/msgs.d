@@ -1131,7 +1131,7 @@ class Msgs : Properties {
 	auto scenarioView = Msg("scenarioView", "シナリオビューリスト");
 	auto variableView = Msg("variableView", "状態変数インスペクタ");
 
-	auto reNumberingAll = Msg("reNumberingAll", "全てのエリアやカードのIDの1から振り直します。\nよろしいですか？");
+	auto reNumberingAll = Msg("reNumberingAll", "全てのエリアやカードのIDを1から振り直します。\nよろしいですか？");
 
 	auto dlgTitReNumbering = Msg("dlgTitReNumbering", "IDの振り直し");
 	auto reNumbering = Msg("reNumbering", "IDの振り直し");
