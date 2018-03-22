@@ -4022,17 +4022,17 @@ void getSymbols(Commons comm, Summary summ, CWXPath path, bool desc, out string 
 	}
 	auto bgi = cast(BgImage)path;
 	if (bgi) { mixin(S_TRACE);
-		auto ic = cast(ImageCell) bgi;
+		auto ic = cast(ImageCell)bgi;
 		if (ic) { mixin(S_TRACE);
 			img = prop.images.backs;
 			text = .tryFormat(prop.msgs.searchResultImageCell, ic.name(prop.parent));
 		}
-		auto tc = cast(TextCell) bgi;
+		auto tc = cast(TextCell)bgi;
 		if (tc) { mixin(S_TRACE);
 			img = prop.images.textCell;
 			text = .tryFormat(prop.msgs.searchResultTextCell, tc.name(prop.parent));
 		}
-		auto cc = cast(ColorCell) bgi;
+		auto cc = cast(ColorCell)bgi;
 		if (cc) { mixin(S_TRACE);
 			img = prop.images.colorCell;
 			text = .tryFormat(prop.msgs.searchResultColorCell, cc.name(prop.parent));
