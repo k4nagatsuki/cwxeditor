@@ -3997,7 +3997,6 @@ public:
 			scope (exit) {
 				summ.delTemp();
 				_grepSkin = null;
-				destroy(summ);
 				_grepSumm = null;
 				core.memory.GC.collect();
 				core.memory.GC.minimize();

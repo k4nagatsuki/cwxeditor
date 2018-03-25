@@ -4022,17 +4022,17 @@ void getSymbols(Commons comm, Summary summ, CWXPath path, bool desc, out string 
 	}
 	auto bgi = cast(BgImage)path;
 	if (bgi) { mixin(S_TRACE);
-		auto ic = cast(ImageCell) bgi;
+		auto ic = cast(ImageCell)bgi;
 		if (ic) { mixin(S_TRACE);
 			img = prop.images.backs;
 			text = .tryFormat(prop.msgs.searchResultImageCell, ic.name(prop.parent));
 		}
-		auto tc = cast(TextCell) bgi;
+		auto tc = cast(TextCell)bgi;
 		if (tc) { mixin(S_TRACE);
 			img = prop.images.textCell;
 			text = .tryFormat(prop.msgs.searchResultTextCell, tc.name(prop.parent));
 		}
-		auto cc = cast(ColorCell) bgi;
+		auto cc = cast(ColorCell)bgi;
 		if (cc) { mixin(S_TRACE);
 			img = prop.images.colorCell;
 			text = .tryFormat(prop.msgs.searchResultColorCell, cc.name(prop.parent));
@@ -4104,7 +4104,7 @@ void getSymbols(Commons comm, Summary summ, CWXPath path, bool desc, out string 
 		Content c = cast(Content)tex.owner;
 		if (!c) { mixin(S_TRACE);
 			auto dlg = cast(SDialog)tex.owner;
-			if (dlg) c = dlg.parent;
+			if (dlg) path = dlg;
 		}
 		if (c) { mixin(S_TRACE);
 			img = prop.images.content(c.type);
@@ -4118,8 +4118,8 @@ void getSymbols(Commons comm, Summary summ, CWXPath path, bool desc, out string 
 	auto sdlg = cast(SDialog)path;
 	if (sdlg) { mixin(S_TRACE);
 		con = sdlg.parent;
-		assert (con);
-		img = prop.images.content(con.type);
+		assert (!con || con.type is CType.TALK_DIALOG);
+		img = prop.images.content(CType.TALK_DIALOG);
 		string t = sdlg.text.singleLine;
 		if (sdlg.rCoupons.length) { mixin(S_TRACE);
 			text = .tryFormat(prop.msgs.dialogText, t, std.string.join(sdlg.rCoupons.dup, " "));
