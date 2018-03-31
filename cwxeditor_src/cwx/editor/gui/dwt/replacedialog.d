@@ -4732,7 +4732,9 @@ public:
 				r |= repl(parent, null, "", .to!string(c), (string s) { mixin(S_TRACE);
 					dstring ds = .to!dstring(s);
 					if (!ds.length) return;
-					th.changeInText(i, toPathId(encodeFontPath(ds[0], ext)));
+					auto path = .encodeFontPath(ds[0], ext);
+					if (path == "") return;
+					th.changeInText(i, toPathId(path));
 				}, count, nArr);
 			}
 			uArr ~= new StrUndo(old, th.text, &th.text);

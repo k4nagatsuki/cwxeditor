@@ -26,7 +26,8 @@ dchar decodeFontPath(string path) { mixin(S_TRACE);
 }
 /// cを"font_X.bmp"等に変換する。
 string encodeFontPath(dchar c, string ext) { mixin(S_TRACE);
-	return ("font_" ~ to!string(c)).setExtension(ext);
+	if (!c.isFileNameChar) return "";
+	return ("font_" ~ to!string(c)) ~ ext;
 }
 
 /// 状態変数の選択中の値と特殊文字展開の有無。
@@ -122,20 +123,22 @@ private string formatMsgImpl(string text,
 			if ('\n' == dtext[i + 1]) goto default;
 			auto nc = std.ascii.toUpper(dtext[i + 1]);
 			if (full) { mixin(S_TRACE);
-				string path = encodeFontPath(dtext[i + 1], ".bmp");
-				if (hasMaterial && hasMaterial(path)) { mixin(S_TRACE);
-					fonts[result.length + startIndex] = path;
-				} else { mixin(S_TRACE);
-					switch (nc) {
-					case 'M', 'R', 'U', 'C', 'I', 'T', 'Y':
-						result ~= to!dstring(getName(cast(char)nc));
-						i++;
-						continue;
-					default:
-						if (!hasMaterial) { mixin(S_TRACE);
-							fonts[result.length + startIndex] = path;
+				auto path = encodeFontPath(dtext[i + 1], ".bmp");
+				if (path != "") { mixin(S_TRACE);
+					if (hasMaterial && hasMaterial(path)) { mixin(S_TRACE);
+						fonts[result.length + startIndex] = path;
+					} else { mixin(S_TRACE);
+						switch (nc) {
+						case 'M', 'R', 'U', 'C', 'I', 'T', 'Y':
+							result ~= to!dstring(getName(cast(char)nc));
+							i++;
+							continue;
+						default:
+							if (!hasMaterial) { mixin(S_TRACE);
+								fonts[result.length + startIndex] = path;
+							}
+							break;
 						}
-						break;
 					}
 				}
 			} else { mixin(S_TRACE);
