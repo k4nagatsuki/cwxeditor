@@ -1976,7 +1976,7 @@ class Msgs : Properties {
 	auto warningBranchKeyCodeWithItem = Msg("warningBranchKeyCodeWithItem", "クラシックなシナリオにおけるキーコード所持分岐でカードの種類にアイテムが含まれている場合は、戦闘時の手札も検索対象となります。");
 	auto warningLoadScaledImage = Msg("warningLoadScaledImage", "スケーリングされたイメージファイルの読み込みは、Wsn.2以降の形式のシナリオに対応したエンジンでしか機能しません。"); // Wsn.2
 	auto warningPlayerCardEvents = Msg("warningPlayerCardEvents", "プレイヤーカードに対するイベント設定は、Wsn.2以降の形式のシナリオしか行えません。"); // Wsn.2
-	auto warningCouponHolder = Msg("warningCouponHolder", "適用範囲 [称号所有者] の指定は、Wsn.2以降の形式のシナリオしか行えません。"); // Wsn.2
+	auto warningCouponHolder = Msg("warningCouponHolder", "%1$sコンテントにおける適用範囲 [称号所有者] の指定は、Wsn.%2$s以降の形式のシナリオしか行えません。"); // Wsn.2, Wsn.3
 	auto warningNoHoldingCoupon = Msg("warningNoHoldingCoupon", "範囲指定用の称号が設定されていません。"); // Wsn.2
 	auto warningCardTarget = Msg("warningCardTarget", "適用範囲 [カードの使用対象] の指定は、Wsn.2以降の形式のシナリオしか行えません。"); // Wsn.2
 	auto warningRefAbility = Msg("warningRefAbility", "選択メンバの能力参照は、Wsn.2以降の形式のシナリオでしか行えません。"); // Wsn.2

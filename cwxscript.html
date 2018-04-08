@@ -889,7 +889,7 @@
 	<dd>情報の獲得</dd>
 	<dt class="content"><a href="#GETMONEY">getmoney <span class="args"><span class="arg">&lt;金額&gt;</span></span></a></dt>
 	<dd>所持金の増加</dd>
-	<dt class="content"><a href="#GETCOUPON">getcoupon <span class="args"><span class="arg">&lt;対象&gt;</span>, <span class="arg">&lt;クーポン名&gt;</span>, <span class="arg">&lt;得点&gt;</span></span></a></dt>
+	<dt class="content"><a href="#GETCOUPON">getcoupon <span class="args">(<span class="arg">&lt;対象&gt;</span> | <span class="arg">coupon</span> <span class="arg">&lt;称号名&gt;</span>), <span class="arg">&lt;クーポン名&gt;</span>, <span class="arg">&lt;得点&gt;</span></span></a></dt>
 	<dd>クーポンの付与</dd>
 	<dt class="content"><a href="#GETSTAMP">getstamp <span class="args"><span class="arg">&lt;シナリオ名&gt;</span></span></a></dt>
 	<dd>終了印の追加</dd>
@@ -907,7 +907,7 @@
 	<dd>情報の喪失</dd>
 	<dt class="content"><a href="#LOSEMONEY">losemoney <span class="args"><span class="arg">&lt;金額&gt;</span></span></a></dt>
 	<dd>所持金の減少</dd>
-	<dt class="content"><a href="#LOSECOUPON">losecoupon <span class="args"><span class="arg">&lt;対象&gt;</span>, <span class="arg">&lt;クーポン名&gt;</span></span></a></dt>
+	<dt class="content"><a href="#LOSECOUPON">losecoupon <span class="args">(<span class="arg">&lt;対象&gt;</span> | <span class="arg">coupon</span> <span class="arg">&lt;称号名&gt;</span>), <span class="arg">&lt;クーポン名&gt;</span></span></a></dt>
 	<dd>クーポンの消失</dd>
 	<dt class="content"><a href="#LOSESTAMP">losestamp <span class="args"><span class="arg">&lt;シナリオ名&gt;</span></span></a></dt>
 	<dd>終了印の除去</dd>
@@ -2683,7 +2683,7 @@
 
 <pre><code class="samplecode"><span class="keywords">getmoney</span> <span class="num">600</span> <span class="comment">// 600sp入手</span></code></pre>
 
-<h3 class="content"><a id="GETCOUPON" name="GETCOUPON">getcoupon <span class="args"><span class="arg">&lt;対象&gt;</span>, <span class="arg">&lt;クーポン名&gt;</span>, <span class="arg">&lt;得点&gt;</span></span></a></h3>
+<h3 class="content"><a id="GETCOUPON" name="GETCOUPON">getcoupon <span class="args">(<span class="arg">&lt;対象&gt;</span> | <span class="arg">coupon</span> <span class="arg">&lt;称号名&gt;</span>), <span class="arg">&lt;クーポン名&gt;</span>, <span class="arg">&lt;得点&gt;</span></span></a></h3>
 
 <p class="fullname">(Get Coupon)</p>
 <p class="desc">クーポン(称号)を入手させます。</p>
@@ -2698,7 +2698,10 @@
 	<dd class="worddesc">誰か一人。</dd>
 	<dt class="keyword"><code>T</code> または <code>team</code></dt>
 	<dd class="worddesc">パーティ全員。</dd>
+	<dt class="keyword"><code>coupon</code></dt>
+	<dd class="worddesc">称号所有者。対象に<code>coupon</code>を指定した場合は、称号名を文字列で指定します。</dd>
 </dl>
+<p class="desc"><em class="warning">称号所有者はWsn.3以降のWSN形式シナリオでのみ機能します。</em></p>
 <p class="desc">クーポン名には、クーポンの名前を文字列で指定します。</p>
 <p class="desc">得点には、クーポンの点数を整数で指定します。マイナスの値も指摘でき、省略した場合は0点になります。</p>
 
@@ -2812,7 +2815,7 @@
 
 <pre><code class="samplecode"><span class="keywords">losemoney</span> <span class="num">1400</span> <span class="comment">// 1400sp支払う</span></code></pre>
 
-<h3 class="content"><a id="LOSECOUPON" name="LOSECOUPON">losecoupon <span class="args"><span class="arg">&lt;対象&gt;</span>, <span class="arg">&lt;クーポン名&gt;</span></span></a></h3>
+<h3 class="content"><a id="LOSECOUPON" name="LOSECOUPON">losecoupon <span class="args">(<span class="arg">&lt;対象&gt;</span> | <span class="arg">coupon</span> <span class="arg">&lt;称号名&gt;</span>), <span class="arg">&lt;クーポン名&gt;</span></span></a></h3>
 
 <p class="fullname">(Lose Coupon)</p>
 <p class="desc">クーポン(称号)を削除します。</p>
@@ -2827,7 +2830,10 @@
 	<dd class="worddesc">誰か一人。</dd>
 	<dt class="keyword"><code>T</code> または <code>team</code></dt>
 	<dd class="worddesc">パーティ全員。</dd>
+	<dt class="keyword"><code>coupon</code></dt>
+	<dd class="worddesc">称号所有者。対象に<code>coupon</code>を指定した場合は、称号名を文字列で指定します。</dd>
 </dl>
+<p class="desc"><em class="warning">称号所有者はWsn.3以降のWSN形式シナリオでのみ機能します。</em></p>
 <p class="desc">クーポン名には、クーポンの名前を文字列で指定します。</p>
 
 <h4 class="example">例</h4>

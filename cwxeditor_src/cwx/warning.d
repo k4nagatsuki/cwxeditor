@@ -884,8 +884,20 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			}
 		}
 		if (c.range is Range.COUPON_HOLDER) { mixin(S_TRACE);
-			if (!prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
-				r ~= prop.msgs.warningCouponHolder;
+			switch (c.type) {
+			case CType.EFFECT:
+				if (!prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+					r ~= .tryFormat(prop.msgs.warningCouponHolder, prop.msgs.contentName(c.type), "2");
+				}
+				break;
+			case CType.GET_COUPON:
+			case CType.LOSE_COUPON:
+				if (!prop.isTargetVersion(summ, targVer, "3")) { mixin(S_TRACE);
+					r ~= .tryFormat(prop.msgs.warningCouponHolder, prop.msgs.contentName(c.type), "3");
+				}
+				break;
+			default:
+				assert (0);
 			}
 			if (c.holdingCoupon == "") { mixin(S_TRACE);
 				r ~= prop.msgs.warningNoHoldingCoupon;

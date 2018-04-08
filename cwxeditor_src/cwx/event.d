@@ -179,7 +179,7 @@ private void static_this () { mixin(S_TRACE);
 		CType.GET_INFO:CDetail("Get", "Info", CNextType.NONE, true, [CArg.INFO:"id"]),
 		CType.GET_BEAST:CDetail("Get", "Beast", CNextType.NONE, true, [CArg.BEAST:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number"]),
 		CType.GET_MONEY:CDetail("Get", "Money", CNextType.NONE, true, [CArg.MONEY:"value"]),
-		CType.GET_COUPON:CDetail("Get", "Coupon", CNextType.NONE, true, [CArg.COUPON:_("coupon"), CArg.RANGE:"targets", CArg.COUPON_VALUE:"value"]),
+		CType.GET_COUPON:CDetail("Get", "Coupon", CNextType.NONE, true, [CArg.COUPON:_("coupon"), CArg.RANGE:"targets", CArg.COUPON_VALUE:"value", CArg.HOLDING_COUPON:"holdingcoupon"]),
 		CType.GET_COMPLETE_STAMP:CDetail("Get", "CompleteStamp", CNextType.NONE, true, [CArg.COMPLETE_STAMP:"scenario"]),
 		CType.GET_GOSSIP:CDetail("Get", "Gossip", CNextType.NONE, true, [CArg.GOSSIP:"gossip"]),
 		CType.LOSE_CAST:CDetail("Lose", "Cast", CNextType.NONE, true, [CArg.CAST:"id"]),
@@ -188,7 +188,7 @@ private void static_this () { mixin(S_TRACE);
 		CType.LOSE_INFO:CDetail("Lose", "Info", CNextType.NONE, true, [CArg.INFO:"id"]),
 		CType.LOSE_BEAST:CDetail("Lose", "Beast", CNextType.NONE, true, [CArg.BEAST:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number"]),
 		CType.LOSE_MONEY:CDetail("Lose", "Money", CNextType.NONE, true, [CArg.MONEY:"value"]),
-		CType.LOSE_COUPON:CDetail("Lose", "Coupon", CNextType.NONE, true, [CArg.COUPON:_("coupon"), CArg.RANGE:"targets"]),
+		CType.LOSE_COUPON:CDetail("Lose", "Coupon", CNextType.NONE, true, [CArg.COUPON:_("coupon"), CArg.RANGE:"targets", CArg.HOLDING_COUPON:"holdingcoupon"]),
 		CType.LOSE_COMPLETE_STAMP:CDetail("Lose", "CompleteStamp", CNextType.NONE, true, [CArg.COMPLETE_STAMP:"scenario"]),
 		CType.LOSE_GOSSIP:CDetail("Lose", "Gossip", CNextType.NONE, true, [CArg.GOSSIP:"gossip"]),
 		CType.SHOW_PARTY:CDetail("Show", "Party", CNextType.NONE, true),
@@ -845,12 +845,23 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		}
 		switch (type) {
 		case CType.BRANCH_STATUS:
+			switch (range) {
+			case Range.SELECTED:
+			case Range.RANDOM:
+			case Range.PARTY:
+				break;
+			default:
+				_range = Range.SELECTED;
+				break;
+			}
+			break;
 		case CType.GET_COUPON:
 		case CType.LOSE_COUPON:
 			switch (range) {
 			case Range.SELECTED:
 			case Range.RANDOM:
 			case Range.PARTY:
+			case Range.COUPON_HOLDER:
 				break;
 			default:
 				_range = Range.SELECTED;

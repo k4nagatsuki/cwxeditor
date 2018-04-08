@@ -1336,6 +1336,7 @@ private:
 	class L : Listener {
 		public override void handleEvent(Event e) { mixin(S_TRACE);
 			auto b = cast(B)e.widget;
+			if (!b.getSelection()) return;
 			if (_sel is null) { mixin(S_TRACE);
 				_sel = b;
 			} else if (b !is _sel) { mixin(S_TRACE);
