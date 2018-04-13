@@ -44,6 +44,7 @@ import std.exception;
 import std.conv;
 import std.datetime;
 import std.ascii;
+import std.typecons;
 
 import org.eclipse.swt.all;
 
@@ -2353,38 +2354,57 @@ public:
 		}
 	}
 
+	alias Tuple!(TreeItem, string[]) WarningInfo;
 	/// 警告などを描画する。
 	private void paintTree(Event e) { mixin(S_TRACE);
 		_warningRects = [];
-		if (!cast(Area)_area && !cast(Battle)_area) return;
-		auto itm = _cards.getItem(1);
-		auto playerEvents = cast(PlayerCardEvents)itm.getData();
-		assert (playerEvents !is null);
-		auto skin = _comm.skin;
-		auto warnings = .warnings(_prop.parent, summSkin, _summ, playerEvents, _prop.var.etc.targetVersion);
-		if (!warnings.length) return;
+		WarningInfo[] warningInfo;
 		if (!_prop.var.etc.drawContentWarnings) return;
+		if (!cast(Area)_area && !cast(Battle)_area) return;
+
+		auto pcItm = _cards.getItem(1);
+		auto playerEvents = cast(PlayerCardEvents)pcItm.getData();
+		assert (playerEvents !is null);
+		auto pcWarnings = .warnings(_prop.parent, summSkin, _summ, playerEvents, _prop.var.etc.targetVersion);
+		if (pcWarnings.length) warningInfo ~= WarningInfo(pcItm, pcWarnings);
+
+		if (auto btl = cast(Battle)_area) { mixin(S_TRACE);
+			if (!btl.possibleToRunAway) { mixin(S_TRACE);
+				foreach (itm; _cards.getItem(0).getItems()) { mixin(S_TRACE);
+					assert(cast(EventTree)itm.getData() !is null);
+					auto et = cast(EventTree)itm.getData();
+					if (et.fireEscape) { mixin(S_TRACE);
+						warningInfo ~= WarningInfo(itm, [_prop.msgs.warningNoIgniteRunAway]);
+					}
+				}
+			}
+		}
+
+		if (!warningInfo.length) return;
 
 		auto wImg = .warningImage(_prop, _cards.getDisplay(), _prop.var.etc.warningImageWidthEventTree);
 		scope (exit) wImg.dispose();
-
+		auto skin = _comm.skin;
 		auto ca = _cards.getClientArea();
-		warnings = warnings.sort().uniq().array();
-		auto b = itm.getBounds();
-		if (b.y + b.height <= ca.y) return;
-		if (ca.y + ca.height < b.y) return;
-		auto ib = itm.getImageBounds(0);
-		if (ca.width <= ib.x) return;
-		int ix = .max(ib.x, ca.width - _prop.var.etc.warningImageWidthEventTree);
-		e.gc.drawImage(wImg, 0, 0, _prop.var.etc.warningImageWidthEventTree, 1, ix, b.y, ca.width - ix, b.height);
 		auto bounds = _prop.images.warning.getBounds();
-		int wx = .max(b.x + b.width, ca.width - bounds.width - 1);
-		if (wx < ca.width) { mixin(S_TRACE);
-			e.gc.drawImage(_prop.images.warning, wx, b.y + (b.height - bounds.height) / 2);
+		foreach (info; warningInfo) { mixin(S_TRACE);
+			auto itm = info[0];
+			auto warnings = info[1];
+			warnings = warnings.sort().uniq().array();
+			auto b = itm.getBounds();
+			if (b.y + b.height <= ca.y) continue;
+			if (ca.y + ca.height < b.y) continue;
+			auto ib = itm.getImageBounds(0);
+			if (ca.width <= ib.x) continue;
+			int ix = .max(ib.x, ca.width - _prop.var.etc.warningImageWidthEventTree);
+			e.gc.drawImage(wImg, 0, 0, _prop.var.etc.warningImageWidthEventTree, 1, ix, b.y, ca.width - ix, b.height);
+			int wx = .max(b.x + b.width, ca.width - bounds.width - 1);
+			if (wx < ca.width) { mixin(S_TRACE);
+				e.gc.drawImage(_prop.images.warning, wx, b.y + (b.height - bounds.height) / 2);
+			}
+			auto rect = new Rectangle(ix, b.y, _prop.var.etc.warningImageWidthEventTree, b.height);
+			_warningRects ~= Warning(rect, warnings);
 		}
-		auto rect = new Rectangle(ix, b.y, _prop.var.etc.warningImageWidthEventTree, b.height);
-		_warningRects ~= Warning(rect, warnings);
-
 		updateToolTip();
 	}
 	private void updateToolTip() { mixin(S_TRACE);

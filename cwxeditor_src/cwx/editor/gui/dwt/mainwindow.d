@@ -3342,6 +3342,7 @@ public:
 						case MenuID.NewPCCell:
 						case MenuID.AutoArrange:
 						case MenuID.ManualArrange:
+						case MenuID.PossibleToRunAway:
 						case MenuID.Mask:
 						case MenuID.Escape:
 						case MenuID.ChangePos:

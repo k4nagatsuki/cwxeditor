@@ -365,6 +365,17 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	}
 	auto btl = cast(Battle)path;
 	if (btl) { mixin(S_TRACE);
+		if (!btl.possibleToRunAway && !prop.isTargetVersion(summ, targVer, "3")) { mixin(S_TRACE);
+			r ~= prop.msgs.warningPossibleToRunAway;
+		}
+		if (!btl.possibleToRunAway) { mixin(S_TRACE);
+			foreach (et; btl.trees) { mixin(S_TRACE);
+				if (et.fireEscape) { mixin(S_TRACE);
+					r ~= prop.msgs.warningNoIgniteRunAway;
+					break;
+				}
+			}
+		}
 		if (btl.music != "") { mixin(S_TRACE);
 			r ~= skin.warningBGM(prop, btl.music, summ ? summ.legacy : false, targVer);
 			if (!skin.findPath(btl.music, skin.extBgm, skin.bgmDirs, sPath, wsnVer, skin.wsnMusicDirs(wsnVer)).length) { mixin(S_TRACE);

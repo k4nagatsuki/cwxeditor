@@ -1508,6 +1508,7 @@ private:
 	uint _volume = 100;
 	uint _loopCount = 0;
 	uint _fadeIn = 0;
+	bool _possibleToRunAway = true; /// PCの逃走可否(Wsn.3)。
 
 	PlayerCardEvents _playerEvents; /// プレイヤーカードのキーコード・死亡時イベント(Wsn.2)。
 public:
@@ -1540,6 +1541,7 @@ public:
 	AbstractArea dup() { mixin(S_TRACE);
 		auto r = new Battle(id, name, music);
 		r.spAuto = spAuto;
+		r.possibleToRunAway = possibleToRunAway;
 		foreach (c; cards) r.append(cast(EnemyCard)c.dup);
 		r.playerEvents.deepCopyEventTreeOwner(playerEvents);
 		r.deepCopyEventTreeOwner(this);
@@ -1548,22 +1550,22 @@ public:
 
 	@property
 	const
-	override bool canHasFireLose() {return true;}
+	override bool canHasFireLose() { return true; }
 	@property
 	const
-	override bool canHasFireEscape() {return true;}
+	override bool canHasFireEscape() { return true; }
 	@property
 	const
-	override bool canHasFireEveryRound() {return true;}
+	override bool canHasFireEveryRound() { return true; }
 	@property
 	const
-	override bool canHasFireRound0() {return true;}
+	override bool canHasFireRound0() { return true; }
 	@property
 	const
-	override bool canHasFireRound() {return true;}
+	override bool canHasFireRound() { return true; }
 	@property
 	const
-	override bool canHasFireKeyCode() {return true;}
+	override bool canHasFireKeyCode() { return true; }
 	override EventTree etFromPath(size_t[] path) { mixin(S_TRACE);
 		if (path[0] == 0) { mixin(S_TRACE);
 			return trees[path[1]];
@@ -1683,6 +1685,19 @@ public:
 		_auto = spAuto;
 	}
 
+	/// PCの逃走が可能か。
+	@property
+	const
+	bool possibleToRunAway() { mixin(S_TRACE);
+		return _possibleToRunAway;
+	}
+	/// ditto
+	@property
+	void possibleToRunAway(bool possibleToRunAway) { mixin(S_TRACE);
+		if (_possibleToRunAway != possibleToRunAway) changed();
+		_possibleToRunAway = possibleToRunAway;
+	}
+
 	@property
 	override void setUseCounter(UseCounter uc) { mixin(S_TRACE);
 		foreach (c; _cards) { mixin(S_TRACE);
@@ -1708,11 +1723,15 @@ public:
 
 	@property
 	const
-	override string rootName() {return "Battle";}
+	override string rootName() { return "Battle"; }
 	const
 	override void toNodeImpl(ref XNode e, XMLOption opt, string parentPath = "", string cutPath = "") { mixin(S_TRACE);
 		auto pe = e.newElement("Property");
 		appendProp(pe, opt, parentPath, cutPath);
+
+		if (!possibleToRunAway) { mixin(S_TRACE);
+			pe.newElement("RunAway", fromBool(possibleToRunAway));
+		}
 
 		playerEvents.toNode(e, opt);
 
@@ -1758,6 +1777,7 @@ public:
 		string name;
 		string music;
 		bool spAuto;
+		bool possibleToRunAway;
 		uint volume = 100;
 		uint loopCount = 0;
 		uint fadeIn = 0;
@@ -1796,6 +1816,9 @@ public:
 				loopCount = n.attr!uint("loopcount", false, 0);
 				fadeIn = n.attr!uint("fadein", false, 0);
 			};
+			pNode.onTag["RunAway"] = (ref XNode n) { mixin(S_TRACE);
+				possibleToRunAway = n.valueTo!bool;
+			};
 			pNode.parse();
 		};
 		aNode.parse();
@@ -1809,6 +1832,7 @@ public:
 		r.playerEvents.addAll(playerEventTrees);
 		foreach (c; cards) r.append(c);
 		r.spAuto = spAuto;
+		r.possibleToRunAway = possibleToRunAway;
 		r.volume = volume;
 		r.loopCount = loopCount;
 		r.fadeIn = fadeIn;
@@ -1864,7 +1888,7 @@ public:
 	}
 	private BattleOwner _owner = null;
 	@property
-	package void owner(BattleOwner owner) {_owner = owner;}
+	package void owner(BattleOwner owner) { _owner = owner; }
 	@property
 	string cwxPath(bool id) { mixin(S_TRACE);
 		if (id) { mixin(S_TRACE);
@@ -1901,5 +1925,5 @@ public:
 		return r;
 	}
 	@property
-	CWXPath cwxParent() {return _owner;}
+	CWXPath cwxParent() { return _owner; }
 }

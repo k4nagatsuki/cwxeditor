@@ -1577,6 +1577,7 @@ enum MenuID {
 	NewPCCell,
 	AutoArrange,
 	ManualArrange,
+	PossibleToRunAway, // Wsn.3
 	Mask,
 	Escape,
 	ChangePos,

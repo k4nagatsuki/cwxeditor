@@ -1991,7 +1991,9 @@ class Msgs : Properties {
 	auto warningInvocationCondition = Msg("warningInvocationCondition", "「生存」以外の条件で発動する召喚獣は、Wsn.3以降の形式のシナリオでしか機能しません。"); // Wsn.3
 	auto warningRemoveWithUnconscious = Msg("warningRemoveWithUnconscious", "意識不明時に消滅しない召喚獣は、Wsn.3以降の形式のシナリオでしか機能しません。"); // Wsn.3
 	auto warningInconsistencyStatus = Msg("warningInconsistencyStatus", "%1$s状態と%2$s状態を同時に設定する事はできません。");
-	auto warningUnconsciousCondition = Msg("warningUnconsciousCondition", "意識不明時に消滅するにもかかわらず意識不明状態が発動条件になっています。");
+	auto warningUnconsciousCondition = Msg("warningUnconsciousCondition", "意識不明時に消滅するにもかかわらず意識不明状態が発動条件になっています。"); // Wsn.3
+	auto warningPossibleToRunAway = Msg("warningPossibleToRunAway", "バトルの逃走不可設定はWsn.3以降の形式のシナリオでしか機能しません。"); // Wsn.3
+	auto warningNoIgniteRunAway = Msg("warningNoIgniteRunAway", "逃走できないバトルのイベントに逃走発火条件が設定されています。"); // Wsn.3
 
 	auto unknownStepValue = Msg("unknownStepValue", "存在しないステップ値(%1$s)");
 
@@ -2527,8 +2529,9 @@ class Msgs : Properties {
 	auto menuTextNewPCCell = Msg("menuTextNewPCCell", "プレイヤーキャラクタセルの作成");
 	auto menuTextAutoArrange = Msg("menuTextAutoArrange", "カードを自動的に並べる");
 	auto menuTextManualArrange = Msg("menuTextManualArrange", "カードの位置を自分で決定する");
+	auto menuTextPossibleToRunAway = Msg("menuTextPossibleToRunAway", "バトルからの逃走が可能か");
 	auto menuTextMask = Msg("menuTextMask", "透明色を使用");
-	auto menuTextEscape = Msg("menuTextEscape", "逃走の有無");
+	auto menuTextEscape = Msg("menuTextEscape", "エネミーの逃走の有無");
 	auto menuTextChangePos = Msg("menuTextChangePos", "位置とサイズの変更");
 	auto menuTextPosTop = Msg("menuTextPosTop", "上に揃える");
 	auto menuTextPosBottom = Msg("menuTextPosBottom", "下に揃える");

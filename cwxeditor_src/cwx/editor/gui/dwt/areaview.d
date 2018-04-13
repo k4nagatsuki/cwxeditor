@@ -391,6 +391,29 @@ private:
 				_path.removeUseCounter();
 			}
 		}
+		static class UndoPossibleToRunAway : AUndo {
+			private bool _possibleToRunAway;
+			this (AbstractAreaView v, Commons comm, A area, Summary summ) { mixin(S_TRACE);
+				super (v, comm, area, summ);
+				_possibleToRunAway = area.possibleToRunAway;
+			}
+			private void impl() { mixin(S_TRACE);
+				auto vs = views();
+				udb(vs);
+				scope (exit) uda(vs);
+				auto possibleToRunAway = area.possibleToRunAway;
+				area.possibleToRunAway = _possibleToRunAway;
+				_possibleToRunAway = possibleToRunAway;
+				foreach (v; vs) { mixin(S_TRACE);
+					if (v._possibleToRunAwayMenu) v._possibleToRunAwayMenu.setSelection(area.possibleToRunAway);
+					if (v._possibleToRunAwayTMenu) v._possibleToRunAwayTMenu.setSelection(area.possibleToRunAway);
+					v.callModEvent();
+				}
+			}
+			override void undo() { impl(); }
+			override void redo() { impl(); }
+			override void dispose() {}
+		}
 	}
 	template Reselect() {
 		private int[] _cIdcs;
@@ -4441,27 +4464,53 @@ public:
 	}
 
 	@property
-	bool isViewMsg() {return _viewMsg;}
+	bool isViewMsg() { return _viewMsg; }
 	@property
-	bool isViewParty() {return _viewParty;}
+	bool isViewParty() { return _viewParty; }
 	static if (RefCards) {
 		@property
-		bool isViewRefCards() {return _showRefCards;}
+		bool isViewRefCards() { return _showRefCards; }
 	}
 	static if (UseCards) {
 		@property
-		bool isFixedCards() {return _fixedC || _readOnly;}
+		bool isFixedCards() { return _fixedC || _readOnly; }
 		@property
-		bool spCustom() {return !_area.spAuto;}
+		bool spCustom() { return !_area.spAuto; }
 	}
 	static if (UseBacks) {
 		@property
-		bool isFixedCells() {return _fixedB || _readOnly;}
+		bool isFixedCells() { return _fixedB || _readOnly; }
 		@property
-		bool isFixedBackground() {return _fixedFirstB || _readOnly;}
+		bool isFixedBackground() { return _fixedFirstB || _readOnly; }
+	}
+	static if (is(A:Battle)) {
+		MenuItem _possibleToRunAwayMenu;
+		ToolItem _possibleToRunAwayTMenu;
+		@property
+		const
+		bool canReversePossibleToRunAway() { mixin(S_TRACE);
+			return !_readOnly && (!(_summ && _summ.legacy) || !_area.possibleToRunAway);
+		}
+		@property
+		bool isPossibleToRunAway() { return _area.possibleToRunAway; }
+		@property
+		void reversePossibleToRunAway() { mixin(S_TRACE);
+			_undo ~= new UndoPossibleToRunAway(this, _comm, _area, _summ);
+			_area.possibleToRunAway = !_area.possibleToRunAway;
+			callModEvent();
+			foreach (v; views()) { mixin(S_TRACE);
+				// 同期
+				if (v !is this) { mixin(S_TRACE);
+					v._possibleToRunAwayMenu.setSelection(_area.possibleToRunAway);
+					v._possibleToRunAwayTMenu.setSelection(_area.possibleToRunAway);
+					v.callModEvent();
+				}
+			}
+			_comm.refreshToolBar();
+		}
 	}
 	@property
-	bool isShowGrid() {return _showGrid;}
+	bool isShowGrid() { return _showGrid; }
 	private void setupTLP(TopLevelPanel tlp) { mixin(S_TRACE);
 		_tlp.putMenuChecked(MenuID.ShowParty, &reverseViewParty, &isViewParty, null);
 		static if (UseCards && UseBacks) {
@@ -4483,6 +4532,9 @@ public:
 		_tlp.putMenuAction(MenuID.Redo, &redo, () => !_readOnly && _undo.canRedo);
 		_tlp.putMenuAction(MenuID.Up, &up, &canUp);
 		_tlp.putMenuAction(MenuID.Down, &down, &canDown);
+		static if (is(A:Battle)) {
+			_tlp.putMenuChecked(MenuID.PossibleToRunAway, &reversePossibleToRunAway, &isPossibleToRunAway, &canReversePossibleToRunAway);
+		}
 	}
 
 	/// メニューにAreaViewで使用するアイテムを設定する。
@@ -4547,6 +4599,11 @@ public:
 			_customMenu = createMenuItem(_comm, mv, MenuID.ManualArrange, &setCustom, () => !_readOnly, SWT.RADIO);
 			_autoMenu.setSelection(_area.spAuto);
 			_customMenu.setSelection(!_area.spAuto);
+		}
+		static if (is(A:Battle)) {
+			new MenuItem(mv, SWT.SEPARATOR);
+			_possibleToRunAwayMenu = createMenuItem(_comm, bar, MenuID.PossibleToRunAway, &reversePossibleToRunAway, &canReversePossibleToRunAway, SWT.CHECK);
+			_possibleToRunAwayMenu.setSelection(_area.possibleToRunAway);
 		}
 		new MenuItem(mv, SWT.SEPARATOR);
 		_sgMenu = createMenuItem(_comm, mv, MenuID.ShowGrid, &reverseShowGrid, null, SWT.CHECK);
@@ -4640,6 +4697,11 @@ public:
 			_customTMenu = createToolItem(_comm, bar, MenuID.ManualArrange, &setCustom, () => !_readOnly, SWT.RADIO);
 			_autoTMenu.setSelection(_area.spAuto);
 			_customTMenu.setSelection(!_area.spAuto);
+		}
+		static if (is(A:Battle)) {
+			new ToolItem(bar, SWT.SEPARATOR);
+			_possibleToRunAwayTMenu = createToolItem(_comm, bar, MenuID.PossibleToRunAway, &reversePossibleToRunAway, &canReversePossibleToRunAway, SWT.CHECK);
+			_possibleToRunAwayTMenu.setSelection(_area.possibleToRunAway);
 		}
 		new ToolItem(bar, SWT.SEPARATOR);
 		_xSpn = createSpinner(bar, _prop.msgs.left, _prop.var.etc.posLeftMax, -(cast(int)_prop.var.etc.posLeftMax), 0,
