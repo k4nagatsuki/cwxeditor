@@ -781,7 +781,7 @@
 	<dd>エリアの移動</dd>
 	<dt class="content"><a href="#EFFECT">effect <span class="args"> (<span class="arg">&lt;効果対象&gt;</span> | <span class="arg">coupon</span> <span class="arg">&lt;称号名&gt;</span>), <span class="array">[<span class="arg">&lt;効果種別&gt;</span>, (<span class="arg">&lt;ダメージタイプ&gt;</span>, <span class="arg">&lt;値&gt;</span> | <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;増減値&gt;</span>, <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;召喚獣ID&gt;</span>), <span class="arg">&lt;属性&gt;</span>] ...</span>, <span class="arg">&lt;視覚効果&gt;</span>, <span class="arg">&lt;効果レベル&gt;</span>, <span class="arg">&lt;成功率&gt;</span>, <span class="arg">&lt;効果属性&gt;</span>, <span class="arg">&lt;抵抗属性&gt;</span>, <span class="arg">&lt;音声パス&gt;</span>, <span class="arg">&lt;音量&gt;</span>, <span class="arg">&lt;ループ回数&gt;</span>, <span class="arg">&lt;選択メンバの能力参照&gt;</span>, <span class="arg">&lt;身体的要素&gt;</span>, <span class="arg">&lt;精神的要素&gt;</span>, <span class="arg">&lt;イベント発火の有無&gt;</span>, <span class="arg">&lt;キーコード&gt;</span> ...</span></a></dt>
 	<dd>効果</dd>
-	<dt class="content"><a href="#BREA">break</a></dt>
+	<dt class="content"><a href="#BREA">break <span class="args"><span class="arg">&lt;カード消費の有無&gt;</span></span></a></dt>
 	<dd>イベントの中断</dd>
 	<dt class="content"><a href="#GOSTART">gostart <span class="args"><span class="arg">&lt;スタート名&gt;</span></span></a></dt>
 	<dd>スタートコンテントへの移動</dd>
@@ -1271,7 +1271,7 @@
        <span class="code">resist</span>, <span class="comment">// 抵抗可能</span>
        <span class="str">"効果（攻撃）.wav"</span> <span class="comment">// 標準効果音を鳴らす</span></code></pre>
 
-<h3 class="content"><a id="BREA" name="BREA">break</a></h3>
+<h3 class="content"><a id="BREA" name="BREA">break <span class="args"><span class="arg">&lt;カード消費の有無&gt;</span></span></a></h3>
 
 <p class="fullname">(Break Effect)</p>
 <p class="desc">イベントを終了します。</p>
@@ -1279,7 +1279,7 @@
 
 <h4 class="argments">パラメータ</h4>
 
-<p class="desc">パラメータはありません。</p>
+<p class="desc">カード消費の有無に<span class="code">true</span>を指定すると、カードの使用によってイベントが発火していた場合、イベント終了後に当該カードの使用回数を消費します。<span class="code">false</span>を指定した場合は、消費しません。省略した場合は<span class="code">true</span>になります。<em class="warning">このパラメータはWsn.3以降のWSN形式シナリオでしか機能しません。</em></p>
 
 <h4 class="example">例</h4>
 

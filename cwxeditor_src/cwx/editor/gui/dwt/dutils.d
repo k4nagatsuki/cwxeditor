@@ -3265,7 +3265,7 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 			return .tryFormat(comm.prop.msgs.ctEffect, tt, tl, tet, tr, tsf, ts, tsnd, tcv, teff, ignite, keyCode);
 		}
 	} case CType.EFFECT_BREAK: { mixin(S_TRACE);
-		return comm.prop.msgs.ctEffectBreak;
+		return evt.consumeCard ? comm.prop.msgs.ctEffectBreakConsumeCard : comm.prop.msgs.ctEffectBreakNoConsumeCard;
 	} case CType.LINK_START: { mixin(S_TRACE);
 		return contentTextUseID!(CIDKind.Start)(comm, summ, evt.start, comm.prop.msgs.ctLinkStart, evt);
 	} case CType.LINK_PACKAGE: { mixin(S_TRACE);

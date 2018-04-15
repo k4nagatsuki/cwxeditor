@@ -933,6 +933,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (cd.use(CArg.SELECT_TALKER) && c.selectTalker && hasCharacterTalker(c) && !prop.isTargetVersion(summ, targVer, "3")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningSelectTalker;
 		}
+		if (cd.use(CArg.CONSUME_CARD) && !c.consumeCard && !prop.isTargetVersion(summ, targVer, "3")) { mixin(S_TRACE);
+			r ~= prop.msgs.warningConsumeCard;
+		}
 	}
 	return r;
 }

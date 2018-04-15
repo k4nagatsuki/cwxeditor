@@ -577,6 +577,7 @@ class Msgs : Properties {
 	auto boundaryCheck = Msg("boundaryCheck", "禁則処理"); // Wsn.2
 	auto boundaryCheckOn = Msg("boundaryCheckOn", "禁則処理あり"); // Wsn.2
 	auto boundaryCheckDesc = Msg("boundaryCheckDesc", "禁則処理の結果は将来変化するかもしれません。\nメッセージの行数には余裕を持たせておく事をお勧めします。"); // Wsn.2
+	auto consumeCard = Msg("consumeCard", "イベントを発火させたカードの使用回数を消費する"); // Wsn.3
 
 	const string blendModeName(BlendMode id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(BlendMode, "blendModeName"));
@@ -930,7 +931,8 @@ class Msgs : Properties {
 	auto ctEffectMotion = Msg("ctEffectMotion", "[%1$s]");
 	auto ctKeyCodes = Msg("ctKeyCodes", "キーコード = %1$s");
 	auto ctNoKeyCode = Msg("ctNoKeyCode", "キーコード無し");
-	auto ctEffectBreak = Msg("ctEffectBreak", "効果中断コンテント");
+	auto ctEffectBreakConsumeCard = Msg("ctEffectBreakConsumeCard", "効果中断");
+	auto ctEffectBreakNoConsumeCard = Msg("ctEffectBreakNoConsumeCard", "効果中断(使用中のカードを消費しない)");
 	auto ctLinkStart = Msg("ctLinkStart", "スタートコンテント「%1$s」へのリンク");
 	auto ctLinkPackage = Msg("ctLinkPackage", "パッケージ「%1$s」へのリンク");
 	auto ctTalkMessageImage = Msg("ctTalkMessageImage", "[%1$s]");
@@ -1994,6 +1996,7 @@ class Msgs : Properties {
 	auto warningUnconsciousCondition = Msg("warningUnconsciousCondition", "意識不明時に消滅するにもかかわらず意識不明状態が発動条件になっています。"); // Wsn.3
 	auto warningPossibleToRunAway = Msg("warningPossibleToRunAway", "バトルの逃走不可設定はWsn.3以降の形式のシナリオでしか機能しません。"); // Wsn.3
 	auto warningNoIgniteRunAway = Msg("warningNoIgniteRunAway", "逃走できないバトルのイベントに逃走発火条件が設定されています。"); // Wsn.3
+	auto warningConsumeCard = Msg("warningConsumeCard", "カード消費の抑止は、Wsn.3以降の形式のシナリオでしか機能しません。"); // Wsn.3
 
 	auto unknownStepValue = Msg("unknownStepValue", "存在しないステップ値(%1$s)");
 

@@ -439,7 +439,6 @@ bool hasDialog(CType type, bool existsSummary = true) { mixin(S_TRACE);
 	switch (type) {
 	case CType.START:
 	case CType.END_BAD_END:
-	case CType.EFFECT_BREAK:
 	case CType.ELAPSE_TIME:
 	case CType.BRANCH_AREA:
 	case CType.BRANCH_BATTLE:
@@ -496,6 +495,9 @@ EventDialog createEventDialog(Commons comm, Summary summ, Shell parentShell, Con
 		break;
 	} case CType.EFFECT: { mixin(S_TRACE);
 		dlg = new EffectDialog(comm, comm.prop, parentShell, summ, parent, evt);
+		break;
+	} case CType.EFFECT_BREAK: { mixin(S_TRACE);
+		dlg = new EffectBreakDialog(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
 	} case CType.LINK_START: { mixin(S_TRACE);
 		dlg = new StartSelectDialog!(CType.LINK_START)(comm, comm.prop, parentShell, summ, parent, evt);

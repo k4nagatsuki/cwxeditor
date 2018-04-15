@@ -903,6 +903,8 @@ private:
 			return !_summ.legacy;
 		case CType.CHECK_STEP: mixin(S_TRACE);
 			return 0 < _summ.flagDirRoot.allSteps.length;
+		case CType.EFFECT_BREAK: mixin(S_TRACE);
+			return !_summ.legacy;
 		default: mixin(S_TRACE);
 			return true;
 		}
@@ -1011,9 +1013,9 @@ private:
 	}
 	EventDialog edit(Content evt) { mixin(S_TRACE);
 		if (_readOnly) return null;
-		if (!hasDialog(evt.type) || !checkOpenDialog(evt.type)) return null;
-		foreach (v; views()) v.editEnter();
 		auto p = evt.eventId in _editDlgs;
+		if (!p && (!hasDialog(evt.type) || !checkOpenDialog(evt.type))) return null;
+		foreach (v; views()) v.editEnter();
 		if (p) { mixin(S_TRACE);
 			p.active();
 			return *p;

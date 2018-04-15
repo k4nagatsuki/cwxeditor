@@ -1336,6 +1336,7 @@ enum CArg {
 	CARD_GROUP, /// カードグループ(Wsn.3)。
 	SCALE, /// スケール(Wsn.3)。
 	LAYER, /// レイヤ(Wsn.3)。
+	CONSUME_CARD, /// 使用中のカードを消費する(Wsn.3)。
 }
 
 /// 後続コンテントのnameの型。

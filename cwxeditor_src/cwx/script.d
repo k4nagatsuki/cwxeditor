@@ -3022,6 +3022,9 @@ fi`;
 			if (detail.use(CArg.MATCHING_TYPE)) { mixin(S_TRACE);
 				c.matchingType = parseAttr!(MatchingType)(opt, node.attr, i, c.matchingType, varTable, 0);
 			}
+			if (detail.use(CArg.CONSUME_CARD)) { mixin(S_TRACE);
+				c.consumeCard = parseAttr!(bool)(opt, node.attr, i, c.consumeCard, varTable, 0);
+			}
 			Content autoWrap(Content c) { mixin(S_TRACE);
 				if (!c.detail.owner) { mixin(S_TRACE);
 					throwError(_prop.msgs.scriptErrorCanNotHaveContent, node.token);
@@ -3989,6 +3992,9 @@ fi`;
 			}
 			if (detail.use(CArg.MATCHING_TYPE)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.matchingType, indentValue, vars);
+			}
+			if (detail.use(CArg.CONSUME_CARD)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.consumeCard, indentValue, vars);
 			}
 			bool useIf = c.next.length > 1;
 			bool useSif = c.next.length == 1 && c.next[0].name.length;

@@ -4147,3 +4147,60 @@ protected:
 		return true;
 	}
 }
+
+/// 効果中断イベントの設定を行うダイアログ。
+class EffectBreakDialog : EventDialog {
+private:
+	Button _consumeCard;
+
+	override
+	protected void refreshWarning() { mixin(S_TRACE);
+		string[] ws;
+		if (!_consumeCard.getSelection() && !prop.isTargetVersion(summ, "3")) { mixin(S_TRACE);
+			ws ~= prop.msgs.warningConsumeCard;
+		}
+		warning = ws;
+	}
+
+	override
+	protected void refDataVersion() { mixin(S_TRACE);
+		_consumeCard.setEnabled(!(summ && summ.legacy) || !_consumeCard.getSelection());
+		refreshWarning();
+	}
+public:
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
+		super (comm, prop, shell, summ, CType.EFFECT_BREAK, parent, evt, false, null, true);
+	}
+
+protected:
+	override void setup(Composite area) { mixin(S_TRACE);
+		area.setLayout(normalGridLayout(1, false));
+		{ mixin(S_TRACE);
+			auto grp = new Group(area, SWT.NONE);
+			grp.setText(_prop.msgs.transitionType);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setLayout(new CenterLayout);
+
+			_consumeCard = new Button(grp, SWT.CHECK);
+			mod(_consumeCard);
+			_consumeCard.setText(_prop.msgs.consumeCard);
+			.listener(_consumeCard, SWT.Selection, &refDataVersion);
+		}
+
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
+		if (_evt) { mixin(S_TRACE);
+			_consumeCard.setSelection(_evt.consumeCard);
+		} else { mixin(S_TRACE);
+			_consumeCard.setSelection(true);
+		}
+
+		refDataVersion();
+	}
+
+	override bool apply() { mixin(S_TRACE);
+		if (!_evt) _evt = new Content(CType.EFFECT_BREAK, "");
+		_evt.consumeCard = _consumeCard.getSelection();
+		return true;
+	}
+}

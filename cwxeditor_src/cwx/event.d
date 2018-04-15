@@ -135,7 +135,7 @@ private void static_this () { mixin(S_TRACE);
 		CType.EFFECT:CDetail("Effect", "", CNextType.NONE, true, [CArg.SIGNED_LEVEL:_("level"), CArg.RANGE:"targetm", CArg.EFFECT_TYPE:"effecttype", CArg.RESIST:"resisttype",
 			CArg.SUCCESS_RATE:"successrate", CArg.SOUND_PATH:_("sound"), CArg.SOUND_VOLUME:"volume", CArg.SOUND_LOOP_COUNT:"loopcount", CArg.CARD_VISUAL:"visual",
 			CArg.IGNITE:"ignite", CArg.HOLDING_COUPON:"holdingcoupon", CArg.REF_ABILITY:"refability", CArg.PHYSICAL:"physical", CArg.MENTAL:"mental", CArg.KEY_CODES:null, CArg.MOTIONS:null]),
-		CType.EFFECT_BREAK:CDetail("Effect", "Break", CNextType.NONE, false),
+		CType.EFFECT_BREAK:CDetail("Effect", "Break", CNextType.NONE, false, [CArg.CONSUME_CARD:"consumecard"]),
 		CType.LINK_START:CDetail("Link", "Start", CNextType.NONE, false, [CArg.START:"link"]),
 		CType.LINK_PACKAGE:CDetail("Link", "Package", CNextType.NONE, false, [CArg.PACKAGE:"link"]),
 		CType.TALK_MESSAGE:CDetail("Talk", "Message", CNextType.TEXT, true, [CArg.TALKER_C:_("path"), CArg.TEXT:null, CArg.SELECTION_COLUMNS:"columns", CArg.BOUNDARY_CHECK:"boundarycheck", CArg.CENTERING_X:"centeringx", CArg.CENTERING_Y:"centeringy", CArg.SELECT_TALKER:"selecttalker"]),
@@ -630,6 +630,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		this.selectCard = c.selectCard;
 		this.selectTalker = c.selectTalker;
 
+		this.consumeCard = c.consumeCard;
+
 		Motion[] motions;
 		foreach (m; c.motions) { mixin(S_TRACE);
 			motions ~= m.dup;
@@ -785,6 +787,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 			&& (!d.use(CArg.SELECT_CARD) || selectCard == c.selectCard)
 			&& (!d.use(CArg.SELECT_TALKER) || selectTalker == c.selectTalker)
+
+			&& (!d.use(CArg.CONSUME_CARD) || consumeCard == c.consumeCard)
 
 			&& (!d.use(CArg.MOTIONS) || motions == c.motions)
 
@@ -1075,6 +1079,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		resetValue!(CArg.SELECT_CARD, bool, false)(d, od, &selectCard, base, base.selectCard);
 		resetValue!(CArg.SELECT_TALKER, bool, false)(d, od, &selectTalker, base, base.selectTalker);
+
+		resetValue!(CArg.CONSUME_CARD, bool, true)(d, od, &consumeCard, base, base.consumeCard);
 
 		resetValue!(CArg.MOTIONS, Motion[], [])(d, od, &motions, base, base.motions);
 
@@ -2110,6 +2116,9 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// 話者を選択する(Wsn.3)。
 	mixin Prop!(bool, "selectTalker", false);
 
+	/// 使用中のカードを消費するか(Wsn.3)。
+	mixin Prop!(bool, "consumeCard", true);
+
 	/// 背景画像群。
 	mixin Prop!(BgImage[], "backs", []);
 
@@ -2400,12 +2409,15 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			return doc;
 		}
 	}
+	/// enにパラメータ属性を生成する。
 	const
 	private void atnPut(CArg ARG, string Name, string From)(ref XNode en, in CDetail d) { mixin(S_TRACE);
 		if (d.use(ARG)) { mixin(S_TRACE);
 			mixin ("en.newAttr(d.attr(ARG), " ~ From ~ "(this." ~ Name ~ "));");
 		}
 	}
+	/// enにパラメータ属性を生成する。
+	/// 初期値と同値であれば生成しない。
 	const
 	private void atnPutD(CArg ARG, string Name, string From, alias DefValue)(ref XNode en, in CDetail d) { mixin(S_TRACE);
 		if (d.use(ARG) && mixin("this." ~ Name) != DefValue) { mixin(S_TRACE);
@@ -2527,6 +2539,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		atnPutD!(CArg.SELECT_CARD, "selectCard", "fromBool", false)(e, d);
 		atnPutD!(CArg.SELECT_TALKER, "selectTalker", "fromBool", false)(e, d);
+
+		atnPutD!(CArg.CONSUME_CARD, "consumeCard", "fromBool", true)(e, d);
 
 		// 多少複雑なもの
 		if (d.use(CArg.MOTIONS)) { mixin(S_TRACE);
@@ -2813,6 +2827,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		cfnPutD!(CArg.SELECT_CARD, "selectCard", "parseBool", false)(en, d, r);
 		cfnPutD!(CArg.SELECT_TALKER, "selectTalker", "parseBool", false)(en, d, r);
+
+		cfnPutD!(CArg.CONSUME_CARD, "consumeCard", "parseBool", true)(en, d, r);
 
 		// CardWirthではラウンドイベントで加入したメンバは次ラウンドから
 		// 行動を開始するが、CardWirthPy 1では即時に行動していた。
