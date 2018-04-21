@@ -1777,7 +1777,7 @@ public:
 		string name;
 		string music;
 		bool spAuto;
-		bool possibleToRunAway;
+		bool possibleToRunAway = true;
 		uint volume = 100;
 		uint loopCount = 0;
 		uint fadeIn = 0;
