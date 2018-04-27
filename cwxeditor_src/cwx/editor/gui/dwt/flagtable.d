@@ -268,7 +268,7 @@ private:
 				if (store && _valueCache.length <= index) { mixin(S_TRACE);
 					auto lastValue = _valueCache[index - 1];
 					lastValue = createNewName(lastValue, (string name) { mixin(S_TRACE);
-						return name != lastValue;
+						return name != lastValue || name == "";
 					});
 					_valueCache ~= lastValue;
 				}
@@ -587,7 +587,7 @@ protected:
 		auto stored = false;
 		foreach (i; index + 1 .. _values.getItemCount()) { mixin(S_TRACE);
 			lastValue = createNewName(lastValue, (string name) { mixin(S_TRACE);
-				return name != lastValue;
+				return name != lastValue || name == "";
 			});
 			if (_valueCache[i] != lastValue) { mixin(S_TRACE);
 				if (!stored) { mixin(S_TRACE);
