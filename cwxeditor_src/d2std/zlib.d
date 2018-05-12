@@ -51,17 +51,24 @@ class ZlibException : Exception
     this(int errnum)
     {   string msg;
 
-        switch (errnum)
-        {
-            case Z_STREAM_END:      msg = "stream end"; break;
-            case Z_NEED_DICT:       msg = "need dict"; break;
-            case Z_ERRNO:           msg = "errno"; break;
-            case Z_STREAM_ERROR:    msg = "stream error"; break;
-            case Z_DATA_ERROR:      msg = "data error"; break;
-            case Z_MEM_ERROR:       msg = "mem error"; break;
-            case Z_BUF_ERROR:       msg = "buf error"; break;
-            case Z_VERSION_ERROR:   msg = "version error"; break;
-            default:                msg = "unknown error";  break;
+        if (errnum == Z_STREAM_END) {
+            msg = "stream end";
+        } else if (errnum == Z_NEED_DICT) {
+            msg = "need dict";
+        } else if (errnum == Z_ERRNO) {
+            msg = "errno";
+        } else if (errnum == Z_STREAM_ERROR) {
+            msg = "stream error";
+        } else if (errnum == Z_DATA_ERROR) {
+            msg = "data error";
+        } else if (errnum == Z_MEM_ERROR) {
+            msg = "mem error";
+        } else if (errnum == Z_BUF_ERROR) {
+            msg = "buf error";
+        } else if (errnum == Z_VERSION_ERROR) {
+            msg = "version error";
+        } else {
+            msg = "unknown error";
         }
         super(msg);
     }
