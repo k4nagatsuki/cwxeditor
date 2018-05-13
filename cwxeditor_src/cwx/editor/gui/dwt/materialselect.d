@@ -156,6 +156,40 @@ class MaterialSelect(MtType Type, D, C) {
 				}
 			});
 		}
+
+		private bool _canContinue = false;
+		/// BGM継続を選択可能か。
+		@property
+		void canContinue(bool value) { mixin(S_TRACE);
+			if (_canContinue == value) return;
+			_canContinue = value;
+			if (_dirs && _fileList) refreshPaths();
+		}
+		/// ditto
+		@property
+		const
+		bool canContinue() { mixin(S_TRACE);
+			return _canContinue;
+		}
+
+		private bool _continueBGM = false;
+		@property
+		void continueBGM(bool value) { mixin(S_TRACE);
+			if (_continueBGM == value) return;
+			_continueBGM = value;
+			if (_continueBGM) { mixin(S_TRACE);
+				path2("", true, true);
+				assert (continueIndex != -1);
+				selectDir(continueIndex);
+			} else { mixin(S_TRACE);
+				if (path == "") selectDir(0);
+			}
+		}
+		@property
+		const
+		bool continueBGM() { mixin(S_TRACE);
+			return _continueBGM;
+		}
 	}
 	C createFileList(Composite parent) { mixin(S_TRACE);
 		static if (is (C == Table)) {
@@ -197,7 +231,7 @@ class MaterialSelect(MtType Type, D, C) {
 				super(c);
 			}
 		protected override:
-			bool canDrop() {return _summ !is null && _summ.scenarioPath != "" && !_readOnly;}
+			bool canDrop() { return _summ !is null && _summ.scenarioPath != "" && !_readOnly; }
 			string[] doAll(string[] files) { mixin(S_TRACE);
 				assert (_summ !is null);
 				string[] r;
@@ -367,6 +401,7 @@ class MaterialSelect(MtType Type, D, C) {
 			if (_loopCount && _loopCount.getSelection() != loops && path != "" && !_prop.isTargetVersion(_summ, "1")) { mixin(S_TRACE);
 				r ~= _prop.msgs.warningLoopCount;
 			}
+			// TODO
 			return r;
 		}
 
@@ -516,7 +551,12 @@ class MaterialSelect(MtType Type, D, C) {
 			static immutable loopDef = (Type == MtType.BGM) ? 0 : 1;
 			if (_loopCount) _loopCount.setEnabled(!_readOnly && (!_summ.legacy || _loopCount.getSelection() != loopDef) && path != "");
 			if (_channel) _channel.setEnabled(!_readOnly && (!_summ.legacy || _channel.getSelectionIndex() != 0) && (path != "" || Type == MtType.BGM));
-			if (_fadeIn) _fadeIn.setEnabled(!_readOnly && (!_summ.legacy || _fadeIn.getSelection() != 0) && (path != "" || Type == MtType.BGM));
+			static if (Type == MtType.BGM) {
+				auto contVal = continueBGM;
+			} else {
+				static immutable contVal = false;
+			}
+			if (_fadeIn) _fadeIn.setEnabled(!_readOnly && (!_summ.legacy || _fadeIn.getSelection() != 0) && (path != "" || Type == MtType.BGM) && !contVal);
 		}
 		@property
 		int volume() { return _volume ? _volume.getSelection() : 100; }
@@ -976,6 +1016,7 @@ class MaterialSelect(MtType Type, D, C) {
 		}
 
 		@property
+		const
 		string binPath() { mixin(S_TRACE);
 			return _imageIndex < _binPaths.length ? _binPaths[_imageIndex] : "";
 		}
@@ -1173,8 +1214,11 @@ class MaterialSelect(MtType Type, D, C) {
 			refreshButtons();
 			if (_refresh) _refresh();
 		}
-		auto defs = _defs(0 < binPath.length);
+		auto defs = getDefs();
 		if (sel < defs.length) { mixin(S_TRACE);
+			static if (Type == MtType.BGM) {
+				_continueBGM = continueIndex == sel;
+			}
 			static if (Type == MtType.CARD) {
 				if (valueFromDef) { mixin(S_TRACE);
 					refreshList();
@@ -1189,6 +1233,9 @@ class MaterialSelect(MtType Type, D, C) {
 				foreach (dlg; modEvent) dlg();
 			}
 		} else { mixin(S_TRACE);
+			static if (Type == MtType.BGM) {
+				_continueBGM = false;
+			}
 			refreshList();
 			static if (is(C : Combo) || is(C : CCombo)) {
 				auto old = this.path;
@@ -1303,6 +1350,12 @@ private:
 	}
 	class CSListener : SelectionAdapter {
 		public override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
+			static if (Type == MtType.BGM) {
+				auto index = continueIndex;
+				if (index != -1 && !canContinue && index == _dirs.getSelectionIndex()) { mixin(S_TRACE);
+					_dirs.select(0);
+				}
+			}
 			selectDir(_dirs.getSelectionIndex());
 		}
 	}
@@ -1366,7 +1419,7 @@ private:
 					if (index == 0) return;
 					_fileList.remove(0);
 				}
-				auto defs = _defs(0 < binPath.length);
+				auto defs = getDefs();
 				_dirs.select(cast(int)defs.length);
 				p = currentDir;
 			}
@@ -1390,7 +1443,7 @@ private:
 	}
 	private void openFilePath() { mixin(S_TRACE);
 		auto dir = _dirs.getSelectionIndex();
-		auto defs = _defs(0 < binPath.length);
+		auto defs = getDefs();
 		if (dir < defs.length) return;
 		if (dir == _tbl) return;
 		if (dir == _tblEngine) return;
@@ -1416,7 +1469,7 @@ private:
 	@property
 	private string currentDir() { mixin(S_TRACE);
 		int sel = _dirs.getSelectionIndex();
-		auto defs = _defs(0 < binPath.length);
+		auto defs = getDefs();
 		if (sel >= defs.length) { mixin(S_TRACE);
 			if (sel == _tbl || sel == _tblEngine) { mixin(S_TRACE);
 				return "";
@@ -1625,7 +1678,7 @@ private:
 		skinPos = -1;
 		enginePosFrom = -1;
 		enginePosTo = -1;
-		auto defs = _defs(0 < binPath.length);
+		auto defs = getDefs();
 		foreach (i; cast(int)defs.length .. _dirs.getItemCount()) { mixin(S_TRACE);
 			string t = _dirs.getItem(i);
 			if (i == _tbl) { mixin(S_TRACE);
@@ -1655,7 +1708,7 @@ private:
 	public void refreshList(bool forceRefresh = false, bool subThr = false) { mixin(S_TRACE);
 		_fileList.removeAll();
 		_fnone = false;
-		auto defs = _defs(0 < binPath.length);
+		auto defs = getDefs();
 		if (_dirs.getSelectionIndex() < defs.length) { mixin(S_TRACE);
 			ptrdiff_t skinPos, enginePosFrom, enginePosTo;
 			auto dirs = allDirs(skinPos, enginePosFrom, enginePosTo);
@@ -1747,7 +1800,7 @@ private:
 		_dirs.removeAll();
 
 		string[] items;
-		auto defs = _defs(0 < binPath.length);
+		auto defs = getDefs();
 		foreach (def; defs) { mixin(S_TRACE);
 			items ~= def;
 		}
@@ -1941,7 +1994,7 @@ private:
 			}
 		}
 		if (isDir) { mixin(S_TRACE);
-			auto defs = _defs(0 < binPath.length);
+			auto defs = getDefs();
 			int i = cast(int)defs.length;
 			if (_tbl >= 0) i++;
 			if (_tblEngine >= 0) i++;
@@ -2016,6 +2069,19 @@ private:
 	@property
 	Skin summSkin() { mixin(S_TRACE);
 		return _summSkin ? _summSkin : _comm.skin;
+	}
+	string[] getDefs() { mixin(S_TRACE);
+		auto r = _defs(0 < binPath.length);
+		static if (Type == MtType.BGM) {
+			if (canContinue || continueBGM) r ~= _prop.msgs.defaultSelection(_prop.msgs.continueBGM);
+		}
+		return r;
+	}
+	static if (Type == MtType.BGM) {
+		@property
+		ptrdiff_t continueIndex() { mixin(S_TRACE);
+			return (canContinue || continueBGM) ? _defs(0 < binPath.length).length : -1;
+		}
 	}
 
 	Display _display = null;

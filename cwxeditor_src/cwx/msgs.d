@@ -152,6 +152,7 @@ class Msgs : Properties {
 	auto pcNumber = Msg("pcNumber", "プレイヤー%1$s");
 	auto pc = Msg("pc", "%1$s番目のメンバ");
 	auto bgmStop = Msg("bgmStop", "BGM停止");
+	auto continueBGM = Msg("continueBGM", "再生中のBGMを継続");
 	auto bgmNone = Msg("bgmNone", "BGM無し");
 	auto useNoCardSizeImage = Msg("useNoCardSizeImage", "%1$s×%2$s以外も許容");
 	auto excludeCardSizeImage = Msg("excludeCardSizeImage", "カードイメージを除外する");
@@ -1090,6 +1091,7 @@ class Msgs : Properties {
 	auto warningLoopCount = Msg("warningLoopCount", "ループ回数の設定はWsn.1以降の形式のシナリオしか使用できません。"); // Wsn.1
 	auto warningChannel= Msg("warningChannel", "再生チャンネルの設定はWsn.1以降の形式のシナリオしか使用できません。"); // Wsn.1
 	auto warningFadeIn = Msg("warningFadeIn", "フェードイン時間の設定はWsn.1以降の形式のシナリオしか使用できません。"); // Wsn.1
+	auto warningContinueBGM = Msg("warningContinueBGM", "バトル開始時のBGM継続はWsn.3以降の形式のシナリオでしか機能しません。"); // Wsn.3
 
 	/// メインウィンドウ。
 	auto mainWindowName = Msg("mainWindowName", "%1$s [ %2$s ] - CWXEditor");

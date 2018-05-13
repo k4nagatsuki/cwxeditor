@@ -352,6 +352,7 @@ private:
 			private uint _volume;
 			private uint _loopCount;
 			private uint _fadeIn;
+			private bool _continueBGM;
 			this (AbstractAreaView v, Commons comm, A area, Summary summ) { mixin(S_TRACE);
 				super (v, comm, area, summ);
 				_path = new PathUser(new MCWXPath);
@@ -360,6 +361,7 @@ private:
 				_volume = area.volume;
 				_loopCount = area.loopCount;
 				_fadeIn = area.fadeIn;
+				_continueBGM = area.continueBGM;
 			}
 			private void impl() { mixin(S_TRACE);
 				auto vs = views();
@@ -369,19 +371,23 @@ private:
 				auto volume = _volume;
 				auto loopCount = _loopCount;
 				auto fadeIn = _fadeIn;
+				auto continueBGM = _continueBGM;
 				_path.path = area.music;
 				_volume = area.volume;
 				_loopCount = area.loopCount;
 				_fadeIn = area.fadeIn;
+				_continueBGM = area.continueBGM;
 				area.music = path;
 				area.volume = volume;
 				area.loopCount = loopCount;
 				area.fadeIn = fadeIn;
+				area.continueBGM = continueBGM;
 				foreach (v; vs) { mixin(S_TRACE);
 					v._bgm.path = path;
 					v._bgm.volume = volume;
 					v._bgm.loopCount = loopCount;
 					v._bgm.fadeIn = fadeIn;
+					v._bgm.continueBGM = continueBGM;
 					v.callModEvent();
 				}
 			}
@@ -753,12 +759,19 @@ private:
 		}
 		void selectBGM() { mixin(S_TRACE);
 			if (_readOnly) return;
-			if (_area.music == _bgm.path && _area.volume == _bgm.volume && _area.loopCount == _bgm.loopCount && _area.fadeIn == _bgm.fadeIn) return;
+			if (_area.music == _bgm.path
+					&& _area.volume == _bgm.volume
+					&& _area.loopCount == _bgm.loopCount
+					&& _area.fadeIn == _bgm.fadeIn
+					&& _area.continueBGM == _bgm.continueBGM) {
+				return;
+			}
 			_undo ~= new UndoMusic(this, _comm, _area, _summ);
 			_area.music = _bgm.path;
 			_area.volume = _bgm.volume;
 			_area.loopCount = _bgm.loopCount;
 			_area.fadeIn = _bgm.fadeIn;
+			_area.continueBGM = _bgm.continueBGM;
 			if (_summ && _summ.scenarioPath != "") { mixin(S_TRACE);
 				_comm.refUseCount.call();
 			}
@@ -771,6 +784,7 @@ private:
 					v._bgm.volume = _area.volume;
 					v._bgm.loopCount = _area.loopCount;
 					v._bgm.fadeIn = _area.fadeIn;
+					v._bgm.continueBGM = _area.continueBGM;
 					v.callModEvent();
 				}
 			}
@@ -2513,6 +2527,11 @@ private:
 		refreshStatusLine();
 		_comm.refreshToolBar();
 	}
+	void refDataVersion() { mixin(S_TRACE);
+		static if (is(A:Battle)) { mixin(S_TRACE);
+			_bgm.canContinue = !_summ || !_summ.legacy;
+		}
+	}
 
 	void refreshStatusLine() { mixin(S_TRACE);
 		string line = "";
@@ -2745,6 +2764,7 @@ private:
 		Composite createBgmPane(Composite parent) { mixin (S_TRACE);
 			auto skin = summSkin;
 			_bgm = new MaterialSelect!(MtType.BGM, Combo, Combo)(_comm, _prop, _summ, _readOnly != 0, &selectBGM, included => [_prop.msgs.defaultSelection(_prop.msgs.bgmNone)]);
+			_bgm.canContinue = !_summ || !_summ.legacy;
 
 			auto comp = new Composite(parent, SWT.NONE);
 			auto gl = windowGridLayout(2, false);
@@ -2779,6 +2799,7 @@ private:
 			_bgm.volume = _area.volume;
 			_bgm.loopCount = _area.loopCount;
 			_bgm.fadeIn = _area.fadeIn;
+			_bgm.continueBGM = _area.continueBGM;
 			return comp;
 		}
 	}
@@ -3089,6 +3110,7 @@ public:
 			}
 			_comm.refFlagAndStep.add(&refFlag);
 			_comm.delFlagAndStep.add(&refFlag);
+			_comm.refDataVersion.add(&refDataVersion);
 		}
 		_preview = new Preview(_prop, this);
 		addDisposeListener(new class DisposeListener {
@@ -3117,6 +3139,7 @@ public:
 					}
 					_comm.refFlagAndStep.remove(&refFlag);
 					_comm.delFlagAndStep.remove(&refFlag);
+					_comm.refDataVersion.remove(&refDataVersion);
 				}
 			}
 		});

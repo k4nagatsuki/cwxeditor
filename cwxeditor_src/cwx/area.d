@@ -1505,6 +1505,7 @@ private:
 	EnemyCard[] _cards;
 	bool _auto;
 	PathUser _music;
+	bool _continueBGM = false;
 	uint _volume = 100;
 	uint _loopCount = 0;
 	uint _fadeIn = 0;
@@ -1525,7 +1526,7 @@ public:
 		_playerEvents = new PlayerCardEvents(this);
 	}
 	@property
-	protected override void delegate() changeHandler() {return super.changeHandler;}
+	protected override void delegate() changeHandler() { return super.changeHandler; }
 	@property
 	override void changeHandler(void delegate() change) { mixin(S_TRACE);
 		foreach (c; _cards) { mixin(S_TRACE);
@@ -1542,6 +1543,7 @@ public:
 		auto r = new Battle(id, name, music);
 		r.spAuto = spAuto;
 		r.possibleToRunAway = possibleToRunAway;
+		r.continueBGM = continueBGM;
 		foreach (c; cards) r.append(cast(EnemyCard)c.dup);
 		r.playerEvents.deepCopyEventTreeOwner(playerEvents);
 		r.deepCopyEventTreeOwner(this);
@@ -1623,6 +1625,18 @@ public:
 	@property
 	const
 	uint fadeIn() { return _fadeIn; }
+
+	/// BGMを継続再生するか(Wsn.3)。
+	/// 継続再生する場合、BGM関係の他のパラメータは無視される。
+	@property
+	void continueBGM(bool value) { mixin(S_TRACE);
+		if (_continueBGM != value) changed();
+		_continueBGM = value;
+	}
+	/// ditto
+	@property
+	const
+	bool continueBGM() { return _continueBGM; }
 
 	/// エネミーカードを追加する。
 	void append(EnemyCard card) { mixin(S_TRACE);
@@ -1739,6 +1753,7 @@ public:
 		if (volume != 100) me.newAttr("volume", volume);
 		if (loopCount != 0) me.newAttr("loopcount", loopCount);
 		if (fadeIn != 0) me.newAttr("fadein", fadeIn);
+		if (continueBGM) me.newAttr("continue", fromBool(continueBGM));
 
 		auto ce = e.newElement("EnemyCards");
 		ce.newAttr("spreadtype", _auto ? "Auto" : "Custom");
@@ -1781,6 +1796,7 @@ public:
 		uint volume = 100;
 		uint loopCount = 0;
 		uint fadeIn = 0;
+		bool continueBGM = false;
 		EnemyCard[] cards;
 		EventTree[] evt;
 		EventTree[] playerEventTrees;
@@ -1815,6 +1831,7 @@ public:
 				volume = n.attr!uint("volume", false, 100);
 				loopCount = n.attr!uint("loopcount", false, 0);
 				fadeIn = n.attr!uint("fadein", false, 0);
+				continueBGM = n.attr!bool("continue", false, false);
 			};
 			pNode.onTag["RunAway"] = (ref XNode n) { mixin(S_TRACE);
 				possibleToRunAway = n.valueTo!bool;
@@ -1836,6 +1853,7 @@ public:
 		r.volume = volume;
 		r.loopCount = loopCount;
 		r.fadeIn = fadeIn;
+		r.continueBGM = continueBGM;
 
 		return r;
 	}

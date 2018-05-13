@@ -391,6 +391,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				r ~= prop.msgs.warningFadeIn;
 			}
 		}
+		if (btl.continueBGM && !prop.isTargetVersion(summ, targVer, "3")) { mixin(S_TRACE);
+			r ~= prop.msgs.warningContinueBGM;
+		}
 	}
 	auto mc = cast(MenuCard)path;
 	if (mc) { mixin(S_TRACE);
