@@ -927,6 +927,7 @@ class MaterialSelect(MtType Type, D, C) {
 				foreach (dlg; modEvent) dlg();
 				refreshButtons();
 			}
+			refreshPaths |= currentDir == "" && path != "";
 			selectPath(path, index, store);
 			if (updateBinImg) { mixin(S_TRACE);
 				_binPaths[index] = path.isBinImg ? path : "";
@@ -1009,6 +1010,7 @@ class MaterialSelect(MtType Type, D, C) {
 				}
 				refreshButtons();
 			}
+			refreshPaths |= currentDir == "" && path != "";
 			selectPath(path, index, store);
 			static if (Type == MtType.BG_IMG) {
 				if (updateBinImg) { mixin(S_TRACE);
