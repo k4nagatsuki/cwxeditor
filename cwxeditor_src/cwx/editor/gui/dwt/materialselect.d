@@ -180,7 +180,7 @@ class MaterialSelect(MtType Type, D, C) {
 			if (_continueBGM) { mixin(S_TRACE);
 				path2("", true, true);
 				assert (continueIndex != -1);
-				selectDir(continueIndex);
+				selectDir(cast(int)continueIndex);
 			} else { mixin(S_TRACE);
 				if (path == "") selectDir(0);
 			}
