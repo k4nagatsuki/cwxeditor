@@ -207,7 +207,7 @@ class MaterialSelect(MtType Type, D, C) {
 		}
 		ptrdiff_t skinPos, enginePosFrom, enginePosTo;
 		auto dirs = allDirs(skinPos, enginePosFrom, enginePosTo);
-		_fileList.setEnabled(!_readOnly && dirs.length);
+		_fileList.setEnabled(!_readOnly && _summ);
 		_fileList.addSelectionListener(new LSListener);
 		static if (is (C == Table)) {
 			static if (Type == MtType.BGM || Type == MtType.SE) {
@@ -1667,7 +1667,7 @@ private:
 		}
 		ptrdiff_t skinPos, enginePosFrom, enginePosTo;
 		auto dirs = allDirs(skinPos, enginePosFrom, enginePosTo);
-		_fileList.setEnabled(!_readOnly && dirs.length);
+		_fileList.setEnabled(!_readOnly && _summ);
 		_loading = false;
 		foreach (dlg; loadedEvent) dlg();
 		_comm.refreshToolBar();
@@ -1712,13 +1712,12 @@ private:
 		if (_dirs.getSelectionIndex() < defs.length) { mixin(S_TRACE);
 			ptrdiff_t skinPos, enginePosFrom, enginePosTo;
 			auto dirs = allDirs(skinPos, enginePosFrom, enginePosTo);
+			_fileList.setEnabled(!_readOnly && _summ);
 			if (!dirs.length) { mixin(S_TRACE);
-				_fileList.setEnabled(false);
 				_loading = false;
 				foreach (dlg; loadedEvent) dlg();
 				_comm.refreshToolBar();
 			} else { mixin(S_TRACE);
-				_fileList.setEnabled(!_readOnly);
 				refreshListImpl(dirs, true, forceRefresh, subThr, skinPos, enginePosFrom, enginePosTo);
 				static if (is(C : Combo) || is(C : CCombo)) {
 					_fileList.add(_prop.msgs.defaultSelection(_prop.msgs.fileNone), 0);
@@ -1955,7 +1954,7 @@ private:
 						_dirs.setEnabled(!_readOnly);
 						ptrdiff_t skinPos, enginePosFrom, enginePosTo;
 						auto dirs = allDirs(skinPos, enginePosFrom, enginePosTo);
-						_fileList.setEnabled(!_readOnly && dirs.length);
+						_fileList.setEnabled(!_readOnly && _summ);
 					}
 				});
 			} else { mixin(S_TRACE);
