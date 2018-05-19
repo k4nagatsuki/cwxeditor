@@ -266,6 +266,7 @@ public:
 					.listener(_noCardSize, SWT.Selection, { mixin(S_TRACE);
 						_msel.useNoCardSizeImage = _noCardSize.getSelection();
 					});
+					_msel.updateNoCardSize ~= { _noCardSize.setSelection(_msel.useNoCardSizeImage); };
 					_comm.put(_noCardSize, () => !_readOnly && !_msel.loading);
 				} else static if (Type is MtType.BG_IMG) {
 					_excludeCardSize = new Button(compl, SWT.CHECK);

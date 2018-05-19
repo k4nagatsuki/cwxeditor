@@ -60,6 +60,8 @@ class MaterialSelect(MtType Type, D, C) {
 		CardImage delegate(int index, bool included, string binPath) valueFromDef = null;
 		/// 値からdefsのindexを返す関数。
 		int delegate(in CardImage imgPath, bool included) valueToDef = null;
+		/// カードサイズ以外のイメージを表示するオプションが内部的に切り替えられた時に呼び出される。
+		void delegate()[] updateNoCardSize;
 	}
 	/// 格納リソースを示すdirsのindexを返す。
 	int delegate(bool included) indexOfBinPath = null;
@@ -235,8 +237,21 @@ class MaterialSelect(MtType Type, D, C) {
 			string[] doAll(string[] files) { mixin(S_TRACE);
 				assert (_summ !is null);
 				string[] r;
+				static if (Type == MtType.CARD) {
+					auto showNoCardSize = _noCardSize;
+					auto cSize = _prop.looks.cardSize;
+					auto skin = summSkin;
+				}
 				foreach (f; files) { mixin(S_TRACE);
-					if (isTarg(f) && !hasPath(_summ.scenarioPath, f)) { mixin(S_TRACE);
+					static if (Type == MtType.CARD) {
+						auto isTarg = skin.isCardImage(f, true);
+						uint w, h;
+						.imageSize(f, w, h);
+						showNoCardSize |= (w != cSize.width || h != cSize.height);
+					} else {
+						auto isTarg = isTarg(f);
+					}
+					if (isTarg && !hasPath(_summ.scenarioPath, f)) { mixin(S_TRACE);
 						r ~= f;
 					}
 				}
@@ -249,6 +264,12 @@ class MaterialSelect(MtType Type, D, C) {
 					}
 					dlg.setText(_prop.msgs.dlgTitDropFiles);
 					if (SWT.YES == dlg.open()) { mixin(S_TRACE);
+						static if (Type == MtType.CARD) {
+							if (showNoCardSize && !_noCardSize) { mixin(S_TRACE);
+								_noCardSize = showNoCardSize;
+								foreach (d; updateNoCardSize) d();
+							}
+						}
 						return r;
 					}
 				}
@@ -258,7 +279,7 @@ class MaterialSelect(MtType Type, D, C) {
 				assert (_summ !is null);
 				auto cur = currentDir;
 				if (!cur) cur = summSkin.materialPath;
-				copyTo(_summ.scenarioPath, path, cur, false);
+				.copyTo(_summ.scenarioPath, path, cur, false);
 				return true;
 			}
 			void doExit() { mixin(S_TRACE);
@@ -1274,7 +1295,7 @@ private:
 		@property const(string)[] defExts() {return summSkin.extImage;}
 		@property string[] defDirs() {return summSkin.tableDirs;}
 		@property string[] engineDefDirs() { return summSkin.wsnTableDirs(_summ ? _summ.dataVersion : LATEST_VERSION); }
-		bool isTarg(string p) {return summSkin.isCardImage(p, _noCardSize);}
+		bool isTarg(string p) { return summSkin.isCardImage(p, _noCardSize); }
 		static bool hasTarg(Skin skin, string p, bool forceRefresh, bool noCardSize) { return skin.hasCardImage(p, forceRefresh, noCardSize); }
 		bool hasWsnTarg(bool forceRefresh, bool noCardSize) { return summSkin.hasWsnCardImage(_summ ? _summ.dataVersion : LATEST_VERSION, forceRefresh, noCardSize); }
 		string[] targsImpl(string dir, bool re) {return summSkin.cards(dir, _prop.var.etc.logicalSort, re, _noCardSize);}
