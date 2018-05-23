@@ -488,11 +488,15 @@ private:
 			return _prop.images.bgm;
 		} else if (skin.isSE(file)) { mixin(S_TRACE);
 			return _prop.images.se;
-		} else if (cfnmatch(.extension(file), ".txt") || cfnmatch(.extension(file), ".ini") || cfnmatch(.extension(file), ".sli")) { mixin(S_TRACE);
-			return _prop.images.text;
 		} else { mixin(S_TRACE);
-			return _prop.images.unknown;
+			foreach (txtExt; _prop.var.etc.plainTextFileExtensions) { mixin(S_TRACE);
+				auto ext = file.extension();
+				if (.cfnmatch(ext, txtExt)) { mixin(S_TRACE);
+					return _prop.images.text;
+				}
+			}
 		}
+		return _prop.images.unknown;
 	}
 	Image fimage(Skin skin, string file, bool dir) { mixin(S_TRACE);
 		if (isCutted(file)) { mixin(S_TRACE);

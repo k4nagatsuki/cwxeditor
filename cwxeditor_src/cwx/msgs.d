@@ -229,8 +229,12 @@ class Msgs : Properties {
 	auto replTextFile = Msg("replTextFile", "ファイル名");
 	auto replTextComment = Msg("replTextComment", "コメント");
 	auto replTextJptx = Msg("replTextJptx", "JPTX/テキストセル");
+	auto replTextTextFile = Msg("replTextTextFile", "テキストファイル");
 	auto replTextScenario = Msg("replTextScenario", "シナリオ名");
 	auto replTextAuthor = Msg("replTextAuthor", "作者名");
+
+	auto replacePlainTextHint = Msg("replacePlainTextHint", "文字コード Shift JIS または UTF-8 のみ有効\n(%1$s)");
+	auto replacePlainTextHintNoExt = Msg("replacePlainTextHintNoExt", "文字コード Shift JIS または UTF-8 のみ有効");
 
 	auto replID = Msg("replID", "検索/置換対象");
 	auto replIDKind = Msg("replIDKind", "対象");

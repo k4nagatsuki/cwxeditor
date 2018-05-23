@@ -529,6 +529,9 @@ class FlexEtcProps : Properties {
 	auto replaceTextFile = Prop!(bool)("replaceTextFile", false);
 	auto replaceTextComment = Prop!(bool)("replaceTextComment", true);
 	auto replaceTextJptx = Prop!(bool)("replaceTextJptx", false);
+	auto replaceTextTextFile = Prop!(bool)("replaceTextTextFile", false);
+
+	auto plainTextFileExtensions = Prop!(string[])("plainTextFileExtensions", [".txt", ".ini", ".sli"]);
 
 	auto replaceNameCoupon = Prop!(bool)("replaceNameCoupon", true);
 	auto replaceNameGossip = Prop!(bool)("replaceNameGossip", true);

@@ -690,6 +690,27 @@ void freeAll(T)(T*[] data) {
 	destroy(data);
 }
 
+/// pathのテキストファイルを読み込む。
+string readTextFile(string path, out bool isSJIS) { mixin(S_TRACE);
+	char[] value;
+	try {
+		isSJIS = true;
+		value = cast(char[]).readBinary(path);
+		return .touni(value);
+	} catch (Exception e) {
+		value = cast(char[])std.file.readText(path);
+		isSJIS = false;
+		return .assumeUnique(value);
+	}
+}
+/// pathへテキストを書き込む。
+void writeTextFile(string path, string value, bool isSJIS) { mixin(S_TRACE);
+	if (isSJIS) { mixin(S_TRACE);
+		value = tosjis(value);
+	}
+	std.file.write(path, value);
+}
+
 /// データのMD5ダイジェストを取得する。
 string md5Digest(in void[] data) { mixin(S_TRACE);
 	static if (__VERSION__ >= 2061) {

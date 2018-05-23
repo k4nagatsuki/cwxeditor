@@ -1126,7 +1126,7 @@ private:
 			dStr ~= " - " ~ .text(__LINE__);
 			if (_opt.selectfile.length) { mixin(S_TRACE);
 				_comm.openCWXPath("fileview", false);
-				_dirWin.select(_opt.selectfile, false);
+				_dirWin.select(_opt.selectfile, true);
 			}
 			foreach (path; _opt.openPaths) { mixin(S_TRACE);
 				try { mixin(S_TRACE);
@@ -2118,9 +2118,10 @@ private:
 		string path;
 		override void run() { mixin(S_TRACE);
 			if (!_win || _win.isDisposed()) return;
+			if (!summary) return;
 			try { mixin(S_TRACE);
 				_comm.openCWXPath("fileview", false);
-				_dirWin.select(path, false);
+				_dirWin.select(path, true);
 			} catch (Throwable e) {
 				printStackTrace();
 				debugln(e);
@@ -4317,10 +4318,13 @@ public:
 		scope (exit) {
 			if (_win.isVisible()) _win.setRedraw(true);
 		}
+		if (.cpempty(path)) return true;
+
 		// 参照設定されているカードの場合があるので正規化する
 		auto cwxPath = summary.findCWXPath(path);
-		if (!cwxPath) {
+		if (!cwxPath) { mixin(S_TRACE);
 			auto cate = .cpcategory(path);
+			auto etc = false;
 			if (cate == "area:id" && .cpindex(path) == 0 && summary.areas) { mixin(S_TRACE);
 				path = .cpjoin(summary.areas[$ - 1].cwxPath(true), .cpbottom(path));
 			} else if (cate == "battle:id" && .cpindex(path) == 0 && summary.battles) { mixin(S_TRACE);
@@ -4338,14 +4342,16 @@ public:
 			} else if (cate == "infocard:id" && .cpindex(path) == 0 && summary.infos) { mixin(S_TRACE);
 				path = .cpjoin(summary.infos[$ - 1].cwxPath(true), .cpbottom(path));
 			} else { mixin(S_TRACE);
-				return false;
+				etc = true;
 			}
-			cwxPath = summary.findCWXPath(path);
-			if (!cwxPath) return false;
+			if (!etc) { mixin(S_TRACE);
+				cwxPath = summary.findCWXPath(path);
+				if (!cwxPath) return false;
+				auto attrs = cpattr(path);
+				path = cwxPath.cwxPath(true);
+				foreach (attr; attrs) path = cpaddattr(path, attr);
+			}
 		}
-		auto attrs = cpattr(path);
-		path = cwxPath.cwxPath(true);
-		foreach (attr; attrs) path = cpaddattr(path, attr);
 
 		bool open() { mixin(S_TRACE);
 			path = .toLower(path);

@@ -303,6 +303,8 @@ private:
 	Button _comment;
 	/// JPTXファイル
 	Button _jptx;
+	/// テキストファイル
+	Button _textFile;
 
 	Button[] _noSummText;
 
@@ -368,6 +370,7 @@ private:
 	bool _fileSel;
 	bool _commentSel;
 	bool _jptxSel;
+	bool _textFileSel;
 	string _fromText;
 	string _toText;
 
@@ -980,6 +983,13 @@ private:
 				_file = createB(_prop.msgs.replTextFile, 'K');
 				_comment = createB(_prop.msgs.replTextComment, 'L');
 				_jptx = createB(_prop.msgs.replTextJptx, 'M');
+				_textFile = createB(_prop.msgs.replTextTextFile, 'N');
+				if (1 < _prop.var.etc.plainTextFileExtensions.length) { mixin(S_TRACE);
+					auto txtExts = .join(.map!(ext => "*" ~ ext)(_prop.var.etc.plainTextFileExtensions), ", ");
+					_textFile.setToolTipText(.tryFormat(_prop.msgs.replacePlainTextHint, txtExts));
+				} else { mixin(S_TRACE);
+					_textFile.setToolTipText(_prop.msgs.replacePlainTextHintNoExt);
+				}
 			}
 			auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
 			sep.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -2237,6 +2247,7 @@ public:
 		_file.setSelection(_prop.var.etc.replaceTextFile);
 		_comment.setSelection(_prop.var.etc.replaceTextComment);
 		_jptx.setSelection(_prop.var.etc.replaceTextJptx);
+		_textFile.setSelection(_prop.var.etc.replaceTextTextFile);
 		if (_prop.var.etc.grepDir.length) { mixin(S_TRACE);
 			_grepDir.setText(_prop.var.etc.grepDir);
 		} else { mixin(S_TRACE);
@@ -2333,6 +2344,7 @@ public:
 			_prop.var.etc.replaceTextFile = _file.getSelection();
 			_prop.var.etc.replaceTextComment = _comment.getSelection();
 			_prop.var.etc.replaceTextJptx = _jptx.getSelection();
+			_prop.var.etc.replaceTextTextFile = _textFile.getSelection();
 
 			foreach (cType; EnumMembers!CType) { mixin(S_TRACE);
 				_prop.var.etc.searchContents(cType, _contents[cType].getSelection());
@@ -2536,6 +2548,7 @@ public:
 		_fileSel = _file.getSelection();
 		_commentSel = _comment.getSelection();
 		_jptxSel = _jptx.getSelection();
+		_textFileSel = _textFile.getSelection();
 		_fromText = _from.getText();
 		_toText = _to.getText();
 
@@ -3883,10 +3896,11 @@ public:
 			foreach (path; range) { mixin(S_TRACE);
 				searchAll(.cwxPlace(path), path, count, &replaceTextImpl, path.cwxPath(true).dup);
 			}
-			if (_jptxSel) { mixin(S_TRACE);
+			if (_jptxSel || _textFile) { mixin(S_TRACE);
 				foreach (string file; .dirEntries(_summ.scenarioPath, SpanMode.depth, false)) { mixin(S_TRACE);
 					if (cancel) break;
-					if (cfnmatch(.extension(file), ".jptx")) { mixin(S_TRACE);
+					auto ext = .extension(file);
+					if (_jptxSel && cfnmatch(ext, ".jptx")) { mixin(S_TRACE);
 						try { mixin(S_TRACE);
 							bool isSJIS;
 							auto errInfo = new EffectBoosterError;
@@ -3912,6 +3926,31 @@ public:
 						} catch (Exception e) {
 							printStackTrace();
 							debugln(e);
+						}
+					}
+					if (_textFileSel) { mixin(S_TRACE);
+						foreach (txtExt; _prop.var.etc.plainTextFileExtensions) { mixin(S_TRACE);
+							if (.cfnmatch(ext, txtExt)) { mixin(S_TRACE);
+								bool isSJIS;
+								auto value = readTextFile(file, isSJIS);
+								Undo[] uArr;
+								auto file2 = file;
+								bool r = repl(null, null, "", value, (string value) { mixin(S_TRACE);
+									try { mixin(S_TRACE);
+										writeTextFile(file2, value, isSJIS);
+									} catch (Exception e) {
+										printStackTrace();
+										debugln(e);
+									}
+								}, count, uArr, true);
+								if (r) { mixin(S_TRACE);
+									file = abs2rel(file, _summ.scenarioPath);
+									size_t dmy = 0;
+									addResult(file, dmy);
+									store(file, uArr);
+								}
+								break;
+							}
 						}
 					}
 				}
@@ -4011,17 +4050,17 @@ public:
 				if (cancel) return;
 				searchAll(.cwxPlace(path), path, count, &replaceTextImpl, path.cwxPath(true).dup);
 			}
-			if (_jptxSel) { mixin(S_TRACE);
+			if (_jptxSel || _textFile) { mixin(S_TRACE);
 				foreach (string file; .dirEntries(summ.scenarioPath, SpanMode.depth, false)) { mixin(S_TRACE);
 					if (cancel) break;
-					if (cfnmatch(.extension(file), ".jptx")) { mixin(S_TRACE);
+					auto ext = .extension(file);
+					if (_jptxSel && cfnmatch(ext, ".jptx")) { mixin(S_TRACE);
 						bool isSJIS;
 						auto errInfo = new EffectBoosterError;
 						try { mixin(S_TRACE);
 							string value = readJPYFile(file, _prop.parent, errInfo, isSJIS);
 							auto jText = jptxText(value);
 							Undo[] uArr;
-							string file2 = file;
 							bool r = repl(null, null, "", jText, null, count, uArr, true);
 							if (r) { mixin(S_TRACE);
 								file = abs2rel(file, summ.scenarioPath);
@@ -4031,6 +4070,22 @@ public:
 						} catch (Exception e) {
 							printStackTrace();
 							debugln(e);
+						}
+					}
+					if (_textFileSel) { mixin(S_TRACE);
+						foreach (txtExt; _prop.var.etc.plainTextFileExtensions) { mixin(S_TRACE);
+							if (.cfnmatch(ext, txtExt)) { mixin(S_TRACE);
+								bool isSJIS;
+								auto value = readTextFile(file, isSJIS);
+								Undo[] uArr;
+								bool r = repl(null, null, "", value, null, count, uArr, true);
+								if (r) { mixin(S_TRACE);
+									file = abs2rel(file, summ.scenarioPath);
+									size_t dmy = 0;
+									addResult(file, dmy);
+								}
+								break;
+							}
 						}
 					}
 				}
@@ -4215,7 +4270,7 @@ public:
 				} else if (auto jpdc = cast(Jpdc)rp.path) { mixin(S_TRACE);
 					_comm.openFilePath(.abs2rel(jpdc.jpdcPath, jpdc.sPath), false, true);
 					return;
-				} 
+				}
 				auto path = rp.array;
 				if (_prop.var.etc.searchOpenDialog) { mixin(S_TRACE);
 					path = cpaddattr(path, "opendialog");
@@ -4238,15 +4293,14 @@ public:
 				MessageBox.showWarning(.tryFormat(_prop.msgs.cwxPathOpenError, path), _prop.msgs.dlgTitWarning, _win);
 				return;
 			}
-			if (!_summ) return;
 			auto p = cast(FilePathString)d;
 			if (p) { mixin(S_TRACE);
-				auto path = nabs(std.path.buildPath(_summ.scenarioPath, p.array));
-				if (p.scPath !is null) { mixin(S_TRACE);
+				auto path = nabs(std.path.buildPath(p.scPath, p.array));
+				if (p.scPath !is null && !(_summ && .nabs(p.scPath) == .nabs(_summ.scenarioPath))) { mixin(S_TRACE);
 					exec("\"" ~ _prop.parent.appPath ~ "\" -selectfile \"" ~ p.array ~ "\" \"" ~ p.scPath ~ "\"");
 					return;
 				}
-				if (_comm.openFilePath(path, false, true)) { mixin(S_TRACE);
+				if (_comm.openFilePath(p.array, false, true)) { mixin(S_TRACE);
 					_win.setActive();
 					return;
 				}

@@ -4002,6 +4002,12 @@ public static Image fimage(Props prop, string file, Skin skin) { mixin(S_TRACE);
 				return prop.images.se;
 			}
 		}
+		auto ext = .extension(file);
+		foreach (txtExt; prop.var.etc.plainTextFileExtensions) { mixin(S_TRACE);
+			if (.cfnmatch(ext, txtExt)) { mixin(S_TRACE);
+				return prop.images.text;
+			}
+		}
 	} catch (Exception e) {
 		printStackTrace();
 		debugln(e);
