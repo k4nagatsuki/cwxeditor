@@ -4468,10 +4468,14 @@ public:
 			refreshTextCell();
 		}
 		void refreshTextCell() { mixin(S_TRACE);
-			foreach (img; _imgp.images) { mixin(S_TRACE);
+			foreach (i, img; _imgp.images) { mixin(S_TRACE);
 				if (img.type == ImageType.Text) { mixin(S_TRACE);
 					img.createImage();
 					_imgp.redrawImage(img);
+					auto itm = _backs.getItem(cast(int)i);
+					auto tc = cast(TextCell)itm.getData();
+					assert (tc !is null);
+					itm.setText(tc.name(_prop.parent));
 				}
 			}
 		}
