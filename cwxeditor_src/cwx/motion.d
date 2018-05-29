@@ -14,7 +14,7 @@ import std.algorithm;
 private bool static_this_completed = false;
 private void static_this () { mixin(S_TRACE);
 	if (static_this_completed) return;
-	string _(string v) {return v;}
+	string _(string v) { return v; }
 	_MOTION_DETAILS = [
 		MType.HEAL:MDetail("Heal", [MArg.VALUE_TYPE:_("damagetype"), MArg.U_VALUE:"value"]),
 		MType.DAMAGE:MDetail("Damage", [MArg.VALUE_TYPE:_("damagetype"), MArg.U_VALUE:"value"]),
@@ -89,11 +89,11 @@ struct MDetail {
 
 	/// argを使用するコンテントであればtrueを返す。
 	const
-	bool use(MArg arg) {return (arg in args) != null;}
+	bool use(MArg arg) { return (arg in args) != null; }
 	/// argを使用する際の属性名を返す。
 	/// 子要素を使用する等の理由で属性名が存在しない場合はnullを返す。
 	const
-	string attr(MArg arg) {return args[arg];}
+	string attr(MArg arg) { return args[arg]; }
 
 	static MDetail opCall(string name) {
 		string[MArg] args;
@@ -116,9 +116,9 @@ private:
 	MotionOwner _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (MotionOwner cwxPath) {_cwxPath = cwxPath;}
+	this (MotionOwner cwxPath) { _cwxPath = cwxPath; }
 	@property
-	string cwxPath(bool id) {return _cwxPath.cwxPath(id);}
+	string cwxPath(bool id) { return _cwxPath.cwxPath(id); }
 
 	/// 変更ハンドラを登録する。
 	@property
@@ -132,7 +132,7 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() {return _uc;}
+	UseCounter useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
@@ -214,7 +214,7 @@ public:
 	/// 効果の種類。
 	@property
 	const
-	MType type() {return _type;}
+	MType type() { return _type; }
 	/// 効果の概要。
 	@property
 	const
@@ -231,7 +231,7 @@ public:
 	}
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() {return _uc;}
+	UseCounter useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
@@ -292,22 +292,28 @@ public:
 	/// 効果属性。
 	@property
 	const
-	Element element() {return _el;}
+	Element element() { return _el; }
 	/// ditto
 	@property
-	void element(Element el) {_el = el;}
+	void element(Element el) { mixin(S_TRACE);
+		if (_el != el) changed();
+		_el = el;
+	}
 
 	/// 値の形式。
 	@property
 	const
-	DamageType damageType() {return _dtyp;}
+	DamageType damageType() { return _dtyp; }
 	/// ditto
 	@property
-	void damageType(DamageType dtyp) {_dtyp = dtyp;}
+	void damageType(DamageType dtyp) { mixin(S_TRACE);
+		if (_dtyp != dtyp) changed();
+		_dtyp = dtyp;
+	}
 	/// ダメージ・回復値。
 	@property
 	const
-	uint uValue() {return _uValue;}
+	uint uValue() { return _uValue; }
 	/// ditto
 	static const uValue_min = 1;
 	/// ditto
@@ -315,12 +321,14 @@ public:
 	/// ditto
 	@property
 	void uValue(int val) { mixin(S_TRACE);
-		_uValue = roundValue(val, uValue_max, uValue_min);
+		val = roundValue(val, uValue_max, uValue_min);
+		if (_uValue != val) changed();
+		_uValue = val;
 	}
 	/// ボーナス・ペナルティ値。
 	@property
 	const
-	int aValue() {return _aValue;}
+	int aValue() { return _aValue; }
 	/// ditto
 	static const aValue_min = -10;
 	/// ditto
@@ -328,16 +336,20 @@ public:
 	/// ditto
 	@property
 	void aValue(int val) { mixin(S_TRACE);
-		_aValue = roundValue(val, aValue_max, aValue_min);
+		val = roundValue(val, aValue_max, aValue_min);
+		if (_aValue != val) changed();
+		_aValue = val;
 	}
 	/// ラウンド数。
 	@property
 	const
-	int round() {return _round;}
+	int round() { return _round; }
 	/// ditto
 	@property
 	void round(int val) { mixin(S_TRACE);
-		_round = roundValue(val, round_max, round_min);
+		val = roundValue(val, round_max, round_min);
+		if (_round != val) changed();
+		_round = val;
 	}
 	/// ditto
 	static const round_min = 1;
@@ -346,7 +358,7 @@ public:
 	/// 召喚獣。
 	@property
 	inout
-	inout(BeastCard) beast() {return _beast;}
+	inout(BeastCard) beast() { return _beast; }
 	/// ditto
 	@property
 	inout
@@ -354,7 +366,7 @@ public:
 	/// ditto
 	@property
 	inout
-	inout(BeastCard)[] beasts() {return _beast ? [_beast] : [];}
+	inout(BeastCard)[] beasts() { return _beast ? [_beast] : []; }
 	/// ditto
 	@property
 	void beast(in BeastCard beast) { mixin(S_TRACE);
@@ -393,6 +405,7 @@ public:
 		return bid;
 	}
 	private void setBeastImpl(BeastCard beast) { mixin(S_TRACE);
+		changed();
 		_beast = beast;
 		_beast.id = 1L;
 		_beast.changeHandler = _change;
@@ -403,11 +416,13 @@ public:
 	/// 参照IDを使用する時、同一の召喚獣カードを何回までネストできるか。
 	@property
 	const
-	uint maxNest() {return _maxNest;}
+	uint maxNest() { return _maxNest; }
 	/// ditto
 	@property
 	void maxNest(uint val) { mixin(S_TRACE);
-		_maxNest = roundValue(val, maxNest_max, maxNest_min);
+		val = roundValue(val, maxNest_max, maxNest_min);
+		if (_maxNest != val) changed();
+		_maxNest = val;
 	}
 	/// ネスト可能回数の初期値、最小値、最大値。
 	static immutable maxNest_init = 1;
@@ -531,5 +546,5 @@ public:
 		return r;
 	}
 	@property
-	CWXPath cwxParent() {return _owner;}
+	CWXPath cwxParent() { return _owner; }
 }
