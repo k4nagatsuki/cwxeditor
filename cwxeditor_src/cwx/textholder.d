@@ -16,11 +16,6 @@ public:
 	this (string cwxPathCategory = "text") { mixin(S_TRACE);
 		super (cwxPathCategory);
 	}
-	/// コピーコンストラクタ。
-	this (in TextHolder base) { mixin(S_TRACE);
-		super (base._cwxPathCategory);
-		this.text = base.text;
-	}
 	alias SimpleTextHolder.text text;
 	@property
 	override
@@ -118,6 +113,7 @@ public:
 	override bool changeCallback(PathId oldVal, PathId newVal) { mixin(S_TRACE);
 		if (!(cast(string)newVal).isSPFontFile) return false;
 		_text = replTextUseFont(_text, cast(string)oldVal, cast(string)newVal);
+		if (_changed) _changed();
 		return true;
 	}
 }
@@ -139,16 +135,19 @@ private:
 	StepUser[] _stepusers;
 	UseCounter _uc;
 	string _cwxPathCategory;
+	void delegate() _changed;
 public:
 	/// コンストラクタ。
 	this (string cwxPathCategory = "text") { mixin(S_TRACE);
 		_cwxPathCategory = cwxPathCategory;
 	}
-	/// コピーコンストラクタ。
-	this (in SimpleTextHolder base) { mixin(S_TRACE);
-		this (base._cwxPathCategory);
-		this.text = base.text;
+
+	/// 変更ハンドラを登録する。
+	@property
+	void changeHandler(void delegate() change) { mixin(S_TRACE);
+		_changed = change;
 	}
+
 	/// テキスト。
 	@property
 	const
@@ -263,10 +262,12 @@ public:
 	}
 	override bool changeCallback(FlagId oldVal, FlagId newVal) { mixin(S_TRACE);
 		_text = replTextUseFlag(_text, cast(string)oldVal, cast(string)newVal);
+		if (_changed) _changed();
 		return true;
 	}
 	override bool changeCallback(StepId oldVal, StepId newVal) { mixin(S_TRACE);
 		_text = replTextUseStep(_text, cast(string)oldVal, cast(string)newVal);
+		if (_changed) _changed();
 		return true;
 	}
 

@@ -307,6 +307,9 @@ public:
 	/// コンストラクタ。
 	this (string text = "", string[] rCoupons = []) { mixin(S_TRACE);
 		_text = new TextHolder;
+		_text.changeHandler = { mixin(S_TRACE);
+			if (_parent) _parent.changed();
+		};
 		_text.text = text;
 		_text.owner = this;
 		this.rCoupons = rCoupons;
@@ -504,6 +507,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		idCount++;
 		_type = type;
 		_name = new SimpleTextHolder("name");
+		_name.changeHandler = &changed;
 		_name.text = name;
 		_name.owner = this;
 

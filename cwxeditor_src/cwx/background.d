@@ -185,6 +185,7 @@ public:
 	this () { mixin(S_TRACE);
 		super ("", 0, 0, 0, 0, false);
 		_text = new SimpleTextHolder;
+		_text.changeHandler = &changed;
 		_text.owner = this;
 	}
 
@@ -195,6 +196,7 @@ public:
 			string flag, int x, int y, int w, int h, bool mask) { mixin(S_TRACE);
 		super (flag, x, y, w, h, mask);
 		_text = new SimpleTextHolder;
+		_text.changeHandler = &changed;
 		_text.text = text;
 		_text.owner = this;
 		_fontName = fontName;
