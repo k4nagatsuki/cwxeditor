@@ -4103,6 +4103,7 @@ public:
 					debugln(e);
 				}
 			}
+			if (!subDir && 0 != rec) return;
 			foreach (file; clistdir(dir)) { mixin(S_TRACE);
 				if (cancel) break;
 				try { mixin(S_TRACE);
