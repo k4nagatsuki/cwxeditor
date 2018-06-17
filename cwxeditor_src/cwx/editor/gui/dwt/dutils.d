@@ -1696,6 +1696,7 @@ ImageData castCardImage(Props prop, Skin skin, in Summary summ, in CastCard c, s
 		}
 	}
 	if (c.poison > 0) status(poison(skin), c.poison);
+	if (c.paralyze > 0 && showSleepAndBind) status(paralyze(skin), c.paralyze);
 	if (c.bindRound > 0 && showSleepAndBind) status(bind(skin), c.bindRound);
 	if (c.silenceRound > 0) status(silence(skin), c.silenceRound);
 	if (c.faceUpRound > 0) status(faceUp(skin), c.faceUpRound);
