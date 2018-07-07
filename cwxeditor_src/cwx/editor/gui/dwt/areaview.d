@@ -4657,17 +4657,21 @@ public:
 			if (cast(AreaSceneWindow)tlpData(this).tlp) { mixin(S_TRACE);
 				createToolItem(_comm, bar, MenuID.EditEvent, () => openEvent(false), null);
 				new ToolItem(bar, SWT.SEPARATOR);
-				createToolItem(_comm, bar, MenuID.EditSceneDup, () => openDup(), null);
-				new ToolItem(bar, SWT.SEPARATOR);
+				if (_prop.var.etc.showDuplicateViewInToolBar) { mixin(S_TRACE);
+					createToolItem(_comm, bar, MenuID.EditSceneDup, () => openDup(), null);
+					new ToolItem(bar, SWT.SEPARATOR);
+				}
 			}
 		} else static if (is(A:Battle)) {
 			if (cast(BattleSceneWindow)tlpData(this).tlp) { mixin(S_TRACE);
 				auto itm = createToolItem(_comm, bar, MenuID.EditEvent, () => openEvent(false), null);
 				itm.setImage(_prop.images.editEventBattle);
 				new ToolItem(bar, SWT.SEPARATOR);
-				itm = createToolItem(_comm, bar, MenuID.EditSceneDup, () => openDup(), null);
-				itm.setImage(_prop.images.battleSceneViewDup);
-				new ToolItem(bar, SWT.SEPARATOR);
+				if (_prop.var.etc.showDuplicateViewInToolBar) { mixin(S_TRACE);
+					itm = createToolItem(_comm, bar, MenuID.EditSceneDup, () => openDup(), null);
+					itm.setImage(_prop.images.battleSceneViewDup);
+					new ToolItem(bar, SWT.SEPARATOR);
+				}
 			}
 		}
 		if (!_tlp) { mixin(S_TRACE);

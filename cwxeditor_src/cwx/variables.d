@@ -384,6 +384,7 @@ class FlexEtcProps : Properties {
 	auto ignoreMenuSashL = Prop!(int)("ignoreMenuSashL", 2);
 	auto ignoreMenuSashR = Prop!(int)("ignoreMenuSashR", 1);
 	auto highValueOfImageControl = Prop!(uint, true)("highValueOfImageControl", 10);
+	auto showDuplicateViewInToolBar = Prop!(bool, true)("showDuplicateViewInToolBar", false);
 
 	auto openHistories = Prop!(OpenHistory[])("openHistories", []);
 	auto historyMax = Prop!(int)("historyMax", 9);

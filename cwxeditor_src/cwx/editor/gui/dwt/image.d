@@ -569,9 +569,9 @@ public:
 		case MenuID.ReNumberingAll: return imgd!("renum_all.png");
 		case MenuID.ReNumbering: return imgd!("renum.png");
 		case MenuID.EditScene: return imgd!("area_cards.png");
-		case MenuID.EditSceneDup: return imgd!("area_cards_dup.png");
+		case MenuID.EditSceneDup: return imgd!("dup_scene.png");
 		case MenuID.EditEvent: return imgd!("area_event.png");
-		case MenuID.EditEventDup: return imgd!("area_event_dup.png");
+		case MenuID.EditEventDup: return imgd!("dup_event.png");
 		case MenuID.SetStartArea: return imgd!("start_area.png");
 		case MenuID.NewFlagDir: return imgd!("flagdir_new.png");
 		case MenuID.NewFlag: return imgd!("flag_new.png");

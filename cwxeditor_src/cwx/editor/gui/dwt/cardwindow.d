@@ -122,6 +122,15 @@ private:
 
 	Summary _toc = null;
 
+	@property
+	bool isSelectedAreaTable() { mixin(S_TRACE);
+		if (!multiTab) return false;
+		if (auto tabf = cast(CTabFolder)_tabf) { mixin(S_TRACE);
+			return tabf.getSelection() is _aTab;
+		}
+		assert (0);
+	}
+
 	void refreshM() { mixin(S_TRACE);
 		foreach (f; _pane) { mixin(S_TRACE);
 			f.refresh();
@@ -309,11 +318,11 @@ public:
 
 		if (withArea) { mixin(S_TRACE);
 			putMenuAction(MenuID.EditSummary, () => _areas.editSummary(_areas.panel.getShell()), () => _summ !is null);
-			putMenuAction(MenuID.EditScene, () => _areas.openAreaScene(true), () => _areas.canOpenAreaScene);
-			putMenuAction(MenuID.EditSceneDup, () => _areas.openAreaScene(true, true), () => _areas.canOpenAreaScene);
-			putMenuAction(MenuID.EditEvent, () => _areas.openAreaEvent(true), () => _areas.canOpenAreaEvent);
-			putMenuAction(MenuID.EditEventDup, () => _areas.openAreaEvent(true, true), () => _areas.canOpenAreaEvent);
-			putMenuAction(MenuID.ChangeVH, () => _areas.changeVHSide(), () => _areas.canChangeVH);
+			putMenuAction(MenuID.EditScene, () => _areas.openAreaScene(true), () => isSelectedAreaTable && _areas.canOpenAreaScene);
+			putMenuAction(MenuID.EditSceneDup, () => _areas.openAreaScene(true, true), () => isSelectedAreaTable && _areas.canOpenAreaScene);
+			putMenuAction(MenuID.EditEvent, () => editEvent(false), &canEditEvent);
+			putMenuAction(MenuID.EditEventDup, () => editEvent(true), &canEditEvent);
+			putMenuAction(MenuID.ChangeVH, () => _areas.changeVHSide(), () => isSelectedAreaTable && _areas.canChangeVH);
 		}
 		if (editMode) { mixin(S_TRACE);
 			appendMenuTCPD(_comm, this, this, true, true, true, true, true);
@@ -349,7 +358,7 @@ public:
 			putMenuAction(MenuID.Import, &doImport, &canDoImport);
 		}
 		putMenuAction(MenuID.SelectAll, &selectAll, &canSelectAll);
-		if (CardType.Skill in _paneTbl || CardType.Item in _paneTbl || CardType.Beast in _paneTbl) {
+		if ((CardType.Skill in _paneTbl || CardType.Item in _paneTbl || CardType.Beast in _paneTbl) || (multiTab && !withArea)) {
 			putMenuAction(MenuID.EditEventAtTimeOfUsing, () => editUseEvent(false), &canEditUseEvent);
 			putMenuAction(MenuID.EditEventDup, () => editUseEvent(true), &canEditUseEvent);
 		}
@@ -993,6 +1002,23 @@ public:
 		return selectPane!(bool, "canRemoveRef", false)();
 	}
 
+	void editEvent(bool canDuplicate = false) { mixin(S_TRACE);
+		if (!canEditEvent) return;
+		if (isSelectedAreaTable) { mixin(S_TRACE);
+			_areas.openAreaEvent(true, canDuplicate);
+		} else { mixin(S_TRACE);
+			editUseEvent(canDuplicate);
+		}
+	}
+	@property
+	bool canEditEvent() { mixin(S_TRACE);
+		if (isSelectedAreaTable) { mixin(S_TRACE);
+			return _areas.canOpenAreaEvent;
+		} else { mixin(S_TRACE);
+			return canEditUseEvent;
+		}
+	}
+
 	void editUseEvent(bool canDuplicate = false) { mixin(S_TRACE);
 		int i = selectionCardIndex;
 		if (0 <= i) { mixin(S_TRACE);
@@ -1001,6 +1027,7 @@ public:
 			}
 		}
 	}
+
 	@property
 	bool canEditUseEvent() { mixin(S_TRACE);
 		int i = selectionCardIndex;

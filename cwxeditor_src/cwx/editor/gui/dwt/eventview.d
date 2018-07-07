@@ -2087,28 +2087,34 @@ public:
 		if (cast(EventWindow)tlpData(this).tlp) { mixin(S_TRACE);
 			if (cast(Area)_area) {
 				createToolItem(_comm, bar, MenuID.EditScene, () => openScene(false), null);
-				new ToolItem(bar, SWT.SEPARATOR);
-				createToolItem(_comm, bar, MenuID.EditEventDup, &openDup, null);
+				if (_prop.var.etc.showDuplicateViewInToolBar) { mixin(S_TRACE);
+					new ToolItem(bar, SWT.SEPARATOR);
+					createToolItem(_comm, bar, MenuID.EditEventDup, &openDup, null);
+				}
 			} else if (cast(Battle)_area) {
 				auto itm = createToolItem(_comm, bar, MenuID.EditScene, () => openScene(false), null);
 				itm.setImage(_prop.images.editSceneBattle);
+				if (_prop.var.etc.showDuplicateViewInToolBar) { mixin(S_TRACE);
+					new ToolItem(bar, SWT.SEPARATOR);
+					itm = createToolItem(_comm, bar, MenuID.EditEventDup, &openDup, null);
+					itm.setImage(_prop.images.battleEventTreeViewDup);
+				}
+			} else if (_prop.var.etc.showDuplicateViewInToolBar) { mixin(S_TRACE);
+				if (cast(Package)_area) {
+					auto itm = createToolItem(_comm, bar, MenuID.EditEventDup, &openDup, null);
+					itm.setImage(_prop.images.packageDup);
+				} else if (cast(SkillCard)_area) {
+					auto itm = createToolItem(_comm, bar, MenuID.EditEventDup, &openDup, null);
+					itm.setImage(_prop.images.skillDup);
+				} else if (cast(ItemCard)_area) {
+					auto itm = createToolItem(_comm, bar, MenuID.EditEventDup, &openDup, null);
+					itm.setImage(_prop.images.itemDup);
+				} else if (cast(BeastCard)_area) {
+					auto itm = createToolItem(_comm, bar, MenuID.EditEventDup, &openDup, null);
+					itm.setImage(_prop.images.beastDup);
+				}
 				new ToolItem(bar, SWT.SEPARATOR);
-				itm = createToolItem(_comm, bar, MenuID.EditEventDup, &openDup, null);
-				itm.setImage(_prop.images.battleEventTreeViewDup);
-			} else if (cast(Package)_area) {
-				auto itm = createToolItem(_comm, bar, MenuID.EditEventDup, &openDup, null);
-				itm.setImage(_prop.images.packageDup);
-			} else if (cast(SkillCard)_area) {
-				auto itm = createToolItem(_comm, bar, MenuID.EditEventDup, &openDup, null);
-				itm.setImage(_prop.images.skillDup);
-			} else if (cast(ItemCard)_area) {
-				auto itm = createToolItem(_comm, bar, MenuID.EditEventDup, &openDup, null);
-				itm.setImage(_prop.images.itemDup);
-			} else if (cast(BeastCard)_area) {
-				auto itm = createToolItem(_comm, bar, MenuID.EditEventDup, &openDup, null);
-				itm.setImage(_prop.images.beastDup);
 			}
-			new ToolItem(bar, SWT.SEPARATOR);
 		}
 	}
 	private bool setupToolBar() { mixin(S_TRACE);

@@ -190,8 +190,8 @@ public:
 	A eventTreeOwner() { mixin(S_TRACE);
 		return _area;
 	}
-	void undo() {_undo.undo();}
-	void redo() {_undo.redo();}
+	void undo() { _undo.undo(); }
+	void redo() { _undo.redo(); }
 
 	void openEvent(bool canDuplicate) { mixin(S_TRACE);
 		_aview.openEvent(canDuplicate);

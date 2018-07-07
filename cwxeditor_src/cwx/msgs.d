@@ -2502,9 +2502,9 @@ class Msgs : Properties {
 	auto menuTextReNumberingAll = Msg("menuTextReNumberingAll", "全てのIDを1から振り直す");
 	auto menuTextReNumbering = Msg("menuTextReNumbering", "IDの振り直し");
 	auto menuTextEditScene = Msg("menuTextEditScene", "シーンビューを開く");
-	auto menuTextEditSceneDup = Msg("menuTextEditSceneDup", "新しいビューを開く");
+	auto menuTextEditSceneDup = Msg("menuTextEditSceneDup", "新しいシーンビューを開く");
 	auto menuTextEditEvent = Msg("menuTextEditEvent", "イベントビューを開く");
-	auto menuTextEditEventDup = Msg("menuTextEditEventDup", "新しいビューを開く");
+	auto menuTextEditEventDup = Msg("menuTextEditEventDup", "新しいイベントビューを開く");
 	auto menuTextSetStartArea = Msg("menuTextSetStartArea", "開始エリアにする");
 	auto menuTextNewFlagDir = Msg("menuTextNewFlagDir", "フォルダの作成");
 	auto menuTextNewFlag = Msg("menuTextNewFlag", "フラグの作成");

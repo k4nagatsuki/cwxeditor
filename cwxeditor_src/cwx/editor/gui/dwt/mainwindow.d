@@ -2935,6 +2935,11 @@ public:
 				dStr ~= " - " ~ .text(__LINE__);
 				new MenuItem(mv, SWT.SEPARATOR);
 				mixin (MenuAction!("mv", MenuID.Refresh, SWT.PUSH, "refreshAll", "() => summary !is null"));
+				if (!_prop.var.etc.showDuplicateViewInToolBar) { mixin(S_TRACE);
+					new MenuItem(mv, SWT.SEPARATOR);
+					mixin (MenuAction!("mv", MenuID.EditSceneDup));
+					mixin (MenuAction!("mv", MenuID.EditEventDup));
+				}
 				new MenuItem(mv, SWT.SEPARATOR);
 				mixin (MenuAction!("mv", MenuID.ChangeVH));
 				dStr ~= " - " ~ .text(__LINE__);

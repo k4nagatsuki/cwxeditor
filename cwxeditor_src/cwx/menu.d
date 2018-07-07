@@ -101,7 +101,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.CompleteStampView] = "M";
 		_mnemonic[MenuID.KeyCodeView] = "K";
 		_mnemonic[MenuID.CellNameView] = "E";
-		_mnemonic[MenuID.CardGroupView] = "E";
+		_mnemonic[MenuID.CardGroupView] = "A";
 		_mnemonic[MenuID.ExecEngine] = "G";
 		_mnemonic[MenuID.ExecEngineAuto] = "G";
 		_mnemonic[MenuID.ExecEngineMain] = "P";
