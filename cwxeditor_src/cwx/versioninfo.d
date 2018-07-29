@@ -14,7 +14,7 @@ immutable APP_WEB_SITE_URI =  splitLines(import("@version.txt"))[2];
 /// 最新のWSNデータバージョン。
 immutable LATEST_VERSION = "3";
 /// 標準で選択されるデータバージョン。
-immutable DEFAULT_VERSION = "2";
+immutable DEFAULT_VERSION = "3";
 /// 対応するWSNデータバージョン。
 immutable VERSIONS = [
 	"3",
