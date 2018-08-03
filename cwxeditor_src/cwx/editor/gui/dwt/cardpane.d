@@ -1872,15 +1872,22 @@ private:
 		}
 	}
 	bool qCardMaterialCopy(in XNode node, Card[] cs) { mixin(S_TRACE);
-		string fromSPath = node.attr("scenarioPath", false);
-		if (fromSPath.length > 0 && !cfnmatch(nabs(fromSPath), nabs(ownerScenarioPath))) { mixin(S_TRACE);
+		auto fromSPath = node.attr("scenarioPath", false);
+		if (fromSPath != "") fromSPath = .nabs(fromSPath);
+		auto fromSName = node.attr("scenarioName", false);
+		auto fromSAuthor = node.attr("scenarioAuthor", false);
+		if (fromSPath.length > 0 && !cfnmatch(fromSPath, nabs(ownerScenarioPath))) { mixin(S_TRACE);
 			scope uc = new UseCounter;
 			foreach (c; cs) { mixin(S_TRACE);
 				c.setUseCounter(uc);
 			}
 			bool copy;
-			bool r = qMaterialCopy(_comm, dlgParShl,
-				uc, _summ.scenarioPath, fromSPath, copy, _summ.legacy);
+			bool r = qMaterialCopy(_comm, dlgParShl, uc, _summ.scenarioPath, fromSPath, copy, _summ.legacy,
+				(in IPathUser u) { mixin(S_TRACE);
+					auto v = cast(PathUser)u;
+					assert (v);
+					return .pathUserToExportedImageName(_prop.parent, fromSName, fromSAuthor, v);
+				});
 			foreach (c; cs) { mixin(S_TRACE);
 				c.removeUseCounter();
 			}
@@ -1899,13 +1906,29 @@ private:
 	}
 
 	@property
-	string ownerScenarioPath() { mixin(S_TRACE);
+	const
+	const(Summary) ownerScenario() { mixin(S_TRACE);
 		if (_ownerType is OwnerType.Cast) { mixin(S_TRACE);
-			return _summ.scenarioPath;
+			return _summ;
 		} else { mixin(S_TRACE);
 			assert (cast(Summary)_owner !is null);
-			return (cast(Summary)_owner).scenarioPath;
+			return cast(Summary)_owner;
 		}
+	}
+	@property
+	const
+	string ownerScenarioPath() { mixin(S_TRACE);
+		return ownerScenario.scenarioPath;
+	}
+	@property
+	const
+	string ownerScenarioName() { mixin(S_TRACE);
+		return ownerScenario.scenarioName;
+	}
+	@property
+	const
+	string ownerScenarioAuthor() { mixin(S_TRACE);
+		return ownerScenario.author;
 	}
 	@property
 	string ownerWsnVersion() { mixin(S_TRACE);
@@ -2025,6 +2048,8 @@ private:
 			}
 		}
 		sn.newAttr("scenarioPath", nabs(ownerScenarioPath));
+		sn.newAttr("scenarioName", ownerScenarioName);
+		sn.newAttr("scenarioAuthor", ownerScenarioAuthor);
 		auto opt = new XMLOption(_prop.sys, LATEST_VERSION);
 		foreach (sel; sels) { mixin(S_TRACE);
 			sel.toNode(sn, opt);

@@ -168,10 +168,9 @@ class Msgs : Properties {
 	auto dlgTitDropFiles = Msg("dlgTitDropFiles", "素材ファイルの追加");
 	auto dlgMsgCopyError = Msg("dlgMsgCopyError", "いくつかのファイルのコピーに失敗しました。");
 
-	auto dlgMsgCopyMaterial1 = Msg("dlgMsgCopyMaterial1", "格納画像もコピーしますか？");
-	auto dlgMsgCopyMaterial2 = Msg("dlgMsgCopyMaterial2", "素材もコピーしますか？\n%1$s");
-	auto dlgMsgCopyMaterial3 = Msg("dlgMsgCopyMaterial3", "素材もコピーしますか？\n%1$s個のファイル");
-	auto dlgMsgCopyMaterial4 = Msg("dlgMsgCopyMaterial4", "素材もコピーしますか？\n%1$s個のファイルと%2$s個の格納画像");
+	auto dlgMsgCopyMaterial1 = Msg("dlgMsgCopyMaterial1", "格納イメージを参照に変更してコピーしますか？");
+	auto dlgMsgCopyMaterial2 = Msg("dlgMsgCopyMaterial2", "参照された素材もコピーしますか？\n%1$s");
+	auto dlgMsgCopyMaterial3 = Msg("dlgMsgCopyMaterial3", "参照された素材もコピーしますか？\n%1$s個のファイル");
 
 	auto incSearchContains = Msg("incSearchContains", "名前の一部");
 	auto incSearchWildcard = Msg("incSearchWildcard", "ワイルドカード");
@@ -2024,6 +2023,10 @@ class Msgs : Properties {
 	auto sourceAuthor = Msg("sourceAuthor", "シナリオ作者");
 	auto resetSource = Msg("resetSource", "現在のシナリオを出典に設定");
 	auto diffSource = Msg("diffSource", "出典のシナリオ名と作者名が現在のシナリオと異なるため、使用時イベントのカード入手、エリア移動、パッケージのコール等は実行されません。");
+
+	auto exportedImageName = Msg("exportedImageName", "%1$s");
+	auto exportedImageNameWithAuthor = Msg("exportedImageNameWithAuthor", "%1$s(%2$s)");
+	auto exportedImageNameWithCard = Msg("exportedImageNameWithCard", "%1$s_%2$s");
 
 	/// ファイルビュー。
 	auto dirTabName = Msg("dirTabName", "ファイル");

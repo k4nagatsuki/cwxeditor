@@ -22,6 +22,7 @@ import cwx.binary;
 import cwx.jpy;
 import cwx.msgutils;
 import cwx.background;
+import cwx.imagesize;
 
 import lhafile.lhafile;
 
@@ -41,6 +42,7 @@ import std.stdio;
 import std.string;
 import std.utf;
 import std.traits;
+import std.typecons;
 import std.exception;
 import std.conv;
 import std.parallelism;
@@ -2350,12 +2352,13 @@ public:
 		string img = targ.path;
 		if (isBinImg(img)) { mixin(S_TRACE);
 			auto bytes = strToBImg(img);
+			auto ext = .imageType(bytes);
 			string[] *files = bytes in cis;
 			if (files) { mixin(S_TRACE);
 				assert (files.length);
 				targ.path = (*files)[0u];
 			} else { mixin(S_TRACE);
-				auto file = createFileI(mt, fname, ".bmp", "", false);
+				auto file = createFileI(mt, fname, ext, "", false);
 				std.file.write(file, bytes);
 				targ.path = std.path.buildPath(toSkin.materialPath, baseName(file));
 				cis[assumeUnique(bytes)] ~= targ.path;
@@ -2448,13 +2451,17 @@ public:
 		auto table = cardImgTable(mt, toSkin, uc, ptrs);
 		foreach (p; uc.path.keys) { mixin(S_TRACE);
 			if (p.isBinImg) { mixin(S_TRACE);
-				int i = 0;
-				foreach (ipu; uc.path.values(p)) { mixin(S_TRACE);
-					auto v = cast(PathUser)ipu;
-					assert (v);
-					if (moveBinImg(table, v, "@simage(" ~ to!(string)(i + 1) ~ ")", mt, toSkin)) { mixin(S_TRACE);
-						i++;
-					}
+				auto users = uc.path.values(p);
+				Tuple!(PathUser, "u", string[], "cwxPath")[] users2;
+				foreach (u; users) { mixin(S_TRACE);
+					users2 ~= typeof(users2[0])(u, .cpsplit(u.cwxPath(true)));
+				}
+				static bool pcmp(typeof(users2[0]) a, typeof(users2[0]) b) { mixin(S_TRACE);
+					return .cpcmp(a.cwxPath, b.cwxPath) < 0;
+				}
+				foreach (ipu; std.algorithm.sort!pcmp(users2)) { mixin(S_TRACE);
+					auto exportedName = .pathUserToExportedImageName(prop, scenarioName, author, ipu.u);
+					moveBinImg(table, ipu.u, exportedName, mt, toSkin);
 				}
 			}
 		}
@@ -3082,4 +3089,49 @@ CWXPath cwxPlace(CWXPath path) { mixin(S_TRACE);
 		path = path.cwxParent;
 	}
 	return path;
+}
+
+/// vの所持者(カードや貼紙)から格納イメージをエクスポートした時のファイル名を生成する。
+string pathUserToExportedImageName(in CProps prop, string scenarioName, string author, in PathUser v) { mixin(S_TRACE);
+	auto name = "@simage";
+	if (auto iSummary = cast(Summary)v.owner) { mixin(S_TRACE);
+		name = .toExportedImageNameWithoutCardName(prop, scenarioName, author);
+	}
+	if (auto iMCard = cast(MenuCard)v.owner) { mixin(S_TRACE);
+		name = .toExportedImageNameWithCardName(prop, scenarioName, author, iMCard.name);
+	}
+	if (auto iCard = cast(Card)v.owner) { mixin(S_TRACE);
+		if (auto iEffCard = cast(EffectCard)v.owner) { mixin(S_TRACE);
+			name = .toExportedImageNameWithCardName(prop, iEffCard.scenario, iEffCard.author, iEffCard.name);
+		} else { mixin(S_TRACE);
+			name = .toExportedImageNameWithCardName(prop, scenarioName, author, iCard.name);
+		}
+	}
+	return name;
+}
+/// ditto
+string toExportedImageNameWithoutCardName(in CProps prop, string scenarioName, string author) { mixin(S_TRACE);
+	if (author == "") { mixin(S_TRACE);
+		return .tryFormat(prop.msgs.exportedImageName, scenarioName);
+	} else { mixin(S_TRACE);
+		return .tryFormat(prop.msgs.exportedImageNameWithAuthor, scenarioName, author);
+	}
+}
+/// ditto
+string toExportedImageNameWithCardName(in CProps prop, string scenarioName, string author, string cardName) { mixin(S_TRACE);
+	return .tryFormat(prop.msgs.exportedImageNameWithCard, .toExportedImageNameWithoutCardName(prop, scenarioName, author), cardName);
+}
+
+/// 一群のエリア・バトル・パッケージをXMLノードに変換する。
+XNode areasToNode(string parentPath, string cutPath, in AbstractArea[] areas, XMLOption opt, in Summary summ) { mixin(S_TRACE);
+	auto doc = XNode.create("Table");
+	if (summ) { mixin(S_TRACE);
+		doc.newAttr("scenarioPath", .nabs(summ.scenarioPath));
+		doc.newAttr("scenarioName", summ.scenarioName);
+		doc.newAttr("scenarioAuthor", summ.author);
+	}
+	foreach (area; areas) { mixin(S_TRACE);
+		area.toNode(doc, opt, parentPath, cutPath);
+	}
+	return doc;
 }

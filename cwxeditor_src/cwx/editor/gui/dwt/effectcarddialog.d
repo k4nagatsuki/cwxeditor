@@ -260,7 +260,9 @@ private:
 				auto skin = summSkin;
 				_imgPath = new ImageSelect!(MtType.CARD)(comp2, _readOnly, _comm, _prop, _summ,
 					_prop.s(_prop.looks.cardSize.width), _prop.s(_prop.looks.cardSize.height), _prop.s(_prop.looks.cardInsets),
-					CardImagePosition.TopLeft, true, &_name.getText);
+					CardImagePosition.TopLeft, true, { mixin(S_TRACE);
+						return .toExportedImageNameWithCardName(_prop.parent, _scenario.getText(), _author.getText(), _name.getText());
+					});
 				mod(_imgPath);
 				_imgPath.modEvent ~= &refreshWarning;
 				_imgPath.widget.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -1061,7 +1063,7 @@ protected:
 	}
 
 	override bool apply() { mixin(S_TRACE);
-		auto images = _imgPath.materialPath;
+		auto images = _imgPath.materialPath(forceApplying);
 		if (images.cancel) return false;
 		if (_card) { mixin(S_TRACE);
 			_card.paths = images.images;

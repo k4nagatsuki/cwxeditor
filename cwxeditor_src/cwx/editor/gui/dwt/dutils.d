@@ -58,7 +58,7 @@ import std.datetime;
 import std.path;
 import std.process;
 import std.functional;
-import std.typecons : Rebindable;
+import std.typecons : Rebindable, Tuple;
 import std.stdio;
 import std.string;
 import std.math;
@@ -2130,14 +2130,14 @@ string[] castCoupons(Commons comm, bool talker, string legacyName, bool getLose,
 	return r;
 }
 
-bool qMaterialCopy(Commons comm, Shell shell,
-		UseCounter uc, string toSPath, string fromSPath, out bool copy, bool toIsLegacy) { mixin(S_TRACE);
+bool qMaterialCopy(Commons comm, Shell shell, UseCounter uc, string toSPath, string fromSPath,
+		out bool copy, bool toIsLegacy, string delegate(in IPathUser) exportedImageName) { mixin(S_TRACE);
 	auto prop = comm.prop;
 	auto skin = comm.skin;
 	copy = false;
 	string[] paths;
 	foreach (key; uc.path.keys) { mixin(S_TRACE);
-		string path = cast(string) key;
+		string path = cast(string)key;
 		if (key.isBinImg) { mixin(S_TRACE);
 			paths ~= path;
 		} else if (exists(std.path.buildPath(fromSPath, path))) { mixin(S_TRACE);
@@ -2175,31 +2175,53 @@ bool qMaterialCopy(Commons comm, Shell shell,
 	}
 	bool copyMates = false;
 	bool binImgToRef = false;
-	if (!msgPaths.length && bin) { mixin(S_TRACE);
-		copyMates = true;
+	if (bin) { mixin(S_TRACE);
 		if (!toIsLegacy || prop.var.etc.saveInnerImagePath) { mixin(S_TRACE);
-			binImgToRef = question(prop.msgs.dlgMsgCopyMaterial1);
+			if (toIsLegacy) { mixin(S_TRACE);
+				binImgToRef = question(prop.msgs.dlgMsgCopyMaterial1);
+			} else { mixin(S_TRACE);
+				binImgToRef = question(prop.msgs.dlgMsgExcludeImage);
+			}
 		} else { mixin(S_TRACE);
 			binImgToRef = false;
 		}
-	} else if (msgPaths.length && !bin) { mixin(S_TRACE);
-		binImgToRef = false; // 格納イメージは存在しない
-		if (1 == msgPaths.length) { mixin(S_TRACE);
-			copyMates = question(.tryFormat(prop.msgs.dlgMsgCopyMaterial2, msgPaths[0]));
-		} else { mixin(S_TRACE);
-			copyMates = question(.tryFormat(prop.msgs.dlgMsgCopyMaterial3, msgPaths.length));
-		}
-	} else { mixin(S_TRACE);
-		binImgToRef = !toIsLegacy || prop.var.etc.saveInnerImagePath;
-		copyMates = question(.tryFormat(prop.msgs.dlgMsgCopyMaterial4, msgPaths.length, bin));
 	}
-	if (copyMates && !cancel) { mixin(S_TRACE);
+	if (!cancel) { mixin(S_TRACE);
+		if (msgPaths.length) { mixin(S_TRACE);
+			if (1 == msgPaths.length) { mixin(S_TRACE);
+				copyMates = question(.tryFormat(prop.msgs.dlgMsgCopyMaterial2, msgPaths[0]));
+			} else { mixin(S_TRACE);
+				copyMates = question(.tryFormat(prop.msgs.dlgMsgCopyMaterial3, msgPaths.length));
+			}
+		}
+	}
+	if (!cancel) { mixin(S_TRACE);
 		bool err = false;
 		foreach (i, key; paths) { mixin(S_TRACE);
 			// ファイルのコピーと参照の更新
+			if (!isBinImg(key) && !copyMates) continue;
 			string path = isBinImg(key) ? key : std.path.buildPath(fromSPath, key);
 			try { mixin(S_TRACE);
-				auto newp = copyTo(toSPath, path, skin.materialPath, binImgToRef);
+				auto users = uc.values(toPathId(key));
+				auto exportedName = "";
+				if (binImgToRef) { mixin(S_TRACE);
+					if (1 < users.length) { mixin(S_TRACE);
+						Tuple!(PathUser, "u", string[], "cwxPath")[] users2;
+						foreach (u; users) { mixin(S_TRACE);
+							users2 ~= typeof(users2[0])(u, .cpsplit(u.cwxPath(true)));
+						}
+						static bool pcmp(typeof(users2[0]) a, typeof(users2[0]) b) { mixin(S_TRACE);
+							return .cpcmp(a.cwxPath, b.cwxPath) < 0;
+						}
+						foreach (u; std.algorithm.sort!pcmp(users2)) { mixin(S_TRACE);
+							exportedName = exportedImageName(u.u);
+							break;
+						}
+					} else { mixin(S_TRACE);
+						exportedName = exportedImageName(users[0]);
+					}
+				}
+				auto newp = copyTo(toSPath, path, skin.materialPath, binImgToRef, exportedName);
 				if (!isBinImg(newp) && key != newp) { mixin(S_TRACE);
 					uc.change(toPathId(key), toPathId(newp));
 				}
@@ -2775,7 +2797,7 @@ class StopSE : SelectionAdapter, DisposeListener {
 }
 
 bool playBGMCW(Props prop, string path, uint fadeIn, uint volume, uint loopCount, bool legacy) { mixin(S_TRACE);
-    version (Windows) {} else {immutable SOUND_TYPE_MCI = -1;}
+	version (Windows) {} else {immutable SOUND_TYPE_MCI = -1;}
 	.stopBGM();
 	int playType = prop.var.etc.soundPlayType;
 	.bgmVolume = (prop.var.etc.bgmVolume * volume) / 100;
@@ -2813,7 +2835,7 @@ bool playBGMCW(Props prop, string path, uint fadeIn, uint volume, uint loopCount
 }
 
 void playSECW(Props prop, string path, uint fadeIn, uint volume, uint loopCount, bool legacy) { mixin(S_TRACE);
-    version (Windows) {} else {immutable SOUND_TYPE_MCI = -1;}
+	version (Windows) {} else {immutable SOUND_TYPE_MCI = -1;}
 	.stopSE();
 	int type = prop.var.etc.soundEffectPlayType;
 	if (SOUND_TYPE_SAME_BGM == type) { mixin(S_TRACE);
@@ -4202,7 +4224,7 @@ void getSymbols(Commons comm, Summary summ, CWXPath path, bool desc, out string 
 
 /// BUG: GDI+でOpenTypeフォントを使用しようとした時の問題を避ける
 void wDrawText(GC gc, string text, int x, int y) { mixin(S_TRACE);
-    version (Windows) {
+	version (Windows) {
 		if (isEnableGdipAndNotTrueTypeFont(gc)) { mixin(S_TRACE);
 			auto data = gc.getGCData();
 			auto g = data.gdipGraphics;
@@ -4218,7 +4240,7 @@ void wDrawText(GC gc, string text, int x, int y) { mixin(S_TRACE);
 }
 /// ditto
 void wDrawText(GC gc, string text, int x, int y, bool isTransparent) { mixin(S_TRACE);
-    version (Windows) {
+	version (Windows) {
 		if (isEnableGdipAndNotTrueTypeFont(gc)) { mixin(S_TRACE);
 			auto data = gc.getGCData();
 			auto g = data.gdipGraphics;
@@ -4234,7 +4256,7 @@ void wDrawText(GC gc, string text, int x, int y, bool isTransparent) { mixin(S_T
 }
 /// ditto
 void wDrawText(GC gc, string text, int x, int y, int flags) { mixin(S_TRACE);
-    version (Windows) {
+	version (Windows) {
 		if (isEnableGdipAndNotTrueTypeFont(gc)) { mixin(S_TRACE);
 			auto data = gc.getGCData();
 			auto g = data.gdipGraphics;
@@ -4250,7 +4272,7 @@ void wDrawText(GC gc, string text, int x, int y, int flags) { mixin(S_TRACE);
 }
 /// ditto
 Point wTextExtent(GC gc, string text) { mixin(S_TRACE);
-    version (Windows) {
+	version (Windows) {
 		if (isEnableGdipAndNotTrueTypeFont(gc) || OS.WIN32_VERSION < OS.VERSION(6, 0)) { mixin(S_TRACE);
 			auto data = gc.getGCData();
 			auto g = data.gdipGraphics;

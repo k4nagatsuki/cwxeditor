@@ -378,7 +378,14 @@ abstract class AbsDialog {
 	@property
 	bool noApply() { return _apply && _apply.getEnabled(); }
 
+	private bool _forceApplying = false;
+	@property
+	const
+	bool forceApplying() { return _forceApplying; }
+
 	void forceApply() { mixin(S_TRACE);
+		_forceApplying = true;
+		scope (exit) _forceApplying = false;
 		foreach (dlg; applyEvent) { mixin(S_TRACE);
 			dlg();
 		}

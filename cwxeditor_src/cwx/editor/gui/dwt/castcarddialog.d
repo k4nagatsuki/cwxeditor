@@ -315,7 +315,9 @@ private:
 			{ mixin(S_TRACE);
 				_imgPath = new ImageSelect!(MtType.CARD)(comp2, _readOnly, _comm, _prop, _summ,
 					_prop.s(_prop.looks.cardSize.width), _prop.s(_prop.looks.cardSize.height), _prop.s(_prop.looks.castCardInsets),
-					CardImagePosition.Center, true, &_name.getText);
+					CardImagePosition.Center, true, { mixin(S_TRACE);
+						return .toExportedImageNameWithCardName(_prop.parent, _summ.scenarioName, _summ.author, _name.getText());
+					});
 				mod(_imgPath);
 				_imgPath.modEvent ~= &refreshWarning;
 				_imgPath.widget.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -1480,7 +1482,7 @@ protected:
 		return null;
 	}
 	override bool apply() { mixin(S_TRACE);
-		auto images = _imgPath.materialPath;
+		auto images = _imgPath.materialPath(forceApplying);
 		if (images.cancel) return false;
 		if (_card) { mixin(S_TRACE);
 			_card.paths = images.images;

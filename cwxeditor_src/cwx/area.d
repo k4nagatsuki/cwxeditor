@@ -37,16 +37,16 @@ interface PackageOwner : CWXPath {
 /// XMLテキストを元にエリアを生成して返す。
 /// Params:
 /// xml = XMLテキスト。
-/// sameId = 貼り紙のID。
-/// sameSummary = 生成するエリアが元々属していた貼り紙が、sameIdが指す貼り紙と同一であるか。
+/// scenarioPath = シナリオのパス。
+/// sameSummary = 生成するエリアが元々属していたシナリオが、scenarioPathが指すシナリオと同一であるか。
 /// Returns: エリア。エリアでない場合はnull。
 /// Throws:
 /// XmlException = パース失敗。
 /// IllegalArgumentException = 数値であるべきデータが数値でない。
-AbstractArea[] createAreasFromNode(ref XNode e, string summId, out bool sameSummary, out bool fromTable, in XMLInfo ver) { mixin(S_TRACE);
+AbstractArea[] createAreasFromNode(ref XNode e, string scenarioPath, out bool sameSummary, out bool fromTable, in XMLInfo ver) { mixin(S_TRACE);
 	try { mixin(S_TRACE);
-		auto id = e.attr("summaryId", false);
-		sameSummary = id && id == summId;
+		auto sPath = e.attr("scenarioPath", false);
+		sameSummary = scenarioPath != "" && sPath != "" && .cfnmatch(.nabs(scenarioPath), .nabs(scenarioPath));
 		AbstractArea[] areas;
 		void load(ref XNode e) { mixin(S_TRACE);
 			switch (e.name) {
@@ -73,15 +73,6 @@ AbstractArea[] createAreasFromNode(ref XNode e, string summId, out bool sameSumm
 		debugln(e);
 		return [];
 	}
-}
-/// 一群のエリア・バトル・パッケージをXMLノードに変換する。
-XNode areasToNode(string parentPath, string cutPath, in AbstractArea[] areas, XMLOption opt, string summId = null) { mixin(S_TRACE);
-	auto doc = XNode.create("Table");
-	if (summId) doc.newAttr("summaryId", summId);
-	foreach (area; areas) { mixin(S_TRACE);
-		area.toNode(doc, opt, parentPath, cutPath);
-	}
-	return doc;
 }
 
 /// メニューカードとエネミーカードの親クラス。
@@ -825,14 +816,11 @@ public:
 	override size_t[] areaPath() {return [0];}
 
 	/// XMLテキスト化して返す。
-	/// Params:
-	/// summId = テキストに付与するID。nullを指定すると付与しない。
 	const
-	string toXML(XMLOption opt, string summId = null) { mixin(S_TRACE);
+	string toXML(XMLOption opt) { mixin(S_TRACE);
 		auto doc = XNode.create(rootName);
 		doc.newAttr("dataVersion", opt.dataVersion);
 		toNodeImpl(doc, opt);
-		if (summId) doc.newAttr("summaryId", summId);
 		return doc.text;
 	}
 
@@ -853,11 +841,6 @@ public:
 	}
 	const
 	abstract void toNodeImpl(ref XNode e, XMLOption opt, string parentPath = "", string cutPath = "");
-
-	/// toXML()でsummIdを指定されたノードを渡すと、summIdを読み出して返す。
-	static string summaryId(in XNode node) { mixin(S_TRACE);
-		return node.attr("summaryId", false, "");
-	}
 
 	/// 指定されたノードにProperty情報を追加する。
 	const

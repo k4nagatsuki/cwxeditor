@@ -1123,7 +1123,9 @@ private:
 				auto tree = cast(Tree)(cast(DragSource)e.getSource()).getControl();
 				auto dir = cast(DirTree)tree.getSelection()[0].getData();
 				auto doc = XNode.create("TablePath", dir.path);
-				doc.newAttr("summaryId", _summ.id);
+				doc.newAttr("scenarioPath", .nabs(_summ.scenarioPath));
+				doc.newAttr("scenarioName", _summ.scenarioName);
+				doc.newAttr("scenarioAuthor", _summ.author);
 				e.data = bytesFromXML(doc.text);
 			}
 		}
@@ -1153,7 +1155,7 @@ private:
 				auto dir = cast(DirTree)itm.getData();
 				auto path = dir.path;
 				if (node.name == "TablePath") { mixin(S_TRACE);
-					if (_summ.id != AbstractArea.summaryId(node)) return;
+					if (!.cfnmatch(.nabs(_summ.scenarioPath), getScenarioPath(node))) return;
 					auto oldPath = node.value;
 					auto removePath = node.value;
 					if (oldPath == "") return;
@@ -1201,7 +1203,7 @@ private:
 					refreshDirTree();
 
 					_undo ~= new ATUndoArr(undos);
-				} else if (_summ.id == AbstractArea.summaryId(node)) { mixin(S_TRACE);
+				} else if (.cfnmatch(.nabs(_summ.scenarioPath), getScenarioPath(node))) { mixin(S_TRACE);
 					auto area = getSelectionArea();
 					ulong id;
 					TypeInfo type;
@@ -1238,7 +1240,11 @@ private:
 				assert (0 <= i);
 				_data = cast(AbstractArea)tbl.getItem(i).getData();
 				assert (_data !is null);
-				e.data = bytesFromXML(_data.toXML(new XMLOption(_prop.sys, LATEST_VERSION), _summ.id));
+				auto doc = _data.toNode(new XMLOption(_prop.sys, LATEST_VERSION));
+				doc.newAttr("scenarioPath", .nabs(_summ.scenarioPath));
+				doc.newAttr("scenarioName", _summ.scenarioName);
+				doc.newAttr("scenarioAuthor", _summ.author);
+				e.data = bytesFromXML(doc.text);
 			}
 		}
 		override void dragFinished(DragSourceEvent e) { mixin(S_TRACE);
@@ -1319,7 +1325,7 @@ private:
 					} else assert (0);
 					return index;
 				}
-				if (_summ.id == AbstractArea.summaryId(node)) { mixin(S_TRACE);
+				if (.cfnmatch(.nabs(_summ.scenarioPath), getScenarioPath(node))) { mixin(S_TRACE);
 					// 同一リスト内で移動
 					if (!sortedID) return;
 					int fromIndex = tbl.getSelectionIndex();
@@ -1356,6 +1362,7 @@ private:
 					saveIDs(_summ, a, b, p);
 					if (tid == typeid(Area)) { mixin(S_TRACE);
 						area = Area.createFromNode(node, ver);
+						if (!qAreasMaterialCopy(node, [area])) return;
 						if (_dirMode) area.dirName = _dir;
 						int index = getIndex(area);
 						_summ.insert(index, cast(Area)area);
@@ -1364,6 +1371,7 @@ private:
 						newAreaItem(index);
 					} else if (tid == typeid(Battle)) { mixin(S_TRACE);
 						area = Battle.createFromNode(node, ver);
+						if (!qAreasMaterialCopy(node, [area])) return;
 						if (_dirMode) area.dirName = _dir;
 						int index = getIndex(area);
 						_summ.insert(index, cast(Battle)area);
@@ -1373,6 +1381,7 @@ private:
 					} else { mixin(S_TRACE);
 						assert (tid == typeid(Package));
 						area = Package.createFromNode(node, ver);
+						if (!qAreasMaterialCopy(node, [area])) return;
 						if (_dirMode) area.dirName = _dir;
 						int index = getIndex(area);
 						_summ.insert(index, cast(Package)area);
@@ -2898,6 +2907,37 @@ public:
 		return areas;
 	}
 
+	private string getScenarioPath(in XNode node) { mixin(S_TRACE);
+		auto sPath = node.attr("scenarioPath", false);
+		return sPath == "" ? "" : .nabs(sPath);
+	}
+	bool qAreasMaterialCopy(in XNode node, AbstractArea[] as) { mixin(S_TRACE);
+		auto fromSPath = getScenarioPath(node);
+		auto fromSName = node.attr("scenarioName", false);
+		auto fromSAuthor = node.attr("scenarioAuthor", false);
+		if (fromSPath.length > 0 && !cfnmatch(fromSPath, .nabs(_summ.scenarioPath))) { mixin(S_TRACE);
+			scope uc = new UseCounter;
+			foreach (a; as) { mixin(S_TRACE);
+				a.setUseCounter(uc);
+			}
+			bool copy;
+			bool r = qMaterialCopy(_comm, _areas.getShell(), uc, _summ.scenarioPath, fromSPath, copy, _summ.legacy,
+				(in IPathUser u) { mixin(S_TRACE);
+					auto v = cast(PathUser)u;
+					assert (v);
+					return .pathUserToExportedImageName(_prop.parent, fromSName, fromSAuthor, v);
+				});
+			foreach (a; as) { mixin(S_TRACE);
+				a.removeUseCounter();
+			}
+			if (copy) { mixin(S_TRACE);
+				_comm.refPaths.call(_comm.skin.materialPath);
+			}
+			return r;
+		}
+		return true;
+	}
+
 	override {
 		void cut(SelectionEvent se) { mixin(S_TRACE);
 			if (_dirTree && _lastFocus is _dirTree) { mixin(S_TRACE);
@@ -2917,10 +2957,12 @@ public:
 				XNode doc;
 				string parentPath = _dir == "" ? _prop.msgs.areaDirRoot : _dir.split("\\")[$ - 1];
 				if (areas.length) { mixin(S_TRACE);
-					doc = areasToNode(parentPath, _dir, areas, new XMLOption(_prop.sys, LATEST_VERSION), _summ.id);
-				} else {
+					doc = areasToNode(parentPath, _dir, areas, new XMLOption(_prop.sys, LATEST_VERSION), _summ);
+				} else { mixin(S_TRACE);
 					doc = XNode.create("Table");
-					doc.newAttr("summaryId", _summ.id);
+					doc.newAttr("scenarioPath", .nabs(_summ.scenarioPath));
+					doc.newAttr("scenarioName", _summ.scenarioName);
+					doc.newAttr("scenarioAuthor", _summ.author);
 				}
 				// フォルダ構造を転送
 				auto parent = cast(DirTree)findDirTree(_dir).getData();
@@ -2939,7 +2981,7 @@ public:
 			} else { mixin(S_TRACE);
 				auto areas = getSelectionAreas();
 				if (areas.length) { mixin(S_TRACE);
-					auto doc = areasToNode("", _dir, areas, new XMLOption(_prop.sys, LATEST_VERSION), _summ.id);
+					auto doc = areasToNode("", _dir, areas, new XMLOption(_prop.sys, LATEST_VERSION), _summ);
 					XMLtoCB(_prop, _comm.clipboard, doc.text);
 					_comm.refreshToolBar();
 				}
@@ -3073,7 +3115,8 @@ public:
 		bool sameSummary;
 		auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
 		bool fromTable;
-		auto areas = createAreasFromNode(node, _summ.id, sameSummary, fromTable, ver);
+		auto areas = createAreasFromNode(node, _summ.scenarioPath, sameSummary, fromTable, ver);
+		if (!qAreasMaterialCopy(node, areas)) return;
 		ATUndo[] undos;
 		AbstractArea sel = null;
 		auto existsDirs = new HashSet!string;

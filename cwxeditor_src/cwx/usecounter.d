@@ -255,7 +255,7 @@ struct FlagId {
 	}
 }
 /// 文字列をフラグIDに変換。
-FlagId toFlagId(string id) {return FlagId(id);}
+FlagId toFlagId(string id) { return FlagId(id); }
 /// フラグの使用者。
 interface IFlagUser : User!(FlagId) {
 }
@@ -268,10 +268,11 @@ private:
 	IFlagUser _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (IFlagUser cwxPath) {_cwxPath = cwxPath;}
+	this (IFlagUser cwxPath) { _cwxPath = cwxPath; }
 	/// このオブジェクトの所有者。
 	@property
-	IFlagUser owner() {return _cwxPath;}
+	inout
+	inout(IFlagUser) owner() { return _cwxPath; }
 
 	/// IDを設定する。
 	/// 所有者がChgFlagCallbackであればコールバックが行われる。
@@ -307,7 +308,7 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() {return _uc;}
+	UseCounter useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
@@ -378,7 +379,7 @@ struct StepId {
 	}
 }
 /// 文字列をステップIDに変換。
-StepId toStepId(string id) {return StepId(id);}
+StepId toStepId(string id) { return StepId(id); }
 /// ステップの使用者。
 interface IStepUser : User!(StepId) {
 }
@@ -391,10 +392,11 @@ private:
 	IStepUser _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (IStepUser cwxPath) {_cwxPath = cwxPath;}
+	this (IStepUser cwxPath) { _cwxPath = cwxPath; }
 	/// このオブジェクトの所有者。
 	@property
-	IStepUser owner() {return _cwxPath;}
+	inout
+	inout(IStepUser) owner() { return _cwxPath; }
 
 	/// IDを設定する。
 	/// 所有者がChgStepCallbackであればコールバックが行われる。
@@ -430,7 +432,7 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() {return _uc;}
+	UseCounter useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
@@ -469,7 +471,7 @@ struct AreaId {
 	alias id this;
 }
 /// 数値をエリアIDに変換。
-AreaId toAreaId(ulong id) {return cast(AreaId) id;}
+AreaId toAreaId(ulong id) { return cast(AreaId) id; }
 /// エリアの使用者。
 interface IAreaUser : User!(AreaId) {
 }
@@ -489,7 +491,8 @@ public:
 	}
 	/// このオブジェクトの所有者。
 	@property
-	IAreaUser owner() { return _cwxPath; }
+	inout
+	inout(IAreaUser) owner() { return _cwxPath; }
 
 	/// IDを設定する。
 	@property
@@ -559,7 +562,7 @@ public:
 	private void delegate(AreaId) _handleChange = null;
 	/// change呼出しをdlgに通知する。
 	@property
-	void handleChange(void delegate(AreaId) dlg) {_handleChange = dlg;}
+	void handleChange(void delegate(AreaId) dlg) { _handleChange = dlg; }
 
 	mixin CWXFuncs;
 }
@@ -570,7 +573,7 @@ struct BattleId {
 	alias id this;
 }
 /// 数値をバトルIDに変換。
-BattleId toBattleId(ulong id) {return cast(BattleId) id;}
+BattleId toBattleId(ulong id) { return cast(BattleId) id; }
 /// バトルの使用者。
 interface IBattleUser : User!(BattleId) {
 }
@@ -590,7 +593,8 @@ public:
 	}
 	/// このオブジェクトの所有者。
 	@property
-	IBattleUser owner() { return _cwxPath; }
+	inout
+	inout(IBattleUser) owner() { return _cwxPath; }
 
 	/// IDを設定する。
 	@property
@@ -626,7 +630,7 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() {return _uc;}
+	UseCounter useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
@@ -660,7 +664,7 @@ public:
 	private void delegate(BattleId) _handleChange = null;
 	/// change呼出しをdlgに通知する。
 	@property
-	void handleChange(void delegate(BattleId) dlg) {_handleChange = dlg;}
+	void handleChange(void delegate(BattleId) dlg) { _handleChange = dlg; }
 
 	mixin CWXFuncs;
 }
@@ -671,7 +675,7 @@ struct PackageId {
 	alias id this;
 }
 /// 数値をパッケージIDに変換。
-PackageId toPackageId(ulong id) {return cast(PackageId) id;}
+PackageId toPackageId(ulong id) { return cast(PackageId) id; }
 /// パッケージの使用者。
 interface IPackageUser : User!(PackageId) {
 }
@@ -684,10 +688,11 @@ private:
 	IPackageUser _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (IPackageUser cwxPath) {_cwxPath = cwxPath;}
+	this (IPackageUser cwxPath) { _cwxPath = cwxPath; }
 	/// このオブジェクトの所有者。
 	@property
-	IPackageUser owner() {return _cwxPath;}
+	inout
+	inout(IPackageUser) owner() { return _cwxPath; }
 
 	/// IDを設定する。
 	@property
@@ -717,7 +722,7 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() {return _uc;}
+	UseCounter useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
@@ -870,10 +875,11 @@ private:
 	IPathUser _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (IPathUser cwxPath) {_cwxPath = cwxPath;}
+	this (IPathUser cwxPath) { _cwxPath = cwxPath; }
 	/// このオブジェクトの所有者。
 	@property
-	IPathUser owner() {return _cwxPath;}
+	inout
+	inout(IPathUser) owner() { return _cwxPath; }
 
 	/// IDを設定する。
 	/// 所有者がChgPathCallbackであればコールバックが行われる。
@@ -909,11 +915,11 @@ public:
 	const
 	nothrow
 	@safe
-	string path() {return _path.isBinImg ? _path.binImg : cast(string)_path;}
+	string path() { return _path.isBinImg ? _path.binImg : cast(string)_path; }
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() {return _uc;}
+	UseCounter useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
@@ -953,7 +959,7 @@ struct CastId {
 	alias id this;
 }
 /// 数値をキャストIDに変換。
-CastId toCastId(ulong id) {return cast(CastId) id;}
+CastId toCastId(ulong id) { return cast(CastId) id; }
 /// キャストカードの使用者。
 interface ICastUser : User!(CastId) {
 }
@@ -966,10 +972,11 @@ private:
 	ICastUser _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (ICastUser cwxPath) {_cwxPath = cwxPath;}
+	this (ICastUser cwxPath) { _cwxPath = cwxPath; }
 	/// このオブジェクトの所有者。
 	@property
-	ICastUser owner() {return _cwxPath;}
+	inout
+	inout(ICastUser) owner() { return _cwxPath; }
 
 	/// IDを設定する。
 	@property
@@ -999,7 +1006,7 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() {return _uc;}
+	UseCounter useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
@@ -1033,7 +1040,7 @@ struct SkillId {
 	alias id this;
 }
 /// 数値をスキルIDに変換。
-SkillId toSkillId(ulong id) {return cast(SkillId) id;}
+SkillId toSkillId(ulong id) { return cast(SkillId) id; }
 /// スキルカードの使用者。
 interface ISkillUser : User!(SkillId) {
 }
@@ -1046,10 +1053,11 @@ private:
 	ISkillUser _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (ISkillUser cwxPath) {_cwxPath = cwxPath;}
+	this (ISkillUser cwxPath) { _cwxPath = cwxPath; }
 	/// このオブジェクトの所有者。
 	@property
-	ISkillUser owner() {return _cwxPath;}
+	inout
+	inout(ISkillUser) owner() { return _cwxPath; }
 
 	/// IDを設定する。
 	@property
@@ -1079,7 +1087,7 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() {return _uc;}
+	UseCounter useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
@@ -1113,7 +1121,7 @@ struct ItemId {
 	alias id this;
 }
 /// 数値をアイテムIDに変換。
-ItemId toItemId(ulong id) {return cast(ItemId) id;}
+ItemId toItemId(ulong id) { return cast(ItemId) id; }
 /// アイテムカードの使用者。
 interface IItemUser : User!(ItemId) {
 }
@@ -1126,10 +1134,11 @@ private:
 	IItemUser _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (IItemUser cwxPath) {_cwxPath = cwxPath;}
+	this (IItemUser cwxPath) { _cwxPath = cwxPath; }
 	/// このオブジェクトの所有者。
 	@property
-	IItemUser owner() {return _cwxPath;}
+	inout
+	inout(IItemUser) owner() { return _cwxPath; }
 
 	/// IDを設定する。
 	@property
@@ -1159,7 +1168,7 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() {return _uc;}
+	UseCounter useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
@@ -1193,7 +1202,7 @@ struct BeastId {
 	alias id this;
 }
 /// 数値を召喚獣IDに変換。
-BeastId toBeastId(ulong id) {return cast(BeastId) id;}
+BeastId toBeastId(ulong id) { return cast(BeastId) id; }
 /// 召喚獣カードの使用者。
 interface IBeastUser : User!(BeastId) {
 }
@@ -1206,10 +1215,11 @@ private:
 	IBeastUser _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (IBeastUser cwxPath) {_cwxPath = cwxPath;}
+	this (IBeastUser cwxPath) { _cwxPath = cwxPath; }
 	/// このオブジェクトの所有者。
 	@property
-	IBeastUser owner() {return _cwxPath;}
+	inout
+	inout(IBeastUser) owner() { return _cwxPath; }
 
 	/// IDを設定する。
 	@property
@@ -1239,7 +1249,7 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() {return _uc;}
+	UseCounter useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
@@ -1273,7 +1283,7 @@ struct InfoId {
 	alias id this;
 }
 /// 数値を情報IDに変換。
-InfoId toInfoId(ulong id) {return cast(InfoId) id;}
+InfoId toInfoId(ulong id) { return cast(InfoId) id; }
 /// 情報カードの使用者。
 interface IInfoUser : User!(InfoId) {
 }
@@ -1286,10 +1296,11 @@ private:
 	IInfoUser _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (IInfoUser cwxPath) {_cwxPath = cwxPath;}
+	this (IInfoUser cwxPath) { _cwxPath = cwxPath; }
 	/// このオブジェクトの所有者。
 	@property
-	IInfoUser owner() {return _cwxPath;}
+	inout
+	inout(IInfoUser) owner() { return _cwxPath; }
 
 	/// IDを設定する。
 	@property
@@ -1319,7 +1330,7 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() {return _uc;}
+	UseCounter useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
@@ -1355,7 +1366,7 @@ struct CouponId {
 	mixin StringId;
 }
 /// 文字列をクーポンIDに変換。
-CouponId toCouponId(string id) {return CouponId(id);}
+CouponId toCouponId(string id) { return CouponId(id); }
 /// クーポンの使用者。
 interface ICouponUser : User!(CouponId) {
 }
@@ -1375,7 +1386,8 @@ public:
 	}
 	/// このオブジェクトの所有者。
 	@property
-	ICouponUser owner() { return _cwxPath; }
+	inout
+	inout(ICouponUser) owner() { return _cwxPath; }
 	/// ditto
 	@property
 	void owner(ICouponUser u) { _cwxPath = u; }
@@ -1408,7 +1420,7 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() {return _uc;}
+	UseCounter useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
@@ -1449,7 +1461,7 @@ struct GossipId {
 	mixin StringId;
 }
 /// 文字列をゴシップIDに変換。
-GossipId toGossipId(string id) {return GossipId(id);}
+GossipId toGossipId(string id) { return GossipId(id); }
 /// ゴシップの使用者。
 interface IGossipUser : User!(GossipId) {
 }
@@ -1462,10 +1474,11 @@ private:
 	IGossipUser _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (IGossipUser cwxPath) {_cwxPath = cwxPath;}
+	this (IGossipUser cwxPath) { _cwxPath = cwxPath; }
 	/// このオブジェクトの所有者。
 	@property
-	IGossipUser owner() {return _cwxPath;}
+	inout
+	inout(IGossipUser) owner() { return _cwxPath; }
 
 	/// ゴシップを設定する。
 	/// Params:
@@ -1489,7 +1502,7 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() {return _uc;}
+	UseCounter useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
@@ -1524,7 +1537,7 @@ struct CompleteStampId {
 	mixin StringId;
 }
 /// 文字列を終了印IDに変換。
-CompleteStampId toCompleteStampId(string id) {return CompleteStampId(id);}
+CompleteStampId toCompleteStampId(string id) { return CompleteStampId(id); }
 /// 終了印の使用者。
 interface ICompleteStampUser : User!(CompleteStampId) {
 }
@@ -1537,10 +1550,11 @@ private:
 	ICompleteStampUser _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (ICompleteStampUser cwxPath) {_cwxPath = cwxPath;}
+	this (ICompleteStampUser cwxPath) { _cwxPath = cwxPath; }
 	/// このオブジェクトの所有者。
 	@property
-	ICompleteStampUser owner() {return _cwxPath;}
+	inout
+	inout(ICompleteStampUser) owner() { return _cwxPath; }
 
 	/// 終了印を設定する。
 	/// Params:
@@ -1564,7 +1578,7 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() {return _uc;}
+	UseCounter useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
@@ -1599,7 +1613,7 @@ struct KeyCodeId {
 	mixin StringId;
 }
 /// 文字列をキーコードIDに変換。
-KeyCodeId toKeyCodeId(string id) {return KeyCodeId(id);}
+KeyCodeId toKeyCodeId(string id) { return KeyCodeId(id); }
 /// キーコードの使用者。
 interface IKeyCodeUser : User!(KeyCodeId) {
 }
@@ -1612,10 +1626,11 @@ private:
 	IKeyCodeUser _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (IKeyCodeUser cwxPath) {_cwxPath = cwxPath;}
+	this (IKeyCodeUser cwxPath) { _cwxPath = cwxPath; }
 	/// このオブジェクトの所有者。
 	@property
-	IKeyCodeUser owner() {return _cwxPath;}
+	inout
+	inout(IKeyCodeUser) owner() { return _cwxPath; }
 
 	/// キーコードを設定する。
 	/// Params:
@@ -1639,7 +1654,7 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() {return _uc;}
+	UseCounter useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
@@ -1674,7 +1689,7 @@ struct CellNameId {
 	mixin StringId;
 }
 /// 文字列をセル名称IDに変換。
-CellNameId toCellNameId(string id) {return CellNameId(id);}
+CellNameId toCellNameId(string id) { return CellNameId(id); }
 /// セル名称の使用者。
 interface ICellNameUser : User!(CellNameId) {
 }
@@ -1687,10 +1702,11 @@ private:
 	ICellNameUser _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (ICellNameUser cwxPath) {_cwxPath = cwxPath;}
+	this (ICellNameUser cwxPath) { _cwxPath = cwxPath; }
 	/// このオブジェクトの所有者。
 	@property
-	ICellNameUser owner() {return _cwxPath;}
+	inout
+	inout(ICellNameUser) owner() { return _cwxPath; }
 
 	/// セル名称を設定する。
 	/// Params:
@@ -1714,7 +1730,7 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() {return _uc;}
+	UseCounter useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
@@ -1749,7 +1765,7 @@ struct CardGroupId {
 	mixin StringId;
 }
 /// 文字列をカードグループIDに変換。
-CardGroupId toCardGroupId(string id) {return CardGroupId(id);}
+CardGroupId toCardGroupId(string id) { return CardGroupId(id); }
 /// カードグループの使用者。
 interface ICardGroupUser : User!(CardGroupId) {
 }
@@ -1765,7 +1781,8 @@ public:
 	this (ICardGroupUser cwxPath) { _cwxPath = cwxPath; }
 	/// このオブジェクトの所有者。
 	@property
-	ICardGroupUser owner() { return _cwxPath; }
+	inout
+	inout(ICardGroupUser) owner() { return _cwxPath; }
 
 	/// カードグループを設定する。
 	/// Params:
@@ -1874,55 +1891,55 @@ public:
 	}
 	/// 各種カウント対象の使用者のコンテナ。
 	@property
-	UCCont!(FlagId, FlagUser) flag() {return _flag;}
+	UCCont!(FlagId, FlagUser) flag() { return _flag; }
 	/// ditto
 	@property
-	UCCont!(StepId, StepUser) step() {return _step;}
+	UCCont!(StepId, StepUser) step() { return _step; }
 	/// ditto
 	@property
-	UCCont!(AreaId, AreaUser) area() {return _area;}
+	UCCont!(AreaId, AreaUser) area() { return _area; }
 	/// ditto
 	@property
-	UCCont!(BattleId, BattleUser) battle() {return _battle;}
+	UCCont!(BattleId, BattleUser) battle() { return _battle; }
 	/// ditto
 	@property
-	UCCont!(PackageId, PackageUser) packages() {return _package;}
+	UCCont!(PackageId, PackageUser) packages() { return _package; }
 	/// ditto
 	@property
-	UCCont!(PathId, PathUser) path() {return _path;}
+	UCCont!(PathId, PathUser) path() { return _path; }
 	/// ditto
 	@property
-	UCCont!(CastId, CastUser) casts() {return _cast;}
+	UCCont!(CastId, CastUser) casts() { return _cast; }
 	/// ditto
 	@property
-	UCCont!(SkillId, SkillUser) skill() {return _skill;}
+	UCCont!(SkillId, SkillUser) skill() { return _skill; }
 	/// ditto
 	@property
-	UCCont!(ItemId, ItemUser) item() {return _item;}
+	UCCont!(ItemId, ItemUser) item() { return _item; }
 	/// ditto
 	@property
-	UCCont!(BeastId, BeastUser) beast() {return _beast;}
+	UCCont!(BeastId, BeastUser) beast() { return _beast; }
 	/// ditto
 	@property
-	UCCont!(InfoId, InfoUser) info() {return _info;}
+	UCCont!(InfoId, InfoUser) info() { return _info; }
 	/// ditto
 	@property
-	UCCont!(CouponId, CouponUser) coupon() {return _coupon;}
+	UCCont!(CouponId, CouponUser) coupon() { return _coupon; }
 	/// ditto
 	@property
-	UCCont!(GossipId, GossipUser) gossip() {return _gossip;}
+	UCCont!(GossipId, GossipUser) gossip() { return _gossip; }
 	/// ditto
 	@property
-	UCCont!(CompleteStampId, CompleteStampUser) completeStamp() {return _completeStamp;}
+	UCCont!(CompleteStampId, CompleteStampUser) completeStamp() { return _completeStamp; }
 	/// ditto
 	@property
-	UCCont!(KeyCodeId, KeyCodeUser) keyCode() {return _keyCode;}
+	UCCont!(KeyCodeId, KeyCodeUser) keyCode() { return _keyCode; }
 	/// ditto
 	@property
-	UCCont!(CellNameId, CellNameUser) cellName() {return _cellName;}
+	UCCont!(CellNameId, CellNameUser) cellName() { return _cellName; }
 	/// ditto
 	@property
-	UCCont!(CardGroupId, CardGroupUser) cardGroup() {return _cardGroup;}
+	UCCont!(CardGroupId, CardGroupUser) cardGroup() { return _cardGroup; }
 
 	/// ID・Tの変更を通知する。
 	void change(T)(T oldId, T newId, bool dup = false) { mixin(S_TRACE);

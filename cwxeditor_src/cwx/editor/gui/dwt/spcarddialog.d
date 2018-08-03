@@ -348,7 +348,9 @@ protected:
 							}
 							_imgPath = new ImageSelect!(MtType.CARD)(comp2, SWT.NONE, _comm, _prop, _summ,
 								_prop.s(_prop.looks.cardSize.width), _prop.s(_prop.looks.cardSize.height), _prop.s(_prop.looks.menuCardInsets),
-								CardImagePosition.TopLeft, true, &_name.getText, null, &defs, true);
+								CardImagePosition.TopLeft, true, { mixin(S_TRACE);
+									return .toExportedImageNameWithCardName(_prop.parent, _summ.scenarioName, _summ.author, _name.getText());
+								}, null, &defs, true);
 							_imgPath.valueFromDef = (defIndex, included, binPath) { mixin(S_TRACE);
 								if (defIndex <= 0) return new CardImage("", CardImagePosition.Default);
 								if (included) { mixin(S_TRACE);
@@ -549,7 +551,7 @@ protected:
 	override bool apply() { mixin(S_TRACE);
 		if (_card) { mixin(S_TRACE);
 			static if (is (C == MenuCard)) {
-				auto images = _imgPath.materialPath;
+				auto images = _imgPath.materialPath(forceApplying);
 				if (images.cancel) return false;
 				_card.paths = images.images;
 				_card.desc = wrapReturnCode(_desc.getText());
@@ -573,7 +575,7 @@ protected:
 			}
 		} else { mixin(S_TRACE);
 			static if (is (C == MenuCard)) {
-				auto images = _imgPath.materialPath;
+				auto images = _imgPath.materialPath(forceApplying);
 				if (images.cancel) return false;
 				_card = new C(_name.getText(), images.images,
 					wrapReturnCode(_desc.getText()), _flag.selected,

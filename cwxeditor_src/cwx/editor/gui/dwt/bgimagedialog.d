@@ -398,10 +398,11 @@ protected:
 				// FIXME: CardWirth 1.60 背景イメージの格納 ここから
 /+				_imgPath = new ImageSelect!(MtType.BG_IMG)(parent, SWT.NONE, _comm, _prop, _summ,
 					_prop.var.etc.bgImageSampleWidth, _prop.var.etc.bgImageSampleHeight, CInsets(0, 0, 0, 0), including, true,
-					() => _cellName.getText(), &selectEasySetting);
+					() => _summ ? .toExportedImageNameWithCardName(_prop.parent, _summ.scenarioName, _summ.author, _cellName.getText()) : _cellName.getText(),
+					&selectEasySetting);
 +/				_imgPath = new ImageSelect!(MtType.BG_IMG)(parent, SWT.NONE, _comm, _prop, _summ,
 					_prop.var.etc.bgImageSampleWidth, _prop.var.etc.bgImageSampleHeight, CInsets(0, 0, 0, 0),
-					CardImagePosition.TopLeft, false, null, &selectEasySetting);
+					CardImagePosition.TopLeft, false, () => "", &selectEasySetting);
 				// FIXME: CardWirth 1.60 背景イメージの格納 ここまで
 				mod(_imgPath);
 				_imgPath.modEvent ~= &refreshWarning;
@@ -463,7 +464,7 @@ protected:
 	}
 
 	override bool apply() { mixin(S_TRACE);
-		auto images = _imgPath.materialPath;
+		auto images = _imgPath.materialPath(forceApplying);
 		if (images.cancel) return false;
 		if (!_back) { mixin(S_TRACE);
 			_back = new ImageCell;

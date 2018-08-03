@@ -1239,7 +1239,7 @@ class Commons {
 		if (!dialog.open()) return;
 		auto opt = dialog.option;
 
-		auto result = .importResource(to, from, resCWXPath, opt);
+		auto result = .importResource(prop.parent, to, from, resCWXPath, opt);
 		auto dialog2 = new ImportResultDialog(this, summary, mainShell, result);
 		if (!dialog2.open()) return;
 		result = dialog2.checkedResult;

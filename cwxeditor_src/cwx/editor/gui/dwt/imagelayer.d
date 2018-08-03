@@ -26,6 +26,7 @@ import std.conv;
 import std.datetime;
 import std.file;
 import std.traits;
+import std.typecons;
 
 import org.eclipse.swt.all;
 
@@ -38,7 +39,7 @@ class ImageLayerWindow {
 	private ImageLayerPanel _layerPanel = null;
 
 	this (Commons comm, const Summary summ, bool mask, bool readOnly, Control parent,
-			UndoManager undo, void delegate() store) { mixin(S_TRACE);
+			string delegate() saveName, UndoManager undo, void delegate() store) { mixin(S_TRACE);
 		_comm = comm;
 
 		_win = new Shell(parent.getShell(), SWT.TITLE | SWT.RESIZE | SWT.CLOSE | SWT.TOOL);
@@ -58,7 +59,7 @@ class ImageLayerWindow {
 			_layerPanel = new ImageLayerPanel(comm, _win, readOnly);
 		}
 
-		_list = new ImageLayerList(comm, summ, _win, mask, undo, store, readOnly);
+		_list = new ImageLayerList(comm, summ, _win, mask, saveName, undo, store, readOnly);
 		if (_layerPanel) _layerPanel.list = _list;
 		auto lgd = new GridData(GridData.FILL_BOTH);
 		lgd.horizontalSpan = 2;
@@ -161,14 +162,18 @@ class ImageLayerList : Composite, TCPD {
 	private UndoManager _undo = null;
 	private void delegate() _store = null;
 
+	private string delegate() _saveName = null;
+
 	this (Commons comm, const Summary summ, Composite parent, bool mask,
-			UndoManager undo, void delegate() store, bool readOnly) { mixin(S_TRACE);
+			string delegate() saveName, UndoManager undo, void delegate() store,
+			bool readOnly) { mixin(S_TRACE);
 		style = SWT.DOUBLE_BUFFERED | SWT.V_SCROLL;
 		if (!readOnly) style |= SWT.BORDER;
 		super (parent, style);
 		_readOnly = readOnly ? SWT.READ_ONLY : SWT.NONE;
 		_undo = undo;
 		_store = store;
+		_saveName = saveName;
 
 		auto d = parent.getDisplay();
 		setBackground(d.getSystemColor(SWT.COLOR_LIST_BACKGROUND));
@@ -433,7 +438,10 @@ class ImageLayerList : Composite, TCPD {
 			}
 			bool copy;
 			bool r = .qMaterialCopy(_comm, getShell(),
-				uc, _summ.scenarioPath, fromSPath, copy, _summ.legacy);
+				uc, _summ.scenarioPath, fromSPath, copy, _summ.legacy,
+				(in IPathUser) { mixin(S_TRACE);
+					return _saveName();
+				});
 			foreach (path; cardPaths) { mixin(S_TRACE);
 				path.removeUseCounter();
 			}

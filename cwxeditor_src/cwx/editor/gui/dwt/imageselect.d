@@ -439,13 +439,15 @@ public:
 		/// 画像のファイルパス。
 		/// 必要な時は格納イメージを外部化する。
 		@property
-		MaterialPath materialPath() { mixin(S_TRACE);
+		MaterialPath materialPath(bool forceExport) { mixin(S_TRACE);
 			typeof(return) p;
 			p.images = images;
 			p.cancel = false;
 			if ((!_summ || !_summ.legacy) && isIncluded) { mixin(S_TRACE);
 				int ret;
-				if (_summ) { mixin(S_TRACE);
+				if (forceExport) { mixin(S_TRACE);
+					ret = SWT.YES;
+				} else if (_summ) { mixin(S_TRACE);
 					auto dlg = new MessageBox(_image.getShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO | SWT.CANCEL);
 					dlg.setMessage(_prop.msgs.dlgMsgExcludeImage);
 					dlg.setText(_prop.msgs.dlgTitQuestion);
@@ -456,14 +458,16 @@ public:
 				if (SWT.YES == ret) { mixin(S_TRACE);
 					foreach (ref path; p.images) { mixin(S_TRACE);
 						if (path.type !is CardImageType.File || !path.path.isBinImg) continue;
-						path = new CardImage(.copyTo(_summ.scenarioPath, path.path, summSkin.materialPath, true), path.positionType);
+						path = new CardImage(.copyTo(_summ.scenarioPath, path.path, summSkin.materialPath, true, _saveName()), path.positionType);
 					}
+					setImages(p.images, true);
 				} else if (SWT.NO == ret) { mixin(S_TRACE);
 					p.images = [];
 					foreach (path; images) { mixin(S_TRACE);
 						if (path.type is CardImageType.File && path.path.isBinImg) continue;
 						p.images ~= path;
 					}
+					setImages(p.images, true);
 				} else if (SWT.CANCEL == ret) { mixin(S_TRACE);
 					p.cancel = true;
 				}
@@ -499,13 +503,15 @@ public:
 		/// 画像のファイルパス。
 		/// 必要な時は格納イメージを外部化する。
 		@property
-		Tuple!(string, "images", bool, "cancel") materialPath() { mixin(S_TRACE);
+		Tuple!(string, "images", bool, "cancel") materialPath(bool forceExport) { mixin(S_TRACE);
 			typeof(return) p;
 			p.images = _msel.path;
 			p.cancel = false;
 			if ((!_summ || !_summ.legacy) && isIncluded) { mixin(S_TRACE);
 				int ret;
-				if (_summ) { mixin(S_TRACE);
+				if (forceExport) { mixin(S_TRACE);
+					ret = SWT.YES;
+				} else if (_summ) { mixin(S_TRACE);
 					auto dlg = new MessageBox(_image.getShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO | SWT.CANCEL);
 					dlg.setMessage(_prop.msgs.dlgMsgExcludeImage);
 					dlg.setText(_prop.msgs.dlgTitQuestion);
@@ -514,9 +520,11 @@ public:
 					ret = SWT.NO;
 				}
 				if (SWT.YES == ret) { mixin(S_TRACE);
-					p.images = .copyTo(_summ.scenarioPath, p.images, summSkin.materialPath, true);
+					p.images = .copyTo(_summ.scenarioPath, p.images, summSkin.materialPath, true, _saveName());
+					image = p.images;
 				} else if (SWT.NO == ret) { mixin(S_TRACE);
 					p.images = "";
+					image = p.images;
 				} else if (SWT.CANCEL == ret) { mixin(S_TRACE);
 					p.cancel = true;
 				}
@@ -701,7 +709,7 @@ private:
 			dlg.setFilterPath(dir);
 			string s = _saveName().strip().toFileName();
 			if (!s.length) s = _prop.var.etc.noFileName;
-			dlg.setFileName(setExtension(s, ".bmp"));
+			dlg.setFileName(setExtension(s, .imageType(bytes)));
 			dlg.setOverwrite(true);
 			string fname = dlg.open();
 			if (fname) { mixin(S_TRACE);
@@ -847,7 +855,7 @@ private:
 					_layers.shell.setActive();
 					return;
 				}
-				_layers = new ImageLayerWindow(_comm, _summ, _mask, _readOnly != 0, _layerButton, _undo, &store);
+				_layers = new ImageLayerWindow(_comm, _summ, _mask, _readOnly != 0, _layerButton, _saveName, _undo, &store);
 				auto cloc = Display.getCurrent().getCursorLocation();
 				cloc.x++;
 				cloc.y++;

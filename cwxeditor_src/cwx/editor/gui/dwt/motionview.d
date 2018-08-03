@@ -1687,7 +1687,13 @@ public:
 			auto uc = new UseCounter;
 			card.setUseCounter(uc);
 			bool copy;
-			bool r = qMaterialCopy(_comm, getShell(), uc, _summ.scenarioPath, fromSPath, copy, _summ.legacy);
+			bool r = qMaterialCopy(_comm, getShell(), uc,
+				_summ.scenarioPath, fromSPath, copy, _summ.legacy,
+				(in IPathUser u) { mixin(S_TRACE);
+					auto v = cast(PathUser)u;
+					assert (v.owner is card);
+					return .pathUserToExportedImageName(_prop.parent, card.scenario, card.author, v);
+				});
 			card.removeUseCounter();
 			if (copy) { mixin(S_TRACE);
 				_comm.refPaths.call(_comm.skin.materialPath);

@@ -1329,21 +1329,24 @@ void preRemove(string delpath) { mixin(S_TRACE);
 /// path = コピー元のファイル。
 /// added = シナリオ内のどのフォルダにコピーするか。
 /// binImgToRef = 格納イメージを参照に差し替えるか。
+/// exportedImageName = 格納イメージを参照化したときのエクスポートされたイメージのファイル名。
 /// Returns: コピー後のファイルパス。
-string copyTo(string sPath, string path, string added, bool binImgToRef) { mixin(S_TRACE);
+string copyTo(string sPath, string path, string added, bool binImgToRef, string exportedImageName = "") { mixin(S_TRACE);
 	bool binImg = isBinImg(path);
-	if (binImg && !binImgToRef) return path;
+	if (binImg && !binImgToRef) return "";
 	auto mtDir = std.path.buildPath(sPath, added);
 	if (!exists(mtDir)) mkdirRecurse(mtDir);
 	string to;
+	ubyte[] bytes = [];
 	if (binImg) { mixin(S_TRACE);
-		to = std.path.buildPath(mtDir, "@simage(1).bmp");
+		bytes = strToBImg(path);
+		to = std.path.buildPath(mtDir, (exportedImageName == "" ? "@simage(1)" : .cleanFileName(exportedImageName)) ~ .imageType(bytes));
 	} else { mixin(S_TRACE);
 		to = std.path.buildPath(mtDir, baseName(path));
 	}
 	to = createNewFileName(to, false);
 	if (binImg) { mixin(S_TRACE);
-		std.file.write(to, strToBImg(path));
+		std.file.write(to, bytes);
 	} else { mixin(S_TRACE);
 		copy(path, to);
 	}
@@ -1722,7 +1725,7 @@ version (Windows) {
 			if (execv(process, null) == -1) { mixin(S_TRACE);
 				exit(-1);
 			}
-            return true;
+			return true;
 		}
 	}
 }

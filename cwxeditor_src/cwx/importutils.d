@@ -12,6 +12,7 @@ import cwx.usecounter;
 import cwx.imagesize;
 import cwx.background;
 import cwx.types;
+import cwx.props;
 
 static import std.algorithm;
 import std.array;
@@ -78,7 +79,7 @@ struct ImportResult {
 /// 結果にはインポート対象の一覧が含まれるが、この関数の終了時点では
 /// toへの追加は行われていない。ID等はto内で重複しないよう調節されるが、
 /// 上書きが許可されていれば重複する可能性がある。
-ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in ImportOption opt) { mixin(S_TRACE);
+ImportResult importResource(in CProps prop, Summary to, Summary from, in string[] resCWXPath, in ImportOption opt) { mixin(S_TRACE);
 	ImportResult r;
 	auto uc = new UseCounter;
 	CWXPath[] objs;
@@ -372,7 +373,8 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 					foreach (imgPath; c.paths) { mixin(S_TRACE);
 						if (imgPath.type is CardImageType.File) { mixin(S_TRACE);
 							if (opt.includedFiles is ImportTypeIncluded.Exclude && imgPath.path.isBinImg()) { mixin(S_TRACE);
-								imgPath = new CardImage(putBinImg(name, imgPath.path), imgPath.positionType);
+								auto eName = .toExportedImageNameWithCardName(prop, from.scenarioName, from.author, c.name);
+								imgPath = new CardImage(putBinImg(eName, imgPath.path), imgPath.positionType);
 							} else if (opt.includedFiles is ImportTypeIncluded.Include && imgPath.path.length) { mixin(S_TRACE);
 								imgPath = new CardImage(includeImg(imgPath.path), imgPath.positionType);
 							}
@@ -386,7 +388,8 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 					foreach (imgPath; c.paths) { mixin(S_TRACE);
 						if (imgPath.type is CardImageType.File) { mixin(S_TRACE);
 							if (opt.includedFiles is ImportTypeIncluded.Exclude && imgPath.path.isBinImg()) { mixin(S_TRACE);
-								imgPath = new CardImage(putBinImg(name, imgPath.path), imgPath.positionType);
+								auto eName = .toExportedImageNameWithCardName(prop, from.scenarioName, from.author, c.name);
+								imgPath = new CardImage(putBinImg(eName, imgPath.path), imgPath.positionType);
 							} else if (opt.includedFiles is ImportTypeIncluded.Include && imgPath.path.length) { mixin(S_TRACE);
 								imgPath = new CardImage(includeImg(imgPath.path), imgPath.positionType);
 							}
@@ -397,7 +400,8 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 				}
 				if (auto c = cast(ImageCell)path) { mixin(S_TRACE);
 					if (opt.includedBgImages !is ImportTypeIncluded.Exclude && c.path.isBinImg()) { mixin(S_TRACE);
-						c.path = putBinImg(name, c.path);
+						auto eName = .toExportedImageNameWithCardName(prop, from.scenarioName, from.author, c.cellName);
+						c.path = putBinImg(eName, c.path);
 					} else if (opt.includedBgImages is ImportTypeIncluded.Include && c.path.length) { mixin(S_TRACE);
 						c.path = includeImg(c.path);
 					}

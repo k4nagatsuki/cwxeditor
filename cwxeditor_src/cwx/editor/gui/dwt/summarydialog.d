@@ -215,7 +215,9 @@ private:
 			{ mixin(S_TRACE);
 				_imgPath = new ImageSelect!(MtType.CARD)(_tab2Sash, _readOnly, _comm, _prop, _summ,
 					_prop.s(_prop.looks.cardSize.width), _prop.s(_prop.looks.cardSize.height), _prop.s(CInsets(0, 0, 0, 0)),
-					CardImagePosition.TopLeft, true, () => _sname.getText(), &clearBuf);
+					CardImagePosition.TopLeft, true, { mixin(S_TRACE);
+						return .toExportedImageNameWithoutCardName(_prop.parent, _sname.getText(), _author.getText());
+					}, &clearBuf);
 				mod(_imgPath);
 				_imgPath.modEvent ~= &refreshWarning;
 				_imgPath.images = _summ.imagePaths;
@@ -623,7 +625,7 @@ protected:
 
 	override bool apply() { mixin(S_TRACE);
 		if (_readOnly) return true;
-		auto images = _imgPath.materialPath;
+		auto images = _imgPath.materialPath(forceApplying);
 		if (images.cancel) return false;
 		string oldName = _summ.scenarioName;
 		string oldResDir = nabs(summSkin.resDir);

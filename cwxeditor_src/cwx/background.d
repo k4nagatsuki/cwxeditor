@@ -955,7 +955,7 @@ public:
 		if (this.flag != flag) changed();
 		super.flag = flag;
 	}
-	alias super.flag flag;
+	alias typeof(super).flag flag;
 
 	/// 透明色を使用するか。
 	@property

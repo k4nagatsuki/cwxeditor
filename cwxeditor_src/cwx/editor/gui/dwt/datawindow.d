@@ -603,6 +603,7 @@ public:
 		case "area:id": { mixin(S_TRACE);
 			static if (UseArea) {
 				auto a = _summ.area(index);
+				if (!a) return false;
 				return openCWXPathAf(_comm.openAreaScene(_prop, _summ, a, shellActivate, false),
 					_comm.openAreaEvent(_prop, _summ, a, shellActivate, false),
 					a, path, shellActivate);
@@ -624,6 +625,7 @@ public:
 		case "battle:id": { mixin(S_TRACE);
 			static if (UseArea) {
 				auto a = _summ.battle(index);
+				if (!a) return false;
 				return openCWXPathAf(_comm.openAreaScene(_prop, _summ, a, shellActivate, false),
 					_comm.openAreaEvent(_prop, _summ, a, shellActivate, false),
 					a, path, shellActivate);
@@ -644,6 +646,7 @@ public:
 		case "package:id": { mixin(S_TRACE);
 			static if (UseArea) {
 				auto a = _summ.cwPackage(index);
+				if (!a) return false;
 				return openCWXPathAf(_comm.openArea(_prop, _summ, a, shellActivate, false),
 					a, path, shellActivate);
 			} else {
