@@ -87,14 +87,25 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	}
 	auto eventTree = cast(EventTree)path;
 	if (eventTree) { mixin(S_TRACE);
-		if (eventTree.keyCodes.length && prop.sys.convFireKeyCode(eventTree.keyCodes[0]) == "MatchingType=All") { mixin(S_TRACE);
-			r ~= prop.msgs.searchErrorKeyCodeMatchingAll;
-		}
 		if (eventTree.fireEveryRound && !prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
 			r ~= prop.msgs.warningEveryRound;
 		}
 		if (eventTree.fireRound0 && !prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
 			r ~= prop.msgs.warningRound0;
+		}
+		if (eventTree.keyCodeMatchingType is MatchingType.And && !prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
+			r ~= prop.msgs.warningKeyCodeMatchingTypeAnd;
+		}
+		if (eventTree.keyCodes.length && prop.sys.convFireKeyCode(eventTree.keyCodes[0]) == "MatchingType=All") { mixin(S_TRACE);
+			r ~= prop.msgs.searchErrorKeyCodeMatchingAll;
+		}
+		if (!prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
+			foreach (keyCode; eventTree.keyCodes) { mixin(S_TRACE);
+				if (keyCode.kind is FKCKind.HasNot) { mixin(S_TRACE);
+					r ~= prop.msgs.warningHasNotKeyCode;
+					break;
+				}
+			}
 		}
 	}
 	auto playerEvents = cast(PlayerCardEvents)path;

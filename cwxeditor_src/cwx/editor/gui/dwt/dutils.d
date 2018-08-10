@@ -465,7 +465,7 @@ public:
 }
 
 class EditEnd : KeyAdapter, FocusListener {
-	void delegate()[] exitEvent;
+	void delegate(bool cancel)[] exitEvent;
 
 private:
 	Commons _comm;
@@ -581,7 +581,7 @@ public:
 					par.setFocus();
 				}
 			}
-			foreach (dlg; exitEvent) dlg();
+			foreach (dlg; exitEvent) dlg(false);
 		} catch (Exception e) {
 			printStackTrace();
 			debugln(e);
@@ -591,7 +591,7 @@ public:
 	void cancel() { mixin(S_TRACE);
 		if (ctrl && !ctrl.isDisposed()) { mixin(S_TRACE);
 			ctrl.dispose();
-			foreach (dlg; exitEvent) dlg();
+			foreach (dlg; exitEvent) dlg(true);
 		}
 	}
 }
@@ -805,6 +805,7 @@ public:
 				}
 				_tee = new EditEnd(_comm, table, editor, &endImpl, !quickStart);
 				_editor.setEditor(_tee.editor, sel, editC);
+				_tee.exitEvent ~= exitEvent;
 				_tee.setFocus();
 			}
 		} catch (Exception e) {
@@ -837,6 +838,8 @@ public:
 	}
 	protected Control createEditor(TableItem itm, int editC);
 	protected void end(Control c);
+
+	void delegate(bool cancel)[] exitEvent;
 }
 /// ditto
 class TableTextEdit : AbstractTableEdit {

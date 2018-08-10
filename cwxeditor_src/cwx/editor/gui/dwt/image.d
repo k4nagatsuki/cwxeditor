@@ -391,12 +391,23 @@ public:
 	@property Image defStart() {return imgd!("def_start.png");}
 	@property Image keyCode() {return imgd!("key_code.png");}
 	@property Image round() {return imgd!("round.png");}
-	@property Image newEvent() {return imgd!("event_tree.png");}
 	@property Image newIgnition() {return imgd!("def_start.png");}
 	@property Image expandTree() {return imgd!("tree_open.png");}
 	@property Image foldTree() {return imgd!("tree_close.png");}
 	@property Image showEventTreeDetail() {return imgd!("evt_detail.png");}
 	@property Image showEventTreeLineNumber() {return imgd!("evt_linenum.png");}
+
+	@property Image addRound() {return imgd!("add_round.png");}
+	@property Image delRound() {return imgd!("del_round.png");}
+
+	Image keyCodeTiming(FKCKind kind) { mixin(S_TRACE);
+		final switch (kind) {
+		case FKCKind.Use: return imgd!("key_code.png");
+		case FKCKind.Success: return imgd!("key_code_suc.png");
+		case FKCKind.Failure: return imgd!("key_code_fail.png");
+		case FKCKind.HasNot: return imgd!("key_code_hasnot.png");
+		}
+	}
 
 	@property Image addCoupon() {return imgd!("add_coupon.png");}
 	@property Image altCoupon() {return imgd!("alt_coupon.png");}
@@ -629,6 +640,7 @@ public:
 		case MenuID.ExpandBack: return imgd!("expand_back.png");
 		case MenuID.StopBGM: return imgd!("sound_stop.png");
 		case MenuID.PlayBGM: return imgd!("sound_play.png");
+		case MenuID.NewEvent: return imgd!("new_event_tree.png");
 		case MenuID.KeyCodeTiming: return imgd!("key_code.png");
 		case MenuID.KeyCodeTimingUse: return imgd!("key_code.png");
 		case MenuID.KeyCodeTimingSuccess: return imgd!("key_code_suc.png");

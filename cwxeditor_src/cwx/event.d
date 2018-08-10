@@ -3028,27 +3028,6 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	}
 }
 
-/// キーコード判定条件。
-enum KeyCodeMatchingType {
-	Or, /// どれか一つ。
-	And, /// 全て。
-}
-/// ditto
-string fromKeyCodeMatchingType(KeyCodeMatchingType t) { mixin(S_TRACE);
-	final switch (t) {
-	case KeyCodeMatchingType.Or: return "Or";
-	case KeyCodeMatchingType.And: return "And";
-	}
-}
-/// ditto
-KeyCodeMatchingType toKeyCodeMatchingType(string t) { mixin(S_TRACE);
-	switch (t) {
-	case "Or": return KeyCodeMatchingType.Or;
-	case "And": return KeyCodeMatchingType.And;
-	default: throw new Exception("Unknown key code matching type: " ~ t);
-	}
-}
-
 /// キーコード発火条件とキーコード本体の組み合わせ。
 private struct FKeyCodeU {
 	KeyCodeUser user; /// キーコード。
@@ -3075,7 +3054,7 @@ private:
 	uint[] _rounds;
 
 	FKeyCodeU[] _keyCodes;
-	KeyCodeMatchingType _keyCodeMatchingType = KeyCodeMatchingType.Or;
+	MatchingType _keyCodeMatchingType = MatchingType.Or;
 	Content[string] _startNames;
 
 	Content[] _starts;
@@ -3237,9 +3216,12 @@ public:
 	/// 最初のスタートコンテントのテキストと常に一致する。
 	@property
 	void name(string name) { mixin(S_TRACE);
-		if (_starts[0].name != name) {
+		if (_starts[0].name != name) { mixin(S_TRACE);
 			changed();
 			_startNames.remove(_starts[0].name);
+			name = .createNewName(name, (string name) { mixin(S_TRACE);
+				return name !in _startNames;
+			});
 			_starts[0].setNameImpl(name, false);
 			_startNames[name] = _starts[0];
 		}
@@ -3488,19 +3470,22 @@ public:
 		}
 		return false;
 	}
-	/// ditto
-	bool addRounds(uint[] rounds) { mixin(S_TRACE);
+	/// 発火ラウンド群を追加。追加できた発火ラウンドの配列を返す。
+	uint[] addRounds(uint[] rounds) { mixin(S_TRACE);
 		auto s = new HashSet!(uint);
 		foreach (r; _rounds) s.add(r);
-		foreach (r; rounds) s.add(r);
+		uint[] rounds2;
+		foreach (r; rounds) { mixin(S_TRACE);
+			if (s.contains(r)) continue;
+			s.add(r);
+			rounds2 ~= r;
+		}
+		if (!rounds2.length) return rounds2;
 		rounds = s.toArray();
 		std.algorithm.sort(rounds);
-		if (rounds != _rounds) { mixin(S_TRACE);
-			changed();
-			_rounds = rounds;
-			return true;
-		}
-		return false;
+		changed();
+		_rounds = rounds;
+		return rounds2;
 	}
 	/// ラウンド発火条件をソートする。
 	void sortRounds() { mixin(S_TRACE);
@@ -3570,6 +3555,33 @@ public:
 		}
 		return false;
 	}
+	/// 発火キーコード群を追加。追加できた発火キーコードの配列を返す。
+	FKeyCode[] addKeyCodes(in FKeyCode[] keyCodes, ptrdiff_t insertIndex = -1) { mixin(S_TRACE);
+		bool[FKeyCode] eKeyCodes;
+		foreach (keyCode; this.keyCodes) eKeyCodes[keyCode] = true;
+		FKeyCode[] keyCodes2;
+		foreach (keyCode; keyCodes) { mixin(S_TRACE);
+			if (keyCode in eKeyCodes) continue;
+			if (keyCode.keyCode == "") continue;
+			keyCodes2 ~= keyCode;
+		}
+		if (!keyCodes2.length) return [];
+
+		changed();
+		FKeyCodeU[] users;
+		foreach (keyCode; keyCodes2) {
+			auto user = new KeyCodeUser(this);
+			if (useCounter) user.setUseCounter = useCounter;
+			user.keyCode = keyCode.keyCode;
+			users ~= FKeyCodeU(user, keyCode.kind);
+		}
+		if (insertIndex < 0 || _keyCodes.length <= insertIndex) { mixin(S_TRACE);
+			_keyCodes ~= users;
+		} else { mixin(S_TRACE);
+			_keyCodes.insertInPlace(insertIndex, users);
+		}
+		return keyCodes2;
+	}
 	/// 指定されたキーコードで発火するか。
 	const
 	bool fireKeyCode(in FKeyCode keyCode) { mixin(S_TRACE);
@@ -3630,14 +3642,14 @@ public:
 	}
 	/// キーコード判定条件。
 	@property
-	void keyCodeMatchingType(KeyCodeMatchingType type) { mixin(S_TRACE);
+	void keyCodeMatchingType(MatchingType type) { mixin(S_TRACE);
 		if (_keyCodeMatchingType != type) changed();
 		_keyCodeMatchingType = type;
 	}
 	/// ditto
 	@property
 	const
-	KeyCodeMatchingType keyCodeMatchingType() { mixin(S_TRACE);
+	MatchingType keyCodeMatchingType() { mixin(S_TRACE);
 		return _keyCodeMatchingType;
 	}
 
@@ -3665,8 +3677,8 @@ public:
 		assert (node.name == "Event", node.name ~ " != Event");
 		if (_enter || _escape || _lose || _everyRound || _round0 || _rounds.length > 0 || _keyCodes.length > 0) { mixin(S_TRACE);
 			auto ig = node.newElement("Ignitions");
-			if (KeyCodeMatchingType.Or !is keyCodeMatchingType) { mixin(S_TRACE);
-				ig.newAttr("keyCodeMatchingType", fromKeyCodeMatchingType(keyCodeMatchingType));
+			if (MatchingType.Or !is keyCodeMatchingType) { mixin(S_TRACE);
+				ig.newAttr("keyCodeMatchingType", fromMatchingType(keyCodeMatchingType));
 			}
 			string[] nums;
 			if (_enter) nums ~= "1";
@@ -3712,7 +3724,7 @@ public:
 			Content.createContentsFromNode(node, ver, (c) => r.add(c));
 		};
 		node.onTag["Ignitions"] = (ref XNode node) { mixin(S_TRACE);
-			r.keyCodeMatchingType = toKeyCodeMatchingType(node.attr("keyCodeMatchingType", false, fromKeyCodeMatchingType(r.keyCodeMatchingType)));
+			r.keyCodeMatchingType = toMatchingType(node.attr("keyCodeMatchingType", false, fromMatchingType(r.keyCodeMatchingType)));
 			node.onTag["Number"] = (ref XNode n) { mixin(S_TRACE);
 				foreach (v; decodeLf(n.value)) { mixin(S_TRACE);
 					switch (v) {
@@ -3762,23 +3774,23 @@ public:
 		return e;
 	}
 	/// 「到着時発火」をXMLノード化する。
-	static XNode enterToNode() {return fireToNode("FireEnter");}
+	static XNode enterToNode() {return fireToNode("IgniteWithEnter");}
 	/// 「逃走時発火」をXMLノード化する。
-	static XNode escapeToNode() {return fireToNode("FireEscape");}
+	static XNode escapeToNode() {return fireToNode("IgniteWithRunAway");}
 	/// 「敗北時発火」をXMLノード化する。
-	static XNode loseToNode() {return fireToNode("FireLose");}
+	static XNode loseToNode() {return fireToNode("IgniteWithLose");}
 	/// 「毎ラウンド発火」をXMLノード化する。
-	static XNode everyRoundToNode() {return fireToNode("FireEveryRound");}
+	static XNode everyRoundToNode() {return fireToNode("IgniteWithEveryRound");}
 	/// 「戦闘開始時発火」をXMLノード化する。
-	static XNode round0ToNode() {return fireToNode("FireRound0");}
+	static XNode round0ToNode() {return fireToNode("IgniteWithRound0");}
 	/// 「発火ラウンド」をXMLノード化する。
 	static XNode roundToNode(uint round) { mixin(S_TRACE);
-		return fireToNode("FireRound", "round", to!(string)(round));
+		return roundsToNode([round]);
 	}
 	/// 「発火キーコード」をXMLノード化する。
 	static XNode keyCodeToNode(FKeyCode keyCode, in System sys) { mixin(S_TRACE);
-		string str = sys.convFireKeyCode(keyCode);
-		return fireToNode("FireKeyCode", "keyCode", str);
+		auto str = sys.convFireKeyCode(keyCode);
+		return keyCodesToNode([str]);
 	}
 	private static bool fireFromNode(ref XNode node, string name, bool delegate() has, void delegate(bool) fire) { mixin(S_TRACE);
 		if (node.name == name && !has()) { mixin(S_TRACE);
@@ -3789,33 +3801,34 @@ public:
 	}
 	/// 「到着時発火」「クリック時発火」「死亡時発火」をXMLノードからロードし、成功すればtrueを返す。
 	bool enterFromNode(EventTreeOwner owner, ref XNode node) { mixin(S_TRACE);
-		return owner.canHasFireEnter && fireFromNode(node, "FireEnter", &fireEnter, &enter);
+		return owner.canHasFireEnter && fireFromNode(node, "IgniteWithEnter", &fireEnter, &enter);
 	}
 	/// 「逃走時発火」をXMLノードからロードし、成功すればtrueを返す。
 	bool escapeFromNode(EventTreeOwner owner, ref XNode node) { mixin(S_TRACE);
-		return owner.canHasFireEscape && fireFromNode(node, "FireEscape", &fireEscape, &escape);
+		return owner.canHasFireEscape && fireFromNode(node, "IgniteWithRunAway", &fireEscape, &escape);
 	}
 	/// 「敗北時発火」をXMLノードからロードし、成功すればtrueを返す。
 	bool loseFromNode(EventTreeOwner owner, ref XNode node) { mixin(S_TRACE);
-		return owner.canHasFireLose && fireFromNode(node, "FireLose", &fireLose, &lose);
+		return owner.canHasFireLose && fireFromNode(node, "IgniteWithLose", &fireLose, &lose);
 	}
 	/// 「毎ラウンド発火」をXMLノードからロードし、成功すればtrueを返す。
 	bool everyRoundFromNode(EventTreeOwner owner, ref XNode node) { mixin(S_TRACE);
-		return owner.canHasFireEveryRound && fireFromNode(node, "FireEveryRound", &fireEveryRound, &everyRound);
+		return owner.canHasFireEveryRound && fireFromNode(node, "IgniteWithEveryRound", &fireEveryRound, &everyRound);
 	}
 	/// 「戦闘開始時発火」をXMLノードからロードし、成功すればtrueを返す。
 	bool round0FromNode(EventTreeOwner owner, ref XNode node) { mixin(S_TRACE);
-		return owner.canHasFireRound0 && fireFromNode(node, "FireRound0", &fireRound0, &round0);
+		return owner.canHasFireRound0 && fireFromNode(node, "IgniteWithRound0", &fireRound0, &round0);
 	}
-	/// 「発火ラウンド」をXMLノードからロードし、成功すればtrueを返す。
-	int roundFromNode(EventTreeOwner owner, ref XNode node) { mixin(S_TRACE);
+	/// 「発火ラウンド」をXMLノードからロードし、追加に成功した発火ラウンドの配列を返す。
+	uint[] roundsFromNode(EventTreeOwner owner, ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
 		if (owner.canHasFireRound) { mixin(S_TRACE);
 			try { mixin(S_TRACE);
-				if (node.name == "FireRound") { mixin(S_TRACE);
-					int r = node.attr!(int)("round", true);
-					if (addRound(r)) { mixin(S_TRACE);
+				if (node.name == ROUNDS_XML_NAME) { mixin(S_TRACE);
+					auto rounds = .roundsFromNode(node, ver);
+					rounds = addRounds(rounds);
+					if (rounds.length) { mixin(S_TRACE);
 						sortRounds();
-						return r;
+						return rounds;
 					}
 				}
 			} catch (Exception e) {
@@ -3823,24 +3836,27 @@ public:
 				debugln(e);
 			}
 		}
-		return -1;
+		return [];
 	}
-	/// 「発火キーコード」をXMLノードからロードし、成功すればtrueを返す。
-	string keyCodeFromNode(EventTreeOwner owner, ref XNode node, in System sys, ptrdiff_t insertIndex = -1) { mixin(S_TRACE);
+	/// 「発火キーコード」をXMLノードからロードし、追加に成功した発火キーコードの配列を返す。
+	FKeyCode[] keyCodesFromNode(EventTreeOwner owner, ref XNode node, in XMLInfo ver, in System sys, ptrdiff_t insertIndex = -1) { mixin(S_TRACE);
 		if (owner.canHasFireKeyCode) { mixin(S_TRACE);
 			try { mixin(S_TRACE);
-				if (node.name == "FireKeyCode") { mixin(S_TRACE);
-					string r = node.attr("keyCode", true);
-					string name = r;
-					auto kind = sys.fireKeyCodeKindRef(name);
-					if (addKeyCode(FKeyCode(name, kind), insertIndex)) return r;
+				if (node.name == KEY_CODES_XML_NAME) { mixin(S_TRACE);
+					auto keyCodes = .keyCodesFromNode(node, ver);
+					auto keyCodes2 = new FKeyCode[keyCodes.length];
+					foreach (i, keyCode; keyCodes) { mixin(S_TRACE);
+						auto kind = sys.fireKeyCodeKindRef(keyCode);
+						keyCodes2[i] = FKeyCode(keyCode, kind);
+					}
+					return addKeyCodes(keyCodes2, insertIndex);
 				}
 			} catch (Exception e) {
 				printStackTrace();
 				debugln(e);
 			}
 		}
-		return null;
+		return [];
 	}
 }
 
@@ -4225,4 +4241,32 @@ struct ContentInitializer {
 		};
 		node.parse();
 	}
+}
+
+/// ラウンド発火条件群のXML要素名。
+immutable ROUNDS_XML_NAME = "Number";
+
+/// Number要素からラウンド群を取得する。
+uint[] roundsFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
+	if (!node.valid) return [];
+	if (node.name != ROUNDS_XML_NAME) return [];
+	uint[] rounds;
+	foreach (t; .decodeLf(node.value, true)) { mixin(S_TRACE);
+		auto v = .to!int(t);
+		if (v < 0) rounds ~= -v;
+	}
+	return rounds;
+}
+/// ラウンド発火条件群をXML要素化し、nodeに追加する。
+void roundsToNode(ref XNode node, in uint[] rounds) { mixin(S_TRACE);
+	node.newElement(ROUNDS_XML_NAME, .encodeLf(.map!(r => .text(-cast(int)r))(rounds).array()));
+}
+/// ラウンド発火条件群をXML要素化する。
+XNode roundsToNode(in uint[] rounds) { mixin(S_TRACE);
+	return XNode.create(ROUNDS_XML_NAME, .encodeLf(.map!(r => .text(-cast(int)r))(rounds).array()));
+}
+/// ラウンド発火条件群をXML文書化する。
+string roundsToXML(in uint[] rounds) { mixin(S_TRACE);
+	auto node = roundsToNode(rounds);
+	return node.text;
 }

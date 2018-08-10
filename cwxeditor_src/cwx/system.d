@@ -21,13 +21,6 @@ class XMLInfo {
 	}
 }
 
-/// 発火条件キーコードの種別。
-enum FKCKind {
-	Use, /// 使用時。
-	Success, /// 成功時。
-	Failure, /// 失敗時。
-	HasNot, /// 不保有。
-}
 /// キーコード発火条件とキーコード本体の組み合わせ。
 struct FKeyCode {
 	string keyCode; /// キーコード。

@@ -1651,7 +1651,7 @@ private EventTree readEventTree(ref RData d, ref ByteIO f, bool enemyCard, size_
 	auto keyCodes = readStrings(f);
 	if (keyCodes.length && "MatchingType=All" == keyCodes[0]) { mixin(S_TRACE);
 		// CardWirth 1.50
-		tree.keyCodeMatchingType = KeyCodeMatchingType.And;
+		tree.keyCodeMatchingType = MatchingType.And;
 		keyCodes = keyCodes[1 .. $];
 	}
 	FKeyCode[] kcArray;
@@ -3589,7 +3589,7 @@ private void writeEventTree(ref SData d, ref ByteIO f, EventTree tree) { mixin(S
 	foreach (keyCode; tree.keyCodes) { mixin(S_TRACE);
 		keyCodes ~= d.prop.sys.convFireKeyCode(keyCode);
 	}
-	if (KeyCodeMatchingType.And is tree.keyCodeMatchingType) { mixin(S_TRACE);
+	if (MatchingType.And is tree.keyCodeMatchingType) { mixin(S_TRACE);
 		// CardWirth 1.50
 		writeStrings(f, ["MatchingType=All"] ~ keyCodes);
 	} else { mixin(S_TRACE);

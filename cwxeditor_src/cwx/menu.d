@@ -195,6 +195,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.ExpandBack] = "X";
 		_mnemonic[MenuID.StopBGM] = "P";
 		_mnemonic[MenuID.PlayBGM] = "P";
+		_mnemonic[MenuID.NewEvent] = "E";
 		_mnemonic[MenuID.KeyCodeTiming] = "K";
 		_mnemonic[MenuID.KeyCodeTimingUse] = "U";
 		_mnemonic[MenuID.KeyCodeTimingSuccess] = "S";
@@ -418,6 +419,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.ExpandBack] = "";
 		_hotkey[MenuID.StopBGM] = "";
 		_hotkey[MenuID.PlayBGM] = "";
+		_hotkey[MenuID.NewEvent] = "";
 		_hotkey[MenuID.KeyCodeTiming] = "";
 		_hotkey[MenuID.KeyCodeTimingUse] = "";
 		_hotkey[MenuID.KeyCodeTimingSuccess] = "";
@@ -885,6 +887,7 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.ExpandBack:
 	case MenuID.StopBGM:
 	case MenuID.PlayBGM:
+	case MenuID.NewEvent:
 	case MenuID.KeyCodeTiming:
 	case MenuID.KeyCodeTimingUse:
 	case MenuID.KeyCodeTimingSuccess:
@@ -1107,6 +1110,7 @@ bool isGlobalMenu(MenuID id) {
 	case MenuID.ExpandBack:
 	case MenuID.StopBGM:
 	case MenuID.PlayBGM:
+	case MenuID.NewEvent:
 	case MenuID.KeyCodeTiming:
 	case MenuID.KeyCodeTimingUse:
 	case MenuID.KeyCodeTimingSuccess:

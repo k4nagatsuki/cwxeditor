@@ -1127,6 +1127,14 @@ string fromSmoothing(Smoothing t) { mixin(S_TRACE);
 	}
 }
 
+/// 発火条件キーコードの種別。
+enum FKCKind {
+	Use, /// 使用時。
+	Success, /// 成功時。
+	Failure, /// 失敗時。
+	HasNot, /// 不保有。
+}
+
 /// コンテントのタイプ。
 enum CType {
 	START,
@@ -1602,6 +1610,7 @@ enum MenuID {
 	ExpandBack,
 	StopBGM,
 	PlayBGM,
+	NewEvent,
 	KeyCodeTiming,
 	KeyCodeTimingUse,
 	KeyCodeTimingSuccess,

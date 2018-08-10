@@ -35,6 +35,8 @@ import cwx.editor.gui.dwt.smalldialogs;
 import cwx.editor.gui.dwt.chooser;
 import cwx.editor.gui.dwt.areaviewutils;
 import cwx.editor.gui.dwt.images;
+import cwx.editor.gui.dwt.eventtreedialog;
+import cwx.editor.gui.dwt.roundview;
 
 static import std.algorithm;
 import std.algorithm : map, max, remove, sort, uniq;
@@ -45,6 +47,7 @@ import std.conv;
 import std.datetime;
 import std.ascii;
 import std.typecons;
+import std.traits;
 
 import org.eclipse.swt.all;
 
@@ -53,7 +56,6 @@ import java.lang.all;
 public:
 
 alias ArrayWrapperString KeyCodeObj;
-alias Integer RoundObj;
 
 class EventView : Composite, TCPD {
 private:
@@ -339,7 +341,7 @@ private:
 			bool everyRound;
 			bool round0;
 			FKeyCode[] keyCodes;
-			KeyCodeMatchingType keyCodeMatchingType;
+			MatchingType keyCodeMatchingType;
 			uint[] rounds;
 		}
 		private Vals _vals;
@@ -496,6 +498,9 @@ private:
 				if (v._selItm is itm) { mixin(S_TRACE);
 					v._selItm.setImage(v.etImage(tree));
 					v._selItm = null;
+				}
+				foreach (dlg; v._editDlgs.values) { mixin(S_TRACE);
+					if (dlg.eventTree is tree) dlg.forceCancel();
 				}
 				itm.dispose();
 			}
@@ -731,6 +736,18 @@ private:
 			return itm.getParentItem();
 		}
 	}
+	private TreeItem findItem(in EventTree et) { mixin(S_TRACE);
+		auto eto = et.owner;
+		foreach (itm; _cards.getItems()) { mixin(S_TRACE);
+			if (cast(EventTreeOwner)itm.getData() is eto) { mixin(S_TRACE);
+				foreach (itm2; itm.getItems()) {mixin(S_TRACE);
+					if (itm2.getData() is et) return itm2;
+				}
+				break;
+			}
+		}
+		return null;
+	}
 	@property
 	private TreeItem selectionKeyCode() { mixin(S_TRACE);
 		auto itm = selection;
@@ -781,10 +798,90 @@ private:
 		}
 		return treeName;
 	}
-	void createEventTree() { mixin(S_TRACE);
-		createEventTree([]);
+	private EventTreeDialog[string] _editDlgs;
+	private void appliedEditTree(TreeItem itm, EVUndo undo) in (itm !is null && undo !is null) { mixin(S_TRACE);
+		auto et = cast(EventTree)itm.getData();
+		_undo ~= undo;
+		auto vs = views();
+		foreach (v; vs) { mixin(S_TRACE);
+			auto itm2 = .anotherTreeItem(v._cards, itm);
+			if (itm2.getText() != et.name) { mixin(S_TRACE);
+				itm2.setText(et.name);
+				v._etree.refreshTreeName();
+			}
+			v.refreshFires(itm2);
+		}
 	}
-	void createEventTree(Content[] starts) { mixin(S_TRACE);
+	void editEvent() { mixin(S_TRACE);
+		auto itm = selectionEventTree;
+		if (!itm) return;
+		auto et = cast(EventTree)itm.getData();
+		auto dlg = new EventTreeDialog(_comm, getShell(), _summ, et.owner, et, false, _readOnly != SWT.NONE);
+		EVUndo undo = null;
+		dlg.applyEvent ~= { mixin(S_TRACE);
+			undo = store(et, false);
+		};
+		dlg.appliedEvent ~= { mixin(S_TRACE);
+			appliedEditTree(findItem(et), undo);
+		};
+		_editDlgs[et.eventTreeId] = dlg;
+		dlg.closeEvent ~= { mixin(S_TRACE);
+			_editDlgs.remove(et.eventTreeId);
+		};
+		dlg.open();
+	}
+	@property
+	bool canCreateEvent() { mixin(S_TRACE);
+		return !_readOnly && selectionParent && !(cast(PlayerCardEvents)selectionParent.getData() && _summ.legacy);
+	}
+	void createEvent() { mixin(S_TRACE);
+		if (!canCreateEvent) return;
+		auto parItm = selectionParent;
+		auto owner = cast(EventTreeOwner)parItm.getData();
+		auto sys = owner.canHasFireEnter || owner.canHasFireLose || owner.canHasFireEscape || owner.canHasFireEveryRound || owner.canHasFireRound0;
+		auto kc = owner.canHasFireKeyCode;
+		auto round = owner.canHasFireRound;
+		if (!(sys || kc || round)) { mixin(S_TRACE);
+			createEventWithIgnition();
+			return;
+		}
+		auto et = new EventTree("");
+		auto dlg = new EventTreeDialog(_comm, getShell(), _summ, owner, et, true, _readOnly != SWT.NONE);
+		dlg.appliedEvent ~= { mixin(S_TRACE);
+			auto index = parItm.getParent().indexOf(parItm);
+			auto appendIndex = owner.trees.length;
+			auto vs = views();
+			TreeItem[] parItms;
+			foreach (i, v; vs) { mixin(S_TRACE);
+				v.editEnter();
+				parItms ~= v._cards.getItem(index);
+				v.appendTree(parItms[i], et, cast(int)appendIndex, null, true, 0 < i, true);
+			}
+			if (et.keyCodes.length) { mixin(S_TRACE);
+				_comm.refKeyCodes.call();
+			}
+			_comm.refreshToolBar();
+
+			dlg.appliedEvent.length = 0;
+
+			EVUndo undo = null;
+			dlg.applyEvent ~= { mixin(S_TRACE);
+				undo = store(et, false);
+			};
+			dlg.appliedEvent ~= { mixin(S_TRACE);
+				appliedEditTree(findItem(et), undo);
+			};
+		};
+		_editDlgs[et.eventTreeId] = dlg;
+		dlg.closeEvent ~= { mixin(S_TRACE);
+			_editDlgs.remove(et.eventTreeId);
+		};
+		dlg.open();
+	}
+	void createEventWithIgnition() { mixin(S_TRACE);
+		createEventWithIgnition([]);
+	}
+	void createEventWithIgnition(Content[] starts) { mixin(S_TRACE);
 		if (_readOnly) return;
 		foreach (s; starts) { mixin(S_TRACE);
 			if (s.type !is CType.START) return;
@@ -883,13 +980,13 @@ private:
 	Image etImage(in EventTree tree) { mixin(S_TRACE);
 		if (_prop.var.etc.specifySelectedEventTree && _etree.eventTree is tree) { mixin(S_TRACE);
 			final switch (tree.keyCodeMatchingType) {
-			case KeyCodeMatchingType.Or: return _prop.images.eventTreeSelected;
-			case KeyCodeMatchingType.And: return _prop.images.eventTreeAndSelected;
+			case MatchingType.Or: return _prop.images.eventTreeSelected;
+			case MatchingType.And: return _prop.images.eventTreeAndSelected;
 			}
 		} else { mixin(S_TRACE);
 			final switch (tree.keyCodeMatchingType) {
-			case KeyCodeMatchingType.Or: return _prop.images.eventTree;
-			case KeyCodeMatchingType.And: return _prop.images.eventTreeAnd;
+			case MatchingType.Or: return _prop.images.eventTree;
+			case MatchingType.And: return _prop.images.eventTreeAnd;
 			}
 		}
 	}
@@ -1329,7 +1426,7 @@ private:
 		}
 		return true;
 	}
-	void setKeyCodeCond(KeyCodeMatchingType Type)() { mixin(S_TRACE);
+	void setKeyCodeCond(MatchingType Type)() { mixin(S_TRACE);
 		if (_readOnly) return;
 		auto eItm = selectionEventTree;
 		if (!eItm) return;
@@ -1342,7 +1439,7 @@ private:
 			itm.setImage(v.etImage(et));
 		}
 	}
-	bool canSetKeyCodeCond(KeyCodeMatchingType Type)() { mixin(S_TRACE);
+	bool canSetKeyCodeCond(MatchingType Type)() { mixin(S_TRACE);
 		if (_readOnly) return false;
 		auto eItm = selectionEventTree;
 		if (!eItm) return false;
@@ -1449,6 +1546,7 @@ public:
 						_comm.refBeast.remove(&refreshTitleBeast);
 					} else assert (0);
 				}
+				foreach (dlg; _editDlgs.values) dlg.forceCancel();
 			}
 		});
 		_sash.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -1500,6 +1598,15 @@ public:
 			auto shell = _cards.getShell();
 			auto menu = new Menu(shell, SWT.POP_UP);
 			if (!_readOnly) { mixin (S_TRACE);
+				auto sys = _area.canHasFireEnter || _area.canHasFireLose || _area.canHasFireEscape || _area.canHasFireEveryRound || _area.canHasFireRound0;
+				auto kc = _area.canHasFireKeyCode;
+				auto round = _area.canHasFireRound;
+				if (sys || kc || round) { mixin (S_TRACE);
+					createMenuItem(_comm, menu, MenuID.EditProp, &editEvent, () => selectionEventTree !is null);
+					new MenuItem(menu, SWT.SEPARATOR);
+				}
+				createMenuItem(_comm, menu, MenuID.NewEvent, &createEvent, &canCreateEvent);
+				new MenuItem(menu, SWT.SEPARATOR);
 				createMenuItem(_comm, menu, MenuID.Undo, &this.undo, () => _undo.canUndo && !_readOnly);
 				createMenuItem(_comm, menu, MenuID.Redo, &this.redo, () => _undo.canRedo && !_readOnly);
 				new MenuItem(menu, SWT.SEPARATOR);
@@ -1518,8 +1625,8 @@ public:
 					auto cascade2 = createMenuItem(_comm, menu, MenuID.KeyCodeCond, dlg, () => !_readOnly && selectionEventTree !is null, SWT.CASCADE);
 					auto sub2 = new Menu(parent.getShell(), SWT.DROP_DOWN);
 					cascade2.setMenu(sub2);
-					createMenuItem(_comm, sub2, MenuID.KeyCodeCondOr, &setKeyCodeCond!(KeyCodeMatchingType.Or), &canSetKeyCodeCond!(KeyCodeMatchingType.Or));
-					createMenuItem(_comm, sub2, MenuID.KeyCodeCondAnd, &setKeyCodeCond!(KeyCodeMatchingType.And), &canSetKeyCodeCond!(KeyCodeMatchingType.And));
+					createMenuItem(_comm, sub2, MenuID.KeyCodeCondOr, &setKeyCodeCond!(MatchingType.Or), &canSetKeyCodeCond!(MatchingType.Or));
+					createMenuItem(_comm, sub2, MenuID.KeyCodeCondAnd, &setKeyCodeCond!(MatchingType.And), &canSetKeyCodeCond!(MatchingType.And));
 				}
 				new MenuItem(menu, SWT.SEPARATOR);
 			} else { mixin (S_TRACE);
@@ -1703,13 +1810,17 @@ public:
 	}
 	private void removeCard(int index) { mixin(S_TRACE);
 		initial();
-		if (_selItm && !_selItm.isDisposed()
-				&& _selItm.getParentItem() is _cards.getItems()[index + cardsIndex]) { mixin(S_TRACE);
+		auto itm = _cards.getItem(index + cardsIndex);
+		if (_selItm && !_selItm.isDisposed() && _selItm.getParentItem() is itm) { mixin(S_TRACE);
 			_etree.refresh(null);
 			_selItm.setImage(etImage(cast(EventTree)_selItm.getData()));
 			_selItm = null;
 		}
-		_cards.getItems()[index + cardsIndex].dispose();
+		auto eto = cast(EventTreeOwner)itm.getData();
+		foreach (dlg; _editDlgs.values) { mixin(S_TRACE);
+			if (dlg.eventTreeOwner is eto) dlg.forceCancel();
+		}
+		itm.dispose();
 	}
 	private void renameCard(int index) { mixin(S_TRACE);
 		initial();
@@ -2091,6 +2202,7 @@ public:
 					new ToolItem(bar, SWT.SEPARATOR);
 					createToolItem(_comm, bar, MenuID.EditEventDup, &openDup, null);
 				}
+				new ToolItem(bar, SWT.SEPARATOR);
 			} else if (cast(Battle)_area) {
 				auto itm = createToolItem(_comm, bar, MenuID.EditScene, () => openScene(false), null);
 				itm.setImage(_prop.images.editSceneBattle);
@@ -2099,6 +2211,7 @@ public:
 					itm = createToolItem(_comm, bar, MenuID.EditEventDup, &openDup, null);
 					itm.setImage(_prop.images.battleEventTreeViewDup);
 				}
+				new ToolItem(bar, SWT.SEPARATOR);
 			} else if (_prop.var.etc.showDuplicateViewInToolBar) { mixin(S_TRACE);
 				if (cast(Package)_area) {
 					auto itm = createToolItem(_comm, bar, MenuID.EditEventDup, &openDup, null);
@@ -2179,7 +2292,7 @@ public:
 			new ToolItem(bar, SWT.SEPARATOR);
 		}
 		if (!_readOnly) { mixin(S_TRACE);
-			createToolItem2(_comm, bar, _prop.msgs.newEvent, _prop.images.newEvent, &createEventTree, { mixin(S_TRACE);
+			createToolItem2(_comm, bar, _prop.msgs.menuText(MenuID.NewEvent), _prop.images.menu(MenuID.NewEvent), &createEventWithIgnition, { mixin(S_TRACE);
 				if (_readOnly) return false;
 				auto par = selectionParent;
 				if (!par) return false;
@@ -2374,13 +2487,59 @@ public:
 		auto pcWarnings = .warnings(_prop.parent, summSkin, _summ, playerEvents, _prop.var.etc.targetVersion);
 		if (pcWarnings.length) warningInfo ~= WarningInfo(pcItm, pcWarnings);
 
+		auto ca = _cards.getClientArea();
 		if (auto btl = cast(Battle)_area) { mixin(S_TRACE);
 			if (!btl.possibleToRunAway) { mixin(S_TRACE);
 				foreach (itm; _cards.getItem(0).getItems()) { mixin(S_TRACE);
+					auto bounds = itm.getBounds();
+					if (bounds.y + bounds.height < ca.y) continue;
+					if (ca.y + ca.height <= bounds.y) break;
 					assert(cast(EventTree)itm.getData() !is null);
 					auto et = cast(EventTree)itm.getData();
 					if (et.fireEscape) { mixin(S_TRACE);
 						warningInfo ~= WarningInfo(itm, [_prop.msgs.warningNoIgniteRunAway]);
+					}
+				}
+			}
+		}
+
+		o: foreach (oItm; _cards.getItems()) { mixin(S_TRACE);
+			foreach (itm; oItm.getItems()) { mixin(S_TRACE);
+				auto bounds = itm.getBounds();
+				if (ca.y + ca.height <= bounds.y) break;
+				assert(cast(EventTree)itm.getData() !is null);
+				auto et = cast(EventTree)itm.getData();
+				if (ca.y <= bounds.y + bounds.height) { mixin(S_TRACE);
+					if (et.keyCodeMatchingType is MatchingType.And && !_prop.targetVersion(_summ, "1.50")) { mixin(S_TRACE);
+						warningInfo ~= WarningInfo(itm, [_prop.msgs.warningKeyCodeMatchingTypeAnd]);
+					}
+				}
+				auto kci = 0;
+				foreach (iItm; itm.getItems()) { mixin(S_TRACE);
+					auto iBounds = iItm.getBounds();
+					if (iBounds.y + iBounds.height < ca.y) continue;
+					if (ca.y + ca.height <= iBounds.y) break o;
+					if (auto kco = cast(KeyCodeObj)iItm.getData()) { mixin(S_TRACE);
+						auto keyCode = kco.array.idup;
+						string[] kcw;
+						if (kci == 0 && keyCode == "MatchingType=All") { mixin(S_TRACE);
+							kcw ~= _prop.msgs.searchErrorKeyCodeMatchingAll;
+						}
+						if (_prop.sys.fireKeyCodeKind(keyCode) is FKCKind.HasNot && !_prop.targetVersion(_summ, "1.50")) { mixin(S_TRACE);
+							kcw ~= _prop.msgs.warningHasNotKeyCode;
+						}
+						if (kcw.length) { mixin(S_TRACE);
+							warningInfo ~= WarningInfo(iItm, kcw);
+						}
+						kci++;
+					} else if (iItm.getData() is EVERY_ROUND) { mixin(S_TRACE);
+						if (!_prop.targetVersion(_summ, "1.50")) { mixin(S_TRACE);
+							warningInfo ~= WarningInfo(iItm, [_prop.msgs.warningEveryRound]);
+						}
+					} else if (iItm.getData() is ROUND_0) { mixin(S_TRACE);
+						if (!_prop.targetVersion(_summ, "1.50")) { mixin(S_TRACE);
+							warningInfo ~= WarningInfo(iItm, [_prop.msgs.warningRound0]);
+						}
 					}
 				}
 			}
@@ -2391,7 +2550,6 @@ public:
 		auto wImg = .warningImage(_prop, _cards.getDisplay(), _prop.var.etc.warningImageWidthEventTree);
 		scope (exit) wImg.dispose();
 		auto skin = _comm.skin;
-		auto ca = _cards.getClientArea();
 		auto bounds = _prop.images.warning.getBounds();
 		foreach (info; warningInfo) { mixin(S_TRACE);
 			auto itm = info[0];
@@ -2639,9 +2797,7 @@ public:
 			if (!ti) return;
 			if (_dragItm) { mixin(S_TRACE);
 				if (ti is _dragItm) return;
-				auto tip = eventItemFrom(ti);
-				auto dip = eventItemFrom(_dragItm);
-				if (auto tree = cast(EventTree)_dragItm.getData() && tip is dip) { mixin(S_TRACE);
+				if (auto tree = cast(EventTree)_dragItm.getData()) { mixin(S_TRACE);
 					auto fromTop = topParent(_dragItm);
 					auto toTop = topParent(ti);
 					if (fromTop is toTop) { mixin(S_TRACE);
@@ -2665,6 +2821,8 @@ public:
 						return;
 					}
 				}
+				auto tip = eventItemFrom(ti);
+				auto dip = eventItemFrom(_dragItm);
 				if (cast(KeyCodeObj)_dragItm.getData() && tip is dip) { mixin(S_TRACE);
 					// 単一のイベントツリー内でキーコードを移動する場合
 					auto kco = cast(KeyCodeObj)_dragItm.getData();
@@ -2725,7 +2883,7 @@ public:
 			void put(Content[] cs) { mixin(S_TRACE);
 				if (!cs.length) return;
 				if (cs[0].type !is CType.START) return;
-				createEventTree(cs);
+				createEventWithIgnition(cs);
 			}
 			auto compiler = new CWXScript(_prop.parent, _summ);
 			auto vars = compiler.eatEmptyVars(script, opt);
@@ -2885,21 +3043,20 @@ public:
 						} else if (tree.round0FromNode(par, node)) { mixin(S_TRACE);
 							putFire(ROUND_0);
 						} else { mixin(S_TRACE);
-							int round = tree.roundFromNode(par, node);
-							if (round >= 0) { mixin(S_TRACE);
+							auto rounds = tree.roundsFromNode(par, node, ver);
+							foreach (round; rounds) { mixin(S_TRACE);
 								putFire(new RoundObj(round));
+							}
+							FKeyCode[] keyCodes;
+							if (appendToLast || treeItm is itm) { mixin(S_TRACE);
+								keyCodes = tree.keyCodesFromNode(par, node, ver, _prop.sys);
 							} else { mixin(S_TRACE);
-								string keyCode;
-								if (appendToLast || treeItm is itm) { mixin(S_TRACE);
-									keyCode = tree.keyCodeFromNode(par, node, _prop.sys);
-								} else { mixin(S_TRACE);
-									auto index = treeItm.indexOf(itm) - keyCodesIndex(treeItm);
-									if (index < 0) index = 0;
-									keyCode = tree.keyCodeFromNode(par, node, _prop.sys, index);
-								}
-								if (keyCode) { mixin(S_TRACE);
-									putFire(new KeyCodeObj(keyCode));
-								}
+								auto index = treeItm.indexOf(itm) - keyCodesIndex(treeItm);
+								if (index < 0) index = 0;
+								keyCodes = tree.keyCodesFromNode(par, node, ver, _prop.sys, index);
+							}
+							foreach (keyCode; keyCodes) { mixin(S_TRACE);
+								putFire(new KeyCodeObj(_prop.sys.convFireKeyCode(keyCode)));
 							}
 						}
 						if (r) { mixin(S_TRACE);
@@ -2947,6 +3104,9 @@ public:
 					v._etree.refresh(null);
 					v._selItm.setImage(etImage(tree));
 					v._selItm = null;
+				}
+				foreach (dlg; v._editDlgs.values) { mixin(S_TRACE);
+					if (dlg.eventTree is tree) dlg.forceCancel();
 				}
 			}
 			_comm.delEventTree.call(tree);
@@ -3150,81 +3310,5 @@ public:
 		}
 		r ~= _etree.openedCWXPath;
 		return r;
-	}
-}
-
-private class ManyRoundsDialog : AbsDialog {
-private:
-	Props _prop;
-
-	Spinner _from;
-	Spinner _to;
-
-	uint[] _rounds;
-public:
-	this (Props prop, Shell shell) { mixin(S_TRACE);
-		_prop = prop;
-		super (prop, shell, prop.msgs.dlgTitAddManyRounds, prop.images.menu(MenuID.AddRangeOfRound), false);
-		enterClose = true;
-	}
-
-	@property
-	const
-	override
-	bool noScenario() { return true; }
-
-	@property
-	uint[] rounds() { mixin(S_TRACE);
-		return _rounds;
-	}
-protected:
-	private class SelMin : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
-			int f = _from.getSelection();
-			if (f >= _to.getSelection()) { mixin(S_TRACE);
-				_to.setSelection(f);
-			}
-		}
-	}
-	private class SelMax : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
-			int t = _to.getSelection();
-			if (t <= _from.getSelection()) { mixin(S_TRACE);
-				_from.setSelection(t);
-			}
-		}
-	}
-	override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(normalGridLayout(1, false));
-		{ mixin(S_TRACE);
-			auto grp = new Group(area, SWT.NONE);
-			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-			grp.setText(_prop.msgs.manyRounds);
-			grp.setLayout(new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0));
-			auto comp = new Composite(grp, SWT.NONE);
-			comp.setLayout(normalGridLayout(4, false));
-			_from = new Spinner(comp, SWT.BORDER);
-			initSpinner(_from);
-			_from.setMinimum(1);
-			_from.setMaximum(_prop.var.etc.roundMax);
-			_from.addSelectionListener(new SelMin);
-			auto l1 = new Label(comp, SWT.NONE);
-			l1.setText(_prop.msgs.roundSep);
-			_to = new Spinner(comp, SWT.BORDER);
-			initSpinner(_to);
-			_to.setMinimum(1);
-			_to.setMaximum(_prop.var.etc.roundMax);
-			_to.addSelectionListener(new SelMax);
-			auto l2 = new Label(comp, SWT.NONE);
-			l2.setText(.tryFormat(_prop.msgs.rangeHint, 1, _prop.var.etc.roundMax));
-		}
-	}
-	override bool close(bool ok) { mixin(S_TRACE);
-		if (ok) { mixin(S_TRACE);
-			for (uint i = _from.getSelection(); i <= _to.getSelection(); i++) { mixin(S_TRACE);
-				_rounds ~= i;
-			}
-		}
-		return ok;
 	}
 }

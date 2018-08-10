@@ -1339,6 +1339,7 @@ class Msgs : Properties {
 	auto idStatusSel = Msg("idStatusSel", "%1$s (%2$s件を選択)");
 
 	/// イベントビュー。
+	auto eventName = Msg("eventName", "イベント名");
 	auto playerCard = Msg("playerCard", "プレイヤーカード");
 	auto tools = Msg("tools", "イベントコンテント");
 	auto startEnter = Msg("startEnter", "到着");
@@ -1352,6 +1353,15 @@ class Msgs : Properties {
 	auto startPackage = Msg("startPackage", "パッケージ");
 	auto startUse = Msg("startUse", "使用時");
 	auto startRound = Msg("startRound", "ラウンド = %1$s");
+	auto dlgTitNewEvent = Msg("dlgTitNewEvent", "イベントの作成");
+	auto dlgTitEventTree = Msg("dlgTitEventTree", "イベントの設定 [ %1$s ]");
+	auto addRound = Msg("addRound", "ラウンドの追加");
+	auto delRound = Msg("delRound", "ラウンドの削除");
+	auto warningKeyCodeMatchingTypeAnd = Msg("warningKeyCodeMatchingTypeAnd", "キーコードのマッチング条件「全てに一致」は、CardWirth 1.50より前のバージョンでは使用できません。");
+
+	const string keyCodeTiming(FKCKind id) { mixin(S_TRACE);
+		mixin(EnumToStringSwitch!(FKCKind, "keyCodeTiming"));
+	}
 	auto keyCodeTimingUse = Msg("keyCodeTimingUse", "使用");
 	auto keyCodeTimingSuccess = Msg("keyCodeTimingSuccess", "成功");
 	auto keyCodeTimingFailure = Msg("keyCodeTimingFailure", "失敗");
@@ -1966,6 +1976,7 @@ class Msgs : Properties {
 	auto warningStepCount = Msg("warningStepCount", "%1$s段階以外のステップはクラシックなシナリオでは使用できません。");
 	auto warningStepOverCount = Msg("warningStepOverCount", "ステップ「%1$s」の段階数 [%2$s] より大きなステップ値 [%3$s] が指定されています。");
 	auto warningKeyCodeCount = Msg("warningKeyCodeCount", "%1$s件より多くのキーコードはクラシックなシナリオでは設定できません。");
+	auto warningHasNotKeyCode = Msg("warningHasNotKeyCode", "キーコードの不保有発火条件はCardWirth 1.50より前のバージョンでは機能しません。");
 	auto warningValuedSelectionMethod = Msg("warningValuedSelectionMethod", "評価条件によるメンバ選択分岐は、Wsn.1以降の形式のシナリオしか行えません。");
 	auto warningSkillPowerWithFixedValue = Msg("warningSkillPowerWithFixedValue", "精神力操作の固定値指定は、Wsn.1以降の形式のシナリオしか行えません。"); // Wsn.1
 	auto warningIncludedImage = Msg("warningIncludedImage", "WSN形式のシナリオでは格納イメージは使用できません。");
@@ -2565,6 +2576,7 @@ class Msgs : Properties {
 	auto menuTextExpandBack = Msg("menuTextExpandBack", "背景セルを最大化");
 	auto menuTextStopBGM = Msg("menuTextStopBGM", "%1$sの再生を停止");
 	auto menuTextPlayBGM = Msg("menuTextPlayBGM", "再生");
+	auto menuTextNewEvent = Msg("menuTextNewEvent", "イベントの作成");
 	auto menuTextKeyCodeTiming = Msg("menuTextKeyCodeTiming", "キーコード発火タイミング");
 	auto menuTextKeyCodeTimingUse = Msg("menuTextKeyCodeTimingUse", "使用");
 	auto menuTextKeyCodeTimingSuccess = Msg("menuTextKeyCodeTimingSuccess", "成功");
@@ -2630,7 +2642,6 @@ class Msgs : Properties {
 	auto setStepValue = Msg("setStepValue", "%1$sを設定");
 
 	auto bgm = Msg("bgm", "BGM");
-	auto newEvent = Msg("newEvent", "イベントの作成");
 	auto newIgnition = Msg("newIgnition", "イベント発火条件の作成");
 	auto expandTree = Msg("expandTree", "全コンテントツリーを開く");
 	auto foldTree = Msg("foldTree", "全コンテントツリーを閉じる");

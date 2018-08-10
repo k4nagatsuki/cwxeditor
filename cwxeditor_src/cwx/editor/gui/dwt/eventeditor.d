@@ -2083,7 +2083,7 @@ private:
 		_editEnd(_edit, ctrl);
 	}
 
-	void clearEdit() { mixin(S_TRACE);
+	void clearEdit(bool cancel) { mixin(S_TRACE);
 		_tee = null;
 		_edit = null;
 		_editor = null;

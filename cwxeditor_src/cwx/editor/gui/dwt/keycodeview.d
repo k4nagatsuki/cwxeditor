@@ -24,6 +24,7 @@ import std.array;
 import std.conv;
 import std.datetime;
 import std.string;
+import std.traits;
 
 import org.eclipse.swt.all;
 
@@ -42,6 +43,9 @@ class KeyCodeView : Composite {
 	private string _id;
 
 	private int _readOnly = 0;
+	private bool _canDuplicate = true;
+	private bool _withIgnitionType = false;
+
 	private Commons _comm;
 	private Props _prop;
 	private Summary _summ;
@@ -51,9 +55,39 @@ class KeyCodeView : Composite {
 
 	private Table _keyCodes;
 	private ToolBar _toolbar = null;
-	private TableTextEdit _tte;
+	private TableTextEdit _tte = null;
+	private TableComboEdit!Combo _tce = null;
 
 	private bool delegate() _catchMod;
+
+	void setKeyCode(int index, string name) { mixin(S_TRACE);
+		auto itm = _keyCodes.getItem(index);
+		assert (itm !is null);
+		setKeyCode(itm, name);
+	}
+	void setKeyCode(TableItem itm, string name) { mixin(S_TRACE);
+		itm.setText(name);
+		auto image = _prop.images.keyCode;
+		if (_withIgnitionType) { mixin(S_TRACE);
+			auto fkc = _prop.sys.toFKeyCode(name);
+			itm.setText(1, name == "" ? "" : _prop.msgs.keyCodeTiming(fkc.kind));
+			if (!_prop.targetVersion(_summ, "1.50") && fkc.kind is FKCKind.HasNot) { mixin(S_TRACE);
+				image = _prop.images.warning;
+			} else { mixin(S_TRACE);
+				image = _prop.images.keyCodeTiming(fkc.kind);
+			}
+		}
+
+		if (!_canDuplicate) { mixin(S_TRACE);
+			if (_keyCodes.getItem(0) is itm && name == "MatchingType=All") { mixin(S_TRACE);
+				image = _prop.images.warning;
+			}
+		}
+		if (_canDuplicate && _prop.sys.isRunaway([name])) { mixin(S_TRACE);
+			image = _prop.images.warning;
+		}
+		itm.setImage(image);
+	}
 
 	class UndoName : Undo {
 		private int _index;
@@ -65,8 +99,9 @@ class KeyCodeView : Composite {
 			_newName = newName;
 		}
 		private void impl() { mixin(S_TRACE);
-			if (_tte.isEditing) _tte.cancel();
-			_keyCodes.getItem(_index).setText(_oldName);
+			if (_tte && _tte.isEditing) _tte.cancel();
+			if (_tce && _tce.isEditing) _tce.cancel();
+			setKeyCode(_index, _oldName);
 			auto temp = _oldName;
 			_oldName = _newName;
 			_newName = temp;
@@ -86,10 +121,11 @@ class KeyCodeView : Composite {
 			save();
 		}
 		private void save() { mixin(S_TRACE);
-			_keyCodes = this.outer._keyCodes.getItems().map!(itm => itm.getText())().array();
+			_keyCodes = this.outer.getKeyCodes(false);
 		}
 		private void impl() { mixin(S_TRACE);
-			if (_tte.isEditing) _tte.cancel();
+			if (_tte && _tte.isEditing) _tte.cancel();
+			if (_tce && _tce.isEditing) _tce.cancel();
 			auto keyCodes = _keyCodes;
 			save();
 			this.outer._keyCodes.setRedraw(false);
@@ -98,9 +134,7 @@ class KeyCodeView : Composite {
 			auto n = this.outer._keyCodes.getItemCount();
 			this.outer._keyCodes.setItemCount(cast(int)keyCodes.length);
 			foreach (i, keyCode; keyCodes) { mixin(S_TRACE);
-				auto itm = this.outer._keyCodes.getItem(cast(int)i);
-				itm.setText(keyCode);
-				itm.setImage(_prop.images.keyCode);
+				setKeyCode(cast(int)i, keyCode);
 			}
 			raiseModifyEvent();
 			_comm.refreshToolBar();
@@ -121,6 +155,13 @@ class KeyCodeView : Composite {
 		_undo.redo();
 	}
 
+	private void refreshWarning() { mixin(S_TRACE);
+		foreach (itm; _keyCodes.getItems()) { mixin(S_TRACE);
+			// 警告アイコンの更新
+			if (itm.getText() == "MatchingType=All") setKeyCode(itm, itm.getText());
+		}
+	}
+
 	private Control createEditor(TableItem itm, int editC) { mixin(S_TRACE);
 		auto combo = createKeyCodeCombo!Combo(_comm, _summ, _keyCodes, _catchMod, itm.getText());
 		combo.setText(itm.getText());
@@ -128,46 +169,123 @@ class KeyCodeView : Composite {
 	}
 	private void editEnd(TableItem itm, int column, string newText) { mixin(S_TRACE);
 		auto oldText = itm.getText();
-		if (newText == oldText) return;
-		storeSingle(_keyCodes.indexOf(itm), oldText, newText);
-		itm.setText(newText);
+		if (newText == oldText && !_startAdd) return;
+		scope (exit) _startAdd = null;
+		if (!_canDuplicate && (_withIgnitionType ? _prop.sys.toFKeyCode(newText).keyCode : newText) == "") { mixin(S_TRACE);
+			// 空白名を許さない場合は、空文字列入力で削除を行う
+			if (!_startAdd) storeKeyCodes();
+			itm.dispose();
+			if (_startAdd) return;
+		} else { mixin(S_TRACE);
+			if (existsKeyCode(itm, newText)) { mixin(S_TRACE);
+				_startAdd = null;
+				return;
+			}
+			if (_startAdd) { mixin(S_TRACE);
+				storeKeyCodes();
+				_startAdd = null;
+			} else { mixin(S_TRACE);
+				storeSingle(_keyCodes.indexOf(itm), oldText, newText);
+			}
+			setKeyCode(itm, newText);
+		}
+		_startAdd = null;
 		raiseModifyEvent();
 		_comm.refreshToolBar();
+	}
+	private void exitEdit(bool cancel) { mixin(S_TRACE);
+		if (cancel && _startAdd) { mixin(S_TRACE);
+			_startAdd.dispose();
+			_comm.refreshToolBar();
+		}
+		_startAdd = null;
+	}
+
+	private FKCKind[] _ignitionTypeTable;
+	void ignitionTypeCombo(TableItem itm, int column, out string[] strs, out string str) { mixin(S_TRACE);
+		_ignitionTypeTable = [];
+		foreach (i, kind; EnumMembers!FKCKind) { mixin(S_TRACE);
+			_ignitionTypeTable ~= kind;
+			auto v = _prop.msgs.keyCodeTiming(kind);
+			strs ~= v;
+			if (kind is _prop.sys.fireKeyCodeKind(itm.getText())) { mixin(S_TRACE);
+				str = v;
+			}
+		}
+	}
+	void ignitionTypeEditEnd(TableItem selItm, int column, Combo combo) { mixin(S_TRACE);
+		int i = combo.getSelectionIndex();
+		if (-1 == i) return;
+		assert (i < _ignitionTypeTable.length);
+		auto oldText = selItm.getText();
+		auto kind = _ignitionTypeTable[i];
+		auto newText = _prop.sys.convFireKeyCode(oldText, kind);
+		if (oldText == newText) return;
+		if (existsKeyCode(selItm, newText)) return;
+		foreach (itm2; _keyCodes.getItems()) { mixin(S_TRACE);
+			if (itm2 !is selItm && itm2.getText() == newText) { mixin(S_TRACE);
+				_keyCodes.deselectAll();
+				_keyCodes.setSelection([itm2]);
+				_keyCodes.showSelection();
+				return;
+			}
+		}
+		storeSingle(_keyCodes.indexOf(selItm), oldText, newText);
+		setKeyCode(selItm, newText);
+		raiseModifyEvent();
+		_comm.refreshToolBar();
+	}
+	private bool existsKeyCode(TableItem itm, string keyCode) { mixin(S_TRACE);
+		if (_canDuplicate) return false;
+		foreach (itm2; _keyCodes.getItems()) { mixin(S_TRACE);
+			if (itm2 !is itm && itm2.getText() == keyCode) { mixin(S_TRACE);
+				_keyCodes.deselectAll();
+				_keyCodes.setSelection([itm2]);
+				if (_startAdd) _startAdd.dispose();
+				_keyCodes.showSelection();
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private TableItem append(string keyCode, int index = -1) { mixin(S_TRACE);
 		if (_tte && _tte.isEditing) _tte.enter();
+		if (_tce && _tce.isEditing) _tce.enter();
 		TableItem itm;
 		if (index != -1) { mixin(S_TRACE);
 			itm = new TableItem(_keyCodes, SWT.NONE, index);
 		} else { mixin(S_TRACE);
 			itm = new TableItem(_keyCodes, SWT.NONE);
 		}
-		itm.setImage(_prop.images.keyCode);
-		itm.setText(keyCode);
+		setKeyCode(itm, keyCode);
 		return itm;
 	}
+	private TableItem _startAdd = null;
 	private void add() { mixin(S_TRACE);
 		if (_tte && _tte.isEditing) _tte.enter();
-		storeKeyCodes();
+		if (_tce && _tce.isEditing) _tce.enter();
 		auto itm = append("", -1);
 		_keyCodes.deselectAll();
 		_keyCodes.setSelection([itm]);
 		_keyCodes.showSelection();
-		raiseModifyEvent();
 		_comm.refreshToolBar();
 		.forceFocus(_keyCodes, false);
+		_startAdd = itm;
 		_tte.startEdit();
 	}
 	private void del() { mixin(S_TRACE);
 		if (_tte && _tte.isEditing) _tte.enter();
+		if (_tce && _tce.isEditing) _tce.enter();
 		storeKeyCodes();
 		_keyCodes.remove(_keyCodes.getSelectionIndices());
+		refreshWarning();
 		raiseModifyEvent();
 		_comm.refreshToolBar();
 	}
 	private void up() { mixin(S_TRACE);
 		if (_tte && _tte.isEditing) _tte.enter();
+		if (_tce && _tce.isEditing) _tce.enter();
 		auto indices = _keyCodes.getSelectionIndices();
 		std.algorithm.sort(indices);
 		if (!indices.length || indices[0] <= 0) return;
@@ -180,12 +298,14 @@ class KeyCodeView : Composite {
 		_keyCodes.deselectAll();
 		_keyCodes.select(indices);
 		_keyCodes.showSelection();
+		refreshWarning();
 		_keyCodes.redraw();
 		raiseModifyEvent();
 		_comm.refreshToolBar();
 	}
 	private void down() { mixin(S_TRACE);
 		if (_tte && _tte.isEditing) _tte.enter();
+		if (_tce && _tce.isEditing) _tce.enter();
 		auto indices = _keyCodes.getSelectionIndices();
 		std.algorithm.sort(indices);
 		if (!indices.length || _keyCodes.getItemCount() <= indices[$ - 1] + 1) return;
@@ -198,6 +318,7 @@ class KeyCodeView : Composite {
 		_keyCodes.deselectAll();
 		_keyCodes.select(indices);
 		_keyCodes.showSelection();
+		refreshWarning();
 		_keyCodes.redraw();
 		raiseModifyEvent();
 		_comm.refreshToolBar();
@@ -240,12 +361,32 @@ class KeyCodeView : Composite {
 		auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
 		auto keyCodes = keyCodesFromNode(node, ver);
 		if (!keyCodes.length) return false;
+
+		string[] keyCodes2;
+		if (_canDuplicate || force) { mixin(S_TRACE);
+			keyCodes2 = keyCodes;
+		} else { mixin(S_TRACE);
+			bool[string] eKeyCodes;
+			foreach (keyCode; this.keyCodes) eKeyCodes[keyCode] = true;
+			foreach (keyCode; keyCodes) { mixin(S_TRACE);
+				if (keyCode in eKeyCodes) continue;
+				if (_withIgnitionType) { mixin(S_TRACE);
+					if (_prop.sys.toFKeyCode(keyCode).keyCode == "") continue;
+				} else { mixin(S_TRACE);
+					if (keyCode == "") continue;
+				}
+				keyCodes2 ~= keyCode;
+			}
+			if (!keyCodes2.length) return false;
+		}
+
 		_keyCodes.setRedraw(false);
 		scope (exit) _keyCodes.setRedraw(true);
 		if (_tte && _tte.isEditing) _tte.enter();
+		if (_tce && _tce.isEditing) _tce.enter();
 		storeKeyCodes();
 		TableItem[] itms = [];
-		foreach (keyCode; keyCodes) { mixin(S_TRACE);
+		foreach (keyCode; keyCodes2) { mixin(S_TRACE);
 			if (!force && _summ && _summ.legacy && _prop.looks.keyCodesMaxLegacy <= _keyCodes.getItemCount()) break;
 			itms ~= append(keyCode, index);
 			index++;
@@ -253,6 +394,7 @@ class KeyCodeView : Composite {
 		_keyCodes.deselectAll();
 		_keyCodes.setSelection(itms);
 		_keyCodes.showSelection();
+		refreshWarning();
 		raiseModifyEvent();
 		_comm.refreshToolBar();
 		return true;
@@ -267,6 +409,7 @@ class KeyCodeView : Composite {
 		override void dragSetData(DragSourceEvent e){ mixin(S_TRACE);
 			if (XMLBytesTransfer.getInstance().isSupportedType(e.dataType)) { mixin(S_TRACE);
 				if (_tte && _tte.isEditing) _tte.enter();
+				if (_tce && _tce.isEditing) _tce.enter();
 				auto c = cast(Table)(cast(DragSource)e.getSource()).getControl();
 				_itms = c.getSelection();
 				if (!_itms.length) return;
@@ -281,9 +424,11 @@ class KeyCodeView : Composite {
 		override void dragFinished(DragSourceEvent e) { mixin(S_TRACE);
 			if (!_readOnly && e.detail == DND.DROP_MOVE) { mixin(S_TRACE);
 				if (_tte && _tte.isEditing) _tte.enter();
+				if (_tce && _tce.isEditing) _tce.enter();
 				_keyCodes.setRedraw(false);
 				scope (exit) _keyCodes.setRedraw(true);
 				foreach_reverse (itm; _itms) itm.dispose();
+				refreshWarning();
 				raiseModifyEvent();
 				_comm.refreshToolBar();
 			}
@@ -301,6 +446,7 @@ class KeyCodeView : Composite {
 		override void copy(SelectionEvent se) { mixin(S_TRACE);
 			if (canDoC) { mixin(S_TRACE);
 				if (_tte && _tte.isEditing) _tte.enter();
+				if (_tce && _tce.isEditing) _tce.enter();
 				auto keyCodes = _keyCodes.getSelection().map!(itm => itm.getText())().array();
 				XMLtoCB(_prop, _comm.clipboard, keyCodesToXML(keyCodes));
 				_comm.refreshToolBar();
@@ -310,6 +456,7 @@ class KeyCodeView : Composite {
 			auto xml = CBtoXML(_comm.clipboard);
 			if (xml) { mixin(S_TRACE);
 				if (_tte && _tte.isEditing) _tte.enter();
+				if (_tce && _tce.isEditing) _tce.enter();
 				try { mixin(S_TRACE);
 					auto node = XNode.parse(xml);
 					appendFromNode(node, _keyCodes.getItemCount(), false);
@@ -377,7 +524,7 @@ class KeyCodeView : Composite {
 		override void handleEvent(Event e) { e.doit = true; }
 	}
 
-	this (Commons comm, Summary summ, Composite parent, int style, bool delegate() catchMod) { mixin(S_TRACE);
+	this (Commons comm, Summary summ, Composite parent, int style, bool canDuplicate, bool withIgnitionType, bool delegate() catchMod) { mixin(S_TRACE);
 		super (parent, style);
 
 		auto o = this;
@@ -387,6 +534,8 @@ class KeyCodeView : Composite {
 		_comm = comm;
 		_summ = summ;
 		_prop = comm.prop;
+		_canDuplicate = canDuplicate;
+		_withIgnitionType = withIgnitionType;
 		_catchMod = catchMod;
 		_undo = new UndoManager(_prop.var.etc.undoMaxEtc);
 		this.setLayout(zeroMarginGridLayout(1, true));
@@ -404,7 +553,28 @@ class KeyCodeView : Composite {
 		{ mixin(S_TRACE);
 			_keyCodes = .rangeSelectableTable(this, SWT.BORDER | SWT.MULTI | SWT.FULL_SELECTION);
 			_keyCodes.setLayoutData(new GridData(GridData.FILL_BOTH));
+
 			new FullTableColumn(_keyCodes, SWT.NONE);
+			if (_withIgnitionType) { mixin(S_TRACE);
+				auto col = new TableColumn(_keyCodes, SWT.NONE);
+				auto gc = new GC(_keyCodes);
+				scope (exit) gc.dispose();
+				auto w = 0;
+				auto t = "";
+				foreach (kind; EnumMembers!FKCKind) { mixin(S_TRACE);
+					auto t2 = _prop.msgs.keyCodeTiming(kind);
+					auto w2 = gc.wTextExtent(t2).x;
+					if (w < w2) { mixin(S_TRACE);
+						w = w2;
+						t = t2;
+					}
+				}
+				auto itm = new TableItem(_keyCodes, SWT.NONE);
+				itm.setText(1, t);
+				col.pack();
+				itm.dispose();
+			}
+
 			auto menu = new Menu(_keyCodes);
 			if (!_readOnly) { mixin(S_TRACE);
 				createMenuItem(_comm, menu, MenuID.Undo, &undo, () => !_readOnly && _undo.canUndo);
@@ -438,6 +608,10 @@ class KeyCodeView : Composite {
 
 		if (!_readOnly) { mixin(S_TRACE);
 			_tte = new TableTextEdit(_comm, _prop, _keyCodes, 0, &editEnd, (itm, column) => true, &createEditor);
+			_tte.exitEvent ~= &exitEdit;
+			if (_withIgnitionType) { mixin(S_TRACE);
+				_tce = new TableComboEdit!Combo(_comm, _prop, _keyCodes, 1, &ignitionTypeCombo, &ignitionTypeEditEnd, null);
+			}
 		}
 
 		auto d = this.getDisplay();
@@ -484,15 +658,29 @@ class KeyCodeView : Composite {
 	}
 
 	@property
+	bool isNewItemEditing() { return _startAdd !is null; }
+
+	@property
 	string[] keyCodes() { mixin(S_TRACE);
+		return getKeyCodes(true);
+	}
+	private string[] getKeyCodes(bool strip) { mixin(S_TRACE);
 		string[] r;
-		r.length = _keyCodes.getItemCount();
-		size_t count = 0;
-		foreach (i, itm; _keyCodes.getItems()) { mixin(S_TRACE);
-			r[i] = itm.getText();
-			if (r[i] != "") count = i + 1;
+		if (_canDuplicate) { mixin(S_TRACE);
+			size_t count = 0;
+			foreach (itm; _keyCodes.getItems()) { mixin(S_TRACE);
+				if (_startAdd is itm) continue;
+				r ~= itm.getText();
+				if (r[$ - 1] != "") count = r.length;
+			}
+			if (strip) r.length = count;
+		} else { mixin(S_TRACE);
+			foreach (i, itm; _keyCodes.getItems()) { mixin(S_TRACE);
+				if (_startAdd is itm) continue;
+				auto keyCode = itm.getText();
+				if (keyCode != "") r ~= keyCode;
+			}
 		}
-		r.length = count;
 		return r;
 	}
 	@property
@@ -516,7 +704,23 @@ class KeyCodeView : Composite {
 	@property
 	string[] warnings() { mixin(S_TRACE);
 		string[] ws;
-		if (_prop.sys.isRunaway(keyCodes)) { mixin(S_TRACE);
+		if (_withIgnitionType && !_prop.targetVersion(_summ, "1.50")) { mixin(S_TRACE);
+			foreach (keyCode; keyCodes) { mixin(S_TRACE);
+				if (_prop.sys.fireKeyCodeKind(keyCode) is FKCKind.HasNot) { mixin(S_TRACE);
+					ws ~= _prop.msgs.warningHasNotKeyCode;
+					break;
+				}
+			}
+		}
+		if (!_canDuplicate) { mixin(S_TRACE);
+			foreach (keyCode; keyCodes) { mixin(S_TRACE);
+				if (keyCode == "MatchingType=All") { mixin(S_TRACE);
+					ws ~= _prop.msgs.searchErrorKeyCodeMatchingAll;
+				}
+				break;
+			}
+		}
+		if (_canDuplicate && _prop.sys.isRunaway(keyCodes)) { mixin(S_TRACE);
 			ws ~= .tryFormat(_prop.msgs.warningRunawayCard, _prop.sys.runaway);
 		}
 		if (_summ && _summ.legacy && _prop.looks.keyCodesMaxLegacy < keyCodes.length) { mixin(S_TRACE);

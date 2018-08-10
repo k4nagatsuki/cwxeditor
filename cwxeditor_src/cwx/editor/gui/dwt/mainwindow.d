@@ -3372,6 +3372,7 @@ public:
 						case MenuID.ExpandBack:
 						case MenuID.StopBGM:
 						case MenuID.PlayBGM:
+						case MenuID.NewEvent:
 						case MenuID.KeyCodeTiming:
 						case MenuID.KeyCodeTimingUse:
 						case MenuID.KeyCodeTimingSuccess:

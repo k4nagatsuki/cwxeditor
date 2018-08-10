@@ -195,6 +195,8 @@ public class FlexProps {
 	DialogParam!("toolBarCustomizeDialog", 650, 400) toolBarCustomDlg;
 	DialogParam!("importResultDialog", 400, 400) importResultDlg;
 	DialogParam!("scenarioLoadErrorsDialog", 300, 300) scenarioLoadErrorsDlg;
+	DialogParam!("eventIgnitionsDialog", 350, 300) eventIgnitionsDlg;
+	DialogParam!("eventIgnitionsWithRoundsDialog", 450, 300) eventIgnitionsWithRoundsDlg;
 	MenuProps menu;
 	FlexEtcProps etc;
 

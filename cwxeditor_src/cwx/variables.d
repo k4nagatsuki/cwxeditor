@@ -367,6 +367,7 @@ class FlexEtcProps : Properties {
 	auto toolsClassicEnginesSashR = Prop!(int)("toolsClassicEnginesSashR", 1);
 	auto selectionWidth = Prop!(int, true, true)("selectionWidth", 100);
 	auto keyCodeWidth = Prop!(int, true, true)("keyCodeWidth", 100);
+	auto roundWidth = Prop!(int, true, true)("roundWidth", 80);
 	auto scenarioPath = Prop!(string)("scenarioPath", "");
 	auto tempPath = Prop!(string)("tempPath", "temp");
 	auto backupPath = Prop!(string)("backupPath", "backup");
