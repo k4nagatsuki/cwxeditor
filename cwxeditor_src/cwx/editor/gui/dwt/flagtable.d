@@ -394,7 +394,7 @@ public:
 	/// dir = 設定するステップの親ディレクトリ。
 	/// step = 設定するステップ。新規の場合はnull。
 	this (Commons comm, Summary summ, Shell shell, FlagDir dir, Step step = null) { mixin(S_TRACE);
-		super(comm.prop, shell, false, comm.prop.msgs.dlgTitStep, comm.prop.images.step, true, comm.prop.var.stepDlg, true);		auto o = this;
+		super(comm.prop, shell, false, comm.prop.msgs.dlgTitStep, comm.prop.images.step, true, comm.prop.var.stepDlg, true);
 		_comm = comm;
 		_summ = summ;
 		_dir = dir;
@@ -1986,8 +1986,7 @@ private:
 	}
 public:
 	this (Commons comm, Props prop, UndoManager undo) { mixin(S_TRACE);
-		auto o = this;
-		_id = format("%08X", &o) ~ "-" ~ to!(string)(Clock.currTime());
+		_id = .objectIDValue(this);
 
 		_undo = undo;
 		_comm = comm;

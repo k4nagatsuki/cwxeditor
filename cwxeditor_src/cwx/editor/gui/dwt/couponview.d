@@ -626,8 +626,7 @@ class CouponView(CVType Type) : Composite {
 		super (parent, style);
 		_isHistoryView = isHistoryView;
 
-		auto o = this;
-		_id = format("%08X", &o) ~ "-" ~ to!(string)(Clock.currTime());
+		_id = .objectIDValue(this);
 
 		_readOnly = style & SWT.READ_ONLY;
 

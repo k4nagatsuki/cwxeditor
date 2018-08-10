@@ -1262,8 +1262,7 @@ private:
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ, CastCard card, bool readOnly) { mixin(S_TRACE);
 		assert (summ !is null);
-		auto o = this;
-		_id = format("%08X", &o) ~ "-" ~ to!(string)(Clock.currTime());
+		_id = .objectIDValue(this);
 		_comm = comm;
 		_summ = summ;
 		_card = card;

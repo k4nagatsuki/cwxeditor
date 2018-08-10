@@ -2660,8 +2660,7 @@ private:
 		_undo.max = _prop.var.etc.undoMaxMainView;
 	}
 	private void construct1(Commons comm, Props prop, Summary summ, OwnerType ownerType, CardType cardType, int style) { mixin(S_TRACE);
-		auto o = this;
-		_id = format("%08X", &o) ~ "-" ~ to!(string)(Clock.currTime());
+		_id = .objectIDValue(this);
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;

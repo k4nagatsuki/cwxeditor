@@ -650,19 +650,19 @@ private:
 		}
 	}
 
-	private SysTime _lastBackup;
+	private MonoTime _lastBackup;
 	void backupThr() { mixin(S_TRACE);
 		try { mixin(S_TRACE);
 			version (Console) {
 				debug std.stdio.writeln("Start Backup Thread");
 			}
-			_lastBackup = Clock.currTime();
+			_lastBackup = MonoTime.currTime();
 			_changeCount = 0;
 			while (!_quit) { mixin(S_TRACE);
 				if (summary) { mixin(S_TRACE);
 					if (_lastBackupSummary !is summary) { mixin(S_TRACE);
 						_changeCount = 0;
-						_lastBackup = Clock.currTime();
+						_lastBackup = MonoTime.currTime();
 						_lastBackupSummary = summary;
 					}
 					void backup() { mixin(S_TRACE);
@@ -678,11 +678,11 @@ private:
 								debug writeln("No Write Backup");
 							}
 						}
-						_lastBackup = Clock.currTime();
+						_lastBackup = MonoTime.currTime();
 						_changeCount = 0;
 					}
 					if (_prop.var.etc.backupIntervalType == BackupType.Time) { mixin(S_TRACE);
-						if (0 < _prop.var.etc.backupInterval && _lastBackup + dur!"minutes"(_prop.var.etc.backupInterval) <= Clock.currTime()) { mixin(S_TRACE);
+						if (0 < _prop.var.etc.backupInterval && _lastBackup + .dur!"minutes"(_prop.var.etc.backupInterval) <= MonoTime.currTime()) { mixin(S_TRACE);
 							backup();
 						}
 						_changeCount = 0;
@@ -690,7 +690,7 @@ private:
 						if (0 < _prop.var.etc.backupIntervalEdit && _prop.var.etc.backupIntervalEdit <= _changeCount) { mixin(S_TRACE);
 							backup();
 						}
-						_lastBackup = Clock.currTime();
+						_lastBackup = MonoTime.currTime();
 					}
 				}
 				core.thread.Thread.sleep(dur!"seconds"(1));
@@ -1041,7 +1041,7 @@ private:
 				summ.skinName = _prop.var.etc.defaultSkinName;
 			}
 			dStr ~= " - " ~ .text(__LINE__);
-			_lastBackup = Clock.currTime();
+			_lastBackup = MonoTime.currTime();
 			dStr ~= " - " ~ .text(__LINE__);
 			_dirWin.stopTrace();
 			dStr ~= " - " ~ .text(__LINE__);

@@ -603,16 +603,14 @@ public:
 	}
 	/// ルートディレクトリを生成する。
 	package this (CWXPath owner) { mixin(S_TRACE);
-		auto o = this;
-		_id = format("%08X", &o) ~ "-" ~ to!(string)(Clock.currTime());
+		_id = .objectIDValue(this);
 		_owner = owner;
 	}
 	/// サブディレクトリを生成する。
 	/// Params:
 	/// name = ディレクトリ名。
 	this (string name) { mixin(S_TRACE);
-		auto o = this;
-		_id = format("%08X", &o) ~ "-" ~ to!(string)(Clock.currTime());
+		_id = .objectIDValue(this);
 		_name = validName(name);
 	}
 	/// コピーコンストラクタ。

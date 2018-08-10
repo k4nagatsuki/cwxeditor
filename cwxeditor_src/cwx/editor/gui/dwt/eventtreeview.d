@@ -1606,8 +1606,7 @@ public:
 			void delegate(size_t[]) forceSel,
 			void delegate() refreshTopStart,
 			Composite contentsBoxArea, bool readOnly) { mixin(S_TRACE);
-		auto o = this;
-		_id = format("%08X", &o) ~ "-" ~ to!(string)(Clock.currTime());
+		_id = .objectIDValue(this);
 
 		_comm = comm;
 		_prop = prop;

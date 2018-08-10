@@ -502,8 +502,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// 型と後続テキストnameを指定してインスタンスを生成。
 	this (CType type, string name) { mixin(S_TRACE);
 		static ulong idCount = 0;
-		auto o = this;
-		_id = format("%08X", &o) ~ "-" ~ to!(string)(Clock.currTime()) ~ "-" ~ to!string(idCount);
+		_id = .objectIDValue(this) ~ "-" ~ .to!string(idCount);
 		idCount++;
 		_type = type;
 		_name = new SimpleTextHolder("name");
@@ -3065,8 +3064,7 @@ private:
 	this () { mixin(S_TRACE);
 		_suc = new SUseCounter;
 		static ulong idCount = 0;
-		auto o = this;
-		_id = format("%08X", &o) ~ "-" ~ to!(string)(Clock.currTime()) ~ "-" ~ to!string(idCount);
+		_id = .objectIDValue(this) ~ "-" ~ to!string(idCount);
 		idCount++;
 	}
 public:

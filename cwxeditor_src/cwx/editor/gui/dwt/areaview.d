@@ -3081,8 +3081,7 @@ public:
 	this(Commons comm, Props prop, Summary summ, A area, Composite parent, TopLevelPanel tlp, bool showInheritBacks, UndoManager undo, bool readOnly) { mixin(S_TRACE);
 		super(parent, SWT.NONE);
 		_readOnly = readOnly ? SWT.READ_ONLY : SWT.NONE;
-		auto o = this;
-		_id = format("%08X", &o) ~ "-" ~ to!(string)(Clock.currTime());
+		_id = .objectIDValue(this);
 		_prop = prop;
 		_summ = summ;
 		_area = area;

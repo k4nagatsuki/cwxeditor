@@ -190,8 +190,7 @@ private:
 
 	this (string sPath) { mixin(S_TRACE);
 		_sPath = sPath;
-		auto o = this;
-		_id = format("%08X", &o) ~ "-" ~ to!(string)(Clock.currTime());
+		_id = .objectIDValue(this);
 		_uc = new UseCounter;
 		_froot = new FlagDir(this);
 		_froot.changeHandler = &changeHandler;

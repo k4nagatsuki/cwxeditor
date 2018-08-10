@@ -527,8 +527,7 @@ class KeyCodeView : Composite {
 	this (Commons comm, Summary summ, Composite parent, int style, bool canDuplicate, bool withIgnitionType, bool delegate() catchMod) { mixin(S_TRACE);
 		super (parent, style);
 
-		auto o = this;
-		_id = format("%08X", &o) ~ "-" ~ to!(string)(Clock.currTime());
+		_id = .objectIDValue(this);
 
 		_readOnly = style & SWT.READ_ONLY;
 		_comm = comm;

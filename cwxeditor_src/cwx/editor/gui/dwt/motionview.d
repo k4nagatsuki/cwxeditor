@@ -1032,8 +1032,7 @@ private:
 public:
 	this (Commons comm, Props prop, Summary summ, Composite parent, int style, UndoManager undo = null) { mixin(S_TRACE);
 		super(parent, SWT.NONE);
-		auto o = this;
-		_id = format("%08X", &o) ~ "-" ~ to!(string)(Clock.currTime());
+		_id = .objectIDValue(this);
 		_readOnly = style & SWT.READ_ONLY;
 		_comm = comm;
 		_prop = prop;

@@ -371,6 +371,13 @@ string appDataDir(string appPath) { mixin(S_TRACE);
 	}
 }
 
+/// oを一意に特定するためのID値を生成する。
+@property
+string objectIDValue(Object o) { mixin(S_TRACE);
+	auto curr = MonoTime.currTime();
+	return .format("%08X-%s/%s", &o, curr.ticks, curr.ticksPerSecond);
+}
+
 static const B_IMG = "binaryimage://";
 @property
 @safe

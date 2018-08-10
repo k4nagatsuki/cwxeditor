@@ -1465,8 +1465,7 @@ private:
 public:
 	this (Commons comm, Props prop, Summary summ, EventTreeOwner area, Composite parent, UndoManager undo, bool readOnly) { mixin(S_TRACE);
 		super (parent, SWT.NONE);
-		auto o = this;
-		_id = format("%08X", &o) ~ "-" ~ to!(string)(Clock.currTime());
+		_id = .objectIDValue(this);
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;

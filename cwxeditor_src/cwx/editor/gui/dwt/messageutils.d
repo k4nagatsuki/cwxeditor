@@ -955,8 +955,7 @@ private:
 	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
-		auto o = this;
-		_id = format("%08X", &o) ~ "-" ~ to!(string)(Clock.currTime());
+		_id = .objectIDValue(this);
 		super(comm, prop, shell, summ, CType.TALK_DIALOG, parent, evt, prop.var.speakDlg);
 	}
 

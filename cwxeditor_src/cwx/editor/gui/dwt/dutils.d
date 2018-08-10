@@ -297,15 +297,15 @@ private:
 	}
 	class Starter {
 		private Item _itm;
-		private SysTime _time;
+		private MonoTime _time;
 		this () { mixin(S_TRACE);
-			_time = Clock.currTime() + dur!"msecs"(_display.getDoubleClickTime());
+			_time = MonoTime.currTime() + .dur!"msecs"(_display.getDoubleClickTime());
 			_itm = _selection();
 			_start = true;
 		}
 		void run() { mixin(S_TRACE);
-			while (_start && Clock.currTime() <= _time) { mixin(S_TRACE);
-				core.thread.Thread.sleep(dur!("msecs")(1));
+			while (_start && MonoTime.currTime() <= _time) { mixin(S_TRACE);
+				core.thread.Thread.sleep(.dur!("msecs")(1));
 			}
 			if (_start) { mixin(S_TRACE);
 				_display.asyncExec(new StartEdit(_itm));

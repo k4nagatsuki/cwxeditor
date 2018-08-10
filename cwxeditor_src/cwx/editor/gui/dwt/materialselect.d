@@ -797,7 +797,7 @@ class MaterialSelect(MtType Type, D, C) {
 			}
 		}
 		private void playThr() { mixin(S_TRACE);
-			SysTime last = SysTime.min;
+			auto last = MonoTime.min;
 			bool playing = true;
 			auto isPlaying = new class Runnable {
 				override void run() { mixin(S_TRACE);
@@ -806,12 +806,12 @@ class MaterialSelect(MtType Type, D, C) {
 			};
 			while (_playing && playing) { mixin(S_TRACE);
 				_display.asyncExec(isPlaying);
-				auto cur = Clock.currTime();
-				if (cur < last || (last + dur!"msecs"(100)) <= cur) { mixin(S_TRACE);
+				auto cur = MonoTime.currTime();
+				if (cur < last || (last + .dur!"msecs"(100)) <= cur) { mixin(S_TRACE);
 					last = cur;
 					_display.asyncExec(_updatePlayBar);
 				}
-				core.thread.Thread.sleep(dur!"msecs"(16));
+				core.thread.Thread.sleep(.dur!"msecs"(16));
 			}
 			stopBGM();
 		}
