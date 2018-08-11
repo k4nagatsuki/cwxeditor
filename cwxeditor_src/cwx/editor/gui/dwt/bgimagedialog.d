@@ -551,7 +551,7 @@ private:
 
 		auto ca = _prevPanel.getClientArea();
 		if (_preview) _preview.dispose();
-		_preview = new PileImage(wrapReturnCode(_text.getText()), _fontName.getText(),
+		_preview = new PileImage(wrapReturnCode(_text.getText()), _prop.drawingScale, _fontName.getText(),
 			_size.getSelection(), tColor, _bold.getSelection(), _italic.getSelection(),
 			_underline.getSelection(), _strike.getSelection(), _vertical.getSelection(),
 			bType, bColor, _borderingWidth.getSelection(), ca.x, ca.y, ca.width, ca.height);
@@ -906,7 +906,7 @@ private:
 		_color2.enabled = GradientDir.None !is _gradientDirs[_gradientDir.getSelectionIndex()];
 		auto ca = _prevPanel.getClientArea();
 		if (_preview) _preview.dispose();
-		_preview = new PileImage(ImageType.ColorFilter, ca.x, ca.y, ca.width, ca.height, false);
+		_preview = new PileImage(ImageType.ColorFilter, _prop.drawingScale, ca.x, ca.y, ca.width, ca.height, false);
 		_preview.blendMode = getRadioValue(_blendMode);
 		_preview.gradientDir = _gradientDirs[_gradientDir.getSelectionIndex()];
 		auto rgb1 = _color1.color;

@@ -422,7 +422,6 @@ class MaterialSelect(MtType Type, D, C) {
 			if (_loopCount && _loopCount.getSelection() != loops && path != "" && !_prop.isTargetVersion(_summ, "1")) { mixin(S_TRACE);
 				r ~= _prop.msgs.warningLoopCount;
 			}
-			// TODO
 			return r;
 		}
 
@@ -1547,9 +1546,10 @@ private:
 	}
 	string[] targs(string path, bool forceRefresh, bool subThr) { mixin(S_TRACE);
 		string[] r;
+		auto isTbl = !_summ || !path.isSubDirectory(_summ.scenarioPath);
 		foreach (f; targsImpl(path, forceRefresh)) { mixin(S_TRACE);
 			static if (MtType.CARD == Type || MtType.BG_IMG == Type) {
-				if (!_summ || (!_summ.legacy && _loadScaledImage ? _loadScaledImage() : _summ.loadScaledImage)) { mixin(S_TRACE);
+				if (isTbl || !_summ || (!_summ.legacy && _loadScaledImage ? _loadScaledImage() : _summ.loadScaledImage)) { mixin(S_TRACE);
 					// スケーリングされたイメージファイルを除外
 					if (f.noScaledPath != "") continue;
 				}

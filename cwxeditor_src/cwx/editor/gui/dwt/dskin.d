@@ -71,18 +71,18 @@ Skin[string] skinTable(const(Props) prop) { mixin(S_TRACE);
 	return Skin.table(prop.parent, prop.enginePath);
 }
 
-private static ImageData imgd(string path, MaskType maskType) { mixin(S_TRACE);
-	mixin FileCache!(ImageData);
+private static ImageDataWithScale imgd(string path, uint targetScale, MaskType maskType) { mixin(S_TRACE);
+	mixin FileCache!(ImageDataWithScale);
 	auto ca = cache(path);
 	if (ca) { mixin(S_TRACE);
 		return ca.value;
 	} else { mixin(S_TRACE);
-		auto data = loadImage(path, maskType is MaskType.NormalMask);
-		if (1 < data.width && 1 < data.height) { mixin(S_TRACE);
+		auto data = loadImageWithScale(path, targetScale, maskType is MaskType.NormalMask);
+		if (data.valid) { mixin(S_TRACE);
 			if (maskType is MaskType.Mask1_1) { mixin(S_TRACE);
-				data.transparentPixel = data.getPixel(1, 1);
+				data.baseData.transparentPixel = data.baseData.getPixel(1, 1);
 			} else if (maskType is MaskType.RightMask) { mixin(S_TRACE);
-				data.transparentPixel = data.getPixel(data.width - 1, 0);
+				data.baseData.transparentPixel = data.baseData.getPixel(data.baseData.width - 1, 0);
 			}
 		}
 		putCache(path, data);
@@ -98,7 +98,7 @@ version (Windows) {
 		immutable DWORD LOAD_WITH_ALTERED_SEARCH_PATH = 0x8;
 		HBITMAP LoadBitmapW(HINSTANCE, LPCWSTR);
 		const DWORD LR_DEFAULTSIZE = 0x0040;
-		LPWSTR MAKEINTRESOURCEW(WORD w) {return cast(LPWSTR) w;}
+		LPWSTR MAKEINTRESOURCEW(WORD w) { return cast(LPWSTR) w; }
 		struct SHFILEINFO {
 			HICON hIcon = null;
 			INT iIcon;
@@ -154,22 +154,22 @@ version (Windows) {
 			return data;
 		}
 	}
-	private static ImageData imgr(string legacyEngine, string resName, MaskType maskType) { mixin(S_TRACE);
-		mixin FileCache!(ImageData);
-		void setMask(ImageData data) { mixin(S_TRACE);
-			if (data.depth == 32 && data.alphaData) return;
+	private static ImageDataWithScale imgr(string legacyEngine, string resName, uint targetScale, MaskType maskType) { mixin(S_TRACE);
+		mixin FileCache!(ImageDataWithScale);
+		void setMask(ImageDataWithScale data) { mixin(S_TRACE);
+			if (data.baseData.depth == 32 && data.baseData.alphaData) return;
 			final switch (maskType) {
 			case MaskType.NoMask:
 				break;
 			case MaskType.NormalMask:
-				data.transparentPixel = data.getPixel(0, 0);
+				data.baseData.transparentPixel = data.baseData.getPixel(0, 0);
 				break;
 			case MaskType.RightMask:
-				data.transparentPixel = data.getPixel(data.width - 1, 0);
+				data.baseData.transparentPixel = data.baseData.getPixel(data.baseData.width - 1, 0);
 				break;
 			case MaskType.Mask1_1:
-				if (1 < data.width && 1 < data.height) { mixin(S_TRACE);
-					data.transparentPixel = data.getPixel(1, 1);
+				if (1 < data.baseData.width && 1 < data.baseData.height) { mixin(S_TRACE);
+					data.baseData.transparentPixel = data.baseData.getPixel(1, 1);
 				}
 				break;
 			}
@@ -182,7 +182,7 @@ version (Windows) {
 			if (ca) { mixin(S_TRACE);
 				return ca.value;
 			} else { mixin(S_TRACE);
-				auto data = loadImage(oPath, false);
+				auto data = loadImageWithScale(oPath, targetScale, false);
 				setMask(data);
 				putCache(oPath, data);
 				return data;
@@ -207,9 +207,10 @@ version (Windows) {
 			auto img = Image.win32_new(Display.getCurrent(), SWT.BITMAP, hbmp);
 			auto data = img.getImageData();
 			img.destroy();
-			setMask(data);
-			putCache(path, data);
-			return data;
+			auto sData = new ImageDataWithScale(data, 1);
+			setMask(sData);
+			putCache(path, sData);
+			return sData;
 		}
 	}
 }
@@ -218,37 +219,39 @@ version (Windows) {
 /// Params:
 /// path = ファイルパス。
 /// Returns: 背景画像。背景画像でないならnull。
-ImageData loadBgImage(Props prop, in Skin skin, in Summary summ, string path) { mixin(S_TRACE);
- 	return skin.isBgImage(path) ? loadImage(prop, skin, summ, path) : null;
+ImageDataWithScale loadBgImage(Props prop, in Skin skin, in Summary summ, string path, uint targetScale) { mixin(S_TRACE);
+ 	return skin.isBgImage(path) ? loadImageWithScale(prop, skin, summ, path, targetScale) : null;
 }
 
-private ImageData createImg(T ...)(string lEnginePath, string resName,
+private ImageDataWithScale createImg(T ...)(string lEnginePath, string resName, uint targetScale,
 		string delegate(out MaskType, T) res, T t) { mixin(S_TRACE);
 	MaskType maskType;
 	auto path = res(maskType, t);
 	version (Windows) {
 		if (lEnginePath.length && resName.length) { mixin(S_TRACE);
-			auto img = imgr(lEnginePath, resName, maskType);
+			auto img = imgr(lEnginePath, resName, targetScale, maskType);
 			if (img) return img;
 		}
 	}
-	return imgd(path, maskType);
+	return imgd(path, targetScale, maskType);
 }
 
-ImageData summary(Skin skin) {return createImg("", "", &skin.resSummary);}
+ImageDataWithScale summary(Skin skin, uint targetScale) { return createImg("", "", targetScale, &skin.resSummary); }
 
-ImageData menuCard(Skin skin) {return createImg(skin.legacyEngine, "CARD_NORMAL", &skin.resMenuCard);}
-ImageData castCard(Skin skin) {return createImg(skin.legacyEngine, "CARD_LARGE", &skin.resCastCard);}
-ImageData castCardInjury(Skin skin) {return createImg(skin.legacyEngine, "CARD_INJURY", &skin.resCastCardInjury);}
-ImageData castCardDanger(Skin skin) {return createImg(skin.legacyEngine, "CARD_DANGER", &skin.resCastCardDanger);}
-ImageData castCardFaint(Skin skin) {return createImg(skin.legacyEngine, "CARD_FAINT", &skin.resCastCardFaint);}
-ImageData castCardBind(Skin skin) {return createImg(skin.legacyEngine, "CARD_BIND", &skin.resCastCardBind);}
-ImageData castCardParaly(Skin skin) {return createImg(skin.legacyEngine, "CARD_PARALY", &skin.resCastCardParaly);}
-ImageData castCardPetrif(Skin skin) {return createImg(skin.legacyEngine, "CARD_PETRIF", &skin.resCastCardPetrif);}
-ImageData castCardSleep(Skin skin) {return createImg(skin.legacyEngine, "CARD_SLEEP", &skin.resCastCardSleep);}
-ImageData lifeBar(Skin skin) {return createImg(skin.legacyEngine, "STATUS_LIFEBAR", &skin.resLifeBar);}
-ImageData lifeGuage(Skin skin) {return createImg(skin.legacyEngine, "STATUS_LIFEGUAGE", &skin.resLifeGuage);}
-ImageData enhanceUp(Skin skin, Enhance enh) { mixin(S_TRACE);
+ImageDataWithScale menuCard(Skin skin, uint targetScale) { return createImg(skin.legacyEngine, "CARD_NORMAL", targetScale, &skin.resMenuCard); }
+ImageDataWithScale castCard(Skin skin, uint targetScale) { return createImg(skin.legacyEngine, "CARD_LARGE", targetScale, &skin.resCastCard); }
+ImageDataWithScale castCardInjury(Skin skin, uint targetScale) { return createImg(skin.legacyEngine, "CARD_INJURY", targetScale, &skin.resCastCardInjury); }
+ImageDataWithScale castCardDanger(Skin skin, uint targetScale) { return createImg(skin.legacyEngine, "CARD_DANGER", targetScale, &skin.resCastCardDanger); }
+ImageDataWithScale castCardFaint(Skin skin, uint targetScale) { return createImg(skin.legacyEngine, "CARD_FAINT", targetScale, &skin.resCastCardFaint); }
+ImageDataWithScale castCardBind(Skin skin, uint targetScale) { return createImg(skin.legacyEngine, "CARD_BIND", targetScale, &skin.resCastCardBind); }
+ImageDataWithScale castCardParaly(Skin skin, uint targetScale) { return createImg(skin.legacyEngine, "CARD_PARALY", targetScale, &skin.resCastCardParaly); }
+ImageDataWithScale castCardPetrif(Skin skin, uint targetScale) { return createImg(skin.legacyEngine, "CARD_PETRIF", targetScale, &skin.resCastCardPetrif); }
+ImageDataWithScale castCardSleep(Skin skin, uint targetScale) { return createImg(skin.legacyEngine, "CARD_SLEEP", targetScale, &skin.resCastCardSleep); }
+ImageDataWithScale lifeBar(Skin skin, uint targetScale) { return createImg(skin.legacyEngine, "STATUS_LIFEBAR", targetScale, &skin.resLifeBar); }
+ImageDataWithScale lifeGuage(Skin skin, uint targetScale) { return createImg(skin.legacyEngine, "STATUS_LIFEGUAGE", targetScale, &skin.resLifeGuage); }
+ImageDataWithScale lifeGuage2(Skin skin, uint targetScale) { return createImg("", "", targetScale, &skin.resLifeGuage2); }
+ImageDataWithScale lifeGuage2Mask(Skin skin, uint targetScale) { return createImg("", "", targetScale, &skin.resLifeGuage2Mask); }
+ImageDataWithScale enhanceUp(Skin skin, uint targetScale, Enhance enh) { mixin(S_TRACE);
 	string res;
 	switch (enh) {
 	case Enhance.ACTION: res = "STATUS_UP0"; break;
@@ -257,9 +260,9 @@ ImageData enhanceUp(Skin skin, Enhance enh) { mixin(S_TRACE);
 	case Enhance.DEFENSE: res = "STATUS_UP3"; break;
 	default: assert (0);
 	}
-	return createImg(skin.legacyEngine, res, &skin.resEnhanceUp, enh);
+	return createImg(skin.legacyEngine, res, targetScale, &skin.resEnhanceUp, enh);
 }
-ImageData enhanceDown(Skin skin, Enhance enh) { mixin(S_TRACE);
+ImageDataWithScale enhanceDown(Skin skin, uint targetScale, Enhance enh) { mixin(S_TRACE);
 	string res;
 	switch (enh) {
 	case Enhance.ACTION: res = "STATUS_DOWN0"; break;
@@ -268,9 +271,9 @@ ImageData enhanceDown(Skin skin, Enhance enh) { mixin(S_TRACE);
 	case Enhance.DEFENSE: res = "STATUS_DOWN3"; break;
 	default: assert (0);
 	}
-	return createImg(skin.legacyEngine, res, &skin.resEnhanceDown, enh);
+	return createImg(skin.legacyEngine, res, targetScale, &skin.resEnhanceDown, enh);
 }
-ImageData mentality(Skin skin, Mentality mtly) { mixin(S_TRACE);
+ImageDataWithScale mentality(Skin skin, uint targetScale, Mentality mtly) { mixin(S_TRACE);
 	string res;
 	switch (mtly) {
 	case Mentality.NORMAL: res = "STATUS_MIND0"; break;
@@ -281,46 +284,46 @@ ImageData mentality(Skin skin, Mentality mtly) { mixin(S_TRACE);
 	case Mentality.PANIC: res = "STATUS_MIND5"; break;
 	default: assert (0);
 	}
-	return createImg(skin.legacyEngine, res, &skin.resMentality, mtly);
+	return createImg(skin.legacyEngine, res, targetScale, &skin.resMentality, mtly);
 }
-ImageData bind(Skin skin) {return createImg(skin.legacyEngine, "STATUS_MAGIC0", &skin.resBind);}
-ImageData silence(Skin skin) {return createImg(skin.legacyEngine, "STATUS_MAGIC1", &skin.resSilence);}
-ImageData faceUp(Skin skin) {return createImg(skin.legacyEngine, "STATUS_MAGIC2", &skin.resFaceUp);}
-ImageData antiMagic(Skin skin) {return createImg(skin.legacyEngine, "STATUS_MAGIC3", &skin.resAntiMagic);}
-ImageData paralyze(Skin skin) {return createImg(skin.legacyEngine, "STATUS_BODY1", &skin.resParalyze);}
-ImageData poison(Skin skin) {return createImg(skin.legacyEngine, "STATUS_BODY0", &skin.resPoison);}
-ImageData summon(Skin skin) {return createImg(skin.legacyEngine, "STATUS_SUMMON", &skin.resSummon);}
+ImageDataWithScale bind(Skin skin, uint targetScale) { return createImg(skin.legacyEngine, "STATUS_MAGIC0", targetScale, &skin.resBind); }
+ImageDataWithScale silence(Skin skin, uint targetScale) { return createImg(skin.legacyEngine, "STATUS_MAGIC1", targetScale, &skin.resSilence); }
+ImageDataWithScale faceUp(Skin skin, uint targetScale) { return createImg(skin.legacyEngine, "STATUS_MAGIC2", targetScale, &skin.resFaceUp); }
+ImageDataWithScale antiMagic(Skin skin, uint targetScale) { return createImg(skin.legacyEngine, "STATUS_MAGIC3", targetScale, &skin.resAntiMagic); }
+ImageDataWithScale paralyze(Skin skin, uint targetScale) { return createImg(skin.legacyEngine, "STATUS_BODY1", targetScale, &skin.resParalyze); }
+ImageDataWithScale poison(Skin skin, uint targetScale) { return createImg(skin.legacyEngine, "STATUS_BODY0", targetScale, &skin.resPoison); }
+ImageDataWithScale summon(Skin skin, uint targetScale) { return createImg(skin.legacyEngine, "STATUS_SUMMON", targetScale, &skin.resSummon); }
 
-ImageData itemCard(Skin skin) {return createImg(skin.legacyEngine, "CARD_ITEM", &skin.resItemCard);}
-ImageData skillCard(Skin skin) {return createImg(skin.legacyEngine, "CARD_SKILL", &skin.resSkillCard);}
-ImageData beastCard(Skin skin) {return createImg(skin.legacyEngine, "CARD_BEAST", &skin.resBeastCard);}
-ImageData optionCard(Skin skin) {return createImg(skin.legacyEngine, "CARD_OPTION", &skin.resOptionCard);}
-ImageData infoCard(Skin skin) {return createImg(skin.legacyEngine, "CARD_INFO", &skin.resInfoCard);}
-ImageData cardHold(Skin skin) {return createImg(skin.legacyEngine, "SIGN_HOLD", &skin.resCardHold);}
-ImageData cardPenalty(Skin skin) {return createImg(skin.legacyEngine, "SIGN_PENALTY", &skin.resCardPenalty);}
+ImageDataWithScale itemCard(Skin skin, uint targetScale) { return createImg(skin.legacyEngine, "CARD_ITEM", targetScale, &skin.resItemCard); }
+ImageDataWithScale skillCard(Skin skin, uint targetScale) { return createImg(skin.legacyEngine, "CARD_SKILL", targetScale, &skin.resSkillCard); }
+ImageDataWithScale beastCard(Skin skin, uint targetScale) { return createImg(skin.legacyEngine, "CARD_BEAST", targetScale, &skin.resBeastCard); }
+ImageDataWithScale optionCard(Skin skin, uint targetScale) { return createImg(skin.legacyEngine, "CARD_OPTION", targetScale, &skin.resOptionCard); }
+ImageDataWithScale infoCard(Skin skin, uint targetScale) { return createImg(skin.legacyEngine, "CARD_INFO", targetScale, &skin.resInfoCard); }
+ImageDataWithScale cardHold(Skin skin, uint targetScale) { return createImg(skin.legacyEngine, "SIGN_HOLD", targetScale, &skin.resCardHold); }
+ImageDataWithScale cardPenalty(Skin skin, uint targetScale) { return createImg(skin.legacyEngine, "SIGN_PENALTY", targetScale, &skin.resCardPenalty); }
 
-ImageData rare(Skin skin) {return createImg(skin.legacyEngine, "SIGN_RARE", &skin.resRare);}
-ImageData premier(Skin skin) {return createImg(skin.legacyEngine, "SIGN_PREMIER", &skin.resPremier);}
+ImageDataWithScale rare(Skin skin, uint targetScale) { return createImg(skin.legacyEngine, "SIGN_RARE", targetScale, &skin.resRare); }
+ImageDataWithScale premier(Skin skin, uint targetScale) { return createImg(skin.legacyEngine, "SIGN_PREMIER", targetScale, &skin.resPremier); }
 
-ImageData aptVeryHigh(Skin skin) {return createImg(skin.legacyEngine, "STONE_HAND3", &skin.resAptVeryHigh);}
-ImageData aptHigh(Skin skin) {return createImg(skin.legacyEngine, "STONE_HAND2", &skin.resAptHigh);}
-ImageData aptNormal(Skin skin) {return createImg(skin.legacyEngine, "STONE_HAND1", &skin.resAptNormal);}
-ImageData aptLow(Skin skin) {return createImg(skin.legacyEngine, "STONE_HAND0", &skin.resAptLow);}
+ImageDataWithScale aptVeryHigh(Skin skin, uint targetScale) { return createImg(skin.legacyEngine, "STONE_HAND3", targetScale, &skin.resAptVeryHigh); }
+ImageDataWithScale aptHigh(Skin skin, uint targetScale) { return createImg(skin.legacyEngine, "STONE_HAND2", targetScale, &skin.resAptHigh); }
+ImageDataWithScale aptNormal(Skin skin, uint targetScale) { return createImg(skin.legacyEngine, "STONE_HAND1", targetScale, &skin.resAptNormal); }
+ImageDataWithScale aptLow(Skin skin, uint targetScale) { return createImg(skin.legacyEngine, "STONE_HAND0", targetScale, &skin.resAptLow); }
 
-ImageData use0(Skin skin) {return createImg(skin.legacyEngine, "STONE_HAND5", &skin.resUse0);}
-ImageData use1(Skin skin) {return createImg(skin.legacyEngine, "STONE_HAND6", &skin.resUse1);}
-ImageData use2(Skin skin) {return createImg(skin.legacyEngine, "STONE_HAND7", &skin.resUse2);}
-ImageData use3(Skin skin) {return createImg(skin.legacyEngine, "STONE_HAND8", &skin.resUse3);}
-ImageData use4(Skin skin) {return createImg(skin.legacyEngine, "STONE_HAND9", &skin.resUse4);}
+ImageDataWithScale use0(Skin skin, uint targetScale) { return createImg(skin.legacyEngine, "STONE_HAND5", targetScale, &skin.resUse0); }
+ImageDataWithScale use1(Skin skin, uint targetScale) { return createImg(skin.legacyEngine, "STONE_HAND6", targetScale, &skin.resUse1); }
+ImageDataWithScale use2(Skin skin, uint targetScale) { return createImg(skin.legacyEngine, "STONE_HAND7", targetScale, &skin.resUse2); }
+ImageDataWithScale use3(Skin skin, uint targetScale) { return createImg(skin.legacyEngine, "STONE_HAND8", targetScale, &skin.resUse3); }
+ImageDataWithScale use4(Skin skin, uint targetScale) { return createImg(skin.legacyEngine, "STONE_HAND9", targetScale, &skin.resUse4); }
 
-private ImageData createImg(T ...)(string delegate(out MaskType, T) res, T t) { mixin(S_TRACE);
+private ImageDataWithScale createImg(T ...)(string delegate(out MaskType, T) res, T t) { mixin(S_TRACE);
 	MaskType maskType;
 	auto path = res(maskType, t);
 	return imgd(path, maskType);
 }
 
 /// 特殊文字の画像。
-ImageData spChar(Skin skin, dchar c) { mixin(S_TRACE);
+ImageDataWithScale spChar(Skin skin, dchar c, uint targetScale) { mixin(S_TRACE);
 	string res;
 	switch (c) {
 	case 'A', 'a': res = "FONT_ANGRY"; break;
@@ -343,7 +346,7 @@ ImageData spChar(Skin skin, dchar c) { mixin(S_TRACE);
 	case 'Z', 'z': res = "FONT_ZAP"; break;
 	default: res = "";
 	}
-	return createImg(skin.legacyEngine, res, delegate string (out MaskType maskType) { mixin(S_TRACE);
+	return createImg(skin.legacyEngine, res, targetScale, delegate string (out MaskType maskType) { mixin(S_TRACE);
 		auto p = c in skin.spChars;
 		if (p) { mixin(S_TRACE);
 			maskType = MaskType.NormalMask;

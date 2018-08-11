@@ -99,6 +99,11 @@ class ImageSelect(MtType Type, C : Control = Table) {
 	/// 画像の更新時に呼び出される。
 	void delegate()[] updateImageEvent;
 
+	/// レイヤを追加した時のデフォルトアイテムを返す。
+	/// このデリゲートを設定しなかった場合は
+	/// new CardImage("", CardImagePosition.Default)がデフォルトになる。
+	CardImage delegate() createDefaultItem = null;
+
 public:
 	/// Params:
 	/// parent = 親。
@@ -191,8 +196,10 @@ public:
 				.listener(_image, SWT.Dispose, { mixin(S_TRACE);
 					foreach (img; _img) { mixin(S_TRACE);
 						if (img) { mixin(S_TRACE);
-							img.data[] = 0;
-							destroy(img.data);
+							foreach (data; img.allData) {mixin(S_TRACE);
+								data.data[] = 0;
+								destroy(data.data);
+							}
 						}
 					}
 					_img = [];
@@ -559,7 +566,7 @@ public:
 		_msel.loadScaledImage = loadScaledImage;
 	}
 	void refreshList() { mixin(S_TRACE);
-		_msel.refreshList(false, true);
+		_msel.refreshList(true, false);
 	}
 
 	@property
@@ -723,8 +730,10 @@ private:
 				if (_msel.paths.length < _paintedPaths.length) { mixin(S_TRACE);
 					foreach (i; _msel.paths.length .. _paintedPaths.length) { mixin(S_TRACE);
 						if (_img[i]) { mixin(S_TRACE);
-							_img[i].data[] = 0;
-							destroy(_img[i].data);
+							foreach (data; _img[i].allData) { mixin(S_TRACE);
+								data.data[] = 0;
+								destroy(data.data);
+							}
 						}
 					}
 				}
@@ -736,17 +745,26 @@ private:
 			} else static if (Type == MtType.BG_IMG) {
 				_paintedPaths.length = 1;
 				_img.length = 1;
-				drawImage(e.gc, 0, filePath, _defPosType, _insets);
+				auto isSkinMaterial = false;
+				auto isEngineMaterial = false;
+				auto file = summSkin.findImagePathF(this.outer.images, _summ ? _summ.scenarioPath : "", _summ ? _summ.dataVersion : LATEST_VERSION,
+					isSkinMaterial, isEngineMaterial);
+				if (file != "") { mixin(S_TRACE);
+					drawImage(e.gc, 0, file, !(isSkinMaterial || isEngineMaterial), _defPosType, _insets);
+				}
 			} else static assert (0);
 		}
 		private void drawImage(GC gc, size_t i, CardImage path) { mixin(S_TRACE);
 			final switch (path.type) {
 			case CardImageType.File:
-				auto file = summSkin.findImagePath(path.path, _summ ? _summ.scenarioPath : "", _summ ? _summ.dataVersion : LATEST_VERSION);
+				auto isSkinMaterial = false;
+				auto isEngineMaterial = false;
+				auto file = summSkin.findImagePathF(path.path, _summ ? _summ.scenarioPath : "", _summ ? _summ.dataVersion : LATEST_VERSION,
+					isSkinMaterial, isEngineMaterial);
 				if (file != "") { mixin(S_TRACE);
 					auto posType = path.positionType;
 					if (posType is CardImagePosition.Default) posType = _defPosType;
-					drawImage(gc, i, file, posType, _insets);
+					drawImage(gc, i, file, !(isSkinMaterial || isEngineMaterial), posType, _insets);
 				}
 				break;
 			case CardImageType.PCNumber:
@@ -763,41 +781,41 @@ private:
 				case Talker.RANDOM:
 				case Talker.VALUED:
 					_paintedPaths[i] = "";
-					drawImage(gc, _prop.images.talker(path.talker).getImageData(), CardImagePosition.Center, _insets);
+					auto imgData = new ImageDataWithScale(_prop.images.talker(path.talker).getImageData(), .dpiMuls);
+					drawImage(gc, imgData, CardImagePosition.Center, _insets);
 					break;
 				case Talker.CARD:
 					_paintedPaths[i] = "";
-					drawImage(gc, menuCard(summSkin), CardImagePosition.Center, CInsets(0, 0, 0, 0));
+					drawImage(gc, .menuCard(summSkin, _prop.drawingScale), CardImagePosition.Center, CInsets(0, 0, 0, 0));
 					break;
 				}
 				break;
 			}
 		}
-		private void drawImage(GC gc, size_t i, string path, CardImagePosition posType, CInsets insets) { mixin(S_TRACE);
-			ImageData imgData = null;
+		private void drawImage(GC gc, size_t i, string path, bool isScenarioFile, CardImagePosition posType, CInsets insets) { mixin(S_TRACE);
+			ImageDataWithScale imgData = null;
 			if (path !is null && path.length > 0) { mixin(S_TRACE);
 				if (!_paintedPaths[i] && _paintedPaths[i] == path) { mixin(S_TRACE);
 					imgData = _img[i];
 				} else { mixin(S_TRACE);
 					_paintedPaths[i] = path;
-					imgData = loadImage(_prop, summSkin, _summ, path, _mask);
+					auto drawingScale = isScenarioFile ? _prop.drawingScaleForImage(_summ) : _prop.drawingScale;
+					imgData = .loadImageWithScale(_prop, summSkin, _summ, path, drawingScale, _mask);
 					if (_img[i]) { mixin(S_TRACE);
-						_img[i].data[] = 0;
-						destroy(_img[i].data);
+						foreach (data; _img[i].allData) { mixin(S_TRACE);
+							data.data[] = 0;
+							destroy(data.data);
+						}
 					}
 					_img[i] = imgData;
 				}
 			}
 			drawImage(gc, imgData, posType, insets);
 		}
-		private void drawImage(GC gc, ImageData imgData, CardImagePosition posType, CInsets insets) { mixin(S_TRACE);
+		private void drawImage(GC gc, ImageDataWithScale imgData, CardImagePosition posType, CInsets insets) { mixin(S_TRACE);
 			if (!imgData) return;
-			auto img = new Image(Display.getCurrent(), imgData);
+			auto img = new Image(Display.getCurrent(), imgData.scaled(_prop.var.etc.imageScale));
 			auto b = img.getBounds();
-			b.x = _prop.s(b.x);
-			b.y = _prop.s(b.y);
-			b.width = _prop.s(b.width);
-			b.height = _prop.s(b.height);
 			auto b2 = img.getBounds();
 			auto area = _image.getClientArea();
 			static if (Type is MtType.CARD) {
@@ -805,11 +823,11 @@ private:
 				case CardImagePosition.Center:
 					b.x = (area.width - b.width) / 2;
 					b.y = (area.height - b.height) / 2;
-					gc.drawImage(img, 0, 0, b2.width, b2.height,
+					gc.drawImage(img, _prop.s(0), _prop.s(0), b2.width, b2.height,
 						b.x, b.y, b.width, b.height);
 					break;
 				case CardImagePosition.TopLeft:
-					gc.drawImage(img, 0, 0, b2.width, b2.height,
+					gc.drawImage(img, _prop.s(0), _prop.s(0), b2.width, b2.height,
 						insets.w, insets.n, b.width, b.height);
 					break;
 				case CardImagePosition.Default:
@@ -823,7 +841,7 @@ private:
 				}
 				b.x = (area.width - b.width) / 2;
 				b.y = (area.height - b.height) / 2;
-				gc.drawImage(img, 0, 0, b2.width, b2.height,
+				gc.drawImage(img, _prop.s(0), _prop.s(0), b2.width, b2.height,
 					b.x, b.y, b.width, b.height);
 			}
 			img.dispose();
@@ -856,6 +874,7 @@ private:
 					return;
 				}
 				_layers = new ImageLayerWindow(_comm, _summ, _mask, _readOnly != 0, _layerButton, _saveName, _undo, &store);
+				_layers.list.createDefaultItem = createDefaultItem;
 				auto cloc = Display.getCurrent().getCursorLocation();
 				cloc.x++;
 				cloc.y++;
@@ -902,7 +921,7 @@ private:
 	bool _mask = true;
 	void delegate() _refresh;
 	int _oldDirSel = -1;
-	private ImageData[] _img = [];
+	private ImageDataWithScale[] _img = [];
 	static if (Type is MtType.CARD) {
 		Button _noCardSize;
 		CardMode _cardMode = CardMode.Normal;

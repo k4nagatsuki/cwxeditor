@@ -12,7 +12,7 @@ import cwx.summary;
 import cwx.editor.gui.dwt.image;
 import cwx.editor.gui.dwt.properties;
 
-import std.algorithm : max;
+import std.algorithm : max, min;
 import std.conv;
 import std.file;
 import std.path;
@@ -185,6 +185,61 @@ public:
 		insets.s = s(insets.s);
 		insets.w = s(insets.w);
 		return insets;
+	}
+
+	/// 描画拡大率を返す。
+	@property
+	const
+	uint drawingScale() { mixin(S_TRACE);
+		return .max(1u, .min(var.etc.imageScale, var.etc.drawingScale));
+	}
+	/// シナリオのイメージスケーリング有無に応じた描画拡大率を返す。
+	const
+	uint drawingScaleForImage(in Summary summ) { mixin(S_TRACE);
+		return !summ || summ.loadScaledImage ? drawingScale : 1;
+	}
+
+	const
+	int ds(int s) { mixin(S_TRACE);
+		return s * drawingScale;
+	}
+	/// ditto
+	const
+	CPoint ds(CPoint point) { mixin(S_TRACE);
+		point.x = ds(point.x);
+		point.y = ds(point.y);
+		return point;
+	}
+	/// ditto
+	const
+	CSize ds(CSize size) { mixin(S_TRACE);
+		size.width = ds(size.width);
+		size.height = ds(size.height);
+		return size;
+	}
+	/// ditto
+	const
+	CRect ds(CRect rect) { mixin(S_TRACE);
+		rect.x = ds(rect.x);
+		rect.y = ds(rect.y);
+		rect.width = ds(rect.width);
+		rect.height = ds(rect.height);
+		return rect;
+	}
+	/// ditto
+	const
+	CInsets ds(CInsets insets) { mixin(S_TRACE);
+		insets.n = ds(insets.n);
+		insets.e = ds(insets.e);
+		insets.s = ds(insets.s);
+		insets.w = ds(insets.w);
+		return insets;
+	}
+	/// ditto
+	const
+	CFont ds(CFont font) { mixin(S_TRACE);
+		font.point = ds(font.point);
+		return font;
 	}
 }
 

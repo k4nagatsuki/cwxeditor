@@ -20,6 +20,7 @@ class FlexEtcProps : Properties {
 	auto targetVersion = Prop!(string)("targetVersion", "1.50");
 	auto imeMode = Prop!(int)("imeMode", 0);
 	auto imageScale = Prop!(uint)("imageScale", 1, 2016091800);
+	auto drawingScale = Prop!(uint)("drawingScale", 1);
 	auto toolsLock = Prop!(bool)("toolsLock", false);
 	auto toolsOrder = Prop!(int[])("toolsOrder", []);
 	auto toolsWrapIndices = Prop!(int[])("toolsWrapIndices", []);

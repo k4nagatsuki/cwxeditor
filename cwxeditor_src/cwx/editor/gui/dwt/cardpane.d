@@ -1949,28 +1949,25 @@ private:
 		}
 	}
 	private Skin _skinTemp = null;
-	ImageData cardImage(in Card c) { mixin(S_TRACE);
-		return cardImage(c, true);
-	}
-	ImageData cardImage(in Card c, bool imageScale) { mixin(S_TRACE);
+	ImageDataWithScale cardImageWithScale(in Card c) { mixin(S_TRACE);
 		Skin skin = _skinTemp ? _skinTemp : _comm.skin;
 		auto preview = _viewMode == CViewMode.TABLE;
 		auto detail = _viewMode == CViewMode.LIFE || preview;
-		ImageData data;
+		ImageDataWithScale data;
 		if (cast(CastCard)c) { mixin(S_TRACE);
-			data = castCardImage(_prop, skin, _summ, cast(CastCard)c, ownerScenarioPath, ownerWsnVersion, detail);
+			data = .castCardImage(_prop, skin, ownerScenario, cast(CastCard)c, detail);
 		} else if (!cast(InfoCard)c && _ownerType is OwnerType.Cast) { mixin(S_TRACE);
 			final switch (_cardType) {
 			case CardType.Cast:
 				assert (0);
 			case CardType.Skill:
-				data = .cardImage(_prop, skin, cast(const SkillCard)c, ownerScenarioPath, ownerWsnVersion, cast(CastCard)_owner, (id) => cast(const SkillCard)pOwnerCard(id), detail, preview);
+				data = .cardImage(_prop, skin, ownerScenario, cast(const SkillCard)c, cast(CastCard)_owner, (id) => cast(const SkillCard)pOwnerCard(id), detail, preview);
 				break;
 			case CardType.Item:
-				data = .cardImage(_prop, skin, cast(const ItemCard)c, ownerScenarioPath, ownerWsnVersion, cast(CastCard)_owner, (id) => cast(const ItemCard)pOwnerCard(id), detail, preview);
+				data = .cardImage(_prop, skin, ownerScenario, cast(const ItemCard)c, cast(CastCard)_owner, (id) => cast(const ItemCard)pOwnerCard(id), detail, preview);
 				break;
 			case CardType.Beast:
-				data = .cardImage(_prop, skin, cast(const BeastCard)c, ownerScenarioPath, ownerWsnVersion, cast(CastCard)_owner, (id) => cast(const BeastCard)pOwnerCard(id), detail, preview);
+				data = .cardImage(_prop, skin, ownerScenario, cast(const BeastCard)c, cast(CastCard)_owner, (id) => cast(const BeastCard)pOwnerCard(id), detail, preview);
 				break;
 			case CardType.Info:
 				assert (0);
@@ -1980,24 +1977,25 @@ private:
 			case CardType.Cast:
 				assert (0);
 			case CardType.Skill:
-				data = .cardImage(_prop, skin, cast(const SkillCard)c, ownerScenarioPath, ownerWsnVersion, cast(CastCard)null, (id) => cast(const SkillCard)pOwnerCard(id), detail, preview);
+				data = .cardImage(_prop, skin, ownerScenario, cast(const SkillCard)c, cast(CastCard)null, (id) => cast(const SkillCard)pOwnerCard(id), detail, preview);
 				break;
 			case CardType.Item:
-				data = .cardImage(_prop, skin, cast(const ItemCard)c, ownerScenarioPath, ownerWsnVersion, cast(CastCard)null, (id) => cast(const ItemCard)pOwnerCard(id), detail, preview);
+				data = .cardImage(_prop, skin, ownerScenario, cast(const ItemCard)c, cast(CastCard)null, (id) => cast(const ItemCard)pOwnerCard(id), detail, preview);
 				break;
 			case CardType.Beast:
-				data = .cardImage(_prop, skin, cast(const BeastCard)c, ownerScenarioPath, ownerWsnVersion, cast(CastCard)null, (id) => cast(const BeastCard)pOwnerCard(id), detail, preview);
+				data = .cardImage(_prop, skin, ownerScenario, cast(const BeastCard)c, cast(CastCard)null, (id) => cast(const BeastCard)pOwnerCard(id), detail, preview);
 				break;
 			case CardType.Info:
-				data = .cardImage(_prop, skin, cast(const InfoCard)c, ownerScenarioPath, ownerWsnVersion, cast(CastCard)null, (id) => cast(const InfoCard)pOwnerCard(id), detail, preview);
+				data = .cardImage(_prop, skin, ownerScenario, cast(const InfoCard)c, cast(CastCard)null, (id) => cast(const InfoCard)pOwnerCard(id), detail, preview);
 				break;
 			}
 		}
-		if (imageScale && 1024 < _prop.s(1024)) { mixin(S_TRACE);
-			data = data.scaledTo(_prop.s(data.width), _prop.s(data.height));
-		}
 		return data;
 	}
+	ImageData cardImage(in Card c) { mixin(S_TRACE);
+		return cardImageWithScale(c).scaled(_prop.var.etc.imageScale);
+	}
+
 	string cardTitle(in Card c) { mixin(S_TRACE);
 		return .tryFormat(_prop.msgs.cardTitle, c.id, baseCard(c).name);
 	}
@@ -2186,8 +2184,8 @@ private:
 		}
 		closePreview();
 		_previewC = c;
-		auto imgData = cardImage(c, false);
-		_previewI = new PileImage(imgData, imgData.width, imgData.height, false);
+		auto imgData = cardImageWithScale(c);
+		_previewI = new PileImage(imgData, _prop.drawingScale, imgData.getWidth(NORMAL_SCALE), imgData.getHeight(NORMAL_SCALE), false);
 		_previewI.createImage();
 
 		auto b = itm.getBounds();

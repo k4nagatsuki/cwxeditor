@@ -74,16 +74,82 @@ import java.lang.all;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
+class ImageDataWithScale {
+	private ImageData _data;
+	private uint _scale;
+
+	private ImageData[uint] _scaled;
+
+	this (ImageData data, uint scale) in (data !is null) { mixin(S_TRACE);
+		_data = data;
+		_scale = scale;
+		_scaled[_scale] = data;
+	}
+
+	@property
+	ImageData baseData() { return _data; }
+
+	@property
+	const
+	uint scale() { return _scale; }
+
+	ImageData scaled(uint targetScale) { mixin(S_TRACE);
+		auto p = targetScale in _scaled;
+		if (p) return *p;
+		ImageData scaled;
+		if (targetScale == _scale) { mixin(S_TRACE);
+			scaled = _data;
+		} else { mixin(S_TRACE);
+			auto w = getWidth(targetScale);
+			auto h = getHeight(targetScale);
+			scaled = _data.scaledTo(w, h);
+		}
+		_scaled[targetScale] = scaled;
+		return scaled;
+	}
+
+	@property
+	const
+	bool valid() { return 1 < _data.width && 1 < _data.height; }
+
+	const
+	int getWidth(uint targetScale) { return .max(1, cast(int)(_data.width * cast(real)targetScale / _scale)); }
+	const
+	int getHeight(uint targetScale) { return .max(1, cast(int)(_data.height * cast(real)targetScale / _scale)); }
+
+	@property
+	ImageData[] allData() { return _scaled.values; }
+
+}
+
 bool dwtImageSize(Props prop, in Skin skin, in Summary summ, string path, out uint width, out uint height) { mixin(S_TRACE);
 	auto ext = .extension(path);
 	if (cfnmatch(ext, ".jpy1")
 			|| cfnmatch(ext, ".jptx")
 			|| cfnmatch(ext, ".jpdc")) { mixin(S_TRACE);
 		bool resizable;
-		auto img = loadJPYImage(prop, skin, summ, path, [], width, height, resizable);
+		auto img = loadJPYImageWithScale(prop, skin, summ, path, 1, [], width, height, resizable);
 		return img !is null;
 	}
 	return imageSize(path, width, height);
+}
+
+ImageDataWithScale loadImageWithScale(string path, uint targetScale, bool mask = true, int maskX = 0, int maskY = 0) { mixin(S_TRACE);
+	return loadImageWithScale(null, null, null, path, targetScale, mask, maskX, maskY);
+}
+ImageDataWithScale loadImageWithScale(Props prop, in Skin skin, in Summary summ, string path, uint targetScale, bool mask = true, int maskX = 0, int maskY = 0, string[] stratum = []) { mixin(S_TRACE);
+	string ext = .extension(path);
+	if (cfnmatch(ext, ".jpy1")
+			|| cfnmatch(ext, ".jptx")
+			|| cfnmatch(ext, ".jpdc")) { mixin(S_TRACE);
+		bool resizable;
+		auto data = loadJPYImageWithScale(prop, skin, summ, path, targetScale, stratum, resizable);
+		if (mask) data.baseData.transparentPixel = data.baseData.getPixel(maskX, maskY);
+		return data;
+	}
+	auto scaleInfo = findScaledImage(path, targetScale);
+	auto data = loadImage(prop, skin, summ, scaleInfo.path, mask, maskX, maskY, stratum);
+	return new ImageDataWithScale(data, scaleInfo.scale);
 }
 
 ImageData loadImage(string path, bool mask = true, int maskX = 0, int maskY = 0) { mixin(S_TRACE);
@@ -100,9 +166,9 @@ ImageData loadImage(Props prop, in Skin skin, in Summary summ, string path, bool
 				|| cfnmatch(ext, ".jptx")
 				|| cfnmatch(ext, ".jpdc")) { mixin(S_TRACE);
 			bool resizable;
-			auto data = loadJPYImage(prop, skin, summ, path, stratum, resizable);
-			if (mask) data.transparentPixel = data.getPixel(maskX, maskY);
-			return data;
+			auto data = loadJPYImageWithScale(prop, skin, summ, path, 1, stratum, resizable);
+			if (mask) data.baseData.transparentPixel = data.baseData.getPixel(maskX, maskY);
+			return data.baseData;
 		}
 		try { mixin(S_TRACE);
 			byte* ptr = null;
@@ -1556,40 +1622,40 @@ void hemming(GC gc, string s, int tx, int ty, Color color) { mixin(S_TRACE);
 	gc.setForeground(color);
 	gc.wDrawText(s, tx, ty, true);
 }
-ImageData castCardImage(Props prop, Skin skin, in Summary summ, in CastCard c, string sPath, string wsnVer, bool dbgMode) { mixin(S_TRACE);
+ImageDataWithScale castCardImage(Props prop, Skin skin, in Summary summ, in CastCard c, bool dbgMode) { mixin(S_TRACE);
 	auto d = Display.getCurrent();
 	auto cardSize = prop.looks.cardSize;
 	auto matPad = prop.looks.castCardInsets;
 	int w = cardSize.width + matPad.e + matPad.w;
 	int h = cardSize.height + matPad.n + matPad.s;
 	bool whiteName = false;
-	ImageData id;
+	ImageDataWithScale id;
 	if (c.life == 0) { mixin(S_TRACE);
-		id = castCardFaint(skin);
+		id = .castCardFaint(skin, prop.drawingScale);
 		whiteName = true;
 	} else if (c.paralyze > prop.looks.stoneBorder) { mixin(S_TRACE);
-		id = castCardPetrif(skin);
+		id = .castCardPetrif(skin, prop.drawingScale);
 		whiteName = true;
 	} else if (c.paralyze > 0) { mixin(S_TRACE);
-		id = castCardParaly(skin);
+		id = .castCardParaly(skin, prop.drawingScale);
 		whiteName = false;
 	} else if (c.bindRound > 0) { mixin(S_TRACE);
-		id = castCardBind(skin);
+		id = .castCardBind(skin, prop.drawingScale);
 		whiteName = true;
 	} else if (c.mentality == Mentality.SLEEP && c.mentalityRound > 0) { mixin(S_TRACE);
-		id = castCardSleep(skin);
+		id = .castCardSleep(skin, prop.drawingScale);
 		whiteName = true;
 	} else if (c.life <= c.lifeMax / 5) { mixin(S_TRACE);
-		id = castCardDanger(skin);
+		id = .castCardDanger(skin, prop.drawingScale);
 		whiteName = false;
 	} else if (c.life < c.lifeMax) { mixin(S_TRACE);
-		id = castCardInjury(skin);
+		id = .castCardInjury(skin, prop.drawingScale);
 		whiteName = false;
 	} else { mixin(S_TRACE);
-		id = castCard(skin);
+		id = .castCard(skin, prop.drawingScale);
 		whiteName = false;
 	}
-	auto r = new PileImage(id, w, h, true);
+	auto r = new PileImage(id, prop.drawingScale, w, h, true);
 	auto stp = prop.looks.castLifeBarPoint;
 	if (dbgMode || c.faceUpRound > 0) { mixin(S_TRACE);
 		version (Windows) {
@@ -1604,34 +1670,37 @@ ImageData castCardImage(Props prop, Skin skin, in Summary summ, in CastCard c, s
 			PileImage.TPos.RIGHT);
 	}
 	foreach (path; c.paths) { mixin(S_TRACE);
-		path.addToPileImage(r, prop, skin, sPath, wsnVer, matPad, ScaleType.Center);
+		path.addToPileImage(r, prop, skin, summ, matPad, ScaleType.Center);
 	}
 	int stMax = prop.looks.statusVerMax;
 	if ((dbgMode || c.faceUpRound > 0) && 0 < c.life) { mixin(S_TRACE);
-		auto lgid = lifeGuage(skin);
-		int lgw = lgid.width;
-		int lgh = lgid.height;
-		if (lgw > 1 && lgh > 1) { mixin(S_TRACE);
+		// TODO: LIFEGUAGE2
+		auto lgid = .lifeGuage(skin, prop.drawingScale);
+		if (lgid.valid) { mixin(S_TRACE);
 			try { mixin(S_TRACE);
-				lgid.transparentPixel = lgid.getPixel(5, 5); // LIFEGEUAGEは(5, 5)が透過色
-				auto lgi = new Image(d, lgid);
+				lgid.baseData.transparentPixel = lgid.baseData.getPixel(5, 5); // LIFEGEUAGEは(5, 5)が透過色
+				auto lgidData = lgid.scaled(prop.drawingScale);
+				auto lgw = lgidData.width;
+				auto lgh = lgidData.height;
+				auto lgi = new Image(d, lgidData);
 				scope (exit) lgi.dispose();
-				auto lbid = lifeBar(skin);
-				auto lbi = new Image(d, lbid);
+				auto lbid = .lifeBar(skin, prop.drawingScale);
+				auto lbidData = lbid.scaled(prop.drawingScale);
+				auto lbi = new Image(d, lbidData);
 				scope (exit) lbi.dispose();
 				auto bmp = new Image(d, lgw, lgh);
 				scope (exit) bmp.dispose();
 				auto gc = new GC(bmp);
 				scope (exit) gc.dispose();
-				int lbh = lbid.height;
-				auto ln = cast(real) c.life / c.lifeMax;
+				int lbh = lbidData.height;
+				auto ln = cast(real)c.life / c.lifeMax;
 				gc.drawImage(lbi, lgw, 0, lgw, lbh, 0, (lgh - lbh) / 2, lgw, lbh);
 				gc.drawImage(lbi, 0, 0, cast(int) (lgw * ln), lbh, 0, (lgh - lbh) / 2, cast(int) (lgw * ln), lbh);
 				gc.drawImage(lgi, 0, 0);
 				auto life = bmp.getImageData();
 				life.transparentPixel = life.getPixel(0, 0);
-				r.append(life, stp, ScaleType.Cut);
-				stp.y -= lgh + 2;
+				r.append(new ImageDataWithScale(life, prop.drawingScale), stp, ScaleType.Cut);
+				stp.y -= lgid.getHeight(NORMAL_SCALE) + 2;
 				stMax--;
 			} catch (SWTException e) {
 				printStackTrace();
@@ -1647,43 +1716,44 @@ ImageData castCardImage(Props prop, Skin skin, in Summary summ, in CastCard c, s
 		|| (prop.var.etc.showStatusTime is ShowStatusTime.WithSkin && !skin.legacy);
 	auto showStatusTime = showSleepAndBind && (dbgMode || 0 < c.faceUpRound);
 
-	ImageData putNumber(ImageData id, uint number, RGB backColor = null) { mixin(S_TRACE);
-		auto bmp = new Image(d, id.width, id.height);
+	ImageDataWithScale putNumber(ImageDataWithScale id, uint number, RGB backColor = null) { mixin(S_TRACE);
+		auto data = id.scaled(prop.drawingScale);
+		auto bmp = new Image(d, data.width, data.height);
 		scope (exit) bmp.dispose();
 		auto gc = new GC(bmp);
 		scope (exit) gc.dispose();
-		auto img = new Image(d, id);
+		auto img = new Image(d, data);
 		scope (exit) img.dispose();
 		if (backColor) { mixin(S_TRACE);
 			auto color = new Color(d, backColor);
 			scope (exit) color.dispose();
 			gc.setBackground(color);
-			gc.fillRectangle(0, 0, id.width, id.height);
+			gc.fillRectangle(0, 0, data.width, data.height);
 		}
 		gc.drawImage(img, 0, 0);
-		auto font = .createFontFromPixels(prop.looks.statusTimeFont(skin.legacy, number));
+		auto font = .createFontFromPixels(prop.ds(prop.looks.statusTimeFont(skin.legacy, number)));
 		scope (exit) font.dispose();
 		gc.setFont(font);
 		string s = to!(string)(number);
 		auto cw = gc.wTextExtent(s).x;
 		auto mt = gc.getFontMetrics();
-		auto tx = id.width - cw - 1;
-		auto ty = id.height - mt.getAscent() - 2;
+		auto tx = data.width - cw - prop.ds(1);
+		auto ty = data.height - mt.getAscent() - prop.ds(2);
 		hemming(gc, s, tx, ty, d.getSystemColor(SWT.COLOR_WHITE));
-		return bmp.getImageData();
+		return new ImageDataWithScale(bmp.getImageData(), prop.drawingScale);
 	}
-	void status(ImageData id, uint number, RGB backColor = null) { mixin(S_TRACE);
+	void status(ImageDataWithScale id, uint number, RGB backColor = null) { mixin(S_TRACE);
 		if (showStatusTime) { mixin(S_TRACE);
 			id = putNumber(id, number, backColor);
 		}
 		r.append(id, stp, ScaleType.Cut);
 		stc++;
 		if (stc >= stMax) { mixin(S_TRACE);
-			stp.x += id.width + 1;
+			stp.x += id.getWidth(NORMAL_SCALE) + 1;
 			stp.y = styf;
 			stc = 0;
 		} else { mixin(S_TRACE);
-			stp.y -= id.height + 1;
+			stp.y -= id.getHeight(NORMAL_SCALE) + 1;
 		}
 	}
 	if (c.mentalityRound > 0) { mixin(S_TRACE);
@@ -1693,28 +1763,29 @@ ImageData castCardImage(Props prop, Skin skin, in Summary summ, in CastCard c, s
 			if (showSleepAndBind) goto case Mentality.CONFUSE;
 			break;
 		case Mentality.CONFUSE, Mentality.OVERHEAT, Mentality.BRAVE, Mentality.PANIC: { mixin(S_TRACE);
-			status(mentality(skin, c.mentality), c.mentalityRound);
+			status(.mentality(skin, prop.drawingScale, c.mentality), c.mentalityRound);
 		} break;
 		default: assert (0);
 		}
 	}
-	if (c.poison > 0) status(poison(skin), c.poison);
-	if (c.paralyze > 0 && showSleepAndBind) status(paralyze(skin), c.paralyze);
-	if (c.bindRound > 0 && showSleepAndBind) status(bind(skin), c.bindRound);
-	if (c.silenceRound > 0) status(silence(skin), c.silenceRound);
-	if (c.faceUpRound > 0) status(faceUp(skin), c.faceUpRound);
-	if (c.antiMagicRound > 0) status(antiMagic(skin), c.antiMagicRound);
+	if (c.poison > 0) status(.poison(skin, prop.drawingScale), c.poison);
+	if (c.paralyze > 0 && showSleepAndBind) status(.paralyze(skin, prop.drawingScale), c.paralyze);
+	if (c.bindRound > 0 && showSleepAndBind) status(.bind(skin, prop.drawingScale), c.bindRound);
+	if (c.silenceRound > 0) status(.silence(skin, prop.drawingScale), c.silenceRound);
+	if (c.faceUpRound > 0) status(.faceUp(skin, prop.drawingScale), c.faceUpRound);
+	if (c.antiMagicRound > 0) status(.antiMagic(skin, prop.drawingScale), c.antiMagicRound);
 	void enh(Enhance enh) { mixin(S_TRACE);
 		auto value = c.enhance(enh);
 		auto round = c.enhanceRound(enh);
-		void put(ImageData iData, in CRGB crgb) { mixin(S_TRACE);
+		void put(ImageDataWithScale iData, in CRGB crgb) { mixin(S_TRACE);
 			int alpha;
 			auto rgb = .dwtData(crgb, alpha);
 			if (showStatusTime) { mixin(S_TRACE);
 				status(iData, round, rgb);
 			} else { mixin(S_TRACE);
-				auto id = new ImageData(iData.width, iData.height, 1, new PaletteData([rgb, new RGB(0, 0, 0)]));
-				r.append(id, stp, ScaleType.Cut);
+				auto data = iData.scaled(prop.drawingScale);
+				auto id = new ImageData(data.width, data.height, 1, new PaletteData([rgb, new RGB(0, 0, 0)]));
+				r.append(new ImageDataWithScale(id, prop.drawingScale), stp, ScaleType.Cut);
 				status(iData, round);
 			}
 		}
@@ -1729,7 +1800,7 @@ ImageData castCardImage(Props prop, Skin skin, in Summary summ, in CastCard c, s
 			} else if (1 <= value) { mixin(S_TRACE);
 				back = prop.var.etc.enhanceColorLow;
 			}
-			put(enhanceUp(skin, enh), back);
+			put(.enhanceUp(skin, prop.drawingScale, enh), back);
 		} else if (value < 0 && round > 0) { mixin(S_TRACE);
 			CRGB back;
 			if (-(cast(int) prop.var.etc.enhanceMaxVal) >= value) { mixin(S_TRACE);
@@ -1741,7 +1812,7 @@ ImageData castCardImage(Props prop, Skin skin, in Summary summ, in CastCard c, s
 			} else if (-1 >= value) { mixin(S_TRACE);
 				back = prop.var.etc.penaltyColorLow;
 			}
-			put(enhanceDown(skin, enh), back);
+			put(.enhanceDown(skin, prop.drawingScale, enh), back);
 		}
 	}
 	enh(Enhance.ACTION);
@@ -1765,7 +1836,7 @@ ImageData castCardImage(Props prop, Skin skin, in Summary summ, in CastCard c, s
 		}
 	}
 	if (beastCount > 0) { mixin(S_TRACE);
-		auto bid = summon(skin);
+		auto bid = .summon(skin, prop.drawingScale);
 		bid = putNumber(bid, beastCount);
 		r.append(bid, stp, ScaleType.Cut);
 	}
@@ -1778,14 +1849,16 @@ ImageData castCardImage(Props prop, Skin skin, in Summary summ, in CastCard c, s
 			r.titleColor = new RGB(255, 255, 255);
 		}
 	} else { mixin(S_TRACE);
-		if (getRGBAverage(id, prop.looks.castCardNameArea) < prop.var.etc.negativeCardNameBorder) { mixin(S_TRACE);
+		if (getRGBAverage(id.scaled(prop.drawingScale), prop.ds(prop.looks.castCardNameArea)) < prop.var.etc.negativeCardNameBorder) { mixin(S_TRACE);
 			r.titleColor = new RGB(255, 255, 255);
 		}
 	}
 	return r.createImageData();
 }
 
-void addToPileImage(in CardImage img, PileImage pile, Props prop, Skin skin, string sPath, string wsnVer, CInsets matPad, ScaleType type) { mixin(S_TRACE);
+void addToPileImage(in CardImage img, PileImage pile, Props prop, Skin skin, in Summary summ, CInsets matPad, ScaleType type) { mixin(S_TRACE);
+	auto sPath = summ ? summ.scenarioPath : "";
+	auto wsnVer = summ ? summ.dataVersion : LATEST_VERSION;
 	final switch (img.type) {
 	case CardImageType.PCNumber:
 		if (0 < img.pcNumber) { mixin(S_TRACE);
@@ -1795,17 +1868,20 @@ void addToPileImage(in CardImage img, PileImage pile, Props prop, Skin skin, str
 		}
 		break;
 	case CardImageType.File:
-		auto path = skin.findImagePath(img.path, sPath, wsnVer);
+		auto isSkinMaterial = false;
+		auto isEngineMaterial = false;
+		auto path = skin.findImagePathF(img.path, sPath, wsnVer, isSkinMaterial, isEngineMaterial);
+		auto drawingScale = () => (isSkinMaterial || isEngineMaterial) ? prop.drawingScale : prop.drawingScaleForImage(summ);
 		if (path != "") { mixin(S_TRACE);
 			final switch (img.positionType) {
 			case CardImagePosition.Center:
-				pile.append(path, matPad, ScaleType.Center, true);
+				pile.append(path, matPad, ScaleType.Center, true, 0, 0, cast(ubyte)0xFF, drawingScale);
 				break;
 			case CardImagePosition.TopLeft:
-				pile.append(path, matPad, ScaleType.Cut, true);
+				pile.append(path, matPad, ScaleType.Cut, true, 0, 0, cast(ubyte)0xFF, drawingScale);
 				break;
 			case CardImagePosition.Default:
-				pile.append(path, matPad, type, true);
+				pile.append(path, matPad, type, true, 0, 0, cast(ubyte)0xFF, drawingScale);
 				break;
 			}
 		}
@@ -1816,11 +1892,13 @@ void addToPileImage(in CardImage img, PileImage pile, Props prop, Skin skin, str
 		case Talker.UNSELECTED:
 		case Talker.RANDOM:
 		case Talker.VALUED:
-			pile.append(prop.images.talker(img.talker).getImageData(), matPad, type, true);
+			pile.append(new ImageDataWithScale(prop.images.talker(img.talker).getImageData(), .dpiMuls), matPad, type, true);
 			break;
 		case Talker.CARD:
 			auto cRect = prop.looks.cardSize;
-			auto tImg = menuCard(skin).scaledTo(cRect.width, cRect.height);
+			auto tImg = .menuCard(skin, prop.drawingScale);
+			auto tImgData = tImg.scaled(prop.drawingScale).scaledTo(prop.ds(cRect.width), prop.ds(cRect.height));
+			tImg = new ImageDataWithScale(tImgData, prop.drawingScale);
 			pile.append(tImg, CInsets(0, 0, 0, 0), type, false);
 			break;
 		}
@@ -1828,24 +1906,24 @@ void addToPileImage(in CardImage img, PileImage pile, Props prop, Skin skin, str
 	}
 }
 
-ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, string wsnVer, CastCard owner, const(C) delegate(ulong) get, bool detail, bool preview) { mixin(S_TRACE);
+ImageDataWithScale cardImage(C)(Props prop, Skin skin, in Summary summ, in C base, CastCard owner, const(C) delegate(ulong) get, bool detail, bool preview) { mixin(S_TRACE);
 	static if (is (C == SkillCard)) {
 		bool hold = base.hold;
-		auto card = skillCard(skin);
+		auto card = .skillCard(skin, prop.drawingScale);
 	} else static if (is (C == ItemCard)) {
 		bool hold = base.hold;
-		auto card = itemCard(skin);
+		auto card = .itemCard(skin, prop.drawingScale);
 	} else static if (is (C == BeastCard)) {
-		ImageData card;
+		ImageDataWithScale card;
 		if (base.isOption) { mixin(S_TRACE);
 			// 付帯能力
-			card = optionCard(skin);
+			card = .optionCard(skin, prop.drawingScale);
 		} else { mixin(S_TRACE);
 			// 一般の召喚獣カード
-			card = beastCard(skin);
+			card = .beastCard(skin, prop.drawingScale);
 		}
 	} else static if (is (C == InfoCard)) {
-		auto card = infoCard(skin);
+		auto card = .infoCard(skin, prop.drawingScale);
 	} else { mixin(S_TRACE);
 		static assert (0);
 	}
@@ -1866,15 +1944,15 @@ ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, string ws
 	auto matPad = prop.looks.cardInsets;
 	int w = cardSize.width + matPad.e + matPad.w;
 	int h = cardSize.height + matPad.n + matPad.s;
-	scope r = new PileImage(card, w, h, true);
+	scope r = new PileImage(card, prop.drawingScale, w, h, true);
 	static if (!is (C == InfoCard)) {
 		final switch (c.premium) {
 		case Premium.PREMIUM, Premium.RARE:
 			scope pp = prop.looks.premiumXY;
 			auto img = c.premium == Premium.PREMIUM
-			? premier(skin) : rare(skin);
-			r.append(img, CInsets(pp.y, pp.x, h - pp.y - img.height, w - pp.x - img.width), ScaleType.Cut);
-			r.append(img, CInsets(h - pp.y - img.height, w - pp.x - img.width, pp.y, pp.x), ScaleType.Cut);
+				? .premier(skin, prop.drawingScale) : .rare(skin, prop.drawingScale);
+			r.append(img, CInsets(pp.y, pp.x, h - pp.y - img.getHeight(NORMAL_SCALE), w - pp.x - img.getWidth(NORMAL_SCALE)), ScaleType.Cut);
+			r.append(img, CInsets(h - pp.y - img.getHeight(NORMAL_SCALE), w - pp.x - img.getWidth(NORMAL_SCALE), pp.y, pp.x), ScaleType.Cut);
 			break;
 		case Premium.NORMAL:
 			break;
@@ -1895,7 +1973,7 @@ ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, string ws
 		}
 	}
 	foreach (path; c.paths) { mixin(S_TRACE);
-		path.addToPileImage(r, prop, skin, sPath, wsnVer, matPad, ScaleType.Cut);
+		path.addToPileImage(r, prop, skin, summ, matPad, ScaleType.Cut);
 	}
 	static if (is(typeof(c.linkId))) {
 		if (link) { mixin(S_TRACE);
@@ -1905,35 +1983,37 @@ ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, string ws
 	}
 	static if (!is(C == InfoCard)) {
 		if (prop.sys.isPenalty(c.keyCodes)) { mixin(S_TRACE);
-			auto pid = cardPenalty(skin);
-			pid.transparentPixel = pid.getPixel(pid.width / 2, pid.height / 2);
+			auto pid = .cardPenalty(skin, prop.drawingScale);
+			auto data = pid.baseData;
+			data.transparentPixel = data.getPixel(data.width / 2, data.height / 2);
 			r.append(pid, CPoint(0, 0), ScaleType.Cut);
 		}
 		static if (is(typeof(c.hold))) {
 			if (hold) { mixin(S_TRACE);
-				auto hid = cardHold(skin);
-				hid.transparentPixel = hid.getPixel(hid.width / 2, hid.height / 2);
+				auto hid = .cardHold(skin, prop.drawingScale);
+				auto data = hid.baseData;
+				data.transparentPixel = data.getPixel(data.width / 2, data.height / 2);
 				r.append(hid, CPoint(0, 0), ScaleType.Cut);
 			}
 		}
 		if (detail && owner) { mixin(S_TRACE);
 			int apt = owner.aptitude(c.physical, c.mental);
-			ImageData aimg;
+			ImageDataWithScale aimg;
 			if (prop.looks.aptVeryHigh <= apt) { mixin(S_TRACE);
-				aimg = aptVeryHigh(skin);
+				aimg = .aptVeryHigh(skin, prop.drawingScale);
 			} else if (prop.looks.aptHigh <= apt) { mixin(S_TRACE);
-				aimg = aptHigh(skin);
+				aimg = .aptHigh(skin, prop.drawingScale);
 			} else if (prop.looks.aptNormal <= apt) { mixin(S_TRACE);
-				aimg = aptNormal(skin);
+				aimg = .aptNormal(skin, prop.drawingScale);
 			} else { mixin(S_TRACE);
-				aimg = aptLow(skin);
+				aimg = .aptLow(skin, prop.drawingScale);
 			}
 			auto ap = prop.looks.aptStoneXY;
-			r.append(aimg, CInsets(ap.y, w - ap.x - aimg.width, h - ap.y - aimg.height, ap.x), ScaleType.Cut);
+			r.append(aimg, CInsets(ap.y, w - ap.x - aimg.getWidth(NORMAL_SCALE), h - ap.y - aimg.getHeight(NORMAL_SCALE), ap.x), ScaleType.Cut);
 			static if (is (C == SkillCard)) {
-				auto uimg = use4(skin);
+				auto uimg = .use4(skin, prop.drawingScale);
 				auto up = prop.looks.useStoneXY;
-				r.append(uimg, CInsets(up.y, w - up.x - uimg.width, h - up.y - uimg.height, up.x), ScaleType.Cut);
+				r.append(uimg, CInsets(up.y, w - up.x - uimg.getWidth(NORMAL_SCALE), h - up.y - uimg.getHeight(NORMAL_SCALE), up.x), ScaleType.Cut);
 			}
 		}
 	}
@@ -1941,7 +2021,7 @@ ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, string ws
 	r.setTitle(c.name, prop.looks.cardNameFont(skin.legacy), dwtData(prop.looks.cardNamePoint),
 		skin.legacy ? 0 : w - x * 2, !skin.legacy);
 	if (!skin.legacy) { mixin(S_TRACE);
-		if (getRGBAverage(card, prop.looks.cardNameArea) < prop.var.etc.negativeCardNameBorder) { mixin(S_TRACE);
+		if (getRGBAverage(card.scaled(prop.drawingScale), prop.ds(prop.looks.cardNameArea)) < prop.var.etc.negativeCardNameBorder) { mixin(S_TRACE);
 			r.titleColor = new RGB(255, 255, 255);
 		}
 	}
@@ -1956,11 +2036,11 @@ ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, string ws
 		if (ul > 0 || res) { mixin(S_TRACE);
 			auto d = Display.getCurrent();
 			auto imgData = r.createImageData();
-			auto img = new Image(d, imgData);
+			auto img = new Image(d, imgData.scaled(prop.drawingScale));
 			scope (exit) img.dispose();
 			auto gc = new GC(img);
 			scope (exit) gc.dispose();
-			auto font = .createFontFromPixels(prop.looks.useCountFont(skin.legacy));
+			auto font = .createFontFromPixels(prop.ds(prop.looks.useCountFont(skin.legacy)));
 			scope (exit) font.dispose();
 			gc.setFont(font);
 			int alpha;
@@ -1970,10 +2050,10 @@ ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, string ws
 			scope (exit) {
 				if (res) color.dispose();
 			}
-			auto p = prop.looks.useCountPoint;
+			auto p = prop.ds(prop.looks.useCountPoint);
 			string s = to!(string)(c.useLimit);
 			hemming(gc, s, p.x, p.y, color);
-			return img.getImageData();
+			return new ImageDataWithScale(img.getImageData(), prop.drawingScale);
 		}
 	}
 	return r.createImageData();

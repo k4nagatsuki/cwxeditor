@@ -24,6 +24,8 @@ import std.typecons : Tuple;
 
 import org.eclipse.swt.all;
 
+immutable NORMAL_SCALE = 1;
+
 /// イメージを拡大・縮小・移動させるためのトグル。
 public enum Toggle {
 	/// 左上のトグル。
@@ -75,7 +77,7 @@ private:
 		CInsets insets;
 		string path = "";
 		string text = "";
-		ImageData data = null;
+		ImageDataWithScale data = null;
 		bool transparent;
 		int maskX;
 		int maskY;
@@ -85,10 +87,12 @@ private:
 		byte alpha = cast(byte) 0xFF;
 		FontData fontData = null;
 		ScaleType scaleType = ScaleType.Scale;
+		uint delegate() drawingScaleOverride = null;
 	}
 	bool _needCreate = false;
 
 	ImageType _type = ImageType.Image;
+	uint _targetScale = NORMAL_SCALE;
 	string _title = null;
 	CFont titFont;
 	Point titPoint = null;
@@ -103,10 +107,10 @@ private:
 	int _alpha = 0xFF;
 	bool _separator = false;
 	Image _img = null;
-	ImageData _imgData = null;
-	ImageData _baseSizeData = null;
+	ImageDataWithScale _imgData = null;
+	ImageDataWithScale _baseSizeData = null;
 	string path = "";
-	ImageData data = null;
+	ImageDataWithScale data = null;
 	void delegate(in PileImage img, GC gc) _drawer = null;
 
 	bool _visible = true;
@@ -144,9 +148,10 @@ public:
 	/// y = 縦位置。
 	/// baseW = 本来の幅。
 	/// baseH = 本来の高さ。
-	this (string path, int x, int y, int baseW, int baseH, bool scaleMode) { mixin(S_TRACE);
+	this (string path, uint targetScale, int x, int y, int baseW, int baseH, bool scaleMode) { mixin(S_TRACE);
 		this._type = ImageType.Image;
 		this.path = path;
+		_targetScale = targetScale;
 		rect = new Rectangle(x, y, baseW, baseH);
 		initW = baseW;
 		initH = baseH;
@@ -158,8 +163,8 @@ public:
 	/// path = 画像のファイルパス。
 	/// baseW = 本来の幅。
 	/// baseH = 本来の高さ。
-	this (string path, int baseW, int baseH, bool scaleMode) { mixin(S_TRACE);
-		this(path, 0, 0, baseW, baseH, scaleMode);
+	this (string path, uint targetScale, int baseW, int baseH, bool scaleMode) { mixin(S_TRACE);
+		this(path, targetScale, 0, 0, baseW, baseH, scaleMode);
 	}
 	/// 画像のデータ、位置、サイズを指定してインスタンスを生成する。
 	/// Params:
@@ -168,9 +173,10 @@ public:
 	/// y = 縦位置。
 	/// baseW = 本来の幅。
 	/// baseH = 本来の高さ。
-	this (ImageData data, int x, int y, int baseW, int baseH, bool scaleMode, bool dataResizable) { mixin(S_TRACE);
+	this (ImageDataWithScale data, uint targetScale, int x, int y, int baseW, int baseH, bool scaleMode, bool dataResizable) { mixin(S_TRACE);
 		this._type = ImageType.Image;
 		this.data = data;
+		_targetScale = targetScale;
 		rect = new Rectangle(x, y, baseW, baseH);
 		initW = baseW;
 		initH = baseH;
@@ -182,13 +188,14 @@ public:
 	/// data = 画像のデータ。
 	/// baseW = 本来の幅。
 	/// baseH = 本来の高さ。
-	this (ImageData data, int baseW, int baseH, bool scaleMode) { mixin(S_TRACE);
-		this(data, 0, 0, baseW, baseH, scaleMode, true);
+	this (ImageDataWithScale data, uint targetScale, int baseW, int baseH, bool scaleMode) { mixin(S_TRACE);
+		this(data, targetScale, 0, 0, baseW, baseH, scaleMode, true);
 	}
 
 	/// サイズのみを指定してインスタンスを生成する。
-	this (ImageType type, int x, int y, int baseW, int baseH, bool scaleMode) { mixin(S_TRACE);
+	this (ImageType type, uint targetScale, int x, int y, int baseW, int baseH, bool scaleMode) { mixin(S_TRACE);
 		this._type = type;
+		_targetScale = targetScale;
 		rect = new Rectangle(x, y, baseW, baseH);
 		initW = baseW;
 		initH = baseH;
@@ -196,11 +203,11 @@ public:
 	}
 
 	/// テキスト表示用のインスタンスを生成する。
-	this (string text, string fontName, int size, CRGB color,
+	this (string text, uint targetScale, string fontName, int size, CRGB color,
 			bool bold, bool italic, bool underline, bool strike, bool vertical,
 			BorderingType borderingType, CRGB borderingColor, uint borderingWidth,
 			int x, int y, int baseW, int baseH) { mixin(S_TRACE);
-		this (ImageType.Text, x, y, baseW, baseH, false);
+		this (ImageType.Text, targetScale, x, y, baseW, baseH, false);
 
 		setTitle(text, fontName, size, bold, italic, vertical);
 		this.textColor = color;
@@ -212,9 +219,10 @@ public:
 	}
 
 	/// 独自描画用のインスタンスを生成する。
-	this (void delegate(in PileImage img, GC gc) drawer, int x, int y, int baseW, int baseH, bool scaleMode) {
+	this (void delegate(in PileImage img, GC gc) drawer, uint targetScale, int x, int y, int baseW, int baseH, bool scaleMode) {
 		this._type = ImageType.Drawer;
 		_drawer = drawer;
+		_targetScale = targetScale;
 		rect = new Rectangle(x, y, baseW, baseH);
 		initW = baseW;
 		initH = baseH;
@@ -246,8 +254,16 @@ public:
 		return update;
 	}
 
+	/// 描画倍率。
+	@property
+	const
+	uint targetScale() { return _targetScale; }
+	/// ditto
+	@property
+	void targetScale(uint targetScale) { _targetScale = targetScale; }
+
 	/// ベースとなるイメージを置換する。
-	void setBaseImage(ImageData data, int baseW, int baseH) { mixin(S_TRACE);
+	void setBaseImage(ImageDataWithScale data, int baseW, int baseH) { mixin(S_TRACE);
 		this.data = data;
 		initW = baseW;
 		initH = baseH;
@@ -291,7 +307,8 @@ public:
 	/// maskX = マスク色のX位置。
 	/// maskY = マスク色のY位置。
 	/// See_Also: createImage();
-	void append(string path, CInsets insets, ScaleType scaleType, bool transparent, int maskX = 0, int maskY = 0, byte alpha = cast(byte) 0xFF) { mixin(S_TRACE);
+	void append(string path, CInsets insets, ScaleType scaleType, bool transparent, int maskX = 0, int maskY = 0, byte alpha = cast(byte) 0xFF,
+			uint delegate() drawingScale = null) { mixin(S_TRACE);
 		AppImg append;
 		append.insets = insets;
 		append.path = path;
@@ -300,10 +317,11 @@ public:
 		append.maskY = maskY;
 		append.alpha = alpha;
 		append.scaleType = scaleType;
+		append.drawingScaleOverride = drawingScale;
 		appends ~= append;
 	}
 	/// ditto
-	void append(ImageData data, CInsets insets, ScaleType scaleType, byte alpha = cast(byte) 0xFF) { mixin(S_TRACE);
+	void append(ImageDataWithScale data, CInsets insets, ScaleType scaleType, byte alpha = cast(byte) 0xFF) { mixin(S_TRACE);
 		AppImg append;
 		append.insets = insets;
 		append.data = data;
@@ -312,16 +330,16 @@ public:
 		appends ~= append;
 	}
 	/// ditto
-	void append(ImageData data, CPoint point, ScaleType scaleType, byte alpha = cast(byte) 0xFF) { mixin(S_TRACE);
+	void append(ImageDataWithScale data, CPoint point, ScaleType scaleType, byte alpha = cast(byte) 0xFF) { mixin(S_TRACE);
 		append(data, CInsets(point.y,
-			initW - (point.x + data.width),
-			initH - (point.y + data.height),
+			initW - (point.x + data.getWidth(NORMAL_SCALE)),
+			initH - (point.y + data.getHeight(NORMAL_SCALE)),
 			point.x), scaleType, alpha);
 	}
 	/// ditto
 	void append(FontData fontData, string text, CInsets insets) { mixin(S_TRACE);
 		AppImg append;
-		append.fontData = fontData;
+		append.fontData = new FontData(fontData.getName(), fontData.getHeight() * _targetScale, fontData.getStyle());
 		append.text = text;
 		append.insets = insets;
 		appends ~= append;
@@ -351,11 +369,11 @@ public:
 	void setTransparent(int index, bool mask) { mixin(S_TRACE);
 		appends[index].transparent = mask;
 	}
-	void setImageData(ImageData data) { mixin(S_TRACE);
+	void setImageData(ImageDataWithScale data) { mixin(S_TRACE);
 		this.path = "";
 		this.data = data;
 	}
-	void setImageData(int index, ImageData data) { mixin(S_TRACE);
+	void setImageData(int index, ImageDataWithScale data) { mixin(S_TRACE);
 		appends[index].path = "";
 		appends[index].data = data;
 	}
@@ -496,9 +514,22 @@ public:
 	@property
 	void color2(CRGB value) { _color2 = value; }
 
+	const
+	private int ds(int value) { return value * _targetScale; }
+	const
+	Rectangle ds(Rectangle rect) { mixin(S_TRACE);
+		if (_targetScale == 1) return rect;
+		return new Rectangle(ds(rect.x), ds(rect.y), ds(rect.width), ds(rect.height));
+	}
+	const
+	private CFont ds(CFont font) { mixin(S_TRACE);
+		font.point = ds(font.point);
+		return font;
+	}
+
 	/// 画像データを返す。生成されていない場合は生成する。
 	@property
-	ImageData imageData() { mixin(S_TRACE);
+	ImageDataWithScale imageData() { mixin(S_TRACE);
 		if (!_imgData) _imgData = createImageData();
 		return _imgData;
 	}
@@ -517,18 +548,19 @@ public:
 	private void createImageImpl() { mixin(S_TRACE);
 		if (!_needCreate) return;
 		_needCreate = false;
+		clearImage();
 		auto cur = Display.getCurrent();
-		if (_imgData) { mixin(S_TRACE);
-			del(_imgData);
-		}
-		if (_img) _img.dispose();
 		_imgData = createImageData();
-		_img = _imgData ? new Image(cur, _imgData) : null;
+		_img = _imgData ? new Image(cur, _imgData.scaled(_targetScale)) : null;
+	}
+	/// 生成されたイメージを削除する。
+	void clearImage() { mixin(S_TRACE);
+		dispose();
 	}
 	/// イメージ・タイトル・透明色の設定有無を設定した後に
 	/// このメソッドを呼び出すことで、ImageDataが生成される。
 	/// See_Also: append(), setTitle(), transparent()
-	ImageData createImageData() { mixin(S_TRACE);
+	ImageDataWithScale createImageData() { mixin(S_TRACE);
 		if (width == 0 || height == 0 || initW == 0 || initH == 0) return null;
 
 		try { mixin(S_TRACE);
@@ -545,54 +577,58 @@ public:
 		} catch (Exception e) {
 			printStackTrace();
 			debugln(e);
-			return blankImage;
+			return new ImageDataWithScale(blankImage, 1);
 		}
 	}
-	private ImageData createImageDataImpl() { mixin(S_TRACE);
+	private ImageDataWithScale createImageDataImpl() { mixin(S_TRACE);
 		auto cur = Display.getCurrent();
 
 		auto dataSet = new HashSet!ImageData;
-		if (_baseSizeData) dataSet.add(_baseSizeData);
 		ImageData getMat() { mixin(S_TRACE);
 			ImageData matImgData;
 			if (this.data) { mixin(S_TRACE);
-				matImgData = this.data;
+				dataSet.add(this.data.baseData);
+				matImgData = this.data.scaled(_targetScale);
+				dataSet.add(matImgData);
 			} else { mixin(S_TRACE);
 				if (isBinImg(path) || (path !is null && .exists(path))) { mixin(S_TRACE);
-					matImgData = loadImage(path, false);
-					dataSet.add(matImgData);
-					if (matImgData.width != initW || matImgData.height != initH) { mixin(S_TRACE);
+					auto matImgDataWS = .loadImageWithScale(path, _targetScale, false);
+					dataSet.add(matImgDataWS.baseData);
+					matImgData = matImgDataWS.scaled(_targetScale);
+					if (matImgData.width != ds(initW) || matImgData.height != ds(initH)) { mixin(S_TRACE);
 						if (smoothing && 16 <= matImgData.depth) { mixin(S_TRACE);
 							matImgData = cast(ImageData)matImgData.clone();
 							auto data = cast(ubyte[])matImgData.data;
 							auto alpha = cast(ubyte[])matImgData.alphaData;
 							size_t bpl;
-							matImgData.data = cast(byte[])smoothResize(initW, initH, data, alpha,
+							matImgData.data = cast(byte[])smoothResize(ds(initW), ds(initH), data, alpha,
 								matImgData.depth, matImgData.width, matImgData.height, matImgData.bytesPerLine, bpl);
 							matImgData.alphaData = cast(byte[])alpha;
-							matImgData.width = initW;
-							matImgData.height = initH;
+							matImgData.width = ds(initW);
+							matImgData.height = ds(initH);
 							matImgData.bytesPerLine = cast(int)bpl;
 						} else { mixin(S_TRACE);
-							matImgData = matImgData.scaledTo(initW, initH);
+							dataSet.add(matImgData);
+							matImgData = matImgData.scaledTo(ds(initW), ds(initH));
 						}
 						dataSet.add(matImgData);
 					}
 				} else { mixin(S_TRACE);
 					// ファイルが無い場合は単に表示しない。
-					matImgData = blankImage(initW, initH);
+					matImgData = blankImage(ds(initW), ds(initH));
 				}
 			}
 			if (appends.length) { mixin(S_TRACE);
 				return matImgData;
 			} else { mixin(S_TRACE);
+				dataSet.add(matImgData);
 				return cast(ImageData)matImgData.clone();
 			}
 		}
 		ImageData matImgData;
 		bool noTransparent = false;
 		void matNoTransparent() { mixin(S_TRACE);
-			auto data = blankImage(initW, initH);
+			auto data = blankImage(ds(initW), ds(initH));
 			data.transparentPixel = -1;
 			data.data[] = cast(byte) 255;
 			auto img = new Image(cur, data);
@@ -602,7 +638,7 @@ public:
 			auto mat = getMat();
 			auto img2 = new Image(cur, mat);
 			scope (exit) img2.dispose();
-			dc.drawImage(img2, 0, 0);
+			dc.drawImage(img2, ds(0), ds(0));
 			matImgData = img.getImageData();
 			dataSet.add(matImgData);
 			if (mat.depth == 32) noTransparent = true;
@@ -617,7 +653,7 @@ public:
 		}
 		auto bmp = new Image(cur, matImgData);
 		scope (exit) bmp.dispose();
-		ImageData bmpData;
+		ImageData bmpData, baseSizeData;
 		if (appends.length || _title !is null || 0 != _maskA) { mixin(S_TRACE);
 			auto dc = new GC(bmp);
 			scope (exit) dc.dispose();
@@ -625,50 +661,54 @@ public:
 			foreach (a; appends) { mixin(S_TRACE);
 				if (a.fontData) { mixin(S_TRACE);
 					// 中央にテキストを表示
-					auto ca = new Rectangle(a.insets.w, a.insets.n, initW - a.insets.w - a.insets.e, initH - a.insets.n - a.insets.s);
+					auto ca = new Rectangle(ds(a.insets.w), ds(a.insets.n), ds(initW - a.insets.w - a.insets.e), ds(initH - a.insets.n - a.insets.s));
 					drawCenterText(a.fontData, dc, ca, a.text);
 				} else { mixin(S_TRACE);
 					if (a.path.length || a.data) { mixin(S_TRACE);
 						try { mixin(S_TRACE);
 							ImageData imgData;
 							if (a.data) { mixin(S_TRACE);
-								imgData = a.data;
+								imgData = a.data.scaled(_targetScale);
+								dataSet.add(imgData);
 							} else { mixin(S_TRACE);
-								imgData = loadImage(a.path, a.transparent, a.maskX, a.maskY);
+								auto drawingScale = a.drawingScaleOverride ? a.drawingScaleOverride() : _targetScale;
+								auto imgDataWS = .loadImageWithScale(a.path, drawingScale, a.transparent, a.maskX, a.maskY);
+								dataSet.add(imgDataWS.baseData);
+								imgData = imgDataWS.scaled(_targetScale);
 								dataSet.add(imgData);
 							}
 							if (a.alpha != 0xFF) dc.setAlpha(a.alpha);
 							scope (exit) {
 								if (a.alpha != 0xFF) dc.setAlpha(0xFF);
 							}
-							int bw = initW - a.insets.w - a.insets.e;
-							int bh = initH - a.insets.n - a.insets.s;
+							int bw = ds(initW - a.insets.w - a.insets.e);
+							int bh = ds(initH - a.insets.n - a.insets.s);
 							if (a.scaleType is ScaleType.Center) { mixin(S_TRACE);
 								auto img = new Image(cur, imgData);
 								scope (exit) img.dispose();
 								int dw = imgData.width;
 								int dh = imgData.height;
-								int x = (initW - dw) / 2;
-								int y = (initH - dh) / 2;
+								int x = (ds(initW) - dw) / 2;
+								int y = (ds(initH) - dh) / 2;
 								dc.drawImage(img, x, y);
 							} else if (imgData.width == bw && imgData.height == bh) { mixin(S_TRACE);
 								auto img = new Image(cur, imgData);
 								scope (exit) img.dispose();
-								dc.drawImage(img, a.insets.w, a.insets.n);
+								dc.drawImage(img, ds(a.insets.w), ds(a.insets.n));
 							} else if (a.scaleType is ScaleType.Cut) { mixin(S_TRACE);
 								auto img = new Image(cur, imgData);
 								scope (exit) img.dispose();
 								int dw = imgData.width;
 								int dh = imgData.height;
-								dc.drawImage(img, 0, 0, dw, dh, a.insets.w, a.insets.n, dw, dh);
+								dc.drawImage(img, 0, 0, dw, dh, ds(a.insets.w), ds(a.insets.n), dw, dh);
 							} else { mixin(S_TRACE);
 								assert (a.scaleType is ScaleType.Scale);
 								imgData = imgData.scaledTo
-									(initW - a.insets.w - a.insets.e,
-									initH - a.insets.n - a.insets.s);
+									(ds(initW - a.insets.w - a.insets.e),
+									ds(initH - a.insets.n - a.insets.s));
 								auto img = new Image(cur, imgData);
 								scope (exit) img.dispose();
-								dc.drawImage(img, a.insets.w, a.insets.n);
+								dc.drawImage(img, ds(a.insets.w), ds(a.insets.n));
 							}
 						} catch (SWTException e) {
 							// ファイルが無い場合は表示しない。
@@ -678,7 +718,7 @@ public:
 					}
 					if (a.text.length) { mixin(S_TRACE);
 						try { mixin(S_TRACE);
-							auto font = .createFontFromPixels(a.font);
+							auto font = .createFontFromPixels(ds(a.font));
 							scope (exit) font.dispose();
 							dc.setFont(font);
 							scope (exit) dc.setFont(null);
@@ -692,11 +732,11 @@ public:
 							scope (exit) dc.setAlpha(255);
 							switch (a.textPos) {
 							case TPos.LEFT: { mixin(S_TRACE);
-								dc.wDrawText(a.text, a.insets.w, a.insets.n, true);
+								dc.wDrawText(a.text, ds(a.insets.w), ds(a.insets.n), true);
 							} break;
 							case TPos.RIGHT: { mixin(S_TRACE);
 								int tw = dc.wTextExtent(a.text).x;
-								dc.wDrawText(a.text, initW - a.insets.e - tw, a.insets.n, true);
+								dc.wDrawText(a.text, ds(initW - a.insets.e) - tw, ds(a.insets.n), true);
 							} break;
 							default: assert (0);
 							}
@@ -714,7 +754,7 @@ public:
 				dc.setAlpha(_maskA);
 				scope (exit) dc.setAlpha(255);
 				dc.setBackground(color);
-				dc.fillRectangle(0, 0, initW, initH);
+				dc.fillRectangle(0, 0, ds(initW), ds(initH));
 			}
 
 			// フォントがおかしくなる
@@ -731,27 +771,27 @@ public:
 				scope (exit) {
 					if (_titColor) color.dispose();
 				}
-				auto font = createFontFromPixels(titFont);
+				auto font = createFontFromPixels(ds(titFont));
 				scope (exit) font.dispose();
 				dc.setFont(font);
 				auto extent = dc.wTextExtent(_title);
 				if (_titAntialias) { mixin(S_TRACE);
-					CFont titFont2 = this.titFont;
+					CFont titFont2 = ds(this.titFont);
 					titFont2.point = titFont2.point * 2;
-					auto font2 = .createFontFromPixels(titFont2);
+					auto font2 = .createFontFromPixels(ds(titFont2));
 					scope (exit) font2.dispose();
 					dc.setFont(font);
 					// 2倍に描画して縮める事でアンチエイリアスする
-					if (0 < _titShrinkWidth && _titShrinkWidth < extent.x) { mixin(S_TRACE);
-						extent.x = _titShrinkWidth;
+					if (0 < ds(_titShrinkWidth) && ds(_titShrinkWidth) < extent.x) { mixin(S_TRACE);
+						extent.x = ds(_titShrinkWidth);
 					}
-					dc.shrinkDrawText(_title, titPoint.x, titPoint.y, extent, true);
+					dc.shrinkDrawText(_title, ds(titPoint.x), ds(titPoint.y), extent, true);
 				} else { mixin(S_TRACE);
-					if (0 < _titShrinkWidth && _titShrinkWidth < extent.x) { mixin(S_TRACE);
+					if (0 < ds(_titShrinkWidth) && ds(_titShrinkWidth) < extent.x) { mixin(S_TRACE);
 						extent.x = _titShrinkWidth;
-						dc.shrinkDrawText(_title, titPoint.x, titPoint.y, extent, false);
+						dc.shrinkDrawText(_title, ds(titPoint.x), ds(titPoint.y), extent, false);
 					} else { mixin(S_TRACE);
-						dc.wDrawText(_title, titPoint.x, titPoint.y, true);
+						dc.wDrawText(_title, ds(titPoint.x), ds(titPoint.y), true);
 					}
 				}
 				dc.setForeground(cur.getSystemColor(SWT.COLOR_BLACK));
@@ -759,32 +799,34 @@ public:
 			}
 			bmpData = bmp.getImageData();
 			dataSet.add(bmpData);
-			_baseSizeData = bmpData;
+			baseSizeData = bmpData;
 		} else { mixin(S_TRACE);
 			bmpData = matImgData;
-			_baseSizeData = matImgData;
+			baseSizeData = matImgData;
 		}
 		dataSet.add(bmpData);
 
 		if (transparent && !noTransparent) { mixin(S_TRACE);
 			bmpData.transparentPixel = bmpData.getPixel(0, 0);
-			_baseSizeData.transparentPixel = _baseSizeData.getPixel(0, 0);
+			baseSizeData.transparentPixel = baseSizeData.getPixel(0, 0);
 		}
-		if (_dataResizable && (bmpData.width != width || bmpData.height != height)) { mixin(S_TRACE);
+		_baseSizeData = new ImageDataWithScale(baseSizeData, _targetScale);
+		if (_dataResizable && (bmpData.width != ds(width) || bmpData.height != ds(height))) { mixin(S_TRACE);
 			dataSet.add(bmpData);
 			if (smoothing && 16 <= bmpData.depth) { mixin(S_TRACE);
 				bmpData = cast(ImageData)bmpData.clone();
 				auto data = cast(ubyte[])bmpData.data;
 				auto alpha = cast(ubyte[])bmpData.alphaData;
 				size_t bpl;
-				bmpData.data = cast(byte[])smoothResize(width, height, data, alpha,
+				bmpData.data = cast(byte[])smoothResize(ds(width), ds(height), data, alpha,
 					bmpData.depth, bmpData.width, bmpData.height, bmpData.bytesPerLine, bpl);
 				bmpData.alphaData = cast(byte[])alpha;
-				bmpData.width = width;
-				bmpData.height = height;
+				bmpData.width = ds(width);
+				bmpData.height = ds(height);
 				bmpData.bytesPerLine = cast(int)bpl;
 			} else { mixin(S_TRACE);
-				bmpData = bmpData.scaledTo(width, height);
+				dataSet.add(bmpData);
+				bmpData = bmpData.scaledTo(ds(width), ds(height));
 			}
 			dataSet.add(bmpData);
 		}
@@ -793,9 +835,9 @@ public:
 				del(d);
 			}
 		}
-		return bmpData;
+		return new ImageDataWithScale(bmpData, _targetScale);
 	}
-	private ImageData createTextImageData() { mixin(S_TRACE);
+	private ImageDataWithScale createTextImageData() { mixin(S_TRACE);
 		// BorderingType.Inlineの場合のみ、予め画像を生成する
 		// (アンチエイリアスがかからないため可能)
 		if (borderingType !is BorderingType.Inline) return null;
@@ -809,11 +851,11 @@ public:
 
 		int w, h;
 		if (vertical) { mixin(S_TRACE);
-			w = height;
-			h = width;
+			w = ds(height);
+			h = ds(width);
 		} else { mixin(S_TRACE);
-			w = width;
-			h = height;
+			w = ds(width);
+			h = ds(height);
 		}
 
 		int alpha;
@@ -825,7 +867,7 @@ public:
 		scope (exit) img.dispose();
 		auto gc = new GC(img);
 		scope (exit) gc.dispose();
-		auto font = .createFontFromPixels(titFont);
+		auto font = .createFontFromPixels(ds(titFont));
 		scope (exit) font.dispose();
 		auto backColor = new Color(cur, backRgb);
 		scope (exit) backColor.dispose();
@@ -842,8 +884,8 @@ public:
 		gc.setTextAntialias(SWT.NONE);
 
 		// パスの形成
-		int x = 0;
-		int y = 0;
+		int x = ds(0);
+		int y = ds(0);
 		int height, ulineWidth, ulinePos, slineWidth, slinePos;
 		lineMetrics(gc, height, ulineWidth, ulinePos, slineWidth, slinePos);
 		gc.setLineWidth(borderingWidth);
@@ -878,13 +920,13 @@ public:
 				pathF.addRectangle(hb, ly + hb, x, slineWidth);
 			}
 
-			x = 0;
+			x = ds(0);
 			y += height;
 		}
 
 		// 描画
 		gc.fillPath(pathF);
-		if (borderingWidth <= fontPixelSize / 2) { mixin(S_TRACE);
+		if (borderingWidth <= ds(fontPixelSize) / 2) { mixin(S_TRACE);
 			gc.drawPath(pathL);
 		} else { mixin(S_TRACE);
 			// FIXME: 何層にも重なり合った部分に隙間が生じてしまう現象に対処
@@ -941,9 +983,9 @@ public:
 		imgData.transparentPixel = tPixel;
 		imgData.alpha = alpha;
 
-		return imgData;
+		return new ImageDataWithScale(imgData, _targetScale);
 	}
-	private ImageData createFilterImageData() { mixin(S_TRACE);
+	private ImageDataWithScale createFilterImageData() { mixin(S_TRACE);
 		// カラーフィルタは常に画像無し
 		return null;
 	}
@@ -953,7 +995,7 @@ public:
 	/// dc = キャンバス。
 	void draw(Display d, ref Image buf, ref GC gc, Rectangle range) { mixin(S_TRACE);
 		if (!_visible) return;
-		if (!range.intersects(x, y, width, height)) return;
+		if (!range.intersects(ds(x), ds(y), ds(width), ds(height))) return;
 		if (_needCreate) createImageImpl();
 		final switch (_type) {
 		case ImageType.Image:
@@ -961,14 +1003,14 @@ public:
 			int olda = gc.getAlpha();
 			gc.setAlpha(alpha);
 			scope (exit) gc.setAlpha(olda);
-			gc.drawImage(_img, x, y);
+			gc.drawImage(_img, ds(x), ds(y));
 			break;
 		case ImageType.Text:
 			if (_img) { mixin(S_TRACE);
 				int olda = gc.getAlpha();
 				gc.setAlpha(alpha);
 				scope (exit) gc.setAlpha(olda);
-				gc.drawImage(_img, x, y);
+				gc.drawImage(_img, ds(x), ds(y));
 			} else { mixin(S_TRACE);
 				drawText(d, buf, gc, range);
 			}
@@ -1005,16 +1047,16 @@ public:
 				_drawer(this, gc2);
 			}
 			// 元のバッファへ描き戻す
-			gc.drawImage(img2, 0, 0, width, height, x, y, width, height);
+			gc.drawImage(img2, ds(0), ds(0), ds(width), ds(height), ds(x), ds(y), ds(width), ds(height));
 			break;
 		}
 	}
 	private void lineMetrics(GC gc, out int height, out int ulineWidth, out int ulinePos, out int slineWidth, out int slinePos) { mixin(S_TRACE);
 		auto mt = gc.getFontMetrics();
 		height = mt.getHeight();
-		ulineWidth = .max(1, fontPixelSize / 16);
+		ulineWidth = .max(1, ds(fontPixelSize) / 16);
 		ulinePos = height - mt.getDescent() + ulineWidth / 2;
-		slineWidth = .max(1, fontPixelSize / 16);
+		slineWidth = .max(1, ds(fontPixelSize) / 16);
 		slinePos = height - mt.getAscent() / 2 + slineWidth / 2;
 	}
 	private void drawTextImpl(GC gc, in string[] lines, int xm, int ym) { mixin(S_TRACE);
@@ -1051,15 +1093,15 @@ public:
 	}
 	/// 描画対象領域をコピーして下地を作成する。
 	private Image cloneBuf(Display cur, Image buf, GC gc, Rectangle range, ref GC gc2) { mixin(S_TRACE);
-		auto img2 = new Image(cur, width, height);
+		auto img2 = new Image(cur, ds(width), ds(height));
 		gc2 = new GC(img2);
 		// 描画対象領域をコピーして下地にする
-		int sx = x;
-		int sy = y;
-		int sw = width;
-		int sh = height;
-		int dx = 0;
-		int dy = 0;
+		int sx = ds(x);
+		int sy = ds(y);
+		int sw = ds(width);
+		int sh = ds(height);
+		int dx = ds(0);
+		int dy = ds(0);
 		if (sx < range.x) { mixin(S_TRACE);
 			dx = range.x - sx;
 			sw -= dx;
@@ -1099,7 +1141,7 @@ public:
 		scope (exit) img2.dispose();
 		gc2 = new GC(img2);
 		scope (exit) gc2.dispose();
-		auto font = .createFontFromPixels(titFont);
+		auto font = .createFontFromPixels(ds(titFont));
 		scope (exit) font.dispose();
 		auto borderColor = new Color(cur, borderRgb);
 		scope (exit) borderColor.dispose();
@@ -1127,7 +1169,7 @@ public:
 		// テキスト本体を描画
 		gc2.setForeground(textColor);
 		gc2.setBackground(textColor);
-		drawTextImpl(gc2, lines,  0,  0);
+		drawTextImpl(gc2, lines, ds(0), ds(0));
 
 		if (vertical) { mixin(S_TRACE);
 			imgData = img2.getImageData();
@@ -1137,14 +1179,14 @@ public:
 		}
 
 		// 元のバッファへ描き戻す
-		gc.drawImage(img2, 0, 0, width, height, x, y, width, height);
+		gc.drawImage(img2, ds(0), ds(0), ds(width), ds(height), ds(x), ds(y), ds(width), ds(height));
 	}
 	private static ubyte roundColor(T)(T c) { mixin(S_TRACE);
 		return cast(ubyte) .max(0, .min(255, c));
 	}
 	/// カラーフィルタの描画を行う。
 	private void drawFilter(ref Image buf, ref GC gc, Rectangle range) { mixin(S_TRACE);
-		auto iRect = rect.intersection(range);
+		auto iRect = ds(rect).intersection(range);
 		auto bMode = this.blendMode;
 		if (transparent) { mixin(S_TRACE);
 			bMode = BlendMode.Mask;
@@ -1179,13 +1221,13 @@ public:
 				int cb = _color1.b;
 				int from, width, iFrom, iWidth;
 				if (gradientDir is GradientDir.LeftToRight) { mixin(S_TRACE);
-					from = this.x;
-					width = this.width;
+					from = ds(this.x);
+					width = ds(this.width);
 					iFrom = iRect.x;
 					iWidth = iRect.width;
 				} else { mixin(S_TRACE);
-					from = this.y;
-					width = this.height;
+					from = ds(this.y);
+					width = ds(this.height);
 					iFrom = iRect.y;
 					iWidth = iRect.height;
 				}
@@ -1234,13 +1276,13 @@ public:
 			case GradientDir.LeftToRight:
 			case GradientDir.TopToBottom:
 				if (gradientDir is GradientDir.LeftToRight) { mixin(S_TRACE);
-					from = this.x;
-					width = this.width;
+					from = ds(this.x);
+					width = ds(this.width);
 					iFrom = iRect.x;
 					iWidth = iRect.width;
 				} else { mixin(S_TRACE);
-					from = this.y;
-					width = this.height;
+					from = ds(this.y);
+					width = ds(this.height);
 					iFrom = iRect.y;
 					iWidth = iRect.height;
 				}
@@ -1270,9 +1312,9 @@ public:
 
 			// 色を加算または減算または乗算。
 			foreach (ix; iRect.x .. iRect.x + iRect.width) { mixin(S_TRACE);
-				int x = ix - this.x;
+				int x = ix - ds(this.x);
 				foreach (iy; iRect.y .. iRect.y + iRect.height) { mixin(S_TRACE);
-					int y = iy - this.y;
+					int y = iy - ds(this.y);
 					auto fc = px.get(ix, iy);
 					auto tfc = color(ix, iy);
 					if (tfc.a == 0) continue;
@@ -1349,8 +1391,8 @@ public:
 		final switch (_type) {
 		case ImageType.Image:
 			if (transparent) return false;
-			if (_imgData && (_imgData.alphaData.length || 0 <= _imgData.transparentPixel)) return false;
-			if (data && (data.alphaData.length || 0 <= data.transparentPixel)) return false;
+			if (_imgData && (_imgData.scaled(_targetScale).alphaData.length || 0 <= _imgData.scaled(_targetScale).transparentPixel)) return false;
+			if (data && (data.scaled(_targetScale).alphaData.length || 0 <= data.scaled(_targetScale).transparentPixel)) return false;
 			return true;
 		case ImageType.Text:
 			return false;
@@ -1372,7 +1414,7 @@ public:
 	}
 	/// リサイズ前の画像。
 	@property
-	ImageData baseSizeData() { mixin(S_TRACE);
+	ImageDataWithScale baseSizeData() { mixin(S_TRACE);
 		if (_needCreate) createImageImpl();
 		return _baseSizeData;
 	}
@@ -1553,7 +1595,14 @@ public:
 	}
 
 	private void del(ImageData data) { mixin(S_TRACE);
-		if (_baseSizeData !is data && this.data !is data) { mixin(S_TRACE);
+		bool[ImageData] set;
+		if (_baseSizeData) { mixin(S_TRACE);
+			foreach (data2; _baseSizeData.allData) set[data2] = true;
+		}
+		if (this.data) { mixin(S_TRACE);
+			foreach (data2; this.data.allData) set[data2] = true;
+		}
+		if (data !in set) { mixin(S_TRACE);
 			data.data[] = 0;
 			destroy(data.data);
 			data.alphaData[] = 0;
@@ -1565,14 +1614,16 @@ public:
 
 	/// 全てのリソースを解放する。
 	void dispose() { mixin(S_TRACE);
-		void del(ImageData data) { mixin(S_TRACE);
-			if (this.data is data) return;
-			data.data[] = 0;
-			destroy(data.data);
-			data.alphaData[] = 0;
-			destroy(data.alphaData);
-			data.maskData[] = 0;
-			destroy(data.maskData);
+		void del(ImageDataWithScale dataWS) { mixin(S_TRACE);
+			if (this.data is dataWS) return;
+			foreach (data; dataWS.allData) { mixin(S_TRACE);
+				data.data[] = 0;
+				destroy(data.data);
+				data.alphaData[] = 0;
+				destroy(data.alphaData);
+				data.maskData[] = 0;
+				destroy(data.maskData);
+			}
 		}
 		if (_imgData) del(_imgData);
 		if (_baseSizeData) del(_baseSizeData);
@@ -1622,8 +1673,8 @@ public:
 	/// baseW = 本来の幅。
 	/// baseH = 本来の高さ。
 	/// scaleMode = 幅と高さではなくスケールを変更するモードか。
-	this (string path, int x, int y, int baseW, int baseH, bool scaleMode) { mixin(S_TRACE);
-		super (path, x, y, baseW, baseH, scaleMode);
+	this (string path, uint targetScale, int x, int y, int baseW, int baseH, bool scaleMode) { mixin(S_TRACE);
+		super (path, targetScale, x, y, baseW, baseH, scaleMode);
 		newR = new Rectangle(x, y, baseW, baseH);
 		_newScale = 100;
 	}
@@ -1635,26 +1686,26 @@ public:
 	/// baseW = 本来の幅。
 	/// baseH = 本来の高さ。
 	/// scaleMode = 幅と高さではなくスケールを変更するモードか。
-	this (ImageData data, int x, int y, int baseW, int baseH, bool scaleMode, bool dataResizable) { mixin(S_TRACE);
-		super (data, x, y, baseW, baseH, scaleMode, dataResizable);
+	this (ImageDataWithScale data, uint targetScale, int x, int y, int baseW, int baseH, bool scaleMode, bool dataResizable) { mixin(S_TRACE);
+		super (data, targetScale, x, y, baseW, baseH, scaleMode, dataResizable);
 		newR = new Rectangle(x, y, baseW, baseH);
 		_newScale = 100;
 	}
 
 	/// テキスト表示用のインスタンスを生成する。
-	this (string text, string fontName, int size, CRGB color,
+	this (string text, uint targetScale, string fontName, int size, CRGB color,
 			bool bold, bool italic, bool underline, bool strike, bool vertical,
 			BorderingType borderingType, CRGB borderingColor, uint borderingWidth,
 			int x, int y, int baseW, int baseH) { mixin(S_TRACE);
-		super (text, fontName, size, color, bold, italic, underline, strike, vertical,
+		super (text, targetScale, fontName, size, color, bold, italic, underline, strike, vertical,
 			borderingType, borderingColor, borderingWidth, x, y, baseW, baseH);
 		newR = new Rectangle(x, y, baseW, baseH);
 		_newScale = 100;
 	}
 	/// カラーフィルタ用のインスタンスを生成する。
-	this (BlendMode blendMode, GradientDir gradientDir, CRGB color1, CRGB color2,
+	this (uint targetScale, BlendMode blendMode, GradientDir gradientDir, CRGB color1, CRGB color2,
 			int x, int y, int baseW, int baseH) { mixin(S_TRACE);
-		super (ImageType.ColorFilter, x, y, baseW, baseH, false);
+		super (ImageType.ColorFilter, targetScale, x, y, baseW, baseH, false);
 		newR = new Rectangle(x, y, baseW, baseH);
 		this.blendMode = blendMode;
 		this.gradientDir = gradientDir;
@@ -1662,8 +1713,8 @@ public:
 		this.color2 = color2;
 	}
 	/// 独自描画用のインスタンスを生成する。
-	this (void delegate(in PileImage img, GC gc) drawer, int x, int y, int baseW, int baseH, bool scaleMode) {
-		super (drawer, x, y, baseW, baseH, scaleMode);
+	this (void delegate(in PileImage img, GC gc) drawer, uint targetScale, int x, int y, int baseW, int baseH, bool scaleMode) {
+		super (drawer, targetScale, x, y, baseW, baseH, scaleMode);
 		newR = new Rectangle(x, y, baseW, baseH);
 		_newScale = 100;
 	}
@@ -1824,11 +1875,11 @@ public:
 				gc.setLineWidth(SELECTION_LINE_WIDTH);
 				scope (exit) gc.setLineWidth(lineWidth);
 				gc.setForeground(d.getSystemColor(SWT.COLOR_WHITE));
-				gc.drawRectangle(newX * imageScale, newY * imageScale, newWidth * imageScale - 1, newHeight * imageScale - 1);
+				gc.drawRectangle(ds(newX) * imageScale, ds(newY) * imageScale, ds(newWidth) * imageScale - 1, ds(newHeight) * imageScale - 1);
 			} else { mixin(S_TRACE);
 				gc.setBackground(d.getSystemColor(SWT.COLOR_WHITE));
 				gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
-				gc.drawFocus(newX * imageScale, newY * imageScale, newWidth * imageScale, newHeight * imageScale);
+				gc.drawFocus(ds(newX) * imageScale, ds(newY) * imageScale, ds(newWidth) * imageScale, ds(newHeight) * imageScale);
 			}
 
 			gc.setBackground(d.getSystemColor(SWT.COLOR_WHITE));
@@ -1836,7 +1887,7 @@ public:
 			gc.setLineStyle(SWT.LINE_SOLID);
 			foreach (rect; tgls.values) { mixin(S_TRACE);
 				gc.fillRectangle(rect.x * imageScale + 1, rect.y * imageScale + 1,
-					tglSize * imageScale - 1, tglSize * imageScale - 1);
+					ds(tglSize) * imageScale - 1, ds(tglSize) * imageScale - 1);
 				gc.drawRectangle(rect.x * imageScale, rect.y * imageScale, rect.width * imageScale, rect.height * imageScale);
 			}
 		}
@@ -2019,8 +2070,8 @@ public:
 				return key;
 			}
 		}
-		if (move && this.x <= x && x <= (this.x + this.width)
-				&& this.y <= y && y <= (this.y + this.height)) { mixin(S_TRACE);
+		if (move && ds(this.x) <= x && x <= (ds(this.x) + ds(this.width))
+				&& ds(this.y) <= y && y <= (ds(this.y) + ds(this.height))) { mixin(S_TRACE);
 			return Toggle.MOVE;
 		} else { mixin(S_TRACE);
 			return Toggle.NONE;
@@ -2053,30 +2104,30 @@ public:
 	private Rectangle toggleRect(Toggle tgl) { mixin(S_TRACE);
 		int tglX;
 		int tglY;
-		int tglWidth = tglSize;
-		int tglHeight = tglSize;
+		int tglWidth = ds(tglSize);
+		int tglHeight = ds(tglSize);
 		final switch (tgl) {
 		case Toggle.LEFT_TOP, Toggle.LEFT_MIDDLE, Toggle.LEFT_BOTTOM:
-			tglX = newX - tglSize + (tglSize / 2);
+			tglX = ds(newX - tglSize + (tglSize / 2));
 			break;
 		case Toggle.MIDDLE_TOP, Toggle.MIDDLE_BOTTOM:
-			tglX = newX + (newWidth / 2) - (tglSize / 2);
+			tglX = ds(newX + (newWidth / 2) - (tglSize / 2));
 			break;
 		case Toggle.RIGHT_TOP, Toggle.RIGHT_MIDDLE, Toggle.RIGHT_BOTTOM:
-			tglX = newX + newWidth - (tglSize / 2) - 1;
+			tglX = ds(newX + newWidth - (tglSize / 2)) - 1;
 			break;
 		case Toggle.MOVE, Toggle.NONE:
 			break;
 		}
 		final switch (tgl) {
 		case Toggle.LEFT_TOP, Toggle.MIDDLE_TOP, Toggle.RIGHT_TOP:
-			tglY = newY - tglSize + (tglSize / 2);
+			tglY = ds(newY - tglSize + (tglSize / 2));
 			break;
 		case Toggle.LEFT_MIDDLE, Toggle.RIGHT_MIDDLE:
-			tglY = newY + (newHeight / 2) - (tglSize / 2);
+			tglY = ds(newY + (newHeight / 2) - (tglSize / 2));
 			break;
 		case Toggle.LEFT_BOTTOM, Toggle.RIGHT_BOTTOM, Toggle.MIDDLE_BOTTOM:
-			tglY = newY + newHeight - (tglSize / 2) - 1;
+			tglY = ds(newY + newHeight - (tglSize / 2)) - 1;
 			break;
 		case Toggle.MOVE, Toggle.NONE:
 			break;
@@ -2159,10 +2210,11 @@ private:
 	bool[FlexImage] rangeSelectOlds;
 
 	PileImage[] backs = [];
-	ImageData[] _appends = [];
+	ImageDataWithScale[] _appends = [];
 
 	int _width, _height;
 	int _imageScale = 1;
+	int _drawingScale = 1;
 	bool _drawXORSelectionLine = true;
 
 	int _gridX = 0, _gridY = 0;
@@ -2175,6 +2227,15 @@ private:
 	ImageData _background = null;
 	Image _lastWallpaper = null;
 	Rectangle _lastClientArea = null;
+	uint _lastDrawingScale = 0;
+
+	const
+	int ds(int value) { return value * _drawingScale; }
+	const
+	Rectangle ds(Rectangle rect) { mixin(S_TRACE);
+		if (_drawingScale == 1) return rect;
+		return new Rectangle(ds(rect.x), ds(rect.y), ds(rect.width), ds(rect.height));
+	}
 
 	/// backsをPileImage#layerを考慮した順序にして返す。
 	@property
@@ -2361,6 +2422,8 @@ private:
 		override void mouseMove(MouseEvent me) { mixin(S_TRACE);
 			int x = me.x / _imageScale;
 			int y = me.y / _imageScale;
+			int dx = ds(me.x) / _imageScale;
+			int dy = ds(me.y) / _imageScale;
 			if (_rangeStartPos) { mixin(S_TRACE);
 				// 範囲選択
 				assert (_rangeEndPos !is null);
@@ -2577,7 +2640,7 @@ private:
 						auto pimg = t[1];
 						if (cast(FlexImage) pimg && pimg.visible) { mixin(S_TRACE);
 							auto img = cast(FlexImage) pimg;
-							Toggle tgl = img.inToggle(x, y, move);
+							Toggle tgl = img.inToggle(dx, dy, move);
 							if (tgl != Toggle.NONE) { mixin(S_TRACE);
 								setCursor(getToggleCursor(tgl));
 								return;
@@ -2599,6 +2662,8 @@ private:
 			auto alt = (me.stateMask & SWT.ALT) != 0;
 			int x = me.x / _imageScale;
 			int y = me.y / _imageScale;
+			int dx = ds(me.x) / _imageScale;
+			int dy = ds(me.y) / _imageScale;
 			if (me.button == 1) { mixin(S_TRACE);
 				rangeSelectOlds = null;
 				foreach (img, rect; dragImgs) { mixin(S_TRACE);
@@ -2618,7 +2683,7 @@ private:
 							if (cast(FlexImage) pimg) { mixin(S_TRACE);
 								img = cast(FlexImage) pimg;
 								if (img.visible) { mixin(S_TRACE);
-									tgl = img.inToggle(x, y, move);
+									tgl = img.inToggle(dx, dy, move);
 									if (tgl !is Toggle.NONE) { mixin(S_TRACE);
 										break;
 									}
@@ -2790,11 +2855,11 @@ private:
 					return;
 				}
 			}
-			auto bWidth = _width;
-			auto bHeight = _height;
+			auto bWidth = ds(_width);
+			auto bHeight = ds(_height);
 			auto d = getShell().getDisplay();
 			auto backImg = getBackgroundImage();
-			if (!_background || backImg !is _lastWallpaper || rect != _lastClientArea) { mixin(S_TRACE);
+			if (!_background || backImg !is _lastWallpaper || rect != _lastClientArea || _drawingScale != _lastDrawingScale) { mixin(S_TRACE);
 				// 背景の初期化
 				auto buf = new Image(d, bWidth, bHeight);
 				auto gc = new GC(buf);
@@ -2814,6 +2879,7 @@ private:
 				_background = buf.getImageData();
 				_lastWallpaper = backImg;
 				_lastClientArea = rect;
+				_lastDrawingScale = _drawingScale;
 			}
 			void delImg(ImageData imageData) { mixin(S_TRACE);
 				if (!imageData) return;
@@ -2830,13 +2896,13 @@ private:
 			scope (exit) {
 				tempBack[backSize] = imageData;
 			}
-			auto range = new Rectangle(0, 0, bWidth, bHeight);
+			auto range = new Rectangle(ds(0), ds(0), bWidth, bHeight);
 			auto buf = new Image(d, imageData);
 			scope (exit) buf.dispose();
 			auto gc = new GC(buf);
 			scope (exit) gc.dispose();
 			auto back = new Image(d, _background);
-			gc.drawImage(back, 0, 0);
+			gc.drawImage(back, ds(0), ds(0));
 			scope (exit) back.dispose();
 
 			// 描画・不描画の判断を行いつつ描画を行う。
@@ -2859,13 +2925,16 @@ private:
 				if (!img.visible) continue;
 
 				// イメージの描画を行うか
-				if (!regionIsEmpty && 0 <= img.y + img.height && img.y < _height && 0 <= img.x + img.width && img.x < _width
-						&& region.intersects(img.x, img.y, img.width, img.height)) { mixin(S_TRACE);
+				if (!regionIsEmpty
+						&& ds(0) <= ds(img.y + img.height)
+						&& ds(img.y) < ds(_height)
+						&& ds(0) <= ds(img.x + img.width) && ds(img.x < _width)
+						&& region.intersects(ds(img.x), ds(img.y), ds(img.width), ds(img.height))) { mixin(S_TRACE);
 					drawImgs ~= img;
 					img.createImageImpl();
 
 					if (img.isOpaque) { mixin(S_TRACE);
-						region.subtract(img.x, img.y, img.width, img.height);
+						region.subtract(ds(img.x), ds(img.y), ds(img.width), ds(img.height));
 						regionIsEmpty |= region.isEmpty();
 					}
 				}
@@ -2874,8 +2943,9 @@ private:
 				if (auto fi = cast(FlexImage)img) { mixin(S_TRACE);
 					if (fi.selected) { mixin(S_TRACE);
 						auto da = fi.drawNewArea;
-						if (0 <= da.y + da.height && da.y < _height && 0 <= da.x + da.width && da.x < _width) { mixin(S_TRACE);
-							auto fiRect = CRect(fi.newX, fi.newY, fi.newWidth, fi.newHeight);
+						if (ds(0) <= ds(da.y + da.height) && ds(da.y) < ds(_height)
+								&& ds(0) <= ds(da.x + da.width) && ds(da.x) < ds(_width)) { mixin(S_TRACE);
+							auto fiRect = CRect(ds(fi.newX), ds(fi.newY), ds(fi.newWidth), ds(fi.newHeight));
 							if (!rects.contains(fiRect)) { mixin(S_TRACE);
 								drawToggleImgs ~= fi;
 								rects.add(fiRect);
@@ -2887,29 +2957,30 @@ private:
 
 			int befAlpha = -1;
 			PileImage[] alphaImgs = [];
-			auto fullRect = new Rectangle(0, 0, _width, _height);
+			auto fullRect = new Rectangle(ds(0), ds(0), ds(_width), ds(_height));
 
 			void drawAlphaImgData() { mixin(S_TRACE);
 				if (!alphaImgs.length) return;
 				ImageData alphaImgData = null;
 				byte[] alphas = null;
 
-				auto size = new Point(_width, _height);
+				auto size = new Point(ds(_width), ds(_height));
 				auto p = size in tempData;
 				if (p) { mixin(S_TRACE);
 					alphaImgData = *p;
 				} else { mixin(S_TRACE);
-					alphaImgData = new ImageData(_width, _height, alphaImgs[0].imageData.depth, alphaImgs[0].imageData.palette);
+					auto aImg = alphaImgs[0].imageData.scaled(_drawingScale);
+					alphaImgData = new ImageData(ds(_width), ds(_height), aImg.depth, aImg.palette);
 				}
-				auto len = cast(size_t)(_width * _height);
+				auto len = cast(size_t)(ds(_width) * ds(_height));
 				auto p2 = len in tempAlphaData;
 				if (p2) { mixin(S_TRACE);
 					alphas = *p2;
 				} else { mixin(S_TRACE);
-					alphas = new byte[_width * _height];
+					alphas = new byte[ds(_width) * ds(_height)];
 				}
 				alphas[] = 0;
-				alphaImgData.setAlphas(0, 0, _width * _height, alphas, 0);
+				alphaImgData.setAlphas(0, 0, ds(_width) * ds(_height), alphas, 0);
 
 				auto alphaRegion = new Region(d);
 				scope (exit) alphaRegion.dispose();
@@ -2918,18 +2989,18 @@ private:
 				PileImage[] alphaImgs2 = [];
 				foreach_reverse (img; alphaImgs) { mixin(S_TRACE);
 					if (alphaRegion.isEmpty()) break;
-					if (!alphaRegion.intersects(img.x, img.y, img.width, img.height)) continue;
+					if (!alphaRegion.intersects(ds(img.x), ds(img.y), ds(img.width), ds(img.height))) continue;
 					if (img.isOpaqueWithoutAlpha) { mixin(S_TRACE);
-						alphaRegion.subtract(img.x, img.y, img.width, img.height);
+						alphaRegion.subtract(ds(img.x), ds(img.y), ds(img.width), ds(img.height));
 					}
 					alphaImgs2 ~= img;
 				}
 
 				foreach_reverse (img; alphaImgs2) { mixin(S_TRACE);
-					int ix = .max(0, -img.x);
-					int aw = img.width - ix;
-					int x2 = img.x + ix;
-					aw = .min(aw, _width - x2);
+					int ix = ds(.max(0, -img.x));
+					int aw = ds(img.width) - ix;
+					int x2 = ds(img.x) + ix;
+					aw = .min(aw, ds(_width) - x2);
 					assert (0 < aw);
 					auto iPixels = new int[aw];
 					auto iAlphas = new byte[aw];
@@ -2937,11 +3008,11 @@ private:
 					scope (exit) destroy(iPixels);
 					scope (exit) destroy(iAlphas);
 					auto iData = img.imageData;
-					foreach (iy; .max(0, -img.y) .. img.height) { mixin(S_TRACE);
-						int y2 = iy + img.y;
+					foreach (iy; ds(.max(0, -img.y)) .. ds(img.height)) { mixin(S_TRACE);
+						int y2 = iy + ds(img.y);
 						assert (0 <= y2);
-						if (_height <= y2) break;
-						iData.getPixels(ix, iy, aw, iPixels, 0);
+						if (ds(_height) <= y2) break;
+						iData.scaled(_drawingScale).getPixels(ix, iy, aw, iPixels, 0);
 						alphaImgData.setPixels(x2, y2, aw, iPixels, 0);
 						alphaImgData.setAlphas(x2, y2, aw, iAlphas, 0);
 					}
@@ -2950,7 +3021,7 @@ private:
 				auto aImg = new Image(d, alphaImgData);
 				gc.dispose();
 				gc = new GC(buf);
-				gc.drawImage(aImg, 0, 0);
+				gc.drawImage(aImg, ds(0), ds(0));
 				aImg.dispose();
 
 				alphaImgData.data[] = 0;
@@ -2994,7 +3065,7 @@ private:
 						auto alpha = gc.getAlpha();
 						gc.setAlpha(fillAlpha);
 						scope (exit) gc.setAlpha(alpha);
-						gc.fillRectangle(fi.bounds);
+						gc.fillRectangle(ds(fi.bounds));
 					}
 				}
 			}
@@ -3011,10 +3082,10 @@ private:
 			//        BitBlt呼び出し後にdrawFocusが効かなくなってしまうので
 			//        仕方なく拡大前に行う。
 			if (_rangeStartPos && _rangeEndPos) { mixin(S_TRACE);
-				int x1 = .min(_rangeStartPos.x, _rangeEndPos.x);
-				int y1 = .min(_rangeStartPos.y, _rangeEndPos.y);
-				int x2 = .max(_rangeStartPos.x, _rangeEndPos.x);
-				int y2 = .max(_rangeStartPos.y, _rangeEndPos.y);
+				int x1 = ds(.min(_rangeStartPos.x, _rangeEndPos.x));
+				int y1 = ds(.min(_rangeStartPos.y, _rangeEndPos.y));
+				int x2 = ds(.max(_rangeStartPos.x, _rangeEndPos.x));
+				int y2 = ds(.max(_rangeStartPos.y, _rangeEndPos.y));
 				int w = x2 - x1;
 				int h = y2 - y1;
 				if (drawXORSelectionLine) { mixin(S_TRACE);
@@ -3035,7 +3106,7 @@ private:
 				fi.drawToggle(gc, 1, drawXORSelectionLine);
 			}
 
-			e.gc.drawImage(buf, 0, 0, bWidth, bHeight,
+			e.gc.drawImage(buf, ds(0), ds(0), bWidth, bHeight,
 				rect.x, rect.y, _width * _imageScale, _height * _imageScale);
 
 			if (1 < _gridX || 1 < _gridY) { mixin(S_TRACE);
@@ -3324,6 +3395,7 @@ public:
 	}
 
 	private void addAfter(PileImage img) { mixin(S_TRACE);
+		assert (img._targetScale == _drawingScale);
 		if (auto fi = cast(FlexImage)img) { mixin(S_TRACE);
 			setSelected(fi);
 		} else { mixin(S_TRACE);
@@ -3332,6 +3404,7 @@ public:
 	}
 
 	void insert(int index, PileImage img) { mixin(S_TRACE);
+		assert (img._targetScale == _drawingScale);
 		if (index == backs.length) { mixin(S_TRACE);
 			append(img);
 		} else { mixin(S_TRACE);
@@ -3345,23 +3418,27 @@ public:
 		} else { mixin(S_TRACE);
 			backs = backs[0 .. index] ~ imgs ~ backs[index .. $];
 			foreach (img; imgs) { mixin(S_TRACE);
+				assert (img._targetScale == _drawingScale);
 				addAfter(img);
 			}
 		}
 	}
 	void set(int index, PileImage img) { mixin(S_TRACE);
+		assert (img._targetScale == _drawingScale);
 		backs[index].dispose();
 		removeDragImage(backs[index]);
 		this.backs[index] = img;
 		addAfter(img);
 	}
 	void append(PileImage img) { mixin(S_TRACE);
+		assert (img._targetScale == _drawingScale);
 		this.backs ~= img;
 		addAfter(img);
 	}
 	void append(PileImage[] imgs) { mixin(S_TRACE);
 		this.backs ~= imgs;
 		foreach (img; imgs) { mixin(S_TRACE);
+			assert (img._targetScale == _drawingScale);
 			addAfter(img);
 		}
 	}
@@ -3395,12 +3472,12 @@ public:
 
 	/// 追加的に表示するイメージ。
 	@property
-	ImageData[] appends() { mixin(S_TRACE);
+	ImageDataWithScale[] appends() { mixin(S_TRACE);
 		return _appends;
 	}
 	/// ditto
 	@property
-	void appends(ImageData[] v) { mixin(S_TRACE);
+	void appends(ImageDataWithScale[] v) { mixin(S_TRACE);
 		_appends = v;
 		redrawAll();
 	}
@@ -3482,6 +3559,7 @@ public:
 	/// 表示倍率。
 	@property
 	void imageScale(int value) { mixin(S_TRACE);
+		if (_imageScale == value) return;
 		_imageScale = value;
 		redraw();
 	}
@@ -3490,12 +3568,25 @@ public:
 	const
 	int imageScale() { return _imageScale; }
 
+	/// 描画倍率。
+	@property
+	void drawingScale(int value) { mixin(S_TRACE);
+		if (_drawingScale == value) return;
+		_drawingScale = value;
+		redraw();
+	}
+	/// ditto
+	@property
+	const
+	int drawingScale() { return _drawingScale; }
+
 	/// 唯一のコンストラクタ。
-	this (Composite parent, int style, int width, int height, int imageScale) { mixin(S_TRACE);
+	this (Composite parent, int style, int width, int height, int imageScale, int drawingScale) { mixin(S_TRACE);
 		super(parent, style);
 		_width = width;
 		_height = height;
 		_imageScale = imageScale;
+		_drawingScale = drawingScale;
 		addListener(SWT.MouseDown, new MouseDown);
 		addListener(SWT.MouseUp, new MouseUp);
 		addMouseMoveListener(new MMListener);

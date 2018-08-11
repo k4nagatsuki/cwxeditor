@@ -60,16 +60,16 @@ FlexImage createBackgroundImage(Props prop, in Skin skin, in Summary summ, strin
 	auto ext = .extension(path);
 	if (cfnmatch(ext, ".jpy1") || cfnmatch(ext, ".jptx") || cfnmatch(ext, ".jpdc")) { mixin(S_TRACE);
 		bool resizable;
-		auto data = loadJPYImage(prop, skin, summ, path, [], resizable);
-		r = new FlexImage(data, x, y, data.width, data.height, false, resizable);
+		auto data = .loadJPYImageWithScale(prop, skin, summ, path, prop.drawingScale, [], resizable);
+		r = new FlexImage(data, prop.drawingScale, x, y, data.getWidth(NORMAL_SCALE), data.getHeight(NORMAL_SCALE), false, resizable);
 	} else { mixin(S_TRACE);
 		uint baseW = w, baseH = h;
-		if (isBinImg(path)) {
-			auto imgData = loadImage(prop, skin, summ, path, false);
-			baseW = imgData.width;
-			baseH = imgData.height;
-			r = new FlexImage(imgData, x, y, baseW, baseH, false, true);
-		} else {
+		if (isBinImg(path)) { mixin(S_TRACE);
+			auto imgData = .loadImageWithScale(prop, skin, summ, path, prop.drawingScaleForImage(summ), false);
+			baseW = imgData.getWidth(NORMAL_SCALE);
+			baseH = imgData.getHeight(NORMAL_SCALE);
+			r = new FlexImage(imgData, prop.drawingScale, x, y, baseW, baseH, false, true);
+		} else { mixin(S_TRACE);
 			try { mixin(S_TRACE);
 				dwtImageSize(prop, skin, summ, path, baseW, baseH);
 			} catch (Exception e) { mixin(S_TRACE);
@@ -78,7 +78,7 @@ FlexImage createBackgroundImage(Props prop, in Skin skin, in Summary summ, strin
 				baseW = w;
 				baseH = h;
 			}
-			r = new FlexImage(path, x, y, baseW, baseH, false);
+			r = new FlexImage(path, prop.drawingScale, x, y, baseW, baseH, false);
 		}
 	}
 	r.transparent = transparent;
@@ -92,38 +92,39 @@ FlexImage createBackgroundImage(Props prop, in Skin skin, in Summary summ, strin
 
 /// キャストカード画像(背景のみ)を生成する。
 /// Returns: カード背景画像。
-PileImage createCastCardBackImage(Props prop, Skin skin, int x, int y, byte alpha) { mixin(S_TRACE);
+PileImage createCastCardBackImage(Props prop, Skin skin, in Summary summ, int x, int y, byte alpha) { mixin(S_TRACE);
 	auto cardSize = prop.looks.cardSize;
 	auto matPad = prop.looks.castCardInsets;
 	int w = cardSize.width + matPad.e + matPad.w;
 	int h = cardSize.height + matPad.n + matPad.s;
 	// FIXME: 64bit環境で256色の画像にalpha値を設定するとXOR描画状態になる
-	//auto imgData = castCard(skin);
-	auto imgData = cast(ImageData)castCard(skin).clone();
-	imgData.alphaData = new byte[imgData.width * imgData.height];
-	imgData.alphaData[] = alpha;
-	auto r = new PileImage(imgData, x, y, w, h, true, true);
+	//auto imgData = .castCard(skin, prop.drawingScale);
+	auto imgData = .castCard(skin, prop.drawingScale);
+	imgData.baseData.alphaData = new byte[imgData.baseData.width * imgData.baseData.height];
+	imgData.baseData.alphaData[] = alpha;
+	auto r = new PileImage(imgData, prop.drawingScale, x, y, w, h, true, true);
 	r.layer = LAYER_PLAYER_CARD * 10;
 	r.createImage();
 	return r;
 }
 /// 背景のみのキャストカード画像をスキンに応じて更新する。
-void updateCastCardBackImage(PileImage img, Skin skin, byte alpha) { mixin(S_TRACE);
+void updateCastCardBackImage(PileImage img, Skin skin, byte alpha, uint targetScale) { mixin(S_TRACE);
 	// FIXME: 64bit環境で256色の画像にalpha値を設定するとXOR描画状態になる
-	//auto imgData = castCard(skin);
-	auto imgData = cast(ImageData)castCard(skin).clone();
-	imgData.alphaData = new byte[imgData.width * imgData.height];
-	imgData.alphaData[] = alpha;
-	img.setBaseImage(imgData, img.width, img.height);
+	//auto imgData = .castCard(skin, targetScale);
+	auto imgData = .castCard(skin, targetScale);
+	imgData.baseData.alphaData = new byte[imgData.baseData.width * imgData.baseData.height];
+	imgData.baseData.alphaData[] = alpha;
+	img.setBaseImage(imgData, img.baseWidth, img.baseHeight);
+	img.targetScale = targetScale;
 	img.createImage();
 }
 
-PImg createCardImageCommon(PImg)(Props prop, ImageData card,
+PImg createCardImageCommon(PImg)(Props prop, in Summary summ, ImageDataWithScale card,
 		CInsets matPad, int x, int y, uint scale, bool smoothing, int layer) { mixin(S_TRACE);
 	auto cardSize = prop.looks.cardSize;
 	int w = cardSize.width + matPad.e + matPad.w;
 	int h = cardSize.height + matPad.n + matPad.s;
-	auto r = new PImg(card, x, y, w, h, true, true);
+	auto r = new PImg(card, prop.drawingScale, x, y, w, h, true, true);
 	r.transparent = false;
 	r.layer = layer * 10;
 	r.smoothing = smoothing;
@@ -139,15 +140,15 @@ PImg createCardImageCommon(PImg)(Props prop, ImageData card,
 
 /// キャストカード画像を生成する。
 /// Returns: カード画像。
-PImg createCastCardImage(PImg)(Props prop, Skin skin, Summary summ, CastCard card,
-		string sPath, string wsnVer, int x, int y, uint scale, bool smoothing, bool dbgMode, int layer) { mixin(S_TRACE);
+PImg createCastCardImage(PImg)(Props prop, Skin skin, in Summary summ, CastCard card,
+		int x, int y, uint scale, bool smoothing, bool dbgMode, int layer) { mixin(S_TRACE);
 	auto matPad = prop.looks.castCardInsets;
 	PImg r;
 	if (card) { mixin(S_TRACE);
-		r = createCardImageCommon!PImg(prop, castCardImage(prop, skin, summ, card, sPath, wsnVer, dbgMode),
+		r = createCardImageCommon!PImg(prop, summ, .castCardImage(prop, skin, summ, card, dbgMode),
 			matPad, x, y, scale, smoothing, layer);
 	} else { mixin(S_TRACE);
-		r = createCardImageCommon!PImg(prop, castCard(skin), matPad, x, y, scale, smoothing, layer);
+		r = createCardImageCommon!PImg(prop, summ, .castCard(skin, prop.drawingScale), matPad, x, y, scale, smoothing, layer);
 	}
 	static if (is(PImg:FlexImage)) {
 		r.hasSelectionFilter = prop.var.etc.showSceneViewSelectionFilter;
@@ -160,20 +161,20 @@ PImg createCastCardImage(PImg)(Props prop, Skin skin, Summary summ, CastCard car
 
 /// メニューカード画像を生成する。
 /// Returns: カード画像。
-PImg createMenuCardImage(PImg)(Props prop, Skin skin, string sPath, string wsnVer,
+PImg createMenuCardImage(PImg)(Props prop, Skin skin, in Summary summ,
 		string title, in CardImage[] paths, int x, int y, uint scale, bool smoothing, int layer) { mixin(S_TRACE);
 	auto matPad = prop.looks.menuCardInsets;
-	auto card = menuCard(skin);
-	auto r = createCardImageCommon!PImg(prop, card, matPad, x, y, scale, smoothing, layer);
+	auto card = .menuCard(skin, prop.drawingScale);
+	auto r = createCardImageCommon!PImg(prop, summ, card, matPad, x, y, scale, smoothing, layer);
 	foreach (path; paths) { mixin(S_TRACE);
-		path.addToPileImage(r, prop, skin, sPath, wsnVer, matPad, ScaleType.Cut);
+		path.addToPileImage(r, prop, skin, summ, matPad, ScaleType.Cut);
 	}
 	auto tx = prop.looks.menuCardNamePoint.x;
-	auto w = card.width;
+	auto w = card.getWidth(NORMAL_SCALE);
 	r.setTitle(title, prop.looks.menuCardNameFont(skin.legacy), dwtData(prop.looks.menuCardNamePoint),
 		skin.legacy ? 0 : w - tx * 2, !skin.legacy);
 	if (!skin.legacy) { mixin(S_TRACE);
-		if (getRGBAverage(card, prop.looks.cardNameArea) < prop.var.etc.negativeCardNameBorder) { mixin(S_TRACE);
+		if (getRGBAverage(card.scaled(prop.drawingScale), prop.ds(prop.looks.cardNameArea)) < prop.var.etc.negativeCardNameBorder) { mixin(S_TRACE);
 			r.titleColor = new RGB(255, 255, 255);
 		}
 	}
@@ -215,13 +216,13 @@ BgImagesView createBgImagesViewAndMenu(Commons comm, Props prop, Summary summ, B
 	return view;
 }
 
-PileImage createMessageImage(Commons comm, Props prop) { mixin(S_TRACE);
+PileImage createMessageImage(Commons comm, Props prop, in Summary summ) { mixin(S_TRACE);
 	auto rect = prop.looks.messageBounds;
 	string[char] names;
 	VarValue[string] flags, steps, sysSteps;
 	// 特殊文字が無いためシナリオパス不要
-	auto imgData = previewMessage(comm, prop, null, null, null, "", [""], names, flags, steps, sysSteps, false, false, false, false);
-	auto img = new PileImage(imgData, rect.x, rect.y, imgData.width, imgData.height, false, true);
+	auto imgData = previewMessage(comm, prop, null, null, null, "", [""], names, flags, steps, sysSteps, false, false, false);
+	auto img = new PileImage(imgData, prop.drawingScale, rect.x, rect.y, imgData.getWidth(NORMAL_SCALE), imgData.getHeight(NORMAL_SCALE), false, true);
 	img.layer = LAYER_MESSAGE * 10 - 1;
 	img.alpha = prop.var.etc.messageAlpha;
 	img.separator = true;
@@ -424,8 +425,8 @@ class Preview {
 			_w = _image.baseWidth;
 			_h = _image.baseHeight;
 			if (_prop.var.etc.previewMaxWidth < _w || _prop.var.etc.previewMaxHeight < _h) { mixin(S_TRACE);
-				real ws = cast(real) _prop.var.etc.previewMaxWidth / _w;
-				real hs = cast(real) _prop.var.etc.previewMaxHeight / _h;
+				real ws = cast(real)_prop.var.etc.previewMaxWidth / _w;
+				real hs = cast(real)_prop.var.etc.previewMaxHeight / _h;
 				real s = std.algorithm.min(ws, hs);
 				_w = cast(int)(_w * s);
 				_h = cast(int)(_h * s);
@@ -448,11 +449,11 @@ class Preview {
 			_shell.setBounds(_x, _y, _prop.s(_w), _prop.s(_h));
 			auto data = _image.baseSizeData();
 			if (!data) return;
-			data = data.scaledTo(_prop.s(_w), _prop.s(_h));
+			auto iData = data.scaled(_prop.var.etc.imageScale).scaledTo(_prop.s(_w), _prop.s(_h));
 			if (_paintImage) { mixin(S_TRACE);
 				_paintImage.dispose();
 			}
-			_paintImage = new Image(d, data);
+			_paintImage = new Image(d, iData);
 
 			// 透明色を使う場合は透明部分を除いたRegionを作る
 			auto oldReg = _shell.getRegion();
@@ -463,11 +464,11 @@ class Preview {
 				auto pixels = new int[_prop.s(_w)];
 				foreach (y; 0 .. _prop.s(_h)) { mixin(S_TRACE);
 					rect.y = y;
-					data.getPixels(0, y, _prop.s(_w), pixels, 0);
+					iData.getPixels(0, y, _prop.s(_w), pixels, 0);
 					int tStart = 0;
 					bool t = true;
 					foreach (x; 0 .. _prop.s(_w)) { mixin(S_TRACE);
-						bool pt = data.transparentPixel == pixels[x];
+						bool pt = iData.transparentPixel == pixels[x];
 						if (pt) tStart = x;
 						if (t == pt) { mixin(S_TRACE);
 							continue;

@@ -1119,7 +1119,7 @@ protected:
 		auto sChar = createSCharBar(comm, summ, area, &insert, &put, prop, skin);
 		sChar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-		auto skinSChar = createSkinSCharBar(comm, area, &insert, prop, skin);
+		auto skinSChar = createSkinSCharBar(comm, summ, area, &insert, prop, skin);
 		skinSChar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 		auto var = createFlagStepBar(area, &insert, comm, prop, summ, skin, true);
@@ -1372,7 +1372,7 @@ protected:
 		auto sChar = createSCharBar(comm, summ, area, &insert, &put, prop, skin);
 		sChar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-		auto skinSChar = createSkinSCharBar(comm, area, &insert, prop, skin);
+		auto skinSChar = createSkinSCharBar(comm, summ, area, &insert, prop, skin);
 		auto gdS = new GridData(GridData.FILL_HORIZONTAL);
 		gdS.horizontalSpan = 3;
 		skinSChar.setLayoutData(gdS);
@@ -1494,6 +1494,7 @@ private Composite createTalkerPane(Composite parent, Commons comm, Props prop, S
 	auto s = prop.looks.cardSize;
 	msel = new ImageSelect!(MtType.CARD, Combo)(comp, SWT.NONE, comm, prop, summ, prop.s(s.width), prop.s(s.height),
 		prop.s(CInsets(0, 0, 0, 0)), CardImagePosition.TopLeft, false, () => "", null, included => defs);
+	msel.createDefaultItem = () => new CardImage(Talker.SELECTED);
 	msel.valueFromDef = (defIndex, included, binPath) { mixin(S_TRACE);
 		switch (defIndex) {
 		case 0: return new CardImage(Talker.SELECTED);
@@ -1681,7 +1682,7 @@ private void createPCSPCharBar(Commons comm, Summary summ, ToolBar bar, void del
 	comm.put(spn, () => comm.prop.isTargetVersion(summ, "2"));
 }
 
-private ToolBar createSkinSCharBar(Commons comm, Composite parent, void delegate(string) insert, Props prop, Skin skin) { mixin(S_TRACE);
+private ToolBar createSkinSCharBar(Commons comm, in Summary summ, Composite parent, void delegate(string) insert, Props prop, Skin skin) { mixin(S_TRACE);
 	auto bar = new ToolBar(parent, SWT.FLAT);
 	comm.put(bar);
 	bar.addListener(SWT.Traverse, new class Listener {
@@ -1692,11 +1693,8 @@ private ToolBar createSkinSCharBar(Commons comm, Composite parent, void delegate
 	});
 	Image[] imgs;
 	foreach (spc; skin.spChars.keys) { mixin(S_TRACE);
-		auto data = spChar(skin, spc);
-		if (1 < comm.prop.s(1)) { mixin(S_TRACE);
-			data = data.scaledTo(comm.prop.s(data.width), comm.prop.s(data.height));
-		}
-		auto img = new Image(Display.getCurrent(), data);
+		auto data = .spChar(skin, comm.prop.drawingScale, spc);
+		auto img = new Image(Display.getCurrent(), data.scaled(comm.prop.var.etc.imageScale));
 		string name = toUTF8("#"d ~ spc);
 		auto scp = new PutC(insert, name);
 		createToolItem2(comm, bar, name, img, &scp.put, null);
@@ -3033,12 +3031,17 @@ class MsgPreview : Composite {
 	private void refreshImpl() { mixin(S_TRACE);
 		if (_img) return;
 		auto d = _canvas.getDisplay();
-		ImageData[] tImg = [];
+		ImageDataWithScale[] tImg = [];
 		CardImagePosition[] pos = [];
 		foreach (imgPath; _imgPaths) { mixin(S_TRACE);
 			final switch (imgPath.type) {
 			case CardImageType.File:
-				tImg ~= loadImage(_comm.skin.findImagePath(imgPath.path, _summ ? _summ.scenarioPath : "", _summ ? _summ.dataVersion : LATEST_VERSION), true);
+				auto isSkinMaterial = false;
+				auto isEngineMaterial = false;
+				auto path = _comm.skin.findImagePathF(imgPath.path, _summ ? _summ.scenarioPath : "", _summ ? _summ.dataVersion : LATEST_VERSION,
+					isSkinMaterial, isEngineMaterial);
+				auto drawingScale = (isSkinMaterial || isEngineMaterial) ? _prop.drawingScale : _prop.drawingScaleForImage(_summ);
+				tImg ~= .loadImageWithScale(path, drawingScale, true);
 				pos ~= imgPath.positionType;
 				break;
 			case CardImageType.PCNumber:
@@ -3050,12 +3053,14 @@ class MsgPreview : Composite {
 				case Talker.UNSELECTED:
 				case Talker.RANDOM:
 				case Talker.VALUED:
-					tImg ~= _prop.images.talker(imgPath.talker).getImageData();
+					tImg ~= new ImageDataWithScale(_prop.images.talker(imgPath.talker).getImageData(), .dpiMuls);
 					pos ~= CardImagePosition.Default;
 					break;
 				case Talker.CARD:
 					auto cRect = _prop.looks.cardSize;
-					tImg ~= menuCard(_comm.skin).scaledTo(cRect.width, cRect.height);
+					auto imgData = .menuCard(_comm.skin, _comm.prop.drawingScale);
+					auto data = imgData.scaled(_comm.prop.drawingScale).scaledTo(_comm.prop.ds(cRect.width), _comm.prop.ds(cRect.height));
+					tImg ~= new ImageDataWithScale(data, _comm.prop.drawingScale);
 					pos ~= CardImagePosition.Default;
 					break;
 				}
@@ -3067,7 +3072,7 @@ class MsgPreview : Composite {
 		VarValue[string] flags, steps, sysSteps;
 		_values.getValues(names, flags, steps, sysSteps);
 		_img = new Image(d, previewMessage(_comm, _prop, _summ, tImg, pos, _message,
-			[], names, flags, steps, sysSteps, true, _centerX, _centerY, _boundaryCheck));
+			[], names, flags, steps, sysSteps, _centerX, _centerY, _boundaryCheck).scaled(_comm.prop.var.etc.imageScale));
 	}
 
 	@property
@@ -3079,9 +3084,9 @@ class MsgPreview : Composite {
 }
 
 /// メッセージのプレビューを生成する。
-ImageData previewMessage(Commons comm, Props prop, Summary summ, ImageData[] talkers,
+ImageDataWithScale previewMessage(Commons comm, Props prop, in Summary summ, ImageDataWithScale[] talkers,
 		CardImagePosition[] poses, string message, in string[] sel, in string[char] names,
-		in VarValue[string] flags, in VarValue[string] steps, in VarValue[string] sysSteps, bool scaled,
+		in VarValue[string] flags, in VarValue[string] steps, in VarValue[string] sysSteps,
 		bool centerX, bool centerY, bool boundaryCheck) { mixin(S_TRACE);
 	auto d = Display.getCurrent();
 	version (Windows) {
@@ -3090,8 +3095,8 @@ ImageData previewMessage(Commons comm, Props prop, Summary summ, ImageData[] tal
 		bool legacy = false;
 	}
 	auto sPath = summ ? summ.scenarioPath : "";
-	auto rect = prop.looks.messageBounds;
-	auto bh = prop.looks.messageButtonHeight;
+	auto rect = prop.ds(prop.looks.messageBounds);
+	auto bh = prop.ds(prop.looks.messageButtonHeight);
 	auto canvas = new Image(d, rect.width, rect.height + bh * cast(int)sel.length);
 	scope (exit) canvas.dispose();
 	auto gc = new GC(canvas);
@@ -3102,21 +3107,21 @@ ImageData previewMessage(Commons comm, Props prop, Summary summ, ImageData[] tal
 	auto back = new Color(d, dwtData(prop.var.etc.messageBackColor, alpha));
 	scope (exit) back.dispose();
 	gc.setBackground(back);
-	gc.fillRectangle(3, 3, rect.width - 6, rect.height - 6);
+	gc.fillRectangle(prop.ds(3), prop.ds(3), rect.width - prop.ds(6), rect.height - prop.ds(6));
 	foreach (i; 0 .. sel.length) { mixin(S_TRACE);
-		gc.fillRectangle(3, rect.height + 3 + bh * cast(int)i, rect.width - 6, bh - 6);
+		gc.fillRectangle(prop.ds(3), rect.height + prop.ds(3) + bh * cast(int)i, rect.width - prop.ds(6), bh - prop.ds(6));
 	}
 
 	// 話者の描画
 	foreach (i, talker; talkers) { mixin(S_TRACE);
-		auto tImg = new Image(d, talker);
+		auto tImg = new Image(d, talker.scaled(prop.drawingScale));
 		scope (exit) tImg.dispose();
-		auto tp = prop.looks.messageTalkerPos;
-		auto cs = prop.looks.cardSize;
+		auto tp = prop.ds(prop.looks.messageTalkerPos);
+		auto cs = prop.ds(prop.looks.cardSize);
 		final switch (poses[i]) {
 		case CardImagePosition.Default:
 		case CardImagePosition.TopLeft:
-			int tpy = tp.y + (cast(int) cs.height - cast(int) talker.height) / 2;
+			int tpy = tp.y + (cast(int)cs.height - cast(int)talker.getHeight(prop.drawingScale)) / 2;
 			gc.drawImage(tImg, tp.x, tpy);
 			break;
 		case CardImagePosition.Center:
@@ -3165,13 +3170,13 @@ ImageData previewMessage(Commons comm, Props prop, Summary summ, ImageData[] tal
 		return comm.skin.findImagePath(path, summ ? summ.scenarioPath : "", summ ? summ.dataVersion : LATEST_VERSION).length != 0 || decodeFontPath(path) in comm.skin.spChars;
 	}, rFonts, rColors);
 
-	auto font = .createFontFromPixels(prop.looks.messageFont(legacy));
+	auto font = .createFontFromPixels(prop.ds(prop.looks.messageFont(legacy)));
 	scope (exit) font.dispose();
 	auto fc = new Color(d, dwtData(prop.var.etc.messageForeColor, alpha));
 	scope (exit) fc.dispose();
 	auto hc = new Color(d, dwtData(prop.var.etc.messageHemColor, alpha));
 	scope (exit) hc.dispose();
-	auto selFont = .createFontFromPixels(prop.looks.messageSelectFont(legacy));
+	auto selFont = .createFontFromPixels(prop.ds(prop.looks.messageSelectFont(legacy)));
 	scope (exit) selFont.dispose();
 
 	gc.setFont(font);
@@ -3197,7 +3202,7 @@ ImageData previewMessage(Commons comm, Props prop, Summary summ, ImageData[] tal
 	auto cl = new Color(d, new RGB(169, 169, 169)); scope (exit) cl.dispose(); // CardWirth 1.50
 	auto cd = new Color(d, new RGB(105, 105, 105)); scope (exit) cd.dispose(); // CardWirth 1.50
 
-	auto start = prop.looks.messageStartPos(legacy, 0 < talkers.length, centerX);
+	auto start = prop.ds(prop.looks.messageStartPos(legacy, 0 < talkers.length, centerX));
 	// 縁取り分の位置ずれ
 	start.x -= 1;
 	start.y -= 1;
@@ -3237,34 +3242,35 @@ ImageData previewMessage(Commons comm, Props prop, Summary summ, ImageData[] tal
 	auto wrgb = fc.getRGB();
 	void drawSPFont(CPoint pt, string path, RGB c, lazy Rectangle lDrawRect) { mixin(S_TRACE);
 		string fpath = comm.skin.findImagePath(path, sPath, summ ? summ.dataVersion : LATEST_VERSION);
-		ImageData data = null;
+		ImageDataWithScale data = null;
 		if (fpath && fpath.length) { mixin(S_TRACE);
 			// シナリオ内特殊文字
-			data = loadImage(fpath, true);
+			data = .loadImageWithScale(fpath, prop.drawingScaleForImage(summ), true);
 		}
 		if (!data) { mixin(S_TRACE);
 			// 標準特殊文字
-			data = spChar(comm.skin, decodeFontPath(path));
+			data = spChar(comm.skin, prop.drawingScale, decodeFontPath(path));
 			if (data) { mixin(S_TRACE);
-				auto spc = data;
-				data = new ImageData(spc.width, spc.height, 24, new PaletteData(0xFF << 16, 0xFF << 8, 0xFF << 0));
+				auto spc = data.scaled(prop.drawingScale);
+				auto data2 = new ImageData(spc.width, spc.height, 24, new PaletteData(0xFF << 16, 0xFF << 8, 0xFF << 0));
 				// &R等による色の置換
-				foreach (dx; 0 .. data.width) { mixin(S_TRACE);
-					foreach (dy; 0 .. data.height) { mixin(S_TRACE);
+				foreach (dx; 0 .. data2.width) { mixin(S_TRACE);
+					foreach (dy; 0 .. data2.height) { mixin(S_TRACE);
 						auto p = spc.palette.getRGB(spc.getPixel(dx, dy));
 						if (wrgb.opEquals(p)) { mixin(S_TRACE);
-							data.setPixel(dx, dy, (c.red << 16) | (c.green << 8) | (c.blue << 0));
+							data2.setPixel(dx, dy, (c.red << 16) | (c.green << 8) | (c.blue << 0));
 						} else { mixin(S_TRACE);
-							data.setPixel(dx, dy, (p.red << 16) | (p.green << 8) | (p.blue << 0));
+							data2.setPixel(dx, dy, (p.red << 16) | (p.green << 8) | (p.blue << 0));
 						}
 					}
 				}
-				data.transparentPixel = data.getPixel(0, 0);
+				data2.transparentPixel = data2.getPixel(0, 0);
+				data = new ImageDataWithScale(data2, prop.drawingScale);
 			}
-			merge(pt.x, pt.y, data.width, data.height);
+			merge(pt.x, pt.y, data.getWidth(prop.drawingScale), data.getHeight(prop.drawingScale));
 			auto lineRect = lDrawRect;
 			textDrawer ~= (tgc, slideX, slideY) { mixin(S_TRACE);
-				auto img = new Image(d, data);
+				auto img = new Image(d, data.scaled(prop.drawingScale));
 				scope (exit) img.dispose();
 				if (centerX) { mixin(S_TRACE);
 					slideX += (rect.width - lineRect.width) / 2;
@@ -3272,10 +3278,10 @@ ImageData previewMessage(Commons comm, Props prop, Summary summ, ImageData[] tal
 				tgc.drawImage(img, pt.x + slideX, pt.y + slideY);
 			};
 		} else { mixin(S_TRACE);
-			merge(pt.x, pt.y, data.width, data.height);
+			merge(pt.x, pt.y, data.getWidth(prop.drawingScale), data.getHeight(prop.drawingScale));
 			auto lineRect = lDrawRect;
 			drawer ~= (slideX, slideY) { mixin(S_TRACE);
-				auto img = new Image(d, data);
+				auto img = new Image(d, data.scaled(prop.drawingScale));
 				scope (exit) img.dispose();
 				if (centerX) { mixin(S_TRACE);
 					slideX += (rect.width - lineRect.width) / 2;
@@ -3286,9 +3292,9 @@ ImageData previewMessage(Commons comm, Props prop, Summary summ, ImageData[] tal
 	}
 
 	auto foreground = fc;
-	lineH = prop.looks.messageLineHeight;
+	lineH = prop.ds(prop.looks.messageLineHeight);
 	for (size_t i = 0; i < dmsg.length; i++) { mixin(S_TRACE);
-		if (!centerY && rect.height - 6 < y + lineH) { mixin(S_TRACE);
+		if (!centerY && rect.height - prop.ds(6) < y + lineH) { mixin(S_TRACE);
 			// 行数オーバー
 			break;
 		}
@@ -3304,7 +3310,7 @@ ImageData previewMessage(Commons comm, Props prop, Summary summ, ImageData[] tal
 				if (dmsg[i] != '\n') { mixin(S_TRACE);
 					ret();
 				}
-				if (!centerY && rect.height - 6 < y + lineH) { mixin(S_TRACE);
+				if (!centerY && rect.height - prop.ds(6) < y + lineH) { mixin(S_TRACE);
 					// 行数オーバー
 					break;
 				}
@@ -3341,15 +3347,15 @@ ImageData previewMessage(Commons comm, Props prop, Summary summ, ImageData[] tal
 			auto s = to!string(c);
 			auto te = gc.wTextExtent(s);
 			int len = (te.x + 1) / gc.wTextExtent("#").x;
-			int w = prop.looks.messageCharWidth;
-			if (len < 2) w = prop.looks.messageCharWidth / 2;
+			int w = prop.ds(prop.looks.messageCharWidth);
+			if (len < 2) w = prop.ds(prop.looks.messageCharWidth) / 2;
 			// 行末が半角スペースの時だけ特別扱いする(CardWirthの挙動に合わせた処理)
 			if (msgLen < writeLen + (s == " " ? len - 1 : len)) { mixin(S_TRACE);
 				// 列数オーバー
 				if (dmsg[i] != '\n') { mixin(S_TRACE);
 					ret();
 				}
-				if (rect.height - 6 < y + lineH) { mixin(S_TRACE);
+				if (rect.height - prop.ds(6) < y + lineH) { mixin(S_TRACE);
 					// 行数オーバー
 					break;
 				}
@@ -3393,7 +3399,7 @@ ImageData previewMessage(Commons comm, Props prop, Summary summ, ImageData[] tal
 		}
 	}
 
-	int slideX = 0, slideY = 0;
+	int slideX = prop.ds(0), slideY = prop.ds(0);
 	if (centerY && drawRect) { mixin(S_TRACE);
 		slideY = (rect.height - drawRect.height) / 2 - drawRect.y;
 	}
@@ -3424,17 +3430,20 @@ ImageData previewMessage(Commons comm, Props prop, Summary summ, ImageData[] tal
 	scope (exit) c1.dispose();
 	auto c2 = new Color(d, dwtData(prop.var.etc.messageLineColor2, alpha));
 	scope (exit) c2.dispose();
-	gc.setForeground(c1);
-	gc.drawRectangle(0, 0, rect.width - 1, rect.height - 1);
-	gc.drawRectangle(2, 2, rect.width - 5, rect.height - 5);
-	foreach (i; 0 .. sel.length) { mixin(S_TRACE);
-		gc.drawRectangle(0, rect.height + bh * cast(int)i, rect.width - 1, bh - 1);
-		gc.drawRectangle(2, rect.height + 2 + bh * cast(int)i, rect.width - 5, bh - 5);
-	}
-	gc.setForeground(c2);
-	gc.drawRectangle(1, 1, rect.width - 3, rect.height - 3);
-	foreach (i; 0 .. sel.length) { mixin(S_TRACE);
-		gc.drawRectangle(1, rect.height + 1 + bh * cast(int)i, rect.width - 3, bh - 3);
+	foreach (l; prop.ds(0) .. prop.ds(1)) { mixin(S_TRACE);
+		gc.setForeground(c1);
+		auto l2 = l * 2;
+		gc.drawRectangle(prop.ds(0) + l, prop.ds(0) + l, rect.width - 1 - l2, rect.height - 1 - l2);
+		gc.drawRectangle(prop.ds(2) + l, prop.ds(2) + l, rect.width - prop.ds(4) - 1 - l2, rect.height - prop.ds(4) - 1 - l2);
+		foreach (i; 0 .. sel.length) { mixin(S_TRACE);
+			gc.drawRectangle(prop.ds(0) + l, rect.height + bh * cast(int)i + l, rect.width - 1 - l2, bh - 1 - l2);
+			gc.drawRectangle(prop.ds(2) + l, rect.height + prop.ds(2) + bh * cast(int)i + l, rect.width - prop.ds(4) - 1 - l2, bh - prop.ds(4) - 1 - l2);
+		}
+		gc.setForeground(c2);
+		gc.drawRectangle(prop.ds(1) + l, prop.ds(1) + l, rect.width - prop.ds(2) - 1 - l2, rect.height - prop.ds(2) - 1 - l2);
+		foreach (i; 0 .. sel.length) { mixin(S_TRACE);
+			gc.drawRectangle(prop.ds(1) + l, rect.height + prop.ds(1) + bh * cast(int)i + l, rect.width - prop.ds(2) - 1 - l2, bh - prop.ds(2) - 1 - l2);
+		}
 	}
 
 	// 貼り付け
@@ -3480,8 +3489,5 @@ ImageData previewMessage(Commons comm, Props prop, Summary summ, ImageData[] tal
 	}
 
 	auto data = canvas.getImageData();
-	if (scaled && 1024 < prop.s(1024)) { mixin(S_TRACE);
-		data = data.scaledTo(prop.s(data.width), prop.s(data.height));
-	}
-	return data;
+	return new ImageDataWithScale(data, prop.drawingScale);
 }

@@ -1933,12 +1933,11 @@ private:
 		sc.setLayoutData(new GridData(GridData.FILL_BOTH));
 
 		auto vs = _prop.looks.viewSize;
-		_imgp = new ImagePane(sc, SWT.BORDER | SWT.NO_BACKGROUND, vs.width, vs.height, _prop.var.etc.imageScale);
+		_imgp = new ImagePane(sc, SWT.BORDER | SWT.NO_BACKGROUND, vs.width, vs.height, _prop.var.etc.imageScale, _prop.drawingScale);
 		_imgp.drawXORSelectionLine = _prop.var.etc.drawXORSelectionLine;
 
 		void refImageScale() { mixin(S_TRACE);
 			auto vs = _prop.looks.viewSize;
-			_imgp.imageScale = _prop.var.etc.imageScale;
 			vs.width = _prop.s(vs.width);
 			vs.height = _prop.s(vs.height);
 			sc.getHorizontalBar().setIncrement(vs.width / 20);
@@ -1948,6 +1947,9 @@ private:
 			auto rect = _imgp.computeSize(vs.width, vs.height);
 			sc.setMinSize(rect.x, rect.y);
 			_imgp.setSize(rect.x, rect.y);
+			_imgp.imageScale = _prop.var.etc.imageScale;
+			_imgp.drawingScale = _prop.drawingScale;
+			if (_imgp.images.length) refreshPanel();
 		}
 		static if (UseCards) {
 			void refImagePaneSelectionFilter() { mixin(S_TRACE);
@@ -3436,26 +3438,38 @@ public:
 			}
 			static if (UseBacks) appendBgImages(0, area.backs, false, false, true);
 			static if (UseCards) appendCards(0, area.cards, false, false, true);
-			auto mImg = createMessageImage(_comm, _prop);
+			auto mImg = createMessageImage(_comm, _prop, _summ);
 			mImg.visible = _viewMsg;
 			_imgp.append(mImg);
+			void updateMessageImage() { mixin(S_TRACE);
+				auto i = _imgp.images.cCountUntil!"a is b"(mImg);
+				mImg = createMessageImage(_comm, _prop, _summ);
+				mImg.visible = _viewMsg;
+				_imgp.set(i, mImg);
+			}
+			_comm.refImageScale.add(&updateMessageImage);
+			.listener(_imgp, SWT.Dispose, { mixin(S_TRACE);
+				_comm.refImageScale.remove(&updateMessageImage);
+			});
 			foreach (p; _prop.looks.partyCardXY) { mixin(S_TRACE);
-				auto img = createCastCardBackImage(_prop, summSkin, p.x, p.y, cast(byte)_prop.var.etc.partyCardAlpha);
+				auto img = createCastCardBackImage(_prop, summSkin, _summ, p.x, p.y, cast(byte)_prop.var.etc.partyCardAlpha);
 				img.visible = _viewParty;
 				_imgp.append(img);
 				class Update {
 					PileImage img;
 					void update() { mixin(S_TRACE);
-						updateCastCardBackImage(img, summSkin, cast(byte)_prop.var.etc.partyCardAlpha);
+						updateCastCardBackImage(img, summSkin, cast(byte)_prop.var.etc.partyCardAlpha, _prop.drawingScale);
 					}
 					void dispose() { mixin(S_TRACE);
 						_comm.refSkin.remove(&update);
+						_comm.refImageScale.remove(&update);
 					}
 				}
 				auto update = new Update;
 				update.img = img;
 				if (summ && summ.scenarioPath != "" && !_readOnly) { mixin(S_TRACE);
 					_comm.refSkin.add(&update.update);
+					_comm.refImageScale.add(&update.update);
 					.listener(_imgp, SWT.Dispose, &update.dispose);
 				}
 			}
@@ -3585,7 +3599,7 @@ public:
 					static if (is(C:EnemyCard)) {
 						auto castCard = _summ.cwCast(c.id);
 						if (!castCard) continue; // カード名が表示されないため不要
-						img.setImageData(castCardImage(_prop, skin, _summ, castCard, _summ ? _summ.scenarioPath : "", _summ ? _summ.dataVersion : LATEST_VERSION, _dbgMode));
+						img.setImageData(castCardImage(_prop, skin, _summ, castCard, _dbgMode));
 					} else { mixin(S_TRACE);
 						img.title = name;
 					}
@@ -4154,17 +4168,17 @@ public:
 	}
 	PImg createCardImage(PImg, C2)(in C2 card, bool smoothing) { mixin(S_TRACE);
 		static if (is(C2 : MenuCard) || is(C2 : const MenuCard)) {
-			return createMenuCardImage!PImg(prop, summSkin, summary.scenarioPath, summary.dataVersion, card.name,
+			return createMenuCardImage!PImg(prop, summSkin, summary, card.name,
 				cardImagePath(card), card.x, card.y, card.scale, smoothing, card.layer);
 		} else static if (is(C2 : EnemyCard) || is(C2 : const EnemyCard)) {
 			auto skin = summSkin;
 			auto castCard = summary.cwCast(card.id);
 			if (castCard) { mixin(S_TRACE);
-				return createCastCardImage!PImg(prop, skin, _summ, castCard, _summ.scenarioPath,
-					_summ.dataVersion, card.x, card.y, card.scale, smoothing, debugMode, card.layer);
+				return createCastCardImage!PImg(prop, skin, summary, castCard,
+					card.x, card.y, card.scale, smoothing, debugMode, card.layer);
 			} else { mixin(S_TRACE);
-				return createCastCardImage!PImg(prop, skin, _summ, null, _summ.scenarioPath,
-					_summ.dataVersion, card.x, card.y, card.scale, smoothing, debugMode, card.layer);
+				return createCastCardImage!PImg(prop, skin, summary, null,
+					card.x, card.y, card.scale, smoothing, debugMode, card.layer);
 			}
 		} else static assert (0, C2);
 	}
@@ -5237,7 +5251,7 @@ public:
 			return createBackgroundImage(_prop, skin, _summ, path, back.x, back.y, back.width, back.height, back.mask, back.layer, back.smoothing is Smoothing.True);
 		}
 		private FlexImage create(TextCell back) { mixin(S_TRACE);
-			auto r = new FlexImage(back.text, back.fontName, back.size, back.color,
+			auto r = new FlexImage(back.text, _prop.drawingScale, back.fontName, back.size, back.color,
 				back.bold, back.italic, back.underline, back.strike, back.vertical,
 				back.borderingType, back.borderingColor, back.borderingWidth,
 				back.x, back.y, back.width, back.height);
@@ -5248,7 +5262,7 @@ public:
 			return r;
 		}
 		private FlexImage create(ColorCell back) { mixin(S_TRACE);
-			auto r = new FlexImage(back.blendMode, back.gradientDir, back.color1, back.color2,
+			auto r = new FlexImage(_prop.drawingScale, back.blendMode, back.gradientDir, back.color1, back.color2,
 				back.x, back.y, back.width, back.height);
 			r.transparent = back.mask;
 			r.layer = back.layer * 10;
@@ -5256,7 +5270,7 @@ public:
 		}
 		private FlexImage create(PCCell back) { mixin(S_TRACE);
 			auto skin = summSkin;
-			auto size = _prop.looks.cardSize;
+			auto size = _prop.ds(_prop.looks.cardSize);
 			auto r = new FlexImage((img, gc) { mixin(S_TRACE);
 				version (Windows) {
 					import org.eclipse.swt.internal.win32.OS;
@@ -5277,10 +5291,10 @@ public:
 				auto width = size.width;
 				auto height = size.height;
 				if (back.expand) { mixin(S_TRACE);
-					width = img.width;
-					height = img.height;
+					width = _prop.ds(img.width);
+					height = _prop.ds(img.height);
 				}
-				gc.fillOval(0, 0, width, height);
+				gc.fillOval(_prop.ds(0), _prop.ds(0), width, height);
 				auto fore2 = new Color(d, .dwtData(_prop.looks.pcCellForeColor, alpha));
 				scope (exit) fore2.dispose();
 				gc.setForeground(fore2);
@@ -5289,11 +5303,11 @@ public:
 						gc.setAlpha(alpha);
 					}
 				}
-				gc.drawOval(0, 0, width - 1, height - 1);
+				gc.drawOval(_prop.ds(0), _prop.ds(0), width - 1, height - 1);
 				auto font = _prop.looks.pcNumberFont(skin.legacy);
 				font.point /= .dpiMuls;
-				drawCenterText(.dwtData(font), gc, new Rectangle(0, 0, width - 1, height - 1), .text(back.pcNumber));
-			}, back.x, back.y, size.width, size.height, false);
+				drawCenterText(.dwtData(_prop.ds(font)), gc, new Rectangle(_prop.ds(0), _prop.ds(0), width - 1, height - 1), .text(back.pcNumber));
+			}, _prop.drawingScale, back.x, back.y, size.width, size.height, false);
 			r.transparent = false;
 			r.layer = back.layer * 10;
 			r.newWidth = back.width;
@@ -5388,9 +5402,9 @@ public:
 			private bool doFile(string path) { mixin(S_TRACE);
 				if (_readOnly) return false;
 				assert (_summ);
-				auto img = loadBgImage(_prop, summSkin, _summ, path);
+				auto img = loadBgImage(_prop, summSkin, _summ, path, _prop.drawingScaleForImage(_summ));
 				if (img) { mixin(S_TRACE);
-					int i = backFromFile(path, 0, 0, img.width, img.height, false);
+					int i = backFromFile(path, 0, 0, img.getWidth(NORMAL_SCALE), img.getHeight(NORMAL_SCALE), false);
 					if (i >= 0) { mixin(S_TRACE);
 						addB ~= i;
 						return true;
@@ -5686,9 +5700,9 @@ public:
 						addC ~= i;
 					}
 				} else { mixin(S_TRACE);
-					auto img = loadBgImage(_prop, skin, _summ, path);
+					auto img = loadBgImage(_prop, skin, _summ, path, _prop.drawingScaleForImage(_summ));
 					if (img) { mixin(S_TRACE);
-						int i = backFromFile(path, x, y, img.width, img.height, true);
+						int i = backFromFile(path, x, y, img.getWidth(NORMAL_SCALE), img.getHeight(NORMAL_SCALE), true);
 						if (i == -1) { mixin(S_TRACE);
 							return false;
 						} else { mixin(S_TRACE);
@@ -5706,9 +5720,9 @@ public:
 					}
 				}
 			} else static if (UseBacks) {
-				auto img = loadBgImage(_prop, skin, _summ, path);
+				auto img = loadBgImage(_prop, skin, _summ, path, _prop.drawingScaleForImage(_summ));
 				if (img) { mixin(S_TRACE);
-					int i = backFromFile(path, x, y, img.width, img.height, true);
+					int i = backFromFile(path, x, y, img.getWidth(NORMAL_SCALE), img.getHeight(NORMAL_SCALE), true);
 					if (i == -1) { mixin(S_TRACE);
 						return false;
 					} else { mixin(S_TRACE);
@@ -5729,7 +5743,7 @@ public:
 				if (castCard.id == _area.cards[i].id) { mixin(S_TRACE);
 					auto img = imagePane.images[cardsIndex + i];
 					auto name = img.title;
-					img.setImageData(castCardImage(_prop, skin, _summ, castCard, _summ ? _summ.scenarioPath : "", _summ ? _summ.dataVersion : LATEST_VERSION, _dbgMode));
+					img.setImageData(.castCardImage(_prop, skin, _summ, castCard, _dbgMode));
 					img.createImage();
 					imagePane.redrawImage(img);
 					if (name != castCard.name) { mixin(S_TRACE);
@@ -5745,7 +5759,7 @@ public:
 			foreach (i, c; area.cards) { mixin(S_TRACE);
 				if (castCard.id == c.id) { mixin(S_TRACE);
 					auto img = imagePane.images[cardsIndex + i];
-					img.setImageData(.castCard(skin));
+					img.setImageData(.castCard(skin, prop.drawingScale));
 					img.createImage();
 					imagePane.redrawImage(img);
 					cardList.getItem(cast(int)i).setText("");

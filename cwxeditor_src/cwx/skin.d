@@ -493,6 +493,18 @@ class Skin {
 	}
 	/// ditto
 	const
+	string resLifeGuage2(out MaskType maskType) { mixin(S_TRACE);
+		maskType = MaskType.NoMask;
+		return findResource(resourceDir, buildPath("Status", "LIFEGUAGE2"), extImage);
+	}
+	/// ditto
+	const
+	string resLifeGuage2Mask(out MaskType maskType) { mixin(S_TRACE);
+		maskType = MaskType.NoMask;
+		return findResource(resourceDir, buildPath("Status", "LIFEGUAGE2_MASK"), extImage);
+	}
+	/// ditto
+	const
 	string resEnhanceUp(out MaskType maskType, Enhance enh) { mixin(S_TRACE);
 		maskType = MaskType.Mask1_1;
 		switch (enh) {

@@ -773,6 +773,20 @@ string abs2rel(string p1, string p2) { mixin(S_TRACE);
 	return rel.normpath();
 }
 
+/// p1がp2以下にあるディレクトリか。
+bool isSubDirectory(string path, string parent) { mixin(S_TRACE);
+	auto p = .abs2rel(path, parent);
+	if (p.isAbsolute()) return false;
+	return p == "" || p == "." || !(p == ".." || p.startsWith(".." ~ .dirSeparator));
+} unittest { mixin(S_TRACE);
+	debug mixin(UTPerf);
+	assert (.isSubDirectory("/dir", "/dir"));
+	assert (!.isSubDirectory("/dir", "/dir/abc"));
+	assert (.isSubDirectory("/dir/abc", "/dir"));
+	assert (!.isSubDirectory("/dir", "/dir/abc/abc"));
+	assert (.isSubDirectory("/dir/abc/abc", "/dir"));
+}
+
 /// 上のディレクトリへ遡るか、絶対パスであったらtrue。
 /// そのようなパスがアーカイヴに含まれていないかチェックするために使用する。
 @property
@@ -1106,6 +1120,22 @@ string noScaledPath(string path) { mixin(S_TRACE);
 	assert ("/abc/def.x2.bmp".noScaledPath == "/abc/def.bmp");
 	assert ("/abc/def.x3.bmp".noScaledPath == "");
 	assert ("/abc/def.x4.bmp".noScaledPath == "/abc/def.bmp");
+}
+/// pathに対して存在するスケーリングされたイメージファイルの情報を返す。
+/// targetScale=4の場合、path.x4が存在すればpath.x4を、x2が存在すればx2を、
+/// いずれも存在しなければpathを返す。
+@property
+ScaledPathInfo findScaledImage(string path, uint targetScale) { mixin(S_TRACE);
+	if (path.isImageExt) { mixin(S_TRACE);
+		auto name = path.stripExtension();
+		auto ext = path.extension();
+		while (1 < targetScale) { mixin(S_TRACE);
+			auto p = .format("%s.x%s%s", name, targetScale, ext);
+			if (p.exists() && p.isFile()) return ScaledPathInfo(p, targetScale);
+			targetScale /= 2;
+		}
+	}
+	return ScaledPathInfo(path, 1);
 }
 
 /// 複数行の文字列を単行へ変換する。各行の左右の空白は切り詰められる。

@@ -92,15 +92,16 @@ private:
 					if (!ec) return;
 					auto canv = cast(Canvas)e.widget;
 					auto skin = _comm.skin;
-					auto imgData = castCardImage(_prop, skin, _summ, ec, _summ.scenarioPath, _summ.dataVersion, true);
-					scope img = new Image(Display.getCurrent(), imgData);
+					auto imgData = .castCardImage(_prop, skin, _summ, ec, true);
+					scope img = new Image(Display.getCurrent(), imgData.scaled(_prop.drawingScale));
 					scope (exit) img.dispose();
 					auto ca = canv.getClientArea();
-					auto iw = _prop.s(imgData.width);
-					auto ih = _prop.s(imgData.height);
+					auto iw = imgData.getWidth(_prop.var.etc.imageScale);
+					auto ih = imgData.getHeight(_prop.var.etc.imageScale);
 					auto x = (ca.width - iw) / 2 + ca.x;
 					auto y = (ca.height - ih) / 2 + ca.y;
-					e.gc.drawImage(img, 0, 0, imgData.width, imgData.height, x, y, iw, ih);
+					auto b = img.getBounds();
+					e.gc.drawImage(img, 0, 0, b.width, b.height, x, y, iw, ih);
 				}
 			}
 		}

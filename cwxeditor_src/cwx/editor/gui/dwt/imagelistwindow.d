@@ -67,19 +67,19 @@ class ImageListWindow(MtType Type) {
 		_list = new ImageList(_shl, SWT.NONE);
 		static if (Type == MtType.CARD) {
 			auto s = _prop.looks.cardSize;
-			_list.init(_prop.s(s.width), _prop.s(s.height), &createImage, _prop.var.etc.imageScale);
+			_list.init(_prop.s(s.width), _prop.s(s.height), &createImage, _prop.var.etc.imageScale, _prop.drawingScale);
 			_list.mask = true;
 		} else { mixin(S_TRACE);
-			_list.init(_prop.var.etc.bgImageSampleWidth, _prop.var.etc.bgImageSampleHeight, &createImage, _prop.var.etc.imageScale);
+			_list.init(_prop.var.etc.bgImageSampleWidth, _prop.var.etc.bgImageSampleHeight, &createImage, _prop.var.etc.imageScale, _prop.drawingScale);
 		}
 		_list.addMouseListener(new MouseDown);
 		void refImageScale() { mixin(S_TRACE);
 			static if (Type == MtType.CARD) {
 				auto s = _prop.looks.cardSize;
-				_list.init(_prop.s(s.width), _prop.s(s.height), &createImage, _prop.var.etc.imageScale);
+				_list.init(_prop.s(s.width), _prop.s(s.height), &createImage, _prop.var.etc.imageScale, _prop.drawingScale);
 				_list.mask = true;
 			} else { mixin(S_TRACE);
-				_list.init(_prop.var.etc.bgImageSampleWidth, _prop.var.etc.bgImageSampleHeight, &createImage, _prop.var.etc.imageScale);
+				_list.init(_prop.var.etc.bgImageSampleWidth, _prop.var.etc.bgImageSampleHeight, &createImage, _prop.var.etc.imageScale, _prop.drawingScale);
 			}
 		}
 		_comm.refImageScale.add(&refImageScale);
@@ -114,10 +114,15 @@ class ImageListWindow(MtType Type) {
 		_shl.dispose();
 	}
 
-	private ImageData createImage(string path, bool mask) { mixin(S_TRACE);
+	private ImageDataWithScale createImage(string path, bool mask) { mixin(S_TRACE);
+		auto isSkinMaterial = false;
+		auto isEngineMaterial = false;
+		size_t defIndex = 0;
 		auto wsnVer = _summ ? _summ.dataVersion : LATEST_VERSION;
-		auto imgPath = _comm.skin.findPath(path, defExts, defDirs, _summ ? _summ.scenarioPath : "", wsnVer, _comm.skin.wsnTableDirs(wsnVer));
-		return loadImage(_prop, summSkin, _summ, imgPath, mask);
+		auto imgPath = _comm.skin.findPathF(path, defExts, defDirs, _summ ? _summ.scenarioPath : "", wsnVer, _comm.skin.wsnTableDirs(wsnVer),
+			isSkinMaterial, isEngineMaterial, defIndex);
+		auto drawingScale = (isSkinMaterial || isEngineMaterial) ? _prop.drawingScale : _prop.drawingScaleForImage(_summ);
+		return .loadImageWithScale(_prop, summSkin, _summ, imgPath, drawingScale, mask);
 	}
 	static if (Type == MtType.CARD) {
 		@property
@@ -148,7 +153,7 @@ class ImageListWindow(MtType Type) {
 	}
 
 	@property
-	void mask(bool mask) {_list.mask = mask;}
+	void mask(bool mask) { _list.mask = mask; }
 
 	private class MouseDown : MouseAdapter {
 		override void mouseDown(MouseEvent e) { mixin(S_TRACE);
@@ -166,13 +171,14 @@ class ImageListWindow(MtType Type) {
 class ImageList : Composite {
 	private static immutable SPACING = 10;
 	private string[] _path;
-	private ImageData[] _image;
+	private ImageDataWithScale[] _image;
 	private CRect[] _bounds;
 	private int _imgW, _imgH;
 	private bool _mask;
 	private ptrdiff_t _sel = -1;
-	private ImageData delegate(string path, bool mask) _createImage;
+	private ImageDataWithScale delegate(string path, bool mask) _createImage;
 	private int _imageScale = 1;
+	private int _drawingScale = 1;
 
 	private bool _showSelection = false;
 
@@ -184,11 +190,22 @@ class ImageList : Composite {
 		setForeground(getDisplay().getSystemColor(SWT.COLOR_LIST_FOREGROUND));
 		setBackground(getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND));
 	}
-	void init(int imgW, int imgH, ImageData delegate(string path, bool mask) createImage, int imageScale) { mixin(S_TRACE);
+	void init(int imgW, int imgH, ImageDataWithScale delegate(string path, bool mask) createImage, int imageScale, int drawingScale) { mixin(S_TRACE);
 		_imgW = imgW;
 		_imgH = imgH;
 		_imageScale = imageScale;
+		_drawingScale = drawingScale;
 		_createImage = createImage;
+
+		foreach (ref img; _image) { mixin(S_TRACE);
+			if (img) { mixin(S_TRACE);
+				foreach (data; img.allData) { mixin(S_TRACE);
+					data.data[] = 0;
+					destroy(data.data);
+				}
+				img = null;
+			}
+		}
 
 		auto vs = getVerticalBar();
 		vs.setIncrement(_imgH / 4);
@@ -258,20 +275,21 @@ class ImageList : Composite {
 		int x = SPACING.ppis;
 		int y = SPACING.ppis - getVerticalBar().getSelection();
 		int fh = e.gc.getFontMetrics().getHeight();
-		foreach (i, ref imgData; _image) { mixin(S_TRACE);
+		foreach (i, ref imgDataWS; _image) { mixin(S_TRACE);
 			if (ca.intersects(x, y, _imgW, fh + _imgH)) { mixin(S_TRACE);
 				int iw, ih;
-				if (!imgData) { mixin(S_TRACE);
-					imgData = _createImage(_path[i], _mask);
+				if (!imgDataWS) { mixin(S_TRACE);
+					imgDataWS = _createImage(_path[i], _mask);
 				}
-				if (_imgW < imgData.width * _imageScale || _imgH < imgData.height * _imageScale) { mixin(S_TRACE);
-					real wr = cast(real)_imgW / (imgData.width * _imageScale);
-					real hr = cast(real)_imgH / (imgData.height * _imageScale);
-					iw = cast(int)(imgData.width * _imageScale * min(wr, hr));
-					ih = cast(int)(imgData.height * _imageScale * min(wr, hr));
+				auto imgData = imgDataWS.scaled(_imageScale);
+				if (_imgW < imgData.width || _imgH < imgData.height) { mixin(S_TRACE);
+					real wr = cast(real)_imgW / imgData.width;
+					real hr = cast(real)_imgH / imgData.height;
+					iw = cast(int)(imgData.width * min(wr, hr));
+					ih = cast(int)(imgData.height * min(wr, hr));
 				} else { mixin(S_TRACE);
-					iw = imgData.width * _imageScale;
-					ih = imgData.height * _imageScale;
+					iw = imgData.width;
+					ih = imgData.height;
 				}
 				auto img = new Image(getDisplay(), imgData);
 				scope (exit) img.dispose();

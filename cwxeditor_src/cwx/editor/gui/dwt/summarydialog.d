@@ -150,7 +150,7 @@ private:
 		int w;
 		if (visible) { mixin(S_TRACE);
 			if (_summImage) return;
-			_summImage = new SummaryPreview(_comm, _imgArea, SWT.NONE, &dataVersion);
+			_summImage = new SummaryPreview(_comm, _imgArea, SWT.NONE, () => _loadScaledImage.getSelection(), &dataVersion);
 			_summImage.setImageSelect(&_sname.getText, &_imgPath.images, &selectedSkin, {return _desc.getRRText();}, &_levMin.getSelection, &_levMax.getSelection);
 			_summImage.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 			w = _summImage.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
@@ -367,6 +367,10 @@ private:
 					updateDataVersion();
 					.listener(_dataVersion, SWT.Selection, &refreshWarning);
 					.listener(_loadScaledImage, SWT.Selection, &refreshWarning);
+					.listener(_loadScaledImage, SWT.Selection, { mixin(S_TRACE);
+						clearBuf();
+						refreshPreview();
+					});
 					_imgPath.loadScaledImage = () => _loadScaledImageValue;
 					.listener(_loadScaledImage, SWT.Selection, { mixin(S_TRACE);
 						_loadScaledImageValue = _loadScaledImage.getSelection();
@@ -683,6 +687,7 @@ private class SummaryPreview : Composite {
 	private Commons _comm;
 	private Props _prop;
 	private Summary _summ;
+	private bool delegate() _loadScaledImage;
 	private string delegate() _dataVersion;
 
 	private Canvas _summImage;
@@ -694,13 +699,17 @@ private class SummaryPreview : Composite {
 	private int delegate() _levMax = null;
 
 	private Image _summImageBuf = null;
-	private ImageData _bufImgData = null;
+	private ImageDataWithScale _bufImgData = null;
 
 	private class PListener : PaintListener {
 		override void paintControl(PaintEvent e) { mixin(S_TRACE);
 			if (!_imgPaths) return;
 			auto d = Display.getCurrent();
+			auto drawingScaleImg = _loadScaledImage() ? _prop.drawingScale : 1;
+			auto drawingScale = _prop.drawingScale;
 			auto size = _prop.looks.summarySize;
+			size.width *= drawingScale;
+			size.height *= drawingScale;
 			auto rect = _summImage.getClientArea();
 			scope buf = new Image(d, size.width, size.height);
 			scope (exit) buf.dispose();
@@ -709,13 +718,13 @@ private class SummaryPreview : Composite {
 
 			auto skin = _selectedSkin();
 			auto imgPaths = _imgPaths();
-			if (!_summImageBuf || summary(skin) !is _bufImgData) { mixin(S_TRACE);
+			if (!_summImageBuf || .summary(skin, drawingScale) !is _bufImgData) { mixin(S_TRACE);
 				if (_summImageBuf) _summImageBuf.dispose();
-				_bufImgData = summary(skin);
-				_summImageBuf = new Image(d, _bufImgData);
+				_bufImgData = .summary(skin, drawingScale);
+				_summImageBuf = new Image(d, _bufImgData.scaled(drawingScale));
 			}
 
-			if (_summImageBuf) gc.drawImage(_summImageBuf, 0, 0);
+			if (_summImageBuf) gc.drawImage(_summImageBuf, 0 * drawingScale, 0 * drawingScale);
 
 			string imgFile(in CardImage imgPath) { mixin(S_TRACE);
 				auto wsnVer = _dataVersion();
@@ -725,9 +734,12 @@ private class SummaryPreview : Composite {
 			foreach (i, imgPath; imgPaths) { mixin(S_TRACE);
 				final switch (imgPath.type) {
 				case CardImageType.File:
-					string p = skin.findImagePath(imgPath.path, _summ.scenarioPath, wsnVer);
+					auto isSkinMaterial = false;
+					auto isEngineMaterial = false;
+					string p = skin.findImagePathF(imgPath.path, _summ.scenarioPath, wsnVer, isSkinMaterial, isEngineMaterial);
+					auto fDrawingScale = (isSkinMaterial || isEngineMaterial) ? drawingScale : drawingScaleImg;
 					if (p.length) { mixin(S_TRACE);
-						auto image = new Image(d, loadImage(_prop, skin, _summ, p));
+						auto image = new Image(d, .loadImageWithScale(_prop, skin, _summ, p, drawingScaleImg).scaled(drawingScale));
 						final switch (imgPath.positionType) {
 						case CardImagePosition.Center:
 							auto b = image.getBounds();
@@ -735,7 +747,7 @@ private class SummaryPreview : Composite {
 							break;
 						case CardImagePosition.TopLeft:
 						case CardImagePosition.Default:
-							gc.drawImage(image, _prop.looks.summaryImageXY.x, _prop.looks.summaryImageXY.y);
+							gc.drawImage(image, _prop.looks.summaryImageXY.x * drawingScale, _prop.looks.summaryImageXY.y * drawingScale);
 							break;
 						}
 						image.dispose();
@@ -745,22 +757,7 @@ private class SummaryPreview : Composite {
 					// Invalid data.
 					break;
 				case CardImageType.Talker:
-					bool img = false;
-					final switch (imgPath.talker) {
-					case Talker.SELECTED:
-					case Talker.UNSELECTED:
-					case Talker.RANDOM:
-					case Talker.VALUED:
-						gc.drawImage(_prop.images.talker(imgPath.talker), _prop.looks.summaryImageXY.x, _prop.looks.summaryImageXY.y);
-						break;
-					case Talker.CARD:
-						auto cRect = _prop.looks.cardSize;
-						auto imgData = menuCard(_comm.skin).scaledTo(cRect.width, cRect.height);
-						auto image = new Image(d, imgData);
-						gc.drawImage(image, _prop.looks.summaryImageXY.x, _prop.looks.summaryImageXY.y);
-						image.dispose();
-						break;
-					}
+					// Invalid data.
 					break;
 				}
 			}
@@ -790,42 +787,50 @@ private class SummaryPreview : Composite {
 				} else { mixin(S_TRACE);
 					levText = "";
 				}
-				drawCenterText(_prop.looks.summaryLevelFont(skin.legacy),
-					levText, _prop.looks.summaryLevelY);
+				auto lFont = _prop.looks.summaryLevelFont(skin.legacy);
+				lFont.point *= drawingScale;
+				drawCenterText(lFont, levText, _prop.looks.summaryLevelY * drawingScale);
 				c.dispose();
 				gc.setAlpha(255);
 				gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
-				drawCenterText(_prop.looks.summaryTitleFont(skin.legacy), _sname(), _prop.looks.summaryTitleY);
-				auto font = .createFontFromPixels(_prop.looks.summaryDescFont(skin.legacy));
+				auto tFont = _prop.looks.summaryTitleFont(skin.legacy);
+				tFont.point *= drawingScale;
+				drawCenterText(tFont, _sname(), _prop.looks.summaryTitleY * drawingScale);
+				auto dFont = _prop.looks.summaryDescFont(skin.legacy);
+				dFont.point *= drawingScale;
+				auto font = .createFontFromPixels(dFont);
 				gc.setFont(font);
 				int hig = gc.getFontMetrics().getHeight();
-				int x = _prop.looks.summaryDescXY.x;
-				int y = _prop.looks.summaryDescXY.y;
+				int x = _prop.looks.summaryDescXY.x *= drawingScale;
+				int y = _prop.looks.summaryDescXY.y *= drawingScale;
 				string desc = _desc();
 				if (_comm.skin.legacy) { mixin(S_TRACE);
 					foreach (line; splitLines(desc)) { mixin(S_TRACE);
 						gc.wDrawText(line, x, y, SWT.DRAW_DELIMITER | SWT.DRAW_TRANSPARENT);
-						y += _prop.looks.summaryDescLineHeightClassic;
+						y += _prop.looks.summaryDescLineHeightClassic * drawingScale;
 					}
 				} else { mixin(S_TRACE);
 					gc.wDrawText(desc, x, y, SWT.DRAW_DELIMITER | SWT.DRAW_TRANSPARENT);
 				}
 				gc.setFont(null);
 				font.dispose();
-				drawCenterText(_prop.looks.summaryPageFont(skin.legacy),
-					_prop.msgs.summaryPageDummy, _prop.looks.summaryPageY);
+				auto pFont = _prop.looks.summaryPageFont(skin.legacy);
+				pFont.point *= drawingScale;
+				drawCenterText(pFont, _prop.msgs.summaryPageDummy, _prop.looks.summaryPageY * drawingScale);
 			}
-			auto bx = (rect.width - _prop.s(size.width)) / 2;
-			auto by = (rect.height - _prop.s(size.height)) / 2;
-			e.gc.drawImage(buf, 0, 0, size.width, size.height, bx, by, _prop.s(size.width), _prop.s(size.height));
+			auto bx = (rect.width - _prop.s(_prop.looks.summarySize.width)) / 2;
+			auto by = (rect.height - _prop.s(_prop.looks.summarySize.height)) / 2;
+			e.gc.drawImage(buf, _prop.s(0), _prop.s(0), size.width, size.height,
+				bx, by, _prop.s(_prop.looks.summarySize.width), _prop.s(_prop.looks.summarySize.height));
 		}
 	}
 
-	this (Commons comm, Composite parent, int style, string delegate() dataVersion) { mixin(S_TRACE);
+	this (Commons comm, Composite parent, int style, bool delegate() loadScaledImage, string delegate() dataVersion) { mixin(S_TRACE);
 		super (parent, style);
 		_comm = comm;
 		_prop = comm.prop;
 		_summ = comm.summary;
+		_loadScaledImage = loadScaledImage;
 		_dataVersion = dataVersion;
 
 		this.setLayout(new FillLayout());

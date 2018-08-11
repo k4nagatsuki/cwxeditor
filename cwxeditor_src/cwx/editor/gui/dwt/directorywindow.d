@@ -864,10 +864,11 @@ private:
 		_previewO = path;
 		if (path.dir) return;
 		if (!path.array.isImageExt()) return;
-		auto imgData = previewImage(path.array);
+		bool transparent;
+		auto imgData = previewImage(path.array, transparent);
 		if (!imgData) return;
-		_previewI = new PileImage(imgData, imgData.width, imgData.height, false);
-		_previewI.transparent = -1 < imgData.transparentPixel;
+		_previewI = new PileImage(imgData, NORMAL_SCALE, imgData.getWidth(NORMAL_SCALE), imgData.getHeight(NORMAL_SCALE), false);
+		_previewI.transparent = transparent;
 		_previewI.createImage();
 
 		auto b = itm.getBounds();
@@ -888,13 +889,14 @@ private:
 			previewTrigger(e.x, e.y);
 		}
 	}
-	ImageData previewImage(string path) { mixin(S_TRACE);
+	ImageDataWithScale previewImage(string path, out bool transparent) { mixin(S_TRACE);
 		auto mask = _prop.var.etc.maskCardImagePreview && _comm.skin.isCardImage(path, false);
-		auto data = loadImage(_prop, _comm.skin, _summ, path, mask);
+		auto data = .loadImage(_prop, _comm.skin, _summ, path, mask);
+		transparent = -1 < data.transparentPixel;
 		if (data.width == 1 && data.height == 1 && data.transparentPixel == data.getPixel(0, 0)) { mixin(S_TRACE);
 			return null;
 		}
-		return data;
+		return new ImageDataWithScale(data, NORMAL_SCALE);
 	}
 
 	string pathRename(T)(T itm, string newName) { mixin(S_TRACE);

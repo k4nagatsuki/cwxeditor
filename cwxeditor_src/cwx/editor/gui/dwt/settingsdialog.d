@@ -132,6 +132,7 @@ private:
 	int _selectedInitializer = 0;
 
 	CTabItem _tabE;
+	Combo _drawingScale;
 	Combo _imageScale;
 	Combo _language;
 	string[int] _msgsTableIndex;
@@ -347,19 +348,34 @@ private:
 			{ mixin(S_TRACE);
 				auto grp = new Group(comp2, SWT.NONE);
 				grp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
-				grp.setText(_prop.msgs.imageScale);
-				grp.setLayout(new CenterLayout);
+				grp.setText(_prop.msgs.previewScale);
+				grp.setLayout(normalGridLayout(2, false));
+				auto l1 = new Label(grp, SWT.NONE);
+				l1.setText(_prop.msgs.drawingScale);
+				_drawingScale = new Combo(grp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+				mod(_drawingScale);
+				_drawingScale.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
+				_drawingScale.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				auto l2 = new Label(grp, SWT.NONE);
+				l2.setText(_prop.msgs.imageScale);
 				_imageScale = new Combo(grp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
 				mod(_imageScale);
 				_imageScale.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 				_imageScale.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
 				auto ca = _imageScale.getDisplay().getClientArea();
 				int imageScale = 1;
 				auto vs = _prop.looks.viewSize;
+				_drawingScale.add(.tryFormat(_prop.msgs.imageScaleValue, imageScale));
+				_drawingScale.select(0);
 				_imageScale.add(.tryFormat(_prop.msgs.imageScaleValue, imageScale));
 				_imageScale.select(0);
 				imageScale *= 2;
 				while (vs.width * imageScale <= ca.width && vs.height * imageScale <= ca.height) { mixin(S_TRACE);
+					_drawingScale.add(.tryFormat(_prop.msgs.imageScaleValue, imageScale));
+					if (imageScale == _prop.var.etc.drawingScale) { mixin(S_TRACE);
+						_drawingScale.select(_drawingScale.getItemCount() - 1);
+					}
 					_imageScale.add(.tryFormat(_prop.msgs.imageScaleValue, imageScale));
 					if (imageScale == _prop.var.etc.imageScale) { mixin(S_TRACE);
 						_imageScale.select(_imageScale.getItemCount() - 1);
@@ -1465,6 +1481,7 @@ protected:
 		_prop.var.etc.enginePath = engine;
 		_prop.var.etc.findEnginePath = _findEnginePath.getSelection();
 
+		_prop.var.etc.drawingScale = cast(uint).pow(2, _drawingScale.getSelectionIndex());
 		_prop.var.etc.imageScale = cast(uint).pow(2, _imageScale.getSelectionIndex());
 
 		if (_language.getSelectionIndex() <= 0) { mixin(S_TRACE);
@@ -1573,6 +1590,7 @@ protected:
 
 struct OldSettings {
 	Props prop;
+	uint drawingScale;
 	uint imageScale;
 	string targetVersion;
 	string oldEnginePath;
@@ -1640,6 +1658,7 @@ struct OldSettings {
 	bool showItemNumberOfSceneAndEventView;
 	this (Props prop) { mixin(S_TRACE);
 		this.prop = prop;
+		this.drawingScale = prop.var.etc.drawingScale;
 		this.imageScale = prop.var.etc.imageScale;
 		this.targetVersion = prop.var.etc.targetVersion;
 		this.oldEnginePath = prop.var.etc.enginePath;
@@ -1732,6 +1751,8 @@ struct OldSettings {
 				prop.var.msgPrev.height = prop.var.msgPrev.height + (newH - oldH);
 			}
 
+			comm.refImageScale.call();
+		} else if (drawingScale != prop.var.etc.drawingScale) { mixin(S_TRACE);
 			comm.refImageScale.call();
 		}
 		if (targetVersion != prop.var.etc.targetVersion) { mixin(S_TRACE);

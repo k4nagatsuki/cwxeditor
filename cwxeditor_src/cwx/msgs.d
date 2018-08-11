@@ -2095,7 +2095,9 @@ class Msgs : Properties {
 
 	auto etcSettingsTitle = Msg("etcSettingsTitle", "詳細");
 
-	auto imageScale = Msg("imageScale", "表示倍率");
+	auto previewScale = Msg("previewScale", "拡大率");
+	auto imageScale = Msg("imageScale", "表示");
+	auto drawingScale = Msg("drawingScale", "描画");
 	auto imageScaleValue = Msg("imageScaleValue", "%s倍");
 
 	auto languageSetting = Msg("languageSetting", "言語");

@@ -294,6 +294,7 @@ class ImageLayerList : Composite, TCPD {
 	}
 
 	private void refImageScale() { mixin(S_TRACE);
+		foreach (item; _items) item.disposeImage();
 		setupScrollBar();
 		redraw();
 	}
@@ -452,10 +453,12 @@ class ImageLayerList : Composite, TCPD {
 		return cardPaths;
 	}
 
+	CardImage delegate() createDefaultItem = null;
+
 	void addLayer() { mixin(S_TRACE);
 		if (!canAddLayer) return;
 		_selection = cast(int)_items.length;
-		_items ~= new ImageLayerItem(this, _comm, new CardImage("", CardImagePosition.Default));
+		_items ~= new ImageLayerItem(this, _comm, createDefaultItem ? createDefaultItem() : new CardImage("", CardImagePosition.Default));
 		setupScrollBar();
 		showSelection();
 		redraw();
@@ -569,7 +572,6 @@ private class ImageLayerItem : Item {
 	private Commons _comm = null;
 	private CardImage _cardPath = null;
 	private string _toolTip = "";
-	private bool _commonImage = false;
 	private bool _warning = false;
 
 	this (ImageLayerList parent, Commons comm, CardImage cardPath) { mixin(S_TRACE);
@@ -581,7 +583,6 @@ private class ImageLayerItem : Item {
 	}
 
 	private void disposeImage() { mixin(S_TRACE);
-		if (_commonImage) return;
 		auto image = getImage();
 		if (image) { mixin(S_TRACE);
 			image.dispose();
@@ -611,14 +612,17 @@ private class ImageLayerItem : Item {
 		auto path = _cardPath;
 		auto skin = _parent.summSkin;
 		string name = _parent._comm.prop.msgs.noSelectImage;
-		_commonImage = false;
 		_warning = false;
 		final switch (path.type) {
 		case CardImageType.File:
 			if (path.path != "") { mixin(S_TRACE);
-				auto file = skin.findImagePath(path.path, _parent._summ ? _parent._summ.scenarioPath : "", _parent._summ ? _parent._summ.dataVersion : LATEST_VERSION);
+				auto isSkinMaterial = false;
+				auto isEngineMaterial = false;
+				auto file = skin.findImagePathF(path.path, _parent._summ ? _parent._summ.scenarioPath : "", _parent._summ ? _parent._summ.dataVersion : LATEST_VERSION, isSkinMaterial, isEngineMaterial);
 				if (file != "" && file.exists()) { mixin(S_TRACE);
-					auto data = loadImage(_parent._comm.prop, skin, _parent._summ, file, _parent._mask);
+					auto drawingScale = (isSkinMaterial || isEngineMaterial) ? _parent._comm.prop.drawingScale : _parent._comm.prop.drawingScaleForImage(_parent._summ);
+					auto dataWS = .loadImageWithScale(_parent._comm.prop, skin, _parent._summ, file, drawingScale, _parent._mask);
+					auto data = dataWS.scaled(_parent._comm.prop.var.etc.imageScale);
 					if (cRect.width < data.width || cRect.height < data.height) {
 						auto scale = .min(cast(real)cRect.width / data.width, cast(real)cRect.height / data.height);
 						data = data.scaledTo(cast(int)(scale * data.width), cast(int)(scale * data.height));
@@ -647,11 +651,15 @@ private class ImageLayerItem : Item {
 			case Talker.UNSELECTED:
 			case Talker.RANDOM:
 			case Talker.VALUED:
-				setImage(_parent._comm.prop.images.talker(path.talker));
-				_commonImage = true;
+				auto imgData = _parent._comm.prop.images.talker(path.talker).getImageData();
+				auto dataWS = new ImageDataWithScale(imgData, .dpiMuls);
+				setImage(new Image(d, dataWS.scaled(_parent._comm.prop.var.etc.imageScale)));
 				break;
 			case Talker.CARD:
-				setImage(new Image(d, menuCard(skin).scaledTo(cRect.width, cRect.height)));
+				auto scale = _parent._comm.prop.var.etc.imageScale;
+				auto imgData = .menuCard(skin, _parent._comm.prop.drawingScale);
+				auto data = imgData.scaled(_parent._comm.prop.drawingScale).scaledTo(_parent._comm.prop.s(cRect.width), _parent._comm.prop.s(cRect.height));
+				setImage(new Image(d, data));
 				break;
 			}
 			name = _parent._comm.prop.msgs.talkerName(path.talker);

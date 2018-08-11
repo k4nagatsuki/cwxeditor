@@ -370,13 +370,13 @@ public:
 	Image talker(Talker t) { mixin(S_TRACE);
 		final switch (t) {
 		case Talker.SELECTED:
-			return imgd!("talker_sel.png")(false);
+			return imgd!("talker_sel.png")(true);
 		case Talker.UNSELECTED:
-			return imgd!("talker_unsel.png")(false);
+			return imgd!("talker_unsel.png")(true);
 		case Talker.RANDOM:
-			return imgd!("talker_random.png")(false);
+			return imgd!("talker_random.png")(true);
 		case Talker.VALUED:
-			return imgd!("talker_valued.png")(false);
+			return imgd!("talker_valued.png")(true);
 		case Talker.CARD:
 			throw new Exception("Narration, image and card haven't image.");
 		}

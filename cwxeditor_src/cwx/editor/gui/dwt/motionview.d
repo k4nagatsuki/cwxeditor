@@ -807,22 +807,20 @@ private:
 			if (!_summ) return;
 			auto beast = selection.beast;
 			if (beast) { mixin(S_TRACE);
-				auto data = cardImage!(BeastCard)(_prop, summSkin, beast, _summ.scenarioPath, _summ.dataVersion, null, (id) => _summ.beast(id), true, false);
-				if (1024 < _prop.s(1024)) { mixin(S_TRACE);
-					data = data.scaledTo(_prop.s(data.width), _prop.s(data.height));
-				}
- 				auto img = new Image(Display.getCurrent(), data);
+				auto data = .cardImage!(BeastCard)(_prop, summSkin, _summ, beast, null, (id) => _summ.beast(id), true, false);
+ 				auto img = new Image(Display.getCurrent(), data.scaled(_prop.var.etc.imageScale));
 				auto pane = cast(Canvas)e.widget;
 				auto rect = pane.getClientArea();
-				int x = (rect.width - data.width) / 2;
-				int y = (rect.height - data.height) / 2;
+				auto bounds = img.getBounds();
+				int x = (rect.width - bounds.width) / 2;
+				int y = (rect.height - bounds.height) / 2;
 				e.gc.drawImage(img, x, y);
-				.putEventTree(pane, e.gc, _prop, _summ, true, beast, new Rectangle(x, y, data.width, data.height));
+				.putEventTree(pane, e.gc, _prop, _summ, true, beast, new Rectangle(x, y, bounds.width, bounds.height));
 				img.dispose();
 				if (pane.isFocusControl()) { mixin(S_TRACE);
 					e.gc.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_LIST_SELECTION));
 					e.gc.setAlpha(64);
-					e.gc.fillRectangle(x, y, data.width, data.height);
+					e.gc.fillRectangle(x, y, bounds.width, bounds.height);
 					e.gc.setAlpha(255);
 				}
 			}

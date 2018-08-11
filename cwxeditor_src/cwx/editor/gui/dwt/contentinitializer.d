@@ -33,8 +33,6 @@ import org.eclipse.swt.all;
 
 import java.lang.all : ArrayWrapperString;
 
-// TODO: ツールチップでテキスト表示
-
 /// イベントコンテントの初期値を設定する。
 class ContentInitialValueEditor : TCPD {
 	void delegate()[] modEvent;
