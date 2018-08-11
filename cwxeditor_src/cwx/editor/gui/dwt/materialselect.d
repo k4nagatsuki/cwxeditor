@@ -1136,19 +1136,7 @@ class MaterialSelect(MtType Type, D, C) {
 		auto p = currentDir;
 		if (p && _fileList.getSelectionIndex() >= 0) { mixin(S_TRACE);
 			string f = fileText(_fileList.getItem(_fileList.getSelectionIndex()));
-			if (_dirs.getSelectionIndex() == _tbl) { mixin(S_TRACE);
-				foreach (defDir; defDirs) { mixin(S_TRACE);
-					auto path = std.path.buildPath(defDir, f);
-					if (path.exists()) return path;
-				}
-			} else if (_dirs.getSelectionIndex() == _tblEngine) { mixin(S_TRACE);
-				foreach (dir; engineDefDirs) { mixin(S_TRACE);
-					auto path = std.path.buildPath(dir, f);
-					if (path.exists()) return path;
-				}
-			} else { mixin(S_TRACE);
-				return std.path.buildPath(std.path.buildPath(_summ ? _summ.scenarioPath : "", p), f);
-			}
+			return toFilePath(f);
 		}
 		return "";
 	}
@@ -1212,6 +1200,35 @@ class MaterialSelect(MtType Type, D, C) {
 			}
 		}
 		return r;
+	}
+	private string toFilePath(string f) { mixin(S_TRACE);
+		auto p = currentDir;
+		if (p) { mixin(S_TRACE);
+			if (_dirs.getSelectionIndex() == _tbl) { mixin(S_TRACE);
+				foreach (defDir; defDirs) { mixin(S_TRACE);
+					auto path = std.path.buildPath(defDir, f);
+					if (path.exists()) return path;
+				}
+			} else if (_dirs.getSelectionIndex() == _tblEngine) { mixin(S_TRACE);
+				foreach (dir; engineDefDirs) { mixin(S_TRACE);
+					auto path = std.path.buildPath(dir, f);
+					if (path.exists()) return path;
+				}
+			} else { mixin(S_TRACE);
+				return std.path.buildPath(std.path.buildPath(_summ ? _summ.scenarioPath : "", p), f);
+			}
+		} else { mixin(S_TRACE);
+			if (f.startsWith("/")) { mixin(S_TRACE);
+				f = f["/".length .. $];
+				return std.path.buildPath(std.path.buildPath(_summ ? _summ.scenarioPath : "", p), f);
+			} else { mixin(S_TRACE);
+				foreach (defDir; defDirs) { mixin(S_TRACE);
+					auto path = std.path.buildPath(defDir, f);
+					if (path.exists()) return path;
+				}
+			}
+		}
+		return "";
 	}
 
 	void copyFilePath() { mixin(S_TRACE);
@@ -1298,7 +1315,7 @@ private:
 		static bool hasTarg(Skin skin, string p, bool forceRefresh, bool noCardSize) { return skin.hasCardImage(p, forceRefresh, noCardSize); }
 		bool hasWsnTarg(bool forceRefresh, bool noCardSize) { return summSkin.hasWsnCardImage(_summ ? _summ.dataVersion : LATEST_VERSION, forceRefresh, noCardSize); }
 		string[] targsImpl(string dir, bool re) {return summSkin.cards(dir, _prop.var.etc.logicalSort, re, _noCardSize);}
-		@property Image image() {return _prop.images.cards;}
+		@property Image image(string file) {return summSkin.isCardImage(file, false) ? _prop.images.cards : _prop.images.backs;}
 	} else static if (Type == MtType.BG_IMG) {
 		@property const(string)[] defExts() {return summSkin.extImage;}
 		@property string[] defDirs() {return summSkin.tableDirs;}
@@ -1307,7 +1324,7 @@ private:
 		static bool hasTarg(Skin skin, string p, bool forceRefresh, bool excludeCardSize) { return skin.hasBgImage(p, forceRefresh, excludeCardSize); }
 		bool hasWsnTarg(bool forceRefresh, bool excludeCardSize) { return summSkin.hasWsnBgImage(_summ ? _summ.dataVersion : LATEST_VERSION, forceRefresh, excludeCardSize); }
 		string[] targsImpl(string dir, bool re) {return summSkin.tables(dir, _prop.var.etc.logicalSort, re, excludeCardSizeImage);}
-		@property Image image() {return _prop.images.backs;}
+		@property Image image(string file) {return summSkin.isCardImage(file, false) ? _prop.images.cards : _prop.images.backs;}
 	} else static if (Type == MtType.BGM) {
 		@property const(string)[] defExts() {return summSkin.extBgm;}
 		@property string[] defDirs() {return summSkin.bgmDirs;}
@@ -1657,10 +1674,15 @@ private:
 			static if (is(C : Table)) {
 				auto itm = new TableItem(_fileList, SWT.NONE);
 				itm.setText(f);
-				itm.setImage(image);
 				static if (Type == MtType.CARD || Type == MtType.BG_IMG) {
 					auto ws = skin.warningImage(_prop.parent, f, legacy, canInclude && !isMenuCard, _prop.var.etc.targetVersion);
-					if (ws.length) itm.setImage(_prop.images.warning);
+					if (ws.length) { mixin(S_TRACE);
+						itm.setImage(_prop.images.warning);
+					} else { mixin(S_TRACE);
+						itm.setImage(image(toFilePath(f)));
+					}
+				} else { mixin(S_TRACE);
+					itm.setImage(image);
 				}
 			} else static if (is(C : Combo) || is(C : CCombo)) {
 				_fileList.add(f);
