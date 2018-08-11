@@ -397,6 +397,15 @@ private:
 			debugln(e);
 		}
 	}
+	void updateIcons() { mixin(S_TRACE);
+		auto skin = _comm.skin;
+		foreach (itm; _files.getItems()) {
+			auto p = cast(FileNameObj)itm.getData();
+			assert (p !is null);
+			auto img = fimage(skin, p.array, p.dir);
+			itm.setImage(0, img);
+		}
+	}
 	bool addp(T)(T parItm, string path, string sel, string top, ref TreeItem topItm) { mixin(S_TRACE);
 		auto itm = new TreeItem(parItm, SWT.NONE);
 		auto full = nabs(path);
@@ -480,7 +489,7 @@ private:
 		assert (0);
 	}
 	Image fimage(Skin skin, string file) { mixin(S_TRACE);
-		if (skin.isCardImage(file, false)) { mixin(S_TRACE);
+		if (isCard(skin, file)) { mixin(S_TRACE);
 			return _prop.images.cards;
 		} else if (skin.isBgImage(file)) { mixin(S_TRACE);
 			return _prop.images.backs;
@@ -522,7 +531,7 @@ private:
 		auto skin = _comm.skin;
 		if (.isDir(file)) { mixin(S_TRACE);
 			return _sImgFolder;
-		} else if (skin.isCardImage(file, false)) { mixin(S_TRACE);
+		} else if (isCard(skin, file)) { mixin(S_TRACE);
 			return _sImgCards;
 		} else if (skin.isBgImage(file)) { mixin(S_TRACE);
 			return _sImgBacks;
@@ -535,6 +544,14 @@ private:
 		} else { mixin(S_TRACE);
 			return _sImgUnknown;
 		}
+	}
+	private bool isCard(Skin skin, string file) { mixin(S_TRACE);
+		if (skin.isCardImage(file, false)) return true;
+		if (_summ && _summ.loadScaledImage) { mixin(S_TRACE);
+			auto file2 = file.noScaledPath;
+			return file2 != "" && skin.isCardImage(file2, false);
+		}
+		return false;
 	}
 	private bool isCutted(string file) { mixin(S_TRACE);
 		static if (0 == filenameCharCmp('A', 'a')) {
@@ -890,7 +907,7 @@ private:
 		}
 	}
 	ImageDataWithScale previewImage(string path, out bool transparent) { mixin(S_TRACE);
-		auto mask = _prop.var.etc.maskCardImagePreview && _comm.skin.isCardImage(path, false);
+		auto mask = _prop.var.etc.maskCardImagePreview && isCard(_comm.skin, path);
 		auto data = .loadImage(_prop, _comm.skin, _summ, path, mask);
 		transparent = -1 < data.transparentPixel;
 		if (data.width == 1 && data.height == 1 && data.transparentPixel == data.getPixel(0, 0)) { mixin(S_TRACE);
@@ -1182,6 +1199,7 @@ private:
 			_comm.delPaths.remove(&delPaths);
 			_comm.replText.remove(&refreshTitle);
 			_comm.refIgnorePaths.remove(&refresh);
+			_comm.refImageScale.remove(&updateIcons);
 			_sImgFolder.dispose();
 			_sImgCards.dispose();
 			_sImgBacks.dispose();
@@ -1532,6 +1550,7 @@ public:
 		_comm.delPaths.add(&delPaths);
 		_comm.replText.add(&refreshTitle);
 		_comm.refIgnorePaths.add(&refresh);
+		_comm.refImageScale.add(&updateIcons);
 		_sImgFolder = skeletonImage(_prop.images.folder);
 		_sImgCards = skeletonImage(_prop.images.cards);
 		_sImgBacks = skeletonImage(_prop.images.backs);
