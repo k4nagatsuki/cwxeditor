@@ -48,6 +48,7 @@ private:
 
 	SummaryPreview _summImage = null;
 	Composite _imgArea;
+	uint _lastImageScale = 0;
 
 	Text _sname;
 	ImageSelect!(MtType.CARD) _imgPath;
@@ -173,6 +174,8 @@ private:
 		}
 	}
 	void refImageScale() { mixin(S_TRACE);
+		auto lis = _lastImageScale;
+		_lastImageScale = _prop.var.etc.imageScale;
 		_imgPath.setPreviewSize(_prop.s(_prop.looks.cardSize.width), _prop.s(_prop.looks.cardSize.height), _prop.s(CInsets(0, 0, 0, 0)));
 
 		if (!_summImage) return;
@@ -180,8 +183,13 @@ private:
 		scope (exit) {
 			if (getShell().isVisible()) getShell().setRedraw(true);
 		}
-		showImagePreview(false);
-		showImagePreview(true);
+		if (lis == _prop.var.etc.imageScale) { mixin(S_TRACE);
+			clearBuf();
+			refreshPreview();
+		} else { mixin(S_TRACE);
+			showImagePreview(false);
+			showImagePreview(true);
+		}
 	}
 	void refreshPreview() { mixin(S_TRACE);
 		if (_summImage) { mixin(S_TRACE);
@@ -625,6 +633,7 @@ protected:
 		.listener(getShell(), SWT.Dispose, () => _comm.closeAdds.remove(&closeAdds));
 
 		refreshWarning();
+		_lastImageScale = _prop.var.etc.imageScale;
 	}
 
 	override bool apply() { mixin(S_TRACE);
