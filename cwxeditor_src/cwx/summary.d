@@ -354,7 +354,7 @@ public:
 			return "";
 		}
 		string findSummaryDir(string temp, string summary) {
-			foreach (string file; temp.dirEntries(SpanMode.depth)) {
+			foreach (string file; temp.dirEntries(SpanMode.breadth)) {
 				if (.cfnmatch(file.baseName(), summary)) return file.dirName();
 			}
 			return temp;
@@ -375,13 +375,16 @@ public:
 			}
 			return "";
 		}
-		bool scArcLHA(LhaFile arc, string ext) { mixin(S_TRACE);
+		string scArcLHA(LhaFile arc, string ext) { mixin(S_TRACE);
 			foreach (name; arc.nameList) { mixin(S_TRACE);
 				if (cfnmatch(baseName(name), setExtension("Summary", ext))) { mixin(S_TRACE);
-					return true;
+					return name.idup;
 				}
 			}
-			return false;
+			return "";
+		}
+		size_t dirDepth(string path) { mixin(S_TRACE);
+			return normpath(path).split(.dirSeparator).length;
 		}
 		string suncab(string fname, string summName, out string summPath, out bool canArchive, out bool hasXML) { mixin(S_TRACE);
 			classic = true;
@@ -390,7 +393,11 @@ public:
 			canArchive = true;
 			hasXML = false;
 			if (canUncab && .cfnmatch(ext, ".cab")) { mixin(S_TRACE);
-				hasXML = cabHasFile(fname, "Summary.xml");
+				auto xmlPath = cabHasFile(fname, "Summary.xml");
+				auto wsmPath = cabHasFile(fname, "Summary.wsm");
+				if (xmlPath == "" && wsmPath == "") return null;
+				hasXML = xmlPath != "" && (wsmPath == "" || dirDepth(xmlPath) <= dirDepth(wsmPath));
+
 				if (hasXML) { mixin(S_TRACE);
 					summName = summName.setExtension(".xml");
 					classic = false;
@@ -410,10 +417,13 @@ public:
 				scope (exit) freeAll(ptr);
 				auto arc = new LhaFile(fname, ByteIO(cast(void[])bin));
 				scope (exit) destroy(arc);
-				auto isSc = scArcLHA(arc, ".wsm");
-				if (!isSc) { mixin(S_TRACE);
-					hasXML = scArcLHA(arc, ".xml");
-					if (!hasXML) return null;
+
+				auto xmlPath = scArcLHA(arc, ".xml");
+				auto wsmPath = scArcLHA(arc, ".wsm");
+				if (xmlPath == "" && wsmPath == "") return null;
+				hasXML = xmlPath != "" && (wsmPath == "" || dirDepth(xmlPath) <= dirDepth(wsmPath));
+
+				if (hasXML) { mixin(S_TRACE);
 					summName = summName.setExtension(".xml");
 					classic = false;
 				}
@@ -435,18 +445,20 @@ public:
 				scope (exit) freeAll(ptr);
 				auto arc = new ZipArchive(cast(void[])bin);
 				scope (exit) destroy(arc);
-				auto summArcName = scArc(arc, ".wsm");
-				if (summArcName == "") { mixin(S_TRACE);
-					summArcName = scArc(arc, ".xml");
-					hasXML = summArcName != "";
-					if (!hasXML) return null;
+
+				auto xmlPath = scArc(arc, ".xml");
+				auto wsmPath = scArc(arc, ".wsm");
+				if (xmlPath == "" && wsmPath == "") return null;
+				hasXML = xmlPath != "" && (wsmPath == "" || dirDepth(xmlPath) <= dirDepth(wsmPath));
+
+				if (hasXML) { mixin(S_TRACE);
 					summName = summName.setExtension(".xml");
 					classic = false;
 				}
 				temp = createTempDir(tempPath, baseName(stripExtension(fname)), false);
 				try { mixin(S_TRACE);
 					expandDir = temp;
-					auto summDir = summArcName.dirName();
+					auto summDir = xmlPath.dirName();
 					if (expand || !hasXML) { mixin(S_TRACE);
 						.unzip(temp, arc, &expandName);
 						summPath = findSummaryDir(temp, summName);
@@ -472,7 +484,7 @@ public:
 								if (!exists(path)) mkdirRecurse(path);
 							}
 						}, setMax, worked);
-						summPath = temp.buildPath(summArcName).dirName();
+						summPath = temp.buildPath(xmlPath).dirName();
 					}
 				} catch (Exception e) { mixin(S_TRACE);
 					printStackTrace();

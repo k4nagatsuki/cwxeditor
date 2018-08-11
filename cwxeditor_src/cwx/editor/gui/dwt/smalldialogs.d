@@ -101,9 +101,11 @@ private:
 						r = tPath.baseName().cfnmatch("Summary.wsm");
 					} else { mixin(S_TRACE);
 						if (.extension(tPath).cfnmatch(".cab") && canUncab) { mixin(S_TRACE);
-							r = cabHasFile(tPath, "Summary.wsm");
+							r = cabHasFile(tPath, "Summary.wsm") != "";
+						} else if (.extension(tPath).cfnmatch(".lzh")) {
+							r = lhaHasFile(tPath, "Summary.wsm") != "";
 						} else { mixin(S_TRACE);
-							r = zipHasFile(tPath, "Summary.wsm");
+							r = zipHasFile(tPath, "Summary.wsm") != "";
 						}
 					}
 					_isClassic[tPath] = r;

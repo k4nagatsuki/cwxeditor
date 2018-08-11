@@ -559,10 +559,10 @@ version (Windows) {
 		}
 	}
 
-	/// 指定されたファイルが含まれているか。
-	bool cabHasFile(string cab, string fileName) { mixin(S_TRACE);
-		if (!canUncab) return false;
-		if (!.exists(cab)) return false;
+	/// 指定されたファイルが含まれている場合はそのパスを返す。
+	string cabHasFile(string cab, string fileName) { mixin(S_TRACE);
+		if (!canUncab) return "";
+		if (!.exists(cab)) return "";
 
 		CFHEADER head;
 		auto buf = new ubyte[CFHEADER.sizeof];
@@ -572,13 +572,13 @@ version (Windows) {
 			scope (exit) stream.close();
 			if (buf.length != stream.rawRead(buf).length) { mixin(S_TRACE);
 				// Cabinetではない
-				return false;
+				return "";
 			}
 			memcpy(&head, buf.ptr, buf.length);
-			if ('M' != head.signature[0]) return false;
-			if ('S' != head.signature[1]) return false;
-			if ('C' != head.signature[2]) return false;
-			if ('F' != head.signature[3]) return false;
+			if ('M' != head.signature[0]) return "";
+			if ('S' != head.signature[1]) return "";
+			if ('C' != head.signature[2]) return "";
+			if ('F' != head.signature[3]) return "";
 
 			stream.seek(head.coffFiles, SEEK_SET);
 
@@ -586,7 +586,7 @@ version (Windows) {
 			CFFILE fl;
 			foreach (i; 0 .. head.cFiles) { mixin(S_TRACE);
 				if (buf.length != stream.rawRead(buf).length) { mixin(S_TRACE);
-					return false;
+					return "";
 				}
 				memcpy(&fl, buf.ptr, buf.length);
 				char[] name;
@@ -602,13 +602,13 @@ version (Windows) {
 				} else { mixin(S_TRACE);
 					utfName = touni(name);
 				}
-				if (.cfnmatch(fileName, utfName.baseName())) return true;
+				if (.cfnmatch(fileName, utfName.baseName())) return utfName;
 			}
 		} catch (Exception e) {
 			printStackTrace();
 			debugln(e);
 		}
-		return false;
+		return "";
 	}
 
 	extern (Windows) {
@@ -656,7 +656,7 @@ version (Windows) {
 	}
 
 	/// 指定されたファイルが含まれているか。
-	bool cabHasFile(string cab, string fileName) { mixin(S_TRACE);
-		return false;
+	string cabHasFile(string cab, string fileName) { mixin(S_TRACE);
+		return "";
 	}
 }

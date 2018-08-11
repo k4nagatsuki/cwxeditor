@@ -1,6 +1,7 @@
 
 module cwx.archive;
 
+import cwx.binary;
 import cwx.utils;
 import cwx.sjis;
 
@@ -216,26 +217,25 @@ string memberName(string name) {
 }
 
 /// 指定されたファイルが含まれているか。
-bool zipHasFile(string zip, string fileName) { mixin(S_TRACE);
-	if (!zip.exists()) return false;
+string zipHasFile(string zip, string fileName) { mixin(S_TRACE);
+	if (!zip.exists()) return "";
 	try { mixin(S_TRACE);
 		ubyte* temp;
 		auto bin = readBinaryFrom!ubyte(zip, temp);
-		scope (exit) destroy(bin);
+		scope (exit) freeAll(temp);
 		auto arc = new ZipArchive(cast(ubyte[])bin);
 		scope (exit) destroy(arc);
 		foreach (am; arc.directory) { mixin(S_TRACE);
 			string name = memberName(am.name);
 			if (cfnmatch(replace(name, "/", dirSeparator).baseName(), fileName)) { mixin(S_TRACE);
-				return true;
+				return name;
 			}
 		}
-		freeAll(temp);
 	} catch (Exception e) {
 		printStackTrace();
 		debugln!(__FILE__, __LINE__, Exception)(e);
 	}
-	return false;
+	return "";
 }
 
 /// targをzip圧縮し、パスzipに保存する。
@@ -301,4 +301,26 @@ void unlha(LhaFile arc,
 			count++;
 		}
 	}
+}
+
+/// 指定されたファイルが含まれているか。
+string lhaHasFile(string lha, string fileName) { mixin(S_TRACE);
+	if (!lha.exists()) return "";
+	try { mixin(S_TRACE);
+		ubyte* ptr = null;
+		auto bin = readBinaryFrom!ubyte(lha, ptr);
+		scope (exit) freeAll(ptr);
+		auto arc = new LhaFile(lha, ByteIO(cast(void[])bin));
+		scope (exit) destroy(arc);
+
+		foreach (name; arc.nameList) { mixin(S_TRACE);
+			if (cfnmatch(baseName(name), fileName)) { mixin(S_TRACE);
+				return name.idup;
+			}
+		}
+	} catch (Exception e) {
+		printStackTrace();
+		debugln!(__FILE__, __LINE__, Exception)(e);
+	}
+	return "";
 }
