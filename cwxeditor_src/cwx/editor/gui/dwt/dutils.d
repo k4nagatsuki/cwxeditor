@@ -48,7 +48,7 @@ import cwx.editor.gui.dwt.absdialog;
 import core.thread;
 
 static import std.algorithm;
-import std.algorithm : max, min;
+import std.algorithm : max, min, map;
 import std.array;
 import std.conv;
 import std.utf;
@@ -1674,37 +1674,85 @@ ImageDataWithScale castCardImage(Props prop, Skin skin, in Summary summ, in Cast
 	}
 	int stMax = prop.looks.statusVerMax;
 	if ((dbgMode || c.faceUpRound > 0) && 0 < c.life) { mixin(S_TRACE);
-		// TODO: LIFEGUAGE2
-		auto lgid = .lifeGuage(skin, prop.drawingScale);
-		if (lgid.valid) { mixin(S_TRACE);
-			try { mixin(S_TRACE);
-				lgid.baseData.transparentPixel = lgid.baseData.getPixel(5, 5); // LIFEGEUAGEは(5, 5)が透過色
-				auto lgidData = lgid.scaled(prop.drawingScale);
-				auto lgw = lgidData.width;
-				auto lgh = lgidData.height;
-				auto lgi = new Image(d, lgidData);
-				scope (exit) lgi.dispose();
-				auto lbid = .lifeBar(skin, prop.drawingScale);
-				auto lbidData = lbid.scaled(prop.drawingScale);
-				auto lbi = new Image(d, lbidData);
-				scope (exit) lbi.dispose();
-				auto bmp = new Image(d, lgw, lgh);
-				scope (exit) bmp.dispose();
-				auto gc = new GC(bmp);
-				scope (exit) gc.dispose();
-				int lbh = lbidData.height;
-				auto ln = cast(real)c.life / c.lifeMax;
-				gc.drawImage(lbi, lgw, 0, lgw, lbh, 0, (lgh - lbh) / 2, lgw, lbh);
-				gc.drawImage(lbi, 0, 0, cast(int) (lgw * ln), lbh, 0, (lgh - lbh) / 2, cast(int) (lgw * ln), lbh);
-				gc.drawImage(lgi, 0, 0);
-				auto life = bmp.getImageData();
-				life.transparentPixel = life.getPixel(0, 0);
-				r.append(new ImageDataWithScale(life, prop.drawingScale), stp, ScaleType.Cut);
-				stp.y -= lgid.getHeight(NORMAL_SCALE) + 2;
-				stMax--;
-			} catch (SWTException e) {
-				printStackTrace();
-				debugln(e);
+		auto lgid2 = .lifeGuage2(skin, prop.drawingScale);
+		auto lgid2m = .lifeGuage2Mask(skin, prop.drawingScale);
+		if (lgid2.valid && lgid2m.valid && lgid2.getWidth(NORMAL_SCALE) == lgid2m.getWidth(NORMAL_SCALE) && lgid2.getHeight(NORMAL_SCALE) == lgid2m.getHeight(NORMAL_SCALE)) { mixin(S_TRACE);
+			auto lgidData = lgid2.scaled(prop.drawingScale);
+			auto lgw = lgidData.width;
+			auto lgh = lgidData.height;
+			auto lgi = new Image(d, lgidData);
+			scope (exit) lgi.dispose();
+			auto lifeData = new ImageData(lgw, lgh, 32, new PaletteData(0xFF << 16, 0xFF << 8, 0xFF << 0));
+			auto bmp = new Image(d, lifeData);
+			scope (exit) bmp.dispose();
+			auto gc = new GC(bmp);
+			scope (exit) gc.dispose();
+
+			auto matImg = new Image(d, id.scaled(prop.drawingScale));
+			scope (exit) matImg.dispose();
+			gc.drawImage(matImg, prop.ds(stp.x), prop.ds(stp.y), lgw, lgh, 0, 0, lgw, lgh);
+
+			auto lbid = .lifeBar(skin, prop.drawingScale);
+			auto lbidData = lbid.scaled(prop.drawingScale);
+			auto lbi = new Image(d, lbidData);
+			scope (exit) lbi.dispose();
+			auto lbw = lbidData.width;
+			auto lbh = lbidData.height;
+			auto barPos = .roundTo!int((cast(real)c.life / c.lifeMax) * (lgw + prop.ds(1))) - (lgw + prop.ds(1));
+			gc.drawImage(lbi, 0, 0, lbw, lbh, barPos, prop.ds(1), lbw, lbh);
+			gc.drawImage(lgi, 0, 0);
+
+			auto life = bmp.getImageData();
+
+			auto mask = lgid2m.scaled(prop.drawingScale);
+			assert (mask.width == life.width && mask.height == life.height);
+			if (mask.alphaData.length) { mixin(S_TRACE);
+				auto alphas = new byte[mask.width * mask.height];
+				mask.getAlphas(0, 0, mask.width * mask.height, alphas, 0);
+				life.setAlphas(0, 0, life.width * life.height, alphas, 0);
+			} else { mixin(S_TRACE);
+				auto pixels = new int[mask.width * mask.height];
+				mask.getPixels(0, 0, mask.width * mask.height, pixels, 0);
+				auto alphas = .map!((pixel) => cast(byte)(pixel == mask.transparentPixel ? 0 : 255))(pixels).array();
+				life.setAlphas(0, 0, life.width * life.height, alphas, 0);
+			}
+
+			r.append(new ImageDataWithScale(life, prop.drawingScale), stp, ScaleType.Cut);
+			stp.y -= lgid2.getHeight(NORMAL_SCALE) + 2;
+			stMax--;
+		} else { mixin(S_TRACE);
+			auto lgid = .lifeGuage(skin, prop.drawingScale);
+			if (lgid.valid) { mixin(S_TRACE);
+				try { mixin(S_TRACE);
+					lgid.baseData.transparentPixel = lgid.baseData.getPixel(5, 5); // LIFEGEUAGEは(5, 5)が透過色
+					auto lgidData = lgid.scaled(prop.drawingScale);
+					auto lgw = lgidData.width;
+					auto lgh = lgidData.height;
+					auto lgi = new Image(d, lgidData);
+					scope (exit) lgi.dispose();
+					auto lbid = .lifeBar(skin, prop.drawingScale);
+					auto lbidData = lbid.scaled(prop.drawingScale);
+					auto lbi = new Image(d, lbidData);
+					scope (exit) lbi.dispose();
+					auto bmp = new Image(d, lgw, lgh);
+					scope (exit) bmp.dispose();
+					auto gc = new GC(bmp);
+					scope (exit) gc.dispose();
+					auto lbw = lbidData.width;
+					auto lbh = lbidData.height;
+					auto barPos = .roundTo!int((cast(real)c.life / c.lifeMax) * (lgw + prop.ds(1))) - (lgw + prop.ds(1));
+					gc.drawImage(lbi, 0, 0, lbw, lbh, barPos, prop.ds(1), lbw, lbh);
+					gc.drawImage(lgi, 0, 0);
+
+					auto life = bmp.getImageData();
+					life.transparentPixel = life.getPixel(0, 0);
+					r.append(new ImageDataWithScale(life, prop.drawingScale), stp, ScaleType.Cut);
+					stp.y -= lgid.getHeight(NORMAL_SCALE) + 2;
+					stMax--;
+				} catch (SWTException e) {
+					printStackTrace();
+					debugln(e);
+				}
 			}
 		}
 	}

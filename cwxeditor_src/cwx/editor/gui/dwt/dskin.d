@@ -73,11 +73,12 @@ Skin[string] skinTable(const(Props) prop) { mixin(S_TRACE);
 
 private static ImageDataWithScale imgd(string path, uint targetScale, MaskType maskType) { mixin(S_TRACE);
 	mixin FileCache!(ImageDataWithScale);
-	auto ca = cache(path);
+	auto key = path.findScaledImage(targetScale).path;
+	auto ca = cache(key);
 	if (ca) { mixin(S_TRACE);
 		return ca.value;
 	} else { mixin(S_TRACE);
-		auto data = loadImageWithScale(path, targetScale, maskType is MaskType.NormalMask);
+		auto data = .loadImageWithScale(path, targetScale, maskType is MaskType.NormalMask);
 		if (data.valid) { mixin(S_TRACE);
 			if (maskType is MaskType.Mask1_1) { mixin(S_TRACE);
 				data.baseData.transparentPixel = data.baseData.getPixel(1, 1);
@@ -85,7 +86,7 @@ private static ImageDataWithScale imgd(string path, uint targetScale, MaskType m
 				data.baseData.transparentPixel = data.baseData.getPixel(data.baseData.width - 1, 0);
 			}
 		}
-		putCache(path, data);
+		putCache(key, data);
 		return data;
 	}
 }
@@ -178,13 +179,14 @@ version (Windows) {
 		/// リソースオーバーライドに対応
 		string oPath = legacyEngine.dirName().buildPath("Data").buildPath("Resource").buildPath(resName.setExtension(".bmp"));
 		if (.exists(oPath)) { mixin(S_TRACE);
-			auto ca = cache(oPath);
+			auto key = oPath.findScaledImage(targetScale).path;
+			auto ca = cache(key);
 			if (ca) { mixin(S_TRACE);
 				return ca.value;
 			} else { mixin(S_TRACE);
-				auto data = loadImageWithScale(oPath, targetScale, false);
+				auto data = .loadImageWithScale(oPath, targetScale, false);
 				setMask(data);
-				putCache(oPath, data);
+				putCache(key, data);
 				return data;
 			}
 		}
@@ -220,7 +222,7 @@ version (Windows) {
 /// path = ファイルパス。
 /// Returns: 背景画像。背景画像でないならnull。
 ImageDataWithScale loadBgImage(Props prop, in Skin skin, in Summary summ, string path, uint targetScale) { mixin(S_TRACE);
- 	return skin.isBgImage(path) ? loadImageWithScale(prop, skin, summ, path, targetScale) : null;
+ 	return skin.isBgImage(path) ? .loadImageWithScale(prop, skin, summ, path, targetScale) : null;
 }
 
 private ImageDataWithScale createImg(T ...)(string lEnginePath, string resName, uint targetScale,

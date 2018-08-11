@@ -494,13 +494,13 @@ class Skin {
 	/// ditto
 	const
 	string resLifeGuage2(out MaskType maskType) { mixin(S_TRACE);
-		maskType = MaskType.NoMask;
+		maskType = MaskType.NormalMask;
 		return findResource(resourceDir, buildPath("Status", "LIFEGUAGE2"), extImage);
 	}
 	/// ditto
 	const
 	string resLifeGuage2Mask(out MaskType maskType) { mixin(S_TRACE);
-		maskType = MaskType.NoMask;
+		maskType = MaskType.NormalMask;
 		return findResource(resourceDir, buildPath("Status", "LIFEGUAGE2_MASK"), extImage);
 	}
 	/// ditto
