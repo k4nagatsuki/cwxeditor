@@ -3445,7 +3445,7 @@ public:
 				auto i = _imgp.images.cCountUntil!"a is b"(mImg);
 				mImg = createMessageImage(_comm, _prop, _summ);
 				mImg.visible = _viewMsg;
-				_imgp.set(i, mImg);
+				_imgp.set(cast(int)i, mImg);
 			}
 			_comm.refImageScale.add(&updateMessageImage);
 			.listener(_imgp, SWT.Dispose, { mixin(S_TRACE);
