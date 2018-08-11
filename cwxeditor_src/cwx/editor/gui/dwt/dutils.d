@@ -1899,6 +1899,9 @@ ImageDataWithScale castCardImage(Props prop, Skin skin, in Summary summ, in Cast
 	} else { mixin(S_TRACE);
 		if (getRGBAverage(id.scaled(prop.drawingScale), prop.ds(prop.looks.castCardNameArea)) < prop.var.etc.negativeCardNameBorder) { mixin(S_TRACE);
 			r.titleColor = new RGB(255, 255, 255);
+			r.titleHemmingColor = prop.var.etc.cardNameBorderingColorForWhite;
+		} else { mixin(S_TRACE);
+			r.titleHemmingColor = prop.var.etc.cardNameBorderingColorForBlack;
 		}
 	}
 	return r.createImageData();
@@ -2071,6 +2074,9 @@ ImageDataWithScale cardImage(C)(Props prop, Skin skin, in Summary summ, in C bas
 	if (!skin.legacy) { mixin(S_TRACE);
 		if (getRGBAverage(card.scaled(prop.drawingScale), prop.ds(prop.looks.cardNameArea)) < prop.var.etc.negativeCardNameBorder) { mixin(S_TRACE);
 			r.titleColor = new RGB(255, 255, 255);
+			r.titleHemmingColor = prop.var.etc.cardNameBorderingColorForWhite;
+		} else { mixin(S_TRACE);
+			r.titleHemmingColor = prop.var.etc.cardNameBorderingColorForBlack;
 		}
 	}
 
@@ -4434,7 +4440,7 @@ private bool isEnableGdipAndNotTrueTypeFont(GC gc) { mixin(S_TRACE);
 }
 
 /// titleをsizeまで縮めて描画する。
-void shrinkDrawText(GC gc, string title, int x, int y, in Point size, bool smoothing) {
+void shrinkDrawText(GC gc, string title, int x, int y, in Point size, bool smoothing, in CRGB hemmingColor = CRGB(0, 0, 0, 0)) { mixin(S_TRACE);
 	auto d = gc.getDevice();
 	auto extent = gc.wTextExtent(title);
 	auto img = new Image(d, extent.x, extent.y);
@@ -4453,19 +4459,54 @@ void shrinkDrawText(GC gc, string title, int x, int y, in Point size, bool smoot
 	bmpData = img.getImageData();
 	bmpData.alphaData = alphaData;
 
-	if (smoothing) { mixin(S_TRACE);
-		auto data = cast(ubyte[])bmpData.data;
-		auto alpha = cast(ubyte[])bmpData.alphaData;
-		size_t bpl;
-		bmpData.data = cast(byte[])smoothResize(size.x, size.y, data, alpha,
-			bmpData.depth, bmpData.width, bmpData.height, bmpData.bytesPerLine, bpl);
-		bmpData.alphaData = cast(byte[])alpha;
-		bmpData.width = size.x;
-		bmpData.height = size.y;
-		bmpData.bytesPerLine = cast(int)bpl;
-	} else { mixin(S_TRACE);
-		bmpData = bmpData.scaledTo(size.x, size.y);
+	ImageData hBmpData = null;
+	if (0 < hemmingColor.a) { mixin(S_TRACE);
+		auto hImg = new Image(d, extent.x, extent.y);
+		scope (exit) hImg.dispose();
+		auto hGC = new GC(hImg);
+		scope (exit) hGC.dispose();
+		int alpha;
+		auto hColor = new Color(d, dwtData(hemmingColor, alpha));
+		scope (exit) hColor.dispose();
+		hGC.setBackground(hColor);
+		hGC.fillRectangle(0, 0, extent.x, extent.y);
+		hBmpData = hImg.getImageData();
+		auto hAlphaData = .map!(b => cast(byte)cast(ubyte)(cast(int)cast(ubyte)b * alpha / 255))(alphaData).array();
+		hBmpData.alphaData = hAlphaData;
 	}
+
+	void resize(ref ImageData bmpData) { mixin(S_TRACE);
+		if (smoothing) { mixin(S_TRACE);
+			auto data = cast(ubyte[])bmpData.data;
+			auto alpha = cast(ubyte[])bmpData.alphaData;
+			size_t bpl;
+			bmpData.data = cast(byte[])smoothResize(size.x, size.y, data, alpha,
+				bmpData.depth, bmpData.width, bmpData.height, bmpData.bytesPerLine, bpl);
+			bmpData.alphaData = cast(byte[])alpha;
+			bmpData.width = size.x;
+			bmpData.height = size.y;
+			bmpData.bytesPerLine = cast(int)bpl;
+		} else { mixin(S_TRACE);
+			bmpData = bmpData.scaledTo(size.x, size.y);
+		}
+	}
+
+	if (hBmpData) { mixin(S_TRACE);
+		resize(hBmpData);
+		auto hImg = new Image(d, hBmpData);
+		scope (exit) hImg.dispose();
+		gc.drawImage(hImg, x - 1, y - 1);
+		gc.drawImage(hImg, x, y - 1);
+		gc.drawImage(hImg, x + 1, y - 1);
+		gc.drawImage(hImg, x - 1, y);
+		gc.drawImage(hImg, x, y);
+		gc.drawImage(hImg, x + 1, y);
+		gc.drawImage(hImg, x - 1, y + 1);
+		gc.drawImage(hImg, x, y + 1);
+		gc.drawImage(hImg, x + 1, y + 1);
+	}
+
+	resize(bmpData);
 	auto img2 = new Image(d, bmpData);
 	scope (exit) img2.dispose();
 	gc.drawImage(img2, x, y);

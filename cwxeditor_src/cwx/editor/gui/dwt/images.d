@@ -99,6 +99,7 @@ private:
 	int _titShrinkWidth = 0;
 	bool _titAntialias = false;
 	RGB _titColor = null;
+	CRGB _titHemmingColor = CRGB(0, 0, 0, 0);
 	AppImg[] appends = [];
 	Rectangle rect;
 	uint _scale = 100u;
@@ -417,6 +418,15 @@ public:
 	const
 	const(RGB) titleColor() { mixin(S_TRACE);
 		return _titColor;
+	}
+	@property
+	void titleHemmingColor(CRGB color) { mixin(S_TRACE);
+		_titHemmingColor = color;
+	}
+	@property
+	const
+	CRGB titleHemmingColor(CRGB color) { mixin(S_TRACE);
+		return _titHemmingColor;
 	}
 	@property
 	CFont font() { mixin(S_TRACE);
@@ -785,13 +795,13 @@ public:
 					if (0 < ds(_titShrinkWidth) && ds(_titShrinkWidth) < extent.x) { mixin(S_TRACE);
 						extent.x = ds(_titShrinkWidth);
 					}
-					dc.shrinkDrawText(_title, ds(titPoint.x), ds(titPoint.y), extent, true);
+					dc.shrinkDrawText(_title, ds(titPoint.x), ds(titPoint.y), extent, true, _titHemmingColor);
 				} else { mixin(S_TRACE);
 					if (0 < ds(_titShrinkWidth) && ds(_titShrinkWidth) < extent.x) { mixin(S_TRACE);
 						extent.x = _titShrinkWidth;
-						dc.shrinkDrawText(_title, ds(titPoint.x), ds(titPoint.y), extent, false);
+						dc.shrinkDrawText(_title, ds(titPoint.x), ds(titPoint.y), extent, false, _titHemmingColor);
 					} else { mixin(S_TRACE);
-						dc.wDrawText(_title, ds(titPoint.x), ds(titPoint.y), true);
+						dc.shrinkDrawText(_title, ds(titPoint.x), ds(titPoint.y), extent, false, _titHemmingColor);
 					}
 				}
 				dc.setForeground(cur.getSystemColor(SWT.COLOR_BLACK));

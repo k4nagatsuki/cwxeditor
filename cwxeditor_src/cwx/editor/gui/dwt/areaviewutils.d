@@ -176,6 +176,9 @@ PImg createMenuCardImage(PImg)(Props prop, Skin skin, in Summary summ,
 	if (!skin.legacy) { mixin(S_TRACE);
 		if (getRGBAverage(card.scaled(prop.drawingScale), prop.ds(prop.looks.cardNameArea)) < prop.var.etc.negativeCardNameBorder) { mixin(S_TRACE);
 			r.titleColor = new RGB(255, 255, 255);
+			r.titleHemmingColor = prop.var.etc.cardNameBorderingColorForWhite;
+		} else { mixin(S_TRACE);
+			r.titleHemmingColor = prop.var.etc.cardNameBorderingColorForBlack;
 		}
 	}
 	static if (is(PImg:FlexImage)) {
