@@ -661,10 +661,10 @@ public:
 		} else { mixin(S_TRACE);
 			matImgData = getMat();
 		}
-		auto bmp = new Image(cur, matImgData);
-		scope (exit) bmp.dispose();
 		ImageData bmpData, baseSizeData;
 		if (appends.length || _title !is null || 0 != _maskA) { mixin(S_TRACE);
+			auto bmp = new Image(cur, matImgData);
+			scope (exit) bmp.dispose();
 			auto dc = new GC(bmp);
 			scope (exit) dc.dispose();
 
@@ -3063,7 +3063,9 @@ private:
 						drawAlphaImgData();
 					}
 					befAlpha = -1;
+					gc.setClipping(ds(img.x), ds(img.y), ds(img.width), ds(img.height));
 					img.draw(d, buf, gc, range);
+					gc.setClipping(ds(0), ds(0), imageData.width, imageData.height);
 					auto fi = cast(FlexImage)img;
 					if (fi && fi.selected && fi.hasSelectionFilter) {
 						int fillAlpha;
