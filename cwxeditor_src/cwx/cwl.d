@@ -74,14 +74,14 @@ private struct RData {
 /// Params:
 /// newName = シナリオ名。null以外が指定された場合、
 ///           Summary.wsmが存在しない際はこの名前で新規に作成する。
-Summary loadLScenario(string p, string skinType, string skinName, const System sys, in LoadOption opt, out string[] errorFiles, string newName = null) { mixin(S_TRACE);
+Summary loadLScenario(string p, string skinType, string skinName, const CProps prop, in LoadOption opt, out string[] errorFiles, out int dataVersion, string newName = null) { mixin(S_TRACE);
 	auto sPath = p;
 	string summPath = std.path.buildPath(p, "Summary.wsm");
 	Summary summ;
 	RData* d;
 	ulong startAreaId;
 	if (.exists(summPath)) { mixin(S_TRACE);
-		d = new RData(sys, opt.cardOnly, sPath, skinType, skinName);
+		d = new RData(prop.sys, opt.cardOnly, sPath, skinType, skinName);
 		{ mixin(S_TRACE);
 			ubyte* ptr = null;
 			auto bytes = ByteIO(readBinaryFrom!ubyte(summPath, ptr));
@@ -90,9 +90,10 @@ Summary loadLScenario(string p, string skinType, string skinName, const System s
 		}
 	} else { mixin(S_TRACE);
 		if (!newName) throw new SummaryException("Not Scenario: " ~ p);
-		d = new RData(sys, opt.cardOnly, sPath, skinType, skinName);
+		d = new RData(prop.sys, opt.cardOnly, sPath, skinType, skinName);
 		summ = new Summary(newName, d.skinType, d.skinName, d.sPath, false, true);
 	}
+	dataVersion = d.dataVersion;
 	class Load {
 		RData d;
 		Area[] areas;
@@ -2168,8 +2169,8 @@ private InfoCard loadInfo(ref RData d, ref ByteIO f, ulong fid) { mixin(S_TRACE)
 }
 
 /// パーティ見出しデータ(*.wpl)からパーティ名を取得する。
-string readPartyName(const System sys, string wpl) { mixin(S_TRACE);
-	auto d = RData(sys, false, "", "", "");
+string readPartyName(in CProps prop, string wpl) { mixin(S_TRACE);
+	auto d = RData(prop.sys, false, "", "", "");
 	ubyte* ptr = null;
 	auto f = ByteIO(readBinaryFrom!ubyte(wpl, ptr));
 	scope (exit) freeAll(ptr);
@@ -2181,8 +2182,8 @@ string readPartyName(const System sys, string wpl) { mixin(S_TRACE);
 }
 
 /// 宿情報(Environment.wyd)からデバッグ宿か否かを取得する。
-bool isDebugYado(const System sys, string yadoDir) { mixin(S_TRACE);
-	auto d = RData(sys, false, "", "", "");
+bool isDebugYado(in CProps prop, string yadoDir) { mixin(S_TRACE);
+	auto d = RData(prop.sys, false, "", "", "");
 	auto env = yadoDir.buildPath("Environment.wyd");
 	ubyte* ptr = null;
 	auto f = ByteIO(readBinaryFrom!ubyte(env, ptr));

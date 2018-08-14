@@ -180,6 +180,17 @@ private:
 		setupMenu(_menu);
 		setupMenu(_tool);
 	}
+
+	private string origScenarioPath() { mixin(S_TRACE);
+		if (summary.readOnlyPath != "") { mixin(S_TRACE);
+			return summary.readOnlyPath;
+		} else if (summary.useTemp && summary.origZipName != "") { mixin(S_TRACE);
+			return summary.origZipName;
+		} else { mixin(S_TRACE);
+			return summary.scenarioPath;
+		}
+	}
+
 	private class ExecWithPartyClassic : MenuAdapter {
 		private string path;
 		private string yPath;
@@ -202,7 +213,7 @@ private:
 					if (wpl.extension().toLower() != ".wpl") continue;
 					auto party = wpl.stripExtension();
 					wpl = yPath.buildPath(wpl);
-					auto name = .readPartyName(_prop.sys, wpl);
+					auto name = .readPartyName(_prop.parent, wpl);
 					auto img = _prop.images.team;
 					createMI(cast(Menu)e.widget, path, yPath, name, img, party);
 				}
@@ -220,7 +231,7 @@ private:
 					"-party",
 					.tryFormat(`"%s"`, party),
 				];
-				execEngineP(path, params.join(" "), .tryFormat(`"%s"`, (summary.useTemp && summary.origZipName != "") ? summary.origZipName : summary.scenarioPath), engineName, yName, name);
+				execEngineP(path, params.join(" "), .tryFormat(`"%s"`, origScenarioPath), engineName, yName, name);
 			}, () => true);
 		}
 	}
@@ -275,7 +286,7 @@ private:
 					"-party",
 					.tryFormat(`"%s"`, party),
 				];
-				execEngineP(path, params.join(" "), .tryFormat(`"%s"`, (summary.useTemp && summary.origZipName != "") ? summary.origZipName : summary.scenarioPath), engineName, yName, name);
+				execEngineP(path, params.join(" "), .tryFormat(`"%s"`, origScenarioPath), engineName, yName, name);
 			}, () => true);
 		}
 	}
@@ -428,7 +439,7 @@ private:
 							auto envPath = yPath.buildPath("Environment.wyd");
 							if (!envPath.exists() || !envPath.isFile()) continue;
 							auto img = _prop.images.yado;
-							if (.isDebugYado(_prop.sys, yPath)) img = _prop.images.debugYado;
+							if (.isDebugYado(_prop.parent, yPath)) img = _prop.images.debugYado;
 							bool enable = false;
 							if (canExecClassic) { mixin(S_TRACE);
 								foreach (wpl; .clistdir(yPath)) { mixin(S_TRACE);
@@ -620,7 +631,7 @@ private:
 		void run() { mixin(S_TRACE);
 			if (!_win || _win.isDisposed()) return;
 			if (summary) { mixin(S_TRACE);
-				string path = (summary.useTemp && summary.origZipName.length) ? summary.origZipName : summary.scenarioPath;
+				string path = origScenarioPath;
 				if (summary.isChanged) { mixin(S_TRACE);
 					_win.setText(.tryFormat(_prop.msgs.mainWindowNameChanged, summary.scenarioName, path));
 					_isChanged = true;
@@ -954,16 +965,12 @@ private:
 	void reload() { mixin(S_TRACE);
 		if (!summary) return;
 		auto old = summary;
-		if (old.useTemp && !old.origZipName.length) { mixin(S_TRACE);
-			DWTMessageBox.showWarning(.tryFormat(_prop.msgs.reloadBeforeSaveError, old.scenarioName),
-				_prop.msgs.dlgTitWarning, _win);
-			return;
-		}
+		auto readOnly = (old.useTemp && !old.origZipName.length) || old.readOnlyPath != "";
 		if (old && qSave(QSaveType.reload)) { mixin(S_TRACE);
 			bool expand = old.expandXMLs;
-			if (old.legacy) { mixin(S_TRACE);
+			if (old.legacy || readOnly) { mixin(S_TRACE);
 				auto wsm = std.path.buildPath(old.scenarioPath, "Summary.wsm");
-				if (old.useTemp) { mixin(S_TRACE);
+				if (!readOnly && old.useTemp) { mixin(S_TRACE);
 					try { mixin(S_TRACE);
 						string[] errorFiles;
 						auto summ = old.reloadXMLs(_prop.parent, loadOption(old), errorFiles);
@@ -978,6 +985,7 @@ private:
 				} else { mixin(S_TRACE);
 					if (!.exists(wsm)) wsm = old.scenarioPath;
 					string[] errorFiles;
+					if (old.readOnlyPath != "") wsm = old.readOnlyPath;
 					loadScenarioFromFile(_prop, loadOption(old), errorFiles, _comm.mainShell, &setStatusLine, old, wsm, &openScenario, &resetOpt);
 				}
 			} else if (expand) { mixin(S_TRACE);
@@ -992,8 +1000,9 @@ private:
 						_prop.msgs.dlgTitWarning, _win);
 				}
 			} else { mixin(S_TRACE);
+				auto path = old.origZipName != "" ? old.origZipName : old.readOnlyPath;
 				string[] errorFiles;
-				loadScenarioFromFile(_prop, loadOption(old), errorFiles, _comm.mainShell, &setStatusLine, old, old.origZipName, &openScenario, &resetOpt);
+				loadScenarioFromFile(_prop, loadOption(old), errorFiles, _comm.mainShell, &setStatusLine, old, path, &openScenario, &resetOpt);
 			}
 		}
 	}
@@ -1366,7 +1375,9 @@ private:
 			bool classic;
 			string filterPath = scenarioFilterPath(_prop);
 			string fileName;
-			if (summary.origZipName == "") { mixin(S_TRACE);
+			if (summary.readOnlyPath != "") { mixin(S_TRACE);
+				fileName = toFileName(setExtension(summary.readOnlyPath.baseName(), filters[filter].extension()));
+			} else if (summary.origZipName == "") { mixin(S_TRACE);
 				fileName = toFileName(setExtension(summary.scenarioName, filters[filter].extension()));
 			} else { mixin(S_TRACE);
 				fileName = setExtension(summary.origZipName.baseName(), filters[filter].extension());
@@ -1535,7 +1546,7 @@ private:
 	}
 	@property
 	bool canExecEngineWithLastParty() { mixin(S_TRACE);
-		if (!summary || (summary.useTemp && summary.origZipName == "")) return false;
+		if (!summary || (summary.readOnlyPath == "" && summary.useTemp && summary.origZipName == "")) return false;
 		return summary && _prop.var.etc.lastExecuteEngine != "" && _prop.var.etc.lastExecuteEngine.exists() && _prop.var.etc.lastExecuteEngine.isFile();
 	}
 	@property
@@ -1545,7 +1556,7 @@ private:
 	}
 	@property
 	bool canExecEngineWithParty() { mixin(S_TRACE);
-		if (!summary || (summary.useTemp && summary.origZipName == "")) return false;
+		if (!summary || (summary.readOnlyPath == "" && summary.useTemp && summary.origZipName == "")) return false;
 		if (!canExecEngine && !_prop.var.etc.classicEngines.length) return false;
 		return true;
 	}
@@ -1557,8 +1568,8 @@ private:
 	}
 	void execEngineWithLastParty() { mixin(S_TRACE);
 		if (!summary) return;
-		if (canExecEngineWithLastParty2) {
-			auto scenario = .tryFormat(`"%s"`, (summary.useTemp && summary.origZipName != "") ? summary.origZipName : summary.scenarioPath);
+		if (canExecEngineWithLastParty2) { mixin(S_TRACE);
+			auto scenario = .tryFormat(`"%s"`, origScenarioPath);
 			execEngineP(_prop.var.etc.lastExecuteEngine, _prop.var.etc.lastExecuteParameters, scenario,
 				_prop.var.etc.lastExecuteEngineName, _prop.var.etc.lastExecuteYadoName, _prop.var.etc.lastExecutePartyName);
 		} else { mixin(S_TRACE);
@@ -1830,7 +1841,14 @@ private:
 	static string createHistString(in Summary summary) { mixin(S_TRACE);
 		if (!summary) return "";
 		string hist;
-		if (summary.legacy) { mixin(S_TRACE);
+		if (summary.readOnlyPath) { mixin(S_TRACE);
+			if (!summary.readOnlyPath.exists()) return "";
+			if (summary.readOnlyPath.isDir()) { mixin(S_TRACE);
+				hist = std.path.buildPath(summary.readOnlyPath, "Summary.wsm");
+			} else { mixin(S_TRACE);
+				hist = summary.readOnlyPath;
+			}
+		} else if (summary.legacy) { mixin(S_TRACE);
 			if (summary.useTemp) { mixin(S_TRACE);
 				hist = summary.origZipName;
 			} else { mixin(S_TRACE);
@@ -2146,11 +2164,7 @@ private:
 					summ = summary;
 					if (!summ) return null;
 					string send = "opened scenario ";
-					if (summ.useTemp) { mixin(S_TRACE);
-						send ~= summ.origZipName;
-					} else { mixin(S_TRACE);
-						send ~= summ.scenarioPath;
-					}
+					send ~= origScenarioPath;
 					return send;
 				} else if (std.string.startsWith(recv.idup, "open cwxpath ")) { mixin(S_TRACE);
 					openPath.path = recv["open cwxpath ".length .. $].idup;

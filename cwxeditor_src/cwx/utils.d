@@ -378,19 +378,76 @@ string objectIDValue(Object o) { mixin(S_TRACE);
 	return .format("%08X-%s/%s", &o, curr.ticks, curr.ticksPerSecond);
 }
 
+/// Base64エンコードされたイメージのスキーマ。
 static const B_IMG = "binaryimage://";
+/// Base64エンコードされたイメージか。
 @property
 @safe
 nothrow
 bool isBinImg(string path) {
 	return path.length >= B_IMG.length && path[0u .. B_IMG.length] == B_IMG;
 }
+/// Base64をイメージへデコードする。
 ubyte[] strToBImg(string bimg) { mixin(S_TRACE);
 	return Base64.decode(bimg[B_IMG.length .. $]);
 }
+/// イメージをBase64エンコードする。
 string bImgToStr(in ubyte[] bimg) { mixin(S_TRACE);
 	auto r = B_IMG ~ Base64.encode(bimg);
 	return assumeUnique(r);
+}
+
+/// Base64エンコードされた音声のスキーマ。
+static const B_SND = "binarysound://";
+/// Base64エンコードされた音声か。
+@property
+@safe
+nothrow
+bool isBinSnd(string path) {
+	return path.length >= B_SND.length && path[0u .. B_SND.length] == B_SND;
+}
+/// Base64を音声へデコードする。
+ubyte[] strToBSnd(string bsnd) { mixin(S_TRACE);
+	return Base64.decode(bsnd[B_SND.length .. $]);
+}
+/// 音声をBase64エンコードする。
+string bSndToStr(in ubyte[] bsnd) { mixin(S_TRACE);
+	auto r = B_SND ~ Base64.encode(bsnd);
+	return assumeUnique(r);
+}
+
+/// バイナリの先頭部から音声タイプを判断して拡張子で返す。
+/// 判断できなかった場合は空文字列を返す。
+/// RIFF(WAVE) .... ".wav"
+/// MIDI .... ".mid"
+/// MP3 .... ".mp3"
+/// Ogg(Vorbis) .... ".ogg"
+string soundType(in ubyte[] b) { mixin(S_TRACE);
+	if (12L <= b.length && 'R' == b[0] && 'I' == b[1] && 'F' == b[2] && 'F' == b[3]
+			&& 'W' == b[8] && 'A' == b[9] && 'V' == b[10] && 'E' == b[11]) { mixin(S_TRACE);
+		// RIFF(WAVE)
+		return ".wav";
+	}
+	if (4L <= b.length && 'M' == b[0] && 'T' == b[1] && 'h' == b[2] && 'd' == b[3]) { mixin(S_TRACE);
+		/// MIDI
+		return ".mid";
+	}
+	if (4L <= b.length && 'O' == b[0] && 'g' == b[1] && 'g' == b[2] && 'S' == b[3]) { mixin(S_TRACE);
+		/// Ogg(Vorbis)
+		return ".ogg";
+	}
+	if (128L <= b.length) { mixin(S_TRACE);
+		auto b2 = b[$ - 128 .. $];
+		if ('T' == b2[0] && 'A' == b2[1] && 'G' == b2[2]) { mixin(S_TRACE);
+			/// MP3(ID3v1)
+			return ".mp3";
+		}
+	}
+	if (3L <= b.length && 'I' == b[0] && 'D' == b[1] && '3' == b[2]) { mixin(S_TRACE);
+		/// MP3(ID3v2)
+		return ".mp3";
+	}
+	return "";
 }
 
 /// 例外を発しないstd.string.format()。

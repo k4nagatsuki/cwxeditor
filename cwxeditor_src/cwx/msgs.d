@@ -159,7 +159,6 @@ class Msgs : Properties {
 	auto dlgMsgForceCancelDialogs = Msg("dlgMsgForceCancelDialogs", "%1$s件のダイアログが変更されたまま適用されていません。無視して操作を続行しますか？");
 	auto dlgMsgForceCancelDialogsQuit = Msg("dlgMsgForceCancelDialogsQuit", "%1$s件のダイアログが変更されたまま適用されていません。無視して終了しますか？");
 	auto dlgMsgIsSaveBeforeReload = Msg("dlgMsgIsSaveBeforeReload", "「%1$s」は変更されています。再読込しますか？");
-	auto reloadBeforeSaveError = Msg("reloadBeforeSaveError", "「%1$s」は保存されていないため、再読込できません。");
 	auto dlgMsgIsSaveBeforeExit = Msg("dlgMsgIsSaveBeforeExit", "「%1$s」は変更されています。保存しますか？");
 	auto dlgMsgDropFile = Msg("dlgMsgDropFile", "%1$sをシナリオ" ~ DIR ~ "にコピーしますか？");
 	auto dlgMsgDropFiles = Msg("dlgMsgDropFiles", "%1$s個のファイルをシナリオ" ~ DIR ~ "にコピーしますか？");

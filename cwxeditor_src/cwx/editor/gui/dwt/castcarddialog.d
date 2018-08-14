@@ -437,17 +437,7 @@ private:
 		auto radio = new Button(parent, SWT.RADIO);
 		mod(radio);
 		radio.setEnabled(!_readOnly);
-		auto gd = new GridData(GridData.FILL_BOTH);
-		if (0 <= hAlignHint) { mixin(S_TRACE);
-			hAlignHint %= 2;
-			gd.grabExcessHorizontalSpace = true;
-			if (0 == hAlignHint) { mixin(S_TRACE);
-				gd.horizontalAlignment = SWT.LEFT;
-			} else { mixin(S_TRACE);
-				gd.horizontalAlignment = SWT.RIGHT;
-			}
-		}
-		radio.setLayoutData(gd);
+		radio.setLayoutData(new GridData(GridData.FILL_BOTH));
 		radio.setText(name);
 		return radio;
 	}

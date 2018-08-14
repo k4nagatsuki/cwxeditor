@@ -754,7 +754,7 @@ public:
 /// ファイルパスのID。
 struct PathId {
 	private string id;
-	private string binImg = "";
+	private string binData = "";
 	@safe
 	nothrow
 	static PathId opCall(string id) {
@@ -764,30 +764,30 @@ struct PathId {
 	}
 	@safe
 	nothrow
-	static PathId opCall(string id, string binImg) {
+	static PathId opCall(string id, string binData) {
 		PathId r;
 		r.id = id;
-		r.binImg = binImg;
+		r.binData = binData;
 		return r;
 	}
 	@property
 	const
 	@safe
 	nothrow
-	bool isBinImg() {
-		return binImg.length > 0u;
+	bool isBinData() {
+		return binData.length > 0u;
 	}
 	@property
 	const
 	bool valid() { mixin(S_TRACE);
-		return id.length || binImg.length;
+		return id.length || binData.length;
 	}
 	const
 	@safe
 	nothrow
 	string opCast() {
 		string id = this.id;
-		return isBinImg ? binImg : replace(id, "/", dirSeparator);
+		return isBinData ? binData : replace(id, "/", dirSeparator);
 	}
 	const
 	@trusted
@@ -795,8 +795,8 @@ struct PathId {
 	hash_t toHash() {
 		hash_t hash = 0;
 		string s;
-		if (isBinImg) {
-			s = binImg;
+		if (isBinData) {
+			s = binData;
 		} else {
 			static if (0 == filenameCharCmp('A', 'a')) {
 				try {
@@ -815,19 +815,19 @@ struct PathId {
 	}
 	const
 	bool opEquals(ref const(PathId) s) { mixin(S_TRACE);
-		return (isBinImg || s.isBinImg) ? binImg == s.binImg : cfnmatch(this.id, s.id);
+		return (isBinData || s.isBinData) ? binData == s.binData : cfnmatch(this.id, s.id);
 	}
 	const
 	int opCmp(ref const(PathId) s) { mixin(S_TRACE);
-		if (isBinImg && !s.isBinImg) return -1;
-		if (!isBinImg && s.isBinImg) return 1;
-		if (isBinImg || s.isBinImg) { mixin(S_TRACE);
-			foreach (i, char c; binImg) { mixin(S_TRACE);
-				if (c < s.binImg[i]) return -1;
-				if (c > s.binImg[i]) return 1;
+		if (isBinData && !s.isBinData) return -1;
+		if (!isBinData && s.isBinData) return 1;
+		if (isBinData || s.isBinData) { mixin(S_TRACE);
+			foreach (i, char c; binData) { mixin(S_TRACE);
+				if (c < s.binData[i]) return -1;
+				if (c > s.binData[i]) return 1;
 			}
-			if (binImg.length < s.binImg.length) return -1;
-			if (binImg.length > s.binImg.length) return 1;
+			if (binData.length < s.binData.length) return -1;
+			if (binData.length > s.binData.length) return 1;
 			return 0;
 		}
 		static if (0 == filenameCharCmp('A', 'a')) {
@@ -839,8 +839,8 @@ struct PathId {
 	const
 	string toString() { mixin(S_TRACE);
 		string buf = "PathId {";
-		if (isBinImg) { mixin(S_TRACE);
-			buf ~= "BinaryImage, hash: " ~ to!(string)(toHash());
+		if (isBinData) { mixin(S_TRACE);
+			buf ~= "BinaryData, hash: " ~ to!(string)(toHash());
 		} else { mixin(S_TRACE);
 			buf ~= id;
 		}
@@ -854,6 +854,8 @@ nothrow
 PathId toPathId(string id) {
 	if (isBinImg(id)) {
 		return PathId(BI_PATH_ID, id);
+	} else if (isBinSnd(id)) {
+		return PathId(BS_PATH_ID, id);
 	} else {
 		id = replace(id, dirSeparator, "/");
 		static if (altDirSeparator.length) {
@@ -866,6 +868,7 @@ PathId toPathId(string id) {
 interface IPathUser : User!(PathId) {
 }
 const BI_PATH_ID = "binaryimage://Binary:Image";
+const BS_PATH_ID = "binarysound://Binary:Sound";
 /// ファイルパスを使用するクラスの雛形。
 /// 継承か委譲により、ファイルパスの使用者を容易に実装できる。
 class PathUser : IPathUser {
@@ -915,7 +918,7 @@ public:
 	const
 	nothrow
 	@safe
-	string path() { return _path.isBinImg ? _path.binImg : cast(string)_path; }
+	string path() { return _path.isBinData ? _path.binData : cast(string)_path; }
 
 	/// 使用回数カウンタ。
 	@property

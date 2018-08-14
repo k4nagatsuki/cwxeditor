@@ -14,6 +14,7 @@ import cwx.event;
 import cwx.importutils;
 import cwx.flag;
 import cwx.card;
+import cwx.skin;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.absdialog;
@@ -387,8 +388,9 @@ protected:
 						opt.textOnly = false;
 						opt.doubleIO = _prop.var.etc.doubleIO;
 						opt.expandXMLs = _prop.var.etc.expandXMLs;
+						Skin defSkin = .findSkin2(_prop, _prop.var.etc.defaultSkin, _prop.var.etc.defaultSkinName);
 						string[] errorFiles;
-						summ = Summary.loadScenarioFromFile(_prop.parent, opt, errorFiles, tPath, _prop.tempPath, () => dir);
+						summ = Summary.loadScenarioFromFile(_prop.parent, opt, errorFiles, tPath, _prop.tempPath, defSkin, () => dir);
 					} catch (SummaryException e) {
 						printStackTrace();
 						debugln(e);

@@ -113,6 +113,7 @@ private:
 	string _zipName = ""; /// 圧縮されているシナリオなら、元ファイルのパス。再圧縮できない場合は""。
 	string _origZipName = ""; /// 圧縮されているシナリオなら、元ファイルのパス。
 	string _tempPath = ""; /// 圧縮されているシナリオなら、一時展開先のパス。
+	string _readOnlyPath = ""; /// 読込後に別に保存しなければならないシナリオであれば、読込元のパス。
 	bool _legacy = false; /// クラシックなシナリオか。
 	bool _inSaving = false; /// 保存中ならtrue。
 
@@ -230,10 +231,17 @@ public:
 	/// ditto
 	@property
 	void zipName(string zipName) {_zipName = zipName;}
+
 	/// 元の圧縮ファイル名は何か。圧縮されていないシナリオの場合は""。
 	@property
 	const
 	string origZipName() {return _origZipName;}
+
+	/// 読込後に別に保存しなければならないシナリオであれば、読込元のパス。
+	@property
+	const
+	string readOnlyPath() {return _readOnlyPath;};
+
 	/// クラシックな形式のシナリオか。
 	@property
 	const
@@ -305,7 +313,7 @@ public:
 
 	/// シナリオを読込む。
 	static Summary loadScenarioFromFile(in CProps prop, in LoadOption opt,
-			out string[] errorFiles, string fname, string tempPath,
+			out string[] errorFiles, string fname, string tempPath, Skin defSkin,
 			string delegate() classicDir = null,
 			Summary old = null,
 			void delegate(uint) setMax = null,
@@ -514,9 +522,23 @@ public:
 			}
 			return r;
 		}
-		Summary loadLegacy(string p) { mixin(S_TRACE);
-			Summary r = loadLScenario(p, "", "", prop.sys, opt, errorFiles, newName);
+		Summary loadLegacy(string p, out int dataVersion) { mixin(S_TRACE);
+			Summary r = loadLScenario(p, "", "", prop, opt, errorFiles, dataVersion, newName);
 			return r;
+		}
+		void toX(Summary summ) { mixin(S_TRACE);
+			auto temp = Summary.createTempDir(tempPath, summ.zipName != "" ? summ.zipName.baseName().stripExtension() : summ.scenarioPath.baseName());
+			string[] copyFail;
+			summ._readOnlyPath = summ.useTemp ? summ.origZipName : summ.scenarioPath;
+			auto newPath = summ.classicToX(prop, temp, tempPath, defSkin, copyFail);
+			summ._legacy = false;
+			summ.delTemp();
+			summ.scenarioPath = newPath;
+			summ.zipName = "";
+			summ._useTemp = true;
+			summ.resetChanged();
+			assert (!summ.legacy);
+			assert (summ.useTemp);
 		}
 		Summary createFromTemplate(Summary r) { mixin(S_TRACE);
 			// テンプレートからの生成
@@ -531,6 +553,7 @@ public:
 				r._sPath = scDir;
 				r._zipName = "";
 				r._origZipName = "";
+				r._readOnlyPath = "";
 				r._tempPath = scDir;
 				r.refCheckPaths();
 				r.updateJpy1List(prop);
@@ -552,6 +575,7 @@ public:
 						r._useTemp = true;
 						r._zipName = canArchive ? fname : "";
 						r._origZipName = fname;
+						r._readOnlyPath = "";
 						r._tempPath = fn;
 						r._legacy = false;
 						r.lock(r._tempPath, r._useTemp);
@@ -564,12 +588,14 @@ public:
 						r.repairID0();
 						return r;
 					} else { mixin(S_TRACE);
-						Summary r = loadLegacy(summPath);
+						int dataVersion;
+						Summary r = loadLegacy(summPath, dataVersion);
 						r._expandXMLs = false;
 						r._useTemp = true;
 						r._legacy = true;
 						r._zipName = canArchive ? fname : "";
 						r._origZipName = fname;
+						r._readOnlyPath = "";
 						r._tempPath = fn;
 						r.refCheckPaths();
 						r.updateJpy1List(prop);
@@ -577,6 +603,7 @@ public:
 						if (scTemplate) { mixin(S_TRACE);
 							return createFromTemplate(r);
 						} else { mixin(S_TRACE);
+							if (7 <= dataVersion) toX(r);
 							r.lock(r._tempPath, r._useTemp);
 							return r;
 						}
@@ -602,18 +629,24 @@ public:
 						}
 					}
 					Summary ll(string fname) { mixin(S_TRACE);
-						auto r = loadLegacy(fname);
+						int dataVersion;
+						auto r = loadLegacy(fname, dataVersion);
 						r._expandXMLs = false;
 						r._useTemp = false;
 						r._legacy = true;
 						r._zipName = "";
 						r._origZipName = "";
+						r._readOnlyPath = "";
 						if (scTemplate) { mixin(S_TRACE);
 							return createFromTemplate(r);
 						} else { mixin(S_TRACE);
 							r.refCheckPaths();
 							r.updateJpy1List(prop);
 							r.repairID0();
+							if (7 <= dataVersion) { mixin(S_TRACE);
+								toX(r);
+								r.lock(r._tempPath, r._useTemp);
+							}
 							return r;
 						}
 					}
@@ -627,6 +660,7 @@ public:
 						r._legacy = false;
 						r._zipName = "";
 						r._origZipName = "";
+						r._readOnlyPath = "";
 						if (scTemplate) { mixin(S_TRACE);
 							auto temp = createTempDir(tempPath, fname.dirName().baseName());
 							copyAll(r.scenarioPath, temp);
@@ -878,7 +912,7 @@ public:
 		if (legacy) { mixin(S_TRACE);
 			auto newAllPaths = allPaths;
 			foreach (pathId; useCounter.path.keys) { mixin(S_TRACE);
-				if (pathId.isBinImg) continue;
+				if (pathId.isBinData) continue;
 				auto path = cast(string)pathId;
 				if (path == "") continue;
 				static if (0 == filenameCharCmp('A', 'a')) {
@@ -2253,7 +2287,8 @@ public:
 		auto sys = prop.sys;
 		Summary summ;
 		if (legacy) { mixin(S_TRACE);
-			summ = loadLScenario(scenarioPath, "", "", sys, opt, errorFiles, scenarioName);
+			int dataVersion;
+			summ = loadLScenario(scenarioPath, "", "", prop, opt, errorFiles, dataVersion, scenarioName);
 		} else { mixin(S_TRACE);
 			summ = summaryFromXML(sys, scenarioPath,
 				std.file.readText(std.path.buildPath(scenarioPath, "Summary.xml")));
@@ -2359,11 +2394,9 @@ public:
 		return r;
 	}
 	const
-	private bool moveBinImg(ref string[][immutable(ubyte[])] cis, PathUser targ, string fname, string mt, in Skin toSkin) { mixin(S_TRACE);
+	private bool moveBinData(ref string[][immutable(ubyte[])] cis, PathUser targ, string fname, string mt, in Skin toSkin) { mixin(S_TRACE);
 		string img = targ.path;
-		if (isBinImg(img)) { mixin(S_TRACE);
-			auto bytes = strToBImg(img);
-			auto ext = .imageType(bytes);
+		bool writeBytes(ubyte[] bytes, string ext) { mixin(S_TRACE);
 			string[] *files = bytes in cis;
 			if (files) { mixin(S_TRACE);
 				assert (files.length);
@@ -2375,6 +2408,17 @@ public:
 				cis[assumeUnique(bytes)] ~= targ.path;
 				return true;
 			}
+			return false;
+		}
+		if (isBinImg(img)) { mixin(S_TRACE);
+			auto bytes = strToBImg(img);
+			auto ext = .imageType(bytes);
+			return writeBytes(bytes, ext);
+		}
+		if (isBinSnd(img)) { mixin(S_TRACE);
+			auto bytes = strToBSnd(img);
+			auto ext = .soundType(bytes);
+			return writeBytes(bytes, ext);
 		}
 		return false;
 	}
@@ -2437,7 +2481,10 @@ public:
 			}
 
 			foreach (key; uc.path.keys) { mixin(S_TRACE);
-				if (key.isBinImg) continue;
+				if (key.isBinData) continue;
+				auto isSkinMaterial = false;
+				auto isEngineMaterial = false;
+				if (!std.path.buildPath(scenarioPath, cast(string)key).exists()) continue;
 				auto fname = cast(string)key;
 				if (istartsWith(fname, "font_") && fname.to!dstring.length == 10 && fname.extension().toLower() == ".bmp") continue;
 				auto p = std.path.buildPath(scenarioPath, fname);
@@ -2460,8 +2507,9 @@ public:
 		}
 		ubyte*[] ptrs;
 		auto table = cardImgTable(mt, toSkin, uc, ptrs);
+		loadScaledImage = true;
 		foreach (p; uc.path.keys) { mixin(S_TRACE);
-			if (p.isBinImg) { mixin(S_TRACE);
+			if (p.isBinData) { mixin(S_TRACE);
 				auto users = uc.path.values(p);
 				Tuple!(PathUser, "u", string[], "cwxPath")[] users2;
 				foreach (u; users) { mixin(S_TRACE);
@@ -2472,7 +2520,14 @@ public:
 				}
 				foreach (ipu; std.algorithm.sort!pcmp(users2)) { mixin(S_TRACE);
 					auto exportedName = .pathUserToExportedImageName(prop, scenarioName, author, ipu.u);
-					moveBinImg(table, ipu.u, exportedName, mt, toSkin);
+					moveBinData(table, ipu.u, exportedName, mt, toSkin);
+				}
+			} else if (loadScaledImage) { mixin(S_TRACE);
+				auto path = cast(string)p;
+				auto info = .scaledImageInfo(path);
+				if (info.path != "") { mixin(S_TRACE);
+					// スケーリングされたイメージのようなファイル名が使用されている
+					loadScaledImage = false;
 				}
 			}
 		}
@@ -2502,6 +2557,7 @@ public:
 			zipName = "";
 			_origZipName = fileOrDir;
 		}
+		_readOnlyPath = "";
 		auto list = clistdir(scenarioPath);
 		if (!.exists(sPath)) mkdirRecurse(sPath);
 		useTemp = !isDir;
@@ -2587,7 +2643,7 @@ public:
 		} else if (this.legacy) { mixin(S_TRACE);
 			// クラシック形式からXML形式に変換
 			string[] copyFail;
-			auto temp = Summary.createTempDir(tempPath, zipName ? zipName.baseName().stripExtension() : scenarioPath.dirName().baseName());
+			auto temp = Summary.createTempDir(tempPath, zipName != "" ? zipName.baseName().stripExtension() : scenarioPath.baseName());
 			temp = classicToX(prop, temp, tempPath, defSkin, copyFail);
 			foreach (fail; copyFail) { mixin(S_TRACE);
 				// 一部コピー失敗しても中断しない
@@ -2611,7 +2667,7 @@ public:
 		} else { mixin(S_TRACE);
 			// 展開済みシナリオからアーカイブに変換
 			auto oldPath = scenarioPath;
-			auto p = createTempDir(tempPath, oldPath.dirName().baseName());
+			auto p = createTempDir(tempPath, oldPath.baseName());
 			copyAll(oldPath, p);
 			scenarioPath = p;
 			scope (failure) {
@@ -2739,8 +2795,10 @@ public:
 				_tempPath = temp;
 				_legacy = false;
 			}
-			if (legacyToX) dataVersion = DEFAULT_VERSION;
-			if (legacyToX) loadScaledImage = false;
+			_readOnlyPath = "";
+			if (legacyToX) { mixin(S_TRACE);
+				dataVersion = DEFAULT_VERSION;
+			}
 			if (legacyToX || (!useTemp && archive)) { mixin(S_TRACE);
 				_useTemp = true;
 				auto oldLegacy = _legacy;
@@ -2937,7 +2995,7 @@ public:
 			}
 			foreach (path; useCounter.path.keys) { mixin(S_TRACE);
 				auto p = cast(string) path;
-				if (!path.isBinImg && !tbl.contains(path)) { mixin(S_TRACE);
+				if (!path.isBinData && !tbl.contains(path)) { mixin(S_TRACE);
 					paths ~= encodePath(p);
 				}
 			}
@@ -3116,6 +3174,17 @@ string pathUserToExportedImageName(in CProps prop, string scenarioName, string a
 			name = .toExportedImageNameWithCardName(prop, iEffCard.scenario, iEffCard.author, iEffCard.name);
 		} else { mixin(S_TRACE);
 			name = .toExportedImageNameWithCardName(prop, scenarioName, author, iCard.name);
+		}
+	}
+	if (auto c = cast(Content)v.owner) { mixin(S_TRACE);
+		name = .toExportedImageNameWithoutCardName(prop, scenarioName, author);
+	}
+	if (auto bgImg = cast(BgImage)v.owner) { mixin(S_TRACE);
+		if (auto a = cast(Area)bgImg.cwxParent) { mixin(S_TRACE);
+			name = .toExportedImageNameWithCardName(prop, scenarioName, author, a.name);
+		}
+		if (auto c = cast(Content)bgImg.cwxParent) { mixin(S_TRACE);
+			name = .toExportedImageNameWithoutCardName(prop, scenarioName, author);
 		}
 	}
 	return name;

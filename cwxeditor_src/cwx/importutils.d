@@ -210,7 +210,7 @@ ImportResult importResource(in CProps prop, Summary to, Summary from, in string[
 	// 素材のインポート。
 	auto newFolder = createNewFileName(to.scenarioPath.buildPath(createNewFileName(to.scenarioPath.buildPath(from.scenarioPath.baseName()), true).baseName()), true).baseName();
 	ref1(opt.materials, uc.path, to.useCounter.path, (PathId path) { mixin(S_TRACE);
-		if (path.isBinImg) return;
+		if (path.isBinData) return;
 		if (!from.scenarioPath.buildPath(cast(string)path).exists()) return;
 		if (opt.materials is ImportTypeReference1.Rename) { mixin(S_TRACE);
 			auto newPath = newFolder.buildPath(cast(string)path);

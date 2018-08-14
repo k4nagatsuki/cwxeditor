@@ -420,7 +420,7 @@ private:
 				itm.setImage(2, _prop.images.warning);
 			}
 			if (_grepSumm) { mixin(S_TRACE);
-				scPath = _grepSumm.useTemp ? _grepSumm.origZipName : _grepSumm.scenarioPath;
+				scPath = _grepSumm.readOnlyPath != "" ? _grepSumm.readOnlyPath : _grepSumm.useTemp ? _grepSumm.origZipName : _grepSumm.scenarioPath;
 				text = .tryFormat(_prop.msgs.grepScenario, _grepSumm.scenarioName, scPath);
 				itm.setText(2, text);
 				itm.setImage(2, _prop.images.summary);
@@ -462,7 +462,7 @@ private:
 		}
 		string scPath = null;
 		if (grepSumm) { mixin(S_TRACE);
-			scPath = grepSumm.useTemp ? grepSumm.origZipName : grepSumm.scenarioPath;
+			scPath = grepSumm.readOnlyPath != "" ? grepSumm.readOnlyPath : grepSumm.useTemp ? grepSumm.origZipName : grepSumm.scenarioPath;
 			itm.setText(2, .tryFormat(_prop.msgs.grepScenario, grepSumm.scenarioName, scPath));
 			itm.setImage(2, _prop.images.summary);
 		}
@@ -1384,7 +1384,11 @@ private:
 	void setGrepCurrentDir() { mixin(S_TRACE);
 		if (_summ) { mixin(S_TRACE);
 			auto sc = _summ.scenarioPath.dirName();
-			if (_summ.useTemp) sc = _summ.origZipName.dirName();
+			if (_summ.readOnlyPath != "") { mixin(S_TRACE);
+				sc = _summ.readOnlyPath;
+			} else if (_summ.useTemp) { mixin(S_TRACE);
+				sc = _summ.origZipName.dirName();
+			}
 			_grepDir.setText(sc);
 		}
 	}
@@ -4029,7 +4033,8 @@ public:
 			scope (exit) _grepFile = "";
 			refResultStatus(count, true);
 			string[] errorFiles;
-			auto summ = Summary.loadScenarioFromFile(_prop.parent, opt, errorFiles, summFile, _prop.tempPath);
+			Skin defSkin = .findSkin2(_prop, _prop.var.etc.defaultSkin, _prop.var.etc.defaultSkinName);
+			auto summ = Summary.loadScenarioFromFile(_prop.parent, opt, errorFiles, summFile, _prop.tempPath, defSkin);
 			if (!summ) return;
 			_grepSumm = summ;
 			_grepCount++;

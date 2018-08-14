@@ -118,9 +118,11 @@ class MaterialSelect(MtType Type, D, C) {
 			_comm.delPaths.add(&delPaths);
 			_comm.replPath.add(&replPath);
 		}
+		if (!_display) _display = parent.getDisplay();
 		static if (Type == MtType.BGM) {
-			if (!_display) _display = parent.getDisplay();
 			stopBGMEvent ~= &stopBGM;
+		} else static if (Type == MtType.SE) {
+			stopSEEvent ~= &stopSE;
 		}
 		_dirs.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
@@ -137,7 +139,10 @@ class MaterialSelect(MtType Type, D, C) {
 				}
 				static if (Type == MtType.BGM) {
 					cwx.utils.remove(stopBGMEvent, &stopBGM);
-					if (_playing) .stopBGM();
+					if (_playing != "") .stopBGM();
+				} else static if (Type == MtType.SE) {
+					cwx.utils.remove(stopSEEvent, &stopSE);
+					if (_playing != "") .stopSE();
 				}
 			}
 		});
@@ -152,7 +157,7 @@ class MaterialSelect(MtType Type, D, C) {
 			if (_startPlay) return;
 			_display.asyncExec(new class Runnable {
 				override void run() { mixin(S_TRACE);
-					if (_playing) { mixin(S_TRACE);
+					if (_playing != "") { mixin(S_TRACE);
 						bgmStopped();
 					}
 				}
@@ -217,9 +222,19 @@ class MaterialSelect(MtType Type, D, C) {
 				_fileList.addMouseListener(play);
 				_fileList.addKeyListener(play);
 				static if (Type == MtType.BGM) {
-					_fileList.addDisposeListener(new StopBGM);
+					.listener(_fileList, SWT.Dispose, { mixin(S_TRACE);
+						if (_playing != "") { mixin(S_TRACE);
+							stopBGM();
+							_playing = "";
+						}
+					});
 				} else static if (Type == MtType.SE) {
-					_fileList.addDisposeListener(new StopSE);
+					.listener(_fileList, SWT.Dispose, { mixin(S_TRACE);
+						if (_playing != "") { mixin(S_TRACE);
+							stopSE();
+							_playing = "";
+						}
+					});
 				} else static assert (0);
 			} else { mixin(S_TRACE);
 				auto open = new OpenMaterial;
@@ -630,7 +645,7 @@ class MaterialSelect(MtType Type, D, C) {
 	static if (Type == MtType.BGM) {
 		private MenuItem _bgmMenu = null;
 		private ToolItem _bgmTMenu = null;
-		string _playing = null;
+		string _playing = "";
 		private TimeBar _playBar = null;
 		private core.thread.Thread _playThr = null;
 		private UpdatePlayBar _updatePlayBar = null;
@@ -639,7 +654,7 @@ class MaterialSelect(MtType Type, D, C) {
 			initPlayBar();
 			.listener(_playBar, SWT.Dispose, { mixin(S_TRACE);
 				if (_playThr) { mixin(S_TRACE);
-					_playing = null;
+					_playing = "";
 					_playThr.join();
 					_playThr = null;
 				}
@@ -664,7 +679,7 @@ class MaterialSelect(MtType Type, D, C) {
 			auto data = cast(MenuData) _bgmTMenu.getData();
 			data.format = (string t) {return data.id is MenuID.StopBGM ? .tryFormat(t, _playing) : t;};
 			modEvent ~= { mixin(S_TRACE);
-				if (!_playing) return;
+				if (_playing == "") return;
 				updatePlayButton(isPlayOrStop);
 			};
 		}
@@ -677,19 +692,19 @@ class MaterialSelect(MtType Type, D, C) {
 			_bgmBtn.addSelectionListener(pbgm);
 			_comm.put(_bgmBtn, &canPlay);
 			modEvent ~= { mixin(S_TRACE);
-				if (!_playing) return;
+				if (_playing == "") return;
 				updatePlayButton(isPlayOrStop);
 			};
 			return _bgmBtn;
 		}
 		@property
 		bool canPlay() { mixin(S_TRACE);
-			return _playing ? true : filePath.length > 0;
+			return _playing != "" ? true : filePath.length > 0;
 		}
 		@property
 		bool isPlayOrStop() { mixin(S_TRACE);
 			string p = filePath;
-			return p.length > 0 && (!_playing || !cfnmatch(nabs(p), nabs(_playing)));
+			return p.length > 0 && (_playing == "" || !cfnmatch(nabs(p), nabs(_playing)));
 		}
 		void updatePlayButton(bool playOrStop) { mixin(S_TRACE);
 			if (playOrStop) { mixin(S_TRACE);
@@ -768,9 +783,9 @@ class MaterialSelect(MtType Type, D, C) {
 			if (!fromEvent) .stopBGM();
 		}
 		private void bgmStopped() { mixin(S_TRACE);
-			if (!_playing) return;
+			if (_playing == "") return;
 			updatePlayButton(true);
-			_playing = null;
+			_playing = "";
 			if (_playThr) { mixin(S_TRACE);
 				_playThr.join();
 				_playThr = null;
@@ -803,7 +818,7 @@ class MaterialSelect(MtType Type, D, C) {
 					playing = .isBGMPlaying;
 				}
 			};
-			while (_playing && playing) { mixin(S_TRACE);
+			while (_playing != "" && playing) { mixin(S_TRACE);
 				_display.asyncExec(isPlaying);
 				auto cur = MonoTime.currTime();
 				if (cur < last || (last + .dur!"msecs"(100)) <= cur) { mixin(S_TRACE);
@@ -828,6 +843,7 @@ class MaterialSelect(MtType Type, D, C) {
 			}
 		}
 	} else static if (Type == MtType.SE) {
+		string _playing = "";
 		void createPlayToolItem(ToolBar bar) { mixin(S_TRACE);
 			createToolItem(_comm, bar, MenuID.PlaySE, &playSE, &canPlay);
 		}
@@ -844,9 +860,7 @@ class MaterialSelect(MtType Type, D, C) {
 			auto stop = new Button(parent, SWT.PUSH);
 			stop.setToolTipText(_prop.msgs.menuText(MenuID.StopSE));
 			stop.setImage(_prop.images.menu(MenuID.StopSE));
-			auto sse = new StopSE;
-			stop.addSelectionListener(sse);
-			stop.addDisposeListener(sse);
+			.listener(stop, SWT.Selection, &stopSE);
 			return stop;
 		}
 		@property
@@ -860,10 +874,23 @@ class MaterialSelect(MtType Type, D, C) {
 				auto loopCount = _loopCount ? _loopCount.getSelection() : 1;
 				auto fadeIn = this.fadeIn;
 				playSECW(_prop, p, fadeIn, volume, loopCount, _comm.skin.legacy);
+				_playing = p;
 			}
 		}
 		void stopSE() { mixin(S_TRACE);
-			.stopSE();
+			if (_playing != "") { mixin(S_TRACE);
+				.stopSE();
+				_display.asyncExec(new class Runnable {
+					override void run() { mixin(S_TRACE);
+						if (_playing != "") { mixin(S_TRACE);
+							seStopped();
+						}
+					}
+				});
+			}
+		}
+		void seStopped() { mixin(S_TRACE);
+			_playing = "";
 		}
 		private class Play : SelectionAdapter, KeyListener, MouseListener {
 			override void mouseUp(MouseEvent e) {}

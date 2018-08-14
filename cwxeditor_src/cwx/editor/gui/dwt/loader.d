@@ -239,9 +239,10 @@ private class LSFFThr(bool Array) {
 		} else { mixin(S_TRACE);
 			display.syncExec(new Start);
 			try { mixin(S_TRACE);
+				Skin defSkin = .findSkin2(prop, prop.var.etc.defaultSkin, prop.var.etc.defaultSkinName);
 				string[] errorFiles;
 				Summary r = Summary.loadScenarioFromFile(prop.parent, opt,
-					errorFiles, fname, prop.tempPath, null, old, &setMax, &setWork,
+					errorFiles, fname, prop.tempPath, defSkin, null, old, &setMax, &setWork,
 					isDir(fname) ? baseName(fname) : baseName(dirName(fname)));
 				temp = r.useTemp ? r.scenarioPath : "";
 				display.syncExec(new Load(r, errorFiles));
@@ -426,8 +427,9 @@ private Summary loadScenarioFromFileImpl(Props prop, in LoadOption opt, out stri
 			if (!current) resetCursors(cursors);
 		}
 		try { mixin(S_TRACE);
+			Skin defSkin = .findSkin2(prop, prop.var.etc.defaultSkin, prop.var.etc.defaultSkinName);
 			return Summary.loadScenarioFromFile(prop.parent, opt, errorFiles, fname,
-				prop.tempPath, null, old, setMax, worked,
+				prop.tempPath, defSkin, null, old, setMax, worked,
 				isDir(fname) ? baseName(fname) : baseName(dirName(fname)));
 		} catch (SummaryException e) {
 			printStackTrace();
@@ -467,7 +469,7 @@ protected:
 	override void setup(Composite area) { mixin(S_TRACE);
 		area.setLayout(normalGridLayout(1, true));
 
-		auto fileName = (_summ.useTemp ? _summ.origZipName : _summ.scenarioPath).baseName();
+		auto fileName = (_summ.readOnlyPath != "" ? _summ.readOnlyPath : _summ.useTemp ? _summ.origZipName : _summ.scenarioPath).baseName();
 
 		auto l = new Label(area, SWT.WRAP);
 		l.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));

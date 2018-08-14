@@ -51,7 +51,7 @@ import org.eclipse.swt.all;
 
 Skin findSkin(Commons comm, Props prop, in Summary summ, string type = null, string name = null, string legacyEngine = "", bool appendClassicSkin = true) { mixin(S_TRACE);
 	auto legacy = summ ? summ.legacy : false;
-	auto sPath = summ ? (summ.useTemp ? summ.origZipName : summ.scenarioPath) : "";
+	auto sPath = summ ? (summ.readOnlyPath != "" ? summ.readOnlyPath : summ.useTemp ? summ.origZipName : summ.scenarioPath) : "";
 	if (type is null) type = summ ? summ.type : "";
 	if (name is null) name = summ ? summ.skinName : "";
 	return findSkin(comm, prop, summ, legacy, sPath, type, name, legacyEngine, appendClassicSkin);
