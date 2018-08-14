@@ -2580,7 +2580,7 @@ public:
 	@property
 	const
 	bool isSaved() { mixin(S_TRACE);
-		return !useTemp || zipName.length;
+		return (!useTemp || zipName.length) && readOnlyPath == "";
 	}
 	/// 上書き保存。
 	void saveOverwrite(in CProps prop, in Skin skin, in SaveOption opt) in { mixin(S_TRACE);
