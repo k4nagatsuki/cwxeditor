@@ -1376,7 +1376,7 @@ private:
 			string filterPath = scenarioFilterPath(_prop);
 			string fileName;
 			if (summary.readOnlyPath != "") { mixin(S_TRACE);
-				fileName = toFileName(setExtension(summary.readOnlyPath.baseName(), filters[filter].extension()));
+				fileName = setExtension(summary.readOnlyPath.baseName(), filters[filter].extension());
 			} else if (summary.origZipName == "") { mixin(S_TRACE);
 				fileName = toFileName(setExtension(summary.scenarioName, filters[filter].extension()));
 			} else { mixin(S_TRACE);
