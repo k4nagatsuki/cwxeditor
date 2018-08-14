@@ -1934,7 +1934,11 @@ private:
 		auto hist = OpenHistory(createFullHistString());
 		if ("" == hist.path) return;
 		string p = fullHistToHist(hist.path);
-		_prop.var.etc.scenarioPath = summary.useTemp ? dirName(p) : dirName(dirName(p));
+		if (summary.readOnlyPath != "") { mixin(S_TRACE);
+			_prop.var.etc.scenarioPath = .nabs(summary.readOnlyPath.dirName());
+		} else { mixin(S_TRACE);
+			_prop.var.etc.scenarioPath = summary.useTemp ? dirName(p) : dirName(dirName(p));
+		}
 		auto hists = _prop.var.etc.openHistories.dup;
 		foreach (i, h; hists) { mixin(S_TRACE);
 			if (cfnmatch(fullHistToHist(h.path), p)) { mixin(S_TRACE);

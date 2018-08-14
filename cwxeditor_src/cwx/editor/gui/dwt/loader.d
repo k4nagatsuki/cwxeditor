@@ -296,7 +296,7 @@ LoadResult[] loadScenarios(Props prop, in LoadOption opt, Shell w, void delegate
 			void put(LoadResult[] r) { mixin(S_TRACE);
 				if (r.length) { mixin(S_TRACE);
 					filterPath = nabs(filterPath);
-					if (r[0u].summary.readOnlyPath) { mixin(S_TRACE);
+					if (r[0u].summary.readOnlyPath != "") { mixin(S_TRACE);
 						prop.var.etc.scenarioPath = .nabs(r[0u].summary.readOnlyPath.dirName());
 					} else { mixin(S_TRACE);
 						prop.var.etc.scenarioPath = r[0u].summary.useTemp ? filterPath : dirName(filterPath);
