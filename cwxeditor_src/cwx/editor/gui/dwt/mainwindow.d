@@ -1841,7 +1841,7 @@ private:
 	static string createHistString(in Summary summary) { mixin(S_TRACE);
 		if (!summary) return "";
 		string hist;
-		if (summary.readOnlyPath) { mixin(S_TRACE);
+		if (summary.readOnlyPath != "") { mixin(S_TRACE);
 			if (!summary.readOnlyPath.exists()) return "";
 			if (summary.readOnlyPath.isDir()) { mixin(S_TRACE);
 				hist = std.path.buildPath(summary.readOnlyPath, "Summary.wsm");
