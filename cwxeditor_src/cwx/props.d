@@ -23,22 +23,22 @@ public:
 			"Data" ~ dirSeparator.idup ~ "Font" ~ dirSeparator.idup ~ "uigothic.ttf"
 		];
 	}
-	@property const CPoint castCardNamePoint() {return CPoint(5, 5);}
-	@property const CPoint menuCardNamePoint() {return CPoint(5, 5);}
-	@property const CPoint cardNamePoint() {return CPoint(5, 5);}
-	@property const CSize cardSize() {return CSize(74, 94);}
-	@property const CSize summarySize() {return CSize(400, 370);}
-	@property const CPoint summaryImageXY() {return CPoint(163, 65);}
-	@property const int summaryLevelY() {return 15;}
-	@property const int summaryTitleY() {return 35;}
-	@property const CPoint summaryDescXY() {return CPoint(65, 175);}
-	@property const int summaryDescLen() {return 40;}
-	@property const int summaryDescLine() {return 11;}
-	@property const int summaryPageY() {return 340;}
-	@property const CRGB summaryLevelColor() {return CRGB(32, 128, 128);}
-	@property const CInsets castCardInsets(){return CInsets(18, 11, 18, 10);}
-	@property const CInsets menuCardInsets(){return CInsets(13, 3, 3, 3);}
-	@property const CInsets cardInsets(){return menuCardInsets;}
+	@property const CPoint castCardNamePoint() { return CPoint(5, 5); }
+	@property const CPoint menuCardNamePoint() { return CPoint(5, 5); }
+	@property const CPoint cardNamePoint() { return CPoint(5, 5); }
+	@property const CSize cardSize() { return CSize(74, 94); }
+	@property const CSize summarySize() { return CSize(400, 370); }
+	@property const CPoint summaryImageXY() { return CPoint(163, 65); }
+	@property const int summaryLevelY() { return 15; }
+	@property const int summaryTitleY() { return 35; }
+	@property const CPoint summaryDescXY() { return CPoint(65, 175); }
+	@property const int summaryDescLen() { return 40; }
+	@property const int summaryDescLine() { return 11; }
+	@property const int summaryPageY() { return 340; }
+	@property const CRGB summaryLevelColor() { return CRGB(32, 128, 128); }
+	@property const CInsets castCardInsets(){ return CInsets(18, 11, 18, 10); }
+	@property const CInsets menuCardInsets(){ return CInsets(13, 3, 3, 3); }
+	@property const CInsets cardInsets(){ return menuCardInsets; }
 	@property const CPoint[] partyCardXY() { mixin(S_TRACE);
 		return [
 			CPoint(9, 285),
@@ -53,8 +53,8 @@ public:
 	@property const CRect cardNameArea() { return CRect(5, 5, 70, 15); }
 	@property const CRect castCardNameArea() { return CRect(5, 5, 85, 15); }
 
-	@property const CRect messageBounds() {return CRect(81, 50, 470, 180);}
-	@property const int messageButtonHeight() {return 25;}
+	@property const CRect messageBounds() { return CRect(81, 50, 470, 180); }
+	@property const int messageButtonHeight() { return 25; }
 	const CPoint messageStartPos(bool legacy, bool withTalker, bool centerX) { mixin(S_TRACE);
 		if (centerX) { mixin(S_TRACE);
 			return withTalker ? CPoint(50, 10) : CPoint(0, 10);
@@ -64,21 +64,21 @@ public:
 	}
 	@property const uint messageLineHeight() { return 22; }
 	@property const uint messageCharWidth() { return 20; }
-	@property const CPoint messageTalkerPos() {return CPoint(15, 43);}
+	@property const CPoint messageTalkerPos() { return CPoint(15, 43); }
 	@property const uint selectionBarMaxWithMessage() { return 7; }
 	@property const uint selectionBarMax() { return 13; }
 
-	@property const int aptVeryHigh() {return 15;}
-	@property const int aptHigh() {return 9;}
-	@property const int aptNormal() {return 3;}
+	@property const int aptVeryHigh() { return 15; }
+	@property const int aptHigh() { return 9; }
+	@property const int aptNormal() { return 3; }
 
-	@property const CPoint useStoneXY() {return CPoint(60, 75);}
-	@property const CPoint aptStoneXY() {return CPoint(60, 90);}
+	@property const CPoint useStoneXY() { return CPoint(60, 75); }
+	@property const CPoint aptStoneXY() { return CPoint(60, 90); }
 
-	@property const CPoint eventTreeXY() {return CPoint(7, 90);}
-	@property const CPoint eventTreeXYWithCount() {return CPoint(7, 71);}
+	@property const CPoint eventTreeXY() { return CPoint(7, 90); }
+	@property const CPoint eventTreeXYWithCount() { return CPoint(7, 71); }
 
-	@property const CPoint premiumXY() {return CPoint(5, 5);}
+	@property const CPoint premiumXY() { return CPoint(5, 5); }
 	@property const uint itemCardMaxNum(uint lev) { mixin(S_TRACE);
 		int r = (lev + 1) / 2 + 2;
 		return r <= 10 ? r : 10;
@@ -91,41 +91,41 @@ public:
 		int r = (lev + 1) / 4 + 1;
 		return r <= 10 ? r : 10;
 	}
-	@property const int cardDescLen() {return 39;}
-	@property const int cardDescLine() {return 8;}
+	@property const int cardDescLen() { return 39; }
+	@property const int cardDescLine() { return 8; }
 
-	@property const int messageImageLen() {return 34;}
-	@property const int messageLen() {return 44;}
-	@property const int messageLine() {return 7;}
+	@property const int messageImageLen() { return 34; }
+	@property const int messageLen() { return 44; }
+	@property const int messageLine() { return 7; }
 
 	@property const dstring openChars() { return "\"'(<[`{‘“〈《≪「『【〔（＜［｛｢"d; }
 	@property const dstring closeChars() { return "!\"'),.:;>?]`}゜’”′″、。々＞》≫」』】〕〟゛°ゝゞヽヾ〻！），．：；＞？］｝｡｣､ﾞﾟぁぃぅぇぉァィゥェォｧｨｩｪｫヵっッｯゃゅょャュョｬｭｮゎヮㇵㇶㇷㇸㇹㇺ…―ーｰ"d; }
 	@property const dstring wordRegex() { return "[a-z0-9_]+|[ａ-ｚＡ-Ｚ０-９＿]+|."d; }
 
-	@property const int stepMaxCount() {return 10;}
+	@property const int stepMaxCount() { return 10; }
 
-	@property const uint castNameLimit() {return 14;}
-	@property const uint nameLimit() {return 12;}
+	@property const uint castNameLimit() { return 14; }
+	@property const uint nameLimit() { return 12; }
 	const uint lifeCalc(uint lev, uint vit, uint spi) { mixin(S_TRACE);
 		return cast(uint) (((lev + 1.0) * (vit / 2.0 + 4.0)) + (spi / 2.0));
 	}
-	@property const uint physicalCutMin() {return 1;}
-	@property const uint physicalCutMaxBase() {return 6;}
-	@property const uint physicalNormal() {return 6;}
-	@property const uint[] physicalBorders() {return [1, 6, 12];}
-	@property const uint mentalCut() {return 4;}
-	@property const uint[] mentalBorders() {return [2];}
+	@property const uint physicalCutMin() { return 1; }
+	@property const uint physicalCutMaxBase() { return 6; }
+	@property const uint physicalNormal() { return 6; }
+	@property const uint[] physicalBorders() { return [1, 6, 12]; }
+	@property const uint mentalCut() { return 4; }
+	@property const uint[] mentalBorders() { return [2]; }
 
-	const int skillPrice(int lev) {return (lev + 2) * 200;}
-	@property const int beastPrice() {return 500;}
-	@property const int keyCodesMaxLegacy() {return 5;}
-	@property const uint motionRoundDefault() {return 10;}
-	@property const uint stoneBorder() {return 20;}
+	const int skillPrice(int lev) { return (lev + 2) * 200; }
+	@property const int beastPrice() { return 500; }
+	@property const int keyCodesMaxLegacy() { return 5; }
+	@property const uint motionRoundDefault() { return 10; }
+	@property const uint stoneBorder() { return 20; }
 
-	@property const uint idMax() {return 99999;}
+	@property const uint idMax() { return 99999; }
 
-	@property const CSize viewSize() {return CSize(632, 420);}
-	@property const uint partyTop() {return 280;}
+	@property const CSize viewSize() { return CSize(632, 420); }
+	@property const uint partyTop() { return 280; }
 
 	@property const string monospace() { mixin(S_TRACE);
 		version (Windows) {
@@ -166,14 +166,14 @@ public:
 	const CFont textDlgFont(uint defSize) { mixin(S_TRACE);
 		return CFont(gothic(true), defSize <= 0 ? 12 : defSize, false, false);
 	}
-	const CFont castCardNameFont(bool legacy) {return CFont(uigothic(legacy), 12, true, false);}
-	const CFont castCardLevelFont(bool legacy) {return CFont(mincho(legacy), 33, true, true);}
-	const CFont pcNumberFont(bool legacy) {return CFont(mincho(legacy), 42, true, false);}
-	@property const CInsets castCardLevelInsets() {return CInsets(2, 8, 0, 0);}
-	@property const CRGB castCardLevelColor() {return CRGB(0, 0, 0, 128);}
-	@property const CPoint castLifeBarPoint() {return CPoint(8, 110);}
-	@property const int statusX() {return 7;}
-	@property const uint statusVerMax() {return 6;}
+	const CFont castCardNameFont(bool legacy) { return CFont(uigothic(legacy), 12, true, false); }
+	const CFont castCardLevelFont(bool legacy) { return CFont(mincho(legacy), 33, true, true); }
+	const CFont pcNumberFont(bool legacy) { return CFont(mincho(legacy), 42, true, false); }
+	@property const CInsets castCardLevelInsets() { return CInsets(2, 8, 0, 0); }
+	@property const CRGB castCardLevelColor() { return CRGB(0, 0, 0, 128); }
+	@property const CPoint castLifeBarPoint() { return CPoint(8, 110); }
+	@property const int statusX() { return 7; }
+	@property const uint statusVerMax() { return 6; }
 	@property const CFont statusTimeFont(bool legacy, uint number) { mixin(S_TRACE);
 		if (100 <= number) { mixin(S_TRACE);
 			return CFont(pgothic(legacy), 8, false, false);
@@ -184,28 +184,23 @@ public:
 		}
 	}
 
-	const CFont skillCardLevelFont(bool legacy) {return CFont(mincho(legacy), 27, true, true);}
-	@property const CRGB skillCardLevelColor() {return CRGB(0, 0, 0, 128);}
-	@property const CInsets skillCardLevelInsets() {return CInsets(2, 8, 0, 0);}
+	const CFont skillCardLevelFont(bool legacy) { return CFont(mincho(legacy), 27, true, true); }
+	@property const CRGB skillCardLevelColor() { return CRGB(0, 0, 0, 128); }
+	@property const CInsets skillCardLevelInsets() { return CInsets(2, 8, 0, 0); }
 
-	const CFont menuCardNameFont(bool legacy) {return castCardNameFont(legacy);}
-	const CFont cardNameFont(bool legacy) {return castCardNameFont(legacy);}
-	const CFont useCountFont(bool legacy) {return CFont(mincho(legacy), 18, true, false);}
-	@property const CPoint useCountPoint() {return CPoint(10, 90);}
-	@property const CRGB recycleNumColor() {return CRGB(255, 255, 0);}
-	const CFont summaryLevelFont(bool legacy) {return CFont(mincho(legacy), 16, true, true);}
-	const CFont summaryTitleFont(bool legacy) {return CFont(mincho(legacy), 21, true, false);}
-	const CFont summaryDescFont(bool legacy) { mixin(S_TRACE);
-		version (Windows) {
-			if (legacy) return CFont(mincho(legacy), 14, true, false);
-		}
-		return CFont(gothic(legacy), 14, true, false);
-	}
+	const CFont menuCardNameFont(bool legacy) { return castCardNameFont(legacy); }
+	const CFont cardNameFont(bool legacy) { return castCardNameFont(legacy); }
+	const CFont useCountFont(bool legacy) { return CFont(mincho(legacy), 18, true, false); }
+	@property const CPoint useCountPoint() { return CPoint(10, 90); }
+	@property const CRGB recycleNumColor() { return CRGB(255, 255, 0); }
+	const CFont summaryLevelFont(bool legacy) { return CFont(mincho(legacy), 16, true, true); }
+	const CFont summaryTitleFont(bool legacy) { return CFont(mincho(legacy), 21, true, false); }
+	const CFont summaryDescFont(bool legacy) { return CFont(mincho(legacy), 14, true, false); }
 	@property const uint summaryDescLineHeightClassic() { mixin(S_TRACE);
 		return 15;
 	}
-	const CFont summaryPageFont(bool legacy) {return CFont(gothic(legacy), 12, true, false);}
-	const CFont cardDescFont(bool legacy) {return CFont(gothic(legacy), 13, false, false);}
+	const CFont summaryPageFont(bool legacy) { return CFont(gothic(legacy), 12, true, false); }
+	const CFont cardDescFont(bool legacy) { return CFont(gothic(legacy), 13, false, false); }
 	const CFont messageFont(bool legacy) { mixin(S_TRACE);
 		version (Windows) {
 			if (legacy) return CFont(mincho(legacy), 22, true, false);
@@ -253,15 +248,15 @@ public:
 		}
 	}
 	/// アプリケーションの実行ファイルのパス。
-	@property const string appPath() {return _appPath;}
+	@property const string appPath() { return _appPath; }
 	/// CardWirthのシステム情報。
-	@property const const(cwx.system.System) sys() {return _sys;}
+	@property const const(cwx.system.System) sys() { return _sys; }
 	/// 各種メッセージ情報。
-	@property const const(Msgs) msgs() {return _msgs;}
+	@property const const(Msgs) msgs() { return _msgs; }
 	/// ditto
-	@property void msgs(Msgs msgs) {_msgs = msgs;}
+	@property void msgs(Msgs msgs) { _msgs = msgs; }
 	/// 各種外観情報。
-	@property const const(Looks) looks() {return _looks;}
+	@property const const(Looks) looks() { return _looks; }
 
 	/// pathをアプリケーションの実行ファイルからの相対パスと見做してフルパスに変換する。
 	const string toAppAbs(string path) { mixin(S_TRACE);

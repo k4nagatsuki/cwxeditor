@@ -597,7 +597,6 @@ public:
 		ImageData getMat() { mixin(S_TRACE);
 			ImageData matImgData;
 			if (this.data) { mixin(S_TRACE);
-				dataSet.add(this.data.baseData);
 				matImgData = this.data.scaled(_targetScale);
 				dataSet.add(matImgData);
 			} else { mixin(S_TRACE);
@@ -679,7 +678,6 @@ public:
 							ImageData imgData;
 							if (a.data) { mixin(S_TRACE);
 								imgData = a.data.scaled(_targetScale);
-								dataSet.add(imgData);
 							} else { mixin(S_TRACE);
 								auto drawingScale = a.drawingScaleOverride ? a.drawingScaleOverride() : _targetScale;
 								auto imgDataWS = .loadImageWithScale(a.path, drawingScale, a.transparent, a.maskX, a.maskY);
