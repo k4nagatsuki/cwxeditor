@@ -119,7 +119,6 @@ class ImageDataWithScale {
 
 	@property
 	ImageData[] allData() { return _scaled.values; }
-
 }
 
 bool dwtImageSize(Props prop, in Skin skin, in Summary summ, string path, out uint width, out uint height) { mixin(S_TRACE);
@@ -2177,7 +2176,7 @@ void putEventTree(C:EventTreeOwner)(Control canvas, GC gc, Props prop, in Summar
 	auto et = useCount ? prop.looks.eventTreeXYWithCount : prop.looks.eventTreeXY;
 	auto hasEventTree = prop.var.etc.ignoreEmptyStart ? !c2.isEmpty : 0 < c2.trees.length;
 	if ((prop.var.etc.showEventTreeMarkAlways && bounds.contains(curPos)) || hasEventTree) { mixin(S_TRACE);
-		auto img = hasEventTree ? prop.images.eventTree : prop.images.eventTreeEmpty;
+		auto img = hasEventTree ? prop.images.eventTreeWith(prop.var.etc.imageScale) : prop.images.eventTreeEmptyWith(prop.var.etc.imageScale);
 		gc.drawImage(img, bounds.x + prop.s(et.x), bounds.y + prop.s(et.y));
 	}
 }
@@ -2211,11 +2210,9 @@ Rectangle eventTreeMarkRect(C:EventTreeOwner)(Props prop, bool showMark, int lef
 
 	auto et = useCount ? prop.looks.eventTreeXYWithCount : prop.looks.eventTreeXY;
 	if (prop.var.etc.showEventTreeMarkAlways || (prop.var.etc.ignoreEmptyStart ? !c2.isEmpty : 0 < c2.trees.length)) { mixin(S_TRACE);
-		auto bounds = prop.images.eventTreeNoScale.getBounds();
+		auto bounds = prop.images.eventTreeWith(prop.var.etc.imageScale).getBounds();
 		bounds.x = left + prop.s(et.x);
 		bounds.y = top + prop.s(et.y);
-		bounds.width = prop.s(bounds.width);
-		bounds.height = prop.s(bounds.height);
 		return bounds;
 	}
 	return null;
@@ -2914,23 +2911,6 @@ Composite centerGroup(Composite parent, string text, bool fillH = true, bool fil
 	grp.setText(text);
 	auto comp = new Composite(grp, SWT.NONE);
 	return comp;
-}
-
-class StopBGM : SelectionAdapter, DisposeListener {
-	override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
-		stopBGM();
-	}
-	override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-		stopBGM();
-	}
-}
-class StopSE : SelectionAdapter, DisposeListener {
-	override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
-		stopSE();
-	}
-	override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-		stopSE();
-	}
 }
 
 bool playBGMCW(Props prop, string path, uint fadeIn, uint volume, uint loopCount, bool legacy) { mixin(S_TRACE);

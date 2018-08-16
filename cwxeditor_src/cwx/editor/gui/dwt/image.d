@@ -9,10 +9,13 @@ import org.eclipse.swt.graphics.FontData;
 import cwx.types;
 import cwx.utils;
 
-import cwx.editor.gui.dwt.dutils : dpiMuls;
+import cwx.editor.gui.dwt.dutils : dpiMuls, ImageDataWithScale;
 
+import std.algorithm;
+import std.array;
 import std.file;
 import std.path;
+import std.string;
 
 import org.eclipse.swt.all;
 
@@ -32,46 +35,65 @@ private:
 	Cursor[CType] _curReg;
 	Image[] _icon;
 	Image _largeIcon;
-	@property Image imgd(string Path)(bool hDPI = true) { mixin(S_TRACE);
-		auto d = Display.getCurrent();
-		auto dpi = d.getDPI().x;
-		if (!hDPI)  {mixin(S_TRACE);
-			dpi = 96;
+
+	private static template ImportDataWithScale(string[] Paths) {
+		static if (__traits(compiles, getImportData!(Paths[0]))) {
+			static if (1 < Paths.length) {
+				immutable ImportDataWithScale = [getImportData!(Paths[0])] ~ ImportDataWithScale!(Paths[1 .. $]);
+			} else {
+				immutable ImportDataWithScale = [getImportData!(Paths[0])];
+			}
+		} else {
+			static if (1 < Paths.length) {
+				immutable ImportDataWithScale = [ImportData([], "")] ~ ImportDataWithScale!(Paths[1 .. $]);
+			} else {
+				immutable ImportDataWithScale = [ImportData([], "")];
+			}
 		}
-		auto key = ImgRegKey(Path, dpi);
+	}
+	@property Image imgd(string Path)(uint targetScale = 0) { mixin(S_TRACE);
+		auto d = Display.getCurrent();
+		if (!targetScale) targetScale = .dpiMuls;
+		auto key = ImgRegKey(Path, targetScale);
 		auto p = key in _imgReg;
 		if (p) { mixin(S_TRACE);
 			return *p;
 		} else { mixin(S_TRACE);
-			string dir = _appPath.dirName();
-			string dynPath = dir.buildPath("resource").buildPath(Path);
-			ImageData imgData = null;
-			if (.exists(dynPath)) { mixin(S_TRACE);
+			auto dir = _appPath.dirName();
+			auto dynPath = dir.buildPath("resource").buildPath(Path);
+			ImageDataWithScale imgData = null;
+			if (.exists(dynPath) && .isFile(dynPath)) { mixin(S_TRACE);
 				try { mixin(S_TRACE);
+					auto info = .findScaledImage(dynPath, targetScale);
 					byte* ptr = null;
-					auto bin = readBinaryFrom!byte(dynPath, ptr);
+					auto bin = readBinaryFrom!byte(info.path, ptr);
 					scope (exit) freeAll(ptr);
 					auto s = new ByteArrayInputStream(bin);
 					scope (exit) s.close();
-					imgData = new ImageData(s);
+					imgData = new ImageDataWithScale(new ImageData(s), info.scale);
 				} catch (Exception e) {
 					printStackTrace();
 					debugln(e);
 				}
 			}
+			auto IMPORT_DATA = ImportDataWithScale!(.map!(scale => scale == 1 ? Path : Path.stripExtension() ~ ".x%s".format(scale) ~ Path.extension())(IMAGE_SCALES).array());
 			if (!imgData) { mixin(S_TRACE);
-				auto s = new ByteArrayInputStream(cast(byte[]) getImportData!(Path).data);
-				scope (exit) s.close();
-				imgData = new ImageData(s);
-			}
-			imgData.transparentPixel = imgData.getPixel(0, 0);
-			if (hDPI) { mixin(S_TRACE);
-				auto muls = .dpiMuls;
-				if (1 < muls) { mixin(S_TRACE);
-					imgData = imgData.scaledTo(imgData.width * muls, imgData.height * muls);
+				auto useScale = false;
+				foreach_reverse (i, scale; IMAGE_SCALES) { mixin(S_TRACE);
+					if (scale == targetScale) { mixin(S_TRACE);
+						useScale = true;
+					}
+					if (!useScale) continue;
+					if (IMPORT_DATA[i].data.length) { mixin(S_TRACE);
+						auto s = new ByteArrayInputStream(cast(byte[])IMPORT_DATA[i].data);
+						scope (exit) s.close();
+						imgData = new ImageDataWithScale(new ImageData(s), scale);
+					}
 				}
 			}
-			auto img = new Image(d, imgData);
+			if (!imgData) throw new Exception("Resource not found: %s".format(Path));
+			imgData.baseData.transparentPixel = imgData.baseData.getPixel(0, 0);
+			auto img = new Image(d, imgData.scaled(targetScale));
 			_imgReg[key] = img;
 			return img;
 		}
@@ -370,21 +392,22 @@ public:
 	Image talker(Talker t) { mixin(S_TRACE);
 		final switch (t) {
 		case Talker.SELECTED:
-			return imgd!("talker_sel.png")(true);
+			return imgd!("talker_sel.png");
 		case Talker.UNSELECTED:
-			return imgd!("talker_unsel.png")(true);
+			return imgd!("talker_unsel.png");
 		case Talker.RANDOM:
-			return imgd!("talker_random.png")(true);
+			return imgd!("talker_random.png");
 		case Talker.VALUED:
-			return imgd!("talker_valued.png")(true);
+			return imgd!("talker_valued.png");
 		case Talker.CARD:
 			throw new Exception("Narration, image and card haven't image.");
 		}
 	}
 
 	@property Image eventTree() {return imgd!("event_tree.png");}
-	@property Image eventTreeNoScale() {return imgd!("event_tree.png")(false);}
+	@property Image eventTreeWith(uint targetScale) {return imgd!("event_tree.png")(targetScale);}
 	@property Image eventTreeEmpty() {return imgd!("event_tree_empty.png");}
+	@property Image eventTreeEmptyWith(uint targetScale) {return imgd!("event_tree_empty.png")(targetScale);}
 	@property Image eventTreeAnd() {return imgd!("event_tree_and.png");}
 	@property Image eventTreeSelected() {return imgd!("event_tree_selected.png");}
 	@property Image eventTreeAndSelected() {return imgd!("event_tree_and_selected.png");}
