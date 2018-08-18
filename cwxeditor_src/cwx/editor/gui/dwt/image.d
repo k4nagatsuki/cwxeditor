@@ -76,10 +76,10 @@ private:
 					debugln(e);
 				}
 			}
-			auto IMPORT_DATA = ImportDataWithScale!(.map!(scale => scale == 1 ? Path : Path.stripExtension() ~ ".x%s".format(scale) ~ Path.extension())(IMAGE_SCALES).array());
+			auto IMPORT_DATA = ImportDataWithScale!([Path] ~ .map!(scale => Path.stripExtension() ~ ".x%s".format(scale) ~ Path.extension())(IMAGE_SCALES).array());
 			if (!imgData) { mixin(S_TRACE);
 				auto useScale = false;
-				foreach_reverse (i, scale; IMAGE_SCALES) { mixin(S_TRACE);
+				foreach_reverse (i, scale; [1] ~ IMAGE_SCALES) { mixin(S_TRACE);
 					if (scale == targetScale) { mixin(S_TRACE);
 						useScale = true;
 					}
