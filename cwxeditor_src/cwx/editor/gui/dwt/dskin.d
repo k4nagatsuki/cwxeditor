@@ -325,7 +325,7 @@ private ImageDataWithScale createImg(T ...)(string delegate(out MaskType, T) res
 }
 
 /// 特殊文字の画像。
-ImageDataWithScale spChar(Skin skin, dchar c, uint targetScale) { mixin(S_TRACE);
+ImageDataWithScale spChar(Skin skin, uint targetScale, dchar c) { mixin(S_TRACE);
 	string res;
 	switch (c) {
 	case 'A', 'a': res = "FONT_ANGRY"; break;
@@ -348,7 +348,7 @@ ImageDataWithScale spChar(Skin skin, dchar c, uint targetScale) { mixin(S_TRACE)
 	case 'Z', 'z': res = "FONT_ZAP"; break;
 	default: res = "";
 	}
-	return createImg(skin.legacyEngine, res, targetScale, delegate string (out MaskType maskType) { mixin(S_TRACE);
+	return .createImg(skin.legacyEngine, res, targetScale, delegate string (out MaskType maskType) { mixin(S_TRACE);
 		auto p = c in skin.spChars;
 		if (p) { mixin(S_TRACE);
 			maskType = MaskType.NormalMask;

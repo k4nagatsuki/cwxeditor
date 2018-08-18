@@ -499,8 +499,8 @@ private:
 			_dlgsL.select(selDlg);
 			selectChanged();
 		}
-		override void undo() {impl();}
-		override void redo() {impl();}
+		override void undo() { impl(); }
+		override void redo() { impl(); }
 		override void dispose() { mixin(S_TRACE);
 			// Nothing
 		}
@@ -829,19 +829,19 @@ private:
 				}
 			}
 		}
-		void del(SelectionEvent se) {deleteDialogSel();}
+		void del(SelectionEvent se) { deleteDialogSel(); }
 		void clone(SelectionEvent se) { mixin(S_TRACE);
 			comm.clipboard.memoryMode = true;
 			scope (exit) comm.clipboard.memoryMode = false;
 			copy(se);
 			paste(se);
 		}
-		@property bool canDoTCPD() {return true;}
-		@property bool canDoT() {return 1 < _dlgsL.getItemCount();}
-		@property bool canDoC() {return 0 < _dlgsL.getItemCount();}
-		@property bool canDoP() {return CBisXML(comm.clipboard);}
-		@property bool canDoD() {return canDoT;}
-		@property bool canDoClone() {return canDoC;}
+		@property bool canDoTCPD() { return true; }
+		@property bool canDoT() { return 1 < _dlgsL.getItemCount(); }
+		@property bool canDoC() { return 0 < _dlgsL.getItemCount(); }
+		@property bool canDoP() { return CBisXML(comm.clipboard); }
+		@property bool canDoD() { return canDoT; }
+		@property bool canDoClone() { return canDoC; }
 	}
 	class DDropListener : DropTargetAdapter {
 		override void dragEnter(DropTargetEvent e){ mixin(S_TRACE);
@@ -1073,8 +1073,8 @@ protected:
 			drop.addDropListener(new DDropListener);
 
 			auto menu = new Menu(_dlgsL);
-			createMenuItem(comm, menu, MenuID.Undo, {_undo.undo();}, &_undo.canUndo);
-			createMenuItem(comm, menu, MenuID.Redo, {_undo.redo();}, &_undo.canRedo);
+			createMenuItem(comm, menu, MenuID.Undo, { _undo.undo(); }, &_undo.canUndo);
+			createMenuItem(comm, menu, MenuID.Redo, { _undo.redo(); }, &_undo.canRedo);
 			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(comm, menu, MenuID.Up, &up, () => _dlgsL.getSelectionIndex() != -1 && 0 < _dlgsL.getSelectionIndex());
 			createMenuItem(comm, menu, MenuID.Down, &down, () => _dlgsL.getSelectionIndex() != -1 && _dlgsL.getSelectionIndex() + 1 < _dlgsL.getItemCount());
@@ -1089,10 +1089,10 @@ protected:
 			comm.put(bar);
 			bar.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 			bar.addListener(SWT.Traverse, new class Listener {
-				override void handleEvent(Event e) {e.doit = true;}
+				override void handleEvent(Event e) { e.doit = true; }
 			});
 			bar.addListener(SWT.KeyDown, new class Listener {
-				override void handleEvent(Event e) {e.doit = true;}
+				override void handleEvent(Event e) { e.doit = true; }
 			});
 			createToolItem2(comm, bar, prop.msgs.createDialog, prop.images.createDialog, &createDialog, null);
 			createToolItem2(comm, bar, prop.msgs.deleteDialog, prop.images.deleteDialog, &deleteDialogSel, () => _dlgsL.getItemCount() > 1 && _dlgsL.getSelectionIndex() != -1);
@@ -1119,7 +1119,7 @@ protected:
 		auto sChar = createSCharBar(comm, summ, area, &insert, &put, prop, skin);
 		sChar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-		auto skinSChar = createSkinSCharBar(comm, summ, area, &insert, prop, skin);
+		auto skinSChar = createSkinSCharBar(comm, area, &insert, () => comm.skin);
 		skinSChar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 		auto var = createFlagStepBar(area, &insert, comm, prop, summ, skin, true);
@@ -1372,7 +1372,7 @@ protected:
 		auto sChar = createSCharBar(comm, summ, area, &insert, &put, prop, skin);
 		sChar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-		auto skinSChar = createSkinSCharBar(comm, summ, area, &insert, prop, skin);
+		auto skinSChar = createSkinSCharBar(comm, area, &insert, () => comm.skin);
 		auto gdS = new GridData(GridData.FILL_HORIZONTAL);
 		gdS.horizontalSpan = 3;
 		skinSChar.setLayoutData(gdS);
@@ -1596,10 +1596,10 @@ private ToolBar createSCharBar(Commons comm, Summary summ, Composite parent,
 	auto bar = new ToolBar(parent, SWT.FLAT);
 	comm.put(bar);
 	bar.addListener(SWT.Traverse, new class Listener {
-		override void handleEvent(Event e) {e.doit = true;}
+		override void handleEvent(Event e) { e.doit = true; }
 	});
 	bar.addListener(SWT.KeyDown, new class Listener {
-		override void handleEvent(Event e) {e.doit = true;}
+		override void handleEvent(Event e) { e.doit = true; }
 	});
 	foreach (c; [
 		'W', 'R', 'B', 'G', 'Y'
@@ -1642,10 +1642,10 @@ ToolBar createSimpleSCharBar(Composite parent,
 	auto bar = new ToolBar(parent, SWT.FLAT);
 	comm.put(bar);
 	bar.addListener(SWT.Traverse, new class Listener {
-		override void handleEvent(Event e) {e.doit = true;}
+		override void handleEvent(Event e) { e.doit = true; }
 	});
 	bar.addListener(SWT.KeyDown, new class Listener {
-		override void handleEvent(Event e) {e.doit = true;}
+		override void handleEvent(Event e) { e.doit = true; }
 	});
 	createToolItem2(comm, bar, prop.msgs.scTalkerName(Talker.SELECTED), prop.images.scTalker(Talker.SELECTED),
 		&(new PutC(insert, "#M")).put, null);
@@ -1682,34 +1682,42 @@ private void createPCSPCharBar(Commons comm, Summary summ, ToolBar bar, void del
 	comm.put(spn, () => comm.prop.isTargetVersion(summ, "2"));
 }
 
-private ToolBar createSkinSCharBar(Commons comm, in Summary summ, Composite parent, void delegate(string) insert, Props prop, Skin skin) { mixin(S_TRACE);
+private ToolBar createSkinSCharBar(Commons comm, Composite parent, void delegate(string) insert, Skin delegate() skin) { mixin(S_TRACE);
 	auto bar = new ToolBar(parent, SWT.FLAT);
 	comm.put(bar);
 	bar.addListener(SWT.Traverse, new class Listener {
-		override void handleEvent(Event e) {e.doit = true;}
+		override void handleEvent(Event e) { e.doit = true; }
 	});
 	bar.addListener(SWT.KeyDown, new class Listener {
-		override void handleEvent(Event e) {e.doit = true;}
+		override void handleEvent(Event e) { e.doit = true; }
 	});
-	Image[] imgs;
-	foreach (spc; skin.spChars.keys) { mixin(S_TRACE);
+	void updateBar() { mixin(S_TRACE);
+		updateSkinSCharBar(comm, bar, insert, skin());
+		parent.layout();
+	}
+	comm.refSkin.add(&updateBar);
+	.listener(bar, SWT.Dispose, { mixin(S_TRACE);
+		foreach (itm; bar.getItems()) { mixin(S_TRACE);
+			itm.getImage().dispose();
+		}
+		comm.refSkin.remove(&updateBar);
+	});
+	updateBar();
+	return bar;
+}
+private void updateSkinSCharBar(Commons comm, ToolBar bar, void delegate(string) insert, Skin skin) { mixin(S_TRACE);
+	foreach (itm; bar.getItems()) { mixin(S_TRACE);
+		itm.getImage().dispose();
+		itm.dispose();
+	}
+	foreach (spc; skin.spChars.byKey()) { mixin(S_TRACE);
 		auto data = .spChar(skin, comm.prop.drawingScale, spc);
+		if (!data.valid) continue;
 		auto img = new Image(Display.getCurrent(), data.scaled(comm.prop.var.etc.imageScale));
 		string name = toUTF8("#"d ~ spc);
 		auto scp = new PutC(insert, name);
 		createToolItem2(comm, bar, name, img, &scp.put, null);
-		imgs ~= img;
 	}
-	bar.addDisposeListener(new class DisposeListener {
-		private Image[] _imgs;
-		this() {_imgs = imgs;}
-		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-			foreach (img; _imgs) { mixin(S_TRACE);
-				img.dispose();
-			}
-		}
-	});
-	return bar;
 }
 
 Composite createFlagStepBar(Composite parent, void delegate(string) insert, Commons comm, Props prop, Summary summ, Skin skin, bool imageFont) { mixin(S_TRACE);
@@ -2074,7 +2082,7 @@ class MsgPreviewWindow {
 		winProps.x = _win.getBounds().x - _win.getParent().getBounds().x;
 		winProps.y = _win.getBounds().y - _win.getParent().getBounds().y;
 	}
-	bool isVisible() {return _win.isVisible();}
+	bool isVisible() { return _win.isVisible(); }
 
 	void open() { mixin(S_TRACE);
 		if (_win.isVisible()) return;
@@ -2730,8 +2738,8 @@ class PreviewValues : Composite {
 		_values.setHeaderVisible(true);
 
 		auto menu = new Menu(_values);
-		createMenuItem(comm, menu, MenuID.Undo, {_undo.undo();}, &_undo.canUndo);
-		createMenuItem(comm, menu, MenuID.Redo, {_undo.redo();}, &_undo.canRedo);
+		createMenuItem(comm, menu, MenuID.Undo, { _undo.undo(); }, &_undo.canUndo);
+		createMenuItem(comm, menu, MenuID.Redo, { _undo.redo(); }, &_undo.canRedo);
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(comm, menu, MenuID.ResetValues, &resetValues, () => !isInitialValues());
 		createMenuItem(comm, menu, MenuID.ResetValuesAll, &resetValuesAll, () => !isInitialValuesAll());
@@ -3249,7 +3257,7 @@ ImageDataWithScale previewMessage(Commons comm, Props prop, in Summary summ, Ima
 		}
 		if (!data) { mixin(S_TRACE);
 			// 標準特殊文字
-			data = spChar(comm.skin, prop.drawingScale, decodeFontPath(path));
+			data = .spChar(comm.skin, prop.drawingScale, decodeFontPath(path));
 			if (data) { mixin(S_TRACE);
 				auto spc = data.scaled(prop.drawingScale);
 				auto data2 = new ImageData(spc.width, spc.height, 24, new PaletteData(0xFF << 16, 0xFF << 8, 0xFF << 0));
