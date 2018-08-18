@@ -536,6 +536,7 @@ public:
 			summ.scenarioPath = newPath;
 			summ.zipName = "";
 			summ._useTemp = true;
+			summ._tempPath = temp;
 			summ.resetChanged();
 			assert (!summ.legacy);
 			assert (summ.useTemp);
