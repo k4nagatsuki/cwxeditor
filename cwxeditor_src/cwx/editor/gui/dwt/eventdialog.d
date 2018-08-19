@@ -1032,9 +1032,18 @@ protected:
 		area.setLayout(normalGridLayout(2, false));
 		auto skin = _comm.skin;
 
-		auto leftComp = new Composite(area, SWT.NONE);
+		static immutable HAS_COUPON_HOLDER = Type is CType.GET_COUPON || Type is CType.LOSE_COUPON;
+
+		static if (HAS_COUPON_HOLDER) {
+			auto sash = new SplitPane(area, SWT.HORIZONTAL);
+			sash.setLayoutData(new GridData(GridData.FILL_BOTH));
+			auto leftComp = new Composite(sash, SWT.NONE);
+		} else {
+			auto leftComp = new Composite(area, SWT.NONE);
+			leftComp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
+		}
+
 		leftComp.setLayout(zeroMarginGridLayout(1, true));
-		leftComp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 		{ mixin(S_TRACE);
 			auto ranges = RANGE_MEMBER.dup;
 			static if (Field) {
@@ -1053,8 +1062,12 @@ protected:
 			}
 		}
 		{ mixin(S_TRACE);
-			auto grp = new Group(area, SWT.NONE);
-			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			static if (HAS_COUPON_HOLDER) {
+				auto grp = new Group(sash, SWT.NONE);
+			} else {
+				auto grp = new Group(area, SWT.NONE);
+				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			}
 			grp.setText(_prop.msgs.couponName);
 			_couponViewComp = grp;
 			createCouponView(true);
@@ -1118,6 +1131,9 @@ protected:
 			}
 		}
 		refreshWarning();
+		static if (HAS_COUPON_HOLDER) {
+			.setupWeights(sash, _prop.var.etc.couponEventL, _prop.var.etc.couponEventR);
+		}
 	}
 
 	override bool apply() { mixin(S_TRACE);

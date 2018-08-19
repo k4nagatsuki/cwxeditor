@@ -143,6 +143,8 @@ class FlexEtcProps : Properties {
 	auto couponWidth = Prop!(int, true, true)("couponWidth", 250);
 	auto couponHeight = Prop!(int, true, true)("couponHeight", 80);
 	auto couponValueColumn = Prop!(int, true, true)("couponValueColumn", 40);
+	auto couponEventL = Prop!(int)("couponEventL", 1);
+	auto couponEventR = Prop!(int)("couponEventR", 2);
 	auto idColumn = Prop!(int, false, true)("idColumn", 50);
 	auto valueNumberColumn = Prop!(int, false, true)("valueNumberColumn", 50);
 	auto nameTableWidth = Prop!(int, true, true)("nameTableWidth", 250);
