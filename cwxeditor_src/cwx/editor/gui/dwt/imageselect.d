@@ -700,8 +700,6 @@ private:
 			if (!isBinImg(path)) return;
 			ubyte[] bytes = strToBImg(path);
 			auto dlg = new FileDialog(_image.getShell(), SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.SAVE);
-			dlg.setFilterExtensions(["*.bmp"]);
-			dlg.setFilterNames([_prop.msgs.filterBitmapImage]);
 			dlg.setText(_prop.msgs.dlgTitSaveBitmapImage);
 			auto dir = _msel.filePath;
 			if (isBinImg(dir)) { mixin(S_TRACE);
@@ -716,7 +714,35 @@ private:
 			dlg.setFilterPath(dir);
 			string s = _saveName().strip().toFileName();
 			if (!s.length) s = _prop.var.etc.noFileName;
-			dlg.setFileName(setExtension(s, .imageType(bytes)));
+			auto ext = .imageType(bytes);
+			switch (ext) {
+			case ".jpg":
+				dlg.setFilterExtensions(["*" ~ ext]);
+				dlg.setFilterNames([_prop.msgs.filterJPEGImage]);
+				break;
+			case ".gif":
+				dlg.setFilterExtensions(["*" ~ ext]);
+				dlg.setFilterNames([_prop.msgs.filterGIFImage]);
+				break;
+			case ".tiff":
+				dlg.setFilterExtensions(["*" ~ ext]);
+				dlg.setFilterNames([_prop.msgs.filterTIFFImage]);
+				break;
+			case ".bmp":
+				dlg.setFilterExtensions(["*" ~ ext]);
+				dlg.setFilterNames([_prop.msgs.filterBitmapImage]);
+				break;
+			case ".png":
+				dlg.setFilterExtensions(["*" ~ ext]);
+				dlg.setFilterNames([_prop.msgs.filterPNGImage]);
+				break;
+			default:
+				dlg.setFilterExtensions(["*.*"]);
+				dlg.setFilterNames([_prop.msgs.exeFileDescAll]);
+				break;
+			}
+			dlg.setFileName(setExtension(s, ext));
+
 			dlg.setOverwrite(true);
 			string fname = dlg.open();
 			if (fname) { mixin(S_TRACE);

@@ -107,6 +107,11 @@ class Msgs : Properties {
 
 	auto dlgTitSaveBitmapImage = Msg("dlgTitSaveBitmapImage", "格納イメージの保存");
 	auto filterBitmapImage = Msg("filterBitmapImage", "ビットマップイメージ (*.bmp)");
+	auto filterJPEGImage = Msg("filterJPEGImage", "JPEGイメージ (*.jpg)");
+	auto filterGIFImage = Msg("filterGIFImage", "GIFイメージ (*.gif)");
+	auto filterTIFFImage = Msg("filterTIFFImage", "TIFFイメージ (*.tiff)");
+	auto filterPNGImage = Msg("filterPNGImage", "PNGイメージ (*.png)");
+	auto filterICOImage = Msg("filterICOImage", "アイコン (*.ico)");
 	auto dlgMsgIncludeImage = Msg("dlgMsgIncludeImage", "%1$sをシナリオファイル内にコピーしますか？\n(元のファイルは削除されません)");
 	auto dlgMsgExcludeImage = Msg("dlgMsgExcludeImage", "WSN形式のシナリオでは格納イメージは使用できません。\n格納イメージを外部化しますか？\n(外部化しなかった場合、格納イメージは消滅します)");
 
