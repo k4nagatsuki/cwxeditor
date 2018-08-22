@@ -15,6 +15,7 @@ import cwx.imagesize;
 import cwx.jpy;
 import cwx.msgutils;
 import cwx.textholder;
+import cwx.warning;
 
 import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.commons;
@@ -485,11 +486,15 @@ private:
 			return _sImgText;
 		} else if (img is _prop.images.unknown || img is _sImgUnknown) { mixin(S_TRACE);
 			return _sImgUnknown;
+		} else if (img is _prop.images.warning || img is _sImgWarning) { mixin(S_TRACE);
+			return _sImgWarning;
 		}
 		assert (0);
 	}
 	Image fimage(Skin skin, string file) { mixin(S_TRACE);
-		if (isCard(skin, file)) { mixin(S_TRACE);
+		if (hasWarning(file)) { mixin(S_TRACE);
+			return _prop.images.warning;
+		} else if (isCard(skin, file)) { mixin(S_TRACE);
 			return _prop.images.cards;
 		} else if (skin.isBgImage(file)) { mixin(S_TRACE);
 			return _prop.images.backs;
@@ -531,6 +536,8 @@ private:
 		auto skin = _comm.skin;
 		if (.isDir(file)) { mixin(S_TRACE);
 			return _sImgFolder;
+		} else if (hasWarning(file)) { mixin(S_TRACE);
+			return _sImgWarning;
 		} else if (isCard(skin, file)) { mixin(S_TRACE);
 			return _sImgCards;
 		} else if (skin.isBgImage(file)) { mixin(S_TRACE);
@@ -552,6 +559,9 @@ private:
 			return file2 != "" && skin.isCardImage(file2, false);
 		}
 		return false;
+	}
+	private bool hasWarning(string file) { mixin(S_TRACE);
+		return 0 < .fileExtensionWarnings(_prop.parent, file).length;
 	}
 	private bool isCutted(string file) { mixin(S_TRACE);
 		static if (0 == filenameCharCmp('A', 'a')) {
@@ -849,7 +859,7 @@ private:
 	Control _lastFocus = null;
 
 	HashSet!(string) _cuts;
-	Image _sImgFolder, _sImgCards, _sImgBacks, _sImgBgm, _sImgSe, _sImgText, _sImgUnknown;
+	Image _sImgFolder, _sImgCards, _sImgBacks, _sImgBgm, _sImgSe, _sImgText, _sImgUnknown, _sImgWarning;
 
 	Props _prop;
 	Summary _summ = null;
@@ -1207,6 +1217,7 @@ private:
 			_sImgSe.dispose();
 			_sImgText.dispose();
 			_sImgUnknown.dispose();
+			_sImgWarning.dispose();
 		}
 	}
 	private SDListener _sdl;
@@ -1558,6 +1569,7 @@ public:
 		_sImgSe = skeletonImage(_prop.images.se);
 		_sImgText = skeletonImage(_prop.images.text);
 		_sImgUnknown = skeletonImage(_prop.images.unknown);
+		_sImgWarning = skeletonImage(_prop.images.warning);
 		_win.addDisposeListener(new DListener);
 
 		appendMenuTCPD(_comm, this, this, true, true, true, true, true);

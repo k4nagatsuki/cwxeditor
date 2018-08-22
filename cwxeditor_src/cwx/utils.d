@@ -416,12 +416,76 @@ string bSndToStr(in ubyte[] bsnd) { mixin(S_TRACE);
 	return assumeUnique(r);
 }
 
+/// fileが音声ファイルであればsoundTypeに対応する拡張子を返す。
+string getNormalizedSoundExt(string file) { mixin(S_TRACE);
+	auto f = std.stdio.File(file, "rb");
+	scope (exit) f.close();
+	return f.getNormalizedSoundExt();
+}
+/// ditto
+string getNormalizedSoundExt(std.stdio.File f) { mixin(S_TRACE);
+	auto pos = f.tell;
+	scope (exit) f.seek(pos);
+	f.seek(0);
+	auto bytes = new ubyte[.min(1084, f.size)];
+	f.rawRead(bytes);
+	auto ext = .soundType(bytes);
+	if (ext != "") return ext;
+	if (f.size < 128) return "";
+	f.seek(-128, SEEK_END);
+	bytes = bytes[0 .. 128];
+	f.rawRead(bytes);
+	return .soundType(bytes);
+}
+
+/// ファイルがsoundSize()でサイズを取得できる
+/// 音声形式の拡張子を持つならtrueを返す。
+@property
+bool isSoundExt(string path) { mixin(S_TRACE);
+	switch (.toLower(.extension(path))) {
+	case ".aiff":
+	case ".mid", ".midi":
+	case ".mod", ".s3m", ".xm", ".it", ".mt2", ".669", ".med":
+	case ".mp3":
+	case ".ogg", ".ogv", ".oga", ".ogx":
+	case ".voc":
+	case ".wav":
+		return true;
+	default:
+		return false;
+	}
+}
+/// 音声形式の拡張子をsoundTypeで取得できるものに変更する。
+@property
+string normalizedSoundExt(string ext) { mixin(S_TRACE);
+	switch (ext.toLower()) {
+	case ".aiff":
+		return ".aiff";
+	case ".mid", ".midi":
+		return ".mid";
+	case ".mod", ".s3m", ".xm", ".it", ".mt2", ".669", ".med":
+		return ".mod";
+	case ".mp3":
+		return ".mp3";
+	case ".ogg", ".ogv", ".oga", ".ogx":
+		return ".ogg";
+	case ".voc":
+		return ".voc";
+	case ".wav":
+		return ".wav";
+	default:
+		return ext;
+	}
+}
 /// バイナリの先頭部から音声タイプを判断して拡張子で返す。
 /// 判断できなかった場合は空文字列を返す。
 /// RIFF(WAVE) .... ".wav"
 /// MIDI .... ".mid"
 /// MP3 .... ".mp3"
 /// Ogg(Vorbis) .... ".ogg"
+/// AIFF .... ".aiff"
+/// MOD .... ".mod"
+/// VOC .... ".voc"
 string soundType(in ubyte[] b) { mixin(S_TRACE);
 	if (12L <= b.length && 'R' == b[0] && 'I' == b[1] && 'F' == b[2] && 'F' == b[3]
 			&& 'W' == b[8] && 'A' == b[9] && 'V' == b[10] && 'E' == b[11]) { mixin(S_TRACE);
@@ -446,6 +510,27 @@ string soundType(in ubyte[] b) { mixin(S_TRACE);
 	if (3L <= b.length && 'I' == b[0] && 'D' == b[1] && '3' == b[2]) { mixin(S_TRACE);
 		/// MP3(ID3v2)
 		return ".mp3";
+	}
+	if (12L <= b.length && 'F' == b[0] && 'O' == b[1] && 'R' == b[2] && 'M' == b[3]
+			&& 'A' == b[8] && 'I' == b[9] && 'F' == b[10] && 'F' == b[11]) { mixin(S_TRACE);
+		// RIFF(WAVE)
+		return ".wav";
+	}
+	if (19L <= b.length && 'C' == b[0] && 'r' == b[1] && 'e' == b[2] && 'a' == b[3] && 't' == b[4]
+			&& 'i' == b[5] && 'v' == b[6] && 'e' == b[7] && ' ' == b[8] && 'V' == b[9] && 'o' == b[10]
+			&& 'i' == b[11] && 'c' == b[12] && 'e' == b[13] && ' ' == b[14] && 'F' == b[15] && 'i' == b[16]
+			&& 'l' == b[17] && 'e' == b[18]) { mixin(S_TRACE);
+		// VOC
+		return ".voc";
+	}
+	if (1084L <= b.length && (('M' == b[1080] && '.' == b[1081] && 'K' == b[1082] && '.' == b[1083])
+			|| ('4' == b[1080] && 'C' == b[1081] && 'H' == b[1082] && 'N' == b[1083])
+			|| ('6' == b[1080] && 'C' == b[1081] && 'H' == b[1082] && 'N' == b[1083])
+			|| ('8' == b[1080] && 'C' == b[1081] && 'H' == b[1082] && 'N' == b[1083])
+			|| ('4' == b[1080] && 'F' == b[1081] && 'L' == b[1082] && 'T' == b[1083])
+			|| ('8' == b[1080] && 'F' == b[1081] && 'L' == b[1082] && 'T' == b[1083]))) { mixin(S_TRACE);
+		// MOD
+		return ".mod";
 	}
 	return "";
 }

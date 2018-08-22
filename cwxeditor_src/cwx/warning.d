@@ -23,6 +23,7 @@ import std.algorithm;
 import std.ascii;
 import std.conv;
 import std.path;
+import std.stdio;
 import std.string;
 import std.traits;
 import std.typecons : Tuple;
@@ -1260,4 +1261,26 @@ string[] warningInconsistency(in CProps prop, in Status[] statuses) { mixin(S_TR
 	std.algorithm.sort(ws);
 	std.algorithm.uniq(ws);
 	return ws;
+}
+
+string[] fileExtensionWarnings(in CProps prop, string path) { mixin(S_TRACE);
+	string[] r;
+	try {
+		auto f = File(path, "rb");
+		scope (exit) f.close();
+		auto ext = .getNormalizedImageExt(f);
+		if (ext != "" && path.extension().normalizedImageExt != ext) { mixin(S_TRACE);
+			r ~= .tryFormat(prop.msgs.warningFileExtension, ext);
+		}
+		if (ext == "") { mixin(S_TRACE);
+			ext = .getNormalizedSoundExt(f);
+			if (ext != "" && path.extension().normalizedSoundExt != ext) { mixin(S_TRACE);
+				r ~= .tryFormat(prop.msgs.warningFileExtension, ext);
+			}
+		}
+	} catch (Exception e) {
+		printStackTrace();
+		debugln(e);
+	}
+	return r;
 }

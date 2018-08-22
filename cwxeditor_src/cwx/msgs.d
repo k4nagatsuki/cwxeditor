@@ -2057,6 +2057,7 @@ class Msgs : Properties {
 	auto dlgTitCreateArchive = Msg("dlgTitCreateArchive", "シナリオの圧縮");
 	auto failedCreateArchive = Msg("failedCreateArchive", "シナリオの圧縮に失敗");
 	auto dlgMsgIsSaveBeforeCreateArchive = Msg("dlgMsgIsSaveBeforeCreateArchive", "「%1$s」は変更されています。保存しますか？");
+	auto warningFileExtension = Msg("warningFileExtension", "このファイルの本来の拡張子は「*%1$s」です。");
 
 	/// エディタ設定ダイアログ。
 	auto baseSettings = Msg("baseSettings", "基本設定");

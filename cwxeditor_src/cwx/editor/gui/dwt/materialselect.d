@@ -9,6 +9,7 @@ import cwx.menu;
 import cwx.types;
 import cwx.imagesize;
 import cwx.card;
+import cwx.warning;
 
 import cwx.editor.gui.sound;
 import cwx.editor.gui.dwt.dprops;
@@ -1703,6 +1704,7 @@ private:
 				itm.setText(f);
 				static if (Type == MtType.CARD || Type == MtType.BG_IMG) {
 					auto ws = skin.warningImage(_prop.parent, f, legacy, canInclude && !isMenuCard, _prop.var.etc.targetVersion);
+					if (!ws.length) ws = .fileExtensionWarnings(_prop.parent, toFilePath(f));
 					if (ws.length) { mixin(S_TRACE);
 						itm.setImage(_prop.images.warning);
 					} else { mixin(S_TRACE);

@@ -22,6 +22,7 @@ import std.file;
 import std.path;
 import std.range;
 import std.regex : regex, match;
+import std.stdio;
 import std.string;
 import std.uni;
 import std.utf;

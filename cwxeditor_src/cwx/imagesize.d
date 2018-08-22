@@ -4,14 +4,32 @@ module cwx.imagesize;
 import cwx.perf;
 import cwx.binary;
 
+import std.algorithm : min;
 import std.file : exists, getSize;
 import std.path;
-import std.stdio : File;
+import std.stdio;
 import std.string;
 import std.traits;
 
+/// fileが画像ファイルであればimageTypeに対応する拡張子を返す。
+string getNormalizedImageExt(string file) { mixin(S_TRACE);
+	auto f = std.stdio.File(file, "rb");
+	scope (exit) f.close();
+	return f.getNormalizedImageExt();
+}
+/// ditto
+string getNormalizedImageExt(std.stdio.File f) { mixin(S_TRACE);
+	auto pos = f.tell;
+	scope (exit) f.seek(pos);
+	f.seek(0);
+	auto bytes = new ubyte[.min(25, f.size)];
+	f.rawRead(bytes);
+	return .imageType(bytes);
+}
+
 /// ファイルがimageSize()でサイズを取得できる
 /// 画像形式の拡張子を持つならtrueを返す。
+@property
 bool isImageExt(string path) { mixin(S_TRACE);
 	switch (.toLower(.extension(path))) {
 	case ".jpeg", ".jpg", ".jpe", ".jfif", ".jfi", ".jif":
@@ -23,6 +41,26 @@ bool isImageExt(string path) { mixin(S_TRACE);
 		return true;
 	default:
 		return false;
+	}
+}
+/// 画像形式の拡張子をimageTypeで取得できるものに変更する。
+@property
+string normalizedImageExt(string ext) { mixin(S_TRACE);
+	switch (ext.toLower()) {
+	case ".jpeg", ".jpg", ".jpe", ".jfif", ".jfi", ".jif":
+		return ".jpg";
+	case ".gif":
+		return ".gif";
+	case ".tiff", ".tif":
+		return ".tiff";
+	case ".bmp":
+		return ".bmp";
+	case ".png":
+		return ".png";
+	case ".ico":
+		return ".ico";
+	default:
+		return ext;
 	}
 }
 

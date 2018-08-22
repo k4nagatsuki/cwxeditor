@@ -3613,6 +3613,10 @@ public:
 						}
 						digests[digest] = file;
 
+						foreach (w; .fileExtensionWarnings(_prop.parent, file)) { mixin(S_TRACE);
+							addResult(abs2rel(file, sPath), count, w);
+						}
+
 						try { mixin(S_TRACE);
 							switch (file.extension().toLower()) {
 							case ".jpy1": mixin(S_TRACE);
