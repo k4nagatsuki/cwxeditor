@@ -62,6 +62,18 @@ bool valid(CP CPage)(dchar c) { mixin(S_TRACE);
 	assert (!valid!(CP.UNI)(0xD800));
 }
 
+/// Unicode文字cがShift JISに変換可能な文字か。
+@property
+bool canConvToSJIS(dchar c) { mixin(S_TRACE);
+	init();
+	return c < UNI_SJIS.length && UNI_SJIS[c] != 0xFFFF;
+} unittest { mixin(S_TRACE);
+	debug mixin(UTPerf);
+	assert (.canConvToSJIS('新'));
+	assert (.canConvToSJIS('開'));
+	assert (!.canConvToSJIS('➡'));
+}
+
 /// CP2の文字列をCP1に変換。
 char[] convTo(CP CP1, CP CP2)(in char[] s, bool throwError = true, in char[] unknownChar = "?") { mixin(S_TRACE);
 	static if (CP1 == CP2) {

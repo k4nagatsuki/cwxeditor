@@ -12,6 +12,7 @@ import cwx.structs;
 import cwx.types;
 import cwx.path;
 import cwx.imagesize;
+import cwx.warning;
 
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.dutils;
@@ -86,6 +87,10 @@ private:
 				ws ~= _prop.msgs.warningLoadScaledImage;
 			}
 		}
+		ws ~= .sjisWarnings(_prop.parent, _summ, _sname.getText(), _prop.msgs.title);
+		ws ~= .sjisWarnings(_prop.parent, _summ, _desc.getRRText(), _prop.msgs.desc);
+		ws ~= .sjisWarnings(_prop.parent, _summ, _author.getText(), _prop.msgs.author);
+		ws ~= .sjisWarnings(_prop.parent, _summ, _rCoupons.getText(), _prop.msgs.rCoupons);
 		warning = ws;
 	}
 	string dataVersion() { mixin(S_TRACE);
@@ -245,6 +250,7 @@ private:
 					_sname.setText(_summ.scenarioName);
 					checker(_sname);
 					.listener(_sname, SWT.Modify, &refreshPreview);
+					.listener(_sname, SWT.Modify, &refreshWarning);
 				}
 				{ mixin(S_TRACE);
 					auto grp = centerGroup(comp2, _prop.msgs.author, true, false, new GridData(GridData.FILL_BOTH));
@@ -254,6 +260,7 @@ private:
 					mod(_author);
 					setCDataX(_author, new GridData(GridData.FILL_HORIZONTAL));
 					_author.setText(_summ.author);
+					.listener(_author, SWT.Modify, &refreshWarning);
 				}
 				{ mixin(S_TRACE);
 					auto grp = centerGroup(comp2, _prop.msgs.targetLevel, false, false, new GridData(GridData.FILL_BOTH));
@@ -299,6 +306,7 @@ private:
 			_desc.widget.setLayoutData(_desc.computeTextBaseSize(_prop.looks.summaryDescLine));
 			_desc.setText(_summ.desc);
 			.listener(_desc.widget, SWT.Modify, &refreshPreview);
+			.listener(_desc.widget, SWT.Modify, &refreshWarning);
 		}
 		_comm.refImageScale.add(&refImageScale);
 		.listener(tabf, SWT.Dispose, { mixin(S_TRACE);
@@ -372,7 +380,6 @@ private:
 					_loadScaledImage.setSelection(_summ.loadScaledImage);
 					_loadScaledImageValue = _summ.loadScaledImage;
 
-					updateDataVersion();
 					.listener(_dataVersion, SWT.Selection, &refreshWarning);
 					.listener(_loadScaledImage, SWT.Selection, &refreshWarning);
 					.listener(_loadScaledImage, SWT.Selection, { mixin(S_TRACE);
@@ -421,6 +428,7 @@ private:
 							buf ~= "\n";
 						}
 						_rCoupons.setText(buf);
+						.listener(_rCoupons, SWT.Modify, &refreshWarning);
 					}
 				}
 			}
@@ -445,6 +453,7 @@ private:
 	void updateDataVersion() { mixin(S_TRACE);
 		_dataVersion.setEnabled(!_readOnly && !_summ.legacy);
 		_loadScaledImage.setEnabled(!_readOnly && !_summ.legacy);
+		refreshWarning();
 	}
 	class RefreshTypes : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
@@ -632,8 +641,19 @@ protected:
 		_comm.closeAdds.add(&closeAdds);
 		.listener(getShell(), SWT.Dispose, () => _comm.closeAdds.remove(&closeAdds));
 
-		refreshWarning();
+		updateDataVersion();
 		_lastImageScale = _prop.var.etc.imageScale;
+	}
+
+	@property
+	private string[] rCoupons() { mixin(S_TRACE);
+		string[] rcs;
+		foreach (s; .splitLines(_rCoupons.getText())) { mixin(S_TRACE);
+			if (s.length > 0) { mixin(S_TRACE);
+				rcs ~= s;
+			}
+		}
+		return rcs;
 	}
 
 	override bool apply() { mixin(S_TRACE);
@@ -652,13 +672,7 @@ protected:
 		_summ.imagePaths = images.images;
 		_summ.levelMin = _levMin.getSelection();
 		_summ.levelMax = _levMax.getSelection();
-		string[] rcs;
-		foreach (s; splitLines(_rCoupons.getText())) { mixin(S_TRACE);
-			if (s.length > 0) { mixin(S_TRACE);
-				rcs ~= s;
-			}
-		}
-		_summ.rCoupons = rcs;
+		_summ.rCoupons = rCoupons;
 		_summ.rCouponNum = _rCouponNum.getSelection();
 		_summ.startArea = _startArea.startArea;
 		if (_typeSkin.getSelection()) { mixin(S_TRACE);

@@ -177,6 +177,7 @@ private:
 	}
 	void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
+		ws ~= .sjisWarnings(_prop.parent, _summ, _name.getText(), _prop.msgs.name);
 		if (_name.over) { mixin(S_TRACE);
 			ws ~= .tryFormat(_prop.msgs.warningNameLenOver, _prop.looks.nameLimit, _prop.looks.nameLimit / 2);
 		}
@@ -184,6 +185,9 @@ private:
 		if (_effTyp[EffectType.NONE].getSelection()) { mixin(S_TRACE);
 			ws ~= _prop.msgs.warningEffectTypeNone;
 		}
+		ws ~= .sjisWarnings(_prop.parent, _summ, _desc.getText(), _prop.msgs.desc);
+		ws ~= .sjisWarnings(_prop.parent, _summ, _scenario.getText(), _prop.msgs.sourceScenario);
+		ws ~= .sjisWarnings(_prop.parent, _summ, _author.getText(), _prop.msgs.sourceAuthor);
 		ws ~= _motions.warnings;
 		foreach (m; _motions.motions) { mixin(S_TRACE);
 			if (m.type == MType.VANISH_TARGET && m.element != cast(int) Element.MIRACLE) { mixin(S_TRACE);
@@ -249,12 +253,12 @@ private:
 					_prop.looks.nameLimit, false, grp, SWT.BORDER | _readOnly);
 				mod(_name.widget);
 				createTextMenu!Text(_comm, _prop, _name.widget, &catchMod);
-				_name.limitEvent ~= &refreshWarning;
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.widthHint = _name.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
 				_name.widget.setLayoutData(gd);
 				auto l = new Label(grp, SWT.NONE);
 				l.setText(.tryFormat(_prop.msgs.nameLimit, _prop.looks.nameLimit, _prop.looks.nameLimit / 2));
+				.listener(_name.widget, SWT.Modify, &refreshWarning);
 			}
 			{ mixin(S_TRACE);
 				auto skin = summSkin;
@@ -457,6 +461,7 @@ private:
 			mod(_desc.widget);
 			createTextMenu!Text(_comm, _prop, _desc.widget, &catchMod);
 			_desc.widget.setLayoutData(_desc.computeTextBaseSize(_prop.looks.cardDescLine));
+			.listener(_desc.widget, SWT.Modify, &refreshWarning);
 		}
 		{ mixin(S_TRACE);
 			auto grp = new Group(comp, SWT.NONE);

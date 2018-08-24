@@ -9,6 +9,7 @@ import cwx.utils;
 import cwx.skin;
 import cwx.path;
 import cwx.imagesize;
+import cwx.warning;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
@@ -48,7 +49,9 @@ private:
 		// 情報カード名はメッセージに表示されないため長さ制限無し
 		string[] ws;
 
+		ws ~= .sjisWarnings(_prop.parent, _summ, _name.getText(), _prop.msgs.name);
 		ws ~= _imgPath.warnings;
+		ws ~= .sjisWarnings(_prop.parent, _summ, _desc.getText(), _prop.msgs.desc);
 
 		warning = ws;
 	}
@@ -114,10 +117,10 @@ protected:
 				_prop.looks.nameLimit, false, grp, SWT.BORDER | _readOnly);
 			mod(_name.widget);
 			createTextMenu!Text(_comm, _prop, _name.widget, &catchMod);
-			_name.limitEvent ~= &refreshWarning;
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = _name.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
 			_name.widget.setLayoutData(gd);
+			.listener(_name.widget, SWT.Modify, &refreshWarning);
 		}
 		{ mixin(S_TRACE);
 			auto skin = summSkin;
@@ -146,6 +149,7 @@ protected:
 			createTextMenu!Text(_comm, _prop, _desc.widget, &catchMod);
 			mod(_desc.widget);
 			_desc.widget.setLayoutData(_desc.computeTextBaseSize(_prop.looks.cardDescLine));
+			.listener(_desc.widget, SWT.Modify, &refreshWarning);
 		}
 		_comm.delInfo.add(&delCard);
 		_comm.refScenario.add(&refScenario);

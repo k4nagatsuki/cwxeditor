@@ -401,10 +401,12 @@ class Msgs : Properties {
 	auto afterClearEndMark = Msg("afterClearEndMark", "シナリオに済印を付ける");
 	auto afterClearNoEndMark = Msg("afterClearNoEndMark", "何もしない");
 
+	auto message = Msg("message", "メッセージ");
 	auto couponName = Msg("couponName", "クーポン名");
 	auto couponValue = Msg("couponValue", "得点");
 	auto couponValueRange = Msg("couponValueRange", "(%1$s～%2$s)");
 	auto range = Msg("range", "適用範囲");
+	auto couponForRange = Msg("couponForRange", "適用範囲の称号");
 	auto matchingType = Msg("matchingType", "マッチングタイプ"); // Wsn.2
 	auto gossipName = Msg("gossipName", "ゴシップ名");
 	auto endName = Msg("endName", "シナリオ名");
@@ -644,6 +646,8 @@ class Msgs : Properties {
 	auto evtInsertFirst = Msg("evtInsertFirst", "他の子コンテントより前に配置");
 
 	auto eventTreeViewHint = Msg("eventTreeViewHint", "Shift+配置: 選択コンテントの上へ挿入, Alt+配置: 「配置と同時に編集」設定を反転, Ctrl+配置: 「他の子コンテントより前に配置」設定を反転");
+
+	auto contentNameForWarning = Msg("contentNameForWarning", "コンテント名");
 
 	const string contentName(CType id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(CType, "contentName"));
@@ -1158,6 +1162,7 @@ class Msgs : Properties {
 	auto areaNew = Msg("areaNew", "新規エリア");
 	auto battleNew = Msg("battleNew", "新規バトル");
 	auto packageNew = Msg("packageNew", "新規パッケージ");
+	auto areaDirName = Msg("areaDirName", "フォルダ名");
 
 	/// フラグのディレクトリ。
 	auto flagDirRoot = Msg("flagDirRoot", "Data");
@@ -1174,11 +1179,14 @@ class Msgs : Properties {
 	auto dlgLblFlagInit = Msg("dlgLblFlagInit", "初期値");
 	auto dlgLblFlagTrue = Msg("dlgLblFlagTrue", "TRUE");
 	auto dlgLblFlagFalse = Msg("dlgLblFlagFalse", "FALSE");
+	auto flagOnValue = Msg("flagOnValue", "TRUEの値");
+	auto flagOffValue = Msg("flagOffValue", "FALSEの値");
 
 	/// ステップ設定ダイアログ関連。
 	auto dlgTitStep = Msg("dlgTitStep", "ステップの設定");
 	auto dlgLblStepName = Msg("dlgLblStepName", "ステップ名");
 	auto dlgLblStepInit = Msg("dlgLblStepInit", "初期値");
+	auto stepValueForWarning = Msg("stepValueForWarning", "値");
 	auto stepCount = Msg("stepCount", "段階数");
 
 	/// 貼紙設定ダイアログ関連。
@@ -1218,6 +1226,9 @@ class Msgs : Properties {
 
 	auto warningInvalidFileExtensionImage = Msg("warningInvalidFileExtensionImage", "イメージとして使用できない拡張子のファイルが指定されています。");
 	auto warningInvalidFileExtensionSound = Msg("warningInvalidFileExtensionSound", "音声として使用できない拡張子のファイルが指定されています。");
+
+	auto warningInvalidSJISCharacter = Msg("warningInvalidSJISCharacter", "クラシックなシナリオで使用できない文字「%1$s」が含まれています。");
+	auto warningInvalidSJISCharacterWithName = Msg("warningInvalidSJISCharacterWithName", "%1$sにクラシックなシナリオで使用できない文字「%2$s」が含まれています。");
 
 	/// エリア・戦闘・パッケージウィンドウ。
 	auto noRefArea = Msg("noRefArea", "カード配置参照無し");
@@ -1961,6 +1972,7 @@ class Msgs : Properties {
 	auto warningBranchCouponAtField = Msg("warningBranchCouponAtField", "フィールド全体でのクーポン所持判定は、CardWirth 1.30より前のバージョンでは使用できません。");
 	auto warningSystemVarName = Msg("warningSystemVarName", "%1$sで始まる名前の状態変数は、プレイヤーの環境によっては正しく機能しない事があります。");
 	auto warningSystemCoupon = Msg("warningSystemCoupon", "%1$sで始まる名前のクーポンを操作する事はできません。");
+	auto warningSystemCouponForHistory = Msg("warningSystemCouponForHistory", "キャストカードに設定されたシステムクーポンは正常に動作しない可能性があります。");
 	auto warningBranchStatusMental = Msg("warningBranchStatusMental", "%1$s状態の判定は、CardWirth %2$sより前のバージョンでは使用できません。");
 	auto warningValuedTalker = Msg("warningValuedTalker", "評価メンバは、CardWirth 1.50より前のバージョンでは使用できません。");
 	auto warningTextCell = Msg("warningTextCell", "テキストセルは、CardWirth 1.50より前のバージョンでは使用できません。");
@@ -2047,6 +2059,7 @@ class Msgs : Properties {
 	auto dirTabName = Msg("dirTabName", "ファイル");
 	auto dirStatus = Msg("dirStatus", "%1$s個のファイル (%2$s)");
 	auto dirStatusSel = Msg("dirStatusSel", "%1$s個のファイル (%2$s) (%3$s個を選択中)");
+	auto dirName = Msg("dirName", DIR ~ "名");
 	auto fileName = Msg("fileName", "ファイル名");
 	auto fileExt = Msg("fileExt", "拡張子");
 	auto fileCount = Msg("fileCount", "利用数");

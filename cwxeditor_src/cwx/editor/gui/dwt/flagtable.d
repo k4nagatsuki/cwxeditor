@@ -15,6 +15,7 @@ import cwx.xml;
 import cwx.structs;
 import cwx.msgutils;
 import cwx.sjis;
+import cwx.warning;
 
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.dprops;
@@ -253,6 +254,13 @@ private:
 		if (_expandSPChars.getSelection() && !_comm.prop.isTargetVersion(_summ, "2")) { mixin(S_TRACE);
 			ws ~= _comm.prop.msgs.warningExpandSPChars;
 		}
+		ws ~= .sjisWarnings(_comm.prop.parent, _summ, _name.getText(), _comm.prop.msgs.dlgLblStepName);
+		if (_valueCache.length && _summ.legacy) { mixin(S_TRACE);
+			auto vals = _valueCache[0 .. _stepCount.getSelection()];
+			foreach (val; vals) { mixin(S_TRACE);
+				ws ~= .sjisWarnings(_comm.prop.parent, _summ, val, _comm.prop.msgs.stepValueForWarning);
+			}
+		}
 		warning = ws;
 	}
 
@@ -298,14 +306,15 @@ private:
 		if (itm.getText(1) == newText) return;
 		auto index = _values.indexOf(itm);
 		storeSingle(index, itm.getText(1), newText);
-		itm.setText(column, newText);
 		_valueCache[index] = newText;
+		_values.clear(index);
 		if (_initInit) { mixin(S_TRACE);
 			_init.setItem(index, newText);
 		} else if (index == _initSelected) { mixin(S_TRACE);
 			_init.setItem(0, newText);
 		}
 		applyEnabled();
+		refreshWarning();
 	}
 
 	void delStep(cwx.flag.Flag[] flag, Step[] step) { mixin(S_TRACE);
@@ -687,6 +696,9 @@ private:
 		if (_expandSPChars.getSelection() && !_comm.prop.isTargetVersion(_summ, "2")) { mixin(S_TRACE);
 			ws ~= _comm.prop.msgs.warningExpandSPChars;
 		}
+		ws ~= .sjisWarnings(_comm.prop.parent, _summ, flagName.getText(), _comm.prop.msgs.dlgLblFlagName);
+		ws ~= .sjisWarnings(_comm.prop.parent, _summ, flagTrue.getText(), _comm.prop.msgs.flagOnValue);
+		ws ~= .sjisWarnings(_comm.prop.parent, _summ, flagFalse.getText(), _comm.prop.msgs.flagOffValue);
 		warning = ws;
 	}
 
@@ -708,6 +720,7 @@ private:
 		override void modifyText(ModifyEvent e) { mixin(S_TRACE);
 			change(e);
 			updateToolTipImpl(index == 0 ? flagTrue : flagFalse);
+			refreshWarning();
 		}
 	}
 	class Dispose : DisposeListener {

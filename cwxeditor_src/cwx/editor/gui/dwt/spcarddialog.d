@@ -12,6 +12,7 @@ import cwx.path;
 import cwx.imagesize;
 import cwx.skin;
 import cwx.xml;
+import cwx.warning;
 
 import cwx.editor.gui.sound;
 
@@ -59,7 +60,12 @@ private:
 	void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
 		static if (is (C == MenuCard)) {
+			ws ~= .sjisWarnings(_prop.parent, _summ, _name.getText(), _prop.msgs.name);
+			ws ~= .sjisWarnings(_prop.parent, _summ, _desc.getText(), _prop.msgs.desc);
+			ws ~= .sjisWarnings(_prop.parent, _summ, _cardGroup.getText(), _prop.msgs.cardGroup);
 			ws ~= _imgPath.warnings;
+		} else {
+			ws ~= .sjisWarnings(_prop.parent, _summ, _cardGroup.getText(), _prop.msgs.cardGroup);
 		}
 		if (_layer.getEnabled() && _layer.getSelection() != LAYER_MENU_CARD && !_prop.isTargetVersion(_summ, "1")) {
 			ws ~= _prop.msgs.warningLayer;
@@ -301,6 +307,7 @@ protected:
 							createTextMenu!Text(_comm, _prop, _name, &catchMod);
 							mod(_name);
 							_name.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+							.listener(_name, SWT.Modify, &refreshWarning);
 						} else static if (is (C == EnemyCard)) {
 							grp.setLayout(normalGridLayout(2, false));
 							grp.setText(_prop.msgs.enemyCardBase);
@@ -462,6 +469,7 @@ protected:
 					createTextMenu!Text(_comm, _prop, _desc.widget, &catchMod);
 					mod(_desc.widget);
 					_desc.widget.setLayoutData(_desc.computeTextBaseSize(_prop.looks.cardDescLine));
+					.listener(_desc.widget, SWT.Modify, &refreshWarning);
 				}
 			}
 			{ mixin(S_TRACE);

@@ -121,10 +121,10 @@ class AbstractMessageDialog : EventDialog {
 		return ws;
 	}
 
-	private TextWarnings textWarnings(in string[] flags, in string[] steps, in string[] fonts, in char[] colors,
+	private TextWarnings textWarnings(string text, in string[] flags, in string[] steps, in string[] fonts, in char[] colors,
 			ref bool[string] wFlags, ref bool[string] wSteps, ref bool[string] wFonts, ref bool[char] wColors) { mixin(S_TRACE);
 		return .textWarnings(prop.parent, summSkin, summ, prop.var.etc.targetVersion,
-			flags, steps, fonts, colors, wFlags, wSteps, wFonts, wColors);
+			text, flags, steps, fonts, colors, wFlags, wSteps, wFonts, wColors);
 	}
 
 	private class SelPrev : SelectionAdapter {
@@ -525,7 +525,7 @@ private:
 		bool[char] wColors;
 		_dlgWarnings = [];
 		foreach (i, dlg; _dlgs) { mixin(S_TRACE);
-			auto dws = textWarnings(dlg.flagsInText, dlg.stepsInText, dlg.fontsInText, dlg.colorsInText,
+			auto dws = textWarnings(dlg.text, dlg.flagsInText, dlg.stepsInText, dlg.fontsInText, dlg.colorsInText,
 				wFlags, wSteps, wFonts, wColors);
 			if (dws.all.length) { mixin(S_TRACE);
 				_dlgsL.getItem(cast(int)i).setImage(prop.images.warning);
@@ -536,14 +536,12 @@ private:
 			ws ~= dws.noDup;
 
 			foreach (coupon; dlg.rCoupons) { mixin(S_TRACE);
-				ws ~= couponWarnings(prop.parent, summ, prop.var.etc.targetVersion, coupon, false);
+				ws ~= couponWarnings(prop.parent, summ, prop.var.etc.targetVersion, coupon, false, prop.msgs.toneCoupons);
 			}
 		}
 
 		if (selectedTalker is Talker.VALUED) { mixin(S_TRACE);
-			foreach (coupon; _couponView.coupons) { mixin(S_TRACE);
-				ws ~= couponWarnings(prop.parent, summ, prop.var.etc.targetVersion, coupon.name, false);
-			}
+			ws ~= _couponView.warnings;
 		}
 
 		_warningTip.setVisible(false);
@@ -793,6 +791,7 @@ private:
 			if (_textTM && _rCouponsTM && !_textTM.inProc() && !_rCouponsTM.inProc()) { mixin(S_TRACE);
 				putRCoupons(_dlgs[_dlgsL.getSelectionIndex()]);
 			}
+			refreshWarning();
 		}
 	}
 	@property
@@ -1233,7 +1232,7 @@ private:
 		string[] fonts;
 		char[] colors;
 		textUseItems(lastRet(wrapReturnCode(_text.getText())), flags, steps, fonts, colors);
-		ws ~= textWarnings(flags, steps, fonts, colors,
+		ws ~= textWarnings(_text.getText(), flags, steps, fonts, colors,
 			wFlags, wSteps, wFonts, wColors).all;
 
 		ws ~= warnings;

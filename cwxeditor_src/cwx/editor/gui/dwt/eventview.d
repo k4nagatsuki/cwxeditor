@@ -1554,8 +1554,7 @@ public:
 			initTree(_comm, _cards, false);
 			_cards.addSelectionListener(new SListener);
 			.listener(_cards, SWT.FocusIn, { _lastFocus = _cards; });
-			.listener(_cards, SWT.Paint, &paintTree);
-			.listener(_cards, SWT.MouseMove, &updateToolTip);
+			.treeWarning(_prop, _cards, &getWarning);
 			_lastFocus = _cards;
 			_comm.refDataVersion.add(&_cards.redraw);
 			.listener(_cards, SWT.Dispose, { mixin(S_TRACE);
@@ -2472,120 +2471,54 @@ public:
 		}
 	}
 
-	alias Tuple!(TreeItem, string[]) WarningInfo;
-	/// 警告などを描画する。
-	private void paintTree(Event e) { mixin(S_TRACE);
-		_warningRects = [];
-		WarningInfo[] warningInfo;
-		if (!_prop.var.etc.drawContentWarnings) return;
-		if (!cast(Area)_area && !cast(Battle)_area) return;
+	private string[] getWarning(TreeItem itm) { mixin(S_TRACE);
+		if (!cast(Area)_area && !cast(Battle)_area) return [];
 
-		auto pcItm = _cards.getItem(1);
-		auto playerEvents = cast(PlayerCardEvents)pcItm.getData();
-		assert (playerEvents !is null);
-		auto pcWarnings = .warnings(_prop.parent, summSkin, _summ, playerEvents, _prop.var.etc.targetVersion);
-		if (pcWarnings.length) warningInfo ~= WarningInfo(pcItm, pcWarnings);
-
-		auto ca = _cards.getClientArea();
+		if (auto playerEvents = cast(PlayerCardEvents)itm.getData()) { mixin(S_TRACE);
+			return .warnings(_prop.parent, summSkin, _summ, playerEvents, _prop.var.etc.targetVersion);
+		}
 		if (auto btl = cast(Battle)_area) { mixin(S_TRACE);
-			if (!btl.possibleToRunAway) { mixin(S_TRACE);
-				foreach (itm; _cards.getItem(0).getItems()) { mixin(S_TRACE);
-					auto bounds = itm.getBounds();
-					if (bounds.y + bounds.height < ca.y) continue;
-					if (ca.y + ca.height <= bounds.y) break;
-					assert(cast(EventTree)itm.getData() !is null);
-					auto et = cast(EventTree)itm.getData();
-					if (et.fireEscape) { mixin(S_TRACE);
-						warningInfo ~= WarningInfo(itm, [_prop.msgs.warningNoIgniteRunAway]);
-					}
-				}
+			if (!btl.possibleToRunAway && itm.getData() is ESCAPE) { mixin(S_TRACE);
+				return [cast(string)_prop.msgs.warningNoIgniteRunAway];
 			}
 		}
 
-		o: foreach (oItm; _cards.getItems()) { mixin(S_TRACE);
-			foreach (itm; oItm.getItems()) { mixin(S_TRACE);
-				auto bounds = itm.getBounds();
-				if (ca.y + ca.height <= bounds.y) break;
-				assert(cast(EventTree)itm.getData() !is null);
-				auto et = cast(EventTree)itm.getData();
-				if (ca.y <= bounds.y + bounds.height) { mixin(S_TRACE);
-					if (et.keyCodeMatchingType is MatchingType.And && !_prop.targetVersion(_summ, "1.50")) { mixin(S_TRACE);
-						warningInfo ~= WarningInfo(itm, [_prop.msgs.warningKeyCodeMatchingTypeAnd]);
-					}
-				}
-				auto kci = 0;
-				foreach (iItm; itm.getItems()) { mixin(S_TRACE);
-					auto iBounds = iItm.getBounds();
-					if (iBounds.y + iBounds.height < ca.y) continue;
-					if (ca.y + ca.height <= iBounds.y) break o;
-					if (auto kco = cast(KeyCodeObj)iItm.getData()) { mixin(S_TRACE);
-						auto keyCode = kco.array.idup;
-						string[] kcw;
-						if (kci == 0 && keyCode == "MatchingType=All") { mixin(S_TRACE);
-							kcw ~= _prop.msgs.searchErrorKeyCodeMatchingAll;
-						}
-						if (_prop.sys.fireKeyCodeKind(keyCode) is FKCKind.HasNot && !_prop.targetVersion(_summ, "1.50")) { mixin(S_TRACE);
-							kcw ~= _prop.msgs.warningHasNotKeyCode;
-						}
-						if (kcw.length) { mixin(S_TRACE);
-							warningInfo ~= WarningInfo(iItm, kcw);
-						}
-						kci++;
-					} else if (iItm.getData() is EVERY_ROUND) { mixin(S_TRACE);
-						if (!_prop.targetVersion(_summ, "1.50")) { mixin(S_TRACE);
-							warningInfo ~= WarningInfo(iItm, [_prop.msgs.warningEveryRound]);
-						}
-					} else if (iItm.getData() is ROUND_0) { mixin(S_TRACE);
-						if (!_prop.targetVersion(_summ, "1.50")) { mixin(S_TRACE);
-							warningInfo ~= WarningInfo(iItm, [_prop.msgs.warningRound0]);
-						}
-					}
-				}
+		if (auto et = cast(EventTree)itm.getData()) { mixin(S_TRACE);
+			if (et.keyCodeMatchingType is MatchingType.And && !_prop.targetVersion(_summ, "1.50")) { mixin(S_TRACE);
+				return [cast(string)_prop.msgs.warningKeyCodeMatchingTypeAnd];
 			}
 		}
 
-		if (!warningInfo.length) return;
-
-		auto wImg = .warningImage(_prop, _cards.getDisplay(), _prop.var.etc.warningImageWidthEventTree);
-		scope (exit) wImg.dispose();
-		auto skin = _comm.skin;
-		auto bounds = _prop.images.warning.getBounds();
-		foreach (info; warningInfo) { mixin(S_TRACE);
-			auto itm = info[0];
-			auto warnings = info[1];
-			warnings = warnings.sort().uniq().array();
-			auto b = itm.getBounds();
-			if (b.y + b.height <= ca.y) continue;
-			if (ca.y + ca.height < b.y) continue;
-			auto ib = itm.getImageBounds(0);
-			if (ca.width <= ib.x) continue;
-			int ix = .max(ib.x, ca.width - _prop.var.etc.warningImageWidthEventTree);
-			e.gc.drawImage(wImg, 0, 0, _prop.var.etc.warningImageWidthEventTree, 1, ix, b.y, ca.width - ix, b.height);
-			int wx = .max(b.x + b.width, ca.width - bounds.width - 1);
-			if (wx < ca.width) { mixin(S_TRACE);
-				e.gc.drawImage(_prop.images.warning, wx, b.y + (b.height - bounds.height) / 2);
-			}
-			auto rect = new Rectangle(ix, b.y, _prop.var.etc.warningImageWidthEventTree, b.height);
-			_warningRects ~= Warning(rect, warnings);
-		}
-		updateToolTip();
-	}
-	private void updateToolTip() { mixin(S_TRACE);
-		auto p = _cards.getDisplay().getCursorLocation();
-		p = _cards.toControl(p);
-		string toolTip = "";
-		if (_cards.getClientArea().contains(p)) { mixin(S_TRACE);
-			foreach (warn; _warningRects) { mixin(S_TRACE);
-				if (warn.rect.contains(p)) { mixin(S_TRACE);
-					toolTip = std.string.join(warn.warnings, .newline);
-					break;
+		if (auto kco = cast(KeyCodeObj)itm.getData()) { mixin(S_TRACE);
+			auto keyCode = kco.array.idup;
+			string[] kcw;
+			kcw ~= .sjisWarnings(_prop.parent, _summ, keyCode, _prop.msgs.keyCode);
+			if (keyCode == "MatchingType=All") { mixin(S_TRACE);
+				auto et = cast(EventTree)itm.getParentItem().getData();
+				assert (et !is null);
+				assert (et.keyCodes.length);
+				if (_prop.sys.convFireKeyCode(et.keyCodes[0]) == keyCode) { mixin(S_TRACE);
+					kcw ~= _prop.msgs.searchErrorKeyCodeMatchingAll;
 				}
 			}
+			if (_prop.sys.fireKeyCodeKind(keyCode) is FKCKind.HasNot && !_prop.targetVersion(_summ, "1.50")) { mixin(S_TRACE);
+				kcw ~= _prop.msgs.warningHasNotKeyCode;
+			}
+			return kcw;
 		}
-		toolTip = .replace(toolTip, "&", "&&");
-		if (_cards.getToolTipText() != toolTip) { mixin(S_TRACE);
-			_cards.setToolTipText(toolTip);
+
+		if (itm.getData() is EVERY_ROUND) { mixin(S_TRACE);
+			if (!_prop.targetVersion(_summ, "1.50")) { mixin(S_TRACE);
+				return [cast(string)_prop.msgs.warningEveryRound];
+			}
 		}
+
+		if (itm.getData() is ROUND_0) { mixin(S_TRACE);
+			if (!_prop.targetVersion(_summ, "1.50")) { mixin(S_TRACE);
+				return [cast(string)_prop.msgs.warningRound0];
+			}
+		}
+		return [];
 	}
 
 	void openToolWindow() { mixin(S_TRACE);

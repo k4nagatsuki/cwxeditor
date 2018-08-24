@@ -433,8 +433,9 @@ string getNormalizedSoundExt(std.stdio.File f) { mixin(S_TRACE);
 	if (ext != "") return ext;
 	if (f.size < 128) return "";
 	f.seek(-128, SEEK_END);
-	bytes = bytes[0 .. 128];
-	f.rawRead(bytes);
+	bytes = bytes[0 .. 128 + 19];
+	bytes[0 .. 19] = 0;
+	bytes = f.rawRead(bytes[19 .. $]);
 	return .soundType(bytes);
 }
 

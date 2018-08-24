@@ -8,6 +8,7 @@ import cwx.structs;
 import cwx.summary;
 import cwx.types;
 import cwx.utils;
+import cwx.warning;
 
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.centerlayout;
@@ -52,11 +53,15 @@ class EventTreeDialog : AbsDialog {
 	private void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
 
-		if (_everyRound) ws ~= _comm.prop.msgs.warningEveryRound;
-		if (_round0) ws ~= _comm.prop.msgs.warningRound0;
+		ws ~= .sjisWarnings(_comm.prop.parent, _summ, _name.getText(), _comm.prop.msgs.eventName);
+
+		if (!_comm.prop.targetVersion(_summ, "1.50")) { mixin(S_TRACE);
+			if (_everyRound && _everyRound.getSelection()) ws ~= _comm.prop.msgs.warningEveryRound;
+			if (_round0 && _round0.getSelection()) ws ~= _comm.prop.msgs.warningRound0;
+		}
 
 		if (_keyCodes) ws ~= _keyCodes.warnings;
-		if (_keyCodeMatchingType && keyCodeMatchingType is MatchingType.And && _comm.prop.targetVersion(_summ, "1.50")) { mixin(S_TRACE);
+		if (_keyCodeMatchingType && keyCodeMatchingType is MatchingType.And && !_comm.prop.targetVersion(_summ, "1.50")) { mixin(S_TRACE);
 			ws ~= _comm.prop.msgs.warningKeyCodeMatchingTypeAnd;
 		}
 
@@ -90,7 +95,7 @@ class EventTreeDialog : AbsDialog {
 			treeName = _comm.prop.msgs.loseTree;
 		} else if (_escape && _escape.getSelection()) { mixin(S_TRACE);
 			treeName = _comm.prop.msgs.escapeTree;
-		} else if (_round0 && _round0.getSelection()) { mixin(S_TRACE);
+		} else if (_everyRound && _everyRound.getSelection()) { mixin(S_TRACE);
 			treeName = _comm.prop.msgs.everyRoundTree;
 		} else if (_round0 && _round0.getSelection()) { mixin(S_TRACE);
 			treeName = _comm.prop.msgs.round0Tree;
@@ -150,6 +155,7 @@ class EventTreeDialog : AbsDialog {
 			_name = new Text(grp, SWT.BORDER);
 			mod(_name);
 			.listener(_name, SWT.Modify, &setAutoName);
+			.listener(_name, SWT.Modify, &refreshWarning);
 		}
 
 		if (sys) { mixin(S_TRACE);
@@ -232,15 +238,16 @@ class EventTreeDialog : AbsDialog {
 		}
 
 		_comm.refDataVersion.add(&refreshWarning);
+		_comm.refTargetVersion.add(&refreshWarning);
 		.listener(area, SWT.Dispose, { mixin(S_TRACE);
 			_comm.refDataVersion.remove(&refreshWarning);
+			_comm.refTargetVersion.remove(&refreshWarning);
 		});
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 
 		assert (_et !is null);
-		_name.setText(_et.name);
 		if (_enter) _enter.setSelection(_et.fireEnter);
 		if (_lose) _lose.setSelection(_et.fireLose);
 		if (_escape) _escape.setSelection(_et.fireEscape);
@@ -251,6 +258,7 @@ class EventTreeDialog : AbsDialog {
 			_keyCodeMatchingType.select(cast(int).cCountUntil(MATCHING_TYPE, _et.keyCodeMatchingType));
 		}
 		if (_rounds) _rounds.rounds = _et.rounds;
+		_name.setText(_et.name);
 
 		refreshWarning();
 	}

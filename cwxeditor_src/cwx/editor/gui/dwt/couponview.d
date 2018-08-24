@@ -14,6 +14,7 @@ import cwx.menu;
 import cwx.types;
 import cwx.system;
 import cwx.summary;
+import cwx.warning;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
@@ -43,10 +44,9 @@ import java.lang.all;
 public:
 
 enum CVType {
-
-	Cast, /// 得点付きクーポンのビュー（キャストカードの経歴）。
-	Valued, /// 得点付きクーポンのビュー（評価条件）。
-	NoValued /// 得点なしクーポンのビュー(Wsn.2)。
+	Cast, /// 得点付きクーポンのビュー(キャストカードの経歴)。
+	Valued, /// 得点付きクーポンのビュー(評価条件)。
+	NoValued /// 得点無し・クーポン分岐用(Wsn.2)。
 }
 
 /// クーポンのビュー。
@@ -159,13 +159,13 @@ class CouponView(CVType Type) : Composite {
 		}
 
 		static if (CVType.NoValued != Type) {
-			itm.setImage(0, couponImage(coupon.value));
 			itm.setText(0, coupon.name);
 			itm.setText(1, to!(string)(coupon.value));
 		} else {
 			itm.setText(0, coupon.name);
 		}
 		itm.setData(new Coupon(coupon));
+		updateWarning(itm);
 		if (select) { mixin(S_TRACE);
 			_coupons.setSelection([itm]);
 			_coupons.showSelection();
@@ -173,6 +173,7 @@ class CouponView(CVType Type) : Composite {
 		}
 		return itm;
 	}
+
 	private void addCoupon() { mixin(S_TRACE);
 		if (_newCoupon.getText().length > 0) { mixin(S_TRACE);
 			if (_tte1.isEditing) _tte1.enter();
@@ -220,7 +221,6 @@ class CouponView(CVType Type) : Composite {
 			auto itm = _coupons.getItem(index);
 			static if (CVType.NoValued != Type) {
 				auto coupon = new Coupon(_newCoupon.getText(), _couponVal.getSelection());
-				itm.setImage(0, couponImage(coupon.value));
 				itm.setText(0, coupon.name);
 				itm.setText(1, .to!(string)(coupon.value));
 			} else {
@@ -229,6 +229,7 @@ class CouponView(CVType Type) : Composite {
 			}
 
 			itm.setData(coupon);
+			updateWarning(itm);
 			raiseModifyEvent();
 			_comm.refreshToolBar();
 		}
@@ -396,13 +397,13 @@ class CouponView(CVType Type) : Composite {
 		foreach (i, itm; _coupons.getItems()) { mixin(S_TRACE);
 			auto coupon = coupons[i];
 			static if (CVType.NoValued != Type) {
-				itm.setImage(0, couponImage(coupon.value));
 				itm.setText(0, coupon.name);
 				itm.setText(1, .text(coupon.value));
 			} else {
 				itm.setText(0, coupon.name);
 			}
 			itm.setData(coupon);
+			updateWarning(itm);
 		}
 	}
 
@@ -808,6 +809,7 @@ class CouponView(CVType Type) : Composite {
 
 		_comm.refMenu.add(&refMenu);
 		_comm.refUndoMax.add(&refUndoMax);
+		_comm.refDataVersion.add(&refDataVersion);
 		this.addDisposeListener(new Dispose);
 		_kdFilter = new KeyDownFilter();
 		this.getDisplay().addFilter(SWT.KeyDown, _kdFilter);
@@ -818,6 +820,7 @@ class CouponView(CVType Type) : Composite {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			_comm.refMenu.remove(&refMenu);
 			_comm.refUndoMax.remove(&refUndoMax);
+			_comm.refDataVersion.remove(&refDataVersion);
 			e.widget.getDisplay().removeFilter(SWT.KeyDown, _kdFilter);
 		}
 	}
@@ -956,6 +959,7 @@ class CouponView(CVType Type) : Composite {
 			coupon = new Coupon(name, coupon.value);
 			itm2.setText(0, name);
 			itm2.setData(coupon);
+			updateWarning(itm2);
 		}
 		raiseModifyEvent();
 		_comm.refreshToolBar();
@@ -992,14 +996,63 @@ class CouponView(CVType Type) : Composite {
 			auto coupon = cast(Coupon)itm2.getData();
 			coupon = new Coupon(coupon.name, value);
 			static if (CVType.NoValued != Type) {
-				itm2.setImage(0, couponImage(value));
 				itm2.setText(1, .text(value));
-				itm2.setData(coupon);
 			} else {
 				itm2.setText(0, coupon.name);
 			}
+			itm2.setData(coupon);
+			updateWarning(itm2);
 		}
 		raiseModifyEvent();
 		_comm.refreshToolBar();
+	}
+
+	private void updateWarning(TableItem itm) { mixin(S_TRACE);
+		auto coupon = cast(Coupon)itm.getData();
+		assert (coupon !is null);
+
+		static if (CVType.NoValued != Type) {
+			itm.setImage(0, couponImage(coupon.value));
+		}
+
+		if (warningsImpl(coupon.name).length) { mixin(S_TRACE);
+			itm.setImage(0, _prop.images.warning);
+		}
+	}
+	private void refDataVersion() { mixin(S_TRACE);
+		foreach (itm; _coupons.getItems()) { mixin(S_TRACE);
+			updateWarning(itm);
+		}
+	}
+
+	@property
+	string[] warnings() { mixin(S_TRACE);
+		string[] ws;
+		foreach (name; couponNames) { mixin(S_TRACE);
+			ws ~= warningsImpl(name);
+		}
+		string[] ws2;
+		bool[string] wSet;
+		foreach (w; ws) { mixin(S_TRACE);
+			if (w !in wSet) { mixin(S_TRACE);
+				wSet[w] = true;
+				ws2 ~= w;
+			}
+		}
+		return ws2;
+	}
+	private string[] warningsImpl(string name) { mixin(S_TRACE);
+		string[] ws;
+		static if (Type == CVType.Cast) {
+			ws ~= .sjisWarnings(_prop.parent, _summ, name, _prop.msgs.history);
+			if (std.string.startsWith(name, _prop.sys.couponSystem) && name != _prop.sys.levelLimit && !_prop.sys.isGene(name)) { mixin(S_TRACE);
+				ws ~= _prop.msgs.warningSystemCouponForHistory;
+			}
+		} else static if (Type == CVType.Valued) {
+			ws ~= .couponWarnings(_prop.parent, _summ, _prop.var.etc.targetVersion, name, false, _prop.msgs.valued);
+		} else static if (Type == CVType.NoValued) {
+			ws ~= .couponWarnings(_prop.parent, _summ, _prop.var.etc.targetVersion, name, true, _prop.msgs.couponName);
+		} else static assert (0);
+		return ws;
 	}
 }

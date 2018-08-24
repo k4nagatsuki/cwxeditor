@@ -115,9 +115,13 @@ private:
 
 	void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
+		ws ~= .sjisWarnings(_prop.parent, _summ, _name.getText(), _prop.msgs.name);
 		if (_name.over) { mixin(S_TRACE);
 			ws ~= .tryFormat(_prop.msgs.warningNameLenOver, _prop.looks.castNameLimit, _prop.looks.castNameLimit / 2);
 		}
+		ws ~= _imgPath.warnings;
+		ws ~= .sjisWarnings(_prop.parent, _summ, _desc.getText(), _prop.msgs.desc);
+		ws ~= _couponView.warnings;
 		Status[] statuses;
 		if (_lifeUseMax.getSelection()) { mixin(S_TRACE);
 			statuses ~= Status.FINE;
@@ -303,7 +307,6 @@ private:
 				grp.setText(_prop.msgs.name);
 				_name = new GBLimitText(_prop.looks.monospace,
 					_prop.looks.castNameLimit, false, grp, SWT.BORDER | _readOnly);
-				_name.limitEvent ~= &refreshWarning;
 				mod(_name.widget);
 				createTextMenu!Text(_comm, _prop, _name.widget, &catchMod);
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
@@ -311,6 +314,7 @@ private:
 				_name.widget.setLayoutData(gd);
 				auto l = new Label(grp, SWT.NONE);
 				l.setText(.tryFormat(_prop.msgs.nameLimit, _prop.looks.castNameLimit, _prop.looks.castNameLimit / 2));
+				.listener(_name.widget, SWT.Modify, &refreshWarning);
 			}
 			{ mixin(S_TRACE);
 				_imgPath = new ImageSelect!(MtType.CARD)(comp2, _readOnly, _comm, _prop, _summ,
@@ -428,6 +432,7 @@ private:
 			auto p = _desc.computeTextBaseSize(1);
 			p.y = SWT.DEFAULT;
 			_desc.widget.setLayoutData(p);
+			.listener(_desc.widget, SWT.Modify, &refreshWarning);
 		}
 		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText(_prop.msgs.desc);
@@ -453,6 +458,7 @@ private:
 			_couponView = new CouponView!(CVType.Cast)(_comm, _summ, grp, _readOnly, &catchMod, true);
 			_couponView.setLayoutData(new GridData(GridData.FILL_BOTH));
 			mod(_couponView);
+			_couponView.modEvent ~= &refreshWarning;
 		}
 		{ mixin(S_TRACE);
 			auto comp2 = new Composite(comp, SWT.NONE);

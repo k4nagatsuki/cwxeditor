@@ -3594,15 +3594,27 @@ public:
 					if (_summ.isSystemFile(file, dir)) return;
 					if (containsPath(_prop.var.etc.ignorePaths, file.baseName())) return;
 					if (dir) { mixin(S_TRACE);
+						foreach (w; .sjisWarnings(_prop.parent, _summ, file.baseName(), _prop.msgs.dirName)) { mixin(S_TRACE);
+							addResult(abs2rel(file, sPath), count, w);
+						}
 						foreach (string sub; clistdir(file)) { mixin(S_TRACE);
 							recurse(file.buildPath(sub));
 						}
 					} else { mixin(S_TRACE);
+						foreach (w; .sjisWarnings(_prop.parent, _summ, file.baseName(), _prop.msgs.fileName)) { mixin(S_TRACE);
+							addResult(abs2rel(file, sPath), count, w);
+						}
+
 						auto size = file.getSize();
 						if (!size) { mixin(S_TRACE);
 							addResult(abs2rel(file, sPath), count, _prop.msgs.searchErrorEmptyFile);
 							return;
 						}
+
+						foreach (w; .fileExtensionWarnings(_prop.parent, file)) { mixin(S_TRACE);
+							addResult(abs2rel(file, sPath), count, w);
+						}
+
 						auto digest = file.fileToMD5Digest();
 						if (!digest.length) return;
 						digest = .format("%s-%s", digest, size);
@@ -3612,10 +3624,6 @@ public:
 							return;
 						}
 						digests[digest] = file;
-
-						foreach (w; .fileExtensionWarnings(_prop.parent, file)) { mixin(S_TRACE);
-							addResult(abs2rel(file, sPath), count, w);
-						}
 
 						try { mixin(S_TRACE);
 							switch (file.extension().toLower()) {
@@ -3634,9 +3642,8 @@ public:
 						} catch (EffectBoosterError e) { mixin(S_TRACE);
 							printStackTrace();
 							debugln(e);
-							auto path = abs2rel(file, sPath);
 							foreach (err; e.errors) { mixin(S_TRACE);
-								addResult(path, count, .tryFormat(_prop.msgs.jpyErrorInfoWithoutFile, err.msg, err.line));
+								addResult(abs2rel(file, sPath), count, .tryFormat(_prop.msgs.jpyErrorInfoWithoutFile, err.msg, err.line));
 							}
 						}
 					}

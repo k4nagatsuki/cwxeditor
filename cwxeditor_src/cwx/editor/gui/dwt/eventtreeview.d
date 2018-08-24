@@ -55,11 +55,6 @@ import java.lang.all;
 
 public:
 
-struct Warning {
-	Rectangle rect;
-	string[] warnings;
-}
-
 /// イベントコンテントツリー。
 class EventTreeView : TCPD {
 private:
@@ -4313,31 +4308,6 @@ private string evtChildBrRound(in Props prop, in Content evt, ref string text) {
 		cmp = prop.msgs.comparison3FalseName(evt.comparison3);
 	}
 	return .tryFormat(prop.msgs.branchRound, evt.round, cmp);
-}
-
-Image warningImage(Props prop, Display d, int warningImageWidth = -1) { mixin(S_TRACE);
-	if (warningImageWidth < 0) warningImageWidth = prop.var.etc.warningImageWidth;
-	auto height = 1;
-	auto buf = new Image(d, warningImageWidth, height);
-	scope (exit) buf.dispose();
-	auto gc = new GC(buf);
-	scope (exit) gc.dispose();
-	int alpha;
-	auto rgb = dwtData(prop.var.etc.warningImageColor, alpha);
-	auto color = new Color(d, rgb);
-	scope (exit) color.dispose();
-	gc.setForeground(color);
-	gc.setBackground(color);
-	gc.fillRectangle(0, 0, warningImageWidth, height);
-	auto alphas = new byte[warningImageWidth];
-	foreach (i, ref b; alphas) { mixin(S_TRACE);
-		b = cast(byte)(cast(real)i / warningImageWidth * alpha);
-	}
-	alphas = .replicate(alphas, height);
-	assert (alphas.length == warningImageWidth * height);
-	auto imgData = buf.getImageData();
-	imgData.setAlphas(0, 0, warningImageWidth * height, alphas, 0);
-	return new Image(d, imgData);
 }
 
 class ContentsToolBox {

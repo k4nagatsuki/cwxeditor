@@ -468,6 +468,8 @@ private:
 			return _prop.images.text;
 		} else if (img is _prop.images.unknown || img is _sImgUnknown) { mixin(S_TRACE);
 			return _prop.images.unknown;
+		} else if (img is _prop.images.warning || img is _sImgWarning) { mixin(S_TRACE);
+			return _prop.images.warning;
 		}
 		assert (0);
 	}
@@ -561,7 +563,7 @@ private:
 		return false;
 	}
 	private bool hasWarning(string file) { mixin(S_TRACE);
-		return 0 < .fileExtensionWarnings(_prop.parent, file).length;
+		return .sjisWarnings(_prop.parent, _summ, file, "").length || .fileExtensionWarnings(_prop.parent, file).length;
 	}
 	private bool isCutted(string file) { mixin(S_TRACE);
 		static if (0 == filenameCharCmp('A', 'a')) {
@@ -1591,6 +1593,11 @@ public:
 		dirsComp.setLayout(new FillLayout);
 		_dirs = new Tree(dirsComp, SWT.SINGLE | SWT.BORDER);
 		initTree(_comm, _dirs, false);
+		.treeWarning(_prop, _dirs, (itm) { mixin(S_TRACE);
+			auto fno = cast(FileNameObj)itm.getData();
+			assert (fno !is null);
+			return .sjisWarnings(_prop.parent, _summ, fno.basename, _prop.msgs.dirName);
+		});
 		{ mixin(S_TRACE);
 			_dirs.addSelectionListener(new DirsSelection);
 			.listener(_dirs, SWT.FocusIn, (e) { _lastFocus = cast(Control)e.widget; });

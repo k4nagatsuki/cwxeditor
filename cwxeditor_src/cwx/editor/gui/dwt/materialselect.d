@@ -1704,6 +1704,7 @@ private:
 				itm.setText(f);
 				static if (Type == MtType.CARD || Type == MtType.BG_IMG) {
 					auto ws = skin.warningImage(_prop.parent, f, legacy, canInclude && !isMenuCard, _prop.var.etc.targetVersion);
+					if (!ws.length) ws = .sjisWarnings(_prop.parent, _summ, f, "");
 					if (!ws.length) ws = .fileExtensionWarnings(_prop.parent, toFilePath(f));
 					if (ws.length) { mixin(S_TRACE);
 						itm.setImage(_prop.images.warning);

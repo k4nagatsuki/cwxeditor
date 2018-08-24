@@ -8,6 +8,7 @@ import cwx.types;
 import cwx.utils;
 import cwx.card;
 import cwx.system;
+import cwx.warning;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
@@ -78,15 +79,19 @@ class KeyCodeView : Composite {
 			}
 		}
 
-		if (!_canDuplicate) { mixin(S_TRACE);
-			if (_keyCodes.getItem(0) is itm && name == "MatchingType=All") { mixin(S_TRACE);
-				image = _prop.images.warning;
-			}
-		}
-		if (_canDuplicate && _prop.sys.isRunaway([name])) { mixin(S_TRACE);
+		if (!_canDuplicate && _keyCodes.getItem(0) is itm && name == "MatchingType=All") { mixin(S_TRACE);
+			image = _prop.images.warning;
+		} else if (_canDuplicate && _prop.sys.isRunaway([name])) { mixin(S_TRACE);
+			image = _prop.images.warning;
+		} else if (.sjisWarnings(_prop.parent, _summ, name, "").length) { mixin(S_TRACE);
 			image = _prop.images.warning;
 		}
 		itm.setImage(image);
+	}
+	void refDataVersion() { mixin(S_TRACE);
+		foreach (itm; _keyCodes.getItems()) { mixin(S_TRACE);
+			setKeyCode(itm, itm.getText());
+		}
 	}
 
 	class UndoName : Undo {
@@ -616,11 +621,13 @@ class KeyCodeView : Composite {
 		auto d = this.getDisplay();
 		_comm.refMenu.add(&refMenu);
 		_comm.refUndoMax.add(&refUndoMax);
+		_comm.refDataVersion.add(&refDataVersion);
 		_kdFilter = new KeyDownFilter();
 		d.addFilter(SWT.KeyDown, _kdFilter);
 		.listener(this, SWT.Dispose, { mixin(S_TRACE);
 			_comm.refMenu.remove(&refMenu);
 			_comm.refUndoMax.remove(&refUndoMax);
+			_comm.refDataVersion.remove(&refDataVersion);
 			d.removeFilter(SWT.KeyDown, _kdFilter);
 		});
 	}
@@ -703,8 +710,9 @@ class KeyCodeView : Composite {
 	@property
 	string[] warnings() { mixin(S_TRACE);
 		string[] ws;
-		if (_withIgnitionType && !_prop.targetVersion(_summ, "1.50")) { mixin(S_TRACE);
-			foreach (keyCode; keyCodes) { mixin(S_TRACE);
+		foreach (keyCode; keyCodes) { mixin(S_TRACE);
+			ws ~= .sjisWarnings(_prop.parent, _summ, keyCode, _prop.msgs.keyCode);
+			if (_withIgnitionType && !_prop.targetVersion(_summ, "1.50")) { mixin(S_TRACE);
 				if (_prop.sys.fireKeyCodeKind(keyCode) is FKCKind.HasNot) { mixin(S_TRACE);
 					ws ~= _prop.msgs.warningHasNotKeyCode;
 					break;
@@ -725,6 +733,14 @@ class KeyCodeView : Composite {
 		if (_summ && _summ.legacy && _prop.looks.keyCodesMaxLegacy < keyCodes.length) { mixin(S_TRACE);
 			ws ~= .tryFormat(_prop.msgs.warningKeyCodeCount, _prop.looks.keyCodesMaxLegacy);
 		}
-		return ws;
+		string[] ws2;
+		bool[string] wSet;
+		foreach (w; ws) { mixin(S_TRACE);
+			if (w !in wSet) { mixin(S_TRACE);
+				wSet[w] = true;
+				ws2 ~= w;
+			}
+		}
+		return ws2;
 	}
 }

@@ -48,7 +48,7 @@ import cwx.editor.gui.dwt.absdialog;
 import core.thread;
 
 static import std.algorithm;
-import std.algorithm : max, min, map;
+import std.algorithm : max, min, map, uniq;
 import std.array;
 import std.conv;
 import std.utf;
@@ -4686,4 +4686,109 @@ Font createFontFromPixels(string face, int pixels, bool bold = false, bool itali
 bool isEnterKey(int keyCode) { mixin(S_TRACE);
 	// BUG: テンキーのEnterを押すと0x1000050が発行される。
 	return keyCode == SWT.CR || keyCode == 0x1000050;
+}
+
+struct Warning {
+	Rectangle rect;
+	string[] warnings;
+}
+
+Image warningImage(Props prop, Display d, int warningImageWidth = -1) { mixin(S_TRACE);
+	if (warningImageWidth < 0) warningImageWidth = prop.var.etc.warningImageWidth;
+	auto height = 1;
+	auto buf = new Image(d, warningImageWidth, height);
+	scope (exit) buf.dispose();
+	auto gc = new GC(buf);
+	scope (exit) gc.dispose();
+	int alpha;
+	auto rgb = dwtData(prop.var.etc.warningImageColor, alpha);
+	auto color = new Color(d, rgb);
+	scope (exit) color.dispose();
+	gc.setForeground(color);
+	gc.setBackground(color);
+	gc.fillRectangle(0, 0, warningImageWidth, height);
+	auto alphas = new byte[warningImageWidth];
+	foreach (i, ref b; alphas) { mixin(S_TRACE);
+		b = cast(byte)(cast(real)i / warningImageWidth * alpha);
+	}
+	alphas = .replicate(alphas, height);
+	assert (alphas.length == warningImageWidth * height);
+	auto imgData = buf.getImageData();
+	imgData.setAlphas(0, 0, warningImageWidth * height, alphas, 0);
+	return new Image(d, imgData);
+}
+
+/// ツリーアイテムごとに警告を描画する。
+void treeWarning(Props prop, Tree tree, string[] delegate(TreeItem itm) getWarning) { mixin(S_TRACE);
+	Warning[] warningRects;
+	alias Tuple!(TreeItem, string[]) WarningInfo;
+
+	void updateToolTip() { mixin(S_TRACE);
+		auto p = tree.getDisplay().getCursorLocation();
+		p = tree.toControl(p);
+		auto toolTip = "";
+		if (tree.getClientArea().contains(p)) { mixin(S_TRACE);
+			foreach (warn; warningRects) { mixin(S_TRACE);
+				if (warn.rect.contains(p)) { mixin(S_TRACE);
+					toolTip = std.string.join(warn.warnings, .newline);
+					break;
+				}
+			}
+		}
+		toolTip = .replace(toolTip, "&", "&&");
+		if (tree.getToolTipText() != toolTip) { mixin(S_TRACE);
+			tree.setToolTipText(toolTip);
+		}
+	}
+	void paintTree(Event e) { mixin(S_TRACE);
+		warningRects = [];
+		WarningInfo[] warningInfo;
+		if (!prop.var.etc.drawContentWarnings) return;
+
+		auto ca = tree.getClientArea();
+
+		bool recurse(TreeItem itm) { mixin(S_TRACE);
+			auto bounds = itm.getBounds();
+			if (bounds.y + bounds.height < ca.y) return true;
+			if (ca.y + ca.height <= bounds.y) return false;
+
+			auto warn = getWarning(itm);
+			if (warn.length) warningInfo ~= WarningInfo(itm, warn);
+			if (!itm.getExpanded()) return true;
+			foreach (cItm; itm.getItems()) { mixin(S_TRACE);
+				if (!recurse(cItm)) break;
+			}
+			return true;
+		}
+		foreach (itm; tree.getItems()) { mixin(S_TRACE);
+			if (!recurse(itm)) break;
+		}
+
+		if (!warningInfo.length) return;
+
+		auto wImg = .warningImage(prop, tree.getDisplay(), prop.var.etc.warningImageWidthForTree);
+		scope (exit) wImg.dispose();
+		auto bounds = prop.images.warning.getBounds();
+		foreach (info; warningInfo) { mixin(S_TRACE);
+			auto itm = info[0];
+			auto warnings = info[1];
+			warnings = std.algorithm.sort(warnings).uniq().array();
+			auto b = itm.getBounds();
+			if (b.y + b.height <= ca.y) continue;
+			if (ca.y + ca.height < b.y) continue;
+			auto ib = itm.getImageBounds(0);
+			if (ca.width <= ib.x) continue;
+			int ix = .max(ib.x, ca.width - prop.var.etc.warningImageWidthForTree);
+			e.gc.drawImage(wImg, 0, 0, prop.var.etc.warningImageWidthForTree, 1, ix, b.y, ca.width - ix, b.height);
+			int wx = .max(b.x + b.width, ca.width - bounds.width - 1);
+			if (wx < ca.width) { mixin(S_TRACE);
+				e.gc.drawImage(prop.images.warning, wx, b.y + (b.height - bounds.height) / 2);
+			}
+			auto rect = new Rectangle(ix, b.y, prop.var.etc.warningImageWidthForTree, b.height);
+			warningRects ~= Warning(rect, warnings);
+		}
+		updateToolTip();
+	}
+	.listener(tree, SWT.Paint, &paintTree);
+	.listener(tree, SWT.MouseMove, &updateToolTip);
 }

@@ -11,6 +11,7 @@ import cwx.system;
 import cwx.card;
 import cwx.event;
 import cwx.structs;
+import cwx.warning;
 
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.dprops;
@@ -358,6 +359,11 @@ public:
 		dirs = new Tree(_comp, SWT.SINGLE | SWT.BORDER);
 		initTree(_comm, dirs, false);
 		.listener(dirs, SWT.FocusIn, gotFocus);
+		.treeWarning(_comm.prop, dirs, (itm) { mixin(S_TRACE);
+			auto flagDir = cast(FlagDir)itm.getData();
+			if (!flagDir) return new string[0];
+			return .warnings(_comm.prop.parent, _comm.skin, _comm.summary, flagDir, _comm.prop.var.etc.targetVersion);
+		});
 
 		edit = new TreeEdit(_comm, dirs, &editEnd, &createEditor);
 

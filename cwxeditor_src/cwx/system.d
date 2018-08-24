@@ -9,6 +9,7 @@ import std.algorithm;
 import std.conv;
 import std.string;
 import std.path;
+import std.regex;
 
 /// XMLからデータを生成する際に必要な情報。
 class XMLInfo {
@@ -29,7 +30,7 @@ struct FKeyCode {
 
 class System {
 	/// 唯一のコンストラクタ。
-	this () {}
+	this () { }
 
 	/// 各特性を名前に変換する。名前は'＿'を除いてクーポンと一致する。
 	/// クラシックなシナリオの場合、legacyNameにエンジンのファイル名
@@ -342,6 +343,21 @@ class System {
 	const
 	string raceCoupon(string raceName) { mixin(S_TRACE);
 		return "＠Ｒ" ~ raceName;
+	}
+
+	/// レベル上限を示すシステムクーポン。
+	@property const string levelLimit() { return "＠レベル上限"; }
+
+	/// couponが遺伝子クーポンか。
+	@property const bool isGene(string coupon) { mixin(S_TRACE);
+		return coupon.length == "＠Ｇ0000000000".length && !coupon.matchFirst(.ctRegex!(`^＠Ｇ[01]{10}$`)).empty;
+	} unittest { mixin(S_TRACE);
+		mixin (UTPerf);
+		assert ((new System).isGene("＠Ｇ0000000000"));
+		assert ((new System).isGene("＠Ｇ0000000001"));
+		assert ((new System).isGene("＠Ｇ1111111111"));
+		assert (!(new System).isGene("＠Ｇ111111111"));
+		assert (!(new System).isGene("＠Ｇ1111111112"));
 	}
 
 	/// 効果・イベントの対象に付与されるシステムクーポン(Wsn.2)。

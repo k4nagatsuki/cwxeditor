@@ -81,6 +81,7 @@ private:
 	@property
 	string[] warningCommon() { mixin(S_TRACE);
 		string[] ws;
+		ws ~= .sjisWarnings(_prop.parent, _summ, _cellName.getText(), _prop.msgs.bgImageCellName);
 		if (_summ && _cellName.getText() != "" && !_prop.isTargetVersion(_summ, "1")) { mixin(S_TRACE);
 			ws ~= _prop.msgs.warningBgImageCellName;
 		}
@@ -526,7 +527,7 @@ private:
 			fonts = [];
 			colors = [];
 			ws ~= .textWarnings(_prop.parent, summSkin, _summ, _prop.var.etc.targetVersion,
-				flags, steps, fonts, colors, wFlags, wSteps, wFonts, wColors).all;
+				_text.getText(), flags, steps, fonts, colors, wFlags, wSteps, wFonts, wColors).all;
 		}
 
 		warning = ws;

@@ -212,7 +212,7 @@ private class RangePanel : Composite {
 			default:
 				assert (0);
 			}
-			ws ~= couponWarnings(_comm.prop.parent, _summ, _comm.prop.var.etc.targetVersion, _coupon.getText(), false);
+			ws ~= .couponWarnings(_comm.prop.parent, _summ, _comm.prop.var.etc.targetVersion, _coupon.getText(), false, _comm.prop.msgs.couponForRange);
 		}
 		b = _range.get(Range.CARD_TARGET, null);
 		if (b && b.getSelection()) { mixin(S_TRACE);
@@ -865,11 +865,9 @@ private:
 					ws ~= prop.msgs.warningBranchCouponMulti;
 				}
 			}
-			foreach (coupon; _couponView.coupons) { mixin(S_TRACE);
-				ws ~= couponWarnings(prop.parent, summ, prop.var.etc.targetVersion, coupon.name, false);
-			}
+			ws ~= _couponView.warnings;
 		} else if (_name) { mixin(S_TRACE);
-			ws ~= couponWarnings(prop.parent, summ, prop.var.etc.targetVersion, _name.getText(), Type is CType.GET_COUPON || Type is CType.LOSE_COUPON);
+			ws ~= .couponWarnings(prop.parent, summ, prop.var.etc.targetVersion, _name.getText(), Type is CType.GET_COUPON || Type is CType.LOSE_COUPON, prop.msgs.couponName);
 		}
 		static if (Field) {
 			if (summ && summ.legacy && !_prop.targetVersion(summ, "1.30")) { mixin(S_TRACE);
@@ -1174,6 +1172,7 @@ private:
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
+		ws ~= .sjisWarnings(prop.parent, summ, _name.getText(), mixin(Name));
 		static if (EngineVersion != "") {
 			if (!_prop.targetVersion(summ, EngineVersion)) { mixin(S_TRACE);
 				ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(Type), EngineVersion);
@@ -1211,6 +1210,7 @@ protected:
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = _prop.var.etc.nameWidth;
 			_name.setLayoutData(gd);
+			.listener(_name, SWT.Modify, &refreshWarning);
 		}
 
 		if (_evt) { mixin(S_TRACE);
@@ -1269,6 +1269,7 @@ private:
 		auto skin = _comm.skin;
 		bool[string] tbl;
 		string[] ws3;
+		ws ~= .sjisWarnings(prop.parent, summ, _cellName.getText(), prop.msgs.cellName);
 		foreach (back; _cont.backs) { mixin(S_TRACE);
 			auto ws2 = .warnings(prop.parent, skin, summ, back, _prop.var.etc.targetVersion);
 			if (_ignoreEffectBooster && _ignoreEffectBooster.getSelection()) { mixin(S_TRACE);
@@ -1334,6 +1335,7 @@ protected:
 				_cellName = createCellNameCombo(comm, summ, comp, &catchMod, _evt ? _evt.cellName : "");
 				mod(_cellName);
 				_cellName.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				.listener(_cellName, SWT.Modify, &refreshWarning);
 				auto gd = new GridData(GridData.FILL_VERTICAL);
 				gd.heightHint = 0;
 				(new Label(comp, SWT.SEPARATOR | SWT.VERTICAL)).setLayoutData(gd);
@@ -1401,6 +1403,7 @@ private:
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
+		ws ~= .sjisWarnings(prop.parent, summ, _name.getText(), prop.msgs.cellName);
 		if (!_prop.isTargetVersion(summ, "1")) { mixin(S_TRACE);
 			ws ~= .tryFormat(_prop.msgs.warningUnknownContentWsn, _prop.msgs.contentName(CType.LOSE_BG_IMAGE), "1");
 		}
@@ -1430,6 +1433,7 @@ protected:
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = _prop.var.etc.nameWidth;
 			_name.setLayoutData(gd);
+			.listener(_name, SWT.Modify, &refreshWarning);
 		}
 		_transition = new TransitionPanel(comm, summ, area, true, _evt, this);
 		_transition.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
@@ -2471,7 +2475,7 @@ private:
 		}
 
 		foreach (coupon; _couponView.coupons) { mixin(S_TRACE);
-			ws ~= couponWarnings(prop.parent, summ, prop.var.etc.targetVersion, coupon.name, false);
+			ws ~= couponWarnings(prop.parent, summ, prop.var.etc.targetVersion, coupon.name, false, prop.msgs.valued);
 		}
 
 		warning = ws;
@@ -2479,14 +2483,9 @@ private:
 
 	protected override void refDataVersion() { mixin(S_TRACE);
 		auto valued = _method[cast(size_t)SelectionMethod.Valued];
-		valued.setEnabled(!summ || !summ.legacy);
-		if (!valued.isEnabled() && valued.getSelection()) { mixin(S_TRACE);
-			valued.setSelection(false);
-			_method[cast(size_t)SelectionMethod.Manual].setSelection(true);
-			applyEnabled(true);
-		}
-		_couponView.enabled = (!summ || !summ.legacy) && valued.getSelection();
-		_initValue.setEnabled((!summ || !summ.legacy) && valued.getSelection());
+		valued.setEnabled(!summ || !summ.legacy || valued.getSelection() || _couponView.coupons.length);
+		_couponView.enabled = valued.isEnabled() && valued.getSelection();
+		_initValue.setEnabled(valued.isEnabled() && valued.getSelection());
 		refreshWarning();
 	}
 
@@ -2530,7 +2529,7 @@ protected:
 			auto comp = createValueEditor(comm, summ, area, &catchMod, _couponView, _initValue, updateValue, false);
 			mod(_initValue);
 			mod(_couponView);
-			_couponView.modEvent ~= &refreshWarning;
+			_couponView.modEvent ~= &refDataVersion;
 			comp.setLayoutData(new GridData(GridData.FILL_BOTH));
 		}
 
@@ -3460,6 +3459,7 @@ private:
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
+		ws ~= .sjisWarnings(prop.parent, summ, _keyCode.getText(), prop.msgs.keyCode);
 		if (_effectCardTypeWsn1.length) { mixin(S_TRACE);
 			if (!_prop.targetVersion(summ, "1.50")) { mixin(S_TRACE);
 				ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(CType.BRANCH_KEY_CODE), "1.50");
@@ -3635,6 +3635,7 @@ protected:
 			auto kgd = new GridData(GridData.FILL_HORIZONTAL);
 			kgd.widthHint = _prop.var.etc.nameWidth;
 			_keyCode.setLayoutData(kgd);
+			.listener(_keyCode, SWT.Modify, &refreshWarning);
 		}
 		{ mixin(S_TRACE);
 			_selectCard = new Button(area, SWT.CHECK);
@@ -3872,6 +3873,7 @@ private:
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
+		ws ~= .sjisWarnings(prop.parent, summ, _cellName.getText(), prop.msgs.cellName);
 		if (!_prop.isTargetVersion(summ, "1")) { mixin(S_TRACE);
 			ws ~= .tryFormat(_prop.msgs.warningUnknownContentWsn, _prop.msgs.contentName(CType.MOVE_BG_IMAGE), "1");
 		}
@@ -3897,6 +3899,7 @@ protected:
 			_cellName = createCellNameCombo(comm, summ, grp, &catchMod, _evt ? _evt.cellName : "");
 			mod(_cellName);
 			_cellName.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			.listener(_cellName, SWT.Modify, &refreshWarning);
 		}
 
 		void delegate() updateEnabledPosition;
@@ -3990,6 +3993,7 @@ private:
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
+		ws ~= .sjisWarnings(prop.parent, summ, _cardGroup.getText(), prop.msgs.cardGroup);
 		if (!_prop.isTargetVersion(summ, "3")) { mixin(S_TRACE);
 			ws ~= .tryFormat(_prop.msgs.warningUnknownContentWsn, _prop.msgs.contentName(CType.MOVE_CARD), "3");
 		}
@@ -4020,6 +4024,7 @@ protected:
 			_cardGroup = createCardGroupCombo(comm, summ, grp, &catchMod, _evt ? _evt.cardGroup : "");
 			mod(_cardGroup);
 			_cardGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			.listener(_cardGroup, SWT.Modify, &refreshWarning);
 		}
 
 		void delegate() updateEnabledPosition;

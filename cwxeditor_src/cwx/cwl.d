@@ -3375,14 +3375,22 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 			default: throw new SummaryException("Unknown talker value: " ~ to!(string)(cast(int)e.talkerNC));
 			}
 			if (Talker.VALUED == e.talkerNC) { mixin(S_TRACE);
+				Coupon[] coupons;
+				bool[string] cSet;
+				foreach (cc; e.coupons) { mixin(S_TRACE);
+					auto name2 = cc.name.tosjis().touni();
+					if (name2 in cSet) continue;
+					cSet[name2] = true;
+					coupons ~= cc;
+				}
 				if (0 == e.initValue) { mixin(S_TRACE);
-					f.writeL(cast(uint)e.coupons.length);
+					f.writeL(cast(uint)coupons.length);
 				} else { mixin(S_TRACE);
-					f.writeL(cast(uint)e.coupons.length + 1);
+					f.writeL(cast(uint)coupons.length + 1);
 					writeString(f, "");
 					f.writeL(cast(int)e.initValue);
 				}
-				foreach (c; e.coupons) { mixin(S_TRACE);
+				foreach (c; coupons) { mixin(S_TRACE);
 					writeString(f, c.name);
 					f.writeL(cast(int)c.value);
 				}
@@ -3909,9 +3917,17 @@ private void writeCast(ref SData d, ref ByteIO f, CastCard c) { mixin(S_TRACE);
 	foreach (cc; c.beasts) { mixin(S_TRACE);
 		writeBeast(d, f, cc);
 	}
-	f.writeL(cast(uint)c.coupons.length);
+	Coupon[] coupons;
+	bool[string] cSet;
 	foreach (cc; c.coupons) { mixin(S_TRACE);
-		writeString(f, cc.coupon);
+		auto name2 = cc.name.tosjis().touni();
+		if (name2 in cSet) continue;
+		cSet[name2] = true;
+		coupons ~= cc;
+	}
+	f.writeL(cast(uint)coupons.length);
+	foreach (cc; coupons) { mixin(S_TRACE);
+		writeString(f, cc.name);
 		f.writeL(cast(int)cc.value);
 	}
 }

@@ -16,6 +16,7 @@ import cwx.menu;
 import cwx.types;
 import cwx.card;
 import cwx.system;
+import cwx.warning;
 
 import cwx.editor.gui.dwt.smalldialogs;
 import cwx.editor.gui.dwt.dprops;
@@ -702,6 +703,12 @@ private:
 	}
 	void storeRenameDir(string oldPath, string newPath) {
 		_undo ~= new UndoRenameDir(this, _comm, _summ, oldPath, newPath);
+	}
+
+	Skin _summSkin;
+	@property
+	Skin summSkin() { mixin(S_TRACE);
+		return _summSkin ? _summSkin : _comm.skin;
 	}
 
 	void dirEditEnd(TreeItem itm, Control ctrl) { mixin(S_TRACE);
@@ -1932,6 +1939,10 @@ public:
 		_prop = prop;
 		_importTarget = importTarget;
 		_undo = new UndoManager(_prop.var.etc.undoMaxMainView);
+
+		if (_readOnly) { mixin(S_TRACE);
+			_summSkin = findSkin(_comm, _prop, importTarget);
+		}
 	}
 
 	void construct(Composite parent, FlagTable flags) { mixin(S_TRACE);
@@ -1967,6 +1978,15 @@ public:
 			tableParent = panel2;
 			_dirTree = new Tree(panel1, SWT.SINGLE | SWT.BORDER);
 			initTree(_comm, _dirTree, false);
+			.treeWarning(_prop, _dirTree, delegate string[] (TreeItem itm) { mixin(S_TRACE);
+				if (auto summ = cast(Summary)itm.getData()) { mixin(S_TRACE);
+					return .warnings(_prop.parent, summSkin, _summ, _summ, _prop.var.etc.targetVersion);
+				}
+				if (auto dt = cast(DirTree)itm.getData()) { mixin(S_TRACE);
+					return .sjisWarnings(_prop.parent, _summ, dt.name, _prop.msgs.areaDirName);
+				}
+				return [];
+			});
 			.listener(_dirTree, SWT.Selection, &updateDirSel);
 			if (!_readOnly) { mixin(S_TRACE);
 				_areaDirEdit = new TreeEdit(_comm, _dirTree, &dirEditEnd, (itm) { mixin (S_TRACE);
