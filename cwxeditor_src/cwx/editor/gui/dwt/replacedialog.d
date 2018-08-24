@@ -1161,7 +1161,11 @@ private:
 			auto bar = new ToolBar(comp3, SWT.HORIZONTAL | SWT.FLAT | SWT.WRAP);
 			_comm.put(bar);
 			bar.setLayoutData(new GridData(GridData.FILL_BOTH));
-			foreach (cGrp, cs; CTYPE_GROUP) { mixin(S_TRACE);
+			foreach (cGrp; EnumMembers!CTypeGroup) { mixin(S_TRACE);
+				if (bar.getItemCount()) { mixin(S_TRACE);
+					new ToolItem(bar, SWT.SEPARATOR);
+				}
+				auto cs = CTYPE_GROUP[cGrp];
 				foreach (cType; cs) { mixin(S_TRACE);
 					auto text = _prop.msgs.contentName(cType);
 					auto img = _prop.images.content(cType);
@@ -1170,9 +1174,6 @@ private:
 					_contents[cType] = ti;
 					checked.buttons ~= ti;
 					ti.addSelectionListener(checked);
-				}
-				if (cGrp < CTypeGroup.max) { mixin(S_TRACE);
-					new ToolItem(bar, SWT.SEPARATOR);
 				}
 			}
 			auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
