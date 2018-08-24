@@ -26,6 +26,7 @@ import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.scripterrordialog;
 import cwx.editor.gui.dwt.settingsdialog;
+import cwx.editor.gui.dwt.incsearch;
 
 static import core.stdc.stdlib;
 
@@ -57,6 +58,8 @@ private:
 	Button _baseTemplate;
 	ScTemplate[int] _tTbl;
 	bool[string] _isClassic;
+
+	IncSearch _skinIncSearch;
 
 	bool _useTemplate;
 	Summary _fromTemplate = null;
@@ -251,7 +254,7 @@ protected:
 			}
 			_skinC.add(_prop.msgs.defaultSelection(_prop.msgs.classic));
 
-			if (_prop.var.etc.targetVersion != "CardWirthPy") {
+			if (_prop.var.etc.targetVersion != "CardWirthPy") { mixin(S_TRACE);
 				// ターゲットバージョンはクラシック
 				_skinC.select(_skinC.getItemCount() - 1);
 			} else if (lastIndex == -1) { mixin(S_TRACE);
@@ -264,6 +267,37 @@ protected:
 			} else { mixin(S_TRACE);
 				_skinC.select(lastIndex);
 			}
+
+			_skinIncSearch = new IncSearch(_comm, _skinC);
+			auto skinTypes2 = _skinTypes.dup;
+			auto selectedType = -1;
+			void selectSkinType() { mixin(S_TRACE);
+				if (_skinC.getSelectionIndex() != -1) { mixin(S_TRACE);
+					selectedType = _skinC.getSelectionIndex();
+				}
+			}
+			selectSkinType();
+			.listener(_skinC, SWT.Selection, &selectSkinType);
+			void refreshSkins() { mixin(S_TRACE);
+				_skinC.removeAll();
+				auto isClassic = cast(int)skinTypes2.length <= selectedType;
+				auto isSkin = !isClassic && selectedType != -1;
+				auto t2 = isSkin ? skinTypes2[selectedType] : typeof(skinTypes2[0])();
+				skinTypes2 = [];
+				foreach (i, ref t; _skinTypes) { mixin(S_TRACE);
+					if (!_skinIncSearch.match(t.name)) continue;
+					_skinC.add(.tryFormat("%s(%s)", t.name, t.type));
+					skinTypes2 ~= t;
+					if (isSkin && t2 == t) _skinC.select(cast(int)_skinC.getItemCount() - 1);
+				}
+				_skinC.add(_prop.msgs.defaultSelection(_prop.msgs.classic));
+				if (isClassic) _skinC.select(cast(int)_skinC.getItemCount() - 1);
+				selectedType = _skinC.getSelectionIndex();
+			}
+			_skinIncSearch.modEvent ~= &refreshSkins;
+			auto menu = new Menu(_skinC.getShell(), SWT.POP_UP);
+			createMenuItem(_comm, menu, MenuID.IncSearch, { _skinIncSearch.startIncSearch(); }, null);
+			_skinC.setMenu(menu);
 
 			_baseTemplate = new Button(grp, SWT.RADIO);
 			_baseTemplate.setText(_prop.msgs.scenarioTemplate);
@@ -342,6 +376,7 @@ protected:
 			_nameVal = _name.getText();
 			if (!_nameVal.length) _nameVal = _prop.var.etc.newScenarioName;
 
+			_skinIncSearch.close();
 			auto skinIndex = _skinC.getSelectionIndex();
 			if (0 <= skinIndex && skinIndex < _skinTypes.length) { mixin(S_TRACE);
 				_prop.var.etc.lastSkinName = _skinTypes[skinIndex].name;

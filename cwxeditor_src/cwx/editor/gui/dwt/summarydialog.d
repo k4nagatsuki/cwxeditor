@@ -62,7 +62,7 @@ private:
 	Button _typeSkin;
 	Button _typeClassic;
 	Combo _type;
-	Tuple!(string, "type", string, "name")[] _skinInfo;
+	Tuple!(string, "type", string, "name", string, "path")[] _skinInfo;
 	bool _hasLegacySkin;
 	ClassicEngine[] _classicEngines;
 	Combo _dataVersion;
@@ -71,6 +71,9 @@ private:
 	SplitPane _tab2Sash, _tab3Sash;
 	// TODO Tag
 	// TODO Label
+
+	IncSearch _skinIncSearch;
+	Skin _selectedSkin = null;
 
 	Skin _summSkin;
 	@property
@@ -112,15 +115,16 @@ private:
 
 	@property
 	Skin selectedSkin() { mixin(S_TRACE);
+		int i = _type.getSelectionIndex();
+		if (i == -1) return _selectedSkin;
 		if (_typeSkin.getSelection()) { mixin(S_TRACE);
-			auto info = _skinInfo[_type.getSelectionIndex()];
+			auto info = _skinInfo[i];
 			foreach (file, skin; skinTable(_prop)) { mixin(S_TRACE);
-				if (info.type == skin.type && info.name == skin.name) { mixin(S_TRACE);
+				if (info.path == skin.path) { mixin(S_TRACE);
 					return skin;
 				}
 			}
 		} else if (_typeClassic.getSelection()) { mixin(S_TRACE);
-			int i = _type.getSelectionIndex();
 			if (_hasLegacySkin) { mixin(S_TRACE);
 				if (i == 0) { mixin(S_TRACE);
 					return .findSkin(_comm, _prop, _summ, null, "", "", false);
@@ -346,14 +350,26 @@ private:
 					mod(_type);
 					_type.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 					_type.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-					refreshTypes(skin);
 					void refType() { mixin(S_TRACE);
 						refreshPreview();
 						refreshWarning();
+						_selectedSkin = selectedSkin;
 					}
 					.listener(_typeSkin, SWT.Selection, &refType);
 					.listener(_typeClassic, SWT.Selection, &refType);
 					.listener(_type, SWT.Modify, &refreshPreview);
+
+					_skinIncSearch = new IncSearch(_comm, _type);
+					_skinIncSearch.modEvent ~= () => refreshTypes(null, true);
+					auto menu = new Menu(_type.getShell(), SWT.POP_UP);
+					createMenuItem(_comm, menu, MenuID.IncSearch, { _skinIncSearch.startIncSearch(); }, null);
+					_type.setMenu(menu);
+
+					refreshTypes(skin);
+					_selectedSkin = selectedSkin;
+					.listener(_type, SWT.Selection, { mixin(S_TRACE);
+						_selectedSkin = selectedSkin;
+					});
 				}
 				{ mixin(S_TRACE);
 					auto grp = new Group(comp2, SWT.NONE);
@@ -486,9 +502,11 @@ private:
 	void refreshTypes() { mixin(S_TRACE);
 		refreshTypes(null);
 	}
-	void refreshTypes(Skin skin) { mixin(S_TRACE);
+	void refreshTypes(Skin skin, bool incSearch = false) { mixin(S_TRACE);
+		if (incSearch) skin = _selectedSkin;
 		string selType = skin ? skin.type : _summ.type;
 		string selName = skin ? skin.name : _summ.skinName;
+		string selPath = skin ? skin.path : "";
 		string selClassic = null;
 
 		if (!_typeSkin.getSelection() && !_typeClassic.getSelection()) { mixin(S_TRACE);
@@ -499,11 +517,16 @@ private:
 			}
 			selType = _summ.type;
 			selClassic = summSkin.legacyEngine.length ? summSkin.legacyEngine : null;
+		} else if (incSearch) { mixin(S_TRACE);
+			if (skin.legacy) { mixin(S_TRACE);
+				selClassic = .nabs(_prop.toAppAbs(skin.engine));
+			}
 		} else { mixin(S_TRACE);
-			if (_skinInfo) { mixin(S_TRACE);
+			if (_skinInfo.length) { mixin(S_TRACE);
 				auto info = _skinInfo[_type.getSelectionIndex()];
 				selType = info.type;
 				selName = info.name;
+				selPath = info.path;
 			} else { mixin(S_TRACE);
 				int i = _type.getSelectionIndex();
 				if (-1 != i && i < _classicEngines.length) { mixin(S_TRACE);
@@ -515,11 +538,12 @@ private:
 						selClassic = _prop.toAppAbs(_classicEngines[i].enginePath);
 					}
 				}
-				if (selClassic) selClassic = nabs(selClassic);
+				if (selClassic) selClassic = .nabs(selClassic);
 			}
 		}
 		_classicEngines = [];
 		foreach (e; _prop.var.etc.classicEngines) { mixin(S_TRACE);
+			if (!_skinIncSearch.match(e.name)) continue;
 			_classicEngines ~= e.dup;
 		}
 
@@ -530,6 +554,10 @@ private:
 			Skin[] skins;
 			foreach (key, value; skinTable(_prop)) { mixin(S_TRACE);
 				skins ~= value;
+			}
+			if (!skins.length) { mixin(S_TRACE);
+				// スキンが無い
+				skins ~= .findSkin2(_prop, _prop.var.etc.defaultSkin, _prop.var.etc.defaultSkinName);
 			}
 			int skinCmp(in Skin skin1, in Skin skin2) { mixin(S_TRACE);
 				if (_prop.var.etc.logicalSort) { mixin(S_TRACE);
@@ -544,20 +572,23 @@ private:
 			}
 			skins = sort!(skinCmp)(skins);
 			ptrdiff_t typeSkin = -1;
-			foreach (i, skin2; skins) { mixin(S_TRACE);
+			auto i = 0;
+			foreach (skin2; skins) { mixin(S_TRACE);
+				if (!_skinIncSearch.match(skin2.name)) continue;
 				_type.add(.tryFormat("%s(%s)", skin2.name, skin2.type));
-				_skinInfo ~= typeof(_skinInfo[0])(skin2.type, skin2.name);
-				if (skin2.type == selType) { mixin(S_TRACE);
-					if (typeSkin == -1) typeSkin = i;
-					if (skin2.name == selName) _type.select(cast(int)i);
+				_skinInfo ~= typeof(_skinInfo[0])(skin2.type, skin2.name, skin2.path);
+				if (selPath == "") { mixin(S_TRACE);
+					if (skin2.type == selType) { mixin(S_TRACE);
+						if (typeSkin == -1) typeSkin = i;
+						if (skin2.name == selName) _type.select(cast(int)i);
+					}
+				} else if (skin2.path == selPath) { mixin(S_TRACE);
+					_type.select(cast(int)i);
 				}
+				i++;
 			}
-			if (!skins) { mixin(S_TRACE);
-				// スキンが無い
-				_type.add(_prop.var.etc.defaultSkin);
-				_skinInfo ~= typeof(_skinInfo[0])(_prop.var.etc.defaultSkin, "");
-			}
-			if (_type.getSelectionIndex() == -1) { mixin(S_TRACE);
+			if (!incSearch && _type.getSelectionIndex() == -1) { mixin(S_TRACE);
+				assert (0 < i);
 				if (typeSkin == -1) { mixin(S_TRACE);
 					_type.select(cast(int)typeSkin);
 				} else { mixin(S_TRACE);
@@ -567,7 +598,8 @@ private:
 		}
 		_hasLegacySkin = false;
 		string resDir, lEnginePath;
-		auto curSkin = Skin.findLegacy(_summ.scenarioPath, resDir, lEnginePath, _prop.var.etc.classicEngineRegex, _prop.var.etc.classicDataDirRegex, _prop.var.etc.classicMatchKey, _prop.var.etc.classicEngines);
+		auto curSkin = Skin.findLegacy(_summ.scenarioPath, resDir, lEnginePath, _prop.var.etc.classicEngineRegex,
+			_prop.var.etc.classicDataDirRegex, _prop.var.etc.classicMatchKey, _prop.var.etc.classicEngines);
 		lEnginePath = nabs(lEnginePath);
 		bool cur = 0 != lEnginePath.length;
 		if (_typeSkin.getSelection()) { mixin(S_TRACE);
@@ -575,7 +607,8 @@ private:
 		} else { mixin(S_TRACE);
 			assert (_typeClassic.getSelection());
 			// クラシックエンジンのリソース
-			foreach (i, ce; _classicEngines) { mixin(S_TRACE);
+			auto i = 0;
+			foreach (ce; _classicEngines) { mixin(S_TRACE);
 				_type.add(ce.name);
 				if (selClassic && cfnmatch(selClassic, _prop.toAppAbs(ce.enginePath))) { mixin(S_TRACE);
 					_type.select(cast(int)i);
@@ -584,24 +617,29 @@ private:
 					cur = false;
 					if (-1 == _type.getSelectionIndex()) _type.select(cast(int)i);
 				}
+				i++;
 			}
-			if (cur) { mixin(S_TRACE);
-				_type.add(_prop.msgs.defaultSelection(lEnginePath), 0);
-				_hasLegacySkin = true;
-			}
-			if (!_type.getItemCount()) { mixin(S_TRACE);
-				// クラシックエンジンが無い
-				_typeClassic.setSelection(false);
-				_typeSkin.setSelection(true);
-				initSkin();
+			if (!incSearch) { mixin(S_TRACE);
+				if (cur) { mixin(S_TRACE);
+					_type.add(_prop.msgs.defaultSelection(lEnginePath), 0);
+					_hasLegacySkin = true;
+				}
+				if (!_type.getItemCount()) { mixin(S_TRACE);
+					// クラシックエンジンが無い
+					_typeClassic.setSelection(false);
+					_typeSkin.setSelection(true);
+					initSkin();
+				}
 			}
 		}
-		_typeClassic.setEnabled(!_readOnly && (cur || _classicEngines.length));
-		assert (_type.getItemCount());
-		if (-1 == _type.getSelectionIndex()) { mixin(S_TRACE);
-			_type.select(0);
+		if (!incSearch) { mixin(S_TRACE);
+			_typeClassic.setEnabled(!_readOnly && (cur || _classicEngines.length));
+			if (-1 == _type.getSelectionIndex() && _type.getItemCount()) { mixin(S_TRACE);
+				_type.select(0);
+			}
 		}
 	}
+
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ, bool readOnly) { mixin(S_TRACE);
 		assert (summ !is null);
