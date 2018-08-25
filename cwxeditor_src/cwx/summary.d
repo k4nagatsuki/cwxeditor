@@ -401,8 +401,8 @@ public:
 			canArchive = true;
 			hasXML = false;
 			if (canUncab && .cfnmatch(ext, ".cab")) { mixin(S_TRACE);
-				auto xmlPath = cabHasFile(fname, "Summary.xml");
-				auto wsmPath = cabHasFile(fname, "Summary.wsm");
+				auto xmlPath = .cabHasFile(fname, "Summary.xml");
+				auto wsmPath = .cabHasFile(fname, "Summary.wsm");
 				if (xmlPath == "" && wsmPath == "") return null;
 				hasXML = xmlPath != "" && (wsmPath == "" || dirDepth(xmlPath) <= dirDepth(wsmPath));
 

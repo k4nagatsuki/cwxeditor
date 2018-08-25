@@ -838,8 +838,8 @@ class RawFile {
 
 	/// bufferへファイル内容を読み込む。
 	ubyte[] rawRead(ubyte[] buffer) { mixin(S_TRACE);
-		auto len = .fread(buffer.ptr, buffer.length, 1, _fp);
-		return buffer[0 .. len];
+		auto num = .fread(buffer.ptr, buffer.length, 1, _fp);
+		return buffer[0 .. num * buffer.length];
 	}
 	/// シークする。
 	void seek(long offset, int origin) { mixin(S_TRACE);
