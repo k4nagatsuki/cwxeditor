@@ -51,6 +51,8 @@ class EventTreeDialog : AbsDialog {
 	private RoundView _rounds = null;
 
 	private void refreshWarning() { mixin(S_TRACE);
+		if (!_name) return;
+
 		string[] ws;
 
 		ws ~= .sjisWarnings(_comm.prop.parent, _summ, _name.getText(), _comm.prop.msgs.eventName);
@@ -61,7 +63,9 @@ class EventTreeDialog : AbsDialog {
 		}
 
 		if (_keyCodes) ws ~= _keyCodes.warnings;
-		if (_keyCodeMatchingType && keyCodeMatchingType is MatchingType.And && !_comm.prop.targetVersion(_summ, "1.50")) { mixin(S_TRACE);
+		if (_keyCodeMatchingType && _keyCodeMatchingType.getSelectionIndex() != -1
+				&& keyCodeMatchingType is MatchingType.And
+				&& !_comm.prop.targetVersion(_summ, "1.50")) { mixin(S_TRACE);
 			ws ~= _comm.prop.msgs.warningKeyCodeMatchingTypeAnd;
 		}
 
@@ -248,6 +252,7 @@ class EventTreeDialog : AbsDialog {
 		scope (exit) ignoreMod = false;
 
 		assert (_et !is null);
+		_name.setText(_et.name);
 		if (_enter) _enter.setSelection(_et.fireEnter);
 		if (_lose) _lose.setSelection(_et.fireLose);
 		if (_escape) _escape.setSelection(_et.fireEscape);
@@ -258,7 +263,6 @@ class EventTreeDialog : AbsDialog {
 			_keyCodeMatchingType.select(cast(int).cCountUntil(MATCHING_TYPE, _et.keyCodeMatchingType));
 		}
 		if (_rounds) _rounds.rounds = _et.rounds;
-		_name.setText(_et.name);
 
 		refreshWarning();
 	}

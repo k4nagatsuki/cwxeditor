@@ -82,6 +82,7 @@ private:
 	}
 
 	void refreshWarning() { mixin(S_TRACE);
+		if (!_sname || !_desc || !_author || !_rCoupons) return;
 		string[] ws;
 		if (_dataVersion && _summ && _imgPath) { mixin(S_TRACE);
 			auto ver = dataVersion;
