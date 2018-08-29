@@ -133,7 +133,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	if (casts) { mixin(S_TRACE);
 		foreach (cc; casts.coupons) { mixin(S_TRACE);
 			r ~= .sjisWarnings(prop, summ, cc.coupon, prop.msgs.history);
-			if (cc.coupon.startsWith(prop.sys.couponSystem) && cc.coupon != prop.sys.levelLimit && !prop.sys.isGene(cc.coupon)) { mixin(S_TRACE);
+			if (cc.coupon.startsWith(prop.sys.couponSystem) && cc.coupon != prop.sys.levelLimit && cc.coupon != prop.sys.ep && !prop.sys.isGene(cc.coupon)) { mixin(S_TRACE);
 				r ~= prop.msgs.warningSystemCouponForHistory;
 			}
 		}

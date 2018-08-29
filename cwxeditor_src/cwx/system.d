@@ -348,6 +348,9 @@ class System {
 	/// レベル上限を示すシステムクーポン。
 	@property const string levelLimit() { return "＠レベル上限"; }
 
+	/// 子供を作るのに必要なポイントの所持点数を示すシステムクーポン。
+	@property const string ep() { return "＠ＥＰ"; }
+
 	/// couponが遺伝子クーポンか。
 	@property const bool isGene(string coupon) { mixin(S_TRACE);
 		return coupon.length == "＠Ｇ0000000000".length && !coupon.matchFirst(.ctRegex!(`^＠Ｇ[01]{10}$`)).empty;

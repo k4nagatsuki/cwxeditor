@@ -1045,7 +1045,7 @@ class CouponView(CVType Type) : Composite {
 		string[] ws;
 		static if (Type == CVType.Cast) {
 			ws ~= .sjisWarnings(_prop.parent, _summ, name, _prop.msgs.history);
-			if (std.string.startsWith(name, _prop.sys.couponSystem) && name != _prop.sys.levelLimit && !_prop.sys.isGene(name)) { mixin(S_TRACE);
+			if (std.string.startsWith(name, _prop.sys.couponSystem) && name != _prop.sys.levelLimit && name != _prop.sys.ep && !_prop.sys.isGene(name)) { mixin(S_TRACE);
 				ws ~= _prop.msgs.warningSystemCouponForHistory;
 			}
 		} else static if (Type == CVType.Valued) {
