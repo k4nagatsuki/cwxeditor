@@ -1269,7 +1269,7 @@ private:
 		auto skin = _comm.skin;
 		bool[string] tbl;
 		string[] ws3;
-		ws ~= .sjisWarnings(prop.parent, summ, _cellName.getText(), prop.msgs.cellName);
+		if (_cellName) ws ~= .sjisWarnings(prop.parent, summ, _cellName.getText(), prop.msgs.cellName);
 		foreach (back; _cont.backs) { mixin(S_TRACE);
 			auto ws2 = .warnings(prop.parent, skin, summ, back, _prop.var.etc.targetVersion);
 			if (_ignoreEffectBooster && _ignoreEffectBooster.getSelection()) { mixin(S_TRACE);
