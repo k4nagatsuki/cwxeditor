@@ -611,6 +611,9 @@ public:
 		case MenuID.NewFlag: return imgd!("flag_new.png");
 		case MenuID.NewStep: return imgd!("step_new.png");
 		case MenuID.CreateStepValues: return imgd!("create_step_values.png");
+		case MenuID.PutSPChar: return imgd!("put_sp_char.png");
+		case MenuID.PutFlagValue: return imgd!("flag.png");
+		case MenuID.PutStepValue: return imgd!("step.png");
 		case MenuID.CreateVariableEventTree: return imgd!("var_tree.png");
 		case MenuID.InitVariablesTree: return imgd!("var_init.png");
 		case MenuID.CopyVariablePath: return imgd!("copy_path.png");

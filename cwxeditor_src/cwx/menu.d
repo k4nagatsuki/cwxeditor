@@ -143,6 +143,9 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.NewFlag] = "F";
 		_mnemonic[MenuID.NewStep] = "S";
 		_mnemonic[MenuID.CreateStepValues] = "V";
+		_mnemonic[MenuID.PutSPChar] = "S";
+		_mnemonic[MenuID.PutFlagValue] = "F";
+		_mnemonic[MenuID.PutStepValue] = "S";
 		_mnemonic[MenuID.CreateVariableEventTree] = "E";
 		_mnemonic[MenuID.InitVariablesTree] = "I";
 		_mnemonic[MenuID.CopyVariablePath] = "V";
@@ -366,6 +369,10 @@ class MenuProps : Properties {
 		_hotkey[MenuID.NewFlag] = "Ctrl+L";
 		_hotkey[MenuID.NewStep] = "Ctrl+P";
 		_hotkey[MenuID.CreateStepValues] = "";
+		_hotkey[MenuID.PutSPChar] = "";
+		_hotkey[MenuID.PutFlagValue] = "";
+		_hotkey[MenuID.PutStepValue] = "";
+		_hotkey[MenuID.PutSPChar] = "";
 		_hotkey[MenuID.CreateVariableEventTree] = "";
 		_hotkey[MenuID.InitVariablesTree] = "";
 		_hotkey[MenuID.CopyVariablePath] = "";
@@ -841,6 +848,9 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.CGroupLost:
 	case MenuID.CGroupVisual:
 	case MenuID.CreateStepValues:
+	case MenuID.PutSPChar:
+	case MenuID.PutFlagValue:
+	case MenuID.PutStepValue:
 	case MenuID.CreateVariableEventTree:
 	case MenuID.InitVariablesTree:
 	case MenuID.OverDialog:
@@ -1058,6 +1068,9 @@ bool isGlobalMenu(MenuID id) {
 	case MenuID.EditSceneDup:
 	case MenuID.SetStartArea:
 	case MenuID.CreateStepValues:
+	case MenuID.PutSPChar:
+	case MenuID.PutFlagValue:
+	case MenuID.PutStepValue:
 	case MenuID.CreateVariableEventTree:
 	case MenuID.InitVariablesTree:
 	case MenuID.CopyVariablePath:

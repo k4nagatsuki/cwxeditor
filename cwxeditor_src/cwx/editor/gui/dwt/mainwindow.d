@@ -3344,6 +3344,9 @@ public:
 						case MenuID.CGroupLost:
 						case MenuID.CGroupVisual:
 						case MenuID.CreateStepValues:
+						case MenuID.PutSPChar:
+						case MenuID.PutFlagValue:
+						case MenuID.PutStepValue:
 						case MenuID.CreateVariableEventTree:
 						case MenuID.InitVariablesTree:
 						case MenuID.OverDialog:

@@ -2548,6 +2548,9 @@ class Msgs : Properties {
 	auto menuTextNewFlag = Msg("menuTextNewFlag", "フラグの作成");
 	auto menuTextNewStep = Msg("menuTextNewStep", "ステップの作成");
 	auto menuTextCreateStepValues = Msg("menuTextCreateStepValues", "ステップ値の自動生成");
+	auto menuTextPutSPChar = Msg("menuTextPutSPChar", "特殊文字の挿入");
+	auto menuTextPutFlagValue = Msg("menuTextPutFlagValue", "フラグ値");
+	auto menuTextPutStepValue = Msg("menuTextPutStepValue", "ステップ値");
 	auto menuTextCreateVariableEventTree = Msg("menuTextCreateVariableEventTree", "イベントツリーとしてコピー");
 	auto menuTextInitVariablesTree = Msg("menuTextInitVariablesTree", "初期値の設定");
 	auto menuTextCopyVariablePath = Msg("menuTextCopyVariablePath", "状態変数のパスをコピー");
