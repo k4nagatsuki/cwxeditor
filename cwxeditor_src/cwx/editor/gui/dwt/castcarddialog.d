@@ -1142,6 +1142,7 @@ private:
 		refreshPeriod();
 		refreshNature();
 		refreshMakings();
+		refreshWarning();
 	}
 	void refDataVersion() { mixin(S_TRACE);
 		refreshWarning();

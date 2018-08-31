@@ -76,6 +76,10 @@ class CouponView(CVType Type) : Composite {
 		private Button _couponType;
 		private Spinner _couponVal;
 		private TableTCEdit _tte2;
+		private bool[string] _sexCoupons;
+		private bool[string] _periodCoupons;
+		private bool[string] _natureCoupons;
+		private bool[string] _makingCoupons;
 	} else static if (CVType.Valued == Type) {
 		private CCombo _couponType;
 		private int[CouponType] _couponTypeTable;
@@ -807,6 +811,42 @@ class CouponView(CVType Type) : Composite {
 		drag.setTransfer([XMLBytesTransfer.getInstance()]);
 		drag.addDragListener(new CDragListener);
 
+		static if (Type == CVType.Cast) {
+			void updateSkin() { mixin(S_TRACE);
+				auto skin = _comm.skin;
+				_sexCoupons = null;
+				foreach (sex; skin.allSexes) { mixin(S_TRACE);
+					_sexCoupons[skin.sexCoupon(sex)] = true;
+				}
+				_periodCoupons = null;
+				foreach (period; skin.allPeriods) { mixin(S_TRACE);
+					_periodCoupons[skin.periodCoupon(period)] = true;
+				}
+				_natureCoupons = null;
+				if (_prop.var.etc.showSpNature) { mixin(S_TRACE);
+					foreach (nature; skin.allNatures) { mixin(S_TRACE);
+						_natureCoupons[skin.natureCoupon(nature)] = true;
+					}
+				} else { mixin(S_TRACE);
+					foreach (nature; skin.normalNatures) { mixin(S_TRACE);
+						_natureCoupons[skin.natureCoupon(nature)] = true;
+					}
+				}
+				_makingCoupons = null;
+				foreach (making; skin.allMakings) { mixin(S_TRACE);
+					_makingCoupons[skin.makingsCoupon(making)] = true;
+				}
+				refDataVersion();
+			}
+			updateSkin();
+			_comm.refSkin.add(&updateSkin);
+			_comm.refCoupons.add(&updateSkin);
+			.listener(this, SWT.Dispose, { mixin(S_TRACE);
+				_comm.refSkin.remove(&updateSkin);
+				_comm.refCoupons.remove(&updateSkin);
+			});
+		}
+
 		_comm.refMenu.add(&refMenu);
 		_comm.refUndoMax.add(&refUndoMax);
 		_comm.refDataVersion.add(&refDataVersion);
@@ -1045,6 +1085,18 @@ class CouponView(CVType Type) : Composite {
 		string[] ws;
 		static if (Type == CVType.Cast) {
 			ws ~= .sjisWarnings(_prop.parent, _summ, name, _prop.msgs.history);
+			if (name in _sexCoupons) { mixin(S_TRACE);
+				ws ~= .tryFormat(_prop.msgs.warningSexCoupon, name);
+			}
+			if (name in _periodCoupons) { mixin(S_TRACE);
+				ws ~= .tryFormat(_prop.msgs.warningPeriodCoupon, name);
+			}
+			if (name in _natureCoupons) { mixin(S_TRACE);
+				ws ~= .tryFormat(_prop.msgs.warningNatureCoupon, name);
+			}
+			if (name in _makingCoupons) { mixin(S_TRACE);
+				ws ~= .tryFormat(_prop.msgs.warningMakingCoupon, name);
+			}
 			if (std.string.startsWith(name, _prop.sys.couponSystem) && name != _prop.sys.levelLimit && name != _prop.sys.ep && !_prop.sys.isGene(name)) { mixin(S_TRACE);
 				ws ~= _prop.msgs.warningSystemCouponForHistory;
 			}

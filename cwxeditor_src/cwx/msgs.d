@@ -1970,6 +1970,10 @@ class Msgs : Properties {
 	auto warningUnknownContent = Msg("warningUnknownContent", "イベント [%1$s] はCardWirth %2$sより前のバージョンでは使用できません。");
 	auto warningUnknownContentWsn = Msg("warningUnknownContentWsn", "イベント [%1$s] はWsn.%2$sより前のバージョンでは使用できません。");
 	auto warningBranchCouponAtField = Msg("warningBranchCouponAtField", "フィールド全体でのクーポン所持判定は、CardWirth 1.30より前のバージョンでは使用できません。");
+	auto warningSexCoupon = Msg("warningSexCoupon", "「%1$s」は性別を示すクーポンであるため、経歴に使用できません。");
+	auto warningPeriodCoupon = Msg("warningPeriodCoupon", "「%1$s」は年代を示すクーポンであるため、経歴に使用できません。");
+	auto warningNatureCoupon = Msg("warningNatureCoupon", "「%1$s」は素質を示すクーポンであるため、経歴に使用できません。");
+	auto warningMakingCoupon = Msg("warningMakingCoupon", "「%1$s」は特性を示すクーポンであるため、経歴に使用できません。");
 	auto warningSystemVarName = Msg("warningSystemVarName", "%1$sで始まる名前の状態変数は、プレイヤーの環境によっては正しく機能しない事があります。");
 	auto warningSystemCoupon = Msg("warningSystemCoupon", "%1$sで始まる名前のクーポンを操作する事はできません。");
 	auto warningSystemCouponForHistory = Msg("warningSystemCouponForHistory", "キャストカードに設定されたシステムクーポンは正常に動作しない可能性があります。");
