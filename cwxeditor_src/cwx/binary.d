@@ -836,13 +836,23 @@ class RawFile {
 		}
 	}
 
+	/// ファイルのサイズ。
+	@property
+	ulong size() { mixin(S_TRACE);
+		auto pos = tell;
+		seekEnd(0);
+		auto r = tell;
+		seek(pos);
+		return r;
+	}
+
 	/// bufferへファイル内容を読み込む。
 	ubyte[] rawRead(ubyte[] buffer) { mixin(S_TRACE);
 		auto num = .fread(buffer.ptr, buffer.length, 1, _fp);
 		return buffer[0 .. num * buffer.length];
 	}
 	/// シークする。
-	void seek(long offset, int origin) { mixin(S_TRACE);
+	void seek(long offset, int origin = std.stdio.SEEK_SET) { mixin(S_TRACE);
 		switch (origin) {
 		case std.stdio.SEEK_SET:
 			seekSet(offset);

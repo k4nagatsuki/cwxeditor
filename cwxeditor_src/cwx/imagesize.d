@@ -13,12 +13,12 @@ import std.traits;
 
 /// fileが画像ファイルであればimageTypeに対応する拡張子を返す。
 string getNormalizedImageExt(string file) { mixin(S_TRACE);
-	auto f = std.stdio.File(file, "rb");
+	auto f = .rawFile(file, "rb");
 	scope (exit) f.close();
 	return f.getNormalizedImageExt();
 }
 /// ditto
-string getNormalizedImageExt(std.stdio.File f) { mixin(S_TRACE);
+string getNormalizedImageExt(RawFile f) { mixin(S_TRACE);
 	auto pos = f.tell;
 	scope (exit) f.seek(pos);
 	f.seek(0);

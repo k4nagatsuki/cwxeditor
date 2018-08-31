@@ -17,7 +17,7 @@ import cwx.features;
 import cwx.imagesize;
 import cwx.motion;
 import cwx.sjis;
-import cwx.motion;
+import cwx.binary;
 
 import std.algorithm;
 import std.ascii;
@@ -1313,7 +1313,7 @@ string[] warningInconsistency(in CProps prop, in Status[] statuses) { mixin(S_TR
 string[] fileExtensionWarnings(in CProps prop, string path) { mixin(S_TRACE);
 	string[] r;
 	try {
-		auto f = File(path, "rb");
+		auto f = .rawFile(path, "rb");
 		scope (exit) f.close();
 		auto ext = .getNormalizedImageExt(f);
 		if (ext != "" && path.extension().normalizedImageExt != ext) { mixin(S_TRACE);

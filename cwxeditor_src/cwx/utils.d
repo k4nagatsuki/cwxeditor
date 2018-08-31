@@ -418,12 +418,12 @@ string bSndToStr(in ubyte[] bsnd) { mixin(S_TRACE);
 
 /// fileが音声ファイルであればsoundTypeに対応する拡張子を返す。
 string getNormalizedSoundExt(string file) { mixin(S_TRACE);
-	auto f = std.stdio.File(file, "rb");
+	auto f = .rawFile(file, "rb");
 	scope (exit) f.close();
 	return f.getNormalizedSoundExt();
 }
 /// ditto
-string getNormalizedSoundExt(std.stdio.File f) { mixin(S_TRACE);
+string getNormalizedSoundExt(RawFile f) { mixin(S_TRACE);
 	auto pos = f.tell;
 	scope (exit) f.seek(pos);
 	f.seek(0);

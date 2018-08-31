@@ -3513,174 +3513,181 @@ void setupSPCharsMenu(Commons comm, Summary summ, Control ctrl, Menu parentMenu,
 	auto menu = new Menu(mainMI);
 	mainMI.setMenu(menu);
 
-	void insert(string s) { mixin(S_TRACE);
-		if (auto t = cast(Text)ctrl) { mixin(S_TRACE);
-			t.insert(s);
-		} else if (auto t = cast(Combo)ctrl) { mixin(S_TRACE);
-			auto s2 = t.getText();
-			auto p = t.getSelection();
-			t.setText(s2[0 .. p.x] ~ s ~ s2[p.y .. $]);
-			p.y += s.length;
-			p.x = p.y;
-			t.setSelection(p);
-		} else assert (0);
-	}
+	.listener(menu, SWT.Show, { mixin(S_TRACE);
+		foreach (mi; menu.getItems()) mi.dispose();
 
-	// カード名等
-	foreach (spc; full ? SPCHAR_ALL : SPCHAR_TEXT) { mixin(S_TRACE);
-		void createMI(SPChar spc) { mixin(S_TRACE);
-			void put() { mixin(S_TRACE);
-				insert("#" ~ .C_TBL[spc]);
+		void insert(string s) { mixin(S_TRACE);
+			if (auto t = cast(Text)ctrl) { mixin(S_TRACE);
+				t.insert(s);
+			} else if (auto t = cast(Combo)ctrl) { mixin(S_TRACE);
+				auto s2 = t.getText();
+				auto p = t.getSelection();
+				t.setText(s2[0 .. p.x] ~ s ~ s2[p.y .. $]);
+				p.y += s.length;
+				p.x = p.y;
+				t.setSelection(p);
+			} else assert (0);
+		}
+
+		// カード名等
+		foreach (spc; full ? SPCHAR_ALL : SPCHAR_TEXT) { mixin(S_TRACE);
+			void createMI(SPChar spc) { mixin(S_TRACE);
+				void put() { mixin(S_TRACE);
+					insert("#" ~ .C_TBL[spc]);
+				}
+				final switch (spc) {
+				case SPChar.M:
+					.createMenuItem2(comm, menu, comm.prop.msgs.scTalkerName(Talker.SELECTED),
+						comm.prop.images.scTalker(Talker.SELECTED), &put, null);
+					break;
+				case SPChar.U:
+					.createMenuItem2(comm, menu, comm.prop.msgs.scTalkerName(Talker.UNSELECTED),
+						comm.prop.images.scTalker(Talker.UNSELECTED), &put, null);
+					break;
+				case SPChar.R:
+					.createMenuItem2(comm, menu, comm.prop.msgs.scTalkerName(Talker.RANDOM),
+						comm.prop.images.scTalker(Talker.RANDOM), &put, null);
+					break;
+				case SPChar.C:
+					.createMenuItem2(comm, menu, comm.prop.msgs.scTalkerName(Talker.CARD),
+						comm.prop.images.scTalker(Talker.CARD), &put, null);
+					break;
+				case SPChar.I:
+					.createMenuItem2(comm, menu, comm.prop.msgs.scRef, comm.prop.images.scRef, &put, null);
+					break;
+				case SPChar.T:
+					.createMenuItem2(comm, menu, comm.prop.msgs.scTeam, comm.prop.images.scTeam, &put, null);
+					break;
+				case SPChar.Y:
+					.createMenuItem2(comm, menu, comm.prop.msgs.scYado, comm.prop.images.scYado, &put, null);
+					break;
+				}
 			}
-			final switch (spc) {
-			case SPChar.M:
-				.createMenuItem2(comm, menu, comm.prop.msgs.scTalkerName(Talker.SELECTED),
-					comm.prop.images.scTalker(Talker.SELECTED), &put, null);
-				break;
-			case SPChar.U:
-				.createMenuItem2(comm, menu, comm.prop.msgs.scTalkerName(Talker.UNSELECTED),
-					comm.prop.images.scTalker(Talker.UNSELECTED), &put, null);
-				break;
-			case SPChar.R:
-				.createMenuItem2(comm, menu, comm.prop.msgs.scTalkerName(Talker.RANDOM),
-					comm.prop.images.scTalker(Talker.RANDOM), &put, null);
-				break;
-			case SPChar.C:
-				.createMenuItem2(comm, menu, comm.prop.msgs.scTalkerName(Talker.CARD),
-					comm.prop.images.scTalker(Talker.CARD), &put, null);
-				break;
-			case SPChar.I:
-				.createMenuItem2(comm, menu, comm.prop.msgs.scRef, comm.prop.images.scRef, &put, null);
-				break;
-			case SPChar.T:
-				.createMenuItem2(comm, menu, comm.prop.msgs.scTeam, comm.prop.images.scTeam, &put, null);
-				break;
-			case SPChar.Y:
-				.createMenuItem2(comm, menu, comm.prop.msgs.scYado, comm.prop.images.scYado, &put, null);
-				break;
+			createMI(spc);
+		}
+
+		if (!summ.legacy) { mixin(S_TRACE);
+			new MenuItem(menu, SWT.SEPARATOR);
+
+			// 選択メンバ番号(Wsn.2)
+			.createMenuItem2(comm, menu, comm.prop.msgs.selectedPlayerCardNumber,
+				comm.prop.images.selectedPlayerCardNumber, () => insert("$" ~ comm.prop.sys.selectedPlayerCardNumber ~ "$"), null);
+
+			new MenuItem(menu, SWT.SEPARATOR);
+
+			// パーティメンバ名(Wsn.2)
+			foreach (uint pcn; 1u .. cast(uint)comm.prop.looks.partyMax + 1u) { mixin(S_TRACE);
+				void createMI2(uint pcn) { mixin(S_TRACE);
+					.createMenuItem2(comm, menu, .tryFormat(comm.prop.msgs.playerCardName, pcn),
+						comm.prop.images.playerCardName, () => insert("$" ~ comm.prop.sys.playerCardName(pcn) ~ "$"), null);
+				}
+				createMI2(pcn);
 			}
 		}
-		createMI(spc);
-	}
 
-	new MenuItem(menu, SWT.SEPARATOR);
+		new MenuItem(menu, SWT.SEPARATOR);
 
-	// 選択メンバ番号(Wsn.2)
-	.createMenuItem2(comm, menu, comm.prop.msgs.selectedPlayerCardNumber,
-		comm.prop.images.selectedPlayerCardNumber, () => insert("$" ~ comm.prop.sys.selectedPlayerCardNumber ~ "$"), null);
-
-	new MenuItem(menu, SWT.SEPARATOR);
-
-	// パーティメンバ名(Wsn.2)
-	foreach (uint pcn; 1u .. cast(uint)comm.prop.looks.partyMax + 1u) { mixin(S_TRACE);
-		void createMI2(uint pcn) { mixin(S_TRACE);
-			.createMenuItem2(comm, menu, .tryFormat(comm.prop.msgs.playerCardName, pcn),
-				comm.prop.images.playerCardName, () => insert("$" ~ comm.prop.sys.playerCardName(pcn) ~ "$"), null);
-		}
-		createMI2(pcn);
-	}
-
-	new MenuItem(menu, SWT.SEPARATOR);
-
-	// フラグ(毎回初期化する)
-	auto fMI = .createMenuItem(comm, menu, MenuID.PutFlagValue, dummy, &summ.flagDirRoot.hasFlag, SWT.CASCADE);
-	auto fMenu = new Menu(fMI);
-	fMI.setMenu(fMenu);
-	.listener(fMenu, SWT.Show, { mixin(S_TRACE);
-		foreach (mi; fMenu.getItems()) mi.dispose();
-		.sortedWithPath(summ.flagDirRoot.allFlags, comm.prop.var.etc.logicalSort, (cwx.flag.Flag f) { mixin(S_TRACE);
-			.createMenuItem2(comm, fMenu, f.path, comm.prop.images.flag, () => insert("%" ~ f.path ~ "%"), null);
+		// フラグ
+		auto fMI = .createMenuItem(comm, menu, MenuID.PutFlagValue, dummy, &summ.flagDirRoot.hasFlag, SWT.CASCADE);
+		auto fMenu = new Menu(fMI);
+		fMI.setMenu(fMenu);
+		.listener(fMenu, SWT.Show, { mixin(S_TRACE);
+			foreach (mi; fMenu.getItems()) mi.dispose();
+			.sortedWithPath(summ.flagDirRoot.allFlags, comm.prop.var.etc.logicalSort, (cwx.flag.Flag f) { mixin(S_TRACE);
+				.createMenuItem2(comm, fMenu, f.path, comm.prop.images.flag, () => insert("%" ~ f.path ~ "%"), null);
+			});
 		});
+
+		// ステップ
+		auto sMI = .createMenuItem(comm, menu, MenuID.PutStepValue, dummy, &summ.flagDirRoot.hasStep, SWT.CASCADE);
+		auto sMenu = new Menu(sMI);
+		sMI.setMenu(sMenu);
+		.listener(sMenu, SWT.Show, { mixin(S_TRACE);
+			foreach (mi; fMenu.getItems()) mi.dispose();
+			.sortedWithPath(summ.flagDirRoot.allSteps, comm.prop.var.etc.logicalSort, (Step f) { mixin(S_TRACE);
+				.createMenuItem2(comm, sMenu, f.path, comm.prop.images.step, () => insert("$" ~ f.path ~ "$"), null);
+			});
+		});
+
+		if (full) { mixin(S_TRACE);
+			new MenuItem(menu, SWT.SEPARATOR);
+
+			// 色の変更
+			auto cMI = .createMenuItem(comm, menu, MenuID.PutColor, dummy, null, SWT.CASCADE);
+			auto cMenu = new Menu(cMI);
+			cMI.setMenu(cMenu);
+			foreach (c; [
+				'W', 'R', 'B', 'G', 'Y'
+			] ~ [
+				'O', 'P', 'L', 'D' // CardWirth 1.50
+			]) { mixin(S_TRACE);
+				void putC(char c) { mixin(S_TRACE);
+					string t;
+					final switch (c) {
+					case 'W': t = comm.prop.msgs.colorW; break;
+					case 'R': t = comm.prop.msgs.colorR; break;
+					case 'B': t = comm.prop.msgs.colorB; break;
+					case 'G': t = comm.prop.msgs.colorG; break;
+					case 'Y': t = comm.prop.msgs.colorY; break;
+					case 'O': t = comm.prop.msgs.colorO; break; // CardWirth 1.50
+					case 'P': t = comm.prop.msgs.colorP; break; // CardWirth 1.50
+					case 'L': t = comm.prop.msgs.colorL; break; // CardWirth 1.50
+					case 'D': t = comm.prop.msgs.colorD; break; // CardWirth 1.50
+					}
+					createMenuItem2(comm, cMenu, t, comm.prop.images.color(c), () => insert("&" ~ c), null);
+				}
+				putC(c);
+			}
+
+			new MenuItem(menu, SWT.SEPARATOR);
+
+			// スキン付属の特殊文字
+			auto skMI = .createMenuItem(comm, menu, MenuID.PutSkinSPChar, dummy, () => 0 < comm.skin.spChars.length, SWT.CASCADE);
+			auto skMenu = new Menu(skMI);
+			skMI.setMenu(skMenu);
+			.listener(skMenu, SWT.Show, { mixin(S_TRACE);
+				foreach (mi; skMenu.getItems()) mi.dispose();
+				auto skin = comm.skin;
+				foreach (spc; std.algorithm.sort(skin.spChars.keys)) { mixin(S_TRACE);
+					void putSkinC(dchar spc) { mixin(S_TRACE);
+						auto data = .spChar(skin, comm.prop.drawingScale, spc);
+						if (!data.valid) return;
+						auto img = new Image(Display.getCurrent(), data.scaled(.dpiMuls));
+						auto name = toUTF8("#"d ~ spc);
+						auto mi = createMenuItem2(comm, skMenu, name, img, () => insert(name), null);
+						.listener(mi, SWT.Dispose, &img.dispose);
+					}
+					putSkinC(spc);
+				}
+			});
+
+			new MenuItem(menu, SWT.SEPARATOR);
+
+			// イメージ
+			auto fontMI = .createMenuItem(comm, menu, MenuID.PutImageFont, dummy, { mixin(S_TRACE);
+				foreach (file; .dirEntries(summ.scenarioPath, "font_?.bmp", SpanMode.shallow)) {
+					if (file.isSPFontFile) return true;
+				}
+				return false;
+			}, SWT.CASCADE);
+			auto fontMenu = new Menu(fontMI);
+			fontMI.setMenu(fontMenu);
+			.listener(fontMenu, SWT.Show, { mixin(S_TRACE);
+				foreach (mi; fontMenu.getItems()) mi.dispose();
+				auto skin = comm.skin;
+				string[] files;
+				foreach (file; .dirEntries(summ.scenarioPath, "font_?.bmp", SpanMode.shallow)) { mixin(S_TRACE);
+					if (!file.isSPFontFile) continue;
+					files ~= file;
+				}
+				foreach (file; std.algorithm.sort!((a, b) => fncmp(a, b) < 0)(files)) { mixin(S_TRACE);
+					void createMI3(string file) { mixin(S_TRACE);
+						auto image = skin.isCardImage(file, false) ? comm.prop.images.cards : comm.prop.images.backs;
+						.createMenuItem2(comm, fontMenu, file.baseName(), image, () => insert("#%s".format(decodeFontPath(file.baseName()))), null);
+					}
+					createMI3(file);
+				}
+			});
+		}
 	});
-
-	// ステップ(毎回初期化する)
-	auto sMI = .createMenuItem(comm, menu, MenuID.PutStepValue, dummy, &summ.flagDirRoot.hasStep, SWT.CASCADE);
-	auto sMenu = new Menu(sMI);
-	sMI.setMenu(sMenu);
-	.listener(sMenu, SWT.Show, { mixin(S_TRACE);
-		foreach (mi; fMenu.getItems()) mi.dispose();
-		.sortedWithPath(summ.flagDirRoot.allSteps, comm.prop.var.etc.logicalSort, (Step f) { mixin(S_TRACE);
-			.createMenuItem2(comm, sMenu, f.path, comm.prop.images.step, () => insert("$" ~ f.path ~ "$"), null);
-		});
-	});
-
-	if (full) { mixin(S_TRACE);
-		new MenuItem(menu, SWT.SEPARATOR);
-
-		// 色の変更
-		auto cMI = .createMenuItem(comm, menu, MenuID.PutColor, dummy, null, SWT.CASCADE);
-		auto cMenu = new Menu(cMI);
-		cMI.setMenu(cMenu);
-		foreach (c; [
-			'W', 'R', 'B', 'G', 'Y'
-		] ~ [
-			'O', 'P', 'L', 'D' // CardWirth 1.50
-		]) { mixin(S_TRACE);
-			void putC(char c) { mixin(S_TRACE);
-				string t;
-				final switch (c) {
-				case 'W': t = comm.prop.msgs.colorW; break;
-				case 'R': t = comm.prop.msgs.colorR; break;
-				case 'B': t = comm.prop.msgs.colorB; break;
-				case 'G': t = comm.prop.msgs.colorG; break;
-				case 'Y': t = comm.prop.msgs.colorY; break;
-				case 'O': t = comm.prop.msgs.colorO; break; // CardWirth 1.50
-				case 'P': t = comm.prop.msgs.colorP; break; // CardWirth 1.50
-				case 'L': t = comm.prop.msgs.colorL; break; // CardWirth 1.50
-				case 'D': t = comm.prop.msgs.colorD; break; // CardWirth 1.50
-				}
-				createMenuItem2(comm, cMenu, t, comm.prop.images.color(c), () => insert("&" ~ c), null);
-			}
-			putC(c);
-		}
-
-		new MenuItem(menu, SWT.SEPARATOR);
-
-		// スキン付属の特殊文字
-		auto skMI = .createMenuItem(comm, menu, MenuID.PutSkinSPChar, dummy, () => 0 < comm.skin.spChars.length, SWT.CASCADE);
-		auto skMenu = new Menu(skMI);
-		skMI.setMenu(skMenu);
-		.listener(skMenu, SWT.Show, { mixin(S_TRACE);
-			foreach (mi; skMenu.getItems()) mi.dispose();
-			auto skin = comm.skin;
-			foreach (spc; std.algorithm.sort(skin.spChars.keys)) { mixin(S_TRACE);
-				void putSkinC(dchar spc) { mixin(S_TRACE);
-					auto data = .spChar(skin, comm.prop.drawingScale, spc);
-					if (!data.valid) return;
-					auto img = new Image(Display.getCurrent(), data.scaled(.dpiMuls));
-					auto name = toUTF8("#"d ~ spc);
-					createMenuItem2(comm, skMenu, name, img, () => insert(name), null);
-				}
-				putSkinC(spc);
-			}
-		});
-
-		new MenuItem(menu, SWT.SEPARATOR);
-
-		// イメージ
-		auto fontMI = .createMenuItem(comm, menu, MenuID.PutImageFont, dummy, { mixin(S_TRACE);
-			foreach (file; .dirEntries(summ.scenarioPath, "font_?.bmp", SpanMode.shallow)) {
-				if (file.isSPFontFile) return true;
-			}
-			return false;
-		}, SWT.CASCADE);
-		auto fontMenu = new Menu(fontMI);
-		fontMI.setMenu(fontMenu);
-		.listener(fontMenu, SWT.Show, { mixin(S_TRACE);
-			foreach (mi; fontMenu.getItems()) mi.dispose();
-			auto skin = comm.skin;
-			string[] files;
-			foreach (file; .dirEntries(summ.scenarioPath, "font_?.bmp", SpanMode.shallow)) { mixin(S_TRACE);
-				if (!file.isSPFontFile) continue;
-				files ~= file;
-			}
-			foreach (file; std.algorithm.sort!((a, b) => fncmp(a, b) < 0)(files)) { mixin(S_TRACE);
-				void createMI3(string file) { mixin(S_TRACE);
-					auto image = skin.isCardImage(file, false) ? comm.prop.images.cards : comm.prop.images.backs;
-					.createMenuItem2(comm, fontMenu, file.baseName(), image, () => insert("#%s".format(decodeFontPath(file.baseName()))), null);
-				}
-				createMI3(file);
-			}
-		});
-	}
 }
