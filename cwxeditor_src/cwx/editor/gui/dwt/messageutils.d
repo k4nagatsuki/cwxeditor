@@ -3561,7 +3561,7 @@ void setupSPCharsMenu(Commons comm, Summary summ, Control ctrl, Menu parentMenu,
 	new MenuItem(menu, SWT.SEPARATOR);
 
 	// パーティメンバ名(Wsn.2)
-	foreach (pcn; 1 .. comm.prop.looks.partyMax + 1) { mixin(S_TRACE);
+	foreach (uint pcn; 1u .. cast(uint)comm.prop.looks.partyMax + 1u) { mixin(S_TRACE);
 		void createMI2(uint pcn) { mixin(S_TRACE);
 			.createMenuItem2(comm, menu, .tryFormat(comm.prop.msgs.playerCardName, pcn),
 				comm.prop.images.playerCardName, () => insert("$" ~ comm.prop.sys.playerCardName(pcn) ~ "$"), null);
