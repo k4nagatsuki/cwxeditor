@@ -3607,6 +3607,35 @@ void setupSPCharsMenu(Commons comm, Summary summ, Control ctrl, Menu parentMenu,
 	if (full) { mixin(S_TRACE);
 		new MenuItem(menu, SWT.SEPARATOR);
 
+		// 色の変更
+		auto cMI = .createMenuItem(comm, menu, MenuID.PutColor, dummy, null, SWT.CASCADE);
+		auto cMenu = new Menu(cMI);
+		cMI.setMenu(cMenu);
+		foreach (c; [
+			'W', 'R', 'B', 'G', 'Y'
+		] ~ [
+			'O', 'P', 'L', 'D' // CardWirth 1.50
+		]) { mixin(S_TRACE);
+			void putC(char c) { mixin(S_TRACE);
+				string t;
+				final switch (c) {
+				case 'W': t = comm.prop.msgs.colorW; break;
+				case 'R': t = comm.prop.msgs.colorR; break;
+				case 'B': t = comm.prop.msgs.colorB; break;
+				case 'G': t = comm.prop.msgs.colorG; break;
+				case 'Y': t = comm.prop.msgs.colorY; break;
+				case 'O': t = comm.prop.msgs.colorO; break; // CardWirth 1.50
+				case 'P': t = comm.prop.msgs.colorP; break; // CardWirth 1.50
+				case 'L': t = comm.prop.msgs.colorL; break; // CardWirth 1.50
+				case 'D': t = comm.prop.msgs.colorD; break; // CardWirth 1.50
+				}
+				createMenuItem2(comm, cMenu, t, comm.prop.images.color(c), () => insert("&" ~ c), null);
+			}
+			putC(c);
+		}
+
+		new MenuItem(menu, SWT.SEPARATOR);
+
 		// イメージ
 		auto fontMI = .createMenuItem(comm, menu, MenuID.PutImageFont, dummy, { mixin(S_TRACE);
 			foreach (file; .dirEntries(summ.scenarioPath, "font_?.bmp", SpanMode.shallow)) {
