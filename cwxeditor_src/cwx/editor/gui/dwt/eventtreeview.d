@@ -2460,9 +2460,17 @@ public:
 			if ((cast(Content)parent.getData()).detail.nextType == CNextType.TEXT) { mixin(S_TRACE);
 				if (_prop.var.etc.editSelectionWithCombo) { mixin(S_TRACE);
 					if (_ee) _ee.minimumWidth = _prop.var.etc.selectionWidth;
-					return createSelectionCombo(_comm, _tree.control, null, (cast(Content)itm.getData()).name);
+					auto t = createSelectionCombo(_comm, _tree.control, null, (cast(Content)itm.getData()).name);
+					auto menu = t.getMenu();
+					new MenuItem(menu, SWT.SEPARATOR);
+					.setupSPCharsMenu(_comm, _summ, t, menu, false, () => true);
+					return t;
 				} else { mixin(S_TRACE);
-					return createTextEditor(_comm, _prop, _tree.control, (cast(Content)itm.getData()).name);
+					auto t = createTextEditor(_comm, _prop, _tree.control, (cast(Content)itm.getData()).name);
+					auto menu = t.getMenu();
+					new MenuItem(menu, SWT.SEPARATOR);
+					.setupSPCharsMenu(_comm, _summ, t, menu, false, () => true);
+					return t;
 				}
 			}
 		} else { mixin(S_TRACE);
