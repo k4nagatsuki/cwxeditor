@@ -3619,8 +3619,12 @@ void setupSPCharsMenu(Commons comm, Summary summ, Control ctrl, Menu parentMenu,
 		.listener(fontMenu, SWT.Show, { mixin(S_TRACE);
 			foreach (mi; fontMenu.getItems()) mi.dispose();
 			auto skin = comm.skin;
-			foreach (file; .dirEntries(summ.scenarioPath, "font_?.bmp", SpanMode.shallow)) {
+			string[] files;
+			foreach (file; .dirEntries(summ.scenarioPath, "font_?.bmp", SpanMode.shallow)) { mixin(S_TRACE);
 				if (!file.isSPFontFile) continue;
+				files ~= file;
+			}
+			foreach (file; std.algorithm.sort!((a, b) => fncmp(a, b) < 0)(files)) { mixin(S_TRACE);
 				void createMI3(string file) { mixin(S_TRACE);
 					auto image = skin.isCardImage(file, false) ? comm.prop.images.cards : comm.prop.images.backs;
 					.createMenuItem2(comm, fontMenu, file.baseName(), image, () => insert("#%s".format(decodeFontPath(file.baseName()))), null);
