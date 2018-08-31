@@ -3348,6 +3348,7 @@ public:
 						case MenuID.PutFlagValue:
 						case MenuID.PutStepValue:
 						case MenuID.PutColor:
+						case MenuID.PutSkinSPChar:
 						case MenuID.PutImageFont:
 						case MenuID.CreateVariableEventTree:
 						case MenuID.InitVariablesTree:

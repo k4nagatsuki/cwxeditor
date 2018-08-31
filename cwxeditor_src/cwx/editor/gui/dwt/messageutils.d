@@ -1717,7 +1717,7 @@ private void updateSkinSCharBar(Commons comm, ToolBar bar, void delegate(string)
 		itm.getImage().dispose();
 		itm.dispose();
 	}
-	foreach (spc; skin.spChars.byKey()) { mixin(S_TRACE);
+	foreach (spc; std.algorithm.sort(skin.spChars.keys)) { mixin(S_TRACE);
 		auto data = .spChar(skin, comm.prop.drawingScale, spc);
 		if (!data.valid) continue;
 		auto img = new Image(Display.getCurrent(), data.scaled(comm.prop.var.etc.imageScale));
@@ -3633,6 +3633,27 @@ void setupSPCharsMenu(Commons comm, Summary summ, Control ctrl, Menu parentMenu,
 			}
 			putC(c);
 		}
+
+		new MenuItem(menu, SWT.SEPARATOR);
+
+		// スキン付属の特殊文字
+		auto skMI = .createMenuItem(comm, menu, MenuID.PutSkinSPChar, dummy, () => 0 < comm.skin.spChars.length, SWT.CASCADE);
+		auto skMenu = new Menu(skMI);
+		skMI.setMenu(skMenu);
+		.listener(skMenu, SWT.Show, { mixin(S_TRACE);
+			foreach (mi; skMenu.getItems()) mi.dispose();
+			auto skin = comm.skin;
+			foreach (spc; std.algorithm.sort(skin.spChars.keys)) { mixin(S_TRACE);
+				void putSkinC(dchar spc) { mixin(S_TRACE);
+					auto data = .spChar(skin, comm.prop.drawingScale, spc);
+					if (!data.valid) return;
+					auto img = new Image(Display.getCurrent(), data.scaled(.dpiMuls));
+					auto name = toUTF8("#"d ~ spc);
+					createMenuItem2(comm, skMenu, name, img, () => insert(name), null);
+				}
+				putSkinC(spc);
+			}
+		});
 
 		new MenuItem(menu, SWT.SEPARATOR);
 

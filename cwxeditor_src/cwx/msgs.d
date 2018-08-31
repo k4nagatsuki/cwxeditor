@@ -2552,6 +2552,7 @@ class Msgs : Properties {
 	auto menuTextPutFlagValue = Msg("menuTextPutFlagValue", "フラグ値");
 	auto menuTextPutStepValue = Msg("menuTextPutStepValue", "ステップ値");
 	auto menuTextPutColor = Msg("menuTextPutColor", "文字色");
+	auto menuTextPutSkinSPChar = Msg("menuTextPutSkinSPChar", "記号");
 	auto menuTextPutImageFont = Msg("menuTextPutImageFont", "画像参照");
 	auto menuTextCreateVariableEventTree = Msg("menuTextCreateVariableEventTree", "イベントツリーとしてコピー");
 	auto menuTextInitVariablesTree = Msg("menuTextInitVariablesTree", "初期値の設定");

@@ -147,6 +147,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.PutFlagValue] = "F";
 		_mnemonic[MenuID.PutStepValue] = "S";
 		_mnemonic[MenuID.PutColor] = "C";
+		_mnemonic[MenuID.PutSkinSPChar] = "S";
 		_mnemonic[MenuID.PutImageFont] = "I";
 		_mnemonic[MenuID.CreateVariableEventTree] = "E";
 		_mnemonic[MenuID.InitVariablesTree] = "I";
@@ -375,8 +376,8 @@ class MenuProps : Properties {
 		_hotkey[MenuID.PutFlagValue] = "";
 		_hotkey[MenuID.PutStepValue] = "";
 		_hotkey[MenuID.PutColor] = "";
+		_hotkey[MenuID.PutSkinSPChar] = "";
 		_hotkey[MenuID.PutImageFont] = "";
-		_hotkey[MenuID.PutSPChar] = "";
 		_hotkey[MenuID.CreateVariableEventTree] = "";
 		_hotkey[MenuID.InitVariablesTree] = "";
 		_hotkey[MenuID.CopyVariablePath] = "";
@@ -856,6 +857,7 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.PutFlagValue:
 	case MenuID.PutStepValue:
 	case MenuID.PutColor:
+	case MenuID.PutSkinSPChar:
 	case MenuID.PutImageFont:
 	case MenuID.CreateVariableEventTree:
 	case MenuID.InitVariablesTree:
@@ -1078,6 +1080,7 @@ bool isGlobalMenu(MenuID id) {
 	case MenuID.PutFlagValue:
 	case MenuID.PutStepValue:
 	case MenuID.PutColor:
+	case MenuID.PutSkinSPChar:
 	case MenuID.PutImageFont:
 	case MenuID.CreateVariableEventTree:
 	case MenuID.InitVariablesTree:

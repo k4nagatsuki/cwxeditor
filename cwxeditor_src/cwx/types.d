@@ -1562,6 +1562,7 @@ enum MenuID {
 	PutFlagValue,
 	PutStepValue,
 	PutColor,
+	PutSkinSPChar,
 	PutImageFont,
 	CreateVariableEventTree,
 	InitVariablesTree,
