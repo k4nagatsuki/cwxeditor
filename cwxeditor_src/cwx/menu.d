@@ -146,6 +146,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.PutSPChar] = "S";
 		_mnemonic[MenuID.PutFlagValue] = "F";
 		_mnemonic[MenuID.PutStepValue] = "S";
+		_mnemonic[MenuID.PutImageFont] = "I";
 		_mnemonic[MenuID.CreateVariableEventTree] = "E";
 		_mnemonic[MenuID.InitVariablesTree] = "I";
 		_mnemonic[MenuID.CopyVariablePath] = "V";
@@ -372,6 +373,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.PutSPChar] = "";
 		_hotkey[MenuID.PutFlagValue] = "";
 		_hotkey[MenuID.PutStepValue] = "";
+		_hotkey[MenuID.PutImageFont] = "";
 		_hotkey[MenuID.PutSPChar] = "";
 		_hotkey[MenuID.CreateVariableEventTree] = "";
 		_hotkey[MenuID.InitVariablesTree] = "";
@@ -851,6 +853,7 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.PutSPChar:
 	case MenuID.PutFlagValue:
 	case MenuID.PutStepValue:
+	case MenuID.PutImageFont:
 	case MenuID.CreateVariableEventTree:
 	case MenuID.InitVariablesTree:
 	case MenuID.OverDialog:
@@ -1071,6 +1074,7 @@ bool isGlobalMenu(MenuID id) {
 	case MenuID.PutSPChar:
 	case MenuID.PutFlagValue:
 	case MenuID.PutStepValue:
+	case MenuID.PutImageFont:
 	case MenuID.CreateVariableEventTree:
 	case MenuID.InitVariablesTree:
 	case MenuID.CopyVariablePath:

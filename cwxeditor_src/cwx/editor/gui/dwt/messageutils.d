@@ -54,6 +54,7 @@ import std.ascii;
 import std.path;
 import std.typecons;
 import std.range;
+import std.file;
 
 import org.eclipse.swt.all;
 import java.lang.all;
@@ -1180,6 +1181,10 @@ protected:
 		_rCouponsTM = createTextMenu!Text(comm, prop, _rCoupons, &catchMod, _undo, TMAppendData(&readAPD, &writeAPD));
 		_textTM = createTextMenu!Text(comm, prop, _text.widget, &catchMod, _undo, TMAppendData(&readAPD, &writeAPD));
 
+		auto menu = _text.widget.getMenu();
+		new MenuItem(menu, SWT.SEPARATOR);
+		.setupSPCharsMenu(comm, summ, _text.widget, menu, true, () => true);
+
 		initPreview(area, prop.var.dlgPrev);
 		updateValue();
 		updateTalker();
@@ -1356,6 +1361,9 @@ protected:
 			mod(_text.widget);
 			_text.widget.addModifyListener(new ModText);
 			createTextMenu!Text(comm, prop, _text.widget, &catchMod, _undo);
+			auto menu = _text.widget.getMenu();
+			new MenuItem(menu, SWT.SEPARATOR);
+			.setupSPCharsMenu(comm, summ, _text.widget, menu, true, () => true);
 			auto tab = new CTabItem(_tabf, SWT.NONE);
 			tab.setText(prop.msgs.imageMessage);
 			tab.setControl(comp);
@@ -3499,7 +3507,7 @@ ImageDataWithScale previewMessage(Commons comm, Props prop, in Summary summ, Ima
 	return new ImageDataWithScale(data, prop.drawingScale);
 }
 
-void setupSPCharsMenu(Commons comm, Summary summ, Control ctrl, Menu parentMenu, bool delegate() isExpandSPChars) { mixin(S_TRACE);
+void setupSPCharsMenu(Commons comm, Summary summ, Control ctrl, Menu parentMenu, bool full, bool delegate() isExpandSPChars) { mixin(S_TRACE);
 	void delegate() dummy = { };
 	auto mainMI = .createMenuItem(comm, parentMenu, MenuID.PutSPChar, dummy, isExpandSPChars, SWT.CASCADE);
 	auto menu = new Menu(mainMI);
@@ -3519,7 +3527,7 @@ void setupSPCharsMenu(Commons comm, Summary summ, Control ctrl, Menu parentMenu,
 	}
 
 	// カード名等
-	foreach (spc; SPCHAR_TEXT) { mixin(S_TRACE);
+	foreach (spc; full ? SPCHAR_ALL : SPCHAR_TEXT) { mixin(S_TRACE);
 		void createMI(SPChar spc) { mixin(S_TRACE);
 			void put() { mixin(S_TRACE);
 				insert("#" ~ .C_TBL[spc]);
@@ -3538,9 +3546,12 @@ void setupSPCharsMenu(Commons comm, Summary summ, Control ctrl, Menu parentMenu,
 					comm.prop.images.scTalker(Talker.RANDOM), &put, null);
 				break;
 			case SPChar.C:
-				assert (0);
+				.createMenuItem2(comm, menu, comm.prop.msgs.scTalkerName(Talker.CARD),
+					comm.prop.images.scTalker(Talker.CARD), &put, null);
+				break;
 			case SPChar.I:
-				assert (0);
+				.createMenuItem2(comm, menu, comm.prop.msgs.scRef, comm.prop.images.scRef, &put, null);
+				break;
 			case SPChar.T:
 				.createMenuItem2(comm, menu, comm.prop.msgs.scTeam, comm.prop.images.scTeam, &put, null);
 				break;
@@ -3592,4 +3603,30 @@ void setupSPCharsMenu(Commons comm, Summary summ, Control ctrl, Menu parentMenu,
 			.createMenuItem2(comm, sMenu, f.path, comm.prop.images.step, () => insert("$" ~ f.path ~ "$"), null);
 		});
 	});
+
+	if (full) { mixin(S_TRACE);
+		new MenuItem(menu, SWT.SEPARATOR);
+
+		// イメージ
+		auto fontMI = .createMenuItem(comm, menu, MenuID.PutImageFont, dummy, { mixin(S_TRACE);
+			foreach (file; .dirEntries(summ.scenarioPath, "font_?.bmp", SpanMode.shallow)) {
+				if (file.isSPFontFile) return true;
+			}
+			return false;
+		}, SWT.CASCADE);
+		auto fontMenu = new Menu(fontMI);
+		fontMI.setMenu(fontMenu);
+		.listener(fontMenu, SWT.Show, { mixin(S_TRACE);
+			foreach (mi; fontMenu.getItems()) mi.dispose();
+			auto skin = comm.skin;
+			foreach (file; .dirEntries(summ.scenarioPath, "font_?.bmp", SpanMode.shallow)) {
+				if (!file.isSPFontFile) continue;
+				void createMI3(string file) { mixin(S_TRACE);
+					auto image = skin.isCardImage(file, false) ? comm.prop.images.cards : comm.prop.images.backs;
+					.createMenuItem2(comm, fontMenu, file.baseName(), image, () => insert("#%s".format(decodeFontPath(file.baseName()))), null);
+				}
+				createMI3(file);
+			}
+		});
+	}
 }

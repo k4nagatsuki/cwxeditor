@@ -2551,6 +2551,7 @@ class Msgs : Properties {
 	auto menuTextPutSPChar = Msg("menuTextPutSPChar", "特殊文字の挿入");
 	auto menuTextPutFlagValue = Msg("menuTextPutFlagValue", "フラグ値");
 	auto menuTextPutStepValue = Msg("menuTextPutStepValue", "ステップ値");
+	auto menuTextPutImageFont = Msg("menuTextPutImageFont", "画像参照");
 	auto menuTextCreateVariableEventTree = Msg("menuTextCreateVariableEventTree", "イベントツリーとしてコピー");
 	auto menuTextInitVariablesTree = Msg("menuTextInitVariablesTree", "初期値の設定");
 	auto menuTextCopyVariablePath = Msg("menuTextCopyVariablePath", "状態変数のパスをコピー");

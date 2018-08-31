@@ -614,6 +614,7 @@ public:
 		case MenuID.PutSPChar: return imgd!("put_sp_char.png");
 		case MenuID.PutFlagValue: return imgd!("flag.png");
 		case MenuID.PutStepValue: return imgd!("step.png");
+		case MenuID.PutImageFont: return imgd!("backs.png");
 		case MenuID.CreateVariableEventTree: return imgd!("var_tree.png");
 		case MenuID.InitVariablesTree: return imgd!("var_init.png");
 		case MenuID.CopyVariablePath: return imgd!("copy_path.png");

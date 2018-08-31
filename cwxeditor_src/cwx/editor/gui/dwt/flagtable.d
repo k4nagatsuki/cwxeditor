@@ -487,7 +487,7 @@ protected:
 				_editIndex = itm.getParent().indexOf(itm);
 				auto menu = _valueEditor.getMenu();
 				new MenuItem(menu, SWT.SEPARATOR);
-				.setupSPCharsMenu(_comm, _summ, _valueEditor, menu, () => _expandSPChars.getSelection());
+				.setupSPCharsMenu(_comm, _summ, _valueEditor, menu, false, () => _expandSPChars.getSelection());
 				new MenuItem(menu, SWT.SEPARATOR);
 				createMenuItem(_comm, menu, MenuID.CreateStepValues, &createStepValues, &canCreateStepValues);
 				updateToolTip();
@@ -896,7 +896,7 @@ protected:
 			createTextMenu!Combo(_comm, prop, flagTrue, &catchMod);
 			auto tMenu = flagTrue.getMenu();
 			new MenuItem(tMenu, SWT.SEPARATOR);
-			.setupSPCharsMenu(_comm, _summ, flagTrue, tMenu, () => _expandSPChars.getSelection());
+			.setupSPCharsMenu(_comm, _summ, flagTrue, tMenu, false, () => _expandSPChars.getSelection());
 			auto tmod = new ModOnOff(0);
 			flagTrue.addModifyListener(tmod);
 			flagTrue.addSelectionListener(tmod);
@@ -910,7 +910,7 @@ protected:
 			createTextMenu!Combo(_comm, prop, flagFalse, &catchMod);
 			auto fMenu = flagFalse.getMenu();
 			new MenuItem(fMenu, SWT.SEPARATOR);
-			.setupSPCharsMenu(_comm, _summ, flagFalse, fMenu, () => _expandSPChars.getSelection());
+			.setupSPCharsMenu(_comm, _summ, flagFalse, fMenu, false, () => _expandSPChars.getSelection());
 			auto fmod = new ModOnOff(1);
 			flagFalse.addModifyListener(fmod);
 			flagFalse.addSelectionListener(fmod);
