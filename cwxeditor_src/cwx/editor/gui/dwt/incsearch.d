@@ -267,6 +267,10 @@ class IncSearch {
 			e.doit = false;
 			close();
 		});
+		_comm.refToolsEnabled.add(&checkClose);
+		.listener(_win, SWT.Dispose, { mixin(S_TRACE);
+			_comm.refToolsEnabled.remove(&checkClose);
+		});
 
 		_win.pack();
 		resize();
@@ -311,6 +315,11 @@ class IncSearch {
 
 		foreach (dlg; modEvent) { mixin(S_TRACE);
 			dlg();
+		}
+	}
+	private void checkClose() { mixin(S_TRACE);
+		if (_open && _enabled && !_enabled()) { mixin(S_TRACE);
+			close();
 		}
 	}
 

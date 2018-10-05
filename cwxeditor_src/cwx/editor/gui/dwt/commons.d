@@ -327,6 +327,7 @@ TopLevelPanel getTopLevelPanel(Control c) { mixin(S_TRACE);
 
 class Commons {
 	Dlg!() changed;
+	Dlg!() refToolsEnabled;
 	Dlg!() refImageScale;
 	Dlg!() refImagePaneSelectionFilter;
 	Dlg!(Shell) save;
@@ -628,6 +629,7 @@ class Commons {
 			}
 		}
 		_main.refreshToolBar(cMenuTbl);
+		refToolsEnabled.call();
 	}
 	void updateToolBarText() { mixin(S_TRACE);
 		void s(ToolBar bar) { mixin(S_TRACE);
