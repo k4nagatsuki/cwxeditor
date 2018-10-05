@@ -1603,7 +1603,7 @@ public:
 					createMenuItem(_comm, menu, MenuID.EditProp, &editEvent, () => selectionEventTree !is null);
 					new MenuItem(menu, SWT.SEPARATOR);
 				}
-				createMenuItem(_comm, menu, MenuID.NewEvent, &createEvent, &canCreateEvent);
+				createMenuItem(_comm, menu, MenuID.NewEventWithDialog, &createEvent, &canCreateEvent);
 				new MenuItem(menu, SWT.SEPARATOR);
 				createMenuItem(_comm, menu, MenuID.Undo, &this.undo, () => _undo.canUndo && !_readOnly);
 				createMenuItem(_comm, menu, MenuID.Redo, &this.redo, () => _undo.canRedo && !_readOnly);

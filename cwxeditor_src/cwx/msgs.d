@@ -88,6 +88,10 @@ class Msgs : Properties {
 	auto reconstructionStatus = Msg("reconstructionStatus", "編集状態を復元中 (%1$s/%2$s)");
 	auto cwxPathOpenError = Msg("cwxPathOpenError", "パス [%1$s] を開けません。");
 	auto filePathOpenError = Msg("filePathOpenError", "パス [%1$s] を開けません。");
+	auto editScenarioHistory = Msg("editScenarioHistory", "履歴とブックマークの編集");
+	auto scenarioBookmarkHint = Msg("scenarioBookmarkHint", "ブックマークに登録したいシナリオはチェックしてください。");
+	auto historyScenarioFileName = Msg("historyScenarioFileName", "ファイル名");
+	auto historyScenarioPath = Msg("historyScenarioPath", "場所");
 
 	auto loadSkinError = Msg("loadSkinError", "デフォルトのスキン「%1$s」が見つかりません。\n" ~ CARD_WIRTH_PY_EXE ~ "本体の場所が正しくないか、Data" ~ DIR ~ "が正しく配置されていない可能性があります。\nこのまま開始すると、一部リソース画像が非表示になります。");
 	auto useDefaultSkin = Msg("useDefaultSkin", "スキン「%1$s」が見つかりません。\nデフォルトのスキン「%1$s」を使用します。");
@@ -1132,6 +1136,7 @@ class Msgs : Properties {
 	auto loadErrorStatus = Msg("loadErrorStatus", "%1$sの読み込みに失敗");
 	auto loadErrorStatusCount = Msg("loadErrorStatusCount", "%1$s件のシナリオの読み込みに失敗");
 	auto scenarioNotFound = Msg("scenarioNotFound", "%1$sは存在しないか、シナリオではありません。履歴から削除しますか？");
+	auto scenarioNotFoundForBookmark = Msg("scenarioNotFoundForBookmark", "%1$sは存在しないか、シナリオではありません。ブックマークを削除しますか？");
 
 	auto dlgTitScenarioLoadErrors = Msg("dlgTitScenarioLoadErrors", "シナリオファイル読込エラー");
 	auto scenarioLoadErrors = Msg("scenarioLoadErrors", "「%1$s(%2$s)」の読み込み中に、以下のファイルでエラーが発生しました。これらのファイルは無視され、次回の保存時に削除されます。\nこのままシナリオを開いてよろしいですか？");
@@ -2460,6 +2465,7 @@ class Msgs : Properties {
 	auto menuTextSave = Msg("menuTextSave", "上書き保存");
 	auto menuTextSaveAs = Msg("menuTextSaveAs", "名前を付けて保存");
 	auto menuTextReload = Msg("menuTextReload", "再読込");
+	auto menuTextEditScenarioHistory = Msg("menuTextEditScenarioHistory", "履歴とブックマークの編集");
 	auto menuTextOpenDir = Msg("menuTextOpenDir", "シナリオの" ~ DIR ~ "を開く");
 	auto menuTextOpenBackupDir = Msg("menuTextOpenBackupDir", "バックアップ" ~ DIR ~ "を開く");
 	auto menuTextOpenPlace = Msg("menuTextOpenPlace", "ファイルの場所を開く");
@@ -2607,6 +2613,7 @@ class Msgs : Properties {
 	auto menuTextStopBGM = Msg("menuTextStopBGM", "%1$sの再生を停止");
 	auto menuTextPlayBGM = Msg("menuTextPlayBGM", "再生");
 	auto menuTextNewEvent = Msg("menuTextNewEvent", "イベントの作成");
+	auto menuTextNewEventWithDialog = Msg("menuTextNewEventWithDialog", "イベントの作成");
 	auto menuTextKeyCodeTiming = Msg("menuTextKeyCodeTiming", "キーコード発火タイミング");
 	auto menuTextKeyCodeTimingUse = Msg("menuTextKeyCodeTimingUse", "使用");
 	auto menuTextKeyCodeTimingSuccess = Msg("menuTextKeyCodeTimingSuccess", "成功");
@@ -2661,6 +2668,7 @@ class Msgs : Properties {
 	auto menuTextAddToolBar = Msg("menuTextAddToolBar", "バーの追加");
 	auto menuTextAddToolGroup = Msg("menuTextAddToolGroup", "グループの追加");
 	auto menuTextResetToolBarSettings = Msg("menuTextResetToolBarSettings", "初期設定に戻す");
+	auto menuTextDeleteNotExistsHistory = Msg("menuTextDeleteNotExistsHistory", "存在しないシナリオを削除");
 
 	auto execEngineWithLastParty = Msg("execEngineWithLastParty", "前回のパーティで開始\n(%1$s > %2$s > %3$s)");
 

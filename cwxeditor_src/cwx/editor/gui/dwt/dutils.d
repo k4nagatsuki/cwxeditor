@@ -1581,9 +1581,18 @@ version (Windows) {} else {
 bool openFolder(string path) { mixin(S_TRACE);
 	path = nabs(path);
 	version (Windows) {
-		return exec("explorer " ~ path, path);
+		return exec("explorer \"" ~ path ~ "\"", path);
 	} else { mixin(S_TRACE);
 		return Program.launch(path);
+	}
+}
+bool openFolderWithFile(string path) { mixin(S_TRACE);
+	path = .nabs(path);
+	auto dir = .dirName(path);
+	version (Windows) {
+		return exec("explorer /select,\"" ~ path ~ "\"", dir);
+	} else { mixin(S_TRACE);
+		return Program.launch(dir);
 	}
 }
 

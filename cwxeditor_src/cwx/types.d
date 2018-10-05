@@ -1470,6 +1470,7 @@ enum MenuID {
 	Save,
 	SaveAs,
 	Reload,
+	EditScenarioHistory,
 	OpenDir,
 	OpenBackupDir,
 	OpenPlace,
@@ -1617,6 +1618,7 @@ enum MenuID {
 	StopBGM,
 	PlayBGM,
 	NewEvent,
+	NewEventWithDialog,
 	KeyCodeTiming,
 	KeyCodeTimingUse,
 	KeyCodeTimingSuccess,
@@ -1670,6 +1672,7 @@ enum MenuID {
 	AddToolBar,
 	AddToolGroup,
 	ResetToolBarSettings,
+	DeleteNotExistsHistory,
 }
 
 /// 格納カード・イメージのインポートオプション。

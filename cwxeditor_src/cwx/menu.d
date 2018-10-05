@@ -55,6 +55,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.Save] = "S";
 		_mnemonic[MenuID.SaveAs] = "A";
 		_mnemonic[MenuID.Reload] = "R";
+		_mnemonic[MenuID.EditScenarioHistory] = "H";
 		_mnemonic[MenuID.OpenDir] = "O";
 		_mnemonic[MenuID.OpenBackupDir] = "B";
 		_mnemonic[MenuID.OpenPlace] = "O";
@@ -202,6 +203,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.StopBGM] = "P";
 		_mnemonic[MenuID.PlayBGM] = "P";
 		_mnemonic[MenuID.NewEvent] = "E";
+		_mnemonic[MenuID.NewEventWithDialog] = "E";
 		_mnemonic[MenuID.KeyCodeTiming] = "K";
 		_mnemonic[MenuID.KeyCodeTimingUse] = "U";
 		_mnemonic[MenuID.KeyCodeTimingSuccess] = "S";
@@ -255,6 +257,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.AddToolBar] = "B";
 		_mnemonic[MenuID.AddToolGroup] = "G";
 		_mnemonic[MenuID.ResetToolBarSettings] = "R";
+		_mnemonic[MenuID.DeleteNotExistsHistory] = "N";
 
 		_hotkey[MenuID.None] = "";
 		_hotkey[MenuID.File] = "";
@@ -284,6 +287,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.Save] = "Ctrl+S";
 		_hotkey[MenuID.SaveAs] = "";
 		_hotkey[MenuID.Reload] = "";
+		_hotkey[MenuID.EditScenarioHistory] = "";
 		_hotkey[MenuID.OpenDir] = "";
 		_hotkey[MenuID.OpenBackupDir] = "";
 		_hotkey[MenuID.OpenPlace] = "";
@@ -432,6 +436,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.StopBGM] = "";
 		_hotkey[MenuID.PlayBGM] = "";
 		_hotkey[MenuID.NewEvent] = "";
+		_hotkey[MenuID.NewEventWithDialog] = "";
 		_hotkey[MenuID.KeyCodeTiming] = "";
 		_hotkey[MenuID.KeyCodeTimingUse] = "";
 		_hotkey[MenuID.KeyCodeTimingSuccess] = "";
@@ -485,6 +490,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.AddToolBar] = "";
 		_hotkey[MenuID.AddToolGroup] = "";
 		_hotkey[MenuID.ResetToolBarSettings] = "";
+		_hotkey[MenuID.DeleteNotExistsHistory] = "";
 
 		_mnemonic_init = _mnemonic.idup;
 		_hotkey_init = _hotkey.idup;
@@ -653,10 +659,15 @@ bool isPMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.NewAtNewWindow:
 	case MenuID.OpenAtNewWindow:
 	case MenuID.SaveAs:
+	case MenuID.EditScenarioHistory:
+	case MenuID.SaveImage:
 	case MenuID.Find:
 	case MenuID.FindID:
 	case MenuID.Settings:
+	case MenuID.VersionInfo:
 	case MenuID.EditSummary:
+	case MenuID.ReNumberingAll:
+	case MenuID.ReNumbering:
 	case MenuID.EditProp:
 	case MenuID.ShowProp:
 	case MenuID.NewFlagDir:
@@ -669,12 +680,15 @@ bool isPMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.NewColorCell:
 	case MenuID.NewPCCell:
 	case MenuID.OpenImportSource:
+	case MenuID.NewEventWithDialog:
 	case MenuID.NewCast:
 	case MenuID.NewSkill:
 	case MenuID.NewItem:
 	case MenuID.NewBeast:
 	case MenuID.NewInfo:
 	case MenuID.CreateArchive:
+	case MenuID.EvTemplatesOfScenario:
+	case MenuID.CustomizeToolBar:
 		return true;
 	default:
 		return false;
@@ -826,6 +840,7 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.ClosePaneRight:
 	case MenuID.ClosePaneAll:
 	case MenuID.CloseWin:
+	case MenuID.EditScenarioHistory:
 	case MenuID.OpenPlace:
 	case MenuID.SaveImage:
 	case MenuID.IncludeImage:
@@ -906,6 +921,7 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.StopBGM:
 	case MenuID.PlayBGM:
 	case MenuID.NewEvent:
+	case MenuID.NewEventWithDialog:
 	case MenuID.KeyCodeTiming:
 	case MenuID.KeyCodeTimingUse:
 	case MenuID.KeyCodeTimingSuccess:
@@ -939,6 +955,7 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.AddToolBar:
 	case MenuID.AddToolGroup:
 	case MenuID.ResetToolBarSettings:
+	case MenuID.DeleteNotExistsHistory:
 		return false;
 	}
 }
@@ -1028,6 +1045,7 @@ bool isGlobalMenu(MenuID id) {
 	case MenuID.ClosePaneRight:
 	case MenuID.ClosePaneAll:
 	case MenuID.CloseWin:
+	case MenuID.EditScenarioHistory:
 	case MenuID.OpenPlace:
 	case MenuID.SaveImage:
 	case MenuID.IncludeImage:
@@ -1135,6 +1153,7 @@ bool isGlobalMenu(MenuID id) {
 	case MenuID.StopBGM:
 	case MenuID.PlayBGM:
 	case MenuID.NewEvent:
+	case MenuID.NewEventWithDialog:
 	case MenuID.KeyCodeTiming:
 	case MenuID.KeyCodeTimingUse:
 	case MenuID.KeyCodeTimingSuccess:
@@ -1176,6 +1195,7 @@ bool isGlobalMenu(MenuID id) {
 	case MenuID.AddToolBar:
 	case MenuID.AddToolGroup:
 	case MenuID.ResetToolBarSettings:
+	case MenuID.DeleteNotExistsHistory:
 		return false;
 	}
 }

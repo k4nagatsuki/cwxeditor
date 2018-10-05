@@ -47,6 +47,7 @@ import cwx.editor.gui.dwt.loader;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.customtoolbar;
 import cwx.editor.gui.dwt.namewindow;
+import cwx.editor.gui.dwt.history;
 
 import core.memory;
 import core.thread;
@@ -1807,14 +1808,35 @@ private:
 		}
 	}
 
+	private ScenarioHistoryDialog _scHistDlg = null;
+	private void editScenarioHistory() { mixin(S_TRACE);
+		if (_scHistDlg) { mixin(S_TRACE);
+			_scHistDlg.active();
+		} else { mixin(S_TRACE);
+			_scHistDlg = new ScenarioHistoryDialog(_comm, _win);
+			_scHistDlg.closeEvent ~= { mixin(S_TRACE);
+				_scHistDlg = null;
+			};
+			_scHistDlg.appliedEvent ~= { mixin(S_TRACE);
+				_prop.var.save(dock);
+				sendReloadProps();
+			};
+			_scHistDlg.open();
+		}
+	}
+
 	void setHistSkin() { mixin(S_TRACE);
+		setHistSkin(_prop.var.etc.scenarioBookmarks.value);
+		setHistSkin(_prop.var.etc.openHistories.value);
+	}
+	void setHistSkin(ref OpenHistory[] history) { mixin(S_TRACE);
 		if (!summary) return;
 		string skinType = summary.type;
 		string skinName = summary.skinName;
 		if (summary.type == _comm.skin.type && skinName == "") skinName = _comm.skin.name;
 		string skinEngine = _comm.skin.legacyEngine;
 		auto hist = createHistString(summary);
-		auto hists = _prop.var.etc.openHistories.dup;
+		auto hists = history.dup;
 		foreach (i, ref h; hists) { mixin(S_TRACE);
 			if (cfnmatch(fullHistToHist(h.path), hist)) { mixin(S_TRACE);
 				h.skinType = skinType;
@@ -1823,12 +1845,16 @@ private:
 				break;
 			}
 		}
-		_prop.var.etc.openHistories = hists;
+		history = hists;
 	}
 	OpenHistory findHist(string hist) { mixin(S_TRACE);
 		if ("" == hist) return OpenHistory("");
-		auto hists = _prop.var.etc.openHistories;
-		foreach (i, h; hists) { mixin(S_TRACE);
+		foreach (h; _prop.var.etc.scenarioBookmarks) { mixin(S_TRACE);
+			if (cfnmatch(fullHistToHist(h.path), hist)) { mixin(S_TRACE);
+				return h;
+			}
+		}
+		foreach (h; _prop.var.etc.openHistories) { mixin(S_TRACE);
 			if (cfnmatch(fullHistToHist(h.path), hist)) { mixin(S_TRACE);
 				return h;
 			}
@@ -1871,9 +1897,13 @@ private:
 		return hist;
 	}
 	void writeDock() { mixin(S_TRACE);
+		writeDock(_prop.var.etc.scenarioBookmarks.value);
+		writeDock(_prop.var.etc.openHistories.value);
+	}
+	void writeDock(ref OpenHistory[] history) { mixin(S_TRACE);
 		string hist = createHistString(summary);
 		if ("" == hist) return;
-		auto hists = _prop.var.etc.openHistories.dup;
+		auto hists = history.dup;
 		foreach (i, h; hists) { mixin(S_TRACE);
 			if (cfnmatch(fullHistToHist(h.path), hist)) { mixin(S_TRACE);
 				if (_prop.var.etc.reconstruction) { mixin(S_TRACE);
@@ -1881,42 +1911,17 @@ private:
 				} else { mixin(S_TRACE);
 					hists[i].path = hist;
 				}
-				_prop.var.etc.openHistories = hists;
+				history = hists;
 				break;
 			}
 		}
 	}
-	/// `"/foo/bar" /cwx:0/path:0...` -> `/foo/bar`
-	static string fullHistToHist(string hist) { mixin(S_TRACE);
-		if (std.string.startsWith(hist, "\"")) { mixin(S_TRACE);
-			auto i = std.string.indexOf(hist["\"".length .. $], "\"");
-			if (-1 != i) { mixin(S_TRACE);
-				return hist["\"".length .. i + "\"".length];
-			}
-		}
-		return hist;
-	} unittest { mixin(S_TRACE);
-		debug mixin(UTPerf);
-		assert (fullHistToHist(r"C:\test\test1") == r"C:\test\test1");
-		assert (fullHistToHist(`"C:\test\test1" aaa`) == r"C:\test\test1");
-	}
-	/// `"/foo/bar" /cwx:0/path:0&/cwx:1/path1:0` -> [`/cwx:0/path:0`, `/cwx:1/path:1`]
-	static string[] fullHistToCWXPaths(string hist) { mixin(S_TRACE);
-		if (std.string.startsWith(hist, "\"")) { mixin(S_TRACE);
-			auto i = std.string.indexOf(hist["\"".length .. $], "\"");
-			if (-1 != i) { mixin(S_TRACE);
-				return std.string.split(strip(hist[i + "\"".length + 1 .. $]), CWXPATH_SEP.idup);
-			}
-		}
-		return [];
-	} unittest { mixin(S_TRACE);
-		debug mixin(UTPerf);
-		assert (fullHistToCWXPaths(r"C:\test\test1") == []);
-		assert (fullHistToCWXPaths(`"C:\test\test1" aaa&bbb`) == ["aaa", "bbb"]);
-		assert (fullHistToCWXPaths(`"C:\test\test1" &aaa&bbb&&`) == ["", "aaa", "bbb", "", ""]);
-	}
 	void delHist(string fullHist) { mixin(S_TRACE);
-		auto hists = _prop.var.etc.openHistories.dup;
+		delHist(fullHist, _prop.var.etc.scenarioBookmarks);
+		delHist(fullHist, _prop.var.etc.openHistories);
+	}
+	void delHist(string fullHist, ref OpenHistory[] history) { mixin(S_TRACE);
+		auto hists = history.dup;
 		string hist = fullHistToHist(fullHist);
 		OpenHistory[] hists2;
 		foreach (i, h; hists) { mixin(S_TRACE);
@@ -1924,8 +1929,8 @@ private:
 				hists2 ~= h;
 			}
 		}
-		_prop.var.etc.openHistories = hists2;
-		writeDock();
+		if (history.length == hists2.length) return;
+		history = hists2;
 		_prop.var.save(dock);
 		sendReloadProps();
 		_comm.refHistories.call();
@@ -1939,24 +1944,34 @@ private:
 		} else { mixin(S_TRACE);
 			_prop.var.etc.scenarioPath = summary.useTemp ? dirName(p) : dirName(dirName(p));
 		}
-		auto hists = _prop.var.etc.openHistories.dup;
-		foreach (i, h; hists) { mixin(S_TRACE);
-			if (cfnmatch(fullHistToHist(h.path), p)) { mixin(S_TRACE);
-				// すでに履歴中に存在するため、最新位置に移動
-				hist = h;
-				_prop.var.etc.openHistories = hists[0 .. i] ~ hists[i + 1 .. $];
-				hists = _prop.var.etc.openHistories.dup;
-				break;
+		if (_prop.var.etc.historyMax == 0) { mixin(S_TRACE);
+			_prop.var.etc.openHistories = [];
+		} else { mixin(S_TRACE);
+			auto bookmarked = false;
+			foreach (h; _prop.var.etc.scenarioBookmarks) { mixin(S_TRACE);
+				if (cfnmatch(fullHistToHist(h.path), p)) { mixin(S_TRACE);
+					// すでにブックマークに登録されている
+					bookmarked = true;
+					break;
+				}
+			}
+			if (!bookmarked) { mixin(S_TRACE);
+				auto hists = _prop.var.etc.openHistories.dup;
+				foreach (i, h; hists) { mixin(S_TRACE);
+					if (cfnmatch(fullHistToHist(h.path), p)) { mixin(S_TRACE);
+						// すでに履歴中に存在するため、最新位置に移動
+						hist = h;
+						_prop.var.etc.openHistories = hists[0 .. i] ~ hists[i + 1 .. $];
+						hists = _prop.var.etc.openHistories.dup;
+						break;
+					}
+				}
+				_prop.var.etc.openHistories
+					= [hist] ~ (hists.length < _prop.var.etc.historyMax ? hists : hists[0 .. $ - 1]);
 			}
 		}
-		if (0 < _prop.var.etc.historyMax) { mixin(S_TRACE);
-			_prop.var.etc.openHistories
-				= [hist] ~ (hists.length < _prop.var.etc.historyMax ? hists : hists[0 .. $ - 1]);
-		} else { mixin(S_TRACE);
-			_prop.var.etc.openHistories = [];
-		}
+		if (summary && !_comm.isChanged) writeDock();
 		_prop.var.etc.lastScenario = p;
-		writeDock();
 		_prop.var.save(dock);
 		sendReloadProps();
 		_comm.refHistories.call();
@@ -1966,25 +1981,20 @@ private:
 		this(Menu menu, int num, string hist) { mixin(S_TRACE);
 			hist = fullHistToHist(hist);
 			string text;
-			Image img;
 			auto snipLen = _prop.var.etc.historySnipLength;
 			auto ext = .extension(hist);
 			if (cfnmatch(baseName(hist), "Summary.xml")) { mixin(S_TRACE);
 				text = cuthist(hist[0u .. $ - "Summary.xml".length - std.path.dirSeparator.length], snipLen);
-				img = _prop.images.summaryFile;
 			} else if (cfnmatch(ext, ".wsn")) { mixin(S_TRACE);
 				text = cuthist(hist, snipLen);
-				img = _prop.images.scenarioArchive;
 			} else if (cfnmatch(baseName(hist), "Summary.wsm")) { mixin(S_TRACE);
 				text = cuthist(hist[0u .. $ - "Summary.wsm".length - std.path.dirSeparator.length], snipLen);
-				img = _prop.images.classic;
 			} else if (cfnmatch(ext, ".cab") || cfnmatch(ext, ".zip") || cfnmatch(ext, ".lzh") || cfnmatch(ext, ".lha")) { mixin(S_TRACE);
 				text = cuthist(hist, snipLen);
-				img = _prop.images.scenarioArchive;
 			} else { mixin(S_TRACE);
 				text = cuthist(hist, snipLen);
-				img = _prop.images.unknown;
 			}
+			auto img = .historyImage(_prop, hist);
 			string nstr;
 			if (num < 10) { mixin(S_TRACE);
 				nstr = "&" ~ to!(string)(num);
@@ -2009,7 +2019,18 @@ private:
 			if (cfnmatch(ext, ".xml") || cfnmatch(ext, ".wsm") || cfnmatch(ext, ".wid") || cfnmatch(ext, ".wex")) { mixin(S_TRACE);
 				h = dirName(h);
 			}
-			dlg.setMessage(.tryFormat(_prop.msgs.scenarioNotFound, h));
+			auto isBookmark = false;
+			foreach (i, h2; _prop.var.etc.scenarioBookmarks) { mixin(S_TRACE);
+				if (.cfnmatch(.fullHistToHist(h2.path), _hist)) { mixin(S_TRACE);
+					isBookmark = true;
+					break;
+				}
+			}
+			if (isBookmark) { mixin(S_TRACE);
+				dlg.setMessage(.tryFormat(_prop.msgs.scenarioNotFoundForBookmark, h));
+			} else { mixin(S_TRACE);
+				dlg.setMessage(.tryFormat(_prop.msgs.scenarioNotFound, h));
+			}
 			dlg.setText(_prop.msgs.dlgTitQuestion);
 			if (SWT.YES == dlg.open()) { mixin(S_TRACE);
 				this.outer.delHist(_hist);
@@ -2099,12 +2120,24 @@ private:
 		mixin (MenuAction!("_menuFile", MenuID.CreateArchive, SWT.PUSH, "_dirWin.createArchive", "&_dirWin.canCreateArchive"));
 		new MenuItem(_menuFile, SWT.SEPARATOR);
 		mixin (MenuAction!("_menuFile", MenuID.Reload, SWT.PUSH, "reload", "() => summary !is null"));
-		new MenuItem(_menuFile, SWT.SEPARATOR);
-		auto hists = _prop.var.etc.openHistories;
-		foreach (i, hist; hists) { mixin(S_TRACE);
-			new Hist(_menuFile, cast(int)i + 1, hist.path);
+		auto i = 0;
+		if (_prop.var.etc.scenarioBookmarks.length) { mixin(S_TRACE);
+			new MenuItem(_menuFile, SWT.SEPARATOR);
+			foreach (hist; _prop.var.etc.scenarioBookmarks) { mixin(S_TRACE);
+				new Hist(_menuFile, i, hist.path);
+				i++;
+			}
 		}
-		if (hists.length > 0) new MenuItem(_menuFile, SWT.SEPARATOR);
+		if (_prop.var.etc.openHistories.length) {
+			new MenuItem(_menuFile, SWT.SEPARATOR);
+			foreach (hist; _prop.var.etc.openHistories) { mixin(S_TRACE);
+				new Hist(_menuFile, i, hist.path);
+				i++;
+			}
+		}
+		new MenuItem(_menuFile, SWT.SEPARATOR);
+		mixin (MenuAction!("_menuFile", MenuID.EditScenarioHistory, SWT.PUSH, "editScenarioHistory", "() => _prop.var.etc.scenarioBookmarks.length || _prop.var.etc.openHistories.length"));
+		new MenuItem(_menuFile, SWT.SEPARATOR);
 		createMenuItem(_comm, _menuFile, MenuID.Close, &exitAll, null);
 		setupMenu(_menu);
 	}
@@ -3204,7 +3237,8 @@ public:
 						case MenuID.Save: act = &saveScenario; can = &canSaveOverwrite; break;
 						case MenuID.SaveAs: act = &saveScenarioA; can = () => summary !is null && !_inSaving; break;
 						case MenuID.CreateArchive: act = &_dirWin.createArchive; can = &_dirWin.canCreateArchive; break;
-						case MenuID.Reload: act = &reload; can = () => summary !is null; break;
+						case MenuID.Reload: act = &reload; can = () => _prop.var.etc.scenarioBookmarks.length || _prop.var.etc.openHistories.length; break;
+						case MenuID.EditScenarioHistory: act = &editScenarioHistory; can = () => summary !is null; break;
 						case MenuID.Refresh: actS = &refreshAll; can = () => summary !is null; break;
 						case MenuID.Find: act = &replaceText; can = null; break;
 						case MenuID.ReNumberingAll: act = &reNumberingAll; can = () => summary !is null; break;
@@ -3397,6 +3431,7 @@ public:
 						case MenuID.StopBGM:
 						case MenuID.PlayBGM:
 						case MenuID.NewEvent:
+						case MenuID.NewEventWithDialog:
 						case MenuID.KeyCodeTiming:
 						case MenuID.KeyCodeTimingUse:
 						case MenuID.KeyCodeTimingSuccess:
@@ -3428,6 +3463,7 @@ public:
 						case MenuID.AddToolBar:
 						case MenuID.AddToolGroup:
 						case MenuID.ResetToolBarSettings:
+						case MenuID.DeleteNotExistsHistory:
 							debugln(tool.menu);
 							continue;
 						}

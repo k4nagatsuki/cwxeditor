@@ -196,6 +196,8 @@ class FlexEtcProps : Properties {
 	auto cardGroupSortDirection = Prop!(int)("cardGroupSortDirection", SortDir.Up);
 	auto authorNewAreaNameSashL = Prop!(int)("authorNewAreaNameSashL", 1);
 	auto authorNewAreaNameSashR = Prop!(int)("authorNewAreaNameSashR", 1);
+	auto historyScenarioNameColumn = Prop!(int, false, true)("historyScenarioNameColumn", 150);
+	auto historyScenarioPathColumn = Prop!(int, false, true)("historyScenarioPathColumn", 300);
 
 	auto partyMax = Prop!(uint, true)("partyMax", 6);
 	auto cardScaleMax = Prop!(int)("cardScaleMax", 300);
@@ -393,6 +395,7 @@ class FlexEtcProps : Properties {
 	auto showDuplicateViewInToolBar = Prop!(bool, true)("showDuplicateViewInToolBar", false);
 
 	auto openHistories = Prop!(OpenHistory[])("openHistories", []);
+	auto scenarioBookmarks = Prop!(OpenHistory[])("scenarioBookmarks", []);
 	auto historyMax = Prop!(int)("historyMax", 9);
 	auto historySnipLength = Prop!(int)("historySnipLength", 30);
 	auto lastScenario = Prop!(string)("lastScenario", "");

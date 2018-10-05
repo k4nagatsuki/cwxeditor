@@ -348,7 +348,7 @@ class ToolBarCustomizer : Composite, TCPD {
 		_added = new HashSet!MenuID;
 		_undo = new UndoManager(_prop.var.etc.undoMaxEtc);
 		_comm.refUndoMax.add(&refUndoMax);
-		.listener(this, SWT.Dispose, {
+		.listener(this, SWT.Dispose, { mixin(S_TRACE);
 			_comm.refUndoMax.remove(&refUndoMax);
 		});
 		construct();

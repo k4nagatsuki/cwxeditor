@@ -523,6 +523,7 @@ public:
 		case MenuID.Save: return imgd!("save.png");
 		case MenuID.SaveAs: return imgd!("save_a.png");
 		case MenuID.Reload: return imgd!("reload.png");
+		case MenuID.EditScenarioHistory: return imgd!("edit_sc_hist.png");
 		case MenuID.OpenDir: return imgd!("folder.png");
 		case MenuID.OpenBackupDir: return imgd!("open_backup.png");
 		case MenuID.OpenPlace: return imgd!("folder.png");
@@ -670,6 +671,7 @@ public:
 		case MenuID.StopBGM: return imgd!("sound_stop.png");
 		case MenuID.PlayBGM: return imgd!("sound_play.png");
 		case MenuID.NewEvent: return imgd!("new_event_tree.png");
+		case MenuID.NewEventWithDialog: return imgd!("new_event_tree.png");
 		case MenuID.KeyCodeTiming: return imgd!("key_code.png");
 		case MenuID.KeyCodeTimingUse: return imgd!("key_code.png");
 		case MenuID.KeyCodeTimingSuccess: return imgd!("key_code_suc.png");
@@ -723,6 +725,7 @@ public:
 		case MenuID.AddToolBar: return imgd!("add_bar.png");
 		case MenuID.AddToolGroup: return imgd!("add_group.png");
 		case MenuID.ResetToolBarSettings: return imgd!("reset_all.png");
+		case MenuID.DeleteNotExistsHistory: return imgd!("del_not_exists_sc.png");
 		}
 	}
 

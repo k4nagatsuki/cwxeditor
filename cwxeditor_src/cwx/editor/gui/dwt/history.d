@@ -1,0 +1,433 @@
+
+module cwx.editor.gui.dwt.history;
+
+import cwx.menu;
+import cwx.path;
+import cwx.structs;
+import cwx.types;
+import cwx.utils;
+
+import cwx.editor.gui.dwt.absdialog;
+import cwx.editor.gui.dwt.commons;
+import cwx.editor.gui.dwt.customtable;
+import cwx.editor.gui.dwt.dmenu;
+import cwx.editor.gui.dwt.dprops;
+import cwx.editor.gui.dwt.dskin;
+import cwx.editor.gui.dwt.dutils;
+import cwx.editor.gui.dwt.incsearch;
+import cwx.editor.gui.dwt.undo;
+
+import std.algorithm;
+import std.ascii;
+import std.array;
+import std.file;
+import std.path;
+import std.string;
+
+import org.eclipse.swt.all;
+
+import java.lang.all;
+
+/// 開いたシナリオの履歴とブックマークを編集する。
+class ScenarioHistoryDialog : AbsDialog {
+	private Commons _comm;
+	private Table _list;
+	private static struct Hist {
+		OpenHistory hist;
+		bool bookmark;
+		this (in OpenHistory hist, bool bookmark) { mixin(S_TRACE);
+			this.hist = hist;
+			this.bookmark = bookmark;
+		}
+	}
+	private Hist[] _hist;
+
+	private UndoManager _undo;
+
+	private class HUndo : Undo {
+		private int[] _selected;
+		private Hist[] _oldHist;
+
+		this () { mixin(S_TRACE);
+			save();
+		}
+		private void save() { mixin(S_TRACE);
+			_selected = _list.getSelectionIndices();
+			_oldHist = _hist.dup;
+		}
+		private void impl() { mixin(S_TRACE);
+			auto selected = _selected;
+			auto oldHist = _oldHist;
+			save();
+			_hist = oldHist.dup;
+			_list.setItemCount(cast(int)_hist.length);
+			_list.clearAll();
+			_list.setSelection(selected);
+			_comm.refreshToolBar();
+			applyEnabled();
+		}
+		override void undo() { impl(); }
+		override void redo() { impl(); }
+		override void dispose() { mixin(S_TRACE);
+			// 処理無し
+		}
+	}
+	private void store() { mixin(S_TRACE);
+		_undo ~= new HUndo();
+	}
+
+	private TableItem _dragItm = null;
+	private class DragHist : DragSourceAdapter {
+		override void dragStart(DragSourceEvent e) { mixin(S_TRACE);
+			e.doit = 0 < _list.getSelectionCount();
+		}
+		override void dragSetData(DragSourceEvent e) { mixin(S_TRACE);
+			if (FileTransfer.getInstance().isSupportedType(e.dataType)) { mixin(S_TRACE);
+				auto sels = _list.getSelectionIndices();
+				assert (0 < sels.length);
+				auto sel = _list.getSelectionIndex();
+				assert (sel != -1);
+				_dragItm =_list.getItem(sel);
+				e.data = new FileNames(sels.map!(i => toSFileName(.fullHistToHist(_hist[i].hist.path)))().array());
+			}
+		}
+		override void dragFinished(DragSourceEvent e) { mixin(S_TRACE);
+			_dragItm = null;
+		}
+	}
+	private class DropHist : DropTargetAdapter {
+		private void move(DropTargetEvent e) { mixin(S_TRACE);
+			e.detail = DND.DROP_MOVE;
+		}
+		override void dragEnter(DropTargetEvent e){ mixin(S_TRACE);
+			move(e);
+		}
+		override void dragOver(DropTargetEvent e){ mixin(S_TRACE);
+			move(e);
+		}
+		override void drop(DropTargetEvent e){ mixin(S_TRACE);
+			e.detail = DND.DROP_NONE;
+			if (_dragItm) { mixin(S_TRACE);
+				// 同じビュー上のドラッグ&ドロップ(位置の移動)
+				if (_dragItm is e.item) return;
+				e.detail = DND.DROP_MOVE;
+				auto dragIndex = _list.indexOf(_dragItm);
+				auto dropIndex = cast(TableItem)e.item ? _list.indexOf(cast(TableItem)e.item) : _list.getItemCount();
+				assert (dragIndex != -1);
+				assert (dropIndex != -1);
+				assert (dragIndex != dropIndex);
+				store();
+				if (dropIndex < dragIndex) { mixin(S_TRACE);
+					upImpl(dragIndex - dropIndex);
+				} else { mixin(S_TRACE);
+					assert (dragIndex < dropIndex);
+					downImpl(dropIndex - dragIndex);
+				}
+				applyEnabled();
+				_comm.refreshToolBar();
+			} else { mixin(S_TRACE);
+				// ファイルリストのドロップで履歴にパスを追加する
+				auto files = cast(FileNames)e.data;
+				if (!files) return;
+				bool[string] paths;
+				string normCase(string path) { mixin(S_TRACE);
+					static if (filenameCmp("A", "a") == 0) {
+						return path.toLower();
+					} else {
+						return path;
+					}
+				}
+				foreach (m; _hist) paths[normCase(.nabs(.fullHistToHist(m.hist.path)))] = true;
+				Hist[] targ;
+				foreach (file; files.array) { mixin(S_TRACE);
+					if (!file.exists()) continue;
+					if (file.isDir()) { mixin(S_TRACE);
+						auto wsn = file.buildPath("Summary.xml");
+						auto wsm = file.buildPath("Summary.wsm");
+						if (wsn.exists()) { mixin(S_TRACE);
+							file = wsn;
+						} else if (wsm.exists()) { mixin(S_TRACE);
+							file = wsm;
+						} else { mixin(S_TRACE);
+							continue;
+						}
+					}
+					auto p = normCase(.nabs(file));
+					if (p !in paths) { mixin(S_TRACE);
+						targ ~= Hist(OpenHistory(file), false);
+						paths[p] = true;
+					}
+				}
+				if (!targ.length) return;
+				store();
+				auto dropIndex = cast(TableItem)e.item ? _list.indexOf(cast(TableItem)e.item) : _list.getItemCount();
+				assert (dropIndex != -1);
+				_hist = _hist[0 .. dropIndex] ~ targ ~ _hist[dropIndex .. $];
+				e.detail = DND.DROP_LINK;
+				applyEnabled();
+				_comm.refreshToolBar();
+			}
+		}
+	}
+
+	private void refUndoMax() { mixin(S_TRACE);
+		_undo.max = _comm.prop.var.etc.undoMaxEtc;
+	}
+
+	this (Commons comm, Shell shell) { mixin(S_TRACE);
+		_comm = comm;
+		auto size = _comm.prop.var.scenarioHistoryDlg;
+		super (_comm.prop, shell, false, _comm.prop.msgs.editScenarioHistory, _comm.prop.images.menu(MenuID.EditScenarioHistory), true, size, true, true);
+	}
+
+	protected override void setup(Composite area) { mixin(S_TRACE);
+		area.setLayout(normalGridLayout(1, false));
+
+		_undo = new UndoManager(_comm.prop.var.etc.undoMaxEtc);
+		_comm.refUndoMax.add(&refUndoMax);
+		.listener(area, SWT.Dispose, { mixin(S_TRACE);
+			_comm.refUndoMax.remove(&refUndoMax);
+		});
+
+		auto label = new Label(area, SWT.WRAP);
+		label.setText(_comm.prop.msgs.scenarioBookmarkHint);
+		label.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+		_list = .rangeSelectableTable(area, SWT.MULTI | SWT.CHECK | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.VIRTUAL);
+		_list.setHeaderVisible(true);
+		.listener(_list, SWT.Selection, (e) { mixin(S_TRACE);
+			if (e.detail == SWT.CHECK) { mixin(S_TRACE);
+				updateChecked(e);
+				foreach (i; _list.getSelectionIndices() ~ _list.indexOf(cast(TableItem)e.item)) { mixin(S_TRACE);
+					_hist[i].bookmark = _list.getItem(i).getChecked();
+				}
+				applyEnabled();
+			}
+		});
+		.listener(_list, SWT.MouseDoubleClick, &openSelection);
+		.listener(_list, SWT.KeyDown, (e) { mixin(S_TRACE);
+			if (.isEnterKey(e.keyCode)) openSelection();
+		});
+		_list.setLayoutData(new GridData(GridData.FILL_BOTH));
+
+		auto nameCol = new TableColumn(_list, SWT.NONE);
+		nameCol.setText(_comm.prop.msgs.historyScenarioFileName);
+		auto pathCol = new TableColumn(_list, SWT.NONE);
+		pathCol.setText(_comm.prop.msgs.historyScenarioPath);
+
+		saveColumnWidth!("prop.var.etc.historyScenarioNameColumn")(_comm.prop, nameCol);
+		saveColumnWidth!("prop.var.etc.historyScenarioPathColumn")(_comm.prop, pathCol);
+
+		auto menu = new Menu(_list.getShell(), SWT.POP_UP);
+		createMenuItem(_comm, menu, MenuID.Undo, { _undo.undo(); }, &_undo.canUndo);
+		createMenuItem(_comm, menu, MenuID.Redo, { _undo.redo(); }, &_undo.canRedo);
+		new MenuItem(menu, SWT.SEPARATOR);
+		createMenuItem(_comm, menu, MenuID.Up, &up, &canUp);
+		createMenuItem(_comm, menu, MenuID.Down, &down, &canDown);
+		new MenuItem(menu, SWT.SEPARATOR);
+		createMenuItem(_comm, menu, MenuID.CopyAsText, &copyAsText, () => 0 < _list.getSelectionCount());
+		createMenuItem(_comm, menu, MenuID.Delete, &del, () => 0 < _list.getSelectionCount());
+		new MenuItem(menu, SWT.SEPARATOR);
+		createMenuItem(_comm, menu, MenuID.SelectAll, &_list.selectAll, () => _list.getItemCount() && _list.getSelectionCount() != _list.getItemCount());
+		new MenuItem(menu, SWT.SEPARATOR);
+		createMenuItem(_comm, menu, MenuID.DeleteNotExistsHistory, &delNotExists, () => 0 < _list.getItemCount());
+		_list.setMenu(menu);
+
+		_hist = .map!(h => Hist(h, true))(_comm.prop.var.etc.scenarioBookmarks).array();
+		_hist ~= .map!(h => Hist(h, false))(_comm.prop.var.etc.openHistories).array();
+		_list.setItemCount(cast(int)_hist.length);
+		.listener(_list, SWT.SetData, (e) { mixin(S_TRACE);
+			auto m = _hist[e.index];
+			auto itm = cast(TableItem)e.item;
+			auto path = .fullHistToHist(m.hist.path);
+			itm.setImage(.historyImage(_comm.prop, path));
+			path = toSFileName(path);
+			itm.setText(0, .baseName(path));
+			itm.setText(1, .nabs(path));
+			itm.setChecked(m.bookmark);
+		});
+
+		auto drag = new DragSource(_list, DND.DROP_MOVE | DND.DROP_LINK);
+		drag.setTransfer([FileTransfer.getInstance()]);
+		drag.addDragListener(new DragHist);
+		auto drop = new DropTarget(_list, DND.DROP_DEFAULT | DND.DROP_MOVE | DND.DROP_LINK);
+		drop.setTransfer([FileTransfer.getInstance()]);
+		drop.addDropListener(new DropHist);
+	}
+
+	private static string toSFileName(string path) { mixin(S_TRACE);
+		auto name = .baseName(path);
+		if (.cfnmatch(name, "Summary.xml") || .cfnmatch(name, "Summary.wsm")) { mixin(S_TRACE);
+			return .dirName(path);
+		} else { mixin(S_TRACE);
+			return path;
+		}
+	}
+
+	private void openSelection() { mixin(S_TRACE);
+		foreach (i; _list.getSelectionIndices()) { mixin(S_TRACE);
+			auto path = toSFileName(.fullHistToHist(_hist[i].hist.path));
+			if (path.exists()) { mixin(S_TRACE);
+				.openFolderWithFile(path);
+			}
+		}
+	}
+
+	@property
+	private bool canUp() { mixin(S_TRACE);
+		return _list.getSelectionCount() && 0 < .minElement(_list.getSelectionIndices());
+	}
+	private void up() { mixin(S_TRACE);
+		if (!canUp) return;
+		store();
+		upImpl(1);
+		applyEnabled();
+		_comm.refreshToolBar();
+	}
+	private void upImpl(size_t count) { mixin(S_TRACE);
+		auto indices = _list.getSelectionIndices();
+		indices = indices.sort().array();
+		foreach (i; 0 .. count) { mixin(S_TRACE);
+			if (indices[0] <= 0) break;
+			foreach (index; indices) { mixin(S_TRACE);
+				.swap(_hist[index - 1], _hist[index]);
+			}
+			indices[] -= 1;
+		}
+		_list.setSelection(indices);
+		_list.clearAll();
+	}
+
+	@property
+	private bool canDown() { mixin(S_TRACE);
+		return _list.getSelectionCount() && .maxElement(_list.getSelectionIndices()) + 1 < _list.getItemCount();
+	}
+	private void down() { mixin(S_TRACE);
+		if (!canDown) return;
+		store();
+		downImpl(1);
+		applyEnabled();
+		_comm.refreshToolBar();
+	}
+	private void downImpl(size_t count) { mixin(S_TRACE);
+		auto indices = _list.getSelectionIndices();
+		indices = indices.sort().array();
+		foreach (i; 0 .. count) { mixin(S_TRACE);
+			if (_hist.length <= indices[$ - 1] + 1) break;
+			foreach_reverse (index; indices) { mixin(S_TRACE);
+				.swap(_hist[index], _hist[index + 1]);
+			}
+			indices[] += 1;
+		}
+		_list.setSelection(indices);
+		_list.clearAll();
+	}
+
+	private void copyAsText() { mixin(S_TRACE);
+		string[] t;
+		foreach (index; _list.getSelectionIndices()) { mixin(S_TRACE);
+			t ~= toSFileName(.fullHistToHist(_hist[index].hist.path));
+		}
+		if (!t.length) return;
+		auto text = new ArrayWrapperString(std.string.join(t, .newline));
+		_comm.clipboard.setContents([text], [TextTransfer.getInstance()]);
+		_comm.refreshToolBar();
+	}
+
+	private void del() { mixin(S_TRACE);
+		auto indices = _list.getSelectionIndices();
+		if (!indices.length) return;
+		store();
+		foreach_reverse (index; indices) { mixin(S_TRACE);
+			_hist = .remove(_hist, index);
+		}
+		_list.deselectAll();
+		_list.setItemCount(cast(int)_hist.length);
+		_list.clearAll();
+		applyEnabled();
+		_comm.refreshToolBar();
+	}
+
+	private void delNotExists() { mixin(S_TRACE);
+		auto indices = _list.getSelectionIndices();
+		bool[Hist] sels;
+		foreach (i; indices) { mixin(S_TRACE);
+			sels[_hist[i]] = true;
+		}
+		Hist[] hist;
+		int[] indices2;
+		foreach (i, m; _hist) { mixin(S_TRACE);
+			if (.fullHistToHist(m.hist.path).exists()) { mixin(S_TRACE);
+				if (m in sels) indices2 ~= cast(int)hist.length;
+				hist ~= m;
+			}
+		}
+		if (_hist.length == hist.length) return;
+		store();
+		_hist = hist;
+		_list.setSelection(indices2);
+		_list.setItemCount(cast(int)_hist.length);
+		_list.clearAll();
+		applyEnabled();
+		_comm.refreshToolBar();
+	}
+
+	protected override bool apply() { mixin(S_TRACE);
+		auto scenarioBookmarks = _hist.filter!(h => h.bookmark)().map!(h => h.hist)().array();
+		auto openHistories = _hist.filter!(h => !h.bookmark)().map!(h => h.hist)().array();
+
+		if (scenarioBookmarks != _comm.prop.var.etc.scenarioBookmarks || _comm.prop.var.etc.openHistories != openHistories) { mixin(S_TRACE);
+			_comm.prop.var.etc.scenarioBookmarks = scenarioBookmarks;
+			_comm.prop.var.etc.openHistories = openHistories;
+			_comm.refHistories.call();
+		}
+		return true;
+	}
+}
+
+Image historyImage(Props prop, string hist) { mixin(S_TRACE);
+	if (!.exists(hist)) return prop.images.warning;
+	auto ext = .extension(hist);
+	if (.cfnmatch(baseName(hist), "Summary.xml")) { mixin(S_TRACE);
+		return prop.images.summaryFile;
+	} else if (.cfnmatch(ext, ".wsn")) { mixin(S_TRACE);
+		return prop.images.scenarioArchive;
+	} else if (.cfnmatch(baseName(hist), "Summary.wsm")) { mixin(S_TRACE);
+		return prop.images.classic;
+	} else if (.cfnmatch(ext, ".cab") || .cfnmatch(ext, ".zip") || .cfnmatch(ext, ".lzh") || .cfnmatch(ext, ".lha")) { mixin(S_TRACE);
+		return prop.images.scenarioArchive;
+	} else { mixin(S_TRACE);
+		return prop.images.unknown;
+	}
+}
+
+/// `"/foo/bar" /cwx:0/path:0...` -> `/foo/bar`
+string fullHistToHist(string hist) { mixin(S_TRACE);
+	if (std.string.startsWith(hist, "\"")) { mixin(S_TRACE);
+		auto i = std.string.indexOf(hist["\"".length .. $], "\"");
+		if (-1 != i) { mixin(S_TRACE);
+			return hist["\"".length .. i + "\"".length];
+		}
+	}
+	return hist;
+} unittest { mixin(S_TRACE);
+	debug mixin(UTPerf);
+	assert (fullHistToHist(r"C:\test\test1") == r"C:\test\test1");
+	assert (fullHistToHist(`"C:\test\test1" aaa`) == r"C:\test\test1");
+}
+
+/// `"/foo/bar" /cwx:0/path:0&/cwx:1/path1:0` -> [`/cwx:0/path:0`, `/cwx:1/path:1`]
+string[] fullHistToCWXPaths(string hist) { mixin(S_TRACE);
+	if (std.string.startsWith(hist, "\"")) { mixin(S_TRACE);
+		auto i = std.string.indexOf(hist["\"".length .. $], "\"");
+		if (-1 != i) { mixin(S_TRACE);
+			return std.string.split(strip(hist[i + "\"".length + 1 .. $]), CWXPATH_SEP.idup);
+		}
+	}
+	return [];
+} unittest { mixin(S_TRACE);
+	debug mixin(UTPerf);
+	assert (fullHistToCWXPaths(r"C:\test\test1") == []);
+	assert (fullHistToCWXPaths(`"C:\test\test1" aaa&bbb`) == ["aaa", "bbb"]);
+	assert (fullHistToCWXPaths(`"C:\test\test1" &aaa&bbb&&`) == ["", "aaa", "bbb", "", ""]);
+}
