@@ -668,7 +668,7 @@ private:
 					b.setSelection(false);
 				});
 				auto menu = new Menu(_imgList.shell, SWT.POP_UP);
-				createMenuItem(_comm, menu, MenuID.IncSearch, &_msel.startIncSearch, null);
+				createMenuItem(_comm, menu, MenuID.IncSearch, &_msel.startIncSearch, &_msel.canIncSearch);
 				new MenuItem(menu, SWT.SEPARATOR);
 				createMenuItem(_comm, menu, MenuID.CloseWin, &_imgList.close, null);
 				_imgList.widget.setMenu(menu);

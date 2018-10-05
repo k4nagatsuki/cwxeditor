@@ -1258,11 +1258,11 @@ public:
 						_comm.refreshToolBar();
 					}
 				});
-				_beastIncSearch = new IncSearch(_comm, _beasts);
+				_beastIncSearch = new IncSearch(_comm, _beasts, () => !_readOnly && 0 < _summ.beasts.length);
 				_beastIncSearch.modEvent ~= &refBeasts;
 				{ mixin(S_TRACE);
 					auto menu = new Menu(_beasts.getShell(), SWT.POP_UP);
-					createMenuItem(_comm, menu, MenuID.IncSearch, &beastIncSearch, () => !_readOnly && 1 < _beasts.getItemCount());
+					createMenuItem(_comm, menu, MenuID.IncSearch, &beastIncSearch, () => !_readOnly && 0 < _summ.beasts.length);
 					new MenuItem(menu, SWT.SEPARATOR);
 					createMenuItem(_comm, menu, MenuID.OpenAtCardView, &openBeastCardView, () => !_readOnly && 0 < _beasts.getSelectionIndex());
 					_beasts.setMenu(menu);

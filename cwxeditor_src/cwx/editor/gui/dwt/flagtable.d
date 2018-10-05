@@ -2038,7 +2038,7 @@ public:
 		flags.addKeyListener(new KListener);
 		flags.addMouseListener(new MListener);
 		auto menu = new Menu(flags.getShell(), SWT.POP_UP);
-		createMenuItem(_comm, menu, MenuID.IncSearch, &incSearch, null);
+		createMenuItem(_comm, menu, MenuID.IncSearch, &incSearch, () => _dir.flags.length || _dir.steps.length);
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.EditProp, &edit, &canEdit);
 		new MenuItem(menu, SWT.SEPARATOR);
@@ -2105,7 +2105,7 @@ public:
 			AdditionMatcher(MenuProps.buildMenu(.objName!Step(prop), "S", "", false), (o) => cast(Step)o !is null),
 			AdditionMatcher(MenuProps.buildMenu(.objName!(cwx.flag.Flag)(prop), "F", "", false), (o) => cast(cwx.flag.Flag)o !is null),
 		];
-		_incSearch = new IncSearch(_comm, incSearchParent, matchers);
+		_incSearch = new IncSearch(_comm, incSearchParent, () => _dir.flags.length || _dir.steps.length, matchers);
 		_incSearch.modEvent ~= &refresh;
 	}
 	private Composite _comp = null;

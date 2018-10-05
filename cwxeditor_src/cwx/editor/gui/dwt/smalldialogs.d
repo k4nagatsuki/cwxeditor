@@ -49,11 +49,10 @@ private:
 
 	Text _name;
 	Combo _skinC;
-	Tuple!(string, "type", string, "name")[] _skinTypes;
+	Tuple!(string, "type", string, "name", string, "path")[] _skinTypes;
 	Combo _templateC;
 	string _nameVal;
-	string _skinType = "";
-	string _skinName = "";
+	Tuple!(string, "type", string, "name", string, "path") _selectedSkin;
 	Button _baseSkin;
 	Button _baseTemplate;
 	ScTemplate[int] _tTbl;
@@ -79,11 +78,9 @@ private:
 	void refSkinVal() { mixin(S_TRACE);
 		auto index = _skinC.getSelectionIndex();
 		if (index == _skinC.getItemCount() - 1) { mixin(S_TRACE);
-			_skinName = "";
-			_skinType = "";
+			_selectedSkin = typeof(_selectedSkin).init;
 		} else { mixin(S_TRACE);
-			_skinName = _skinTypes[index].name;
-			_skinType = _skinTypes[index].type;
+			_selectedSkin = _skinTypes[index];
 		}
 	}
 	void refClassic() { mixin(S_TRACE);
@@ -117,7 +114,7 @@ private:
 				}
 			}
 		} else { mixin(S_TRACE);
-			_classic = skinType.length == 0;
+			_classic = _selectedSkin.path == "";
 		}
 	}
 public:
@@ -142,11 +139,11 @@ public:
 	}
 	@property
 	string skinType() { mixin(S_TRACE);
-		return _skinType;
+		return _selectedSkin.type;
 	}
 	@property
 	string skinName() { mixin(S_TRACE);
-		return _skinName;
+		return _selectedSkin.name;
 	}
 	@property
 	Summary fromTemplate() { mixin(S_TRACE);
@@ -225,16 +222,18 @@ protected:
 			_skinC.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			_skinTypes = [];
 			foreach (key, value; skinTable(_prop)) { mixin(S_TRACE);
-				_skinTypes ~= typeof(_skinTypes[0])(value.type, value.name);
+				_skinTypes ~= typeof(_skinTypes[0])(value.type, value.name, value.path);
 			}
 			int skinCmp(in typeof(_skinTypes[0]) skin1, in typeof(_skinTypes[0]) skin2) { mixin(S_TRACE);
 				if (_prop.var.etc.logicalSort) { mixin(S_TRACE);
 					int i = ncmp(skin1.name, skin2.name);
 					if (i == 0) i = ncmp(skin1.type, skin2.type);
+					if (i == 0) i = fncmp(skin1.path, skin2.path);
 					return i;
 				} else { mixin(S_TRACE);
 					int i = cmp(skin1.name, skin2.name);
 					if (i == 0) i = cmp(skin1.type, skin2.type);
+					if (i == 0) i = fncmp(skin1.path, skin2.path);
 					return i;
 				}
 			}
@@ -250,7 +249,7 @@ protected:
 			if (!_skinC.getItemCount()) { mixin(S_TRACE);
 				// スキンが無い
 				_skinC.add(defText);
-				_skinTypes ~= typeof(_skinTypes[0])(_prop.var.etc.defaultSkin, _prop.var.etc.defaultSkinName);
+				_skinTypes ~= typeof(_skinTypes[0])(_prop.var.etc.defaultSkin, _prop.var.etc.defaultSkinName, "");
 			}
 			_skinC.add(_prop.msgs.defaultSelection(_prop.msgs.classic));
 
@@ -268,31 +267,19 @@ protected:
 				_skinC.select(lastIndex);
 			}
 
-			_skinIncSearch = new IncSearch(_comm, _skinC);
+			_skinIncSearch = new IncSearch(_comm, _skinC, null);
 			auto skinTypes2 = _skinTypes.dup;
-			auto selectedType = -1;
-			void selectSkinType() { mixin(S_TRACE);
-				if (_skinC.getSelectionIndex() != -1) { mixin(S_TRACE);
-					selectedType = _skinC.getSelectionIndex();
-				}
-			}
-			selectSkinType();
-			.listener(_skinC, SWT.Selection, &selectSkinType);
 			void refreshSkins() { mixin(S_TRACE);
 				_skinC.removeAll();
-				auto isClassic = cast(int)skinTypes2.length <= selectedType;
-				auto isSkin = !isClassic && selectedType != -1;
-				auto t2 = isSkin ? skinTypes2[selectedType] : typeof(skinTypes2[0])();
-				skinTypes2 = [];
-				foreach (i, ref t; _skinTypes) { mixin(S_TRACE);
+				_skinTypes = [];
+				foreach (i, ref t; skinTypes2) { mixin(S_TRACE);
 					if (!_skinIncSearch.match(t.name)) continue;
 					_skinC.add(.tryFormat("%s(%s)", t.name, t.type));
-					skinTypes2 ~= t;
-					if (isSkin && t2 == t) _skinC.select(cast(int)_skinC.getItemCount() - 1);
+					_skinTypes ~= t;
+					if (t == _selectedSkin) _skinC.select(cast(int)_skinC.getItemCount() - 1);
 				}
 				_skinC.add(_prop.msgs.defaultSelection(_prop.msgs.classic));
-				if (isClassic) _skinC.select(cast(int)_skinC.getItemCount() - 1);
-				selectedType = _skinC.getSelectionIndex();
+				if (legacy) _skinC.select(cast(int)_skinC.getItemCount() - 1);
 			}
 			_skinIncSearch.modEvent ~= &refreshSkins;
 			auto menu = new Menu(_skinC.getShell(), SWT.POP_UP);
@@ -376,11 +363,9 @@ protected:
 			_nameVal = _name.getText();
 			if (!_nameVal.length) _nameVal = _prop.var.etc.newScenarioName;
 
-			_skinIncSearch.close();
-			auto skinIndex = _skinC.getSelectionIndex();
-			if (0 <= skinIndex && skinIndex < _skinTypes.length) { mixin(S_TRACE);
-				_prop.var.etc.lastSkinName = _skinTypes[skinIndex].name;
-				_prop.var.etc.lastSkinType = _skinTypes[skinIndex].type;
+			if (!legacy) { mixin(S_TRACE);
+				_prop.var.etc.lastSkinName = skinName;
+				_prop.var.etc.lastSkinType = skinType;
 			}
 
 			auto dir = classicDir;

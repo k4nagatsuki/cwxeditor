@@ -366,10 +366,10 @@ class ToolBarCustomizer : Composite, TCPD {
 			.listener(_menuList, SWT.Selection, &_comm.refreshToolBar);
 			new FullTableColumn(_menuList, SWT.NONE);
 
-			_menuIncSearch = new IncSearch(_comm, _menuList);
+			_menuIncSearch = new IncSearch(_comm, _menuList, &canIncSearch);
 			_menuIncSearch.modEvent ~= &refreshMenu;
 			auto menu = new Menu(_menuList.getShell(), SWT.POP_UP);
-			createMenuItem(_comm, menu, MenuID.IncSearch, () => _menuIncSearch.startIncSearch(), null);
+			createMenuItem(_comm, menu, MenuID.IncSearch, () => _menuIncSearch.startIncSearch(), &canIncSearch);
 			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(_comm, menu, MenuID.Undo, { _undo.undo(); }, &_undo.canUndo);
 			createMenuItem(_comm, menu, MenuID.Redo, { _undo.redo(); }, &_undo.canRedo);
@@ -502,6 +502,16 @@ class ToolBarCustomizer : Composite, TCPD {
 		}
 		if (_toolTree.getItemCount()) _toolTree.setSelection([_toolTree.getItem(0)]);
 		_comm.refreshToolBar();
+	}
+	@property
+	bool canIncSearch() { mixin(S_TRACE);
+		foreach (id; EnumMembers!MenuID) { mixin(S_TRACE);
+			if (!canAppendMenu(id)) continue;
+			auto image = _prop.images.menu(id);
+			if (!image) continue;
+			return true;
+		}
+		return false;
 	}
 	private void refreshMenu() { mixin(S_TRACE);
 		_menuList.setRedraw(false);

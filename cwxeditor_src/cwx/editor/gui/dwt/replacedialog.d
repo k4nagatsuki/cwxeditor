@@ -520,22 +520,23 @@ private:
 			}
 		}
 	}
-	static const ID_AREA = 0;
-	static const ID_BATTLE = 1;
-	static const ID_PACKAGE = 2;
-	static const ID_CAST = 3;
-	static const ID_SKILL = 4;
-	static const ID_ITEM = 5;
-	static const ID_BEAST = 6;
-	static const ID_INFO = 7;
-	static const ID_FLAG = 8;
-	static const ID_STEP = 9;
-	static const ID_COUPON = 10;
-	static const ID_GOSSIP = 11;
-	static const ID_COMPLETE_STAMP = 12;
-	static const ID_KEY_CODE = 13;
-	static const ID_CELL_NAME = 14;
-	static const ID_CARD_GROUP = 15;
+	private bool _hasID = false;
+	private static const ID_AREA = 0;
+	private static const ID_BATTLE = 1;
+	private static const ID_PACKAGE = 2;
+	private static const ID_CAST = 3;
+	private static const ID_SKILL = 4;
+	private static const ID_ITEM = 5;
+	private static const ID_BEAST = 6;
+	private static const ID_INFO = 7;
+	private static const ID_FLAG = 8;
+	private static const ID_STEP = 9;
+	private static const ID_COUPON = 10;
+	private static const ID_GOSSIP = 11;
+	private static const ID_COMPLETE_STAMP = 12;
+	private static const ID_KEY_CODE = 13;
+	private static const ID_CELL_NAME = 14;
+	private static const ID_CARD_GROUP = 15;
 	private void setupIDsImpl2(T)(T[] arr, Combo combo, Spinner spn, ref ulong[int] tbl, bool clear, IncSearch incSearch) { mixin(S_TRACE);
 		ulong[int] tbl2;
 		string oldSel = clear ? "" : combo.getText();
@@ -546,6 +547,7 @@ private:
 				static if (is(T:cwx.flag.Flag)) {
 					foreach (key; _summ.useCounter.flag.keys) { mixin(S_TRACE);
 						if (.icmp(_prop.sys.randomValue, cast(string)key) == 0) continue;
+						_hasID = true;
 						if (!incSearch.match(cast(string)key)) continue;
 						set.add(cast(string)key);
 					}
@@ -553,6 +555,7 @@ private:
 					foreach (key; _summ.useCounter.step.keys) { mixin(S_TRACE);
 						if (.icmp(_prop.sys.randomValue, cast(string)key) == 0) continue;
 						if (.icmp(_prop.sys.selectedPlayerCardNumber, cast(string)key) == 0) continue;
+						_hasID = true;
 						if (!incSearch.match(cast(string)key)) continue;
 						set.add(cast(string)key);
 					}
@@ -561,6 +564,7 @@ private:
 			foreach (i, a; arr) { mixin(S_TRACE);
 				auto p = a.path;
 				if (p == "") continue;
+				_hasID = true;
 				if (!incSearch.match(p)) continue;
 				combo.add(p);
 				set.remove(p);
@@ -573,6 +577,7 @@ private:
 			}
 			foreach (p; .sortDlg(set.array(), cmps)) { mixin(S_TRACE);
 				if (p == "") continue;
+				_hasID = true;
 				if (!incSearch.match(p)) continue;
 				combo.add(p);
 			}
@@ -597,6 +602,7 @@ private:
 				arr2 = .allCardGroups(_comm, _summ);
 			} else static assert (0);
 			foreach (a; arr2) {
+				_hasID = true;
 				if (!incSearch.match(a)) continue;
 				combo.add(a);
 			}
@@ -608,6 +614,7 @@ private:
 		} else {
 			combo.add(_prop.msgs.defaultSelection(_prop.msgs.replSetID));
 			foreach (i, a; arr) { mixin(S_TRACE);
+				_hasID = true;
 				if (!incSearch.match(a.name)) continue;
 				combo.add(to!(string)(a.id) ~ "." ~ a.name);
 				tbl2[cast(int)i + 1] = a.id;
@@ -626,6 +633,7 @@ private:
 		if (to) setupIDsImpl2(arr, _toID, _toIDVal, _toIDTbl, clear, _toIDIncSearch);
 	}
 	private void setupIDs(bool clear, bool from, bool to) { mixin(S_TRACE);
+		_hasID = false;
 		if (!_summ) { mixin(S_TRACE);
 			_fromID.removeAll();
 			_fromID.setEnabled(false);
@@ -687,11 +695,14 @@ private:
 		_lastMaterialPaths = [""] ~ allMaterials(false);
 		setupPathsImpl(true, true);
 	}
-	private void setupPathsImpl(bool from, bool to) {
+	private bool _hasPath = false;
+	private void setupPathsImpl(bool from, bool to) { mixin(S_TRACE);
+		_hasPath = false;
 		void setPaths(Combo combo, IncSearch incSearch) { mixin(S_TRACE);
 			auto old = combo.getText();
 			combo.removeAll();
-			foreach (path; _lastMaterialPaths) {
+			foreach (path; _lastMaterialPaths) { mixin(S_TRACE);
+				_hasPath = true;
 				if (!incSearch.match(path)) continue;
 				combo.add(path);
 			}
@@ -759,19 +770,19 @@ private:
 		}
 		auto fMenu = new Menu(_win, SWT.POP_UP);
 		_fromID.setMenu(fMenu);
-		createMenuItem(_comm, fMenu, MenuID.IncSearch, &fromIDIncSearch, null);
+		createMenuItem(_comm, fMenu, MenuID.IncSearch, &fromIDIncSearch, () => _hasID);
 		new MenuItem(fMenu, SWT.SEPARATOR);
 		createTextMenu!Combo(_comm, _prop, _fromID, &catchMod);
 
 		auto tMenu = new Menu(_win, SWT.POP_UP);
 		_toID.setMenu(tMenu);
-		createMenuItem(_comm, tMenu, MenuID.IncSearch, &toIDIncSearch, null);
+		createMenuItem(_comm, tMenu, MenuID.IncSearch, &toIDIncSearch, () => _hasID);
 		new MenuItem(tMenu, SWT.SEPARATOR);
 		createTextMenu!Combo(_comm, _prop, _toID, &catchMod);
 
-		_fromIDIncSearch = new IncSearch(_comm, _fromID);
+		_fromIDIncSearch = new IncSearch(_comm, _fromID, () => _hasID);
 		_fromIDIncSearch.modEvent ~= () => setupIDs(false, true, false);
-		_toIDIncSearch = new IncSearch(_comm, _toID);
+		_toIDIncSearch = new IncSearch(_comm, _toID, () => _hasID);
 		_toIDIncSearch.modEvent ~= () => setupIDs(false, false, true);
 
 		_fromIDComp.layout();
@@ -895,25 +906,25 @@ private:
 
 			auto fMenu = new Menu(_win, SWT.POP_UP);
 			_from.setMenu(fMenu);
-			createMenuItem(_comm, fMenu, MenuID.IncSearch, {
+			createMenuItem(_comm, fMenu, MenuID.IncSearch, { mixin(S_TRACE);
 				.forceFocus(_from, true);
 				_fromIncSearch.startIncSearch();
-			}, null);
+			}, () => 0 < _prop.var.etc.searchHistories.length);
 			new MenuItem(fMenu, SWT.SEPARATOR);
 			createTextMenu!Combo(_comm, _prop, _from, &catchMod);
 
 			auto tMenu = new Menu(_win, SWT.POP_UP);
 			_to.setMenu(tMenu);
-			createMenuItem(_comm, tMenu, MenuID.IncSearch, {
+			createMenuItem(_comm, tMenu, MenuID.IncSearch, { mixin(S_TRACE);
 				.forceFocus(_to, true);
 				_toIncSearch.startIncSearch();
-			}, null);
+			}, () => 0 < _prop.var.etc.replaceHistories.length);
 			new MenuItem(tMenu, SWT.SEPARATOR);
 			createTextMenu!Combo(_comm, _prop, _to, &catchMod);
 
-			_fromIncSearch = new IncSearch(_comm, _from);
+			_fromIncSearch = new IncSearch(_comm, _from, () => 0 < _prop.var.etc.searchHistories.length);
 			_fromIncSearch.modEvent ~= &updateFromHistory;
-			_toIncSearch = new IncSearch(_comm, _to);
+			_toIncSearch = new IncSearch(_comm, _to, () => 0 < _prop.var.etc.replaceHistories.length);
 			_toIncSearch.modEvent ~= &updateToHistory;
 		}
 		{ mixin(S_TRACE);
@@ -1106,14 +1117,14 @@ private:
 
 				auto menu = new Menu(_win, SWT.POP_UP);
 				combo.setMenu(menu);
-				createMenuItem(_comm, menu, MenuID.IncSearch, {
+				createMenuItem(_comm, menu, MenuID.IncSearch, { mixin(S_TRACE);
 					.forceFocus(combo, true);
 					incSearch.startIncSearch();
-				}, null);
+				}, () => _hasPath);
 				new MenuItem(menu, SWT.SEPARATOR);
 				createTextMenu!Combo(_comm, _prop, combo, &catchMod);
 
-				incSearch = new IncSearch(_comm, combo);
+				incSearch = new IncSearch(_comm, combo, () => _hasPath);
 
 				return combo;
 			}
@@ -2135,7 +2146,8 @@ public:
 			gd.widthHint = 0;
 			gd.heightHint = 0;
 			_range.setLayoutData(gd);
-			_incSearch = new IncSearch(_comm, _range);
+			auto canIncSearch = () => _summ && (_summ.areas.length || _summ.battles.length || _summ.packages.length || _summ.casts.length || _summ.skills.length || _summ.items.length || _summ.beasts.length || _summ.infos.length);
+			_incSearch = new IncSearch(_comm, _range, canIncSearch);
 			refreshRangeTree(false);
 			_rangeAllCheck = new Button(grp, SWT.CHECK);
 			_rangeAllCheck.setText(_prop.msgs.allCheckRange);
@@ -2145,7 +2157,7 @@ public:
 			_range.addKeyListener(openPath);
 			_range.addMouseListener(openPath);
 			auto menu = new Menu(_win, SWT.POP_UP);
-			createMenuItem(_comm, menu, MenuID.IncSearch, &incSearch, null);
+			createMenuItem(_comm, menu, MenuID.IncSearch, &incSearch, canIncSearch);
 			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(_comm, menu, MenuID.SelectAll, { mixin(S_TRACE);
 				void recurse(TreeItem itm) { mixin(S_TRACE);

@@ -1214,7 +1214,7 @@ private:
 				new FullTableColumn(_menu, SWT.NONE);
 				_menu.addSelectionListener(new SelectMenu);
 
-				_menuIncSearch = new IncSearch(_comm, _menu);
+				_menuIncSearch = new IncSearch(_comm, _menu, null);
 				_menuIncSearch.modEvent ~= &refreshMenu;
 
 				auto menu = new Menu(_menu.getShell(), SWT.POP_UP);

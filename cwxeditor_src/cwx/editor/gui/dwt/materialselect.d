@@ -148,7 +148,7 @@ class MaterialSelect(MtType Type, D, C) {
 			}
 		});
 		auto menu = new Menu(_dirs.getShell(), SWT.POP_UP);
-		createMenuItem(_comm, menu, MenuID.IncSearch, &startIncSearch, () => !_readOnly && !_loading);
+		createMenuItem(_comm, menu, MenuID.IncSearch, &startIncSearch, &canIncSearch);
 		_dirs.setMenu(menu);
 		return _dirs;
 	}
@@ -306,7 +306,7 @@ class MaterialSelect(MtType Type, D, C) {
 				_comm.refPaths.call(this.outer, cur);
 			}
 		};
-		_incSearch = new IncSearch(_comm, parent);
+		_incSearch = new IncSearch(_comm, parent, &canIncSearch);
 		_incSearch.modEvent ~= { mixin(S_TRACE);
 			refreshList();
 		};
@@ -315,7 +315,7 @@ class MaterialSelect(MtType Type, D, C) {
 	private void refreshFileListMenu() { mixin(S_TRACE);
 		if (!_fileList) return;
 		auto menu = new Menu(_fileList.getShell(), SWT.POP_UP);
-		createMenuItem(_comm, menu, MenuID.IncSearch, &startIncSearch, () => !_readOnly);
+		createMenuItem(_comm, menu, MenuID.IncSearch, &startIncSearch, &canIncSearch);
 		if (_undo) { mixin(S_TRACE);
 			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(_comm, menu, MenuID.Undo, { _undo.undo(); }, &_undo.canUndo);
@@ -1322,8 +1322,12 @@ class MaterialSelect(MtType Type, D, C) {
 	@property
 	IncSearch incSearch() { return _incSearch; }
 	void startIncSearch() { mixin(S_TRACE);
-		.forceFocus(_fileList, true);
+		if (!_incSearch.isOpen) .forceFocus(_fileList, true);
 		_incSearch.startIncSearch();
+	}
+	@property
+	bool canIncSearch() { mixin(S_TRACE);
+		return !_readOnly && !_loading && _canIncSearch;
 	}
 
 	static if (Type == MtType.CARD || Type == MtType.BG_IMG) {
@@ -1599,6 +1603,7 @@ private:
 					if (f.noScaledPath != "") continue;
 				}
 			}
+			_canIncSearch = true;
 			if (subThr || _incSearch.match(f.baseName())) { mixin(S_TRACE);
 				r ~= f;
 			}
@@ -1780,6 +1785,7 @@ private:
 	}
 	public void refreshList(bool forceRefresh = false, bool subThr = false) { mixin(S_TRACE);
 		_fileList.removeAll();
+		_canIncSearch = false;
 		_fnone = false;
 		auto defs = getDefs();
 		if (_dirs.getSelectionIndex() < defs.length) { mixin(S_TRACE);
@@ -2194,4 +2200,5 @@ private:
 	bool _firstSet = true;
 	bool delegate() _loadScaledImage = null;
 	bool _scheduleRefreshPaths = false;
+	bool _canIncSearch = false;
 }

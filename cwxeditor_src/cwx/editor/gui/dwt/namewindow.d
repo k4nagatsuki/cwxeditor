@@ -39,7 +39,7 @@ public:
 		_comm = comm;
 		_view = new NameView!ID(_comm, parentShell, parent, undo, readOnly);
 		appendMenuTCPD(_comm, this, this, false, true, false, false, false);
-		putMenuAction(MenuID.IncSearch, &_view.incSearch, null);
+		putMenuAction(MenuID.IncSearch, &_view.incSearch, &_view.canIncSearch);
 		putMenuAction(MenuID.EditProp, &_view.editName, &_view.canEditName);
 		putMenuAction(MenuID.Undo, &_view.undo, &_view.canUndo);
 		putMenuAction(MenuID.Redo, &_view.redo, &_view.canRedo);
@@ -207,6 +207,8 @@ private:
 	TableSorter!Object _ucSorter;
 	ID[] _nameList = [];
 
+	bool _hasName = false;
+
 	IncSearch _incSearch = null;
 	private void incSearch() { mixin(S_TRACE);
 		if (!_list || _list.isDisposed()) return;
@@ -214,6 +216,8 @@ private:
 		.forceFocus(_list, true);
 		_incSearch.startIncSearch();
 	}
+	@property
+	private bool canIncSearch() { return _hasName; }
 
 	void editEnd(TableItem itm, int column, string newText) { mixin(S_TRACE);
 		if (!_list || _list.isDisposed()) return;
@@ -300,11 +304,11 @@ public:
 
 		_nameEdit = new TableTextEdit(_comm, _comm.prop, _list, 0, &editEnd);
 
-		_incSearch = new IncSearch(_comm, _list);
+		_incSearch = new IncSearch(_comm, _list, &canIncSearch);
 		_incSearch.modEvent ~= &updateList;
 
 		auto menu = new Menu(parent.getShell(), SWT.POP_UP);
-		createMenuItem(_comm, menu, MenuID.IncSearch, &incSearch, null);
+		createMenuItem(_comm, menu, MenuID.IncSearch, &incSearch, &canIncSearch);
 		new MenuItem(menu, SWT.SEPARATOR);
 		if (!_readOnly) { mixin(S_TRACE);
 			createMenuItem(_comm, menu, MenuID.EditProp, &editName, &canEditName);
@@ -610,6 +614,7 @@ public:
 		if (!_list || _list.isDisposed()) return;
 		_list.setRedraw(false);
 		scope (exit) _list.setRedraw(true);
+		_hasName = false;
 		if (_summ) { mixin(S_TRACE);
 			bool[string] sels;
 			foreach (itm; _list.getSelection()) { mixin(S_TRACE);
@@ -650,6 +655,7 @@ public:
 			_nameList = [];
 			Tuple!(NCompare, uint)[] keys2;
 			foreach (key; keys) { mixin(S_TRACE);
+				_hasName = true;
 				if (!_incSearch.match(cast(string)key)) continue;
 				keys2 ~= .tuple(NCompare(cast(string)key, true, _comm.prop.var.etc.logicalSort), isUC ? _summ.useCounter.get(key) : 0);
 			}

@@ -79,10 +79,12 @@ class IncSearch {
 	private bool _regexErr = false;
 	private bool _open = false;
 	private bool _inMod = false;
+	private bool delegate() _enabled = null;
 
-	this (Commons comm, Control parent, AdditionMatcher[] addition = []) { mixin(S_TRACE);
+	this (Commons comm, Control parent, bool delegate() enabled, AdditionMatcher[] addition = []) { mixin(S_TRACE);
 		_comm = comm;
 		_parent = parent;
+		_enabled = enabled;
 		_addition = addition;
 
 		auto d = _parent.getDisplay();
@@ -93,7 +95,9 @@ class IncSearch {
 				wchar[] text;
 				override void run() { mixin(S_TRACE);
 					_start = null;
-					startIncSearch(text.text());
+					if (!_enabled || _enabled()) { mixin(S_TRACE);
+						startIncSearch(text.text());
+					}
 				}
 			}
 			private Start _start = null;
@@ -309,6 +313,10 @@ class IncSearch {
 			dlg();
 		}
 	}
+
+	@property
+	const
+	bool isOpen() { return _open; }
 
 	void startIncSearch(string first = "") { mixin(S_TRACE);
 		if (!_win) initialize();

@@ -217,7 +217,7 @@ class EtcSettings : Composite {
 		boolSetting(comp, prop.var.etc.radarStyleParams, prop.msgs.radarStyleParams);
 		boolSetting(comp, prop.var.etc.linkCard, prop.msgs.linkCard);
 
-		_incSearch = new IncSearch(comm, this);
+		_incSearch = new IncSearch(comm, this, null);
 		_incSearch.modEvent ~= &showCheckBoxes;
 		auto menu = new Menu(getShell(), SWT.POP_UP);
 		createMenuItem(comm, menu, MenuID.IncSearch, &incSearch, null);

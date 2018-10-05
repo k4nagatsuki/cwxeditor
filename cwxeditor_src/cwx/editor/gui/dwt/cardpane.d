@@ -2524,7 +2524,7 @@ private:
 		_tcpd ~= ct_;
 
 		// 絞込み検索
-		_incSearch = new IncSearch(_comm, _pane);
+		_incSearch = new IncSearch(_comm, _pane, () => 0 < cards.length);
 		_incSearch.modEvent ~= &refresh;
 
 		// ソート関係
@@ -2903,7 +2903,7 @@ public:
 				}
 			});
 			pop = new Menu(parent.getShell(), SWT.POP_UP);
-			createMenuItem(_comm, pop, MenuID.IncSearch, &incSearch, null);
+			createMenuItem(_comm, pop, MenuID.IncSearch, &incSearch, () => 0 < cards.length);
 			new MenuItem(pop, SWT.SEPARATOR);
 			if (_cardType is CardType.Cast) { mixin(S_TRACE);
 				createMenuItem(_comm, pop, MenuID.EditProp, &editM, &canEdit);
@@ -2968,7 +2968,7 @@ public:
 			createMenuItem(_comm, pop, MenuID.ReNumbering, &reNumbering, &canReNumbering);
 		} else { mixin(S_TRACE);
 			pop = new Menu(parent.getShell(), SWT.POP_UP);
-			createMenuItem(_comm, pop, MenuID.IncSearch, &incSearch, null);
+			createMenuItem(_comm, pop, MenuID.IncSearch, &incSearch, () => 0 < cards.length);
 			new MenuItem(pop, SWT.SEPARATOR);
 			createMenuItem(_comm, pop, MenuID.Import, &doImport, &canDoImport);
 			new MenuItem(pop, SWT.SEPARATOR);

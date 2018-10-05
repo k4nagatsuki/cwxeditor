@@ -44,14 +44,18 @@ T createCouponCombo(T = Combo)(Commons comm, Summary summ, Composite parent, boo
 	auto combo = new T(parent, SWT.BORDER | SWT.DROP_DOWN);
 	combo.setVisibleItemCount(comm.prop.var.etc.comboVisibleItemCount);
 	combo.setText(initValue);
-	auto incSearch = new IncSearch(comm, combo);
+	auto hasItem = false;
+	auto incSearch = new IncSearch(comm, combo, () => hasItem);
 
 	void refreshCoupons() { mixin(S_TRACE);
 		if (combo.isDisposed()) return;
 		string id = combo.getText();
 		combo.removeAll();
+		hasItem = false;
+
 		auto values = .addInitValue(comm, allCoupons(comm, summ, type), initValue);
 		foreach (i, coupon; values) { mixin(S_TRACE);
+			hasItem = true;
 			if (!incSearch.match(coupon)) continue;
 			combo.add(coupon);
 		}
@@ -76,7 +80,7 @@ T createCouponCombo(T = Combo)(Commons comm, Summary summ, Composite parent, boo
 	createMenuItem(comm, menu, MenuID.IncSearch, { mixin(S_TRACE);
 		.forceFocus(combo, true);
 		incSearch.startIncSearch();
-	}, null);
+	}, () => hasItem);
 	new MenuItem(menu, SWT.SEPARATOR);
 	combo.setMenu(menu);
 	tmm = createTextMenu!T(comm, comm.prop, combo, catchMod);
@@ -162,14 +166,17 @@ string[] allCoupons(Commons comm, Summary summ, CouponComboType type) { mixin(S_
 T createGossipCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, string initValue) { mixin(S_TRACE);
 	auto combo = new T(parent, SWT.BORDER | SWT.DROP_DOWN);
 	combo.setVisibleItemCount(comm.prop.var.etc.comboVisibleItemCount);
-	auto incSearch = new IncSearch(comm, combo);
+	auto hasItem = false;
+	auto incSearch = new IncSearch(comm, combo, () => hasItem);
 
 	void refGossip() { mixin(S_TRACE);
 		string id = combo.getText();
 		combo.removeAll();
+		hasItem = false;
 
 		auto values = .addInitValue(comm, allGossips(comm, summ), initValue);
 		foreach (i, gossip; values) { mixin(S_TRACE);
+			hasItem = true;
 			if (!incSearch.match(gossip)) continue;
 			combo.add(gossip);
 		}
@@ -190,7 +197,7 @@ T createGossipCombo(T = Combo)(Commons comm, Summary summ, Composite parent, boo
 	createMenuItem(comm, menu, MenuID.IncSearch, { mixin(S_TRACE);
 		.forceFocus(combo, true);
 		incSearch.startIncSearch();
-	}, null);
+	}, () => hasItem);
 	new MenuItem(menu, SWT.SEPARATOR);
 	combo.setMenu(menu);
 	createTextMenu!T(comm, comm.prop, combo, catchMod);
@@ -220,14 +227,17 @@ string[] allGossips(Commons comm, Summary summ) { mixin(S_TRACE);
 T createCompleteStampCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, string initValue) { mixin(S_TRACE);
 	auto combo = new T(parent, SWT.BORDER | SWT.DROP_DOWN);
 	combo.setVisibleItemCount(comm.prop.var.etc.comboVisibleItemCount);
-	auto incSearch = new IncSearch(comm, combo);
+	auto hasItem = false;
+	auto incSearch = new IncSearch(comm, combo, () => hasItem);
 
 	void refCompleteStamp() { mixin(S_TRACE);
 		string id = combo.getText();
 		combo.removeAll();
+		hasItem = false;
 
 		auto values = .addInitValue(comm, allCompleteStamps(comm, summ), initValue);
 		foreach (i, stamp; values) { mixin(S_TRACE);
+			hasItem = true;
 			if (!incSearch.match(stamp)) continue;
 			combo.add(stamp);
 		}
@@ -248,7 +258,7 @@ T createCompleteStampCombo(T = Combo)(Commons comm, Summary summ, Composite pare
 	createMenuItem(comm, menu, MenuID.IncSearch, { mixin(S_TRACE);
 		.forceFocus(combo, true);
 		incSearch.startIncSearch();
-	}, null);
+	}, () => hasItem);
 	new MenuItem(menu, SWT.SEPARATOR);
 	combo.setMenu(menu);
 	createTextMenu!T(comm, comm.prop, combo, catchMod);
@@ -278,11 +288,13 @@ string[] allCompleteStamps(Commons comm, Summary summ) { mixin(S_TRACE);
 T createKeyCodeCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, string initValue) { mixin(S_TRACE);
 	auto combo = new T(parent, SWT.BORDER | SWT.DROP_DOWN);
 	combo.setVisibleItemCount(comm.prop.var.etc.comboVisibleItemCount);
-	auto incSearch = new IncSearch(comm, combo);
+	auto hasItem = false;
+	auto incSearch = new IncSearch(comm, combo, () => hasItem);
 
 	void refStandardKeyCodes() { mixin(S_TRACE);
 		string id = combo.getText();
 		combo.removeAll();
+		hasItem = false;
 
 		string[] stdKCs = comm.prop.var.etc.standardKeyCodes.dup;
 
@@ -307,6 +319,7 @@ T createKeyCodeCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bo
 		}
 		auto values = .addInitValue(comm, kcs2, initValue);
 		foreach (i, kc; values) { mixin(S_TRACE);
+			hasItem = true;
 			if (!incSearch.match(kc)) continue;
 			combo.add(kc);
 		}
@@ -331,7 +344,7 @@ T createKeyCodeCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bo
 	createMenuItem(comm, menu, MenuID.IncSearch, { mixin(S_TRACE);
 		.forceFocus(combo, true);
 		incSearch.startIncSearch();
-	}, null);
+	}, () => hasItem);
 	new MenuItem(menu, SWT.SEPARATOR);
 	combo.setMenu(menu);
 	createTextMenu!T(comm, comm.prop, combo, catchMod);
@@ -377,15 +390,18 @@ string[] allKeyCodes(Commons comm, Summary summ) { mixin(S_TRACE);
 T createCellNameCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, string initValue) { mixin(S_TRACE);
 	auto combo = new T(parent, SWT.BORDER | SWT.DROP_DOWN);
 	combo.setVisibleItemCount(comm.prop.var.etc.comboVisibleItemCount);
-	auto incSearch = new IncSearch(comm, combo);
+	auto hasItem = false;
+	auto incSearch = new IncSearch(comm, combo, () => hasItem);
 
 	void refCellNames() { mixin(S_TRACE);
 		if (!summ) return;
 		string id = combo.getText();
 		combo.removeAll();
+		hasItem = false;
 
 		auto values = .addInitValue(comm, allCellNames(comm, summ), initValue);
 		foreach (i, kc; values) { mixin(S_TRACE);
+			hasItem = true;
 			if (!incSearch.match(kc)) continue;
 			combo.add(kc);
 		}
@@ -406,7 +422,7 @@ T createCellNameCombo(T = Combo)(Commons comm, Summary summ, Composite parent, b
 	createMenuItem(comm, menu, MenuID.IncSearch, { mixin(S_TRACE);
 		.forceFocus(combo, true);
 		incSearch.startIncSearch();
-	}, null);
+	}, () => hasItem);
 	new MenuItem(menu, SWT.SEPARATOR);
 	combo.setMenu(menu);
 	createTextMenu!T(comm, comm.prop, combo, catchMod);
@@ -431,15 +447,18 @@ string[] allCellNames(Commons comm, Summary summ) { mixin(S_TRACE);
 T createCardGroupCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, string initValue) { mixin(S_TRACE);
 	auto combo = new T(parent, SWT.BORDER | SWT.DROP_DOWN);
 	combo.setVisibleItemCount(comm.prop.var.etc.comboVisibleItemCount);
-	auto incSearch = new IncSearch(comm, combo);
+	auto hasItem = false;
+	auto incSearch = new IncSearch(comm, combo, () => hasItem);
 
 	void refCardGroups() { mixin(S_TRACE);
 		if (!summ) return;
 		string id = combo.getText();
 		combo.removeAll();
+		hasItem = false;
 
 		auto values = .addInitValue(comm, allCardGroups(comm, summ), initValue);
 		foreach (i, kc; values) { mixin(S_TRACE);
+			hasItem = true;
 			if (!incSearch.match(kc)) continue;
 			combo.add(kc);
 		}
@@ -460,7 +479,7 @@ T createCardGroupCombo(T = Combo)(Commons comm, Summary summ, Composite parent, 
 	createMenuItem(comm, menu, MenuID.IncSearch, { mixin(S_TRACE);
 		.forceFocus(combo, true);
 		incSearch.startIncSearch();
-	}, null);
+	}, () => hasItem);
 	new MenuItem(menu, SWT.SEPARATOR);
 	combo.setMenu(menu);
 	createTextMenu!T(comm, comm.prop, combo, catchMod);
@@ -666,6 +685,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 					if (!has && path == sel) { mixin(S_TRACE);
 						has = true;
 					}
+					_canIncSearch = true;
 					if (!_flagIncSearch.match(path)) return;
 					TreeItem itm;
 					if (dirItm) {
@@ -681,7 +701,6 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 						_tree.setSelection([itm]);
 						_selected = path;
 					}
-					_canIncSearch = true;
 				});
 				if (dirItm) {
 					dirItm.setExpanded(selItm || expandedTable.get(dir.path, _prop.var.etc.expandChooserItems));
@@ -721,6 +740,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 				if (!has && path == sel) { mixin(S_TRACE);
 					has = true;
 				}
+				_canIncSearch = true;
 				if (!_flagIncSearch.match(path)) return;
 				auto itm = new TableItem(_list, SWT.NONE);
 				itm.setData(flag);
@@ -731,7 +751,6 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 					_selected = path;
 				}
 				if (!firstItem) firstItem = itm;
-				_canIncSearch = true;
 			});
 		}
 		if (!has && firstItem) { mixin(S_TRACE);
@@ -760,10 +779,10 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 		}
 
 		if (_tree && !_tree.isDisposed()) { mixin(S_TRACE);
-			_tree.setEnabled(0 < _tree.getItemCount());
-			_allExpanded.setEnabled(0 < _tree.getItemCount());
+			_tree.setEnabled(_canIncSearch);
+			_allExpanded.setEnabled(_canIncSearch);
 		} else if (_list && !_list.isDisposed()) { mixin(S_TRACE);
-			_list.setEnabled(0 < _list.getItemCount());
+			_list.setEnabled(_canIncSearch);
 		}
 
 		if (_selected != sel) { mixin(S_TRACE);
@@ -895,7 +914,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 		_summ = summ;
 		_saveExpanded = saveExpanded;
 		setLayout(zeroMarginGridLayout(1, true));
-		_flagIncSearch = new IncSearch(_comm, this);
+		_flagIncSearch = new IncSearch(_comm, this, () => _canIncSearch);
 		_flagIncSearch.modEvent ~= &refreshFlags;
 
 		initControl();
@@ -937,15 +956,18 @@ T createSelectionCombo(T = Combo)(Commons comm, Composite parent, bool delegate(
 	auto combo = new T(parent, SWT.BORDER | SWT.DROP_DOWN);
 	combo.setVisibleItemCount(comm.prop.var.etc.comboVisibleItemCount);
 	combo.setText(initValue);
-	auto incSearch = new IncSearch(comm, combo);
+	auto hasItem = false;
+	auto incSearch = new IncSearch(comm, combo, () => hasItem);
 
 	void refStandardSelections() { mixin(S_TRACE);
 		string id = combo.getText();
 		combo.removeAll();
+		hasItem = false;
 
 		auto values = initValue == "" ? [""] : [];
 		values ~= .addInitValue(comm, comm.prop.var.etc.standardSelections.dup, initValue);
 		foreach (i, kc; values) { mixin(S_TRACE);
+			hasItem = true;
 			if (!incSearch.match(kc)) continue;
 			combo.add(kc);
 		}
@@ -962,7 +984,7 @@ T createSelectionCombo(T = Combo)(Commons comm, Composite parent, bool delegate(
 	createMenuItem(comm, menu, MenuID.IncSearch, { mixin(S_TRACE);
 		.forceFocus(combo, true);
 		incSearch.startIncSearch();
-	}, null);
+	}, () => hasItem);
 	new MenuItem(menu, SWT.SEPARATOR);
 	combo.setMenu(menu);
 	createTextMenu!T(comm, comm.prop, combo, catchMod);
@@ -1117,6 +1139,7 @@ class AreaChooser(A, bool StartArea) : Composite {
 					static if (StartArea) {
 						if (a.id == _startArea) existsStartArea = true;
 					}
+					_canIncSearch = true;
 					if (!_areaIncSearch.match(a.name)) continue;
 
 					auto itm = itmTable[a.dirName().toLower()];
@@ -1132,7 +1155,6 @@ class AreaChooser(A, bool StartArea) : Composite {
 						_tree.setSelection([aItm]);
 						_selected = a.id;
 					}
-					_canIncSearch = true;
 					aItm.setImage(image(aItm));
 				}
 				foreach (dirName, itm; itmTable) {
@@ -1167,6 +1189,7 @@ class AreaChooser(A, bool StartArea) : Composite {
 				static if (StartArea) {
 					if (a.id == _startArea) existsStartArea = true;
 				}
+				_canIncSearch = true;
 				if (!_areaIncSearch.match(a.name)) continue;
 				auto itm = new TableItem(_list, SWT.NONE);
 				itm.setData(a);
@@ -1178,7 +1201,6 @@ class AreaChooser(A, bool StartArea) : Composite {
 				}
 				itm.setImage(image(itm));
 				if (!firstItem) firstItem = itm;
-				_canIncSearch = true;
 			}
 		}
 		if (!has && firstItem) { mixin(S_TRACE);
@@ -1199,10 +1221,10 @@ class AreaChooser(A, bool StartArea) : Composite {
 		}
 
 		if (_tree && !_tree.isDisposed()) { mixin(S_TRACE);
-			_tree.setEnabled(0 < _tree.getItemCount());
-			_allExpanded.setEnabled(0 < _tree.getItemCount());
+			_tree.setEnabled(_canIncSearch);
+			_allExpanded.setEnabled(_canIncSearch);
 		} else if (_list && !_list.isDisposed()) { mixin(S_TRACE);
-			_list.setEnabled(0 < _list.getItemCount());
+			_list.setEnabled(_canIncSearch);
 		}
 
 		static if (StartArea) {
@@ -1386,7 +1408,7 @@ class AreaChooser(A, bool StartArea) : Composite {
 		_prop = comm.prop;
 		_summ = summ;
 		setLayout(zeroMarginGridLayout(1, true));
-		_areaIncSearch = new IncSearch(_comm, this);
+		_areaIncSearch = new IncSearch(_comm, this, () => _canIncSearch);
 		_areaIncSearch.modEvent ~= &refreshAreas;
 
 		initControl();

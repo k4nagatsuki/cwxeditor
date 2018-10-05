@@ -293,6 +293,7 @@ private:
 		if (!_win || _win.isDisposed()) return;
 		try { mixin(S_TRACE);
 			scope (exit) refreshStatusLine();
+			_hasFile = false;
 			if (!_summ) { mixin(S_TRACE);
 				_files.removeAll();
 				return;
@@ -314,6 +315,7 @@ private:
 				auto path = (cast(FileNameObj) selDirs[0].getData()).array;
 				FileNameObj[] list;
 				foreach (f; clistdir(path)) { mixin(S_TRACE);
+					_hasFile = true;
 					if (_incSearch.match(f)) { mixin(S_TRACE);
 						list ~= new FileNameObj(path, f);
 					}
@@ -853,6 +855,7 @@ private:
 	Tree _dirs;
 	TreeEdit _dirsEdit;
 	Table _files;
+	bool _hasFile = false;
 	TableTextEdit _filesEdit;
 	TableSorter!(FileNameObj) _sortName;
 	TableSorter!(FileNameObj) _sortExt;
@@ -1099,7 +1102,7 @@ private:
 	void createFilesMenu() { mixin(S_TRACE);
 		if (_files.getMenu()) _files.getMenu().dispose();
 		auto menu = new Menu(_win.getShell(), SWT.POP_UP);
-		createMenuItem(_comm, menu, MenuID.IncSearch, &incSearch, () => _summ !is null);
+		createMenuItem(_comm, menu, MenuID.IncSearch, &incSearch, () => _summ !is null && _hasFile);
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.NewDir, &createDirFiles, () => _summ !is null);
 		new MenuItem(menu, SWT.SEPARATOR);
@@ -1703,8 +1706,8 @@ public:
 		_sdl = new SDListener;
 		_sash.addDisposeListener(_sdl);
 
-		_incSearch = new IncSearch(_comm, sashPane);
-		_incSearch.modEvent ~= {refreshFiles(null);};
+		_incSearch = new IncSearch(_comm, sashPane, () => _summ && _hasFile);
+		_incSearch.modEvent ~= { refreshFiles(null); };
 	}
 	void removeFiles(in string[] file, bool recycle) { mixin(S_TRACE);
 		pauseTrace();

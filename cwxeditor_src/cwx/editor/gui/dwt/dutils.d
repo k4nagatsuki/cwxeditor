@@ -683,7 +683,7 @@ C createComboEditor(C = Combo)(Commons comm, Props prop, Composite parent, strin
 		combo.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
 		if (filter) {
 			auto menu = new Menu(combo.getShell(), SWT.POP_UP);
-			auto incSearch = new IncSearch(comm, combo);
+			auto incSearch = new IncSearch(comm, combo, () => 0 < strs.length);
 			incSearch.modEvent ~= { mixin(S_TRACE);
 				auto t = combo.getText();
 				combo.removeAll();
@@ -697,7 +697,7 @@ C createComboEditor(C = Combo)(Commons comm, Props prop, Composite parent, strin
 				}
 				if (hasStr && combo.getText() == "") combo.setText(str);
 			};
-			createMenuItem(comm, menu, MenuID.IncSearch, {
+			createMenuItem(comm, menu, MenuID.IncSearch, { mixin(S_TRACE);
 				incSearch.startIncSearch();
 			}, () => 0 < strs.length);
 			combo.setMenu(menu);

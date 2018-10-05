@@ -816,6 +816,8 @@ private:
 	TreeEdit _areaDirEdit = null;
 	DirTree _dirs = null;
 
+	bool _hasAreas = false;
+
 	IncSearch _incSearch = null;
 	private void incSearch() { mixin(S_TRACE);
 		.forceFocus(_areas, true);
@@ -1724,6 +1726,7 @@ private:
 		if (!selDir) refreshDirTree();
 		int topIndex = _areas.getTopIndex();
 		auto sel = _areas.getSelectionIndex();
+		_hasAreas = false;
 		if (_summ) { mixin(S_TRACE);
 			size_t i = 0;
 			if (!_dirMode && _prop.var.etc.showSummaryInAreaTable) { mixin(S_TRACE);
@@ -1733,8 +1736,10 @@ private:
 			void put(AbstractArea a) { mixin(S_TRACE);
 				if (_dirMode) { mixin(S_TRACE);
 					if (0 != icmp(a.dirName, _dir)) return;
+					_hasAreas = true;
 					if (!_incSearch.match(a.baseName, a)) return;
 				} else { mixin(S_TRACE);
+					_hasAreas = true;
 					if (!_incSearch.match(a.name, a)) return;
 				}
 				refData2(a, i < _areas.getItemCount() ? _areas.getItem(cast(int)i) : new TableItem(_areas, SWT.NONE));
@@ -2053,7 +2058,7 @@ public:
 		updateIncSearchParent();
 
 		auto menu = new Menu(parent.getShell(), SWT.POP_UP);
-		createMenuItem(_comm, menu, MenuID.IncSearch, &incSearch, null);
+		createMenuItem(_comm, menu, MenuID.IncSearch, &incSearch, () => _hasAreas);
 		new MenuItem(menu, SWT.SEPARATOR);
 		if (_readOnly) {
 			createMenuItem(_comm, menu, MenuID.Import, &doImport, &canDoImport);
@@ -2206,9 +2211,9 @@ public:
 			AdditionMatcher(MenuProps.buildMenu(.objName!Package(_prop), "P", "", false), (o) => cast(Package)o !is null)
 		];
 		if (_dirMode) { mixin(S_TRACE);
-			_incSearch = new IncSearch(_comm, _dirTree.getParent().getParent(), matchers);
+			_incSearch = new IncSearch(_comm, _dirTree.getParent().getParent(), () => _hasAreas, matchers);
 		} else { mixin(S_TRACE);
-			_incSearch = new IncSearch(_comm, _areas, matchers);
+			_incSearch = new IncSearch(_comm, _areas, () => _hasAreas, matchers);
 		}
 		_incSearch.modEvent ~= &refreshAreas;
 	}

@@ -237,7 +237,7 @@ abstract class AbsDialog {
 			e.doit = !cancel;
 			if (e.doit) { mixin(S_TRACE);
 				if (_ret) { mixin(S_TRACE);
-					foreach (dlg; appliedEvent) { mixin(S_TRACE);
+					foreach (dlg; appliedEvent.dup) { mixin(S_TRACE);
 						dlg();
 					}
 				}
@@ -386,15 +386,15 @@ abstract class AbsDialog {
 	void forceApply() { mixin(S_TRACE);
 		_forceApplying = true;
 		scope (exit) _forceApplying = false;
-		foreach (dlg; applyEvent) { mixin(S_TRACE);
+		foreach (dlg; applyEvent.dup) { mixin(S_TRACE);
 			dlg();
 		}
 		if (apply()) { mixin(S_TRACE);
-			_apply.setEnabled(false);
-			_applied = true;
-			foreach (dlg; appliedEvent) { mixin(S_TRACE);
+			foreach (dlg; appliedEvent.dup) { mixin(S_TRACE);
 				dlg();
 			}
+			_apply.setEnabled(false);
+			_applied = true;
 		}
 	}
 	private void check() { mixin(S_TRACE);

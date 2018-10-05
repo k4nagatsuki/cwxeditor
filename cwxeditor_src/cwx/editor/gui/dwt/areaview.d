@@ -182,16 +182,20 @@ private:
 		AbstractArea _refTarget = null;
 		bool _showRefCards = false;
 		IncSearch _refAreaIncSearch;
+		bool _hasRefArea = false;
 		void refreshRefAreas() { mixin(S_TRACE);
+			if (_refAreas.isDisposed()) return;
 			if (!_summ || _summ.scenarioPath == "") return;
 			_refAreasArr.length = 0;
 			_refAreas.removeAll();
+			_hasRefArea = false;
 			if (!_area) return;
 			_refAreas.add(_prop.msgs.defaultSelection(_prop.msgs.noRefArea));
 			_refAreas.select(0);
 			bool has = _refTarget is null;
 			foreach (a; _summ.areas) { mixin(S_TRACE);
 				if(_refTarget is a) has = true;
+				_hasRefArea = true;
 				if (!_refAreaIncSearch.match(a.name)) continue;
 				_refAreasArr ~= a;
 				_refAreas.add(to!string(a.id) ~ "." ~ a.name);
@@ -212,8 +216,8 @@ private:
 				}
 			}
 		}
-		void refreshRefAreasA(Area a) {refreshRefAreas();}
-		void refreshRefAreasB(Battle a) {refreshRefAreas();}
+		void refreshRefAreasA(Area a) { refreshRefAreas(); }
+		void refreshRefAreasB(Battle a) { refreshRefAreas(); }
 		@property
 		size_t refCardIndex() { mixin(S_TRACE);
 			// カード数+背景数+メッセージ(×1)+パーティ人数
@@ -706,6 +710,7 @@ private:
 		_refFlagIncSearch.startIncSearch();
 	}
 	Control _lastFocus = null;
+	bool _hasFlags = false;
 
 	bool _viewMsg = false;
 	bool _viewParty = true;
@@ -800,6 +805,7 @@ private:
 	Spinner _xSpn, _ySpn;
 	Spinner _layerSpn;
 	Combo _flag = null;
+	bool _hasFlag = false;
 	static if (UseCards) {
 		bool _fixedC = true;
 		bool _viewCards = true;
@@ -2111,16 +2117,11 @@ private:
 		gd.heightHint = 0;
 		_flagList.setLayoutData(gd);
 
-		_refFlagIncSearch = new IncSearch(_comm, _flagList);
+		_refFlagIncSearch = new IncSearch(_comm, _flagList, () => _hasFlags);
 		_refFlagIncSearch.modEvent ~= &refreshFlags;
 
 		auto menu = new Menu(_flagList.getShell(), SWT.POP_UP);
-		createMenuItem(_comm, menu, MenuID.IncSearch, &flagIncSearch, { mixin(S_TRACE);
-			foreach (itm; _flagList.getItems()) { mixin(S_TRACE);
-				if (cast(cwx.flag.Flag)itm.getData()) return true;
-			}
-			return false;
-		});
+		createMenuItem(_comm, menu, MenuID.IncSearch, &flagIncSearch, () => _hasFlags);
 		if (!_readOnly) { mixin(S_TRACE);
 			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(_comm, menu, MenuID.OpenAtVarView, &openFlagViewL,
@@ -2183,6 +2184,7 @@ private:
 			}
 		}
 		_flagList.removeAll();
+		_hasFlags = false;
 		bool has = false;
 		auto flags = useFlags.keys;
 		if (_prop.var.etc.logicalSort) { mixin(S_TRACE);
@@ -2200,6 +2202,7 @@ private:
 				if (!has && path == sel) { mixin(S_TRACE);
 					has = true;
 				}
+				_hasFlags = true;
 				if (!_refFlagIncSearch.match(path)) continue;
 				auto itm = new TableItem(_flagList, SWT.NONE);
 				itm.setData(flag);
@@ -3318,14 +3321,14 @@ public:
 				_flag.addDisposeListener(new FlagsDispose);
 			}
 			{ mixin(S_TRACE);
-				_flagIncSearch = new IncSearch(_comm, _flag);
+				_flagIncSearch = new IncSearch(_comm, _flag, () => _hasFlag);
 				_flagIncSearch.modEvent ~= &refreshFlag;
 
 				auto menu = new Menu(_flag.getShell(), SWT.POP_UP);
-				createMenuItem(_comm, menu, MenuID.IncSearch, {
+				createMenuItem(_comm, menu, MenuID.IncSearch, { mixin(S_TRACE);
 					.forceFocus(_flag, true);
 					_flagIncSearch.startIncSearch();
-				}, () => 1 < _flag.getItemCount());
+				}, () => _hasFlag);
 				if (!_readOnly) { mixin(S_TRACE);
 					new MenuItem(menu, SWT.SEPARATOR);
 					createMenuItem(_comm, menu, MenuID.OpenAtVarView, &openFlagViewC, () => !_readOnly && _flag.getSelectionIndex() > 0);
@@ -3349,12 +3352,12 @@ public:
 				{ mixin(S_TRACE);
 					auto menu = new Menu(_refAreas.getShell(), SWT.POP_UP);
 
-					_refAreaIncSearch = new IncSearch(_comm, _refAreas);
+					_refAreaIncSearch = new IncSearch(_comm, _refAreas, () => _hasRefArea);
 					_refAreaIncSearch.modEvent ~= &refreshRefAreas;
-					createMenuItem(_comm, menu, MenuID.IncSearch, {
+					createMenuItem(_comm, menu, MenuID.IncSearch, { mixin(S_TRACE);
 						.forceFocus(_refAreas, true);
 						_refAreaIncSearch.startIncSearch();
-					}, () => 1 < _flag.getItemCount());
+					}, () => _hasRefArea);
 					new MenuItem(menu, SWT.SEPARATOR);
 
 					createMenuItem(_comm, menu, MenuID.OpenAtTableView, &openRefAreaView, () => !_readOnly && _refAreas.getSelectionIndex() > 0);
@@ -4016,6 +4019,7 @@ public:
 				int index = insertIndex(_cards);
 				_undo ~= new UndoInsert(this, _comm, _area, _summ, [index], []);
 				appendCard(index, c, true, true);
+				if (_summ && _summ.scenarioPath != "") _comm.refCardGroups.call();
 				UndoEdit undo = null;
 				dlg.applyEvent ~= { mixin(S_TRACE);
 					undo = new UndoEdit(this, _comm, _area, _summ, [cast(int)cCountUntil!("a is b")(_area.cards, c)], []);
@@ -4295,6 +4299,7 @@ public:
 				_undo ~= new UndoInsert(this, _comm, _area, _summ, [], [index]);
 				appendBgImage(index, b, true, true);
 				UndoEdit undo = null;
+				if (_summ && _summ.scenarioPath != "") _comm.refCellNames.call();
 				dlg.applyEvent ~= { mixin(S_TRACE);
 					undo = new UndoEdit(this, _comm, _area, _summ, [], [cast(int)cCountUntil!("a is b")(_area.backs, b)]);
 				};
@@ -4883,10 +4888,12 @@ public:
 		if (!_flag) return;
 		string f = _flag.getText();
 		_flag.removeAll();
+		_hasFlag = false;
 		_flag.add(_prop.msgs.defaultSelection(_prop.msgs.noFlagRef));
 		_flag.select(0);
 		.sortedWithPath(_summ.flagDirRoot.allFlags, _prop.var.etc.logicalSort, (cwx.flag.Flag fl) { mixin(S_TRACE);
 			auto path = fl.path;
+			_hasFlag = true;
 			if (!_flagIncSearch.match(path)) return;
 			_flag.add(path);
 			if (path == f) _flag.setText(path);
@@ -5854,6 +5861,8 @@ public:
 			v.refreshFlags();
 		}
 		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
+			if (cIdcs.length) comm.refCardGroups.call();
+			if (bIdcs.length) comm.refCellNames.call();
 			comm.refUseCount.call();
 		}
 	}
@@ -5934,6 +5943,10 @@ public:
 								refreshFlags();
 							}
 							_undo ~= new UndoInsert(this.outer, _comm, _area, _summ, addC, addB);
+							if (_summ && _summ.scenarioPath != "") { mixin(S_TRACE);
+								if (cs.length) _comm.refCardGroups.call();
+								if (bs.length) _comm.refCellNames.call();
+							}
 							_comm.refreshToolBar();
 						}
 					} catch (Exception e) {
@@ -6024,6 +6037,7 @@ public:
 									refreshFlags();
 								}
 								_undo ~= new UndoInsert(this.outer, _comm, _area, _summ, addC, []);
+								if (_summ && _summ.scenarioPath != "")_comm.refCardGroups.call();
 								_comm.refreshToolBar();
 							}
 						} catch (Exception e) {
@@ -6114,6 +6128,7 @@ public:
 									refreshFlags();
 								}
 								_undo ~= new UndoInsert(this.outer, _comm, _area, _summ, [], addB);
+								if (_summ && _summ.scenarioPath != "")_comm.refCellNames.call();
 								_comm.refreshToolBar();
 							}
 						} catch (Exception e) {

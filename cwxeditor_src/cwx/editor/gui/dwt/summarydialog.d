@@ -360,7 +360,7 @@ private:
 					.listener(_typeClassic, SWT.Selection, &refType);
 					.listener(_type, SWT.Modify, &refreshPreview);
 
-					_skinIncSearch = new IncSearch(_comm, _type);
+					_skinIncSearch = new IncSearch(_comm, _type, null);
 					_skinIncSearch.modEvent ~= () => refreshTypes(null, true);
 					auto menu = new Menu(_type.getShell(), SWT.POP_UP);
 					createMenuItem(_comm, menu, MenuID.IncSearch, { _skinIncSearch.startIncSearch(); }, null);

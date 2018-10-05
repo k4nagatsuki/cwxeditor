@@ -754,12 +754,12 @@ protected:
 		_list.setLayoutData(gd);
 		_list.addMouseListener(new OpenView);
 		auto menu = new Menu(_list.getShell(), SWT.POP_UP);
-		createMenuItem(comm, menu, MenuID.IncSearch, &incSearch, null);
+		createMenuItem(comm, menu, MenuID.IncSearch, &incSearch, () => 0 < _et.starts.length);
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(comm, menu, MenuID.OpenAtEventView, &openView, () => _list.getSelectionIndex() != -1);
 		_list.setMenu(menu);
 		.listener(_list, SWT.Selection, &selected);
-		_incSearch = new IncSearch(comm, _list);
+		_incSearch = new IncSearch(comm, _list, () => 0 < _et.starts.length);
 		_incSearch.modEvent ~= &refreshStarts;
 
 		refreshStarts();
@@ -2945,10 +2945,10 @@ private:
 		static if (Delete) {
 			_allDel.setEnabled(range !is Range.SELECTED_CARD);
 			_num.setEnabled(!_allDel.getSelection() && range !is Range.SELECTED_CARD);
-			_list.setEnabled(range !is Range.SELECTED_CARD && _list.getItemCount());
+			_list.setEnabled(range !is Range.SELECTED_CARD && mixin(Cards).length);
 		} else {
 			_num.setEnabled(range !is Range.SELECTED_CARD);
-			_list.setEnabled(0 < _list.getItemCount());
+			_list.setEnabled(0 < mixin(Cards).length);
 		}
 		auto b = _range[Range.SELECTED_CARD];
 		b.setEnabled(!summ || !summ.legacy || b.getSelection());
@@ -3121,7 +3121,7 @@ protected:
 		{ mixin(S_TRACE);
 			_list = .rangeSelectableTable(area, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL);
 			mod(_list);
-			_incSearch = new IncSearch(comm, _list);
+			_incSearch = new IncSearch(comm, _list, () => 0 < mixin(Cards).length);
 			_incSearch.modEvent ~= &refreshList;
 			auto idCol = new TableColumn(_list, SWT.NONE);
 			saveColumnWidth!("prop.var.etc.idColumn")(_prop, idCol);
@@ -3134,7 +3134,7 @@ protected:
 
 			_list.addMouseListener(new OpenView);
 			auto menu = new Menu(_list.getShell(), SWT.POP_UP);
-			createMenuItem(comm, menu, MenuID.IncSearch, &incSearch, null);
+			createMenuItem(comm, menu, MenuID.IncSearch, &incSearch, () => 0 < mixin(Cards).length);
 			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(comm, menu, MenuID.OpenAtCardView, &openView, () => _list.getSelectionIndex() != -1);
 			_list.setMenu(menu);

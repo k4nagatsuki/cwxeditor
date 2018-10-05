@@ -323,7 +323,7 @@ protected:
 							_escape.setImage(_prop.images.menu(MenuID.Escape));
 							_escape.setToolTipText(_prop.msgs.menuText(MenuID.Escape));
 
-							_cardIncSearch = new IncSearch(_comm, _casts);
+							_cardIncSearch = new IncSearch(_comm, _casts, () => 0 < _summ.casts.length);
 							_cardIncSearch.modEvent ~= &refreshCasts;
 
 							.listener(_casts, SWT.Selection, { mixin(S_TRACE);
@@ -335,7 +335,7 @@ protected:
 							});
 
 							auto menu = new Menu(_casts.getShell(), SWT.POP_UP);
-							createMenuItem(_comm, menu, MenuID.IncSearch, &cardIncSearch, () => 0 < _casts.getItemCount());
+							createMenuItem(_comm, menu, MenuID.IncSearch, &cardIncSearch, () => 0 < _summ.casts.length);
 							new MenuItem(menu, SWT.SEPARATOR);
 							createMenuItem(_comm, menu, MenuID.OpenAtCardView, &openCardView, () => _casts.getSelectionIndex() != -1);
 							_casts.setMenu(menu);
@@ -578,7 +578,7 @@ protected:
 			_card.layer = _layer.getSelection();
 			if (_card.cardGroup != _cardGroup.getText()) {
 				_card.cardGroup = _cardGroup.getText();
-				if (_summ && _summ.scenarioPath != "") { mixin(S_TRACE);
+				if (_summ && _summ.scenarioPath != "" && _card.owner) { mixin(S_TRACE);
 					_comm.refCardGroups.call();
 				}
 			}
@@ -599,7 +599,7 @@ protected:
 			} else { mixin(S_TRACE);
 				static assert (0);
 			}
-			if (_cardGroup.getText() != "" && _summ && _summ.scenarioPath != "") { mixin(S_TRACE);
+			if (_summ && _summ.scenarioPath != "" && _card.owner) { mixin(S_TRACE);
 				_comm.refCardGroups.call();
 			}
 		}

@@ -1770,14 +1770,14 @@ Composite createFlagStepBar(Composite parent, void delegate(string) insert, Comm
 		imgListBtn.setToolTipText(prop.msgs.menuText(MenuID.LookImages));
 	}
 
-	IncSearch createIncs(Combo combo, void delegate() refList, MenuID openMenu, void delegate() openDlg) { mixin(S_TRACE);
-		auto incSearch = new IncSearch(comm, combo);
+	IncSearch createIncs(Combo combo, void delegate() refList, MenuID openMenu, void delegate() openDlg, bool delegate() enabled) { mixin(S_TRACE);
+		auto incSearch = new IncSearch(comm, combo, enabled);
 		incSearch.modEvent ~= refList;
 		auto menu = new Menu(combo.getShell(), SWT.POP_UP);
 		createMenuItem(comm, menu, MenuID.IncSearch, { mixin(S_TRACE);
 			.forceFocus(combo, true);
 			incSearch.startIncSearch();
-		}, () => 1 < combo.getItemCount());
+		}, enabled);
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(comm, menu, MenuID.OpenAtVarView, openDlg, () => combo.getSelectionIndex() >= 0);
 		combo.setMenu(menu);
@@ -1837,7 +1837,7 @@ Composite createFlagStepBar(Composite parent, void delegate(string) insert, Comm
 			printStackTrace();
 			debugln(e);
 		}
-	});
+	}, &flags.isEnabled);
 	stepIncSearch = createIncs(steps, &refListS, MenuID.OpenAtVarView, { mixin(S_TRACE);
 		if (!summ) return;
 		auto step = summ.flagDirRoot.findStep(steps.getText());
@@ -1848,7 +1848,7 @@ Composite createFlagStepBar(Composite parent, void delegate(string) insert, Comm
 			printStackTrace();
 			debugln(e);
 		}
-	});
+	}, &steps.isEnabled);
 
 	refListF();
 	refListS();
@@ -1921,7 +1921,7 @@ Composite createFlagStepBar(Composite parent, void delegate(string) insert, Comm
 				printStackTrace();
 				debugln(e);
 			}
-		});
+		}, &fonts.isEnabled);
 		refListSPF();
 
 		void refPath(string o, string n, bool isDir) { refListSPF(); }
@@ -1967,7 +1967,7 @@ Composite createFlagStepBar(Composite parent, void delegate(string) insert, Comm
 						b.setSelection(false);
 					});
 					auto menu = new Menu(imgListWin.shell, SWT.POP_UP);
-					createMenuItem(comm, menu, MenuID.IncSearch, () => fontIncSearch.startIncSearch(), null);
+					createMenuItem(comm, menu, MenuID.IncSearch, () => fontIncSearch.startIncSearch(), &fonts.isEnabled);
 					new MenuItem(menu, SWT.SEPARATOR);
 					createMenuItem(comm, menu, MenuID.CloseWin, &imgListWin.close, null);
 					imgListWin.widget.setMenu(menu);
