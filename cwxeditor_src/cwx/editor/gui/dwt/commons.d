@@ -334,6 +334,7 @@ class Commons {
 	Dlg!() saved;
 	Dlg!() refHistories;
 	Dlg!() refSearchHistories;
+	Dlg!() refExecutedParties;
 	Dlg!(Summary) refScenario;
 	Dlg!() refScenarioName;
 	Dlg!() refScenarioPath;

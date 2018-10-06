@@ -2117,6 +2117,9 @@ class Msgs : Properties {
 	auto searchHistoryMax = Msg("searchHistoryMax", "検索/置換履歴保存件数");
 	auto searchHistoryClear = Msg("searchHistoryClear", "クリア");
 	auto dlgMsgSearchHistoryClear = Msg("dlgMsgSearchHistoryClear", "検索/置換履歴を削除してよろしいですか？");
+	auto executedPartiesMax = Msg("executedPartiesMax", "パーティ履歴保存件数");
+	auto executedPartiesClear = Msg("executedPartiesClear", "クリア");
+	auto dlgMsgExecutedPartiesClear = Msg("dlgMsgExecutedPartiesClear", "パーティ履歴を削除してよろしいですか？");
 	auto ignorePaths = Msg("ignorePaths", "無視ファイル(改行区切り)");
 	auto etcSettings = Msg("etcSettings", "その他");
 
@@ -2518,6 +2521,7 @@ class Msgs : Properties {
 	auto menuTextExecEngineMain = Msg("menuTextExecEngineMain", "CardWirthPy");
 	auto menuTextExecEngineWithParty = Msg("menuTextExecEngineWithParty", "シナリオを開始");
 	auto menuTextExecEngineWithLastParty = Msg("menuTextExecEngineWithLastParty", "前回のパーティで開始");
+	auto menuTextDeleteNotExistsParties = Msg("menuTextDeleteNotExistsParties", "存在しないパーティを履歴から削除");
 	auto menuTextOuterTools = Msg("menuTextOuterTools", "外部ツール");
 	auto menuTextSettings = Msg("menuTextSettings", "エディタ設定");
 	auto menuTextVersionInfo = Msg("menuTextVersionInfo", "バージョン情報");
@@ -2671,6 +2675,7 @@ class Msgs : Properties {
 	auto menuTextDeleteNotExistsHistory = Msg("menuTextDeleteNotExistsHistory", "存在しないシナリオを削除");
 
 	auto execEngineWithLastParty = Msg("execEngineWithLastParty", "前回のパーティで開始\n(%1$s > %2$s > %3$s)");
+	auto execEngineWithParty = Msg("execEngineWithParty", "%1$s > %2$s > %3$s");
 
 	auto upSelection = Msg("upSelection", "上へ");
 	auto downSelection = Msg("downSelection", "下へ");

@@ -104,6 +104,8 @@ private:
 	Spinner _histMax;
 	Button _clearSHist;
 	Spinner _sHistMax;
+	Button _clearPHist;
+	Spinner _pHistMax;
 	Spinner _undoMaxMainView;
 	Spinner _undoMaxEvent;
 	Spinner _undoMaxReplace;
@@ -301,6 +303,19 @@ private:
 				_prop.var.etc.replaceHistories = [];
 				_prop.var.etc.grepDirHistories = [];
 				_comm.refSearchHistories.call();
+				_prop.var.save(_dock);
+				_sendReloadProps();
+			}
+		}
+	}
+	class ClearPHist : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
+			auto dlg = new MessageBox(_pHistMax.getShell(), SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
+			dlg.setText(_prop.msgs.dlgTitQuestion);
+			dlg.setMessage(_prop.msgs.dlgMsgExecutedPartiesClear);
+			if (SWT.OK == dlg.open()) { mixin(S_TRACE);
+				_prop.var.etc.executedParties = [];
+				_comm.refExecutedParties.call();
 				_prop.var.save(_dock);
 				_sendReloadProps();
 			}
@@ -676,7 +691,7 @@ private:
 						_histMax.setMaximum(99);
 						mod(_histMax);
 						_clearHist = new Button(grp, SWT.PUSH);
-						_clearHist.setEnabled(_prop.var.etc.openHistories.length > 0);
+						_comm.put(_clearHist, () => 0 < _prop.var.etc.openHistories.length);
 						_clearHist.setText(_prop.msgs.openHistoryClear);
 						_clearHist.addSelectionListener(new ClearHist);
 					}
@@ -695,9 +710,28 @@ private:
 						_sHistMax.setMaximum(99);
 						mod(_sHistMax);
 						_clearSHist = new Button(grp, SWT.PUSH);
-						_clearSHist.setEnabled(_prop.var.etc.searchHistories.length || _prop.var.etc.grepDirHistories.length);
+						_comm.put(_clearSHist, () => _prop.var.etc.searchHistories.length || _prop.var.etc.grepDirHistories.length);
 						_clearSHist.setText(_prop.msgs.searchHistoryClear);
 						_clearSHist.addSelectionListener(new ClearSHist);
+					}
+					{ mixin(S_TRACE);
+						auto lComp = new Composite(grp, SWT.NONE);
+						auto cl = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
+						cl.fillHorizontal = true;
+						lComp.setLayout(cl);
+						lComp.setLayoutData(new GridData(GridData.FILL_BOTH));
+						auto l = new Label(lComp, SWT.NONE);
+						l.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+						l.setText(_prop.msgs.executedPartiesMax);
+						_pHistMax = new Spinner(grp, SWT.BORDER);
+						initSpinner(_pHistMax);
+						_pHistMax.setMinimum(0);
+						_pHistMax.setMaximum(99);
+						mod(_pHistMax);
+						_clearPHist = new Button(grp, SWT.PUSH);
+						_comm.put(_clearPHist, () => 0 < _prop.var.etc.executedParties.length);
+						_clearPHist.setText(_prop.msgs.executedPartiesClear);
+						_clearPHist.addSelectionListener(new ClearPHist);
 					}
 				}
 				{ mixin(S_TRACE);
@@ -1334,6 +1368,7 @@ protected:
 		}
 		_histMax.setSelection(_prop.var.etc.historyMax);
 		_sHistMax.setSelection(_prop.var.etc.searchHistoryMax);
+		_pHistMax.setSelection(_prop.var.etc.executedPartiesMax);
 		_undoMaxMainView.setSelection(_prop.var.etc.undoMaxMainView);
 		_undoMaxEvent.setSelection(_prop.var.etc.undoMaxEvent);
 		_undoMaxReplace.setSelection(_prop.var.etc.undoMaxReplace);
@@ -1516,6 +1551,7 @@ protected:
 		_prop.var.etc.wallpaperStyle = cast(WallpaperStyle) _wallpaperStyleTbl2[_wallpaperStyle.getSelectionIndex()];
 		_prop.var.etc.historyMax = _histMax.getSelection();
 		_prop.var.etc.searchHistoryMax = _sHistMax.getSelection();
+		_prop.var.etc.executedPartiesMax = _pHistMax.getSelection();
 		_prop.var.etc.undoMaxMainView = _undoMaxMainView.getSelection();
 		_prop.var.etc.undoMaxEvent = _undoMaxEvent.getSelection();
 		_prop.var.etc.undoMaxReplace = _undoMaxReplace.getSelection();
@@ -1550,6 +1586,10 @@ protected:
 		if (_prop.var.etc.searchHistoryMax < _prop.var.etc.grepDirHistories.length) { mixin(S_TRACE);
 			_prop.var.etc.grepDirHistories
 				= _prop.var.etc.grepDirHistories[0 .. _prop.var.etc.searchHistoryMax].dup;
+		}
+		if (_prop.var.etc.executedPartiesMax < _prop.var.etc.executedParties.length) { mixin(S_TRACE);
+			_prop.var.etc.executedParties
+				= _prop.var.etc.executedParties[0 .. _prop.var.etc.executedPartiesMax].dup;
 		}
 		_prop.var.etc.bgImageSettings = _bgStgs.array;
 		_prop.var.etc.bgImagesDefault = _bgImagesDefault;
@@ -1656,6 +1696,8 @@ struct OldSettings {
 	bool showSceneViewSelectionFilter;
 	bool saveSkinName;
 	bool showItemNumberOfSceneAndEventView;
+	ExecutionParty[] executedParties;
+	uint executedPartiesMax;
 	this (Props prop) { mixin(S_TRACE);
 		this.prop = prop;
 		this.drawingScale = prop.var.etc.drawingScale;
@@ -1726,6 +1768,8 @@ struct OldSettings {
 		this.showCurrentValueOnTopAlways = prop.var.etc.showCurrentValueOnTopAlways;
 		this.saveSkinName = prop.var.etc.saveSkinName;
 		this.showItemNumberOfSceneAndEventView = prop.var.etc.showItemNumberOfSceneAndEventView;
+		this.executedParties = prop.var.etc.executedParties;
+		this.executedPartiesMax = prop.var.etc.executedPartiesMax;
 	}
 	void raiseEvent(Commons comm) { mixin(S_TRACE);
 		bool refSkin = false;
@@ -1915,6 +1959,9 @@ struct OldSettings {
 		}
 		if (this.showItemNumberOfSceneAndEventView != prop.var.etc.showItemNumberOfSceneAndEventView) { mixin(S_TRACE);
 			comm.refMenuCardAndBgImageList.call();
+		}
+		if (executedParties != prop.var.etc.executedParties || executedPartiesMax != prop.var.etc.executedPartiesMax) { mixin(S_TRACE);
+			comm.refExecutedParties.call();
 		}
 		if (comm.summary && !comm.summary.legacy && this.xmlFileNameIsIDOnly != prop.var.etc.xmlFileNameIsIDOnly) { mixin(S_TRACE);
 			if (comm.summary.expandXMLs) { mixin(S_TRACE);

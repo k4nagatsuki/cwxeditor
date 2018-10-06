@@ -576,6 +576,7 @@ public:
 		case MenuID.ExecEngineMain: return imgd!("exec_engine.png");
 		case MenuID.ExecEngineWithParty: return imgd!("exec_engine_with_party.png");
 		case MenuID.ExecEngineWithLastParty: return imgd!("exec_engine_with_party.png");
+		case MenuID.DeleteNotExistsParties: return imgd!("del_not_exists_party.png");
 		case MenuID.OuterTools: return imgd!("outer_tool.png");
 		case MenuID.Settings: return imgd!("settings.png");
 		case MenuID.VersionInfo: return imgd!("version.png");

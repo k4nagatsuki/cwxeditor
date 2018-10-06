@@ -1523,6 +1523,7 @@ enum MenuID {
 	ExecEngineMain,
 	ExecEngineWithParty,
 	ExecEngineWithLastParty,
+	DeleteNotExistsParties,
 	OuterTools,
 	Settings,
 	VersionInfo,

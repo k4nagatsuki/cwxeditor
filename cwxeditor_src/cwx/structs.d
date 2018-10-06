@@ -1249,6 +1249,55 @@ struct OpenHistory {
 	}
 }
 
+/// シナリオの実行に使うパーティの情報。
+struct ExecutionParty {
+	static const XML_NAME = "executionParty";
+	string engineName; /// エンジン定義名。
+	string enginePath; /// エンジンの絶対パス。
+	bool isClassic; /// クラシックなエンジンか。
+	string yadoName; /// 宿名。
+	string yadoPath; /// 宿の相対パス。
+	string partyName; /// パーティ名。
+	string partyPath; /// パーティの相対パス。
+
+	/// XMLノードとして取り扱うための関数群。
+	const
+	XNode toNode() { mixin(S_TRACE);
+		auto e = XNode.create(XML_NAME);
+		toNodeImpl(e);
+		return e;
+	}
+	/// ditto
+	const
+	void toNode(ref XNode node) { mixin(S_TRACE);
+		auto e = node.newElement(XML_NAME);
+		toNodeImpl(e);
+	}
+	/// ditto
+	const
+	private void toNodeImpl(ref XNode e) { mixin(S_TRACE);
+		if (enginePath != "") { mixin(S_TRACE);
+			e.newAttr("engineName", engineName);
+			e.newAttr("enginePath", enginePath);
+			e.newAttr("classic", isClassic);
+			e.newAttr("yadoName", yadoName);
+			e.newAttr("yadoPath", yadoPath);
+			e.newAttr("partyName", partyName);
+			e.newAttr("partyPath", partyPath);
+		}
+	}
+	/// ditto
+	void fromNode(ref XNode node) { mixin(S_TRACE);
+		engineName = node.attr!(string)("engineName", false, "");
+		enginePath = node.attr!(string)("enginePath", false, "");
+		isClassic = node.attr!(bool)("classic", false, false);
+		yadoName = node.attr!(string)("yadoName", false, "");
+		yadoPath = node.attr!(string)("yadoPath", false, "");
+		partyName = node.attr!(string)("partyName", false, "");
+		partyPath = node.attr!(string)("partyPath", false, "");
+	}
+}
+
 /// ツールバーの設定。
 struct ToolBarSettings {
 	/// ツールバーの設定。二次元配列になっており、

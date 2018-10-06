@@ -396,7 +396,7 @@ class FlexEtcProps : Properties {
 
 	auto openHistories = Prop!(OpenHistory[])("openHistories", []);
 	auto scenarioBookmarks = Prop!(OpenHistory[])("scenarioBookmarks", []);
-	auto historyMax = Prop!(int)("historyMax", 9);
+	auto historyMax = Prop!(int)("historyMax", 10);
 	auto historySnipLength = Prop!(int)("historySnipLength", 30);
 	auto lastScenario = Prop!(string)("lastScenario", "");
 	auto searchResultTableWidth = Prop!(int, true, true)("searchResultTableWidth", 400);
@@ -408,12 +408,9 @@ class FlexEtcProps : Properties {
 	}
 	auto engineScript = Prop!(string, true)("engineScript", "cardwirth.py");
 	auto enginePath = Prop!(string)("enginePath", "");
-	auto lastExecuteIsClassic = Prop!(bool)("lastExecuteIsClassic", false, 2015022500);
-	auto lastExecuteEngine = Prop!(string)("lastExecuteEngine", "", 2015022500);
-	auto lastExecuteParameters = Prop!(string)("lastExecuteParameters", "", 2015022500);
-	auto lastExecuteEngineName = Prop!(string)("lastExecuteEngineName", "");
-	auto lastExecuteYadoName = Prop!(string)("lastExecuteYadoName", "");
-	auto lastExecutePartyName = Prop!(string)("lastExecutePartyName", "");
+	auto lastExecutedParty = Prop!(ExecutionParty)("lastExecutedParty", ExecutionParty.init);
+	auto executedParties = Prop!(ExecutionParty[])("executedParties", []);
+	auto executedPartiesMax = Prop!(uint)("executedPartiesMax", 10);
 	auto dataDir = Prop!(string, true)("dataDir", "Data");
 	auto findEnginePath = Prop!(bool)("findEnginePath", true);
 	auto defaultSkin = Prop!(string, true)("defaultSkin", "MedievalFantasy");

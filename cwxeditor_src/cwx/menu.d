@@ -108,6 +108,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.ExecEngineMain] = "P";
 		_mnemonic[MenuID.ExecEngineWithParty] = "P";
 		_mnemonic[MenuID.ExecEngineWithLastParty] = "L";
+		_mnemonic[MenuID.DeleteNotExistsParties] = "D";
 		_mnemonic[MenuID.OuterTools] = "T";
 		_mnemonic[MenuID.Settings] = "S";
 		_mnemonic[MenuID.VersionInfo] = "A";
@@ -340,6 +341,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.ExecEngineMain] = "";
 		_hotkey[MenuID.ExecEngineWithParty] = "";
 		_hotkey[MenuID.ExecEngineWithLastParty] = "";
+		_hotkey[MenuID.DeleteNotExistsParties] = "";
 		_hotkey[MenuID.OuterTools] = "";
 		_hotkey[MenuID.Settings] = "";
 		_hotkey[MenuID.VersionInfo] = "";
@@ -820,6 +822,7 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.ToScript:
 	case MenuID.ToScriptAll:
 	case MenuID.ToScript1Content:
+	case MenuID.DeleteNotExistsParties:
 		return true;
 	case MenuID.None:
 	case MenuID.File:
@@ -999,6 +1002,7 @@ bool isGlobalMenu(MenuID id) {
 	case MenuID.ExecEngineMain:
 	case MenuID.ExecEngineWithParty:
 	case MenuID.ExecEngineWithLastParty:
+	case MenuID.DeleteNotExistsParties:
 	case MenuID.OuterTools:
 	case MenuID.Settings:
 	case MenuID.VersionInfo:
