@@ -678,6 +678,7 @@ private:
 		foreach (ep; _prop.var.etc.executedParties) { mixin(S_TRACE);
 			if (existsParty(ep)) eps ~= ep;
 		}
+		if (_prop.var.etc.executedParties.length == eps.length) return;
 		_prop.var.etc.executedParties = eps;
 
 		_comm.refExecutedParties.call();
@@ -1930,6 +1931,32 @@ private:
 			};
 			_scHistDlg.open();
 		}
+	}
+	@property
+	const
+	private bool canDelNotExistsScenario() { mixin(S_TRACE);
+		return _prop.var.etc.scenarioBookmarks.length ||  _prop.var.etc.openHistories.length;
+	}
+	private void delNotExistsScenario() { mixin(S_TRACE);
+		OpenHistory[] bookmarks;
+		OpenHistory[] history;
+		foreach (m; _prop.var.etc.scenarioBookmarks) { mixin(S_TRACE);
+			auto f = .fullHistToHist(m.path);
+			if (f.exists()) bookmarks ~= m;
+		}
+		foreach (m; _prop.var.etc.openHistories) { mixin(S_TRACE);
+			auto f = .fullHistToHist(m.path);
+			if (f.exists()) history ~= m;
+		}
+		if (bookmarks.length == _prop.var.etc.scenarioBookmarks.length && history.length == _prop.var.etc.openHistories.length) return;
+
+		_prop.var.etc.scenarioBookmarks = bookmarks;
+		_prop.var.etc.openHistories = history;
+
+		_comm.refHistories.call();
+		_prop.var.save(dock);
+		sendReloadProps();
+		_comm.refreshToolBar();
 	}
 
 	void setHistSkin() { mixin(S_TRACE);
@@ -3396,6 +3423,7 @@ public:
 						case MenuID.VersionInfo: act = &versionInfo; can = null; break;
 						case MenuID.IncSearch: actS = &doMenu!(MenuID.IncSearch); can = &canDoMenu!(MenuID.IncSearch); break;
 						case MenuID.SelectAll: actS = &doMenu!(MenuID.SelectAll); can = &canDoMenu!(MenuID.SelectAll); break;
+						case MenuID.DeleteNotExistsHistory: act = &delNotExistsScenario; can = &canDelNotExistsScenario; break;
 						case MenuID.DeleteNotExistsParties: act = &delNotExistsParty; can = &canDelNotExistsParty; break;
 						case MenuID.CopyAll:
 						case MenuID.Undo:
@@ -3572,7 +3600,6 @@ public:
 						case MenuID.AddToolBar:
 						case MenuID.AddToolGroup:
 						case MenuID.ResetToolBarSettings:
-						case MenuID.DeleteNotExistsHistory:
 							debugln(tool.menu);
 							continue;
 						}

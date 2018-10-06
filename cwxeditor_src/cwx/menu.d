@@ -50,6 +50,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.Open] = "O";
 		_mnemonic[MenuID.NewAtNewWindow] = "E";
 		_mnemonic[MenuID.OpenAtNewWindow] = "P";
+		_mnemonic[MenuID.DeleteNotExistsHistory] = "N";
 		_mnemonic[MenuID.Close] = "X";
 		_mnemonic[MenuID.CloseWin] = "X";
 		_mnemonic[MenuID.Save] = "S";
@@ -258,7 +259,6 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.AddToolBar] = "B";
 		_mnemonic[MenuID.AddToolGroup] = "G";
 		_mnemonic[MenuID.ResetToolBarSettings] = "R";
-		_mnemonic[MenuID.DeleteNotExistsHistory] = "N";
 
 		_hotkey[MenuID.None] = "";
 		_hotkey[MenuID.File] = "";
@@ -822,6 +822,7 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.ToScript:
 	case MenuID.ToScriptAll:
 	case MenuID.ToScript1Content:
+	case MenuID.DeleteNotExistsHistory:
 	case MenuID.DeleteNotExistsParties:
 		return true;
 	case MenuID.None:
@@ -958,7 +959,6 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.AddToolBar:
 	case MenuID.AddToolGroup:
 	case MenuID.ResetToolBarSettings:
-	case MenuID.DeleteNotExistsHistory:
 		return false;
 	}
 }
@@ -1030,6 +1030,7 @@ bool isGlobalMenu(MenuID id) {
 	case MenuID.NewDir:
 	case MenuID.CreateArchive:
 	case MenuID.EvTemplatesOfScenario:
+	case MenuID.DeleteNotExistsHistory:
 		return true;
 	case MenuID.None:
 	case MenuID.File:
@@ -1199,7 +1200,6 @@ bool isGlobalMenu(MenuID id) {
 	case MenuID.AddToolBar:
 	case MenuID.AddToolGroup:
 	case MenuID.ResetToolBarSettings:
-	case MenuID.DeleteNotExistsHistory:
 		return false;
 	}
 }

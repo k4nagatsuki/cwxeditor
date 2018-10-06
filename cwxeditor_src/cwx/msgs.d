@@ -2672,7 +2672,7 @@ class Msgs : Properties {
 	auto menuTextAddToolBar = Msg("menuTextAddToolBar", "バーの追加");
 	auto menuTextAddToolGroup = Msg("menuTextAddToolGroup", "グループの追加");
 	auto menuTextResetToolBarSettings = Msg("menuTextResetToolBarSettings", "初期設定に戻す");
-	auto menuTextDeleteNotExistsHistory = Msg("menuTextDeleteNotExistsHistory", "存在しないシナリオを削除");
+	auto menuTextDeleteNotExistsHistory = Msg("menuTextDeleteNotExistsHistory", "存在しないシナリオを履歴から削除");
 
 	auto execEngineWithLastParty = Msg("execEngineWithLastParty", "前回のパーティで開始\n(%1$s > %2$s > %3$s)");
 	auto execEngineWithParty = Msg("execEngineWithParty", "%1$s > %2$s > %3$s");
