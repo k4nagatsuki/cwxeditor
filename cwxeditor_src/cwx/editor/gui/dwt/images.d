@@ -1219,6 +1219,8 @@ public:
 			case GradientDir.None:
 				if (alpha == 0) break;
 				gc.setBackground(color);
+				auto olda = gc.getAlpha();
+				scope (exit) gc.setAlpha(olda);
 				gc.setAlpha(alpha);
 				gc.fillRectangle(iRect);
 				break;
@@ -1239,6 +1241,8 @@ public:
 					iFrom = iRect.y;
 					iWidth = iRect.height;
 				}
+				auto olda = gc.getAlpha();
+				scope (exit) gc.setAlpha(olda);
 				foreach (ip; iFrom .. iFrom + iWidth) { mixin(S_TRACE);
 					int p = ip - from;
 					real per = cast(real) p / width;
