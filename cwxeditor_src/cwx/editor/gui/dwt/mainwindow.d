@@ -309,16 +309,39 @@ private:
 				itm.dispose();
 			}
 		}
-		void putIcon2(MenuItem mi1, MenuItem mi2, string ePath) { mixin(S_TRACE);
-			version (Windows) {
-				// loadIcon()は低速のため、メニューを開いた際に呼ぶようにする
-				Menu menu1 = null, menu2 = null;
-				if (mi1) menu1 = mi1.getParent();
-				if (mi2) menu2 = mi2.getParent();
-				bool rmv = false;
-				MenuAdapter mShown;
-				mShown = new class MenuAdapter {
-					override void menuShown(MenuEvent e) { mixin(S_TRACE);
+		void putIcon2(MenuItem mi1, MenuItem mi2, string ePath, bool delegate() hasWarning) { mixin(S_TRACE);
+			// loadIcon()は低速のため、メニューを開いた際に呼ぶようにする
+			Menu menu1 = null, menu2 = null;
+			if (mi1) menu1 = mi1.getParent();
+			if (mi2) menu2 = mi2.getParent();
+			auto rmv = false;
+			auto init = false;
+			auto img1 = mi1 ? mi1.getImage() : null;
+			auto img2 = mi2 ? mi2.getImage() : null;
+			MenuAdapter mShown;
+			mShown = new class MenuAdapter {
+				override void menuShown(MenuEvent e) { mixin(S_TRACE);
+					if (hasWarning && init) { mixin(S_TRACE);
+						// すでにロード済みのアイコンを警告アイコンに差し替える、
+						// または警告アイコンから戻す
+						if (hasWarning()) { mixin(S_TRACE);
+							if (mi1) mi1.setImage(_prop.images.warning);
+							if (mi2) mi2.setImage(_prop.images.warning);
+						} else { mixin(S_TRACE);
+							if (mi1) mi1.setImage(img1);
+							if (mi2) mi2.setImage(img2);
+						}
+						return;
+					}
+					init = true;
+
+					if (!hasWarning) { mixin(S_TRACE);
+						// 警告アイコンへの差し替えが必要無い場合は最初の一回のみ処理を行う
+						if (menu1) menu1.removeMenuListener(mShown);
+						if (menu2) menu2.removeMenuListener(mShown);
+						rmv = true;
+					}
+					version (Windows) {
 						// 実行ファイルのアイコンを取得
 						auto w = 16.ppis;
 						auto h = 16.ppis;
@@ -335,55 +358,52 @@ private:
 								_display.syncExec(new class Runnable {
 									void run() { mixin(S_TRACE);
 										if (mi1 && !mi1.isDisposed()) { mixin(S_TRACE);
-											auto img2 = new Image(mi1.getDisplay(), exeIcon);
+											img1 = new Image(mi1.getDisplay(), exeIcon);
 											listener(mi1, SWT.Dispose, { mixin(S_TRACE);
-												img2.dispose();
+												img1.dispose();
 											});
-											mi1.setImage(img2);
+											if (!hasWarning || !hasWarning()) mi1.setImage(img1);
 										}
 										if (mi2 && !mi2.isDisposed()) { mixin(S_TRACE);
-											auto img2 = new Image(mi2.getDisplay(), exeIcon);
+											img2 = new Image(mi2.getDisplay(), exeIcon);
 											listener(mi2, SWT.Dispose, { mixin(S_TRACE);
 												img2.dispose();
 											});
-											mi2.setImage(img2);
+											if (!hasWarning || !hasWarning()) mi2.setImage(img2);
 										}
 									}
 								});
 							}
 						});
-						if (menu1) menu1.removeMenuListener(mShown);
-						if (menu2) menu2.removeMenuListener(mShown);
-						rmv = true;
 						thr.start();
 					}
-				};
-				if (menu1) menu1.addMenuListener(mShown);
-				if (menu2) menu2.addMenuListener(mShown);
-				if (mi1) { mixin(S_TRACE);
-					mi1.addDisposeListener(new class DisposeListener {
-						override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-							if (!rmv) { mixin(S_TRACE);
-								menu1.removeMenuListener(mShown);
-							}
-						}
-					});
 				}
-				if (mi2) { mixin(S_TRACE);
-					mi2.addDisposeListener(new class DisposeListener {
-						override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-							if (!rmv) { mixin(S_TRACE);
-								menu2.removeMenuListener(mShown);
-							}
+			};
+			if (menu1) menu1.addMenuListener(mShown);
+			if (menu2) menu2.addMenuListener(mShown);
+			if (mi1) { mixin(S_TRACE);
+				mi1.addDisposeListener(new class DisposeListener {
+					override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
+						if (!rmv) { mixin(S_TRACE);
+							menu1.removeMenuListener(mShown);
 						}
-					});
-				}
+					}
+				});
+			}
+			if (mi2) { mixin(S_TRACE);
+				mi2.addDisposeListener(new class DisposeListener {
+					override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
+						if (!rmv) { mixin(S_TRACE);
+							menu2.removeMenuListener(mShown);
+						}
+					}
+				});
 			}
 		}
-		void putIcon(MenuItem mi1, MenuItem mi2, string ePath) { mixin(S_TRACE);
+		void putIcon(MenuItem mi1, MenuItem mi2, string ePath, bool delegate() hasWarning = null) { mixin(S_TRACE);
 			if (!mi1 && !mi2) return;
 			if (!.cfnmatch(ePath.extension(), ".py")) { mixin(S_TRACE);
-				putIcon2(mi1, mi2, ePath);
+				putIcon2(mi1, mi2, ePath, hasWarning);
 			}
 		}
 		MenuItem autoMI = null, autoMI2 = null;
@@ -637,7 +657,7 @@ private:
 						auto scenario = .tryFormat(`"%s"`, origScenarioPath);
 						execEngineP(ep.enginePath, scenario, ep);
 					}, () => canExecEngineWithParty && (!ep.isClassic || canExecClassic));
-					if (!warn) putIcon(mi, null, ep.enginePath);
+					if (!warn) putIcon(mi, null, ep.enginePath, () => !existsParty(ep));
 				}
 				put(ep);
 			}
@@ -2135,7 +2155,16 @@ private:
 			} else { mixin(S_TRACE);
 				nstr = to!(string)(num);
 			}
-			createMenuItem2(_comm, menu, nstr ~ " " ~ text, img, &run, null);
+			auto mi = createMenuItem2(_comm, menu, nstr ~ " " ~ text, img, &run, null);
+			auto l = new class MenuAdapter {
+				override void menuShown(MenuEvent e) { mixin(S_TRACE);
+					mi.setImage(.historyImage(_prop, hist));
+				}
+			};
+			menu.addMenuListener(l);
+			.listener(mi, SWT.Dispose, { mixin(S_TRACE);
+				menu.removeMenuListener(l);
+			});
 			_hist = hist;
 		}
 		private void run() { mixin(S_TRACE);
