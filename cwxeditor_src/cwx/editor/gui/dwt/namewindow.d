@@ -340,7 +340,6 @@ public:
 			_comm.refCardGroups.add(&refID);
 		}
 		_comm.replText.add(&refID);
-		_comm.replID.add(&refID);
 
 		.listener(_list, SWT.Dispose, { mixin(S_TRACE);
 			_comm.refUseCount.remove(&refUseCount);
@@ -358,7 +357,6 @@ public:
 				_comm.refCardGroups.remove(&refID);
 			} else static assert (0);
 			_comm.replText.remove(&refID);
-			_comm.replID.remove(&refID);
 		});
 
 		_nameSorter = new TableSorter!(Object)(nameCol, null, null);

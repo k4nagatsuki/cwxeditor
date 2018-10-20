@@ -2838,6 +2838,12 @@ public:
 					}
 					if (count) { mixin(S_TRACE);
 						_comm.replID.call();
+						static if (is(ID:CouponId)) _comm.refCoupons.call();
+						static if (is(ID:GossipId)) _comm.refGossips.call();
+						static if (is(ID:CompleteStampId)) _comm.refCompleteStamps.call();
+						static if (is(ID:KeyCodeId)) _comm.refKeyCodes.call();
+						static if (is(ID:CellNameId)) _comm.refCellNames.call();
+						static if (is(ID:CardGroupId)) _comm.refCardGroups.call();
 					}
 					after();
 				}
