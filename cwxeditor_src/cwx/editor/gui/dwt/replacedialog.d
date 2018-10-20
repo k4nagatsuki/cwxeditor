@@ -739,7 +739,7 @@ private:
 		_comm.refreshToolBar();
 	}
 	@property
-	private bool idKindIsString() {
+	private bool idKindIsString() { mixin(S_TRACE);
 		auto index = _idKind.getSelectionIndex();
 		return index == ID_FLAG || index == ID_STEP || index == ID_COUPON || index == ID_GOSSIP || index == ID_COMPLETE_STAMP || index == ID_KEY_CODE || index == ID_CELL_NAME || index == ID_CARD_GROUP;
 	}
@@ -3028,7 +3028,7 @@ public:
 	private void replaceIDImpl() { mixin(S_TRACE);
 		if (!_summ) return;
 		int index = _idKind.getSelectionIndex();
-		if (idKindIsString) {
+		if (idKindIsString) { mixin(S_TRACE);
 			string from = _fromID.getText();
 			string to = _toID.getText();
 			if (from == "") return;
@@ -3045,7 +3045,7 @@ public:
 			case ID_CARD_GROUP: replaceIDImpl2(toCardGroupId(from), toCardGroupId(to)); break;
 			default: assert (0);
 			}
-		} else {
+		} else { mixin(S_TRACE);
 			ulong from = getID(_fromID, _fromIDVal, _fromIDTbl);
 			ulong to = getID(_toID, _toIDVal, _toIDTbl);
 			if (0 == from) return;
