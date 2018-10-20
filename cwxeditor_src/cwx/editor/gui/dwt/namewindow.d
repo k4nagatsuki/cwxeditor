@@ -339,6 +339,7 @@ public:
 		} else static if (is(ID:CardGroupId)) { mixin(S_TRACE);
 			_comm.refCardGroups.add(&refID);
 		}
+		_comm.replText.add(&refID);
 
 		.listener(_list, SWT.Dispose, { mixin(S_TRACE);
 			_comm.refUseCount.remove(&refUseCount);
@@ -355,6 +356,7 @@ public:
 			} else static if (is(ID:CardGroupId)) { mixin(S_TRACE);
 				_comm.refCardGroups.remove(&refID);
 			} else static assert (0);
+			_comm.replText.remove(&refID);
 		});
 
 		_nameSorter = new TableSorter!(Object)(nameCol, null, null);
