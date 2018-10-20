@@ -309,7 +309,7 @@ protected:
 							_name.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 							.listener(_name, SWT.Modify, &refreshWarning);
 						} else static if (is (C == EnemyCard)) {
-							grp.setLayout(normalGridLayout(2, false));
+							grp.setLayout(normalGridLayout(_prop.var.etc.setRunAwayWithToggle ? 2 : 1, false));
 							grp.setText(_prop.msgs.enemyCardBase);
 							_casts = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 							_casts.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
@@ -318,10 +318,17 @@ protected:
 							gd.widthHint = _prop.var.etc.nameWidth;
 							_casts.setLayoutData(gd);
 							_casts.addSelectionListener(new Repaint);
-							_escape = new Button(grp, SWT.TOGGLE);
-							mod(_escape);
-							_escape.setImage(_prop.images.menu(MenuID.Escape));
-							_escape.setToolTipText(_prop.msgs.menuText(MenuID.Escape));
+							if (_prop.var.etc.setRunAwayWithToggle) { mixin(S_TRACE);
+								_escape = new Button(grp, SWT.TOGGLE);
+								mod(_escape);
+								_escape.setImage(_prop.images.menu(MenuID.Escape));
+								_escape.setToolTipText(_prop.msgs.menuText(MenuID.Escape));
+							} else { mixin(S_TRACE);
+								_escape = new Button(grp, SWT.CHECK);
+								mod(_escape);
+								_escape.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+								_escape.setText(_prop.msgs.hasRunAway);
+							}
 
 							_cardIncSearch = new IncSearch(_comm, _casts, () => 0 < _summ.casts.length);
 							_cardIncSearch.modEvent ~= &refreshCasts;

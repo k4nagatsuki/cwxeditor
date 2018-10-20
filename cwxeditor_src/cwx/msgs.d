@@ -1257,6 +1257,7 @@ class Msgs : Properties {
 	auto layerHint = Msg("layerHint", "(標準 = %1$s)");
 	auto bgImageForeground = Msg("bgImageForeground", "カードよりも前に表示");
 	auto bgImageCellName = Msg("bgImageCellName", "セル名称");
+	auto hasRunAway = Msg("hasRunAway", "逃走する");
 
 	auto areaViewStatus = Msg("areaViewStatus", "%1$s [%2$s] - %3$s");
 	auto areaViewStatusNoSummary = Msg("areaViewStatusNoSummary", "%1$s [%2$s]");
