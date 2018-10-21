@@ -416,7 +416,7 @@ private:
 				_possibleToRunAway = possibleToRunAway;
 				foreach (v; vs) { mixin(S_TRACE);
 					if (v._possibleToRunAwayMenu) v._possibleToRunAwayMenu.setSelection(area.possibleToRunAway);
-					if (v._possibleToRunAwayTMenu) v._possibleToRunAwayTMenu.setSelection(area.possibleToRunAway);
+					if (v._possibleToRunAwayCheck) v._possibleToRunAwayCheck.setSelection(area.possibleToRunAway);
 					v.callModEvent();
 				}
 			}
@@ -3388,6 +3388,25 @@ public:
 			}
 		}
 		static if (is(C:EnemyCard)) {
+			auto runComp = new Composite(left, SWT.NONE);
+			auto rcgd = new GridData(GridData.FILL_HORIZONTAL);
+			rcgd.horizontalSpan = 2;
+			runComp.setLayoutData(rcgd);
+			runComp.setLayout(windowGridLayout(1, true));
+
+			auto line1 = new Label(runComp, SWT.SEPARATOR | SWT.HORIZONTAL);
+			line1.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+			_possibleToRunAwayCheck = new Button(runComp, SWT.CHECK);
+			_possibleToRunAwayCheck.setText(_prop.msgs.menuText(MenuID.PossibleToRunAway));
+			_comm.put(_possibleToRunAwayCheck, &canReversePossibleToRunAway);
+			.listener(_possibleToRunAwayCheck, SWT.Selection, &reversePossibleToRunAway);
+			_possibleToRunAwayCheck.setSelection(_area.possibleToRunAway);
+			_possibleToRunAwayCheck.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
+
+			auto line2 = new Label(runComp, SWT.SEPARATOR | SWT.HORIZONTAL);
+			line2.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
 			auto bgmPane = createBgmPane(left);
 			auto bggd = new GridData(GridData.FILL_HORIZONTAL);
 			bggd.horizontalSpan = 2;
@@ -4530,7 +4549,7 @@ public:
 	}
 	static if (is(A:Battle)) {
 		MenuItem _possibleToRunAwayMenu;
-		ToolItem _possibleToRunAwayTMenu;
+		Button _possibleToRunAwayCheck;
 		@property
 		const
 		bool canReversePossibleToRunAway() { mixin(S_TRACE);
@@ -4547,7 +4566,7 @@ public:
 				// 同期
 				if (v !is this) { mixin(S_TRACE);
 					v._possibleToRunAwayMenu.setSelection(_area.possibleToRunAway);
-					v._possibleToRunAwayTMenu.setSelection(_area.possibleToRunAway);
+					v._possibleToRunAwayCheck.setSelection(_area.possibleToRunAway);
 					v.callModEvent();
 				}
 			}
@@ -4746,11 +4765,6 @@ public:
 			_customTMenu = createToolItem(_comm, bar, MenuID.ManualArrange, &setCustom, () => !_readOnly, SWT.RADIO);
 			_autoTMenu.setSelection(_area.spAuto);
 			_customTMenu.setSelection(!_area.spAuto);
-		}
-		static if (is(A:Battle)) {
-			new ToolItem(bar, SWT.SEPARATOR);
-			_possibleToRunAwayTMenu = createToolItem(_comm, bar, MenuID.PossibleToRunAway, &reversePossibleToRunAway, &canReversePossibleToRunAway, SWT.CHECK);
-			_possibleToRunAwayTMenu.setSelection(_area.possibleToRunAway);
 		}
 		new ToolItem(bar, SWT.SEPARATOR);
 		_xSpn = createSpinner(bar, _prop.msgs.left, _prop.var.etc.posLeftMax, -(cast(int)_prop.var.etc.posLeftMax), 0,
