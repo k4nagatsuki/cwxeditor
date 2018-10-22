@@ -44,7 +44,7 @@ public:
 			CPoint(9, 285),
 			CPoint(113, 285),
 			CPoint(217, 285),
-			CPoint(320, 285),
+			CPoint(321, 285),
 			CPoint(425, 285),
 			CPoint(529, 285)
 		];
