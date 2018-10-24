@@ -156,6 +156,8 @@ public:
 
 	@property Image cards() {return imgd!("cards.png");}
 	@property Image cardsWithFlag() {return imgd!("cards_flag.png");}
+	@property Image runAwayableEnemyCard() {return imgd!("escape.png");}
+	@property Image runAwayableEnemyCardWithFlag() {return imgd!("escape_flag.png");}
 	@property Image backs() {return imgd!("backs.png");}
 	@property Image backsWithFlag() {return imgd!("backs_flag.png");}
 	@property Image colorCell() {return imgd!("color_cell.png");}

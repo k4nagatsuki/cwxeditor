@@ -750,8 +750,9 @@ private:
 		void setEscape() { mixin(S_TRACE);
 			if (_readOnly) return;
 			_undo ~= createUndoEdit();
-			foreach (c; _editC.keys) { mixin(S_TRACE);
+			foreach (c, i; _editC) { mixin(S_TRACE);
 				c.escape = _escTMenu.getSelection();
+				_cards.getItem(i).setImage(cardImg(c));
 			}
 			callModEvent();
 			foreach (v; views()) { mixin(S_TRACE);
@@ -1190,6 +1191,11 @@ private:
 	}
 	static if (UseCards) {
 		private Image cardImg(C c) { mixin(S_TRACE);
+			static if (is(C:EnemyCard)) {
+				if (c.escape) { mixin(S_TRACE);
+					return c.flag == "" ? _prop.images.runAwayableEnemyCard : _prop.images.runAwayableEnemyCardWithFlag;
+				}
+			}
 			return c.flag == "" ? _prop.images.cards : _prop.images.cardsWithFlag;
 		}
 		private void refreshCards() { mixin(S_TRACE);
