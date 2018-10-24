@@ -184,7 +184,7 @@ private:
 		IncSearch _refAreaIncSearch;
 		bool _hasRefArea = false;
 		void refreshRefAreas() { mixin(S_TRACE);
-			if (_refAreas.isDisposed()) return;
+			if (!_refAreas || _refAreas.isDisposed()) return;
 			if (!_summ || _summ.scenarioPath == "") return;
 			_refAreasArr.length = 0;
 			_refAreas.removeAll();
