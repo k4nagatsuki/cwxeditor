@@ -212,7 +212,9 @@ ImageData loadImage(Props prop, in Skin skin, in Summary summ, string path, bool
 					}
 				}
 			}
-			if (mask && (!data.alphaData || !data.alphaData.length)) { mixin(S_TRACE);
+			// GIFの透過色指定は無視される
+			if (data.depth <= 8 && .imageType(cast(ubyte[])bytes) == ".gif") data.transparentPixel = -1;
+			if (mask && (!data.alphaData || !data.alphaData.length) && data.transparentPixel == -1) { mixin(S_TRACE);
 				if (data.palette !is null) { mixin(S_TRACE);
 					// パレットを使用しているイメージは透過色と同一の色が
 					// 別に存在する時にその色が透過されない

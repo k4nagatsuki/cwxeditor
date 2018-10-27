@@ -639,7 +639,7 @@ public:
 		void matNoTransparent() { mixin(S_TRACE);
 			auto data = blankImage(ds(initW), ds(initH));
 			data.transparentPixel = -1;
-			data.data[] = cast(byte) 255;
+			data.data[] = cast(byte)255;
 			auto img = new Image(cur, data);
 			scope (exit) img.dispose();
 			auto dc = new GC(img);
@@ -652,10 +652,7 @@ public:
 			dataSet.add(matImgData);
 			if (mat.depth == 32) noTransparent = true;
 		}
-		if (!appends.length && !_title && !this.data && transparent) { mixin(S_TRACE);
-			// FIXME: 1.29の挙動に合わせ、マスク有効なら透明色を無効にする
-			matNoTransparent();
-		} else if (appends.length || _title !is null) { mixin(S_TRACE);
+		if (appends.length || _title !is null) { mixin(S_TRACE);
 			matNoTransparent();
 		} else { mixin(S_TRACE);
 			matImgData = getMat();
@@ -814,7 +811,7 @@ public:
 		}
 		dataSet.add(bmpData);
 
-		if (transparent && !noTransparent) { mixin(S_TRACE);
+		if (transparent && !noTransparent && (!bmpData.alphaData || !bmpData.alphaData.length) && bmpData.transparentPixel == -1) { mixin(S_TRACE);
 			bmpData.transparentPixel = bmpData.getPixel(0, 0);
 			baseSizeData.transparentPixel = baseSizeData.getPixel(0, 0);
 		}
