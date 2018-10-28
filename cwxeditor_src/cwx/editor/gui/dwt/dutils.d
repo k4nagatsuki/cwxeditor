@@ -214,12 +214,13 @@ ImageData loadImage(Props prop, in Skin skin, in Summary summ, string path, bool
 			}
 			// GIFの透過色指定は無視される
 			if (data.depth <= 8 && .imageType(cast(ubyte[])bytes) == ".gif") data.transparentPixel = -1;
-			if (mask && (!data.alphaData || !data.alphaData.length) && data.transparentPixel == -1) { mixin(S_TRACE);
+			void to24() { mixin(S_TRACE);
 				if (data.palette !is null) { mixin(S_TRACE);
 					// パレットを使用しているイメージは透過色と同一の色が
 					// 別に存在する時にその色が透過されない
 					auto d = Display.getCurrent();
-					auto canvas = new Image(d, data.width, data.height);
+					auto newData = new ImageData(data.width, data.height, 24, new PaletteData(0xFF << 16, 0xFF << 8, 0xFF << 0));
+					auto canvas = new Image(d, newData);
 					scope (exit) canvas.dispose();
 					auto gc = new GC(canvas);
 					scope (exit) gc.dispose();
@@ -228,6 +229,17 @@ ImageData loadImage(Props prop, in Skin skin, in Summary summ, string path, bool
 					gc.drawImage(image, 0, 0);
 					data = canvas.getImageData();
 				}
+			}
+			if (data.depth <= 8 && data.transparentPixel != -1 && data.palette !is null) { mixin(S_TRACE);
+				auto maskRGB = data.palette.colors[data.transparentPixel];
+				data.transparentPixel = -1;
+				to24();
+				if (8 < data.depth && data.palette && data.palette.isDirect) { mixin(S_TRACE);
+					// BUG: パレット使用時にconvert()を行うと同一色が全て透過されてしまう CardWirth 1.50
+					data.transparentPixel = (maskRGB.red << 16) | (maskRGB.green << 8) | (maskRGB.blue << 0);
+				}
+			} else if (mask && (!data.alphaData || !data.alphaData.length) && data.transparentPixel == -1) { mixin(S_TRACE);
+				to24();
 				data.transparentPixel = data.getPixel(maskX, maskY);
 			}
 			return data;
