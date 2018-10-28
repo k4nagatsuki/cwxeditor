@@ -65,7 +65,7 @@ FlexImage createBackgroundImage(Props prop, in Skin skin, in Summary summ, strin
 	} else { mixin(S_TRACE);
 		uint baseW = w, baseH = h;
 		if (isBinImg(path)) { mixin(S_TRACE);
-			auto imgData = .loadImageWithScale(prop, skin, summ, path, prop.drawingScaleForImage(summ), false);
+			auto imgData = .loadImageWithScale(prop, skin, summ, path, prop.drawingScaleForImage(summ), false , true);
 			baseW = imgData.getWidth(NORMAL_SCALE);
 			baseH = imgData.getHeight(NORMAL_SCALE);
 			r = new FlexImage(imgData, prop.drawingScale, x, y, baseW, baseH, false, true);

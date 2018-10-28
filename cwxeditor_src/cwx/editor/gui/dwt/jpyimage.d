@@ -148,7 +148,7 @@ private ImageDataWithScale loadJPYImageImpl(Props prop, in Skin skin, in Summary
 			foreach (dir; dirs) { mixin(S_TRACE);
 				auto fname = std.path.buildPath(dir, sec.filename);
 				if (!exists(fname)) continue;
-				dataWS = .loadImageWithScale(prop, skin, summ, fname, drawingScale, false, 0, 0, stratum);
+				dataWS = .loadImageWithScale(prop, skin, summ, fname, drawingScale, false, true, 0, 0, stratum);
 				stratum ~= nabs(fname);
 				break;
 			}

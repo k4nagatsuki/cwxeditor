@@ -3056,7 +3056,7 @@ class MsgPreview : Composite {
 				auto path = _comm.skin.findImagePathF(imgPath.path, _summ ? _summ.scenarioPath : "", _summ ? _summ.dataVersion : LATEST_VERSION,
 					isSkinMaterial, isEngineMaterial);
 				auto drawingScale = (isSkinMaterial || isEngineMaterial) ? _prop.drawingScale : _prop.drawingScaleForImage(_summ);
-				tImg ~= .loadImageWithScale(path, drawingScale, true);
+				tImg ~= .loadImageWithScale(path, drawingScale, true, false);
 				pos ~= imgPath.positionType;
 				break;
 			case CardImageType.PCNumber:
@@ -3260,7 +3260,7 @@ ImageDataWithScale previewMessage(Commons comm, Props prop, in Summary summ, Ima
 		ImageDataWithScale data = null;
 		if (fpath && fpath.length) { mixin(S_TRACE);
 			// シナリオ内特殊文字
-			data = .loadImageWithScale(fpath, prop.drawingScaleForImage(summ), true);
+			data = .loadImageWithScale(fpath, prop.drawingScaleForImage(summ), true, false);
 		}
 		if (!data) { mixin(S_TRACE);
 			// 標準特殊文字

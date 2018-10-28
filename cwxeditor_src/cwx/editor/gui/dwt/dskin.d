@@ -222,7 +222,7 @@ version (Windows) {
 /// path = ファイルパス。
 /// Returns: 背景画像。背景画像でないならnull。
 ImageDataWithScale loadBgImage(Props prop, in Skin skin, in Summary summ, string path, uint targetScale) { mixin(S_TRACE);
- 	return skin.isBgImage(path) ? .loadImageWithScale(prop, skin, summ, path, targetScale) : null;
+ 	return skin.isBgImage(path) ? .loadImageWithScale(prop, skin, summ, path, targetScale, false, true) : null;
 }
 
 private ImageDataWithScale createImg(T ...)(string lEnginePath, string resName, uint targetScale,

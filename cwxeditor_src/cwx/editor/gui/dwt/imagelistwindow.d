@@ -122,7 +122,7 @@ class ImageListWindow(MtType Type) {
 		auto imgPath = _comm.skin.findPathF(path, defExts, defDirs, _summ ? _summ.scenarioPath : "", wsnVer, _comm.skin.wsnTableDirs(wsnVer),
 			isSkinMaterial, isEngineMaterial, defIndex);
 		auto drawingScale = (isSkinMaterial || isEngineMaterial) ? _prop.drawingScale : _prop.drawingScaleForImage(_summ);
-		return .loadImageWithScale(_prop, summSkin, _summ, imgPath, drawingScale, mask);
+		return .loadImageWithScale(_prop, summSkin, _summ, imgPath, drawingScale, mask, Type is MtType.BG_IMG);
 	}
 	static if (Type == MtType.CARD) {
 		@property

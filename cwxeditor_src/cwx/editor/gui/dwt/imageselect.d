@@ -826,7 +826,7 @@ private:
 				} else { mixin(S_TRACE);
 					_paintedPaths[i] = path;
 					auto drawingScale = isScenarioFile ? _prop.drawingScaleForImage(_summ) : _prop.drawingScale;
-					imgData = .loadImageWithScale(_prop, summSkin, _summ, path, drawingScale, _mask);
+					imgData = .loadImageWithScale(_prop, summSkin, _summ, path, drawingScale, _mask, Type is MtType.BG_IMG);
 					if (_img[i]) { mixin(S_TRACE);
 						foreach (data; _img[i].allData) { mixin(S_TRACE);
 							data.data[] = 0;

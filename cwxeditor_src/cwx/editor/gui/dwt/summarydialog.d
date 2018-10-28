@@ -801,7 +801,7 @@ private class SummaryPreview : Composite {
 					string p = skin.findImagePathF(imgPath.path, _summ.scenarioPath, wsnVer, isSkinMaterial, isEngineMaterial);
 					auto fDrawingScale = (isSkinMaterial || isEngineMaterial) ? drawingScale : drawingScaleImg;
 					if (p.length) { mixin(S_TRACE);
-						auto image = new Image(d, .loadImageWithScale(_prop, skin, _summ, p, drawingScaleImg).scaled(drawingScale));
+						auto image = new Image(d, .loadImageWithScale(_prop, skin, _summ, p, drawingScaleImg, true, false).scaled(drawingScale));
 						final switch (imgPath.positionType) {
 						case CardImagePosition.Center:
 							auto b = image.getBounds();

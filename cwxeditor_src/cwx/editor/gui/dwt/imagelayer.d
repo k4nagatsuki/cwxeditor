@@ -621,7 +621,7 @@ private class ImageLayerItem : Item {
 				auto file = skin.findImagePathF(path.path, _parent._summ ? _parent._summ.scenarioPath : "", _parent._summ ? _parent._summ.dataVersion : LATEST_VERSION, isSkinMaterial, isEngineMaterial);
 				if (file != "" && file.exists()) { mixin(S_TRACE);
 					auto drawingScale = (isSkinMaterial || isEngineMaterial) ? _parent._comm.prop.drawingScale : _parent._comm.prop.drawingScaleForImage(_parent._summ);
-					auto dataWS = .loadImageWithScale(_parent._comm.prop, skin, _parent._summ, file, drawingScale, _parent._mask);
+					auto dataWS = .loadImageWithScale(_parent._comm.prop, skin, _parent._summ, file, drawingScale, _parent._mask, false);
 					auto data = dataWS.scaled(_parent._comm.prop.var.etc.imageScale);
 					if (cRect.width < data.width || cRect.height < data.height) {
 						auto scale = .min(cast(real)cRect.width / data.width, cast(real)cRect.height / data.height);

@@ -601,7 +601,7 @@ public:
 				dataSet.add(matImgData);
 			} else { mixin(S_TRACE);
 				if (isBinImg(path) || (path !is null && .exists(path))) { mixin(S_TRACE);
-					auto matImgDataWS = .loadImageWithScale(path, _targetScale, false);
+					auto matImgDataWS = .loadImageWithScale(path, _targetScale, false, true);
 					dataSet.add(matImgDataWS.baseData);
 					matImgData = matImgDataWS.scaled(_targetScale);
 					if (matImgData.width != ds(initW) || matImgData.height != ds(initH)) { mixin(S_TRACE);
@@ -677,7 +677,7 @@ public:
 								imgData = a.data.scaled(_targetScale);
 							} else { mixin(S_TRACE);
 								auto drawingScale = a.drawingScaleOverride ? a.drawingScaleOverride() : _targetScale;
-								auto imgDataWS = .loadImageWithScale(a.path, drawingScale, a.transparent, a.maskX, a.maskY);
+								auto imgDataWS = .loadImageWithScale(a.path, drawingScale, a.transparent, false, a.maskX, a.maskY);
 								dataSet.add(imgDataWS.baseData);
 								imgData = imgDataWS.scaled(_targetScale);
 								dataSet.add(imgData);

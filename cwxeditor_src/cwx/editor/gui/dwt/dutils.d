@@ -133,10 +133,10 @@ bool dwtImageSize(Props prop, in Skin skin, in Summary summ, string path, out ui
 	return imageSize(path, width, height);
 }
 
-ImageDataWithScale loadImageWithScale(string path, uint targetScale, bool mask = true, int maskX = 0, int maskY = 0) { mixin(S_TRACE);
-	return loadImageWithScale(null, null, null, path, targetScale, mask, maskX, maskY);
+ImageDataWithScale loadImageWithScale(string path, uint targetScale, bool mask = true, bool isImageCell = false, int maskX = 0, int maskY = 0) { mixin(S_TRACE);
+	return loadImageWithScale(null, null, null, path, targetScale, mask, isImageCell, maskX, maskY);
 }
-ImageDataWithScale loadImageWithScale(Props prop, in Skin skin, in Summary summ, string path, uint targetScale, bool mask = true, int maskX = 0, int maskY = 0, string[] stratum = []) { mixin(S_TRACE);
+ImageDataWithScale loadImageWithScale(Props prop, in Skin skin, in Summary summ, string path, uint targetScale, bool mask = true, bool isImageCell = false, int maskX = 0, int maskY = 0, string[] stratum = []) { mixin(S_TRACE);
 	string ext = .extension(path);
 	if (cfnmatch(ext, ".jpy1")
 			|| cfnmatch(ext, ".jptx")
@@ -147,14 +147,14 @@ ImageDataWithScale loadImageWithScale(Props prop, in Skin skin, in Summary summ,
 		return data;
 	}
 	auto scaleInfo = findScaledImage(path, targetScale);
-	auto data = loadImage(prop, skin, summ, scaleInfo.path, mask, maskX, maskY, stratum);
+	auto data = loadImage(prop, skin, summ, scaleInfo.path, mask, isImageCell, maskX, maskY, stratum);
 	return new ImageDataWithScale(data, scaleInfo.scale);
 }
 
-ImageData loadImage(string path, bool mask = true, int maskX = 0, int maskY = 0) { mixin(S_TRACE);
-	return loadImage(null, null, null, path, mask, maskX, maskY);
+ImageData loadImage(string path, bool mask = true, bool isImageCell = false, int maskX = 0, int maskY = 0) { mixin(S_TRACE);
+	return loadImage(null, null, null, path, mask, isImageCell, maskX, maskY);
 }
-ImageData loadImage(Props prop, in Skin skin, in Summary summ, string path, bool mask = true, int maskX = 0, int maskY = 0, string[] stratum = []) { mixin(S_TRACE);
+ImageData loadImage(Props prop, in Skin skin, in Summary summ, string path, bool mask = true, bool isImageCell = false, int maskX = 0, int maskY = 0, string[] stratum = []) { mixin(S_TRACE);
 	if (!isBinImg(path) && contains(stratum, nabs(path))) { mixin(S_TRACE);
 		// 無限再帰を回避
 		return blankImage;
@@ -234,8 +234,8 @@ ImageData loadImage(Props prop, in Skin skin, in Summary summ, string path, bool
 				auto maskRGB = data.palette.colors[data.transparentPixel];
 				data.transparentPixel = -1;
 				to24();
-				if (8 < data.depth && data.palette && data.palette.isDirect) { mixin(S_TRACE);
-					// BUG: パレット使用時にconvert()を行うと同一色が全て透過されてしまう CardWirth 1.50
+				if (isImageCell && 8 < data.depth && data.palette && data.palette.isDirect) { mixin(S_TRACE);
+					// BUG: パレット使用時に透過色と同一の色が全て透過されてしまう CardWirth 1.50
 					data.transparentPixel = (maskRGB.red << 16) | (maskRGB.green << 8) | (maskRGB.blue << 0);
 				}
 			} else if (mask && (!data.alphaData || !data.alphaData.length) && data.transparentPixel == -1) { mixin(S_TRACE);
