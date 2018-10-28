@@ -237,6 +237,8 @@ ImageData loadImage(Props prop, in Skin skin, in Summary summ, string path, bool
 				if (isImageCell && 8 < data.depth && data.palette && data.palette.isDirect) { mixin(S_TRACE);
 					// BUG: パレット使用時に透過色と同一の色が全て透過されてしまう CardWirth 1.50
 					data.transparentPixel = (maskRGB.red << 16) | (maskRGB.green << 8) | (maskRGB.blue << 0);
+				} else if (mask) { mixin(S_TRACE);
+					data.transparentPixel = data.getPixel(maskX, maskY);
 				}
 			} else if (mask && (!data.alphaData || !data.alphaData.length) && data.transparentPixel == -1) { mixin(S_TRACE);
 				to24();
