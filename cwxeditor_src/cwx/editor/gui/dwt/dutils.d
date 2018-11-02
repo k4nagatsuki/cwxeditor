@@ -185,6 +185,8 @@ ImageData loadImage(Props prop, in Skin skin, in Summary summ, string path, bool
 				}
 			}
 			ImageData data = null;
+			// 格納された32-bitビットマップにパレットが残留しているバグへの対処
+			.fixCWNext32BitBitmap(bytes);
 			try { mixin(S_TRACE);
 				auto s = new ByteArrayInputStream(bytes);
 				scope (exit) s.close();

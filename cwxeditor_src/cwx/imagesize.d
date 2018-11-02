@@ -512,3 +512,35 @@ void fixCWNext16BitBitmap(ref byte[] bytes) { mixin(S_TRACE);
 		f.writeL(cast(uint)bfOffBits);
 	}
 }
+
+/// 一部バージョンのCardWirthNextが生成するBitmap(32 bit)に
+/// 本来存在できないはずのパレットデータが残留している事があるので訂正する。
+void fixCWNext32BitBitmap(ref byte[] bytes) { mixin(S_TRACE);
+	if (bytes.length  < 14 + 40) return;
+	auto f = ByteIO(bytes);
+	if ('B' != f.readByteL()) return;
+	if ('M' != f.readByteL()) return;
+	auto bfSize = f.readUIntL();
+	auto bfReserved1 = f.readUShortL();
+	auto bfReserved2 = f.readUShortL();
+	auto bfOffBits = f.readUIntL();
+	if (bfOffBits == 0) return;
+	auto biSize = f.readUIntL();
+	if (biSize != 40) return;
+	auto biWidth = f.readUIntL();
+	auto biHeight = f.readIntL();
+	auto biPlanes = f.readUShortL();
+	auto biBitCount = f.readUShortL();
+	if (biBitCount != 32) return;
+	auto biCompression = f.readUIntL();
+	auto biSizeImage = f.readUIntL();
+	auto biXPixPerMeter = f.readIntL();
+	auto biYPixPerMeter = f.readIntL();
+	auto biClrUsed = f.readUIntL();
+	if (0 < biClrUsed) { mixin(S_TRACE);
+		f.seekCur(-4);
+		f.writeUIntL(0); // 色数を0に訂正
+		// 余計なパレットデータを除去
+		bytes = bytes[0 .. 14 + biSize] ~ bytes[14 + biSize + biClrUsed * 4 .. $];
+	}
+}
