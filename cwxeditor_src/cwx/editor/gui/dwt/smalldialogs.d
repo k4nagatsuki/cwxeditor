@@ -114,7 +114,7 @@ private:
 				}
 			}
 		} else { mixin(S_TRACE);
-			_classic = _selectedSkin.path == "";
+			_classic = _selectedSkin.path == "" && _selectedSkin.type == "";
 		}
 	}
 public:

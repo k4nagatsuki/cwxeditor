@@ -575,13 +575,19 @@ private:
 			ptrdiff_t typeSkin = -1;
 			auto i = 0;
 			foreach (skin2; skins) { mixin(S_TRACE);
-				if (!_skinIncSearch.match(skin2.name)) continue;
-				_type.add(.tryFormat("%s(%s)", skin2.name, skin2.type));
-				_skinInfo ~= typeof(_skinInfo[0])(skin2.type, skin2.name, skin2.path);
+				auto name = skin2.name;
+				auto type = skin2.type;
+				if (skin2.isEmpty) { mixin(S_TRACE);
+					name = _prop.var.etc.defaultSkinName;
+					type = _prop.var.etc.defaultSkin;
+				}
+				if (!_skinIncSearch.match(name)) continue;
+				_type.add(.tryFormat("%s(%s)", name, type));
+				_skinInfo ~= typeof(_skinInfo[0])(type, name, skin2.path);
 				if (selPath == "") { mixin(S_TRACE);
-					if (skin2.type == selType) { mixin(S_TRACE);
+					if (type == selType) { mixin(S_TRACE);
 						if (typeSkin == -1) typeSkin = i;
-						if (skin2.name == selName) _type.select(cast(int)i);
+						if (name == selName) _type.select(cast(int)i);
 					}
 				} else if (skin2.path == selPath) { mixin(S_TRACE);
 					_type.select(cast(int)i);
