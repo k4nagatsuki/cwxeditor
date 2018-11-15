@@ -3244,7 +3244,7 @@ public:
 					_cards = createList(listsP, prop.msgs.menuCards,
 						prop.images.cards, ctcpd, &editCard, () => _area.cards, &selectAllC);
 					if (!_readOnly) { mixin(S_TRACE);
-						new TableTextEdit(_comm, _prop, _cards, 0, &nameEditEnd);
+						new TableTextEdit(_comm, _prop, _cards, 0, &nameEditEnd, null, (itm, editC) => createTextEditor(_comm, _prop, _cards, (cast(MenuCard)itm.getData()).name));
 					}
 				} else static if (is (C == EnemyCard)) {
 					_cards = createList(listsP, prop.msgs.enemyCards,
