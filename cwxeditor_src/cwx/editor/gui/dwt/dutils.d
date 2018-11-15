@@ -4366,6 +4366,16 @@ void getSymbols(Commons comm, Summary summ, CWXPath path, bool desc, out string 
 	assert (img !is null, .text(path) ~ ", " ~ typeid(path).toString());
 }
 
+/// シーンビュー・イベントビューに表示されるカードのアイコンを返す。
+Image cardIcon(Props prop, in AbstractSpCard card) { mixin(S_TRACE);
+	if (auto eCard = cast(const EnemyCard)card) { mixin(S_TRACE);
+		if (eCard.escape) { mixin(S_TRACE);
+			return eCard.flag == "" ? prop.images.runAwayableEnemyCard : prop.images.runAwayableEnemyCardWithFlag;
+		}
+	}
+	return card.flag == "" ? prop.images.cards : prop.images.cardsWithFlag;
+}
+
 /// BUG: GDI+でOpenTypeフォントを使用しようとした時の問題を避ける
 void wDrawText(GC gc, string text, int x, int y) { mixin(S_TRACE);
 	version (Windows) {

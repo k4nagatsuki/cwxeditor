@@ -753,6 +753,7 @@ private:
 			foreach (c, i; _editC) { mixin(S_TRACE);
 				c.escape = _escTMenu.getSelection();
 				_cards.getItem(i).setImage(cardImg(c));
+				_comm.refMenuCard.call(c.cwxPath(true));
 			}
 			callModEvent();
 			foreach (v; views()) { mixin(S_TRACE);
@@ -1191,12 +1192,7 @@ private:
 	}
 	static if (UseCards) {
 		private Image cardImg(C c) { mixin(S_TRACE);
-			static if (is(C:EnemyCard)) {
-				if (c.escape) { mixin(S_TRACE);
-					return c.flag == "" ? _prop.images.runAwayableEnemyCard : _prop.images.runAwayableEnemyCardWithFlag;
-				}
-			}
-			return c.flag == "" ? _prop.images.cards : _prop.images.cardsWithFlag;
+			return .cardIcon(_prop, c);
 		}
 		private void refreshCards() { mixin(S_TRACE);
 			_cards.setRedraw(false);
@@ -4881,6 +4877,7 @@ public:
 						c.flag = flag;
 						foreach (v; vs) v._cards.getItem(i).setImage(v.cardImg(c));
 						chg = true;
+						_comm.refMenuCard.call(c.cwxPath(true));
 					}
 				}
 			}
@@ -4890,6 +4887,7 @@ public:
 						b.flag = flag;
 						foreach (v; vs) v._backs.getItem(i).setImage(v.backImg(b));
 						chg = true;
+						_comm.refBgImage.call(b.cwxPath(true));
 					}
 				}
 			}

@@ -1797,13 +1797,7 @@ public:
 	}
 	private void appendCard(int index, AbstractSpCard c) { mixin(S_TRACE);
 		initial();
-		Image imgCard;
-		if (cast(MenuCard)c) {
-			imgCard = _prop.images.cards;
-		} else if (cast(EnemyCard)c) {
-			imgCard = _prop.images.cards;
-		}
-		auto itm = createTreeItem(_cards, c, cardName(c), imgCard, index + cardsIndex);
+		auto itm = createTreeItem(_cards, c, cardName(c), cardIcon(c), index + cardsIndex);
 		refreshTrees(itm);
 	}
 	private void removeCard(int index) { mixin(S_TRACE);
@@ -1945,7 +1939,7 @@ public:
 		_comm.refreshToolBar();
 	}
 	private Image cardIcon(AbstractSpCard card) { mixin(S_TRACE);
-		return card.flag == "" ? _prop.images.cards : _prop.images.cardsWithFlag;
+		return .cardIcon(_prop, card);
 	}
 
 	void editEnter() { mixin(S_TRACE);
