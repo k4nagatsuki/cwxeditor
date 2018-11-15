@@ -396,7 +396,10 @@ private:
 		void uda(EventTreeView[] vs) { mixin(S_TRACE);
 			scope (exit) comm.refreshToolBar();
 			foreach (v; vs) { mixin(S_TRACE);
-				if (_selPath) v._tree.select(v.fromPath(_selPath));
+				if (_selPath) { mixin(S_TRACE);
+					v._tree.select(v.fromPath(_selPath));
+					v._tree.showSelection();
+				}
 				v.refreshStatusLine();
 			}
 			_selPath = _selPath2;
