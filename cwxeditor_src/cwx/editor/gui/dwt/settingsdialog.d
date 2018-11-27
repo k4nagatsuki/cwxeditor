@@ -1696,6 +1696,7 @@ struct OldSettings {
 	bool showSceneViewSelectionFilter;
 	bool saveSkinName;
 	bool showItemNumberOfSceneAndEventView;
+	ExecutionParty lastExecutedParty;
 	ExecutionParty[] executedParties;
 	uint executedPartiesMax;
 	this (Props prop) { mixin(S_TRACE);
@@ -1768,6 +1769,7 @@ struct OldSettings {
 		this.showCurrentValueOnTopAlways = prop.var.etc.showCurrentValueOnTopAlways;
 		this.saveSkinName = prop.var.etc.saveSkinName;
 		this.showItemNumberOfSceneAndEventView = prop.var.etc.showItemNumberOfSceneAndEventView;
+		this.lastExecutedParty = prop.var.etc.lastExecutedParty;
 		this.executedParties = prop.var.etc.executedParties;
 		this.executedPartiesMax = prop.var.etc.executedPartiesMax;
 	}
@@ -1960,7 +1962,7 @@ struct OldSettings {
 		if (this.showItemNumberOfSceneAndEventView != prop.var.etc.showItemNumberOfSceneAndEventView) { mixin(S_TRACE);
 			comm.refMenuCardAndBgImageList.call();
 		}
-		if (executedParties != prop.var.etc.executedParties || executedPartiesMax != prop.var.etc.executedPartiesMax) { mixin(S_TRACE);
+		if (lastExecutedParty != prop.var.etc.lastExecutedParty || executedParties != prop.var.etc.executedParties || executedPartiesMax != prop.var.etc.executedPartiesMax) { mixin(S_TRACE);
 			comm.refExecutedParties.call();
 		}
 		if (comm.summary && !comm.summary.legacy && this.xmlFileNameIsIDOnly != prop.var.etc.xmlFileNameIsIDOnly) { mixin(S_TRACE);

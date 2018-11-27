@@ -573,7 +573,7 @@ private:
 								if (!p.exists() || !p.isDir()) continue;
 								foreach (file; .clistdir(p)) { mixin(S_TRACE);
 									file = p.buildPath(file);
-									if (!(file.exists() && file.isFile() && file.toLower().extension() == ".xml")) { mixin(S_TRACE);
+									if (file.exists() && file.isFile() && file.toLower().extension() == ".xml") { mixin(S_TRACE);
 										enable = true;
 										break;
 									}
@@ -707,6 +707,7 @@ private:
 	void refExecutedParties() { mixin(S_TRACE);
 		refreshExecEngineImpl(_mExecEngine, _mExecEngineWithParty, true);
 		refreshExecEngineImpl(_tmExecEngine, _tmExecEngineWithParty, false);
+		updateExecEngineWithPartyName();
 		_prop.var.save(dock);
 		sendReloadProps();
 	}

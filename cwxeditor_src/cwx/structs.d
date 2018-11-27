@@ -1269,8 +1269,8 @@ struct ExecutionParty {
 	}
 	/// ditto
 	const
-	void toNode(ref XNode node) { mixin(S_TRACE);
-		auto e = node.newElement(XML_NAME);
+	void toNode(ref XNode node, string name = XML_NAME) { mixin(S_TRACE);
+		auto e = node.newElement(name);
 		toNodeImpl(e);
 	}
 	/// ditto
