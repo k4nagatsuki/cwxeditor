@@ -1670,7 +1670,8 @@ private:
 	}
 	@property
 	bool canExecEngineWithLastParty() { mixin(S_TRACE);
-		if (!summary || (summary.readOnlyPath == "" && summary.useTemp && summary.origZipName == "")) return false;
+		if (!summary || (summary.useTemp && summary.origZipName == "")) return false;
+		if (summary.readOnlyPath != "") return false;
 		if (_prop.var.etc.lastExecutedParty.enginePath == "") return false;
 		auto ep = _prop.var.etc.lastExecutedParty;
 		return summary && ep.enginePath != "" && ep.enginePath.exists() && ep.enginePath.isFile();
@@ -1684,7 +1685,8 @@ private:
 	}
 	@property
 	bool canExecEngineWithParty() { mixin(S_TRACE);
-		if (!summary || (summary.readOnlyPath == "" && summary.useTemp && summary.origZipName == "")) return false;
+		if (!summary || (summary.useTemp && summary.origZipName == "")) return false;
+		if (summary.readOnlyPath != "") return false;
 		if (!canExecEngine && !_prop.var.etc.classicEngines.length) return false;
 		return true;
 	}
