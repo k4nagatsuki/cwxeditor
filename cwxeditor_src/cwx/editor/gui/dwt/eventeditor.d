@@ -1303,19 +1303,22 @@ class EventEditor : Composite {
 			auto pos = _posTable[_selected.eventId];
 			if (pos.index == -1) return; // 折りたたまれている
 			auto startInfo = _startInfos[_selectedParentStart.eventId];
-			auto sy = getVerticalBar().getSelection() * _lineHeight;
-			redraw(ca.x, (startInfo.y + pos.relY) - sy, ca.width, _lineHeight + 1, true);
+			redrawItem(startInfo, pos);
 		}
 	}
 
+	private void redrawItem(in StartInfo startInfo, in PosInfo pos) { mixin(S_TRACE);
+		auto ca = getClientArea();
+		auto sy = getVerticalBar().getSelection() * _lineHeight;
+		redraw(ca.x, (startInfo.y + pos.relY) - sy - 2, ca.width, _lineHeight + 5, true);
+	}
 	private void clearLightup() { mixin(S_TRACE);
 		if (_lightup && _lightup.eventId in _posTable) { mixin(S_TRACE);
 			auto ca = getClientArea();
-			auto sy = getVerticalBar().getSelection() * _lineHeight;
 			auto pos = _posTable[_lightup.eventId];
 			if (pos.index == -1) return; // 折りたたまれている
 			auto startInfo = _startInfos[_lightupParentStart.eventId];
-			redraw(ca.x, (startInfo.y + pos.relY) - sy, ca.width, _lineHeight + 1, true);
+			redrawItem(startInfo, pos);
 		}
 		_lightup = null;
 		_lightupParentStart = null;
@@ -1324,7 +1327,6 @@ class EventEditor : Composite {
 		auto ca = getClientArea();
 		auto p = getDisplay().getCursorLocation();
 		p = toControl(p);
-		auto sy = getVerticalBar().getSelection() * _lineHeight;
 		auto old = _lightup;
 		clearLightup();
 		_lightup = ca.contains(p) ? getContent(p.x, p.y) : null;
@@ -1333,7 +1335,7 @@ class EventEditor : Composite {
 			auto pos = _posTable[_lightup.eventId];
 			if (pos.index == -1) return; // 折りたたまれている
 			auto startInfo = _startInfos[_lightupParentStart.eventId];
-			redraw(ca.x, (startInfo.y + pos.relY) - sy, ca.width, _lineHeight + 1, true);
+			redrawItem(startInfo, pos);
 		}
 	}
 
