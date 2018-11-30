@@ -136,7 +136,7 @@ private:
 		}
 		foreach (enh, spn; _liveEnh) { mixin(S_TRACE);
 			if (spn.getSelection() < 0) { mixin(S_TRACE);
-				final switch (Enhance.ACTION) {
+				final switch (enh) {
 				case Enhance.ACTION:
 					statuses ~= Status.DOWN_ACTION;
 					break;
@@ -151,7 +151,7 @@ private:
 					break;
 				}
 			} else if (0 < spn.getSelection()) {
-				final switch (Enhance.ACTION) {
+				final switch (enh) {
 				case Enhance.ACTION:
 					statuses ~= Status.UP_ACTION;
 					break;
