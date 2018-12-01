@@ -192,7 +192,12 @@ public:
 	bool name(string name) { mixin(S_TRACE);
 		name = FlagDir.validName(name);
 		if (!_parent || _parent.canAppend!Flag(name)) { mixin(S_TRACE);
-			if (_change && _name != name) _change();
+			if (_name == name) return true;
+			if (_change) _change();
+			if (_parent) { mixin(S_TRACE);
+				_parent._flagNames.remove(_name);
+				_parent._flagNames[name] = this;
+			}
 			_name = name;
 			return true;
 		}
@@ -316,9 +321,9 @@ public:
 	}
 	@property
 	inout
-	override inout(CWXPath)[] cwxChilds() {return [];}
+	override inout(CWXPath)[] cwxChilds() { return []; }
 	@property
-	CWXPath cwxParent() {return _parent;}
+	CWXPath cwxParent() { return _parent; }
 }
 
 /// ステップ。
@@ -394,7 +399,12 @@ public:
 	bool name(string name) { mixin(S_TRACE);
 		name = FlagDir.validName(name);
 		if (!_parent || _parent.canAppend!Step(name)) { mixin(S_TRACE);
-			if (_change && _name != name) _change();
+			if (_name == name) return true;
+			if (_change) _change();
+			if (_parent) { mixin(S_TRACE);
+				_parent._stepNames.remove(_name);
+				_parent._stepNames[name] = this;
+			}
 			_name = name;
 			return true;
 		}
@@ -533,7 +543,7 @@ public:
 		string[] vals;
 		string name = null;
 		int def = se.attr!(int)("default", true);
-		se.onTag["Name"] = (ref XNode n) {name = FlagDir.basename(n.value);};
+		se.onTag["Name"] = (ref XNode n) { name = FlagDir.basename(n.value); };
 		se.onTag[null] = (ref XNode n) { mixin(S_TRACE);
 			if (startsWith(n.name, "Value")) { mixin(S_TRACE);
 				vals ~= n.value;
@@ -569,9 +579,9 @@ public:
 	}
 	@property
 	inout
-	override inout(CWXPath)[] cwxChilds() {return [];}
+	override inout(CWXPath)[] cwxChilds() { return []; }
 	@property
-	CWXPath cwxParent() {return _parent;}
+	CWXPath cwxParent() { return _parent; }
 }
 
 /// フラグ/ステップ、及びサブディレクトリを格納するディレクトリ。
@@ -583,6 +593,9 @@ private:
 	FlagDir[] _subdir;
 	Flag[] _flags;
 	Step[] _steps;
+	Flag[string] _flagNames;
+	Step[string] _stepNames;
+	FlagDir[string] _dirNames;
 	string _id;
 	void delegate() _change = null;
 	UseCounter _uc = null;
@@ -669,7 +682,7 @@ public:
 		return r;
 	}
 	@property
-	CWXPath cwxParent() {return _owner ? _owner : _parent;}
+	CWXPath cwxParent() { return _owner ? _owner : _parent; }
 
 	/// 親ディレクトリ。
 	@property
@@ -755,11 +768,28 @@ public:
 	bool name(string name) { mixin(S_TRACE);
 		name = FlagDir.validName(name);
 		if (!_parent || _parent.canAppendSub(name)) { mixin(S_TRACE);
-			if (_change && _name != name) _change();
+			if (_name == name) return true;
+			if (_change) _change();
+			if (_parent) { mixin(S_TRACE);
+				_parent._dirNames.remove(_name);
+				_parent._dirNames[name] = this;
+			}
 			_name = name;
 			return true;
 		}
 		return false;
+	}
+
+	@property
+	inout
+	ref inout(F[string]) names(F)() { mixin(S_TRACE);
+		static if (is(F:Flag)) { mixin(S_TRACE);
+			return _flagNames;
+		} else static if (is(F:Step)) { mixin(S_TRACE);
+			return _stepNames;
+		} else static if (is(F:FlagDir)) { mixin(S_TRACE);
+			return _dirNames;
+		} else static assert (0);
 	}
 
 	/// 指定された名前のフラグ・ステップ・サブディレクトリが
@@ -771,23 +801,13 @@ public:
 			if (name.length == 0) { mixin(S_TRACE);
 				return false;
 			}
-			foreach (flag; _flags) { mixin(S_TRACE);
-				if (cmp(flag.name, name) == 0) { mixin(S_TRACE);
-					return false;
-				}
-			}
-			return true;
+			return (name in names!F) is null;
 		} else static if (is(F:Step)) {
 			name = validName(name);
 			if (name.length == 0) { mixin(S_TRACE);
 				return false;
 			}
-			foreach (step; _steps) { mixin(S_TRACE);
-				if (cmp(step.name, name) == 0) { mixin(S_TRACE);
-					return false;
-				}
-			}
-			return true;
+			return (name in names!F) is null;
 		} else { mixin(S_TRACE);
 			static assert (is(F:FlagDir));
 			return canAppendSub(name);
@@ -809,12 +829,7 @@ public:
 		if (name.length == 0) { mixin(S_TRACE);
 			return false;
 		}
-		foreach (dir; _subdir) { mixin(S_TRACE);
-			if (cmp(dir.name, name) == 0) { mixin(S_TRACE);
-				return false;
-			}
-		}
-		return true;
+		return (name in _dirNames) is null;
 	}
 	/// 指定されたディレクトリが追加可能であればtrueを返す。
 	/// 自分と自分より上位にあるディレクトリを自分の下に持ってくることはできない。
@@ -858,6 +873,7 @@ public:
 			}
 			item.changeHandler = _change;
 			item.useCounter = _uc;
+			names!F[item.name] = item;
 			if (_change) _change();
 			return true;
 		}
@@ -896,6 +912,7 @@ public:
 				arr[i].changeHandler = null;
 				arr[i].useCounter = null;
 				arr = arr[0 .. i] ~ arr[i + 1 .. $];
+				(names!T).remove(e.name);
 				if (_change) _change();
 				return true;
 			}
@@ -922,6 +939,7 @@ public:
 			if (_change) _change();
 		}
 		_flags = [];
+		_flagNames = null;
 		foreach (e; _steps) {
 			e.parent = null;
 			e.changeHandler = null;
@@ -929,6 +947,7 @@ public:
 			if (_change) _change();
 		}
 		_steps = [];
+		_stepNames = null;
 		foreach (e; _subdir) {
 			e.parent = null;
 			e.changeHandler = null;
@@ -936,6 +955,7 @@ public:
 			if (_change) _change();
 		}
 		_subdir = [];
+		_dirNames = null;
 	}
 
 	/// サブディレクトリ群。
@@ -959,17 +979,17 @@ public:
 	/// 指定された名前のフラグ・ステップ・サブディレクトリが存在すればtrue。
 	const
 	bool containsFlag(string name) { mixin(S_TRACE);
-		return getFlag(name) !is null;
+		return (name in _flagNames) !is null;
 	}
 	/// ditto
 	const
 	bool containsStep(string name) { mixin(S_TRACE);
-		return getStep(name) !is null;
+		return (name in _stepNames) !is null;
 	}
 	/// ditto
 	const
 	bool containsSubDir(string name) { mixin(S_TRACE);
-		return getStep(name) !is null;
+		return (name in _dirNames) !is null;
 	}
 	/// 指定された名前のサブディレクトリのindexを返す。
 	/// 存在しない場合は-1を返す。
@@ -1002,41 +1022,24 @@ public:
 		std.algorithm.swap(_subdir[index1], _subdir[index2]);
 	}
 
-	private static F getImpl(F)(F[] arr, string name) { mixin(S_TRACE);
-		foreach (f; arr) { mixin(S_TRACE);
-			if (cmp(f.name, name) == 0) { mixin(S_TRACE);
-				return f;
-			}
-		}
-		return null;
-	}
 	/// フラグ・ステップ・サブディレクトリを名前で検索して取得する。
 	/// 存在しない場合はnullを返す。
-	Flag getFlag(string name) { mixin(S_TRACE);
-		return getImpl!(Flag)(_flags, name);
+	inout
+	inout(Flag) getFlag(string name) { mixin(S_TRACE);
+		auto p = name in _flagNames;
+		return p ? *p : null;
 	}
 	/// ditto
-	const
-	const(Flag) getFlag(string name) { mixin(S_TRACE);
-		return getImpl!(const Flag)(_flags, name);
+	inout
+	inout(Step) getStep(string name) { mixin(S_TRACE);
+		auto p = name in _stepNames;
+		return p ? *p : null;
 	}
 	/// ditto
-	Step getStep(string name) { mixin(S_TRACE);
-		return getImpl!(Step)(_steps, name);
-	}
-	/// ditto
-	const
-	const(Step) getStep(string name) { mixin(S_TRACE);
-		return getImpl!(const Step)(_steps, name);
-	}
-	/// ditto
-	FlagDir getSubDir(string name) { mixin(S_TRACE);
-		return getImpl!(FlagDir)(_subdir, name);
-	}
-	/// ditto
-	const
-	const(FlagDir) getSubDir(string name) { mixin(S_TRACE);
-		return getImpl!(const FlagDir)(_subdir, name);
+	inout
+	inout(FlagDir) getSubDir(string name) { mixin(S_TRACE);
+		auto p = name in _dirNames;
+		return p ? *p : null;
 	}
 
 	/// このディレクトリとサブディレクトリの中にある
@@ -1078,7 +1081,7 @@ public:
 		return r;
 	}
 
-	/// フラグ・ステップを所持していればtrue。
+	/// このディレクトリ及びサブディレクトリがフラグ・ステップを所持していればtrue。
 	@property
 	const
 	bool hasFlag() { mixin(S_TRACE);
@@ -1307,7 +1310,7 @@ public:
 					v.name = createNewFlagName(v.name, "");
 				}
 				auto r = this.add(v);
-				assert (r);
+				assert (r, v.name);
 				cFlags[k] = v;
 			}
 			foreach (k, v; cSteps2) { mixin(S_TRACE);
@@ -1315,7 +1318,7 @@ public:
 					v.name = createNewStepName(v.name, "");
 				}
 				auto r = this.add(v);
-				assert (r);
+				assert (r, v.name);
 				cSteps[k] = v;
 			}
 			return true;
