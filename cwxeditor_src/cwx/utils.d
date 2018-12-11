@@ -431,7 +431,7 @@ string getNormalizedSoundExt(RawFile f) { mixin(S_TRACE);
 	f.rawRead(bytes);
 	auto ext = .soundType(bytes);
 	if (ext != "") return ext;
-	if (f.size < 128) return "";
+	if (f.size < 128 + 19) return "";
 	f.seek(-128, SEEK_END);
 	bytes = bytes[0 .. 128 + 19];
 	bytes[0 .. 19] = 0;

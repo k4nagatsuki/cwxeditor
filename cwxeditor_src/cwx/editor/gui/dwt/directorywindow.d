@@ -1514,7 +1514,8 @@ private:
 		if (!_win || _win.isDisposed()) return;
 		ulong size;
 		foreach (itm; _files.getItems()) { mixin(S_TRACE);
-			auto d = cast(FileNameObj) itm.getData();
+			auto d = cast(FileNameObj)itm.getData();
+			assert (d !is null);
 			size += d.size;
 		}
 		string sizeKB = formatNum(size / 1024) ~ " KB";
