@@ -298,7 +298,11 @@ private:
 					check.setLayoutData(gd);
 					return check;
 				}
-				_needSpell = createCheck(_prop.msgs.needSpell, !_readOnly);
+				static if (is(C:BeastCard)) {
+					_needSpell = createCheck(_prop.msgs.needSpellAndActive, !_readOnly);
+				} else {
+					_needSpell = createCheck(_prop.msgs.needSpell, !_readOnly);
+				}
 			}
 			{ mixin(S_TRACE);
 				auto grp = new Group(comp2, SWT.NONE);

@@ -1920,6 +1920,7 @@ class Msgs : Properties {
 
 	auto workConditionGroup = Msg("workConditionGroup", "発動条件");
 	auto needSpell = Msg("needSpell", "沈黙時に発動不可");
+	auto needSpellAndActive = Msg("needSpellAndActive", "沈黙・行動不能時に発動不可");
 	auto elementProps = Msg("elementProps", "効果属性");
 	auto linkOption = Msg("linkOption", "参照設定");
 	auto beastMaxNest = Msg("beastMaxNest", "ネスト可能回数");
