@@ -454,7 +454,7 @@
 <span class="keywords">endsc</span> <span class="code">false</span></code></pre>
 
 <p>このスクリプトは、任意の既存のイベントツリーの中に貼り付ける事ができます。</p>
-<p>次のように、スタートコンテントを持たない部分と、スタートコンテントが混在している場合は、エラーになります。</p>
+<p>次のように、スタートコンテントを持たない部分と、スタートコンテントが混在している場合は、既存のイベントツリーの中にスタートコンテントを持たない部分が貼り付けられた後、新しいツリーが生成されます。</p>
 
 <pre><code><span class="keywords">msg</span> <span class="code">none</span>, <span class="str">"hello, world!"</span>
 <span class="keywords">endsc</span> <span class="code">false</span>
@@ -1432,9 +1432,9 @@
 「ゴブリンの姿が見えるわ。
 　間違いない、この洞窟よ」
 @</span>]
-<span class="comment">// 文字列が一つだけの場合は指定クーポン無し
+<span class="comment">// 指定クーポン無し
 // あらゆる話者がこのメッセージを喋る事ができる</span>
-[<span class="str">@ <span class="code">center</span>
+[<span class="str">""</span>, <span class="str">@ <span class="code">center</span>
 「ゴブリンの姿が見える。
 　間違いない、この洞窟だ」
 @</span>]
@@ -1641,7 +1641,7 @@
 
 <h4 class="example">例</h4>
 
-<pre><code class="samplecode"><span class="keywords">selmember</span> <span class="code">true</span>, <span class="code">false</span> <span class="comment">// パーティ全体から手動でメンバを選択</span>
+<pre><code class="samplecode"><span class="keywords">selmember</span> <span class="code">true</span>, <span class="code">manual</span> <span class="comment">// パーティ全体から手動でメンバを選択</span>
 <code class="code">if</code> <span class="code">true</span>
     <span class="comment">// 選択が行われた</span>
     <span class="keywords">getcoupon</span> <span class="code">M</span>, <span class="str">"：主役"</span>
@@ -2095,7 +2095,7 @@
 
 <h4 class="example">例</h4>
 
-<pre><code class="samplecode"><span class="keywords">brround</span> <span class="str">"&lt;"</span> <span class="num">11</span>
+<pre><code class="samplecode"><span class="keywords">brround</span> <span class="str">"&lt;"</span>, <span class="num">11</span>
 <code class="code">if</code> <span class="code">true</span>
     <span class="comment">// 10ラウンド目まではこちらへ分岐する</span>
     <span class="comment">// ...</span>
@@ -2484,7 +2484,8 @@
 
 <h4 class="example">例</h4>
 
-<pre><code class="samplecode"><span class="keywords">cpstep</span> <span class="str">"情報A段階"</span>, <span class="str">"汎用段階"</span> <span class="comment">// ステップ「情報A段階」の内容を「汎用段階」へ代入</span>
+<pre><code class="samplecode"><span class="var">$pack_汎用情報処理</span> = <span class="num">42</span>
+<span class="keywords">cpstep</span> <span class="str">"情報A段階"</span>, <span class="str">"汎用段階"</span> <span class="comment">// ステップ「情報A段階」の内容を「汎用段階」へ代入</span>
 <span class="keywords">cpflag</span> <span class="str">"情報A入手済み"</span>, <span class="str">"汎用フラグ"</span> <span class="comment">// フラグ「情報A入手済み」の内容を「汎用入手済み」へ代入</span>
 <span class="keywords">callpack</span> <span class="var">$pack_汎用情報処理</span> <span class="comment">// 汎用パッケージのコール</span>
 <span class="keywords">cpstep</span> <span class="str">"情報A段階"</span>, <span class="str">"汎用段階"</span> <span class="comment">// ステップ「情報A段階」へ処理結果を反映</span>
@@ -2505,7 +2506,10 @@
 
 <h4 class="example">例</h4>
 
-<pre><code class="samplecode"><span class="keywords">cmpstep</span> <span class="str">"自軍状態"</span>, <span class="str">"敵軍状態"</span> <span class="comment">// ステップ「自軍状態」と「敵軍状態」を比較</span>
+<pre><code class="samplecode"><span class="var">$pack_勝利</span> = <span class="num">42</span>
+<span class="var">$pack_敗北</span> = <span class="num">43</span>
+<span class="var">$pack_引き分け</span> = <span class="num">44</span>
+<span class="keywords">cmpstep</span> <span class="str">"自軍状態"</span>, <span class="str">"敵軍状態"</span> <span class="comment">// ステップ「自軍状態」と「敵軍状態」を比較</span>
 <code class="code">if</code> <span class="str">"&gt;"</span> <span class="comment">// 「自軍状態」が「敵軍状態」より大きい</span>
     <span class="keywords">callpack</span> <span class="var">$pack_勝利</span>
 <code class="code">elif</code> <span class="str">"&lt;"</span> <span class="comment">// 「自軍状態」が「敵軍状態」より小さい</span>
@@ -2924,7 +2928,7 @@
 <h3 class="content"><a id="CHBACK" name="CHBACK">chback <span class="args"><span class="array">([<span class="arg">&lt;画像パス&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;透明化有無&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>]
 | [<span class="arg">text</span>, <span class="arg">&lt;テキスト&gt;</span>, <span class="arg">&lt;フォント名&gt;</span>, <span class="arg">&lt;文字サイズ&gt;</span>, <span class="arg">&lt;文字色&gt;</span>, <span class="arg">&lt;書式&gt;</span> ..., (<span class="arg">&lt;縁取り色&gt;</span>), (<span class="arg">&lt;縁取り幅&gt;</span>), <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>]
 | [<span class="arg">color</span>, <span class="arg">&lt;合成方式&gt;</span>, <span class="arg">&lt;基本色&gt;</span>, <span class="arg">&lt;グラデーション方向&gt;</span>, <span class="arg">&lt;終端色&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>]
-| [<span class="arg">pc</span>, <span class="arg">&lt;表示メンバ&gt;</span>, <span class="arg">&lt;拡大・縮小有無&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>), <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>]
+| [<span class="arg">pc</span>, <span class="arg">&lt;表示メンバ&gt;</span>, <span class="arg">&lt;拡大・縮小有無&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>])
 ...</span>, <span class="arg">&lt;画面切替スピード&gt;</span>, <span class="arg">&lt;切替方式&gt;</span></span></a></h3>
 
 <p class="fullname">(Change Background)</p>
@@ -2937,7 +2941,7 @@
 
 <h5>画像セル</h5>
 
-<p class="args"><code class="array">[<span class="arg">&lt;画像パス&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;透明化有無&gt;</span>]</code></p>
+<p class="args"><code class="array">[<span class="arg">&lt;画像パス&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;透明化有無&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>]</code></p>
 <p class="desc">1つの画像をセルとして配置します。</p>
 <p class="desc">画像パスには、文字列で画像のファイル名を指定します。</p>
 <p class="desc">フラグには、画像を表示する条件のフラグ名を指定します。フラグを使用しない場合は空文字列<code class="str">""</code>を指定します。</p>
@@ -2951,7 +2955,7 @@
 
 <h5>テキストセル</h5>
 
-<p class="args"><code class="array">[<span class="arg">text</span>, <span class="arg">&lt;テキスト&gt;</span>, <span class="arg">&lt;フォント名&gt;</span>, <span class="arg">&lt;文字サイズ&gt;</span>, <span class="arg">&lt;文字色&gt;</span>, <span class="arg">&lt;書式&gt;</span> ..., (<span class="arg">&lt;縁取り色&gt;</span>), (<span class="arg">&lt;縁取り幅&gt;</span>), <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>]</code></p>
+<p class="args"><code class="array">[<span class="arg">text</span>, <span class="arg">&lt;テキスト&gt;</span>, <span class="arg">&lt;フォント名&gt;</span>, <span class="arg">&lt;文字サイズ&gt;</span>, <span class="arg">&lt;文字色&gt;</span>, <span class="arg">&lt;書式&gt;</span> ..., (<span class="arg">&lt;縁取り色&gt;</span>), (<span class="arg">&lt;縁取り幅&gt;</span>), <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>]</code></p>
 <p class="desc">テキストをセルとして配置します。</p>
 <p class="desc">最初にキーワード<code class="keywords">text</code>を指定してください。</p>
 <p class="desc">テキストには、セルに表示する文章の内容を文字列で指定します。</p>
@@ -2995,7 +2999,7 @@
 
 <h5>カラーセル</h5>
 
-<p class="args"><code class="array">[<span class="arg">color</span>, <span class="arg">&lt;合成方式&gt;</span>, <span class="arg">&lt;基本色&gt;</span>, <span class="arg">&lt;グラデーション方向&gt;</span>, <span class="arg">&lt;終端色&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>]</code></p>
+<p class="args"><code class="array">[<span class="arg">color</span>, <span class="arg">&lt;合成方式&gt;</span>, <span class="arg">&lt;基本色&gt;</span>, <span class="arg">&lt;グラデーション方向&gt;</span>, <span class="arg">&lt;終端色&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>]</code></p>
 <p class="desc">色つきの四角形をセルとして配置します。</p>
 <p class="desc">最初にキーワード<code class="keywords">color</code>を指定してください。</p>
 <p class="desc">合成方式には、次のいずれかを指定できます。</p>
@@ -3035,11 +3039,11 @@
 <p class="desc">レイヤには、セルを表示する前後の位置を指定します。数値が大きいほど手前に表示され、背景のレイヤは通常<span class="num">0</span>です。メニュー・エネミーカードは<span class="num">100</span>、プレイヤーカードは<span class="num">200</span>のレイヤに表示されます。省略した場合は<span class="num">0</span>になります。</p>
 
 <pre><code class="samplecode"><span class="comment">// 画面全体に薄暗い青色のフィルタをかける</span>
-<span class="keywords">chback</span> [<span class="code">color</span>, <span class="code">mul</span>, <span class="str">"#70B0FF"</span>, <span class="code">vertical</span>, <span class="str">"#102030"</span>, <span class="str">""</span>, <span class="num">0</span>, <span class="num">0</span>, <span class="num">632</span>, <span class="num">420</span>, <span class="str">"blue_filter"</span>, <span class="code">true</span>]</code></pre>
+<span class="keywords">chback</span> [<span class="code">color</span>, <span class="code">mul</span>, <span class="str">"#70B0FF"</span>, <span class="code">vertical</span>, <span class="str">"#102030"</span>, <span class="str">""</span>, <span class="num">0</span>, <span class="num">0</span>, <span class="num">632</span>, <span class="num">420</span>, <span class="str">"blue_filter"</span>, <span class="num">300</span>]</code></pre>
 
 <h5>プレイヤーキャラクタセル</h5>
 
-<p class="args"><code class="array">[<span class="arg">pc</span>, <span class="arg">&lt;表示メンバ&gt;</span>, <span class="arg">&lt;拡大・縮小有無&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>]</code></p>
+<p class="args"><code class="array">[<span class="arg">pc</span>, <span class="arg">&lt;表示メンバ&gt;</span>, <span class="arg">&lt;拡大・縮小有無&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>]</code></p>
 <p class="desc">シナリオをプレイ中のパーティのメンバの画像をセルとして配置します。</p>
 <p class="desc">最初にキーワード<code class="keywords">pc</code>を指定してください。</p>
 <p class="desc">表示メンバには、パーティの中のどのメンバを表示するかを<span class="num">1</span>から始まる番号で指定します。</p>
@@ -3050,7 +3054,7 @@
 <p class="desc">レイヤには、セルを表示する前後の位置を指定します。数値が大きいほど手前に表示され、背景のレイヤは通常<span class="num">0</span>です。メニュー・エネミーカードは<span class="num">100</span>、プレイヤーカードは<span class="num">200</span>のレイヤに表示されます。省略した場合は<span class="num">0</span>になります。</p>
 
 <pre><code class="samplecode"><span class="comment">// 左上にパーティの左端のメンバの画像を表示する</span>
-<span class="keywords">chback</span> [<span class="code">pc</span>, <span class="code">false</span>, <span class="num">1</span>, <span class="str">""</span>, <span class="num">0</span>, <span class="num">0</span>, <span class="num">632</span>, <span class="num">420</span>]</code></pre>
+<span class="keywords">chback</span> [<span class="code">pc</span>, <span class="num">1</span>, <span class="code">false</span>, <span class="str">""</span>, <span class="num">0</span>, <span class="num">0</span>, <span class="num">632</span>, <span class="num">420</span>]</code></pre>
 
 <h4 class="argments">その他のパラメータ</h4>
 
@@ -3166,7 +3170,7 @@
 <h4 class="example">例</h4>
 
 <pre><code class="samplecode"><span class="comment">// 画面全体にかかった青色フィルタを赤色フィルタに置換する</span>
-<span class="keywords">rplback</span> <span class="str">"blue_filter"</span> [<span class="code">color</span>, <span class="code">mul</span>, <span class="str">"#FF7070"</span>, <span class="code">vertical</span>, <span class="str">"#301010"</span>, <span class="str">""</span>, <span class="num">0</span>, <span class="num">0</span>, <span class="num">632</span>, <span class="num">420</span>, <span class="str">"red_filter"</span>, <span class="code">true</span>]</code></pre>
+<span class="keywords">rplback</span> <span class="str">"blue_filter"</span>, [<span class="code">color</span>, <span class="code">mul</span>, <span class="str">"#FF7070"</span>, <span class="code">vertical</span>, <span class="str">"#301010"</span>, <span class="str">""</span>, <span class="num">0</span>, <span class="num">0</span>, <span class="num">632</span>, <span class="num">420</span>, <span class="str">"red_filter"</span>, <span class="num">300</span>]</code></pre>
 
 <h3 class="content"><a id="LOSEBACK" name="LOSEBACK">loseback <span class="args"><span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;画面切替スピード&gt;</span>, <span class="arg">&lt;切替方式&gt;</span>, <span class="arg">&lt;アニメーション有無&gt;</span>, <span class="arg">&lt;エフェクトブースター無視&gt;</span></span></a></h3>
 

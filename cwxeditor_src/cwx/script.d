@@ -707,7 +707,7 @@ class CWXScript {
 		return r;
 	}
 
-	private enum CRKind {STR, INT, REAL}
+	private enum CRKind { STR, INT, REAL }
 	private class CalcResult {
 		CRKind kind = CRKind.INT;
 		union {
@@ -1304,6 +1304,10 @@ class CWXScript {
 			return attrValue(nodes[0], varTable, strWidth);
 		case Kind.STRING, Kind.NUMBER, Kind.PLU, Kind.MIN, Kind.O_PAR:
 			size_t i = 0;
+			if (!node.calc.length) { mixin(S_TRACE);
+				throwError(_prop.msgs.scriptErrorInvalidAttr, node.token);
+				return "";
+			}
 			auto r = calc(node.calc, i, varTable, strWidth);
 			final switch (r.kind) {
 			case CRKind.STR: return r.str;
@@ -1338,6 +1342,10 @@ class CWXScript {
 					// 値。計算もここで行う
 					size_t i = 0;
 					Node rNode = v2.dup;
+					if (!v2.calc.length) { mixin(S_TRACE);
+						throwError(_prop.msgs.scriptErrorInvalidAttr, v2.token);
+						break;
+					}
 					auto cr = calc(v2.calc, i, varTable, strWidth);
 					rNode.token.kind = cr.kind is CRKind.STR ? Kind.STRING : Kind.NUMBER;
 					final switch (cr.kind) {
