@@ -393,8 +393,22 @@ class CWXScript {
 		auto s = new CWXScript(new CProps("", null), null);
 		auto tokens = s.tokenize("");
 		assert (tokens == [], to!string(tokens));
+		tokens = s.tokenize("/* */");
+		assert (tokens == [Token(0, 0, 0, Kind.COMMENT, "/* */", "")], to!string(tokens));
+		tokens = s.tokenize("/* <> */");
+		assert (tokens == [Token(0, 0, 0, Kind.COMMENT, "/* <> */", "")], to!string(tokens));
+		tokens = s.tokenize("/* <> */start \"\"");
+		assert (tokens == [
+			Token(0, 0, 0, Kind.COMMENT, "/* <> */", ""),
+			Token(0, 10, 8, Kind.START, "start", " <> "),
+			Token(0, 16, 14, Kind.STRING, "\"\""),
+		], to!string(tokens));
+		tokens = s.tokenize("/* <- テスト -> */");
+		assert (tokens == [Token(0, 0, 0, Kind.COMMENT, "/* <- テスト -> */", "")], to!string(tokens));
 		tokens = s.tokenize("/*/*\n*/*/");
 		assert (tokens == [Token(0, 0, 0, Kind.COMMENT, "/*/*\n*/*/", "")], to!string(tokens));
+		tokens = s.tokenize("/*/*\nテスト\n*/*/");
+		assert (tokens == [Token(0, 0, 0, Kind.COMMENT, "/*/*\nテスト\n*/*/", "")], to!string(tokens));
 		tokens = s.tokenize("/*c*/start, 12.3 \ntest1 [$void] =\"str\ning//\"\n\r //comment\nELIF if\n1/2+3*4%(5-6)");
 		assert (Token(0, 12, 12, Kind.NUMBER, "12.3") == tokens[3]);
 		auto tokens2 = [
@@ -457,10 +471,15 @@ class CWXScript {
 		}
 		foreach (token; maches) { mixin(S_TRACE);
 			if (0 < token.pre.length - index) { mixin(S_TRACE);
-				auto li = std.string.lastIndexOf(pre, '\n');
-				pos = li == -1 ? pre.length : pre.length - li;
-				throwErrorToken(_prop.msgs.scriptErrorInvalidToken, sLine, sPos, "");
-				return r;
+				if (0 < commentLevel) { mixin(S_TRACE);
+					fullComment ~= token.pre[index .. $];
+					docComment ~= token.pre[index .. $];
+				} else { mixin(S_TRACE);
+					auto li = std.string.lastIndexOf(pre, '\n');
+					pos = li == -1 ? pre.length : pre.length - li;
+					throwErrorToken(_prop.msgs.scriptErrorInvalidToken, sLine, sPos, "");
+					return r;
+				}
 			}
 			post = token.post;
 			pre = token.pre;
@@ -481,7 +500,6 @@ class CWXScript {
 			}
 			auto c = dstr[0];
 			string str = to!string(dstr);
-
 			if (cast(int)pre.length - cast(int)hits > 0) { mixin(S_TRACE);
 				if (0 < commentLevel) { mixin(S_TRACE);
 					/// in comment
@@ -2619,20 +2637,25 @@ fi`;
 	}
 	private Content[] analyzeSemanticsImpl(in CompileOption opt, in Node[] nodes, in Keywords keys, ref const(Node)[][string] varTable, size_t stack, ref size_t autoWrapCount, ref string[] startNames, ref Content[] topGroup, bool isTop) { mixin(S_TRACE);
 		Content[] r;
-		auto commentReg = .regex(`^[\s|\*|\/]*(.*)[\s|\*|\/]*$`);
 		string parseComment(string comment) { mixin(S_TRACE);
-			string r = "";
-			foreach (i, line; splitLines(comment)) { mixin(S_TRACE);
-				auto m = .match(line, commentReg);
-				if (!m.empty) { mixin(S_TRACE);
-					line = m.captures[1];
-				}
-				if (r.length || line.length) { mixin(S_TRACE);
-					r ~= line;
-					r ~= "\n";
-				}
+			string[] r;
+			foreach (line; .splitLines(comment)) { mixin(S_TRACE);
+				line = line.stripRight();
+				if (r.length == 0 && line == "") continue;
+				r ~= line;
 			}
-			return lastRet(r);
+			// 全行の行頭に同じ空白文字が並んでいたら削る
+			w: while (r.length && r[0] != "" && std.ascii.isWhite(r[0][0])) { mixin(S_TRACE);
+				auto firstSpace = r[0][0];
+				foreach (ref line; r) { mixin(S_TRACE);
+					if (line == "") continue;
+					if (line[0] != firstSpace) { mixin(S_TRACE);
+						break w;
+					}
+				}
+				foreach (ref line; r) line = line == "" ? line : line[1 .. $];
+			}
+			return lastRet(std.string.join(r, "\n"));
 		}
 		Content lastParent = null;
 		bool nextIsChild = false;
@@ -3026,9 +3049,6 @@ fi`;
 				c.consumeCard = parseAttr!(bool)(opt, node.attr, i, c.consumeCard, varTable, 0);
 			}
 			Content autoWrap(Content c) { mixin(S_TRACE);
-				if (!c.detail.owner) { mixin(S_TRACE);
-					throwError(_prop.msgs.scriptErrorCanNotHaveContent, node.token);
-				}
 				if (_autoWrap <= stack) { mixin(S_TRACE);
 					autoWrapCount++;
 					stack = 0;
@@ -3055,16 +3075,24 @@ fi`;
 			}
 			if (nextIsChild) { mixin(S_TRACE);
 				/// 一つ前の分析結果は nextIsChild is true 。
-				auto parent = autoWrap(lastParent);
-				parent.add(_prop, c);
-				stack++;
+				if (!lastParent.detail.owner) { mixin(S_TRACE);
+					throwError(.tryFormat(_prop.msgs.scriptErrorCanNotHaveContent, _prop.msgs.contentName(lastParent.type)), node.token);
+				} else { mixin(S_TRACE);
+					auto parent = autoWrap(lastParent);
+					parent.add(_prop, c);
+					stack++;
+				}
 			} else { mixin(S_TRACE);
 				r ~= c;
 			}
 			if (node.childs.length) { mixin(S_TRACE);
-				auto parent = autoWrap(c);
-				foreach (chld; analyzeSemanticsImpl(opt, node.childs, keys, varTable, stack + 1, autoWrapCount, startNames, isTop ? r : topGroup, false)) { mixin(S_TRACE);
-					parent.add(_prop, chld);
+				if (!detail.owner) { mixin(S_TRACE);
+					throwError(.tryFormat(_prop.msgs.scriptErrorCanNotHaveContent, _prop.msgs.contentName(c.type)), node.token);
+				} else { mixin(S_TRACE);
+					auto parent = autoWrap(c);
+					foreach (chld; analyzeSemanticsImpl(opt, node.childs, keys, varTable, stack + 1, autoWrapCount, startNames, isTop ? r : topGroup, false)) { mixin(S_TRACE);
+						parent.add(_prop, chld);
+					}
 				}
 			}
 			nextIsChild = node.nextIsChild;

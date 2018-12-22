@@ -2397,7 +2397,7 @@ class Msgs : Properties {
 	auto scriptErrorUndefinedSymbol = Msg("scriptErrorUndefinedSymbol", "未知のシンボルです。");
 	auto scriptErrorInvalidSif = Msg("scriptErrorInvalidSif", "ここにsifが現れる事はできません。");
 	auto scriptErrorInvalidCommand = Msg("scriptErrorInvalidCommand", "命令が正しくありません。");
-	auto scriptErrorCanNotHaveContent = Msg("scriptErrorCanNotHaveContent", "このコンテントが後続コンテントを持つ事はできません。");
+	auto scriptErrorCanNotHaveContent = Msg("scriptErrorCanNotHaveContent", "%1$sコンテントが後続コンテントを持つ事はできません。");
 	auto scriptErrorInvalidStr = Msg("scriptErrorInvalidStr", "文字列が正しくありません。");
 	auto scriptErrorReqNumber = Msg("scriptErrorReqNumber", "ここに数値が必要です。");
 	auto scriptErrorReqID = Msg("scriptErrorReqID", "ここにIDが必要です。");
