@@ -1161,7 +1161,8 @@ private:
 
 	void selectImage(T)(FlexImage img, T[] cols, T[PileImage] tbl, ref int[T] edits, Table list) { mixin(S_TRACE);
 		auto c = tbl[img];
-		foreach (int i, b; cols) { mixin(S_TRACE);
+		foreach (i2, b; cols) { mixin(S_TRACE);
+			auto i = cast(int)i2;
 			if (b is c) { mixin(S_TRACE);
 				if (img.selected) { mixin(S_TRACE);
 					list.select(i);

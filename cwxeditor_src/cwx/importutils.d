@@ -50,14 +50,18 @@ struct ImportFlag {
 	string path; /// 追加先のディレクトリパス。
 	Flag flag; /// フラグ。
 	bool overwrite; /// 上書きする場合はtrue。
-	alias flag this;
+	/// フラグ名。
+	const
+	string name() { return flag.name; }
 }
 /// ステップをインポートするための情報。
 struct ImportStep {
 	string path; /// 追加先のディレクトリパス。
 	Step step; /// ステップ。
 	bool overwrite; /// 上書きする場合はtrue。
-	alias step this;
+	/// ステップ名。
+	const
+	string name() { return step.name; }
 }
 
 /// インポート結果。実際の配置をこの情報に基づいて行う。

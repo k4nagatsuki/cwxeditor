@@ -181,13 +181,13 @@ public:
 			auto dir = _dirs.rootDir.findPath(path, true);
 			lastDir = dir;
 			foreach (f; fs) { mixin(S_TRACE);
-				auto f2 = dir.getStep(f.name);
+				auto f2 = dir.getStep(f.step.name);
 				if (f2) { mixin(S_TRACE);
-					f2.copyFrom(f);
+					f2.copyFrom(f.step);
 					sr ~= f2;
 				} else { mixin(S_TRACE);
-					dir.add(f);
-					sr ~= f;
+					dir.add(f.step);
+					sr ~= f.step;
 				}
 			}
 		}
@@ -195,13 +195,13 @@ public:
 			auto dir = _dirs.rootDir.findPath(path, true);
 			lastDir = dir;
 			foreach (f; fs) { mixin(S_TRACE);
-				auto f2 = dir.getFlag(f.name);
+				auto f2 = dir.getFlag(f.flag.name);
 				if (f2) { mixin(S_TRACE);
-					f2.copyFrom(f);
+					f2.copyFrom(f.flag);
 					fr ~= f2;
 				} else { mixin(S_TRACE);
-					dir.add(f);
-					fr ~= f;
+					dir.add(f.flag);
+					fr ~= f.flag;
 				}
 			}
 		}

@@ -1609,7 +1609,7 @@ protected:
 		updateInitializers();
 		_prop.var.etc.contentInitializers = [];
 		foreach (ref initializer; _initializers) { mixin(S_TRACE);
-			if (initializer.initializer.length) _prop.var.etc.contentInitializers ~= initializer;
+			if (initializer.initializer.length) _prop.var.etc.contentInitializers.value ~= initializer;
 		}
 
 		foreach (itm; _menu.getItems()) { mixin(S_TRACE);
