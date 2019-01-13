@@ -12,11 +12,12 @@ immutable APP_VERSION_NUM = to!ulong(splitLines(import("@version.txt"))[1]);
 immutable APP_WEB_SITE_URI =  splitLines(import("@version.txt"))[2];
 
 /// 最新のWSNデータバージョン。
-immutable LATEST_VERSION = "3";
+immutable LATEST_VERSION = "4";
 /// 標準で選択されるデータバージョン。
 immutable DEFAULT_VERSION = "3";
 /// 対応するWSNデータバージョン。
 immutable VERSIONS = [
+	"4",
 	"3",
 	"2",
 	"1",
@@ -24,6 +25,7 @@ immutable VERSIONS = [
 ];
 /// WSNデータバージョン名。
 immutable VERSION_NAMES = [
+	"Wsn.4",
 	"Wsn.3",
 	"Wsn.2",
 	"Wsn.1",
@@ -31,6 +33,7 @@ immutable VERSION_NAMES = [
 ];
 /// WSNデータバージョンに対応するエンジン名。
 immutable ENGINES = [
+	"CardWirthPy 4",
 	"CardWirthPy 3",
 	"CardWirthPy 2",
 	"CardWirthPy 1",

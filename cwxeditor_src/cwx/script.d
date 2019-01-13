@@ -3030,6 +3030,9 @@ fi`;
 			if (detail.use(CArg.SELECT_TALKER)) { mixin(S_TRACE);
 				c.selectTalker = parseAttr!(bool)(opt, node.attr, i, c.selectTalker, varTable, 0);
 			}
+			if (detail.use(CArg.INVERT_RESULT)) { mixin(S_TRACE);
+				c.invertResult = parseAttr!(bool)(opt, node.attr, i, c.invertResult, varTable, 0);
+			}
 			if (detail.use(CArg.START_ACTION)) { mixin(S_TRACE);
 				c.startAction = parseAttr!(StartAction)(opt, node.attr, i, c.startAction, varTable, 0);
 			}
@@ -4013,6 +4016,9 @@ fi`;
 			}
 			if (detail.use(CArg.SELECT_TALKER)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.selectTalker, indentValue, vars);
+			}
+			if (detail.use(CArg.INVERT_RESULT)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.invertResult, indentValue, vars);
 			}
 			if (detail.use(CArg.START_ACTION)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.startAction, indentValue, vars);

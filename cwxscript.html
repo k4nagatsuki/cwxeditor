@@ -811,7 +811,7 @@
 	<dd>ステップ上下分岐</dd>
 	<dt class="content"><a href="#SELMEMBER">selmember <span class="args"><span class="arg">&lt;パーティ全体からの選択か&gt;</span>, <span class="arg">&lt;メンバ選択方法&gt;</span>, <span class="arg">&lt;評価初期値&gt;</span>, <span class="array">[<span class="arg">&lt;評価クーポン&gt;</span>, <span class="arg">&lt;得点&gt;</span>] ...</span></span></a></dt>
 	<dd>メンバ選択分岐</dd>
-	<dt class="content"><a href="#BRABILITY">brability <span class="args"><span class="arg">&lt;判定対象&gt;</span>, <span class="arg">&lt;眠り判定&gt;</span>, <span class="arg">&lt;レベル&gt;</span>, <span class="arg">&lt;身体的要素&gt;</span>, <span class="arg">&lt;精神的要素&gt;</span></span></a></dt>
+	<dt class="content"><a href="#BRABILITY">brability <span class="args"><span class="arg">&lt;判定対象&gt;</span>, <span class="arg">&lt;眠り判定&gt;</span>, <span class="arg">&lt;レベル&gt;</span>, <span class="arg">&lt;身体的要素&gt;</span>, <span class="arg">&lt;精神的要素&gt;</span>, <span class="arg">&lt;条件の反転&gt;</span></span></a></dt>
 	<dd>能力分岐</dd>
 	<dt class="content"><a href="#BRRANDOM">brrandom <span class="args"><span class="arg">&lt;パーセント値&gt;</span></span></a></dt>
 	<dd>ランダム分岐</dd>
@@ -819,7 +819,7 @@
 	<dd>ランダム多岐分岐</dd>
 	<dt class="content"><a href="#BRLEVEL">brlevel <span class="args"><span class="arg">&lt;レベル&gt;</span>, <span class="arg">&lt;平均か&gt;</span></span></a></dt>
 	<dd>レベル判定分岐</dd>
-	<dt class="content"><a href="#BRSTATUS">brstatus <span class="args"><span class="arg">&lt;判定対象&gt;</span>, <span class="arg">&lt;ステータス&gt;</span></span></a></dt>
+	<dt class="content"><a href="#BRSTATUS">brstatus <span class="args"><span class="arg">&lt;判定対象&gt;</span>, <span class="arg">&lt;ステータス&gt;</span>, <span class="arg">&lt;条件の反転&gt;</span></span></a></dt>
 	<dd>状態分岐</dd>
 	<dt class="content"><a href="#BRCOUNT">brcount <span class="args"><span class="arg">&lt;人数&gt;</span></span></a></dt>
 	<dd>人数分岐</dd>
@@ -829,23 +829,23 @@
 	<dd>バトル分岐</dd>
 	<dt class="content"><a href="#BRONBATTLE">bronbattle</a></dt>
 	<dd>バトル中/非バトル中分岐</dd>
-	<dt class="content"><a href="#SELRANDOM">selrandom <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;レベル下限&gt;</span>, <span class="arg">&lt;レベル上限&gt;</span>, <span class="arg">&lt;ステータス&gt;</span></span></a></dt>
+	<dt class="content"><a href="#SELRANDOM">selrandom <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;レベル下限&gt;</span>, <span class="arg">&lt;レベル上限&gt;</span>, <span class="arg">&lt;ステータス&gt;</span>, <span class="arg">&lt;条件の反転&gt;</span></span></a></dt>
 	<dd>ランダム選択分岐</dd>
 	<dt class="content"><a href="#BRROUND">brround <span class="args"><span class="arg">&lt;比較条件&gt;</span>, <span class="arg">&lt;ラウンド&gt;</span></span></a></dt>
 	<dd>ラウンド分岐</dd>
 	<dt class="content"><a href="#BRCAST">brcast <span class="args"><span class="arg">&lt;ID&gt;</span></span></a></dt>
 	<dd>キャスト同行分岐</dd>
-	<dt class="content"><a href="#BRITEM">britem <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;ID&gt;</span>, <span class="arg">&lt;枚数&gt;</span>, <span class="arg">&lt;カード選択の有無&gt;</span></span></a></dt>
+	<dt class="content"><a href="#BRITEM">britem <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;ID&gt;</span>, <span class="arg">&lt;枚数&gt;</span>, <span class="arg">&lt;カード選択の有無&gt;</span>, <span class="arg">&lt;条件の反転&gt;</span></span></a></dt>
 	<dd>アイテム所持分岐</dd>
-	<dt class="content"><a href="#BRSKILL">brskill <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;ID&gt;</span>, <span class="arg">&lt;枚数&gt;</span>, <span class="arg">&lt;カード選択の有無&gt;</span></span></a></dt>
+	<dt class="content"><a href="#BRSKILL">brskill <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;ID&gt;</span>, <span class="arg">&lt;枚数&gt;</span>, <span class="arg">&lt;カード選択の有無&gt;</span>, <span class="arg">&lt;条件の反転&gt;</span></span></a></dt>
 	<dd>特殊技能所持分岐</dd>
-	<dt class="content"><a href="#BRBEAST">brbeast <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;ID&gt;</span>, <span class="arg">&lt;枚数&gt;</span>, <span class="arg">&lt;カード選択の有無&gt;</span></span></a></dt>
+	<dt class="content"><a href="#BRBEAST">brbeast <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;ID&gt;</span>, <span class="arg">&lt;枚数&gt;</span>, <span class="arg">&lt;カード選択の有無&gt;</span>, <span class="arg">&lt;条件の反転&gt;</span></span></a></dt>
 	<dd>召喚獣所持分岐</dd>
 	<dt class="content"><a href="#BRINFO">brinfo <span class="args"><span class="arg">&lt;ID&gt;</span></span></a></dt>
 	<dd>情報所持分岐</dd>
 	<dt class="content"><a href="#BRMONEY">brmoney <span class="args"><span class="arg">&lt;金額&gt;</span></span></a></dt>
 	<dd>所持金判定分岐</dd>
-	<dt class="content"><a href="#BRCOUPON">brcoupon <span class="args"><span class="arg">&lt;判定対象&gt;</span>, <span class="arg">&lt;クーポン名&gt;</span> ..., <span class="arg">&lt;比較条件&gt;</span></span></a></dt>
+	<dt class="content"><a href="#BRCOUPON">brcoupon <span class="args"><span class="arg">&lt;判定対象&gt;</span>, <span class="arg">&lt;クーポン名&gt;</span> ..., <span class="arg">&lt;比較条件&gt;</span>, <span class="arg">&lt;条件の反転&gt;</span></span></a></dt>
 	<dd>クーポン分岐</dd>
 	<dt class="content"><a href="#BRCOUPONM">brcouponm</a> <span class="args"><span class="arg">&lt;判定対象&gt;</span></span></dt>
 	<dd>クーポン多岐分岐</dd>
@@ -853,7 +853,7 @@
 	<dd>終了印有無分岐</dd>
 	<dt class="content"><a href="#BRGOSSIP">brgossip <span class="args"><span class="arg">&lt;ゴシップ名&gt;</span></span></a></dt>
 	<dd>ゴシップ有無分岐</dd>
-	<dt class="content"><a href="#BRKEYCODE">brkeycode <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;カード種別&gt;</span> ..., <span class="arg">&lt;キーコード&gt;</span>, <span class="arg">&lt;カード選択の有無&gt;</span></span></a></dt>
+	<dt class="content"><a href="#BRKEYCODE">brkeycode <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;カード種別&gt;</span> ..., <span class="arg">&lt;キーコード&gt;</span>, <span class="arg">&lt;カード選択の有無&gt;</span>, <span class="arg">&lt;条件の反転&gt;</span></span></a></dt>
 	<dd>キーコード所持分岐</dd>
 	<dt class="content"><a href="#SETFLAG">setflag <span class="args"><span class="arg">&lt;フラグ名&gt;</span>, <span class="arg">&lt;値&gt;</span></span></a></dt>
 	<dd>フラグ値の設定</dd>
@@ -1650,7 +1650,7 @@
     <span class="keywords">gostart</span> <span class="str">"メンバ選択"</span>
 <code class="code">fi</code> <span class="comment">// 分岐終了</span></code></pre>
 
-<h3 class="content"><a id="BRABILITY" name="BRABILITY">brability <span class="args"><span class="arg">&lt;判定対象&gt;</span>, <span class="arg">&lt;眠り判定&gt;</span>, <span class="arg">&lt;レベル&gt;</span>, <span class="arg">&lt;身体的要素&gt;</span>, <span class="arg">&lt;精神的要素&gt;</span></span></a></h3>
+<h3 class="content"><a id="BRABILITY" name="BRABILITY">brability <span class="args"><span class="arg">&lt;判定対象&gt;</span>, <span class="arg">&lt;眠り判定&gt;</span>, <span class="arg">&lt;レベル&gt;</span>, <span class="arg">&lt;身体的要素&gt;</span>, <span class="arg">&lt;精神的要素&gt;</span>, <span class="arg">&lt;条件の反転&gt;</span></span></a></h3>
 
 <p class="fullname">(Branch with Ability)</p>
 <p class="desc">能力分岐を行います。</p>
@@ -1706,6 +1706,8 @@
 	<dt class="keyword"><code>untrick</code></dt>
 	<dd class="worddesc">正直性。</dd>
 </dl>
+
+<p class="desc">条件の反転に<code class="code">true</code>を指定すると、能力判定に失敗した場合が成功として扱われます。省略した場合は<code class="code">false</code>になります。<em class="warning">このパラメータはWsn.4以降のWSN形式シナリオでしか機能しません。</em></p>
 
 <h4 class="example">例</h4>
 
@@ -1794,7 +1796,7 @@
     <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">// 分岐終了</span></code></pre>
 
-<h3 class="content"><a id="BRSTATUS" name="BRSTATUS">brstatus <span class="args"><span class="arg">&lt;判定対象&gt;</span>, <span class="arg">&lt;ステータス&gt;</span></span></a></h3>
+<h3 class="content"><a id="BRSTATUS" name="BRSTATUS">brstatus <span class="args"><span class="arg">&lt;判定対象&gt;</span>, <span class="arg">&lt;ステータス&gt;</span>, <span class="arg">&lt;条件の反転&gt;</span></span></a></h3>
 
 <p class="fullname">(Branch with Status)</p>
 <p class="desc">メンバのステータスによって分岐を行います。</p>
@@ -1867,6 +1869,8 @@
 	<dt class="keyword"><code>downdefense</code></dt>
 	<dd class="worddesc">防御力低下。<em class="warning">CardWirth 1.50以降でなければ機能しません。</em></dd>
 </dl>
+
+<p class="desc">条件の反転に<code class="code">true</code>を指定すると、指定されたステータスでない場合が成功として扱われます。省略した場合は<code class="code">false</code>になります。<em class="warning">このパラメータはWsn.4以降のWSN形式シナリオでしか機能しません。</em></p>
 
 <h4 class="example">例</h4>
 
@@ -1987,7 +1991,7 @@
     <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">// 分岐終了</span></code></pre>
 
-<h3 class="content"><a id="SELRANDOM" name="SELRANDOM">selrandom <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;レベル下限&gt;</span>, <span class="arg">&lt;レベル上限&gt;</span>, <span class="arg">&lt;ステータス&gt;</span></span></a></h3>
+<h3 class="content"><a id="SELRANDOM" name="SELRANDOM">selrandom <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;レベル下限&gt;</span>, <span class="arg">&lt;レベル上限&gt;</span>, <span class="arg">&lt;ステータス&gt;</span>, <span class="arg">&lt;条件の反転&gt;</span></span></a></h3>
 
 <p class="fullname">(Select with Random)</p>
 
@@ -2066,6 +2070,8 @@
 	<dd class="worddesc">状態指定無し。</dd>
 </dl>
 
+<p class="desc">条件の反転に<code class="code">true</code>を指定すると、条件に一致しないキャラクタが選択されます。省略した場合は<code class="code">false</code>になります。<em class="warning">このパラメータはWsn.4以降のWSN形式シナリオでしか機能しません。</em></p>
+
 <h4 class="example">例</h4>
 
 <pre><code class="samplecode"><span class="keywords">selrandom</span> <span class="code">party</span> <span class="code">enemy</span> <span class="code">npc</span>, <span class="num">1</span>, <span class="num">3</span>, <span class="code">heavyinjured</span>
@@ -2128,15 +2134,15 @@
     <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">// 分岐終了</span></code></pre>
 
-<h3 class="content"><a id="BRITEM" name="BRITEM">britem <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;ID&gt;</span>, <span class="arg">&lt;枚数&gt;</span>, <span class="arg">&lt;カード選択の有無&gt;</span></span></a></h3>
+<h3 class="content"><a id="BRITEM" name="BRITEM">britem <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;ID&gt;</span>, <span class="arg">&lt;枚数&gt;</span>, <span class="arg">&lt;カード選択の有無&gt;</span>, <span class="arg">&lt;条件の反転&gt;</span></span></a></h3>
 
 <p class="fullname">(Branch with Existence of Item)</p>
 
-<h3 class="content"><a id="BRSKILL" name="BRSKILL">brskill <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;ID&gt;</span>, <span class="arg">&lt;枚数&gt;</span>, <span class="arg">&lt;カード選択の有無&gt;</span></span></a></h3>
+<h3 class="content"><a id="BRSKILL" name="BRSKILL">brskill <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;ID&gt;</span>, <span class="arg">&lt;枚数&gt;</span>, <span class="arg">&lt;カード選択の有無&gt;</span>, <span class="arg">&lt;条件の反転&gt;</span></span></a></h3>
 
 <p class="fullname">(Branch with Existence of Skill)</p>
 
-<h3 class="content"><a id="BRBEAST" name="BRBEAST">brbeast <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;ID&gt;</span>, <span class="arg">&lt;枚数&gt;</span>, <span class="arg">&lt;カード選択の有無&gt;</span></span></a></h3>
+<h3 class="content"><a id="BRBEAST" name="BRBEAST">brbeast <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;ID&gt;</span>, <span class="arg">&lt;枚数&gt;</span>, <span class="arg">&lt;カード選択の有無&gt;</span>, <span class="arg">&lt;条件の反転&gt;</span></span></a></h3>
 
 <p class="fullname">(Branch with Existence of Beast)</p>
 <p class="desc">それぞれ、アイテム、特殊技能、召喚獣の所持の有無によって分岐を行います。</p>
@@ -2165,6 +2171,7 @@
 <p class="desc">枚数には、カードの枚数を整数で指定します。この枚数以上カードが存在しない場合、判定は失敗します。省略した場合は1になります。</p>
 <p class="desc">範囲に<code>selcard</code>を指定した場合、枚数は無視されます。</p>
 <p class="desc">カード選択の有無に<code class="code">true</code>を指定すると、見つかったカードが選択状態になります。省略した場合は<code class="code">false</code>になります。<em class="warning">このパラメータはWsn.3以降のWSN形式シナリオでしか機能しません。</em></p>
+<p class="desc">条件の反転に<code class="code">true</code>を指定すると、指定されたカードを必要枚数所持していない場合が成功として扱われます。省略した場合は<code class="code">false</code>になります。<em class="warning">このパラメータはWsn.4以降のWSN形式シナリオでしか機能しません。</em></p>
 
 <h4 class="example">例</h4>
 
@@ -2223,7 +2230,7 @@
     <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">// 分岐終了</span></code></pre>
 
-<h3 class="content"><a id="BRCOUPON" name="BRCOUPON">brcoupon <span class="args"><span class="arg">&lt;判定対象&gt;</span>, <span class="arg">&lt;クーポン名&gt;</span> ..., <span class="arg">&lt;比較条件&gt;</span></span></a></h3>
+<h3 class="content"><a id="BRCOUPON" name="BRCOUPON">brcoupon <span class="args"><span class="arg">&lt;判定対象&gt;</span>, <span class="arg">&lt;クーポン名&gt;</span> ..., <span class="arg">&lt;比較条件&gt;</span>, <span class="arg">&lt;条件の反転&gt;</span></span></a></h3>
 
 <p class="fullname">(Branch with Coupon)</p>
 <p class="desc">一人または複数のキャラクタがクーポン(称号)を所持しているかどうかで分岐を行います。</p>
@@ -2250,6 +2257,8 @@
 	<dt class="keyword"><code>or</code></dt>
 	<dd class="worddesc">どれか一つに一致。</dd>
 </dl>
+
+<p class="desc">条件の反転に<code class="code">true</code>を指定すると、指定されたクーポンを持たない場合が成功として扱われます。省略した場合は<code class="code">false</code>になります。<em class="warning">このパラメータはWsn.4以降のWSN形式シナリオでしか機能しません。</em></p>
 
 <h4 class="example">例</h4>
 
@@ -2347,7 +2356,7 @@
     <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">// 分岐終了</span></code></pre>
 
-<h3 class="content"><a id="BRKEYCODE" name="BRKEYCODE">brkeycode <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;カード種別&gt;</span> ..., <span class="arg">&lt;キーコード&gt;</span>, <span class="arg">&lt;カード選択の有無&gt;</span></span></a></h3>
+<h3 class="content"><a id="BRKEYCODE" name="BRKEYCODE">brkeycode <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;カード種別&gt;</span> ..., <span class="arg">&lt;キーコード&gt;</span>, <span class="arg">&lt;カード選択の有無&gt;</span>, <span class="arg">&lt;条件の反転&gt;</span></span></a></h3>
 
 <p class="fullname">(Branch with Key Code)</p>
 
@@ -2384,6 +2393,7 @@
 </dl>
 <p class="desc">キーコードには、判定対象のキーコードを指定します。</p>
 <p class="desc">カード選択の有無に<code class="code">true</code>を指定すると、見つかったカードが選択状態になります。省略した場合は<code class="code">false</code>になります。<em class="warning">このパラメータはWsn.3以降のWSN形式シナリオでしか機能しません。</em></p>
+<p class="desc">条件の反転に<code class="code">true</code>を指定すると、指定されたキーコードのあるカードを持たない場合が成功として扱われます。省略した場合は<code class="code">false</code>になります。<em class="warning">このパラメータはWsn.4以降のWSN形式シナリオでしか機能しません。</em></p>
 
 <h4 class="example">例</h4>
 

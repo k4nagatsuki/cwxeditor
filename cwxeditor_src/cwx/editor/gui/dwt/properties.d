@@ -176,7 +176,7 @@ public class FlexProps {
 	WindowProps!("speakDialog", SWT.DEFAULT, SWT.DEFAULT, 2012111500) speakDlg;
 	WindowProps!("messageDialog", SWT.DEFAULT, SWT.DEFAULT, 2012101100) msgDlg;
 	DialogParam!("branchMemberDialog", SWT.DEFAULT, 400) brMemberDlg;
-	DialogParam!("cardEventDialog") cardEvtDlg;
+	DialogParam!("cardEventDialog", SWT.DEFAULT, SWT.DEFAULT, 2019011300) cardEvtDlg;
 	DialogParam!("flagEventDialog", 350) flagEvtDlg;
 	DialogParam!("effectEventDialog") effEvtDlg;
 	DialogParam!("soundEventDialog") soundEvtDlg;

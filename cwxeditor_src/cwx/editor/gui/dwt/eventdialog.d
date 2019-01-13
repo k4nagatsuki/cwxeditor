@@ -855,6 +855,9 @@ private:
 	static if (EditValue) {
 		Spinner _value;
 	}
+	static if (Type is CType.BRANCH_COUPON) {
+		Combo _invertResult;
+	}
 
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
@@ -876,6 +879,11 @@ private:
 				}
 			}
 		}
+		static if (Type is CType.BRANCH_COUPON) {
+			if(!prop.isTargetVersion(summ, "4") && _invertResult.getSelectionIndex() == 1) { mixin(S_TRACE);
+				ws ~= prop.msgs.warningInvertResult;
+			}
+		}
 		ws ~= _range.warnings;
 
 		warning = ws;
@@ -885,7 +893,14 @@ private:
 		static if (Type is CType.BRANCH_COUPON) {
 			createCouponView(false);
 		}
+		updateEnabled();
 		super.refDataVersion();
+	}
+
+	void updateEnabled() { mixin(S_TRACE);
+		static if (Type is CType.BRANCH_COUPON) {
+			_invertResult.setEnabled(!summ || !summ.legacy || _invertResult.getSelectionIndex() != 0);
+		}
 	}
 
 	class SelType : SelectionAdapter {
@@ -1088,6 +1103,21 @@ protected:
 				lr.setText(.tryFormat(_prop.msgs.couponValueRange, -(cast(int) prop.var.etc.couponValueMax), prop.var.etc.couponValueMax));
 			}
 		}
+		static if (Type is CType.BRANCH_COUPON) {
+			{ mixin(S_TRACE);
+				auto grp = new Group(leftComp, SWT.NONE);
+				grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				grp.setText(_prop.msgs.resultType);
+				grp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL));
+				_invertResult = new Combo(grp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+				mod(_invertResult);
+				_invertResult.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
+				_invertResult.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				_invertResult.add(_prop.msgs.resultTypeNormal);
+				_invertResult.add(_prop.msgs.resultTypeInvert);
+				.listener(_invertResult, SWT.Selection, &refDataVersion);
+			}
+		}
 
 		if (_evt) { mixin(S_TRACE);
 			if (!(summ && summ.legacy) && Type is CType.BRANCH_COUPON) {
@@ -1117,6 +1147,9 @@ protected:
 			static if (EditValue) {
 				_value.setSelection(_evt.couponValue);
 			}
+			static if (Type is CType.BRANCH_COUPON) {
+				_invertResult.select(_evt.invertResult ? 1 : 0);
+			}
 		} else { mixin(S_TRACE);
 			if ((summ && summ.legacy) || !(Type is CType.BRANCH_COUPON)) {
 				_type[CouponType.Normal].setSelection(true);
@@ -1127,8 +1160,11 @@ protected:
 			static if (EditValue) {
 				_value.setSelection(0);
 			}
+			static if (Type is CType.BRANCH_COUPON) {
+				_invertResult.select(0);
+			}
 		}
-		refreshWarning();
+		refDataVersion();
 		static if (HAS_COUPON_HOLDER) {
 			.setupWeights(sash, _prop.var.etc.couponEventL, _prop.var.etc.couponEventR);
 		}
@@ -1151,6 +1187,9 @@ protected:
 
 		static if (EditValue) {
 			_evt.couponValue = _value.getSelection();
+		}
+		static if (Type is CType.BRANCH_COUPON) {
+			_evt.invertResult = _invertResult.getSelectionIndex() == 1;
 		}
 
 		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
@@ -2638,6 +2677,25 @@ private:
 	// FIXME: KeyTypeにboolを使えない？
 	Button[2] _sleep;
 	AbilityView _ability;
+	Button _invertResult;
+
+	override
+	protected void refreshWarning() { mixin(S_TRACE);
+		string[] ws;
+		if(!prop.isTargetVersion(summ, "4") && _invertResult.getSelection()) { mixin(S_TRACE);
+			ws ~= prop.msgs.warningInvertResult;
+		}
+		warning = ws;
+	}
+
+	override
+	protected void refDataVersion() { mixin(S_TRACE);
+		updateEnabled();
+		super.refDataVersion();
+	}
+	void updateEnabled() { mixin(S_TRACE);
+		_invertResult.setEnabled(!summ || !summ.legacy || _invertResult.getSelection());
+	}
 
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
@@ -2688,6 +2746,16 @@ protected:
 				mod(_sleep[0]);
 				_sleep[0].setText(_prop.msgs.sleepEnabled);
 			}
+			{ mixin(S_TRACE);
+				auto grp = new Group(comp, SWT.NONE);
+				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+				grp.setText(_prop.msgs.resultType);
+				grp.setLayout(normalGridLayout(1, true));
+				_invertResult = new Button(grp, SWT.CHECK);
+				mod(_invertResult);
+				_invertResult.setText(_prop.msgs.resultTypeInvertForAbility);
+				.listener(_invertResult, SWT.Selection, &refDataVersion);
+			}
 		}
 		_ability = new AbilityView(comm, area, SWT.NONE);
 		mod(_ability);
@@ -2701,11 +2769,14 @@ protected:
 			_sleep[_evt.targetS.sleep ? 0 : 1].setSelection(true);
 			_ability.physical = _evt.physical;
 			_ability.mental = _evt.mental;
+			_invertResult.setSelection(_evt.invertResult);
 		} else { mixin(S_TRACE);
 			_lev.setSelection(0);
 			_targ[Target.M.SELECTED].setSelection(true);
 			_sleep[1].setSelection(true);
+			_invertResult.setSelection(true);
 		}
+		refDataVersion();
 	}
 
 	override bool apply() { mixin(S_TRACE);
@@ -2715,6 +2786,7 @@ protected:
 		_evt.targetS = targ;
 		_evt.physical = _ability.physical;
 		_evt.mental = _ability.mental;
+		_evt.invertResult = _invertResult.getSelection();
 		return true;
 	}
 }
@@ -2824,6 +2896,7 @@ class BrStateDialog : EventDialog {
 private:
 	RangePanel _range;
 	Button[Status] _stat;
+	Combo _invertResult;
 
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
@@ -2843,44 +2916,77 @@ private:
 				ws ~= .tryFormat(_prop.msgs.warningBranchStatusMental, _prop.msgs.statusName(status), "1.50");
 			}
 		}
+		if(!prop.isTargetVersion(summ, "4") && _invertResult.getSelectionIndex() == 1) { mixin(S_TRACE);
+			ws ~= prop.msgs.warningInvertResult;
+		}
 		warning = ws;
 	}
+
+	override
+	protected void refDataVersion() { mixin(S_TRACE);
+		updateEnabled();
+		super.refDataVersion();
+	}
+	void updateEnabled() { mixin(S_TRACE);
+		_invertResult.setEnabled(!summ || !summ.legacy || _invertResult.getSelectionIndex() != 0);
+	}
+
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
 		super (comm, prop, shell, summ, CType.BRANCH_STATUS, parent, evt, false, null, true);
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(normalGridLayout(1, false));
+		area.setLayout(normalGridLayout(2, false));
 		{ mixin(S_TRACE);
 			auto ranges = [Range.SELECTED, Range.RANDOM, Range.PARTY];
 			auto title = _prop.msgs.judgeTarget;
 			auto initCoupon = evt ? evt.holdingCoupon : "";
-			_range = new RangePanel(comm, summ, area, ranges, initCoupon, title, true, this, evt, &catchMod, &refreshWarning, type);
+			_range = new RangePanel(comm, summ, area, ranges, initCoupon, title, false, this, evt, &catchMod, &refreshWarning, type);
 			_range.setLayoutData(new GridData(GridData.FILL_BOTH));
 		}
+		{ mixin(S_TRACE);
+			auto grp = new Group(area, SWT.NONE);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setText(_prop.msgs.resultType);
+			grp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL));
+			_invertResult = new Combo(grp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+			mod(_invertResult);
+			_invertResult.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
+			_invertResult.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			_invertResult.add(_prop.msgs.resultTypeNormalForStatus);
+			_invertResult.add(_prop.msgs.resultTypeInvertForStatus);
+			.listener(_invertResult, SWT.Selection, &refDataVersion);
+		}
 		auto status = createStatusPane(prop, area, prop.msgs.judgeState, _stat, &mod!Button);
-		status.setLayoutData(new GridData(GridData.FILL_BOTH));
+		auto gd = new GridData(GridData.FILL_BOTH);
+		gd.horizontalSpan = 2;
+		status.setLayoutData(gd);
 		foreach (st, b; _stat) { mixin(S_TRACE);
 			.listener(b, SWT.Selection, &refreshWarning);
 		}
 		auto hint = createStatusHint(prop, area);
-		hint.setLayoutData(new GridData(GridData.FILL_BOTH));
+		auto hgd = new GridData(GridData.FILL_BOTH);
+		hgd.horizontalSpan = 2;
+		hint.setLayoutData(hgd);
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_evt) { mixin(S_TRACE);
 			_stat[_evt.status].setSelection(true);
+			_invertResult.select(_evt.invertResult ? 1 : 0);
 		} else { mixin(S_TRACE);
 			_stat[Status.ACTIVE].setSelection(true);
+			_invertResult.select(0);
 		}
-		refreshWarning();
+		refDataVersion();
 	}
 
 	override bool apply() { mixin(S_TRACE);
 		if (!_evt) _evt = new Content(CType.BRANCH_STATUS, "");
 		_evt.range = _range.range;
 		_evt.status = getRadioValue!(Status)(_stat);
+		_evt.invertResult = _invertResult.getSelectionIndex() == 1;
 		return true;
 	}
 }
@@ -2901,6 +3007,7 @@ private:
 	Table _list;
 	static if (Type is CType.BRANCH_SKILL || Type is CType.BRANCH_ITEM || Type is CType.BRANCH_BEAST) {
 		Button _selectCard;
+		Combo _invertResult;
 	}
 	IncSearch _incSearch;
 	void incSearch() { mixin(S_TRACE);
@@ -2929,6 +3036,11 @@ private:
 		if (!_prop.isTargetVersion(summ, "3") && range is Range.SELECTED_CARD) { mixin(S_TRACE);
 			ws ~= .tryFormat(_prop.msgs.warningRangeSelectedCard);
 		}
+		static if (is(typeof(_invertResult))) {
+			if(!prop.isTargetVersion(summ, "4") && _invertResult.getSelectionIndex() == 1) { mixin(S_TRACE);
+				ws ~= prop.msgs.warningInvertResult;
+			}
+		}
 		warning = ws;
 	}
 	override
@@ -2954,6 +3066,9 @@ private:
 		b.setEnabled(!summ || !summ.legacy || b.getSelection());
 		static if (is(typeof(_selectCard))) {
 			_selectCard.setEnabled(!b.getSelection() && (!summ || !summ.legacy || _selectCard.getSelection()));
+		}
+		static if (is(typeof(_invertResult))) {
+			_invertResult.setEnabled(!summ || !summ.legacy || _invertResult.getSelectionIndex() != 0);
 		}
 	}
 
@@ -3117,6 +3232,21 @@ protected:
 					_range[r] = radio;
 				}
 			}
+			static if (is(typeof(_invertResult))) {
+				{ mixin(S_TRACE);
+					auto grp = new Group(comp, SWT.NONE);
+					grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+					grp.setText(_prop.msgs.resultType);
+					grp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL));
+					_invertResult = new Combo(grp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+					mod(_invertResult);
+					_invertResult.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
+					_invertResult.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+					_invertResult.add(_prop.msgs.resultTypeNormal);
+					_invertResult.add(_prop.msgs.resultTypeInvert);
+					.listener(_invertResult, SWT.Selection, &refDataVersion);
+				}
+			}
 		}
 		{ mixin(S_TRACE);
 			_list = .rangeSelectableTable(area, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL);
@@ -3200,6 +3330,9 @@ protected:
 			static if (is(typeof(_selectCard))) {
 				_selectCard.setSelection(_evt.selectCard);
 			}
+			static if (is(typeof(_invertResult))) {
+				_invertResult.select(_evt.invertResult ? 1 : 0);
+			}
 		} else { mixin(S_TRACE);
 			static if (Delete) {
 				_allDel.setSelection(false);
@@ -3208,6 +3341,9 @@ protected:
 			_range[RangeDef].setSelection(true);
 			static if (is(typeof(_selectCard))) {
 				_selectCard.setSelection(false);
+			}
+			static if (is(typeof(_invertResult))) {
+				_invertResult.select(0);
 			}
 		}
 		refreshList();
@@ -3237,6 +3373,9 @@ protected:
 		}
 		static if (is(typeof(_selectCard))) {
 			_evt.selectCard = _selectCard.getSelection();
+		}
+		static if (is(typeof(_invertResult))) {
+			_evt.invertResult = _invertResult.getSelectionIndex() == 1;
 		}
 		return true;
 	}
@@ -3289,6 +3428,7 @@ private:
 	Button _hasLevel, _hasStatus;
 	Spinner _levMin, _levMax;
 	Button[Status] _status;
+	Combo _invertResult;
 
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
@@ -3300,6 +3440,9 @@ private:
 			if (Status.SILENCE <= status) { mixin(S_TRACE);
 				ws ~= .tryFormat(_prop.msgs.warningBranchStatusMental, _prop.msgs.statusName(status), "1.50");
 			}
+		}
+		if(!prop.isTargetVersion(summ, "4") && _invertResult.getSelectionIndex() == 1) { mixin(S_TRACE);
+			ws ~= prop.msgs.warningInvertResult;
 		}
 		warning = ws;
 	}
@@ -3315,12 +3458,18 @@ private:
 		}
 	}
 
+	override
+	protected void refDataVersion() { mixin(S_TRACE);
+		updateEnabled();
+		super.refDataVersion();
+	}
 	void updateEnabled() { mixin(S_TRACE);
 		_levMin.setEnabled(_hasLevel.getSelection());
 		_levMax.setEnabled(_hasLevel.getSelection());
 		foreach (key, b; _status) { mixin(S_TRACE);
 			b.setEnabled(_hasStatus.getSelection());
 		}
+		_invertResult.setEnabled((!summ || !summ.legacy || _invertResult.getSelectionIndex() != 0) && (_hasLevel.getSelection() || _hasStatus.getSelection()));
 	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
@@ -3328,7 +3477,7 @@ public:
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(normalGridLayout(1, false));
+		area.setLayout(normalGridLayout(2, false));
 		{ mixin(S_TRACE);
 			auto grp = new Group(area, SWT.NONE);
 			grp.setText(_prop.msgs.selectMember);
@@ -3361,8 +3510,23 @@ protected:
 		}
 		{ mixin(S_TRACE);
 			auto grp = new Group(area, SWT.NONE);
-			grp.setText(_prop.msgs.targetLevel);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setText(_prop.msgs.resultType);
+			grp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL));
+			_invertResult = new Combo(grp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+			mod(_invertResult);
+			_invertResult.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
+			_invertResult.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			_invertResult.add(_prop.msgs.resultTypeNormalForCondition);
+			_invertResult.add(_prop.msgs.resultTypeInvertForCondition);
+			.listener(_invertResult, SWT.Selection, &refDataVersion);
+		}
+		{ mixin(S_TRACE);
+			auto grp = new Group(area, SWT.NONE);
+			grp.setText(_prop.msgs.targetLevel);
+			auto gd = new GridData(GridData.FILL_BOTH);
+			gd.horizontalSpan = 2;
+			grp.setLayoutData(gd);
 			grp.setLayout(new CenterLayout);
 			auto comp = new Composite(grp, SWT.NONE);
 			comp.setLayout(zeroMarginGridLayout(4, false));
@@ -3385,9 +3549,13 @@ protected:
 			lHint.setText(.tryFormat(_prop.msgs.rangeHint, 1, _prop.var.etc.castLevelMax));
 		}
 		auto status = createStatusPane(prop, area, prop.msgs.judgeState, _status, &mod!Button);
-		status.setLayoutData(new GridData(GridData.FILL_BOTH));
+		auto sgd = new GridData(GridData.FILL_BOTH);
+		sgd.horizontalSpan = 2;
+		status.setLayoutData(sgd);
 		auto hint = createStatusHint(prop, area);
-		hint.setLayoutData(new GridData(GridData.FILL_BOTH));
+		auto hgd = new GridData(GridData.FILL_BOTH);
+		hgd.horizontalSpan = 2;
+		hint.setLayoutData(hgd);
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
@@ -3409,6 +3577,7 @@ protected:
 			} else { mixin(S_TRACE);
 				_status[Status.ACTIVE].setSelection(true);
 			}
+			_invertResult.select(_evt.invertResult ? 1 : 0);
 		} else { mixin(S_TRACE);
 			_castRange[CastRange.PARTY].setSelection(true);
 			_hasLevel.setSelection(false);
@@ -3416,9 +3585,9 @@ protected:
 			_levMin.setSelection(1);
 			_levMax.setSelection(1);
 			_status[Status.ACTIVE].setSelection(true);
+			_invertResult.select(0);
 		}
-		updateEnabled();
-		refreshWarning();
+		refDataVersion();
 	}
 
 	override bool apply() { mixin(S_TRACE);
@@ -3442,6 +3611,7 @@ protected:
 		} else { mixin(S_TRACE);
 			_evt.status = Status.NONE;
 		}
+		_evt.invertResult = _invertResult.getSelectionIndex() == 1;
 		return true;
 	}
 }
@@ -3453,6 +3623,7 @@ private:
 	Button[EffectCardType] _effectCardTypeWsn1 = null;
 	Button[EffectCardType] _effectCardTypeWsn2 = null;
 	Composite _typeComp;
+	Combo _invertResult;
 	Combo _keyCode;
 	Button _selectCard;
 
@@ -3486,6 +3657,9 @@ private:
 		}
 		if (!_prop.isTargetVersion(summ, "3") && range is Range.SELECTED_CARD) { mixin(S_TRACE);
 			ws ~= .tryFormat(_prop.msgs.warningRangeSelectedCard);
+		}
+		if(!prop.isTargetVersion(summ, "4") && _invertResult.getSelectionIndex() == 1) { mixin(S_TRACE);
+			ws ~= prop.msgs.warningInvertResult;
 		}
 		warning = ws;
 	}
@@ -3555,7 +3729,8 @@ private:
 	private void updateEnabled() { mixin(S_TRACE);
 		auto b = _keyCodeRange[Range.SELECTED_CARD];
 		b.setEnabled(!summ || !summ.legacy || b.getSelection());
-		_selectCard.setEnabled(!b.getSelection() && (!summ || !summ.legacy || _selectCard.getSelection()));
+		_invertResult.setEnabled(!summ || !summ.legacy || _invertResult.getSelectionIndex() != 0);
+		_selectCard.setEnabled(!b.getSelection() && (!summ || !summ.legacy || _selectCard.getSelection()) && _invertResult.getSelectionIndex() == 0);
 	}
 
 	void createWsn1Panel() { mixin(S_TRACE);
@@ -3592,7 +3767,9 @@ protected:
 		{ mixin(S_TRACE);
 			auto grp = new Group(area, SWT.NONE);
 			grp.setText(_prop.msgs.range);
-			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			auto gd = new GridData(GridData.FILL_BOTH);
+			gd.verticalSpan = 2;
+			grp.setLayoutData(gd);
 			grp.setLayout(new CenterLayout(SWT.HORIZONTAL));
 			auto comp = new Composite(grp, SWT.NONE);
 			comp.setLayout(zeroMarginGridLayout(1, true));
@@ -3621,6 +3798,19 @@ protected:
 			} else { mixin(S_TRACE);
 				createWsn2Panel();
 			}
+		}
+		{ mixin(S_TRACE);
+			auto grp = new Group(area, SWT.NONE);
+			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			grp.setText(_prop.msgs.resultType);
+			grp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL));
+			_invertResult = new Combo(grp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+			mod(_invertResult);
+			_invertResult.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
+			_invertResult.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			_invertResult.add(_prop.msgs.resultTypeNormal);
+			_invertResult.add(_prop.msgs.resultTypeInvert);
+			.listener(_invertResult, SWT.Selection, &refDataVersion);
 		}
 		{ mixin(S_TRACE);
 			auto grp = new Group(area, SWT.NONE);
@@ -3673,6 +3863,7 @@ protected:
 				_effectCardTypeWsn2[EffectCardType.BEAST].setSelection(_evt.targetIsBeast);
 				_effectCardTypeWsn2[EffectCardType.HAND].setSelection(_evt.targetIsHand);
 			}
+			_invertResult.select(_evt.invertResult ? 1 : 0);
 			_keyCode.setText(_evt.keyCode);
 			_selectCard.setSelection(_evt.selectCard);
 		} else { mixin(S_TRACE);
@@ -3686,6 +3877,7 @@ protected:
 				_effectCardTypeWsn2[EffectCardType.BEAST].setSelection(true);
 				_effectCardTypeWsn2[EffectCardType.HAND].setSelection(false);
 			}
+			_invertResult.select(0);
 			_keyCode.setText("");
 			_selectCard.setSelection(false);
 		}
@@ -3731,6 +3923,7 @@ protected:
 			_evt.targetIsBeast = _effectCardTypeWsn2[EffectCardType.BEAST].getSelection();
 			_evt.targetIsHand = _effectCardTypeWsn2[EffectCardType.HAND].getSelection();
 		}
+		_evt.invertResult = _invertResult.getSelectionIndex() == 1;
 		_evt.selectCard = _selectCard.getSelection();
 
 		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);

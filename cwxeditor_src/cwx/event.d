@@ -150,21 +150,21 @@ private void static_this () { mixin(S_TRACE);
 		CType.BRANCH_MULTI_STEP:CDetail("Branch", "MultiStep", CNextType.STEP, true, [CArg.STEP:"step"]),
 		CType.BRANCH_STEP:CDetail("Branch", "Step", CNextType.BOOL, true, [CArg.STEP:_("step"), CArg.STEP_VALUE:"value"]),
 		CType.BRANCH_SELECT:CDetail("Branch", "Select", CNextType.BOOL, true, [CArg.TARGET_ALL:_("targetall"), CArg.SELECTION_METHOD:null, CArg.COUPONS:null, CArg.INIT_VALUE:"initialValue"]),
-		CType.BRANCH_ABILITY:CDetail("Branch", "Ability", CNextType.BOOL, true, [CArg.TARGET_S:_("targetm"), CArg.MENTAL:"mental", CArg.PHYSICAL:"physical", CArg.SIGNED_LEVEL:"value"]),
+		CType.BRANCH_ABILITY:CDetail("Branch", "Ability", CNextType.BOOL, true, [CArg.TARGET_S:_("targetm"), CArg.MENTAL:"mental", CArg.PHYSICAL:"physical", CArg.SIGNED_LEVEL:"value", CArg.INVERT_RESULT:"invert"]),
 		CType.BRANCH_RANDOM:CDetail("Branch", "Random", CNextType.BOOL, true, [CArg.PERCENT:"value"]),
 		CType.BRANCH_LEVEL:CDetail("Branch", "Level", CNextType.BOOL, true, [CArg.AVERAGE:_("average"), CArg.UNSIGNED_LEVEL:"value"]),
-		CType.BRANCH_STATUS:CDetail("Branch", "Status", CNextType.BOOL, true, [CArg.RANGE:_("targetm"), CArg.STATUS:"status"]),
+		CType.BRANCH_STATUS:CDetail("Branch", "Status", CNextType.BOOL, true, [CArg.RANGE:_("targetm"), CArg.STATUS:"status", CArg.INVERT_RESULT:"invert"]),
 		CType.BRANCH_PARTY_NUMBER:CDetail("Branch", "PartyNumber", CNextType.BOOL, true, [CArg.PARTY_NUMBER:"value"]),
 		CType.BRANCH_AREA:CDetail("Branch", "Area", CNextType.ID_AREA, true),
 		CType.BRANCH_BATTLE:CDetail("Branch", "Battle", CNextType.ID_BATTLE, true),
 		CType.BRANCH_IS_BATTLE:CDetail("Branch", "IsBattle", CNextType.BOOL, true),
 		CType.BRANCH_CAST:CDetail("Branch", "Cast", CNextType.BOOL, true, [CArg.CAST:"id"]),
-		CType.BRANCH_ITEM:CDetail("Branch", "Item", CNextType.BOOL, true, [CArg.ITEM:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number", CArg.SELECT_CARD:"selectcard"]),
-		CType.BRANCH_SKILL:CDetail("Branch", "Skill", CNextType.BOOL, true, [CArg.SKILL:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number", CArg.SELECT_CARD:"selectcard"]),
+		CType.BRANCH_ITEM:CDetail("Branch", "Item", CNextType.BOOL, true, [CArg.ITEM:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number", CArg.SELECT_CARD:"selectcard", CArg.INVERT_RESULT:"invert"]),
+		CType.BRANCH_SKILL:CDetail("Branch", "Skill", CNextType.BOOL, true, [CArg.SKILL:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number", CArg.SELECT_CARD:"selectcard", CArg.INVERT_RESULT:"invert"]),
 		CType.BRANCH_INFO:CDetail("Branch", "Info", CNextType.BOOL, true, [CArg.INFO:"id"]),
-		CType.BRANCH_BEAST:CDetail("Branch", "Beast", CNextType.BOOL, true, [CArg.BEAST:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number", CArg.SELECT_CARD:"selectcard"]),
+		CType.BRANCH_BEAST:CDetail("Branch", "Beast", CNextType.BOOL, true, [CArg.BEAST:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number", CArg.SELECT_CARD:"selectcard", CArg.INVERT_RESULT:"invert"]),
 		CType.BRANCH_MONEY:CDetail("Branch", "Money", CNextType.BOOL, true, [CArg.MONEY:"value"]),
-		CType.BRANCH_COUPON:CDetail("Branch", "Coupon", CNextType.BOOL, true, [CArg.RANGE:"targets", CArg.COUPON_NAMES:null, CArg.MATCHING_TYPE:"matchingtype"]),
+		CType.BRANCH_COUPON:CDetail("Branch", "Coupon", CNextType.BOOL, true, [CArg.RANGE:"targets", CArg.COUPON_NAMES:null, CArg.MATCHING_TYPE:"matchingtype", CArg.INVERT_RESULT:"invert"]),
 		CType.BRANCH_COMPLETE_STAMP:CDetail("Branch", "CompleteStamp", CNextType.BOOL, true, [CArg.COMPLETE_STAMP:"scenario"]),
 		CType.BRANCH_GOSSIP:CDetail("Branch", "Gossip", CNextType.BOOL, true, [CArg.GOSSIP:"gossip"]),
 		CType.SET_FLAG:CDetail("Set", "Flag", CNextType.NONE, true, [CArg.FLAG:_("flag"), CArg.FLAG_VALUE:"value"]),
@@ -198,8 +198,8 @@ private void static_this () { mixin(S_TRACE);
 		CType.SUBSTITUTE_FLAG:CDetail(["Substitute", "Sbustitute"], "Flag", CNextType.NONE, true, [CArg.FLAG:"from", CArg.FLAG_2:"to"]),
 		CType.BRANCH_STEP_CMP:CDetail("Branch", "StepValue", CNextType.TRIO, true, [CArg.STEP:"from", CArg.STEP_2:"to"]),
 		CType.BRANCH_FLAG_CMP:CDetail("Branch", "FlagValue", CNextType.BOOL, true, [CArg.FLAG:"from", CArg.FLAG_2:"to"]),
-		CType.BRANCH_RANDOM_SELECT:CDetail("Branch", "RandomSelect", CNextType.BOOL, true, [CArg.CAST_RANGE:null, CArg.LEVEL_MIN:"minLevel", CArg.LEVEL_MAX:"maxLevel", CArg.STATUS:"status"]),
-		CType.BRANCH_KEY_CODE:CDetail("Branch", "KeyCode", CNextType.BOOL, true, [CArg.KEY_CODE_RANGE:"targetkc", CArg.TARGET_IS_SKILL:"skill", CArg.TARGET_IS_ITEM:"item", CArg.TARGET_IS_BEAST:"beast", CArg.TARGET_IS_HAND:"hand", CArg.KEY_CODE:"keyCode", CArg.SELECT_CARD:"selectcard"]),
+		CType.BRANCH_RANDOM_SELECT:CDetail("Branch", "RandomSelect", CNextType.BOOL, true, [CArg.CAST_RANGE:null, CArg.LEVEL_MIN:"minLevel", CArg.LEVEL_MAX:"maxLevel", CArg.STATUS:"status", CArg.INVERT_RESULT:"invert"]),
+		CType.BRANCH_KEY_CODE:CDetail("Branch", "KeyCode", CNextType.BOOL, true, [CArg.KEY_CODE_RANGE:"targetkc", CArg.TARGET_IS_SKILL:"skill", CArg.TARGET_IS_ITEM:"item", CArg.TARGET_IS_BEAST:"beast", CArg.TARGET_IS_HAND:"hand", CArg.KEY_CODE:"keyCode", CArg.SELECT_CARD:"selectcard", CArg.INVERT_RESULT:"invert"]),
 		CType.CHECK_STEP:CDetail("Check", "Step", CNextType.NONE, true, [CArg.STEP:"step", CArg.STEP_VALUE:"value", CArg.COMPARISON_4:"comparison"]),
 		CType.BRANCH_ROUND:CDetail("Branch", "Round", CNextType.BOOL, true, [CArg.ROUND:"round", CArg.COMPARISON_3:"comparison"]),
 		CType.MOVE_BG_IMAGE:CDetail("Move", "BgImage", CNextType.NONE, true, [CArg.CELL_NAME:"cellname", CArg.POSITION_TYPE:"positiontype", CArg.X:"x", CArg.Y:"y", CArg.SIZE_TYPE:"sizetype", CArg.WIDTH:"width", CArg.HEIGHT:"height", CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed", CArg.DO_ANIME:"doanime", CArg.IGNORE_EFFECT_BOOSTER:"ignoreeffectbooster"]),
@@ -632,6 +632,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		this.selectCard = c.selectCard;
 		this.selectTalker = c.selectTalker;
+		this.invertResult = c.invertResult;
 
 		this.consumeCard = c.consumeCard;
 
@@ -790,6 +791,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 			&& (!d.use(CArg.SELECT_CARD) || selectCard == c.selectCard)
 			&& (!d.use(CArg.SELECT_TALKER) || selectTalker == c.selectTalker)
+			&& (!d.use(CArg.INVERT_RESULT) || invertResult == c.invertResult)
 
 			&& (!d.use(CArg.CONSUME_CARD) || consumeCard == c.consumeCard)
 
@@ -1082,6 +1084,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		resetValue!(CArg.SELECT_CARD, bool, false)(d, od, &selectCard, base, base.selectCard);
 		resetValue!(CArg.SELECT_TALKER, bool, false)(d, od, &selectTalker, base, base.selectTalker);
+		resetValue!(CArg.INVERT_RESULT, bool, false)(d, od, &invertResult, base, base.invertResult);
 
 		resetValue!(CArg.CONSUME_CARD, bool, true)(d, od, &consumeCard, base, base.consumeCard);
 
@@ -2119,6 +2122,9 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// 話者を選択する(Wsn.3)。
 	mixin Prop!(bool, "selectTalker", false);
 
+	/// 条件に合わない場合に成功とする(Wsn.4)。
+	mixin Prop!(bool, "invertResult", false);
+
 	/// 使用中のカードを消費するか(Wsn.3)。
 	mixin Prop!(bool, "consumeCard", true);
 
@@ -2542,6 +2548,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		atnPutD!(CArg.SELECT_CARD, "selectCard", "fromBool", false)(e, d);
 		atnPutD!(CArg.SELECT_TALKER, "selectTalker", "fromBool", false)(e, d);
+		atnPutD!(CArg.INVERT_RESULT, "invertResult", "fromBool", false)(e, d);
 
 		atnPutD!(CArg.CONSUME_CARD, "consumeCard", "fromBool", true)(e, d);
 
@@ -2830,6 +2837,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		cfnPutD!(CArg.SELECT_CARD, "selectCard", "parseBool", false)(en, d, r);
 		cfnPutD!(CArg.SELECT_TALKER, "selectTalker", "parseBool", false)(en, d, r);
+		cfnPutD!(CArg.INVERT_RESULT, "invertResult", "parseBool", false)(en, d, r);
 
 		cfnPutD!(CArg.CONSUME_CARD, "consumeCard", "parseBool", true)(en, d, r);
 

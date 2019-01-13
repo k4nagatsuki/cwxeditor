@@ -2498,13 +2498,13 @@ public:
 		} case CType.BRANCH_SELECT: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrMember(_prop, evt, name)")(data, c);
 		} case CType.BRANCH_ABILITY: { mixin(S_TRACE);
-			return createBoolEditor!("evtChildBrPower(_prop, evt.targetS, evt.physical, evt.mental, evt.signedLevel, name)")(data, c);
+			return createBoolEditor!("evtChildBrPower(_prop, evt.targetS, evt.physical, evt.mental, evt.signedLevel, evt.invertResult, name)")(data, c);
 		} case CType.BRANCH_RANDOM: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrRandom(_prop, evt.percent, name)")(data, c);
 		} case CType.BRANCH_LEVEL: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrLevel(_prop, evt.unsignedLevel, evt.average, name)")(data, c);
 		} case CType.BRANCH_STATUS: { mixin(S_TRACE);
-			return createBoolEditor!("evtChildBrState(_prop, evt.range, evt.holdingCoupon, evt.status, name)")(data, c);
+			return createBoolEditor!("evtChildBrState(_prop, evt.range, evt.holdingCoupon, evt.status, evt.invertResult, name)")(data, c);
 		} case CType.BRANCH_PARTY_NUMBER: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrNum(_prop, evt.partyNumber, name)")(data, c);
 		} case CType.BRANCH_AREA: { mixin(S_TRACE);
@@ -2516,17 +2516,17 @@ public:
 		} case CType.BRANCH_CAST: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrCast(_prop, _summ, evt.casts, name)")(data, c);
 		} case CType.BRANCH_ITEM: { mixin(S_TRACE);
-			return createBoolEditor!("evtChildBrItem(_prop, _summ, evt.item, evt.range, evt.cardNumber, name)")(data, c);
+			return createBoolEditor!("evtChildBrItem(_prop, _summ, evt.item, evt.range, evt.cardNumber, evt.invertResult, name)")(data, c);
 		} case CType.BRANCH_SKILL: { mixin(S_TRACE);
-			return createBoolEditor!("evtChildBrSkill(_prop,  _summ, evt.skill, evt.range, evt.cardNumber, name)")(data, c);
+			return createBoolEditor!("evtChildBrSkill(_prop,  _summ, evt.skill, evt.range, evt.cardNumber, evt.invertResult, name)")(data, c);
 		} case CType.BRANCH_BEAST: { mixin(S_TRACE);
-			return createBoolEditor!("evtChildBrBeast(_prop, _summ, evt.beast, evt.range, evt.cardNumber, name)")(data, c);
+			return createBoolEditor!("evtChildBrBeast(_prop, _summ, evt.beast, evt.range, evt.cardNumber, evt.invertResult, name)")(data, c);
 		} case CType.BRANCH_INFO: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrInfo(_prop, _summ, evt.info, name)")(data, c);
 		} case CType.BRANCH_MONEY: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrMoney(_prop, evt.money, name)")(data, c);
 		} case CType.BRANCH_COUPON: { mixin(S_TRACE);
-			return createBoolEditor!("evtChildBrCoupon(_prop, evt.range, evt.couponNames.dup, evt.matchingType, name)")(data, c);
+			return createBoolEditor!("evtChildBrCoupon(_prop, evt.range, evt.couponNames.dup, evt.matchingType, evt.invertResult, name)")(data, c);
 		} case CType.BRANCH_COMPLETE_STAMP: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrEnd(_prop, evt.completeStamp, name)")(data, c);
 		} case CType.BRANCH_GOSSIP: { mixin(S_TRACE);
@@ -3743,7 +3743,7 @@ string eventText(Commons comm, Summary summ, Content parent, Content e, bool rea
 		r = evtChildBrMember(prop, parent, name);
 		break;
 	} case CType.BRANCH_ABILITY: { mixin(S_TRACE);
-		r = evtChildBrPower(prop, parent.targetS, parent.physical, parent.mental, parent.signedLevel, name);
+		r = evtChildBrPower(prop, parent.targetS, parent.physical, parent.mental, parent.signedLevel, parent.invertResult, name);
 		break;
 	} case CType.BRANCH_RANDOM: { mixin(S_TRACE);
 		r = evtChildBrRandom(prop, parent.percent, name);
@@ -3752,7 +3752,7 @@ string eventText(Commons comm, Summary summ, Content parent, Content e, bool rea
 		r = evtChildBrLevel(prop, parent.unsignedLevel, parent.average, name);
 		break;
 	} case CType.BRANCH_STATUS: { mixin(S_TRACE);
-		r = evtChildBrState(prop, parent.range, parent.holdingCoupon, parent.status, name);
+		r = evtChildBrState(prop, parent.range, parent.holdingCoupon, parent.status, parent.invertResult, name);
 		break;
 	} case CType.BRANCH_PARTY_NUMBER: { mixin(S_TRACE);
 		r = evtChildBrNum(prop, parent.partyNumber, name);
@@ -3770,13 +3770,13 @@ string eventText(Commons comm, Summary summ, Content parent, Content e, bool rea
 		r = evtChildBrCast(prop, summ, parent.casts, name);
 		break;
 	} case CType.BRANCH_ITEM: { mixin(S_TRACE);
-		r = evtChildBrItem(prop, summ, parent.item, parent.range, parent.cardNumber, name);
+		r = evtChildBrItem(prop, summ, parent.item, parent.range, parent.cardNumber, parent.invertResult, name);
 		break;
 	} case CType.BRANCH_SKILL: { mixin(S_TRACE);
-		r = evtChildBrSkill(prop, summ, parent.skill, parent.range, parent.cardNumber, name);
+		r = evtChildBrSkill(prop, summ, parent.skill, parent.range, parent.cardNumber, parent.invertResult, name);
 		break;
 	} case CType.BRANCH_BEAST: { mixin(S_TRACE);
-		r = evtChildBrBeast(prop, summ, parent.beast, parent.range, parent.cardNumber, name);
+		r = evtChildBrBeast(prop, summ, parent.beast, parent.range, parent.cardNumber, parent.invertResult, name);
 		break;
 	} case CType.BRANCH_INFO: { mixin(S_TRACE);
 		r = evtChildBrInfo(prop, summ, parent.info, name);
@@ -3785,7 +3785,7 @@ string eventText(Commons comm, Summary summ, Content parent, Content e, bool rea
 		r = evtChildBrMoney(prop, parent.money, name);
 		break;
 	} case CType.BRANCH_COUPON: { mixin(S_TRACE);
-		r = evtChildBrCoupon(prop, parent.range, parent.couponNames.dup, parent.matchingType, name);
+		r = evtChildBrCoupon(prop, parent.range, parent.couponNames.dup, parent.matchingType, parent.invertResult, name);
 		break;
 	} case CType.BRANCH_COMPLETE_STAMP: { mixin(S_TRACE);
 		r = evtChildBrEnd(prop, parent.completeStamp, name);
@@ -3911,16 +3911,17 @@ private string evtChildBrMember(in Props prop, in Content evt, ref string text) 
 		}
 	}
 }
-private string evtChildBrPower(in Props prop, Target targ, Physical p, Mental m, int lev, ref string text) { mixin(S_TRACE);
+private string evtChildBrPower(in Props prop, Target targ, Physical p, Mental m, int lev, bool invertResult, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
 	string tt = prop.msgs.targetName(targ.m);
 	string tp = prop.msgs.physicalName(p);
 	string tm = prop.msgs.mentalName(m);
+	auto hl = invertResult ? prop.msgs.abilityLowest : prop.msgs.abilityHighest;
 	if (val) { mixin(S_TRACE);
-		return .tryFormat(prop.msgs.branchAbilitySuccess, tt, lev, tp, tm);
+		return .tryFormat(prop.msgs.branchAbilitySuccess, tt, lev, tp, tm, hl);
 	} else { mixin(S_TRACE);
-		return .tryFormat(prop.msgs.branchAbilityFailure, tt, lev, tp, tm);
+		return .tryFormat(prop.msgs.branchAbilityFailure, tt, lev, tp, tm, hl);
 	}
 }
 private string evtChildBrRandom(in Props prop, int percent, ref string text) { mixin(S_TRACE);
@@ -3945,9 +3946,10 @@ private string evtChildBrLevel(in Props prop, int lev, bool avg, ref string text
 		return .tryFormat(prop.msgs.branchLevelFailure, ta, lev);
 	}
 }
-private string evtChildBrState(in Props prop, Range range, string holdingCoupon, Status stat, ref string text) { mixin(S_TRACE);
+private string evtChildBrState(in Props prop, Range range, string holdingCoupon, Status stat, bool invertResult, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+	if (invertResult) val = !val;
 	string tt = .rangeName(prop, range, holdingCoupon);
 	string ts = prop.msgs.statusName(stat);
 	if (val) { mixin(S_TRACE);
@@ -4026,9 +4028,10 @@ private string evtChildBrCast(in Props prop, in Summary summ, ulong id, ref stri
 		return .tryFormat(prop.msgs.branchCastFailure, name);
 	}
 }
-private string evtChildBrItem(in Props prop, in Summary summ, ulong id, Range r, uint num, ref string text) { mixin(S_TRACE);
+private string evtChildBrItem(in Props prop, in Summary summ, ulong id, Range r, uint num, bool invertResult, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+	if (invertResult) val = !val;
 	string name = prop.msgs.noSelectItem;
 	if (0 != id && summ) { mixin(S_TRACE);
 		auto c = summ.item(id);
@@ -4049,9 +4052,10 @@ private string evtChildBrItem(in Props prop, in Summary summ, ulong id, Range r,
 		}
 	}
 }
-private string evtChildBrSkill(in Props prop, in Summary summ, ulong id, Range r, uint num, ref string text) { mixin(S_TRACE);
+private string evtChildBrSkill(in Props prop, in Summary summ, ulong id, Range r, uint num, bool invertResult, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+	if (invertResult) val = !val;
 	string name = prop.msgs.noSelectSkill;
 	if (0 != id && summ) { mixin(S_TRACE);
 		auto c = summ.skill(id);
@@ -4072,9 +4076,10 @@ private string evtChildBrSkill(in Props prop, in Summary summ, ulong id, Range r
 		}
 	}
 }
-private string evtChildBrBeast(in Props prop, in Summary summ, ulong id, Range r, uint num, ref string text) { mixin(S_TRACE);
+private string evtChildBrBeast(in Props prop, in Summary summ, ulong id, Range r, uint num, bool invertResult, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+	if (invertResult) val = !val;
 	string name = prop.msgs.noSelectBeast;
 	if (0 != id && summ) { mixin(S_TRACE);
 		auto c = summ.beast(id);
@@ -4118,9 +4123,10 @@ private string evtChildBrMoney(in Props prop, uint sp, ref string text) { mixin(
 		return .tryFormat(prop.msgs.branchMoneyFailure, sp);
 	}
 }
-private string evtChildBrCoupon(in Props prop, Range r, string[] couponNames, MatchingType matchingType, ref string text) { mixin(S_TRACE);
+private string evtChildBrCoupon(in Props prop, Range r, string[] couponNames, MatchingType matchingType, bool invertResult, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+	if (invertResult) val = !val;
 	string coupon = prop.msgs.noSelectCoupon;
 	string s;
 	string[] names;
@@ -4250,9 +4256,17 @@ private string evtChildBrRandomSelect(in Props prop, in Content evt, ref string 
 			cond = .tryFormat(prop.msgs.randomSelectCondition2, s);
 		} else assert (0);
 		if (val) { mixin(S_TRACE);
-			return .tryFormat(prop.msgs.branchRandomSelectSuccess, r, cond);
+			if (evt.invertResult) { mixin(S_TRACE);
+				return .tryFormat(prop.msgs.branchRandomSelectSuccessInvert, r, cond);
+			} else { mixin(S_TRACE);
+				return .tryFormat(prop.msgs.branchRandomSelectSuccess, r, cond);
+			}
 		} else { mixin(S_TRACE);
-			return .tryFormat(prop.msgs.branchRandomSelectFailure, r, cond);
+			if (evt.invertResult) { mixin(S_TRACE);
+				return .tryFormat(prop.msgs.branchRandomSelectFailureInvert, r, cond);
+			} else { mixin(S_TRACE);
+				return .tryFormat(prop.msgs.branchRandomSelectFailure, r, cond);
+			}
 		}
 	} else { mixin(S_TRACE);
 		if (val) { mixin(S_TRACE);
@@ -4265,6 +4279,7 @@ private string evtChildBrRandomSelect(in Props prop, in Content evt, ref string 
 private string evtChildBrKeyCode(in Props prop, in Content evt, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+	if (evt.invertResult) val = !val;
 	auto name = evt.keyCode == "" ? prop.msgs.noKeyCode : evt.keyCode;
 
 	if (evt.targetIsSkill && evt.targetIsItem && evt.targetIsBeast && evt.targetIsHand) { mixin(S_TRACE);

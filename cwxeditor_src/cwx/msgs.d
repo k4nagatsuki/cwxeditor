@@ -409,6 +409,14 @@ class Msgs : Properties {
 	auto couponName = Msg("couponName", "クーポン名");
 	auto couponValue = Msg("couponValue", "得点");
 	auto couponValueRange = Msg("couponValueRange", "(%1$s～%2$s)");
+	auto resultType = Msg("resultType", "成功条件");
+	auto resultTypeNormal = Msg("resultTypeNormal", "所有している");
+	auto resultTypeInvert = Msg("resultTypeInvert", "所有していない");
+	auto resultTypeNormalForStatus = Msg("resultTypeNormalForStatus", "状態を持つ");
+	auto resultTypeInvertForStatus = Msg("resultTypeInvertForStatus", "状態を持たない");
+	auto resultTypeInvertForAbility = Msg("resultTypeInvertForAbility", "能力不足時に成功する");
+	auto resultTypeNormalForCondition = Msg("resultTypeNormalForCondition", "条件に合う");
+	auto resultTypeInvertForCondition = Msg("resultTypeInvertForCondition", "条件に合わない");
 	auto range = Msg("range", "適用範囲");
 	auto couponForRange = Msg("couponForRange", "適用範囲の称号");
 	auto matchingType = Msg("matchingType", "マッチングタイプ"); // Wsn.2
@@ -434,7 +442,8 @@ class Msgs : Properties {
 	auto horizontalValue = Msg("horizontalValue", "横の値");
 	auto verticalValue = Msg("verticalValue", "縦の値");
 	auto selectFoundCard = Msg("selectFoundCard", "見つかったカードを選択状態にする"); // Wsn.3
-	auto selectTalker = Msg("selectTalker", "話者を選択状態にする");
+	auto selectTalker = Msg("selectTalker", "話者を選択状態にする");// Wsn.3
+	auto invertResult = Msg("invertResult", "条件に合わない場合に成功とする");// Wsn.4
 	auto changeLayer = Msg("changeLayer", "レイヤを変更する");
 	auto changeScale = Msg("changeScale", "拡大率を変更する");
 
@@ -930,6 +939,15 @@ class Msgs : Properties {
 	auto dialogText = Msg("dialogText", "%2$s: %1$s");
 	auto dialogTextNoCoupon = Msg("dialogTextNoCoupon", "%1$s");
 
+	auto have = Msg("have", "所有");
+	auto haveNot = Msg("haveNot", "不所有");
+	auto haveForSelectedCard = Msg("have2", "含む");
+	auto haveNotForSelectedCard = Msg("haveNot2", "含まない");
+	auto matchCard = Msg("matchCard", "一致");
+	auto notMatchCard = Msg("notMatchCard", "不一致");
+	auto haveForStatus = Msg("haveForStatus", "状態か");
+	auto haveNotForStatus = Msg("haveNotForStatus", "状態でないか");
+
 	auto ctStart = Msg("ctStart", "スタートコンテント「%1$s」");
 	auto ctStartBattle = Msg("ctStartBattle", "バトルの開始「%1$s」");
 	auto ctChangeArea = Msg("ctChangeArea", "エリア移動「%1$s」 切替方式 = %2$s ウェイト = %3$s");
@@ -980,24 +998,24 @@ class Msgs : Properties {
 	auto initialValue = Msg("initialValue", "初期値 = %1$s");
 	auto couponValues = Msg("couponValues", "%1$s = %2$s");
 	auto ctBranchSelect = Msg("ctBranchSelect", "%1$sから%2$sでメンバを選択");
-	auto ctBranchAbility = Msg("ctBranchAbility", "%1$s(%2$s)の%3$sと%4$sで能力判定(レベル%5$s)");
+	auto ctBranchAbility = Msg("ctBranchAbility", "%1$s(%2$s)の%3$sと%4$sで%5$s判定(レベル%6$s)");
 	auto ctBranchRandom = Msg("ctBranchRandom", "確率 = %1$s%%");
 	auto ctBranchLevelAverage = Msg("ctBranchLevelAverage", "パーティ全員");
 	auto ctBranchLevelSelected = Msg("ctBranchLevelSelected", "選択中のメンバ");
 	auto ctBranchLevel = Msg("ctBranchLevel", "%1$sのレベルが%2$s以上・未満で分岐");
-	auto ctBranchStatus = Msg("ctBranchStatus", "%1$sが%2$s状態か否かで分岐");
+	auto ctBranchStatus = Msg("ctBranchStatus", "%1$sが%2$s%3$s否かで分岐");
 	auto ctBranchPartyNumber = Msg("ctBranchPartyNumber", "人数 = %1$s人");
 	auto ctBranchArea = Msg("ctBranchArea", "エリア分岐コンテント");
 	auto ctBranchBattle = Msg("ctBranchBattle", "バトル分岐コンテント");
 	auto ctBranchIsBattle = Msg("ctBranchIsBattle", "戦闘中判定分岐コンテント");
 	auto ctBranchCast = Msg("ctBranchCast", "キャストカード「%1$s」の同行有無で分岐");
-	auto ctBranchSkill = Msg("ctBranchSkill", "特殊技能カード「%1$s」の有無で分岐(%2$sに%3$s枚) %4$s");
-	auto ctBranchItem = Msg("ctBranchItem", "アイテムカード「%1$s」の有無で分岐(%2$sに%3$s枚) %4$s");
-	auto ctBranchBeast = Msg("ctBranchBeast", "召喚獣カード「%1$s」の有無で分岐(%2$sに%3$s枚) %4$s");
+	auto ctBranchSkill = Msg("ctBranchSkill", "特殊技能カード「%1$s」の%2$sで分岐(%3$sに%4$s枚) %5$s");
+	auto ctBranchItem = Msg("ctBranchItem", "アイテムカード「%1$s」の%2$sで分岐(%3$sに%4$s枚) %5$s");
+	auto ctBranchBeast = Msg("ctBranchBeast", "召喚獣カード「%1$s」の%2$sで分岐(%3$sに%4$s枚) %5$s");
 	auto ctBranchInfo = Msg("ctBranchInfo", "情報カード「%1$s」の有無で分岐");
 	auto ctBranchMoney = Msg("ctBranchMoney", "分岐金額 = %1$ssp");
-	auto ctBranchCoupon = Msg("ctBranchCoupon", "称号「%1$s」の有無で分岐(%2$s)");
-	auto ctBranchCouponMulti = Msg("ctBranchCouponMulti", "称号%1$sの%2$sの有無で分岐(%3$s)"); // Wsn.2
+	auto ctBranchCoupon = Msg("ctBranchCoupon", "称号「%1$s」の%2$sで分岐(%3$s)");
+	auto ctBranchCouponMulti = Msg("ctBranchCouponMulti", "称号%1$sの%2$sの%3$sで分岐(%4$s)"); // Wsn.2
 	auto ctBranchCompleteStamp = Msg("ctBranchCompleteStamp", "シナリオ「%1$s」が終了済みか否かで分岐");
 	auto ctBranchGossip = Msg("ctBranchGossip", "ゴシップ「%1$s」の有無で分岐");
 	auto ctSetFlag = Msg("ctSetFlag", "フラグ「%1$s」を[%2$s]に変更");
@@ -1041,14 +1059,15 @@ class Msgs : Properties {
 	auto selectedPlayerValue = Msg("selectedPlayerValue", "選択メンバ番号"); // Wsn.2
 	auto ctRandomSelect = Msg("ctRandomSelect", "%2$sのキャラクタを選択(%1$s)");
 	auto ctRandomSelectN = Msg("ctRandomSelectN", "キャラクタを選択(%1$s)");
+	auto ctRandomSelectInvert = Msg("ctRandomSelectInvert", "%2$sでないキャラクタを選択(%1$s)");
 	auto castRange0 = Msg("castRange0", "対象無し");
 	auto castRange1 = Msg("castRange1", "%1$s全体");
 	auto castRange2 = Msg("castRange2", "%1$s全体または%2$s全体");
 	auto castRange3 = Msg("castRange3", "フィールド全体");
-	auto ctBranchKeyCodeAllType = Msg("ctBranchKeyCodeAllType", "キーコード「%1$s」を含むカードの有無で分岐(%2$s) %3$s");
-	auto ctBranchKeyCode = Msg("ctBranchKeyCode", "キーコード「%1$s」を含む%2$sの有無で分岐(%3$s) %4$s");
-	auto ctBranchKeyCodeAllTypeForSelectedCard = Msg("ctBranchKeyCodeAllTypeForSelectedCard", "選択カードがキーコード「%1$s」を含むか否かで分岐 %2$s");
-	auto ctBranchKeyCodeForSelectedCard = Msg("ctBranchKeyCodeForSelectedCard", "選択カードがキーコード「%1$s」を含む%2$sか否かで分岐 %3$s");
+	auto ctBranchKeyCodeAllType = Msg("ctBranchKeyCodeAllType", "キーコード「%1$s」を含むカードの%2$sで分岐(%3$s) %4$s");
+	auto ctBranchKeyCode = Msg("ctBranchKeyCode", "キーコード「%1$s」を含む%2$sの%3$sで分岐(%4$s) %5$s");
+	auto ctBranchKeyCodeAllTypeForSelectedCard = Msg("ctBranchKeyCodeAllTypeForSelectedCard", "選択カードがキーコード「%1$s」を%2$sか否かで分岐 %3$s");
+	auto ctBranchKeyCodeForSelectedCard = Msg("ctBranchKeyCodeForSelectedCard", "選択カードがキーコード「%1$s」を%2$sか否かで分岐 %3$s");
 	auto ctSelectFoundCard = Msg("ctSelectFoundCard", "該当カードを選択する");
 	auto noSelectFoundCard = Msg("noSelectFoundCard", "該当カードを選択しない");
 	auto ctCheckStep = Msg("ctCheckStep", "ステップ「%1$s」が[%2$s]%3$s後続のイベントが出現");
@@ -1075,9 +1094,9 @@ class Msgs : Properties {
 	auto noChangeScale = Msg("noChangeScale", "変更無し"); // Wsn.3
 	auto noChangeLayer = Msg("noChangeLayer", "変更無し"); // Wsn.3
 
-	auto ctBranchSkillForSelectedCard = Msg("ctBranchSkillForSelectedCard", "特殊技能カード「%1$s」と選択カードを比較して分岐");
-	auto ctBranchItemForSelectedCard = Msg("ctBranchItemForSelectedCard", "アイテムカード「%1$s」と選択カードを比較して分岐");
-	auto ctBranchBeastForSelectedCard = Msg("ctBranchBeastForSelectedCard", "召喚獣カード「%1$s」と選択カードを比較して分岐");
+	auto ctBranchSkillForSelectedCard = Msg("ctBranchSkillForSelectedCard", "特殊技能カード「%1$s」と選択カードの%2$sで分岐");
+	auto ctBranchItemForSelectedCard = Msg("ctBranchItemForSelectedCard", "アイテムカード「%1$s」と選択カードの%2$sで分岐");
+	auto ctBranchBeastForSelectedCard = Msg("ctBranchBeastForSelectedCard", "召喚獣カード「%1$s」と選択カードの%2$sで分岐");
 	auto ctGetSkillForSelectedCard = Msg("ctGetSkillForSelectedCard", "特殊技能カード「%1$s」を獲得(選択カードと交換)");
 	auto ctGetItemForSelectedCard = Msg("ctGetItemForSelectedCard", "アイテムカード「%1$s」を獲得(選択カードと交換)");
 	auto ctGetBeastForSelectedCard = Msg("ctGetBeastForSelectedCard", "召喚獣カード「%1$s」を獲得(選択カードと交換)");
@@ -1431,16 +1450,18 @@ class Msgs : Properties {
 	auto selectMemberSuccess = Msg("selectMemberSuccess", "%1$sから%2$sでキャラクタを選択");
 	auto selectMemberCancel = Msg("selectMemberCancel", "%1$sから%2$sでのキャラクタ選択をキャンセル");
 	auto selectMemberFailure = Msg("selectMemberFailure", "%1$sから%2$sでのキャラクタ選択に失敗");
-	auto branchAbilitySuccess = Msg("branchAbilitySuccess", "%1$sがレベル%2$sで%3$sと%4$sで行う判定に成功");
-	auto branchAbilityFailure = Msg("branchAbilityFailure", "%1$sがレベル%2$sで%3$sと%4$sで行う判定に失敗");
+	auto branchAbilitySuccess = Msg("branchAbilitySuccess", "%1$sがレベル%2$sで%3$sと%4$sで行う%5$s判定に成功");
+	auto branchAbilityFailure = Msg("branchAbilityFailure", "%1$sがレベル%2$sで%3$sと%4$sで行う%5$s判定に失敗");
+	auto abilityHighest = Msg("abilityHighest", "能力");
+	auto abilityLowest = Msg("abilityLowest", "能力不足");
 	auto branchRandomSuccess = Msg("branchRandomSuccess", "%1$s%%成功");
 	auto branchRandomFailure = Msg("branchRandomFailure", "%1$s%%失敗");
 	auto levelAverage = Msg("levelAverage", "パーティ全員の平均値");
 	auto levelSelected = Msg("levelSelected", "選択中のメンバ");
 	auto branchLevelSuccess = Msg("branchLevelSuccess", "%1$sがレベル%2$s以上");
 	auto branchLevelFailure = Msg("branchLevelFailure", "%1$sがレベル%2$s未満");
-	auto branchStatusSuccess = Msg("branchStatusSuccess", "%1$sでの「%2$s」の判定に成功");
-	auto branchStatusFailure = Msg("branchStatusFailure", "%1$sでの「%2$s」の判定に失敗");
+	auto branchStatusSuccess = Msg("branchStatusSuccess", "%1$sが「%2$s」状態である");
+	auto branchStatusFailure = Msg("branchStatusFailure", "%1$sが「%2$s」状態でない");
 	auto branchNumberSuccess = Msg("branchNumberSuccess", "パーティに%1$s人以上いる");
 	auto branchNumberFailure = Msg("branchNumberFailure", "パーティは%1$s人未満");
 	auto branchArea = Msg("branchArea", "エリア = %1$s");
@@ -1474,6 +1495,8 @@ class Msgs : Properties {
 	auto branchFlagCmpEq = Msg("branchFlagCmpEq", "フラグ「%1$s」が「%2$s」と同値");
 	auto branchRandomSelectSuccess = Msg("branchRandomSelectSuccess", "%2$sのキャラクタを選択(%1$s)");
 	auto branchRandomSelectFailure = Msg("branchRandomSelectFailure", "%2$sのキャラクタ選択に失敗(%1$s)");
+	auto branchRandomSelectSuccessInvert = Msg("branchRandomSelectSuccessInvert", "%2$sでないキャラクタを選択(%1$s)");
+	auto branchRandomSelectFailureInvert = Msg("branchRandomSelectFailureInvert", "%2$sでないキャラクタ選択に失敗(%1$s)");
 	auto branchRandomSelectSuccessN = Msg("branchRandomSelectSuccessN", "キャラクタを選択(%1$s)");
 	auto branchRandomSelectFailureN = Msg("branchRandomSelectFailureN", "キャラクタ選択に失敗(%1$s)");
 	auto randomSelectCondition1 = Msg("randomSelectCondition1", "レベル%1$s～%2$s");
@@ -2033,6 +2056,7 @@ class Msgs : Properties {
 	auto warningSelectCard = Msg("warningSelectCard", "選択カードの変更は、Wsn.3以降の形式のシナリオしか行えません。"); // Wsn.3
 	auto warningRangeSelectedCard = Msg("warningRangeSelectedCard", "選択カードは、Wsn.3以降の形式のシナリオでしか指定できません。"); // Wsn.3
 	auto warningSelectTalker = Msg("warningSelectTalker", "話者の選択は、Wsn.3以降の形式のシナリオしか行えません。"); // Wsn.3
+	auto warningInvertResult = Msg("warningInvertResult", "条件に合わない場合に成功とする事は、Wsn.4以降の形式のシナリオでしか行えません。"); // Wsn.4
 	auto warningInvocationCondition = Msg("warningInvocationCondition", "「生存」以外の条件で発動する召喚獣は、Wsn.3以降の形式のシナリオでしか機能しません。"); // Wsn.3
 	auto warningRemoveWithUnconscious = Msg("warningRemoveWithUnconscious", "意識不明時に消滅しない召喚獣は、Wsn.3以降の形式のシナリオでしか機能しません。"); // Wsn.3
 	auto warningInconsistencyStatus = Msg("warningInconsistencyStatus", "%1$s状態と%2$s状態を同時に設定する事はできません。");
