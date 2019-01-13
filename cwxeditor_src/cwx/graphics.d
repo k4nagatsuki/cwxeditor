@@ -427,12 +427,13 @@ ubyte[] mask(Mask f, ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t w
 	if (width < 1 || height < 1) return data;
 	size_t bpp = bytesPerLine / width;
 	auto r = Pixels(data, alpha, width, height, depth, bytesPerLine, bpp);
+	auto maskC = r.get(0, 0);
 	for (size_t y = 0; y < height; y++) { mixin(S_TRACE);
 		for (size_t x = 0; x < width; x++) { mixin(S_TRACE);
 			size_t i = y * bytesPerLine + x * bpp;
 			if (((f is Mask.V_LINE || f is Mask.MESH) && !(x & 0x1))
 					|| ((f is Mask.H_LINE || f is Mask.MESH) && !(y & 0x1))) { mixin(S_TRACE);
-				r.set(x, y, cast(ubyte) 0, cast(ubyte) 0, cast(ubyte) 0, cast(ubyte) 0);
+				r.set(x, y, maskC.r, maskC.g, maskC.b, maskC.a);
 			}
 		}
 	}
