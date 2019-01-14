@@ -278,30 +278,40 @@ string createAreaViewStatusLine(in Commons comm, in Summary summ, in Skin skin, 
 		if (arr.length == 0) arr ~= comm.prop.msgs.noSelectImage;
 		return std.string.join(arr, " ");
 	}
-	if (summ) { mixin(S_TRACE);
-		return .tryFormat(comm.prop.msgs.areaViewStatus, comm.prop.msgs.menuCard, path(card), createFlagName(comm, summ, card.flag));
+	auto params = .statusParams(comm, summ, card);
+	if (params != "") { mixin(S_TRACE);
+		return .tryFormat(comm.prop.msgs.areaViewStatus, comm.prop.msgs.menuCard, path(card), params);
 	} else { mixin(S_TRACE);
 		return .tryFormat(comm.prop.msgs.areaViewStatusNoSummary, comm.prop.msgs.menuCard, path(card));
 	}
 }
 string createAreaViewStatusLine(in Commons comm, in Summary summ, in Skin skin, in EnemyCard card) { mixin(S_TRACE);
 	string name = comm.prop.msgs.noSelectCast;
-	if (summ) { mixin(S_TRACE);
-		if (0 != card.id) { mixin(S_TRACE);
+	if (0 != card.id) { mixin(S_TRACE);
+		if (summ) { mixin(S_TRACE);
 			auto c = summ.cwCast(card.id);
 			if (c) { mixin(S_TRACE);
 				name = .tryFormat(comm.prop.msgs.areaViewStatusEnemyCard, c.id, c.name);
 			} else { mixin(S_TRACE);
 				name = .tryFormat(comm.prop.msgs.noCast, card.id);
 			}
-		}
-		return .tryFormat(comm.prop.msgs.areaViewStatus, comm.prop.msgs.enemyCard, name, createFlagName(comm, summ, card.flag));
-	} else { mixin(S_TRACE);
-		if (0 != card.id) { mixin(S_TRACE);
+		} else { mixin(S_TRACE);
 			name = .tryFormat(comm.prop.msgs.noCast, card.id);
 		}
+	}
+	auto params = .statusParams(comm, summ, card);
+	if (params != "") { mixin(S_TRACE);
+		return .tryFormat(comm.prop.msgs.areaViewStatus, comm.prop.msgs.enemyCard, name, params);
+	} else { mixin(S_TRACE);
 		return .tryFormat(comm.prop.msgs.areaViewStatusNoSummary, comm.prop.msgs.enemyCard, name);
 	}
+}
+private string statusParams(in Commons comm, in Summary summ, in AbstractSpCard card) { mixin(S_TRACE);
+	string[] params;
+	if (summ) params ~= createFlagName(comm, summ, card.flag);
+	if (card.layer != LAYER_MENU_CARD) params ~= .tryFormat(comm.prop.msgs.areaViewStatusWithLayer, card.layer);
+	if (card.animationSpeed != -1) params ~= .tryFormat(comm.prop.msgs.areaViewStatusWithCardSpeed, card.animationSpeed);
+	return params.join(" ");
 }
 string createAreaViewStatusLine(in Commons comm, in Summary summ, in Skin skin, in BgImage back) { mixin(S_TRACE);
 	string path, name;

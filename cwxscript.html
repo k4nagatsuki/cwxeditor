@@ -855,7 +855,7 @@
 	<dd>ゴシップ有無分岐</dd>
 	<dt class="content"><a href="#BRKEYCODE">brkeycode <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;カード種別&gt;</span> ..., <span class="arg">&lt;キーコード&gt;</span>, <span class="arg">&lt;カード選択の有無&gt;</span>, <span class="arg">&lt;条件の反転&gt;</span></span></a></dt>
 	<dd>キーコード所持分岐</dd>
-	<dt class="content"><a href="#SETFLAG">setflag <span class="args"><span class="arg">&lt;フラグ名&gt;</span>, <span class="arg">&lt;値&gt;</span></span></a></dt>
+	<dt class="content"><a href="#SETFLAG">setflag <span class="args"><span class="arg">&lt;フラグ名&gt;</span>, <span class="arg">&lt;値&gt;</span>, <span class="arg">&lt;カード速度&gt;</span>, <span class="arg">&lt;速度の優先&gt;</span></span></a></dt>
 	<dd>フラグ値の設定</dd>
 	<dt class="content"><a href="#SETSTEP">setstep <span class="args"><span class="arg">&lt;ステップ名&gt;</span>, <span class="arg">&lt;値&gt;</span></span></a></dt>
 	<dd>ステップ値の設定</dd>
@@ -863,11 +863,11 @@
 	<dd>ステップ値の増加</dd>
 	<dt class="content"><a href="#STEPDOWN">stepdown <span class="args"><span class="arg">&lt;ステップ名&gt;</span></span></a></dt>
 	<dd>ステップ値の減少</dd>
-	<dt class="content"><a href="#REVFLAG">revflag <span class="args"><span class="arg">&lt;フラグ名&gt;</span></span></a></dt>
+	<dt class="content"><a href="#REVFLAG">revflag <span class="args"><span class="arg">&lt;フラグ名&gt;</span>, <span class="arg">&lt;カード速度&gt;</span>, <span class="arg">&lt;速度の優先&gt;</span></span></a></dt>
 	<dd>フラグ反転</dd>
 	<dt class="content"><a href="#CPSTEP">cpstep <span class="args"><span class="arg">&lt;代入元ステップ名&gt;</span>, <span class="arg">&lt;代入先ステップ名&gt;</span></span></a></dt>
 	<dd>ステップ代入</dd>
-	<dt class="content"><a href="#CPFLAG">cpflag <span class="args"><span class="arg">&lt;代入元フラグ名&gt;</span>, <span class="arg">&lt;代入先フラグ名&gt;</span></span></a></dt>
+	<dt class="content"><a href="#CPFLAG">cpflag <span class="args"><span class="arg">&lt;代入元フラグ名&gt;</span>, <span class="arg">&lt;代入先フラグ名&gt;</span>, <span class="arg">&lt;カード速度&gt;</span>, <span class="arg">&lt;速度の優先&gt;</span></span></a></dt>
 	<dd>フラグ代入</dd>
 	<dt class="content"><a href="#CMPSTEP">cmpstep <span class="args"><span class="arg">&lt;比較元ステップ名&gt;</span>, <span class="arg">&lt;比較先ステップ名&gt;</span></span></a></dt>
 	<dd>ステップ比較分岐</dd>
@@ -913,11 +913,11 @@
 	<dd>終了印の除去</dd>
 	<dt class="content"><a href="#LOSEGOSSIP">losegossip <span class="args"><span class="arg">&lt;ゴシップ名&gt;</span></span></a></dt>
 	<dd>ゴシップの除去</dd>
-	<dt class="content"><a href="#SHOWPART">showparty</a></dt>
+	<dt class="content"><a href="#SHOWPART">showparty</a> <span class="args"><span class="arg">&lt;アニメーション速度&gt;</span></span></dt>
 	<dd>パーティ表示</dd>
-	<dt class="content"><a href="#HIDEPART">hideparty</a></dt>
+	<dt class="content"><a href="#HIDEPART">hideparty</a> <span class="args"><span class="arg">&lt;アニメーション速度&gt;</span></span></dt>
 	<dd>パーティ隠蔽</dd>
-	<dt class="content"><a href="#MVCARD">mvcard <span class="args"><span class="arg">&lt;カードグループ&gt;</span>, <span class="arg">&lt;移動方式&gt;</span>, <span class="arg">&lt;X移動量&gt;</span>, <span class="arg">&lt;Y移動量&gt;</span>, <span class="arg">&lt;拡大率&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span></span></a></dt>
+	<dt class="content"><a href="#MVCARD">mvcard <span class="args"><span class="arg">&lt;カードグループ&gt;</span>, <span class="arg">&lt;移動方式&gt;</span>, <span class="arg">&lt;X移動量&gt;</span>, <span class="arg">&lt;Y移動量&gt;</span>, <span class="arg">&lt;拡大率&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>, <span class="arg">&lt;カード速度&gt;</span>, <span class="arg">&lt;速度の優先&gt;</span></span></a></dt>
 	<dd>カードの再配置</dd>
 	<dt class="content"><a href="#CHBACK">chback <span class="args"><span class="array">([<span class="arg">&lt;画像パス&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;透明化有無&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>]
 | [<span class="arg">text</span>, <span class="arg">&lt;テキスト&gt;</span>, <span class="arg">&lt;フォント名&gt;</span>, <span class="arg">&lt;文字サイズ&gt;</span>, <span class="arg">&lt;文字色&gt;</span>, <span class="arg">&lt;書式&gt;</span> ..., (<span class="arg">&lt;縁取り色&gt;</span>), (<span class="arg">&lt;縁取り幅&gt;</span>), <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>]
@@ -2408,7 +2408,7 @@
     <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">// 分岐終了</span></code></pre>
 
-<h3 class="content"><a id="SETFLAG" name="SETFLAG">setflag <span class="args"><span class="arg">&lt;フラグ名&gt;</span>, <span class="arg">&lt;値&gt;</span></span></a></h3>
+<h3 class="content"><a id="SETFLAG" name="SETFLAG">setflag <span class="args"><span class="arg">&lt;フラグ名&gt;</span>, <span class="arg">&lt;値&gt;</span>, <span class="arg">&lt;カード速度&gt;</span>, <span class="arg">&lt;速度の優先&gt;</span></span></a></h3>
 
 <p class="fullname">(Set Flag)</p>
 <p class="desc">フラグの値を設定します。</p>
@@ -2417,6 +2417,8 @@
 
 <p class="desc">フラグ名には、フラグの名前を文字列で指定します。</p>
 <p class="desc">値には、フラグのOn/Offを<code class="code">true/false</code>で指定します。</p>
+<p class="desc">カード速度には0～10の値または<code class="code">default</code>を指定します。数値を指定した場合は、フラグ値の変更に伴って発生するカード表示・非表示のアニメーションが指定した速度で行われます。数値が小さいほど速くアニメーションします。<code class="code">default</code>の場合は、エンジンの設定が使用されます。省略した場合は<code class="code">default</code>になります。<em class="warning">Wsn.4以降のWSN形式シナリオでのみ機能します。</em></p>
+<p class="desc">速度の優先に<code class="code">true</code>を指定すると、もしアニメーションするカード自体に速度設定があっても、優先してイベントコンテント側の速度設定を使用します。省略した場合は<code class="code">false</code>になります。<em class="warning">Wsn.4以降のWSN形式シナリオでのみ機能します。</em></p>
 
 <h4 class="example">例</h4>
 
@@ -2462,7 +2464,7 @@
 
 <pre><code class="samplecode"><span class="keywords">stepdown</span> <span class="str">"見張り兵の気持ち"</span> <span class="comment">// ステップ「見張り兵の気持ち」の値を下げる</span></code></pre>
 
-<h3 class="content"><a id="REVFLAG" name="REVFLAG">revflag <span class="args"><span class="arg">&lt;フラグ名&gt;</span></span></a></h3>
+<h3 class="content"><a id="REVFLAG" name="REVFLAG">revflag <span class="args"><span class="arg">&lt;フラグ名&gt;</span>, <span class="arg">&lt;カード速度&gt;</span>, <span class="arg">&lt;速度の優先&gt;</span></span></a></h3>
 
 <p class="fullname">(Reverse Flag)</p>
 <p class="desc">フラグのOn/Offを入れ替えます。</p>
@@ -2470,6 +2472,8 @@
 <h4 class="argments">パラメータ</h4>
 
 <p class="desc">フラグの名前を文字列で指定します。</p>
+<p class="desc">カード速度には0～10の値または<code class="code">default</code>を指定します。数値を指定した場合は、フラグ値の変更に伴って発生するカード表示・非表示のアニメーションが指定した速度で行われます。数値が小さいほど速くアニメーションします。<code class="code">default</code>の場合は、エンジンの設定が使用されます。省略した場合は<code class="code">default</code>になります。<em class="warning">Wsn.4以降のWSN形式シナリオでのみ機能します。</em></p>
+<p class="desc">速度の優先に<code class="code">true</code>を指定すると、もしアニメーションするカード自体に速度設定があっても、優先してイベントコンテント側の速度設定を使用します。省略した場合は<code class="code">false</code>になります。<em class="warning">Wsn.4以降のWSN形式シナリオでのみ機能します。</em></p>
 
 <h4 class="example">例</h4>
 
@@ -2479,7 +2483,7 @@
 
 <p class="fullname">(Copy Step)</p>
 
-<h3 class="content"><a id="CPFLAG" name="CPFLAG">cpflag <span class="args"><span class="arg">&lt;代入元フラグ名&gt;</span>, <span class="arg">&lt;代入先フラグ名&gt;</span></span></a></h3>
+<h3 class="content"><a id="CPFLAG" name="CPFLAG">cpflag <span class="args"><span class="arg">&lt;代入元フラグ名&gt;</span>, <span class="arg">&lt;代入先フラグ名&gt;</span>, <span class="arg">&lt;カード速度&gt;</span>, <span class="arg">&lt;速度の優先&gt;</span></span></a></h3>
 
 <p class="fullname">(Copy Flag)</p>
 
@@ -2490,6 +2494,8 @@
 
 <p class="desc">代入元となる変数と代入先となる状態変数の名前を指定します。</p>
 <p class="desc">代入元に<code class="code">random</code>を指定すると、代入先にランダムな値がセットされます。</p>
+<p class="desc">カード速度には0～10の値または<code class="code">default</code>を指定します。数値を指定した場合は、フラグ値の変更に伴って発生するカード表示・非表示のアニメーションが指定した速度で行われます。数値が小さいほど速くアニメーションします。<code class="code">default</code>の場合は、エンジンの設定が使用されます。省略した場合は<code class="code">default</code>になります。<em class="warning">Wsn.4以降のWSN形式シナリオでのみ機能します。</em></p>
+<p class="desc">速度の優先に<code class="code">true</code>を指定すると、もしアニメーションするカード自体に速度設定があっても、優先してイベントコンテント側の速度設定を使用します。省略した場合は<code class="code">false</code>になります。<em class="warning">Wsn.4以降のWSN形式シナリオでのみ機能します。</em></p>
 <p class="desc"><code class="keywords">cpstep</code>では、代入元に<code class="code">selected</code>を指定すると、代入先にプレイヤーキャラクタが選択されている時のメンバの番号(1～6)がセットされます。選択メンバがいないか、プレイヤーキャラクタでない場合は0がセットされます。<em class="warning">Wsn.2以降のWSN形式シナリオでのみ機能します。</em></p>
 
 <h4 class="example">例</h4>
@@ -2880,33 +2886,33 @@
 
 <pre><code class="samplecode"><span class="keywords">losegossip</span> <span class="str">"悪い噂"</span> <span class="comment">// ゴシップ「悪い噂」を削除</span></code></pre>
 
-<h3 class="content"><a id="SHOWPART" name="SHOWPART">showparty</a></h3>
+<h3 class="content"><a id="SHOWPART" name="SHOWPART">showparty <span class="args"><span class="arg">&lt;アニメーション速度&gt;</span></span></a></h3>
 
 <p class="fullname">(Show Party)</p>
 <p class="desc">画面下に隠したパーティを再表示します。</p>
 
 <h4 class="argments">パラメータ</h4>
 
-<p class="desc">パラメータはありません。</p>
+<p class="desc">アニメーション速度には0～10の値または<code class="code">default</code>を指定します。数値を指定した場合は、カードのアニメーションが指定した速度で行われます。数値が小さいほど速くアニメーションします。<code class="code">default</code>の場合は、エンジンの設定が使用されます。省略した場合は<code class="code">default</code>になります。<em class="warning">Wsn.4以降のWSN形式シナリオでのみ機能します。</em></p>
 
 <h4 class="example">例</h4>
 
 <pre><code class="samplecode"><span class="keywords">showparty</span> <span class="comment">// パーティを表示</span></code></pre>
 
-<h3 class="content"><a id="HIDEPART" name="HIDEPART">hideparty</a></h3>
+<h3 class="content"><a id="HIDEPART" name="HIDEPART">hideparty <span class="args"><span class="arg">&lt;アニメーション速度&gt;</span></span></a></h3>
 
 <p class="fullname">(Hide Party)</p>
 <p class="desc">パーティを画面下に隠します。</p>
 
 <h4 class="argments">パラメータ</h4>
 
-<p class="desc">パラメータはありません。</p>
+<p class="desc">アニメーション速度には0～10の値または<code class="code">default</code>を指定します。数値を指定した場合は、カードのアニメーションが指定した速度で行われます。数値が小さいほど速くアニメーションします。<code class="code">default</code>の場合は、エンジンの設定が使用されます。省略した場合は<code class="code">default</code>になります。<em class="warning">Wsn.4以降のWSN形式シナリオでのみ機能します。</em></p>
 
 <h4 class="example">例</h4>
 
 <pre><code class="samplecode"><span class="keywords">hideparty</span> <span class="comment">// パーティを隠す</span></code></pre>
 
-<h3 class="content"><a id="MVCARD" name="MVCARD">mvcard <span class="args"><span class="arg">&lt;カードグループ&gt;</span>, <span class="arg">&lt;移動方式&gt;</span>, <span class="arg">&lt;X移動量&gt;</span>, <span class="arg">&lt;Y移動量&gt;</span>, <span class="arg">&lt;拡大率&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span></span></a></h3>
+<h3 class="content"><a id="MVCARD" name="MVCARD">mvcard <span class="args"><span class="arg">&lt;カードグループ&gt;</span>, <span class="arg">&lt;移動方式&gt;</span>, <span class="arg">&lt;X移動量&gt;</span>, <span class="arg">&lt;Y移動量&gt;</span>, <span class="arg">&lt;拡大率&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>, <span class="arg">&lt;カード速度&gt;</span>, <span class="arg">&lt;速度の優先&gt;</span></span></a></h3>
 
 <p class="fullname">(Move Card)</p>
 <p class="desc">メニューカードやエネミーカードの移動や、拡大率・表示レイヤの変更を行います。</p>
@@ -2929,6 +2935,8 @@
 
 <p class="desc">拡大率に<code class="code">none</code>以外の値を指定すると、カードの拡大率が指定した値に変更されます。省略した場合は<code class="code">none</code>になります。</p>
 <p class="desc">レイヤに<code class="code">none</code>以外の値を指定すると、カードのレイヤ(前後位置)が指定した値に変更されます。省略した場合は<code class="code">none</code>になります。</p>
+<p class="desc">カード速度には0～10の値または<code class="code">default</code>を指定します。数値を指定した場合は、カードのアニメーションが指定した速度で行われます。数値が小さいほど速くアニメーションします。<code class="code">default</code>の場合は、エンジンの設定が使用されます。省略した場合は<code class="code">default</code>になります。<em class="warning">Wsn.4以降のWSN形式シナリオでのみ機能します。</em></p>
+<p class="desc">速度の優先に<code class="code">true</code>を指定すると、もしアニメーションするカード自体に速度設定があっても、優先してイベントコンテント側の速度設定を使用します。省略した場合は<code class="code">false</code>になります。<em class="warning">Wsn.4以降のWSN形式シナリオでのみ機能します。</em></p>
 
 <h4 class="example">例</h4>
 

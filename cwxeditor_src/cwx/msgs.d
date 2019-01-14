@@ -550,7 +550,9 @@ class Msgs : Properties {
 	auto transitionNameFade = Msg("transitionNameFade", "色置換(フェード)式");
 	auto transitionSpeed = Msg("transitionSpeed", "背景切替ウェイト");
 	auto cardSpeed = Msg("cardSpeed", "アニメーション");
-	auto overwriteAnimationSpeed = Msg("overwriteAnimationSpeed", "速度を指定する");
+	auto overrideAnimationSpeed = Msg("overrideAnimationSpeed", "速度を指定する");
+	auto overrideCardAnimationSpeed = Msg("overrideCardAnimationSpeed", "カードのアニメーション速度を指定する");
+	auto forceOverrideCardAnimationSpeed = Msg("forceOverrideCardAnimationSpeed", "カード本体の設定より優先する");
 	auto warningCardAnimationSpeed = Msg("warningCardAnimationSpeed", "カードのアニメーション速度の指定はWsn.4以降の形式のシナリオでしか行えません。");
 	auto waitName = Msg("waitName", "空白時間(0.1秒単位)");
 	auto moneyName = Msg("moneyName", "金額");
@@ -1021,11 +1023,14 @@ class Msgs : Properties {
 	auto ctBranchCouponMulti = Msg("ctBranchCouponMulti", "称号%1$sの%2$sの%3$sで分岐(%4$s)"); // Wsn.2
 	auto ctBranchCompleteStamp = Msg("ctBranchCompleteStamp", "シナリオ「%1$s」が終了済みか否かで分岐");
 	auto ctBranchGossip = Msg("ctBranchGossip", "ゴシップ「%1$s」の有無で分岐");
-	auto ctSetFlag = Msg("ctSetFlag", "フラグ「%1$s」を[%2$s]に変更");
+	auto ctSetFlag = Msg("ctSetFlag", "フラグ「%1$s」を[%2$s]に変更 %3$s");
+	auto ctCardSpeed = Msg("ctCardSpeed", "カード速度 = %1$s");
+	auto ctCardSpeedDefault = Msg("ctCardSpeedDefault", "標準");
+	auto ctOverrideCardSpeed = Msg("ctOverrideCardSpeed", "カード速度 = %1$s (カード本体より優先)");
 	auto ctSetStep = Msg("ctSetStep", "ステップ「%1$s」を[%2$s]に変更");
 	auto ctSetStepUp = Msg("ctSetStepUp", "ステップ「%1$s」の値を1増加");
 	auto ctSetStepDown = Msg("ctSetStepDown", "ステップ「%1$s」の値を1減少");
-	auto ctReverseFlag = Msg("ctReverseFlag", "フラグ「%1$s」の値を反転");
+	auto ctReverseFlag = Msg("ctReverseFlag", "フラグ「%1$s」の値を反転 %2$s");
 	auto ctCheckFlag = Msg("ctCheckFlag", "フラグ「%1$s」の値が[%2$s]であれば後続のイベントが出現");
 	auto ctGetCast = Msg("ctGetCast", "キャストカード「%1$s」を同行させる(%2$s)");
 	auto ctGetSkill = Msg("ctGetSkill", "特殊技能カード「%1$s」を獲得(%2$sに%3$s枚)");
@@ -1047,17 +1052,17 @@ class Msgs : Properties {
 	auto ctLoseCoupon = Msg("ctLoseCoupon", "称号「%1$s」を喪失(%2$s)");
 	auto ctLoseCompleteStamp = Msg("ctLoseCompleteStamp", "シナリオ%1$sの終了印を削除");
 	auto ctLoseGossip = Msg("ctLoseGossip", "ゴシップ「%1$s」を喪失");
-	auto ctShowParty = Msg("ctShowParty", "パーティ表示コンテント");
-	auto ctHideParty = Msg("ctHideParty", "パーティ隠蔽コンテント");
+	auto ctShowParty = Msg("ctShowParty", "パーティの表示 %1$s");
+	auto ctHideParty = Msg("ctHideParty", "パーティの隠蔽 %1$s");
 	auto ctRedisplay = Msg("ctRedisplay", "切替方式 = %1$s ウェイト = %2$s");
 	auto ctRedisplayClassic = Msg("ctRedisplayClassic", "画面再構築コンテント");
 	auto ctSubstituteStep = Msg("ctSubstituteStep", "ステップ [%1$s] の値をステップ [%2$s] に代入");
-	auto ctSubstituteFlag = Msg("ctSubstituteFlag", "フラグ [%1$s] の値をフラグ [%2$s] に代入");
+	auto ctSubstituteFlag = Msg("ctSubstituteFlag", "フラグ [%1$s] の値をフラグ [%2$s] に代入 %3$s");
 	auto ctBranchStepCmp = Msg("ctBranchStepCmp", "ステップ [%1$s] と [%2$s] の値を比較");
 	auto ctBranchFlagCmp = Msg("ctBranchFlagCmp", "フラグ [%1$s] と [%2$s] の値を比較");
 	auto ctSubstituteStepFromRandom = Msg("ctSubstituteStepFromRandom", "ランダム値をステップ [%1$s] に代入");
 	auto ctSubstituteStepFromSelectedPlayer = Msg("ctSubstituteStepFromSelectedPlayer", "選択メンバ番号をステップ [%1$s] に代入"); // Wsn.2
-	auto ctSubstituteFlagFromRandom = Msg("ctSubstituteFlagFromRandom", "ランダム値をフラグ [%1$s] に代入");
+	auto ctSubstituteFlagFromRandom = Msg("ctSubstituteFlagFromRandom", "ランダム値をフラグ [%1$s] に代入 %2$s");
 	auto randomValue = Msg("randomValue", "ランダム値");
 	auto selectedPlayerValue = Msg("selectedPlayerValue", "選択メンバ番号"); // Wsn.2
 	auto ctRandomSelect = Msg("ctRandomSelect", "%2$sのキャラクタを選択(%1$s)");
@@ -1092,8 +1097,8 @@ class Msgs : Properties {
 	auto couponNamesSeparator = Msg("couponNamesSeparator", ""); // Wsn.2
 	auto matchingTypeAnd = Msg("matchingTypeAnd", "全て"); // Wsn.2
 	auto matchingTypeOr = Msg("matchingTypeOr", "どれか一つ"); // Wsn.2
-	auto ctMoveCard = Msg("ctMoveCard", "カードグループ「%1$s」を%2$sで右へ%3$s、下へ%4$sポイント移動(スケール = %5$s レイヤ = %6$s)"); // Wsn.3
-	auto ctMoveCardNoSet = Msg("ctMoveCardNoSet", "カードグループ「%1$s」を移動しない(スケール = %2$s レイヤ = %3$s)"); // Wsn.3
+	auto ctMoveCard = Msg("ctMoveCard", "カードグループ「%1$s」を%2$sで右へ%3$s、下へ%4$sポイント移動(スケール = %5$s レイヤ = %6$s) %7$s"); // Wsn.3
+	auto ctMoveCardNoSet = Msg("ctMoveCardNoSet", "カードグループ「%1$s」を移動しない(スケール = %2$s レイヤ = %3$s) %4$s"); // Wsn.3
 	auto noChangeScale = Msg("noChangeScale", "変更無し"); // Wsn.3
 	auto noChangeLayer = Msg("noChangeLayer", "変更無し"); // Wsn.3
 
@@ -1286,6 +1291,8 @@ class Msgs : Properties {
 	auto areaViewStatusNoFlag = Msg("areaViewStatusNoFlag", "フラグ指定無し");
 	auto areaViewStatusInvalidFlag = Msg("areaViewStatusInvalidFlag", "存在しないフラグ(%1$s)");
 	auto areaViewStatusWithFlag = Msg("areaViewStatusWithFlag", "フラグ = %1$s");
+	auto areaViewStatusWithLayer = Msg("areaViewStatusWithLayer", "レイヤ = %1$s"); // Wsn.1
+	auto areaViewStatusWithCardSpeed = Msg("areaViewStatusWithCardSpeed", "速度 = %1$s"); // Wsn.4
 	auto areaViewStatusImageIncluding = Msg("areaViewStatusImageIncluding", "イメージ格納");
 	auto areaViewStatusSelCard = Msg("areaViewStatusSelCard", "%1$s枚のカード");
 	auto areaViewStatusSelBack = Msg("areaViewStatusSelBack", "%1$s枚の背景");

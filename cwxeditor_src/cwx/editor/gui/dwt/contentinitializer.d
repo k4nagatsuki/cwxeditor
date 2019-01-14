@@ -441,8 +441,6 @@ bool hasDialog(CType type, bool existsSummary = true) { mixin(S_TRACE);
 	case CType.BRANCH_AREA:
 	case CType.BRANCH_BATTLE:
 	case CType.BRANCH_IS_BATTLE:
-	case CType.SHOW_PARTY:
-	case CType.HIDE_PARTY:
 	case CType.BRANCH_MULTI_RANDOM:
 		return false;
 	case CType.START_BATTLE:
@@ -657,6 +655,12 @@ EventDialog createEventDialog(Commons comm, Summary summ, Shell parentShell, Con
 		break;
 	} case CType.LOSE_GOSSIP: { mixin(S_TRACE);
 		dlg = new GossipEventDialog!(CType.LOSE_GOSSIP)(comm, comm.prop, parentShell, summ, parent, evt);
+		break;
+	} case CType.SHOW_PARTY: { mixin(S_TRACE);
+		dlg = new ShowHidePartyDialog(evt.type, comm, comm.prop, parentShell, summ, parent, evt);
+		break;
+	} case CType.HIDE_PARTY: { mixin(S_TRACE);
+		dlg = new ShowHidePartyDialog(evt.type, comm, comm.prop, parentShell, summ, parent, evt);
 		break;
 	} case CType.REDISPLAY: { mixin(S_TRACE);
 		dlg = new RefreshDialog(comm, comm.prop, parentShell, summ, parent, evt);

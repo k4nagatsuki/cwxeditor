@@ -167,11 +167,11 @@ private void static_this () { mixin(S_TRACE);
 		CType.BRANCH_COUPON:CDetail("Branch", "Coupon", CNextType.BOOL, true, [CArg.RANGE:"targets", CArg.COUPON_NAMES:null, CArg.MATCHING_TYPE:"matchingtype", CArg.INVERT_RESULT:"invert"]),
 		CType.BRANCH_COMPLETE_STAMP:CDetail("Branch", "CompleteStamp", CNextType.BOOL, true, [CArg.COMPLETE_STAMP:"scenario"]),
 		CType.BRANCH_GOSSIP:CDetail("Branch", "Gossip", CNextType.BOOL, true, [CArg.GOSSIP:"gossip"]),
-		CType.SET_FLAG:CDetail("Set", "Flag", CNextType.NONE, true, [CArg.FLAG:_("flag"), CArg.FLAG_VALUE:"value"]),
+		CType.SET_FLAG:CDetail("Set", "Flag", CNextType.NONE, true, [CArg.FLAG:_("flag"), CArg.FLAG_VALUE:"value", CArg.CARD_SPEED:"cardspeed", CArg.OVERRIDE_CARD_SPEED:"overridecardspeed"]),
 		CType.SET_STEP:CDetail("Set", "Step", CNextType.NONE, true, [CArg.STEP:_("step"), CArg.STEP_VALUE:"value"]),
 		CType.SET_STEP_UP:CDetail("Set", "StepUp", CNextType.NONE, true, [CArg.STEP:"step"]),
 		CType.SET_STEP_DOWN:CDetail("Set", "StepDown", CNextType.NONE, true, [CArg.STEP:"step"]),
-		CType.REVERSE_FLAG:CDetail("Reverse", "Flag", CNextType.NONE, true, [CArg.FLAG:"flag"]),
+		CType.REVERSE_FLAG:CDetail("Reverse", "Flag", CNextType.NONE, true, [CArg.FLAG:"flag", CArg.CARD_SPEED:"cardspeed", CArg.OVERRIDE_CARD_SPEED:"overridecardspeed"]),
 		CType.CHECK_FLAG:CDetail("Check", "Flag", CNextType.NONE, true, [CArg.FLAG:"flag"]),
 		CType.GET_CAST:CDetail("Get", "Cast", CNextType.NONE, true, [CArg.CAST:"id", CArg.START_ACTION:"startaction"]),
 		CType.GET_ITEM:CDetail("Get", "Item", CNextType.NONE, true, [CArg.ITEM:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number"]),
@@ -191,11 +191,11 @@ private void static_this () { mixin(S_TRACE);
 		CType.LOSE_COUPON:CDetail("Lose", "Coupon", CNextType.NONE, true, [CArg.COUPON:_("coupon"), CArg.RANGE:"targets", CArg.HOLDING_COUPON:"holdingcoupon"]),
 		CType.LOSE_COMPLETE_STAMP:CDetail("Lose", "CompleteStamp", CNextType.NONE, true, [CArg.COMPLETE_STAMP:"scenario"]),
 		CType.LOSE_GOSSIP:CDetail("Lose", "Gossip", CNextType.NONE, true, [CArg.GOSSIP:"gossip"]),
-		CType.SHOW_PARTY:CDetail("Show", "Party", CNextType.NONE, true),
-		CType.HIDE_PARTY:CDetail("Hide", "Party", CNextType.NONE, true),
+		CType.SHOW_PARTY:CDetail("Show", "Party", CNextType.NONE, true, [CArg.CARD_SPEED:"cardspeed"]),
+		CType.HIDE_PARTY:CDetail("Hide", "Party", CNextType.NONE, true, [CArg.CARD_SPEED:"cardspeed"]),
 		CType.REDISPLAY:CDetail("Redisplay", "", CNextType.NONE, true, [CArg.TRANSITION:_("transition"), CArg.TRANSITION_SPEED:"transitionspeed"]),
 		CType.SUBSTITUTE_STEP:CDetail(["Substitute", "Sbustitute"], "Step", CNextType.NONE, true, [CArg.STEP:"from", CArg.STEP_2:"to"]),
-		CType.SUBSTITUTE_FLAG:CDetail(["Substitute", "Sbustitute"], "Flag", CNextType.NONE, true, [CArg.FLAG:"from", CArg.FLAG_2:"to"]),
+		CType.SUBSTITUTE_FLAG:CDetail(["Substitute", "Sbustitute"], "Flag", CNextType.NONE, true, [CArg.FLAG:"from", CArg.FLAG_2:"to", CArg.CARD_SPEED:"cardspeed", CArg.OVERRIDE_CARD_SPEED:"overridecardspeed"]),
 		CType.BRANCH_STEP_CMP:CDetail("Branch", "StepValue", CNextType.TRIO, true, [CArg.STEP:"from", CArg.STEP_2:"to"]),
 		CType.BRANCH_FLAG_CMP:CDetail("Branch", "FlagValue", CNextType.BOOL, true, [CArg.FLAG:"from", CArg.FLAG_2:"to"]),
 		CType.BRANCH_RANDOM_SELECT:CDetail("Branch", "RandomSelect", CNextType.BOOL, true, [CArg.CAST_RANGE:null, CArg.LEVEL_MIN:"minLevel", CArg.LEVEL_MAX:"maxLevel", CArg.STATUS:"status", CArg.INVERT_RESULT:"invert"]),
@@ -207,7 +207,7 @@ private void static_this () { mixin(S_TRACE);
 		CType.LOSE_BG_IMAGE:CDetail("Lose", "BgImage", CNextType.NONE, true, [CArg.CELL_NAME:"cellname", CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed", CArg.DO_ANIME:"doanime", CArg.IGNORE_EFFECT_BOOSTER:"ignoreeffectbooster"]),
 		CType.BRANCH_MULTI_COUPON:CDetail("Branch", "MultiCoupon", CNextType.COUPON, true , [CArg.RANGE:"targets"]), // Wsn.2
 		CType.BRANCH_MULTI_RANDOM:CDetail("Branch", "MultiRandom", CNextType.NONE, true), // Wsn.2
-		CType.MOVE_CARD:CDetail("Move", "Card", CNextType.NONE, true, [CArg.CARD_GROUP:"cardgroup", CArg.POSITION_TYPE:"positiontype", CArg.X:"x", CArg.Y:"y", CArg.SCALE:"scale", CArg.LAYER:"layer"]), // Wsn.3
+		CType.MOVE_CARD:CDetail("Move", "Card", CNextType.NONE, true, [CArg.CARD_GROUP:"cardgroup", CArg.POSITION_TYPE:"positiontype", CArg.X:"x", CArg.Y:"y", CArg.SCALE:"scale", CArg.LAYER:"layer", CArg.CARD_SPEED:"cardspeed", CArg.OVERRIDE_CARD_SPEED:"overridecardspeed"]), // Wsn.3
 	];
 	foreach (cType, detail; _CONTENT_DETAILS) { mixin(S_TRACE);
 		foreach (name; detail.names) { mixin(S_TRACE);
@@ -574,6 +574,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		this.successRate = c.successRate;
 		this.transitionSpeed = c.transitionSpeed;
 		this.cardSpeed = c.cardSpeed;
+		this.overrideCardSpeed = c.overrideCardSpeed;
 		this.percent = c.percent;
 		this.flagValue = c.flagValue;
 		this.stepValue = c.stepValue;
@@ -734,6 +735,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			&& (!d.use(CArg.SUCCESS_RATE) || successRate == c.successRate)
 			&& (!d.use(CArg.TRANSITION_SPEED) || transitionSpeed == c.transitionSpeed)
 			&& (!d.use(CArg.CARD_SPEED) || cardSpeed == c.cardSpeed)
+			&& (!d.use(CArg.OVERRIDE_CARD_SPEED) || overrideCardSpeed == c.overrideCardSpeed)
 			&& (!d.use(CArg.PERCENT) || percent == c.percent)
 			&& (!d.use(CArg.FLAG_VALUE) || flagValue == c.flagValue)
 			&& (!d.use(CArg.STEP_VALUE) || stepValue == c.stepValue)
@@ -1025,6 +1027,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.SUCCESS_RATE, int, 5)(d, od, &successRate, base, base.successRate);
 		resetValue!(CArg.TRANSITION_SPEED, int, 5u)(d, od, &transitionSpeed, base, base.transitionSpeed);
 		resetValue!(CArg.CARD_SPEED, int, -1)(d, od, &cardSpeed, base, base.cardSpeed);
+		resetValue!(CArg.OVERRIDE_CARD_SPEED, bool, false)(d, od, &overrideCardSpeed, base, base.overrideCardSpeed);
 		resetValue!(CArg.PERCENT, int, 50u)(d, od, &percent, base, base.percent);
 		resetValue!(CArg.FLAG_VALUE, bool, true)(d, od, &flagValue, base, base.flagValue);
 		resetValue!(CArg.STEP_VALUE, int, 0)(d, od, &stepValue, base, base.stepValue);
@@ -1999,6 +2002,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// -1でエンジンの設定に従う。
 	mixin Prop!(int, "cardSpeed", -1);
 	mixin MaxMin!(int, "cardSpeed", 10, -1);
+	/// カード本体の速度設定よりも優先する(Wsn.4)。
+	mixin Prop!(bool, "overrideCardSpeed", false);
 	/// 百分率値。
 	mixin Prop!(int, "percent", 50u);
 	mixin MaxMin!(int, "percent", 100, 0);
@@ -2559,6 +2564,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		atnPutD!(CArg.CONSUME_CARD, "consumeCard", "fromBool", true)(e, d);
 
+		atnPutD!(CArg.OVERRIDE_CARD_SPEED, "overrideCardSpeed", "fromBool", false)(e, d);
+
 		// 多少複雑なもの
 		if (d.use(CArg.MOTIONS)) { mixin(S_TRACE);
 			auto me = e.newElement("Motions");
@@ -2854,6 +2861,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		cfnPutD!(CArg.INVERT_RESULT, "invertResult", "parseBool", false)(en, d, r);
 
 		cfnPutD!(CArg.CONSUME_CARD, "consumeCard", "parseBool", true)(en, d, r);
+
+		cfnPutD!(CArg.OVERRIDE_CARD_SPEED, "overrideCardSpeed", "parseBool", false)(en, d, r);
 
 		// CardWirthではラウンドイベントで加入したメンバは次ラウンドから
 		// 行動を開始するが、CardWirthPy 1では即時に行動していた。

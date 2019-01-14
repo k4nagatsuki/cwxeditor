@@ -3656,7 +3656,7 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 			on = o.on;
 			off = o.off;
 		}
-		return .tryFormat(comm.prop.msgs.ctSetFlag, name, evt.flagValue ? on : off);
+		return .tryFormat(comm.prop.msgs.ctSetFlag, name, evt.flagValue ? on : off, .cardSpeedAttrText(comm, evt));
 	} case CType.SET_STEP: { mixin(S_TRACE);
 		string name = contentTextUseID!(CIDKind.Step)(comm, summ, evt.step, "%s", evt);
 		string value;
@@ -3672,7 +3672,7 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 	} case CType.SET_STEP_DOWN: { mixin(S_TRACE);
 		return contentTextUseID!(CIDKind.Step)(comm, summ, evt.step, comm.prop.msgs.ctSetStepDown, evt);
 	} case CType.REVERSE_FLAG: { mixin(S_TRACE);
-		return contentTextUseID!(CIDKind.Flag)(comm, summ, evt.flag, comm.prop.msgs.ctReverseFlag, evt);
+		return .tryFormat(comm.prop.msgs.ctReverseFlag, contentTextUseID!(CIDKind.Flag)(comm, summ, evt.flag, "%s", evt), .cardSpeedAttrText(comm, evt));
 	} case CType.CHECK_FLAG: { mixin(S_TRACE);
 		string name = contentTextUseID!(CIDKind.Flag)(comm, summ, evt.flag, "%s", evt);
 		string on = comm.prop.msgs.flagOn;
@@ -3771,9 +3771,9 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		if (!c || !c.length) c = comm.prop.msgs.noSelectGossip;
 		return .tryFormat(comm.prop.msgs.ctLoseGossip, c);
 	} case CType.SHOW_PARTY: { mixin(S_TRACE);
-		return comm.prop.msgs.ctShowParty;
+		return .tryFormat(comm.prop.msgs.ctShowParty, .cardSpeedAttrText(comm, evt));
 	} case CType.HIDE_PARTY: { mixin(S_TRACE);
-		return comm.prop.msgs.ctHideParty;
+		return .tryFormat(comm.prop.msgs.ctHideParty, .cardSpeedAttrText(comm, evt));
 	} case CType.REDISPLAY: { mixin(S_TRACE);
 		if (summ && summ.legacy) { mixin(S_TRACE);
 			return comm.prop.msgs.ctRedisplayClassic;
@@ -3795,10 +3795,10 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 	} case CType.SUBSTITUTE_FLAG: { mixin(S_TRACE);
 		auto t2 = contentTextUseID!(CIDKind.Flag)(comm, summ, evt.flag2, "%s", evt);
 		if (summ && !summ.flagDirRoot.findFlag(evt.flag) && .icmp(evt.flag, comm.prop.sys.randomValue) == 0) { mixin(S_TRACE);
-			return .tryFormat(comm.prop.msgs.ctSubstituteFlagFromRandom, t2);
+			return .tryFormat(comm.prop.msgs.ctSubstituteFlagFromRandom, t2, .cardSpeedAttrText(comm, evt));
 		} else { mixin(S_TRACE);
 			auto t1 = contentTextUseID!(CIDKind.Flag)(comm, summ, evt.flag, "%s", evt);
-			return .tryFormat(comm.prop.msgs.ctSubstituteFlag, t1, t2);
+			return .tryFormat(comm.prop.msgs.ctSubstituteFlag, t1, t2, .cardSpeedAttrText(comm, evt));
 		}
 	} case CType.BRANCH_STEP_CMP: { mixin(S_TRACE);
 		auto t1 = contentTextUseID!(CIDKind.Step)(comm, summ, evt.step, "%s", evt);
@@ -3934,9 +3934,9 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		auto layer = evt.layer == -1 ? comm.prop.msgs.noChangeLayer : .text(evt.layer);
 
 		if (evt.positionType is CoordinateType.None) { mixin(S_TRACE);
-			return .tryFormat(comm.prop.msgs.ctMoveCardNoSet, cardGroup, scale, layer);
+			return .tryFormat(comm.prop.msgs.ctMoveCardNoSet, cardGroup, scale, layer, .cardSpeedAttrText(comm, evt));
 		} else { mixin(S_TRACE);
-			return .tryFormat(comm.prop.msgs.ctMoveCard, cardGroup, posType, evt.x, evt.y, scale, layer);
+			return .tryFormat(comm.prop.msgs.ctMoveCard, cardGroup, posType, evt.x, evt.y, scale, layer, .cardSpeedAttrText(comm, evt));
 		}
 	}
 	}
@@ -3955,6 +3955,16 @@ string msgAttrText(in Props prop, in Content evt) { mixin(S_TRACE);
 	if (evt.selectionColumns != 1 && prop.msgs.ctColumns != "") attrs ~= .tryFormat(prop.msgs.ctColumns, evt.selectionColumns);
 	if (evt.selectTalker && hasCharacterTalker(evt) && prop.msgs.ctSelectTalker != "") attrs ~= prop.msgs.ctSelectTalker;
 	return attrs.join(" ");
+}
+
+string cardSpeedAttrText(in Commons comm, in Content evt) { mixin(S_TRACE);
+	if (evt.cardSpeed == -1) { mixin(S_TRACE);
+		return .tryFormat(comm.prop.msgs.ctCardSpeed, comm.prop.msgs.ctCardSpeedDefault);
+	} else if (evt.overrideCardSpeed) { mixin(S_TRACE);
+		return .tryFormat(comm.prop.msgs.ctOverrideCardSpeed, evt.cardSpeed);
+	} else { mixin(S_TRACE);
+		return .tryFormat(comm.prop.msgs.ctCardSpeed, evt.cardSpeed);
+	}
 }
 
 string getStepValue(in Props prop, in Step step, int value) { mixin(S_TRACE);

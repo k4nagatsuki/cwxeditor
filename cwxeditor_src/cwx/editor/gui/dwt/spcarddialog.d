@@ -502,8 +502,9 @@ protected:
 					grp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 					grp.setLayout(normalGridLayout(1, true));
 					grp.setText(_prop.msgs.cardSpeed);
-					_animationSpeed = new CardAnimationPanel(_comm, _summ, grp);
+					_animationSpeed = new CardAnimationPanel(_comm, _summ, grp, CardAnimationPanelType.MenuCard);
 					mod(_animationSpeed);
+					_animationSpeed.modEvent ~= &refreshWarning;
 				}
 			}
 			comp.setLayoutData(area.computeSize(SWT.DEFAULT, SWT.DEFAULT));
@@ -641,6 +642,12 @@ protected:
 	}
 }
 
+enum CardAnimationPanelType {
+	MenuCard,
+	SetFlag,
+	MoveCard
+}
+
 /// カード速度の設定を行うパネル。
 class CardAnimationPanel : Composite {
 	void delegate()[] modEvent;
@@ -651,32 +658,49 @@ class CardAnimationPanel : Composite {
 	private Commons _comm;
 	private const Summary _summ;
 
-	private Button _overwrite;
+	private Button _overrideCardSpeed;
 	private Spinner _speed;
 
+	private Button _forceOverride = null;
+
+	@property
 	string[] warnings() { mixin(S_TRACE);
 		string[] ws;
-		if (_overwrite.getSelection() && _comm.prop.isTargetVersion(_summ, "4")) { mixin(S_TRACE);
+		if (_overrideCardSpeed.getSelection() && !_comm.prop.isTargetVersion(_summ, "4")) { mixin(S_TRACE);
 			ws ~= _comm.prop.msgs.warningCardAnimationSpeed;
 		}
 		return ws;
 	}
 
 	private void updateEnabled() { mixin(S_TRACE);
-		_overwrite.setEnabled(!_summ || !_summ.legacy || _overwrite.getSelection());
-		_speed.setEnabled(_overwrite.getSelection());
+		_overrideCardSpeed.setEnabled(!_summ || !_summ.legacy || _overrideCardSpeed.getSelection());
+		_speed.setEnabled(_overrideCardSpeed.getSelection());
+		if (_forceOverride) _forceOverride.setEnabled(_overrideCardSpeed.getSelection());
 	}
 
-	this (Commons comm, Summary summ, Composite parent) { mixin(S_TRACE);
+	this (Commons comm, Summary summ, Composite parent, CardAnimationPanelType type) { mixin(S_TRACE);
 		super (parent, SWT.NONE);
 		_comm = comm;
 		_summ = summ;
-		this.setLayout(zeroMarginGridLayout(3, false));
+		if (type is CardAnimationPanelType.SetFlag) { mixin(S_TRACE);
+			this.setLayout(zeroMarginGridLayout(4, false));
+		} else { mixin(S_TRACE);
+			this.setLayout(zeroMarginGridLayout(3, false));
+		}
+		void createForceOverride() { mixin(S_TRACE);
+			_forceOverride = new Button(this, SWT.CHECK);
+			_forceOverride.setText(comm.prop.msgs.forceOverrideCardAnimationSpeed);
+			.listener(_forceOverride, SWT.Selection, &raiseModEvent);
+		}
 
-		_overwrite = new Button(this, SWT.CHECK);
-		_overwrite.setText(comm.prop.msgs.overwriteAnimationSpeed);
-		.listener(_overwrite, SWT.Selection, &updateEnabled);
-		.listener(_overwrite, SWT.Selection, &raiseModEvent);
+		_overrideCardSpeed = new Button(this, SWT.CHECK);
+		_overrideCardSpeed.setText(type is CardAnimationPanelType.SetFlag ? comm.prop.msgs.overrideCardAnimationSpeed : comm.prop.msgs.overrideAnimationSpeed);
+		.listener(_overrideCardSpeed, SWT.Selection, &updateEnabled);
+		.listener(_overrideCardSpeed, SWT.Selection, &raiseModEvent);
+
+		if (type is CardAnimationPanelType.SetFlag) { mixin(S_TRACE);
+			createForceOverride();
+		}
 
 		_speed = new Spinner(this, SWT.BORDER);
 		initSpinner(_speed);
@@ -685,6 +709,15 @@ class CardAnimationPanel : Composite {
 		.listener(_speed, SWT.Selection, &raiseModEvent);
 		auto hint = new Label(this, SWT.NONE);
 		hint.setText(.tryFormat(comm.prop.msgs.rangeHint, 0, Content.cardSpeed_max));
+
+		if (type is CardAnimationPanelType.MoveCard) { mixin(S_TRACE);
+			createForceOverride();
+			auto gd = new GridData();
+			gd.horizontalSpan = 3;
+			_forceOverride.setLayoutData(gd);
+
+			setTabList([_overrideCardSpeed, _forceOverride, _speed]);
+		}
 
 		updateEnabled();
 		comm.refDataVersion.add(&updateEnabled);
@@ -695,12 +728,22 @@ class CardAnimationPanel : Composite {
 
 	@property
 	void speed(int value) { mixin(S_TRACE);
-		_overwrite.setSelection(value != -1);
+		_overrideCardSpeed.setSelection(value != -1);
 		_speed.setSelection(value == -1 ? (Content.cardSpeed_max - 0) / 2 : value);
 		updateEnabled();
 	}
 	@property
 	int speed() { mixin(S_TRACE);
-		return _overwrite.getSelection() ? _speed.getSelection() : -1;
+		return _overrideCardSpeed.getSelection() ? _speed.getSelection() : -1;
+	}
+
+	@property
+	void overrideCardSpeed(bool value) { mixin(S_TRACE);
+		assert (_forceOverride !is null);
+		_forceOverride.setSelection(value);
+	}
+	@property
+	bool overrideCardSpeed() { mixin(S_TRACE);
+		return _forceOverride && _overrideCardSpeed.getSelection() ? _forceOverride.getSelection() : false;
 	}
 }

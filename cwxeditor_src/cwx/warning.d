@@ -1000,6 +1000,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (cd.use(CArg.CONSUME_CARD) && !c.consumeCard && !prop.isTargetVersion(summ, targVer, "3")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningConsumeCard;
 		}
+		if (cd.use(CArg.CARD_SPEED) && c.cardSpeed != -1 && !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
+			r ~= prop.msgs.warningCardAnimationSpeed;
+		}
 	}
 	return r;
 }

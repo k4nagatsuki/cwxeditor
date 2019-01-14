@@ -1347,6 +1347,7 @@ enum CArg {
 	CONSUME_CARD, /// 使用中のカードを消費する(Wsn.3)。
 	INVERT_RESULT, /// 条件に合わない場合に成功とする(Wsn.4)。
 	CARD_SPEED, /// カードアニメーション速度(Wsn.4)。
+	OVERRIDE_CARD_SPEED, /// 速度設定をカード本体の設定より優先する(Wsn.4)。
 }
 
 /// 後続コンテントのnameの型。

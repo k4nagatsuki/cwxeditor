@@ -897,6 +897,10 @@ private:
 			return _summ.beasts.length > 0;
 		case CType.LOSE_BEAST: mixin(S_TRACE);
 			return _summ.beasts.length > 0 || !_summ.legacy;
+		case CType.SHOW_PARTY: mixin(S_TRACE);
+			return !_summ.legacy;
+		case CType.HIDE_PARTY: mixin(S_TRACE);
+			return !_summ.legacy;
 		case CType.REDISPLAY: mixin(S_TRACE);
 			return !_summ.legacy;
 		case CType.CHECK_STEP: mixin(S_TRACE);

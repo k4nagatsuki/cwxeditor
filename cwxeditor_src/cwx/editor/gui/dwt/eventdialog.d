@@ -32,6 +32,7 @@ import cwx.editor.gui.dwt.materialselect;
 import cwx.editor.gui.dwt.motionview;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.absdialog;
+import cwx.editor.gui.dwt.spcarddialog;
 import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.incsearch;
@@ -2084,6 +2085,9 @@ private:
 				ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(CType.CHECK_STEP), "1.50");
 			}
 		}
+		static if (is(typeof(_cardSpeed))) {
+			ws ~= _cardSpeed.warnings;
+		}
 		warning = ws;
 	}
 
@@ -2094,6 +2098,9 @@ private:
 	FlagChooser!(F, false) _flags;
 	string _oldSel = "";
 	Table _values;
+	static if (Type is CType.SET_FLAG || Type is CType.REVERSE_FLAG) {
+		CardAnimationPanel _cardSpeed;
+	}
 
 	@property
 	uint selectedValue() { mixin(S_TRACE);
@@ -2286,6 +2293,12 @@ protected:
 				_cmps ~= cmp;
 			}
 		}
+		static if (is(typeof(_cardSpeed))) {
+			_cardSpeed = new CardAnimationPanel(comm, summ, area, CardAnimationPanelType.SetFlag);
+			mod(_cardSpeed);
+			_cardSpeed.modEvent ~= &refreshWarning;
+			_cardSpeed.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+		}
 
 		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
 			_comm.refFlagAndStep.add(&refFS);
@@ -2317,15 +2330,23 @@ protected:
 			static if (Type is CType.CHECK_STEP) {
 				_cmp.select(cast(int)_cmps.countUntil(_evt.comparison4));
 			}
+			static if (is(typeof(_cardSpeed))) {
+				_cardSpeed.speed = _evt.cardSpeed;
+				_cardSpeed.overrideCardSpeed = _evt.overrideCardSpeed;
+			}
 		} else { mixin(S_TRACE);
 			_flags.selected = "";
 			refreshValues();
 			static if (Type is CType.CHECK_STEP) {
 				_cmp.select(0);
 			}
+			static if (is(typeof(_cardSpeed))) {
+				_cardSpeed.speed = -1;
+				_cardSpeed.overrideCardSpeed = false;
+			}
 		}
 		updateLabel();
-		refreshWarning();
+		refDataVersion();
 		.setupWeights(_sash, _prop.var.etc.flagEventSashL, _prop.var.etc.flagEventSashR);
 	}
 
@@ -2346,6 +2367,10 @@ protected:
 		}
 		static if (Type is CType.CHECK_STEP) {
 			_evt.comparison4 = _cmps[_cmp.getSelectionIndex()];
+	}
+		static if (is(typeof(_cardSpeed))) {
+			_evt.cardSpeed = _cardSpeed.speed;
+			_evt.overrideCardSpeed = _cardSpeed.overrideCardSpeed;
 		}
 		return true;
 	}
@@ -2370,6 +2395,9 @@ private:
 	SplitPane _sash;
 	FlagChooser!(F, false, Random) _flags1;
 	FlagChooser!(F, false, false) _flags2;
+	static if (Type is CType.SUBSTITUTE_FLAG) {
+		CardAnimationPanel _cardSpeed;
+	}
 
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
@@ -2381,6 +2409,9 @@ private:
 			if (.icmp(_flags1.selected, prop.sys.selectedPlayerCardNumber) == 0 && !prop.isTargetVersion(summ, "2")) { mixin(S_TRACE);
 				ws ~= _prop.msgs.warningSelectedPlayerValue;
 			}
+		}
+		static if (is(typeof(_cardSpeed))) {
+			ws ~= _cardSpeed.warnings;
 		}
 		warning = ws;
 	}
@@ -2452,6 +2483,13 @@ protected:
 		_flags2.setLayoutData(new GridData(GridData.FILL_BOTH));
 		_flags2.modEvent ~= &applyEnabled;
 
+		static if (is(typeof(_cardSpeed))) {
+			_cardSpeed = new CardAnimationPanel(comm, summ, area, CardAnimationPanelType.SetFlag);
+			mod(_cardSpeed);
+			_cardSpeed.modEvent ~= &refreshWarning;
+			_cardSpeed.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+		}
+
 		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
 			_comm.delFlagAndStep.add(&delFS);
 			_sash.addDisposeListener(new Dispose);
@@ -2469,11 +2507,19 @@ protected:
 			} else { mixin(S_TRACE);
 				static assert (0);
 			}
+			static if (is(typeof(_cardSpeed))) {
+				_cardSpeed.speed = _evt.cardSpeed;
+				_cardSpeed.overrideCardSpeed = _evt.overrideCardSpeed;
+			}
 		} else { mixin(S_TRACE);
 			_flags1.selected = "";
 			_flags2.selected = "";
+			static if (is(typeof(_cardSpeed))) {
+				_cardSpeed.speed = -1;
+				_cardSpeed.overrideCardSpeed = false;
+			}
 		}
-		refreshWarning();
+		refDataVersion();
 		.setupWeights(_sash, _prop.var.etc.flagCombiSashL, _prop.var.etc.flagCombiSashR);
 	}
 
@@ -2487,6 +2533,10 @@ protected:
 			_evt.step2 = _flags2.selected;
 		} else { mixin(S_TRACE);
 			static assert (0);
+		}
+		static if (is(typeof(_cardSpeed))) {
+			_evt.cardSpeed = _cardSpeed.speed;
+			_evt.overrideCardSpeed = _cardSpeed.overrideCardSpeed;
 		}
 		return true;
 	}
@@ -3391,6 +3441,52 @@ alias CardEventDialog!(CType.LOSE_SKILL, SkillCard, "_summ.skills", true, Range.
 alias CardEventDialog!(CType.LOSE_ITEM, ItemCard, "_summ.items", true, Range.FIELD) LostItemDialog;
 alias CardEventDialog!(CType.LOSE_BEAST, BeastCard, "_summ.beasts", true, Range.FIELD) LostBeastDialog;
 
+/// パーティ表示・隠蔽イベントの設定を行うダイアログ。
+class ShowHidePartyDialog : EventDialog {
+private:
+	CardAnimationPanel _cardSpeed;
+
+	override
+	protected void refreshWarning() { mixin(S_TRACE);
+		string[] ws;
+		ws ~= _cardSpeed.warnings;
+		warning = ws;
+	}
+
+public:
+	this (CType type, Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
+		super (comm, prop, shell, summ, type, parent, evt, false, null, true);
+	}
+protected:
+	override void setup(Composite area) { mixin(S_TRACE);
+		area.setLayout(normalGridLayout(1, false));
+		{ mixin(S_TRACE);
+			auto grp = new Group(area, SWT.NONE);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setText(prop.msgs.cardSpeed);
+			grp.setLayout(new CenterLayout);
+			_cardSpeed = new CardAnimationPanel(comm, summ, grp, CardAnimationPanelType.MenuCard);
+			mod(_cardSpeed);
+			_cardSpeed.modEvent ~= &refreshWarning;
+		}
+
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
+		if (_evt) { mixin(S_TRACE);
+			_cardSpeed.speed = _evt.cardSpeed;
+		} else { mixin(S_TRACE);
+			_cardSpeed.speed = -1;
+		}
+		refreshWarning();
+	}
+
+	override bool apply() { mixin(S_TRACE);
+		if (!_evt) _evt = new Content(type, "");
+		_evt.cardSpeed = _cardSpeed.speed;
+		return true;
+	}
+}
+
 /// 画面再構築イベントの設定を行うダイアログ。
 class RefreshDialog : EventDialog {
 private:
@@ -4005,14 +4101,14 @@ protected:
 	}
 }
 
-private void createPositionOrSizePanel(Props prop, AbsDialog dlg, Composite area, GridData gd, string name, ref Button[CoordinateType] type, ref Spinner x, ref Spinner y, ref void delegate() updateEnabled, int max1, int max2) { mixin(S_TRACE);
+private void createPositionOrSizePanel(Props prop, AbsDialog dlg, Composite area, GridData gd, string name, ref Button[CoordinateType] type, ref Spinner x, ref Spinner y, ref void delegate() updateEnabled, int max1, int max2, bool verticalLayout) { mixin(S_TRACE);
 	auto grp = new Group(area, SWT.NONE);
 	grp.setLayoutData(gd);
 	grp.setText(name);
 	grp.setLayout(new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0));
 
 	auto comp = new Composite(grp, SWT.NONE);
-	comp.setLayout(normalGridLayout(4, false));
+	comp.setLayout(normalGridLayout(verticalLayout ? 2 : 4, false));
 
 	updateEnabled = { mixin(S_TRACE);
 		auto p = !type[CoordinateType.None].getSelection();
@@ -4025,7 +4121,7 @@ private void createPositionOrSizePanel(Props prop, AbsDialog dlg, Composite area
 		radio.setText(prop.msgs.coordinateTypeName(ct));
 		.listener(radio, SWT.Selection, updateEnabled);
 		auto gd = new GridData;
-		gd.horizontalSpan = 4;
+		gd.horizontalSpan = verticalLayout ? 2 : 4;
 		radio.setLayoutData(gd);
 		type[ct] = radio;
 	}
@@ -4099,10 +4195,10 @@ protected:
 		void delegate() updateEnabledSize;
 		createPositionOrSizePanel(prop, this, area, new GridData(GridData.FILL_BOTH),
 			prop.msgs.moveCell, _positionType, _x, _y,
-			updateEnabledPosition, prop.var.etc.posLeftMax, prop.var.etc.posTopMax);
+			updateEnabledPosition, prop.var.etc.posLeftMax, prop.var.etc.posTopMax, false);
 		createPositionOrSizePanel(prop, this, area, new GridData(GridData.FILL_BOTH),
 			prop.msgs.resizeCell, _sizeType, _w, _h,
-			updateEnabledSize, prop.var.etc.backWidthMax, prop.var.etc.backHeightMax);
+			updateEnabledSize, prop.var.etc.backWidthMax, prop.var.etc.backHeightMax, false);
 
 		{ mixin(S_TRACE);
 			_transition = new TransitionPanel(comm, summ, area, true, _evt, this);
@@ -4182,6 +4278,7 @@ private:
 	Spinner _layer;
 	Button _changeScale;
 	Spinner _scale;
+	CardAnimationPanel _cardSpeed;
 
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
@@ -4190,6 +4287,7 @@ private:
 		if (!_prop.isTargetVersion(summ, "3")) { mixin(S_TRACE);
 			ws ~= .tryFormat(_prop.msgs.warningUnknownContentWsn, _prop.msgs.contentName(CType.MOVE_CARD), "3");
 		}
+		ws ~= _cardSpeed.warnings;
 		warning = ws;
 	}
 
@@ -4204,7 +4302,7 @@ public:
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(normalGridLayout(2, true));
+		area.setLayout(normalGridLayout(2, false));
 
 		{ mixin(S_TRACE);
 			auto grp = new Group(area, SWT.NONE);
@@ -4223,8 +4321,8 @@ protected:
 		void delegate() updateEnabledPosition;
 		{ mixin(S_TRACE);
 			auto gd = new GridData(GridData.FILL_BOTH);
-			gd.verticalSpan = 2;
-			createPositionOrSizePanel(prop, this, area, gd, prop.msgs.moveCard, _positionType, _x, _y, updateEnabledPosition, prop.var.etc.posLeftMax, prop.var.etc.posTopMax);
+			gd.verticalSpan = 3;
+			createPositionOrSizePanel(prop, this, area, gd, prop.msgs.moveCard, _positionType, _x, _y, updateEnabledPosition, prop.var.etc.posLeftMax, prop.var.etc.posTopMax, true);
 		}
 
 		{ mixin(S_TRACE);
@@ -4287,6 +4385,16 @@ protected:
 		lgd.widthHint = lsw;
 		_changeLayer.setLayoutData(lgd);
 
+		{ mixin(S_TRACE);
+			auto grp = new Group(area, SWT.NONE);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setText(prop.msgs.cardSpeed);
+			grp.setLayout(new CenterLayout);
+			_cardSpeed = new CardAnimationPanel(comm, summ, grp, CardAnimationPanelType.MoveCard);
+			mod(_cardSpeed);
+			_cardSpeed.modEvent ~= &refreshWarning;
+		}
+
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_evt) { mixin(S_TRACE);
@@ -4298,6 +4406,8 @@ protected:
 			_scale.setSelection(_evt.scale == -1 ? 100 : _evt.scale);
 			_changeLayer.setSelection(_evt.layer != -1);
 			_layer.setSelection(_evt.layer == -1 ? LAYER_MENU_CARD : _evt.layer);
+			_cardSpeed.speed = _evt.cardSpeed;
+			_cardSpeed.overrideCardSpeed = _evt.overrideCardSpeed;
 		} else { mixin(S_TRACE);
 			_cardGroup.setText("");
 			_positionType[CoordinateType.None].setSelection(true);
@@ -4307,6 +4417,8 @@ protected:
 			_scale.setSelection(100);
 			_changeLayer.setSelection(false);
 			_layer.setSelection(LAYER_MENU_CARD);
+			_cardSpeed.speed = -1;
+			_cardSpeed.overrideCardSpeed = false;
 		}
 		updateEnabledPosition();
 		updateEnabled();
@@ -4321,6 +4433,8 @@ protected:
 		_evt.y = _y.getSelection();
 		_evt.scale = _changeScale.getSelection() ? _scale.getSelection() : -1;
 		_evt.layer = _changeLayer.getSelection() ? _layer.getSelection() : -1;
+		_evt.cardSpeed = _cardSpeed.speed;
+		_evt.overrideCardSpeed = _cardSpeed.overrideCardSpeed;
 		return true;
 	}
 }

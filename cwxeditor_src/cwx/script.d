@@ -2537,6 +2537,10 @@ fi`;
 				i++;
 				return -1; // スケール・レイヤ用
 			}
+			if (attr[i].token.kind is Kind.SYMBOL && value == "default") { mixin(S_TRACE);
+				i++;
+				return -1; // カード速度用
+			}
 			try { mixin(S_TRACE);
 				auto r = to!(int)(value);
 				i++;
@@ -3058,6 +3062,12 @@ fi`;
 			}
 			if (detail.use(CArg.CONSUME_CARD)) { mixin(S_TRACE);
 				c.consumeCard = parseAttr!(bool)(opt, node.attr, i, c.consumeCard, varTable, 0);
+			}
+			if (detail.use(CArg.CARD_SPEED)) { mixin(S_TRACE);
+				c.cardSpeed = parseAttr!(int)(opt, node.attr, i, c.cardSpeed, varTable, 0);
+			}
+			if (detail.use(CArg.OVERRIDE_CARD_SPEED)) { mixin(S_TRACE);
+				c.overrideCardSpeed = parseAttr!(bool)(opt, node.attr, i, c.overrideCardSpeed, varTable, 0);
 			}
 			Content autoWrap(Content c) { mixin(S_TRACE);
 				if (_autoWrap <= stack) { mixin(S_TRACE);
@@ -4038,6 +4048,17 @@ fi`;
 			if (detail.use(CArg.CONSUME_CARD)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.consumeCard, indentValue, vars);
 			}
+			if (detail.use(CArg.CARD_SPEED)) { mixin(S_TRACE);
+				if (c.cardSpeed == -1) { mixin(S_TRACE);
+					attrs ~= "default";
+				} else { mixin(S_TRACE);
+					attrs ~= toAttr(c.cardSpeed, indentValue, vars);
+				}
+			}
+			if (detail.use(CArg.OVERRIDE_CARD_SPEED)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.overrideCardSpeed, indentValue, vars);
+			}
+
 			bool useIf = c.next.length > 1;
 			bool useSif = c.next.length == 1 && c.next[0].name.length;
 			if (!useIf) { mixin(S_TRACE);
