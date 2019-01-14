@@ -83,11 +83,12 @@ private:
 	int _layer = LAYER_MENU_CARD;
 	FlagUser _user;
 	CardGroupUser _cardGroup;
+	int _animationSpeed = -1;
 
 public:
 
 	/// 唯一のコンストラクタ。
-	this (string flag, int x, int y, uint scale, int layer, string cardGroup) { mixin(S_TRACE);
+	this (string flag, int x, int y, uint scale, int layer, string cardGroup, int animationSpeed) { mixin(S_TRACE);
 		_user = new FlagUser(this);
 		_user.flag = flag;
 		_x = x;
@@ -96,6 +97,7 @@ public:
 		_layer = layer;
 		_cardGroup = new CardGroupUser(this);
 		_cardGroup.cardGroup = cardGroup;
+		_animationSpeed = animationSpeed;
 	}
 	/// このカードの所属先を返す。
 	@property
@@ -203,6 +205,18 @@ public:
 		return _cardGroup.cardGroup;
 	}
 
+	/// アニメーション速度(Wsn.4)。0～10で、小さい方が速い。
+	/// -1ならエンジン設定に従う。
+	@property
+	const
+	int animationSpeed() { return _animationSpeed; }
+	/// ditto
+	@property
+	void animationSpeed(int v) { mixin(S_TRACE);
+		if (_animationSpeed != v) changed();
+		_animationSpeed = v;
+	}
+
 	/// このカードと強く関係するリソースを返す。
 	/// そのようなリソースが無い場合はnullを返す。
 	inout
@@ -247,15 +261,17 @@ public:
 		pNode.newElement("Size").newAttr("scale", to!(string)(_scale) ~ "%");
 		if (layer != LAYER_MENU_CARD) pNode.newElement("Layer", layer);
 		if (cardGroup != "") pNode.newElement("CardGroup", cardGroup);
+		if (animationSpeed != -1) pNode.newElement("DealingSpeed", animationSpeed);
 	}
 	/// 指定されたノードからProperty情報を読み出す。
-	protected static void loadProp(ref XNode pNode, out string flag, out int x, out int y, out uint scale, out int layer, out string cardGroup) { mixin(S_TRACE);
+	protected static void loadProp(ref XNode pNode, out string flag, out int x, out int y, out uint scale, out int layer, out string cardGroup, out int animationSpeed) { mixin(S_TRACE);
 		flag = "";
 		x = 0;
 		y = 0;
 		scale = 100;
 		layer = LAYER_MENU_CARD;
 		cardGroup = "";
+		animationSpeed = -1;
 		assert (pNode.name == "Property", pNode.name ~ " != Property");
 		pNode.onTag["Flag"] = (ref XNode n) {flag = n.value;};
 		pNode.onTag["Location"] = (ref XNode n) { mixin(S_TRACE);
@@ -276,6 +292,13 @@ public:
 		pNode.onTag["CardGroup"] = (ref XNode n) { mixin(S_TRACE);
 			cardGroup = n.value;
 		};
+		pNode.onTag["DealingSpeed"] = (ref XNode n) { mixin(S_TRACE);
+			if (n.value == "Default") { mixin(S_TRACE);
+				animationSpeed = -1;
+			} else { mixin(S_TRACE);
+				animationSpeed = n.valueTo!int;
+			}
+		};
 		pNode.parse();
 	}
 }
@@ -293,8 +316,8 @@ public:
 	static immutable XML_NAME_M = "EnemyCards";
 
 	/// 唯一のコンストラクタ。
-	this (ulong id, bool escape, string flag, int x, int y, uint scale, int layer, string cardGroup) { mixin(S_TRACE);
-		super(flag, x, y, scale, layer, cardGroup);
+	this (ulong id, bool escape, string flag, int x, int y, uint scale, int layer, string cardGroup, int animationSpeed) { mixin(S_TRACE);
+		super(flag, x, y, scale, layer, cardGroup, animationSpeed);
 		_user = new CastUser(this);
 		_user.casts = id;
 		_escape = escape;
@@ -310,7 +333,7 @@ public:
 	const
 	override
 	AbstractSpCard dup() {
-		auto r = new EnemyCard(id, escape, flag, x, y, scale, layer, cardGroup);
+		auto r = new EnemyCard(id, escape, flag, x, y, scale, layer, cardGroup, animationSpeed);
 		r.deepCopyEventTreeOwner(this);
 		return r;
 	}
@@ -387,7 +410,7 @@ public:
 			cNode.onTag["Property"] = (ref XNode pNode) { mixin(S_TRACE);
 				string idStr = pNode.childText("Id", false);
 				if (idStr) { mixin(S_TRACE);
-					cards ~= new EnemyCard(to!(ulong)(idStr), false, "", 0, 0, 100, LAYER_MENU_CARD, "");
+					cards ~= new EnemyCard(to!(ulong)(idStr), false, "", 0, 0, 100, LAYER_MENU_CARD, "", -1);
 				}
 			};
 			cNode.parse();
@@ -435,6 +458,7 @@ public:
 		uint scale = 100;
 		int layer = LAYER_MENU_CARD;
 		string cardGroup = "";
+		int animationSpeed = -1;
 		EventTree[] evt;
 
 		auto escStr = node.attr("escape", false);
@@ -444,14 +468,14 @@ public:
 				id = to!(ulong)(n.value);
 				getId = true;
 			};
-			loadProp(pNode, flag, x, y, scale, layer, cardGroup);
+			loadProp(pNode, flag, x, y, scale, layer, cardGroup, animationSpeed);
 		};
 		node.onTag["Events"] = (ref XNode node) { mixin(S_TRACE);
 			evt = loadEventsFromNode(node, ver);
 		};
 		node.parse();
 		if (!getId) throw new AreaException("EnemyCard ID not found");
-		auto r = new EnemyCard(id, escape, flag, x, y, scale, layer, cardGroup);
+		auto r = new EnemyCard(id, escape, flag, x, y, scale, layer, cardGroup, animationSpeed);
 		r.addAll(evt);
 
 		return r;
@@ -483,9 +507,10 @@ public:
 	/// scale = スケール(%)。
 	/// layer = 表示レイヤ。
 	/// cardGroup = 所属カードグループ。
+	/// animationSpeed = アニメーション速度(最速0～最遅10)。-1ならエンジン設定に従う。
 	this (string name, in CardImage[] paths, string desc, string flag,
-			int x, int y, int scale, int layer, string cardGroup) { mixin(S_TRACE);
-		super(flag, x, y, scale, layer, cardGroup);
+			int x, int y, int scale, int layer, string cardGroup, int animationSpeed) { mixin(S_TRACE);
+		super(flag, x, y, scale, layer, cardGroup, animationSpeed);
 		this.paths = paths;
 		_name = name;
 		_desc = desc;
@@ -501,7 +526,7 @@ public:
 	const
 	override
 	AbstractSpCard dup() { mixin(S_TRACE);
-		auto r = new MenuCard(name, paths, desc, flag, x, y, scale, layer, cardGroup);
+		auto r = new MenuCard(name, paths, desc, flag, x, y, scale, layer, cardGroup, animationSpeed);
 		r.deepCopyEventTreeOwner(this);
 		return r;
 	}
@@ -625,7 +650,7 @@ public:
 			}
 			pNode.parse();
 			if (!create) return null;
-			return new MenuCard(name, paths, desc, "", 0, 0, 100, LAYER_MENU_CARD, "");
+			return new MenuCard(name, paths, desc, "", 0, 0, 100, LAYER_MENU_CARD, "", -1);
 		}
 		auto pNode = node.child("Property", false);
 		if (pNode.valid) { mixin(S_TRACE);
@@ -682,20 +707,21 @@ public:
 		uint scale = 100;
 		int layer = LAYER_MENU_CARD;
 		string cardGroup = "";
+		int animationSpeed = -1;
 		EventTree[] evt;
 
 		node.onTag["Property"] = (ref XNode pNode) { mixin(S_TRACE);
 			pNode.onTag["Name"] = (ref XNode n) { name = n.value; };
 			CardImage.setOnTag(pNode, paths);
 			pNode.onTag["Description"] = (ref XNode n) { desc = decodeLf2(n.value); };
-			loadProp(pNode, flag, x, y, scale, layer, cardGroup);
+			loadProp(pNode, flag, x, y, scale, layer, cardGroup, animationSpeed);
 		};
 		node.onTag["Events"] = (ref XNode node) { mixin(S_TRACE);
 			evt = loadEventsFromNode(node, ver);
 		};
 		node.parse();
 		if (name is null) name = "";
-		auto r = new MenuCard(name, paths, desc, flag, x, y, scale, layer, cardGroup);
+		auto r = new MenuCard(name, paths, desc, flag, x, y, scale, layer, cardGroup, animationSpeed);
 		r.addAll(evt);
 
 		return r;

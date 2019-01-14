@@ -573,6 +573,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		this.signedLevel = c.signedLevel;
 		this.successRate = c.successRate;
 		this.transitionSpeed = c.transitionSpeed;
+		this.cardSpeed = c.cardSpeed;
 		this.percent = c.percent;
 		this.flagValue = c.flagValue;
 		this.stepValue = c.stepValue;
@@ -732,6 +733,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			&& (!d.use(CArg.SIGNED_LEVEL) || signedLevel == c.signedLevel)
 			&& (!d.use(CArg.SUCCESS_RATE) || successRate == c.successRate)
 			&& (!d.use(CArg.TRANSITION_SPEED) || transitionSpeed == c.transitionSpeed)
+			&& (!d.use(CArg.CARD_SPEED) || cardSpeed == c.cardSpeed)
 			&& (!d.use(CArg.PERCENT) || percent == c.percent)
 			&& (!d.use(CArg.FLAG_VALUE) || flagValue == c.flagValue)
 			&& (!d.use(CArg.STEP_VALUE) || stepValue == c.stepValue)
@@ -1022,6 +1024,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.SIGNED_LEVEL, int, 0)(d, od, &signedLevel, base, base.signedLevel);
 		resetValue!(CArg.SUCCESS_RATE, int, 5)(d, od, &successRate, base, base.successRate);
 		resetValue!(CArg.TRANSITION_SPEED, int, 5u)(d, od, &transitionSpeed, base, base.transitionSpeed);
+		resetValue!(CArg.CARD_SPEED, int, -1)(d, od, &cardSpeed, base, base.cardSpeed);
 		resetValue!(CArg.PERCENT, int, 50u)(d, od, &percent, base, base.percent);
 		resetValue!(CArg.FLAG_VALUE, bool, true)(d, od, &flagValue, base, base.flagValue);
 		resetValue!(CArg.STEP_VALUE, int, 0)(d, od, &stepValue, base, base.stepValue);
@@ -1992,6 +1995,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// 背景切替スピード。0～10で、0はアニメーション無しと等価。
 	mixin Prop!(int, "transitionSpeed", 5u);
 	mixin MaxMin!(int, "transitionSpeed", 10, 0);
+	/// カードスピード(Wsn.4)。0～10で、小さいほど速い。
+	/// -1でエンジンの設定に従う。
+	mixin Prop!(int, "cardSpeed", -1);
+	mixin MaxMin!(int, "cardSpeed", 10, -1);
 	/// 百分率値。
 	mixin Prop!(int, "percent", 50u);
 	mixin MaxMin!(int, "percent", 100, 0);
@@ -2603,6 +2610,11 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			e.newElement("KeyCodes", encodeLf(keyCodes, false));
 		}
 
+		if (cardSpeed != -1) { mixin(S_TRACE);
+			// -1は未指定。エンジンの設定に従う。あえて指定する場合の値はDefaultとなる。
+			atnPut!(CArg.CARD_SPEED, "cardSpeed", "")(e, d);
+		}
+
 		// Wsn.2以降はキーコード所持分岐の探索対象を複数選択可能になった
 		if (type is CType.BRANCH_KEY_CODE) { mixin(S_TRACE);
 			// Wsn.1以前のために"effectCardType"も付加しておく
@@ -2694,6 +2706,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		id = en.attr("contentId", false);
 		return createFromNode(en, ver);
 	}
+	/// デフォルト値指定無し。
 	private static bool cfnPut(CArg ARG, string Name, string To)(in XNode en, in CDetail d, ref Content c) { mixin(S_TRACE);
 		if (d.use(ARG)) { mixin(S_TRACE);
 			auto name = d.attr(ARG);
@@ -2704,6 +2717,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		}
 		return false;
 	}
+	/// デフォルト値指定あり。
 	private static bool cfnPutD(CArg ARG, string Name, string To, alias DefValue)(in XNode en, in CDetail d, ref Content c) { mixin(S_TRACE);
 		if (d.use(ARG)) { mixin(S_TRACE);
 			auto name = d.attr(ARG);
@@ -2884,6 +2898,17 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 				if (dlgs.length == 0) dlgs ~= new SDialog;
 				r.dialogs = dlgs;
 			};
+		}
+		if (d.use(CArg.CARD_SPEED)) { mixin(S_TRACE);
+			// Defaultまたは0～10
+			auto attrName = d.attr(CArg.CARD_SPEED);
+			if (en.hasAttr(attrName)) { mixin(S_TRACE);
+				if (en.attr!string(attrName, true) == "Default") { mixin(S_TRACE);
+					r.cardSpeed = -1;
+				} else { mixin(S_TRACE);
+					r.cardSpeed = en.attr!int(attrName, true);
+				}
+			}
 		}
 
 		Target loadTarget(bool canSleep = true) { mixin(S_TRACE);

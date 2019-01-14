@@ -2,34 +2,35 @@
 module cwx.editor.gui.dwt.spcarddialog;
 
 import cwx.area;
-import cwx.flag;
-import cwx.utils;
-import cwx.summary;
 import cwx.card;
-import cwx.menu;
-import cwx.types;
-import cwx.path;
+import cwx.event;
+import cwx.flag;
 import cwx.imagesize;
+import cwx.menu;
+import cwx.path;
 import cwx.skin;
-import cwx.xml;
+import cwx.summary;
+import cwx.types;
+import cwx.utils;
 import cwx.warning;
+import cwx.xml;
 
 import cwx.editor.gui.sound;
 
+import cwx.editor.gui.dwt.absdialog;
+import cwx.editor.gui.dwt.centerlayout;
+import cwx.editor.gui.dwt.chooser;
+import cwx.editor.gui.dwt.commons;
+import cwx.editor.gui.dwt.customtable;
+import cwx.editor.gui.dwt.customtext;
+import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.dutils;
-import cwx.editor.gui.dwt.materialselect;
 import cwx.editor.gui.dwt.imageselect;
-import cwx.editor.gui.dwt.customtext;
-import cwx.editor.gui.dwt.customtable;
-import cwx.editor.gui.dwt.centerlayout;
-import cwx.editor.gui.dwt.commons;
-import cwx.editor.gui.dwt.absdialog;
-import cwx.editor.gui.dwt.splitpane;
-import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.incsearch;
-import cwx.editor.gui.dwt.chooser;
+import cwx.editor.gui.dwt.materialselect;
+import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 
 import std.conv;
@@ -50,6 +51,7 @@ private:
 	C _card;
 
 	Combo _cardGroup;
+	CardAnimationPanel _animationSpeed = null;
 
 	Skin _summSkin;
 	@property
@@ -73,6 +75,7 @@ private:
 		if (_summ && _cardGroup.getText() != "" && !_prop.isTargetVersion(_summ, "3")) { mixin(S_TRACE);
 			ws ~= _prop.msgs.warningCardGroup;
 		}
+		ws ~= _animationSpeed.warnings;
 		warning = ws;
 	}
 	void refDataVersion() { mixin(S_TRACE);
@@ -480,15 +483,28 @@ protected:
 				}
 			}
 			{ mixin(S_TRACE);
-				auto grp = new Group(comp, SWT.NONE);
-				grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-				grp.setLayout(normalGridLayout(1, true));
-				grp.setText(_prop.msgs.cardGroup);
-				_cardGroup = createCardGroupCombo(_comm, _summ, grp, &catchMod, _card ? _card.cardGroup : "");
-				mod(_cardGroup);
-				_cardGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-				.listener(_cardGroup, SWT.Selection, &refDataVersion);
-				.listener(_cardGroup, SWT.Modify, &refDataVersion);
+				auto bottomComp = new Composite(comp, SWT.NONE);
+				bottomComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				bottomComp.setLayout(zeroMarginGridLayout(2, false));
+				{ mixin(S_TRACE);
+					auto grp = new Group(bottomComp, SWT.NONE);
+					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+					grp.setLayout(normalGridLayout(1, true));
+					grp.setText(_prop.msgs.cardGroup);
+					_cardGroup = createCardGroupCombo(_comm, _summ, grp, &catchMod, _card ? _card.cardGroup : "");
+					mod(_cardGroup);
+					_cardGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+					.listener(_cardGroup, SWT.Selection, &refDataVersion);
+					.listener(_cardGroup, SWT.Modify, &refDataVersion);
+				}
+				{ mixin(S_TRACE);
+					auto grp = new Group(bottomComp, SWT.NONE);
+					grp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
+					grp.setLayout(normalGridLayout(1, true));
+					grp.setText(_prop.msgs.cardSpeed);
+					_animationSpeed = new CardAnimationPanel(_comm, _summ, grp);
+					mod(_animationSpeed);
+				}
 			}
 			comp.setLayoutData(area.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		}
@@ -539,6 +555,7 @@ protected:
 			_scale.setSelection(_card.scale);
 			_layer.setSelection(_card.layer);
 			_cardGroup.setText(_card.cardGroup);
+			_animationSpeed.speed = _card.animationSpeed;
 		} else { mixin(S_TRACE);
 			static if (is (C == MenuCard)) {
 				_imgPath.images = [];
@@ -560,7 +577,8 @@ protected:
 			_scale.setSelection(100);
 			_layer.setSelection(LAYER_MENU_CARD);
 			_cardGroup.setText("");
-		}
+			_animationSpeed.speed = -1;
+	}
 		refDataVersion();
 	}
 
@@ -589,6 +607,7 @@ protected:
 					_comm.refCardGroups.call();
 				}
 			}
+			_card.animationSpeed = _animationSpeed.speed;
 		} else { mixin(S_TRACE);
 			static if (is (C == MenuCard)) {
 				auto images = _imgPath.materialPath(forceApplying);
@@ -597,12 +616,12 @@ protected:
 					wrapReturnCode(_desc.getText()), _flag.selected,
 					_x.getSelection(), _y.getSelection(),
 					_scale.getSelection(), _layer.getSelection(),
-					_cardGroup.getText());
+					_cardGroup.getText(), _animationSpeed.speed);
 			} else static if (is (C == EnemyCard)) {
 				_card = new C(_selectedID, _escape.getSelection(),
 					_flag.selected, _x.getSelection(), _y.getSelection(),
 					_scale.getSelection(), _layer.getSelection(),
-					_cardGroup.getText());
+					_cardGroup.getText(), _animationSpeed.speed);
 			} else { mixin(S_TRACE);
 				static assert (0);
 			}
@@ -619,5 +638,69 @@ protected:
 		} else static assert (0);
 		getShell().setText(text);
 		return true;
+	}
+}
+
+/// カード速度の設定を行うパネル。
+class CardAnimationPanel : Composite {
+	void delegate()[] modEvent;
+	private void raiseModEvent() { mixin(S_TRACE);
+		foreach (dlg; modEvent) dlg();
+	}
+
+	private Commons _comm;
+	private const Summary _summ;
+
+	private Button _overwrite;
+	private Spinner _speed;
+
+	string[] warnings() { mixin(S_TRACE);
+		string[] ws;
+		if (_overwrite.getSelection() && _comm.prop.isTargetVersion(_summ, "4")) { mixin(S_TRACE);
+			ws ~= _comm.prop.msgs.warningCardAnimationSpeed;
+		}
+		return ws;
+	}
+
+	private void updateEnabled() { mixin(S_TRACE);
+		_overwrite.setEnabled(!_summ || !_summ.legacy || _overwrite.getSelection());
+		_speed.setEnabled(_overwrite.getSelection());
+	}
+
+	this (Commons comm, Summary summ, Composite parent) { mixin(S_TRACE);
+		super (parent, SWT.NONE);
+		_comm = comm;
+		_summ = summ;
+		this.setLayout(zeroMarginGridLayout(3, false));
+
+		_overwrite = new Button(this, SWT.CHECK);
+		_overwrite.setText(comm.prop.msgs.overwriteAnimationSpeed);
+		.listener(_overwrite, SWT.Selection, &updateEnabled);
+		.listener(_overwrite, SWT.Selection, &raiseModEvent);
+
+		_speed = new Spinner(this, SWT.BORDER);
+		initSpinner(_speed);
+		_speed.setMaximum(Content.cardSpeed_max);
+		_speed.setMinimum(0);
+		.listener(_speed, SWT.Selection, &raiseModEvent);
+		auto hint = new Label(this, SWT.NONE);
+		hint.setText(.tryFormat(comm.prop.msgs.rangeHint, 0, Content.cardSpeed_max));
+
+		updateEnabled();
+		comm.refDataVersion.add(&updateEnabled);
+		.listener(this, SWT.Dispose, { mixin(S_TRACE);
+			comm.refDataVersion.remove(&updateEnabled);
+		});
+	}
+
+	@property
+	void speed(int value) { mixin(S_TRACE);
+		_overwrite.setSelection(value != -1);
+		_speed.setSelection(value == -1 ? (Content.cardSpeed_max - 0) / 2 : value);
+		updateEnabled();
+	}
+	@property
+	int speed() { mixin(S_TRACE);
+		return _overwrite.getSelection() ? _speed.getSelection() : -1;
 	}
 }

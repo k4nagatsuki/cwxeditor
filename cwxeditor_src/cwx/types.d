@@ -1345,7 +1345,8 @@ enum CArg {
 	SCALE, /// スケール(Wsn.3)。
 	LAYER, /// レイヤ(Wsn.3)。
 	CONSUME_CARD, /// 使用中のカードを消費する(Wsn.3)。
-	INVERT_RESULT, /// 条件に合わない場合に成功とする(Wsn.3)。
+	INVERT_RESULT, /// 条件に合わない場合に成功とする(Wsn.4)。
+	CARD_SPEED, /// カードアニメーション速度(Wsn.4)。
 }
 
 /// 後続コンテントのnameの型。

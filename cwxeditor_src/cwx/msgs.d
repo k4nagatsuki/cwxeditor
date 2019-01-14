@@ -549,6 +549,9 @@ class Msgs : Properties {
 	auto transitionNamePixelDissolve = Msg("transitionNamePixelDissolve", "ドット置換(シェーブ)式");
 	auto transitionNameFade = Msg("transitionNameFade", "色置換(フェード)式");
 	auto transitionSpeed = Msg("transitionSpeed", "背景切替ウェイト");
+	auto cardSpeed = Msg("cardSpeed", "アニメーション");
+	auto overwriteAnimationSpeed = Msg("overwriteAnimationSpeed", "速度を指定する");
+	auto warningCardAnimationSpeed = Msg("warningCardAnimationSpeed", "カードのアニメーション速度の指定はWsn.4以降の形式のシナリオでしか行えません。");
 	auto waitName = Msg("waitName", "空白時間(0.1秒単位)");
 	auto moneyName = Msg("moneyName", "金額");
 	auto randomName = Msg("randomName", "確率(%)");

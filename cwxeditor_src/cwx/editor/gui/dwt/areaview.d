@@ -579,9 +579,9 @@ private:
 				foreach (i; indices) { mixin(S_TRACE);
 					auto c = area.cards[i];
 					static if (is(C == MenuCard)) {
-						c = new C(c.name, c.paths, c.desc, c.flag, c.x, c.y, c.scale, c.layer, c.cardGroup);
+						c = new C(c.name, c.paths, c.desc, c.flag, c.x, c.y, c.scale, c.layer, c.cardGroup, c.animationSpeed);
 					} else static if (is(C == EnemyCard)) {
-						c = new C(c.id, c.escape, c.flag, c.x, c.y, c.scale, c.layer, c.cardGroup);
+						c = new C(c.id, c.escape, c.flag, c.x, c.y, c.scale, c.layer, c.cardGroup, c.animationSpeed);
 					} else static assert (0);
 					if (summ) c.setUseCounter(summ.useCounter.sub);
 					cs[i] = c;
@@ -4031,11 +4031,11 @@ public:
 				if (!_summ.casts.length) return;
 			}
 			static if (is(C : MenuCard)) {
-				auto c = new MenuCard("", [], "", "", 0, 0, 100, LAYER_MENU_CARD, "");
+				auto c = new MenuCard("", [], "", "", 0, 0, 100, LAYER_MENU_CARD, "", -1);
 			} else static if (is(C : EnemyCard)) {
 				if (!_summ) return;
 				if (_summ.casts.length == 0) return;
-				auto c = new EnemyCard(0, false, "", 0, 0, 100, LAYER_MENU_CARD, "");
+				auto c = new EnemyCard(0, false, "", 0, 0, 100, LAYER_MENU_CARD, "", -1);
 			} else static assert (0);
 			auto dlg = new SpCardDialog!(C)(_comm, _prop, getShell(), _summ, c, true);
 			dlg.appliedEvent ~= { mixin(S_TRACE);
@@ -5127,7 +5127,7 @@ public:
 						return -1;
 					}
 				}
-				auto card = new MenuCard(baseName(.stripExtension(fname)), fname.length ? [new CardImage(fname, CardImagePosition.Default)] : [], "", "", x, y, 100, LAYER_MENU_CARD, "");
+				auto card = new MenuCard(baseName(.stripExtension(fname)), fname.length ? [new CardImage(fname, CardImagePosition.Default)] : [], "", "", x, y, 100, LAYER_MENU_CARD, "", -1);
 				return appendCard(card, true, true, fromImgPane);
 			}
 			private class CLDropTarget : DropTargetAdapter {
