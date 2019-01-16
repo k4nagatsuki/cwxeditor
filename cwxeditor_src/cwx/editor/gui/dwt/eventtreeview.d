@@ -3669,6 +3669,7 @@ public:
 				path = cpbottom(path);
 				if (cpempty(path) || cpcategory(path) != "") { mixin(S_TRACE);
 					if (!cphasattr(path, "nofocus")) .forceFocus(_tree.control, shellActivate);
+					if (_tree.editor) _tree.editor.clearRestore();
 					_tree.select(itm);
 					_tree.showSelection();
 					refreshStatusLine();

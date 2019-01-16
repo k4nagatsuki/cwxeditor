@@ -1024,6 +1024,10 @@ class EventEditor : Composite {
 		_selectedIndex = indexOf(c);
 		redraw();
 	}
+	void clearRestore() { mixin(S_TRACE);
+		_restoreLine = false;
+	}
+
 	int indexOf(EventEditorItem itm) { mixin(S_TRACE);
 		if (!_et) return -1;
 		return cast(int).cCountUntil(_et.starts, cast(Content)itm.getData());
