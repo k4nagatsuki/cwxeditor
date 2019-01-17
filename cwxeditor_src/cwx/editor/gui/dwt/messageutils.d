@@ -3520,10 +3520,11 @@ void setupSPCharsMenu(Commons comm, Summary summ, Control ctrl, Menu parentMenu,
 			if (auto t = cast(Text)ctrl) { mixin(S_TRACE);
 				t.insert(s);
 			} else if (auto t = cast(Combo)ctrl) { mixin(S_TRACE);
-				auto s2 = t.getText();
+				auto ds = s.to!dstring;
+				auto s2 = t.getText().to!dstring;
 				auto p = t.getSelection();
-				t.setText(s2[0 .. p.x] ~ s ~ s2[p.y .. $]);
-				p.y += s.length;
+				t.setText((s2[0 .. p.x] ~ ds ~ s2[p.y .. $]).to!string);
+				p.y += ds.length;
 				p.x = p.y;
 				t.setSelection(p);
 			} else assert (0);
