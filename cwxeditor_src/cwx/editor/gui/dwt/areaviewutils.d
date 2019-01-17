@@ -340,11 +340,18 @@ string createAreaViewStatusLine(in Commons comm, in Summary summ, in Skin skin, 
 		name = comm.prop.msgs.pcCell;
 		path = back.name(comm.prop.parent);
 	}
-	if (summ) { mixin(S_TRACE);
-		return .tryFormat(comm.prop.msgs.areaViewStatus, name, path, createFlagName(comm, summ, back.flag));
+	auto params = .statusParams(comm, summ, back);
+	if (params != "") { mixin(S_TRACE);
+		return .tryFormat(comm.prop.msgs.areaViewStatus, name, path, params);
 	} else { mixin(S_TRACE);
 		return .tryFormat(comm.prop.msgs.areaViewStatusNoSummary, name, path);
 	}
+}
+private string statusParams(in Commons comm, in Summary summ, in BgImage back) { mixin(S_TRACE);
+	string[] params;
+	if (summ) params ~= createFlagName(comm, summ, back.flag);
+	if (back.layer != LAYER_BACK_CELL) params ~= .tryFormat(comm.prop.msgs.areaViewStatusWithLayer, back.layer);
+	return params.join(" ");
 }
 
 class Preview {
