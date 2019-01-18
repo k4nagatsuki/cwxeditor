@@ -2525,6 +2525,7 @@ private:
 	uint _useLimit = 0;
 	Status[] _invocationCondition = [Status.ALIVE];
 	bool _removeWithUnconscious = true;
+	ShowStyle _showStyle = ShowStyle.Center; // Wsn.4
 public:
 	/// 召喚獣カードのXML要素名。
 	static const string XML_NAME = "BeastCard";
@@ -2555,6 +2556,7 @@ public:
 		useLimit = c.useLimit;
 		invocationCondition = c.invocationCondition;
 		removeWithUnconscious = c.removeWithUnconscious;
+		showStyle = c.showStyle;
 	}
 	/// IDを除く内部データをクリアする。
 	override void clearData() { mixin(S_TRACE);
@@ -2562,6 +2564,7 @@ public:
 		useLimit = 0;
 		invocationCondition = [Status.ALIVE];
 		removeWithUnconscious = true;
+		showStyle = ShowStyle.Center;
 	}
 
 	override
@@ -2582,7 +2585,8 @@ public:
 	private bool eqImpl(const(BeastCard) c) { mixin(S_TRACE);
 		return useLimit == c.useLimit
 			&& invocationCondition == c.invocationCondition
-			&& removeWithUnconscious == c.removeWithUnconscious;
+			&& removeWithUnconscious == c.removeWithUnconscious
+			&& showStyle == c.showStyle;
 	}
 
 	/// 持ち札である時のリンク先ID。0の場合は実体を持つ。
@@ -2654,6 +2658,19 @@ public:
 		_removeWithUnconscious = removeWithUnconscious;
 	}
 
+	/// 発動時の視覚効果(Wsn.4)。
+	@property
+	const
+	ShowStyle showStyle() { mixin(S_TRACE);
+		return _showStyle;
+	}
+	/// ditto
+	@property
+	void showStyle(ShowStyle showStyle) { mixin(S_TRACE);
+		if (_showStyle != showStyle) changed();
+		_showStyle = showStyle;
+	}
+
 	override bool change(BeastId id) { return true; }
 
 	/// XMLテキストに変換する。
@@ -2708,6 +2725,9 @@ public:
 				// 除去条件無しにしておく
 				pNode.newElement("RemovalCondition");
 			}
+			if (showStyle != ShowStyle.Center) { mixin(S_TRACE);
+				pNode.newElement("ShowStyle", fromShowStyle(showStyle));
+			}
 		}
 	}
 	/// コピーを生成する。
@@ -2760,6 +2780,9 @@ public:
 				};
 				n.parse();
 			};
+			pNode.onTag["ShowStyle"] = (ref XNode n) { mixin(S_TRACE);
+				r.showStyle = toShowStyle(n.value);
+			};
 			r.loadEffProp(pNode, ver);
 		};
 		r.loadEffV(cNode, ver);
@@ -2768,7 +2791,7 @@ public:
 
 	private BeastOwner _owner = null;
 	@property
-	package void owner(BeastOwner owner) {_owner = owner;}
+	package void owner(BeastOwner owner) { _owner = owner; }
 	@property
 	string cwxPath(bool id) { mixin(S_TRACE);
 		if (id) { mixin(S_TRACE);

@@ -1127,6 +1127,30 @@ string fromSmoothing(Smoothing t) { mixin(S_TRACE);
 	}
 }
 
+/// 発動時の視覚効果(Wsn.4)。
+enum ShowStyle {
+	Invisible, /// 表示しない。
+	Center, /// 画面中央に表示。
+	FrontOfUser, /// 使用者の手前に表示。
+}
+/// ditto
+ShowStyle toShowStyle(string name) { mixin(S_TRACE);
+	switch (name) {
+	case "Invisible": return ShowStyle.Invisible;
+	case "Center": return ShowStyle.Center;
+	case "FrontOfUser": return ShowStyle.FrontOfUser;
+	default: throw new Exception("Unknown show style: " ~ name);
+	}
+}
+/// ditto
+string fromShowStyle(ShowStyle t) { mixin(S_TRACE);
+	final switch (t) {
+	case ShowStyle.Invisible: return "Invisible";
+	case ShowStyle.Center: return "Center";
+	case ShowStyle.FrontOfUser: return "FrontOfUser";
+	}
+}
+
 /// 発火条件キーコードの種別。
 enum FKCKind {
 	Use, /// 使用時。

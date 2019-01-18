@@ -291,6 +291,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		putMotions(effCard.motions);
 		auto beast = cast(BeastCard)effCard;
 		if (beast) { mixin(S_TRACE);
+			if (beast.showStyle != ShowStyle.Center && !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
+				r ~= prop.msgs.warningShowStyleForBeastCard;
+			}
 			if (!.equal(beast.invocationCondition, [Status.ALIVE])) { mixin(S_TRACE);
 				r ~= prop.msgs.warningInvocationCondition;
 			}

@@ -1951,12 +1951,21 @@ class Msgs : Properties {
 	auto unitRound = Msg("unitRound", "ラウンド");
 	auto resetLiveStatus = Msg("resetLiveStatus", "通常状態に戻す");
 
+	const string showStyleName(ShowStyle id) { mixin(S_TRACE);
+		mixin(EnumToStringSwitch!(ShowStyle, "showStyleName"));
+	}
+	auto showStyleNameInvisible = Msg("showStyleNameInvisible", "表示しない"); // Wsn.4
+	auto showStyleNameCenter = Msg("showStyleNameCenter", "画面中央に表示"); // Wsn.4
+	auto showStyleNameFrontOfUser = Msg("showStyleNameFrontOfUser", "使用者の手前に表示");
+
 	auto workConditionGroup = Msg("workConditionGroup", "発動条件");
 	auto needSpell = Msg("needSpell", "沈黙時に発動不可");
 	auto needSpellAndActive = Msg("needSpellAndActive", "沈黙・行動不能時に発動不可");
 	auto elementProps = Msg("elementProps", "効果属性");
 	auto linkOption = Msg("linkOption", "参照設定");
 	auto beastMaxNest = Msg("beastMaxNest", "ネスト可能回数");
+	auto showStyleForBeastCard = Msg("showStyleForBeastCard", "発動時の視覚効果"); // Wsn.4
+	auto warningShowStyleForBeastCard = Msg("warningShowStyleForBeastCard", "発動時の視覚効果の設定は、Wsn.4以降の形式のシナリオでしか行えません。"); // Wsn.4
 	auto resistProps = Msg("resistProps", "抵抗属性");
 	auto aptPhysical = Msg("aptPhysical", "身体的要素");
 	auto aptMental = Msg("aptMental", "精神的要素");

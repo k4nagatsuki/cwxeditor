@@ -121,6 +121,7 @@ private:
 				b.setEnabled(sEnbl);
 			}
 			_removeWithUncons.setEnabled(!_summ || !_summ.legacy || !_removeWithUncons.getSelection());
+			_showStyle.setEnabled(!_summ || !_summ.legacy || _showStyles[_showStyle.getSelectionIndex()] != ShowStyle.Center);
 		}
 	} else static assert (0);
 
@@ -150,6 +151,11 @@ private:
 	TextMenuModify _scenarioTM;
 	Text _author;
 	TextMenuModify _authorTM;
+	static if (is(C:BeastCard)) {
+		Combo _showStyle;
+		ShowStyle[] _showStyles;
+	}
+
 	Skin _summSkin;
 	@property
 	Skin summSkin() { mixin(S_TRACE);
@@ -196,6 +202,9 @@ private:
 			}
 		}
 		static if (is(C:BeastCard)) {
+			if (_showStyle.getSelectionIndex() != -1 && _showStyles[_showStyle.getSelectionIndex()] != ShowStyle.Center && !_prop.isTargetVersion(_summ, "4")) { mixin(S_TRACE);
+				ws ~= _prop.msgs.warningShowStyleForBeastCard;
+			}
 			if (!_prop.isTargetVersion(_summ, "3")) { mixin(S_TRACE);
 				if (!.equal(invokeCond, [Status.ALIVE])) { mixin(S_TRACE);
 					ws ~= _prop.msgs.warningInvocationCondition;
@@ -341,6 +350,22 @@ private:
 					radio.setText(_prop.msgs.resistName(res));
 					radio.setToolTipText(.replace(_prop.msgs.resistDesc(res), "&", "&&"));
 					_res[res] = radio;
+				}
+			}
+			static if (is(C:BeastCard)) {
+				{ mixin(S_TRACE);
+					auto grp = new Group(comp2, SWT.NONE);
+					grp.setText(_prop.msgs.showStyleForBeastCard);
+					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+					grp.setLayout(new CenterLayout);
+					_showStyle = new Combo(grp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+					mod(_showStyle);
+					_showStyle.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
+					foreach (showStyle; [ShowStyle.Invisible, ShowStyle.Center]) { mixin(S_TRACE);
+						_showStyle.add(_prop.msgs.showStyleName(showStyle));
+						_showStyles ~= showStyle;
+					}
+					.listener(_showStyle, SWT.Selection, &refreshWarning);
 				}
 			}
 		}
@@ -968,6 +993,8 @@ protected:
 					updateUseLimitMax();
 				}
 			} else static if (is (C == BeastCard)) {
+				auto ssi = cast(int).cCountUntil(_showStyles, _card.showStyle);
+				_showStyle.select(ssi == -1 ? 0 : ssi);
 				_useCount.setSelection(_card.useLimit);
 				bool[Status] ss;
 				foreach (s; _card.invocationCondition) { mixin(S_TRACE);
@@ -1043,6 +1070,7 @@ protected:
 				}
 			}
 			static if (is(C:BeastCard)) {
+				_showStyle.select(cast(int).cCountUntil(_showStyles, ShowStyle.Center));
 				foreach (s, b; _invokeCond) { mixin(S_TRACE);
 					b.setSelection(s is Status.ALIVE);
 				}
@@ -1098,6 +1126,7 @@ protected:
 				_card.useLimit = _card.useLimitMax;
 			}
 		} else static if (is (C == BeastCard)) {
+			_card.showStyle = _showStyles[_showStyle.getSelectionIndex()];
 			_card.useLimit = _useCount.getSelection();
 			_card.invocationCondition = invokeCond;
 			_card.removeWithUnconscious = _removeWithUncons.getSelection();
