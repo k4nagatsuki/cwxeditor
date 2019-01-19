@@ -1911,7 +1911,9 @@ private:
 		if ((!_summ || !_summ.legacy) && hasWsnTarg(forceRefresh, noCardSize)) { mixin(S_TRACE);
 			_tblEngine = cast(int)items.length;
 			auto wsnVer = _summ ? _summ.dataVersion : LATEST_VERSION;
-			auto verName = VERSION_NAMES[.cCountUntil(VERSIONS, wsnVer)];
+			auto i = .cCountUntil(VERSIONS, wsnVer);
+			if (i == -1) i = .cCountUntil(VERSIONS, LATEST_VERSION);
+			auto verName = VERSION_NAMES[i];
 			items ~= _prop.msgs.defaultSelection(.tryFormat(_prop.msgs.pathWsnBasic, verName));
 		}
 		ptrdiff_t dirsIndexOf(string path) { mixin(S_TRACE);
