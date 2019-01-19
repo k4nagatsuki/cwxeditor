@@ -240,6 +240,7 @@ private:
 		if (_expandSPChars.getSelection() && !_comm.prop.isTargetVersion(_summ, "2")) { mixin(S_TRACE);
 			ws ~= _comm.prop.msgs.warningExpandSPChars;
 		}
+		ws ~= .sjisWarnings(_comm.prop.parent, _summ, _name.getText(), _comm.prop.msgs.dlgLblStepName);
 		void editing(string[] vals) { mixin(S_TRACE);
 			if (_editIndex != -1) vals[_editIndex] = _valueEditor.getText();
 		}
@@ -268,7 +269,6 @@ private:
 				}
 			}
 		}
-		ws ~= .sjisWarnings(_comm.prop.parent, _summ, _name.getText(), _comm.prop.msgs.dlgLblStepName);
 		if (_valueCache.length && _summ.legacy) { mixin(S_TRACE);
 			auto vals = _valueCache[0 .. _stepCount.getSelection()];
 			editing(vals);
