@@ -240,9 +240,38 @@ private:
 		if (_expandSPChars.getSelection() && !_comm.prop.isTargetVersion(_summ, "2")) { mixin(S_TRACE);
 			ws ~= _comm.prop.msgs.warningExpandSPChars;
 		}
+		void editing(string[] vals) { mixin(S_TRACE);
+			if (_editIndex != -1) vals[_editIndex] = _valueEditor.getText();
+		}
+		if (_expandSPChars.getSelection()) { mixin(S_TRACE);
+			bool[string] ws2;
+			auto vals = _valueCache[0 .. _stepCount.getSelection()];
+			editing(vals);
+			foreach (v; vals) { mixin(S_TRACE);
+				bool[string] wFlags;
+				bool[string] wSteps;
+				bool[string] wFonts;
+				bool[char] wColors;
+				string[] flags;
+				string[] steps;
+				string[] fonts;
+				char[] colors;
+				textUseItems(wrapReturnCode(v), flags, steps, fonts, colors);
+				fonts = [];
+				colors = [];
+				auto ws3 = .textWarnings(_comm.prop.parent, _comm.skin, _summ, _comm.prop.var.etc.targetVersion,
+					v, flags, steps, fonts, colors, wFlags, wSteps, wFonts, wColors).all;
+				foreach (w; ws3) { mixin(S_TRACE);
+					if (w in ws2) continue;
+					ws2[w] = true;
+					ws ~= w;
+				}
+			}
+		}
 		ws ~= .sjisWarnings(_comm.prop.parent, _summ, _name.getText(), _comm.prop.msgs.dlgLblStepName);
 		if (_valueCache.length && _summ.legacy) { mixin(S_TRACE);
 			auto vals = _valueCache[0 .. _stepCount.getSelection()];
+			editing(vals);
 			foreach (val; vals) { mixin(S_TRACE);
 				ws ~= .sjisWarnings(_comm.prop.parent, _summ, val, _comm.prop.msgs.stepValueForWarning);
 			}
@@ -458,6 +487,7 @@ protected:
 				createMenuItem(_comm, menu, MenuID.CreateStepValues, &createStepValues, &canCreateStepValues);
 				updateToolTip();
 				.listener(_valueEditor, SWT.Modify, &updateToolTip);
+				.listener(_valueEditor, SWT.Modify, &refreshWarning);
 				return _valueEditor;
 			}
 			_tte = new TableTextEdit(_comm, _comm.prop, _values, 1, &valueEditEnd, (itm, column) => true, &createEditor);
@@ -663,6 +693,29 @@ private:
 		}
 		if (_expandSPChars.getSelection() && !_comm.prop.isTargetVersion(_summ, "2")) { mixin(S_TRACE);
 			ws ~= _comm.prop.msgs.warningExpandSPChars;
+		}
+		if (_expandSPChars.getSelection()) { mixin(S_TRACE);
+			bool[string] ws2;
+			foreach (text; [flagTrue, flagFalse]) { mixin(S_TRACE);
+				bool[string] wFlags;
+				bool[string] wSteps;
+				bool[string] wFonts;
+				bool[char] wColors;
+				string[] flags;
+				string[] steps;
+				string[] fonts;
+				char[] colors;
+				textUseItems(wrapReturnCode(text.getText()), flags, steps, fonts, colors);
+				fonts = [];
+				colors = [];
+				auto ws3 = .textWarnings(_comm.prop.parent, _comm.skin, _summ, _comm.prop.var.etc.targetVersion,
+					text.getText(), flags, steps, fonts, colors, wFlags, wSteps, wFonts, wColors).all;
+				foreach (w; ws3) { mixin(S_TRACE);
+					if (w in ws2) continue;
+					ws2[w] = true;
+					ws ~= w;
+				}
+			}
 		}
 		ws ~= .sjisWarnings(_comm.prop.parent, _summ, flagName.getText(), _comm.prop.msgs.dlgLblFlagName);
 		ws ~= .sjisWarnings(_comm.prop.parent, _summ, flagTrue.getText(), _comm.prop.msgs.flagOnValue);

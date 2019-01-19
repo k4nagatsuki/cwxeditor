@@ -1944,7 +1944,7 @@ private Battle loadBattle(ref RData d, ref ByteIO f, ulong fid) { mixin(S_TRACE)
 		int x = f.readIntL;
 		int y = f.readIntL;
 		bool escape = readBool(f);
-		auto c = new EnemyCard(cId, escape, flag, x, y, scale, LAYER_MENU_CARD, "", -1);
+		auto c = new EnemyCard(cId, escape, flag, x, y, scale, LAYER_MENU_CARD, "", -1, false, "");
 		foreach (tree; cTrees) { mixin(S_TRACE);
 			c.add(tree);
 		}

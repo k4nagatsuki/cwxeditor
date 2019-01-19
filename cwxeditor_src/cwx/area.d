@@ -10,6 +10,7 @@ import cwx.card;
 import cwx.path;
 import cwx.system;
 import cwx.types;
+import cwx.textholder;
 
 import std.algorithm;
 import std.array;
@@ -309,6 +310,8 @@ private:
 	Battle _owner = null;
 	bool _escape;
 	CastUser _user;
+	bool _isOverrideName = false;
+	SimpleTextHolder _overrideName;
 public:
 	/// XML要素名。
 	static immutable XML_NAME = "EnemyCard";
@@ -316,11 +319,16 @@ public:
 	static immutable XML_NAME_M = "EnemyCards";
 
 	/// 唯一のコンストラクタ。
-	this (ulong id, bool escape, string flag, int x, int y, uint scale, int layer, string cardGroup, int animationSpeed) { mixin(S_TRACE);
+	this (ulong id, bool escape, string flag, int x, int y, uint scale, int layer, string cardGroup, int animationSpeed, bool isOverrideName, string overrideName) { mixin(S_TRACE);
 		super(flag, x, y, scale, layer, cardGroup, animationSpeed);
 		_user = new CastUser(this);
 		_user.casts = id;
 		_escape = escape;
+		_isOverrideName = isOverrideName;
+		_overrideName = new SimpleTextHolder;
+		_overrideName.changeHandler = &changed;
+		_overrideName.text = overrideName;
+		_overrideName.owner = this;
 	}
 	@property
 	string cwxPath(bool id) { mixin(S_TRACE);
@@ -333,7 +341,7 @@ public:
 	const
 	override
 	AbstractSpCard dup() {
-		auto r = new EnemyCard(id, escape, flag, x, y, scale, layer, cardGroup, animationSpeed);
+		auto r = new EnemyCard(id, escape, flag, x, y, scale, layer, cardGroup, animationSpeed, isOverrideName, overrideName);
 		r.deepCopyEventTreeOwner(this);
 		return r;
 	}
@@ -384,6 +392,40 @@ public:
 		_user.casts = id;
 	}
 
+	/// 名前を上書きをするか(Wsn.4)。
+	@property
+	const
+	bool isOverrideName() { mixin(S_TRACE);
+		return _isOverrideName;
+	}
+	/// ditto
+	@property
+	void isOverrideName(bool isOverrideName) { mixin(S_TRACE);
+		if (_isOverrideName != isOverrideName) changed();
+		_isOverrideName = isOverrideName;
+	}
+	/// 上書きする名前(Wsn.4)。
+	@property
+	const
+	string overrideName() { mixin(S_TRACE);
+		return _overrideName.text;
+	}
+	/// ditto
+	@property
+	void overrideName(string overrideName) { mixin(S_TRACE);
+		if (_overrideName.text != overrideName) changed();
+		_overrideName.text = overrideName;
+	}
+
+	// 上書き名内で使用されているフラグのパス。
+	@property
+	const
+	string[] flagsInText() { return _overrideName.flagsInText; }
+	// 上書き名内で使用されているステップのパス。
+	@property
+	const
+	string[] stepsInText() { return _overrideName.stepsInText; }
+
 	override
 	inout
 	inout(CWXPath) connectedResource(inout(CastOwner) summ) { mixin(S_TRACE);
@@ -393,10 +435,12 @@ public:
 	@property
 	override void setUseCounter(UseCounter uc) { mixin(S_TRACE);
 		_user.setUseCounter(uc);
+		_overrideName.setUseCounter(uc);
 		super.setUseCounter(uc);
 	}
 	override void removeUseCounter() { mixin(S_TRACE);
 		_user.removeUseCounter();
+		_overrideName.removeUseCounter();
 		super.removeUseCounter();
 	}
 	override bool change(CastId id) { mixin(S_TRACE);
@@ -410,7 +454,7 @@ public:
 			cNode.onTag["Property"] = (ref XNode pNode) { mixin(S_TRACE);
 				string idStr = pNode.childText("Id", false);
 				if (idStr) { mixin(S_TRACE);
-					cards ~= new EnemyCard(to!(ulong)(idStr), false, "", 0, 0, 100, LAYER_MENU_CARD, "", -1);
+					cards ~= new EnemyCard(to!(ulong)(idStr), false, "", 0, 0, 100, LAYER_MENU_CARD, "", -1, false, "");
 				}
 			};
 			cNode.parse();
@@ -439,6 +483,10 @@ public:
 		e.newAttr("escape", fromBool(escape));
 		auto pe = e.newElement("Property");
 		pe.newElement("Id", _user.casts);
+		if (isOverrideName) { mixin(S_TRACE);
+			auto ne = pe.newElement("Name", overrideName);
+			ne.newAttr("override", fromBool(isOverrideName));
+		}
 		appendProp(pe, opt);
 		appendEventsToNode(e, opt);
 	}
@@ -459,6 +507,8 @@ public:
 		int layer = LAYER_MENU_CARD;
 		string cardGroup = "";
 		int animationSpeed = -1;
+		bool isOverrideName = false;
+		string overrideName = "";
 		EventTree[] evt;
 
 		auto escStr = node.attr("escape", false);
@@ -468,6 +518,10 @@ public:
 				id = to!(ulong)(n.value);
 				getId = true;
 			};
+			pNode.onTag["Name"] = (ref XNode n) { mixin(S_TRACE);
+				overrideName = n.value;
+				isOverrideName = n.attr("override", false, false);
+			};
 			loadProp(pNode, flag, x, y, scale, layer, cardGroup, animationSpeed);
 		};
 		node.onTag["Events"] = (ref XNode node) { mixin(S_TRACE);
@@ -475,7 +529,7 @@ public:
 		};
 		node.parse();
 		if (!getId) throw new AreaException("EnemyCard ID not found");
-		auto r = new EnemyCard(id, escape, flag, x, y, scale, layer, cardGroup, animationSpeed);
+		auto r = new EnemyCard(id, escape, flag, x, y, scale, layer, cardGroup, animationSpeed, isOverrideName, overrideName);
 		r.addAll(evt);
 
 		return r;
@@ -486,7 +540,7 @@ public:
 public class MenuCard : AbstractSpCard, IPathUser {
 private:
 	Area _owner;
-	string _name;
+	SimpleTextHolder _name;
 	string _desc;
 	CardImage[] _paths;
 	bool _expandSPChars = false;
@@ -514,7 +568,10 @@ public:
 			int x, int y, int scale, int layer, string cardGroup, int animationSpeed) { mixin(S_TRACE);
 		super(flag, x, y, scale, layer, cardGroup, animationSpeed);
 		this.paths = paths;
-		_name = name;
+		_name = new SimpleTextHolder;
+		_name.changeHandler = &changed;
+		_name.text = name;
+		_name.owner = this;
 		_expandSPChars = expandSPChars;
 		_desc = desc;
 	}
@@ -559,13 +616,13 @@ public:
 	@property
 	const
 	string name() { mixin(S_TRACE);
-		return _name;
+		return _name.text;
 	}
 	/// ditto
 	@property
 	void name(string name) { mixin(S_TRACE);
-		if (_name != name) changed();
-		_name = name;
+		if (_name.text != name) changed();
+		_name.text = name;
 	}
 
 	/// 特殊文字を展開するか(Wsn.4)。
@@ -578,8 +635,22 @@ public:
 		if (val != _expandSPChars) { mixin(S_TRACE);
 			changed();
 			_expandSPChars = val;
+			if (_expandSPChars && useCounter) { mixin(S_TRACE);
+				_name.setUseCounter(useCounter);
+			} else { mixin(S_TRACE);
+				_name.removeUseCounter();
+			}
 		}
 	}
+
+	// 名前で使用されているフラグのパス。
+	@property
+	const
+	string[] flagsInText() { return _name.flagsInText; }
+	// 名前で使用されているステップのパス。
+	@property
+	const
+	string[] stepsInText() { return _name.stepsInText; }
 
 	/// 説明。
 	@property
@@ -631,12 +702,16 @@ public:
 		foreach (path; _paths) { mixin(S_TRACE);
 			path.setUseCounter(uc);
 		}
+		if (expandSPChars) { mixin(S_TRACE);
+			_name.setUseCounter(uc);
+		}
 		super.setUseCounter(uc);
 	}
 	override void removeUseCounter() { mixin(S_TRACE);
 		foreach (path; _paths) { mixin(S_TRACE);
 			path.removeUseCounter();
 		}
+		_name.removeUseCounter();
 		super.removeUseCounter();
 	}
 	override bool change(PathId id) { mixin(S_TRACE);
@@ -703,7 +778,7 @@ public:
 	const
 	private void toNodeImpl(ref XNode e, XMLOption opt) { mixin(S_TRACE);
 		auto pNode = e.newElement("Property");
-		auto nNode = pNode.newElement("Name", _name);
+		auto nNode = pNode.newElement("Name", name);
 		if (expandSPChars) nNode.newAttr("spchars", expandSPChars);
 		CardImage.toNode(pNode, _paths);
 		pNode.newElement("Description", encodeLf(_desc));

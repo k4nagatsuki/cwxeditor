@@ -581,7 +581,7 @@ private:
 					static if (is(C == MenuCard)) {
 						c = new C(c.name, c.expandSPChars, c.paths, c.desc, c.flag, c.x, c.y, c.scale, c.layer, c.cardGroup, c.animationSpeed);
 					} else static if (is(C == EnemyCard)) {
-						c = new C(c.id, c.escape, c.flag, c.x, c.y, c.scale, c.layer, c.cardGroup, c.animationSpeed);
+						c = new C(c.id, c.escape, c.flag, c.x, c.y, c.scale, c.layer, c.cardGroup, c.animationSpeed, c.isOverrideName, c.overrideName);
 					} else static assert (0);
 					if (summ) c.setUseCounter(summ.useCounter.sub);
 					cs[i] = c;
@@ -3110,9 +3110,9 @@ public:
 			_comm.replText.add(&replText);
 			_comm.replID.add(&replText);
 			static if (UseCards) {
-				static if (is(C:MenuCard)) {
-					_comm.refPreviewValues.add(&refreshCardNamePreview);
-				}
+				_comm.refPreviewValues.add(&refreshCardNamePreview);
+				_comm.refFlagAndStep.add(&refreshCardNamePreviewF);
+				_comm.refDataVersion.add(&refreshCardNamePreview);
 				_comm.refCardState.add(&refreshCardState);
 			}
 			static if (UseBacks) {
@@ -3136,9 +3136,9 @@ public:
 					_comm.replText.remove(&replText);
 					_comm.replID.remove(&replText);
 					static if (UseCards) {
-						static if (is(C:MenuCard)) {
-							_comm.refPreviewValues.remove(&refreshCardNamePreview);
-						}
+						_comm.refPreviewValues.remove(&refreshCardNamePreview);
+						_comm.refFlagAndStep.remove(&refreshCardNamePreviewF);
+						_comm.refDataVersion.remove(&refreshCardNamePreview);
 						_comm.refCardState.remove(&refreshCardState);
 						foreach (dlg; _editDlgsC.values) { mixin(S_TRACE);
 							dlg.forceCancel();
@@ -3680,17 +3680,22 @@ public:
 				_imgp.redrawImage(fi);
 			}
 		}
-		static if (is(C:MenuCard)) {
-			private void refreshCardNamePreview() { mixin(S_TRACE);
-				foreach (i, c; _area.cards) { mixin(S_TRACE);
+		private void refreshCardNamePreview() { mixin(S_TRACE);
+			foreach (i, c; _area.cards) { mixin(S_TRACE);
+				static if (is(C:MenuCard)) {
 					if (!c.expandSPChars) continue;
-					auto v = _imgp.images[cardsIndex + i].visible;
-					auto fi = create(c);
-					fi.visible = v;
-					_imgp.set(cardsIndex + cast(int)i, fi);
-					_imgp.redrawImage(fi);
-				}
+				} else static if (is(C:EnemyCard)) {
+					if (!c.isOverrideName) continue;
+				} else static assert (0);
+				auto v = _imgp.images[cardsIndex + i].visible;
+				auto fi = create(c);
+				fi.visible = v;
+				_imgp.set(cardsIndex + cast(int)i, fi);
+				_imgp.redrawImage(fi);
 			}
+		}
+		private void refreshCardNamePreviewF(cwx.flag.Flag[] flags, Step[] steps) { mixin(S_TRACE);
+			refreshCardNamePreview();
 		}
 	}
 	private void refreshPanel() { mixin(S_TRACE);
@@ -4073,7 +4078,7 @@ public:
 			} else static if (is(C : EnemyCard)) {
 				if (!_summ) return;
 				if (_summ.casts.length == 0) return;
-				auto c = new EnemyCard(0, false, "", 0, 0, 100, LAYER_MENU_CARD, "", -1);
+				auto c = new EnemyCard(0, false, "", 0, 0, 100, LAYER_MENU_CARD, "", -1, false, "");
 			} else static assert (0);
 			auto dlg = new SpCardDialog!(C)(_comm, _prop, getShell(), _summ, c, true);
 			dlg.appliedEvent ~= { mixin(S_TRACE);
@@ -4244,10 +4249,10 @@ public:
 			auto skin = summSkin;
 			auto castCard = summary.cwCast(card.id);
 			if (castCard) { mixin(S_TRACE);
-				return createCastCardImage!PImg(prop, skin, summary, castCard,
+				return createCastCardImage!PImg(_comm, skin, summary, card, castCard,
 					card.x, card.y, card.scale, smoothing, debugMode, card.layer);
 			} else { mixin(S_TRACE);
-				return createCastCardImage!PImg(prop, skin, summary, null,
+				return createCastCardImage!PImg(_comm, skin, summary, card, null,
 					card.x, card.y, card.scale, smoothing, debugMode, card.layer);
 			}
 		} else static assert (0, C2);

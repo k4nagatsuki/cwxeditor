@@ -264,6 +264,13 @@ public:
 		}
 	}
 
+	// 値のテキスト内で使用されているフラグのパス。
+	const
+	string[] flagsInText(bool value) { return value ? _on.flagsInText : _off.flagsInText; }
+	// 値のテキスト内で使用されているステップのパス。
+	const
+	string[] stepsInText(bool value) { return value ? _on.stepsInText : _off.stepsInText; }
+
 	const
 	override int opCmp(Object o) { mixin(S_TRACE);
 		return cmp(name, (cast(Flag)o).name);
@@ -501,6 +508,13 @@ public:
 			}
 		}
 	}
+
+	// 値のテキスト内で使用されているフラグのパス。
+	const
+	string[] flagsInText(uint value) { return _vals[value].flagsInText; }
+	// 値のテキスト内で使用されているステップのパス。
+	const
+	string[] stepsInText(uint value) { return _vals[value].stepsInText; }
 
 	const
 	override int opCmp(Object o) { mixin(S_TRACE);

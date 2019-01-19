@@ -1371,6 +1371,7 @@ class Msgs : Properties {
 	auto borderingWidth = Msg("borderingWidth", "幅:");
 	auto borderingColor = Msg("borderingColor", "縁取り色");
 	auto pcCellExpanding = Msg("pcCellExpanding", "セルに合わせて拡大・縮小する");
+	auto overrideEnemyCardVisual = Msg("overrideEnemyCardVisual", "外観の上書き");
 
 	auto areaViewKeyboardHint = Msg("areaViewKeyboardHint", "選択+上下左右: 移動, Shift+上下左右: サイズ変更, Ctrl+Altで10ピクセル単位操作, Alt+クリックで範囲選択開始");
 
@@ -2084,6 +2085,7 @@ class Msgs : Properties {
 	auto warningPossibleToRunAway = Msg("warningPossibleToRunAway", "バトルの逃走不可設定はWsn.3以降の形式のシナリオでしか機能しません。"); // Wsn.3
 	auto warningNoIgniteRunAway = Msg("warningNoIgniteRunAway", "逃走できないバトルのイベントに逃走発火条件が設定されています。"); // Wsn.3
 	auto warningConsumeCard = Msg("warningConsumeCard", "カード消費の抑止は、Wsn.3以降の形式のシナリオでしか機能しません。"); // Wsn.3
+	auto warningOverrideEnemyCardName = Msg("warningOverrideEnemyCardName", "エネミーカードの名前の上書きは、Wsn.4以降の形式のシナリオしか行えません。"); // Wsn.4
 
 	auto unknownStepValue = Msg("unknownStepValue", "存在しないステップ値(%1$s)");
 

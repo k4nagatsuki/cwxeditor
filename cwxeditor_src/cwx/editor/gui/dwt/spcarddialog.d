@@ -65,7 +65,11 @@ private:
 
 	void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
-		static if (is (C == MenuCard)) {
+		Text t = null;
+		static if (is(C:MenuCard)) {
+			if (_expandSPChars.getSelection()) { mixin(S_TRACE);
+				t = _name;
+			}
 			ws ~= .sjisWarnings(_prop.parent, _summ, _name.getText(), _prop.msgs.name);
 			ws ~= .sjisWarnings(_prop.parent, _summ, _desc.getText(), _prop.msgs.desc);
 			ws ~= .sjisWarnings(_prop.parent, _summ, _cardGroup.getText(), _prop.msgs.cardGroup);
@@ -73,8 +77,27 @@ private:
 				ws ~= _prop.msgs.warningExpandSPCharsWithMenuCardName;
 			}
 			ws ~= _imgPath.warnings;
-		} else {
+		} else static if (is(C:EnemyCard)) {
+			t = _overrideName;
 			ws ~= .sjisWarnings(_prop.parent, _summ, _cardGroup.getText(), _prop.msgs.cardGroup);
+			if (_isOverrideName.getSelection() &&  !_prop.isTargetVersion(_summ, "4")) { mixin(S_TRACE);
+				ws ~= _prop.msgs.warningOverrideEnemyCardName;
+			}
+		} else static assert (0);
+		if (t) { mixin(S_TRACE);
+			bool[string] wFlags;
+			bool[string] wSteps;
+			bool[string] wFonts;
+			bool[char] wColors;
+			string[] flags;
+			string[] steps;
+			string[] fonts;
+			char[] colors;
+			textUseItems(wrapReturnCode(t.getText()), flags, steps, fonts, colors);
+			fonts = [];
+			colors = [];
+			ws ~= .textWarnings(_prop.parent, summSkin, _summ, _prop.var.etc.targetVersion,
+				t.getText(), flags, steps, fonts, colors, wFlags, wSteps, wFonts, wColors).all;
 		}
 		if (_layer.getEnabled() && _layer.getSelection() != LAYER_MENU_CARD && !_prop.isTargetVersion(_summ, "1")) {
 			ws ~= _prop.msgs.warningLayer;
@@ -89,16 +112,19 @@ private:
 		_layer.setEnabled(!_summ || !_summ.legacy || _layer.getSelection() != LAYER_MENU_CARD);
 		_cardGroup.setEnabled(!_summ || !_summ.legacy || _cardGroup.getText() != "");
 		static if (is(C:MenuCard)) {
-			_expandSPChars.setEnabled(!_summ.legacy || _expandSPChars.getSelection());
-			updateToolTip();
-		}
+			_expandSPChars.setEnabled(!_summ || !_summ.legacy || _expandSPChars.getSelection());
+		} else static if (is(C:EnemyCard)) {
+			_isOverrideName.setEnabled(!_summ || !_summ.legacy || _isOverrideName.getSelection());
+			_overrideName.setEnabled(_isOverrideName.getSelection());
+		} else static assert (0);
+		updateToolTip();
 		refreshWarning();
 	}
 
 	static if (is (C == MenuCard)) {
+		Text _name;
 		ImageSelect!(MtType.CARD) _imgPath;
 		FixedWidthText!Text _desc;
-		Text _name;
 		Button _expandSPChars;
 
 		void updateToolTip() { mixin(S_TRACE);
@@ -116,6 +142,8 @@ private:
 		ulong[] _castIDs;
 		Button _escape;
 		Canvas _image;
+		Button _isOverrideName;
+		Text _overrideName;
 		class CardPaint : PaintListener {
 			override void paintControl(PaintEvent e) { mixin(S_TRACE);
 				if (0 != _selectedID) { mixin(S_TRACE);
@@ -123,7 +151,11 @@ private:
 					if (!ec) return;
 					auto canv = cast(Canvas)e.widget;
 					auto skin = _comm.skin;
-					auto imgData = .castCardImage(_prop, skin, _summ, ec, true);
+					auto overrideName = "";
+					if (_isOverrideName.getSelection()) { mixin(S_TRACE);
+						overrideName = .createSPCharPreview(_comm, _summ, _overrideName.getText(), false, null, null);
+					}
+					auto imgData = .castCardImage(_prop, skin, _summ, ec, true, _isOverrideName.getSelection(), overrideName);
 					scope img = new Image(Display.getCurrent(), imgData.scaled(_prop.drawingScale));
 					scope (exit) img.dispose();
 					auto ca = canv.getClientArea();
@@ -147,6 +179,13 @@ private:
 			.forceFocus(_casts, true);
 			_cardIncSearch.startIncSearch();
 		}
+		void updateToolTip() { mixin(S_TRACE);
+			auto toolTip = .createSPCharPreview(_comm, _summ, _overrideName.getText(), false, null, null);
+			toolTip = toolTip.replace("&", "&&");
+			if (toolTip != _overrideName.getToolTipText()) { mixin(S_TRACE);
+				_overrideName.setToolTipText(toolTip);
+			}
+		}
 	} else { mixin(S_TRACE);
 		static assert (0);
 	}
@@ -166,6 +205,7 @@ private:
 			_comm.refSkin.remove(&refSkin);
 			_comm.refDataVersion.remove(&refDataVersion);
 			_comm.refTargetVersion.remove(&refDataVersion);
+			_comm.refPreviewValues.remove(&updateToolTip);
 		}
 	}
 	static if (is (C == EnemyCard)) {
@@ -450,6 +490,26 @@ protected:
 						}
 					}
 					static if (is(C:EnemyCard)) {
+						{ mixin(S_TRACE);
+							auto grp = new Group(comp2, SWT.NONE);
+							grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+							grp.setLayout(normalGridLayout(2, false));
+							grp.setText(_prop.msgs.overrideEnemyCardVisual);
+							_isOverrideName = new Button(grp, SWT.CHECK);
+							mod(_isOverrideName);
+							_isOverrideName.setText(_comm.prop.msgs.name);
+							.listener(_isOverrideName, SWT.Selection, &refDataVersion);
+							.listener(_isOverrideName, SWT.Selection, &_image.redraw);
+							_overrideName = new Text(grp, SWT.BORDER);
+							mod(_overrideName);
+							createTextMenu!Text(_comm, _prop, _overrideName, &catchMod);
+							auto nameMenu = _overrideName.getMenu();
+							new MenuItem(nameMenu, SWT.SEPARATOR);
+							.setupSPCharsMenu(_comm, _summ, _overrideName, nameMenu, false, false, () => true);
+							_overrideName.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+							.listener(_overrideName, SWT.Modify, &updateToolTip);
+							.listener(_overrideName, SWT.Modify, &_image.redraw);
+						}
 						auto dropT = new DropTarget(comp2, DND.DROP_DEFAULT | DND.DROP_LINK);
 						dropT.setTransfer([XMLBytesTransfer.getInstance()]);
 						dropT.addDropListener(new EnemyDrop);
@@ -554,6 +614,7 @@ protected:
 		_comm.refSkin.add(&refSkin);
 		_comm.refDataVersion.add(&refDataVersion);
 		_comm.refTargetVersion.add(&refDataVersion);
+		_comm.refPreviewValues.add(&updateToolTip);
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_card) { mixin(S_TRACE);
@@ -578,6 +639,8 @@ protected:
 					}
 				}
 				_escape.setSelection(_card.escape);
+				_isOverrideName.setSelection(_card.isOverrideName);
+				_overrideName.setText(_card.overrideName);
 			} else { mixin(S_TRACE);
 				static assert (0);
 			}
@@ -601,6 +664,8 @@ protected:
 				_casts.select(0);
 				_selectedID = _summ.casts[0].id;
 				_escape.setSelection(false);
+				_isOverrideName.setSelection(false);
+				_overrideName.setText("");
 			} else { mixin(S_TRACE);
 				static assert (0);
 			}
@@ -629,6 +694,8 @@ protected:
 			} else static if (is (C == EnemyCard)) {
 				_card.id = _selectedID;
 				_card.escape = _escape.getSelection();
+				_card.isOverrideName = _isOverrideName.getSelection();
+				_card.overrideName = _overrideName.getText();
 			} else { mixin(S_TRACE);
 				static assert (0);
 			}
@@ -657,7 +724,8 @@ protected:
 				_card = new C(_selectedID, _escape.getSelection(),
 					_flag.selected, _x.getSelection(), _y.getSelection(),
 					_scale.getSelection(), _layer.getSelection(),
-					_cardGroup.getText(), _animationSpeed.speed);
+					_cardGroup.getText(), _animationSpeed.speed,
+					_isOverrideName.getSelection(), _overrideName.getText());
 			} else { mixin(S_TRACE);
 				static assert (0);
 			}

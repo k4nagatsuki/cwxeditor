@@ -140,18 +140,22 @@ PImg createCardImageCommon(PImg)(Props prop, in Summary summ, ImageDataWithScale
 
 /// キャストカード画像を生成する。
 /// Returns: カード画像。
-PImg createCastCardImage(PImg)(Props prop, Skin skin, in Summary summ, CastCard card,
+PImg createCastCardImage(PImg)(Commons comm, Skin skin, in Summary summ, in EnemyCard ec, in CastCard card,
 		int x, int y, uint scale, bool smoothing, bool dbgMode, int layer) { mixin(S_TRACE);
-	auto matPad = prop.looks.castCardInsets;
+	auto matPad = comm.prop.looks.castCardInsets;
 	PImg r;
 	if (card) { mixin(S_TRACE);
-		r = createCardImageCommon!PImg(prop, summ, .castCardImage(prop, skin, summ, card, dbgMode),
+		auto overrideName = "";
+		if (ec.isOverrideName) { mixin(S_TRACE);
+			overrideName = .createSPCharPreview(comm, summ, ec.overrideName, false, null, null);
+		}
+		r = createCardImageCommon!PImg(comm.prop, summ, .castCardImage(comm.prop, skin, summ, card, dbgMode, ec.isOverrideName, overrideName),
 			matPad, x, y, scale, smoothing, layer);
 	} else { mixin(S_TRACE);
-		r = createCardImageCommon!PImg(prop, summ, .castCard(skin, prop.drawingScale), matPad, x, y, scale, smoothing, layer);
+		r = createCardImageCommon!PImg(comm.prop, summ, .castCard(skin, comm.prop.drawingScale), matPad, x, y, scale, smoothing, layer);
 	}
 	static if (is(PImg:FlexImage)) {
-		r.hasSelectionFilter = prop.var.etc.showSceneViewSelectionFilter;
+		r.hasSelectionFilter = comm.prop.var.etc.showSceneViewSelectionFilter;
 		r.resize();
 	} else { mixin(S_TRACE);
 		r.createImage();

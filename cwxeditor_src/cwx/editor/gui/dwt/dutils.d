@@ -1648,7 +1648,7 @@ void hemming(GC gc, string s, int tx, int ty, Color color) { mixin(S_TRACE);
 	gc.setForeground(color);
 	gc.wDrawText(s, tx, ty, true);
 }
-ImageDataWithScale castCardImage(Props prop, Skin skin, in Summary summ, in CastCard c, bool dbgMode) { mixin(S_TRACE);
+ImageDataWithScale castCardImage(Props prop, Skin skin, in Summary summ, in CastCard c, bool dbgMode, bool isOverrideName = false, string overrideName = "") { mixin(S_TRACE);
 	auto d = Display.getCurrent();
 	auto cardSize = prop.looks.cardSize;
 	auto matPad = prop.looks.castCardInsets;
@@ -1915,7 +1915,7 @@ ImageDataWithScale castCardImage(Props prop, Skin skin, in Summary summ, in Cast
 		r.append(bid, stp, ScaleType.Cut);
 	}
 	auto x = prop.looks.castCardNamePoint.x;
-	r.setTitle(c.name, prop.looks.castCardNameFont(skin.legacy), dwtData(prop.looks.castCardNamePoint),
+	r.setTitle(isOverrideName ? overrideName : c.name, prop.looks.castCardNameFont(skin.legacy), dwtData(prop.looks.castCardNamePoint),
 		skin.legacy ? 0 : w - x * 2, !skin.legacy);
 	if (skin.legacy) { mixin(S_TRACE);
 		// 状態によって固定で文字が白くなる

@@ -65,6 +65,20 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			r ~= .sjisWarnings(prop, summ, rc, prop.msgs.rCoupons);
 		}
 	}
+
+	auto spChars = skin.spChars;
+	auto checkTextRes(string text, in string[] flags, in string[] steps, in string[] fonts, in char[] colors,
+			ref bool[string] wFlags, ref bool[string] wSteps, ref bool[string] wFonts, ref bool[char] wColors) { mixin(S_TRACE);
+		return .textWarnings(prop, skin, summ, targVer, text, flags, steps, fonts, colors, wFlags, wSteps, wFonts, wColors);
+	}
+	string[] checkTextRes2(string text, in string[] flags, in string[] steps, in string[] fonts, in char[] colors) { mixin(S_TRACE);
+		bool[string] wFlags;
+		bool[string] wSteps;
+		bool[string] wFonts;
+		bool[char] wColors;
+		return checkTextRes(text, flags, steps, fonts, colors, wFlags, wSteps, wFonts, wColors).all;
+	}
+
 	auto flagDir = cast(FlagDir)path;
 	if (flagDir) { mixin(S_TRACE);
 		if (flagDir.parent is froot && prop.sys.isSystemVar(flagDir.name)) { mixin(S_TRACE);
@@ -83,6 +97,10 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		r ~= .sjisWarnings(prop, summ, flag.name, prop.msgs.dlgLblFlagName);
 		r ~= .sjisWarnings(prop, summ, flag.on, prop.msgs.flagOnValue);
 		r ~= .sjisWarnings(prop, summ, flag.off, prop.msgs.flagOffValue);
+		if (flag.expandSPChars) { mixin(S_TRACE);
+			r ~= checkTextRes2(flag.on, flag.flagsInText(true), flag.stepsInText(true), [], []);
+			r ~= checkTextRes2(flag.off, flag.flagsInText(false), flag.stepsInText(false), [], []);
+		}
 	}
 	auto step = cast(Step)path;
 	if (step) { mixin(S_TRACE);
@@ -98,6 +116,11 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		r ~= .sjisWarnings(prop, summ, step.name, prop.msgs.dlgLblStepName);
 		foreach (val; step.values) { mixin(S_TRACE);
 			r ~= .sjisWarnings(prop, summ, val, prop.msgs.stepValueForWarning);
+		}
+		if (step.expandSPChars) { mixin(S_TRACE);
+			foreach (i; 0u .. step.count) { mixin(S_TRACE);
+				r ~= checkTextRes2(step.values[i], step.flagsInText(i), step.stepsInText(i), [], []);
+			}
 		}
 	}
 	auto eventTree = cast(EventTree)path;
@@ -332,18 +355,6 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			r ~= .sjisWarnings(prop, summ, keyCode, prop.msgs.keyCode);
 		}
 	}
-	auto spChars = skin.spChars;
-	auto checkTextRes(string text, in string[] flags, in string[] steps, in string[] fonts, in char[] colors,
-			ref bool[string] wFlags, ref bool[string] wSteps, ref bool[string] wFonts, ref bool[char] wColors) { mixin(S_TRACE);
-		return .textWarnings(prop, skin, summ, targVer, text, flags, steps, fonts, colors, wFlags, wSteps, wFonts, wColors);
-	}
-	string[] checkTextRes2(string text, in string[] flags, in string[] steps, in string[] fonts, in char[] colors) { mixin(S_TRACE);
-		bool[string] wFlags;
-		bool[string] wSteps;
-		bool[string] wFonts;
-		bool[char] wColors;
-		return checkTextRes(text, flags, steps, fonts, colors, wFlags, wSteps, wFonts, wColors).all;
-	}
 	auto bi = cast(BgImage)path;
 	if (bi) { mixin(S_TRACE);
 		if (bi.flag != "" && !(froot && froot.findFlag(bi.flag))) { mixin(S_TRACE);
@@ -449,6 +460,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (mc.expandSPChars &&  !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningExpandSPCharsWithMenuCardName;
 		}
+		if (mc.expandSPChars) { mixin(S_TRACE);
+			r ~= checkTextRes2(mc.name, mc.flagsInText, mc.stepsInText, [], []);
+		}
 		bool warnPos = false;
 		foreach (imagePath; mc.paths) { mixin(S_TRACE);
 			if (imagePath.type is CardImageType.File) { mixin(S_TRACE);
@@ -482,6 +496,10 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (ec.flag != "" && !(froot && froot.findFlag(ec.flag))) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.searchErrorFlagNotFound, ec.flag);
 		}
+		if (ec.isOverrideName &&  !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
+			r ~= prop.msgs.warningOverrideEnemyCardName;
+		}
+		r ~= checkTextRes2(ec.overrideName, ec.flagsInText, ec.stepsInText, [], []);
 	}
 	auto spc = cast(AbstractSpCard)path;
 	if (spc) { mixin(S_TRACE);

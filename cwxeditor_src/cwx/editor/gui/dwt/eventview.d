@@ -128,7 +128,11 @@ private:
 	}
 	PileImage createCardImage(in AbstractSpCard spCard) { mixin(S_TRACE);
 		if (auto card = cast(MenuCard)spCard) {
-			return createMenuCardImage!PileImage(_prop, _comm.skin, _summ, card.name,
+			auto name = card.name;
+			if (card.expandSPChars) { mixin(S_TRACE);
+				name = .createSPCharPreview(_comm, _summ, name, false, null, null);
+			}
+			return createMenuCardImage!PileImage(_prop, _comm.skin, _summ, name,
 				card.paths, 0, 0, 100, _prop.var.etc.smoothingCard, spCard.layer);
 		} else if (auto card = cast(EnemyCard)spCard) {
 			auto skin = _comm.skin;
@@ -138,10 +142,10 @@ private:
 				dbgMode |= areaView.debugMode;
 			}
 			if (castCard) { mixin(S_TRACE);
-				return createCastCardImage!PileImage(_prop, skin, _summ, castCard,
+				return createCastCardImage!PileImage(_comm, skin, _summ, card, castCard,
 					0, 0, 100, _prop.var.etc.smoothingCard, dbgMode, spCard.layer);
 			} else { mixin(S_TRACE);
-				return createCastCardImage!PileImage(_prop, skin, _summ, null,
+				return createCastCardImage!PileImage(_comm, skin, _summ, card, null,
 					0, 0, 100, _prop.var.etc.smoothingCard, dbgMode, spCard.layer);
 			}
 		} else assert (0);
