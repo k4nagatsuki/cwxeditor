@@ -1116,11 +1116,15 @@ protected:
 			_text.widget.addModifyListener(new ModL);
 		}
 
-		auto sChar = createSCharBar(comm, summ, area, &insert, &put, prop, skin);
-		sChar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		auto sChar = createSCharBar(comm, summ, right, &insert, &put, prop, skin);
+		auto scgd = new GridData(GridData.FILL_HORIZONTAL);
+		scgd.horizontalSpan = 2;
+		sChar.setLayoutData(scgd);
 
-		auto skinSChar = createSkinSCharBar(comm, area, &insert, () => comm.skin);
-		skinSChar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		auto skinSChar = createSkinSCharBar(comm, right, &insert, () => comm.skin);
+		auto sscgd = new GridData(GridData.FILL_HORIZONTAL);
+		sscgd.horizontalSpan = 2;
+		skinSChar.setLayoutData(sscgd);
 
 		auto var = createFlagStepBar(area, &insert, comm, prop, summ, skin, true);
 		var.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
