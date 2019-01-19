@@ -1138,7 +1138,7 @@ private:
 	int cancelSpn(string T, string SetFlexImage)(int oldVal) { mixin(S_TRACE);
 		if (_readOnly) return oldVal;
 		static if (UseCards && UseBacks) {
-			assert(_editC.length + _editB.length > 0);
+			if (_editC.length + _editB.length == 0) return oldVal;
 			if (_editC.length && _editB.length) { mixin(S_TRACE);
 				auto r1 = cancelSpnImpl!(T, SetFlexImage, C)(_editC, (v) => v.cardsIndex, false);
 				auto r2 = cancelSpnImpl!(T, SetFlexImage, BgImage)(_editB, (v) => 0, false);
@@ -1151,8 +1151,10 @@ private:
 				return cancelSpnImpl!(T, SetFlexImage, BgImage)(_editB, (v) => 0, true);
 			}
 		} else static if (UseCards) {
+			if (_editC.length == 0) return oldVal;
 			return cancelSpnCard!(T, SetFlexImage)(oldVal);
 		} else static if (UseBacks) {
+			if (_editB.length == 0) return oldVal;
 			return cancelSpnBack!(T, SetFlexImage)(oldVal);
 		} else { mixin(S_TRACE);
 			static assert (0);
