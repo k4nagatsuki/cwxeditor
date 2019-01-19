@@ -2072,6 +2072,7 @@ class Msgs : Properties {
 	auto warningBoundaryCheck = Msg("warningBoundaryCheck", "メッセージの禁則処理は、Wsn.2以降の形式のシナリオでしか行えません。"); // Wsn.2
 	auto warningBranchCouponMulti = Msg("warningBranchCouponMulti", "クーポン分岐のクーポンの複数指定は、Wsn.2以降の形式のシナリオしか行えません。"); // Wsn.2
 	auto warningExpandSPChars = Msg("warningExpandSPChars", "状態変数内の特殊文字の展開は、Wsn.2以降の形式のシナリオしか行えません。"); // Wsn.2
+	auto warningExpandSPCharsWithMenuCardName = Msg("warningExpandSPCharsWithMenuCardName", "メニューカード名内の特殊文字の展開は、Wsn.4以降の形式のシナリオしか行えません。"); // Wsn.4
 	auto warningSelectCard = Msg("warningSelectCard", "選択カードの変更は、Wsn.3以降の形式のシナリオしか行えません。"); // Wsn.3
 	auto warningRangeSelectedCard = Msg("warningRangeSelectedCard", "選択カードは、Wsn.3以降の形式のシナリオでしか指定できません。"); // Wsn.3
 	auto warningSelectTalker = Msg("warningSelectTalker", "話者の選択は、Wsn.3以降の形式のシナリオしか行えません。"); // Wsn.3

@@ -774,7 +774,7 @@ protected:
 			createTextMenu!Text(_comm, _prop, _text, &catchMod);
 			auto menu = _text.getMenu();
 			new MenuItem(menu, SWT.SEPARATOR);
-			.setupSPCharsMenu(_comm, _summ, _text, menu, false, () => true);
+			.setupSPCharsMenu(_comm, _summ, _text, menu, false, true, () => true);
 			auto gd1 = new GridData(GridData.FILL_BOTH);
 			gd1.widthHint = _prop.var.etc.textCellBoxWidth;
 			gd1.heightHint = _prop.var.etc.textCellBoxHeight;

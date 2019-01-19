@@ -579,7 +579,7 @@ private:
 				foreach (i; indices) { mixin(S_TRACE);
 					auto c = area.cards[i];
 					static if (is(C == MenuCard)) {
-						c = new C(c.name, c.paths, c.desc, c.flag, c.x, c.y, c.scale, c.layer, c.cardGroup, c.animationSpeed);
+						c = new C(c.name, c.expandSPChars, c.paths, c.desc, c.flag, c.x, c.y, c.scale, c.layer, c.cardGroup, c.animationSpeed);
 					} else static if (is(C == EnemyCard)) {
 						c = new C(c.id, c.escape, c.flag, c.x, c.y, c.scale, c.layer, c.cardGroup, c.animationSpeed);
 					} else static assert (0);
@@ -3110,6 +3110,9 @@ public:
 			_comm.replText.add(&replText);
 			_comm.replID.add(&replText);
 			static if (UseCards) {
+				static if (is(C:MenuCard)) {
+					_comm.refPreviewValues.add(&refreshCardNamePreview);
+				}
 				_comm.refCardState.add(&refreshCardState);
 			}
 			static if (UseBacks) {
@@ -3133,6 +3136,9 @@ public:
 					_comm.replText.remove(&replText);
 					_comm.replID.remove(&replText);
 					static if (UseCards) {
+						static if (is(C:MenuCard)) {
+							_comm.refPreviewValues.remove(&refreshCardNamePreview);
+						}
 						_comm.refCardState.remove(&refreshCardState);
 						foreach (dlg; _editDlgsC.values) { mixin(S_TRACE);
 							dlg.forceCancel();
@@ -3243,7 +3249,25 @@ public:
 					_cards = createList(listsP, prop.msgs.menuCards,
 						prop.images.cards, ctcpd, &editCard, () => _area.cards, &selectAllC);
 					if (!_readOnly) { mixin(S_TRACE);
-						new TableTextEdit(_comm, _prop, _cards, 0, &nameEditEnd, null, (itm, editC) => createTextEditor(_comm, _prop, _cards, (cast(MenuCard)itm.getData()).name));
+							new TableTextEdit(_comm, _prop, _cards, 0, &nameEditEnd, null, (itm, editC) { mixin(S_TRACE);
+								auto card = cast(MenuCard)itm.getData();
+								auto t = createTextEditor(_comm, _prop, _cards, card.name);
+								if (card.expandSPChars) { mixin(S_TRACE);
+									auto nameMenu = t.getMenu();
+									new MenuItem(nameMenu, SWT.SEPARATOR);
+									.setupSPCharsMenu(_comm, _summ, t, nameMenu, false, false, () => card.expandSPChars);
+									void updateToolTip() { mixin(S_TRACE);
+										auto toolTip = .createSPCharPreview(_comm, _summ, t.getText(), false, null, null);
+										toolTip = toolTip.replace("&", "&&");
+										if (toolTip != t.getToolTipText()) { mixin(S_TRACE);
+											t.setToolTipText(toolTip);
+										}
+									}
+									.listener(t, SWT.Modify, &updateToolTip);
+									updateToolTip();
+								}
+								return t;
+							});
 					}
 				} else static if (is (C == EnemyCard)) {
 					_cards = createList(listsP, prop.msgs.enemyCards,
@@ -3656,6 +3680,18 @@ public:
 				_imgp.redrawImage(fi);
 			}
 		}
+		static if (is(C:MenuCard)) {
+			private void refreshCardNamePreview() { mixin(S_TRACE);
+				foreach (i, c; _area.cards) { mixin(S_TRACE);
+					if (!c.expandSPChars) continue;
+					auto v = _imgp.images[cardsIndex + i].visible;
+					auto fi = create(c);
+					fi.visible = v;
+					_imgp.set(cardsIndex + cast(int)i, fi);
+					_imgp.redrawImage(fi);
+				}
+			}
+		}
 	}
 	private void refreshPanel() { mixin(S_TRACE);
 		auto sels = _imgp.selectedIndices;
@@ -4033,7 +4069,7 @@ public:
 				if (!_summ.casts.length) return;
 			}
 			static if (is(C : MenuCard)) {
-				auto c = new MenuCard("", [], "", "", 0, 0, 100, LAYER_MENU_CARD, "", -1);
+				auto c = new MenuCard("", false, [], "", "", 0, 0, 100, LAYER_MENU_CARD, "", -1);
 			} else static if (is(C : EnemyCard)) {
 				if (!_summ) return;
 				if (_summ.casts.length == 0) return;
@@ -4198,7 +4234,11 @@ public:
 	}
 	PImg createCardImage(PImg, C2)(in C2 card, bool smoothing) { mixin(S_TRACE);
 		static if (is(C2 : MenuCard) || is(C2 : const MenuCard)) {
-			return createMenuCardImage!PImg(prop, summSkin, summary, card.name,
+			auto name = card.name;
+			if (card.expandSPChars) { mixin(S_TRACE);
+				name = .createSPCharPreview(_comm, _summ, name, false, null, null);
+			}
+			return createMenuCardImage!PImg(prop, summSkin, summary, name,
 				cardImagePath(card), card.x, card.y, card.scale, smoothing, card.layer);
 		} else static if (is(C2 : EnemyCard) || is(C2 : const EnemyCard)) {
 			auto skin = summSkin;
@@ -5129,7 +5169,7 @@ public:
 						return -1;
 					}
 				}
-				auto card = new MenuCard(baseName(.stripExtension(fname)), fname.length ? [new CardImage(fname, CardImagePosition.Default)] : [], "", "", x, y, 100, LAYER_MENU_CARD, "", -1);
+				auto card = new MenuCard(baseName(.stripExtension(fname)), false, fname.length ? [new CardImage(fname, CardImagePosition.Default)] : [], "", "", x, y, 100, LAYER_MENU_CARD, "", -1);
 				return appendCard(card, true, true, fromImgPane);
 			}
 			private class CLDropTarget : DropTargetAdapter {

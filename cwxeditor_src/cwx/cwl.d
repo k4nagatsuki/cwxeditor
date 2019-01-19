@@ -1909,7 +1909,7 @@ private Area loadArea(ref RData d, ref ByteIO f, ulong fid) { mixin(S_TRACE);
 				imgPath = new CardImage(img, CardImagePosition.Default);
 			}
 		}
-		auto c = new MenuCard(cName, imgPath ? [imgPath] : [], desc, flag, x, y, scale, LAYER_MENU_CARD, "", -1);
+		auto c = new MenuCard(cName, false, imgPath ? [imgPath] : [], desc, flag, x, y, scale, LAYER_MENU_CARD, "", -1);
 		foreach (tree; trees) { mixin(S_TRACE);
 			c.add(tree);
 		}

@@ -489,6 +489,7 @@ private:
 	string _name;
 	string _desc;
 	CardImage[] _paths;
+	bool _expandSPChars = false;
 
 public:
 	/// XML要素名。
@@ -499,6 +500,7 @@ public:
 	/// 唯一のコンストラクタ。
 	/// Params:
 	/// name = カード名。
+	/// expandSPChars = 特殊文字を展開する(Wsn.4)。
 	/// paths = カード画像。
 	/// desc = 解説。無しの場合は""。
 	/// flag = フラグ。無しの場合は""。
@@ -508,11 +510,12 @@ public:
 	/// layer = 表示レイヤ。
 	/// cardGroup = 所属カードグループ。
 	/// animationSpeed = アニメーション速度(最速0～最遅10)。-1ならエンジン設定に従う。
-	this (string name, in CardImage[] paths, string desc, string flag,
+	this (string name, bool expandSPChars, in CardImage[] paths, string desc, string flag,
 			int x, int y, int scale, int layer, string cardGroup, int animationSpeed) { mixin(S_TRACE);
 		super(flag, x, y, scale, layer, cardGroup, animationSpeed);
 		this.paths = paths;
 		_name = name;
+		_expandSPChars = expandSPChars;
 		_desc = desc;
 	}
 	@property
@@ -526,7 +529,7 @@ public:
 	const
 	override
 	AbstractSpCard dup() { mixin(S_TRACE);
-		auto r = new MenuCard(name, paths, desc, flag, x, y, scale, layer, cardGroup, animationSpeed);
+		auto r = new MenuCard(name, expandSPChars, paths, desc, flag, x, y, scale, layer, cardGroup, animationSpeed);
 		r.deepCopyEventTreeOwner(this);
 		return r;
 	}
@@ -564,6 +567,20 @@ public:
 		if (_name != name) changed();
 		_name = name;
 	}
+
+	/// 特殊文字を展開するか(Wsn.4)。
+	@property
+	const
+	bool expandSPChars() { return _expandSPChars; }
+	/// ditto
+	@property
+	void expandSPChars(bool val) { mixin(S_TRACE);
+		if (val != _expandSPChars) { mixin(S_TRACE);
+			changed();
+			_expandSPChars = val;
+		}
+	}
+
 	/// 説明。
 	@property
 	const
@@ -637,6 +654,7 @@ public:
 			auto create = false;
 			auto name = "";
 			auto desc = "";
+			bool expandSPChars = false;
 			CardImage[] paths;
 			pNode.onTag["Name"] = (ref XNode node) { mixin(S_TRACE);
 				name = node.value;
@@ -650,7 +668,7 @@ public:
 			}
 			pNode.parse();
 			if (!create) return null;
-			return new MenuCard(name, paths, desc, "", 0, 0, 100, LAYER_MENU_CARD, "", -1);
+			return new MenuCard(name, expandSPChars, paths, desc, "", 0, 0, 100, LAYER_MENU_CARD, "", -1);
 		}
 		auto pNode = node.child("Property", false);
 		if (pNode.valid) { mixin(S_TRACE);
@@ -685,7 +703,8 @@ public:
 	const
 	private void toNodeImpl(ref XNode e, XMLOption opt) { mixin(S_TRACE);
 		auto pNode = e.newElement("Property");
-		pNode.newElement("Name", _name);
+		auto nNode = pNode.newElement("Name", _name);
+		if (expandSPChars) nNode.newAttr("spchars", expandSPChars);
 		CardImage.toNode(pNode, _paths);
 		pNode.newElement("Description", encodeLf(_desc));
 		appendProp(pNode, opt);
@@ -700,6 +719,7 @@ public:
 		if (node.name != XML_NAME) throw new AreaException("Node is not MenuCard");
 
 		string name = null;
+		bool expandSPChars = false;
 		CardImage[] paths;
 		string desc = "";
 		string flag = "";
@@ -711,7 +731,10 @@ public:
 		EventTree[] evt;
 
 		node.onTag["Property"] = (ref XNode pNode) { mixin(S_TRACE);
-			pNode.onTag["Name"] = (ref XNode n) { name = n.value; };
+			pNode.onTag["Name"] = (ref XNode n) { mixin(S_TRACE);
+				name = n.value;
+				expandSPChars = n.attr!bool("spchars", false, false);
+			};
 			CardImage.setOnTag(pNode, paths);
 			pNode.onTag["Description"] = (ref XNode n) { desc = decodeLf2(n.value); };
 			loadProp(pNode, flag, x, y, scale, layer, cardGroup, animationSpeed);
@@ -721,7 +744,7 @@ public:
 		};
 		node.parse();
 		if (name is null) name = "";
-		auto r = new MenuCard(name, paths, desc, flag, x, y, scale, layer, cardGroup, animationSpeed);
+		auto r = new MenuCard(name, expandSPChars, paths, desc, flag, x, y, scale, layer, cardGroup, animationSpeed);
 		r.addAll(evt);
 
 		return r;

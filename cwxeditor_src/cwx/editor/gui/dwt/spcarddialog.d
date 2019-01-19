@@ -7,7 +7,9 @@ import cwx.event;
 import cwx.flag;
 import cwx.imagesize;
 import cwx.menu;
+import cwx.msgutils;
 import cwx.path;
+import cwx.sjis;
 import cwx.skin;
 import cwx.summary;
 import cwx.types;
@@ -30,11 +32,13 @@ import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.imageselect;
 import cwx.editor.gui.dwt.incsearch;
 import cwx.editor.gui.dwt.materialselect;
+import cwx.editor.gui.dwt.messageutils;
 import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 
 import std.conv;
 import std.math;
+import std.string;
 
 import org.eclipse.swt.all;
 
@@ -65,6 +69,9 @@ private:
 			ws ~= .sjisWarnings(_prop.parent, _summ, _name.getText(), _prop.msgs.name);
 			ws ~= .sjisWarnings(_prop.parent, _summ, _desc.getText(), _prop.msgs.desc);
 			ws ~= .sjisWarnings(_prop.parent, _summ, _cardGroup.getText(), _prop.msgs.cardGroup);
+			if (_expandSPChars.getSelection() &&  !_prop.isTargetVersion(_summ, "4")) { mixin(S_TRACE);
+				ws ~= _prop.msgs.warningExpandSPCharsWithMenuCardName;
+			}
 			ws ~= _imgPath.warnings;
 		} else {
 			ws ~= .sjisWarnings(_prop.parent, _summ, _cardGroup.getText(), _prop.msgs.cardGroup);
@@ -81,6 +88,10 @@ private:
 	void refDataVersion() { mixin(S_TRACE);
 		_layer.setEnabled(!_summ || !_summ.legacy || _layer.getSelection() != LAYER_MENU_CARD);
 		_cardGroup.setEnabled(!_summ || !_summ.legacy || _cardGroup.getText() != "");
+		static if (is(C:MenuCard)) {
+			_expandSPChars.setEnabled(!_summ.legacy || _expandSPChars.getSelection());
+			updateToolTip();
+		}
 		refreshWarning();
 	}
 
@@ -88,7 +99,18 @@ private:
 		ImageSelect!(MtType.CARD) _imgPath;
 		FixedWidthText!Text _desc;
 		Text _name;
+		Button _expandSPChars;
 
+		void updateToolTip() { mixin(S_TRACE);
+			auto toolTip = "";
+			if (_expandSPChars.getSelection()) { mixin(S_TRACE);
+				toolTip = .createSPCharPreview(_comm, _summ, _name.getText(), false, null, null);
+			}
+			toolTip = toolTip.replace("&", "&&");
+			if (toolTip != _name.getToolTipText()) { mixin(S_TRACE);
+				_name.setToolTipText(toolTip);
+			}
+		}
 	} else static if (is (C == EnemyCard)) {
 		Combo _casts;
 		ulong[] _castIDs;
@@ -307,10 +329,20 @@ protected:
 							grp.setLayout(normalGridLayout(1, false));
 							grp.setText(_prop.msgs.name);
 							_name = new Text(grp, SWT.BORDER);
-							createTextMenu!Text(_comm, _prop, _name, &catchMod);
 							mod(_name);
+							createTextMenu!Text(_comm, _prop, _name, &catchMod);
+							auto nameMenu = _name.getMenu();
+							new MenuItem(nameMenu, SWT.SEPARATOR);
+							.setupSPCharsMenu(_comm, _summ, _name, nameMenu, false, false, () => _expandSPChars.getSelection());
 							_name.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 							.listener(_name, SWT.Modify, &refreshWarning);
+							.listener(_name, SWT.Modify, &updateToolTip);
+							_expandSPChars = new Button(grp, SWT.CHECK);
+							mod(_expandSPChars);
+							_expandSPChars.setText(_comm.prop.msgs.expandSPChars);
+							_expandSPChars.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+							.listener(_expandSPChars, SWT.Selection, &refDataVersion);
+							.listener(_expandSPChars, SWT.Selection, &updateToolTip);
 						} else static if (is (C == EnemyCard)) {
 							grp.setLayout(normalGridLayout(_prop.var.etc.setRunAwayWithToggle ? 2 : 1, false));
 							grp.setText(_prop.msgs.enemyCardBase);
@@ -529,6 +561,7 @@ protected:
 				_imgPath.images = _card.paths;
 				_desc.setText(_card.desc);
 				_name.setText(_card.name);
+				_expandSPChars.setSelection(_card.expandSPChars);
 			} else static if (is (C == EnemyCard)) {
 				if (_summ) { mixin(S_TRACE);
 					assert (_casts.getItemCount());
@@ -562,6 +595,7 @@ protected:
 				_imgPath.images = [];
 				_desc.setText("");
 				_name.setText("");
+				_expandSPChars.setSelection(false);
 			} else static if (is (C == EnemyCard)) {
 				assert (_casts.getItemCount());
 				_casts.select(0);
@@ -591,6 +625,7 @@ protected:
 				_card.paths = images.images;
 				_card.desc = wrapReturnCode(_desc.getText());
 				_card.name = _name.getText();
+				_card.expandSPChars = _expandSPChars.getSelection();
 			} else static if (is (C == EnemyCard)) {
 				_card.id = _selectedID;
 				_card.escape = _escape.getSelection();
@@ -613,7 +648,7 @@ protected:
 			static if (is (C == MenuCard)) {
 				auto images = _imgPath.materialPath(forceApplying);
 				if (images.cancel) return false;
-				_card = new C(_name.getText(), images.images,
+				_card = new C(_name.getText(), _expandSPChars.getSelection(), images.images,
 					wrapReturnCode(_desc.getText()), _flag.selected,
 					_x.getSelection(), _y.getSelection(),
 					_scale.getSelection(), _layer.getSelection(),

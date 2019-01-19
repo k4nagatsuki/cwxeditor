@@ -446,6 +446,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	if (mc) { mixin(S_TRACE);
 		r ~= .sjisWarnings(prop, summ, mc.name, prop.msgs.name);
 		r ~= .sjisWarnings(prop, summ, mc.desc, prop.msgs.desc);
+		if (mc.expandSPChars &&  !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
+			r ~= prop.msgs.warningExpandSPCharsWithMenuCardName;
+		}
 		bool warnPos = false;
 		foreach (imagePath; mc.paths) { mixin(S_TRACE);
 			if (imagePath.type is CardImageType.File) { mixin(S_TRACE);

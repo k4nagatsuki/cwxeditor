@@ -45,20 +45,6 @@ import org.eclipse.swt.all;
 
 import java.lang.all;
 
-private string getSPCharPreviewValue(in Commons comm, char name) { mixin(S_TRACE);
-	auto dc = std.ascii.toUpper(name);
-	switch (dc) {
-	case 'M': return comm.prop.var.etc.messageVarSelected;
-	case 'U': return comm.prop.var.etc.messageVarUnselected;
-	case 'R': return comm.prop.var.etc.messageVarRandom;
-	case 'C': return comm.prop.var.etc.messageVarCard;
-	case 'I': return comm.prop.var.etc.messageVarRef;
-	case 'T': return comm.prop.var.etc.messageVarTeam;
-	case 'Y': return comm.prop.var.etc.messageVarYado;
-	default: return "";
-	}
-}
-
 /// ステップ設定用のダイアログ。
 public class StepEditDialog : AbsDialog {
 private:
@@ -354,39 +340,19 @@ private:
 	string createToolTip(string text) { mixin(S_TRACE);
 		auto toolTip = "";
 		if (_expandSPChars.getSelection()) { mixin(S_TRACE);
-			VarValue fValue(string path) { mixin(S_TRACE);
-				auto flag = _summ.flagDirRoot.findFlag(path);
-				return flag ? VarValue(true, flag.onOff ? flag.on : flag.off, flag.expandSPChars) : VarValue(false);
-			}
-			VarValue[string] sysSteps;
-			.getPreviewSysSteps(_comm.prop, _summ, sysSteps);
-			VarValue sValue(string path) { mixin(S_TRACE);
+			toolTip = .createSPCharPreview(_comm, _summ, text, true, null, (path) { mixin(S_TRACE);
 				auto step = _summ.flagDirRoot.findStep(path);
 				if (step && _step is step) { mixin(S_TRACE);
 					if (_initSelected == _editIndex && _valueEditor && !_valueEditor.isDisposed()) { mixin(S_TRACE);
 						return VarValue(true, _valueEditor.getText(), _expandSPChars.getSelection());
 					}
 					return VarValue(true, _valueCache[_initSelected], _expandSPChars.getSelection());
-				} else { mixin(S_TRACE);
-					return step ? VarValue(true, step.value, step.expandSPChars) : sysSteps.get(path.toLower(), VarValue(false));
 				}
-			}
-			string getName(char name) { mixin(S_TRACE);
-				return .getSPCharPreviewValue(_comm, name);
-			}
-			bool hasMaterial(string path) { mixin(S_TRACE);
-				if (_summ.legacy) { mixin(S_TRACE);
-					auto c = .decodeFontPath(path);
-					if (!isSJIS1ByteChar(c)) return false;
-				}
-				return _comm.skin.findImagePath(path, _summ.scenarioPath, _summ.dataVersion).length != 0 || .decodeFontPath(path) in _comm.skin.spChars;
-			}
-			string[size_t] rFonts;
-			char[size_t] rColors;
-			toolTip = .formatMsg(text, &fValue, &sValue, &getName, ver => _comm.prop.isTargetVersion(_summ, ver),
-				_comm.prop.sys.prefixSystemVarName, &hasMaterial, rFonts, rColors);
+				return VarValue(false);
+			});
+			toolTip = toolTip.replace("&", "&&");
 		}
-		return toolTip.replace("&", "&&");
+		return toolTip;
 	}
 	void refScenario(Summary summ) { mixin(S_TRACE);
 		if (_summ is summ) forceCancel();
@@ -487,7 +453,7 @@ protected:
 				_editIndex = itm.getParent().indexOf(itm);
 				auto menu = _valueEditor.getMenu();
 				new MenuItem(menu, SWT.SEPARATOR);
-				.setupSPCharsMenu(_comm, _summ, _valueEditor, menu, false, () => _expandSPChars.getSelection());
+				.setupSPCharsMenu(_comm, _summ, _valueEditor, menu, false, true, () => _expandSPChars.getSelection());
 				new MenuItem(menu, SWT.SEPARATOR);
 				createMenuItem(_comm, menu, MenuID.CreateStepValues, &createStepValues, &canCreateStepValues);
 				updateToolTip();
@@ -756,36 +722,15 @@ private:
 	void updateToolTipImpl(Combo combo) { mixin(S_TRACE);
 		auto toolTip = "";
 		if (_expandSPChars.getSelection()) { mixin(S_TRACE);
-			VarValue fValue(string path) { mixin(S_TRACE);
+			toolTip = .createSPCharPreview(_comm, _summ, combo.getText(), true, (path) { mixin(S_TRACE);
 				auto flag = _summ.flagDirRoot.findFlag(path);
 				if (flag && _flag is flag) { mixin(S_TRACE);
 					return VarValue(true, flagInit.getText(), _expandSPChars.getSelection());
-				} else { mixin(S_TRACE);
-					return flag ? VarValue(true, flag.onOff ? flag.on : flag.off, flag.expandSPChars) : VarValue(false);
 				}
-			}
-			VarValue[string] sysSteps;
-			.getPreviewSysSteps(_comm.prop, _summ, sysSteps);
-			VarValue sValue(string path) { mixin(S_TRACE);
-				auto step = _summ.flagDirRoot.findStep(path);
-				return step ? VarValue(true, step.value, step.expandSPChars) : sysSteps.get(path.toLower(), VarValue(false));
-			}
-			string getName(char name) { mixin(S_TRACE);
-				return .getSPCharPreviewValue(_comm, name);
-			}
-			bool hasMaterial(string path) { mixin(S_TRACE);
-				if (_summ.legacy) { mixin(S_TRACE);
-					auto c = .decodeFontPath(path);
-					if (!isSJIS1ByteChar(c)) return false;
-				}
-				return _comm.skin.findImagePath(path, _summ.scenarioPath, _summ.dataVersion).length != 0 || .decodeFontPath(path) in _comm.skin.spChars;
-			}
-			string[size_t] rFonts;
-			char[size_t] rColors;
-			toolTip = .formatMsg(combo.getText(), &fValue, &sValue, &getName, ver => _comm.prop.isTargetVersion(_summ, ver),
-				_comm.prop.sys.prefixSystemVarName, &hasMaterial, rFonts, rColors);
+				return VarValue(false);
+			}, null);
+			toolTip = toolTip.replace("&", "&&");
 		}
-		toolTip = toolTip.replace("&", "&&");
 		if (toolTip != combo.getToolTipText()) { mixin(S_TRACE);
 			combo.setToolTipText(toolTip);
 		}
@@ -896,7 +841,7 @@ protected:
 			createTextMenu!Combo(_comm, prop, flagTrue, &catchMod);
 			auto tMenu = flagTrue.getMenu();
 			new MenuItem(tMenu, SWT.SEPARATOR);
-			.setupSPCharsMenu(_comm, _summ, flagTrue, tMenu, false, () => _expandSPChars.getSelection());
+			.setupSPCharsMenu(_comm, _summ, flagTrue, tMenu, false, true, () => _expandSPChars.getSelection());
 			auto tmod = new ModOnOff(0);
 			flagTrue.addModifyListener(tmod);
 			flagTrue.addSelectionListener(tmod);
@@ -910,7 +855,7 @@ protected:
 			createTextMenu!Combo(_comm, prop, flagFalse, &catchMod);
 			auto fMenu = flagFalse.getMenu();
 			new MenuItem(fMenu, SWT.SEPARATOR);
-			.setupSPCharsMenu(_comm, _summ, flagFalse, fMenu, false, () => _expandSPChars.getSelection());
+			.setupSPCharsMenu(_comm, _summ, flagFalse, fMenu, false, true, () => _expandSPChars.getSelection());
 			auto fmod = new ModOnOff(1);
 			flagFalse.addModifyListener(fmod);
 			flagFalse.addSelectionListener(fmod);

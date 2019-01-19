@@ -2470,13 +2470,13 @@ public:
 					auto t = createSelectionCombo(_comm, _tree.control, null, (cast(Content)itm.getData()).name);
 					auto menu = t.getMenu();
 					new MenuItem(menu, SWT.SEPARATOR);
-					.setupSPCharsMenu(_comm, _summ, t, menu, false, () => true);
+					.setupSPCharsMenu(_comm, _summ, t, menu, false, true, () => true);
 					return t;
 				} else { mixin(S_TRACE);
 					auto t = createTextEditor(_comm, _prop, _tree.control, (cast(Content)itm.getData()).name);
 					auto menu = t.getMenu();
 					new MenuItem(menu, SWT.SEPARATOR);
-					.setupSPCharsMenu(_comm, _summ, t, menu, false, () => true);
+					.setupSPCharsMenu(_comm, _summ, t, menu, false, true, () => true);
 					return t;
 				}
 			}

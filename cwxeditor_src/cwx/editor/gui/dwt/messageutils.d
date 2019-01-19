@@ -1187,7 +1187,7 @@ protected:
 
 		auto menu = _text.widget.getMenu();
 		new MenuItem(menu, SWT.SEPARATOR);
-		.setupSPCharsMenu(comm, summ, _text.widget, menu, true, () => true);
+		.setupSPCharsMenu(comm, summ, _text.widget, menu, true, true, () => true);
 
 		initPreview(area, prop.var.dlgPrev);
 		updateValue();
@@ -1367,7 +1367,7 @@ protected:
 			createTextMenu!Text(comm, prop, _text.widget, &catchMod, _undo);
 			auto menu = _text.widget.getMenu();
 			new MenuItem(menu, SWT.SEPARATOR);
-			.setupSPCharsMenu(comm, summ, _text.widget, menu, true, () => true);
+			.setupSPCharsMenu(comm, summ, _text.widget, menu, true, true, () => true);
 			auto tab = new CTabItem(_tabf, SWT.NONE);
 			tab.setText(prop.msgs.imageMessage);
 			tab.setControl(comp);
@@ -3511,7 +3511,7 @@ ImageDataWithScale previewMessage(Commons comm, Props prop, in Summary summ, Ima
 	return new ImageDataWithScale(data, prop.drawingScale);
 }
 
-void setupSPCharsMenu(Commons comm, Summary summ, Control ctrl, Menu parentMenu, bool full, bool delegate() isExpandSPChars) { mixin(S_TRACE);
+void setupSPCharsMenu(Commons comm, Summary summ, Control ctrl, Menu parentMenu, bool full, bool expandSharps, bool delegate() isExpandSPChars) { mixin(S_TRACE);
 	void delegate() dummy = { };
 	auto mainMI = .createMenuItem(comm, parentMenu, MenuID.PutSPChar, dummy, isExpandSPChars, SWT.CASCADE);
 	auto menu = new Menu(mainMI);
@@ -3535,7 +3535,7 @@ void setupSPCharsMenu(Commons comm, Summary summ, Control ctrl, Menu parentMenu,
 		}
 
 		// カード名等
-		foreach (spc; full ? SPCHAR_ALL : SPCHAR_TEXT) { mixin(S_TRACE);
+		foreach (spc; expandSharps ? (full ? SPCHAR_ALL : SPCHAR_TEXT) : []) { mixin(S_TRACE);
 			void createMI(SPChar spc) { mixin(S_TRACE);
 				void put() { mixin(S_TRACE);
 					insert("#" ~ .C_TBL[spc]);
@@ -3572,7 +3572,7 @@ void setupSPCharsMenu(Commons comm, Summary summ, Control ctrl, Menu parentMenu,
 		}
 
 		if (!summ.legacy) { mixin(S_TRACE);
-			new MenuItem(menu, SWT.SEPARATOR);
+			if (menu.getItemCount()) new MenuItem(menu, SWT.SEPARATOR);
 
 			// 選択メンバ番号(Wsn.2)
 			.createMenuItem2(comm, menu, comm.prop.msgs.selectedPlayerCardNumber,
@@ -3695,4 +3695,54 @@ void setupSPCharsMenu(Commons comm, Summary summ, Control ctrl, Menu parentMenu,
 			});
 		}
 	});
+}
+
+string createSPCharPreview(in Commons comm, in Summary summ, string text, bool expandSharps, VarValue delegate(string path) overrideFlagValue, VarValue delegate(string path) overrideStepValue) { mixin(S_TRACE);
+	VarValue fValue(string path) { mixin(S_TRACE);
+		if (overrideFlagValue) { mixin(S_TRACE);
+			auto v = overrideFlagValue(path);
+			if (v.exists) return v;
+		}
+		auto flag = summ.flagDirRoot.findFlag(path);
+		return flag ? VarValue(true, flag.onOff ? flag.on : flag.off, flag.expandSPChars) : VarValue(false);
+	}
+	VarValue[string] sysSteps;
+	.getPreviewSysSteps(comm.prop, summ, sysSteps);
+	VarValue sValue(string path) { mixin(S_TRACE);
+		if (overrideStepValue) { mixin(S_TRACE);
+			auto v = overrideStepValue(path);
+			if (v.exists) return v;
+		}
+		auto step = summ.flagDirRoot.findStep(path);
+		return step ? VarValue(true, step.value, step.expandSPChars) : sysSteps.get(path.toLower(), VarValue(false));
+	}
+	string getName(char name) { mixin(S_TRACE);
+		return .getSPCharPreviewValue(comm, name);
+	}
+	bool hasMaterial(string path) { mixin(S_TRACE);
+		if (!expandSharps) return true; // #から始まる文字が全て展開されないようにする
+		if (summ.legacy) { mixin(S_TRACE);
+			auto c = .decodeFontPath(path);
+			if (!.isSJIS1ByteChar(c)) return false;
+		}
+		return comm.skin.findImagePath(path, summ.scenarioPath, summ.dataVersion).length != 0 || .decodeFontPath(path) in comm.skin.spChars;
+	}
+	string[size_t] rFonts;
+	char[size_t] rColors;
+	return .formatMsg(text, &fValue, &sValue, &getName, ver => comm.prop.isTargetVersion(summ, ver),
+		comm.prop.sys.prefixSystemVarName, &hasMaterial, rFonts, rColors);
+}
+
+private string getSPCharPreviewValue(in Commons comm, char name) { mixin(S_TRACE);
+	auto dc = std.ascii.toUpper(name);
+	switch (dc) {
+	case 'M': return comm.prop.var.etc.messageVarSelected;
+	case 'U': return comm.prop.var.etc.messageVarUnselected;
+	case 'R': return comm.prop.var.etc.messageVarRandom;
+	case 'C': return comm.prop.var.etc.messageVarCard;
+	case 'I': return comm.prop.var.etc.messageVarRef;
+	case 'T': return comm.prop.var.etc.messageVarTeam;
+	case 'Y': return comm.prop.var.etc.messageVarYado;
+	default: return "";
+	}
 }
