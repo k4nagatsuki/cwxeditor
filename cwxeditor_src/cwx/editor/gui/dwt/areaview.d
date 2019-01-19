@@ -5828,11 +5828,6 @@ public:
 	}
 	void cut(SelectionEvent se) { mixin(S_TRACE);
 		if (_readOnly) return;
-		int[] cs;
-		int[] bs;
-		static if (UseCards) cs = _cards.getSelectionIndices();
-		static if (UseBacks) bs = _backs.getSelectionIndices();
-		_undo ~= new UndoDelete(this, _comm, _area, _summ, cs, bs);
 		_tcpd.cut(se);
 	}
 	void copy(SelectionEvent se) { mixin(S_TRACE);
@@ -5844,11 +5839,6 @@ public:
 	}
 	void del(SelectionEvent se) { mixin(S_TRACE);
 		if (_readOnly) return;
-		int[] cs;
-		int[] bs;
-		static if (UseCards) cs = _cards.getSelectionIndices();
-		static if (UseBacks) bs = _backs.getSelectionIndices();
-		_undo ~= new UndoDelete(this, _comm, _area, _summ, cs, bs);
 		delImpl();
 	}
 	private void delImpl() { mixin(S_TRACE);
