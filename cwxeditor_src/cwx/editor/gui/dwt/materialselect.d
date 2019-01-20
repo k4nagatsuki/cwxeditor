@@ -105,7 +105,7 @@ class MaterialSelect(MtType Type, D, C) {
 		} else { mixin(S_TRACE);
 			static assert (0);
 		}
-		_dirs.setEnabled(!_readOnly);
+		_dirs.setEnabled(_enabled && !_readOnly);
 		_dirs.addSelectionListener(new CSListener);
 
 		_comm.refDataVersion.add(&refreshFileListMenu);
@@ -215,7 +215,7 @@ class MaterialSelect(MtType Type, D, C) {
 		}
 		ptrdiff_t skinPos, enginePosFrom, enginePosTo;
 		auto dirs = allDirs(skinPos, enginePosFrom, enginePosTo);
-		_fileList.setEnabled(!_readOnly && _summ);
+		_fileList.setEnabled(_enabled && !_readOnly && _summ);
 		_fileList.addSelectionListener(new LSListener);
 		static if (is (C == Table)) {
 			static if (Type == MtType.BGM || Type == MtType.SE) {
@@ -583,16 +583,16 @@ class MaterialSelect(MtType Type, D, C) {
 		}
 		private void refDataVersion() { mixin(S_TRACE);
 			if (!_summ) return;
-			if (_volume) _volume.setEnabled(!_readOnly && (!_summ.legacy || _volume.getSelection() != 100) && path != "");
+			if (_volume) _volume.setEnabled(_enabled && !_readOnly && (!_summ.legacy || _volume.getSelection() != 100) && path != "");
 			static immutable loopDef = (Type == MtType.BGM) ? 0 : 1;
-			if (_loopCount) _loopCount.setEnabled(!_readOnly && (!_summ.legacy || _loopCount.getSelection() != loopDef) && path != "");
-			if (_channel) _channel.setEnabled(!_readOnly && (!_summ.legacy || _channel.getSelectionIndex() != 0) && (path != "" || Type == MtType.BGM));
+			if (_loopCount) _loopCount.setEnabled(_enabled && !_readOnly && (!_summ.legacy || _loopCount.getSelection() != loopDef) && path != "");
+			if (_channel) _channel.setEnabled(_enabled && !_readOnly && (!_summ.legacy || _channel.getSelectionIndex() != 0) && (path != "" || Type == MtType.BGM));
 			static if (Type == MtType.BGM) {
 				auto contVal = continueBGM;
 			} else {
 				static immutable contVal = false;
 			}
-			if (_fadeIn) _fadeIn.setEnabled(!_readOnly && (!_summ.legacy || _fadeIn.getSelection() != 0) && (path != "" || Type == MtType.BGM) && !contVal);
+			if (_fadeIn) _fadeIn.setEnabled(_enabled && !_readOnly && (!_summ.legacy || _fadeIn.getSelection() != 0) && (path != "" || Type == MtType.BGM) && !contVal);
 		}
 		@property
 		int volume() { return _volume ? _volume.getSelection() : 100; }
@@ -691,7 +691,7 @@ class MaterialSelect(MtType Type, D, C) {
 			_bgmBtn.setImage(_prop.images.menu(MenuID.PlayBGM));
 			auto pbgm = new Play;
 			_bgmBtn.addSelectionListener(pbgm);
-			_comm.put(_bgmBtn, &canPlay);
+			_comm.put(_bgmBtn, () => _enabled && canPlay);
 			modEvent ~= { mixin(S_TRACE);
 				if (_playing == "") return;
 				updatePlayButton(isPlayOrStop);
@@ -854,7 +854,7 @@ class MaterialSelect(MtType Type, D, C) {
 			_bgmBtn.setImage(_prop.images.menu(MenuID.PlaySE));
 			auto play = new Play;
 			_bgmBtn.addSelectionListener(play);
-			_comm.put(_bgmBtn, &canPlay);
+			_comm.put(_bgmBtn, () => _enabled && canPlay);
 			return _bgmBtn;
 		}
 		Button createStopButton(Composite parent) { mixin(S_TRACE);
@@ -921,7 +921,7 @@ class MaterialSelect(MtType Type, D, C) {
 			refBtn.setToolTipText(_prop.msgs.menuText(MenuID.Refresh));
 		}
 		.listener(refBtn, SWT.Selection, &doRefresh);
-		_comm.put(refBtn, &canRefresh);
+		_comm.put(refBtn, () => _enabled && canRefresh);
 		return refBtn;
 	}
 	@property
@@ -936,7 +936,7 @@ class MaterialSelect(MtType Type, D, C) {
 		} else { mixin(S_TRACE);
 			_dirBtn.setToolTipText(_prop.msgs.menuText(MenuID.OpenDir));
 		}
-		_comm.put(_dirBtn, &canDirectoryButton);
+		_comm.put(_dirBtn, () => _enabled && canDirectoryButton);
 		return _dirBtn;
 	}
 	@property
@@ -1336,6 +1336,40 @@ class MaterialSelect(MtType Type, D, C) {
 			_loadScaledImage = loadScaledImage;
 		}
 	}
+
+	@property
+	void enabled(bool enabled) { mixin(S_TRACE);
+		_enabled = enabled;
+
+		_dirs.setEnabled(_enabled && !_readOnly && !loading);
+		_fileList.setEnabled(_enabled && !_readOnly && !loading && _summ);
+
+		static if (Type == MtType.BGM || Type == MtType.SE) {
+			static if (Type == MtType.BGM) {
+				auto contVal = continueBGM;
+			} else {
+				static immutable contVal = false;
+			}
+			static immutable loopDef = (Type == MtType.BGM) ? 0 : 1;
+			if (_volume) _volume.setEnabled(!_readOnly && (!_summ.legacy || _volume.getSelection() != 100) && path != "");
+			if (_loopCount) _loopCount.setEnabled(!_readOnly && (!_summ.legacy || _loopCount.getSelection() != loopDef) && path != "");
+			if (_channel) _channel.setEnabled(!_readOnly && (!_summ.legacy || _channel.getSelectionIndex() != 0) && (path != "" || Type == MtType.BGM));
+			if (_fadeIn) _fadeIn.setEnabled(!_readOnly && (!_summ.legacy || _fadeIn.getSelection() != 0) && (path != "" || Type == MtType.BGM) && !contVal);
+		}
+
+		if (!_enabled) { mixin(S_TRACE);
+			_incSearch.close();
+			static if (Type == MtType.BGM) {
+				.stopBGM();
+			} else static if (Type == MtType.SE) {
+				.stopSE();
+			}
+		}
+	}
+
+	@property
+	const
+	bool enabled() { return _enabled; }
 
 private:
 	static if (Type == MtType.CARD) {
@@ -1745,7 +1779,7 @@ private:
 		}
 		ptrdiff_t skinPos, enginePosFrom, enginePosTo;
 		auto dirs = allDirs(skinPos, enginePosFrom, enginePosTo);
-		_fileList.setEnabled(!_readOnly && _summ);
+		_fileList.setEnabled(_enabled && !_readOnly && _summ);
 		_loading = false;
 		foreach (dlg; loadedEvent) dlg();
 		_comm.refreshToolBar();
@@ -1791,7 +1825,7 @@ private:
 		if (_dirs.getSelectionIndex() < defs.length) { mixin(S_TRACE);
 			ptrdiff_t skinPos, enginePosFrom, enginePosTo;
 			auto dirs = allDirs(skinPos, enginePosFrom, enginePosTo);
-			_fileList.setEnabled(!_readOnly && _summ);
+			_fileList.setEnabled(_enabled && !_readOnly && _summ);
 			if (!dirs.length) { mixin(S_TRACE);
 				_loading = false;
 				foreach (dlg; loadedEvent) dlg();
@@ -2032,10 +2066,10 @@ private:
 					override void run() { mixin(S_TRACE);
 						if (_dirs.isDisposed()) return;
 						updateList();
-						_dirs.setEnabled(!_readOnly);
+						_dirs.setEnabled(_enabled && !_readOnly);
 						ptrdiff_t skinPos, enginePosFrom, enginePosTo;
 						auto dirs = allDirs(skinPos, enginePosFrom, enginePosTo);
-						_fileList.setEnabled(!_readOnly && _summ);
+						_fileList.setEnabled(_enabled && !_readOnly && _summ);
 					}
 				});
 			} else { mixin(S_TRACE);
@@ -2166,6 +2200,7 @@ private:
 
 	Display _display = null;
 	int _readOnly = 0;
+	bool _enabled = true;
 	Props _prop;
 	Commons _comm;
 	D _dirs;

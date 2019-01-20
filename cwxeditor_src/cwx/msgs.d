@@ -2086,6 +2086,7 @@ class Msgs : Properties {
 	auto warningNoIgniteRunAway = Msg("warningNoIgniteRunAway", "逃走できないバトルのイベントに逃走発火条件が設定されています。"); // Wsn.3
 	auto warningConsumeCard = Msg("warningConsumeCard", "カード消費の抑止は、Wsn.3以降の形式のシナリオでしか機能しません。"); // Wsn.3
 	auto warningOverrideEnemyCardName = Msg("warningOverrideEnemyCardName", "エネミーカードの名前の上書きは、Wsn.4以降の形式のシナリオしか行えません。"); // Wsn.4
+	auto warningOverrideEnemyCardImage = Msg("warningOverrideEnemyCardImage", "エネミーカードのイメージの上書きは、Wsn.4以降の形式のシナリオしか行えません。"); // Wsn.4
 
 	auto unknownStepValue = Msg("unknownStepValue", "存在しないステップ値(%1$s)");
 

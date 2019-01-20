@@ -76,14 +76,17 @@ private:
 			if (_expandSPChars.getSelection() &&  !_prop.isTargetVersion(_summ, "4")) { mixin(S_TRACE);
 				ws ~= _prop.msgs.warningExpandSPCharsWithMenuCardName;
 			}
-			ws ~= _imgPath.warnings;
 		} else static if (is(C:EnemyCard)) {
 			t = _overrideName;
 			ws ~= .sjisWarnings(_prop.parent, _summ, _cardGroup.getText(), _prop.msgs.cardGroup);
 			if (_isOverrideName.getSelection() &&  !_prop.isTargetVersion(_summ, "4")) { mixin(S_TRACE);
 				ws ~= _prop.msgs.warningOverrideEnemyCardName;
 			}
+			if (_isOverrideImage.getSelection() &&  !_prop.isTargetVersion(_summ, "4")) { mixin(S_TRACE);
+				ws ~= _prop.msgs.warningOverrideEnemyCardImage;
+			}
 		} else static assert (0);
+		ws ~= _imgPath.warnings;
 		if (t) { mixin(S_TRACE);
 			bool[string] wFlags;
 			bool[string] wSteps;
@@ -116,9 +119,12 @@ private:
 		} else static if (is(C:EnemyCard)) {
 			_isOverrideName.setEnabled(!_summ || !_summ.legacy || _isOverrideName.getSelection());
 			_overrideName.setEnabled(_isOverrideName.getSelection());
+			_isOverrideImage.setEnabled(!_summ || !_summ.legacy || _isOverrideImage.getSelection());
+			_imgPath.enabled = _isOverrideImage.getSelection();
 		} else static assert (0);
 		updateToolTip();
 		refreshWarning();
+		_comm.refreshToolBar();
 	}
 
 	static if (is (C == MenuCard)) {
@@ -144,6 +150,8 @@ private:
 		Canvas _image;
 		Button _isOverrideName;
 		Text _overrideName;
+		Button _isOverrideImage;
+		ImageSelect!(MtType.CARD, Combo, true) _imgPath;
 		class CardPaint : PaintListener {
 			override void paintControl(PaintEvent e) { mixin(S_TRACE);
 				if (0 != _selectedID) { mixin(S_TRACE);
@@ -155,7 +163,8 @@ private:
 					if (_isOverrideName.getSelection()) { mixin(S_TRACE);
 						overrideName = .createSPCharPreview(_comm, _summ, _overrideName.getText(), false, null, null);
 					}
-					auto imgData = .castCardImage(_prop, skin, _summ, ec, true, _isOverrideName.getSelection(), overrideName);
+					auto imgData = .castCardImage(_prop, skin, _summ, ec, true, _isOverrideName.getSelection(), overrideName,
+						_isOverrideImage.getSelection(), _imgPath.images);
 					scope img = new Image(Display.getCurrent(), imgData.scaled(_prop.drawingScale));
 					scope (exit) img.dispose();
 					auto ca = canv.getClientArea();
@@ -425,48 +434,22 @@ protected:
 							static assert (0);
 						}
 					}
-					{ mixin(S_TRACE);
-						static if (is (C == MenuCard)) {
-							auto skin = _comm.skin;
-							string[] defs(bool included) { mixin(S_TRACE);
-								string[] defs = [_prop.msgs.defaultSelection(_prop.msgs.imageNone)];
-								if (included) defs ~= _prop.msgs.defaultSelection(_prop.msgs.imageIncluding);
-								foreach (pcNum; 0 .. _prop.var.etc.partyMax) {
-									defs ~= _prop.msgs.defaultSelection(.tryFormat(_prop.msgs.pcNumber, pcNum + 1));
-								}
-								return defs;
+					void createImgPath(Composite comp) {mixin(S_TRACE);
+						auto skin = _comm.skin;
+						string[] defs(bool included) { mixin(S_TRACE);
+							string[] defs = [_prop.msgs.defaultSelection(_prop.msgs.imageNone)];
+							if (included) defs ~= _prop.msgs.defaultSelection(_prop.msgs.imageIncluding);
+							foreach (pcNum; 0 .. _prop.var.etc.partyMax) {
+								defs ~= _prop.msgs.defaultSelection(.tryFormat(_prop.msgs.pcNumber, pcNum + 1));
 							}
-							_imgPath = new ImageSelect!(MtType.CARD)(comp2, SWT.NONE, _comm, _prop, _summ,
+							return defs;
+						}
+						static if (is(C:MenuCard)) {
+							_imgPath = new ImageSelect!(MtType.CARD)(comp, SWT.NONE, _comm, _prop, _summ,
 								_prop.s(_prop.looks.cardSize.width), _prop.s(_prop.looks.cardSize.height), _prop.s(_prop.looks.menuCardInsets),
 								CardImagePosition.TopLeft, true, { mixin(S_TRACE);
 									return .toExportedImageNameWithCardName(_prop.parent, _summ.scenarioName, _summ.author, _name.getText());
 								}, null, &defs, true);
-							_imgPath.valueFromDef = (defIndex, included, binPath) { mixin(S_TRACE);
-								if (defIndex <= 0) return new CardImage("", CardImagePosition.Default);
-								if (included) { mixin(S_TRACE);
-									if (defIndex == 1) return new CardImage(binPath, CardImagePosition.Default);
-									defIndex--;
-								}
-								return new CardImage(cast(uint)defIndex);
-							};
-							_imgPath.valueToDef = (imgPath, included) { mixin(S_TRACE);
-								final switch (imgPath.type) {
-								case CardImageType.File:
-									if (imgPath.path == "") return 0;
-									if (included && imgPath.path.isBinImg) return 1;
-									return -1;
-								case CardImageType.PCNumber:
-									auto pcNum = cast(int)imgPath.pcNumber;
-									if (included) pcNum++;
-									return pcNum;
-								case CardImageType.Talker:
-									return -1; // 非対応
-								}
-							};
-							_imgPath.indexOfBinPath = (included) => included ? 1 : -1;
-							mod(_imgPath);
-							_imgPath.modEvent ~= &refreshWarning;
-							_imgPath.widget.setLayoutData(new GridData(GridData.FILL_BOTH));
 							void refImageScale() { mixin(S_TRACE);
 								_imgPath.setPreviewSize(_prop.s(_prop.looks.cardSize.width), _prop.s(_prop.looks.cardSize.height), _prop.s(_prop.looks.menuCardInsets));
 							}
@@ -474,6 +457,41 @@ protected:
 							.listener(_imgPath.widget, SWT.Dispose, { mixin(S_TRACE);
 								_comm.refImageScale.remove(&refImageScale);
 							});
+						} else static if (is(C:EnemyCard)) {
+							_imgPath = new ImageSelect!(MtType.CARD, Combo, true)(comp, SWT.NONE, _comm, _prop, _summ,
+								_prop.s(_prop.looks.cardSize.width), _prop.s(_prop.looks.cardSize.height), _prop.s(_prop.looks.castCardInsets),
+								CardImagePosition.Center, false, null, null, &defs, true);
+						} else static assert (0);
+						_imgPath.valueFromDef = (defIndex, included, binPath) { mixin(S_TRACE);
+							if (defIndex <= 0) return new CardImage("", CardImagePosition.Default);
+							if (included) { mixin(S_TRACE);
+								if (defIndex == 1) return new CardImage(binPath, CardImagePosition.Default);
+								defIndex--;
+							}
+							return new CardImage(cast(uint)defIndex);
+						};
+						_imgPath.valueToDef = (imgPath, included) { mixin(S_TRACE);
+							final switch (imgPath.type) {
+							case CardImageType.File:
+								if (imgPath.path == "") return 0;
+								if (included && imgPath.path.isBinImg) return 1;
+								return -1;
+							case CardImageType.PCNumber:
+								auto pcNum = cast(int)imgPath.pcNumber;
+								if (included) pcNum++;
+								return pcNum;
+							case CardImageType.Talker:
+								return -1; // 非対応
+							}
+						};
+						_imgPath.indexOfBinPath = (included) => included ? 1 : -1;
+						mod(_imgPath);
+						_imgPath.modEvent ~= &refreshWarning;
+						_imgPath.widget.setLayoutData(new GridData(GridData.FILL_BOTH));
+					}
+					{ mixin(S_TRACE);
+						static if (is (C == MenuCard)) {
+							createImgPath(comp2);
 						} else static if (is (C == EnemyCard)) {
 							auto grp = new Group(comp2, SWT.NONE);
 							grp.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -495,6 +513,7 @@ protected:
 							grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 							grp.setLayout(normalGridLayout(2, false));
 							grp.setText(_prop.msgs.overrideEnemyCardVisual);
+
 							_isOverrideName = new Button(grp, SWT.CHECK);
 							mod(_isOverrideName);
 							_isOverrideName.setText(_comm.prop.msgs.name);
@@ -509,6 +528,19 @@ protected:
 							_overrideName.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 							.listener(_overrideName, SWT.Modify, &updateToolTip);
 							.listener(_overrideName, SWT.Modify, &_image.redraw);
+
+							auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
+							auto sgd = new GridData(GridData.FILL_HORIZONTAL);
+							sgd.horizontalSpan = 2;
+							sep.setLayoutData(sgd);
+
+							_isOverrideImage = new Button(grp, SWT.CHECK);
+							mod(_isOverrideImage);
+							_isOverrideImage.setText(_comm.prop.msgs.image);
+							.listener(_isOverrideImage, SWT.Selection, &refDataVersion);
+							.listener(_isOverrideImage, SWT.Selection, &_image.redraw);
+							createImgPath(grp);
+							_imgPath.modEvent ~= &_image.redraw;
 						}
 						auto dropT = new DropTarget(comp2, DND.DROP_DEFAULT | DND.DROP_LINK);
 						dropT.setTransfer([XMLBytesTransfer.getInstance()]);
@@ -641,6 +673,8 @@ protected:
 				_escape.setSelection(_card.escape);
 				_isOverrideName.setSelection(_card.isOverrideName);
 				_overrideName.setText(_card.overrideName);
+				_isOverrideImage.setSelection(_card.isOverrideImage);
+				_imgPath.images = _card.overrideImages;
 			} else { mixin(S_TRACE);
 				static assert (0);
 			}
@@ -666,6 +700,8 @@ protected:
 				_escape.setSelection(false);
 				_isOverrideName.setSelection(false);
 				_overrideName.setText("");
+				_isOverrideImage.setSelection(false);
+				_imgPath.images = [];
 			} else { mixin(S_TRACE);
 				static assert (0);
 			}
@@ -678,15 +714,15 @@ protected:
 			_layer.setSelection(LAYER_MENU_CARD);
 			_cardGroup.setText("");
 			_animationSpeed.speed = -1;
-	}
+		}
 		refDataVersion();
 	}
 
 	override bool apply() { mixin(S_TRACE);
+		auto images = _imgPath.materialPath(forceApplying);
+		if (images.cancel) return false;
 		if (_card) { mixin(S_TRACE);
 			static if (is (C == MenuCard)) {
-				auto images = _imgPath.materialPath(forceApplying);
-				if (images.cancel) return false;
 				_card.paths = images.images;
 				_card.desc = wrapReturnCode(_desc.getText());
 				_card.name = _name.getText();
@@ -696,6 +732,8 @@ protected:
 				_card.escape = _escape.getSelection();
 				_card.isOverrideName = _isOverrideName.getSelection();
 				_card.overrideName = _overrideName.getText();
+				_card.isOverrideImage = _isOverrideImage.getSelection();
+				_card.overrideImages = images.images;
 			} else { mixin(S_TRACE);
 				static assert (0);
 			}
@@ -713,8 +751,6 @@ protected:
 			_card.animationSpeed = _animationSpeed.speed;
 		} else { mixin(S_TRACE);
 			static if (is (C == MenuCard)) {
-				auto images = _imgPath.materialPath(forceApplying);
-				if (images.cancel) return false;
 				_card = new C(_name.getText(), _expandSPChars.getSelection(), images.images,
 					wrapReturnCode(_desc.getText()), _flag.selected,
 					_x.getSelection(), _y.getSelection(),
@@ -725,7 +761,8 @@ protected:
 					_flag.selected, _x.getSelection(), _y.getSelection(),
 					_scale.getSelection(), _layer.getSelection(),
 					_cardGroup.getText(), _animationSpeed.speed,
-					_isOverrideName.getSelection(), _overrideName.getText());
+					_isOverrideName.getSelection(), _overrideName.getText(),
+					_isOverrideImage.getSelection(), images.images);
 			} else { mixin(S_TRACE);
 				static assert (0);
 			}

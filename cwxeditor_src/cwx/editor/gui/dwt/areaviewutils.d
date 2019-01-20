@@ -149,8 +149,8 @@ PImg createCastCardImage(PImg)(Commons comm, Skin skin, in Summary summ, in Enem
 		if (ec.isOverrideName) { mixin(S_TRACE);
 			overrideName = .createSPCharPreview(comm, summ, ec.overrideName, false, null, null);
 		}
-		r = createCardImageCommon!PImg(comm.prop, summ, .castCardImage(comm.prop, skin, summ, card, dbgMode, ec.isOverrideName, overrideName),
-			matPad, x, y, scale, smoothing, layer);
+		auto cImg = .castCardImage(comm.prop, skin, summ, card, dbgMode, ec.isOverrideName, overrideName, ec.isOverrideImage, ec.overrideImages);
+		r = createCardImageCommon!PImg(comm.prop, summ, cImg, matPad, x, y, scale, smoothing, layer);
 	} else { mixin(S_TRACE);
 		r = createCardImageCommon!PImg(comm.prop, summ, .castCard(skin, comm.prop.drawingScale), matPad, x, y, scale, smoothing, layer);
 	}

@@ -1648,7 +1648,8 @@ void hemming(GC gc, string s, int tx, int ty, Color color) { mixin(S_TRACE);
 	gc.setForeground(color);
 	gc.wDrawText(s, tx, ty, true);
 }
-ImageDataWithScale castCardImage(Props prop, Skin skin, in Summary summ, in CastCard c, bool dbgMode, bool isOverrideName = false, string overrideName = "") { mixin(S_TRACE);
+ImageDataWithScale castCardImage(Props prop, Skin skin, in Summary summ, in CastCard c, bool dbgMode,
+		bool isOverrideName = false, string overrideName = "", bool isOverrideImage = false, in CardImage[] overrideImages = []) { mixin(S_TRACE);
 	auto d = Display.getCurrent();
 	auto cardSize = prop.looks.cardSize;
 	auto matPad = prop.looks.castCardInsets;
@@ -1695,7 +1696,7 @@ ImageDataWithScale castCardImage(Props prop, Skin skin, in Summary summ, in Cast
 			levelColor,
 			PileImage.TPos.RIGHT);
 	}
-	foreach (path; c.paths) { mixin(S_TRACE);
+	foreach (path; isOverrideImage ? overrideImages : c.paths) { mixin(S_TRACE);
 		path.addToPileImage(r, prop, skin, summ, matPad, ScaleType.Center);
 	}
 	int stMax = prop.looks.statusVerMax;

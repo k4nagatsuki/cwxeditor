@@ -2124,7 +2124,7 @@ public:
 			summNode.onTag["Property"] = (ref XNode propNode) { mixin(S_TRACE);
 				propNode.onTag["Name"] = (ref XNode node) {summ._sname = node.value;};
 				CardImage[] paths;
-				CardImage.setOnTag(propNode, paths);
+				CardImage.setOnTag(propNode, paths, false);
 				propNode.onTag["Author"] = (ref XNode node) {summ._author = node.value;};
 				propNode.onTag["Description"] = (ref XNode node) {summ._desc = decodeLf2(node.value);};
 				propNode.onTag["Level"] = (ref XNode node) { mixin(S_TRACE);

@@ -33,7 +33,7 @@ import org.eclipse.swt.all;
 public:
 
 /// 画像の選択を行うペイン。
-class ImageSelect(MtType Type, C : Control = Table) {
+class ImageSelect(MtType Type, C : Control = Table, bool Compact = false) {
 
 	static if (Type == MtType.CARD) {
 		private class ImagesUndo : Undo {
@@ -130,7 +130,17 @@ public:
 		assert (defPosType !is CardImagePosition.Default);
 		_defPosType = defPosType;
 		_saveName = saveName;
-		static if (is(C == Table)) {
+		static if (Compact) {
+			// プレビュー無し、縦幅最小
+			auto compBase = new Composite(parent, style);
+			_group = compBase;
+			compBase.setLayout(zeroMarginGridLayout(1, true));
+			auto dirsComp = new Composite(compBase, SWT.NONE);
+			dirsComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			auto filesComp = new Composite(compBase, SWT.NONE);
+			filesComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			filesComp.setLayout(zeroMarginGridLayout(2, false));
+		} else static if (is(C == Table)) {
 			// 背景イメージ選択等
 			auto group = new Group(parent, style);
 			group.setText(prop.msgs.image);
@@ -161,9 +171,10 @@ public:
 			compl.setLayoutData(new GridData(GridData.FILL_BOTH));
 			compl.setLayout(zeroMarginGridLayout(1, false));
 		}
-		Button imgList;
+		Button imgList = null;
+		Button saveIncludeImage = null;
 		{ mixin(S_TRACE);
-			{ mixin(S_TRACE);
+			static if (!Compact) { mixin(S_TRACE);
 				static if (Type == MtType.CARD) {
 					auto preview = new Composite(compl, SWT.NONE);
 					static if (is(C:Combo) || is(C:CCombo)) {
@@ -181,10 +192,10 @@ public:
 				} else {
 					auto preview = compl;
 				}
-				auto comp = new Composite(preview, SWT.NONE);
-				comp.setLayoutData(new GridData(GridData.FILL_BOTH));
-				comp.setLayout(new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0));
-				_image = new Canvas(comp, SWT.BORDER | SWT.DOUBLE_BUFFERED);
+				auto compp = new Composite(preview, SWT.NONE);
+				compp.setLayoutData(new GridData(GridData.FILL_BOTH));
+				compp.setLayout(new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0));
+				_image = new Canvas(compp, SWT.BORDER | SWT.DOUBLE_BUFFERED);
 				setPreviewSize(_w, _h, insets);
 				_image.addPaintListener(new PListener);
 				.listener(_image, SWT.Dispose, { mixin(S_TRACE);
@@ -203,7 +214,7 @@ public:
 			static if (Type == MtType.CARD) {
 				_undo = new UndoManager(_prop.var.etc.undoMaxEtc);
 				_comm.refUndoMax.add(&refUndoMax);
-				.listener(compr, SWT.Dispose, { mixin(S_TRACE);
+				.listener(_group, SWT.Dispose, { mixin(S_TRACE);
 					_comm.refUndoMax.remove(&refUndoMax);
 				});
 				void delegate() store = &this.store;
@@ -241,83 +252,53 @@ public:
 			_msel.modEvent ~= { mixin(S_TRACE);
 				foreach (dlg; modEvent) dlg();
 			};
-			_msel.loadedEvent ~= &_image.redraw;
-			{ mixin(S_TRACE);
-				auto comp = new Composite(compl, SWT.NONE);
-				comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-				comp.setLayout(zeroMarginGridLayout(3, false));
-				imgList = new Button(comp, SWT.TOGGLE);
-				imgList.setEnabled(!_readOnly);
-				imgList.setLayoutData(new GridData(GridData.FILL_VERTICAL));
-				imgList.setImage(_prop.images.menu(MenuID.LookImages));
-				imgList.setToolTipText(_prop.msgs.menuText(MenuID.LookImages));
-				imgList.addSelectionListener(new SelImageList);
-				_comm.put(imgList, () => !_readOnly && !_msel.loading);
-				_msel.createRefreshButton(comp, true).setLayoutData(new GridData(GridData.FILL_BOTH));
-				_msel.createDirectoryButton(comp, false).setLayoutData(new GridData(GridData.FILL_VERTICAL));
-				static if (Type is MtType.CARD) {
-					_noCardSize = new Button(compl, SWT.CHECK);
-					_noCardSize.setEnabled(!_readOnly);
-					auto cs = prop.looks.cardSize;
-					_noCardSize.setText(.tryFormat(prop.msgs.useNoCardSizeImage, cs.width, cs.height));
-					auto ncsgd = new GridData(GridData.HORIZONTAL_ALIGN_END);
-					ncsgd.horizontalSpan = 3;
-					_noCardSize.setLayoutData(ncsgd);
-					_noCardSize.setSelection(_msel.useNoCardSizeImage);
-					.listener(_noCardSize, SWT.Selection, { mixin(S_TRACE);
-						_msel.useNoCardSizeImage = _noCardSize.getSelection();
-					});
-					_msel.updateNoCardSize ~= { _noCardSize.setSelection(_msel.useNoCardSizeImage); };
-					_comm.put(_noCardSize, () => !_readOnly && !_msel.loading);
-				} else static if (Type is MtType.BG_IMG) {
-					_excludeCardSize = new Button(compl, SWT.CHECK);
-					_excludeCardSize.setEnabled(!_readOnly);
-					auto cs = prop.looks.cardSize;
-					_excludeCardSize.setText(prop.msgs.excludeCardSizeImage);
-					auto ncsgd = new GridData(GridData.HORIZONTAL_ALIGN_END);
-					ncsgd.horizontalSpan = 3;
-					_excludeCardSize.setLayoutData(ncsgd);
-					_excludeCardSize.setSelection(_msel.excludeCardSizeImage);
-					.listener(_excludeCardSize, SWT.Selection, { mixin(S_TRACE);
-						_msel.excludeCardSizeImage = _excludeCardSize.getSelection();
-					});
-					_comm.put(_excludeCardSize, () => !_readOnly && !_msel.loading);
-				}
-				_comm.refImageScale.add(&refreshList);
-				.listener(comp, SWT.Dispose, { mixin(S_TRACE);
-					_comm.refImageScale.remove(&refreshList);
-				});
+			static if (!Compact) {
+				_msel.loadedEvent ~= &_image.redraw;
 			}
 		}
-		{ mixin(S_TRACE);
-			compr.setLayout(zeroMarginGridLayout(1, true));
-			{ mixin(S_TRACE);
-				auto dirsComp = new Composite(compr, SWT.NONE);
-				dirsComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-				Button saveIncludeImage = null;
+		Composite dirsComp2 = null;
+		{ mixin(S_TRACE);
+			{ mixin(S_TRACE);
+				static if (!Compact) {
+					compr.setLayout(zeroMarginGridLayout(1, true));
+					auto dirsComp = new Composite(compr, SWT.NONE);
+					dirsComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				}
+
 				void createSaveButton() { mixin(S_TRACE);
 					if (saveIncludeImage) return;
 					saveIncludeImage = new Button(dirsComp, SWT.PUSH);
 					saveIncludeImage.setImage(_prop.images.menu(MenuID.SaveImage));
 					saveIncludeImage.setToolTipText(_prop.msgs.menuText(MenuID.SaveImage));
 					saveIncludeImage.addSelectionListener(new SaveIncImg);
+					_comm.put(saveIncludeImage, () => _msel.enabled);
 				}
 
-				static if (Type == MtType.CARD) {
-					auto dirsComp2 = new Composite(dirsComp, SWT.NONE);
-					dirsComp2.setLayout(zeroMarginGridLayout(2, false));
+				static if (Compact) {
+					dirsComp2 = new Composite(dirsComp, SWT.NONE);
+					static if (Type == MtType.CARD) {
+						dirsComp2.setLayout(zeroMarginGridLayout(4, false));
+					} else {
+						dirsComp2.setLayout(zeroMarginGridLayout(3, false));
+					}
 					dirsComp2.setLayoutData(new GridData(GridData.FILL_BOTH));
 				} else {
-					auto dirsComp2 = dirsComp;
+					static if (Type == MtType.CARD) {
+						dirsComp2 = new Composite(dirsComp, SWT.NONE);
+						dirsComp2.setLayout(zeroMarginGridLayout(2, false));
+						dirsComp2.setLayoutData(new GridData(GridData.FILL_BOTH));
+					} else {
+						dirsComp2 = dirsComp;
+					}
 				}
+
 				auto dirs = _msel.createDirsCombo(dirsComp2);
 				dirs.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				dirs.addSelectionListener(new DirSelect);
 
 				static if (Type == MtType.CARD) {
 					_layerButton = new Button(dirsComp2, SWT.TOGGLE);
-					_layerButton.setEnabled(!_summ || !_summ.legacy);
 					_layerButton.setImage(_prop.images.menu(MenuID.EditLayers));
 					_layerButton.setToolTipText(_prop.msgs.menuText(MenuID.EditLayers));
 					.listener(_layerButton, SWT.Selection, &editLayers);
@@ -329,10 +310,10 @@ public:
 					modEvent ~= &update;
 					updateImageEvent ~= &update;
 					if (_readOnly) { mixin(S_TRACE);
-						_comm.put(_layerButton, () => (!_summ || !_summ.legacy) && 1 <= _msel.paths.length && !_msel.binPath.length);
+						_comm.put(_layerButton, () => _msel.enabled && (!_summ || !_summ.legacy) && 1 <= _msel.paths.length && !_msel.binPath.length);
 					} else { mixin(S_TRACE);
 						// すでに2枚以上レイヤがある場合は編集可能にしておく
-						_comm.put(_layerButton, () => ((!_summ || !_summ.legacy) || 1 < _msel.paths.length) && !_msel.binPath.length);
+						_comm.put(_layerButton, () => _msel.enabled && ((!_summ || !_summ.legacy) || 1 < _msel.paths.length) && !_msel.binPath.length);
 					}
 				}
 
@@ -342,11 +323,15 @@ public:
 					dirsComp.setLayout(zeroMarginGridLayout(2, false));
 					createSaveButton();
 					dirsComp.layout();
-					compr.layout();
+					dirsComp.getParent().layout();
 				};
 			}
 			{ mixin(S_TRACE);
-				auto fileList = _msel.createFileList(compr);
+				static if (Compact) {
+					auto fileList = _msel.createFileList(filesComp);
+				} else {
+					auto fileList = _msel.createFileList(compr);
+				}
 				auto gd = new GridData(GridData.FILL_BOTH);
 				gd.widthHint = _prop.var.etc.filesWidth;
 				gd.heightHint = fileList.computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
@@ -355,7 +340,76 @@ public:
 				_msel.incSearch.modEvent ~= &refreshImageList;
 			}
 		}
-		static if (Type == MtType.CARD) {
+		{ mixin(S_TRACE);
+			void createImageListButton(Composite comp) { mixin(S_TRACE);
+				imgList = new Button(comp, SWT.TOGGLE);
+				imgList.setImage(_prop.images.menu(MenuID.LookImages));
+				imgList.setToolTipText(_prop.msgs.menuText(MenuID.LookImages));
+				imgList.addSelectionListener(new SelImageList);
+				_comm.put(imgList, () => !_readOnly && !_msel.loading && _msel.enabled);
+			}
+			static if (Type is MtType.CARD) {
+				Button createNoCardSize(Composite comp) { mixin(S_TRACE);
+					_noCardSize = new Button(comp, SWT.CHECK);
+					auto cs = prop.looks.cardSize;
+					_noCardSize.setText(.tryFormat(prop.msgs.useNoCardSizeImage, cs.width, cs.height));
+					_noCardSize.setSelection(_msel.useNoCardSizeImage);
+					.listener(_noCardSize, SWT.Selection, { mixin(S_TRACE);
+						_msel.useNoCardSizeImage = _noCardSize.getSelection();
+					});
+					_msel.updateNoCardSize ~= { _noCardSize.setSelection(_msel.useNoCardSizeImage); };
+					_comm.put(_noCardSize, () => !_readOnly && !_msel.loading && _msel.enabled);
+					return _noCardSize;
+				}
+			} else static if (Type is MtType.BG_IMG) {
+				Button createExcludeCardSize(Composite comp) { mixin(S_TRACE);
+					_excludeCardSize = new Button(comp, SWT.CHECK);
+					auto cs = prop.looks.cardSize;
+					_excludeCardSize.setText(prop.msgs.excludeCardSizeImage);
+					_excludeCardSize.setSelection(_msel.excludeCardSizeImage);
+					.listener(_excludeCardSize, SWT.Selection, { mixin(S_TRACE);
+						_msel.excludeCardSizeImage = _excludeCardSize.getSelection();
+					});
+					_comm.put(_excludeCardSize, () => !_readOnly && !_msel.loading && _msel.enabled);
+					return _excludeCardSize;
+				}
+			} else static assert (0);
+
+			static if (Compact) {
+				createImageListButton(filesComp);
+				imgList.setLayoutData(new GridData(GridData.FILL_VERTICAL));
+				_msel.createRefreshButton(dirsComp2, false).setLayoutData(new GridData(GridData.FILL_VERTICAL));
+				_msel.createDirectoryButton(dirsComp2, false).setLayoutData(new GridData(GridData.FILL_VERTICAL));
+				static if (Type is MtType.CARD) {
+					auto cbt = createNoCardSize(compBase);
+				} else static if (Type is MtType.BG_IMG) {
+					auto cbt = createExcludeCardSize(compBase);
+				}
+				cbt.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+			} else { mixin(S_TRACE);
+				auto comp = new Composite(compl, SWT.NONE);
+				comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				comp.setLayout(zeroMarginGridLayout(3, false));
+				createImageListButton(comp);
+				imgList.setLayoutData(new GridData(GridData.FILL_VERTICAL));
+				_msel.createRefreshButton(comp, true).setLayoutData(new GridData(GridData.FILL_BOTH));
+				_msel.createDirectoryButton(comp, false).setLayoutData(new GridData(GridData.FILL_VERTICAL));
+				static if (Type is MtType.CARD) {
+					auto cbt = createNoCardSize(compl);
+				} else static if (Type is MtType.BG_IMG) {
+					auto cbt = createExcludeCardSize(compl);
+				}
+				auto cbtgd = new GridData(GridData.HORIZONTAL_ALIGN_END);
+				cbtgd.horizontalSpan = 3;
+				cbt.setLayoutData(cbtgd);
+			}
+		}
+
+		_comm.refImageScale.add(&refreshList);
+		.listener(_group, SWT.Dispose, { mixin(S_TRACE);
+			_comm.refImageScale.remove(&refreshList);
+		});
+		static if (Type == MtType.CARD && !Compact) {
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			static if (!(is(C:Combo) || is(C:CCombo))) {
 				auto h1 = _layerButton.computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
@@ -366,21 +420,25 @@ public:
 		}
 	}
 
-	void setPreviewSize(int w, int h, CInsets insets) { mixin(S_TRACE);
-		_group.setRedraw(false);
-		scope (exit) _group.setRedraw(true);
-		_w = w;
-		_h = h;
-		_insets = insets;
-		_image.setLayoutData(_image.computeSize(_w + _insets.w + _insets.e, _h + _insets.n + _insets.s));
-		_group.layout(true);
-		_image.getParent().layout(true);
+	static if (!Compact) {
+		void setPreviewSize(int w, int h, CInsets insets) { mixin(S_TRACE);
+			_group.setRedraw(false);
+			scope (exit) _group.setRedraw(true);
+			_w = w;
+			_h = h;
+			_insets = insets;
+			_image.setLayoutData(_image.computeSize(_w + _insets.w + _insets.e, _h + _insets.n + _insets.s));
+			_group.layout(true);
+			_image.getParent().layout(true);
+		}
 	}
 
 	@property
 	void mask(bool mask) { mixin(S_TRACE);
 		_mask = mask;
-		_image.redraw();
+		static if (!Compact) {
+			_image.redraw();
+		}
 		if (_imgList && !_imgList.shell.isDisposed()) { mixin(S_TRACE);
 			_imgList.mask = mask;
 		}
@@ -431,7 +489,9 @@ public:
 		/// ditto
 		void setImages(CardImage[] paths, bool store) { mixin(S_TRACE);
 			_msel.setPaths(paths, store);
-			_image.redraw();
+			static if (!Compact) {
+				_image.redraw();
+			}
 		}
 		static struct MaterialPath {
 			CardImage[] images;
@@ -449,7 +509,7 @@ public:
 				if (forceExport) { mixin(S_TRACE);
 					ret = SWT.YES;
 				} else if (_summ) { mixin(S_TRACE);
-					auto dlg = new MessageBox(_image.getShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO | SWT.CANCEL);
+					auto dlg = new MessageBox(_group.getShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO | SWT.CANCEL);
 					dlg.setMessage(_prop.msgs.dlgMsgExcludeImage);
 					dlg.setText(_prop.msgs.dlgTitQuestion);
 					ret = dlg.open();
@@ -499,7 +559,9 @@ public:
 		@property
 		void image(string path) { mixin(S_TRACE);
 			_msel.path = path;
-			_image.redraw();
+			static if (!Compact) {
+				_image.redraw();
+			}
 		}
 		/// 画像のファイルパス。
 		/// 必要な時は格納イメージを外部化する。
@@ -513,7 +575,7 @@ public:
 				if (forceExport) { mixin(S_TRACE);
 					ret = SWT.YES;
 				} else if (_summ) { mixin(S_TRACE);
-					auto dlg = new MessageBox(_image.getShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO | SWT.CANCEL);
+					auto dlg = new MessageBox(_group.getShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO | SWT.CANCEL);
 					dlg.setMessage(_prop.msgs.dlgMsgExcludeImage);
 					dlg.setText(_prop.msgs.dlgTitQuestion);
 					ret = dlg.open();
@@ -612,6 +674,24 @@ public:
 		}
 	}
 
+	@property
+	void enabled(bool enabled) { mixin(S_TRACE);
+		_msel.enabled = enabled;
+		if (!enabled && _imgList && !_imgList.shell.isDisposed()) { mixin(S_TRACE);
+			_imgList.shell.close();
+			_imgList.shell.dispose();
+		}
+		static if (Type is MtType.CARD) {
+			if (!enabled && _layers) { mixin(S_TRACE);
+				_layers.close();
+				_layers = null;
+			}
+		}
+	}
+	@property
+	const
+	bool enabled() { return _msel.enabled; }
+
 private:
 	void selectDirImpl(int sel) { mixin(S_TRACE);
 		auto dirs = dirsCombo;
@@ -648,7 +728,9 @@ private:
 				auto parent = (cast(Control) e.widget).getShell();
 				_imgList = new ImageListWindow!Type(_prop, _comm, _summ, parent, (string path) { mixin(S_TRACE);
 					_msel.path2(path, false, false);
-					_image.redraw();
+					static if (!Compact) {
+						_image.redraw();
+					}
 					refresh();
 				}, b);
 				.listener(_imgList.shell, SWT.Dispose, { mixin(S_TRACE);
@@ -686,7 +768,7 @@ private:
 			auto path = _msel.binPath;
 			if (!isBinImg(path)) return;
 			ubyte[] bytes = strToBImg(path);
-			auto dlg = new FileDialog(_image.getShell(), SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.SAVE);
+			auto dlg = new FileDialog(_group.getShell(), SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.SAVE);
 			dlg.setText(_prop.msgs.dlgTitSaveBitmapImage);
 			auto dir = _msel.filePath;
 			if (isBinImg(dir)) { mixin(S_TRACE);
@@ -737,133 +819,137 @@ private:
 			}
 		}
 	}
-	class PListener : PaintListener {
-		public override void paintControl(PaintEvent e) { mixin(S_TRACE);
-			static if (Type == MtType.CARD) {
-				if (_msel.paths.length < _paintedPaths.length) { mixin(S_TRACE);
-					foreach (i; _msel.paths.length .. _paintedPaths.length) { mixin(S_TRACE);
+	static if (!Compact) {
+		class PListener : PaintListener {
+			public override void paintControl(PaintEvent e) { mixin(S_TRACE);
+				static if (Type == MtType.CARD) {
+					if (_msel.paths.length < _paintedPaths.length) { mixin(S_TRACE);
+						foreach (i; _msel.paths.length .. _paintedPaths.length) { mixin(S_TRACE);
+							if (_img[i]) { mixin(S_TRACE);
+								foreach (data; _img[i].allData) { mixin(S_TRACE);
+									data.data[] = 0;
+									destroy(data.data);
+								}
+							}
+						}
+					}
+					_paintedPaths.length = _msel.paths.length;
+					_img.length = _msel.paths.length;
+					foreach (i, path; _msel.paths) { mixin(S_TRACE);
+						drawImage(e.gc, i, path);
+					}
+				} else static if (Type == MtType.BG_IMG) {
+					_paintedPaths.length = 1;
+					_img.length = 1;
+					auto isSkinMaterial = false;
+					auto isEngineMaterial = false;
+					auto file = summSkin.findImagePathF(this.outer.images, _summ ? _summ.scenarioPath : "", _summ ? _summ.dataVersion : LATEST_VERSION,
+						isSkinMaterial, isEngineMaterial);
+					if (file != "") { mixin(S_TRACE);
+						drawImage(e.gc, 0, file, !(isSkinMaterial || isEngineMaterial), _defPosType, _insets);
+					}
+				} else static assert (0);
+			}
+			private void drawImage(GC gc, size_t i, CardImage path) { mixin(S_TRACE);
+				final switch (path.type) {
+				case CardImageType.File:
+					auto isSkinMaterial = false;
+					auto isEngineMaterial = false;
+					auto file = summSkin.findImagePathF(path.path, _summ ? _summ.scenarioPath : "", _summ ? _summ.dataVersion : LATEST_VERSION,
+						isSkinMaterial, isEngineMaterial);
+					if (file != "") { mixin(S_TRACE);
+						auto posType = path.positionType;
+						if (posType is CardImagePosition.Default) posType = _defPosType;
+						drawImage(gc, i, file, !(isSkinMaterial || isEngineMaterial), posType, _insets);
+					}
+					break;
+				case CardImageType.PCNumber:
+					_paintedPaths[i] = "";
+					auto pcNum = path.pcNumber;
+					if (0 != pcNum) { mixin(S_TRACE);
+						drawCenterText(dwtData(_prop.looks.pcNumberFont(summSkin.legacy)), gc, _image.getClientArea(), .text(pcNum));
+					}
+					break;
+				case CardImageType.Talker:
+					final switch (path.talker) {
+					case Talker.SELECTED:
+					case Talker.UNSELECTED:
+					case Talker.RANDOM:
+					case Talker.VALUED:
+						_paintedPaths[i] = "";
+						auto imgData = new ImageDataWithScale(_prop.images.talker(path.talker).getImageData(), .dpiMuls);
+						drawImage(gc, imgData, CardImagePosition.Center, _insets);
+						break;
+					case Talker.CARD:
+						_paintedPaths[i] = "";
+						drawImage(gc, .menuCard(summSkin, _prop.drawingScale), CardImagePosition.Center, CInsets(0, 0, 0, 0));
+						break;
+					}
+					break;
+				}
+			}
+			private void drawImage(GC gc, size_t i, string path, bool isScenarioFile, CardImagePosition posType, CInsets insets) { mixin(S_TRACE);
+				ImageDataWithScale imgData = null;
+				if (path !is null && path.length > 0) { mixin(S_TRACE);
+					if (!_paintedPaths[i] && _paintedPaths[i] == path) { mixin(S_TRACE);
+						imgData = _img[i];
+					} else { mixin(S_TRACE);
+						_paintedPaths[i] = path;
+						auto drawingScale = isScenarioFile ? _prop.drawingScaleForImage(_summ) : _prop.drawingScale;
+						imgData = .loadImageWithScale(_prop, summSkin, _summ, path, drawingScale, _mask, Type is MtType.BG_IMG);
 						if (_img[i]) { mixin(S_TRACE);
 							foreach (data; _img[i].allData) { mixin(S_TRACE);
 								data.data[] = 0;
 								destroy(data.data);
 							}
 						}
+						_img[i] = imgData;
 					}
 				}
-				_paintedPaths.length = _msel.paths.length;
-				_img.length = _msel.paths.length;
-				foreach (i, path; _msel.paths) { mixin(S_TRACE);
-					drawImage(e.gc, i, path);
-				}
-			} else static if (Type == MtType.BG_IMG) {
-				_paintedPaths.length = 1;
-				_img.length = 1;
-				auto isSkinMaterial = false;
-				auto isEngineMaterial = false;
-				auto file = summSkin.findImagePathF(this.outer.images, _summ ? _summ.scenarioPath : "", _summ ? _summ.dataVersion : LATEST_VERSION,
-					isSkinMaterial, isEngineMaterial);
-				if (file != "") { mixin(S_TRACE);
-					drawImage(e.gc, 0, file, !(isSkinMaterial || isEngineMaterial), _defPosType, _insets);
-				}
-			} else static assert (0);
-		}
-		private void drawImage(GC gc, size_t i, CardImage path) { mixin(S_TRACE);
-			final switch (path.type) {
-			case CardImageType.File:
-				auto isSkinMaterial = false;
-				auto isEngineMaterial = false;
-				auto file = summSkin.findImagePathF(path.path, _summ ? _summ.scenarioPath : "", _summ ? _summ.dataVersion : LATEST_VERSION,
-					isSkinMaterial, isEngineMaterial);
-				if (file != "") { mixin(S_TRACE);
-					auto posType = path.positionType;
-					if (posType is CardImagePosition.Default) posType = _defPosType;
-					drawImage(gc, i, file, !(isSkinMaterial || isEngineMaterial), posType, _insets);
-				}
-				break;
-			case CardImageType.PCNumber:
-				_paintedPaths[i] = "";
-				auto pcNum = path.pcNumber;
-				if (0 != pcNum) { mixin(S_TRACE);
-					drawCenterText(dwtData(_prop.looks.pcNumberFont(summSkin.legacy)), gc, _image.getClientArea(), .text(pcNum));
-				}
-				break;
-			case CardImageType.Talker:
-				final switch (path.talker) {
-				case Talker.SELECTED:
-				case Talker.UNSELECTED:
-				case Talker.RANDOM:
-				case Talker.VALUED:
-					_paintedPaths[i] = "";
-					auto imgData = new ImageDataWithScale(_prop.images.talker(path.talker).getImageData(), .dpiMuls);
-					drawImage(gc, imgData, CardImagePosition.Center, _insets);
-					break;
-				case Talker.CARD:
-					_paintedPaths[i] = "";
-					drawImage(gc, .menuCard(summSkin, _prop.drawingScale), CardImagePosition.Center, CInsets(0, 0, 0, 0));
-					break;
-				}
-				break;
+				drawImage(gc, imgData, posType, insets);
 			}
-		}
-		private void drawImage(GC gc, size_t i, string path, bool isScenarioFile, CardImagePosition posType, CInsets insets) { mixin(S_TRACE);
-			ImageDataWithScale imgData = null;
-			if (path !is null && path.length > 0) { mixin(S_TRACE);
-				if (!_paintedPaths[i] && _paintedPaths[i] == path) { mixin(S_TRACE);
-					imgData = _img[i];
+			private void drawImage(GC gc, ImageDataWithScale imgData, CardImagePosition posType, CInsets insets) { mixin(S_TRACE);
+				if (!imgData) return;
+				auto img = new Image(Display.getCurrent(), imgData.scaled(_prop.var.etc.imageScale));
+				auto b = img.getBounds();
+				auto b2 = img.getBounds();
+				auto area = _image.getClientArea();
+				static if (Type is MtType.CARD) {
+					final switch (posType) {
+					case CardImagePosition.Center:
+						b.x = (area.width - b.width) / 2;
+						b.y = (area.height - b.height) / 2;
+						gc.drawImage(img, _prop.s(0), _prop.s(0), b2.width, b2.height,
+							b.x, b.y, b.width, b.height);
+						break;
+					case CardImagePosition.TopLeft:
+						gc.drawImage(img, _prop.s(0), _prop.s(0), b2.width, b2.height,
+							insets.w, insets.n, b.width, b.height);
+						break;
+					case CardImagePosition.Default:
+						assert (0);
+					}
 				} else { mixin(S_TRACE);
-					_paintedPaths[i] = path;
-					auto drawingScale = isScenarioFile ? _prop.drawingScaleForImage(_summ) : _prop.drawingScale;
-					imgData = .loadImageWithScale(_prop, summSkin, _summ, path, drawingScale, _mask, Type is MtType.BG_IMG);
-					if (_img[i]) { mixin(S_TRACE);
-						foreach (data; _img[i].allData) { mixin(S_TRACE);
-							data.data[] = 0;
-							destroy(data.data);
-						}
+					if (area.width < b.width || area.height < b.height) { mixin(S_TRACE);
+						auto sc = .min(cast(real)area.width / b.width, cast(real)area.height / b.height);
+						b.width = cast(int)(b.width * sc);
+						b.height = cast(int)(b.height * sc);
 					}
-					_img[i] = imgData;
-				}
-			}
-			drawImage(gc, imgData, posType, insets);
-		}
-		private void drawImage(GC gc, ImageDataWithScale imgData, CardImagePosition posType, CInsets insets) { mixin(S_TRACE);
-			if (!imgData) return;
-			auto img = new Image(Display.getCurrent(), imgData.scaled(_prop.var.etc.imageScale));
-			auto b = img.getBounds();
-			auto b2 = img.getBounds();
-			auto area = _image.getClientArea();
-			static if (Type is MtType.CARD) {
-				final switch (posType) {
-				case CardImagePosition.Center:
 					b.x = (area.width - b.width) / 2;
 					b.y = (area.height - b.height) / 2;
 					gc.drawImage(img, _prop.s(0), _prop.s(0), b2.width, b2.height,
 						b.x, b.y, b.width, b.height);
-					break;
-				case CardImagePosition.TopLeft:
-					gc.drawImage(img, _prop.s(0), _prop.s(0), b2.width, b2.height,
-						insets.w, insets.n, b.width, b.height);
-					break;
-				case CardImagePosition.Default:
-					assert (0);
 				}
-			} else { mixin(S_TRACE);
-				if (area.width < b.width || area.height < b.height) { mixin(S_TRACE);
-					auto sc = .min(cast(real)area.width / b.width, cast(real)area.height / b.height);
-					b.width = cast(int)(b.width * sc);
-					b.height = cast(int)(b.height * sc);
-				}
-				b.x = (area.width - b.width) / 2;
-				b.y = (area.height - b.height) / 2;
-				gc.drawImage(img, _prop.s(0), _prop.s(0), b2.width, b2.height,
-					b.x, b.y, b.width, b.height);
+				img.dispose();
 			}
-			img.dispose();
 		}
 	}
 	void refresh() { mixin(S_TRACE);
 		if (_refresh) _refresh();
 		_paintedPaths = [];
-		_image.redraw();
+		static if (!Compact) {
+			_image.redraw();
+		}
 		refreshImageList();
 		foreach (dlg; updateImageEvent) { mixin(S_TRACE);
 			dlg();
@@ -900,7 +986,9 @@ private:
 				});
 				_layers.list.selectionEvent ~= { mixin(S_TRACE);
 					_msel.imageIndex = _layers.list.selection;
-					_layerName.setText(.tryFormat(_prop.msgs.layerName, _layers.list.selection + 1));
+					static if (!Compact) {
+						_layerName.setText(.tryFormat(_prop.msgs.layerName, _layers.list.selection + 1));
+					}
 				};
 				_layers.list.modEvent ~= { mixin(S_TRACE);
 					_msel.setPaths(_layers.list.images, true);
@@ -924,7 +1012,9 @@ private:
 	Commons _comm;
 	Props _prop;
 	Summary _summ;
-	Canvas _image;
+	static if (!Compact) {
+		Canvas _image;
+	}
 	MaterialSelect!(Type, Combo, C) _msel;
 	ImageListWindow!Type _imgList = null;
 	int _w, _h;
@@ -939,7 +1029,9 @@ private:
 		Button _noCardSize;
 		Button _layerButton = null;
 		ImageLayerWindow _layers = null;
-		Label _layerName = null;
+		static if (!Compact) {
+			Label _layerName = null;
+		}
 	} else static if (Type is MtType.BG_IMG) {
 		Button _excludeCardSize;
 	}

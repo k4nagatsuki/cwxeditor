@@ -305,13 +305,15 @@ public:
 }
 
 /// バトルに配置するカード。
-public class EnemyCard : AbstractSpCard, ICastUser {
+public class EnemyCard : AbstractSpCard, ICastUser, IPathUser {
 private:
 	Battle _owner = null;
 	bool _escape;
 	CastUser _user;
 	bool _isOverrideName = false;
 	SimpleTextHolder _overrideName;
+	bool _isOverrideImage = false;
+	CardImage[] _overrideImages;
 public:
 	/// XML要素名。
 	static immutable XML_NAME = "EnemyCard";
@@ -319,7 +321,8 @@ public:
 	static immutable XML_NAME_M = "EnemyCards";
 
 	/// 唯一のコンストラクタ。
-	this (ulong id, bool escape, string flag, int x, int y, uint scale, int layer, string cardGroup, int animationSpeed, bool isOverrideName, string overrideName) { mixin(S_TRACE);
+	this (ulong id, bool escape, string flag, int x, int y, uint scale, int layer, string cardGroup, int animationSpeed,
+			bool isOverrideName, string overrideName, bool isOverrideImage, in CardImage[] overrideImages) { mixin(S_TRACE);
 		super(flag, x, y, scale, layer, cardGroup, animationSpeed);
 		_user = new CastUser(this);
 		_user.casts = id;
@@ -329,6 +332,8 @@ public:
 		_overrideName.changeHandler = &changed;
 		_overrideName.text = overrideName;
 		_overrideName.owner = this;
+		_isOverrideImage = isOverrideImage;
+		this.overrideImages = overrideImages;
 	}
 	@property
 	string cwxPath(bool id) { mixin(S_TRACE);
@@ -341,7 +346,8 @@ public:
 	const
 	override
 	AbstractSpCard dup() {
-		auto r = new EnemyCard(id, escape, flag, x, y, scale, layer, cardGroup, animationSpeed, isOverrideName, overrideName);
+		auto r = new EnemyCard(id, escape, flag, x, y, scale, layer, cardGroup, animationSpeed,
+			isOverrideName, overrideName, isOverrideImage, overrideImages);
 		r.deepCopyEventTreeOwner(this);
 		return r;
 	}
@@ -426,6 +432,50 @@ public:
 	const
 	string[] stepsInText() { return _overrideName.stepsInText; }
 
+	/// イメージを上書きをするか(Wsn.4)。
+	@property
+	const
+	bool isOverrideImage() { mixin(S_TRACE);
+		return _isOverrideImage;
+	}
+	/// ditto
+	@property
+	void isOverrideImage(bool isOverrideImage) { mixin(S_TRACE);
+		if (_isOverrideImage != isOverrideImage) changed();
+		_isOverrideImage = isOverrideImage;
+	}
+	/// 上書きするイメージ(Wsn.4)。
+	@property
+	const
+	CardImage[] overrideImages() { mixin(S_TRACE);
+		return .map!(a => new CardImage(cast(IPathUser)null, a))(_overrideImages).array();
+	}
+	/// ditto
+	@property
+	void overrideImages(in CardImage[] paths) { mixin(S_TRACE);
+		if (this.overrideImages == paths) return;
+		changed();
+		foreach (u; _overrideImages) { mixin(S_TRACE);
+			u.removeUseCounter();
+		}
+		_overrideImages = [];
+		foreach (path; paths) { mixin(S_TRACE);
+			auto u = new CardImage(this, path);
+			if (useCounter) u.setUseCounter(useCounter);
+			_overrideImages ~= u;
+		}
+	}
+
+	@property
+	override
+	const
+	string connectedFile() { mixin(S_TRACE);
+		foreach (path; _overrideImages) { mixin(S_TRACE);
+			if (path.path != "" && !path.path.isBinImg) return path.path;
+		}
+		return "";
+	}
+
 	override
 	inout
 	inout(CWXPath) connectedResource(inout(CastOwner) summ) { mixin(S_TRACE);
@@ -436,15 +486,27 @@ public:
 	override void setUseCounter(UseCounter uc) { mixin(S_TRACE);
 		_user.setUseCounter(uc);
 		_overrideName.setUseCounter(uc);
+		foreach (path; _overrideImages) { mixin(S_TRACE);
+			path.setUseCounter(uc);
+		}
 		super.setUseCounter(uc);
 	}
 	override void removeUseCounter() { mixin(S_TRACE);
 		_user.removeUseCounter();
 		_overrideName.removeUseCounter();
+		foreach (path; _overrideImages) { mixin(S_TRACE);
+			path.removeUseCounter();
+		}
 		super.removeUseCounter();
 	}
 	override bool change(CastId id) { mixin(S_TRACE);
 		return _user.change(id);
+	}
+	override bool change(PathId id) { mixin(S_TRACE);
+		foreach (path; _overrideImages) { mixin(S_TRACE);
+			path.change(id);
+		}
+		return true;
 	}
 
 	static EnemyCard[] createCardsFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
@@ -454,7 +516,7 @@ public:
 			cNode.onTag["Property"] = (ref XNode pNode) { mixin(S_TRACE);
 				string idStr = pNode.childText("Id", false);
 				if (idStr) { mixin(S_TRACE);
-					cards ~= new EnemyCard(to!(ulong)(idStr), false, "", 0, 0, 100, LAYER_MENU_CARD, "", -1, false, "");
+					cards ~= new EnemyCard(to!(ulong)(idStr), false, "", 0, 0, 100, LAYER_MENU_CARD, "", -1, false, "", false, []);
 				}
 			};
 			cNode.parse();
@@ -483,9 +545,13 @@ public:
 		e.newAttr("escape", fromBool(escape));
 		auto pe = e.newElement("Property");
 		pe.newElement("Id", _user.casts);
-		if (isOverrideName) { mixin(S_TRACE);
+		if (isOverrideName || overrideName.length) { mixin(S_TRACE);
 			auto ne = pe.newElement("Name", overrideName);
 			ne.newAttr("override", fromBool(isOverrideName));
+		}
+		if (isOverrideImage || _overrideImages.length) { mixin(S_TRACE);
+			auto cie = CardImage.toNode(pe, _overrideImages, false, true);
+			cie.newAttr("override", fromBool(isOverrideImage));
 		}
 		appendProp(pe, opt);
 		appendEventsToNode(e, opt);
@@ -509,6 +575,8 @@ public:
 		int animationSpeed = -1;
 		bool isOverrideName = false;
 		string overrideName = "";
+		bool isOverrideImage = false;
+		CardImage[] overrideImages = [];
 		EventTree[] evt;
 
 		auto escStr = node.attr("escape", false);
@@ -522,6 +590,7 @@ public:
 				overrideName = n.value;
 				isOverrideName = n.attr("override", false, false);
 			};
+			CardImage.setOnTag(pNode, overrideImages, isOverrideImage, false);
 			loadProp(pNode, flag, x, y, scale, layer, cardGroup, animationSpeed);
 		};
 		node.onTag["Events"] = (ref XNode node) { mixin(S_TRACE);
@@ -529,7 +598,8 @@ public:
 		};
 		node.parse();
 		if (!getId) throw new AreaException("EnemyCard ID not found");
-		auto r = new EnemyCard(id, escape, flag, x, y, scale, layer, cardGroup, animationSpeed, isOverrideName, overrideName);
+		auto r = new EnemyCard(id, escape, flag, x, y, scale, layer, cardGroup, animationSpeed,
+			isOverrideName, overrideName, isOverrideImage, overrideImages);
 		r.addAll(evt);
 
 		return r;
@@ -735,7 +805,7 @@ public:
 				name = node.value;
 				create = true;
 			};
-			CardImage.setOnTag(pNode, paths);
+			CardImage.setOnTag(pNode, paths, false);
 			if (copyDesc) { mixin(S_TRACE);
 				pNode.onTag["Description"] = (ref XNode node) { mixin(S_TRACE);
 					desc = decodeLf2(node.value);
@@ -810,7 +880,7 @@ public:
 				name = n.value;
 				expandSPChars = n.attr!bool("spchars", false, false);
 			};
-			CardImage.setOnTag(pNode, paths);
+			CardImage.setOnTag(pNode, paths, false);
 			pNode.onTag["Description"] = (ref XNode n) { desc = decodeLf2(n.value); };
 			loadProp(pNode, flag, x, y, scale, layer, cardGroup, animationSpeed);
 		};
