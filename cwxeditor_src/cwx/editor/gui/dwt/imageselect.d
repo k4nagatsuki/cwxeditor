@@ -32,12 +32,6 @@ import org.eclipse.swt.all;
 
 public:
 
-enum CardMode {
-	Message,
-	Cast,
-	Normal,
-}
-
 /// 画像の選択を行うペイン。
 class ImageSelect(MtType Type, C : Control = Table) {
 
@@ -618,13 +612,6 @@ public:
 		}
 	}
 
-	static if (Type is MtType.CARD) {
-		@property
-		void cardMode(CardMode cardMode) { mixin(S_TRACE);
-			_cardMode = cardMode;
-			_image.redraw();
-		}
-	}
 private:
 	void selectDirImpl(int sel) { mixin(S_TRACE);
 		auto dirs = dirsCombo;
@@ -950,7 +937,6 @@ private:
 	private ImageDataWithScale[] _img = [];
 	static if (Type is MtType.CARD) {
 		Button _noCardSize;
-		CardMode _cardMode = CardMode.Normal;
 		Button _layerButton = null;
 		ImageLayerWindow _layers = null;
 		Label _layerName = null;

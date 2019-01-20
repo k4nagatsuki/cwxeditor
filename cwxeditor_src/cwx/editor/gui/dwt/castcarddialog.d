@@ -325,7 +325,6 @@ private:
 				mod(_imgPath);
 				_imgPath.modEvent ~= &refreshWarning;
 				_imgPath.widget.setLayoutData(new GridData(GridData.FILL_BOTH));
-				_imgPath.cardMode = CardMode.Cast;
 				void refImageScale() { mixin(S_TRACE);
 					_imgPath.setPreviewSize(_prop.s(_prop.looks.cardSize.width), _prop.s(_prop.looks.cardSize.height), _prop.s(_prop.looks.castCardInsets));
 				}

@@ -1356,7 +1356,6 @@ protected:
 			}
 			mod(_msel);
 			_msel.modEvent ~= &refreshWarning;
-			_msel.cardMode = CardMode.Message;
 			tp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			_msgCompA = new Composite(comp, SWT.NONE);
 			_msgCompA.setLayoutData(new GridData(GridData.FILL_VERTICAL));
