@@ -1754,7 +1754,7 @@ private BgImage readBgImage(in RData d, ref ByteIO f, bool area, size_t index) {
 				cellName = readExString(f);
 			}
 			auto cell = new TextCell(text, fontName, size, color, bold, italic, underline, strike, vertical,
-				borderingType, borderingColor, borderingWidth, flag, x, y, w, h, mask);
+				borderingType, borderingColor, borderingWidth, UpdateType.Fixed, flag, x, y, w, h, mask);
 			cell.layer = foreground ? LAYER_FORE_CELL : LAYER_BACK_CELL;
 			cell.cellName = cellName;
 			return cell;

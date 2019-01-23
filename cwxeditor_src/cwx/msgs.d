@@ -1372,6 +1372,15 @@ class Msgs : Properties {
 	auto borderingColor = Msg("borderingColor", "縁取り色");
 	auto pcCellExpanding = Msg("pcCellExpanding", "セルに合わせて拡大・縮小する");
 	auto overrideEnemyCardVisual = Msg("overrideEnemyCardVisual", "外観の上書き");
+	auto updateType = Msg("updateType", "再表示時の処理");
+	const string updateTypeName(UpdateType id) { mixin(S_TRACE);
+		mixin(EnumToStringSwitch!(UpdateType, "updateTypeName"));
+	}
+	auto updateTypeNameFixed = Msg("updateTypeNameFixed", "最初に表示した内容に固定");
+	auto updateTypeNameVariables = Msg("updateTypeNameVariables", "状態変数値を更新する");
+	auto updateTypeNameAll = Msg("updateTypeNameAll", "全て更新する");
+	auto warningUpdateTypeNotFixed = Msg("warningUpdateTypeNotFixed", "テキストセルの内容の更新は、クラシックなシナリオでは行う事ができません。");
+	auto warningUpdateTypeFixed = Msg("warningUpdateTypeFixed", "テキストセルの内容の固定は、Wsn.3以前の形式のシナリオでは行えない可能性があります。");
 
 	auto areaViewKeyboardHint = Msg("areaViewKeyboardHint", "選択+上下左右: 移動, Shift+上下左右: サイズ変更, Ctrl+Altで10ピクセル単位操作, Alt+クリックで範囲選択開始");
 
@@ -2456,6 +2465,7 @@ class Msgs : Properties {
 	auto scriptErrorInvalidCardImagePosition = Msg("scriptErrorInvalidCardImagePosition", "イメージの配置形式が正しくありません。");
 	auto scriptErrorInvalidStartAction = Msg("scriptErrorInvalidStartAction", "未知の戦闘行動開始タイミングです。"); // Wsn.2
 	auto scriptErrorInvalidMatchingType = Msg("scriptErrorInvalidMatchingType", "未知の判定条件です。"); // Wsn.2
+	auto scriptErrorInvalidUpdateType = Msg("scriptErrorInvalidUpdateType", "未知の更新タイプです。"); // Wsn.4
 
 	auto dlgTitScriptVarSet = Msg("dlgTitScriptVarSet", "値が未決定の変数の設定");
 	auto scriptVarSet = Msg("scriptVarSet", "変数に値を入力");

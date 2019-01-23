@@ -59,6 +59,7 @@ BgImageS[] createBgImageSs(in BgImage[] bgs) { mixin(S_TRACE);
 			s.borderingType = tc.borderingType;
 			s.borderingColor = tc.borderingColor;
 			s.borderingWidth = tc.borderingWidth;
+			s.updateType = tc.updateType;
 		}
 		auto cc = cast(ColorCell)bg;
 		if (cc) { mixin(S_TRACE);
@@ -97,7 +98,7 @@ BgImage[] createBgImages(in Skin skin, in BgImageS[] bgs) { mixin(S_TRACE);
 		case "text":
 			r[i] = new TextCell(b.text, b.fontName, b.size, b.color,
 				b.bold, b.italic, b.underline, b.strike, b.vertical,
-				b.borderingType, b.borderingColor, b.borderingWidth,
+				b.borderingType, b.borderingColor, b.borderingWidth, b.updateType,
 				"", b.x, b.y, b.width, b.height, b.mask);
 			break;
 		case "color":

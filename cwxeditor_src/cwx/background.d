@@ -177,6 +177,7 @@ private:
 	BorderingType _borderingType = BorderingType.None;
 	CRGB _borderingColor = CRGB(255, 255, 255, 255);
 	uint _borderingWidth = 1;
+	UpdateType _updateType = UpdateType.Variables;
 public:
 	/// XML要素名。
 	static immutable XML_NAME = "TextCell";
@@ -193,7 +194,7 @@ public:
 	this (string text, string fontName, uint size, CRGB color,
 			bool bold, bool italic, bool underline, bool strike, bool vertical,
 			BorderingType borderingType, CRGB borderingColor, uint borderingWidth,
-			string flag, int x, int y, int w, int h, bool mask) { mixin(S_TRACE);
+			UpdateType updateType, string flag, int x, int y, int w, int h, bool mask) { mixin(S_TRACE);
 		super (flag, x, y, w, h, mask);
 		_text = new SimpleTextHolder;
 		_text.changeHandler = &changed;
@@ -210,6 +211,7 @@ public:
 		_borderingType = borderingType;
 		_borderingColor = borderingColor;
 		_borderingWidth = borderingWidth;
+		_updateType = updateType;
 	}
 
 	override
@@ -228,6 +230,7 @@ public:
 			&& borderingType == b.borderingType
 			&& borderingColor == b.borderingColor
 			&& borderingWidth == b.borderingWidth
+			&& updateType == b.updateType
 			&& super.opEquals(o);
 	}
 
@@ -247,6 +250,7 @@ public:
 			borderingType = c.borderingType;
 			borderingColor = c.borderingColor;
 			borderingWidth = c.borderingWidth;
+			updateType = c.updateType;
 		} else { mixin(S_TRACE);
 			throw new Exception("b is not TextCell.");
 		}
@@ -268,12 +272,12 @@ public:
 	override
 	BgImage dup() { mixin(S_TRACE);
 		auto cell = new TextCell(text, fontName, size, color, bold, italic, underline, strike, vertical,
-			borderingType, borderingColor, borderingWidth, flag, x, y, width, height, mask);
+			borderingType, borderingColor, borderingWidth, updateType, flag, x, y, width, height, mask);
 		dupImpl(cell);
 		return cell;
 	}
 
-	// テキスト。
+	/// テキスト。
 	@property
 	const
 	string text() { return _text.text; }
@@ -285,7 +289,7 @@ public:
 		}
 	}
 
-	// フォント名。
+	/// フォント名。
 	@property
 	const
 	string fontName() { return _fontName; }
@@ -296,7 +300,7 @@ public:
 			_fontName = value;
 		}
 	}
-	// フォントサイズ。
+	/// フォントサイズ。
 	@property
 	const
 	uint size() { return _size; }
@@ -308,7 +312,7 @@ public:
 		}
 	}
 
-	// 色。
+	/// 色。
 	@property
 	const
 	CRGB color() { return _color; }
@@ -320,7 +324,7 @@ public:
 		}
 	}
 
-	// 太字。
+	/// 太字。
 	@property
 	const
 	bool bold() { return _bold; }
@@ -331,7 +335,7 @@ public:
 			_bold = value;
 		}
 	}
-	// 斜体。
+	/// 斜体。
 	@property
 	const
 	bool italic() { return _italic; }
@@ -342,7 +346,7 @@ public:
 			_italic = value;
 		}
 	}
-	// 下線。
+	/// 下線。
 	@property
 	const
 	bool underline() { return _underline; }
@@ -353,7 +357,7 @@ public:
 			_underline = value;
 		}
 	}
-	// 取消線。
+	/// 取消線。
 	@property
 	const
 	bool strike() { return _strike; }
@@ -364,7 +368,7 @@ public:
 			_strike = value;
 		}
 	}
-	// 縦書き。
+	/// 縦書き。
 	@property
 	const
 	bool vertical() { return _vertical; }
@@ -376,7 +380,7 @@ public:
 		}
 	}
 
-	// 縁取り方式。
+	/// 縁取り方式。
 	@property
 	const
 	BorderingType borderingType() { return _borderingType; }
@@ -387,7 +391,7 @@ public:
 			_borderingType = value;
 		}
 	}
-	// 縁取り色。
+	/// 縁取り色。
 	@property
 	const
 	CRGB borderingColor() { return _borderingColor; }
@@ -398,7 +402,7 @@ public:
 			_borderingColor = value;
 		}
 	}
-	// 縁取り幅。
+	/// 縁取り幅。
 	@property
 	const
 	uint borderingWidth() { return _borderingWidth; }
@@ -407,6 +411,17 @@ public:
 		if (_borderingWidth != value) { mixin(S_TRACE);
 			changed();
 			_borderingWidth = value;
+		}
+	}
+	/// 再表示時の更新内容(Wsn.4)。
+	@property
+	const
+	UpdateType updateType() { return _updateType; }
+	@property
+	void updateType(UpdateType value) { mixin(S_TRACE);
+		if (_updateType != value) { mixin(S_TRACE);
+			changed();
+			_updateType = value;
 		}
 	}
 
@@ -471,6 +486,7 @@ public:
 			bClr.newAttr("b", borderingColor.b);
 			bClr.newAttr("a", borderingColor.a);
 		}
+		e.newElement("UpdateType", fromUpdateType(updateType));
 
 		toNodeCommon(e, false);
 	}
@@ -488,6 +504,7 @@ public:
 		BorderingType borderingType = BorderingType.None;
 		CRGB borderingColor = CRGB(255, 255, 255, 255);
 		uint borderingWidth = 1;
+		UpdateType updateType = UpdateType.Variables;
 
 		node.onTag["Text"] = (ref XNode n) { mixin(S_TRACE);
 			text = .decodeLf2(n.value);
@@ -520,10 +537,13 @@ public:
 			};
 			n.parse();
 		};
+		node.onTag["UpdateType"] = (ref XNode n) { mixin(S_TRACE);
+			updateType = toUpdateType(n.value);
+		};
 		node.parse();
 
 		auto r = new TextCell(text, fontName, size, color, bold, italic, underline, strike, vertical,
-			borderingType, borderingColor, borderingWidth, "", 0, 0, 0, 0, false);
+			borderingType, borderingColor, borderingWidth, updateType, "", 0, 0, 0, 0, false);
 		r.fromNodeCommon(node);
 		return r;
 	}

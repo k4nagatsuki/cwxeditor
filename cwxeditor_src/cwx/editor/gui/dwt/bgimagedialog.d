@@ -70,7 +70,7 @@ private:
 		// 処理無し
 	}
 
-	void refDataVersion() { mixin(S_TRACE);
+	protected void refDataVersion() { mixin(S_TRACE);
 		_layer.setEnabled(!_summ || !_summ.legacy || LAYER_BACK_CELL != _layer.getSelection());
 		_cellName.setEnabled(!_summ || !_summ.legacy || _cellName.getText() != "");
 		if (_smoothing) { mixin(S_TRACE);
@@ -500,6 +500,8 @@ private:
 	BorderingType[] _borderingTypes;
 	ColorPicker _borderingColor;
 	Spinner _borderingWidth;
+	Combo _updateType;
+	UpdateType[] _updateTypes;
 
 	Skin _summSkin;
 	@property
@@ -529,9 +531,26 @@ private:
 			ws ~= .textWarnings(_prop.parent, summSkin, _summ, _prop.var.etc.targetVersion,
 				_text.getText(), flags, steps, fonts, colors, wFlags, wSteps, wFonts, wColors).all;
 		}
+		if (_updateType.getSelectionIndex() != -1 && _summ) { mixin(S_TRACE);
+			if (_summ.legacy && _updateTypes[_updateType.getSelectionIndex()] !is UpdateType.Fixed) { mixin(S_TRACE);
+				ws ~= _prop.msgs.warningUpdateTypeNotFixed;
+			}
+			if (!_summ.legacy && _updateTypes[_updateType.getSelectionIndex()] !is UpdateType.Variables) { mixin(S_TRACE);
+				ws ~= _prop.msgs.warningUpdateTypeFixed;
+			}
+		}
 
 		warning = ws;
 	}
+
+	override
+	protected void refDataVersion() { mixin(S_TRACE);
+		super.refDataVersion();
+		if (_updateType.getSelectionIndex() != -1) { mixin(S_TRACE);
+			_updateType.setEnabled(!_summ || !_summ.legacy || _updateTypes[_updateType.getSelectionIndex()] !is UpdateType.Fixed);
+		}
+	}
+
 	void updatePreview() { mixin(S_TRACE);
 		int index = _borderingType.getSelectionIndex();
 		if (index == -1) return;
@@ -794,7 +813,30 @@ protected:
 		}
 		.setupWeights(sash, _prop.var.etc.textCellVSashT, _prop.var.etc.textCellVSashB);
 
-		createPosPanel(comp, false, false);
+		auto updAndPosPanel = new Composite(comp, SWT.NONE);
+		updAndPosPanel.setLayout(zeroMarginGridLayout(2, false));
+		updAndPosPanel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		{ mixin(S_TRACE);
+			auto grp = new Group(updAndPosPanel, SWT.NONE);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setText(_prop.msgs.updateType);
+			grp.setLayout(new CenterLayout);
+
+			_updateType = new Combo(grp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+			_updateType.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
+			mod(_updateType);
+
+			foreach (updateType; [UpdateType.Fixed, UpdateType.Variables]) { mixin(S_TRACE);
+				_updateType.add(_prop.msgs.updateTypeName(updateType));
+				_updateTypes ~= updateType;
+			}
+			.listener(_updateType, SWT.Selection, &refDataVersion);
+		}
+		auto posPanel = createPositionPanel(updAndPosPanel, false, false);
+		posPanel.setLayoutData(new GridData(GridData.FILL_BOTH));
+		auto easyPanel = createEasySettingsPanel(comp);
+		easyPanel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		comp.setLayoutData(new GridData(GridData.FILL_BOTH));
 
 		.listener(area, SWT.Dispose, { mixin(S_TRACE);
 			if (_preview) _preview.dispose();
@@ -821,6 +863,9 @@ protected:
 			_borderingColor.color = new RGB(bc.r, bc.g, bc.b);
 			_borderingColor.alpha = bc.a;
 			_borderingWidth.setSelection(_back.borderingWidth);
+			auto updIdx = cast(int).cCountUntil(_updateTypes, _back.updateType);
+			if (updIdx == -1) updIdx = (_summ && _summ.legacy) ? 0 : 1;
+			_updateType.select(updIdx);
 		} else { mixin(S_TRACE);
 			_text.setText("");
 			if (_fontName.getItemCount()) { mixin(S_TRACE);
@@ -855,6 +900,7 @@ protected:
 			_borderingColor.color = new RGB(bc.r, bc.g, bc.b);
 			_borderingColor.alpha = bc.a;
 			_borderingWidth.setSelection(1);
+			_updateType.select((_summ && _summ.legacy) ? 0 : 1);
 		}
 		refDataVersion();
 		updatePreview();
@@ -878,6 +924,7 @@ protected:
 		auto bc = _borderingColor.color;
 		_back.borderingColor = CRGB(bc.red, bc.green, bc.blue, _borderingColor.alpha);
 		_back.borderingWidth = _borderingWidth.getSelection();
+		_back.updateType = _updateTypes[_updateType.getSelectionIndex()];
 
 		applyParams(_back);
 		getShell().setText(_prop.msgs.dlgTitTextCell);

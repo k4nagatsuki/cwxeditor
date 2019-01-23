@@ -2943,10 +2943,10 @@
 <pre><code class="samplecode"><span class="comment">// カードグループ"enemies_1"を画面中央付近に大きく表示されるように移動する</span>
 <span class="keywords">mvcard</span> <span class="str">"enemies_1"</span>, <span class="code">abs</span>, <span class="num">236</span>, <span class="num">30</span>, <span class="num">200</span>, <span class="code">none</span></code></pre>
 
-<h3 class="content"><a id="CHBACK" name="CHBACK">chback <span class="args"><span class="array">([<span class="arg">&lt;画像パス&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;透明化有無&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>]
-| [<span class="arg">text</span>, <span class="arg">&lt;テキスト&gt;</span>, <span class="arg">&lt;フォント名&gt;</span>, <span class="arg">&lt;文字サイズ&gt;</span>, <span class="arg">&lt;文字色&gt;</span>, <span class="arg">&lt;書式&gt;</span> ..., (<span class="arg">&lt;縁取り色&gt;</span>), (<span class="arg">&lt;縁取り幅&gt;</span>), <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>]
+<h3 class="content"><a id="CHBACK" name="CHBACK">chback <span class="args"><span class="array">([<span class="arg">&lt;画像パス&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;透明化有無&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>, <span class="arg">&lt;スムージング&gt;</span>]
+| [<span class="arg">text</span>, <span class="arg">&lt;テキスト&gt;</span>, <span class="arg">&lt;フォント名&gt;</span>, <span class="arg">&lt;文字サイズ&gt;</span>, <span class="arg">&lt;文字色&gt;</span>, <span class="arg">&lt;書式&gt;</span> ..., (<span class="arg">&lt;縁取り色&gt;</span>), (<span class="arg">&lt;縁取り幅&gt;</span>), <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>, <span class="arg">&lt;更新タイプ&gt;</span>]
 | [<span class="arg">color</span>, <span class="arg">&lt;合成方式&gt;</span>, <span class="arg">&lt;基本色&gt;</span>, <span class="arg">&lt;グラデーション方向&gt;</span>, <span class="arg">&lt;終端色&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>]
-| [<span class="arg">pc</span>, <span class="arg">&lt;表示メンバ&gt;</span>, <span class="arg">&lt;拡大・縮小有無&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>])
+| [<span class="arg">pc</span>, <span class="arg">&lt;表示メンバ&gt;</span>, <span class="arg">&lt;拡大・縮小有無&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>, <span class="arg">&lt;スムージング&gt;</span>])
 ...</span>, <span class="arg">&lt;画面切替スピード&gt;</span>, <span class="arg">&lt;切替方式&gt;</span></span></a></h3>
 
 <p class="fullname">(Change Background)</p>
@@ -2959,7 +2959,7 @@
 
 <h5>画像セル</h5>
 
-<p class="args"><code class="array">[<span class="arg">&lt;画像パス&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;透明化有無&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>]</code></p>
+<p class="args"><code class="array">[<span class="arg">&lt;画像パス&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;透明化有無&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>, <span class="arg">&lt;スムージング&gt;</span>]</code></p>
 <p class="desc">1つの画像をセルとして配置します。</p>
 <p class="desc">画像パスには、文字列で画像のファイル名を指定します。</p>
 <p class="desc">フラグには、画像を表示する条件のフラグ名を指定します。フラグを使用しない場合は空文字列<code class="str">""</code>を指定します。</p>
@@ -2967,13 +2967,14 @@
 <p class="desc">透明化の有無には、<code class="code">true/false</code>で、左上を透明色として使用するか、透明化を行わないかを指定します。指定しなかった場合、透明化は行われません。</p>
 <p class="desc">セル名称には、背景セル再配置や背景セル削除コンテント等でセルを選択する際に使用する名前を指定します。操作を行わない場合は指定しないか、空文字列<code class="str">""</code>を指定します。</p>
 <p class="desc">レイヤには、セルを表示する前後の位置を指定します。数値が大きいほど手前に表示され、背景のレイヤは通常<span class="num">0</span>です。メニュー・エネミーカードは<span class="num">100</span>、プレイヤーカードは<span class="num">200</span>のレイヤに表示されます。省略した場合は<span class="num">0</span>になります。</p>
+<p class="desc">スムージングには、<code class="code">true/false</code>または<code class="code">default</code>を指定します。<code class="code">true</code>を指定した場合はイメージの拡大・縮小時にスムージングを行い、<code class="code">false</code>を指定した場合は行いません。<code class="code">default</code>を指定した場合は、エンジンの設定に従います。省略した場合は<code class="code">default</code>になります。</p>
 
 <pre><code class="samplecode"><span class="keywords">chback</span> [<span class="str">"MapOfWirth.bmp"</span>] <span class="comment">// MapOfWirth.bmpを画面一杯に表示</span>
        [<span class="str">"AdventurersInn.bmp"</span>, <span class="str">""</span>, <span class="num">116</span>, <span class="num">15</span>, <span class="num">400</span>, <span class="num">260</span>, <span class="code">false</span>] <span class="comment">// 宿の画像を標準の位置に表示</span></code></pre>
 
 <h5>テキストセル</h5>
 
-<p class="args"><code class="array">[<span class="arg">text</span>, <span class="arg">&lt;テキスト&gt;</span>, <span class="arg">&lt;フォント名&gt;</span>, <span class="arg">&lt;文字サイズ&gt;</span>, <span class="arg">&lt;文字色&gt;</span>, <span class="arg">&lt;書式&gt;</span> ..., (<span class="arg">&lt;縁取り色&gt;</span>), (<span class="arg">&lt;縁取り幅&gt;</span>), <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>]</code></p>
+<p class="args"><code class="array">[<span class="arg">text</span>, <span class="arg">&lt;テキスト&gt;</span>, <span class="arg">&lt;フォント名&gt;</span>, <span class="arg">&lt;文字サイズ&gt;</span>, <span class="arg">&lt;文字色&gt;</span>, <span class="arg">&lt;書式&gt;</span> ..., (<span class="arg">&lt;縁取り色&gt;</span>), (<span class="arg">&lt;縁取り幅&gt;</span>), <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>, <span class="arg">&lt;更新タイプ&gt;</span>]</code></p>
 <p class="desc">テキストをセルとして配置します。</p>
 <p class="desc">最初にキーワード<code class="keywords">text</code>を指定してください。</p>
 <p class="desc">テキストには、セルに表示する文章の内容を文字列で指定します。</p>
@@ -3007,10 +3008,22 @@
 
 <p class="desc">書式に<code class="keywords">border1</code>または<code class="keywords">border2</code>を指定した場合、縁取りの色を指定する事ができます。指定の方法は文字色と同様です。縁取り書式を指定していない場合は、必ず省略してください。</p>
 <p class="desc">書式に<code class="keywords">border2</code>を指定した場合、縁取りの太さを数値で指定する事ができます。<code class="keywords">border2</code>を指定していない場合は、必ず省略してください。</p>
+
 <p class="desc">フラグには、画像を表示する条件のフラグ名を指定します。フラグを使用しない場合は空文字列<code class="str">""</code>を指定します。</p>
 <p class="desc">X位置・Y位置・横幅・縦幅には、画像の配置とサイズを指定します。指定しなかった場合、<span class="num">0</span>、<span class="num">0</span>、<span class="num">632</span>、<span class="num">420</span>になります。(画面一杯に表示)</p>
 <p class="desc">セル名称には、背景セル再配置や背景セル削除コンテント等でセルを選択する際に使用する名前を指定します。操作を行わない場合は指定しないか、空文字列<code class="str">""</code>を指定します。</p>
 <p class="desc">レイヤには、セルを表示する前後の位置を指定します。数値が大きいほど手前に表示され、背景のレイヤは通常<span class="num">0</span>です。メニュー・エネミーカードは<span class="num">100</span>、プレイヤーカードは<span class="num">200</span>のレイヤに表示されます。省略した場合は<span class="num">0</span>になります。</p>
+
+<p class="desc">更新タイプには、背景更新時の挙動を以下のいずれかで指定します。省略した場合は<code class="keywords">fixed</code>になります。</p>
+
+<dl>
+	<dt class="keyword"><code>fixed</code></dt>
+	<dd class="worddesc">一度表示された内容が固定されます。</dd>
+	<dt class="keyword"><code>variables</code></dt>
+	<dd class="worddesc">状態変数名が表示されている場合は更新されます。</dd>
+	<dt class="keyword"><code>all</code></dt>
+	<dd class="worddesc">状態変数名や選択メンバ名など、全ての変数値が更新されます。<em class="warning">この値はWsn.4以降のWSN形式シナリオでしか機能しません。</em></dd>
+</dl>
 
 <pre><code class="samplecode"><span class="comment">// 文字列"Card Wirth"(太字・斜体・縁取り付き)をBatangフォントで画面中央に表示</span>
 <span class="keywords">chback</span> [<span class="keywords">text</span>, <span class="str">"Card Wirth"</span>, <span class="str">"Batang"</span>, <span class="num">48</span>, <span class="str">"#000000"</span>, <span class="code">bold</span> <span class="code">italic</span> <span class="code">border2</span>, <span class="str">"#FFFFFF"</span>, <span class="num">1</span>, <span class="str">""</span>, <span class="num">185</span>, <span class="num">110</span>, <span class="num">280</span>, <span class="num">60</span>]</code></pre>
@@ -3061,7 +3074,7 @@
 
 <h5>プレイヤーキャラクタセル</h5>
 
-<p class="args"><code class="array">[<span class="arg">pc</span>, <span class="arg">&lt;表示メンバ&gt;</span>, <span class="arg">&lt;拡大・縮小有無&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>]</code></p>
+<p class="args"><code class="array">[<span class="arg">pc</span>, <span class="arg">&lt;表示メンバ&gt;</span>, <span class="arg">&lt;拡大・縮小有無&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>, <span class="arg">&lt;スムージング&gt;</span>]</code></p>
 <p class="desc">シナリオをプレイ中のパーティのメンバの画像をセルとして配置します。</p>
 <p class="desc">最初にキーワード<code class="keywords">pc</code>を指定してください。</p>
 <p class="desc">表示メンバには、パーティの中のどのメンバを表示するかを<span class="num">1</span>から始まる番号で指定します。</p>
@@ -3070,6 +3083,7 @@
 <p class="desc">X位置・Y位置・横幅・縦幅には、画像の配置とサイズを指定します。指定しなかった場合、<span class="num">0</span>、<span class="num">0</span>、<span class="num">632</span>、<span class="num">420</span>になります。(画面一杯に表示)</p>
 <p class="desc">セル名称には、背景セル再配置や背景セル削除コンテント等でセルを選択する際に使用する名前を指定します。操作を行わない場合は指定しないか、空文字列<code class="str">""</code>を指定します。</p>
 <p class="desc">レイヤには、セルを表示する前後の位置を指定します。数値が大きいほど手前に表示され、背景のレイヤは通常<span class="num">0</span>です。メニュー・エネミーカードは<span class="num">100</span>、プレイヤーカードは<span class="num">200</span>のレイヤに表示されます。省略した場合は<span class="num">0</span>になります。</p>
+<p class="desc">スムージングには、<code class="code">true/false</code>または<code class="code">default</code>を指定します。<code class="code">true</code>を指定した場合はイメージの拡大・縮小時にスムージングを行い、<code class="code">false</code>を指定した場合は行いません。<code class="code">default</code>を指定した場合は、エンジンの設定に従います。省略した場合は<code class="code">default</code>になります。</p>
 
 <pre><code class="samplecode"><span class="comment">// 左上にパーティの左端のメンバの画像を表示する</span>
 <span class="keywords">chback</span> [<span class="code">pc</span>, <span class="num">1</span>, <span class="code">false</span>, <span class="str">""</span>, <span class="num">0</span>, <span class="num">0</span>, <span class="num">632</span>, <span class="num">420</span>]</code></pre>
@@ -3150,10 +3164,10 @@
 <pre><code class="samplecode"><span class="comment">// 背景セル"blue_filter"の高さを半分にし、画面の下側へ移動する</span>
 <span class="keywords">mvback</span> <span class="str">"blue_filter"</span>, <span class="code">abs</span>, <span class="num">0</span>, <span class="num">210</span>, <span class="code">per</span>, <span class="num">100</span>, <span class="num">50</span></code></pre>
 
-<h3 class="content"><a id="RPLBACK" name="RPLBACK">rplback <span class="args"><span class="arg">&lt;セル名称&gt;</span>, <span class="array">([<span class="arg">&lt;画像パス&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;透明化有無&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>]
-| [<span class="arg">text</span>, <span class="arg">&lt;テキスト&gt;</span>, <span class="arg">&lt;フォント名&gt;</span>, <span class="arg">&lt;文字サイズ&gt;</span>, <span class="arg">&lt;文字色&gt;</span>, <span class="arg">&lt;書式&gt;</span> ..., (<span class="arg">&lt;縁取り色&gt;</span>), (<span class="arg">&lt;縁取り幅&gt;</span>), <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>]
+<h3 class="content"><a id="RPLBACK" name="RPLBACK">rplback <span clC:\Users\kkamei\root\desk\cwxeditor\cwxscript.htmlass="args"><span class="arg">&lt;セル名称&gt;</span>, <span class="array">([<span class="arg">&lt;画像パス&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;透明化有無&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>, <span class="arg">&lt;スムージング&gt;</span>]
+| [<span class="arg">text</span>, <span class="arg">&lt;テキスト&gt;</span>, <span class="arg">&lt;フォント名&gt;</span>, <span class="arg">&lt;文字サイズ&gt;</span>, <span class="arg">&lt;文字色&gt;</span>, <span class="arg">&lt;書式&gt;</span> ..., (<span class="arg">&lt;縁取り色&gt;</span>), (<span class="arg">&lt;縁取り幅&gt;</span>), <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>, <span class="arg">&lt;更新タイプ&gt;</span>]
 | [<span class="arg">color</span>, <span class="arg">&lt;合成方式&gt;</span>, <span class="arg">&lt;基本色&gt;</span>, <span class="arg">&lt;グラデーション方向&gt;</span>, <span class="arg">&lt;終端色&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>]
-| [<span class="arg">pc</span>, <span class="arg">&lt;表示メンバ&gt;</span>, <span class="arg">&lt;拡大・縮小有無&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>), <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>]
+| [<span class="arg">pc</span>, <span class="arg">&lt;表示メンバ&gt;</span>, <span class="arg">&lt;拡大・縮小有無&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>), <span class="arg">&lt;セル名称&gt;</span>, <span class="arg">&lt;レイヤ&gt;</span>, <span class="arg">&lt;スムージング&gt;</span>]
 ...</span>, <span class="arg">&lt;画面切替スピード&gt;</span>, <span class="arg">&lt;切替方式&gt;</span>, <span class="arg">&lt;アニメーション有無&gt;</span>, <span class="arg">&lt;エフェクトブースター無視&gt;</span></span></a></h3>
 
 <p class="fullname">(Replace Background)</p>
@@ -3410,6 +3424,7 @@ false
 field
 fine
 fire
+fixed
 getspilit
 hand
 has
@@ -3495,6 +3510,7 @@ valued
 vanbeast
 vancard
 vantarget
+variables
 vit
 vswing
 yes</code></pre>
