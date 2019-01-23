@@ -528,6 +528,7 @@ struct BgImageS {
 	BorderingType borderingType;
 	CRGB borderingColor;
 	uint borderingWidth;
+	UpdateType updateType;
 
 	// ColorCell
 	BlendMode blendMode;
@@ -570,7 +571,7 @@ struct BgImageS {
 			r.newAttr("smoothing", fromSmoothing(smoothing));
 			break;
 		case "text":
-			r.value = text;
+			r.newElement("text", text);
 			auto f = r.newElement("font", fontName);
 			f.newAttr("size", size);
 			if (bold) f.newAttr("bold", bold);
@@ -585,6 +586,7 @@ struct BgImageS {
 				b.newAttr("width", borderingWidth);
 				borderingColor.toNode(b);
 			}
+			r.newAttr("updateType", fromUpdateType(updateType));
 			break;
 		case "color":
 			r.newAttr("blendMode", fromBlendMode(blendMode));
@@ -621,7 +623,9 @@ struct BgImageS {
 			smoothing = toSmoothing(node.attr("smoothing", false, "Default"));
 			break;
 		case "text":
-			text = node.value;
+			node.onTag["text"] = (ref XNode node) { mixin(S_TRACE);
+				text = node.value;
+			};
 			node.onTag["font"] = (ref XNode node) { mixin(S_TRACE);
 				fontName = node.value;
 				size = node.attr!uint("size", true);
@@ -642,6 +646,7 @@ struct BgImageS {
 				};
 				node.parse();
 			};
+			updateType = toUpdateType(node.attr("updateType", false, "Variables"));
 			node.parse();
 			break;
 		case "color":

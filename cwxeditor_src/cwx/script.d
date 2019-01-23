@@ -2296,6 +2296,7 @@ fi`;
 				CRGB color = parseAttr!(CRGB)(opt, vals, j, CRGB(0, 0, 0, 255), varTable, msgWidth);
 				bool bold = false, italic = false, underline = false, strike = false, vertical = false;
 				BorderingType borderingType = BorderingType.None;
+				UpdateType updateType = UpdateType.Fixed;
 				if (j < vals.length) { mixin(S_TRACE);
 					if (vals[j].values.length || vals[j].type is NodeType.ARRAY) { mixin(S_TRACE);
 						auto array = var(vals[j].values, varTable);
@@ -2347,7 +2348,7 @@ fi`;
 					break;
 				}
 				r = new TextCell(text, fontName, size, color, bold, italic, underline, strike, vertical,
-					borderingType, borderingColor, borderingWidth, "", 0, 0, 0, 0, false);
+					borderingType, borderingColor, borderingWidth, updateType, "", 0, 0, 0, 0, false);
 				break;
 			case "color":
 				BlendMode blendMode = parseAttr!(BlendMode)(opt, vals, j, BlendMode.Normal, varTable, msgWidth);
@@ -2384,6 +2385,9 @@ fi`;
 				ic.smoothing = parseAttr!(Smoothing)(opt, vals, j, ic.smoothing, varTable, msgWidth);
 			} else if (auto pc = cast(PCCell)r) { mixin(S_TRACE);
 				pc.smoothing = parseAttr!(Smoothing)(opt, vals, j, pc.smoothing, varTable, msgWidth);
+			}
+			if (auto tc = cast(TextCell)r) { mixin(S_TRACE);
+				tc.updateType = parseAttr!(UpdateType)(opt, vals, j, tc.updateType, varTable, msgWidth);
 			}
 			i++;
 			return r;
@@ -2519,7 +2523,7 @@ fi`;
 				}
 			}
 			return T.init;
-		} else static if (is(T == MatchingType)) { //Wsn.2
+		} else static if (is(T == MatchingType)) { // Wsn.2
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			switch (value) {
 			case "and": i++; return MatchingType.And;
@@ -2527,6 +2531,23 @@ fi`;
 			default: throwError(_prop.msgs.scriptErrorInvalidMatchingType, attr[i].token);
 			}
 			return T.init;
+		} else static if (is(T:UpdateType)) { // Wsn.4
+			if (attr[i].token.kind == Kind.SYMBOL) { mixin(S_TRACE);
+				switch (attrValue(attr[i], varTable, 0)) {
+				case "fixed":
+					i++;
+					return UpdateType.Fixed;
+				case "variables":
+					i++;
+					return UpdateType.Variables;
+				case "all":
+					i++;
+					return UpdateType.All;
+				default:
+					throwError(_prop.msgs.scriptErrorInvalidUpdateType, attr[i].token);
+				}
+			}
+			return defValue;
 		} else static if (is(T == int)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			if (attr[i].token.kind is Kind.SYMBOL && value == "all") { mixin(S_TRACE);
@@ -3499,6 +3520,9 @@ fi`;
 			if (pc) { mixin(S_TRACE);
 				attrs2 ~= toAttr(pc.smoothing, indentValue, vars);
 			}
+			if (tc) { mixin(S_TRACE);
+				attrs2 ~= toAttr(tc.updateType, indentValue, vars);
+			}
 			attrs ~= "[" ~ std.string.join(attrs2, ", ") ~ "]";
 		} else static if (is(Unqual!(T) : Motion)) {
 			auto detail = value.detail;
@@ -3558,6 +3582,12 @@ fi`;
 			case MatchingType.And: attrs ~= "and"; break;
 			case MatchingType.Or: attrs ~= "or"; break;
 			default: assert (0);
+			}
+		} else static if (is(T : UpdateType)) { //Wsn.4
+			final switch (value) {
+			case UpdateType.Fixed: attrs ~= "fixed"; break;
+			case UpdateType.Variables: attrs ~= "variables"; break;
+			case UpdateType.All: attrs ~= "all"; break;
 			}
 		} else static if (is(T : int)) {
 			attrs ~= to!(string)(value);

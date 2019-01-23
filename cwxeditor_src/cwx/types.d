@@ -1127,6 +1127,30 @@ string fromSmoothing(Smoothing t) { mixin(S_TRACE);
 	}
 }
 
+/// テキストセルの再表示時の更新内容(Wsn.4)。
+enum UpdateType {
+	Fixed, /// 最初に表示した内容に固定。
+	Variables, /// 状態変数値を更新する。
+	All, /// 全て更新する。
+}
+/// ditto
+UpdateType toUpdateType(string name) { mixin(S_TRACE);
+	switch (name) {
+	case "Fixed": return UpdateType.Fixed;
+	case "Variables": return UpdateType.Variables;
+	case "All": return UpdateType.All;
+	default: throw new Exception("Unknown update type: " ~ name);
+	}
+}
+/// ditto
+string fromUpdateType(UpdateType t) { mixin(S_TRACE);
+	final switch (t) {
+	case UpdateType.Fixed: return "Fixed";
+	case UpdateType.Variables: return "Variables";
+	case UpdateType.All: return "All";
+	}
+}
+
 /// 発火条件キーコードの種別。
 enum FKCKind {
 	Use, /// 使用時。
