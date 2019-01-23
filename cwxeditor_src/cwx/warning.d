@@ -401,7 +401,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (summ && summ.legacy && tc.updateType !is UpdateType.Fixed) { mixin(S_TRACE);
 			r ~= prop.msgs.warningUpdateTypeNotFixed;
 		}
-		if ((!summ || !summ.legacy) && tc.updateType !is UpdateType.Variables) { mixin(S_TRACE);
+		if (summ && !summ.legacy && tc.updateType !is UpdateType.Variables) { mixin(S_TRACE);
 			r ~= prop.msgs.warningUpdateTypeFixed;
 		}
 	}
