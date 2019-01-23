@@ -1380,7 +1380,7 @@ class Msgs : Properties {
 	auto updateTypeNameVariables = Msg("updateTypeNameVariables", "状態変数値を更新する");
 	auto updateTypeNameAll = Msg("updateTypeNameAll", "全て更新する");
 	auto warningUpdateTypeNotFixed = Msg("warningUpdateTypeNotFixed", "テキストセルの内容の更新は、クラシックなシナリオでは行う事ができません。");
-	auto warningUpdateTypeFixed = Msg("warningUpdateTypeFixed", "テキストセルの内容の固定は、Wsn.3以前の形式のシナリオでは行えない可能性があります。");
+	auto warningUpdateType = Msg("warningUpdateType", "テキストセルの更新方法の指定は、Wsn.4以降の形式のシナリオでしか行なえません。"); // Wsn.4
 
 	auto areaViewKeyboardHint = Msg("areaViewKeyboardHint", "選択+上下左右: 移動, Shift+上下左右: サイズ変更, Ctrl+Altで10ピクセル単位操作, Alt+クリックで範囲選択開始");
 

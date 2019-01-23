@@ -396,11 +396,14 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (!prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
 			r ~= prop.msgs.warningTextCell;
 		}
-		if (summ && summ.legacy && tc.updateType !is UpdateType.Fixed) { mixin(S_TRACE);
-			r ~= prop.msgs.warningUpdateTypeNotFixed;
-		}
-		if (summ && !summ.legacy && tc.updateType !is UpdateType.Variables) { mixin(S_TRACE);
-			r ~= prop.msgs.warningUpdateTypeFixed;
+		if (summ && summ.legacy) { mixin(S_TRACE);
+			if (tc.updateType !is UpdateType.Fixed) { mixin(S_TRACE);
+				r ~= prop.msgs.warningUpdateTypeNotFixed;
+			}
+		} else { mixin(S_TRACE);
+			if (tc.updateType !is UpdateType.Variables && !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
+				r ~= prop.msgs.warningUpdateType;
+			}
 		}
 	}
 	auto cc = cast(ColorCell)path;

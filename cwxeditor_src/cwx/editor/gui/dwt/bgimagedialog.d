@@ -531,12 +531,15 @@ private:
 			ws ~= .textWarnings(_prop.parent, summSkin, _summ, _prop.var.etc.targetVersion,
 				_text.getText(), flags, steps, fonts, colors, wFlags, wSteps, wFonts, wColors).all;
 		}
-		if (_updateType.getSelectionIndex() != -1 && _summ) { mixin(S_TRACE);
-			if (_summ.legacy && _updateTypes[_updateType.getSelectionIndex()] !is UpdateType.Fixed) { mixin(S_TRACE);
-				ws ~= _prop.msgs.warningUpdateTypeNotFixed;
-			}
-			if (!_summ.legacy && _updateTypes[_updateType.getSelectionIndex()] !is UpdateType.Variables) { mixin(S_TRACE);
-				ws ~= _prop.msgs.warningUpdateTypeFixed;
+		if (_updateType.getSelectionIndex() != -1) { mixin(S_TRACE);
+			if (_summ && _summ.legacy) { mixin(S_TRACE);
+				if (_updateTypes[_updateType.getSelectionIndex()] !is UpdateType.Fixed) { mixin(S_TRACE);
+					ws ~= _prop.msgs.warningUpdateTypeNotFixed;
+				}
+			} else { mixin(S_TRACE);
+				if (_updateTypes[_updateType.getSelectionIndex()] !is UpdateType.Variables && !_prop.isTargetVersion(_summ, "4")) { mixin(S_TRACE);
+					ws ~= _prop.msgs.warningUpdateType;
+				}
 			}
 		}
 
