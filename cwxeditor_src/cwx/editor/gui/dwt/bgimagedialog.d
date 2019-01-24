@@ -829,7 +829,7 @@ protected:
 			_updateType.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 			mod(_updateType);
 
-			foreach (updateType; [UpdateType.Fixed, UpdateType.Variables]) { mixin(S_TRACE);
+			foreach (updateType; [UpdateType.Fixed, UpdateType.Variables, UpdateType.All]) { mixin(S_TRACE);
 				_updateType.add(_prop.msgs.updateTypeName(updateType));
 				_updateTypes ~= updateType;
 			}
