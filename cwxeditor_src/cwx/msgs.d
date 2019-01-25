@@ -523,11 +523,6 @@ class Msgs : Properties {
 	auto addMsgRefFlag = Msg("addMsgRefFlag", "フラグ参照の追加");
 	auto addMsgRefStep = Msg("addMsgRefStep", "ステップ参照の追加");
 	auto addMsgRefImageFont = Msg("addMsgRefImageFont", "画像参照の追加");
-	auto createDialog = Msg("createDialog", "セリフの作成");
-	auto deleteDialog = Msg("deleteDialog", "セリフの削除");
-	auto copyToDialogs = Msg("copyToDialogs", "セリフを全体にコピー");
-	auto copyToUpper = Msg("copyToUpper", "セリフを上方にコピー");
-	auto copyToLower = Msg("copyToLower", "セリフを下方にコピー");
 	auto setTalkerCoupon = Msg("setTalkerCoupon", "追加");
 	auto messagePreview = Msg("messagePreview", "プレビュー(&P)");
 	auto dlgTitMessagePreview = Msg("dlgTitMessagePreview", "プレビュー");
@@ -2633,6 +2628,11 @@ class Msgs : Properties {
 	auto menuTextSwapToChild = Msg("menuTextSwapToChild", "子コンテントと入れ替える");
 	auto menuTextOverDialog = Msg("menuTextOverDialog", "上のセリフへ移動");
 	auto menuTextUnderDialog = Msg("menuTextUnderDialog", "下のセリフへ移動");
+	auto menuTextCreateDialog = Msg("menuTextCreateDialog", "セリフの作成");
+	auto menuTextDeleteDialog = Msg("menuTextDeleteDialog", "セリフの削除");
+	auto menuTextCopyToAllDialogs = Msg("menuTextCopyToAllDialogs", "セリフを全体にコピー");
+	auto menuTextCopyToUpperDialogs = Msg("menuTextCopyToUpperDialogs", "セリフを上方にコピー");
+	auto menuTextCopyToLowerDialogs = Msg("menuTextCopyToLowerDialogs", "セリフを下方にコピー");
 	auto menuTextShowParty = Msg("menuTextShowParty", "パーティカードの表示");
 	auto menuTextShowMsg = Msg("menuTextShowMsg", "メッセージ枠の表示");
 	auto menuTextShowRefCards = Msg("menuTextShowRefCards", "カード参照の表示");

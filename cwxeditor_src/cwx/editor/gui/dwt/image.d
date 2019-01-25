@@ -478,12 +478,6 @@ public:
 	@property Image scTeam() {return imgd!("sc_t.png");}
 	@property Image scYado() {return imgd!("sc_y.png");}
 
-	@property Image createDialog() {return imgd!("evt_speak.png");}
-	@property Image deleteDialog() {return imgd!("del_res.png");}
-	@property Image copyToDialogs() {return imgd!("copy_dialog.png");}
-	@property Image copyToUpper() {return imgd!("copy_dialog_u.png");}
-	@property Image copyToLower() {return imgd!("copy_dialog_l.png");}
-
 	@property Image summaryFile() {return imgd!("summary_file.png");}
 	@property Image scenarioArchive() {return imgd!("scenario_arc.png");}
 	@property Image classic() {return imgd!("classic.png");}
@@ -631,6 +625,11 @@ public:
 		case MenuID.SwapToChild: return imgd!("swap_child.png");
 		case MenuID.OverDialog: return imgd!("over_dlg.png");
 		case MenuID.UnderDialog: return imgd!("under_dlg.png");
+		case MenuID.CreateDialog: return imgd!("evt_speak.png");
+		case MenuID.DeleteDialog: return imgd!("del_res.png");
+		case MenuID.CopyToAllDialogs: return imgd!("copy_dialog.png");
+		case MenuID.CopyToUpperDialogs: return imgd!("copy_dialog_u.png");
+		case MenuID.CopyToLowerDialogs: return imgd!("copy_dialog_l.png");
 		case MenuID.ShowParty: return imgd!("party_cards.png");
 		case MenuID.ShowMsg: return imgd!("view_msg.png");
 		case MenuID.ShowRefCards: return imgd!("view_ref.png");

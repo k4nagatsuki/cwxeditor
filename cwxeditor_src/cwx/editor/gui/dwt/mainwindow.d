@@ -3557,6 +3557,11 @@ public:
 						case MenuID.InitVariablesTree:
 						case MenuID.OverDialog:
 						case MenuID.UnderDialog:
+						case MenuID.CreateDialog:
+						case MenuID.DeleteDialog:
+						case MenuID.CopyToAllDialogs:
+						case MenuID.CopyToUpperDialogs:
+						case MenuID.CopyToLowerDialogs:
 						case MenuID.ShowParty:
 						case MenuID.ShowMsg:
 						case MenuID.ShowRefCards:

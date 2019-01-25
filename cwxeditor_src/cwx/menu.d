@@ -162,6 +162,11 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.SwapToChild] = "W";
 		_mnemonic[MenuID.OverDialog] = "O";
 		_mnemonic[MenuID.UnderDialog] = "U";
+		_mnemonic[MenuID.CreateDialog] = "N";
+		_mnemonic[MenuID.DeleteDialog] = "D";
+		_mnemonic[MenuID.CopyToAllDialogs] = "A";
+		_mnemonic[MenuID.CopyToUpperDialogs] = "U";
+		_mnemonic[MenuID.CopyToLowerDialogs] = "L";
 		_mnemonic[MenuID.ShowParty] = "P";
 		_mnemonic[MenuID.ShowMsg] = "M";
 		_mnemonic[MenuID.ShowRefCards] = "R";
@@ -394,6 +399,11 @@ class MenuProps : Properties {
 		_hotkey[MenuID.SwapToChild] = "Ctrl+Shift+Arrow_Down";
 		_hotkey[MenuID.OverDialog] = "Ctrl+Shift+Arrow_Up";
 		_hotkey[MenuID.UnderDialog] = "Ctrl+Shift+Arrow_Down";
+		_hotkey[MenuID.CreateDialog] = "";
+		_hotkey[MenuID.DeleteDialog] = "";
+		_hotkey[MenuID.CopyToAllDialogs] = "Ctrl+Shift+A";
+		_hotkey[MenuID.CopyToUpperDialogs] = "Ctrl+Shift+U";
+		_hotkey[MenuID.CopyToLowerDialogs] = "Ctrl+Shift+L";
 		_hotkey[MenuID.ShowParty] = "";
 		_hotkey[MenuID.ShowMsg] = "";
 		_hotkey[MenuID.ShowRefCards] = "";
@@ -882,6 +892,11 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.InitVariablesTree:
 	case MenuID.OverDialog:
 	case MenuID.UnderDialog:
+	case MenuID.CreateDialog:
+	case MenuID.DeleteDialog:
+	case MenuID.CopyToAllDialogs:
+	case MenuID.CopyToUpperDialogs:
+	case MenuID.CopyToLowerDialogs:
 	case MenuID.ShowParty:
 	case MenuID.ShowMsg:
 	case MenuID.ShowRefCards:
@@ -1115,6 +1130,11 @@ bool isGlobalMenu(MenuID id) {
 	case MenuID.SwapToChild:
 	case MenuID.OverDialog:
 	case MenuID.UnderDialog:
+	case MenuID.CreateDialog:
+	case MenuID.DeleteDialog:
+	case MenuID.CopyToAllDialogs:
+	case MenuID.CopyToUpperDialogs:
+	case MenuID.CopyToLowerDialogs:
 	case MenuID.ShowParty:
 	case MenuID.ShowMsg:
 	case MenuID.ShowRefCards:

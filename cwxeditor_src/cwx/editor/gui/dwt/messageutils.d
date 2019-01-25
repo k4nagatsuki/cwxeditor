@@ -650,9 +650,13 @@ private:
 		}
 		applyEnabled();
 	}
+	@property
+	bool canDeleteDialog() { return _dlgsL.getItemCount() > 1 && _dlgsL.getSelectionIndex() != -1; }
 	void deleteDialogSel() { mixin(S_TRACE);
 		deleteDialog(_dlgsL.getSelectionIndex());
 	}
+	@property
+	bool canOverDialog() { return _dlgsL.getSelectionIndex() != -1 && 0 < _dlgsL.getSelectionIndex(); }
 	void overDialog() { mixin(S_TRACE);
 		int index = _dlgsL.getSelectionIndex();
 		if (index > 0) { mixin(S_TRACE);
@@ -660,6 +664,8 @@ private:
 			selectChanged();
 		}
 	}
+	@property
+	bool canUnderDialog() { return _dlgsL.getSelectionIndex() != -1 && _dlgsL.getSelectionIndex() + 1 < _dlgsL.getItemCount(); }
 	void underDialog() { mixin(S_TRACE);
 		int index = _dlgsL.getSelectionIndex();
 		if (index + 1 < _dlgs.length) { mixin(S_TRACE);
@@ -667,6 +673,9 @@ private:
 			selectChanged();
 		}
 	}
+
+	@property
+	bool canUp() { return _dlgsL.getSelectionIndex() != -1 && 0 < _dlgsL.getSelectionIndex(); }
 	void up() { mixin(S_TRACE);
 		int index = _dlgsL.getSelectionIndex();
 		if (index > 0) { mixin(S_TRACE);
@@ -681,6 +690,8 @@ private:
 			comm.refreshToolBar();
 		}
 	}
+	@property
+	bool canDown() { return _dlgsL.getSelectionIndex() != -1 && _dlgsL.getSelectionIndex() + 1 < _dlgsL.getItemCount(); }
 	void down() { mixin(S_TRACE);
 		int index = _dlgsL.getSelectionIndex();
 		if (index + 1 < _dlgs.length) { mixin(S_TRACE);
@@ -695,6 +706,8 @@ private:
 			comm.refreshToolBar();
 		}
 	}
+	@property
+	bool canCopyToUpper() { return _dlgsL.getSelectionIndex() != -1 && 0 < _dlgsL.getSelectionIndex(); }
 	void copyToUpper() { mixin(S_TRACE);
 		storeEdit();
 		int index = _dlgsL.getSelectionIndex();
@@ -708,6 +721,8 @@ private:
 		refreshWarning();
 		comm.refreshToolBar();
 	}
+	@property
+	bool canCopyToLower() { return _dlgsL.getSelectionIndex() != -1 && _dlgsL.getSelectionIndex() + 1 < _dlgsL.getItemCount(); }
 	void copyToLower() { mixin(S_TRACE);
 		storeEdit();
 		int index = _dlgsL.getSelectionIndex();
@@ -721,6 +736,8 @@ private:
 		refreshWarning();
 		comm.refreshToolBar();
 	}
+	@property
+	bool canCopyToDialogs() { return _dlgsL.getSelectionIndex() != -1 && _dlgsL.getItemCount() > 1; }
 	void copyToDialogs() { mixin(S_TRACE);
 		storeEdit();
 		int index = _dlgsL.getSelectionIndex();
@@ -930,28 +947,40 @@ private:
 
 	private class KeyDownFilter : Listener {
 		this () { mixin(S_TRACE);
-			refMenu(MenuID.OverDialog);
-			refMenu(MenuID.UnderDialog);
+			refMenuImpl(MenuID.Up, &up, &canUp);
+			refMenuImpl(MenuID.Down, &down, &canDown);
+			refMenuImpl(MenuID.OverDialog, &overDialog, &canOverDialog);
+			refMenuImpl(MenuID.UnderDialog, &underDialog, &canUnderDialog);
+			refMenuImpl(MenuID.CreateDialog, &createDialog, null);
+			refMenuImpl(MenuID.DeleteDialog, &deleteDialogSel, &canDeleteDialog);
+			refMenuImpl(MenuID.CopyToAllDialogs, &copyToDialogs, &canCopyToDialogs);
+			refMenuImpl(MenuID.CopyToUpperDialogs, &copyToUpper, &canCopyToUpper);
+			refMenuImpl(MenuID.CopyToLowerDialogs, &copyToLower, &canCopyToLower);
 		}
 		override void handleEvent(Event e) { mixin(S_TRACE);
 			if (!e.doit) return;
 			auto c = cast(Control)e.widget;
 			if (!c || c.isDisposed() || c.getShell() !is getShell()) return;
 			if (_dlgsL is c) return;
-			if (eqAcc(_overAcc, e.keyCode, e.character, e.stateMask)) { mixin(S_TRACE);
-				overDialog();
-				e.doit = false;
-			} else if (eqAcc(_underAcc, e.keyCode, e.character, e.stateMask)) { mixin(S_TRACE);
-				underDialog();
-				e.doit = false;
+			foreach (id; _accels.keys().sort()) { mixin(S_TRACE);
+				auto accel = _accels[id];
+				if (accel.enabled && !accel.enabled()) continue;
+				if (eqAcc(accel.accel, e.keyCode, e.character, e.stateMask)) { mixin(S_TRACE);
+					accel.func();
+					e.doit = false;
+					break;
+				}
 			}
 		}
 	}
-	private int _overAcc;
-	private int _underAcc;
+	private Tuple!(int, "accel", void delegate(), "func", bool delegate(), "enabled")[MenuID] _accels;
 	private void refMenu(MenuID id) { mixin(S_TRACE);
-		if (id == MenuID.OverDialog) _overAcc = convertAccelerator(prop.buildMenu(MenuID.OverDialog));
-		if (id == MenuID.UnderDialog) _underAcc = convertAccelerator(prop.buildMenu(MenuID.UnderDialog));
+		auto p = id in _accels;
+		if (!p) return;
+		refMenuImpl(id, p.func, p.enabled);
+	}
+	private void refMenuImpl(MenuID id, void delegate() func, bool delegate() enabled) { mixin(S_TRACE);
+		_accels[id] = typeof(_accels[id])(.convertAccelerator(prop.buildMenu(id)), func, enabled);
 	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
@@ -1076,11 +1105,17 @@ protected:
 			createMenuItem(comm, menu, MenuID.Undo, { _undo.undo(); }, &_undo.canUndo);
 			createMenuItem(comm, menu, MenuID.Redo, { _undo.redo(); }, &_undo.canRedo);
 			new MenuItem(menu, SWT.SEPARATOR);
-			createMenuItem(comm, menu, MenuID.Up, &up, () => _dlgsL.getSelectionIndex() != -1 && 0 < _dlgsL.getSelectionIndex());
-			createMenuItem(comm, menu, MenuID.Down, &down, () => _dlgsL.getSelectionIndex() != -1 && _dlgsL.getSelectionIndex() + 1 < _dlgsL.getItemCount());
+			createMenuItem(comm, menu, MenuID.CreateDialog, &createDialog, null);
 			new MenuItem(menu, SWT.SEPARATOR);
-			createMenuItem(comm, menu, MenuID.OverDialog, &overDialog, () => _dlgsL.getSelectionIndex() != -1 && 0 < _dlgsL.getSelectionIndex());
-			createMenuItem(comm, menu, MenuID.UnderDialog, &underDialog, () => _dlgsL.getSelectionIndex() != -1 && _dlgsL.getSelectionIndex() + 1 < _dlgsL.getItemCount());
+			createMenuItem(comm, menu, MenuID.Up, &up, &canUp);
+			createMenuItem(comm, menu, MenuID.Down, &down, &canDown);
+			new MenuItem(menu, SWT.SEPARATOR);
+			createMenuItem(comm, menu, MenuID.CopyToAllDialogs, &copyToDialogs, &canCopyToDialogs);
+			createMenuItem(comm, menu, MenuID.CopyToUpperDialogs, &copyToUpper, &canCopyToUpper);
+			createMenuItem(comm, menu, MenuID.CopyToLowerDialogs, &copyToLower, &canCopyToLower);
+			new MenuItem(menu, SWT.SEPARATOR);
+			createMenuItem(comm, menu, MenuID.OverDialog, &overDialog, &canOverDialog);
+			createMenuItem(comm, menu, MenuID.UnderDialog, &underDialog, &canUnderDialog);
 			new MenuItem(menu, SWT.SEPARATOR);
 			appendMenuTCPD(comm, menu, new DialogsTCPD, true, true, true, true, true);
 			_dlgsL.setMenu(menu);
@@ -1094,15 +1129,15 @@ protected:
 			bar.addListener(SWT.KeyDown, new class Listener {
 				override void handleEvent(Event e) { e.doit = true; }
 			});
-			createToolItem2(comm, bar, prop.msgs.createDialog, prop.images.createDialog, &createDialog, null);
-			createToolItem2(comm, bar, prop.msgs.deleteDialog, prop.images.deleteDialog, &deleteDialogSel, () => _dlgsL.getItemCount() > 1 && _dlgsL.getSelectionIndex() != -1);
+			createToolItem(comm, bar, MenuID.CreateDialog, &createDialog, null);
+			createToolItem(comm, bar, MenuID.DeleteDialog, &deleteDialogSel, &canDeleteDialog);
 			new ToolItem(bar, SWT.SEPARATOR);
-			createToolItem(comm, bar, MenuID.Up, &up, () => _dlgsL.getSelectionIndex() != -1 && 0 < _dlgsL.getSelectionIndex());
-			createToolItem(comm, bar, MenuID.Down, &down, () => _dlgsL.getSelectionIndex() != -1 && _dlgsL.getSelectionIndex() + 1 < _dlgsL.getItemCount());
+			createToolItem(comm, bar, MenuID.Up, &up, &canUp);
+			createToolItem(comm, bar, MenuID.Down, &down, &canDown);
 			new ToolItem(bar, SWT.SEPARATOR);
-			createToolItem2(comm, bar, prop.msgs.copyToDialogs, prop.images.copyToDialogs, &copyToDialogs, () => _dlgsL.getSelectionIndex() != -1 && _dlgsL.getItemCount() > 1);
-			createToolItem2(comm, bar, prop.msgs.copyToUpper, prop.images.copyToUpper, &copyToUpper, () => _dlgsL.getSelectionIndex() != -1 && 0 < _dlgsL.getSelectionIndex());
-			createToolItem2(comm, bar, prop.msgs.copyToLower, prop.images.copyToLower, &copyToLower, () => _dlgsL.getSelectionIndex() != -1 && _dlgsL.getSelectionIndex() + 1 < _dlgsL.getItemCount());
+			createToolItem(comm, bar, MenuID.CopyToAllDialogs, &copyToDialogs, &canCopyToDialogs);
+			createToolItem(comm, bar, MenuID.CopyToUpperDialogs, &copyToUpper, &canCopyToUpper);
+			createToolItem(comm, bar, MenuID.CopyToLowerDialogs, &copyToLower, &canCopyToLower);
 		}
 		{ mixin(S_TRACE);
 			auto msgComp = new Composite(right, SWT.NONE);
