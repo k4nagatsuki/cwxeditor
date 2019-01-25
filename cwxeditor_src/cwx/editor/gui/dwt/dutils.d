@@ -3458,43 +3458,22 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 			}
 		}
 	} case CType.TALK_DIALOG: { mixin(S_TRACE);
-		string r(in SDialog sdlg) { mixin(S_TRACE);
-			string tt = .tryFormat(comm.prop.msgs.ctTalkMessageImage, comm.prop.msgs.talkerName(evt.talkerNC));
-			string t = sdlg.text.singleLine;
-			t = (sdlg.text == "") ? comm.prop.msgs.noText : t.singleLine;
-			if (sdlg.rCoupons.length) { mixin(S_TRACE);
-				auto cp = std.string.join(sdlg.rCoupons.dup, " ");
-				auto attrs = .msgAttrText(comm.prop, evt);
-				if (attrs == "") { mixin(S_TRACE);
-					return .tryFormat(comm.prop.msgs.ctTalkDialog, tt, cp, t);
-				} else { mixin(S_TRACE);
-					return .tryFormat(comm.prop.msgs.ctTalkDialogWithAttrs, tt, cp, t, attrs);
-				}
-			} else { mixin(S_TRACE);
-				auto attrs = .msgAttrText(comm.prop, evt);
-				if (attrs == "") { mixin(S_TRACE);
-					return .tryFormat(comm.prop.msgs.ctTalkDialogNoCoupon, tt, t);
-				} else { mixin(S_TRACE);
-					return .tryFormat(comm.prop.msgs.ctTalkDialogNoCouponWithAttrs, tt, t, attrs);
-				}
-			}
-		}
 		assert (evt.dialogs.length);
 		int status = comm.prop.var.etc.dialogStatus;
 		switch (status) {
 		case DialogStatus.Top:
-			return r(evt.dialogs[0]);
+			return .talkDialogText(comm, evt, evt.dialogs[0]);
 		case DialogStatus.Under:
-			return r(evt.dialogs[$ - 1]);
+			return .talkDialogText(comm, evt, evt.dialogs[$ - 1]);
 		case DialogStatus.UnderWithCoupon:
 			foreach_reverse (dlg; evt.dialogs) { mixin(S_TRACE);
 				if (dlg.rCoupons.length) { mixin(S_TRACE);
-					return r(dlg);
+					return .talkDialogText(comm, evt, dlg);
 				}
 			}
-			return r(evt.dialogs[$ - 1]);
+			return .talkDialogText(comm, evt, evt.dialogs[$ - 1]);
 		default:
-			return r(evt.dialogs[0]);
+			return .talkDialogText(comm, evt, evt.dialogs[0]);
 		}
 	} case CType.PLAY_BGM: { mixin(S_TRACE);
 		if ("" == evt.bgmPath) { mixin(S_TRACE);
@@ -4321,14 +4300,9 @@ void getSymbols(Commons comm, Summary summ, CWXPath path, bool desc, out string 
 	auto sdlg = cast(SDialog)path;
 	if (sdlg) { mixin(S_TRACE);
 		con = sdlg.parent;
-		assert (!con || con.type is CType.TALK_DIALOG);
+		assert (con && con.type is CType.TALK_DIALOG);
 		img = prop.images.content(CType.TALK_DIALOG);
-		string t = sdlg.text.singleLine;
-		if (sdlg.rCoupons.length) { mixin(S_TRACE);
-			text = .tryFormat(prop.msgs.dialogText, t, std.string.join(sdlg.rCoupons.dup, " "));
-		} else { mixin(S_TRACE);
-			text = .tryFormat(prop.msgs.dialogTextNoCoupon, t);
-		}
+		text = .talkDialogText(comm, con, sdlg);
 	}
 	auto fla = cast(cwx.flag.Flag)path;
 	if (fla) { mixin(S_TRACE);
@@ -4393,6 +4367,28 @@ void getSymbols(Commons comm, Summary summ, CWXPath path, bool desc, out string 
 		text = prop.msgs.motionName(motion.type);
 	}
 	assert (img !is null, .text(path) ~ ", " ~ typeid(path).toString());
+}
+
+private string talkDialogText(in Commons comm, in Content evt, in SDialog sdlg) { mixin(S_TRACE);
+	string tt = .tryFormat(comm.prop.msgs.ctTalkMessageImage, comm.prop.msgs.talkerName(evt.talkerNC));
+	string t = sdlg.text.singleLine;
+	t = (sdlg.text == "") ? comm.prop.msgs.noText : t.singleLine;
+	if (sdlg.rCoupons.length) { mixin(S_TRACE);
+		auto cp = std.string.join(sdlg.rCoupons.dup, " ");
+		auto attrs = .msgAttrText(comm.prop, evt);
+		if (attrs == "") { mixin(S_TRACE);
+			return .tryFormat(comm.prop.msgs.ctTalkDialog, tt, cp, t);
+		} else { mixin(S_TRACE);
+			return .tryFormat(comm.prop.msgs.ctTalkDialogWithAttrs, tt, cp, t, attrs);
+		}
+	} else { mixin(S_TRACE);
+		auto attrs = .msgAttrText(comm.prop, evt);
+		if (attrs == "") { mixin(S_TRACE);
+			return .tryFormat(comm.prop.msgs.ctTalkDialogNoCoupon, tt, t);
+		} else { mixin(S_TRACE);
+			return .tryFormat(comm.prop.msgs.ctTalkDialogNoCouponWithAttrs, tt, t, attrs);
+		}
+	}
 }
 
 /// シーンビュー・イベントビューに表示されるカードのアイコンを返す。

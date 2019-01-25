@@ -936,9 +936,6 @@ class Msgs : Properties {
 	auto motionDescCancelAction = Msg("motionDescCancelAction", "対象の現在のラウンドの行動をキャンセルします。すでに行動済みの場合は何もしません。"); // CardWirth 1.50
 	auto motionDescNoEffect = Msg("motionDescNoEffect", "いかなる効果も発生しません。視覚効果だけを適用したいなどの時に使用します。"); // Wsn.2
 
-	auto dialogText = Msg("dialogText", "%2$s: %1$s");
-	auto dialogTextNoCoupon = Msg("dialogTextNoCoupon", "%1$s");
-
 	auto have = Msg("have", "所有");
 	auto haveNot = Msg("haveNot", "不所有");
 	auto haveForSelectedCard = Msg("have2", "含む");
