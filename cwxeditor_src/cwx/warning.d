@@ -879,6 +879,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (c.type is CType.MOVE_CARD && !prop.isTargetVersion(summ, targVer, "3")) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(CType.MOVE_CARD), "3");
 		}
+		if (c.type is CType.CHANGE_ENVIRONMENT && !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
+			r ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(CType.CHANGE_ENVIRONMENT), "4");
+		}
 		if (cd.use(CArg.STEP_VALUE)) { mixin(S_TRACE);
 			if (froot && c.step != "") { mixin(S_TRACE);
 				auto s = froot.findStep(c.step);

@@ -3166,6 +3166,7 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 		case CType.BRANCH_MULTI_COUPON: type = 6; break; // Wsn.2
 		case CType.BRANCH_MULTI_RANDOM: type = 6; break; // Wsn.2
 		case CType.MOVE_CARD: type = 6; break; // Wsn.3
+		case CType.CHANGE_ENVIRONMENT: type = 6; break; // Wsn.4
 		}
 		f.write(type);
 		string name = e2.name;
@@ -3563,6 +3564,7 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 		case CType.BRANCH_MULTI_COUPON: // Wsn.2
 		case CType.BRANCH_MULTI_RANDOM: // Wsn.2
 		case CType.MOVE_CARD: // Wsn.3
+		case CType.CHANGE_ENVIRONMENT: // Wsn.4
 			// 非対応コンテントはメッセージコンテントの内容に説明を書いたものに置換する
 			writeString(f, "");
 			writeString(f, lastRet(d.prop.msgs.contentName(e.type)), true);

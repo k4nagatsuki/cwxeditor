@@ -3925,6 +3925,16 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		} else { mixin(S_TRACE);
 			return .tryFormat(comm.prop.msgs.ctMoveCard, cardGroup, posType, evt.x, evt.y, scale, layer, .cardSpeedAttrText(comm, evt));
 		}
+	} case CType.CHANGE_ENVIRONMENT: { mixin(S_TRACE);
+		string[] params = [];
+		if (evt.backpackEnabled !is EnvironmentStatus.NotSet) { mixin(S_TRACE);
+			params ~= .tryFormat(comm.prop.msgs.ctEnvironmentBackpack, comm.prop.msgs.environmentStatusName(evt.backpackEnabled));
+		}
+		if (params.length) { mixin(S_TRACE);
+			return .tryFormat(comm.prop.msgs.ctChangeEnvironment, params.join(" "));
+		} else { mixin(S_TRACE);
+			return comm.prop.msgs.ctChangeEnvironmentNotSet;
+		}
 	}
 	}
 }

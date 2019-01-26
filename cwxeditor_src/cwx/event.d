@@ -50,6 +50,7 @@ private void static_this () { mixin(S_TRACE);
 			CType.WAIT,
 			CType.ELAPSE_TIME,
 			CType.EFFECT,
+			CType.CHANGE_ENVIRONMENT,
 			CType.CALL_START,
 			CType.CALL_PACKAGE,
 		], CTypeGroup.Data:[
@@ -209,6 +210,7 @@ private void static_this () { mixin(S_TRACE);
 		CType.BRANCH_MULTI_COUPON:CDetail("Branch", "MultiCoupon", CNextType.COUPON, true , [CArg.RANGE:"targets"]), // Wsn.2
 		CType.BRANCH_MULTI_RANDOM:CDetail("Branch", "MultiRandom", CNextType.NONE, true), // Wsn.2
 		CType.MOVE_CARD:CDetail("Move", "Card", CNextType.NONE, true, [CArg.CARD_GROUP:"cardgroup", CArg.POSITION_TYPE:"positiontype", CArg.X:"x", CArg.Y:"y", CArg.SCALE:"scale", CArg.LAYER:"layer", CArg.CARD_SPEED:"cardspeed", CArg.OVERRIDE_CARD_SPEED:"overridecardspeed"]), // Wsn.3
+		CType.CHANGE_ENVIRONMENT:CDetail("Change", "Environment", CNextType.NONE, true, [CArg.BACKPACK_ENABLED:"backpack"]), // Wsn.4
 	];
 	foreach (cType, detail; _CONTENT_DETAILS) { mixin(S_TRACE);
 		foreach (name; detail.names) { mixin(S_TRACE);
@@ -639,6 +641,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		this.consumeCard = c.consumeCard;
 
+		this.backpackEnabled = c.backpackEnabled;
+
 		Motion[] motions;
 		foreach (m; c.motions) { mixin(S_TRACE);
 			motions ~= m.dup;
@@ -797,6 +801,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			&& (!d.use(CArg.SELECT_CARD) || selectCard == c.selectCard)
 			&& (!d.use(CArg.SELECT_TALKER) || selectTalker == c.selectTalker)
 			&& (!d.use(CArg.INVERT_RESULT) || invertResult == c.invertResult)
+			&& (!d.use(CArg.BACKPACK_ENABLED) || backpackEnabled == c.backpackEnabled)
 
 			&& (!d.use(CArg.CONSUME_CARD) || consumeCard == c.consumeCard)
 
@@ -1092,6 +1097,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.SELECT_CARD, bool, false)(d, od, &selectCard, base, base.selectCard);
 		resetValue!(CArg.SELECT_TALKER, bool, false)(d, od, &selectTalker, base, base.selectTalker);
 		resetValue!(CArg.INVERT_RESULT, bool, false)(d, od, &invertResult, base, base.invertResult);
+		resetValue!(CArg.BACKPACK_ENABLED, EnvironmentStatus, EnvironmentStatus.NotSet)(d, od, &backpackEnabled, base, base.backpackEnabled);
 
 		resetValue!(CArg.CONSUME_CARD, bool, true)(d, od, &consumeCard, base, base.consumeCard);
 
@@ -2141,6 +2147,9 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// 使用中のカードを消費するか(Wsn.3)。
 	mixin Prop!(bool, "consumeCard", true);
 
+	/// 荷物袋の使用可否(Wsn.4)。
+	mixin Prop!(EnvironmentStatus, "backpackEnabled", EnvironmentStatus.NotSet);
+
 	/// 背景画像群。
 	mixin Prop!(BgImage[], "backs", []);
 
@@ -2562,6 +2571,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		atnPutD!(CArg.SELECT_CARD, "selectCard", "fromBool", false)(e, d);
 		atnPutD!(CArg.SELECT_TALKER, "selectTalker", "fromBool", false)(e, d);
 		atnPutD!(CArg.INVERT_RESULT, "invertResult", "fromBool", false)(e, d);
+		atnPutD!(CArg.BACKPACK_ENABLED, "backpackEnabled", "fromEnvironmentStatus", EnvironmentStatus.NotSet)(e, d);
 
 		atnPutD!(CArg.CONSUME_CARD, "consumeCard", "fromBool", true)(e, d);
 
@@ -2860,6 +2870,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		cfnPutD!(CArg.SELECT_CARD, "selectCard", "parseBool", false)(en, d, r);
 		cfnPutD!(CArg.SELECT_TALKER, "selectTalker", "parseBool", false)(en, d, r);
 		cfnPutD!(CArg.INVERT_RESULT, "invertResult", "parseBool", false)(en, d, r);
+		cfnPutD!(CArg.BACKPACK_ENABLED, "backpackEnabled", "toEnvironmentStatus", EnvironmentStatus.NotSet)(en, d, r);
 
 		cfnPutD!(CArg.CONSUME_CARD, "consumeCard", "parseBool", true)(en, d, r);
 

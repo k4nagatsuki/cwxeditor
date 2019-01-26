@@ -601,6 +601,14 @@ class Msgs : Properties {
 	auto boundaryCheckOn = Msg("boundaryCheckOn", "禁則処理あり"); // Wsn.2
 	auto boundaryCheckDesc = Msg("boundaryCheckDesc", "禁則処理の結果は将来変化するかもしれません。\nメッセージの行数には余裕を持たせておく事をお勧めします。"); // Wsn.2
 	auto consumeCard = Msg("consumeCard", "イベントを発火させたカードの使用回数を消費する"); // Wsn.3
+	auto environmentStatus = Msg("environmentStatus", "状況の設定"); // Wsn.4
+	const string environmentStatusName(EnvironmentStatus id) { mixin(S_TRACE);
+		mixin(EnumToStringSwitch!(EnvironmentStatus, "environmentStatusName"));
+	}
+	auto environmentStatusNameNotSet = Msg("environmentStatusNameNotSet", "設定しない");
+	auto environmentStatusNameEnable = Msg("environmentStatusNameEnable", "使用可能にする");
+	auto environmentStatusNameDisable = Msg("environmentStatusNameDisable", "使用不能にする");
+	auto backpack = Msg("backpack", "荷物袋");
 
 	const string blendModeName(BlendMode id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(BlendMode, "blendModeName"));
@@ -745,6 +753,7 @@ class Msgs : Properties {
 	auto contentNameBranchMultiCoupon = Msg("contentNameBranchMultiCoupon", "クーポン多岐分岐"); // Wsn.2
 	auto contentNameBranchMultiRandom = Msg("contentNameBranchMultiRandom", "ランダム多岐分岐"); // Wsn.2
 	auto contentNameMoveCard = Msg("contentNameMoveCard", "カード再配置"); // Wsn.3
+	auto contentNameChangeEnvironment = Msg("contentNameChangeEnvironment", "状況設定"); // Wsn.4
 
 	const string contentDesc(CType id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(CType, "contentDesc"));
@@ -829,6 +838,7 @@ class Msgs : Properties {
 	auto contentDescBranchMultiCoupon = Msg("contentDescBranchMultiCoupon", "選択中のメンバがどのクーポン(称号)を所有しているかによって処理を分岐させます。どれも所有していない場合は「全て所有していない」へ分岐します。"); // Wsn.2
 	auto contentDescBranchMultiRandom = Msg("contentDescBranchMultiRandom", "複数の後続コンテントへ等確率でランダムで分岐します。"); // Wsn.2
 	auto contentDescMoveCard = Msg("contentDescMoveCard", "メニューカードやエネミーカードを移動・サイズ変更します。"); // Wsn.3
+	auto contentDescChangeEnvironment = Msg("contentDescChangeEnvironment", "荷物袋の使用の可否など、パーティの状況を設定します。"); // Wsn.4
 	auto contentDescWsnN = Msg("contentDescWsnN", "%1$sWsn.%2$s以降のシナリオ形式で使用可能です。");
 
 	auto msnGroupVitality = Msg("msnGroupVitality", "生命力");
@@ -1095,6 +1105,9 @@ class Msgs : Properties {
 	auto ctMoveCardNoSet = Msg("ctMoveCardNoSet", "カードグループ「%1$s」を移動しない(スケール = %2$s レイヤ = %3$s) %4$s"); // Wsn.3
 	auto noChangeScale = Msg("noChangeScale", "変更無し"); // Wsn.3
 	auto noChangeLayer = Msg("noChangeLayer", "変更無し"); // Wsn.3
+	auto ctChangeEnvironmentNotSet = Msg("ctChangeEnvironmentNotSet", "状況を変更しない"); // Wsn.4
+	auto ctChangeEnvironment = Msg("ctChangeEnvironment", "%1$s"); // Wsn.4
+	auto ctEnvironmentBackpack = Msg("ctEnvironmentBackpack", "荷物袋を%1$s"); // Wsn.4
 
 	auto ctBranchSkillForSelectedCard = Msg("ctBranchSkillForSelectedCard", "特殊技能カード「%1$s」と選択カードの%2$sで分岐");
 	auto ctBranchItemForSelectedCard = Msg("ctBranchItemForSelectedCard", "アイテムカード「%1$s」と選択カードの%2$sで分岐");
@@ -2460,6 +2473,7 @@ class Msgs : Properties {
 	auto scriptErrorInvalidStartAction = Msg("scriptErrorInvalidStartAction", "未知の戦闘行動開始タイミングです。"); // Wsn.2
 	auto scriptErrorInvalidMatchingType = Msg("scriptErrorInvalidMatchingType", "未知の判定条件です。"); // Wsn.2
 	auto scriptErrorInvalidUpdateType = Msg("scriptErrorInvalidUpdateType", "未知の更新タイプです。"); // Wsn.4
+	auto scriptErrorInvalidEnvironmentStatus = Msg("scriptErrorInvalidEnvironmentStatus", "未知の状況です。"); // Wsn.4
 
 	auto dlgTitScriptVarSet = Msg("dlgTitScriptVarSet", "値が未決定の変数の設定");
 	auto scriptVarSet = Msg("scriptVarSet", "変数に値を入力");

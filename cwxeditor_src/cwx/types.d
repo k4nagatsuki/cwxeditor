@@ -1175,6 +1175,30 @@ string fromUpdateType(UpdateType t) { mixin(S_TRACE);
 	}
 }
 
+/// 状況設定・使用可否(Wsn.4)。
+enum EnvironmentStatus {
+	NotSet, /// 設定しない。
+	Enable, /// 有効にする。
+	Disable, /// 無効にする。
+}
+/// ditto
+EnvironmentStatus toEnvironmentStatus(string name) { mixin(S_TRACE);
+	switch (name) {
+	case "NotSet": return EnvironmentStatus.NotSet;
+	case "Enable": return EnvironmentStatus.Enable;
+	case "Disable": return EnvironmentStatus.Disable;
+	default: throw new Exception("Unknown environment status: " ~ name);
+	}
+}
+/// ditto
+string fromEnvironmentStatus(EnvironmentStatus t) { mixin(S_TRACE);
+	final switch (t) {
+	case EnvironmentStatus.NotSet: return "NotSet";
+	case EnvironmentStatus.Enable: return "Enable";
+	case EnvironmentStatus.Disable: return "Disable";
+	}
+}
+
 /// 発火条件キーコードの種別。
 enum FKCKind {
 	Use, /// 使用時。
@@ -1265,6 +1289,7 @@ enum CType {
 	BRANCH_MULTI_COUPON, /// クーポン多岐分岐(Wsn.2)。
 	BRANCH_MULTI_RANDOM, /// ランダム多岐分岐(Wsn.2)。
 	MOVE_CARD, /// カード再配置(Wsn.3)。
+	CHANGE_ENVIRONMENT, /// 状況設定(Wsn.4)。
 }
 
 /// WSN形式のシナリオでのみ使用できるイベントコンテントか。
@@ -1277,6 +1302,7 @@ bool isWsnContent(CType cType) { mixin(S_TRACE);
 	case BRANCH_MULTI_COUPON: // Wsn.2
 	case BRANCH_MULTI_RANDOM: // Wsn.2
 	case MOVE_CARD: // Wsn.3
+	case CHANGE_ENVIRONMENT: // Wsn.4
 		return true;
 	default:
 		return false;
@@ -1396,6 +1422,7 @@ enum CArg {
 	INVERT_RESULT, /// 条件に合わない場合に成功とする(Wsn.4)。
 	CARD_SPEED, /// カードアニメーション速度(Wsn.4)。
 	OVERRIDE_CARD_SPEED, /// 速度設定をカード本体の設定より優先する(Wsn.4)。
+	BACKPACK_ENABLED, /// 荷物袋の使用可否(Wsn.4)。
 }
 
 /// 後続コンテントのnameの型。

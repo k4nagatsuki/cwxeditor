@@ -321,6 +321,7 @@ public:
 		case CType.BRANCH_MULTI_COUPON: return imgd!("evt_br_multi_coupon.png"); // Wsn.2
 		case CType.BRANCH_MULTI_RANDOM: return imgd!("evt_br_multi_random.png"); // Wsn.2
 		case CType.MOVE_CARD: return imgd!("evt_mv_card.png"); // Wsn.3
+		case CType.CHANGE_ENVIRONMENT: return imgd!("evt_ch_env.png"); // Wsn.4
 		}
 	}
 

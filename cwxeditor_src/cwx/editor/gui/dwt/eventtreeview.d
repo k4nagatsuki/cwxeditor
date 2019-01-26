@@ -4609,6 +4609,10 @@ class ContentsToolBox {
 					if (!_summ.legacy) goto default;
 					desc = .tryFormat(_prop.msgs.contentDescWsnN, _prop.msgs.contentDesc(type), "3");
 					break;
+				case CHANGE_ENVIRONMENT:
+					if (!_summ.legacy) goto default;
+					desc = .tryFormat(_prop.msgs.contentDescWsnN, _prop.msgs.contentDesc(type), "4");
+					break;
 				default:
 					desc = _prop.msgs.contentDesc(type);
 					break;

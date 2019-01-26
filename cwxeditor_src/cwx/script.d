@@ -1117,6 +1117,7 @@ class CWXScript {
 			cast(string) "brcouponm":CType.BRANCH_MULTI_COUPON, // Wsn.2
 			cast(string) "brrandomm":CType.BRANCH_MULTI_RANDOM, // Wsn.2
 			cast(string) "mvcard":CType.MOVE_CARD, // Wsn.3
+			cast(string) "chenv":CType.CHANGE_ENVIRONMENT, // Wsn.4
 		];
 		string[CType] commands;
 		foreach (name, type; keywords) { mixin(S_TRACE);
@@ -2548,6 +2549,23 @@ fi`;
 				}
 			}
 			return defValue;
+		} else static if (is(T:EnvironmentStatus)) { // Wsn.4
+			if (attr[i].token.kind == Kind.SYMBOL) { mixin(S_TRACE);
+				switch (attrValue(attr[i], varTable, 0)) {
+				case "none":
+					i++;
+					return EnvironmentStatus.NotSet;
+				case "on":
+					i++;
+					return EnvironmentStatus.Enable;
+				case "off":
+					i++;
+					return EnvironmentStatus.Disable;
+				default:
+					throwError(_prop.msgs.scriptErrorInvalidEnvironmentStatus, attr[i].token);
+				}
+			}
+			return defValue;
 		} else static if (is(T == int)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			if (attr[i].token.kind is Kind.SYMBOL && value == "all") { mixin(S_TRACE);
@@ -3090,6 +3108,9 @@ fi`;
 			if (detail.use(CArg.OVERRIDE_CARD_SPEED)) { mixin(S_TRACE);
 				c.overrideCardSpeed = parseAttr!(bool)(opt, node.attr, i, c.overrideCardSpeed, varTable, 0);
 			}
+			if (detail.use(CArg.BACKPACK_ENABLED)) { mixin(S_TRACE);
+				c.backpackEnabled = parseAttr!(EnvironmentStatus)(opt, node.attr, i, c.backpackEnabled, varTable, 0);
+			}
 			Content autoWrap(Content c) { mixin(S_TRACE);
 				if (_autoWrap <= stack) { mixin(S_TRACE);
 					autoWrapCount++;
@@ -3602,6 +3623,13 @@ fi`;
 			case UpdateType.Variables: attrs ~= "variables"; break;
 			case UpdateType.All: attrs ~= "all"; break;
 			}
+		} else static if (is(T:EnvironmentStatus)) { //Wsn.4
+			switch (value) {
+			case EnvironmentStatus.NotSet: attrs ~= "none"; break;
+			case EnvironmentStatus.Enable: attrs ~= "on"; break;
+			case EnvironmentStatus.Disable: attrs ~= "off"; break;
+			default: assert (0);
+			}
 		} else static if (is(T : int)) {
 			attrs ~= to!(string)(value);
 		} else static if (is(T : uint)) {
@@ -4088,6 +4116,9 @@ fi`;
 			if (detail.use(CArg.OVERRIDE_CARD_SPEED)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.overrideCardSpeed, indentValue, vars);
 			}
+			if (detail.use(CArg.BACKPACK_ENABLED)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.backpackEnabled, indentValue, vars);
+			}
 
 			bool useIf = c.next.length > 1;
 			bool useSif = c.next.length == 1 && c.next[0].name.length;
@@ -4415,5 +4446,15 @@ CWXScriptKeyword[] keywordInfos(in CProps prop) { mixin(S_TRACE);
 		// マッチングタイプ (Wsn.2)
 		CWXScriptKeyword("and", prop.msgs.matchingType, prop.msgs.matchingTypeName(MatchingType.And)),
 		CWXScriptKeyword("or", prop.msgs.matchingType, prop.msgs.matchingTypeName(MatchingType.Or)),
+
+		// 更新タイプ(Wsn.4)
+		CWXScriptKeyword("fixed", prop.msgs.updateType, prop.msgs.updateTypeName(UpdateType.Fixed)),
+		CWXScriptKeyword("variables", prop.msgs.updateType, prop.msgs.updateTypeName(UpdateType.Variables)),
+		CWXScriptKeyword("all", prop.msgs.updateType, prop.msgs.updateTypeName(UpdateType.All)),
+
+		// 状況設定(Wsn.4)
+		CWXScriptKeyword("none", prop.msgs.environmentStatus, prop.msgs.environmentStatusName(EnvironmentStatus.NotSet)),
+		CWXScriptKeyword("on", prop.msgs.environmentStatus, prop.msgs.environmentStatusName(EnvironmentStatus.Enable)),
+		CWXScriptKeyword("off", prop.msgs.environmentStatus, prop.msgs.environmentStatusName(EnvironmentStatus.Disable)),
 	];
 }

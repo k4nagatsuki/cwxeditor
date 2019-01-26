@@ -4549,3 +4549,65 @@ protected:
 		return true;
 	}
 }
+
+/// 状況設定イベントの設定を行うダイアログ(Wsn.4)。
+class ChangeEnvironmentDialog : EventDialog {
+private:
+	Combo _backpackEnabled;
+	EnvironmentStatus[] _backpackEnableds;
+
+	override
+	protected void refreshWarning() { mixin(S_TRACE);
+		string[] ws;
+		if (!prop.isTargetVersion(summ, "4")) { mixin(S_TRACE);
+			ws ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(CType.CHANGE_ENVIRONMENT), "4");
+		}
+		warning = ws;
+	}
+
+public:
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
+		super (comm, prop, shell, summ, CType.CHANGE_ENVIRONMENT, parent, evt, false, null, true);
+	}
+
+protected:
+	override void setup(Composite area) { mixin(S_TRACE);
+		area.setLayout(normalGridLayout(1, false));
+		{ mixin(S_TRACE);
+			auto grp = new Group(area, SWT.NONE);
+			grp.setText(_prop.msgs.environmentStatus);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setLayout(new CenterLayout);
+
+			auto comp = new Composite(grp, SWT.NONE);
+			comp.setLayout(zeroMarginGridLayout(2, false));
+
+			auto l = new Label(comp, SWT.NONE);
+			l.setText(prop.msgs.backpack);
+
+			_backpackEnabled = new Combo(comp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+			mod(_backpackEnabled);
+			_backpackEnabled.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
+			foreach (s; [EnvironmentStatus.NotSet, EnvironmentStatus.Enable, EnvironmentStatus.Disable]) { mixin(S_TRACE);
+				_backpackEnabled.add(prop.msgs.environmentStatusName(s));
+				_backpackEnableds ~= s;
+			}
+		}
+
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
+		if (_evt) { mixin(S_TRACE);
+			_backpackEnabled.select(cast(int)_backpackEnableds.countUntil(_evt.backpackEnabled));
+		} else { mixin(S_TRACE);
+			_backpackEnabled.select(cast(int)_backpackEnableds.countUntil(EnvironmentStatus.NotSet));
+		}
+
+		refDataVersion();
+	}
+
+	override bool apply() { mixin(S_TRACE);
+		if (!_evt) _evt = new Content(CType.CHANGE_ENVIRONMENT, "");
+		_evt.backpackEnabled = _backpackEnableds[_backpackEnabled.getSelectionIndex()];
+		return true;
+	}
+}

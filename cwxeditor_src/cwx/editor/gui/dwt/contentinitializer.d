@@ -704,6 +704,9 @@ EventDialog createEventDialog(Commons comm, Summary summ, Shell parentShell, Con
 	} case CType.MOVE_CARD: { mixin(S_TRACE);
 		dlg = new MoveCardDialog(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
+	} case CType.CHANGE_ENVIRONMENT: { mixin(S_TRACE);
+		dlg = new ChangeEnvironmentDialog(comm, comm.prop, parentShell, summ, parent, evt);
+		break;
 	} default: assert (0);
 	}
 	return dlg;

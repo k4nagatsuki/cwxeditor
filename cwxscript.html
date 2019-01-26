@@ -296,6 +296,7 @@
 					<li class="content"><a href="#GOAREA">goarea</a></li>
 					<li class="content"><a href="#EFFECT">effect</a></li>
 					<li class="content"><a href="#BREA">break</a></li>
+					<li class="content"><a href="#CHENV">chenv</a></li>
 					<li class="content"><a href="#GOSTART">gostart</a></li>
 					<li class="content"><a href="#GOPACK">gopack</a></li>
 					<li class="content"><a href="#MSG">msg</a></li>
@@ -783,6 +784,8 @@
 	<dd>効果</dd>
 	<dt class="content"><a href="#BREA">break <span class="args"><span class="arg">&lt;カード消費の有無&gt;</span></span></a></dt>
 	<dd>イベントの中断</dd>
+	<dt class="content"><a href="#CHENV">chenv <span class="args"><span class="arg">&lt;荷物袋の使用可否&gt;</span></span></a></dt>
+	<dd>状況の設定</dd>
 	<dt class="content"><a href="#GOSTART">gostart <span class="args"><span class="arg">&lt;スタート名&gt;</span></span></a></dt>
 	<dd>スタートコンテントへの移動</dd>
 	<dt class="content"><a href="#GOPACK">gopack <span class="args"><span class="arg">&lt;ID&gt;</span></span></a></dt>
@@ -1284,6 +1287,20 @@
 <h4 class="example">例</h4>
 
 <pre><code class="samplecode"><span class="keywords">break</span> <span class="comment">// 中断</span></code></pre>
+
+<h3 class="content"><a id="CHENV" name="CHENV">chenv <span class="args"><span class="arg">&lt;荷物袋の使用可否&gt;</span></span></a></h3>
+
+<p class="fullname">(Change Environment)</p>
+<p class="desc">パーティの状況を設定します。</p>
+<p class="desc"><em class="warning">このイベントコンテントはWsn.4以降のWSN形式シナリオでしか使用できません。</em></p>
+
+<h4 class="argments">パラメータ</h4>
+
+<p class="desc">荷物袋の使用可否に<span class="code">off</span>を指定すると、このイベントコンテントの実行後に荷物袋が使用できなくなります。<span class="code">on</span>を指定した場合は、使用できない状況を解除できます。<span class="code">none</span>を指定した場合は状況が継続されます。省略した場合は<span class="code">none</span>になります。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">chenv</span> <span class="str">off</span> <span class="comment">// 荷物袋の使用を禁止する</span></code></pre>
 
 <h3 class="content"><a id="GOSTART" name="GOSTART">gostart <span class="args"><span class="arg">&lt;スタート名&gt;</span></span></a></h3>
 
@@ -3309,6 +3326,7 @@ brstept
 callpack
 callstart
 chback
+chenv
 chkflag
 chkstep
 cmpflag
