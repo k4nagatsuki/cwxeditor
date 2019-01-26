@@ -1762,6 +1762,7 @@ private:
 	Button[Resist] _res;
 	Button[CardVisual] _vis;
 	RangePanel _range;
+	CardAnimationPanel _cardSpeed;
 
 	Button _ignite;
 	KeyCodeView _keyCodes;
@@ -1785,6 +1786,7 @@ private:
 				ws ~= .tryFormat(prop.msgs.warningIgnite);
 			}
 		}
+		ws ~= _cardSpeed.warnings;
 		if (!_ignite.getSelection() && _keyCodes.keyCodes.length) { mixin(S_TRACE);
 			ws ~= prop.msgs.warningIgnoreKeyCode;
 		}
@@ -1903,6 +1905,15 @@ protected:
 						radio.setLayoutData(new GridData(GridData.FILL_BOTH));
 						_res[res] = radio;
 					}
+				}
+				{ mixin(S_TRACE);
+					auto grp = new Group(comp2, SWT.NONE);
+					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+					grp.setText(prop.msgs.cardSpeed);
+					grp.setLayout(new CenterLayout);
+					_cardSpeed = new CardAnimationPanel(comm, summ, grp, CardAnimationPanelType.MoveCard);
+					mod(_cardSpeed);
+					_cardSpeed.modEvent ~= &refreshWarning;
 				}
 			}
 			{ mixin(S_TRACE);
@@ -2034,6 +2045,8 @@ protected:
 			_ability.mental = _evt.mental;
 			_ignite.setSelection(_evt.ignite);
 			_keyCodes.keyCodes = _evt.keyCodes;
+			_cardSpeed.speed = _evt.cardSpeed;
+			_cardSpeed.overrideCardSpeed = _evt.overrideCardSpeed;
 		} else { mixin(S_TRACE);
 			_mview.motions = [];
 			_lev.setSelection(0);
@@ -2045,6 +2058,8 @@ protected:
 			_refAbility.setSelection(false);
 			_ignite.setSelection(false);
 			_keyCodes.keyCodes = [];
+			_cardSpeed.speed = -1;
+			_cardSpeed.overrideCardSpeed = false;
 		}
 		refDataVersion();
 	}
@@ -2070,6 +2085,8 @@ protected:
 		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
 			comm.refKeyCodes.call();
 		}
+		_evt.cardSpeed = _cardSpeed.speed;
+		_evt.overrideCardSpeed = _cardSpeed.overrideCardSpeed;
 		return true;
 	}
 }

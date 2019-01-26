@@ -964,6 +964,8 @@ class Msgs : Properties {
 	auto ctNoKeyCode = Msg("ctNoKeyCode", "キーコード無し");
 	auto ctEffectBreakConsumeCard = Msg("ctEffectBreakConsumeCard", "効果中断");
 	auto ctEffectBreakNoConsumeCard = Msg("ctEffectBreakNoConsumeCard", "効果中断(使用中のカードを消費しない)");
+	auto cardVisualWithSpeed = Msg("cardVisualWithSpeed", "%1$s(速度 = %2$s)");
+	auto cardVisualWithOverrideSpeed = Msg("cardVisualWithOverrideSpeed", "%1$s(速度 = %2$s カードより優先)");
 	auto ctLinkStart = Msg("ctLinkStart", "スタートコンテント「%1$s」へのリンク");
 	auto ctLinkPackage = Msg("ctLinkPackage", "パッケージ「%1$s」へのリンク");
 	auto ctTalkMessageImage = Msg("ctTalkMessageImage", "[%1$s]");

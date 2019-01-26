@@ -3408,6 +3408,13 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		int ts = std.math.abs(evt.successRate);
 		string tsnd = contentTextUseID!(CIDKind.SE)(comm, summ, evt.soundPath, comm.prop.msgs.ctEffectSound, evt);
 		string tcv = comm.prop.msgs.cardVisualName(evt.cardVisual);
+		if (evt.cardSpeed != -1) { mixin(S_TRACE);
+			if (evt.overrideCardSpeed) { mixin(S_TRACE);
+				tcv = .tryFormat(comm.prop.msgs.cardVisualWithOverrideSpeed, tcv, evt.cardSpeed);
+			} else { mixin(S_TRACE);
+				tcv = .tryFormat(comm.prop.msgs.cardVisualWithSpeed, tcv, evt.cardSpeed);
+			}
+		}
 		string teff = evt.motions ? "" : comm.prop.msgs.noEffect;
 		foreach (i, m; evt.motions) { mixin(S_TRACE);
 			teff ~= .tryFormat(comm.prop.msgs.ctEffectMotion, comm.prop.msgs.motionName(m.type));
