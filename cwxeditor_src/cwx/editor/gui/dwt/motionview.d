@@ -741,7 +741,7 @@ private:
 		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			auto b = _selectedBeast;
 			int mi = _motions.getSelectionIndex();
-			assert (-1 != mi);
+			if (-1 == mi) return;
 			auto sb = cast(Motion)_motions.getItem(mi).getData();
 			if (b) { mixin(S_TRACE);
 				if (!sb.beast && !b) return;

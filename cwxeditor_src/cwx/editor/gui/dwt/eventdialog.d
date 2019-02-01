@@ -2377,7 +2377,7 @@ protected:
 		} else static if (is (F == Step)) {
 			_evt.step = _flags.selected;
 			static if (SelValue) {
-				_evt.stepValue = _values.getSelectionIndex();
+				_evt.stepValue = _values.getSelectionIndex() == -1 ? 0 : _values.getSelectionIndex();
 			}
 		} else { mixin(S_TRACE);
 			static assert (0);

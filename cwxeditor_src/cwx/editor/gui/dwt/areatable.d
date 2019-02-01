@@ -899,7 +899,7 @@ private:
 		if (0 <= index) { mixin(S_TRACE);
 			auto d = _areas.getItem(index).getData();
 			auto a = cast(AbstractArea)d;
-			if (a)getInfoFromArea(a, id, type);
+			if (a) getInfoFromArea(a, id, type);
 		}
 	}
 	void getInfoFromArea(in AbstractArea d, out ulong id, out TypeInfo type) { mixin(S_TRACE);
@@ -1246,7 +1246,7 @@ private:
 			if (XMLBytesTransfer.getInstance().isSupportedType(e.dataType)) { mixin(S_TRACE);
 				auto tbl = cast(Table)(cast(DragSource)e.getSource()).getControl();
 				int i = tbl.getSelectionIndex();
-				assert (0 <= i);
+				if (i < 0) return;
 				_data = cast(AbstractArea)tbl.getItem(i).getData();
 				assert (_data !is null);
 				auto doc = _data.toNode(new XMLOption(_prop.sys, LATEST_VERSION));
