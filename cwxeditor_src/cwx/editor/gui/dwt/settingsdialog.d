@@ -994,7 +994,7 @@ private:
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		auto i = _menu.getSelectionIndex();
-		assert (i != -1);
+		if (i == -1) return;
 		auto itm = _menu.getItem(i);
 		auto data = cast(SMenuData) itm.getData();
 		data.mnemonic = _mnemonic.getText();

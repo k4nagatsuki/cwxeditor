@@ -454,7 +454,7 @@ private:
 	}
 	Object readAPD(Object old) { mixin(S_TRACE);
 		auto o = new APData;
-		o.selDlg = _dlgsL.getSelectionIndex();
+		o.selDlg = _dlgsL.getSelectionIndex() == -1 ? 0 : _dlgsL.getSelectionIndex();
 		foreach (d; _dlgs) { mixin(S_TRACE);
 			o.dlgs ~= new SDialog(d);
 		}
@@ -485,7 +485,7 @@ private:
 			foreach (d; this.outer._dlgs) { mixin(S_TRACE);
 				_dlgs ~= new SDialog(d);
 			}
-			_selDlg = _dlgsL.getSelectionIndex();
+			_selDlg = _dlgsL.getSelectionIndex() == -1 ? 0 : _dlgsL.getSelectionIndex();
 		}
 		private void impl() { mixin(S_TRACE);
 			auto dlgs = _dlgs;
@@ -605,6 +605,7 @@ private:
 	void selectChanged() { mixin(S_TRACE);
 		bool oldIgnoreMod = ignoreMod;
 		ignoreMod = true;
+		if (_dlgsL.getSelectionIndex() == -1) _dlgsL.select(0);
 		scope (exit) ignoreMod = oldIgnoreMod;
 		auto dlg = _dlgs[_dlgsL.getSelectionIndex()];
 		string rcs;
@@ -651,6 +652,7 @@ private:
 		applyEnabled();
 	}
 	void deleteDialogSel() { mixin(S_TRACE);
+		if (_dlgsL.getSelectionIndex() == -1) return;
 		deleteDialog(_dlgsL.getSelectionIndex());
 	}
 	void overDialog() { mixin(S_TRACE);
@@ -696,8 +698,9 @@ private:
 		}
 	}
 	void copyToUpper() { mixin(S_TRACE);
-		storeEdit();
 		int index = _dlgsL.getSelectionIndex();
+		if (_dlgsL.getSelectionIndex() == -1) return;
+		storeEdit();
 		string textL = _dlgsL.getItem(index).getText();
 		string text = lastRet(wrapReturnCode(_text.getText()));
 		for (int i = 0; i < index; i++) { mixin(S_TRACE);
@@ -709,8 +712,9 @@ private:
 		comm.refreshToolBar();
 	}
 	void copyToLower() { mixin(S_TRACE);
-		storeEdit();
 		int index = _dlgsL.getSelectionIndex();
+		if (_dlgsL.getSelectionIndex() == -1) return;
+		storeEdit();
 		string textL = _dlgsL.getItem(index).getText();
 		string text = lastRet(wrapReturnCode(_text.getText()));
 		for (int i = index + 1; i < _dlgs.length; i++) { mixin(S_TRACE);
@@ -722,8 +726,9 @@ private:
 		comm.refreshToolBar();
 	}
 	void copyToDialogs() { mixin(S_TRACE);
-		storeEdit();
 		int index = _dlgsL.getSelectionIndex();
+		if (_dlgsL.getSelectionIndex() == -1) return;
+		storeEdit();
 		string textL = _dlgsL.getItem(index).getText();
 		string text = lastRet(wrapReturnCode(_text.getText()));
 		foreach (i, dlg; _dlgs) { mixin(S_TRACE);
@@ -762,6 +767,7 @@ private:
 	}
 	class SelL : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
+			if (_dlgsL.getSelectionIndex() == -1) _dlgsL.select(0);
 			selectChanged();
 		}
 	}
@@ -780,6 +786,7 @@ private:
 	}
 	class ModL : ModifyListener {
 		override void modifyText(ModifyEvent e) { mixin(S_TRACE);
+			if (_dlgsL.getSelectionIndex() == -1) return;
 			if (_textTM && _rCouponsTM && !_textTM.inProc() && !_rCouponsTM.inProc()) { mixin(S_TRACE);
 				putText(_dlgs[_dlgsL.getSelectionIndex()]);
 			}
@@ -789,6 +796,7 @@ private:
 	}
 	class ModRC : ModifyListener {
 		override void modifyText(ModifyEvent e) { mixin(S_TRACE);
+			if (_dlgsL.getSelectionIndex() == -1) return;
 			if (_textTM && _rCouponsTM && !_textTM.inProc() && !_rCouponsTM.inProc()) { mixin(S_TRACE);
 				putRCoupons(_dlgs[_dlgsL.getSelectionIndex()]);
 			}
