@@ -4465,7 +4465,7 @@ class ContentsToolBox {
 		if (_toolWin && !_toolWin.isDisposed()) { mixin(S_TRACE);
 			_toolWin.setCursor(cursor);
 		}
-		if (_autoHideTools) { mixin(S_TRACE);
+		if (_autoHideTools && !_autoHideTools.isDisposed()) { mixin(S_TRACE);
 			_autoHideTools.setCursor(cursor);
 		}
 	}
@@ -4712,7 +4712,7 @@ class ContentsToolBox {
 
 	private class TCListener : ControlAdapter {
 		override void controlMoved(ControlEvent e) { mixin(S_TRACE);
-			if (_autoHideTools) { mixin(S_TRACE);
+			if (_autoHideTools && !_autoHideTools.isDisposed()) { mixin(S_TRACE);
 				calcAutoHideSize();
 				return;
 			}
@@ -4965,7 +4965,7 @@ class ContentsToolBox {
 			_toolWin.getParent().addControlListener(new TCListener);
 			_toolWin.addControlListener(new TWCListener);
 		} else if (cbarPar) { mixin(S_TRACE);
-			if (_autoHideTools) { mixin(S_TRACE);
+			if (_autoHideTools && !_autoHideTools.isDisposed()) { mixin(S_TRACE);
 				_autoResize = new AHTCListener;
 				_tcListener = new TCListener;
 				_autoHideTools.getParent().addControlListener(_tcListener);
@@ -4990,13 +4990,13 @@ class ContentsToolBox {
 	}
 
 	private void addListenersToOwner() { mixin(S_TRACE);
-		if (_autoHideTools) {
+		if (_autoHideTools && !_autoHideTools.isDisposed()) {
 			owner.boxOwner.addControlListener(_autoResize);
 		}
 		owner.boxOwner.addDisposeListener(_disposeParent);
 	}
 	private void removeListenersToOwner() { mixin(S_TRACE);
-		if (_autoHideTools) {
+		if (_autoHideTools && !_autoHideTools.isDisposed()) {
 			owner.boxOwner.removeControlListener(_autoResize);
 		}
 		owner.boxOwner.removeDisposeListener(_disposeParent);
@@ -5036,7 +5036,7 @@ class ContentsToolBox {
 	}
 
 	private void calcAutoHideSize() { mixin(S_TRACE);
-		if (!_autoHideTools) return;
+		if (!_autoHideTools || _autoHideTools.isDisposed()) return;
 		auto tb = _parent._tree.control.getBounds();
 		auto ca1 =_parent. _contentsBoxArea.getBounds();
 		int x = _parent._tree.control.toDisplay(tb.x, tb.y).x;
@@ -5076,7 +5076,7 @@ class ContentsToolBox {
 	}
 	private void closeToolWindow() { mixin(S_TRACE);
 		// 別ウィンドウで表示している場合は閉じない
-		if (_autoHideTools) { mixin(S_TRACE);
+		if (_autoHideTools && !_autoHideTools.isDisposed()) { mixin(S_TRACE);
 			_autoHideTools.setVisible(false);
 		}
 	}
