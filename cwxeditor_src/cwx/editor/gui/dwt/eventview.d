@@ -1987,6 +1987,8 @@ public:
 		while (_toolbar.getChildren()) _toolbar.getChildren()[0].dispose();
 		while (_toolbar.getItemCount()) _toolbar.getItem(0).dispose();
 		setupToolBar0();
+
+		_etree.movingShell();
 	}
 	void moveShell() { mixin(S_TRACE);
 		scope (exit) _toolbar.setRedraw(true);
@@ -2011,7 +2013,6 @@ public:
 			}
 			_comm.refreshToolBar();
 		}
-		_etree.moveShell();
 	}
 
 	private bool canUdImpl(string BeforeAfter, string CanSwapKeyCode)(TreeItem itm) { mixin(S_TRACE);

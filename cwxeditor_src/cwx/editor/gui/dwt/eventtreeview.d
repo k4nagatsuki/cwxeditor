@@ -2870,14 +2870,12 @@ public:
 	}
 
 	/// 所属するShellの変更を通知する。
-	void moveShell() { mixin(S_TRACE);
+	void movingShell() { mixin(S_TRACE);
 		if (!_box) return;
 		if (_box.isSingleton) { mixin(S_TRACE);
 			if (!_comm.poolContentsToolBox(_box)) { mixin(S_TRACE);
 				_box.dispose();
 			}
-			_box = _comm.getContentsToolBox(this);
-			_box.openToolWindow();
 		}
 	}
 
@@ -4813,7 +4811,7 @@ class ContentsToolBox {
 			_autoHideTools.getDisplay().addFilter(SWT.MouseUp, _mTrack);
 			_autoHideTools.getDisplay().addFilter(SWT.MouseEnter, _mTrack);
 			_autoHideTools.getDisplay().addFilter(SWT.MouseExit, _mTrack);
-			.listener(_autoHideTools, SWT.Dispose, {
+			.listener(_autoHideTools, SWT.Dispose, { mixin(S_TRACE);
 				_autoHideTools.getDisplay().removeFilter(SWT.MouseUp, _mTrack);
 				_autoHideTools.getDisplay().removeFilter(SWT.MouseEnter, _mTrack);
 				_autoHideTools.getDisplay().removeFilter(SWT.MouseExit, _mTrack);
