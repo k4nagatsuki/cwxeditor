@@ -1189,7 +1189,7 @@ class Commons {
 		if (view) { mixin(S_TRACE);
 			box.owner = view;
 			return true;
-		} else {
+		} else { mixin(S_TRACE);
 			return false;
 		}
 	}
