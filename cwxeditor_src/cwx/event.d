@@ -234,12 +234,26 @@ private CDetail[CType] CONTENT_DETAILS() { mixin(S_TRACE);
 	static_this();
 	return _CONTENT_DETAILS;
 }
+/// ditto
+@property
+CDetail contentDetail(CType cType) { mixin(S_TRACE);
+	return CONTENT_DETAILS[cType];
+}
 private CType[string][string] _CTYPE_MAP;
 /// コンテントタイプと要素名・属性名の対応表。
 @property
 private CType[string][string] CTYPE_MAP() { mixin(S_TRACE);
 	static_this();
 	return _CTYPE_MAP;
+}
+/// 要素名と属性名からCTypeを返す。
+@property
+CType cTypeFrom(string name, string type) { mixin(S_TRACE);
+	auto nmap = name in CTYPE_MAP;
+	if (!nmap) throw new Exception("Invalid content name: " ~ name ~ type);
+	auto t = type in *nmap;
+	if (!t) throw new Exception("Invalid content type: " ~ name ~ type);
+	return *t;
 }
 
 struct CDetail {

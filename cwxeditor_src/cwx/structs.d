@@ -1303,6 +1303,46 @@ struct ExecutionParty {
 	}
 }
 
+/// イベントコンテントの変換グループ。
+/// UI上で同じグループ内のコンテントタイプが主な変換先として表示される。
+struct ContentConversionGroup {
+	static immutable XML_NAME = "contentConversionGroup";
+
+	CType[] group; /// 変換グループ。
+
+	/// XMLノードとして取り扱うための関数群。
+	const
+	XNode toNode() { mixin(S_TRACE);
+		auto e = XNode.create(XML_NAME);
+		toNodeImpl(e);
+		return e;
+	}
+	/// ditto
+	const
+	void toNode(ref XNode node, string name = XML_NAME) { mixin(S_TRACE);
+		auto e = node.newElement(name);
+		toNodeImpl(e);
+	}
+	/// ditto
+	const
+	private void toNodeImpl(ref XNode e) { mixin(S_TRACE);
+		import cwx.event;
+		foreach (cType; group) { mixin(S_TRACE);
+			auto d = contentDetail(cType);
+			e.newElement(d.names[0], d.type);
+		}
+	}
+	/// ditto
+	void fromNode(ref XNode node) { mixin(S_TRACE);
+		import cwx.event;
+		group = [];
+		node.onTag["type"] = (ref XNode node) { mixin(S_TRACE);
+			group ~= cTypeFrom(node.value, node.attr("type", false, ""));
+		};
+		node.parse();
+	}
+}
+
 /// ツールバーの設定。
 struct ToolBarSettings {
 	/// ツールバーの設定。二次元配列になっており、

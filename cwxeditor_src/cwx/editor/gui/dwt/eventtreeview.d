@@ -157,12 +157,55 @@ private:
 	}
 	private void refreshConvMenu() { mixin(S_TRACE);
 		if (_readOnly) return;
+		auto n = _convM.getItemCount() - cast(int)CTYPE_GROUP.length;
+		if (0 < n) { mixin(S_TRACE);
+			foreach_reverse (i; 0 .. n) { mixin(S_TRACE);
+				_convM.getItem(i).dispose();
+			}
+		}
 		if (!_et || !selection) { mixin(S_TRACE);
 			foreach (ce; _conts.values) { mixin(S_TRACE);
 				if (ce.convMenuItem) ce.convMenuItem.setEnabled(false);
 			}
 		} else { mixin(S_TRACE);
-			auto c = cast(Content) selection.getData();
+			auto c = cast(Content)selection.getData();
+			auto d = c.detail;
+
+			bool[CType] puts;
+			uint i = 0;
+			int i2 = 0;
+			foreach (group; _prop.var.etc.contentConversionGroups) { mixin(S_TRACE);
+				if (!.contains(group.group, c.type)) continue;
+				auto put = false;
+				foreach (cType; group.group) { mixin(S_TRACE);
+					if (cType is CType.START) continue;
+					if (cType is c.type) continue;
+					if (cType in puts) continue;
+					if (!c.canConvert(cType)) continue;
+					if (_summ && _summ.legacy && cType.isWsnContent) continue;
+					if (d.owner != .contentDetail(cType).owner) continue;
+
+					auto mnemonic = "";
+					if (i + 1 < 10) { mixin(S_TRACE);
+						mnemonic = .format("%s", i + 1);
+					}
+					i++;
+
+					auto ce = _conts[cType];
+					auto text = MenuProps.buildMenu(_prop.msgs.contentName(cType), mnemonic, "", false);
+					auto img = _prop.images.content(cType);
+					.createMenuItem2(_comm, _convM, text, img, &ce.convert, () => !_summ || !_summ.legacy || !cType.isWsnContent, SWT.PUSH, i2);
+					i2++;
+
+					put = true;
+					puts[cType] = true;
+				}
+				if (put) { mixin(S_TRACE);
+					new MenuItem(_convM, SWT.SEPARATOR, i2);
+					i2++;
+				}
+			}
+
 			foreach (ce; _conts.values) { mixin(S_TRACE);
 				if (ce.convMenuItem) ce.convMenuItem.setEnabled(c.canConvert(ce.type));
 			}

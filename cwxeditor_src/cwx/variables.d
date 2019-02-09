@@ -772,6 +772,32 @@ class FlexEtcProps : Properties {
 
 	auto archivePath = Prop!(string)("archivePath", "");
 
+	auto contentConversionGroups = Prop!(ContentConversionGroup[])("contentConversionGroups", [
+		ContentConversionGroup([CType.LINK_START, CType.CALL_START, CType.LINK_PACKAGE, CType.CALL_PACKAGE]),
+		ContentConversionGroup([CType.SHOW_PARTY, CType.HIDE_PARTY]),
+		ContentConversionGroup([CType.CHANGE_BG_IMAGE, CType.MOVE_BG_IMAGE, CType.REPLACE_BG_IMAGE, CType.LOSE_BG_IMAGE, CType.REDISPLAY]),
+		ContentConversionGroup([CType.BRANCH_SELECT, CType.BRANCH_RANDOM_SELECT]),
+		ContentConversionGroup([CType.TALK_MESSAGE, CType.TALK_DIALOG]),
+		ContentConversionGroup([CType.BRANCH_ABILITY, CType.BRANCH_LEVEL, CType.BRANCH_STATUS, CType.BRANCH_PARTY_NUMBER, CType.BRANCH_KEY_CODE]),
+		ContentConversionGroup([CType.BRANCH_AREA, CType.BRANCH_BATTLE, CType.BRANCH_IS_BATTLE, CType.BRANCH_ROUND]),
+		ContentConversionGroup([CType.BRANCH_RANDOM, CType.BRANCH_MULTI_RANDOM]),
+		ContentConversionGroup([CType.BRANCH_FLAG, CType.SET_FLAG, CType.REVERSE_FLAG, CType.SUBSTITUTE_FLAG, CType.CHECK_FLAG, CType.MOVE_CARD]),
+		ContentConversionGroup([CType.BRANCH_MULTI_STEP, CType.BRANCH_STEP, CType.SET_STEP, CType.SET_STEP_UP, CType.SET_STEP_DOWN, CType.SUBSTITUTE_STEP, CType.BRANCH_STEP_CMP, CType.CHECK_STEP]),
+		ContentConversionGroup([CType.CHECK_FLAG, CType.CHECK_STEP]),
+		ContentConversionGroup([CType.BRANCH_CAST, CType.GET_CAST, CType.LOSE_CAST]),
+		ContentConversionGroup([CType.BRANCH_ITEM, CType.GET_ITEM, CType.LOSE_ITEM]),
+		ContentConversionGroup([CType.BRANCH_SKILL, CType.GET_SKILL, CType.LOSE_SKILL]),
+		ContentConversionGroup([CType.BRANCH_BEAST, CType.GET_BEAST, CType.LOSE_BEAST]),
+		ContentConversionGroup([CType.BRANCH_KEY_CODE, CType.BRANCH_ITEM, CType.BRANCH_SKILL, CType.BRANCH_BEAST]),
+		ContentConversionGroup([CType.BRANCH_INFO, CType.GET_INFO, CType.LOSE_INFO]),
+		ContentConversionGroup([CType.BRANCH_MONEY, CType.GET_MONEY, CType.LOSE_MONEY]),
+		ContentConversionGroup([CType.BRANCH_GOSSIP, CType.GET_GOSSIP, CType.LOSE_GOSSIP]),
+		ContentConversionGroup([CType.BRANCH_COMPLETE_STAMP, CType.GET_COMPLETE_STAMP, CType.LOSE_COMPLETE_STAMP]),
+		ContentConversionGroup([CType.CHANGE_AREA, CType.START_BATTLE]),
+		ContentConversionGroup([CType.END, CType.END_BAD_END]),
+		ContentConversionGroup([CType.EFFECT, CType.PLAY_BGM, CType.PLAY_SOUND]),
+	]);
+
 	auto contentInitializers = Prop!(ContentInitializer[])("contentInitializers", []);
 
 	auto mainToolBar = Prop!(ToolBarSettings)("mainToolBar", ToolBarSettings([

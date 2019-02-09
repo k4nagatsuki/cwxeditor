@@ -460,8 +460,8 @@ class MenuShown : MenuAdapter {
 	}
 }
 private MenuItem createMenuItemImpl(Dlg)(Commons comm, Menu sub, string text, Image img,
-	Dlg func, int style, MenuID id, bool delegate() enabled) { mixin(S_TRACE);
-	auto itm = new MenuItem(sub, style);
+	Dlg func, int style, MenuID id, bool delegate() enabled, int index = -1) { mixin(S_TRACE);
+	auto itm = 0 <= index ? new MenuItem(sub, style, index) : new MenuItem(sub, style);
 	itm.setText(text);
 	if (func) { mixin(S_TRACE);
 		itm.addSelectionListener(new MenuSel!(Dlg)(func));
@@ -484,22 +484,22 @@ private MenuItem createMenuItemImpl(Dlg)(Commons comm, Menu sub, string text, Im
 	return itm;
 }
 MenuItem createMenuItem2(Commons comm, Menu sub, string text, Image img,
-		void delegate(SelectionEvent se) func, bool delegate() enabled, int style = SWT.PUSH) { mixin(S_TRACE);
-	return createMenuItemImpl(comm, sub, text, img, func, style, MenuID.None, enabled);
+		void delegate(SelectionEvent se) func, bool delegate() enabled, int style = SWT.PUSH, int index = -1) { mixin(S_TRACE);
+	return createMenuItemImpl(comm, sub, text, img, func, style, MenuID.None, enabled, index);
 }
 MenuItem createMenuItem2(Commons comm, Menu sub, string text, Image img,
-		void delegate() func, bool delegate() enabled, int style = SWT.PUSH) { mixin(S_TRACE);
-	return createMenuItemImpl(comm, sub, text, img, func, style, MenuID.None, enabled);
+		void delegate() func, bool delegate() enabled, int style = SWT.PUSH, int index = -1) { mixin(S_TRACE);
+	return createMenuItemImpl(comm, sub, text, img, func, style, MenuID.None, enabled, index);
 }
 MenuItem createMenuItem(Commons comm, Menu sub, MenuID id,
-		void delegate(SelectionEvent se) func, bool delegate() enabled, int style = SWT.PUSH) { mixin(S_TRACE);
-	auto mi = createMenuItemImpl(comm, sub, comm.prop.buildMenu(id), comm.prop.images.menu(id), func, style, id, enabled);
+		void delegate(SelectionEvent se) func, bool delegate() enabled, int style = SWT.PUSH, int index = -1) { mixin(S_TRACE);
+	auto mi = createMenuItemImpl(comm, sub, comm.prop.buildMenu(id), comm.prop.images.menu(id), func, style, id, enabled, index);
 	addRefMenu(comm, mi);
 	return mi;
 }
 MenuItem createMenuItem(Commons comm, Menu sub, MenuID id,
-		void delegate() func, bool delegate() enabled, int style = SWT.PUSH) { mixin(S_TRACE);
-	auto mi = createMenuItemImpl(comm, sub, comm.prop.buildMenu(id), comm.prop.images.menu(id), func, style, id, enabled);
+		void delegate() func, bool delegate() enabled, int style = SWT.PUSH, int index = -1) { mixin(S_TRACE);
+	auto mi = createMenuItemImpl(comm, sub, comm.prop.buildMenu(id), comm.prop.images.menu(id), func, style, id, enabled, index);
 	addRefMenu(comm, mi);
 	return mi;
 }
