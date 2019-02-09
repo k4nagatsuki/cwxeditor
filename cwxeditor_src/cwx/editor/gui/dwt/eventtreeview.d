@@ -192,7 +192,7 @@ private:
 					auto text = MenuProps.buildMenu(_prop.msgs.contentName(cType), mnemonic, "", false);
 					auto img = _prop.images.content(cType);
 					auto enabled = c.canConvert(cType) && !(_summ && _summ.legacy && cType.isWsnContent);
-					auto mi = .createMenuItem2(_comm, _convM, text, img, &ce.convert, () => enabled, SWT.PUSH, i2);
+					auto mi = .createMenuItem2(_comm, _convM, text, img, &ce.convert, enabled ? () => true : () => false, SWT.PUSH, i2);
 					i2++;
 
 					put = true;

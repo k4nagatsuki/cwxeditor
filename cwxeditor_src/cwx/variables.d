@@ -789,7 +789,7 @@ class FlexEtcProps : Properties {
 		ContentConversionGroup([CType.BRANCH_SKILL, CType.GET_SKILL, CType.LOSE_SKILL]),
 		ContentConversionGroup([CType.BRANCH_BEAST, CType.GET_BEAST, CType.LOSE_BEAST]),
 		ContentConversionGroup([CType.BRANCH_ITEM, CType.BRANCH_SKILL, CType.BRANCH_BEAST, CType.BRANCH_KEY_CODE]),
-		ContentConversionGroup([CType.GET_ITEM, CType.GET_SKILL, CType.LOSE_SKILL]),
+		ContentConversionGroup([CType.GET_ITEM, CType.GET_SKILL, CType.GET_BEAST]),
 		ContentConversionGroup([CType.LOSE_ITEM, CType.LOSE_SKILL, CType.LOSE_BEAST]),
 		ContentConversionGroup([CType.BRANCH_INFO, CType.GET_INFO, CType.LOSE_INFO]),
 		ContentConversionGroup([CType.BRANCH_MONEY, CType.GET_MONEY, CType.LOSE_MONEY]),
