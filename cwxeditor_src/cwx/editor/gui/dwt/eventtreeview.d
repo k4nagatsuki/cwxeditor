@@ -181,9 +181,6 @@ private:
 					if (cType is CType.START) continue;
 					if (cType is c.type) continue;
 					if (cType in puts) continue;
-					if (!c.canConvert(cType)) continue;
-					if (_summ && _summ.legacy && cType.isWsnContent) continue;
-					if (d.owner != .contentDetail(cType).owner) continue;
 
 					auto mnemonic = "";
 					if (i + 1 < 10) { mixin(S_TRACE);
@@ -194,7 +191,8 @@ private:
 					auto ce = _conts[cType];
 					auto text = MenuProps.buildMenu(_prop.msgs.contentName(cType), mnemonic, "", false);
 					auto img = _prop.images.content(cType);
-					.createMenuItem2(_comm, _convM, text, img, &ce.convert, () => !_summ || !_summ.legacy || !cType.isWsnContent, SWT.PUSH, i2);
+					auto enabled = c.canConvert(cType) && !(_summ && _summ.legacy && cType.isWsnContent);
+					auto mi = .createMenuItem2(_comm, _convM, text, img, &ce.convert, () => enabled, SWT.PUSH, i2);
 					i2++;
 
 					put = true;
@@ -231,10 +229,13 @@ private:
 			auto oldd = c.detail;
 			auto init = new Content(type, "");
 			initial(init);
-			c.convertType(type, init, _prop.parent, .toDialogStatus(_prop.var.etc.dialogStatus));
+			auto skin = summSkin;
+			auto sPath = _summ ? _summ.scenarioPath : LATEST_VERSION;
+			auto wsnVer = _summ ? _summ.dataVersion : LATEST_VERSION;
+			c.convertType(type, init, _prop.parent, .toDialogStatus(_prop.var.etc.dialogStatus), skin, sPath, wsnVer);
 			auto newd = c.detail;
 			if (newd.use(CArg.BG_IMAGES) && !oldd.use(CArg.BG_IMAGES)) { mixin(S_TRACE);
-				c.backs = createBgImages(summSkin, _prop.var.etc.bgImagesDefault);
+				c.backs = createBgImages(skin, _prop.var.etc.bgImagesDefault);
 			}
 			if (newd.use(CArg.DIALOGS) && !c.dialogs.length) { mixin(S_TRACE);
 				c.dialogs = [new SDialog];
@@ -2072,17 +2073,20 @@ public:
 			delImpl(startItm, start, false, false, true);
 		}
 		auto vs = views();
+		auto skin = summSkin;
+		auto sPath = _summ ? _summ.scenarioPath : LATEST_VERSION;
+		auto wsnVer = _summ ? _summ.dataVersion : LATEST_VERSION;
 		foreach (itm; users) { mixin(S_TRACE);
 			auto c = cast(Content)itm.getData();
 			switch (c.type) {
 			case CType.LINK_START: { mixin(S_TRACE);
 				_comm.delContent.call(c);
-				c.convertType(CType.LINK_PACKAGE, null, _prop.parent, .toDialogStatus(_prop.var.etc.dialogStatus));
+				c.convertType(CType.LINK_PACKAGE, null, _prop.parent, .toDialogStatus(_prop.var.etc.dialogStatus), skin, sPath, wsnVer);
 				c.packages = id;
 			} break;
 			case CType.CALL_START: { mixin(S_TRACE);
 				_comm.delContent.call(c);
-				c.convertType(CType.CALL_PACKAGE, null, _prop.parent, .toDialogStatus(_prop.var.etc.dialogStatus));
+				c.convertType(CType.CALL_PACKAGE, null, _prop.parent, .toDialogStatus(_prop.var.etc.dialogStatus), skin, sPath, wsnVer);
 				c.packages = id;
 			} break;
 			default: assert (0, .text(c.type));

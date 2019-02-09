@@ -17,6 +17,7 @@ import cwx.system;
 import cwx.summary;
 import cwx.flag;
 import cwx.structs;
+import cwx.skin;
 
 import std.algorithm;
 import std.datetime;
@@ -979,7 +980,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		}
 	}
 	/// コンテントの型を変換。
-	void convertType(CType type, in Content base, in CProps prop, DialogStatus dialogStatus) { mixin(S_TRACE);
+	void convertType(CType type, in Content base, in CProps prop, DialogStatus dialogStatus, in Skin skin, string sPath, string wsnVer) { mixin(S_TRACE);
 		if (!canConvert(type)) throw new Exception("can not convert: " ~ prop.msgs.contentName(type));
 		if (_type == type) return;
 		changed();
@@ -996,6 +997,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 				_suc.add(toStartId(_start), this);
 			}
 		}
+
+		string oldPath;
+		if (od.use(CArg.BGM_PATH)) oldPath = bgmPath;
+		if (od.use(CArg.SOUND_PATH)) oldPath = soundPath;
 
 		auto d = detail;
 		resetValue!(CArg.AREA, ulong, 0)(d, od, &area, base, base.area);
@@ -1207,6 +1212,14 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		}
 		if (resetCoupon) resetValue!(CArg.COUPON, string, "")(d, od, &coupon, base, base.coupon);
 		if (resetCouponNames) resetValue!(CArg.COUPON_NAMES, string[], [])(d, od, &couponNames, base, base.couponNames);
+
+		// BGMと効果音の相互変換
+		if (d.use(CArg.BGM_PATH) && skin.findPath(oldPath, skin.extBgm, skin.bgmDirs, sPath, wsnVer, skin.wsnMusicDirs(wsnVer)) != "") { mixin(S_TRACE);
+			bgmPath = oldPath;
+		}
+		if (d.use(CArg.SOUND_PATH) && skin.findPath(oldPath, skin.extSound, skin.seDirs, sPath, wsnVer, skin.wsnSoundDirs(wsnVer)) != "") { mixin(S_TRACE);
+			soundPath = oldPath;
+		}
 
 		validate();
 	}
