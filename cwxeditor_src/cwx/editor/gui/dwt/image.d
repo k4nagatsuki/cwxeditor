@@ -407,6 +407,10 @@ public:
 		}
 	}
 
+	@property Image hand() {return imgd!("card_hand.png");}
+	@property Image handWith(uint targetScale) {return imgd!("card_hand.png")(targetScale);}
+	@property Image handEmpty() {return imgd!("card_hand_empty.png");}
+	@property Image handEmptyWith(uint targetScale) {return imgd!("card_hand_empty.png")(targetScale);}
 	@property Image eventTree() {return imgd!("event_tree.png");}
 	@property Image eventTreeWith(uint targetScale) {return imgd!("event_tree.png")(targetScale);}
 	@property Image eventTreeEmpty() {return imgd!("event_tree_empty.png");}

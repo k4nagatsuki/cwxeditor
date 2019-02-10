@@ -442,6 +442,8 @@ class FlexEtcProps : Properties {
 	auto ignoreBackgroundInRange = Prop!(bool)("ignoreBackgroundInRange", true);
 	auto classicStyleTree = Prop!(bool)("classicStyleTree", false);
 	auto adjustContentName = Prop!(bool)("adjustContentName", true);
+	auto showHandMark = Prop!(bool)("showHandMark", true);
+	auto showHandMarkAlways = Prop!(bool)("showHandMarkAlways", true);
 	auto showEventTreeMark = Prop!(bool)("showEventTreeMark", true);
 	auto showEventTreeMarkAlways = Prop!(bool)("showEventTreeMarkAlways", true);
 	auto ignoreEmptyStart = Prop!(bool)("ignoreEmptyStart", true);

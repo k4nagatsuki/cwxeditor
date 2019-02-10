@@ -1663,6 +1663,7 @@ struct OldSettings {
 	int seVolume;
 	int soundPlayType;
 	int soundEffectPlayType;
+	bool showHandMark;
 	bool showEventTreeMark;
 	bool showCardListHeader;
 	bool showCardListTitle;
@@ -1738,6 +1739,7 @@ struct OldSettings {
 		this.seVolume = prop.var.etc.seVolume;
 		this.soundPlayType = prop.var.etc.soundPlayType;
 		this.soundEffectPlayType = prop.var.etc.soundEffectPlayType;
+		this.showHandMark = prop.var.etc.showHandMark;
 		this.showEventTreeMark = prop.var.etc.showEventTreeMark;
 		this.showCardListHeader = prop.var.etc.showCardListHeader;
 		this.showCardListTitle = prop.var.etc.showCardListTitle;
@@ -1896,7 +1898,8 @@ struct OldSettings {
 		if (this.soundPlayType != prop.var.etc.soundPlayType || this.soundEffectPlayType != prop.var.etc.soundEffectPlayType) { mixin(S_TRACE);
 			comm.refSoundType.call();
 		}
-		if (this.showEventTreeMark != prop.var.etc.showEventTreeMark || this.showSkillCardLevel != prop.var.etc.showSkillCardLevel || this.ignoreEmptyStart != prop.var.etc.ignoreEmptyStart
+		if (this.showHandMark != prop.var.etc.showHandMark || this.showEventTreeMark != prop.var.etc.showEventTreeMark
+				|| this.showSkillCardLevel != prop.var.etc.showSkillCardLevel || this.ignoreEmptyStart != prop.var.etc.ignoreEmptyStart
 				|| this.showStatusTime != prop.var.etc.showStatusTime) { mixin(S_TRACE);
 			comm.refCardImageStatus.call();
 		}

@@ -2170,6 +2170,34 @@ ubyte getRGBAverage(ImageData card, CRect nameArea) { mixin(S_TRACE);
 	return cast(ubyte)(rgbs / (nameArea.width * nameArea.height * 3));
 }
 
+/// 手札のマークを描画する。
+void putHand(Control canvas, GC gc, Props prop, bool detail, in CastCard c, Rectangle bounds) { mixin(S_TRACE);
+	if (!prop.var.etc.showHandMark || !detail) return;
+
+	auto d = canvas.getDisplay();
+	auto curPos = canvas.toControl(d.getCursorLocation());
+
+	auto pos = ((detail || c.faceUpRound > 0) && 0 < c.life) ? prop.looks.handXYWithLifeBar : prop.looks.handXY;
+	auto has = c.skills.length || c.items.length || c.beasts.length;
+	if ((prop.var.etc.showHandMarkAlways && bounds.contains(curPos)) || has) { mixin(S_TRACE);
+		auto img = has ? prop.images.handWith(prop.var.etc.imageScale) : prop.images.handEmptyWith(prop.var.etc.imageScale);
+		gc.drawImage(img, bounds.x + prop.s(pos.x), bounds.y + prop.s(pos.y));
+	}
+}
+
+Rectangle handMarkRect(Props prop, bool showMark, int left, int top, in CastCard c, bool detail) { mixin(S_TRACE);
+	if (!prop.var.etc.showHandMark || !detail) return null;
+
+	auto pos = ((detail || c.faceUpRound > 0) && 0 < c.life) ? prop.looks.handXYWithLifeBar : prop.looks.handXY;
+	if (prop.var.etc.showHandMarkAlways || c.skills.length || c.items.length || c.beasts.length) { mixin(S_TRACE);
+		auto bounds = prop.images.handWith(prop.var.etc.imageScale).getBounds();
+		bounds.x = left + prop.s(pos.x);
+		bounds.y = top + prop.s(pos.y);
+		return bounds;
+	}
+	return null;
+}
+
 /// 使用時イベントのマークを描画する。
 void putEventTree(C:EventTreeOwner)(Control canvas, GC gc, Props prop, in Summary summ, bool showMark, in C c, Rectangle bounds) { mixin(S_TRACE);
 	if (!prop.var.etc.showEventTreeMark || !showMark) return;

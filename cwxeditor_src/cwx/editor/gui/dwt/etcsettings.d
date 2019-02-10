@@ -207,6 +207,7 @@ class EtcSettings : Composite {
 		updateStraightEventTreeView();
 
 		comp = createComp(prop.msgs.etcSettingsCard);
+		boolSetting(comp, prop.var.etc.showHandMark, prop.msgs.showHandMark);
 		boolSetting(comp, prop.var.etc.showEventTreeMark, prop.msgs.showEventTreeMark);
 		boolSetting(comp, prop.var.etc.ignoreEmptyStart, prop.msgs.ignoreEmptyStart);
 		boolSetting(comp, prop.var.etc.showCardListHeader, prop.msgs.showCardListHeader);

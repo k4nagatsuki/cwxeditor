@@ -2274,7 +2274,8 @@ class Msgs : Properties {
 	auto restorePositionOfEventTreeView = Msg("restorePositionOfEventTreeView", "イベントごとにイベントツリービューの表示位置を記憶する");
 
 	auto etcSettingsCard = Msg("etcSettingsCard", "カードビューの設定");
-	auto showEventTreeMark = Msg("showEventTreeMark", "カードの詳細情報表示時に使用時イベントの有無を表示する");
+	auto showHandMark = Msg("showHandMark", "キャストカードの詳細情報表示時に所有カードの有無を表示する");
+	auto showEventTreeMark = Msg("showEventTreeMark", "効果系カードの詳細情報表示時に使用時イベントの有無を表示する");
 	auto ignoreEmptyStart = Msg("ignoreEmptyStart", "空のイベントツリーしか持たない使用時イベントは無視する");
 	auto showCardListHeader = Msg("showCardListHeader", "カードの画像表示時にヘッダを表示する");
 	auto showCardListTitle = Msg("showCardListTitle", "カードの画像表示時にIDと名前を表示する");

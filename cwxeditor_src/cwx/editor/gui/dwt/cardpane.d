@@ -880,7 +880,7 @@ private:
 			_previewI.dispose();
 		}
 	}
-	EffectCard _openEventTarget = null;
+	Card _openEventTarget = null;
 
 	TableSorter!Card _idSorter;
 	TableSorter!Card _descSorter;
@@ -1284,7 +1284,7 @@ private:
 			Card sel = null;
 			auto index = _tbl.getSelectionIndex();
 			if (-1 != index) { mixin(S_TRACE);
-				sel = cast(Card) _tbl.getItem(index).getData();
+				sel = cast(Card)_tbl.getItem(index).getData();
 			}
 			_tbl.removeAll();
 			foreach (i, c; cards) { mixin(S_TRACE);
@@ -1319,7 +1319,15 @@ private:
 		itm.setText(colIndex(CardTableColumn.ID), to!(string)(c.id));
 		itm.setText(colIndex(CardTableColumn.Name), cardName(c));
 		string desc = cardDesc(c).singleLine;
-		if (cast(EffectCard)c) {
+		if (auto c2 = cast(CastCard)c) { mixin(S_TRACE);
+			if (c2 && _prop.var.etc.showHandMark && (c2.skills.length || c2.items.length || c2.beasts.length)) { mixin(S_TRACE);
+				itm.setImage(colIndex(CardTableColumn.Desc), _prop.images.hand);
+			} else if (c2 && _prop.var.etc.showHandMark) { mixin(S_TRACE);
+				itm.setImage(colIndex(CardTableColumn.Desc), _prop.images.handEmpty);
+			} else { mixin(S_TRACE);
+				itm.setImage(colIndex(CardTableColumn.Desc), null);
+			}
+		} else if (cast(EffectCard)c) { mixin(S_TRACE);
 			auto c2 = cast(EffectCard)c;
 			if (0 != linkId(c)) { mixin(S_TRACE);
 				c2 = cast(EffectCard)cardFrom(_summ, _cardType, linkId(c));
@@ -1524,7 +1532,7 @@ private:
 			comm.delInfo.call(c);
 		} else assert (0);
 		comm.refUseCount.call();
-		if (cast(CastCard)owner && cast(BeastCard)card) { mixin(S_TRACE);
+		if (cast(CastCard)owner && cast(EffectCard)card) { mixin(S_TRACE);
 			comm.refCast.call(cast(CastCard)owner);
 		}
 		if (v && v.widget && !v.widget.isDisposed()) { mixin(S_TRACE);
@@ -2070,17 +2078,19 @@ private:
 	}
 	class LMouse : MouseAdapter {
 		override void mouseUp(MouseEvent e) { mixin(S_TRACE);
-			if (_cardType is CardType.Skill || _cardType is CardType.Item || _cardType is CardType.Beast) { mixin(S_TRACE);
-				if (e.button == 1) { mixin(S_TRACE);
-					if (_openEventTarget) { mixin(S_TRACE);
-						editUseEvent(_openEventTarget, false);
-					}
-				} else if (e.button == 2) { mixin(S_TRACE);
-					int index = _list.searchIndex(e.x, e.y);
-					if (index >= 0) { mixin(S_TRACE);
-						editUseEvent(_list.card(index), false);
-					}
+			Card c = null;
+			if (e.button == 1) { mixin(S_TRACE);
+				c = _openEventTarget;
+			} else if (e.button == 2) { mixin(S_TRACE);
+				int index = _list.searchIndex(e.x, e.y);
+				if (index >= 0) { mixin(S_TRACE);
+					c = _list.card(index);
 				}
+			}
+			if (auto castCard = cast(CastCard)c) { mixin(S_TRACE);
+				editHandWith(castCard);
+			} else if (auto effCard = cast(EffectCard)c) { mixin(S_TRACE);
+				editUseEvent(effCard, false);
 			}
 		}
 		override void mouseDoubleClick(MouseEvent e) { mixin(S_TRACE);
@@ -2093,17 +2103,19 @@ private:
 	}
 	class TMouse : MouseAdapter {
 		override void mouseUp(MouseEvent e) { mixin(S_TRACE);
-			if (_cardType is CardType.Skill || _cardType is CardType.Item || _cardType is CardType.Beast) { mixin(S_TRACE);
-				if (e.button == 1) { mixin(S_TRACE);
-					if (_openEventTarget) { mixin(S_TRACE);
-						editUseEvent(_openEventTarget, false);
-					}
-				} else if (e.button == 2) { mixin(S_TRACE);
-					scope p = new Point(e.x, e.y);
-					auto itm = _tbl.getItem(p);
-					if (!itm) return;
-					editUseEvent(cast(Card)itm.getData(), false);
-				}
+			Card c = null;
+			if (e.button == 1) { mixin(S_TRACE);
+				c = _openEventTarget;
+			} else if (e.button == 2) { mixin(S_TRACE);
+				scope p = new Point(e.x, e.y);
+				auto itm = _tbl.getItem(p);
+				if (!itm) return;
+				c = cast(Card)itm.getData();
+			}
+			if (auto castCard = cast(CastCard)c) { mixin(S_TRACE);
+				editHandWith(castCard);
+			} else if (auto effCard = cast(EffectCard)c) { mixin(S_TRACE);
+				editUseEvent(effCard, false);
 			}
 		}
 		override void mouseDoubleClick(MouseEvent e) { mixin(S_TRACE);
@@ -2204,7 +2216,7 @@ private:
 		}
 		override void mouseMove(MouseEvent e) { mixin(S_TRACE);
 			previewTrigger(e.x, e.y);
-			if (_cardType is CardType.Skill || _cardType is CardType.Item || _cardType is CardType.Beast) { mixin(S_TRACE);
+			if (_cardType is CardType.Cast || _cardType is CardType.Skill || _cardType is CardType.Item || _cardType is CardType.Beast) { mixin(S_TRACE);
 				if (!editMode) return;
 				auto itm = _tbl.getItem(new Point(e.x, e.y));
 				if (!itm || !itm.getImage(colIndex(CardTableColumn.Desc))) { mixin(S_TRACE);
@@ -2215,7 +2227,7 @@ private:
 				auto rect = itm.getImageBounds(colIndex(CardTableColumn.Desc));
 				if (rect && rect.contains(e.x, e.y)) { mixin(S_TRACE);
 					_tbl.setCursor(_list.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
-					_openEventTarget = cast(EffectCard)itm.getData();
+					_openEventTarget = cast(Card)itm.getData();
 				} else { mixin(S_TRACE);
 					_tbl.setCursor(null);
 					_openEventTarget = null;
@@ -2228,7 +2240,7 @@ private:
 		private int _index = -1;
 
 		override void mouseMove(MouseEvent e) { mixin(S_TRACE);
-			if (_cardType is CardType.Skill || _cardType is CardType.Item || _cardType is CardType.Beast) { mixin(S_TRACE);
+			if (_cardType is CardType.Cast || _cardType is CardType.Skill || _cardType is CardType.Item || _cardType is CardType.Beast) { mixin(S_TRACE);
 				if (_viewMode !is CViewMode.LIFE) { mixin(S_TRACE);
 					_list.setCursor(null);
 					_openEventTarget = null;
@@ -2250,7 +2262,9 @@ private:
 				Rectangle rect = null;
 				final switch (_cardType) {
 				case CardType.Cast:
-					assert (0);
+					auto detail = _viewMode == CViewMode.LIFE;
+					rect = .handMarkRect(_prop, true, bounds.x, bounds.y, cast(CastCard)c, detail);
+					break;
 				case CardType.Skill:
 					rect = .eventTreeMarkRect(_prop, true, bounds.x, bounds.y, _summ, cast(SkillCard)c);
 					break;
@@ -2265,7 +2279,7 @@ private:
 				}
 				if (rect && rect.contains(e.x, e.y)) { mixin(S_TRACE);
 					_list.setCursor(_list.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
-					_openEventTarget = cast(EffectCard)c;
+					_openEventTarget = c;
 				} else { mixin(S_TRACE);
 					_list.setCursor(null);
 					_openEventTarget = null;
@@ -2503,7 +2517,9 @@ private:
 		});
 		_list.additionalPaint ~= (canvas, gc, c, bounds) { mixin(S_TRACE);
 			auto detail = _viewMode == CViewMode.LIFE;
-			if (auto card = cast(SkillCard)c) { mixin(S_TRACE);
+			if (auto card = cast(CastCard)c) { mixin(S_TRACE);
+				.putHand(canvas, gc, _prop, detail, card, bounds);
+			} else if (auto card = cast(SkillCard)c) { mixin(S_TRACE);
 				.putEventTree(canvas, gc, _prop, _summ, detail, card, bounds);
 			} else if (auto card = cast(ItemCard)c) { mixin(S_TRACE);
 				.putEventTree(canvas, gc, _prop, _summ, detail, card, bounds);
@@ -3358,15 +3374,33 @@ public:
 		absDlg.open();
 	}
 	private void refOwnerCastCard(in Card c) { mixin(S_TRACE);
-		if (_cardType !is CardType.Beast) return;
+		if (_cardType !is CardType.Skill && _cardType !is CardType.Item && _cardType !is CardType.Beast) return;
 		if (_ownerType is OwnerType.Cast) { mixin(S_TRACE);
 			_comm.refCast.call(cast(CastCard)_owner);
 		}
 		if (_ownerType is OwnerType.Summary) { mixin(S_TRACE);
-			foreach (o; _summ.useCounter.values(toBeastId(c.id))) { mixin(S_TRACE);
-				if (auto bc = cast(BeastCard)o.owner) { mixin(S_TRACE);
-					if (auto cc = cast(CastCard)bc.cwxParent) _comm.refCast.call(cc);
+			bool[CastCard] casts;
+			if (_cardType is CardType.Skill) { mixin(S_TRACE);
+				foreach (o; _summ.useCounter.values(toSkillId(c.id))) { mixin(S_TRACE);
+					if (auto ec = cast(SkillCard)o.owner) { mixin(S_TRACE);
+						if (auto cc = cast(CastCard)ec.cwxParent) casts[cc] = true;
+					}
 				}
+			} else if (_cardType is CardType.Item) { mixin(S_TRACE);
+				foreach (o; _summ.useCounter.values(toItemId(c.id))) { mixin(S_TRACE);
+					if (auto ec = cast(ItemCard)o.owner) { mixin(S_TRACE);
+						if (auto cc = cast(CastCard)ec.cwxParent) casts[cc] = true;
+					}
+				}
+			} else if (_cardType is CardType.Beast) { mixin(S_TRACE);
+				foreach (o; _summ.useCounter.values(toBeastId(c.id))) { mixin(S_TRACE);
+					if (auto ec = cast(BeastCard)o.owner) { mixin(S_TRACE);
+						if (auto cc = cast(CastCard)ec.cwxParent) casts[cc] = true;
+					}
+				}
+			} else assert (0);
+			foreach (cc; casts.byKey()) { mixin(S_TRACE);
+				_comm.refCast.call(cc);
 			}
 		}
 	}
@@ -3442,7 +3476,7 @@ public:
 			pane.storeInsert(ids);
 			pane.pasteRefresh(arr);
 			_comm.refUseCount.call();
-			if (pane._ownerType is OwnerType.Cast && pane._cardType is CardType.Beast) { mixin(S_TRACE);
+			if (pane._ownerType is OwnerType.Cast && (pane._cardType is CardType.Skill || pane._cardType is CardType.Item || pane._cardType is CardType.Beast)) { mixin(S_TRACE);
 				_comm.refCast.call(cast(CastCard)pane._owner);
 			}
 		}
@@ -3697,6 +3731,12 @@ public:
 			assert(cast(CastCard)card !is null);
 			_comm.openHands(_prop, _summ, cast(CastCard)card, true);
 		}
+	}
+	void editHandWith(CastCard card) { mixin(S_TRACE);
+		assert (_cardType is CardType.Cast);
+		assert (editMode);
+		enterEdit();
+		_comm.openHands(_prop, _summ, card, true);
 	}
 
 	private void udImpl(bool up) { mixin(S_TRACE);

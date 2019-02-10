@@ -72,6 +72,9 @@ public:
 	@property const int aptHigh() { return 9; }
 	@property const int aptNormal() { return 3; }
 
+	@property const CPoint handXY() { return CPoint(69, 105); }
+	@property const CPoint handXYWithLifeBar() { return CPoint(69, 90); }
+
 	@property const CPoint useStoneXY() { return CPoint(60, 75); }
 	@property const CPoint aptStoneXY() { return CPoint(60, 90); }
 
