@@ -807,12 +807,13 @@ private:
 			scope (exit) uda(v);
 			_insert = true;
 			ulong selID = 0;
+			bool[CastCard] casts;
 			foreach (i, id; _ids) { mixin(S_TRACE);
 				assert (_indices[i] != -1);
 				auto c = _cards[i];
 				c.removeUseCounter();
 				insert(owner, _indices[i], c);
-				refCard(v, comm, c);
+				if (auto cc = cast(CastCard)owner) casts[cc] = true;
 				selID = id;
 			}
 			if (v && v.widget && !v.widget.isDisposed()) { mixin(S_TRACE);
@@ -820,6 +821,7 @@ private:
 				v.selectID(selID);
 				v.refreshStatusLine();
 			}
+			foreach (cc; casts.byKey()) refCard(v, comm, cc);
 			_cards.length = 0;
 			comm.refUseCount.call();
 		}
