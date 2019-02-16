@@ -1973,7 +1973,7 @@ class Msgs : Properties {
 	}
 	auto showStyleNameInvisible = Msg("showStyleNameInvisible", "表示しない"); // Wsn.4
 	auto showStyleNameCenter = Msg("showStyleNameCenter", "画面中央に表示"); // Wsn.4
-	auto showStyleNameFrontOfUser = Msg("showStyleNameFrontOfUser", "使用者の手前に表示");
+	auto showStyleNameFrontOfUser = Msg("showStyleNameFrontOfUser", "使用者の手前に表示"); // Wsn.4
 
 	auto workConditionGroup = Msg("workConditionGroup", "発動条件");
 	auto needSpell = Msg("needSpell", "沈黙時に発動不可");

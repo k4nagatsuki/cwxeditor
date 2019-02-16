@@ -361,7 +361,7 @@ private:
 					_showStyle = new Combo(grp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
 					mod(_showStyle);
 					_showStyle.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
-					foreach (showStyle; [ShowStyle.Invisible, ShowStyle.Center]) { mixin(S_TRACE);
+					foreach (showStyle; [ShowStyle.Invisible, ShowStyle.Center, ShowStyle.FrontOfUser]) { mixin(S_TRACE);
 						_showStyle.add(_prop.msgs.showStyleName(showStyle));
 						_showStyles ~= showStyle;
 					}
