@@ -7,8 +7,8 @@ CWXEditorのライセンス
 
  * CWXEditorのアーカイブに含まれる実行ファイル(*.exe)、画像(*.png, *.ico)、ソース
    コード(*.d・ただしd2stdディレクトリ内を除く)、テキスト(*.txt)、その他
-   (*.cmd, *.rc, *.manifest)の各ファイルは、CC0の下に配布されます。詳細はCC0.txtか、
-   次のURIを参照してください。
+   (*.cmd, *.rc, *.manifest, *.html)の各ファイルは、CC0の下に配布されます。
+   詳細はCC0.txtか、次のURIを参照してください。
    https://creativecommons.org/publicdomain/zero/1.0/deed
    これらのリソースは、Public Domainにあるかのように誰でも自由に扱う事ができます。
  * d2stdディレクトリ内のソースコード(*.d)に関しては、後述の[d2stdディレクトリ内の
