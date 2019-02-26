@@ -1314,7 +1314,18 @@ class EventEditor : Composite {
 	private void redrawItem(in StartInfo startInfo, in PosInfo pos) { mixin(S_TRACE);
 		auto ca = getClientArea();
 		auto sy = getVerticalBar().getSelection() * _lineHeight;
-		redraw(ca.x, (startInfo.y + pos.relY) - sy - 2, ca.width, _lineHeight + 5, true);
+		auto y = (startInfo.y + pos.relY) - sy - 2;
+		auto h = _lineHeight + 5;
+		version (Windows) {
+			// FIXME: 環境によって再描画範囲に左上からの部分が描画されるので
+			//        再描画範囲を左上からにする(issue #296)
+			alias org.eclipse.swt.internal.win32.OS.OS OS;
+			if (OS.WIN32_VERSION <= OS.VERSION(6, 1)) { mixin(S_TRACE);
+				h += y;
+				y = 0;
+			}
+		}
+		redraw(ca.x, y, ca.width, h, true);
 	}
 	private void clearLightup() { mixin(S_TRACE);
 		if (_lightup && _lightup.eventId in _posTable) { mixin(S_TRACE);
@@ -1332,8 +1343,10 @@ class EventEditor : Composite {
 		auto p = getDisplay().getCursorLocation();
 		p = toControl(p);
 		auto old = _lightup;
+		auto lightup = ca.contains(p) ? getContent(p.x, p.y) : null;
+		if (old is lightup) return;
 		clearLightup();
-		_lightup = ca.contains(p) ? getContent(p.x, p.y) : null;
+		_lightup = lightup;
 		_lightupParentStart = _lightup ? _lightup.parentStart : null;
 		if (_lightup && _lightup.eventId in _posTable) { mixin(S_TRACE);
 			auto pos = _posTable[_lightup.eventId];
