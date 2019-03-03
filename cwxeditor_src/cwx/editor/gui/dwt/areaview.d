@@ -2157,13 +2157,13 @@ private:
 			});
 		}
 	}
-	void refFlags(cwx.flag.Flag[] f, Step[] s) { mixin(S_TRACE);
+	void refFlags(cwx.flag.Flag[] f, Step[] s, cwx.flag.Variant[] v) { mixin(S_TRACE);
 		if (_readOnly) return;
 		if (!_summ) return;
 		if (!f.length) return;
 		refreshFlags();
 	}
-	void delFlags(cwx.flag.Flag[] f, Step[] s) { mixin(S_TRACE);
+	void delFlags(cwx.flag.Flag[] f, Step[] s, cwx.flag.Variant[] v) { mixin(S_TRACE);
 		if (_readOnly) return;
 		if (!_summ) return;
 		if (!f.length) return;
@@ -3695,7 +3695,7 @@ public:
 				_imgp.redrawImage(fi);
 			}
 		}
-		private void refreshCardNamePreviewF(cwx.flag.Flag[] flags, Step[] steps) { mixin(S_TRACE);
+		private void refreshCardNamePreviewF(cwx.flag.Flag[] flags, Step[] steps, cwx.flag.Variant[] variants) { mixin(S_TRACE);
 			refreshCardNamePreview();
 		}
 	}
@@ -4556,7 +4556,7 @@ public:
 		bool isViewBacks() { mixin(S_TRACE);
 			return _viewBacks;
 		}
-		void refreshTextCellF(cwx.flag.Flag[] flags, Step[] steps) { mixin(S_TRACE);
+		void refreshTextCellF(cwx.flag.Flag[] flags, Step[] steps, cwx.flag.Variant[] variants) { mixin(S_TRACE);
 			refreshTextCell();
 		}
 		void refreshTextCell() { mixin(S_TRACE);
@@ -4575,9 +4575,10 @@ public:
 			string[char] names;
 			VarValue[string] flags;
 			VarValue[string] steps;
+			VarValue[string] variants;
 			VarValue[string] sysSteps;
-			getPreviewValues(_prop, _summ, SPCHAR_TEXT, names, flags, steps, sysSteps);
-			return simpleFormatMsg(base, flags, steps, sysSteps, names, ver => _prop.isTargetVersion(_summ, ver),
+			getPreviewValues(_prop, _summ, SPCHAR_TEXT, names, flags, steps, variants, sysSteps);
+			return simpleFormatMsg(base, flags, steps, variants, sysSteps, names, ver => _prop.isTargetVersion(_summ, ver),
 				_prop.sys.prefixSystemVarName);
 		}
 	}
@@ -4950,7 +4951,7 @@ public:
 			}
 		}
 	}
-	private void refFlag(cwx.flag.Flag[] flag, Step[] step) { mixin(S_TRACE);
+	private void refFlag(cwx.flag.Flag[] flag, Step[] step, cwx.flag.Variant[] variants) { mixin(S_TRACE);
 		if (_readOnly) return;
 		if (!flag.length) return;
 		refreshFlag();

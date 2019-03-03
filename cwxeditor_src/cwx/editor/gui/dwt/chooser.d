@@ -534,7 +534,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 		_flagIncSearch.startIncSearch();
 	}
 
-	private void refFlags(cwx.flag.Flag[] f, Step[] s) { mixin(S_TRACE);
+	private void refFlags(cwx.flag.Flag[] f, Step[] s, cwx.flag.Variant[] v) { mixin(S_TRACE);
 		if (!_summ) return;
 		static if (is(F:cwx.flag.Flag)) {
 			if (!f.length) return;
@@ -546,7 +546,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 		saveExpanded();
 		refreshFlags();
 	}
-	private void delFlags(cwx.flag.Flag[] f, Step[] s) { mixin(S_TRACE);
+	private void delFlags(cwx.flag.Flag[] f, Step[] s, cwx.flag.Variant[] v) { mixin(S_TRACE);
 		if (!_summ) return;
 		static if (is(F:cwx.flag.Flag)) {
 			if (!f.length) return;

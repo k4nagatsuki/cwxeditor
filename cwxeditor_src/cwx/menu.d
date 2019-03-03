@@ -145,10 +145,12 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.NewFlagDir] = "N";
 		_mnemonic[MenuID.NewFlag] = "F";
 		_mnemonic[MenuID.NewStep] = "S";
+		_mnemonic[MenuID.NewVariant] = "C";
 		_mnemonic[MenuID.CreateStepValues] = "V";
 		_mnemonic[MenuID.PutSPChar] = "S";
 		_mnemonic[MenuID.PutFlagValue] = "F";
 		_mnemonic[MenuID.PutStepValue] = "S";
+		_mnemonic[MenuID.PutVariantValue] = "V";
 		_mnemonic[MenuID.PutColor] = "C";
 		_mnemonic[MenuID.PutSkinSPChar] = "S";
 		_mnemonic[MenuID.PutImageFont] = "I";
@@ -382,10 +384,12 @@ class MenuProps : Properties {
 		_hotkey[MenuID.NewFlagDir] = "";
 		_hotkey[MenuID.NewFlag] = "Ctrl+L";
 		_hotkey[MenuID.NewStep] = "Ctrl+P";
+		_hotkey[MenuID.NewVariant] = "Ctrl+Shift+O";
 		_hotkey[MenuID.CreateStepValues] = "";
 		_hotkey[MenuID.PutSPChar] = "";
 		_hotkey[MenuID.PutFlagValue] = "";
 		_hotkey[MenuID.PutStepValue] = "";
+		_hotkey[MenuID.PutVariantValue] = "";
 		_hotkey[MenuID.PutColor] = "";
 		_hotkey[MenuID.PutSkinSPChar] = "";
 		_hotkey[MenuID.PutImageFont] = "";
@@ -685,6 +689,7 @@ bool isPMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.NewFlagDir:
 	case MenuID.NewFlag:
 	case MenuID.NewStep:
+	case MenuID.NewVariant:
 	case MenuID.NewMenuCard:
 	case MenuID.NewEnemyCard:
 	case MenuID.NewBack:
@@ -806,6 +811,7 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.NewFlagDir:
 	case MenuID.NewFlag:
 	case MenuID.NewStep:
+	case MenuID.NewVariant:
 	case MenuID.CopyVariablePath:
 	case MenuID.Up:
 	case MenuID.Down:
@@ -885,6 +891,7 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.PutSPChar:
 	case MenuID.PutFlagValue:
 	case MenuID.PutStepValue:
+	case MenuID.PutVariantValue:
 	case MenuID.PutColor:
 	case MenuID.PutSkinSPChar:
 	case MenuID.PutImageFont:
@@ -1033,6 +1040,7 @@ bool isGlobalMenu(MenuID id) {
 	case MenuID.NewFlagDir:
 	case MenuID.NewFlag:
 	case MenuID.NewStep:
+	case MenuID.NewVariant:
 	case MenuID.ShowCardProp:
 	case MenuID.ShowCardImage:
 	case MenuID.ShowCardDetail:
@@ -1117,6 +1125,7 @@ bool isGlobalMenu(MenuID id) {
 	case MenuID.PutSPChar:
 	case MenuID.PutFlagValue:
 	case MenuID.PutStepValue:
+	case MenuID.PutVariantValue:
 	case MenuID.PutColor:
 	case MenuID.PutSkinSPChar:
 	case MenuID.PutImageFont:

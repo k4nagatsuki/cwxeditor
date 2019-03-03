@@ -37,21 +37,22 @@ struct VarValue {
 	bool expandSPChars = false; /// 特殊文字を展開するか。
 }
 
-/// テキストの中で使用されているフラグ・ステップ・画像パス・名前を置換し、
+/// テキストの中で使用されている状態変数・画像パス・名前を置換し、
 /// 変換後のテキスト、及び外部イメージと色変更記号の位置を返す。
 string formatMsg(string text,
 		VarValue delegate(string) getFlag,
 		VarValue delegate(string) getStep,
+		VarValue delegate(string) getVariant,
 		string delegate(char) getName,
 		bool delegate(string ver) isTargetVersion,
 		string prefixSystemVarName,
 		bool delegate(string) hasMaterial,
 		out string[size_t] fonts,
 		out char[size_t] colors) { mixin(S_TRACE);
-	return formatMsgImpl(text, getFlag, getStep, getName, isTargetVersion, prefixSystemVarName, hasMaterial, fonts, colors, true, 0, 0);
+	return formatMsgImpl(text, getFlag, getStep, getVariant, getName, isTargetVersion, prefixSystemVarName, hasMaterial, fonts, colors, true, 0, 0);
 }
 /// ditto
-string simpleFormatMsg(in string text, VarValue[string] flags, VarValue[string] steps,
+string simpleFormatMsg(in string text, VarValue[string] flags, VarValue[string] steps, VarValue[string] variants,
 		VarValue[string] sysSteps, string[char] names,
 		bool delegate(string ver) isTargetVersion, string prefixSystemVarName) { mixin(S_TRACE);
 	string[size_t] fonts;
@@ -63,6 +64,7 @@ string simpleFormatMsg(in string text, VarValue[string] flags, VarValue[string] 
 			if (p) return *p;
 			return sysSteps.get(path.toLower(), VarValue(false));
 		},
+		path => variants.get(path, VarValue(false)),
 		delegate string(char name) { mixin(S_TRACE);
 			auto dc = std.ascii.toUpper(name);
 			foreach (c, v; names) { mixin(S_TRACE);
@@ -76,6 +78,7 @@ string simpleFormatMsg(in string text, VarValue[string] flags, VarValue[string] 
 private string formatMsgImpl(string text,
 		VarValue delegate(string) getFlag,
 		VarValue delegate(string) getStep,
+		VarValue delegate(string) getVariant,
 		string delegate(char) getName,
 		bool delegate(string ver) isTargetVersion,
 		string prefixSystemVarName,
@@ -89,7 +92,7 @@ private string formatMsgImpl(string text,
 	dstring dtext = to!dstring(text);
 	for (size_t i = 0; i < dtext.length; i++) { mixin(S_TRACE);
 		dchar c = dtext[i];
-		bool flag_step(VarValue delegate(string) get, dchar cc) { mixin(S_TRACE);
+		bool variable(VarValue delegate(string) get, dchar cc) { mixin(S_TRACE);
 			ptrdiff_t next = .countUntil(dtext[i + 1 .. $], cc);
 			if (next < 0) return false;
 			auto fl = dtext[i + 1 .. i + 1 + next];
@@ -103,15 +106,22 @@ private string formatMsgImpl(string text,
 					return true;
 				}
 				if (!full) { mixin(S_TRACE);
-					// BUG: 選択肢などでは最初の1文字が欠ける(CardWirth 1.50)
-					c = dchar.init;
+					if (cc == '$' || cc == '%') { mixin(S_TRACE);
+						// BUG: 選択肢などでは最初の1文字が欠ける(CardWirth 1.50)
+						result ~= fl ~ cc;
+					} else { mixin(S_TRACE);
+						// コモンは最初の一文字が欠けないようにする
+						result ~= cc ~ fl ~ cc;
+					}
+					i = i + 1 + next;
+					return true;
 				}
 				return false;
 			}
 			i = i + 1 + next;
 			auto s = v.value;
 			if (v.expandSPChars && stack == 0) { mixin(S_TRACE);
-				s = .formatMsgImpl(s, getFlag, getStep, getName, isTargetVersion, prefixSystemVarName,
+				s = .formatMsgImpl(s, getFlag, getStep, getVariant, getName, isTargetVersion, prefixSystemVarName,
 					hasMaterial, fonts, colors, full, result.length + startIndex, stack + 1);
 			}
 			result ~= to!dstring(s);
@@ -153,10 +163,13 @@ private string formatMsgImpl(string text,
 			}
 			goto default;
 		case '%':
-			if (!flag_step(getFlag, '%')) goto default;
+			if (!variable(getFlag, '%')) goto default;
 			break;
 		case '$':
-			if (!flag_step(getStep, '$')) goto default;
+			if (!variable(getStep, '$')) goto default;
+			break;
+		case '@':
+			if (!variable(getVariant, '@')) goto default;
 			break;
 		case '&':
 			if (!full) goto default;
@@ -183,6 +196,9 @@ private string formatMsgImpl(string text,
 	}, (string step) { mixin(S_TRACE);
 		if ("step1" == step) return VarValue(true, "s1test");
 		return VarValue(true, " ");
+	}, (string variant) { mixin(S_TRACE);
+		if ("variant1" == variant) return VarValue(true, "v1test");
+		return VarValue(true, " ");
 	}, (char name) { mixin(S_TRACE);
 		if (name == 'R') return "R_test";
 		return "";
@@ -203,9 +219,10 @@ void sortChars(char[] chars) {
 	sortChars(a);
 	assert (a == "aabdeffjpqw");
 }
-/// テキストの中で使用されているフラグ・ステップ・画像パスを抽出する。
+/// テキストの中で使用されている状態変数・画像パスを抽出する。
 void textUseItems(string text,
-		out string[] flags, out string[] steps, out string[] fonts, out char[] colors) { mixin(S_TRACE);
+		out string[] flags, out string[] steps, out string[] variables,
+		out string[] fonts, out char[] colors) { mixin(S_TRACE);
 	string[size_t] rFonts;
 	char[size_t] rColors;
 	formatMsg(text, (string flag) { mixin(S_TRACE);
@@ -213,6 +230,9 @@ void textUseItems(string text,
 		return VarValue(true);
 	}, (string step) { mixin(S_TRACE);
 		steps ~= step;
+		return VarValue(true);
+	}, (string variable) { mixin(S_TRACE);
+		variables ~= variable;
 		return VarValue(true);
 	}, (char name) { mixin(S_TRACE);
 		return "";
@@ -223,11 +243,12 @@ void textUseItems(string text,
 	colors = to!(char[])(colors.uniq().array());
 } unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
-	string[] flags, steps, fonts;
+	string[] flags, steps, variants, fonts;
 	char[] colors;
-	textUseItems("#M#R#U#C#I#T#Yaaa$test$$あああ\t2$$#tes%t3$%tes#t%#a#Z#1#2#33d$dd%aaa%%#%#;%vv%#表%#", flags, steps, fonts, colors);
+	textUseItems("#M#R#U#C#I#T#Yaaa$test$$あああ\t2$$#tes%t3$%tes#t%#a#Z#1#2#33d$dd%aaa%%#%#;%vv%#表%#", flags, steps, variants, fonts, colors);
 	assert(std.algorithm.sort(flags).array() == std.algorithm.sort(["tes#t", "aaa", "#", "vv"]).array(), .text(flags));
 	assert(std.algorithm.sort(steps).array() == std.algorithm.sort(["test", "あああ\t2", "#tes%t3"]).array(), .text(steps));
+	assert(std.algorithm.sort(variants).array() == [], .text(variants));
 	assert(std.algorithm.sort(fonts).array() == std.algorithm.sort(["font_a.bmp", "font_Z.bmp", "font_1.bmp", "font_2.bmp", "font_3.bmp", "font_;.bmp", "font_表.bmp"]).array(), .text(fonts));
 }
 /// テキストの中で使用されている選択メンバ名などの特殊文字を抽出する。
@@ -236,6 +257,7 @@ char[] namesInText(string text, bool full) { mixin(S_TRACE);
 	string[size_t] fonts;
 	char[size_t] colors;
 	.formatMsgImpl(text,
+		path => VarValue(true),
 		path => VarValue(true),
 		path => VarValue(true),
 		(char name) { mixin(S_TRACE);
@@ -281,7 +303,7 @@ private void replOff(ref dstring dtext, ref dstring buf, ref size_t i, dchar tar
 		buf ~= dtext[i];
 	}
 }
-private string replTextFlagStep(char Ch1, char Ch2)
+private string replTextFlagStep(char Ch1, char Ch2, char Ch3)
 		(string text, string oldFlag, string newFlag) { mixin(S_TRACE);
 	dstring dtext = toUTF32(text);
 	dstring dold = toUTF32(oldFlag);
@@ -301,7 +323,8 @@ private string replTextFlagStep(char Ch1, char Ch2)
 			replOn(dtext, buf, i, dold, dnew, Ch1);
 			break;
 		case Ch2:
-			replOff(dtext, buf, i, Ch2);
+		case Ch3:
+			replOff(dtext, buf, i, c);
 			break;
 		default:
 			buf ~= c;
@@ -316,12 +339,12 @@ private string replTextFlagStep(char Ch1, char Ch2)
 /// oldFlag = 置換前のフラグパス。
 /// newFlag = 置換後のフラグパス。
 string replTextUseFlag(string text, string oldFlag, string newFlag) { mixin(S_TRACE);
-	return replTextFlagStep!('%', '$')(text, oldFlag, newFlag);
+	return replTextFlagStep!('%', '$', '@')(text, oldFlag, newFlag);
 } unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert(replTextUseFlag("「%置 換 前%」", "置 換 前", "置 換 後") == "「%置 換 後%」");
-	assert(replTextUseFlag("aaa%aaa%$%置換前%$%置換前%a#%置換前%%aa$%置換前%", "置換前", "置換no後")
-		== "aaa%aaa%$%置換前%$%置換no後%a#%置換前%%aa$%置換no後%");
+	assert(replTextUseFlag("aaa%aaa%$%置換前%$@%置換前%@%置換前%a#%置換前%%aa$%置換前%", "置換前", "置換no後")
+		== "aaa%aaa%$%置換前%$@%置換前%@%置換no後%a#%置換前%%aa$%置換no後%");
 }
 /// テキストの中で使用されているステップのパスを置換する。
 /// Params:
@@ -329,12 +352,25 @@ string replTextUseFlag(string text, string oldFlag, string newFlag) { mixin(S_TR
 /// oldStep = 置換前のステップパス。
 /// newStep = 置換後のステップパス。
 string replTextUseStep(string text, string oldStep, string newStep) { mixin(S_TRACE);
-	return replTextFlagStep!('$', '%')(text, oldStep, newStep);
+	return replTextFlagStep!('$', '%', '@')(text, oldStep, newStep);
 } unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert(replTextUseStep("「$置 換 前$」", "置 換 前", "置 換 後") == "「$置 換 後$」");
 	assert(replTextUseStep("aaa$aaa$%$置換前$%$置換前$a#$置換前$$aa%$置換前$", "置換前", "置換no後")
 		== "aaa$aaa$%$置換前$%$置換no後$a#$置換前$$aa%$置換no後$");
+}
+/// テキストの中で使用されているコモンのパスを置換する。
+/// Params:
+/// text = テキスト。
+/// oldStep = 置換前のコモンパス。
+/// newStep = 置換後のコモンパス。
+string replTextUseVariant(string text, string oldVariant, string newVariant) { mixin(S_TRACE);
+	return replTextFlagStep!('@', '%', '$')(text, oldVariant, newVariant);
+} unittest { mixin(S_TRACE);
+	debug mixin(UTPerf);
+	assert(replTextUseVariant("「@置 換 前@」", "置 換 前", "置 換 後") == "「@置 換 後@」");
+	assert(replTextUseVariant("aaa@aaa@%@置換前@%$@置換前@$@置換前@a#@置換前@@aa%@置換前@", "置換前", "置換no後")
+		== "aaa@aaa@%@置換前@%$@置換前@$@置換no後@a#@置換前@@aa%@置換no後@");
 }
 /// テキスト中で使用されている画像か。
 @property

@@ -30,14 +30,14 @@ import java.lang.all;
 
 public class FlagDirTree : TCPD {
 private:
-	void storeInsert(FlagDir dir, ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, ptrdiff_t[] dirIndices, ptrdiff_t[] flagIndices, ptrdiff_t[] stepIndices) { mixin(S_TRACE);
-		_undo ~= new UndoInsertDelete(flags, _comm, dir, selectedF, selectedS, dirIndices, flagIndices, stepIndices);
+	void storeInsert(FlagDir dir, ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, ptrdiff_t[] selectedV, ptrdiff_t[] dirIndices, ptrdiff_t[] flagIndices, ptrdiff_t[] stepIndices, ptrdiff_t[] variantIndices) { mixin(S_TRACE);
+		_undo ~= new UndoInsertDelete(flags, _comm, dir, selectedF, selectedS, selectedV, dirIndices, flagIndices, stepIndices, variantIndices);
 	}
-	void storeDelete(FlagDir dir, ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, FlagDir[ptrdiff_t] ds, cwx.flag.Flag[ptrdiff_t] fs, Step[ptrdiff_t] ss) { mixin(S_TRACE);
-		_undo ~= new UndoInsertDelete(flags, _comm, dir, selectedF, selectedS, ds, fs, ss);
+	void storeDelete(FlagDir dir, ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, ptrdiff_t[] selectedV, FlagDir[ptrdiff_t] ds, cwx.flag.Flag[ptrdiff_t] fs, Step[ptrdiff_t] ss, cwx.flag.Variant[ptrdiff_t] vs) { mixin(S_TRACE);
+		_undo ~= new UndoInsertDelete(flags, _comm, dir, selectedF, selectedS, selectedV, ds, fs, ss, vs);
 	}
-	void storeMove(ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, FlagDir to, ptrdiff_t[] dirIndices, ptrdiff_t[] flagIndices, ptrdiff_t[] stepIndices, FlagDir from, FlagDir[ptrdiff_t] ds, cwx.flag.Flag[ptrdiff_t] fs, Step[ptrdiff_t] ss) { mixin(S_TRACE);
-		_undo ~= new UndoMove(flags, _comm, selectedF, selectedS, to, dirIndices, flagIndices, stepIndices, from, ds, fs, ss);
+	void storeMove(ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, ptrdiff_t[] selectedV, FlagDir to, ptrdiff_t[] dirIndices, ptrdiff_t[] flagIndices, ptrdiff_t[] stepIndices, ptrdiff_t[] variantIndices, FlagDir from, FlagDir[ptrdiff_t] ds, cwx.flag.Flag[ptrdiff_t] fs, Step[ptrdiff_t] ss, cwx.flag.Variant[ptrdiff_t] vs) { mixin(S_TRACE);
+		_undo ~= new UndoMove(flags, _comm, selectedF, selectedS, selectedV, to, dirIndices, flagIndices, stepIndices, variantIndices, from, ds, fs, ss, vs);
 	}
 	void storeEditDir(FlagDir dir, string oldName) { mixin(S_TRACE);
 		_undo ~= new UndoEditDir(flags, _comm, dir, oldName);
@@ -83,7 +83,7 @@ private:
 	void dropMove() { mixin(S_TRACE);
 		_moveDir.parent.remove(_moveDir);
 		refresh();
-		_comm.delFlagAndStep.call(_moveDir.allFlags, _moveDir.allSteps);
+		_comm.delFlagAndStep.call(_moveDir.allFlags, _moveDir.allSteps, _moveDir.allVariants);
 		_comm.refreshToolBar();
 	}
 	class FlagsDropListener : DropTargetAdapter {
@@ -111,9 +111,11 @@ private:
 				string rootId;
 				cwx.flag.Flag[ptrdiff_t] fs = flags.dragFlags;
 				Step[ptrdiff_t] ss = flags.dragSteps;
+				cwx.flag.Variant[ptrdiff_t] vs = flags.dragVariants;
 				cwx.flag.Flag[string] cFlags;
 				Step[string] cSteps;
-				ptrdiff_t[] tblSelsF, tblSelsS;
+				cwx.flag.Variant[string] cVariants;
+				ptrdiff_t[] tblSelsF, tblSelsS, tblSelsV;
 				FlagDir moveDirParent = null;
 				ptrdiff_t dirIndex = -1;
 				if (_moveDir) { mixin(S_TRACE);
@@ -124,6 +126,7 @@ private:
 				if (current is dir) { mixin(S_TRACE);
 					tblSelsF = flags.selectionFlagIndices();
 					tblSelsS = flags.selectionStepIndices();
+					tblSelsV = flags.selectionVariantIndices();
 				}
 
 				@property
@@ -142,8 +145,16 @@ private:
 					}
 					return r;
 				}
+				@property
+				ptrdiff_t[] variantIndices() { mixin(S_TRACE);
+					ptrdiff_t[] r;
+					foreach (v; cVariants) { mixin(S_TRACE);
+						r ~= v.parent.indexOf(v);
+					}
+					return r;
+				}
 				auto ver = new XMLInfo(prop.sys, LATEST_VERSION);
-				auto ret = dir.appendFromXML(data, ver, false, true, cFlags, cSteps, newPath, rootId);
+				auto ret = dir.appendFromXML(data, ver, false, true, cFlags, cSteps, cVariants, newPath, rootId);
 				bool samePane = dir.root.id == rootId;
 				final switch (ret) {
 				case FlagDir.AppendXmlResult.DIR_SUCCESS:
@@ -152,12 +163,12 @@ private:
 						e.detail = DND.DROP_MOVE;
 						assert (moveDirParent);
 						dropMove();
-						storeMove(tblSelsF, tblSelsS, dir, [dir.indexOf(newDir)], [], [], moveDirParent, [dirIndex:_moveDir], null, null);
+						storeMove(tblSelsF, tblSelsS, tblSelsV, dir, [dir.indexOf(newDir)], [], [], [], moveDirParent, [dirIndex:_moveDir], null, null, null);
 						_comm.delFlagDir.call(this.outer, [_moveDir]);
 						_comm.refFlagDir.call(this.outer, [_moveDir]);
 					} else { mixin(S_TRACE);
 						e.detail = DND.DROP_COPY;
-						storeInsert(dir, tblSelsF, tblSelsS, [dir.indexOf(newDir)], [], []);
+						storeInsert(dir, tblSelsF, tblSelsS, tblSelsV, [dir.indexOf(newDir)], [], [], []);
 						_comm.refFlagDir.call(this.outer, [newDir]);
 					}
 					refresh(newPath);
@@ -165,10 +176,10 @@ private:
 				case FlagDir.AppendXmlResult.FLAG_STEP_SUCCESS:
 					if (samePane) { mixin(S_TRACE);
 						e.detail = DND.DROP_MOVE;
-						storeMove(tblSelsF, tblSelsS, dir, [], flagIndices, stepIndices, current, null, fs, ss);
+						storeMove(tblSelsF, tblSelsS, tblSelsV, dir, [], flagIndices, stepIndices, variantIndices, current, null, fs, ss, vs);
 					} else { mixin(S_TRACE);
 						e.detail = DND.DROP_COPY;
-						storeInsert(dir, tblSelsF, tblSelsS, [], flagIndices, stepIndices);
+						storeInsert(dir, tblSelsF, tblSelsS, tblSelsV, [], flagIndices, stepIndices, variantIndices);
 					}
 					flags.refresh();
 					break;
@@ -186,15 +197,19 @@ private:
 				if ((ret == FlagDir.AppendXmlResult.DIR_SUCCESS
 						|| ret == FlagDir.AppendXmlResult.FLAG_STEP_SUCCESS)
 						&& samePane) { mixin(S_TRACE);
-					foreach (oldPath; cFlags.keys) { mixin(S_TRACE);
+					foreach (oldPath; cFlags.byKey()) { mixin(S_TRACE);
 						assert (cFlags[oldPath].parent !is null);
 						uc.change(toFlagId(oldPath), toFlagId(cFlags[oldPath].path));
 					}
-					foreach (oldPath; cSteps.keys) { mixin(S_TRACE);
+					foreach (oldPath; cSteps.byKey()) { mixin(S_TRACE);
 						assert (cSteps[oldPath].parent !is null);
 						uc.change(toStepId(oldPath), toStepId(cSteps[oldPath].path));
 					}
-					_comm.refFlagAndStep.call(cFlags.values, cSteps.values);
+					foreach (oldPath; cVariants.byKey()) { mixin(S_TRACE);
+						assert (cVariants[oldPath].parent !is null);
+						uc.change(toVariantId(oldPath), toVariantId(cVariants[oldPath].path));
+					}
+					_comm.refFlagAndStep.call(cFlags.values, cSteps.values, cVariants.values);
 					_comm.refUseCount.call();
 				}
 				_comm.refreshToolBar();
@@ -378,18 +393,20 @@ public:
 		new MenuItem(menu, SWT.SEPARATOR);
 
 		void delegate() dlg = null;
-		auto evt = createMenuItem(_comm, menu, MenuID.CreateVariableEventTree, dlg, () => current && (current.hasFlag || current.hasStep), SWT.CASCADE);
+		auto evt = createMenuItem(_comm, menu, MenuID.CreateVariableEventTree, dlg, () => current && (current.hasFlag || current.hasStep || current.hasVariant), SWT.CASCADE);
 		auto mEvt = new Menu(parent.getShell(), SWT.DROP_DOWN);
 		evt.setMenu(mEvt);
-		createMenuItem(_comm, mEvt, MenuID.InitVariablesTree, &copyInitTree, () => current && (current.hasFlag || current.hasStep));
+		createMenuItem(_comm, mEvt, MenuID.InitVariablesTree, &copyInitTree, () => current && (current.hasFlag || current.hasStep || current.hasVariant));
 		new MenuItem(mEvt, SWT.SEPARATOR);
 		createMenuItem2(_comm, mEvt, MenuProps.buildMenu(prop.msgs.contentName(CType.REVERSE_FLAG), "R", "", false), prop.images.content(CType.REVERSE_FLAG), &copyFlagReverseTree, () => current && current.hasFlag);
 		new MenuItem(mEvt, SWT.SEPARATOR);
 		createMenuItem2(_comm, mEvt, MenuProps.buildMenu(prop.msgs.setFlagTrue, "T", "", false), prop.images.content(CType.SET_FLAG), () => copyFlagTree(true), () => current && current.hasFlag);
 		createMenuItem2(_comm, mEvt, MenuProps.buildMenu(prop.msgs.setFlagFalse, "F", "", false), prop.images.content(CType.SET_FLAG), () => copyFlagTree(false), () => current && current.hasFlag);
+		// TODO
 		new MenuItem(mEvt, SWT.SEPARATOR);
 		createMenuItem2(_comm, mEvt, MenuProps.buildMenu(prop.msgs.contentName(CType.SET_STEP_UP), "U", "", false), prop.images.content(CType.SET_STEP_UP), &copyStepUpTree, () => current && current.hasStep);
 		createMenuItem2(_comm, mEvt, MenuProps.buildMenu(prop.msgs.contentName(CType.SET_STEP_DOWN), "D", "", false), prop.images.content(CType.SET_STEP_DOWN), &copyStepDownTree, () => current && current.hasStep);
+		// TODO
 		new MenuItem(mEvt, SWT.SEPARATOR);
 		void ssValue(uint i) { mixin(S_TRACE);
 			string mnemonic = i < 10 ? .text(i) : "";
@@ -432,7 +449,7 @@ public:
 		enterEdit();
 		_comm.openCWXPath(cur.cwxPath(true), true);
 		string name = cur.createNewDirName(prop.msgs.flagDirNew, null);
-		storeInsert(cur, flags.selectionFlagIndices, flags.selectionStepIndices, [cast(ptrdiff_t)cur.subDirs.length], [], []);
+		storeInsert(cur, flags.selectionFlagIndices, flags.selectionStepIndices, flags.selectionVariantIndices, [cast(ptrdiff_t)cur.subDirs.length], [], [], []);
 		auto dir = new FlagDir(name);
 		cur.add(dir);
 		refreshDirs(cur);
@@ -488,14 +505,16 @@ public:
 					string rootId;
 					cwx.flag.Flag[string] cFlags;
 					Step[string] cSteps;
+					cwx.flag.Variant[string] cVariants;
 					auto tblSelsF = flags.selectionFlagIndices;
 					auto tblSelsS = flags.selectionStepIndices;
+					auto tblSelsV = flags.selectionVariantIndices;
 					auto ver = new XMLInfo(prop.sys, LATEST_VERSION);
-					switch (cur.appendFromXML(c, ver, true, true, cFlags, cSteps, newPath, rootId)) {
+					switch (cur.appendFromXML(c, ver, true, true, cFlags, cSteps, cVariants, newPath, rootId)) {
 					case FlagDir.AppendXmlResult.DIR_SUCCESS:
 						refresh(newPath);
 						auto dir = root.findPath(newPath, false);
-						storeInsert(dir.parent, tblSelsF, tblSelsS, [dir.parent.indexOf(dir)], [], []);
+						storeInsert(dir.parent, tblSelsF, tblSelsS, tblSelsV, [dir.parent.indexOf(dir)], [], [], []);
 						_comm.refFlagDir.call(this, [dir]);
 						refresh();
 						auto itm = find(current);
@@ -504,13 +523,17 @@ public:
 					case FlagDir.AppendXmlResult.FLAG_STEP_SUCCESS:
 						ptrdiff_t[] flagIndices;
 						ptrdiff_t[] stepIndices;
+						ptrdiff_t[] variantIndices;
 						foreach (f; cFlags) { mixin(S_TRACE);
 							flagIndices ~= f.parent.indexOf(f);
 						}
 						foreach (s; cSteps) { mixin(S_TRACE);
 							stepIndices ~= s.parent.indexOf(s);
 						}
-						storeInsert(cur, tblSelsF, tblSelsS, [], flagIndices, stepIndices);
+						foreach (v; cVariants) { mixin(S_TRACE);
+							variantIndices ~= v.parent.indexOf(v);
+						}
+						storeInsert(cur, tblSelsF, tblSelsS, tblSelsV, [], flagIndices, stepIndices, variantIndices);
 						flags.refresh();
 						break;
 					case FlagDir.AppendXmlResult.FLAG_STEP_ON_DIR:
@@ -518,7 +541,7 @@ public:
 						assert (false);
 					default:
 					}
-					_comm.refFlagAndStep.call(cFlags.values, cSteps.values);
+					_comm.refFlagAndStep.call(cFlags.values, cSteps.values, cVariants.values);
 					_comm.refreshToolBar();
 				} catch (Exception e) {
 					printStackTrace();
@@ -532,15 +555,17 @@ public:
 			if (cur != root) { mixin(S_TRACE);
 				auto tblSelsF = flags.selectionFlagIndices;
 				auto tblSelsS = flags.selectionStepIndices;
+				auto tblSelsV = flags.selectionVariantIndices;
 				auto index = cur.parent.indexOf(cur);
-				storeDelete(cur.parent, tblSelsF, tblSelsS, [index:cur], null, null);
+				storeDelete(cur.parent, tblSelsF, tblSelsS, tblSelsV, [index:cur], null, null, null);
 				cwx.flag.Flag[] cFlags = cur.allFlags;
 				Step[] cSteps = cur.allSteps;
+				cwx.flag.Variant[] cVariants = cur.allVariants;
 				auto p = cur.parent;
 				p.remove(cur);
 				current = p;
 				refreshDirs(p);
-				_comm.delFlagAndStep.call(cFlags, cSteps);
+				_comm.delFlagAndStep.call(cFlags, cSteps, cVariants);
 				_comm.delFlagDir.call([cur]);
 				_comm.refreshToolBar();
 			}
@@ -671,6 +696,19 @@ public:
 				flags.edit(dir.steps[index]);
 			} else { mixin(S_TRACE);
 				flags.select(dir.steps[index], cphasattr(path, "only"));
+			}
+			_comm.refreshToolBar();
+			return true;
+		}
+		case "variant": { mixin(S_TRACE);
+			if (index >= dir.variants.length) return false;
+			_comm.openFlagWin(shellActivate);
+			if (!cphasattr(path, "nofocus")) forceFocus(flags.widget, shellActivate);
+			current = dir;
+			if (cphasattr(path, "opendialog")) { mixin(S_TRACE);
+				flags.edit(dir.variants[index]);
+			} else { mixin(S_TRACE);
+				flags.select(dir.variants[index], cphasattr(path, "only"));
 			}
 			_comm.refreshToolBar();
 			return true;

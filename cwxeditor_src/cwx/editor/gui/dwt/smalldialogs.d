@@ -635,25 +635,6 @@ protected:
 
 class ScriptVarSetDialog : AbsDialog {
 private:
-	/// 変数の種類(現在未使用)。
-	enum VarKind {
-		Variant, /// あらゆる変数。
-		Boolean, /// true, false。
-		Flag, /// フラグ(文字列)。
-		Step, /// ステップ(文字列)。
-		Area, /// エリア(ID)。
-		Battle, /// バトル(ID)。
-		Package, /// パッケージ(ID)。
-		Cast, /// キャストカード(ID)。
-		Skill, /// スキルカード(ID)。
-		Item, /// アイテムカード(ID)。
-		Beast, /// 召喚獣カード(ID)。
-		Info, /// 情報カード(ID)。
-		Coupon, /// クーポン(文字列)。
-		Gossip, /// ゴシップ(文字列)。
-		CompleteStamp, /// 終了印(文字列)。
-		File /// ファイルパス。
-	}
 	Commons _comm;
 	Summary _summ;
 	const string[] _vars;

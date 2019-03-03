@@ -313,7 +313,7 @@ alias User!(StartId) IStartUser;
 alias UCCont!(StartId, IStartUser) SUseCounter;
 
 /// 口調分け条件とメッセージ内容を持つクラス。
-static class SDialog : CWXPath, IPathUser, IFlagUser, IStepUser, ICouponUser, ITextHolder {
+static class SDialog : CWXPath, IPathUser, IFlagUser, IStepUser, IVariantUser, ICouponUser, ITextHolder {
 private:
 	CouponUser[] _rCoupons = [];
 	TextHolder _text;
@@ -424,6 +424,9 @@ public:
 	override bool change(StepId id) { mixin(S_TRACE);
 		return _text.change(id);
 	}
+	override bool change(VariantId id) { mixin(S_TRACE);
+		return _text.change(id);
+	}
 	override bool change(CouponId id) { return true; }
 
 	protected override void changed() { }
@@ -432,19 +435,23 @@ public:
 	@property
 	const
 	override string[] fontsInText() { return _text.fontsInText; }
-	/// テキスト内で使用されているフラグのパス。
+	/// テキスト内で使用されている状態変数のパス。
 	@property
 	const
 	override string[] flagsInText() { return _text.flagsInText; }
-	/// テキスト内で使用されているステップのパス。
+	/// ditto
 	@property
 	const
 	override string[] stepsInText() { return _text.stepsInText; }
+	/// ditto
+	@property
+	const
+	override string[] variantsInText() { return _text.variantsInText; }
 	/// テキスト内で使用されている色。
 	@property
 	const
 	const(char)[] colorsInText() { return _text.colorsInText; }
-	/// テキスト内のfont_X.bmp・フラグ・ステップを置換する。
+	/// テキスト内のfont_X.bmp・状態変数パスを置換する。
 	override void changeInText(size_t index, PathId id) { mixin(S_TRACE);
 		_text.changeInText(index, id);
 	}
@@ -454,6 +461,10 @@ public:
 	}
 	/// ditto
 	override void changeInText(size_t index, StepId id) { mixin(S_TRACE);
+		_text.changeInText(index, id);
+	}
+	/// ditto
+	override void changeInText(size_t index, VariantId id) { mixin(S_TRACE);
 		_text.changeInText(index, id);
 	}
 	const
@@ -509,7 +520,7 @@ public:
 }
 
 class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
-		IFlagUser, IStepUser,
+		IFlagUser, IStepUser, IVariantUser,
 		ICastUser, IItemUser, ISkillUser, IBeastUser, IInfoUser,
 		ICouponUser, IGossipUser, ICompleteStampUser, IKeyCodeUser,
 		ICellNameUser, ICardGroupUser, IStartUser,
@@ -551,6 +562,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		this.packages = c.packages;
 		this.flag = c.flag;
 		this.step = c.step;
+		this.variant = c.variant;
 		this.cardPaths = c.cardPaths;
 		this.bgmPath = c.bgmPath;
 		this.bgmChannel = c.bgmChannel;
@@ -714,6 +726,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			&& (!d.use(CArg.PACKAGE) || packages == c.packages)
 			&& (!d.use(CArg.FLAG) || flag == c.flag)
 			&& (!d.use(CArg.STEP) || step == c.step)
+			&& (!d.use(CArg.VARIANT) || variant == c.variant)
 			&& (!d.use(CArg.TALKER_C) || cardPaths == c.cardPaths)
 			&& (!d.use(CArg.BGM_PATH) || bgmPath == c.bgmPath)
 			&& (!d.use(CArg.BGM_CHANNEL) || bgmChannel == c.bgmChannel)
@@ -1008,6 +1021,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.PACKAGE, ulong, 0)(d, od, &packages, base, base.packages);
 		resetValue!(CArg.FLAG, string, "")(d, od, &flag, base, base.flag);
 		resetValue!(CArg.STEP, string, "")(d, od, &step, base, base.step);
+		resetValue!(CArg.VARIANT, string, "")(d, od, &variant, base, base.variant);
 		resetValue!(CArg.TALKER_C, const(CardImage)[], [])(d, od, &cardPaths, base, base.cardPaths);
 		resetValue!(CArg.BGM_PATH, string, "")(d, od, &bgmPath, base, base.bgmPath);
 		resetValue!(CArg.BGM_CHANNEL, uint, 0)(d, od, &bgmChannel, base, base.bgmChannel);
@@ -1697,6 +1711,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		if (d.use(CArg.PACKAGE)) return cast(typeof(return))summ.cwPackage(packages);
 		if (d.use(CArg.FLAG)) return cast(typeof(return))summ.flagDirRoot.findFlag(flag);
 		if (d.use(CArg.STEP)) return cast(typeof(return))summ.flagDirRoot.findStep(step);
+		if (d.use(CArg.VARIANT)) return cast(typeof(return))summ.flagDirRoot.findVariant(variant);
 		if (d.use(CArg.CAST)) return cast(typeof(return))summ.cwCast(casts);
 		if (d.use(CArg.ITEM)) return cast(typeof(return))summ.item(item);
 		if (d.use(CArg.SKILL)) return cast(typeof(return))summ.skill(skill);
@@ -1911,6 +1926,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	mixin Prop!(FlagUser, string, "flag", "", ".flag", ".flag", true);
 	/// ステップ。
 	mixin Prop!(StepUser, string, "step", "", ".step", ".step", true);
+	/// コモン。
+	mixin Prop!(VariantUser, string, "variant", "", ".variant", ".variant", true);
 	/// 話者(カード画像含む)。
 	private CardImage[] _cardPaths;
 	@property
@@ -2351,6 +2368,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	override bool change(PackageId id) { return idChange(id); }
 	override bool change(FlagId id) { return idChange(id); }
 	override bool change(StepId id) { return idChange(id); }
+	override bool change(VariantId id) { return idChange(id); }
 	override bool change(CastId id) { return idChange(id); }
 	override bool change(ItemId id) { return idChange(id); }
 	override bool change(SkillId id) { return idChange(id); }
@@ -2391,19 +2409,26 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		if (!_text) return [];
 		return _text.fontsInText;
 	}
-	/// テキスト内で使用されているフラグのパス。
+	/// テキスト内で使用されている状態変数のパス。
 	@property
 	const
 	override string[] flagsInText() { mixin(S_TRACE);
 		if (!_text) return [];
 		return _text.flagsInText;
 	}
-	/// テキスト内で使用されているステップのパス。
+	/// ditto
 	@property
 	const
 	override string[] stepsInText() { mixin(S_TRACE);
 		if (!_text) return [];
 		return _text.stepsInText;
+	}
+	/// ditto
+	@property
+	const
+	override string[] variantsInText() { mixin(S_TRACE);
+		if (!_text) return [];
+		return _text.variantsInText;
 	}
 	/// テキスト内で使用されている色。
 	@property
@@ -2420,17 +2445,23 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	char[] namesInName() { mixin(S_TRACE);
 		return parent && parent.detail.nextType is CNextType.TEXT ? _name.namesInText : [];
 	}
-	/// 選択肢内で使用されているフラグのパス。
+	/// 選択肢内で使用されている状態変数のパス。
 	@property
 	const
 	string[] flagsInName() { mixin(S_TRACE);
 		return parent && parent.detail.nextType is CNextType.TEXT ? _name.flagsInText : [];
 	}
-	/// 選択肢内で使用されているステップのパス。
+	/// ditto
 	@property
 	const
 	string[] stepsInName() { mixin(S_TRACE);
 		return parent && parent.detail.nextType is CNextType.TEXT ? _name.stepsInText : [];
+	}
+	/// ditto
+	@property
+	const
+	string[] variantsInName() { mixin(S_TRACE);
+		return parent && parent.detail.nextType is CNextType.TEXT ? _name.variantsInText : [];
 	}
 
 	/// ditto
@@ -2440,6 +2471,11 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	}
 	/// ditto
 	override void changeInText(size_t index, StepId id) { mixin(S_TRACE);
+		if (_text) _text.changeInText(index, id);
+		_name.changeInText(index, id);
+	}
+	/// ditto
+	override void changeInText(size_t index, VariantId id) { mixin(S_TRACE);
 		if (_text) _text.changeInText(index, id);
 		_name.changeInText(index, id);
 	}
@@ -2510,6 +2546,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		atnPut!(CArg.PACKAGE, "packages", "")(e, d);
 		atnPut!(CArg.FLAG, "flag", "")(e, d);
 		atnPut!(CArg.STEP, "step", "")(e, d);
+		atnPut!(CArg.VARIANT, "variant", "")(e, d);
 		atnPut!(CArg.BGM_PATH, "bgmPath", "encodePath")(e, d);
 		atnPut!(CArg.BGM_CHANNEL, "bgmChannel", "")(e, d);
 		atnPut!(CArg.BGM_VOLUME, "bgmVolume", "")(e, d);
@@ -2812,6 +2849,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		cfnPut!(CArg.PACKAGE, "packages", "to!(ulong)")(en, d, r);
 		cfnPut!(CArg.FLAG, "flag", "")(en, d, r);
 		cfnPut!(CArg.STEP, "step", "")(en, d, r);
+		cfnPut!(CArg.VARIANT, "variant", "")(en, d, r);
 		cfnPut!(CArg.BGM_PATH, "bgmPath", "decodePath")(en, d, r);
 		cfnPut!(CArg.BGM_CHANNEL, "bgmChannel", "to!(uint)")(en, d, r);
 		cfnPut!(CArg.BGM_VOLUME, "bgmVolume", "to!(uint)")(en, d, r);
@@ -4204,6 +4242,8 @@ public:
 		return true;
 	}
 }
+
+// TODO: コモンの初期化
 
 /// 状態変数を初期化するイベントツリーを生成する。
 Content createInitVariablesTree(in FlagDir dir) { mixin(S_TRACE);

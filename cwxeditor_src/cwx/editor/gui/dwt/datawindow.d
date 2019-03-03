@@ -158,6 +158,7 @@ public:
 			putMenuAction(MenuID.NewFlagDir, &createFlagDir, &canCreateFlagDir);
 			putMenuAction(MenuID.NewFlag, &createFlag, &canCreateFlag);
 			putMenuAction(MenuID.NewStep, &createStep, &canCreateStep);
+			putMenuAction(MenuID.NewVariant, &createVariant, &canCreateVariant);
 			putMenuAction(MenuID.EditProp, &_flags.edit, &_flags.canEdit);
 			putMenuAction(MenuID.CopyVariablePath, &_flags.copyVariablePath, &_flags.canCopyVariablePath);
 		}
@@ -296,6 +297,8 @@ public:
 		alias canCreateFlagDir canCreateFlag;
 		@property
 		alias canCreateFlagDir canCreateStep;
+		@property
+		alias canCreateFlagDir canCreateVariant;
 
 		void createFlagDir() { mixin(S_TRACE);
 			if (!_summ) return;
@@ -308,6 +311,10 @@ public:
 		void createStep() { mixin(S_TRACE);
 			if (!_summ) return;
 			_flags.flags.createStep();
+		}
+		void createVariant() { mixin(S_TRACE);
+			if (!_summ) return;
+			_flags.flags.createVariant();
 		}
 	}
 	static if (UseArea && UseFlag) {

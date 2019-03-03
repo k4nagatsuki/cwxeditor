@@ -217,6 +217,7 @@ public:
 	@property Image flagDir() {return imgd!("flagdir.png");}
 	@property Image flag() {return imgd!("flag.png");}
 	@property Image step() {return imgd!("step.png");}
+	@property Image variant() {return imgd!("variant.png");}
 
 	@property Image couponNormal() {return imgd!("coupon_n.png");}
 	@property Image couponPlus() {return imgd!("coupon_plus.png");}
@@ -613,10 +614,12 @@ public:
 		case MenuID.NewFlagDir: return imgd!("flagdir_new.png");
 		case MenuID.NewFlag: return imgd!("flag_new.png");
 		case MenuID.NewStep: return imgd!("step_new.png");
+		case MenuID.NewVariant: return imgd!("variant_new.png");
 		case MenuID.CreateStepValues: return imgd!("create_step_values.png");
 		case MenuID.PutSPChar: return imgd!("put_sp_char.png");
 		case MenuID.PutFlagValue: return imgd!("flag.png");
 		case MenuID.PutStepValue: return imgd!("step.png");
+		case MenuID.PutVariantValue: return imgd!("variant.png");
 		case MenuID.PutColor: return imgd!("cc_w.png");
 		case MenuID.PutSkinSPChar: return imgd!("sc_skin.png");
 		case MenuID.PutImageFont: return imgd!("backs.png");

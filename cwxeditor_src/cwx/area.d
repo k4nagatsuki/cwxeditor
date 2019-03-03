@@ -423,14 +423,18 @@ public:
 		_overrideName.text = overrideName;
 	}
 
-	// 上書き名内で使用されているフラグのパス。
+	/// 上書き名内で使用されている状態変数のパス。
 	@property
 	const
 	string[] flagsInText() { return _overrideName.flagsInText; }
-	// 上書き名内で使用されているステップのパス。
+	/// ditto
 	@property
 	const
 	string[] stepsInText() { return _overrideName.stepsInText; }
+	/// ditto
+	@property
+	const
+	string[] variantsInText() { return _overrideName.variantsInText; }
 
 	/// イメージを上書きをするか(Wsn.4)。
 	@property
@@ -713,14 +717,18 @@ public:
 		}
 	}
 
-	// 名前で使用されているフラグのパス。
+	/// 名前で使用されている状態変数のパス。
 	@property
 	const
 	string[] flagsInText() { return _name.flagsInText; }
-	// 名前で使用されているステップのパス。
+	/// ditto
 	@property
 	const
 	string[] stepsInText() { return _name.stepsInText; }
+	/// ditto
+	@property
+	const
+	string[] variantsInText() { return _name.variantsInText; }
 
 	/// 説明。
 	@property

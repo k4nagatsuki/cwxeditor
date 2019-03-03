@@ -16,6 +16,8 @@ template ToID(ID) {
 		alias toFlagId ToID;
 	} else static if (is(ID:StepId)) {
 		alias toStepId ToID;
+	} else static if (is(ID:VariantId)) {
+		alias toVariantId ToID;
 	} else static if (is(ID:CouponId)) {
 		alias toCouponId ToID;
 	} else static if (is(ID:GossipId)) {
@@ -160,6 +162,8 @@ alias TChgCallback!(BattleId) ChgBattleCallback;
 alias TChgCallback!(FlagId) ChgFlagCallback;
 /// ditto
 alias TChgCallback!(StepId) ChgStepCallback;
+/// ditto
+alias TChgCallback!(VariantId) ChgVariantCallback;
 /// ditto
 alias TChgCallback!(PathId) ChgPathCallback;
 /// ditto
@@ -459,6 +463,130 @@ public:
 			}
 		}
 		_step = cast(string) newVal;
+		return true;
+	}
+
+	mixin CWXFuncs;
+}
+
+/// コモンのID。
+struct VariantId {
+	private string id;
+	static VariantId opCall(string id) {
+		VariantId r;
+		r.id = id;
+		return r;
+	}
+	const
+	@safe
+	nothrow
+	string opCast() {
+		return id;
+	}
+	const
+	@safe
+	nothrow
+	hash_t toHash() {
+		hash_t hash = 0;
+		foreach (c; id) {
+			hash = (hash * 9) + c;
+		}
+		return hash;
+	}
+	const
+	bool opEquals(ref const(VariantId) s) { mixin(S_TRACE);
+		return cmp(id, s.id) == 0;
+	}
+	const
+	int opCmp(ref const(VariantId) s) { mixin(S_TRACE);
+		return cmp(this.id, s.id);
+	}
+	const
+	string toString() { mixin(S_TRACE);
+		return id;
+	}
+}
+/// 文字列をコモンIDに変換。
+VariantId toVariantId(string id) { return VariantId(id); }
+/// コモンの使用者。
+interface IVariantUser : User!(VariantId) {
+}
+/// コモンを使用するクラスの雛形。
+/// 継承か委譲により、コモンの使用者を容易に実装できる。
+class VariantUser : IVariantUser {
+private:
+	UseCounter _uc;
+	string _variant;
+	IVariantUser _cwxPath;
+public:
+	/// パスを示すオブジェクトを指定してインスタンスを生成。
+	this (IVariantUser cwxPath) { _cwxPath = cwxPath; }
+	/// このオブジェクトの所有者。
+	@property
+	inout
+	inout(IVariantUser) owner() { return _cwxPath; }
+
+	/// IDを設定する。
+	/// 所有者がChgVariantCallbackであればコールバックが行われる。
+	@property
+	void id(VariantId newVal) { mixin(S_TRACE);
+		if (cast(ChgVariantCallback)_cwxPath) { mixin(S_TRACE);
+			if (!(cast(ChgVariantCallback)_cwxPath).changeCallback(toVariantId(_variant), newVal)) { mixin(S_TRACE);
+				return;
+			}
+		}
+		variant = newVal.id;
+	}
+
+	/// コモンを設定する。
+	/// Params:
+	/// variant = コモン。
+	@property
+	void variant(string variant) { mixin(S_TRACE);
+		if (_variant != variant) changed();
+		if (_uc !is null) { mixin(S_TRACE);
+			if (_variant !is null) _uc.variant.remove(toVariantId(_variant), this);
+			if (variant !is null) _uc.variant.add(toVariantId(variant), this);
+		}
+		_variant = variant;
+	}
+
+	/// Returns: コモン。
+	@property
+	const
+	string variant() { mixin(S_TRACE);
+		return _variant;
+	}
+
+	/// 使用回数カウンタ。
+	@property
+	UseCounter useCounter() { return _uc; }
+	/// 使用回数カウンタを登録・除去する。
+	@property
+	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+		if (uc && _variant) { mixin(S_TRACE);
+			uc.variant.add(toVariantId(_variant), this);
+		}
+		if (_uc && _variant) { mixin(S_TRACE);
+			_uc.variant.remove(toVariantId(_variant), this);
+		}
+		_uc = uc;
+	}
+	/// ditto
+	void removeUseCounter() { mixin(S_TRACE);
+		if (_uc && _variant !is null) { mixin(S_TRACE);
+			_uc.variant.remove(toVariantId(_variant), this);
+		}
+		_uc = null;
+	}
+	override bool change(VariantId newVal) { mixin(S_TRACE);
+		if (_variant != cast(string)newVal) changed();
+		if (cast(ChgVariantCallback)_cwxPath) { mixin(S_TRACE);
+			if (!(cast(ChgVariantCallback)_cwxPath).changeCallback(toVariantId(_variant), newVal)) { mixin(S_TRACE);
+				return false;
+			}
+		}
+		_variant = cast(string) newVal;
 		return true;
 	}
 
@@ -1843,6 +1971,7 @@ class UseCounter {
 private:
 	UCCont!(FlagId, FlagUser) _flag;
 	UCCont!(StepId, StepUser) _step;
+	UCCont!(VariantId, VariantUser) _variant;
 	UCCont!(AreaId, AreaUser) _area;
 	UCCont!(BattleId, BattleUser) _battle;
 	UCCont!(PackageId, PackageUser) _package;
@@ -1867,6 +1996,7 @@ public:
 	private this (bool useChild) { mixin(S_TRACE);
 		_flag = new UCCont!(FlagId, FlagUser);
 		_step = new UCCont!(StepId, StepUser);
+		_variant = new UCCont!(VariantId, VariantUser);
 		_area = new UCCont!(AreaId, AreaUser);
 		_battle = new UCCont!(BattleId, BattleUser);
 		_package = new UCCont!(PackageId, PackageUser);
@@ -1898,6 +2028,9 @@ public:
 	/// ditto
 	@property
 	UCCont!(StepId, StepUser) step() { return _step; }
+	/// ditto
+	@property
+	UCCont!(VariantId, VariantUser) variant() { return _variant; }
 	/// ditto
 	@property
 	UCCont!(AreaId, AreaUser) area() { return _area; }
@@ -1950,6 +2083,8 @@ public:
 			flag.change(oldId, newId, dup);
 		} else static if (is(T == StepId)) {
 			step.change(oldId, newId, dup);
+		} else static if (is(T == VariantId)) {
+			variant.change(oldId, newId, dup);
 		} else static if (is(T == AreaId)) {
 			area.change(oldId, newId, dup);
 		} else static if (is(T == BattleId)) {
@@ -1992,6 +2127,8 @@ public:
 			return _flag.get(id);
 		} else static if (is(T:StepId)) {
 			return _step.get(id);
+		} else static if (is(T:VariantId)) {
+			return _variant.get(id);
 		} else static if (is(T:AreaId)) {
 			return _area.get(id);
 		} else static if (is(T:BattleId)) {
@@ -2033,6 +2170,9 @@ public:
 	@property
 	const
 	StepUser[] values(StepId id) { return _step.values(id); } /// ditto
+	@property
+	const
+	VariantUser[] values(VariantId id) { return _variant.values(id); } /// ditto
 	@property
 	const
 	AreaUser[] values(AreaId id) { return _area.values(id); } /// ditto
@@ -2085,6 +2225,9 @@ public:
 	@property
 	inout
 	inout(HashSet!StepUser) valueSet(StepId id) { return _step.valueSet(id); } /// ditto
+	@property
+	inout
+	inout(HashSet!VariantUser) valueSet(VariantId id) { return _variant.valueSet(id); } /// ditto
 	@property
 	inout
 	inout(HashSet!AreaUser) valueSet(AreaId id) { return _area.valueSet(id); } /// ditto

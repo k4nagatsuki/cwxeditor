@@ -3179,6 +3179,7 @@ public:
 				mixin (MenuAction!("mf", MenuID.NewFlagDir, SWT.PUSH, "_flagWin.createFlagDir", "&_flagWin.canCreateFlagDir"));
 				mixin (MenuAction!("mf", MenuID.NewFlag, SWT.PUSH, "_flagWin.createFlag", "&_flagWin.canCreateFlag"));
 				mixin (MenuAction!("mf", MenuID.NewStep, SWT.PUSH, "_flagWin.createStep", "&_flagWin.canCreateStep"));
+				mixin (MenuAction!("mf", MenuID.NewVariant, SWT.PUSH, "_flagWin.createVariant", "&_flagWin.canCreateVariant"));
 
 				auto mc = createMenu(_comm, bar, MenuID.Card);
 				setupMenuListener(mc);
@@ -3432,6 +3433,7 @@ public:
 						case MenuID.NewFlagDir: act = &_flagWin.createFlagDir; can = &_flagWin.canCreateFlagDir; break;
 						case MenuID.NewFlag: act = &_flagWin.createFlag; can = &_flagWin.canCreateFlag; break;
 						case MenuID.NewStep: act = &_flagWin.createStep; can = &_flagWin.canCreateStep; break;
+						case MenuID.NewVariant: act = &_flagWin.createVariant; can = &_flagWin.canCreateVariant; break;
 						case MenuID.ShowCardProp: actS = &showCardLife; can = null; style = SWT.RADIO; break;
 						case MenuID.ShowCardImage: actS = &showCardList; can = null; style = SWT.RADIO; break;
 						case MenuID.ShowCardDetail: actS = &showCardTable; can = null; style = SWT.RADIO; break;
@@ -3550,6 +3552,7 @@ public:
 						case MenuID.PutSPChar:
 						case MenuID.PutFlagValue:
 						case MenuID.PutStepValue:
+						case MenuID.PutVariantValue:
 						case MenuID.PutColor:
 						case MenuID.PutSkinSPChar:
 						case MenuID.PutImageFont:

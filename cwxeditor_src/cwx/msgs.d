@@ -255,6 +255,7 @@ class Msgs : Properties {
 	auto replIDInfo = Msg("replIDInfo", "情報カード");
 	auto replIDFlag = Msg("replIDFlag", "フラグ");
 	auto replIDStep = Msg("replIDStep", "ステップ");
+	auto replIDVariant = Msg("replIDVariant", "コモン");
 	auto replIDCoupon = Msg("replIDCoupon", "クーポン");
 	auto replIDGossip = Msg("replIDGossip", "ゴシップ");
 	auto replIDCompleteStamp = Msg("replIDCompleteStamp", "終了印");
@@ -268,6 +269,7 @@ class Msgs : Properties {
 	auto replUnuseTarget = Msg("replUnuseTarget", "検索対象");
 	auto replUnuseFlag = Msg("replUnuseFlag", "フラグ");
 	auto replUnuseStep = Msg("replUnuseStep", "ステップ");
+	auto replUnuseVariant = Msg("replUnuseVariant", "コモン");
 	auto replUnuseArea = Msg("replUnuseArea", "エリア");
 	auto replUnuseBattle = Msg("replUnuseBattle", "バトル");
 	auto replUnusePackage = Msg("replUnusePackage", "パッケージ");
@@ -332,6 +334,7 @@ class Msgs : Properties {
 
 	auto searchResultFlag = Msg("searchResultFlag", "フラグ「%1$s」");
 	auto searchResultStep = Msg("searchResultStep", "ステップ「%1$s」");
+	auto searchResultVariant = Msg("searchResultVariant", "コモン「%1$s」");
 	auto searchResultFlagDir = Msg("searchResultFlagDir", "ディレクトリ「%1$s」");
 	auto searchResultEventTree = Msg("searchResultEventTree", "イベントツリー「%1$s」");
 	auto searchResultMenuCard = Msg("searchResultMenuCard", "メニューカード「%1$s」");
@@ -349,6 +352,7 @@ class Msgs : Properties {
 	auto searchErrorStartAreaNotFound = Msg("searchErrorStartAreaNotFound", "開始エリアが設定されていません。");
 	auto searchErrorFlagNotFound = Msg("searchErrorFlagNotFound", "存在しないフラグ(%1$s)が指定されています。");
 	auto searchErrorStepNotFound = Msg("searchErrorStepNotFound", "存在しないステップ(%1$s)が指定されています");
+	auto searchErrorVariantNotFound = Msg("searchErrorVariantNotFound", "存在しないコモン(%1$s)が指定されています");
 	auto searchErrorDupNextContent = Msg("searchErrorDupNextContent", "分岐条件が重複しています。");
 	auto searchErrorSPFontIsNotSJIS1ByteChar = Msg("searchErrorSPFontIsNotSJIS1ByteChar", "「%1$s」は無効です。クラシックなシナリオの特殊フォント指定にはShift JISの1バイト文字しか使用できません。");
 	auto searchErrorSPFontNotFound = Msg("searchErrorSPFontNotFound", "特殊フォントイメージ(%1$s)が見つかりません。");
@@ -384,6 +388,7 @@ class Msgs : Properties {
 	auto searchErrorNoInfo = Msg("searchErrorNoInfo", "情報カードが指定されていません。");
 	auto searchErrorNoFlag = Msg("searchErrorNoFlag", "フラグが指定されていません。");
 	auto searchErrorNoStep = Msg("searchErrorNoStep", "ステップが指定されていません。");
+	auto searchErrorNoVariant = Msg("searchErrorNoVariant", "コモンが指定されていません。");
 	auto searchErrorNoSoundPath = Msg("searchErrorNoSoundPath", "効果音が指定されていません。");
 	auto searchErrorNoCoupon = Msg("searchErrorNoCoupon", "クーポンが指定されていません。");
 	auto searchErrorNoGossip = Msg("searchErrorNoGossip", "ゴシップが指定されていません。");
@@ -522,6 +527,7 @@ class Msgs : Properties {
 	auto playerCardName = Msg("playerCardName", "プレイヤーカード名%1$s($??Player%1$s$)"); // Wsn.2
 	auto addMsgRefFlag = Msg("addMsgRefFlag", "フラグ参照の追加");
 	auto addMsgRefStep = Msg("addMsgRefStep", "ステップ参照の追加");
+	auto addMsgRefVariant = Msg("addMsgRefVariant", "コモン参照の追加");
 	auto addMsgRefImageFont = Msg("addMsgRefImageFont", "画像参照の追加");
 	auto setTalkerCoupon = Msg("setTalkerCoupon", "追加");
 	auto messagePreview = Msg("messagePreview", "プレビュー(&P)");
@@ -556,6 +562,7 @@ class Msgs : Properties {
 	auto judgeTarget = Msg("judgeTarget", "判定対象");
 	auto flag = Msg("flag", "フラグ");
 	auto step = Msg("step", "ステップ");
+	auto variant = Msg("variant", "コモン");
 	auto flagValue = Msg("flagValue", "値");
 	auto stepValue = Msg("stepValue", "段階");
 	auto expandSPChars = Msg("expandSPChars", "特殊文字を展開する");
@@ -1337,7 +1344,6 @@ class Msgs : Properties {
 	auto dlgMsgDropBack = Msg("dlgMsgDropBack", "背景画像をシナリオ" ~ DIR ~ "にコピーしますか？\n%1$s");
 
 	auto refFlag = Msg("refFlag", "フラグ参照先");
-	auto refStep = Msg("refStep", "ステップ参照先");
 	auto noFlagRef = Msg("noFlagRef", "参照無し");
 	auto cardPosition = Msg("cardPosition", "カード位置");
 	auto backPosition = Msg("backPosition", "配置");
@@ -1874,6 +1880,8 @@ class Msgs : Properties {
 	auto noFlag = Msg("noFlag", "存在しないフラグ(パス:%1$s)");
 	auto noSelectStep = Msg("noSelectStep", "(指定無し)");
 	auto noStep = Msg("noStep", "存在しないステップ(パス:%1$s)");
+	auto noSelectVariant = Msg("noSelectVariant", "(指定無し)");
+	auto noVariant = Msg("noVariant", "存在しないコモン(パス:%1$s)");
 	auto noSelectStart = Msg("noSelectStart", "(指定無し)");
 	auto noStart = Msg("noStart", "存在しないスタートコンテント(パス:%1$s)");
 	auto noSelectCoupon = Msg("noSelectCoupon", "(指定無し)");
@@ -2103,6 +2111,7 @@ class Msgs : Properties {
 	auto warningConsumeCard = Msg("warningConsumeCard", "カード消費の抑止は、Wsn.3以降の形式のシナリオでしか機能しません。"); // Wsn.3
 	auto warningOverrideEnemyCardName = Msg("warningOverrideEnemyCardName", "エネミーカードの名前の上書きは、Wsn.4以降の形式のシナリオしか行えません。"); // Wsn.4
 	auto warningOverrideEnemyCardImage = Msg("warningOverrideEnemyCardImage", "エネミーカードのイメージの上書きは、Wsn.4以降の形式のシナリオしか行えません。"); // Wsn.4
+	auto warningVariant = Msg("warningVariant", "コモンはWsn.4以降の形式のシナリオでしか使用できません。"); // Wsn.4
 
 	auto unknownStepValue = Msg("unknownStepValue", "存在しないステップ値(%1$s)");
 
@@ -2625,10 +2634,12 @@ class Msgs : Properties {
 	auto menuTextNewFlagDir = Msg("menuTextNewFlagDir", "フォルダの作成");
 	auto menuTextNewFlag = Msg("menuTextNewFlag", "フラグの作成");
 	auto menuTextNewStep = Msg("menuTextNewStep", "ステップの作成");
+	auto menuTextNewVariant = Msg("menuTextNewVariant", "コモンの作成");
 	auto menuTextCreateStepValues = Msg("menuTextCreateStepValues", "ステップ値の自動生成");
 	auto menuTextPutSPChar = Msg("menuTextPutSPChar", "特殊文字の挿入");
 	auto menuTextPutFlagValue = Msg("menuTextPutFlagValue", "フラグ値");
 	auto menuTextPutStepValue = Msg("menuTextPutStepValue", "ステップ値");
+	auto menuTextPutVariantValue = Msg("menuTextPutVariantValue", "コモン値");
 	auto menuTextPutColor = Msg("menuTextPutColor", "文字色");
 	auto menuTextPutSkinSPChar = Msg("menuTextPutSkinSPChar", "記号");
 	auto menuTextPutImageFont = Msg("menuTextPutImageFont", "画像参照");

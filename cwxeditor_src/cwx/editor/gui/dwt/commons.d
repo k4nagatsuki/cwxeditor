@@ -364,8 +364,8 @@ class Commons {
 	Dlg!(InfoCard) delInfo;
 	Dlg!(FlagDir[]) refFlagDir;
 	Dlg!(FlagDir[]) delFlagDir;
-	Dlg!(cwx.flag.Flag[], Step[]) refFlagAndStep;
-	Dlg!(cwx.flag.Flag[], Step[]) delFlagAndStep;
+	Dlg!(cwx.flag.Flag[], Step[], cwx.flag.Variant[]) refFlagAndStep;
+	Dlg!(cwx.flag.Flag[], Step[], cwx.flag.Variant[]) delFlagAndStep;
 	Dlg!() replText;
 	Dlg!() replID;
 	Dlg!() refIgnorePaths;
@@ -439,12 +439,14 @@ class Commons {
 
 	bool[string] flagDirExpanded;
 	bool[string] stepDirExpanded;
+	bool[string] variantDirExpanded;
 	bool[string] flagAreaExpanded;
 	bool[string] flagBattleExpanded;
 	bool[string] flagPackageExpanded;
 	void clearExpanded() { mixin(S_TRACE);
 		flagDirExpanded = null;
 		stepDirExpanded = null;
+		variantDirExpanded = null;
 		flagAreaExpanded = null;
 		flagBattleExpanded = null;
 		flagPackageExpanded = null;
@@ -464,11 +466,13 @@ class Commons {
 		}
 		refScenario.add(&clearFlagDirExpandedS);
 		refScenario.add(&clearStepDirExpandedS);
+		refScenario.add(&clearVariantDirExpandedS);
 		refScenario.add(&clearAreaDirExpandedS);
 		refScenario.add(&clearBattleDirExpandedS);
 		refScenario.add(&clearPackageDirExpandedS);
 		refVarSelectStyle.add(&clearFlagDirExpanded);
 		refVarSelectStyle.add(&clearStepDirExpanded);
+		refVarSelectStyle.add(&clearVariantDirExpanded);
 		refVarSelectStyle.add(&clearAreaDirExpanded);
 		refVarSelectStyle.add(&clearBattleDirExpanded);
 		refVarSelectStyle.add(&clearPackageDirExpanded);
@@ -478,6 +482,8 @@ class Commons {
 	private void clearFlagDirExpanded() { flagDirExpanded = null; }
 	private void clearStepDirExpandedS(Summary summ) { stepDirExpanded = null; }
 	private void clearStepDirExpanded() { stepDirExpanded = null; }
+	private void clearVariantDirExpandedS(Summary summ) { variantDirExpanded = null; }
+	private void clearVariantDirExpanded() { variantDirExpanded = null; }
 	private void clearAreaDirExpandedS(Summary summ) { flagDirExpanded = null; }
 	private void clearAreaDirExpanded() { flagDirExpanded = null; }
 	private void clearBattleDirExpandedS(Summary summ) { flagDirExpanded = null; }
@@ -493,11 +499,13 @@ class Commons {
 		if (_wallpaper) _wallpaper.dispose();
 		refScenario.remove(&clearFlagDirExpandedS);
 		refScenario.remove(&clearStepDirExpandedS);
+		refScenario.remove(&clearVariantDirExpandedS);
 		refScenario.remove(&clearAreaDirExpandedS);
 		refScenario.remove(&clearBattleDirExpandedS);
 		refScenario.remove(&clearPackageDirExpandedS);
 		refVarSelectStyle.remove(&clearFlagDirExpanded);
 		refVarSelectStyle.remove(&clearStepDirExpanded);
+		refVarSelectStyle.remove(&clearVariantDirExpanded);
 		refVarSelectStyle.remove(&clearAreaDirExpanded);
 		refVarSelectStyle.remove(&clearBattleDirExpanded);
 		refVarSelectStyle.remove(&clearPackageDirExpanded);
@@ -1269,8 +1277,8 @@ class Commons {
 			}
 			_dirWin.refresh();
 		}
-		if (result.flags.length || result.steps.length) {
-			openFlagWin(false).addFlagsAndSteps(result.flags, result.steps);
+		if (result.flags.length || result.steps.length || result.variants.length) {
+			openFlagWin(false).addFlagsAndSteps(result.flags, result.steps, result.variants);
 		}
 		if (result.casts.length) openCastWin(false).addCards(std.algorithm.sort!("a.id < b.id")(result.casts.values).array().to!(Card[]));
 		if (result.skills.length) openSkillWin(false).addCards(std.algorithm.sort!("a.id < b.id")(result.skills.values).array().to!(Card[]));

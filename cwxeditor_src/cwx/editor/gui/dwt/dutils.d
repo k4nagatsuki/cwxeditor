@@ -1093,7 +1093,7 @@ public:
 					editEnd(_editor.getItem(), editC, c);
 				}
 			}
-			auto spinner = cast(Spinner) c;
+			auto spinner = cast(Spinner)c;
 			if (spinner) set(spinner.getText());
 			auto text = cast(Text)c;
 			if (text) set(text.getText());
@@ -3105,6 +3105,8 @@ string objName(A)(in Props prop) { mixin(S_TRACE);
 		return prop.msgs.flag;
 	} else static if (is(A : Step)) {
 		return prop.msgs.step;
+	} else static if (is(A : cwx.flag.Variant)) {
+		return prop.msgs.variant;
 	} else static assert (0);
 }
 
@@ -3129,6 +3131,8 @@ string objNameFrom(in Props prop, in CWXPath path) { mixin(S_TRACE);
 		return prop.msgs.flag;
 	} else if (cast(Step)path) { mixin(S_TRACE);
 		return prop.msgs.step;
+	} else if (cast(cwx.flag.Variant)path) { mixin(S_TRACE);
+		return prop.msgs.variant;
 	} else assert (0);
 }
 
@@ -3148,6 +3152,7 @@ enum CIDKind {
 	SE,
 	Flag,
 	Step,
+	Variant,
 	Start,
 }
 string contentTextUseID(CIDKind Kind, ID)(Commons comm, Summary summ, ID id, string msg, in Content evt) { mixin(S_TRACE);
@@ -3333,6 +3338,12 @@ string contentTextUseID(CIDKind Kind, ID)(Commons comm, Summary summ, ID id, str
 		noSelect = comm.prop.msgs.noSelectStep;
 		noID = comm.prop.msgs.noStep;
 		find = () => summ && summ.flagDirRoot.findStep(id) !is null;
+		use = id && id.length;
+		name = id;
+	} else static if (CIDKind.Variant == Kind) { mixin(S_TRACE);
+		noSelect = comm.prop.msgs.noSelectVariant;
+		noID = comm.prop.msgs.noVariant;
+		find = () => summ && summ.flagDirRoot.findVariant(id) !is null;
 		use = id && id.length;
 		name = id;
 	} else static if (CIDKind.Start == Kind) { mixin(S_TRACE);
@@ -4358,6 +4369,11 @@ void getSymbols(Commons comm, Summary summ, CWXPath path, bool desc, out string 
 	if (ste) { mixin(S_TRACE);
 		img = prop.images.step;
 		text = .tryFormat(prop.msgs.searchResultStep, ste.path);
+	}
+	auto variant = cast(cwx.flag.Variant)path;
+	if (variant) { mixin(S_TRACE);
+		img = prop.images.variant;
+		text = .tryFormat(prop.msgs.searchResultVariant, variant.path);
 	}
 	auto fld = cast(FlagDir)path;
 	if (fld) { mixin(S_TRACE);

@@ -63,12 +63,22 @@ struct ImportStep {
 	const
 	string name() { return step.name; }
 }
+/// コモンをインポートするための情報。
+struct ImportVariant {
+	string path; /// 追加先のディレクトリパス。
+	Variant variant; /// コモン。
+	bool overwrite; /// 上書きする場合はtrue。
+	/// コモン名。
+	const
+	string name() { return variant.name; }
+}
 
 /// インポート結果。実際の配置をこの情報に基づいて行う。
 struct ImportResult {
 	ImportFile[] materials; /// 外部素材。
 	ImportFlag[][string] flags; /// 状態変数。
 	ImportStep[][string] steps; /// ditto
+	ImportVariant[][string] variants; /// ditto
 	CastCard[ulong] casts; /// キャストカード。
 	SkillCard[ulong] skills; /// 特殊技能カード。
 	ItemCard[ulong] items; /// アイテムカード。
@@ -261,6 +271,23 @@ ImportResult importResource(in CProps prop, Summary to, Summary from, in string[
 			if (!overwrite || opt.variables !is ImportTypeReference1.NoOverwrite) { mixin(S_TRACE);
 				auto dir = FlagDir.up(cast(string)path);
 				r.steps[dir] ~= ImportStep(dir, o, overwrite);
+			}
+		}
+	});
+	ref1(opt.variables, uc.variant, to.useCounter.variant, (VariantId path) { mixin(S_TRACE);
+		auto f = from.flagDirRoot.findVariant(cast(string)path);
+		if (!f) return;
+		auto o = new Variant(f);
+		if (opt.variables is ImportTypeReference1.Rename) { mixin(S_TRACE);
+			auto newPath = FlagDir.join(newFlagDir, cast(string)path);
+			auto dir = FlagDir.up(newPath);
+			r.variants[dir] ~= ImportVariant(dir, o, false);
+			uc.change(path, toVariantId(newPath));
+		} else { mixin(S_TRACE);
+			bool overwrite = to.flagDirRoot.getVariant(cast(string)path) !is null;
+			if (!overwrite || opt.variables !is ImportTypeReference1.NoOverwrite) { mixin(S_TRACE);
+				auto dir = FlagDir.up(cast(string)path);
+				r.variants[dir] ~= ImportVariant(dir, o, overwrite);
 			}
 		}
 	});

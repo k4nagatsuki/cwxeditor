@@ -55,6 +55,7 @@ import std.path;
 import std.typecons;
 import std.range;
 import std.file;
+import std.regex;
 
 import org.eclipse.swt.all;
 import java.lang.all;
@@ -122,10 +123,10 @@ class AbstractMessageDialog : EventDialog {
 		return ws;
 	}
 
-	private TextWarnings textWarnings(string text, in string[] flags, in string[] steps, in string[] fonts, in char[] colors,
-			ref bool[string] wFlags, ref bool[string] wSteps, ref bool[string] wFonts, ref bool[char] wColors) { mixin(S_TRACE);
+	private TextWarnings textWarnings(string text, in string[] flags, in string[] steps, in string[] variants, in string[] fonts, in char[] colors,
+			ref bool[string] wFlags, ref bool[string] wSteps, ref bool[string] wVariants, ref bool[string] wFonts, ref bool[char] wColors) { mixin(S_TRACE);
 		return .textWarnings(prop.parent, summSkin, summ, prop.var.etc.targetVersion,
-			text, flags, steps, fonts, colors, wFlags, wSteps, wFonts, wColors);
+			text, flags, steps, variants, fonts, colors, wFlags, wSteps, wVariants, wFonts, wColors);
 	}
 
 	private class SelPrev : SelectionAdapter {
@@ -375,7 +376,7 @@ class AbstractMessageDialog : EventDialog {
 		}
 		comm.refImageScale.add(&refImageScale);
 	}
-	private void refFlagAndStep(cwx.flag.Flag[] flags, Step[] steps) { refreshWarning(); }
+	private void refFlagAndStep(cwx.flag.Flag[] flags, Step[] steps, cwx.flag.Variant[] variants) { refreshWarning(); }
 	private void refPath(string o, string n, bool isDir) { refreshWarning(); }
 	private void refPaths(string parent) { refreshWarning(); }
 
@@ -522,12 +523,13 @@ private:
 
 		bool[string] wFlags;
 		bool[string] wSteps;
+		bool[string] wVariants;
 		bool[string] wFonts;
 		bool[char] wColors;
 		_dlgWarnings = [];
 		foreach (i, dlg; _dlgs) { mixin(S_TRACE);
-			auto dws = textWarnings(dlg.text, dlg.flagsInText, dlg.stepsInText, dlg.fontsInText, dlg.colorsInText,
-				wFlags, wSteps, wFonts, wColors);
+			auto dws = textWarnings(dlg.text, dlg.flagsInText, dlg.stepsInText, dlg.variantsInText, dlg.fontsInText, dlg.colorsInText,
+				wFlags, wSteps, wVariants, wFonts, wColors);
 			if (dws.all.length) { mixin(S_TRACE);
 				_dlgsL.getItem(cast(int)i).setImage(prop.images.warning);
 				_dlgWarnings ~= dws.all;
@@ -1277,15 +1279,17 @@ private:
 
 		bool[string] wFlags;
 		bool[string] wSteps;
+		bool[string] wVariants;
 		bool[string] wFonts;
 		bool[char] wColors;
 		string[] flags;
 		string[] steps;
+		string[] variants;
 		string[] fonts;
 		char[] colors;
-		textUseItems(lastRet(wrapReturnCode(_text.getText())), flags, steps, fonts, colors);
-		ws ~= textWarnings(_text.getText(), flags, steps, fonts, colors,
-			wFlags, wSteps, wFonts, wColors).all;
+		textUseItems(lastRet(wrapReturnCode(_text.getText())), flags, steps, variants, fonts, colors);
+		ws ~= textWarnings(_text.getText(), flags, steps, variants, fonts, colors,
+			wFlags, wSteps, wVariants, wFonts, wColors).all;
 
 		ws ~= warnings;
 
@@ -1795,15 +1799,17 @@ Composite createFlagStepBar(Composite parent, void delegate(string) insert, Comm
 		});
 		return comp;
 	}
-	Combo flags, steps, fonts = null;
-	Button putFlag, putStep, putFont = null;
-	IncSearch flagIncSearch, stepIncSearch, fontIncSearch = null;
+
+	Combo flags, steps, variants, fonts = null;
+	Button putFlag, putStep, putVariant, putFont = null;
+	IncSearch flagIncSearch, stepIncSearch, variantIncSearch, fontIncSearch = null;
 	Button imgListBtn = null;
 	auto varComp = new Composite(bar, SWT.NONE);
 	varComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-	varComp.setLayout(zeroMarginGridLayout(2, true));
+	varComp.setLayout(zeroMarginGridLayout(3, true));
 	create(varComp, flags, putFlag, prop.msgs.addMsgRefFlag, prop.images.flag, (s) => "%" ~ s ~ "%", 2).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 	create(varComp, steps, putStep, prop.msgs.addMsgRefStep, prop.images.step, (s) => "$" ~ s ~ "$", 2).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+	create(varComp, variants, putVariant, prop.msgs.addMsgRefVariant, prop.images.variant, (s) => "@" ~ s ~ "@", 2).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 	if (imageFont && summ) { mixin(S_TRACE);
 		auto comp = create(bar, fonts, putFont, prop.msgs.addMsgRefImageFont, prop.images.imageFont, (s) => .tryFormat("#%s", .decodeFontPath(s)), 3);
 		auto fgd = new GridData(GridData.FILL_HORIZONTAL);
@@ -1872,6 +1878,27 @@ Composite createFlagStepBar(Composite parent, void delegate(string) insert, Comm
 			putStep.setEnabled(false);
 		}
 	}
+	void refListV() { mixin(S_TRACE);
+		if (summ) { mixin(S_TRACE);
+			auto root = summ.flagDirRoot;
+			auto vSel = variants.getText();
+			variants.removeAll();
+			auto list = root.allVariants;
+			size_t i = 0;
+			.sortedWithPath(list, prop.var.etc.logicalSort, (cwx.flag.Variant variant) { mixin(S_TRACE);
+				auto p = variant.path;
+				if (!variantIncSearch.match(p)) return;
+				variants.add(p);
+				if (0 == i || p == vSel) variants.select(cast(int)i);
+				i++;
+			});
+			variants.setEnabled(list.length > 0);
+			putVariant.setEnabled(variants.getItemCount() > 0);
+		} else { mixin(S_TRACE);
+			variants.setEnabled(false);
+			putVariant.setEnabled(false);
+		}
+	}
 
 	flagIncSearch = createIncs(flags, &refListF, MenuID.OpenAtVarView, { mixin(S_TRACE);
 		if (!summ) return;
@@ -1895,13 +1922,26 @@ Composite createFlagStepBar(Composite parent, void delegate(string) insert, Comm
 			debugln(e);
 		}
 	}, &steps.isEnabled);
+	variantIncSearch = createIncs(variants, &refListV, MenuID.OpenAtVarView, { mixin(S_TRACE);
+		if (!summ) return;
+		auto variant = summ.flagDirRoot.findVariant(variants.getText());
+		if (!variant) return;
+		try { mixin(S_TRACE);
+			comm.openCWXPath(variant.cwxPath(true), false);
+		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
+		}
+	}, &variants.isEnabled);
 
 	refListF();
 	refListS();
+	refListV();
 
-	void refFlagAndStep(cwx.flag.Flag[] flags, Step[] steps) { mixin(S_TRACE);
-		refListF();
-		refListS();
+	void refFlagAndStep(cwx.flag.Flag[] flags, Step[] steps, cwx.flag.Variant[] variants) { mixin(S_TRACE);
+		if (flags.length) refListF();
+		if (steps.length) refListS();
+		if (variants.length) refListV();
 	}
 	if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
 		comm.refFlagAndStep.add(&refFlagAndStep);
@@ -2215,6 +2255,11 @@ class PreviewValues : Composite {
 		Step step;
 		int select;
 	}
+	private static class VariantData {
+		cwx.flag.Variant variant;
+		VariantVal val;
+	}
+
 	private static class PlayerCardName {
 		uint number;
 		this (uint number) { this.number = number; }
@@ -2239,22 +2284,25 @@ class PreviewValues : Composite {
 		private string[char] _names;
 		private bool[string] _flags;
 		private int[string] _steps;
+		private VariantVal[string] _variants;
 		private uint _selectedPlayerCardNumber;
 		private string[] _playerCardName;
 		this () { mixin(S_TRACE);
-			getValues2(_names, _flags, _steps, _selectedPlayerCardNumber, _playerCardName);
+			getValues2(_names, _flags, _steps, _variants, _selectedPlayerCardNumber, _playerCardName);
 		}
 		private void impl() { mixin(S_TRACE);
 			string[char] names;
 			bool[string] flags;
 			int[string] steps;
+			VariantVal[string] variants;
 			uint selectedPlayerCardNumber;
 			string[] playerCardName;
-			getValues2(names, flags, steps, selectedPlayerCardNumber, playerCardName);
-			setValues2(_names, _flags, _steps, _selectedPlayerCardNumber, _playerCardName);
+			getValues2(names, flags, steps, variants, selectedPlayerCardNumber, playerCardName);
+			setValues2(_names, _flags, _steps, _variants, _selectedPlayerCardNumber, _playerCardName);
 			_names = names;
 			_flags = flags;
 			_steps = steps;
+			_variants = variants;
 			_selectedPlayerCardNumber = selectedPlayerCardNumber;
 			_playerCardName = playerCardName;
 			raiseModEvent();
@@ -2348,6 +2396,7 @@ class PreviewValues : Composite {
 			_values.setTopIndex(topIndex);
 		}
 		int[string] pvs;
+		VariantVal[string] pvvs;
 		bool[string] selPaths;
 
 		if (_targetChars.length < _values.getItemCount()) { mixin(S_TRACE);
@@ -2360,6 +2409,9 @@ class PreviewValues : Composite {
 					key = .toLower(itm.getText(0));
 				} else if (auto s = cast(StepData)o) { mixin(S_TRACE);
 					pvs[key] = s.select;
+					key = .toLower(itm.getText(0));
+				} else if (auto v = cast(VariantData)o) { mixin(S_TRACE);
+					pvvs[key] = v.val;
 					key = .toLower(itm.getText(0));
 				} else if (o is SELECTED_PLAYER_NUMBER) { mixin(S_TRACE);
 					key = _prop.sys.selectedPlayerCardNumber;
@@ -2398,26 +2450,21 @@ class PreviewValues : Composite {
 			}
 		}
 		if (_summ) { mixin(S_TRACE);
-			.sortedWithPath(_summ.flagDirRoot.allFlags, _prop.var.etc.logicalSort, (cwx.flag.Flag f) { mixin(S_TRACE);
+			.sortedWithPath(_summ.flagDirRoot.allVariants, _prop.var.etc.logicalSort, (cwx.flag.Variant f) { mixin(S_TRACE);
 				auto itm = new TableItem(_values, SWT.NONE);
 				auto path = f.path;
-				itm.setImage(0, _prop.images.flag);
+				itm.setImage(0, _prop.images.variant);
 				itm.setText(0, path);
-				itm.setText(1, f.onOff ? f.on : f.off);
-				auto d = new FlagData;
+				itm.setText(1, .variantValueToText(f));
+				auto d = new VariantData;
 				itm.setData(d);
-				d.flag = f;
-				d.onOff = f.onOff;
+				d.variant = f;
+				d.val = VariantVal(f);
 				string lpath = .toLower(path);
-				auto p = lpath in pvs;
+				auto p = lpath in pvvs;
 				if (p) { mixin(S_TRACE);
-					if (*p == 1) { mixin(S_TRACE);
-						itm.setText(1, f.on);
-						d.onOff = true;
-					} else if (*p == 0) { mixin(S_TRACE);
-						itm.setText(1, f.off);
-						d.onOff = false;
-					}
+					itm.setText(1, variantValueToText(*p));
+					d.val = *p;
 				}
 				if (lpath in selPaths) { mixin(S_TRACE);
 					_values.select(_values.getItemCount() - 1);
@@ -2445,9 +2492,34 @@ class PreviewValues : Composite {
 					_values.select(_values.getItemCount() - 1);
 				}
 			});
+			.sortedWithPath(_summ.flagDirRoot.allFlags, _prop.var.etc.logicalSort, (cwx.flag.Flag f) { mixin(S_TRACE);
+				auto itm = new TableItem(_values, SWT.NONE);
+				auto path = f.path;
+				itm.setImage(0, _prop.images.flag);
+				itm.setText(0, path);
+				itm.setText(1, f.onOff ? f.on : f.off);
+				auto d = new FlagData;
+				itm.setData(d);
+				d.flag = f;
+				d.onOff = f.onOff;
+				string lpath = .toLower(path);
+				auto p = lpath in pvs;
+				if (p) { mixin(S_TRACE);
+					if (*p == 1) { mixin(S_TRACE);
+						itm.setText(1, f.on);
+						d.onOff = true;
+					} else if (*p == 0) { mixin(S_TRACE);
+						itm.setText(1, f.off);
+						d.onOff = false;
+					}
+				}
+				if (lpath in selPaths) { mixin(S_TRACE);
+					_values.select(_values.getItemCount() - 1);
+				}
+			});
 		}
 	}
-	private void refFlagAndStep(cwx.flag.Flag[] flags, Step[] steps) { mixin(S_TRACE);
+	private void refFlagAndStep(cwx.flag.Flag[] flags, Step[] steps, cwx.flag.Variant[] variants) { mixin(S_TRACE);
 		_undo.reset();
 		refreshFlags();
 		raiseModEvent();
@@ -2462,6 +2534,13 @@ class PreviewValues : Composite {
 		}
 		if (auto sd = cast(StepData)o) { mixin(S_TRACE);
 			auto text = createComboEditor!Combo(_comm, _prop, itm.getParent(), sd.step.values, itm.getText(1));
+			text.addModifyListener(new Mod(itm));
+			return text;
+		}
+		if (auto vd = cast(VariantData)o) { mixin(S_TRACE);
+			// TODO: ツールチップで警告する
+			// TODO: ツールチップでガイドを出す
+			auto text = createTextEditor(_comm, _prop, itm.getParent(), itm.getText(1));
 			text.addModifyListener(new Mod(itm));
 			return text;
 		}
@@ -2492,7 +2571,16 @@ class PreviewValues : Composite {
 	private void editEnd(TableItem itm, int column, Control ctrl) { mixin(S_TRACE);
 		auto old = itm.getText(column);
 		if (auto text = cast(Text)ctrl) { mixin(S_TRACE);
-			itm.setText(column, text.getText());
+			auto o = itm.getData();
+			if (auto vd = cast(VariantData)o) { mixin(S_TRACE);
+				auto val = .variantValueFromText(text.getText());
+				if (val.valid) { mixin(S_TRACE);
+					vd.val = val;
+					itm.setText(column, .variantValueToText(val));
+				}
+			} else { mixin(S_TRACE);
+				itm.setText(column, text.getText());
+			}
 		} else if (auto text = cast(StyledText)ctrl) { mixin(S_TRACE);
 			itm.setText(column, text.getText());
 		} else if (auto combo = cast(Combo)ctrl) { mixin(S_TRACE);
@@ -2503,8 +2591,10 @@ class PreviewValues : Composite {
 		} else if (auto spn = cast(Spinner)ctrl) { mixin(S_TRACE);
 			itm.setText(column, .text(spn.getSelection()));
 		} else assert (0);
-		if (old != itm.getText()) raiseModEvent();
-		savePreviewValues();
+		if (old != itm.getText()) { mixin(S_TRACE);
+			raiseModEvent();
+			savePreviewValues();
+		}
 	}
 
 	private void raiseModEvent() { mixin(S_TRACE);
@@ -2575,12 +2665,12 @@ class PreviewValues : Composite {
 			}
 		}
 		if (_summ) { mixin(S_TRACE);
-			.sortedWithPath(_summ.flagDirRoot.allFlags, _prop.var.etc.logicalSort, (cwx.flag.Flag f) { mixin(S_TRACE);
+			.sortedWithPath(_summ.flagDirRoot.allVariants, _prop.var.etc.logicalSort, (cwx.flag.Variant f) { mixin(S_TRACE);
 				if (i in set) { mixin(S_TRACE);
 					auto itm = _values.getItem(i);
-					itm.setText(1, f.onOff ? f.on : f.off);
-					auto data = cast(FlagData)itm.getData();
-					data.onOff = f.onOff;
+					itm.setText(1, .variantValueToText(f));
+					auto data = cast(VariantData)itm.getData();
+					data.val = VariantVal(f);
 				}
 				i++;
 			});
@@ -2590,6 +2680,15 @@ class PreviewValues : Composite {
 					itm.setText(1, f.values[f.select]);
 					auto data = cast(StepData)itm.getData();
 					data.select = f.select;
+				}
+				i++;
+			});
+			.sortedWithPath(_summ.flagDirRoot.allFlags, _prop.var.etc.logicalSort, (cwx.flag.Flag f) { mixin(S_TRACE);
+				if (i in set) { mixin(S_TRACE);
+					auto itm = _values.getItem(i);
+					itm.setText(1, f.onOff ? f.on : f.off);
+					auto data = cast(FlagData)itm.getData();
+					data.onOff = f.onOff;
 				}
 				i++;
 			});
@@ -2660,13 +2759,13 @@ class PreviewValues : Composite {
 			}
 		}
 		if (_summ) { mixin(S_TRACE);
-			cwx.flag.Flag[] fs;
-			.sortedWithPath(_summ.flagDirRoot.allFlags, _prop.var.etc.logicalSort, (cwx.flag.Flag f) { fs ~= f; });
-			foreach (f; fs) { mixin(S_TRACE);
+			cwx.flag.Variant[] vs;
+			.sortedWithPath(_summ.flagDirRoot.allVariants, _prop.var.etc.logicalSort, (cwx.flag.Variant v) { vs ~= v; });
+			foreach (f; vs) { mixin(S_TRACE);
 				if (i in set) { mixin(S_TRACE);
 					auto itm = _values.getItem(i);
-					auto data = cast(FlagData)itm.getData();
-					if (data.onOff != f.onOff) return false;
+					auto data = cast(VariantData)itm.getData();
+					if (data.val != VariantVal(f)) return false;
 				}
 				i++;
 			}
@@ -2677,6 +2776,16 @@ class PreviewValues : Composite {
 					auto itm = _values.getItem(i);
 					auto data = cast(StepData)itm.getData();
 					if (data.select != f.select) return false;
+				}
+				i++;
+			}
+			cwx.flag.Flag[] fs;
+			.sortedWithPath(_summ.flagDirRoot.allFlags, _prop.var.etc.logicalSort, (cwx.flag.Flag f) { fs ~= f; });
+			foreach (f; fs) { mixin(S_TRACE);
+				if (i in set) { mixin(S_TRACE);
+					auto itm = _values.getItem(i);
+					auto data = cast(FlagData)itm.getData();
+					if (data.onOff != f.onOff) return false;
 				}
 				i++;
 			}
@@ -2724,6 +2833,7 @@ class PreviewValues : Composite {
 				auto itm = _values.getItem(i);
 				auto fd = cast(FlagData)itm.getData();
 				auto sd = cast(StepData)itm.getData();
+				auto vd = cast(VariantData)itm.getData();
 				try { mixin(S_TRACE);
 					if (fd) { mixin(S_TRACE);
 						fd.onOff = to!bool(line);
@@ -2733,6 +2843,12 @@ class PreviewValues : Composite {
 						if (0 <= value && value < sd.step.values.length) { mixin(S_TRACE);
 							sd.select = value;
 							itm.setText(1, sd.step.values[sd.select]);
+						}
+					} else if (vd) { mixin(S_TRACE);
+						auto val = .variantValueFromText(line);
+						if (val.valid) { mixin(S_TRACE);
+							vd.val = val;
+							itm.setText(1, .variantValueToText(val));
 						}
 					} else if (itm.getData() is SELECTED_PLAYER_NUMBER) { mixin(S_TRACE);
 						uint value;
@@ -2867,7 +2983,7 @@ class PreviewValues : Composite {
 	}
 
 	void getValues(out string[char] names, out VarValue[string] flags, out VarValue[string] steps,
-			out VarValue[string] sysSteps) { mixin(S_TRACE);
+			out VarValue[string] variants, out VarValue[string] sysSteps) { mixin(S_TRACE);
 		foreach (i; _targetChars) { mixin(S_TRACE);
 			names[C_TBL[cast(SPChar)i]] = _values.getItem(_indexTable[cast(SPChar)i]).getText(1);
 		}
@@ -2878,6 +2994,8 @@ class PreviewValues : Composite {
 				flags[itm.getText(0)] = VarValue(true, itm.getText(1), fd.flag.expandSPChars);
 			} else if (auto sd = cast(StepData)o) { mixin(S_TRACE);
 				steps[itm.getText(0)] = VarValue(true, itm.getText(1), sd.step.expandSPChars);
+			} else if (auto vd = cast(VariantData)o) { mixin(S_TRACE);
+				variants[itm.getText(0)] = VarValue(true, .variantValueToPreviewText(vd.val), false);
 			} else if (o is SELECTED_PLAYER_NUMBER) { mixin(S_TRACE);
 				sysSteps[_prop.sys.selectedPlayerCardNumber.toLower()] = VarValue(true, itm.getText(1), false);
 			} else if (auto pcnObj = cast(PlayerCardName)o) { mixin(S_TRACE);
@@ -2885,7 +3003,7 @@ class PreviewValues : Composite {
 			} else assert (0);
 		}
 	}
-	private void getValues2(out string[char] names, out bool[string] flags, out int[string] steps,
+	private void getValues2(out string[char] names, out bool[string] flags, out int[string] steps, out VariantVal[string] variants,
 			out uint selectedPlayerCardNumber, out string[] playerCardName) { mixin(S_TRACE);
 		foreach (i; _targetChars) { mixin(S_TRACE);
 			names[C_TBL[cast(SPChar)i]] = _values.getItem(_indexTable[cast(SPChar)i]).getText(1);
@@ -2897,6 +3015,8 @@ class PreviewValues : Composite {
 				flags[itm.getText(0)] = fd.onOff;
 			} else if (auto sd = cast(StepData)o) { mixin(S_TRACE);
 				steps[itm.getText(0)] = sd.select;
+			} else if (auto vd = cast(VariantData)o) { mixin(S_TRACE);
+				variants[itm.getText(0)] = vd.val;
 			} else if (o is SELECTED_PLAYER_NUMBER) { mixin(S_TRACE);
 				selectedPlayerCardNumber = .to!uint(itm.getText(1));
 			} else if (auto pcnObj = cast(PlayerCardName)o) { mixin(S_TRACE);
@@ -2904,7 +3024,7 @@ class PreviewValues : Composite {
 			} else assert (0);
 		}
 	}
-	private void setValues2(in string[char] names, in bool[string] flags, in int[string] steps,
+	private void setValues2(in string[char] names, in bool[string] flags, in int[string] steps, in VariantVal[string] variants,
 			uint selectedPlayerCardNumber, in string[] playerCardName) { mixin(S_TRACE);
 		foreach (i; _targetChars) { mixin(S_TRACE);
 			_values.getItem(_indexTable[cast(SPChar)i]).setText(1, names[C_TBL[cast(SPChar)i]]);
@@ -2926,6 +3046,13 @@ class PreviewValues : Composite {
 					sd.select = *p;
 					itm.setText(1, sd.step.values[sd.select]);
 				}
+			} else if (auto vd = cast(VariantData)o) { mixin(S_TRACE);
+				assert (vd !is null);
+				auto p = itm.getText(0) in variants;
+				if (p) { mixin(S_TRACE);
+					vd.val = *p;
+					itm.setText(1, .variantValueToText(*p));
+				}
 			} else if (o is SELECTED_PLAYER_NUMBER) { mixin(S_TRACE);
 				itm.setText(1, .text(selectedPlayerCardNumber));
 			} else if (auto pcnObj = cast(PlayerCardName)o) { mixin(S_TRACE);
@@ -2945,7 +3072,7 @@ class PreviewValues : Composite {
 
 void getPreviewValues(in Props prop, Summary summ, in SPChar[] targetChars,
 		out string[char] names, out VarValue[string] flags, out VarValue[string] steps,
-		out VarValue[string] sysSteps) { mixin(S_TRACE);
+		out VarValue[string] variants, out VarValue[string] sysSteps) { mixin(S_TRACE);
 	foreach (c; targetChars) { mixin(S_TRACE);
 		final switch (c) {
 		case SPChar.M:
@@ -2977,6 +3104,9 @@ void getPreviewValues(in Props prop, Summary summ, in SPChar[] targetChars,
 		});
 		.sortedWithPath(summ.flagDirRoot.allSteps, prop.var.etc.logicalSort, (Step f) { mixin(S_TRACE);
 			steps[f.path] = VarValue(true, f.value, f.expandSPChars);
+		});
+		.sortedWithPath(summ.flagDirRoot.allVariants, prop.var.etc.logicalSort, (cwx.flag.Variant f) { mixin(S_TRACE);
+			variants[f.path] = VarValue(true, .variantValueToPreviewText(f), false);
 		});
 	}
 	getPreviewSysSteps(prop, summ, sysSteps);
@@ -3130,10 +3260,10 @@ class MsgPreview : Composite {
 		}
 
 		string[char] names;
-		VarValue[string] flags, steps, sysSteps;
-		_values.getValues(names, flags, steps, sysSteps);
+		VarValue[string] flags, steps, variants, sysSteps;
+		_values.getValues(names, flags, steps, variants, sysSteps);
 		_img = new Image(d, previewMessage(_comm, _prop, _summ, tImg, pos, _message,
-			[], names, flags, steps, sysSteps, _centerX, _centerY, _boundaryCheck).scaled(_comm.prop.var.etc.imageScale));
+			[], names, flags, steps, variants, sysSteps, _centerX, _centerY, _boundaryCheck).scaled(_comm.prop.var.etc.imageScale));
 	}
 
 	@property
@@ -3147,8 +3277,8 @@ class MsgPreview : Composite {
 /// メッセージのプレビューを生成する。
 ImageDataWithScale previewMessage(Commons comm, Props prop, in Summary summ, ImageDataWithScale[] talkers,
 		CardImagePosition[] poses, string message, in string[] sel, in string[char] names,
-		in VarValue[string] flags, in VarValue[string] steps, in VarValue[string] sysSteps,
-		bool centerX, bool centerY, bool boundaryCheck) { mixin(S_TRACE);
+		in VarValue[string] flags, in VarValue[string] steps, in VarValue[string] variants,
+		in VarValue[string] sysSteps, bool centerX, bool centerY, bool boundaryCheck) { mixin(S_TRACE);
 	auto d = Display.getCurrent();
 	version (Windows) {
 		bool legacy = comm.skin.legacy;
@@ -3211,11 +3341,14 @@ ImageDataWithScale previewMessage(Commons comm, Props prop, in Summary summ, Ima
 		if (p) return *p;
 		return sysSteps.get(path.toLower(), VarValue(false));
 	}
+	VarValue vValue(string path) { mixin(S_TRACE);
+		return variants.get(path, VarValue(false));
+	}
 	version (Windows) {
 		message = wrapReturnCode(message);
 		message = message.replace("\r\n", "\n");
 	}
-	message = .formatMsg(message, &fValue, &sValue, delegate string (char name) { mixin(S_TRACE);
+	message = .formatMsg(message, &fValue, &sValue, &vValue, delegate string (char name) { mixin(S_TRACE);
 		auto dc = std.ascii.toUpper(name);
 		foreach (c, v; names) { mixin(S_TRACE);
 			if (std.ascii.toUpper(c) == dc) { mixin(S_TRACE);
@@ -3650,9 +3783,20 @@ void setupSPCharsMenu(Commons comm, Summary summ, Control ctrl, Menu parentMenu,
 		auto sMenu = new Menu(sMI);
 		sMI.setMenu(sMenu);
 		.listener(sMenu, SWT.Show, { mixin(S_TRACE);
-			foreach (mi; fMenu.getItems()) mi.dispose();
+			foreach (mi; sMenu.getItems()) mi.dispose();
 			.sortedWithPath(summ.flagDirRoot.allSteps, comm.prop.var.etc.logicalSort, (Step f) { mixin(S_TRACE);
 				.createMenuItem2(comm, sMenu, f.path, comm.prop.images.step, () => insert("$" ~ f.path ~ "$"), null);
+			});
+		});
+
+		// コモン
+		auto vMI = .createMenuItem(comm, menu, MenuID.PutVariantValue, dummy, &summ.flagDirRoot.hasVariant, SWT.CASCADE);
+		auto vMenu = new Menu(vMI);
+		vMI.setMenu(vMenu);
+		.listener(vMenu, SWT.Show, { mixin(S_TRACE);
+			foreach (mi; vMenu.getItems()) mi.dispose();
+			.sortedWithPath(summ.flagDirRoot.allVariants, comm.prop.var.etc.logicalSort, (cwx.flag.Variant f) { mixin(S_TRACE);
+				.createMenuItem2(comm, vMenu, f.path, comm.prop.images.variant, () => insert("@" ~ f.path ~ "@"), null);
 			});
 		});
 
@@ -3758,6 +3902,10 @@ string createSPCharPreview(in Commons comm, in Summary summ, string text, bool e
 		auto step = summ.flagDirRoot.findStep(path);
 		return step ? VarValue(true, step.value, step.expandSPChars) : sysSteps.get(path.toLower(), VarValue(false));
 	}
+	VarValue vValue(string path) { mixin(S_TRACE);
+		auto variant = summ.flagDirRoot.findVariant(path);
+		return variant ? VarValue(true, .variantValueToPreviewText(variant), false) : VarValue(false);
+	}
 	string getName(char name) { mixin(S_TRACE);
 		return .getSPCharPreviewValue(comm, name);
 	}
@@ -3771,7 +3919,7 @@ string createSPCharPreview(in Commons comm, in Summary summ, string text, bool e
 	}
 	string[size_t] rFonts;
 	char[size_t] rColors;
-	return .formatMsg(text, &fValue, &sValue, &getName, ver => comm.prop.isTargetVersion(summ, ver),
+	return .formatMsg(text, &fValue, &sValue, &vValue, &getName, ver => comm.prop.isTargetVersion(summ, ver),
 		comm.prop.sys.prefixSystemVarName, &hasMaterial, rFonts, rColors);
 }
 
@@ -3787,4 +3935,98 @@ private string getSPCharPreviewValue(in Commons comm, char name) { mixin(S_TRACE
 	case 'Y': return comm.prop.var.etc.messageVarYado;
 	default: return "";
 	}
+}
+
+struct VariantVal {
+	bool valid;
+	VariantType type;
+	double numVal;
+	string strVal;
+	bool boolVal;
+
+	this (bool valid) { mixin(S_TRACE);
+		this.valid = valid;
+	}
+	this (VariantType type) { mixin(S_TRACE);
+		this.valid = true;
+		this.type = type;
+	}
+	this (in cwx.flag.Variant v) { mixin(S_TRACE);
+		this.valid = true;
+		this.type = v.type;
+		this.numVal = v.numVal;
+		this.strVal = v.strVal;
+		this.boolVal = v.boolVal;
+	}
+}
+
+@property
+string variantValueToText(in cwx.flag.Variant v) { mixin(S_TRACE);
+	return variantValueToTextImpl(v.type, v.numVal, v.strVal, v.boolVal);
+}
+@property
+string variantValueToText(in VariantVal v) { mixin(S_TRACE);
+	return variantValueToTextImpl(v.type, v.numVal, v.strVal, v.boolVal);
+}
+private string variantValueToTextImpl(VariantType type, double numVal, string strVal, bool boolVal) { mixin(S_TRACE);
+	final switch (type) {
+	case VariantType.Number:
+		return .text(.format("%." ~ .text(cwx.flag.Variant.DECIMAL_PLACES) ~ "f", numVal).stripRight("0."));
+	case VariantType.String:
+		return `"%s"`.format(strVal.replace("\"", "\"\""));
+	case VariantType.Boolean:
+		return boolVal.text().toUpper();
+	}
+}
+@property
+string variantValueToPreviewText(in cwx.flag.Variant v) { mixin(S_TRACE);
+	return variantValueToPreviewTextImpl(v.type, v.numVal, v.strVal, v.boolVal);
+}
+@property
+string variantValueToPreviewText(in VariantVal v) { mixin(S_TRACE);
+	return variantValueToPreviewTextImpl(v.type, v.numVal, v.strVal, v.boolVal);
+}
+private string variantValueToPreviewTextImpl(VariantType type, double numVal, string strVal, bool boolVal) { mixin(S_TRACE);
+	final switch (type) {
+	case VariantType.Number:
+		return .format("%." ~ .text(cwx.flag.Variant.DECIMAL_PLACES) ~ "f", numVal).stripRight("0.");
+	case VariantType.String:
+		return strVal;
+	case VariantType.Boolean:
+		return boolVal.text().toUpper();
+	}
+}
+@property
+VariantVal variantValueFromText(string text) { mixin(S_TRACE);
+	static immutable NUM = .ctRegex!("^((\\+|-)?[0-9]+(\\.[0-9]+)?)$");
+	static immutable STR = .ctRegex!("^\"([^\"]|\"\")*\"$");
+	static immutable BOOL = .ctRegex!("^(true|false)$", "i");
+	if (auto m = .match(text, NUM)) { mixin(S_TRACE);
+		if (!m.empty) { mixin(S_TRACE);
+			try {
+				auto v = VariantVal(VariantType.Number);
+				v.numVal = .to!double(m.hit);
+				return v;
+			} catch (Exception e) {
+				printStackTrace();
+				debugln(e);
+				return VariantVal(false);
+			}
+		}
+	}
+	if (auto m = .match(text, STR)) { mixin(S_TRACE);
+		if (!m.empty) { mixin(S_TRACE);
+			auto v = VariantVal(VariantType.String);
+			v.strVal = m.hit[1 .. $ - 1].replace("\"\"", "\"");
+			return v;
+		}
+	}
+	if (auto m = .match(text, BOOL)) { mixin(S_TRACE);
+		if (!m.empty) { mixin(S_TRACE);
+			auto v = VariantVal(VariantType.Boolean);
+			v.boolVal = m.hit.toLower() == "true";
+			return v;
+		}
+	}
+	return VariantVal(false);
 }

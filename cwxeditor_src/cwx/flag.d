@@ -1,12 +1,13 @@
 
 module cwx.flag;
 
-import cwx.utils;
-import cwx.xml;
 import cwx.path;
-import cwx.usecounter;
 import cwx.system;
 import cwx.textholder;
+import cwx.types;
+import cwx.usecounter;
+import cwx.utils;
+import cwx.xml;
 
 import std.algorithm;
 import std.array;
@@ -33,13 +34,13 @@ public:
 }
 
 /// フラグとステップの集合をXMLにして返す。
-public string getXML(in FlagDir parent, in Flag[] flags, in Step[] steps) { mixin(S_TRACE);
+public string getXML(in FlagDir parent, in Flag[] flags, in Step[] steps, in Variant[] variants) { mixin(S_TRACE);
 	XNode node;
-	getNode(parent, flags, steps, node);
+	getNode(parent, flags, steps, variants, node);
 	return node.text;
 }
 /// ditto
-public void getNode(in FlagDir parent, in Flag[] flags, in Step[] steps, out XNode e) { mixin(S_TRACE);
+public void getNode(in FlagDir parent, in Flag[] flags, in Step[] steps, in Variant[] variants, out XNode e) { mixin(S_TRACE);
 	e = XNode.create(XML_ROOT_FLAGS_AND_STEPS);
 	auto _root = parent.root;
 	e.newAttr(XML_ATT_PATH, parent.path);
@@ -55,6 +56,12 @@ public void getNode(in FlagDir parent, in Flag[] flags, in Step[] steps, out XNo
 		assert (step.parent.root == _root);
 		assert (step.parent == parent);
 		step.toNode(se);
+	}
+	auto ve = e.newElement("Variants");
+	foreach (variant; variants) { mixin(S_TRACE);
+		assert (variant.parent.root == _root);
+		assert (variant.parent == parent);
+		variant.toNode(ve);
 	}
 }
 
@@ -82,6 +89,10 @@ private void toNode(ref XNode ret, FlagDir dir) { mixin(S_TRACE);
 	auto se = ret.newElement("Steps");
 	foreach (step; dir.steps) { mixin(S_TRACE);
 		step.toNode(se);
+	}
+	auto ve = ret.newElement("Variants");
+	foreach (variant; dir.variants) { mixin(S_TRACE);
+		variant.toNode(ve);
 	}
 	foreach (subdir; dir.subDirs) { mixin(S_TRACE);
 		auto e = ret.newElement(XML_ROOT_FLAG_DIRECTORY);
@@ -264,12 +275,15 @@ public:
 		}
 	}
 
-	// 値のテキスト内で使用されているフラグのパス。
+	/// 値のテキスト内で使用されている状態変数のパス。
 	const
 	string[] flagsInText(bool value) { return value ? _on.flagsInText : _off.flagsInText; }
-	// 値のテキスト内で使用されているステップのパス。
+	/// ditto
 	const
 	string[] stepsInText(bool value) { return value ? _on.stepsInText : _off.stepsInText; }
+	/// ditto
+	const
+	string[] variantsInText(bool value) { return value ? _on.variantsInText : _off.variantsInText; }
 
 	const
 	override int opCmp(Object o) { mixin(S_TRACE);
@@ -509,16 +523,19 @@ public:
 		}
 	}
 
-	// 値のテキスト内で使用されているフラグのパス。
+	/// 値のテキスト内で使用されている状態変数のパス。
 	const
 	string[] flagsInText(uint value) { return _vals[value].flagsInText; }
-	// 値のテキスト内で使用されているステップのパス。
+	/// ditto
 	const
 	string[] stepsInText(uint value) { return _vals[value].stepsInText; }
+	/// ditto
+	const
+	string[] variantsInText(uint value) { return _vals[value].variantsInText; }
 
 	const
 	override int opCmp(Object o) { mixin(S_TRACE);
-		return cmp(name, (cast(Step) o).name);
+		return cmp(name, (cast(Step)o).name);
 	}
 
 	/// ステップのフルパス。
@@ -598,6 +615,246 @@ public:
 	CWXPath cwxParent() { return _parent; }
 }
 
+/// コモン(Wsn.4)。
+public class Variant : CWXPath {
+private:
+	string _name;
+	VariantType _type;
+
+	double _numVal = 0.0;
+	string _strVal = "";
+	bool _boolVal = true;
+
+	FlagDir _parent;
+	void delegate() _change = null;
+	UseCounter _uc = null;
+public:
+	/// パスをIDに置換する。
+	alias toVariantId toID;
+
+	/// データとして書き出される小数点以下の桁数。
+	static immutable DECIMAL_PLACES = 8;
+
+	/// コピーコンストラクタ。
+	this (in Variant copyBase) { mixin(S_TRACE);
+		_name = copyBase.name;
+		_type = copyBase.type;
+		_numVal = copyBase.numVal;
+		_strVal = copyBase.strVal;
+		_boolVal = copyBase.boolVal;
+	}
+	/// コモン名、初期値を指定してインスタンスを生成。
+	this (string name, double numVal) { mixin(S_TRACE);
+		_name = FlagDir.validName(name);
+		_type = VariantType.Number;
+		_numVal = numVal;
+	}
+	/// ditto
+	this (string name, string strVal) { mixin(S_TRACE);
+		_name = FlagDir.validName(name);
+		_type = VariantType.String;
+		_strVal = strVal;
+	}
+	/// ditto
+	this (string name, bool boolVal) { mixin(S_TRACE);
+		_name = FlagDir.validName(name);
+		_type = VariantType.Boolean;
+		_boolVal = boolVal;
+	}
+
+	const
+	override
+	bool opEquals(Object o) {
+		return this is o;
+	}
+
+	/// stepのパラメータをコピーする。
+	void copyFrom(in Variant copyBase) { mixin(S_TRACE);
+		name = copyBase.name;
+		_type = copyBase.type;
+		_numVal = copyBase.numVal;
+		_strVal = copyBase.strVal;
+		_boolVal = copyBase.boolVal;
+	}
+	/// 親ディレクトリ。
+	@property
+	inout
+	inout(FlagDir) parent() { mixin(S_TRACE);
+		return _parent;
+	}
+	/// ditto
+	@property
+	private void parent(FlagDir parent) { mixin(S_TRACE);
+		assert (!parent || !parent.getVariant(name));
+		_parent = parent;
+	}
+	/// 最上位のディレクトリ。
+	@property
+	inout
+	inout(FlagDir) root() { mixin(S_TRACE);
+		return _parent.root;
+	}
+	/// 変更ハンドラを設定する。
+	@property
+	void changeHandler(void delegate() change) { mixin(S_TRACE);
+		_change = change;
+	}
+
+	/// コモン名。
+	@property
+	const
+	string name() { mixin(S_TRACE);
+		return _name;
+	}
+	/// ditto
+	@property
+	bool name(string name) { mixin(S_TRACE);
+		name = FlagDir.validName(name);
+		if (!_parent || _parent.canAppend!Variant(name)) { mixin(S_TRACE);
+			if (_name == name) return true;
+			changed();
+			if (_parent) { mixin(S_TRACE);
+				_parent._variantNames.remove(_name);
+				_parent._variantNames[name] = this;
+			}
+			_name = name;
+			return true;
+		}
+		return false;
+	}
+
+	/// 値を設定する。
+	@property
+	void value(double numVal) { mixin(S_TRACE);
+		if (_type !is VariantType.Number || _numVal != numVal) { mixin(S_TRACE);
+			changed();
+			_type = VariantType.Number;
+			_numVal = numVal;
+		}
+	}
+	/// ditto
+	@property
+	void value(string strVal) { mixin(S_TRACE);
+		if (_type !is VariantType.String || _strVal != strVal) { mixin(S_TRACE);
+			changed();
+			_type = VariantType.String;
+			_strVal = strVal;
+		}
+	}
+	/// ditto
+	@property
+	void value(bool boolVal) { mixin(S_TRACE);
+		if (_type !is VariantType.Boolean || _boolVal != boolVal) { mixin(S_TRACE);
+			changed();
+			_type = VariantType.Boolean;
+			_boolVal = boolVal;
+		}
+	}
+
+	/// 値の型。
+	@property
+	const
+	VariantType type() { return _type; }
+
+	/// 値。
+	@property
+	const
+	double numVal() { return _numVal; }
+	/// ditto
+	@property
+	const
+	string strVal() { return _strVal; }
+	/// ditto
+	@property
+	const
+	bool boolVal() { return _boolVal; }
+
+	const
+	override int opCmp(Object o) { mixin(S_TRACE);
+		return cmp(name, (cast(Variant)o).name);
+	}
+
+	/// フルパス。
+	@property
+	const
+	string path() { mixin(S_TRACE);
+		return _parent.path ~ _name;
+	}
+
+	protected override void changed() { mixin(S_TRACE);
+		if (_change) _change();
+	}
+
+	/// 使用回数カウンタ。
+	@property
+	void useCounter(UseCounter uc) { mixin(S_TRACE);
+		_uc = uc;
+	}
+
+	/// このステップをXMLテキストにする。
+	const
+	string toXml() { mixin(S_TRACE);
+		auto doc = XNode.create(XML_ROOT_FLAG_DIRECTORY);
+		toNode(doc);
+		return doc.text;
+	}
+	/// XMLノードからステップを生成する。
+	static Variant createFromNode(ref XNode ve, in XMLInfo ver) { mixin(S_TRACE);
+		string[] vals;
+		string name = null;
+		auto defType = toVariantType(ve.attr!string("defaulttype", true));
+		auto defValue = ve.attr!string("defaultvalue", true);
+		ve.onTag["Name"] = (ref XNode n) { name = FlagDir.basename(n.value); };
+		ve.parse();
+		if (!name) throw new FlagException("Variant name not found.");
+		Variant variant = null;
+		final switch (defType) {
+		case VariantType.Number:
+			variant = new Variant(name, .to!double(defValue));
+			break;
+		case VariantType.String:
+			variant = new Variant(name, defValue);
+			break;
+		case VariantType.Boolean:
+			variant = new Variant(name, .parseBool(defValue));
+			break;
+		}
+		return variant;
+	}
+	/// 指定されたXMLノードにこのステップのデータを追加する。
+	const
+	void toNode(ref XNode node) { mixin(S_TRACE);
+		auto e = node.newElement("Variant");
+		e.newAttr("defaulttype", .fromVariantType(type));
+		final switch (type) {
+		case VariantType.Number:
+			auto v = .format("%." ~ .text(DECIMAL_PLACES) ~ "f", numVal).stripRight("0.");
+			e.newAttr("defaultvalue", v);
+			break;
+		case VariantType.String:
+			e.newAttr("defaultvalue", strVal);
+			break;
+		case VariantType.Boolean:
+			e.newAttr("defaultvalue", .fromBool(boolVal));
+			break;
+		}
+		e.newElement("Name", path);
+	}
+	@property
+	override string cwxPath(bool id) { mixin(S_TRACE);
+		return .cpjoin(_parent, "variant", .cCountUntil!("a is b")(_parent.steps, this), id);
+	}
+	override CWXPath findCWXPath(string path) { mixin(S_TRACE);
+		if (.cpempty(path)) return this;
+		return null;
+	}
+	@property
+	inout
+	override inout(CWXPath)[] cwxChilds() { return []; }
+	@property
+	CWXPath cwxParent() { return _parent; }
+}
+
 /// フラグ/ステップ、及びサブディレクトリを格納するディレクトリ。
 public class FlagDir : CWXPath {
 private:
@@ -607,8 +864,10 @@ private:
 	FlagDir[] _subdir;
 	Flag[] _flags;
 	Step[] _steps;
+	Variant[] _variants;
 	Flag[string] _flagNames;
 	Step[string] _stepNames;
+	Variant[string] _variantNames;
 	FlagDir[string] _dirNames;
 	string _id;
 	void delegate() _change = null;
@@ -653,6 +912,9 @@ public:
 		foreach (s; copyBase.steps) { mixin(S_TRACE);
 			add(new Step(s));
 		}
+		foreach (s; copyBase.variants) { mixin(S_TRACE);
+			add(new Variant(s));
+		}
 	}
 	@property
 	override string cwxPath(bool id) { mixin(S_TRACE);
@@ -677,6 +939,11 @@ public:
 			if (index >= steps.length) return null;
 			return steps[index].findCWXPath(cpbottom(path));
 		}
+		case "variant": { mixin(S_TRACE);
+			auto index = cpindex(path);
+			if (index >= variants.length) return null;
+			return variants[index].findCWXPath(cpbottom(path));
+		}
 		case "dir": { mixin(S_TRACE);
 			auto index = cpindex(path);
 			if (index >= subDirs.length) return null;
@@ -692,6 +959,7 @@ public:
 		inout(CWXPath)[] r;
 		foreach (a; _flags) r ~= a;
 		foreach (a; _steps) r ~= a;
+		foreach (a; _variants) r ~= a;
 		foreach (a; _subdir) r ~= a;
 		return r;
 	}
@@ -720,6 +988,9 @@ public:
 		foreach (s; _steps) { mixin(S_TRACE);
 			s.changeHandler = change;
 		}
+		foreach (s; _variants) { mixin(S_TRACE);
+			s.changeHandler = change;
+		}
 		foreach (s; _subdir) { mixin(S_TRACE);
 			s.changeHandler = change;
 		}
@@ -739,6 +1010,9 @@ public:
 			f.useCounter = uc;
 		}
 		foreach (s; _steps) { mixin(S_TRACE);
+			s.useCounter = uc;
+		}
+		foreach (s; _variants) { mixin(S_TRACE);
 			s.useCounter = uc;
 		}
 		foreach (s; _subdir) { mixin(S_TRACE);
@@ -801,6 +1075,8 @@ public:
 			return _flagNames;
 		} else static if (is(F:Step)) { mixin(S_TRACE);
 			return _stepNames;
+		} else static if (is(F:Variant)) { mixin(S_TRACE);
+			return _variantNames;
 		} else static if (is(F:FlagDir)) { mixin(S_TRACE);
 			return _dirNames;
 		} else static assert (0);
@@ -810,13 +1086,7 @@ public:
 	/// 追加可能であればtrueを返す。
 	const
 	bool canAppend(F)(string name) { mixin(S_TRACE);
-		static if (is(F:Flag)) {
-			name = validName(name);
-			if (name.length == 0) { mixin(S_TRACE);
-				return false;
-			}
-			return (name in names!F) is null;
-		} else static if (is(F:Step)) {
+		static if (is(F:Flag) || is(F:Step) || is(F:Variant)) {
 			name = validName(name);
 			if (name.length == 0) { mixin(S_TRACE);
 				return false;
@@ -835,6 +1105,11 @@ public:
 	const
 	private bool canAppendStep(in Step f) { mixin(S_TRACE);
 		return canAppend!Step(f.name);
+	}
+	/// ditto
+	const
+	private bool canAppendVariant(in Variant f) { mixin(S_TRACE);
+		return canAppend!Variant(f.name);
 	}
 	/// ditto
 	const
@@ -893,7 +1168,7 @@ public:
 		}
 		return false;
 	}
-	/// フラグ・ステップ・サブディレクトリを追加する。
+	/// フラグ・ステップ・コモン・サブディレクトリを追加する。
 	/// 同一名称のリソースがすでに存在する場合は追加を行わずにfalseを返す。
 	/// ただしrenameがtrueの場合は名前を変更して追加する。
 	bool add(Flag flag, bool rename = false) { mixin(S_TRACE);
@@ -910,6 +1185,14 @@ public:
 	/// ditto
 	bool insert(ptrdiff_t index, Step step, bool rename = false) { mixin(S_TRACE);
 		return addImpl!(Step)(_steps, step, &canAppendStep, index, rename);
+	}
+	/// ditto
+	bool add(Variant variant, bool rename = false) { mixin(S_TRACE);
+		return addImpl!(Variant)(_variants, variant, &canAppendVariant, -1, rename);
+	}
+	/// ditto
+	bool insert(ptrdiff_t index, Variant variant, bool rename = false) { mixin(S_TRACE);
+		return addImpl!(Variant)(_variants, variant, &canAppendVariant, index, rename);
 	}
 	/// ditto
 	bool add(FlagDir sub, bool rename = false) { mixin(S_TRACE);
@@ -942,34 +1225,28 @@ public:
 		removeImpl(_steps, step);
 	}
 	/// ditto
+	void remove(Variant variant) { mixin(S_TRACE);
+		removeImpl(_variants, variant);
+	}
+	/// ditto
 	void remove(FlagDir dir) { mixin(S_TRACE);
 		removeImpl(_subdir, dir);
 	}
 	void removeAll() { mixin(S_TRACE);
-		foreach (e; _flags) {
-			e.parent = null;
-			e.changeHandler = null;
-			e.useCounter = null;
-			if (_change) _change();
+		void removeAllImpl(F)(ref F[] list, ref F[string] table) { mixin(S_TRACE);
+			foreach (e; list) {
+				e.parent = null;
+				e.changeHandler = null;
+				e.useCounter = null;
+				if (_change) _change();
+			}
+			list = [];
+			table = null;
 		}
-		_flags = [];
-		_flagNames = null;
-		foreach (e; _steps) {
-			e.parent = null;
-			e.changeHandler = null;
-			e.useCounter = null;
-			if (_change) _change();
-		}
-		_steps = [];
-		_stepNames = null;
-		foreach (e; _subdir) {
-			e.parent = null;
-			e.changeHandler = null;
-			e.useCounter = null;
-			if (_change) _change();
-		}
-		_subdir = [];
-		_dirNames = null;
+		removeAllImpl(_flags, _flagNames);
+		removeAllImpl(_steps, _stepNames);
+		removeAllImpl(_variants, _variantNames);
+		removeAllImpl(_subdir, _dirNames);
 	}
 
 	/// サブディレクトリ群。
@@ -990,6 +1267,12 @@ public:
 	inout(Step)[] steps() { mixin(S_TRACE);
 		return _steps;
 	}
+	/// コモン群。
+	@property
+	inout
+	inout(Variant)[] variants() { mixin(S_TRACE);
+		return _variants;
+	}
 	/// 指定された名前のフラグ・ステップ・サブディレクトリが存在すればtrue。
 	const
 	bool containsFlag(string name) { mixin(S_TRACE);
@@ -999,6 +1282,11 @@ public:
 	const
 	bool containsStep(string name) { mixin(S_TRACE);
 		return (name in _stepNames) !is null;
+	}
+	/// ditto
+	const
+	bool containsVariant(string name) { mixin(S_TRACE);
+		return (name in _variantNames) !is null;
 	}
 	/// ditto
 	const
@@ -1020,6 +1308,11 @@ public:
 	const
 	ptrdiff_t indexOf(in Step f) { mixin(S_TRACE);
 		return .cCountUntil!("a is b")(_steps, f);
+	}
+	/// ditto
+	const
+	ptrdiff_t indexOf(in Variant f) { mixin(S_TRACE);
+		return .cCountUntil!("a is b")(_variants, f);
 	}
 	/// ditto
 	const
@@ -1047,6 +1340,12 @@ public:
 	inout
 	inout(Step) getStep(string name) { mixin(S_TRACE);
 		auto p = name in _stepNames;
+		return p ? *p : null;
+	}
+	/// ditto
+	inout
+	inout(Variant) getVariant(string name) { mixin(S_TRACE);
+		auto p = name in _variantNames;
 		return p ? *p : null;
 	}
 	/// ditto
@@ -1086,6 +1385,19 @@ public:
 	/// ditto
 	@property
 	inout
+	inout(Variant)[] allVariants() { mixin(S_TRACE);
+		inout(Variant)[] r;
+		foreach (variant; _variants) { mixin(S_TRACE);
+			r ~= variant;
+		}
+		foreach (dir; _subdir) { mixin(S_TRACE);
+			r ~= dir.allVariants;
+		}
+		return r;
+	}
+	/// ditto
+	@property
+	inout
 	inout(FlagDir)[] allSubDirs() { mixin(S_TRACE);
 		inout(FlagDir)[] r;
 		foreach (dir; _subdir) { mixin(S_TRACE);
@@ -1115,6 +1427,16 @@ public:
 		}
 		return false;
 	}
+	/// ditto
+	@property
+	const
+	bool hasVariant() { mixin(S_TRACE);
+		if (_variants.length) return true;
+		foreach (dir; _subdir) { mixin(S_TRACE);
+			if (dir.hasVariant) return true;
+		}
+		return false;
+	}
 
 	/// このディレクトリのフルパスを返す。
 	@property
@@ -1137,6 +1459,8 @@ public:
 		toNodeFlags(fe);
 		auto se = e.newElement("Steps");
 		toNodeSteps(se);
+		auto ve = e.newElement("Variants");
+		toNodeVariants(ve);
 	}
 	private void toNodeFlags(ref XNode e) { mixin(S_TRACE);
 		foreach (flag; flags) { mixin(S_TRACE);
@@ -1151,6 +1475,14 @@ public:
 			step.toNode(e);
 			foreach (dir; _subdir) { mixin(S_TRACE);
 				dir.toNodeSteps(e);
+			}
+		}
+	}
+	private void toNodeVariants(ref XNode e) { mixin(S_TRACE);
+		foreach (variant; variants) { mixin(S_TRACE);
+			variant.toNode(e);
+			foreach (dir; _subdir) { mixin(S_TRACE);
+				dir.toNodeVariants(e);
 			}
 		}
 	}
@@ -1305,18 +1637,26 @@ public:
 		node.parse();
 		return ret;
 	}
-	private bool loadFlagAndSteps(ref XNode node, ref Flag[string] cFlags, ref Step[string] cSteps, bool copy, in XMLInfo ver) { mixin(S_TRACE);
+	private bool loadVariables(ref XNode node, ref Flag[string] cFlags, ref Step[string] cSteps, ref Variant[string] cVariants, bool copy, in XMLInfo ver) { mixin(S_TRACE);
+		void clearAll() { mixin(S_TRACE);
+			.removeAll(cFlags);
+			.removeAll(cSteps);
+			.removeAll(cVariants);
+		}
 		try { mixin(S_TRACE);
 			Flag[string] cFlags2;
 			if (!loadFS!("Flags", "Flag", Flag)(node, this, cFlags2, copy, ver)) { mixin(S_TRACE);
-				.removeAll(cFlags);
-				.removeAll(cSteps);
+				clearAll();
 				return false;
 			}
 			Step[string] cSteps2;
 			if (!loadFS!("Steps", "Step", Step)(node, this, cSteps2, copy, ver)) { mixin(S_TRACE);
-				.removeAll(cFlags);
-				.removeAll(cSteps);
+				clearAll();
+				return false;
+			}
+			Variant[string] cVariants2;
+			if (!loadFS!("Variants", "Variant", Variant)(node, this, cVariants2, copy, ver)) { mixin(S_TRACE);
+				clearAll();
 				return false;
 			}
 			foreach (k, v; cFlags2) { mixin(S_TRACE);
@@ -1335,16 +1675,23 @@ public:
 				assert (r, v.name);
 				cSteps[k] = v;
 			}
+			foreach (k, v; cVariants2) { mixin(S_TRACE);
+				if (copy && !canAppend!Variant(v.name)) { mixin(S_TRACE);
+					v.name = createNewVariantName(v.name, "");
+				}
+				auto r = this.add(v);
+				assert (r, v.name);
+				cVariants[k] = v;
+			}
 			return true;
 		} catch (Exception e) {
 			printStackTrace();
 			debugln(e);
-			.removeAll(cFlags);
-			.removeAll(cSteps);
+			clearAll();
 			return false;
 		}
 	}
-	private FlagDir loadSubs(ref XNode node, ref Flag[string] cFlags, ref Step[string] cSteps, bool copy, in XMLInfo ver) { mixin(S_TRACE);
+	private FlagDir loadSubs(ref XNode node, ref Flag[string] cFlags, ref Step[string] cSteps, ref Variant[string] cVariants, bool copy, in XMLInfo ver) { mixin(S_TRACE);
 		try { mixin(S_TRACE);
 			auto subName = basename(node.attr("path", true));
 			if (subName.length == 0) { mixin(S_TRACE);
@@ -1358,15 +1705,16 @@ public:
 				}
 			}
 			auto sub = new FlagDir(subName);
-			if (!sub.loadFlagAndSteps(node, cFlags, cSteps, false, ver)) { mixin(S_TRACE);
+			if (!sub.loadVariables(node, cFlags, cSteps, cVariants, false, ver)) { mixin(S_TRACE);
 				assert (cFlags.length == 0);
 				assert (cSteps.length == 0);
+				assert (cVariants.length == 0);
 				return null;
 			}
 			bool ret = true;
 			node.onTag["FlagDirectory"] = (ref XNode n) { mixin(S_TRACE);
 				if (!ret) return;
-				if (!sub.loadSubs(n, cFlags, cSteps, false, ver)) { mixin(S_TRACE);
+				if (!sub.loadSubs(n, cFlags, cSteps, cVariants, false, ver)) { mixin(S_TRACE);
 					ret = false;
 					return;
 				}
@@ -1382,6 +1730,7 @@ public:
 		}
 		.removeAll(cFlags);
 		.removeAll(cSteps);
+		.removeAll(cVariants);
 		return null;
 	}
 	private bool readAtt(in XNode node, out string rootId, out string path, out bool sameTree) { mixin(S_TRACE);
@@ -1411,13 +1760,15 @@ public:
 	/// newPath = AppendXmlResult.DIR_SUCCESSの場合、追加したディレクトリの新たなパスが格納される。
 	/// cFlags = 移動またはコピーしたフラグの旧パスをキーにして新たなフラグを格納する。
 	/// cSteps = 移動またはコピーしたステップの旧パスをキーにして新たなステップを格納する。
+	/// cVariants = 移動またはコピーしたコモンの旧パスをキーにして新たなコモンを格納する。
 	/// Returns: XMLからの追加を試みた結果。
-	/// See_Also: getXml(FlagDir, Flag[], Step[]), getXml(FlagDir)
+	/// See_Also: getXml(FlagDir, Flag[], Step[], Variant[]), getXml(FlagDir)
 	AppendXmlResult appendFromXML(string xml, in XMLInfo ver, bool copy, bool dirMode,
-			out Flag[string] cFlags, out Step[string] cSteps, out string newPath, out string rootId) { mixin(S_TRACE);
+			out Flag[string] cFlags, out Step[string] cSteps, out Variant[string] cVariants,
+			out string newPath, out string rootId) { mixin(S_TRACE);
 		try { mixin(S_TRACE);
 			auto doc = XNode.parse(xml);
-			return appendFromNode(doc, ver, copy, dirMode, cFlags, cSteps, newPath, rootId);
+			return appendFromNode(doc, ver, copy, dirMode, cFlags, cSteps, cVariants, newPath, rootId);
 		} catch (Exception e) {
 			printStackTrace();
 			debugln(e);
@@ -1426,7 +1777,8 @@ public:
 	}
 	/// ditto
 	AppendXmlResult appendFromNode(ref XNode doc, in XMLInfo ver, bool copy, bool dirMode,
-			out Flag[string] cFlags, out Step[string] cSteps, out string newPath, out string rootId) { mixin(S_TRACE);
+			out Flag[string] cFlags, out Step[string] cSteps, out Variant[string] cVariants,
+			out string newPath, out string rootId) { mixin(S_TRACE);
 		newPath = null;
 		rootId = "";
 		rootId = doc.attr(XML_ATT_ROOT_ID, false, "");
@@ -1449,22 +1801,29 @@ public:
 						};
 						node.parse();
 					};
+					doc.onTag["Variants"] = (ref XNode node) { mixin(S_TRACE);
+						doc.onTag["Variant"] = (ref XNode node) { mixin(S_TRACE);
+							add(getVariant(node.childText("Name", true)));
+						};
+						node.parse();
+					};
 					doc.parse();
 					return AppendXmlResult.FLAG_STEP_ON_DIR;
 				}
-				if (loadFlagAndSteps(doc, cFlags, cSteps, copy, ver)) { mixin(S_TRACE);
+				if (loadVariables(doc, cFlags, cSteps, cVariants, copy, ver)) { mixin(S_TRACE);
 					return AppendXmlResult.FLAG_STEP_SUCCESS;
 				}
 			}
 			return AppendXmlResult.FAIL;
 		}
 		if (dirMode && doc.name == XML_ROOT_FLAG_DIRECTORY) { mixin(S_TRACE);
-			return loadRootFlagDirectory(doc, ver, copy, cFlags, cSteps, newPath);
+			return loadRootFlagDirectory(doc, ver, copy, cFlags, cSteps, cVariants, newPath);
 		}
 		return AppendXmlResult.FAIL;
 	}
 	private AppendXmlResult loadRootFlagDirectory(ref XNode node, in XMLInfo ver, bool copy,
-			ref Flag[string] cFlags, ref Step[string] cSteps, out string newPath) { mixin(S_TRACE);
+			ref Flag[string] cFlags, ref Step[string] cSteps, ref Variant[string] cVariants,
+			out string newPath) { mixin(S_TRACE);
 		newPath = null;
 		string rootId;
 		string path;
@@ -1492,7 +1851,7 @@ public:
 					return AppendXmlResult.FAIL;
 				}
 			}
-			auto sub = loadSubs(node, cFlags, cSteps, copy, ver);
+			auto sub = loadSubs(node, cFlags, cSteps, cVariants, copy, ver);
 			if (sub) { mixin(S_TRACE);
 				newPath = sub.path;
 			}  else { mixin(S_TRACE);
@@ -1559,6 +1918,13 @@ public:
 		});
 	}
 	/// ditto
+	string createNewVariantName(string base, string oldName) { mixin(S_TRACE);
+		return .createNewName(validName(base), (string name) { mixin(S_TRACE);
+			if (oldName && oldName.length && oldName == name) return true;
+			return canAppend!Variant(name);
+		});
+	}
+	/// ditto
 	string createNewDirName(string base, string oldName) { mixin(S_TRACE);
 		return .createNewName(validName(base), (string name) { mixin(S_TRACE);
 			if (oldName && oldName.length && oldName == name) return true;
@@ -1571,6 +1937,8 @@ public:
 			return createNewFlagName(base, oldName);
 		} else static if (is(F:Step)) {
 			return createNewStepName(base, oldName);
+		} else static if (is(F:Variant)) {
+			return createNewVariantName(base, oldName);
 		} else static if (is(F:FlagDir)) {
 			return createNewDirName(base, oldName);
 		} else static assert (0);
@@ -1607,6 +1975,13 @@ public:
 		assert (value.length == n);
 	} body { mixin(S_TRACE);
 		return createNewNames!Step(base, n, oldNames);
+	}
+	/// ditto
+	string[] createNewVariantNames(string base, size_t n, in string[] oldNames)
+	out (value) { mixin(S_TRACE);
+		assert (value.length == n);
+	} body { mixin(S_TRACE);
+		return createNewNames!Variant(base, n, oldNames);
 	}
 	/// ditto
 	string[] createNewDirNames(string base, size_t n, in string[] oldNames)
@@ -1715,12 +2090,37 @@ public:
 		}
 		return null;
 	}
+	/// ditto
 	const
 	const(Step) findStep(string path) { mixin(S_TRACE);
 		if (path.length > 0) { mixin(S_TRACE);
 			auto dir = findPath(up(path));
 			if (dir !is null) { mixin(S_TRACE);
 				return dir.getStep(basename(path));
+			}
+		}
+		return null;
+	}
+	/// 指定されたパスのコモンを探して返す。
+	/// Params:
+	/// path = パス。
+	/// Returns: 見つかったコモン。見つからなかった場合はnull。
+	Variant findVariant(string path) { mixin(S_TRACE);
+		if (path.length > 0) { mixin(S_TRACE);
+			auto dir = findPath(up(path), false);
+			if (dir !is null) { mixin(S_TRACE);
+				return dir.getVariant(basename(path));
+			}
+		}
+		return null;
+	}
+	/// ditto
+	const
+	const(Variant) findVariant(string path) { mixin(S_TRACE);
+		if (path.length > 0) { mixin(S_TRACE);
+			auto dir = findPath(up(path));
+			if (dir !is null) { mixin(S_TRACE);
+				return dir.getVariant(basename(path));
 			}
 		}
 		return null;
@@ -1738,6 +2138,10 @@ public:
 		.sortedWithPath(cast(Step[])allSteps, logicalSort, (Step step) { mixin(S_TRACE);
 			step.toNode(se);
 		});
+		auto ve = node.newElement("Variants");
+		.sortedWithPath(cast(Variant[])allVariants, logicalSort, (Variant variant) { mixin(S_TRACE);
+			variant.toNode(ve);
+		});
 	}
 
 	/// XMLノードを元に、フラグディレクトリのツリーを生成して返す。
@@ -1752,6 +2156,9 @@ public:
 		};
 		node.onTag["Steps"] = (ref XNode node) { mixin(S_TRACE);
 			fromXmlNodeImpl!(Step)(node, root, "Step", &Step.createFromNode, ver);
+		};
+		node.onTag["Variants"] = (ref XNode node) { mixin(S_TRACE);
+			fromXmlNodeImpl!(Variant)(node, root, "Variant", &Variant.createFromNode, ver);
 		};
 		node.parse();
 		root.changeHandler = change;
@@ -1790,6 +2197,11 @@ public:
 		foreach (i, step; steps) { mixin(S_TRACE);
 			oldStepPaths[i] = step.path;
 		}
+		auto variants = allVariants;
+		auto oldVariantPaths = new string[variants.length];
+		foreach (i, variant; variants) { mixin(S_TRACE);
+			oldVariantPaths[i] = variant.path;
+		}
 		string p = this.path;
 		size_t plen = p.length;
 		if (!.endsWith(p, FlagDir.SEPARATOR.idup)) { mixin(S_TRACE);
@@ -1807,6 +2219,10 @@ public:
 		foreach (path; oldStepPaths) { mixin(S_TRACE);
 			auto newPath = FlagDir.join(p, path[plen .. $]);
 			uc.change(toStepId(path), toStepId(newPath));
+		}
+		foreach (path; oldVariantPaths) { mixin(S_TRACE);
+			auto newPath = FlagDir.join(p, path[plen .. $]);
+			uc.change(toVariantId(path), toVariantId(newPath));
 		}
 		return true;
 	}

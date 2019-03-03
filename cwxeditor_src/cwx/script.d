@@ -2913,11 +2913,14 @@ fi`;
 			if (detail.use(CArg.FLAG)) { mixin(S_TRACE);
 				c.flag = parseAttr!(string)(opt, node.attr, i, c.flag, varTable, 0);
 			}
-			if (detail.use(CArg.FLAG_2)) { mixin(S_TRACE);
-				c.flag2 = parseAttr!(string)(opt, node.attr, i, c.flag2, varTable, 0);
-			}
 			if (detail.use(CArg.STEP)) { mixin(S_TRACE);
 				c.step = parseAttr!(string)(opt, node.attr, i, c.step, varTable, 0);
+			}
+			if (detail.use(CArg.VARIANT)) { mixin(S_TRACE);
+				c.variant = parseAttr!(string)(opt, node.attr, i, c.variant, varTable, 0);
+			}
+			if (detail.use(CArg.FLAG_2)) { mixin(S_TRACE);
+				c.flag2 = parseAttr!(string)(opt, node.attr, i, c.flag2, varTable, 0);
 			}
 			if (detail.use(CArg.STEP_2)) { mixin(S_TRACE);
 				c.step2 = parseAttr!(string)(opt, node.attr, i, c.step2, varTable, 0);
@@ -3916,9 +3919,6 @@ fi`;
 					attrs ~= toAttr(c.flag, indentValue, vars);
 				}
 			}
-			if (detail.use(CArg.FLAG_2)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.flag2, indentValue, vars);
-			}
 			if (detail.use(CArg.STEP)) { mixin(S_TRACE);
 				if (_prop && _prop.sys.randomValue == c.step) { mixin(S_TRACE);
 					attrs ~= toAttr(Symbol("random"), indentValue, vars);
@@ -3927,6 +3927,12 @@ fi`;
 				} else { mixin(S_TRACE);
 					attrs ~= toAttr(c.step, indentValue, vars);
 				}
+			}
+			if (detail.use(CArg.VARIANT)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.variant, indentValue, vars);
+			}
+			if (detail.use(CArg.FLAG_2)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.flag2, indentValue, vars);
 			}
 			if (detail.use(CArg.STEP_2)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.step2, indentValue, vars);

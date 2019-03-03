@@ -168,7 +168,7 @@ public:
 
 	/// 外部から状態変数を追加する。
 	/// 重複するパスのものがあれば、上書きする。
-	void addFlagsAndSteps(ImportFlag[][string] flags, ImportStep[][string]steps) { mixin(S_TRACE);
+	void addFlagsAndSteps(ImportFlag[][string] flags, ImportStep[][string] steps, ImportVariant[][string] variants) { mixin(S_TRACE);
 		if (!flags.length && !steps.length) return;
 		_dirs.enterEdit();
 		_flags.enterEdit();
@@ -176,6 +176,7 @@ public:
 		storeAll();
 		Flag[] fr;
 		Step[] sr;
+		cwx.flag.Variant[] vr;
 		FlagDir lastDir = null;
 		foreach (path, fs; steps) { mixin(S_TRACE);
 			auto dir = _dirs.rootDir.findPath(path, true);
@@ -205,11 +206,26 @@ public:
 				}
 			}
 		}
+		foreach (path, fs; variants) { mixin(S_TRACE);
+			auto dir = _dirs.rootDir.findPath(path, true);
+			lastDir = dir;
+			foreach (f; fs) { mixin(S_TRACE);
+				auto f2 = dir.getVariant(f.variant.name);
+				if (f2) { mixin(S_TRACE);
+					f2.copyFrom(f.variant);
+					vr ~= f2;
+				} else { mixin(S_TRACE);
+					dir.add(f.variant);
+					vr ~= f.variant;
+				}
+			}
+		}
 		if (lastDir) { mixin(S_TRACE);
 			_dirs.refresh(lastDir.path);
 			_flags.deselectAll();
 			foreach (f; fr) _flags.select(f, false);
 			foreach (f; sr) _flags.select(f, false);
+			foreach (f; vr) _flags.select(f, false);
 		} else { mixin(S_TRACE);
 			_dirs.refresh();
 		}

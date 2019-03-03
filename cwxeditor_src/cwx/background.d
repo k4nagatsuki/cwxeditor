@@ -441,20 +441,29 @@ public:
 	override bool change(StepId id) { mixin(S_TRACE);
 		return _text.change(id);
 	}
+	override bool change(VariantId id) { mixin(S_TRACE);
+		return _text.change(id);
+	}
 
-	// テキスト内で使用されているフラグのパス。
+	/// テキスト内で使用されている状態変数のパス。
 	@property
 	const
 	override string[] flagsInText() { return _text.flagsInText; }
-	// テキスト内で使用されているステップのパス。
+	/// ditto
 	@property
 	const
 	override string[] stepsInText() { return _text.stepsInText; }
+	/// ditto
+	@property
+	const
+	override string[] variantsInText() { return _text.variantsInText; }
 
-	/// テキスト内のフラグ・ステップを置換する。
+	/// テキスト内の状態変数を置換する。
 	override void changeInText(size_t index, FlagId id) { _text.changeInText(index, id); }
 	/// ditto
 	override void changeInText(size_t index, StepId id) { _text.changeInText(index, id); }
+	/// ditto
+	override void changeInText(size_t index, VariantId id) { _text.changeInText(index, id); }
 
 	override
 	const

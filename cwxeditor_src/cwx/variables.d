@@ -563,6 +563,7 @@ class FlexEtcProps : Properties {
 
 	auto searchUnusedFlag = Prop!(bool)("searchUnusedFlag", true);
 	auto searchUnusedStep = Prop!(bool)("searchUnusedStep", true);
+	auto searchUnusedVariant = Prop!(bool)("searchUnusedVariant", true);
 	auto searchUnusedArea = Prop!(bool)("searchUnusedArea", true);
 	auto searchUnusedBattle = Prop!(bool)("searchUnusedBattle", true);
 	auto searchUnusedPackage = Prop!(bool)("searchUnusedPackage", true);

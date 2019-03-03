@@ -3583,8 +3583,8 @@ public:
 	private void refreshArea(Area c) { refreshCard(); }
 	private void refreshPackage(Package c) { refreshCard(); }
 	private void refreshBattle(Battle c) { refreshCard(); }
-	private void refreshFlagAndStep(cwx.flag.Flag[] flags, Step[] steps) { mixin(S_TRACE);
-		if (flags.length || steps.length) { mixin(S_TRACE);
+	private void refreshFlagAndStep(cwx.flag.Flag[] flags, Step[] steps, cwx.flag.Variant[] variants) { mixin(S_TRACE);
+		if (flags.length || steps.length || variants.length) { mixin(S_TRACE);
 			refreshCard();
 			if (_summ ? _prop.var.etc.showVariableValuesInEventText : showVariableValuesInEventText) { mixin(S_TRACE);
 				refreshEventText();
@@ -3768,10 +3768,11 @@ string eventText(Commons comm, Summary summ, Content parent, Content e, bool rea
 		if (prop.var.etc.showVariableValuesInEventText) { mixin(S_TRACE);
 			VarValue[string] flags;
 			VarValue[string] steps;
+			VarValue[string] variants;
 			VarValue[string] sysSteps;
 			string[char] names;
-			getPreviewValues(prop, summ, SPCHAR_TEXT, names, flags, steps, sysSteps);
-			return simpleFormatMsg(e.name, flags, steps, sysSteps, names, ver => comm.prop.isTargetVersion(summ, ver),
+			getPreviewValues(prop, summ, SPCHAR_TEXT, names, flags, steps, variants, sysSteps);
+			return simpleFormatMsg(e.name, flags, steps, variants, sysSteps, names, ver => comm.prop.isTargetVersion(summ, ver),
 				comm.prop.sys.prefixSystemVarName);
 		} else { mixin(S_TRACE);
 			return e.name;

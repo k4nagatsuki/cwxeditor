@@ -2179,7 +2179,7 @@ private:
 			_comm.delFlagAndStep.remove(&delFS);
 		}
 	}
-	void refFS(cwx.flag.Flag[] f, Step[] s) { mixin(S_TRACE);
+	void refFS(cwx.flag.Flag[] f, Step[] s, cwx.flag.Variant[] v) { mixin(S_TRACE);
 		static if (is(F : cwx.flag.Flag)) {
 			if (!f.length) return;
 		} else { mixin(S_TRACE);
@@ -2189,7 +2189,7 @@ private:
 		refreshValues();
 		_values.select(sel);
 	}
-	void delFS(cwx.flag.Flag[] f, Step[] s) { mixin(S_TRACE);
+	void delFS(cwx.flag.Flag[] f, Step[] s, cwx.flag.Variant[] v) { mixin(S_TRACE);
 		if (!_root) return;
 		static if (is(F : cwx.flag.Flag)) {
 			if (!f.length) return;
@@ -2438,7 +2438,7 @@ private:
 			_comm.delFlagAndStep.remove(&delFS);
 		}
 	}
-	void delFS(cwx.flag.Flag[] f, Step[] s) { mixin(S_TRACE);
+	void delFS(cwx.flag.Flag[] f, Step[] s, cwx.flag.Variant[] v) { mixin(S_TRACE);
 		if (!_root) return;
 		static if (is(F : cwx.flag.Flag)) {
 			if (!_root.allFlags.length) { mixin(S_TRACE);

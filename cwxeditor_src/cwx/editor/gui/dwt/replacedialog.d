@@ -310,6 +310,7 @@ private:
 
 	Button _unuseFlag;
 	Button _unuseStep;
+	Button _unuseVariant;
 	Button _unuseArea;
 	Button _unuseBattle;
 	Button _unusePackage;
@@ -531,17 +532,18 @@ private:
 	private static const ID_INFO = 7;
 	private static const ID_FLAG = 8;
 	private static const ID_STEP = 9;
-	private static const ID_COUPON = 10;
-	private static const ID_GOSSIP = 11;
-	private static const ID_COMPLETE_STAMP = 12;
-	private static const ID_KEY_CODE = 13;
-	private static const ID_CELL_NAME = 14;
-	private static const ID_CARD_GROUP = 15;
+	private static const ID_VARIANT = 10;
+	private static const ID_COUPON = 11;
+	private static const ID_GOSSIP = 12;
+	private static const ID_COMPLETE_STAMP = 13;
+	private static const ID_KEY_CODE = 14;
+	private static const ID_CELL_NAME = 15;
+	private static const ID_CARD_GROUP = 16;
 	private void setupIDsImpl2(T)(T[] arr, Combo combo, Spinner spn, ref ulong[int] tbl, bool clear, IncSearch incSearch) { mixin(S_TRACE);
 		ulong[int] tbl2;
 		string oldSel = clear ? "" : combo.getText();
 		combo.removeAll();
-		static if (is(T:cwx.flag.Flag) || is(T:Step)) {
+		static if (is(T:cwx.flag.Flag) || is(T:Step) || is(T:cwx.flag.Variant)) {
 			auto set = new HashSet!string;
 			if (_summ) { mixin(S_TRACE);
 				static if (is(T:cwx.flag.Flag)) {
@@ -555,6 +557,12 @@ private:
 					foreach (key; _summ.useCounter.step.keys) { mixin(S_TRACE);
 						if (.icmp(_prop.sys.randomValue, cast(string)key) == 0) continue;
 						if (.icmp(_prop.sys.selectedPlayerCardNumber, cast(string)key) == 0) continue;
+						_hasID = true;
+						if (!incSearch.match(cast(string)key)) continue;
+						set.add(cast(string)key);
+					}
+				} else static if (is(T:cwx.flag.Variant)) {
+					foreach (key; _summ.useCounter.variant.keys) { mixin(S_TRACE);
 						_hasID = true;
 						if (!incSearch.match(cast(string)key)) continue;
 						set.add(cast(string)key);
@@ -664,6 +672,11 @@ private:
 			.sortedWithPath(_summ.flagDirRoot.allSteps, _prop.var.etc.logicalSort, (Step f) { fs ~= f; });
 			setupIDsImpl1(fs, clear, from, to);
 			break;
+		case ID_VARIANT:
+			cwx.flag.Variant[] fs;
+			.sortedWithPath(_summ.flagDirRoot.allVariants, _prop.var.etc.logicalSort, (cwx.flag.Variant f) { fs ~= f; });
+			setupIDsImpl1(fs, clear, from, to);
+			break;
 		case ID_COUPON: setupIDsImpl1(_summ.useCounter.coupon.keys, clear, from, to); break;
 		case ID_GOSSIP: setupIDsImpl1(_summ.useCounter.gossip.keys, clear, from, to); break;
 		case ID_COMPLETE_STAMP: setupIDsImpl1(_summ.useCounter.completeStamp.keys, clear, from, to); break;
@@ -741,7 +754,7 @@ private:
 	@property
 	private bool idKindIsString() { mixin(S_TRACE);
 		auto index = _idKind.getSelectionIndex();
-		return index == ID_FLAG || index == ID_STEP || index == ID_COUPON || index == ID_GOSSIP || index == ID_COMPLETE_STAMP || index == ID_KEY_CODE || index == ID_CELL_NAME || index == ID_CARD_GROUP;
+		return index == ID_FLAG || index == ID_STEP || index == ID_VARIANT || index == ID_COUPON || index == ID_GOSSIP || index == ID_COMPLETE_STAMP || index == ID_KEY_CODE || index == ID_CELL_NAME || index == ID_CARD_GROUP;
 	}
 	private void updateIDCombo() { mixin(S_TRACE);
 		if (idKindIsString) { mixin(S_TRACE);
@@ -984,6 +997,7 @@ private:
 				_event = createB(_prop.msgs.replTextEventText, '7');
 				_start = createB(_prop.msgs.replTextStart, '8');
 				_flag = createB(_prop.msgs.replTextFlagAndStep, '9');
+				// TODO: _variant = crateB(_prop.msgs.replTextFlagAndVariant, '');
 				_coupon = createB(_prop.msgs.replTextCoupon, 'A');
 				_gossip = createB(_prop.msgs.replTextGossip, 'B');
 				_end = createB(_prop.msgs.replTextEndScenario, 'D');
@@ -1044,6 +1058,7 @@ private:
 				_idKind.add(_prop.msgs.replIDInfo);
 				_idKind.add(_prop.msgs.replIDFlag);
 				_idKind.add(_prop.msgs.replIDStep);
+				_idKind.add(_prop.msgs.replIDVariant);
 				_idKind.add(_prop.msgs.replIDCoupon);
 				_idKind.add(_prop.msgs.replIDGossip);
 				_idKind.add(_prop.msgs.replIDCompleteStamp);
@@ -1277,16 +1292,17 @@ private:
 				}
 				_unuseFlag = createB(_prop.msgs.replUnuseFlag, '1');
 				_unuseStep = createB(_prop.msgs.replUnuseStep, '2');
-				_unuseArea = createB(_prop.msgs.replUnuseArea, '3');
-				_unuseBattle = createB(_prop.msgs.replUnuseBattle, '4');
-				_unusePackage = createB(_prop.msgs.replUnusePackage, '5');
-				_unuseCast = createB(_prop.msgs.replUnuseCast, '6');
-				_unuseSkill = createB(_prop.msgs.replUnuseSkill, '7');
-				_unuseItem = createB(_prop.msgs.replUnuseItem, '8');
-				_unuseBeast = createB(_prop.msgs.replUnuseBeast, '9');
-				_unuseInfo = createB(_prop.msgs.replUnuseInfo, 'A');
-				_unuseStart = createB(_prop.msgs.replUnuseStart, 'B');
-				_unusePath = createB(_prop.msgs.replUnusePath, 'C');
+				_unuseVariant = createB(_prop.msgs.replUnuseVariant, '3');
+				_unuseArea = createB(_prop.msgs.replUnuseArea, '4');
+				_unuseBattle = createB(_prop.msgs.replUnuseBattle, '5');
+				_unusePackage = createB(_prop.msgs.replUnusePackage, '6');
+				_unuseCast = createB(_prop.msgs.replUnuseCast, '7');
+				_unuseSkill = createB(_prop.msgs.replUnuseSkill, '8');
+				_unuseItem = createB(_prop.msgs.replUnuseItem, '9');
+				_unuseBeast = createB(_prop.msgs.replUnuseBeast, 'A');
+				_unuseInfo = createB(_prop.msgs.replUnuseInfo, 'B');
+				_unuseStart = createB(_prop.msgs.replUnuseStart, 'C');
+				_unusePath = createB(_prop.msgs.replUnusePath, 'D');
 			}
 			auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
 			sep.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -1898,6 +1914,8 @@ public:
 			return true;
 		} else if (auto id = cast(Step)data) { mixin(S_TRACE);
 			return true;
+		} else if (auto id = cast(cwx.flag.Variant)data) { mixin(S_TRACE);
+			return true;
 		} else if (img is _prop.images.couponNormal && data is null) { mixin(S_TRACE);
 			return true;
 		} else if (img is _prop.images.gossip && data is null) { mixin(S_TRACE);
@@ -1948,6 +1966,8 @@ public:
 			replaceID(toFlagId(id.path), true);
 		} else if (auto id = cast(Step)data) { mixin(S_TRACE);
 			replaceID(toStepId(id.path), true);
+		} else if (auto id = cast(cwx.flag.Variant)data) { mixin(S_TRACE);
+			replaceID(toVariantId(id.path), true);
 		} else if (img is _prop.images.couponNormal && data is null) { mixin(S_TRACE);
 			replaceID(toCouponId(str), true);
 		} else if (img is _prop.images.gossip && data is null) { mixin(S_TRACE);
@@ -1993,6 +2013,8 @@ public:
 			_idKind.select(ID_FLAG);
 		} else static if (is(ID:StepId)) {
 			_idKind.select(ID_STEP);
+		} else static if (is(ID:VariantId)) {
+			_idKind.select(ID_VARIANT);
 		} else static if (is(ID:CouponId)) {
 			_idKind.select(ID_COUPON);
 		} else static if (is(ID:GossipId)) {
@@ -2253,6 +2275,7 @@ public:
 		_cardDesc.setSelection(_prop.var.etc.replaceTextCardDescription);
 		_event.setSelection(_prop.var.etc.replaceTextEventText);
 		_flag.setSelection(_prop.var.etc.replaceTextFlagAndStep);
+		// TODO: _flag.setSelection(_prop.var.etc.replaceTextVariant);
 		_start.setSelection(_prop.var.etc.replaceTextStart);
 		_coupon.setSelection(_prop.var.etc.replaceTextCoupon);
 		_gossip.setSelection(_prop.var.etc.replaceTextGossip);
@@ -2285,6 +2308,7 @@ public:
 
 		_unuseFlag.setSelection(_prop.var.etc.searchUnusedFlag);
 		_unuseStep.setSelection(_prop.var.etc.searchUnusedStep);
+		_unuseVariant.setSelection(_prop.var.etc.searchUnusedVariant);
 		_unuseArea.setSelection(_prop.var.etc.searchUnusedArea);
 		_unuseBattle.setSelection(_prop.var.etc.searchUnusedBattle);
 		_unusePackage.setSelection(_prop.var.etc.searchUnusedPackage);
@@ -2351,6 +2375,7 @@ public:
 			_prop.var.etc.replaceTextEventText = _event.getSelection();
 			_prop.var.etc.replaceTextStart = _start.getSelection();
 			_prop.var.etc.replaceTextFlagAndStep = _flag.getSelection();
+			//_prop.var.etc.replaceTextVariant = _variant.getSelection();
 			_prop.var.etc.replaceTextCoupon = _coupon.getSelection();
 			_prop.var.etc.replaceTextGossip = _gossip.getSelection();
 			_prop.var.etc.replaceTextEndScenario = _end.getSelection();
@@ -2376,6 +2401,7 @@ public:
 
 			_prop.var.etc.searchUnusedFlag = _unuseFlag.getSelection();
 			_prop.var.etc.searchUnusedStep = _unuseStep.getSelection();
+			_prop.var.etc.searchUnusedVariant = _unuseVariant.getSelection();
 			_prop.var.etc.searchUnusedArea = _unuseArea.getSelection();
 			_prop.var.etc.searchUnusedBattle = _unuseBattle.getSelection();
 			_prop.var.etc.searchUnusedPackage = _unusePackage.getSelection();
@@ -2652,6 +2678,7 @@ public:
 			if (fdir) { mixin(S_TRACE);
 				foreach (i, o; fdir.flags) searchAll(parent, o, count, dlg, cpjoin2(cwxPath, "flag".dup, i));
 				foreach (i, o; fdir.steps) searchAll(parent, o, count, dlg, cpjoin2(cwxPath, "step".dup, i));
+				foreach (i, o; fdir.variants) searchAll(parent, o, count, dlg, cpjoin2(cwxPath, "variant".dup, i));
 				auto subDirs = fdir.subDirs;
 				if (subDirs.length == 1) { mixin(S_TRACE);
 					path = subDirs[0];
@@ -2872,10 +2899,7 @@ public:
 					auto u = su.obj;
 					if (!dec(u.owner, range)) return;
 					if (_replMode) { mixin(S_TRACE);
-						static if (is(ID:FlagId)) {
-							u.id = to;
-							storeID(su.parent, u.owner, u, from, to, &u.id);
-						} else static if (is(ID:StepId)) {
+						static if (is(ID:FlagId) || is(ID:StepId) || is(ID:VariantId)) {
 							u.id = to;
 							storeID(su.parent, u.owner, u, from, to, &u.id);
 						} else static if (is(ID:CouponId)) {
@@ -3043,6 +3067,7 @@ public:
 			switch (_idKind.getSelectionIndex()) {
 			case ID_FLAG: replaceIDImpl2(toFlagId(from), toFlagId(to)); break;
 			case ID_STEP: replaceIDImpl2(toStepId(from), toStepId(to)); break;
+			case ID_VARIANT: replaceIDImpl2(toVariantId(from), toVariantId(to)); break;
 			case ID_COUPON: replaceIDImpl2(toCouponId(from), toCouponId(to)); break;
 			case ID_GOSSIP: replaceIDImpl2(toGossipId(from), toGossipId(to)); break;
 			case ID_COMPLETE_STAMP: replaceIDImpl2(toCompleteStampId(from), toCompleteStampId(to)); break;
@@ -3478,6 +3503,7 @@ public:
 
 		bool unuseFlagSel = _unuseFlag.getSelection();
 		bool unuseStepSel = _unuseStep.getSelection();
+		bool unuseVariantSel = _unuseVariant.getSelection();
 		bool unuseAreaSel = _unuseArea.getSelection();
 		bool unuseBattleSel = _unuseBattle.getSelection();
 		bool unusePackageSel = _unusePackage.getSelection();
@@ -3499,6 +3525,11 @@ public:
 				Step[] fs;
 				.sortedWithPath(_summ.flagDirRoot.allSteps, _prop.var.etc.logicalSort, (Step f) { fs ~= f; });
 				searchUnuseImpl2!("toStepId(o.path)")(fs, count);
+			}
+			if (unuseVariantSel) { mixin(S_TRACE);
+				cwx.flag.Variant[] fs;
+				.sortedWithPath(_summ.flagDirRoot.allVariants, _prop.var.etc.logicalSort, (cwx.flag.Variant f) { fs ~= f; });
+				searchUnuseImpl2!("toVariantId(o.path)")(fs, count);
 			}
 			if (unuseAreaSel) { mixin(S_TRACE);
 				searchUnuseImpl2!("toAreaId(o.id)")(_summ.areas, count);
@@ -3811,7 +3842,7 @@ public:
 				addResult(parent, f, icwxPath, dmy);
 				if (_replMode) { mixin(S_TRACE);
 					_refCall ~= { mixin(S_TRACE);
-						_comm.refFlagAndStep.call([f], []);
+						_comm.refFlagAndStep.call([f], [], []);
 					};
 				}
 			}
@@ -3828,11 +3859,15 @@ public:
 				addResult(parent, s, icwxPath, dmy);
 				if (_replMode) { mixin(S_TRACE);
 					_refCall ~= { mixin(S_TRACE);
-						_comm.refFlagAndStep.call([], [s]);
+						_comm.refFlagAndStep.call([], [s], []);
 					};
 				}
 			}
 		}
+		auto v = cast(cwx.flag.Variant)c;
+		//if (v && _variantSel) { mixin(S_TRACE);
+			// TODO: 状態変数名と式
+		//}
 		auto et = cast(EventTree) c;
 		if (et) { mixin(S_TRACE);
 			replFKeyCode(parent, et, icwxPath, et, icwxPath, count, nArr);
@@ -4527,8 +4562,10 @@ public:
 				auto parentDir= dir.parent;
 				auto flags = dir.allFlags;
 				auto steps = dir.allSteps;
+				auto variants = dir.allVariants;
 				auto oldFPaths = .map!(a => a.path)(flags).array();
 				auto oldSPaths = .map!(a => a.path)(steps).array();
+				auto oldVPaths = .map!(a => a.path)(variants).array();
 				string n = fTextRepl(text);
 				uArr ~= new StrUndo(text, n, (string name) { mixin(S_TRACE);
 					if (parentDir) { mixin(S_TRACE);
@@ -4539,11 +4576,12 @@ public:
 				});
 				dir.name = parentDir.validName(n);
 				_refCall ~= { mixin(S_TRACE);
-					_comm.refFlagAndStep.call(flags, steps);
+					_comm.refFlagAndStep.call(flags, steps, variants);
 				};
 				_after ~= { mixin(S_TRACE);
 					auto newFPaths = .map!(a => a.path)(flags).array();
 					auto newSPaths = .map!(a => a.path)(steps).array();
+					auto newVPaths = .map!(a => a.path)(variants).array();
 					foreach (oldPath, newPath; .zip(oldFPaths, newFPaths)) { mixin(S_TRACE);
 						auto oldID = cwx.flag.Flag.toID(oldPath);
 						auto newID = cwx.flag.Flag.toID(newPath);
@@ -4555,6 +4593,14 @@ public:
 					foreach (oldPath, newPath; .zip(oldSPaths, newSPaths)) { mixin(S_TRACE);
 						auto oldID = Step.toID(oldPath);
 						auto newID = Step.toID(newPath);
+						foreach (v; _summ.useCounter.values(oldID)) { mixin(S_TRACE);
+							v.id = newID;
+							storeID(parent, null, v, oldID, newID, &v.id);
+						}
+					}
+					foreach (oldPath, newPath; .zip(oldVPaths, newVPaths)) { mixin(S_TRACE);
+						auto oldID = cwx.flag.Variant.toID(oldPath);
+						auto newID = cwx.flag.Variant.toID(newPath);
 						foreach (v; _summ.useCounter.values(oldID)) { mixin(S_TRACE);
 							v.id = newID;
 							storeID(parent, null, v, oldID, newID, &v.id);
@@ -4834,15 +4880,19 @@ public:
 	bool replFlagsInText(CWXPath parent, ISimpleTextHolder th, ref size_t count, ref Undo[] uArr) { mixin(S_TRACE);
 		Undo[] nArr;
 		bool r = false;
-		if (_flagSel && !_msgSel) { mixin(S_TRACE);
+		if (_flagSel && !_msgSel) { mixin(S_TRACE); // TODO
 			if (_flagDirOnRange) { mixin(S_TRACE);
-				// Flag/StepについてはUseCounter経由で置換される
+				// Flag/Step/VariantについてはUseCounter経由で置換される
 				auto fps = th.flagsInText;
 				foreach (i, p; fps) { mixin(S_TRACE);
 					r |= repl(parent, null, "", p, null, count, nArr);
 				}
 				auto sps = th.stepsInText;
 				foreach (i, p; sps) { mixin(S_TRACE);
+					r |= repl(parent, null, "", p, null, count, nArr);
+				}
+				auto vps = th.variantsInText;
+				foreach (i, p; vps) { mixin(S_TRACE);
 					r |= repl(parent, null, "", p, null, count, nArr);
 				}
 			} else { mixin(S_TRACE);
@@ -4853,6 +4903,10 @@ public:
 				auto sps = th.stepsInText;
 				foreach (i, p; sps) { mixin(S_TRACE);
 					r |= repl(parent, null, "", p, (string n) {th.changeInText(i, toStepId(p));}, count, nArr);
+				}
+				auto vps = th.variantsInText;
+				foreach (i, p; vps) { mixin(S_TRACE);
+					r |= repl(parent, null, "", p, (string n) {th.changeInText(i, toVariantId(p));}, count, nArr);
 				}
 			}
 		}
@@ -4868,16 +4922,18 @@ public:
 				|| (_couponSel && eo && eo.detail.nextType == CNextType.COUPON)) { mixin(S_TRACE);
 			r |= repl(parent, null, "", e.name, name => e.setName(_prop.parent, name), count, uArr2);
 		}
-		if (_flagSel) { mixin(S_TRACE);
+		if (_flagSel) { mixin(S_TRACE); // TODO
 			if (_flagDirOnRange) { mixin(S_TRACE);
-				// Flag/StepについてはUseCounter経由で置換される
+				// Flag/Step/VariantについてはUseCounter経由で置換される
 				if (d.use(CArg.FLAG)) r |= repl(parent, null, "", e.flag, null, count, uArr2);
 				if (d.use(CArg.STEP)) r |= repl(parent, null, "", e.step, null, count, uArr2);
+				if (d.use(CArg.VARIANT)) r |= repl(parent, null, "", e.variant, null, count, uArr2);
 				if (d.use(CArg.FLAG_2)) r |= repl(parent, null, "", e.flag2, null, count, uArr2);
 				if (d.use(CArg.STEP_2)) r |= repl(parent, null, "", e.step2, null, count, uArr2);
 			} else { mixin(S_TRACE);
 				if (d.use(CArg.FLAG)) r |= repl(parent, null, "", e.flag, &e.flag, count, uArr2);
 				if (d.use(CArg.STEP)) r |= repl(parent, null, "", e.step, &e.step, count, uArr2);
+				if (d.use(CArg.VARIANT)) r |= repl(parent, null, "", e.variant, &e.variant, count, uArr2);
 				if (d.use(CArg.FLAG_2)) r |= repl(parent, null, "", e.flag2, &e.flag2, count, uArr2);
 				if (d.use(CArg.STEP_2)) r |= repl(parent, null, "", e.step2, &e.step2, count, uArr2);
 			}

@@ -48,6 +48,7 @@ import java.lang.all;
 /// ステップ設定用のダイアログ。
 public class StepEditDialog : AbsDialog {
 private:
+
 	Commons _comm;
 	Summary _summ;
 
@@ -251,17 +252,19 @@ private:
 			foreach (v; vals) { mixin(S_TRACE);
 				bool[string] wFlags;
 				bool[string] wSteps;
+				bool[string] wVariants;
 				bool[string] wFonts;
 				bool[char] wColors;
 				string[] flags;
 				string[] steps;
+				string[] variants;
 				string[] fonts;
 				char[] colors;
-				textUseItems(wrapReturnCode(v), flags, steps, fonts, colors);
+				textUseItems(wrapReturnCode(v), flags, steps, variants, fonts, colors);
 				fonts = [];
 				colors = [];
 				auto ws3 = .textWarnings(_comm.prop.parent, _comm.skin, _summ, _comm.prop.var.etc.targetVersion,
-					v, flags, steps, fonts, colors, wFlags, wSteps, wFonts, wColors).all;
+					v, flags, steps, variants, fonts, colors, wFlags, wSteps, wVariants, wFonts, wColors).all;
 				foreach (w; ws3) { mixin(S_TRACE);
 					if (w in ws2) continue;
 					ws2[w] = true;
@@ -332,7 +335,7 @@ private:
 		refreshWarning();
 	}
 
-	void delStep(cwx.flag.Flag[] flag, Step[] step) { mixin(S_TRACE);
+	void delStep(cwx.flag.Flag[] flag, Step[] step, cwx.flag.Variant[] variants) { mixin(S_TRACE);
 		foreach (s; step) { mixin(S_TRACE);
 			if (s is _step) { mixin(S_TRACE);
 				forceCancel();
@@ -341,7 +344,7 @@ private:
 		}
 		updateToolTip();
 	}
-	void refFlagAndStep(cwx.flag.Flag[] flags, Step[] steps) { updateToolTip(); }
+	void refFlagAndStep(cwx.flag.Flag[] flags, Step[] steps, cwx.flag.Variant[] variants) { updateToolTip(); }
 	void refPath(string o, string n, bool isDir) { updateToolTip(); }
 	void refPaths(string parent) { updateToolTip(); }
 	void updateToolTip() { mixin(S_TRACE);
@@ -666,7 +669,7 @@ protected:
 			_step.expandSPChars = _expandSPChars.getSelection();
 			_dir.add(_step);
 		}
-		_comm.refFlagAndStep.call([], [_step]);
+		_comm.refFlagAndStep.call([], [_step], []);
 		return true;
 	}
 }
@@ -699,17 +702,19 @@ private:
 			foreach (text; [flagTrue, flagFalse]) { mixin(S_TRACE);
 				bool[string] wFlags;
 				bool[string] wSteps;
+				bool[string] wVariants;
 				bool[string] wFonts;
 				bool[char] wColors;
 				string[] flags;
 				string[] steps;
+				string[] variants;
 				string[] fonts;
 				char[] colors;
-				textUseItems(wrapReturnCode(text.getText()), flags, steps, fonts, colors);
+				textUseItems(wrapReturnCode(text.getText()), flags, steps, variants, fonts, colors);
 				fonts = [];
 				colors = [];
 				auto ws3 = .textWarnings(_comm.prop.parent, _comm.skin, _summ, _comm.prop.var.etc.targetVersion,
-					text.getText(), flags, steps, fonts, colors, wFlags, wSteps, wFonts, wColors).all;
+					text.getText(), flags, steps, variants, fonts, colors, wFlags, wSteps, wVariants, wFonts, wColors).all;
 				foreach (w; ws3) { mixin(S_TRACE);
 					if (w in ws2) continue;
 					ws2[w] = true;
@@ -756,7 +761,7 @@ private:
 			_comm.replText.remove(&updateToolTip);
 		}
 	}
-	void delFlag(cwx.flag.Flag[] flag, Step[] step) { mixin(S_TRACE);
+	void delFlag(cwx.flag.Flag[] flag, Step[] step, cwx.flag.Variant[] variants) { mixin(S_TRACE);
 		foreach (f; flag) { mixin(S_TRACE);
 			if (f is _flag) { mixin(S_TRACE);
 				forceCancel();
@@ -765,7 +770,7 @@ private:
 		}
 		updateToolTip();
 	}
-	void refFlagAndStep(cwx.flag.Flag[] flags, Step[] steps) { updateToolTip(); }
+	void refFlagAndStep(cwx.flag.Flag[] flags, Step[] steps, cwx.flag.Variant[] variants) { updateToolTip(); }
 	void refPath(string o, string n, bool isDir) { updateToolTip(); }
 	void refPaths(string parent) { updateToolTip(); }
 	void updateToolTip() { mixin(S_TRACE);
@@ -977,7 +982,7 @@ protected:
 			_flag.expandSPChars = _expandSPChars.getSelection();
 			dir.add(_flag);
 		}
-		_comm.refFlagAndStep.call([_flag], []);
+		_comm.refFlagAndStep.call([_flag], [], []);
 		return true;
 	}
 }
@@ -989,8 +994,10 @@ private abstract class FTVUndo : Undo {
 	private string _selectedDir;
 	private ptrdiff_t[] _selectedF;
 	private ptrdiff_t[] _selectedS;
+	private ptrdiff_t[] _selectedV;
 	private ptrdiff_t[] _selectedFB;
 	private ptrdiff_t[] _selectedSB;
+	private ptrdiff_t[] _selectedVB;
 	protected FlagDir selDir = null;
 	this (FlagTable v, Commons comm, FlagDir dir) { mixin(S_TRACE);
 		_v = v;
@@ -998,12 +1005,13 @@ private abstract class FTVUndo : Undo {
 		this.comm = comm;
 		saveSelected(v);
 	}
-	this (FlagTable v, Commons comm, FlagDir dir, ptrdiff_t[] selectedF, ptrdiff_t[] selectedS) { mixin(S_TRACE);
+	this (FlagTable v, Commons comm, FlagDir dir, ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, ptrdiff_t[] selectedV) { mixin(S_TRACE);
 		_v = v;
 		_dir = dir.cwxPath(true);
 		this.comm = comm;
 		_selectedF = selectedF;
 		_selectedS = selectedS;
+		_selectedV = selectedV;
 	}
 	@property
 	protected FlagDir dir() { mixin(S_TRACE);
@@ -1016,14 +1024,17 @@ private abstract class FTVUndo : Undo {
 		if (v && v.flags && !v.flags.isDisposed()) { mixin(S_TRACE);
 			_selectedF = v.selectionFlagIndices;
 			_selectedS = v.selectionStepIndices;
+			_selectedV = v.selectionVariantIndices;
 		} else { mixin(S_TRACE);
 			_selectedF.length = 0;
 			_selectedS.length = 0;
+			_selectedV.length = 0;
 		}
 	}
 	void udb(FlagTable v) { mixin(S_TRACE);
 		_selectedFB = _selectedF.dup;
 		_selectedSB = _selectedS.dup;
+		_selectedVB = _selectedV.dup;
 		saveSelected(v);
 		if (v && v.flags && !v.flags.isDisposed()) { mixin(S_TRACE);
 			.forceFocus(v.flags, false);
@@ -1040,6 +1051,7 @@ private abstract class FTVUndo : Undo {
 					v.flags.deselectAll();
 					v.selectFlagIndices(_selectedFB);
 					v.selectStepIndices(_selectedSB);
+					v.selectVariantIndices(_selectedVB);
 				}
 			}
 			v.refreshStatusLine();
@@ -1072,8 +1084,9 @@ package class UndoAllVariables : FTVUndo {
 		_root.removeAll();
 		foreach (f; copy.flags) _root.add(f);
 		foreach (f; copy.steps) _root.add(f);
+		foreach (f; copy.variants) _root.add(f);
 		foreach (f; copy.subDirs) _root.add(f);
-		comm.refFlagAndStep.call(_root.allFlags, _root.allSteps);
+		comm.refFlagAndStep.call(_root.allFlags, _root.allSteps, _root.allVariants);
 		comm.openFlagWin(false).dirs.refresh();
 	}
 	override void undo() {impl();}
@@ -1083,7 +1096,7 @@ package class UndoAllVariables : FTVUndo {
 package class UndoEditN {
 	private CWXPath _f;
 	private ptrdiff_t _index;
-	this (FlagDir dir, int index, string oldName, int value, string[] names) { mixin(S_TRACE);
+	this (FlagDir dir, int index, string oldName, int value, string[] names, VariantVal val) { mixin(S_TRACE);
 		auto p = FlagTable.fromIndex(dir, index);
 		auto f = cast(cwx.flag.Flag)p;
 		if (f) { mixin(S_TRACE);
@@ -1108,6 +1121,25 @@ package class UndoEditN {
 			}
 			_f = step;
 		}
+		if (auto v = cast(cwx.flag.Variant)p) { mixin(S_TRACE);
+			auto variant = new cwx.flag.Variant(v);
+			_index = v.parent.indexOf(v);
+			variant.name = oldName;
+			if (val.valid) { mixin(S_TRACE);
+				final switch (val.type) {
+				case VariantType.Number:
+					variant.value = val.numVal;
+					break;
+				case VariantType.String:
+					variant.value = val.strVal;
+					break;
+				case VariantType.Boolean:
+					variant.value = val.boolVal;
+					break;
+				}
+			}
+			_f = variant;
+		}
 	}
 	CWXPath impl(Commons comm, FlagDir dir, out string newName) { mixin(S_TRACE);
 		assert (dir);
@@ -1125,8 +1157,7 @@ package class UndoEditN {
 			if (refVal) { mixin(S_TRACE);
 				return f;
 			}
-		} else { mixin(S_TRACE);
-			assert (cast(Step)fB);
+		} else if (cast(Step)fB) { mixin(S_TRACE);
 			auto s = dir.steps[_index];
 			_f = new Step(s);
 			auto o = cast(Step)fB;
@@ -1139,19 +1170,49 @@ package class UndoEditN {
 			if (refVal) { mixin(S_TRACE);
 				return s;
 			}
+		} else { mixin(S_TRACE);
+			assert (cast(cwx.flag.Variant)fB);
+			auto v = dir.variants[_index];
+			_f = new cwx.flag.Variant(v);
+			auto o = cast(cwx.flag.Variant)fB;
+			assert (o);
+			bool refVal = o.type != v.type;
+			if (!refVal) { mixin(S_TRACE);
+				final switch (o.type) {
+				case VariantType.Number:
+					refVal |= o.numVal != v.numVal;
+					break;
+				case VariantType.String:
+					refVal |= o.strVal != v.strVal;
+					break;
+				case VariantType.Boolean:
+					refVal |= o.boolVal != v.boolVal;
+					break;
+				}
+			}
+			newName = o.name;
+			o.name = v.name;
+			v.copyFrom(o);
+			refVal |= newName != v.name;
+			if (refVal) { mixin(S_TRACE);
+				return v;
+			}
 		}
 		return null;
 	}
 }
+
 package class UndoEdit : FTVUndo {
 	private UndoEditN[] _impl;
-	this (FlagTable v, Commons comm, FlagDir dir, int[] index, string[] oldName, int[] oldValues, string[][] oldNames) in { mixin(S_TRACE);
+	this (FlagTable v, Commons comm, FlagDir dir, int[] index, string[] oldName, int[] oldValues, string[][] oldNames, VariantVal[] oldVals) in { mixin(S_TRACE);
 		assert (index.length == oldName.length);
 		assert (!oldValues.length || oldValues.length == index.length);
+		assert (!oldVals.length || oldVals.length == index.length);
 	} body { mixin(S_TRACE);
 		super (v, comm, dir);
 		foreach (i, idx; index) { mixin(S_TRACE);
-			_impl ~= new UndoEditN(dir, idx, oldName[i], oldValues.length ? oldValues[i] : -1, oldNames.length ? oldNames[i] : []);
+			_impl ~= new UndoEditN(dir, idx, oldName[i], oldValues.length ? oldValues[i] : -1, oldNames.length ? oldNames[i] : [],
+				oldVals.length ? oldVals[i] : VariantVal(false));
 		}
 	}
 	private void impl() { mixin(S_TRACE);
@@ -1161,8 +1222,10 @@ package class UndoEdit : FTVUndo {
 		auto dir = this.dir();
 		cwx.flag.Flag[] refF;
 		Step[] refS;
+		cwx.flag.Variant[] refV;
 		string[] newNameF;
 		string[] newNameS;
+		string[] newNameV;
 		foreach (impl; _impl) { mixin(S_TRACE);
 			string newName;
 			auto refVal = impl.impl(comm, dir, newName);
@@ -1172,11 +1235,15 @@ package class UndoEdit : FTVUndo {
 			} else if (cast(Step)refVal) { mixin(S_TRACE);
 				refS ~= cast(Step)refVal;
 				newNameS ~= newName;
+			} else if (auto variant = cast(cwx.flag.Variant)refVal) { mixin(S_TRACE);
+				refV ~= variant;
+				newNameV ~= newName;
 			}
 		}
 		FlagTable.setNames(refF, newNameF, comm.summary.useCounter);
 		FlagTable.setNames(refS, newNameS, comm.summary.useCounter);
-		comm.refFlagAndStep.call(refF, refS);
+		FlagTable.setNames(refV, newNameV, comm.summary.useCounter);
+		comm.refFlagAndStep.call(refF, refS, refV);
 		if (v && v.flags && !v.flags.isDisposed()) { mixin(S_TRACE);
 			v.refresh();
 		}
@@ -1192,26 +1259,30 @@ package class UndoInsertDelete : FTVUndo {
 	private ptrdiff_t[] _dirIndices;
 	private ptrdiff_t[] _flagIndices;
 	private ptrdiff_t[] _stepIndices;
+	private ptrdiff_t[] _variantIndices;
 	/// delete
 	private FlagDir[ptrdiff_t] _ds;
 	private cwx.flag.Flag[ptrdiff_t] _fs;
 	private Step[ptrdiff_t] _ss;
+	private cwx.flag.Variant[ptrdiff_t] _vs;
 
 	/// 追加を元に戻す。
-	this (FlagTable v, Commons comm, FlagDir dir, ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, ptrdiff_t[] dirIndices, ptrdiff_t[] flagIndices, ptrdiff_t[] stepIndices) { mixin(S_TRACE);
-		super (v, comm, dir, selectedF.dup, selectedS.dup);
+	this (FlagTable v, Commons comm, FlagDir dir, ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, ptrdiff_t[] selectedV, ptrdiff_t[] dirIndices, ptrdiff_t[] flagIndices, ptrdiff_t[] stepIndices, ptrdiff_t[] variantIndices) { mixin(S_TRACE);
+		super (v, comm, dir, selectedF.dup, selectedS.dup, selectedV.dup);
 		_dirIndices = dirIndices.dup;
 		_flagIndices = flagIndices.dup;
 		_stepIndices = stepIndices.dup;
+		_variantIndices = variantIndices.dup;
 		_insert = true;
 	}
 	/// 削除を元に戻す。
-	this (FlagTable v, Commons comm, FlagDir dir, ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, FlagDir[ptrdiff_t] ds, cwx.flag.Flag[ptrdiff_t] fs, Step[ptrdiff_t] ss) { mixin(S_TRACE);
-		super (v, comm, dir, selectedF.dup, selectedS.dup);
-		save(ds, fs, ss);
+	this (FlagTable v, Commons comm, FlagDir dir, ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, ptrdiff_t[] selectedV, FlagDir[ptrdiff_t] ds, cwx.flag.Flag[ptrdiff_t] fs, Step[ptrdiff_t] ss, cwx.flag.Variant[ptrdiff_t] vs) { mixin(S_TRACE);
+		super (v, comm, dir, selectedF.dup, selectedS.dup, selectedV.dup);
+		save(ds, fs, ss, vs);
 		_insert = false;
 	}
-	private void save(FlagDir[ptrdiff_t] ds, cwx.flag.Flag[ptrdiff_t] fs, Step[ptrdiff_t] ss) { mixin(S_TRACE);
+
+	private void save(FlagDir[ptrdiff_t] ds, cwx.flag.Flag[ptrdiff_t] fs, Step[ptrdiff_t] ss, cwx.flag.Variant[ptrdiff_t] vs) { mixin(S_TRACE);
 		_ds = null;
 		foreach (index, d; ds) { mixin(S_TRACE);
 			_ds[index] = new FlagDir(d);
@@ -1224,25 +1295,31 @@ package class UndoInsertDelete : FTVUndo {
 		foreach (index, s; ss) { mixin(S_TRACE);
 			_ss[index] = new Step(s);
 		}
+		_vs = null;
+		foreach (index, v; vs) { mixin(S_TRACE);
+			_vs[index] = new cwx.flag.Variant(v);
+		}
 	}
 	private void undoInsert(FlagTable v) { mixin(S_TRACE);
 		cwx.flag.Flag[] rfs;
 		Step[] rss;
+		cwx.flag.Variant[] rvs;
 		FlagDir[] rds;
-		undoInsertImpl(rfs, rss, rds);
+		undoInsertImpl(rfs, rss, rvs, rds);
 		if (v && v.flags && !v.flags.isDisposed()) { mixin(S_TRACE);
 			v.refresh();
 		}
 		if (rds.length) comm.delFlagDir.call(rds);
-		if (rfs.length || rss.length) { mixin(S_TRACE);
-			comm.delFlagAndStep.call(rfs, rss);
+		if (rfs.length || rss.length || rvs.length) { mixin(S_TRACE);
+			comm.delFlagAndStep.call(rfs, rss, rvs);
 		}
 	}
-	private void undoInsertImpl(ref cwx.flag.Flag[] rfs, ref Step[] rss, ref FlagDir[] rds) { mixin(S_TRACE);
+	private void undoInsertImpl(ref cwx.flag.Flag[] rfs, ref Step[] rss, ref cwx.flag.Variant[] rvs, ref FlagDir[] rds) { mixin(S_TRACE);
 		_insert = false;
 		FlagDir[ptrdiff_t] ds;
 		cwx.flag.Flag[ptrdiff_t] fs;
 		Step[ptrdiff_t] ss;
+		cwx.flag.Variant[ptrdiff_t] vs;
 		auto dir = this.dir();
 		foreach (i; _dirIndices) { mixin(S_TRACE);
 			auto d = dir.subDirs[i];
@@ -1256,43 +1333,54 @@ package class UndoInsertDelete : FTVUndo {
 			auto s = dir.steps[i];
 			if (s) ss[i] = s;
 		}
-		save(ds, fs, ss);
+		foreach (i; _variantIndices) { mixin(S_TRACE);
+			auto v = dir.variants[i];
+			if (v) vs[i] = v;
+		}
+		save(ds, fs, ss, vs);
 		foreach (f; fs) { mixin(S_TRACE);
 			dir.remove(f);
 		}
 		foreach (s; ss) { mixin(S_TRACE);
 			dir.remove(s);
 		}
+		foreach (v; vs) { mixin(S_TRACE);
+			dir.remove(v);
+		}
 		foreach (d; ds) { mixin(S_TRACE);
 			dir.remove(d);
 			rfs ~= d.allFlags;
 			rss ~= d.allSteps;
+			rvs ~= d.allVariants;
 			rds ~= d.allSubDirs;
 		}
 		rds ~= ds.values;
 		rfs ~= fs.values;
 		rss ~= ss.values;
+		rvs ~= vs.values;
 	}
 	private void undoDelete(FlagTable v) { mixin(S_TRACE);
 		cwx.flag.Flag[] rfs;
 		Step[] rss;
+		cwx.flag.Variant[] rvs;
 		FlagDir[] rds;
-		undoDeleteImpl(rfs, rss, rds);
+		undoDeleteImpl(rfs, rss, rvs, rds);
 		if (v && v.flags && !v.flags.isDisposed()) { mixin(S_TRACE);
 			v.refresh();
 		}
 		if (rds.length) comm.delFlagDir.call(rds);
-		if (rfs.length || rss.length) { mixin(S_TRACE);
-			comm.delFlagAndStep.call(rfs, rss);
+		if (rfs.length || rss.length || rvs.length) { mixin(S_TRACE);
+			comm.delFlagAndStep.call(rfs, rss, rvs);
 		}
 	}
-	private void undoDeleteImpl(ref cwx.flag.Flag[] rfs, ref Step[] rss, ref FlagDir[] rds) { mixin(S_TRACE);
+	private void undoDeleteImpl(ref cwx.flag.Flag[] rfs, ref Step[] rss, ref cwx.flag.Variant[] rvs, ref FlagDir[] rds) { mixin(S_TRACE);
 		_insert = true;
 		auto dir = this.dir();
 		_dirIndices.length = 0;
 		_flagIndices.length = 0;
 		_stepIndices.length = 0;
-		selDir = (_ds.length == 1 && !_fs.length && !_ss.length) ? _ds.values[0] : null;
+		_variantIndices.length = 0;
+		selDir = (_ds.length == 1 && !_fs.length && !_ss.length && !_vs.length) ? _ds.values[0] : null;
 		foreach (index; std.algorithm.sort(_fs.keys)) { mixin(S_TRACE);
 			auto f = _fs[index];
 			_flagIndices ~= index;
@@ -1303,17 +1391,24 @@ package class UndoInsertDelete : FTVUndo {
 			_stepIndices ~= index;
 			dir.insert(index, s, true);
 		}
+		foreach (index; std.algorithm.sort(_vs.keys)) { mixin(S_TRACE);
+			auto v = _vs[index];
+			_variantIndices ~= index;
+			dir.insert(index, v, true);
+		}
 		foreach (index; std.algorithm.sort(_ds.keys)) { mixin(S_TRACE);
 			auto d = _ds[index];
 			_dirIndices ~= index;
 			dir.insert(index, d, true);
 			rfs ~= d.allFlags;
 			rss ~= d.allSteps;
+			rvs ~= d.allVariants;
 			rds ~= d.allSubDirs;
 		}
 		rds ~= _ds.values;
 		rfs ~= _fs.values;
 		rss ~= _ss.values;
+		rvs ~= _vs.values;
 	}
 	override void undo() { mixin(S_TRACE);
 		auto v = view();
@@ -1343,19 +1438,21 @@ package class UndoMove : FTVUndo {
 	private UndoInsertDelete _dir1;
 	private UndoInsertDelete _dir2;
 
-	this (FlagTable v, Commons comm, ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, FlagDir to, ptrdiff_t[] dirIndices, ptrdiff_t[] flagIndices, ptrdiff_t[] stepIndices, FlagDir from, FlagDir[ptrdiff_t] ds, cwx.flag.Flag[ptrdiff_t] fs, Step[ptrdiff_t] ss) { mixin(S_TRACE);
-		super (v, comm, from, selectedF.dup, selectedS.dup);
+	this (FlagTable v, Commons comm, ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, ptrdiff_t[] selectedV, FlagDir to, ptrdiff_t[] dirIndices, ptrdiff_t[] flagIndices, ptrdiff_t[] stepIndices, ptrdiff_t[] variantIndices, FlagDir from, FlagDir[ptrdiff_t] ds, cwx.flag.Flag[ptrdiff_t] fs, Step[ptrdiff_t] ss, cwx.flag.Variant[ptrdiff_t] vs) { mixin(S_TRACE);
+		super (v, comm, from, selectedF.dup, selectedS.dup, selectedV.dup);
 		assert (dirIndices.length == ds.length);
 		assert (flagIndices.length == fs.length);
 		assert (stepIndices.length == ss.length);
-		_dir1 = new UndoInsertDelete(v, comm, to, selectedF, selectedS, dirIndices, flagIndices, stepIndices);
-		_dir2 = new UndoInsertDelete(v, comm, from, selectedF, selectedS, ds, fs, ss);
+		assert (variantIndices.length == vs.length);
+		_dir1 = new UndoInsertDelete(v, comm, to, selectedF, selectedS, selectedV, dirIndices, flagIndices, stepIndices, variantIndices);
+		_dir2 = new UndoInsertDelete(v, comm, from, selectedF, selectedS, selectedV, ds, fs, ss, vs);
 	}
-	private void paths(UndoInsertDelete ins, FlagDir dir, out FlagId[] flagIDs, out StepId[] stepIDs, out cwx.flag.Flag[] flags, out Step[] steps) { mixin(S_TRACE);
+	private void paths(UndoInsertDelete ins, FlagDir dir, out FlagId[] flagIDs, out StepId[] stepIDs, out VariantId[] variantIDs, out cwx.flag.Flag[] flags, out Step[] steps, out cwx.flag.Variant[] variants) { mixin(S_TRACE);
 		assert (dir !is null);
 		foreach (i; std.algorithm.sort(ins._dirIndices.dup)) { mixin(S_TRACE);
 			foreach (f; dir.subDirs[i].allFlags) flags ~= f;
 			foreach (f; dir.subDirs[i].allSteps) steps ~= f;
+			foreach (f; dir.subDirs[i].allVariants) variants ~= f;
 		}
 		foreach (i; std.algorithm.sort(ins._flagIndices.dup)) { mixin(S_TRACE);
 			flags ~= dir.flags[i];
@@ -1363,14 +1460,21 @@ package class UndoMove : FTVUndo {
 		foreach (i; std.algorithm.sort(ins._stepIndices.dup)) { mixin(S_TRACE);
 			steps ~= dir.steps[i];
 		}
+		foreach (i; std.algorithm.sort(ins._variantIndices.dup)) { mixin(S_TRACE);
+			variants ~= dir.variants[i];
+		}
 		foreach (f; flags) flagIDs ~= toFlagId(f.path);
 		foreach (f; steps) stepIDs ~= toStepId(f.path);
+		foreach (f; variants) variantIDs ~= toVariantId(f.path);
 	}
-	private void change(FlagTable v, FlagId[] oldF, FlagId[] newF, StepId[] oldS, StepId[] newS) { mixin(S_TRACE);
+	private void change(FlagTable v, FlagId[] oldF, FlagId[] newF, StepId[] oldS, StepId[] newS, VariantId[] oldV, VariantId[] newV) { mixin(S_TRACE);
 		foreach (nPath, oPath; .zip(newF, oldF)) { mixin(S_TRACE);
 			comm.summary.useCounter.change(oPath, nPath);
 		}
 		foreach (nPath, oPath; .zip(newS, oldS)) { mixin(S_TRACE);
+			comm.summary.useCounter.change(oPath, nPath);
+		}
+		foreach (nPath, oPath; .zip(newV, oldV)) { mixin(S_TRACE);
 			comm.summary.useCounter.change(oPath, nPath);
 		}
 		if (v && v.flags && !v.flags.isDisposed()) { mixin(S_TRACE);
@@ -1384,28 +1488,33 @@ package class UndoMove : FTVUndo {
 		scope (exit) uda(v);
 		FlagId[] oldF, newF;
 		StepId[] oldS, newS;
+		VariantId[] oldV, newV;
 		cwx.flag.Flag[] flags;
 		Step[] steps;
+		cwx.flag.Variant[] variants;
 		auto delDir = del.dir();
 		auto insDir = ins.dir();
-		paths(del, del.dir(), oldF, oldS, flags, steps);
+		paths(del, del.dir(), oldF, oldS, oldV, flags, steps, variants);
 		cwx.flag.Flag[] rfs;
 		Step[] rss;
+		cwx.flag.Variant[] rvs;
 		FlagDir[] rds;
-		del.undoInsertImpl(rfs, rss, rds);
-		ins.undoDeleteImpl(rfs, rss, rds);
-		paths(ins, ins.dir(), newF, newS, flags, steps);
-		change(v, oldF, newF, oldS, newS);
+		del.undoInsertImpl(rfs, rss, rvs, rds);
+		ins.undoDeleteImpl(rfs, rss, rvs, rds);
+		paths(ins, ins.dir(), newF, newS, newV, flags, steps, variants);
+		change(v, oldF, newF, oldS, newS, oldV, newV);
 
 		bool[cwx.flag.Flag] fSet;
 		bool[Step] sSet;
+		bool[cwx.flag.Variant] vSet;
 		bool[FlagDir] dSet;
 		foreach (f; rfs) fSet[f] = true;
 		foreach (f; rss) sSet[f] = true;
+		foreach (f; rvs) vSet[f] = true;
 		foreach (f; rds) dSet[f] = true;
 		if (rds.length) comm.delFlagDir.call(dSet.keys);
-		if (rfs.length || rss.length) { mixin(S_TRACE);
-			comm.delFlagAndStep.call(fSet.keys, sSet.keys);
+		if (rfs.length || rss.length || rvs.length) { mixin(S_TRACE);
+			comm.delFlagAndStep.call(fSet.keys, sSet.keys, vSet.keys);
 		}
 	}
 	override void undo() { mixin(S_TRACE);
@@ -1445,21 +1554,30 @@ package class UndoEditDir : FTVUndo {
 
 public class FlagTable : TCPD {
 private:
-	void storeEdit(int[] index, string[] oldName, int[] oldValues = [], string[][] oldNames = []) { mixin(S_TRACE);
-		_undo ~= new UndoEdit(this, _comm, _dir, index, oldName, oldValues, oldNames);
+	void storeEdit(int[] index, string[] oldName, int[] oldValues = [], string[][] oldNames = [], VariantVal[] oldVals = []) { mixin(S_TRACE);
+		_undo ~= new UndoEdit(this, _comm, _dir, index, oldName, oldValues, oldNames, oldVals);
 	}
 	void storeEdit(int index, string oldName, int oldValue, string[] oldNames = []) { mixin(S_TRACE);
-		_undo ~= new UndoEdit(this, _comm, _dir, [index], [oldName], [oldValue], [oldNames]);
+		_undo ~= new UndoEdit(this, _comm, _dir, [index], [oldName], [oldValue], [oldNames], []);
 	}
-	void storeInsert(ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, ptrdiff_t[] flagIndices, ptrdiff_t[] stepIndices) { mixin(S_TRACE);
-		_undo ~= new UndoInsertDelete(this, _comm, _dir, selectedF, selectedS, [], flagIndices, stepIndices);
+	void storeEditVariant(int index, string oldName, VariantVal oldVal = VariantVal(false)) { mixin(S_TRACE);
+		_undo ~= new UndoEdit(this, _comm, _dir, [index], [oldName], [], [], [oldVal]);
 	}
-	void storeDelete(ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, cwx.flag.Flag[ptrdiff_t] fs, Step[ptrdiff_t] ss) { mixin(S_TRACE);
-		_undo ~= new UndoInsertDelete(this, _comm, _dir, selectedF, selectedS, null, fs, ss);
+	void storeInsert(ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, ptrdiff_t[] selectedV, ptrdiff_t[] flagIndices, ptrdiff_t[] stepIndices, ptrdiff_t[] variantIndices) { mixin(S_TRACE);
+		_undo ~= new UndoInsertDelete(this, _comm, _dir, selectedF, selectedS, selectedV, [], flagIndices, stepIndices, variantIndices);
+	}
+	void storeDelete(ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, ptrdiff_t[] selectedV, cwx.flag.Flag[ptrdiff_t] fs, Step[ptrdiff_t] ss, cwx.flag.Variant[ptrdiff_t] vs) { mixin(S_TRACE);
+		_undo ~= new UndoInsertDelete(this, _comm, _dir, selectedF, selectedS, selectedV, null, fs, ss, vs);
 	}
 
 	static int indexOf(FlagDir dir, CWXPath p) { mixin(S_TRACE);
 		int i = 0;
+		foreach (v; dir.variants) { mixin(S_TRACE);
+			if (v is p) { mixin(S_TRACE);
+				return i;
+			}
+			i++;
+		}
 		foreach (s; dir.steps) { mixin(S_TRACE);
 			if (s is p) { mixin(S_TRACE);
 				return i;
@@ -1475,15 +1593,23 @@ private:
 		return -1;
 	}
 	static CWXPath fromIndex(FlagDir dir, int index) { mixin(S_TRACE);
-		if (dir.steps.length <= index) { mixin(S_TRACE);
-			return dir.flags[index - dir.steps.length];
+		if (index < dir.variants.length) { mixin(S_TRACE);
+			return dir.variants[index];
 		}
-		return dir.steps[index];
+		index -= dir.variants.length;
+		if (index < dir.steps.length) { mixin(S_TRACE);
+			return dir.flags[index];
+		}
+		index -= dir.steps.length;
+		return dir.flags[index];
 	}
 	static int toFlagIndex(FlagDir dir, int index) { mixin(S_TRACE);
-		return index - cast(int)dir.steps.length;
+		return index - cast(int)dir.variants.length - cast(int)dir.steps.length;
 	}
 	static int toStepIndex(FlagDir dir, int index) { mixin(S_TRACE);
+		return index - cast(int)dir.variants.length;
+	}
+	static int toVariantIndex(FlagDir dir, int index) { mixin(S_TRACE);
 		return index;
 	}
 
@@ -1493,6 +1619,21 @@ private:
 	void refreshFlags() { mixin(S_TRACE);
 		if (_dir) { mixin(S_TRACE);
 			int i = 0;
+			.sortedWithName(_dir.variants, prop.var.etc.logicalSort, (cwx.flag.Variant f) { mixin(S_TRACE);
+				if (!_incSearch.match(f.name, f)) return;
+				TableItem itm;
+				if (i < flags.getItemCount()) { mixin(S_TRACE);
+					itm = flags.getItem(i);
+				} else { mixin(S_TRACE);
+					itm = new TableItem(flags, SWT.NONE);
+				}
+				itm.setImage(0, prop.images.variant);
+				itm.setText(NAME, f.name);
+				itm.setText(VALUE, .variantValueToText(f));
+				itm.setText(UC, to!(string)(uc.get(toVariantId(f.path))));
+				itm.setData(f);
+				i++;
+			});
 			.sortedWithName(_dir.steps, prop.var.etc.logicalSort, (Step f) { mixin(S_TRACE);
 				if (!_incSearch.match(f.name, f)) return;
 				TableItem itm;
@@ -1544,6 +1685,7 @@ private:
 
 	FlagEditDialog[cwx.flag.Flag] _editDlgsF;
 	StepEditDialog[Step] _editDlgsS;
+	// TODO: コモン編集ダイアログ
 
 	IncSearch _incSearch = null;
 	private void incSearch() { mixin(S_TRACE);
@@ -1553,7 +1695,7 @@ private:
 
 	UndoManager _undo;
 	TableTextEdit _tte;
-	TableComboEdit!Combo _tce;
+	TableTCEdit _tce;
 
 	void editFlag(FlagDir parent, cwx.flag.Flag flag) { mixin(S_TRACE);
 		enterEdit();
@@ -1591,18 +1733,20 @@ private:
 			if (createMode) { mixin(S_TRACE);
 				ptrdiff_t[] selsF;
 				ptrdiff_t[] selsS;
+				ptrdiff_t[] selsV;
 				if (flags && !flags.isDisposed()) { mixin(S_TRACE);
 					selsF = selectionFlagIndices;
 					selsS = selectionStepIndices;
+					selsV = selectionVariantIndices;
 				}
-				storeInsert(selsF, selsS, [flag.parent.indexOf(flag)], []);
+				storeInsert(selsF, selsS, selsV, [flag.parent.indexOf(flag)], [], []);
 				createMode = false;
 			} else { mixin(S_TRACE);
 				storeEdit(indexOf(parent, flag), oldName, oldValue, oldNames);
 			}
 			_comm.openCWXPath(flag.cwxPath(true), false);
 			refresh([flag]);
-			_comm.refFlagAndStep.call([flag], []);
+			_comm.refFlagAndStep.call([flag], [], []);
 			_comm.refreshToolBar();
 		};
 		_editDlgsF[flag] = dlg;
@@ -1649,18 +1793,20 @@ private:
 			if (createMode) { mixin(S_TRACE);
 				ptrdiff_t[] selsF;
 				ptrdiff_t[] selsS;
+				ptrdiff_t[] selsV;
 				if (flags && !flags.isDisposed()) { mixin(S_TRACE);
 					selsF = selectionFlagIndices;
 					selsS = selectionStepIndices;
+					selsV = selectionVariantIndices;
 				}
-				storeInsert(selsF, selsS, [], [step.parent.indexOf(step)]);
+				storeInsert(selsF, selsS, selsV, [], [step.parent.indexOf(step)], []);
 				createMode = false;
 			} else { mixin(S_TRACE);
 				storeEdit(indexOf(parent, step), oldName, oldValue, oldNames);
 			}
 			_comm.openCWXPath(step.cwxPath(true), false);
 			refresh([step]);
-			_comm.refFlagAndStep.call([], [step]);
+			_comm.refFlagAndStep.call([], [step], []);
 			_comm.refreshToolBar();
 		};
 		_editDlgsS[step] = dlg;
@@ -1668,6 +1814,9 @@ private:
 			_editDlgsS.remove(step);
 		};
 		dlg.open();
+	}
+	void editVariant(FlagDir parent, cwx.flag.Variant variant) { mixin(S_TRACE);
+		// TODO
 	}
 
 	class MListener : MouseAdapter {
@@ -1692,7 +1841,7 @@ private:
 	/// fs = 選択中のフラグの配列が格納される。
 	/// ss = 選択中のステップの配列が格納される。
 	/// Returns: 選択中ならtrue。
-	bool getSelectionFlagAndStep(out cwx.flag.Flag[] fs, out Step[] ss) { mixin(S_TRACE);
+	bool getSelectionFlagAndStep(out cwx.flag.Flag[] fs, out Step[] ss, out cwx.flag.Variant[] vs) { mixin(S_TRACE);
 		auto indices = flags.getSelectionIndices();
 		if (indices.length > 0) { mixin(S_TRACE);
 			foreach (i; indices) { mixin(S_TRACE);
@@ -1701,6 +1850,8 @@ private:
 					ss ~= s;
 				} else if (auto f = cast(cwx.flag.Flag)itm.getData()) { mixin(S_TRACE);
 					fs ~= f;
+				} else if (auto f = cast(cwx.flag.Variant)itm.getData()) { mixin(S_TRACE);
+					vs ~= f;
 				} else assert (0);
 			}
 			return true;
@@ -1708,12 +1859,14 @@ private:
 			return false;
 		}
 	}
-	void getSelectionFlagAndStepWithIndex(out cwx.flag.Flag[ptrdiff_t] fs, out Step[ptrdiff_t] ss) { mixin(S_TRACE);
+	void getSelectionFlagAndStepWithIndex(out cwx.flag.Flag[ptrdiff_t] fs, out Step[ptrdiff_t] ss, out cwx.flag.Variant[ptrdiff_t] vs) { mixin(S_TRACE);
 		cwx.flag.Flag[] fsi;
 		Step[] ssi;
-		getSelectionFlagAndStep(fsi, ssi);
+		cwx.flag.Variant[] vsi;
+		getSelectionFlagAndStep(fsi, ssi, vsi);
 		foreach (f; fsi) fs[f.parent.indexOf(f)] = f;
 		foreach (f; ssi) ss[f.parent.indexOf(f)] = f;
+		foreach (f; vsi) vs[f.parent.indexOf(f)] = f;
 	}
 	void selectIndicesImpl(F)(in ptrdiff_t[] indices, in F[] arr) { mixin(S_TRACE);
 		auto set = new HashSet!string;
@@ -1732,9 +1885,13 @@ private:
 	void selectStepIndices(in ptrdiff_t[] indices) { mixin(S_TRACE);
 		selectIndicesImpl!Step(indices, _dir.steps);
 	}
+	void selectVariantIndices(in ptrdiff_t[] indices) { mixin(S_TRACE);
+		selectIndicesImpl!(cwx.flag.Variant)(indices, _dir.variants);
+	}
 
 	cwx.flag.Flag[ptrdiff_t] _dragFlags;
 	Step[ptrdiff_t] _dragSteps;
+	cwx.flag.Variant[ptrdiff_t] _dragVariants;
 	class FlagDragListener : DragSourceListener {
 	private:
 		int[] dragIndices;
@@ -1745,9 +1902,9 @@ private:
 		override void dragSetData(DragSourceEvent e) { mixin(S_TRACE);
 			if (XMLBytesTransfer.getInstance().isSupportedType(e.dataType)) { mixin(S_TRACE);
 				// XML化して転送する。
-				getSelectionFlagAndStepWithIndex(_dragFlags, _dragSteps);
+				getSelectionFlagAndStepWithIndex(_dragFlags, _dragSteps, _dragVariants);
 				XNode node;
-				getNode(_dir, _dragFlags.values, _dragSteps.values, node);
+				getNode(_dir, _dragFlags.values, _dragSteps.values, _dragVariants.values, node);
 				node.newAttr("paneId", _id);
 				e.data = bytesFromXML(node.text);
 			}
@@ -1760,12 +1917,16 @@ private:
 				foreach (step; _dragSteps) { mixin(S_TRACE);
 					step.parent.remove(step);
 				}
+				foreach (variant; _dragVariants) { mixin(S_TRACE);
+					variant.parent.remove(variant);
+				}
 				refresh();
-				_comm.delFlagAndStep.call(_dragFlags.values, _dragSteps.values);
+				_comm.delFlagAndStep.call(_dragFlags.values, _dragSteps.values, _dragVariants.values);
 				_comm.refreshToolBar();
 			}
 			_dragFlags = null;
 			_dragSteps = null;
+			_dragVariants = null;
 		}
 	}
 	class FlagDrop : DropTargetAdapter {
@@ -1814,40 +1975,51 @@ private:
 		itms.insertInPlace(0, selItm);
 		cwx.flag.Flag[] refF;
 		Step[] refS;
+		cwx.flag.Variant[] refV;
 		int[] indices;
 		string[] oldNames;
 		string[] oldNamesF;
 		string[] oldNamesS;
+		string[] oldNamesV;
 		FlagId[] oldFID;
 		StepId[] oldSID;
+		VariantId[] oldVID;
 		foreach (itm; itms) { mixin(S_TRACE);
-			auto f = cast(cwx.flag.Flag)itm.getData();
-			if (f) { mixin(S_TRACE);
+			auto d = itm.getData();
+			if (auto f = cast(cwx.flag.Flag)d) { mixin(S_TRACE);
 				indices ~= indexOf(f.parent, f);
 				oldNamesF ~= f.name;
 				oldNames ~= f.name;
 				refF ~= f;
 				oldFID ~= toFlagId(f.path);
 			}
-			auto s = cast(Step)itm.getData();
-			if (s) { mixin(S_TRACE);
+			if (auto s = cast(Step)d) { mixin(S_TRACE);
 				indices ~= indexOf(s.parent, s);
 				oldNamesS ~= s.name;
 				oldNames ~= s.name;
 				refS ~= s;
 				oldSID ~= toStepId(s.path);
 			}
+			if (auto v = cast(cwx.flag.Variant)d) { mixin(S_TRACE);
+				indices ~= indexOf(v.parent, v);
+				oldNamesV ~= v.name;
+				oldNames ~= v.name;
+				refV ~= v;
+				oldVID ~= toVariantId(v.path);
+			}
 		}
 		if (indices.length) { mixin(S_TRACE);
 			auto newNamesF = _dir.createNewFlagNames(text, refF.length, oldNamesF);
 			auto newNamesS = _dir.createNewStepNames(text, refS.length, oldNamesS);
-			bool changed = oldNamesF != newNamesF || oldNamesS != newNamesS;
+			auto newNamesV = _dir.createNewVariantNames(text, refV.length, oldNamesV);
+			bool changed = oldNamesF != newNamesF || oldNamesS != newNamesS || oldNamesV != newNamesV;
 			if (oldNamesF != newNamesF) setNames(refF, newNamesF, uc);
 			if (oldNamesS != newNamesS) setNames(refS, newNamesS, uc);
+			if (oldNamesV != newNamesV) setNames(refV, newNamesV, uc);
 			if (changed) { mixin(S_TRACE);
 				storeEdit(indices, oldNames);
 				refresh();
-				_comm.refFlagAndStep.call(refF, refS);
+				_comm.refFlagAndStep.call(refF, refS, refV);
 			}
 		}
 		_comm.refreshToolBar();
@@ -1884,15 +2056,27 @@ private:
 		}
 		return changed;
 	}
+	Control initCreateEditor(TableItem itm, int editC) { mixin(S_TRACE);
+		assert (editC == VALUE);
+		auto d = itm.getData();
+		if (cast(cwx.flag.Flag)d || cast(Step)d) { mixin(S_TRACE);
+			string[] strs;
+			string str;
+			initCombo(itm, editC, strs, str);
+			return .createComboEditor!Combo(_comm, prop, itm.getParent(), strs, str);
+		} else { mixin(S_TRACE);
+			// TODO: エラー時はツールチップで通知する
+			// TODO: 説明をツールチップで出す
+			return .createTextEditor(_comm, prop, itm.getParent(), itm.getText(VALUE));
+		}
+	}
 	void initCombo(TableItem itm, int column, out string[] strs, out string str) { mixin(S_TRACE);
-		auto f = cast(cwx.flag.Flag) itm.getData();
-		if (f) { mixin(S_TRACE);
+		auto d = itm.getData();
+		if (auto f = cast(cwx.flag.Flag)d) { mixin(S_TRACE);
 			strs = [f.on, f.off];
 			str = f.onOff ? f.on : f.off;
 			return;
-		}
-		auto s = cast(Step) itm.getData();
-		if (s) { mixin(S_TRACE);
+		} else if (auto s = cast(Step)d) { mixin(S_TRACE);
 			foreach (i, v; s.values) { mixin(S_TRACE);
 				strs ~= v;
 				if (i == s.select) { mixin(S_TRACE);
@@ -1900,21 +2084,33 @@ private:
 				}
 			}
 			return;
-		}
+		} else assert (0);
 	}
-	void initEditEnd(TableItem selItm, int column, Combo combo) { mixin(S_TRACE);
-		int i = combo.getSelectionIndex();
-		if (-1 == i) return;
+	void initEditEnd(TableItem selItm, int column, Control ctrl) { mixin(S_TRACE);
+		auto i = -1;
+		auto val = VariantVal(false);
+		if (auto combo = cast(Combo)ctrl) { mixin(S_TRACE);
+			i = combo.getSelectionIndex();
+			if (-1 == i) return;
+		} else if (auto t = cast(Text)ctrl) { mixin(S_TRACE);
+			auto text = t.getText();
+			if ("" == text) return;
+			val = .variantValueFromText(text);
+			if (!val.valid) return;
+		}
 		auto selFlag = cast(cwx.flag.Flag)selItm.getData();
 		auto selStep = cast(Step)selItm.getData();
+		auto selVariant = cast(cwx.flag.Variant)selItm.getData();
 		auto itms = flags.getSelection();
 		itms = itms.remove(selItm);
 		itms.insertInPlace(0, selItm);
 		cwx.flag.Flag[] refF;
 		Step[] refS;
+		cwx.flag.Variant[] refV;
 		int[] indices;
 		string[] oldNames;
 		int[] oldValues;
+		VariantVal[] oldVals;
 		foreach (itm; itms) { mixin(S_TRACE);
 			auto f = cast(cwx.flag.Flag)itm.getData();
 			if (selFlag && f) { mixin(S_TRACE);
@@ -1936,13 +2132,32 @@ private:
 				itm.setText(column, getStepValue(prop, s, s.select));
 				refS ~= s;
 			}
+			auto v = cast(cwx.flag.Variant)itm.getData();
+			if (selVariant && v) { mixin(S_TRACE);
+				indices ~= indexOf(v.parent, v);
+				oldNames ~= v.name;
+				final switch (val.type) {
+				case VariantType.Number:
+					v.value = val.numVal;
+					break;
+				case VariantType.String:
+					v.value = val.strVal;
+					break;
+				case VariantType.Boolean:
+					v.value = val.boolVal;
+					break;
+				}
+				itm.setText(column, .variantValueToText(v));
+				refV ~= v;
+			}
 		}
 		if (indices.length) { mixin(S_TRACE);
 			storeEdit(indices, oldNames, oldValues);
-			_comm.refFlagAndStep.call(refF, refS);
+			_comm.refFlagAndStep.call(refF, refS, refV);
 		}
 		_comm.refreshToolBar();
 	}
+
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			foreach (dlg; _editDlgsF.values) { mixin(S_TRACE);
@@ -1951,6 +2166,10 @@ private:
 			foreach (dlg; _editDlgsS.values) { mixin(S_TRACE);
 				dlg.forceCancel();
 			}
+			// TODO
+			//foreach (dlg; _editDlgsV.values) { mixin(S_TRACE);
+			//	dlg.forceCancel();
+			//}
 		}
 	}
 	@property
@@ -1979,7 +2198,8 @@ private:
 	void copyInitTree() { mixin(S_TRACE);
 		cwx.flag.Flag[] fs;
 		Step[] ss;
-		getSelectionFlagAndStep(fs, ss);
+		cwx.flag.Variant[] vs;
+		getSelectionFlagAndStep(fs, ss, vs);
 		auto c = createInitVariablesTree(fs, ss);
 		if (!c) return;
 		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys, LATEST_VERSION)));
@@ -2003,6 +2223,8 @@ private:
 		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys, LATEST_VERSION)));
 		_comm.refreshToolBar();
 	}
+	// TODO: コモンの初期化ツリー
+
 public:
 	this (Commons comm, Props prop, UndoManager undo) { mixin(S_TRACE);
 		_id = .objectIDValue(this);
@@ -2036,12 +2258,13 @@ public:
 		flags.addKeyListener(new KListener);
 		flags.addMouseListener(new MListener);
 		auto menu = new Menu(flags.getShell(), SWT.POP_UP);
-		createMenuItem(_comm, menu, MenuID.IncSearch, &incSearch, () => _dir.flags.length || _dir.steps.length);
+		createMenuItem(_comm, menu, MenuID.IncSearch, &incSearch, () => _dir.flags.length || _dir.steps.length || _dir.variants.length);
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.EditProp, &edit, &canEdit);
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.NewFlag, &createFlag, () => _dir !is null);
 		createMenuItem(_comm, menu, MenuID.NewStep, &createStep, () => _dir !is null);
+		createMenuItem(_comm, menu, MenuID.NewVariant, &createVariant, () => _dir !is null);
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.Undo, &this.undo, &_undo.canUndo);
 		createMenuItem(_comm, menu, MenuID.Redo, &this.redo, &_undo.canRedo);
@@ -2072,6 +2295,7 @@ public:
 		foreach (i; 0..prop.looks.stepMaxCount) { mixin(S_TRACE);
 			ssValue(i);
 		}
+		// TODO: コモン初期化ツリー
 
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.FindID, &replaceID, &canReplaceID);
@@ -2092,7 +2316,7 @@ public:
 		flags.addDisposeListener(new DListener);
 
 		_tte = new TableTextEdit(_comm, prop, flags, 0, &nameEditEnd, null);
-		_tce = new TableComboEdit!Combo(_comm, prop, flags, 1, &initCombo, &initEditEnd, null);
+		_tce = new TableTCEdit(_comm, flags, 1, &initCreateEditor, &initEditEnd, null);
 
 		_comp.addDisposeListener(new Dispose);
 
@@ -2100,10 +2324,11 @@ public:
 	}
 	void updateIncSearchParent(Composite incSearchParent) {
 		auto matchers = [
+			AdditionMatcher(MenuProps.buildMenu(.objName!(cwx.flag.Variant)(prop), "V", "", false), (o) => cast(cwx.flag.Variant)o !is null),
 			AdditionMatcher(MenuProps.buildMenu(.objName!Step(prop), "S", "", false), (o) => cast(Step)o !is null),
 			AdditionMatcher(MenuProps.buildMenu(.objName!(cwx.flag.Flag)(prop), "F", "", false), (o) => cast(cwx.flag.Flag)o !is null),
 		];
-		_incSearch = new IncSearch(_comm, incSearchParent, () => _dir.flags.length || _dir.steps.length, matchers);
+		_incSearch = new IncSearch(_comm, incSearchParent, () => _dir.flags.length || _dir.steps.length || _dir.variants.length, matchers);
 		_incSearch.modEvent ~= &refresh;
 	}
 	private Composite _comp = null;
@@ -2114,6 +2339,8 @@ public:
 	package cwx.flag.Flag[ptrdiff_t] dragFlags() { return _dragFlags; }
 	@property
 	package Step[ptrdiff_t] dragSteps() { return _dragSteps; }
+	@property
+	package cwx.flag.Variant[ptrdiff_t] dragVariants() { return _dragVariants; }
 
 	private void refreshStatusLine() { mixin(S_TRACE);
 		string s = "";
@@ -2125,26 +2352,30 @@ public:
 		if (_dir) { mixin(S_TRACE);
 			put(prop.msgs.flag, _dir.flags.length);
 			put(prop.msgs.step, _dir.steps.length);
+			put(prop.msgs.variant, _dir.variants.length);
 		}
 		cwx.flag.Flag[] selFlags;
 		Step[] selSteps;
-		getSelectionFlagAndStep(selFlags, selSteps);
-		if (selFlags.length || selSteps.length) { mixin(S_TRACE);
-			s = .tryFormat(prop.msgs.flagStatusSel, s, selFlags.length + selSteps.length);
+		cwx.flag.Variant[] selVariants;
+		getSelectionFlagAndStep(selFlags, selSteps, selVariants);
+		if (selFlags.length || selSteps.length || selVariants.length) { mixin(S_TRACE);
+			s = .tryFormat(prop.msgs.flagStatusSel, s, selFlags.length + selSteps.length + selVariants.length);
 		}
 		_statusLine = s;
 		_comm.setStatusLine(flags, _statusLine);
 	}
 	@property
-	string statusLine() {return _statusLine;}
+	string statusLine() { return _statusLine; }
 
 	private void refreshUseCount() { mixin(S_TRACE);
 		foreach (itm; flags.getItems()) { mixin(S_TRACE);
 			if (cast(cwx.flag.Flag)itm.getData()) { mixin(S_TRACE);
 				itm.setText(2, to!(string)(uc.flag.get(toFlagId((cast(cwx.flag.Flag)itm.getData()).path))));
-			} else { mixin(S_TRACE);
-				assert (cast(Step)itm.getData() !is null);
+			} else if (cast(Step)itm.getData()) { mixin(S_TRACE);
 				itm.setText(2, to!(string)(uc.step.get(toStepId((cast(Step)itm.getData()).path))));
+			} else { mixin(S_TRACE);
+				assert (cast(cwx.flag.Variant)itm.getData() !is null);
+				itm.setText(2, to!(string)(uc.variant.get(toVariantId((cast(cwx.flag.Variant)itm.getData()).path))));
 			}
 		}
 	}
@@ -2185,15 +2416,17 @@ public:
 		return [];
 	}
 	/// 表示上で選択されているフラグまたはステップ。
-	int[] selectedItems(out cwx.flag.Flag[] fs, out Step[] ss) { mixin(S_TRACE);
+	int[] selectedItems(out cwx.flag.Flag[] fs, out Step[] ss, out cwx.flag.Variant[] vs) { mixin(S_TRACE);
 		if (flags && !flags.isDisposed()) { mixin(S_TRACE);
 			auto indices = flags.getSelectionIndices();
 			foreach (i; indices) { mixin(S_TRACE);
 				auto o = flags.getItem(i).getData();
-				auto f = cast(cwx.flag.Flag) o;
+				auto f = cast(cwx.flag.Flag)o;
 				if (f) fs ~= f;
-				auto s = cast(Step) o;
+				auto s = cast(Step)o;
 				if (s) ss ~= s;
+				auto v = cast(cwx.flag.Variant)o;
+				if (v) vs ~= v;
 			}
 			return indices;
 		}
@@ -2204,7 +2437,8 @@ public:
 	cwx.flag.Flag[] selectionFlags() { mixin(S_TRACE);
 		cwx.flag.Flag[] fs;
 		Step[] ss;
-		getSelectionFlagAndStep(fs, ss);
+		cwx.flag.Variant[] vs;
+		getSelectionFlagAndStep(fs, ss, vs);
 		return fs;
 	}
 	/// ditto
@@ -2212,8 +2446,18 @@ public:
 	Step[] selectionSteps() { mixin(S_TRACE);
 		cwx.flag.Flag[] fs;
 		Step[] ss;
-		getSelectionFlagAndStep(fs, ss);
+		cwx.flag.Variant[] vs;
+		getSelectionFlagAndStep(fs, ss, vs);
 		return ss;
+	}
+	/// ditto
+	@property
+	cwx.flag.Variant[] selectionVariants() { mixin(S_TRACE);
+		cwx.flag.Flag[] fs;
+		Step[] ss;
+		cwx.flag.Variant[] vs;
+		getSelectionFlagAndStep(fs, ss, vs);
+		return vs;
 	}
 	/// ditto
 	@property
@@ -2237,6 +2481,17 @@ public:
 		}
 		return r;
 	}
+	/// ditto
+	@property
+	ptrdiff_t[] selectionVariantIndices() { mixin(S_TRACE);
+		ptrdiff_t[] r;
+		foreach (f; selectionVariants) { mixin(S_TRACE);
+			assert (f !is null);
+			assert (f.parent !is null);
+			r ~= f.parent.indexOf(f);
+		}
+		return r;
+	}
 
 	/// フラグ生成のダイアログボックスを開く。
 	/// 適切に設定された場合、新規フラグを生成する。
@@ -2250,13 +2505,22 @@ public:
 		editStep(_dir, null);
 	}
 
+	/// コモン生成のダイアログボックスを開く。
+	/// 適切に設定された場合、新規ステップを生成する。
+	void createVariant() { mixin(S_TRACE);
+		editVariant(_dir, null);
+	}
+
 	/// 選択中のフラグ・ステップの編集を開始する。
 	void edit() { mixin(S_TRACE);
 		if (_dir !is null) { mixin(S_TRACE);
 			foreach (index; flags.getSelectionIndices()) { mixin(S_TRACE);
-				if (auto step = cast(Step)flags.getItem(index).getData()) { mixin(S_TRACE);
+				auto d = flags.getItem(index).getData();
+				if (auto variant = cast(cwx.flag.Variant)d) { mixin(S_TRACE);
+					editVariant(variant.parent, variant);
+				} else if (auto step = cast(Step)d) { mixin(S_TRACE);
 					editStep(step.parent, step);
-				} else if (auto flag = cast(cwx.flag.Flag)flags.getItem(index).getData()) { mixin(S_TRACE);
+				} else if (auto flag = cast(cwx.flag.Flag)d) { mixin(S_TRACE);
 					editFlag(flag.parent, flag);
 				} else assert (0);
 			}
@@ -2276,6 +2540,11 @@ public:
 		enforce(step.parent is dir);
 		editStep(step.parent, step);
 	}
+	/// 指定されたコモンの編集を開始する。
+	void edit(cwx.flag.Variant variant) { mixin(S_TRACE);
+		enforce(variant.parent is dir);
+		editVariant(variant.parent, variant);
+	}
 
 	/// 編集対象のディレクトリを設定する。
 	/// Params:
@@ -2289,6 +2558,10 @@ public:
 		foreach (dlg; _editDlgsS.values) { mixin(S_TRACE);
 			dlg.forceCancel();
 		}
+		// TODO
+		//foreach (dlg; _editDlgsV.values) { mixin(S_TRACE);
+		//	dlg.forceCancel();
+		//}
 		_dir = dir;
 		refresh();
 	}
@@ -2318,6 +2591,10 @@ public:
 	void select(Step step, bool deselect) { mixin(S_TRACE);
 		selectImpl(step, deselect);
 	}
+	/// コモンを選択する。
+	void select(cwx.flag.Variant variant, bool deselect) { mixin(S_TRACE);
+		selectImpl(variant, deselect);
+	}
 	void deselectAll() { mixin(S_TRACE);
 		flags.deselectAll();
 	}
@@ -2338,7 +2615,9 @@ public:
 			if (f) buf ~= f.path;
 			auto s = cast(Step)itm.getData();
 			if (s) buf ~= s.path;
-			assert (f || s);
+			auto v = cast(cwx.flag.Variant)itm.getData();
+			if (v) buf ~= v.path;
+			assert (f || s || v);
 		}
 		_comm.clipboard.setContents([new ArrayWrapperString(buf)],
 			[TextTransfer.getInstance()]);
@@ -2370,9 +2649,10 @@ public:
 			if (!_dir) return;
 			cwx.flag.Flag[] fs;
 			Step[] ss;
-			if (getSelectionFlagAndStep(fs, ss)) { mixin(S_TRACE);
+			cwx.flag.Variant[] vs;
+			if (getSelectionFlagAndStep(fs, ss, vs)) { mixin(S_TRACE);
 				XNode node;
-				getNode(_dir, fs, ss, node);
+				getNode(_dir, fs, ss, vs, node);
 				node.newAttr("paneId", _id);
 				XMLtoCB(prop, _comm.clipboard, node.text);
 				_comm.refreshToolBar();
@@ -2396,8 +2676,10 @@ public:
 			enterEdit();
 			auto selsF = selectionFlagIndices;
 			auto selsS = selectionStepIndices;
+			auto selsV = selectionVariantIndices;
 			cwx.flag.Flag[ptrdiff_t] fs;
 			Step[ptrdiff_t] ss;
+			cwx.flag.Variant[ptrdiff_t] vs;
 			auto sels = flags.getSelection();
 			foreach (itm; sels) { mixin(S_TRACE);
 				auto data = itm.getData();
@@ -2406,6 +2688,9 @@ public:
 				}
 				if (auto step = cast(Step)data) { mixin(S_TRACE);
 					ss[step.parent.indexOf(step)] = step;
+				}
+				if (auto variant = cast(cwx.flag.Variant)data) { mixin(S_TRACE);
+					vs[variant.parent.indexOf(variant)] = variant;
 				}
 			}
 			foreach (itm; sels) { mixin(S_TRACE);
@@ -2416,9 +2701,12 @@ public:
 				if (auto step = cast(Step)data) { mixin(S_TRACE);
 					_dir.remove(step);
 				}
+				if (auto variant = cast(cwx.flag.Variant)data) { mixin(S_TRACE);
+					_dir.remove(variant);
+				}
 			}
-			storeDelete(selsF, selsS, fs, ss);
-			_comm.delFlagAndStep.call(fs.values, ss.values);
+			storeDelete(selsF, selsS, selsV, fs, ss, vs);
+			_comm.delFlagAndStep.call(fs.values, ss.values, vs.values);
 			refresh();
 			_comm.refreshToolBar();
 		}
@@ -2460,25 +2748,32 @@ public:
 			string rootId;
 			cwx.flag.Flag[string] cFlags;
 			Step[string] cSteps;
+			cwx.flag.Variant[string] cVariants;
 			auto selsF = selectionFlagIndices;
 			auto selsS = selectionStepIndices;
+			auto selsV = selectionVariantIndices;
 			auto ver = new XMLInfo(prop.sys, LATEST_VERSION);
-			if (_dir.appendFromNode(node, ver, true, false, cFlags, cSteps, newPath, rootId)) { mixin(S_TRACE);
+			if (_dir.appendFromNode(node, ver, true, false, cFlags, cSteps, cVariants, newPath, rootId)) { mixin(S_TRACE);
 				ptrdiff_t[] flagIndices;
 				ptrdiff_t[] stepIndices;
-				if (!cFlags.length && !cSteps.length) return false;
+				ptrdiff_t[] variantIndices;
+				if (!cFlags.length && !cSteps.length && !cVariants.length) return false;
 				foreach (f; cFlags) { mixin(S_TRACE);
 					flagIndices ~= f.parent.indexOf(f);
 				}
 				foreach (s; cSteps) { mixin(S_TRACE);
 					stepIndices ~= s.parent.indexOf(s);
 				}
-				storeInsert(selsF, selsS, flagIndices, stepIndices);
+				foreach (v; cVariants) { mixin(S_TRACE);
+					variantIndices ~= v.parent.indexOf(v);
+				}
+				storeInsert(selsF, selsS, selsV, flagIndices, stepIndices, variantIndices);
 				Object[] objs;
 				objs ~= cFlags.values;
 				objs ~= cSteps.values;
+				objs ~= cVariants.values;
 				refresh(objs);
-				_comm.refFlagAndStep.call(cFlags.values, cSteps.values);
+				_comm.refFlagAndStep.call(cFlags.values, cSteps.values, cVariants.values);
 				_comm.refreshToolBar();
 				return true;
 			}
@@ -2508,19 +2803,20 @@ public:
 		if (_tce) _tce.enter();
 	}
 
-	void replaceID() {
+	void replaceID() { mixin(S_TRACE);
 		auto index = flags.getSelectionIndex();
 		if (index <= -1) return;
 		auto data = flags.getItem(index).getData();
 		if (auto f = cast(cwx.flag.Flag)data) _comm.replaceID(toFlagId(f.path), true);
 		if (auto f = cast(Step)data) _comm.replaceID(toStepId(f.path), true);
+		if (auto f = cast(cwx.flag.Variant)data) _comm.replaceID(toVariantId(f.path), true);
 	}
 	@property
-	bool canReplaceID() {
+	bool canReplaceID() { mixin(S_TRACE);
 		auto index = flags.getSelectionIndex();
 		if (index <= -1) return false;
 		auto data = flags.getItem(index).getData();
-		return cast(cwx.flag.Flag)data || cast(Step)data;
+		return cast(cwx.flag.Flag)data || cast(Step)data || cast(cwx.flag.Variant)data;
 	}
 
 	@property
@@ -2528,12 +2824,16 @@ public:
 		string[] r;
 		cwx.flag.Flag[] fs;
 		Step[] ss;
-		getSelectionFlagAndStep(fs, ss);
+		cwx.flag.Variant[] vs;
+		getSelectionFlagAndStep(fs, ss, vs);
 		foreach (f; fs) { mixin(S_TRACE);
 			r ~= f.cwxPath(true);
 		}
 		foreach (s; ss) { mixin(S_TRACE);
 			r ~= s.cwxPath(true);
+		}
+		foreach (v; vs) { mixin(S_TRACE);
+			r ~= v.cwxPath(true);
 		}
 		return r;
 	}

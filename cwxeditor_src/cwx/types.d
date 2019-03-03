@@ -1199,6 +1199,30 @@ string fromEnvironmentStatus(EnvironmentStatus t) { mixin(S_TRACE);
 	}
 }
 
+/// コモンの型(Wsn.4)。
+enum VariantType {
+	Number, /// 数値。
+	String, /// 文字列。
+	Boolean, /// 真偽値。
+}
+/// ditto
+VariantType toVariantType(string name) { mixin(S_TRACE);
+	switch (name) {
+	case "Number": return VariantType.Number;
+	case "String": return VariantType.String;
+	case "Boolean": return VariantType.Boolean;
+	default: throw new Exception("Unknown variant type: " ~ name);
+	}
+}
+/// ditto
+string fromVariantType(VariantType t) { mixin(S_TRACE);
+	final switch (t) {
+	case VariantType.Number: return "Number";
+	case VariantType.String: return "String";
+	case VariantType.Boolean: return "Boolean";
+	}
+}
+
 /// 発火条件キーコードの種別。
 enum FKCKind {
 	Use, /// 使用時。
@@ -1423,6 +1447,7 @@ enum CArg {
 	CARD_SPEED, /// カードアニメーション速度(Wsn.4)。
 	OVERRIDE_CARD_SPEED, /// 速度設定をカード本体の設定より優先する(Wsn.4)。
 	BACKPACK_ENABLED, /// 荷物袋の使用可否(Wsn.4)。
+	VARIANT, /// コモン(Wsn.4)。
 }
 
 /// 後続コンテントのnameの型。
@@ -1637,10 +1662,12 @@ enum MenuID {
 	NewFlagDir,
 	NewFlag,
 	NewStep,
+	NewVariant,
 	CreateStepValues,
 	PutSPChar,
 	PutFlagValue,
 	PutStepValue,
+	PutVariantValue,
 	PutColor,
 	PutSkinSPChar,
 	PutImageFont,

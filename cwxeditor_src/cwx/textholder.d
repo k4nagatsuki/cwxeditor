@@ -23,8 +23,9 @@ public:
 		if (_text != text) { mixin(S_TRACE);
 			string[] flags;
 			string[] steps;
+			string[] variants;
 			string[] fonts;
-			textUseItems(text, flags, steps, fonts, _colors);
+			textUseItems(text, flags, steps, variants, fonts, _colors);
 			removeTextUseCounter();
 			_fontusers = [];
 			foreach (f; fonts) { mixin(S_TRACE);
@@ -46,6 +47,13 @@ public:
 				if (_uc !is null) u.setUseCounter(_uc);
 				u.step = s;
 				_stepusers ~= u;
+			}
+			_variantusers = [];
+			foreach (s; variants) { mixin(S_TRACE);
+				auto u = new VariantUser(this);
+				if (_uc !is null) u.setUseCounter(_uc);
+				u.variant = s;
+				_variantusers ~= u;
 			}
 			_text = text;
 		}
@@ -128,11 +136,12 @@ interface ITextHolder : ISimpleTextHolder {
 }
 
 /// ファイル以外の特殊文字に対応したテキスト。
-class SimpleTextHolder : CWXPath, IFlagUser, IStepUser, ChgFlagCallback, ChgStepCallback {
+class SimpleTextHolder : CWXPath, IFlagUser, IStepUser, IVariantUser, ChgFlagCallback, ChgStepCallback, ChgVariantCallback {
 private:
 	string _text;
 	FlagUser[] _flagusers;
 	StepUser[] _stepusers;
+	VariantUser[] _variantusers;
 	UseCounter _uc;
 	string _cwxPathCategory;
 	void delegate() _changed;
@@ -160,9 +169,10 @@ public:
 		if (_text != text) { mixin(S_TRACE);
 			string[] flags;
 			string[] steps;
+			string[] variants;
 			string[] fonts;
 			char[] colors;
-			textUseItems(text, flags, steps, fonts, colors);
+			textUseItems(text, flags, steps, variants, fonts, colors);
 			removeTextUseCounter();
 			_flagusers = [];
 			foreach (f; flags) { mixin(S_TRACE);
@@ -178,11 +188,18 @@ public:
 				u.step = s;
 				_stepusers ~= u;
 			}
+			_variantusers = [];
+			foreach (s; variants) { mixin(S_TRACE);
+				auto u = new VariantUser(this);
+				if (_uc !is null) u.setUseCounter(_uc);
+				u.variant = s;
+				_variantusers ~= u;
+			}
 			_text = text;
 		}
 	}
 
-	/// テキスト内で使用されているフラグのパス。
+	/// テキスト内で使用されている状態変数のパス。
 	@property
 	const
 	string[] flagsInText() { mixin(S_TRACE);
@@ -192,14 +209,23 @@ public:
 		}
 		return r;
 	}
-
-	/// テキスト内で使用されているステップのパス。
+	/// ditto
 	@property
 	const
 	string[] stepsInText() { mixin(S_TRACE);
 		string[] r;
 		foreach (u; _stepusers) { mixin(S_TRACE);
 			r ~= u.step;
+		}
+		return r;
+	}
+	/// ditto
+	@property
+	const
+	string[] variantsInText() { mixin(S_TRACE);
+		string[] r;
+		foreach (u; _variantusers) { mixin(S_TRACE);
+			r ~= u.variant;
 		}
 		return r;
 	}
@@ -223,6 +249,9 @@ public:
 		foreach (u; _stepusers) { mixin(S_TRACE);
 			u.setUseCounter(uc);
 		}
+		foreach (u; _variantusers) { mixin(S_TRACE);
+			u.setUseCounter(uc);
+		}
 		_uc = uc;
 	}
 	protected void removeTextUseCounter() { mixin(S_TRACE);
@@ -231,6 +260,9 @@ public:
 				u.removeUseCounter();
 			}
 			foreach (u; _stepusers) { mixin(S_TRACE);
+				u.removeUseCounter();
+			}
+			foreach (u; _variantusers) { mixin(S_TRACE);
 				u.removeUseCounter();
 			}
 		}
@@ -252,6 +284,12 @@ public:
 		}
 		return true;
 	}
+	bool change(VariantId id) { mixin(S_TRACE);
+		foreach (u; _variantusers) { mixin(S_TRACE);
+			u.change(id);
+		}
+		return true;
+	}
 	/// ditto
 	void changeInText(size_t index, FlagId id) { mixin(S_TRACE);
 		_flagusers[index].change(id);
@@ -260,6 +298,10 @@ public:
 	void changeInText(size_t index, StepId id) { mixin(S_TRACE);
 		_stepusers[index].change(id);
 	}
+	/// ditto
+	void changeInText(size_t index, VariantId id) { mixin(S_TRACE);
+		_variantusers[index].change(id);
+	}
 	override bool changeCallback(FlagId oldVal, FlagId newVal) { mixin(S_TRACE);
 		_text = replTextUseFlag(_text, cast(string)oldVal, cast(string)newVal);
 		if (_changed) _changed();
@@ -267,6 +309,11 @@ public:
 	}
 	override bool changeCallback(StepId oldVal, StepId newVal) { mixin(S_TRACE);
 		_text = replTextUseStep(_text, cast(string)oldVal, cast(string)newVal);
+		if (_changed) _changed();
+		return true;
+	}
+	override bool changeCallback(VariantId oldVal, VariantId newVal) { mixin(S_TRACE);
+		_text = replTextUseVariant(_text, cast(string)oldVal, cast(string)newVal);
 		if (_changed) _changed();
 		return true;
 	}
@@ -298,21 +345,26 @@ public:
 }
 
 /// 一部特殊文字対応テキストの保持者。
-interface ISimpleTextHolder : IFlagUser, IStepUser {
+interface ISimpleTextHolder : IFlagUser, IStepUser, IVariantUser {
 	/// テキスト。
 	@property
 	const string text();
 	/// ditto
 	@property
 	void text(string);
-	/// テキスト内で使用されているフラグ・ステップのパス。
+	/// テキスト内で使用されている状態変数のパス。
 	@property
 	const string[] flagsInText();
 	/// ditto
 	@property
 	const string[] stepsInText();
-	/// テキスト内のフラグ・ステップを置換する。
+	/// ditto
+	@property
+	const string[] variantsInText();
+	/// テキスト内の状態変数パスを置換する。
 	void changeInText(size_t index, FlagId id);
 	/// ditto
 	void changeInText(size_t index, StepId id);
+	/// ditto
+	void changeInText(size_t index, VariantId id);
 }

@@ -90,17 +90,19 @@ private:
 		if (t) { mixin(S_TRACE);
 			bool[string] wFlags;
 			bool[string] wSteps;
+			bool[string] wVariants;
 			bool[string] wFonts;
 			bool[char] wColors;
 			string[] flags;
 			string[] steps;
+			string[] variants;
 			string[] fonts;
 			char[] colors;
-			textUseItems(wrapReturnCode(t.getText()), flags, steps, fonts, colors);
+			textUseItems(wrapReturnCode(t.getText()), flags, steps, variants, fonts, colors);
 			fonts = [];
 			colors = [];
 			ws ~= .textWarnings(_prop.parent, summSkin, _summ, _prop.var.etc.targetVersion,
-				t.getText(), flags, steps, fonts, colors, wFlags, wSteps, wFonts, wColors).all;
+				t.getText(), flags, steps, variants, fonts, colors, wFlags, wSteps, wVariants, wFonts, wColors).all;
 		}
 		if (_layer.getEnabled() && _layer.getSelection() != LAYER_MENU_CARD && !_prop.isTargetVersion(_summ, "1")) {
 			ws ~= _prop.msgs.warningLayer;

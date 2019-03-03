@@ -75,16 +75,17 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	}
 
 	auto spChars = skin.spChars;
-	auto checkTextRes(string text, in string[] flags, in string[] steps, in string[] fonts, in char[] colors,
-			ref bool[string] wFlags, ref bool[string] wSteps, ref bool[string] wFonts, ref bool[char] wColors) { mixin(S_TRACE);
-		return .textWarnings(prop, skin, summ, targVer, text, flags, steps, fonts, colors, wFlags, wSteps, wFonts, wColors);
+	auto checkTextRes(string text, in string[] flags, in string[] steps, in string[] variants, in string[] fonts, in char[] colors,
+			ref bool[string] wFlags, ref bool[string] wSteps, ref bool[string] wVariants, ref bool[string] wFonts, ref bool[char] wColors) { mixin(S_TRACE);
+		return .textWarnings(prop, skin, summ, targVer, text, flags, steps, variants, fonts, colors, wFlags, wSteps, wVariants, wFonts, wColors);
 	}
-	string[] checkTextRes2(string text, in string[] flags, in string[] steps, in string[] fonts, in char[] colors) { mixin(S_TRACE);
+	string[] checkTextRes2(string text, in string[] flags, in string[] steps, in string[] variants, in string[] fonts, in char[] colors) { mixin(S_TRACE);
 		bool[string] wFlags;
 		bool[string] wSteps;
+		bool[string] wVariants;
 		bool[string] wFonts;
 		bool[char] wColors;
-		return checkTextRes(text, flags, steps, fonts, colors, wFlags, wSteps, wFonts, wColors).all;
+		return checkTextRes(text, flags, steps, variants, fonts, colors, wFlags, wSteps, wVariants, wFonts, wColors).all;
 	}
 
 	auto flagDir = cast(FlagDir)path;
@@ -106,8 +107,8 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		r ~= .sjisWarnings(prop, summ, flag.on, prop.msgs.flagOnValue);
 		r ~= .sjisWarnings(prop, summ, flag.off, prop.msgs.flagOffValue);
 		if (flag.expandSPChars) { mixin(S_TRACE);
-			r ~= checkTextRes2(flag.on, flag.flagsInText(true), flag.stepsInText(true), [], []);
-			r ~= checkTextRes2(flag.off, flag.flagsInText(false), flag.stepsInText(false), [], []);
+			r ~= checkTextRes2(flag.on, flag.flagsInText(true), flag.stepsInText(true), flag.variantsInText(true), [], []);
+			r ~= checkTextRes2(flag.off, flag.flagsInText(false), flag.stepsInText(false), flag.variantsInText(false), [], []);
 		}
 	}
 	auto step = cast(Step)path;
@@ -127,8 +128,13 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		}
 		if (step.expandSPChars) { mixin(S_TRACE);
 			foreach (i; 0u .. step.count) { mixin(S_TRACE);
-				r ~= checkTextRes2(step.values[i], step.flagsInText(i), step.stepsInText(i), [], []);
+				r ~= checkTextRes2(step.values[i], step.flagsInText(i), step.stepsInText(i), step.variantsInText(i), [], []);
 			}
+		}
+	}
+	if (auto variant = cast(Variant)path) { mixin(S_TRACE);
+		if (!prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
+			r ~= prop.msgs.warningVariant;
 		}
 	}
 	auto eventTree = cast(EventTree)path;
@@ -392,7 +398,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	}
 	auto tc = cast(TextCell)path;
 	if (tc) { mixin(S_TRACE);
-		r ~= checkTextRes2(tc.text, tc.flagsInText, tc.stepsInText, [], []);
+		r ~= checkTextRes2(tc.text, tc.flagsInText, tc.stepsInText, tc.variantsInText, [], []);
 		if (!prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
 			r ~= prop.msgs.warningTextCell;
 		}
@@ -465,7 +471,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			r ~= prop.msgs.warningExpandSPCharsWithMenuCardName;
 		}
 		if (mc.expandSPChars) { mixin(S_TRACE);
-			r ~= checkTextRes2(mc.name, mc.flagsInText, mc.stepsInText, [], []);
+			r ~= checkTextRes2(mc.name, mc.flagsInText, mc.stepsInText, mc.variantsInText, [], []);
 		}
 		putCardImages(mc.paths, false);
 		if (mc.flag != "" && !(froot && froot.findFlag(mc.flag))) { mixin(S_TRACE);
@@ -486,7 +492,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (ec.isOverrideName &&  !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningOverrideEnemyCardName;
 		}
-		r ~= checkTextRes2(ec.overrideName, ec.flagsInText, ec.stepsInText, [], []);
+		r ~= checkTextRes2(ec.overrideName, ec.flagsInText, ec.stepsInText, ec.variantsInText, [], []);
 		if (ec.isOverrideImage &&  !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningOverrideEnemyCardImage;
 		}
@@ -542,11 +548,12 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (c.parent && c.parent.detail.nextType == CNextType.TEXT) { mixin(S_TRACE);
 			auto fit = c.flagsInName;
 			auto sit = c.stepsInName;
+			auto vit = c.variantsInName;
 			auto foit = c.namesInName;
-			if (!prop.targetVersion("1.50", targVer) && (fit.length || sit.length || foit.length)) { mixin(S_TRACE);
+			if (!prop.targetVersion("1.50", targVer) && (fit.length || sit.length || vit.length || foit.length)) { mixin(S_TRACE);
 				r ~= prop.msgs.warningSPCharsInSelections;
 			} else { mixin(S_TRACE);
-				r ~= checkTextRes2("", fit, sit, [], []);
+				r ~= checkTextRes2("", fit, sit, vit, [], []);
 			}
 		}
 
@@ -563,14 +570,16 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			if (c.dialogs.length) { mixin(S_TRACE);
 				bool[string] wFlags;
 				bool[string] wSteps;
+				bool[string] wVariants;
 				bool[string] wFonts;
 				bool[char] wColors;
 				foreach (i, dlg; c.dialogs) { mixin(S_TRACE);
 					foreach (coupon; dlg.rCoupons) { mixin(S_TRACE);
 						couponWarnings(coupon, false, prop.msgs.toneCoupons);
 					}
-					r ~= checkTextRes(dlg.text, dlg.flagsInText, dlg.stepsInText, dlg.fontsInText, dlg.colorsInText,
-						wFlags, wSteps, wFonts, wColors).noDup;
+					r ~= checkTextRes(dlg.text, dlg.flagsInText, dlg.stepsInText, dlg.variantsInText,
+						dlg.fontsInText, dlg.colorsInText,
+						wFlags, wSteps, wVariants, wFonts, wColors).noDup;
 					if (i + 1 < c.dialogs.length && !dlg.rCoupons.length) { mixin(S_TRACE);
 						// 最後以外にクーポンが設定されていない場合
 						r ~= prop.msgs.searchErrorNoRCouponsDialog;
@@ -578,7 +587,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				}
 			}
 		}
-		r ~= checkTextRes2(c.text, c.flagsInText, c.stepsInText, c.fontsInText, c.colorsInText);
+		r ~= checkTextRes2(c.text, c.flagsInText, c.stepsInText, c.variantsInText, c.fontsInText, c.colorsInText);
 		bool hasStart() { mixin(S_TRACE);
 			foreach (s; c.tree.starts) { mixin(S_TRACE);
 				if (s.name == c.start) return true;
@@ -621,6 +630,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			if (c.type == CType.SUBSTITUTE_STEP && .icmp(prop.sys.selectedPlayerCardNumber, c.step) == 0 && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningSelectedPlayerValue;
 			}
+		}
+		if (c.variant != "" && !(froot && froot.findVariant(c.variant))) { mixin(S_TRACE);
+			r ~= .tryFormat(prop.msgs.searchErrorVariantNotFound, c.flag);
 		}
 		putCardImages(c.cardPaths, false);
 		if (c.bgmPath != "") { mixin(S_TRACE);
@@ -773,6 +785,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if ((cd.use(CArg.STEP) && c.step == "") || (cd.use(CArg.STEP_2) && c.step2 == "")) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorNoStep;
 		}
+		if (cd.use(CArg.VARIANT) && c.variant == "") { mixin(S_TRACE);
+			r ~= prop.msgs.searchErrorNoVariant;
+		}
 		if (cd.use(CArg.COUPON)) { mixin(S_TRACE);
 			r ~= .sjisWarnings(prop, summ, c.coupon, prop.msgs.couponName);
 			if (c.coupon == "") r ~= prop.msgs.searchErrorNoCoupon;
@@ -811,6 +826,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		size_t rows(in Content c) { mixin(S_TRACE);
 			size_t len = 0;
 			foreach (n; c.next) { mixin(S_TRACE);
+				// TODO: CHECK_VARIANT
 				if (n.name != "" && n.type !is CType.CHECK_FLAG && n.type !is CType.CHECK_STEP) { mixin(S_TRACE);
 					len++;
 				}
@@ -1035,8 +1051,9 @@ struct TextWarnings {
 /// 台詞・メッセージ内で使用されているデータに対する警告を返す。
 /// 警告が行われたデータは引数の連想配列に格納される。
 TextWarnings textWarnings(in CProps prop, in Skin skin, in Summary summ, string targVer,
-		string text, in string[] flags, in string[] steps, in string[] fonts, in char[] colors,
-		ref bool[string] wFlags, ref bool[string] wSteps, ref bool[string] wFonts, ref bool[char] wColors) { mixin(S_TRACE);
+		string text, in string[] flags, in string[] steps, in string[] variants, in string[] fonts, in char[] colors,
+		ref bool[string] wFlags, ref bool[string] wSteps, ref bool[string] wVariants,
+		ref bool[string] wFonts, ref bool[char] wColors) { mixin(S_TRACE);
 	string[] all = [];
 	string[] noDup = [];
 
@@ -1114,6 +1131,16 @@ TextWarnings textWarnings(in CProps prop, in Skin skin, in Summary summ, string 
 			if (!wSteps.get(step, false)) { mixin(S_TRACE);
 				noDup ~= msg;
 				wSteps[step] = true;
+			}
+		}
+	}
+	foreach (variant; variants) { mixin(S_TRACE);
+		if (!(froot && froot.findVariant(variant))) { mixin(S_TRACE);
+			auto msg = .tryFormat(prop.msgs.searchErrorVariantNotFound, variant);
+			all ~= msg;
+			if (!wVariants.get(variant, false)) { mixin(S_TRACE);
+				noDup ~= msg;
+				wVariants[variant] = true;
 			}
 		}
 	}

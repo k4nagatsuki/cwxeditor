@@ -519,17 +519,19 @@ private:
 		if (_summ) { mixin(S_TRACE);
 			bool[string] wFlags;
 			bool[string] wSteps;
+			bool[string] wVariants;
 			bool[string] wFonts;
 			bool[char] wColors;
 			string[] flags;
 			string[] steps;
+			string[] variants;
 			string[] fonts;
 			char[] colors;
-			textUseItems(wrapReturnCode(_text.getText()), flags, steps, fonts, colors);
+			textUseItems(wrapReturnCode(_text.getText()), flags, steps, variants, fonts, colors);
 			fonts = [];
 			colors = [];
 			ws ~= .textWarnings(_prop.parent, summSkin, _summ, _prop.var.etc.targetVersion,
-				_text.getText(), flags, steps, fonts, colors, wFlags, wSteps, wFonts, wColors).all;
+				_text.getText(), flags, steps, variants, fonts, colors, wFlags, wSteps, wVariants, wFonts, wColors).all;
 		}
 		if (_updateType.getSelectionIndex() != -1) { mixin(S_TRACE);
 			if (_summ && _summ.legacy) { mixin(S_TRACE);
@@ -587,9 +589,10 @@ private:
 		string[char] names;
 		VarValue[string] flags;
 		VarValue[string] steps;
+		VarValue[string] variants;
 		VarValue[string] sysSteps;
-		_values.getValues(names, flags, steps, sysSteps);
-		return simpleFormatMsg(base, flags, steps, sysSteps, names, ver => _prop.isTargetVersion(_summ, ver),
+		_values.getValues(names, flags, steps, variants, sysSteps);
+		return simpleFormatMsg(base, flags, steps, variants, sysSteps, names, ver => _prop.isTargetVersion(_summ, ver),
 			_prop.sys.prefixSystemVarName);
 	}
 	class Paint : PaintListener {

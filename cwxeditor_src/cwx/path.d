@@ -46,18 +46,19 @@ private int cpTypeValue(string cate) { mixin(S_TRACE);
 	case "dir": return 5;
 	case "flag": return 6;
 	case "step": return 7;
-	case "area": return 8;
-	case "battle": return 9;
-	case "package": return 10;
-	case "castcard": return 11;
-	case "skillcard": return 12;
-	case "itemcard": return 13;
-	case "beastcard": return 14;
-	case "infocard": return 15;
-	case "playercard": return 16;
-	case "menucard": return 17;
-	case "enemycard": return 18;
-	case "": return 16; // イベントコンテント
+	case "variant": return 8;
+	case "area": return 9;
+	case "battle": return 10;
+	case "package": return 11;
+	case "castcard": return 12;
+	case "skillcard": return 13;
+	case "itemcard": return 14;
+	case "beastcard": return 15;
+	case "infocard": return 16;
+	case "playercard": return 17;
+	case "menucard": return 18;
+	case "enemycard": return 19;
+	case "": return 20; // イベントコンテント
 	default: return -1;
 	}
 }
