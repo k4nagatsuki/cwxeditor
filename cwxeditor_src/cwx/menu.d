@@ -130,6 +130,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.CGroupGet] = "G";
 		_mnemonic[MenuID.CGroupLost] = "L";
 		_mnemonic[MenuID.CGroupVisual] = "V";
+		_mnemonic[MenuID.CGroupVariant] = "E";
 		_mnemonic[MenuID.EditSummary] = "M";
 		_mnemonic[MenuID.NewAreaDir] = "D";
 		_mnemonic[MenuID.NewArea] = "A";
@@ -369,6 +370,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.CGroupGet] = "";
 		_hotkey[MenuID.CGroupLost] = "";
 		_hotkey[MenuID.CGroupVisual] = "";
+		_hotkey[MenuID.CGroupVariant] = "";
 		_hotkey[MenuID.EditSummary] = "";
 		_hotkey[MenuID.NewAreaDir] = "";
 		_hotkey[MenuID.NewArea] = "";
@@ -728,6 +730,7 @@ MenuID cTypeGroupToMenuID(CTypeGroup g) { mixin(S_TRACE);
 	case CTypeGroup.Get: return MenuID.CGroupGet;
 	case CTypeGroup.Lost: return MenuID.CGroupLost;
 	case CTypeGroup.Visual: return MenuID.CGroupVisual;
+	case CTypeGroup.Variant: return MenuID.CGroupVariant;
 	}
 }
 
@@ -887,6 +890,7 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.CGroupGet:
 	case MenuID.CGroupLost:
 	case MenuID.CGroupVisual:
+	case MenuID.CGroupVariant:
 	case MenuID.CreateStepValues:
 	case MenuID.PutSPChar:
 	case MenuID.PutFlagValue:
@@ -1118,6 +1122,7 @@ bool isGlobalMenu(MenuID id) {
 	case MenuID.CGroupGet:
 	case MenuID.CGroupLost:
 	case MenuID.CGroupVisual:
+	case MenuID.CGroupVariant:
 	case MenuID.ReNumbering:
 	case MenuID.EditSceneDup:
 	case MenuID.SetStartArea:

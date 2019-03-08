@@ -3277,12 +3277,12 @@ public:
 					auto shl = control.getShell();
 					assert (shl !is null);
 					if (e.type is SWT.KeyUp || e.type is SWT.KeyDown) { mixin(S_TRACE);
-						if (cast(Spinner)control || cast(NoIME)control) { mixin(S_TRACE);
+						if (cast(Spinner)control || cast(NoIME)control || cast(NoIME)control.getData()) { mixin(S_TRACE);
 							shl.setImeInputMode(SWT.NONE);
 							_noMode = true;
 						}
 					} else if (e.type is SWT.FocusIn) { mixin(S_TRACE);
-						if (cast(Spinner)control || cast(NoIME)control) { mixin(S_TRACE);
+						if (cast(Spinner)control || cast(NoIME)control || cast(NoIME)control.getData()) { mixin(S_TRACE);
 							shl.setImeInputMode(SWT.NONE);
 							_noMode = true;
 						} else if (!_noMode) {
@@ -3291,7 +3291,7 @@ public:
 						_comm.refreshToolBar();
 					} else { mixin(S_TRACE);
 						assert (e.type is SWT.FocusOut);
-						if (cast(Spinner)control || cast(NoIME)control) { mixin(S_TRACE);
+						if (cast(Spinner)control || cast(NoIME)control || cast(NoIME)control.getData()) { mixin(S_TRACE);
 							shl.setImeInputMode(_prop.var.etc.imeMode);
 							_noMode = false;
 						} else if (!_noMode) { mixin(S_TRACE);
@@ -3548,6 +3548,7 @@ public:
 						case MenuID.CGroupGet:
 						case MenuID.CGroupLost:
 						case MenuID.CGroupVisual:
+						case MenuID.CGroupVariant:
 						case MenuID.CreateStepValues:
 						case MenuID.PutSPChar:
 						case MenuID.PutFlagValue:

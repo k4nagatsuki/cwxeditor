@@ -842,7 +842,7 @@ public:
 	}
 	@property
 	override string cwxPath(bool id) { mixin(S_TRACE);
-		return .cpjoin(_parent, "variant", .cCountUntil!("a is b")(_parent.steps, this), id);
+		return .cpjoin(_parent, "variant", .cCountUntil!("a is b")(_parent.variants, this), id);
 	}
 	override CWXPath findCWXPath(string path) { mixin(S_TRACE);
 		if (.cpempty(path)) return this;

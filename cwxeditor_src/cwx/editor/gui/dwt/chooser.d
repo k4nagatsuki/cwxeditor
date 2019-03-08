@@ -540,6 +540,8 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 			if (!f.length) return;
 		} else static if (is(F:Step)) {
 			if (!s.length) return;
+		} else static if (is(F:cwx.flag.Variant)) {
+			if (!v.length) return;
 		} else static assert (0);
 		auto exp = expandedTable.dup();
 		scope (exit) expandedTable = exp;
@@ -552,6 +554,8 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 			if (!f.length) return;
 		} else static if (is(F:Step)) {
 			if (!s.length) return;
+		} else static if (is(F:cwx.flag.Variant)) {
+			if (!v.length) return;
 		} else static assert (0);
 		auto exp = expandedTable.dup();
 		scope (exit) expandedTable = exp;
@@ -564,6 +568,8 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 			return _comm.flagDirExpanded;
 		} else static if (is(F:Step)) {
 			return _comm.stepDirExpanded;
+		} else static if (is(F:cwx.flag.Variant)) {
+			return _comm.variantDirExpanded;
 		} else static assert (0);
 	}
 	private void refreshFlags() { mixin(S_TRACE);
@@ -571,6 +577,8 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 			auto icon = _prop.images.flag;
 		} else static if (is(F:Step)) {
 			auto icon = _prop.images.step;
+		} else static if (is(F:cwx.flag.Variant)) {
+			auto icon = _prop.images.variant;
 		} else static assert (0);
 		string sel = _selected;
 		_selected = "";
@@ -665,6 +673,8 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 						auto flags = child.allFlags;
 					} else static if (is(F:Step)) {
 						auto flags = child.allSteps;
+					} else static if (is(F:cwx.flag.Variant)) {
+						auto flags = child.allVariants;
 					} else static assert (0);
 					bool hasChild = false;
 					foreach (flag; flags) { mixin(S_TRACE);
@@ -679,6 +689,8 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 					auto flags = dir.flags;
 				} else static if (is(F:Step)) {
 					auto flags = dir.steps;
+				} else static if (is(F:cwx.flag.Variant)) {
+					auto flags = dir.variants;
 				} else static assert (0);
 				.sortedWithName(flags, _prop.var.etc.logicalSort, (F flag) { mixin(S_TRACE);
 					auto path = flag.path;
@@ -734,6 +746,8 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 				auto flags = _summ ? _summ.flagDirRoot.allFlags : [];
 			} else static if (is(F:Step)) {
 				auto flags = _summ ? _summ.flagDirRoot.allSteps : [];
+			} else static if (is(F:cwx.flag.Variant)) {
+				auto flags = _summ ? _summ.flagDirRoot.allVariants : [];
 			} else static assert (0);
 			.sortedWithPath(flags, _prop.var.etc.logicalSort, (F flag) { mixin(S_TRACE);
 				auto path = flag.path;

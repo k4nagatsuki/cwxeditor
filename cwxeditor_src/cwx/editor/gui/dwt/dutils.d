@@ -8,6 +8,7 @@ import cwx.cab;
 import cwx.card;
 import cwx.cwl;
 import cwx.event;
+import cwx.expression;
 import cwx.features;
 import cwx.flag;
 import cwx.graphics;
@@ -3974,6 +3975,16 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		} else { mixin(S_TRACE);
 			return comm.prop.msgs.ctChangeEnvironmentNotSet;
 		}
+	} case CType.BRANCH_VARIANT: { mixin(S_TRACE);
+		auto expr = evt.expression == "" ? comm.prop.msgs.noExpression : evt.expression.replace("\n", "");
+		return .tryFormat(comm.prop.msgs.ctBranchVariant, expr);
+	} case CType.SET_VARIANT: { mixin(S_TRACE);
+		string name = .contentTextUseID!(CIDKind.Variant)(comm, summ, evt.variant, "%s", evt);
+		auto expr = evt.expression == "" ? comm.prop.msgs.noExpression : evt.expression.replace("\n", "");
+		return .tryFormat(comm.prop.msgs.ctSetVariant, name, expr);
+	} case CType.CHECK_VARIANT: { mixin(S_TRACE);
+		auto expr = evt.expression == "" ? comm.prop.msgs.noExpression : evt.expression.replace("\n", "");
+		return .tryFormat(comm.prop.msgs.ctCheckVariant, expr);
 	}
 	}
 }
@@ -4351,6 +4362,14 @@ void getSymbols(Commons comm, Summary summ, CWXPath path, bool desc, out string 
 		if (auto tc = cast(TextCell)tex.owner) { mixin(S_TRACE);
 			img = prop.images.textCell;
 			text = .tryFormat(prop.msgs.searchResultTextCell, tc.name(prop.parent));
+		}
+	}
+	auto expr = cast(Expression)path;
+	if (expr) { mixin(S_TRACE);
+		Content c = cast(Content)expr.owner;
+		if (c) { mixin(S_TRACE);
+			img = prop.images.content(c.type);
+			text = .contentText(comm, c, summ);
 		}
 	}
 	auto sdlg = cast(SDialog)path;

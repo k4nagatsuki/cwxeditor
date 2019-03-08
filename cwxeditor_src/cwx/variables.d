@@ -528,7 +528,9 @@ class FlexEtcProps : Properties {
 	auto replaceTextCardDescription = Prop!(bool)("replaceTextCardDescription", true);
 	auto replaceTextEventText = Prop!(bool)("replaceTextEventText", true);
 	auto replaceTextStart = Prop!(bool)("replaceTextStart", true);
-	auto replaceTextFlagAndStep = Prop!(bool)("replaceTextFlagAndStep", true);
+	auto replaceTextVariableName = Prop!(bool)("replaceTextVariableName", true);
+	auto replaceTextVariableValue = Prop!(bool)("replaceTextVariableValue", true);
+	auto replaceTextExpression = Prop!(bool)("replaceTextExpression", true);
 	auto replaceTextCoupon = Prop!(bool)("replaceTextCoupon", true);
 	auto replaceTextGossip = Prop!(bool)("replaceTextGossip", true);
 	auto replaceTextEndScenario = Prop!(bool)("replaceTextEndScenario", true);
@@ -837,6 +839,7 @@ class FlexEtcProps : Properties {
 			Tool(MenuID.NewFlagDir),
 			Tool(MenuID.NewFlag),
 			Tool(MenuID.NewStep),
+			Tool(MenuID.NewVariant),
 		],
 		[
 			Tool(MenuID.ShowCardProp),

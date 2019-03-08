@@ -9,6 +9,7 @@ import cwx.editor.gui.dwt.dutils;
 
 import std.array;
 import std.string;
+import std.typecons;
 
 import org.eclipse.swt.all;
 
@@ -397,17 +398,20 @@ abstract class AbsDialog {
 			_applied = true;
 		}
 	}
-	private void check() { mixin(S_TRACE);
+	protected void check() { mixin(S_TRACE);
 		bool enbl = true;
-		for (size_t i = 0; enbl && i < _chk1.length; i++) { mixin(S_TRACE);
-			enbl &= _chk1[i].getText() && _chk1[i].getText().length > 0;
+		void checkImpl(T)(Tuple!(T, "widget", bool delegate(T), "check")[] chk) { mixin(S_TRACE);
+			for (size_t i = 0; enbl && i < chk.length; i++) { mixin(S_TRACE);
+				if (chk[i].check) { mixin(S_TRACE);
+					enbl &= chk[i].check(chk[i].widget);
+				} else { mixin(S_TRACE);
+					enbl &= chk[i].widget.getText() && chk[i].widget.getText().length;
+				}
+			}
 		}
-		for (size_t i = 0; enbl && i < _chk2.length; i++) { mixin(S_TRACE);
-			enbl &= _chk2[i].getText() && _chk2[i].getText().length > 0;
-		}
-		for (size_t i = 0; enbl && i < _chk3.length; i++) { mixin(S_TRACE);
-			enbl &= _chk3[i].getText() && _chk3[i].getText().length > 0;
-		}
+		checkImpl!Combo(_chk1);
+		checkImpl!CCombo(_chk2);
+		checkImpl!Text(_chk3);
 		_okBtn.setEnabled(enbl);
 		if (_apply) _apply.setEnabled(_apply.getEnabled() && enbl);
 	}
@@ -464,22 +468,22 @@ abstract class AbsDialog {
 		check();
 		text.addModifyListener(new MListener);
 	}
-	private Combo[] _chk1;
-	private CCombo[] _chk2;
-	private Text[] _chk3;
+	private Tuple!(Combo, "widget", bool delegate(Combo), "check")[] _chk1;
+	private Tuple!(CCombo, "widget", bool delegate(CCombo), "check")[] _chk2;
+	private Tuple!(Text, "widget", bool delegate(Text), "check")[] _chk3;
 	@property
-	protected void checker(Combo text) { mixin(S_TRACE);
-		_chk1 ~= text;
+	protected void checker(Combo text, bool delegate(Combo) check = null) { mixin(S_TRACE);
+		_chk1 ~= typeof(_chk1[0])(text, check);
 		checkerImpl(text);
 	}
 	@property
-	protected void checker(CCombo text) { mixin(S_TRACE);
-		_chk2 ~= text;
+	protected void checker(CCombo text, bool delegate(CCombo) check = null) { mixin(S_TRACE);
+		_chk2 ~= typeof(_chk2[0])(text, check);
 		checkerImpl(text);
 	}
 	@property
-	protected void checker(Text text) { mixin(S_TRACE);
-		_chk3 ~= text;
+	protected void checker(Text text, bool delegate(Text) check = null) { mixin(S_TRACE);
+		_chk3 ~= typeof(_chk3[0])(text, check);
 		checkerImpl(text);
 	}
 	protected void setup(Composite area);

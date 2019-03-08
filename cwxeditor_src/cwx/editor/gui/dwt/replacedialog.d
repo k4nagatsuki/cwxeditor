@@ -281,8 +281,12 @@ private:
 	Button _event;
 	/// スタート名
 	Button _start;
-	/// フラグ/ステップ
-	Button _flag;
+	/// 状態変数名
+	Button _varName;
+	/// 状態変数値
+	Button _varValue;
+	/// 式
+	Button _expression;
 	/// クーポン
 	Button _coupon;
 	/// ゴシップ
@@ -360,7 +364,9 @@ private:
 	bool _cardDescSel;
 	bool _eventSel;
 	bool _startSel;
-	bool _flagSel;
+	bool _varNameSel;
+	bool _varValueSel;
+	bool _expressionSel;
 	bool _couponSel;
 	bool _gossipSel;
 	bool _endSel;
@@ -996,19 +1002,20 @@ private:
 				_cardDesc = createB(_prop.msgs.replTextCardDesc, '6');
 				_event = createB(_prop.msgs.replTextEventText, '7');
 				_start = createB(_prop.msgs.replTextStart, '8');
-				_flag = createB(_prop.msgs.replTextFlagAndStep, '9');
-				// TODO: _variant = crateB(_prop.msgs.replTextFlagAndVariant, '');
-				_coupon = createB(_prop.msgs.replTextCoupon, 'A');
-				_gossip = createB(_prop.msgs.replTextGossip, 'B');
-				_end = createB(_prop.msgs.replTextEndScenario, 'D');
-				_area = createB(_prop.msgs.replTextAreaName, 'E');
-				_keyCode = createB(_prop.msgs.replTextKeyCode, 'G');
-				_cellName = createB(_prop.msgs.replTextCellName, 'H');
-				_cardGroup = createB(_prop.msgs.replTextCardGroup, 'I');
-				_file = createB(_prop.msgs.replTextFile, 'K');
-				_comment = createB(_prop.msgs.replTextComment, 'L');
-				_jptx = createB(_prop.msgs.replTextJptx, 'M');
-				_textFile = createB(_prop.msgs.replTextTextFile, 'N');
+				_varName = createB(_prop.msgs.replTextVariableName, '9');
+				_varValue = createB(_prop.msgs.replTextVariableValue, 'A');
+				_expression = createB(_prop.msgs.replTextExpression, 'B');
+				_coupon = createB(_prop.msgs.replTextCoupon, 'D');
+				_gossip = createB(_prop.msgs.replTextGossip, 'E');
+				_end = createB(_prop.msgs.replTextEndScenario, 'G');
+				_area = createB(_prop.msgs.replTextAreaName, 'H');
+				_keyCode = createB(_prop.msgs.replTextKeyCode, 'I');
+				_cellName = createB(_prop.msgs.replTextCellName, 'K');
+				_cardGroup = createB(_prop.msgs.replTextCardGroup, 'L');
+				_file = createB(_prop.msgs.replTextFile, 'M');
+				_comment = createB(_prop.msgs.replTextComment, 'N');
+				_jptx = createB(_prop.msgs.replTextJptx, 'O');
+				_textFile = createB(_prop.msgs.replTextTextFile, 'P');
 				if (1 < _prop.var.etc.plainTextFileExtensions.length) { mixin(S_TRACE);
 					auto txtExts = .join(.map!(ext => "*" ~ ext)(_prop.var.etc.plainTextFileExtensions), ", ");
 					_textFile.setToolTipText(.tryFormat(_prop.msgs.replacePlainTextHint, txtExts));
@@ -2274,8 +2281,9 @@ public:
 		_cardName.setSelection(_prop.var.etc.replaceTextCardName);
 		_cardDesc.setSelection(_prop.var.etc.replaceTextCardDescription);
 		_event.setSelection(_prop.var.etc.replaceTextEventText);
-		_flag.setSelection(_prop.var.etc.replaceTextFlagAndStep);
-		// TODO: _flag.setSelection(_prop.var.etc.replaceTextVariant);
+		_varName.setSelection(_prop.var.etc.replaceTextVariableName);
+		_varValue.setSelection(_prop.var.etc.replaceTextVariableValue);
+		_expression.setSelection(_prop.var.etc.replaceTextExpression);
 		_start.setSelection(_prop.var.etc.replaceTextStart);
 		_coupon.setSelection(_prop.var.etc.replaceTextCoupon);
 		_gossip.setSelection(_prop.var.etc.replaceTextGossip);
@@ -2374,8 +2382,9 @@ public:
 			_prop.var.etc.replaceTextCardDescription = _cardDesc.getSelection();
 			_prop.var.etc.replaceTextEventText = _event.getSelection();
 			_prop.var.etc.replaceTextStart = _start.getSelection();
-			_prop.var.etc.replaceTextFlagAndStep = _flag.getSelection();
-			//_prop.var.etc.replaceTextVariant = _variant.getSelection();
+			_prop.var.etc.replaceTextVariableName = _varName.getSelection();
+			_prop.var.etc.replaceTextVariableValue = _varValue.getSelection();
+			_prop.var.etc.replaceTextExpression = _expression.getSelection();
 			_prop.var.etc.replaceTextCoupon = _coupon.getSelection();
 			_prop.var.etc.replaceTextGossip = _gossip.getSelection();
 			_prop.var.etc.replaceTextEndScenario = _end.getSelection();
@@ -2580,7 +2589,9 @@ public:
 		_cardDescSel = _cardDesc.getSelection();
 		_eventSel = _event.getSelection();
 		_startSel = _start.getSelection();
-		_flagSel = _flag.getSelection();
+		_varNameSel = _varName.getSelection();
+		_varValueSel = _varValue.getSelection();
+		_expressionSel = _expression.getSelection();
 		_couponSel = _coupon.getSelection();
 		_gossipSel = _gossip.getSelection();
 		_endSel = _end.getSelection();
@@ -3022,7 +3033,9 @@ public:
 						f(us[path], path, arr);
 					}
 				}
+cdebugln();
 			} catch (Throwable e) {
+cdebugln();
 				printStackTrace();
 				debugln(e);
 			}
@@ -3823,7 +3836,7 @@ public:
 			replBgImage(parent, back, icwxPath, back, count, nArr);
 		}
 		auto fDir = cast(FlagDir)c;
-		if (fDir && _flagSel) { mixin(S_TRACE);
+		if (fDir && _varNameSel) { mixin(S_TRACE);
 			Undo[] uArr = new Undo[0];
 			bool r = replFlagDirName(parent, fDir, count, uArr);
 			if (r) { mixin(S_TRACE);
@@ -3832,11 +3845,12 @@ public:
 			}
 		}
 		auto f = cast(cwx.flag.Flag)c;
-		if (f && _flagSel) { mixin(S_TRACE);
+		if (f && (_varNameSel || _varValueSel)) { mixin(S_TRACE);
 			Undo[] uArr = new Undo[0];
-			bool r = replFlagName!(cwx.flag.Flag)(parent, f.parent, f, count, uArr);
-			r |= repl(parent, null, "", f.on, &f.on, count, uArr);
-			r |= repl(parent, null, "", f.off, &f.off, count, uArr);
+			bool r = false;
+			if (_varNameSel) r |= replFlagName!(cwx.flag.Flag)(parent, f.parent, f, count, uArr);
+			if (_varValueSel) r |= repl(parent, null, "", f.on, &f.on, count, uArr);
+			if (_varValueSel) r |= repl(parent, null, "", f.off, &f.off, count, uArr);
 			if (r) { mixin(S_TRACE);
 				if (_replMode) store(parent, f, icwxPath, uArr);
 				addResult(parent, f, icwxPath, dmy);
@@ -3848,11 +3862,14 @@ public:
 			}
 		}
 		auto s = cast(Step)c;
-		if (s && _flagSel) { mixin(S_TRACE);
+		if (s && (_varNameSel || _varValueSel)) { mixin(S_TRACE);
 			Undo[] uArr;
-			bool r = replFlagName!Step(parent, s.parent, s, count, uArr);
-			foreach (i, v; s.values) { mixin(S_TRACE);
-				r |= repl(parent, null, "", v, (string t) {s.setValue(cast(int)i, t);}, count, uArr);
+			bool r = false;
+			if (_varNameSel) r |= replFlagName!Step(parent, s.parent, s, count, uArr);
+			if (_varValueSel) { mixin(S_TRACE);
+				foreach (i, v; s.values) { mixin(S_TRACE);
+					r |= repl(parent, null, "", v, (string t) {s.setValue(cast(int)i, t);}, count, uArr);
+				}
 			}
 			if (r) { mixin(S_TRACE);
 				if (_replMode) store(parent, s, icwxPath, uArr);
@@ -3865,9 +3882,23 @@ public:
 			}
 		}
 		auto v = cast(cwx.flag.Variant)c;
-		//if (v && _variantSel) { mixin(S_TRACE);
-			// TODO: 状態変数名と式
-		//}
+		if (v && (_varNameSel || _varValueSel)) { mixin(S_TRACE);
+			Undo[] uArr;
+			bool r = false;
+			if (_varNameSel) r |= replFlagName!(cwx.flag.Variant)(parent, v.parent, v, count, uArr);
+			if (_varValueSel && v.type is VariantType.String) { mixin(S_TRACE);
+				r |= repl(parent, null, "", v.strVal, &v.value, count, uArr);
+			}
+			if (r) { mixin(S_TRACE);
+				if (_replMode) store(parent, v, icwxPath, uArr);
+				addResult(parent, v, icwxPath, dmy);
+				if (_replMode) { mixin(S_TRACE);
+					_refCall ~= { mixin(S_TRACE);
+						_comm.refFlagAndStep.call([], [], [v]);
+					};
+				}
+			}
+		}
 		auto et = cast(EventTree) c;
 		if (et) { mixin(S_TRACE);
 			replFKeyCode(parent, et, icwxPath, et, icwxPath, count, nArr);
@@ -4777,7 +4808,7 @@ public:
 	private bool replBgImage(CWXPath parent, CWXPath path, string pathPath, BgImage back, ref size_t count, ref Undo[] uArr) { mixin(S_TRACE);
 		bool r = false;
 		Undo[] uArr2;
-		if (_flagSel) { mixin(S_TRACE);
+		if (_varNameSel) { mixin(S_TRACE);
 			if (_flagDirOnRange) { mixin(S_TRACE);
 				r |= repl(parent, null, "", back.flag, null, count, uArr2);
 			} else { mixin(S_TRACE);
@@ -4832,7 +4863,7 @@ public:
 				r |= repl(parent, null, "", card.cardGroup, &card.cardGroup, count, uArr2);
 			}
 		}
-		if (_flagSel) { mixin(S_TRACE);
+		if (_varNameSel) { mixin(S_TRACE);
 			static if (is (C : IFlagUser)) {
 				if (_flagDirOnRange) { mixin(S_TRACE);
 					r |= repl(parent, null, "", card.flag, null, count, uArr2);
@@ -4880,7 +4911,7 @@ public:
 	bool replFlagsInText(CWXPath parent, ISimpleTextHolder th, ref size_t count, ref Undo[] uArr) { mixin(S_TRACE);
 		Undo[] nArr;
 		bool r = false;
-		if (_flagSel && !_msgSel) { mixin(S_TRACE); // TODO
+		if (_varNameSel && !_msgSel) { mixin(S_TRACE);
 			if (_flagDirOnRange) { mixin(S_TRACE);
 				// Flag/Step/VariantについてはUseCounter経由で置換される
 				auto fps = th.flagsInText;
@@ -4922,7 +4953,7 @@ public:
 				|| (_couponSel && eo && eo.detail.nextType == CNextType.COUPON)) { mixin(S_TRACE);
 			r |= repl(parent, null, "", e.name, name => e.setName(_prop.parent, name), count, uArr2);
 		}
-		if (_flagSel) { mixin(S_TRACE); // TODO
+		if (_varNameSel) { mixin(S_TRACE);
 			if (_flagDirOnRange) { mixin(S_TRACE);
 				// Flag/Step/VariantについてはUseCounter経由で置換される
 				if (d.use(CArg.FLAG)) r |= repl(parent, null, "", e.flag, null, count, uArr2);
@@ -4964,7 +4995,7 @@ public:
 		if (d.use(CArg.TEXT)) r |= replFontsInText(parent, e, count, uArr2);
 		if (d.use(CArg.TEXT)) r |= replFlagsInText(parent, e, count, uArr2);
 		bool rDlg = false;
-		if (_msgSel || _couponSel || _fileSel || _flagSel) { mixin(S_TRACE);
+		if (_msgSel || _couponSel || _fileSel || _varNameSel) { mixin(S_TRACE);
 			auto dlgs = e.dialogs;
 			foreach (i, dlg; dlgs) { mixin(S_TRACE);
 				Undo[] uArrDlg;
@@ -5006,6 +5037,9 @@ public:
 		}
 		if (_cardGroupSel) { mixin(S_TRACE);
 			if (d.use(CArg.CARD_GROUP)) r |= repl(parent, null, "", e.cardGroup, &e.cardGroup, count, uArr2);
+		}
+		if (_expressionSel) { mixin(S_TRACE);
+			if (d.use(CArg.EXPRESSION)) r |= repl(parent, null, "", e.expression, &e.expression, count, uArr2);
 		}
 		if (_commentSel) { mixin(S_TRACE);
 			r |= repl(parent, null, "", e.comment, &e.comment, count, uArr2);

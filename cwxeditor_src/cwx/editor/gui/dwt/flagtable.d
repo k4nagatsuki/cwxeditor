@@ -16,6 +16,7 @@ import cwx.structs;
 import cwx.msgutils;
 import cwx.sjis;
 import cwx.warning;
+import cwx.expression;
 
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.dprops;
@@ -455,7 +456,7 @@ protected:
 			l2.setText(_comm.prop.msgs.dlgLblStepInit);
 			l2.setLayoutData(new GridData);
 			setEVS(l2);
-			_init = new Combo(comp2, SWT.READ_ONLY);
+			_init = new Combo(comp2, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
 			mod(_init);
 			_init.setVisibleItemCount(_comm.prop.var.etc.comboVisibleItemCount);
 			setGridMinW(_init, _comm.prop.var.etc.flagInitWidth, GridData.FILL_HORIZONTAL);
@@ -875,7 +876,7 @@ protected:
 			l2.setText(prop.msgs.dlgLblFlagInit);
 			l2.setLayoutData(new GridData);
 			setEVS(l2);
-			flagInit = new Combo(comp2, SWT.READ_ONLY);
+			flagInit = new Combo(comp2, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
 			mod(flagInit);
 			setGridMinW(flagInit, prop.var.etc.flagInitWidth, GridData.FILL_HORIZONTAL);
 			setEVS(flagInit);
@@ -892,7 +893,7 @@ protected:
 			comp.setLayout(normalGridLayout(2, false));
 
 			(new Label(comp, SWT.NULL)).setText(prop.msgs.dlgLblFlagTrue);
-			flagTrue = new Combo(comp, SWT.NULL);
+			flagTrue = new Combo(comp, SWT.DROP_DOWN | SWT.BORDER);
 			mod(flagTrue);
 			setComboItems(flagTrue, prop.var.etc.flagTrues.dup);
 			flagTrue.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
@@ -906,7 +907,7 @@ protected:
 			setGridMinW(flagTrue, prop.var.etc.flagValueWidth, GridData.FILL_HORIZONTAL);
 
 			(new Label(comp, SWT.NULL)).setText(prop.msgs.dlgLblFlagFalse);
-			flagFalse = new Combo(comp, SWT.NULL);
+			flagFalse = new Combo(comp, SWT.DROP_DOWN | SWT.BORDER);
 			mod(flagFalse);
 			setComboItems(flagFalse, prop.var.etc.flagFalses.dup);
 			flagFalse.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
@@ -983,6 +984,246 @@ protected:
 			dir.add(_flag);
 		}
 		_comm.refFlagAndStep.call([_flag], [], []);
+		return true;
+	}
+}
+
+/// コモン設定用のダイアログ。
+public class VariantEditDialog : AbsDialog {
+private:
+	Commons _comm;
+	Summary _summ;
+	cwx.flag.Variant _variant;
+	FlagDir _dir;
+
+	Text _name;
+
+	Button _typeNum;
+	Button _typeStr;
+	Button _typeBool;
+
+	Text _numVal;
+	Text _strVal;
+	Combo _boolVal;
+
+	void refreshWarning() { mixin(S_TRACE);
+		string[] ws;
+		if (!_comm.prop.isTargetVersion(_summ, "4")) { mixin(S_TRACE);
+			ws ~= _comm.prop.msgs.warningVariant;
+		}
+		ws ~= .sjisWarnings(_comm.prop.parent, _summ, _name.getText(), _comm.prop.msgs.variantName);
+		ws ~= .sjisWarnings(_comm.prop.parent, _summ, _strVal.getText(), _comm.prop.msgs.stringValue);
+		warning = ws;
+	}
+
+	void updateEnabled() { mixin(S_TRACE);
+		_numVal.setEnabled(_typeNum.getSelection());
+		_strVal.setEnabled(_typeStr.getSelection());
+		_boolVal.setEnabled(_typeBool.getSelection());
+		check();
+	}
+
+	void delVariant(cwx.flag.Flag[] flag, Step[] step, cwx.flag.Variant[] variants) { mixin(S_TRACE);
+		if (.contains!"a is b"(variants, _variant)) { mixin(S_TRACE);
+			forceCancel();
+		}
+	}
+	void refScenario(Summary summ) { mixin(S_TRACE);
+		forceCancel();
+	}
+	void refDataVersion() { mixin(S_TRACE);
+		refreshWarning();
+	}
+public:
+	this(Commons comm, Summary summ, Shell shell, FlagDir dir, cwx.flag.Variant variant = null) { mixin(S_TRACE);
+		super(comm.prop, shell, false, comm.prop.msgs.dlgTitVariant, comm.prop.images.variant, true,
+			comm.prop.var.variantDlg, true);
+		_comm = comm;
+		_summ = summ;
+		_variant = variant;
+		_dir = dir;
+		enterClose = true;
+	}
+
+	@property
+	cwx.flag.Variant variant() { mixin(S_TRACE);
+		return _variant;
+	}
+
+	/// 入力中の名前を妥当な形にして返す。
+	@property
+	string name() { mixin(S_TRACE);
+		auto name = FlagDir.validName(_name.getText());
+		return _dir.createNewVariantName(name, _variant ? _variant.name : "");
+	}
+
+protected:
+	override void setup(Composite area) { mixin(S_TRACE);
+		area.setLayout(zeroGridLayout(1));
+		{ mixin(S_TRACE);
+			auto comp = new Composite(area, SWT.NONE);
+			comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			comp.setLayout(normalGridLayout(2, false));
+
+			auto l1 = new Label(comp, SWT.NONE);
+			l1.setText(_comm.prop.msgs.variantName);
+			_name = new Text(comp, SWT.BORDER);
+			.createTextMenu!Text(_comm, _comm.prop, _name, &catchMod);
+			mod(_name);
+			checker(_name);
+			.listener(_name, SWT.Modify, &refreshWarning);
+			_name.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		}
+		(new Label(area, SWT.SEPARATOR | SWT.HORIZONTAL)).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		{ mixin(S_TRACE);
+			auto comp = new Composite(area, SWT.NONE);
+			comp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			comp.setLayout(normalGridLayout(2, false));
+
+			GridData grabVGD(int style) { mixin(S_TRACE);
+				auto gd = new GridData(style);
+				gd.grabExcessVerticalSpace = true;
+				return gd;
+			}
+
+			_typeNum = new Button(comp, SWT.RADIO);
+			mod(_typeNum);
+			_typeNum.setText(_comm.prop.msgs.numberValue);
+			.listener(_typeNum, SWT.Selection, &updateEnabled);
+			_numVal = new Text(comp, SWT.BORDER);
+			_numVal.setData(new class NoIME {});
+			mod(_numVal);
+			.createTextMenu!Text(_comm, _comm.prop, _numVal, &catchMod);
+			auto ngd = grabVGD(GridData.HORIZONTAL_ALIGN_BEGINNING);
+			auto gc = new GC(_numVal);
+			scope (exit) gc.dispose();
+			ngd.widthHint = _numVal.computeSize(cast(int)(gc.wTextExtent(double.min_normal.text).x * 1.5), SWT.DEFAULT).x;
+			_numVal.setLayoutData(ngd);
+			.listener(_numVal, SWT.FocusIn, { mixin(S_TRACE);
+				_numVal.selectAll();
+			});
+			.listener(_numVal, SWT.Verify, (e) { mixin(S_TRACE);
+				char[] s;
+				foreach (i, c; e.text) { mixin(S_TRACE);
+					if (c.isDigit() || c == '-' || c == '.') { mixin(S_TRACE);
+						s ~= c;
+					}
+				}
+				auto t = .assumeUnique(s);
+				if (t != e.text) { mixin(S_TRACE);
+					e.text = t;
+				}
+			});
+			.listener(_numVal, SWT.Modify, &refreshWarning);
+			checker(_numVal, (numVal) { mixin(S_TRACE);
+				if (!numVal.getEnabled()) return true;
+				try {
+					.to!double(numVal.getText());
+					return true;
+				} catch (ConvException e) {
+					return false;
+				}
+			});
+
+			_typeStr = new Button(comp, SWT.RADIO);
+			mod(_typeStr);
+			.listener(_typeStr, SWT.Selection, &updateEnabled);
+			_typeStr.setText(_comm.prop.msgs.stringValue);
+			_strVal = new Text(comp, SWT.BORDER);
+			mod(_strVal);
+			.createTextMenu!Text(_comm, _comm.prop, _strVal, &catchMod);
+			_strVal.setLayoutData(grabVGD(GridData.FILL_HORIZONTAL));
+			.listener(_strVal, SWT.Modify, &refreshWarning);
+
+			_typeBool = new Button(comp, SWT.RADIO);
+			mod(_typeBool);
+			.listener(_typeBool, SWT.Selection, &updateEnabled);
+			_typeBool.setText(_comm.prop.msgs.booleanValue);
+			_boolVal = new Combo(comp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+			mod(_boolVal);
+			_boolVal.setVisibleItemCount(_comm.prop.var.etc.comboVisibleItemCount);
+			auto v = VariantVal(VariantType.Boolean);
+			v.boolVal = true;
+			_boolVal.add(.variantValueToText(v));
+			v.boolVal = false;
+			_boolVal.add(.variantValueToText(v));
+			_boolVal.setLayoutData(grabVGD(GridData.HORIZONTAL_ALIGN_BEGINNING));
+		}
+
+		_comm.delFlagAndStep.add(&delVariant);
+		_comm.refScenario.add(&refScenario);
+		_comm.refDataVersion.add(&refDataVersion);
+		.listener(area, SWT.Dispose, { mixin(S_TRACE);
+			_comm.delFlagAndStep.remove(&delVariant);
+			_comm.refScenario.remove(&refScenario);
+			_comm.refDataVersion.remove(&refDataVersion);
+		});
+
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
+		if (_variant) { mixin(S_TRACE);
+			_name.setText(_variant.name);
+			_numVal.setText(0.text);
+			_boolVal.select(0);
+			final switch (_variant.type) {
+			case VariantType.Number:
+				_typeNum.setSelection(true);
+				_numVal.setText(_variant.numVal.text);
+				break;
+			case VariantType.String:
+				_typeStr.setSelection(true);
+				_strVal.setText(_variant.strVal);
+				break;
+			case VariantType.Boolean:
+				_typeBool.setSelection(true);
+				_boolVal.select(_variant.boolVal ? 0 : 1);
+				break;
+			}
+		} else { mixin(S_TRACE);
+			_name.setText("");
+			_typeNum.setSelection(true);
+			_numVal.setText(0.text);
+			_strVal.setText("");
+			_boolVal.select(0);
+		}
+		if (!_variant.parent) { mixin(S_TRACE);
+			// 新規作成時
+			_name.setText("");
+		}
+		_name.selectAll();
+		updateEnabled();
+		refDataVersion();
+	}
+
+	override bool apply() { mixin(S_TRACE);
+		double numVal = 0;
+		if (_typeNum.getSelection()) { mixin(S_TRACE);
+			try {
+				numVal = .to!double(_numVal.getText());
+			} catch (ConvException e) {
+				return false;
+			}
+		}
+		if (_variant.parent) { mixin(S_TRACE);
+			_variant.name = this.name;
+			if (_typeNum.getSelection()) { mixin(S_TRACE);
+				_variant.value = numVal;
+			} else if (_typeStr.getSelection()) { mixin(S_TRACE);
+				_variant.value = _strVal.getText();
+			} else if (_typeBool.getSelection()) { mixin(S_TRACE);
+				_variant.value = _boolVal.getSelectionIndex() == 0;
+			} else assert (0);
+		} else { mixin(S_TRACE);
+			if (_typeNum.getSelection()) { mixin(S_TRACE);
+				_variant = new cwx.flag.Variant(this.name, numVal);
+			} else if (_typeStr.getSelection()) { mixin(S_TRACE);
+				_variant = new cwx.flag.Variant(this.name, _strVal.getText());
+			} else if (_typeBool.getSelection()) { mixin(S_TRACE);
+				_variant = new cwx.flag.Variant(this.name, _boolVal.getSelectionIndex() == 0);
+			} else assert (0);
+			_dir.add(_variant);
+		}
+		_comm.refFlagAndStep.call([], [], [_variant]);
 		return true;
 	}
 }
@@ -1557,11 +1798,8 @@ private:
 	void storeEdit(int[] index, string[] oldName, int[] oldValues = [], string[][] oldNames = [], VariantVal[] oldVals = []) { mixin(S_TRACE);
 		_undo ~= new UndoEdit(this, _comm, _dir, index, oldName, oldValues, oldNames, oldVals);
 	}
-	void storeEdit(int index, string oldName, int oldValue, string[] oldNames = []) { mixin(S_TRACE);
-		_undo ~= new UndoEdit(this, _comm, _dir, [index], [oldName], [oldValue], [oldNames], []);
-	}
-	void storeEditVariant(int index, string oldName, VariantVal oldVal = VariantVal(false)) { mixin(S_TRACE);
-		_undo ~= new UndoEdit(this, _comm, _dir, [index], [oldName], [], [], [oldVal]);
+	void storeEdit(int index, string oldName, int oldValue, string[] oldNames = [], VariantVal oldVal = VariantVal(false)) { mixin(S_TRACE);
+		_undo ~= new UndoEdit(this, _comm, _dir, [index], [oldName], oldValue != -1 ? [oldValue] : [], oldNames.length ? [oldNames] : [], oldVal.valid ? [oldVal] : []);
 	}
 	void storeInsert(ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, ptrdiff_t[] selectedV, ptrdiff_t[] flagIndices, ptrdiff_t[] stepIndices, ptrdiff_t[] variantIndices) { mixin(S_TRACE);
 		_undo ~= new UndoInsertDelete(this, _comm, _dir, selectedF, selectedS, selectedV, [], flagIndices, stepIndices, variantIndices);
@@ -1685,7 +1923,7 @@ private:
 
 	FlagEditDialog[cwx.flag.Flag] _editDlgsF;
 	StepEditDialog[Step] _editDlgsS;
-	// TODO: コモン編集ダイアログ
+	VariantEditDialog[cwx.flag.Variant] _editDlgsV;
 
 	IncSearch _incSearch = null;
 	private void incSearch() { mixin(S_TRACE);
@@ -1816,7 +2054,58 @@ private:
 		dlg.open();
 	}
 	void editVariant(FlagDir parent, cwx.flag.Variant variant) { mixin(S_TRACE);
-		// TODO
+		enterEdit();
+		auto createMode = variant is null;
+		auto old = createMode ? null : variant.name;
+		if (!variant) { mixin(S_TRACE);
+			variant = new cwx.flag.Variant("", 0.0);
+		}
+		auto p = variant in _editDlgsV;
+		if (p) { mixin(S_TRACE);
+			p.active();
+			return;
+		}
+		auto dlg = new VariantEditDialog(_comm, _comm.summary, dlgParShl, parent, variant);
+		auto oldName = "";
+		auto oldValue = VariantVal(false);
+		dlg.applyEvent ~= { mixin(S_TRACE);
+			int i = indexOf(parent, variant);
+			if (-1 != i) { mixin(S_TRACE);
+				assert (!createMode);
+				oldName = variant.name;
+				oldValue = VariantVal(variant);
+			}
+		};
+		dlg.appliedEvent ~= { mixin(S_TRACE);
+			auto variant = dlg.variant;
+			if (old && old != variant.name) { mixin(S_TRACE);
+				uc.change(toVariantId(FlagDir.join(parent.path, old)), toVariantId(variant.path), true);
+				old = variant.name;
+			}
+			if (createMode) { mixin(S_TRACE);
+				ptrdiff_t[] selsF;
+				ptrdiff_t[] selsS;
+				ptrdiff_t[] selsV;
+				if (flags && !flags.isDisposed()) { mixin(S_TRACE);
+					selsF = selectionFlagIndices;
+					selsS = selectionStepIndices;
+					selsV = selectionVariantIndices;
+				}
+				storeInsert(selsF, selsS, selsV, [], [], [variant.parent.indexOf(variant)]);
+				createMode = false;
+			} else { mixin(S_TRACE);
+				storeEdit(indexOf(parent, variant), oldName, -1, [], oldValue);
+			}
+			_comm.openCWXPath(variant.cwxPath(true), false);
+			refresh([variant]);
+			_comm.refFlagAndStep.call([], [], [variant]);
+			_comm.refreshToolBar();
+		};
+		_editDlgsV[variant] = dlg;
+		dlg.closeEvent ~= { mixin(S_TRACE);
+			_editDlgsV.remove(variant);
+		};
+		dlg.open();
 	}
 
 	class MListener : MouseAdapter {
@@ -2064,11 +2353,9 @@ private:
 			string str;
 			initCombo(itm, editC, strs, str);
 			return .createComboEditor!Combo(_comm, prop, itm.getParent(), strs, str);
-		} else { mixin(S_TRACE);
-			// TODO: エラー時はツールチップで通知する
-			// TODO: 説明をツールチップで出す
-			return .createTextEditor(_comm, prop, itm.getParent(), itm.getText(VALUE));
-		}
+		} else if (cast(cwx.flag.Variant)d) { mixin(S_TRACE);
+			return .variantValueEditor(_comm, itm.getParent(), itm.getText(VALUE));
+		} else assert (0);
 	}
 	void initCombo(TableItem itm, int column, out string[] strs, out string str) { mixin(S_TRACE);
 		auto d = itm.getData();
@@ -2136,6 +2423,7 @@ private:
 			if (selVariant && v) { mixin(S_TRACE);
 				indices ~= indexOf(v.parent, v);
 				oldNames ~= v.name;
+				oldVals ~= VariantVal(v);
 				final switch (val.type) {
 				case VariantType.Number:
 					v.value = val.numVal;
@@ -2152,7 +2440,7 @@ private:
 			}
 		}
 		if (indices.length) { mixin(S_TRACE);
-			storeEdit(indices, oldNames, oldValues);
+			storeEdit(indices, oldNames, oldValues, [], oldVals);
 			_comm.refFlagAndStep.call(refF, refS, refV);
 		}
 		_comm.refreshToolBar();
@@ -2166,10 +2454,9 @@ private:
 			foreach (dlg; _editDlgsS.values) { mixin(S_TRACE);
 				dlg.forceCancel();
 			}
-			// TODO
-			//foreach (dlg; _editDlgsV.values) { mixin(S_TRACE);
-			//	dlg.forceCancel();
-			//}
+			foreach (dlg; _editDlgsV.values) { mixin(S_TRACE);
+				dlg.forceCancel();
+			}
 		}
 	}
 	@property
@@ -2200,7 +2487,7 @@ private:
 		Step[] ss;
 		cwx.flag.Variant[] vs;
 		getSelectionFlagAndStep(fs, ss, vs);
-		auto c = createInitVariablesTree(fs, ss);
+		auto c = createInitVariablesTree(fs, ss, vs);
 		if (!c) return;
 		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys, LATEST_VERSION)));
 		_comm.refreshToolBar();
@@ -2223,7 +2510,6 @@ private:
 		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys, LATEST_VERSION)));
 		_comm.refreshToolBar();
 	}
-	// TODO: コモンの初期化ツリー
 
 public:
 	this (Commons comm, Props prop, UndoManager undo) { mixin(S_TRACE);
@@ -2264,7 +2550,7 @@ public:
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.NewFlag, &createFlag, () => _dir !is null);
 		createMenuItem(_comm, menu, MenuID.NewStep, &createStep, () => _dir !is null);
-		createMenuItem(_comm, menu, MenuID.NewVariant, &createVariant, () => _dir !is null);
+		createMenuItem(_comm, menu, MenuID.NewVariant, &createVariant, () => _dir && (!_comm.summary || _comm.summary.legacy));
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.Undo, &this.undo, &_undo.canUndo);
 		createMenuItem(_comm, menu, MenuID.Redo, &this.redo, &_undo.canRedo);
@@ -2295,7 +2581,6 @@ public:
 		foreach (i; 0..prop.looks.stepMaxCount) { mixin(S_TRACE);
 			ssValue(i);
 		}
-		// TODO: コモン初期化ツリー
 
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.FindID, &replaceID, &canReplaceID);
@@ -2558,10 +2843,9 @@ public:
 		foreach (dlg; _editDlgsS.values) { mixin(S_TRACE);
 			dlg.forceCancel();
 		}
-		// TODO
-		//foreach (dlg; _editDlgsV.values) { mixin(S_TRACE);
-		//	dlg.forceCancel();
-		//}
+		foreach (dlg; _editDlgsV.values) { mixin(S_TRACE);
+			dlg.forceCancel();
+		}
 		_dir = dir;
 		refresh();
 	}

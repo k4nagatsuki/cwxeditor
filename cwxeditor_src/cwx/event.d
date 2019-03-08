@@ -18,6 +18,7 @@ import cwx.summary;
 import cwx.flag;
 import cwx.structs;
 import cwx.skin;
+import cwx.expression;
 
 import std.algorithm;
 import std.datetime;
@@ -51,7 +52,7 @@ private void static_this () { mixin(S_TRACE);
 			CType.WAIT,
 			CType.ELAPSE_TIME,
 			CType.EFFECT,
-			CType.CHANGE_ENVIRONMENT,
+			CType.CHANGE_ENVIRONMENT, // Wsn.4
 			CType.CALL_START,
 			CType.CALL_PACKAGE,
 		], CTypeGroup.Data:[
@@ -117,13 +118,17 @@ private void static_this () { mixin(S_TRACE);
 		], CTypeGroup.Visual:[
 			CType.SHOW_PARTY,
 			CType.HIDE_PARTY,
-			CType.MOVE_CARD,
+			CType.MOVE_CARD, // Wsn.3
 			CType.CHANGE_BG_IMAGE,
 			CType.MOVE_BG_IMAGE,
 			CType.REPLACE_BG_IMAGE,
 			CType.LOSE_BG_IMAGE,
 			CType.REDISPLAY,
-		]
+		], CTypeGroup.Variant:[
+			CType.BRANCH_VARIANT, // Wsn.4
+			CType.SET_VARIANT, // Wsn.4
+			CType.CHECK_VARIANT, // Wsn.4
+		],
 	];
 
 	string _(string v) { return v; }
@@ -212,6 +217,9 @@ private void static_this () { mixin(S_TRACE);
 		CType.BRANCH_MULTI_RANDOM:CDetail("Branch", "MultiRandom", CNextType.NONE, true), // Wsn.2
 		CType.MOVE_CARD:CDetail("Move", "Card", CNextType.NONE, true, [CArg.CARD_GROUP:"cardgroup", CArg.POSITION_TYPE:"positiontype", CArg.X:"x", CArg.Y:"y", CArg.SCALE:"scale", CArg.LAYER:"layer", CArg.CARD_SPEED:"cardspeed", CArg.OVERRIDE_CARD_SPEED:"overridecardspeed"]), // Wsn.3
 		CType.CHANGE_ENVIRONMENT:CDetail("Change", "Environment", CNextType.NONE, true, [CArg.BACKPACK_ENABLED:"backpack"]), // Wsn.4
+		CType.BRANCH_VARIANT:CDetail("Branch", "Variant", CNextType.BOOL, true, [CArg.EXPRESSION:null]), // Wsn.4
+		CType.SET_VARIANT:CDetail("Set", "Variant", CNextType.NONE, true, [CArg.VARIANT:"variant", CArg.FLAG:"flag", CArg.STEP:"step", CArg.EXPRESSION:null]), // Wsn.4
+		CType.CHECK_VARIANT:CDetail("Check", "Variant", CNextType.NONE, true, [CArg.EXPRESSION:null]), // Wsn.4
 	];
 	foreach (cType, detail; _CONTENT_DETAILS) { mixin(S_TRACE);
 		foreach (name; detail.names) { mixin(S_TRACE);
@@ -467,6 +475,7 @@ public:
 	override void changeInText(size_t index, VariantId id) { mixin(S_TRACE);
 		_text.changeInText(index, id);
 	}
+
 	const
 	XNode toNode() { mixin(S_TRACE);
 		auto e = XNode.create(XML_NAME);
@@ -563,6 +572,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		this.flag = c.flag;
 		this.step = c.step;
 		this.variant = c.variant;
+		this.expression = c.expression;
 		this.cardPaths = c.cardPaths;
 		this.bgmPath = c.bgmPath;
 		this.bgmChannel = c.bgmChannel;
@@ -727,6 +737,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			&& (!d.use(CArg.FLAG) || flag == c.flag)
 			&& (!d.use(CArg.STEP) || step == c.step)
 			&& (!d.use(CArg.VARIANT) || variant == c.variant)
+			&& (!d.use(CArg.EXPRESSION) || expression == c.expression)
 			&& (!d.use(CArg.TALKER_C) || cardPaths == c.cardPaths)
 			&& (!d.use(CArg.BGM_PATH) || bgmPath == c.bgmPath)
 			&& (!d.use(CArg.BGM_CHANNEL) || bgmChannel == c.bgmChannel)
@@ -1022,6 +1033,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.FLAG, string, "")(d, od, &flag, base, base.flag);
 		resetValue!(CArg.STEP, string, "")(d, od, &step, base, base.step);
 		resetValue!(CArg.VARIANT, string, "")(d, od, &variant, base, base.variant);
+		resetValue!(CArg.EXPRESSION, string, "")(d, od, &expression, base, base.expression);
 		resetValue!(CArg.TALKER_C, const(CardImage)[], [])(d, od, &cardPaths, base, base.cardPaths);
 		resetValue!(CArg.BGM_PATH, string, "")(d, od, &bgmPath, base, base.bgmPath);
 		resetValue!(CArg.BGM_CHANNEL, uint, 0)(d, od, &bgmChannel, base, base.bgmChannel);
@@ -1926,8 +1938,11 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	mixin Prop!(FlagUser, string, "flag", "", ".flag", ".flag", true);
 	/// ステップ。
 	mixin Prop!(StepUser, string, "step", "", ".step", ".step", true);
-	/// コモン。
+	/// コモン(Wsn.4)。
 	mixin Prop!(VariantUser, string, "variant", "", ".variant", ".variant", true);
+	/// 式(Wsn.4)。
+	mixin Prop!(Expression, string, "expression", "", ".text", ".text", true);
+
 	/// 話者(カード画像含む)。
 	private CardImage[] _cardPaths;
 	@property
@@ -2480,6 +2495,24 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		_name.changeInText(index, id);
 	}
 
+	/// 式内で使用されている状態変数のパス。
+	@property
+	const
+	string[] flagsInExpression() { return _expression.flagsInText; }
+	/// ditto
+	@property
+	const
+	string[] stepsInExpression() { return _expression.stepsInText; }
+	/// ditto
+	@property
+	const
+	string[] variantsInExpression() { return _expression.variantsInText; }
+
+	/// 式にあるエラーを検出して返す。
+	ExprError[] getExpressionErrors(in CProps prop, in VariableInfo vInfo) { mixin(S_TRACE);
+		return _expression.getExpressionErrors(prop, vInfo);
+	}
+
 	/// コンテントをXMLテキストにして返す。
 	const
 	string toXML(XMLOption opt) { mixin(S_TRACE);
@@ -2544,9 +2577,15 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		atnPut!(CArg.AREA, "area", "")(e, d);
 		atnPut!(CArg.BATTLE, "battle", "")(e, d);
 		atnPut!(CArg.PACKAGE, "packages", "")(e, d);
-		atnPut!(CArg.FLAG, "flag", "")(e, d);
-		atnPut!(CArg.STEP, "step", "")(e, d);
-		atnPut!(CArg.VARIANT, "variant", "")(e, d);
+		if (d.use(CArg.FLAG) && d.use(CArg.STEP) && d.use(CArg.VARIANT)) { mixin(S_TRACE);
+			atnPutD!(CArg.FLAG, "flag", "", "")(e, d);
+			atnPutD!(CArg.STEP, "step", "", "")(e, d);
+			atnPutD!(CArg.VARIANT, "variant", "", "")(e, d);
+		} else { mixin(S_TRACE);
+			atnPut!(CArg.FLAG, "flag", "")(e, d);
+			atnPut!(CArg.STEP, "step", "")(e, d);
+			atnPut!(CArg.VARIANT, "variant", "")(e, d);
+		}
 		atnPut!(CArg.BGM_PATH, "bgmPath", "encodePath")(e, d);
 		atnPut!(CArg.BGM_CHANNEL, "bgmChannel", "")(e, d);
 		atnPut!(CArg.BGM_VOLUME, "bgmVolume", "")(e, d);
@@ -2742,6 +2781,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		} else { mixin(S_TRACE);
 			atnPutD!(CArg.MATCHING_TYPE, "matchingType", "fromMatchingType", MatchingType.And)(e, d);
 		}
+		// 式(Wsn.4)
+		if (d.use(CArg.EXPRESSION)) { mixin(S_TRACE);
+			e.newElement("Expression", expression);
+		}
 	}
 	const
 	private void toNodeImpl(ref XNode parent, CDetail d, XMLOption opt, ref XNode contentsLine) { mixin(S_TRACE);
@@ -2847,9 +2890,16 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		cfnPut!(CArg.AREA, "area", "to!(ulong)")(en, d, r);
 		cfnPut!(CArg.BATTLE, "battle", "to!(ulong)")(en, d, r);
 		cfnPut!(CArg.PACKAGE, "packages", "to!(ulong)")(en, d, r);
-		cfnPut!(CArg.FLAG, "flag", "")(en, d, r);
-		cfnPut!(CArg.STEP, "step", "")(en, d, r);
-		cfnPut!(CArg.VARIANT, "variant", "")(en, d, r);
+		if (d.use(CArg.FLAG) && d.use(CArg.STEP) && d.use(CArg.VARIANT)) { mixin(S_TRACE);
+			// コモン設定コンテントでは省略可とする
+			cfnPutD!(CArg.FLAG, "flag", "", "")(en, d, r);
+			cfnPutD!(CArg.STEP, "step", "", "")(en, d, r);
+			cfnPutD!(CArg.VARIANT, "variant", "", "")(en, d, r);
+		} else { mixin(S_TRACE);
+			cfnPut!(CArg.FLAG, "flag", "")(en, d, r);
+			cfnPut!(CArg.STEP, "step", "")(en, d, r);
+			cfnPut!(CArg.VARIANT, "variant", "")(en, d, r);
+		}
 		cfnPut!(CArg.BGM_PATH, "bgmPath", "decodePath")(en, d, r);
 		cfnPut!(CArg.BGM_CHANNEL, "bgmChannel", "to!(uint)")(en, d, r);
 		cfnPut!(CArg.BGM_VOLUME, "bgmVolume", "to!(uint)")(en, d, r);
@@ -3062,6 +3112,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			en.onTag["KeyCodes"] = (ref XNode n) { mixin(S_TRACE);
 				r.keyCodes = decodeLf(n.value, true);
 			};
+		}
+
+		if (d.use(CArg.EXPRESSION)) { mixin(S_TRACE);
+			en.onTag["Expression"] = (ref XNode node) { r.expression = node.value; };
 		}
 
 		bool hasTarget = false;
@@ -4243,15 +4297,13 @@ public:
 	}
 }
 
-// TODO: コモンの初期化
-
 /// 状態変数を初期化するイベントツリーを生成する。
 Content createInitVariablesTree(in FlagDir dir) { mixin(S_TRACE);
-	return createInitVariablesTree(dir.allFlags(), dir.allSteps());
+	return createInitVariablesTree(dir.allFlags(), dir.allSteps(), dir.allVariants());
 }
 /// ditto
-Content createInitVariablesTree(in cwx.flag.Flag[] flags, in Step[] steps) { mixin(S_TRACE);
-	return createInitVariablesTreeImpl!(CType.SET_FLAG, CType.SET_STEP)(flags, steps, (f) => f.onOff, (s) => s.select);
+Content createInitVariablesTree(in cwx.flag.Flag[] flags, in Step[] steps, in Variant[] variants) { mixin(S_TRACE);
+	return createInitVariablesTreeImpl!(CType.SET_FLAG, CType.SET_STEP, CType.SET_VARIANT)(flags, steps, variants, (f) => f.onOff, (s) => s.select, (v) => VariantVal(v));
 }
 /// フラグの値を設定するイベントツリーを生成する。
 Content createSetFlagTree(in FlagDir dir, bool onOff) { mixin(S_TRACE);
@@ -4259,7 +4311,7 @@ Content createSetFlagTree(in FlagDir dir, bool onOff) { mixin(S_TRACE);
 }
 /// ditto
 Content createSetFlagTree(in cwx.flag.Flag[] flags, bool onOff) { mixin(S_TRACE);
-	return createInitVariablesTreeImpl!(CType.SET_FLAG, CType.SET_STEP)(flags, [], (f) => onOff, null);
+	return createInitVariablesTreeImpl!(CType.SET_FLAG, CType.SET_STEP, CType.SET_VARIANT)(flags, [], [], (f) => onOff, null, null);
 }
 /// ステップの値を設定するイベントツリーを生成する。
 Content createSetStepTree(in FlagDir dir, uint select) { mixin(S_TRACE);
@@ -4267,7 +4319,7 @@ Content createSetStepTree(in FlagDir dir, uint select) { mixin(S_TRACE);
 }
 /// ditto
 Content createSetStepTree(in Step[] steps, uint select) { mixin(S_TRACE);
-	return createInitVariablesTreeImpl!(CType.SET_FLAG, CType.SET_STEP)([], steps, null, (s) => select);
+	return createInitVariablesTreeImpl!(CType.SET_FLAG, CType.SET_STEP, CType.SET_VARIANT)([], steps, [], null, (s) => select, null);
 }
 /// フラグを反転するイベントツリーを生成する。
 Content createReverseFlagTree(in FlagDir dir) { mixin(S_TRACE);
@@ -4275,7 +4327,7 @@ Content createReverseFlagTree(in FlagDir dir) { mixin(S_TRACE);
 }
 /// ditto
 Content createReverseFlagTree(in cwx.flag.Flag[] flags) { mixin(S_TRACE);
-	return createInitVariablesTreeImpl!(CType.REVERSE_FLAG, CType.SET_STEP)(flags, [], null, null);
+	return createInitVariablesTreeImpl!(CType.REVERSE_FLAG, CType.SET_STEP, CType.SET_VARIANT)(flags, [], [], null, null, null);
 }
 /// ステップを加算するイベントツリーを生成する。
 Content createSetStepUpTree(in FlagDir dir) { mixin(S_TRACE);
@@ -4283,7 +4335,7 @@ Content createSetStepUpTree(in FlagDir dir) { mixin(S_TRACE);
 }
 /// ditto
 Content createSetStepUpTree(in Step[] steps) { mixin(S_TRACE);
-	return createInitVariablesTreeImpl!(CType.SET_FLAG, CType.SET_STEP_UP)([], steps, null, null);
+	return createInitVariablesTreeImpl!(CType.SET_FLAG, CType.SET_STEP_UP, CType.SET_VARIANT)([], steps, [], null, null, null);
 }
 /// ステップを減算するイベントツリーを生成する。
 Content createSetStepDownTree(in FlagDir dir) { mixin(S_TRACE);
@@ -4291,11 +4343,22 @@ Content createSetStepDownTree(in FlagDir dir) { mixin(S_TRACE);
 }
 /// ditto
 Content createSetStepDownTree(in Step[] steps) { mixin(S_TRACE);
-	return createInitVariablesTreeImpl!(CType.SET_FLAG, CType.SET_STEP_DOWN)([], steps, null, null);
+	return createInitVariablesTreeImpl!(CType.SET_FLAG, CType.SET_STEP_DOWN, CType.SET_VARIANT)([], steps, [], null, null, null);
 }
-private Content createInitVariablesTreeImpl(CType TypeF, CType TypeS)(in cwx.flag.Flag[] flags, in Step[] steps,
-		bool delegate(in cwx.flag.Flag) getValueF, uint delegate(in Step) getValueS) { mixin(S_TRACE);
+private Content createInitVariablesTreeImpl(CType TypeF, CType TypeS, CType TypeV)(in cwx.flag.Flag[] flags, in Step[] steps, in Variant[] variants,
+		bool delegate(in cwx.flag.Flag) getValueF, uint delegate(in Step) getValueS, VariantVal delegate(in Variant) getValueV) { mixin(S_TRACE);
 	Content[] r;
+	foreach (variant; variants) { mixin(S_TRACE);
+		auto c = new Content(TypeV, "");
+		c.variant = variant.path;
+		if (getValueV) { mixin(S_TRACE);
+			auto val = getValueV(variant);
+			assert (val.valid);
+			c.expression = .variantValueToText(val);
+		}
+		if (r.length) r[$-1].add(null, c);
+		r ~= c;
+	}
 	foreach (step; steps) { mixin(S_TRACE);
 		auto c = new Content(TypeS, "");
 		c.step = step.path;

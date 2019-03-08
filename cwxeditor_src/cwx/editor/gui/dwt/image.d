@@ -323,6 +323,9 @@ public:
 		case CType.BRANCH_MULTI_RANDOM: return imgd!("evt_br_multi_random.png"); // Wsn.2
 		case CType.MOVE_CARD: return imgd!("evt_mv_card.png"); // Wsn.3
 		case CType.CHANGE_ENVIRONMENT: return imgd!("evt_ch_env.png"); // Wsn.4
+		case CType.BRANCH_VARIANT: return imgd!("evt_br_var.png"); // Wsn.4
+		case CType.SET_VARIANT: return imgd!("evt_set_var.png"); // Wsn.4
+		case CType.CHECK_VARIANT: return imgd!("evt_chk_var.png"); // Wsn.4
 		}
 	}
 
@@ -599,6 +602,7 @@ public:
 		case MenuID.CGroupGet: return imgd!("evt_j_get.png");
 		case MenuID.CGroupLost: return imgd!("evt_j_lost.png");
 		case MenuID.CGroupVisual: return imgd!("evt_j_vis.png");
+		case MenuID.CGroupVariant: return imgd!("evt_j_var.png");
 		case MenuID.EditSummary: return imgd!("summary.png");
 		case MenuID.NewAreaDir: return imgd!("areadir_new.png");
 		case MenuID.NewArea: return imgd!("area_new.png");

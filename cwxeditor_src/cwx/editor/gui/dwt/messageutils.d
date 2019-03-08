@@ -18,6 +18,7 @@ import cwx.system;
 import cwx.warning;
 import cwx.sjis;
 import cwx.card;
+import cwx.expression;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
@@ -2538,9 +2539,7 @@ class PreviewValues : Composite {
 			return text;
 		}
 		if (auto vd = cast(VariantData)o) { mixin(S_TRACE);
-			// TODO: ツールチップで警告する
-			// TODO: ツールチップでガイドを出す
-			auto text = createTextEditor(_comm, _prop, itm.getParent(), itm.getText(1));
+			auto text = .variantValueEditor(_comm, itm.getParent(), itm.getText(1));
 			text.addModifyListener(new Mod(itm));
 			return text;
 		}
@@ -3068,6 +3067,21 @@ class PreviewValues : Composite {
 	}
 	bool undo() { return _undo.undo(); }
 	bool redo() { return _undo.redo(); }
+}
+
+Text variantValueEditor(Commons comm, Composite parent, string value) { mixin(S_TRACE);
+	auto t = .createTextEditor(comm, comm.prop, parent, value);
+	t.setToolTipText(comm.prop.msgs.variantValueHint);
+	.listener(t, SWT.Modify, { mixin(S_TRACE);
+		auto hint = "";
+		if (.variantValueFromText(t.getText()).valid) { mixin(S_TRACE);
+			hint = comm.prop.msgs.variantValueHint;
+		} else { mixin(S_TRACE);
+			hint = .tryFormat(comm.prop.msgs.warningInvalidVariantValue, comm.prop.msgs.variantValueHint);
+		}
+		if (t.getToolTipText() != hint) t.setToolTipText(hint);
+	});
+	return t;
 }
 
 void getPreviewValues(in Props prop, Summary summ, in SPChar[] targetChars,
@@ -3937,47 +3951,6 @@ private string getSPCharPreviewValue(in Commons comm, char name) { mixin(S_TRACE
 	}
 }
 
-struct VariantVal {
-	bool valid;
-	VariantType type;
-	double numVal;
-	string strVal;
-	bool boolVal;
-
-	this (bool valid) { mixin(S_TRACE);
-		this.valid = valid;
-	}
-	this (VariantType type) { mixin(S_TRACE);
-		this.valid = true;
-		this.type = type;
-	}
-	this (in cwx.flag.Variant v) { mixin(S_TRACE);
-		this.valid = true;
-		this.type = v.type;
-		this.numVal = v.numVal;
-		this.strVal = v.strVal;
-		this.boolVal = v.boolVal;
-	}
-}
-
-@property
-string variantValueToText(in cwx.flag.Variant v) { mixin(S_TRACE);
-	return variantValueToTextImpl(v.type, v.numVal, v.strVal, v.boolVal);
-}
-@property
-string variantValueToText(in VariantVal v) { mixin(S_TRACE);
-	return variantValueToTextImpl(v.type, v.numVal, v.strVal, v.boolVal);
-}
-private string variantValueToTextImpl(VariantType type, double numVal, string strVal, bool boolVal) { mixin(S_TRACE);
-	final switch (type) {
-	case VariantType.Number:
-		return .text(.format("%." ~ .text(cwx.flag.Variant.DECIMAL_PLACES) ~ "f", numVal).stripRight("0."));
-	case VariantType.String:
-		return `"%s"`.format(strVal.replace("\"", "\"\""));
-	case VariantType.Boolean:
-		return boolVal.text().toUpper();
-	}
-}
 @property
 string variantValueToPreviewText(in cwx.flag.Variant v) { mixin(S_TRACE);
 	return variantValueToPreviewTextImpl(v.type, v.numVal, v.strVal, v.boolVal);
@@ -3995,38 +3968,4 @@ private string variantValueToPreviewTextImpl(VariantType type, double numVal, st
 	case VariantType.Boolean:
 		return boolVal.text().toUpper();
 	}
-}
-@property
-VariantVal variantValueFromText(string text) { mixin(S_TRACE);
-	static immutable NUM = .ctRegex!("^((\\+|-)?[0-9]+(\\.[0-9]+)?)$");
-	static immutable STR = .ctRegex!("^\"([^\"]|\"\")*\"$");
-	static immutable BOOL = .ctRegex!("^(true|false)$", "i");
-	if (auto m = .match(text, NUM)) { mixin(S_TRACE);
-		if (!m.empty) { mixin(S_TRACE);
-			try {
-				auto v = VariantVal(VariantType.Number);
-				v.numVal = .to!double(m.hit);
-				return v;
-			} catch (Exception e) {
-				printStackTrace();
-				debugln(e);
-				return VariantVal(false);
-			}
-		}
-	}
-	if (auto m = .match(text, STR)) { mixin(S_TRACE);
-		if (!m.empty) { mixin(S_TRACE);
-			auto v = VariantVal(VariantType.String);
-			v.strVal = m.hit[1 .. $ - 1].replace("\"\"", "\"");
-			return v;
-		}
-	}
-	if (auto m = .match(text, BOOL)) { mixin(S_TRACE);
-		if (!m.empty) { mixin(S_TRACE);
-			auto v = VariantVal(VariantType.Boolean);
-			v.boolVal = m.hit.toLower() == "true";
-			return v;
-		}
-	}
-	return VariantVal(false);
 }

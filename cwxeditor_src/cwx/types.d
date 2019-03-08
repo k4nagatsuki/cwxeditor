@@ -1314,6 +1314,9 @@ enum CType {
 	BRANCH_MULTI_RANDOM, /// ランダム多岐分岐(Wsn.2)。
 	MOVE_CARD, /// カード再配置(Wsn.3)。
 	CHANGE_ENVIRONMENT, /// 状況設定(Wsn.4)。
+	BRANCH_VARIANT, /// コモン分岐(Wsn.4)。
+	SET_VARIANT, /// コモン設定(Wsn.4)。
+	CHECK_VARIANT, /// コモン判定(Wsn.4)。
 }
 
 /// WSN形式のシナリオでのみ使用できるイベントコンテントか。
@@ -1327,6 +1330,9 @@ bool isWsnContent(CType cType) { mixin(S_TRACE);
 	case BRANCH_MULTI_RANDOM: // Wsn.2
 	case MOVE_CARD: // Wsn.3
 	case CHANGE_ENVIRONMENT: // Wsn.4
+	case BRANCH_VARIANT: // Wsn.4
+	case SET_VARIANT: // Wsn.4
+	case CHECK_VARIANT: // Wsn.4
 		return true;
 	default:
 		return false;
@@ -1343,6 +1349,7 @@ enum CTypeGroup {
 	Get = 5, /// 取得。
 	Lost = 6, /// 喪失。
 	Visual = 7, // 外観操作。
+	Variant = 8, // 演算。
 }
 
 enum CArg {
@@ -1448,6 +1455,7 @@ enum CArg {
 	OVERRIDE_CARD_SPEED, /// 速度設定をカード本体の設定より優先する(Wsn.4)。
 	BACKPACK_ENABLED, /// 荷物袋の使用可否(Wsn.4)。
 	VARIANT, /// コモン(Wsn.4)。
+	EXPRESSION, /// 式(Wsn.4)。
 }
 
 /// 後続コンテントのnameの型。
@@ -1647,6 +1655,7 @@ enum MenuID {
 	CGroupGet,
 	CGroupLost,
 	CGroupVisual,
+	CGroupVariant,
 	EditSummary,
 	NewAreaDir,
 	NewArea,

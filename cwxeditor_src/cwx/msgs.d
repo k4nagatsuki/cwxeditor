@@ -225,7 +225,9 @@ class Msgs : Properties {
 	auto replTextCardDesc = Msg("replTextCardDesc", "カード解説");
 	auto replTextEventText = Msg("replTextEventText", "イベントテキスト");
 	auto replTextStart = Msg("replTextStart", "スタートコンテント");
-	auto replTextFlagAndStep = Msg("replTextFlagAndStep", "フラグ/ステップ");
+	auto replTextVariableName = Msg("replTextVariableName", "状態変数名");
+	auto replTextVariableValue = Msg("replTextVariableValue", "変数の値");
+	auto replTextExpression = Msg("replTextExpression", "式");
 	auto replTextCoupon = Msg("replTextCoupon", "クーポン");
 	auto replTextGossip = Msg("replTextGossip", "ゴシップ");
 	auto replTextEndScenario = Msg("replTextEndScenario", "終了印");
@@ -389,6 +391,7 @@ class Msgs : Properties {
 	auto searchErrorNoFlag = Msg("searchErrorNoFlag", "フラグが指定されていません。");
 	auto searchErrorNoStep = Msg("searchErrorNoStep", "ステップが指定されていません。");
 	auto searchErrorNoVariant = Msg("searchErrorNoVariant", "コモンが指定されていません。");
+	auto searchErrorNoExpressionTarget = Msg("searchErrorNoExpressionTarget", "代入先が指定されていません。");
 	auto searchErrorNoSoundPath = Msg("searchErrorNoSoundPath", "効果音が指定されていません。");
 	auto searchErrorNoCoupon = Msg("searchErrorNoCoupon", "クーポンが指定されていません。");
 	auto searchErrorNoGossip = Msg("searchErrorNoGossip", "ゴシップが指定されていません。");
@@ -396,6 +399,7 @@ class Msgs : Properties {
 	auto searchErrorNoKeyCode = Msg("searchErrorNoKeyCode", "キーコードが指定されていません。");
 	auto searchErrorNoCellName = Msg("searchErrorNoCellName", "セル名称が指定されていません。");
 	auto searchErrorNoCardGroup = Msg("searchErrorNoCardGroup", "カードグループが指定されていません。");
+	auto searchErrorNoExpression = Msg("searchErrorNoExpression", "式がありません。");
 
 	auto searchOpenDialog = Msg("searchOpenDialog", "検索結果へジャンプする時、ダイアログを開く(&J)");
 
@@ -761,6 +765,9 @@ class Msgs : Properties {
 	auto contentNameBranchMultiRandom = Msg("contentNameBranchMultiRandom", "ランダム多岐分岐"); // Wsn.2
 	auto contentNameMoveCard = Msg("contentNameMoveCard", "カード再配置"); // Wsn.3
 	auto contentNameChangeEnvironment = Msg("contentNameChangeEnvironment", "状況設定"); // Wsn.4
+	auto contentNameBranchVariant = Msg("contentNameBranchVariant", "コモン分岐"); // Wsn.4
+	auto contentNameSetVariant = Msg("contentNameSetVariant", "コモン設定"); // Wsn.4
+	auto contentNameCheckVariant = Msg("contentNameCheckVariant", "コモン判定"); // Wsn.4
 
 	const string contentDesc(CType id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(CType, "contentDesc"));
@@ -846,6 +853,9 @@ class Msgs : Properties {
 	auto contentDescBranchMultiRandom = Msg("contentDescBranchMultiRandom", "複数の後続コンテントへ等確率でランダムで分岐します。"); // Wsn.2
 	auto contentDescMoveCard = Msg("contentDescMoveCard", "メニューカードやエネミーカードを移動・サイズ変更します。"); // Wsn.3
 	auto contentDescChangeEnvironment = Msg("contentDescChangeEnvironment", "荷物袋の使用の可否など、パーティの状況を設定します。"); // Wsn.4
+	auto contentDescBranchVariant = Msg("contentDescBranchVariant", "式の結果の真偽値によって処理を分岐します。"); // Wsn.4
+	auto contentDescSetVariant = Msg("contentDescSetVariant", "式の結果をコモン・フラグ・ステップへ代入します。式の結果は、フラグへ代入する場合は真偽値に、ステップへ代入する場合は数値にする必要があります。"); // Wsn.4
+	auto contentDescCheckVariant = Msg("contentDescCheckVariant", "式の結果がTRUEの時だけ後続のイベントを実行します。メッセージやセリフの選択肢として使用した場合は、条件を満たす時だけ選択肢が表示されます。"); // Wsn.4
 	auto contentDescWsnN = Msg("contentDescWsnN", "%1$sWsn.%2$s以降のシナリオ形式で使用可能です。");
 
 	auto msnGroupVitality = Msg("msnGroupVitality", "生命力");
@@ -1115,6 +1125,9 @@ class Msgs : Properties {
 	auto ctChangeEnvironmentNotSet = Msg("ctChangeEnvironmentNotSet", "状況を変更しない"); // Wsn.4
 	auto ctChangeEnvironment = Msg("ctChangeEnvironment", "%1$s"); // Wsn.4
 	auto ctEnvironmentBackpack = Msg("ctEnvironmentBackpack", "荷物袋を%1$s"); // Wsn.4
+	auto ctBranchVariant = Msg("ctBranchVariant", "式〔 %1$s 〕"); // Wsn.4
+	auto ctSetVariant = Msg("ctSetVariant", "%1$s =〔 %2$s 〕"); // Wsn.4
+	auto ctCheckVariant = Msg("ctCheckVariant", "式〔 %1$s 〕"); // Wsn.4
 
 	auto ctBranchSkillForSelectedCard = Msg("ctBranchSkillForSelectedCard", "特殊技能カード「%1$s」と選択カードの%2$sで分岐");
 	auto ctBranchItemForSelectedCard = Msg("ctBranchItemForSelectedCard", "アイテムカード「%1$s」と選択カードの%2$sで分岐");
@@ -1234,6 +1247,16 @@ class Msgs : Properties {
 	auto dlgLblStepInit = Msg("dlgLblStepInit", "初期値");
 	auto stepValueForWarning = Msg("stepValueForWarning", "値");
 	auto stepCount = Msg("stepCount", "段階数");
+
+	/// コモン設定ダイアログ関連。
+	auto dlgTitVariant = Msg("dlgTitVariant", "コモンの設定");
+	auto variantName = Msg("variantName", "コモン名");
+	auto numberValue = Msg("numberValue", "数値");
+	auto stringValue = Msg("stringValue", "文字列値");
+	auto booleanValue = Msg("booleanValue", "真偽値");
+
+	auto variantValueHint = Msg("variantValueHint", "書式:\n数値 = 9999\n文字列 = \"文字列\"\n真偽値 = TRUE または FALSE\n※ 文字列内に\"を入れる時は\"\"と記述");
+	auto warningInvalidVariantValue = Msg("warningInvalidVariantValue", "書式が正しくありません。\n\n%1$s");
 
 	/// 貼紙設定ダイアログ関連。
 	auto dlgTitSummary = Msg("dlgTitSummary", "概略の設定 - [ %1$s ]");
@@ -1551,6 +1574,8 @@ class Msgs : Properties {
 	auto branchRound = Msg("branchRound", "バトルが%1$sラウンド%2$s");
 	auto branchMultiCouponSuccess = Msg("branchMultiCouponSuccess", "%1$sが称号「%2$s」を所有している"); // Wsn.2
 	auto branchMultiCouponFailure = Msg("branchMultiCouponFailure", "%1$sが全ての称号を所有していない"); // Wsn.2
+	auto branchVariantSuccess = Msg("branchVariantSuccess", "TRUE =〔 %1$s 〕"); // Wsn.4
+	auto branchVariantFailure = Msg("branchVariantFailure", "FALSE =〔 %1$s 〕"); // Wsn.4
 
 	const string physicalName(Physical id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(Physical, "physicalName"));
@@ -1893,6 +1918,7 @@ class Msgs : Properties {
 	auto noEffect = Msg("noEffect", "(指定無し)");
 	auto noKeyCode = Msg("noKeyCode", "(指定無し)");
 	auto noText = Msg("noText", "(文章無し)");
+	auto noExpression = Msg("noExpression", "(式無し)");
 
 	auto cardId = Msg("cardId", "ID");
 	auto cardName = Msg("cardName", "名称");
@@ -2484,6 +2510,7 @@ class Msgs : Properties {
 	auto scriptErrorInvalidMatchingType = Msg("scriptErrorInvalidMatchingType", "未知の判定条件です。"); // Wsn.2
 	auto scriptErrorInvalidUpdateType = Msg("scriptErrorInvalidUpdateType", "未知の更新タイプです。"); // Wsn.4
 	auto scriptErrorInvalidEnvironmentStatus = Msg("scriptErrorInvalidEnvironmentStatus", "未知の状況です。"); // Wsn.4
+	auto scriptErrorInvalidVariableType = Msg("scriptErrorInvalidVariableType", "未知の状態変数です。"); // Wsn.4
 
 	auto dlgTitScriptVarSet = Msg("dlgTitScriptVarSet", "値が未決定の変数の設定");
 	auto scriptVarSet = Msg("scriptVarSet", "変数に値を入力");
@@ -2509,6 +2536,35 @@ class Msgs : Properties {
 	auto jpyErrorInvalidCommand = Msg("jpyErrorInvalidCommand", "コマンドが正しくありません: %1$s");
 	auto jpyErrorInvalidStartTag = Msg("jpyErrorInvalidStartTag", "開始タグが正しくありません: %1$s");
 	auto jpyErrorLabelNotFound = Msg("jpyErrorLabelNotFound", "セクションがありません。");
+
+	/// 式。
+	auto expressionErrorFunctionIsNotDefined = Msg("expressionErrorFunctionIsNotDefined", "%1$sという名前の関数はありません。");
+	auto expressionErrorValueIsNotNumber = Msg("expressionErrorValueIsNotNumber", "数値ではありません。");
+	auto expressionErrorValueIsNotBoolean = Msg("expressionErrorValueIsNotBoolean", "真偽値ではありません。");
+	auto expressionErrorDivisionByZero = Msg("expressionErrorDivisionByZero", "ゼロによる除算が行われました。");
+	auto expressionErrorInvalidCharacter = Msg("expressionErrorInvalidCharacter", "式に使用できない文字が含まれています。");
+	auto expressionErrorInvalidFunctionCall = Msg("expressionErrorInvalidFunctionCall", "関数の呼び出し方が正しくありません。");
+	auto expressionErrorNeedOpenParen = Msg("expressionErrorNeedOpenParen", "開き括弧が必要です。");
+	auto expressionErrorNoArgument = Msg("expressionErrorNoArgument", "引数がありません。");
+	auto expressionErrorNeedBoolean = Msg("expressionErrorNeedBoolean", "真偽値が必要です。");
+	auto expressionErrorNeedSymbolOrNumber = Msg("expressionErrorNeedSymbolOrNumber", "数値または関数呼び出しが必要です。");
+	auto expressionErrorNeedOperator = Msg("expressionErrorNeedOperator", "演算子が必要です。");
+	auto expressionErrorInvalidNumber = Msg("expressionErrorInvalidNumber", "数値が大きすぎます。");
+	auto expressionErrorInvalidSemantics = Msg("expressionErrorInvalidSemantics", "式の構文が正しくありません。");
+	auto expressionErrorInvalidArgumentCount = Msg("expressionErrorInvalidArgumentCount", "%1$sの引数は%2$s件でなければなりません。");
+	auto expressionErrorInvalidArgumentCount2 = Msg("expressionErrorInvalidArgumentCount2", "%1$sの引数は%2$s～%3$s件でなければなりません。");
+	auto expressionErrorArgumentIsNotNumber = Msg("expressionErrorArgumentIsNotNumber", "%1$sの%2$s番目の引数は数値でなければなりません。");
+	auto expressionErrorArgumentIsNotString = Msg("expressionErrorArgumentIsNotString", "%1$sの%2$s番目の引数は文字列でなければなりません。");
+	auto expressionErrorArgumentIsNotBoolean = Msg("expressionErrorArgumentIsNotBoolean", "%1$sの%2$s番目の引数は真偽値でなければなりません。");
+	auto expressionErrorMinimumValue = Msg("expressionErrorMinimumValue", "%1$sの%2$s番目の引数は%3$s以上でなければなりません: %4$s < %3$s");
+	auto expressionErrorNoArgumentWithFunctionName = Msg("expressionErrorNoArgumentWithFunctionName", "%1$sの引数がありません。");
+	auto expressionErrorConversionToNumber = Msg("expressionErrorConversionToNumber", "数値に変換できません: %1$s");
+	auto expressionErrorVariantNotFound = Msg("expressionErrorVariantNotFound", "コモン「%1$s」は存在しません。");
+	auto expressionErrorFlagNotFound = Msg("expressionErrorFlagNotFound", "フラグ「%1$s」は存在しません。");
+	auto expressionErrorStepNotFound = Msg("expressionErrorStepNotFound", "ステップ「%1$s」は存在しません。");
+	auto expressionErrorInvalidStepValue = Msg("expressionErrorInvalidStepValue", "ステップ「%1$s」の最大値より大きな値です: %2$s");
+	auto warningExpression = Msg("warningExpression", "%1$s → %2$s");
+	auto warningExpressionPosition = Msg("warningExpressionPosition", " >>> ");
 
 	/// メニュー。
 	const string menuText(MenuID id) { mixin(S_TRACE);
@@ -2619,6 +2675,7 @@ class Msgs : Properties {
 	auto menuTextCGroupGet = Msg("menuTextCGroupGet", "取得");
 	auto menuTextCGroupLost = Msg("menuTextCGroupLost", "喪失");
 	auto menuTextCGroupVisual = Msg("menuTextCGroupVisual", "外観操作");
+	auto menuTextCGroupVariant = Msg("menuTextCGroupVariant", "演算");
 	auto menuTextEditSummary = Msg("menuTextEditSummary", "シナリオの設定");
 	auto menuTextNewAreaDir = Msg("menuTextNewAreaDir", "フォルダの作成");
 	auto menuTextNewArea = Msg("menuTextNewArea", "エリアの作成");

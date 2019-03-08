@@ -136,7 +136,7 @@ interface ITextHolder : ISimpleTextHolder {
 }
 
 /// ファイル以外の特殊文字に対応したテキスト。
-class SimpleTextHolder : CWXPath, IFlagUser, IStepUser, IVariantUser, ChgFlagCallback, ChgStepCallback, ChgVariantCallback {
+class SimpleTextHolder : CWXPath, ISimpleTextHolder, ChgFlagCallback, ChgStepCallback, ChgVariantCallback {
 private:
 	string _text;
 	FlagUser[] _flagusers;
@@ -157,14 +157,14 @@ public:
 		_changed = change;
 	}
 
-	/// テキスト。
 	@property
 	const
+	override
 	string text() { mixin(S_TRACE);
 		return _text;
 	}
-	/// ditto
 	@property
+	override
 	void text(string text) { mixin(S_TRACE);
 		if (_text != text) { mixin(S_TRACE);
 			string[] flags;
@@ -199,9 +199,9 @@ public:
 		}
 	}
 
-	/// テキスト内で使用されている状態変数のパス。
 	@property
 	const
+	override
 	string[] flagsInText() { mixin(S_TRACE);
 		string[] r;
 		foreach (u; _flagusers) { mixin(S_TRACE);
@@ -209,9 +209,9 @@ public:
 		}
 		return r;
 	}
-	/// ditto
 	@property
 	const
+	override
 	string[] stepsInText() { mixin(S_TRACE);
 		string[] r;
 		foreach (u; _stepusers) { mixin(S_TRACE);
@@ -219,9 +219,9 @@ public:
 		}
 		return r;
 	}
-	/// ditto
 	@property
 	const
+	override
 	string[] variantsInText() { mixin(S_TRACE);
 		string[] r;
 		foreach (u; _variantusers) { mixin(S_TRACE);
@@ -254,6 +254,7 @@ public:
 		}
 		_uc = uc;
 	}
+	/// 状態変数ユーザの使用回数カウンタを除去する。
 	protected void removeTextUseCounter() { mixin(S_TRACE);
 		if (_uc) { mixin(S_TRACE);
 			foreach (u; _flagusers) { mixin(S_TRACE);
@@ -272,25 +273,28 @@ public:
 		removeTextUseCounter();
 		_uc = null;
 	}
+	override
 	bool change(FlagId id) { mixin(S_TRACE);
 		foreach (u; _flagusers) { mixin(S_TRACE);
 			u.change(id);
 		}
 		return true;
 	}
+	override
 	bool change(StepId id) { mixin(S_TRACE);
 		foreach (u; _stepusers) { mixin(S_TRACE);
 			u.change(id);
 		}
 		return true;
 	}
+	override
 	bool change(VariantId id) { mixin(S_TRACE);
 		foreach (u; _variantusers) { mixin(S_TRACE);
 			u.change(id);
 		}
 		return true;
 	}
-	/// ditto
+	/// 個別に状態変数パスを変更する。
 	void changeInText(size_t index, FlagId id) { mixin(S_TRACE);
 		_flagusers[index].change(id);
 	}

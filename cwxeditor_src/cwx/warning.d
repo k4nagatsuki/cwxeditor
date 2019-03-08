@@ -18,6 +18,7 @@ import cwx.imagesize;
 import cwx.motion;
 import cwx.sjis;
 import cwx.binary;
+import cwx.expression;
 
 import std.algorithm;
 import std.ascii;
@@ -779,14 +780,26 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (cd.use(CArg.INFO) && c.info == 0) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorNoInfo;
 		}
-		if ((cd.use(CArg.FLAG) && c.flag == "") || (cd.use(CArg.FLAG_2) && c.flag2 == "")) { mixin(S_TRACE);
+		if (cd.use(CArg.FLAG) && cd.use(CArg.STEP) && cd.use(CArg.VARIANT)) { mixin(S_TRACE);
+			if (c.flag == "" && c.step == "" && c.variant == "") { mixin(S_TRACE);
+				r ~= prop.msgs.searchErrorNoExpressionTarget;
+			}
+		} else { mixin(S_TRACE);
+			if (cd.use(CArg.FLAG) && c.flag == "") { mixin(S_TRACE);
+				r ~= prop.msgs.searchErrorNoFlag;
+			}
+			if (cd.use(CArg.STEP) && c.step == "") { mixin(S_TRACE);
+				r ~= prop.msgs.searchErrorNoStep;
+			}
+			if (cd.use(CArg.VARIANT) && c.variant == "") { mixin(S_TRACE);
+				r ~= prop.msgs.searchErrorNoVariant;
+			}
+		}
+		if (cd.use(CArg.FLAG_2) && c.flag2 == "") { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorNoFlag;
 		}
-		if ((cd.use(CArg.STEP) && c.step == "") || (cd.use(CArg.STEP_2) && c.step2 == "")) { mixin(S_TRACE);
+		if (cd.use(CArg.STEP_2) && c.step2 == "") { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorNoStep;
-		}
-		if (cd.use(CArg.VARIANT) && c.variant == "") { mixin(S_TRACE);
-			r ~= prop.msgs.searchErrorNoVariant;
 		}
 		if (cd.use(CArg.COUPON)) { mixin(S_TRACE);
 			r ~= .sjisWarnings(prop, summ, c.coupon, prop.msgs.couponName);
@@ -826,8 +839,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		size_t rows(in Content c) { mixin(S_TRACE);
 			size_t len = 0;
 			foreach (n; c.next) { mixin(S_TRACE);
-				// TODO: CHECK_VARIANT
-				if (n.name != "" && n.type !is CType.CHECK_FLAG && n.type !is CType.CHECK_STEP) { mixin(S_TRACE);
+				if (n.name != "" && n.type !is CType.CHECK_FLAG && n.type !is CType.CHECK_STEP && n.type !is CType.CHECK_VARIANT) { mixin(S_TRACE);
 					len++;
 				}
 			}
@@ -897,6 +909,15 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		}
 		if (c.type is CType.CHANGE_ENVIRONMENT && !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(CType.CHANGE_ENVIRONMENT), "4");
+		}
+		if (c.type is CType.BRANCH_VARIANT && !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
+			r ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(CType.BRANCH_VARIANT), "4");
+		}
+		if (c.type is CType.SET_VARIANT && !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
+			r ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(CType.SET_VARIANT), "4");
+		}
+		if (c.type is CType.CHECK_VARIANT && !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
+			r ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(CType.CHECK_VARIANT), "4");
 		}
 		if (cd.use(CArg.STEP_VALUE)) { mixin(S_TRACE);
 			if (froot && c.step != "") { mixin(S_TRACE);
@@ -1023,6 +1044,20 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		}
 		if (cd.use(CArg.CARD_SPEED) && c.cardSpeed != -1 && !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningCardAnimationSpeed;
+		}
+		if (cd.use(CArg.EXPRESSION) && summ) { mixin(S_TRACE);
+			if (c.expression == "") { mixin(S_TRACE);
+				r ~= prop.msgs.searchErrorNoExpression;
+			} else if (summ) { mixin(S_TRACE);
+				string[] lines;
+				foreach (err; c.getExpressionErrors(prop, VariableInfo(summ))) { mixin(S_TRACE);
+					if (lines.length == 0) lines = .splitLines(c.expression);
+					auto errLine = lines[err.errLine - 1];
+					errLine = errLine[0 .. err.errPos - 1] ~ prop.msgs.warningExpressionPosition ~ errLine[err.errPos - 1 .. $];
+					r ~= .tryFormat(prop.msgs.warningExpression, err.message, errLine);
+				}
+				r ~= checkTextRes2(c.expression, c.flagsInExpression, c.stepsInExpression, c.variantsInExpression, [], []);
+			}
 		}
 	}
 	return r;

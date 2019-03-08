@@ -2592,6 +2592,8 @@ public:
 			return createBoolEditor!("evtChildBrKeyCode(_prop, evt, name)")(data, c);
 		} case CType.BRANCH_ROUND: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrRound(_prop, evt, name)")(data, c);
+		} case CType.BRANCH_VARIANT: { mixin(S_TRACE);
+			return createBoolEditor!("evtChildBrVariant(_prop, evt, name)")(data, c);
 		} case CType.BRANCH_MULTI_COUPON: { mixin(S_TRACE);
 			return createCouponEditor(c.name);
 		} default:
@@ -3866,6 +3868,9 @@ string eventText(Commons comm, Summary summ, Content parent, Content e, bool rea
 		} else { mixin(S_TRACE);
 			return .tryFormat(prop.msgs.branchMultiCouponSuccess, range, e.name);
 		}
+	} case CType.BRANCH_VARIANT: { mixin(S_TRACE);
+		r = evtChildBrVariant(prop, parent, name);
+		break;
 	} default:
 		name = "";
 		r = "";
@@ -4385,6 +4390,18 @@ private string evtChildBrRound(in Props prop, in Content evt, ref string text) {
 		cmp = prop.msgs.comparison3FalseName(evt.comparison3);
 	}
 	return .tryFormat(prop.msgs.branchRound, evt.round, cmp);
+}
+private string evtChildBrVariant(in Props prop, in Content evt, ref string text) { mixin(S_TRACE);
+	bool val = (text != prop.sys.evtChildFalse);
+	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+
+	auto expr = evt.expression == "" ? prop.msgs.noExpression : evt.expression.replace("\n", "");
+
+	if (val) { mixin(S_TRACE);
+		return .tryFormat(prop.msgs.branchVariantSuccess, expr);
+	} else { mixin(S_TRACE);
+		return .tryFormat(prop.msgs.branchVariantFailure, expr);
+	}
 }
 
 class ContentsToolBox {

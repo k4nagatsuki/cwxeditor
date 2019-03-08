@@ -290,6 +290,7 @@ public:
 		FlagsPane flags() { return _flags; }
 
 		@property
+		const
 		bool canCreateFlagDir() { mixin(S_TRACE);
 			return _summ !is null;
 		}
@@ -298,7 +299,8 @@ public:
 		@property
 		alias canCreateFlagDir canCreateStep;
 		@property
-		alias canCreateFlagDir canCreateVariant;
+		const
+		bool canCreateVariant() { return canCreateFlagDir && (!_summ || !_summ.legacy); }
 
 		void createFlagDir() { mixin(S_TRACE);
 			if (!_summ) return;

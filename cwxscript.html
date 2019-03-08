@@ -310,6 +310,7 @@
 					<li class="content"><a href="#BRFLAG">brflag</a></li>
 					<li class="content"><a href="#BRSTEPM">brstepm</a></li>
 					<li class="content"><a href="#BRSTEPT">brstept</a></li>
+					<li class="content"><a href="#BRVAR">brvar</a></li>
 					<li class="content"><a href="#SELMEMBER">selmember</a></li>
 					<li class="content"><a href="#BRABILITY">brability</a></li>
 					<li class="content"><a href="#BRRANDOM">brrandom</a></li>
@@ -337,6 +338,7 @@
 					<li class="content"><a href="#SETSTEP">setstep</a></li>
 					<li class="content"><a href="#STEPUP">stepup</a></li>
 					<li class="content"><a href="#STEPDOWN">stepdown</a></li>
+					<li class="content"><a href="#SETVAR">setvar</a></li>
 					<li class="content"><a href="#REVFLAG">revflag</a></li>
 					<li class="content"><a href="#CPSTEP">cpstep</a></li>
 					<li class="content"><a href="#CPFLAG">cpflag</a></li>
@@ -344,6 +346,7 @@
 					<li class="content"><a href="#CMPFLAG">cmpflag</a></li>
 					<li class="content"><a href="#CHKFLAG">chkflag</a></li>
 					<li class="content"><a href="#CHKSTEP">chkstep</a></li>
+					<li class="content"><a href="#CHKVAR">chkvar</a></li>
 					<li class="content"><a href="#GETCAST">getcast</a></li>
 					<li class="content"><a href="#GETITEM">getitem</a></li>
 					<li class="content"><a href="#GETSKILL">getskill</a></li>
@@ -780,7 +783,7 @@
 	<dd>ゲームオーバー</dd>
 	<dt class="content"><a href="#GOAREA">goarea <span class="args"><span class="arg">&lt;ID&gt;</span>, <span class="arg">&lt;画面切替スピード&gt;</span>, <span class="arg">&lt;切替方式&gt;</span></span></a></dt>
 	<dd>エリアの移動</dd>
-	<dt class="content"><a href="#EFFECT">effect <span class="args"> (<span class="arg">&lt;効果対象&gt;</span> | <span class="arg">coupon</span> <span class="arg">&lt;称号名&gt;</span>), <span class="array">[<span class="arg">&lt;効果種別&gt;</span>, (<span class="arg">&lt;ダメージタイプ&gt;</span>, <span class="arg">&lt;値&gt;</span> | <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;増減値&gt;</span>, <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;召喚獣ID&gt;</span>), <span class="arg">&lt;属性&gt;</span>] ...</span>, <span class="arg">&lt;視覚効果&gt;</span>, <span class="arg">&lt;効果レベル&gt;</span>, <span class="arg">&lt;成功率&gt;</span>, <span class="arg">&lt;効果属性&gt;</span>, <span class="arg">&lt;抵抗属性&gt;</span>, <span class="arg">&lt;音声パス&gt;</span>, <span class="arg">&lt;音量&gt;</span>, <span class="arg">&lt;ループ回数&gt;</span>, <span class="arg">&lt;選択メンバの能力参照&gt;</span>, <span class="arg">&lt;身体的要素&gt;</span>, <span class="arg">&lt;精神的要素&gt;</span>, <span class="arg">&lt;イベント発火の有無&gt;</span>, <span class="arg">&lt;キーコード&gt;</span> ...</span></a></dt>
+	<dt class="content"><a href="#EFFECT">effect <span class="args"> (<span class="arg">&lt;効果対象&gt;</span> | <span class="arg">coupon</span>, <span class="arg">&lt;称号名&gt;</span>), <span class="array">[<span class="arg">&lt;効果種別&gt;</span>, (<span class="arg">&lt;ダメージタイプ&gt;</span>, <span class="arg">&lt;値&gt;</span> | <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;増減値&gt;</span>, <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;召喚獣ID&gt;</span>), <span class="arg">&lt;属性&gt;</span>] ...</span>, <span class="arg">&lt;視覚効果&gt;</span>, <span class="arg">&lt;効果レベル&gt;</span>, <span class="arg">&lt;成功率&gt;</span>, <span class="arg">&lt;効果属性&gt;</span>, <span class="arg">&lt;抵抗属性&gt;</span>, <span class="arg">&lt;音声パス&gt;</span>, <span class="arg">&lt;音量&gt;</span>, <span class="arg">&lt;ループ回数&gt;</span>, <span class="arg">&lt;選択メンバの能力参照&gt;</span>, <span class="arg">&lt;身体的要素&gt;</span>, <span class="arg">&lt;精神的要素&gt;</span>, <span class="arg">&lt;イベント発火の有無&gt;</span>, <span class="arg">&lt;キーコード&gt;</span> ...</span></a></dt>
 	<dd>効果</dd>
 	<dt class="content"><a href="#BREA">break <span class="args"><span class="arg">&lt;カード消費の有無&gt;</span></span></a></dt>
 	<dd>イベントの中断</dd>
@@ -812,6 +815,8 @@
 	<dd>ステップ多岐分岐</dd>
 	<dt class="content"><a href="#BRSTEPT">brstept <span class="args"><span class="arg">&lt;ステップ名&gt;</span>, <span class="arg">&lt;ステップ値&gt;</span></span></a></dt>
 	<dd>ステップ上下分岐</dd>
+	<dt class="content"><a href="#BRVAR">brvar <span class="args"><span class="arg">&lt;式&gt;</span></span></a></dt>
+	<dd>コモン分岐</dd>
 	<dt class="content"><a href="#SELMEMBER">selmember <span class="args"><span class="arg">&lt;パーティ全体からの選択か&gt;</span>, <span class="arg">&lt;メンバ選択方法&gt;</span>, <span class="arg">&lt;評価初期値&gt;</span>, <span class="array">[<span class="arg">&lt;評価クーポン&gt;</span>, <span class="arg">&lt;得点&gt;</span>] ...</span></span></a></dt>
 	<dd>メンバ選択分岐</dd>
 	<dt class="content"><a href="#BRABILITY">brability <span class="args"><span class="arg">&lt;判定対象&gt;</span>, <span class="arg">&lt;眠り判定&gt;</span>, <span class="arg">&lt;レベル&gt;</span>, <span class="arg">&lt;身体的要素&gt;</span>, <span class="arg">&lt;精神的要素&gt;</span>, <span class="arg">&lt;条件の反転&gt;</span></span></a></dt>
@@ -866,6 +871,8 @@
 	<dd>ステップ値の増加</dd>
 	<dt class="content"><a href="#STEPDOWN">stepdown <span class="args"><span class="arg">&lt;ステップ名&gt;</span></span></a></dt>
 	<dd>ステップ値の減少</dd>
+	<dt class="content"><a href="#SETVAR">setvar <span class="args">(<span class="arg">&lt;コモン名&gt;</span> | <span class="arg">flag</span>, <span class="arg">&lt;フラグ名&gt;</span> | <span class="arg">step</span>, <span class="arg">&lt;ステップ名&gt;</span> | <span class="arg">variant</span>, <span class="arg">&lt;コモン名&gt;</span>), <span class="arg">&lt;式&gt;</span></span></a></dt>
+	<dd>コモン設定</dd>
 	<dt class="content"><a href="#REVFLAG">revflag <span class="args"><span class="arg">&lt;フラグ名&gt;</span>, <span class="arg">&lt;カード速度&gt;</span>, <span class="arg">&lt;速度の優先&gt;</span></span></a></dt>
 	<dd>フラグ反転</dd>
 	<dt class="content"><a href="#CPSTEP">cpstep <span class="args"><span class="arg">&lt;代入元ステップ名&gt;</span>, <span class="arg">&lt;代入先ステップ名&gt;</span></span></a></dt>
@@ -880,6 +887,8 @@
 	<dd>フラグ判定</dd>
 	<dt class="content"><a href="#CHKSTEP">chkstep <span class="args"><span class="arg">&lt;ステップ名&gt;</span>, <span class="arg">&lt;比較条件&gt;</span>, <span class="arg">&lt;値&gt;</span></span></a></dt>
 	<dd>ステップ判定</dd>
+	<dt class="content"><a href="#CHKVAR">chkvar <span class="args"><span class="arg">&lt;式&gt;</span></span></a></dt>
+	<dd>コモン判定</dd>
 	<dt class="content"><a href="#GETCAST">getcast <span class="args"><span class="arg">&lt;ID&gt;</span> <span class="arg">&lt;戦闘行動開始タイミング&gt;</span></span></a></dt>
 	<dd>キャストの同行</dd>
 	<dt class="content"><a href="#GETITEM">getitem <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;ID&gt;</span>, <span class="arg">&lt;枚数&gt;</span></span></a></dt>
@@ -892,7 +901,7 @@
 	<dd>情報の獲得</dd>
 	<dt class="content"><a href="#GETMONEY">getmoney <span class="args"><span class="arg">&lt;金額&gt;</span></span></a></dt>
 	<dd>所持金の増加</dd>
-	<dt class="content"><a href="#GETCOUPON">getcoupon <span class="args">(<span class="arg">&lt;対象&gt;</span> | <span class="arg">coupon</span> <span class="arg">&lt;称号名&gt;</span>), <span class="arg">&lt;クーポン名&gt;</span>, <span class="arg">&lt;得点&gt;</span></span></a></dt>
+	<dt class="content"><a href="#GETCOUPON">getcoupon <span class="args">(<span class="arg">&lt;対象&gt;</span> | <span class="arg">coupon</span>, <span class="arg">&lt;称号名&gt;</span>), <span class="arg">&lt;クーポン名&gt;</span>, <span class="arg">&lt;得点&gt;</span></span></a></dt>
 	<dd>クーポンの付与</dd>
 	<dt class="content"><a href="#GETSTAMP">getstamp <span class="args"><span class="arg">&lt;シナリオ名&gt;</span></span></a></dt>
 	<dd>終了印の追加</dd>
@@ -910,7 +919,7 @@
 	<dd>情報の喪失</dd>
 	<dt class="content"><a href="#LOSEMONEY">losemoney <span class="args"><span class="arg">&lt;金額&gt;</span></span></a></dt>
 	<dd>所持金の減少</dd>
-	<dt class="content"><a href="#LOSECOUPON">losecoupon <span class="args">(<span class="arg">&lt;対象&gt;</span> | <span class="arg">coupon</span> <span class="arg">&lt;称号名&gt;</span>), <span class="arg">&lt;クーポン名&gt;</span></span></a></dt>
+	<dt class="content"><a href="#LOSECOUPON">losecoupon <span class="args">(<span class="arg">&lt;対象&gt;</span> | <span class="arg">coupon</span>, <span class="arg">&lt;称号名&gt;</span>), <span class="arg">&lt;クーポン名&gt;</span></span></a></dt>
 	<dd>クーポンの消失</dd>
 	<dt class="content"><a href="#LOSESTAMP">losestamp <span class="args"><span class="arg">&lt;シナリオ名&gt;</span></span></a></dt>
 	<dd>終了印の除去</dd>
@@ -1029,7 +1038,7 @@
 
 <pre><code class="samplecode"><span class="keywords">goarea</span> <span class="num">2</span>, <span class="num">10</span>, <span class="code">fade</span> <span class="comment">// 画面をフェード式でゆっくりと切り替えながらエリア2へ移動</span></code></pre>
 
-<h3 class="content"><a id="EFFECT" name="EFFECT">effect <span class="args">(<span class="arg">&lt;効果対象&gt;</span> | <span class="arg">coupon</span> <span class="arg">&lt;称号名&gt;</span>), <span class="array">[<span class="arg">&lt;効果種別&gt;</span>, (<span class="arg">&lt;ダメージタイプ&gt;</span>, <span class="arg">&lt;値&gt;</span> | <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;増減値&gt;</span>, <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;召喚獣ID&gt;</span>), <span class="arg">&lt;属性&gt;</span>] ...</span>, <span class="arg">&lt;視覚効果&gt;</span>, <span class="arg">&lt;効果レベル&gt;</span>, <span class="arg">&lt;成功率&gt;</span>, <span class="arg">&lt;効果属性&gt;</span>, <span class="arg">&lt;抵抗属性&gt;</span>, <span class="arg">&lt;音声パス&gt;</span>, <span class="arg">&lt;音量&gt;</span>, <span class="arg">&lt;ループ回数&gt;</span>, <span class="arg">&lt;選択メンバの能力参照&gt;</span>, <span class="arg">&lt;身体的要素&gt;</span>, <span class="arg">&lt;精神的要素&gt;</span>, <span class="arg">&lt;イベント発火の有無&gt;</span>, <span class="arg">&lt;キーコード&gt;</span> ...</span></a></h3>
+<h3 class="content"><a id="EFFECT" name="EFFECT">effect <span class="args">(<span class="arg">&lt;効果対象&gt;</span> | <span class="arg">coupon</span>, <span class="arg">&lt;称号名&gt;</span>), <span class="array">[<span class="arg">&lt;効果種別&gt;</span>, (<span class="arg">&lt;ダメージタイプ&gt;</span>, <span class="arg">&lt;値&gt;</span> | <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;増減値&gt;</span>, <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;召喚獣ID&gt;</span>), <span class="arg">&lt;属性&gt;</span>] ...</span>, <span class="arg">&lt;視覚効果&gt;</span>, <span class="arg">&lt;効果レベル&gt;</span>, <span class="arg">&lt;成功率&gt;</span>, <span class="arg">&lt;効果属性&gt;</span>, <span class="arg">&lt;抵抗属性&gt;</span>, <span class="arg">&lt;音声パス&gt;</span>, <span class="arg">&lt;音量&gt;</span>, <span class="arg">&lt;ループ回数&gt;</span>, <span class="arg">&lt;選択メンバの能力参照&gt;</span>, <span class="arg">&lt;身体的要素&gt;</span>, <span class="arg">&lt;精神的要素&gt;</span>, <span class="arg">&lt;イベント発火の有無&gt;</span>, <span class="arg">&lt;キーコード&gt;</span> ...</span></a></h3>
 
 <p class="fullname">(Effect)</p>
 <p class="desc">パーティや選択中のメンバに対して回復やダメージ、カード配布等の効果を適用します。</p>
@@ -1632,6 +1641,29 @@
     <span class="keywords">gobattle</span> <span class="num">2</span>
 <code class="code">elif</code> <span class="code">false</span>
     <span class="comment">// ステップの値が3未満であれば</span>
+    <span class="comment">// ...</span>
+    <span class="keywords">break</span>
+<code class="code">fi</code> <span class="comment">// 分岐終了</span></code></pre>
+
+<h3 class="content"><a id="BRVAR" name="BRVAR">brvar <span class="args"><span class="arg">&lt;式&gt;</span></span></a></h3>
+
+<p class="fullname">(Branch with Variant)</p>
+<p class="desc">式の評価結果によって分岐を行います。</p>
+<p class="desc"><em class="warning">このイベントコンテントはWsn.4以降のWSN形式シナリオでしか使用できません。</em></p>
+
+<h4 class="argments">パラメータ</h4>
+
+<p>分岐条件の式を文字列で指定します。この式は、結果が真偽値になるものでなければなりません。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">brvar</span> <span class="code">'$"条件A" and $"条件B"'</span>, <span class="code">manual</span> <span class="comment">// 条件Aと条件Bが両方ともTRUEか判定する</span>
+<code class="code">if</code> <span class="code">true</span>
+    <span class="comment">// 条件成立</span>
+    <span class="comment">// ...</span>
+    <span class="keywords">break</span>
+<code class="code">elif</code> <span class="code">false</span>
+    <span class="comment">// 条件不成立</span>
     <span class="comment">// ...</span>
     <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">// 分岐終了</span></code></pre>
@@ -2481,6 +2513,31 @@
 
 <pre><code class="samplecode"><span class="keywords">stepdown</span> <span class="str">"見張り兵の気持ち"</span> <span class="comment">// ステップ「見張り兵の気持ち」の値を下げる</span></code></pre>
 
+<h3 class="content"><a id="SETVAR" name="SETVAR">setvar <span class="args">(<span class="arg">&lt;コモン名&gt;</span> | <span class="arg">flag</span>, <span class="arg">&lt;フラグ名&gt;</span> | <span class="arg">step</span>, <span class="arg">&lt;ステップ名&gt;</span> | <span class="arg">variant</span>, <span class="arg">&lt;コモン名&gt;</span>), <span class="arg">&lt;式&gt;</span></span></a></h3>
+
+<p class="fullname">(Set Variant)</p>
+<p class="desc">式の評価結果を状態変数へ代入します。</p>
+<p class="desc"><em class="warning">このイベントコンテントはWsn.4以降のWSN形式シナリオでしか使用できません。</em></p>
+
+<h4 class="argments">パラメータ</h4>
+
+<p class="desc">最初の変数には、代入対象の変数の種類を指定します。省略した場合は<code>variant</code>になります。</p>
+<dl>
+	<dt class="keyword"><code>flag</code></dt>
+	<dd class="worddesc">フラグへの代入。式の結果は真偽値でなければなりません。</dd>
+	<dt class="keyword"><code>step</code></dt>
+	<dd class="worddesc">ステップへの代入。式の結果は数値でなければなりません。</dd>
+	<dt class="keyword"><code>variant</code></dt>
+	<dd class="worddesc">コモンへの代入。</dd>
+</dl>
+
+<p class="desc">フラグ名・ステップ名・コモン名には、代入先の状態変数の名前を文字列で指定します。</p>
+<p class="desc">式には、評価する式を文字列で指定します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">setvar</span> <code class="code">flag</code>, <span class="str">"フラグ1"</span>, <span class="str">'$"条件A" or $"条件B"'</span> <span class="comment">// 条件Aまたは条件BがTRUEであればフラグ1をTRUEにする</span></code></pre>
+
 <h3 class="content"><a id="REVFLAG" name="REVFLAG">revflag <span class="args"><span class="arg">&lt;フラグ名&gt;</span>, <span class="arg">&lt;カード速度&gt;</span>, <span class="arg">&lt;速度の優先&gt;</span></span></a></h3>
 
 <p class="fullname">(Reverse Flag)</p>
@@ -2630,6 +2687,31 @@
     <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">// 分岐終了</span></code></pre>
 
+<h3 class="content"><a id="CHKVAR" name="CHKVAR">chkvar <span class="args"><span class="arg">&lt;式&gt;</span></span></a></h3>
+
+<p class="fullname">(Check Variant)</p>
+<p class="desc">式の評価結果が<span class="code">TRUE</span>の時だけ出現するイベントを作ります。</p>
+<p class="desc"><em class="warning">このイベントコンテントはWsn.4以降のWSN形式シナリオでしか使用できません。</em></p>
+
+<h4 class="argments">パラメータ</h4>
+
+<p>出現条件の式を文字列で指定します。この式は、結果が真偽値になるものでなければなりません。</p>
+
+<h4 class="example">例</h4>
+
+
+<pre><code class="samplecode"><span class="keywords">msg</span> <span class="code">none</span>, <span class="str">"残っている問題は？"</span>
+<code class="code">if</code> <span class="str">"闘技場へ行っていない"</span> <span class="keywords">chkvar</span> <span class="str">'not $"闘技場へ行った"'</span>
+    <span class="comment">// 「闘技場へ行った」がFALSEでなければこの選択肢は出現しない</span>
+    <span class="comment">// ...</span>
+    <span class="keywords">break</span>
+<code class="code">elif</code> <span class="str">"教会へ行っていない"</span> <span class="keywords">chkvar</span> <span class="str">'not ($"教会Aへ行った" or $"教会Bへ行った")'</span>
+    <span class="comment">// 「教会Aへ行った」と「教会Bへ行った」の両方がFALSEでなければこの選択肢は出現しない</span>
+    <span class="comment">// ...</span>
+    <span class="keywords">break</span>
+<code class="code">fi</code> <span class="comment">// 分岐終了</span></code></pre>
+
+
 <h3 class="content"><a id="GETCAST" name="GETCAST">getcast <span class="args"><span class="arg">&lt;ID&gt;</span> <span class="arg">&lt;戦闘行動開始タイミング&gt;</span></span></a></h3>
 
 <p class="fullname">(Get Cast)</p>
@@ -2720,7 +2802,7 @@
 
 <pre><code class="samplecode"><span class="keywords">getmoney</span> <span class="num">600</span> <span class="comment">// 600sp入手</span></code></pre>
 
-<h3 class="content"><a id="GETCOUPON" name="GETCOUPON">getcoupon <span class="args">(<span class="arg">&lt;対象&gt;</span> | <span class="arg">coupon</span> <span class="arg">&lt;称号名&gt;</span>), <span class="arg">&lt;クーポン名&gt;</span>, <span class="arg">&lt;得点&gt;</span></span></a></h3>
+<h3 class="content"><a id="GETCOUPON" name="GETCOUPON">getcoupon <span class="args">(<span class="arg">&lt;対象&gt;</span> | <span class="arg">coupon</span>, <span class="arg">&lt;称号名&gt;</span>), <span class="arg">&lt;クーポン名&gt;</span>, <span class="arg">&lt;得点&gt;</span></span></a></h3>
 
 <p class="fullname">(Get Coupon)</p>
 <p class="desc">クーポン(称号)を入手させます。</p>
@@ -2852,7 +2934,7 @@
 
 <pre><code class="samplecode"><span class="keywords">losemoney</span> <span class="num">1400</span> <span class="comment">// 1400sp支払う</span></code></pre>
 
-<h3 class="content"><a id="LOSECOUPON" name="LOSECOUPON">losecoupon <span class="args">(<span class="arg">&lt;対象&gt;</span> | <span class="arg">coupon</span> <span class="arg">&lt;称号名&gt;</span>), <span class="arg">&lt;クーポン名&gt;</span></span></a></h3>
+<h3 class="content"><a id="LOSECOUPON" name="LOSECOUPON">losecoupon <span class="args">(<span class="arg">&lt;対象&gt;</span> | <span class="arg">coupon</span>, <span class="arg">&lt;称号名&gt;</span>), <span class="arg">&lt;クーポン名&gt;</span></span></a></h3>
 
 <p class="fullname">(Lose Coupon)</p>
 <p class="desc">クーポン(称号)を削除します。</p>
@@ -3323,12 +3405,14 @@ brstamp
 brstatus
 brstepm
 brstept
+brvar
 callpack
 callstart
 chback
 chenv
 chkflag
 chkstep
+chkvar
 cmpflag
 cmpstep
 cpflag
@@ -3373,6 +3457,7 @@ selmember
 selrandom
 setflag
 setstep
+setvar
 showparty
 start
 stepdown
@@ -3443,6 +3528,7 @@ field
 fine
 fire
 fixed
+flag
 getspilit
 hand
 has
@@ -3499,6 +3585,7 @@ selected
 shave
 silence
 sleep
+step
 stop
 str
 success
@@ -3528,7 +3615,9 @@ valued
 vanbeast
 vancard
 vantarget
+var
 variables
+variant
 vit
 vswing
 yes</code></pre>

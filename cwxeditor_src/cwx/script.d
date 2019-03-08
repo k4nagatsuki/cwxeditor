@@ -133,8 +133,12 @@ class CWXScript {
 	const(CWXSError[]) errors() {return _errors;}
 
 	/// sをスクリプト内での文字列表現に変換する。
-	static string createString(string s) { mixin(S_TRACE);
-		return "\"" ~ std.array.replace(s, "\"", "\"\"") ~ "\"";
+	static string createString(string s, bool useSingleQuote = false) { mixin(S_TRACE);
+		if (useSingleQuote) { mixin(S_TRACE);
+			return "'" ~ std.array.replace(s, "'", "''") ~ "'";
+		} else { mixin(S_TRACE);
+			return "\"" ~ std.array.replace(s, "\"", "\"\"") ~ "\"";
+		}
 	}
 
 	private void throwError(string File = __FILE__, size_t Line = __LINE__)
@@ -1118,6 +1122,9 @@ class CWXScript {
 			cast(string) "brrandomm":CType.BRANCH_MULTI_RANDOM, // Wsn.2
 			cast(string) "mvcard":CType.MOVE_CARD, // Wsn.3
 			cast(string) "chenv":CType.CHANGE_ENVIRONMENT, // Wsn.4
+			cast(string) "brvar":CType.BRANCH_VARIANT, // Wsn.4
+			cast(string) "setvar":CType.SET_VARIANT, // Wsn.4
+			cast(string) "chkvar":CType.CHECK_VARIANT, // Wsn.4
 		];
 		string[CType] commands;
 		foreach (name, type; keywords) { mixin(S_TRACE);
@@ -2566,6 +2573,23 @@ fi`;
 				}
 			}
 			return defValue;
+		} else static if (is(T:ExprTarget)) { // Wsn.4
+			if (attr[i].token.kind == Kind.SYMBOL) { mixin(S_TRACE);
+				switch (attrValue(attr[i], varTable, 0)) {
+				case "flag":
+					i++;
+					return ExprTarget.Flag;
+				case "step":
+					i++;
+					return ExprTarget.Step;
+				case "variant", "var":
+					i++;
+					return ExprTarget.Variant;
+				default:
+					throwError(_prop.msgs.scriptErrorInvalidVariableType, attr[i].token);
+				}
+			}
+			return defValue;
 		} else static if (is(T == int)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			if (attr[i].token.kind is Kind.SYMBOL && value == "all") { mixin(S_TRACE);
@@ -2639,6 +2663,26 @@ fi`;
 			i++;
 		}
 		return Talker.SELECTED;
+	}
+
+	private enum ExprTarget {
+		Flag,
+		Step,
+		Variant,
+	}
+	private Tuple!(ExprTarget, "targetType", string, "path") parseExprTarget(in CompileOption opt, in Node[] attr, ref size_t i, in const(Node)[][string] varTable) { mixin(S_TRACE);
+		auto node = attr[i];
+		if (attr[i].token.kind == Kind.STRING) { mixin(S_TRACE);
+			auto path = parseAttr!(string)(opt, attr, i, "", varTable, 0);
+			return typeof(return)(ExprTarget.Variant, path);
+		} else if (attr[i].token.kind is Kind.SYMBOL) { mixin(S_TRACE);
+			auto targ = parseAttr!(ExprTarget)(opt, attr, i, ExprTarget.Variant, varTable, 0);
+			auto path = parseAttr!(string)(opt, attr, i, "", varTable, 0);
+			return typeof(return)(targ, path);
+		} else { mixin(S_TRACE);
+			i++;
+			return typeof(return)(ExprTarget.Variant, "");
+		}
 	}
 
 	private string parseNextValue(in Node node, in Keywords keys, in const(Node)[][string] varTable) { mixin(S_TRACE);
@@ -2910,14 +2954,30 @@ fi`;
 			if (detail.use(CArg.KEY_CODE)) { mixin(S_TRACE);
 				c.keyCode = parseAttr!(string)(opt, node.attr, i, c.keyCode, varTable, 0);
 			}
-			if (detail.use(CArg.FLAG)) { mixin(S_TRACE);
-				c.flag = parseAttr!(string)(opt, node.attr, i, c.flag, varTable, 0);
-			}
-			if (detail.use(CArg.STEP)) { mixin(S_TRACE);
-				c.step = parseAttr!(string)(opt, node.attr, i, c.step, varTable, 0);
-			}
-			if (detail.use(CArg.VARIANT)) { mixin(S_TRACE);
-				c.variant = parseAttr!(string)(opt, node.attr, i, c.variant, varTable, 0);
+
+			if (detail.use(CArg.FLAG) && detail.use(CArg.STEP) && detail.use(CArg.VARIANT)) { mixin(S_TRACE);
+				auto targ = parseExprTarget(opt, node.attr, i, varTable);
+				final switch (targ.targetType) {
+				case ExprTarget.Flag:
+					c.flag = targ.path;
+					break;
+				case ExprTarget.Step:
+					c.step = targ.path;
+					break;
+				case ExprTarget.Variant:
+					c.variant = targ.path;
+					break;
+				}
+			} else { mixin(S_TRACE);
+				if (detail.use(CArg.FLAG)) { mixin(S_TRACE);
+					c.flag = parseAttr!(string)(opt, node.attr, i, c.flag, varTable, 0);
+				}
+				if (detail.use(CArg.STEP)) { mixin(S_TRACE);
+					c.step = parseAttr!(string)(opt, node.attr, i, c.step, varTable, 0);
+				}
+				if (detail.use(CArg.VARIANT)) { mixin(S_TRACE);
+					c.variant = parseAttr!(string)(opt, node.attr, i, c.variant, varTable, 0);
+				}
 			}
 			if (detail.use(CArg.FLAG_2)) { mixin(S_TRACE);
 				c.flag2 = parseAttr!(string)(opt, node.attr, i, c.flag2, varTable, 0);
@@ -3114,6 +3174,10 @@ fi`;
 			if (detail.use(CArg.BACKPACK_ENABLED)) { mixin(S_TRACE);
 				c.backpackEnabled = parseAttr!(EnvironmentStatus)(opt, node.attr, i, c.backpackEnabled, varTable, 0);
 			}
+			if (detail.use(CArg.EXPRESSION)) { mixin(S_TRACE);
+				c.expression = parseAttr!(string)(opt, node.attr, i, c.expression, varTable, 0);
+			}
+
 			Content autoWrap(Content c) { mixin(S_TRACE);
 				if (_autoWrap <= stack) { mixin(S_TRACE);
 					autoWrapCount++;
@@ -3183,7 +3247,7 @@ fi`;
 		return assumeUnique(buf);
 	}
 	const
-	private string[] toAttr(bool Within = false, T)(T value, string indentValue, VarTable vars, size_t strWidth = 0) { mixin(S_TRACE);
+	private string[] toAttr(bool Within = false, T)(T value, string indentValue, VarTable vars, size_t strWidth = 0, bool useLinePos = true, bool useSingleQuote = false) { mixin(S_TRACE);
 		string[] attrs;
 		static if (is(Unqual!(T) == Symbol)) {
 			attrs ~= value;
@@ -3193,7 +3257,7 @@ fi`;
 			if (lines.length == 0) { mixin(S_TRACE);
 				attr ~= `""`;
 			} else if (lines.length == 1) { mixin(S_TRACE);
-				attr ~= createString(lines[0]);
+				attr ~= createString(lines[0], useSingleQuote);
 			} else { mixin(S_TRACE);
 				size_t lns = 0;
 				foreach (i, line; lines) { mixin(S_TRACE);
@@ -3203,7 +3267,7 @@ fi`;
 					}
 				}
 				attr ~= "@";
-				if (lns > 0) { mixin(S_TRACE);
+				if (lns > 0 && useLinePos) { mixin(S_TRACE);
 					if (vars.useCenter && lns + 1 == stringCenter(lines, strWidth)) { mixin(S_TRACE);
 						attr ~= " center";
 					} else { mixin(S_TRACE);
@@ -3633,6 +3697,13 @@ fi`;
 			case EnvironmentStatus.Disable: attrs ~= "off"; break;
 			default: assert (0);
 			}
+		} else static if (is(T:ExprTarget)) { //Wsn.4
+			switch (value) {
+			case ExprTarget.Flag: attrs ~= "flag"; break;
+			case ExprTarget.Step: attrs ~= "step"; break;
+			case ExprTarget.Variant: attrs ~= "variant"; break;
+			default: assert (0);
+			}
 		} else static if (is(T : int)) {
 			attrs ~= to!(string)(value);
 		} else static if (is(T : uint)) {
@@ -3678,6 +3749,18 @@ fi`;
 			}
 		}
 		return std.string.join(r, " ");
+	}
+	const
+	private string[] toAttrExprTarget(string flag, string step, string variant) { mixin(S_TRACE);
+		if (variant != "") {
+			return [createString(variant)];
+		} else if (step != "") { mixin(S_TRACE);
+			return ["step", createString(flag)];
+		} else if (flag != "") { mixin(S_TRACE);
+			return ["flag", createString(flag)];
+		} else { mixin(S_TRACE);
+			return [createString("")];
+		}
 	}
 	private struct Symbol {
 		string symbol;
@@ -3912,24 +3995,28 @@ fi`;
 			if (detail.use(CArg.GOSSIP)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.gossip, indentValue, vars);
 			}
-			if (detail.use(CArg.FLAG)) { mixin(S_TRACE);
-				if (_prop && _prop.sys.randomValue == c.flag) { mixin(S_TRACE);
-					attrs ~= toAttr(Symbol("random"), indentValue, vars);
-				} else { mixin(S_TRACE);
-					attrs ~= toAttr(c.flag, indentValue, vars);
+			if (detail.use(CArg.FLAG) && detail.use(CArg.STEP) && detail.use(CArg.VARIANT)) { mixin(S_TRACE);
+				attrs ~= toAttrExprTarget(c.flag, c.step, c.variant);
+			} else { mixin(S_TRACE);
+				if (detail.use(CArg.FLAG)) { mixin(S_TRACE);
+					if (_prop && _prop.sys.randomValue == c.flag) { mixin(S_TRACE);
+						attrs ~= toAttr(Symbol("random"), indentValue, vars);
+					} else { mixin(S_TRACE);
+						attrs ~= toAttr(c.flag, indentValue, vars);
+					}
 				}
-			}
-			if (detail.use(CArg.STEP)) { mixin(S_TRACE);
-				if (_prop && _prop.sys.randomValue == c.step) { mixin(S_TRACE);
-					attrs ~= toAttr(Symbol("random"), indentValue, vars);
-				} else if (_prop && _prop.sys.selectedPlayerCardNumber == c.step) { mixin(S_TRACE);
-					attrs ~= toAttr(Symbol("selected"), indentValue, vars); // Wsn.2
-				} else { mixin(S_TRACE);
-					attrs ~= toAttr(c.step, indentValue, vars);
+				if (detail.use(CArg.STEP)) { mixin(S_TRACE);
+					if (_prop && _prop.sys.randomValue == c.step) { mixin(S_TRACE);
+						attrs ~= toAttr(Symbol("random"), indentValue, vars);
+					} else if (_prop && _prop.sys.selectedPlayerCardNumber == c.step) { mixin(S_TRACE);
+						attrs ~= toAttr(Symbol("selected"), indentValue, vars); // Wsn.2
+					} else { mixin(S_TRACE);
+						attrs ~= toAttr(c.step, indentValue, vars);
+					}
 				}
-			}
-			if (detail.use(CArg.VARIANT)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.variant, indentValue, vars);
+				if (detail.use(CArg.VARIANT)) { mixin(S_TRACE);
+					attrs ~= toAttr(c.variant, indentValue, vars);
+				}
 			}
 			if (detail.use(CArg.FLAG_2)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.flag2, indentValue, vars);
@@ -4124,6 +4211,9 @@ fi`;
 			}
 			if (detail.use(CArg.BACKPACK_ENABLED)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.backpackEnabled, indentValue, vars);
+			}
+			if (detail.use(CArg.EXPRESSION)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.expression, indentValue, vars, 0, false, true);
 			}
 
 			bool useIf = c.next.length > 1;
