@@ -2382,9 +2382,23 @@ class PreviewValues : Composite {
 				_changedText = true;
 			}
 			string text = ctrlText(ctrl);
-			_itm.setText(1, text);
-			raiseModEvent();
-			savePreviewValues();
+			auto old = _itm.getText(1);
+
+			auto o = _itm.getData();
+			if (auto vd = cast(VariantData)o) { mixin(S_TRACE);
+				auto val = .variantValueFromText(text);
+				if (val.valid) { mixin(S_TRACE);
+					_itm.setText(1, .variantValueToText(val));
+				} else { mixin(S_TRACE);
+					_itm.setText(1, .variantValueToText(vd.val));
+				}
+			} else { mixin(S_TRACE);
+				_itm.setText(1, text);
+			}
+			if (old != _itm.getText(1)) { mixin(S_TRACE);
+				raiseModEvent();
+				savePreviewValues();
+			}
 		}
 		override void modifyText(ModifyEvent e) { mixin(S_TRACE);
 			mod(cast(Control)e.widget);
@@ -2574,19 +2588,24 @@ class PreviewValues : Composite {
 	}
 	private void editEnd(TableItem itm, int column, Control ctrl) { mixin(S_TRACE);
 		auto old = itm.getText(column);
-		if (auto text = cast(Text)ctrl) { mixin(S_TRACE);
+		void putText(string text) { mixin(S_TRACE);
 			auto o = itm.getData();
 			if (auto vd = cast(VariantData)o) { mixin(S_TRACE);
-				auto val = .variantValueFromText(text.getText());
+				auto val = .variantValueFromText(text);
 				if (val.valid) { mixin(S_TRACE);
 					vd.val = val;
 					itm.setText(column, .variantValueToText(val));
+				} else { mixin(S_TRACE);
+					itm.setText(column, .variantValueToText(vd.val));
 				}
 			} else { mixin(S_TRACE);
-				itm.setText(column, text.getText());
+				itm.setText(column, text);
 			}
+		}
+		if (auto text = cast(Text)ctrl) { mixin(S_TRACE);
+			putText(text.getText());
 		} else if (auto text = cast(StyledText)ctrl) { mixin(S_TRACE);
-			itm.setText(column, text.getText());
+			putText(text.getText());
 		} else if (auto combo = cast(Combo)ctrl) { mixin(S_TRACE);
 			itm.setText(column, combo.getText());
 			auto o = itm.getData();
@@ -2860,7 +2879,6 @@ class PreviewValues : Composite {
 							value = .to!(uint)(line);
 							if (_prop.looks.partyMax < value) value = cast(uint)_prop.looks.partyMax;
 						} catch (Exception) { mixin(S_TRACE);
-							printStackTrace();
 							value = 0;
 						}
 						itm.setText(1, .text(value));
@@ -2999,7 +3017,12 @@ class PreviewValues : Composite {
 			} else if (auto sd = cast(StepData)o) { mixin(S_TRACE);
 				steps[itm.getText(0)] = VarValue(true, itm.getText(1), sd.step.expandSPChars);
 			} else if (auto vd = cast(VariantData)o) { mixin(S_TRACE);
-				variants[itm.getText(0)] = VarValue(true, .variantValueToPreviewText(vd.val), false);
+				auto val = .variantValueFromText(itm.getText(1));
+				if (val.valid) { mixin(S_TRACE);
+					variants[itm.getText(0)] = VarValue(true, .variantValueToPreviewText(val), false);
+				} else { mixin(S_TRACE);
+					variants[itm.getText(0)] = VarValue(true, .variantValueToPreviewText(vd.val), false);
+				}
 			} else if (o is SELECTED_PLAYER_NUMBER) { mixin(S_TRACE);
 				sysSteps[_prop.sys.selectedPlayerCardNumber.toLower()] = VarValue(true, itm.getText(1), false);
 			} else if (auto pcnObj = cast(PlayerCardName)o) { mixin(S_TRACE);
