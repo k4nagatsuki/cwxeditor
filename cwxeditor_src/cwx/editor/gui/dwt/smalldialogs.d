@@ -672,6 +672,11 @@ private:
 				strs ~= objName!(typeof(f))(_comm.prop) ~ " - " ~ f.path;
 				_editorTable ~= CWXScript.createString(f.path);
 			});
+			auto variants = _summ.flagDirRoot.allVariants;
+			sortedWithPath(variants, _comm.prop.var.etc.logicalSort, (cwx.flag.Variant f) { mixin(S_TRACE);
+				strs ~= objName!(typeof(f))(_comm.prop) ~ " - " ~ f.path;
+				_editorTable ~= CWXScript.createString(f.path);
+			});
 			foreach (a; _summ.areas) { mixin(S_TRACE);
 				strs ~= objName!(typeof(a))(_comm.prop) ~ " - " ~ .text(a.id) ~ "." ~ a.name;
 				_editorTable ~= .text(a.id);
@@ -1117,6 +1122,7 @@ class ImportResultDialog : AbsDialog {
 		}
 		putVars(_prop.images.flag, _result.flags);
 		putVars(_prop.images.step, _result.steps);
+		putVars(_prop.images.variant, _result.variants);
 		void putRes(T)(T[ulong] table) { mixin(S_TRACE);
 			foreach (id; std.algorithm.sort(table.keys)) { mixin(S_TRACE);
 				auto itm = new TableItem(_list, SWT.NONE);
@@ -1156,6 +1162,7 @@ class ImportResultDialog : AbsDialog {
 		}
 		putVars(_prop.images.flag, _result.flags, result2.flags);
 		putVars(_prop.images.step, _result.steps, result2.steps);
+		putVars(_prop.images.variant, _result.variants, result2.variants);
 		void putRes(T)(T[ulong] table, ref T[ulong] table2) { mixin(S_TRACE);
 			foreach (id; std.algorithm.sort(table.keys)) { mixin(S_TRACE);
 				if (_list.getItem(i).getChecked()) table2[id] = table[id];
