@@ -50,7 +50,6 @@ import java.lang.all;
 /// ステップ設定用のダイアログ。
 public class StepEditDialog : AbsDialog {
 private:
-
 	Commons _comm;
 	Summary _summ;
 
