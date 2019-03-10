@@ -360,7 +360,7 @@ class ExpressionEditor : Composite {
 			void insertPath(bool refs) { mixin(S_TRACE);
 				auto path = combo.getText();
 				path = path.replace("\"", "\"\"");
-				_expr.insert((refs ? "$\"" : "\"") ~ path ~ "\"");
+				_expr.insert((refs ? "@\"" : "\"") ~ path ~ "\"");
 			}
 
 			final switch (varType) {
@@ -829,7 +829,7 @@ private class FunctionCallEditor {
 						args ~= "\"" ~ t.replace("\"", "\"\"") ~ "\"";
 						break;
 					case ArgType.VariantRef:
-						args ~= "$\"" ~ t.replace("\"", "\"\"") ~ "\"";
+						args ~= "@\"" ~ t.replace("\"", "\"\"") ~ "\"";
 						break;
 					case ArgType.NoArgument:
 						break;

@@ -105,7 +105,7 @@ public:
 		recurse(_expr);
 	} unittest { mixin (UTPerf);
 		auto exp = new Expression;
-		exp.text = `VAR("testvar")~$"testvar"~FlagValue("testflag")~FlagText("testflag")~StepValue("teststep")~StepText("TestStep")~StepMax("TESTSTEP")`;
+		exp.text = `VAR("testvar")~@"testvar"~FlagValue("testflag")~FlagText("testflag")~StepValue("teststep")~StepText("TestStep")~StepMax("TESTSTEP")`;
 		assert (std.algorithm.sort(exp.flagsInText).array() == ["testflag", "testflag"]);
 		assert (std.algorithm.sort(exp.stepsInText).array() == ["TESTSTEP", "TestStep", "teststep"]);
 		assert (std.algorithm.sort(exp.variantsInText).array() == ["testvar", "testvar"]);
@@ -114,17 +114,17 @@ public:
 		uc.change(toFlagId("testflag"), toFlagId("_replflag_"));
 		uc.change(toStepId("TestStep"), toStepId("RplStp"));
 		uc.change(toVariantId("testvar"), toVariantId("_replvar_"));
-		assert (exp.text == `VAR("_replvar_")~$"_replvar_"~FlagValue("_replflag_")~FlagText("_replflag_")~StepValue("teststep")~StepText("RplStp")~StepMax("TESTSTEP")`);
+		assert (exp.text == `VAR("_replvar_")~@"_replvar_"~FlagValue("_replflag_")~FlagText("_replflag_")~StepValue("teststep")~StepText("RplStp")~StepMax("TESTSTEP")`);
 		assert (std.algorithm.sort(exp.flagsInText).array() == ["_replflag_", "_replflag_"]);
 		assert (std.algorithm.sort(exp.stepsInText).array() == ["RplStp", "TESTSTEP", "teststep"]);
 		assert (std.algorithm.sort(exp.variantsInText).array() == ["_replvar_", "_replvar_"]);
 
-		exp.text = `var("テストコモン1") + min(99999999.999, $"テストコモン1" * $"テストコモン1") + $"テストコモン1"`;
+		exp.text = `var("テストコモン1") + min(99999999.999, @"テストコモン1" * @"テストコモン1") + @"テストコモン1"`;
 		assert (std.algorithm.sort(exp.flagsInText).array() == []);
 		assert (std.algorithm.sort(exp.stepsInText).array() == []);
 		assert (std.algorithm.sort(exp.variantsInText).array() == ["テストコモン1", "テストコモン1", "テストコモン1", "テストコモン1"]);
 		uc.change(toVariantId("テストコモン1"), toVariantId("コモン2"));
-		assert (exp.text == `var("コモン2") + min(99999999.999, $"コモン2" * $"コモン2") + $"コモン2"`);
+		assert (exp.text == `var("コモン2") + min(99999999.999, @"コモン2" * @"コモン2") + @"コモン2"`);
 		assert (std.algorithm.sort(exp.flagsInText).array() == []);
 		assert (std.algorithm.sort(exp.stepsInText).array() == []);
 		assert (std.algorithm.sort(exp.variantsInText).array() == ["コモン2", "コモン2", "コモン2", "コモン2"]);
@@ -711,7 +711,7 @@ private const(Part)[] parseExpression(in CProps prop, string s, ref ExprError[] 
 	size_t line = 1;
 	size_t pos = 1;
 	auto s2 = s.replace("\r\n", "\n").replace("\r", "\n");
-	static immutable RE = .ctRegex!("[0-9]+(\\.[0-9]+)?|[a-z_][a-z_0-9]*|[\\+\\-\\*\\/\\%\\~]|[\\(\\)]|,|\\$?\"([^\"]|\"\")*\"|or|and|<=|>=|<>|<|>|=|true|false|\\n|\\s+", "i");
+	static immutable RE = .ctRegex!("[0-9]+(\\.[0-9]+)?|[a-z_][a-z_0-9]*|[\\+\\-\\*\\/\\%\\~]|[\\(\\)]|,|\\@?\"([^\"]|\"\")*\"|or|and|<=|>=|<>|<|>|=|true|false|\\n|\\s+", "i");
 	foreach (m; .matchAll(s2, RE)) { mixin(S_TRACE);
 		if (m.pre.length != bPos) { mixin(S_TRACE);
 			err ~= ExprError(prop ? prop.msgs.expressionErrorInvalidCharacter : "Invalid character.", line, pos, __FILE__, __LINE__);
@@ -863,7 +863,7 @@ private const(Part)[] parseSemantics(in CProps prop, ref Token[] tokens, ref siz
 				num ~= new StringValue(tokens[i], t[1 .. $ - 1].replace("\"\"", "\""));
 				isOp = false;
 				i++;
-			} else if (t[0] == '$') { mixin(S_TRACE);
+			} else if (t[0] == '@') { mixin(S_TRACE);
 				if (!isOp) err ~= ExprError(prop ? prop.msgs.expressionErrorNeedOperator : "Need operator.", line, pos, __FILE__, __LINE__);
 				// 汎用変数
 				assert (t[1] == '"');
