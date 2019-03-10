@@ -3644,6 +3644,7 @@ public:
 				backList.getItem(cast(int)i).setImage(backImg(b));
 				backList.getItem(cast(int)i).setText(b.name(_prop.parent));
 			}
+			refreshTextCell();
 		}
 	}
 	static if (UseCards) {
@@ -4514,13 +4515,14 @@ public:
 			refreshTextCell();
 		}
 		void refreshTextCell() { mixin(S_TRACE);
-			foreach (i, img; _imgp.images) { mixin(S_TRACE);
+			foreach (i, img; _imgp.images.dup) { mixin(S_TRACE);
 				if (img.type == ImageType.Text) { mixin(S_TRACE);
-					img.createImage();
-					_imgp.redrawImage(img);
 					auto itm = _backs.getItem(cast(int)i);
 					auto tc = cast(TextCell)itm.getData();
 					assert (tc !is null);
+					img = create(tc);
+					_imgp.set(i, img);
+					_imgp.redrawImage(img);
 					itm.setText(tc.name(_prop.parent));
 				}
 			}
