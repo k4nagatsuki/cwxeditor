@@ -153,6 +153,7 @@ protected:
 			mod(b);
 			b.setText(comm.prop.msgs.variableTypeName(varType));
 			_varTypes[varType] = b;
+			if (!summ || summ.scenarioPath == "") b.setEnabled(false);
 		}
 		void selectedVariableType() { mixin(S_TRACE);
 			grpB.setRedraw(false);
@@ -1048,7 +1049,7 @@ private class FunctionCallEditor {
 	private Control createValueEditor(TableItem itm, int editC) { mixin(S_TRACE);
 		auto val = itm.getText(2);
 		Control createIDEditor(F)() { mixin(S_TRACE);
-			if (_summ) { mixin(S_TRACE);
+			if (_summ && _summ.scenarioPath != "") { mixin(S_TRACE);
 				return .createVariableCombo!(Combo, F)(_comm, _summ, _args, null, val);
 			} else { mixin(S_TRACE);
 				return .createTextEditor(_comm, _comm.prop, _args, val);

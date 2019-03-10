@@ -2534,7 +2534,7 @@ public:
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.NewFlag, &createFlag, () => _dir !is null);
 		createMenuItem(_comm, menu, MenuID.NewStep, &createStep, () => _dir !is null);
-		createMenuItem(_comm, menu, MenuID.NewVariant, &createVariant, () => _dir && (!_comm.summary || _comm.summary.legacy));
+		createMenuItem(_comm, menu, MenuID.NewVariant, &createVariant, () => _dir && (!_comm.summary || !_comm.summary.legacy));
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.Undo, &this.undo, &_undo.canUndo);
 		createMenuItem(_comm, menu, MenuID.Redo, &this.redo, &_undo.canRedo);
