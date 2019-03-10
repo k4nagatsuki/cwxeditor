@@ -646,6 +646,7 @@ class Msgs : Properties {
 	auto variantReference = Msg("variantReference", "コモン参照");
 	auto noArgument = Msg("noArgument", "指定しない");
 
+	auto variableType = Msg("variableType", "状態変数タイプ");
 	const string variableTypeName(VariableType id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(VariableType, "variableTypeName"));
 	}

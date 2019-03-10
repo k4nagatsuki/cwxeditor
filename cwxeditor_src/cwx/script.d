@@ -4547,5 +4547,10 @@ CWXScriptKeyword[] keywordInfos(in CProps prop) { mixin(S_TRACE);
 		CWXScriptKeyword("none", prop.msgs.environmentStatus, prop.msgs.environmentStatusName(EnvironmentStatus.NotSet)),
 		CWXScriptKeyword("on", prop.msgs.environmentStatus, prop.msgs.environmentStatusName(EnvironmentStatus.Enable)),
 		CWXScriptKeyword("off", prop.msgs.environmentStatus, prop.msgs.environmentStatusName(EnvironmentStatus.Disable)),
+
+		// 状態変数タイプ(Wsn.4)
+		CWXScriptKeyword("flag", prop.msgs.variableType, prop.msgs.variableTypeName(VariableType.Flag)),
+		CWXScriptKeyword("step", prop.msgs.variableType, prop.msgs.variableTypeName(VariableType.Step)),
+		CWXScriptKeyword("variant", prop.msgs.variableType, prop.msgs.variableTypeName(VariableType.Variant)),
 	];
 }
