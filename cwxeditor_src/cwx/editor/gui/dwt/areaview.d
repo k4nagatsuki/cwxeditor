@@ -4521,7 +4521,7 @@ public:
 					auto tc = cast(TextCell)itm.getData();
 					assert (tc !is null);
 					img = create(tc);
-					_imgp.set(i, img);
+					_imgp.set(cast(int)i, img);
 					_imgp.redrawImage(img);
 					itm.setText(tc.name(_prop.parent));
 				}
