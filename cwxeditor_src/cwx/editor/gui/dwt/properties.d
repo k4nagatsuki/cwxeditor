@@ -199,6 +199,8 @@ public class FlexProps {
 	DialogParam!("eventIgnitionsDialog", 350, 300) eventIgnitionsDlg;
 	DialogParam!("eventIgnitionsWithRoundsDialog", 450, 300) eventIgnitionsWithRoundsDlg;
 	DialogParam!("scenarioHistoryDialog", 500, 400) scenarioHistoryDlg;
+	DialogParam!("expressionDialog", 500, -1) expressionDlg;
+	DialogParam!("expressionWithTargetDialog", 500, -1) expressionWithTargetDlg;
 	MenuProps menu;
 	FlexEtcProps etc;
 

@@ -1317,6 +1317,11 @@ private:
 				auto btns = addButtonLine(grp);
 				checked.createAlls(btns, _prop.msgs.allCheck);
 			}
+			auto sep2 = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
+			sep2.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			auto hint = new Label(grp, SWT.WRAP);
+			hint.setText(_prop.msgs.findUnusedHint);
+			hint.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 		}
 
 		auto tab = new CTabItem(tabf, SWT.NONE);

@@ -151,6 +151,7 @@ class Msgs : Properties {
 	auto dlgMsgDeleteFilesRecycle = Msg("dlgMsgDeleteFilesRecycle", "%1$s個の項目をごみ箱に移動しますか？");
 	auto dlgMsgDeleteUnuse = Msg("dlgMsgDeleteUnuse", "%1$s個の未使用ファイル・" ~ DIR ~ "を完全に削除しますか？");
 	auto dlgMsgDeleteRecycleUnuse = Msg("dlgMsgDeleteRecycleUnuse", "%1$s個の未使用ファイル・" ~ DIR ~ "をごみ箱に移動しますか？");
+	auto findUnusedHint = Msg("findUnusedHint", "※ 式で動的に生成された名前で状態変数を参照している場合は、使用を検出できません");
 
 	auto image = Msg("image", "イメージ");
 	auto pathDef = Msg("pathDef", "デフォルト");
@@ -620,6 +621,37 @@ class Msgs : Properties {
 	auto environmentStatusNameEnable = Msg("environmentStatusNameEnable", "使用可能にする");
 	auto environmentStatusNameDisable = Msg("environmentStatusNameDisable", "使用不能にする");
 	auto backpack = Msg("backpack", "荷物袋");
+
+	auto expression = Msg("expression", "式");
+	auto operators = Msg("operators", "演算子:");
+	auto operatorList = Msg("operatorList", "加算: A + B, 減算: A - B, 乗算: A * B, 除算: A / B, 剰余: A % B, 文字列連結: A ~ B, 一致: A = B, 不一致: A <> B, 大小比較: A <= B, A >= B, A < B, A > B, 論理演算: A and B, A or B, 真偽値反転: not A");
+	auto expressionTarget = Msg("expressionTarget", "設定対象");
+	auto selectFunction = Msg("selectFunction", "関数");
+	auto functionDeclaration = Msg("functionDeclaration", "書式");
+	auto functionDescription = Msg("functionDescription", "解説");
+	auto functionExample = Msg("functionExample", "例");
+	auto insertFlagIntoExpression = Msg("insertFlagIntoExpression", "フラグ名または関数の挿入");
+	auto insertFlagPath = Msg("insertFlagPath", "フラグ名の挿入");
+	auto insertStepIntoExpression = Msg("insertStepIntoExpression", "ステップ名または関数の挿入");
+	auto insertStepPath = Msg("insertStepPath", "ステップ名の挿入");
+	auto insertVariantIntoExpression = Msg("insertVariantIntoExpression", "コモン名または参照の挿入");
+	auto insertVariantPath = Msg("insertVariantPath", "コモン名の挿入");
+	auto insertVariantReference = Msg("insertVariantReference", "コモン参照の挿入");
+	auto insertFunctionIntoExpression = Msg("insertFunctionIntoExpression", "関数の挿入");
+	auto insertFunctionIntoExpressionButton = Msg("insertFunctionIntoExpressionButton", "式へ挿入(&I)");
+	auto functionArgumentName = Msg("functionArgumentName", "引数");
+	auto functionArgumentType = Msg("functionArgumentType", "タイプ");
+	auto functionArgumentValue = Msg("functionArgumentValue", "値");
+	auto constantValue = Msg("constantValue", "直接入力");
+	auto variantReference = Msg("variantReference", "コモン参照");
+	auto noArgument = Msg("noArgument", "指定しない");
+
+	const string variableTypeName(VariableType id) { mixin(S_TRACE);
+		mixin(EnumToStringSwitch!(VariableType, "variableTypeName"));
+	}
+	auto variableTypeNameFlag = Msg("variableTypeNameFlag", "フラグ");
+	auto variableTypeNameStep = Msg("variableTypeNameStep", "ステップ");
+	auto variableTypeNameVariant = Msg("variableTypeNameVariant", "コモン");
 
 	const string blendModeName(BlendMode id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(BlendMode, "blendModeName"));
@@ -2564,7 +2596,86 @@ class Msgs : Properties {
 	auto expressionErrorStepNotFound = Msg("expressionErrorStepNotFound", "ステップ「%1$s」は存在しません。");
 	auto expressionErrorInvalidStepValue = Msg("expressionErrorInvalidStepValue", "ステップ「%1$s」の最大値より大きな値です: %2$s");
 	auto warningExpression = Msg("warningExpression", "%1$s → %2$s");
-	auto warningExpressionPosition = Msg("warningExpressionPosition", " >>> ");
+	auto warningExpressionPosition = Msg("warningExpressionPosition", " >>>");
+	auto warningExpressionEnd = Msg("warningExpressionEnd", " <<<");
+
+	auto functionNameWithDescription = Msg("functionNameWithDescription", "%1$s - %2$s");
+
+	auto argNumber = Msg("argNumber", "数値");
+	auto argString = Msg("argString", "文字列");
+	auto argFlag = Msg("argFlag", "フラグ名");
+	auto argStep = Msg("argStep", "ステップ名");
+	auto argVariant = Msg("argVariant", "コモン名");
+	auto argBoolean = Msg("argBoolean", "真偽値");
+	auto argAny = Msg("argAny", "任意の値");
+	auto argNumberOrString = Msg("argNumberOrString", "文字列または数値");
+	auto functionAs = Msg("functionAs", "%1$s → %2$s");
+
+	auto funcDescLen = Msg("funcDescLen", "文字列の長さ(文字数)を返します。");
+	auto funcDescLeft = Msg("funcDescLeft", "文字列の左側を返します。");
+	auto funcDescRight = Msg("funcDescRight", "文字列の右側を返します。");
+	auto funcDescMid = Msg("funcDescMid", "文字列の中間部分を返します。");
+	auto funcDescStr = Msg("funcDescStr", "任意の値を文字列に変換します。");
+	auto funcDescValue = Msg("funcDescValue", "任意の値を数値に変換します。");
+	auto funcDescInt = Msg("funcDescInt", "任意の値を整数に変換します。小数点以下の値は切り捨てられます。");
+	auto funcDescIf = Msg("funcDescIf", "真偽値がTRUEであれば2つめの引数を、FALSEであれば3つめの引数を返します。");
+	auto funcDescMax = Msg("funcDescMax", "引数の中で最大の数値を返します。");
+	auto funcDescMin = Msg("funcDescMin", "引数の中で最小の数値を返します。");
+	auto funcDescVar = Msg("funcDescVar", "コモンの値を返します。$\"コモン名\"と書く事もできます。");
+	auto funcDescFlagValue = Msg("funcDescFlagValue", "フラグの値(真偽値)を返します。");
+	auto funcDescFlagText = Msg("funcDescFlagText", "フラグの値のテキストを返します。2つめの引数を省略した場合は、フラグの現在値のテキストを返します。");
+	auto funcDescStepValue = Msg("funcDescStepValue", "ステップの値(数値)を返します。");
+	auto funcDescStepText = Msg("funcDescStepText", "ステップの値のテキストを返します。2つめの引数を省略した場合は、ステップの現在値のテキストを返します。");
+	auto funcDescStepMax = Msg("funcDescStepMax", "ステップの最大値を返します。");
+
+	auto funcShortDescLen = Msg("funcShortDescLen", "文字列の長さを返す");
+	auto funcShortDescLeft = Msg("funcShortDescLeft", "文字列の左側を返す");
+	auto funcShortDescRight = Msg("funcShortDescRight", "文字列の右側を返す");
+	auto funcShortDescMid = Msg("funcShortDescMid", "文字列の中間部分を返す");
+	auto funcShortDescStr = Msg("funcShortDescStr", "文字列へ変換");
+	auto funcShortDescValue = Msg("funcShortDescValue", "数値へ変換");
+	auto funcShortDescInt = Msg("funcShortDescInt", "整数へ変換");
+	auto funcShortDescIf = Msg("funcShortDescIf", "真偽値でどちらかの値を返す");
+	auto funcShortDescMax = Msg("funcShortDescMax", "最大値を返す");
+	auto funcShortDescMin = Msg("funcShortDescMin", "最小値を返す");
+	auto funcShortDescVar = Msg("funcShortDescVar", "コモンの値を返す");
+	auto funcShortDescFlagValue = Msg("funcShortDescFlagValue", "フラグの値を返す");
+	auto funcShortDescFlagText = Msg("funcShortDescFlagText", "フラグのテキストを返す");
+	auto funcShortDescStepValue = Msg("funcShortDescStepValue", "ステップの値を返す");
+	auto funcShortDescStepText = Msg("funcShortDescStepText", "ステップのテキストを返す");
+	auto funcShortDescStepMax = Msg("funcShortDescStepMax", "ステップの最大値を返す");
+
+	auto funcExampleLen = Msg("funcExampleLen", "LEN(\"対象文字列\") = 5");
+	auto funcExampleLeft = Msg("funcExampleLeft", "LEFT(\"対象文字列\", 2) = \"対象\"");
+	auto funcExampleRight = Msg("funcExampleRight", "RIGHT(\"対象文字列\", 3) = \"文字列\"");
+	auto funcExampleMid = Msg("funcExampleMid", "MID(\"対象文字列\", 3, 2) = \"文字\"");
+	auto funcExampleStr = Msg("funcExampleStr", "STR(999.9) = \"999.9\"");
+	auto funcExampleValue = Msg("funcExampleValue", "VALUE(\"999.9\") = 999.9");
+	auto funcExampleInt = Msg("funcExampleInt", "INT(\"999.9\") = 999");
+	auto funcExampleIf = Msg("funcExampleIf", "IF(42 = 99, \"真\", \"偽\") = \"偽\"");
+	auto funcExampleMax = Msg("funcExampleMax", "MAX(1, 23, 4, 5) = 23");
+	auto funcExampleMin = Msg("funcExampleMin", "MIN(12, 3, 4, 5) = 3");
+	auto funcExampleVar = Msg("funcExampleVar", "VAR(\"コモンA\") = \"コモンAの値\"");
+	auto funcExampleFlagValue = Msg("funcExampleFlagValue", "FLAGVALUE(\"フラグA\") = TRUE");
+	auto funcExampleFlagText = Msg("funcExampleFlagText", "FLAGTEXT(\"フラグA\", TRUE) = \"真\"");
+	auto funcExampleStepValue = Msg("funcExampleStepValue", "STEPVALUE(\"ステップA\") = TRUE");
+	auto funcExampleStepText = Msg("funcExampleStepText", "STEPTEXT(\"ステップA\", 5) = \"Step - 5\"");
+	auto funcExampleStepMax = Msg("funcExampleStepMax", "STEPMAX(\"ステップA\") = 9");
+
+	auto exprStringDesc = Msg("exprStringDesc", "文字列");
+	auto exprStringLengthDesc = Msg("exprStringLengthDesc", "長さ(文字数)");
+	auto exprStringPositionDesc = Msg("exprStringPositionDesc", "位置(1～)");
+	auto exprAnyValueDesc = Msg("exprAnyValueDesc", "任意の値");
+	auto exprValueArgDesc = Msg("exprValueArgDesc", "文字列");
+	auto exprBooleanDesc = Msg("exprBooleanDesc", "真偽値");
+	auto exprIfTrueDesc = Msg("exprIfTrueDesc", "TRUEの時の値");
+	auto exprIfFalseDesc = Msg("exprIfFalseDesc", "FALSEの時の値");
+	auto exprVariableLengthNumberDesc = Msg("exprVariableLengthNumberDesc", "数値 %1$s");
+	auto exprVariantDesc = Msg("exprVariantDesc", "コモン名");
+	auto exprFlagDesc = Msg("exprFlagDesc", "フラグ名");
+	auto exprFlagValueDesc = Msg("exprFlagValueDesc", "フラグ値");
+	auto exprStepDesc = Msg("exprStepDesc", "ステップ名");
+	auto exprStepValueDesc = Msg("exprStepValueDesc", "ステップ値");
 
 	/// メニュー。
 	const string menuText(MenuID id) { mixin(S_TRACE);

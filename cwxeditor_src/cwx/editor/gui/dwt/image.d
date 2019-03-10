@@ -218,6 +218,9 @@ public:
 	@property Image flag() {return imgd!("flag.png");}
 	@property Image step() {return imgd!("step.png");}
 	@property Image variant() {return imgd!("variant.png");}
+	@property Image variantRef() {return imgd!("variant_ref.png");}
+
+	@property Image functions() {return imgd!("func.png");}
 
 	@property Image couponNormal() {return imgd!("coupon_n.png");}
 	@property Image couponPlus() {return imgd!("coupon_plus.png");}

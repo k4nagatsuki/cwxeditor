@@ -30,6 +30,7 @@ import cwx.editor.gui.dwt.incsearch;
 import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.messageutils;
+import cwx.editor.gui.dwt.customtext;
 
 static import std.algorithm;
 import std.algorithm: map, max, min;
@@ -1090,30 +1091,13 @@ protected:
 			mod(_typeNum);
 			_typeNum.setText(_comm.prop.msgs.numberValue);
 			.listener(_typeNum, SWT.Selection, &updateEnabled);
-			_numVal = new Text(comp, SWT.BORDER);
-			_numVal.setData(new class NoIME {});
+			_numVal = .createNumberEditor(_comm, comp, SWT.BORDER, &catchMod);
 			mod(_numVal);
-			.createTextMenu!Text(_comm, _comm.prop, _numVal, &catchMod);
 			auto ngd = grabVGD(GridData.HORIZONTAL_ALIGN_BEGINNING);
 			auto gc = new GC(_numVal);
 			scope (exit) gc.dispose();
 			ngd.widthHint = _numVal.computeSize(cast(int)(gc.wTextExtent(double.min_normal.text).x * 1.5), SWT.DEFAULT).x;
 			_numVal.setLayoutData(ngd);
-			.listener(_numVal, SWT.FocusIn, { mixin(S_TRACE);
-				_numVal.selectAll();
-			});
-			.listener(_numVal, SWT.Verify, (e) { mixin(S_TRACE);
-				char[] s;
-				foreach (i, c; e.text) { mixin(S_TRACE);
-					if (c.isDigit() || c == '-' || c == '.') { mixin(S_TRACE);
-						s ~= c;
-					}
-				}
-				auto t = .assumeUnique(s);
-				if (t != e.text) { mixin(S_TRACE);
-					e.text = t;
-				}
-			});
 			.listener(_numVal, SWT.Modify, &refreshWarning);
 			checker(_numVal, (numVal) { mixin(S_TRACE);
 				if (!numVal.getEnabled()) return true;

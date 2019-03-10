@@ -1199,6 +1199,13 @@ string fromEnvironmentStatus(EnvironmentStatus t) { mixin(S_TRACE);
 	}
 }
 
+/// 状態変数のタイプ。
+enum VariableType {
+	Flag, /// フラグ。
+	Step, /// ステップ。
+	Variant, /// コモン。
+}
+
 /// コモンの型(Wsn.4)。
 enum VariantType {
 	Number, /// 数値。

@@ -1008,6 +1008,63 @@ T createSelectionCombo(T = Combo)(Commons comm, Composite parent, bool delegate(
 	return combo;
 }
 
+T createVariableCombo(T = Combo, F)(Commons comm, in Summary summ, Composite parent, bool delegate() catchMod, string initValue) { mixin(S_TRACE);
+	auto combo = new T(parent, SWT.BORDER | SWT.DROP_DOWN);
+	combo.setVisibleItemCount(comm.prop.var.etc.comboVisibleItemCount);
+	combo.setText(initValue);
+	auto hasItem = false;
+	auto incSearch = new IncSearch(comm, combo, () => hasItem);
+
+	void refVariables() { mixin(S_TRACE);
+		string id = combo.getText();
+		combo.removeAll();
+		hasItem = false;
+
+		static if (is(F:cwx.flag.Flag)) {
+			auto list = summ ? summ.flagDirRoot.allFlags : [];
+		} else static if (is(F:Step)) {
+			auto list = summ ? summ.flagDirRoot.allSteps : [];
+		} else static if (is(F:cwx.flag.Variant)) {
+			auto list = summ ? summ.flagDirRoot.allVariants : [];
+		} else static assert (0);
+		foreach (i, v; list) { mixin(S_TRACE);
+			hasItem = true;
+			auto path = v.path;
+			if (!incSearch.match(path)) continue;
+			combo.add(path);
+		}
+		combo.setText(id);
+	}
+	void refFlagAndStep(cwx.flag.Flag[] flags, Step[] steps, cwx.flag.Variant[] variants) { mixin(S_TRACE);
+		static if (is(F:cwx.flag.Flag)) {
+			if (flags.length) refVariables();
+		} else static if (is(F:Step)) {
+			if (steps.length) refVariables();
+		} else static if (is(F:cwx.flag.Variant)) {
+			if (variants.length) refVariables();
+		}
+	}
+
+	incSearch.modEvent ~= &refVariables;
+	comm.refFlagAndStep.add(&refFlagAndStep);
+	.listener(combo, SWT.Dispose, { mixin(S_TRACE);
+		comm.refFlagAndStep.remove(&refFlagAndStep);
+	});
+
+	auto menu = new Menu(combo.getShell(), SWT.POP_UP);
+	createMenuItem(comm, menu, MenuID.IncSearch, { mixin(S_TRACE);
+		.forceFocus(combo, true);
+		incSearch.startIncSearch();
+	}, () => hasItem);
+	new MenuItem(menu, SWT.SEPARATOR);
+	combo.setMenu(menu);
+	createTextMenu!T(comm, comm.prop, combo, catchMod);
+
+	refVariables();
+
+	return combo;
+}
+
 class AreaChooser(A, bool StartArea) : Composite {
 	void delegate()[] modEvent;
 

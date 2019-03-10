@@ -2573,18 +2573,18 @@ fi`;
 				}
 			}
 			return defValue;
-		} else static if (is(T:ExprTarget)) { // Wsn.4
+		} else static if (is(T:VariableType)) { // Wsn.4
 			if (attr[i].token.kind == Kind.SYMBOL) { mixin(S_TRACE);
 				switch (attrValue(attr[i], varTable, 0)) {
 				case "flag":
 					i++;
-					return ExprTarget.Flag;
+					return VariableType.Flag;
 				case "step":
 					i++;
-					return ExprTarget.Step;
+					return VariableType.Step;
 				case "variant", "var":
 					i++;
-					return ExprTarget.Variant;
+					return VariableType.Variant;
 				default:
 					throwError(_prop.msgs.scriptErrorInvalidVariableType, attr[i].token);
 				}
@@ -2665,23 +2665,18 @@ fi`;
 		return Talker.SELECTED;
 	}
 
-	private enum ExprTarget {
-		Flag,
-		Step,
-		Variant,
-	}
-	private Tuple!(ExprTarget, "targetType", string, "path") parseExprTarget(in CompileOption opt, in Node[] attr, ref size_t i, in const(Node)[][string] varTable) { mixin(S_TRACE);
+	private Tuple!(VariableType, "targetType", string, "path") parseVariableType(in CompileOption opt, in Node[] attr, ref size_t i, in const(Node)[][string] varTable) { mixin(S_TRACE);
 		auto node = attr[i];
 		if (attr[i].token.kind == Kind.STRING) { mixin(S_TRACE);
 			auto path = parseAttr!(string)(opt, attr, i, "", varTable, 0);
-			return typeof(return)(ExprTarget.Variant, path);
+			return typeof(return)(VariableType.Variant, path);
 		} else if (attr[i].token.kind is Kind.SYMBOL) { mixin(S_TRACE);
-			auto targ = parseAttr!(ExprTarget)(opt, attr, i, ExprTarget.Variant, varTable, 0);
+			auto targ = parseAttr!(VariableType)(opt, attr, i, VariableType.Variant, varTable, 0);
 			auto path = parseAttr!(string)(opt, attr, i, "", varTable, 0);
 			return typeof(return)(targ, path);
 		} else { mixin(S_TRACE);
 			i++;
-			return typeof(return)(ExprTarget.Variant, "");
+			return typeof(return)(VariableType.Variant, "");
 		}
 	}
 
@@ -2956,15 +2951,15 @@ fi`;
 			}
 
 			if (detail.use(CArg.FLAG) && detail.use(CArg.STEP) && detail.use(CArg.VARIANT)) { mixin(S_TRACE);
-				auto targ = parseExprTarget(opt, node.attr, i, varTable);
+				auto targ = parseVariableType(opt, node.attr, i, varTable);
 				final switch (targ.targetType) {
-				case ExprTarget.Flag:
+				case VariableType.Flag:
 					c.flag = targ.path;
 					break;
-				case ExprTarget.Step:
+				case VariableType.Step:
 					c.step = targ.path;
 					break;
-				case ExprTarget.Variant:
+				case VariableType.Variant:
 					c.variant = targ.path;
 					break;
 				}
@@ -3697,11 +3692,11 @@ fi`;
 			case EnvironmentStatus.Disable: attrs ~= "off"; break;
 			default: assert (0);
 			}
-		} else static if (is(T:ExprTarget)) { //Wsn.4
+		} else static if (is(T:VariableType)) { //Wsn.4
 			switch (value) {
-			case ExprTarget.Flag: attrs ~= "flag"; break;
-			case ExprTarget.Step: attrs ~= "step"; break;
-			case ExprTarget.Variant: attrs ~= "variant"; break;
+			case VariableType.Flag: attrs ~= "flag"; break;
+			case VariableType.Step: attrs ~= "step"; break;
+			case VariableType.Variant: attrs ~= "variant"; break;
 			default: assert (0);
 			}
 		} else static if (is(T : int)) {
@@ -3751,7 +3746,7 @@ fi`;
 		return std.string.join(r, " ");
 	}
 	const
-	private string[] toAttrExprTarget(string flag, string step, string variant) { mixin(S_TRACE);
+	private string[] toAttrVariableType(string flag, string step, string variant) { mixin(S_TRACE);
 		if (variant != "") {
 			return [createString(variant)];
 		} else if (step != "") { mixin(S_TRACE);
@@ -3996,7 +3991,7 @@ fi`;
 				attrs ~= toAttr(c.gossip, indentValue, vars);
 			}
 			if (detail.use(CArg.FLAG) && detail.use(CArg.STEP) && detail.use(CArg.VARIANT)) { mixin(S_TRACE);
-				attrs ~= toAttrExprTarget(c.flag, c.step, c.variant);
+				attrs ~= toAttrVariableType(c.flag, c.step, c.variant);
 			} else { mixin(S_TRACE);
 				if (detail.use(CArg.FLAG)) { mixin(S_TRACE);
 					if (_prop && _prop.sys.randomValue == c.flag) { mixin(S_TRACE);

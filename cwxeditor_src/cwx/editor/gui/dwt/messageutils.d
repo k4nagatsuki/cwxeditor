@@ -1778,10 +1778,11 @@ private void updateSkinSCharBar(Commons comm, ToolBar bar, void delegate(string)
 	}
 }
 
-Composite createFlagStepBar(Composite parent, void delegate(string) insert, Commons comm, Props prop, Summary summ, Skin skin, bool imageFont) { mixin(S_TRACE);
+Composite createFlagStepBar(Composite parent, void delegate(string) insert, Commons comm, Props prop,
+		Summary summ, Skin skin, bool imageFont, Button delegate(Composite, Combo, VariableType) createButton = null) { mixin(S_TRACE);
 	auto bar = new Composite(parent, SWT.NONE);
 	bar.setLayout(zeroMarginGridLayout((imageFont && summ) ? 2 : 1, false));
-	Composite create(Composite parent, out Combo list, out Button put, string puts, Image image, string delegate(string) lc, int colNum) { mixin(S_TRACE);
+	Composite create(Composite parent, out Combo list, out Button put, string puts, Image image, string delegate(string) lc, int colNum, VariableType varType) { mixin(S_TRACE);
 		auto comp = new Composite(parent, SWT.NONE);
 		auto gl = windowGridLayout(colNum, false);
 		gl.marginWidth = 0;
@@ -1790,14 +1791,18 @@ Composite createFlagStepBar(Composite parent, void delegate(string) insert, Comm
 		list = new Combo(comp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
 		list.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
 		list.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		put = new Button(comp, SWT.PUSH);
-		put.setToolTipText(puts);
-		put.setImage(image);
-		put.addSelectionListener(new class SelectionAdapter {
-			override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
-				insert(lc(list.getText()));
-			}
-		});
+		if (createButton) { mixin(S_TRACE);
+			put = createButton(comp, list, varType);
+		} else { mixin(S_TRACE);
+			put = new Button(comp, SWT.PUSH);
+			put.setToolTipText(puts);
+			put.setImage(image);
+			put.addSelectionListener(new class SelectionAdapter {
+				override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
+					insert(lc(list.getText()));
+				}
+			});
+		}
 		return comp;
 	}
 
@@ -1808,11 +1813,11 @@ Composite createFlagStepBar(Composite parent, void delegate(string) insert, Comm
 	auto varComp = new Composite(bar, SWT.NONE);
 	varComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 	varComp.setLayout(zeroMarginGridLayout(3, true));
-	create(varComp, flags, putFlag, prop.msgs.addMsgRefFlag, prop.images.flag, (s) => "%" ~ s ~ "%", 2).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-	create(varComp, steps, putStep, prop.msgs.addMsgRefStep, prop.images.step, (s) => "$" ~ s ~ "$", 2).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-	create(varComp, variants, putVariant, prop.msgs.addMsgRefVariant, prop.images.variant, (s) => "@" ~ s ~ "@", 2).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+	create(varComp, flags, putFlag, prop.msgs.addMsgRefFlag, prop.images.flag, (s) => "%" ~ s ~ "%", 2, VariableType.Flag).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+	create(varComp, steps, putStep, prop.msgs.addMsgRefStep, prop.images.step, (s) => "$" ~ s ~ "$", 2, VariableType.Step).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+	create(varComp, variants, putVariant, prop.msgs.addMsgRefVariant, prop.images.variant, (s) => "@" ~ s ~ "@", 2, VariableType.Variant).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 	if (imageFont && summ) { mixin(S_TRACE);
-		auto comp = create(bar, fonts, putFont, prop.msgs.addMsgRefImageFont, prop.images.imageFont, (s) => .tryFormat("#%s", .decodeFontPath(s)), 3);
+		auto comp = create(bar, fonts, putFont, prop.msgs.addMsgRefImageFont, prop.images.imageFont, (s) => .tryFormat("#%s", .decodeFontPath(s)), 3, VariableType.init);
 		auto fgd = new GridData(GridData.FILL_HORIZONTAL);
 		auto gc = new GC(comp);
 		scope (exit) gc.dispose();

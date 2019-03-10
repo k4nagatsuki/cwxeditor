@@ -739,11 +739,11 @@ private const(Part)[] parseExpression(in CProps prop, string s, ref ExprError[] 
 
 /// 関数の引数列をパースする。
 private const(Part)[] parseArguments(in CProps prop, ref Token[] tokens, ref size_t i, ref ExprError[] err) { mixin(S_TRACE);
-	if (tokens.length <= i + 1) { mixin(S_TRACE);
-		err ~= ExprError(prop ? prop.msgs.expressionErrorInvalidFunctionCall : "Invalid function call.", tokens[i].line, tokens[i].pos, __FILE__, __LINE__);
+	i++;
+	if (tokens.length <= i) { mixin(S_TRACE);
+		err ~= ExprError(prop ? prop.msgs.expressionErrorInvalidFunctionCall : "Invalid function call.", tokens[i - 1].line, tokens[i - 1].pos, __FILE__, __LINE__);
 		return [];
 	}
-	i++;
 	auto t = tokens[i].token;
 	if (t != "(") { mixin(S_TRACE);
 		err ~= ExprError(prop ? prop.msgs.expressionErrorNeedOpenParen : "Need open paren.", tokens[i].line, tokens[i].pos, __FILE__, __LINE__);
@@ -976,18 +976,19 @@ struct VariableInfo {
 
 	/// インスタンスを生成する。
 	this (in Summary summ) { mixin(S_TRACE);
-		existsFlag = path => summ.flagDirRoot.findFlag(path) !is null;
-		existsStep = path => summ.flagDirRoot.findStep(path) !is null;
-		existsVariant = path => summ.flagDirRoot.findVariant(path) !is null;
-		variantValue = path => VariantVal(summ.flagDirRoot.findVariant(path));
+		existsFlag = path => summ && summ.flagDirRoot.findFlag(path) !is null;
+		existsStep = path => summ && summ.flagDirRoot.findStep(path) !is null;
+		existsVariant = path => summ && summ.flagDirRoot.findVariant(path) !is null;
+		variantValue = path => summ ? VariantVal(summ.flagDirRoot.findVariant(path)) : VariantVal(false);
 		flagText = (path, value) { mixin(S_TRACE);
+			if (!summ) return "";
 			auto f = summ.flagDirRoot.findFlag(path);
 			return value ? f.on : f.off;
 		};
-		flagValue = path => summ.flagDirRoot.findFlag(path).onOff;
-		stepText = (path, value) => summ.flagDirRoot.findStep(path).getValue(value);
-		stepValue = path => summ.flagDirRoot.findStep(path).select;
-		stepMax = path => summ.flagDirRoot.findStep(path).count;
+		flagValue = path => summ ? summ.flagDirRoot.findFlag(path).onOff : false;
+		stepText = (path, value) => summ ? summ.flagDirRoot.findStep(path).getValue(value) : "";
+		stepValue = path => summ ? summ.flagDirRoot.findStep(path).select : 0u;
+		stepMax = path => summ ? summ.flagDirRoot.findStep(path).count : 0u;
 	}
 }
 
@@ -998,18 +999,33 @@ private const(Part) calculate(in CProps prop, EvalMode mode, in VariableInfo vIn
 		if (auto func = cast(Function)t) { mixin(S_TRACE);
 			op ~= func.call(prop, mode, vInfo, err);
 		} else if (auto operator = cast(UnaryOperator)t) { mixin(S_TRACE);
+			if (!op.length) { mixin(S_TRACE);
+				err ~= ExprError(prop ? prop.msgs.expressionErrorInvalidSemantics : "Invalid semantics.", t.token.line, t.token.pos, __FILE__, __LINE__);
+				return new NumberValue(t.token, 0);
+			}
 			auto rhs = op[$ - 1];
 			op = op[0 .. $ - 1];
 			op ~= operator.call(prop, rhs, err);
 		} else if (auto operator = cast(Operator)t) { mixin(S_TRACE);
+			if (!op.length) { mixin(S_TRACE);
+				err ~= ExprError(prop ? prop.msgs.expressionErrorInvalidSemantics : "Invalid semantics.", t.token.line, t.token.pos, __FILE__, __LINE__);
+				return new NumberValue(t.token, 0);
+			}
 			auto rhs = op[$ - 1];
 			op = op[0 .. $ - 1];
+			if (!op.length) { mixin(S_TRACE);
+				err ~= ExprError(prop ? prop.msgs.expressionErrorInvalidSemantics : "Invalid semantics.", t.token.line, t.token.pos, __FILE__, __LINE__);
+				return new NumberValue(t.token, 0);
+			}
 			auto lhs = op[$ - 1];
 			op = op[0 .. $ - 1];
 			op ~= operator.call(prop, mode, lhs, rhs, err);
 		} else { mixin(S_TRACE);
 			op ~= t;
 		}
+	}
+	if (!op.length) { mixin(S_TRACE);
+		return new NumberValue(Token(false), 0);
 	}
 	return op[$ - 1];
 }
@@ -1233,10 +1249,10 @@ private const(Part) funcIf(in CProps prop, EvalMode mode, in VariableInfo vInfo,
 
 /// コモンの値を読む。
 private const(Part) funcVar(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	if (mode is EvalMode.TypeCheck) return new UnknownValue(func.token);
 	if (!vInfo.existsVariant) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
 	if (!vInfo.variantValue) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
 	if (!checkArgCount(prop, func, args, 1, err)) return mode is EvalMode.All ? new NumberValue(func.token, 0) : new UnknownValue(func.token);
-	if (mode !is EvalMode.All) return new UnknownValue(func.token);
 	auto a = checkString(prop, func, args, 0, err);
 	if (!a) return new NumberValue(func.token, 0);
 	auto path = a.strVal;
@@ -1258,6 +1274,7 @@ private const(Part) funcVar(in CProps prop, EvalMode mode, in VariableInfo vInfo
 
 /// フラグの値を読む。
 private const(Part) funcFlagValue(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	if (mode is EvalMode.TypeCheck) return new BooleanValue(func.token, false);
 	if (!vInfo.existsFlag) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
 	if (!vInfo.flagValue) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
 	if (!checkArgCount(prop, func, args, 1, err)) return new BooleanValue(func.token, false);
@@ -1273,6 +1290,7 @@ private const(Part) funcFlagValue(in CProps prop, EvalMode mode, in VariableInfo
 
 /// フラグの値の文字列を読む。
 private const(Part) funcFlagText(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	if (mode is EvalMode.TypeCheck) return new StringValue(func.token, "");
 	if (!vInfo.existsFlag) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
 	if (!vInfo.flagValue) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
 	if (!vInfo.flagText) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
@@ -1295,6 +1313,7 @@ private const(Part) funcFlagText(in CProps prop, EvalMode mode, in VariableInfo 
 
 /// ステップの値を読む。
 private const(Part) funcStepValue(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	if (mode is EvalMode.TypeCheck) return new NumberValue(func.token, 0);
 	if (!vInfo.existsStep) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
 	if (!vInfo.stepValue) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
 	if (!checkArgCount(prop, func, args, 1, err)) return new NumberValue(func.token, 0);
@@ -1310,6 +1329,7 @@ private const(Part) funcStepValue(in CProps prop, EvalMode mode, in VariableInfo
 
 /// ステップの値の文字列を読む。
 private const(Part) funcStepText(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	if (mode is EvalMode.TypeCheck) return new StringValue(func.token, "");
 	if (!vInfo.existsStep) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
 	if (!vInfo.stepValue) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
 	if (!vInfo.stepText) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
@@ -1338,6 +1358,7 @@ private const(Part) funcStepText(in CProps prop, EvalMode mode, in VariableInfo 
 
 /// ステップの最大値を取得する。
 private const(Part) funcStepMax(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	if (mode is EvalMode.TypeCheck) return new NumberValue(func.token, 0);
 	if (!vInfo.existsStep) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
 	if (!vInfo.stepMax) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
 	if (!checkArgCount(prop, func, args, 1, err)) return new NumberValue(func.token, 0);

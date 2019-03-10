@@ -1049,13 +1049,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			if (c.expression == "") { mixin(S_TRACE);
 				r ~= prop.msgs.searchErrorNoExpression;
 			} else if (summ) { mixin(S_TRACE);
-				string[] lines;
-				foreach (err; c.getExpressionErrors(prop, VariableInfo(summ))) { mixin(S_TRACE);
-					if (lines.length == 0) lines = .splitLines(c.expression);
-					auto errLine = lines[err.errLine - 1];
-					errLine = errLine[0 .. err.errPos - 1] ~ prop.msgs.warningExpressionPosition ~ errLine[err.errPos - 1 .. $];
-					r ~= .tryFormat(prop.msgs.warningExpression, err.message, errLine);
-				}
+				r ~= .exprErrorToWarnings(prop, c.expression, c.getExpressionErrors(prop, VariableInfo(summ)));
 				r ~= checkTextRes2(c.expression, c.flagsInExpression, c.stepsInExpression, c.variantsInExpression, [], []);
 			}
 		}
@@ -1063,6 +1057,24 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	return r;
 }
 
+/// exprErrsを警告テキストとしてまとめる。
+string[] exprErrorToWarnings(in CProps prop, string expr, in ExprError[] exprErrs) { mixin(S_TRACE);
+	string[] lines;
+	string[] ws;
+	foreach (err; exprErrs) { mixin(S_TRACE);
+		if (lines.length == 0) lines = .splitLines(expr);
+		auto errLine = lines[err.errLine - 1];
+		if (errLine.length <= err.errPos) { mixin(S_TRACE);
+			errLine = errLine ~ prop.msgs.warningExpressionEnd;
+		} else { mixin(S_TRACE);
+			errLine = errLine[0 .. err.errPos - 1] ~ prop.msgs.warningExpressionPosition ~ errLine[err.errPos - 1 .. $];
+		}
+		ws ~= .tryFormat(prop.msgs.warningExpression, err.message, errLine);
+	}
+	return ws;
+}
+
+/// evtの話者の選択中のメンバ・ランダムメンバ・選択中以外のメンバのいずれかが含まれているか。
 @property
 bool hasCharacterTalker(in Content evt) { mixin(S_TRACE);
 	if (evt.type is CType.TALK_MESSAGE) { mixin(S_TRACE);

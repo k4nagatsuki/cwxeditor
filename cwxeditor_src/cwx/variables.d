@@ -198,6 +198,14 @@ class FlexEtcProps : Properties {
 	auto authorNewAreaNameSashR = Prop!(int)("authorNewAreaNameSashR", 1);
 	auto historyScenarioNameColumn = Prop!(int, false, true)("historyScenarioNameColumn", 150);
 	auto historyScenarioPathColumn = Prop!(int, false, true)("historyScenarioPathColumn", 300);
+	auto expressionAndTargetSashT = Prop!(int)("expressionAndTargetSashT", -1);
+	auto expressionAndTargetSashB = Prop!(int)("expressionAndTargetSashB", -1);
+	auto functionCallEditorWidth = Prop!(int)("functionCallEditorWidth", 300);
+	auto functionCallEditorHeight = Prop!(int)("functionCallEditorHeight", 400);
+	auto functionArgumentNameColumn = Prop!(int, false, true)("functionArgumentNameColumn", 100);
+	auto functionArgumentTypeColumn = Prop!(int, false, true)("functionArgumentTypeColumn", 80);
+	auto functionArgumentValueColumn = Prop!(int, false, true)("functionArgumentValueColumn", 120);
+	auto expressionCheckingDelay = Prop!(uint, true)("expressionCheckingDelay", 500);
 
 	auto partyMax = Prop!(uint, true)("partyMax", 6);
 	auto cardScaleMax = Prop!(int)("cardScaleMax", 300);
@@ -804,6 +812,7 @@ class FlexEtcProps : Properties {
 		ContentConversionGroup([CType.CHANGE_AREA, CType.START_BATTLE]),
 		ContentConversionGroup([CType.END, CType.END_BAD_END]),
 		ContentConversionGroup([CType.EFFECT, CType.PLAY_BGM, CType.PLAY_SOUND]),
+		ContentConversionGroup([CType.BRANCH_VARIANT, CType.SET_VARIANT, CType.CHECK_VARIANT]),
 	]);
 
 	auto contentInitializers = Prop!(ContentInitializer[])("contentInitializers", []);

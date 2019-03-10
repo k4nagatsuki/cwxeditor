@@ -18,6 +18,7 @@ import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.eventdialog;
+import cwx.editor.gui.dwt.exprutils;
 import cwx.editor.gui.dwt.messageutils;
 import cwx.editor.gui.dwt.scripterrordialog;
 import cwx.editor.gui.dwt.smalldialogs;
@@ -706,6 +707,15 @@ EventDialog createEventDialog(Commons comm, Summary summ, Shell parentShell, Con
 		break;
 	} case CType.CHANGE_ENVIRONMENT: { mixin(S_TRACE);
 		dlg = new ChangeEnvironmentDialog(comm, comm.prop, parentShell, summ, parent, evt);
+		break;
+	} case CType.BRANCH_VARIANT: { mixin(S_TRACE);
+		dlg = new ExpressionEventDialog(comm, comm.prop, parentShell, summ, parent, CType.BRANCH_VARIANT, evt);
+		break;
+	} case CType.SET_VARIANT: { mixin(S_TRACE);
+		dlg = new SetVariantDialog(comm, comm.prop, parentShell, summ, parent, evt);
+		break;
+	} case CType.CHECK_VARIANT: { mixin(S_TRACE);
+		dlg = new ExpressionEventDialog(comm, comm.prop, parentShell, summ, parent, CType.CHECK_VARIANT, evt);
 		break;
 	} default: assert (0);
 	}

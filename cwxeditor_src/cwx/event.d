@@ -1247,6 +1247,20 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			soundPath = oldPath;
 		}
 
+		// いずれかの状態変数を選択する場合
+		if (d.use(CArg.FLAG) && d.use(CArg.STEP) && d.use(CArg.VARIANT)) { mixin(S_TRACE);
+			if (variant != "") { mixin(S_TRACE);
+				flag = "";
+				step = "";
+			} else if (step != "") { mixin(S_TRACE);
+				flag = "";
+				variant = "";
+			} else if (flag != "") { mixin(S_TRACE);
+				flag = "";
+				variant = "";
+			}
+		}
+
 		validate();
 	}
 

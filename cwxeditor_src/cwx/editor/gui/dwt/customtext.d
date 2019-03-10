@@ -4,9 +4,10 @@ module cwx.editor.gui.dwt.customtext;
 import cwx.utils;
 import cwx.structs;
 
-import cwx.editor.gui.dwt.undo;
+import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.dmenu;
-import cwx.editor.gui.dwt.dutils : wDrawText, wTextExtent, createFontFromPixels, ppis;
+import cwx.editor.gui.dwt.dutils : wDrawText, wTextExtent, createFontFromPixels, ppis, NoIME, listener;
+import cwx.editor.gui.dwt.undo;
 
 import std.utf;
 import std.string;
@@ -540,4 +541,26 @@ class TextMenuModify : ModifyListener {
 		}
 		save();
 	}
+}
+
+Text createNumberEditor(Commons comm, Composite parent, int style, bool delegate() catchMod) { mixin(S_TRACE);
+	auto t = new Text(parent, SWT.BORDER);
+	t.setData(new class NoIME {});
+	.createTextMenu!Text(comm, comm.prop, t, catchMod);
+	.listener(t, SWT.FocusIn, { mixin(S_TRACE);
+		t.selectAll();
+	});
+	.listener(t, SWT.Verify, (e) { mixin(S_TRACE);
+		char[] s;
+		foreach (i, c; e.text) { mixin(S_TRACE);
+			if (c.isDigit() || c == '-' || c == '.') { mixin(S_TRACE);
+				s ~= c;
+			}
+		}
+		auto t = .assumeUnique(s);
+		if (t != e.text) { mixin(S_TRACE);
+			e.text = t;
+		}
+	});
+	return t;
 }
