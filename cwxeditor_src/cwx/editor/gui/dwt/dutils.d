@@ -4359,7 +4359,9 @@ void getSymbols(Commons comm, Summary summ, CWXPath path, bool desc, out string 
 			img = prop.images.content(c.type);
 			text = .contentText(comm, c, summ);
 		}
-		if (auto tc = cast(TextCell)tex.owner) { mixin(S_TRACE);
+		if (auto spc = cast(AbstractSpCard)tex.owner) { mixin(S_TRACE);
+			path = spc;
+		} else if (auto tc = cast(TextCell)tex.owner) { mixin(S_TRACE);
 			img = prop.images.textCell;
 			text = .tryFormat(prop.msgs.searchResultTextCell, tc.name(prop.parent));
 		}
