@@ -1595,10 +1595,10 @@ private:
 	}
 	string[] targs(string path, bool forceRefresh, bool subThr) { mixin(S_TRACE);
 		string[] r;
-		auto isTbl = !_summ || !path.isSubDirectory(_summ.scenarioPath);
+		auto isTbl = !_summ || _summ.scenarioPath == "" || !path.isSubDirectory(_summ.scenarioPath);
 		foreach (f; targsImpl(path, forceRefresh)) { mixin(S_TRACE);
 			static if (MtType.CARD == Type || MtType.BG_IMG == Type) {
-				if (isTbl || !_summ || (!_summ.legacy && _loadScaledImage ? _loadScaledImage() : _summ.loadScaledImage)) { mixin(S_TRACE);
+				if (isTbl || !_summ || _summ.scenarioPath == "" || (!_summ.legacy && _loadScaledImage ? _loadScaledImage() : _summ.loadScaledImage)) { mixin(S_TRACE);
 					// スケーリングされたイメージファイルを除外
 					if (f.noScaledPath != "") continue;
 				}
