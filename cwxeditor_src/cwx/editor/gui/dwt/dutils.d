@@ -4425,7 +4425,9 @@ void getSymbols(Commons comm, Summary summ, CWXPath path, bool desc, out string 
 	if (ene) { mixin(S_TRACE);
 		img = prop.images.cards;
 		string cName = prop.msgs.noSelectCast;
-		if (0 != ene.id) { mixin(S_TRACE);
+		if (ene.isOverrideName) { mixin(S_TRACE);
+			cName = ene.overrideName;
+		} else if (0 != ene.id) { mixin(S_TRACE);
 			auto card = summ.cwCast(ene.id);
 			cName = card ? card.name : .tryFormat(prop.msgs.noCast, ene.id);
 		}
