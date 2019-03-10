@@ -1819,7 +1819,7 @@ private:
 		}
 		index -= dir.variants.length;
 		if (index < dir.steps.length) { mixin(S_TRACE);
-			return dir.flags[index];
+			return dir.steps[index];
 		}
 		index -= dir.steps.length;
 		return dir.flags[index];

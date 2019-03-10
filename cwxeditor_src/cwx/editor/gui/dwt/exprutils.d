@@ -244,10 +244,16 @@ protected:
 		evt.expression = _expr.expression;
 		if (_flag) { mixin(S_TRACE);
 			evt.flag = _flag.selected;
+			evt.step = "";
+			evt.variant = "";
 		} else if (_step) { mixin(S_TRACE);
 			evt.step = _step.selected;
+			evt.flag = "";
+			evt.variant = "";
 		} else if (_variant) { mixin(S_TRACE);
 			evt.variant = _variant.selected;
+			evt.flag = "";
+			evt.step = "";
 		} else assert (0);
 		return true;
 	}

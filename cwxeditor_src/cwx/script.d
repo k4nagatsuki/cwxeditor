@@ -3750,7 +3750,7 @@ fi`;
 		if (variant != "") {
 			return [createString(variant)];
 		} else if (step != "") { mixin(S_TRACE);
-			return ["step", createString(flag)];
+			return ["step", createString(step)];
 		} else if (flag != "") { mixin(S_TRACE);
 			return ["flag", createString(flag)];
 		} else { mixin(S_TRACE);

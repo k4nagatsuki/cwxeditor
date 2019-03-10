@@ -3979,7 +3979,14 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		auto expr = evt.expression == "" ? comm.prop.msgs.noExpression : evt.expression.replace("\n", "");
 		return .tryFormat(comm.prop.msgs.ctBranchVariant, expr);
 	} case CType.SET_VARIANT: { mixin(S_TRACE);
-		string name = .contentTextUseID!(CIDKind.Variant)(comm, summ, evt.variant, "%s", evt);
+		string name;
+		if (evt.step != "") { mixin(S_TRACE);
+			name = .contentTextUseID!(CIDKind.Step)(comm, summ, evt.step, "%s", evt);
+		} else if (evt.flag != "") { mixin(S_TRACE);
+			name = .contentTextUseID!(CIDKind.Flag)(comm, summ, evt.flag, "%s", evt);
+		} else { mixin(S_TRACE);
+			name = .contentTextUseID!(CIDKind.Variant)(comm, summ, evt.variant, "%s", evt);
+		}
 		auto expr = evt.expression == "" ? comm.prop.msgs.noExpression : evt.expression.replace("\n", "");
 		return .tryFormat(comm.prop.msgs.ctSetVariant, name, expr);
 	} case CType.CHECK_VARIANT: { mixin(S_TRACE);
