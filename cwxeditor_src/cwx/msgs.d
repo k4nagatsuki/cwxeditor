@@ -654,6 +654,16 @@ class Msgs : Properties {
 	auto variableTypeNameStep = Msg("variableTypeNameStep", "ステップ");
 	auto variableTypeNameVariant = Msg("variableTypeNameVariant", "コモン");
 
+	auto allFunctions = Msg("allFunctions", "全て");
+	const string functionCategoryName(FunctionCategory id) { mixin(S_TRACE);
+		mixin(EnumToStringSwitch!(FunctionCategory, "functionCategoryName"));
+	}
+	auto functionCategoryNameStringOperation = Msg("functionCategoryNameStringOperation", "文字列操作");
+	auto functionCategoryNameNumberOperation = Msg("functionCategoryNameNumberOperation", "数値操作");
+	auto functionCategoryNameConversion = Msg("functionCategoryNameConversion", "型変換");
+	auto functionCategoryNameVariableOperation = Msg("functionCategoryNameVariableOperation", "状態変数");
+	auto functionCategoryNameEtc = Msg("functionCategoryNameEtc", "その他");
+
 	const string blendModeName(BlendMode id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(BlendMode, "blendModeName"));
 	}
@@ -2669,8 +2679,8 @@ class Msgs : Properties {
 	auto exprAnyValueDesc = Msg("exprAnyValueDesc", "任意の値");
 	auto exprValueArgDesc = Msg("exprValueArgDesc", "文字列");
 	auto exprBooleanDesc = Msg("exprBooleanDesc", "真偽値");
-	auto exprIfTrueDesc = Msg("exprIfTrueDesc", "TRUEの時の値");
-	auto exprIfFalseDesc = Msg("exprIfFalseDesc", "FALSEの時の値");
+	auto exprIfTrueDesc = Msg("exprIfTrueDesc", "TRUEの結果");
+	auto exprIfFalseDesc = Msg("exprIfFalseDesc", "FALSEの結果");
 	auto exprVariableLengthNumberDesc = Msg("exprVariableLengthNumberDesc", "数値 %1$s");
 	auto exprVariantDesc = Msg("exprVariantDesc", "コモン名");
 	auto exprFlagDesc = Msg("exprFlagDesc", "フラグ名");

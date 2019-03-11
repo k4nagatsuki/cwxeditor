@@ -1372,6 +1372,100 @@ private const(Part) funcStepMax(in CProps prop, EvalMode mode, in VariableInfo v
 	return new NumberValue(func.token, vInfo.stepMax(path));
 }
 
+/// 入力支援用に関数の引数の型を表現する。
+enum ArgType {
+	Number, /// 数値。
+	String, /// 文字列。
+	Boolean, /// 真偽値。
+	NumberOrString, /// 数値または文字列。
+	Any, /// 任意の型。
+	Flag, /// フラグ名。
+	Step, /// ステップ名。
+	Variant, /// コモン名。
+	VariantRef, /// コモン参照。
+	NoArgument, /// 不指定。
+}
+/// 入力支援用の引数定義。
+struct ArgDef {
+	ArgType type; /// 引数型。
+	string name; /// 引数名。
+	string initValue; /// 入力欄の初期値。
+	bool optional = false; /// 省略可能。
+	bool varArg = false; /// 可変個。
+}
+/// 入力支援用の関数定義。
+struct FuncDef {
+	FunctionCategory[] category; /// 所属カテゴリ。
+	string name; /// 関数名。
+	string desc; /// 解説。
+	string shortDesc; /// 一行解説。
+	string example; /// 記述例。
+	ArgDef[] args; /// 引数定義。
+	ArgType returnType; /// 戻り値の型。
+}
+
+/// 全ての関数定義を返す。
+immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
+	return [
+		FuncDef([FunctionCategory.StringOperation], "LEN", prop.msgs.funcDescLen, prop.msgs.funcShortDescLen, prop.msgs.funcExampleLen, [
+			ArgDef(ArgType.String, prop.msgs.exprStringDesc, "", false),
+		], ArgType.Number),
+		FuncDef([FunctionCategory.StringOperation], "LEFT", prop.msgs.funcDescLeft, prop.msgs.funcShortDescLeft, prop.msgs.funcExampleLeft, [
+			ArgDef(ArgType.String, prop.msgs.exprStringDesc, "", false),
+			ArgDef(ArgType.Number, prop.msgs.exprStringLengthDesc, "0", false),
+		], ArgType.String),
+		FuncDef([FunctionCategory.StringOperation], "RIGHT", prop.msgs.funcDescRight, prop.msgs.funcShortDescRight, prop.msgs.funcExampleRight, [
+			ArgDef(ArgType.String, prop.msgs.exprStringDesc, "", false),
+			ArgDef(ArgType.Number, prop.msgs.exprStringLengthDesc, "0", false),
+		], ArgType.String),
+		FuncDef([FunctionCategory.StringOperation], "MID", prop.msgs.funcDescMid, prop.msgs.funcShortDescMid, prop.msgs.funcExampleMid, [
+			ArgDef(ArgType.String, prop.msgs.exprStringDesc, "", false),
+			ArgDef(ArgType.Number, prop.msgs.exprStringPositionDesc, "1", false),
+			ArgDef(ArgType.Number, prop.msgs.exprStringLengthDesc, "0", false),
+		], ArgType.String),
+		FuncDef([FunctionCategory.StringOperation], "STR", prop.msgs.funcDescStr, prop.msgs.funcShortDescStr, prop.msgs.funcExampleStr, [
+			ArgDef(ArgType.Any, prop.msgs.exprAnyValueDesc, "", false),
+		], ArgType.String),
+		FuncDef([FunctionCategory.Conversion], "VALUE", prop.msgs.funcDescValue, prop.msgs.funcShortDescValue, prop.msgs.funcExampleValue, [
+			ArgDef(ArgType.NumberOrString, prop.msgs.exprValueArgDesc, "0", false),
+		], ArgType.Number),
+		FuncDef([FunctionCategory.Conversion], "INT", prop.msgs.funcDescInt, prop.msgs.funcShortDescInt, prop.msgs.funcExampleInt, [
+			ArgDef(ArgType.NumberOrString, prop.msgs.exprValueArgDesc, "0", false),
+		], ArgType.Number),
+		FuncDef([FunctionCategory.Etc], "IF", prop.msgs.funcDescIf, prop.msgs.funcShortDescIf, prop.msgs.funcExampleIf, [
+			ArgDef(ArgType.Boolean, prop.msgs.exprBooleanDesc, "TRUE", false),
+			ArgDef(ArgType.Any, prop.msgs.exprIfTrueDesc, "", false),
+			ArgDef(ArgType.Any, prop.msgs.exprIfFalseDesc, "", false),
+		], ArgType.Any),
+		FuncDef([FunctionCategory.NumberOperation], "MAX", prop.msgs.funcDescMax, prop.msgs.funcShortDescMax, prop.msgs.funcExampleMax, [
+			ArgDef(ArgType.Number, prop.msgs.exprVariableLengthNumberDesc, "0", false, true),
+		], ArgType.Number),
+		FuncDef([FunctionCategory.NumberOperation], "MIN", prop.msgs.funcDescMin, prop.msgs.funcShortDescMin, prop.msgs.funcExampleMin, [
+			ArgDef(ArgType.Number, prop.msgs.exprVariableLengthNumberDesc, "0", false, true),
+		], ArgType.Number),
+		FuncDef([FunctionCategory.VariableOperation], "VAR", prop.msgs.funcDescVar, prop.msgs.funcShortDescVar, prop.msgs.funcExampleMax, [
+			ArgDef(ArgType.Variant, prop.msgs.exprVariantDesc, "", false),
+		], ArgType.Any),
+		FuncDef([FunctionCategory.VariableOperation], "FLAGVALUE", prop.msgs.funcDescFlagValue, prop.msgs.funcShortDescFlagValue, prop.msgs.funcExampleFlagValue, [
+			ArgDef(ArgType.Flag, prop.msgs.exprFlagDesc, "", false),
+		], ArgType.Boolean),
+		FuncDef([FunctionCategory.VariableOperation], "FLAGTEXT", prop.msgs.funcDescFlagText, prop.msgs.funcShortDescFlagText, prop.msgs.funcExampleFlagText, [
+			ArgDef(ArgType.Flag, prop.msgs.exprFlagDesc, "", false),
+			ArgDef(ArgType.Boolean, prop.msgs.exprFlagValueDesc, "TRUE", true),
+		], ArgType.String),
+		FuncDef([FunctionCategory.VariableOperation], "STEPVALUE", prop.msgs.funcDescStepValue, prop.msgs.funcShortDescStepValue, prop.msgs.funcExampleStepValue, [
+			ArgDef(ArgType.Step, prop.msgs.exprStepDesc, "", false),
+		], ArgType.Number),
+		FuncDef([FunctionCategory.VariableOperation], "STEPTEXT", prop.msgs.funcDescStepText, prop.msgs.funcShortDescStepText, prop.msgs.funcExampleStepText, [
+			ArgDef(ArgType.Step, prop.msgs.exprStepDesc, "", false),
+			ArgDef(ArgType.Number, prop.msgs.exprStepValueDesc, "0", true),
+		], ArgType.String),
+		FuncDef([FunctionCategory.VariableOperation], "STEPMAX", prop.msgs.funcDescStepValue, prop.msgs.funcShortDescStepValue, prop.msgs.funcExampleStepValue, [
+			ArgDef(ArgType.Step, prop.msgs.exprStepDesc, "", false),
+		], ArgType.Number),
+	];
+}
+
 unittest { mixin (UTPerf);
 	auto prop = new CProps("", null);
 	VariableInfo vInfo;

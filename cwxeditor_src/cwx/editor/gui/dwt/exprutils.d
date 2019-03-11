@@ -34,6 +34,7 @@ import std.conv;
 import std.datetime;
 import std.range;
 import std.string;
+import std.traits;
 
 import org.eclipse.swt.all;
 
@@ -389,7 +390,7 @@ class ExpressionEditor : Composite {
 		_stepMenu = new Menu(getShell(), SWT.NONE);
 		_variantMenu = new Menu(getShell(), SWT.NONE);
 
-		auto funcDefs = .functionDefinitions(_comm.prop);
+		auto funcDefs = .functionDefinitions(_comm.prop.parent);
 		auto var = .createFlagStepBar(varComp, null, _comm, _comm.prop, _summ, null, false, (comp, combo, varType) { mixin(S_TRACE);
 			auto b = new Button(comp, SWT.TOGGLE);
 			immutable(FuncDef)[] funcs;
@@ -566,93 +567,6 @@ class ExpressionEditor : Composite {
 	string[] warnings() { return _ws; }
 }
 
-private enum ArgType {
-	Number,
-	String,
-	Flag,
-	Step,
-	Variant,
-	Boolean,
-	Any,
-	NumberOrString,
-	VariantRef, // 入力支援用
-	NoArgument, // 入力支援用
-}
-private struct ArgDef {
-	ArgType type;
-	string name;
-	bool optional = false;
-	bool varArg = false;
-}
-private struct FuncDef {
-	string name;
-	string desc;
-	string shortDesc;
-	string example;
-	ArgDef[] args;
-	ArgType returnType;
-}
-private immutable(FuncDef[]) functionDefinitions(in Props prop) { mixin(S_TRACE);
-	return [
-		FuncDef("LEN", prop.msgs.funcDescLen, prop.msgs.funcShortDescLen, prop.msgs.funcExampleLen, [
-			ArgDef(ArgType.String, prop.msgs.exprStringDesc, false),
-		], ArgType.Number),
-		FuncDef("LEFT", prop.msgs.funcDescLeft, prop.msgs.funcShortDescLeft, prop.msgs.funcExampleLeft, [
-			ArgDef(ArgType.String, prop.msgs.exprStringDesc, false),
-			ArgDef(ArgType.Number, prop.msgs.exprStringLengthDesc, false),
-		], ArgType.String),
-		FuncDef("RIGHT", prop.msgs.funcDescRight, prop.msgs.funcShortDescRight, prop.msgs.funcExampleRight, [
-			ArgDef(ArgType.String, prop.msgs.exprStringDesc, false),
-			ArgDef(ArgType.Number, prop.msgs.exprStringLengthDesc, false),
-		], ArgType.String),
-		FuncDef("MID", prop.msgs.funcDescMid, prop.msgs.funcShortDescMid, prop.msgs.funcExampleMid, [
-			ArgDef(ArgType.String, prop.msgs.exprStringDesc, false),
-			ArgDef(ArgType.Number, prop.msgs.exprStringPositionDesc, false),
-			ArgDef(ArgType.Number, prop.msgs.exprStringLengthDesc, false),
-		], ArgType.String),
-		FuncDef("STR", prop.msgs.funcDescStr, prop.msgs.funcShortDescStr, prop.msgs.funcExampleStr, [
-			ArgDef(ArgType.Any, prop.msgs.exprAnyValueDesc, false),
-		], ArgType.String),
-		FuncDef("VALUE", prop.msgs.funcDescValue, prop.msgs.funcShortDescValue, prop.msgs.funcExampleValue, [
-			ArgDef(ArgType.NumberOrString, prop.msgs.exprValueArgDesc, false),
-		], ArgType.Number),
-		FuncDef("INT", prop.msgs.funcDescInt, prop.msgs.funcShortDescInt, prop.msgs.funcExampleInt, [
-			ArgDef(ArgType.NumberOrString, prop.msgs.exprValueArgDesc, false),
-		], ArgType.Number),
-		FuncDef("IF", prop.msgs.funcDescIf, prop.msgs.funcShortDescIf, prop.msgs.funcExampleIf, [
-			ArgDef(ArgType.Boolean, prop.msgs.exprBooleanDesc, false),
-			ArgDef(ArgType.Any, prop.msgs.exprIfTrueDesc, false),
-			ArgDef(ArgType.Any, prop.msgs.exprIfFalseDesc, false),
-		], ArgType.Any),
-		FuncDef("MAX", prop.msgs.funcDescMax, prop.msgs.funcShortDescMax, prop.msgs.funcExampleMax, [
-			ArgDef(ArgType.Number, prop.msgs.exprVariableLengthNumberDesc, false, true),
-		], ArgType.Number),
-		FuncDef("MIN", prop.msgs.funcDescMin, prop.msgs.funcShortDescMin, prop.msgs.funcExampleMin, [
-			ArgDef(ArgType.Number, prop.msgs.exprVariableLengthNumberDesc, false, true),
-		], ArgType.Number),
-		FuncDef("VAR", prop.msgs.funcDescVar, prop.msgs.funcShortDescVar, prop.msgs.funcExampleMax, [
-			ArgDef(ArgType.Variant, prop.msgs.exprVariantDesc, false),
-		], ArgType.Any),
-		FuncDef("FLAGVALUE", prop.msgs.funcDescFlagValue, prop.msgs.funcShortDescFlagValue, prop.msgs.funcExampleFlagValue, [
-			ArgDef(ArgType.Flag, prop.msgs.exprFlagDesc, false),
-		], ArgType.Boolean),
-		FuncDef("FLAGTEXT", prop.msgs.funcDescFlagText, prop.msgs.funcShortDescFlagText, prop.msgs.funcExampleFlagText, [
-			ArgDef(ArgType.Flag, prop.msgs.exprFlagDesc, false),
-			ArgDef(ArgType.Boolean, prop.msgs.exprFlagValueDesc, true),
-		], ArgType.String),
-		FuncDef("STEPVALUE", prop.msgs.funcDescStepValue, prop.msgs.funcShortDescStepValue, prop.msgs.funcExampleStepValue, [
-			ArgDef(ArgType.Step, prop.msgs.exprStepDesc, false),
-		], ArgType.Number),
-		FuncDef("STEPTEXT", prop.msgs.funcDescStepText, prop.msgs.funcShortDescStepText, prop.msgs.funcExampleStepText, [
-			ArgDef(ArgType.Step, prop.msgs.exprStepDesc, false),
-			ArgDef(ArgType.Number, prop.msgs.exprStepValueDesc, true),
-		], ArgType.String),
-		FuncDef("STEPMAX", prop.msgs.funcDescStepValue, prop.msgs.funcShortDescStepValue, prop.msgs.funcExampleStepValue, [
-			ArgDef(ArgType.Step, prop.msgs.exprStepDesc, false),
-		], ArgType.Number),
-	];
-}
-
 /// 関数入力支援ウィジェット。
 private class FunctionCallEditor {
 	private class ArgsUndo : Undo {
@@ -678,7 +592,11 @@ private class FunctionCallEditor {
 			_args.setItemCount(cast(int)_selectedArgType.length);
 			foreach (i; 0 .. _args.getItemCount()) { mixin(S_TRACE);
 				auto itm = _args.getItem(i);
-				itm.setText(0, argTypeName(i < _argDefs.length ? _argDefs[i].type : _argDefs[$ - 1].type));
+				if (i < _argDefs.length - 1 || !_argDefs[$ - 1].varArg) { mixin(S_TRACE);
+					itm.setText(0, _argDefs[i].name);
+				} else { mixin(S_TRACE);
+					itm.setText(0, .tryFormat(_argDefs[$ - 1].name, (i - _argDefs.length) + 2));
+				}
 				itm.setText(1, argTypeName(_selectedArgType[i]));
 				itm.setText(2, values[i]);
 			}
@@ -705,6 +623,8 @@ private class FunctionCallEditor {
 	private const(Summary) _summ;
 
 	private Shell _shell;
+	private Combo _category;
+	private FunctionCategory[] _categories;
 	private Combo _func;
 
 	private Label _decl;
@@ -716,6 +636,7 @@ private class FunctionCallEditor {
 	private TableComboEdit!Combo _typeEdit;
 	private TableTCEdit _valueEdit;
 
+	private immutable(FuncDef[]) _allFuncDefs;
 	private immutable(FuncDef)[] _funcDefs;
 	private IncSearch _incSearch;
 	private string _selectedFuncName = "";
@@ -728,6 +649,7 @@ private class FunctionCallEditor {
 	this (Commons comm, in Summary summ, Control parent, void delegate(string) insert) { mixin(S_TRACE);
 		_comm = comm;
 		_summ = summ;
+		_allFuncDefs = .functionDefinitions(_comm.prop.parent);
 
 		auto parShl = parent.getShell();
 
@@ -753,10 +675,19 @@ private class FunctionCallEditor {
 		{ mixin(S_TRACE);
 			auto comp = new Composite(_shell, SWT.NONE);
 			comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			comp.setLayout(normalGridLayout(2, false));
+			comp.setLayout(normalGridLayout(3, false));
 
 			auto l = new Label(comp, SWT.NONE);
 			l.setText(_comm.prop.msgs.selectFunction);
+			_category = new Combo(comp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+			_category.setVisibleItemCount(_comm.prop.var.etc.comboVisibleItemCount);
+			_category.add(_comm.prop.msgs.allFunctions);
+			foreach (category; EnumMembers!FunctionCategory) { mixin(S_TRACE);
+				_category.add(_comm.prop.msgs.functionCategoryName(category));
+				_categories ~= category;
+			}
+			_category.select(0);
+			.listener(_category, SWT.Selection, &categorySelected);
 			_func = new Combo(comp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
 			_func.setVisibleItemCount(_comm.prop.var.etc.comboVisibleItemCount);
 			.listener(_func, SWT.Selection, &functionSelected);
@@ -891,7 +822,12 @@ private class FunctionCallEditor {
 		updateFunctions();
 	}
 
+	private void categorySelected() { mixin(S_TRACE);
+		updateFunctions();
+	}
 	private void functionSelected() { mixin(S_TRACE);
+		auto funcDef = _funcDefs[_func.getSelectionIndex()];
+		if (_selectedFuncName == funcDef.name) return;
 		_typeEdit.cancel();
 		_valueEdit.cancel();
 		_args.removeAll();
@@ -902,66 +838,53 @@ private class FunctionCallEditor {
 			_comm.refreshToolBar();
 			return;
 		}
-		auto funcDef = _funcDefs[_func.getSelectionIndex()];
-		if (_selectedFuncName == funcDef.name) return;
 		string[] args;
-		string argInfo(ArgType type, out ArgType[] argTypes, out string value) { mixin(S_TRACE);
-			final switch (type) {
-			case ArgType.Number:
-				argTypes = [ArgType.Number, ArgType.VariantRef];
-				value = "0";
-				return _comm.prop.msgs.argNumber;
-			case ArgType.String:
-				argTypes = [ArgType.String, ArgType.VariantRef];
-				value = "";
-				return _comm.prop.msgs.argString;
-			case ArgType.Flag:
-				argTypes = [ArgType.Flag, ArgType.VariantRef];
-				value = "";
-				return _comm.prop.msgs.argFlag;
-			case ArgType.Step:
-				argTypes = [ArgType.Step, ArgType.VariantRef];
-				value = "";
-				return _comm.prop.msgs.argStep;
-			case ArgType.Variant:
-				argTypes = [ArgType.String, ArgType.VariantRef];
-				value = "";
-				return _comm.prop.msgs.argVariant;
-			case ArgType.Boolean:
-				argTypes = [ArgType.Boolean, ArgType.VariantRef];
-				value = "TRUE";
-				return _comm.prop.msgs.argBoolean;
-			case ArgType.Any:
-				argTypes = [ArgType.Number, ArgType.String, ArgType.Boolean, ArgType.VariantRef];
-				value = "0";
-				return _comm.prop.msgs.argAny;
-			case ArgType.NumberOrString:
-				argTypes = [ArgType.Number, ArgType.String, ArgType.VariantRef];
-				value = "0";
-				return _comm.prop.msgs.argNumberOrString;
-			case ArgType.VariantRef:
-			case ArgType.NoArgument:
-				assert (0);
-			}
-		}
 		_argDefs = [];
 		_argTypes = [];
 		_selectedArgType = [];
 		foreach (i, arg; funcDef.args) { mixin(S_TRACE);
 			ArgType[] argTypes;
-			string value;
-			auto s = argInfo(arg.type, argTypes, value);
+			final switch (arg.type) {
+			case ArgType.Number:
+				argTypes = [ArgType.Number, ArgType.VariantRef];
+				break;
+			case ArgType.String:
+				argTypes = [ArgType.String, ArgType.VariantRef];
+				break;
+			case ArgType.Flag:
+				argTypes = [ArgType.Flag, ArgType.VariantRef];
+				break;
+			case ArgType.Step:
+				argTypes = [ArgType.Step, ArgType.VariantRef];
+				break;
+			case ArgType.Variant:
+				argTypes = [ArgType.String, ArgType.VariantRef];
+				break;
+			case ArgType.Boolean:
+				argTypes = [ArgType.Boolean, ArgType.VariantRef];
+				break;
+			case ArgType.Any:
+				argTypes = [ArgType.String, ArgType.Number, ArgType.Boolean, ArgType.VariantRef];
+				break;
+			case ArgType.NumberOrString:
+				argTypes = [ArgType.String, ArgType.Number, ArgType.VariantRef];
+				break;
+			case ArgType.VariantRef:
+			case ArgType.NoArgument:
+				assert (0);
+			}
 			if (arg.optional) argTypes = ArgType.NoArgument ~ argTypes;
 			auto itm = new TableItem(_args, SWT.NONE);
+			string s = arg.varArg ? .tryFormat(arg.name, 1) : arg.name;
 			itm.setText(0, s);
 			itm.setText(1, argTypeName(argTypes[0]));
-			if (!arg.optional) itm.setText(2, value);
+			if (!arg.optional) itm.setText(2, arg.initValue);
 			_argDefs ~= arg;
 			_argTypes ~= argTypes;
 			_selectedArgType ~= argTypes[0];
 			if (arg.varArg) { mixin(S_TRACE);
 				auto itm2 = new TableItem(_args, SWT.NONE);
-				itm2.setText(0, s);
+				itm2.setText(0, .tryFormat(arg.name, 2));
 				itm2.setText(1, _comm.prop.msgs.noArgument);
 				_selectedArgType ~= ArgType.NoArgument;
 			}
@@ -1013,8 +936,11 @@ private class FunctionCallEditor {
 		_func.removeAll();
 		_funcDefs = [];
 		auto i = 0;
-		foreach (funcDef; .functionDefinitions(_comm.prop)) { mixin(S_TRACE);
+		auto all = _category.getSelectionIndex() <= 0;
+		auto category = all ? FunctionCategory.init : _categories[_category.getSelectionIndex() - 1];
+		foreach (funcDef; _allFuncDefs) { mixin(S_TRACE);
 			if (!_incSearch.match(funcDef.name)) continue;
+			if (!all && !funcDef.category.contains(category)) continue;
 			_func.add(.tryFormat(_comm.prop.msgs.functionNameWithDescription, funcDef.name, funcDef.shortDesc));
 			_funcDefs ~= funcDef;
 			if (funcDef.name == _selectedFuncName) { mixin(S_TRACE);
@@ -1051,37 +977,22 @@ private class FunctionCallEditor {
 			if (varArg && 0 < i && i + 1 < _args.getItemCount()) { mixin(S_TRACE);
 				_args.remove(i);
 				_selectedArgType = _selectedArgType[0 .. i] ~ _selectedArgType[i + 1 .. $];
+				foreach (j; i .. _args.getItemCount()) { mixin(S_TRACE);
+					_args.getItem(j).setText(0, .tryFormat(_argDefs[$ - 1].name, (j - _argDefs.length) + 2));
+				}
 			} else { mixin(S_TRACE);
 				selItm.setText(2, "");
 			}
 		} else { mixin(S_TRACE);
 			if (varArg && old == ArgType.NoArgument) { mixin(S_TRACE);
 				auto itm = new TableItem(_args, SWT.NONE);
-				itm.setText(0, argTypeName(_argDefs[$ - 1].type));
+				itm.setText(0, .tryFormat(_argDefs[$ - 1].name, (i - _argDefs.length) + 3));
 				itm.setText(1, argTypeName(ArgType.NoArgument));
 				_selectedArgType ~= ArgType.NoArgument;
 			}
 
 			if (!validArg(argType, selItm.getText())) { mixin(S_TRACE);
-				final switch (argType) {
-				case ArgType.Number:
-				case ArgType.Any:
-				case ArgType.NumberOrString:
-					selItm.setText(2, "0");
-					break;
-				case ArgType.String:
-				case ArgType.Flag:
-				case ArgType.Step:
-				case ArgType.Variant:
-				case ArgType.VariantRef:
-					selItm.setText(2, "");
-					break;
-				case ArgType.Boolean:
-					selItm.setText(2, "TRUE");
-					break;
-				case ArgType.NoArgument:
-					assert (0);
-				}
+				selItm.setText(2, _argDefs[$ - 1].initValue);
 			}
 		}
 	}

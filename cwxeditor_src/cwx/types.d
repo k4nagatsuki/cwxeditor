@@ -1230,6 +1230,15 @@ string fromVariantType(VariantType t) { mixin(S_TRACE);
 	}
 }
 
+/// 関数のカテゴリ。
+enum FunctionCategory {
+	StringOperation, /// 文字列操作。
+	NumberOperation, /// 数値操作。
+	Conversion, /// 型変換。
+	VariableOperation, /// 状態変数。
+	Etc, /// その他。
+}
+
 /// 発火条件キーコードの種別。
 enum FKCKind {
 	Use, /// 使用時。
