@@ -675,10 +675,10 @@ private class FunctionCallEditor {
 		{ mixin(S_TRACE);
 			auto comp = new Composite(_shell, SWT.NONE);
 			comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			comp.setLayout(normalGridLayout(3, false));
+			comp.setLayout(normalGridLayout(2, false));
 
-			auto l = new Label(comp, SWT.NONE);
-			l.setText(_comm.prop.msgs.selectFunction);
+			auto l1 = new Label(comp, SWT.NONE);
+			l1.setText(_comm.prop.msgs.functionCategory);
 			_category = new Combo(comp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
 			_category.setVisibleItemCount(_comm.prop.var.etc.comboVisibleItemCount);
 			_category.add(_comm.prop.msgs.allFunctions);
@@ -688,6 +688,9 @@ private class FunctionCallEditor {
 			}
 			_category.select(0);
 			.listener(_category, SWT.Selection, &categorySelected);
+
+			auto l2 = new Label(comp, SWT.NONE);
+			l2.setText(_comm.prop.msgs.selectFunction);
 			_func = new Combo(comp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
 			_func.setVisibleItemCount(_comm.prop.var.etc.comboVisibleItemCount);
 			.listener(_func, SWT.Selection, &functionSelected);

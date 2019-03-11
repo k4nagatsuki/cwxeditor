@@ -654,6 +654,7 @@ class Msgs : Properties {
 	auto variableTypeNameStep = Msg("variableTypeNameStep", "ステップ");
 	auto variableTypeNameVariant = Msg("variableTypeNameVariant", "コモン");
 
+	auto functionCategory = Msg("functionCategory", "分類");
 	auto allFunctions = Msg("allFunctions", "全て");
 	const string functionCategoryName(FunctionCategory id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(FunctionCategory, "functionCategoryName"));
