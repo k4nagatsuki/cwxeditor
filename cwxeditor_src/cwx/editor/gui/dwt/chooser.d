@@ -583,9 +583,11 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 		string sel = _selected;
 		_selected = "";
 		if (_tree) { mixin(S_TRACE);
+			if (_tree.isDisposed()) return;
 			_tree.setRedraw(false);
 			_tree.removeAll();
 		} else { mixin(S_TRACE);
+			if (_list.isDisposed()) return;
 			_list.setRedraw(false);
 			_list.removeAll();
 		}
@@ -837,6 +839,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 	}
 
 	private void saveExpanded() { mixin(S_TRACE);
+		if (_tree.isDisposed()) return;
 		bool[string] flagDirExpanded;
 		void recurse(TreeItem itm) { mixin(S_TRACE);
 			auto dir = cast(FlagDir)itm.getData();

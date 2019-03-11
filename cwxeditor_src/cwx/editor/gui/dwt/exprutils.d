@@ -101,6 +101,7 @@ private:
 	ExpressionEditor _expr;
 
 	Button[VariableType] _varTypes;
+	Composite _varComp;
 	FlagChooser!(cwx.flag.Flag, false) _flag = null;
 	string _selFlag = "";
 	FlagChooser!(Step, false) _step = null;
@@ -108,9 +109,11 @@ private:
 	FlagChooser!(cwx.flag.Variant, false) _variant = null;
 	string _selVariant = "";
 
-	void refFlagsAndSteps(cwx.flag.Flag[] flags, Step[] steps, cwx.flag.Variant variants) { mixin(S_TRACE);
-		if (!summ.flagDirRoot.hasFlag && !summ.flagDirRoot.hasStep && !summ.flagDirRoot.hasVariant) { mixin(S_TRACE);
+	void refFlagsAndSteps(cwx.flag.Flag[] flags, Step[] steps, cwx.flag.Variant[] variants) { mixin(S_TRACE);
+		if (summ && !summ.flagDirRoot.hasFlag && !summ.flagDirRoot.hasStep && !summ.flagDirRoot.hasVariant) { mixin(S_TRACE);
 			forceCancel();
+		} else { mixin(S_TRACE);
+			updateEnabled();
 		}
 	}
 
@@ -122,6 +125,85 @@ private:
 		}
 		ws ~= _expr.warnings;
 		warning = ws;
+	}
+
+	private void updateEnabled() { mixin(S_TRACE);
+		auto noSelect = false;
+		foreach (varType, b; _varTypes) { mixin(S_TRACE);
+			final switch (varType) {
+			case VariableType.Flag:
+				b.setEnabled(summ && summ.flagDirRoot.hasFlag);
+				break;
+			case VariableType.Step:
+				b.setEnabled(summ && summ.flagDirRoot.hasStep);
+				break;
+			case VariableType.Variant:
+				b.setEnabled(summ && summ.flagDirRoot.hasVariant);
+				break;
+			}
+			if (!b.getEnabled() && b.getSelection()) { mixin(S_TRACE);
+				b.setSelection(false);
+				noSelect = true;
+			}
+		}
+		if (noSelect) { mixin(S_TRACE);
+			if (summ && summ.flagDirRoot.hasVariant) { mixin(S_TRACE);
+				_varTypes[VariableType.Variant].setSelection(true);
+			} else if (summ && summ.flagDirRoot.hasStep) { mixin(S_TRACE);
+				_varTypes[VariableType.Step].setSelection(true);
+			} else if (summ && summ.flagDirRoot.hasFlag) { mixin(S_TRACE);
+				_varTypes[VariableType.Flag].setSelection(true);
+			} else { mixin(S_TRACE);
+				_varTypes[VariableType.Variant].setSelection(true);
+			}
+		}
+		selectedVariableType();
+	}
+
+	void selectedVariableType() { mixin(S_TRACE);
+		_varComp.setRedraw(false);
+		scope (exit) _varComp.setRedraw(true);
+		auto varType = .getRadioValue(_varTypes);
+		if (_flag && varType is VariableType.Flag) return;
+		if (_step && varType is VariableType.Step) return;
+		if (_variant && varType is VariableType.Variant) return;
+		if (_flag) { mixin(S_TRACE);
+			_selFlag = _flag.selected;
+			_flag.dispose();
+			_flag = null;
+		} else if (_step) { mixin(S_TRACE);
+			_selStep = _step.selected;
+			_step.dispose();
+			_step = null;
+		} else if (_variant) { mixin(S_TRACE);
+			_selVariant = _variant.selected;
+			_variant.dispose();
+			_variant = null;
+		}
+		assert (!_flag && !_step && !_variant);
+		auto gd = new GridData(GridData.FILL_BOTH);
+		gd.horizontalSpan = 3;
+		final switch (varType) {
+		case VariableType.Flag:
+			_flag = new FlagChooser!(cwx.flag.Flag, false)(comm, summ, _varComp);
+			_flag.setLayoutData(gd);
+			mod(_flag);
+			_flag.selected = _selFlag;
+			break;
+		case VariableType.Step:
+			_step = new FlagChooser!(Step, false)(comm, summ, _varComp);
+			_step.setLayoutData(gd);
+			mod(_step);
+			_step.selected = _selStep;
+			break;
+		case VariableType.Variant:
+			_variant = new FlagChooser!(cwx.flag.Variant, false)(comm, summ, _varComp);
+			_variant.setLayoutData(gd);
+			mod(_variant);
+			_variant.selected = _selVariant;
+			break;
+		}
+		_varComp.layout();
 	}
 
 public:
@@ -146,6 +228,7 @@ protected:
 			_expr.setLayoutData(new GridData(GridData.FILL_BOTH));
 		}
 		auto grpB = new Group(sash, SWT.NONE);
+		_varComp = grpB;
 		grpB.setText(comm.prop.msgs.expressionTarget);
 		grpB.setLayout(normalGridLayout(3, false));
 		foreach (varType; [VariableType.Variant, VariableType.Step, VariableType.Flag]) { mixin(S_TRACE);
@@ -153,55 +236,16 @@ protected:
 			mod(b);
 			b.setText(comm.prop.msgs.variableTypeName(varType));
 			_varTypes[varType] = b;
-			if (!summ || summ.scenarioPath == "") b.setEnabled(false);
-		}
-		void selectedVariableType() { mixin(S_TRACE);
-			grpB.setRedraw(false);
-			scope (exit) grpB.setRedraw(true);
-			auto varType = .getRadioValue(_varTypes);
-			if (_flag && varType is VariableType.Flag) return;
-			if (_step && varType is VariableType.Step) return;
-			if (_variant && varType is VariableType.Variant) return;
-			if (_flag) { mixin(S_TRACE);
-				_selFlag = _flag.selected;
-				_flag.dispose();
-				_flag = null;
-			} else if (_step) { mixin(S_TRACE);
-				_selStep = _step.selected;
-				_step.dispose();
-				_step = null;
-			} else if (_variant) { mixin(S_TRACE);
-				_selVariant = _variant.selected;
-				_variant.dispose();
-				_variant = null;
-			}
-			assert (!_flag && !_step && !_variant);
-			auto gd = new GridData(GridData.FILL_BOTH);
-			gd.horizontalSpan = 3;
-			final switch (varType) {
-			case VariableType.Flag:
-				_flag = new FlagChooser!(cwx.flag.Flag, false)(comm, summ, grpB);
-				_flag.setLayoutData(gd);
-				mod(_flag);
-				_flag.selected = _selFlag;
-				break;
-			case VariableType.Step:
-				_step = new FlagChooser!(Step, false)(comm, summ, grpB);
-				_step.setLayoutData(gd);
-				mod(_step);
-				_step.selected = _selStep;
-				break;
-			case VariableType.Variant:
-				_variant = new FlagChooser!(cwx.flag.Variant, false)(comm, summ, grpB);
-				_variant.setLayoutData(gd);
-				mod(_variant);
-				_variant.selected = _selVariant;
-				break;
-			}
-			grpB.layout();
-		}
-		foreach (b; _varTypes.byValue()) { mixin(S_TRACE);
 			.listener(b, SWT.Selection, &selectedVariableType);
+		}
+
+		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
+			comm.refFlagAndStep.add(&refFlagsAndSteps);
+			comm.delFlagAndStep.add(&refFlagsAndSteps);
+			.listener(area, SWT.Dispose, { mixin(S_TRACE);
+				comm.refFlagAndStep.remove(&refFlagsAndSteps);
+				comm.delFlagAndStep.remove(&refFlagsAndSteps);
+			});
 		}
 
 		ignoreMod = true;
@@ -210,23 +254,25 @@ protected:
 			_expr.expression = evt.expression;
 			if (evt.flag != "") { mixin(S_TRACE);
 				_varTypes[VariableType.Flag].setSelection(true);
-				selectedVariableType();
+				updateEnabled();
 				_flag.selected = evt.flag;
 			} else if (evt.step != "") { mixin(S_TRACE);
 				_varTypes[VariableType.Step].setSelection(true);
-				selectedVariableType();
+				updateEnabled();
 				_step.selected = evt.step;
 			} else { mixin(S_TRACE);
 				_varTypes[VariableType.Variant].setSelection(true);
-				selectedVariableType();
+				updateEnabled();
 				_variant.selected = evt.variant;
 			}
 		} else { mixin(S_TRACE);
 			_expr.expression = "";
 			_varTypes[VariableType.Variant].setSelection(true);
-			selectedVariableType();
+			updateEnabled();
 			_variant.selected = "";
 		}
+
+		refDataVersion();
 
 		if (comm.prop.var.etc.expressionAndTargetSashT == -1) { mixin(S_TRACE);
 			comm.prop.var.etc.expressionAndTargetSashT = grpT.computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
@@ -235,8 +281,6 @@ protected:
 			comm.prop.var.etc.expressionAndTargetSashB = grpB.computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
 		}
 		.setupWeights(sash, comm.prop.var.etc.expressionAndTargetSashT, comm.prop.var.etc.expressionAndTargetSashB);
-
-		refDataVersion();
 	}
 
 	override bool apply() { mixin(S_TRACE);
@@ -325,17 +369,17 @@ class ExpressionEditor : Composite {
 
 		_expr = new Text(this, SWT.MULTI | SWT.BORDER);
 		.listener(_expr, SWT.Modify, &modified);
-		auto exprGD = new GridData(GridData.FILL_BOTH);
-		auto gc = new GC(_expr);
-		scope (exit) gc.dispose();
-		exprGD.heightHint = _expr.computeSize(SWT.DEFAULT, gc.wTextExtent("#\n#").y).y;
-		_expr.setLayoutData(exprGD);
 		auto font = _expr.getFont();
 		auto fSize = font ? cast(uint)font.getFontData()[0].height : 0;
 		_expr.setFont(new Font(getDisplay(), dwtData(_comm.prop.looks.textDlgFont(fSize))));
 		.listener(this, SWT.Dispose, { mixin(S_TRACE);
 			_expr.getFont().dispose();
 		});
+		auto gc = new GC(_expr);
+		scope (exit) gc.dispose();
+		auto exprGD = new GridData(GridData.FILL_BOTH);
+		exprGD.heightHint = gc.getFontMetrics().getHeight() * 4;
+		_expr.setLayoutData(exprGD);
 
 		auto varComp = new Composite(this, SWT.NONE);
 		varComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -745,15 +789,16 @@ private class FunctionCallEditor {
 			_decl.setFont(font);
 			auto gc = new GC(_decl);
 			scope (exit) gc.dispose();
+			auto lineH = gc.getFontMetrics().getHeight();
 			auto declGD = new GridData(GridData.FILL_HORIZONTAL);
-			declGD.heightHint = _decl.computeSize(SWT.DEFAULT, gc.wTextExtent("#").y).y;
+			declGD.heightHint = _decl.computeSize(SWT.DEFAULT, lineH).y;
 			_decl.setLayoutData(declGD);
 
 			auto descL = new Label(comp, SWT.NONE);
 			descL.setText(_comm.prop.msgs.functionDescription);
 			_desc = new Label(comp, SWT.BORDER | SWT.WRAP);
 			auto descGD = new GridData(GridData.FILL_BOTH);
-			descGD.heightHint = _desc.computeSize(SWT.DEFAULT, gc.wTextExtent("#\n#\n#\n#").y).y;
+			descGD.heightHint = _desc.computeSize(SWT.DEFAULT, lineH * 3).y;
 			_desc.setLayoutData(descGD);
 
 			auto exampleL = new Label(comp, SWT.NONE);
@@ -762,7 +807,7 @@ private class FunctionCallEditor {
 			createTextMenu!Text(_comm, _comm.prop, _example, null);
 			_example.setFont(font);
 			auto exampleGD = new GridData(GridData.FILL_HORIZONTAL);
-			exampleGD.heightHint = _example.computeSize(SWT.DEFAULT, gc.wTextExtent("#").y).y;
+			exampleGD.heightHint = _example.computeSize(SWT.DEFAULT, lineH).y;
 			_example.setLayoutData(exampleGD);
 		}
 		(new Label(_shell, SWT.SEPARATOR | SWT.HORIZONTAL)).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
