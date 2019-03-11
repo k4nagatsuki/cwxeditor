@@ -1072,7 +1072,15 @@ private class FunctionCallEditor {
 			if (funcDef.name == name) { mixin(S_TRACE);
 				_func.select(cast(int)i);
 				functionSelected();
-				break;
+				return;
+			}
+		}
+		foreach (i, funcDef; _allFuncDefs) { mixin(S_TRACE);
+			if (funcDef.name == name) { mixin(S_TRACE);
+				_category.select(cast(int)_categories.cCountUntil(funcDef.category[0]) + 1);
+				updateFunctions();
+				selectFunction(name);
+				return;
 			}
 		}
 	}
