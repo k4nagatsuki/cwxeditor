@@ -2626,7 +2626,7 @@ class Msgs : Properties {
 	auto funcDescLen = Msg("funcDescLen", "文字列の長さ(文字数)を返します。");
 	auto funcDescLeft = Msg("funcDescLeft", "文字列の左側を返します。");
 	auto funcDescRight = Msg("funcDescRight", "文字列の右側を返します。");
-	auto funcDescMid = Msg("funcDescMid", "文字列の中間部分を返します。");
+	auto funcDescMid = Msg("funcDescMid", "文字列の中間部分を返します。長さを省略した場合は、指定位置より右側を返します。");
 	auto funcDescStr = Msg("funcDescStr", "任意の値を文字列に変換します。");
 	auto funcDescValue = Msg("funcDescValue", "任意の値を数値に変換します。");
 	auto funcDescInt = Msg("funcDescInt", "任意の値を整数に変換します。小数点以下の値は切り捨てられます。");

@@ -1178,24 +1178,28 @@ private const(Part) funcRight(in CProps prop, EvalMode mode, in VariableInfo vIn
 
 /// 文字列の[N1-1:N1+N2]の範囲を取り出す。
 private const(Part) funcMid(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
-	if (!checkArgCount(prop, func, args, 3, err)) return new StringValue(func.token, "");
+	if (!checkArgCount2(prop, func, args, 2, 3, err)) return new StringValue(func.token, "");
 	auto s = checkString(prop, func, args, 0, err);
 	if (!s) return new StringValue(func.token, "");
 	auto a1 = checkMinValue(prop, func, args, 1, 1, err);
 	if (!a1) return new StringValue(func.token, "");
-	auto a2 = checkMinValue(prop, func, args, 2, 0, err);
-	if (!a2) return new StringValue(func.token, "");
 	auto n1 = cast(size_t)a1.numVal;
-	auto n2 = cast(size_t)a2.numVal;
-
+	auto v = n1 - 1;
 	auto a = s.strVal.toUTF32();
+
 	if (a.length + 1 <= n1) { mixin(S_TRACE);
 		a = ""d;
 	} else { mixin(S_TRACE);
-		auto v = n1 - 1;
 		a = a[v .. $];
-		v = .min(n2, a.length);
-		a = a[0 .. v];
+
+		if (args.length == 3) { mixin(S_TRACE);
+			auto a2 = checkMinValue(prop, func, args, 2, 0, err);
+			if (!a2) return new StringValue(func.token, "");
+			auto n2 = cast(size_t)a2.numVal;
+
+			v = .min(n2, a.length);
+			a = a[0 .. v];
+		}
 	}
 	return new StringValue(func.token, a.text);
 }
@@ -1421,7 +1425,7 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 		FuncDef([FunctionCategory.StringOperation], "MID", prop.msgs.funcDescMid, prop.msgs.funcShortDescMid, prop.msgs.funcExampleMid, [
 			ArgDef(ArgType.String, prop.msgs.exprStringDesc, "", false),
 			ArgDef(ArgType.Number, prop.msgs.exprStringPositionDesc, "1", false),
-			ArgDef(ArgType.Number, prop.msgs.exprStringLengthDesc, "0", false),
+			ArgDef(ArgType.Number, prop.msgs.exprStringLengthDesc, "0", true),
 		], ArgType.String),
 		FuncDef([FunctionCategory.StringOperation], "STR", prop.msgs.funcDescStr, prop.msgs.funcShortDescStr, prop.msgs.funcExampleStr, [
 			ArgDef(ArgType.Any, prop.msgs.exprAnyValueDesc, "", false),
@@ -1524,6 +1528,10 @@ unittest { mixin (UTPerf);
 	assert (checkS(.eval(prop, EvalMode.All, vInfo, "MID(\"あいうえお\", 2, 3)"), "いうえ"));
 	assert (checkS(.eval(prop, EvalMode.All, vInfo, "MID(\"あいうえお\", 5, 3)"), "お"));
 	assert (checkS(.eval(prop, EvalMode.All, vInfo, "MID(\"あいうえお\", 6, 3)"), ""));
+	assert (checkS(.eval(prop, EvalMode.All, vInfo, "MID(\"あいうえお\", 3)"), "うえお"));
+	assert (checkS(.eval(prop, EvalMode.All, vInfo, "MID(\"あいうえお\", 5)"), "お"));
+	assert (checkS(.eval(prop, EvalMode.All, vInfo, "MID(\"あいうえお\", 6)"), ""));
+	assert (checkS(.eval(prop, EvalMode.All, vInfo, "MID(\"あいうえお\", 7)"), ""));
 	assert (checkS(.eval(prop, EvalMode.All, vInfo, "STR(\"あいうえお\")"), "あいうえお"));
 	assert (checkS(.eval(prop, EvalMode.All, vInfo, "STR(42)"), "42"));
 	assert (checkS(.eval(prop, EvalMode.All, vInfo, "STR(42.42 + 5)"), "47.42"));
