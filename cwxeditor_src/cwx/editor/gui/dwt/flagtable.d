@@ -495,7 +495,7 @@ protected:
 				return _valueEditor;
 			}
 			_tte = new TableTextEdit(_comm, _comm.prop, _values, 1, &valueEditEnd, (itm, column) => true, &createEditor);
-			_tte.quickStart = true;
+			_tte.quickStart = EditStartType.Quick;
 		}
 		{ mixin(S_TRACE);
 			auto comp = new Composite(area, SWT.NONE);

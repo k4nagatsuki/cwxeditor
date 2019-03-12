@@ -766,7 +766,9 @@ private class FunctionCallEditor {
 			.saveColumnWidth!("prop.var.etc.functionArgumentValueColumn")(_comm.prop, argValue);
 
 			_typeEdit = new TableComboEdit!Combo(_comm, _comm.prop, _args, 1, &createTypeEditor, &typeEditEnd, null);
+			_typeEdit.quickStart = EditStartType.SingleClick;
 			_valueEdit = new TableTCEdit(_comm, _args, 2, &createValueEditor, &valueEditEnd, (itm, column) => _selectedArgType[_args.indexOf(itm)] != ArgType.NoArgument);
+			_valueEdit.quickStart = EditStartType.SingleClick;
 
 			_undo = new UndoManager(_comm.prop.var.etc.undoMaxEtc);
 			_comm.refUndoMax.add(&refUndoMax);

@@ -352,6 +352,12 @@ public:
 	}
 }
 
+enum EditStartType {
+	Normal,
+	SingleClick,
+	Quick,
+}
+
 class TextEditMFListener : MouseAdapter, SelectionListener, FocusListener {
 private:
 	Commons _comm;
@@ -362,7 +368,7 @@ private:
 	Item _oldSel = null, _oldSel2 = null;
 	bool _hasFocus = false;
 	bool _start = false;
-	bool _quickStart = false;
+	EditStartType _quickStart = EditStartType.Normal;
 	Item delegate() _selection;
 	Item delegate(int x, int y) _selectionM;
 	void delegate(Item itm) _startEdit;
@@ -425,14 +431,14 @@ public:
 	}
 	/// アイテム選択時、即座に編集を開始する。
 	@property
-	void quickStart(bool v) { _quickStart = v; }
+	void quickStart(EditStartType v) { _quickStart = v; }
 	/// ditto
 	@property
 	const
-	bool quickStart() { return _quickStart; }
+	EditStartType quickStart() { return _quickStart; }
 
 	override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
-		if (_quickStart) { mixin(S_TRACE);
+		if (_quickStart is EditStartType.Quick) { mixin(S_TRACE);
 			auto itm = _selection();
 			if (itm) { mixin(S_TRACE);
 				_startEdit(itm);
@@ -454,7 +460,7 @@ public:
 	override void focusGained(FocusEvent e) { mixin(S_TRACE);
 		_hasFocus = true;
 		auto selected = false;
-		if (quickStart) { mixin(S_TRACE);
+		if (quickStart is EditStartType.Quick) { mixin(S_TRACE);
 			if (auto table = cast(Table)e.widget) {
 				if (-1 == table.getSelectionIndex() && table.getItemCount()) { mixin(S_TRACE);
 					table.select(0);
@@ -481,7 +487,7 @@ public:
 				se.doit = true;
 				e.widget.notifyListeners(SWT.Selection, se);
 			});
-		} else if (quickStart) { mixin(S_TRACE);
+		} else if (quickStart is EditStartType.Quick) { mixin(S_TRACE);
 			.asyncExec(_display, { mixin(S_TRACE);
 				auto itm = _selection();
 				if (itm) { mixin(S_TRACE);
@@ -507,6 +513,8 @@ public:
 			if (itm == _itm) { mixin(S_TRACE);
 				_startEdit(itm);
 			}
+		} else if (quickStart is EditStartType.SingleClick) { mixin(S_TRACE);
+			_startEdit(itm);
 		} else { mixin(S_TRACE);
 			if (2 <= e.count) { mixin(S_TRACE);
 				return;
@@ -842,11 +850,11 @@ public:
 	}
 	/// trueの場合はアイテム選択後即座に編集を開始する。
 	@property
-	void quickStart(bool v) { _mf.quickStart = v; }
+	void quickStart(EditStartType v) { _mf.quickStart = v; }
 	/// ditto
 	@property
 	const
-	bool quickStart() { return _mf.quickStart; }
+	EditStartType quickStart() { return _mf.quickStart; }
 
 	void startEdit(TableItem itm) { mixin(S_TRACE);
 		try { mixin(S_TRACE);
@@ -856,7 +864,7 @@ public:
 			if (canEdit is null || canEdit(sel, editC)) { mixin(S_TRACE);
 				table.showSelection();
 				auto editor = createEditor(sel, editC);
-				if (auto t = cast(Text)editor && _mf.quickStart) { mixin(S_TRACE);
+				if (auto t = cast(Text)editor && _mf.quickStart is EditStartType.Quick) { mixin(S_TRACE);
 					.listener(editor, SWT.KeyDown, (e) { mixin(S_TRACE);
 						auto selected = false;
 						if (e.keyCode is SWT.ARROW_UP) { mixin(S_TRACE);
@@ -887,7 +895,7 @@ public:
 						}
 					});
 				}
-				_tee = new EditEnd(_comm, table, editor, &endImpl, !quickStart);
+				_tee = new EditEnd(_comm, table, editor, &endImpl, quickStart !is EditStartType.Quick);
 				_editor.setEditor(_tee.editor, sel, editC);
 				_tee.exitEvent ~= exitEvent;
 				_tee.setFocus();
