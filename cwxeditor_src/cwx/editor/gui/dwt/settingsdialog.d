@@ -288,7 +288,7 @@ private:
 			if (SWT.OK == dlg.open()) { mixin(S_TRACE);
 				_prop.var.etc.openHistories = [];
 				_comm.refHistories.call();
-				_prop.var.save(_dock);
+				_prop.var.save(_dock, _comm.sync);
 				_sendReloadProps();
 			}
 		}
@@ -303,7 +303,7 @@ private:
 				_prop.var.etc.replaceHistories = [];
 				_prop.var.etc.grepDirHistories = [];
 				_comm.refSearchHistories.call();
-				_prop.var.save(_dock);
+				_prop.var.save(_dock, _comm.sync);
 				_sendReloadProps();
 			}
 		}
@@ -316,7 +316,7 @@ private:
 			if (SWT.OK == dlg.open()) { mixin(S_TRACE);
 				_prop.var.etc.executedParties = [];
 				_comm.refExecutedParties.call();
-				_prop.var.save(_dock);
+				_prop.var.save(_dock, _comm.sync);
 				_sendReloadProps();
 			}
 		}
@@ -1622,7 +1622,7 @@ protected:
 			_findEnginePath.setSelection(_prop.var.etc.findEnginePath);
 			refEngineEnabled();
 		}
-		_prop.var.save(_dock);
+		_prop.var.save(_dock, _comm.sync);
 		_sendReloadProps();
 		return true;
 	}

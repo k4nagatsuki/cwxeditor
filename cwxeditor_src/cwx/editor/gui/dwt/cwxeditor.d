@@ -70,7 +70,7 @@ void main(string[] args) {
 			}
 			try {
 				dStr ~= " - " ~ .text(__LINE__);
-				auto comm = new Commons(prop);
+				auto comm = new Commons(prop, null);
 				dStr ~= " - " ~ .text(__LINE__);
 				auto dlg = new TextDialog(comm, prop, null, prop.msgs.dlgTitUsage, null, prop.msgs.usage ~ "\n");
 				dlg.setImages(prop.images.icon);

@@ -34,6 +34,7 @@ import cwx.imagesize;
 import cwx.structs;
 import cwx.system;
 import cwx.props;
+import cwx.filesync;
 
 import std.algorithm : min;
 static import std.algorithm;
@@ -2218,7 +2219,7 @@ struct SData {
 	}
 }
 /// 4.0形式のCardWirthシナリオを保存する。
-void saveLScenario(Summary summ, const Skin skin, const CProps prop, in SaveOption opt) { mixin(S_TRACE);
+void saveLScenario(Summary summ, const Skin skin, const CProps prop, in SaveOption opt, FileSync sync) { mixin(S_TRACE);
 	HashSet!Object changed = null;
 	if (opt.saveChangedOnly) changed = summ.changedResources;
 
@@ -2232,24 +2233,19 @@ void saveLScenario(Summary summ, const Skin skin, const CProps prop, in SaveOpti
 		ItemCard[] items;
 		BeastCard[] beasts;
 		InfoCard[] infos;
-		string[] wids;
 		this () {
 			d = SData(prop, summ.scenarioPath, skin, opt.saveInnerImagePath, opt.logicalSort, (id) => summ.skill(id), (id) => summ.item(id), (id) => summ.beast(id), opt);
 		}
 		void writeFile(CWXPath a, string name, void delegate(ref ByteIO f) write) { mixin(S_TRACE);
-			auto file = "~" ~ name;
-			auto path = std.path.buildPath(d.sPath, file);
-			auto path2 = std.path.buildPath(d.sPath, name);
-			if (!d.opt.saveChangedOnly || !path2.exists() || !path2.isFile() || changed.contains(cast(Object)a)) { mixin(S_TRACE);
+			auto path = std.path.buildPath(d.sPath, name);
+			if (!d.opt.saveChangedOnly || !path.exists() || !path.isFile() || changed.contains(cast(Object)a)) { mixin(S_TRACE);
 				ByteIO f;
 				write(f);
-				std.file.write(path, f.bytes);
+				.writeFile(path, f.bytes, sync);
 				f.dispose();
 			} else { mixin(S_TRACE);
-				path2.rename(path);
 				putExData(d, a);
 			}
-			wids ~= file;
 		}
 		void save() { mixin(S_TRACE);
 			version (Console) {
@@ -2281,11 +2277,6 @@ void saveLScenario(Summary summ, const Skin skin, const CProps prop, in SaveOpti
 			}
 			version (Console) {
 				debug std.stdio.writeln("Exit Classic Save Thread");
-			}
-		}
-		void rename() { mixin(S_TRACE);
-			foreach (file; wids) { mixin(S_TRACE);
-				std.file.rename(std.path.buildPath(d.sPath, file), std.path.buildPath(d.sPath, file[1u .. $]));
 			}
 		}
 	}
@@ -2320,30 +2311,25 @@ void saveLScenario(Summary summ, const Skin skin, const CProps prop, in SaveOpti
 	}
 	save1.d.merge(save2.d);
 
-	string[] renames;
 	string comment = saveComment(save1.d);
 	if (comment.length) { mixin(S_TRACE);
-		auto file = "~Comment.wex";
-		std.file.write(save1.d.sPath.buildPath(file), cast(immutable byte[])comment);
-		renames ~= file;
+		auto file = "Comment.wex";
+		.writeFile(save1.d.sPath.buildPath(file), cast(immutable byte[])comment, sync);
 	}
 	string imageRef = saveImageRef(save1.d);
 	if (imageRef.length) { mixin(S_TRACE);
-		auto file = "~ImageRef.wex";
-		std.file.write(save1.d.sPath.buildPath(file), cast(immutable byte[])imageRef);
-		renames ~= file;
+		auto file = "ImageRef.wex";
+		.writeFile(save1.d.sPath.buildPath(file), cast(immutable byte[])imageRef, sync);
 	}
 	string cardRef = saveCardRef(save1.d);
 	if (cardRef.length) { mixin(S_TRACE);
-		auto file = "~CardRef.wex";
-		std.file.write(save1.d.sPath.buildPath(file), cast(immutable byte[])cardRef);
-		renames ~= file;
+		auto file = "CardRef.wex";
+		.writeFile(save1.d.sPath.buildPath(file), cast(immutable byte[])cardRef, sync);
 	}
 	string templates = saveTemplate(summ);
 	if (templates.length) { mixin(S_TRACE);
-		auto file = "~Template.wex";
-		std.file.write(save1.d.sPath.buildPath(file), cast(immutable byte[])templates);
-		renames ~= file;
+		auto file = "Template.wex";
+		.writeFile(save1.d.sPath.buildPath(file), cast(immutable byte[])templates, sync);
 	}
 
 	auto sysFName = .regex!(dstring)("^(((Area|Battle|Package|Mate|Skill|Item|Beast|Info)[0-9]+\\.wid)|((Comment|ImageRef|CardRef|Template)\\.wex))$"d);
@@ -2364,11 +2350,6 @@ void saveLScenario(Summary summ, const Skin skin, const CProps prop, in SaveOpti
 			preRemove(path);
 			std.file.remove(path);
 		}
-	}
-	save1.rename();
-	save2.rename();
-	foreach (file; renames) { mixin(S_TRACE);
-		std.file.rename(std.path.buildPath(save1.d.sPath, file), std.path.buildPath(save1.d.sPath, file[1u .. $]));
 	}
 }
 

@@ -5,6 +5,7 @@ public import cwx.perf;
 public import cwx.versioninfo;
 
 import cwx.binary;
+import cwx.filesync;
 import cwx.imagesize;
 import cwx.sjis;
 
@@ -854,11 +855,11 @@ string readTextFile(string path, out bool isSJIS) { mixin(S_TRACE);
 	}
 }
 /// pathへテキストを書き込む。
-void writeTextFile(string path, string value, bool isSJIS) { mixin(S_TRACE);
+void writeTextFile(string path, string value, bool isSJIS, FileSync sync) { mixin(S_TRACE);
 	if (isSJIS) { mixin(S_TRACE);
 		value = tosjis(value);
 	}
-	std.file.write(path, value);
+	.writeFile(path, value, sync);
 }
 
 /// データのMD5ダイジェストを取得する。

@@ -2476,6 +2476,7 @@ public:
 		scope (exit) resultRedraw(true);
 		_undo.undo();
 		_comm.updateJpy1Files(true);
+		_comm.sync.sync();
 	}
 	private void redo() { mixin(S_TRACE);
 		if (!_undo.canRedo) return;
@@ -2490,6 +2491,7 @@ public:
 		scope (exit) resultRedraw(true);
 		_undo.redo();
 		_comm.updateJpy1Files(true);
+		_comm.sync.sync();
 	}
 	/// 外部で検索した結果を表示する。
 	void setFindResult(CWXPath parent, CWXPath[] paths, string kind) { mixin(S_TRACE);
@@ -3162,6 +3164,7 @@ public:
 						}
 					}
 					_comm.updateJpy1Files(true);
+					_comm.sync.sync();
 					after();
 				}
 			};
@@ -4014,7 +4017,7 @@ public:
 							bool r = repl(null, null, "", jText, (string jText) { mixin(S_TRACE);
 								string value = jptxText(value, jText);
 								try { mixin(S_TRACE);
-									writeJPYFile(file2, value, isSJIS);
+									writeJPYFile(file2, value, isSJIS, _comm.sync);
 								} catch (Exception e) {
 									printStackTrace();
 									debugln(e);
@@ -4040,7 +4043,7 @@ public:
 								auto file2 = file;
 								bool r = repl(null, null, "", value, (string value) { mixin(S_TRACE);
 									try { mixin(S_TRACE);
-										writeTextFile(file2, value, isSJIS);
+										writeTextFile(file2, value, isSJIS, _comm.sync);
 									} catch (Exception e) {
 										printStackTrace();
 										debugln(e);
@@ -4056,6 +4059,9 @@ public:
 							}
 						}
 					}
+				}
+				if (_replMode) { mixin(S_TRACE);
+					_comm.sync.sync();
 				}
 			}
 		}

@@ -16,6 +16,7 @@ import cwx.system;
 import cwx.importutils;
 import cwx.path;
 import cwx.usecounter;
+import cwx.filesync;
 
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.dprops;
@@ -436,6 +437,7 @@ class Commons {
 	Mutex saveSync;
 
 	private Props _prop = null;
+	private FileSync _sync = null;
 
 	bool[string] flagDirExpanded;
 	bool[string] stepDirExpanded;
@@ -454,8 +456,9 @@ class Commons {
 
 	private HashSet!(Composite) _ws;
 	private Object[Composite] _wos;
-	this (Props prop) { mixin(S_TRACE);
+	this (Props prop, FileSync sync) { mixin(S_TRACE);
 		_prop = prop;
+		_sync = sync;
 		_ws = new HashSet!(Composite);
 		_aws = new HashSet!(Composite);
 		_toolbars = new HashSet!(Control);
@@ -494,6 +497,10 @@ class Commons {
 	@property
 	inout
 	inout(Props) prop() {return _prop;}
+
+	@property
+	inout
+	inout(FileSync) sync() {return _sync;}
 
 	void dispose() { mixin(S_TRACE);
 		if (_wallpaper) _wallpaper.dispose();
@@ -1460,6 +1467,6 @@ class Commons {
 
 	/// シナリオ内にあるJpy1ファイルの内容の上書きが必要であれば更新する。
 	void updateJpy1Files(bool forceUpdate = false) { mixin(S_TRACE);
-		if (summary) summary.updateJpy1Files(prop.parent, prop.var.etc.autoUpdateJpy1File || forceUpdate);
+		if (summary) summary.updateJpy1Files(prop.parent, prop.var.etc.autoUpdateJpy1File || forceUpdate, _sync);
 	}
 }

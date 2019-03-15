@@ -21,6 +21,7 @@ import cwx.cab;
 import cwx.binary;
 import cwx.xml;
 import cwx.win32res;
+import cwx.filesync;
 
 import cwx.editor.gui.sound;
 
@@ -125,6 +126,7 @@ private:
 	Display _display = null;
 	Object _displayMutex = null;
 	bool _quit = false;
+	FileSync _sync = null;
 	Mutex _saveSync = null;
 	bool _inSaving = false;
 	private bool _isChanged = false;
@@ -708,7 +710,7 @@ private:
 		refreshExecEngineImpl(_mExecEngine, _mExecEngineWithParty, true);
 		refreshExecEngineImpl(_tmExecEngine, _tmExecEngineWithParty, false);
 		updateExecEngineWithPartyName();
-		_prop.var.save(dock);
+		_prop.var.save(dock, _sync);
 		sendReloadProps();
 	}
 
@@ -906,7 +908,7 @@ private:
 						_saveSync.lock();
 						scope (exit) _saveSync.unlock();
 						mixin(S_TRACE);
-						arc = summ.createZipData([], true, name.extension().toLower() == ".wsn", tempData);
+						arc = summ.createZipData([], true, name.extension().toLower() == ".wsn", tempData, _sync);
 						mixin(S_TRACE);
 					}
 					mixin(S_TRACE);
@@ -1022,12 +1024,12 @@ private:
 				{ mixin(S_TRACE);
 					_saveSync.lock();
 					scope (exit) _saveSync.unlock();
-					summ.saveOverwrite(_prop.parent, findSkin(_comm, _prop, summ), createSaveOpt(true));
+					summ.saveOverwrite(_prop.parent, findSkin(_comm, _prop, summ), createSaveOpt(true), _sync);
 				}
 			} else { mixin(S_TRACE);
 				summ = Summary.createScenario(_prop.parent, _prop.tempPath, dlg.name,
 					findSkin2(_prop, dlg.skinType, dlg.skinName), _prop.var.etc.newAreaName != "",
-					_prop.var.etc.newAreaName, _prop.var.etc.bgImagesDefault, _prop.var.etc.saveSkinName);
+					_prop.var.etc.newAreaName, _prop.var.etc.bgImagesDefault, _prop.var.etc.saveSkinName, _sync);
 			}
 			summ.author = _prop.var.etc.defaultAuthor;
 			openScenario(summ, []);
@@ -1088,11 +1090,12 @@ private:
 					if (!.exists(wsm)) wsm = old.scenarioPath;
 					string[] errorFiles;
 					if (old.readOnlyPath != "") wsm = old.readOnlyPath;
-					loadScenarioFromFile(_prop, loadOption(old), errorFiles, _comm.mainShell, &setStatusLine, old, wsm, &openScenario, &resetOpt);
+					loadScenarioFromFile(_prop, loadOption(old), errorFiles, _comm.mainShell, _sync, &setStatusLine, old, wsm, &openScenario, &resetOpt);
 				}
 			} else if (expand) { mixin(S_TRACE);
 				try { mixin(S_TRACE);
 					string[] errorFiles;
+					_sync.sync();
 					openScenario(old.reloadXMLs(_prop.parent, loadOption(old), errorFiles), errorFiles);
 				} catch (Exception e) {
 					printStackTrace();
@@ -1104,7 +1107,7 @@ private:
 			} else { mixin(S_TRACE);
 				auto path = old.origZipName != "" ? old.origZipName : old.readOnlyPath;
 				string[] errorFiles;
-				loadScenarioFromFile(_prop, loadOption(old), errorFiles, _comm.mainShell, &setStatusLine, old, path, &openScenario, &resetOpt);
+				loadScenarioFromFile(_prop, loadOption(old), errorFiles, _comm.mainShell, _sync, &setStatusLine, old, path, &openScenario, &resetOpt);
 			}
 		}
 	}
@@ -1341,7 +1344,7 @@ private:
 	void openScenario() { mixin(S_TRACE);
 		auto old = summary;
 		string[] errorFiles;
-		loadScenario(_prop, loadOption(null), errorFiles, _comm.mainShell, &setStatusLine,
+		loadScenario(_prop, loadOption(null), errorFiles, _comm.mainShell, _sync, &setStatusLine,
 			old, _prop.msgs.dlgTitOpenScenario,
 			_opt.openPaths, &openScenarioImpl, &resetOpt);
 	}
@@ -1352,7 +1355,7 @@ private:
 		decScenarioPath(fname, _opt.openPaths, _prop.var.etc.clickIsOpenEvent);
 		auto old = summary;
 		string[] errorFiles;
-		loadScenarioFromFile(_prop, loadOption(null), errorFiles, _comm.mainShell, &setStatusLine,
+		loadScenarioFromFile(_prop, loadOption(null), errorFiles, _comm.mainShell, _sync, &setStatusLine,
 			old, fname, &openScenarioImpl, failure);
 	}
 	void playSavedSound() { mixin(S_TRACE);
@@ -1401,6 +1404,7 @@ private:
 		return opt;
 	}
 	void beforeSave() { mixin(S_TRACE);
+		_sync.sync();
 		if (_prop.var.etc.applyDialogsBeforeSave) { mixin(S_TRACE);
 			foreach (shell; _display.getShells()) { mixin(S_TRACE);
 				auto dlg = cast(AbsDialog)shell.getData();
@@ -1434,7 +1438,7 @@ private:
 					{ mixin(S_TRACE);
 						_saveSync.lock();
 						scope (exit) _saveSync.unlock();
-						summary.saveOverwrite(_prop.parent, _comm.skin, createSaveOpt(false));
+						summary.saveOverwrite(_prop.parent, _comm.skin, createSaveOpt(false), _sync);
 					}
 					_comm.saved.call();
 					refreshTitle();
@@ -1562,7 +1566,7 @@ private:
 						summary.saveWithName(_prop.parent, _comm.skin, createSaveOpt(false),
 							fname, tempPath, expandXMLs, defSkin, (string msg) { mixin(S_TRACE);
 								DWTMessageBox.showWarning(msg, _prop.msgs.dlgTitWarning, shell);
-							}, classic);
+							}, classic, _sync);
 					}
 					_comm.saved.call();
 					refreshTitle();
@@ -1634,7 +1638,8 @@ private:
 			];
 			path2 ~= .tryFormat(" %s -scenario %s", params.join(" "), scenario);
 		}
-		if (exec(path2, dir)) { mixin(S_TRACE);
+		_sync.sync();
+		if (.exec(path2, dir)) { mixin(S_TRACE);
 			if (scenario != "") { mixin(S_TRACE);
 				// 履歴を記憶
 				_prop.var.etc.lastExecutedParty = ep;
@@ -1906,7 +1911,7 @@ private:
 		}
 	}
 	void sendReloadPropsAndSave() { mixin(S_TRACE);
-		_prop.var.save(_dock);
+		_prop.var.save(_dock, _sync);
 		sendReloadProps();
 	}
 	void sendReloadProps() { mixin(S_TRACE);
@@ -1949,7 +1954,7 @@ private:
 				_scHistDlg = null;
 			};
 			_scHistDlg.appliedEvent ~= { mixin(S_TRACE);
-				_prop.var.save(dock);
+				_prop.var.save(dock, _sync);
 				sendReloadProps();
 			};
 			_scHistDlg.open();
@@ -1977,7 +1982,7 @@ private:
 		_prop.var.etc.openHistories = history;
 
 		_comm.refHistories.call();
-		_prop.var.save(dock);
+		_prop.var.save(dock, _sync);
 		sendReloadProps();
 		_comm.refreshToolBar();
 	}
@@ -2088,7 +2093,7 @@ private:
 		}
 		if (history.length == hists2.length) return;
 		history = hists2;
-		_prop.var.save(dock);
+		_prop.var.save(dock, _sync);
 		sendReloadProps();
 		_comm.refHistories.call();
 	}
@@ -2129,7 +2134,7 @@ private:
 		}
 		if (summary && !_comm.isChanged) writeDock();
 		_prop.var.etc.lastScenario = p;
-		_prop.var.save(dock);
+		_prop.var.save(dock, _sync);
 		sendReloadProps();
 		_comm.refHistories.call();
 	}
@@ -2742,7 +2747,10 @@ public:
 			_refreshTitle = new RefreshTitle;
 
 			dStr ~= " - " ~ .text(__LINE__);
-			_comm = new Commons(_prop);
+			_sync = new FileSync;
+			_sync.start();
+			dStr ~= " - " ~ .text(__LINE__);
+			_comm = new Commons(_prop, _sync);
 			_comm.saveSync = _saveSync;
 			_comm.skin = findSkin2(_prop, _prop.var.etc.defaultSkin, _prop.var.etc.defaultSkinName);
 			dStr ~= " - " ~ .text(__LINE__);
@@ -4751,7 +4759,7 @@ public:
 				auto skinName = _opt.createSkinName is null ? _prop.var.etc.defaultSkinName : _opt.createSkinName;
 				auto summ = Summary.createScenario(_prop.parent, _prop.tempPath, name,
 					findSkin2(_prop, skinType, skinName), _prop.var.etc.newAreaName != "",
-					_prop.var.etc.newAreaName, _prop.var.etc.bgImagesDefault, _prop.var.etc.saveSkinName);
+					_prop.var.etc.newAreaName, _prop.var.etc.bgImagesDefault, _prop.var.etc.saveSkinName, _sync);
 				summ.author = _prop.var.etc.defaultAuthor;
 				openScenario(summ, []);
 				statusLine = "";
@@ -4773,7 +4781,7 @@ public:
 						{ mixin(S_TRACE);
 							_saveSync.lock();
 							scope (exit) _saveSync.unlock();
-							summ.saveOverwrite(_prop.parent, findSkin(_comm, _prop, summ), createSaveOpt(true));
+							summ.saveOverwrite(_prop.parent, findSkin(_comm, _prop, summ), createSaveOpt(true), _sync);
 						}
 						openScenario(summ, []);
 						statusLine = "";
@@ -4896,7 +4904,9 @@ public:
 				debug writeln("Disposed Display");
 			}
 			dStr ~= " - " ~ .text(__LINE__);
-			_prop.var.save(dock);
+			_prop.var.save(dock, _sync);
+			dStr ~= " - " ~ .text(__LINE__);
+			_sync.quit();
 			dStr ~= " - " ~ .text(__LINE__);
 			sendReloadProps();
 			version (Console) {

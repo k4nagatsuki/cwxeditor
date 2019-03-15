@@ -7,6 +7,7 @@ import cwx.sjis;
 import cwx.props;
 import cwx.usecounter;
 import cwx.path;
+import cwx.filesync;
 
 import std.algorithm;
 import std.array;
@@ -275,11 +276,11 @@ private string readJPYFile(string path, in CProps prop, EffectBoosterError errIn
 	}
 }
 /// pathへ書き込む。
-void writeJPYFile(string path, string value, bool isSJIS) { mixin(S_TRACE);
+void writeJPYFile(string path, string value, bool isSJIS, FileSync sync) { mixin(S_TRACE);
 	if (isSJIS) { mixin(S_TRACE);
 		value = tosjis(value);
 	}
-	std.file.write(path, value);
+	.writeFile(path, value, sync);
 }
 
 private string stripValue(string eqAfter) { mixin(S_TRACE);
@@ -462,7 +463,7 @@ struct Jpy1 {
 
 	/// ファイルパスの変更に伴ってファイルを上書き更新する。
 	/// rewriteがfalseの場合はファイルの上書きはせず内部データのみを更新する。
-	void updateJpy1File(in CProps prop, bool rewrite) { mixin(S_TRACE);
+	void updateJpy1File(in CProps prop, bool rewrite, FileSync sync) { mixin(S_TRACE);
 		bool update = false;
 		foreach (ref sec; sections) { mixin(S_TRACE);
 			switch (sec.dirtype) {
@@ -501,7 +502,7 @@ struct Jpy1 {
 			if (isSJIS) { mixin(S_TRACE);
 				rLines = tosjis(rLines);
 			}
-			std.file.write(jpy1Path, rLines);
+			.writeFile(jpy1Path, rLines, sync);
 		}
 	}
 }
@@ -1527,7 +1528,7 @@ class Jpdc : PathUser, CWXPath {
 
 	/// ファイルパスの変更に伴ってファイルを上書き更新する。
 	/// rewriteがfalseの場合はファイルの上書きはせず内部データのみを更新する。
-	void updateJpdcFile(in CProps prop, bool rewrite) { mixin(S_TRACE);
+	void updateJpdcFile(in CProps prop, bool rewrite, FileSync sync) { mixin(S_TRACE);
 		bool update = false;
 		if (needUpdate) { mixin(S_TRACE);
 			if (savefilenameIndex != -1) { mixin(S_TRACE);
@@ -1544,7 +1545,7 @@ class Jpdc : PathUser, CWXPath {
 			if (isSJIS) { mixin(S_TRACE);
 				rLines = tosjis(rLines);
 			}
-			std.file.write(jpdcPath, rLines);
+			.writeFile(jpdcPath, rLines, sync);
 		}
 	}
 }

@@ -4,6 +4,7 @@ module cwx.archive;
 import cwx.binary;
 import cwx.utils;
 import cwx.sjis;
+import cwx.filesync;
 
 import lhafile.lhafile;
 
@@ -239,21 +240,21 @@ string zipHasFile(string zip, string fileName) { mixin(S_TRACE);
 }
 
 /// targをzip圧縮し、パスzipに保存する。
-void zip(string targ, string zip, bool top, bool delegate(string path) ignorePath, bool useSysEnc) { mixin(S_TRACE);
+void zip(string targ, string zip, bool top, bool delegate(string path) ignorePath, bool useSysEnc, FileSync sync) { mixin(S_TRACE);
 	ubyte*[] data;
 	scope arc = .zip(targ, top, ignorePath, useSysEnc, data);
 	auto b = arc.build();
-	std.file.write(zip, b);
+	.writeFile(zip, b, sync);
 	destroy(arc);
 	freeAll(data);
 }
-void zip(string targ, string zip, bool top, string[] excludePath, bool useSysEnc) { mixin(S_TRACE);
+void zip(string targ, string zip, bool top, string[] excludePath, bool useSysEnc, FileSync sync) { mixin(S_TRACE);
 	foreach (i, ex; excludePath) { mixin(S_TRACE);
 		excludePath[i] = nabs(ex);
 	}
 	.zip(targ, zip, top, (string path) { mixin(S_TRACE);
 		return containsPath(excludePath, path);
-	}, useSysEnc);
+	}, useSysEnc, sync);
 }
 
 /// LHAアーカイヴarcをparentに展開する。

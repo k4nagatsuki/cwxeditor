@@ -395,7 +395,7 @@ protected:
 					// 非シナリオのディレクトリをベースとする
 					summ = Summary.createScenario(_prop.parent, _prop.tempPath, name,
 						findSkin2(_prop, skinType, skinName), _prop.var.etc.newAreaName != "",
-						_prop.var.etc.newAreaName, _prop.var.etc.bgImagesDefault, _prop.var.etc.saveSkinName);
+						_prop.var.etc.newAreaName, _prop.var.etc.bgImagesDefault, _prop.var.etc.saveSkinName, _comm.sync);
 					tPath.copyAll(summ.scenarioPath);
 				} else { mixin(S_TRACE);
 					auto cursors = setWaitCursors(topShell(getShell()));
@@ -420,7 +420,7 @@ protected:
 					if (!summ) { mixin(S_TRACE);
 						summ = Summary.createScenario(_prop.parent, _prop.tempPath, name,
 							findSkin2(_prop, skinType, skinName), _prop.var.etc.newAreaName != "",
-							_prop.var.etc.newAreaName, _prop.var.etc.bgImagesDefault, _prop.var.etc.saveSkinName);
+							_prop.var.etc.newAreaName, _prop.var.etc.bgImagesDefault, _prop.var.etc.saveSkinName, _comm.sync);
 					}
 					summ.setBaseParams(name, _prop.var.etc.defaultAuthor);
 					_prop.var.etc.defaultScenarioTemplate = tPath;

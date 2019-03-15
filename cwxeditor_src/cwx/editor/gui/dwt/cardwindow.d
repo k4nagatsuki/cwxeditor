@@ -1226,12 +1226,12 @@ public:
 			Summary summ, Summary toc, void delegate(CardWindow[]) addScenario) { mixin(S_TRACE);
 		parent = pane(parent);
 		auto addS = new AddS(comm, prop, parent, toc, addScenario);
-		loadScenarios(prop, loadOption(prop), comm.mainShell, status, prop.msgs.dlgTitAddScenario, &addS.addS);
+		loadScenarios(prop, loadOption(prop), comm.mainShell, comm.sync, status, prop.msgs.dlgTitAddScenario, &addS.addS);
 	}
 	static void openScenario(Commons comm, Props prop, Composite parent, void delegate(string) status,
 			Summary summ, Summary toc, string[] files, void delegate(CardWindow[]) addScenario) { mixin(S_TRACE);
 		parent = pane(parent);
 		auto addS = new AddS(comm, prop, parent, toc, addScenario);
-		loadScenariosFromFile(prop, loadOption(prop), comm.mainShell, status, files, &addS.addS);
+		loadScenariosFromFile(prop, loadOption(prop), comm.mainShell, comm.sync, status, files, &addS.addS);
 	}
 }

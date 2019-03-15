@@ -810,7 +810,7 @@ private:
 
 				// Jpy1ファイルの内容を更新
 				if (_summ) { mixin(S_TRACE);
-					_summ.updateJpy1Files(_prop.parent, _prop.var.etc.autoUpdateJpy1File);
+					_summ.updateJpy1Files(_prop.parent, _prop.var.etc.autoUpdateJpy1File, _comm.sync);
 					_summ.updateJpy1List(_prop.parent);
 				}
 
@@ -819,6 +819,7 @@ private:
 					foreach (itm; _dirs.getSelection()) itm.setExpanded(true);
 				}
 				refreshFiles(selfs);
+				_comm.sync.sync();
 				return true;
 			} catch (Exception e) {
 				printStackTrace();
@@ -982,7 +983,7 @@ private:
 			_comm.refPath.call(p1, p2, false);
 		}
 		// Jpy1ファイルの内容を更新
-		if (_summ) _summ.updateJpy1Files(_prop.parent, _prop.var.etc.autoUpdateJpy1File);
+		if (_summ) _summ.updateJpy1Files(_prop.parent, _prop.var.etc.autoUpdateJpy1File, _comm.sync);
 
 		itm.setData(new FileNameObj(to));
 		static if (is (T == TreeItem)) {
@@ -992,6 +993,7 @@ private:
 		} else { mixin(S_TRACE);
 			static assert (0);
 		}
+		_comm.sync.sync();
 		_comm.refPath.call(frp, trp, isdir);
 		_comm.refUseCount.call();
 		return to;
@@ -2056,12 +2058,12 @@ public:
 			} else if (fi == wsn) { mixin(S_TRACE);
 				_comm.saveSync.lock();
 				scope (exit) _comm.saveSync.unlock();
-				_summ.createZip(fname, _prop.var.etc.ignorePaths, false);
+				_summ.createZip(fname, _prop.var.etc.ignorePaths, false, _comm.sync);
 				_prop.var.etc.selectedArchiveFilter = ".wsn";
 			} else { mixin(S_TRACE);
 				_comm.saveSync.lock();
 				scope (exit) _comm.saveSync.unlock();
-				_summ.createZip(fname, _prop.var.etc.ignorePaths, true);
+				_summ.createZip(fname, _prop.var.etc.ignorePaths, true, _comm.sync);
 				_prop.var.etc.selectedArchiveFilter = ".zip";
 			}
 			_prop.var.etc.archivePath = dlg.getFilterPath();

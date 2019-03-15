@@ -23,6 +23,7 @@ import cwx.jpy;
 import cwx.msgutils;
 import cwx.background;
 import cwx.imagesize;
+import cwx.filesync;
 
 import lhafile.lhafile;
 
@@ -269,7 +270,7 @@ public:
 	/// tempPathにシナリオを新規作成する。
 	static Summary createScenario(in CProps prop, string tempPath, string name, Skin skin,
 			bool createStartArea, string newAreaName, in BgImageS[] bgImagesDefault,
-			bool saveSkinName) { mixin(S_TRACE);
+			bool saveSkinName, FileSync sync) { mixin(S_TRACE);
 		auto sys = prop.sys;
 		auto p = Summary.createTempDir(tempPath, name);
 		auto mFPath = std.path.buildPath(p, skin.materialPath);
@@ -278,7 +279,7 @@ public:
 		if (summ.expandXMLs) { mixin(S_TRACE);
 			SaveOption opt;
 			opt.saveSkinName = saveSkinName;
-			summ.saveXMLsImpl(summ.scenarioPath, sys, opt, true);
+			summ.saveXMLsImpl(summ.scenarioPath, sys, opt, true, sync);
 		}
 		summ.refCheckPaths();
 		summ.updateJpy1List(prop);
@@ -1998,17 +1999,20 @@ public:
 	/// path = 保存先のパス。
 	/// Throws:
 	/// FileException = ファイル削除時・保存時例外発生時。
-	void saveXMLs(string path, const System sys, in SaveOption opt) { mixin(S_TRACE);
-		saveXMLsImpl(path, sys, opt, true);
+	void saveXMLs(string path, const System sys, in SaveOption opt, FileSync sync) { mixin(S_TRACE);
+		saveXMLsImpl(path, sys, opt, true, sync);
 	}
-	private void saveXMLsImpl(string path, const System sys, in SaveOption opt, bool callSaved) { mixin(S_TRACE);
+	private void saveXMLsImpl(string path, const System sys, in SaveOption opt, bool callSaved, FileSync sync) { mixin(S_TRACE);
 		if (callSaved) _inSaving = true;
 		scope (exit) {
 			if (callSaved) {
+				sync.sync();
 				_inSaving = false;
 				if (opt.savedCallback) opt.savedCallback();
 			}
 		}
+		sync.sync();
+
 		string summFile = std.path.buildPath(path, "Summary.xml");
 
 		bool canBackup = opt.backup && (!opt.backupDir.exists() || opt.backupDir.isDir());
@@ -2029,25 +2033,25 @@ public:
 		xOpt.beast = (id) => beast(id);
 		xOpt.saveSkinName = opt.saveSkinName;
 		xOpt.logicalSort = opt.logicalSort;
-		std.file.write(summFile, summaryToXML(xOpt));
+		.writeFile(summFile, summaryToXML(xOpt), sync);
 
 		HashSet!Object changed = null;
 		if (opt.saveChangedOnly) changed = changedResources;
-		saveXML(std.path.buildPath(path, PATH_AREA), _area, opt, xOpt, changed);
-		saveXML(std.path.buildPath(path, PATH_BATTLE), _btl, opt, xOpt, changed);
-		saveXML(std.path.buildPath(path, PATH_PACKAGE), _pkg, opt, xOpt, changed);
+		saveXML(std.path.buildPath(path, PATH_AREA), _area, opt, xOpt, changed, sync);
+		saveXML(std.path.buildPath(path, PATH_BATTLE), _btl, opt, xOpt, changed, sync);
+		saveXML(std.path.buildPath(path, PATH_PACKAGE), _pkg, opt, xOpt, changed, sync);
 
-		saveXML(std.path.buildPath(path, PATH_CAST), _cast, opt, xOpt, changed);
-		saveXML(std.path.buildPath(path, PATH_SKILL), _skl, opt, xOpt, changed);
-		saveXML(std.path.buildPath(path, PATH_ITEM), _itm, opt, xOpt, changed);
-		saveXML(std.path.buildPath(path, PATH_BEAST), _bst, opt, xOpt, changed);
-		saveXML(std.path.buildPath(path, PATH_INFO), _info, opt, xOpt, changed);
+		saveXML(std.path.buildPath(path, PATH_CAST), _cast, opt, xOpt, changed, sync);
+		saveXML(std.path.buildPath(path, PATH_SKILL), _skl, opt, xOpt, changed, sync);
+		saveXML(std.path.buildPath(path, PATH_ITEM), _itm, opt, xOpt, changed, sync);
+		saveXML(std.path.buildPath(path, PATH_BEAST), _bst, opt, xOpt, changed, sync);
+		saveXML(std.path.buildPath(path, PATH_INFO), _info, opt, xOpt, changed, sync);
 	}
 	/// ditto
-	void saveXMLs(const System sys, in SaveOption opt) { mixin(S_TRACE);
-		saveXMLs(_sPath, sys, opt);
+	void saveXMLs(const System sys, in SaveOption opt, FileSync sync) { mixin(S_TRACE);
+		saveXMLs(_sPath, sys, opt, sync);
 	}
-	private static void saveXML(A)(string path, A[] targs, in SaveOption opt, XMLOption xOpt, HashSet!Object changed) { mixin(S_TRACE);
+	private static void saveXML(A)(string path, A[] targs, in SaveOption opt, XMLOption xOpt, HashSet!Object changed, FileSync sync) { mixin(S_TRACE);
 		auto canBackup = opt.backup && (!opt.backupDir.exists() || opt.backupDir.isDir());
 		string backupDir = "";
 		if (canBackup) { mixin(S_TRACE);
@@ -2091,7 +2095,7 @@ public:
 					auto backFile = backupDir.buildPath(name);
 					renameFile(file, backFile);
 				}
-				std.file.write(file, a.toXML(xOpt));
+				.writeFile(file, a.toXML(xOpt), sync);
 			}
 		}
 		if (.exists(path)) { mixin(S_TRACE);
@@ -2584,14 +2588,14 @@ public:
 		return (!useTemp || zipName.length) && readOnlyPath == "";
 	}
 	/// 上書き保存。
-	void saveOverwrite(in CProps prop, in Skin skin, in SaveOption opt) in { mixin(S_TRACE);
+	void saveOverwrite(in CProps prop, in Skin skin, in SaveOption opt, FileSync sync) in { mixin(S_TRACE);
 		assert (isSaved);
 	} body { mixin(S_TRACE);
-		saveProc(prop, skin, opt, useTemp, zipName, scenarioPath, scenarioPath, legacy, false, expandXMLs, false);
+		saveProc(prop, skin, opt, useTemp, zipName, scenarioPath, scenarioPath, legacy, false, expandXMLs, false, sync);
 	}
 	/// 名前をつけて保存。
 	void saveWithName(in CProps prop, in Skin skin, in SaveOption opt, string fname, string tempPath,
-			bool defExpandXMLs, Skin defSkin, void delegate(string) showWarn, bool classic) { mixin(S_TRACE);
+			bool defExpandXMLs, Skin defSkin, void delegate(string) showWarn, bool classic, FileSync sync) { mixin(S_TRACE);
 		SaveOption opt2 = opt;
 		opt2.saveChangedOnly = false; // 部分保存ができるのは上書き時のみ
 		if (classic) { mixin(S_TRACE);
@@ -2608,7 +2612,7 @@ public:
 			scope (failure) {
 				if (useTemp) delAll(temp);
 			}
-			saveProc(prop, skin, opt2, useTemp, zipName, temp, sPath, true, false, defExpandXMLs, true);
+			saveProc(prop, skin, opt2, useTemp, zipName, temp, sPath, true, false, defExpandXMLs, true, sync);
 		} else if (fname.baseName().cfnmatch("Summary.xml") || (fname.exists() && fname.isDir())) { mixin(S_TRACE);
 			// 新しく指定ディレクトリに保存(クラシック形式からXML形式への変換も含む)
 			string[] copyFail;
@@ -2634,7 +2638,7 @@ public:
 			scenarioPath = sPath;
 			assert (!useTemp);
 			string zipName = "";
-			saveProc(prop, skin, opt2, useTemp, zipName, temp, sPath, false, false, defExpandXMLs, true, { mixin(S_TRACE);
+			saveProc(prop, skin, opt2, useTemp, zipName, temp, sPath, false, false, defExpandXMLs, true, sync, { mixin(S_TRACE);
 				if (type == "" || skinName == "") { mixin(S_TRACE);
 					if (type == "") type = defSkin.type;
 					if (skinName == "") skinName = defSkin.name;
@@ -2653,7 +2657,7 @@ public:
 			scope (failure) delAll(temp);
 			if (type == "") type = defSkin.type;
 			if (skinName == "") skinName = defSkin.name;
-			saveProc(prop, skin, opt2, true, fname, temp, scenarioPath, legacy, true, defExpandXMLs, true);
+			saveProc(prop, skin, opt2, true, fname, temp, scenarioPath, legacy, true, defExpandXMLs, true, sync);
 		} else if (useTemp) { mixin(S_TRACE);
 			// 新しいアーカイブを作成
 			string oldZip = _zipName;
@@ -2664,7 +2668,7 @@ public:
 				_zipName = oldZip;
 				_origZipName = oldOrigZip;
 			}
-			saveProc(prop, skin, opt2, false, zipName, scenarioPath, scenarioPath, legacy, false, defExpandXMLs, true);
+			saveProc(prop, skin, opt2, false, zipName, scenarioPath, scenarioPath, legacy, false, defExpandXMLs, true, sync);
 		} else { mixin(S_TRACE);
 			// 展開済みシナリオからアーカイブに変換
 			auto oldPath = scenarioPath;
@@ -2675,17 +2679,19 @@ public:
 				scenarioPath = oldPath;
 				delAll(p);
 			}
-			saveProc(prop, skin, opt2, true, fname, p, scenarioPath, legacy, false, defExpandXMLs, true);
+			saveProc(prop, skin, opt2, true, fname, p, scenarioPath, legacy, false, defExpandXMLs, true, sync);
 		}
 	}
 	private void saveProc(in CProps prop, in Skin skin, in SaveOption opt, bool archive,
-			string zipName, string temp, string sPath, bool legacy, bool legacyToX, bool defExpandXMLs, bool releaseLock, void delegate() after = null) { mixin(S_TRACE);
+			string zipName, string temp, string sPath, bool legacy, bool legacyToX, bool defExpandXMLs,
+			bool releaseLock, FileSync sync, void delegate() after = null) { mixin(S_TRACE);
 		try { mixin(S_TRACE);
 			_inSaving = true;
 			auto callSaved = true;
 			scope (exit) {
 				if (after) after();
 				if (callSaved) {
+					sync.sync();
 					_inSaving = false;
 					if (opt.savedCallback) opt.savedCallback();
 				}
@@ -2700,21 +2706,23 @@ public:
 				auto oldPath = scenarioPath;
 				scenarioPath = sPath;
 				scope (failure) scenarioPath = oldPath;
-				saveLScenario(this, skin, prop, opt);
+				saveLScenario(this, skin, prop, opt, sync);
 				bool useTemp = archive;
 				.enforce(useTemp == (0 < zipName.length));
 				if (useTemp) { mixin(S_TRACE);
 					void t1() { mixin(S_TRACE);
 						scope (exit) {
+							sync.sync();
 							_inSaving = false;
 							if (opt.savedCallback) opt.savedCallback();
 						}
+						sync.sync();
 						if (cfnmatch(.extension(zipName), ".cab")) { mixin(S_TRACE);
 							.cab(temp, zipName, (string file) { mixin(S_TRACE);
 								return !cfnmatch(baseName(file), "cwxeditor.lock");
 							});
 						} else { mixin(S_TRACE);
-							.zip(temp, zipName, true, [std.path.buildPath(temp, "cwxeditor.lock")], true);
+							.zip(temp, zipName, true, [std.path.buildPath(temp, "cwxeditor.lock")], true, sync);
 						}
 						releaseLockFile();
 						if (useTemp && !_lock.isOpen) { mixin(S_TRACE);
@@ -2744,11 +2752,11 @@ public:
 			} else if (archive || useTemp || (archive && legacyToX)) { mixin(S_TRACE);
 				auto oldPath = scenarioPath;
 				if (expandXMLs || !archive) { mixin(S_TRACE);
-					saveXMLsImpl(_sPath, prop.sys, opt, false);
+					saveXMLsImpl(_sPath, prop.sys, opt, false, sync);
 					expand = true;
 				} else if (legacyToX && defExpandXMLs) { mixin(S_TRACE);
 					scenarioPath = temp;
-					saveXMLsImpl(_sPath, prop.sys, opt, false);
+					saveXMLsImpl(_sPath, prop.sys, opt, false, sync);
 					expand = true;
 				} else if (legacyToX) { mixin(S_TRACE);
 					scenarioPath = temp;
@@ -2756,9 +2764,11 @@ public:
 				scope (failure) scenarioPath = oldPath;
 				void t2() { mixin(S_TRACE);
 					scope (exit) {
+						sync.sync();
 						_inSaving = false;
 						if (opt.savedCallback) opt.savedCallback();
 					}
+					sync.sync();
 					auto lock = std.path.buildPath(scenarioPath, "cwxeditor.lock");
 					ubyte*[] data;
 					scope arc = .zip(scenarioPath, false, [lock], false, data);
@@ -2773,7 +2783,7 @@ public:
 						_oldXMLs = xmls;
 					}
 					auto b = arc.build();
-					std.file.write(zipName, b);
+					.writeFile(zipName, b, sync);
 					destroy(arc);
 					freeAll(data);
 					_expandXMLs = expand;
@@ -2788,7 +2798,7 @@ public:
 				auto oldPath = scenarioPath;
 				scenarioPath = sPath;
 				scope (failure) scenarioPath = oldPath;
-				saveXMLsImpl(_sPath, prop.sys, opt, false);
+				saveXMLsImpl(_sPath, prop.sys, opt, false, sync);
 				releaseLockFile();
 				_useTemp = useTemp;
 				_zipName = zipName;
@@ -2812,9 +2822,11 @@ public:
 				resetChanged();
 				void t3() { mixin(S_TRACE);
 					scope (exit) {
+						sync.sync();
 						_inSaving = false;
 						if (opt.savedCallback) opt.savedCallback();
 					}
+					sync.sync();
 					toArchive(zipName, temp, expand);
 				}
 				if (opt.archiveInNewThread) { mixin(S_TRACE);
@@ -2835,7 +2847,8 @@ public:
 		}
 	}
 	/// シナリオのフォルダのアーカイブを作成する。
-	ZipArchive createZipData(in string[] ignorePaths, bool useSysEnc, bool isWsn, out ubyte*[] data) { mixin(S_TRACE);
+	ZipArchive createZipData(in string[] ignorePaths, bool useSysEnc, bool isWsn, out ubyte*[] data, FileSync sync) { mixin(S_TRACE);
+		sync.sync();
 		auto lock = std.path.buildPath(scenarioPath, "cwxeditor.lock");
 		auto arc = .zip(scenarioPath, !isWsn, (string file) { mixin(S_TRACE);
 			return cfnmatch(file, lock)
@@ -2853,10 +2866,10 @@ public:
 		return arc;
 	}
 	/// データを保存せずにシナリオのフォルダのアーカイブを作成する。
-	void createZip(string zipName, in string[] ignorePaths, bool useSysEnc) { mixin(S_TRACE);
+	void createZip(string zipName, in string[] ignorePaths, bool useSysEnc, FileSync sync) { mixin(S_TRACE);
 		ubyte*[] tempData;
-		auto arc = createZipData(ignorePaths, useSysEnc, zipName.extension().toLower() == ".wsn", tempData);
-		std.file.write(zipName, arc.build());
+		auto arc = createZipData(ignorePaths, useSysEnc, zipName.extension().toLower() == ".wsn", tempData, sync);
+		.writeFile(zipName, arc.build(), sync);
 		destroy(arc);
 		freeAll(tempData);
 	}
@@ -3043,12 +3056,12 @@ public:
 	}
 
 	/// シナリオ内にあるJpy1ファイルの内容の上書きが必要であれば更新する。
-	void updateJpy1Files(in CProps prop, bool autoUpdateJpy1File) { mixin(S_TRACE);
+	void updateJpy1Files(in CProps prop, bool autoUpdateJpy1File, FileSync sync) { mixin(S_TRACE);
 		foreach (ref jpy; _jpyData) { mixin(S_TRACE);
-			jpy.updateJpy1File(prop, autoUpdateJpy1File);
+			jpy.updateJpy1File(prop, autoUpdateJpy1File, sync);
 		}
 		foreach (ref jpdc; _jpdcData) { mixin(S_TRACE);
-			jpdc.updateJpdcFile(prop, autoUpdateJpy1File);
+			jpdc.updateJpdcFile(prop, autoUpdateJpy1File, sync);
 		}
 	}
 

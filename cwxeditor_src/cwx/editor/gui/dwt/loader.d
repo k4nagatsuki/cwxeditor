@@ -16,6 +16,7 @@ import cwx.cab;
 import cwx.structs;
 import cwx.event;
 import cwx.variables;
+import cwx.filesync;
 
 import cwx.editor.gui.sound;
 import cwx.editor.gui.dwt.absdialog;
@@ -64,6 +65,7 @@ private class LSFFThr(bool Array) {
 	LoadOption opt;
 	Shell w;
 	Cursor[Shell] cursors;
+	FileSync sync;
 	string fname;
 	static if (Array) {
 		string[] files;
@@ -219,6 +221,7 @@ private class LSFFThr(bool Array) {
 		scope (failure) {
 			display.syncExec(new Failed);
 		}
+		sync.sync();
 		working = new Working;
 		static if (Array) {
 			LoadResult[] r;
@@ -226,7 +229,7 @@ private class LSFFThr(bool Array) {
 				fname = path;
 				display.syncExec(new Start);
 				string[] errorFiles;
-				auto s = loadScenarioFromFileImpl(prop, opt, errorFiles, w, status,
+				auto s = loadScenarioFromFileImpl(prop, opt, errorFiles, w, sync, status,
 					null, path, null, null, false, display, &setMax, &setWork);
 				if (s) { mixin(S_TRACE);
 					r ~= LoadResult(s, errorFiles);
@@ -280,7 +283,7 @@ string[] scenarioFilterDesc(Props prop) { mixin(S_TRACE);
 	return r;
 }
 
-LoadResult[] loadScenarios(Props prop, in LoadOption opt, Shell w, void delegate(string) status,
+LoadResult[] loadScenarios(Props prop, in LoadOption opt, Shell w, FileSync sync, void delegate(string) status,
 		string dlgTitle, void delegate(LoadResult[]) loaded = null, void delegate() failure = null, bool oThr = true) { mixin(S_TRACE);
 	auto dlg = new FileDialog(w, SWT.PRIMARY_MODAL | SWT.APPLICATION_MODAL | SWT.MULTI | SWT.OPEN);
 	dlg.setFilterExtensions(scenarioFilter);
@@ -289,6 +292,7 @@ LoadResult[] loadScenarios(Props prop, in LoadOption opt, Shell w, void delegate
 	dlg.setFilterPath(scenarioFilterPath(prop));
 	string fname = dlg.open();
 	if (fname) { mixin(S_TRACE);
+		sync.sync();
 		auto put = new class Object {
 			Props prop;
 			string filterPath;
@@ -316,7 +320,7 @@ LoadResult[] loadScenarios(Props prop, in LoadOption opt, Shell w, void delegate
 			}
 			files.add(nabs(std.path.buildPath(dlg.getFilterPath(), file)));
 		}
-		auto r = loadScenariosFromFile(prop, opt, w, status,
+		auto r = loadScenariosFromFile(prop, opt, w, sync, status,
 			files.toArray(), &put.put, failure, oThr);
 		if (!oThr && r.length) put.put(r);
 		return r;
@@ -324,7 +328,7 @@ LoadResult[] loadScenarios(Props prop, in LoadOption opt, Shell w, void delegate
 	return [];
 }
 
-LoadResult[] loadScenariosFromFile(Props prop, in LoadOption opt, Shell w, void delegate(string) status,
+LoadResult[] loadScenariosFromFile(Props prop, in LoadOption opt, Shell w, FileSync sync, void delegate(string) status,
 		string[] files, void delegate(LoadResult[]) loaded = null, void delegate() failure = null, bool oThr = true) { mixin(S_TRACE);
 	auto display = Display.getCurrent();
 	if (oThr && loaded) { mixin(S_TRACE);
@@ -332,6 +336,7 @@ LoadResult[] loadScenariosFromFile(Props prop, in LoadOption opt, Shell w, void 
 		thr.display = display;
 		thr.prop = prop;
 		thr.opt = opt;
+		thr.sync = sync;
 		thr.w = w;
 		thr.files = files;
 		thr.loaded = loaded;
@@ -344,10 +349,11 @@ LoadResult[] loadScenariosFromFile(Props prop, in LoadOption opt, Shell w, void 
 	} else { mixin(S_TRACE);
 		auto cursors = setWaitCursors(w);
 		scope (exit) resetCursors(cursors);
+		sync.sync();
 		LoadResult[] r;
 		foreach (i, path; files) { mixin(S_TRACE);
 			string[] errorFiles;
-			auto s = loadScenarioFromFileImpl(prop, opt, errorFiles, w, status, null, path, null, null, false, display);
+			auto s = loadScenarioFromFileImpl(prop, opt, errorFiles, w, sync, status, null, path, null, null, false, display);
 			if (s) { mixin(S_TRACE);
 				r ~= LoadResult(s, errorFiles);
 			} else { mixin(S_TRACE);
@@ -376,7 +382,7 @@ string selectScenario(Props prop, Shell w, string dlgTitle) { mixin(S_TRACE);
 	return dlg.open();
 }
 
-Summary loadScenario(Props prop, in LoadOption opt, out string[] errorFiles, Shell w, void delegate(string) status,
+Summary loadScenario(Props prop, in LoadOption opt, out string[] errorFiles, Shell w, FileSync sync, void delegate(string) status,
 		Summary old, string dlgTitle, ref string[] openPaths,
 		void delegate(Summary, in string[] errorFiles) loaded = null,
 		void delegate() failure = null, bool oThr = true) { mixin(S_TRACE);
@@ -390,18 +396,18 @@ Summary loadScenario(Props prop, in LoadOption opt, out string[] errorFiles, She
 			}
 		};
 		put.loaded = loaded;
-		auto r = loadScenarioFromFile(prop, opt, errorFiles, w, status, old, fname, &put.put, failure, oThr);
+		auto r = loadScenarioFromFile(prop, opt, errorFiles, w, sync, status, old, fname, &put.put, failure, oThr);
 		if (!oThr && r) put.put(r, errorFiles);
 		return r;
 	}
 	return null;
 }
 
-Summary loadScenarioFromFile(Props prop, in LoadOption opt, out string[] errorFiles, Shell w, void delegate(string) status,
+Summary loadScenarioFromFile(Props prop, in LoadOption opt, out string[] errorFiles, Shell w, FileSync sync, void delegate(string) status,
 		Summary old, string fname, void delegate(Summary, in string[] errorFiles) loaded = null, void delegate() failure = null, bool oThr = true) { mixin(S_TRACE);
-	return loadScenarioFromFileImpl(prop, opt, errorFiles, w, status, old, fname, loaded, failure, oThr, null);
+	return loadScenarioFromFileImpl(prop, opt, errorFiles, w, sync, status, old, fname, loaded, failure, oThr, null);
 }
-private Summary loadScenarioFromFileImpl(Props prop, in LoadOption opt, out string[] errorFiles, Shell w, void delegate(string) status,
+private Summary loadScenarioFromFileImpl(Props prop, in LoadOption opt, out string[] errorFiles, Shell w, FileSync sync, void delegate(string) status,
 		Summary old, string fname, void delegate(Summary, in string[] errorFiles) loaded = null, void delegate() failure = null, bool oThr = true, Display current = null,
 		void delegate (uint) setMax = null, void delegate (uint) worked = null) { mixin(S_TRACE);
 	if (oThr && loaded) { mixin(S_TRACE);
@@ -410,6 +416,7 @@ private Summary loadScenarioFromFileImpl(Props prop, in LoadOption opt, out stri
 		thr.current = current;
 		thr.prop = prop;
 		thr.opt = opt;
+		thr.sync = sync;
 		thr.w = w;
 		thr.old = old;
 		thr.fname = fname;
@@ -430,6 +437,7 @@ private Summary loadScenarioFromFileImpl(Props prop, in LoadOption opt, out stri
 		scope (exit) {
 			if (!current) resetCursors(cursors);
 		}
+		sync.sync();
 		try { mixin(S_TRACE);
 			Skin defSkin = .findSkin2(prop, prop.var.etc.defaultSkin, prop.var.etc.defaultSkinName);
 			return Summary.loadScenarioFromFile(prop.parent, opt, errorFiles, fname,
