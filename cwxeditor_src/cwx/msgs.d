@@ -2633,7 +2633,7 @@ class Msgs : Properties {
 	auto funcDescIf = Msg("funcDescIf", "真偽値がTRUEであれば2つめの引数を、FALSEであれば3つめの引数を返します。");
 	auto funcDescMax = Msg("funcDescMax", "引数の中で最大の数値を返します。");
 	auto funcDescMin = Msg("funcDescMin", "引数の中で最小の数値を返します。");
-	auto funcDescVar = Msg("funcDescVar", "コモンの値を返します。$\"コモン名\"と書く事もできます。");
+	auto funcDescVar = Msg("funcDescVar", "コモンの値を返します。@\"コモン名\"と書く事もできます。");
 	auto funcDescFlagValue = Msg("funcDescFlagValue", "フラグの値(真偽値)を返します。");
 	auto funcDescFlagText = Msg("funcDescFlagText", "フラグの値のテキストを返します。2つめの引数を省略した場合は、フラグの現在値のテキストを返します。");
 	auto funcDescStepValue = Msg("funcDescStepValue", "ステップの値(数値)を返します。");

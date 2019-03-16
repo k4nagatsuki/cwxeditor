@@ -1657,7 +1657,7 @@
 
 <h4 class="example">例</h4>
 
-<pre><code class="samplecode"><span class="keywords">brvar</span> <span class="code">'$"条件A" and $"条件B"'</span>, <span class="code">manual</span> <span class="comment">// 条件Aと条件Bが両方ともTRUEか判定する</span>
+<pre><code class="samplecode"><span class="keywords">brvar</span> <span class="code">'@"条件A" and @"条件B"'</span>, <span class="code">manual</span> <span class="comment">// 条件Aと条件Bが両方ともTRUEか判定する</span>
 <code class="code">if</code> <span class="code">true</span>
     <span class="comment">// 条件成立</span>
     <span class="comment">// ...</span>
@@ -2536,7 +2536,7 @@
 
 <h4 class="example">例</h4>
 
-<pre><code class="samplecode"><span class="keywords">setvar</span> <code class="code">flag</code>, <span class="str">"フラグ1"</span>, <span class="str">'$"条件A" or $"条件B"'</span> <span class="comment">// 条件Aまたは条件BがTRUEであればフラグ1をTRUEにする</span></code></pre>
+<pre><code class="samplecode"><span class="keywords">setvar</span> <code class="code">flag</code>, <span class="str">"フラグ1"</span>, <span class="str">'@"条件A" or @"条件B"'</span> <span class="comment">// 条件Aまたは条件BがTRUEであればフラグ1をTRUEにする</span></code></pre>
 
 <h3 class="content"><a id="REVFLAG" name="REVFLAG">revflag <span class="args"><span class="arg">&lt;フラグ名&gt;</span>, <span class="arg">&lt;カード速度&gt;</span>, <span class="arg">&lt;速度の優先&gt;</span></span></a></h3>
 
@@ -2701,11 +2701,11 @@
 
 
 <pre><code class="samplecode"><span class="keywords">msg</span> <span class="code">none</span>, <span class="str">"残っている問題は？"</span>
-<code class="code">if</code> <span class="str">"闘技場へ行っていない"</span> <span class="keywords">chkvar</span> <span class="str">'not $"闘技場へ行った"'</span>
+<code class="code">if</code> <span class="str">"闘技場へ行っていない"</span> <span class="keywords">chkvar</span> <span class="str">'not @"闘技場へ行った"'</span>
     <span class="comment">// 「闘技場へ行った」がFALSEでなければこの選択肢は出現しない</span>
     <span class="comment">// ...</span>
     <span class="keywords">break</span>
-<code class="code">elif</code> <span class="str">"教会へ行っていない"</span> <span class="keywords">chkvar</span> <span class="str">'not ($"教会Aへ行った" or $"教会Bへ行った")'</span>
+<code class="code">elif</code> <span class="str">"教会へ行っていない"</span> <span class="keywords">chkvar</span> <span class="str">'not (@"教会Aへ行った" or @"教会Bへ行った")'</span>
     <span class="comment">// 「教会Aへ行った」と「教会Bへ行った」の両方がFALSEでなければこの選択肢は出現しない</span>
     <span class="comment">// ...</span>
     <span class="keywords">break</span>
