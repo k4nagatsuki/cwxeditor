@@ -2223,6 +2223,22 @@ void saveLScenario(Summary summ, const Skin skin, const CProps prop, in SaveOpti
 	HashSet!Object changed = null;
 	if (opt.saveChangedOnly) changed = summ.changedResources;
 
+	auto sysFName = .regex!(dstring)("^(((Area|Battle|Package|Mate|Skill|Item|Beast|Info)[0-9]+\\.wid)|((Comment|ImageRef|CardRef|Template)\\.wex))$"d);
+	bool canBackup = opt.backup && (!opt.backupDir.exists() || opt.backupDir.isDir());
+	if (canBackup) { mixin(S_TRACE);
+		foreach (file; clistdir(opt.backupDir)) { mixin(S_TRACE);
+			delAll(opt.backupDir.buildPath(file));
+		}
+		foreach (file; clistdir(summ.scenarioPath)) { mixin(S_TRACE);
+			if (cfnmatch(file, "Summary.wsm")
+					|| !std.regex.match(toUTF32(file), sysFName).empty) { mixin(S_TRACE);
+				auto path = std.path.buildPath(summ.scenarioPath, file);
+				if (!opt.backupDir.exists()) opt.backupDir.mkdirRecurse();
+				path.copy(opt.backupDir.buildPath(file));
+			}
+		}
+	}
+
 	class Save {
 		SData d;
 		Area[] areas;
@@ -2233,6 +2249,7 @@ void saveLScenario(Summary summ, const Skin skin, const CProps prop, in SaveOpti
 		ItemCard[] items;
 		BeastCard[] beasts;
 		InfoCard[] infos;
+		bool[string] wids;
 		this () {
 			d = SData(prop, summ.scenarioPath, skin, opt.saveInnerImagePath, opt.logicalSort, (id) => summ.skill(id), (id) => summ.item(id), (id) => summ.beast(id), opt);
 		}
@@ -2246,6 +2263,7 @@ void saveLScenario(Summary summ, const Skin skin, const CProps prop, in SaveOpti
 			} else { mixin(S_TRACE);
 				putExData(d, a);
 			}
+			wids[name] = true;
 		}
 		void save() { mixin(S_TRACE);
 			version (Console) {
@@ -2315,38 +2333,30 @@ void saveLScenario(Summary summ, const Skin skin, const CProps prop, in SaveOpti
 	if (comment.length) { mixin(S_TRACE);
 		auto file = "Comment.wex";
 		.writeFile(save1.d.sPath.buildPath(file), cast(immutable byte[])comment, sync);
+		save1.wids[file] = true;
 	}
 	string imageRef = saveImageRef(save1.d);
 	if (imageRef.length) { mixin(S_TRACE);
 		auto file = "ImageRef.wex";
 		.writeFile(save1.d.sPath.buildPath(file), cast(immutable byte[])imageRef, sync);
+		save1.wids[file] = true;
 	}
 	string cardRef = saveCardRef(save1.d);
 	if (cardRef.length) { mixin(S_TRACE);
 		auto file = "CardRef.wex";
 		.writeFile(save1.d.sPath.buildPath(file), cast(immutable byte[])cardRef, sync);
+		save1.wids[file] = true;
 	}
 	string templates = saveTemplate(summ);
 	if (templates.length) { mixin(S_TRACE);
 		auto file = "Template.wex";
 		.writeFile(save1.d.sPath.buildPath(file), cast(immutable byte[])templates, sync);
+		save1.wids[file] = true;
 	}
 
-	auto sysFName = .regex!(dstring)("^(((Area|Battle|Package|Mate|Skill|Item|Beast|Info)[0-9]+\\.wid)|((Comment|ImageRef|CardRef|Template)\\.wex))$"d);
-	bool canBackup = opt.backup && (!opt.backupDir.exists() || opt.backupDir.isDir());
-	if (canBackup) { mixin(S_TRACE);
-		foreach (file; clistdir(opt.backupDir)) { mixin(S_TRACE);
-			delAll(opt.backupDir.buildPath(file));
-		}
-	}
-	foreach (file; clistdir(save1.d.sPath)) { mixin(S_TRACE);
-		if (cfnmatch(file, "Summary.wsm")
-				|| !std.regex.match(toUTF32(file), sysFName).empty) { mixin(S_TRACE);
-			scope path = std.path.buildPath(save1.d.sPath, file);
-			if (canBackup) { mixin(S_TRACE);
-				if (!opt.backupDir.exists()) opt.backupDir.mkdirRecurse();
-				path.copy(opt.backupDir.buildPath(file));
-			}
+	foreach (file; clistdir(summ.scenarioPath)) { mixin(S_TRACE);
+		if (!std.regex.match(toUTF32(file), sysFName).empty && file !in save1.wids && file !in save2.wids) { mixin(S_TRACE);
+			auto path = std.path.buildPath(summ.scenarioPath, file);
 			preRemove(path);
 			std.file.remove(path);
 		}
