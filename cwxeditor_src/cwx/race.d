@@ -204,22 +204,22 @@ template RaceParam(bool Set) {
 		}
 		/// 炎/冷気が無効。
 		const
-		bool resist(Element el) {return _res[el];}
+		bool resist(Element el) {return _res.get(el, false);}
 		static if (Set) {
 			/// ditto
 			void resist(Element el, bool res) { mixin(S_TRACE);
-				if (_res[el] != res) changed();
+				if (_res.get(el, false) != res) changed();
 				_res[el] = res;
 				if (res) weakness(el, false);
 			}
 		}
 		/// 炎/冷気が弱点。
 		const
-		bool weakness(Element el) {return _weak[el];}
+		bool weakness(Element el) {return _weak.get(el, false);}
 		static if (Set) {
 			/// ditto
 			void weakness(Element el, bool weak) { mixin(S_TRACE);
-				if (_weak[el] != weak) changed();
+				if (_weak.get(el, false) != weak) changed();
 				_weak[el] = weak;
 				if (weak) resist(el, false);
 			}
@@ -269,11 +269,11 @@ template RaceParam(bool Set) {
 		}
 		/// 常に掛かっている能力ボーナス。
 		const
-		int defaultEnhance(Enhance enh) {return _dEnh[enh];}
+		int defaultEnhance(Enhance enh) {return _dEnh.get(enh, 0);}
 		static if (Set) {
 			/// ditto
 			void defaultEnhance(Enhance enh, int dEnh) { mixin(S_TRACE);
-				if (_dEnh[enh] != dEnh) changed();
+				if (_dEnh.get(enh, 0) != dEnh) changed();
 				_dEnh[enh] = dEnh;
 			}
 		}
@@ -310,11 +310,11 @@ template RaceParam(bool Set) {
 		ne.newAttr("weapon", fromBool(_weaponRes));
 		ne.newAttr("magic", fromBool(_magicRes));
 		auto r = fNode.newElement("Resist");
-		r.newAttr("fire", fromBool(_res[Element.FIRE]));
-		r.newAttr("ice", fromBool(_res[Element.ICE]));
+		r.newAttr("fire", fromBool(_res.get(Element.FIRE, false)));
+		r.newAttr("ice", fromBool(_res.get(Element.ICE, false)));
 		auto w = fNode.newElement("Weakness");
-		w.newAttr("fire", fromBool(_weak[Element.FIRE]));
-		w.newAttr("ice", fromBool(_weak[Element.ICE]));
+		w.newAttr("fire", fromBool(_weak.get(Element.FIRE, false)));
+		w.newAttr("ice", fromBool(_weak.get(Element.ICE, false)));
 	}
 	const
 	private void setAbility(ref XNode parent) { mixin(S_TRACE);
@@ -333,9 +333,9 @@ template RaceParam(bool Set) {
 		mtl.newAttr("cautious", _mtl[Mental.CAUTIOUS]);
 		mtl.newAttr("trickish", _mtl[Mental.TRICKISH]);
 		auto enh = aNode.newElement("Enhance");
-		enh.newAttr("avoid", _dEnh[Enhance.AVOID]);
-		enh.newAttr("resist", _dEnh[Enhance.RESIST]);
-		enh.newAttr("defense", _dEnh[Enhance.DEFENSE]);
+		enh.newAttr("avoid", _dEnh.get(Enhance.AVOID, false));
+		enh.newAttr("resist", _dEnh.get(Enhance.RESIST, false));
+		enh.newAttr("defense", _dEnh.get(Enhance.DEFENSE, false));
 	}
 	private void loadFeature(ref XNode fNode, in XMLInfo ver) { mixin(S_TRACE);
 		assert (fNode.name == "Feature");
