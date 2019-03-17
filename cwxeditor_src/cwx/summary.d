@@ -47,6 +47,7 @@ import std.typecons;
 import std.exception;
 import std.conv;
 import std.parallelism;
+import std.regex;
 
 public:
 
@@ -1067,13 +1068,17 @@ public:
 		recurse(this);
 	}
 
+	private immutable TEMP_REG = .ctRegex!("\\.cwxeditor_temp(\\([0-9]+\\))?$");
+
 	/// シナリオのシステムファイルまたはディレクトリであればtrueを返す。
 	const
 	bool isSystemFile(string p) { mixin(S_TRACE);
+		if (!.match(p, TEMP_REG).empty) return true;
 		return isSystemFile(p, .exists(p) && .isDir(p));
 	}
 	const
 	bool isSystemFile(string p, bool isdir) { mixin(S_TRACE);
+		if (!.match(p, TEMP_REG).empty) return true;
 		if (!isdir && useTemp && .cfnmatch(baseName(p), "cwxeditor.lock")) { mixin(S_TRACE);
 			return true;
 		}
@@ -2076,12 +2081,16 @@ public:
 				from = .nabs(from);
 				to = .nabs(to);
 				if (from.driveName.cfnmatch(to.driveName)) { mixin(S_TRACE);
+					.preRemove(to);
 					std.file.rename(from, to);
 				} else { mixin(S_TRACE);
+					.preRemove(to);
 					std.file.copy(from, to);
+					.preRemove(from);
 					std.file.remove(from);
 				}
 			} else {
+				.preRemove(to);
 				std.file.rename(from, to);
 			}
 		}

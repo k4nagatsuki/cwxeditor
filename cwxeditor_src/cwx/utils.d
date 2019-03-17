@@ -1497,6 +1497,7 @@ string createFolder(string parent, string name, bool ignoreExistsFile) { mixin(S
 /// ファイル削除の準備を行う。
 void preRemove(string delpath) { mixin(S_TRACE);
 	version (Windows) {
+		if (!delpath.exists()) return;
 		// 書込み権限を付けておく
 		auto fname = std.utf.toUTFz!(wchar*)(delpath);
 		SetFileAttributesW(fname, FILE_ATTRIBUTE_NORMAL);

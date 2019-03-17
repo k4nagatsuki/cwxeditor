@@ -2,6 +2,7 @@
 module cwx.filesync;
 
 import cwx.perf;
+import cwx.utils : printStackTrace, debugln, preRemove;
 
 import std.algorithm;
 import std.array;
@@ -41,7 +42,7 @@ class FileSync : Thread {
 		}
 	}
 	private void writeFiles() { mixin(S_TRACE);
-		while (true) {
+		while (true) { mixin(S_TRACE);
 			typeof(_files[0]) f;
 			synchronized (this) {
 				if (_files.length) { mixin(S_TRACE);
@@ -61,16 +62,22 @@ class FileSync : Thread {
 				i++;
 				tmp = f.file ~ (i == 1 ? ".cwxeditor_temp" : ".cwxeditor_temp(%s)".format(i));
 			} while (tmp.exists());
-			auto file = File(tmp, "wb");
-			scope (success) {
-				.rename(tmp, f.file);
+			try { mixin(S_TRACE);
+				auto file = File(tmp, "wb");
+				scope (success) {
+					.preRemove(f.file);
+					.rename(tmp, f.file);
+				}
+				scope (exit) {
+					file.close();
+				}
+				file.rawWrite(f.data);
+				file.flush();
+				file.sync();
+			} catch (Exception e) {
+				printStackTrace();
+				debugln(e);
 			}
-			scope (exit) {
-				file.close();
-			}
-			file.rawWrite(f.data);
-			file.flush();
-			file.sync();
 		}
 	}
 	private void run() { mixin(S_TRACE);
