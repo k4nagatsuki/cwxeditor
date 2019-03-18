@@ -312,9 +312,10 @@ private:
 			if (selDirs.length > 0) { mixin(S_TRACE);
 				_files.deselectAll();
 				_files.removeAll(); // 不要分だけremoveしようとすると Widget is disposed
-				auto path = (cast(FileNameObj) selDirs[0].getData()).array;
+				auto path = (cast(FileNameObj)selDirs[0].getData()).array;
 				FileNameObj[] list;
 				foreach (f; clistdir(path)) { mixin(S_TRACE);
+					if (_summ.isSystemFile(f)) continue;
 					_hasFile = true;
 					if (_incSearch.match(f)) { mixin(S_TRACE);
 						list ~= new FileNameObj(path, f);

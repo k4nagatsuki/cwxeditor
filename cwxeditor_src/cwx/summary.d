@@ -1068,7 +1068,11 @@ public:
 		recurse(this);
 	}
 
-	private immutable TEMP_REG = .ctRegex!("\\.cwxeditor_temp(\\([0-9]+\\))?$");
+	private static immutable TEMP_REG = .ctRegex!("\\.cwxeditor_temp(\\([0-9]+\\))?$");
+	unittest { mixin (UTPerf);
+		assert (!.match("Area1.wid.cwxeditor_temp", TEMP_REG).empty);
+		assert (!.match("Scenario/Battle1.wid.cwxeditor_temp(2)", TEMP_REG).empty);
+	}
 
 	/// シナリオのシステムファイルまたはディレクトリであればtrueを返す。
 	const
@@ -1108,9 +1112,13 @@ public:
 					static if (0 == filenameCharCmp('A', 'a')) {
 						key = key.toLower();
 					}
-					fcs[key] = file.timeLastModified;
 					if (file.isDir) { mixin(S_TRACE);
+						// ディレクトリの場合は更新確認不要
+						// これによってWindows 10環境(NTFS？)で更新時間が数秒ずれる問題も避けられる
+						fcs[key] = SysTime.init;
 						recurse(file);
+					} else { mixin(S_TRACE);
+						fcs[key] = file.timeLastModified;
 					}
 				}
 			}

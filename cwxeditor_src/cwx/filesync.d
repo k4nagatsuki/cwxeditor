@@ -31,10 +31,14 @@ class FileSync : Thread {
 		synchronized (this) {
 			_files ~= typeof(_files[0])(file, data);
 		}
+		if (_quit) { mixin(S_TRACE);
+			join();
+			writeFiles();
+		}
 	}
 	/// 全てのファイル出力が完了するまで待ち合わせる。
 	void sync() { mixin(S_TRACE);
-		while (true) { mixin(S_TRACE);
+		while (!_quit) { mixin(S_TRACE);
 			synchronized (this) {
 				if (!_files.length) break;
 			}
