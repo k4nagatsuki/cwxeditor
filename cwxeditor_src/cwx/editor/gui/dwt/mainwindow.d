@@ -4478,6 +4478,7 @@ public:
 	}
 
 	void setStatusLine(string status) { mixin(S_TRACE);
+		if (!_win || _win.isDisposed()) return;
 		_comm.setStatusLine(_win, status);
 	}
 
