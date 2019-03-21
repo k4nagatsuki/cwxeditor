@@ -49,7 +49,7 @@ import cwx.editor.gui.dwt.absdialog;
 import core.thread;
 
 static import std.algorithm;
-import std.algorithm : max, min, map, uniq;
+import std.algorithm : all, max, min, map, uniq;
 import std.array;
 import std.conv;
 import std.utf;
@@ -243,9 +243,17 @@ ImageData loadImage(Props prop, in Skin skin, in Summary summ, string path, bool
 				} else if (mask) { mixin(S_TRACE);
 					data.transparentPixel = data.getPixel(maskX, maskY);
 				}
-			} else if (mask && (!data.alphaData || !data.alphaData.length) && data.transparentPixel == -1) { mixin(S_TRACE);
+			} else if (mask && (!data.alphaData || !data.alphaData.length) && (data.transparentPixel == -1 || .imageType(cast(ubyte[])bytes) == ".png")) { mixin(S_TRACE);
+				// 一般マスク処理
+				// BUG: 32-bit PNGイメージの透過色指定は無視され通常のマスク処理が行われる CardWirth 1.50
 				to24();
 				data.transparentPixel = data.getPixel(maskX, maskY);
+			} else if (isImageCell && .imageType(cast(ubyte[])bytes) == ".jpg") { mixin(S_TRACE);
+				// BUG: CardWirth 1.50以降、背景セルでのマスクは機能しない
+				to24();
+				data.transparentPixel = -1;
+				data.alphaData = new byte[data.width * data.height];
+				data.alphaData[] = cast(byte)0xFF;
 			}
 			return data;
 		} catch (core.exception.AssertError e) {
