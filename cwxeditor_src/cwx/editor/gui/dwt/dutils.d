@@ -216,7 +216,8 @@ ImageData loadImage(Props prop, in Skin skin, in Summary summ, string path, bool
 				}
 			}
 			// GIFの透過色指定は無視される
-			if (data.depth <= 8 && .imageType(cast(ubyte[])bytes) == ".gif") data.transparentPixel = -1;
+			ext = .imageType(cast(ubyte[])bytes);
+			if (data.depth <= 8 && ext == ".gif") data.transparentPixel = -1;
 			void to24() { mixin(S_TRACE);
 				if (data.palette !is null) { mixin(S_TRACE);
 					// パレットを使用しているイメージは透過色と同一の色が
@@ -243,17 +244,20 @@ ImageData loadImage(Props prop, in Skin skin, in Summary summ, string path, bool
 				} else if (mask) { mixin(S_TRACE);
 					data.transparentPixel = data.getPixel(maskX, maskY);
 				}
-			} else if (mask && (!data.alphaData || !data.alphaData.length) && (data.transparentPixel == -1 || .imageType(cast(ubyte[])bytes) == ".png")) { mixin(S_TRACE);
-				// 一般マスク処理
-				// BUG: 32-bit PNGイメージの透過色指定は無視され通常のマスク処理が行われる CardWirth 1.50
-				to24();
-				data.transparentPixel = data.getPixel(maskX, maskY);
-			} else if (isImageCell && .imageType(cast(ubyte[])bytes) == ".jpg") { mixin(S_TRACE);
+			} else if (isImageCell && ext== ".jpg") { mixin(S_TRACE);
 				// BUG: CardWirth 1.50以降、背景セルでのマスクは機能しない
 				to24();
 				data.transparentPixel = -1;
 				data.alphaData = new byte[data.width * data.height];
 				data.alphaData[] = cast(byte)0xFF;
+			} else if (mask && isImageCell && data.transparentPixel != -1 && ext == ".png") { mixin(S_TRACE);
+				// BUG: イメージセルとして配置した時に限り、PNGイメージの透過色指定が無視される CardWirth 1.50
+				data.transparentPixel = -1;
+			} else if (mask && (!data.alphaData || !data.alphaData.length) && (data.transparentPixel == -1 || ext == ".png")) { mixin(S_TRACE);
+				// 一般マスク処理
+				// BUG: PNGイメージの透過色指定は無視され通常のマスク処理が行われる CardWirth 1.50
+				to24();
+				data.transparentPixel = data.getPixel(maskX, maskY);
 			}
 			return data;
 		} catch (core.exception.AssertError e) {
