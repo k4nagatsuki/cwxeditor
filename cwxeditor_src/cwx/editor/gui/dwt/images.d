@@ -594,6 +594,7 @@ public:
 		auto cur = Display.getCurrent();
 
 		auto dataSet = new HashSet!ImageData;
+		auto noTransparent = false;
 		ImageData getMat() { mixin(S_TRACE);
 			ImageData matImgData;
 			if (this.data) { mixin(S_TRACE);
@@ -627,6 +628,9 @@ public:
 					matImgData = blankImage(ds(initW), ds(initH));
 				}
 			}
+			if (matImgData.transparentPixel == -1 && !(matImgData.alphaData && matImgData.alphaData.length)) { mixin(S_TRACE);
+				noTransparent = true;
+			}
 			if (appends.length) { mixin(S_TRACE);
 				return matImgData;
 			} else { mixin(S_TRACE);
@@ -635,7 +639,6 @@ public:
 			}
 		}
 		ImageData matImgData;
-		bool noTransparent = false;
 		void matNoTransparent() { mixin(S_TRACE);
 			auto data = blankImage(ds(initW), ds(initH));
 			data.transparentPixel = -1;

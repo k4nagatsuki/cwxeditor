@@ -248,8 +248,6 @@ ImageData loadImage(Props prop, in Skin skin, in Summary summ, string path, bool
 				// BUG: CardWirth 1.50以降、背景セルでのマスクは機能しない
 				to24();
 				data.transparentPixel = -1;
-				data.alphaData = new byte[data.width * data.height];
-				data.alphaData[] = cast(byte)0xFF;
 			} else if (mask && isImageCell && data.transparentPixel != -1 && ext == ".png") { mixin(S_TRACE);
 				// BUG: イメージセルとして配置した時に限り、PNGイメージの透過色指定が無視される CardWirth 1.50
 				data.transparentPixel = -1;
