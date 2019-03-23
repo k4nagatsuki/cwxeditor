@@ -459,6 +459,7 @@ private class Function : Part {
 			"value": &.funcValue,
 			"int": &.funcInt,
 			"if": &.funcIf,
+			"dice": &.funcDice,
 			"max": &.funcMax,
 			"min": &.funcMin,
 			"var": &.funcVar,
@@ -467,7 +468,7 @@ private class Function : Part {
 			"stepvalue": &.funcStepValue,
 			"steptext": &.funcStepText,
 			"stepmax": &.funcStepMax,
-			"dice": &.funcDice,
+			"selected": &.funcSelected,
 		];
 	}
 
@@ -755,6 +756,9 @@ private const(Part)[] parseArguments(in CProps prop, ref Token[] tokens, ref siz
 	while (i + 1 < tokens.length && tokens[i].token != ")") { mixin(S_TRACE);
 		i++;
 		auto t2 = tokens[i];
+		if (t2.token == ")") { mixin(S_TRACE);
+			break;
+		}
 		auto arg = .parseSemantics(prop, tokens, i, err);
 		if (arg.length) { mixin(S_TRACE);
 			args ~= arg.length == 1 ? arg[0] : new Expr(t2, arg);
@@ -975,6 +979,8 @@ struct VariableInfo {
 	uint delegate(string path) stepValue;
 	/// ステップの値を最大値を取得。
 	uint delegate(string path) stepMax;
+	/// 選択メンバの番号を取得。
+	uint delegate() selectedPlayerCardNumber;
 
 	/// インスタンスを生成する。
 	this (in Summary summ) { mixin(S_TRACE);
@@ -991,6 +997,7 @@ struct VariableInfo {
 		stepText = (path, value) => summ ? summ.flagDirRoot.findStep(path).getValue(value) : "";
 		stepValue = path => summ ? summ.flagDirRoot.findStep(path).select : 0u;
 		stepMax = path => summ ? summ.flagDirRoot.findStep(path).count : 0u;
+		selectedPlayerCardNumber = () => 0u;
 	}
 }
 
@@ -1412,6 +1419,16 @@ private const(Part) funcDice(in CProps prop, EvalMode mode, in VariableInfo vInf
 	return new NumberValue(func.token, result);
 }
 
+/// 選択メンバの番号を返す。
+private const(Part) funcSelected(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	if (!checkArgCount(prop, func, args, 0, err)) return new NumberValue(func.token, 0);
+	if (mode is EvalMode.TypeCheck) return new NumberValue(func.token, 0);
+	if (mode !is EvalMode.TypeCheck) { mixin(S_TRACE);
+		if (!vInfo.selectedPlayerCardNumber) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
+	}
+	return new NumberValue(func.token, vInfo.selectedPlayerCardNumber());
+}
+
 /// 入力支援用に関数の引数の型を表現する。
 enum ArgType {
 	Number, /// 数値。
@@ -1506,6 +1523,8 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 		], ArgType.String),
 		FuncDef([FunctionCategory.VariableOperation], "STEPMAX", prop.msgs.funcDescStepValue, prop.msgs.funcShortDescStepValue, prop.msgs.funcExampleStepValue, [
 			ArgDef(ArgType.Step, prop.msgs.exprStepDesc, "", false),
+		], ArgType.Number),
+		FuncDef([FunctionCategory.CardInformation], "SELECTED", prop.msgs.funcDescSelected, prop.msgs.funcShortDescSelected, prop.msgs.funcExampleSelected, [
 		], ArgType.Number),
 	];
 }

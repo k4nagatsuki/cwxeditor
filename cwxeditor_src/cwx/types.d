@@ -1236,6 +1236,7 @@ enum FunctionCategory {
 	NumberOperation, /// 数値操作。
 	Conversion, /// 型変換。
 	VariableOperation, /// 状態変数。
+	CardInformation, /// カード情報。
 	Etc, /// その他。
 }
 

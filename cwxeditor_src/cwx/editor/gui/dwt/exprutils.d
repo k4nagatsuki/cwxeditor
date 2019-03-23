@@ -840,6 +840,7 @@ private class FunctionCallEditor {
 			_decl.setText("");
 			_desc.setText("");
 			_example.setText("");
+			_args.setEnabled(false);
 			_comm.refreshToolBar();
 			return;
 		}
@@ -907,6 +908,7 @@ private class FunctionCallEditor {
 		_decl.setText(.tryFormat(_comm.prop.msgs.functionAs, decl, argTypeName(funcDef.returnType)));
 		_desc.setText(funcDef.desc);
 		_example.setText(funcDef.example);
+		_args.setEnabled(0 < funcDef.args.length);
 
 		_selectedFuncName = funcDef.name;
 		_undo.reset();
