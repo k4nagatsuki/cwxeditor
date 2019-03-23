@@ -2631,6 +2631,7 @@ class Msgs : Properties {
 	auto funcDescValue = Msg("funcDescValue", "任意の値を数値に変換します。");
 	auto funcDescInt = Msg("funcDescInt", "任意の値を整数に変換します。小数点以下の値は切り捨てられます。");
 	auto funcDescIf = Msg("funcDescIf", "真偽値がTRUEであれば2つめの引数を、FALSEであれば3つめの引数を返します。");
+	auto funcDescDice = Msg("funcDescDice", "任意面数のダイスを振って結果の値を返します。");
 	auto funcDescMax = Msg("funcDescMax", "引数の中で最大の数値を返します。");
 	auto funcDescMin = Msg("funcDescMin", "引数の中で最小の数値を返します。");
 	auto funcDescVar = Msg("funcDescVar", "コモンの値を返します。@\"コモン名\"と書く事もできます。");
@@ -2648,6 +2649,7 @@ class Msgs : Properties {
 	auto funcShortDescValue = Msg("funcShortDescValue", "数値へ変換");
 	auto funcShortDescInt = Msg("funcShortDescInt", "整数へ変換");
 	auto funcShortDescIf = Msg("funcShortDescIf", "真偽値でどちらかの値を返す");
+	auto funcShortDescDice = Msg("funcShortDescDice", "ダイスを振る");
 	auto funcShortDescMax = Msg("funcShortDescMax", "最大値を返す");
 	auto funcShortDescMin = Msg("funcShortDescMin", "最小値を返す");
 	auto funcShortDescVar = Msg("funcShortDescVar", "コモンの値を返す");
@@ -2665,6 +2667,7 @@ class Msgs : Properties {
 	auto funcExampleValue = Msg("funcExampleValue", "VALUE(\"999.9\") = 999.9");
 	auto funcExampleInt = Msg("funcExampleInt", "INT(\"999.9\") = 999");
 	auto funcExampleIf = Msg("funcExampleIf", "IF(42 = 99, \"真\", \"偽\") = \"偽\"");
+	auto funcExampleDice = Msg("funcExampleDice", "DICE(2, 6) = 12");
 	auto funcExampleMax = Msg("funcExampleMax", "MAX(1, 23, 4, 5) = 23");
 	auto funcExampleMin = Msg("funcExampleMin", "MIN(12, 3, 4, 5) = 3");
 	auto funcExampleVar = Msg("funcExampleVar", "VAR(\"コモンA\") = \"コモンAの値\"");
@@ -2682,6 +2685,8 @@ class Msgs : Properties {
 	auto exprBooleanDesc = Msg("exprBooleanDesc", "真偽値");
 	auto exprIfTrueDesc = Msg("exprIfTrueDesc", "TRUEの結果");
 	auto exprIfFalseDesc = Msg("exprIfFalseDesc", "FALSEの結果");
+	auto exprDiceTimesDesc = Msg("exprDiceTimesDesc", "個数");
+	auto exprDiceSidesDesc = Msg("exprDiceSidesDesc", "面数");
 	auto exprVariableLengthNumberDesc = Msg("exprVariableLengthNumberDesc", "数値 %1$s");
 	auto exprVariantDesc = Msg("exprVariantDesc", "コモン名");
 	auto exprFlagDesc = Msg("exprFlagDesc", "フラグ名");

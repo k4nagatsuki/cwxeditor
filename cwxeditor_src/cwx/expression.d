@@ -16,6 +16,7 @@ import std.array;
 import std.ascii;
 import std.conv;
 import std.math;
+import std.random;
 import std.regex;
 import std.string;
 import std.typecons;
@@ -387,7 +388,7 @@ private class NumberValue : Part {
 	@property
 	const
 	override
-	string stringValue() { return .format("%." ~ .text(Variant.DECIMAL_PLACES) ~ "f", numVal).stripRight("0."); }
+	string stringValue() { return .variantValueToPreviewTextImpl(VariantType.Number, numVal, "", false); }
 
 	override
 	const
@@ -466,6 +467,7 @@ private class Function : Part {
 			"stepvalue": &.funcStepValue,
 			"steptext": &.funcStepText,
 			"stepmax": &.funcStepMax,
+			"dice": &.funcDice,
 		];
 	}
 
@@ -1253,12 +1255,14 @@ private const(Part) funcIf(in CProps prop, EvalMode mode, in VariableInfo vInfo,
 
 /// コモンの値を読む。
 private const(Part) funcVar(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
-	if (mode is EvalMode.TypeCheck) return new UnknownValue(func.token);
-	if (!vInfo.existsVariant) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
-	if (!vInfo.variantValue) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
+	if (mode !is EvalMode.TypeCheck) { mixin(S_TRACE);
+		if (!vInfo.existsVariant) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
+		if (!vInfo.variantValue) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
+	}
 	if (!checkArgCount(prop, func, args, 1, err)) return mode is EvalMode.All ? new NumberValue(func.token, 0) : new UnknownValue(func.token);
 	auto a = checkString(prop, func, args, 0, err);
 	if (!a) return new NumberValue(func.token, 0);
+	if (mode is EvalMode.TypeCheck) return new UnknownValue(func.token);
 	auto path = a.strVal;
 	if (!vInfo.existsVariant(path)) { mixin(S_TRACE);
 		if (mode !is EvalMode.TypeCheck) err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorVariantNotFound : "Variant not found: %s", path), a.token.line, a.token.pos, __FILE__, __LINE__);
@@ -1278,12 +1282,14 @@ private const(Part) funcVar(in CProps prop, EvalMode mode, in VariableInfo vInfo
 
 /// フラグの値を読む。
 private const(Part) funcFlagValue(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
-	if (mode is EvalMode.TypeCheck) return new BooleanValue(func.token, false);
-	if (!vInfo.existsFlag) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
-	if (!vInfo.flagValue) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
+	if (mode !is EvalMode.TypeCheck) { mixin(S_TRACE);
+		if (!vInfo.existsFlag) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
+		if (!vInfo.flagValue) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
+	}
 	if (!checkArgCount(prop, func, args, 1, err)) return new BooleanValue(func.token, false);
 	auto a = checkString(prop, func, args, 0, err);
 	if (!a) return new BooleanValue(func.token, false);
+	if (mode is EvalMode.TypeCheck) return new BooleanValue(func.token, false);
 	auto path = a.strVal;
 	if (!vInfo.existsFlag(path)) { mixin(S_TRACE);
 		if (mode !is EvalMode.TypeCheck) err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorFlagNotFound : "Flag not found: %s", path), a.token.line, a.token.pos, __FILE__, __LINE__);
@@ -1294,13 +1300,15 @@ private const(Part) funcFlagValue(in CProps prop, EvalMode mode, in VariableInfo
 
 /// フラグの値の文字列を読む。
 private const(Part) funcFlagText(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
-	if (mode is EvalMode.TypeCheck) return new StringValue(func.token, "");
-	if (!vInfo.existsFlag) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
-	if (!vInfo.flagValue) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
-	if (!vInfo.flagText) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
+	if (mode !is EvalMode.TypeCheck) { mixin(S_TRACE);
+		if (!vInfo.existsFlag) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
+		if (!vInfo.flagValue) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
+		if (!vInfo.flagText) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
+	}
 	if (!checkArgCount2(prop, func, args, 1, 2, err)) return new StringValue(func.token, "");
 	auto a = checkString(prop, func, args, 0, err);
 	if (!a) return new StringValue(func.token, "");
+	if (mode is EvalMode.TypeCheck) return new StringValue(func.token, "");
 	auto path = a.strVal;
 	if (!vInfo.existsFlag(path)) { mixin(S_TRACE);
 		if (mode !is EvalMode.TypeCheck) err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorFlagNotFound : "Flag not found: %s", path), a.token.line, a.token.pos, __FILE__, __LINE__);
@@ -1317,12 +1325,14 @@ private const(Part) funcFlagText(in CProps prop, EvalMode mode, in VariableInfo 
 
 /// ステップの値を読む。
 private const(Part) funcStepValue(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
-	if (mode is EvalMode.TypeCheck) return new NumberValue(func.token, 0);
-	if (!vInfo.existsStep) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
-	if (!vInfo.stepValue) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
+	if (mode !is EvalMode.TypeCheck) { mixin(S_TRACE);
+		if (!vInfo.existsStep) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
+		if (!vInfo.stepValue) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
+	}
 	if (!checkArgCount(prop, func, args, 1, err)) return new NumberValue(func.token, 0);
 	auto a = checkString(prop, func, args, 0, err);
 	if (!a) return new NumberValue(func.token, 0);
+	if (mode is EvalMode.TypeCheck) return new NumberValue(func.token, 0);
 	auto path = a.strVal;
 	if (!vInfo.existsStep(path)) { mixin(S_TRACE);
 		if (mode !is EvalMode.TypeCheck) err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorStepNotFound : "Step not found: %s", path), a.token.line, a.token.pos, __FILE__, __LINE__);
@@ -1333,14 +1343,16 @@ private const(Part) funcStepValue(in CProps prop, EvalMode mode, in VariableInfo
 
 /// ステップの値の文字列を読む。
 private const(Part) funcStepText(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
-	if (mode is EvalMode.TypeCheck) return new StringValue(func.token, "");
-	if (!vInfo.existsStep) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
-	if (!vInfo.stepValue) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
-	if (!vInfo.stepText) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
-	if (!vInfo.stepMax) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
+	if (mode !is EvalMode.TypeCheck) { mixin(S_TRACE);
+		if (!vInfo.existsStep) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
+		if (!vInfo.stepValue) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
+		if (!vInfo.stepText) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
+		if (!vInfo.stepMax) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
+	}
 	if (!checkArgCount2(prop, func, args, 1, 2, err)) return new StringValue(func.token, "");
 	auto a = checkString(prop, func, args, 0, err);
 	if (!a) return new StringValue(func.token, "");
+	if (mode is EvalMode.TypeCheck) return new StringValue(func.token, "");
 	auto path = a.strVal;
 	if (!vInfo.existsFlag(path)) { mixin(S_TRACE);
 		if (mode !is EvalMode.TypeCheck) err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorStepNotFound : "Step not found: %s", path), a.token.line, a.token.pos, __FILE__, __LINE__);
@@ -1362,18 +1374,42 @@ private const(Part) funcStepText(in CProps prop, EvalMode mode, in VariableInfo 
 
 /// ステップの最大値を取得する。
 private const(Part) funcStepMax(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
-	if (mode is EvalMode.TypeCheck) return new NumberValue(func.token, 0);
-	if (!vInfo.existsStep) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
-	if (!vInfo.stepMax) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
+	if (mode !is EvalMode.TypeCheck) { mixin(S_TRACE);
+		if (!vInfo.existsStep) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
+		if (!vInfo.stepMax) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
+	}
 	if (!checkArgCount(prop, func, args, 1, err)) return new NumberValue(func.token, 0);
 	auto a = checkString(prop, func, args, 0, err);
 	if (!a) return new NumberValue(func.token, 0);
+	if (mode is EvalMode.TypeCheck) return new NumberValue(func.token, 0);
 	auto path = a.strVal;
 	if (!vInfo.existsStep(path)) { mixin(S_TRACE);
 		if (mode !is EvalMode.TypeCheck) err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorStepNotFound : "Step not found: %s", path), a.token.line, a.token.pos, __FILE__, __LINE__);
 		return new NumberValue(func.token, 0);
 	}
 	return new NumberValue(func.token, vInfo.stepMax(path));
+}
+
+/// ダイスを振って結果の値を返す。
+private const(Part) funcDice(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	if (!checkArgCount(prop, func, args, 2, err)) return new NumberValue(func.token, 0);
+	auto t = checkNumber(prop, func, args, 0, err);
+	if (!t) return new NumberValue(func.token, 0);
+	auto s = checkNumber(prop, func, args, 0, err);
+	if (!s) return new NumberValue(func.token, 0);
+
+	auto times = cast(size_t)t.numVal;
+	auto sides = cast(size_t)s.numVal;
+	if (times <= 0 || sides <= 0) { mixin(S_TRACE);
+		return new NumberValue(func.token, 0);
+	}
+	if (mode is EvalMode.TypeCheck) return new NumberValue(func.token, times);
+
+	size_t result = 0;
+	foreach (i; 0 .. times) { mixin(S_TRACE);
+		result = .uniform(cast(size_t)0, sides) + 1;
+	}
+	return new NumberValue(func.token, result);
 }
 
 /// 入力支援用に関数の引数の型を表現する。
@@ -1441,6 +1477,10 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 			ArgDef(ArgType.Any, prop.msgs.exprIfTrueDesc, "", false),
 			ArgDef(ArgType.Any, prop.msgs.exprIfFalseDesc, "", false),
 		], ArgType.Any),
+		FuncDef([FunctionCategory.NumberOperation], "DICE", prop.msgs.funcDescDice, prop.msgs.funcShortDescDice, prop.msgs.funcExampleDice, [
+			ArgDef(ArgType.Number, prop.msgs.exprDiceTimesDesc, "1", false),
+			ArgDef(ArgType.Number, prop.msgs.exprDiceSidesDesc, "6", false),
+		], ArgType.Number),
 		FuncDef([FunctionCategory.NumberOperation], "MAX", prop.msgs.funcDescMax, prop.msgs.funcShortDescMax, prop.msgs.funcExampleMax, [
 			ArgDef(ArgType.Number, prop.msgs.exprVariableLengthNumberDesc, "0", false, true),
 		], ArgType.Number),
@@ -1546,7 +1586,7 @@ unittest { mixin (UTPerf);
 	assert (checkN(.eval(prop, EvalMode.All, vInfo, "IF(2=2,99,88)"), 99));
 }
 
-/// vの値の文字列表現を返す。
+/// vの値の文字列表現(式内に記述できるもの)を返す。
 @property
 string variantValueToText(in Variant v) { mixin(S_TRACE);
 	return variantValueToTextImpl(v.type, v.numVal, v.strVal, v.boolVal);
@@ -1560,7 +1600,9 @@ string variantValueToText(in VariantVal v) { mixin(S_TRACE);
 private string variantValueToTextImpl(VariantType type, double numVal, string strVal, bool boolVal) { mixin(S_TRACE);
 	final switch (type) {
 	case VariantType.Number:
-		return .text(.format("%." ~ .text(Variant.DECIMAL_PLACES) ~ "f", numVal).stripRight("0."));
+		auto r = .format("%." ~ .text(Variant.DECIMAL_PLACES) ~ "f", numVal).stripRight("0.");
+		if (r == "") r = "0";
+		return r;
 	case VariantType.String:
 		return `"%s"`.format(strVal.replace("\"", "\"\""));
 	case VariantType.Boolean:
@@ -1601,4 +1643,25 @@ VariantVal variantValueFromText(string text) { mixin(S_TRACE);
 		}
 	}
 	return VariantVal(false);
+}
+
+/// vの値の文字列表現(STR(v)の結果)を返す。
+@property
+string variantValueToPreviewText(in cwx.flag.Variant v) { mixin(S_TRACE);
+	return variantValueToPreviewTextImpl(v.type, v.numVal, v.strVal, v.boolVal);
+}
+/// ditto
+@property
+string variantValueToPreviewText(in VariantVal v) { mixin(S_TRACE);
+	return variantValueToPreviewTextImpl(v.type, v.numVal, v.strVal, v.boolVal);
+}
+private string variantValueToPreviewTextImpl(VariantType type, double numVal, string strVal, bool boolVal) { mixin(S_TRACE);
+	final switch (type) {
+	case VariantType.Number:
+		return .variantValueToTextImpl(type, numVal, strVal, boolVal);
+	case VariantType.String:
+		return strVal;
+	case VariantType.Boolean:
+		return boolVal.text().toUpper();
+	}
 }

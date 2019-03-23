@@ -1,6 +1,7 @@
 
 module cwx.flag;
 
+import cwx.expression;
 import cwx.path;
 import cwx.system;
 import cwx.textholder;
@@ -11,10 +12,10 @@ import cwx.xml;
 
 import std.algorithm;
 import std.array;
-import std.datetime;
-import std.string;
-import std.exception;
 import std.conv;
+import std.datetime;
+import std.exception;
+import std.string;
 import std.typecons : Rebindable, rebindable;
 
 private static const {
@@ -828,11 +829,8 @@ public:
 		e.newAttr("defaulttype", .fromVariantType(type));
 		final switch (type) {
 		case VariantType.Number:
-			auto v = .format("%." ~ .text(DECIMAL_PLACES) ~ "f", numVal).stripRight("0.");
-			e.newAttr("defaultvalue", v);
-			break;
 		case VariantType.String:
-			e.newAttr("defaultvalue", strVal);
+			e.newAttr("defaultvalue", .variantValueToPreviewText(this));
 			break;
 		case VariantType.Boolean:
 			e.newAttr("defaultvalue", .fromBool(boolVal));

@@ -3978,22 +3978,3 @@ private string getSPCharPreviewValue(in Commons comm, char name) { mixin(S_TRACE
 	default: return "";
 	}
 }
-
-@property
-string variantValueToPreviewText(in cwx.flag.Variant v) { mixin(S_TRACE);
-	return variantValueToPreviewTextImpl(v.type, v.numVal, v.strVal, v.boolVal);
-}
-@property
-string variantValueToPreviewText(in VariantVal v) { mixin(S_TRACE);
-	return variantValueToPreviewTextImpl(v.type, v.numVal, v.strVal, v.boolVal);
-}
-private string variantValueToPreviewTextImpl(VariantType type, double numVal, string strVal, bool boolVal) { mixin(S_TRACE);
-	final switch (type) {
-	case VariantType.Number:
-		return .format("%." ~ .text(cwx.flag.Variant.DECIMAL_PLACES) ~ "f", numVal).stripRight("0.");
-	case VariantType.String:
-		return strVal;
-	case VariantType.Boolean:
-		return boolVal.text().toUpper();
-	}
-}
