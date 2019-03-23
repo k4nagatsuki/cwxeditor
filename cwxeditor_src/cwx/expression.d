@@ -469,6 +469,7 @@ private class Function : Part {
 			"steptext": &.funcStepText,
 			"stepmax": &.funcStepMax,
 			"selected": &.funcSelected,
+			"cardtype": &.funcCardType,
 		];
 	}
 
@@ -486,7 +487,9 @@ private class Function : Part {
 	const(Part) call(in CProps prop, EvalMode mode, in VariableInfo vInfo, ref ExprError[] err) { mixin(S_TRACE);
 		const(Part)[] args;
 		foreach (arg; this.args) { mixin(S_TRACE);
-			if (auto expr = cast(Expr)arg) { mixin(S_TRACE);
+			if (auto func = cast(Function)arg) { mixin(S_TRACE);
+				args ~= func.call(prop, mode, vInfo, err);
+			} else if (auto expr = cast(Expr)arg) { mixin(S_TRACE);
 				args ~= .calculate(prop, mode, vInfo, expr.parts, err);
 			} else { mixin(S_TRACE);
 				args ~= arg;
@@ -1109,11 +1112,11 @@ private const(BooleanValue) checkBoolean(in CProps prop, in Function func, in Pa
 	return null;
 }
 /// ditto
-private const(NumberValue) checkMinValue(in CProps prop, in Function func, in Part[] args, size_t index, double minValue, ref ExprError[] err) { mixin(S_TRACE);
+private const(NumberValue) checkMinValue(in CProps prop, EvalMode mode, in Function func, in Part[] args, size_t index, double minValue, ref ExprError[] err) { mixin(S_TRACE);
 	auto a = checkNumber(prop, func, args, index, err);
 	if (!a) return null;
 	if (a.numVal < minValue) { mixin(S_TRACE);
-		err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorMinimumValue : "Minimum value: %s, %s, %s < %s", func.funcName.toUpper(), index + 1, minValue, a.numVal), args[index].token.line, args[index].token.pos, __FILE__, __LINE__);
+		if (mode !is EvalMode.TypeCheck) err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorMinimumValue : "Minimum value: %s, %s, %s < %s", func.funcName.toUpper(), index + 1, minValue, a.numVal), args[index].token.line, args[index].token.pos, __FILE__, __LINE__);
 		return null;
 	}
 	return a;
@@ -1164,7 +1167,7 @@ private const(Part) funcLeft(in CProps prop, EvalMode mode, in VariableInfo vInf
 	if (!checkArgCount(prop, func, args, 2, err)) return new StringValue(func.token, "");
 	auto s = checkString(prop, func, args, 0, err);
 	if (!s) return new StringValue(func.token, "");
-	auto n = checkNumber(prop, func, args, 1, err);
+	auto n = checkMinValue(prop, mode, func, args, 1, 0, err);
 	if (!n) return new StringValue(func.token, "");
 
 	auto a = s.strVal.toUTF32();
@@ -1177,7 +1180,7 @@ private const(Part) funcRight(in CProps prop, EvalMode mode, in VariableInfo vIn
 	if (!checkArgCount(prop, func, args, 2, err)) return new StringValue(func.token, "");
 	auto s = checkString(prop, func, args, 0, err);
 	if (!s) return new StringValue(func.token, "");
-	auto n = checkNumber(prop, func, args, 1, err);
+	auto n = checkMinValue(prop, mode, func, args, 1, 0, err);
 	if (!n) return new StringValue(func.token, "");
 
 	auto a = s.strVal.toUTF32();
@@ -1190,7 +1193,7 @@ private const(Part) funcMid(in CProps prop, EvalMode mode, in VariableInfo vInfo
 	if (!checkArgCount2(prop, func, args, 2, 3, err)) return new StringValue(func.token, "");
 	auto s = checkString(prop, func, args, 0, err);
 	if (!s) return new StringValue(func.token, "");
-	auto a1 = checkMinValue(prop, func, args, 1, 1, err);
+	auto a1 = checkMinValue(prop, mode, func, args, 1, 1, err);
 	if (!a1) return new StringValue(func.token, "");
 	auto n1 = cast(size_t)a1.numVal;
 	auto v = n1 - 1;
@@ -1202,7 +1205,7 @@ private const(Part) funcMid(in CProps prop, EvalMode mode, in VariableInfo vInfo
 		a = a[v .. $];
 
 		if (args.length == 3) { mixin(S_TRACE);
-			auto a2 = checkMinValue(prop, func, args, 2, 0, err);
+			auto a2 = checkMinValue(prop, mode, func, args, 2, 0, err);
 			if (!a2) return new StringValue(func.token, "");
 			auto n2 = cast(size_t)a2.numVal;
 
@@ -1400,9 +1403,9 @@ private const(Part) funcStepMax(in CProps prop, EvalMode mode, in VariableInfo v
 /// ダイスを振って結果の値を返す。
 private const(Part) funcDice(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
 	if (!checkArgCount(prop, func, args, 2, err)) return new NumberValue(func.token, 0);
-	auto t = checkNumber(prop, func, args, 0, err);
+	auto t = checkMinValue(prop, mode, func, args, 0, 0, err);
 	if (!t) return new NumberValue(func.token, 0);
-	auto s = checkNumber(prop, func, args, 0, err);
+	auto s = checkMinValue(prop, mode, func, args, 1, 0, err);
 	if (!s) return new NumberValue(func.token, 0);
 
 	auto times = cast(size_t)t.numVal;
@@ -1427,6 +1430,17 @@ private const(Part) funcSelected(in CProps prop, EvalMode mode, in VariableInfo 
 		if (!vInfo.selectedPlayerCardNumber) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
 	}
 	return new NumberValue(func.token, vInfo.selectedPlayerCardNumber());
+}
+
+/// キャラクターのタイプを返す(プレイヤー=1, エネミー=2, 同行キャスト=3)。
+/// 該当者がいない場合は0を返す。
+private const(Part) funcCardType(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	if (!checkArgCount(prop, func, args, 1, err)) return new NumberValue(func.token, 0);
+	auto n = checkMinValue(prop, mode, func, args, 0, 0, err);
+	if (!n) return new NumberValue(func.token, 0);
+	auto v = cast(uint)n.numVal;
+	if (v == 0) return new NumberValue(func.token, 0);
+	return new NumberValue(func.token, v <= prop.looks.partyMax ? 1 : 0);
 }
 
 /// 入力支援用に関数の引数の型を表現する。
@@ -1525,6 +1539,9 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 			ArgDef(ArgType.Step, prop.msgs.exprStepDesc, "", false),
 		], ArgType.Number),
 		FuncDef([FunctionCategory.CardInformation], "SELECTED", prop.msgs.funcDescSelected, prop.msgs.funcShortDescSelected, prop.msgs.funcExampleSelected, [
+		], ArgType.Number),
+		FuncDef([FunctionCategory.CardInformation], "CARDTYPE", prop.msgs.funcDescCardType, prop.msgs.funcShortDescSelected, prop.msgs.funcExampleCardType, [
+			ArgDef(ArgType.Number, prop.msgs.exprCardNumberDesc, "1", false),
 		], ArgType.Number),
 	];
 }

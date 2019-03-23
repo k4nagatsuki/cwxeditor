@@ -812,6 +812,7 @@ private:
 				_selections = new Text(grp, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
 				createTextMenu!Text(_comm, _prop, _selections, &catchMod);
 				mod(_selections);
+				_selections.setTabs(_prop.var.etc.tabs);
 				auto gd = new GridData(GridData.FILL_BOTH);
 				gd.widthHint = _prop.var.etc.selectionWidth;
 				gd.heightHint = 0;
@@ -825,6 +826,7 @@ private:
 				_keyCodes = new Text(grp, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
 				createTextMenu!Text(_comm, _prop, _keyCodes, &catchMod);
 				mod(_keyCodes);
+				_keyCodes.setTabs(_prop.var.etc.tabs);
 				auto gd = new GridData(GridData.FILL_BOTH);
 				gd.widthHint = _prop.var.etc.keyCodeWidth;
 				gd.heightHint = 0;
@@ -1265,6 +1267,7 @@ private:
 				_ignorePaths = new Text(grp, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
 				createTextMenu!Text(_comm, _prop, _ignorePaths, &catchMod);
 				mod(_ignorePaths);
+				_ignorePaths.setTabs(_prop.var.etc.tabs);
 				auto gdp = new GridData(GridData.FILL_BOTH);
 				gdp.widthHint = _prop.var.etc.ignorePathsWidth;
 				gdp.heightHint = 0;
@@ -3050,6 +3053,7 @@ private:
 				l.setText(_prop.msgs.eventTemplateScript);
 				_templScript = new Text(parent, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.H_SCROLL | SWT.V_SCROLL);
 				_tms ~= createTextMenu!Text(_comm, _prop, _templScript, _catchMod);
+				_templScript.setTabs(_prop.var.etc.tabs);
 				auto gd = new GridData(GridData.FILL_BOTH);
 				gd.widthHint = 0;
 				gd.horizontalSpan = 3;

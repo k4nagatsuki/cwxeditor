@@ -160,6 +160,7 @@ class ContentCommentDialog : AbsDialog {
 		area.setLayout(cl);
 		_comment = new Text(area, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
 		mod(_comment);
+		_comment.setTabs(_prop.var.etc.tabs);
 		_comment.setText(_evt.comment);
 		createTextMenu!Text(_comm, _prop, _comment, &catchMod);
 		auto font = _comment.getFont();

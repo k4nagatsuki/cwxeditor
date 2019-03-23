@@ -436,6 +436,7 @@ private:
 						_rCoupons = new Text(grp, SWT.BORDER | SWT.MULTI | SWT.WRAP | _readOnly);
 						createTextMenu!Text(_comm, _prop, _rCoupons, &catchMod);
 						mod(_rCoupons);
+						_rCoupons.setTabs(_prop.var.etc.tabs);
 						auto gd = new GridData(GridData.FILL_BOTH);
 						gd.horizontalSpan = 2;
 						setCDataXY(_rCoupons, gd);

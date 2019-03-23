@@ -3994,7 +3994,7 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 			return comm.prop.msgs.ctChangeEnvironmentNotSet;
 		}
 	} case CType.BRANCH_VARIANT: { mixin(S_TRACE);
-		auto expr = evt.expression == "" ? comm.prop.msgs.noExpression : evt.expression.replace("\n", "");
+		auto expr = evt.expression == "" ? comm.prop.msgs.noExpression : .exprStr(evt.expression);
 		return .tryFormat(comm.prop.msgs.ctBranchVariant, expr);
 	} case CType.SET_VARIANT: { mixin(S_TRACE);
 		string name;
@@ -4005,10 +4005,10 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		} else { mixin(S_TRACE);
 			name = .contentTextUseID!(CIDKind.Variant)(comm, summ, evt.variant, "%s", evt);
 		}
-		auto expr = evt.expression == "" ? comm.prop.msgs.noExpression : evt.expression.replace("\n", "");
+		auto expr = evt.expression == "" ? comm.prop.msgs.noExpression : .exprStr(evt.expression);
 		return .tryFormat(comm.prop.msgs.ctSetVariant, name, expr);
 	} case CType.CHECK_VARIANT: { mixin(S_TRACE);
-		auto expr = evt.expression == "" ? comm.prop.msgs.noExpression : evt.expression.replace("\n", "");
+		auto expr = evt.expression == "" ? comm.prop.msgs.noExpression : .exprStr(evt.expression);
 		return .tryFormat(comm.prop.msgs.ctCheckVariant, expr);
 	}
 	}
@@ -4060,6 +4060,14 @@ string castRangesName(in Props prop, in CastRange[] r) { mixin(S_TRACE);
 	} else { mixin(S_TRACE);
 		return prop.msgs.castRange0;
 	}
+}
+
+string exprStr(string expression) { mixin(S_TRACE);
+	string[] lines;
+	foreach (line; expression.splitLines()) { mixin(S_TRACE);
+		lines ~= line.astrip();
+	}
+	return lines.join("");
 }
 
 bool CBisText(Clipboard cb) { mixin(S_TRACE);

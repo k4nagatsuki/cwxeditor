@@ -4398,7 +4398,7 @@ private string evtChildBrVariant(in Props prop, in Content evt, ref string text)
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
 
-	auto expr = evt.expression == "" ? prop.msgs.noExpression : evt.expression.replace("\n", "");
+	auto expr = evt.expression == "" ? prop.msgs.noExpression : .exprStr(evt.expression);
 
 	if (val) { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.branchVariantSuccess, expr);

@@ -488,6 +488,7 @@ protected:
 		}
 		auto build = new Text(area, SWT.READ_ONLY | SWT.BORDER | SWT.MULTI);
 		createTextMenu!Text(_comm, _prop, build, null);
+		build.setTabs(_comm.prop.var.etc.tabs);
 		build.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		build.setText(APP_BUILD);
 	}
@@ -551,6 +552,7 @@ class ErrorDialog : AbsDialog {
 
 		auto msg = new Text(area, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL | SWT.READ_ONLY);
 		createTextMenu!Text(_comm, _prop, msg, null);
+		msg.setTabs(_prop.var.etc.tabs);
 		auto msgL = new GridData(GridData.FILL_BOTH);
 		msgL.horizontalSpan = 2;
 		msg.setLayoutData(msgL);

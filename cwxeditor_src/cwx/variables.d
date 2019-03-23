@@ -21,6 +21,7 @@ class FlexEtcProps : Properties {
 	auto imeMode = Prop!(int)("imeMode", 0);
 	auto imageScale = Prop!(uint)("imageScale", 1, 2016091800);
 	auto drawingScale = Prop!(uint)("drawingScale", 1);
+	auto tabs = Prop!(uint, true)("tabs", 4);
 	auto toolsLock = Prop!(bool)("toolsLock", false);
 	auto toolsOrder = Prop!(int[])("toolsOrder", []);
 	auto toolsWrapIndices = Prop!(int[])("toolsWrapIndices", []);

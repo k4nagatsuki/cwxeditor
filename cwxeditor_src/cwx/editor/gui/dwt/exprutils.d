@@ -368,8 +368,9 @@ class ExpressionEditor : Composite {
 		auto gd = zeroMarginGridLayout(1, true);
 		setLayout(gd);
 
-		_expr = new Text(this, SWT.MULTI | SWT.BORDER);
+		_expr = new Text(this, SWT.MULTI | SWT.BORDER | SWT.V_SCROLL);
 		.listener(_expr, SWT.Modify, &modified);
+		_expr.setTabs(_comm.prop.var.etc.tabs);
 		auto font = _expr.getFont();
 		auto fSize = font ? cast(uint)font.getFontData()[0].height : 0;
 		_expr.setFont(new Font(getDisplay(), dwtData(_comm.prop.looks.textDlgFont(fSize))));

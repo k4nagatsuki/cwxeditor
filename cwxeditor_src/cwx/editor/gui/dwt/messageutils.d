@@ -1507,6 +1507,7 @@ private Composite createTalkerPane2(Composite parent, Commons comm, Props prop, 
 	}
 	{ mixin(S_TRACE);
 		couponList = new Text(comp, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
+		couponList.setTabs(prop.var.etc.tabs);
 		auto gd = new GridData(GridData.FILL_BOTH);
 		gd.horizontalSpan = 2;
 		couponList.setLayoutData(gd);

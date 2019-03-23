@@ -796,6 +796,7 @@ protected:
 			grp.setLayout(normalGridLayout(2, false));
 			_text = new Text(grp, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
 			mod(_text);
+			_text.setTabs(_prop.var.etc.tabs);
 			createTextMenu!Text(_comm, _prop, _text, &catchMod);
 			auto menu = _text.getMenu();
 			new MenuItem(menu, SWT.SEPARATOR);

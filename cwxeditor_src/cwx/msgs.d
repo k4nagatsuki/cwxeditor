@@ -2642,6 +2642,7 @@ class Msgs : Properties {
 	auto funcDescStepText = Msg("funcDescStepText", "ステップの値のテキストを返します。2つめの引数を省略した場合は、ステップの現在値のテキストを返します。");
 	auto funcDescStepMax = Msg("funcDescStepMax", "ステップの最大値を返します。");
 	auto funcDescSelected = Msg("funcDescSelected", "選択メンバの番号を1以上の数値で返します。選択メンバがいない場合は0を返します。");
+	auto funcDescCardType = Msg("funcDescCardType", "キャラクターのタイプを返します(1=プレイヤー, 2=エネミー, 3=同行キャスト)。該当者がいない場合は0を返します。");
 
 	auto funcShortDescLen = Msg("funcShortDescLen", "文字列の長さを返す");
 	auto funcShortDescLeft = Msg("funcShortDescLeft", "文字列の左側を返す");
@@ -2661,6 +2662,7 @@ class Msgs : Properties {
 	auto funcShortDescStepText = Msg("funcShortDescStepText", "ステップのテキストを返す");
 	auto funcShortDescStepMax = Msg("funcShortDescStepMax", "ステップの最大値を返す");
 	auto funcShortDescSelected = Msg("funcShortDescSelected", "選択メンバを返す");
+	auto funcShortDescCardType = Msg("funcShortDescCardType", "キャラクターのタイプを返す");
 
 	auto funcExampleLen = Msg("funcExampleLen", "LEN(\"対象文字列\") = 5");
 	auto funcExampleLeft = Msg("funcExampleLeft", "LEFT(\"対象文字列\", 2) = \"対象\"");
@@ -2680,6 +2682,7 @@ class Msgs : Properties {
 	auto funcExampleStepText = Msg("funcExampleStepText", "STEPTEXT(\"ステップA\", 5) = \"Step - 5\"");
 	auto funcExampleStepMax = Msg("funcExampleStepMax", "STEPMAX(\"ステップA\") = 9");
 	auto funcExampleSelected = Msg("funcExampleSelected", "SELECTED() <> 0");
+	auto funcExampleCardType = Msg("funcExampleCardType", "CARDTYPE(SELECTED()) = 1");
 
 	auto exprStringDesc = Msg("exprStringDesc", "文字列");
 	auto exprStringLengthDesc = Msg("exprStringLengthDesc", "長さ(文字数)");
@@ -2697,6 +2700,7 @@ class Msgs : Properties {
 	auto exprFlagValueDesc = Msg("exprFlagValueDesc", "フラグ値");
 	auto exprStepDesc = Msg("exprStepDesc", "ステップ名");
 	auto exprStepValueDesc = Msg("exprStepValueDesc", "ステップ値");
+	auto exprCardNumberDesc = Msg("exprCardNumberDesc", "カード番号");
 
 	/// メニュー。
 	const string menuText(MenuID id) { mixin(S_TRACE);

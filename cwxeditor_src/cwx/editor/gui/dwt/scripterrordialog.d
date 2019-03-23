@@ -108,6 +108,7 @@ protected:
 		}
 		_result = new Text(area, SWT.BORDER | SWT.MULTI | SWT.READ_ONLY | SWT.WRAP | SWT.V_SCROLL);
 		createTextMenu!Text(_comm, _prop, _result, null);
+		_result.setTabs(_prop.var.etc.tabs);
 		_result.setText(buf);
 		auto font = _result.getFont();
 		auto fSize = font ? cast(uint) font.getFontData()[0].height : 0;
