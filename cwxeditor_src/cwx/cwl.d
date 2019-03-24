@@ -2223,19 +2223,16 @@ void saveLScenario(Summary summ, const Skin skin, const CProps prop, in SaveOpti
 	HashSet!Object changed = null;
 	if (opt.saveChangedOnly) changed = summ.changedResources;
 
-	auto sysFName = .regex!(dstring)("^(((Area|Battle|Package|Mate|Skill|Item|Beast|Info)[0-9]+\\.wid)|((Comment|ImageRef|CardRef|Template)\\.wex))$"d);
+	static immutable SYS_FNAME = .ctRegex!("^(((Area|Battle|Package|Mate|Skill|Item|Beast|Info)[0-9]+\\.wid)|((Comment|ImageRef|CardRef|Template)\\.wex))$");
 	bool canBackup = opt.backup && (!opt.backupDir.exists() || opt.backupDir.isDir());
 	if (canBackup) { mixin(S_TRACE);
+		if (!opt.backupDir.exists()) opt.backupDir.mkdirRecurse();
 		foreach (file; clistdir(opt.backupDir)) { mixin(S_TRACE);
-			delAll(opt.backupDir.buildPath(file));
+			.delAll(opt.backupDir.buildPath(file));
 		}
-		foreach (file; clistdir(summ.scenarioPath)) { mixin(S_TRACE);
-			if (cfnmatch(file, "Summary.wsm")
-					|| !std.regex.match(toUTF32(file), sysFName).empty) { mixin(S_TRACE);
-				auto path = std.path.buildPath(summ.scenarioPath, file);
-				if (!opt.backupDir.exists()) opt.backupDir.mkdirRecurse();
-				path.copy(opt.backupDir.buildPath(file));
-			}
+		auto summPath = std.path.buildPath(summ.scenarioPath, "Summary.wsm");
+		if (summPath.exists()) { mixin(S_TRACE);
+			summPath.rename(opt.backupDir.buildPath("Summary.wsm"));
 		}
 	}
 
@@ -2255,6 +2252,12 @@ void saveLScenario(Summary summ, const Skin skin, const CProps prop, in SaveOpti
 		}
 		void writeFile(CWXPath a, string name, void delegate(ref ByteIO f) write) { mixin(S_TRACE);
 			auto path = std.path.buildPath(d.sPath, name);
+			if (canBackup && path.exists()) { mixin(S_TRACE);
+				try {
+					if (!opt.backupDir.exists()) opt.backupDir.mkdirRecurse();
+				} catch (FileException e) { }
+				path.rename(opt.backupDir.buildPath(name));
+			}
 			if (!d.opt.saveChangedOnly || !path.exists() || !path.isFile() || changed.contains(cast(Object)a)) { mixin(S_TRACE);
 				ByteIO f;
 				write(f);
@@ -2354,11 +2357,16 @@ void saveLScenario(Summary summ, const Skin skin, const CProps prop, in SaveOpti
 		save1.wids[file] = true;
 	}
 
-	foreach (file; clistdir(summ.scenarioPath)) { mixin(S_TRACE);
-		if (!std.regex.match(toUTF32(file), sysFName).empty && file !in save1.wids && file !in save2.wids) { mixin(S_TRACE);
-			auto path = std.path.buildPath(summ.scenarioPath, file);
-			preRemove(path);
-			std.file.remove(path);
+	foreach (file; .clistdir(summ.scenarioPath)) { mixin(S_TRACE);
+		if (!std.regex.match(file, SYS_FNAME).empty && file !in save1.wids && file !in save2.wids) { mixin(S_TRACE);
+		auto path = std.path.buildPath(summ.scenarioPath, file);
+			if (canBackup) { mixin(S_TRACE);
+				if (!opt.backupDir.exists()) opt.backupDir.mkdirRecurse();
+				path.rename(opt.backupDir.buildPath(file));
+			} else { mixin(S_TRACE);
+				preRemove(path);
+				std.file.remove(path);
+			}
 		}
 	}
 }
