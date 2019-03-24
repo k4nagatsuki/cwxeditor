@@ -3994,16 +3994,16 @@ fi`;
 				attrs ~= toAttrVariableType(c.flag, c.step, c.variant);
 			} else { mixin(S_TRACE);
 				if (detail.use(CArg.FLAG)) { mixin(S_TRACE);
-					if (_prop && _prop.sys.randomValue == c.flag) { mixin(S_TRACE);
+					if (_prop && .icmp(_prop.sys.randomValue, c.flag) == 0) { mixin(S_TRACE);
 						attrs ~= toAttr(Symbol("random"), indentValue, vars);
 					} else { mixin(S_TRACE);
 						attrs ~= toAttr(c.flag, indentValue, vars);
 					}
 				}
 				if (detail.use(CArg.STEP)) { mixin(S_TRACE);
-					if (_prop && _prop.sys.randomValue == c.step) { mixin(S_TRACE);
+					if (_prop && .icmp(_prop.sys.randomValue, c.step) == 0) { mixin(S_TRACE);
 						attrs ~= toAttr(Symbol("random"), indentValue, vars);
-					} else if (_prop && _prop.sys.selectedPlayerCardNumber == c.step) { mixin(S_TRACE);
+					} else if (_prop && .icmp(_prop.sys.selectedPlayerCardNumber, c.step) == 0) { mixin(S_TRACE);
 						attrs ~= toAttr(Symbol("selected"), indentValue, vars); // Wsn.2
 					} else { mixin(S_TRACE);
 						attrs ~= toAttr(c.step, indentValue, vars);
