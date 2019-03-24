@@ -393,22 +393,21 @@ private:
 		size_t count = 0;
 		string path;
 		string desc;
-		Summary _grepSumm;
+		Summary grepSumm;
+		Skin grepSkin;
 		void run() { mixin(S_TRACE);
 			if (cancel) return;
 			if (!_win || _win.isDisposed()) return;
 			if (_inProc && !_prop.var.etc.searchResultRealtime) resultRedraw(false);
-			_grepSumm = this.outer._grepSumm;
 			refResultStatus(cast(int)count, false);
 			_results ~= this;
 			if (_prop.var.etc.searchResultRealtime) _result.setItemCount(cast(int)_results.length);
 		}
 		override void setData(TableItem itm) { mixin(S_TRACE);
-			auto summ = _grepSumm ? _grepSumm : _summ;
+			auto summ = grepSumm ? grepSumm : _summ;
 			auto fullPath = std.path.buildPath(summ.scenarioPath, path);
-			if (_grepSumm) { mixin(S_TRACE);
-				if (!_grepSkin) _grepSkin = findSkin(_comm, _prop, summ);
-				itm.setImage(fimage(fullPath, _grepSkin));
+			if (grepSumm) { mixin(S_TRACE);
+				itm.setImage(fimage(fullPath, grepSkin));
 			} else { mixin(S_TRACE);
 				itm.setImage(fimage(fullPath, _comm.skin));
 			}
@@ -419,9 +418,9 @@ private:
 				itm.setText(2, desc);
 				itm.setImage(2, _prop.images.warning);
 			}
-			if (_grepSumm) { mixin(S_TRACE);
-				scPath = _grepSumm.readOnlyPath != "" ? _grepSumm.readOnlyPath : _grepSumm.useTemp ? _grepSumm.origZipName : _grepSumm.scenarioPath;
-				text = .tryFormat(_prop.msgs.grepScenario, _grepSumm.scenarioName, scPath);
+			if (grepSumm) { mixin(S_TRACE);
+				scPath = grepSumm.readOnlyPath != "" ? grepSumm.readOnlyPath : grepSumm.useTemp ? grepSumm.origZipName : grepSumm.scenarioPath;
+				text = .tryFormat(_prop.msgs.grepScenario, grepSumm.scenarioName, scPath);
 				itm.setText(2, text);
 				itm.setImage(2, _prop.images.summary);
 			}
@@ -434,18 +433,17 @@ private:
 		string cwxPath;
 		string desc;
 		size_t count = 0;
-		Summary _grepSumm;
+		Summary grepSumm;
 		void run() { mixin(S_TRACE);
 			if (cancel) return;
 			if (!_win || _win.isDisposed()) return;
 			if (_inProc && !_prop.var.etc.searchResultRealtime) resultRedraw(false);
-			_grepSumm = this.outer._grepSumm;
 			refResultStatus(cast(int)count, false);
 			_results ~= this;
 			if (_prop.var.etc.searchResultRealtime) _result.setItemCount(cast(int)_results.length);
 		}
 		override void setData(TableItem itm) { mixin(S_TRACE);
-			addResultImpl(itm, _grepSumm, parent, path, cwxPath, desc);
+			addResultImpl(itm, grepSumm, parent, path, cwxPath, desc);
 		}
 	}
 	private void addResultImpl(TableItem itm, Summary grepSumm, CWXPath parent, CWXPath path, string cwxPath, string desc = "") {
@@ -2460,6 +2458,7 @@ public:
 		initReplaceText();
 		foreach (path; paths) { mixin(S_TRACE);
 			auto addResultCWXPath = new AddResultCWXPath;
+			addResultCWXPath.grepSumm = _grepSumm;
 			addResultCWXPath.parent = parent;
 			addResultCWXPath.path = path;
 			addResultCWXPath.cwxPath = path.cwxPath(true);
@@ -4066,10 +4065,11 @@ public:
 			Skin defSkin = .findSkin2(_prop, _prop.var.etc.defaultSkin, _prop.var.etc.defaultSkinName);
 			auto summ = Summary.loadScenarioFromFile(_prop.parent, opt, errorFiles, summFile, _prop.tempPath, defSkin);
 			if (!summ) return;
+			_grepSkin = null;
 			_grepSumm = summ;
 			_grepCount++;
 			scope (exit) {
-				summ.delTemp();
+				summ.delTemp(true);
 				_grepSkin = null;
 				_grepSumm = null;
 				core.memory.GC.collect();
@@ -4366,6 +4366,9 @@ public:
 		if (cancel) return;
 		count++;
 		auto addResultPath = new AddResultPath;
+		if (!_grepSkin) _grepSkin = findSkin(_comm, _prop, _grepSumm);
+		addResultPath.grepSumm = _grepSumm;
+		addResultPath.grepSkin = _grepSkin;
 		addResultPath.path = path;
 		addResultPath.desc = desc;
 		addResultPath.count = count;
@@ -4435,6 +4438,7 @@ public:
 		if (cancel) return;
 		count++;
 		auto addResultCWXPath = new AddResultCWXPath;
+		addResultCWXPath.grepSumm = _grepSumm;
 		addResultCWXPath.parent = parent;
 		addResultCWXPath.path = path;
 		addResultCWXPath.cwxPath = cwxPath;

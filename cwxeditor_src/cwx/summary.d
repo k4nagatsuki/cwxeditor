@@ -704,7 +704,7 @@ public:
 		}
 	}
 	/// 一時展開先を削除する。
-	void delTemp() { mixin(S_TRACE);
+	void delTemp(bool fileOnly = false) { mixin(S_TRACE);
 		if (useTemp) { mixin(S_TRACE);
 			if (_inSaving) { mixin(S_TRACE);
 				.task({ mixin(S_TRACE);
@@ -716,10 +716,12 @@ public:
 			_lock.close();
 			try { mixin(S_TRACE);
 				delAll(_tempPath.length ? _tempPath : scenarioPath, true);
-				_useTemp = false;
-				_zipName = "";
-				_origZipName = "";
-				_tempPath = "";
+				if (!fileOnly) { mixin(S_TRACE);
+					_useTemp = false;
+					_zipName = "";
+					_origZipName = "";
+					_tempPath = "";
+				}
 			} catch (Exception e) {
 				printStackTrace();
 				debugln(e);

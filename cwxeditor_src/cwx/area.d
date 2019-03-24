@@ -871,7 +871,7 @@ public:
 		};
 		aNode.parse();
 		if (idStr is null) throw new AreaException("Id not found");
-		if (name is null) throw new AreaException("Name not found");
+		if (name is null) name = "";
 		id = to!(ulong)(idStr);
 	}
 
@@ -1823,7 +1823,7 @@ public:
 		};
 		aNode.parse();
 		if (idStr is null) throw new AreaException("Id not found");
-		if (name is null) throw new AreaException("Name not found");
+		if (name is null) name = "";
 
 		id = to!(ulong)(idStr);
 
