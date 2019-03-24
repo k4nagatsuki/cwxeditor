@@ -1003,7 +1003,7 @@ private:
 				_event = createB(_prop.msgs.replTextEventText, '7');
 				_start = createB(_prop.msgs.replTextStart, '8');
 				_varName = createB(_prop.msgs.replTextVariableName, '9');
-				_varValue = createB(_prop.msgs.replTextVariableValue, 'A');
+				_varValue = createB(_prop.msgs.replTextVariableValue, 'A', true);
 				_expression = createB(_prop.msgs.replTextExpression, 'B');
 				_coupon = createB(_prop.msgs.replTextCoupon, 'D');
 				_gossip = createB(_prop.msgs.replTextGossip, 'E');
