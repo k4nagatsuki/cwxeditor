@@ -2021,9 +2021,12 @@ public:
 		if (callSaved) _inSaving = true;
 		scope (exit) {
 			if (callSaved) {
-				sync.sync();
-				_inSaving = false;
-				if (opt.savedCallback) opt.savedCallback();
+				void saved() { mixin(S_TRACE);
+					sync.sync();
+					_inSaving = false;
+					if (opt.savedCallback) opt.savedCallback();
+				}
+				.task(&saved).executeInNewThread();
 			}
 		}
 		sync.sync();
@@ -2710,9 +2713,12 @@ public:
 			scope (exit) {
 				if (after) after();
 				if (callSaved) {
-					sync.sync();
-					_inSaving = false;
-					if (opt.savedCallback) opt.savedCallback();
+					void saved() { mixin(S_TRACE);
+						sync.sync();
+						_inSaving = false;
+						if (opt.savedCallback) opt.savedCallback();
+					}
+					.task(&saved).executeInNewThread();
 				}
 			}
 			void releaseLockFile() { mixin(S_TRACE);
