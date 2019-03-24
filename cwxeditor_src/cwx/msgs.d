@@ -2678,7 +2678,7 @@ class Msgs : Properties {
 	auto funcExampleVar = Msg("funcExampleVar", "VAR(\"コモンA\") = \"コモンAの値\"");
 	auto funcExampleFlagValue = Msg("funcExampleFlagValue", "FLAGVALUE(\"フラグA\") = TRUE");
 	auto funcExampleFlagText = Msg("funcExampleFlagText", "FLAGTEXT(\"フラグA\", TRUE) = \"真\"");
-	auto funcExampleStepValue = Msg("funcExampleStepValue", "STEPVALUE(\"ステップA\") = TRUE");
+	auto funcExampleStepValue = Msg("funcExampleStepValue", "STEPVALUE(\"ステップA\") = 5");
 	auto funcExampleStepText = Msg("funcExampleStepText", "STEPTEXT(\"ステップA\", 5) = \"Step - 5\"");
 	auto funcExampleStepMax = Msg("funcExampleStepMax", "STEPMAX(\"ステップA\") = 9");
 	auto funcExampleSelected = Msg("funcExampleSelected", "SELECTED() <> 0");
