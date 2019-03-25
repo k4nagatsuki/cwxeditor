@@ -369,6 +369,7 @@ class ExpressionEditor : Composite {
 		setLayout(gd);
 
 		_expr = new Text(this, SWT.MULTI | SWT.BORDER | SWT.V_SCROLL);
+		.createTextMenu!Text(_comm, _comm.prop, _expr, null);
 		.listener(_expr, SWT.Modify, &modified);
 		_expr.setTabs(_comm.prop.var.etc.tabs);
 		auto font = _expr.getFont();
@@ -515,6 +516,7 @@ class ExpressionEditor : Composite {
 		op.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_BEGINNING));
 
 		auto eHint = new Text(hComp, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.READ_ONLY);
+		.createTextMenu!Text(_comm, _comm.prop, eHint, null);
 		eHint.setText(_comm.prop.msgs.operatorList);
 		eHint.setFont(_expr.getFont());
 		eHint.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
