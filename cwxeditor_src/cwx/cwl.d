@@ -2232,7 +2232,7 @@ void saveLScenario(Summary summ, const Skin skin, const CProps prop, in SaveOpti
 		}
 		auto summPath = std.path.buildPath(summ.scenarioPath, "Summary.wsm");
 		if (summPath.exists()) { mixin(S_TRACE);
-			summPath.rename(opt.backupDir.buildPath("Summary.wsm"));
+			summPath.copy(opt.backupDir.buildPath("Summary.wsm"));
 		}
 	}
 
@@ -2257,7 +2257,7 @@ void saveLScenario(Summary summ, const Skin skin, const CProps prop, in SaveOpti
 				try {
 					if (!opt.backupDir.exists()) opt.backupDir.mkdirRecurse();
 				} catch (FileException e) { }
-				path.rename(opt.backupDir.buildPath(name));
+				path.copy(opt.backupDir.buildPath(name));
 			}
 			if (changed || !path.exists() || !path.isFile()) { mixin(S_TRACE);
 				ByteIO f;
