@@ -2252,13 +2252,14 @@ void saveLScenario(Summary summ, const Skin skin, const CProps prop, in SaveOpti
 		}
 		void writeFile(CWXPath a, string name, void delegate(ref ByteIO f) write) { mixin(S_TRACE);
 			auto path = std.path.buildPath(d.sPath, name);
-			if (canBackup && path.exists()) { mixin(S_TRACE);
+			auto changed = !d.opt.saveChangedOnly || changed.contains(cast(Object)a);
+			if (changed && canBackup && path.exists()) { mixin(S_TRACE);
 				try {
 					if (!opt.backupDir.exists()) opt.backupDir.mkdirRecurse();
 				} catch (FileException e) { }
 				path.rename(opt.backupDir.buildPath(name));
 			}
-			if (!d.opt.saveChangedOnly || !path.exists() || !path.isFile() || changed.contains(cast(Object)a)) { mixin(S_TRACE);
+			if (changed || !path.exists() || !path.isFile()) { mixin(S_TRACE);
 				ByteIO f;
 				write(f);
 				.writeFile(path, f.bytes, sync);
