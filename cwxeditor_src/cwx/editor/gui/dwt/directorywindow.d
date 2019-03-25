@@ -428,6 +428,7 @@ private:
 		itm.setData(new FileNameObj(full));
 		string[] subs;
 		foreach (p; clistdir(path)) { mixin(S_TRACE);
+			if (_summ.isSystemFile(p)) continue;
 			p = std.path.buildPath(path, p);
 			if (isDir(p)) subs ~= p;
 		}
@@ -1380,6 +1381,8 @@ private:
 					if (_traceHandle is -1) return false;
 					void put(string path) { mixin(S_TRACE);
 						foreach (file; clistdir(path)) { mixin(S_TRACE);
+							if (_summ.isSystemFile(file)
+									|| containsPath(_prop.var.etc.ignorePaths, baseName(path))) continue;
 							file = std.path.buildPath(path, file);
 							if (isDir(file)) { mixin(S_TRACE);
 								inotify_add_watch(_traceHandle, std.string.toStringz(file),

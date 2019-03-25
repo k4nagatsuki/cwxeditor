@@ -710,7 +710,7 @@ private:
 		refreshExecEngineImpl(_mExecEngine, _mExecEngineWithParty, true);
 		refreshExecEngineImpl(_tmExecEngine, _tmExecEngineWithParty, false);
 		updateExecEngineWithPartyName();
-		_prop.var.save(dock, _sync);
+		_prop.var.save(dock);
 		sendReloadProps();
 	}
 
@@ -1911,7 +1911,7 @@ private:
 		}
 	}
 	void sendReloadPropsAndSave() { mixin(S_TRACE);
-		_prop.var.save(_dock, _sync);
+		_prop.var.save(_dock);
 		sendReloadProps();
 	}
 	void sendReloadProps() { mixin(S_TRACE);
@@ -1954,7 +1954,7 @@ private:
 				_scHistDlg = null;
 			};
 			_scHistDlg.appliedEvent ~= { mixin(S_TRACE);
-				_prop.var.save(dock, _sync);
+				_prop.var.save(dock);
 				sendReloadProps();
 			};
 			_scHistDlg.open();
@@ -1982,7 +1982,7 @@ private:
 		_prop.var.etc.openHistories = history;
 
 		_comm.refHistories.call();
-		_prop.var.save(dock, _sync);
+		_prop.var.save(dock);
 		sendReloadProps();
 		_comm.refreshToolBar();
 	}
@@ -2093,7 +2093,7 @@ private:
 		}
 		if (history.length == hists2.length) return;
 		history = hists2;
-		_prop.var.save(dock, _sync);
+		_prop.var.save(dock);
 		sendReloadProps();
 		_comm.refHistories.call();
 	}
@@ -2134,7 +2134,7 @@ private:
 		}
 		if (summary && !_comm.isChanged) writeDock();
 		_prop.var.etc.lastScenario = p;
-		_prop.var.save(dock, _sync);
+		_prop.var.save(dock);
 		sendReloadProps();
 		_comm.refHistories.call();
 	}
@@ -4905,7 +4905,7 @@ public:
 				debug writeln("Disposed Display");
 			}
 			dStr ~= " - " ~ .text(__LINE__);
-			_prop.var.save(dock, _sync);
+			_prop.var.save(dock);
 			dStr ~= " - " ~ .text(__LINE__);
 			_sync.quit();
 			dStr ~= " - " ~ .text(__LINE__);

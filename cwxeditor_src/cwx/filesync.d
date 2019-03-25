@@ -60,28 +60,7 @@ class FileSync : Thread {
 					_files = _files[1 .. $];
 				}
 			}
-			auto tmp = "";
-			size_t i = 0;
-			do { mixin(S_TRACE);
-				i++;
-				tmp = f.file ~ (i == 1 ? ".cwxeditor_temp" : ".cwxeditor_temp(%s)".format(i));
-			} while (tmp.exists());
-			try { mixin(S_TRACE);
-				auto file = File(tmp, "wb");
-				scope (success) {
-					.preRemove(f.file);
-					.rename(tmp, f.file);
-				}
-				scope (exit) {
-					file.close();
-				}
-				file.rawWrite(f.data);
-				file.flush();
-				file.sync();
-			} catch (Exception e) {
-				printStackTrace();
-				debugln(e);
-			}
+			.writeFileAndSync(f.file, f.data);
 		}
 	}
 	private void run() { mixin(S_TRACE);
@@ -100,4 +79,32 @@ void writeFile(string file, in void[] data, FileSync fsync) { mixin(S_TRACE);
 	} else { mixin(S_TRACE);
 		std.file.write(file, data);
 	}
+}
+
+/// ファイルを出力する。ハードウェアへの出力を確実に行う。
+bool writeFileAndSync(string file, in void[] data) { mixin(S_TRACE);
+	auto tmp = "";
+	size_t i = 0;
+	do { mixin(S_TRACE);
+		i++;
+		tmp = file ~ (i == 1 ? ".cwxeditor_temp" : ".cwxeditor_temp(%s)".format(i));
+	} while (tmp.exists());
+	try { mixin(S_TRACE);
+		auto f = File(tmp, "wb");
+		scope (success) {
+			.preRemove(file);
+			.rename(tmp, file);
+		}
+		scope (exit) {
+			f.close();
+		}
+		f.rawWrite(data);
+		f.flush();
+		f.sync();
+		return true;
+	} catch (Exception e) {
+		printStackTrace();
+		debugln(e);
+	}
+	return false;
 }

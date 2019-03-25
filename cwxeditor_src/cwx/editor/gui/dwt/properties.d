@@ -578,11 +578,11 @@ public class FlexProps {
 			debugln(e);
 		}
 	}
-	void save(DockingFolderCTC dock, FileSync sync) { mixin(S_TRACE);
+	void save(DockingFolderCTC dock) { mixin(S_TRACE);
 		if (_noFile) return;
-		save(_path, dock, sync);
+		save(_path, dock);
 	}
-	void save(string xmlFileName, DockingFolderCTC dock, FileSync sync) { mixin(S_TRACE);
+	void save(string xmlFileName, DockingFolderCTC dock) { mixin(S_TRACE);
 		if (_noFile) return;
 		auto node = XNode.create("cwxeditor");
 		node.newAttr("version", APP_VERSION_NUM);
@@ -595,8 +595,7 @@ public class FlexProps {
 		}
 		auto dir = xmlFileName.dirName();
 		if (!.exists(dir)) mkdirRecurse(dir);
-		.writeFile(xmlFileName, node.text, sync);
-		sync.sync();
+		.writeFileAndSync(xmlFileName, node.text);
 	}
 	void toNode(T)(ref XNode node, T t) { mixin(S_TRACE);
 		static if (is(typeof(t.toNode(node)))) {
