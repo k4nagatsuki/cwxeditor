@@ -1080,7 +1080,11 @@ public:
 	const
 	bool isSystemFile(string p) { mixin(S_TRACE);
 		if (!.match(p, TEMP_REG).empty) return true;
-		return isSystemFile(p, .exists(p) && .isDir(p));
+		auto isDir = false;
+		try {
+			isDir = .exists(p) && .isDir(p);
+		} catch (FileException e) { }
+		return isSystemFile(p, isDir);
 	}
 	const
 	bool isSystemFile(string p, bool isdir) { mixin(S_TRACE);
