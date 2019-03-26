@@ -463,7 +463,7 @@ struct Jpy1 {
 
 	/// ファイルパスの変更に伴ってファイルを上書き更新する。
 	/// rewriteがfalseの場合はファイルの上書きはせず内部データのみを更新する。
-	void updateJpy1File(in CProps prop, bool rewrite, FileSync sync) { mixin(S_TRACE);
+	bool updateJpy1File(in CProps prop, bool rewrite, FileSync sync) { mixin(S_TRACE);
 		bool update = false;
 		foreach (ref sec; sections) { mixin(S_TRACE);
 			switch (sec.dirtype) {
@@ -504,6 +504,7 @@ struct Jpy1 {
 			}
 			.writeFile(jpy1Path, rLines, sync);
 		}
+		return update && rewrite;
 	}
 }
 
@@ -1528,7 +1529,7 @@ class Jpdc : PathUser, CWXPath {
 
 	/// ファイルパスの変更に伴ってファイルを上書き更新する。
 	/// rewriteがfalseの場合はファイルの上書きはせず内部データのみを更新する。
-	void updateJpdcFile(in CProps prop, bool rewrite, FileSync sync) { mixin(S_TRACE);
+	bool updateJpdcFile(in CProps prop, bool rewrite, FileSync sync) { mixin(S_TRACE);
 		bool update = false;
 		if (needUpdate) { mixin(S_TRACE);
 			if (savefilenameIndex != -1) { mixin(S_TRACE);
@@ -1547,5 +1548,6 @@ class Jpdc : PathUser, CWXPath {
 			}
 			.writeFile(jpdcPath, rLines, sync);
 		}
+		return update && rewrite;
 	}
 }

@@ -2473,8 +2473,9 @@ public:
 		resultRedraw(false);
 		scope (exit) resultRedraw(true);
 		_undo.undo();
-		_comm.updateJpy1Files(true);
-		_comm.sync.sync();
+		if (_comm.updateJpy1Files(true)) { mixin(S_TRACE);
+			_comm.sync.sync();
+		}
 	}
 	private void redo() { mixin(S_TRACE);
 		if (!_undo.canRedo) return;
@@ -2488,8 +2489,9 @@ public:
 		resultRedraw(false);
 		scope (exit) resultRedraw(true);
 		_undo.redo();
-		_comm.updateJpy1Files(true);
-		_comm.sync.sync();
+		if (_comm.updateJpy1Files(true)) { mixin(S_TRACE);
+			_comm.sync.sync();
+		}
 	}
 	/// 外部で検索した結果を表示する。
 	void setFindResult(CWXPath parent, CWXPath[] paths, string kind) { mixin(S_TRACE);
@@ -3162,8 +3164,9 @@ public:
 							_comm.replPath.call(fromTo[0], fromTo[1]);
 						}
 					}
-					_comm.updateJpy1Files(true);
-					_comm.sync.sync();
+					if (_comm.updateJpy1Files(true)) { mixin(S_TRACE);
+						_comm.sync.sync();
+					}
 					after();
 				}
 			};
@@ -4002,6 +4005,7 @@ public:
 				searchAll(.cwxPlace(path), path, count, &replaceTextImpl, path.cwxPath(true).dup);
 			}
 			if (_jptxSel || _textFile) { mixin(S_TRACE);
+				auto update = false;
 				foreach (string file; .dirEntries(_summ.scenarioPath, SpanMode.depth, false)) { mixin(S_TRACE);
 					if (cancel) break;
 					auto ext = .extension(file);
@@ -4023,6 +4027,7 @@ public:
 								}
 							}, count, uArr, true);
 							if (r) { mixin(S_TRACE);
+								update = true;
 								file = abs2rel(file, _summ.scenarioPath);
 								size_t dmy = 0;
 								addResult(file, dmy);
@@ -4049,6 +4054,7 @@ public:
 									}
 								}, count, uArr, true);
 								if (r) { mixin(S_TRACE);
+									update = true;
 									file = abs2rel(file, _summ.scenarioPath);
 									size_t dmy = 0;
 									addResult(file, dmy);
@@ -4059,7 +4065,7 @@ public:
 						}
 					}
 				}
-				if (_replMode) { mixin(S_TRACE);
+				if (update) { mixin(S_TRACE);
 					_comm.sync.sync();
 				}
 			}

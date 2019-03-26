@@ -3085,13 +3085,15 @@ public:
 	}
 
 	/// シナリオ内にあるJpy1ファイルの内容の上書きが必要であれば更新する。
-	void updateJpy1Files(in CProps prop, bool autoUpdateJpy1File, FileSync sync) { mixin(S_TRACE);
+	bool updateJpy1Files(in CProps prop, bool autoUpdateJpy1File, FileSync sync) { mixin(S_TRACE);
+		auto update = false;
 		foreach (ref jpy; _jpyData) { mixin(S_TRACE);
-			jpy.updateJpy1File(prop, autoUpdateJpy1File, sync);
+			update |= jpy.updateJpy1File(prop, autoUpdateJpy1File, sync);
 		}
 		foreach (ref jpdc; _jpdcData) { mixin(S_TRACE);
-			jpdc.updateJpdcFile(prop, autoUpdateJpy1File, sync);
+			update |= jpdc.updateJpdcFile(prop, autoUpdateJpy1File, sync);
 		}
+		return update;
 	}
 
 	/// ファイル名の変更を通知する。

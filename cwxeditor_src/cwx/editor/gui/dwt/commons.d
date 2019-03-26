@@ -1466,7 +1466,10 @@ class Commons {
 	}
 
 	/// シナリオ内にあるJpy1ファイルの内容の上書きが必要であれば更新する。
-	void updateJpy1Files(bool forceUpdate = false) { mixin(S_TRACE);
-		if (summary) summary.updateJpy1Files(prop.parent, prop.var.etc.autoUpdateJpy1File || forceUpdate, _sync);
+	bool updateJpy1Files(bool forceUpdate = false) { mixin(S_TRACE);
+		if (summary) { mixin(S_TRACE);
+			return summary.updateJpy1Files(prop.parent, prop.var.etc.autoUpdateJpy1File || forceUpdate, _sync);
+		}
+		return false;
 	}
 }
