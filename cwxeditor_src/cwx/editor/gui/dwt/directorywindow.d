@@ -1358,6 +1358,7 @@ private:
 						}
 						case WAIT_OBJECT_0: { mixin(S_TRACE);
 							if (!canDoChk) continue;
+							_comm.sync.sync();
 							_display.asyncExec(_refreshThr);
 							next();
 						} break;
@@ -1831,8 +1832,8 @@ public:
 		closeTraceHandle();
 		_stopTrace = true;
 	}
-	void resumeTrace() {_stopTrace = false;}
-	void pauseTrace() {_stopTrace = true;}
+	void resumeTrace() { _stopTrace = false; }
+	void pauseTrace() { _stopTrace = true; }
 
 	void refresh() { mixin(S_TRACE);
 		if (!_win || _win.isDisposed()) return;
