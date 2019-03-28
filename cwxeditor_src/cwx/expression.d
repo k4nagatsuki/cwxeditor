@@ -469,7 +469,7 @@ private class Function : Part {
 			"steptext": &.funcStepText,
 			"stepmax": &.funcStepMax,
 			"selected": &.funcSelected,
-			"cardtype": &.funcCardType,
+			"casttype": &.funcCastType,
 		];
 	}
 
@@ -1434,7 +1434,7 @@ private const(Part) funcSelected(in CProps prop, EvalMode mode, in VariableInfo 
 
 /// キャラクターのタイプを返す(プレイヤー=1, エネミー=2, 同行キャスト=3)。
 /// 該当者がいない場合は0を返す。
-private const(Part) funcCardType(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+private const(Part) funcCastType(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
 	if (!checkArgCount(prop, func, args, 1, err)) return new NumberValue(func.token, 0);
 	auto n = checkMinValue(prop, mode, func, args, 0, 0, err);
 	if (!n) return new NumberValue(func.token, 0);
@@ -1540,7 +1540,7 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 		], ArgType.Number),
 		FuncDef([FunctionCategory.CardInformation], "SELECTED", prop.msgs.funcDescSelected, prop.msgs.funcShortDescSelected, prop.msgs.funcExampleSelected, [
 		], ArgType.Number),
-		FuncDef([FunctionCategory.CardInformation], "CARDTYPE", prop.msgs.funcDescCardType, prop.msgs.funcShortDescSelected, prop.msgs.funcExampleCardType, [
+		FuncDef([FunctionCategory.CardInformation], "CASTTYPE", prop.msgs.funcDescCastType, prop.msgs.funcShortDescSelected, prop.msgs.funcExampleCastType, [
 			ArgDef(ArgType.Number, prop.msgs.exprCardNumberDesc, "1", false),
 		], ArgType.Number),
 	];
