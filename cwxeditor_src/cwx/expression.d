@@ -1541,7 +1541,7 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 		FuncDef([FunctionCategory.CardInformation], "SELECTED", prop.msgs.funcDescSelected, prop.msgs.funcShortDescSelected, prop.msgs.funcExampleSelected, [
 		], ArgType.Number),
 		FuncDef([FunctionCategory.CardInformation], "CASTTYPE", prop.msgs.funcDescCastType, prop.msgs.funcShortDescSelected, prop.msgs.funcExampleCastType, [
-			ArgDef(ArgType.Number, prop.msgs.exprCardNumberDesc, "1", false),
+			ArgDef(ArgType.Number, prop.msgs.exprCastNumberDesc, "1", false),
 		], ArgType.Number),
 	];
 }
