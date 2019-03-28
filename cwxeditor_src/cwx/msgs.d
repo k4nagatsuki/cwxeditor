@@ -2700,7 +2700,7 @@ class Msgs : Properties {
 	auto exprFlagValueDesc = Msg("exprFlagValueDesc", "フラグ値");
 	auto exprStepDesc = Msg("exprStepDesc", "ステップ名");
 	auto exprStepValueDesc = Msg("exprStepValueDesc", "ステップ値");
-	auto exprCardNumberDesc = Msg("exprCardNumberDesc", "カード番号");
+	auto exprCastNumberDesc = Msg("exprCastNumberDesc", "キャラクター番号");
 
 	/// メニュー。
 	const string menuText(MenuID id) { mixin(S_TRACE);
