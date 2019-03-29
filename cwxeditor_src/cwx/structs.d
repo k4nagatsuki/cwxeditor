@@ -1441,7 +1441,11 @@ struct Tool {
 	void fromNode(ref XNode node) { mixin(S_TRACE);
 		separator = node.attr!bool("separator", false, false);
 		if (!separator) { mixin(S_TRACE);
-			menu = node.valueTo!MenuID;
+			try {
+				menu = node.valueTo!MenuID;
+			} catch (ConvException) {
+				separator = true;
+			}
 		}
 	}
 }
