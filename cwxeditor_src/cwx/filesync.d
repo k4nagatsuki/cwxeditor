@@ -95,6 +95,7 @@ void writeFile(string file, in void[] data, FileSync fsync, void delegate() afte
 
 /// ファイルを出力する。ハードウェアへの出力を確実に行う。
 bool writeFileAndSync(string file, in void[] data) { mixin(S_TRACE);
+import cwx.utils;
 	auto tmp = "";
 	size_t i = 0;
 	do { mixin(S_TRACE);
@@ -102,17 +103,32 @@ bool writeFileAndSync(string file, in void[] data) { mixin(S_TRACE);
 		tmp = file ~ (i == 1 ? ".cwxeditor_temp" : ".cwxeditor_temp(%s)".format(i));
 	} while (tmp.exists());
 	try { mixin(S_TRACE);
-		auto f = File(tmp, "wb");
 		scope (success) {
 			.preRemove(file);
 			.rename(tmp, file);
 		}
-		scope (exit) {
-			f.close();
+		version (Windows) {
+			// FIXME: Fileを使用すると時々closeのところで落ちる dmd 2.085.0
+			import core.sys.windows.windows;
+			import std.exception;
+			import std.utf;
+			auto handle = CreateFileW(std.utf.toUTFz!(wchar*)(tmp), GENERIC_WRITE, 0, null, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, null);
+			std.exception.enforce(handle != INVALID_HANDLE_VALUE, new FileException("Open failure: %s".format(tmp)));
+			auto bytes = cast(byte[])data;
+			DWORD numberOfBytesWritten;
+			std.exception.enforce(WriteFile(handle, bytes.ptr, bytes.length, &numberOfBytesWritten, null), new FileException("Write failure: %s".format(tmp)));
+			std.exception.enforce(bytes.length == numberOfBytesWritten, new FileException("Write failure: %s".format(tmp)));
+			std.exception.enforce(FlushFileBuffers(handle), new FileException("Sync failure: %s".format(tmp)));
+			std.exception.enforce(CloseHandle(handle), new FileException("Close failure: %s".format(tmp)));
+		} else {
+			auto f = File(tmp, "wb");
+			scope (exit) {
+				f.close();
+			}
+			f.rawWrite(data);
+			f.flush();
+			f.sync();
 		}
-		f.rawWrite(data);
-		f.flush();
-		f.sync();
 		return true;
 	} catch (Exception e) {
 		printStackTrace();

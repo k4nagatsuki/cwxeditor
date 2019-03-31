@@ -2128,6 +2128,7 @@ public:
 			bool has = 0 < wrote.length;
 			foreach (name; .clistdir(path)) { mixin(S_TRACE);
 				if (name in wrote) continue;
+				if (!.match(name, TEMP_REG).empty) continue;
 				auto file = std.path.buildPath(path, name);
 				if (.isDir(file) || !.cfnmatch(.extension(name), ".xml")) { mixin(S_TRACE);
 					has = true;

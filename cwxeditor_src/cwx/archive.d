@@ -242,7 +242,7 @@ string zipHasFile(string zip, string fileName) { mixin(S_TRACE);
 /// targをzip圧縮し、パスzipに保存する。
 void zip(string targ, string zip, bool top, bool delegate(string path) ignorePath, bool useSysEnc, FileSync sync) { mixin(S_TRACE);
 	ubyte*[] data;
-	scope arc = .zip(targ, top, ignorePath, useSysEnc, data);
+	auto arc = .zip(targ, top, ignorePath, useSysEnc, data);
 	auto b = arc.build();
 	.writeFile(zip, b, sync, { mixin(S_TRACE);
 		destroy(arc);
