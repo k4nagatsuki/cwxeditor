@@ -244,9 +244,10 @@ void zip(string targ, string zip, bool top, bool delegate(string path) ignorePat
 	ubyte*[] data;
 	scope arc = .zip(targ, top, ignorePath, useSysEnc, data);
 	auto b = arc.build();
-	.writeFile(zip, b, sync);
-	destroy(arc);
-	freeAll(data);
+	.writeFile(zip, b, sync, { mixin(S_TRACE);
+		destroy(arc);
+		freeAll(data);
+	});
 }
 void zip(string targ, string zip, bool top, string[] excludePath, bool useSysEnc, FileSync sync) { mixin(S_TRACE);
 	foreach (i, ex; excludePath) { mixin(S_TRACE);

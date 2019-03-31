@@ -2800,7 +2800,7 @@ public:
 					sync.sync();
 					auto lock = std.path.buildPath(scenarioPath, "cwxeditor.lock");
 					ubyte*[] data;
-					scope arc = .zip(scenarioPath, false, [lock], false, data);
+					auto arc = .zip(scenarioPath, false, [lock], false, data);
 					if (!expand) { mixin(S_TRACE);
 						auto xmls = toXMLs(prop.sys, opt);
 						foreach (path, files; xmls) { mixin(S_TRACE);
@@ -2812,9 +2812,10 @@ public:
 						_oldXMLs = xmls;
 					}
 					auto b = arc.build();
-					.writeFile(zipName, b, sync);
-					destroy(arc);
-					freeAll(data);
+					.writeFile(zipName, b, sync, { mixin(S_TRACE);
+						destroy(arc);
+						freeAll(data);
+					});
 					_expandXMLs = expand;
 				}
 				if (opt.archiveInNewThread) { mixin(S_TRACE);
@@ -2898,9 +2899,10 @@ public:
 	void createZip(string zipName, in string[] ignorePaths, bool useSysEnc, FileSync sync) { mixin(S_TRACE);
 		ubyte*[] tempData;
 		auto arc = createZipData(ignorePaths, useSysEnc, zipName.extension().toLower() == ".wsn", tempData, sync);
-		.writeFile(zipName, arc.build(), sync);
-		destroy(arc);
-		freeAll(tempData);
+		.writeFile(zipName, arc.build(), sync, { mixin(S_TRACE);
+			destroy(arc);
+			freeAll(tempData);
+		});
 	}
 	/// データを保存せずにシナリオのフォルダのアーカイブを作成する。
 	/// 非展開のXMLファイルは一時的に展開される。

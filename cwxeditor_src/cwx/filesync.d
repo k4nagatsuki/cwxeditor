@@ -19,7 +19,7 @@ import core.thread;
 /// ファイルをfsyncしながら出力する。
 class FileSync : Thread {
 	private bool _quit = false;
-	private Tuple!(string, "file", const(void)[], "data")[] _files;
+	private Tuple!(string, "file", const(void)[], "data", void delegate(), "after")[] _files;
 
 	this () { super (&run); }
 
@@ -27,18 +27,23 @@ class FileSync : Thread {
 	void quit() { _quit = true; }
 
 	/// 出力対象を追加する。
-	void push(string file, const(void)[] data) { mixin(S_TRACE);
+	void push(string file, const(void)[] data, void delegate() after) { mixin(S_TRACE);
 		synchronized (this) {
-			_files ~= typeof(_files[0])(file, data);
+			_files ~= typeof(_files[0])(file, data, after);
 		}
 		if (_quit) { mixin(S_TRACE);
-			join();
+			try {
+				join();
+			} catch (Throwable e) {
+				printStackTrace();
+				debugln(e);
+			}
 			writeFiles();
 		}
 	}
 	/// 全てのファイル出力が完了するまで待ち合わせる。
 	void sync() { mixin(S_TRACE);
-		while (!_quit) { mixin(S_TRACE);
+		while (true) { mixin(S_TRACE);
 			synchronized (this) {
 				if (!_files.length) break;
 			}
@@ -61,6 +66,12 @@ class FileSync : Thread {
 				}
 			}
 			.writeFileAndSync(f.file, f.data);
+			try {
+				if (f.after) f.after();
+			} catch (Throwable e) {
+				printStackTrace();
+				debugln(e);
+			}
 		}
 	}
 	private void run() { mixin(S_TRACE);
@@ -73,10 +84,11 @@ class FileSync : Thread {
 }
 
 /// ファイルを出力する。
-void writeFile(string file, in void[] data, FileSync fsync) { mixin(S_TRACE);
+void writeFile(string file, in void[] data, FileSync fsync, void delegate() after = null) { mixin(S_TRACE);
 	if (fsync) { mixin(S_TRACE);
-		fsync.push(file, data);
+		fsync.push(file, data, after);
 	} else { mixin(S_TRACE);
+		scope (exit) after();
 		std.file.write(file, data);
 	}
 }
