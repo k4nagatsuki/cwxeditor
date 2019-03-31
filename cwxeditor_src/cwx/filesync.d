@@ -116,7 +116,7 @@ import cwx.utils;
 			std.exception.enforce(handle != INVALID_HANDLE_VALUE, new FileException("Open failure: %s".format(tmp)));
 			auto bytes = cast(byte[])data;
 			DWORD numberOfBytesWritten;
-			std.exception.enforce(WriteFile(handle, bytes.ptr, bytes.length, &numberOfBytesWritten, null), new FileException("Write failure: %s".format(tmp)));
+			std.exception.enforce(WriteFile(handle, bytes.ptr, cast(DWORD)bytes.length, &numberOfBytesWritten, null), new FileException("Write failure: %s".format(tmp)));
 			std.exception.enforce(bytes.length == numberOfBytesWritten, new FileException("Write failure: %s".format(tmp)));
 			std.exception.enforce(FlushFileBuffers(handle), new FileException("Sync failure: %s".format(tmp)));
 			std.exception.enforce(CloseHandle(handle), new FileException("Close failure: %s".format(tmp)));
