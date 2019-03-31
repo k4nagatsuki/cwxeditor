@@ -1,12 +1,13 @@
 
 module cwx.usecounter;
 
-import cwx.utils;
 import cwx.path;
+import cwx.textholder;
+import cwx.utils;
 
 import std.array;
-import std.conv;
 import std.ascii;
+import std.conv;
 import std.path;
 import std.string;
 
@@ -1506,12 +1507,16 @@ interface ICouponUser : User!(CouponId) {
 class CouponUser : ICouponUser {
 private:
 	UseCounter _uc;
-	string _coupon;
+	SimpleTextHolder _coupon;
+	bool _expandSPChars = false;
 	ICouponUser _cwxPath;
 	bool _callback;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
 	this (ICouponUser cwxPath, bool callback = false) { mixin(S_TRACE);
+		_coupon = new SimpleTextHolder;
+		_coupon.changeHandler = &changed;
+		_coupon.owner = cwxPath;
 		_cwxPath = cwxPath;
 		_callback = callback;
 	}
@@ -1521,33 +1526,67 @@ public:
 	inout(ICouponUser) owner() { return _cwxPath; }
 	/// ditto
 	@property
-	void owner(ICouponUser u) { _cwxPath = u; }
+	void owner(ICouponUser u) { mixin(S_TRACE);
+		_coupon.owner = u;
+		_cwxPath = u;
+	}
 
 	/// クーポンを設定する。
 	/// Params:
 	/// coupon = クーポン。
 	@property
 	void coupon(string coupon) { mixin(S_TRACE);
-		if (_coupon == coupon) return;
+		if (_coupon.text == coupon) return;
 		changed();
 		if (_callback && cast(ChgCouponCallback)_cwxPath) { mixin(S_TRACE);
-			if (!(cast(ChgCouponCallback)_cwxPath).changeCallback(CouponId(_coupon), CouponId(coupon))) { mixin(S_TRACE);
+			if (!(cast(ChgCouponCallback)_cwxPath).changeCallback(CouponId(_coupon.text), CouponId(coupon))) { mixin(S_TRACE);
 				return;
 			}
 		}
-		if (_uc !is null) { mixin(S_TRACE);
-			if (_coupon != "") _uc.coupon.remove(toCouponId(_coupon), this);
+		if (expandSPChars && _uc !is null) { mixin(S_TRACE);
+			if (_coupon.text != "") _uc.coupon.remove(toCouponId(_coupon.text), this);
 			if (coupon != "") _uc.coupon.add(toCouponId(coupon), this);
 		}
-		_coupon = coupon;
+		_coupon.text = coupon;
 	}
 
 	/// Returns: クーポン。
 	@property
 	const
 	string coupon() { mixin(S_TRACE);
-		return _coupon;
+		return _coupon.text;
 	}
+
+	/// 特殊文字を展開するか(Wsn.4)。
+	@property
+	const
+	bool expandSPChars() { return _expandSPChars; }
+	/// ditto
+	@property
+	void expandSPChars(bool val) { mixin(S_TRACE);
+		if (val != _expandSPChars) { mixin(S_TRACE);
+			changed();
+			_expandSPChars = val;
+			if (_expandSPChars && _uc) { mixin(S_TRACE);
+				_coupon.setUseCounter(_uc);
+			} else { mixin(S_TRACE);
+				_coupon.removeUseCounter();
+			}
+		}
+	}
+
+	/// クーポン内で使用されている状態変数のパス。
+	@property
+	const
+	string[] flagsInText() { return expandSPChars ? _coupon.flagsInText : []; }
+	/// ditto
+	@property
+	const
+	string[] stepsInText() { return expandSPChars ? _coupon.stepsInText : []; }
+	/// ditto
+	@property
+	const
+	string[] variantsInText() { return expandSPChars ? _coupon.variantsInText : []; }
 
 	/// 使用回数カウンタ。
 	@property
@@ -1555,30 +1594,32 @@ public:
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
-		if (uc && _coupon != "") { mixin(S_TRACE);
-			uc.coupon.add(toCouponId(_coupon), this);
+		if (uc && _coupon.text != "") { mixin(S_TRACE);
+			uc.coupon.add(toCouponId(_coupon.text), this);
 		}
-		if (_uc && _coupon != "") { mixin(S_TRACE);
-			_uc.coupon.remove(toCouponId(_coupon), this);
+		if (_uc && _coupon.text != "") { mixin(S_TRACE);
+			_uc.coupon.remove(toCouponId(_coupon.text), this);
 		}
+		if (expandSPChars) _coupon.setUseCounter(uc);
 		_uc = uc;
 	}
 	/// ditto
 	void removeUseCounter() { mixin(S_TRACE);
-		if (_uc && _coupon != "") { mixin(S_TRACE);
-			_uc.coupon.remove(toCouponId(_coupon), this);
+		if (_uc && _coupon.text != "") { mixin(S_TRACE);
+			_uc.coupon.remove(toCouponId(_coupon.text), this);
 		}
+		_coupon.removeUseCounter();
 		_uc = null;
 	}
 	override bool change(CouponId newVal) { mixin(S_TRACE);
-		if (_coupon == newVal.id) return true;
+		if (_coupon.text == newVal.id) return true;
 		changed();
 		if (_callback && cast(ChgCouponCallback)_cwxPath) { mixin(S_TRACE);
-			if (!(cast(ChgCouponCallback)_cwxPath).changeCallback(CouponId(_coupon), newVal)) { mixin(S_TRACE);
+			if (!(cast(ChgCouponCallback)_cwxPath).changeCallback(CouponId(_coupon.text), newVal)) { mixin(S_TRACE);
 				return false;
 			}
 		}
-		_coupon = newVal.id;
+		_coupon.text = newVal.id;
 		return true;
 	}
 
@@ -1601,11 +1642,17 @@ interface IGossipUser : User!(GossipId) {
 class GossipUser : IGossipUser {
 private:
 	UseCounter _uc;
-	string _gossip;
+	SimpleTextHolder _gossip;
+	bool _expandSPChars = false;
 	IGossipUser _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (IGossipUser cwxPath) { _cwxPath = cwxPath; }
+	this (IGossipUser cwxPath) { mixin(S_TRACE);
+		_gossip = new SimpleTextHolder;
+		_gossip.changeHandler = &changed;
+		_gossip.owner = cwxPath;
+		_cwxPath = cwxPath;
+	}
 	/// このオブジェクトの所有者。
 	@property
 	inout
@@ -1616,20 +1663,51 @@ public:
 	/// gossip = ゴシップ。
 	@property
 	void gossip(string gossip) { mixin(S_TRACE);
-		if (_gossip != gossip) changed();
-		if (_uc !is null) { mixin(S_TRACE);
-			if (_gossip != "") _uc.gossip.remove(toGossipId(_gossip), this);
+		if (_gossip.text != gossip) changed();
+		if (expandSPChars && _uc !is null) { mixin(S_TRACE);
+			if (_gossip.text != "") _uc.gossip.remove(toGossipId(_gossip.text), this);
 			if (gossip != "") _uc.gossip.add(toGossipId(gossip), this);
 		}
-		_gossip = gossip;
+		_gossip.text = gossip;
 	}
 
 	/// Returns: ゴシップ。
 	@property
 	const
 	string gossip() { mixin(S_TRACE);
-		return _gossip;
+		return _gossip.text;
 	}
+
+	/// 特殊文字を展開するか(Wsn.4)。
+	@property
+	const
+	bool expandSPChars() { return _expandSPChars; }
+	/// ditto
+	@property
+	void expandSPChars(bool val) { mixin(S_TRACE);
+		if (val != _expandSPChars) { mixin(S_TRACE);
+			changed();
+			_expandSPChars = val;
+			if (_expandSPChars && _uc) { mixin(S_TRACE);
+				_gossip.setUseCounter(_uc);
+			} else { mixin(S_TRACE);
+				_gossip.removeUseCounter();
+			}
+		}
+	}
+
+	/// ゴシップ内で使用されている状態変数のパス。
+	@property
+	const
+	string[] flagsInText() { return expandSPChars ? _gossip.flagsInText : []; }
+	/// ditto
+	@property
+	const
+	string[] stepsInText() { return expandSPChars ? _gossip.stepsInText : []; }
+	/// ditto
+	@property
+	const
+	string[] variantsInText() { return expandSPChars ? _gossip.variantsInText : []; }
 
 	/// 使用回数カウンタ。
 	@property
@@ -1637,24 +1715,26 @@ public:
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
-		if (uc && _gossip != "") { mixin(S_TRACE);
-			uc.gossip.add(toGossipId(_gossip), this);
+		if (uc && _gossip.text != "") { mixin(S_TRACE);
+			uc.gossip.add(toGossipId(_gossip.text), this);
 		}
-		if (_uc && _gossip != "") { mixin(S_TRACE);
-			_uc.gossip.remove(toGossipId(_gossip), this);
+		if (_uc && _gossip.text != "") { mixin(S_TRACE);
+			_uc.gossip.remove(toGossipId(_gossip.text), this);
 		}
+		if (expandSPChars) _gossip.setUseCounter(uc);
 		_uc = uc;
 	}
 	/// ditto
 	void removeUseCounter() { mixin(S_TRACE);
-		if (_uc && _gossip != "") { mixin(S_TRACE);
-			_uc.gossip.remove(toGossipId(_gossip), this);
+		if (_uc && _gossip.text != "") { mixin(S_TRACE);
+			_uc.gossip.remove(toGossipId(_gossip.text), this);
 		}
+		_gossip.removeUseCounter();
 		_uc = null;
 	}
 	override bool change(GossipId newVal) { mixin(S_TRACE);
-		if (_gossip != newVal.id) changed();
-		_gossip = newVal.id;
+		if (_gossip.text != newVal.id) changed();
+		_gossip.text = newVal.id;
 		return true;
 	}
 

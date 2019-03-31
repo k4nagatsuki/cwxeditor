@@ -74,7 +74,7 @@ private:
 			ws ~= .sjisWarnings(_prop.parent, _summ, _desc.getText(), _prop.msgs.desc);
 			ws ~= .sjisWarnings(_prop.parent, _summ, _cardGroup.getText(), _prop.msgs.cardGroup);
 			if (_expandSPChars.getSelection() &&  !_prop.isTargetVersion(_summ, "4")) { mixin(S_TRACE);
-				ws ~= _prop.msgs.warningExpandSPCharsWithMenuCardName;
+				ws ~= _prop.msgs.warningExpandSPCharsInMenuCardName;
 			}
 		} else static if (is(C:EnemyCard)) {
 			t = _overrideName;

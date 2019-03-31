@@ -1473,6 +1473,7 @@ enum CArg {
 	BACKPACK_ENABLED, /// 荷物袋の使用可否(Wsn.4)。
 	VARIANT, /// コモン(Wsn.4)。
 	EXPRESSION, /// 式(Wsn.4)。
+	EXPAND_SP_CHARS, /// クーポン・ゴシップで特殊文字を展開する(Wsn.4)。
 }
 
 /// 後続コンテントのnameの型。

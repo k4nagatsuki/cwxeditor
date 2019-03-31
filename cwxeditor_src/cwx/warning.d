@@ -469,7 +469,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		r ~= .sjisWarnings(prop, summ, mc.name, prop.msgs.name);
 		r ~= .sjisWarnings(prop, summ, mc.desc, prop.msgs.desc);
 		if (mc.expandSPChars &&  !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
-			r ~= prop.msgs.warningExpandSPCharsWithMenuCardName;
+			r ~= prop.msgs.warningExpandSPCharsInMenuCardName;
 		}
 		if (mc.expandSPChars) { mixin(S_TRACE);
 			r ~= checkTextRes2(mc.name, mc.flagsInText, mc.stepsInText, mc.variantsInText, [], []);
@@ -1053,6 +1053,20 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				r ~= .exprErrorToWarnings(prop, c.expression, c.getExpressionErrors(prop, VariableInfo(summ)));
 				r ~= checkTextRes2(c.expression, c.flagsInExpression, c.stepsInExpression, c.variantsInExpression, [], []);
 			}
+		}
+		if ((cd.use(CArg.COUPON) || cd.use(CArg.COUPON_NAMES)) && cd.use(CArg.EXPAND_SP_CHARS) && c.expandSPChars) { mixin(S_TRACE);
+			if (!prop.isTargetVersion(summ, targVer, "4")) r ~= prop.msgs.warningExpandSPCharsInCoupon;
+			r ~= checkTextRes2(c.coupon, c.flagsInCoupons, c.stepsInCoupons, c.variantsInCoupons, [], []);
+		}
+		if (cd.use(CArg.GOSSIP) && cd.use(CArg.EXPAND_SP_CHARS) && c.expandSPChars) { mixin(S_TRACE);
+			if (!prop.isTargetVersion(summ, targVer, "4")) r ~= prop.msgs.warningExpandSPCharsInGossip;
+			r ~= checkTextRes2(c.gossip, c.flagsInGossip, c.stepsInGossip, c.variantsInGossip, [], []);
+		}
+		if (cd.nextType is CNextType.COUPON && c.expandSPChars) { mixin(S_TRACE);
+			if (!prop.isTargetVersion(summ, targVer, "4")) r ~= prop.msgs.warningExpandSPCharsInCoupon;
+		}
+		if (c.parent && c.parent.expandSPChars && c.parent.detail.nextType is CNextType.COUPON) { mixin(S_TRACE);
+			r ~= checkTextRes2(c.name, c.flagsInName, c.stepsInName, c.variantsInName, [], []);
 		}
 	}
 	return r;

@@ -956,6 +956,11 @@ class CouponView(CVType Type) : Composite {
 		return _coupons.getToolTipText();
 	}
 
+	@property
+	Table widget() { return _coupons; }
+	@property
+	Combo mainNameEditor() { return _newCoupon; }
+
 	private Control nameCreateEditor(TableItem itm, int column) { mixin(S_TRACE);
 		static if (CVType.Cast == Type) {
 			auto type = CouponComboType.Cast;
@@ -964,9 +969,17 @@ class CouponView(CVType Type) : Composite {
 		} else { mixin(S_TRACE);
 			auto type = CouponComboType.AllCoupons;
 		}
-		return createCouponCombo!Combo(_comm, _summ, itm.getParent(), null, type, itm.getText());
+		auto combo = createCouponCombo!Combo(_comm, _summ, itm.getParent(), null, type, itm.getText());
+		if (_setupNameEditor) _setupNameEditor(combo);
+		return combo;
 	}
-	void nameEditEnd(TableItem itm, int column, Control ctrl) { mixin(S_TRACE);
+	private void delegate(Combo) _setupNameEditor = null;
+	@property
+	void setupNameEditor(void delegate(Combo) dlg) { mixin(S_TRACE);
+		_setupNameEditor = dlg;
+		if (dlg) dlg(_newCoupon);
+	}
+	private void nameEditEnd(TableItem itm, int column, Control ctrl) { mixin(S_TRACE);
 		assert (!_readOnly);
 		assert (cast(Combo)ctrl !is null);
 		auto newText = (cast(Combo)ctrl).getText();
@@ -1060,6 +1073,7 @@ class CouponView(CVType Type) : Composite {
 		}
 	}
 	private void refDataVersion() { mixin(S_TRACE);
+		if (!_coupons || _coupons.isDisposed()) return;
 		foreach (itm; _coupons.getItems()) { mixin(S_TRACE);
 			updateWarning(itm);
 		}

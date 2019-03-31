@@ -141,6 +141,7 @@ public:
 class CouponNamesUser {
 private:
 	CouponUser[] _coupons;
+	bool _expandSPChars = false;
 	void delegate() _change = null;
 	UseCounter _uc = null;
 	ICouponUser _cwxPath;
@@ -190,6 +191,7 @@ public:
 			foreach (coupon; coupons) { mixin(S_TRACE);
 				if (coupon == "") continue;
 				auto u = new CouponUser(_cwxPath);
+				u.expandSPChars = expandSPChars;
 				u.coupon = coupon;
 				if (_uc) u.setUseCounter(_uc);
 				_coupons ~= u;
@@ -204,4 +206,33 @@ public:
 		foreach (u; _coupons) couponNames ~= u.coupon;
 		return cast(inout)couponNames;
 	}
+
+	/// 特殊文字を展開するか(Wsn.4)。
+	@property
+	const
+	bool expandSPChars() { return _expandSPChars; }
+	/// ditto
+	@property
+	void expandSPChars(bool val) { mixin(S_TRACE);
+		if (val != _expandSPChars) { mixin(S_TRACE);
+			changed();
+			_expandSPChars = val;
+			foreach (coupon; _coupons) { mixin(S_TRACE);
+				coupon.expandSPChars = val;
+			}
+		}
+	}
+
+	/// クーポン内で使用されている状態変数のパス。
+	@property
+	const
+	string[] flagsInText() { return .map!(u => u.flagsInText)(_coupons).join(); }
+	/// ditto
+	@property
+	const
+	string[] stepsInText() { return .map!(u => u.stepsInText)(_coupons).join(); }
+	/// ditto
+	@property
+	const
+	string[] variantsInText() { return .map!(u => u.variantsInText)(_coupons).join(); }
 }

@@ -720,15 +720,15 @@ public:
 	/// 名前で使用されている状態変数のパス。
 	@property
 	const
-	string[] flagsInText() { return _name.flagsInText; }
+	string[] flagsInText() { return expandSPChars ? _name.flagsInText : []; }
 	/// ditto
 	@property
 	const
-	string[] stepsInText() { return _name.stepsInText; }
+	string[] stepsInText() { return expandSPChars ? _name.stepsInText : []; }
 	/// ditto
 	@property
 	const
-	string[] variantsInText() { return _name.variantsInText; }
+	string[] variantsInText() { return expandSPChars ? _name.variantsInText : []; }
 
 	/// 説明。
 	@property

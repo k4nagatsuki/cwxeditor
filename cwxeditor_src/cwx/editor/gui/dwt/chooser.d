@@ -18,6 +18,7 @@ import cwx.editor.gui.dwt.incsearch;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.dprops;
+import cwx.editor.gui.dwt.messageutils;
 
 import std.algorithm;
 import std.array;
@@ -36,11 +37,11 @@ enum CouponComboType {
 	Cast, /// キャストの経歴用のクーポンを選択肢とする。
 	Valued, /// 評価条件のクーポンを選択肢とする。
 }
-T createCouponCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, CouponComboType type, string initValue) { mixin(S_TRACE);
+T createCouponCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, CouponComboType type, string initValue, bool expandSPChars = false) { mixin(S_TRACE);
 	TextMenuModify tmm;
-	return createCouponCombo!T(comm, summ, parent, catchMod, type, initValue, tmm);
+	return createCouponCombo!T(comm, summ, parent, catchMod, type, initValue, tmm, expandSPChars);
 }
-T createCouponCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, CouponComboType type, string initValue, out TextMenuModify tmm) { mixin(S_TRACE);
+T createCouponCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, CouponComboType type, string initValue, out TextMenuModify tmm, bool expandSPChars = false) { mixin(S_TRACE);
 	auto combo = new T(parent, SWT.BORDER | SWT.DROP_DOWN);
 	combo.setVisibleItemCount(comm.prop.var.etc.comboVisibleItemCount);
 	combo.setText(initValue);
@@ -84,6 +85,42 @@ T createCouponCombo(T = Combo)(Commons comm, Summary summ, Composite parent, boo
 	new MenuItem(menu, SWT.SEPARATOR);
 	combo.setMenu(menu);
 	tmm = createTextMenu!T(comm, comm.prop, combo, catchMod);
+
+	if (expandSPChars) { mixin(S_TRACE);
+		new MenuItem(menu, SWT.SEPARATOR);
+		.setupSPCharsMenu(comm, summ, combo, menu, false, true, () => true);
+
+		void updateToolTip() { mixin(S_TRACE);
+			if (combo && !combo.isDisposed()) { mixin(S_TRACE);
+				auto toolTip = .createSPCharPreview(comm, summ, combo.getText(), true, null, null);
+				toolTip = toolTip.replace("&", "&&");
+				if (toolTip != combo.getToolTipText()) { mixin(S_TRACE);
+					combo.setToolTipText(toolTip);
+				}
+			}
+		}
+		void refFlagAndStep(cwx.flag.Flag[] flags, Step[] steps, cwx.flag.Variant[] variants) { updateToolTip(); }
+		void refPath(string o, string n, bool isDir) { updateToolTip(); }
+		void refPaths(string parent) { updateToolTip(); }
+
+		.listener(combo, SWT.Modify, &updateToolTip);
+
+		comm.refPreviewValues.add(&updateToolTip);
+		comm.refFlagAndStep.add(&refFlagAndStep);
+		comm.delFlagAndStep.add(&refFlagAndStep);
+		comm.refPath.add(&refPath);
+		comm.refPaths.add(&refPaths);
+		comm.replText.add(&updateToolTip);
+		.listener(combo, SWT.Dispose, { mixin(S_TRACE);
+			comm.refPreviewValues.remove(&updateToolTip);
+			comm.refFlagAndStep.remove(&refFlagAndStep);
+			comm.delFlagAndStep.remove(&refFlagAndStep);
+			comm.refPath.remove(&refPath);
+			comm.refPaths.remove(&refPaths);
+			comm.replText.remove(&updateToolTip);
+		});
+		updateToolTip();
+	}
 
 	refreshCoupons();
 

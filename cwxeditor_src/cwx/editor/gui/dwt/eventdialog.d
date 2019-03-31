@@ -17,6 +17,7 @@ import cwx.structs;
 import cwx.menu;
 import cwx.types;
 import cwx.warning;
+import cwx.msgutils;
 
 import cwx.editor.gui.sound;
 
@@ -40,6 +41,7 @@ import cwx.editor.gui.dwt.chooser;
 import cwx.editor.gui.dwt.couponview;
 import cwx.editor.gui.dwt.keycodeview;
 import cwx.editor.gui.dwt.abilityview;
+import cwx.editor.gui.dwt.messageutils;
 
 import std.algorithm : countUntil, max;
 import std.array;
@@ -852,7 +854,10 @@ private:
 	Button[CouponType] _type;
 	Composite _couponViewComp;
 	Combo _name = null;
+	Button _expandSPChars = null;
 	CouponView!(CVType.NoValued) _couponView = null;
+	CenterLayout _couponViewCL = null;
+	Combo _nameEditor = null;
 	Button[MatchingType] _matchType = null; /// マッチングタイプ(Wsn.2)
 	static if (EditValue) {
 		Spinner _value;
@@ -871,8 +876,20 @@ private:
 				}
 			}
 			ws ~= _couponView.warnings;
+			if (_expandSPChars.getSelection()) { mixin(S_TRACE);
+				if (!_comm.prop.isTargetVersion(_summ, "4")) { mixin(S_TRACE);
+					ws ~= _comm.prop.msgs.warningExpandSPCharsInCoupon;
+				}
+				ws ~= .textWarnings2(comm, summ, _couponView.couponNames);
+			}
 		} else if (_name) { mixin(S_TRACE);
 			ws ~= .couponWarnings(prop.parent, summ, prop.var.etc.targetVersion, _name.getText(), Type is CType.GET_COUPON || Type is CType.LOSE_COUPON, prop.msgs.couponName);
+			if (_expandSPChars.getSelection()) { mixin(S_TRACE);
+				if (!_comm.prop.isTargetVersion(_summ, "4")) { mixin(S_TRACE);
+					ws ~= _comm.prop.msgs.warningExpandSPCharsInCoupon;
+				}
+				ws ~= .textWarnings2(comm, summ, [_name.getText()]);
+			}
 		}
 		static if (Field) {
 			if (summ && summ.legacy && !_prop.targetVersion(summ, "1.30")) { mixin(S_TRACE);
@@ -900,9 +917,52 @@ private:
 	}
 
 	void updateEnabled() { mixin(S_TRACE);
+		_expandSPChars.setEnabled(!_summ.legacy || _expandSPChars.getSelection());
+		updateToolTip();
 		static if (Type is CType.BRANCH_COUPON) {
 			_invertResult.setEnabled(!summ || !summ.legacy || _invertResult.getSelectionIndex() != 0);
 		}
+	}
+
+	void refFlagAndStep(cwx.flag.Flag[] flags, Step[] steps, cwx.flag.Variant[] variants) { updateToolTip(); }
+	void refPath(string o, string n, bool isDir) { updateToolTip(); }
+	void refPaths(string parent) { updateToolTip(); }
+	void updateToolTip() { mixin(S_TRACE);
+		if (_name && !_name.isDisposed()) { mixin(S_TRACE);
+			auto toolTip = createToolTip(_name.getText());
+			if (toolTip != _name.getToolTipText()) { mixin(S_TRACE);
+				_name.setToolTipText(toolTip);
+			}
+		} else if (_couponView && !_couponView.isDisposed()) { mixin(S_TRACE);
+			if (_nameEditor && !_nameEditor.isDisposed()) { mixin(S_TRACE);
+				auto toolTip = createToolTip(_nameEditor.getText());
+				if (toolTip != _nameEditor.getToolTipText()) { mixin(S_TRACE);
+					_nameEditor.setToolTipText(toolTip);
+				}
+			}
+			if (_couponView.mainNameEditor) { mixin(S_TRACE);
+				auto toolTip = createToolTip(_couponView.mainNameEditor.getText());
+				if (toolTip != _couponView.mainNameEditor.getToolTipText()) { mixin(S_TRACE);
+					_couponView.mainNameEditor.setToolTipText(toolTip);
+				}
+			}
+		}
+	}
+	void updateToolTipM(Event e) { mixin(S_TRACE);
+		if (!_couponView || _couponView.isDisposed()) return;
+		auto itm = _couponView.widget.getItem(new Point(e.x, e.y));
+		auto toolTip = itm ? createToolTip(itm.getText()) : "";
+		if (toolTip != _couponView.toolTip) { mixin(S_TRACE);
+			_couponView.toolTip = toolTip;
+		}
+	}
+	string createToolTip(string text) { mixin(S_TRACE);
+		auto toolTip = "";
+		if (_expandSPChars && _expandSPChars.getSelection()) { mixin(S_TRACE);
+			toolTip = .createSPCharPreview(_comm, _summ, text, true, null, null);
+			toolTip = toolTip.replace("&", "&&");
+		}
+		return toolTip;
 	}
 
 	class SelType : SelectionAdapter {
@@ -950,12 +1010,15 @@ private:
 
 		if (multi) { mixin(S_TRACE);
 			// Wsn.2
-			_couponViewComp.setLayout(normalGridLayout(1, true));
+			_couponViewCL.fillVertical = true;
 
 			_couponView = new CouponView!(CVType.NoValued)(comm, summ, _couponViewComp, SWT.NONE, &catchMod, false);
 			mod(_couponView);
 			_couponView.modEvent ~= &refreshWarning;
 			_couponView.setLayoutData(new GridData(GridData.FILL_BOTH));
+			.listener(_couponView.widget, SWT.MouseEnter, &updateToolTipM);
+			.listener(_couponView.widget, SWT.MouseExit, &updateToolTipM);
+			.listener(_couponView.widget, SWT.MouseMove, &updateToolTipM);
 
 			auto radioComp = new Composite(_couponViewComp, SWT.NONE);
 			radioComp.setLayout(zeroMarginGridLayout(2, false));
@@ -966,14 +1029,27 @@ private:
 				radio.setText(comm.prop.msgs.matchingTypeName(type));
 				_matchType[type] = radio;
 			}
+
+			_couponView.setupNameEditor = (name) { mixin(S_TRACE);
+				_nameEditor = name;
+				auto menu = name.getMenu();
+				new MenuItem(menu, SWT.SEPARATOR);
+				.setupSPCharsMenu(_comm, _summ, name, menu, false, true, () => _expandSPChars.getSelection());
+				.listener(name, SWT.Modify, &updateToolTip);
+			};
+			if (_couponView.mainNameEditor) { mixin(S_TRACE);
+				auto menu = _couponView.mainNameEditor.getMenu();
+				new MenuItem(menu, SWT.SEPARATOR);
+				.setupSPCharsMenu(_comm, _summ, _couponView.mainNameEditor, menu, false, true, () => _expandSPChars.getSelection());
+				.listener(_couponView.mainNameEditor, SWT.Modify, &updateToolTip);
+			}
 		} else { mixin(S_TRACE);
-			auto cl = new CenterLayout(SWT.VERTICAL, 0);
-			cl.fillHorizontal = true;
-			_couponViewComp.setLayout(cl);
+			_couponViewCL.fillVertical = false;
 
 			{ mixin(S_TRACE);
 				auto comp = new Composite(_couponViewComp, SWT.NONE);
-				comp.setLayout(normalGridLayout(3, false));
+				comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				comp.setLayout(zeroMarginGridLayout(3, false));
 				{ mixin(S_TRACE);
 					static if (Type is CType.GET_COUPON || Type is CType.LOSE_COUPON) {
 						auto type = CouponComboType.GetLose;
@@ -986,6 +1062,11 @@ private:
 					gd.horizontalSpan = 3;
 					gd.widthHint = _prop.var.etc.nameWidth;
 					_name.setLayoutData(gd);
+
+					auto menu = _name.getMenu();
+					new MenuItem(menu, SWT.SEPARATOR);
+					.setupSPCharsMenu(_comm, _summ, _name, menu, false, true, () => _expandSPChars.getSelection());
+					.listener(_name, SWT.Modify, &updateToolTip);
 				}
 				foreach (coType; [CouponType.Normal, CouponType.Hide, CouponType.Dur, CouponType.DurBattle, CouponType.System]) { mixin(S_TRACE);
 					auto b = new Button(comp, SWT.RADIO);
@@ -1084,8 +1165,43 @@ protected:
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			}
 			grp.setText(_prop.msgs.couponName);
-			_couponViewComp = grp;
+			_couponViewCL = new CenterLayout(SWT.VERTICAL, 0);
+			_couponViewCL.fillHorizontal = true;
+			grp.setLayout(_couponViewCL);
+			auto comp = new Composite(grp, SWT.NONE);
+			comp.setLayout(normalGridLayout(1, true));
+			comp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			_couponViewComp = new Composite(comp, SWT.NONE);
+			_couponViewComp.setLayout(zeroMarginGridLayout(1, true));
+			_couponViewComp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			createCouponView(true);
+
+			auto sep = new Label(comp, SWT.SEPARATOR | SWT.HORIZONTAL);
+			auto sgd = new GridData(GridData.FILL_HORIZONTAL);
+			sep.setLayoutData(sgd);
+
+			_expandSPChars = new Button(comp, SWT.CHECK);
+			mod(_expandSPChars);
+			_expandSPChars.setText(_comm.prop.msgs.expandSPChars);
+			_expandSPChars.setToolTipText(_comm.prop.msgs.expandSPCharsHint.replace("&", "&&"));
+			_expandSPChars.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+			.listener(_expandSPChars, SWT.Selection, &updateEnabled);
+
+			_comm.refPreviewValues.add(&updateToolTip);
+			_comm.refFlagAndStep.add(&refFlagAndStep);
+			_comm.delFlagAndStep.add(&refFlagAndStep);
+			_comm.refPath.add(&refPath);
+			_comm.refPaths.add(&refPaths);
+			_comm.replText.add(&updateToolTip);
+			.listener(_expandSPChars, SWT.Dispose, { mixin(S_TRACE);
+				_comm.refPreviewValues.remove(&updateToolTip);
+				_comm.refFlagAndStep.remove(&refFlagAndStep);
+				_comm.delFlagAndStep.remove(&refFlagAndStep);
+				_comm.refPath.remove(&refPath);
+				_comm.refPaths.remove(&refPaths);
+				_comm.replText.remove(&updateToolTip);
+			});
+			updateToolTip();
 		}
 		static if (EditValue) {
 			{ mixin(S_TRACE);
@@ -1152,6 +1268,7 @@ protected:
 			static if (Type is CType.BRANCH_COUPON) {
 				_invertResult.select(_evt.invertResult ? 1 : 0);
 			}
+			_expandSPChars.setSelection(_evt.expandSPChars);
 		} else { mixin(S_TRACE);
 			if ((summ && summ.legacy) || !(Type is CType.BRANCH_COUPON)) {
 				_type[CouponType.Normal].setSelection(true);
@@ -1165,6 +1282,7 @@ protected:
 			static if (Type is CType.BRANCH_COUPON) {
 				_invertResult.select(0);
 			}
+			_expandSPChars.setSelection(false);
 		}
 		refDataVersion();
 		static if (HAS_COUPON_HOLDER) {
@@ -1193,6 +1311,7 @@ protected:
 		static if (Type is CType.BRANCH_COUPON) {
 			_evt.invertResult = _invertResult.getSelectionIndex() == 1;
 		}
+		_evt.expandSPChars = _expandSPChars.getSelection();
 
 		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
 			comm.refCoupons.call();
@@ -1205,10 +1324,39 @@ alias CouponEventDialog!(CType.BRANCH_COUPON, false, true) BranchCouponDialog;
 alias CouponEventDialog!(CType.GET_COUPON, true, false) GetCouponDialog;
 alias CouponEventDialog!(CType.LOSE_COUPON, false, false) LoseCouponDialog;
 
+private string[] textWarnings2(Commons comm, in Summary summ, string[] names) { mixin(S_TRACE);
+	string[] ws;
+	bool[string] ws2;
+	foreach (v; names) { mixin(S_TRACE);
+		bool[string] wFlags;
+		bool[string] wSteps;
+		bool[string] wVariants;
+		bool[string] wFonts;
+		bool[char] wColors;
+		string[] flags;
+		string[] steps;
+		string[] variants;
+		string[] fonts;
+		char[] colors;
+		.textUseItems(v, flags, steps, variants, fonts, colors);
+		fonts = [];
+		colors = [];
+		auto ws3 = .textWarnings(comm.prop.parent, comm.skin, summ, comm.prop.var.etc.targetVersion,
+			v, flags, steps, variants, fonts, colors, wFlags, wSteps, wVariants, wFonts, wColors).all;
+		foreach (w; ws3) { mixin(S_TRACE);
+			if (w in ws2) continue;
+			ws2[w] = true;
+			ws ~= w;
+		}
+	}
+	return ws;
+}
+
 /// 一つのテキストの設定を行うダイアログ。
 private class OneTextEventDialog(CType Type, string Name, string Get, string Set, string EngineVersion = "") : EventDialog {
 private:
 	Combo _name;
+	Button _expandSPChars = null;
 
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
@@ -1219,12 +1367,48 @@ private:
 				ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(Type), EngineVersion);
 			}
 		}
+		if (_expandSPChars && _expandSPChars.getSelection()) { mixin(S_TRACE);
+			if (!_comm.prop.isTargetVersion(_summ, "4")) { mixin(S_TRACE);
+				ws ~= _comm.prop.msgs.warningExpandSPCharsInGossip;
+			}
+			ws ~= .textWarnings2(comm, summ, [_name.getText()]);
+		}
 		warning = ws;
+	}
+	override
+	protected void refDataVersion() { mixin(S_TRACE);
+		if (_expandSPChars) _expandSPChars.setEnabled(!_summ.legacy || _expandSPChars.getSelection());
+		updateToolTip();
+		refreshWarning();
+	}
+
+	void refFlagAndStep(cwx.flag.Flag[] flags, Step[] steps, cwx.flag.Variant[] variants) { updateToolTip(); }
+	void refPath(string o, string n, bool isDir) { updateToolTip(); }
+	void refPaths(string parent) { updateToolTip(); }
+	void updateToolTip() { mixin(S_TRACE);
+		if (_name && !_name.isDisposed()) { mixin(S_TRACE);
+			auto toolTip = createToolTip(_name.getText());
+			if (toolTip != _name.getToolTipText()) { mixin(S_TRACE);
+				_name.setToolTipText(toolTip);
+			}
+		}
+	}
+	string createToolTip(string text) { mixin(S_TRACE);
+		auto toolTip = "";
+		if (_expandSPChars && _expandSPChars.getSelection()) { mixin(S_TRACE);
+			toolTip = .createSPCharPreview(_comm, _summ, text, true, null, null);
+			toolTip = toolTip.replace("&", "&&");
+		}
+		return toolTip;
 	}
 
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
-		super (comm, prop, shell, summ, Type, parent, evt, true, prop.var.inputEvtDlg, true);
+		if (CDetail.fromType(Type).use(CArg.GOSSIP)) { mixin(S_TRACE);
+			super (comm, prop, shell, summ, Type, parent, evt, true, prop.var.gossipEvtDlg, true);
+		} else { mixin(S_TRACE);
+			super (comm, prop, shell, summ, Type, parent, evt, true, prop.var.inputEvtDlg, true);
+		}
 	}
 
 protected:
@@ -1252,18 +1436,53 @@ protected:
 			gd.widthHint = _prop.var.etc.nameWidth;
 			_name.setLayoutData(gd);
 			.listener(_name, SWT.Modify, &refreshWarning);
+
+			if (CDetail.fromType(Type).use(CArg.GOSSIP)) { mixin(S_TRACE);
+				auto menu = _name.getMenu();
+				new MenuItem(menu, SWT.SEPARATOR);
+				.setupSPCharsMenu(_comm, _summ, _name, menu, false, true, () => _expandSPChars.getSelection());
+
+				_expandSPChars = new Button(comp, SWT.CHECK);
+				mod(_expandSPChars);
+				_expandSPChars.setText(_comm.prop.msgs.expandSPChars);
+				_expandSPChars.setToolTipText(_comm.prop.msgs.expandSPCharsHint.replace("&", "&&"));
+				_expandSPChars.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+				.listener(_expandSPChars, SWT.Selection, &refDataVersion);
+
+				.listener(_name, SWT.Modify, &updateToolTip);
+
+				_comm.refPreviewValues.add(&updateToolTip);
+				_comm.refFlagAndStep.add(&refFlagAndStep);
+				_comm.delFlagAndStep.add(&refFlagAndStep);
+				_comm.refPath.add(&refPath);
+				_comm.refPaths.add(&refPaths);
+				_comm.replText.add(&updateToolTip);
+				.listener(_expandSPChars, SWT.Dispose, { mixin(S_TRACE);
+					_comm.refPreviewValues.remove(&updateToolTip);
+					_comm.refFlagAndStep.remove(&refFlagAndStep);
+					_comm.delFlagAndStep.remove(&refFlagAndStep);
+					_comm.refPath.remove(&refPath);
+					_comm.refPaths.remove(&refPaths);
+					_comm.replText.remove(&updateToolTip);
+				});
+				updateToolTip();
+			}
 		}
 
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
 		if (_evt) { mixin(S_TRACE);
 			_name.setText(mixin (Get));
+			if (_expandSPChars) _expandSPChars.setSelection(_evt.expandSPChars);
 		}
-		refreshWarning();
+		refDataVersion();
 	}
 
 	override bool apply() { mixin(S_TRACE);
 		if (!_evt) _evt = new Content(Type, "");
 		string text = _name.getText();
 		mixin (Set);
+		if (_expandSPChars) _evt.expandSPChars = _expandSPChars.getSelection();
 		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
 			if (CDetail.fromType(Type).use(CArg.GOSSIP)) { mixin(S_TRACE);
 				comm.refGossips.call();
@@ -4461,12 +4680,18 @@ protected:
 class BranchMultiCouponDialog : EventDialog {
 private:
 	RangePanel _range;
+	Button _expandSPChars;
 
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
 		if (!prop.isTargetVersion(summ, "2")) { mixin(S_TRACE);
 			ws ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(CType.BRANCH_MULTI_COUPON), "2");
+		}
+		if (_expandSPChars.getSelection()) { mixin(S_TRACE);
+			if (!_comm.prop.isTargetVersion(_summ, "4")) { mixin(S_TRACE);
+				ws ~= _comm.prop.msgs.warningExpandSPCharsInCoupon;
+			}
 		}
 		warning = ws;
 	}
@@ -4477,19 +4702,35 @@ public:
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(normalGridLayout(1, true));
+		area.setLayout(normalGridLayout(2, false));
 
 		auto ranges = [Range.SELECTED, Range.RANDOM, Range.PARTY, Range.FIELD];
 		auto title = _prop.msgs.judgeTarget;
 		_range = new RangePanel(comm, summ, area, ranges, "", title, false, this, evt, &catchMod, &refreshWarning, type);
 		_range.setLayoutData(new GridData(GridData.FILL_BOTH));
 
+		auto grp = new Group(area, SWT.NONE);
+		grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+		grp.setText(_prop.msgs.spChars);
+		grp.setLayout(new CenterLayout);
+		_expandSPChars = new Button(grp, SWT.CHECK);
+		mod(_expandSPChars);
+		_expandSPChars.setText(_comm.prop.msgs.expandSPChars);
+		_expandSPChars.setToolTipText(_comm.prop.msgs.expandSPCharsHint.replace("&", "&&"));
+		.listener(_expandSPChars, SWT.Selection, &refreshWarning);
+
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
+		if (_evt) { mixin(S_TRACE);
+			_expandSPChars.setSelection(_evt.expandSPChars);
+		}
 		refreshWarning();
 	}
 
 	override bool apply() { mixin(S_TRACE);
 		if (!_evt) _evt = new Content(CType.BRANCH_MULTI_COUPON, "");
 		_evt.range = _range.range;
+		_evt.expandSPChars = _expandSPChars.getSelection();
 		return true;
 	}
 }

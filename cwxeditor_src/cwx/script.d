@@ -3157,6 +3157,9 @@ fi`;
 			if (detail.use(CArg.MATCHING_TYPE)) { mixin(S_TRACE);
 				c.matchingType = parseAttr!(MatchingType)(opt, node.attr, i, c.matchingType, varTable, 0);
 			}
+			if (detail.use(CArg.EXPAND_SP_CHARS)) { mixin(S_TRACE);
+				c.expandSPChars = parseAttr!(bool)(opt, node.attr, i, c.expandSPChars, varTable, 0);
+			}
 			if (detail.use(CArg.CONSUME_CARD)) { mixin(S_TRACE);
 				c.consumeCard = parseAttr!(bool)(opt, node.attr, i, c.consumeCard, varTable, 0);
 			}
@@ -4190,6 +4193,9 @@ fi`;
 			}
 			if (detail.use(CArg.MATCHING_TYPE)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.matchingType, indentValue, vars);
+			}
+			if (detail.use(CArg.EXPAND_SP_CHARS)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.expandSPChars, indentValue, vars);
 			}
 			if (detail.use(CArg.CONSUME_CARD)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.consumeCard, indentValue, vars);

@@ -343,6 +343,7 @@ private:
 				return;
 			}
 		}
+		refreshWarning();
 		updateToolTip();
 	}
 	void refFlagAndStep(cwx.flag.Flag[] flags, Step[] steps, cwx.flag.Variant[] variants) { updateToolTip(); }
@@ -769,6 +770,7 @@ private:
 				return;
 			}
 		}
+		refreshWarning();
 		updateToolTip();
 	}
 	void refFlagAndStep(cwx.flag.Flag[] flags, Step[] steps, cwx.flag.Variant[] variants) { updateToolTip(); }

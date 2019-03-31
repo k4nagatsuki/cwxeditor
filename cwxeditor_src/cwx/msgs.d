@@ -570,6 +570,7 @@ class Msgs : Properties {
 	auto variant = Msg("variant", "コモン");
 	auto flagValue = Msg("flagValue", "値");
 	auto stepValue = Msg("stepValue", "段階");
+	auto spChars = Msg("spChars", "特殊文字");
 	auto expandSPChars = Msg("expandSPChars", "特殊文字を展開する");
 	auto expandSPCharsHint = Msg("expandSPCharsHint", "#M = 選択メンバ名, #R = ランダムメンバ名 ...");
 	auto selectMember = Msg("selectMember", "選択対象");
@@ -1086,9 +1087,12 @@ class Msgs : Properties {
 	auto ctBranchInfo = Msg("ctBranchInfo", "情報カード「%1$s」の有無で分岐");
 	auto ctBranchMoney = Msg("ctBranchMoney", "分岐金額 = %1$ssp");
 	auto ctBranchCoupon = Msg("ctBranchCoupon", "称号「%1$s」の%2$sで分岐(%3$s)");
+	auto ctBranchCouponExpandSPChars = Msg("ctBranchCouponExpandSPChars", "称号「%1$s」の%2$sで分岐(%3$s) 特殊文字を展開する"); // Wsn.4
 	auto ctBranchCouponMulti = Msg("ctBranchCouponMulti", "称号%1$sの%2$sの%3$sで分岐(%4$s)"); // Wsn.2
+	auto ctBranchCouponMultiExpandSPChars = Msg("ctBranchCouponMultiExpandSPChars", "称号%1$sの%2$sの%3$sで分岐(%4$s) 特殊文字を展開する"); // Wsn.4
 	auto ctBranchCompleteStamp = Msg("ctBranchCompleteStamp", "シナリオ「%1$s」が終了済みか否かで分岐");
 	auto ctBranchGossip = Msg("ctBranchGossip", "ゴシップ「%1$s」の有無で分岐");
+	auto ctBranchGossipExpandSPChars = Msg("ctBranchGossipExpandSPChars", "ゴシップ「%1$s」の有無で分岐 特殊文字を展開する"); // Wsn.4
 	auto ctSetFlag = Msg("ctSetFlag", "フラグ「%1$s」を[%2$s]に変更 %3$s");
 	auto ctCardSpeed = Msg("ctCardSpeed", "カード速度 = %1$s");
 	auto ctCardSpeedDefault = Msg("ctCardSpeedDefault", "標準");
@@ -1105,8 +1109,10 @@ class Msgs : Properties {
 	auto ctGetInfo = Msg("ctGetInfo", "情報カード「%1$s」を獲得");
 	auto ctGetMoney = Msg("ctGetMoney", "獲得金額 = %1$ssp");
 	auto ctGetCoupon = Msg("ctGetCoupon", "称号「%1$s(%2$s)」を獲得(%3$s)");
+	auto ctGetCouponExpandSPChars = Msg("ctGetCouponExpandSPChars", "称号「%1$s(%2$s)」を獲得(%3$s) 特殊文字を展開する"); // Wsn.4
 	auto ctGetCompleteStamp = Msg("ctGetCompleteStamp", "シナリオ「%1$s」を終了済みにする");
 	auto ctGetGossip = Msg("ctGetGossip", "ゴシップ「%1$s」を獲得");
+	auto ctGetGossipExpandSPChars = Msg("ctGetGossipExpandSPChars", "ゴシップ「%1$s」を獲得 特殊文字を展開する"); // Wsn.4
 	auto ctLoseCardAll = Msg("ctLoseCardAll", "全て");
 	auto ctLoseCardCount = Msg("ctLoseCardCount", "%1$s枚");
 	auto ctLoseCast = Msg("ctLoseCast", "キャストカード「%1$s」の同行を解除");
@@ -1116,8 +1122,10 @@ class Msgs : Properties {
 	auto ctLoseInfo = Msg("ctLoseInfo", "情報カード「%1$s」を喪失");
 	auto ctLoseMoney = Msg("ctLoseMoney", "喪失金額 = %1$ssp");
 	auto ctLoseCoupon = Msg("ctLoseCoupon", "称号「%1$s」を喪失(%2$s)");
+	auto ctLoseCouponExpandSPChars = Msg("ctLoseCouponExpandSPChars", "称号「%1$s」を喪失(%2$s) 特殊文字を展開する"); // Wsn.4
 	auto ctLoseCompleteStamp = Msg("ctLoseCompleteStamp", "シナリオ%1$sの終了印を削除");
 	auto ctLoseGossip = Msg("ctLoseGossip", "ゴシップ「%1$s」を喪失");
+	auto ctLoseGossipExpandSPChars = Msg("ctLoseGossipExpandSPChars", "ゴシップ「%1$s」を喪失 特殊文字を展開する"); // Wsn.4
 	auto ctShowParty = Msg("ctShowParty", "パーティの表示 %1$s");
 	auto ctHideParty = Msg("ctHideParty", "パーティの隠蔽 %1$s");
 	auto ctRedisplay = Msg("ctRedisplay", "切替方式 = %1$s ウェイト = %2$s");
@@ -1158,6 +1166,7 @@ class Msgs : Properties {
 	auto ctLoseBgImage = Msg("ctLoseBgImage", "背景「%1$s」を削除(切替方式 = %2$s ウェイト = %3$s)");
 	auto ctLoseBgImageClassic = Msg("ctLoseBgImageClassic", "背景「%1$s」を削除");
 	auto ctBranchMultiCoupon = Msg("ctBranchMultiCoupon", "%1$sの称号所有状態で分岐"); // Wsn.2
+	auto ctBranchMultiCouponExpandSPChars = Msg("ctBranchMultiCouponExpandSPChars", "%1$sの称号所有状態で分岐 特殊文字を展開する"); // Wsn.4
 	auto ctBranchMultiRandom = Msg("ctBranchMultiRandom", "ランダム多岐分岐コンテント"); // Wsn.2
 	auto couponNames = Msg("couponNames", "「%1$s」"); // Wsn.2
 	auto couponNamesSeparator = Msg("couponNamesSeparator", ""); // Wsn.2
@@ -2168,7 +2177,9 @@ class Msgs : Properties {
 	auto warningBoundaryCheck = Msg("warningBoundaryCheck", "メッセージの禁則処理は、Wsn.2以降の形式のシナリオでしか行えません。"); // Wsn.2
 	auto warningBranchCouponMulti = Msg("warningBranchCouponMulti", "クーポン分岐のクーポンの複数指定は、Wsn.2以降の形式のシナリオしか行えません。"); // Wsn.2
 	auto warningExpandSPChars = Msg("warningExpandSPChars", "状態変数内の特殊文字の展開は、Wsn.2以降の形式のシナリオしか行えません。"); // Wsn.2
-	auto warningExpandSPCharsWithMenuCardName = Msg("warningExpandSPCharsWithMenuCardName", "メニューカード名内の特殊文字の展開は、Wsn.4以降の形式のシナリオしか行えません。"); // Wsn.4
+	auto warningExpandSPCharsInCoupon = Msg("warningExpandSPCharsInCoupon", "クーポン内の特殊文字の展開は、Wsn.4以降の形式のシナリオしか行えません。"); // Wsn.4
+	auto warningExpandSPCharsInGossip = Msg("warningExpandSPCharsInGossip", "ゴシップ内の特殊文字の展開は、Wsn.4以降の形式のシナリオしか行えません。"); // Wsn.4
+	auto warningExpandSPCharsInMenuCardName = Msg("warningExpandSPCharsInMenuCardName", "メニューカード名内の特殊文字の展開は、Wsn.4以降の形式のシナリオしか行えません。"); // Wsn.4
 	auto warningSelectCard = Msg("warningSelectCard", "選択カードの変更は、Wsn.3以降の形式のシナリオしか行えません。"); // Wsn.3
 	auto warningRangeSelectedCard = Msg("warningRangeSelectedCard", "選択カードは、Wsn.3以降の形式のシナリオでしか指定できません。"); // Wsn.3
 	auto warningSelectTalker = Msg("warningSelectTalker", "話者の選択は、Wsn.3以降の形式のシナリオしか行えません。"); // Wsn.3

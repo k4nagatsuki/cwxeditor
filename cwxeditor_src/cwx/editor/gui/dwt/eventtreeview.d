@@ -2499,10 +2499,10 @@ public:
 		}
 		return createComboEditor(_comm, _prop, _tree.control, vals, vals[index]);
 	}
-	private Combo createCouponEditor(string coupon) { mixin(S_TRACE);
+	private Combo createCouponEditor(string coupon, bool expandSPChars) { mixin(S_TRACE);
 		if (_readOnly) return null;
 		if (_ee) _ee.minimumWidth = _prop.var.etc.couponWidth;
-		return createCouponCombo!Combo(_comm, _summ, _tree.control, null, CouponComboType.AllCoupons, coupon);
+		return createCouponCombo!Combo(_comm, _summ, _tree.control, null, CouponComboType.AllCoupons, coupon, expandSPChars);
 	}
 	private Control createEditor(TreeItem itm) { mixin(S_TRACE);
 		return createEditor(cast(Item)itm);
@@ -2598,7 +2598,7 @@ public:
 		} case CType.BRANCH_VARIANT: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrVariant(_prop, evt, name)")(data, c);
 		} case CType.BRANCH_MULTI_COUPON: { mixin(S_TRACE);
-			return createCouponEditor(c.name);
+			return createCouponEditor(c.name, data.expandSPChars);
 		} default:
 		}
 		return null;
@@ -3769,16 +3769,19 @@ string eventText(Commons comm, Summary summ, Content parent, Content e, bool rea
 } body { mixin(S_TRACE);
 	if (!parent) return e.name;
 	auto prop = comm.prop;
-	if (parent.detail.nextType == CNextType.TEXT) { mixin(S_TRACE);
+	string formatSPChars(string name) { mixin(S_TRACE);
+		VarValue[string] flags;
+		VarValue[string] steps;
+		VarValue[string] variants;
+		VarValue[string] sysSteps;
+		string[char] names;
+		getPreviewValues(prop, summ, SPCHAR_TEXT, names, flags, steps, variants, sysSteps);
+		return .simpleFormatMsg(name, flags, steps, variants, sysSteps, names, ver => comm.prop.isTargetVersion(summ, ver),
+			comm.prop.sys.prefixSystemVarName);
+	}
+	if (parent.detail.nextType is CNextType.TEXT) { mixin(S_TRACE);
 		if (prop.var.etc.showVariableValuesInEventText) { mixin(S_TRACE);
-			VarValue[string] flags;
-			VarValue[string] steps;
-			VarValue[string] variants;
-			VarValue[string] sysSteps;
-			string[char] names;
-			getPreviewValues(prop, summ, SPCHAR_TEXT, names, flags, steps, variants, sysSteps);
-			return simpleFormatMsg(e.name, flags, steps, variants, sysSteps, names, ver => comm.prop.isTargetVersion(summ, ver),
-				comm.prop.sys.prefixSystemVarName);
+			return formatSPChars(e.name);
 		} else { mixin(S_TRACE);
 			return e.name;
 		}
@@ -3841,13 +3844,23 @@ string eventText(Commons comm, Summary summ, Content parent, Content e, bool rea
 		r = evtChildBrMoney(prop, parent.money, name);
 		break;
 	} case CType.BRANCH_COUPON: { mixin(S_TRACE);
-		r = evtChildBrCoupon(prop, parent.range, parent.couponNames.dup, parent.matchingType, parent.invertResult, name);
+		string[] names = parent.couponNames.dup;
+		if (prop.var.etc.showVariableValuesInEventText && parent.expandSPChars) { mixin(S_TRACE);
+			foreach (ref coupon; names) { mixin(S_TRACE);
+				coupon = formatSPChars(coupon);
+			}
+		}
+		r = evtChildBrCoupon(prop, parent.range, names, parent.matchingType, parent.invertResult, name);
 		break;
 	} case CType.BRANCH_COMPLETE_STAMP: { mixin(S_TRACE);
 		r = evtChildBrEnd(prop, parent.completeStamp, name);
 		break;
 	} case CType.BRANCH_GOSSIP: { mixin(S_TRACE);
-		r = evtChildBrGossip(prop, parent.gossip, name);
+		string gossip = parent.gossip;
+		if (prop.var.etc.showVariableValuesInEventText && parent.expandSPChars) { mixin(S_TRACE);
+			gossip = formatSPChars(gossip);
+		}
+		r = evtChildBrGossip(prop, gossip, name);
 		break;
 	} case CType.BRANCH_STEP_CMP: { mixin(S_TRACE);
 		r = evtChildBrStepCmp(prop, summ, parent.step, parent.step2, name);
@@ -3869,7 +3882,11 @@ string eventText(Commons comm, Summary summ, Content parent, Content e, bool rea
 		if (e.name == "") { mixin(S_TRACE);
 			return .tryFormat(prop.msgs.branchMultiCouponFailure, range);
 		} else { mixin(S_TRACE);
-			return .tryFormat(prop.msgs.branchMultiCouponSuccess, range, e.name);
+			auto c = e.name;
+			if (prop.var.etc.showVariableValuesInEventText && parent.expandSPChars) { mixin(S_TRACE);
+				c = formatSPChars(c);
+			}
+			return .tryFormat(prop.msgs.branchMultiCouponSuccess, range, c);
 		}
 	} case CType.BRANCH_VARIANT: { mixin(S_TRACE);
 		r = evtChildBrVariant(prop, parent, name);

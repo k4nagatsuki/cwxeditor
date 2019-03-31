@@ -1,33 +1,33 @@
 
 module cwx.event;
 
-import cwx.types;
-import cwx.utils;
-import cwx.motion;
 import cwx.background;
-import cwx.usecounter;
-import cwx.xml;
-import cwx.path;
-import cwx.props;
-import cwx.msgutils;
 import cwx.card;
 import cwx.coupon;
-import cwx.textholder;
-import cwx.system;
-import cwx.summary;
-import cwx.flag;
-import cwx.structs;
-import cwx.skin;
 import cwx.expression;
+import cwx.flag;
+import cwx.motion;
+import cwx.msgutils;
+import cwx.path;
+import cwx.props;
+import cwx.skin;
+import cwx.structs;
+import cwx.summary;
+import cwx.system;
+import cwx.textholder;
+import cwx.types;
+import cwx.usecounter;
+import cwx.utils;
+import cwx.xml;
 
 import std.algorithm;
+import std.conv;
 import std.datetime;
 import std.exception;
+import std.range;
 import std.string;
 import std.traits;
 import std.typecons;
-import std.conv;
-import std.range;
 
 private bool static_this_completed = false;
 private void static_this () { mixin(S_TRACE);
@@ -172,9 +172,9 @@ private void static_this () { mixin(S_TRACE);
 		CType.BRANCH_INFO:CDetail("Branch", "Info", CNextType.BOOL, true, [CArg.INFO:"id"]),
 		CType.BRANCH_BEAST:CDetail("Branch", "Beast", CNextType.BOOL, true, [CArg.BEAST:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number", CArg.SELECT_CARD:"selectcard", CArg.INVERT_RESULT:"invert"]),
 		CType.BRANCH_MONEY:CDetail("Branch", "Money", CNextType.BOOL, true, [CArg.MONEY:"value"]),
-		CType.BRANCH_COUPON:CDetail("Branch", "Coupon", CNextType.BOOL, true, [CArg.RANGE:"targets", CArg.COUPON_NAMES:null, CArg.MATCHING_TYPE:"matchingtype", CArg.INVERT_RESULT:"invert"]),
+		CType.BRANCH_COUPON:CDetail("Branch", "Coupon", CNextType.BOOL, true, [CArg.RANGE:"targets", CArg.COUPON_NAMES:null, CArg.MATCHING_TYPE:"matchingtype", CArg.INVERT_RESULT:"invert", CArg.EXPAND_SP_CHARS:"spchars"]),
 		CType.BRANCH_COMPLETE_STAMP:CDetail("Branch", "CompleteStamp", CNextType.BOOL, true, [CArg.COMPLETE_STAMP:"scenario"]),
-		CType.BRANCH_GOSSIP:CDetail("Branch", "Gossip", CNextType.BOOL, true, [CArg.GOSSIP:"gossip"]),
+		CType.BRANCH_GOSSIP:CDetail("Branch", "Gossip", CNextType.BOOL, true, [CArg.GOSSIP:"gossip", CArg.EXPAND_SP_CHARS:"spchars"]),
 		CType.SET_FLAG:CDetail("Set", "Flag", CNextType.NONE, true, [CArg.FLAG:_("flag"), CArg.FLAG_VALUE:"value", CArg.CARD_SPEED:"cardspeed", CArg.OVERRIDE_CARD_SPEED:"overridecardspeed"]),
 		CType.SET_STEP:CDetail("Set", "Step", CNextType.NONE, true, [CArg.STEP:_("step"), CArg.STEP_VALUE:"value"]),
 		CType.SET_STEP_UP:CDetail("Set", "StepUp", CNextType.NONE, true, [CArg.STEP:"step"]),
@@ -187,18 +187,18 @@ private void static_this () { mixin(S_TRACE);
 		CType.GET_INFO:CDetail("Get", "Info", CNextType.NONE, true, [CArg.INFO:"id"]),
 		CType.GET_BEAST:CDetail("Get", "Beast", CNextType.NONE, true, [CArg.BEAST:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number"]),
 		CType.GET_MONEY:CDetail("Get", "Money", CNextType.NONE, true, [CArg.MONEY:"value"]),
-		CType.GET_COUPON:CDetail("Get", "Coupon", CNextType.NONE, true, [CArg.COUPON:_("coupon"), CArg.RANGE:"targets", CArg.COUPON_VALUE:"value", CArg.HOLDING_COUPON:"holdingcoupon"]),
+		CType.GET_COUPON:CDetail("Get", "Coupon", CNextType.NONE, true, [CArg.COUPON:_("coupon"), CArg.RANGE:"targets", CArg.COUPON_VALUE:"value", CArg.HOLDING_COUPON:"holdingcoupon", CArg.EXPAND_SP_CHARS:"spchars"]),
 		CType.GET_COMPLETE_STAMP:CDetail("Get", "CompleteStamp", CNextType.NONE, true, [CArg.COMPLETE_STAMP:"scenario"]),
-		CType.GET_GOSSIP:CDetail("Get", "Gossip", CNextType.NONE, true, [CArg.GOSSIP:"gossip"]),
+		CType.GET_GOSSIP:CDetail("Get", "Gossip", CNextType.NONE, true, [CArg.GOSSIP:"gossip", CArg.EXPAND_SP_CHARS:"spchars"]),
 		CType.LOSE_CAST:CDetail("Lose", "Cast", CNextType.NONE, true, [CArg.CAST:"id"]),
 		CType.LOSE_ITEM:CDetail("Lose", "Item", CNextType.NONE, true, [CArg.ITEM:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number"]),
 		CType.LOSE_SKILL:CDetail("Lose", "Skill", CNextType.NONE, true, [CArg.SKILL:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number"]),
 		CType.LOSE_INFO:CDetail("Lose", "Info", CNextType.NONE, true, [CArg.INFO:"id"]),
 		CType.LOSE_BEAST:CDetail("Lose", "Beast", CNextType.NONE, true, [CArg.BEAST:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number"]),
 		CType.LOSE_MONEY:CDetail("Lose", "Money", CNextType.NONE, true, [CArg.MONEY:"value"]),
-		CType.LOSE_COUPON:CDetail("Lose", "Coupon", CNextType.NONE, true, [CArg.COUPON:_("coupon"), CArg.RANGE:"targets", CArg.HOLDING_COUPON:"holdingcoupon"]),
+		CType.LOSE_COUPON:CDetail("Lose", "Coupon", CNextType.NONE, true, [CArg.COUPON:_("coupon"), CArg.RANGE:"targets", CArg.HOLDING_COUPON:"holdingcoupon", CArg.EXPAND_SP_CHARS:"spchars"]),
 		CType.LOSE_COMPLETE_STAMP:CDetail("Lose", "CompleteStamp", CNextType.NONE, true, [CArg.COMPLETE_STAMP:"scenario"]),
-		CType.LOSE_GOSSIP:CDetail("Lose", "Gossip", CNextType.NONE, true, [CArg.GOSSIP:"gossip"]),
+		CType.LOSE_GOSSIP:CDetail("Lose", "Gossip", CNextType.NONE, true, [CArg.GOSSIP:"gossip", CArg.EXPAND_SP_CHARS:"spchars"]),
 		CType.SHOW_PARTY:CDetail("Show", "Party", CNextType.NONE, true, [CArg.CARD_SPEED:"cardspeed"]),
 		CType.HIDE_PARTY:CDetail("Hide", "Party", CNextType.NONE, true, [CArg.CARD_SPEED:"cardspeed"]),
 		CType.REDISPLAY:CDetail("Redisplay", "", CNextType.NONE, true, [CArg.TRANSITION:_("transition"), CArg.TRANSITION_SPEED:"transitionspeed"]),
@@ -213,7 +213,7 @@ private void static_this () { mixin(S_TRACE);
 		CType.MOVE_BG_IMAGE:CDetail("Move", "BgImage", CNextType.NONE, true, [CArg.CELL_NAME:"cellname", CArg.POSITION_TYPE:"positiontype", CArg.X:"x", CArg.Y:"y", CArg.SIZE_TYPE:"sizetype", CArg.WIDTH:"width", CArg.HEIGHT:"height", CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed", CArg.DO_ANIME:"doanime", CArg.IGNORE_EFFECT_BOOSTER:"ignoreeffectbooster"]),
 		CType.REPLACE_BG_IMAGE:CDetail("Replace", "BgImage", CNextType.NONE, true, [CArg.CELL_NAME:"cellname", CArg.BG_IMAGES:_(null), CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed", CArg.DO_ANIME:"doanime", CArg.IGNORE_EFFECT_BOOSTER:"ignoreeffectbooster"]),
 		CType.LOSE_BG_IMAGE:CDetail("Lose", "BgImage", CNextType.NONE, true, [CArg.CELL_NAME:"cellname", CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed", CArg.DO_ANIME:"doanime", CArg.IGNORE_EFFECT_BOOSTER:"ignoreeffectbooster"]),
-		CType.BRANCH_MULTI_COUPON:CDetail("Branch", "MultiCoupon", CNextType.COUPON, true , [CArg.RANGE:"targets"]), // Wsn.2
+		CType.BRANCH_MULTI_COUPON:CDetail("Branch", "MultiCoupon", CNextType.COUPON, true , [CArg.RANGE:"targets", CArg.EXPAND_SP_CHARS:"spchars"]), // Wsn.2
 		CType.BRANCH_MULTI_RANDOM:CDetail("Branch", "MultiRandom", CNextType.NONE, true), // Wsn.2
 		CType.MOVE_CARD:CDetail("Move", "Card", CNextType.NONE, true, [CArg.CARD_GROUP:"cardgroup", CArg.POSITION_TYPE:"positiontype", CArg.X:"x", CArg.Y:"y", CArg.SCALE:"scale", CArg.LAYER:"layer", CArg.CARD_SPEED:"cardspeed", CArg.OVERRIDE_CARD_SPEED:"overridecardspeed"]), // Wsn.3
 		CType.CHANGE_ENVIRONMENT:CDetail("Change", "Environment", CNextType.NONE, true, [CArg.BACKPACK_ENABLED:"backpack"]), // Wsn.4
@@ -668,6 +668,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		this.couponNames = c.couponNames.dup;
 		this.matchingType = c.matchingType;
+		this.expandSPChars = c.expandSPChars;
 
 		this.holdingCoupon = c.holdingCoupon;
 		this.refAbility = c.refAbility;
@@ -833,6 +834,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 			&& (!d.use(CArg.COUPON_NAMES) || couponNames == c.couponNames)
 			&& (!d.use(CArg.MATCHING_TYPE) || matchingType == c.matchingType)
+			&& (!d.use(CArg.EXPAND_SP_CHARS) || expandSPChars == c.expandSPChars)
 
 			&& (!d.use(CArg.HOLDING_COUPON) || holdingCoupon == c.holdingCoupon)
 			&& (!d.use(CArg.REF_ABILITY) || refAbility == c.refAbility)
@@ -1135,6 +1137,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.KEY_CODES, string[], [])(d, od, &keyCodes, base, base.keyCodes);
 
 		resetValue!(CArg.MATCHING_TYPE, MatchingType, MatchingType.And)(d, od, &matchingType, base, base.matchingType);
+		resetValue!(CArg.EXPAND_SP_CHARS, bool, false)(d, od, &expandSPChars, base, base.expandSPChars);
 
 		resetValue!(CArg.HOLDING_COUPON, string, "")(d, od, &holdingCoupon, base, base.holdingCoupon);
 		resetValue!(CArg.REF_ABILITY, bool, false)(d, od, &refAbility, base, base.refAbility);
@@ -1894,6 +1897,9 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 				~ "}"
 			) : "")
 			~ "if (_" ~ Name ~ Get ~ " != val) changed();"
+			~ "static if (is(typeof(create_" ~ Name ~ "))) {"
+			~ "    create_" ~ Name ~ "(_" ~ Name ~ ");"
+			~ "}"
 			~ "setValUCs(this._" ~ Name ~ Get ~ ");"
 			~ "setValUCs(val, _uc, this);"
 			~ "_" ~ Name ~ Set ~ " = val;"
@@ -2025,8 +2031,14 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 	/// クーポン名。
 	mixin Prop!(CouponUser, string, "coupon", "", ".coupon", ".coupon", true);
+	private void create_coupon(CouponUser u) { mixin(S_TRACE);
+		u.expandSPChars = expandSPChars;
+	}
 	/// ゴシップ。
 	mixin Prop!(GossipUser, string, "gossip", "", ".gossip", ".gossip", true);
+	private void create_gossip(GossipUser u) { mixin(S_TRACE);
+		u.expandSPChars = expandSPChars;
+	}
 	/// 終了印。
 	mixin Prop!(CompleteStampUser, string, "completeStamp", "", ".completeStamp", ".completeStamp", true);
 
@@ -2203,8 +2215,28 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 	/// 複数のクーポン名(Wsn.2)。
 	mixin Prop!(CouponNamesUser, string[], "couponNames", [], ".couponNames", ".couponNames", true);
+	private void create_couponNames(CouponNamesUser u) { mixin(S_TRACE);
+		u.expandSPChars = expandSPChars;
+	}
 	/// マッチングタイプ(Wsn.2)。
 	mixin Prop!(MatchingType, "matchingType", MatchingType.And);
+	/// クーポン・ゴシップで特殊文字を展開する(Wsn.4)。
+	mixin Prop!(bool, "expandSPChars", false);
+	private bool check_expandSPChars(bool val) { mixin(S_TRACE);
+		if (_coupon) _coupon.expandSPChars = val;
+		if (_gossip) _gossip.expandSPChars = val;
+		if (_couponNames) _couponNames.expandSPChars = val;
+		if (detail.nextType is CNextType.COUPON) { mixin(S_TRACE);
+			foreach (c; _next) { mixin(S_TRACE);
+				if (val) { mixin(S_TRACE);
+					c._name.setUseCounter(_uc);
+				} else { mixin(S_TRACE);
+					c._name.removeUseCounter();
+				}
+			}
+		}
+		return true;
+	}
 
 	/// 選択メンバの能力参照(Wsn.2)。
 	mixin Prop!(bool, "refAbility", false);
@@ -2292,9 +2324,15 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		auto c = this;
 		while (true) { mixin(S_TRACE);
 			foreach (v; c.tupleof) { mixin(S_TRACE);
+				static if (is(typeof(v):typeof(c._name))) if (v is c._name) continue;
 				static if (!is(typeof(v):Content[])) { mixin(S_TRACE);
 					c.setUseCounterImpl(v, uc);
 				}
+			}
+			if (uc is null
+					|| (c.parent && c.parent.detail.nextType is CNextType.TEXT)
+					|| (c.parent && c.parent.detail.nextType is CNextType.COUPON && c.parent.expandSPChars)) { mixin(S_TRACE);
+				c.setUseCounterImpl(c._name, uc);
 			}
 			c._uc = uc;
 			if (c._next.length == 1) {
@@ -2491,6 +2529,56 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	const
 	string[] variantsInName() { mixin(S_TRACE);
 		return parent && parent.detail.nextType is CNextType.TEXT ? _name.variantsInText : [];
+	}
+
+	/// クーポン内で使用されている状態変数のパス。
+	@property
+	const
+	string[] flagsInCoupons() { mixin(S_TRACE);
+		string[] r;
+		if (parent && parent.detail.nextType is CNextType.COUPON && parent.expandSPChars) r ~= _name.flagsInText;
+		if (expandSPChars && _coupon) r ~= _coupon.flagsInText;
+		if (expandSPChars && _couponNames) r ~= _couponNames.flagsInText;
+		return r;
+	}
+	/// ditto
+	@property
+	const
+	string[] stepsInCoupons() { mixin(S_TRACE);
+		string[] r;
+		if (parent && parent.detail.nextType is CNextType.COUPON && parent.expandSPChars) r ~= _name.stepsInText;
+		if (expandSPChars && _coupon) r ~= _coupon.stepsInText;
+		if (expandSPChars && _couponNames) r ~= _couponNames.stepsInText;
+		return r;
+	}
+	/// ditto
+	@property
+	const
+	string[] variantsInCoupons() { mixin(S_TRACE);
+		string[] r;
+		if (parent && parent.detail.nextType is CNextType.COUPON && parent.expandSPChars) r ~= _name.variantsInText;
+		if (expandSPChars && _coupon) r ~= _coupon.variantsInText;
+		if (expandSPChars && _couponNames) r ~= _couponNames.variantsInText;
+		return r;
+	}
+
+	/// ゴシップ内で使用されている状態変数のパス。
+	@property
+	const
+	string[] flagsInGossip() { mixin(S_TRACE);
+		return expandSPChars ? _gossip.flagsInText : [];
+	}
+	/// ditto
+	@property
+	const
+	string[] stepsInGossip() { mixin(S_TRACE);
+		return expandSPChars ? _gossip.stepsInText : [];
+	}
+	/// ditto
+	@property
+	const
+	string[] variantsInGossip() { mixin(S_TRACE);
+		return expandSPChars ? _gossip.variantsInText : [];
 	}
 
 	/// ditto
@@ -2693,6 +2781,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		atnPutD!(CArg.CONSUME_CARD, "consumeCard", "fromBool", true)(e, d);
 
 		atnPutD!(CArg.OVERRIDE_CARD_SPEED, "overrideCardSpeed", "fromBool", false)(e, d);
+
+		atnPutD!(CArg.EXPAND_SP_CHARS, "expandSPChars", "fromBool", false)(e, d);
 
 		// 多少複雑なもの
 		if (d.use(CArg.MOTIONS)) { mixin(S_TRACE);
@@ -3004,6 +3094,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		cfnPutD!(CArg.CONSUME_CARD, "consumeCard", "parseBool", true)(en, d, r);
 
 		cfnPutD!(CArg.OVERRIDE_CARD_SPEED, "overrideCardSpeed", "parseBool", false)(en, d, r);
+
+		cfnPutD!(CArg.EXPAND_SP_CHARS, "expandSPChars", "parseBool", false)(en, d, r);
 
 		// CardWirthではラウンドイベントで加入したメンバは次ラウンドから
 		// 行動を開始するが、CardWirthPy 1では即時に行動していた。
