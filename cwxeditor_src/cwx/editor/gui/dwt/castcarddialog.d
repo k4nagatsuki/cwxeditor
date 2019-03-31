@@ -223,7 +223,7 @@ private:
 	void raceToolTip() { mixin(S_TRACE);
 		if (_race) { mixin(S_TRACE);
 			auto race = selectedRace;
-			_race.setToolTipText(race ? .replace(race.desc, "&", "&&") : "");
+			_race.setToolTipText(race ? .replace(race.desc.strip("\n"), "&", "&&") : "");
 		}
 	}
 	class SelectRace : SelectionAdapter {
@@ -391,10 +391,23 @@ private:
 			_race.setEnabled(!_readOnly);
 			_race.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 			_race.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			_race.add(_prop.msgs.defaultSelection(_prop.msgs.noRace));
-			foreach (race; skin.races) { mixin(S_TRACE);
-				_race.add(race.name);
+			void refSkin() { mixin(S_TRACE);
+				auto selected = _race.getText();
+				auto skin = summSkin;
+				_race.removeAll();
+				_race.add(_prop.msgs.defaultSelection(_prop.msgs.noRace));
+				foreach (race; skin.races) { mixin(S_TRACE);
+					_race.add(race.name);
+					if (race.name == selected) _race.select(_race.getItemCount() - 1);
+				}
+				if (_race.getSelectionIndex() == -1) _race.select(0);
+				raceToolTip();
 			}
+			_comm.refSkin.add(&refSkin);
+			.listener(_race, SWT.Dispose, { mixin(S_TRACE);
+				_comm.refSkin.remove(&refSkin);
+			});
+			refSkin();
 			_race.addSelectionListener(new SelectRace);
 		}
 		auto tab = new CTabItem(tabf, SWT.NONE);
