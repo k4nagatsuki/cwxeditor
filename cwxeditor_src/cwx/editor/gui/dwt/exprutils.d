@@ -6,6 +6,7 @@ import cwx.event;
 import cwx.expression;
 import cwx.flag;
 import cwx.menu;
+import cwx.msgutils;
 import cwx.summary;
 import cwx.types;
 import cwx.utils;
@@ -341,7 +342,9 @@ class ExpressionEditor : Composite {
 		auto text = .wrapReturnCode(_expr.getText());
 		auto expr = new Expression;
 		expr.text = text;
-		auto err = expr.getExpressionErrors(_comm.prop.parent, VariableInfo(_summ));
+		string[char] names;
+		VarValue[string] flags, steps, variants, sysSteps;
+		auto err = expr.getExpressionErrors(_comm.prop.parent, VariableInfo(_comm.prop.parent, _summ, _comm.prop.var.etc.targetVersion, names, flags, steps, variants, sysSteps));
 		_ws ~= .exprErrorToWarnings(_comm.prop.parent, text, err);
 		if (raiseModEvent && oldWS != _ws) { mixin(S_TRACE);
 			modEvent.each!(func => func())();
@@ -401,7 +404,7 @@ class ExpressionEditor : Composite {
 				funcs ~= funcDef;
 				auto s = .tryFormat(_comm.prop.msgs.functionNameWithDescription, funcDef.name, funcDef.shortDesc);
 				s = MenuProps.buildMenu(i.text ~ " " ~ s, i.text, "", false);
-				.createMenuItem2(_comm, menu, s, _comm.prop.images.functions, { showFuncWin(funcDef.name); }, null);
+				.createMenuItem2(_comm, menu, s, _comm.prop.images.functions, { showFuncWin(funcDef.name, combo.getText()); }, null);
 				i++;
 			}
 			void insertPath(bool refs) { mixin(S_TRACE);
@@ -532,10 +535,10 @@ class ExpressionEditor : Composite {
 		});
 	}
 
-	private void showFuncWin(string name) { mixin(S_TRACE);
+	private void showFuncWin(string name, string arg) { mixin(S_TRACE);
 		_func.setSelection(true);
 		showFuncWin(false);
-		_funcEdit.selectFunction(name);
+		_funcEdit.selectFunction(name, [arg]);
 		_funcEdit.shell.open();
 		_funcEdit.focusToArgs();
 	}
@@ -1074,14 +1077,20 @@ private class FunctionCallEditor {
 		selItm.setText(2, text);
 	}
 
-	void selectFunction(string name) { mixin(S_TRACE);
+	void selectFunction(string name, string[] args) { mixin(S_TRACE);
 		_typeEdit.cancel();
 		_valueEdit.cancel();
 		_incSearch.close();
+		if (_selectedFuncName == name) { mixin(S_TRACE);
+			store();
+			foreach (j, arg; args) _args.getItem(cast(int)j).setText(2, arg);
+			return;
+		}
 		foreach (i, funcDef; _funcDefs) { mixin(S_TRACE);
 			if (funcDef.name == name) { mixin(S_TRACE);
 				_func.select(cast(int)i);
 				functionSelected();
+				foreach (j, arg; args) _args.getItem(cast(int)j).setText(2, arg);
 				return;
 			}
 		}
@@ -1089,7 +1098,7 @@ private class FunctionCallEditor {
 			if (funcDef.name == name) { mixin(S_TRACE);
 				_category.select(cast(int)_categories.cCountUntil(funcDef.category[0]) + 1);
 				updateFunctions();
-				selectFunction(name);
+				selectFunction(name, args);
 				return;
 			}
 		}

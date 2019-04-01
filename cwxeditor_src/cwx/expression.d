@@ -965,28 +965,29 @@ struct VariantVal {
 /// 計算中に評価される状態変数の値を取得するための情報。
 struct VariableInfo {
 	/// 状態変数が実在するか。
-	bool delegate(string path) existsFlag;
+	private bool delegate(string path) existsFlag;
 	/// ditto
-	bool delegate(string path) existsStep;
+	private bool delegate(string path) existsStep;
 	/// ditto
-	bool delegate(string path) existsVariant;
+	private bool delegate(string path) existsVariant;
+	/// フラグのテキストを取得。
+	private string delegate(string path, bool value) flagText;
+	/// ステップのテキストを取得。
+	private string delegate(string path, uint value) stepText;
+	/// ステップの値を最大値を取得。
+	private uint delegate(string path) stepMax;
+
 	/// コモン値を取得。
 	VariantVal delegate(string path) variantValue;
-	/// フラグのテキストを取得。
-	string delegate(string path, bool value) flagText;
 	/// フラグの値を取得。
 	bool delegate(string path) flagValue;
-	/// ステップのテキストを取得。
-	string delegate(string path, uint value) stepText;
 	/// ステップの値を取得。
 	uint delegate(string path) stepValue;
-	/// ステップの値を最大値を取得。
-	uint delegate(string path) stepMax;
 	/// 選択メンバの番号を取得。
 	uint delegate() selectedPlayerCardNumber;
 
 	/// インスタンスを生成する。
-	this (in Summary summ) { mixin(S_TRACE);
+	this (in CProps prop, in Summary summ, string targVer, string[char] names, VarValue[string] flags, VarValue[string] steps, VarValue[string] variants, VarValue[string] sysSteps) { mixin(S_TRACE);
 		existsFlag = path => summ && summ.flagDirRoot.findFlag(path) !is null;
 		existsStep = path => summ && summ.flagDirRoot.findStep(path) !is null;
 		existsVariant = path => summ && summ.flagDirRoot.findVariant(path) !is null;
@@ -994,10 +995,18 @@ struct VariableInfo {
 		flagText = (path, value) { mixin(S_TRACE);
 			if (!summ) return "";
 			auto f = summ.flagDirRoot.findFlag(path);
-			return value ? f.on : f.off;
+			auto s = value ? f.on : f.off;
+			if (f.expandSPChars) s = .simpleFormatMsg(s, flags, steps, variants, sysSteps, names, ver => prop.isTargetVersion(summ, targVer, ver), prop.sys.prefixSystemVarName);
+			return s;
 		};
 		flagValue = path => summ ? summ.flagDirRoot.findFlag(path).onOff : false;
-		stepText = (path, value) => summ ? summ.flagDirRoot.findStep(path).getValue(value) : "";
+		stepText = (path, value) { mixin(S_TRACE);
+			if (!summ) return "";
+			auto f = summ.flagDirRoot.findStep(path);
+			auto s = f.getValue(value);
+			if (f.expandSPChars) s = .simpleFormatMsg(s, flags, steps, variants, sysSteps, names, ver => prop.isTargetVersion(summ, targVer, ver), prop.sys.prefixSystemVarName);
+			return s;
+		};
 		stepValue = path => summ ? summ.flagDirRoot.findStep(path).select : 0u;
 		stepMax = path => summ ? summ.flagDirRoot.findStep(path).count : 0u;
 		selectedPlayerCardNumber = () => 0u;

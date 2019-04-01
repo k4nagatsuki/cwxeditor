@@ -1050,7 +1050,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			if (c.expression == "") { mixin(S_TRACE);
 				r ~= prop.msgs.searchErrorNoExpression;
 			} else if (summ) { mixin(S_TRACE);
-				r ~= .exprErrorToWarnings(prop, c.expression, c.getExpressionErrors(prop, VariableInfo(summ)));
+				string[char] names;
+				VarValue[string] flags, steps, variants, sysSteps;
+				r ~= .exprErrorToWarnings(prop, c.expression, c.getExpressionErrors(prop, VariableInfo(prop, summ, targVer, names, flags, steps, variants, sysSteps)));
 				r ~= checkTextRes2(c.expression, c.flagsInExpression, c.stepsInExpression, c.variantsInExpression, [], []);
 			}
 		}
