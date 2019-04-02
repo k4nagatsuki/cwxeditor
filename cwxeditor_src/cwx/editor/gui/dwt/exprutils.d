@@ -1114,7 +1114,7 @@ private class FunctionCallEditor {
 	private void valueEditExit(bool cancel) { mixin(S_TRACE);
 		if (cancel && _selectType != -1 && _editingValue) { mixin(S_TRACE);
 			_editingValue.setText(1, argTypeName(ArgType.NoArgument));
-			_editingValue.setText(2, _argDefs[$ - 1].initValue);
+			_editingValue.setText(2, "");
 		}
 		_selectType = -1;
 		_editingValue = null;
