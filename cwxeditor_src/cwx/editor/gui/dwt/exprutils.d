@@ -36,6 +36,7 @@ import std.datetime;
 import std.range;
 import std.string;
 import std.traits;
+import std.typecons;
 
 import org.eclipse.swt.all;
 
@@ -404,7 +405,7 @@ class ExpressionEditor : Composite {
 				funcs ~= funcDef;
 				auto s = .tryFormat(_comm.prop.msgs.functionNameWithDescription, funcDef.name, funcDef.shortDesc);
 				s = MenuProps.buildMenu(i.text ~ " " ~ s, i.text, "", false);
-				.createMenuItem2(_comm, menu, s, _comm.prop.images.functions, { showFuncWin(funcDef.name, combo.getText()); }, null);
+				.createMenuItem2(_comm, menu, s, _comm.prop.images.functions, { showFuncWin(funcDef.name, [.tuple(ArgType.String, combo.getText())]); }, null);
 				i++;
 			}
 			void insertPath(bool refs) { mixin(S_TRACE);
@@ -535,10 +536,10 @@ class ExpressionEditor : Composite {
 		});
 	}
 
-	private void showFuncWin(string name, string arg) { mixin(S_TRACE);
+	private void showFuncWin(string name, in Tuple!(ArgType, string)[] args) { mixin(S_TRACE);
 		_func.setSelection(true);
 		showFuncWin(false);
-		_funcEdit.selectFunction(name, [arg]);
+		_funcEdit.selectFunction(name, args);
 		_funcEdit.shell.open();
 		_funcEdit.focusToArgs();
 	}
@@ -773,8 +774,9 @@ private class FunctionCallEditor {
 
 			_typeEdit = new TableComboEdit!Combo(_comm, _comm.prop, _args, 1, &createTypeEditor, &typeEditEnd, null);
 			_typeEdit.quickStart = EditStartType.SingleClick;
-			_valueEdit = new TableTCEdit(_comm, _args, 2, &createValueEditor, &valueEditEnd, (itm, column) => _selectedArgType[_args.indexOf(itm)] != ArgType.NoArgument);
+			_valueEdit = new TableTCEdit(_comm, _args, 2, &createValueEditor, &valueEditEnd, null);
 			_valueEdit.quickStart = EditStartType.SingleClick;
+			_valueEdit.exitEvent ~= &valueEditExit;
 
 			_undo = new UndoManager(_comm.prop.var.etc.undoMaxEtc);
 			_comm.refUndoMax.add(&refUndoMax);
@@ -979,12 +981,16 @@ private class FunctionCallEditor {
 	}
 	private void typeEditEnd(TableItem selItm, int column, Combo combo) { mixin(S_TRACE);
 		auto i = _args.indexOf(selItm);
+		typeEditEndImpl(i, combo.getSelectionIndex(), false);
+	}
+	private void typeEditEndImpl(int i, int typeIndex, bool force) { mixin(S_TRACE);
+		auto selItm = _args.getItem(i);
 		auto old = _selectedArgType[i];
-		auto argType = argTypes(i)[combo.getSelectionIndex()];
-		if (old == argType) return;
+		auto argType = argTypes(i)[typeIndex];
+		if (!force && old == argType) return;
 		store();
 		_selectedArgType[i] = argType;
-		selItm.setText(1, combo.getText());
+		selItm.setText(1, argTypeName(argType));
 		auto varArg = _argDefs.length <= i && _argDefs[$ - 1].varArg;
 		if (argType == ArgType.NoArgument) { mixin(S_TRACE);
 			if (varArg && 0 < i && i + 1 < _args.getItemCount()) { mixin(S_TRACE);
@@ -1021,8 +1027,26 @@ private class FunctionCallEditor {
 		}
 		return true;
 	}
+	private int _selectType = -1;
+	private TableItem _editingValue = null;
 	private Control createValueEditor(TableItem itm, int editC) { mixin(S_TRACE);
+		_selectType = -1;
+		_editingValue = null;
+		auto i =_args.indexOf(itm);
+		auto argType = _selectedArgType[i];
 		auto val = itm.getText(2);
+		if (_selectedArgType[i] is ArgType.NoArgument) { mixin(S_TRACE);
+			foreach (j, argType2; argTypes(i)) { mixin(S_TRACE);
+				if (ArgType.NoArgument !is argType2) { mixin(S_TRACE);
+					_selectType = cast(int)j;
+					_editingValue = itm;
+					argType = argType2;
+					itm.setText(1, argTypeName(argType));
+					val = _argDefs[$ - 1].initValue;
+					break;
+				}
+			}
+		}
 		Control createIDEditor(F)() { mixin(S_TRACE);
 			if (_summ && _summ.scenarioPath != "") { mixin(S_TRACE);
 				return .createVariableCombo!(Combo, F)(_comm, _summ, _args, null, val);
@@ -1030,7 +1054,7 @@ private class FunctionCallEditor {
 				return .createTextEditor(_comm, _comm.prop, _args, val);
 			}
 		}
-		final switch (_selectedArgType[_args.indexOf(itm)]) {
+		final switch (argType) {
 		case ArgType.Number:
 			auto t = .createNumberEditor(_comm, _args, SWT.BORDER, null);
 			t.setText(val);
@@ -1065,32 +1089,58 @@ private class FunctionCallEditor {
 		} else if (auto t = cast(Combo)ctrl) { mixin(S_TRACE); mixin(S_TRACE);
 			text = t.getText();
 		} else assert (0);
-		if (selItm.getText(2) == text) return;
-		if (_selectedArgType[_args.indexOf(selItm)] == ArgType.Number) { mixin(S_TRACE);
+		if (selItm.getText(2) == text && _selectType == -1) { mixin(S_TRACE);
+			_selectType = -1;
+			_editingValue = null;
+			return;
+		}
+		auto i =_args.indexOf(selItm);
+		if (_selectedArgType[i] == ArgType.Number) { mixin(S_TRACE);
 			try {
 				.to!double(text);
 			} catch (ConvException e) {
 				return;
 			}
 		}
-		store();
+		if (_selectType == -1) { mixin(S_TRACE);
+			store();
+		} else { mixin(S_TRACE);
+			typeEditEndImpl(i, _selectType, true);
+			_selectType = -1;
+			_editingValue = null;
+		}
 		selItm.setText(2, text);
 	}
+	private void valueEditExit(bool cancel) { mixin(S_TRACE);
+		if (cancel && _selectType != -1 && _editingValue) { mixin(S_TRACE);
+			_editingValue.setText(1, argTypeName(ArgType.NoArgument));
+			_editingValue.setText(2, _argDefs[$ - 1].initValue);
+		}
+		_selectType = -1;
+		_editingValue = null;
+	}
 
-	void selectFunction(string name, string[] args) { mixin(S_TRACE);
+	void selectFunction(string name, in Tuple!(ArgType, string)[] args) { mixin(S_TRACE);
 		_typeEdit.cancel();
 		_valueEdit.cancel();
 		_incSearch.close();
+		void putArgs() { mixin(S_TRACE);
+			foreach (j, arg; args) { mixin(S_TRACE);
+				auto itm = _args.getItem(cast(int)j);
+				itm.setText(1, argTypeName(arg[0]));
+				itm.setText(2, arg[1]);
+			}
+		}
 		if (_selectedFuncName == name) { mixin(S_TRACE);
 			store();
-			foreach (j, arg; args) _args.getItem(cast(int)j).setText(2, arg);
+			putArgs();
 			return;
 		}
 		foreach (i, funcDef; _funcDefs) { mixin(S_TRACE);
 			if (funcDef.name == name) { mixin(S_TRACE);
 				_func.select(cast(int)i);
 				functionSelected();
-				foreach (j, arg; args) _args.getItem(cast(int)j).setText(2, arg);
+				putArgs();
 				return;
 			}
 		}
