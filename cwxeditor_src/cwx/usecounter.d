@@ -169,6 +169,8 @@ alias TChgCallback!(VariantId) ChgVariantCallback;
 alias TChgCallback!(PathId) ChgPathCallback;
 /// ditto
 alias TChgCallback!(CouponId) ChgCouponCallback;
+/// ditto
+alias TChgCallback!(GossipId) ChgGossipCallback;
 
 /// テキストをそのままキーとする場合のメソッド群を実装する。
 private mixin template StringId() {
@@ -1543,7 +1545,7 @@ public:
 				return;
 			}
 		}
-		if (expandSPChars && _uc !is null) { mixin(S_TRACE);
+		if (_uc !is null) { mixin(S_TRACE);
 			if (_coupon.text != "") _uc.coupon.remove(toCouponId(_coupon.text), this);
 			if (coupon != "") _uc.coupon.add(toCouponId(coupon), this);
 		}
@@ -1594,6 +1596,7 @@ public:
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+		if (uc is _uc) return;
 		if (uc && _coupon.text != "") { mixin(S_TRACE);
 			uc.coupon.add(toCouponId(_coupon.text), this);
 		}
@@ -1645,13 +1648,15 @@ private:
 	SimpleTextHolder _gossip;
 	bool _expandSPChars = false;
 	IGossipUser _cwxPath;
+	bool _callback;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (IGossipUser cwxPath) { mixin(S_TRACE);
+	this (IGossipUser cwxPath, bool callback = false) { mixin(S_TRACE);
 		_gossip = new SimpleTextHolder;
 		_gossip.changeHandler = &changed;
 		_gossip.owner = cwxPath;
 		_cwxPath = cwxPath;
+		_callback = callback;
 	}
 	/// このオブジェクトの所有者。
 	@property
@@ -1663,8 +1668,14 @@ public:
 	/// gossip = ゴシップ。
 	@property
 	void gossip(string gossip) { mixin(S_TRACE);
-		if (_gossip.text != gossip) changed();
-		if (expandSPChars && _uc !is null) { mixin(S_TRACE);
+		if (_gossip.text == gossip) return;
+		changed();
+		if (_callback && cast(ChgGossipCallback)_cwxPath) { mixin(S_TRACE);
+			if (!(cast(ChgGossipCallback)_cwxPath).changeCallback(GossipId(_gossip.text), GossipId(gossip))) { mixin(S_TRACE);
+				return;
+			}
+		}
+		if (_uc !is null) { mixin(S_TRACE);
 			if (_gossip.text != "") _uc.gossip.remove(toGossipId(_gossip.text), this);
 			if (gossip != "") _uc.gossip.add(toGossipId(gossip), this);
 		}
@@ -1715,6 +1726,7 @@ public:
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+		if (uc is _uc) return;
 		if (uc && _gossip.text != "") { mixin(S_TRACE);
 			uc.gossip.add(toGossipId(_gossip.text), this);
 		}
@@ -1733,7 +1745,13 @@ public:
 		_uc = null;
 	}
 	override bool change(GossipId newVal) { mixin(S_TRACE);
-		if (_gossip.text != newVal.id) changed();
+		if (_gossip.text == newVal.id) return true;
+		changed();
+		if (_callback && cast(ChgGossipCallback)_cwxPath) { mixin(S_TRACE);
+			if (!(cast(ChgGossipCallback)_cwxPath).changeCallback(GossipId(_gossip.text), newVal)) { mixin(S_TRACE);
+				return false;
+			}
+		}
 		_gossip.text = newVal.id;
 		return true;
 	}

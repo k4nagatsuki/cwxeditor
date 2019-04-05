@@ -799,6 +799,87 @@ class Wildcard {
 	assert (Wildcard("???t").replace("testtestest", "BB") == "BBBBest");
 }
 
+/// *=任意の文字列、?=任意の1文字、[ABC]=ABCのいずれか、
+/// [!ABC]=ABC以外のいずれかというルールで文字列のマッチングを行う。
+bool simpleGlob(C)(in C[] s, in C[] pattern) { mixin(S_TRACE);
+	auto m = .match(s, .simpleGlobTransrate(pattern));
+	return !m.empty && m.hit.length == s.length;
+} unittest {
+	debug mixin(UTPerf);
+	assert (.simpleGlob("[", "[[[]"));
+	assert (!.simpleGlob("[]", "[[[]"));
+	assert (!.simpleGlob("[[", "[[[]"));
+	assert (.simpleGlob("[", "[[[A-Z]"));
+	assert (.simpleGlob("A", "[[[A-Z]"));
+	assert (.simpleGlob("-", "[[[A-Z]"));
+	assert (.simpleGlob("Z", "[[[A-Z]"));
+	assert (.simpleGlob("Zabc", "[[[A-Z]abc"));
+	assert (.simpleGlob("abc", "*"));
+	assert (.simpleGlob("abc", "???"));
+	assert (.simpleGlob("abc", "?b?"));
+	assert (!.simpleGlob("abc", "?b??"));
+	assert (.simpleGlob("abc", "[abc]bc"));
+	assert (.simpleGlob("dbc", "[!abc]bc"));
+	assert (.simpleGlob("*bc", "[!abc]bc"));
+	assert (!.simpleGlob("cbc", "[!abc]bc"));
+	assert (.simpleGlob("{a,b,c}bc", "{a,b,c}bc"));
+	assert (!.simpleGlob("abc", "{a,b,c}bc"));
+	assert (.simpleGlob("{a,b,c}bc", "[{]a,b,c}bc"));
+	assert (!.simpleGlob("[abc]bc", "[abc]bc"));
+	assert (.simpleGlob("[abc]bc", "[[]abc]bc"));
+	assert (.simpleGlob("[[[", "[[["));
+	assert (!.simpleGlob("[[[]", "[[[]"));
+	assert (!.simpleGlob("[[][[]", "[[[]"));
+	assert (.simpleGlob("[[[]", "[[][[][[]]"));
+	assert (.simpleGlob("[[[]]", "[[][[][[]]]"));
+	assert (.simpleGlob("a[[]]", "[![][[][[]]]"));
+	assert (.simpleGlob("マルチバイト文字・漢字", "[!アイウエオ]ル?バイ*字[・／＊]漢字"));
+}
+
+/// patternをsimpleGlobのルールに従ったマッチング用の正規表現に変換する。
+immutable(C)[] simpleGlobTransrate(C)(in C[] pattern) { mixin(S_TRACE);
+	auto dp = pattern.to!(dchar[])();
+	dchar[] dp2;
+	auto inBrace = false;
+	for (size_t i = 0; i < dp.length; i++) { mixin(S_TRACE);
+		auto c = dp[i];
+		switch (c) {
+		case '[':
+			if (inBrace) goto default;
+			if (dp[i + 1 .. $].indexOf(']') == -1) { mixin(S_TRACE);
+				goto default;
+			}
+			inBrace = true;
+			if (i + 1 < dp.length && dp[i + 1] == '!') { mixin(S_TRACE);
+				i++;
+				dp2 ~= "[^"d;
+			} else { mixin(S_TRACE);
+				dp2 ~= "["d;
+			}
+			break;
+		case ']':
+			if (!inBrace) goto default;
+			dp2 ~= "]"d;
+			inBrace = false;
+			break;
+		case '?':
+			if (inBrace) goto default;
+			dp2 ~= "."d;
+			break;
+		case '*':
+			if (inBrace) goto default;
+			dp2 ~= ".*"d;
+			break;
+		default:
+			foreach (e; .escaper([c])) { mixin(S_TRACE);
+				dp2 ~= e;
+			}
+			break;
+		}
+	}
+	return dp2.to!(typeof(return))();
+}
+
 /// ファイルの内容を全て読み込む。
 alias std.file.read readBinary;
 /// ditto

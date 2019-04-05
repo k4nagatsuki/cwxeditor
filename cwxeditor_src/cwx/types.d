@@ -1237,6 +1237,7 @@ enum FunctionCategory {
 	Conversion, /// 型変換。
 	VariableOperation, /// 状態変数。
 	CardInformation, /// カード情報。
+	CouponInformation, /// 称号情報。
 	Etc, /// その他。
 }
 

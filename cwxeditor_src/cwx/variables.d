@@ -201,6 +201,8 @@ class FlexEtcProps : Properties {
 	auto historyScenarioPathColumn = Prop!(int, false, true)("historyScenarioPathColumn", 300);
 	auto expressionAndTargetSashT = Prop!(int)("expressionAndTargetSashT", -1);
 	auto expressionAndTargetSashB = Prop!(int)("expressionAndTargetSashB", -1);
+	auto expressionFunctionAndArgsSashT = Prop!(int)("expressionFunctionAndArgsSashT", 3);
+	auto expressionFunctionAndArgsSashB = Prop!(int)("expressionFunctionAndArgsSashB", 2);
 	auto functionCallEditorWidth = Prop!(int, false, true)("functionCallEditorWidth", 350);
 	auto functionCallEditorHeight = Prop!(int, false, true)("functionCallEditorHeight", 400);
 	auto functionArgumentNameColumn = Prop!(int, false, true)("functionArgumentNameColumn", 100);

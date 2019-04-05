@@ -665,6 +665,7 @@ class Msgs : Properties {
 	auto functionCategoryNameConversion = Msg("functionCategoryNameConversion", "型変換");
 	auto functionCategoryNameVariableOperation = Msg("functionCategoryNameVariableOperation", "状態変数");
 	auto functionCategoryNameCardInformation = Msg("functionCategoryNameCardInformation", "カード情報");
+	auto functionCategoryNameCouponInformation = Msg("functionCategoryNameCouponInformation", "称号情報");
 	auto functionCategoryNameEtc = Msg("functionCategoryNameEtc", "その他");
 
 	const string blendModeName(BlendMode id) { mixin(S_TRACE);
@@ -2654,6 +2655,10 @@ class Msgs : Properties {
 	auto funcDescStepMax = Msg("funcDescStepMax", "ステップの最大値を返します。");
 	auto funcDescSelected = Msg("funcDescSelected", "選択メンバの番号を1以上の数値で返します。選択メンバがいない場合は0を返します。");
 	auto funcDescCastType = Msg("funcDescCastType", "キャラクターのタイプを返します(1=プレイヤー, 2=エネミー, 3=同行キャスト)。該当者がいない場合は0を返します。");
+	auto funcDescFindCoupon = Msg("funcDescFindCoupon", "キャラクターの所持するクーポンを検索し、クーポン番号を返します。見つからなかった場合は0を返します。次の特殊文字が使用できます。\n* = 任意文字列, ? = 任意1文字, [ABC] = A・B・Cのいずれか1文字, [!ABC] = A・B・Cのいずれでもない1文字。\n特殊文字を普通の文字のように検索したい時は[[]のように[]で囲います。");
+	auto funcDescCouponText = Msg("funcDescCouponText", "キャラクターの所持するクーポンの名前を返します。見つからなかった場合は空文字列を返します。");
+	auto funcDescFindGossip = Msg("funcDescFindGossip", "ゴシップを検索し、ゴシップ番号を返します。見つからなかった場合は0を返します。次の特殊文字が使用できます。\n* = 任意文字列, ? = 任意1文字, [ABC] = A・B・Cのいずれか1文字, [!ABC] = A・B・Cのいずれでもない1文字。\n特殊文字を普通の文字のように検索したい時は[[]のように[]で囲います。");
+	auto funcDescGossipText = Msg("funcDescGossipText", "ゴシップの名前を返します。見つからなかった場合は空文字列を返します。");
 
 	auto funcShortDescLen = Msg("funcShortDescLen", "文字列の長さを返す");
 	auto funcShortDescLeft = Msg("funcShortDescLeft", "文字列の左側を返す");
@@ -2674,6 +2679,10 @@ class Msgs : Properties {
 	auto funcShortDescStepMax = Msg("funcShortDescStepMax", "ステップの最大値を返す");
 	auto funcShortDescSelected = Msg("funcShortDescSelected", "選択メンバを返す");
 	auto funcShortDescCastType = Msg("funcShortDescCastType", "キャラクターのタイプを返す");
+	auto funcShortDescFindCoupon = Msg("funcShortDescFindCoupon", "クーポンを検索");
+	auto funcShortDescCouponText = Msg("funcShortDescCouponText", "クーポン名を取得");
+	auto funcShortDescFindGossip = Msg("funcShortDescFindGossip", "ゴシップを検索");
+	auto funcShortDescGossipText = Msg("funcShortDescGossipText", "ゴシップ名を取得");
 
 	auto funcExampleLen = Msg("funcExampleLen", "LEN(\"対象文字列\") = 5");
 	auto funcExampleLeft = Msg("funcExampleLeft", "LEFT(\"対象文字列\", 2) = \"対象\"");
@@ -2694,6 +2703,10 @@ class Msgs : Properties {
 	auto funcExampleStepMax = Msg("funcExampleStepMax", "STEPMAX(\"ステップA\") = 9");
 	auto funcExampleSelected = Msg("funcExampleSelected", "SELECTED() <> 0");
 	auto funcExampleCastType = Msg("funcExampleCastType", "CASTTYPE(SELECTED()) = 1");
+	auto funcExampleFindCoupon = Msg("funcExampleFindCoupon", "FINDCOUPON(SELECTED(), \"*退治\") <> 0");
+	auto funcExampleCouponText = Msg("funcExampleCouponText", "COUPONTEXT(SELECTED(), FINDCOUPON(SELECTED(), \"*退治\")) = \"ゴブリン退治\"");
+	auto funcExampleFindGossip = Msg("funcExampleFindGossip", "FINDGOSSIP(\"*生存\") <> 0");
+	auto funcExampleGossipText = Msg("funcExampleGossipText", "GOSSIPTEXT(FINDGOSSIP(\"*生存\")) = \"ゴブリン生存\"");
 
 	auto exprStringDesc = Msg("exprStringDesc", "文字列");
 	auto exprStringLengthDesc = Msg("exprStringLengthDesc", "長さ(文字数)");
@@ -2712,6 +2725,10 @@ class Msgs : Properties {
 	auto exprStepDesc = Msg("exprStepDesc", "ステップ名");
 	auto exprStepValueDesc = Msg("exprStepValueDesc", "ステップ値");
 	auto exprCastNumberDesc = Msg("exprCastNumberDesc", "キャラクター番号");
+	auto exprFindPatternDesc = Msg("exprFindPatternDesc", "検索文字列");
+	auto exprCouponNumberDesc = Msg("exprCouponNumberDesc", "クーポン番号");
+	auto exprGossipNumberDesc = Msg("exprGossipNumberDesc", "ゴシップ番号");
+	auto exprFindStartPositionDesc = Msg("exprFindStartPositionDesc", "検索開始位置");
 
 	/// メニュー。
 	const string menuText(MenuID id) { mixin(S_TRACE);

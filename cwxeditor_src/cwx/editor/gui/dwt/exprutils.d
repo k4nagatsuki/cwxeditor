@@ -94,6 +94,8 @@ protected:
 	override bool apply() { mixin(S_TRACE);
 		if (!evt) evt = new Content(_cType, "");
 		evt.expression = _expr.expression;
+		comm.refCoupons.call();
+		comm.refGossips.call();
 		return true;
 	}
 }
@@ -302,6 +304,8 @@ protected:
 			evt.flag = "";
 			evt.step = "";
 		} else assert (0);
+		comm.refCoupons.call();
+		comm.refGossips.call();
 		return true;
 	}
 }
@@ -634,8 +638,8 @@ private class FunctionCallEditor {
 	private FunctionCategory[] _categories;
 	private Combo _func;
 
-	private Label _decl;
-	private Label _desc;
+	private Text _decl;
+	private Text _desc;
 	private Text _example;
 
 	private Table _args;
@@ -677,10 +681,16 @@ private class FunctionCallEditor {
 		intoDisplay(cloc.x, cloc.y, p.x, p.y);
 		_shell.setBounds(cloc.x, cloc.y, p.x, p.y);
 
-		_shell.setLayout(zeroGridLayout(1, true));
+		_shell.setLayout(zeroMarginGridLayout(1, true));
 
+		auto sash = new SplitPane(_shell, SWT.VERTICAL);
+		sash.setLayoutData(new GridData(GridData.FILL_BOTH));
+		auto top = new Composite(sash, SWT.NONE);
+		top.setLayout(zeroGridLayout(1, true));
+		auto bottom = new Composite(sash, SWT.NONE);
+		bottom.setLayout(zeroGridLayout(1, true));
 		{ mixin(S_TRACE);
-			auto comp = new Composite(_shell, SWT.NONE);
+			auto comp = new Composite(top, SWT.NONE);
 			comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			comp.setLayout(normalGridLayout(2, false));
 
@@ -714,15 +724,16 @@ private class FunctionCallEditor {
 			}, () => true);
 			_func.setMenu(menu);
 		}
-		(new Label(_shell, SWT.SEPARATOR | SWT.HORIZONTAL)).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		(new Label(top, SWT.SEPARATOR | SWT.HORIZONTAL)).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		{ mixin(S_TRACE);
-			auto comp = new Composite(_shell, SWT.NONE);
-			comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			auto comp = new Composite(top, SWT.NONE);
+			comp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			comp.setLayout(normalGridLayout(2, false));
 
 			auto declL = new Label(comp, SWT.NONE);
 			declL.setText(_comm.prop.msgs.functionDeclaration);
-			_decl = new Label(comp, SWT.BORDER);
+			_decl = new Text(comp, SWT.BORDER | SWT.READ_ONLY);
+			createTextMenu!Text(_comm, _comm.prop, _decl, null);
 			auto baseFont = _decl.getFont();
 			auto fSize = baseFont ? cast(uint)baseFont.getFontData()[0].height : 0;
 			auto font = new Font(_shell.getDisplay(), .dwtData(_comm.prop.looks.textDlgFont(fSize)));
@@ -737,9 +748,10 @@ private class FunctionCallEditor {
 
 			auto descL = new Label(comp, SWT.NONE);
 			descL.setText(_comm.prop.msgs.functionDescription);
-			_desc = new Label(comp, SWT.BORDER | SWT.WRAP);
+			_desc = new Text(comp, SWT.BORDER | SWT.READ_ONLY | SWT.WRAP | SWT.V_SCROLL);
+			createTextMenu!Text(_comm, _comm.prop, _desc, null);
 			auto descGD = new GridData(GridData.FILL_BOTH);
-			descGD.heightHint = _desc.computeSize(SWT.DEFAULT, lineH * 3).y;
+			descGD.heightHint = _desc.computeSize(SWT.DEFAULT, lineH * 4).y;
 			_desc.setLayoutData(descGD);
 
 			auto exampleL = new Label(comp, SWT.NONE);
@@ -751,9 +763,8 @@ private class FunctionCallEditor {
 			exampleGD.heightHint = _example.computeSize(SWT.DEFAULT, lineH).y;
 			_example.setLayoutData(exampleGD);
 		}
-		(new Label(_shell, SWT.SEPARATOR | SWT.HORIZONTAL)).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		{ mixin(S_TRACE);
-			auto comp = new Composite(_shell, SWT.NONE);
+			auto comp = new Composite(bottom, SWT.NONE);
 			comp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			comp.setLayout(normalGridLayout(1, true));
 
@@ -789,9 +800,9 @@ private class FunctionCallEditor {
 			createMenuItem(comm, menu, MenuID.Redo, { _undo.redo(); }, &_undo.canRedo);
 			_args.setMenu(menu);
 		}
-		(new Label(_shell, SWT.SEPARATOR | SWT.HORIZONTAL)).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		(new Label(bottom, SWT.SEPARATOR | SWT.HORIZONTAL)).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		{ mixin(S_TRACE);
-			auto comp = new Composite(_shell, SWT.NONE);
+			auto comp = new Composite(bottom, SWT.NONE);
 			comp.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 			comp.setLayout(normalGridLayout(1, true));
 
@@ -831,6 +842,7 @@ private class FunctionCallEditor {
 			});
 			_comm.put(insertFunc, () => _selectedFuncName != "");
 		}
+		.setupWeights(sash, comm.prop.var.etc.expressionFunctionAndArgsSashT, comm.prop.var.etc.expressionFunctionAndArgsSashB);
 
 		updateFunctions();
 	}

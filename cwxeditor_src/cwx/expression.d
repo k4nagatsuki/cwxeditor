@@ -23,12 +23,15 @@ import std.typecons;
 import std.utf;
 
 /// 式。
-class Expression : CWXPath, ISimpleTextHolder, ChgFlagCallback, ChgStepCallback, ChgVariantCallback {
+class Expression : CWXPath, ISimpleTextHolder, ChgFlagCallback, ChgStepCallback, ChgVariantCallback,
+	ICouponUser, IGossipUser, ChgCouponCallback, ChgGossipCallback {
 private:
 	string _text;
 	FlagUser[] _flags;
 	StepUser[] _steps;
 	VariantUser[] _variants;
+	CouponUser[] _coupons;
+	GossipUser[] _gossips;
 	UseCounter _uc;
 	void delegate() _changed;
 	const(Part)[] _expr;
@@ -59,6 +62,8 @@ public:
 		_flags = [];
 		_steps = [];
 		_variants = [];
+		_coupons = [];
+		_gossips = [];
 
 		ExprError[] err;
 		_expr = .parseExpression(null, text, err);
@@ -72,22 +77,34 @@ public:
 				if (!func) continue;
 				if (func.args.length == 0) continue;
 				recurse(func.args);
+				if (func.funcName.toLower() == "findcoupon") { mixin(S_TRACE);
+					if (func.args.length < 2) continue;
+					auto a = cast(StringValue)func.args[1];
+					if (!a) continue;
+					auto id = a.strVal;
+					if (id == "") continue;
+					auto u = new CouponUser(this, true);
+					if (_uc) u.setUseCounter(_uc);
+					u.coupon = id;
+					_coupons ~= u;
+					continue;
+				}
 				auto a = cast(StringValue)func.args[0];
 				if (!a) continue;
-				auto path = a.strVal;
-				if (path == "") continue;
+				auto id = a.strVal;
+				if (id == "") continue;
 				switch (func.funcName.toLower()) {
 				case "var":
 					auto u = new VariantUser(this);
 					if (_uc) u.setUseCounter(_uc);
-					u.variant = path;
+					u.variant = id;
 					_variants ~= u;
 					break;
 				case "flagvalue":
 				case "flagtext":
 					auto u = new FlagUser(this);
 					if (_uc) u.setUseCounter(_uc);
-					u.flag = path;
+					u.flag = id;
 					_flags ~= u;
 					break;
 				case "stepvalue":
@@ -95,8 +112,14 @@ public:
 				case "stepmax":
 					auto u = new StepUser(this);
 					if (_uc) u.setUseCounter(_uc);
-					u.step = path;
+					u.step = id;
 					_steps ~= u;
+					break;
+				case "findgossip":
+					auto u = new GossipUser(this, true);
+					if (_uc) u.setUseCounter(_uc);
+					u.gossip = id;
+					_gossips ~= u;
 					break;
 				default:
 					break;
@@ -115,7 +138,7 @@ public:
 		uc.change(toFlagId("testflag"), toFlagId("_replflag_"));
 		uc.change(toStepId("TestStep"), toStepId("RplStp"));
 		uc.change(toVariantId("testvar"), toVariantId("_replvar_"));
-		assert (exp.text == `VAR("_replvar_")~@"_replvar_"~FlagValue("_replflag_")~FlagText("_replflag_")~StepValue("teststep")~StepText("RplStp")~StepMax("TESTSTEP")`);
+		assert (exp.text == `VAR("_replvar_")~@"_replvar_"~FlagValue("_replflag_")~FlagText("_replflag_")~StepValue("teststep")~StepText("RplStp")~StepMax("TESTSTEP")`, exp.text);
 		assert (std.algorithm.sort(exp.flagsInText).array() == ["_replflag_", "_replflag_"]);
 		assert (std.algorithm.sort(exp.stepsInText).array() == ["RplStp", "TESTSTEP", "teststep"]);
 		assert (std.algorithm.sort(exp.variantsInText).array() == ["_replvar_", "_replvar_"]);
@@ -125,10 +148,19 @@ public:
 		assert (std.algorithm.sort(exp.stepsInText).array() == []);
 		assert (std.algorithm.sort(exp.variantsInText).array() == ["テストコモン1", "テストコモン1", "テストコモン1", "テストコモン1"]);
 		uc.change(toVariantId("テストコモン1"), toVariantId("コモン2"));
-		assert (exp.text == `var("コモン2") + min(99999999.999, @"コモン2" * @"コモン2") + @"コモン2"`);
+		assert (exp.text == `var("コモン2") + min(99999999.999, @"コモン2" * @"コモン2") + @"コモン2"`, exp.text);
 		assert (std.algorithm.sort(exp.flagsInText).array() == []);
 		assert (std.algorithm.sort(exp.stepsInText).array() == []);
 		assert (std.algorithm.sort(exp.variantsInText).array() == ["コモン2", "コモン2", "コモン2", "コモン2"]);
+
+		exp.text = `FINDCOUPON(SELECTED(), "test*")~FINDGOSSIP("TEST*")`;
+		assert (std.algorithm.sort(exp.couponsInText).array() == ["test*"]);
+		assert (std.algorithm.sort(exp.gossipsInText).array() == ["TEST*"]);
+		uc.change(toCouponId("test*"), toCouponId("TESTCOUPON"));
+		uc.change(toGossipId("TEST*"), toGossipId("TESTGOSSIP"));
+		assert (exp.text == `FINDCOUPON(SELECTED(), "TESTCOUPON")~FINDGOSSIP("TESTGOSSIP")`, exp.text);
+		assert (std.algorithm.sort(exp.couponsInText).array() == ["TESTCOUPON"]);
+		assert (std.algorithm.sort(exp.gossipsInText).array() == ["TESTGOSSIP"]);
 	}
 
 	/// 式にあるエラーを検出して返す。
@@ -157,6 +189,15 @@ public:
 		return .map!(u => u.variant)(_variants).array();
 	}
 
+	@property
+	const string[] couponsInText() { mixin(S_TRACE);
+		return .map!(u => u.coupon)(_coupons).array();
+	}
+	@property
+	const string[] gossipsInText() { mixin(S_TRACE);
+		return .map!(u => u.gossip)(_gossips).array();
+	}
+
 	/// 使用回数カウンタ。
 	@property
 	UseCounter useCounter() { return _uc; }
@@ -166,12 +207,16 @@ public:
 		.each!(u => u.setUseCounter(uc))(_flags);
 		.each!(u => u.setUseCounter(uc))(_steps);
 		.each!(u => u.setUseCounter(uc))(_variants);
+		.each!(u => u.setUseCounter(uc))(_coupons);
+		.each!(u => u.setUseCounter(uc))(_gossips);
 		_uc = uc;
 	}
 	private void removeTextUseCounter() { mixin(S_TRACE);
 		.each!(u => u.removeUseCounter())(_flags);
 		.each!(u => u.removeUseCounter())(_steps);
 		.each!(u => u.removeUseCounter())(_variants);
+		.each!(u => u.removeUseCounter())(_coupons);
+		.each!(u => u.removeUseCounter())(_gossips);
 	}
 	/// 使用回数カウンタを除去。
 	void removeUseCounter() { mixin(S_TRACE);
@@ -194,6 +239,16 @@ public:
 		.each!(u => u.change(id))(_variants);
 		return true;
 	}
+	override
+	bool change(CouponId id) { mixin(S_TRACE);
+		.each!(u => u.change(id))(_coupons);
+		return true;
+	}
+	override
+	bool change(GossipId id) { mixin(S_TRACE);
+		.each!(u => u.change(id))(_gossips);
+		return true;
+	}
 
 	/// 個別に状態変数パスを変更する。
 	void changeInText(size_t index, FlagId id) { mixin(S_TRACE);
@@ -206,6 +261,14 @@ public:
 	/// ditto
 	void changeInText(size_t index, VariantId id) { mixin(S_TRACE);
 		_variants[index].change(id);
+	}
+	/// ditto
+	void changeInText(size_t index, CouponId id) { mixin(S_TRACE);
+		_coupons[index].change(id);
+	}
+	/// ditto
+	void changeInText(size_t index, GossipId id) { mixin(S_TRACE);
+		_gossips[index].change(id);
 	}
 
 	private void changeCallbackImpl(ID)(ID oldVal, ID newVal) { mixin(S_TRACE);
@@ -220,10 +283,21 @@ public:
 				if (!func) continue;
 				if (func.args.length == 0) continue;
 				recurse(func.args);
+				static if (is(ID:CouponId)) {
+					if (func.funcName.toLower() == "findcoupon") { mixin(S_TRACE);
+						if (func.args.length < 2) continue;
+						auto a = cast(StringValue)func.args[1];
+						if (!a) continue;
+						auto id = a.strVal;
+						if (id != cast(string)oldVal) continue;
+						repls[a.token.index] = a.token.token;
+						continue;
+					}
+				}
 				auto a = cast(StringValue)func.args[0];
 				if (!a) continue;
-				auto path = a.strVal;
-				if (path != cast(string)oldVal) continue;
+				auto id = a.strVal;
+				if (id != cast(string)oldVal) continue;
 				switch (func.funcName.toLower()) {
 				case "var":
 					static if (is(ID:VariantId)) {
@@ -240,6 +314,11 @@ public:
 				case "steptext":
 				case "stepmax":
 					static if (is(ID:StepId)) {
+						repls[a.token.index] = a.token.token;
+					}
+					break;
+				case "findgossip":
+					static if (is(ID:GossipId)) {
 						repls[a.token.index] = a.token.token;
 					}
 					break;
@@ -272,6 +351,18 @@ public:
 	}
 	override
 	bool changeCallback(VariantId oldVal, VariantId newVal) { mixin(S_TRACE);
+		changeCallbackImpl(oldVal, newVal);
+		changed();
+		return true;
+	}
+	override
+	bool changeCallback(CouponId oldVal, CouponId newVal) { mixin(S_TRACE);
+		changeCallbackImpl(oldVal, newVal);
+		changed();
+		return true;
+	}
+	override
+	bool changeCallback(GossipId oldVal, GossipId newVal) { mixin(S_TRACE);
 		changeCallbackImpl(oldVal, newVal);
 		changed();
 		return true;
@@ -470,6 +561,10 @@ private class Function : Part {
 			"stepmax": &.funcStepMax,
 			"selected": &.funcSelected,
 			"casttype": &.funcCastType,
+			"findcoupon": &.funcFindCoupon,
+			"coupontext": &.funcCouponText,
+			"findgossip": &.funcFindGossip,
+			"gossiptext": &.funcGossipText,
 		];
 	}
 
@@ -986,6 +1081,15 @@ struct VariableInfo {
 	/// 選択メンバの番号を取得。
 	uint delegate() selectedPlayerCardNumber;
 
+	/// クーポンの検索。
+	uint delegate(uint castNumber, string pattern, uint startPos) findCoupon;
+	/// クーポンの取得。
+	string delegate(uint castNumber, uint couponNumber) couponText;
+	/// ゴシップの検索。
+	uint delegate(string pattern, uint startPos) findGossip;
+	/// ゴシップの取得。
+	string delegate(uint gossipNumber) gossipText;
+
 	/// インスタンスを生成する。
 	this (in CProps prop, in Summary summ, string targVer, string[char] names, VarValue[string] flags, VarValue[string] steps, VarValue[string] variants, VarValue[string] sysSteps) { mixin(S_TRACE);
 		existsFlag = path => summ && summ.flagDirRoot.findFlag(path) !is null;
@@ -1010,6 +1114,11 @@ struct VariableInfo {
 		stepValue = path => summ ? summ.flagDirRoot.findStep(path).select : 0u;
 		stepMax = path => summ ? summ.flagDirRoot.findStep(path).count : 0u;
 		selectedPlayerCardNumber = () => 0u;
+
+		findCoupon = (castNumber, pattern, startPos) => 0u;
+		couponText = (castNumber, couponNumber) => "";
+		findGossip = (pattern, startPos) => 0u;
+		gossipText = (gossipNumber) => "";
 	}
 }
 
@@ -1452,6 +1561,79 @@ private const(Part) funcCastType(in CProps prop, EvalMode mode, in VariableInfo 
 	return new NumberValue(func.token, v <= prop.looks.partyMax ? 1 : 0);
 }
 
+/// クーポンを検索する。
+private const(Part) funcFindCoupon(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	if (mode !is EvalMode.TypeCheck) { mixin(S_TRACE);
+		if (!vInfo.findCoupon) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
+	}
+	if (!checkArgCount2(prop, func, args, 2, 3, err)) return new NumberValue(func.token, 0);
+	auto n = checkMinValue(prop, mode, func, args, 0, 0, err);
+	if (!n) return new NumberValue(func.token, 0);
+	auto p = checkString(prop, func, args, 1, err);
+	if (!p) return new NumberValue(func.token, 0);
+	if (mode is EvalMode.TypeCheck) return new NumberValue(func.token, 0);
+
+	if (args.length < 3) { mixin(S_TRACE);
+		if (mode is EvalMode.TypeCheck) return new NumberValue(func.token, 0);
+		return new NumberValue(func.token, vInfo.findCoupon(cast(uint)n.numVal, p.strVal, 1));
+	} else { mixin(S_TRACE);
+		auto pos = checkMinValue(prop, mode, func, args, 2, 0, err);
+		if (!pos) return new NumberValue(func.token, 0);
+		if (cast(uint)pos.numVal == 0) return new NumberValue(func.token, 0);
+		if (mode is EvalMode.TypeCheck) return new NumberValue(func.token, 0);
+		return new NumberValue(func.token, vInfo.findCoupon(cast(uint)n.numVal, p.strVal, cast(uint)pos.numVal));
+	}
+}
+
+/// クーポン名を取得する。
+private const(Part) funcCouponText(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	if (mode !is EvalMode.TypeCheck) { mixin(S_TRACE);
+		if (!vInfo.couponText) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
+	}
+	if (!checkArgCount(prop, func, args, 2, err)) return new StringValue(func.token, "");
+	auto n = checkMinValue(prop, mode, func, args, 0, 0, err);
+	if (!n) return new NumberValue(func.token, 0);
+	auto cn = checkMinValue(prop, mode, func, args, 1, 0, err);
+	if (!cn) return new NumberValue(func.token, 0);
+	if (mode is EvalMode.TypeCheck) return new StringValue(func.token, "");
+
+	return new StringValue(func.token, vInfo.couponText(cast(uint)n.numVal, cast(uint)cn.numVal));
+}
+
+/// ゴシップを検索する。
+private const(Part) funcFindGossip(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	if (mode !is EvalMode.TypeCheck) { mixin(S_TRACE);
+		if (!vInfo.findGossip) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
+	}
+	if (!checkArgCount2(prop, func, args, 1, 2, err)) return new NumberValue(func.token, 0);
+	auto p = checkString(prop, func, args, 0, err);
+	if (!p) return new NumberValue(func.token, 0);
+
+	if (args.length < 2) { mixin(S_TRACE);
+		if (mode is EvalMode.TypeCheck) return new NumberValue(func.token, 0);
+		return new NumberValue(func.token, vInfo.findGossip(p.strVal, 1));
+	} else { mixin(S_TRACE);
+		auto pos = checkMinValue(prop, mode, func, args, 1, 0, err);
+		if (!pos) return new NumberValue(func.token, 0);
+		if (cast(uint)pos.numVal == 0) return new NumberValue(func.token, 0);
+		if (mode is EvalMode.TypeCheck) return new NumberValue(func.token, 0);
+		return new NumberValue(func.token, vInfo.findGossip(p.strVal, cast(uint)pos.numVal));
+	}
+}
+
+/// ゴシップ名を取得する。
+private const(Part) funcGossipText(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	if (mode !is EvalMode.TypeCheck) { mixin(S_TRACE);
+		if (!vInfo.gossipText) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
+	}
+	if (!checkArgCount(prop, func, args, 1, err)) return new StringValue(func.token, "");
+	auto gn = checkMinValue(prop, mode, func, args, 0, 0, err);
+	if (!gn) return new NumberValue(func.token, 0);
+	if (mode is EvalMode.TypeCheck) return new StringValue(func.token, "");
+
+	return new StringValue(func.token, vInfo.gossipText(cast(uint)gn.numVal));
+}
+
 /// 入力支援用に関数の引数の型を表現する。
 enum ArgType {
 	Number, /// 数値。
@@ -1549,9 +1731,25 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 		], ArgType.Number),
 		FuncDef([FunctionCategory.CardInformation], "SELECTED", prop.msgs.funcDescSelected, prop.msgs.funcShortDescSelected, prop.msgs.funcExampleSelected, [
 		], ArgType.Number),
-		FuncDef([FunctionCategory.CardInformation], "CASTTYPE", prop.msgs.funcDescCastType, prop.msgs.funcShortDescSelected, prop.msgs.funcExampleCastType, [
+		FuncDef([FunctionCategory.CardInformation], "CASTTYPE", prop.msgs.funcDescCastType, prop.msgs.funcShortDescCastType, prop.msgs.funcExampleCastType, [
 			ArgDef(ArgType.Number, prop.msgs.exprCastNumberDesc, "1", false),
 		], ArgType.Number),
+		FuncDef([FunctionCategory.CouponInformation], "FINDCOUPON", prop.msgs.funcDescFindCoupon, prop.msgs.funcShortDescFindCoupon, prop.msgs.funcExampleFindCoupon, [
+			ArgDef(ArgType.Number, prop.msgs.exprCastNumberDesc, "1", false),
+			ArgDef(ArgType.String, prop.msgs.exprFindPatternDesc, "*", false),
+			ArgDef(ArgType.Number, prop.msgs.exprFindStartPositionDesc, "", true),
+		], ArgType.Number),
+		FuncDef([FunctionCategory.CouponInformation], "COUPONTEXT", prop.msgs.funcDescCouponText, prop.msgs.funcShortDescCouponText, prop.msgs.funcExampleCouponText, [
+			ArgDef(ArgType.Number, prop.msgs.exprCastNumberDesc, "1", false),
+			ArgDef(ArgType.Number, prop.msgs.exprCouponNumberDesc, "1", false),
+		], ArgType.String),
+		FuncDef([FunctionCategory.CouponInformation], "FINDGOSSIP", prop.msgs.funcDescFindGossip, prop.msgs.funcShortDescFindGossip, prop.msgs.funcExampleFindGossip, [
+			ArgDef(ArgType.String, prop.msgs.exprFindPatternDesc, "*", false),
+			ArgDef(ArgType.Number, prop.msgs.exprFindStartPositionDesc, "", true),
+		], ArgType.Number),
+		FuncDef([FunctionCategory.CouponInformation], "GOSSIPTEXT", prop.msgs.funcDescGossipText, prop.msgs.funcShortDescGossipText, prop.msgs.funcExampleGossipText, [
+			ArgDef(ArgType.Number, prop.msgs.exprGossipNumberDesc, "1", false),
+		], ArgType.String),
 	];
 }
 
