@@ -129,6 +129,35 @@ private:
 			ws ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(CType.SET_VARIANT), "4");
 		}
 		ws ~= _expr.warnings;
+		if (_flag) { mixin(S_TRACE);
+			auto val = _expr.returnValue;
+			if (val.valid && val.type !is VariantType.Boolean) { mixin(S_TRACE);
+				final switch (val.type) {
+				case VariantType.Number:
+					ws ~= .tryFormat(prop.msgs.warningExpressionToFlag, prop.msgs.numberValue);
+					break;
+				case VariantType.String:
+					ws ~= .tryFormat(prop.msgs.warningExpressionToFlag, prop.msgs.stringValue);
+					break;
+				case VariantType.Boolean:
+					assert (0);
+				}
+			}
+		} else if (_step) { mixin(S_TRACE);
+			auto val = _expr.returnValue;
+			if (val.valid && val.type !is VariantType.Number) { mixin(S_TRACE);
+				final switch (val.type) {
+				case VariantType.Number:
+					assert (0);
+				case VariantType.String:
+					ws ~= .tryFormat(prop.msgs.warningExpressionToStep, prop.msgs.stringValue);
+					break;
+				case VariantType.Boolean:
+					ws ~= .tryFormat(prop.msgs.warningExpressionToStep, prop.msgs.booleanValue);
+					break;
+				}
+			}
+		}
 		warning = ws;
 	}
 
@@ -209,6 +238,7 @@ private:
 			break;
 		}
 		_varComp.layout();
+		refreshWarning();
 	}
 
 public:
@@ -230,6 +260,7 @@ protected:
 			_expr = new ExpressionEditor(comm, summ, grpT, SWT.NONE);
 			mod(_expr);
 			_expr.modEvent ~= &refreshWarning;
+			_expr.modReturnValueEvent ~= &refreshWarning;
 			_expr.setLayoutData(new GridData(GridData.FILL_BOTH));
 		}
 		auto grpB = new Group(sash, SWT.NONE);
@@ -313,6 +344,7 @@ protected:
 /// 式を編集するウィジェット。
 class ExpressionEditor : Composite {
 	void delegate()[] modEvent;
+	void delegate()[] modReturnValueEvent;
 
 	// レスポンスが悪くなるのを避けるため、最後の入力から一定時間経過後に文法チェックを行う
 	private MonoTime _lastModified = MonoTime.init;
@@ -351,8 +383,14 @@ class ExpressionEditor : Composite {
 		VarValue[string] flags, steps, variants, sysSteps;
 		auto err = expr.getExpressionErrors(_comm.prop.parent, VariableInfo(_comm.prop.parent, _summ, _comm.prop.var.etc.targetVersion, names, flags, steps, variants, sysSteps));
 		_ws ~= .exprErrorToWarnings(_comm.prop.parent, text, err);
+		auto valid = _returnValue.valid;
+		auto type = _returnValue.type;
+		_returnValue = expr.returnValue(_comm.prop.parent);
 		if (raiseModEvent && oldWS != _ws) { mixin(S_TRACE);
 			modEvent.each!(func => func())();
+		}
+		if (raiseModEvent && (_returnValue.valid !is valid || _returnValue.type !is type)) { mixin(S_TRACE);
+			modReturnValueEvent.each!(func => func())();
 		}
 	}
 
@@ -360,6 +398,7 @@ class ExpressionEditor : Composite {
 	private Summary _summ;
 
 	private Text _expr;
+	private VariantVal _returnValue = VariantVal(false);
 	private string[] _ws;
 
 	private FunctionCallEditor _funcEdit = null;
@@ -574,6 +613,9 @@ class ExpressionEditor : Composite {
 		_expr.setText(expr);
 		checkExpression(true);
 	}
+
+	@property
+	VariantVal returnValue() { return _returnValue; }
 
 	string[] warnings() { return _ws; }
 }

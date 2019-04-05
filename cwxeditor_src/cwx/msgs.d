@@ -2623,6 +2623,8 @@ class Msgs : Properties {
 	auto warningExpression = Msg("warningExpression", "%1$s → %2$s");
 	auto warningExpressionPosition = Msg("warningExpressionPosition", " >>>");
 	auto warningExpressionEnd = Msg("warningExpressionEnd", " <<<");
+	auto warningExpressionToFlag = Msg("warningExpressionToFlag", "式の結果は%1$sになるため、フラグへ代入できません。");
+	auto warningExpressionToStep = Msg("warningExpressionToStep", "式の結果は%1$sになるため、ステップへ代入できません。");
 
 	auto functionNameWithDescription = Msg("functionNameWithDescription", "%1$s - %2$s");
 

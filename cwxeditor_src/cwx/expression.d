@@ -169,8 +169,20 @@ public:
 		ExprError[] err;
 		auto expr = .parseExpression(prop, text, err);
 		if (err.length) return err;
+		if (!expr.length) return err;
 		.calculate(prop, EvalMode.TypeCheck, vInfo, expr, err);
 		return err;
+	}
+
+	/// 戻り値のタイプを推論して返す。
+	/// 推論できない場合はVariantVal(false)を返す。
+	const
+	VariantVal returnValue(in CProps prop) { mixin(S_TRACE);
+		ExprError[] err;
+		string[char] names;
+		VarValue[string] flags, steps, variants, sysSteps;
+		auto vInfo = VariableInfo(prop, null, "1.50", names, flags, steps, variants, sysSteps);
+		return .partToVariantVal(.calculate(prop, EvalMode.TypeCheck, vInfo, _expr, err));
 	}
 
 	@property
@@ -850,6 +862,7 @@ private const(Part)[] parseSemantics(in CProps prop, ref Token[] tokens, ref siz
 	auto isOp = true;
 	size_t parLevel = 0;
 	auto opLevel = 0;
+	if (tokens.length <= i) return [];
 	auto t0 = tokens[i];
 
 	mLoop: while (i < tokens.length) { mixin(S_TRACE);
@@ -1013,7 +1026,7 @@ struct VariantVal {
 	bool boolVal; /// 真偽値。
 
 	/// 有効かどうかを指定して初期化する。
-	this (bool valid) { mixin(S_TRACE);
+	this (bool valid) {
 		this.valid = valid;
 	}
 	/// 型を指定して初期化する。
@@ -1139,8 +1152,13 @@ VariantVal eval(in CProps prop, EvalMode mode, in VariableInfo vInfo, string exp
 	ExprError[] err;
 	auto expr = .parseExpression(prop, expression, err);
 	if (err.length) throw new ExprException(__FILE__, __LINE__, expression, err);
+	if (!expr.length) return VariantVal(false);
 	auto r = .calculate(prop, mode, vInfo, expr, err);
 	if (err.length) throw new ExprException(__FILE__, __LINE__, expression, err);
+	return .partToVariantVal(r);
+}
+/// 値を表すPartをVariantValへ変換する。
+private VariantVal partToVariantVal(in Part r) { mixin(S_TRACE);
 	if (auto a = cast(NumberValue)r) { mixin(S_TRACE);
 		auto val = VariantVal(VariantType.Number);
 		val.numVal = a.numVal;
@@ -1154,9 +1172,7 @@ VariantVal eval(in CProps prop, EvalMode mode, in VariableInfo vInfo, string exp
 		val.boolVal = a.boolVal;
 		return val;
 	} else if (auto a = cast(UnknownValue)r) { mixin(S_TRACE);
-		auto val = VariantVal(VariantType.Number);
-		val.numVal = 0;
-		return val;
+		return VariantVal(false);
 	} else assert (0);
 }
 
