@@ -1893,9 +1893,7 @@ private:
 			}
 			bool copy;
 			bool r = qMaterialCopy(_comm, dlgParShl, uc, _summ.scenarioPath, fromSPath, copy, _summ.legacy,
-				(in IPathUser u) { mixin(S_TRACE);
-					auto v = cast(PathUser)u;
-					assert (v);
+				(in PathUser v) { mixin(S_TRACE);
 					return .pathUserToExportedImageName(_prop.parent, fromSName, fromSAuthor, v);
 				});
 			foreach (c; cs) { mixin(S_TRACE);

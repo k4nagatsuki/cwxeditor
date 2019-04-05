@@ -32,7 +32,7 @@ interface CWXPath {
 	CWXPath cwxParent();
 
 	/// 変更を通知する。
-	protected void changed();
+	void changed();
 }
 
 /// カテゴリを比較するための値を返す。

@@ -182,7 +182,7 @@ interface MotionOwner : CWXPath {
 }
 
 /// 効果クラス。
-class Motion : CWXPath, BeastOwner, IBeastUser {
+class Motion : CWXPath, BeastOwner {
 private:
 	MType _type;
 
@@ -431,9 +431,7 @@ public:
 	/// ditto
 	static immutable maxNest_max = 999;
 
-	override bool change(BeastId id) { return true; }
-
-	protected override void changed() { mixin(S_TRACE);
+	override void changed() { mixin(S_TRACE);
 		if (_change) _change();
 	}
 

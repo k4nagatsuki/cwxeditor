@@ -77,7 +77,7 @@ AbstractArea[] createAreasFromNode(ref XNode e, string scenarioPath, out bool sa
 }
 
 /// メニューカードとエネミーカードの親クラス。
-public abstract class AbstractSpCard : AbstractEventTreeOwner, IFlagUser, ICardGroupUser {
+public abstract class AbstractSpCard : AbstractEventTreeOwner {
 private:
 	int _x, _y;
 	uint _scale;
@@ -244,12 +244,6 @@ public:
 		_cardGroup.removeUseCounter();
 		super.removeUseCounter();
 	}
-	override bool change(FlagId id) { mixin(S_TRACE);
-		return _user.change(id);
-	}
-	override bool change(CardGroupId id) { mixin(S_TRACE);
-		return _cardGroup.change(id);
-	}
 
 	/// 指定されたノードにProperty情報を追加する。
 	const
@@ -305,7 +299,7 @@ public:
 }
 
 /// バトルに配置するカード。
-public class EnemyCard : AbstractSpCard, ICastUser, IPathUser {
+public class EnemyCard : AbstractSpCard {
 private:
 	Battle _owner = null;
 	bool _escape;
@@ -452,7 +446,7 @@ public:
 	@property
 	const
 	CardImage[] overrideImages() { mixin(S_TRACE);
-		return .map!(a => new CardImage(cast(IPathUser)null, a))(_overrideImages).array();
+		return .map!(a => new CardImage(cast(CWXPath)null, a))(_overrideImages).array();
 	}
 	/// ditto
 	@property
@@ -502,15 +496,6 @@ public:
 			path.removeUseCounter();
 		}
 		super.removeUseCounter();
-	}
-	override bool change(CastId id) { mixin(S_TRACE);
-		return _user.change(id);
-	}
-	override bool change(PathId id) { mixin(S_TRACE);
-		foreach (path; _overrideImages) { mixin(S_TRACE);
-			path.change(id);
-		}
-		return true;
 	}
 
 	static EnemyCard[] createCardsFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
@@ -611,7 +596,7 @@ public:
 }
 
 /// エリアに配置するカード。
-public class MenuCard : AbstractSpCard, IPathUser {
+public class MenuCard : AbstractSpCard {
 private:
 	Area _owner;
 	SimpleTextHolder _name;
@@ -747,7 +732,7 @@ public:
 	@property
 	const
 	CardImage[] paths() { mixin(S_TRACE);
-		return .map!(a => new CardImage(cast(IPathUser)null, a))(_paths).array();
+		return .map!(a => new CardImage(cast(CWXPath)null, a))(_paths).array();
 	}
 	/// ditto
 	@property
@@ -791,12 +776,6 @@ public:
 		}
 		_name.removeUseCounter();
 		super.removeUseCounter();
-	}
-	override bool change(PathId id) { mixin(S_TRACE);
-		foreach (path; _paths) { mixin(S_TRACE);
-			path.change(id);
-		}
-		return true;
 	}
 
 	/// メニューカード以外のカードデータからメニューカードを生成する。
@@ -1685,7 +1664,7 @@ public:
 }
 
 /// バトル。
-public class Battle : AbstractArea, IPathUser {
+public class Battle : AbstractArea {
 private:
 	EnemyCard[] _cards;
 	bool _auto;
@@ -1914,10 +1893,6 @@ public:
 		_music.removeUseCounter();
 		playerEvents.removeUseCounter();
 		super.removeUseCounter();
-	}
-
-	override bool change(PathId id) { mixin(S_TRACE);
-		return _music.change(id);
 	}
 
 	@property

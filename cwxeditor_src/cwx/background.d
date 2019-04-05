@@ -25,7 +25,7 @@ public:
 }
 
 /// 背景イメージ。
-public class ImageCell : BgImage, IPathUser {
+public class ImageCell : BgImage {
 private:
 	PathUser _user;
 	Smoothing _smoothing = Smoothing.Default;
@@ -134,9 +134,6 @@ public:
 	override void removeUseCounter() { mixin(S_TRACE);
 		_user.removeUseCounter();
 		super.removeUseCounter();
-	}
-	override bool change(PathId id) { mixin(S_TRACE);
-		return _user.change(id);
 	}
 
 	override
@@ -433,16 +430,6 @@ public:
 	override void removeUseCounter() { mixin(S_TRACE);
 		_text.removeUseCounter();
 		super.removeUseCounter();
-	}
-	override bool change(FlagId id) { mixin(S_TRACE);
-		_text.change(id);
-		return super.change(id);
-	}
-	override bool change(StepId id) { mixin(S_TRACE);
-		return _text.change(id);
-	}
-	override bool change(VariantId id) { mixin(S_TRACE);
-		return _text.change(id);
 	}
 
 	/// テキスト内で使用されている状態変数のパス。
@@ -881,7 +868,7 @@ public:
 	}
 }
 
-public abstract class BgImage : FlagUser, ICellNameUser, CWXPath {
+public abstract class BgImage : FlagUser, CWXPath {
 private:
 	bool _mask = false;
 	int _x, _y;
@@ -959,8 +946,7 @@ public:
 	void changeHandler(void delegate() change) { mixin(S_TRACE);
 		_change = change;
 	}
-	/// 変更を通知。
-	protected override void changed() { mixin(S_TRACE);
+	override void changed() { mixin(S_TRACE);
 		if (_change) _change();
 	}
 
@@ -973,9 +959,6 @@ public:
 	override void removeUseCounter() { mixin(S_TRACE);
 		super.removeUseCounter();
 		_cellName.removeUseCounter();
-	}
-	override bool change(CellNameId newVal) { mixin(S_TRACE);
-		return _cellName.change(newVal);
 	}
 
 	@property
@@ -1313,7 +1296,7 @@ public:
 		_bgImgs[index2] = temp;
 	}
 
-	protected override void changed() { }
+	override void changed() { }
 
 	/// 背景イメージ群をXMLノードにする。
 	static string BtoXML(BgImage[] backs, XMLOption opt) { mixin(S_TRACE);

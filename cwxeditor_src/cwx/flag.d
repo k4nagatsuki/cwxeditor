@@ -297,7 +297,7 @@ public:
 		return _parent.path ~ _name;
 	}
 
-	protected override void changed() { mixin(S_TRACE);
+	override void changed() { mixin(S_TRACE);
 		if (_change) _change();
 	}
 
@@ -546,7 +546,7 @@ public:
 		return _parent.path ~ _name;
 	}
 
-	protected override void changed() { mixin(S_TRACE);
+	override void changed() { mixin(S_TRACE);
 		if (_change) _change();
 	}
 
@@ -782,7 +782,7 @@ public:
 		return _parent.path ~ _name;
 	}
 
-	protected override void changed() { mixin(S_TRACE);
+	override void changed() { mixin(S_TRACE);
 		if (_change) _change();
 	}
 
@@ -1447,7 +1447,7 @@ public:
 		}
 	}
 
-	protected override void changed() { mixin(S_TRACE);
+	override void changed() { mixin(S_TRACE);
 		if (_change) _change();
 	}
 

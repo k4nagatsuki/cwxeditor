@@ -24,7 +24,7 @@ import std.utf;
 
 /// 式。
 class Expression : CWXPath, ISimpleTextHolder, ChgFlagCallback, ChgStepCallback, ChgVariantCallback,
-	ICouponUser, IGossipUser, ChgCouponCallback, ChgGossipCallback {
+	ChgCouponCallback, ChgGossipCallback {
 private:
 	string _text;
 	FlagUser[] _flags;
@@ -222,32 +222,6 @@ public:
 	void removeUseCounter() { mixin(S_TRACE);
 		removeTextUseCounter();
 		_uc = null;
-	}
-
-	override
-	bool change(FlagId id) { mixin(S_TRACE);
-		.each!(u => u.change(id))(_flags);
-		return true;
-	}
-	override
-	bool change(StepId id) { mixin(S_TRACE);
-		.each!(u => u.change(id))(_steps);
-		return true;
-	}
-	override
-	bool change(VariantId id) { mixin(S_TRACE);
-		.each!(u => u.change(id))(_variants);
-		return true;
-	}
-	override
-	bool change(CouponId id) { mixin(S_TRACE);
-		.each!(u => u.change(id))(_coupons);
-		return true;
-	}
-	override
-	bool change(GossipId id) { mixin(S_TRACE);
-		.each!(u => u.change(id))(_gossips);
-		return true;
 	}
 
 	/// 個別に状態変数パスを変更する。

@@ -2340,7 +2340,7 @@ string[] castCoupons(Commons comm, bool talker, string legacyName, bool getLose,
 }
 
 bool qMaterialCopy(Commons comm, Shell shell, UseCounter uc, string toSPath, string fromSPath,
-		out bool copy, bool toIsLegacy, string delegate(in IPathUser) exportedImageName) { mixin(S_TRACE);
+		out bool copy, bool toIsLegacy, string delegate(in PathUser) exportedImageName) { mixin(S_TRACE);
 	auto prop = comm.prop;
 	auto skin = comm.skin;
 	copy = false;

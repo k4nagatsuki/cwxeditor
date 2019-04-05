@@ -105,7 +105,7 @@ struct SaveOption {
 }
 
 /// 貼り紙。シナリオの情報が入る。
-class Summary : CWXPath, AreaOwner, BattleOwner, PackageOwner, CastOwner, SkillOwner, ItemOwner, BeastOwner, InfoOwner, IAreaUser, IPathUser, ICouponUser {
+class Summary : CWXPath, AreaOwner, BattleOwner, PackageOwner, CastOwner, SkillOwner, ItemOwner, BeastOwner, InfoOwner {
 private:
 	string _id;
 
@@ -3048,12 +3048,6 @@ public:
 		}
 		return paths;
 	}
-
-	override bool change(AreaId id) { return true; }
-
-	override bool change(PathId id) { return true; }
-
-	override bool change(CouponId id) { return true; }
 
 	/// シナリオ内のエフェクトブースターファイルに使用回数カウンタを設定する。
 	void updateJpy1List(in CProps prop) { mixin(S_TRACE);

@@ -4883,7 +4883,7 @@ public:
 			}
 		}
 		if (_varNameSel) { mixin(S_TRACE);
-			static if (is (C : IFlagUser)) {
+			static if (is (C:AbstractSpCard)) {
 				if (_flagDirOnRange) { mixin(S_TRACE);
 					r |= repl(parent, null, "", card.flag, null, count, uArr2);
 				} else { mixin(S_TRACE);

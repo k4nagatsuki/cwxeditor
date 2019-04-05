@@ -321,7 +321,7 @@ alias User!(StartId) IStartUser;
 alias UCCont!(StartId, IStartUser) SUseCounter;
 
 /// 口調分け条件とメッセージ内容を持つクラス。
-static class SDialog : CWXPath, IPathUser, IFlagUser, IStepUser, IVariantUser, ICouponUser, ITextHolder {
+static class SDialog : CWXPath, ITextHolder {
 private:
 	CouponUser[] _rCoupons = [];
 	TextHolder _text;
@@ -423,21 +423,8 @@ public:
 			c.removeUseCounter();
 		}
 	}
-	override bool change(PathId id) { mixin(S_TRACE);
-		return _text.change(id);
-	}
-	override bool change(FlagId id) { mixin(S_TRACE);
-		return _text.change(id);
-	}
-	override bool change(StepId id) { mixin(S_TRACE);
-		return _text.change(id);
-	}
-	override bool change(VariantId id) { mixin(S_TRACE);
-		return _text.change(id);
-	}
-	override bool change(CouponId id) { return true; }
 
-	protected override void changed() { }
+	override void changed() { }
 
 	/// テキスト内で使用されているfont_X.png等のパス。
 	@property
@@ -528,12 +515,7 @@ public:
 	CWXPath cwxParent() { return _parent; }
 }
 
-class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
-		IFlagUser, IStepUser, IVariantUser,
-		ICastUser, IItemUser, ISkillUser, IBeastUser, IInfoUser,
-		ICouponUser, IGossipUser, ICompleteStampUser, IKeyCodeUser,
-		ICellNameUser, ICardGroupUser, IStartUser,
-		MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHolder,
+class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHolder, IStartUser,
 		CouponsOwner, ChgAreaCallback, ChgBattleCallback, ChgCouponCallback {
 	private EventTree _tree = null;
 
@@ -1983,7 +1965,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	@property
 	const
 	CardImage[] cardPaths() { mixin(S_TRACE);
-		return .map!(a => new CardImage(cast(IPathUser)null, a))(_cardPaths).array();
+		return .map!(a => new CardImage(cast(CWXPath)null, a))(_cardPaths).array();
 	}
 	/// BGMパス。
 	mixin Prop!(PathUser, string, "bgmPath", "", ".path", ".path", true);
@@ -2292,7 +2274,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		return &changed;
 	}
 	/// 変更を通知する。
-	protected override void changed() { mixin(S_TRACE);
+	override void changed() { mixin(S_TRACE);
 		if (_change) _change();
 		if (type is CType.START) _updateCounter++;
 	}
@@ -2406,47 +2388,6 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		_start = newVal;
 		return true;
 	}
-
-	private void idChangeImpl(T, Id)(ref T v, Id id) { mixin(S_TRACE);
-		static if (is(T : EventTree)) {
-			return;
-		} else {
-			static if (is(T : Content)) if (parent is v) return;
-			static if (is(typeof(v.change(id)))) {
-				static if (is(typeof(v is null))) if (!v) return;
-				v.change(id);
-			} else static if (!isSomeString!(T) && is(typeof(v[0u]))) {
-				foreach (i, vc; v) { mixin(S_TRACE);
-					idChangeImpl(vc, id);
-					v[i] = vc;
-				}
-			}
-		}
-	}
-	private bool idChange(Id)(Id id) { mixin(S_TRACE);
-		foreach (v; this.tupleof) { mixin(S_TRACE);
-			idChangeImpl(v, id);
-		}
-		return true;
-	}
-	override bool change(PathId id) { return idChange(id); }
-	override bool change(AreaId id) { return idChange(id); }
-	override bool change(BattleId id) { return idChange(id); }
-	override bool change(PackageId id) { return idChange(id); }
-	override bool change(FlagId id) { return idChange(id); }
-	override bool change(StepId id) { return idChange(id); }
-	override bool change(VariantId id) { return idChange(id); }
-	override bool change(CastId id) { return idChange(id); }
-	override bool change(ItemId id) { return idChange(id); }
-	override bool change(SkillId id) { return idChange(id); }
-	override bool change(BeastId id) { return idChange(id); }
-	override bool change(InfoId id) { return idChange(id); }
-	override bool change(CouponId id) { return idChange(id); }
-	override bool change(GossipId id) { return idChange(id); }
-	override bool change(CompleteStampId id) { return idChange(id); }
-	override bool change(KeyCodeId id) { return idChange(id); }
-	override bool change(CellNameId id) { return idChange(id); }
-	override bool change(CardGroupId id) { return idChange(id); }
 
 	override bool changeCallback(AreaId oldVal, AreaId newVal) { mixin(S_TRACE);
 		auto id = icmp(name, "Default") == 0 ? 0UL : to!ulong(name);
@@ -3317,7 +3258,7 @@ private struct FKeyCodeU {
 }
 
 /// イベントツリー。発火条件と実行するイベント群を持つ。
-public class EventTree : IKeyCodeUser {
+public class EventTree : CWXPath {
 private:
 	string _id;
 
@@ -3473,11 +3414,9 @@ public:
 		return _change;
 	}
 	/// 変更を通知する。
-	protected void changed() { mixin(S_TRACE);
+	override void changed() { mixin(S_TRACE);
 		if (_change) _change();
 	}
-
-	override bool change(KeyCodeId id) { return true; }
 
 	/// スタートコンテントのみが含まれている場合はtrue。
 	@property

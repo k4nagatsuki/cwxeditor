@@ -19,7 +19,7 @@ interface CouponsOwner {
 }
 
 /// クーポン。
-class Coupon : ICouponUser, CWXPath {
+class Coupon : CWXPath {
 private:
 	CouponsOwner _owner = null;
 	CouponUser _coupon;
@@ -49,7 +49,7 @@ public:
 	@property
 	package void owner(CouponsOwner owner) { mixin(S_TRACE);
 		_owner = owner;
-		if (auto u = cast(ICouponUser)owner) { mixin(S_TRACE);
+		if (auto u = cast(CWXPath)owner) { mixin(S_TRACE);
 			_coupon.owner = u;
 		} else { mixin(S_TRACE);
 			_coupon.owner = this;
@@ -75,7 +75,7 @@ public:
 		return _coupon.change(id);
 	}
 
-	protected override void changed() { }
+	override void changed() { }
 
 	@property
 	string cwxPath(bool id) { mixin(S_TRACE);
@@ -144,10 +144,10 @@ private:
 	bool _expandSPChars = false;
 	void delegate() _change = null;
 	UseCounter _uc = null;
-	ICouponUser _cwxPath;
+	CWXPath _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (ICouponUser cwxPath) { _cwxPath = cwxPath; }
+	this (CWXPath cwxPath) { _cwxPath = cwxPath; }
 	@property
 	string cwxPath(bool id) { return _cwxPath.cwxPath(id); }
 

@@ -59,7 +59,7 @@ class OverData {
 public:
 
 /// カード画像のデータ。
-class CardImage : IPathUser {
+class CardImage : CWXPath {
 	CardImageType type = CardImageType.File;
 	private uint _pcNumber = 0;
 	private Talker _talker = Talker.SELECTED;
@@ -67,11 +67,11 @@ class CardImage : IPathUser {
 	private CardImagePosition _positionType = CardImagePosition.Default;
 
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	private this (IPathUser cwxPath) { mixin(S_TRACE);
+	private this (CWXPath cwxPath) { mixin(S_TRACE);
 		_path = new PathUser(cwxPath);
 	}
 	/// コピーコンストラクタ。ownerなど一部データはコピーされない。
-	this (IPathUser cwxPath, in CardImage base) { mixin(S_TRACE);
+	this (CWXPath cwxPath, in CardImage base) { mixin(S_TRACE);
 		this (cwxPath);
 		type = base.type;
 		final switch (base.type) {
@@ -89,20 +89,20 @@ class CardImage : IPathUser {
 	}
 	/// パスを指定してインスタンスを生成。
 	this (string path, CardImagePosition positionType) { mixin(S_TRACE);
-		this (cast(IPathUser)null);
+		this (cast(CWXPath)null);
 		type = CardImageType.File;
 		_path.path = path;
 		_positionType = positionType;
 	}
 	/// PC番号を指定してインスタンスを生成。
 	this (uint pcNumber) { mixin(S_TRACE);
-		this (cast(IPathUser)null);
+		this (cast(CWXPath)null);
 		type = CardImageType.PCNumber;
 		_pcNumber = pcNumber;
 	}
 	/// 話者を指定してインスタンスを生成。
 	this (Talker talker) { mixin(S_TRACE);
-		this (cast(IPathUser)null);
+		this (cast(CWXPath)null);
 		type = CardImageType.Talker;
 		_talker = talker;
 	}
@@ -115,8 +115,6 @@ class CardImage : IPathUser {
 	void setUseCounter(UseCounter uc) { _path.setUseCounter(uc); }
 	/// ditto
 	void removeUseCounter() { _path.removeUseCounter(); }
-
-	override bool change(PathId newVal) { return _path.change(newVal); }
 
 	/// ファイルパス。
 	@property
@@ -374,7 +372,7 @@ public:
 }
 
 /// エリア等に属さない独立したカードの親クラス。
-abstract class Card : CWXPath, IPathUser {
+abstract class Card : CWXPath {
 private:
 	ulong _id;
 	string _name;
@@ -478,13 +476,6 @@ public:
 		foreach (path; _paths) { mixin(S_TRACE);
 			path.removeUseCounter();
 		}
-	}
-	/// 画像パスの変更を通知する。
-	bool change(PathId id) { mixin(S_TRACE);
-		foreach (path; _paths) { mixin(S_TRACE);
-			path.change(id);
-		}
-		return true;
 	}
 
 	/// カードID。
@@ -636,7 +627,7 @@ public:
 }
 
 /// キャストカード。
-class CastCard : Card, SkillOwner, ItemOwner, BeastOwner, CouponsOwner, ICouponUser {
+class CastCard : Card, SkillOwner, ItemOwner, BeastOwner, CouponsOwner {
 private:
 	mixin RaceParam!(true);
 
@@ -810,8 +801,6 @@ public:
 		copy.deepCopy(this);
 		return copy;
 	}
-
-	override bool change(CouponId id) { return true; }
 
 	/// 使用回数カウンタ。
 	@property
@@ -1424,7 +1413,7 @@ public:
 }
 
 /// スキル・アイテム・召喚獣といった、「効果」のあるカードの親クラス。
-abstract class EffectCard : Card, EventTreeOwner, MotionOwner, IPathUser, IKeyCodeUser {
+abstract class EffectCard : Card, EventTreeOwner, MotionOwner {
 private:
 	string _scenario = "";
 	string _author = "";
@@ -1860,8 +1849,6 @@ public:
 	protected abstract void setUseCounterImpl(UseCounter uc);
 	protected abstract void removeUseCounterImpl();
 
-	override bool change(KeyCodeId id) { return true; }
-
 	@property
 	inout
 	override inout(EventTree)[] trees() {return _ceto.trees;}
@@ -2029,7 +2016,7 @@ public:
 }
 
 /// スキルカード。
-class SkillCard : EffectCard, ISkillUser {
+class SkillCard : EffectCard {
 private:
 	SkillUser _linkId;
 	uint _level = 0;
@@ -2144,8 +2131,6 @@ public:
 		_hold = hold;
 	}
 
-	override bool change(SkillId id) { return true; }
-
 	/// XMLテキストに変換する。
 	const
 	string toXML(XMLOption opt) { mixin(S_TRACE);
@@ -2255,7 +2240,7 @@ public:
 }
 
 /// アイテムカード。
-class ItemCard : EffectCard, IItemUser {
+class ItemCard : EffectCard {
 private:
 	ItemUser _linkId;
 	int[Enhance] _oEnh;
@@ -2406,8 +2391,6 @@ public:
 		_hold = hold;
 	}
 
-	override bool change(ItemId id) { return true; }
-
 	/// XMLテキストに変換する。
 	const
 	string toXML(XMLOption opt) { mixin(S_TRACE);
@@ -2531,7 +2514,7 @@ public:
 }
 
 /// 召喚獣カード。
-class BeastCard : EffectCard, IBeastUser {
+class BeastCard : EffectCard {
 private:
 	BeastUser _linkId;
 	uint _useLimit = 0;
@@ -2682,8 +2665,6 @@ public:
 		if (_showStyle != showStyle) changed();
 		_showStyle = showStyle;
 	}
-
-	override bool change(BeastId id) { return true; }
 
 	/// XMLテキストに変換する。
 	const
@@ -2968,10 +2949,10 @@ private:
 	KeyCodeUser[] _keyCodes;
 	void delegate() _change = null;
 	UseCounter _uc = null;
-	IKeyCodeUser _cwxPath;
+	CWXPath _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (IKeyCodeUser cwxPath) { _cwxPath = cwxPath; }
+	this (CWXPath cwxPath) { _cwxPath = cwxPath; }
 	@property
 	string cwxPath(bool id) { return _cwxPath.cwxPath(id); }
 

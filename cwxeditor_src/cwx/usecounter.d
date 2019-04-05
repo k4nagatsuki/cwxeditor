@@ -263,23 +263,22 @@ struct FlagId {
 }
 /// 文字列をフラグIDに変換。
 FlagId toFlagId(string id) { return FlagId(id); }
-/// フラグの使用者。
-interface IFlagUser : User!(FlagId) {
-}
 /// フラグを使用するクラスの雛形。
 /// 継承か委譲により、フラグの使用者を容易に実装できる。
-class FlagUser : IFlagUser {
+class FlagUser : User!FlagId {
 private:
 	UseCounter _uc;
 	string _flag;
-	IFlagUser _cwxPath;
+	CWXPath _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (IFlagUser cwxPath) { _cwxPath = cwxPath; }
+	this (CWXPath cwxPath) { mixin(S_TRACE);
+		_cwxPath = cwxPath;
+	}
 	/// このオブジェクトの所有者。
 	@property
 	inout
-	inout(IFlagUser) owner() { return _cwxPath; }
+	inout(CWXPath) owner() { return _cwxPath; }
 
 	/// IDを設定する。
 	/// 所有者がChgFlagCallbackであればコールバックが行われる。
@@ -387,23 +386,22 @@ struct StepId {
 }
 /// 文字列をステップIDに変換。
 StepId toStepId(string id) { return StepId(id); }
-/// ステップの使用者。
-interface IStepUser : User!(StepId) {
-}
 /// ステップを使用するクラスの雛形。
 /// 継承か委譲により、ステップの使用者を容易に実装できる。
-class StepUser : IStepUser {
+class StepUser : User!StepId {
 private:
 	UseCounter _uc;
 	string _step;
-	IStepUser _cwxPath;
+	CWXPath _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (IStepUser cwxPath) { _cwxPath = cwxPath; }
+	this (CWXPath cwxPath) { mixin(S_TRACE);
+		_cwxPath = cwxPath;
+	}
 	/// このオブジェクトの所有者。
 	@property
 	inout
-	inout(IStepUser) owner() { return _cwxPath; }
+	inout(CWXPath) owner() { return _cwxPath; }
 
 	/// IDを設定する。
 	/// 所有者がChgStepCallbackであればコールバックが行われる。
@@ -511,23 +509,22 @@ struct VariantId {
 }
 /// 文字列をコモンIDに変換。
 VariantId toVariantId(string id) { return VariantId(id); }
-/// コモンの使用者。
-interface IVariantUser : User!(VariantId) {
-}
 /// コモンを使用するクラスの雛形。
 /// 継承か委譲により、コモンの使用者を容易に実装できる。
-class VariantUser : IVariantUser {
+class VariantUser : User!VariantId {
 private:
 	UseCounter _uc;
 	string _variant;
-	IVariantUser _cwxPath;
+	CWXPath _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (IVariantUser cwxPath) { _cwxPath = cwxPath; }
+	this (CWXPath cwxPath) { mixin(S_TRACE);
+		_cwxPath = cwxPath;
+	}
 	/// このオブジェクトの所有者。
 	@property
 	inout
-	inout(IVariantUser) owner() { return _cwxPath; }
+	inout(CWXPath) owner() { return _cwxPath; }
 
 	/// IDを設定する。
 	/// 所有者がChgVariantCallbackであればコールバックが行われる。
@@ -603,27 +600,24 @@ struct AreaId {
 }
 /// 数値をエリアIDに変換。
 AreaId toAreaId(ulong id) { return cast(AreaId) id; }
-/// エリアの使用者。
-interface IAreaUser : User!(AreaId) {
-}
 /// エリアを使用するクラスの雛形。
 /// 継承か委譲により、エリアの使用者を容易に実装できる。
-class AreaUser : IAreaUser {
+class AreaUser : User!AreaId {
 private:
 	UseCounter _uc;
 	ulong _id = 0;
-	IAreaUser _cwxPath;
+	CWXPath _cwxPath;
 	bool _callback;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (IAreaUser cwxPath, bool callback = false) { mixin(S_TRACE);
+	this (CWXPath cwxPath, bool callback = false) { mixin(S_TRACE);
 		_cwxPath = cwxPath;
 		_callback = callback;
 	}
 	/// このオブジェクトの所有者。
 	@property
 	inout
-	inout(IAreaUser) owner() { return _cwxPath; }
+	inout(CWXPath) owner() { return _cwxPath; }
 
 	/// IDを設定する。
 	@property
@@ -704,28 +698,25 @@ struct BattleId {
 	alias id this;
 }
 /// 数値をバトルIDに変換。
-BattleId toBattleId(ulong id) { return cast(BattleId) id; }
-/// バトルの使用者。
-interface IBattleUser : User!(BattleId) {
-}
+BattleId toBattleId(ulong id) { return cast(BattleId)id; }
 /// バトルを使用するクラスの雛形。
 /// 継承か委譲により、バトルの使用者を容易に実装できる。
-class BattleUser : IBattleUser {
+class BattleUser : User!BattleId {
 private:
 	UseCounter _uc;
 	ulong _id = 0;
-	IBattleUser _cwxPath;
+	CWXPath _cwxPath;
 	bool _callback;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (IBattleUser cwxPath, bool callback = false) { mixin(S_TRACE);
+	this (CWXPath cwxPath, bool callback = false) { mixin(S_TRACE);
 		_cwxPath = cwxPath;
 		_callback = callback;
 	}
 	/// このオブジェクトの所有者。
 	@property
 	inout
-	inout(IBattleUser) owner() { return _cwxPath; }
+	inout(CWXPath) owner() { return _cwxPath; }
 
 	/// IDを設定する。
 	@property
@@ -807,23 +798,22 @@ struct PackageId {
 }
 /// 数値をパッケージIDに変換。
 PackageId toPackageId(ulong id) { return cast(PackageId) id; }
-/// パッケージの使用者。
-interface IPackageUser : User!(PackageId) {
-}
 /// パッケージを使用するクラスの雛形。
 /// 継承か委譲により、パッケージの使用者を容易に実装できる。
-class PackageUser : IPackageUser {
+class PackageUser : User!PackageId {
 private:
 	UseCounter _uc;
 	ulong _id = 0;
-	IPackageUser _cwxPath;
+	CWXPath _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (IPackageUser cwxPath) { _cwxPath = cwxPath; }
+	this (CWXPath cwxPath) {
+		_cwxPath = cwxPath;
+	}
 	/// このオブジェクトの所有者。
 	@property
 	inout
-	inout(IPackageUser) owner() { return _cwxPath; }
+	inout(CWXPath) owner() { return _cwxPath; }
 
 	/// IDを設定する。
 	@property
@@ -995,25 +985,24 @@ PathId toPathId(string id) {
 		return PathId(id);
 	}
 }
-/// ファイルパスの使用者。
-interface IPathUser : User!(PathId) {
-}
 const BI_PATH_ID = "binaryimage://Binary:Image";
 const BS_PATH_ID = "binarysound://Binary:Sound";
 /// ファイルパスを使用するクラスの雛形。
 /// 継承か委譲により、ファイルパスの使用者を容易に実装できる。
-class PathUser : IPathUser {
+class PathUser : User!PathId {
 private:
 	UseCounter _uc;
 	PathId _path;
-	IPathUser _cwxPath;
+	CWXPath _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (IPathUser cwxPath) { _cwxPath = cwxPath; }
+	this (CWXPath cwxPath) { mixin(S_TRACE);
+		_cwxPath = cwxPath;
+	}
 	/// このオブジェクトの所有者。
 	@property
 	inout
-	inout(IPathUser) owner() { return _cwxPath; }
+	inout(CWXPath) owner() { return _cwxPath; }
 
 	/// IDを設定する。
 	/// 所有者がChgPathCallbackであればコールバックが行われる。
@@ -1094,23 +1083,22 @@ struct CastId {
 }
 /// 数値をキャストIDに変換。
 CastId toCastId(ulong id) { return cast(CastId) id; }
-/// キャストカードの使用者。
-interface ICastUser : User!(CastId) {
-}
 /// キャストを使用するクラスの雛形。
 /// 継承か委譲により、キャストの使用者を容易に実装できる。
-class CastUser : ICastUser {
+class CastUser : User!CastId {
 private:
 	UseCounter _uc;
 	ulong _id = 0;
-	ICastUser _cwxPath;
+	CWXPath _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (ICastUser cwxPath) { _cwxPath = cwxPath; }
+	this (CWXPath cwxPath) { mixin(S_TRACE);
+		_cwxPath = cwxPath;
+	}
 	/// このオブジェクトの所有者。
 	@property
 	inout
-	inout(ICastUser) owner() { return _cwxPath; }
+	inout(CWXPath) owner() { return _cwxPath; }
 
 	/// IDを設定する。
 	@property
@@ -1175,23 +1163,22 @@ struct SkillId {
 }
 /// 数値をスキルIDに変換。
 SkillId toSkillId(ulong id) { return cast(SkillId) id; }
-/// スキルカードの使用者。
-interface ISkillUser : User!(SkillId) {
-}
 /// スキルを使用するクラスの雛形。
 /// 継承か委譲により、スキルの使用者を容易に実装できる。
-class SkillUser : ISkillUser {
+class SkillUser : User!SkillId {
 private:
 	UseCounter _uc;
 	ulong _id = 0;
-	ISkillUser _cwxPath;
+	CWXPath _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (ISkillUser cwxPath) { _cwxPath = cwxPath; }
+	this (CWXPath cwxPath) { mixin(S_TRACE);
+		_cwxPath = cwxPath;
+	}
 	/// このオブジェクトの所有者。
 	@property
 	inout
-	inout(ISkillUser) owner() { return _cwxPath; }
+	inout(CWXPath) owner() { return _cwxPath; }
 
 	/// IDを設定する。
 	@property
@@ -1256,23 +1243,22 @@ struct ItemId {
 }
 /// 数値をアイテムIDに変換。
 ItemId toItemId(ulong id) { return cast(ItemId) id; }
-/// アイテムカードの使用者。
-interface IItemUser : User!(ItemId) {
-}
 /// アイテムを使用するクラスの雛形。
 /// 継承か委譲により、アイテムの使用者を容易に実装できる。
-class ItemUser : IItemUser {
+class ItemUser : User!ItemId {
 private:
 	UseCounter _uc;
 	ulong _id = 0;
-	IItemUser _cwxPath;
+	CWXPath _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (IItemUser cwxPath) { _cwxPath = cwxPath; }
+	this (CWXPath cwxPath) { mixin(S_TRACE);
+		_cwxPath = cwxPath;
+	}
 	/// このオブジェクトの所有者。
 	@property
 	inout
-	inout(IItemUser) owner() { return _cwxPath; }
+	inout(CWXPath) owner() { return _cwxPath; }
 
 	/// IDを設定する。
 	@property
@@ -1337,23 +1323,22 @@ struct BeastId {
 }
 /// 数値を召喚獣IDに変換。
 BeastId toBeastId(ulong id) { return cast(BeastId) id; }
-/// 召喚獣カードの使用者。
-interface IBeastUser : User!(BeastId) {
-}
 /// 召喚獣を使用するクラスの雛形。
 /// 継承か委譲により、召喚獣の使用者を容易に実装できる。
-class BeastUser : IBeastUser {
+class BeastUser : User!BeastId {
 private:
 	UseCounter _uc;
 	ulong _id = 0;
-	IBeastUser _cwxPath;
+	CWXPath _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (IBeastUser cwxPath) { _cwxPath = cwxPath; }
+	this (CWXPath cwxPath) { mixin(S_TRACE);
+		_cwxPath = cwxPath;
+	}
 	/// このオブジェクトの所有者。
 	@property
 	inout
-	inout(IBeastUser) owner() { return _cwxPath; }
+	inout(CWXPath) owner() { return _cwxPath; }
 
 	/// IDを設定する。
 	@property
@@ -1418,23 +1403,22 @@ struct InfoId {
 }
 /// 数値を情報IDに変換。
 InfoId toInfoId(ulong id) { return cast(InfoId) id; }
-/// 情報カードの使用者。
-interface IInfoUser : User!(InfoId) {
-}
 /// 情報カードを使用するクラスの雛形。
 /// 継承か委譲により、情報カードの使用者を容易に実装できる。
-class InfoUser : IInfoUser {
+class InfoUser : User!InfoId {
 private:
 	UseCounter _uc;
 	ulong _id = 0;
-	IInfoUser _cwxPath;
+	CWXPath _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (IInfoUser cwxPath) { _cwxPath = cwxPath; }
+	this (CWXPath cwxPath) { mixin(S_TRACE);
+		_cwxPath = cwxPath;
+	}
 	/// このオブジェクトの所有者。
 	@property
 	inout
-	inout(IInfoUser) owner() { return _cwxPath; }
+	inout(CWXPath) owner() { return _cwxPath; }
 
 	/// IDを設定する。
 	@property
@@ -1501,21 +1485,18 @@ struct CouponId {
 }
 /// 文字列をクーポンIDに変換。
 CouponId toCouponId(string id) { return CouponId(id); }
-/// クーポンの使用者。
-interface ICouponUser : User!(CouponId) {
-}
 /// クーポンを使用するクラスの雛形。
 /// 継承か委譲により、クーポンの使用者を容易に実装できる。
-class CouponUser : ICouponUser {
+class CouponUser : User!CouponId {
 private:
 	UseCounter _uc;
 	SimpleTextHolder _coupon;
 	bool _expandSPChars = false;
-	ICouponUser _cwxPath;
+	CWXPath _cwxPath;
 	bool _callback;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (ICouponUser cwxPath, bool callback = false) { mixin(S_TRACE);
+	this (CWXPath cwxPath, bool callback = false) { mixin(S_TRACE);
 		_coupon = new SimpleTextHolder;
 		_coupon.changeHandler = &changed;
 		_coupon.owner = cwxPath;
@@ -1525,10 +1506,10 @@ public:
 	/// このオブジェクトの所有者。
 	@property
 	inout
-	inout(ICouponUser) owner() { return _cwxPath; }
+	inout(CWXPath) owner() { return _cwxPath; }
 	/// ditto
 	@property
-	void owner(ICouponUser u) { mixin(S_TRACE);
+	void owner(CWXPath u) { mixin(S_TRACE);
 		_coupon.owner = u;
 		_cwxPath = u;
 	}
@@ -1637,21 +1618,18 @@ struct GossipId {
 }
 /// 文字列をゴシップIDに変換。
 GossipId toGossipId(string id) { return GossipId(id); }
-/// ゴシップの使用者。
-interface IGossipUser : User!(GossipId) {
-}
 /// ゴシップを使用するクラスの雛形。
 /// 継承か委譲により、ゴシップの使用者を容易に実装できる。
-class GossipUser : IGossipUser {
+class GossipUser : User!GossipId {
 private:
 	UseCounter _uc;
 	SimpleTextHolder _gossip;
 	bool _expandSPChars = false;
-	IGossipUser _cwxPath;
+	CWXPath _cwxPath;
 	bool _callback;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (IGossipUser cwxPath, bool callback = false) { mixin(S_TRACE);
+	this (CWXPath cwxPath, bool callback = false) { mixin(S_TRACE);
 		_gossip = new SimpleTextHolder;
 		_gossip.changeHandler = &changed;
 		_gossip.owner = cwxPath;
@@ -1661,7 +1639,7 @@ public:
 	/// このオブジェクトの所有者。
 	@property
 	inout
-	inout(IGossipUser) owner() { return _cwxPath; }
+	inout(CWXPath) owner() { return _cwxPath; }
 
 	/// ゴシップを設定する。
 	/// Params:
@@ -1767,23 +1745,22 @@ struct CompleteStampId {
 }
 /// 文字列を終了印IDに変換。
 CompleteStampId toCompleteStampId(string id) { return CompleteStampId(id); }
-/// 終了印の使用者。
-interface ICompleteStampUser : User!(CompleteStampId) {
-}
 /// 終了印を使用するクラスの雛形。
 /// 継承か委譲により、終了印の使用者を容易に実装できる。
-class CompleteStampUser : ICompleteStampUser {
+class CompleteStampUser : User!CompleteStampId {
 private:
 	UseCounter _uc;
 	string _completeStamp;
-	ICompleteStampUser _cwxPath;
+	CWXPath _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (ICompleteStampUser cwxPath) { _cwxPath = cwxPath; }
+	this (CWXPath cwxPath) { mixin(S_TRACE);
+		_cwxPath = cwxPath;
+	}
 	/// このオブジェクトの所有者。
 	@property
 	inout
-	inout(ICompleteStampUser) owner() { return _cwxPath; }
+	inout(CWXPath) owner() { return _cwxPath; }
 
 	/// 終了印を設定する。
 	/// Params:
@@ -1843,23 +1820,22 @@ struct KeyCodeId {
 }
 /// 文字列をキーコードIDに変換。
 KeyCodeId toKeyCodeId(string id) { return KeyCodeId(id); }
-/// キーコードの使用者。
-interface IKeyCodeUser : User!(KeyCodeId) {
-}
 /// キーコードを使用するクラスの雛形。
 /// 継承か委譲により、キーコードの使用者を容易に実装できる。
-class KeyCodeUser : IKeyCodeUser {
+class KeyCodeUser : User!KeyCodeId {
 private:
 	UseCounter _uc;
 	string _keyCode;
-	IKeyCodeUser _cwxPath;
+	CWXPath _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (IKeyCodeUser cwxPath) { _cwxPath = cwxPath; }
+	this (CWXPath cwxPath) { mixin(S_TRACE);
+		_cwxPath = cwxPath;
+	}
 	/// このオブジェクトの所有者。
 	@property
 	inout
-	inout(IKeyCodeUser) owner() { return _cwxPath; }
+	inout(CWXPath) owner() { return _cwxPath; }
 
 	/// キーコードを設定する。
 	/// Params:
@@ -1919,23 +1895,22 @@ struct CellNameId {
 }
 /// 文字列をセル名称IDに変換。
 CellNameId toCellNameId(string id) { return CellNameId(id); }
-/// セル名称の使用者。
-interface ICellNameUser : User!(CellNameId) {
-}
 /// セル名称を使用するクラスの雛形。
 /// 継承か委譲により、セル名称の使用者を容易に実装できる。
-class CellNameUser : ICellNameUser {
+class CellNameUser : User!CellNameId {
 private:
 	UseCounter _uc;
 	string _cellName;
-	ICellNameUser _cwxPath;
+	CWXPath _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (ICellNameUser cwxPath) { _cwxPath = cwxPath; }
+	this (CWXPath cwxPath) { mixin(S_TRACE);
+		_cwxPath = cwxPath;
+	}
 	/// このオブジェクトの所有者。
 	@property
 	inout
-	inout(ICellNameUser) owner() { return _cwxPath; }
+	inout(CWXPath) owner() { return _cwxPath; }
 
 	/// セル名称を設定する。
 	/// Params:
@@ -1995,23 +1970,22 @@ struct CardGroupId {
 }
 /// 文字列をカードグループIDに変換。
 CardGroupId toCardGroupId(string id) { return CardGroupId(id); }
-/// カードグループの使用者。
-interface ICardGroupUser : User!(CardGroupId) {
-}
 /// カードグループを使用するクラスの雛形。
 /// 継承か委譲により、カードグループの使用者を容易に実装できる。
-class CardGroupUser : ICardGroupUser {
+class CardGroupUser : User!CardGroupId {
 private:
 	UseCounter _uc;
 	string _cardGroup;
-	ICardGroupUser _cwxPath;
+	CWXPath _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (ICardGroupUser cwxPath) { _cwxPath = cwxPath; }
+	this (CWXPath cwxPath) { mixin(S_TRACE);
+		_cwxPath = cwxPath;
+	}
 	/// このオブジェクトの所有者。
 	@property
 	inout
-	inout(ICardGroupUser) owner() { return _cwxPath; }
+	inout(CWXPath) owner() { return _cwxPath; }
 
 	/// カードグループを設定する。
 	/// Params:

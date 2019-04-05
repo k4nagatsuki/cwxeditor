@@ -1686,8 +1686,7 @@ public:
 			bool copy;
 			bool r = qMaterialCopy(_comm, getShell(), uc,
 				_summ.scenarioPath, fromSPath, copy, _summ.legacy,
-				(in IPathUser u) { mixin(S_TRACE);
-					auto v = cast(PathUser)u;
+				(in PathUser v) { mixin(S_TRACE);
 					assert (v.owner is card);
 					return .pathUserToExportedImageName(_prop.parent, card.scenario, card.author, v);
 				});

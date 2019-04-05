@@ -7,7 +7,7 @@ import cwx.path;
 import cwx.usecounter;
 
 /// メッセージやダイアログが持つテキスト。
-class TextHolder : SimpleTextHolder, ITextHolder, IPathUser, ChgPathCallback {
+class TextHolder : SimpleTextHolder, ITextHolder, ChgPathCallback {
 private:
 	PathUser[] _fontusers;
 	char[] _colors;
@@ -102,14 +102,6 @@ public:
 			}
 		}
 		super.removeTextUseCounter();
-	}
-	alias SimpleTextHolder.change change;
-	bool change(PathId id) { mixin(S_TRACE);
-		if (!(cast(string)id).isSPFontFile) return false;
-		foreach (u; _fontusers) { mixin(S_TRACE);
-			u.change(id);
-		}
-		return true;
 	}
 	alias SimpleTextHolder.changeInText changeInText;
 	/// テキスト内のfont_X.bmp・フラグ・ステップを置換する。
@@ -273,27 +265,6 @@ public:
 		removeTextUseCounter();
 		_uc = null;
 	}
-	override
-	bool change(FlagId id) { mixin(S_TRACE);
-		foreach (u; _flagusers) { mixin(S_TRACE);
-			u.change(id);
-		}
-		return true;
-	}
-	override
-	bool change(StepId id) { mixin(S_TRACE);
-		foreach (u; _stepusers) { mixin(S_TRACE);
-			u.change(id);
-		}
-		return true;
-	}
-	override
-	bool change(VariantId id) { mixin(S_TRACE);
-		foreach (u; _variantusers) { mixin(S_TRACE);
-			u.change(id);
-		}
-		return true;
-	}
 	/// 個別に状態変数パスを変更する。
 	void changeInText(size_t index, FlagId id) { mixin(S_TRACE);
 		_flagusers[index].change(id);
@@ -322,7 +293,7 @@ public:
 		return true;
 	}
 
-	protected override void changed() { }
+	override void changed() { }
 
 	/// このSimpleTextHolderの所持者。
 	@property
@@ -349,7 +320,7 @@ public:
 }
 
 /// 一部特殊文字対応テキストの保持者。
-interface ISimpleTextHolder : IFlagUser, IStepUser, IVariantUser {
+interface ISimpleTextHolder {
 	/// テキスト。
 	@property
 	const string text();

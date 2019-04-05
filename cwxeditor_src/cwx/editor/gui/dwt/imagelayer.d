@@ -440,7 +440,7 @@ class ImageLayerList : Composite, TCPD {
 			bool copy;
 			bool r = .qMaterialCopy(_comm, getShell(),
 				uc, _summ.scenarioPath, fromSPath, copy, _summ.legacy,
-				(in IPathUser) { mixin(S_TRACE);
+				(in PathUser) { mixin(S_TRACE);
 					return _saveName();
 				});
 			foreach (path; cardPaths) { mixin(S_TRACE);

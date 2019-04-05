@@ -336,7 +336,7 @@ private:
 		}
 	}
 	static if (is(A == Battle)) {
-		static class MCWXPath : IPathUser {
+		static class MCWXPath : CWXPath {
 			@property
 			override string cwxPath(bool id) {return "";}
 			override CWXPath findCWXPath(string path) {return null;}
@@ -345,8 +345,6 @@ private:
 			override inout(CWXPath)[] cwxChilds() {return [];}
 			@property
 			CWXPath cwxParent() {return null;}
-			override
-			bool change(PathId id) { return true; }
 			protected
 			override
 			void changed() { }

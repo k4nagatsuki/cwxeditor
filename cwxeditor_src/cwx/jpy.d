@@ -561,7 +561,7 @@ class Jpy1Sec : PathUser, CWXPath {
 		}
 	}
 
-	protected override void changed() { }
+	override void changed() { }
 
 	/// JPY1内のfilenameをシナリオ内の相対パスへ変換する。
 	private string toMaterialPath() { mixin(S_TRACE);
@@ -1438,7 +1438,7 @@ class Jpdc : PathUser, CWXPath {
 	override
 	CWXPath cwxParent() { return null; }
 
-	protected override void changed() { }
+	override void changed() { }
 
 	override
 	bool change(PathId newVal) { mixin(S_TRACE);
