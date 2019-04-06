@@ -496,6 +496,7 @@ private:
 	Button _underline;
 	Button _strike;
 	Button _vertical;
+	Button _antialias;
 	Combo _borderingType;
 	BorderingType[] _borderingTypes;
 	ColorPicker _borderingColor;
@@ -544,6 +545,9 @@ private:
 				}
 			}
 		}
+		if (_antialias.getSelection() && !_prop.isTargetVersion(_summ, "4")) { mixin(S_TRACE);
+			ws ~= _prop.msgs.warningAntialiasedTextCell;
+		}
 
 		warning = ws;
 	}
@@ -554,6 +558,7 @@ private:
 		if (_updateType.getSelectionIndex() != -1) { mixin(S_TRACE);
 			_updateType.setEnabled(!_summ || !_summ.legacy || _updateTypes[_updateType.getSelectionIndex()] !is UpdateType.Fixed);
 		}
+		_antialias.setEnabled(!_summ || !_summ.legacy || _antialias.getSelection());
 	}
 
 	void updatePreview() { mixin(S_TRACE);
@@ -578,8 +583,8 @@ private:
 		if (_preview) _preview.dispose();
 		_preview = new PileImage(wrapReturnCode(_text.getText()), _prop.drawingScale, _fontName.getText(),
 			_size.getSelection(), tColor, _bold.getSelection(), _italic.getSelection(),
-			_underline.getSelection(), _strike.getSelection(), _vertical.getSelection(),
-			bType, bColor, _borderingWidth.getSelection(), ca.x, ca.y, ca.width, ca.height);
+			_underline.getSelection(), _strike.getSelection(), _vertical.getSelection(), _antialias.getSelection(),
+			bType, bColor, _borderingWidth.getSelection(), ca.x / _prop.var.etc.imageScale, ca.y / _prop.var.etc.imageScale, ca.width / _prop.var.etc.imageScale, ca.height / _prop.var.etc.imageScale);
 		_preview.previewText = &previewText;
 
 		_preview.createImage();
@@ -679,6 +684,8 @@ protected:
 				_underline = check(_prop.msgs.underline);
 				_strike = check(_prop.msgs.strike);
 				_vertical = check(_prop.msgs.vertical);
+				_antialias = check(_prop.msgs.antialias);
+				.listener(_antialias, SWT.Selection, &refDataVersion);
 			}
 			auto sq = new Composite(comp, SWT.NONE);
 			auto sqgd = new GridData(GridData.FILL_HORIZONTAL);
@@ -865,6 +872,7 @@ protected:
 			_underline.setSelection(_back.underline);
 			_strike.setSelection(_back.strike);
 			_vertical.setSelection(_back.vertical);
+			_antialias.setSelection(_back.antialias);
 			_borderingType.select(cast(int)_borderingTypes.countUntil(_back.borderingType));
 			auto bc = _back.borderingColor;
 			_borderingColor.color = new RGB(bc.r, bc.g, bc.b);
@@ -902,6 +910,7 @@ protected:
 			_underline.setSelection(false);
 			_strike.setSelection(false);
 			_vertical.setSelection(false);
+			_antialias.setSelection(false);
 			_borderingType.select(0);
 			auto bc = _prop.var.etc.textCellDefaultBorderingColor;
 			_borderingColor.color = new RGB(bc.r, bc.g, bc.b);
@@ -927,6 +936,7 @@ protected:
 		_back.underline = _underline.getSelection();
 		_back.strike = _strike.getSelection();
 		_back.vertical = _vertical.getSelection();
+		_back.antialias = _antialias.getSelection();
 		_back.borderingType = _borderingTypes[_borderingType.getSelectionIndex()];
 		auto bc = _borderingColor.color;
 		_back.borderingColor = CRGB(bc.red, bc.green, bc.blue, _borderingColor.alpha);

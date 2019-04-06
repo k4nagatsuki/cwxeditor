@@ -412,6 +412,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				r ~= prop.msgs.warningUpdateType;
 			}
 		}
+		if (tc.antialias && !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
+			r ~= prop.msgs.warningAntialiasedTextCell;
+		}
 	}
 	auto cc = cast(ColorCell)path;
 	if (cc) { mixin(S_TRACE);

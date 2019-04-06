@@ -171,6 +171,7 @@ private:
 	bool _underline = false;
 	bool _strike = false;
 	bool _vertical = false;
+	bool _antialias = false;
 	BorderingType _borderingType = BorderingType.None;
 	CRGB _borderingColor = CRGB(255, 255, 255, 255);
 	uint _borderingWidth = 1;
@@ -189,7 +190,7 @@ public:
 
 	/// パラメータを指定してインスタンスを生成する。
 	this (string text, string fontName, uint size, CRGB color,
-			bool bold, bool italic, bool underline, bool strike, bool vertical,
+			bool bold, bool italic, bool underline, bool strike, bool vertical, bool antialias,
 			BorderingType borderingType, CRGB borderingColor, uint borderingWidth,
 			UpdateType updateType, string flag, int x, int y, int w, int h, bool mask) { mixin(S_TRACE);
 		super (flag, x, y, w, h, mask);
@@ -205,6 +206,7 @@ public:
 		_underline = underline;
 		_strike = strike;
 		_vertical = vertical;
+		_antialias = antialias;
 		_borderingType = borderingType;
 		_borderingColor = borderingColor;
 		_borderingWidth = borderingWidth;
@@ -224,6 +226,7 @@ public:
 			&& underline == b.underline
 			&& strike == b.strike
 			&& vertical == b.vertical
+			&& antialias == b.antialias
 			&& borderingType == b.borderingType
 			&& borderingColor == b.borderingColor
 			&& borderingWidth == b.borderingWidth
@@ -244,6 +247,7 @@ public:
 			underline = c.underline;
 			strike = c.strike;
 			vertical = c.vertical;
+			antialias = c.antialias;
 			borderingType = c.borderingType;
 			borderingColor = c.borderingColor;
 			borderingWidth = c.borderingWidth;
@@ -268,7 +272,7 @@ public:
 	const
 	override
 	BgImage dup() { mixin(S_TRACE);
-		auto cell = new TextCell(text, fontName, size, color, bold, italic, underline, strike, vertical,
+		auto cell = new TextCell(text, fontName, size, color, bold, italic, underline, strike, vertical, antialias,
 			borderingType, borderingColor, borderingWidth, updateType, flag, x, y, width, height, mask);
 		dupImpl(cell);
 		return cell;
@@ -376,6 +380,17 @@ public:
 			_vertical = value;
 		}
 	}
+	/// アンチエイリアス(Wsn.4)。
+	@property
+	const
+	bool antialias() { return _antialias; }
+	@property
+	void antialias(bool value) { mixin(S_TRACE);
+		if (_antialias != value) { mixin(S_TRACE);
+			changed();
+			_antialias = value;
+		}
+	}
 
 	/// 縁取り方式。
 	@property
@@ -466,6 +481,7 @@ public:
 		font.newAttr("underline", underline);
 		font.newAttr("strike", strike);
 		e.newElement("Vertical", vertical);
+		if (antialias) e.newElement("Antialias", antialias);
 		auto clr = e.newElement("Color");
 		clr.newAttr("r", color.r);
 		clr.newAttr("g", color.g);
@@ -497,6 +513,7 @@ public:
 		bool underline = false;
 		bool strike = false;
 		bool vertical = false;
+		bool antialias = false;
 		BorderingType borderingType = BorderingType.None;
 		CRGB borderingColor = CRGB(255, 255, 255, 255);
 		uint borderingWidth = 1;
@@ -515,6 +532,9 @@ public:
 		};
 		node.onTag["Vertical"] = (ref XNode n) { mixin(S_TRACE);
 			vertical = n.valueTo!bool();
+		};
+		node.onTag["Antialias"] = (ref XNode n) { mixin(S_TRACE);
+			antialias = n.valueTo!bool();
 		};
 		node.onTag["Color"] = (ref XNode n) { mixin(S_TRACE);
 			color.r = n.attr!uint("r", true);
@@ -538,7 +558,7 @@ public:
 		};
 		node.parse();
 
-		auto r = new TextCell(text, fontName, size, color, bold, italic, underline, strike, vertical,
+		auto r = new TextCell(text, fontName, size, color, bold, italic, underline, strike, vertical, antialias,
 			borderingType, borderingColor, borderingWidth, updateType, "", 0, 0, 0, 0, false);
 		r.fromNodeCommon(node);
 		return r;

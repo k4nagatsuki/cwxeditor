@@ -2302,7 +2302,7 @@ fi`;
 				string fontName = parseAttr!(string)(opt, vals, j, "", varTable, msgWidth);
 				int size = parseAttr!(int)(opt, vals, j, 18, varTable, msgWidth);
 				CRGB color = parseAttr!(CRGB)(opt, vals, j, CRGB(0, 0, 0, 255), varTable, msgWidth);
-				bool bold = false, italic = false, underline = false, strike = false, vertical = false;
+				bool bold = false, italic = false, underline = false, strike = false, vertical = false, antialias = false;
 				BorderingType borderingType = BorderingType.None;
 				UpdateType updateType = UpdateType.Fixed;
 				if (j < vals.length) { mixin(S_TRACE);
@@ -2316,6 +2316,7 @@ fi`;
 							case "underline", "uline": j2++; underline = true; break;
 							case "strike": j2++; strike = true; break;
 							case "vertical": j2++; vertical = true; break;
+							case "antialias": j2++; antialias = true; break;
 							case "border1": j2++; borderingType = BorderingType.Outline; break;
 							case "border2": j2++; borderingType = BorderingType.Inline; break;
 							default:
@@ -2331,6 +2332,7 @@ fi`;
 						case "underline", "uline": underline = true; break;
 						case "strike": strike = true; break;
 						case "vertical": vertical = true; break;
+						case "antialias": antialias = true; break;
 						case "border1": borderingType = BorderingType.Outline; break;
 						case "border2": borderingType = BorderingType.Inline; break;
 						default:
@@ -2355,7 +2357,7 @@ fi`;
 					borderingWidth = parseAttr!(int)(opt, vals, j, borderingWidth, varTable, msgWidth);
 					break;
 				}
-				r = new TextCell(text, fontName, size, color, bold, italic, underline, strike, vertical,
+				r = new TextCell(text, fontName, size, color, bold, italic, underline, strike, vertical, antialias,
 					borderingType, borderingColor, borderingWidth, updateType, "", 0, 0, 0, 0, false);
 				break;
 			case "color":
@@ -3565,6 +3567,7 @@ fi`;
 				if (tc.underline) style ~= "underline";
 				if (tc.strike) style ~= "strike";
 				if (tc.vertical) style ~= "vertical";
+				if (tc.antialias) style ~= "antialias";
 				final switch (tc.borderingType) {
 				case BorderingType.None:
 					attrs2 ~= std.string.join(style, " ");
@@ -4372,6 +4375,7 @@ CWXScriptKeyword[] keywordInfos(in CProps prop) { mixin(S_TRACE);
 		CWXScriptKeyword("underline", prop.msgs.fontStyle, prop.msgs.underline),
 		CWXScriptKeyword("strike", prop.msgs.fontStyle, prop.msgs.strike),
 		CWXScriptKeyword("vertical", prop.msgs.fontStyle, prop.msgs.vertical),
+		CWXScriptKeyword("antialias", prop.msgs.fontStyle, prop.msgs.antialias),
 		CWXScriptKeyword("border1", prop.msgs.bordering, prop.msgs.borderingTypeName(BorderingType.Outline)),
 		CWXScriptKeyword("border2", prop.msgs.bordering, prop.msgs.borderingTypeName(BorderingType.Inline)),
 

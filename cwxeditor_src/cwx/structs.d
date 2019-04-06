@@ -525,6 +525,7 @@ struct BgImageS {
 	bool underline;
 	bool strike;
 	bool vertical;
+	bool antialias;
 	BorderingType borderingType;
 	CRGB borderingColor;
 	uint borderingWidth;
@@ -579,6 +580,7 @@ struct BgImageS {
 			if (underline) f.newAttr("underline", underline);
 			if (strike) f.newAttr("strike", strike);
 			if (vertical) f.newAttr("vertical", vertical);
+			if (antialias) f.newAttr("antialias", antialias);
 			color.toNode(r);
 			if (borderingType !is BorderingType.None) { mixin(S_TRACE);
 				auto b = r.newElement("bordering");
@@ -634,6 +636,7 @@ struct BgImageS {
 				underline = node.attr!bool("underline", false, underline);
 				strike = node.attr!bool("strike", false, strike);
 				vertical = node.attr!bool("vertical", false, vertical);
+				antialias = node.attr!bool("antialias", false, antialias);
 			};
 			node.onTag["rgb"] = (ref XNode node) { mixin(S_TRACE);
 				color.fromNode(node);

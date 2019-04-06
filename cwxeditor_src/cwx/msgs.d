@@ -1458,6 +1458,7 @@ class Msgs : Properties {
 	auto underline = Msg("underline", "下線");
 	auto strike = Msg("strike", "取り消し線");
 	auto vertical = Msg("vertical", "縦書き");
+	auto antialias = Msg("antialias", "アンチエイリアス"); // Wsn.4
 	auto bordering = Msg("bordering", "縁取り");
 	auto borderingWidth = Msg("borderingWidth", "幅:");
 	auto borderingColor = Msg("borderingColor", "縁取り色");
@@ -1472,6 +1473,7 @@ class Msgs : Properties {
 	auto updateTypeNameAll = Msg("updateTypeNameAll", "全て更新する");
 	auto warningUpdateTypeNotFixed = Msg("warningUpdateTypeNotFixed", "テキストセルの内容の更新は、クラシックなシナリオでは行う事ができません。");
 	auto warningUpdateType = Msg("warningUpdateType", "テキストセルの更新方法の指定は、Wsn.4以降の形式のシナリオでしか行なえません。"); // Wsn.4
+	auto warningAntialiasedTextCell = Msg("warningAntialiasedTextCell", "テキストセルの文字のアンチエイリアスはWsn.4以降の形式のシナリオでしか行なえません。"); // Wsn.4
 
 	auto areaViewKeyboardHint = Msg("areaViewKeyboardHint", "選択+上下左右: 移動, Shift+上下左右: サイズ変更, Ctrl+Altで10ピクセル単位操作, Alt+クリックで範囲選択開始");
 

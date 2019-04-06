@@ -4564,8 +4564,8 @@ public:
 					auto itm = _backs.getItem(cast(int)i);
 					auto tc = cast(TextCell)itm.getData();
 					assert (tc !is null);
-					img = create(tc);
-					_imgp.set(cast(int)i, img);
+					img.title = tc.text;
+					img.createImage();
 					_imgp.redrawImage(img);
 					itm.setText(tc.name(_prop.parent));
 				}
@@ -5331,7 +5331,7 @@ public:
 		}
 		private FlexImage create(TextCell back) { mixin(S_TRACE);
 			auto r = new FlexImage(back.text, _prop.drawingScale, back.fontName, back.size, back.color,
-				back.bold, back.italic, back.underline, back.strike, back.vertical,
+				back.bold, back.italic, back.underline, back.strike, back.vertical, back.antialias,
 				back.borderingType, back.borderingColor, back.borderingWidth,
 				back.x, back.y, back.width, back.height);
 			r.transparent = back.mask;

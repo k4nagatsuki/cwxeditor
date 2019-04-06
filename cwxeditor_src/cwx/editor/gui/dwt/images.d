@@ -21,6 +21,7 @@ import std.conv;
 import std.string;
 import std.utf;
 import std.typecons : Tuple;
+import std.range;
 
 import org.eclipse.swt.all;
 
@@ -129,6 +130,7 @@ private:
 	bool _underline = false;
 	bool _strike = false;
 	bool _vertical = false;
+	bool _antialias = false;
 	BorderingType _borderingType = BorderingType.None;
 	CRGB _borderingColor = CRGB(255, 255, 255, 255);
 	uint _borderingWidth = 1;
@@ -205,7 +207,7 @@ public:
 
 	/// テキスト表示用のインスタンスを生成する。
 	this (string text, uint targetScale, string fontName, int size, CRGB color,
-			bool bold, bool italic, bool underline, bool strike, bool vertical,
+			bool bold, bool italic, bool underline, bool strike, bool vertical, bool antialias,
 			BorderingType borderingType, CRGB borderingColor, uint borderingWidth,
 			int x, int y, int baseW, int baseH) { mixin(S_TRACE);
 		this (ImageType.Text, targetScale, x, y, baseW, baseH, false);
@@ -214,6 +216,7 @@ public:
 		this.textColor = color;
 		this.underline = underline;
 		this.strike = strike;
+		this.antialias = antialias;
 		this.borderingType = borderingType;
 		this.borderingColor = borderingColor;
 		this.borderingWidth = borderingWidth;
@@ -468,6 +471,12 @@ public:
 	bool vertical() { return _vertical; }
 	@property
 	void vertical(bool value) { _vertical = value; }
+	/// アンチエイリアス。
+	@property
+	const
+	bool antialias() { return _antialias; }
+	@property
+	void antialias(bool value) { _antialias = value; }
 	/// 縁取り方式。
 	@property
 	const
@@ -847,15 +856,8 @@ public:
 	}
 	private ImageDataWithScale createTextImageData() { mixin(S_TRACE);
 		// BorderingType.Inlineの場合のみ、予め画像を生成する
-		// (アンチエイリアスがかからないため可能)
 		if (borderingType !is BorderingType.Inline) return null;
 		auto cur = Display.getCurrent();
-
-		// 文字色でも縁取り色でもない色
-		auto back = CRGB(255, 255, 255, 255);
-		while (textColor == back || borderingColor == back) { mixin(S_TRACE);
-			back.r--;
-		}
 
 		int w, h;
 		if (vertical) { mixin(S_TRACE);
@@ -866,46 +868,27 @@ public:
 			h = ds(height);
 		}
 
-		int alpha;
-		auto borderRgb = dwtData(borderingColor, alpha);
-		auto backRgb = dwtData(back, alpha);
-		auto textRgb = dwtData(textColor, alpha);
-
-		auto img = new Image(cur, w, h);
-		scope (exit) img.dispose();
+		auto imgData = new ImageData(w, h, 32, new PaletteData(0xFF << 16, 0xFF << 8, 0xFF << 0));
+		auto img = new Image(cur, imgData);
 		auto gc = new GC(img);
-		scope (exit) gc.dispose();
+		gc.setBackground(cur.getSystemColor(SWT.COLOR_BLACK));
+		gc.fillRectangle(0, 0, w, h);
+
 		auto font = .createFontFromPixels(ds(titFont));
 		scope (exit) font.dispose();
-		auto backColor = new Color(cur, backRgb);
-		scope (exit) backColor.dispose();
-		auto textColor = new Color(cur, textRgb);
-		scope (exit) textColor.dispose();
-		auto borderColor = new Color(cur, borderRgb);
-		scope (exit) borderColor.dispose();
-
-		gc.setBackground(backColor);
-		gc.fillRectangle(0, 0, w, h);
-		auto tPixel = img.getImageData().getPixel(0, 0);
 
 		gc.setFont(font);
-		gc.setTextAntialias(SWT.NONE);
 
 		// パスの形成
 		int x = ds(0);
 		int y = ds(0);
 		int height, ulineWidth, ulinePos, slineWidth, slinePos;
 		lineMetrics(gc, height, ulineWidth, ulinePos, slineWidth, slinePos);
-		gc.setLineWidth(borderingWidth);
-		gc.setLineJoin(SWT.JOIN_ROUND);
-		gc.setLineCap(SWT.CAP_ROUND);
-		float hb = 0.5F; // drawとfillのずれを補正
+		float hb = borderingWidth % 2 == 0 ? 0.5F : 0.0F; // drawとfillのずれを補正
 		auto pathL = new Path(cur);
 		scope (exit) pathL.dispose();
 		auto pathF = new Path(cur);
 		scope (exit) pathF.dispose();
-		gc.setBackground(textColor);
-		gc.setForeground(borderColor);
 		auto text = _title;
 		if (_previewText) { mixin(S_TRACE);
 			text = _previewText(text);
@@ -932,18 +915,53 @@ public:
 			y += height;
 		}
 
-		// 描画
+		// 文字の描画
+		gc.setBackground(cur.getSystemColor(SWT.COLOR_WHITE));
 		gc.fillPath(pathF);
-		if (borderingWidth <= ds(fontPixelSize) / 2) { mixin(S_TRACE);
-			gc.drawPath(pathL);
-		} else { mixin(S_TRACE);
+
+		gc.dispose();
+		imgData = img.getImageData();
+		img.dispose();
+
+		void redToAlpha(ImageData imgData, in CRGB rgb) { mixin(S_TRACE);
+			assert (imgData.data.length == w * h * 4);
+			auto alphaData1 = std.range.stride(imgData.data, 4).array();
+
+			imgData.data = std.range.cycle([cast(byte)rgb.b, cast(byte)rgb.g, cast(byte)rgb.r, cast(byte)0]).take(w * h * 4).array();
+			assert (imgData.data.length == w * h * 4);
+			imgData.alphaData = alphaData1;
+		}
+		redToAlpha(imgData, textColor);
+
+		auto imgDataB = new ImageData(w, h, 32, new PaletteData(0xFF << 16, 0xFF << 8, 0xFF << 0));
+		auto imgB = new Image(cur, imgDataB);
+		auto gcB = new GC(imgB);
+		gcB.setBackground(cur.getSystemColor(SWT.COLOR_BLACK));
+		gcB.setForeground(cur.getSystemColor(SWT.COLOR_WHITE));
+		gcB.fillRectangle(0, 0, w, h);
+
+		// 縁取りの描画
+		auto borderW = borderingWidth + 1;
+		gcB.setLineWidth(borderW);
+		gcB.setLineJoin(SWT.JOIN_ROUND);
+		gcB.setLineCap(SWT.CAP_ROUND);
+		version (Windows) {
+			import org.eclipse.swt.internal.win32.OS;
+			if (_antialias && OS.VERSION(6, 0) <= OS.WIN32_VERSION) { mixin(S_TRACE);
+				gcB.setAntialias(SWT.ON);
+			}
+		} else {
+			if (_antialias) gcB.setAntialias(SWT.ON);
+		}
+		gcB.drawPath(pathL);
+		if (borderW > ds(fontPixelSize) / 2) { mixin(S_TRACE);
 			// FIXME: 何層にも重なり合った部分に隙間が生じてしまう現象に対処
 			auto p = pathL.getPathData();
 			size_t pi = 0;
 			auto rPath = new Path(cur);
 			scope (exit) rPath.dispose();
 			void newRPath() { mixin(S_TRACE);
-				gc.drawPath(rPath);
+				gcB.drawPath(rPath);
 				float[2] curPos;
 				rPath.getCurrentPoint(curPos);
 				rPath.dispose();
@@ -982,17 +1000,27 @@ public:
 			}
 		}
 
-		auto imgData = img.getImageData();
+		gcB.dispose();
+		imgDataB = imgB.getImageData();
+		imgB.dispose();
+		redToAlpha(imgDataB, borderingColor);
+
+		auto imgR = new Image(cur, imgData);
+		auto gcR = new GC(imgR);
+		auto imgB2 = new Image(cur, imgDataB);
+		gcR.drawImage(imgB2, 0, 0);
+		imgB2.dispose();
+		gcR.dispose();
+		imgData = imgR.getImageData();
+		imgR.dispose();
 
 		if (vertical) { mixin(S_TRACE);
 			turnImpl(imgData, Turn.LEFT);
 		}
 
-		imgData.transparentPixel = tPixel;
-		imgData.alpha = alpha;
-
 		return new ImageDataWithScale(imgData, _targetScale);
 	}
+
 	private ImageDataWithScale createFilterImageData() { mixin(S_TRACE);
 		// カラーフィルタは常に画像無し
 		return null;
@@ -1067,13 +1095,17 @@ public:
 		slineWidth = .max(1, ds(fontPixelSize) / 16);
 		slinePos = height - mt.getAscent() / 2 + slineWidth / 2;
 	}
-	private void drawTextImpl(GC gc, in string[] lines, int xm, int ym) { mixin(S_TRACE);
+	private void drawTextImpl(GC gc, in string[] lines, int xm, int ym, void delegate(string, int, int) drawText = null) { mixin(S_TRACE);
 		int x = xm;
 		int y = ym;
 		int height, ulineWidth, ulinePos, slineWidth, slinePos;
 		lineMetrics(gc, height, ulineWidth, ulinePos, slineWidth, slinePos);
 		foreach (line; lines) { mixin(S_TRACE);
-			gc.wDrawText(line, x, y, true);
+			if (drawText) { mixin(S_TRACE);
+				drawText(line, x, y);
+			} else { mixin(S_TRACE);
+				gc.wDrawText(line, x, y, true);
+			}
 			if (underline || strike) { mixin(S_TRACE);
 				auto ts = gc.wTextExtent(line);
 				if (underline) { mixin(S_TRACE);
@@ -1141,22 +1173,18 @@ public:
 			turnImpl(imgData, Turn.RIGHT);
 		}
 
-		int alpha;
-		auto borderRgb = dwtData(borderingColor, alpha);
-		auto textRgb = dwtData(textColor, alpha);
-
 		img2 = new Image(cur, imgData);
 		scope (exit) img2.dispose();
 		gc2 = new GC(img2);
 		scope (exit) gc2.dispose();
+
+		int alpha;
+		auto textRgb = dwtData(textColor, alpha);
+
 		auto font = .createFontFromPixels(ds(titFont));
 		scope (exit) font.dispose();
-		auto borderColor = new Color(cur, borderRgb);
-		scope (exit) borderColor.dispose();
 		auto textColor = new Color(cur, textRgb);
 		scope (exit) textColor.dispose();
-
-		gc2.setFont(font);
 
 		auto text = _title;
 		if (_previewText) { mixin(S_TRACE);
@@ -1164,20 +1192,60 @@ public:
 		}
 		auto lines = .splitLines(text);
 
-		if (borderingType is BorderingType.Outline) { mixin(S_TRACE);
-			// 縁取り色で描画
-			gc2.setForeground(borderColor);
-			gc2.setBackground(borderColor);
-			drawTextImpl(gc2, lines, -1, -1);
-			drawTextImpl(gc2, lines, -1, 1);
-			drawTextImpl(gc2, lines, 1, -1);
-			drawTextImpl(gc2, lines, 1, 1);
-		}
+		if (_antialias) { mixin(S_TRACE);
+			auto cFont2x = titFont;
+			cFont2x.point *= 2;
+			auto font2x = .createFontFromPixels(ds(cFont2x));
+			scope (exit) font2x.dispose();
 
-		// テキスト本体を描画
-		gc2.setForeground(textColor);
-		gc2.setBackground(textColor);
-		drawTextImpl(gc2, lines, ds(0), ds(0));
+			// テキスト本体を描画
+			gc2.setForeground(textColor);
+			gc2.setBackground(textColor);
+			gc2.setFont(font);
+			drawTextImpl(gc2, lines, ds(0), ds(0), (line, x, y) { mixin(S_TRACE);
+				gc2.setFont(font);
+				auto size = gc2.wTextExtent(line);
+				gc2.setFont(font2x);
+				gc2.shrinkDrawText(line, x, y, size, true, borderingType is BorderingType.Outline ? borderingColor : CRGB(0, 0, 0, 0));
+				gc2.setFont(font);
+			});
+		} else { mixin(S_TRACE);
+			auto ta = gc2.getTextAntialias();
+			version (Windows) {
+				import org.eclipse.swt.internal.win32.OS;
+				if (OS.VERSION(6, 0) <= OS.WIN32_VERSION) { mixin(S_TRACE);
+					gc2.setTextAntialias(SWT.OFF);
+				}
+				scope (exit) {
+					if (OS.VERSION(6, 0) <= OS.WIN32_VERSION) {
+						gc2.setTextAntialias(ta);
+					}
+				}
+			} else {
+				gc2.setTextAntialias(SWT.OFF);
+				scope (exit) gc2.setTextAntialias(ta);
+			}
+
+			auto borderRgb = dwtData(borderingColor, alpha);
+			auto borderColor = new Color(cur, borderRgb);
+			scope (exit) borderColor.dispose();
+			gc2.setFont(font);
+
+			if (borderingType is BorderingType.Outline) { mixin(S_TRACE);
+				// 縁取り色で描画
+				gc2.setForeground(borderColor);
+				gc2.setBackground(borderColor);
+				drawTextImpl(gc2, lines, -1, -1);
+				drawTextImpl(gc2, lines, -1, 1);
+				drawTextImpl(gc2, lines, 1, -1);
+				drawTextImpl(gc2, lines, 1, 1);
+			}
+
+			// テキスト本体を描画
+			gc2.setForeground(textColor);
+			gc2.setBackground(textColor);
+			drawTextImpl(gc2, lines, ds(0), ds(0));
+		}
 
 		if (vertical) { mixin(S_TRACE);
 			imgData = img2.getImageData();
@@ -1706,10 +1774,10 @@ public:
 
 	/// テキスト表示用のインスタンスを生成する。
 	this (string text, uint targetScale, string fontName, int size, CRGB color,
-			bool bold, bool italic, bool underline, bool strike, bool vertical,
+			bool bold, bool italic, bool underline, bool strike, bool vertical, bool antialias,
 			BorderingType borderingType, CRGB borderingColor, uint borderingWidth,
 			int x, int y, int baseW, int baseH) { mixin(S_TRACE);
-		super (text, targetScale, fontName, size, color, bold, italic, underline, strike, vertical,
+		super (text, targetScale, fontName, size, color, bold, italic, underline, strike, vertical, antialias,
 			borderingType, borderingColor, borderingWidth, x, y, baseW, baseH);
 		newR = new Rectangle(x, y, baseW, baseH);
 		_newScale = 100;
