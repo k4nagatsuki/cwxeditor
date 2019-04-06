@@ -4520,8 +4520,8 @@ public:
 					auto itm = _backs.getItem(cast(int)i);
 					auto tc = cast(TextCell)itm.getData();
 					assert (tc !is null);
-					img = create(tc);
-					_imgp.set(cast(int)i, img);
+					img.title = tc.text;
+					img.createImage();
 					_imgp.redrawImage(img);
 					itm.setText(tc.name(_prop.parent));
 				}

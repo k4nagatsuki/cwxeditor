@@ -574,7 +574,7 @@ private:
 		_preview = new PileImage(wrapReturnCode(_text.getText()), _prop.drawingScale, _fontName.getText(),
 			_size.getSelection(), tColor, _bold.getSelection(), _italic.getSelection(),
 			_underline.getSelection(), _strike.getSelection(), _vertical.getSelection(),
-			bType, bColor, _borderingWidth.getSelection(), ca.x, ca.y, ca.width, ca.height);
+			bType, bColor, _borderingWidth.getSelection(), ca.x / _prop.var.etc.imageScale, ca.y / _prop.var.etc.imageScale, ca.width / _prop.var.etc.imageScale, ca.height / _prop.var.etc.imageScale);
 		_preview.previewText = &previewText;
 
 		_preview.createImage();
