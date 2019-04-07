@@ -1976,6 +1976,7 @@ class Msgs : Properties {
 	auto noKeyCode = Msg("noKeyCode", "(指定無し)");
 	auto noText = Msg("noText", "(文章無し)");
 	auto noExpression = Msg("noExpression", "(式無し)");
+	auto noInformation = Msg("noInformation", "(情報を取得できません)");
 
 	auto cardId = Msg("cardId", "ID");
 	auto cardName = Msg("cardName", "名称");

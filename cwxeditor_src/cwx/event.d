@@ -1844,7 +1844,8 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	/// void area(ulong val) { mixin(S_TRACE);
 	/// 	scope (exit) validate();
 	/// 	if (!_area) _area = new AreaUser(this);
-	/// 	if (_area.area != val) changed();
+	/// 	if (_area.area == val) return;
+	/// 	changed();
 	/// 	setValUCs(this._area.area, null, null);
 	/// 	setValUCs(val, _uc, this);
 	/// 	_area.area = val;
@@ -1878,7 +1879,8 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 				~ "    setValUCs(_" ~ Name ~ ", _uc, this);"
 				~ "}"
 			) : "")
-			~ "if (_" ~ Name ~ Get ~ " != val) changed();"
+			~ "if (_" ~ Name ~ Get ~ " == val) return;"
+			~ "changed();"
 			~ "static if (is(typeof(create_" ~ Name ~ "))) {"
 			~ "    create_" ~ Name ~ "(_" ~ Name ~ ");"
 			~ "}"

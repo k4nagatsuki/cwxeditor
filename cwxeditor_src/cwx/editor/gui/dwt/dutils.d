@@ -4023,6 +4023,7 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 }
 
 string msgAttrText(in Props prop, in Content evt) { mixin(S_TRACE);
+	if (!evt) return "";
 	string[] attrs;
 	if (evt.centeringX && evt.centeringY) { mixin(S_TRACE);
 		if (prop.msgs.centeringXYOn != "") attrs ~= prop.msgs.centeringXYOn;
@@ -4418,7 +4419,6 @@ void getSymbols(Commons comm, Summary summ, CWXPath path, bool desc, out string 
 	auto sdlg = cast(SDialog)path;
 	if (sdlg) { mixin(S_TRACE);
 		con = sdlg.parent;
-		assert (con && con.type is CType.TALK_DIALOG);
 		img = prop.images.content(CType.TALK_DIALOG);
 		text = .talkDialogText(comm, con, sdlg);
 	}
@@ -4495,7 +4495,7 @@ void getSymbols(Commons comm, Summary summ, CWXPath path, bool desc, out string 
 }
 
 private string talkDialogText(in Commons comm, in Content evt, in SDialog sdlg) { mixin(S_TRACE);
-	string tt = .tryFormat(comm.prop.msgs.ctTalkMessageImage, comm.prop.msgs.talkerName(evt.talkerNC));
+	string tt = .tryFormat(comm.prop.msgs.ctTalkMessageImage, evt ? comm.prop.msgs.talkerName(evt.talkerNC) : comm.prop.msgs.noInformation);
 	string t = sdlg.text.singleLine;
 	t = (sdlg.text == "") ? comm.prop.msgs.noText : t.singleLine;
 	if (sdlg.rCoupons.length) { mixin(S_TRACE);
