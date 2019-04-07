@@ -382,6 +382,7 @@ string replStepToVariantInText(string text, string oldStep, string newStep) { mi
 } unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert(.replStepToVariantInText("「$置 換 前$」", "置 換 前", "置 換 後") == "「@置 換 後@」");
+	assert(.replStepToVariantInText("「$ステップ$」", "ステップ", "ステップ") == "「@ステップ@」");
 	assert(.replStepToVariantInText("aaa$aaa$%$置換前$%$置換前$a#$置換前$$aa%$置換前$", "置換前", "置換no後")
 		== "aaa$aaa$%$置換前$%@置換no後@a#$置換前$$aa%@置換no後@");
 }
