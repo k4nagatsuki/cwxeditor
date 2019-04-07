@@ -273,8 +273,8 @@ char[] namesInText(string text, bool full) { mixin(S_TRACE);
 	assert(fonts == ['M', 'R', 'U', 'T', 'Y'], .text(fonts));
 }
 
-private void replOn(ref dstring dtext, ref dstring buf, ref size_t i, dstring dold, dstring dnew, dchar targC) { mixin(S_TRACE);
-	ptrdiff_t next = .countUntil(dtext[i + 1 .. $], targC);
+private void replOn(ref dstring dtext, ref dstring buf, ref size_t i, dstring dold, dstring dnew, dchar fromC, dchar targC) { mixin(S_TRACE);
+	ptrdiff_t next = .countUntil(dtext[i + 1 .. $], fromC);
 	if (next >= 0) { mixin(S_TRACE);
 		next = i + 1 + next;
 		if (dtext[i + 1 .. next] == dold) { mixin(S_TRACE);
@@ -303,7 +303,7 @@ private void replOff(ref dstring dtext, ref dstring buf, ref size_t i, dchar tar
 		buf ~= dtext[i];
 	}
 }
-private string replTextFlagStep(char Ch1, char Ch2, char Ch3)
+private string replTextFlagStep(char Ch1, char Ch2, char Ch3, char Ch4)
 		(string text, string oldFlag, string newFlag) { mixin(S_TRACE);
 	dstring dtext = toUTF32(text);
 	dstring dold = toUTF32(oldFlag);
@@ -320,7 +320,7 @@ private string replTextFlagStep(char Ch1, char Ch2, char Ch3)
 			}
 			break;
 		case Ch1:
-			replOn(dtext, buf, i, dold, dnew, Ch1);
+			replOn(dtext, buf, i, dold, dnew, Ch1, Ch4);
 			break;
 		case Ch2:
 		case Ch3:
@@ -339,7 +339,7 @@ private string replTextFlagStep(char Ch1, char Ch2, char Ch3)
 /// oldFlag = 置換前のフラグパス。
 /// newFlag = 置換後のフラグパス。
 string replTextUseFlag(string text, string oldFlag, string newFlag) { mixin(S_TRACE);
-	return replTextFlagStep!('%', '$', '@')(text, oldFlag, newFlag);
+	return replTextFlagStep!('%', '$', '@', '%')(text, oldFlag, newFlag);
 } unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert(replTextUseFlag("「%置 換 前%」", "置 換 前", "置 換 後") == "「%置 換 後%」");
@@ -352,7 +352,7 @@ string replTextUseFlag(string text, string oldFlag, string newFlag) { mixin(S_TR
 /// oldStep = 置換前のステップパス。
 /// newStep = 置換後のステップパス。
 string replTextUseStep(string text, string oldStep, string newStep) { mixin(S_TRACE);
-	return replTextFlagStep!('$', '%', '@')(text, oldStep, newStep);
+	return replTextFlagStep!('$', '%', '@', '$')(text, oldStep, newStep);
 } unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert(replTextUseStep("「$置 換 前$」", "置 換 前", "置 換 後") == "「$置 換 後$」");
@@ -365,13 +365,27 @@ string replTextUseStep(string text, string oldStep, string newStep) { mixin(S_TR
 /// oldStep = 置換前のコモンパス。
 /// newStep = 置換後のコモンパス。
 string replTextUseVariant(string text, string oldVariant, string newVariant) { mixin(S_TRACE);
-	return replTextFlagStep!('@', '%', '$')(text, oldVariant, newVariant);
+	return replTextFlagStep!('@', '%', '$', '@')(text, oldVariant, newVariant);
 } unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert(replTextUseVariant("「@置 換 前@」", "置 換 前", "置 換 後") == "「@置 換 後@」");
 	assert(replTextUseVariant("aaa@aaa@%@置換前@%$@置換前@$@置換前@a#@置換前@@aa%@置換前@", "置換前", "置換no後")
 		== "aaa@aaa@%@置換前@%$@置換前@$@置換no後@a#@置換前@@aa%@置換no後@");
 }
+/// テキストの中で使用されているステップのパスをコモンのパスに置換する。
+/// Params:
+/// text = テキスト。
+/// oldStep = 置換前のステップパス。
+/// newStep = 置換後のコモンパス。
+string replStepToVariantInText(string text, string oldStep, string newStep) { mixin(S_TRACE);
+	return .replTextFlagStep!('$', '%', '@', '@')(text, oldStep, newStep);
+} unittest { mixin(S_TRACE);
+	debug mixin(UTPerf);
+	assert(.replStepToVariantInText("「$置 換 前$」", "置 換 前", "置 換 後") == "「@置 換 後@」");
+	assert(.replStepToVariantInText("aaa$aaa$%$置換前$%$置換前$a#$置換前$$aa%$置換前$", "置換前", "置換no後")
+		== "aaa$aaa$%$置換前$%@置換no後@a#$置換前$$aa%@置換no後@");
+}
+
 /// テキスト中で使用されている画像か。
 @property
 bool isSPFontFile(string file) { mixin(S_TRACE);
