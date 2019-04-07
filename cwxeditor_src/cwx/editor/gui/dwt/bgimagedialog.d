@@ -37,6 +37,7 @@ import cwx.editor.gui.dwt.chooser;
 import std.algorithm : countUntil, min;
 import std.traits;
 import std.conv;
+import std.string;
 
 import org.eclipse.swt.all;
 
@@ -849,6 +850,15 @@ protected:
 		if (!_create) { mixin(S_TRACE);
 			_text.setText(_back.text);
 			_fontName.setText(_back.fontName);
+			if (_fontName.getSelectionIndex() == -1) { mixin(S_TRACE);
+				_fontName.select(0);
+				foreach (i, name; _fontName.getItems()) { mixin(S_TRACE);
+					if (.icmp(name, _back.fontName) == 0) { mixin(S_TRACE);
+						_fontName.select(cast(int)i);
+						break;
+					}
+				}
+			}
 			_size.setSelection(_back.size);
 			auto tc = _back.color;
 			_color.color = new RGB(tc.r, tc.g, tc.b);
