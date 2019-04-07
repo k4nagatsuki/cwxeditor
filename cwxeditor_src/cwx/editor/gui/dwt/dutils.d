@@ -4291,8 +4291,6 @@ void getSymbols(Commons comm, Summary summ, CWXPath path, bool desc, out string 
 	}
 	auto sdlg = cast(SDialog)path;
 	if (sdlg) { mixin(S_TRACE);
-		con = sdlg.parent;
-		assert (!con || con.type is CType.TALK_DIALOG);
 		img = prop.images.content(CType.TALK_DIALOG);
 		string t = sdlg.text.singleLine;
 		if (sdlg.rCoupons.length) { mixin(S_TRACE);
