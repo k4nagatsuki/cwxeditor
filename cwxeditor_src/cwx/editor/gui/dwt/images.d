@@ -404,7 +404,6 @@ public:
 	}
 	@property
 	void title(string title) { mixin(S_TRACE);
-		assert (titFont.name != "");
 		assert (titPoint);
 		_title = title;
 	}
