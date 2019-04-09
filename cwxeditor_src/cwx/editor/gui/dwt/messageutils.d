@@ -3152,13 +3152,15 @@ void getPreviewValues(in Props prop, Summary summ, in SPChar[] targetChars,
 			variants[f.path] = VarValue(true, .variantValueToPreviewText(f), false);
 		});
 	}
-	getPreviewSysSteps(prop, summ, sysSteps);
+	.getPreviewSysSteps(prop, summ, true, sysSteps);
 }
 
-void getPreviewSysSteps(in Props prop, in Summary summ, out VarValue[string] sysSteps) { mixin(S_TRACE);
+void getPreviewSysSteps(in Props prop, in Summary summ, bool expandSharps, out VarValue[string] sysSteps) { mixin(S_TRACE);
 	if (prop.isTargetVersion(summ, "2")) { mixin(S_TRACE);
-		// 選択メンバ番号(Wsn.2)
-		sysSteps[prop.sys.selectedPlayerCardNumber.toLower()] = VarValue(true, .text(prop.var.etc.messageVarSelectedPlayerCardNumber), false);
+		if (expandSharps) { mixin(S_TRACE);
+			// 選択メンバ番号(Wsn.2)
+			sysSteps[prop.sys.selectedPlayerCardNumber.toLower()] = VarValue(true, .text(prop.var.etc.messageVarSelectedPlayerCardNumber), false);
+		}
 		// パーティメンバ名(Wsn.2)
 		foreach (pcn; 1 .. prop.looks.partyMax + 1) { mixin(S_TRACE);
 			auto name = prop.sys.playerCardName(cast(uint)pcn).toLower();
@@ -3792,11 +3794,13 @@ void setupSPCharsMenu(Commons comm, Summary summ, Control ctrl, Menu parentMenu,
 		if (!summ.legacy) { mixin(S_TRACE);
 			if (menu.getItemCount()) new MenuItem(menu, SWT.SEPARATOR);
 
-			// 選択メンバ番号(Wsn.2)
-			.createMenuItem2(comm, menu, comm.prop.msgs.selectedPlayerCardNumber,
-				comm.prop.images.selectedPlayerCardNumber, () => insert("$" ~ comm.prop.sys.selectedPlayerCardNumber ~ "$"), null);
+			if (expandSharps) { mixin(S_TRACE);
+				// 選択メンバ番号(Wsn.2)
+				.createMenuItem2(comm, menu, comm.prop.msgs.selectedPlayerCardNumber,
+					comm.prop.images.selectedPlayerCardNumber, () => insert("$" ~ comm.prop.sys.selectedPlayerCardNumber ~ "$"), null);
 
-			new MenuItem(menu, SWT.SEPARATOR);
+				new MenuItem(menu, SWT.SEPARATOR);
+			}
 
 			// パーティメンバ名(Wsn.2)
 			foreach (uint pcn; 1u .. cast(uint)comm.prop.looks.partyMax + 1u) { mixin(S_TRACE);
@@ -3936,7 +3940,7 @@ string createSPCharPreview(in Commons comm, in Summary summ, string text, bool e
 		return flag ? VarValue(true, flag.onOff ? flag.on : flag.off, flag.expandSPChars) : VarValue(false);
 	}
 	VarValue[string] sysSteps;
-	.getPreviewSysSteps(comm.prop, summ, sysSteps);
+	.getPreviewSysSteps(comm.prop, summ, expandSharps, sysSteps);
 	VarValue sValue(string path) { mixin(S_TRACE);
 		if (overrideStepValue) { mixin(S_TRACE);
 			auto v = overrideStepValue(path);
