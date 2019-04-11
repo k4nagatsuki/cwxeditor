@@ -9,6 +9,19 @@ immutable LAYER_PLAYER_CARD = 200; /// プレイヤーカードのレイヤ。
 immutable LAYER_FORE_CELL = 400; /// カードより手前の背景レイヤ(1.60)。
 immutable LAYER_MESSAGE = 1000; /// メッセージレイヤ。
 
+/// アクションカードのタイプ。
+enum ActionCardType {
+	Exchange = 0, /// カード交換。
+	Attack = 1, /// 攻撃。
+	PowerfulAttack = 2, /// 渾身の一撃。
+	CriticalAttack = 3, /// 会心の一撃。
+	Feint = 4, /// フェイント。
+	Defense = 5, /// 防御。
+	Distance = 6, /// 見切り。
+	Confuse = -1, /// 混乱。
+	RunAway = 7, /// 逃走。
+}
+
 /// 効果関連の例外。
 class MotionException : Exception {
 public:
@@ -70,6 +83,7 @@ EffectType toEffectType(string name) { mixin(S_TRACE);
 	case "PhysicalMagic":
 		return EffectType.PHYSICAL_MAGIC;
 	case "None":
+	case "Normal": // BUG: 古いスキンで「カード交換」「逃走」に設定されている
 		return EffectType.NONE;
 	default:
 		throw new MotionException("Unknown effecttype: " ~ name);

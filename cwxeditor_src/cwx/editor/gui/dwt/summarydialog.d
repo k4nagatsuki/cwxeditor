@@ -730,6 +730,7 @@ protected:
 			_summ.skinName = "";
 		}
 		auto oldSkin = _comm.skin;
+		selectedSkin.initialize();
 		_comm.skin = selectedSkin;
 		_comm.updateSkinMaterialsExtension(_summ.useCounter, oldSkin, _comm.skin);
 		_comm.refCoupons.call();

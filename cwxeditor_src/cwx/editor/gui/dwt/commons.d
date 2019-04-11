@@ -74,7 +74,7 @@ Skin findSkin(Commons comm, Props prop, in Summary summ, bool legacy, string sPa
 				auto enginePath = prop.toAppAbs(ce.enginePath);
 				if (!enginePath.exists()) continue;
 				if (cfnmatch(enginePath, lEngine)) { mixin(S_TRACE);
-					return createClassicSkin(prop, ce);
+					return .createClassicSkin(prop, ce);
 				}
 			}
 		}
@@ -114,7 +114,10 @@ Skin findSkin(Commons comm, Props prop, in Summary summ, bool legacy, string sPa
 				break;
 			}
 		}
-		if (skin) return skin;
+		if (skin) { mixin(S_TRACE);
+			skin.initialize();
+			return skin;
+		}
 	}
 	return findSkin2(prop, type, name);
 }

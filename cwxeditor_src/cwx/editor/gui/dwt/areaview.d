@@ -579,7 +579,7 @@ private:
 					static if (is(C == MenuCard)) {
 						c = new C(c.name, c.expandSPChars, c.paths, c.desc, c.flag, c.x, c.y, c.scale, c.layer, c.cardGroup, c.animationSpeed);
 					} else static if (is(C == EnemyCard)) {
-						c = new C(c.id, c.escape, c.flag, c.x, c.y, c.scale, c.layer, c.cardGroup, c.animationSpeed,
+						c = new C(c.id, c.actions, c.flag, c.x, c.y, c.scale, c.layer, c.cardGroup, c.animationSpeed,
 							c.isOverrideName, c.overrideName, c.isOverrideImage, c.overrideImages);
 					} else static assert (0);
 					if (summ) c.setUseCounter(summ.useCounter.sub);
@@ -619,7 +619,7 @@ private:
 						ac.scale = c.scale;
 					} else static if (is(C == EnemyCard)) {
 						ac.id = c.id;
-						ac.escape = c.escape;
+						ac.actions = c.actions;
 						ac.flag = c.flag;
 						ac.x = c.x;
 						ac.y = c.y;
@@ -750,7 +750,7 @@ private:
 			if (_readOnly) return;
 			_undo ~= createUndoEdit();
 			foreach (c, i; _editC) { mixin(S_TRACE);
-				c.escape = _escTMenu.getSelection();
+				c.action(ActionCardType.RunAway, _escTMenu.getSelection());
 				_cards.getItem(i).setImage(cardImg(c));
 				_comm.refMenuCard.call(c.cwxPath(true));
 			}
@@ -2479,7 +2479,7 @@ private:
 				_scaleSpn.setSelection(card.scale);
 				_layerSpn.setSelection(card.layer);
 				static if (is (C == EnemyCard)) {
-					_escTMenu.setSelection(card.escape);
+					_escTMenu.setSelection(card.action(ActionCardType.RunAway));
 				}
 			} else if (_editC.length > 1) { mixin(S_TRACE);
 				_xSpn.setSelection(spnValue!("a.x", C, int)(_editC.keys, 0));
@@ -2487,7 +2487,7 @@ private:
 				_scaleSpn.setSelection(spnValue!("a.scale", C, int)(_editC.keys, 100));
 				_layerSpn.setSelection(spnValue!("a.layer", C, int)(_editC.keys, 0));
 				static if (is (C == EnemyCard)) {
-					_escTMenu.setSelection(spnValue!("a.escape", C, bool)(_editC.keys, false));
+					_escTMenu.setSelection(spnValue!("a.action(ActionCardType.RunAway)", C, bool)(_editC.keys, false));
 				}
 			}
 		} else static if (UseBacks) {
@@ -4078,7 +4078,7 @@ public:
 			} else static if (is(C : EnemyCard)) {
 				if (!_summ) return;
 				if (_summ.casts.length == 0) return;
-				auto c = new EnemyCard(0, false, "", 0, 0, 100, LAYER_MENU_CARD, "", -1, false, "", false, []);
+				auto c = new EnemyCard(0, (bool[ActionCardType]).init, "", 0, 0, 100, LAYER_MENU_CARD, "", -1, false, "", false, []);
 			} else static assert (0);
 			auto dlg = new SpCardDialog!(C)(_comm, _prop, getShell(), _summ, c, true);
 			dlg.appliedEvent ~= { mixin(S_TRACE);

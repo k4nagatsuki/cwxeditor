@@ -4519,7 +4519,7 @@ private string talkDialogText(in Commons comm, in Content evt, in SDialog sdlg) 
 /// シーンビュー・イベントビューに表示されるカードのアイコンを返す。
 Image cardIcon(Props prop, in AbstractSpCard card) { mixin(S_TRACE);
 	if (auto eCard = cast(const EnemyCard)card) { mixin(S_TRACE);
-		if (eCard.escape) { mixin(S_TRACE);
+		if (eCard.action(ActionCardType.RunAway)) { mixin(S_TRACE);
 			return eCard.flag == "" ? prop.images.runAwayableEnemyCard : prop.images.runAwayableEnemyCardWithFlag;
 		}
 	}

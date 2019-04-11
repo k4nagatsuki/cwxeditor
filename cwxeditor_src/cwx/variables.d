@@ -404,7 +404,6 @@ class FlexEtcProps : Properties {
 	auto ignoreMenuSashR = Prop!(int)("ignoreMenuSashR", 1);
 	auto highValueOfImageControl = Prop!(uint, true)("highValueOfImageControl", 10);
 	auto showDuplicateViewInToolBar = Prop!(bool, true)("showDuplicateViewInToolBar", false);
-	auto setRunAwayWithToggle = Prop!(bool, true)("setRunAwayWithToggle", false);
 
 	auto openHistories = Prop!(OpenHistory[])("openHistories", []);
 	auto scenarioBookmarks = Prop!(OpenHistory[])("scenarioBookmarks", []);

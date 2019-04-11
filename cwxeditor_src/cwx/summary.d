@@ -1551,6 +1551,23 @@ public:
 		return find(_info, id);
 	}
 
+	/// cardが参照であれば参照先を返す。
+	/// 参照でなければcardを返す。
+	inout
+	inout(C) baseCard(C:EffectCard)(inout(C) card) { mixin(S_TRACE);
+		if (0 != card.linkId) { mixin(S_TRACE);
+			static if (is(C:SkillCard)) {
+				auto c = find(_skl, card.linkId);
+			} else static if (is(C:ItemCard)) {
+				auto c = find(_itm, card.linkId);
+			} else static if (is(C:BeastCard)) {
+				auto c = find(_bst, card.linkId);
+			} else static assert (0);
+			if (c) return c;
+		}
+		return card;
+	}
+
 	private static bool hasId(T)(const T[] arr, ulong id) { mixin(S_TRACE);
 		return qsearch!((a, b) => dcmp(a.id, b))(arr, id) != -1;
 	}

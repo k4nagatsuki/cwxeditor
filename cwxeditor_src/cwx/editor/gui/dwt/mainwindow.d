@@ -1173,6 +1173,22 @@ private:
 				summ.type = _prop.var.etc.defaultSkin;
 			}
 			dStr ~= " - " ~ .text(__LINE__);
+			if (summ.legacy) { mixin(S_TRACE);
+				// BUG: クラシックなシナリオで、アイテムの一枚目に「カード交換」を持っている
+				//      キャラクターには本来の「カード交換」が配付されない
+				//      CardWirth 1.50
+				auto exchangeName = skin.actionCardName(_prop.sys, ActionCardType.Exchange);
+				foreach (c; summ.casts) { mixin(S_TRACE);
+					auto hasExchange = c && c.items.length && summ.baseCard(c.items[0]).name == exchangeName;
+					if (!hasExchange) continue;
+					foreach (user; summ.useCounter.values(toCastId(c.id))) { mixin(S_TRACE);
+						auto ec = cast(EnemyCard)user.owner;
+						if (!ec) continue;
+						ec.action(ActionCardType.Exchange, false);
+					}
+				}
+			}
+			dStr ~= " - " ~ .text(__LINE__);
 			summ.resetChanged();
 			dStr ~= " - " ~ .text(__LINE__);
 			_comm.skin = skin;

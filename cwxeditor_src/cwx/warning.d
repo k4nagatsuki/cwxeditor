@@ -347,8 +347,8 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				r ~= prop.msgs.warningLoopCount;
 			}
 		}
-		if (prop.sys.isRunaway(effCard.keyCodes)) { mixin(S_TRACE);
-			r ~= .tryFormat(prop.msgs.warningRunawayCard, prop.sys.runaway);
+		if (prop.sys.isRunAway(effCard.keyCodes)) { mixin(S_TRACE);
+			r ~= .tryFormat(prop.msgs.warningRunAwayCard, prop.sys.runAway);
 		}
 		if (prop.looks.keyCodesMaxLegacy < effCard.keyCodes.length && summ && summ.legacy) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.warningKeyCodeCount, prop.looks.keyCodesMaxLegacy);
@@ -499,6 +499,27 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		r ~= checkTextRes2(ec.overrideName, ec.flagsInText, ec.stepsInText, ec.variantsInText, [], []);
 		if (ec.isOverrideImage &&  !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningOverrideEnemyCardImage;
+		}
+		auto noActionWarn = false;
+		if (summ && summ.legacy) { mixin(S_TRACE);
+			auto c = summ ? summ.cwCast(ec.id) : null;
+			auto hasExchange = c && c.items.length && summ.baseCard(c.items[0]).name == skin.actionCardName(prop.sys, ActionCardType.Exchange);
+			if (ec.action(ActionCardType.Exchange) && hasExchange) { mixin(S_TRACE);
+				r ~= .tryFormat(prop.msgs.warningExchangeIsItemInClassic, skin.actionCardName(prop.sys, ActionCardType.Exchange));
+			} else if (!ec.action(ActionCardType.Exchange) && !hasExchange) { mixin(S_TRACE);
+				r ~= prop.msgs.warningNoActionCard;
+				noActionWarn = true;
+			}
+		}
+		if (!noActionWarn) { mixin(S_TRACE);
+			foreach (type; EnumMembers!ActionCardType) { mixin(S_TRACE);
+				if (type is ActionCardType.Exchange && (summ && summ.legacy)) continue;
+				if (type is ActionCardType.RunAway) continue;
+				if (!ec.action(type) && !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
+					r ~= prop.msgs.warningNoActionCard;
+					break;
+				}
+			}
 		}
 		putCardImages(ec.overrideImages, false);
 	}
@@ -982,8 +1003,8 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			if (!c.ignite && c.keyCodes.length) { mixin(S_TRACE);
 				r ~= prop.msgs.warningIgnoreKeyCode;
 			}
-			if (c.ignite && prop.sys.isRunaway(c.keyCodes)) { mixin(S_TRACE);
-				r ~= .tryFormat(prop.msgs.warningRunawayCard, prop.sys.runaway);
+			if (c.ignite && prop.sys.isRunAway(c.keyCodes)) { mixin(S_TRACE);
+				r ~= .tryFormat(prop.msgs.warningRunAwayCard, prop.sys.runAway);
 			}
 		}
 		if (c.type is CType.BRANCH_KEY_CODE && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);

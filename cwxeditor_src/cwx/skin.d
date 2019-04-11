@@ -1,17 +1,18 @@
 
 module cwx.skin;
 
-import cwx.race;
-import cwx.utils;
-import cwx.props;
-import cwx.imagesize;
-import cwx.xml;
-import cwx.types;
-import cwx.structs;
-import cwx.features;
 import cwx.background;
+import cwx.card;
+import cwx.features;
+import cwx.imagesize;
+import cwx.props;
+import cwx.race;
 import cwx.sjis;
+import cwx.structs;
 import cwx.system;
+import cwx.types;
+import cwx.utils;
+import cwx.xml;
 
 import std.algorithm;
 import std.array;
@@ -24,6 +25,8 @@ import std.range;
 import std.regex : regex, match;
 import std.stdio;
 import std.string;
+import std.traits;
+import std.typecons;
 import std.uni;
 import std.utf;
 
@@ -352,6 +355,7 @@ class Skin {
 	private ModData[Nature] _natures;
 	private ModData[Makings] _makings;
 	private string _number1Coupon = "";
+	private ActionCard[ActionCardType] _actionCards;
 
 	private static immutable _extImg = [
 		".bmp", ".jpg", ".jpeg", ".png", ".gif",
@@ -385,7 +389,7 @@ class Skin {
 	private this (const(CProps) prop, string skinFile, string enginePath) { mixin(S_TRACE);
 		this (prop, enginePath);
 		if (skinFile.length) { mixin(S_TRACE);
-			loadFromXML(skinFile, new XMLInfo(prop.sys, LATEST_VERSION));
+			loadFromXML(prop, skinFile, new XMLInfo(prop.sys, LATEST_VERSION));
 		}
 	}
 	/// スキンの名称。クラシックの場合は""。
@@ -1662,18 +1666,85 @@ class Skin {
 		return coupon;
 	}
 
+	/// アクションカードのデータ。
+	/// クラシックなシナリオの場合はnullになる。
+	const
+	const(ActionCard) actionCard(ActionCardType type) { mixin(S_TRACE);
+		return _actionCards.get(type, null);
+	}
+	/// アクションカード名を返す。
+	const
+	string actionCardName(in System sys, ActionCardType type) { mixin(S_TRACE);
+		auto card = actionCard(type);
+		if (card) return card.name;
+		return _cEngine.actionCardName.get(type, sys.actionCardName(type, legacyName));
+	}
+	/// スキンが持つアクションカードの一覧を返す。
+	const
+	const(ActionCardType)[] actionCardTypes() { mixin(S_TRACE);
+		ActionCardType[] r;
+		if (legacy || !_actionCards.length) { mixin(S_TRACE);
+			foreach (type; EnumMembers!ActionCardType) r ~= type;
+		} else { mixin(S_TRACE);
+			r = _actionCards.keys();
+		}
+		std.algorithm.sort(r);
+		return r;
+	}
+
+	/// スキンの基本情報以外のデータを読み込む。
+	private Rebindable!(const(XMLInfo)) _ver = null;
+	void initialize() { mixin(S_TRACE);
+		if (_ver is null) return;
+		auto fd = std.path.buildPath(resourceDir, "Font");
+		foreach (path; clistdir(fd)) { mixin(S_TRACE);
+			if (path.noScaledPath != "") continue;
+			path = std.path.buildPath(fd, path);
+			if (!isDir(path) && .isImageExt(path)) { mixin(S_TRACE);
+				auto dp = toUTF32(stripExtension(baseName(path)));
+				auto c = std.uni.toUpper(dp[0]);
+				switch (c) {
+				case 'M', 'R', 'U', 'C', 'I', 'T', 'Y':
+					c = std.uni.toUpper(dp[$ - 1]);
+					break;
+				default:
+					break;
+				}
+				_spChars[c] = path;
+			}
+		}
+		foreach (file; .dirEntries(_path.buildPath("Resource").buildPath("Xml").buildPath("ActionCard"), SpanMode.shallow)) { mixin(S_TRACE);
+			if (!file.isFile) return;
+			if (file.extension.toLower() != ".xml") continue;
+			try {
+				auto node = XNode.parse(std.file.readText(file));
+				if (node.name != ActionCard.XML_NAME) return;
+				auto card = ActionCard.createFromNode(node, _ver);
+				_actionCards[card.actionCardType] = card;
+			} catch (Exception e) {
+				printStackTrace();
+				debugln(file.baseName);
+				debugln(e);
+			}
+		}
+		_ver = null;
+	}
+
 	/// XMLファイルからスキンデータをロードする。
-	void loadFromXML(string fname, in XMLInfo ver) { mixin(S_TRACE);
+	void loadFromXML(const(CProps) prop, string fname, in XMLInfo ver) { mixin(S_TRACE);
 		try { mixin(S_TRACE);
+			_ver = ver;
 			_path = dirName(fname);
 			_skinFile = fname;
-			scope sNode = XNode.parse(std.file.readText(fname));
+			auto sNode = XNode.parse(std.file.readText(fname));
 			_races.length = 0;
 			_sexes = null;
 			_periods = null;
 			_natures = null;
 			_makings = null;
 			_number1Coupon = "";
+			_actionCards = null;
+			_spChars = null;
 			sNode.onTag["Property"] = (ref XNode pNode) {  mixin(S_TRACE);
 				pNode.onTag["Name"] = (ref XNode n) { _name = n.value; };
 				pNode.onTag["Type"] = (ref XNode n) { _type = n.value; };
@@ -1720,25 +1791,6 @@ class Skin {
 				node.parse();
 			};
 			sNode.parse();
-			typeof(_spChars) spCharsInit;
-			_spChars = spCharsInit;
-			auto fd = std.path.buildPath(resourceDir, "Font");
-			foreach (path; clistdir(fd)) { mixin(S_TRACE);
-				if (path.noScaledPath != "") continue;
-				path = std.path.buildPath(fd, path);
-				if (!isDir(path) && .isImageExt(path)) { mixin(S_TRACE);
-					auto dp = toUTF32(stripExtension(baseName(path)));
-					auto c = std.uni.toUpper(dp[0]);
-					switch (c) {
-					case 'M', 'R', 'U', 'C', 'I', 'T', 'Y':
-						c = std.uni.toUpper(dp[$ - 1]);
-						break;
-					default:
-						break;
-					}
-					_spChars[c] = path;
-				}
-			}
 		} catch (Exception e) {
 			printStackTrace();
 			debugln(fname);

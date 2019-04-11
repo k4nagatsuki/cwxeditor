@@ -1376,7 +1376,7 @@ class Msgs : Properties {
 	auto layerHint = Msg("layerHint", "(標準 = %1$s)");
 	auto bgImageForeground = Msg("bgImageForeground", "カードよりも前に表示");
 	auto bgImageCellName = Msg("bgImageCellName", "セル名称");
-	auto hasRunAway = Msg("hasRunAway", "逃走する");
+	auto hasActions = Msg("hasActions", "アクションの有無");
 
 	auto areaViewStatus = Msg("areaViewStatus", "%1$s [%2$s] - %3$s");
 	auto areaViewStatusNoSummary = Msg("areaViewStatusNoSummary", "%1$s [%2$s]");
@@ -2159,7 +2159,7 @@ class Msgs : Properties {
 	auto warningSkillPowerWithFixedValue = Msg("warningSkillPowerWithFixedValue", "精神力操作の固定値指定は、Wsn.1以降の形式のシナリオしか行えません。"); // Wsn.1
 	auto warningIncludedImage = Msg("warningIncludedImage", "WSN形式のシナリオでは格納イメージは使用できません。");
 	auto warningSelectionColumns = Msg("warningSelectionColumns", "選択肢の複数列表示は、Wsn.1以降の形式のシナリオしか行えません。");
-	auto warningRunawayCard = Msg("warningRunawayCard", "キーコード「%1$s」付きのカードは死亡イベントを発生させないため、シナリオを誤動作させる可能性があります。");
+	auto warningRunAwayCard = Msg("warningRunAwayCard", "キーコード「%1$s」付きのカードは死亡イベントを発生させないため、シナリオを誤動作させる可能性があります。");
 	auto warningEndOrChangeAreaInRound0 = Msg("warningEndOrChangeAreaInRound0", "クラシックエンジンのバグにより、バトル開始イベント中にシナリオ終了やエリア移動を行うと、プレイヤーのデータの破損を含めた異常が発生する可能性があります。");
 	auto warningWsnSystemCoupon = Msg("warningWsnSystemCoupon", "システムクーポン「%1$s」はWsn.%2$s以降の形式のシナリオでしか機能しません。"); // Wsn.2
 	auto warningCanNotGetSetCoupon = Msg("warningCanNotGetSetCoupon", "システムクーポン「%1$s」を操作する事はできません。"); // Wsn.2
@@ -2198,6 +2198,8 @@ class Msgs : Properties {
 	auto warningOverrideEnemyCardName = Msg("warningOverrideEnemyCardName", "エネミーカードの名前の上書きは、Wsn.4以降の形式のシナリオしか行えません。"); // Wsn.4
 	auto warningOverrideEnemyCardImage = Msg("warningOverrideEnemyCardImage", "エネミーカードのイメージの上書きは、Wsn.4以降の形式のシナリオしか行えません。"); // Wsn.4
 	auto warningVariant = Msg("warningVariant", "コモンはWsn.4以降の形式のシナリオでしか使用できません。"); // Wsn.4
+	auto warningExchangeIsItemInClassic = Msg("warningExchangeIsItemInClassic", "クラシックなシナリオでは、最初のアイテムカードとして「%1$s」と同名のカードを所有していると、本来の「%1$s」が配付されません。");
+	auto warningNoActionCard = Msg("warningNoActionCard", "エネミーカードのアクション有無の指定は、Wsn.4以降の形式のシナリオでしか行えません。"); // Wsn.4
 
 	auto unknownStepValue = Msg("unknownStepValue", "存在しないステップ値(%1$s)");
 

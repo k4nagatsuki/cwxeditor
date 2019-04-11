@@ -81,7 +81,7 @@ class KeyCodeView : Composite {
 
 		if (!_canDuplicate && _keyCodes.getItem(0) is itm && name == "MatchingType=All") { mixin(S_TRACE);
 			image = _prop.images.warning;
-		} else if (_canDuplicate && _prop.sys.isRunaway([name])) { mixin(S_TRACE);
+		} else if (_canDuplicate && _prop.sys.isRunAway([name])) { mixin(S_TRACE);
 			image = _prop.images.warning;
 		} else if (.sjisWarnings(_prop.parent, _summ, name, "").length) { mixin(S_TRACE);
 			image = _prop.images.warning;
@@ -727,8 +727,8 @@ class KeyCodeView : Composite {
 				break;
 			}
 		}
-		if (_canDuplicate && _prop.sys.isRunaway(keyCodes)) { mixin(S_TRACE);
-			ws ~= .tryFormat(_prop.msgs.warningRunawayCard, _prop.sys.runaway);
+		if (_canDuplicate && _prop.sys.isRunAway(keyCodes)) { mixin(S_TRACE);
+			ws ~= .tryFormat(_prop.msgs.warningRunAwayCard, _prop.sys.runAway);
 		}
 		if (_summ && _summ.legacy && _prop.looks.keyCodesMaxLegacy < keyCodes.length) { mixin(S_TRACE);
 			ws ~= .tryFormat(_prop.msgs.warningKeyCodeCount, _prop.looks.keyCodesMaxLegacy);

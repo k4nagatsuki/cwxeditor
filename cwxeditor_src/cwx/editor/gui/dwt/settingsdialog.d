@@ -2134,6 +2134,7 @@ private:
 		TableItem[Period] _periodName;
 		TableItem[Nature] _natureName;
 		TableItem[Makings] _makingsName;
+		TableItem[ActionCardType] _actionCardName;
 		void refAlt() { mixin(S_TRACE);
 			if (0 < _list.getItemCount()) { mixin(S_TRACE);
 				_alt.setEnabled(true);
@@ -2374,6 +2375,10 @@ private:
 					itm.setText(1, _prop.sys.makingsName(f, n));
 					itm.setText(2, _array[i].makingsName.get(_prop.sys.makingsName(f, ""), ""));
 				}
+				foreach (f, itm; _actionCardName) { mixin(S_TRACE);
+					itm.setText(1, _prop.sys.actionCardName(f, n));
+					itm.setText(2, _array[i].actionCardName.get(f, ""));
+				}
 				_featureUndo.reset();
 			} else static if (is(T:ScTemplate)) {
 				_templPath.setText(_array[i].path);
@@ -2451,7 +2456,9 @@ private:
 			string execute = _cEngineExecute.getText();
 			string mnemonic = _mnemonic.getText();
 			string hotkey = _hotkey.acceleratorText();
-			add(ClassicEngine(name, path, dataDir, execute, mnemonic, hotkey));
+			auto ce = ClassicEngine(name, path, dataDir, execute, mnemonic, hotkey);
+			putFeatures(ce);
+			add(ce);
 		} else static if (is(T:ScTemplate)) {
 			string path = _templPath.getText();
 			add(ScTemplate(name, path));
@@ -2481,33 +2488,12 @@ private:
 			_array[i].mnemonic = _mnemonic.getText();
 			_array[i].hotkey = _hotkey.acceleratorText();
 		} else static if (is(T:ClassicEngine)) {
-			auto emptySkin = new Skin(_prop.parent, "");
 			_array[i].enginePath = _cEnginePath.getText();
 			_array[i].dataDirName = _cEngineDataDir.getText();
 			_array[i].execute = _cEngineExecute.getText();
 			_array[i].mnemonic = _mnemonic.getText();
 			_array[i].hotkey = _hotkey.acceleratorText();
-			_array[i].clearFeatures();
-			if (_okText.getText(2).length) _array[i].okText = _okText.getText(2);
-			foreach (f; emptySkin.allSexes) { mixin(S_TRACE);
-				auto t = _sexName[f].getText(2);
-				if (t.length) _array[i].sexName[_prop.sys.sexName(f, "")] = t;
-			}
-			foreach (f; emptySkin.allPeriods) { mixin(S_TRACE);
-				auto t = _periodName[f].getText(2);
-				if (t.length) _array[i].periodName[_prop.sys.periodName(f, "")] = t;
-			}
-			foreach (f; emptySkin.allNatures) { mixin(S_TRACE);
-				auto t = _natureName[f].getText(2);
-				if (t.length) _array[i].natureName[_prop.sys.natureName(f, "")] = t;
-			}
-			foreach (Makings f; emptySkin.leftMakings) { mixin(S_TRACE);
-				auto t = _makingsName[f].getText(2);
-				if (t.length) _array[i].makingsName[_prop.sys.makingsName(f, "")] = t;
-				f = emptySkin.reverseMakings(f);
-				t = _makingsName[f].getText(2);
-				if (t.length) _array[i].makingsName[_prop.sys.makingsName(f, "")] = t;
-			}
+			putFeatures(_array[i]);
 		} else static if (is(T:ScTemplate)) {
 			_array[i].path = _templPath.getText();
 		} else static if (is(T:EvTemplate)) {
@@ -2520,6 +2506,36 @@ private:
 		_canApply = false;
 		_applyEnabled();
 		_comm.refreshToolBar();
+	}
+	static if (is(T:ClassicEngine)) {
+		void putFeatures(ref ClassicEngine ce) { mixin(S_TRACE);
+			ce.clearFeatures();
+			auto emptySkin = new Skin(_prop.parent, "");
+			if (_okText.getText(2).length) ce.okText = _okText.getText(2);
+			foreach (f; emptySkin.allSexes) { mixin(S_TRACE);
+				auto t = _sexName[f].getText(2);
+				if (t.length) ce.sexName[_prop.sys.sexName(f, "")] = t;
+			}
+			foreach (f; emptySkin.allPeriods) { mixin(S_TRACE);
+				auto t = _periodName[f].getText(2);
+				if (t.length) ce.periodName[_prop.sys.periodName(f, "")] = t;
+			}
+			foreach (f; emptySkin.allNatures) { mixin(S_TRACE);
+				auto t = _natureName[f].getText(2);
+				if (t.length) ce.natureName[_prop.sys.natureName(f, "")] = t;
+			}
+			foreach (Makings f; emptySkin.leftMakings) { mixin(S_TRACE);
+				auto t = _makingsName[f].getText(2);
+				if (t.length) ce.makingsName[_prop.sys.makingsName(f, "")] = t;
+				f = emptySkin.reverseMakings(f);
+				t = _makingsName[f].getText(2);
+				if (t.length) ce.makingsName[_prop.sys.makingsName(f, "")] = t;
+			}
+			foreach (f; EnumMembers!ActionCardType) { mixin(S_TRACE);
+				auto t = _actionCardName[f].getText(2);
+				if (t.length) ce.actionCardName[f] = t;
+			}
+		}
 	}
 	void del() { mixin(S_TRACE);
 		int i = _list.getSelectionIndex();
@@ -3272,6 +3288,11 @@ public:
 					auto itmR = new TableItem(_featureName, SWT.NONE);
 					itmR.setText(0, _prop.sys.makingsName(f, ""));
 					_makingsName[f] = itmR;
+				}
+				foreach (f; EnumMembers!ActionCardType) { mixin(S_TRACE);
+					auto itm = new TableItem(_featureName, SWT.NONE);
+					itm.setText(0, _prop.sys.actionCardName(f, ""));
+					_actionCardName[f] = itm;
 				}
 				new TableTextEdit(_comm, _prop, _featureName, 2, &featuresEnd, null);
 

@@ -229,6 +229,38 @@ class System {
 		}
 	}
 
+	/// アクションカード名を返す。
+	const
+	string actionCardName(ActionCardType type, string legacyName) { mixin(S_TRACE);
+		switch (type) {
+		case ActionCardType.Exchange:
+			return "カード交換";
+		case ActionCardType.Attack:
+			return "攻撃";
+		case ActionCardType.PowerfulAttack:
+			return "渾身の一撃";
+		case ActionCardType.CriticalAttack:
+			return "会心の一撃";
+		case ActionCardType.Feint:
+			switch (.toLower(legacyName)) {
+			case "oedowirth":
+				return "牽制";
+			default:
+				return "フェイント";
+			}
+		case ActionCardType.Defense:
+			return "防御";
+		case ActionCardType.Distance:
+			return "見切り";
+		case ActionCardType.RunAway:
+			return "逃走";
+		case ActionCardType.Confuse:
+			return "混乱";
+		default:
+			throw new Exception("Invalid action type: %s".format(cast(int)type));
+		}
+	}
+
 	/// ペナルティカードであればtrue。
 	const
 	bool isPenalty(in string[] keyCodes) { mixin(S_TRACE);
@@ -251,13 +283,13 @@ class System {
 
 	/// 逃走カードであればtrue。
 	const
-	bool isRunaway(in string[] keyCodes) { mixin(S_TRACE);
-		return 0 < keyCodes.find(runaway).length;
+	bool isRunAway(in string[] keyCodes) { mixin(S_TRACE);
+		return 0 < keyCodes.find(runAway).length;
 	}
 	/// 逃走キーコード。
 	@property
 	const
-	string runaway() { return "逃走"; }
+	string runAway() { return "逃走"; }
 
 	private static immutable FKC_SUCCESS = "○";
 	private static immutable FKC_FAILURE = "×";

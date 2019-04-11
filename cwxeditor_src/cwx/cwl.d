@@ -1945,7 +1945,7 @@ private Battle loadBattle(ref RData d, ref ByteIO f, ulong fid) { mixin(S_TRACE)
 		int x = f.readIntL;
 		int y = f.readIntL;
 		bool escape = readBool(f);
-		auto c = new EnemyCard(cId, escape, flag, x, y, scale, LAYER_MENU_CARD, "", -1, false, "", false, []);
+		auto c = new EnemyCard(cId, [ActionCardType.RunAway:escape], flag, x, y, scale, LAYER_MENU_CARD, "", -1, false, "", false, []);
 		foreach (tree; cTrees) { mixin(S_TRACE);
 			c.add(tree);
 		}
@@ -3850,7 +3850,7 @@ private void writeBattle(ref SData d, ref ByteIO f, Battle a) { mixin(S_TRACE);
 		f.writeL(cast(uint)c.scale);
 		f.writeL(cast(int)c.x);
 		f.writeL(cast(int)c.y);
-		writeBool(f, c.escape);
+		writeBool(f, c.actions.get(ActionCardType.RunAway, false));
 	}
 	writeString(f, encodePathLegacy(a.music));
 }

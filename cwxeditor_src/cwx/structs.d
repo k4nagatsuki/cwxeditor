@@ -693,6 +693,7 @@ struct ClassicEngine {
 	string[string] periodName;
 	string[string] natureName;
 	string[string] makingsName;
+	string[ActionCardType] actionCardName;
 
 	int[Physical][Sex] physicalModSex;
 	int[Physical][Period] physicalModPeriod;
@@ -732,6 +733,7 @@ struct ClassicEngine {
 		foreach (key, value; periodName) ce.periodName[key] = value;
 		foreach (key, value; natureName) ce.natureName[key] = value;
 		foreach (key, value; makingsName) ce.makingsName[key] = value;
+		foreach (key, value; actionCardName) ce.actionCardName[key] = value;
 
 		ce.physicalModSex = dupAA!(Physical, Sex, int)(physicalModSex);
 		ce.physicalModPeriod = dupAA!(Physical, Period, int)(physicalModPeriod);
@@ -814,6 +816,13 @@ struct ClassicEngine {
 				ne.newAttr("key", key);
 			}
 		}
+		if (actionCardName.length) { mixin(S_TRACE);
+			auto ee = e.newElement("actionCardName");
+			foreach (key, value; actionCardName) { mixin(S_TRACE);
+				auto ne = ee.newElement("name", value);
+				ne.newAttr("key", cast(int)key);
+			}
+		}
 		putAA!(Physical, Sex, int)(e, "sexPhysical", physicalModSex);
 		putAA!(Physical, Period, int)(e, "periodPhysical", physicalModPeriod);
 		putAA!(Physical, Nature, int)(e, "naturePhysical", physicalModNature);
@@ -869,6 +878,7 @@ struct ClassicEngine {
 		this.natureName = natureName;
 		typeof(this.makingsName) makingsName;
 		this.makingsName = makingsName;
+		actionCardName = null;
 
 		typeof(this.physicalModSex) physicalModSex;
 		this.physicalModSex = physicalModSex;
@@ -925,6 +935,13 @@ struct ClassicEngine {
 			node.onTag["name"] = (ref XNode node) { mixin(S_TRACE);
 				string key = node.attr!string("key", false, null);
 				if (key !is null) makingsName[key] = node.value;
+			};
+			node.parse();
+		};
+		node.onTag["actionCardName"] = (ref XNode node) { mixin(S_TRACE);
+			node.onTag["name"] = (ref XNode node) { mixin(S_TRACE);
+				auto key = node.attr!int("key", true);
+				actionCardName[cast(ActionCardType)key] = node.value;
 			};
 			node.parse();
 		};

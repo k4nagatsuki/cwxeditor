@@ -45,6 +45,14 @@ class XMLOption {
 	const
 	bool isTargetVersion(string ver) { mixin(S_TRACE);
 		return .isTargetVersion(dataVersion, ver);
+	} unittest {
+		debug mixin(UTPerf);
+		auto opt = new XMLOption(null, "3");
+		assert (!opt.isTargetVersion("4"));
+		assert (opt.isTargetVersion("3"));
+		assert (opt.isTargetVersion("2"));
+		assert (opt.isTargetVersion("1"));
+		assert (opt.isTargetVersion(""));
 	}
 }
 
@@ -596,9 +604,11 @@ public:
 		return pNode;
 	}
 	/// 指定されたXMLノードからProperty情報を読み出す。
-	protected void loadProp(ref XNode pNode, in XMLInfo ver) { mixin(S_TRACE);
+	protected void loadProp(ref XNode pNode, in XMLInfo ver, bool loadId = true) { mixin(S_TRACE);
 		string idStr = null;
-		pNode.onTag["Id"] = (ref XNode n) { idStr = n.value; };
+		if (loadId) { mixin(S_TRACE);
+			pNode.onTag["Id"] = (ref XNode n) { idStr = n.value; };
+		}
 		CardImage[] paths;
 		CardImage.setOnTag(pNode, paths, false);
 		_name = null;
@@ -606,9 +616,11 @@ public:
 		pNode.onTag["Description"] = (ref XNode n) {_desc = decodeLf2(n.value);};
 		pNode.parse();
 		this.paths = paths;
-		if (!idStr) throw new CardException("Id not found");
 		if (!_name) _name = "";
-		_id = to!(ulong)(idStr);
+		if (loadId) { mixin(S_TRACE);
+			if (!idStr) throw new CardException("Id not found");
+			_id = to!(ulong)(idStr);
+		}
 	}
 
 	const
@@ -1934,7 +1946,7 @@ public:
 		}
 	}
 	/// 指定されたXMLノードから効果カード関連のデータを読み出す。
-	protected void loadEffProp(ref XNode pNode, in XMLInfo ver) { mixin(S_TRACE);
+	protected void loadEffProp(ref XNode pNode, in XMLInfo ver, bool loadId = true) { mixin(S_TRACE);
 		assert (pNode.name == "Property");
 		pNode.onTag["LinkId"] = (ref XNode n) {linkId = .to!ulong(n.value);};
 		pNode.onTag["Scenario"] = (ref XNode n) {_scenario = n.value;};
@@ -1971,7 +1983,7 @@ public:
 		};
 		pNode.onTag["KeyCodes"] = (ref XNode n) {keyCodes = decodeLf(n.value, true);};
 		pNode.onTag["Premium"] = (ref XNode n) {_premi = toPremium(n.value);};
-		loadProp(pNode, ver);
+		loadProp(pNode, ver, loadId);
 	}
 	/// ditto
 	protected void loadEffV(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
@@ -2918,6 +2930,105 @@ public:
 	inout(CWXPath)[] cwxChilds() {return [];}
 	@property
 	CWXPath cwxParent() {return _owner;}
+}
+
+/// アクションカード。
+class ActionCard : EffectCard {
+private:
+	ActionCardType _actionCardType;
+public:
+	/// アクションカードのXML要素名。
+	static const string XML_NAME = "ActionCard";
+	/// 唯一のコンストラクタ。
+	/// Params:
+	/// name = 名前。
+	/// imagePaths = 画像のパス。
+	/// desc = 解説。
+	this (string name, in CardImage[] imagePaths, string desc) { mixin(S_TRACE);
+		super (0UL, name, imagePaths, desc);
+	}
+
+	/// アクションカードの種類。enum ActionCardTypeのメンバ以外の値を返す場合がある。
+	@property
+	const
+	ActionCardType actionCardType() { mixin(S_TRACE);
+		return _actionCardType;
+	}
+
+	/// cからパラメータをコピーする。
+	void shallowCopy(in ActionCard c) { mixin(S_TRACE);
+		shallowCopyEffectCard(c);
+		copyImpl(c);
+	}
+	/// ditto
+	void deepCopy(in ActionCard c) { mixin(S_TRACE);
+		deepCopyEffectCard(c);
+		copyImpl(c);
+	}
+	private void copyImpl(in ActionCard c) {
+		_actionCardType = c.actionCardType;
+	}
+
+	override
+	bool opEquals(Object o) { mixin(S_TRACE);
+		auto c = cast(const ActionCard) o;
+		if (!c) return false;
+		return eqImpl(c) && super.opEquals(o);
+	}
+	/// ID以外を比較する。
+	const
+	bool equalsExcludeId(const(ActionCard) c) { mixin(S_TRACE);
+		if (!c) return false;
+		return eqImpl(c) && super.equalsExcludeIdEffect(c);
+	}
+	const
+	private bool eqImpl(const(ActionCard) c) { mixin(S_TRACE);
+		return actionCardType == c.actionCardType;
+	}
+
+	@property
+	const
+	override ulong linkId() { throw new Exception("No supported."); }
+	@property
+	override void linkId(ulong linkId) { throw new Exception("No supported."); }
+	protected override void setUseCounterImpl(UseCounter uc) { throw new Exception("No supported."); }
+	protected override void removeUseCounterImpl() { throw new Exception("No supported."); }
+
+	/// コピーを生成する。
+	@property
+	const
+	override
+	ActionCard dup() { mixin(S_TRACE);
+		auto copy = new ActionCard("", [], "");
+		copy.deepCopy(this);
+		return copy;
+	}
+	/// 自身をXMLノードにして指定されたノードに追加する。
+	const
+	override
+	XNode toNode(ref XNode parent, XMLOption opt) { throw new Exception("No supported."); }
+	/// XMLノードからインスタンスを生成する。
+	static ActionCard createFromNode(ref XNode cNode, in XMLInfo ver) { mixin(S_TRACE);
+		if (cNode.name != XML_NAME) throw new CardException("Node is not action card: " ~ cNode.name);
+		auto r = new ActionCard("", [], "");
+		ActionCardType actionCardType = ActionCardType.Exchange;
+		cNode.onTag["Property"] = (ref XNode pNode) { mixin(S_TRACE);
+			pNode.onTag["Id"] = (ref XNode e) { mixin(S_TRACE);
+				actionCardType = cast(ActionCardType)to!int(e.value);
+			};
+			r.loadEffProp(pNode, ver, false);
+		};
+		r.loadEffV(cNode, ver);
+		r._actionCardType = actionCardType;
+		return r;
+	}
+
+	@property
+	string cwxPath(bool id) { throw new Exception("No supported."); }
+	@property
+	CWXPath cwxParent() { throw new Exception("No supported."); }
+	override
+	CWXPath findCWXPath(string path) { throw new Exception("No supported."); }
 }
 
 /// キーコード群のXML要素名。

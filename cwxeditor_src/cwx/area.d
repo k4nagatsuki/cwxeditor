@@ -18,6 +18,7 @@ import std.conv;
 import std.file;
 import std.math;
 import std.string;
+import std.traits;
 
 /// エリア等の所持者を示すインタフェース。
 interface AreaOwner : CWXPath {
@@ -302,7 +303,7 @@ public:
 public class EnemyCard : AbstractSpCard {
 private:
 	Battle _owner = null;
-	bool _escape;
+	bool[ActionCardType] _actions; // Wsn.4
 	CastUser _user;
 	bool _isOverrideName = false;
 	SimpleTextHolder _overrideName;
@@ -315,12 +316,13 @@ public:
 	static immutable XML_NAME_M = "EnemyCards";
 
 	/// 唯一のコンストラクタ。
-	this (ulong id, bool escape, string flag, int x, int y, uint scale, int layer, string cardGroup, int animationSpeed,
+	this (ulong id, in bool[ActionCardType] actions, string flag, int x, int y, uint scale,
+			int layer, string cardGroup, int animationSpeed,
 			bool isOverrideName, string overrideName, bool isOverrideImage, in CardImage[] overrideImages) { mixin(S_TRACE);
 		super(flag, x, y, scale, layer, cardGroup, animationSpeed);
 		_user = new CastUser(this);
 		_user.casts = id;
-		_escape = escape;
+		this.actions = actions;
 		_isOverrideName = isOverrideName;
 		_overrideName = new SimpleTextHolder;
 		_overrideName.changeHandler = &changed;
@@ -339,8 +341,8 @@ public:
 	@property
 	const
 	override
-	AbstractSpCard dup() {
-		auto r = new EnemyCard(id, escape, flag, x, y, scale, layer, cardGroup, animationSpeed,
+	AbstractSpCard dup() { mixin(S_TRACE);
+		auto r = new EnemyCard(id, actions, flag, x, y, scale, layer, cardGroup, animationSpeed,
 			isOverrideName, overrideName, isOverrideImage, overrideImages);
 		r.deepCopyEventTreeOwner(this);
 		return r;
@@ -367,18 +369,42 @@ public:
 		return _owner;
 	}
 
-	/// 逃走するか否か。
+	/// 各種アクションカードを所持するか(Wsn.4)。
 	@property
 	const
-	bool escape() { mixin(S_TRACE);
-		return _escape;
+	const(bool[ActionCardType]) actions() { mixin(S_TRACE);
+		return _actions;
 	}
 	/// ditto
 	@property
-	void escape(bool escape) { mixin(S_TRACE);
-		if (_escape != escape) changed();
-		_escape = escape;
+	void actions(in bool[ActionCardType] actions) { mixin(S_TRACE);
+		bool[ActionCardType] actions2;
+		foreach (type, value; actions) { mixin(S_TRACE);
+			auto defValue = type !is ActionCardType.RunAway;
+			if (defValue != value) { mixin(S_TRACE);
+				actions2[type] = value;
+			}
+		}
+		if (_actions == actions2) return;
+		changed();
+		_actions = null;
+		foreach (key, value; actions2) action(key, value);
 	}
+	/// ditto
+	const
+	bool action(ActionCardType type) { return _actions.get(type, type !is ActionCardType.RunAway); }
+	/// ditto
+	void action(ActionCardType type, bool value) { mixin(S_TRACE);
+		if (action(type) is value) return;
+		changed();
+		auto defValue = type !is ActionCardType.RunAway;
+		if (defValue != value) { mixin(S_TRACE);
+			_actions[type] = value;
+		} else if (type in _actions) { mixin(S_TRACE);
+			_actions.remove(type);
+		}
+	}
+
 	/// キャストID。
 	@property
 	const
@@ -505,7 +531,7 @@ public:
 			cNode.onTag["Property"] = (ref XNode pNode) { mixin(S_TRACE);
 				string idStr = pNode.childText("Id", false);
 				if (idStr) { mixin(S_TRACE);
-					cards ~= new EnemyCard(to!(ulong)(idStr), false, "", 0, 0, 100, LAYER_MENU_CARD, "", -1, false, "", false, []);
+					cards ~= new EnemyCard(to!(ulong)(idStr), (bool[ActionCardType]).init, "", 0, 0, 100, LAYER_MENU_CARD, "", -1, false, "", false, []);
 				}
 			};
 			cNode.parse();
@@ -531,7 +557,6 @@ public:
 	}
 	const
 	private void toNodeImpl(ref XNode e, XMLOption opt) { mixin(S_TRACE);
-		e.newAttr("escape", fromBool(escape));
 		auto pe = e.newElement("Property");
 		pe.newElement("Id", _user.casts);
 		if (isOverrideName || overrideName.length) { mixin(S_TRACE);
@@ -541,6 +566,27 @@ public:
 		if (isOverrideImage || _overrideImages.length) { mixin(S_TRACE);
 			auto cie = CardImage.toNode(pe, _overrideImages, false, true);
 			cie.newAttr("override", fromBool(isOverrideImage));
+		}
+		auto allActions = true;
+		foreach (type, value; actions) { mixin(S_TRACE);
+			if (type is ActionCardType.RunAway) continue;
+			if (value) continue;
+			allActions = false;
+			break;
+		}
+		if (allActions || (opt && !opt.isTargetVersion("4"))) { mixin(S_TRACE);
+			// Wsn.3以前のデータバージョンでは必ずescape属性を生成する
+			e.newAttr("escape", fromBool(actions.get(ActionCardType.RunAway, false)));
+		}
+		if (!allActions) { mixin(S_TRACE);
+			auto ae = pe.newElement("Actions");
+			foreach (type, value; actions) { mixin(S_TRACE);
+				auto defValue = type !is ActionCardType.RunAway;
+				if (value !is defValue) { mixin(S_TRACE);
+					auto ae2 = ae.newElement("Action", fromBool(value));
+					ae2.newAttr("id", cast(int)type);
+				}
+			}
 		}
 		appendProp(pe, opt);
 		appendEventsToNode(e, opt);
@@ -555,7 +601,6 @@ public:
 		bool getId = false;
 
 		long id;
-		bool escape = false;
 		string flag = "";
 		int x = 0, y = 0;
 		uint scale = 100;
@@ -566,10 +611,11 @@ public:
 		string overrideName = "";
 		bool isOverrideImage = false;
 		CardImage[] overrideImages = [];
+		bool[ActionCardType] actions;
 		EventTree[] evt;
 
 		auto escStr = node.attr("escape", false);
-		escape = escStr ? parseBool(escStr) : false;
+		if (escStr && escStr != "") actions[ActionCardType.RunAway] = parseBool(escStr);
 		node.onTag["Property"] = (ref XNode pNode) { mixin(S_TRACE);
 			pNode.onTag["Id"] = (ref XNode n) { mixin(S_TRACE);
 				id = to!(ulong)(n.value);
@@ -580,6 +626,10 @@ public:
 				isOverrideName = n.attr("override", false, false);
 			};
 			CardImage.setOnTag(pNode, overrideImages, isOverrideImage, false);
+			pNode.onTag["Actions"] = (ref XNode n) { mixin(S_TRACE);
+				if (n.name != "Action") return;
+				actions[cast(ActionCardType)(n.attr!int("type", true))] = parseBool(n.text);
+			};
 			loadProp(pNode, flag, x, y, scale, layer, cardGroup, animationSpeed);
 		};
 		node.onTag["Events"] = (ref XNode node) { mixin(S_TRACE);
@@ -587,7 +637,7 @@ public:
 		};
 		node.parse();
 		if (!getId) throw new AreaException("EnemyCard ID not found");
-		auto r = new EnemyCard(id, escape, flag, x, y, scale, layer, cardGroup, animationSpeed,
+		auto r = new EnemyCard(id, actions, flag, x, y, scale, layer, cardGroup, animationSpeed,
 			isOverrideName, overrideName, isOverrideImage, overrideImages);
 		r.addAll(evt);
 
