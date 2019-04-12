@@ -1679,6 +1679,13 @@ class Skin {
 		if (card) return card.name;
 		return _cEngine.actionCardName.get(type, sys.actionCardName(type, legacyName));
 	}
+	/// アクションカードの適性情報を返す。
+	const
+	Aptitude actionCardAptitude(in System sys, ActionCardType type) { mixin(S_TRACE);
+		auto card = actionCard(type);
+		if (card) return Aptitude(card.physical, card.mental);
+		return sys.actionCardAptitude(type);
+	}
 	/// スキンが持つアクションカードの一覧を返す。
 	const
 	const(ActionCardType)[] actionCardTypes() { mixin(S_TRACE);

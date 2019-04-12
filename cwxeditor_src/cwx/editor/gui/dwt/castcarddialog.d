@@ -11,6 +11,7 @@ import cwx.path;
 import cwx.race;
 import cwx.skin;
 import cwx.summary;
+import cwx.system;
 import cwx.types;
 import cwx.types;
 import cwx.utils;
@@ -35,11 +36,13 @@ import cwx.editor.gui.dwt.scales;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 
-import std.algorithm : sort;
+import std.algorithm : max, sort;
 import std.array;
 import std.conv;
 import std.datetime;
+import std.range;
 import std.string;
+import std.typecons;
 
 import org.eclipse.swt.all;
 
@@ -86,7 +89,9 @@ private:
 	Composite _phyParent;
 	RadarSpinner _phyR = null;
 	Scales _phyS = null;
+	Composite _aptP = null;
 	Scale[Mental] _mtl;
+	Composite _aptM = null;
 	Label _sumPhy;
 	int[Enhance] _enhTbl;
 	Composite _enhParent;
@@ -697,12 +702,19 @@ private:
 			sum += val;
 		}
 		_sumPhy.setText(.tryFormat(_prop.msgs.physicalSum, sum));
+
+		foreach (arr; _aptTblP.byValue()) { mixin(S_TRACE);
+			foreach (p; arr) updateAptitude(p);
+		}
 	}
 	void constructPhysical(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout(normalGridLayout(2, false));
+		comp.setLayout(normalGridLayout(_prop.var.etc.showAptitudeOnCastCardEditor ? 2 : 1, false));
+		auto left = new Composite(comp, SWT.NONE);
+		left.setLayout(zeroMarginGridLayout(2, false));
+		left.setLayoutData(new GridData(GridData.FILL_BOTH));
 		{ mixin(S_TRACE);
-			auto grp = new Group(comp, SWT.NONE);
+			auto grp = new Group(left, SWT.NONE);
 			grp.setText(_prop.msgs.physicalParams);
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.horizontalSpan = 2;
@@ -715,20 +727,36 @@ private:
 			initPhysical();
 		}
 		{ mixin(S_TRACE);
-			_sumPhy = new Label(comp, SWT.NONE);
+			_sumPhy = new Label(left, SWT.NONE);
 			_sumPhy.setLayoutData(new GridData(GridData.FILL_HORIZONTAL|GridData.HORIZONTAL_ALIGN_BEGINNING));
 		}
 		{ mixin(S_TRACE);
-			auto basic = new Button(comp, SWT.PUSH);
+			auto basic = new Button(left, SWT.PUSH);
 			mod(basic);
 			basic.setEnabled(!_readOnly);
 			basic.setText(_prop.msgs.physicalCalc);
 			basic.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 			basic.addSelectionListener(new CalcPhysical);
 		}
+		if (_prop.var.etc.showAptitudeOnCastCardEditor) { mixin(S_TRACE);
+			auto grp = new Group(comp, SWT.NONE);
+			grp.setText(_prop.msgs.aptitude);
+			grp.setLayout(normalGridLayout(3, false));
+			grp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
+			_aptP = grp;
+		}
 		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText(_prop.msgs.physicalParams);
 		tab.setControl(comp);
+	}
+	int physicalValue(Physical phy) { mixin(S_TRACE);
+		auto i = cast(int).cCountUntil(PHYSICALS, phy);
+		if (_phyR) { mixin(S_TRACE);
+			return _phyR.getValue(i);
+		} else { mixin(S_TRACE);
+			assert (_phyS);
+			return _phyS.getValue(i);
+		}
 	}
 	real calcPhy(E)(in Skin skin, Physical phy, Button[E] radios, bool all) { mixin(S_TRACE);
 		real r = 0.0;
@@ -788,9 +816,12 @@ private:
 	}
 	void constructMental(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout(normalGridLayout(1, false));
+		comp.setLayout(normalGridLayout(_prop.var.etc.showAptitudeOnCastCardEditor ? 2 : 1, false));
+		auto left = new Composite(comp, SWT.NONE);
+		left.setLayout(zeroMarginGridLayout(1, true));
+		left.setLayoutData(new GridData(GridData.FILL_BOTH));
 		{ mixin(S_TRACE);
-			auto grp = new Group(comp, SWT.NONE);
+			auto grp = new Group(left, SWT.NONE);
 			grp.setText(_prop.msgs.mentalParams);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			auto ggl = normalGridLayout(3, false);
@@ -798,7 +829,7 @@ private:
 			grp.setLayout(ggl);
 			static const Ms = [Mental.AGGRESSIVE, Mental.CHEERFUL, Mental.BRAVE,
 				Mental.CAUTIOUS, Mental.TRICKISH];
-			foreach (m; Ms) { mixin(S_TRACE);
+			void put(Mental m) { mixin(S_TRACE);
 				auto minl = new Label(grp, SWT.NONE);
 				minl.setText(_prop.msgs.mentalName(reverseMental(m)));
 				auto scale = new Scale(grp, SWT.NONE);
@@ -812,19 +843,44 @@ private:
 				auto maxl = new Label(grp, SWT.NONE);
 				maxl.setText(_prop.msgs.mentalName(m));
 				_mtl[m] = scale;
+				.listener(scale, SWT.Selection, { mixin(S_TRACE);
+					auto arr = m in _aptTblM;
+					if (!arr) return;
+					auto skin = summSkin;
+					foreach (p; *arr) updateAptitude(p);
+				});
+			}
+			foreach (m; Ms) { mixin(S_TRACE);
+				put(m);
 			}
 		}
 		{ mixin(S_TRACE);
-			auto basic = new Button(comp, SWT.PUSH);
+			auto basic = new Button(left, SWT.PUSH);
 			mod(basic);
 			basic.setEnabled(!_readOnly);
 			basic.setText(_prop.msgs.mentalCalc);
 			basic.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 			basic.addSelectionListener(new CalcMental);
 		}
+		if (_prop.var.etc.showAptitudeOnCastCardEditor) { mixin(S_TRACE);
+			auto grp = new Group(comp, SWT.NONE);
+			grp.setText(_prop.msgs.aptitude);
+			grp.setLayout(normalGridLayout(3, false));
+			grp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
+			_aptM = grp;
+		}
 		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText(_prop.msgs.mentalParams);
 		tab.setControl(comp);
+	}
+	int mentalValue(Mental mtl) { mixin(S_TRACE);
+		auto p = mtl in _mtl;
+		if (p) { mixin(S_TRACE);
+			return cast(int)p.getSelection() - cast(int)_prop.var.etc.mentalMax;
+		} else { mixin(S_TRACE);
+			mtl = .reverseMental(mtl);
+			return -(cast(int)_mtl[mtl].getSelection() - cast(int)_prop.var.etc.mentalMax);
+		}
 	}
 	real calcMtl(E)(in Skin skin, Mental mtl, Button[E] radios, bool all) { mixin(S_TRACE);
 		real r = 0.0;
@@ -862,6 +918,129 @@ private:
 			}
 		}
 	}
+
+	alias Tuple!(Label, "aptMark", Label, "aptValue", Aptitude, "apt") Apt;
+	Apt[][Physical] _aptTblP;
+	Apt[][Mental] _aptTblM;
+	Image _aptVeryHigh = null;
+	Image _aptHigh = null;
+	Image _aptNormal = null;
+	Image _aptLow = null;
+	void createAptitudes() { mixin(S_TRACE);
+		if (!_prop.var.etc.showAptitudeOnCastCardEditor) return;
+		_aptTblP = null;
+		_aptTblM = null;
+
+		auto skin = summSkin;
+		auto d = getShell().getDisplay();
+		if (_aptVeryHigh) _aptVeryHigh.dispose();
+		_aptVeryHigh = new Image(d, .aptVeryHigh(skin, _prop.drawingScale).scaled(.dpiMuls));
+		if (_aptHigh) _aptHigh.dispose();
+		_aptHigh = new Image(d, .aptHigh(skin, _prop.drawingScale).scaled(.dpiMuls));
+		if (_aptNormal) _aptNormal.dispose();
+		_aptNormal = new Image(d, .aptNormal(skin, _prop.drawingScale).scaled(.dpiMuls));
+		if (_aptLow) _aptLow.dispose();
+		_aptLow = new Image(d, .aptLow(skin, _prop.drawingScale).scaled(.dpiMuls));
+
+		foreach (comp; [_aptP, _aptM]) { mixin(S_TRACE);
+			auto gc = new GC(comp);
+			scope (exit) gc.dispose();
+			auto nMaxW = 0;
+			foreach (i; 0 .. 9 + 1) { mixin(S_TRACE);
+				nMaxW = .max(nMaxW, gc.wTextExtent(.text(i)).x);
+			}
+			GridData gridData(int flag) { mixin(S_TRACE);
+				auto gd = new GridData(flag);
+				gd.grabExcessVerticalSpace = true;
+				return gd;
+			}
+			Label aptVal(Composite comp, int flag) { mixin(S_TRACE);
+				auto aptValue = new Label(comp, SWT.RIGHT);
+				auto gd = gridData(flag);
+				gd.widthHint = aptValue.computeSize(cast(int)(nMaxW * .text(_prop.var.etc.physicalMax + _prop.var.etc.mentalMax).length), SWT.DEFAULT).x;
+				aptValue.setLayoutData(gd);
+				return aptValue;
+			}
+			void putApt(Apt p) { mixin(S_TRACE);
+				auto lp = _aptTblP.get(p.apt.physical, []);
+				lp ~= p;
+				_aptTblP[p.apt.physical] = lp;
+				auto lm = _aptTblM.get(p.apt.mental, []);
+				lm ~= p;
+				_aptTblM[p.apt.mental] = lm;
+			}
+			ActionCardType[] types;
+			auto t1 = skin.actionCardTypes;
+			foreach (t; t1) { mixin(S_TRACE);
+				if (0 <= t) types ~= t;
+			}
+			foreach (t; t1) { mixin(S_TRACE);
+				if (t < 0) types ~= t;
+			}
+			foreach (type; types) { mixin(S_TRACE);
+				auto l = new Label(comp, SWT.NONE);
+				l.setImage(_prop.images.actionCard(type));
+				auto aptMark = new Label(comp, SWT.CENTER);
+				aptMark.setImage(_aptVeryHigh);
+				aptMark.setLayoutData(gridData(GridData.FILL_HORIZONTAL));
+				auto aptValue = aptVal(comp, SWT.NONE);
+				auto apt = skin.actionCardAptitude(_prop.sys, type);
+				auto actName = skin.actionCardName(_prop.sys, type);
+				auto pName = _prop.msgs.physicalName(apt.physical);
+				auto mName = _prop.msgs.mentalName(apt.mental);
+				auto toolTip = .tryFormat(_prop.msgs.aptitudeHint, actName, pName, mName);
+				l.setToolTipText(toolTip);
+				putApt(Apt(aptMark, aptValue, apt));
+			}
+			auto sep = new Label(comp, SWT.SEPARATOR | SWT.HORIZONTAL);
+			auto sgd = gridData(GridData.FILL_HORIZONTAL);
+			sgd.horizontalSpan = 3;
+			sep.setLayoutData(sgd);
+			void put(string text, string desc, Aptitude apt) { mixin(S_TRACE);
+				auto l = new Label(comp, SWT.NONE);
+				l.setText(text);
+				auto lgd = gridData(SWT.NONE);
+				lgd.horizontalSpan = 2;
+				l.setLayoutData(lgd);
+				auto aptValue = aptVal(comp, GridData.FILL_HORIZONTAL);
+				auto pName = _prop.msgs.physicalName(apt.physical);
+				auto mName = _prop.msgs.mentalName(apt.mental);
+				auto toolTip = .tryFormat(_prop.msgs.aptitudeHint, desc, pName, mName);
+				l.setToolTipText(toolTip);
+				putApt(Apt(null, aptValue, apt));
+			}
+			put(_prop.msgs.actionOrder, _prop.msgs.actionOrderDesc, _prop.sys.actionOrderAptitude);
+			put(_prop.msgs.runAwaySpeed, _prop.msgs.runAwaySpeedDesc, _prop.sys.runAwaySpeedAptitude);
+			put(_prop.msgs.resilience, _prop.msgs.resilienceDesc, _prop.sys.resilienceAptitude);
+			put(_prop.msgs.resistance, _prop.msgs.resistanceDesc, _prop.sys.resistanceAptitude);
+			put(_prop.msgs.avoidance, _prop.msgs.avoidanceDesc, _prop.sys.avoidanceAptitude);
+		}
+	}
+	void updateAptitudes() { mixin(S_TRACE);
+		foreach (arr; .chain(_aptTblP.byValue(), _aptTblM.byValue())) { mixin(S_TRACE);
+			foreach (p; arr) { mixin(S_TRACE);
+				updateAptitude(p);
+			}
+		}
+	}
+	void updateAptitude(Apt p) { mixin(S_TRACE);
+		auto val = physicalValue(p.apt.physical) + mentalValue(p.apt.mental);
+		p.aptValue.setText(.text(val));
+		if (p.aptMark) { mixin(S_TRACE);
+			Image img;
+			if (_prop.looks.aptVeryHigh <= val) { mixin(S_TRACE);
+				img = _aptVeryHigh;
+			} else if (_prop.looks.aptHigh <= val) { mixin(S_TRACE);
+				img = _aptHigh;
+			} else if (_prop.looks.aptNormal <= val) { mixin(S_TRACE);
+				img = _aptNormal;
+			} else { mixin(S_TRACE);
+				img = _aptLow;
+			}
+			p.aptMark.setImage(img);
+		}
+	}
+
 	static immutable ENHANCE = [Enhance.AVOID, Enhance.RESIST, Enhance.DEFENSE];
 	void initEnhance() { mixin(S_TRACE);
 		int[] values = [];
@@ -1143,9 +1322,15 @@ private:
 			_comm.delCast.remove(&delCard);
 			_comm.refScenario.remove(&refScenario);
 			_comm.refSkin.remove(&refSkin);
+			_comm.refImageScale.remove(&refSkin);
 			_comm.refDataVersion.remove(&refDataVersion);
 			_comm.refTargetVersion.remove(&refDataVersion);
 			_comm.refCoupons.remove(&updateNature);
+
+			if (_aptVeryHigh) _aptVeryHigh.dispose();
+			if (_aptHigh) _aptHigh.dispose();
+			if (_aptNormal) _aptNormal.dispose();
+			if (_aptLow) _aptLow.dispose();
 		}
 	}
 	void refSkin() { mixin(S_TRACE);
@@ -1155,6 +1340,18 @@ private:
 		refreshNature();
 		refreshMakings();
 		refreshWarning();
+		if (_prop.var.etc.showAptitudeOnCastCardEditor) { mixin(S_TRACE);
+			_aptP.setRedraw(false);
+			scope (exit) _aptP.setRedraw(true);
+			_aptM.setRedraw(false);
+			scope (exit) _aptM.setRedraw(true);
+			foreach (ctrl; _aptP.getChildren()) ctrl.dispose();
+			foreach (ctrl; _aptM.getChildren()) ctrl.dispose();
+			createAptitudes();
+			_aptP.layout();
+			_aptM.layout();
+			updateAptitudes();
+		}
 	}
 	void refDataVersion() { mixin(S_TRACE);
 		refreshWarning();
@@ -1311,6 +1508,7 @@ protected:
 		_comm.delCast.add(&delCard);
 		_comm.refScenario.add(&refScenario);
 		_comm.refSkin.add(&refSkin);
+		_comm.refImageScale.add(&refSkin);
 		_comm.refDataVersion.add(&refDataVersion);
 		_comm.refTargetVersion.add(&refDataVersion);
 		_comm.refCoupons.add(&updateNature);
@@ -1333,6 +1531,8 @@ protected:
 
 		refCard(_card);
 		refDataVersion();
+		createAptitudes();
+		updateAptitudes();
 	}
 	private void refCard(CastCard card) { mixin(S_TRACE);
 		if (_card && _card !is card) return;

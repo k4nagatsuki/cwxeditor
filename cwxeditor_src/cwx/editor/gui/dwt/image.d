@@ -243,6 +243,21 @@ public:
 	@property Image cellNameView() { return imgd!("cell_name_win.png"); }
 	@property Image cardGroupView() { return imgd!("card_group_win.png"); }
 
+	Image actionCard(ActionCardType type) { mixin(S_TRACE);
+		switch (type) {
+		case ActionCardType.Exchange: return imgd!("card_hand.png");
+		case ActionCardType.Attack: return imgd!("hand_attack.png");
+		case ActionCardType.PowerfulAttack: return imgd!("hand_p_attack.png");
+		case ActionCardType.CriticalAttack: return imgd!("hand_c_attack.png");
+		case ActionCardType.Feint: return imgd!("hand_feint.png");
+		case ActionCardType.Defense: return imgd!("hand_defense.png");
+		case ActionCardType.Distance: return imgd!("hand_distance.png");
+		case ActionCardType.RunAway: return imgd!("escape.png");
+		case ActionCardType.Confuse: return imgd!("hand_confuse.png");
+		default: return imgd!("empty.png");
+		}
+	}
+
 	Image content(CType type) { mixin(S_TRACE);
 		final switch (type) {
 		case CType.START: return imgd!("evt_start.png");

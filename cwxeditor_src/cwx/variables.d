@@ -465,6 +465,7 @@ class FlexEtcProps : Properties {
 	auto cautionBeforeReplace = Prop!(bool)("cautionBeforeReplace", false);
 	auto startIncrementalSearchWhenKeyDown = Prop!(bool)("startIncrementalSearchWhenKeyDown", true);
 	auto radarStyleParams = Prop!(bool)("radarStyleParams", true);
+	auto showAptitudeOnCastCardEditor = Prop!(bool, true)("showAptitudeOnCastCardEditor", true);
 	auto showCardListHeader = Prop!(bool)("showCardListHeader", true);
 	auto showCardListTitle = Prop!(bool)("showCardListTitle", true);
 	auto applyDialogsBeforeSave = Prop!(bool)("applyDialogsBeforeSave", true);

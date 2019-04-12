@@ -8,6 +8,7 @@ import cwx.types;
 import std.algorithm;
 import std.conv;
 import std.string;
+import std.typecons;
 import std.path;
 import std.regex;
 
@@ -27,6 +28,9 @@ struct FKeyCode {
 	string keyCode; /// キーコード。
 	FKCKind kind; /// 発火条件。
 }
+
+/// 適性。
+alias Tuple!(Physical, "physical", Mental, "mental") Aptitude;
 
 class System {
 	/// 唯一のコンストラクタ。
@@ -260,6 +264,53 @@ class System {
 			throw new Exception("Invalid action type: %s".format(cast(int)type));
 		}
 	}
+	/// アクションカードの適性。
+	const
+	Aptitude actionCardAptitude(ActionCardType type) { mixin(S_TRACE);
+		switch (type) {
+		case ActionCardType.Exchange:
+			return Aptitude(Physical.INT, Mental.CAUTIOUS);
+		case ActionCardType.Attack:
+			return Aptitude(Physical.STR, Mental.BRAVE);
+		case ActionCardType.PowerfulAttack:
+			return Aptitude(Physical.STR, Mental.AGGRESSIVE);
+		case ActionCardType.CriticalAttack:
+			return Aptitude(Physical.DEX, Mental.BRAVE);
+		case ActionCardType.Feint:
+			return Aptitude(Physical.DEX, Mental.TRICKISH);
+		case ActionCardType.Defense:
+			return Aptitude(Physical.MIN, Mental.CAUTIOUS);
+		case ActionCardType.Distance:
+			return Aptitude(Physical.AGL, Mental.CAUTIOUS);
+		case ActionCardType.RunAway:
+			return Aptitude(Physical.AGL, Mental.UNBRAVE);
+		case ActionCardType.Confuse:
+			return Aptitude(Physical.INT, Mental.UNTRICKISH);
+		default:
+			throw new Exception("Invalid action type: %s".format(cast(int)type));
+		}
+	}
+
+	/// 行動順にかかわる能力。
+	@property
+	const
+	Aptitude actionOrderAptitude() { return Aptitude(Physical.AGL, Mental.UNCAUTIOUS); }
+	/// 逃走成功率にかかわる能力。
+	@property
+	const
+	Aptitude runAwaySpeedAptitude() { return Aptitude(Physical.AGL, Mental.TRICKISH); }
+	/// 毒や麻痺からの回復力にかかわる能力。
+	@property
+	const
+	Aptitude resilienceAptitude() { return Aptitude(Physical.VIT, Mental.AGGRESSIVE); }
+	/// 抵抗にかかわる能力。
+	@property
+	const
+	Aptitude resistanceAptitude() { return Aptitude(Physical.MIN, Mental.BRAVE); }
+	/// 回避にかかわる能力。
+	@property
+	const
+	Aptitude avoidanceAptitude() { return Aptitude(Physical.AGL, Mental.CAUTIOUS); }
 
 	/// ペナルティカードであればtrue。
 	const
