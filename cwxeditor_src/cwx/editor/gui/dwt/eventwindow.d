@@ -253,7 +253,7 @@ public:
 	}
 	@property
 	override
-	void delegate(string) statusText() {return null;}
+	void delegate(string) statusText() { return null; }
 	private void refreshTitle() { mixin(S_TRACE);
 		_comm.setTitle(_win, title);
 		_eview.refreshTitle();

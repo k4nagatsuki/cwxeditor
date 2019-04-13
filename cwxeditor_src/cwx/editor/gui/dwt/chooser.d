@@ -1224,13 +1224,13 @@ class AreaChooser(A, bool StartArea) : Composite {
 				foreach (dirName; .sortDlg(dirSet.toArray(), cmps)) { mixin(S_TRACE);
 					auto dirs = .split(dirName, "\\");
 					TreeItem itm = null;
-					foreach (i, dir; dirs) { mixin (S_TRACE);
+					foreach (i, dir; dirs) { mixin(S_TRACE);
 						auto fPath = dirs[0 .. i + 1].join("\\");
 						auto path = fPath.toLower();
 						auto p = path in itmTable;
-						if (p) { mixin (S_TRACE);
+						if (p) { mixin(S_TRACE);
 							itm = *p;
-						} else { mixin (S_TRACE);
+						} else { mixin(S_TRACE);
 							TreeItem sub;
 							if (itm) {
 								sub = new TreeItem(itm, SWT.NONE);

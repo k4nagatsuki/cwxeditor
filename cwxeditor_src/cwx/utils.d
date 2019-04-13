@@ -1123,7 +1123,7 @@ string lastRet(string text) { mixin(S_TRACE);
 
 /// arrをin-placeでソートして返す。
 T[] sort(alias Cmp, T)(T[] arr) { mixin(S_TRACE);
-	auto dlg = (in T a, in T b) {return Cmp(a, b) < 0;};
+	auto dlg = (in T a, in T b) { return Cmp(a, b) < 0; };
 	return sortDlg!(T, typeof(dlg))(arr, dlg);
 }
 /// ditto
@@ -1131,12 +1131,12 @@ T[] sortDlg(T, Dlg)(T[] arr, Dlg lmin) { mixin(S_TRACE);
 	return std.algorithm.sort!(lmin)(arr).array();
 } unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
-	assert (sortDlg!(int)([8, 1, 4, 6, 5, 3, 2, 9, 7, 0], (in int a, in int b) {return a < b;})
+	assert (sortDlg!(int)([8, 1, 4, 6, 5, 3, 2, 9, 7, 0], (in int a, in int b) { return a < b; })
 		== [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
 	int[] arr = [5, 2, 3, 4, 6, 7, 9, 1, 0, 8];
-	sortDlg!(int)(arr, (in int a, in int b) {return a > b;});
+	sortDlg!(int)(arr, (in int a, in int b) { return a > b; });
 	assert (arr == [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]);
-	assert (sortDlg!(string)(["dd", "Bbb", "Cc", "aa"], (in string a, in string b) {return icmp(a, b) < 0;})
+	assert (sortDlg!(string)(["dd", "Bbb", "Cc", "aa"], (in string a, in string b) { return icmp(a, b) < 0; })
 		== ["aa", "Bbb", "Cc", "dd"]);
 }
 
@@ -1200,7 +1200,7 @@ unittest { mixin(S_TRACE);
 
 /// 文字列型以外の配列であればtrue。
 template isVArray(T) {
-	const bool isVArray = !is (T : string) && !is (T : wstring) && !is (T : dstring)
+	const bool isVArray = !is(T : string) && !is(T : wstring) && !is(T : dstring)
 		&& (isDynamicArray!(T) || isStaticArray!(T));
 }
 
@@ -1264,12 +1264,12 @@ string createNewName(string base, bool delegate(string) use, bool space = true, 
 	return base;
 } unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
-	assert (createNewName("aaa", (string n) {return n != "aaa" && n != "aaa (2)";}, true) == "aaa (3)");
-	assert (createNewName("aaa", (string n) {return n != "aaa" && n != "aaa(2)";}, false) == "aaa(3)");
-	assert (createNewName("aaa (2)", (string n) {return n != "aaa (2)" && n != "aaa (3)";}, true) == "aaa (4)");
-	assert (createNewName("aaa(2)", (string n) {return n != "aaa(2)" && n != "aaa(3)";}, false) == "aaa(4)");
-	assert (createNewName("1-2", (string n) {return n != "1-2" && n != "1-3" && n != "1-4";}, false) == "1-5");
-	assert (createNewName("1 2 0003", (string n) {return n != "1 2 0003" && n != "1 2 0004";}, false) == "1 2 0005");
+	assert (createNewName("aaa", (string n) { return n != "aaa" && n != "aaa (2)"; }, true) == "aaa (3)");
+	assert (createNewName("aaa", (string n) { return n != "aaa" && n != "aaa(2)"; }, false) == "aaa(3)");
+	assert (createNewName("aaa (2)", (string n) { return n != "aaa (2)" && n != "aaa (3)"; }, true) == "aaa (4)");
+	assert (createNewName("aaa(2)", (string n) { return n != "aaa(2)" && n != "aaa(3)"; }, false) == "aaa(4)");
+	assert (createNewName("1-2", (string n) { return n != "1-2" && n != "1-3" && n != "1-4"; }, false) == "1-5");
+	assert (createNewName("1 2 0003", (string n) { return n != "1 2 0003" && n != "1 2 0004"; }, false) == "1 2 0005");
 	assert (createNewName("1-2", (n) => n != "1-2", true, ["1-2"]) == "1-2 (2)");
 	assert (createNewName("1-2", (n) => n != "1-2", true, ["1-3"]) == "1-3");
 	assert (createNewName("1-2", (n) => n != "1-2" && n != "1-3", true, ["1-3"]) == "1-4");
@@ -1480,7 +1480,7 @@ void removeAll(Key, Value)(ref Value[Key] table) { mixin(S_TRACE);
 
 /// Tがソート済みであればtrueを返す。
 bool isSorted(T)(in T[] arr) { mixin(S_TRACE);
-	auto dlg = (in T a, in T b) {return a < b;};
+	auto dlg = (in T a, in T b) { return a < b; };
 	return isSortedDlg!(T, typeof(dlg))(arr, dlg);
 }
 /// ditto
@@ -1880,7 +1880,7 @@ private C[] zfill_(C)(in C[] str, size_t width) { mixin(S_TRACE);
 /// arrからaを除去する。
 T[] remove(string pred = "a == b", T)(ref T[] arr, T a) { mixin(S_TRACE);
 	foreach (i, b; arr) { mixin(S_TRACE);
-		if (mixin (pred)) { mixin(S_TRACE);
+		if (mixin(pred)) { mixin(S_TRACE);
 			return (arr = arr[0 .. i] ~ arr[i + 1 .. $]);
 		}
 	}
@@ -2267,7 +2267,7 @@ bool cfnmatch(in char[] a, in char[] b) { mixin(S_TRACE);
 
 /// Nameを変数名として使用できる場合はtrue。
 template isVariableName(string Name) {
-	immutable isVariableName = is(typeof({mixin("int " ~ Name ~ ";");}));
+	immutable isVariableName = is(typeof({ mixin("int " ~ Name ~ ";"); }));
 }
 static assert (!isVariableName!("version"));
 static assert (isVariableName!("version_"));

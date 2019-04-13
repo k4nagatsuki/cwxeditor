@@ -523,7 +523,7 @@ private:
 	void delA(A a) { mixin(S_TRACE);
 		if (!_summ) return;
 		auto summary = _summ;
-		auto areas = mixin (Areas);
+		auto areas = mixin(Areas);
 		if (!areas.length) { mixin(S_TRACE);
 			forceCancel();
 		}
@@ -1417,7 +1417,7 @@ protected:
 		{ mixin(S_TRACE);
 			auto grp = new Group(area, SWT.NONE);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-			grp.setText(mixin (Name));
+			grp.setText(mixin(Name));
 			auto cl = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
 			cl.fillHorizontal = true;
 			grp.setLayout(cl);
@@ -1472,7 +1472,7 @@ protected:
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_evt) { mixin(S_TRACE);
-			_name.setText(mixin (Get));
+			_name.setText(mixin(Get));
 			if (_expandSPChars) _expandSPChars.setSelection(_evt.expandSPChars);
 		}
 		refDataVersion();
@@ -1481,7 +1481,7 @@ protected:
 	override bool apply() { mixin(S_TRACE);
 		if (!_evt) _evt = new Content(Type, "");
 		string text = _name.getText();
-		mixin (Set);
+		mixin(Set);
 		if (_expandSPChars) _evt.expandSPChars = _expandSPChars.getSelection();
 		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
 			if (CDetail.fromType(Type).use(CArg.GOSSIP)) { mixin(S_TRACE);
@@ -1892,7 +1892,7 @@ public:
 protected:
 	private class PM : SelectionAdapter {
 		private int _v;
-		this (int v) {_v = v;}
+		this (int v) { _v = v; }
 		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			_value.setSelection(_value.getSelection() + _v);
 		}
@@ -1902,14 +1902,14 @@ protected:
 		{ mixin(S_TRACE);
 			auto grp = new Group(area, SWT.NONE);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-			grp.setText(mixin (Name));
+			grp.setText(mixin(Name));
 			grp.setLayout(new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0));
 			auto comp = new Composite(grp, SWT.NONE);
 			_value = new Spinner(comp, SWT.BORDER);
 			initSpinner(_value);
 			mod(_value);
 			_value.setMinimum(Min);
-			_value.setMaximum(mixin (Max));
+			_value.setMaximum(mixin(Max));
 			comp.setLayout(normalGridLayout(10 <= _value.getMaximum() ? 3 : 2, false));
 			if (10 <= _value.getMaximum()) { mixin(S_TRACE);
 				auto tools = new Composite(comp, SWT.NONE);
@@ -1943,7 +1943,7 @@ protected:
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_evt) { mixin(S_TRACE);
-			_value.setSelection(mixin (Get));
+			_value.setSelection(mixin(Get));
 		} else { mixin(S_TRACE);
 			_value.setSelection(Def);
 		}
@@ -1952,7 +1952,7 @@ protected:
 	override bool apply() { mixin(S_TRACE);
 		if (!_evt) _evt = new Content(Type, "");
 		int value = _value.getSelection();
-		mixin (Set);
+		mixin(Set);
 		return true;
 	}
 }
@@ -2362,7 +2362,7 @@ private:
 			} else static assert (0);
 			static if (SelValue) {
 				if (sel < 0) sel = 0;
-				static if (is (F == Step)) {
+				static if (is(F == Step)) {
 					if (sel >= _flag.values.length) sel = cast(int)_flag.values.length - 1;
 				}
 				_values.select(sel);
@@ -2472,11 +2472,11 @@ protected:
 		{ mixin(S_TRACE);
 			auto l1 = new CLabel(left, SWT.NONE);
 			auto l2 = new CLabel(right, SWT.NONE);
-			static if (is (F == cwx.flag.Flag)) {
+			static if (is(F == cwx.flag.Flag)) {
 				l1.setText(_prop.msgs.flag);
 				l1.setImage(_prop.images.flag);
 				l2.setText(_prop.msgs.flagValue);
-			} else static if (is (F == Step)) {
+			} else static if (is(F == Step)) {
 				l1.setText(_prop.msgs.step);
 				l1.setImage(_prop.images.step);
 				l2.setText(_prop.msgs.stepValue);
@@ -2505,13 +2505,13 @@ protected:
 			.listener(_values, SWT.SetData, (e) { mixin(S_TRACE);
 				assert (_flag !is null);
 				auto itm = cast(TableItem)e.item;
-				static if (is (F:cwx.flag.Flag)) {
+				static if (is(F:cwx.flag.Flag)) {
 					if (e.index == 0) { mixin(S_TRACE);
 						itm.setText(_flag.on);
 					} else if (e.index == 1) { mixin(S_TRACE);
 						itm.setText(_flag.off);
 					} else assert (0);
-				} else static if (is (F:Step)) {
+				} else static if (is(F:Step)) {
 					itm.setText(_flag.values[e.index]);
 				} else static assert (0);
 			});
@@ -2546,9 +2546,9 @@ protected:
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_evt) { mixin(S_TRACE);
-			static if (is (F == cwx.flag.Flag)) {
+			static if (is(F == cwx.flag.Flag)) {
 				_flags.selected = _evt.flag;
-			} else static if (is (F == Step)) {
+			} else static if (is(F == Step)) {
 				_flags.selected = _evt.step;
 			} else { mixin(S_TRACE);
 				static assert (0);
@@ -2556,9 +2556,9 @@ protected:
 			_oldSel = _flags.selectedWithDir;
 			refreshValues();
 			static if (SelValue) {
-				static if (is (F == cwx.flag.Flag)) {
+				static if (is(F == cwx.flag.Flag)) {
 					_values.select(_evt.flagValue ? 0 : 1);
-				} else static if (is (F == Step)) {
+				} else static if (is(F == Step)) {
 					_values.select(_evt.stepValue);
 				} else { mixin(S_TRACE);
 					static assert (0);
@@ -2589,12 +2589,12 @@ protected:
 
 	override bool apply() { mixin(S_TRACE);
 		if (!_evt) _evt = new Content(Type, "");
-		static if (is (F == cwx.flag.Flag)) {
+		static if (is(F == cwx.flag.Flag)) {
 			_evt.flag = _flags.selected;
 			static if (SelValue) {
 				_evt.flagValue = _values.getSelectionIndex() == 0;
 			}
-		} else static if (is (F == Step)) {
+		} else static if (is(F == Step)) {
 			_evt.step = _flags.selected;
 			static if (SelValue) {
 				_evt.stepValue = _values.getSelectionIndex() == -1 ? 0 : _values.getSelectionIndex();
@@ -2700,10 +2700,10 @@ protected:
 				l1.setText(_prop.msgs.cmpSource);
 				l2.setText(_prop.msgs.cmpTarget);
 			} else static assert (0);
-			static if (is (F == cwx.flag.Flag)) {
+			static if (is(F == cwx.flag.Flag)) {
 				l1.setImage(_prop.images.flag);
 				l2.setImage(_prop.images.flag);
-			} else static if (is (F == Step)) {
+			} else static if (is(F == Step)) {
 				l1.setImage(_prop.images.step);
 				l2.setImage(_prop.images.step);
 			} else { mixin(S_TRACE);
@@ -2735,10 +2735,10 @@ protected:
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_evt) { mixin(S_TRACE);
-			static if (is (F == cwx.flag.Flag)) {
+			static if (is(F == cwx.flag.Flag)) {
 				_flags1.selected = _evt.flag;
 				_flags2.selected = _evt.flag2;
-			} else static if (is (F == Step)) {
+			} else static if (is(F == Step)) {
 				_flags1.selected = _evt.step;
 				_flags2.selected = _evt.step2;
 			} else { mixin(S_TRACE);
@@ -2762,10 +2762,10 @@ protected:
 
 	override bool apply() { mixin(S_TRACE);
 		if (!_evt) _evt = new Content(Type, "");
-		static if (is (F == cwx.flag.Flag)) {
+		static if (is(F == cwx.flag.Flag)) {
 			_evt.flag = _flags1.selected;
 			_evt.flag2 = _flags2.selected;
-		} else static if (is (F == Step)) {
+		} else static if (is(F == Step)) {
 			_evt.step = _flags1.selected;
 			_evt.step2 = _flags2.selected;
 		} else { mixin(S_TRACE);
@@ -3374,15 +3374,15 @@ private:
 		ulong id = _selectedID;
 		_list.removeAll();
 		size_t i = 0;
-		foreach (c; mixin (Cards)) { mixin(S_TRACE);
+		foreach (c; mixin(Cards)) { mixin(S_TRACE);
 			if (!_incSearch.match(c.name)) continue;
 			auto itm = new TableItem(_list, SWT.NONE);
 			itm.setData(c);
-			static if (is (C == SkillCard)) {
+			static if (is(C == SkillCard)) {
 				itm.setImage(0, _prop.images.skill);
-			} else static if (is (C == ItemCard)) {
+			} else static if (is(C == ItemCard)) {
 				itm.setImage(0, _prop.images.item);
-			} else static if (is (C == BeastCard)) {
+			} else static if (is(C == BeastCard)) {
 				itm.setImage(0, _prop.images.beast);
 			} else { mixin(S_TRACE);
 				static assert (0);
@@ -3405,13 +3405,13 @@ private:
 	}
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-			static if (is (C == SkillCard)) {
+			static if (is(C == SkillCard)) {
 				_comm.refSkill.remove(&refCard);
 				_comm.delSkill.remove(&delCard);
-			} else static if (is (C == ItemCard)) {
+			} else static if (is(C == ItemCard)) {
 				_comm.refItem.remove(&refCard);
 				_comm.delItem.remove(&delCard);
-			} else static if (is (C == BeastCard)) {
+			} else static if (is(C == BeastCard)) {
 				_comm.refBeast.remove(&refCard);
 				_comm.delBeast.remove(&delCard);
 			} else static assert (0);
@@ -3423,7 +3423,7 @@ private:
 	}
 	void delCard(CWXPath owner, C c) { mixin(S_TRACE);
 		if (!summ) return;
-		auto cards = mixin (Cards);
+		auto cards = mixin(Cards);
 		if (cards.length) { mixin(S_TRACE);
 			refreshList();
 		} else { mixin(S_TRACE);
@@ -3557,13 +3557,13 @@ protected:
 			_list.setMenu(menu);
 		}
 		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
-			static if (is (C == SkillCard)) {
+			static if (is(C == SkillCard)) {
 				_comm.refSkill.add(&refCard);
 				_comm.delSkill.add(&delCard);
-			} else static if (is (C == ItemCard)) {
+			} else static if (is(C == ItemCard)) {
 				_comm.refItem.add(&refCard);
 				_comm.delItem.add(&delCard);
-			} else static if (is (C == BeastCard)) {
+			} else static if (is(C == BeastCard)) {
 				_comm.refBeast.add(&refCard);
 				_comm.delBeast.add(&delCard);
 			} else static assert (0);
@@ -3585,11 +3585,11 @@ protected:
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_evt) { mixin(S_TRACE);
-			static if (is (C == SkillCard)) {
+			static if (is(C == SkillCard)) {
 				_selectedID = _evt.skill;
-			} else static if (is (C == ItemCard)) {
+			} else static if (is(C == ItemCard)) {
 				_selectedID = _evt.item;
-			} else static if (is (C == BeastCard)) {
+			} else static if (is(C == BeastCard)) {
 				_selectedID = _evt.beast;
 			} else { mixin(S_TRACE);
 				static assert (0);
@@ -3639,11 +3639,11 @@ protected:
 
 	override bool apply() { mixin(S_TRACE);
 		if (!_evt) _evt = new Content(Type, "");
-		static if (is (C == SkillCard)) {
+		static if (is(C == SkillCard)) {
 			_evt.skill = _selectedID;
-		} else static if (is (C == ItemCard)) {
+		} else static if (is(C == ItemCard)) {
 			_evt.item = _selectedID;
-		} else static if (is (C == BeastCard)) {
+		} else static if (is(C == BeastCard)) {
 			_evt.beast = _selectedID;
 		} else { mixin(S_TRACE);
 			static assert (0);

@@ -165,7 +165,7 @@ private:
 		_comm.refreshToolBar();
 	}
 
-	static if (is (C == MenuCard)) {
+	static if (is(C == MenuCard)) {
 		Text _name;
 		ImageSelect!(MtType.CARD) _imgPath;
 		FixedWidthText!Text _desc;
@@ -181,7 +181,7 @@ private:
 				_name.setToolTipText(toolTip);
 			}
 		}
-	} else static if (is (C == EnemyCard)) {
+	} else static if (is(C == EnemyCard)) {
 		Combo _casts;
 		ulong[] _castIDs;
 		Button[ActionCardType] _actions;
@@ -245,7 +245,7 @@ private:
 	class SDListener : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			_comm.delMenuCard.remove(&delMenuCard);
-			static if (is (C == EnemyCard)) {
+			static if (is(C == EnemyCard)) {
 				_comm.refCast.remove(&refCast);
 				_comm.delCast.remove(&refCast);
 			}
@@ -255,7 +255,7 @@ private:
 			_comm.refPreviewValues.remove(&updateToolTip);
 		}
 	}
-	static if (is (C == EnemyCard)) {
+	static if (is(C == EnemyCard)) {
 		void refCast(CastCard c) { mixin(S_TRACE);
 			refreshCasts();
 		}
@@ -297,10 +297,10 @@ private:
 		}
 	}
 	void refSkin() { mixin(S_TRACE);
-		static if (is (C == MenuCard)) {
+		static if (is(C == MenuCard)) {
 			_desc.font = _prop.looks.cardDescFont(_comm.skin.legacy);
 		}
-		static if (is (C == EnemyCard)) {
+		static if (is(C == EnemyCard)) {
 			_image.redraw();
 		}
 	}
@@ -371,10 +371,10 @@ public:
 		_summ = summ;
 		_card = card;
 		_prop = prop;
-		static if (is (C == MenuCard)) {
+		static if (is(C == MenuCard)) {
 			string text = create ? _prop.msgs.dlgTitNewMenuCard : .tryFormat(_prop.msgs.dlgTitMenuCard, _card.name);
 			auto size = _prop.var.menuCardDlg;
-		} else static if (is (C == EnemyCard)) {
+		} else static if (is(C == EnemyCard)) {
 			auto size = _prop.var.enemyCardDlg;
 			string text;
 			if (_card) { mixin(S_TRACE);
@@ -415,7 +415,7 @@ protected:
 					{ mixin(S_TRACE);
 						auto grp = new Group(comp2, SWT.NONE);
 						grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-						static if (is (C == MenuCard)) {
+						static if (is(C == MenuCard)) {
 							grp.setLayout(normalGridLayout(1, false));
 							grp.setText(_prop.msgs.name);
 							_name = new Text(grp, SWT.BORDER);
@@ -433,7 +433,7 @@ protected:
 							_expandSPChars.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 							.listener(_expandSPChars, SWT.Selection, &refDataVersion);
 							.listener(_expandSPChars, SWT.Selection, &updateToolTip);
-						} else static if (is (C == EnemyCard)) {
+						} else static if (is(C == EnemyCard)) {
 							grp.setLayout(normalGridLayout(1, true));
 							grp.setText(_prop.msgs.enemyCardBase);
 							_casts = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
@@ -520,9 +520,9 @@ protected:
 						_imgPath.widget.setLayoutData(new GridData(GridData.FILL_BOTH));
 					}
 					{ mixin(S_TRACE);
-						static if (is (C == MenuCard)) {
+						static if (is(C == MenuCard)) {
 							createImgPath(comp2);
-						} else static if (is (C == EnemyCard)) {
+						} else static if (is(C == EnemyCard)) {
 							auto grp = new Group(comp2, SWT.NONE);
 							grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 							grp.setLayout(new FillLayout);
@@ -577,9 +577,9 @@ protected:
 						dropT.addDropListener(new EnemyDrop);
 					}
 				}
-				static if (is (C == MenuCard)) {
+				static if (is(C == MenuCard)) {
 					auto grpPar = sash;
-				} else static if (is (C == EnemyCard)) {
+				} else static if (is(C == EnemyCard)) {
 					auto grpPar = new Composite(sash, SWT.NONE);
 					grpPar.setLayout(zeroMarginGridLayout(1, true));
 					{ mixin(S_TRACE);
@@ -648,13 +648,13 @@ protected:
 					_flag = new FlagChooser!(Flag, true)(_comm, _summ, grp);
 					mod(_flag);
 					_flag.setLayoutData(new GridData(GridData.FILL_BOTH));
-					static if (is (C == EnemyCard)) {
+					static if (is(C == EnemyCard)) {
 						grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 					}
 				}
-				static if (is (C == MenuCard)) {
+				static if (is(C == MenuCard)) {
 					.setupWeights(sash, _prop.var.etc.menuCardSashL, _prop.var.etc.menuCardSashR);
-				} else static if (is (C == EnemyCard)) {
+				} else static if (is(C == EnemyCard)) {
 					.setupWeights(sash, _prop.var.etc.enemyCardSashL, _prop.var.etc.enemyCardSashR);
 				} else static assert (0);
 				sash.addDisposeListener(new SDListener);
@@ -690,7 +690,7 @@ protected:
 				_layer = createS(_prop.msgs.layer, _prop.var.etc.layerMax, LAYER_BACK_CELL, .tryFormat(_prop.msgs.layerHint, LAYER_MENU_CARD));
 				_layer.setToolTipText(.tryFormat(_prop.msgs.layerValues, LAYER_BACK_CELL, LAYER_MENU_CARD, LAYER_PLAYER_CARD, LAYER_MESSAGE));
 			}
-			static if (is (C == MenuCard)) {
+			static if (is(C == MenuCard)) {
 				{ mixin(S_TRACE);
 					auto grp = new Group(comp, SWT.NONE);
 					grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -736,7 +736,7 @@ protected:
 		}
 
 		_comm.delMenuCard.add(&delMenuCard);
-		static if (is (C == EnemyCard)) {
+		static if (is(C == EnemyCard)) {
 			_comm.refCast.add(&refCast);
 			_comm.delCast.add(&refCast);
 		}
@@ -747,12 +747,12 @@ protected:
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_card) { mixin(S_TRACE);
-			static if (is (C == MenuCard)) {
+			static if (is(C == MenuCard)) {
 				_imgPath.images = _card.paths;
 				_desc.setText(_card.desc);
 				_name.setText(_card.name);
 				_expandSPChars.setSelection(_card.expandSPChars);
-			} else static if (is (C == EnemyCard)) {
+			} else static if (is(C == EnemyCard)) {
 				if (_summ) { mixin(S_TRACE);
 					assert (_casts.getItemCount());
 					foreach (i, c; _summ.casts) { mixin(S_TRACE);
@@ -787,12 +787,12 @@ protected:
 			_cardGroup.setText(_card.cardGroup);
 			_animationSpeed.speed = _card.animationSpeed;
 		} else { mixin(S_TRACE);
-			static if (is (C == MenuCard)) {
+			static if (is(C == MenuCard)) {
 				_imgPath.images = [];
 				_desc.setText("");
 				_name.setText("");
 				_expandSPChars.setSelection(false);
-			} else static if (is (C == EnemyCard)) {
+			} else static if (is(C == EnemyCard)) {
 				assert (_casts.getItemCount());
 				_casts.select(0);
 				_selectedID = _summ.casts[0].id;
@@ -823,12 +823,12 @@ protected:
 		auto images = _imgPath.materialPath(forceApplying);
 		if (images.cancel) return false;
 		if (_card) { mixin(S_TRACE);
-			static if (is (C == MenuCard)) {
+			static if (is(C == MenuCard)) {
 				_card.paths = images.images;
 				_card.desc = wrapReturnCode(_desc.getText());
 				_card.name = _name.getText();
 				_card.expandSPChars = _expandSPChars.getSelection();
-			} else static if (is (C == EnemyCard)) {
+			} else static if (is(C == EnemyCard)) {
 				_card.id = _selectedID;
 				foreach (type, b; _actions) { mixin(S_TRACE);
 					_card.action(type, b.getSelection());
@@ -853,13 +853,13 @@ protected:
 			}
 			_card.animationSpeed = _animationSpeed.speed;
 		} else { mixin(S_TRACE);
-			static if (is (C == MenuCard)) {
+			static if (is(C == MenuCard)) {
 				_card = new C(_name.getText(), _expandSPChars.getSelection(), images.images,
 					wrapReturnCode(_desc.getText()), _flag.selected,
 					_x.getSelection(), _y.getSelection(),
 					_scale.getSelection(), _layer.getSelection(),
 					_cardGroup.getText(), _animationSpeed.speed);
-			} else static if (is (C == EnemyCard)) {
+			} else static if (is(C == EnemyCard)) {
 				bool[ActionCardType] actions;
 				foreach (type, b; _actions) { mixin(S_TRACE);
 					actions[type] = b.getSelection();
@@ -877,9 +877,9 @@ protected:
 				_comm.refCardGroups.call();
 			}
 		}
-		static if (is (C == MenuCard)) {
+		static if (is(C == MenuCard)) {
 			string text = .tryFormat(_prop.msgs.dlgTitMenuCard, _card.name);
-		} else static if (is (C == EnemyCard)) {
+		} else static if (is(C == EnemyCard)) {
 			auto c = _summ ? _summ.cwCast(_card.id) : null;
 			auto name = c ? c.name : .tryFormat(_prop.msgs.noCast, _card.id);
 			auto text = .tryFormat(_prop.msgs.dlgTitEnemyCard, name);

@@ -88,9 +88,9 @@ public:
 	}
 	@property
 	inout
-	inout(CWXPath)[] cwxChilds() {return [];}
+	inout(CWXPath)[] cwxChilds() { return []; }
 	@property
-	CWXPath cwxParent() {return cast(CWXPath) _owner;}
+	CWXPath cwxParent() { return cast(CWXPath)_owner; }
 
 	/// クーポン名。
 	@property
@@ -163,7 +163,7 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() {return _uc;}
+	UseCounter useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);

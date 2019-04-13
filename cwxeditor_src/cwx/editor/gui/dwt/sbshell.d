@@ -32,9 +32,9 @@ class SBShell {
 		initStatusBar();
 	}
 	@property
-	Shell shell() {return _shl;}
+	Shell shell() { return _shl; }
 	@property
-	Composite contentPane() {return _contentPane;}
+	Composite contentPane() { return _contentPane; }
 
 	version (Windows) {
 		private HWND _hsbar = INVALID_HANDLE_VALUE;

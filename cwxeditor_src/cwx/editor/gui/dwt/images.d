@@ -1885,7 +1885,7 @@ public:
 	/// サイズ・位置固定モードか。
 	@property
 	const
-	bool fixed() {return _fixed;}
+	bool fixed() { return _fixed; }
 	/// ditto
 	@property
 	void fixed(bool value) { mixin(S_TRACE);
@@ -2402,16 +2402,16 @@ private:
 				}, false);
 			} break;
 			case SWT.ESC: { mixin(S_TRACE);
-				redrawProcMove((FlexImage img) {img.reset();}, false);
+				redrawProcMove((FlexImage img) { img.reset(); }, false);
 			} break;
 			case SWT.CR: { mixin(S_TRACE);
-				redrawProc((FlexImage img) {img.resize();}, true);
+				redrawProc((FlexImage img) { img.resize(); }, true);
 			} break;
 			default: { mixin(S_TRACE);
 				if (.isEnterKey(ke.keyCode)) { mixin(S_TRACE);
-					redrawProc((FlexImage img) {img.resize();}, true);
+					redrawProc((FlexImage img) { img.resize(); }, true);
 				} else if (ke.character == ' ') { mixin(S_TRACE);
-					redrawProc((FlexImage img) {img.resize();}, true);
+					redrawProc((FlexImage img) { img.resize(); }, true);
 				}
 			} break;
 			}
@@ -2851,7 +2851,7 @@ private:
 		override void handleEvent(Event me) { mixin(S_TRACE);
 			dragTgl = Toggle.NONE;
 			resetGrid();
-			redrawProc((FlexImage img) {img.resize();}, true);
+			redrawProc((FlexImage img) { img.resize(); }, true);
 		}
 	}
 	class MouseUp : Listener {
@@ -3270,16 +3270,16 @@ private:
 	private Color _backColor = null;
 	private Color _gridColor = null, _gridHighlightColor = null;
 public:
-	void setBackgroundColor2(Color backColor) {_backColor = backColor;}
-	Color getBackgroundColor2() {return _backColor;}
+	void setBackgroundColor2(Color backColor) { _backColor = backColor; }
+	Color getBackgroundColor2() { return _backColor; }
 	@property
-	void gridColor(Color v) {_gridColor = v;}
+	void gridColor(Color v) { _gridColor = v; }
 	@property
-	Color gridColor() {return _gridColor;}
+	Color gridColor() { return _gridColor; }
 	@property
-	void gridHighlightColor(Color v) {_gridHighlightColor = v;}
+	void gridHighlightColor(Color v) { _gridHighlightColor = v; }
 	@property
-	Color gridHighlightColor() {return _gridHighlightColor;}
+	Color gridHighlightColor() { return _gridHighlightColor; }
 
 	@property
 	void drawXORSelectionLine(bool v) { mixin(S_TRACE);

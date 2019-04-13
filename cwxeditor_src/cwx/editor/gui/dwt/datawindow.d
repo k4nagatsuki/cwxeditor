@@ -194,7 +194,7 @@ public:
 	}
 	@property
 	override
-	Composite shell() {return _win;}
+	Composite shell() { return _win; }
 
 	static if (UseArea) {
 		@property
@@ -382,7 +382,7 @@ public:
 	}
 	@property
 	override
-	void delegate(string) statusText() {return null;}
+	void delegate(string) statusText() { return null; }
 
 	private void refreshTitle() { mixin(S_TRACE);
 		if (!_win || _win.isDisposed()) return;

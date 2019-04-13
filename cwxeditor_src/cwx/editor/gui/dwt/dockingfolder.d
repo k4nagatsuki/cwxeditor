@@ -243,10 +243,10 @@ class DockingFolder(TabF, int Style) {
 	}
 	/// 全てのペインを返す。
 	@property
-	Composite[] panes() {return cast(Composite[]) _tabfList;}
+	Composite[] panes() { return cast(Composite[]) _tabfList; }
 	/// ditto
 	@property
-	string[] paneKeys() {return _tKeys.keys;}
+	string[] paneKeys() { return _tKeys.keys; }
 	/// keyに該当するペインを返す。
 	/// 存在しない場合はnullを返す。
 	Composite pane(string key) { mixin(S_TRACE);
@@ -295,9 +295,9 @@ class DockingFolder(TabF, int Style) {
 	}
 	/// 全てのControlを返す。
 	@property
-	Control[] allControls() {return _ctrls.keys;}
+	Control[] allControls() { return _ctrls.keys; }
 	/// ditto
-	string[] controlKeys() {return _keys.keys;}
+	string[] controlKeys() { return _keys.keys; }
 	/// 指定されたペインに含まれるControlの一覧。
 	Control[] controls(string key) { mixin(S_TRACE);
 		auto tabf = cast(TabF) pane(key);
@@ -388,14 +388,14 @@ class DockingFolder(TabF, int Style) {
 	}
 	/// 最も古いペイン。
 	@property
-	Composite first() {return panes[0];}
+	Composite first() { return panes[0]; }
 	/// ditto
 	@property
-	string firstKey() {return _tabfs[cast(TabF) first];}
+	string firstKey() { return _tabfs[cast(TabF) first]; }
 	/// 全てのペインの親となるComposite。
 	/// paneを指定した場合、サブウィンドウのどれかになる可能性もある。
 	@property
-	Composite area() {return _comp;}
+	Composite area() { return _comp; }
 	private Composite getArea(Control c) { mixin(S_TRACE);
 		auto shell = c.getShell();
 		return shell is _area.getShell() ? _area : _subAreas[shell];
@@ -1226,7 +1226,7 @@ class DockingFolder(TabF, int Style) {
 	}
 	private class DSL : DragSourceListener {
 		private TabF _tabf;
-		this (TabF tabf) {_tabf = tabf;}
+		this (TabF tabf) { _tabf = tabf; }
 		override void dragStart(DragSourceEvent e) { mixin(S_TRACE);
 			e.doit = false;
 			auto itm = _tabf.getItem(new Point(e.x, e.y));

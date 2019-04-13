@@ -338,7 +338,7 @@ protected:
 			.listener(_dirRef, SWT.Selection, { mixin(S_TRACE);
 				selectDir(_prop, _dir, _prop.msgs.newClassicDir, _prop.msgs.newClassicDirDesc, _dir.getText());
 			});
-			_dirOpen = createOpenButton(_comm, grp, {return _prop.toAppAbs(_dir.getText());}, true);
+			_dirOpen = createOpenButton(_comm, grp, { return _prop.toAppAbs(_dir.getText()); }, true);
 
 			_createScDir = new Button(grp, SWT.CHECK);
 			_createScDir.setText(_prop.msgs.createScenarioNameDir);
@@ -503,10 +503,10 @@ class ErrorDialog : AbsDialog {
 		auto size = new class DSize {
 			void width(int v) {}
 			void height(int v) {}
-			int width() {return 600.ppis;}
-			int height() {return 400.ppis;}
+			int width() { return 600.ppis; }
+			int height() { return 400.ppis; }
 		};
-		auto info = ButtonInfo(prop.msgs.shutdown, {core.stdc.stdlib.exit(0);});
+		auto info = ButtonInfo(prop.msgs.shutdown, { core.stdc.stdlib.exit(0); });
 		super (prop, shell, false, prop.msgs.dlgTitError, shell.getImage(), true, size, false, false, [info]);
 		_comm = comm;
 		_prop = prop;

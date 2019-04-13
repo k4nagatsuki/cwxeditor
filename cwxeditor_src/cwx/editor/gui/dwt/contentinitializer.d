@@ -344,7 +344,7 @@ class ContentInitialValueEditor : TCPD {
 					auto c = Content.createFromNode(node, null, false);
 					if (c) cs ~= c;
 				}
-			} catch (Exception e) { mixin (S_TRACE);
+			} catch (Exception e) { mixin(S_TRACE);
 				printStackTrace();
 				debugln(e);
 			}

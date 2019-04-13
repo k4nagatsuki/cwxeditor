@@ -137,7 +137,7 @@ private:
 		assert (0);
 	}
 	@property
-	public Card[] cards() {return cardsFrom(_cardType, owner);}
+	public Card[] cards() { return cardsFrom(_cardType, owner); }
 	@property
 	private Card[] cardsNarrow() { mixin(S_TRACE);
 		if (_owner) { mixin(S_TRACE);
@@ -226,9 +226,9 @@ private:
 	}
 	@property
 	inout
-	private inout(Card)[] pOwnerCards() {return cardsFrom(_cardType, _summ);}
+	private inout(Card)[] pOwnerCards() { return cardsFrom(_cardType, _summ); }
 	inout
-	private inout(Card) pOwnerCard(ulong id) {return cardFrom(_summ, _cardType, id);}
+	private inout(Card) pOwnerCard(ulong id) { return cardFrom(_summ, _cardType, id); }
 
 	@property
 	const
@@ -3036,7 +3036,7 @@ public:
 		return _list;
 	}
 	@property
-	string statusLine() {return _statusLine;}
+	string statusLine() { return _statusLine; }
 	@property
 	const
 	CardType cardType() { return _cardType; }

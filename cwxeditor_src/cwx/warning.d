@@ -143,6 +143,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (eventTree.fireEveryRound && !prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
 			r ~= prop.msgs.warningEveryRound;
 		}
+		if (eventTree.fireRoundEnd && !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
+			r ~= prop.msgs.warningRoundEnd;
+		}
 		if (eventTree.fireRound0 && !prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
 			r ~= prop.msgs.warningRound0;
 		}

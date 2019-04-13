@@ -251,19 +251,19 @@ private:
 		selectFile(_wallpaper, filterName, filter, _prop.var.etc.wallpaper, _prop.msgs.dlgTitWallpaper, getcwd());
 	}
 	class SelEngine : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {selectEngine();}
+		override void widgetSelected(SelectionEvent e) { selectEngine(); }
 	}
 	class SelTemp : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {selectTemp();}
+		override void widgetSelected(SelectionEvent e) { selectTemp(); }
 	}
 	class SelBackup : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {selectBackup();}
+		override void widgetSelected(SelectionEvent e) { selectBackup(); }
 	}
 	class SelBackupBeforeSave : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {selectBackupBeforeSave();}
+		override void widgetSelected(SelectionEvent e) { selectBackupBeforeSave(); }
 	}
 	class SelWallpaper : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {selectWallpaper();}
+		override void widgetSelected(SelectionEvent e) { selectWallpaper(); }
 	}
 	class SelSysSound : SelectionAdapter {
 		private Text _text;
@@ -2072,8 +2072,8 @@ private:
 			selected();
 			_applyEnabled();
 		}
-		override void undo() {impl();}
-		override void redo() {impl();}
+		override void undo() { impl(); }
+		override void redo() { impl(); }
 		override void dispose() { mixin(S_TRACE);
 			// Nothing
 		}
@@ -2174,8 +2174,8 @@ private:
 				_featureName.showSelection();
 				_comm.refreshToolBar();
 			}
-			void undo() {impl();}
-			void redo() {impl();}
+			void undo() { impl(); }
+			void redo() { impl(); }
 			override void dispose() { mixin(S_TRACE);
 				// Nothing
 			}
@@ -2615,7 +2615,7 @@ private:
 		}
 	}
 	/// ここでfalseを返した場合は不正なデータと見做す。現在未使用。
-	bool checkData() {return true;}
+	bool checkData() { return true; }
 	void refUndoMax() { mixin(S_TRACE);
 		_undo.max = _prop.var.etc.undoMaxEtc;
 	}
@@ -3162,8 +3162,8 @@ public:
 			});
 
 			auto menu = new Menu(_list);
-			createMenuItem(_comm, menu, MenuID.Undo, {_undo.undo();}, &_undo.canUndo);
-			createMenuItem(_comm, menu, MenuID.Redo, {_undo.redo();}, &_undo.canRedo);
+			createMenuItem(_comm, menu, MenuID.Undo, { _undo.undo(); }, &_undo.canUndo);
+			createMenuItem(_comm, menu, MenuID.Redo, { _undo.redo(); }, &_undo.canRedo);
 			new MenuItem(menu, SWT.SEPARATOR);
 			bool canUp() { mixin(S_TRACE);
 				return _list.getSelectionIndex() != -1 && 0 < _list.getSelectionIndex();

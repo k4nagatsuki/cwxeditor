@@ -533,15 +533,15 @@ public:
 		create(CardType.Info);
 	}
 	@property
-	bool canCreateCast() {return editMode && CardType.Cast in _paneTbl;}
+	bool canCreateCast() { return editMode && CardType.Cast in _paneTbl; }
 	@property
-	bool canCreateSkill() {return editMode && CardType.Skill in _paneTbl;}
+	bool canCreateSkill() { return editMode && CardType.Skill in _paneTbl; }
 	@property
-	bool canCreateItem() {return editMode && CardType.Item in _paneTbl;}
+	bool canCreateItem() { return editMode && CardType.Item in _paneTbl; }
 	@property
-	bool canCreateBeast() {return editMode && CardType.Beast in _paneTbl;}
+	bool canCreateBeast() { return editMode && CardType.Beast in _paneTbl; }
 	@property
-	bool canCreateInfo() {return editMode && CardType.Info in _paneTbl;}
+	bool canCreateInfo() { return editMode && CardType.Info in _paneTbl; }
 	@property
 	private bool isViewLife() { mixin(S_TRACE);
 		return _viewMode == CViewMode.LIFE;
@@ -732,7 +732,7 @@ public:
 	}
 	@property
 	override
-	void delegate(string) statusText() {return null;}
+	void delegate(string) statusText() { return null; }
 
 	void refreshTitle() { mixin(S_TRACE);
 		if (_win && !_win.isDisposed()) _comm.setTitle(shell, title);

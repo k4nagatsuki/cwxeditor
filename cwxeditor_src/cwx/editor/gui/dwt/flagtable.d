@@ -1315,8 +1315,8 @@ package class UndoAllVariables : FTVUndo {
 		comm.refFlagAndStep.call(_root.allFlags, _root.allSteps, _root.allVariants);
 		comm.openFlagWin(false).dirs.refresh();
 	}
-	override void undo() {impl();}
-	override void redo() {impl();}
+	override void undo() { impl(); }
+	override void redo() { impl(); }
 	override void dispose() {}
 }
 package class UndoEditN {
@@ -1474,8 +1474,8 @@ package class UndoEdit : FTVUndo {
 			v.refresh();
 		}
 	}
-	override void undo() {impl();}
-	override void redo() {impl();}
+	override void undo() { impl(); }
+	override void redo() { impl(); }
 	override void dispose() {}
 }
 package class UndoInsertDelete : FTVUndo {
@@ -2220,7 +2220,7 @@ private:
 				if (pasteImpl(node)) { mixin(S_TRACE);
 					e.detail = DND.DROP_COPY;
 				}
-			} catch (Exception e) { mixin (S_TRACE);
+			} catch (Exception e) { mixin(S_TRACE);
 				printStackTrace();
 				debugln(e);
 			}

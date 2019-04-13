@@ -288,7 +288,7 @@ abstract class TopLevelPanel {
 	}
 	private string _status = "";
 	@property
-	string statusLine() {return _status;}
+	string statusLine() { return _status; }
 	@property
 	void statusLine(string statusLine) { mixin(S_TRACE);
 		_status = statusLine;
@@ -499,11 +499,11 @@ class Commons {
 
 	@property
 	inout
-	inout(Props) prop() {return _prop;}
+	inout(Props) prop() { return _prop; }
 
 	@property
 	inout
-	inout(FileSync) sync() {return _sync;}
+	inout(FileSync) sync() { return _sync; }
 
 	void dispose() { mixin(S_TRACE);
 		if (_wallpaper) _wallpaper.dispose();
@@ -694,13 +694,13 @@ class Commons {
 	}
 
 	@property
-	MainWindow mainWin() {return _main;}
+	MainWindow mainWin() { return _main; }
 	@property
-	Shell mainShell() {return _main.shell.getShell();}
+	Shell mainShell() { return _main.shell.getShell(); }
 	/// Clipboard#dispose()で異常が発生するため、
 	/// 新規生成は避け、常にこの唯一のインスタンスを使用する。
 	@property
-	ClipData clipboard() {return _clipboard;}
+	ClipData clipboard() { return _clipboard; }
 
 	@property
 	Summary summary() { mixin(S_TRACE);
@@ -740,11 +740,11 @@ class Commons {
 	private Skin _skin;
 	/// 現在のスキン。
 	@property
-	void skin(Skin skin) {_skin = skin;}
+	void skin(Skin skin) { _skin = skin; }
 	/// ditto
 	@property
 	inout
-	inout(Skin) skin() {return _skin;}
+	inout(Skin) skin() { return _skin; }
 	/// 履歴を見て適用するべきスキンを探す。
 	Skin findSkinFromHistory(in Summary summ) { mixin(S_TRACE);
 		OpenHistory hist;
@@ -827,7 +827,7 @@ class Commons {
 	private Window openImpl2(string Pane, Window, Main, string Etc, Args ...)(Main m, bool shellActivate, Args args) { mixin(S_TRACE);
 		auto w = new Window(args);
 		(cast(TLPData) w.shell.getData()).main = m;
-		static if (Etc.length) mixin (Etc);
+		static if (Etc.length) mixin(Etc);
 		open(w, Pane);
 		return w;
 	}
@@ -1422,7 +1422,7 @@ class Commons {
 
 	private Image _wallpaper = null;
 	@property
-	Image wallpaper() {return _wallpaper;}
+	Image wallpaper() { return _wallpaper; }
 	void refreshWallpaper(Props prop) { mixin(S_TRACE);
 		try { mixin(S_TRACE);
 			string w = prop.var.etc.wallpaper;

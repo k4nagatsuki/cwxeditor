@@ -131,7 +131,7 @@ private:
 	RadarSpinner _useModR;
 	Scales _useModS;
 	size_t[Enhance] _useModTbl;
-	static if (is (C == ItemCard)) {
+	static if (is(C == ItemCard)) {
 		Composite _hasModParent;
 		RadarSpinner _hasModR;
 		Scales _hasModS;
@@ -380,7 +380,7 @@ private:
 		auto top = new Composite(comp, SWT.NONE);
 		top.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		top.setLayout(zeroMarginGridLayout(2, false));
-		static if (is (C == SkillCard)) {
+		static if (is(C == SkillCard)) {
 			{ mixin(S_TRACE);
 				auto grp = new Group(top, SWT.NONE);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -396,7 +396,7 @@ private:
 				auto l = new Label(comp2, SWT.NONE);
 				l.setText(.tryFormat(_prop.msgs.rangeHint, 0, _prop.var.etc.skillLevelMax));
 			}
-		} else static if (is (C == ItemCard) || is (C == BeastCard)) {
+		} else static if (is(C == ItemCard) || is(C == BeastCard)) {
 			{ mixin(S_TRACE);
 				auto grp = new Group(top, SWT.NONE);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -454,20 +454,20 @@ private:
 			grp.setText(_prop.msgs.price);
 			auto comp2 = new Composite(grp, SWT.NONE);
 			comp2.setLayout(normalGridLayout(2, false));
-			static if (is (C == SkillCard) || is (C == BeastCard)) {
+			static if (is(C == SkillCard) || is(C == BeastCard)) {
 				_price = new Spinner(comp2, SWT.BORDER | SWT.READ_ONLY);
 				initSpinner(_price);
 				_price.setMaximum(_prop.var.etc.priceMax);
-				static if (is (C == SkillCard)) {
+				static if (is(C == SkillCard)) {
 					new SpinnerEdit(_level, &calcPrice, &calcPrice, &priceCancel);
-				} else static if (is (C == BeastCard)) {
+				} else static if (is(C == BeastCard)) {
 					new SpinnerEdit(_useCount, &calcPrice, &calcPrice, &priceCancel);
 				} else { mixin(S_TRACE);
 					static assert (0);
 				}
 				auto l = new Label(comp2, SWT.NONE);
 				l.setText(_prop.msgs.priceAuto);
-			} else static if (is (C == ItemCard)) {
+			} else static if (is(C == ItemCard)) {
 				_price = new Spinner(comp2, SWT.BORDER | _readOnly);
 				initSpinner(_price);
 				mod(_price);
@@ -522,9 +522,9 @@ private:
 		}
 
 		auto tab = new CTabItem(tabf, SWT.NONE);
-		static if (is (C == SkillCard)) {
+		static if (is(C == SkillCard)) {
 			tab.setText(_prop.msgs.levelAndDesc);
-		} else static if (is (C == ItemCard) || is (C == BeastCard)) {
+		} else static if (is(C == ItemCard) || is(C == BeastCard)) {
 			tab.setText(_prop.msgs.useCountAndDesc);
 		}
 		tab.setControl(comp);
@@ -607,7 +607,7 @@ private:
 		tab.setControl(comp);
 		return tab;
 	}
-	static if (is (C == ItemCard)) {
+	static if (is(C == ItemCard)) {
 		void initHasMod() { mixin(S_TRACE);
 			createMod(_hasModParent, _hasModTbl, _hasModR, _hasModS);
 		}
@@ -878,15 +878,15 @@ public:
 		if (_readOnly || !_summ || _summ.scenarioPath == "") { mixin(S_TRACE);
 			_summSkin = findSkin(_comm, _prop, _summ);
 		}
-		static if (is (C == SkillCard)) {
+		static if (is(C == SkillCard)) {
 			string text = _card ? .tryFormat(_prop.msgs.dlgTitSkill, _card.name) : _prop.msgs.dlgTitNewSkill;
 			auto img = _prop.images.skill;
 			auto size = _prop.var.skillCardDlg;
-		} else static if (is (C == ItemCard)) {
+		} else static if (is(C == ItemCard)) {
 			string text = _card ? .tryFormat(_prop.msgs.dlgTitItem, _card.name) : _prop.msgs.dlgTitNewItem;
 			auto img = _prop.images.item;
 			auto size = _prop.var.itemCardDlg;
-		} else static if (is (C == BeastCard)) {
+		} else static if (is(C == BeastCard)) {
 			string text = _card ? .tryFormat(_prop.msgs.dlgTitBeast, _card.name) : _prop.msgs.dlgTitNewBeast;
 			auto img = _prop.images.beast;
 			auto size = _prop.var.beastCardDlg;
@@ -919,7 +919,7 @@ protected:
 		constructDesc(tabf);
 		constructApt(tabf);
 		constructUseModify(tabf);
-		static if (is (C == ItemCard)) {
+		static if (is(C == ItemCard)) {
 			constructHaveModify(tabf);
 		}
 		constructMotion(tabf);
@@ -981,10 +981,10 @@ protected:
 			_res[_card.resist].setSelection(true);
 			_ability.physical = _card.physical;
 			_ability.mental = _card.mental;
-			static if (is (C == SkillCard)) {
+			static if (is(C == SkillCard)) {
 				_level.setSelection(_card.level);
 			}
-			static if (is (C == ItemCard)) {
+			static if (is(C == ItemCard)) {
 				_useCount.setSelection(_card.useLimitMax);
 				static if (SetUseCountCur) {
 					_useCountCur.setSelection(_card.useLimit);
@@ -992,7 +992,7 @@ protected:
 					_useCountCur.setEnabled(!_readOnly && !_useCountIsMax.getSelection());
 					updateUseLimitMax();
 				}
-			} else static if (is (C == BeastCard)) {
+			} else static if (is(C == BeastCard)) {
 				auto ssi = cast(int).cCountUntil(_showStyles, _card.showStyle);
 				_showStyle.select(ssi == -1 ? 0 : ssi);
 				_useCount.setSelection(_card.useLimit);
@@ -1009,7 +1009,7 @@ protected:
 				}
 				_removeWithUncons.setSelection(_card.removeWithUnconscious);
 			}
-			static if (is (C == ItemCard)) {
+			static if (is(C == ItemCard)) {
 				_price.setSelection(_card.price);
 			}
 			_motions.motions = _card.motions;
@@ -1020,7 +1020,7 @@ protected:
 					_useModS.setValue(index, _card.enhance(e));
 				}
 			}
-			static if (is (C == ItemCard)) {
+			static if (is(C == ItemCard)) {
 				foreach (e, index; _hasModTbl) { mixin(S_TRACE);
 					if (_hasModR) { mixin(S_TRACE);
 						_hasModR.setValue(index, _card.enhanceOwner(e));
@@ -1050,7 +1050,7 @@ protected:
 			_author.setText(_summ.author);
 			_effTyp[EffectType.PHYSIC].setSelection(true);
 			_res[Resist.AVOID].setSelection(true);
-			static if (is (C == SkillCard)) {
+			static if (is(C == SkillCard)) {
 				_level.setSelection(1);
 			}
 			foreach (e, index; _useModTbl) { mixin(S_TRACE);
@@ -1060,7 +1060,7 @@ protected:
 					_useModS.setValue(index, 0);
 				}
 			}
-			static if (is (C == ItemCard)) {
+			static if (is(C == ItemCard)) {
 				foreach (e, index; _hasModTbl) { mixin(S_TRACE);
 					if (_hasModR) { mixin(S_TRACE);
 						_hasModR.setValue(index, 0);
@@ -1085,9 +1085,9 @@ protected:
 			_se1.path = "";
 			_se2.path = "";
 		}
-		static if (is (C == SkillCard)) {
+		static if (is(C == SkillCard)) {
 			calcPrice(_level.getSelection());
-		} else static if (is (C == BeastCard)) {
+		} else static if (is(C == BeastCard)) {
 			calcPrice(_useCount.getSelection());
 		}
 	}
@@ -1115,23 +1115,23 @@ protected:
 		putRadioValue!(Resist)(_res, &_card.resist);
 		_card.physical = _ability.physical;
 		_card.mental = _ability.mental;
-		static if (is (C == SkillCard)) {
+		static if (is(C == SkillCard)) {
 			_card.level = _level.getSelection();
 		}
-		static if (is (C == ItemCard)) {
+		static if (is(C == ItemCard)) {
 			_card.useLimitMax = _useCount.getSelection();
 			static if (SetUseCountCur) {
 				_card.useLimit = _useCountCur.getSelection();
 			} else { mixin(S_TRACE);
 				_card.useLimit = _card.useLimitMax;
 			}
-		} else static if (is (C == BeastCard)) {
+		} else static if (is(C == BeastCard)) {
 			_card.showStyle = _showStyles[_showStyle.getSelectionIndex()];
 			_card.useLimit = _useCount.getSelection();
 			_card.invocationCondition = invokeCond;
 			_card.removeWithUnconscious = _removeWithUncons.getSelection();
 		}
-		static if (is (C == ItemCard)) {
+		static if (is(C == ItemCard)) {
 			_card.price = _price.getSelection();
 		}
 		_card.motions = _motions.motions;
@@ -1142,7 +1142,7 @@ protected:
 				_card.enhance(e, _useModS.getValue(index));
 			}
 		}
-		static if (is (C == ItemCard)) {
+		static if (is(C == ItemCard)) {
 			foreach (e, index; _hasModTbl) { mixin(S_TRACE);
 				if (_hasModR) { mixin(S_TRACE);
 					_card.enhanceOwner(e, _hasModR.getValue(index));
@@ -1168,11 +1168,11 @@ protected:
 
 		_comm.refKeyCodes.call();
 
-		static if (is (C == SkillCard)) {
+		static if (is(C == SkillCard)) {
 			string text = .tryFormat(_prop.msgs.dlgTitSkill, _card.name);
-		} else static if (is (C == ItemCard)) {
+		} else static if (is(C == ItemCard)) {
 			string text = .tryFormat(_prop.msgs.dlgTitItem, _card.name);
-		} else static if (is (C == BeastCard)) {
+		} else static if (is(C == BeastCard)) {
 			string text = .tryFormat(_prop.msgs.dlgTitBeast, _card.name);
 		} else { mixin(S_TRACE);
 			static assert (0);

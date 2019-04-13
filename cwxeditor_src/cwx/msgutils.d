@@ -505,7 +505,7 @@ string wrapMsg(string text, size_t width, size_t delegate(string) getWidth,
 	colors = colors2;
 	return std.array.join(lines, "\n");
 } unittest { mixin(S_TRACE);
-	mixin (UTPerf);
+	mixin(UTPerf);
 	size_t width(string s) { mixin(S_TRACE);
 		size_t w = 0;
 		foreach (dchar c; s) w += c <= 256 ? 1 : 2;
@@ -751,7 +751,7 @@ private size_t slicePos(dstring s, size_t width, size_t delegate(string) getWidt
 	}
 	return leftLen;
 } unittest { mixin(S_TRACE);
-	mixin (UTPerf);
+	mixin(UTPerf);
 	assert (slicePos("ABC", 2, a => "ABC".countUntil(a) != -1 ? 1 : 2) == 2);
 	assert (slicePos("ABCあ", 4, a => "ABC".countUntil(a) != -1 ? 1 : 2) == 3);
 }

@@ -29,68 +29,68 @@ import org.eclipse.swt.all;
 class WindowProps(string PropName, int Width, int Height, ulong SizeChgVersion = 0)
 		: Properties, WSize {
 	auto _maximized = Prop!(bool)("maximized", false);
-	@property const bool maximized() {return _maximized;}
-	@property void maximized(bool v) {_maximized = v;}
+	@property const bool maximized() { return _maximized; }
+	@property void maximized(bool v) { _maximized = v; }
 
 	auto _minimized = Prop!(bool)("minimized", false);
-	@property const bool minimized() {return _minimized;}
-	@property void minimized(bool v) {_minimized = v;}
+	@property const bool minimized() { return _minimized; }
+	@property void minimized(bool v) { _minimized = v; }
 
 	auto _x = Prop!(int, false, true)("x", SWT.DEFAULT);
-	@property const int x() {return _x;}
-	@property void x(int v) {_x = v;}
+	@property const int x() { return _x; }
+	@property void x(int v) { _x = v; }
 
 	auto _y = Prop!(int, false, true)("y", SWT.DEFAULT);
-	@property const int y() {return _y;}
-	@property void y(int v) {_y = v;}
+	@property const int y() { return _y; }
+	@property void y(int v) { _y = v; }
 
 	auto _width = Prop!(int, false, true)("width", Width, SizeChgVersion);
-	@property const int width() {return _width;}
-	@property void width(int v) {_width = v;}
+	@property const int width() { return _width; }
+	@property void width(int v) { _width = v; }
 
 	auto _height = Prop!(int, false, true)("height", Height, SizeChgVersion);
-	@property const int height() {return _height;}
-	@property void height(int v) {_height = v;}
+	@property const int height() { return _height; }
+	@property void height(int v) { _height = v; }
 
 	auto _visible = Prop!(bool)("visible", true);
-	@property const bool visible() {return _visible;}
-	@property void visible(bool v) {_visible = v;}
+	@property const bool visible() { return _visible; }
+	@property void visible(bool v) { _visible = v; }
 
 	mixin XMLFuncs!(WindowProps, PropName);
 }
 
 class MainWin : Properties, WSize {
 	auto _x = Prop!(int, false, true)("x", SWT.DEFAULT);
-	@property const int x() {return _x;}
-	@property void x(int v) {_x = v;}
+	@property const int x() { return _x; }
+	@property void x(int v) { _x = v; }
 
 	auto _y = Prop!(int, false, true)("y", SWT.DEFAULT);
-	@property const int y() {return _y;}
-	@property void y(int v) {_y = v;}
+	@property const int y() { return _y; }
+	@property void y(int v) { _y = v; }
 
 	auto _width = Prop!(int, false, true)("width", 1024);
-	@property const int width() {return _width;}
-	@property void width(int v) {_width = v;}
+	@property const int width() { return _width; }
+	@property void width(int v) { _width = v; }
 
 	auto _height = Prop!(int, false, true)("height", 768);
-	@property const int height() {return _height;}
-	@property void height(int v) {_height = v;}
+	@property const int height() { return _height; }
+	@property void height(int v) { _height = v; }
 
 	auto _maximized = Prop!(bool)("maximized", false);
-	@property const bool maximized() {return _maximized;}
-	@property void maximized(bool v) {_maximized = v;}
+	@property const bool maximized() { return _maximized; }
+	@property void maximized(bool v) { _maximized = v; }
 
 	mixin XMLFuncs!(MainWin, "mainWindow");
 }
 
 class ContWin : Properties {
 	auto _x = Prop!(int, false, true)("x", SWT.DEFAULT);
-	@property const int x() {return _x;}
-	@property void x(int v) {_x = v;}
+	@property const int x() { return _x; }
+	@property void x(int v) { _x = v; }
 
 	auto _y = Prop!(int, false, true)("y", SWT.DEFAULT);
-	@property const int y() {return _y;}
-	@property void y(int v) {_y = v;}
+	@property const int y() { return _y; }
+	@property void y(int v) { _y = v; }
 
 	mixin XMLFuncs!(ContWin, "contentsWindow");
 }
@@ -98,12 +98,12 @@ class ContWin : Properties {
 class DialogParam(string Name, int WidthDef = SWT.DEFAULT, int HeightDef = SWT.DEFAULT, ulong SizeChgVersion = 0)
 		: Properties, DSize {
 	auto _width = Prop!(int, false, true)("width", WidthDef, SizeChgVersion);
-	@property const int width() {return _width;}
-	@property void width(int v) {_width = v;}
+	@property const int width() { return _width; }
+	@property void width(int v) { _width = v; }
 
 	auto _height = Prop!(int, false, true)("height", HeightDef, SizeChgVersion);
-	@property const int height() {return _height;}
-	@property void height(int v) {_height = v;}
+	@property const int height() { return _height; }
+	@property void height(int v) { _height = v; }
 
 	mixin XMLFuncs!(DialogParam, Name);
 }
@@ -117,20 +117,20 @@ class EventWin(string Name, int Width, int Height, ulong SizeChgVersion = 0) : P
 class ToolWin(string PropName, int Width, int Height, ulong SizeChgVersion = 0)
 		: Properties, DSize {
 	auto _x = Prop!(int, false, true)("x", SWT.DEFAULT);
-	@property const int x() {return _x;}
-	@property void x(int v) {_x = v;}
+	@property const int x() { return _x; }
+	@property void x(int v) { _x = v; }
 
 	auto _y = Prop!(int, false, true)("y", SWT.DEFAULT);
-	@property const int y() {return _y;}
-	@property void y(int v) {_y = v;}
+	@property const int y() { return _y; }
+	@property void y(int v) { _y = v; }
 
 	auto _width = Prop!(int, false, true)("width", Width, SizeChgVersion);
-	@property const int width() {return _width;}
-	@property void width(int v) {_width = v;}
+	@property const int width() { return _width; }
+	@property void width(int v) { _width = v; }
 
 	auto _height = Prop!(int, false, true)("height", Height, SizeChgVersion);
-	@property const int height() {return _height;}
-	@property void height(int v) {_height = v;}
+	@property const int height() { return _height; }
+	@property void height(int v) { _height = v; }
 
 	mixin XMLFuncs!(ToolWin, PropName);
 }

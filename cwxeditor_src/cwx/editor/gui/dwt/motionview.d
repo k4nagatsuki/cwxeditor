@@ -106,8 +106,8 @@ private:
 			auto m = v.motion(_index);
 			v.motion(_index, old, false);
 		}
-		override void undo() {impl();}
-		override void redo() {impl();}
+		override void undo() { impl(); }
+		override void redo() { impl(); }
 		override void dispose() { mixin(S_TRACE);
 			_old.removeUseCounter();
 		}
@@ -129,8 +129,8 @@ private:
 			if (!v || v.isDisposed()) return;
 			v.swap(_index1, _index2, false);
 		}
-		override void undo() {impl();}
-		override void redo() {impl();}
+		override void undo() { impl(); }
+		override void redo() { impl(); }
 		override void dispose() {}
 	}
 	void storeSwap(int index1, int index2) { mixin(S_TRACE);
@@ -156,8 +156,8 @@ private:
 			v.appendMotion(m, from, true, true, false);
 			.swap(_from, _to);
 		}
-		override void undo() {impl();}
-		override void redo() {impl();}
+		override void undo() { impl(); }
+		override void redo() { impl(); }
 		override void dispose() {}
 	}
 	void storeMove(int from, int to) { mixin(S_TRACE);

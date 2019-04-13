@@ -162,7 +162,7 @@ private:
 		if (visible) { mixin(S_TRACE);
 			if (_summImage) return;
 			_summImage = new SummaryPreview(_comm, _imgArea, SWT.NONE, () => _loadScaledImage.getSelection(), &dataVersion);
-			_summImage.setImageSelect(&_sname.getText, &_imgPath.images, &selectedSkin, {return _desc.getRRText();}, &_levMin.getSelection, &_levMax.getSelection);
+			_summImage.setImageSelect(&_sname.getText, &_imgPath.images, &selectedSkin, { return _desc.getRRText(); }, &_levMin.getSelection, &_levMax.getSelection);
 			_summImage.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 			w = _summImage.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
 		} else { mixin(S_TRACE);
@@ -286,10 +286,10 @@ private:
 					_levMax.setSelection(_summ.levelMax);
 					_levMax.setMinimum(0);
 					_levMax.setMaximum(_prop.var.etc.levelMax);
-					if (!_readOnly) { mixin (S_TRACE);
+					if (!_readOnly) { mixin(S_TRACE);
 						new SpinnerEdit(_levMax, &levMaxEnter);
 					}
-					if (!_readOnly) { mixin (S_TRACE);
+					if (!_readOnly) { mixin(S_TRACE);
 						.listener(_levMin, SWT.Modify, &refreshPreview);
 						.listener(_levMax, SWT.Modify, &refreshPreview);
 					}

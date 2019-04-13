@@ -113,22 +113,25 @@ public:
 
 	@property
 	const
-	override bool canHasFireLose() {return false;}
+	override bool canHasFireLose() { return false; }
 	@property
 	const
-	override bool canHasFireEscape() {return false;}
+	override bool canHasFireEscape() { return false; }
 	@property
 	const
-	override bool canHasFireEveryRound() {return false;}
+	override bool canHasFireEveryRound() { return false; }
 	@property
 	const
-	override bool canHasFireRound0() {return false;}
+	override bool canHasFireRoundEnd() { return false; }
 	@property
 	const
-	override bool canHasFireRound() {return false;}
+	override bool canHasFireRound0() { return false; }
 	@property
 	const
-	override bool canHasFireKeyCode() {return true;}
+	override bool canHasFireRound() { return false; }
+	@property
+	const
+	override bool canHasFireKeyCode() { return true; }
 
 	/// 表示フラグ。
 	@property
@@ -269,7 +272,7 @@ public:
 		cardGroup = "";
 		animationSpeed = -1;
 		assert (pNode.name == "Property", pNode.name ~ " != Property");
-		pNode.onTag["Flag"] = (ref XNode n) {flag = n.value;};
+		pNode.onTag["Flag"] = (ref XNode n) { flag = n.value; };
 		pNode.onTag["Location"] = (ref XNode n) { mixin(S_TRACE);
 			x = n.attr!(int)("left", true);
 			y = n.attr!(int)("top", true);
@@ -1044,7 +1047,7 @@ public:
 	abstract string rootName();
 
 	@property
-	override size_t[] areaPath() {return [0];}
+	override size_t[] areaPath() { return [0]; }
 
 	/// XMLテキスト化して返す。
 	const
@@ -1147,6 +1150,9 @@ class PlayerCardEvents : AbstractEventTreeOwner {
 	override bool canHasFireEveryRound() { return false; }
 	@property
 	const
+	override bool canHasFireRoundEnd() { return false; }
+	@property
+	const
 	override bool canHasFireRound0() { return false; }
 	@property
 	const
@@ -1193,7 +1199,7 @@ public:
 		_playerEvents = new PlayerCardEvents(this);
 	}
 	@property
-	protected override void delegate() changeHandler() {return super.changeHandler;}
+	protected override void delegate() changeHandler() { return super.changeHandler; }
 	@property
 	override void changeHandler(void delegate() change) { mixin(S_TRACE);
 		foreach (b; _bgImgs) { mixin(S_TRACE);
@@ -1221,22 +1227,25 @@ public:
 
 	@property
 	const
-	override bool canHasFireLose() {return false;}
+	override bool canHasFireLose() { return false; }
 	@property
 	const
-	override bool canHasFireEscape() {return false;}
+	override bool canHasFireEscape() { return false; }
 	@property
 	const
-	override bool canHasFireEveryRound() {return false;}
+	override bool canHasFireEveryRound() { return false; }
 	@property
 	const
-	override bool canHasFireRound0() {return false;}
+	override bool canHasFireRoundEnd() { return false; }
 	@property
 	const
-	override bool canHasFireRound() {return false;}
+	override bool canHasFireRound0() { return false; }
 	@property
 	const
-	override bool canHasFireKeyCode() {return true;}
+	override bool canHasFireRound() { return false; }
+	@property
+	const
+	override bool canHasFireKeyCode() { return true; }
 	override EventTree etFromPath(size_t[] path) { mixin(S_TRACE);
 		if (path[0] == 0) { mixin(S_TRACE);
 			return trees[path[1]];
@@ -1387,7 +1396,7 @@ public:
 
 	@property
 	const
-	override string rootName() {return "Area";}
+	override string rootName() { return "Area"; }
 
 	const
 	override void toNodeImpl(ref XNode e, XMLOption opt, string parentPath = "", string cutPath = "") { mixin(S_TRACE);
@@ -1550,7 +1559,7 @@ public:
 	}
 	private AreaOwner _owner = null;
 	@property
-	package void owner(AreaOwner owner) {_owner = owner;}
+	package void owner(AreaOwner owner) { _owner = owner; }
 	@property
 	string cwxPath(bool id) { mixin(S_TRACE);
 		if (id) { mixin(S_TRACE);
@@ -1593,7 +1602,7 @@ public:
 		return r;
 	}
 	@property
-	CWXPath cwxParent() {return _owner;}
+	CWXPath cwxParent() { return _owner; }
 }
 
 /// パッケージ。
@@ -1618,25 +1627,28 @@ public:
 
 	@property
 	const
-	override bool canHasFireEnter() {return false;}
+	override bool canHasFireEnter() { return false; }
 	@property
 	const
-	override bool canHasFireLose() {return false;}
+	override bool canHasFireLose() { return false; }
 	@property
 	const
-	override bool canHasFireEscape() {return false;}
+	override bool canHasFireEscape() { return false; }
 	@property
 	const
-	override bool canHasFireEveryRound() {return false;}
+	override bool canHasFireRoundEnd() { return false; }
 	@property
 	const
-	override bool canHasFireRound0() {return false;}
+	override bool canHasFireEveryRound() { return false; }
 	@property
 	const
-	override bool canHasFireRound() {return false;}
+	override bool canHasFireRound0() { return false; }
 	@property
 	const
-	override bool canHasFireKeyCode() {return false;}
+	override bool canHasFireRound() { return false; }
+	@property
+	const
+	override bool canHasFireKeyCode() { return false; }
 	override EventTree etFromPath(size_t[] path) { mixin(S_TRACE);
 		if (path[0] == 0) { mixin(S_TRACE);
 			return trees[path[1]];
@@ -1654,7 +1666,7 @@ public:
 
 	@property
 	const
-	override string rootName() {return "Package";}
+	override string rootName() { return "Package"; }
 	const
 	override void toNodeImpl(ref XNode e, XMLOption opt, string parentPath = "", string cutPath = "") { mixin(S_TRACE);
 		auto pNode = e.newElement("Property");
@@ -1700,7 +1712,7 @@ public:
 	}
 	private PackageOwner _owner = null;
 	@property
-	package void owner(PackageOwner owner) {_owner = owner;}
+	package void owner(PackageOwner owner) { _owner = owner; }
 	@property
 	string cwxPath(bool id) { mixin(S_TRACE);
 		if (id) { mixin(S_TRACE);
@@ -1710,7 +1722,7 @@ public:
 		}
 	}
 	@property
-	CWXPath cwxParent() {return _owner;}
+	CWXPath cwxParent() { return _owner; }
 }
 
 /// バトル。
@@ -1773,6 +1785,9 @@ public:
 	@property
 	const
 	override bool canHasFireEveryRound() { return true; }
+	@property
+	const
+	override bool canHasFireRoundEnd() { return true; }
 	@property
 	const
 	override bool canHasFireRound0() { return true; }

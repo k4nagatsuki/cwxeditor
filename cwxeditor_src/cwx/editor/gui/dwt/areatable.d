@@ -1230,7 +1230,7 @@ private:
 				saveSelections();
 				refreshStatusLine();
 				_comm.refreshToolBar();
-			} catch (Exception e) { mixin (S_TRACE);
+			} catch (Exception e) { mixin(S_TRACE);
 				printStackTrace();
 				debugln(e);
 			}
@@ -1407,7 +1407,7 @@ private:
 					refreshStatusLine();
 					_comm.refreshToolBar();
 				}
-			} catch (Exception e) { mixin (S_TRACE);
+			} catch (Exception e) { mixin(S_TRACE);
 				printStackTrace();
 				debugln(e);
 			}
@@ -1533,30 +1533,30 @@ private:
 		DirTree parent;
 		string name;
 		DirTree[] subDirs;
-		this (DirTree parent, string name, DirTree[] subDirs = []) { mixin (S_TRACE);
+		this (DirTree parent, string name, DirTree[] subDirs = []) { mixin(S_TRACE);
 			this.parent = parent;
 			this.name = name;
-			if (parent) { mixin (S_TRACE);
+			if (parent) { mixin(S_TRACE);
 				parent.subDirs ~= this;
 			}
-			foreach (subDir; subDirs) { mixin (S_TRACE);
+			foreach (subDir; subDirs) { mixin(S_TRACE);
 				subDir.parent = this;
 				this.subDirs ~= subDir;
 			}
 		}
 		@property
 		const
-		string path() { mixin (S_TRACE);
+		string path() { mixin(S_TRACE);
 			if (!parent) return name;
 			auto path = parent.path;
 			return path == "" ? name : path ~ "\\" ~ name;
 		}
 		@property
 		const
-		DirTree dup() { mixin (S_TRACE);
-			DirTree recurse(DirTree parent, in DirTree dir) { mixin (S_TRACE);
+		DirTree dup() { mixin(S_TRACE);
+			DirTree recurse(DirTree parent, in DirTree dir) { mixin(S_TRACE);
 				auto dir2 = new DirTree(parent, dir.name);
-				foreach (sub; dir.subDirs) { mixin (S_TRACE);
+				foreach (sub; dir.subDirs) { mixin(S_TRACE);
 					recurse(dir2, sub);
 				}
 				return dir2;
@@ -1590,16 +1590,16 @@ private:
 		_dirs = new DirTree(null, "");
 		DirTree[string] itmTable;
 		itmTable[""] = _dirs;
-		void put(string dirName) { mixin (S_TRACE);
+		void put(string dirName) { mixin(S_TRACE);
 			auto dirs = .split(dirName, "\\");
 			auto itm = _dirs;
-			foreach (i, dir; dirs) { mixin (S_TRACE);
+			foreach (i, dir; dirs) { mixin(S_TRACE);
 				auto fPath = dirs[0 .. i + 1].join("\\");
 				auto path = fPath.toLower();
 				auto p = path in itmTable;
-				if (p) { mixin (S_TRACE);
+				if (p) { mixin(S_TRACE);
 					itm = *p;
-				} else { mixin (S_TRACE);
+				} else { mixin(S_TRACE);
 					auto sub = new DirTree(itm, dir);
 					itm = sub;
 					itmTable[path] = sub;
@@ -1613,12 +1613,12 @@ private:
 
 		sortDirTree();
 	}
-	private string putDir(DirTree parent, string dirName) { mixin (S_TRACE);
+	private string putDir(DirTree parent, string dirName) { mixin(S_TRACE);
 		auto dirs = .split(dirName, "\\");
-		foreach (i, dir; dirs) { mixin (S_TRACE);
+		foreach (i, dir; dirs) { mixin(S_TRACE);
 			bool exists = false;
-			foreach (sub; parent.subDirs) { mixin (S_TRACE);
-				if (0 == icmp(sub.name, dir)) { mixin (S_TRACE);
+			foreach (sub; parent.subDirs) { mixin(S_TRACE);
+				if (0 == icmp(sub.name, dir)) { mixin(S_TRACE);
 					parent = sub;
 					exists = true;
 					break;
@@ -1661,28 +1661,28 @@ private:
 		bool selSummary = false;
 		auto sel = "";
 		auto sels = _dirTree.getSelection();
-		if (sels.length) { mixin (S_TRACE);
+		if (sels.length) { mixin(S_TRACE);
 			auto path = cast(DirTree)sels[0].getData();
-			if (path) { mixin (S_TRACE);
+			if (path) { mixin(S_TRACE);
 				sel = path.path;
-			} else { mixin (S_TRACE);
+			} else { mixin(S_TRACE);
 				assert (cast(Summary)sels[0].getData() !is null);
 				selSummary = true;
 			}
 		}
 		_dirTree.removeAll();
 		if (!_summ) return;
-		if (_prop.var.etc.showSummaryInAreaTable) { mixin (S_TRACE);
+		if (_prop.var.etc.showSummaryInAreaTable) { mixin(S_TRACE);
 			auto itm = new TreeItem(_dirTree, SWT.NONE);
 			itm.setImage(_prop.images.summary);
 			itm.setText(_summ.scenarioName);
 			itm.setData(_summ);
-			if (selSummary) { mixin (S_TRACE);
+			if (selSummary) { mixin(S_TRACE);
 				_dirTree.setSelection([itm]);
 			}
 		}
 
-		void recurse(T)(T tree, DirTree dir) { mixin (S_TRACE);
+		void recurse(T)(T tree, DirTree dir) { mixin(S_TRACE);
 			auto itm = new TreeItem(tree, SWT.NONE);
 			static if (is(T:Tree)) {
 				itm.setText(_prop.msgs.areaDirRoot);
@@ -1691,12 +1691,12 @@ private:
 			}
 			itm.setImage(_prop.images.areaDir);
 			itm.setData(dir);
-			if (!selSummary && 0 == icmp(sel, dir.path)) { mixin (S_TRACE);
+			if (!selSummary && 0 == icmp(sel, dir.path)) { mixin(S_TRACE);
 				_dirTree.setSelection([itm]);
-			} else if (!_dirTree.getSelection().length) { mixin (S_TRACE);
+			} else if (!_dirTree.getSelection().length) { mixin(S_TRACE);
 				_dirTree.setSelection([itm]);
 			}
-			foreach (sub; dir.subDirs) { mixin (S_TRACE);
+			foreach (sub; dir.subDirs) { mixin(S_TRACE);
 				recurse(itm, sub);
 			}
 		}
@@ -1967,7 +1967,7 @@ public:
 		auto tableParent = parent;
 		_parent = parent;
 		_dirMode = false;
-		if (_prop.var.etc.showAreaDirTree) { mixin (S_TRACE);
+		if (_prop.var.etc.showAreaDirTree) { mixin(S_TRACE);
 			_dirMode = true;
 			auto sash = new SplitPane(parent, (_readOnly ? _prop.var.etc.importAreaSashV : _prop.var.etc.areaSashV) ? SWT.VERTICAL : SWT.HORIZONTAL);
 			auto cl1 = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
@@ -1994,9 +1994,9 @@ public:
 			});
 			.listener(_dirTree, SWT.Selection, &updateDirSel);
 			if (!_readOnly) { mixin(S_TRACE);
-				_areaDirEdit = new TreeEdit(_comm, _dirTree, &dirEditEnd, (itm) { mixin (S_TRACE);
+				_areaDirEdit = new TreeEdit(_comm, _dirTree, &dirEditEnd, (itm) { mixin(S_TRACE);
 					auto dir = cast(DirTree)itm.getData();
-					if (dir) { mixin (S_TRACE);
+					if (dir) { mixin(S_TRACE);
 						if (!dir.parent) return null;
 					} else assert (cast(Summary)itm.getData() !is null);
 					return createTextEditor(_comm, _prop, _dirTree, itm.getText());
@@ -2008,11 +2008,11 @@ public:
 			if (!_lastFocus) _lastFocus = _dirTree;
 
 			auto menu = new Menu(_dirTree.getShell(), SWT.POP_UP);
-			if (_readOnly) { mixin (S_TRACE);
+			if (_readOnly) { mixin(S_TRACE);
 				createMenuItem(_comm, menu, MenuID.Import, &doImport, &canDoImport);
 				new MenuItem(menu, SWT.SEPARATOR);
 				appendMenuTCPD(_comm, menu, this, false, true, false, false, false);
-			} else { mixin (S_TRACE);
+			} else { mixin(S_TRACE);
 				createMenuItem(_comm, menu, MenuID.NewAreaDir, &createDir, () => !_readOnly && _dirMode && _summ !is null);
 				new MenuItem(menu, SWT.SEPARATOR);
 				createMenuItem(_comm, menu, MenuID.Undo, &this.undo, () => !_readOnly && _undo.canUndo);
@@ -2025,7 +2025,7 @@ public:
 			auto drag = new DragSource(_dirTree, DND.DROP_MOVE | DND.DROP_COPY);
 			drag.setTransfer([XMLBytesTransfer.getInstance()]);
 			drag.addDragListener(new DragDir);
-			if (!_readOnly) { mixin (S_TRACE);
+			if (!_readOnly) { mixin(S_TRACE);
 				auto drop = new DropTarget(_dirTree, DND.DROP_DEFAULT | DND.DROP_MOVE);
 				drop.setTransfer([XMLBytesTransfer.getInstance()]);
 				drop.addDropListener(new DropDir);
@@ -2044,11 +2044,11 @@ public:
 		nameCol.setText(_prop.msgs.areaName);
 		auto countCol = new TableColumn(_areas, SWT.NULL);
 		countCol.setText(_prop.msgs.areaCount);
-		if (_readOnly) { mixin (S_TRACE);
+		if (_readOnly) { mixin(S_TRACE);
 			saveColumnWidth!("prop.var.etc.importAreaIdColumn")(_prop, idCol);
 			saveColumnWidth!("prop.var.etc.importAreaNameColumn")(_prop, nameCol);
 			saveColumnWidth!("prop.var.etc.importAreaCountColumn")(_prop, countCol);
-		} else { mixin (S_TRACE);
+		} else { mixin(S_TRACE);
 			saveColumnWidth!("prop.var.etc.areaIdColumn")(_prop, idCol);
 			saveColumnWidth!("prop.var.etc.areaNameColumn")(_prop, nameCol);
 			saveColumnWidth!("prop.var.etc.areaCountColumn")(_prop, countCol);
@@ -2064,8 +2064,8 @@ public:
 			createMenuItem(_comm, menu, MenuID.Import, &doImport, &canDoImport);
 			new MenuItem(menu, SWT.SEPARATOR);
 		}
-		createMenuItem(_comm, menu, MenuID.EditScene, {openAreaScene(true);}, &canOpenAreaScene);
-		createMenuItem(_comm, menu, MenuID.EditEvent, {openAreaEvent(true);}, &canOpenAreaEvent);
+		createMenuItem(_comm, menu, MenuID.EditScene, { openAreaScene(true); }, &canOpenAreaScene);
+		createMenuItem(_comm, menu, MenuID.EditEvent, { openAreaEvent(true); }, &canOpenAreaEvent);
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.EditSummary, &editSummary, () => _summ !is null);
 		new MenuItem(menu, SWT.SEPARATOR);
@@ -2096,7 +2096,7 @@ public:
 		auto drag = new DragSource(_areas, DND.DROP_MOVE | DND.DROP_COPY);
 		drag.setTransfer([XMLBytesTransfer.getInstance()]);
 		drag.addDragListener(new DragArea);
-		if (!_readOnly) { mixin (S_TRACE);
+		if (!_readOnly) { mixin(S_TRACE);
 			auto drop = new DropTarget(_areas, DND.DROP_DEFAULT | DND.DROP_MOVE);
 			drop.setTransfer([XMLBytesTransfer.getInstance()]);
 			drop.addDropListener(new DropArea);
@@ -2138,11 +2138,11 @@ public:
 		}
 		if (_readOnly) { mixin(S_TRACE);
 			_comm.refImportAreasSort.add(&refSortParams);
-			.listener(_areas, SWT.Dispose, { mixin (S_TRACE);
+			.listener(_areas, SWT.Dispose, { mixin(S_TRACE);
 				_comm.refImportAreasSort.remove(&refSortParams);
 			});
 		}
-		void storeSortParams() { mixin (S_TRACE);
+		void storeSortParams() { mixin(S_TRACE);
 			if (_readOnly) { mixin(S_TRACE);
 				switch (_areas.getSortDirection()) {
 				case SWT.UP:
@@ -2194,11 +2194,11 @@ public:
 		_nameSorter.sortedEvent ~= &storeSortParams;
 		_ucSorter.sortedEvent ~= &storeSortParams;
 
-		if (_dirTree) { mixin (S_TRACE);
+		if (_dirTree) { mixin(S_TRACE);
 			auto sash = cast(SplitPane)_dirTree.getParent().getParent();
-			if (_readOnly) { mixin (S_TRACE);
+			if (_readOnly) { mixin(S_TRACE);
 				.setupWeights(sash, _prop.var.etc.importAreaSashL, _prop.var.etc.importAreaSashR);
-			} else { mixin (S_TRACE);
+			} else { mixin(S_TRACE);
 				.setupWeights(sash, _prop.var.etc.areaSashL, _prop.var.etc.areaSashR);
 			}
 		}
@@ -2441,7 +2441,7 @@ public:
 	}
 
 	@property
-	string statusLine() {return _statusLine;}
+	string statusLine() { return _statusLine; }
 
 	void refresh() { mixin(S_TRACE);
 		refreshAreas();
@@ -3018,7 +3018,7 @@ public:
 				try { mixin(S_TRACE);
 					auto node = XNode.parse(c);
 					pasteImpl(node);
-				} catch (Exception e) { mixin (S_TRACE);
+				} catch (Exception e) { mixin(S_TRACE);
 					printStackTrace();
 					debugln(e);
 				}
@@ -3230,17 +3230,17 @@ public:
 				}
 			} else assert (0);
 		}
-		if (lastPutDir != "" || sel) { mixin (S_TRACE);
+		if (lastPutDir != "" || sel) { mixin(S_TRACE);
 			if (_dirMode) {
 				constructDirTree(true);
 			}
 			refreshAreas();
 		}
-		if (sel) { mixin (S_TRACE);
+		if (sel) { mixin(S_TRACE);
 			sort();
-			if (_readOnly) { mixin (S_TRACE);
+			if (_readOnly) { mixin(S_TRACE);
 				select(areas);
-			} else { mixin (S_TRACE);
+			} else { mixin(S_TRACE);
 				select(sel);
 			}
 			if (_flags) _flags.refresh();
@@ -3292,13 +3292,13 @@ public:
 				_comm.refPackage.call(cast(Package)area);
 			} else assert (0);
 		}
-		if (sel) { mixin (S_TRACE);
+		if (sel) { mixin(S_TRACE);
 			if (_dirMode) {
 				constructDirTree(true);
 			}
 			refreshAreas();
 		}
-		if (sel) { mixin (S_TRACE);
+		if (sel) { mixin(S_TRACE);
 			sort();
 			select(sel);
 			if (_flags) _flags.refresh();

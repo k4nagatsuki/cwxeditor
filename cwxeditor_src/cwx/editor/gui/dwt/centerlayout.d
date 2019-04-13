@@ -45,7 +45,7 @@ public:
 	bool fillVertical = false;
 	bool fillHorizontal = false;
 	@property
-	int margin() {return _margin;}
+	int margin() { return _margin; }
 private:
 	int _margin;
 	int _style;

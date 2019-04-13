@@ -740,17 +740,17 @@ class Skin {
 	/// 所属エンジンが無いか、クラシックでないシナリオの編集中であれば""を返す。
 	@property
 	const
-	string legacyName() {return _legacyEngine.length ? stripExtension(baseName(_legacyEngine)) : "";}
+	string legacyName() { return _legacyEngine.length ? stripExtension(baseName(_legacyEngine)) : ""; }
 
 	/// クラシックなCardWirthのDataディレクトリのパス。
 	@property
 	const
-	string legacyDataPath() {return _legacyPath;}
+	string legacyDataPath() { return _legacyPath; }
 
 	/// クラシックなCardWirthEditorで作成されたシナリオのスキンならtrue。
 	@property
 	const
-	bool legacy() {return _legacy;}
+	bool legacy() { return _legacy; }
 
 	/// エンジンの設定を読み込んで返す。
 	const
@@ -1054,7 +1054,7 @@ class Skin {
 	/// 特殊文字の情報。
 	@property
 	const
-	const(string[dchar]) spChars() {return _spChars;}
+	const(string[dchar]) spChars() { return _spChars; }
 
 	/// 指定バージョンで使用可能なWSN標準素材が入ったディレクトリ群。
 	const
@@ -1321,15 +1321,15 @@ class Skin {
 	/// 標準画像の拡張子。
 	@property
 	const
-	const(string)[] extImage() {return _extImg;}
+	const(string)[] extImage() { return _extImg; }
 	/// 標準BGMの拡張子。
 	@property
 	const
-	const(string)[] extBgm() {return _extBgm;}
+	const(string)[] extBgm() { return _extBgm; }
 	/// 標準SEの拡張子。
 	@property
 	const
-	const(string)[] extSound() {return _extSound;}
+	const(string)[] extSound() { return _extSound; }
 
 	/// 種族。
 	@property
@@ -1445,7 +1445,7 @@ class Skin {
 	/// 標準のメッセージ送りテキストを返す。
 	@property
 	const
-	string evtChildOK() {return _cEngine.okText is null ? _prop.sys.evtChildOK(legacyName) : _cEngine.okText;}
+	string evtChildOK() { return _cEngine.okText is null ? _prop.sys.evtChildOK(legacyName) : _cEngine.okText; }
 
 	/// このスキンでの特徴の一覧を返す。
 	@property

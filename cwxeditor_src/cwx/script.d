@@ -54,15 +54,15 @@ class CWXScriptException : Exception {
 	/// 解析対象のテキスト。
 	@property
 	const
-	string text() {return _text;}
+	string text() { return _text; }
 	/// 発生したエラーの配列。
 	@property
 	const
-	const(CWXSError[]) errors() {return _errors;}
+	const(CWXSError[]) errors() { return _errors; }
 	/// エラーが100件を超えたか。
 	@property
 	const
-	bool over100() {return _over100;}
+	bool over100() { return _over100; }
 }
 
 /// 空変数への設定値。
@@ -130,7 +130,7 @@ class CWXScript {
 	/// 各メソッド呼び出しで蓄積されたエラーを返す。
 	@property
 	const
-	const(CWXSError[]) errors() {return _errors;}
+	const(CWXSError[]) errors() { return _errors; }
 
 	/// sをスクリプト内での文字列表現に変換する。
 	static string createString(string s, bool useSingleQuote = false) { mixin(S_TRACE);
@@ -466,8 +466,8 @@ class CWXScript {
 		bool spaceAfter = false;
 		string docComment = "";
 		string fullComment = "";
-		@property ptrdiff_t sLine() {return cast(ptrdiff_t)i + opt.startLine;}
-		@property ptrdiff_t sPos() {return (cast(ptrdiff_t)i == opt.addLines) ? (cast(ptrdiff_t)pos + opt.startPos) : pos;}
+		@property ptrdiff_t sLine() { return cast(ptrdiff_t)i + opt.startLine; }
+		@property ptrdiff_t sPos() { return (cast(ptrdiff_t)i == opt.addLines) ? (cast(ptrdiff_t)pos + opt.startPos) : pos; }
 		auto maches = .match(dtext, reg);
 		if (!maches && dtext.length) { mixin(S_TRACE);
 			throwErrorToken(_prop.msgs.scriptErrorInvalidToken, sLine, sPos, "");
@@ -755,10 +755,10 @@ class CWXScript {
 			if (kind is CRKind.REAL || rval.kind is CRKind.REAL) { mixin(S_TRACE);
 				real lvalue = kind is CRKind.REAL ? numReal : numInt;
 				real rvalue = rval.kind is CRKind.REAL ? rval.numReal : rval.numInt;
-				mixin ("numReal = lvalue " ~ Calc ~ " rvalue;");
+				mixin("numReal = lvalue " ~ Calc ~ " rvalue;");
 				kind = CRKind.REAL;
 			} else if (kind is CRKind.INT && rval.kind is CRKind.INT) { mixin(S_TRACE);
-				mixin ("numInt " ~ Calc ~ "= rval.numInt;");
+				mixin("numInt " ~ Calc ~ "= rval.numInt;");
 			} else { mixin(S_TRACE);
 				throwError(prop.msgs.scriptErrorInvalidNumber, tok);
 			}
@@ -1181,7 +1181,7 @@ class CWXScript {
 			return r;
 		}
 		/// ノード群をスクリプトコードにして返す。
-		static string code(string indent, in Node[] array) {return code("    ", "", "", array, "sif");}
+		static string code(string indent, in Node[] array) { return code("    ", "", "", array, "sif"); }
 		private static string code(string indent, string bIndentValue, string indentValue, in Node[] array, string ifString) { mixin(S_TRACE);
 			string calcCode(in Node[] calc) { mixin(S_TRACE);
 				char[] calcBuf;
@@ -3801,14 +3801,14 @@ fi`;
 		private ulong[string] _beastsR;
 		private string[ulong] _infos;
 		private ulong[string] _infosR;
-		Symbol id(in Area a, ulong id) {return idVar!("area")(a, id, _areas, _areasR);}
-		Symbol id(in Battle a, ulong id) {return idVar!("battle")(a, id, _battles, _battlesR);}
-		Symbol id(in Package a, ulong id) {return idVar!("pack")(a, id, _packages, _packagesR);}
-		Symbol id(in CastCard a, ulong id) {return idVar!("cast")(a, id, _casts, _castsR);}
-		Symbol id(in SkillCard a, ulong id) {return idVar!("skill")(a, id, _skills, _skillsR);}
-		Symbol id(in ItemCard a, ulong id) {return idVar!("item")(a, id, _items, _itemsR);}
-		Symbol id(in BeastCard a, ulong id) {return idVar!("beast")(a, id, _beasts, _beastsR);}
-		Symbol id(in InfoCard a, ulong id) {return idVar!("info")(a, id, _infos, _infosR);}
+		Symbol id(in Area a, ulong id) { return idVar!("area")(a, id, _areas, _areasR); }
+		Symbol id(in Battle a, ulong id) { return idVar!("battle")(a, id, _battles, _battlesR); }
+		Symbol id(in Package a, ulong id) { return idVar!("pack")(a, id, _packages, _packagesR); }
+		Symbol id(in CastCard a, ulong id) { return idVar!("cast")(a, id, _casts, _castsR); }
+		Symbol id(in SkillCard a, ulong id) { return idVar!("skill")(a, id, _skills, _skillsR); }
+		Symbol id(in ItemCard a, ulong id) { return idVar!("item")(a, id, _items, _itemsR); }
+		Symbol id(in BeastCard a, ulong id) { return idVar!("beast")(a, id, _beasts, _beastsR); }
+		Symbol id(in InfoCard a, ulong id) { return idVar!("info")(a, id, _infos, _infosR); }
 		private static string[] vars(in string[ulong] arr) { mixin(S_TRACE);
 			string[] r;
 			foreach (id; std.algorithm.sort(arr.keys)) { mixin(S_TRACE);

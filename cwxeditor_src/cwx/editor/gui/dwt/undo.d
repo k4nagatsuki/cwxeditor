@@ -42,7 +42,7 @@ class StrUndo : TUndo!(string) {
 /// ditto
 class StrArrUndo : TUndo!(string[]) {
 	this (string[] old, string[] n, void delegate(string[]) set) { mixin(S_TRACE);
-		super (old.dup, n.dup, set, (string[] v) {return v.dup;});
+		super (old.dup, n.dup, set, (string[] v) { return v.dup; });
 	}
 }
 
@@ -90,7 +90,7 @@ class UndoManager {
 		}
 	}
 	@property
-	size_t pointer() {return _pointer;}
+	size_t pointer() { return _pointer; }
 	void add(Undo undo) { mixin(S_TRACE);
 		if (_max == 0) return;
 		if (_undos.length && _pointer < _undos.length) { mixin(S_TRACE);
@@ -110,7 +110,7 @@ class UndoManager {
 		_pointer = _undos.length;
 	}
 	@property
-	bool canUndo() {return _pointer > 0;}
+	bool canUndo() { return _pointer > 0; }
 	bool undo() { mixin(S_TRACE);
 		if (!canUndo) return false;
 		// 例外対策のため_pointer--を後に
@@ -119,7 +119,7 @@ class UndoManager {
 		return true;
 	}
 	@property
-	bool canRedo() {return _pointer < _undos.length;}
+	bool canRedo() { return _pointer < _undos.length; }
 	bool redo() { mixin(S_TRACE);
 		if (!canRedo) return false;
 		_undos[_pointer].redo();

@@ -24,7 +24,7 @@ class ClipData {
 	private bool _memoryMode = false;
 	@property
 	const
-	bool memoryMode() {return _memoryMode;}
+	bool memoryMode() { return _memoryMode; }
 	@property
 	void memoryMode(bool mode) { mixin(S_TRACE);
 		_memoryMode = mode;

@@ -260,7 +260,7 @@ class RadarSpinner : Composite {
 	}
 	private class SpnListener : Listener {
 		private int _index;
-		this(int index) {_index = index;}
+		this(int index) { _index = index; }
 		override void handleEvent(Event e) { mixin(S_TRACE);
 			foreach (h; _modHandler) { mixin(S_TRACE);
 				h(_index, (cast(Spinner) e.widget).getSelection());

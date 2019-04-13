@@ -1420,7 +1420,7 @@ public:
 		return _set.contains(b);
 	}
 	@property
-	HashSet!(B) set() {return _set;}
+	HashSet!(B) set() { return _set; }
 	void append(B b) { mixin(S_TRACE);
 		_set.add(b);
 		assert ((b.getStyle() & SWT.RADIO) != 0);
@@ -1493,8 +1493,8 @@ private int treeItemUD(string SwapOK, string ToIndex)(TreeItem itm) { mixin(S_TR
 private int treeItemUD2(T, string SwapOK, string ToIndex)(T parent, TreeItem itm) { mixin(S_TRACE);
 	int i = parent.indexOf(itm);
 	auto tree = itm.getParent();
-	if (mixin (SwapOK)) { mixin(S_TRACE);
-		auto ti = cloneItem!(T)(parent, itm, mixin (ToIndex));
+	if (mixin(SwapOK)) { mixin(S_TRACE);
+		auto ti = cloneItem!(T)(parent, itm, mixin(ToIndex));
 		foreach (sel; tree.getSelection()) { mixin(S_TRACE);
 			if (sel is itm) { mixin(S_TRACE);
 				tree.setSelection(ti);
@@ -2004,13 +2004,13 @@ void addToPileImage(in CardImage img, PileImage pile, Props prop, Skin skin, in 
 }
 
 ImageDataWithScale cardImage(C)(Props prop, Skin skin, in Summary summ, in C base, CastCard owner, const(C) delegate(ulong) get, bool detail, bool preview) { mixin(S_TRACE);
-	static if (is (C == SkillCard)) {
+	static if (is(C == SkillCard)) {
 		bool hold = base.hold;
 		auto card = .skillCard(skin, prop.drawingScale);
-	} else static if (is (C == ItemCard)) {
+	} else static if (is(C == ItemCard)) {
 		bool hold = base.hold;
 		auto card = .itemCard(skin, prop.drawingScale);
-	} else static if (is (C == BeastCard)) {
+	} else static if (is(C == BeastCard)) {
 		ImageDataWithScale card;
 		if (base.isOption) { mixin(S_TRACE);
 			// 付帯能力
@@ -2019,7 +2019,7 @@ ImageDataWithScale cardImage(C)(Props prop, Skin skin, in Summary summ, in C bas
 			// 一般の召喚獣カード
 			card = .beastCard(skin, prop.drawingScale);
 		}
-	} else static if (is (C == InfoCard)) {
+	} else static if (is(C == InfoCard)) {
 		auto card = .infoCard(skin, prop.drawingScale);
 	} else { mixin(S_TRACE);
 		static assert (0);
@@ -2042,7 +2042,7 @@ ImageDataWithScale cardImage(C)(Props prop, Skin skin, in Summary summ, in C bas
 	int w = cardSize.width + matPad.e + matPad.w;
 	int h = cardSize.height + matPad.n + matPad.s;
 	scope r = new PileImage(card, prop.drawingScale, w, h, true);
-	static if (!is (C == InfoCard)) {
+	static if (!is(C == InfoCard)) {
 		final switch (c.premium) {
 		case Premium.PREMIUM, Premium.RARE:
 			scope pp = prop.looks.premiumXY;
@@ -2107,7 +2107,7 @@ ImageDataWithScale cardImage(C)(Props prop, Skin skin, in Summary summ, in C bas
 			}
 			auto ap = prop.looks.aptStoneXY;
 			r.append(aimg, CInsets(ap.y, w - ap.x - aimg.getWidth(NORMAL_SCALE), h - ap.y - aimg.getHeight(NORMAL_SCALE), ap.x), ScaleType.Cut);
-			static if (is (C == SkillCard)) {
+			static if (is(C == SkillCard)) {
 				auto uimg = .use4(skin, prop.drawingScale);
 				auto up = prop.looks.useStoneXY;
 				r.append(uimg, CInsets(up.y, w - up.x - uimg.getWidth(NORMAL_SCALE), h - up.y - uimg.getHeight(NORMAL_SCALE), up.x), ScaleType.Cut);
@@ -2459,8 +2459,8 @@ bool qMaterialCopy(Commons comm, Shell shell, UseCounter uc, string toSPath, str
 }
 
 void saveColumnWidth(string Value)(Props prop, TableColumn col) { mixin(S_TRACE);
-	col.setWidth(mixin (Value));
-	static if (is (typeof(mixin(Value ~ " = 0")) == void)) {
+	col.setWidth(mixin(Value));
+	static if (is(typeof(mixin(Value ~ " = 0")) == void)) {
 		static class SaveColumnWidth : ControlAdapter {
 			Props prop;
 			this(Props prop) { mixin(S_TRACE);
@@ -2468,7 +2468,7 @@ void saveColumnWidth(string Value)(Props prop, TableColumn col) { mixin(S_TRACE)
 			}
 			override void controlResized(ControlEvent e) { mixin(S_TRACE);
 				int width = (cast(TableColumn)e.widget).getWidth();
-				mixin (Value ~ " = width;");
+				mixin(Value ~ " = width;");
 			}
 		}
 		col.addControlListener(new SaveColumnWidth(prop));
@@ -2989,7 +2989,7 @@ Composite centerGroup(Composite parent, string text, bool fillH = true, bool fil
 }
 
 bool playBGMCW(Props prop, string path, uint fadeIn, uint volume, uint loopCount, bool legacy) { mixin(S_TRACE);
-	version (Windows) {} else {immutable SOUND_TYPE_MCI = -1;}
+	version (Windows) { } else { immutable SOUND_TYPE_MCI = -1; }
 	.stopBGM();
 	int playType = prop.var.etc.soundPlayType;
 	.bgmVolume = (prop.var.etc.bgmVolume * volume) / 100;
@@ -3027,7 +3027,7 @@ bool playBGMCW(Props prop, string path, uint fadeIn, uint volume, uint loopCount
 }
 
 void playSECW(Props prop, string path, uint fadeIn, uint volume, uint loopCount, bool legacy) { mixin(S_TRACE);
-	version (Windows) {} else {immutable SOUND_TYPE_MCI = -1;}
+	version (Windows) { } else { immutable SOUND_TYPE_MCI = -1; }
 	.stopSE();
 	int type = prop.var.etc.soundEffectPlayType;
 	if (SOUND_TYPE_SAME_BGM == type) { mixin(S_TRACE);

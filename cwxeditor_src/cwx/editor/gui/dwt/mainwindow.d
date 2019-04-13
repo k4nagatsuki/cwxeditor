@@ -2296,17 +2296,17 @@ private:
 		foreach (itm; _menuFile.getItems()) { mixin(S_TRACE);
 			itm.dispose();
 		}
-		mixin (MenuAction!("_menuFile", MenuID.New, SWT.PUSH, "createScenario", "null"));
-		mixin (MenuAction!("_menuFile", MenuID.Open, SWT.PUSH, "openScenarioM", "null"));
-		mixin (MenuAction!("_menuFile", MenuID.Save, SWT.PUSH, "saveScenario", "&canSaveOverwrite"));
-		mixin (MenuAction!("_menuFile", MenuID.SaveAs, SWT.PUSH, "saveScenarioA", "() => summary !is null && !_inSaving"));
+		mixin(MenuAction!("_menuFile", MenuID.New, SWT.PUSH, "createScenario", "null"));
+		mixin(MenuAction!("_menuFile", MenuID.Open, SWT.PUSH, "openScenarioM", "null"));
+		mixin(MenuAction!("_menuFile", MenuID.Save, SWT.PUSH, "saveScenario", "&canSaveOverwrite"));
+		mixin(MenuAction!("_menuFile", MenuID.SaveAs, SWT.PUSH, "saveScenarioA", "() => summary !is null && !_inSaving"));
 		new MenuItem(_menuFile, SWT.SEPARATOR);
-		mixin (MenuAction!("_menuFile", MenuID.NewAtNewWindow, SWT.PUSH, "createScenarioNewWin", "null"));
-		mixin (MenuAction!("_menuFile", MenuID.OpenAtNewWindow, SWT.PUSH, "openScenarioNewWin", "null"));
+		mixin(MenuAction!("_menuFile", MenuID.NewAtNewWindow, SWT.PUSH, "createScenarioNewWin", "null"));
+		mixin(MenuAction!("_menuFile", MenuID.OpenAtNewWindow, SWT.PUSH, "openScenarioNewWin", "null"));
 		new MenuItem(_menuFile, SWT.SEPARATOR);
-		mixin (MenuAction!("_menuFile", MenuID.CreateArchive, SWT.PUSH, "_dirWin.createArchive", "&_dirWin.canCreateArchive"));
+		mixin(MenuAction!("_menuFile", MenuID.CreateArchive, SWT.PUSH, "_dirWin.createArchive", "&_dirWin.canCreateArchive"));
 		new MenuItem(_menuFile, SWT.SEPARATOR);
-		mixin (MenuAction!("_menuFile", MenuID.Reload, SWT.PUSH, "reload", "() => summary !is null"));
+		mixin(MenuAction!("_menuFile", MenuID.Reload, SWT.PUSH, "reload", "() => summary !is null"));
 		auto i = 0;
 		if (_prop.var.etc.scenarioBookmarks.length) { mixin(S_TRACE);
 			new MenuItem(_menuFile, SWT.SEPARATOR);
@@ -2323,7 +2323,7 @@ private:
 			}
 		}
 		new MenuItem(_menuFile, SWT.SEPARATOR);
-		mixin (MenuAction!("_menuFile", MenuID.EditScenarioHistory, SWT.PUSH, "editScenarioHistory", "() => _prop.var.etc.scenarioBookmarks.length || _prop.var.etc.openHistories.length"));
+		mixin(MenuAction!("_menuFile", MenuID.EditScenarioHistory, SWT.PUSH, "editScenarioHistory", "() => _prop.var.etc.scenarioBookmarks.length || _prop.var.etc.openHistories.length"));
 		new MenuItem(_menuFile, SWT.SEPARATOR);
 		createMenuItem(_comm, _menuFile, MenuID.Close, &exitAll, null);
 		setupMenu(_menu);
@@ -3121,89 +3121,89 @@ public:
 
 				auto me = createMenu(_comm, bar, MenuID.Edit);
 				setupMenuListener(me);
-				mixin (MenuAction!("me", MenuID.Undo));
-				mixin (MenuAction!("me", MenuID.Redo));
+				mixin(MenuAction!("me", MenuID.Undo));
+				mixin(MenuAction!("me", MenuID.Redo));
 				new MenuItem(me, SWT.SEPARATOR);
-				mixin (MenuAction!("me", MenuID.Cut));
-				mixin (MenuAction!("me", MenuID.Copy));
-				mixin (MenuAction!("me", MenuID.Paste));
-				mixin (MenuAction!("me", MenuID.Delete));
+				mixin(MenuAction!("me", MenuID.Cut));
+				mixin(MenuAction!("me", MenuID.Copy));
+				mixin(MenuAction!("me", MenuID.Paste));
+				mixin(MenuAction!("me", MenuID.Delete));
 				new MenuItem(me, SWT.SEPARATOR);
-				mixin (MenuAction!("me", MenuID.Clone));
+				mixin(MenuAction!("me", MenuID.Clone));
 				new MenuItem(me, SWT.SEPARATOR);
-				mixin (MenuAction!("me", MenuID.SelectAll));
+				mixin(MenuAction!("me", MenuID.SelectAll));
 				new MenuItem(me, SWT.SEPARATOR);
-				mixin (MenuAction!("me", MenuID.Comment));
+				mixin(MenuAction!("me", MenuID.Comment));
 				new MenuItem(me, SWT.SEPARATOR);
-				mixin (MenuAction!("me", MenuID.ToScript));
-				mixin (MenuAction!("me", MenuID.ToScriptAll));
+				mixin(MenuAction!("me", MenuID.ToScript));
+				mixin(MenuAction!("me", MenuID.ToScriptAll));
 				new MenuItem(me, SWT.SEPARATOR);
-				mixin (MenuAction!("me", MenuID.Up));
-				mixin (MenuAction!("me", MenuID.Down));
+				mixin(MenuAction!("me", MenuID.Up));
+				mixin(MenuAction!("me", MenuID.Down));
 				new MenuItem(me, SWT.SEPARATOR);
-				mixin (MenuAction!("me", MenuID.SelectConnectedResource, SWT.PUSH));
+				mixin(MenuAction!("me", MenuID.SelectConnectedResource, SWT.PUSH));
 				new MenuItem(me, SWT.SEPARATOR);
-				mixin (MenuAction!("me", MenuID.Find, SWT.PUSH, "replaceText", "null"));
-				mixin (MenuAction!("me", MenuID.FindID, SWT.PUSH));
+				mixin(MenuAction!("me", MenuID.Find, SWT.PUSH, "replaceText", "null"));
+				mixin(MenuAction!("me", MenuID.FindID, SWT.PUSH));
 				new MenuItem(me, SWT.SEPARATOR);
-				mixin (MenuAction!("me", MenuID.ReNumberingAll, SWT.PUSH, "reNumberingAll", "() => summary !is null"));
+				mixin(MenuAction!("me", MenuID.ReNumberingAll, SWT.PUSH, "reNumberingAll", "() => summary !is null"));
 				new MenuItem(me, SWT.SEPARATOR);
-				mixin (MenuAction!("me", MenuID.ToXMLText, SWT.PUSH, "clipboardToXML", "() => CBisXMLOnly(_comm.clipboard)"));
+				mixin(MenuAction!("me", MenuID.ToXMLText, SWT.PUSH, "clipboardToXML", "() => CBisXMLOnly(_comm.clipboard)"));
 				dStr ~= " - " ~ .text(__LINE__);
 				new MenuItem(me, SWT.SEPARATOR);
-				mixin (MenuAction!("me", MenuID.NewDir, SWT.PUSH, "_dirWin.createNewFolder", "&_dirWin.canCreateNewFolder"));
+				mixin(MenuAction!("me", MenuID.NewDir, SWT.PUSH, "_dirWin.createNewFolder", "&_dirWin.canCreateNewFolder"));
 				new MenuItem(me, SWT.SEPARATOR);
-				mixin (MenuAction!("me", MenuID.DelNotUsedFile, SWT.PUSH, "_dirWin.deleteUnuse", "&_dirWin.canDeleteUnuse"));
+				mixin(MenuAction!("me", MenuID.DelNotUsedFile, SWT.PUSH, "_dirWin.deleteUnuse", "&_dirWin.canDeleteUnuse"));
 
 				auto mv = createMenu(_comm, bar, MenuID.View);
 				setupMenuListener(mv);
-				mixin (MenuAction!("mv", MenuID.TableView, SWT.PUSH, "openDataWindow", "null"));
-				mixin (MenuAction!("mv", MenuID.VarView, SWT.PUSH, "openFlagWindow", "null"));
+				mixin(MenuAction!("mv", MenuID.TableView, SWT.PUSH, "openDataWindow", "null"));
+				mixin(MenuAction!("mv", MenuID.VarView, SWT.PUSH, "openFlagWindow", "null"));
 				new MenuItem(mv, SWT.SEPARATOR);
-				mixin (MenuAction!("mv", MenuID.CastView, SWT.PUSH, "openCast", "null"));
-				mixin (MenuAction!("mv", MenuID.SkillView, SWT.PUSH, "openSkill", "null"));
-				mixin (MenuAction!("mv", MenuID.ItemView, SWT.PUSH, "openItem", "null"));
-				mixin (MenuAction!("mv", MenuID.BeastView, SWT.PUSH, "openBeast", "null"));
-				mixin (MenuAction!("mv", MenuID.InfoView, SWT.PUSH, "openInfo", "null"));
+				mixin(MenuAction!("mv", MenuID.CastView, SWT.PUSH, "openCast", "null"));
+				mixin(MenuAction!("mv", MenuID.SkillView, SWT.PUSH, "openSkill", "null"));
+				mixin(MenuAction!("mv", MenuID.ItemView, SWT.PUSH, "openItem", "null"));
+				mixin(MenuAction!("mv", MenuID.BeastView, SWT.PUSH, "openBeast", "null"));
+				mixin(MenuAction!("mv", MenuID.InfoView, SWT.PUSH, "openInfo", "null"));
 				new MenuItem(mv, SWT.SEPARATOR);
-				mixin (MenuAction!("mv", MenuID.FileView, SWT.PUSH, "openDirWindow", "null"));
+				mixin(MenuAction!("mv", MenuID.FileView, SWT.PUSH, "openDirWindow", "null"));
 				new MenuItem(mv, SWT.SEPARATOR);
-				mixin (MenuAction!("mv", MenuID.CouponView, SWT.PUSH, "openCouponWindow", "null"));
-				mixin (MenuAction!("mv", MenuID.GossipView, SWT.PUSH, "openGossipWindow", "null"));
-				mixin (MenuAction!("mv", MenuID.CompleteStampView, SWT.PUSH, "openCompleteStampWindow", "null"));
-				mixin (MenuAction!("mv", MenuID.KeyCodeView, SWT.PUSH, "openKeyCodeWindow", "null"));
-				mixin (MenuAction!("mv", MenuID.CellNameView, SWT.PUSH, "openCellNameWindow", "null"));
-				mixin (MenuAction!("mv", MenuID.CardGroupView, SWT.PUSH, "openCardGroupWindow", "null"));
+				mixin(MenuAction!("mv", MenuID.CouponView, SWT.PUSH, "openCouponWindow", "null"));
+				mixin(MenuAction!("mv", MenuID.GossipView, SWT.PUSH, "openGossipWindow", "null"));
+				mixin(MenuAction!("mv", MenuID.CompleteStampView, SWT.PUSH, "openCompleteStampWindow", "null"));
+				mixin(MenuAction!("mv", MenuID.KeyCodeView, SWT.PUSH, "openKeyCodeWindow", "null"));
+				mixin(MenuAction!("mv", MenuID.CellNameView, SWT.PUSH, "openCellNameWindow", "null"));
+				mixin(MenuAction!("mv", MenuID.CardGroupView, SWT.PUSH, "openCardGroupWindow", "null"));
 				dStr ~= " - " ~ .text(__LINE__);
 				new MenuItem(mv, SWT.SEPARATOR);
-				mixin (MenuAction!("mv", MenuID.Refresh, SWT.PUSH, "refreshAll", "() => summary !is null"));
+				mixin(MenuAction!("mv", MenuID.Refresh, SWT.PUSH, "refreshAll", "() => summary !is null"));
 				if (!_prop.var.etc.showDuplicateViewInToolBar) { mixin(S_TRACE);
 					new MenuItem(mv, SWT.SEPARATOR);
-					mixin (MenuAction!("mv", MenuID.EditSceneDup));
-					mixin (MenuAction!("mv", MenuID.EditEventDup));
+					mixin(MenuAction!("mv", MenuID.EditSceneDup));
+					mixin(MenuAction!("mv", MenuID.EditEventDup));
 				}
 				new MenuItem(mv, SWT.SEPARATOR);
-				mixin (MenuAction!("mv", MenuID.ChangeVH));
+				mixin(MenuAction!("mv", MenuID.ChangeVH));
 				dStr ~= " - " ~ .text(__LINE__);
 
 				auto ma = createMenu(_comm, bar, MenuID.Table);
 				setupMenuListener(ma);
-				mixin (MenuAction!("ma", MenuID.EditSummary, SWT.PUSH, "_tableWin.editSummary", "&_tableWin.canEditSummary"));
+				mixin(MenuAction!("ma", MenuID.EditSummary, SWT.PUSH, "_tableWin.editSummary", "&_tableWin.canEditSummary"));
 				new MenuItem(ma, SWT.SEPARATOR);
-				mixin (MenuAction!("ma", MenuID.EditScene));
-				mixin (MenuAction!("ma", MenuID.EditEvent));
+				mixin(MenuAction!("ma", MenuID.EditScene));
+				mixin(MenuAction!("ma", MenuID.EditEvent));
 				new MenuItem(ma, SWT.SEPARATOR);
-				mixin (MenuAction!("ma", MenuID.NewAreaDir, SWT.PUSH, "_tableWin.createAreaDir", "&_tableWin.canCreateAreaDir"));
-				mixin (MenuAction!("ma", MenuID.NewArea, SWT.PUSH, "_tableWin.createArea", "&_tableWin.canCreateArea"));
-				mixin (MenuAction!("ma", MenuID.NewBattle, SWT.PUSH, "_tableWin.createBattle", "&_tableWin.canCreateBattle"));
-				mixin (MenuAction!("ma", MenuID.NewPackage, SWT.PUSH, "_tableWin.createPackage", "&_tableWin.canCreatePackage"));
+				mixin(MenuAction!("ma", MenuID.NewAreaDir, SWT.PUSH, "_tableWin.createAreaDir", "&_tableWin.canCreateAreaDir"));
+				mixin(MenuAction!("ma", MenuID.NewArea, SWT.PUSH, "_tableWin.createArea", "&_tableWin.canCreateArea"));
+				mixin(MenuAction!("ma", MenuID.NewBattle, SWT.PUSH, "_tableWin.createBattle", "&_tableWin.canCreateBattle"));
+				mixin(MenuAction!("ma", MenuID.NewPackage, SWT.PUSH, "_tableWin.createPackage", "&_tableWin.canCreatePackage"));
 
 				auto mf = createMenu(_comm, bar, MenuID.Variable);
 				setupMenuListener(mf);
-				mixin (MenuAction!("mf", MenuID.NewFlagDir, SWT.PUSH, "_flagWin.createFlagDir", "&_flagWin.canCreateFlagDir"));
-				mixin (MenuAction!("mf", MenuID.NewFlag, SWT.PUSH, "_flagWin.createFlag", "&_flagWin.canCreateFlag"));
-				mixin (MenuAction!("mf", MenuID.NewStep, SWT.PUSH, "_flagWin.createStep", "&_flagWin.canCreateStep"));
-				mixin (MenuAction!("mf", MenuID.NewVariant, SWT.PUSH, "_flagWin.createVariant", "&_flagWin.canCreateVariant"));
+				mixin(MenuAction!("mf", MenuID.NewFlagDir, SWT.PUSH, "_flagWin.createFlagDir", "&_flagWin.canCreateFlagDir"));
+				mixin(MenuAction!("mf", MenuID.NewFlag, SWT.PUSH, "_flagWin.createFlag", "&_flagWin.canCreateFlag"));
+				mixin(MenuAction!("mf", MenuID.NewStep, SWT.PUSH, "_flagWin.createStep", "&_flagWin.canCreateStep"));
+				mixin(MenuAction!("mf", MenuID.NewVariant, SWT.PUSH, "_flagWin.createVariant", "&_flagWin.canCreateVariant"));
 
 				auto mc = createMenu(_comm, bar, MenuID.Card);
 				setupMenuListener(mc);
@@ -3211,13 +3211,13 @@ public:
 				g.menuIDs.add(MenuID.ShowCardProp);
 				g.menuIDs.add(MenuID.ShowCardImage);
 				g.menuIDs.add(MenuID.ShowCardDetail);
-				mixin (MenuAction!("mc", MenuID.ShowCardProp, SWT.RADIO, "showCardLife", "null"));
+				mixin(MenuAction!("mc", MenuID.ShowCardProp, SWT.RADIO, "showCardLife", "null"));
 				auto scf = _menu[MenuID.ShowCardProp];
 				g.append(scf);
-				mixin (MenuAction!("mc", MenuID.ShowCardImage, SWT.RADIO, "showCardList", "null"));
+				mixin(MenuAction!("mc", MenuID.ShowCardImage, SWT.RADIO, "showCardList", "null"));
 				auto scl = _menu[MenuID.ShowCardImage];
 				g.append(scl);
-				mixin (MenuAction!("mc", MenuID.ShowCardDetail, SWT.RADIO, "showCardTable", "null"));
+				mixin(MenuAction!("mc", MenuID.ShowCardDetail, SWT.RADIO, "showCardTable", "null"));
 				auto sct = _menu[MenuID.ShowCardDetail];
 				g.append(sct);
 				if (_prop.var.etc.cardLife) { mixin(S_TRACE);
@@ -3229,11 +3229,11 @@ public:
 				}
 				_menuRG ~= g;
 				new MenuItem(mc, SWT.SEPARATOR);
-				mixin (MenuAction!("mc", MenuID.NewCast, SWT.PUSH, "newCast", "&canNewCast"));
-				mixin (MenuAction!("mc", MenuID.NewSkill, SWT.PUSH, "newSkill", "&canNewSkill"));
-				mixin (MenuAction!("mc", MenuID.NewItem, SWT.PUSH, "newItem", "&canNewItem"));
-				mixin (MenuAction!("mc", MenuID.NewBeast, SWT.PUSH, "newBeast", "&canNewBeast"));
-				mixin (MenuAction!("mc", MenuID.NewInfo, SWT.PUSH, "newInfo", "&canNewInfo"));
+				mixin(MenuAction!("mc", MenuID.NewCast, SWT.PUSH, "newCast", "&canNewCast"));
+				mixin(MenuAction!("mc", MenuID.NewSkill, SWT.PUSH, "newSkill", "&canNewSkill"));
+				mixin(MenuAction!("mc", MenuID.NewItem, SWT.PUSH, "newItem", "&canNewItem"));
+				mixin(MenuAction!("mc", MenuID.NewBeast, SWT.PUSH, "newBeast", "&canNewBeast"));
+				mixin(MenuAction!("mc", MenuID.NewInfo, SWT.PUSH, "newInfo", "&canNewInfo"));
 				dStr ~= " - " ~ .text(__LINE__);
 
 				auto mt = createMenu(_comm, bar, MenuID.Tool);
@@ -3248,23 +3248,23 @@ public:
 				_mExecEngineWithParty = new Menu(eewpmi);
 				eewpmi.setMenu(_mExecEngineWithParty);
 				new MenuItem(mt, SWT.SEPARATOR);
-				mixin (MenuAction!("mt", MenuID.OpenDir, SWT.PUSH, "openDirectory", "&canOpenDirectory"));
+				mixin(MenuAction!("mt", MenuID.OpenDir, SWT.PUSH, "openDirectory", "&canOpenDirectory"));
 				new MenuItem(mt, SWT.SEPARATOR);
 				auto otmi = createMenuItem(_comm, mt, MenuID.OuterTools, dummy, () => _prop.var.etc.outerTools.length > 0, SWT.CASCADE);
 				_mOuterTools = new Menu(otmi);
 				otmi.setMenu(_mOuterTools);
 				new MenuItem(mt, SWT.SEPARATOR);
-				mixin (MenuAction!("mt", MenuID.OpenImportSource, SWT.PUSH, "addScenario", "&canAddScenario"));
+				mixin(MenuAction!("mt", MenuID.OpenImportSource, SWT.PUSH, "addScenario", "&canAddScenario"));
 				new MenuItem(mt, SWT.SEPARATOR);
-				mixin (MenuAction!("mt", MenuID.CustomizeToolBar, SWT.PUSH, "customizeToolBar", "null"));
+				mixin(MenuAction!("mt", MenuID.CustomizeToolBar, SWT.PUSH, "customizeToolBar", "null"));
 				new MenuItem(mt, SWT.SEPARATOR);
-				mixin (MenuAction!("mt", MenuID.OpenBackupDir, SWT.PUSH, "openBackupDirectory", "&canOpenBackupDirectory"));
+				mixin(MenuAction!("mt", MenuID.OpenBackupDir, SWT.PUSH, "openBackupDirectory", "&canOpenBackupDirectory"));
 				new MenuItem(mt, SWT.SEPARATOR);
-				mixin (MenuAction!("mt", MenuID.Settings, SWT.PUSH, "settings", "null"));
+				mixin(MenuAction!("mt", MenuID.Settings, SWT.PUSH, "settings", "null"));
 
 				auto mh = createMenu(_comm, bar, MenuID.Help);
 				setupMenuListener(mh);
-				mixin (MenuAction!("mh", MenuID.VersionInfo, SWT.PUSH, "versionInfo", "null"));
+				mixin(MenuAction!("mh", MenuID.VersionInfo, SWT.PUSH, "versionInfo", "null"));
 
 				_win.setMenuBar(bar);
 				dStr ~= " - " ~ .text(__LINE__);
@@ -4232,17 +4232,17 @@ public:
 			menuActionAfter(MenuID.ShowCardDetail);
 		}
 	}
-	private bool canNewCard() {return summary !is null;}
+	private bool canNewCard() { return summary !is null; }
 	private alias canNewCard canNewCast;
 	private alias canNewCard canNewSkill;
 	private alias canNewCard canNewItem;
 	private alias canNewCard canNewInfo;
 	private alias canNewCard canNewBeast;
-	private void newCast() {mixin (NewCard!("Cast"));}
-	private void newSkill() {mixin (NewCard!("Skill"));}
-	private void newItem() {mixin (NewCard!("Item"));}
-	private void newBeast() {mixin (NewCard!("Beast"));}
-	private void newInfo() {mixin (NewCard!("Info"));}
+	private void newCast() { mixin(NewCard!("Cast")); }
+	private void newSkill() { mixin(NewCard!("Skill")); }
+	private void newItem() { mixin(NewCard!("Item")); }
+	private void newBeast() { mixin(NewCard!("Beast")); }
+	private void newInfo() { mixin(NewCard!("Info")); }
 	private void versionInfo() { mixin(S_TRACE);
 		(new VersionDialog(_comm, _prop, _win)).open();
 	}
@@ -4509,33 +4509,33 @@ public:
 	Composite shell() { return _win; }
 	@property
 	override
-	void delegate(string) statusText() {return &_sbshl.statusLine;}
+	void delegate(string) statusText() { return &_sbshl.statusLine; }
 	@property
-	DockingFolderCTC dock() {return _dock;}
+	DockingFolderCTC dock() { return _dock; }
 
 	@property
-	Summary summary() {return _tableWin.summary;}
+	Summary summary() { return _tableWin.summary; }
 
 	void reNumberingHands(A)(A[] arr) { mixin(S_TRACE);
 		ulong newId = 1;
 		foreach (a; arr) { mixin(S_TRACE);
 			if (a.id != newId) { mixin(S_TRACE);
 				a.id = newId;
-				static if (is (A : Area)) {
+				static if (is(A : Area)) {
 					_comm.refArea.call(a);
-				} else static if (is (A : Battle)) {
+				} else static if (is(A : Battle)) {
 					_comm.refBattle.call(a);
-				} else static if (is (A : Package)) {
+				} else static if (is(A : Package)) {
 					_comm.refPackage.call(a);
-				} else static if (is (A : CastCard)) {
+				} else static if (is(A : CastCard)) {
 					_comm.refCast.call(a);
-				} else static if (is (A : SkillCard)) {
+				} else static if (is(A : SkillCard)) {
 					_comm.refSkill.call(a);
-				} else static if (is (A : ItemCard)) {
+				} else static if (is(A : ItemCard)) {
 					_comm.refItem.call(a);
-				} else static if (is (A : BeastCard)) {
+				} else static if (is(A : BeastCard)) {
 					_comm.refBeast.call(a);
-				} else static if (is (A : InfoCard)) {
+				} else static if (is(A : InfoCard)) {
 					_comm.refInfo.call(a);
 				}
 			}

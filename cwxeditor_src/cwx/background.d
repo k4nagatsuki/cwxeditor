@@ -1208,7 +1208,7 @@ public:
 
 	private BgImageOwner _owner;
 	@property
-	package void owner(BgImageOwner owner) {_owner = owner;}
+	package void owner(BgImageOwner owner) { _owner = owner; }
 	@property
 	override string cwxPath(bool id) { mixin(S_TRACE);
 		return _owner ? cpjoin(_owner, "background", .cCountUntil!("a is b")(_owner.backs, this), id) : "";
@@ -1220,10 +1220,10 @@ public:
 	@property
 	override
 	inout
-	inout(CWXPath)[] cwxChilds() {return [];}
+	inout(CWXPath)[] cwxChilds() { return []; }
 	@property
 	override
-	CWXPath cwxParent() {return _owner;}
+	CWXPath cwxParent() { return _owner; }
 }
 
 /// BgImage所持者のインタフェース。
@@ -1243,7 +1243,7 @@ public:
 		_bgImgs = bgImgs;
 	}
 	@property
-	override string cwxPath(bool id) {return "";}
+	override string cwxPath(bool id) { return ""; }
 	override CWXPath findCWXPath(string path) { mixin(S_TRACE);
 		if (cpempty(path)) return this;
 		auto cate = cpcategory(path);
@@ -1265,7 +1265,7 @@ public:
 		return r;
 	}
 	@property
-	CWXPath cwxParent() {return null;}
+	CWXPath cwxParent() { return null; }
 
 	/// 背景イメージ群。
 	@property

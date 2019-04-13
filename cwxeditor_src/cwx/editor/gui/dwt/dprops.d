@@ -119,26 +119,26 @@ public:
 	}
 	@property
 	const
-	const(CProps) parent() {return _parent;}
+	const(CProps) parent() { return _parent; }
 	@property
 	const
-	const(cwx.system.System) sys() {return _parent.sys;}
+	const(cwx.system.System) sys() { return _parent.sys; }
 	@property
-	Images images() {return _images;}
-	@property
-	const
-	const(Msgs) msgs() {return _parent.msgs;}
+	Images images() { return _images; }
 	@property
 	const
-	const(Looks) looks() {return _parent.looks;}
-	@property
-	FlexProps var() {return _var;}
+	const(Msgs) msgs() { return _parent.msgs; }
 	@property
 	const
-	const(FlexProps) var() {return _var;}
+	const(Looks) looks() { return _parent.looks; }
+	@property
+	FlexProps var() { return _var; }
+	@property
+	const
+	const(FlexProps) var() { return _var; }
 
 	const
-	string toAppAbs(string path) {return parent.toAppAbs(path);}
+	string toAppAbs(string path) { return parent.toAppAbs(path); }
 
 	const
 	string buildTool(MenuID id) { mixin(S_TRACE);
@@ -244,9 +244,9 @@ public:
 }
 
 /// CPoint等の構造体をSWTのクラスに変換するための関数。
-Point dwtData(CPoint v) {return new Point(v.x, v.y);}
+Point dwtData(CPoint v) { return new Point(v.x, v.y); }
 /// ditto
-Point dwtData(CSize v) {return new Point(v.width, v.height);}
+Point dwtData(CSize v) { return new Point(v.width, v.height); }
 /// ditto
 RGB dwtData(CRGB v, out int alpha) { mixin(S_TRACE);
 	alpha = v.a;

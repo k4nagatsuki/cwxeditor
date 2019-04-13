@@ -343,6 +343,7 @@ private:
 			bool escape;
 			bool lose;
 			bool everyRound;
+			bool roundEnd;
 			bool round0;
 			FKeyCode[] keyCodes;
 			MatchingType keyCodeMatchingType;
@@ -366,6 +367,7 @@ private:
 			_vals.escape = tree.fireEscape;
 			_vals.lose = tree.fireLose;
 			_vals.everyRound = tree.fireEveryRound;
+			_vals.roundEnd = tree.fireRoundEnd;
 			_vals.round0 = tree.fireRound0;
 			_vals.keyCodes = tree.keyCodes.dup;
 			_vals.keyCodeMatchingType = tree.keyCodeMatchingType;
@@ -387,6 +389,7 @@ private:
 			tree.escape = vals.escape;
 			tree.lose = vals.lose;
 			tree.everyRound = vals.everyRound;
+			tree.roundEnd = vals.roundEnd;
 			tree.round0 = vals.round0;
 			tree.removeKeyCodesAll();
 			foreach (kc; vals.keyCodes) tree.addKeyCode(kc);
@@ -662,6 +665,7 @@ private:
 			auto parItm = selectionParent;
 			if (parItm && (!_oldSelP || _oldSelP != parItm) && _treeKind.getSelectionIndex() == 0) { mixin(S_TRACE);
 				auto c = cast(CCombo)_fireItm.getControl();
+				auto oldText = c.getText();
 				c.removeAll();
 				string[] vals;
 				if (cast(EventTreeOwner)parItm.getData()) { mixin(S_TRACE);
@@ -669,8 +673,9 @@ private:
 				}
 				foreach (i, v; vals) { mixin(S_TRACE);
 					c.add(v);
-					if (i == 0) c.setText(v);
+					if (oldText == v) c.setText(v);
 				}
+				if (c.getSelectionIndex() == -1) c.select(0);
 			}
 		}
 		_comm.refreshToolBar();
@@ -789,6 +794,9 @@ private:
 		if (tree.fireEveryRound) { mixin(S_TRACE);
 			treeName ~= prop.msgs.everyRoundTree;
 		}
+		if (tree.fireRoundEnd) { mixin(S_TRACE);
+			treeName ~= prop.msgs.roundEndTree;
+		}
 		if (tree.fireRound0) { mixin(S_TRACE);
 			treeName ~= prop.msgs.round0Tree;
 		}
@@ -842,7 +850,7 @@ private:
 		if (!canCreateEvent) return;
 		auto parItm = selectionParent;
 		auto owner = cast(EventTreeOwner)parItm.getData();
-		auto sys = owner.canHasFireEnter || owner.canHasFireLose || owner.canHasFireEscape || owner.canHasFireEveryRound || owner.canHasFireRound0;
+		auto sys = owner.canHasFireEnter || owner.canHasFireLose || owner.canHasFireEscape || owner.canHasFireEveryRound || owner.canHasFireRoundEnd || owner.canHasFireRound0;
 		auto kc = owner.canHasFireKeyCode;
 		auto round = owner.canHasFireRound;
 		if (!(sys || kc || round)) { mixin(S_TRACE);
@@ -926,6 +934,8 @@ private:
 			treeName = _prop.msgs.loseTree;
 		} else if (fire is EVERY_ROUND) { mixin(S_TRACE);
 			treeName = _prop.msgs.everyRoundTree;
+		} else if (fire is ROUND_END) { mixin(S_TRACE);
+			treeName = _prop.msgs.roundEndTree;
 		} else if (fire is ROUND_0) { mixin(S_TRACE);
 			treeName = _prop.msgs.round0Tree;
 		} else if (cast(KeyCodeObj)fire) { mixin(S_TRACE);
@@ -1109,6 +1119,9 @@ private:
 					if (t.fireEveryRound) { mixin(S_TRACE);
 						createTreeItem(eItm, EVERY_ROUND, _prop.msgs.startEveryRound, _prop.images.defStart);
 					}
+					if (t.fireRoundEnd) { mixin(S_TRACE);
+						createTreeItem(eItm, ROUND_END, _prop.msgs.startRoundEnd, _prop.images.defStart);
+					}
 					if (t.fireRound0) { mixin(S_TRACE);
 						createTreeItem(eItm, ROUND_0, _prop.msgs.startRound0, _prop.images.defStart);
 					}
@@ -1143,7 +1156,7 @@ private:
 							break;
 						}
 					} else if (data is sel) { mixin(S_TRACE);
-						assert (data is ENTER || data is LOSE || data is ESCAPE || data is EVERY_ROUND || data is ROUND_0);
+						assert (data is ENTER || data is LOSE || data is ESCAPE || data is EVERY_ROUND || data is ROUND_END || data is ROUND_0);
 						if (v is this) v._cards.setSelection([itm]);
 						break;
 					}
@@ -1200,6 +1213,8 @@ private:
 				case 3:
 					return EVERY_ROUND;
 				case 4:
+					return ROUND_END;
+				case 5:
 					return ROUND_0;
 				default: assert (0);
 				}
@@ -1239,6 +1254,8 @@ private:
 			tree.lose = true;
 		} else if (fire is EVERY_ROUND) { mixin(S_TRACE);
 			tree.everyRound = true;
+		} else if (fire is ROUND_END) { mixin(S_TRACE);
+			tree.roundEnd = true;
 		} else if (fire is ROUND_0) { mixin(S_TRACE);
 			tree.round0 = true;
 		} else if (cast(KeyCodeObj)fire) { mixin(S_TRACE);
@@ -1254,12 +1271,14 @@ private:
 	static __gshared Object ESCAPE;
 	static __gshared Object LOSE;
 	static __gshared Object EVERY_ROUND;
+	static __gshared Object ROUND_END;
 	static __gshared Object ROUND_0;
 	shared static this () { mixin(S_TRACE);
 		ENTER = new Object;
 		ESCAPE = new Object;
 		LOSE = new Object;
 		EVERY_ROUND = new Object;
+		ROUND_END = new Object;
 		ROUND_0 = new Object;
 	}
 	int keyCodesIndex(TreeItem itm) { mixin(S_TRACE);
@@ -1275,6 +1294,7 @@ private:
 				if (tree.fireLose) r++;
 				if (tree.fireEscape) r++;
 				if (tree.fireEveryRound) r++;
+				if (tree.fireRoundEnd) r++;
 				if (tree.fireRound0) r++;
 				return r;
 			} else { mixin(S_TRACE);
@@ -1564,7 +1584,7 @@ public:
 			.listener(_cards, SWT.Dispose, { mixin(S_TRACE);
 				_comm.refDataVersion.remove(&_cards.redraw);
 			});
-			if (cast(Area)_area || cast(Battle)_area) { mixin (S_TRACE);
+			if (cast(Area)_area || cast(Battle)_area) { mixin(S_TRACE);
 				.listener(_cards, SWT.Paint, (e) { mixin(S_TRACE);
 					if (_prop.var.etc.showItemNumberOfSceneAndEventView) { mixin(S_TRACE);
 						auto ti = .topItem(_cards.getTopItem());
@@ -1599,11 +1619,11 @@ public:
 
 			auto shell = _cards.getShell();
 			auto menu = new Menu(shell, SWT.POP_UP);
-			if (!_readOnly) { mixin (S_TRACE);
-				auto sys = _area.canHasFireEnter || _area.canHasFireLose || _area.canHasFireEscape || _area.canHasFireEveryRound || _area.canHasFireRound0;
+			if (!_readOnly) { mixin(S_TRACE);
+				auto sys = _area.canHasFireEnter || _area.canHasFireLose || _area.canHasFireEscape || _area.canHasFireEveryRound || _area.canHasFireRoundEnd || _area.canHasFireRound0;
 				auto kc = _area.canHasFireKeyCode;
 				auto round = _area.canHasFireRound;
-				if (sys || kc || round) { mixin (S_TRACE);
+				if (sys || kc || round) { mixin(S_TRACE);
 					createMenuItem(_comm, menu, MenuID.EditProp, &editEvent, () => selectionEventTree !is null);
 					new MenuItem(menu, SWT.SEPARATOR);
 				}
@@ -1613,7 +1633,7 @@ public:
 				createMenuItem(_comm, menu, MenuID.Redo, &this.redo, () => _undo.canRedo && !_readOnly);
 				new MenuItem(menu, SWT.SEPARATOR);
 				appendMenuTCPD(_comm, menu, this, true, true, true, true, true);
-				if (cast(Area)_area || cast(Battle)_area) { mixin (S_TRACE);
+				if (cast(Area)_area || cast(Battle)_area) { mixin(S_TRACE);
 					new MenuItem(menu, SWT.SEPARATOR);
 					void delegate() dlg = null;
 					auto cascade = createMenuItem(_comm, menu, MenuID.KeyCodeTiming, dlg, () => !_readOnly && selectionKeyCode !is null, SWT.CASCADE);
@@ -1631,18 +1651,18 @@ public:
 					createMenuItem(_comm, sub2, MenuID.KeyCodeCondAnd, &setKeyCodeCond!(MatchingType.And), &canSetKeyCodeCond!(MatchingType.And));
 				}
 				new MenuItem(menu, SWT.SEPARATOR);
-			} else { mixin (S_TRACE);
+			} else { mixin(S_TRACE);
 				appendMenuTCPD(_comm, menu, this, false, true, false, false, false);
 				new MenuItem(menu, SWT.SEPARATOR);
 			}
 			createMenuItem(_comm, menu, MenuID.ToScript, &toScript, &canToScript);
 			createMenuItem(_comm, menu, MenuID.ToScriptAll, &toScriptAll, &canToScriptAll);
-			if (!_readOnly) { mixin (S_TRACE);
+			if (!_readOnly) { mixin(S_TRACE);
 				new MenuItem(menu, SWT.SEPARATOR);
 				createMenuItem(_comm, menu, MenuID.EventToPackage, &eventToPackage, &canEventToPackage);
 			}
-			if (cast(Battle)_area) { mixin (S_TRACE);
-				if (!_readOnly) { mixin (S_TRACE);
+			if (cast(Battle)_area) { mixin(S_TRACE);
+				if (!_readOnly) { mixin(S_TRACE);
 					new MenuItem(menu, SWT.SEPARATOR);
 					createMenuItem(_comm, menu, MenuID.AddRangeOfRound, &addManyRounds, { mixin(S_TRACE);
 						if (_readOnly) return false;
@@ -2021,7 +2041,7 @@ public:
 			auto data = itm.getData();
 			auto parent = itm.getParentItem();
 			int from = parent.indexOf(itm);
-			int to = mixin (BeforeAfter);
+			int to = mixin(BeforeAfter);
 			if (to >= 0) { mixin(S_TRACE);
 				if (cast(EventTree)data) { mixin(S_TRACE);
 					return true;
@@ -2032,7 +2052,7 @@ public:
 						int keyCodeLen = cast(int)tree.keyCodes.length;
 						from -= keyCodesIndex(parent);
 						to -= keyCodesIndex(parent);
-						return mixin (CanSwapKeyCode);
+						return mixin(CanSwapKeyCode);
 					}
 				}
 			}
@@ -2094,7 +2114,7 @@ public:
 				int keyCodeLen = cast(int)tree.keyCodes.length;
 				from -= keyCodesIndex(parent);
 				to -= keyCodesIndex(parent);
-				if (mixin (CanSwapKeyCode)) { mixin(S_TRACE);
+				if (mixin(CanSwapKeyCode)) { mixin(S_TRACE);
 					if (!viewOnly) { mixin(S_TRACE);
 						if (store) this.store(tree);
 						tree.swapKeyCode(from, to);
@@ -2242,6 +2262,7 @@ public:
 		if (!_readOnly) { mixin(S_TRACE);
 			auto treeKindItm = new ToolItem(bar, SWT.SEPARATOR);
 			_treeKind = new CCombo(bar, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+			_treeKind.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 			_comm.put(_treeKind, { mixin(S_TRACE);
 				if (_readOnly) return false;
 				auto itm = selection;
@@ -2276,6 +2297,7 @@ public:
 				new ToolItem(bar, SWT.SEPARATOR);
 				auto keyCodeTimItm = new ToolItem(bar, SWT.SEPARATOR);
 				_keyCodeTim = new CCombo(bar, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+				_keyCodeTim.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 				createTextMenu!CCombo(_comm, _prop, _keyCodeTim, null);
 				_keyCodeTim.setEnabled(false);
 				_keyCodeTim.add(_prop.msgs.keyCodeTimingUse);
@@ -2384,7 +2406,7 @@ public:
 		if (cast(Area)_area) {
 			return [_prop.msgs.startEnter];
 		} else if (cast(Battle)_area) {
-			return [_prop.msgs.startVictory, _prop.msgs.startEscape, _prop.msgs.startLose, _prop.msgs.startEveryRound, _prop.msgs.startRound0];
+			return [_prop.msgs.startVictory, _prop.msgs.startEscape, _prop.msgs.startLose, _prop.msgs.startEveryRound, _prop.msgs.startRoundEnd, _prop.msgs.startRound0];
 		} else if (cast(Package)_area) {
 			return [_prop.msgs.startPackage];
 		} else { mixin(S_TRACE);
@@ -2405,11 +2427,11 @@ public:
 			return areaDefVals;
 		}
 	}
-	private CCombo createCombo(bool readOnly, string[] vals, bool visLong = false) { mixin(S_TRACE);
+	private CCombo createCombo(bool readOnly, string[] vals) { mixin(S_TRACE);
 		int style = SWT.BORDER | SWT.DROP_DOWN;
 		if (readOnly) style |= SWT.READ_ONLY;
 		auto c = new CCombo(_toolbar, style);
-		if (visLong) c.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
+		c.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 		c.setEnabled(!_readOnly);
 		foreach (i, v; vals) { mixin(S_TRACE);
 			c.add(v);
@@ -2511,7 +2533,11 @@ public:
 				return [cast(string)_prop.msgs.warningEveryRound];
 			}
 		}
-
+		if (itm.getData() is ROUND_END) { mixin(S_TRACE);
+			if (!_prop.isTargetVersion(_summ, "4")) { mixin(S_TRACE);
+				return [cast(string)_prop.msgs.warningRoundEnd];
+			}
+		}
 		if (itm.getData() is ROUND_0) { mixin(S_TRACE);
 			if (!_prop.targetVersion(_summ, "1.50")) { mixin(S_TRACE);
 				return [cast(string)_prop.msgs.warningRound0];
@@ -2880,6 +2906,8 @@ public:
 			node = EventTree.loseToNode();
 		} else if (EVERY_ROUND is data) { mixin(S_TRACE);
 			node = EventTree.everyRoundToNode();
+		} else if (ROUND_END is data) { mixin(S_TRACE);
+			node = EventTree.roundEndToNode();
 		} else if (ROUND_0 is data) { mixin(S_TRACE);
 			node = EventTree.round0ToNode();
 		} else if (cast(KeyCodeObj)data) { mixin(S_TRACE);
@@ -2971,6 +2999,8 @@ public:
 							putFire(LOSE);
 						} else if (tree.everyRoundFromNode(par, node)) { mixin(S_TRACE);
 							putFire(EVERY_ROUND);
+						} else if (tree.roundEndFromNode(par, node)) { mixin(S_TRACE);
+							putFire(ROUND_END);
 						} else if (tree.round0FromNode(par, node)) { mixin(S_TRACE);
 							putFire(ROUND_0);
 						} else { mixin(S_TRACE);
@@ -3053,6 +3083,8 @@ public:
 					tree.lose = false;
 				} else if (EVERY_ROUND is data) { mixin(S_TRACE);
 					tree.everyRound = false;
+				} else if (ROUND_END is data) { mixin(S_TRACE);
+					tree.roundEnd = false;
 				} else if (ROUND_0 is data) { mixin(S_TRACE);
 					tree.round0 = false;
 				} else if (cast(KeyCodeObj)data) { mixin(S_TRACE);

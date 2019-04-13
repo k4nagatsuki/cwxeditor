@@ -276,11 +276,11 @@ struct CDetail {
 	string[CArg] args;
 	/// argを使用するコンテントであればtrueを返す。
 	const
-	bool use(CArg arg) {return (arg in args) != null;}
+	bool use(CArg arg) { return (arg in args) != null; }
 	/// argを使用する際の属性名を返す。
 	/// 子要素を使用する等の理由で属性名が存在しない場合はnullを返す。
 	const
-	string attr(CArg arg) {return args[arg];}
+	string attr(CArg arg) { return args[arg]; }
 
 	static CDetail opCall(string name, string type, CNextType nextType, bool owner) {
 		string[CArg] args;
@@ -314,7 +314,7 @@ bool isBranchContent(CType cType) { mixin(S_TRACE);
 /// スタートのID。
 alias string StartId;
 /// 文字列をスタートIDに変換。
-StartId toStartId(string start) {return start;}
+StartId toStartId(string start) { return start; }
 /// スタートコンテントの使用者。
 alias User!(StartId) IStartUser;
 /// スタートコンテントの使用回数カウンタ。
@@ -407,7 +407,7 @@ public:
 	}
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() {return _text.useCounter;}
+	UseCounter useCounter() { return _text.useCounter; }
 	/// 使用回数カウンタを設定・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
@@ -1380,7 +1380,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	/// ditto
 	@property
 	const
-	string comment() {return _comment;}
+	string comment() { return _comment; }
 	/// ditto
 	@property
 	void comment(string v) { mixin(S_TRACE);
@@ -1611,7 +1611,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	/// 後続イベント群。
 	@property
 	inout
-	inout(Content)[] next() {return _next;}
+	inout(Content)[] next() { return _next; }
 
 	/// このコンテントを親にしたツリーの
 	/// イベントコンテント数を再帰的にカウントする。
@@ -1856,11 +1856,11 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	/// ---
 	private template Prop(T, T2, string Name, T2 Def, string Set = "", string Get = "", bool New = false, bool Callback = false) {
 		static if (New) {
-			mixin ("private " ~ T.stringof ~ " _" ~ Name ~ ";");
+			mixin("private " ~ T.stringof ~ " _" ~ Name ~ ";");
 		} else {
-			mixin ("private " ~ T.stringof ~ " _" ~ Name ~ " = Def;");
+			mixin("private " ~ T.stringof ~ " _" ~ Name ~ " = Def;");
 		}
-		mixin ("@property void " ~ Name ~ "(" ~ T2.stringof ~ " val) {"
+		mixin("@property void " ~ Name ~ "(" ~ T2.stringof ~ " val) {"
 			~ "scope (exit) validate();"
 			~ "static if (is(typeof(check_" ~ Name ~ "(val)))) {"
 			~ "    if (!check_" ~ Name ~ "(val)) throw new EventException(\"Invalid " ~ Name ~ "\");"
@@ -1890,19 +1890,19 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		~ "}");
 		static if (New) {
 			static if (is(T2 == string)) {
-				mixin ("@property const T2 " ~ Name ~ "() {return _" ~ Name ~ " ? _" ~ Name ~ Get ~ " : Def;}");
+				mixin("@property const T2 " ~ Name ~ "() { return _" ~ Name ~ " ? _" ~ Name ~ Get ~ " : Def; }");
 			} else static if (isVArray!T2) {
-				mixin ("@property inout inout(ElementType!T2)[] " ~ Name ~ "() {return _" ~ Name ~ " ? _" ~ Name ~ Get ~ " : cast(typeof(return))Def;}");
+				mixin("@property inout inout(ElementType!T2)[] " ~ Name ~ "() { return _" ~ Name ~ " ? _" ~ Name ~ Get ~ " : cast(typeof(return))Def; }");
 			} else {
-				mixin ("@property inout inout(T2) " ~ Name ~ "() {return _" ~ Name ~ " ? _" ~ Name ~ Get ~ " : " ~ Def.stringof ~ ";}");
+				mixin("@property inout inout(T2) " ~ Name ~ "() { return _" ~ Name ~ " ? _" ~ Name ~ Get ~ " : " ~ Def.stringof ~ "; }");
 			}
 		} else {
 			static if (__VERSION__ <= 2060 && isVArray!T2) {
-				mixin ("@property " ~ ElementType!T.stringof ~ "[] " ~ Name ~ "() const {return cast(T2)_" ~ Name ~ Get ~ ";}");
+				mixin("@property " ~ ElementType!T.stringof ~ "[] " ~ Name ~ "() const { return cast(T2)_" ~ Name ~ Get ~ "; }");
 			} else static if (isVArray!T2) {
-				mixin ("@property inout inout(ElementType!T2)[] " ~ Name ~ "() {return _" ~ Name ~ Get ~ ";}");
+				mixin("@property inout inout(ElementType!T2)[] " ~ Name ~ "() { return _" ~ Name ~ Get ~ "; }");
 			} else {
-				mixin ("@property inout inout(T2) " ~ Name ~ "() {return _" ~ Name ~ Get ~ ";}");
+				mixin("@property inout inout(T2) " ~ Name ~ "() { return _" ~ Name ~ Get ~ "; }");
 			}
 		}
 	}
@@ -1910,8 +1910,8 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		mixin Prop!(T, T, Name, Def);
 	}
 	private template MaxMin(T, string Name, T Max, T Min) {
-		mixin ("static const T " ~ Name ~ "_max = Max;");
-		mixin ("static const T " ~ Name ~ "_min = Min;");
+		mixin("static const T " ~ Name ~ "_max = Max;");
+		mixin("static const T " ~ Name ~ "_min = Min;");
 	}
 
 	private string _start = "";
@@ -1930,7 +1930,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	/// ditto
 	@property
 	const
-	string start() {return _start;}
+	string start() { return _start; }
 
 	/// エリアID。
 	mixin Prop!(AreaUser, ulong, "area", 0UL, ".area", ".area", true);
@@ -2336,7 +2336,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	}
 	/// 使用回数カウンタを返す。存在しない場合はnullを返す。
 	@property
-	UseCounter useCounter() {return _uc;}
+	UseCounter useCounter() { return _uc; }
 
 	private SUseCounter _suc = null;
 	/// スタートの使用回数カウンタを設定・除去する。
@@ -2585,7 +2585,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	const
 	private void atnPut(CArg ARG, string Name, string From)(ref XNode en, in CDetail d) { mixin(S_TRACE);
 		if (d.use(ARG)) { mixin(S_TRACE);
-			mixin ("en.newAttr(d.attr(ARG), " ~ From ~ "(this." ~ Name ~ "));");
+			mixin("en.newAttr(d.attr(ARG), " ~ From ~ "(this." ~ Name ~ "));");
 		}
 	}
 	/// enにパラメータ属性を生成する。
@@ -2593,7 +2593,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	const
 	private void atnPutD(CArg ARG, string Name, string From, alias DefValue)(ref XNode en, in CDetail d) { mixin(S_TRACE);
 		if (d.use(ARG) && mixin("this." ~ Name) != DefValue) { mixin(S_TRACE);
-			mixin ("en.newAttr(d.attr(ARG), " ~ From ~ "(this." ~ Name ~ "));");
+			mixin("en.newAttr(d.attr(ARG), " ~ From ~ "(this." ~ Name ~ "));");
 		}
 	}
 	/// 指定されたXMLノードにインスタンスのデータを追加する。
@@ -2883,7 +2883,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		if (d.use(ARG)) { mixin(S_TRACE);
 			auto name = d.attr(ARG);
 			if (en.hasAttr(name)) { mixin(S_TRACE);
-				mixin ("c." ~ Name ~ " = " ~ To ~ "(en.attr(name, true));");
+				mixin("c." ~ Name ~ " = " ~ To ~ "(en.attr(name, true));");
 				return true;
 			}
 		}
@@ -2894,11 +2894,11 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		if (d.use(ARG)) { mixin(S_TRACE);
 			auto name = d.attr(ARG);
 			if (en.hasAttr(name)) { mixin(S_TRACE);
-				mixin ("c." ~ Name ~ " = " ~ To ~ "(en.attr(name, true));");
+				mixin("c." ~ Name ~ " = " ~ To ~ "(en.attr(name, true));");
 				return true;
 			} else { mixin(S_TRACE);
 				auto a = DefValue;
-				mixin ("c." ~ Name ~ " = a;");
+				mixin("c." ~ Name ~ " = a;");
 				return true;
 			}
 		}
@@ -3071,7 +3071,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 			};
 		}
 		if (d.use(CArg.TEXT)) { mixin(S_TRACE);
-			en.onTag["Text"] = (ref XNode node) {r.text = decodeLf2(node.value);};
+			en.onTag["Text"] = (ref XNode node) { r.text = decodeLf2(node.value); };
 		}
 		if (d.use(CArg.DIALOGS)) { mixin(S_TRACE);
 			en.onTag["Dialogs"] = (ref XNode node) { mixin(S_TRACE);
@@ -3270,7 +3270,8 @@ private:
 	bool _enter = false;
 	bool _escape = false;
 	bool _lose = false;
-	bool _everyRound = 0;
+	bool _everyRound = false;
+	bool _roundEnd = false;
 	bool _round0 = false;
 	uint[] _rounds;
 
@@ -3342,6 +3343,7 @@ public:
 		copy.escape = fireEscape;
 		copy.lose = fireLose;
 		copy.everyRound = fireEveryRound;
+		copy.roundEnd = fireRoundEnd;
 		copy.round0 = fireRound0;
 		copy.rounds = rounds.dup;
 		copy.keyCodes = keyCodes.dup;
@@ -3357,6 +3359,7 @@ public:
 		escape = base.fireEscape;
 		lose = base.fireLose;
 		everyRound = base.fireEveryRound;
+		roundEnd = base.fireRoundEnd;
 		round0 = base.fireRound0;
 		rounds = base.rounds.dup;
 		keyCodes = base.keyCodes.dup;
@@ -3371,6 +3374,7 @@ public:
 			&& fireEscape == c.fireEscape
 			&& fireLose == c.fireLose
 			&& fireEveryRound == c.fireEveryRound
+			&& fireRoundEnd == c.fireRoundEnd
 			&& fireRound0 == c.fireRound0
 			&& rounds == c.rounds
 			&& keyCodes == c.keyCodes
@@ -3400,7 +3404,7 @@ public:
 		return r;
 	}
 	@property
-	CWXPath cwxParent() {return _owner;}
+	CWXPath cwxParent() { return _owner; }
 
 	/// 変更ハンドラを登録する。
 	@property
@@ -3587,7 +3591,7 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() {return _uc;}
+	UseCounter useCounter() { return _uc; }
 	/// 使用回数カウンタを設定する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
@@ -3612,7 +3616,7 @@ public:
 
 	/// スタートの使用回数カウンタ。
 	@property
-	SUseCounter startUseCounter() {return _suc;}
+	SUseCounter startUseCounter() { return _suc; }
 
 	/// エリア到着時・クリック時・パッケージ開始時・勝利・死亡時に発火するか。
 	@property
@@ -3664,6 +3668,19 @@ public:
 	const
 	bool fireEveryRound() { mixin(S_TRACE);
 		return _everyRound;
+	}
+
+	/// ラウンド終了時に発火するか(Wsn.4)。
+	@property
+	void roundEnd(bool roundEnd) { mixin(S_TRACE);
+		if (_roundEnd != roundEnd) changed();
+		_roundEnd = roundEnd;
+	}
+	/// ditto
+	@property
+	const
+	bool fireRoundEnd() { mixin(S_TRACE);
+		return _roundEnd;
 	}
 
 	/// 戦闘開始時に発火するか。
@@ -3893,7 +3910,7 @@ public:
 	const
 	private void toNodeImpl(ref XNode node, XMLOption opt) { mixin(S_TRACE);
 		assert (node.name == "Event", node.name ~ " != Event");
-		if (_enter || _escape || _lose || _everyRound || _round0 || _rounds.length > 0 || _keyCodes.length > 0) { mixin(S_TRACE);
+		if (_enter || _escape || _lose || _everyRound || _roundEnd || _round0 || _rounds.length > 0 || _keyCodes.length > 0) { mixin(S_TRACE);
 			auto ig = node.newElement("Ignitions");
 			if (MatchingType.Or !is keyCodeMatchingType) { mixin(S_TRACE);
 				ig.newAttr("keyCodeMatchingType", fromMatchingType(keyCodeMatchingType));
@@ -3904,6 +3921,7 @@ public:
 			if (_lose) nums ~= "3";
 			if (_everyRound) nums ~= "4";
 			if (_round0) nums ~= "5";
+			if (_roundEnd) nums ~= "6";
 			foreach (r; _rounds) { mixin(S_TRACE);
 				nums ~= ("-" ~ to!(string)(r));
 			}
@@ -3961,6 +3979,9 @@ public:
 					case "5":
 						r._round0 = true;
 						break;
+					case "6":
+						r._roundEnd = true;
+						break;
 					default:
 						if (v.length > 1 && v[0] == '-') { mixin(S_TRACE);
 							r._rounds ~= to!(int)(v[1 .. $]);
@@ -3992,15 +4013,17 @@ public:
 		return e;
 	}
 	/// 「到着時発火」をXMLノード化する。
-	static XNode enterToNode() {return fireToNode("IgniteWithEnter");}
+	static XNode enterToNode() { return fireToNode("IgniteWithEnter"); }
 	/// 「逃走時発火」をXMLノード化する。
-	static XNode escapeToNode() {return fireToNode("IgniteWithRunAway");}
+	static XNode escapeToNode() { return fireToNode("IgniteWithRunAway"); }
 	/// 「敗北時発火」をXMLノード化する。
-	static XNode loseToNode() {return fireToNode("IgniteWithLose");}
+	static XNode loseToNode() { return fireToNode("IgniteWithLose"); }
 	/// 「毎ラウンド発火」をXMLノード化する。
-	static XNode everyRoundToNode() {return fireToNode("IgniteWithEveryRound");}
+	static XNode everyRoundToNode() { return fireToNode("IgniteWithEveryRound"); }
+	/// 「ラウンド終了時発火」をXMLノード化する。
+	static XNode roundEndToNode() { return fireToNode("IgniteWithRoundEnd"); }
 	/// 「戦闘開始時発火」をXMLノード化する。
-	static XNode round0ToNode() {return fireToNode("IgniteWithRound0");}
+	static XNode round0ToNode() { return fireToNode("IgniteWithRound0"); }
 	/// 「発火ラウンド」をXMLノード化する。
 	static XNode roundToNode(uint round) { mixin(S_TRACE);
 		return roundsToNode([round]);
@@ -4032,6 +4055,10 @@ public:
 	/// 「毎ラウンド発火」をXMLノードからロードし、成功すればtrueを返す。
 	bool everyRoundFromNode(EventTreeOwner owner, ref XNode node) { mixin(S_TRACE);
 		return owner.canHasFireEveryRound && fireFromNode(node, "IgniteWithEveryRound", &fireEveryRound, &everyRound);
+	}
+	/// 「ラウンド終了時発火」をXMLノードからロードし、成功すればtrueを返す。
+	bool roundEndFromNode(EventTreeOwner owner, ref XNode node) { mixin(S_TRACE);
+		return owner.canHasFireRoundEnd && fireFromNode(node, "IgniteWithRoundEnd", &fireRoundEnd, &roundEnd);
 	}
 	/// 「戦闘開始時発火」をXMLノードからロードし、成功すればtrueを返す。
 	bool round0FromNode(EventTreeOwner owner, ref XNode node) { mixin(S_TRACE);
@@ -4101,6 +4128,10 @@ public interface EventTreeOwner : CWXPath {
 	@property
 	const
 	bool canHasFireEveryRound();
+	/// 発火条件「ラウンド終了」に対応しているか。
+	@property
+	const
+	bool canHasFireRoundEnd();
 	/// 発火条件「戦闘開始」に対応しているか。
 	@property
 	const
@@ -4196,7 +4227,7 @@ public:
 	}
 	/// 委譲によって使用する場合は委譲元を返す。
 	@property
-	protected EventTreeOwner con() {return this;}
+	protected EventTreeOwner con() { return this; }
 
 	@property
 	inout
@@ -4221,6 +4252,7 @@ public:
 		if (!canHasFireLose) evt.lose = false;
 		if (!canHasFireEscape) evt.escape = false;
 		if (!canHasFireEveryRound) evt.everyRound = false;
+		if (!canHasFireRoundEnd) evt.roundEnd = false;
 		if (!canHasFireRound0) evt.round0 = false;
 		if (!canHasFireRound) evt.removeRoundsAll();
 		if (!canHasFireKeyCode) evt.removeKeyCodesAll();
@@ -4247,7 +4279,7 @@ public:
 	/// このクラスを継承する場合、「到着」「クリック」「死亡」は有効になる。
 	@property
 	const
-	bool canHasFireEnter() {return true;}
+	bool canHasFireEnter() { return true; }
 	@property
 	const
 	abstract bool canHasFireLose();
@@ -4257,6 +4289,9 @@ public:
 	@property
 	const
 	abstract bool canHasFireEveryRound();
+	@property
+	const
+	abstract bool canHasFireRoundEnd();
 	@property
 	const
 	abstract bool canHasFireRound0();

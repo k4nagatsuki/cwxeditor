@@ -95,10 +95,10 @@ class MaterialSelect(MtType Type, D, C) {
 	bool isMenuCard() { return _isMenuCard; }
 
 	D createDirsCombo(Composite parent) { mixin(S_TRACE);
-		static if (is (D == Combo)) {
+		static if (is(D == Combo)) {
 			_dirs = new D(parent, SWT.BORDER | SWT.READ_ONLY | SWT.DROP_DOWN);
 			_dirs.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
-		} else static if (is (D == CCombo)) {
+		} else static if (is(D == CCombo)) {
 			_dirs = new D(parent, SWT.BORDER | SWT.READ_ONLY);
 			_dirs.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 			createTextMenu!D(_comm, _prop, _dirs, null);
@@ -200,13 +200,13 @@ class MaterialSelect(MtType Type, D, C) {
 		}
 	}
 	C createFileList(Composite parent) { mixin(S_TRACE);
-		static if (is (C == Table)) {
+		static if (is(C == Table)) {
 			_fileList = new C(parent, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL | SWT.SINGLE | SWT.FULL_SELECTION);
 			new FullTableColumn(_fileList, SWT.NONE);
-		} else static if (is (C == Combo)) {
+		} else static if (is(C == Combo)) {
 			_fileList = new C(parent, SWT.BORDER | SWT.READ_ONLY | SWT.DROP_DOWN);
 			_fileList.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
-		} else static if (is (C == CCombo)) {
+		} else static if (is(C == CCombo)) {
 			_fileList = new C(parent, SWT.BORDER | SWT.READ_ONLY);
 			_fileList.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 			createTextMenu!CCombo(_comm, _prop, _fileList, null);
@@ -217,7 +217,7 @@ class MaterialSelect(MtType Type, D, C) {
 		auto dirs = allDirs(skinPos, enginePosFrom, enginePosTo);
 		_fileList.setEnabled(_enabled && !_readOnly && _summ);
 		_fileList.addSelectionListener(new LSListener);
-		static if (is (C == Table)) {
+		static if (is(C == Table)) {
 			static if (Type == MtType.BGM || Type == MtType.SE) {
 				auto play = new Play;
 				_fileList.addMouseListener(play);
@@ -333,7 +333,7 @@ class MaterialSelect(MtType Type, D, C) {
 			new MenuItem(menu, SWT.SEPARATOR);
 			_bgmMenu = createMenuItem(_comm, menu, MenuID.PlayBGM, () => playBGM(false), &canPlay);
 			auto data = cast(MenuData) _bgmMenu.getData();
-			data.format = (string t) {return data.id is MenuID.StopBGM ? .tryFormat(t, _playing) : t;};
+			data.format = (string t) { return data.id is MenuID.StopBGM ? .tryFormat(t, _playing) : t; };
 		} else static if (Type == MtType.SE) {
 			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(_comm, menu, MenuID.PlaySE, &playSE, &canPlay);
@@ -678,7 +678,7 @@ class MaterialSelect(MtType Type, D, C) {
 		void createPlayToolItem(ToolBar bar) { mixin(S_TRACE);
 			_bgmTMenu = createToolItem(_comm, bar, MenuID.PlayBGM, () => playBGM(false), &canPlay, SWT.CHECK);
 			auto data = cast(MenuData) _bgmTMenu.getData();
-			data.format = (string t) {return data.id is MenuID.StopBGM ? .tryFormat(t, _playing) : t;};
+			data.format = (string t) { return data.id is MenuID.StopBGM ? .tryFormat(t, _playing) : t; };
 			modEvent ~= { mixin(S_TRACE);
 				if (_playing == "") return;
 				updatePlayButton(isPlayOrStop);
@@ -1374,41 +1374,41 @@ class MaterialSelect(MtType Type, D, C) {
 private:
 	static if (Type == MtType.CARD) {
 		private bool _noCardSize = false;
-		@property const(string)[] defExts() {return summSkin.extImage;}
-		@property string[] defDirs() {return summSkin.tableDirs;}
+		@property const(string)[] defExts() { return summSkin.extImage; }
+		@property string[] defDirs() { return summSkin.tableDirs; }
 		@property string[] engineDefDirs() { return summSkin.wsnTableDirs(_summ ? _summ.dataVersion : LATEST_VERSION); }
 		bool isTarg(string p) { return summSkin.isCardImage(p, _noCardSize); }
 		static bool hasTarg(Skin skin, string p, bool forceRefresh, bool noCardSize) { return skin.hasCardImage(p, forceRefresh, noCardSize); }
 		bool hasWsnTarg(bool forceRefresh, bool noCardSize) { return summSkin.hasWsnCardImage(_summ ? _summ.dataVersion : LATEST_VERSION, forceRefresh, noCardSize); }
-		string[] targsImpl(string dir, bool re) {return summSkin.cards(dir, _prop.var.etc.logicalSort, re, _noCardSize);}
-		@property Image image(string file) {return summSkin.isCardImage(file, false) ? _prop.images.cards : _prop.images.backs;}
+		string[] targsImpl(string dir, bool re) { return summSkin.cards(dir, _prop.var.etc.logicalSort, re, _noCardSize); }
+		@property Image image(string file) { return summSkin.isCardImage(file, false) ? _prop.images.cards : _prop.images.backs; }
 	} else static if (Type == MtType.BG_IMG) {
-		@property const(string)[] defExts() {return summSkin.extImage;}
-		@property string[] defDirs() {return summSkin.tableDirs;}
+		@property const(string)[] defExts() { return summSkin.extImage; }
+		@property string[] defDirs() { return summSkin.tableDirs; }
 		@property string[] engineDefDirs() { return summSkin.wsnTableDirs(_summ ? _summ.dataVersion : LATEST_VERSION); }
-		bool isTarg(string p) {return summSkin.isBgImage(p, excludeCardSizeImage);}
+		bool isTarg(string p) { return summSkin.isBgImage(p, excludeCardSizeImage); }
 		static bool hasTarg(Skin skin, string p, bool forceRefresh, bool excludeCardSize) { return skin.hasBgImage(p, forceRefresh, excludeCardSize); }
 		bool hasWsnTarg(bool forceRefresh, bool excludeCardSize) { return summSkin.hasWsnBgImage(_summ ? _summ.dataVersion : LATEST_VERSION, forceRefresh, excludeCardSize); }
-		string[] targsImpl(string dir, bool re) {return summSkin.tables(dir, _prop.var.etc.logicalSort, re, excludeCardSizeImage);}
-		@property Image image(string file) {return summSkin.isCardImage(file, false) ? _prop.images.cards : _prop.images.backs;}
+		string[] targsImpl(string dir, bool re) { return summSkin.tables(dir, _prop.var.etc.logicalSort, re, excludeCardSizeImage); }
+		@property Image image(string file) { return summSkin.isCardImage(file, false) ? _prop.images.cards : _prop.images.backs; }
 	} else static if (Type == MtType.BGM) {
-		@property const(string)[] defExts() {return summSkin.extBgm;}
-		@property string[] defDirs() {return summSkin.bgmDirs;}
+		@property const(string)[] defExts() { return summSkin.extBgm; }
+		@property string[] defDirs() { return summSkin.bgmDirs; }
 		@property string[] engineDefDirs() { return summSkin.wsnMusicDirs(_summ ? _summ.dataVersion : LATEST_VERSION); }
-		bool isTarg(string p) {return summSkin.isBGM(p);}
+		bool isTarg(string p) { return summSkin.isBGM(p); }
 		static bool hasTarg(Skin skin, string p, bool forceRefresh, bool noCardSize) { return skin.hasBGM(p, forceRefresh); }
 		bool hasWsnTarg(bool forceRefresh, bool noCardSize) { return summSkin.hasWsnBGM(_summ ? _summ.dataVersion : LATEST_VERSION, forceRefresh); }
-		string[] targsImpl(string dir, bool re) {return summSkin.musics(dir, _prop.var.etc.logicalSort, re);}
-		@property Image image() {return _prop.images.bgm;}
+		string[] targsImpl(string dir, bool re) { return summSkin.musics(dir, _prop.var.etc.logicalSort, re); }
+		@property Image image() { return _prop.images.bgm; }
 	} else static if (Type == MtType.SE) {
-		@property const(string)[] defExts() {return summSkin.extSound;}
-		@property string[] defDirs() {return summSkin.seDirs;}
+		@property const(string)[] defExts() { return summSkin.extSound; }
+		@property string[] defDirs() { return summSkin.seDirs; }
 		@property string[] engineDefDirs() { return summSkin.wsnSoundDirs(_summ ? _summ.dataVersion : LATEST_VERSION); }
-		bool isTarg(string p) {return summSkin.isSE(p);}
+		bool isTarg(string p) { return summSkin.isSE(p); }
 		static bool hasTarg(Skin skin, string p, bool forceRefresh, bool noCardSize) { return skin.hasSE(p, forceRefresh); }
 		bool hasWsnTarg(bool forceRefresh, bool noCardSize) { return summSkin.hasWsnSE(_summ ? _summ.dataVersion : LATEST_VERSION, forceRefresh); }
-		string[] targsImpl(string dir, bool re) {return summSkin.sounds(dir, _prop.var.etc.logicalSort, re);}
-		@property Image image() {return _prop.images.se;}
+		string[] targsImpl(string dir, bool re) { return summSkin.sounds(dir, _prop.var.etc.logicalSort, re); }
+		@property Image image() { return _prop.images.se; }
 	} else static assert (0);
 
 	private void doRefresh() { mixin(S_TRACE);
@@ -1508,7 +1508,7 @@ private:
 				}
 			}
 			_fileList.select(cast(int)selIndex);
-			static if (is (C == Table)) {
+			static if (is(C == Table)) {
 				_fileList.showSelection();
 			}
 			string p = currentDir;
@@ -1772,9 +1772,9 @@ private:
 				}
 			}
 		}
-		static if (is (C == Table)) {
+		static if (is(C == Table)) {
 			_fileList.showSelection();
-		} else static if (!is (C == Combo) && !is (C == CCombo)) {
+		} else static if (!is(C == Combo) && !is(C == CCombo)) {
 			static assert (false);
 		}
 		ptrdiff_t skinPos, enginePosFrom, enginePosTo;
@@ -1898,7 +1898,7 @@ private:
 			foreach (i, sp; showingPaths) { mixin(S_TRACE);
 				if (.cfnmatch(sp, select)) { mixin(S_TRACE);
 					_fileList.select(cast(int)i);
-					static if (is (C:Table)) {
+					static if (is(C:Table)) {
 						_fileList.showSelection();
 					}
 					return;
@@ -2133,7 +2133,7 @@ private:
 					string nName = baseName(n);
 					static if (is(C : Table)) {
 						_fileList.getItem(cast(int)index).setText(nName);
-					} else static if (is (C : Combo) || is (C : CCombo)) {
+					} else static if (is(C : Combo) || is(C : CCombo)) {
 						_fileList.setItem(cast(int)index, nName);
 						_fileList.setText(nName);
 					} else static assert (0);

@@ -612,8 +612,8 @@ public:
 		CardImage[] paths;
 		CardImage.setOnTag(pNode, paths, false);
 		_name = null;
-		pNode.onTag["Name"] = (ref XNode n) {_name = n.value;};
-		pNode.onTag["Description"] = (ref XNode n) {_desc = decodeLf2(n.value);};
+		pNode.onTag["Name"] = (ref XNode n) { _name = n.value; };
+		pNode.onTag["Description"] = (ref XNode n) { _desc = decodeLf2(n.value); };
 		pNode.parse();
 		this.paths = paths;
 		if (!_name) _name = "";
@@ -858,7 +858,7 @@ public:
 	/// レベル。
 	@property
 	const
-	uint level() {return _lev;}
+	uint level() { return _lev; }
 	/// ditto
 			@property
 	void level(uint lev) { mixin(S_TRACE);
@@ -868,7 +868,7 @@ public:
 	/// ヒットポイント。
 	@property
 	const
-	uint life() {return _life;}
+	uint life() { return _life; }
 	/// ditto
 			@property
 	void life(uint life) { mixin(S_TRACE);
@@ -878,7 +878,7 @@ public:
 	/// ヒットポイント最大値。
 	@property
 	const
-	uint lifeMax() {return _lifeMax;}
+	uint lifeMax() { return _lifeMax; }
 	/// ditto
 			@property
 	void lifeMax(uint lifeMax) { mixin(S_TRACE);
@@ -898,7 +898,7 @@ public:
 	/// 所持するクーポン。
 	@property
 	inout
-	inout(Coupon)[] coupons() {return _coupons;}
+	inout(Coupon)[] coupons() { return _coupons; }
 	/// ditto
 	@property
 	void coupons(Coupon[] coupons) { mixin(S_TRACE);
@@ -995,11 +995,11 @@ public:
 	/// 所持アイテム。
 	@property
 	inout
-	inout(ItemCard)[] items() {return _items;}
+	inout(ItemCard)[] items() { return _items; }
 	/// ditto
-	ItemCard add(ItemCard card, bool newCard = false) {return addImpl(_items, card, newCard);}
+	ItemCard add(ItemCard card, bool newCard = false) { return addImpl(_items, card, newCard); }
 	/// ditto
-	void removeItem(ulong id) {removeImpl(_items, id);}
+	void removeItem(ulong id) { removeImpl(_items, id); }
 	/// ditto
 	inout
 	inout(ItemCard) item(ulong id) { mixin(S_TRACE);
@@ -1016,11 +1016,11 @@ public:
 	/// 所持スキル。
 	@property
 	inout
-	inout(SkillCard)[] skills() {return _skills;}
+	inout(SkillCard)[] skills() { return _skills; }
 	/// ditto
-	SkillCard add(SkillCard card, bool newCard = false) {return addImpl(_skills, card, newCard);}
+	SkillCard add(SkillCard card, bool newCard = false) { return addImpl(_skills, card, newCard); }
 	/// ditto
-	void removeSkill(ulong id) {removeImpl(_skills, id);}
+	void removeSkill(ulong id) { removeImpl(_skills, id); }
 	/// ditto
 	inout
 	inout(SkillCard) skill(ulong id) { mixin(S_TRACE);
@@ -1037,11 +1037,11 @@ public:
 	/// 所持召喚獣。
 	@property
 	inout
-	inout(BeastCard)[] beasts() {return _beasts;}
+	inout(BeastCard)[] beasts() { return _beasts; }
 	/// ditto
-	BeastCard add(BeastCard card, bool newCard = false) {return addImpl(_beasts, card, newCard);}
+	BeastCard add(BeastCard card, bool newCard = false) { return addImpl(_beasts, card, newCard); }
 	/// ditto
-	void removeBeast(ulong id) {removeImpl(_beasts, id);}
+	void removeBeast(ulong id) { removeImpl(_beasts, id); }
 	/// ditto
 	inout
 	inout(BeastCard) beast(ulong id) { mixin(S_TRACE);
@@ -1059,11 +1059,11 @@ public:
 	/// 指定された要素のindexを検索する。
 	const
 	ptrdiff_t indexOf(T)(in T c) { mixin(S_TRACE);
-		static if (is (T == SkillCard)) {
+		static if (is(T == SkillCard)) {
 			return .cCountUntil!("a is b")(_skills, c);
-		} else static if (is (T == ItemCard)) {
+		} else static if (is(T == ItemCard)) {
 			return .cCountUntil!("a is b")(_items, c);
-		} else static if (is (T == BeastCard)) {
+		} else static if (is(T == BeastCard)) {
 			return .cCountUntil!("a is b")(_beasts, c);
 		} else { mixin(S_TRACE);
 			static assert (0);
@@ -1094,7 +1094,7 @@ public:
 	/// 精神状態。
 	@property
 	const
-	Mentality mentality() {return _mentali;}
+	Mentality mentality() { return _mentali; }
 	/// ditto
 	@property
 	void mentality(Mentality mentali) { mixin(S_TRACE);
@@ -1104,7 +1104,7 @@ public:
 	/// 精神異常の残り時間。
 	@property
 	const
-	uint mentalityRound() {return _mentaliRound;}
+	uint mentalityRound() { return _mentaliRound; }
 	/// ditto
 	@property
 	void mentalityRound(uint round) { mixin(S_TRACE);
@@ -1114,7 +1114,7 @@ public:
 	/// 麻痺の値。
 	@property
 	const
-	uint paralyze() {return _para;}
+	uint paralyze() { return _para; }
 	/// ditto
 	@property
 	void paralyze(uint value) { mixin(S_TRACE);
@@ -1124,7 +1124,7 @@ public:
 	/// 毒の値。
 	@property
 	const
-	uint poison() {return _poi;}
+	uint poison() { return _poi; }
 	/// ditto
 	@property
 	void poison(uint value) { mixin(S_TRACE);
@@ -1134,7 +1134,7 @@ public:
 	/// 呪縛の残り時間。
 	@property
 	const
-	uint bindRound() {return _bindRound;}
+	uint bindRound() { return _bindRound; }
 	/// ditto
 	@property
 	void bindRound(uint round) { mixin(S_TRACE);
@@ -1144,7 +1144,7 @@ public:
 	/// 沈黙の残り時間。
 	@property
 	const
-	uint silenceRound() {return _slntRound;}
+	uint silenceRound() { return _slntRound; }
 	/// ditto
 	@property
 	void silenceRound(uint round) { mixin(S_TRACE);
@@ -1154,7 +1154,7 @@ public:
 	/// 暴露の残り時間。
 	@property
 	const
-	uint faceUpRound() {return _faceUpRound;}
+	uint faceUpRound() { return _faceUpRound; }
 	/// ditto
 	@property
 	void faceUpRound(uint round) { mixin(S_TRACE);
@@ -1164,7 +1164,7 @@ public:
 	/// 魔法無効状態の残り時間。
 	@property
 	const
-	uint antiMagicRound() {return _antiMgcRound;}
+	uint antiMagicRound() { return _antiMgcRound; }
 	/// ditto
 	@property
 	void antiMagicRound(uint round) { mixin(S_TRACE);
@@ -1173,7 +1173,7 @@ public:
 	}
 	/// 能力値ボーナスの値。
 	const
-	int enhance(Enhance enh) {return _rEnh[enh];}
+	int enhance(Enhance enh) { return _rEnh[enh]; }
 	/// ditto
 	void enhance(Enhance enh, int value) { mixin(S_TRACE);
 		if (_rEnh[enh] != value) changed();
@@ -1181,7 +1181,7 @@ public:
 	}
 	/// 能力値ボーナスの残り時間。
 	const
-	uint enhanceRound(Enhance enh) {return _rEnhRound[enh];}
+	uint enhanceRound(Enhance enh) { return _rEnhRound[enh]; }
 	/// ditto
 	void enhanceRound(Enhance enh, uint round) { mixin(S_TRACE);
 		if (_rEnhRound[enh] != round) changed();
@@ -1274,13 +1274,13 @@ public:
 		if (cNode.name != XML_NAME) throw new CardException("Node is not cast card: " ~ cNode.name);
 		auto r = new CastCard(0, "", [], "", 1, 1);
 		cNode.onTag["Property"] = (ref XNode pNode) { mixin(S_TRACE);
-			pNode.onTag["Level"] = (ref XNode n) {r._lev = n.valueTo!(int);};
+			pNode.onTag["Level"] = (ref XNode n) { r._lev = n.valueTo!(int); };
 			pNode.onTag["Life"] = (ref XNode n) { mixin(S_TRACE);
 				r._life = n.valueTo!(int);
 				r._lifeMax = n.attr!(int)("max", true);
 			};
-			pNode.onTag["Feature"] = (ref XNode n) {r.loadFeature(n, ver);};
-			pNode.onTag["Ability"] = (ref XNode n) {r.loadAbility(n, ver);};
+			pNode.onTag["Feature"] = (ref XNode n) { r.loadFeature(n, ver); };
+			pNode.onTag["Ability"] = (ref XNode n) { r.loadAbility(n, ver); };
 
 			pNode.onTag["Status"] = (ref XNode sNode) { mixin(S_TRACE);
 				sNode.onTag["Mentality"] = (ref XNode n) { mixin(S_TRACE);
@@ -1312,10 +1312,10 @@ public:
 					r.enhance(enh, n.valueTo!(int));
 					r.enhanceRound(enh, n.attr!(int)("duration", true));
 				}
-				n.onTag["Action"] = (ref XNode n) {setEnh(n, Enhance.ACTION);};
-				n.onTag["Avoid"] = (ref XNode n) {setEnh(n, Enhance.AVOID);};
-				n.onTag["Resist"] = (ref XNode n) {setEnh(n, Enhance.RESIST);};
-				n.onTag["Defense"] = (ref XNode n) {setEnh(n, Enhance.DEFENSE);};
+				n.onTag["Action"] = (ref XNode n) { setEnh(n, Enhance.ACTION); };
+				n.onTag["Avoid"] = (ref XNode n) { setEnh(n, Enhance.AVOID); };
+				n.onTag["Resist"] = (ref XNode n) { setEnh(n, Enhance.RESIST); };
+				n.onTag["Defense"] = (ref XNode n) { setEnh(n, Enhance.DEFENSE); };
 				n.parse();
 			};
 			Coupon[] coupons;
@@ -1367,7 +1367,7 @@ public:
 
 	private CastOwner _owner = null;
 	@property
-	package void owner(CastOwner owner) {_owner = owner;}
+	package void owner(CastOwner owner) { _owner = owner; }
 	@property
 	string cwxPath(bool id) { mixin(S_TRACE);
 		if (id) { mixin(S_TRACE);
@@ -1421,7 +1421,7 @@ public:
 		return r;
 	}
 	@property
-	CWXPath cwxParent() {return _owner;}
+	CWXPath cwxParent() { return _owner; }
 }
 
 /// スキル・アイテム・召喚獣といった、「効果」のあるカードの親クラス。
@@ -1452,34 +1452,37 @@ private:
 	class CETO : AbstractEventTreeOwner {
 		override
 		@property
-		protected EventTreeOwner con() {return this.outer;}
+		protected EventTreeOwner con() { return this.outer; }
 		@property
 		const
-		override bool canHasFireEnter() {return false;}
+		override bool canHasFireEnter() { return false; }
 		@property
 		const
-		override bool canHasFireLose() {return false;}
+		override bool canHasFireLose() { return false; }
 		@property
 		const
-		override bool canHasFireEscape() {return false;}
+		override bool canHasFireEscape() { return false; }
 		@property
 		const
-		override bool canHasFireEveryRound() {return false;}
+		override bool canHasFireEveryRound() { return false; }
 		@property
 		const
-		override bool canHasFireRound0() {return false;}
+		override bool canHasFireRoundEnd() { return false; }
 		@property
 		const
-		override bool canHasFireRound() {return false;}
+		override bool canHasFireRound0() { return false; }
 		@property
 		const
-		override bool canHasFireKeyCode() {return false;}
+		override bool canHasFireRound() { return false; }
 		@property
-		override size_t[] areaPath() {return [0];}
+		const
+		override bool canHasFireKeyCode() { return false; }
 		@property
-		string cwxPath(bool id) {return this.outer.cwxPath(id);}
+		override size_t[] areaPath() { return [0]; }
 		@property
-		CWXPath cwxParent() {return this.outer.cwxParent();}
+		string cwxPath(bool id) { return this.outer.cwxPath(id); }
+		@property
+		CWXPath cwxParent() { return this.outer.cwxParent(); }
 	}
 public:
 	/// 唯一のコンストラクタ。
@@ -1622,7 +1625,7 @@ public:
 	/// 現在のシナリオと同一になるとは限らない。
 	@property
 	const
-	string scenario() {return _scenario;}
+	string scenario() { return _scenario; }
 	/// ditto
 	@property
 	void scenario(string scenario) { mixin(S_TRACE);
@@ -1632,7 +1635,7 @@ public:
 	/// ditto
 	@property
 	const
-	string author() {return _author;}
+	string author() { return _author; }
 	/// ditto
 	@property
 	void author(string author) { mixin(S_TRACE);
@@ -1643,7 +1646,7 @@ public:
 	/// カードの適正。肉体要素。
 	@property
 	const
-	Physical physical() {return _phy;}
+	Physical physical() { return _phy; }
 	/// ditto
 	@property
 	void physical(Physical phy) { mixin(S_TRACE);
@@ -1653,7 +1656,7 @@ public:
 	/// カードの適正。精神要素。
 	@property
 	const
-	Mental mental() {return _mtl;}
+	Mental mental() { return _mtl; }
 	/// ditto
 	@property
 	void mental(Mental mtl) { mixin(S_TRACE);
@@ -1664,7 +1667,7 @@ public:
 	/// カードの標的。
 	@property
 	const
-	CardTarget target() {return _targ;}
+	CardTarget target() { return _targ; }
 	/// ditto
 	@property
 	void target(CardTarget targ) { mixin(S_TRACE);
@@ -1674,7 +1677,7 @@ public:
 	/// 全体が標的となるか。
 	@property
 	const
-	bool allRange() {return _allRange;}
+	bool allRange() { return _allRange; }
 	/// ditto
 	@property
 	void allRange(bool allRange) { mixin(S_TRACE);
@@ -1684,7 +1687,7 @@ public:
 	/// 使用時に発声が必要か。
 	@property
 	const
-	bool spell() {return _spell;}
+	bool spell() { return _spell; }
 	/// ditto
 	@property
 	void spell(bool spell) { mixin(S_TRACE);
@@ -1694,7 +1697,7 @@ public:
 	/// 効果のタイプ。物理、魔法、魔法的物理、物理的魔法。
 	@property
 	const
-	EffectType effectType() {return _effTyp;}
+	EffectType effectType() { return _effTyp; }
 	/// ditto
 	@property
 	void effectType(EffectType effTyp) { mixin(S_TRACE);
@@ -1704,7 +1707,7 @@ public:
 	/// 回避属性。回避か抵抗か。
 	@property
 	const
-	Resist resist() {return _res;}
+	Resist resist() { return _res; }
 	/// ditto
 	@property
 	void resist(Resist res) { mixin(S_TRACE);
@@ -1714,7 +1717,7 @@ public:
 	/// 成功率。-5～+5。
 	@property
 	const
-	int successRate() {return _suc;}
+	int successRate() { return _suc; }
 	/// ditto
 	@property
 	void successRate(int suc) { mixin(S_TRACE);
@@ -1724,7 +1727,7 @@ public:
 	/// カードの視覚効果。
 	@property
 	const
-	CardVisual visual() {return _vis;}
+	CardVisual visual() { return _vis; }
 	/// ditto
 	@property
 	void visual(CardVisual vis) { mixin(S_TRACE);
@@ -1733,7 +1736,7 @@ public:
 	}
 	/// 使用時の能力値ボーナス。
 	const
-	int enhance(Enhance enh) {return _enh[enh];}
+	int enhance(Enhance enh) { return _enh[enh]; }
 	/// ditto
 	void enhance(Enhance enh, int val) { mixin(S_TRACE);
 		if (_enh[enh] != val) changed();
@@ -1742,7 +1745,7 @@ public:
 	/// 使用時サウンド。
 	@property
 	const
-	string soundPath1() {return _se1.path;}
+	string soundPath1() { return _se1.path; }
 	/// ditto
 	@property
 	void soundPath1(string path) { mixin(S_TRACE);
@@ -1773,7 +1776,7 @@ public:
 	/// 命中時サウンド。
 	@property
 	const
-	string soundPath2() {return _se2.path;}
+	string soundPath2() { return _se2.path; }
 	/// ditto
 	@property
 	void soundPath2(string path) { mixin(S_TRACE);
@@ -1815,7 +1818,7 @@ public:
 	/// カードの希少価値。
 	@property
 	const
-	Premium premium() {return _premi;}
+	Premium premium() { return _premi; }
 	/// ditto
 	@property
 	void premium(Premium premi) { mixin(S_TRACE);
@@ -1825,7 +1828,7 @@ public:
 	/// カードの効果。
 	@property
 	inout
-	inout(Motion)[] motions() {return _muser.motions;}
+	inout(Motion)[] motions() { return _muser.motions; }
 	/// ditto
 	@property
 	void motions(Motion[] motions) { mixin(S_TRACE);
@@ -1863,31 +1866,34 @@ public:
 
 	@property
 	inout
-	override inout(EventTree)[] trees() {return _ceto.trees;}
+	override inout(EventTree)[] trees() { return _ceto.trees; }
 
 	@property
 	const
-	override bool canHasFireEnter() {return _ceto.canHasFireEnter;}
+	override bool canHasFireEnter() { return _ceto.canHasFireEnter; }
 	@property
 	const
-	override bool canHasFireLose() {return _ceto.canHasFireLose;}
+	override bool canHasFireLose() { return _ceto.canHasFireLose; }
 	@property
 	const
-	override bool canHasFireEscape() {return _ceto.canHasFireEscape;}
+	override bool canHasFireEscape() { return _ceto.canHasFireEscape; }
 	@property
 	const
-	override bool canHasFireEveryRound() {return _ceto.canHasFireEveryRound;}
+	override bool canHasFireEveryRound() { return _ceto.canHasFireEveryRound; }
 	@property
 	const
-	override bool canHasFireRound0() {return _ceto.canHasFireRound0;}
+	override bool canHasFireRoundEnd() { return _ceto.canHasFireRoundEnd; }
 	@property
 	const
-	override bool canHasFireRound() {return _ceto.canHasFireRound;}
+	override bool canHasFireRound0() { return _ceto.canHasFireRound0; }
 	@property
 	const
-	override bool canHasFireKeyCode() {return _ceto.canHasFireKeyCode;}
+	override bool canHasFireRound() { return _ceto.canHasFireRound; }
 	@property
-	override size_t[] areaPath() {return _ceto.areaPath;}
+	const
+	override bool canHasFireKeyCode() { return _ceto.canHasFireKeyCode; }
+	@property
+	override size_t[] areaPath() { return _ceto.areaPath; }
 	EventTree etFromPath(size_t[] path) { mixin(S_TRACE);
 		if (path[0] == 0) { mixin(S_TRACE);
 			return trees[path[1]];
@@ -1896,13 +1902,13 @@ public:
 	}
 	@property
 	const
-	override bool isEmpty() {return _ceto.isEmpty;}
+	override bool isEmpty() { return _ceto.isEmpty; }
 
-	override void add(EventTree evt) {return _ceto.add(evt);}
-	override void insert(size_t index, EventTree evt) {return _ceto.insert(index, evt);}
-	override void removeEvent(size_t index) {return _ceto.removeEvent(index);}
-	override void remove(EventTree et) {return _ceto.remove(et);}
-	override void swapEventTree(size_t index1, size_t index2) {return _ceto.swapEventTree(index1, index2);}
+	override void add(EventTree evt) { return _ceto.add(evt); }
+	override void insert(size_t index, EventTree evt) { return _ceto.insert(index, evt); }
+	override void removeEvent(size_t index) { return _ceto.removeEvent(index); }
+	override void remove(EventTree et) { return _ceto.remove(et); }
+	override void swapEventTree(size_t index1, size_t index2) { return _ceto.swapEventTree(index1, index2); }
 
 	/// 指定されたXMLノードに効果カード関連の情報を追加する。
 	const
@@ -1948,9 +1954,9 @@ public:
 	/// 指定されたXMLノードから効果カード関連のデータを読み出す。
 	protected void loadEffProp(ref XNode pNode, in XMLInfo ver, bool loadId = true) { mixin(S_TRACE);
 		assert (pNode.name == "Property");
-		pNode.onTag["LinkId"] = (ref XNode n) {linkId = .to!ulong(n.value);};
-		pNode.onTag["Scenario"] = (ref XNode n) {_scenario = n.value;};
-		pNode.onTag["Author"] = (ref XNode n) {_author = n.value;};
+		pNode.onTag["LinkId"] = (ref XNode n) { linkId = .to!ulong(n.value); };
+		pNode.onTag["Scenario"] = (ref XNode n) { _scenario = n.value; };
+		pNode.onTag["Author"] = (ref XNode n) { _author = n.value; };
 		pNode.onTag["Ability"] = (ref XNode n) { mixin(S_TRACE);
 			_phy = toPhysical(n.attr("physical", true));
 			_mtl = toMental(n.attr("mental", true));
@@ -1963,9 +1969,9 @@ public:
 			_effTyp = toEffectType(n.value);
 			_spell = parseBool(n.attr("spell", true));
 		};
-		pNode.onTag["ResistType"] = (ref XNode n) {_res = toResist(n.value);};
-		pNode.onTag["SuccessRate"] = (ref XNode n) {_suc = n.valueTo!(int);};
-		pNode.onTag["VisualEffect"] = (ref XNode n) {_vis = toCardVisual(n.value);};
+		pNode.onTag["ResistType"] = (ref XNode n) { _res = toResist(n.value); };
+		pNode.onTag["SuccessRate"] = (ref XNode n) { _suc = n.valueTo!(int); };
+		pNode.onTag["VisualEffect"] = (ref XNode n) { _vis = toCardVisual(n.value); };
 		pNode.onTag["Enhance"] = (ref XNode n) { mixin(S_TRACE);
 			_enh[Enhance.AVOID] = n.attr!(int)("avoid", true);
 			_enh[Enhance.RESIST] = n.attr!(int)("resist", true);
@@ -1981,8 +1987,8 @@ public:
 			_volume2 = n.attr!uint("volume", false, 100);
 			_loopCount2 = n.attr!uint("loopcount", false, 1);
 		};
-		pNode.onTag["KeyCodes"] = (ref XNode n) {keyCodes = decodeLf(n.value, true);};
-		pNode.onTag["Premium"] = (ref XNode n) {_premi = toPremium(n.value);};
+		pNode.onTag["KeyCodes"] = (ref XNode n) { keyCodes = decodeLf(n.value, true); };
+		pNode.onTag["Premium"] = (ref XNode n) { _premi = toPremium(n.value); };
 		loadProp(pNode, ver, loadId);
 	}
 	/// ditto
@@ -2096,7 +2102,7 @@ public:
 	/// 持ち札である時のリンク先ID。0の場合は実体を持つ。
 	@property
 	const
-	override ulong linkId() {return _linkId.skill;}
+	override ulong linkId() { return _linkId.skill; }
 	/// ditto
 	@property
 	override void linkId(ulong linkId) { mixin(S_TRACE);
@@ -2113,7 +2119,7 @@ public:
 	/// レベル。
 	@property
 	const
-	uint level() {return _level;}
+	uint level() { return _level; }
 	/// ditto
 	@property
 	void level(uint level) { mixin(S_TRACE);
@@ -2124,7 +2130,7 @@ public:
 	/// 残り使用回数。
 	@property
 	const
-	uint useLimit() {return _useLimit;}
+	uint useLimit() { return _useLimit; }
 	/// ditto
 	@property
 	void useLimit(uint useLimit) { mixin(S_TRACE);
@@ -2135,7 +2141,7 @@ public:
 	/// ホールド状態か。
 	@property
 	const
-	bool hold() {return _hold;}
+	bool hold() { return _hold; }
 	/// ditto
 	@property
 	void hold(bool hold) { mixin(S_TRACE);
@@ -2217,9 +2223,9 @@ public:
 			return r;
 		}
 		cNode.onTag["Property"] = (ref XNode pNode) { mixin(S_TRACE);
-			pNode.onTag["Level"] = (ref XNode n) {r._level = n.valueTo!(int);};
-			pNode.onTag["UseLimit"] = (ref XNode n) {r._useLimit = n.valueTo!(int);};
-			pNode.onTag["Hold"] = (ref XNode n) {r._hold = parseBool(n.value);};
+			pNode.onTag["Level"] = (ref XNode n) { r._level = n.valueTo!(int); };
+			pNode.onTag["UseLimit"] = (ref XNode n) { r._useLimit = n.valueTo!(int); };
+			pNode.onTag["Hold"] = (ref XNode n) { r._hold = parseBool(n.value); };
 			r.loadEffProp(pNode, ver);
 		};
 		r.loadEffV(cNode, ver);
@@ -2228,7 +2234,7 @@ public:
 
 	private SkillOwner _owner = null;
 	@property
-	package void owner(SkillOwner owner) {_owner = owner;}
+	package void owner(SkillOwner owner) { _owner = owner; }
 	@property
 	string cwxPath(bool id) { mixin(S_TRACE);
 		if (id) { mixin(S_TRACE);
@@ -2238,7 +2244,7 @@ public:
 		}
 	}
 	@property
-	CWXPath cwxParent() {return _owner;}
+	CWXPath cwxParent() { return _owner; }
 
 	override
 	CWXPath findCWXPath(string path) { mixin(S_TRACE);
@@ -2336,7 +2342,7 @@ public:
 	/// 持ち札である時のリンク先ID。0の場合は実体を持つ。
 	@property
 	const
-	override ulong linkId() {return _linkId.item;}
+	override ulong linkId() { return _linkId.item; }
 	/// ditto
 	@property
 	override void linkId(ulong linkId) { mixin(S_TRACE);
@@ -2353,7 +2359,7 @@ public:
 	/// 使用回数。0で無制限。
 	@property
 	const
-	uint useLimit() {return _useLimit;}
+	uint useLimit() { return _useLimit; }
 	/// ditto
 	@property
 	void useLimit(uint useLimit) { mixin(S_TRACE);
@@ -2364,7 +2370,7 @@ public:
 	/// 最大使用回数。0で無制限。
 	@property
 	const
-	uint useLimitMax() {return _useLimitMax;}
+	uint useLimitMax() { return _useLimitMax; }
 	/// ditto
 	@property
 	void useLimitMax(uint useLimitMax) { mixin(S_TRACE);
@@ -2375,7 +2381,7 @@ public:
 	/// 値段。
 	@property
 	const
-	uint price() {return _price;}
+	uint price() { return _price; }
 	/// ditto
 	@property
 	void price(uint price) { mixin(S_TRACE);
@@ -2385,7 +2391,7 @@ public:
 
 	/// 所持者の能力値ボーナス。
 	const
-	int enhanceOwner(Enhance enh) {return _oEnh[enh];}
+	int enhanceOwner(Enhance enh) { return _oEnh[enh]; }
 	/// ditto
 	void enhanceOwner(Enhance enh, int val) { mixin(S_TRACE);
 		if (_oEnh[enh] != val) changed();
@@ -2395,7 +2401,7 @@ public:
 	/// ホールド状態か。
 	@property
 	const
-	bool hold() {return _hold;}
+	bool hold() { return _hold; }
 	/// ditto
 	@property
 	void hold(bool hold) { mixin(S_TRACE);
@@ -2487,13 +2493,13 @@ public:
 				r._useLimit = n.valueTo!(int);
 				r._useLimitMax = n.attr!(int)("max", true);
 			};
-			pNode.onTag["Price"] = (ref XNode n) {r._price = n.valueTo!(int);};
+			pNode.onTag["Price"] = (ref XNode n) { r._price = n.valueTo!(int); };
 			pNode.onTag["EnhanceOwner"] = (ref XNode n) { mixin(S_TRACE);
 				r._oEnh[Enhance.AVOID] = n.attr!(int)("avoid", true);
 				r._oEnh[Enhance.RESIST] = n.attr!(int)("resist", true);
 				r._oEnh[Enhance.DEFENSE] = n.attr!(int)("defense", true);
 			};
-			pNode.onTag["Hold"] = (ref XNode n) {r._hold = parseBool(n.value);};
+			pNode.onTag["Hold"] = (ref XNode n) { r._hold = parseBool(n.value); };
 			r.loadEffProp(pNode, ver);
 		};
 		r.loadEffV(cNode, ver);
@@ -2502,7 +2508,7 @@ public:
 
 	private ItemOwner _owner = null;
 	@property
-	package void owner(ItemOwner owner) {_owner = owner;}
+	package void owner(ItemOwner owner) { _owner = owner; }
 	@property
 	string cwxPath(bool id) { mixin(S_TRACE);
 		if (id) { mixin(S_TRACE);
@@ -2512,7 +2518,7 @@ public:
 		}
 	}
 	@property
-	CWXPath cwxParent() {return _owner;}
+	CWXPath cwxParent() { return _owner; }
 
 	override
 	CWXPath findCWXPath(string path) { mixin(S_TRACE);
@@ -2599,7 +2605,7 @@ public:
 	/// 持ち札である時のリンク先ID。0の場合は実体を持つ。
 	@property
 	const
-	override ulong linkId() {return _linkId.beast;}
+	override ulong linkId() { return _linkId.beast; }
 	/// ditto
 	@property
 	override void linkId(ulong linkId) { mixin(S_TRACE);
@@ -2616,7 +2622,7 @@ public:
 	/// 使用回数。0で無制限。
 	@property
 	const
-	uint useLimit() {return _useLimit;}
+	uint useLimit() { return _useLimit; }
 	/// ditto
 	@property
 	void useLimit(uint useLimit) { mixin(S_TRACE);
@@ -2806,7 +2812,7 @@ public:
 		}
 	}
 	@property
-	CWXPath cwxParent() {return _owner;}
+	CWXPath cwxParent() { return _owner; }
 
 	override
 	CWXPath findCWXPath(string path) { mixin(S_TRACE);
@@ -2912,7 +2918,7 @@ public:
 
 	private InfoOwner _owner = null;
 	@property
-	package void owner(InfoOwner owner) {_owner = owner;}
+	package void owner(InfoOwner owner) { _owner = owner; }
 	@property
 	string cwxPath(bool id) { mixin(S_TRACE);
 		if (id) { mixin(S_TRACE);
@@ -2927,9 +2933,9 @@ public:
 	}
 	@property
 	inout
-	inout(CWXPath)[] cwxChilds() {return [];}
+	inout(CWXPath)[] cwxChilds() { return []; }
 	@property
-	CWXPath cwxParent() {return _owner;}
+	CWXPath cwxParent() { return _owner; }
 }
 
 /// アクションカード。
@@ -3079,7 +3085,7 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() {return _uc;}
+	UseCounter useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);

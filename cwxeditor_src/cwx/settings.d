@@ -16,14 +16,14 @@ import std.traits;
 
 private void toNode(T)(ref XNode node, string key, in T value) {
 	import cwx.utils;
-	static if (is (typeof({value.toNode(node, key);}))) {
+	static if (is(typeof({ value.toNode(node, key); }))) {
 		value.toNode(node, key);
-	} else static if (is (typeof(value.toNode))) {
+	} else static if (is(typeof(value.toNode))) {
 		value.toNode(node);
 	} else static if (isVArray!(T)) {
 		auto e = node.newElement(key);
 		foreach (v; value) {
-			static if (is (typeof(v.toNode))) {
+			static if (is(typeof(v.toNode))) {
 				v.toNode(e);
 			} else {
 				e.newElement("value", to!(string)(v));
@@ -35,12 +35,12 @@ private void toNode(T)(ref XNode node, string key, in T value) {
 }
 private void fromNode(T)(ref XNode node, string key, ref T value) {
 	import cwx.utils;
-	static if (is (typeof(value.fromNode))) {
+	static if (is(typeof(value.fromNode))) {
 		value.fromNode(node);
 	} else static if (isVArray!(T)) {
 		value = [];
 		node.onTag[null] = (ref XNode v) {
-			static if (is (typeof(value[0].fromNode))) {
+			static if (is(typeof(value[0].fromNode))) {
 				typeof(value[0]) val;
 				val.fromNode(v);
 				value ~= val;
@@ -270,31 +270,31 @@ abstract class Properties {
 	protected template Property(string Name, VType, VType Default, bool ReadOnly = false, ulong ChgVersion = 0) {
 		private import cwx.xml;
 		private import cwx.utils;
-		mixin ("private PropValue!(VType) _" ~ Name ~ " = PropValue!(VType)(Name, Default, Default, ReadOnly, ChgVersion);");
-		mixin ("@property const const(VType) " ~ variableName!Name ~ "() {return _" ~ Name ~ ".value;}");
-		mixin ("@property const const(VType) " ~ Name ~ "_init() {return Default;}");
+		mixin("private PropValue!(VType) _" ~ Name ~ " = PropValue!(VType)(Name, Default, Default, ReadOnly, ChgVersion);");
+		mixin("@property const const(VType) " ~ variableName!Name ~ "() { return _" ~ Name ~ ".value; }");
+		mixin("@property const const(VType) " ~ Name ~ "_init() { return Default; }");
 		static if (!ReadOnly) {
-			mixin ("@property void " ~ variableName!Name ~ "(VType value) {_" ~ Name ~ ".value = value;}");
+			mixin("@property void " ~ variableName!Name ~ "(VType value) { _" ~ Name ~ ".value = value; }");
 		}
 	}
 	/// Propertyと同様だが、XML化の際は属性として扱われる。
 	protected template PropertyAttr(string Name, VType, VType Default, bool ReadOnly = false, ulong ChgVersion = 0) {
 		private import cwx.xml;
 		private import cwx.utils;
-		mixin ("private PropValueAttr!(VType) _" ~ Name ~ " = PropValueAttr!(VType)(Name, Default, Default, ReadOnly, ChgVersion);");
-		mixin ("@property const const(VType) " ~ variableName!Name ~ "() {return _" ~ Name ~ ".value;}");
-		mixin ("@property const const(VType) " ~ Name ~ "_init() {return Default;}");
+		mixin("private PropValueAttr!(VType) _" ~ Name ~ " = PropValueAttr!(VType)(Name, Default, Default, ReadOnly, ChgVersion);");
+		mixin("@property const const(VType) " ~ variableName!Name ~ "() { return _" ~ Name ~ ".value; }");
+		mixin("@property const const(VType) " ~ Name ~ "_init() { return Default; }");
 		static if (!ReadOnly) {
-			mixin ("@property void " ~ variableName!Name ~ "(VType value) {_" ~ Name ~ ".value = value;}");
+			mixin("@property void " ~ variableName!Name ~ "(VType value) { _" ~ Name ~ ".value = value; }");
 		}
 	}
 	/// 連想配列のプロパティ。常にReadOnly。
 	protected template AAProperty(string Name, Key, Value, string Default, string KeyName = "key", string ValueName = "value", ulong ChgVersion = 0) {
 		private import cwx.xml;
 		private import cwx.utils;
-		mixin ("private AAProperty!(Key, Value) _" ~ Name ~ " = AAProperty!(Key, Value)(Name, KeyName, ValueName, ChgVersion);");
-		mixin ("@property const const(" ~ Value.stringof ~ "[" ~ Key.stringof ~ "]) " ~ variableName!Name ~ "() {return _" ~ Name ~ ".value;}");
-		mixin ("@property void init_" ~ Name ~ "() {_" ~ Name ~ ".value = " ~ Default ~ ";}");
+		mixin("private AAProperty!(Key, Value) _" ~ Name ~ " = AAProperty!(Key, Value)(Name, KeyName, ValueName, ChgVersion);");
+		mixin("@property const const(" ~ Value.stringof ~ "[" ~ Key.stringof ~ "]) " ~ variableName!Name ~ "() { return _" ~ Name ~ ".value; }");
+		mixin("@property void init_" ~ Name ~ "() { _" ~ Name ~ ".value = " ~ Default ~ "; }");
 	}
 	/// mixinによってXML化する関数及びXMLからプロパティ群をロードする関数を生成する。
 	/// Params:

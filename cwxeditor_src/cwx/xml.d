@@ -14,12 +14,12 @@ struct XNode {
 
 	private static E ps(E)(ElementParser ep) { mixin(S_TRACE);
 		auto e = new E(ep.tag);
-		ep.onText((string text) {e ~= new Text(text);});
-		ep.onCData((string cdata) {e ~= new CData(cdata);});
-		ep.onComment((string comment) {e ~= new Comment(comment);});
-		ep.onPI((string pi) {e ~= new ProcessingInstruction(pi);});
-		ep.onXI((string xi) {e.items ~= new XMLInstruction(xi);});
-		ep.onStartTag[null] = (ElementParser ep) {e ~= ps!(Element)(ep);};
+		ep.onText((string text) { e ~= new Text(text); });
+		ep.onCData((string cdata) { e ~= new CData(cdata); });
+		ep.onComment((string comment) { e ~= new Comment(comment); });
+		ep.onPI((string pi) { e ~= new ProcessingInstruction(pi); });
+		ep.onXI((string xi) { e.items ~= new XMLInstruction(xi); });
+		ep.onStartTag[null] = (ElementParser ep) { e ~= ps!(Element)(ep); };
 		ep.parse();
 		return e;
 	}
@@ -43,7 +43,7 @@ struct XNode {
 	/// 現在処理中の要素の名前。
 	@property
 	const
-	string name() {return _el.tag.name;}
+	string name() { return _el.tag.name; }
 	/// 現在処理中の要素のテキスト。
 	@property
 	const
@@ -60,7 +60,7 @@ struct XNode {
 	/// ditto
 	@property
 	const
-	T valueTo(T)() {return to!(T)(value);}
+	T valueTo(T)() { return to!(T)(value); }
 
 	/// 子要素を生成する。
 	XNode newElement(T = string)(string name, T value = T.init) { mixin(S_TRACE);
@@ -102,7 +102,7 @@ struct XNode {
 	/// 有効なXNodeであればtrue。
 	@property
 	const
-	bool valid() {return _el !is null;}
+	bool valid() { return _el !is null; }
 	/// 要素名と、その要素を発見した際に処理を行うハンドラを登録する。
 	/// 要素名にnullを指定する事により、特に指定された要素以外を
 	/// 処理するハンドラを登録できる。
@@ -123,7 +123,7 @@ struct XNode {
 	/// 処理中の要素が文書ルートであればtrue。
 	@property
 	const
-	bool isRoot() {return cast(Document) _el !is null;}
+	bool isRoot() { return cast(Document) _el !is null; }
 
 	/// 文書全体をテキストにして返す。
 	/// ルート要素以外では使用不可。

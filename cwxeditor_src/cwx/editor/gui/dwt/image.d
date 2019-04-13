@@ -131,9 +131,9 @@ public:
 		}
 		if (_largeIcon) _largeIcon = null;
 	}
-	@property Image emptyIcon() {return imgd!("empty.png");}
+	@property Image emptyIcon() { return imgd!("empty.png"); }
 
-	@property Image app() {return imgd!("cwxeditor.png");}
+	@property Image app() { return imgd!("cwxeditor.png"); }
 	@property Image[] icon() { mixin(S_TRACE);
 		initIcon();
 		return _icon;
@@ -143,98 +143,98 @@ public:
 		return _largeIcon;
 	}
 
-	@property Image toolBar() {return imgd!("tool_bar.png");}
-	@property Image toolGroup() {return imgd!("tool_group.png");}
+	@property Image toolBar() { return imgd!("tool_bar.png"); }
+	@property Image toolGroup() { return imgd!("tool_group.png"); }
 
-	@property Image text() {return imgd!("text.png");}
+	@property Image text() { return imgd!("text.png"); }
 
-	@property Image classicEngine() {return imgd!("classic_engine.png");}
+	@property Image classicEngine() { return imgd!("classic_engine.png"); }
 
-	@property Image warning() {return imgd!("warning.png");}
+	@property Image warning() { return imgd!("warning.png"); }
 
-	@property Image summary() {return imgd!("summary.png");}
+	@property Image summary() { return imgd!("summary.png"); }
 
-	@property Image cards() {return imgd!("cards.png");}
-	@property Image cardsWithFlag() {return imgd!("cards_flag.png");}
-	@property Image runAwayableEnemyCard() {return imgd!("escape.png");}
-	@property Image runAwayableEnemyCardWithFlag() {return imgd!("escape_flag.png");}
-	@property Image backs() {return imgd!("backs.png");}
-	@property Image backsWithFlag() {return imgd!("backs_flag.png");}
-	@property Image colorCell() {return imgd!("color_cell.png");}
-	@property Image colorCellWithFlag() {return imgd!("color_cell_flag.png");}
-	@property Image textCell() {return imgd!("text_cell.png");}
-	@property Image textCellWithFlag() {return imgd!("text_cell_flag.png");}
-	@property Image pcCell() {return imgd!("pc_cell.png");}
-	@property Image pcCellWithFlag() {return imgd!("pc_cell_flag.png");}
-	@property Image imageFont() {return imgd!("backs.png");}
+	@property Image cards() { return imgd!("cards.png"); }
+	@property Image cardsWithFlag() { return imgd!("cards_flag.png"); }
+	@property Image runAwayableEnemyCard() { return imgd!("escape.png"); }
+	@property Image runAwayableEnemyCardWithFlag() { return imgd!("escape_flag.png"); }
+	@property Image backs() { return imgd!("backs.png"); }
+	@property Image backsWithFlag() { return imgd!("backs_flag.png"); }
+	@property Image colorCell() { return imgd!("color_cell.png"); }
+	@property Image colorCellWithFlag() { return imgd!("color_cell_flag.png"); }
+	@property Image textCell() { return imgd!("text_cell.png"); }
+	@property Image textCellWithFlag() { return imgd!("text_cell_flag.png"); }
+	@property Image pcCell() { return imgd!("pc_cell.png"); }
+	@property Image pcCellWithFlag() { return imgd!("pc_cell_flag.png"); }
+	@property Image imageFont() { return imgd!("backs.png"); }
 
-	@property Image inheritBackground() {return imgd!("inherit_backs.png");}
-	@property Image notInheritBackground() {return imgd!("not_inherit_backs.png");}
+	@property Image inheritBackground() { return imgd!("inherit_backs.png"); }
+	@property Image notInheritBackground() { return imgd!("not_inherit_backs.png"); }
 
-	@property Image bgm() {return imgd!("evt_bgm.png");}
-	@property Image se() {return imgd!("evt_se.png");}
-	@property Image unknown() {return imgd!("unknown.png");}
+	@property Image bgm() { return imgd!("evt_bgm.png"); }
+	@property Image se() { return imgd!("evt_se.png"); }
+	@property Image unknown() { return imgd!("unknown.png"); }
 
-	@property Image folder() {return imgd!("folder.png");}
-	@property Image scenario() {return imgd!("scenario.png");}
+	@property Image folder() { return imgd!("folder.png"); }
+	@property Image scenario() { return imgd!("scenario.png"); }
 
-	@property Image areaDir() {return imgd!("areadir.png");}
-	@property Image area() {return imgd!("area.png");}
-	@property Image battle() {return imgd!("battle.png");}
-	@property Image packages() {return imgd!("package.png");}
-	@property Image packageDup() {return imgd!("package_dup.png");}
-	@property Image startArea() {return imgd!("start_area.png");}
+	@property Image areaDir() { return imgd!("areadir.png"); }
+	@property Image area() { return imgd!("area.png"); }
+	@property Image battle() { return imgd!("battle.png"); }
+	@property Image packages() { return imgd!("package.png"); }
+	@property Image packageDup() { return imgd!("package_dup.png"); }
+	@property Image startArea() { return imgd!("start_area.png"); }
 
-	@property Image areaSceneView() {return imgd!("area_cards.png");}
-	@property Image areaSceneViewDup() {return imgd!("area_cards_dup.png");}
-	@property Image areaEventTreeView() {return imgd!("area_event.png");}
-	@property Image areaEventTreeViewDup() {return imgd!("area_event_dup.png");}
-	@property Image battleSceneView() {return imgd!("battle_cards.png");}
-	@property Image battleSceneViewDup() {return imgd!("battle_cards_dup.png");}
-	@property Image battleEventTreeView() {return imgd!("battle_event.png");}
-	@property Image battleEventTreeViewDup() {return imgd!("battle_event_dup.png");}
+	@property Image areaSceneView() { return imgd!("area_cards.png"); }
+	@property Image areaSceneViewDup() { return imgd!("area_cards_dup.png"); }
+	@property Image areaEventTreeView() { return imgd!("area_event.png"); }
+	@property Image areaEventTreeViewDup() { return imgd!("area_event_dup.png"); }
+	@property Image battleSceneView() { return imgd!("battle_cards.png"); }
+	@property Image battleSceneViewDup() { return imgd!("battle_cards_dup.png"); }
+	@property Image battleEventTreeView() { return imgd!("battle_event.png"); }
+	@property Image battleEventTreeViewDup() { return imgd!("battle_event_dup.png"); }
 
-	@property Image yado() {return imgd!("sc_y.png");}
-	@property Image debugYado() {return imgd!("debug_yado.png");}
-	@property Image team() {return imgd!("sc_t.png");}
+	@property Image yado() { return imgd!("sc_y.png"); }
+	@property Image debugYado() { return imgd!("debug_yado.png"); }
+	@property Image team() { return imgd!("sc_t.png"); }
 
 	@property Image playerCardName() { return imgd!("sc_pc_name.png"); }
 
 	@property Image selectedPlayerCardNumber() { return imgd!("sc_sel_pc_num.png"); }
 	@property Image randomValue() { return imgd!("random_value.png"); }
 
-	@property Image casts() {return imgd!("cast.png");}
-	@property Image skill() {return imgd!("skill.png");}
-	@property Image skillDup() {return imgd!("skill_dup.png");}
-	@property Image item() {return imgd!("item.png");}
-	@property Image itemDup() {return imgd!("item_dup.png");}
-	@property Image beast() {return imgd!("beast.png");}
-	@property Image beastDup() {return imgd!("beast_dup.png");}
-	@property Image info() {return imgd!("info.png");}
+	@property Image casts() { return imgd!("cast.png"); }
+	@property Image skill() { return imgd!("skill.png"); }
+	@property Image skillDup() { return imgd!("skill_dup.png"); }
+	@property Image item() { return imgd!("item.png"); }
+	@property Image itemDup() { return imgd!("item_dup.png"); }
+	@property Image beast() { return imgd!("beast.png"); }
+	@property Image beastDup() { return imgd!("beast_dup.png"); }
+	@property Image info() { return imgd!("info.png"); }
 
 	@property Image playerCard() { return imgd!("party_cards.png"); }
 
-	@property Image flagDir() {return imgd!("flagdir.png");}
-	@property Image flag() {return imgd!("flag.png");}
-	@property Image step() {return imgd!("step.png");}
-	@property Image variant() {return imgd!("variant.png");}
-	@property Image variantRef() {return imgd!("variant_ref.png");}
+	@property Image flagDir() { return imgd!("flagdir.png"); }
+	@property Image flag() { return imgd!("flag.png"); }
+	@property Image step() { return imgd!("step.png"); }
+	@property Image variant() { return imgd!("variant.png"); }
+	@property Image variantRef() { return imgd!("variant_ref.png"); }
 
-	@property Image functions() {return imgd!("func.png");}
+	@property Image functions() { return imgd!("func.png"); }
 
-	@property Image couponNormal() {return imgd!("coupon_n.png");}
-	@property Image couponPlus() {return imgd!("coupon_plus.png");}
-	@property Image couponMinus() {return imgd!("coupon_minus.png");}
-	@property Image couponHigh() {return imgd!("coupon_high.png");}
-	@property Image couponDelete() {return imgd!("del_res.png");}
+	@property Image couponNormal() { return imgd!("coupon_n.png"); }
+	@property Image couponPlus() { return imgd!("coupon_plus.png"); }
+	@property Image couponMinus() { return imgd!("coupon_minus.png"); }
+	@property Image couponHigh() { return imgd!("coupon_high.png"); }
+	@property Image couponDelete() { return imgd!("del_res.png"); }
 
-	@property Image gossip() {return imgd!("gossip.png");}
-	@property Image endScenario() {return imgd!("end.png");}
+	@property Image gossip() { return imgd!("gossip.png"); }
+	@property Image endScenario() { return imgd!("end.png"); }
 
-	@property Image evtArrow() {return imgd!("evt_arrow.png");}
+	@property Image evtArrow() { return imgd!("evt_arrow.png"); }
 
-	@property Image evtAutoOpen() {return imgd!("evt_auto_edit.png");}
-	@property Image evtInsertFirst() {return imgd!("evt_insert_first.png");}
+	@property Image evtAutoOpen() { return imgd!("evt_auto_edit.png"); }
+	@property Image evtInsertFirst() { return imgd!("evt_insert_first.png"); }
 
 	@property Image couponView() { return imgd!("coupon_win.png"); }
 	@property Image gossipView() { return imgd!("gossip_win.png"); }
@@ -347,7 +347,7 @@ public:
 		}
 	}
 
-	@property Image msnDelete() {return imgd!("del_res.png");}
+	@property Image msnDelete() { return imgd!("del_res.png"); }
 
 	Image motion(MType type) { mixin(S_TRACE);
 		final switch (type) {
@@ -429,28 +429,28 @@ public:
 		}
 	}
 
-	@property Image hand() {return imgd!("card_hand.png");}
-	@property Image handWith(uint targetScale) {return imgd!("card_hand.png")(targetScale);}
-	@property Image handEmpty() {return imgd!("card_hand_empty.png");}
-	@property Image handEmptyWith(uint targetScale) {return imgd!("card_hand_empty.png")(targetScale);}
-	@property Image eventTree() {return imgd!("event_tree.png");}
-	@property Image eventTreeWith(uint targetScale) {return imgd!("event_tree.png")(targetScale);}
-	@property Image eventTreeEmpty() {return imgd!("event_tree_empty.png");}
-	@property Image eventTreeEmptyWith(uint targetScale) {return imgd!("event_tree_empty.png")(targetScale);}
-	@property Image eventTreeAnd() {return imgd!("event_tree_and.png");}
-	@property Image eventTreeSelected() {return imgd!("event_tree_selected.png");}
-	@property Image eventTreeAndSelected() {return imgd!("event_tree_and_selected.png");}
-	@property Image defStart() {return imgd!("def_start.png");}
-	@property Image keyCode() {return imgd!("key_code.png");}
-	@property Image round() {return imgd!("round.png");}
-	@property Image newIgnition() {return imgd!("def_start.png");}
-	@property Image expandTree() {return imgd!("tree_open.png");}
-	@property Image foldTree() {return imgd!("tree_close.png");}
-	@property Image showEventTreeDetail() {return imgd!("evt_detail.png");}
-	@property Image showEventTreeLineNumber() {return imgd!("evt_linenum.png");}
+	@property Image hand() { return imgd!("card_hand.png"); }
+	@property Image handWith(uint targetScale) { return imgd!("card_hand.png")(targetScale); }
+	@property Image handEmpty() { return imgd!("card_hand_empty.png"); }
+	@property Image handEmptyWith(uint targetScale) { return imgd!("card_hand_empty.png")(targetScale); }
+	@property Image eventTree() { return imgd!("event_tree.png"); }
+	@property Image eventTreeWith(uint targetScale) { return imgd!("event_tree.png")(targetScale); }
+	@property Image eventTreeEmpty() { return imgd!("event_tree_empty.png"); }
+	@property Image eventTreeEmptyWith(uint targetScale) { return imgd!("event_tree_empty.png")(targetScale); }
+	@property Image eventTreeAnd() { return imgd!("event_tree_and.png"); }
+	@property Image eventTreeSelected() { return imgd!("event_tree_selected.png"); }
+	@property Image eventTreeAndSelected() { return imgd!("event_tree_and_selected.png"); }
+	@property Image defStart() { return imgd!("def_start.png"); }
+	@property Image keyCode() { return imgd!("key_code.png"); }
+	@property Image round() { return imgd!("round.png"); }
+	@property Image newIgnition() { return imgd!("def_start.png"); }
+	@property Image expandTree() { return imgd!("tree_open.png"); }
+	@property Image foldTree() { return imgd!("tree_close.png"); }
+	@property Image showEventTreeDetail() { return imgd!("evt_detail.png"); }
+	@property Image showEventTreeLineNumber() { return imgd!("evt_linenum.png"); }
 
-	@property Image addRound() {return imgd!("add_round.png");}
-	@property Image delRound() {return imgd!("del_round.png");}
+	@property Image addRound() { return imgd!("add_round.png"); }
+	@property Image delRound() { return imgd!("del_round.png"); }
 
 	Image keyCodeTiming(FKCKind kind) { mixin(S_TRACE);
 		final switch (kind) {
@@ -461,18 +461,18 @@ public:
 		}
 	}
 
-	@property Image addCoupon() {return imgd!("add_coupon.png");}
-	@property Image altCoupon() {return imgd!("alt_coupon.png");}
-	@property Image delCoupon() {return imgd!("del_res.png");}
+	@property Image addCoupon() { return imgd!("add_coupon.png"); }
+	@property Image altCoupon() { return imgd!("alt_coupon.png"); }
+	@property Image delCoupon() { return imgd!("del_res.png"); }
 
-	@property Image addKeyCode() {return imgd!("add_key_code.png");}
-	@property Image delKeyCode() {return imgd!("del_key_code.png");}
+	@property Image addKeyCode() { return imgd!("add_key_code.png"); }
+	@property Image delKeyCode() { return imgd!("del_key_code.png"); }
 
-	@property Image setBeast() {return imgd!("set_beast.png");}
+	@property Image setBeast() { return imgd!("set_beast.png"); }
 
-	@property Image sound() {return imgd!("evt_se.png");}
+	@property Image sound() { return imgd!("evt_se.png"); }
 
-	@property Image setTalkerCoupon() {return imgd!("set_beast.png");}
+	@property Image setTalkerCoupon() { return imgd!("set_beast.png"); }
 	Image color(dchar c) { mixin(S_TRACE);
 		switch (c) {
 		case 'W': return imgd!("cc_w.png");
@@ -501,18 +501,18 @@ public:
 			throw new Exception("Narration and image haven't image.");
 		}
 	}
-	@property Image scRef() {return imgd!("sc_i.png");}
-	@property Image scTeam() {return imgd!("sc_t.png");}
-	@property Image scYado() {return imgd!("sc_y.png");}
+	@property Image scRef() { return imgd!("sc_i.png"); }
+	@property Image scTeam() { return imgd!("sc_t.png"); }
+	@property Image scYado() { return imgd!("sc_y.png"); }
 
-	@property Image summaryFile() {return imgd!("summary_file.png");}
-	@property Image scenarioArchive() {return imgd!("scenario_arc.png");}
-	@property Image classic() {return imgd!("classic.png");}
+	@property Image summaryFile() { return imgd!("summary_file.png"); }
+	@property Image scenarioArchive() { return imgd!("scenario_arc.png"); }
+	@property Image classic() { return imgd!("classic.png"); }
 
-	@property Image script() {return imgd!("script.png");}
+	@property Image script() { return imgd!("script.png"); }
 
-	@property Image editSceneBattle() {return imgd!("battle_cards.png");}
-	@property Image editEventBattle() {return imgd!("battle_event.png");}
+	@property Image editSceneBattle() { return imgd!("battle_cards.png"); }
+	@property Image editEventBattle() { return imgd!("battle_event.png"); }
 
 	Image menu(MenuID id) { mixin(S_TRACE);
 		final switch (id) {

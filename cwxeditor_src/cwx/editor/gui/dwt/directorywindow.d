@@ -665,9 +665,9 @@ private:
 	class FilesDrop(C) : DropTargetAdapter {
 	override:
 		void dragOver(DropTargetEvent e){ mixin(S_TRACE);
-			static if (is (C == Table)) {
+			static if (is(C == Table)) {
 				e.detail = DND.DROP_MOVE;
-			} else static if (is (C == Tree)) {
+			} else static if (is(C == Tree)) {
 				e.detail = e.item ? DND.DROP_MOVE : DND.DROP_NONE;
 			} else { mixin(S_TRACE);
 				static assert (0);
@@ -677,9 +677,9 @@ private:
 			e.detail = DND.DROP_NONE;
 			auto files = cast(FileNames) e.data;
 			bool fromOut;
-			static if (is (C == Table)) {
+			static if (is(C == Table)) {
 				auto toparP = e.item ? (cast(FileNameObj) e.item.getData()).array : selDirPath;
-			} else static if (is (C == Tree)) {
+			} else static if (is(C == Tree)) {
 				auto toparP = (cast(FileNameObj) e.item.getData()).array;
 			} else { mixin(S_TRACE);
 				static assert (0);
@@ -988,9 +988,9 @@ private:
 		if (_summ) _summ.updateJpy1Files(_prop.parent, _prop.var.etc.autoUpdateJpy1File, _comm.sync);
 
 		itm.setData(new FileNameObj(to));
-		static if (is (T == TreeItem)) {
+		static if (is(T == TreeItem)) {
 			itm.setText(baseName(stripExtension(to)));
-		} else static if (is (T == TableItem)) {
+		} else static if (is(T == TableItem)) {
 			itm.setText(0, .isDir(to) ? baseName(to) : baseName(stripExtension(to)));
 		} else { mixin(S_TRACE);
 			static assert (0);
@@ -1775,7 +1775,7 @@ public:
 
 	@property
 	override
-	Composite shell() {return _win;}
+	Composite shell() { return _win; }
 
 	@property
 	override
@@ -1789,7 +1789,7 @@ public:
 	}
 	@property
 	override
-	void delegate(string) statusText() {return null;}
+	void delegate(string) statusText() { return null; }
 
 	void copyFilePath() { mixin(S_TRACE);
 		if (!_summ) return;

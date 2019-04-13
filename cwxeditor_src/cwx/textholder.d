@@ -231,7 +231,7 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() {return _uc;}
+	UseCounter useCounter() { return _uc; }
 	/// 使用回数カウンタを設定する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
@@ -297,10 +297,10 @@ public:
 
 	/// このSimpleTextHolderの所持者。
 	@property
-	CWXPath owner() {return _owner;}
+	CWXPath owner() { return _owner; }
 	private CWXPath _owner = null;
 	@property
-	package void owner(CWXPath owner) {_owner = owner;}
+	package void owner(CWXPath owner) { _owner = owner; }
 	@property
 	string cwxPath(bool id) { mixin(S_TRACE);
 		if (_owner) { mixin(S_TRACE);
@@ -314,9 +314,9 @@ public:
 	}
 	@property
 	inout
-	inout(CWXPath)[] cwxChilds() {return [];}
+	inout(CWXPath)[] cwxChilds() { return []; }
 	@property
-	CWXPath cwxParent() {return _owner;}
+	CWXPath cwxParent() { return _owner; }
 }
 
 /// 一部特殊文字対応テキストの保持者。

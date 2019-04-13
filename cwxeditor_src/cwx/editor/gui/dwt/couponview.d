@@ -622,10 +622,10 @@ class CouponView(CVType Type) : Composite {
 		}
 	}
 	private class HTBTraverse : Listener {
-		override void handleEvent(Event e) {e.doit = true;}
+		override void handleEvent(Event e) { e.doit = true; }
 	}
 	private class HTBKeyDown : Listener {
-		override void handleEvent(Event e) {e.doit = true;}
+		override void handleEvent(Event e) { e.doit = true; }
 	}
 	this (Commons comm, Summary summ, Composite parent, int style, bool delegate() catchMod, bool isHistoryView) { mixin(S_TRACE);
 		super (parent, style);

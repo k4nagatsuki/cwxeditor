@@ -63,10 +63,10 @@ public:
 private P spnValue(string T, N, P)(N[] keys, P val) { mixin(S_TRACE);
 	if (!keys.length) return val;
 	auto a = keys[0];
-	P value = mixin (T);
+	P value = mixin(T);
 	for (int i = 1; i < keys.length; i++) { mixin(S_TRACE);
 		a = keys[i];
-		if (mixin (T) != value) { mixin(S_TRACE);
+		if (mixin(T) != value) { mixin(S_TRACE);
 			value = val;
 			break;
 		}
@@ -330,21 +330,21 @@ private:
 					v.callModEvent();
 				}
 			}
-			override void undo() {impl();}
-			override void redo() {impl();}
+			override void undo() { impl(); }
+			override void redo() { impl(); }
 			override void dispose() {}
 		}
 	}
 	static if (is(A == Battle)) {
 		static class MCWXPath : CWXPath {
 			@property
-			override string cwxPath(bool id) {return "";}
-			override CWXPath findCWXPath(string path) {return null;}
+			override string cwxPath(bool id) { return ""; }
+			override CWXPath findCWXPath(string path) { return null; }
 			@property
 			inout
-			override inout(CWXPath)[] cwxChilds() {return [];}
+			override inout(CWXPath)[] cwxChilds() { return []; }
 			@property
-			CWXPath cwxParent() {return null;}
+			CWXPath cwxParent() { return null; }
 			protected
 			override
 			void changed() { }
@@ -393,8 +393,8 @@ private:
 					v.callModEvent();
 				}
 			}
-			override void undo() {impl();}
-			override void redo() {impl();}
+			override void undo() { impl(); }
+			override void redo() { impl(); }
 			override void dispose() { mixin(S_TRACE);
 				_path.removeUseCounter();
 			}
@@ -687,9 +687,9 @@ private:
 	}
 
 	@property
-	protected Props prop() {return _prop;}
+	protected Props prop() { return _prop; }
 	@property
-	protected Summary summ() {return _summ;}
+	protected Summary summ() { return _summ; }
 
 	int _readOnly = SWT.NONE;
 
@@ -729,11 +729,11 @@ private:
 		MenuItem _vrMenu;
 		ToolItem _vrTMenu;
 	}
-	static if (is (C == EnemyCard) || RefCards) {
+	static if (is(C == EnemyCard) || RefCards) {
 		MenuItem _dbgMenu;
 		ToolItem _dbgTMenu;
 		@property
-		public bool debugMode() {return _dbgMode;}
+		public bool debugMode() { return _dbgMode; }
 		bool _dbgMode = false;
 		void reverseDebugMode() { mixin(S_TRACE);
 			_dbgMode = !_dbgMode;
@@ -743,7 +743,7 @@ private:
 			_prop.var.etc.viewEnemyCardDebug = _dbgMode;
 		}
 	}
-	static if (is (C == EnemyCard)) {
+	static if (is(C == EnemyCard)) {
 		ToolItem _escTMenu;
 		MaterialSelect!(MtType.BGM, Combo, Combo) _bgm;
 		void setEscape() { mixin(S_TRACE);
@@ -802,7 +802,7 @@ private:
 	}
 
 	@property
-	ImagePane imagePane() {return _imgp;}
+	ImagePane imagePane() { return _imgp; }
 	Spinner _xSpn, _ySpn;
 	Spinner _layerSpn;
 	Combo _flag = null;
@@ -824,7 +824,7 @@ private:
 		Spinner _scaleSpn;
 
 		@property
-		Table cardList() {return _cards;}
+		Table cardList() { return _cards; }
 		void editSpnCard(string T)(int value) { mixin(S_TRACE);
 			if (_readOnly) return;
 			editSpnImpl!(T, C)(value, _editC, cardsIndex);
@@ -927,7 +927,7 @@ private:
 		Spinner _wSpn, _hSpn;
 
 		@property
-		Table backList() {return _backs;}
+		Table backList() { return _backs; }
 		void editSpnBack(string T)(int value) { mixin(S_TRACE);
 			if (_readOnly) return;
 			editSpnImpl!(T, BgImage)(value, _editB, 0);
@@ -1071,7 +1071,7 @@ private:
 		foreach (i; edits.byValue) { mixin(S_TRACE);
 			auto a = cast(FlexImage)_imgp.images[startIndex + i];
 			_imgp.redrawImage(a);
-			mixin (T);
+			mixin(T);
 			_imgp.redrawImage(a);
 		}
 	}
@@ -1081,11 +1081,11 @@ private:
 		foreach (c, i; edits) { mixin(S_TRACE);
 			{ mixin(S_TRACE);
 				auto a = c;
-				mixin (T);
+				mixin(T);
 			}
 			foreach (v; vs) { mixin(S_TRACE);
 				auto a = cast(FlexImage)v._imgp.images[startIndex(v) + i];
-				mixin (N);
+				mixin(N);
 				v._imgp.redrawImage(a);
 				a.resize(false);
 				v._imgp.redrawImage(a);
@@ -1294,8 +1294,8 @@ private:
 		int b = First;
 		for (int i = startIndex; i < startIndex + cs.length; i++) { mixin(S_TRACE);
 			auto a = cast(FlexImage)_imgp.images[i];
-			if (a.selected && mixin (Cmp)) { mixin(S_TRACE);
-				b = mixin (Get);
+			if (a.selected && mixin(Cmp)) { mixin(S_TRACE);
+				b = mixin(Get);
 			}
 		}
 		auto vs = views();
@@ -1307,12 +1307,12 @@ private:
 					a = cast(FlexImage)v._imgp.images[i];
 					assert (a !is null);
 					v._imgp.redrawImage(a);
-					mixin (Set ~ ";");
+					mixin(Set ~ ";");
 					a.resize();
 					v._imgp.redrawImage(a);
 				}
 				auto c = cs[i - startIndex];
-				mixin (CSet ~ ";");
+				mixin(CSet ~ ";");
 				if (_summ && _summ.scenarioPath != "") { mixin(S_TRACE);
 					static if (is(T : AbstractSpCard)) {
 						_comm.refMenuCard.call(c.cwxPath(true));
@@ -2146,7 +2146,7 @@ private:
 		});
 		.listener(_flagList, SWT.Selection, &checkFlag);
 
-		if (summ && summ.scenarioPath != "" && !_readOnly) { mixin (S_TRACE);
+		if (summ && summ.scenarioPath != "" && !_readOnly) { mixin(S_TRACE);
 			_comm.refFlagAndStep.add(&refFlags);
 			_comm.delFlagAndStep.add(&delFlags);
 			.listener(_flag, SWT.Dispose, { mixin(S_TRACE);
@@ -2461,7 +2461,7 @@ private:
 			updateInheritBacks();
 		} else static if (UseCards) {
 			if (!valid(_imgp, _xSpn, _ySpn, _layerSpn, _scaleSpn)) return;
-			static if (is (C == EnemyCard)) {
+			static if (is(C == EnemyCard)) {
 				if (!valid(_escTMenu)) return;
 			}
 			bool enbl = !_readOnly && _editC.length > 0;
@@ -2469,7 +2469,7 @@ private:
 			_ySpn.setEnabled(enbl);
 			_scaleSpn.setEnabled(enbl);
 			_layerSpn.setEnabled(enbl && (!_summ || !_summ.legacy));
-			static if (is (C == EnemyCard)) {
+			static if (is(C == EnemyCard)) {
 				_escTMenu.setEnabled(enbl);
 			}
 			if (_editC.length == 1) { mixin(S_TRACE);
@@ -2478,7 +2478,7 @@ private:
 				_ySpn.setSelection(card.y);
 				_scaleSpn.setSelection(card.scale);
 				_layerSpn.setSelection(card.layer);
-				static if (is (C == EnemyCard)) {
+				static if (is(C == EnemyCard)) {
 					_escTMenu.setSelection(card.action(ActionCardType.RunAway));
 				}
 			} else if (_editC.length > 1) { mixin(S_TRACE);
@@ -2486,7 +2486,7 @@ private:
 				_ySpn.setSelection(spnValue!("a.y", C, int)(_editC.keys, 0));
 				_scaleSpn.setSelection(spnValue!("a.scale", C, int)(_editC.keys, 100));
 				_layerSpn.setSelection(spnValue!("a.layer", C, int)(_editC.keys, 0));
-				static if (is (C == EnemyCard)) {
+				static if (is(C == EnemyCard)) {
 					_escTMenu.setSelection(spnValue!("a.action(ActionCardType.RunAway)", C, bool)(_editC.keys, false));
 				}
 			}
@@ -2709,7 +2709,7 @@ private:
 					itm.setImage(_prop.images.editEventBattle);
 				} else static assert (0);
 			}
-			if (_summ) { mixin (S_TRACE);
+			if (_summ) { mixin(S_TRACE);
 				static if (is(C:AbstractSpCard)) {
 					new MenuItem(menu, SWT.SEPARATOR);
 					createMenuItem(_comm, menu, MenuID.SelectConnectedResource, &selectConnectedResourceC, &canSelectConnectedResourceC);
@@ -2718,7 +2718,7 @@ private:
 					createMenuItem(_comm, menu, MenuID.SelectConnectedResource, &selectConnectedResourceB, &canSelectConnectedResourceB);
 				} else static assert (0);
 			}
-			if (!_readOnly) { mixin (S_TRACE);
+			if (!_readOnly) { mixin(S_TRACE);
 				new MenuItem(menu, SWT.SEPARATOR);
 				static if (is(C:BgImage)) {
 					createMenuItem(_comm, menu, MenuID.FindID, &findCellName, &canFindCellName);
@@ -2770,7 +2770,7 @@ private:
 		return list;
 	}
 	static if (is(C:EnemyCard)) {
-		Composite createBgmPane(Composite parent) { mixin (S_TRACE);
+		Composite createBgmPane(Composite parent) { mixin(S_TRACE);
 			auto skin = summSkin;
 			_bgm = new MaterialSelect!(MtType.BGM, Combo, Combo)(_comm, _prop, _summ, _readOnly != 0, &selectBGM, included => [_prop.msgs.defaultSelection(_prop.msgs.bgmNone)]);
 			_bgm.canContinue = !_summ || !_summ.legacy;
@@ -2791,7 +2791,7 @@ private:
 			_bgm.createRefreshToolItem(bar);
 			_bgm.createDirectoryToolItem(bar);
 
-			auto h2GD(int style) { mixin (S_TRACE);
+			auto h2GD(int style) { mixin(S_TRACE);
 				auto gd = new GridData(style);
 				gd.horizontalSpan = 2;
 				return gd;
@@ -2814,36 +2814,36 @@ private:
 	}
 
 	static if (UseCards) {
-		void findCardGroup() { mixin (S_TRACE);
-			foreach (itm; _cards.getSelection()) { mixin (S_TRACE);
+		void findCardGroup() { mixin(S_TRACE);
+			foreach (itm; _cards.getSelection()) { mixin(S_TRACE);
 				auto cardGroup = (cast(AbstractSpCard)itm.getData()).cardGroup;
-				if (cardGroup != "") { mixin (S_TRACE);
+				if (cardGroup != "") { mixin(S_TRACE);
 					_comm.replaceID(toCardGroupId(cardGroup), true);
 					return;
 				}
 			}
 		}
 		@property
-		bool canFindCardGroup() { mixin (S_TRACE);
-			foreach (itm; _cards.getSelection()) { mixin (S_TRACE);
+		bool canFindCardGroup() { mixin(S_TRACE);
+			foreach (itm; _cards.getSelection()) { mixin(S_TRACE);
 				if ((cast(AbstractSpCard)itm.getData()).cardGroup != "") return true;
 			}
 			return false;
 		}
 	}
 	static if (UseBacks) {
-		void findCellName() { mixin (S_TRACE);
-			foreach (itm; _backs.getSelection()) { mixin (S_TRACE);
+		void findCellName() { mixin(S_TRACE);
+			foreach (itm; _backs.getSelection()) { mixin(S_TRACE);
 				auto cellName = (cast(BgImage)itm.getData()).cellName;
-				if (cellName != "") { mixin (S_TRACE);
+				if (cellName != "") { mixin(S_TRACE);
 					_comm.replaceID(toCellNameId(cellName), true);
 					return;
 				}
 			}
 		}
 		@property
-		bool canFindCellName() { mixin (S_TRACE);
-			foreach (itm; _backs.getSelection()) { mixin (S_TRACE);
+		bool canFindCellName() { mixin(S_TRACE);
+			foreach (itm; _backs.getSelection()) { mixin(S_TRACE);
 				if ((cast(BgImage)itm.getData()).cellName != "") return true;
 			}
 			return false;
@@ -3127,7 +3127,7 @@ public:
 		addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 				_preview.dispose();
-				if (summ && summ.scenarioPath != "" && !_readOnly) { mixin (S_TRACE);
+				if (summ && summ.scenarioPath != "" && !_readOnly) { mixin(S_TRACE);
 					_comm.refSkin.remove(&refresh);
 					_comm.refDataVersion.remove(&refreshControls);
 					_comm.delPaths.remove(&refresh);
@@ -3157,7 +3157,7 @@ public:
 				}
 			}
 		});
-		static if (is (C == EnemyCard) || RefCards) {
+		static if (is(C == EnemyCard) || RefCards) {
 			if (summ && summ.scenarioPath != "" && !_readOnly) { mixin(S_TRACE);
 				_comm.refCast.add(&refreshCast);
 				_comm.delCast.add(&deleteCast);
@@ -3169,7 +3169,7 @@ public:
 				});
 			}
 		}
-		static if (is (A == Area)) {
+		static if (is(A == Area)) {
 			_viewMsg = _prop.var.etc.viewMessageArea;
 			_viewParty = _prop.var.etc.viewPartyCardsArea;
 			if (!_readOnly) { mixin(S_TRACE);
@@ -3177,13 +3177,13 @@ public:
 				_fixedB = _prop.var.etc.fixedImagesCells;
 				_fixedFirstB = _prop.var.etc.fixedImagesBackground;
 			}
-		} else static if (is (A == Battle)) {
+		} else static if (is(A == Battle)) {
 			_viewMsg = _prop.var.etc.viewMessageBattle;
 			_viewParty = _prop.var.etc.viewPartyCardsBattle;
 			if (!_readOnly) { mixin(S_TRACE);
 				_fixedC = _prop.var.etc.fixedImagesBattle;
 			}
-		} else static if (is (A == BgImageContainer)) {
+		} else static if (is(A == BgImageContainer)) {
 			_viewMsg = _prop.var.etc.viewMessageEvent;
 			_viewParty = _prop.var.etc.viewPartyCardsEvent;
 			if (!_readOnly) { mixin(S_TRACE);
@@ -3244,7 +3244,7 @@ public:
 			listsP.setLayoutData(lpgd);
 			auto prevTrig = new PreviewTrigger;
 			static if (UseCards) {
-				static if (is (C == MenuCard)) {
+				static if (is(C == MenuCard)) {
 					_cards = createList(listsP, prop.msgs.menuCards,
 						prop.images.cards, ctcpd, &editCard, () => _area.cards, &selectAllC);
 					if (!_readOnly) { mixin(S_TRACE);
@@ -3268,7 +3268,7 @@ public:
 								return t;
 							});
 					}
-				} else static if (is (C == EnemyCard)) {
+				} else static if (is(C == EnemyCard)) {
 					_cards = createList(listsP, prop.msgs.enemyCards,
 						prop.images.cards, ctcpd, &editCard, () => _area.cards, &selectAllC);
 					if (!_readOnly) { mixin(S_TRACE);
@@ -3276,7 +3276,7 @@ public:
 					}
 				}
 				_cards.addSelectionListener(new SCListener);
-				static if (is (C == MenuCard)) {
+				static if (is(C == MenuCard)) {
 					if (!_readOnly) { mixin(S_TRACE);
 						auto target = new DropTarget(_cards, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_LINK);
 						target.setTransfer([cast(Transfer)FileTransfer.getInstance(), XMLBytesTransfer.getInstance()]);
@@ -3475,10 +3475,10 @@ public:
 					l.setText(_prop.msgs.areaViewKeyboardHint);
 				}
 			}
-			static if (is (C == MenuCard) || UseBacks) {
+			static if (is(C == MenuCard) || UseBacks) {
 				if (!_readOnly) { mixin(S_TRACE);
 					auto target = new DropTarget(_imgp, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_LINK);
-					static if (is (C == MenuCard)) {
+					static if (is(C == MenuCard)) {
 						target.setTransfer([cast(Transfer)FileTransfer.getInstance(), XMLBytesTransfer.getInstance()]);
 					} else { mixin(S_TRACE);
 						target.setTransfer([FileTransfer.getInstance()]);
@@ -3758,7 +3758,7 @@ public:
 		}
 	}
 	void refresh() { mixin(S_TRACE);
-		static if (UseCards && is (C == EnemyCard)) {
+		static if (UseCards && is(C == EnemyCard)) {
 			if (_bgm) _bgm.refresh();
 		}
 		refreshPanel();
@@ -4730,9 +4730,9 @@ public:
 		.setupToggle(_sgMenu, _prop.var.etc.showGrid);
 		if (!_readOnly) { mixin(S_TRACE);
 			new MenuItem(mv, SWT.SEPARATOR);
-			static if (is (C == MenuCard)) {
+			static if (is(C == MenuCard)) {
 				createMenuItem(_comm, mv, MenuID.NewMenuCard, &createCard, () => !_readOnly);
-			} else static if (is (C == EnemyCard)) {
+			} else static if (is(C == EnemyCard)) {
 				createMenuItem(_comm, mv, MenuID.NewEnemyCard, &createCard, () => !_readOnly && _summ && _summ.casts.length);
 			}
 			static if (UseBacks) {
@@ -4861,7 +4861,7 @@ public:
 			}, SWT.CHECK);
 			_maskTMenu.setEnabled(false);
 		}
-		static if (is (C == EnemyCard)) {
+		static if (is(C == EnemyCard)) {
 			new ToolItem(bar, SWT.SEPARATOR);
 			_escTMenu = createToolItem(_comm, bar, MenuID.Escape, &setEscape, () => !_readOnly && _cards.getSelectionIndex() != -1, SWT.CHECK);
 			_escTMenu.setEnabled(false);
@@ -5159,7 +5159,7 @@ public:
 				if (!initialize) v.callModEvent();
 			}
 		}
-		static if (is (C == MenuCard)) {
+		static if (is(C == MenuCard)) {
 			private int cardFromFile(string fname, int x, int y, bool fromImgPane) { mixin(S_TRACE);
 				if (_readOnly) return -1;
 				if (!_summ) return -1;
@@ -5770,7 +5770,7 @@ public:
 			if (_readOnly) return false;
 			assert (_summ);
 			auto skin = summSkin;
-			static if ((UseCards && is (C == MenuCard)) && UseBacks) {
+			static if ((UseCards && is(C == MenuCard)) && UseBacks) {
 				if (skin.isCardImage(path, false)) { mixin(S_TRACE);
 					int i = cardFromFile(path, x, y, true);
 					if (i == -1) { mixin(S_TRACE);
@@ -5789,7 +5789,7 @@ public:
 						}
 					}
 				}
-			} else static if (UseCards && is (C == MenuCard)) {
+			} else static if (UseCards && is(C == MenuCard)) {
 				if (skin.isCardImage(path, true)) { mixin(S_TRACE);
 					int i = cardFromFile(path, x, y, true);
 					if (i == -1) { mixin(S_TRACE);
@@ -5814,7 +5814,7 @@ public:
 		}
 	}
 
-	static if (is (C == EnemyCard)) {
+	static if (is(C == EnemyCard)) {
 		private void refreshCast(CastCard castCard) { mixin(S_TRACE);
 			if (!_summ || _summ.scenarioPath == "" || _readOnly) return;
 			auto skin = summSkin;

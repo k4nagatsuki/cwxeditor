@@ -642,7 +642,7 @@ version (Windows) {
 	/// uncab()が行える状態であればtrueを返す。
 	/// Windows以外のOSでは必ずfalseを返す。
 	@property
-	bool canUncab() {return false;}
+	bool canUncab() { return false; }
 
 	/// src以下のファイル・フォルダを全て圧縮し、CAB書庫cabを生成する。
 	/// Windows以外のOSでは必ず失敗し、falseを返す。

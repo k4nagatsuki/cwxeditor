@@ -28,10 +28,10 @@ public:
 	static Race fromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
 		auto r = new Race;
 		r._name = null;
-		node.onTag["Name"] = (ref XNode node) {r._name = node.value;};
-		node.onTag["Description"] = (ref XNode node) {r._desc = decodeLf2(node.value);};
-		node.onTag["Feature"] = (ref XNode node) {r.loadFeature(node, ver);};
-		node.onTag["Ability"] = (ref XNode node) {r.loadAbility(node, ver);};
+		node.onTag["Name"] = (ref XNode node) { r._name = node.value; };
+		node.onTag["Description"] = (ref XNode node) { r._desc = decodeLf2(node.value); };
+		node.onTag["Feature"] = (ref XNode node) { r.loadFeature(node, ver); };
+		node.onTag["Ability"] = (ref XNode node) { r.loadAbility(node, ver); };
 		node.onTag[Coupon.XML_NAME_M] = (ref XNode node) { mixin(S_TRACE);
 			node.onTag[Coupon.XML_NAME] = (ref XNode node) { mixin(S_TRACE);
 				auto coupon = Coupon.fromNode(node, ver);
@@ -46,15 +46,15 @@ public:
 	/// 種族名。
 	@property
 	const
-	string name() {return _name;}
+	string name() { return _name; }
 	/// 解説。
 	@property
 	const
-	string desc() {return _desc;}
+	string desc() { return _desc; }
 	/// 初期クーポン。
 	@property
 	inout
-	inout(Coupon)[] coupons() {return _coupons;}
+	inout(Coupon)[] coupons() { return _coupons; }
 }
 
 /// mixinによって種族絡みのパラメータを付与する。
@@ -133,7 +133,7 @@ template RaceParam(bool Set) {
 		/// 命を持たないか。
 		@property
 		const
-		bool undead() {return _undead;}
+		bool undead() { return _undead; }
 		static if (Set) {
 			/// ditto
 			@property
@@ -145,7 +145,7 @@ template RaceParam(bool Set) {
 		/// 心を持たないか。
 		@property
 		const
-		bool automaton() {return _automaton;}
+		bool automaton() { return _automaton; }
 		static if (Set) {
 			/// ditto
 			@property
@@ -157,7 +157,7 @@ template RaceParam(bool Set) {
 		/// 不浄な存在か。
 		@property
 		const
-		bool unholy() {return _unholy;}
+		bool unholy() { return _unholy; }
 		static if (Set) {
 			/// ditto
 			@property
@@ -169,7 +169,7 @@ template RaceParam(bool Set) {
 		/// 魔法生物か。
 		@property
 		const
-		bool constructure() {return _constructure;}
+		bool constructure() { return _constructure; }
 		static if (Set) {
 			/// ditto
 			@property
@@ -181,7 +181,7 @@ template RaceParam(bool Set) {
 		/// 武器が効かないか。
 		@property
 		const
-		bool weaponResist() {return _weaponRes;}
+		bool weaponResist() { return _weaponRes; }
 		static if (Set) {
 			/// ditto
 			@property
@@ -193,7 +193,7 @@ template RaceParam(bool Set) {
 		/// 魔法が効かないか。
 		@property
 		const
-		bool magicResist() {return _magicRes;}
+		bool magicResist() { return _magicRes; }
 		static if (Set) {
 			/// ditto
 			@property
@@ -204,7 +204,7 @@ template RaceParam(bool Set) {
 		}
 		/// 炎/冷気が無効。
 		const
-		bool resist(Element el) {return _res.get(el, false);}
+		bool resist(Element el) { return _res.get(el, false); }
 		static if (Set) {
 			/// ditto
 			void resist(Element el, bool res) { mixin(S_TRACE);
@@ -215,7 +215,7 @@ template RaceParam(bool Set) {
 		}
 		/// 炎/冷気が弱点。
 		const
-		bool weakness(Element el) {return _weak.get(el, false);}
+		bool weakness(Element el) { return _weak.get(el, false); }
 		static if (Set) {
 			/// ditto
 			void weakness(Element el, bool weak) { mixin(S_TRACE);
@@ -226,7 +226,7 @@ template RaceParam(bool Set) {
 		}
 		/// 身体能力。
 		const
-		uint physical(Physical phy) {return _phy[phy];}
+		uint physical(Physical phy) { return _phy[phy]; }
 		static if (Set) {
 			/// ditto
 			void physical(Physical phy, uint val) { mixin(S_TRACE);
@@ -269,7 +269,7 @@ template RaceParam(bool Set) {
 		}
 		/// 常に掛かっている能力ボーナス。
 		const
-		int defaultEnhance(Enhance enh) {return _dEnh.get(enh, 0);}
+		int defaultEnhance(Enhance enh) { return _dEnh.get(enh, 0); }
 		static if (Set) {
 			/// ditto
 			void defaultEnhance(Enhance enh, int dEnh) { mixin(S_TRACE);

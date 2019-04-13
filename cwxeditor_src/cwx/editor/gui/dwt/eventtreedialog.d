@@ -46,6 +46,7 @@ class EventTreeDialog : AbsDialog {
 	private Button _lose = null;
 	private Button _escape = null;
 	private Button _everyRound = null;
+	private Button _roundEnd = null;
 	private Button _round0 = null;
 	private KeyCodeView _keyCodes = null;
 	private RoundView _rounds = null;
@@ -57,9 +58,14 @@ class EventTreeDialog : AbsDialog {
 
 		ws ~= .sjisWarnings(_comm.prop.parent, _summ, _name.getText(), _comm.prop.msgs.eventName);
 
-		if (!_comm.prop.targetVersion(_summ, "1.50")) { mixin(S_TRACE);
-			if (_everyRound && _everyRound.getSelection()) ws ~= _comm.prop.msgs.warningEveryRound;
-			if (_round0 && _round0.getSelection()) ws ~= _comm.prop.msgs.warningRound0;
+		if (_everyRound && _everyRound.getSelection() && !_comm.prop.targetVersion(_summ, "1.50")) { mixin(S_TRACE);
+			ws ~= _comm.prop.msgs.warningEveryRound;
+		}
+		if (_roundEnd && _roundEnd.getSelection() && !_comm.prop.isTargetVersion(_summ, "4")) { mixin(S_TRACE);
+			ws ~= _comm.prop.msgs.warningRoundEnd;
+		}
+		if (_round0 && _round0.getSelection() && !_comm.prop.targetVersion(_summ, "1.50")) { mixin(S_TRACE);
+			ws ~= _comm.prop.msgs.warningRound0;
 		}
 
 		if (_keyCodes) ws ~= _keyCodes.warnings;
@@ -101,6 +107,8 @@ class EventTreeDialog : AbsDialog {
 			treeName = _comm.prop.msgs.escapeTree;
 		} else if (_everyRound && _everyRound.getSelection()) { mixin(S_TRACE);
 			treeName = _comm.prop.msgs.everyRoundTree;
+		} else if (_roundEnd && _roundEnd.getSelection()) { mixin(S_TRACE);
+			treeName = _comm.prop.msgs.roundEndTree;
 		} else if (_round0 && _round0.getSelection()) { mixin(S_TRACE);
 			treeName = _comm.prop.msgs.round0Tree;
 		} else if (_keyCodes && !_keyCodes.isNewItemEditing && _keyCodes.keyCodes.length) { mixin(S_TRACE);
@@ -138,7 +146,7 @@ class EventTreeDialog : AbsDialog {
 	inout(EventTree) eventTree() { return _et; }
 
 	override void setup(Composite area) { mixin(S_TRACE);
-		auto sys = _eto.canHasFireEnter || _eto.canHasFireLose || _eto.canHasFireEscape || _eto.canHasFireEveryRound || _eto.canHasFireRound0;
+		auto sys = _eto.canHasFireEnter || _eto.canHasFireLose || _eto.canHasFireEscape || _eto.canHasFireEveryRound || _eto.canHasFireRoundEnd || _eto.canHasFireRound0;
 		auto kc = _eto.canHasFireKeyCode;
 		auto round = _eto.canHasFireRound;
 		auto col = 0;
@@ -195,6 +203,7 @@ class EventTreeDialog : AbsDialog {
 			if (_eto.canHasFireLose) _lose = createCheck(_comm.prop.msgs.loseTree);
 			if (_eto.canHasFireEscape) _escape = createCheck(_comm.prop.msgs.escapeTree);
 			if (_eto.canHasFireEveryRound) _everyRound = createCheck(_comm.prop.msgs.everyRoundTree, true);
+			if (_eto.canHasFireRoundEnd) _roundEnd = createCheck(_comm.prop.msgs.roundEndTree, true);
 			if (_eto.canHasFireRound0) _round0 = createCheck(_comm.prop.msgs.round0Tree, true);
 		}
 
@@ -257,6 +266,7 @@ class EventTreeDialog : AbsDialog {
 		if (_lose) _lose.setSelection(_et.fireLose);
 		if (_escape) _escape.setSelection(_et.fireEscape);
 		if (_everyRound) _everyRound.setSelection(_et.fireEveryRound);
+		if (_roundEnd) _roundEnd.setSelection(_et.fireRoundEnd);
 		if (_round0) _round0.setSelection(_et.fireRound0);
 		if (_keyCodes) _keyCodes.keyCodes = .map!(keyCode => _comm.prop.sys.convFireKeyCode(keyCode))(_et.keyCodes).array();
 		if (_keyCodeMatchingType) { mixin(S_TRACE);
@@ -277,6 +287,7 @@ class EventTreeDialog : AbsDialog {
 		if (_lose) _et.lose = _lose.getSelection();
 		if (_escape) _et.escape = _escape.getSelection();
 		if (_everyRound) _et.everyRound = _everyRound.getSelection();
+		if (_roundEnd) _et.roundEnd = _roundEnd.getSelection();
 		if (_round0) _et.round0 = _round0.getSelection();
 		if (_keyCodes) _et.keyCodes = .map!(keyCode => _comm.prop.sys.toFKeyCode(keyCode))(_keyCodes.keyCodes).array();
 		if (_keyCodeMatchingType) { mixin(S_TRACE);

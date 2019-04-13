@@ -402,7 +402,7 @@ public:
 			st.doSort(SWT.UP);
 			break;
 		}
-		void storeSortParams() { mixin (S_TRACE);
+		void storeSortParams() { mixin(S_TRACE);
 			updateList();
 			int sortDir;
 			switch (_list.getSortDirection()) {

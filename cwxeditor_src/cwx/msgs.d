@@ -1502,6 +1502,7 @@ class Msgs : Properties {
 	auto startEscape = Msg("startEscape", "逃走");
 	auto startLose = Msg("startLose", "敗北");
 	auto startEveryRound = Msg("startEveryRound", "毎ラウンド");
+	auto startRoundEnd = Msg("startRoundEnd", "ラウンド終了");
 	auto startRound0 = Msg("startRound0", "バトル開始");
 	auto startPackage = Msg("startPackage", "パッケージ");
 	auto startUse = Msg("startUse", "使用時");
@@ -1531,6 +1532,7 @@ class Msgs : Properties {
 	auto escapeTree = Msg("escapeTree", "逃走");
 	auto loseTree = Msg("loseTree", "敗北");
 	auto everyRoundTree = Msg("everyRoundTree", "毎ラウンド");
+	auto roundEndTree = Msg("roundEndTree", "ラウンド終了");
 	auto round0Tree = Msg("round0Tree", "バトル開始");
 	auto packageTree = Msg("packageTree", "パッケージイベント");
 	auto useTree = Msg("useTree", "使用時イベント");
@@ -2159,6 +2161,7 @@ class Msgs : Properties {
 	auto warningCardGroup = Msg("warningCardGroup", "カードグループは、Wsn.3以降の形式のシナリオでしか設定できません。");
 	auto warningSelectionBarIsMany = Msg("warningSelectionBarIsMany", "選択肢が%1$s行ありますが、%2$s行までしか表示できません。");
 	auto warningEveryRound = Msg("warningEveryRound", "イベント発火条件「毎ラウンド」は、CardWirth 1.50より前のバージョンでは使用できません。");
+	auto warningRoundEnd = Msg("warningRoundEnd", "イベント発火条件「ラウンド終了」は、Wsn.4以降の形式のシナリオでしか機能しません。"); // Wsn.4
 	auto warningRound0 = Msg("warningRound0", "イベント発火条件「バトル開始」は、CardWirth 1.50より前のバージョンでは使用できません。");
 	auto warningUnknownMotion = Msg("warningUnknownMotion", "効果 [%1$s] は、CardWirth %2$sより前のバージョンでは使用できません。");
 	auto warningUnknownMotionWsn = Msg("warningUnknownMotionWsn", "効果 [%1$s] は、Wsn.%2$sより前のバージョンでは使用できません。");

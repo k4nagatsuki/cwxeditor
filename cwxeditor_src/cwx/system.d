@@ -438,7 +438,7 @@ class System {
 	@property const bool isGene(string coupon) { mixin(S_TRACE);
 		return coupon.length == "＠Ｇ0000000000".length && !coupon.matchFirst(.ctRegex!(`^＠Ｇ[01]{10}$`)).empty;
 	} unittest { mixin(S_TRACE);
-		mixin (UTPerf);
+		mixin(UTPerf);
 		assert ((new System).isGene("＠Ｇ0000000000"));
 		assert ((new System).isGene("＠Ｇ0000000001"));
 		assert ((new System).isGene("＠Ｇ1111111111"));
@@ -461,11 +461,11 @@ class System {
 	@property const string effectOutOfTargetCoupon() { return "＠効果対象外"; }
 
 	/// 後続イベントコンテントのTrue値。
-	@property const string evtChildTrue() {return "○";}
+	@property const string evtChildTrue() { return "○"; }
 	/// 後続イベントコンテントのFalse値。
-	@property const string evtChildFalse() {return "×";}
+	@property const string evtChildFalse() { return "×"; }
 	/// 後続イベントコンテントのDefault値。
-	@property const string evtChildDefault() {return "Default";}
+	@property const string evtChildDefault() { return "Default"; }
 	/// 後続イベントコンテントのメッセージ送り標準値。
 	@property const string evtChildOK(string legacyName) { mixin(S_TRACE);
 		switch (toLower(legacyName)) {
@@ -476,11 +476,11 @@ class System {
 		}
 	}
 	/// 後続イベントコンテントの大なり値。
-	@property const string evtChildGreater() {return ">";}
+	@property const string evtChildGreater() { return ">"; }
 	/// 後続イベントコンテントの小なり値。
-	@property const string evtChildLesser() {return "<";}
+	@property const string evtChildLesser() { return "<"; }
 	/// 後続イベントコンテントの一致値。
-	@property const string evtChildEq() {return "=";}
+	@property const string evtChildEq() { return "="; }
 
 	/// クーポンの型を判別する。
 	const CouponType couponType(string coupon) { mixin(S_TRACE);

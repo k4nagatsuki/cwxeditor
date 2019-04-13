@@ -70,8 +70,8 @@ TextMenuModify createTextMenu(T = Text)(Commons comm, Props prop, T text, bool d
 
 	auto menu = text.getMenu();
 	if (!menu) menu = new Menu(text.getShell(), SWT.POP_UP);
-	auto u = createMenuItem(comm, menu, MenuID.Undo, {undo.undo();}, () => undo !is null && undo.canUndo);
-	auto r = createMenuItem(comm, menu, MenuID.Redo, {undo.redo();}, () => undo !is null && undo.canRedo);
+	auto u = createMenuItem(comm, menu, MenuID.Undo, { undo.undo(); }, () => undo !is null && undo.canUndo);
+	auto r = createMenuItem(comm, menu, MenuID.Redo, { undo.redo(); }, () => undo !is null && undo.canRedo);
 	new MenuItem(menu, SWT.SEPARATOR);
 	bool sel() { mixin(S_TRACE);
 		auto p = text.getSelection();
@@ -416,7 +416,7 @@ int convertAccelerator(string text) { mixin(S_TRACE);
 }
 private class MenuSel(Dlg) : SelectionAdapter {
 	private Dlg _func;
-	public this(Dlg func) {_func = func;}
+	public this(Dlg func) { _func = func; }
 	public override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 		static if (is(Dlg == void delegate(SelectionEvent))) {
 			_func(e);
@@ -589,8 +589,8 @@ ToolItem createToolItem2(Commons comm, ToolBar bar, string text, Image img,
 }
 private class ToolSel : SelectionAdapter {
 	private void delegate(ToolItem) _func;
-	public this(void delegate(ToolItem) func) {_func = func;}
-	public override void widgetSelected(SelectionEvent e) {_func(cast(ToolItem)e.widget);}
+	public this(void delegate(ToolItem) func) { _func = func; }
+	public override void widgetSelected(SelectionEvent e) { _func(cast(ToolItem)e.widget); }
 }
 ToolItem createToolItem2(Commons comm, ToolBar bar, string tip, string text, Image img,
 		void delegate(ToolItem) func, bool delegate() enabled, int style = SWT.PUSH) { mixin(S_TRACE);
@@ -654,13 +654,13 @@ private class CBarListener(string Name) : MouseMoveListener, DisposeListener {
 		for (int i = 0; i < _cbar.getItemCount(); i++) { mixin(S_TRACE);
 			ixs ~= i;
 		}
-		mixin ("_prop.var.etc." ~ Name ~ "Lock = cbar.getLocked();");
+		mixin("_prop.var.etc." ~ Name ~ "Lock = cbar.getLocked();");
 		if (ixs == cbar.getItemOrder()) { mixin(S_TRACE);
-			mixin ("_prop.var.etc." ~ Name ~ "Order = [];");
+			mixin("_prop.var.etc." ~ Name ~ "Order = [];");
 		} else { mixin(S_TRACE);
-			mixin ("_prop.var.etc." ~ Name ~ "Order = cbar.getItemOrder();");
+			mixin("_prop.var.etc." ~ Name ~ "Order = cbar.getItemOrder();");
 		}
-		mixin ("_prop.var.etc." ~ Name ~ "WrapIndices = getWrapIndices2(cbar);");
+		mixin("_prop.var.etc." ~ Name ~ "WrapIndices = getWrapIndices2(cbar);");
 	}
 	override void mouseMove(MouseEvent e) { mixin(S_TRACE);
 		if (e.getSource() !is _cbar) return;
@@ -678,7 +678,7 @@ private class CBarListener(string Name) : MouseMoveListener, DisposeListener {
 			ixs ~= i;
 		}
 		_cbar.setItemOrder(ixs);
-		_cbar.setWrapIndices(mixin ("_prop.var.etc." ~ Name ~ "WrapIndices.INIT.dup"));
+		_cbar.setWrapIndices(mixin("_prop.var.etc." ~ Name ~ "WrapIndices.INIT.dup"));
 		foreach_reverse (i; _cbar.getItemOrder()) { mixin(S_TRACE);
 			resetCISize(_cbar.getItem(i));
 		}
@@ -709,15 +709,15 @@ CoolBar createCoolBar(string Name)(Commons comm, Composite parent,
 
 	setupItems(cbar);
 
-	if (mixin ("comm.prop.var.etc." ~ Name ~ "Order.length") == cbar.getItemCount()) { mixin(S_TRACE);
-		cbar.setItemOrder(mixin ("comm.prop.var.etc." ~ Name ~ "Order.dup"));
+	if (mixin("comm.prop.var.etc." ~ Name ~ "Order.length") == cbar.getItemCount()) { mixin(S_TRACE);
+		cbar.setItemOrder(mixin("comm.prop.var.etc." ~ Name ~ "Order.dup"));
 	}
 	int[] wi;
-	foreach (i; mixin ("comm.prop.var.etc." ~ Name ~ "WrapIndices")) { mixin(S_TRACE);
+	foreach (i; mixin("comm.prop.var.etc." ~ Name ~ "WrapIndices")) { mixin(S_TRACE);
 		if (i > 0 && i < cbar.getItemCount()) wi ~= i;
 	}
 	if (wi != cbar.getWrapIndices()) cbar.setWrapIndices(wi);
-	cbar.setLocked(mixin ("comm.prop.var.etc." ~ Name ~ "Lock"));
+	cbar.setLocked(mixin("comm.prop.var.etc." ~ Name ~ "Lock"));
 
 	auto ls = new CBarListener!(Name)(comm.prop, cbar);
 	cbar.addMouseMoveListener(ls);

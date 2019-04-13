@@ -126,14 +126,14 @@ class ImageListWindow(MtType Type) {
 	}
 	static if (Type == MtType.CARD) {
 		@property
-		private const(string)[] defExts() {return _comm.skin.extImage;}
+		private const(string)[] defExts() { return _comm.skin.extImage; }
 		@property
-		private string[] defDirs() {return _comm.skin.tableDirs;}
+		private string[] defDirs() { return _comm.skin.tableDirs; }
 	} else static if (Type == MtType.BG_IMG) {
 		@property
-		private const(string)[] defExts() {return _comm.skin.extImage;}
+		private const(string)[] defExts() { return _comm.skin.extImage; }
 		@property
-		private string[] defDirs() {return _comm.skin.tableDirs;}
+		private string[] defDirs() { return _comm.skin.tableDirs; }
 	}
 
 	void images(string dir, string[] path) { mixin(S_TRACE);

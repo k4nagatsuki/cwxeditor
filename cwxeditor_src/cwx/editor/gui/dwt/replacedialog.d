@@ -81,13 +81,13 @@ private class FilePathString {
 
 private class FKeyCodesUndo : TUndo!(FKeyCode[]) {
 	this (FKeyCode[] old, FKeyCode[] n, void delegate(FKeyCode[]) set) { mixin(S_TRACE);
-		super (old.dup, n.dup, set, (FKeyCode[] v) {return v.dup;});
+		super (old.dup, n.dup, set, (FKeyCode[] v) { return v.dup; });
 	}
 }
 
 private class CouponsUndo : TUndo!(Coupon[]) {
 	this (Coupon[] old, Coupon[] n, void delegate(Coupon[]) set) { mixin(S_TRACE);
-		super (old.dup, n.dup, set, (Coupon[] v) {return v.dup;});
+		super (old.dup, n.dup, set, (Coupon[] v) { return v.dup; });
 	}
 }
 
@@ -261,7 +261,7 @@ private:
 	}
 	@property
 	const
-	bool catchMod() {return !ignoreMod;}
+	bool catchMod() { return !ignoreMod; }
 
 	/// 貼紙
 	Button _summary;
@@ -737,7 +737,7 @@ private:
 	}
 	class SelID : SelectionAdapter {
 		private Spinner _spn;
-		this (Spinner spn) {_spn = spn;}
+		this (Spinner spn) { _spn = spn; }
 		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			auto combo = cast(Combo) e.widget;
 			_spn.setEnabled(combo.getSelectionIndex() == 0);
@@ -1390,7 +1390,7 @@ private:
 			.listener(grepDirRef, SWT.Selection, { mixin(S_TRACE);
 				selectDir(_prop, _grepDir, _prop.msgs.grepDir, _prop.msgs.grepDirDesc, _grepDir.getText());
 			});
-			createOpenButton(_comm, grp, {return _prop.toAppAbs(_grepDir.getText());}, true);
+			createOpenButton(_comm, grp, { return _prop.toAppAbs(_grepDir.getText()); }, true);
 
 			auto grepCurrent = new Button(grp, SWT.PUSH);
 			grepCurrent.setText(_prop.msgs.grepCurrent);
@@ -1611,35 +1611,35 @@ private:
 				dirSet.add(dirName);
 				dirSet2.add(l);
 			}
-			foreach (a; _summ.areas) { mixin (S_TRACE);
+			foreach (a; _summ.areas) { mixin(S_TRACE);
 				if (_incSearch.match(a.baseName)) put1(a.dirName);
 			}
-			foreach (a; _summ.battles) { mixin (S_TRACE);
+			foreach (a; _summ.battles) { mixin(S_TRACE);
 				if (_incSearch.match(a.baseName)) put1(a.dirName);
 			}
-			foreach (a; _summ.packages) { mixin (S_TRACE);
+			foreach (a; _summ.packages) { mixin(S_TRACE);
 				if (_incSearch.match(a.baseName)) put1(a.dirName);
 			}
 			bool delegate(string, string) cmps;
-			if (_prop.var.etc.logicalSort) { mixin (S_TRACE);
+			if (_prop.var.etc.logicalSort) { mixin(S_TRACE);
 				cmps = (a, b) => incmp(a, b) < 0;
-			} else { mixin (S_TRACE);
+			} else { mixin(S_TRACE);
 				cmps = (a, b) => icmp(a, b) < 0;
 			}
-			foreach (dirName; .sortDlg(dirSet.toArray(), cmps)) { mixin (S_TRACE);
+			foreach (dirName; .sortDlg(dirSet.toArray(), cmps)) { mixin(S_TRACE);
 				auto dirs = .split(dirName, "\\");
 				TreeItem itm = null;
-				foreach (i, dir; dirs) { mixin (S_TRACE);
+				foreach (i, dir; dirs) { mixin(S_TRACE);
 					auto fPath = dirs[0 .. i + 1].join("\\");
 					auto path = fPath.toLower();
 					auto p = path in itmTable;
-					if (p) { mixin (S_TRACE);
+					if (p) { mixin(S_TRACE);
 						itm = *p;
-					} else { mixin (S_TRACE);
+					} else { mixin(S_TRACE);
 						TreeItem sub;
-						if (itm) { mixin (S_TRACE);
+						if (itm) { mixin(S_TRACE);
 							sub = new TreeItem(itm, SWT.NONE);
-						} else { mixin (S_TRACE);
+						} else { mixin(S_TRACE);
 							sub = new TreeItem(_range, SWT.NONE);
 						}
 						sub.setText(dir);
@@ -1652,8 +1652,8 @@ private:
 				itmTable[dirName.toLower()] = itm;
 				if (itm && dirName.toLower() in selsStr) newSels ~= itm;
 			}
-			void put(A)(A[] arr) { mixin (S_TRACE);
-				foreach (a; arr) { mixin (S_TRACE);
+			void put(A)(A[] arr) { mixin(S_TRACE);
+				foreach (a; arr) { mixin(S_TRACE);
 					add(itmTable[a.dirName.toLower()], .tryFormat("%s.%s", a.id, a.baseName), true, a.baseName, a);
 				}
 			}
@@ -3876,7 +3876,7 @@ public:
 			if (_varNameSel) r |= replFlagName!Step(parent, s.parent, s, count, uArr);
 			if (_varValueSel) { mixin(S_TRACE);
 				foreach (i, v; s.values) { mixin(S_TRACE);
-					r |= repl(parent, null, "", v, (string t) {s.setValue(cast(int)i, t);}, count, uArr);
+					r |= repl(parent, null, "", v, (string t) { s.setValue(cast(int)i, t); }, count, uArr);
 				}
 			}
 			if (r) { mixin(S_TRACE);
@@ -4242,11 +4242,11 @@ public:
 		_inProc = true;
 		_inGrep = true;
 		_comm.refreshToolBar();
-		bool addH = addHist(_from, (string[] s) {_prop.var.etc.searchHistories = s;},
-			{return _prop.var.etc.searchHistories.dup;},
+		bool addH = addHist(_from, (string[] s) { _prop.var.etc.searchHistories = s; },
+			{ return _prop.var.etc.searchHistories.dup; },
 			_prop.var.etc.searchHistoryMax, from);
-		addH |= addHist(_grepDir, (string[] s) {_prop.var.etc.grepDirHistories = s;},
-			{return _prop.var.etc.grepDirHistories.dup;},
+		addH |= addHist(_grepDir, (string[] s) { _prop.var.etc.grepDirHistories = s; },
+			{ return _prop.var.etc.grepDirHistories.dup; },
 			_prop.var.etc.searchHistoryMax, dirBase);
 		_comm.refSearchHistories.call(this);
 		if (addH && _sendReloadProps) _sendReloadProps();
@@ -4701,7 +4701,7 @@ public:
 		bool r = false;
 		foreach (i, cp; coupons) { mixin(S_TRACE);
 			Undo[] nArr;
-			r |= repl(parent, null, "", cp, (string t) {cp = t;}, count, nArr);
+			r |= repl(parent, null, "", cp, (string t) { cp = t; }, count, nArr);
 			if (_replMode) coupons[i] = cp;
 		}
 		if (r) { mixin(S_TRACE);
@@ -4726,7 +4726,7 @@ public:
 			bool r = false;
 			Undo[] nArr;
 			foreach (i, kc; kcs) { mixin(S_TRACE);
-				r |= repl(parent, null, "", kc, (string t) {kc = t;}, count, nArr);
+				r |= repl(parent, null, "", kc, (string t) { kc = t; }, count, nArr);
 				if (_replMode) kcs[i] = kc;
 			}
 			if (r) { mixin(S_TRACE);
@@ -4883,7 +4883,7 @@ public:
 			}
 		}
 		if (_varNameSel) { mixin(S_TRACE);
-			static if (is (C:AbstractSpCard)) {
+			static if (is(C:AbstractSpCard)) {
 				if (_flagDirOnRange) { mixin(S_TRACE);
 					r |= repl(parent, null, "", card.flag, null, count, uArr2);
 				} else { mixin(S_TRACE);
@@ -4894,7 +4894,7 @@ public:
 		if (_fileSel) { mixin(S_TRACE);
 			r |= replImagePaths(card.paths, &card.paths, count, uArr2);
 		}
-		static if (is (C : EffectCard)) {
+		static if (is(C : EffectCard)) {
 			r |= replKeyCode!(C)(parent, null, "", card, cardPath, count, uArr2);
 		}
 		if (r && path) { mixin(S_TRACE);
@@ -4948,15 +4948,15 @@ public:
 			} else { mixin(S_TRACE);
 				auto fps = th.flagsInText;
 				foreach (i, p; fps) { mixin(S_TRACE);
-					r |= repl(parent, null, "", p, (string n) {th.changeInText(i, toFlagId(p));}, count, nArr);
+					r |= repl(parent, null, "", p, (string n) { th.changeInText(i, toFlagId(p)); }, count, nArr);
 				}
 				auto sps = th.stepsInText;
 				foreach (i, p; sps) { mixin(S_TRACE);
-					r |= repl(parent, null, "", p, (string n) {th.changeInText(i, toStepId(p));}, count, nArr);
+					r |= repl(parent, null, "", p, (string n) { th.changeInText(i, toStepId(p)); }, count, nArr);
 				}
 				auto vps = th.variantsInText;
 				foreach (i, p; vps) { mixin(S_TRACE);
-					r |= repl(parent, null, "", p, (string n) {th.changeInText(i, toVariantId(p));}, count, nArr);
+					r |= repl(parent, null, "", p, (string n) { th.changeInText(i, toVariantId(p)); }, count, nArr);
 				}
 			}
 		}

@@ -110,9 +110,9 @@ abstract class AbsDialog {
 		useRightGroupImpl(rightGroup);
 	}
 	@property
-	Composite addition() {return _addition;}
+	Composite addition() { return _addition; }
 	@property
-	Composite rightGroup() {return _rightGroup;}
+	Composite rightGroup() { return _rightGroup; }
 	void rightGroupSize(int width, int height) { mixin(S_TRACE);
 		if (!_rightGroup) throw new Exception("rightGroup is null", __FILE__, __LINE__);
 
@@ -209,9 +209,9 @@ abstract class AbsDialog {
 	/// ignoreModを反転して返す。
 	@property
 	const
-	bool catchMod() {return !ignoreMod;}
+	bool catchMod() { return !ignoreMod; }
 
-	protected Shell getShell() {return _win;}
+	protected Shell getShell() { return _win; }
 	private Button _okBtn;
 	private bool _applied = false;
 	private Button _apply = null;
@@ -297,14 +297,14 @@ abstract class AbsDialog {
 	}
 	private bool _enterClose;
 	@property
-	void enterClose(bool value) {_enterClose = value;}
+	void enterClose(bool value) { _enterClose = value; }
 	@property
-	bool enterClose() {return _enterClose;}
+	bool enterClose() { return _enterClose; }
 	private bool _ffio = false;
 	@property
-	void firstFocusIsOK(bool ffio) {_ffio = true;}
+	void firstFocusIsOK(bool ffio) { _ffio = true; }
 	@property
-	bool firstFocusIsOK() {return _ffio;}
+	bool firstFocusIsOK() { return _ffio; }
 	private void cancel() { mixin(S_TRACE);
 		if (_inCloseEvent) return;
 		_win.close();
@@ -502,6 +502,6 @@ abstract class AbsDialog {
 			return close(ok);
 		}
 	}
-	protected bool close(bool ok) {return ok;}
+	protected bool close(bool ok) { return ok; }
 	protected void opened() {}
 }

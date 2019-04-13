@@ -527,10 +527,10 @@ class Jpy1Sec : PathUser, CWXPath {
 	@property
 	override
 	inout
-	inout(CWXPath)[] cwxChilds() {return [];}
+	inout(CWXPath)[] cwxChilds() { return []; }
 	@property
 	override
-	CWXPath cwxParent() {return null;}
+	CWXPath cwxParent() { return null; }
 
 	private struct FromMaterialPathResult {
 		string filename;

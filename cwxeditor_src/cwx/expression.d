@@ -127,7 +127,7 @@ public:
 			}
 		}
 		recurse(_expr);
-	} unittest { mixin (UTPerf);
+	} unittest { mixin(UTPerf);
 		auto exp = new Expression;
 		exp.text = `VAR("testvar")~@"testvar"~FlagValue("testflag")~FlagText("testflag")~StepValue("teststep")~StepText("TestStep")~StepMax("TESTSTEP")`;
 		assert (std.algorithm.sort(exp.flagsInText).array() == ["testflag", "testflag"]);
@@ -1743,7 +1743,7 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 	];
 }
 
-unittest { mixin (UTPerf);
+unittest { mixin(UTPerf);
 	auto prop = new CProps("", null);
 	VariableInfo vInfo;
 	bool checkN(in VariantVal r, double val) { return r.type is VariantType.Number && r.numVal.approxEqual(val); }

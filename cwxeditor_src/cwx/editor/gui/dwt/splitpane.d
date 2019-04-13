@@ -57,7 +57,7 @@ class SplitPane : Composite {
 	@property
 	void resizeControl1(bool value) { _resizeControl1 = value; }
 
-	override int getStyle() {return _style;}
+	override int getStyle() { return _style; }
 	int[] getWeights() { mixin(S_TRACE);
 		return _weights.dup;
 	}

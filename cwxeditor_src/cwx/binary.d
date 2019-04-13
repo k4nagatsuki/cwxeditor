@@ -46,7 +46,7 @@ struct ByteIO {
 	private size_t _pointer = 0u;
 	/// 読込み・書込みを終えたByte数。
 	@property
-	size_t pointer() {return _pointer;}
+	size_t pointer() { return _pointer; }
 	/// ditto
 	@property
 	void pointer(size_t pos) { mixin(S_TRACE);
@@ -88,7 +88,7 @@ struct ByteIO {
 	}
 	/// Byte列の終りに達していればtrue。
 	@property
-	bool eob() {return _pointer >= _constBytes.length;}
+	bool eob() { return _pointer >= _constBytes.length; }
 	/// 相対位置でseekする。
 	/// 絶対位置へseekする場合はseekSet()を使うか、pointerへの代入を使う。
 	void seek(long bytes) { mixin(S_TRACE);
@@ -135,7 +135,7 @@ struct ByteIO {
 	}
 	/// ditto
 	@property
-	byte readByte() {return cast(byte)readUByte;}
+	byte readByte() { return cast(byte)readUByte; }
 	/// ditto
 	void read(out ubyte b) { b = readUByte; }
 	/// Duck Typingの便宜上用意されたreadUByte()の別名。
@@ -180,7 +180,7 @@ struct ByteIO {
 		_pointer += buf.length;
 	}
 	/// ditto
-	void read(byte[] buf) {read(cast(ubyte[]) buf);}
+	void read(byte[] buf) { read(cast(ubyte[]) buf); }
 	/// Byte列を読込む。
 	const(ubyte)[] read(size_t len) { mixin(S_TRACE);
 		enforce(_pointer + len <= _constBytes.length,
@@ -190,7 +190,7 @@ struct ByteIO {
 		return r;
 	}
 	/// ditto
-	void read(void[] buf) {read(cast(ubyte[]) buf);}
+	void read(void[] buf) { read(cast(ubyte[]) buf); }
 	/// Duck Typingの便宜上用意されたread()の別名。
 	alias read readL;
 	/// ditto
@@ -205,27 +205,27 @@ struct ByteIO {
 		_pointer += bytes.length;
 	}
 	/// ditto
-	void write(byte[] bytes) {write(cast(ubyte[]) bytes);}
+	void write(byte[] bytes) { write(cast(ubyte[]) bytes); }
 	/// ditto
-	void write(void[] bytes) {write(cast(ubyte[]) bytes);}
+	void write(void[] bytes) { write(cast(ubyte[]) bytes); }
 	/// Duck Typingの便宜上用意されたwrite()の別名。
-	void writeB(byte[] val) {write(val);}
+	void writeB(byte[] val) { write(val); }
 	/// ditto
-	void writeB(ubyte[] val) {write(val);}
+	void writeB(ubyte[] val) { write(val); }
 	/// ditto
-	void writeB(void[] val) {write(val);}
+	void writeB(void[] val) { write(val); }
 	/// ditto
-	void writeL(byte[] val) {write(val);}
+	void writeL(byte[] val) { write(val); }
 	/// ditto
-	void writeL(ubyte[] val) {write(val);}
+	void writeL(ubyte[] val) { write(val); }
 	/// ditto
-	void writeL(void[] val) {write(val);}
+	void writeL(void[] val) { write(val); }
 	@property
 	private I readBytesB_(I)() { mixin(S_TRACE);
 		enforce(_pointer + I.sizeof <= _constBytes.length,
 			new Exception(format("read over: 0x%X + %d", _pointer, I.sizeof), __FILE__, __LINE__));
 		I i = _constBytes[_pointer++];
-		mixin (ReadBytesB!(I));
+		mixin(ReadBytesB!(I));
 		return i;
 	}
 	@property
@@ -234,7 +234,7 @@ struct ByteIO {
 			new Exception(format("read over: 0x%X + %d", _pointer, I.sizeof), __FILE__, __LINE__));
 		I i;
 		i = _constBytes[_pointer++];
-		mixin (ReadBytesL!(I));
+		mixin(ReadBytesL!(I));
 		return i;
 	}
 	private void writeBytesB_(I)(I val) { mixin(S_TRACE);
@@ -242,14 +242,14 @@ struct ByteIO {
 		if (_pointer + I.sizeof >= _bytes.length) { mixin(S_TRACE);
 			_bytes.length = _bytes.length * 2 + I.sizeof;
 		}
-		mixin (WriteBytesB!(I));
+		mixin(WriteBytesB!(I));
 	}
 	private void writeBytesL_(I)(I val) { mixin(S_TRACE);
 		.enforce(!_readOnly);
 		if (_pointer + I.sizeof >= _bytes.length) { mixin(S_TRACE);
 			_bytes.length = _bytes.length * 2 + I.sizeof;
 		}
-		mixin (WriteBytesL!(I));
+		mixin(WriteBytesL!(I));
 	}
 	version (BigEndian) {
 		/// 複数のByteを読み書きする。
@@ -300,29 +300,29 @@ struct ByteIO {
 	alias readBytesL!(ushort) readUShortL;
 
 	/// 型毎に用意されたwriteBytesB()・writeBytesL()の別名。
-	void writeB(long val) {writeBytesB(val);}
+	void writeB(long val) { writeBytesB(val); }
 	/// ditto
-	void writeB(ulong val) {writeBytesB(val);}
+	void writeB(ulong val) { writeBytesB(val); }
 	/// ditto
-	void writeB(int val) {writeBytesB(val);}
+	void writeB(int val) { writeBytesB(val); }
 	/// ditto
-	void writeB(uint val) {writeBytesB(val);}
+	void writeB(uint val) { writeBytesB(val); }
 	/// ditto
-	void writeB(short val) {writeBytesB(val);}
+	void writeB(short val) { writeBytesB(val); }
 	/// ditto
-	void writeB(ushort val) {writeBytesB(val);}
+	void writeB(ushort val) { writeBytesB(val); }
 	/// ditto
-	void writeL(long val) {writeBytesL(val);}
+	void writeL(long val) { writeBytesL(val); }
 	/// ditto
-	void writeL(ulong val) {writeBytesL(val);}
+	void writeL(ulong val) { writeBytesL(val); }
 	/// ditto
-	void writeL(int val) {writeBytesL(val);}
+	void writeL(int val) { writeBytesL(val); }
 	/// ditto
-	void writeL(uint val) {writeBytesL(val);}
+	void writeL(uint val) { writeBytesL(val); }
 	/// ditto
-	void writeL(short val) {writeBytesL(val);}
+	void writeL(short val) { writeBytesL(val); }
 	/// ditto
-	void writeL(ushort val) {writeBytesL(val);}
+	void writeL(ushort val) { writeBytesL(val); }
 
 	/// 可変長整数を読み込む。
 	@property
@@ -725,7 +725,7 @@ private void writeExInt(int value, bool sign, void delegate(ubyte b) write) { mi
 }
 ///
 unittest { mixin(S_TRACE);
-	mixin (UTPerf);
+	mixin(UTPerf);
 	ubyte[] write(bool sign, int value) { mixin(S_TRACE);
 		auto bytes = new ubyte[8];
 		size_t offset = 0;
@@ -785,7 +785,7 @@ private int readExInt(bool sign, ubyte delegate() read) { mixin(S_TRACE);
 }
 ///
 unittest { mixin(S_TRACE);
-	mixin (UTPerf);
+	mixin(UTPerf);
 	size_t offset = 0;
 	offset = 0; assert (readExInt([cast(ubyte)0xEC, 0x54], offset) == 5430);
 	offset = 0; assert (readExInt([cast(ubyte)0x9C, 0x01], offset) == 78);

@@ -221,34 +221,34 @@ public:
 	/// XMLファイルを展開しているか。
 	@property
 	const
-	bool expandXMLs() {return _expandXMLs;}
+	bool expandXMLs() { return _expandXMLs; }
 	/// 現在のscenarioPathは一時展開先か。
 	@property
 	const
-	bool useTemp() {return _useTemp;}
+	bool useTemp() { return _useTemp; }
 	/// 元の圧縮ファイル名は何か。圧縮されていないシナリオの場合は""。
 	/// 再圧縮できない場合も""となる。
 	@property
 	const
-	string zipName() {return _zipName;}
+	string zipName() { return _zipName; }
 	/// ditto
 	@property
-	void zipName(string zipName) {_zipName = zipName;}
+	void zipName(string zipName) { _zipName = zipName; }
 
 	/// 元の圧縮ファイル名は何か。圧縮されていないシナリオの場合は""。
 	@property
 	const
-	string origZipName() {return _origZipName;}
+	string origZipName() { return _origZipName; }
 
 	/// 読込後に別に保存しなければならないシナリオであれば、読込元のパス。
 	@property
 	const
-	string readOnlyPath() {return _readOnlyPath;};
+	string readOnlyPath() { return _readOnlyPath; };
 
 	/// クラシックな形式のシナリオか。
 	@property
 	const
-	bool legacy() {return _legacy;}
+	bool legacy() { return _legacy; }
 	/// クラシックからWSN形式へのコンバート過程か。
 	@property
 	const
@@ -751,7 +751,7 @@ public:
 	void delegate()[] changedEventForce;
 
 	@property
-	override string cwxPath(bool id) {return "";}
+	override string cwxPath(bool id) { return ""; }
 	override CWXPath findCWXPath(string path) { mixin(S_TRACE);
 		if (cpempty(path)) return this;
 		auto cate = cpcategory(path);
@@ -843,7 +843,7 @@ public:
 		return r;
 	}
 	@property
-	CWXPath cwxParent() {return null;}
+	CWXPath cwxParent() { return null; }
 
 	/// マシン上で一意なID。
 	@property
@@ -1082,7 +1082,7 @@ public:
 	}
 
 	private static immutable TEMP_REG = .ctRegex!("\\.cwxeditor_temp(\\([0-9]+\\))?$");
-	unittest { mixin (UTPerf);
+	unittest { mixin(UTPerf);
 		assert (!.match("Area1.wid.cwxeditor_temp", TEMP_REG).empty);
 		assert (!.match("Scenario/Battle1.wid.cwxeditor_temp(2)", TEMP_REG).empty);
 	}
@@ -1586,21 +1586,21 @@ public:
 	/// 指定された要素のindexを検索する。
 	const
 	ptrdiff_t indexOf(T)(in T c) { mixin(S_TRACE);
-		static if (is (T == CastCard)) {
+		static if (is(T == CastCard)) {
 			return .cCountUntil!("a is b")(_cast, c);
-		} else static if (is (T == SkillCard)) {
+		} else static if (is(T == SkillCard)) {
 			return .cCountUntil!("a is b")(_skl, c);
-		} else static if (is (T == ItemCard)) {
+		} else static if (is(T == ItemCard)) {
 			return .cCountUntil!("a is b")(_itm, c);
-		} else static if (is (T == BeastCard)) {
+		} else static if (is(T == BeastCard)) {
 			return .cCountUntil!("a is b")(_bst, c);
-		} else static if (is (T == InfoCard)) {
+		} else static if (is(T == InfoCard)) {
 			return .cCountUntil!("a is b")(_info, c);
-		} else static if (is (T == Area)) {
+		} else static if (is(T == Area)) {
 			return .cCountUntil!("a is b")(_area, c);
-		} else static if (is (T == Battle)) {
+		} else static if (is(T == Battle)) {
 			return .cCountUntil!("a is b")(_btl, c);
-		} else static if (is (T == Package)) {
+		} else static if (is(T == Package)) {
 			return .cCountUntil!("a is b")(_pkg, c);
 		} else { mixin(S_TRACE);
 			static assert (0);
@@ -1668,21 +1668,21 @@ public:
 	@property
 	const
 	ulong newId(T)() { mixin(S_TRACE);
-		static if (is (T == CastCard)) {
+		static if (is(T == CastCard)) {
 			return newIdImpl!(const CastCard)(_cast);
-		} else static if (is (T == SkillCard)) {
+		} else static if (is(T == SkillCard)) {
 			return newIdImpl!(const SkillCard)(_skl);
-		} else static if (is (T == ItemCard)) {
+		} else static if (is(T == ItemCard)) {
 			return newIdImpl!(const ItemCard)(_itm);
-		} else static if (is (T == BeastCard)) {
+		} else static if (is(T == BeastCard)) {
 			return newIdImpl!(const BeastCard)(_bst);
-		} else static if (is (T == InfoCard)) {
+		} else static if (is(T == InfoCard)) {
 			return newIdImpl!(const InfoCard)(_info);
-		} else static if (is (T == Area)) {
+		} else static if (is(T == Area)) {
 			return newIdImpl!(const Area)(_area);
-		} else static if (is (T == Battle)) {
+		} else static if (is(T == Battle)) {
 			return newIdImpl!(const Battle)(_btl);
-		} else static if (is (T == Package)) {
+		} else static if (is(T == Package)) {
 			return newIdImpl!(const Package)(_pkg);
 		} else { mixin(S_TRACE);
 			static assert (0);
@@ -2181,11 +2181,11 @@ public:
 			summ.dataVersion = summNode.attr("dataVersion", false, "");
 			summ.loadScaledImage = summNode.attr!bool("scaledimage", false, false);
 			summNode.onTag["Property"] = (ref XNode propNode) { mixin(S_TRACE);
-				propNode.onTag["Name"] = (ref XNode node) {summ._sname = node.value;};
+				propNode.onTag["Name"] = (ref XNode node) { summ._sname = node.value; };
 				CardImage[] paths;
 				CardImage.setOnTag(propNode, paths, false);
-				propNode.onTag["Author"] = (ref XNode node) {summ._author = node.value;};
-				propNode.onTag["Description"] = (ref XNode node) {summ._desc = decodeLf2(node.value);};
+				propNode.onTag["Author"] = (ref XNode node) { summ._author = node.value; };
+				propNode.onTag["Description"] = (ref XNode node) { summ._desc = decodeLf2(node.value); };
 				propNode.onTag["Level"] = (ref XNode node) { mixin(S_TRACE);
 					summ._levMin = node.attr!(uint)("min", true);
 					summ._levMax = node.attr!(uint)("max", true);

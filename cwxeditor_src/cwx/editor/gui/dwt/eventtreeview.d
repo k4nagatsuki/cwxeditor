@@ -1774,7 +1774,7 @@ public:
 		void initMenu() { mixin(S_TRACE);
 			auto shell = _tree.control.getShell();
 			auto popup = new Menu(shell, SWT.POP_UP);
-			if (!_readOnly) { mixin (S_TRACE);
+			if (!_readOnly) { mixin(S_TRACE);
 				createMenuItem(_comm, popup, MenuID.EditProp, &editM, &canEdit);
 				new MenuItem(popup, SWT.SEPARATOR);
 				createMenuItem(_comm, popup, MenuID.Comment, &writeComment, &canWriteComment);
@@ -1790,7 +1790,7 @@ public:
 				new MenuItem(popup, SWT.SEPARATOR);
 			}
 			createMenuItem(_comm, popup, MenuID.Copy1Content, &copy1Content, &canCopy1Content);
-			if (!_readOnly) { mixin (S_TRACE);
+			if (!_readOnly) { mixin(S_TRACE);
 				createMenuItem(_comm, popup, MenuID.Delete1Content, &del1Content, &canDel1Content);
 				new MenuItem(popup, SWT.SEPARATOR);
 				createMenuItem(_comm, popup, MenuID.PasteInsert, &pasteInsert, &canPasteInsert);
@@ -1805,7 +1805,7 @@ public:
 			createMenuItem(_comm, popup, MenuID.ToScript, &toScript, &canToScript);
 			createMenuItem(_comm, popup, MenuID.ToScript1Content, &toScript1Content, &canToScript);
 			createMenuItem(_comm, popup, MenuID.ToScriptAll, &toScriptAll, &canToScriptAll);
-			if (!_readOnly) { mixin (S_TRACE);
+			if (!_readOnly) { mixin(S_TRACE);
 				new MenuItem(popup, SWT.SEPARATOR);
 				createMenuItem(_comm, popup, MenuID.StartToPackage, &startToPackage, &canStartToPackage);
 				createMenuItem(_comm, popup, MenuID.WrapTree, &wrapTree, &canWrapTree);
@@ -2439,9 +2439,9 @@ public:
 		string[] vals;
 		vals.length = 2;
 		string name = _prop.sys.evtChildTrue;
-		vals[0] = mixin (Create);
+		vals[0] = mixin(Create);
 		name = _prop.sys.evtChildFalse;
-		vals[1] = mixin (Create);
+		vals[1] = mixin(Create);
 		return createComboEditor(_comm, _prop, _tree.control, vals, vals[child.name == _prop.sys.evtChildTrue ? 0 : 1]);
 	}
 	private Combo createBoolEditor2(string Create)(Content evt, Content child) { mixin(S_TRACE);
@@ -2449,9 +2449,9 @@ public:
 		string[] vals;
 		vals.length = 2;
 		string name = _prop.sys.evtChildTrue;
-		vals[0] = mixin (Create);
+		vals[0] = mixin(Create);
 		name = _prop.sys.evtChildFalse;
-		vals[1] = mixin (Create);
+		vals[1] = mixin(Create);
 		return createComboEditor(_comm, _prop, _tree.control, vals, vals[child.name == _prop.sys.evtChildTrue ? 0 : 1]);
 	}
 	private Combo createNumEditor(string Create)(Content evt, Content child, ulong[] nums) { mixin(S_TRACE);
@@ -2461,13 +2461,13 @@ public:
 		size_t index = nums.length;
 		foreach (i, n; nums) { mixin(S_TRACE);
 			string name = to!(string)(n);
-			vals[i] = mixin (Create);
+			vals[i] = mixin(Create);
 			if (name == child.name) { mixin(S_TRACE);
 				index = i;
 			}
 		}
 		string name = _prop.sys.evtChildDefault;
-		vals[$ - 1] = mixin (Create);
+		vals[$ - 1] = mixin(Create);
 		return createComboEditor(_comm, _prop, _tree.control, vals, vals[index]);
 	}
 	private Combo createAreaSelectEditor(string Create, A)(Content evt, Content child, A[] areas) { mixin(S_TRACE);
@@ -2484,11 +2484,11 @@ public:
 		string[] vals;
 		vals.length = 3;
 		string name = _prop.sys.evtChildGreater;
-		vals[0] = mixin (Create);
+		vals[0] = mixin(Create);
 		name = _prop.sys.evtChildLesser;
-		vals[1] = mixin (Create);
+		vals[1] = mixin(Create);
 		name = _prop.sys.evtChildEq;
-		vals[2] = mixin (Create);
+		vals[2] = mixin(Create);
 		size_t index;
 		if (child.name == _prop.sys.evtChildEq) { mixin(S_TRACE);
 			index = 2;
@@ -4661,7 +4661,7 @@ class ContentsToolBox {
 			});
 		}
 		@property
-		ToolItem ti() {return _itm;}
+		ToolItem ti() { return _itm; }
 	}
 	private ToolItem createEI(CType type, ToolBar bar, ToolItemGroup g) { mixin(S_TRACE);
 		auto img = _prop.images.content(type);

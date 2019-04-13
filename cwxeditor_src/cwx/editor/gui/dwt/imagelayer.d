@@ -394,7 +394,7 @@ class ImageLayerList : Composite, TCPD {
 				_comm.refreshToolBar();
 				foreach (dlg; modEvent) dlg();
 				foreach (dlg; selectionEvent) dlg();
-			} catch (Exception e) { mixin (S_TRACE);
+			} catch (Exception e) { mixin(S_TRACE);
 				printStackTrace();
 				debugln(e);
 			}

@@ -72,7 +72,7 @@ class HotKeyField {
 		_char.setText(t);
 	}
 	@property
-	Text widget() {return _char;}
+	Text widget() { return _char; }
 	@property
 	string acceleratorText() { mixin(S_TRACE);
 		return _char.getText().replace(" + ", "+");
@@ -308,7 +308,7 @@ class GBLimitText {
 		return _widget.computeSize(wHint == SWT.DEFAULT ? _width : wHint, hHint);
 	}
 	@property
-	bool over() {return _over;}
+	bool over() { return _over; }
 	void insert(string text) { mixin(S_TRACE);
 		_widget.insert(text);
 	}
@@ -466,8 +466,8 @@ class TextMenuModify : ModifyListener {
 			_oldSel = os;
 			_oldTextBase = o;
 		}
-		override void undo() {impl();}
-		override void redo() {impl();}
+		override void undo() { impl(); }
+		override void redo() { impl(); }
 		override void dispose() { mixin(S_TRACE);
 			// Nothing
 		}
@@ -522,7 +522,7 @@ class TextMenuModify : ModifyListener {
 	}
 
 	const
-	bool inProc() {return _inProc;}
+	bool inProc() { return _inProc; }
 
 	void delegate() selectChanged;
 

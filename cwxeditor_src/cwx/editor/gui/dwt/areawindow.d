@@ -77,13 +77,13 @@ private:
 	}
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-			static if (is (A == Area)) {
+			static if (is(A == Area)) {
 				_comm.delArea.remove(&deleteArea);
 				_comm.refArea.remove(&refArea);
-			} else static if (is (A == Battle)) {
+			} else static if (is(A == Battle)) {
 				_comm.delBattle.remove(&deleteArea);
 				_comm.refBattle.remove(&refArea);
-			} else static if (is (A == Package)) {
+			} else static if (is(A == Package)) {
 				_comm.delPackage.remove(&deleteArea);
 				_comm.refPackage.remove(&refArea);
 			} else { mixin(S_TRACE);
@@ -106,13 +106,13 @@ public:
 		_win = new Composite(parent, SWT.NONE);
 		contPane = _win;
 		_win.setData(new TLPData(this));
-		static if (is (A == Area)) {
+		static if (is(A == Area)) {
 			_comm.delArea.add(&deleteArea);
 			_comm.refArea.add(&refArea);
-		} else static if (is (A == Battle)) {
+		} else static if (is(A == Battle)) {
 			_comm.delBattle.add(&deleteArea);
 			_comm.refBattle.add(&refArea);
-		} else static if (is (A == Package)) {
+		} else static if (is(A == Package)) {
 			_comm.delPackage.add(&deleteArea);
 			_comm.refPackage.add(&refArea);
 		} else { mixin(S_TRACE);
@@ -154,9 +154,9 @@ public:
 	@property
 	override
 	Image image() { mixin(S_TRACE);
-		static if (is (A == Area)) {
+		static if (is(A == Area)) {
 			return _prop.images.areaSceneView;
-		} else static if (is (A == Battle)) {
+		} else static if (is(A == Battle)) {
 			return _prop.images.battleSceneView;
 		} else { mixin(S_TRACE);
 			static assert (0);
