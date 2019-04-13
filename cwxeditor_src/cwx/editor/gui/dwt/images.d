@@ -3671,7 +3671,7 @@ public:
 		addListener(SWT.MouseDown, new MouseDown);
 		addListener(SWT.MouseUp, new MouseUp);
 		addMouseMoveListener(new MMListener);
-		addKeyListener(new KListener);
+		if (!(style & SWT.READ_ONLY)) addKeyListener(new KListener);
 		addListener(SWT.FocusOut, new FocusLost);
 		addListener(SWT.Traverse, new Traverse);
 		addPaintListener(new PListener);
