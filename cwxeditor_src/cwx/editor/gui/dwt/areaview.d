@@ -1944,7 +1944,7 @@ private:
 		sc.setLayoutData(new GridData(GridData.FILL_BOTH));
 
 		auto vs = _prop.looks.viewSize;
-		_imgp = new ImagePane(sc, SWT.BORDER | SWT.NO_BACKGROUND, vs.width, vs.height, _prop.var.etc.imageScale, _prop.drawingScale);
+		_imgp = new ImagePane(sc, SWT.BORDER | SWT.NO_BACKGROUND | _readOnly, vs.width, vs.height, _prop.var.etc.imageScale, _prop.drawingScale);
 		_imgp.drawXORSelectionLine = _prop.var.etc.drawXORSelectionLine;
 
 		void refImageScale() { mixin(S_TRACE);
