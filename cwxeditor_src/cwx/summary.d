@@ -117,6 +117,7 @@ private:
 	string _tempPath = ""; /// 圧縮されているシナリオなら、一時展開先のパス。
 	string _readOnlyPath = ""; /// 読込後に別に保存しなければならないシナリオであれば、読込元のパス。
 	bool _legacy = false; /// クラシックなシナリオか。
+	bool _toX = false; /// クラシックからWSN形式へのコンバート過程か。
 	bool _inSaving = false; /// 保存中ならtrue。
 
 	/// ファイル・ディレクトリの更新チェック用のパス一覧。
@@ -248,6 +249,10 @@ public:
 	@property
 	const
 	bool legacy() {return _legacy;}
+	/// クラシックからWSN形式へのコンバート過程か。
+	@property
+	const
+	bool toWsnProcessing() { return _toX; }
 
 	/// 一時ディレクトリを作成する。
 	static string createTempDirFromName(string tempPath, string name) { mixin(S_TRACE);
@@ -532,6 +537,7 @@ public:
 			auto temp = Summary.createTempDir(tempPath, summ.zipName != "" ? summ.zipName.baseName().stripExtension() : summ.scenarioPath.baseName());
 			string[] copyFail;
 			summ._readOnlyPath = summ.useTemp ? summ.origZipName : summ.scenarioPath;
+			summ._toX = true;
 			auto newPath = summ.classicToX(prop, temp, tempPath, defSkin, copyFail);
 			summ._legacy = false;
 			summ.delTemp();
@@ -557,6 +563,7 @@ public:
 				r._zipName = "";
 				r._origZipName = "";
 				r._readOnlyPath = "";
+				r._toX = false;
 				r._tempPath = scDir;
 				r.refCheckPaths();
 				r.updateJpy1List(prop);
@@ -579,6 +586,7 @@ public:
 						r._zipName = canArchive ? fname : "";
 						r._origZipName = fname;
 						r._readOnlyPath = "";
+						r._toX = false;
 						r._tempPath = fn;
 						r._legacy = false;
 						r.lock(r._tempPath, r._useTemp);
@@ -599,6 +607,7 @@ public:
 						r._zipName = canArchive ? fname : "";
 						r._origZipName = fname;
 						r._readOnlyPath = "";
+						r._toX = false;
 						r._tempPath = fn;
 						r.refCheckPaths();
 						r.updateJpy1List(prop);
@@ -640,6 +649,7 @@ public:
 						r._zipName = "";
 						r._origZipName = "";
 						r._readOnlyPath = "";
+						r._toX = false;
 						if (scTemplate) { mixin(S_TRACE);
 							return createFromTemplate(r);
 						} else { mixin(S_TRACE);
@@ -664,6 +674,7 @@ public:
 						r._zipName = "";
 						r._origZipName = "";
 						r._readOnlyPath = "";
+						r._toX = false;
 						if (scTemplate) { mixin(S_TRACE);
 							auto temp = createTempDir(tempPath, fname.dirName().baseName());
 							copyAll(r.scenarioPath, temp);
@@ -2607,6 +2618,7 @@ public:
 			_origZipName = fileOrDir;
 		}
 		_readOnlyPath = "";
+		_toX = false;
 		auto list = clistdir(scenarioPath);
 		if (!.exists(sPath)) mkdirRecurse(sPath);
 		useTemp = !isDir;
@@ -2855,6 +2867,7 @@ public:
 				_legacy = false;
 			}
 			_readOnlyPath = "";
+			_toX = false;
 			if (legacyToX) { mixin(S_TRACE);
 				dataVersion = DEFAULT_VERSION;
 			}

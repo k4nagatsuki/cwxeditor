@@ -1516,6 +1516,8 @@ protected:
 		_comm.refRadarStyle.add(&initEnhance);
 		area.addDisposeListener(new Dispose);
 
+		createAptitudes();
+
 		// Windows Vistaだとタブの横幅が凄いことになったので必要最低限にする。
 		scope maxSize = new Point(0, 0);
 		foreach (tab; tabf.getItems()) { mixin(S_TRACE);
@@ -1531,7 +1533,6 @@ protected:
 
 		refCard(_card);
 		refDataVersion();
-		createAptitudes();
 		updateAptitudes();
 	}
 	private void refCard(CastCard card) { mixin(S_TRACE);

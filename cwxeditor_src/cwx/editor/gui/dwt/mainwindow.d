@@ -1173,7 +1173,7 @@ private:
 				summ.type = _prop.var.etc.defaultSkin;
 			}
 			dStr ~= " - " ~ .text(__LINE__);
-			if (summ.legacy) { mixin(S_TRACE);
+			if (summ.legacy || summ.toWsnProcessing) { mixin(S_TRACE);
 				// BUG: クラシックなシナリオで、アイテムの一枚目に「カード交換」を持っている
 				//      キャラクターには本来の「カード交換」が配付されない
 				//      CardWirth 1.50
