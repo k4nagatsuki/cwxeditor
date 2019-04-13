@@ -1535,6 +1535,8 @@ string copyTo(string sPath, string path, string added, bool binImgToRef, string 
 
 /// aからbへすべてのファイル・ディレクトリをコピーする。
 void copyAll(string a, string b, bool overwrite = false) { mixin(S_TRACE);
+	if (.cfnmatch(.nabs(a), .nabs(b))) return;
+	if (!.exists(a)) return;
 	if (isDir(a)) { mixin(S_TRACE);
 		auto list = clistdir(a);
 		if (!.exists(b)) mkdir(b);
@@ -1544,7 +1546,10 @@ void copyAll(string a, string b, bool overwrite = false) { mixin(S_TRACE);
 			copyAll(fPath, tPath);
 		}
 	} else { mixin(S_TRACE);
-		if (overwrite && .exists(b)) delAll(b);
+		if (overwrite && .exists(b)) { mixin(S_TRACE);
+			if (std.file.read(a) == std.file.read(b)) return;
+			delAll(b);
+		}
 		std.file.copy(a, b);
 	}
 }
