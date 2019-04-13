@@ -2043,7 +2043,7 @@ class Msgs : Properties {
 	auto actionOrder = Msg("actionOrder", "反応");
 	auto actionOrderDesc = Msg("actionOrderDesc", "バトルでの行動順に影響します");
 	auto runAwaySpeed = Msg("runAwaySpeed", "逃げ足");
-	auto runAwaySpeedDesc = Msg("runAwaySpeedDesc", "逃走の成功率に影響します");
+	auto runAwaySpeedDesc = Msg("runAwaySpeedDesc", "パーティの逃走の成功率に影響します");
 	auto resilience = Msg("resilience", "回復力");
 	auto resilienceDesc = Msg("resilienceDesc", "中毒や麻痺の回復速度に影響します");
 	auto resistance = Msg("resistance", "抵抗力");

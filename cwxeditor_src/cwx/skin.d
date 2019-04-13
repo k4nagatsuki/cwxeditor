@@ -1695,8 +1695,20 @@ class Skin {
 		} else { mixin(S_TRACE);
 			r = _actionCards.keys();
 		}
-		std.algorithm.sort(r);
-		return r;
+		ActionCardType[] r2;
+		foreach (type; r) { mixin(S_TRACE);
+			// 一般
+			if (type !is ActionCardType.RunAway && 0 <= type) r2 ~= type;
+		}
+		foreach (type; r) { mixin(S_TRACE);
+			// 混乱等
+			if (type < 0) r2 ~= type;
+		}
+		foreach (type; r) { mixin(S_TRACE);
+			// 逃走
+			if (type is ActionCardType.RunAway) r2 ~= type;
+		}
+		return r2;
 	}
 
 	/// スキンの基本情報以外のデータを読み込む。

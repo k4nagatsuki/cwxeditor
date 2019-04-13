@@ -602,18 +602,12 @@ protected:
 						aComp.setLayout(rl);
 						void refSkin2() { mixin(S_TRACE);
 							auto skin = summSkin;
-							void put(ActionCardType type) { mixin(S_TRACE);
+							foreach (type; skin.actionCardTypes) { mixin(S_TRACE);
 								auto b = new Button(aComp, SWT.CHECK);
 								mod(b);
 								b.setText(skin.actionCardName(_prop.sys, type));
 								.listener(b, SWT.Selection, &refDataVersion);
 								_actions[type] = b;
-							}
-							foreach (type; skin.actionCardTypes) { mixin(S_TRACE);
-								if (0 <= type) put(type);
-							}
-							foreach (type; skin.actionCardTypes) { mixin(S_TRACE);
-								if (type < 0) put(type);
 							}
 						}
 						void refSkin() { mixin(S_TRACE);

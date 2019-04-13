@@ -844,10 +844,11 @@ private:
 				maxl.setText(_prop.msgs.mentalName(m));
 				_mtl[m] = scale;
 				.listener(scale, SWT.Selection, { mixin(S_TRACE);
-					auto arr = m in _aptTblM;
-					if (!arr) return;
+					Apt[] arr;
+					if (auto p = m in _aptTblM) arr ~= *p;
+					if (auto p = .reverseMental(m) in _aptTblM) arr ~= *p;
 					auto skin = summSkin;
-					foreach (p; *arr) updateAptitude(p);
+					foreach (p; arr) updateAptitude(p);
 				});
 			}
 			foreach (m; Ms) { mixin(S_TRACE);
@@ -969,15 +970,7 @@ private:
 				lm ~= p;
 				_aptTblM[p.apt.mental] = lm;
 			}
-			ActionCardType[] types;
-			auto t1 = skin.actionCardTypes;
-			foreach (t; t1) { mixin(S_TRACE);
-				if (0 <= t) types ~= t;
-			}
-			foreach (t; t1) { mixin(S_TRACE);
-				if (t < 0) types ~= t;
-			}
-			foreach (type; types) { mixin(S_TRACE);
+			foreach (type; skin.actionCardTypes) { mixin(S_TRACE);
 				auto l = new Label(comp, SWT.NONE);
 				l.setImage(_prop.images.actionCard(type));
 				auto aptMark = new Label(comp, SWT.CENTER);
