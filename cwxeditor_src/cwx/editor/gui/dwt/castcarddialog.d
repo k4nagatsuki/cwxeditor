@@ -1003,10 +1003,10 @@ private:
 				putApt(Apt(null, aptValue, apt));
 			}
 			put(_prop.msgs.actionOrder, _prop.msgs.actionOrderDesc, _prop.sys.actionOrderAptitude);
-			put(_prop.msgs.runAwaySpeed, _prop.msgs.runAwaySpeedDesc, _prop.sys.runAwaySpeedAptitude);
 			put(_prop.msgs.resilience, _prop.msgs.resilienceDesc, _prop.sys.resilienceAptitude);
 			put(_prop.msgs.resistance, _prop.msgs.resistanceDesc, _prop.sys.resistanceAptitude);
 			put(_prop.msgs.avoidance, _prop.msgs.avoidanceDesc, _prop.sys.avoidanceAptitude);
+			put(_prop.msgs.runAwaySpeed, _prop.msgs.runAwaySpeedDesc, _prop.sys.runAwaySpeedAptitude);
 		}
 	}
 	void updateAptitudes() { mixin(S_TRACE);
