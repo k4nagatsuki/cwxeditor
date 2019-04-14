@@ -2040,16 +2040,16 @@ class Msgs : Properties {
 	auto castEnhance = Msg("castEnhance", "能力修正");
 	auto basicEnhance = Msg("basicEnhance", "標準値");
 	auto aptitude = Msg("aptitude", "適性");
-	auto actionOrder = Msg("actionOrder", "反応");
+	auto actionOrder = Msg("actionOrder", "先駆け");
 	auto actionOrderDesc = Msg("actionOrderDesc", "バトルでの行動順に影響します");
-	auto runAwaySpeed = Msg("runAwaySpeed", "逃げ足");
-	auto runAwaySpeedDesc = Msg("runAwaySpeedDesc", "パーティの逃走の成功率に影響します");
 	auto resilience = Msg("resilience", "回復力");
 	auto resilienceDesc = Msg("resilienceDesc", "中毒や麻痺の回復速度に影響します");
-	auto resistance = Msg("resistance", "抵抗力");
-	auto resistanceDesc = Msg("resistanceDesc", "抵抗の成功率に影響します");
 	auto avoidance = Msg("avoidance", "回避力");
 	auto avoidanceDesc = Msg("avoidanceDesc", "回避の成功率に影響します");
+	auto resistance = Msg("resistance", "抵抗力");
+	auto resistanceDesc = Msg("resistanceDesc", "抵抗の成功率に影響します");
+	auto runAwaySpeed = Msg("runAwaySpeed", "逃げ足");
+	auto runAwaySpeedDesc = Msg("runAwaySpeedDesc", "パーティの逃走の成功率に影響します");
 	auto aptitudeHint = Msg("aptitudeHint", "%1$s(%2$s+%3$s)");
 
 	auto liveStatus = Msg("liveStatus", "初期状態");
