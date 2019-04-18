@@ -86,10 +86,12 @@ private:
 	Button[Element] _res;
 	Button[Element] _weak;
 	int[Physical] _phyTbl;
+	Composite _physicalComp;
 	Composite _phyParent;
 	RadarSpinner _phyR = null;
 	Scales _phyS = null;
 	Composite _aptP = null;
+	Composite _mentalComp;
 	Scale[Mental] _mtl;
 	Composite _aptM = null;
 	Label _sumPhy;
@@ -653,16 +655,16 @@ private:
 		Physical.STR, Physical.VIT, Physical.MIN];
 	void initPhysical() { mixin(S_TRACE);
 		int[] values = [];
-		if (_phyR) { mixin(S_TRACE);
+		if (_phyR && !_phyR.isDisposed()) { mixin(S_TRACE);
 			values = _phyR.getValues();
 			_phyR.dispose();
-			_phyR = null;
 		}
-		if (_phyS) { mixin(S_TRACE);
+		_phyR = null;
+		if (_phyS && !_phyS.isDisposed()) { mixin(S_TRACE);
 			values = _phyS.getValues();
 			_phyS.dispose();
-			_phyS = null;
 		}
+		_phyS = null;
 
 		string[] names;
 		names.length = PHYSICALS.length;
@@ -694,6 +696,7 @@ private:
 		_phyParent.layout();
 	}
 	void modPhysical() { mixin(S_TRACE);
+		if (ignoreMod) return;
 		int[] vals;
 		if (_phyR) vals = _phyR.getValues();
 		if (_phyS) vals = _phyS.getValues();
@@ -708,7 +711,43 @@ private:
 		}
 	}
 	void constructPhysical(CTabFolder tabf) { mixin(S_TRACE);
-		auto comp = new Composite(tabf, SWT.NONE);
+		_physicalComp = new Composite(tabf, SWT.NONE);
+		constructPhysicalTab();
+		auto tab = new CTabItem(tabf, SWT.NONE);
+		tab.setText(_prop.msgs.physicalParams);
+		tab.setControl(_physicalComp);
+	}
+	void refCastCardParameterEditStyle() { mixin(S_TRACE);
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
+		_physicalComp.setRedraw(false);
+		scope (exit) _physicalComp.setRedraw(true);
+		_mentalComp.setRedraw(false);
+		scope (exit) _mentalComp.setRedraw(true);
+		updatePhysical();
+		updateMental();
+		createAptitudes();
+		updateAptitudes();
+		_physicalComp.layout(true);
+		_mentalComp.layout(true);
+	}
+	void updatePhysical() { mixin(S_TRACE);
+		int[] values = [];
+		if (_phyR && !_phyR.isDisposed()) { mixin(S_TRACE);
+			values = _phyR.getValues();
+		} else if (_phyS && !_phyS.isDisposed()) { mixin(S_TRACE);
+			values = _phyS.getValues();
+		} else assert (0);
+		foreach (child; _physicalComp.getChildren()) child.dispose();
+		constructPhysicalTab();
+		if (_phyR && !_phyR.isDisposed()) { mixin(S_TRACE);
+			_phyR.setValues(values);
+		} else if (_phyS && !_phyS.isDisposed()) { mixin(S_TRACE);
+			_phyS.setValues(values);
+		} else assert (0);
+	}
+	void constructPhysicalTab() { mixin(S_TRACE);
+		auto comp = _physicalComp;
 		comp.setLayout(normalGridLayout(_prop.var.etc.showAptitudeOnCastCardEditor ? 2 : 1, false));
 		auto left = new Composite(comp, SWT.NONE);
 		left.setLayout(zeroMarginGridLayout(2, false));
@@ -745,9 +784,6 @@ private:
 			grp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 			_aptP = grp;
 		}
-		auto tab = new CTabItem(tabf, SWT.NONE);
-		tab.setText(_prop.msgs.physicalParams);
-		tab.setControl(comp);
 	}
 	int physicalValue(Physical phy) { mixin(S_TRACE);
 		auto i = cast(int).cCountUntil(PHYSICALS, phy);
@@ -815,7 +851,21 @@ private:
 		}
 	}
 	void constructMental(CTabFolder tabf) { mixin(S_TRACE);
-		auto comp = new Composite(tabf, SWT.NONE);
+		_mentalComp = new Composite(tabf, SWT.NONE);
+		constructMentalTab();
+		auto tab = new CTabItem(tabf, SWT.NONE);
+		tab.setText(_prop.msgs.mentalParams);
+		tab.setControl(_mentalComp);
+	}
+	void updateMental() { mixin(S_TRACE);
+		int[Mental] value;
+		foreach (mtl, scale; _mtl) value[mtl] = scale.getSelection();
+		foreach (child; _mentalComp.getChildren()) child.dispose();
+		constructMentalTab();
+		foreach (mtl, scale; _mtl) scale.setSelection(value[mtl]);
+	}
+	void constructMentalTab() { mixin(S_TRACE);
+		auto comp = _mentalComp;
 		comp.setLayout(normalGridLayout(_prop.var.etc.showAptitudeOnCastCardEditor ? 2 : 1, false));
 		auto left = new Composite(comp, SWT.NONE);
 		left.setLayout(zeroMarginGridLayout(1, true));
@@ -870,9 +920,6 @@ private:
 			grp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 			_aptM = grp;
 		}
-		auto tab = new CTabItem(tabf, SWT.NONE);
-		tab.setText(_prop.msgs.mentalParams);
-		tab.setControl(comp);
 	}
 	int mentalValue(Mental mtl) { mixin(S_TRACE);
 		auto p = mtl in _mtl;
@@ -928,19 +975,23 @@ private:
 	Image _aptNormal = null;
 	Image _aptLow = null;
 	void createAptitudes() { mixin(S_TRACE);
-		if (!_prop.var.etc.showAptitudeOnCastCardEditor) return;
 		_aptTblP = null;
 		_aptTblM = null;
+		if (_aptVeryHigh) _aptVeryHigh.dispose();
+		_aptVeryHigh = null;
+		if (_aptHigh) _aptHigh.dispose();
+		_aptHigh = null;
+		if (_aptNormal) _aptNormal.dispose();
+		_aptNormal = null;
+		if (_aptLow) _aptLow.dispose();
+		_aptLow = null;
+		if (!_prop.var.etc.showAptitudeOnCastCardEditor) return;
 
 		auto skin = summSkin;
 		auto d = getShell().getDisplay();
-		if (_aptVeryHigh) _aptVeryHigh.dispose();
 		_aptVeryHigh = new Image(d, .aptVeryHigh(skin, _prop.drawingScale).scaled(.dpiMuls));
-		if (_aptHigh) _aptHigh.dispose();
 		_aptHigh = new Image(d, .aptHigh(skin, _prop.drawingScale).scaled(.dpiMuls));
-		if (_aptNormal) _aptNormal.dispose();
 		_aptNormal = new Image(d, .aptNormal(skin, _prop.drawingScale).scaled(.dpiMuls));
-		if (_aptLow) _aptLow.dispose();
 		_aptLow = new Image(d, .aptLow(skin, _prop.drawingScale).scaled(.dpiMuls));
 
 		foreach (comp; [_aptP, _aptM]) { mixin(S_TRACE);
@@ -1010,6 +1061,7 @@ private:
 		}
 	}
 	void updateAptitudes() { mixin(S_TRACE);
+		if (!_prop.var.etc.showAptitudeOnCastCardEditor) return;
 		foreach (arr; .chain(_aptTblP.byValue(), _aptTblM.byValue())) { mixin(S_TRACE);
 			foreach (p; arr) { mixin(S_TRACE);
 				updateAptitude(p);
@@ -1310,7 +1362,7 @@ private:
 	}
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-			_comm.refRadarStyle.remove(&initPhysical);
+			_comm.refCastCardParameterEditStyle.remove(&refCastCardParameterEditStyle);
 			_comm.refRadarStyle.remove(&initEnhance);
 			_comm.delCast.remove(&delCard);
 			_comm.refScenario.remove(&refScenario);
@@ -1505,7 +1557,7 @@ protected:
 		_comm.refDataVersion.add(&refDataVersion);
 		_comm.refTargetVersion.add(&refDataVersion);
 		_comm.refCoupons.add(&updateNature);
-		_comm.refRadarStyle.add(&initPhysical);
+		_comm.refCastCardParameterEditStyle.add(&refCastCardParameterEditStyle);
 		_comm.refRadarStyle.add(&initEnhance);
 		area.addDisposeListener(new Dispose);
 

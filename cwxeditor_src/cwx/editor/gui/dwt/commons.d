@@ -386,6 +386,8 @@ class Commons {
 	Dlg!() refCardImageStatus;
 	Dlg!() refEventTreeStyle;
 	Dlg!() refRadarStyle;
+	Dlg!() refCastCardParameterEditStyle;
+	Dlg!() refShowAptitudes;
 	Dlg!() refVarSelectStyle;
 	Dlg!() refEventTreeViewStyle;
 	Dlg!() refEventEditorStyle;

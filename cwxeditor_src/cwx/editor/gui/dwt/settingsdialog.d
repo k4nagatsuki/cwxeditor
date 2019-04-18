@@ -1674,6 +1674,7 @@ struct OldSettings {
 	bool ignoreEmptyStart;
 	bool classicStyleTree;
 	bool radarStyleParams;
+	bool showAptitudeOnCastCardEditor;
 	bool showSpNature;
 	bool showVariableValuesInEventText;
 	bool useNamesAfterStandard;
@@ -1750,6 +1751,7 @@ struct OldSettings {
 		this.ignoreEmptyStart = prop.var.etc.ignoreEmptyStart;
 		this.classicStyleTree = prop.var.etc.classicStyleTree;
 		this.radarStyleParams = prop.var.etc.radarStyleParams;
+		this.showAptitudeOnCastCardEditor = prop.var.etc.showAptitudeOnCastCardEditor;
 		this.showSpNature = prop.var.etc.showSpNature;
 		this.showVariableValuesInEventText = prop.var.etc.showVariableValuesInEventText;
 		this.useNamesAfterStandard = prop.var.etc.useNamesAfterStandard;
@@ -1911,6 +1913,12 @@ struct OldSettings {
 		}
 		if (this.radarStyleParams != prop.var.etc.radarStyleParams) { mixin(S_TRACE);
 			comm.refRadarStyle.call();
+		}
+		if (this.showAptitudeOnCastCardEditor != prop.var.etc.showAptitudeOnCastCardEditor) { mixin(S_TRACE);
+			comm.refShowAptitudes.call();
+		}
+		if (this.radarStyleParams != prop.var.etc.radarStyleParams || this.showAptitudeOnCastCardEditor != prop.var.etc.showAptitudeOnCastCardEditor) { mixin(S_TRACE);
+			comm.refCastCardParameterEditStyle.call();
 		}
 		if (this.showSpNature != prop.var.etc.showSpNature || this.useNamesAfterStandard != prop.var.etc.useNamesAfterStandard || this.showCurrentValueOnTopAlways != prop.var.etc.showCurrentValueOnTopAlways) { mixin(S_TRACE);
 			comm.refCoupons.call();

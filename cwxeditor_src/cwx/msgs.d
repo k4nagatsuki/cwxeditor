@@ -2395,6 +2395,7 @@ class Msgs : Properties {
 	auto showMotionDescription = Msg("showMotionDescription", "効果の解説をツールチップで表示する");
 	auto showSpNature = Msg("showSpNature", "特殊型を表示する");
 	auto radarStyleParams = Msg("radarStyleParams", "レーダー型コントロールでパラメータ値を設定する");
+	auto showAptitudeOnCastCardEditor = Msg("showAptitudeOnCastCardEditor", "キャストカードの身体能力と精神傾向の編集時にで各種適性を表示する");
 	auto linkCard = Msg("linkCard", "クラシックなシナリオでキャストの所有カードや召喚対象カードを参照で設定する");
 
 	auto soundPlayType = Msg("soundPlayType", "BGM再生方式");

@@ -216,6 +216,7 @@ class EtcSettings : Composite {
 		boolSetting(comp, prop.var.etc.showSpNature, prop.msgs.showSpNature);
 		boolSetting(comp, prop.var.etc.showMotionDescription, prop.msgs.showMotionDescription);
 		boolSetting(comp, prop.var.etc.radarStyleParams, prop.msgs.radarStyleParams);
+		boolSetting(comp, prop.var.etc.showAptitudeOnCastCardEditor, prop.msgs.showAptitudeOnCastCardEditor);
 		boolSetting(comp, prop.var.etc.linkCard, prop.msgs.linkCard);
 
 		_incSearch = new IncSearch(comm, this, null);
