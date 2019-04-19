@@ -735,6 +735,18 @@ private:
 				strs ~= _comm.prop.msgs.completeStamp ~ " - " ~ a;
 				_editorTable ~= CWXScript.createString(a);
 			}
+			foreach (a; std.algorithm.sort(_summ.useCounter.keyCode.keys)) { mixin(S_TRACE);
+				strs ~= _comm.prop.msgs.keyCode ~ " - " ~ a;
+				_editorTable ~= CWXScript.createString(a);
+			}
+			foreach (a; std.algorithm.sort(_summ.useCounter.cellName.keys)) { mixin(S_TRACE);
+				strs ~= _comm.prop.msgs.cellName ~ " - " ~ a;
+				_editorTable ~= CWXScript.createString(a);
+			}
+			foreach (a; std.algorithm.sort(_summ.useCounter.cardGroup.keys)) { mixin(S_TRACE);
+				strs ~= _comm.prop.msgs.cardGroup ~ " - " ~ a;
+				_editorTable ~= CWXScript.createString(a);
+			}
 			foreach (p; _summ.allMaterials(_comm.skin, _comm.prop.var.etc.ignorePaths, _comm.prop.var.etc.logicalSort, false)) { mixin(S_TRACE);
 				strs ~= _comm.prop.msgs.material ~ " - " ~ p;
 				_editorTable ~= CWXScript.createString(p);
