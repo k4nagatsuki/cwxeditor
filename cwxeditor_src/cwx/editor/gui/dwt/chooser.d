@@ -180,7 +180,7 @@ string[] allCoupons(Commons comm, Summary summ, CouponComboType type) { mixin(S_
 			sysCoupons[comm.skin.makingsCoupon(comm.skin.reverseMakings(e))] = true;
 		}
 		if (summ) { mixin(S_TRACE);
-			foreach (coupon; .sortDlg(summ.useCounter.coupon.keys, cmps)) { mixin(S_TRACE);
+			foreach (coupon; .sortDlg(summ.useCounter.keys!CouponId, cmps)) { mixin(S_TRACE);
 				if (coupon.id in sysCoupons || comm.prop.sys.isCouponType(coupon.id, CouponType.System)) continue;
 				if (!.contains(cs, coupon.id)) dcs ~= coupon;
 			}
@@ -254,7 +254,7 @@ string[] allGossips(Commons comm, Summary summ) { mixin(S_TRACE);
 		cmps = (a, b) => icmp(cast(string)a, cast(string)b) < 0;
 	}
 	if (summ) { mixin(S_TRACE);
-		foreach (gossip; .sortDlg(summ.useCounter.gossip.keys, cmps)) { mixin(S_TRACE);
+		foreach (gossip; .sortDlg(summ.useCounter.keys!GossipId, cmps)) { mixin(S_TRACE);
 			cs ~= gossip;
 		}
 	}
@@ -315,7 +315,7 @@ string[] allCompleteStamps(Commons comm, Summary summ) { mixin(S_TRACE);
 		cmps = (a, b) => icmp(cast(string)a, cast(string)b) < 0;
 	}
 	if (summ) { mixin(S_TRACE);
-		foreach (compStamp; .sortDlg(summ.useCounter.completeStamp.keys, cmps)) { mixin(S_TRACE);
+		foreach (compStamp; .sortDlg(summ.useCounter.keys!CompleteStampId, cmps)) { mixin(S_TRACE);
 			cs ~= compStamp;
 		}
 	}
@@ -335,7 +335,7 @@ T createKeyCodeCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bo
 
 		string[] stdKCs = comm.prop.var.etc.standardKeyCodes.dup;
 
-		auto kcs = summ ? summ.useCounter.keyCode.keys : [];
+		auto kcs = summ ? summ.useCounter.keys!KeyCodeId : [];
 		string[] kcs2;
 		foreach (string kc; std.algorithm.sort(kcs)) { mixin(S_TRACE);
 			if (!.contains(stdKCs, kc)) { mixin(S_TRACE);
@@ -402,7 +402,7 @@ string[] allKeyCodes(Commons comm, Summary summ) { mixin(S_TRACE);
 	}
 	string[] kcs2;
 	if (summ) { mixin(S_TRACE);
-		auto kcs = summ.useCounter.keyCode.keys;
+		auto kcs = summ.useCounter.keys!KeyCodeId;
 		foreach (string kc; .sortDlg(kcs, cmps)) { mixin(S_TRACE);
 			if (!.contains(stdKCs, kc)) { mixin(S_TRACE);
 				kcs2 ~= kc;
@@ -477,7 +477,7 @@ string[] allCellNames(Commons comm, Summary summ) { mixin(S_TRACE);
 	} else {
 		cmps = (a, b) => icmp(cast(string)a, cast(string)b) < 0;
 	}
-	auto s = .sortDlg(summ.useCounter.cellName.keys, cmps);
+	auto s = .sortDlg(summ.useCounter.keys!CellNameId, cmps);
 	return .map!((a) => cast(string)a)(s).array();
 }
 
@@ -534,7 +534,7 @@ string[] allCardGroups(Commons comm, Summary summ) { mixin(S_TRACE);
 	} else {
 		cmps = (a, b) => icmp(cast(string)a, cast(string)b) < 0;
 	}
-	auto s = .sortDlg(summ.useCounter.cardGroup.keys, cmps);
+	auto s = .sortDlg(summ.useCounter.keys!CardGroupId, cmps);
 	return .map!((a) => cast(string)a)(s).array();
 }
 

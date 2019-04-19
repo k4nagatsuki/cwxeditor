@@ -225,25 +225,14 @@ private:
 		if (_readOnly) return;
 		assert (column == 0);
 		if (!newText.length) return;
+		auto oldText = itm.getText(0);
+		if (newText == oldText) return;
 
 		_inProc = true;
 		scope (exit) _inProc = false;
 
-		static if (is(ID:CouponId)) {
-			auto uc = _summ.useCounter.coupon;
-		} else static if (is(ID:GossipId)) {
-			auto uc = _summ.useCounter.gossip;
-		} else static if (is(ID:CompleteStampId)) {
-			auto uc = _summ.useCounter.completeStamp;
-		} else static if (is(ID:KeyCodeId)) {
-			auto uc = _summ.useCounter.keyCode;
-		} else static if (is(ID:CellNameId)) {
-			auto uc = _summ.useCounter.cellName;
-		} else static if (is(ID:CardGroupId)) {
-			auto uc = _summ.useCounter.cardGroup;
-		} else static assert (0);
-
-		ReplaceDialog.renameCoupon(_comm, _summ, itm, ToID!ID(itm.getText(0)), ToID!ID(newText), uc, _undo, null, false, _list, null, _nameList);
+		ReplaceDialog.renameCoupon(_comm, _summ, itm, ToID!ID(oldText), ToID!ID(newText), _undo, null, false, _list, null, _nameList);
+		assert (_summ.useCounter.get(ToID!ID(oldText)) == 0);
 
 		static if (is(ID:CouponId)) { mixin(S_TRACE);
 			_comm.refCoupons.call(this);
@@ -594,19 +583,7 @@ public:
 	}
 	private auto getKeys() { mixin(S_TRACE);
 		if (_summ) { mixin(S_TRACE);
-			static if (is(ID:CouponId)) {
-				return _summ.useCounter.coupon.keys;
-			} else static if (is(ID:GossipId)) {
-				return _summ.useCounter.gossip.keys;
-			} else static if (is(ID:CompleteStampId)) {
-				return _summ.useCounter.completeStamp.keys;
-			} else static if (is(ID:KeyCodeId)) {
-				return _summ.useCounter.keyCode.keys;
-			} else static if (is(ID:CellNameId)) {
-				return _summ.useCounter.cellName.keys;
-			} else static if (is(ID:CardGroupId)) {
-				return _summ.useCounter.cardGroup.keys;
-			} else static assert (0);
+			return _summ.useCounter.keys!ID;
 		} else { mixin(S_TRACE);
 			return typeof(return).init;
 		}

@@ -927,7 +927,7 @@ public:
 
 		if (legacy) { mixin(S_TRACE);
 			auto newAllPaths = allPaths;
-			foreach (pathId; useCounter.path.keys) { mixin(S_TRACE);
+			foreach (pathId; useCounter.keys!PathId) { mixin(S_TRACE);
 				if (pathId.isBinData) continue;
 				auto path = cast(string)pathId;
 				if (path == "") continue;
@@ -2439,7 +2439,7 @@ public:
 				int maxCount = -1;
 				foreach (file; v) { mixin(S_TRACE);
 					/// 使用回数が多い方を優先
-					int c = cast(int) uc.path.values(toPathId(file)).length;
+					int c = cast(int) uc.values(toPathId(file)).length;
 					if (c >= maxCount) { mixin(S_TRACE);
 						nv ~= file;
 						maxCount = c;
@@ -2540,7 +2540,7 @@ public:
 				jpdc.removeUseCounter();
 			}
 
-			foreach (key; uc.path.keys) { mixin(S_TRACE);
+			foreach (key; uc.keys!PathId) { mixin(S_TRACE);
 				if (key.isBinData) continue;
 				auto isSkinMaterial = false;
 				auto isEngineMaterial = false;
@@ -2568,9 +2568,9 @@ public:
 		ubyte*[] ptrs;
 		auto table = cardImgTable(mt, toSkin, uc, ptrs);
 		loadScaledImage = true;
-		foreach (p; uc.path.keys) { mixin(S_TRACE);
+		foreach (p; uc.keys!PathId) { mixin(S_TRACE);
 			if (p.isBinData) { mixin(S_TRACE);
-				auto users = uc.path.values(p);
+				auto users = uc.values(p);
 				Tuple!(PathUser, "u", string[], "cwxPath")[] users2;
 				foreach (u; users) { mixin(S_TRACE);
 					users2 ~= typeof(users2[0])(u, .cpsplit(u.cwxPath(true)));
@@ -3069,8 +3069,8 @@ public:
 				tbl.add(toPathId(p));
 				paths ~= encodePath(p);
 			}
-			foreach (path; useCounter.path.keys) { mixin(S_TRACE);
-				auto p = cast(string) path;
+			foreach (path; useCounter.keys!PathId) { mixin(S_TRACE);
+				auto p = cast(string)path;
 				if (!path.isBinData && !tbl.contains(path)) { mixin(S_TRACE);
 					paths ~= encodePath(p);
 				}

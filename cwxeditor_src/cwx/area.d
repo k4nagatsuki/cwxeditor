@@ -322,7 +322,7 @@ public:
 	this (ulong id, in bool[ActionCardType] actions, string flag, int x, int y, uint scale,
 			int layer, string cardGroup, int animationSpeed,
 			bool isOverrideName, string overrideName, bool isOverrideImage, in CardImage[] overrideImages) { mixin(S_TRACE);
-		super(flag, x, y, scale, layer, cardGroup, animationSpeed);
+		super (flag, x, y, scale, layer, cardGroup, animationSpeed);
 		_user = new CastUser(this);
 		_user.casts = id;
 		this.actions = actions;
@@ -678,7 +678,7 @@ public:
 	/// animationSpeed = アニメーション速度(最速0～最遅10)。-1ならエンジン設定に従う。
 	this (string name, bool expandSPChars, in CardImage[] paths, string desc, string flag,
 			int x, int y, int scale, int layer, string cardGroup, int animationSpeed) { mixin(S_TRACE);
-		super(flag, x, y, scale, layer, cardGroup, animationSpeed);
+		super (flag, x, y, scale, layer, cardGroup, animationSpeed);
 		this.paths = paths;
 		_name = new SimpleTextHolder;
 		_name.changeHandler = &changed;
@@ -1195,7 +1195,7 @@ public:
 
 	/// 唯一のコンストラクタ。
 	this (ulong id, string name) { mixin(S_TRACE);
-		super(id, name);
+		super (id, name);
 		_playerEvents = new PlayerCardEvents(this);
 	}
 	@property
@@ -1746,7 +1746,7 @@ public:
 	/// Params:
 	///  music = BGMのファイルパス。
 	this (ulong id, string name, string music) { mixin(S_TRACE);
-		super(id, name);
+		super (id, name);
 		_music = new PathUser(this);
 		_music.path = music;
 		_playerEvents = new PlayerCardEvents(this);

@@ -91,7 +91,7 @@ private:
 		this (MotionView v, Commons comm, Summary summ, ptrdiff_t index) { mixin(S_TRACE);
 			super (v, comm, summ);
 			_old = v.motion(index).dup;
-			_old.setUseCounter(summ.useCounter.sub);
+			_old.setUseCounter(v._useCounter.sub);
 			_index = index;
 		}
 		private void impl() { mixin(S_TRACE);
@@ -102,7 +102,7 @@ private:
 			auto old = _old;
 			_old.removeUseCounter();
 			_old = v.motion(_index).dup;
-			_old.setUseCounter(summ.useCounter.sub);
+			_old.setUseCounter(v._useCounter.sub);
 			auto m = v.motion(_index);
 			v.motion(_index, old, false);
 		}
@@ -182,7 +182,7 @@ private:
 		private void initUndoDelete(MotionView v) { mixin(S_TRACE);
 			if (!v || v.isDisposed()) return;
 			_m = v.motion(_index).dup;
-			_m.setUseCounter(summ.useCounter.sub);
+			_m.setUseCounter(v._useCounter.sub);
 		}
 		private void undoInsert() { mixin(S_TRACE);
 			auto v = view();
@@ -233,6 +233,7 @@ private:
 	Commons _comm;
 	Props _prop;
 	Summary _summ;
+	UseCounter _useCounter;
 	UndoManager _undo;
 	KeyDownFilter _kdFilter;
 
@@ -444,7 +445,7 @@ private:
 					assert (absDlg !is null);
 					absDlg.active();
 				} else { mixin(S_TRACE);
-					_beastDlg = new EffectCardDialog!(BeastCard)(_comm, _prop, getShell(), _summ, b, _readOnly != SWT.NONE);
+					_beastDlg = new EffectCardDialog!(BeastCard)(_comm, _prop, getShell(), _summ, _useCounter, b, _readOnly != SWT.NONE);
 					auto absDlg = cast(AbsDialog)_beastDlg;
 					assert (absDlg !is null);
 					absDlg.open();
@@ -1028,13 +1029,14 @@ private:
 		_undo.max = _prop.var.etc.undoMaxEtc;
 	}
 public:
-	this (Commons comm, Props prop, Summary summ, Composite parent, int style, UndoManager undo = null) { mixin(S_TRACE);
+	this (Commons comm, Props prop, Summary summ, UseCounter uc, Composite parent, int style, UndoManager undo = null) { mixin(S_TRACE);
 		super(parent, SWT.NONE);
 		_id = .objectIDValue(this);
 		_readOnly = style & SWT.READ_ONLY;
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
+		_useCounter = uc;
 		if (_readOnly || !_summ || _summ.scenarioPath == "") { mixin(S_TRACE);
 			_summSkin = findSkin(_comm, _prop, _summ);
 		}

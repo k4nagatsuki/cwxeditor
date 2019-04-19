@@ -1,42 +1,43 @@
 
 module cwx.editor.gui.dwt.smalldialogs;
 
-import cwx.utils;
-import cwx.versioninfo;
-import cwx.structs;
-import cwx.menu;
-import cwx.summary;
 import cwx.archive;
 import cwx.cab;
-import cwx.types;
-import cwx.script;
-import cwx.event;
-import cwx.importutils;
-import cwx.flag;
 import cwx.card;
+import cwx.event;
+import cwx.flag;
+import cwx.importutils;
+import cwx.menu;
+import cwx.script;
 import cwx.skin;
+import cwx.structs;
+import cwx.summary;
+import cwx.types;
+import cwx.usecounter;
+import cwx.utils;
+import cwx.versioninfo;
 
-import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.centerlayout;
+import cwx.editor.gui.dwt.commons;
+import cwx.editor.gui.dwt.customtable;
+import cwx.editor.gui.dwt.dmenu;
+import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.dutils;
-import cwx.editor.gui.dwt.commons;
-import cwx.editor.gui.dwt.dmenu;
-import cwx.editor.gui.dwt.customtable;
+import cwx.editor.gui.dwt.incsearch;
 import cwx.editor.gui.dwt.scripterrordialog;
 import cwx.editor.gui.dwt.settingsdialog;
-import cwx.editor.gui.dwt.incsearch;
 
 static import core.stdc.stdlib;
 
 static import std.algorithm;
-import std.string;
+import std.array;
 import std.conv;
-import std.path;
 import std.file;
 import std.functional;
-import std.array;
+import std.path;
+import std.string;
 import std.traits;
 import std.typecons : Tuple;
 
@@ -711,16 +712,28 @@ private:
 				strs ~= objName!(typeof(a))(_comm.prop) ~ " - " ~ .text(a.id) ~ "." ~ a.name;
 				_editorTable ~= .text(a.id);
 			}
-			foreach (a; std.algorithm.sort(_summ.useCounter.coupon.keys)) { mixin(S_TRACE);
+			foreach (a; std.algorithm.sort(_summ.useCounter.keys!CouponId)) { mixin(S_TRACE);
 				strs ~= _comm.prop.msgs.coupon ~ " - " ~ a;
 				_editorTable ~= CWXScript.createString(a);
 			}
-			foreach (a; std.algorithm.sort(_summ.useCounter.gossip.keys)) { mixin(S_TRACE);
+			foreach (a; std.algorithm.sort(_summ.useCounter.keys!GossipId)) { mixin(S_TRACE);
 				strs ~= _comm.prop.msgs.gossip ~ " - " ~ a;
 				_editorTable ~= CWXScript.createString(a);
 			}
-			foreach (a; std.algorithm.sort(_summ.useCounter.completeStamp.keys)) { mixin(S_TRACE);
+			foreach (a; std.algorithm.sort(_summ.useCounter.keys!CompleteStampId)) { mixin(S_TRACE);
 				strs ~= _comm.prop.msgs.completeStamp ~ " - " ~ a;
+				_editorTable ~= CWXScript.createString(a);
+			}
+			foreach (a; std.algorithm.sort(_summ.useCounter.keys!KeyCodeId)) { mixin(S_TRACE);
+				strs ~= _comm.prop.msgs.keyCode ~ " - " ~ a;
+				_editorTable ~= CWXScript.createString(a);
+			}
+			foreach (a; std.algorithm.sort(_summ.useCounter.keys!CellNameId)) { mixin(S_TRACE);
+				strs ~= _comm.prop.msgs.cellName ~ " - " ~ a;
+				_editorTable ~= CWXScript.createString(a);
+			}
+			foreach (a; std.algorithm.sort(_summ.useCounter.keys!CardGroupId)) { mixin(S_TRACE);
+				strs ~= _comm.prop.msgs.cardGroup ~ " - " ~ a;
 				_editorTable ~= CWXScript.createString(a);
 			}
 			foreach (p; _summ.allMaterials(_comm.skin, _comm.prop.var.etc.ignorePaths, _comm.prop.var.etc.logicalSort, false)) { mixin(S_TRACE);

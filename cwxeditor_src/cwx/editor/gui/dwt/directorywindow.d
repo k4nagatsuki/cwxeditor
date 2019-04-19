@@ -202,8 +202,8 @@ private:
 		if (ad && bd) return compFExt(a, b);
 		if (!ad && bd) return false;
 		if (ad && !bd) return true;
-		int ac = _summ.useCounter.path.get(toUCPath(a));
-		int bc = _summ.useCounter.path.get(toUCPath(b));
+		int ac = _summ.useCounter.get(toUCPath(a));
+		int bc = _summ.useCounter.get(toUCPath(b));
 		int r = ac - bc;
 		return r != 0 ? r < 0 : compFName(a, b);
 	}
@@ -213,8 +213,8 @@ private:
 		if (ad && bd) return compFExt(a, b);
 		if (!ad && bd) return false;
 		if (ad && !bd) return true;
-		int ac = _summ.useCounter.path.get(toUCPath(a));
-		int bc = _summ.useCounter.path.get(toUCPath(b));
+		int ac = _summ.useCounter.get(toUCPath(a));
+		int bc = _summ.useCounter.get(toUCPath(b));
 		int r = ac - bc;
 		return r != 0 ? r > 0 : compFName(a, b);
 	}
@@ -374,7 +374,7 @@ private:
 					} else if (p.material) { mixin(S_TRACE);
 						itm.setText(0, stripExtension(p.basename));
 						itm.setText(1, wrapExt(p.ext));
-						itm.setText(2, to!(string)(_summ.useCounter.path.get(toUCPath(p))));
+						itm.setText(2, to!(string)(_summ.useCounter.get(toUCPath(p))));
 					} else { mixin(S_TRACE);
 						itm.setText(0, stripExtension(p.basename));
 						itm.setText(1, wrapExt(p.ext));
@@ -1053,7 +1053,7 @@ private:
 			try { mixin(S_TRACE);
 				auto file = cast(FileNameObj) itm.getData();
 				if (!.exists(file.array) || !file.material) continue;
-				auto c = _summ.useCounter.path.get(toUCPath(file));
+				auto c = _summ.useCounter.get(toUCPath(file));
 				auto s = to!(string)(c);
 				if (itm.getText(2) != s) { mixin(S_TRACE);
 					itm.setText(2, s);

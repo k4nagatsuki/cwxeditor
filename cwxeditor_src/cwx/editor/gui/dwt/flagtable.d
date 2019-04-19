@@ -2640,12 +2640,12 @@ public:
 	private void refreshUseCount() { mixin(S_TRACE);
 		foreach (itm; flags.getItems()) { mixin(S_TRACE);
 			if (cast(cwx.flag.Flag)itm.getData()) { mixin(S_TRACE);
-				itm.setText(2, to!(string)(uc.flag.get(toFlagId((cast(cwx.flag.Flag)itm.getData()).path))));
+				itm.setText(2, to!(string)(uc.get(toFlagId((cast(cwx.flag.Flag)itm.getData()).path))));
 			} else if (cast(Step)itm.getData()) { mixin(S_TRACE);
-				itm.setText(2, to!(string)(uc.step.get(toStepId((cast(Step)itm.getData()).path))));
+				itm.setText(2, to!(string)(uc.get(toStepId((cast(Step)itm.getData()).path))));
 			} else { mixin(S_TRACE);
 				assert (cast(cwx.flag.Variant)itm.getData() !is null);
-				itm.setText(2, to!(string)(uc.variant.get(toVariantId((cast(cwx.flag.Variant)itm.getData()).path))));
+				itm.setText(2, to!(string)(uc.get(toVariantId((cast(cwx.flag.Variant)itm.getData()).path))));
 			}
 		}
 	}

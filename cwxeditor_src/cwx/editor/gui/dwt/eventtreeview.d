@@ -487,7 +487,7 @@ private:
 			foreach (c; cs) { mixin(S_TRACE);
 				_path ~= c.ctPath;
 				_c ~= c.dup;
-				_c[$ - 1].setUseCounter(summ.useCounter.sub);
+				_c[$ - 1].setUseCounter(c.useCounter.sub);
 			}
 		}
 		private void impl() { mixin(S_TRACE);
@@ -514,7 +514,7 @@ private:
 					}));
 					et.startUseCounter.change(tc.name, c.name);
 				}
-				_c[i].setUseCounter(summ.useCounter.sub);
+				_c[i].setUseCounter(tc.useCounter.sub);
 				string text;
 				if (pc) { mixin(S_TRACE);
 					pc.insert(prop.parent, index, c);
@@ -598,7 +598,7 @@ private:
 			scope (exit) foreach (v; vs) v._tree.control.setRedraw(true);
 			for (size_t i = 0; i < _count; i++) { mixin(S_TRACE);
 				auto c = et.starts[_index].dup;
-				c.setUseCounter(summ.useCounter.sub);
+				c.setUseCounter(et.starts[_index].useCounter.sub);
 				_c ~= c;
 				delImpl(vs, comm, et, et.starts[_index]);
 			}
@@ -633,7 +633,7 @@ private:
 			super (comm, prop, summ, et, area);
 			_index = index;
 			_c = del.dup;
-			_c.setUseCounter(summ.useCounter.sub);
+			_c.setUseCounter(del.useCounter.sub);
 		}
 		override void undo() { mixin(S_TRACE);
 			auto vs = views();

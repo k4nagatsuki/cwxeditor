@@ -130,20 +130,20 @@ ImportResult importResource(in CProps prop, Summary to, Summary from, in string[
 		}
 	}
 
-	void ref1(T, U)(ImportTypeReference1 type, T ucf, T uct, void delegate(U) put) { mixin(S_TRACE);
+	void ref1(ID)(ImportTypeReference1 type, void delegate(ID) put) { mixin(S_TRACE);
 		final switch (type) {
 		case ImportTypeReference1.Rename:
-			foreach (path; ucf.keys()) { mixin(S_TRACE);
+			foreach (path; uc.keys!ID) { mixin(S_TRACE);
 				put(path);
 			}
 			break;
 		case ImportTypeReference1.NoOverwrite:
-			foreach (path; ucf.keys()) { mixin(S_TRACE);
+			foreach (path; uc.keys!ID) { mixin(S_TRACE);
 				put(path);
 			}
 			break;
 		case ImportTypeReference1.Overwrite:
-			foreach (path; ucf.keys()) { mixin(S_TRACE);
+			foreach (path; uc.keys!ID) { mixin(S_TRACE);
 				put(path);
 			}
 			break;
@@ -153,11 +153,11 @@ ImportResult importResource(in CProps prop, Summary to, Summary from, in string[
 	}
 	auto sName = from.scenarioName.replace("\\", "");
 	if (sName == "") sName = "_";
-	bool ref2(T, U)(ImportTypeReference2 type, T ucf, U delegate(ulong) get, ref U[ulong] table) { mixin(S_TRACE);
+	bool ref2(ID, U)(ImportTypeReference2 type, U delegate(ulong) get, ref U[ulong] table) { mixin(S_TRACE);
 		bool r = false;
 		final switch (type) {
 		case ImportTypeReference2.Rename:
-			foreach (id; ucf.keys()) { mixin(S_TRACE);
+			foreach (id; uc.keys!ID) { mixin(S_TRACE);
 				if (id.id !in table) { mixin(S_TRACE);
 					auto a = get(id.id);
 					if (!a) continue;
@@ -182,14 +182,14 @@ ImportResult importResource(in CProps prop, Summary to, Summary from, in string[
 	// 対象が増加しなくなるまで繰り返す。
 	while (true) { mixin(S_TRACE);
 		bool up = false;
-		up = ref2(opt.areas, uc.area, &from.area, r.areas) || up;
-		up = ref2(opt.battles, uc.battle, &from.battle, r.battles) || up;
-		up = ref2(opt.packages, uc.packages, &from.cwPackage, r.packages) || up;
-		up = ref2(opt.casts, uc.casts, (id) => from.cwCast(id), r.casts) || up;
-		up = ref2(opt.skills, uc.skill, (id) => from.skill(id), r.skills) || up;
-		up = ref2(opt.items, uc.item, (id) => from.item(id), r.items) || up;
-		up = ref2(opt.beasts, uc.beast, (id) => from.beast(id), r.beasts) || up;
-		up = ref2(opt.infos, uc.info, (id) => from.info(id), r.infos) || up;
+		up = ref2!AreaId(opt.areas, &from.area, r.areas) || up;
+		up = ref2!BattleId(opt.battles, &from.battle, r.battles) || up;
+		up = ref2!PackageId(opt.packages, &from.cwPackage, r.packages) || up;
+		up = ref2!CastId(opt.casts, (id) => from.cwCast(id), r.casts) || up;
+		up = ref2!SkillId(opt.skills, (id) => from.skill(id), r.skills) || up;
+		up = ref2!ItemId(opt.items, (id) => from.item(id), r.items) || up;
+		up = ref2!BeastId(opt.beasts, (id) => from.beast(id), r.beasts) || up;
+		up = ref2!InfoId(opt.infos, (id) => from.info(id), r.infos) || up;
 		if (!up) break;
 	}
 
@@ -223,7 +223,7 @@ ImportResult importResource(in CProps prop, Summary to, Summary from, in string[
 
 	// 素材のインポート。
 	auto newFolder = createNewFileName(to.scenarioPath.buildPath(createNewFileName(to.scenarioPath.buildPath(from.scenarioPath.baseName()), true).baseName()), true).baseName();
-	ref1(opt.materials, uc.path, to.useCounter.path, (PathId path) { mixin(S_TRACE);
+	ref1(opt.materials, (PathId path) { mixin(S_TRACE);
 		if (path.isBinData) return;
 		if (!from.scenarioPath.buildPath(cast(string)path).exists()) return;
 		if (opt.materials is ImportTypeReference1.Rename) { mixin(S_TRACE);
@@ -240,7 +240,7 @@ ImportResult importResource(in CProps prop, Summary to, Summary from, in string[
 	});
 	// 状態変数のインポート。
 	auto newFlagDir = to.flagDirRoot.createNewDirName(from.flagDirRoot.createNewDirName(from.scenarioName, ""), "");
-	ref1(opt.variables, uc.flag, to.useCounter.flag, (FlagId path) { mixin(S_TRACE);
+	ref1(opt.variables, (FlagId path) { mixin(S_TRACE);
 		auto f = from.flagDirRoot.findFlag(cast(string)path);
 		if (!f) return;
 		auto o = new Flag(f);
@@ -257,7 +257,7 @@ ImportResult importResource(in CProps prop, Summary to, Summary from, in string[
 			}
 		}
 	});
-	ref1(opt.variables, uc.step, to.useCounter.step, (StepId path) { mixin(S_TRACE);
+	ref1(opt.variables, (StepId path) { mixin(S_TRACE);
 		auto f = from.flagDirRoot.findStep(cast(string)path);
 		if (!f) return;
 		auto o = new Step(f);
@@ -274,7 +274,7 @@ ImportResult importResource(in CProps prop, Summary to, Summary from, in string[
 			}
 		}
 	});
-	ref1(opt.variables, uc.variant, to.useCounter.variant, (VariantId path) { mixin(S_TRACE);
+	ref1(opt.variables, (VariantId path) { mixin(S_TRACE);
 		auto f = from.flagDirRoot.findVariant(cast(string)path);
 		if (!f) return;
 		auto o = new Variant(f);

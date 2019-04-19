@@ -2345,7 +2345,7 @@ bool qMaterialCopy(Commons comm, Shell shell, UseCounter uc, string toSPath, str
 	auto skin = comm.skin;
 	copy = false;
 	string[] paths;
-	foreach (key; uc.path.keys) { mixin(S_TRACE);
+	foreach (key; uc.keys!PathId) { mixin(S_TRACE);
 		string path = cast(string)key;
 		if (key.isBinData) { mixin(S_TRACE);
 			paths ~= path;
@@ -2443,7 +2443,7 @@ bool qMaterialCopy(Commons comm, Shell shell, UseCounter uc, string toSPath, str
 		}
 		if (!toIsLegacy) { mixin(S_TRACE);
 			// 転送先は格納イメージ無効
-			foreach (key; uc.path.keys) { mixin(S_TRACE);
+			foreach (key; uc.keys!PathId) { mixin(S_TRACE);
 				if (key.isBinData) { mixin(S_TRACE);
 					uc.change(key, toPathId(""), true);
 				}

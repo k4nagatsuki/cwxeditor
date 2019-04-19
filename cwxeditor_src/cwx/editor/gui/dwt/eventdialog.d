@@ -1975,6 +1975,7 @@ template MoneyEventDialog(CType Type) {
 class EffectDialog : EventDialog {
 private:
 	MotionView _mview;
+	UseCounter _useCounter;
 	Spinner _lev;
 	MaterialSelect!(MtType.SE, Combo, Combo) _se;
 	Scale _sucRate;
@@ -2045,8 +2046,9 @@ private:
 	}
 
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
+	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, Content parent, Content evt) { mixin(S_TRACE);
 		super (comm, prop, shell, summ, CType.EFFECT, parent, evt, true, prop.var.effEvtDlg, true);
+		_useCounter = uc;
 	}
 
 	override
@@ -2063,7 +2065,7 @@ protected:
 		auto tabM = new CTabItem(tabf, SWT.NONE);
 		tabM.setText(_prop.msgs.motion);
 		{ mixin(S_TRACE);
-			_mview = new MotionView(_comm, _prop, _summ, tabf, SWT.NONE);
+			_mview = new MotionView(_comm, _prop, _summ, _useCounter, tabf, SWT.NONE);
 			mod(_mview);
 			_mview.warningEvent ~= &refreshWarning;
 			tabM.setControl(_mview);

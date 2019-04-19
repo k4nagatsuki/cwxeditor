@@ -1425,11 +1425,11 @@ private:
 		foreach (itm; _areas.getItems()) { mixin(S_TRACE);
 			auto element = itm.getData();
 			if (cast(Area)element) { mixin(S_TRACE);
-				itm.setText(2, to!(string)(_summ.useCounter.area.get(toAreaId((cast(AbstractArea)element).id))));
+				itm.setText(2, to!(string)(_summ.useCounter.get(toAreaId((cast(AbstractArea)element).id))));
 			} else if (cast(Battle)element) { mixin(S_TRACE);
-				itm.setText(2, to!(string)(_summ.useCounter.battle.get(toBattleId((cast(AbstractArea)element).id))));
+				itm.setText(2, to!(string)(_summ.useCounter.get(toBattleId((cast(AbstractArea)element).id))));
 			} else if (cast(Package)element) { mixin(S_TRACE);
-				itm.setText(2, to!(string)(_summ.useCounter.packages.get(toPackageId((cast(AbstractArea)element).id))));
+				itm.setText(2, to!(string)(_summ.useCounter.get(toPackageId((cast(AbstractArea)element).id))));
 			}
 		}
 	}

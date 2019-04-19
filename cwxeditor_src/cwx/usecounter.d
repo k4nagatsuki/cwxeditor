@@ -299,8 +299,8 @@ public:
 	void flag(string flag) { mixin(S_TRACE);
 		if (_flag != flag) changed();
 		if (_uc !is null) { mixin(S_TRACE);
-			if (_flag !is null) _uc.flag.remove(toFlagId(_flag), this);
-			if (flag !is null) _uc.flag.add(toFlagId(flag), this);
+			if (_flag !is null) _uc.remove(toFlagId(_flag), this);
+			if (flag !is null) _uc.add(toFlagId(flag), this);
 		}
 		_flag = flag;
 	}
@@ -319,17 +319,17 @@ public:
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
 		if (uc && _flag) { mixin(S_TRACE);
-			uc.flag.add(toFlagId(_flag), this);
+			uc.add(toFlagId(_flag), this);
 		}
 		if (_uc && _flag) { mixin(S_TRACE);
-			_uc.flag.remove(toFlagId(_flag), this);
+			_uc.remove(toFlagId(_flag), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
 	void removeUseCounter() { mixin(S_TRACE);
 		if (_uc && _flag !is null) { mixin(S_TRACE);
-			_uc.flag.remove(toFlagId(_flag), this);
+			_uc.remove(toFlagId(_flag), this);
 		}
 		_uc = null;
 	}
@@ -422,8 +422,8 @@ public:
 	void step(string step) { mixin(S_TRACE);
 		if (_step != step) changed();
 		if (_uc !is null) { mixin(S_TRACE);
-			if (_step !is null) _uc.step.remove(toStepId(_step), this);
-			if (step !is null) _uc.step.add(toStepId(step), this);
+			if (_step !is null) _uc.remove(toStepId(_step), this);
+			if (step !is null) _uc.add(toStepId(step), this);
 		}
 		_step = step;
 	}
@@ -442,17 +442,17 @@ public:
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
 		if (uc && _step) { mixin(S_TRACE);
-			uc.step.add(toStepId(_step), this);
+			uc.add(toStepId(_step), this);
 		}
 		if (_uc && _step) { mixin(S_TRACE);
-			_uc.step.remove(toStepId(_step), this);
+			_uc.remove(toStepId(_step), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
 	void removeUseCounter() { mixin(S_TRACE);
 		if (_uc && _step !is null) { mixin(S_TRACE);
-			_uc.step.remove(toStepId(_step), this);
+			_uc.remove(toStepId(_step), this);
 		}
 		_uc = null;
 	}
@@ -545,8 +545,8 @@ public:
 	void variant(string variant) { mixin(S_TRACE);
 		if (_variant != variant) changed();
 		if (_uc !is null) { mixin(S_TRACE);
-			if (_variant !is null) _uc.variant.remove(toVariantId(_variant), this);
-			if (variant !is null) _uc.variant.add(toVariantId(variant), this);
+			if (_variant !is null) _uc.remove(toVariantId(_variant), this);
+			if (variant !is null) _uc.add(toVariantId(variant), this);
 		}
 		_variant = variant;
 	}
@@ -565,17 +565,17 @@ public:
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
 		if (uc && _variant) { mixin(S_TRACE);
-			uc.variant.add(toVariantId(_variant), this);
+			uc.add(toVariantId(_variant), this);
 		}
 		if (_uc && _variant) { mixin(S_TRACE);
-			_uc.variant.remove(toVariantId(_variant), this);
+			_uc.remove(toVariantId(_variant), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
 	void removeUseCounter() { mixin(S_TRACE);
 		if (_uc && _variant !is null) { mixin(S_TRACE);
-			_uc.variant.remove(toVariantId(_variant), this);
+			_uc.remove(toVariantId(_variant), this);
 		}
 		_uc = null;
 	}
@@ -638,8 +638,8 @@ public:
 			}
 		}
 		if (_uc !is null) { mixin(S_TRACE);
-			if (_id > 0) _uc.area.remove(toAreaId(_id), this);
-			if (id > 0) _uc.area.add(toAreaId(id), this);
+			if (_id > 0) _uc.remove(toAreaId(_id), this);
+			if (id > 0) _uc.add(toAreaId(id), this);
 		}
 		_id = id;
 	}
@@ -658,17 +658,17 @@ public:
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
 		if (uc && _id > 0) { mixin(S_TRACE);
-			uc.area.add(toAreaId(_id), this);
+			uc.add(toAreaId(_id), this);
 		}
 		if (_uc && _id > 0) { mixin(S_TRACE);
-			_uc.area.remove(toAreaId(_id), this);
+			_uc.remove(toAreaId(_id), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
 	void removeUseCounter() { mixin(S_TRACE);
 		if (_uc && _id > 0) { mixin(S_TRACE);
-			_uc.area.remove(toAreaId(_id), this);
+			_uc.remove(toAreaId(_id), this);
 		}
 		_uc = null;
 	}
@@ -737,8 +737,8 @@ public:
 			}
 		}
 		if (_uc !is null) { mixin(S_TRACE);
-			if (_id > 0) _uc.battle.remove(toBattleId(_id), this);
-			if (id > 0) _uc.battle.add(toBattleId(id), this);
+			if (_id > 0) _uc.remove(toBattleId(_id), this);
+			if (id > 0) _uc.add(toBattleId(id), this);
 		}
 		_id = id;
 	}
@@ -757,17 +757,17 @@ public:
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
 		if (uc && _id > 0) { mixin(S_TRACE);
-			uc.battle.add(toBattleId(_id), this);
+			uc.add(toBattleId(_id), this);
 		}
 		if (_uc && _id > 0) { mixin(S_TRACE);
-			_uc.battle.remove(toBattleId(_id), this);
+			_uc.remove(toBattleId(_id), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
 	void removeUseCounter() { mixin(S_TRACE);
 		if (_uc && _id > 0) { mixin(S_TRACE);
-			_uc.battle.remove(toBattleId(_id), this);
+			_uc.remove(toBattleId(_id), this);
 		}
 		_uc = null;
 	}
@@ -828,8 +828,8 @@ public:
 	void packages(ulong id) { mixin(S_TRACE);
 		if (_id != id) changed();
 		if (_uc !is null) { mixin(S_TRACE);
-			if (_id > 0) _uc.packages.remove(toPackageId(_id), this);
-			if (id > 0) _uc.packages.add(toPackageId(id), this);
+			if (_id > 0) _uc.remove(toPackageId(_id), this);
+			if (id > 0) _uc.add(toPackageId(id), this);
 		}
 		_id = id;
 	}
@@ -848,17 +848,17 @@ public:
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
 		if (uc && _id > 0) { mixin(S_TRACE);
-			uc.packages.add(toPackageId(_id), this);
+			uc.add(toPackageId(_id), this);
 		}
 		if (_uc && _id > 0) { mixin(S_TRACE);
-			_uc.packages.remove(toPackageId(_id), this);
+			_uc.remove(toPackageId(_id), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
 	void removeUseCounter() { mixin(S_TRACE);
 		if (_uc && _id > 0) { mixin(S_TRACE);
-			_uc.packages.remove(toPackageId(_id), this);
+			_uc.remove(toPackageId(_id), this);
 		}
 		_uc = null;
 	}
@@ -1024,10 +1024,10 @@ public:
 		if (_path != id) changed();
 		if (_uc !is null) { mixin(S_TRACE);
 			if (_path.valid) { mixin(S_TRACE);
-				_uc.path.remove(_path, this);
+				_uc.remove(_path, this);
 			}
 			if (path.length) { mixin(S_TRACE);
-				_uc.path.add(id, this);
+				_uc.add(id, this);
 			}
 		}
 		_path = id;
@@ -1047,17 +1047,17 @@ public:
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
 		if (uc && _path.valid) { mixin(S_TRACE);
-			uc.path.add(_path, this);
+			uc.add(_path, this);
 		}
 		if (_uc && _path.valid) { mixin(S_TRACE);
-			_uc.path.remove(_path, this);
+			_uc.remove(_path, this);
 		}
 		_uc = uc;
 	}
 	/// ditto
 	void removeUseCounter() { mixin(S_TRACE);
 		if (_uc && _path.valid) { mixin(S_TRACE);
-			_uc.path.remove(_path, this);
+			_uc.remove(_path, this);
 		}
 		_uc = null;
 	}
@@ -1113,8 +1113,8 @@ public:
 	void casts(ulong id) { mixin(S_TRACE);
 		if (_id != id) changed();
 		if (_uc !is null) { mixin(S_TRACE);
-			if (_id > 0) _uc.casts.remove(toCastId(_id), this);
-			if (id > 0) _uc.casts.add(toCastId(id), this);
+			if (_id > 0) _uc.remove(toCastId(_id), this);
+			if (id > 0) _uc.add(toCastId(id), this);
 		}
 		_id = id;
 	}
@@ -1133,17 +1133,17 @@ public:
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
 		if (uc && _id > 0) { mixin(S_TRACE);
-			uc.casts.add(toCastId(_id), this);
+			uc.add(toCastId(_id), this);
 		}
 		if (_uc && _id > 0) { mixin(S_TRACE);
-			_uc.casts.remove(toCastId(_id), this);
+			_uc.remove(toCastId(_id), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
 	void removeUseCounter() { mixin(S_TRACE);
 		if (_uc && _id > 0) { mixin(S_TRACE);
-			_uc.casts.remove(toCastId(_id), this);
+			_uc.remove(toCastId(_id), this);
 		}
 		_uc = null;
 	}
@@ -1193,8 +1193,8 @@ public:
 	void skill(ulong id) { mixin(S_TRACE);
 		if (_id != id) changed();
 		if (_uc !is null) { mixin(S_TRACE);
-			if (_id > 0) _uc.skill.remove(toSkillId(_id), this);
-			if (id > 0) _uc.skill.add(toSkillId(id), this);
+			if (_id > 0) _uc.remove(toSkillId(_id), this);
+			if (id > 0) _uc.add(toSkillId(id), this);
 		}
 		_id = id;
 	}
@@ -1213,17 +1213,17 @@ public:
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
 		if (uc && _id > 0) { mixin(S_TRACE);
-			uc.skill.add(toSkillId(_id), this);
+			uc.add(toSkillId(_id), this);
 		}
 		if (_uc && _id > 0) { mixin(S_TRACE);
-			_uc.skill.remove(toSkillId(_id), this);
+			_uc.remove(toSkillId(_id), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
 	void removeUseCounter() { mixin(S_TRACE);
 		if (_uc && _id > 0) { mixin(S_TRACE);
-			_uc.skill.remove(toSkillId(_id), this);
+			_uc.remove(toSkillId(_id), this);
 		}
 		_uc = null;
 	}
@@ -1273,8 +1273,8 @@ public:
 	void item(ulong id) { mixin(S_TRACE);
 		if (_id != id) changed();
 		if (_uc !is null) { mixin(S_TRACE);
-			if (_id > 0) _uc.item.remove(toItemId(_id), this);
-			if (id > 0) _uc.item.add(toItemId(id), this);
+			if (_id > 0) _uc.remove(toItemId(_id), this);
+			if (id > 0) _uc.add(toItemId(id), this);
 		}
 		_id = id;
 	}
@@ -1293,17 +1293,17 @@ public:
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
 		if (uc && _id > 0) { mixin(S_TRACE);
-			uc.item.add(toItemId(_id), this);
+			uc.add(toItemId(_id), this);
 		}
 		if (_uc && _id > 0) { mixin(S_TRACE);
-			_uc.item.remove(toItemId(_id), this);
+			_uc.remove(toItemId(_id), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
 	void removeUseCounter() { mixin(S_TRACE);
 		if (_uc && _id > 0) { mixin(S_TRACE);
-			_uc.item.remove(toItemId(_id), this);
+			_uc.remove(toItemId(_id), this);
 		}
 		_uc = null;
 	}
@@ -1353,8 +1353,8 @@ public:
 	void beast(ulong id) { mixin(S_TRACE);
 		if (_id != id) changed();
 		if (_uc !is null) { mixin(S_TRACE);
-			if (_id > 0) _uc.beast.remove(toBeastId(_id), this);
-			if (id > 0) _uc.beast.add(toBeastId(id), this);
+			if (_id > 0) _uc.remove(toBeastId(_id), this);
+			if (id > 0) _uc.add(toBeastId(id), this);
 		}
 		_id = id;
 	}
@@ -1373,17 +1373,17 @@ public:
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
 		if (uc && _id > 0) { mixin(S_TRACE);
-			uc.beast.add(toBeastId(_id), this);
+			uc.add(toBeastId(_id), this);
 		}
 		if (_uc && _id > 0) { mixin(S_TRACE);
-			_uc.beast.remove(toBeastId(_id), this);
+			_uc.remove(toBeastId(_id), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
 	void removeUseCounter() { mixin(S_TRACE);
 		if (_uc && _id > 0) { mixin(S_TRACE);
-			_uc.beast.remove(toBeastId(_id), this);
+			_uc.remove(toBeastId(_id), this);
 		}
 		_uc = null;
 	}
@@ -1433,8 +1433,8 @@ public:
 	void info(ulong id) { mixin(S_TRACE);
 		if (_id != id) changed();
 		if (_uc !is null) { mixin(S_TRACE);
-			if (_id > 0) _uc.info.remove(toInfoId(_id), this);
-			if (id > 0) _uc.info.add(toInfoId(id), this);
+			if (_id > 0) _uc.remove(toInfoId(_id), this);
+			if (id > 0) _uc.add(toInfoId(id), this);
 		}
 		_id = id;
 	}
@@ -1453,17 +1453,17 @@ public:
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
 		if (uc && _id > 0) { mixin(S_TRACE);
-			uc.info.add(toInfoId(_id), this);
+			uc.add(toInfoId(_id), this);
 		}
 		if (_uc && _id > 0) { mixin(S_TRACE);
-			_uc.info.remove(toInfoId(_id), this);
+			_uc.remove(toInfoId(_id), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
 	void removeUseCounter() { mixin(S_TRACE);
 		if (_uc && _id > 0) { mixin(S_TRACE);
-			_uc.info.remove(toInfoId(_id), this);
+			_uc.remove(toInfoId(_id), this);
 		}
 		_uc = null;
 	}
@@ -1527,8 +1527,8 @@ public:
 			}
 		}
 		if (_uc !is null) { mixin(S_TRACE);
-			if (_coupon.text != "") _uc.coupon.remove(toCouponId(_coupon.text), this);
-			if (coupon != "") _uc.coupon.add(toCouponId(coupon), this);
+			if (_coupon.text != "") _uc.remove(toCouponId(_coupon.text), this);
+			if (coupon != "") _uc.add(toCouponId(coupon), this);
 		}
 		_coupon.text = coupon;
 	}
@@ -1579,10 +1579,10 @@ public:
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
 		if (uc is _uc) return;
 		if (uc && _coupon.text != "") { mixin(S_TRACE);
-			uc.coupon.add(toCouponId(_coupon.text), this);
+			uc.add(toCouponId(_coupon.text), this);
 		}
 		if (_uc && _coupon.text != "") { mixin(S_TRACE);
-			_uc.coupon.remove(toCouponId(_coupon.text), this);
+			_uc.remove(toCouponId(_coupon.text), this);
 		}
 		if (expandSPChars) _coupon.setUseCounter(uc);
 		_uc = uc;
@@ -1590,7 +1590,7 @@ public:
 	/// ditto
 	void removeUseCounter() { mixin(S_TRACE);
 		if (_uc && _coupon.text != "") { mixin(S_TRACE);
-			_uc.coupon.remove(toCouponId(_coupon.text), this);
+			_uc.remove(toCouponId(_coupon.text), this);
 		}
 		_coupon.removeUseCounter();
 		_uc = null;
@@ -1654,8 +1654,8 @@ public:
 			}
 		}
 		if (_uc !is null) { mixin(S_TRACE);
-			if (_gossip.text != "") _uc.gossip.remove(toGossipId(_gossip.text), this);
-			if (gossip != "") _uc.gossip.add(toGossipId(gossip), this);
+			if (_gossip.text != "") _uc.remove(toGossipId(_gossip.text), this);
+			if (gossip != "") _uc.add(toGossipId(gossip), this);
 		}
 		_gossip.text = gossip;
 	}
@@ -1706,10 +1706,10 @@ public:
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
 		if (uc is _uc) return;
 		if (uc && _gossip.text != "") { mixin(S_TRACE);
-			uc.gossip.add(toGossipId(_gossip.text), this);
+			uc.add(toGossipId(_gossip.text), this);
 		}
 		if (_uc && _gossip.text != "") { mixin(S_TRACE);
-			_uc.gossip.remove(toGossipId(_gossip.text), this);
+			_uc.remove(toGossipId(_gossip.text), this);
 		}
 		if (expandSPChars) _gossip.setUseCounter(uc);
 		_uc = uc;
@@ -1717,7 +1717,7 @@ public:
 	/// ditto
 	void removeUseCounter() { mixin(S_TRACE);
 		if (_uc && _gossip.text != "") { mixin(S_TRACE);
-			_uc.gossip.remove(toGossipId(_gossip.text), this);
+			_uc.remove(toGossipId(_gossip.text), this);
 		}
 		_gossip.removeUseCounter();
 		_uc = null;
@@ -1769,8 +1769,8 @@ public:
 	void completeStamp(string completeStamp) { mixin(S_TRACE);
 		if (_completeStamp != completeStamp) changed();
 		if (_uc !is null) { mixin(S_TRACE);
-			if (_completeStamp != "") _uc.completeStamp.remove(toCompleteStampId(_completeStamp), this);
-			if (completeStamp != "") _uc.completeStamp.add(toCompleteStampId(completeStamp), this);
+			if (_completeStamp != "") _uc.remove(toCompleteStampId(_completeStamp), this);
+			if (completeStamp != "") _uc.add(toCompleteStampId(completeStamp), this);
 		}
 		_completeStamp = completeStamp;
 	}
@@ -1789,17 +1789,17 @@ public:
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
 		if (uc && _completeStamp != "") { mixin(S_TRACE);
-			uc.completeStamp.add(toCompleteStampId(_completeStamp), this);
+			uc.add(toCompleteStampId(_completeStamp), this);
 		}
 		if (_uc && _completeStamp != "") { mixin(S_TRACE);
-			_uc.completeStamp.remove(toCompleteStampId(_completeStamp), this);
+			_uc.remove(toCompleteStampId(_completeStamp), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
 	void removeUseCounter() { mixin(S_TRACE);
 		if (_uc && _completeStamp != "") { mixin(S_TRACE);
-			_uc.completeStamp.remove(toCompleteStampId(_completeStamp), this);
+			_uc.remove(toCompleteStampId(_completeStamp), this);
 		}
 		_uc = null;
 	}
@@ -1844,8 +1844,8 @@ public:
 	void keyCode(string keyCode) { mixin(S_TRACE);
 		if (_keyCode != keyCode) changed();
 		if (_uc !is null) { mixin(S_TRACE);
-			if (_keyCode != "") _uc.keyCode.remove(toKeyCodeId(_keyCode), this);
-			if (keyCode != "") _uc.keyCode.add(toKeyCodeId(keyCode), this);
+			if (_keyCode != "") _uc.remove(toKeyCodeId(_keyCode), this);
+			if (keyCode != "") _uc.add(toKeyCodeId(keyCode), this);
 		}
 		_keyCode = keyCode;
 	}
@@ -1864,17 +1864,17 @@ public:
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
 		if (uc && _keyCode != "") { mixin(S_TRACE);
-			uc.keyCode.add(toKeyCodeId(_keyCode), this);
+			uc.add(toKeyCodeId(_keyCode), this);
 		}
 		if (_uc && _keyCode != "") { mixin(S_TRACE);
-			_uc.keyCode.remove(toKeyCodeId(_keyCode), this);
+			_uc.remove(toKeyCodeId(_keyCode), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
 	void removeUseCounter() { mixin(S_TRACE);
 		if (_uc && _keyCode != "") { mixin(S_TRACE);
-			_uc.keyCode.remove(toKeyCodeId(_keyCode), this);
+			_uc.remove(toKeyCodeId(_keyCode), this);
 		}
 		_uc = null;
 	}
@@ -1919,8 +1919,8 @@ public:
 	void cellName(string cellName) { mixin(S_TRACE);
 		if (_cellName != cellName) changed();
 		if (_uc !is null) { mixin(S_TRACE);
-			if (_cellName != "") _uc.cellName.remove(toCellNameId(_cellName), this);
-			if (cellName != "") _uc.cellName.add(toCellNameId(cellName), this);
+			if (_cellName != "") _uc.remove(toCellNameId(_cellName), this);
+			if (cellName != "") _uc.add(toCellNameId(cellName), this);
 		}
 		_cellName = cellName;
 	}
@@ -1939,17 +1939,17 @@ public:
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
 		if (uc && _cellName != "") { mixin(S_TRACE);
-			uc.cellName.add(toCellNameId(_cellName), this);
+			uc.add(toCellNameId(_cellName), this);
 		}
 		if (_uc && _cellName != "") { mixin(S_TRACE);
-			_uc.cellName.remove(toCellNameId(_cellName), this);
+			_uc.remove(toCellNameId(_cellName), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
 	void removeUseCounter() { mixin(S_TRACE);
 		if (_uc && _cellName != "") { mixin(S_TRACE);
-			_uc.cellName.remove(toCellNameId(_cellName), this);
+			_uc.remove(toCellNameId(_cellName), this);
 		}
 		_uc = null;
 	}
@@ -1994,8 +1994,8 @@ public:
 	void cardGroup(string cardGroup) { mixin(S_TRACE);
 		if (_cardGroup != cardGroup) changed();
 		if (_uc !is null) { mixin(S_TRACE);
-			if (_cardGroup != "") _uc.cardGroup.remove(toCardGroupId(_cardGroup), this);
-			if (cardGroup != "") _uc.cardGroup.add(toCardGroupId(cardGroup), this);
+			if (_cardGroup != "") _uc.remove(toCardGroupId(_cardGroup), this);
+			if (cardGroup != "") _uc.add(toCardGroupId(cardGroup), this);
 		}
 		_cardGroup = cardGroup;
 	}
@@ -2014,17 +2014,17 @@ public:
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
 		if (uc && _cardGroup != "") { mixin(S_TRACE);
-			uc.cardGroup.add(toCardGroupId(_cardGroup), this);
+			uc.add(toCardGroupId(_cardGroup), this);
 		}
 		if (_uc && _cardGroup != "") { mixin(S_TRACE);
-			_uc.cardGroup.remove(toCardGroupId(_cardGroup), this);
+			_uc.remove(toCardGroupId(_cardGroup), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
 	void removeUseCounter() { mixin(S_TRACE);
 		if (_uc && _cardGroup != "") { mixin(S_TRACE);
-			_uc.cardGroup.remove(toCardGroupId(_cardGroup), this);
+			_uc.remove(toCardGroupId(_cardGroup), this);
 		}
 		_uc = null;
 	}
@@ -2037,9 +2037,367 @@ public:
 	mixin CWXFuncs;
 }
 
+/// IDに対応する使用者情報。
+template IDToUser(ID) {
+	static if (is(ID:FlagId)) {
+		alias FlagUser IDToUser;
+	} else static if (is(ID:StepId)) {
+		alias StepUser IDToUser;
+	} else static if (is(ID:VariantId)) {
+		alias VariantUser IDToUser;
+	} else static if (is(ID:AreaId)) {
+		alias AreaUser IDToUser;
+	} else static if (is(ID:BattleId)) {
+		alias BattleUser IDToUser;
+	} else static if (is(ID:PackageId)) {
+		alias PackageUser IDToUser;
+	} else static if (is(ID:PathId)) {
+		alias PathUser IDToUser;
+	} else static if (is(ID:CastId)) {
+		alias CastUser IDToUser;
+	} else static if (is(ID:SkillId)) {
+		alias SkillUser IDToUser;
+	} else static if (is(ID:ItemId)) {
+		alias ItemUser IDToUser;
+	} else static if (is(ID:BeastId)) {
+		alias BeastUser IDToUser;
+	} else static if (is(ID:InfoId)) {
+		alias InfoUser IDToUser;
+	} else static if (is(ID:CouponId)) {
+		alias CouponUser IDToUser;
+	} else static if (is(ID:GossipId)) {
+		alias GossipUser IDToUser;
+	} else static if (is(ID:CompleteStampId)) {
+		alias CompleteStampUser IDToUser;
+	} else static if (is(ID:KeyCodeId)) {
+		alias KeyCodeUser IDToUser;
+	} else static if (is(ID:CellNameId)) {
+		alias CellNameUser IDToUser;
+	} else static if (is(ID:CardGroupId)) {
+		alias CardGroupUser IDToUser;
+	} else static assert (0, ID.stringof);
+}
+
+/// 使用回数カウンタ。
+/// グローバル用とローカル用のSingleUseCounterを持ち、
+/// ローカルのリソースの有無に応じて使用者を振り分ける。
+class UseCounter {
+	private SingleUseCounter _global = null;
+	private SingleUseCounter _local = null;
+
+	private UseCounter _sub = null;
+
+	private bool[FlagId] _lFlag;
+	private bool[StepId] _lStep;
+	private bool[VariantId] _lVariant;
+	private bool[AreaId] _lArea;
+	private bool[BattleId] _lBattle;
+	private bool[PackageId] _lPackage;
+	private bool[PathId] _lPath;
+	private bool[CastId] _lCast;
+	private bool[SkillId] _lSkill;
+	private bool[ItemId] _lItem;
+	private bool[BeastId] _lBeast;
+	private bool[InfoId] _lInfo;
+	private bool[CouponId] _lCoupon;
+	private bool[GossipId] _lGossip;
+	private bool[CompleteStampId] _lCompleteStamp;
+	private bool[KeyCodeId] _lKeyCode;
+	private bool[CellNameId] _lCellName;
+	private bool[CardGroupId] _lCardGroup;
+
+	@property
+	inout
+	private ref inout(bool[ID]) localIDs(ID)() { mixin(S_TRACE);
+		static if (is(ID:FlagId)) {
+			return _lFlag;
+		} else static if (is(ID:StepId)) {
+			return _lStep;
+		} else static if (is(ID:VariantId)) {
+			return _lVariant;
+		} else static if (is(ID:AreaId)) {
+			return _lArea;
+		} else static if (is(ID:BattleId)) {
+			return _lBattle;
+		} else static if (is(ID:PackageId)) {
+			return _lPackage;
+		} else static if (is(ID:PathId)) {
+			return _lPath;
+		} else static if (is(ID:CastId)) {
+			return _lCast;
+		} else static if (is(ID:SkillId)) {
+			return _lSkill;
+		} else static if (is(ID:ItemId)) {
+			return _lItem;
+		} else static if (is(ID:BeastId)) {
+			return _lBeast;
+		} else static if (is(ID:InfoId)) {
+			return _lInfo;
+		} else static if (is(ID:CouponId)) {
+			return _lCoupon;
+		} else static if (is(ID:GossipId)) {
+			return _lGossip;
+		} else static if (is(ID:CompleteStampId)) {
+			return _lCompleteStamp;
+		} else static if (is(ID:KeyCodeId)) {
+			return _lKeyCode;
+		} else static if (is(ID:CellNameId)) {
+			return _lCellName;
+		} else static if (is(ID:CardGroupId)) {
+			return _lCardGroup;
+		} else static assert (0, ID.stringof);
+	}
+
+	/// インスタンスを生成する。
+	this () { mixin(S_TRACE);
+		this (new SingleUseCounter, null, true);
+	}
+
+	/// 親リソースの使用回数カウンタをグローバル用としてインスタンスを生成する。
+	this (UseCounter global) { mixin(S_TRACE);
+		this (global._global, new SingleUseCounter, true);
+	}
+	private this (SingleUseCounter global, SingleUseCounter local, bool createSub) { mixin(S_TRACE);
+		_global = global;
+		_local = local;
+		if (createSub) _sub = new UseCounter(global.sub, local ? local.sub : null, false);
+	}
+
+	/// 「アンドゥリストの中にあるのでカウントはしないが、パスの更新は反映したい」
+	/// 等の場合に使う。
+	@property
+	UseCounter sub() { mixin(S_TRACE);
+		return _sub;
+	}
+
+	/// ローカルIDの発生を通知する。
+	void createID(ID)(ID id) in (_local !is null) in (id !in localIDs!ID) { mixin(S_TRACE);
+		localIDs!ID[id] = true;
+		foreach (u; _global.values(id)) { mixin(S_TRACE);
+			_global.remove(id, u);
+			_local.add(id, u);
+		}
+		assert (_global.get(id) == 0);
+		if (_sub) _sub.createID(id);
+	}
+	/// ローカルIDの消滅を通知する。
+	void deleteID(ID)(ID id) in (_local !is null) in (id in localIDs!ID) { mixin(S_TRACE);
+		localIDs!ID.remove(id);
+		foreach (u; _local.values(id)) { mixin(S_TRACE);
+			_local.remove(id, u);
+			_global.add(id, u);
+		}
+		assert (_local.get(id) == 0);
+		if (_sub) _sub.deleteID(id);
+	}
+
+	/// ID・Tの変更を通知する。
+	void change(ID)(ID oldId, ID newId, bool dup = false) { mixin(S_TRACE);
+		if (_local) { mixin(S_TRACE);
+			if (oldId in localIDs!ID) { mixin(S_TRACE);
+				localIDs!ID.remove(oldId);
+				if (_sub) _sub.localIDs!ID.remove(oldId);
+				localIDs!ID[newId] = true;
+				if (_sub) _sub.localIDs!ID[newId] = true;
+			}
+			_local.change(oldId, newId, dup);
+			if (_sub) _sub._local.change(oldId, newId, dup);
+		} else { mixin(S_TRACE);
+			_global.change(oldId, newId, dup);
+			if (_sub) _sub._global.change(oldId, newId, dup);
+		}
+	}
+	/// userが持つIDの変更を行う。
+	static void replaceID(ID, User)(ID id, User user) if (is(User:IDToUser!ID)) { mixin(S_TRACE);
+		static if (is(ID:FlagId)) {
+			user.flag = id;
+		} else static if (is(ID:StepId)) {
+			user.step = id;
+		} else static if (is(ID:VariantId)) {
+			user.variant = id;
+		} else static if (is(ID:AreaId)) {
+			user.area = id;
+		} else static if (is(ID:BattleId)) {
+			user.battle = id;
+		} else static if (is(ID:PackageId)) {
+			user.packages = id;
+		} else static if (is(ID:PathId)) {
+			user.path = id;
+		} else static if (is(ID:CastId)) {
+			user.casts = id;
+		} else static if (is(ID:SkillId)) {
+			user.skill = id;
+		} else static if (is(ID:ItemId)) {
+			user.item = id;
+		} else static if (is(ID:BeastId)) {
+			user.beast = id;
+		} else static if (is(ID:InfoId)) {
+			user.info = id;
+		} else static if (is(ID:CouponId)) {
+			user.coupon = id;
+		} else static if (is(ID:GossipId)) {
+			user.gossip = id;
+		} else static if (is(ID:CompleteStampId)) {
+			user.completeStamp = id;
+		} else static if (is(ID:KeyCodeId)) {
+			user.keyCode = id;
+		} else static if (is(ID:CellNameId)) {
+			user.cellName = id;
+		} else static if (is(ID:CardGroupId)) {
+			user.cardGroup = id;
+		} else static assert (0, ID.stringof);
+	}
+
+	/// ID・Tの使用回数を返す。
+	const
+	uint get(ID)(ID id) { mixin(S_TRACE);
+		if (_local) { mixin(S_TRACE);
+			return _local.get(id);
+		} else { mixin(S_TRACE);
+			return _global.get(id);
+		}
+	}
+
+	/// IDの一覧を返す。
+	@property
+	const
+	ID[] keys(ID)() { mixin(S_TRACE);
+		if (_local) { mixin(S_TRACE);
+			return _local.keys!ID;
+		} else { mixin(S_TRACE);
+			return _global.keys!ID;
+		}
+	}
+
+	/// idの使用者一覧を返す。
+	@property
+	const
+	IDToUser!ID[] values(ID)(ID id) { mixin(S_TRACE);
+		if (_local) { mixin(S_TRACE);
+			return _local.values(id);
+		} else { mixin(S_TRACE);
+			return _global.values(id);
+		}
+	}
+	/// ditto
+	@property
+	inout
+	inout(HashSet!(IDToUser!ID)) valueSet(ID)(ID id) { mixin(S_TRACE);
+		if (_local) { mixin(S_TRACE);
+			return _local.valueSet(id);
+		} else { mixin(S_TRACE);
+			return _global.valueSet(id);
+		}
+	}
+
+	/// IDの所有者を追跡する。
+	private void add(ID, User)(ID id, User user) if (is(User:IDToUser!ID)) { mixin(S_TRACE);
+		if (_local && id in localIDs!ID) { mixin(S_TRACE);
+			_local.add(id, user);
+		} else { mixin(S_TRACE);
+			_global.add(id, user);
+		}
+	}
+	/// IDの所有者を追跡から除外する。
+	private void remove(ID, User)(ID id, User user) if (is(User:IDToUser!ID)) { mixin(S_TRACE);
+		if (_local && id in localIDs!ID) { mixin(S_TRACE);
+			_local.remove(id, user);
+		} else { mixin(S_TRACE);
+			_global.remove(id, user);
+		}
+	}
+} unittest {
+	mixin(UTPerf);
+	auto uc = new UseCounter;
+	auto luc = new UseCounter(uc);
+	luc.createID(toFlagId("LOCAL_1"));
+
+	auto u1 = new FlagUser(null);
+	u1.flag = "LOCAL_1";
+	u1.setUseCounter(luc);
+	auto u2 = new FlagUser(null);
+	u2.flag = "LOCAL_1";
+	u2.setUseCounter(luc);
+	auto u3 = new FlagUser(null);
+	u3.flag = "LOCAL_2";
+	u3.setUseCounter(luc);
+	auto u4 = new FlagUser(null);
+	u4.flag = "GLOBAL";
+	u4.setUseCounter(luc);
+	assert (uc.get(toFlagId("LOCAL_1")) == 0);
+	assert (luc.get(toFlagId("LOCAL_1")) == 2);
+	assert (uc.get(toFlagId("LOCAL_2")) == 1);
+	assert (luc.get(toFlagId("LOCAL_2")) == 0);
+	assert (uc.get(toFlagId("GLOBAL")) == 1);
+	assert (luc.get(toFlagId("GLOBAL")) == 0);
+
+	luc.createID(toFlagId("LOCAL_2"));
+	assert (uc.get(toFlagId("LOCAL_1")) == 0);
+	assert (luc.get(toFlagId("LOCAL_1")) == 2);
+	assert (uc.get(toFlagId("LOCAL_2")) == 0);
+	assert (luc.get(toFlagId("LOCAL_2")) == 1);
+	assert (uc.get(toFlagId("GLOBAL")) == 1);
+	assert (luc.get(toFlagId("GLOBAL")) == 0);
+
+	luc.deleteID(toFlagId("LOCAL_1"));
+	assert (uc.get(toFlagId("LOCAL_1")) == 2);
+	assert (luc.get(toFlagId("LOCAL_1")) == 0);
+	assert (uc.get(toFlagId("LOCAL_2")) == 0);
+	assert (luc.get(toFlagId("LOCAL_2")) == 1);
+	assert (uc.get(toFlagId("GLOBAL")) == 1);
+	assert (luc.get(toFlagId("GLOBAL")) == 0);
+
+	luc.createID(toFlagId("LOCAL_1"));
+	luc.change(toFlagId("LOCAL_1"), toFlagId("LOCAL_3"));
+	uc.change(toFlagId("GLOBAL"), toFlagId("GLOBAL_2"));
+	assert (uc.get(toFlagId("LOCAL_1")) == 0);
+	assert (luc.get(toFlagId("LOCAL_1")) == 0);
+	assert (uc.get(toFlagId("LOCAL_2")) == 0);
+	assert (luc.get(toFlagId("LOCAL_2")) == 1);
+	assert (uc.get(toFlagId("LOCAL_3")) == 0);
+	assert (luc.get(toFlagId("LOCAL_3")) == 2);
+	assert (uc.get(toFlagId("GLOBAL")) == 0);
+	assert (luc.get(toFlagId("GLOBAL")) == 0);
+	assert (uc.get(toFlagId("GLOBAL_2")) == 1);
+	assert (luc.get(toFlagId("GLOBAL_2")) == 0);
+
+	u1.setUseCounter(luc.sub);
+	u4.setUseCounter(uc.sub);
+	assert (uc.get(toFlagId("LOCAL_3")) == 0);
+	assert (luc.get(toFlagId("LOCAL_3")) == 1);
+	assert (uc.get(toFlagId("GLOBAL_2")) == 0);
+	assert (luc.get(toFlagId("GLOBAL_2")) == 0);
+
+	luc.change(toFlagId("LOCAL_3"), toFlagId("LOCAL_42"));
+	luc.change(toFlagId("GLOBAL_2"), toFlagId("GLOBAL_42"));
+	assert (u1.flag == "LOCAL_42");
+	assert (u2.flag == "LOCAL_42");
+	assert (u4.flag == "GLOBAL_2");
+
+	uc.change(toFlagId("LOCAL_42"), toFlagId("LOCAL_3"));
+	uc.change(toFlagId("GLOBAL_2"), toFlagId("GLOBAL_42"));
+	assert (u1.flag == "LOCAL_42");
+	assert (u2.flag == "LOCAL_42");
+	assert (u4.flag == "GLOBAL_42");
+
+	luc.deleteID(toFlagId("LOCAL_42"));
+	luc.change(toFlagId("LOCAL_42"), toFlagId("LOCAL_3"));
+	assert (u1.flag == "LOCAL_42");
+	assert (u2.flag == "LOCAL_42");
+
+	uc.change(toFlagId("LOCAL_42"), toFlagId("LOCAL_3"));
+	assert (u1.flag == "LOCAL_3");
+	assert (u2.flag == "LOCAL_3");
+
+	luc.createID(toFlagId("LOCAL_3"));
+	luc.change(toFlagId("LOCAL_3"), toFlagId("LOCAL_42"));
+	assert (u1.flag == "LOCAL_42");
+	assert (u2.flag == "LOCAL_42");
+}
+
 /// 使用回数カウンタ。
 /// IDやパスの変更を通知する役割も持つ。
-class UseCounter {
+private class SingleUseCounter {
 private:
 	UCCont!(FlagId, FlagUser) _flag;
 	UCCont!(StepId, StepUser) _step;
@@ -2059,7 +2417,49 @@ private:
 	UCCont!(KeyCodeId, KeyCodeUser) _keyCode;
 	UCCont!(CellNameId, CellNameUser) _cellName;
 	UCCont!(CardGroupId, CardGroupUser) _cardGroup;
-	UseCounter _child = null;
+	SingleUseCounter _child = null;
+
+	@property
+	inout
+	inout(UCCont!(ID, IDToUser!ID)) ucc(ID)() { mixin(S_TRACE);
+		static if (is(ID:FlagId)) {
+			return _flag;
+		} else static if (is(ID:StepId)) {
+			return _step;
+		} else static if (is(ID:VariantId)) {
+			return _variant;
+		} else static if (is(ID:AreaId)) {
+			return _area;
+		} else static if (is(ID:BattleId)) {
+			return _battle;
+		} else static if (is(ID:PackageId)) {
+			return _package;
+		} else static if (is(ID:PathId)) {
+			return _path;
+		} else static if (is(ID:CastId)) {
+			return _cast;
+		} else static if (is(ID:SkillId)) {
+			return _skill;
+		} else static if (is(ID:ItemId)) {
+			return _item;
+		} else static if (is(ID:BeastId)) {
+			return _beast;
+		} else static if (is(ID:InfoId)) {
+			return _info;
+		} else static if (is(ID:CouponId)) {
+			return _coupon;
+		} else static if (is(ID:GossipId)) {
+			return _gossip;
+		} else static if (is(ID:CompleteStampId)) {
+			return _completeStamp;
+		} else static if (is(ID:KeyCodeId)) {
+			return _keyCode;
+		} else static if (is(ID:CellNameId)) {
+			return _cellName;
+		} else static if (is(ID:CardGroupId)) {
+			return _cardGroup;
+		} else static assert (0, ID.stringof);
+	}
 public:
 	/// 唯一のコンストラクタ。
 	this () { mixin(S_TRACE);
@@ -2085,264 +2485,45 @@ public:
 		_cellName = new UCCont!(CellNameId, CellNameUser);
 		_cardGroup = new UCCont!(CardGroupId, CardGroupUser);
 		if (useChild) { mixin(S_TRACE);
-			_child = new UseCounter(false);
+			_child = new SingleUseCounter(false);
 		}
 	}
+
 	/// 「アンドゥリストの中にあるのでカウントはしないが、パスの更新は反映したい」
 	/// 等の場合に使う。
 	@property
-	UseCounter sub() { mixin(S_TRACE);
+	SingleUseCounter sub() { mixin(S_TRACE);
 		return _child;
 	}
-	/// 各種カウント対象の使用者のコンテナ。
-	@property
-	UCCont!(FlagId, FlagUser) flag() { return _flag; }
-	/// ditto
-	@property
-	UCCont!(StepId, StepUser) step() { return _step; }
-	/// ditto
-	@property
-	UCCont!(VariantId, VariantUser) variant() { return _variant; }
-	/// ditto
-	@property
-	UCCont!(AreaId, AreaUser) area() { return _area; }
-	/// ditto
-	@property
-	UCCont!(BattleId, BattleUser) battle() { return _battle; }
-	/// ditto
-	@property
-	UCCont!(PackageId, PackageUser) packages() { return _package; }
-	/// ditto
-	@property
-	UCCont!(PathId, PathUser) path() { return _path; }
-	/// ditto
-	@property
-	UCCont!(CastId, CastUser) casts() { return _cast; }
-	/// ditto
-	@property
-	UCCont!(SkillId, SkillUser) skill() { return _skill; }
-	/// ditto
-	@property
-	UCCont!(ItemId, ItemUser) item() { return _item; }
-	/// ditto
-	@property
-	UCCont!(BeastId, BeastUser) beast() { return _beast; }
-	/// ditto
-	@property
-	UCCont!(InfoId, InfoUser) info() { return _info; }
-	/// ditto
-	@property
-	UCCont!(CouponId, CouponUser) coupon() { return _coupon; }
-	/// ditto
-	@property
-	UCCont!(GossipId, GossipUser) gossip() { return _gossip; }
-	/// ditto
-	@property
-	UCCont!(CompleteStampId, CompleteStampUser) completeStamp() { return _completeStamp; }
-	/// ditto
-	@property
-	UCCont!(KeyCodeId, KeyCodeUser) keyCode() { return _keyCode; }
-	/// ditto
-	@property
-	UCCont!(CellNameId, CellNameUser) cellName() { return _cellName; }
-	/// ditto
-	@property
-	UCCont!(CardGroupId, CardGroupUser) cardGroup() { return _cardGroup; }
 
 	/// ID・Tの変更を通知する。
 	void change(T)(T oldId, T newId, bool dup = false) { mixin(S_TRACE);
-		static if (is(T == FlagId)) {
-			flag.change(oldId, newId, dup);
-		} else static if (is(T == StepId)) {
-			step.change(oldId, newId, dup);
-		} else static if (is(T == VariantId)) {
-			variant.change(oldId, newId, dup);
-		} else static if (is(T == AreaId)) {
-			area.change(oldId, newId, dup);
-		} else static if (is(T == BattleId)) {
-			battle.change(oldId, newId, dup);
-		} else static if (is(T == PackageId)) {
-			packages.change(oldId, newId, dup);
-		} else static if (is(T == PathId)) {
-			path.change(oldId, newId, dup);
-		} else static if (is(T == CastId)) {
-			casts.change(oldId, newId, dup);
-		} else static if (is(T == SkillId)) {
-			skill.change(oldId, newId, dup);
-		} else static if (is(T == ItemId)) {
-			item.change(oldId, newId, dup);
-		} else static if (is(T == BeastId)) {
-			beast.change(oldId, newId, dup);
-		} else static if (is(T == InfoId)) {
-			info.change(oldId, newId, dup);
-		} else static if (is(T == CouponId)) {
-			coupon.change(oldId, newId, dup);
-		} else static if (is(T == GossipId)) {
-			gossip.change(oldId, newId, dup);
-		} else static if (is(T == CompleteStampId)) {
-			completeStamp.change(oldId, newId, dup);
-		} else static if (is(T == KeyCodeId)) {
-			keyCode.change(oldId, newId, dup);
-		} else static if (is(T == CellNameId)) {
-			cellName.change(oldId, newId, dup);
-		} else static if (is(T == CardGroupId)) {
-			cardGroup.change(oldId, newId, dup);
-		} else { mixin(S_TRACE);
-			static assert (0);
-		}
+		(ucc!T).change(oldId, newId, dup);
 		if (_child) _child.change(oldId, newId, dup);
 	}
+
 	/// ID・Tの使用回数を返す。
 	const
 	uint get(T)(T id) { mixin(S_TRACE);
-		static if (is(T:FlagId)) {
-			return _flag.get(id);
-		} else static if (is(T:StepId)) {
-			return _step.get(id);
-		} else static if (is(T:VariantId)) {
-			return _variant.get(id);
-		} else static if (is(T:AreaId)) {
-			return _area.get(id);
-		} else static if (is(T:BattleId)) {
-			return _battle.get(id);
-		} else static if (is(T:PackageId)) {
-			return _package.get(id);
-		} else static if (is(T:PathId)) {
-			return _path.get(id);
-		} else static if (is(T:CastId)) {
-			return _cast.get(id);
-		} else static if (is(T:SkillId)) {
-			return _skill.get(id);
-		} else static if (is(T:ItemId)) {
-			return _item.get(id);
-		} else static if (is(T:BeastId)) {
-			return _beast.get(id);
-		} else static if (is(T:InfoId)) {
-			return _info.get(id);
-		} else static if (is(T:CouponId)) {
-			return _coupon.get(id);
-		} else static if (is(T:GossipId)) {
-			return _gossip.get(id);
-		} else static if (is(T:CompleteStampId)) {
-			return _completeStamp.get(id);
-		} else static if (is(T:KeyCodeId)) {
-			return _keyCode.get(id);
-		} else static if (is(T:CellNameId)) {
-			return _cellName.get(id);
-		} else static if (is(T:CardGroupId)) {
-			return _cardGroup.get(id);
-		} else { mixin(S_TRACE);
-			static assert (0);
-		}
+		return (ucc!T).get(id);
 	}
+
+	/// IDの一覧を返す。
+	@property
+	const
+	ID[] keys(ID)() { return (ucc!ID).keys; }
+
 	/// idの使用者一覧を返す。
 	@property
 	const
-	FlagUser[] values(FlagId id) { return _flag.values(id); }
+	IDToUser!ID[] values(ID)(ID id) { return (ucc!ID).values(id); }
+	/// ditto
 	@property
-	const
-	StepUser[] values(StepId id) { return _step.values(id); } /// ditto
-	@property
-	const
-	VariantUser[] values(VariantId id) { return _variant.values(id); } /// ditto
-	@property
-	const
-	AreaUser[] values(AreaId id) { return _area.values(id); } /// ditto
-	@property
-	const
-	BattleUser[] values(BattleId id) { return _battle.values(id); } /// ditto
-	@property
-	const
-	PackageUser[] values(PackageId id) { return _package.values(id); } /// ditto
-	@property
-	const
-	PathUser[] values(PathId id) { return _path.values(id); } /// ditto
-	@property
-	const
-	CastUser[] values(CastId id) { return _cast.values(id); } /// ditto
-	@property
-	const
-	SkillUser[] values(SkillId id) { return _skill.values(id); } /// ditto
-	@property
-	const
-	ItemUser[] values(ItemId id) { return _item.values(id); } /// ditto
-	@property
-	const
-	BeastUser[] values(BeastId id) { return _beast.values(id); } /// ditto
-	@property
-	const
-	InfoUser[] values(InfoId id) { return _info.values(id); } /// ditto
-	@property
-	const
-	CouponUser[] values(CouponId id) { return _coupon.values(id); } /// ditto
-	@property
-	const
-	GossipUser[] values(GossipId id) { return _gossip.values(id); } /// ditto
-	@property
-	const
-	CompleteStampUser[] values(CompleteStampId id) { return _completeStamp.values(id); } /// ditto
-	@property
-	const
-	KeyCodeUser[] values(KeyCodeId id) { return _keyCode.values(id); } /// ditto
-	@property
-	const
-	CellNameUser[] values(CellNameId id) { return _cellName.values(id); } /// ditto
-	@property
-	const
-	CardGroupUser[] values(CardGroupId id) { return _cardGroup.values(id); } /// ditto
+	inout
+	inout(HashSet!(IDToUser!ID)) valueSet(ID)(ID id) { return (ucc!ID).valueSet(id); }
 
-	@property
-	inout
-	inout(HashSet!FlagUser) valueSet(FlagId id) { return _flag.valueSet(id); } /// ditto
-	@property
-	inout
-	inout(HashSet!StepUser) valueSet(StepId id) { return _step.valueSet(id); } /// ditto
-	@property
-	inout
-	inout(HashSet!VariantUser) valueSet(VariantId id) { return _variant.valueSet(id); } /// ditto
-	@property
-	inout
-	inout(HashSet!AreaUser) valueSet(AreaId id) { return _area.valueSet(id); } /// ditto
-	@property
-	inout
-	inout(HashSet!BattleUser) valueSet(BattleId id) { return _battle.valueSet(id); } /// ditto
-	@property
-	inout
-	inout(HashSet!PackageUser) valueSet(PackageId id) { return _package.valueSet(id); } /// ditto
-	@property
-	inout
-	inout(HashSet!PathUser) valueSet(PathId id) { return _path.valueSet(id); } /// ditto
-	@property
-	inout
-	inout(HashSet!CastUser) valueSet(CastId id) { return _cast.valueSet(id); } /// ditto
-	@property
-	inout
-	inout(HashSet!SkillUser) valueSet(SkillId id) { return _skill.valueSet(id); } /// ditto
-	@property
-	inout
-	inout(HashSet!ItemUser) valueSet(ItemId id) { return _item.valueSet(id); } /// ditto
-	@property
-	inout
-	inout(HashSet!BeastUser) valueSet(BeastId id) { return _beast.valueSet(id); } /// ditto
-	@property
-	inout
-	inout(HashSet!InfoUser) valueSet(InfoId id) { return _info.valueSet(id); } /// ditto
-	@property
-	inout
-	inout(HashSet!CouponUser) valueSet(CouponId id) { return _coupon.valueSet(id); } /// ditto
-	@property
-	inout
-	inout(HashSet!GossipUser) valueSet(GossipId id) { return _gossip.valueSet(id); } /// ditto
-	@property
-	inout
-	inout(HashSet!CompleteStampUser) valueSet(CompleteStampId id) { return _completeStamp.valueSet(id); } /// ditto
-	@property
-	inout
-	inout(HashSet!KeyCodeUser) valueSet(KeyCodeId id) { return _keyCode.valueSet(id); } /// ditto
-	@property
-	inout
-	inout(HashSet!CellNameUser) valueSet(CellNameId id) { return _cellName.valueSet(id); } /// ditto
-	@property
-	inout
-	inout(HashSet!CardGroupUser) valueSet(CardGroupId id) { return _cardGroup.valueSet(id); } /// ditto
+	/// IDの所有者を追跡する。
+	private void add(ID, User)(ID id, User user) if (is(User:IDToUser!ID)) { (ucc!ID).add(id, user); }
+	/// IDの所有者を追跡から除外する。
+	private void remove(ID, User)(ID id, User user) if (is(User:IDToUser!ID)) { (ucc!ID).remove(id, user); }
 }

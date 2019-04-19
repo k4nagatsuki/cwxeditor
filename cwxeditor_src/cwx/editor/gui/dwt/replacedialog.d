@@ -551,14 +551,14 @@ private:
 			auto set = new HashSet!string;
 			if (_summ) { mixin(S_TRACE);
 				static if (is(T:cwx.flag.Flag)) {
-					foreach (key; _summ.useCounter.flag.keys) { mixin(S_TRACE);
+					foreach (key; _summ.useCounter.keys!FlagId) { mixin(S_TRACE);
 						if (.icmp(_prop.sys.randomValue, cast(string)key) == 0) continue;
 						_hasID = true;
 						if (!incSearch.match(cast(string)key)) continue;
 						set.add(cast(string)key);
 					}
 				} else static if (is(T:Step)) {
-					foreach (key; _summ.useCounter.step.keys) { mixin(S_TRACE);
+					foreach (key; _summ.useCounter.keys!StepId) { mixin(S_TRACE);
 						if (.icmp(_prop.sys.randomValue, cast(string)key) == 0) continue;
 						if (.icmp(_prop.sys.selectedPlayerCardNumber, cast(string)key) == 0) continue;
 						_hasID = true;
@@ -566,7 +566,7 @@ private:
 						set.add(cast(string)key);
 					}
 				} else static if (is(T:cwx.flag.Variant)) {
-					foreach (key; _summ.useCounter.variant.keys) { mixin(S_TRACE);
+					foreach (key; _summ.useCounter.keys!VariantId) { mixin(S_TRACE);
 						_hasID = true;
 						if (!incSearch.match(cast(string)key)) continue;
 						set.add(cast(string)key);
@@ -681,12 +681,12 @@ private:
 			.sortedWithPath(_summ.flagDirRoot.allVariants, _prop.var.etc.logicalSort, (cwx.flag.Variant f) { fs ~= f; });
 			setupIDsImpl1(fs, clear, from, to);
 			break;
-		case ID_COUPON: setupIDsImpl1(_summ.useCounter.coupon.keys, clear, from, to); break;
-		case ID_GOSSIP: setupIDsImpl1(_summ.useCounter.gossip.keys, clear, from, to); break;
-		case ID_COMPLETE_STAMP: setupIDsImpl1(_summ.useCounter.completeStamp.keys, clear, from, to); break;
-		case ID_KEY_CODE: setupIDsImpl1(_summ.useCounter.keyCode.keys, clear, from, to); break;
-		case ID_CELL_NAME: setupIDsImpl1(_summ.useCounter.cellName.keys, clear, from, to); break;
-		case ID_CARD_GROUP: setupIDsImpl1(_summ.useCounter.cardGroup.keys, clear, from, to); break;
+		case ID_COUPON: setupIDsImpl1(_summ.useCounter.keys!CouponId, clear, from, to); break;
+		case ID_GOSSIP: setupIDsImpl1(_summ.useCounter.keys!GossipId, clear, from, to); break;
+		case ID_COMPLETE_STAMP: setupIDsImpl1(_summ.useCounter.keys!CompleteStampId, clear, from, to); break;
+		case ID_KEY_CODE: setupIDsImpl1(_summ.useCounter.keys!KeyCodeId, clear, from, to); break;
+		case ID_CELL_NAME: setupIDsImpl1(_summ.useCounter.keys!CellNameId, clear, from, to); break;
+		case ID_CARD_GROUP: setupIDsImpl1(_summ.useCounter.keys!CardGroupId, clear, from, to); break;
 		default: assert (0);
 		}
 	}
@@ -3175,9 +3175,9 @@ public:
 			try { mixin(S_TRACE);
 				auto wildcard = Wildcard((cast(string)from).encodePath(), 0 == filenameCharCmp('A', 'a'));
 				auto users = new HashSet!PathUser;
-				foreach (key; uc.path.keys) { mixin(S_TRACE);
+				foreach (key; uc.keys!PathId) { mixin(S_TRACE);
 					if (wildcard.match((cast(string)key).encodePath())) { mixin(S_TRACE);
-						foreach (u; uc.path.values(key)) { mixin(S_TRACE);
+						foreach (u; uc.values(key)) { mixin(S_TRACE);
 							if (!(cast(Jpy1Sec)u || cast(Jpdc)u) && !dec(u.owner, range)) continue;
 							users.add(u);
 						}
@@ -3209,24 +3209,23 @@ public:
 	private void couponEditEnd(TableItem itm, int column, string text) { mixin(S_TRACE);
 		_inProc = true;
 		scope (exit) _inProc = false;
-		auto uc = _summ.useCounter;
 		if (itm.getImage() is _prop.images.couponNormal) { mixin(S_TRACE);
-			renameCoupon(_comm, _summ, itm, toCouponId(itm.getText()), toCouponId(text), uc.coupon, _undo, rangeTable, true, _result, this, _results);
+			renameCoupon(_comm, _summ, itm, toCouponId(itm.getText()), toCouponId(text), _undo, rangeTable, true, _result, this, _results);
 			_comm.refCoupons.call();
 		} else if (itm.getImage() is _prop.images.gossip) { mixin(S_TRACE);
-			renameCoupon(_comm, _summ, itm, toGossipId(itm.getText()), toGossipId(text), uc.gossip, _undo, rangeTable, true, _result, this, _results);
+			renameCoupon(_comm, _summ, itm, toGossipId(itm.getText()), toGossipId(text), _undo, rangeTable, true, _result, this, _results);
 			_comm.refGossips.call();
 		} else if (itm.getImage() is _prop.images.endScenario) { mixin(S_TRACE);
-			renameCoupon(_comm, _summ, itm, toCompleteStampId(itm.getText()), toCompleteStampId(text), uc.completeStamp, _undo, rangeTable, true, _result, this, _results);
+			renameCoupon(_comm, _summ, itm, toCompleteStampId(itm.getText()), toCompleteStampId(text), _undo, rangeTable, true, _result, this, _results);
 			_comm.refCompleteStamps.call();
 		} else if (itm.getImage() is _prop.images.keyCode) { mixin(S_TRACE);
-			renameCoupon(_comm, _summ, itm, toKeyCodeId(itm.getText()), toKeyCodeId(text), uc.keyCode, _undo, rangeTable, true, _result, this, _results);
+			renameCoupon(_comm, _summ, itm, toKeyCodeId(itm.getText()), toKeyCodeId(text), _undo, rangeTable, true, _result, this, _results);
 			_comm.refKeyCodes.call();
 		} else if (itm.getImage() is _prop.images.backs) { mixin(S_TRACE);
-			renameCoupon(_comm, _summ, itm, toCellNameId(itm.getText()), toCellNameId(text), uc.cellName, _undo, rangeTable, true, _result, this, _results);
+			renameCoupon(_comm, _summ, itm, toCellNameId(itm.getText()), toCellNameId(text), _undo, rangeTable, true, _result, this, _results);
 			_comm.refCellNames.call();
 		} else if (itm.getImage() is _prop.images.cards) { mixin(S_TRACE);
-			renameCoupon(_comm, _summ, itm, toCardGroupId(itm.getText()), toCardGroupId(text), uc.cardGroup, _undo, rangeTable, true, _result, this, _results);
+			renameCoupon(_comm, _summ, itm, toCardGroupId(itm.getText()), toCardGroupId(text), _undo, rangeTable, true, _result, this, _results);
 			_comm.refCardGroups.call();
 		}
 		_summ.changed();
@@ -3254,15 +3253,13 @@ public:
 		private Summary _summ;
 		private CouponParams[] _results;
 		private KeyType _oldVal, _newVal;
-		private UCCont!(KeyType, User) _uc;
 		private ReplaceDialog _dlg;
 		User[] users;
-		this (Commons comm, Summary summ, KeyType oldVal, KeyType newVal, UCCont!(KeyType, User) uc, ReplaceDialog dlg) { mixin(S_TRACE);
+		this (Commons comm, Summary summ, KeyType oldVal, KeyType newVal, ReplaceDialog dlg) { mixin(S_TRACE);
 			_comm = comm;
 			_summ = summ;
 			_oldVal = oldVal;
 			_newVal = newVal;
-			_uc = uc;
 			_dlg = dlg;
 			save();
 		}
@@ -3282,9 +3279,7 @@ public:
 			save();
 
 			foreach (u; users) { mixin(S_TRACE);
-				_uc.remove(_newVal, u);
-				u.change(_oldVal);
-				_uc.add(_oldVal, u);
+				UseCounter.replaceID(_oldVal, u);
 			}
 
 			if (_dlg) { mixin(S_TRACE);
@@ -3327,15 +3322,14 @@ public:
 		}
 		void dispose() { }
 	}
-	static void renameCoupon(KeyType, UC, RType)(Commons comm, Summary summ, TableItem itm, KeyType oldVal, KeyType newVal, UC uc, UndoManager undoManager, in bool[CWXPath] rangeT, bool useRangeT, Table list, ReplaceDialog dlg, RType[] nameList) { mixin(S_TRACE);
+	static void renameCoupon(KeyType, RType)(Commons comm, Summary summ, TableItem itm, KeyType oldVal, KeyType newVal, UndoManager undoManager, in bool[CWXPath] rangeT, bool useRangeT, Table list, ReplaceDialog dlg, RType[] nameList) { mixin(S_TRACE);
 		if (cast(string)oldVal == cast(string)newVal) return;
 		if (cast(string)newVal == "") return;
-		auto undo = new CouponUndo!(ForeachType!(typeof(uc.values(oldVal))), KeyType)(comm, summ, oldVal, newVal, uc, dlg);
+		auto uc = summ.useCounter;
+		auto undo = new CouponUndo!(ForeachType!(typeof(uc.values(oldVal))), KeyType)(comm, summ, oldVal, newVal, dlg);
 		foreach (u; uc.values(oldVal)) { mixin(S_TRACE);
 			if (!useRangeT || dec(u.owner, rangeT)) { mixin(S_TRACE);
-				uc.remove(oldVal, u);
-				u.change(newVal);
-				uc.add(newVal, u);
+				UseCounter.replaceID(newVal, u);
 				undo.users ~= u;
 				itm.setText(0, cast(string)newVal);
 			}
@@ -3398,22 +3392,22 @@ public:
 		auto uc = _summ.useCounter;
 		void search() { mixin(S_TRACE);
 			if (cCouponSel) { mixin(S_TRACE);
-				searchCouponImpl(uc.coupon.keys, uc, rangeT, &_prop.images.couponNormal, count);
+				searchCouponImpl(uc.keys!CouponId, uc, rangeT, &_prop.images.couponNormal, count);
 			}
 			if (cGossipSel) { mixin(S_TRACE);
-				searchCouponImpl(uc.gossip.keys, uc, rangeT, &_prop.images.gossip, count);
+				searchCouponImpl(uc.keys!GossipId, uc, rangeT, &_prop.images.gossip, count);
 			}
 			if (cEndSel) { mixin(S_TRACE);
-				searchCouponImpl(uc.completeStamp.keys, uc, rangeT, &_prop.images.endScenario, count);
+				searchCouponImpl(uc.keys!CompleteStampId, uc, rangeT, &_prop.images.endScenario, count);
 			}
 			if (cKeyCodeSel) { mixin(S_TRACE);
-				searchCouponImpl(uc.keyCode.keys, uc, rangeT, &_prop.images.keyCode, count);
+				searchCouponImpl(uc.keys!KeyCodeId, uc, rangeT, &_prop.images.keyCode, count);
 			}
 			if (cCellName) { mixin(S_TRACE);
-				searchCouponImpl(uc.cellName.keys, uc, rangeT, &_prop.images.backs, count);
+				searchCouponImpl(uc.keys!CellNameId, uc, rangeT, &_prop.images.backs, count);
 			}
 			if (cCardGroup) { mixin(S_TRACE);
-				searchCouponImpl(uc.cardGroup.keys, uc, rangeT, &_prop.images.cards, count);
+				searchCouponImpl(uc.keys!CardGroupId, uc, rangeT, &_prop.images.cards, count);
 			}
 		}
 

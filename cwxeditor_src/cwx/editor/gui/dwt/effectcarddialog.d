@@ -9,6 +9,7 @@ import cwx.path;
 import cwx.skin;
 import cwx.summary;
 import cwx.types;
+import cwx.usecounter;
 import cwx.utils;
 import cwx.warning;
 
@@ -57,6 +58,7 @@ private:
 	Commons _comm;
 	Props _prop;
 	Summary _summ;
+	UseCounter _useCounter;
 	C _card;
 
 	ImageSelect!(MtType.CARD) _imgPath;
@@ -628,7 +630,7 @@ private:
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(normalGridLayout(1, false));
 		{ mixin(S_TRACE);
-			_motions = new MotionView(_comm, _prop, _summ, comp, _readOnly);
+			_motions = new MotionView(_comm, _prop, _summ, _useCounter, comp, _readOnly);
 			mod(_motions);
 			_motions.warningEvent ~= &refreshWarning;
 			_motions.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -868,10 +870,11 @@ private:
 		}
 	}
 public:
-	this(Commons comm, Props prop, Shell shell, Summary summ, C card, bool readOnly) { mixin(S_TRACE);
+	this(Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, C card, bool readOnly) { mixin(S_TRACE);
 		assert (summ !is null);
 		_comm = comm;
 		_summ = summ;
+		_useCounter = uc;
 		_card = card;
 		_prop = prop;
 		_readOnly = readOnly ? SWT.READ_ONLY : SWT.NONE;

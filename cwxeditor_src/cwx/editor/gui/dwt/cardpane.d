@@ -3297,15 +3297,15 @@ public:
 			break;
 		case CardType.Skill:
 			c = new SkillCard(0, "", [], "");
-			dlg = new EffectCardDialog!SkillCard(_comm, _prop, dlgParShl, _summ, null, false);
+			dlg = new EffectCardDialog!SkillCard(_comm, _prop, dlgParShl, _summ, _summ.useCounter, null, false);
 			break;
 		case CardType.Item:
 			c = new ItemCard(0, "", [], "");
-			dlg = new EffectCardDialog!ItemCard(_comm, _prop, dlgParShl, _summ, null, false);
+			dlg = new EffectCardDialog!ItemCard(_comm, _prop, dlgParShl, _summ, _summ.useCounter, null, false);
 			break;
 		case CardType.Beast:
 			c = new BeastCard(0, "", [], "");
-			dlg = new EffectCardDialog!BeastCard(_comm, _prop, dlgParShl, _summ, null, false);
+			dlg = new EffectCardDialog!BeastCard(_comm, _prop, dlgParShl, _summ, _summ.useCounter, null, false);
 			break;
 		case CardType.Info:
 			c = new InfoCard(0, "", [], "");
@@ -3640,13 +3640,13 @@ public:
 			dlg = new CastCardDialog(_comm, _prop, dlgParShl, _summ, cast(CastCard)c, !editMode);
 			break;
 		case CardType.Skill:
-			dlg = new EffectCardDialog!SkillCard(_comm, _prop, dlgParShl, _summ, cast(SkillCard)c, !editMode);
+			dlg = new EffectCardDialog!SkillCard(_comm, _prop, dlgParShl, _summ, _summ.useCounter, cast(SkillCard)c, !editMode);
 			break;
 		case CardType.Item:
-			dlg = new EffectCardDialog!ItemCard(_comm, _prop, dlgParShl, _summ, cast(ItemCard)c, !editMode);
+			dlg = new EffectCardDialog!ItemCard(_comm, _prop, dlgParShl, _summ, _summ.useCounter, cast(ItemCard)c, !editMode);
 			break;
 		case CardType.Beast:
-			dlg = new EffectCardDialog!BeastCard(_comm, _prop, dlgParShl, _summ, cast(BeastCard)c, !editMode);
+			dlg = new EffectCardDialog!BeastCard(_comm, _prop, dlgParShl, _summ, _summ.useCounter, cast(BeastCard)c, !editMode);
 			break;
 		case CardType.Info:
 			dlg = new InfoCardDialog(_comm, _prop, dlgParShl, _summ, cast(InfoCard)c, !editMode);

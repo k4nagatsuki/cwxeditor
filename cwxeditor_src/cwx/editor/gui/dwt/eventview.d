@@ -432,11 +432,11 @@ private:
 			_summ = summ;
 			save(tree);
 		}
-		private void save(in EventTree tree) { mixin(S_TRACE);
+		private void save(EventTree tree) { mixin(S_TRACE);
 			_starts = new Content[tree.starts.length];
 			foreach (i, s; tree.starts) { mixin(S_TRACE);
 				_starts[i] = s.dup;
-				_starts[i].setUseCounter(_summ.useCounter.sub);
+				_starts[i].setUseCounter(s.useCounter.sub);
 			}
 		}
 		private TreeItem getItem(EventView v) { mixin(S_TRACE);
@@ -543,7 +543,7 @@ private:
 			_ownerIndex = cast(int).cCountUntil!("a is b")(etos(area), owner);
 			_treeIndex = cast(int).cCountUntil!("a is b")(owner.trees, tree);
 			_tree = tree.dup;
-			_tree.setUseCounter(summ.useCounter.sub);
+			_tree.setUseCounter(tree.useCounter.sub);
 		}
 		override void undo() { mixin(S_TRACE);
 			auto vs = views();

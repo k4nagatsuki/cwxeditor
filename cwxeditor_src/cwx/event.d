@@ -2336,7 +2336,8 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	}
 	/// 使用回数カウンタを返す。存在しない場合はnullを返す。
 	@property
-	UseCounter useCounter() { return _uc; }
+	inout
+	inout(UseCounter) useCounter() { return _uc; }
 
 	private SUseCounter _suc = null;
 	/// スタートの使用回数カウンタを設定・除去する。

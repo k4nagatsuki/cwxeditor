@@ -7,6 +7,7 @@ import cwx.expression;
 import cwx.flag;
 import cwx.menu;
 import cwx.msgutils;
+import cwx.path;
 import cwx.summary;
 import cwx.types;
 import cwx.utils;
@@ -63,6 +64,16 @@ public:
 		super (comm, prop, shell, summ, cType, parent, evt, true, prop.var.expressionDlg, true);
 	}
 
+	override
+	bool openCWXPath(string path, bool shellActivate) { mixin(S_TRACE);
+		auto cate = .cpcategory(path);
+		if (cate == "") return true;
+		if (cate == "expr") { mixin(S_TRACE);
+			_expr.editor.setFocus();
+			return true;
+		}
+		return false;
+	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
 		area.setLayout(normalGridLayout(1, false));
@@ -246,6 +257,16 @@ public:
 		super (comm, prop, shell, summ, CType.SET_VARIANT, parent, evt, true, prop.var.expressionWithTargetDlg, true);
 	}
 
+	override
+	bool openCWXPath(string path, bool shellActivate) { mixin(S_TRACE);
+		auto cate = .cpcategory(path);
+		if (cate == "") return true;
+		if (cate == "expr") { mixin(S_TRACE);
+			_expr.editor.setFocus();
+			return true;
+		}
+		return false;
+	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
 		area.setLayout(normalGridLayout(1, true));
@@ -605,6 +626,9 @@ class ExpressionEditor : Composite {
 			}
 		}
 	}
+
+	@property
+	Text editor() { return _expr; }
 
 	@property
 	string expression() { return .wrapReturnCode(_expr.getText()); }
