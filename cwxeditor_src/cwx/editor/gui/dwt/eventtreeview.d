@@ -961,7 +961,7 @@ private:
 
 	void updateSkinMaterialsExtension(Content c) { mixin(S_TRACE);
 		auto uc = c.useCounter;
-		c.setUseCounter(new UseCounter);
+		c.setUseCounter(new UseCounter(null));
 		scope (exit) {
 			if (uc) {
 				c.setUseCounter(uc);

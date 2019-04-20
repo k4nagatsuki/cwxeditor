@@ -195,7 +195,7 @@ private:
 	this (string sPath) { mixin(S_TRACE);
 		_sPath = sPath;
 		_id = .objectIDValue(this);
-		_uc = new UseCounter;
+		_uc = new UseCounter(this);
 		_froot = new FlagDir(this);
 		_froot.changeHandler = &changeHandler;
 		_froot.useCounter = useCounter;

@@ -433,7 +433,7 @@ class ImageLayerList : Composite, TCPD {
 		if (!_summ) return cardPaths;
 		auto fromSPath = node.attr("scenarioPath", false);
 		if (fromSPath.length > 0 && !cfnmatch(nabs(fromSPath), nabs(_summ.scenarioPath))) { mixin(S_TRACE);
-			auto uc = new UseCounter;
+			auto uc = new UseCounter(null);
 			foreach (path; cardPaths) { mixin(S_TRACE);
 				path.setUseCounter(uc);
 			}

@@ -2941,7 +2941,7 @@ public:
 		auto fromSName = node.attr("scenarioName", false);
 		auto fromSAuthor = node.attr("scenarioAuthor", false);
 		if (fromSPath.length > 0 && !cfnmatch(fromSPath, .nabs(_summ.scenarioPath))) { mixin(S_TRACE);
-			scope uc = new UseCounter;
+			auto uc = new UseCounter(null);
 			foreach (a; as) { mixin(S_TRACE);
 				a.setUseCounter(uc);
 			}

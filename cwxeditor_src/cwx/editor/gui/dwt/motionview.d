@@ -1683,7 +1683,7 @@ public:
 	private bool qCardMaterialCopy(BeastCard card, string fromSPath) { mixin(S_TRACE);
 		if (!_summ || _summ.scenarioPath == "") return false;
 		if (fromSPath.length && !cfnmatch(nabs(fromSPath), nabs(_summ.scenarioPath))) { mixin(S_TRACE);
-			auto uc = new UseCounter;
+			auto uc = new UseCounter(null);
 			card.setUseCounter(uc);
 			bool copy;
 			bool r = qMaterialCopy(_comm, getShell(), uc,

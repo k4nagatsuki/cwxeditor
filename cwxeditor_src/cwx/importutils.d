@@ -95,7 +95,7 @@ struct ImportResult {
 /// 上書きが許可されていれば重複する可能性がある。
 ImportResult importResource(in CProps prop, Summary to, Summary from, in string[] resCWXPath, in ImportOption opt) { mixin(S_TRACE);
 	ImportResult r;
-	auto uc = new UseCounter;
+	auto uc = new UseCounter(null);
 	CWXPath[] objs;
 	// 直接のインポート対象。
 	foreach (cwxPath; resCWXPath) { mixin(S_TRACE);

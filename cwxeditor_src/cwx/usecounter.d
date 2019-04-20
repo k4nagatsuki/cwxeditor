@@ -2082,6 +2082,7 @@ template IDToUser(ID) {
 /// グローバル用とローカル用のSingleUseCounterを持ち、
 /// ローカルのリソースの有無に応じて使用者を振り分ける。
 class UseCounter {
+	private CWXPath _owner = null;
 	private SingleUseCounter _global = null;
 	private SingleUseCounter _local = null;
 
@@ -2149,19 +2150,26 @@ class UseCounter {
 	}
 
 	/// インスタンスを生成する。
-	this () { mixin(S_TRACE);
-		this (new SingleUseCounter, null, true);
+	this (CWXPath owner) { mixin(S_TRACE);
+		this (owner, new SingleUseCounter, null, true);
 	}
 
-	/// 親リソースの使用回数カウンタをグローバル用としてインスタンスを生成する。
-	this (UseCounter global) { mixin(S_TRACE);
-		this (global._global, new SingleUseCounter, true);
+	/// 親リソースの使用回数カウンタをグローバル用
+	this (CWXPath owner, UseCounter global) { mixin(S_TRACE);
+		this (owner, global._global, new SingleUseCounter, true);
 	}
-	private this (SingleUseCounter global, SingleUseCounter local, bool createSub) { mixin(S_TRACE);
+	private this (CWXPath owner, SingleUseCounter global, SingleUseCounter local, bool createSub) { mixin(S_TRACE);
+		_owner = owner;
 		_global = global;
 		_local = local;
-		if (createSub) _sub = new UseCounter(global.sub, local ? local.sub : null, false);
+		if (createSub) _sub = new UseCounter(owner, global.sub, local ? local.sub : null, false);
 	}
+
+	/// この使用回数カウンタの所有者を返す。
+	/// 一時的に使用される使用回数カウンタの場合はnull。
+	@property
+	inout
+	inout(CWXPath) owner() { return _owner; }
 
 	/// 「アンドゥリストの中にあるのでカウントはしないが、パスの更新は反映したい」
 	/// 等の場合に使う。
@@ -2308,8 +2316,8 @@ class UseCounter {
 	}
 } unittest {
 	mixin(UTPerf);
-	auto uc = new UseCounter;
-	auto luc = new UseCounter(uc);
+	auto uc = new UseCounter(null);
+	auto luc = new UseCounter(null, uc);
 	luc.createID(toFlagId("LOCAL_1"));
 
 	auto u1 = new FlagUser(null);

@@ -3,22 +3,23 @@ module cwx.card;
 
 import cwx.coupon;
 import cwx.event;
+import cwx.flag;
 import cwx.motion;
-import cwx.utils;
-import cwx.usecounter;
-import cwx.types;
-import cwx.race;
-import cwx.xml;
-import cwx.utils;
 import cwx.path;
+import cwx.race;
 import cwx.structs;
 import cwx.system;
+import cwx.types;
+import cwx.usecounter;
+import cwx.utils;
+import cwx.utils;
+import cwx.xml;
 
 import std.algorithm;
 import std.array;
+import std.conv;
 import std.exception;
 import std.typecons;
-import std.conv;
 
 /// データをXML化する時のオプション。
 class XMLOption {
@@ -1449,6 +1450,7 @@ private:
 	Premium _premi = Premium.NORMAL;
 	MotionUser _muser;
 	AbstractEventTreeOwner _ceto;
+	FlagDir _flagDirRoot;
 	class CETO : AbstractEventTreeOwner {
 		override
 		@property
@@ -1499,6 +1501,7 @@ public:
 		_se2 = new PathUser(this);
 		_keyCodes = new KeyCodesUser(this);
 		_enh = [Enhance.AVOID:0, Enhance.RESIST:0, Enhance.DEFENSE:0];
+		_flagDirRoot = new FlagDir(this);
 	}
 	/// cからパラメータをコピーする。
 	protected void shallowCopyEffectCard(in EffectCard c) { mixin(S_TRACE);
@@ -1538,6 +1541,7 @@ public:
 		foreach (tree; c.trees) { mixin(S_TRACE);
 			add(tree.dup);
 		}
+		_flagDirRoot = new FlagDir(this, c.flagDirRoot);
 	}
 	/// IDを除く内部データをクリアする。
 	protected override void clearData() { mixin(S_TRACE);
@@ -1567,11 +1571,12 @@ public:
 		keyCodes = [];
 		premium = Premium.NORMAL;
 		motions = [];
+		_flagDirRoot.removeAll();
 	}
 
 	override
 	bool opEquals(Object o) { mixin(S_TRACE);
-		auto c = cast(const EffectCard) o;
+		auto c = cast(const EffectCard)o;
 		if (!c) return false;
 		if (0 != linkId) return linkId == c.linkId;
 		if (!super.opEquals(o)) return false;
@@ -1611,7 +1616,8 @@ public:
 			&& keyCodes == c.keyCodes
 			&& premium == c.premium
 			&& motions == c.motions
-			&& trees == c.trees;
+			&& trees == c.trees
+			&& flagDirRoot == c.flagDirRoot;
 	}
 
 	@property
@@ -1619,6 +1625,11 @@ public:
 	abstract ulong linkId();
 	@property
 	abstract void linkId(ulong);
+
+	/// このカードが持つローカル変数。
+	@property
+	inout
+	inout(FlagDir) flagDirRoot() { return _flagDirRoot; }
 
 	/// カードが属するシナリオ名、及びカードの製作者。
 	/// 他のシナリオからのインポート等があるため、
@@ -1840,16 +1851,22 @@ public:
 		super.changeHandler = change;
 		_ceto.changeHandler = changeHandler;
 		_muser.changeHandler = changeHandler;
+		flagDirRoot.changeHandler = changeHandler;
 	}
 	@property
 	override void setUseCounter(UseCounter uc) { mixin(S_TRACE);
-		setUseCounterImpl(uc);
-		_ceto.setUseCounter = uc;
-		_muser.setUseCounter = uc;
-		_se1.setUseCounter = uc;
-		_se2.setUseCounter = uc;
-		_keyCodes.setUseCounter = uc;
-		super.setUseCounter = uc;
+		auto uc2 = new UseCounter(this, uc);
+		foreach (f; flagDirRoot.allFlags) uc2.createID(toFlagId(f.path));
+		foreach (f; flagDirRoot.allSteps) uc2.createID(toStepId(f.path));
+		foreach (f; flagDirRoot.allVariants) uc2.createID(toVariantId(f.path));
+		setUseCounterImpl(uc2);
+		_ceto.setUseCounter = uc2;
+		_muser.setUseCounter = uc2;
+		_se1.setUseCounter = uc2;
+		_se2.setUseCounter = uc2;
+		_keyCodes.setUseCounter = uc2;
+		flagDirRoot.useCounter = uc2;
+		super.setUseCounter = uc2;
 	}
 	@property
 	override void removeUseCounter() { mixin(S_TRACE);
@@ -1859,6 +1876,7 @@ public:
 		_se1.removeUseCounter();
 		_se2.removeUseCounter();
 		_keyCodes.removeUseCounter();
+		flagDirRoot.useCounter = null;
 		super.removeUseCounter();
 	}
 	protected abstract void setUseCounterImpl(UseCounter uc);
@@ -1948,11 +1966,12 @@ public:
 				m.toNode(mNode, opt);
 			}
 			_ceto.appendEventsToNode(node, opt);
+			flagDirRoot.toNodeAll(node, opt.logicalSort, false);
 			return pNode;
 		}
 	}
 	/// 指定されたXMLノードから効果カード関連のデータを読み出す。
-	protected void loadEffProp(ref XNode pNode, in XMLInfo ver, bool loadId = true) { mixin(S_TRACE);
+	protected void loadEffProp(ref XNode node, ref XNode pNode, in XMLInfo ver, bool loadId = true) { mixin(S_TRACE);
 		assert (pNode.name == "Property");
 		pNode.onTag["LinkId"] = (ref XNode n) { linkId = .to!ulong(n.value); };
 		pNode.onTag["Scenario"] = (ref XNode n) { _scenario = n.value; };
@@ -1989,6 +2008,7 @@ public:
 		};
 		pNode.onTag["KeyCodes"] = (ref XNode n) { keyCodes = decodeLf(n.value, true); };
 		pNode.onTag["Premium"] = (ref XNode n) { _premi = toPremium(n.value); };
+		_flagDirRoot = FlagDir.fromXmlNode(node, this, changeHandler, ver, false);
 		loadProp(pNode, ver, loadId);
 	}
 	/// ditto
@@ -2018,6 +2038,9 @@ public:
 			if (index >= motions.length) return null;
 			return motions[index].findCWXPath(cpbottom(path));
 		}
+		case "variable": { mixin(S_TRACE);
+			return flagDirRoot.findCWXPath(cpbottom(path));
+		}
 		default: break;
 		}
 		return null;
@@ -2029,6 +2052,7 @@ public:
 		inout(CWXPath)[] r;
 		foreach (a; motions) r ~= a;
 		r ~= _ceto.cwxChilds;
+		r ~= flagDirRoot.cwxChilds;
 		return r;
 	}
 }
@@ -2226,7 +2250,7 @@ public:
 			pNode.onTag["Level"] = (ref XNode n) { r._level = n.valueTo!(int); };
 			pNode.onTag["UseLimit"] = (ref XNode n) { r._useLimit = n.valueTo!(int); };
 			pNode.onTag["Hold"] = (ref XNode n) { r._hold = parseBool(n.value); };
-			r.loadEffProp(pNode, ver);
+			r.loadEffProp(cNode, pNode, ver);
 		};
 		r.loadEffV(cNode, ver);
 		return r;
@@ -2500,7 +2524,7 @@ public:
 				r._oEnh[Enhance.DEFENSE] = n.attr!(int)("defense", true);
 			};
 			pNode.onTag["Hold"] = (ref XNode n) { r._hold = parseBool(n.value); };
-			r.loadEffProp(pNode, ver);
+			r.loadEffProp(cNode, pNode, ver);
 		};
 		r.loadEffV(cNode, ver);
 		return r;
@@ -2794,7 +2818,7 @@ public:
 			pNode.onTag["ShowStyle"] = (ref XNode n) { mixin(S_TRACE);
 				r.showStyle = toShowStyle(n.value);
 			};
-			r.loadEffProp(pNode, ver);
+			r.loadEffProp(cNode, pNode, ver);
 		};
 		r.loadEffV(cNode, ver);
 		return r;
@@ -3022,7 +3046,7 @@ public:
 			pNode.onTag["Id"] = (ref XNode e) { mixin(S_TRACE);
 				actionCardType = cast(ActionCardType)to!int(e.value);
 			};
-			r.loadEffProp(pNode, ver, false);
+			r.loadEffProp(cNode, pNode, ver, false);
 		};
 		r.loadEffV(cNode, ver);
 		r._actionCardType = actionCardType;

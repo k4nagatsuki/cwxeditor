@@ -133,7 +133,7 @@ public:
 		assert (std.algorithm.sort(exp.flagsInText).array() == ["testflag", "testflag"]);
 		assert (std.algorithm.sort(exp.stepsInText).array() == ["TESTSTEP", "TestStep", "teststep"]);
 		assert (std.algorithm.sort(exp.variantsInText).array() == ["testvar", "testvar"]);
-		auto uc = new UseCounter;
+		auto uc = new UseCounter(null);
 		exp.setUseCounter(uc);
 		uc.change(toFlagId("testflag"), toFlagId("_replflag_"));
 		uc.change(toStepId("TestStep"), toStepId("RplStp"));

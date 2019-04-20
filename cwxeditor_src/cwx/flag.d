@@ -15,6 +15,7 @@ import std.array;
 import std.conv;
 import std.datetime;
 import std.exception;
+import std.math;
 import std.string;
 import std.typecons : Rebindable, rebindable;
 
@@ -117,7 +118,7 @@ public:
 	alias toFlagId toID;
 
 	/// コピーコンストラクタ。
-	this (Flag copyBase) { mixin(S_TRACE);
+	this (in Flag copyBase) { mixin(S_TRACE);
 		_on = new TextHolder;
 		_on.changeHandler = &changed;
 		_off = new TextHolder;
@@ -144,8 +145,15 @@ public:
 
 	const
 	override
-	bool opEquals(Object o) {
-		return this is o;
+	bool opEquals(Object o) { mixin(S_TRACE);
+		if (this is o) return true;
+		auto f = cast(const Flag)o;
+		if (!f) return false;
+		return on == f.on
+			&& off == f.off
+			&& onOff == f.onOff
+			&& name == f.name
+			&& expandSPChars == f.expandSPChars;
 	}
 
 	/// flagのパラメータをコピーする。
@@ -363,7 +371,7 @@ public:
 	alias toStepId toID;
 
 	/// コピーコンストラクタ。
-	this (Step copyBase) { mixin(S_TRACE);
+	this (in Step copyBase) { mixin(S_TRACE);
 		_name = copyBase.name;
 		setValues(copyBase.values, copyBase._select);
 		_expandSPChars = copyBase.expandSPChars;
@@ -376,8 +384,14 @@ public:
 
 	const
 	override
-	bool opEquals(Object o) {
-		return this is o;
+	bool opEquals(Object o) { mixin(S_TRACE);
+		if (this is o) return true;
+		auto f = cast(const Step)o;
+		if (!f) return false;
+		return select == f.select
+			&& name == f.name
+			&& values == f.values
+			&& expandSPChars == f.expandSPChars;
 	}
 
 	/// stepのパラメータをコピーする。
@@ -665,8 +679,17 @@ public:
 
 	const
 	override
-	bool opEquals(Object o) {
-		return this is o;
+	bool opEquals(Object o) { mixin(S_TRACE);
+		if (this is o) return true;
+		auto f = cast(const Variant)o;
+		if (!f) return false;
+		if (type != f.type) return false;
+		if (name != f.name) return false;
+		final switch (type) {
+		case VariantType.Number: return numVal.approxEqual(f.numVal);
+		case VariantType.String: return strVal == f.strVal;
+		case VariantType.Boolean: return boolVal == f.boolVal;
+		}
 	}
 
 	/// stepのパラメータをコピーする。
@@ -899,10 +922,11 @@ public:
 	}
 	/// コピーコンストラクタ。
 	/// サブディレクトリ等も全てコピーされる。
-	this (FlagDir copyBase) { mixin(S_TRACE);
+	this (CWXPath owner, in FlagDir copyBase) { mixin(S_TRACE);
+		this (owner);
 		name = copyBase.name;
 		foreach (d; copyBase.subDirs) { mixin(S_TRACE);
-			add(new FlagDir(d));
+			add(new FlagDir(null, d));
 		}
 		foreach (f; copyBase.flags) { mixin(S_TRACE);
 			add(new Flag(f));
@@ -963,6 +987,19 @@ public:
 	}
 	@property
 	CWXPath cwxParent() { return _owner ? _owner : _parent; }
+
+	const
+	override
+	bool opEquals(Object o) { mixin(S_TRACE);
+		if (this is o) return true;
+		auto f = cast(const FlagDir)o;
+		if (!f) return false;
+		return name == f.name
+			&& _flagNames == f._flagNames
+			&& _stepNames == f._stepNames
+			&& _variantNames == f._variantNames
+			&& _dirNames == f._dirNames;
+	}
 
 	/// 親ディレクトリ。
 	@property
@@ -1452,14 +1489,22 @@ public:
 	}
 
 	/// 指定されたノードにこのディレクトリ内のフラグとステップのデータを追加する。
-	void toNode(ref XNode e) { mixin(S_TRACE);
-		auto fe = e.newElement("Flags");
-		toNodeFlags(fe);
-		auto se = e.newElement("Steps");
-		toNodeSteps(se);
-		auto ve = e.newElement("Variants");
-		toNodeVariants(ve);
+	const
+	void toNode(ref XNode e, bool createEmptyElement = true) { mixin(S_TRACE);
+		if (createEmptyElement || hasFlag) { mixin(S_TRACE);
+			auto fe = e.newElement("Flags");
+			toNodeFlags(fe);
+		}
+		if (createEmptyElement || hasStep) { mixin(S_TRACE);
+			auto se = e.newElement("Steps");
+			toNodeSteps(se);
+		}
+		if (createEmptyElement || hasVariant) { mixin(S_TRACE);
+			auto ve = e.newElement("Variants");
+			toNodeVariants(ve);
+		}
 	}
+	const
 	private void toNodeFlags(ref XNode e) { mixin(S_TRACE);
 		foreach (flag; flags) { mixin(S_TRACE);
 			flag.toNode(e);
@@ -1468,6 +1513,7 @@ public:
 			}
 		}
 	}
+	const
 	private void toNodeSteps(ref XNode e) { mixin(S_TRACE);
 		foreach (step; steps) { mixin(S_TRACE);
 			step.toNode(e);
@@ -1476,6 +1522,7 @@ public:
 			}
 		}
 	}
+	const
 	private void toNodeVariants(ref XNode e) { mixin(S_TRACE);
 		foreach (variant; variants) { mixin(S_TRACE);
 			variant.toNode(e);
@@ -2126,20 +2173,26 @@ public:
 
 	/// 配下にある全てのフラグとステップのデータをノードに追加する。
 	const
-	void toNodeAll(ref XNode node, bool logicalSort) { mixin(S_TRACE);
-		auto fe = node.newElement("Flags");
-		// BUG: std.algorithm.sortがconstレンジを受け付けない
-		.sortedWithPath(cast(Flag[])allFlags, logicalSort, (Flag flag) { mixin(S_TRACE);
-			flag.toNode(fe);
-		});
-		auto se = node.newElement("Steps");
-		.sortedWithPath(cast(Step[])allSteps, logicalSort, (Step step) { mixin(S_TRACE);
-			step.toNode(se);
-		});
-		auto ve = node.newElement("Variants");
-		.sortedWithPath(cast(Variant[])allVariants, logicalSort, (Variant variant) { mixin(S_TRACE);
-			variant.toNode(ve);
-		});
+	void toNodeAll(ref XNode node, bool logicalSort, bool createEmptyElement = true) { mixin(S_TRACE);
+		if (createEmptyElement || hasFlag) { mixin(S_TRACE);
+			auto fe = node.newElement("Flags");
+			// BUG: std.algorithm.sortがconstレンジを受け付けない
+			.sortedWithPath(cast(Flag[])allFlags, logicalSort, (Flag flag) { mixin(S_TRACE);
+				flag.toNode(fe);
+			});
+		}
+		if (createEmptyElement || hasStep) { mixin(S_TRACE);
+			auto se = node.newElement("Steps");
+			.sortedWithPath(cast(Step[])allSteps, logicalSort, (Step step) { mixin(S_TRACE);
+				step.toNode(se);
+			});
+		}
+		if (createEmptyElement || hasVariant) { mixin(S_TRACE);
+			auto ve = node.newElement("Variants");
+			.sortedWithPath(cast(Variant[])allVariants, logicalSort, (Variant variant) { mixin(S_TRACE);
+				variant.toNode(ve);
+			});
+		}
 	}
 
 	/// XMLノードを元に、フラグディレクトリのツリーを生成して返す。
@@ -2147,7 +2200,7 @@ public:
 	/// node = ノード。
 	/// change = 変更を通知するハンドラ。
 	/// Returns: ディレクトリツリー。
-	static FlagDir fromXmlNode(ref XNode node, CWXPath owner, void delegate() change, in XMLInfo ver) { mixin(S_TRACE);
+	static FlagDir fromXmlNode(ref XNode node, CWXPath owner, void delegate() change, in XMLInfo ver, bool startParse = true) { mixin(S_TRACE);
 		auto root = new FlagDir(owner);
 		node.onTag["Flags"] = (ref XNode node) { mixin(S_TRACE);
 			fromXmlNodeImpl!(Flag)(node, root, "Flag", &Flag.createFromNode, ver);
@@ -2158,7 +2211,7 @@ public:
 		node.onTag["Variants"] = (ref XNode node) { mixin(S_TRACE);
 			fromXmlNodeImpl!(Variant)(node, root, "Variant", &Variant.createFromNode, ver);
 		};
-		node.parse();
+		if (startParse) node.parse();
 		root.changeHandler = change;
 		return root;
 	}
