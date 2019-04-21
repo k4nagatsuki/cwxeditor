@@ -2293,7 +2293,7 @@ private:
 			}
 		}
 		override void dragFinished(DragSourceEvent e) { mixin(S_TRACE);
-			if (e.detail == DND.DROP_MOVE) { mixin(S_TRACE);
+			if (!_readOnly && e.detail == DND.DROP_MOVE) { mixin(S_TRACE);
 				foreach (flag; _dragFlags) { mixin(S_TRACE);
 					flag.parent.remove(flag);
 					uc.deleteID(toFlagId(flag.path));
@@ -2657,7 +2657,7 @@ public:
 		flags.addKeyListener(new KListener);
 		flags.addMouseListener(new MListener);
 		auto menu = new Menu(flags.getShell(), SWT.POP_UP);
-		createMenuItem(_comm, menu, MenuID.IncSearch, &incSearch, () => _dir.flags.length || _dir.steps.length || _dir.variants.length);
+		createMenuItem(_comm, menu, MenuID.IncSearch, &incSearch, () => _dir && (_dir.flags.length || _dir.steps.length || _dir.variants.length));
 		new MenuItem(menu, SWT.SEPARATOR);
 		if (_readOnly) { mixin(S_TRACE);
 			createMenuItem(_comm, menu, MenuID.ShowProp, &edit, &canEdit);
@@ -2736,7 +2736,7 @@ public:
 			AdditionMatcher(MenuProps.buildMenu(.objName!Step(prop), "S", "", false), (o) => cast(Step)o !is null),
 			AdditionMatcher(MenuProps.buildMenu(.objName!(cwx.flag.Flag)(prop), "F", "", false), (o) => cast(cwx.flag.Flag)o !is null),
 		];
-		_incSearch = new IncSearch(_comm, incSearchParent, () => _dir.flags.length || _dir.steps.length || _dir.variants.length, matchers);
+		_incSearch = new IncSearch(_comm, incSearchParent, () => _dir && (_dir.flags.length || _dir.steps.length || _dir.variants.length), matchers);
 		_incSearch.modEvent ~= &refresh;
 	}
 	private Composite _comp = null;
