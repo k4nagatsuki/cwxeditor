@@ -234,10 +234,12 @@ class SplitPane : Composite {
 			_sfd.left = new FormAttachment(0, 0);
 			_sfd.top = new FormAttachment(50, 0);
 			_sfd.right = new FormAttachment(100, 0);
+			_sfd.height = SASH_WIDTH.ppis;
 		} else { mixin(S_TRACE);
 			_sfd.left = new FormAttachment(50, 0);
 			_sfd.top = new FormAttachment(0, 0);
 			_sfd.bottom = new FormAttachment(100, 0);
+			_sfd.width = SASH_WIDTH.ppis;
 		}
 		if (getStyle() & SWT.VERTICAL) { mixin(S_TRACE);
 			_fd2.left = new FormAttachment(0, 0);
@@ -250,7 +252,6 @@ class SplitPane : Composite {
 			_fd2.top = new FormAttachment(0, 0);
 			_fd2.bottom = new FormAttachment(100, 0);
 		}
-		_sfd.width = SASH_WIDTH.ppis;
 		_sash.setLayoutData(_sfd);
 		_sash.addListener(SWT.Selection, new SSelL);
 	}
