@@ -147,7 +147,7 @@ PImg createCastCardImage(PImg)(Commons comm, Skin skin, in Summary summ, in Enem
 	if (card) { mixin(S_TRACE);
 		auto overrideName = "";
 		if (ec.isOverrideName) { mixin(S_TRACE);
-			overrideName = .createSPCharPreview(comm, summ, ec.overrideName, false, null, null);
+			overrideName = .createSPCharPreview(comm, summ, ec.useCounter, ec.overrideName, false, null, null);
 		}
 		auto cImg = .castCardImage(comm.prop, skin, summ, card, dbgMode, ec.isOverrideName, overrideName, ec.isOverrideImage, ec.overrideImages);
 		r = createCardImageCommon!PImg(comm.prop, summ, cImg, matPad, x, y, scale, smoothing, layer);
@@ -194,13 +194,13 @@ PImg createMenuCardImage(PImg)(Props prop, Skin skin, in Summary summ,
 	return r;
 }
 
-BgImagesView createBgImagesViewAndMenu(Commons comm, Props prop, Summary summ, BgImageContainer cont, 
+BgImagesView createBgImagesViewAndMenu(Commons comm, Props prop, Summary summ, UseCounter uc, BgImageContainer cont, 
 		Composite parent, AbstractArea refTarget, bool showInheritBacks, bool readOnly) { mixin(S_TRACE);
 	auto undo = new UndoManager(prop.var.etc.undoMaxEvent);
 	void refUndoMax() { mixin(S_TRACE);
 		undo.max = prop.var.etc.undoMaxEvent;
 	}
-	auto view = new BgImagesView(comm, prop, summ, cont, parent, refTarget, showInheritBacks, undo, readOnly);
+	auto view = new BgImagesView(comm, prop, summ, uc, cont, parent, refTarget, showInheritBacks, undo, readOnly);
 	comm.refUndoMax.add(&refUndoMax);
 	view.addDisposeListener(new class DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
@@ -237,10 +237,10 @@ PileImage createMessageImage(Commons comm, Props prop, in Summary summ) { mixin(
 	return img;
 }
 
-private string createFlagName(in Commons comm, in Summary summ, string path) { mixin(S_TRACE);
+private string createFlagName(in Commons comm, in Summary summ, in UseCounter uc, string path) { mixin(S_TRACE);
 	if (!path.length) return comm.prop.msgs.areaViewStatusNoFlag;
 	if (summ) { mixin(S_TRACE);
-		auto f = summ.flagDirRoot.findFlag(path);
+		auto f = .findVar!(cwx.flag.Flag)(summ.flagDirRoot, uc, path);
 		if (f) return .tryFormat(comm.prop.msgs.areaViewStatusWithFlag, path);
 	}
 	return .tryFormat(comm.prop.msgs.areaViewStatusInvalidFlag, path);
@@ -312,7 +312,7 @@ string createAreaViewStatusLine(in Commons comm, in Summary summ, in Skin skin, 
 }
 private string statusParams(in Commons comm, in Summary summ, in AbstractSpCard card) { mixin(S_TRACE);
 	string[] params;
-	if (summ) params ~= createFlagName(comm, summ, card.flag);
+	if (summ) params ~= createFlagName(comm, summ, card.useCounter, card.flag);
 	if (card.layer != LAYER_MENU_CARD) params ~= .tryFormat(comm.prop.msgs.areaViewStatusWithLayer, card.layer);
 	if (card.animationSpeed != -1) params ~= .tryFormat(comm.prop.msgs.areaViewStatusWithCardSpeed, card.animationSpeed);
 	return params.join(" ");
@@ -353,7 +353,7 @@ string createAreaViewStatusLine(in Commons comm, in Summary summ, in Skin skin, 
 }
 private string statusParams(in Commons comm, in Summary summ, in BgImage back) { mixin(S_TRACE);
 	string[] params;
-	if (summ) params ~= createFlagName(comm, summ, back.flag);
+	if (summ) params ~= createFlagName(comm, summ, back.useCounter, back.flag);
 	if (back.layer != LAYER_BACK_CELL) params ~= .tryFormat(comm.prop.msgs.areaViewStatusWithLayer, back.layer);
 	return params.join(" ");
 }

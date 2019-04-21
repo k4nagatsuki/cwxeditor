@@ -1084,7 +1084,7 @@ private:
 	}
 
 	EventDialog createEventDialog(Content evt, Content parent, bool create) { mixin(S_TRACE);
-		return .createEventDialog(_comm, _summ, _tree.control.getShell(), evt, parent, create);
+		return .createEventDialog(_comm, _summ, _et.useCounter, _tree.control.getShell(), evt, parent, create);
 	}
 
 	@property
@@ -2502,7 +2502,7 @@ public:
 	private Combo createCouponEditor(string coupon, bool expandSPChars) { mixin(S_TRACE);
 		if (_readOnly) return null;
 		if (_ee) _ee.minimumWidth = _prop.var.etc.couponWidth;
-		return createCouponCombo!Combo(_comm, _summ, _tree.control, null, CouponComboType.AllCoupons, coupon, expandSPChars);
+		return createCouponCombo!Combo(_comm, _summ, _et.useCounter, _tree.control, null, CouponComboType.AllCoupons, coupon, expandSPChars);
 	}
 	private Control createEditor(TreeItem itm) { mixin(S_TRACE);
 		return createEditor(cast(Item)itm);
@@ -2520,13 +2520,13 @@ public:
 					auto t = createSelectionCombo(_comm, _tree.control, null, (cast(Content)itm.getData()).name);
 					auto menu = t.getMenu();
 					new MenuItem(menu, SWT.SEPARATOR);
-					.setupSPCharsMenu(_comm, _summ, t, menu, false, true, () => true);
+					.setupSPCharsMenu(_comm, _summ, _et.useCounter, t, menu, false, true, () => true);
 					return t;
 				} else { mixin(S_TRACE);
 					auto t = createTextEditor(_comm, _prop, _tree.control, (cast(Content)itm.getData()).name);
 					auto menu = t.getMenu();
 					new MenuItem(menu, SWT.SEPARATOR);
-					.setupSPCharsMenu(_comm, _summ, t, menu, false, true, () => true);
+					.setupSPCharsMenu(_comm, _summ, _et.useCounter, t, menu, false, true, () => true);
 					return t;
 				}
 			}
@@ -2538,17 +2538,17 @@ public:
 		auto c = cast(Content)itm.getData();
 		switch (data.type) {
 		case CType.BRANCH_FLAG: { mixin(S_TRACE);
-			return createBoolEditor!("evtChildBrFlag(_prop, _summ, evt.flag, name)")(data, c);
+			return createBoolEditor!("evtChildBrFlag(_prop, _summ, evt.useCounter, evt.flag, name)")(data, c);
 		} case CType.BRANCH_MULTI_STEP: { mixin(S_TRACE);
-			Step step = _summ.flagDirRoot.findStep(data.step);
+			auto step = .findVar!Step(_summ ? _summ.flagDirRoot : null, data.useCounter, data.step);
 			ulong[] nums;
 			ulong count = step is null ? _prop.looks.stepMaxCount : step.count;
 			for (ulong i = 0; i < count; i++) { mixin(S_TRACE);
 				nums ~= i;
 			}
-			return createNumEditor!("evtChildBrStepN(_prop, _summ, evt.step, name)")(data, c, nums);
+			return createNumEditor!("evtChildBrStepN(_prop, _summ, evt.useCounter, evt.step, name)")(data, c, nums);
 		} case CType.BRANCH_STEP: { mixin(S_TRACE);
-			return createBoolEditor!("evtChildBrStepUL(_prop, _summ, evt.step, evt.stepValue, name)")(data, c);
+			return createBoolEditor!("evtChildBrStepUL(_prop, _summ, evt.useCounter, evt.step, evt.stepValue, name)")(data, c);
 		} case CType.BRANCH_SELECT: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrMember(_prop, evt, name)")(data, c);
 		} case CType.BRANCH_ABILITY: { mixin(S_TRACE);
@@ -2586,9 +2586,9 @@ public:
 		} case CType.BRANCH_GOSSIP: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrGossip(_prop, evt.gossip, name)")(data, c);
 		} case CType.BRANCH_STEP_CMP: { mixin(S_TRACE);
-			return createTrioEditor!("evtChildBrStepCmp(_prop, _summ, evt.step, evt.step2, name)")(data, c);
+			return createTrioEditor!("evtChildBrStepCmp(_prop, _summ, evt.useCounter, evt.step, evt.step2, name)")(data, c);
 		} case CType.BRANCH_FLAG_CMP: { mixin(S_TRACE);
-			return createBoolEditor!("evtChildBrFlagCmp(_prop, _summ, evt.flag, evt.flag2, name)")(data, c);
+			return createBoolEditor!("evtChildBrFlagCmp(_prop, _summ, evt.useCounter, evt.flag, evt.flag2, name)")(data, c);
 		} case CType.BRANCH_RANDOM_SELECT: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrRandomSelect(_prop, evt, name)")(data, c);
 		} case CType.BRANCH_KEY_CODE: { mixin(S_TRACE);
@@ -3405,7 +3405,7 @@ public:
 				auto compiler = new CWXScript(_prop.parent, _summ);
 				auto vars = compiler.eatEmptyVars(script, opt);
 				if (vars.length) { mixin(S_TRACE);
-					auto dlg = new ScriptVarSetDialog(_comm, _summ, _tree.control.getShell(), vars, script, base, opt);
+					auto dlg = new ScriptVarSetDialog(_comm, _summ, _et.useCounter, _tree.control.getShell(), vars, script, base, opt);
 					dlg.appliedEvent ~= { mixin(S_TRACE);
 						putContents(dlg.contents, tryInsert);
 					};
@@ -3775,7 +3775,7 @@ string eventText(Commons comm, Summary summ, Content parent, Content e, bool rea
 		VarValue[string] variants;
 		VarValue[string] sysSteps;
 		string[char] names;
-		getPreviewValues(prop, summ, SPCHAR_TEXT, names, flags, steps, variants, sysSteps);
+		getPreviewValues(prop, summ, e.useCounter, SPCHAR_TEXT, names, flags, steps, variants, sysSteps);
 		return .simpleFormatMsg(name, flags, steps, variants, sysSteps, names, ver => comm.prop.isTargetVersion(summ, ver),
 			comm.prop.sys.prefixSystemVarName);
 	}
@@ -3790,13 +3790,13 @@ string eventText(Commons comm, Summary summ, Content parent, Content e, bool rea
 	string r;
 	switch (parent.type) {
 	case CType.BRANCH_FLAG: { mixin(S_TRACE);
-		r = evtChildBrFlag(prop, summ, parent.flag, name);
+		r = evtChildBrFlag(prop, summ, parent.useCounter, parent.flag, name);
 		break;
 	} case CType.BRANCH_MULTI_STEP: { mixin(S_TRACE);
-		r = evtChildBrStepN(prop, summ, parent.step, name);
+		r = evtChildBrStepN(prop, summ, parent.useCounter, parent.step, name);
 		break;
 	} case CType.BRANCH_STEP: { mixin(S_TRACE);
-		r = evtChildBrStepUL(prop, summ, parent.step, parent.stepValue, name);
+		r = evtChildBrStepUL(prop, summ, parent.useCounter, parent.step, parent.stepValue, name);
 		break;
 	} case CType.BRANCH_SELECT: { mixin(S_TRACE);
 		r = evtChildBrMember(prop, parent, name);
@@ -3863,10 +3863,10 @@ string eventText(Commons comm, Summary summ, Content parent, Content e, bool rea
 		r = evtChildBrGossip(prop, gossip, name);
 		break;
 	} case CType.BRANCH_STEP_CMP: { mixin(S_TRACE);
-		r = evtChildBrStepCmp(prop, summ, parent.step, parent.step2, name);
+		r = evtChildBrStepCmp(prop, summ, parent.useCounter, parent.step, parent.step2, name);
 		break;
 	} case CType.BRANCH_FLAG_CMP: { mixin(S_TRACE);
-		r = evtChildBrFlagCmp(prop, summ, parent.flag, parent.flag2, name);
+		r = evtChildBrFlagCmp(prop, summ, parent.useCounter, parent.flag, parent.flag2, name);
 		break;
 	} case CType.BRANCH_RANDOM_SELECT: { mixin(S_TRACE);
 		r = evtChildBrRandomSelect(prop, parent, name);
@@ -3902,14 +3902,14 @@ string eventText(Commons comm, Summary summ, Content parent, Content e, bool rea
 	return r;
 }
 
-private string evtChildBrFlag(in Props prop, in Summary summ, string path, ref string text) { mixin(S_TRACE);
+private string evtChildBrFlag(in Props prop, in Summary summ, in UseCounter uc, string path, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
 	string name = prop.msgs.noSelectFlag;
 	string on = prop.msgs.flagOn;
 	string off = prop.msgs.flagOff;
 	if (path.length && summ) { mixin(S_TRACE);
-		auto o = summ.flagDirRoot.findFlag(path);
+		auto o = .findVar!(cwx.flag.Flag)(summ ? summ.flagDirRoot : null, uc, path);
 		if (o) { mixin(S_TRACE);
 			name = path;
 			on = o.on;
@@ -3920,7 +3920,7 @@ private string evtChildBrFlag(in Props prop, in Summary summ, string path, ref s
 	}
 	return .tryFormat(prop.msgs.evtChildBrVar, name, (val ? on : off));
 }
-private string evtChildBrStepN(in Props prop, in Summary summ, string path, ref string text) { mixin(S_TRACE);
+private string evtChildBrStepN(in Props prop, in Summary summ, in UseCounter uc, string path, ref string text) { mixin(S_TRACE);
 	int val = -1;
 	try { mixin(S_TRACE);
 		val = text == prop.sys.evtChildDefault ? -1 : (isNumeric(text) ? to!(int)(text) : -1);
@@ -3931,7 +3931,7 @@ private string evtChildBrStepN(in Props prop, in Summary summ, string path, ref 
 	string name = prop.msgs.noSelectStep;
 	string value = val >= 0 ? .parseDollarParams(prop.var.etc.stepValueName, ['N':.to!string(val)]) : prop.msgs.etc;
 	if (path.length && summ) { mixin(S_TRACE);
-		auto o = summ.flagDirRoot.findStep(path);
+		auto o = .findVar!Step(summ ? summ.flagDirRoot : null, uc, path);
 		if (o) { mixin(S_TRACE);
 			name = path;
 			if (0 <= val) value = getStepValue(prop, o, val);
@@ -3941,13 +3941,13 @@ private string evtChildBrStepN(in Props prop, in Summary summ, string path, ref 
 	}
 	return .tryFormat(prop.msgs.evtChildBrVar, name, value);
 }
-private string evtChildBrStepUL(in Props prop, in Summary summ, string path, int num, ref string text) { mixin(S_TRACE);
+private string evtChildBrStepUL(in Props prop, in Summary summ, in UseCounter uc, string path, int num, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
 	string name = prop.msgs.noSelectStep;
 	string value = .parseDollarParams(prop.var.etc.stepValueName, ['N':.to!string(num)]);
 	if (path.length && summ) { mixin(S_TRACE);
-		auto o = summ.flagDirRoot.findStep(path);
+		auto o = .findVar!Step(summ ? summ.flagDirRoot : null, uc, path);
 		if (o) { mixin(S_TRACE);
 			name = path;
 			value = getStepValue(prop, o, num);
@@ -4253,7 +4253,7 @@ private string evtChildBrGossip(in Props prop, string gossip, ref string text) {
 		return .tryFormat(prop.msgs.branchGossipFailure, gossip);
 	}
 }
-private string evtChildBrStepCmp(in Props prop, in Summary summ, string step1, string step2, ref string text) { mixin(S_TRACE);
+private string evtChildBrStepCmp(in Props prop, in Summary summ, in UseCounter uc, string step1, string step2, ref string text) { mixin(S_TRACE);
 	int index;
 	if (text == prop.sys.evtChildEq) { mixin(S_TRACE);
 		index = 2;
@@ -4268,7 +4268,7 @@ private string evtChildBrStepCmp(in Props prop, in Summary summ, string step1, s
 	string nameFrom(string path) { mixin(S_TRACE);
 		string name = prop.msgs.noSelectStep;
 		if (path.length && summ) { mixin(S_TRACE);
-			auto o = summ.flagDirRoot.findStep(path);
+			auto o = .findVar!Step(summ ? summ.flagDirRoot : null, uc, path);
 			if (o) { mixin(S_TRACE);
 				name = path;
 			} else { mixin(S_TRACE);
@@ -4290,13 +4290,13 @@ private string evtChildBrStepCmp(in Props prop, in Summary summ, string step1, s
 		assert (0);
 	}
 }
-private string evtChildBrFlagCmp(in Props prop, in Summary summ, string flag1, string flag2, ref string text) { mixin(S_TRACE);
+private string evtChildBrFlagCmp(in Props prop, in Summary summ, UseCounter uc, string flag1, string flag2, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
 	string nameFrom(string path) { mixin(S_TRACE);
 		string name = prop.msgs.noSelectFlag;
 		if (path.length && summ) { mixin(S_TRACE);
-			auto o = summ.flagDirRoot.findFlag(path);
+			auto o = .findVar!(cwx.flag.Flag)(summ ? summ.flagDirRoot : null, uc, path);
 			if (o) { mixin(S_TRACE);
 				name = path;
 			} else { mixin(S_TRACE);

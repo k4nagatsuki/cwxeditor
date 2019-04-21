@@ -12,6 +12,7 @@ import cwx.skin;
 import cwx.path;
 import cwx.menu;
 import cwx.types;
+import cwx.usecounter;
 import cwx.system;
 import cwx.summary;
 import cwx.warning;
@@ -65,6 +66,7 @@ class CouponView(CVType Type) : Composite {
 	private Commons _comm;
 	private Props _prop;
 	private Summary _summ;
+	private UseCounter _uc;
 	private bool _isHistoryView; /// キャラクターの経歴欄か。評価条件などの場合はfalse。
 	private KeyDownFilter _kdFilter;
 
@@ -627,7 +629,7 @@ class CouponView(CVType Type) : Composite {
 	private class HTBKeyDown : Listener {
 		override void handleEvent(Event e) { e.doit = true; }
 	}
-	this (Commons comm, Summary summ, Composite parent, int style, bool delegate() catchMod, bool isHistoryView) { mixin(S_TRACE);
+	this (Commons comm, Summary summ, UseCounter uc, Composite parent, int style, bool delegate() catchMod, bool isHistoryView) { mixin(S_TRACE);
 		super (parent, style);
 		_isHistoryView = isHistoryView;
 
@@ -637,6 +639,7 @@ class CouponView(CVType Type) : Composite {
 
 		_comm = comm;
 		_summ = summ;
+		_uc = uc;
 		_prop = comm.prop;
 		_undoCoupons = new UndoManager(_prop.var.etc.undoMaxEtc);
 		this.setLayout(zeroMarginGridLayout(3, false));
@@ -721,13 +724,13 @@ class CouponView(CVType Type) : Composite {
 		}
 		if (!_readOnly) { mixin(S_TRACE);
 			static if (CVType.Cast == Type) {
-				_newCoupon = createCouponCombo!Combo(_comm, _summ, this, catchMod, CouponComboType.Cast, "", _newCouponTM);
+				_newCoupon = createCouponCombo!Combo(_comm, _summ, _uc, this, catchMod, CouponComboType.Cast, "", _newCouponTM);
 				.listener(_newCoupon, SWT.Modify, &updateCouponType);
 			} else static if (CVType.Valued == Type) { mixin(S_TRACE);
-				_newCoupon = createCouponCombo!Combo(_comm, _summ, this, catchMod, CouponComboType.Valued, "", _newCouponTM);
+				_newCoupon = createCouponCombo!Combo(_comm, _summ, _uc, this, catchMod, CouponComboType.Valued, "", _newCouponTM);
 				.listener(_newCoupon, SWT.Modify, &updateCouponType);
 			} else { mixin(S_TRACE);
-				_newCoupon = createCouponCombo!Combo(_comm, _summ, this, catchMod, CouponComboType.AllCoupons, "", _newCouponTM);
+				_newCoupon = createCouponCombo!Combo(_comm, _summ, _uc, this, catchMod, CouponComboType.AllCoupons, "", _newCouponTM);
 				.listener(_newCoupon, SWT.Modify, &updateCouponType);
 			}
 			_newCoupon.setEnabled(!_readOnly);
@@ -969,7 +972,7 @@ class CouponView(CVType Type) : Composite {
 		} else { mixin(S_TRACE);
 			auto type = CouponComboType.AllCoupons;
 		}
-		auto combo = createCouponCombo!Combo(_comm, _summ, itm.getParent(), null, type, itm.getText());
+		auto combo = createCouponCombo!Combo(_comm, _summ, _uc, itm.getParent(), null, type, itm.getText());
 		if (_setupNameEditor) _setupNameEditor(combo);
 		return combo;
 	}

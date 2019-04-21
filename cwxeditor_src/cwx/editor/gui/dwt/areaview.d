@@ -92,6 +92,7 @@ private:
 	Commons _comm;
 	Props _prop;
 	A _area;
+	UseCounter _uc;
 	TCPD _tcpd;
 	UndoManager _undo;
 	Preview _preview;
@@ -2202,7 +2203,11 @@ private:
 				nof.setText(_prop.msgs.defaultSelection(_prop.msgs.noFlagRef));
 				nof.setImage(_prop.images.emptyIcon);
 			} else { mixin(S_TRACE);
-				auto flag = _summ.flagDirRoot.findFlag(path);
+				static if (is(A:BgImageContainer)) {
+					auto flag = .findVar!(cwx.flag.Flag)(_summ ? _summ.flagDirRoot : null, null, path);
+				} else {
+					auto flag = .findVar!(cwx.flag.Flag)(_summ.flagDirRoot, _area.useCounter, path);
+				}
 				if (!has && path == sel) { mixin(S_TRACE);
 					has = true;
 				}
@@ -3061,7 +3066,12 @@ private:
 	void openFlagViewC() { mixin(S_TRACE);
 		if (_readOnly) return;
 		if (-1 == _flag.getSelectionIndex()) return;
-		auto flag = _summ.flagDirRoot.findFlag(_flag.getText());
+		auto path = _flag.getText();
+		static if (is(A:BgImageContainer)) {
+			auto flag = .findVar!(cwx.flag.Flag)(_summ ? _summ.flagDirRoot : null, null, path);
+		} else {
+			auto flag = .findVar!(cwx.flag.Flag)(_summ.flagDirRoot, _area.useCounter, path);
+		}
 		if (!flag) return;
 		try { mixin(S_TRACE);
 			_comm.openCWXPath(flag.cwxPath(true), false);
@@ -3087,12 +3097,13 @@ private:
 
 	private TopLevelPanel _tlp;
 public:
-	this(Commons comm, Props prop, Summary summ, A area, Composite parent, TopLevelPanel tlp, bool showInheritBacks, UndoManager undo, bool readOnly) { mixin(S_TRACE);
+	this(Commons comm, Props prop, Summary summ, UseCounter uc, A area, Composite parent, TopLevelPanel tlp, bool showInheritBacks, UndoManager undo, bool readOnly) { mixin(S_TRACE);
 		super(parent, SWT.NONE);
 		_readOnly = readOnly ? SWT.READ_ONLY : SWT.NONE;
 		_id = .objectIDValue(this);
 		_prop = prop;
 		_summ = summ;
+		_uc = uc;
 		_area = area;
 		_comm = comm;
 		_undo = undo;
@@ -3254,9 +3265,9 @@ public:
 								if (card.expandSPChars) { mixin(S_TRACE);
 									auto nameMenu = t.getMenu();
 									new MenuItem(nameMenu, SWT.SEPARATOR);
-									.setupSPCharsMenu(_comm, _summ, t, nameMenu, false, false, () => card.expandSPChars);
+									.setupSPCharsMenu(_comm, _summ, _uc, t, nameMenu, false, false, () => card.expandSPChars);
 									void updateToolTip() { mixin(S_TRACE);
-										auto toolTip = .createSPCharPreview(_comm, _summ, t.getText(), false, null, null);
+										auto toolTip = .createSPCharPreview(_comm, _summ, _uc, t.getText(), false, null, null);
 										toolTip = toolTip.replace("&", "&&");
 										if (toolTip != t.getToolTipText()) { mixin(S_TRACE);
 											t.setToolTipText(toolTip);
@@ -4080,7 +4091,7 @@ public:
 				if (_summ.casts.length == 0) return;
 				auto c = new EnemyCard(0, (bool[ActionCardType]).init, "", 0, 0, 100, LAYER_MENU_CARD, "", -1, false, "", false, []);
 			} else static assert (0);
-			auto dlg = new SpCardDialog!(C)(_comm, _prop, getShell(), _summ, c, true);
+			auto dlg = new SpCardDialog!(C)(_comm, _prop, getShell(), _summ, _uc, c, true);
 			dlg.appliedEvent ~= { mixin(S_TRACE);
 				auto c = dlg.card;
 				int index = insertIndex(_cards);
@@ -4129,7 +4140,7 @@ public:
 				}
 			}
 			UndoEdit undo = null;
-			auto dlg = new SpCardDialog!(C)(_comm, _prop, getShell(), _summ, card, false);
+			auto dlg = new SpCardDialog!(C)(_comm, _prop, getShell(), _summ, _uc, card, false);
 			dlg.applyEvent ~= { mixin(S_TRACE);
 				undo = new UndoEdit(this, _comm, _area, _summ, [cast(int)cCountUntil!("a is b")(_area.cards, card)], []);
 			};
@@ -4241,7 +4252,7 @@ public:
 		static if (is(C2 : MenuCard) || is(C2 : const MenuCard)) {
 			auto name = card.name;
 			if (card.expandSPChars) { mixin(S_TRACE);
-				name = .createSPCharPreview(_comm, _summ, name, false, null, null);
+				name = .createSPCharPreview(_comm, _summ, _uc, name, false, null, null);
 			}
 			return createMenuCardImage!PImg(prop, summSkin, summary, name,
 				cardImagePath(card), card.x, card.y, card.scale, smoothing, card.layer);
@@ -4341,28 +4352,28 @@ public:
 			final switch (type) {
 			case 0:
 				auto ic = new ImageCell;
-				dlg = new ImageCellDialog(_comm, _prop, getShell(), _summ, ic, true);
+				dlg = new ImageCellDialog(_comm, _prop, getShell(), _summ, _uc, ic, true);
 				b = ic;
 				break;
 			case 1:
 				auto tc = new TextCell;
 				tc.width = _prop.var.etc.textCellDefaultWidth;
 				tc.height = _prop.var.etc.textCellDefaultHeight;
-				dlg = new TextCellDialog(_comm, _prop, getShell(), _summ, tc, true);
+				dlg = new TextCellDialog(_comm, _prop, getShell(), _summ, _uc, tc, true);
 				b = tc;
 				break;
 			case 2:
 				auto cc = new ColorCell;
 				cc.width = _prop.var.etc.colorCellDefaultWidth;
 				cc.height = _prop.var.etc.colorCellDefaultHeight;
-				dlg = new ColorCellDialog(_comm, _prop, getShell(), _summ, cc, true);
+				dlg = new ColorCellDialog(_comm, _prop, getShell(), _summ, _uc, cc, true);
 				b = cc;
 				break;
 			case 3:
 				auto pc = new PCCell;
 				pc.width = _prop.looks.cardSize.width;
 				pc.height = _prop.looks.cardSize.height;
-				dlg = new PCCellDialog(_comm, _prop, getShell(), _summ, pc, true);
+				dlg = new PCCellDialog(_comm, _prop, getShell(), _summ, _uc, pc, true);
 				b = pc;
 				break;
 			}
@@ -4411,19 +4422,19 @@ public:
 			BgImageDialog dlg = null;
 			auto ic = cast(ImageCell)back;
 			if (ic) { mixin(S_TRACE);
-				dlg = new ImageCellDialog(_comm, _prop, getShell(), _summ, ic, false);
+				dlg = new ImageCellDialog(_comm, _prop, getShell(), _summ, _uc, ic, false);
 			}
 			auto tc = cast(TextCell)back;
 			if (tc) { mixin(S_TRACE);
-				dlg = new TextCellDialog(_comm, _prop, getShell(), _summ, tc, false);
+				dlg = new TextCellDialog(_comm, _prop, getShell(), _summ, _uc, tc, false);
 			}
 			auto cc = cast(ColorCell)back;
 			if (cc) { mixin(S_TRACE);
-				dlg = new ColorCellDialog(_comm, _prop, getShell(), _summ, cc, false);
+				dlg = new ColorCellDialog(_comm, _prop, getShell(), _summ, _uc, cc, false);
 			}
 			auto pc = cast(PCCell)back;
 			if (pc) { mixin(S_TRACE);
-				dlg = new PCCellDialog(_comm, _prop, getShell(), _summ, pc, false);
+				dlg = new PCCellDialog(_comm, _prop, getShell(), _summ, _uc, pc, false);
 			}
 			dlg.applyEvent ~= { mixin(S_TRACE);
 				undo = new UndoEdit(this, _comm, _area, _summ, [], [cast(int)cCountUntil!("a is b")(_area.backs, back)]);
@@ -4577,7 +4588,7 @@ public:
 			VarValue[string] steps;
 			VarValue[string] variants;
 			VarValue[string] sysSteps;
-			getPreviewValues(_prop, _summ, SPCHAR_TEXT, names, flags, steps, variants, sysSteps);
+			getPreviewValues(_prop, _summ, _uc, SPCHAR_TEXT, names, flags, steps, variants, sysSteps);
 			return simpleFormatMsg(base, flags, steps, variants, sysSteps, names, ver => _prop.isTargetVersion(_summ, ver),
 				_prop.sys.prefixSystemVarName);
 		}
@@ -4963,7 +4974,7 @@ public:
 		_hasFlag = false;
 		_flag.add(_prop.msgs.defaultSelection(_prop.msgs.noFlagRef));
 		_flag.select(0);
-		.sortedWithPath(_summ.flagDirRoot.allFlags, _prop.var.etc.logicalSort, (cwx.flag.Flag fl) { mixin(S_TRACE);
+		.sortedWithPath(.allVars!(cwx.flag.Flag)(_summ.flagDirRoot, _uc), _prop.var.etc.logicalSort, (cwx.flag.Flag fl) { mixin(S_TRACE);
 			auto path = fl.path;
 			_hasFlag = true;
 			if (!_flagIncSearch.match(path)) return;
@@ -6360,10 +6371,10 @@ alias AbstractAreaView!(Area, MenuCard, true, true) AreaView;
 alias AbstractAreaView!(Battle, EnemyCard, true, false) BattleView;
 
 class BgImagesView : AbstractAreaView!(BgImageContainer, void, false, true) {
-	this(Commons comm, Props prop, Summary summ, BgImageContainer bic, Composite parent, AbstractArea refTarget, bool showInheritBacks, UndoManager undo, bool readOnly) { mixin(S_TRACE);
+	this(Commons comm, Props prop, Summary summ, UseCounter uc, BgImageContainer bic, Composite parent, AbstractArea refTarget, bool showInheritBacks, UndoManager undo, bool readOnly) { mixin(S_TRACE);
 		if (prop.var.etc.refCardsAtEditBgImage) { mixin(S_TRACE);
 			_refTarget = refTarget;
 		}
-		super(comm, prop, summ, bic, parent, null, showInheritBacks, undo, readOnly);
+		super (comm, prop, summ, uc, bic, parent, null, showInheritBacks, undo, readOnly);
 	}
 }

@@ -1,55 +1,55 @@
 
 module cwx.editor.gui.dwt.eventdialog;
 
-import cwx.summary;
 import cwx.area;
 import cwx.background;
 import cwx.card;
-import cwx.utils;
 import cwx.event;
-import cwx.types;
-import cwx.flag;
 import cwx.features;
-import cwx.usecounter;
-import cwx.skin;
-import cwx.path;
-import cwx.structs;
+import cwx.flag;
 import cwx.menu;
-import cwx.types;
-import cwx.warning;
 import cwx.msgutils;
+import cwx.path;
+import cwx.skin;
+import cwx.structs;
+import cwx.summary;
+import cwx.types;
+import cwx.types;
+import cwx.usecounter;
+import cwx.utils;
+import cwx.warning;
 
 import cwx.editor.gui.sound;
 
+import cwx.editor.gui.dwt.abilityview;
+import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.areaview;
 import cwx.editor.gui.dwt.areaviewutils;
+import cwx.editor.gui.dwt.centerlayout;
+import cwx.editor.gui.dwt.chooser;
+import cwx.editor.gui.dwt.commons;
+import cwx.editor.gui.dwt.couponview;
+import cwx.editor.gui.dwt.customtable;
+import cwx.editor.gui.dwt.dmenu;
+import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.dutils;
-import cwx.editor.gui.dwt.dprops;
-import cwx.editor.gui.dwt.commons;
-import cwx.editor.gui.dwt.centerlayout;
-import cwx.editor.gui.dwt.customtable;
+import cwx.editor.gui.dwt.incsearch;
+import cwx.editor.gui.dwt.keycodeview;
 import cwx.editor.gui.dwt.materialselect;
+import cwx.editor.gui.dwt.messageutils;
 import cwx.editor.gui.dwt.motionview;
-import cwx.editor.gui.dwt.undo;
-import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.spcarddialog;
 import cwx.editor.gui.dwt.splitpane;
-import cwx.editor.gui.dwt.dmenu;
-import cwx.editor.gui.dwt.incsearch;
-import cwx.editor.gui.dwt.chooser;
-import cwx.editor.gui.dwt.couponview;
-import cwx.editor.gui.dwt.keycodeview;
-import cwx.editor.gui.dwt.abilityview;
-import cwx.editor.gui.dwt.messageutils;
+import cwx.editor.gui.dwt.undo;
 
 import std.algorithm : countUntil, max;
 import std.array;
 import std.conv;
 import std.math;
 import std.path;
-import std.traits;
 import std.string : toLower, icmp;
+import std.traits;
 
 import org.eclipse.swt.all;
 
@@ -186,6 +186,7 @@ private class RangePanel : Composite {
 
 	private Commons _comm;
 	private Summary _summ;
+	private UseCounter _uc;
 
 	private Button[Range] _range;
 	private const Range[] _ranges;
@@ -252,12 +253,13 @@ private class RangePanel : Composite {
 		}
 	}
 
-	this (Commons comm, Summary summ, Composite parent, in Range[] ranges, string initCoupon, string title, bool horizontal, AbsDialog modDlg,
+	this (Commons comm, Summary summ, UseCounter uc, Composite parent, in Range[] ranges, string initCoupon, string title, bool horizontal, AbsDialog modDlg,
 			in Content evt, bool delegate() catchMod, void delegate() refreshWarning, CType type) { mixin(S_TRACE);
 		super (parent, SWT.NONE);
 		_type = type;
 		_comm = comm;
 		_summ = summ;
+		_uc = uc;
 		_ranges = ranges;
 		if (evt) _initCoupon = evt.holdingCoupon;
 		auto prop = comm.prop;
@@ -321,7 +323,7 @@ private class RangePanel : Composite {
 			comp.setLayout(zeroGridLayout(2, false));
 
 			auto ccType = CouponComboType.AllCoupons;
-			_coupon = createCouponCombo(comm, _summ, comp, catchMod, ccType, initCoupon);
+			_coupon = createCouponCombo(comm, _summ, _uc, comp, catchMod, ccType, initCoupon);
 			modDlg.mod(_coupon);
 			_coupon.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
@@ -850,6 +852,7 @@ protected:
 /// クーポン関連イベントの設定を行うダイアログ。
 class CouponEventDialog(CType Type, bool EditValue, bool Field) : EventDialog {
 private:
+	UseCounter _uc;
 	RangePanel _range;
 	Button[CouponType] _type;
 	Composite _couponViewComp;
@@ -880,7 +883,7 @@ private:
 				if (!_comm.prop.isTargetVersion(_summ, "4")) { mixin(S_TRACE);
 					ws ~= _comm.prop.msgs.warningExpandSPCharsInCoupon;
 				}
-				ws ~= .textWarnings2(comm, summ, _couponView.couponNames);
+				ws ~= .textWarnings2(comm, summ, _uc, _couponView.couponNames);
 			}
 		} else if (_name) { mixin(S_TRACE);
 			ws ~= .couponWarnings(prop.parent, summ, prop.var.etc.targetVersion, _name.getText(), Type is CType.GET_COUPON || Type is CType.LOSE_COUPON, prop.msgs.couponName);
@@ -888,7 +891,7 @@ private:
 				if (!_comm.prop.isTargetVersion(_summ, "4")) { mixin(S_TRACE);
 					ws ~= _comm.prop.msgs.warningExpandSPCharsInCoupon;
 				}
-				ws ~= .textWarnings2(comm, summ, [_name.getText()]);
+				ws ~= .textWarnings2(comm, summ, _uc, [_name.getText()]);
 			}
 		}
 		static if (Field) {
@@ -959,7 +962,7 @@ private:
 	string createToolTip(string text) { mixin(S_TRACE);
 		auto toolTip = "";
 		if (_expandSPChars && _expandSPChars.getSelection()) { mixin(S_TRACE);
-			toolTip = .createSPCharPreview(_comm, _summ, text, true, null, null);
+			toolTip = .createSPCharPreview(_comm, _summ, _uc, text, true, null, null);
 			toolTip = toolTip.replace("&", "&&");
 		}
 		return toolTip;
@@ -1012,7 +1015,7 @@ private:
 			// Wsn.2
 			_couponViewCL.fillVertical = true;
 
-			_couponView = new CouponView!(CVType.NoValued)(comm, summ, _couponViewComp, SWT.NONE, &catchMod, false);
+			_couponView = new CouponView!(CVType.NoValued)(comm, summ, _uc, _couponViewComp, SWT.NONE, &catchMod, false);
 			mod(_couponView);
 			_couponView.modEvent ~= &refreshWarning;
 			_couponView.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -1034,13 +1037,13 @@ private:
 				_nameEditor = name;
 				auto menu = name.getMenu();
 				new MenuItem(menu, SWT.SEPARATOR);
-				.setupSPCharsMenu(_comm, _summ, name, menu, false, true, () => _expandSPChars.getSelection());
+				.setupSPCharsMenu(_comm, _summ, _uc, name, menu, false, true, () => _expandSPChars.getSelection());
 				.listener(name, SWT.Modify, &updateToolTip);
 			};
 			if (_couponView.mainNameEditor) { mixin(S_TRACE);
 				auto menu = _couponView.mainNameEditor.getMenu();
 				new MenuItem(menu, SWT.SEPARATOR);
-				.setupSPCharsMenu(_comm, _summ, _couponView.mainNameEditor, menu, false, true, () => _expandSPChars.getSelection());
+				.setupSPCharsMenu(_comm, _summ, _uc, _couponView.mainNameEditor, menu, false, true, () => _expandSPChars.getSelection());
 				.listener(_couponView.mainNameEditor, SWT.Modify, &updateToolTip);
 			}
 		} else { mixin(S_TRACE);
@@ -1056,7 +1059,7 @@ private:
 					} else static if (Type is CType.BRANCH_COUPON) {
 						auto type = CouponComboType.AllCoupons;
 					} else static assert (0);
-					_name = createCouponCombo(comm, summ, comp, &catchMod, type, _evt ? _evt.coupon : "");
+					_name = createCouponCombo(comm, summ, _uc, comp, &catchMod, type, _evt ? _evt.coupon : "");
 					mod(_name);
 					auto gd = new GridData(GridData.FILL_HORIZONTAL);
 					gd.horizontalSpan = 3;
@@ -1065,7 +1068,7 @@ private:
 
 					auto menu = _name.getMenu();
 					new MenuItem(menu, SWT.SEPARATOR);
-					.setupSPCharsMenu(_comm, _summ, _name, menu, false, true, () => _expandSPChars.getSelection());
+					.setupSPCharsMenu(_comm, _summ, _uc, _name, menu, false, true, () => _expandSPChars.getSelection());
 					.listener(_name, SWT.Modify, &updateToolTip);
 				}
 				foreach (coType; [CouponType.Normal, CouponType.Hide, CouponType.Dur, CouponType.DurBattle, CouponType.System]) { mixin(S_TRACE);
@@ -1114,7 +1117,8 @@ private:
 		}
 	}
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
+	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, Content parent, Content evt) { mixin(S_TRACE);
+		_uc = uc;
 		DSize dSize;
 		if (!(summ && summ.legacy) && Type is CType.BRANCH_COUPON) { mixin(S_TRACE);
 			dSize = prop.var.multiCouponEvtDlg;
@@ -1149,7 +1153,7 @@ protected:
 				ranges ~= Range.COUPON_HOLDER;
 			}
 			auto initCoupon = (evt && evt.holdingCoupon != "") ? evt.holdingCoupon : "";
-			_range = new RangePanel(comm, summ, leftComp, ranges, initCoupon, _prop.msgs.range, false, this,
+			_range = new RangePanel(comm, summ, _uc, leftComp, ranges, initCoupon, _prop.msgs.range, false, this,
 				evt, &catchMod, &refreshWarning, type);
 			static if (EditValue) {
 				_range.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -1324,7 +1328,7 @@ alias CouponEventDialog!(CType.BRANCH_COUPON, false, true) BranchCouponDialog;
 alias CouponEventDialog!(CType.GET_COUPON, true, false) GetCouponDialog;
 alias CouponEventDialog!(CType.LOSE_COUPON, false, false) LoseCouponDialog;
 
-private string[] textWarnings2(Commons comm, in Summary summ, string[] names) { mixin(S_TRACE);
+private string[] textWarnings2(Commons comm, in Summary summ, in UseCounter uc, string[] names) { mixin(S_TRACE);
 	string[] ws;
 	bool[string] ws2;
 	foreach (v; names) { mixin(S_TRACE);
@@ -1341,7 +1345,7 @@ private string[] textWarnings2(Commons comm, in Summary summ, string[] names) { 
 		.textUseItems(v, flags, steps, variants, fonts, colors);
 		fonts = [];
 		colors = [];
-		auto ws3 = .textWarnings(comm.prop.parent, comm.skin, summ, comm.prop.var.etc.targetVersion,
+		auto ws3 = .textWarnings(comm.prop.parent, comm.skin, summ, uc, comm.prop.var.etc.targetVersion,
 			v, flags, steps, variants, fonts, colors, wFlags, wSteps, wVariants, wFonts, wColors).all;
 		foreach (w; ws3) { mixin(S_TRACE);
 			if (w in ws2) continue;
@@ -1356,6 +1360,7 @@ private string[] textWarnings2(Commons comm, in Summary summ, string[] names) { 
 private class OneTextEventDialog(CType Type, string Name, string Get, string Set, string EngineVersion = "") : EventDialog {
 private:
 	Combo _name;
+	UseCounter _uc;
 	Button _expandSPChars = null;
 
 	override
@@ -1371,7 +1376,7 @@ private:
 			if (!_comm.prop.isTargetVersion(_summ, "4")) { mixin(S_TRACE);
 				ws ~= _comm.prop.msgs.warningExpandSPCharsInGossip;
 			}
-			ws ~= .textWarnings2(comm, summ, [_name.getText()]);
+			ws ~= .textWarnings2(comm, summ, _uc, [_name.getText()]);
 		}
 		warning = ws;
 	}
@@ -1396,14 +1401,15 @@ private:
 	string createToolTip(string text) { mixin(S_TRACE);
 		auto toolTip = "";
 		if (_expandSPChars && _expandSPChars.getSelection()) { mixin(S_TRACE);
-			toolTip = .createSPCharPreview(_comm, _summ, text, true, null, null);
+			toolTip = .createSPCharPreview(_comm, _summ, _uc, text, true, null, null);
 			toolTip = toolTip.replace("&", "&&");
 		}
 		return toolTip;
 	}
 
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
+	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, Content parent, Content evt) { mixin(S_TRACE);
+		_uc = uc;
 		if (CDetail.fromType(Type).use(CArg.GOSSIP)) { mixin(S_TRACE);
 			super (comm, prop, shell, summ, Type, parent, evt, true, prop.var.gossipEvtDlg, true);
 		} else { mixin(S_TRACE);
@@ -1440,7 +1446,7 @@ protected:
 			if (CDetail.fromType(Type).use(CArg.GOSSIP)) { mixin(S_TRACE);
 				auto menu = _name.getMenu();
 				new MenuItem(menu, SWT.SEPARATOR);
-				.setupSPCharsMenu(_comm, _summ, _name, menu, false, true, () => _expandSPChars.getSelection());
+				.setupSPCharsMenu(_comm, _summ, _uc, _name, menu, false, true, () => _expandSPChars.getSelection());
 
 				_expandSPChars = new Button(comp, SWT.CHECK);
 				mod(_expandSPChars);
@@ -1511,6 +1517,7 @@ template EndEventDialog(CType Type) {
 /// 背景変更・置換イベントの設定を行うダイアログ。
 class BgImagesDialog : EventDialog {
 private:
+	UseCounter _uc;
 	AbstractArea _refTarget;
 
 	BgImageContainer _cont;
@@ -1557,7 +1564,8 @@ private:
 	}
 
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt, AbstractArea refTarget, CType type) { mixin(S_TRACE);
+	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, Content parent, Content evt, AbstractArea refTarget, CType type) { mixin(S_TRACE);
+		_uc = uc;
 		_refTarget = refTarget;
 		super (comm, prop, shell, summ, type, parent, evt, true, prop.var.bgImagesDlg, false);
 
@@ -1580,7 +1588,7 @@ protected:
 		auto skin = _comm.skin;
 		{ mixin(S_TRACE);
 			auto showInheritBacks = type !is CType.REPLACE_BG_IMAGE && _prop.var.etc.showInheritBackground;
-			_view = createBgImagesViewAndMenu(_comm, _prop, _summ, _cont, area, _refTarget, showInheritBacks, false);
+			_view = createBgImagesViewAndMenu(_comm, _prop, _summ, _uc, _cont, area, _refTarget, showInheritBacks, false);
 			mod(_view);
 			_view.setLayoutData(new GridData(GridData.FILL_BOTH));
 			_view.modEvent ~= &refreshWarning;
@@ -2160,7 +2168,7 @@ protected:
 					auto ranges = [Range.SELECTED, Range.RANDOM, Range.PARTY, Range.COUPON_HOLDER, Range.CARD_TARGET];
 					auto title = _prop.msgs.cardEventRange;
 					auto initCoupon = (evt && evt.holdingCoupon != "") ? evt.holdingCoupon : prop.sys.effectTargetCoupon;
-					_range = new RangePanel(comm, summ, comp2, ranges, initCoupon, title, false, this, evt, &catchMod, &refreshWarning, type);
+					_range = new RangePanel(comm, summ, _useCounter, comp2, ranges, initCoupon, title, false, this, evt, &catchMod, &refreshWarning, type);
 					_range.setLayoutData(new GridData(GridData.FILL_BOTH));
 				}
 				{ mixin(S_TRACE);
@@ -2335,6 +2343,7 @@ private:
 
 	SplitPane _sash;
 	FlagChooser!(F, false) _flags;
+	UseCounter _uc;
 	string _oldSel = "";
 	Table _values;
 	static if (Type is CType.SET_FLAG || Type is CType.REVERSE_FLAG) {
@@ -2349,9 +2358,9 @@ private:
 	void refreshValues() { mixin(S_TRACE);
 		if (!summ) return;
 		static if (is(F:cwx.flag.Flag)) {
-			_flag = summ.flagDirRoot.findFlag(_flags.selected);
+			_flag = .findVar!(cwx.flag.Flag)(summ ? summ.flagDirRoot : null, _uc, _flags.selected);
 		} else static if (is(F:Step)) {
-			_flag = summ.flagDirRoot.findStep(_flags.selected);
+			_flag = .findVar!Step(summ ? summ.flagDirRoot : null, _uc, _flags.selected);
 		} else static assert (0);
 		static if (SelValue) {
 			int sel = _values.getSelectionIndex();
@@ -2418,13 +2427,14 @@ private:
 		} else { mixin(S_TRACE);
 			if (!s.length) return;
 		}
+		auto lDir = _uc && cast(EffectCard)_uc.owner ? (cast(EffectCard)_uc.owner).flagDirRoot : null;
 		static if (is(F : cwx.flag.Flag)) {
-			if (!_root.allFlags.length) { mixin(S_TRACE);
+			if (!_root.hasFlag && (!lDir || !lDir.hasFlag)) { mixin(S_TRACE);
 				forceCancel();
 				return;
 			}
 		} else static if (is(F : Step)) {
-			if (!_root.allSteps.length) { mixin(S_TRACE);
+			if (!_root.hasStep && (!lDir || !lDir.hasStep)) { mixin(S_TRACE);
 				forceCancel();
 				return;
 			}
@@ -2438,11 +2448,8 @@ private:
 		Comparison4[] _cmps;
 		void updateLabel() { mixin(S_TRACE);
 			if (!summ) return;
-			static if (is(F:cwx.flag.Flag)) {
-				F step = summ.flagDirRoot.findFlag(_flags.selected);
-			} else static if (is(F:Step)) {
-				F step = summ.flagDirRoot.findStep(_flags.selected);
-			} else static assert (0);
+			static assert (is(F:Step));
+			auto step = .findVar!Step(summ ? summ.flagDirRoot : null, _uc, _flags.selected);
 			if (!step) return;
 			uint value = selectedValue;
 			_cmpLabel.setText(.tryFormat(prop.msgs.stepValueIs, step.path, step.getValue(value)));
@@ -2453,8 +2460,9 @@ private:
 		}
 	}
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt, FlagDir root) { mixin(S_TRACE);
+	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, Content parent, Content evt, FlagDir root) { mixin(S_TRACE);
 		_root = root;
+		_uc = uc;
 		super (comm, prop, shell, summ, Type, parent, evt, true, prop.var.flagEvtDlg, true);
 		closeEvent ~= { mixin(S_TRACE);
 			auto ws = _sash.getWeights();
@@ -2490,7 +2498,7 @@ protected:
 			l2.setLayoutData(gd);
 		}
 		{ mixin(S_TRACE);
-			_flags = new FlagChooser!(F, false, false)(comm, summ, left, true);
+			_flags = new FlagChooser!(F, false, false)(comm, summ, _uc, left, true);
 			mod(_flags);
 			_flags.modEventWithSame ~= &selectedFlag;
 			_flags.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -2630,6 +2638,7 @@ alias FlagStepDialog!(CType.CHECK_STEP, Step, true) CheckStepDialog;
 private class FlagStepCombiDialog(CType Type, F, bool Random) : EventDialog {
 private:
 	FlagDir _root;
+	UseCounter _uc;
 
 	SplitPane _sash;
 	FlagChooser!(F, false, Random) _flags1;
@@ -2662,20 +2671,22 @@ private:
 	}
 	void delFS(cwx.flag.Flag[] f, Step[] s, cwx.flag.Variant[] v) { mixin(S_TRACE);
 		if (!_root) return;
+		auto lDir = _uc && cast(EffectCard)_uc.owner ? (cast(EffectCard)_uc.owner).flagDirRoot : null;
 		static if (is(F : cwx.flag.Flag)) {
-			if (!_root.allFlags.length) { mixin(S_TRACE);
+			if (!_root.hasFlag && (!lDir || !lDir.hasFlag)) { mixin(S_TRACE);
 				forceCancel();
 			}
 		} else static if (is(F : Step)) {
-			if (!_root.allSteps.length) { mixin(S_TRACE);
+			if (!_root.hasStep && (!lDir || !lDir.hasStep)) { mixin(S_TRACE);
 				forceCancel();
 			}
 		} else static assert (0);
 	}
 
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt, FlagDir root) { mixin(S_TRACE);
+	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, Content parent, Content evt, FlagDir root) { mixin(S_TRACE);
 		_root = root;
+		_uc = uc;
 		super (comm, prop, shell, summ, Type, parent, evt, true, prop.var.flagCombiDlg, true);
 		closeEvent ~= { mixin(S_TRACE);
 			auto ws = _sash.getWeights();
@@ -2712,13 +2723,13 @@ protected:
 				static assert (0);
 			}
 		}
-		_flags1 = new FlagChooser!(F, false, Random)(comm, summ, left);
+		_flags1 = new FlagChooser!(F, false, Random)(comm, summ, _uc, left);
 		_flags1.setLayoutData(new GridData(GridData.FILL_BOTH));
 		_flags1.modEvent ~= &applyEnabled;
 		static if (Type == CType.SUBSTITUTE_STEP) {
 			_flags1.modEvent ~= &refreshWarning;
 		}
-		_flags2 = new FlagChooser!(F, false, false)(comm, summ, right, false);
+		_flags2 = new FlagChooser!(F, false, false)(comm, summ, _uc, right, false);
 		_flags2.setLayoutData(new GridData(GridData.FILL_BOTH));
 		_flags2.modEvent ~= &applyEnabled;
 
@@ -2789,6 +2800,8 @@ alias FlagStepCombiDialog!(CType.BRANCH_FLAG_CMP, cwx.flag.Flag, false) BrFlagCm
 /// メンバ選択分岐の設定を行うダイアログ。
 class BrMemberDialog : EventDialog {
 private:
+	UseCounter _uc;
+
 	Button[] _all;
 	Button[] _method;
 
@@ -2818,8 +2831,9 @@ private:
 	}
 
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
+	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, Content parent, Content evt) { mixin(S_TRACE);
 		super (comm, prop, shell, summ, CType.BRANCH_SELECT, parent, evt, true, prop.var.brMemberDlg, true);
+		_uc = uc;
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
@@ -2854,7 +2868,7 @@ protected:
 
 		void delegate() updateValue;
 		{ mixin(S_TRACE);
-			auto comp = createValueEditor(comm, summ, area, &catchMod, _couponView, _initValue, updateValue, false);
+			auto comp = createValueEditor(comm, summ, _uc, area, &catchMod, _couponView, _initValue, updateValue, false);
 			mod(_initValue);
 			mod(_couponView);
 			_couponView.modEvent ~= &refDataVersion;
@@ -2899,7 +2913,7 @@ protected:
 }
 
 /// 評価メンバ設定用のビューを生成する。
-Composite createValueEditor(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, out CouponView!(CVType.Valued) couponView, out Spinner initValue, out void delegate() updateValue, bool talker = true) { mixin(S_TRACE);
+Composite createValueEditor(Commons comm, Summary summ, UseCounter uc, Composite parent, bool delegate() catchMod, out CouponView!(CVType.Valued) couponView, out Spinner initValue, out void delegate() updateValue, bool talker = true) { mixin(S_TRACE);
 	auto grp = new Group(parent, SWT.NONE);
 	grp.setText(comm.prop.msgs.valued);
 	grp.setLayout(normalGridLayout(2, false));
@@ -2912,7 +2926,7 @@ Composite createValueEditor(Commons comm, Summary summ, Composite parent, bool d
 	initValue.setMaximum(comm.prop.var.etc.couponValueMax);
 	initValue.setSelection(1);
 	initValue.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-	couponView = new CouponView!(CVType.Valued)(comm, summ, grp, SWT.NONE, catchMod, false);
+	couponView = new CouponView!(CVType.Valued)(comm, summ, uc, grp, SWT.NONE, catchMod, false);
 	auto gd = new GridData(GridData.FILL_BOTH);
 	gd.horizontalSpan = 2;
 	couponView.setLayoutData(gd);
@@ -3183,6 +3197,7 @@ Composite createStatusHint(Props prop, Composite area) { mixin(S_TRACE);
 /// 状態分岐の設定を行うダイアログ。
 class BrStateDialog : EventDialog {
 private:
+	UseCounter _uc;
 	RangePanel _range;
 	Button[Status] _stat;
 	Combo _invertResult;
@@ -3221,8 +3236,9 @@ private:
 	}
 
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
+	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, Content parent, Content evt) { mixin(S_TRACE);
 		super (comm, prop, shell, summ, CType.BRANCH_STATUS, parent, evt, false, null, true);
+		_uc = uc;
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
@@ -3231,7 +3247,7 @@ protected:
 			auto ranges = [Range.SELECTED, Range.RANDOM, Range.PARTY];
 			auto title = _prop.msgs.judgeTarget;
 			auto initCoupon = evt ? evt.holdingCoupon : "";
-			_range = new RangePanel(comm, summ, area, ranges, initCoupon, title, false, this, evt, &catchMod, &refreshWarning, type);
+			_range = new RangePanel(comm, summ, _uc, area, ranges, initCoupon, title, false, this, evt, &catchMod, &refreshWarning, type);
 			_range.setLayoutData(new GridData(GridData.FILL_BOTH));
 		}
 		{ mixin(S_TRACE);
@@ -4681,6 +4697,7 @@ protected:
 /// クーポン多岐分岐の設定を行うダイアログ(Wsn.2)。
 class BranchMultiCouponDialog : EventDialog {
 private:
+	UseCounter _uc;
 	RangePanel _range;
 	Button _expandSPChars;
 
@@ -4699,8 +4716,9 @@ private:
 	}
 
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
+	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, Content parent, Content evt) { mixin(S_TRACE);
 		super (comm, prop, shell, summ, CType.BRANCH_MULTI_COUPON, parent, evt, false, null, true);
+		_uc = uc;
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
@@ -4708,7 +4726,7 @@ protected:
 
 		auto ranges = [Range.SELECTED, Range.RANDOM, Range.PARTY, Range.FIELD];
 		auto title = _prop.msgs.judgeTarget;
-		_range = new RangePanel(comm, summ, area, ranges, "", title, false, this, evt, &catchMod, &refreshWarning, type);
+		_range = new RangePanel(comm, summ, _uc, area, ranges, "", title, false, this, evt, &catchMod, &refreshWarning, type);
 		_range.setLayoutData(new GridData(GridData.FILL_BOTH));
 
 		auto grp = new Group(area, SWT.NONE);

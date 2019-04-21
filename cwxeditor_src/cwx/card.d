@@ -384,6 +384,7 @@ public:
 abstract class Card : CWXPath {
 private:
 	ulong _id;
+	string _objId;
 	string _name;
 	string _desc;
 	void delegate() _change = null;
@@ -398,6 +399,8 @@ public:
 	/// imagePaths = カード画像。
 	/// desc = 解説。
 	this (ulong id, string name, in CardImage[] paths, string desc) { mixin(S_TRACE);
+		static ulong idCount = 0;
+		_objId = .objectIDValue(this) ~ "-" ~ .to!string(idCount);
 		_id = id;
 		_name = name;
 		_desc = desc;
@@ -410,6 +413,11 @@ public:
 		desc = c.desc;
 		paths = c.paths;
 	}
+
+	/// インスタンスごとにユニークなID。
+	@property
+	const
+	string objectId() { return _objId; }
 
 	/// ディープコピーを作成する。
 	@property

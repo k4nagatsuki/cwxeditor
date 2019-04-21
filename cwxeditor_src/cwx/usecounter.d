@@ -314,7 +314,8 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() { return _uc; }
+	inout
+	inout(UseCounter) useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
@@ -2178,20 +2179,29 @@ class UseCounter {
 		return _sub;
 	}
 
+	/// ローカルIDの有無。
+	bool hasID(ID)(ID id) { mixin(S_TRACE);
+		if (!_local) return false;
+		return localIDs!ID.get(id, false);
+	}
+
 	/// ローカルIDの発生を通知する。
-	void createID(ID)(ID id) in (_local !is null) in (id !in localIDs!ID) { mixin(S_TRACE);
+	void createID(ID)(ID id) in (!_local || id !in localIDs!ID) { mixin(S_TRACE);
+		if (!_local) return;
 		localIDs!ID[id] = true;
 		foreach (u; _global.values(id)) { mixin(S_TRACE);
+			if (u.useCounter !is this) continue;
 			_global.remove(id, u);
 			_local.add(id, u);
 		}
-		assert (_global.get(id) == 0);
 		if (_sub) _sub.createID(id);
 	}
 	/// ローカルIDの消滅を通知する。
-	void deleteID(ID)(ID id) in (_local !is null) in (id in localIDs!ID) { mixin(S_TRACE);
+	void deleteID(ID)(ID id) in (!_local || id in localIDs!ID) { mixin(S_TRACE);
+		if (!_local) return;
 		localIDs!ID.remove(id);
 		foreach (u; _local.values(id)) { mixin(S_TRACE);
+			if (u.useCounter !is this) continue;
 			_local.remove(id, u);
 			_global.add(id, u);
 		}

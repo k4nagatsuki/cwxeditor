@@ -2,37 +2,38 @@
 module cwx.editor.gui.dwt.bgimagedialog;
 
 import cwx.area;
+import cwx.background;
 import cwx.card;
 import cwx.flag;
-import cwx.utils;
-import cwx.summary;
-import cwx.background;
 import cwx.imagesize;
+import cwx.menu;
+import cwx.msgutils;
+import cwx.path;
 import cwx.skin;
 import cwx.structs;
-import cwx.menu;
+import cwx.summary;
 import cwx.types;
-import cwx.path;
-import cwx.msgutils;
+import cwx.usecounter;
+import cwx.utils;
 import cwx.warning;
 
-import cwx.editor.gui.dwt.properties;
+import cwx.editor.gui.dwt.absdialog;
+import cwx.editor.gui.dwt.centerlayout;
+import cwx.editor.gui.dwt.chooser;
+import cwx.editor.gui.dwt.commons;
+import cwx.editor.gui.dwt.customtable;
+import cwx.editor.gui.dwt.customtext;
+import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.dutils;
-import cwx.editor.gui.dwt.commons;
-import cwx.editor.gui.dwt.materialselect;
-import cwx.editor.gui.dwt.imageselect;
-import cwx.editor.gui.dwt.customtext;
-import cwx.editor.gui.dwt.customtable;
-import cwx.editor.gui.dwt.centerlayout;
-import cwx.editor.gui.dwt.absdialog;
-import cwx.editor.gui.dwt.splitpane;
-import cwx.editor.gui.dwt.dmenu;
-import cwx.editor.gui.dwt.incsearch;
 import cwx.editor.gui.dwt.images;
+import cwx.editor.gui.dwt.imageselect;
+import cwx.editor.gui.dwt.incsearch;
+import cwx.editor.gui.dwt.materialselect;
 import cwx.editor.gui.dwt.messageutils;
-import cwx.editor.gui.dwt.chooser;
+import cwx.editor.gui.dwt.properties;
+import cwx.editor.gui.dwt.splitpane;
 
 import std.algorithm : countUntil, min;
 import std.traits;
@@ -51,6 +52,7 @@ private:
 	Commons _comm;
 	Props _prop;
 	Summary _summ;
+	UseCounter _uc;
 	bool _create;
 
 	FlagChooser!(Flag, true) _flag = null;
@@ -153,9 +155,10 @@ private:
 		}
 	}
 public:
-	this (Commons comm, Summary summ, Shell parent, string text, Image img, bool resizable, DSize size, bool create) { mixin(S_TRACE);
+	this (Commons comm, Summary summ, UseCounter uc, Shell parent, string text, Image img, bool resizable, DSize size, bool create) { mixin(S_TRACE);
 		_comm = comm;
 		_summ = summ;
+		_uc = uc;
 		_prop = comm.prop;
 		_selected = !create;
 		_create = create;
@@ -172,7 +175,7 @@ protected:
 		auto grp = new Group(comp, SWT.NONE);
 		grp.setLayout(normalGridLayout(2, false));
 		grp.setText(_prop.msgs.refFlag);
-		_flag = new FlagChooser!(Flag, true)(_comm, _summ, grp);
+		_flag = new FlagChooser!(Flag, true)(_comm, _summ, _uc, grp);
 		mod(_flag);
 		_flag.setLayoutData(new GridData(GridData.FILL_BOTH));
 		return grp;
@@ -371,7 +374,7 @@ private:
 	}
 
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, ImageCell back, bool create) { mixin(S_TRACE);
+	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, ImageCell back, bool create) { mixin(S_TRACE);
 		_back = back;
 		DSize size;
 		if (summ) { mixin(S_TRACE);
@@ -379,7 +382,7 @@ public:
 		} else { mixin(S_TRACE);
 			size = prop.var.areaBackgroundNFDlg;
 		}
-		super (comm, summ, shell, create ? prop.msgs.dlgTitNewBgImage : prop.msgs.dlgTitBgImage,
+		super (comm, summ, uc, shell, create ? prop.msgs.dlgTitNewBgImage : prop.msgs.dlgTitBgImage,
 			prop.images.backs, true, size, create);
 	}
 
@@ -532,7 +535,7 @@ private:
 			textUseItems(wrapReturnCode(_text.getText()), flags, steps, variants, fonts, colors);
 			fonts = [];
 			colors = [];
-			ws ~= .textWarnings(_prop.parent, summSkin, _summ, _prop.var.etc.targetVersion,
+			ws ~= .textWarnings(_prop.parent, summSkin, _summ, _uc, _prop.var.etc.targetVersion,
 				_text.getText(), flags, steps, variants, fonts, colors, wFlags, wSteps, wVariants, wFonts, wColors).all;
 		}
 		if (_updateType.getSelectionIndex() != -1) { mixin(S_TRACE);
@@ -619,7 +622,7 @@ private:
 		}
 	}
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, TextCell back, bool create) { mixin(S_TRACE);
+	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, TextCell back, bool create) { mixin(S_TRACE);
 		_back = back;
 		_summSkin = findSkin(comm, prop, summ);
 		DSize size;
@@ -628,7 +631,7 @@ public:
 		} else { mixin(S_TRACE);
 			size = prop.var.areaTextCellNFDlg;
 		}
-		super (comm, summ, shell, create ? prop.msgs.dlgTitNewTextCell : prop.msgs.dlgTitTextCell,
+		super (comm, summ, uc, shell, create ? prop.msgs.dlgTitNewTextCell : prop.msgs.dlgTitTextCell,
 			prop.images.textCell, true, size, create);
 		enterClose = false;
 	}
@@ -808,7 +811,7 @@ protected:
 			createTextMenu!Text(_comm, _prop, _text, &catchMod);
 			auto menu = _text.getMenu();
 			new MenuItem(menu, SWT.SEPARATOR);
-			.setupSPCharsMenu(_comm, _summ, _text, menu, false, true, () => true);
+			.setupSPCharsMenu(_comm, _summ, _uc, _text, menu, false, true, () => true);
 			auto gd1 = new GridData(GridData.FILL_BOTH);
 			gd1.widthHint = _prop.var.etc.textCellBoxWidth;
 			gd1.heightHint = _prop.var.etc.textCellBoxHeight;
@@ -818,10 +821,10 @@ protected:
 			.listener(_text, SWT.Modify, &updatePreview);
 			createSimpleSCharBar(grp, &_text.insert, _comm, _prop, _summ, skin);
 			if (_summ) { mixin(S_TRACE);
-				createFlagStepBar(grp, &_text.insert, _comm, _prop, _summ, skin, false).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				createFlagStepBar(grp, &_text.insert, _comm, _prop, _summ, _uc, skin, false).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			}
 
-			_values = new PreviewValues(sash2, _comm, _prop, _summ, false);
+			_values = new PreviewValues(sash2, _comm, _prop, _summ, _uc, false);
 			_values.modEvent ~= &updatePreview;
 
 			.setupWeights(sash2, _prop.var.etc.textCellPreviewSashL, _prop.var.etc.textCellPreviewSashR);
@@ -1015,7 +1018,7 @@ private:
 		}
 	}
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, ColorCell back, bool create) { mixin(S_TRACE);
+	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, ColorCell back, bool create) { mixin(S_TRACE);
 		_back = back;
 		DSize size;
 		if (summ) { mixin(S_TRACE);
@@ -1023,7 +1026,7 @@ public:
 		} else { mixin(S_TRACE);
 			size = prop.var.areaColorCellNFDlg;
 		}
-		super (comm, summ, shell, create ? prop.msgs.dlgTitNewColorCell : prop.msgs.dlgTitColorCell,
+		super (comm, summ, uc, shell, create ? prop.msgs.dlgTitNewColorCell : prop.msgs.dlgTitColorCell,
 			prop.images.colorCell, true, size, create);
 	}
 
@@ -1283,7 +1286,7 @@ private:
 		}
 	}
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, PCCell back, bool create) { mixin(S_TRACE);
+	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, PCCell back, bool create) { mixin(S_TRACE);
 		_back = back;
 		DSize size;
 		if (summ) { mixin(S_TRACE);
@@ -1291,7 +1294,7 @@ public:
 		} else { mixin(S_TRACE);
 			size = prop.var.areaPCCellNFDlg;
 		}
-		super (comm, summ, shell, create ? prop.msgs.dlgTitNewPCCell : prop.msgs.dlgTitPCCell,
+		super (comm, summ, uc, shell, create ? prop.msgs.dlgTitNewPCCell : prop.msgs.dlgTitPCCell,
 			prop.images.pcCell, true, size, create);
 	}
 

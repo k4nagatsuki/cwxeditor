@@ -1,68 +1,71 @@
 
 module cwx.editor.gui.dwt.messageutils;
 
-import cwx.utils;
-import cwx.types;
-import cwx.event;
-import cwx.summary;
-import cwx.skin;
-import cwx.xml;
-import cwx.flag;
-import cwx.path;
-import cwx.structs;
-import cwx.msgutils;
-import cwx.menu;
-import cwx.types;
-import cwx.imagesize;
-import cwx.system;
-import cwx.warning;
-import cwx.sjis;
 import cwx.card;
+import cwx.event;
 import cwx.expression;
+import cwx.flag;
+import cwx.imagesize;
+import cwx.menu;
+import cwx.msgutils;
+import cwx.path;
+import cwx.sjis;
+import cwx.skin;
+import cwx.structs;
+import cwx.summary;
+import cwx.system;
+import cwx.types;
+import cwx.types;
+import cwx.usecounter;
+import cwx.utils;
+import cwx.warning;
+import cwx.xml;
 
+import cwx.editor.gui.dwt.absdialog;
+import cwx.editor.gui.dwt.absdialog;
+import cwx.editor.gui.dwt.centerlayout;
+import cwx.editor.gui.dwt.chooser;
+import cwx.editor.gui.dwt.commons;
+import cwx.editor.gui.dwt.couponview;
+import cwx.editor.gui.dwt.customtable;
+import cwx.editor.gui.dwt.customtext;
+import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.dutils;
-import cwx.editor.gui.dwt.commons;
-import cwx.editor.gui.dwt.centerlayout;
-import cwx.editor.gui.dwt.customtext;
-import cwx.editor.gui.dwt.customtable;
-import cwx.editor.gui.dwt.imageselect;
-import cwx.editor.gui.dwt.materialselect;
-import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.eventdialog;
-import cwx.editor.gui.dwt.xmlbytestransfer;
-import cwx.editor.gui.dwt.undo;
-import cwx.editor.gui.dwt.splitpane;
-import cwx.editor.gui.dwt.properties;
-import cwx.editor.gui.dwt.absdialog;
-import cwx.editor.gui.dwt.dmenu;
-import cwx.editor.gui.dwt.couponview;
-import cwx.editor.gui.dwt.chooser;
-import cwx.editor.gui.dwt.incsearch;
 import cwx.editor.gui.dwt.imagelistwindow;
+import cwx.editor.gui.dwt.imageselect;
+import cwx.editor.gui.dwt.incsearch;
+import cwx.editor.gui.dwt.materialselect;
+import cwx.editor.gui.dwt.properties;
+import cwx.editor.gui.dwt.splitpane;
+import cwx.editor.gui.dwt.undo;
+import cwx.editor.gui.dwt.xmlbytestransfer;
 
 static import std.algorithm;
 import std.algorithm : max, min, sort, uniq;
 import std.array;
-import std.utf;
-import std.uni;
-import std.string;
-import std.datetime;
-import std.conv;
-import std.exception;
 import std.ascii;
-import std.path;
-import std.typecons;
-import std.range;
+import std.conv;
+import std.datetime;
+import std.exception;
 import std.file;
+import std.path;
+import std.range;
 import std.regex;
+import std.string;
+import std.typecons;
+import std.uni;
+import std.utf;
 
 import org.eclipse.swt.all;
 import java.lang.all;
 
 /// 台詞コンテント・メッセージコンテントのダイアログの親クラス。
 class AbstractMessageDialog : EventDialog {
+	private UseCounter _uc;
+
 	private Spinner _selectionColumns;
 	private Button _centerX;
 	private Button _centerY;
@@ -126,7 +129,7 @@ class AbstractMessageDialog : EventDialog {
 
 	private TextWarnings textWarnings(string text, in string[] flags, in string[] steps, in string[] variants, in string[] fonts, in char[] colors,
 			ref bool[string] wFlags, ref bool[string] wSteps, ref bool[string] wVariants, ref bool[string] wFonts, ref bool[char] wColors) { mixin(S_TRACE);
-		return .textWarnings(prop.parent, summSkin, summ, prop.var.etc.targetVersion,
+		return .textWarnings(prop.parent, summSkin, summ, _uc, prop.var.etc.targetVersion,
 			text, flags, steps, variants, fonts, colors, wFlags, wSteps, wVariants, wFonts, wColors);
 	}
 
@@ -334,10 +337,10 @@ class AbstractMessageDialog : EventDialog {
 			}
 		}
 		if (prop.var.etc.floatMessagePreview) { mixin(S_TRACE);
-			_previewWin = new MsgPreviewWindow(getShell(), comm, prop, summ, _prev, size);
+			_previewWin = new MsgPreviewWindow(getShell(), comm, prop, summ, _uc, _prev, size);
 		} else { mixin(S_TRACE);
 			assert (rightGroup && !rightGroup.isDisposed());
-			_preview = new MsgPreview(rightGroup, comm, prop, summ);
+			_preview = new MsgPreview(rightGroup, comm, prop, summ, _uc);
 			rightGroup.setLayout(zeroGridLayout(1, false));
 			_preview.setLayoutData(new GridData(GridData.FILL_BOTH));
 			setPreviewLData(_prev.getSelection(), false);
@@ -345,10 +348,11 @@ class AbstractMessageDialog : EventDialog {
 		refreshPreview();
 	}
 
-	this (Commons comm, Props prop, Shell shell, Summary summ, CType type, Content parent, Content evt, DSize size) { mixin(S_TRACE);
+	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, CType type, Content parent, Content evt, DSize size) { mixin(S_TRACE);
 		super (comm, prop, shell, summ, type, parent, evt, true, size, false, !prop.var.etc.floatMessagePreview);
 		_undo = new UndoManager(prop.var.etc.undoMaxEtc);
 		_summSkin = findSkin(comm, prop, summ);
+		_uc = uc;
 	}
 
 	override
@@ -994,9 +998,9 @@ private:
 		_accels[id] = typeof(_accels[id])(.convertAccelerator(prop.buildMenu(id)), func, enabled);
 	}
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
+	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, Content parent, Content evt) { mixin(S_TRACE);
 		_id = .objectIDValue(this);
-		super(comm, prop, shell, summ, CType.TALK_DIALOG, parent, evt, prop.var.speakDlg);
+		super(comm, prop, shell, summ, uc, CType.TALK_DIALOG, parent, evt, prop.var.speakDlg);
 	}
 
 	override
@@ -1074,9 +1078,9 @@ protected:
 			grp.setLayout(normalGridLayout(1, true));
 			Control tp;
 			if (evt) { mixin(S_TRACE);
-				tp = createTalkerPane2(grp, comm, prop, summ, evt.dialogs[0].rCoupons, _rCoupons, _rCouponsList);
+				tp = createTalkerPane2(grp, comm, prop, summ, _uc, evt.dialogs[0].rCoupons, _rCoupons, _rCouponsList);
 			} else { mixin(S_TRACE);
-				tp = createTalkerPane2(grp, comm, prop, summ, [], _rCoupons, _rCouponsList);
+				tp = createTalkerPane2(grp, comm, prop, summ, _uc, [], _rCoupons, _rCouponsList);
 			}
 			mod(_rCoupons);
 			_rCoupons.addModifyListener(new ModRC);
@@ -1084,7 +1088,7 @@ protected:
 		}
 		void delegate() updateValue;
 		{ mixin(S_TRACE);
-			createValueEditor(comm, summ, leftSash, &catchMod, _couponView, _initValue, updateValue);
+			createValueEditor(comm, summ, _uc, leftSash, &catchMod, _couponView, _initValue, updateValue);
 			mod(_initValue);
 			mod(_couponView);
 			_couponView.modEvent ~= &refreshWarning;
@@ -1172,7 +1176,7 @@ protected:
 		sscgd.horizontalSpan = 2;
 		skinSChar.setLayoutData(sscgd);
 
-		auto var = createFlagStepBar(area, &insert, comm, prop, summ, skin, true);
+		auto var = createFlagStepBar(area, &insert, comm, prop, summ, _uc, skin, true);
 		var.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 		auto wBar = createWsnSettingsBar(area);
@@ -1233,7 +1237,7 @@ protected:
 
 		auto menu = _text.widget.getMenu();
 		new MenuItem(menu, SWT.SEPARATOR);
-		.setupSPCharsMenu(comm, summ, _text.widget, menu, true, true, () => true);
+		.setupSPCharsMenu(comm, summ, _uc, _text.widget, menu, true, true, () => true);
 
 		initPreview(area, prop.var.dlgPrev);
 		updateValue();
@@ -1349,8 +1353,8 @@ private:
 		_text.font = prop.looks.messageFont(summSkin.legacy);
 	}
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
-		super (comm, prop, shell, summ, CType.TALK_MESSAGE, parent, evt, prop.var.msgDlg);
+	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, Content parent, Content evt) { mixin(S_TRACE);
+		super (comm, prop, shell, summ, uc, CType.TALK_MESSAGE, parent, evt, prop.var.msgDlg);
 	}
 
 	CardImage[] selectedTalkerParam() { mixin(S_TRACE);
@@ -1414,7 +1418,7 @@ protected:
 			createTextMenu!Text(comm, prop, _text.widget, &catchMod, _undo);
 			auto menu = _text.widget.getMenu();
 			new MenuItem(menu, SWT.SEPARATOR);
-			.setupSPCharsMenu(comm, summ, _text.widget, menu, true, true, () => true);
+			.setupSPCharsMenu(comm, summ, _uc, _text.widget, menu, true, true, () => true);
 			auto tab = new CTabItem(_tabf, SWT.NONE);
 			tab.setText(prop.msgs.imageMessage);
 			tab.setControl(comp);
@@ -1435,7 +1439,7 @@ protected:
 		gdS.horizontalSpan = 3;
 		skinSChar.setLayoutData(gdS);
 
-		auto var = createFlagStepBar(area, &insert, comm, prop, summ, skin, true);
+		auto var = createFlagStepBar(area, &insert, comm, prop, summ, _uc, skin, true);
 		auto gdV = new GridData(GridData.FILL_HORIZONTAL);
 		gdV.horizontalSpan = 3;
 		var.setLayoutData(gdV);
@@ -1491,11 +1495,11 @@ protected:
 	}
 }
 
-private Composite createTalkerPane2(Composite parent, Commons comm, Props prop, Summary summ,
+private Composite createTalkerPane2(Composite parent, Commons comm, Props prop, Summary summ, UseCounter uc,
 		string[] coupons, out Text couponList, out Combo couponCombo) { mixin(S_TRACE);
 	auto comp = new Composite(parent, SWT.NONE);
 	comp.setLayout(zeroMarginGridLayout(2, false));
-	couponCombo = createCouponCombo(comm, summ, comp, null, CouponComboType.Talker, "");
+	couponCombo = createCouponCombo(comm, summ, uc, comp, null, CouponComboType.Talker, "");
 	auto push = new Button(comp, SWT.PUSH);
 	auto skin = comm.skin;
 	{ mixin(S_TRACE);
@@ -1780,7 +1784,7 @@ private void updateSkinSCharBar(Commons comm, ToolBar bar, void delegate(string)
 }
 
 Composite createFlagStepBar(Composite parent, void delegate(string) insert, Commons comm, Props prop,
-		Summary summ, Skin skin, bool imageFont, Button delegate(Composite, Combo, VariableType) createButton = null) { mixin(S_TRACE);
+		Summary summ, UseCounter uc, Skin skin, bool imageFont, Button delegate(Composite, Combo, VariableType) createButton = null) { mixin(S_TRACE);
 	auto bar = new Composite(parent, SWT.NONE);
 	bar.setLayout(zeroMarginGridLayout((imageFont && summ) ? 2 : 1, false));
 	Composite create(Composite parent, out Combo list, out Button put, string puts, Image image, string delegate(string) lc, int colNum, VariableType varType) { mixin(S_TRACE);
@@ -1848,7 +1852,7 @@ Composite createFlagStepBar(Composite parent, void delegate(string) insert, Comm
 			auto root = summ.flagDirRoot;
 			auto fSel = flags.getText();
 			flags.removeAll();
-			auto list = root.allFlags;
+			auto list = .allVars!(cwx.flag.Flag)(root, uc);
 			size_t i = 0;
 			.sortedWithPath(list, prop.var.etc.logicalSort, (cwx.flag.Flag flag) { mixin(S_TRACE);
 				auto p = flag.path;
@@ -1869,7 +1873,7 @@ Composite createFlagStepBar(Composite parent, void delegate(string) insert, Comm
 			auto root = summ.flagDirRoot;
 			auto sSel = steps.getText();
 			steps.removeAll();
-			auto list = root.allSteps;
+			auto list = .allVars!Step(root, uc);
 			size_t i = 0;
 			.sortedWithPath(list, prop.var.etc.logicalSort, (Step step) { mixin(S_TRACE);
 				auto p = step.path;
@@ -1890,7 +1894,7 @@ Composite createFlagStepBar(Composite parent, void delegate(string) insert, Comm
 			auto root = summ.flagDirRoot;
 			auto vSel = variants.getText();
 			variants.removeAll();
-			auto list = root.allVariants;
+			auto list = .allVars!(cwx.flag.Variant)(root, uc);
 			size_t i = 0;
 			.sortedWithPath(list, prop.var.etc.logicalSort, (cwx.flag.Variant variant) { mixin(S_TRACE);
 				auto p = variant.path;
@@ -1909,7 +1913,7 @@ Composite createFlagStepBar(Composite parent, void delegate(string) insert, Comm
 
 	flagIncSearch = createIncs(flags, &refListF, MenuID.OpenAtVarView, { mixin(S_TRACE);
 		if (!summ) return;
-		auto flag = summ.flagDirRoot.findFlag(flags.getText());
+		auto flag = .findVar!(cwx.flag.Flag)(summ ? summ.flagDirRoot : null, uc, flags.getText());
 		if (!flag) return;
 		try { mixin(S_TRACE);
 			comm.openCWXPath(flag.cwxPath(true), false);
@@ -1920,7 +1924,7 @@ Composite createFlagStepBar(Composite parent, void delegate(string) insert, Comm
 	}, &flags.isEnabled);
 	stepIncSearch = createIncs(steps, &refListS, MenuID.OpenAtVarView, { mixin(S_TRACE);
 		if (!summ) return;
-		auto step = summ.flagDirRoot.findStep(steps.getText());
+		auto step = .findVar!Step(summ ? summ.flagDirRoot : null, uc, steps.getText());
 		if (!step) return;
 		try { mixin(S_TRACE);
 			comm.openCWXPath(step.cwxPath(true), false);
@@ -1931,7 +1935,7 @@ Composite createFlagStepBar(Composite parent, void delegate(string) insert, Comm
 	}, &steps.isEnabled);
 	variantIncSearch = createIncs(variants, &refListV, MenuID.OpenAtVarView, { mixin(S_TRACE);
 		if (!summ) return;
-		auto variant = summ.flagDirRoot.findVariant(variants.getText());
+		auto variant = .findVar!(cwx.flag.Variant)(summ ? summ.flagDirRoot : null, uc, variants.getText());
 		if (!variant) return;
 		try { mixin(S_TRACE);
 			comm.openCWXPath(variant.cwxPath(true), false);
@@ -2133,7 +2137,7 @@ class MsgPreviewWindow {
 		}
 	}
 
-	this (Shell parent, Commons comm, Props prop, Summary summ, Button toggle, WSize size) { mixin(S_TRACE);
+	this (Shell parent, Commons comm, Props prop, Summary summ, UseCounter uc, Button toggle, WSize size) { mixin(S_TRACE);
 		_comm = comm;
 		_size = size;
 		_toggle = toggle;
@@ -2157,7 +2161,7 @@ class MsgPreviewWindow {
 		});
 		_oldImageScale = comm.prop.var.etc.imageScale;
 
-		_preview = new MsgPreview(_win, comm, prop, summ);
+		_preview = new MsgPreview(_win, comm, prop, summ, uc);
 	}
 
 	private void refImageScale() { mixin(S_TRACE);
@@ -2279,6 +2283,7 @@ class PreviewValues : Composite {
 	private Commons _comm;
 	private Props _prop;
 	private Summary _summ;
+	private UseCounter _uc;
 
 	private bool _isMessage;
 	private const(SPChar)[] _targetChars;
@@ -2471,7 +2476,7 @@ class PreviewValues : Composite {
 			}
 		}
 		if (_summ) { mixin(S_TRACE);
-			.sortedWithPath(_summ.flagDirRoot.allVariants, _prop.var.etc.logicalSort, (cwx.flag.Variant f) { mixin(S_TRACE);
+			.sortedWithPath(.allVars!(cwx.flag.Variant)(_summ.flagDirRoot, _uc), _prop.var.etc.logicalSort, (cwx.flag.Variant f) { mixin(S_TRACE);
 				auto itm = new TableItem(_values, SWT.NONE);
 				auto path = f.path;
 				itm.setImage(0, _prop.images.variant);
@@ -2491,7 +2496,7 @@ class PreviewValues : Composite {
 					_values.select(_values.getItemCount() - 1);
 				}
 			});
-			.sortedWithPath(_summ.flagDirRoot.allSteps, _prop.var.etc.logicalSort, (Step f) { mixin(S_TRACE);
+			.sortedWithPath(.allVars!Step(_summ.flagDirRoot, _uc), _prop.var.etc.logicalSort, (Step f) { mixin(S_TRACE);
 				auto itm = new TableItem(_values, SWT.NONE);
 				auto path = f.path;
 				itm.setImage(0, _prop.images.step);
@@ -2513,7 +2518,7 @@ class PreviewValues : Composite {
 					_values.select(_values.getItemCount() - 1);
 				}
 			});
-			.sortedWithPath(_summ.flagDirRoot.allFlags, _prop.var.etc.logicalSort, (cwx.flag.Flag f) { mixin(S_TRACE);
+			.sortedWithPath(.allVars!(cwx.flag.Flag)(_summ.flagDirRoot, _uc), _prop.var.etc.logicalSort, (cwx.flag.Flag f) { mixin(S_TRACE);
 				auto itm = new TableItem(_values, SWT.NONE);
 				auto path = f.path;
 				itm.setImage(0, _prop.images.flag);
@@ -2689,7 +2694,7 @@ class PreviewValues : Composite {
 			}
 		}
 		if (_summ) { mixin(S_TRACE);
-			.sortedWithPath(_summ.flagDirRoot.allVariants, _prop.var.etc.logicalSort, (cwx.flag.Variant f) { mixin(S_TRACE);
+			.sortedWithPath(.allVars!(cwx.flag.Variant)(_summ.flagDirRoot, _uc), _prop.var.etc.logicalSort, (cwx.flag.Variant f) { mixin(S_TRACE);
 				if (i in set) { mixin(S_TRACE);
 					auto itm = _values.getItem(i);
 					itm.setText(1, .variantValueToText(f));
@@ -2698,7 +2703,7 @@ class PreviewValues : Composite {
 				}
 				i++;
 			});
-			.sortedWithPath(_summ.flagDirRoot.allSteps, _prop.var.etc.logicalSort, (Step f) { mixin(S_TRACE);
+			.sortedWithPath(.allVars!Step(_summ.flagDirRoot, _uc), _prop.var.etc.logicalSort, (Step f) { mixin(S_TRACE);
 				if (i in set) { mixin(S_TRACE);
 					auto itm = _values.getItem(i);
 					itm.setText(1, f.values[f.select]);
@@ -2707,7 +2712,7 @@ class PreviewValues : Composite {
 				}
 				i++;
 			});
-			.sortedWithPath(_summ.flagDirRoot.allFlags, _prop.var.etc.logicalSort, (cwx.flag.Flag f) { mixin(S_TRACE);
+			.sortedWithPath(.allVars!(cwx.flag.Flag)(_summ.flagDirRoot, _uc), _prop.var.etc.logicalSort, (cwx.flag.Flag f) { mixin(S_TRACE);
 				if (i in set) { mixin(S_TRACE);
 					auto itm = _values.getItem(i);
 					itm.setText(1, f.onOff ? f.on : f.off);
@@ -2784,7 +2789,7 @@ class PreviewValues : Composite {
 		}
 		if (_summ) { mixin(S_TRACE);
 			cwx.flag.Variant[] vs;
-			.sortedWithPath(_summ.flagDirRoot.allVariants, _prop.var.etc.logicalSort, (cwx.flag.Variant v) { vs ~= v; });
+			.sortedWithPath(.allVars!(cwx.flag.Variant)(_summ.flagDirRoot, _uc), _prop.var.etc.logicalSort, (cwx.flag.Variant v) { vs ~= v; });
 			foreach (f; vs) { mixin(S_TRACE);
 				if (i in set) { mixin(S_TRACE);
 					auto itm = _values.getItem(i);
@@ -2794,7 +2799,7 @@ class PreviewValues : Composite {
 				i++;
 			}
 			Step[] ss;
-			.sortedWithPath(_summ.flagDirRoot.allSteps, _prop.var.etc.logicalSort, (Step s) { ss ~= s; });
+			.sortedWithPath(.allVars!Step(_summ.flagDirRoot, _uc), _prop.var.etc.logicalSort, (Step s) { ss ~= s; });
 			foreach (f; ss) { mixin(S_TRACE);
 				if (i in set) { mixin(S_TRACE);
 					auto itm = _values.getItem(i);
@@ -2804,7 +2809,7 @@ class PreviewValues : Composite {
 				i++;
 			}
 			cwx.flag.Flag[] fs;
-			.sortedWithPath(_summ.flagDirRoot.allFlags, _prop.var.etc.logicalSort, (cwx.flag.Flag f) { fs ~= f; });
+			.sortedWithPath(.allVars!(cwx.flag.Flag)(_summ.flagDirRoot, _uc), _prop.var.etc.logicalSort, (cwx.flag.Flag f) { fs ~= f; });
 			foreach (f; fs) { mixin(S_TRACE);
 				if (i in set) { mixin(S_TRACE);
 					auto itm = _values.getItem(i);
@@ -2910,13 +2915,14 @@ class PreviewValues : Composite {
 		bool canDoClone() { return false; }
 	}
 
-	this (Composite parent, Commons comm, Props prop, Summary summ, bool message) { mixin(S_TRACE);
+	this (Composite parent, Commons comm, Props prop, Summary summ, UseCounter uc, bool message) { mixin(S_TRACE);
 		super (parent, SWT.NONE);
 
 		_undo = new UndoManager(prop.var.etc.undoMaxEtc);
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
+		_uc = uc;
 		_isMessage = message;
 		_targetChars = message ? SPCHAR_ALL : SPCHAR_TEXT;
 
@@ -3113,7 +3119,7 @@ Text variantValueEditor(Commons comm, Composite parent, string value) { mixin(S_
 	return t;
 }
 
-void getPreviewValues(in Props prop, Summary summ, in SPChar[] targetChars,
+void getPreviewValues(in Props prop, Summary summ, UseCounter uc, in SPChar[] targetChars,
 		out string[char] names, out VarValue[string] flags, out VarValue[string] steps,
 		out VarValue[string] variants, out VarValue[string] sysSteps) { mixin(S_TRACE);
 	foreach (c; targetChars) { mixin(S_TRACE);
@@ -3142,13 +3148,13 @@ void getPreviewValues(in Props prop, Summary summ, in SPChar[] targetChars,
 		}
 	}
 	if (summ) { mixin(S_TRACE);
-		.sortedWithPath(summ.flagDirRoot.allFlags, prop.var.etc.logicalSort, (cwx.flag.Flag f) { mixin(S_TRACE);
+		.sortedWithPath(.allVars!(cwx.flag.Flag)(summ.flagDirRoot, uc), prop.var.etc.logicalSort, (cwx.flag.Flag f) { mixin(S_TRACE);
 			flags[f.path] = VarValue(true, f.onOff ? f.on : f.off, f.expandSPChars);
 		});
-		.sortedWithPath(summ.flagDirRoot.allSteps, prop.var.etc.logicalSort, (Step f) { mixin(S_TRACE);
+		.sortedWithPath(.allVars!Step(summ.flagDirRoot, uc), prop.var.etc.logicalSort, (Step f) { mixin(S_TRACE);
 			steps[f.path] = VarValue(true, f.value, f.expandSPChars);
 		});
-		.sortedWithPath(summ.flagDirRoot.allVariants, prop.var.etc.logicalSort, (cwx.flag.Variant f) { mixin(S_TRACE);
+		.sortedWithPath(.allVars!(cwx.flag.Variant)(summ.flagDirRoot, uc), prop.var.etc.logicalSort, (cwx.flag.Variant f) { mixin(S_TRACE);
 			variants[f.path] = VarValue(true, .variantValueToPreviewText(f), false);
 		});
 	}
@@ -3207,7 +3213,7 @@ class MsgPreview : Composite {
 		}
 	}
 
-	this (Composite parent, Commons comm, Props prop, Summary summ) { mixin(S_TRACE);
+	this (Composite parent, Commons comm, Props prop, Summary summ, UseCounter uc) { mixin(S_TRACE);
 		super (parent, SWT.NONE);
 
 		_comm = comm;
@@ -3221,7 +3227,7 @@ class MsgPreview : Composite {
 		_canvas.addPaintListener(new Paint);
 		_canvas.addDisposeListener(new Dispose);
 
-		_values = new PreviewValues(this, comm, prop, summ, true);
+		_values = new PreviewValues(this, comm, prop, summ, uc, true);
 		auto vgd = new GridData(GridData.FILL_BOTH);
 		vgd.heightHint = _prop.var.etc.messageVarTableHeight;
 		_values.setLayoutData(vgd);
@@ -3731,7 +3737,7 @@ ImageDataWithScale previewMessage(Commons comm, Props prop, in Summary summ, Ima
 	return new ImageDataWithScale(data, prop.drawingScale);
 }
 
-void setupSPCharsMenu(Commons comm, Summary summ, Control ctrl, Menu parentMenu, bool full, bool expandSharps, bool delegate() isExpandSPChars) { mixin(S_TRACE);
+void setupSPCharsMenu(Commons comm, Summary summ, UseCounter uc, Control ctrl, Menu parentMenu, bool full, bool expandSharps, bool delegate() isExpandSPChars) { mixin(S_TRACE);
 	void delegate() dummy = { };
 	auto mainMI = .createMenuItem(comm, parentMenu, MenuID.PutSPChar, dummy, isExpandSPChars, SWT.CASCADE);
 	auto menu = new Menu(mainMI);
@@ -3820,7 +3826,7 @@ void setupSPCharsMenu(Commons comm, Summary summ, Control ctrl, Menu parentMenu,
 		fMI.setMenu(fMenu);
 		.listener(fMenu, SWT.Show, { mixin(S_TRACE);
 			foreach (mi; fMenu.getItems()) mi.dispose();
-			.sortedWithPath(summ.flagDirRoot.allFlags, comm.prop.var.etc.logicalSort, (cwx.flag.Flag f) { mixin(S_TRACE);
+			.sortedWithPath(.allVars!(cwx.flag.Flag)(summ.flagDirRoot, uc), comm.prop.var.etc.logicalSort, (cwx.flag.Flag f) { mixin(S_TRACE);
 				.createMenuItem2(comm, fMenu, f.path, comm.prop.images.flag, () => insert("%" ~ f.path ~ "%"), null);
 			});
 		});
@@ -3831,7 +3837,7 @@ void setupSPCharsMenu(Commons comm, Summary summ, Control ctrl, Menu parentMenu,
 		sMI.setMenu(sMenu);
 		.listener(sMenu, SWT.Show, { mixin(S_TRACE);
 			foreach (mi; sMenu.getItems()) mi.dispose();
-			.sortedWithPath(summ.flagDirRoot.allSteps, comm.prop.var.etc.logicalSort, (Step f) { mixin(S_TRACE);
+			.sortedWithPath(.allVars!Step(summ.flagDirRoot, uc), comm.prop.var.etc.logicalSort, (Step f) { mixin(S_TRACE);
 				.createMenuItem2(comm, sMenu, f.path, comm.prop.images.step, () => insert("$" ~ f.path ~ "$"), null);
 			});
 		});
@@ -3842,7 +3848,7 @@ void setupSPCharsMenu(Commons comm, Summary summ, Control ctrl, Menu parentMenu,
 		vMI.setMenu(vMenu);
 		.listener(vMenu, SWT.Show, { mixin(S_TRACE);
 			foreach (mi; vMenu.getItems()) mi.dispose();
-			.sortedWithPath(summ.flagDirRoot.allVariants, comm.prop.var.etc.logicalSort, (cwx.flag.Variant f) { mixin(S_TRACE);
+			.sortedWithPath(.allVars!(cwx.flag.Variant)(summ.flagDirRoot, uc), comm.prop.var.etc.logicalSort, (cwx.flag.Variant f) { mixin(S_TRACE);
 				.createMenuItem2(comm, vMenu, f.path, comm.prop.images.variant, () => insert("@" ~ f.path ~ "@"), null);
 			});
 		});
@@ -3930,13 +3936,13 @@ void setupSPCharsMenu(Commons comm, Summary summ, Control ctrl, Menu parentMenu,
 	});
 }
 
-string createSPCharPreview(in Commons comm, in Summary summ, string text, bool expandSharps, VarValue delegate(string path) overrideFlagValue, VarValue delegate(string path) overrideStepValue) { mixin(S_TRACE);
+string createSPCharPreview(in Commons comm, in Summary summ, in UseCounter uc, string text, bool expandSharps, VarValue delegate(string path) overrideFlagValue, VarValue delegate(string path) overrideStepValue) { mixin(S_TRACE);
 	VarValue fValue(string path) { mixin(S_TRACE);
 		if (overrideFlagValue) { mixin(S_TRACE);
 			auto v = overrideFlagValue(path);
 			if (v.exists) return v;
 		}
-		auto flag = summ.flagDirRoot.findFlag(path);
+		auto flag = .findVar!(cwx.flag.Flag)(summ ? summ.flagDirRoot : null, uc, path);
 		return flag ? VarValue(true, flag.onOff ? flag.on : flag.off, flag.expandSPChars) : VarValue(false);
 	}
 	VarValue[string] sysSteps;
@@ -3946,11 +3952,11 @@ string createSPCharPreview(in Commons comm, in Summary summ, string text, bool e
 			auto v = overrideStepValue(path);
 			if (v.exists) return v;
 		}
-		auto step = summ.flagDirRoot.findStep(path);
+		auto step = .findVar!Step(summ ? summ.flagDirRoot : null, uc, path);
 		return step ? VarValue(true, step.value, step.expandSPChars) : sysSteps.get(path.toLower(), VarValue(false));
 	}
 	VarValue vValue(string path) { mixin(S_TRACE);
-		auto variant = summ.flagDirRoot.findVariant(path);
+		auto variant = .findVar!(cwx.flag.Variant)(summ ? summ.flagDirRoot : null, uc, path);
 		return variant ? VarValue(true, .variantValueToPreviewText(variant), false) : VarValue(false);
 	}
 	string getName(char name) { mixin(S_TRACE);

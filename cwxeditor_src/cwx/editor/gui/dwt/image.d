@@ -220,6 +220,10 @@ public:
 	@property Image variant() { return imgd!("variant.png"); }
 	@property Image variantRef() { return imgd!("variant_ref.png"); }
 
+	@property Image localFlag() { return imgd!("flag_l.png"); }
+	@property Image localStep() { return imgd!("step_l.png"); }
+	@property Image localVariant() { return imgd!("variant_l.png"); }
+
 	@property Image functions() { return imgd!("func.png"); }
 
 	@property Image couponNormal() { return imgd!("coupon_n.png"); }

@@ -10,6 +10,7 @@ import cwx.msgutils;
 import cwx.path;
 import cwx.summary;
 import cwx.types;
+import cwx.usecounter;
 import cwx.utils;
 import cwx.warning;
 
@@ -48,6 +49,7 @@ class ExpressionEventDialog : EventDialog {
 private:
 	CType _cType;
 	ExpressionEditor _expr;
+	UseCounter _uc;
 
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
@@ -60,8 +62,9 @@ private:
 	}
 
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, CType cType, Content evt) { mixin(S_TRACE);
+	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, Content parent, CType cType, Content evt) { mixin(S_TRACE);
 		super (comm, prop, shell, summ, cType, parent, evt, true, prop.var.expressionDlg, true);
+		_uc = uc;
 	}
 
 	override
@@ -86,7 +89,7 @@ protected:
 			cl.fillVertical = true;
 			grp.setLayout(cl);
 
-			_expr = new ExpressionEditor(comm, summ, grp, SWT.NONE);
+			_expr = new ExpressionEditor(comm, summ, _uc, grp, SWT.NONE);
 			mod(_expr);
 			_expr.modEvent ~= &refreshWarning;
 		}
@@ -115,6 +118,7 @@ protected:
 class SetVariantDialog : EventDialog {
 private:
 	ExpressionEditor _expr;
+	UseCounter _uc;
 
 	Button[VariableType] _varTypes;
 	Composite _varComp;
@@ -230,19 +234,19 @@ private:
 		gd.horizontalSpan = 3;
 		final switch (varType) {
 		case VariableType.Flag:
-			_flag = new FlagChooser!(cwx.flag.Flag, false)(comm, summ, _varComp);
+			_flag = new FlagChooser!(cwx.flag.Flag, false)(comm, summ, _uc, _varComp);
 			_flag.setLayoutData(gd);
 			mod(_flag);
 			_flag.selected = _selFlag;
 			break;
 		case VariableType.Step:
-			_step = new FlagChooser!(Step, false)(comm, summ, _varComp);
+			_step = new FlagChooser!(Step, false)(comm, summ, _uc, _varComp);
 			_step.setLayoutData(gd);
 			mod(_step);
 			_step.selected = _selStep;
 			break;
 		case VariableType.Variant:
-			_variant = new FlagChooser!(cwx.flag.Variant, false)(comm, summ, _varComp);
+			_variant = new FlagChooser!(cwx.flag.Variant, false)(comm, summ, _uc, _varComp);
 			_variant.setLayoutData(gd);
 			mod(_variant);
 			_variant.selected = _selVariant;
@@ -253,8 +257,9 @@ private:
 	}
 
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
+	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, Content parent, Content evt) { mixin(S_TRACE);
 		super (comm, prop, shell, summ, CType.SET_VARIANT, parent, evt, true, prop.var.expressionWithTargetDlg, true);
+		_uc = uc;
 	}
 
 	override
@@ -278,7 +283,7 @@ protected:
 			auto gl = normalGridLayout(1, true);
 			grpT.setLayout(gl);
 
-			_expr = new ExpressionEditor(comm, summ, grpT, SWT.NONE);
+			_expr = new ExpressionEditor(comm, summ, _uc, grpT, SWT.NONE);
 			mod(_expr);
 			_expr.modEvent ~= &refreshWarning;
 			_expr.modReturnValueEvent ~= &refreshWarning;
@@ -402,7 +407,7 @@ class ExpressionEditor : Composite {
 		expr.text = text;
 		string[char] names;
 		VarValue[string] flags, steps, variants, sysSteps;
-		auto err = expr.getExpressionErrors(_comm.prop.parent, VariableInfo(_comm.prop.parent, _summ, _comm.prop.var.etc.targetVersion, names, flags, steps, variants, sysSteps));
+		auto err = expr.getExpressionErrors(_comm.prop.parent, VariableInfo(_comm.prop.parent, _summ, _uc, _comm.prop.var.etc.targetVersion, names, flags, steps, variants, sysSteps));
 		_ws ~= .exprErrorToWarnings(_comm.prop.parent, text, err);
 		auto valid = _returnValue.valid;
 		auto type = _returnValue.type;
@@ -417,6 +422,7 @@ class ExpressionEditor : Composite {
 
 	private Commons _comm;
 	private Summary _summ;
+	private UseCounter _uc;
 
 	private Text _expr;
 	private VariantVal _returnValue = VariantVal(false);
@@ -428,10 +434,11 @@ class ExpressionEditor : Composite {
 	private Menu _stepMenu;
 	private Menu _variantMenu;
 
-	this (Commons comm, Summary summ, Composite parent, int style) { mixin(S_TRACE);
+	this (Commons comm, Summary summ, UseCounter uc, Composite parent, int style) { mixin(S_TRACE);
 		super (parent, style);
 		_comm = comm;
 		_summ = summ;
+		_uc = uc;
 
 		auto gd = zeroMarginGridLayout(1, true);
 		setLayout(gd);
@@ -461,7 +468,7 @@ class ExpressionEditor : Composite {
 		_variantMenu = new Menu(getShell(), SWT.NONE);
 
 		auto funcDefs = .functionDefinitions(_comm.prop.parent);
-		auto var = .createFlagStepBar(varComp, null, _comm, _comm.prop, _summ, null, false, (comp, combo, varType) { mixin(S_TRACE);
+		auto var = .createFlagStepBar(varComp, null, _comm, _comm.prop, _summ, _uc, null, false, (comp, combo, varType) { mixin(S_TRACE);
 			auto b = new Button(comp, SWT.TOGGLE);
 			immutable(FuncDef)[] funcs;
 			Menu menu = null;
@@ -613,7 +620,7 @@ class ExpressionEditor : Composite {
 				_funcEdit.shell.setActive();
 				return;
 			}
-			_funcEdit = new FunctionCallEditor(_comm, _summ, _func, &_expr.insert);
+			_funcEdit = new FunctionCallEditor(_comm, _summ, _uc, _func, &_expr.insert);
 			.listener(_funcEdit.shell, SWT.Dispose, { mixin(S_TRACE);
 				_func.setSelection(false);
 				_funcEdit = null;
@@ -698,6 +705,7 @@ private class FunctionCallEditor {
 
 	private Commons _comm;
 	private const(Summary) _summ;
+	private const(UseCounter) _uc;
 
 	private Shell _shell;
 	private Combo _category;
@@ -723,9 +731,10 @@ private class FunctionCallEditor {
 	private ArgType[][] _argTypes = [];
 	private ArgType[] _selectedArgType = [];
 
-	this (Commons comm, in Summary summ, Control parent, void delegate(string) insert) { mixin(S_TRACE);
+	this (Commons comm, in Summary summ, in UseCounter uc, Control parent, void delegate(string) insert) { mixin(S_TRACE);
 		_comm = comm;
 		_summ = summ;
+		_uc = uc;
 		_allFuncDefs = .functionDefinitions(_comm.prop.parent);
 
 		auto parShl = parent.getShell();
@@ -1127,7 +1136,7 @@ private class FunctionCallEditor {
 		}
 		Control createIDEditor(F)() { mixin(S_TRACE);
 			if (_summ && _summ.scenarioPath != "") { mixin(S_TRACE);
-				return .createVariableCombo!(Combo, F)(_comm, _summ, _args, null, val);
+				return .createVariableCombo!(Combo, F)(_comm, _summ, _uc, _args, null, val);
 			} else { mixin(S_TRACE);
 				return .createTextEditor(_comm, _comm.prop, _args, val);
 			}

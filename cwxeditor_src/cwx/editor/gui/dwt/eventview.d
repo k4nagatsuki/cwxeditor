@@ -3,51 +3,52 @@
 module cwx.editor.gui.dwt.eventview;
 
 import cwx.area;
-import cwx.event;
-import cwx.summary;
 import cwx.card;
-import cwx.utils;
-import cwx.skin;
-import cwx.usecounter;
+import cwx.event;
+import cwx.menu;
 import cwx.path;
 import cwx.script;
+import cwx.skin;
+import cwx.summary;
 import cwx.system;
-import cwx.menu;
 import cwx.types;
-import cwx.xml;
+import cwx.usecounter;
+import cwx.utils;
 import cwx.warning;
+import cwx.xml;
 
+import cwx.editor.gui.dwt.absdialog;
+import cwx.editor.gui.dwt.areaviewutils;
+import cwx.editor.gui.dwt.centerlayout;
+import cwx.editor.gui.dwt.chooser;
+import cwx.editor.gui.dwt.commons;
+import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.dutils;
-import cwx.editor.gui.dwt.commons;
-import cwx.editor.gui.dwt.messageutils;
-import cwx.editor.gui.dwt.eventtreeview;
-import cwx.editor.gui.dwt.splitpane;
-import cwx.editor.gui.dwt.xmlbytestransfer;
-import cwx.editor.gui.dwt.undo;
-import cwx.editor.gui.dwt.absdialog;
-import cwx.editor.gui.dwt.centerlayout;
-import cwx.editor.gui.dwt.scripterrordialog;
-import cwx.editor.gui.dwt.eventwindow;
-import cwx.editor.gui.dwt.dmenu;
-import cwx.editor.gui.dwt.smalldialogs;
-import cwx.editor.gui.dwt.chooser;
-import cwx.editor.gui.dwt.areaviewutils;
-import cwx.editor.gui.dwt.images;
 import cwx.editor.gui.dwt.eventtreedialog;
+import cwx.editor.gui.dwt.eventtreeview;
+import cwx.editor.gui.dwt.eventwindow;
+import cwx.editor.gui.dwt.flagtable;
+import cwx.editor.gui.dwt.images;
+import cwx.editor.gui.dwt.messageutils;
 import cwx.editor.gui.dwt.roundview;
+import cwx.editor.gui.dwt.scripterrordialog;
+import cwx.editor.gui.dwt.smalldialogs;
+import cwx.editor.gui.dwt.splitpane;
+import cwx.editor.gui.dwt.undo;
+import cwx.editor.gui.dwt.xmlbytestransfer;
 
 static import std.algorithm;
 import std.algorithm : map, max, remove, sort, uniq;
-import std.string;
 import std.array;
-import std.exception;
+import std.ascii;
 import std.conv;
 import std.datetime;
-import std.ascii;
-import std.typecons;
+import std.exception;
+import std.string;
 import std.traits;
+import std.typecons;
 
 import org.eclipse.swt.all;
 
@@ -75,6 +76,7 @@ private:
 
 	SplitPane _sash;
 	Tree _cards;
+	FlagTable _flags = null;
 	TreeEdit _edit;
 	EventTreeView _etree;
 	Object _lastFocus = null;
@@ -130,7 +132,7 @@ private:
 		if (auto card = cast(MenuCard)spCard) {
 			auto name = card.name;
 			if (card.expandSPChars) { mixin(S_TRACE);
-				name = .createSPCharPreview(_comm, _summ, name, false, null, null);
+				name = .createSPCharPreview(_comm, _summ, card.useCounter, name, false, null, null);
 			}
 			return createMenuCardImage!PileImage(_prop, _comm.skin, _summ, name,
 				card.paths, 0, 0, 100, _prop.var.etc.smoothingCard, spCard.layer);
@@ -1573,8 +1575,14 @@ public:
 			}
 		});
 		_sash.setLayoutData(new GridData(GridData.FILL_BOTH));
+		Composite leftComp = _sash;
+		SplitPane leftSash = null;
+		if (cast(EffectCard)_area) { mixin(S_TRACE);
+			leftSash = new SplitPane(_sash, SWT.VERTICAL);
+			leftComp = leftSash;
+		}
 		{ mixin(S_TRACE);
-			_cards = new Tree(_sash, SWT.SINGLE | SWT.BORDER);
+			_cards = new Tree(leftComp, SWT.SINGLE | SWT.BORDER);
 			initTree(_comm, _cards, false);
 			_cards.addSelectionListener(new SListener);
 			.listener(_cards, SWT.FocusIn, { _lastFocus = _cards; });
@@ -1684,6 +1692,29 @@ public:
 				_cards.addMouseMoveListener(prevTrig);
 			}
 		}
+		if (auto ec = cast(EffectCard)_area) { mixin(S_TRACE);
+			assert (leftSash !is null);
+			auto comp = new Composite(leftSash, SWT.NONE);
+			comp.setLayout(new FillLayout);
+			_flags = new FlagTable(comm, prop, _undo, true, readOnly);
+			_flags.useCounter = ec.useCounter;
+			_flags.createControl(comp, comp, null);
+			_flags.setDir(ec.flagDirRoot, true);
+
+			void createOrDelete() { mixin(S_TRACE);
+				if (auto c = cast(SkillCard)_area) {
+					_comm.refSkill.call(c);
+				} else if (auto c = cast(ItemCard)_area) {
+					_comm.refItem.call(c);
+				} else if (auto c = cast(BeastCard)_area) {
+					_comm.refBeast.call(c);
+				}
+			}
+			_flags.createEvent ~= &createOrDelete;
+			_flags.deleteEvent ~= &createOrDelete;
+
+			.setupWeights(leftSash, _prop.var.etc.localVariablesSashL, _prop.var.etc.localVariablesSashR);
+		}
 		{ mixin(S_TRACE);
 			auto viewArea = new Composite(_sash, SWT.NONE);
 			viewArea.setLayout(zeroGridLayout(1, true));
@@ -1784,7 +1815,7 @@ public:
 		}
 	}
 	private string cardName(AbstractSpCard c) { mixin(S_TRACE);
-		if (auto card = cast(MenuCard)c) {
+		if (auto card = cast(MenuCard)c) { mixin(S_TRACE);
 			return card.name;
 		} else { mixin(S_TRACE);
 			assert (cast(EnemyCard)c !is null);
@@ -2845,7 +2876,8 @@ public:
 			auto compiler = new CWXScript(_prop.parent, _summ);
 			auto vars = compiler.eatEmptyVars(script, opt);
 			if (vars.length) { mixin(S_TRACE);
-				auto dlg = new ScriptVarSetDialog(_comm, _summ, _cards.getShell(), vars, script, base, opt);
+				auto ec = cast(EffectCard)_area;
+				auto dlg = new ScriptVarSetDialog(_comm, _summ, ec ? ec.useCounter : _summ.useCounter, _cards.getShell(), vars, script, base, opt);
 				dlg.appliedEvent ~= { mixin(S_TRACE);
 					put(dlg.contents);
 				};

@@ -200,6 +200,10 @@ public:
 			_off.removeUseCounter();
 		}
 	}
+	/// ditto
+	@property
+	inout
+	inout(UseCounter) useCounter() { return _uc; }
 
 	/// フラグ名。同一のディレクトリ内では重複しない。
 	@property
@@ -576,6 +580,10 @@ public:
 			}
 		}
 	}
+	/// ditto
+	@property
+	inout
+	inout(UseCounter) useCounter() { return _uc; }
 
 	/// このステップをXMLテキストにする。
 	const
@@ -814,6 +822,10 @@ public:
 	void useCounter(UseCounter uc) { mixin(S_TRACE);
 		_uc = uc;
 	}
+	/// ditto
+	@property
+	inout
+	inout(UseCounter) useCounter() { return _uc; }
 
 	/// このステップをXMLテキストにする。
 	const
@@ -1327,6 +1339,17 @@ public:
 	const
 	bool containsSubDir(string name) { mixin(S_TRACE);
 		return (name in _dirNames) !is null;
+	}
+	/// ditto
+	const
+	bool contains(F)(string name) { mixin(S_TRACE);
+		static if (is(F:Flag)) {
+			return containsFlag(name);
+		} else static if (is(F:Step)) {
+			return containsStep(name);
+		} else static if (is(F:Variant)) {
+			return containsVariant(name);
+		} else static assert (0);
 	}
 	/// 指定された名前のサブディレクトリのindexを返す。
 	/// 存在しない場合は-1を返す。
@@ -2053,8 +2076,8 @@ public:
 			return root.findPathSub(paths[0 .. $ - 1], create);
 		}
 	}
-	const
-	const(FlagDir) findPath(string path) { mixin(S_TRACE);
+	inout
+	inout(FlagDir) findPath(string path) { mixin(S_TRACE);
 		if (path.length == 0) { mixin(S_TRACE);
 			return root;
 		} else { mixin(S_TRACE);
@@ -2086,8 +2109,8 @@ public:
 			return sub.findPathSub(paths[1 .. $], create);
 		}
 	}
-	const
-	private const(FlagDir) findPathSub(string[] paths) { mixin(S_TRACE);
+	inout
+	private inout(FlagDir) findPathSub(string[] paths) { mixin(S_TRACE);
 		auto sub = getSubDir(paths[0]);
 		if (sub is null) { mixin(S_TRACE);
 			return null;
@@ -2169,6 +2192,27 @@ public:
 			}
 		}
 		return null;
+	}
+	/// ditto
+	F find(F)(string path) { mixin(S_TRACE);
+		static if (is(F:Flag)) {
+			return findFlag(path);
+		} else static if (is(F:Step)) {
+			return findStep(path);
+		} else static if (is(F:Variant)) {
+			return findVariant(path);
+		} else static assert (0);
+	}
+	/// ditto
+	const
+	const(F) find(F)(string path) { mixin(S_TRACE);
+		static if (is(F:Flag)) {
+			return findFlag(path);
+		} else static if (is(F:Step)) {
+			return findStep(path);
+		} else static if (is(F:Variant)) {
+			return findVariant(path);
+		} else static assert (0);
 	}
 
 	/// 配下にある全てのフラグとステップのデータをノードに追加する。
@@ -2323,4 +2367,55 @@ void sortedWithPath(F)(F[] vars, bool logicalSort, void delegate(F) yield) { mix
 		}
 		foreach (f; std.algorithm.sort!cmps(vars.dup)) yield(f);
 	}
+}
+
+/// ローカル変数を含めて状態変数を検索する。
+inout(F) findVar(F)(inout(FlagDir) froot, inout(UseCounter) uc, string flag) { mixin(S_TRACE);
+	import cwx.card;
+	if (uc) { mixin(S_TRACE);
+		auto owner = uc.owner;
+		if (auto ec = cast(inout(EffectCard))owner) { mixin(S_TRACE);
+			auto f = cast(typeof(return))ec.flagDirRoot.find!F(flag);
+			if (f) return f;
+		}
+	}
+	if (froot) { mixin(S_TRACE);
+		return cast(typeof(return))froot.find!F(flag);
+	}
+	return null;
+}
+/// ローカル変数を含む全ての状態変数を返す。
+inout(F)[] allVars(F)(inout(FlagDir) froot, inout(UseCounter) uc) { mixin(S_TRACE);
+	import cwx.card;
+	inout(F)[] r;
+	if (uc) { mixin(S_TRACE);
+		auto owner = uc.owner;
+		if (auto ec = cast(inout(EffectCard))owner) { mixin(S_TRACE);
+			static if (is(F:Flag)) {
+				r ~= ec.flagDirRoot.allFlags;
+			} else static if (is(F:Step)) {
+				r ~= ec.flagDirRoot.allSteps;
+			} else static if (is(F:Variant)) {
+				r ~= ec.flagDirRoot.allVariants;
+			} else static assert (0);
+		}
+	}
+	if (froot) { mixin(S_TRACE);
+		static if (is(F:Flag)) {
+			auto arr = froot.allFlags;
+		} else static if (is(F:Step)) {
+			auto arr = froot.allSteps;
+		} else static if (is(F:Variant)) {
+			auto arr = froot.allVariants;
+		} else static assert (0);
+		foreach (f; arr) { mixin(S_TRACE);
+			if (uc) { mixin(S_TRACE);
+				if (auto ec = cast(inout(EffectCard))uc.owner) { mixin(S_TRACE);
+					if (ec.flagDirRoot.find!F(f.path)) continue;
+				}
+			}
+			r ~= f;
+		}
+	}
+	return r;
 }

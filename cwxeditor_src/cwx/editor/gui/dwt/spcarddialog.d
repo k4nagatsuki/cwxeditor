@@ -13,6 +13,7 @@ import cwx.sjis;
 import cwx.skin;
 import cwx.summary;
 import cwx.types;
+import cwx.usecounter;
 import cwx.utils;
 import cwx.warning;
 import cwx.xml;
@@ -53,6 +54,7 @@ private:
 	Commons _comm;
 	Props _prop;
 	Summary _summ;
+	UseCounter _uc;
 	C _card;
 
 	Combo _cardGroup;
@@ -102,7 +104,7 @@ private:
 			textUseItems(wrapReturnCode(t.getText()), flags, steps, variants, fonts, colors);
 			fonts = [];
 			colors = [];
-			ws ~= .textWarnings(_prop.parent, summSkin, _summ, _prop.var.etc.targetVersion,
+			ws ~= .textWarnings(_prop.parent, summSkin, _summ, _uc, _prop.var.etc.targetVersion,
 				t.getText(), flags, steps, variants, fonts, colors, wFlags, wSteps, wVariants, wFonts, wColors).all;
 		}
 		static if (is(C:EnemyCard)) {
@@ -174,7 +176,7 @@ private:
 		void updateToolTip() { mixin(S_TRACE);
 			auto toolTip = "";
 			if (_expandSPChars.getSelection()) { mixin(S_TRACE);
-				toolTip = .createSPCharPreview(_comm, _summ, _name.getText(), false, null, null);
+				toolTip = .createSPCharPreview(_comm, _summ, _uc, _name.getText(), false, null, null);
 			}
 			toolTip = toolTip.replace("&", "&&");
 			if (toolTip != _name.getToolTipText()) { mixin(S_TRACE);
@@ -199,7 +201,7 @@ private:
 					auto skin = _comm.skin;
 					auto overrideName = "";
 					if (_isOverrideName.getSelection()) { mixin(S_TRACE);
-						overrideName = .createSPCharPreview(_comm, _summ, _overrideName.getText(), false, null, null);
+						overrideName = .createSPCharPreview(_comm, _summ, _uc, _overrideName.getText(), false, null, null);
 					}
 					auto imgData = .castCardImage(_prop, skin, _summ, ec, true, _isOverrideName.getSelection(), overrideName,
 						_isOverrideImage.getSelection(), _imgPath.images);
@@ -227,7 +229,7 @@ private:
 			_cardIncSearch.startIncSearch();
 		}
 		void updateToolTip() { mixin(S_TRACE);
-			auto toolTip = .createSPCharPreview(_comm, _summ, _overrideName.getText(), false, null, null);
+			auto toolTip = .createSPCharPreview(_comm, _summ, _uc, _overrideName.getText(), false, null, null);
 			toolTip = toolTip.replace("&", "&&");
 			if (toolTip != _overrideName.getToolTipText()) { mixin(S_TRACE);
 				_overrideName.setToolTipText(toolTip);
@@ -366,9 +368,10 @@ private:
 		}
 	}
 public:
-	this(Commons comm, Props prop, Shell shell, Summary summ, C card, bool create) { mixin(S_TRACE);
+	this(Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, C card, bool create) { mixin(S_TRACE);
 		_comm = comm;
 		_summ = summ;
+		_uc = uc;
 		_card = card;
 		_prop = prop;
 		static if (is(C == MenuCard)) {
@@ -423,7 +426,7 @@ protected:
 							createTextMenu!Text(_comm, _prop, _name, &catchMod);
 							auto nameMenu = _name.getMenu();
 							new MenuItem(nameMenu, SWT.SEPARATOR);
-							.setupSPCharsMenu(_comm, _summ, _name, nameMenu, false, false, () => _expandSPChars.getSelection());
+							.setupSPCharsMenu(_comm, _summ, _uc, _name, nameMenu, false, false, () => _expandSPChars.getSelection());
 							_name.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 							.listener(_name, SWT.Modify, &refreshWarning);
 							.listener(_name, SWT.Modify, &updateToolTip);
@@ -554,7 +557,7 @@ protected:
 							createTextMenu!Text(_comm, _prop, _overrideName, &catchMod);
 							auto nameMenu = _overrideName.getMenu();
 							new MenuItem(nameMenu, SWT.SEPARATOR);
-							.setupSPCharsMenu(_comm, _summ, _overrideName, nameMenu, false, false, () => true);
+							.setupSPCharsMenu(_comm, _summ, _uc, _overrideName, nameMenu, false, false, () => true);
 							_overrideName.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 							.listener(_overrideName, SWT.Modify, &updateToolTip);
 							.listener(_overrideName, SWT.Modify, &_image.redraw);
@@ -639,7 +642,7 @@ protected:
 					auto grp = new Group(grpPar, SWT.NONE);
 					grp.setLayout(normalGridLayout(1, true));
 					grp.setText(_prop.msgs.refFlag);
-					_flag = new FlagChooser!(Flag, true)(_comm, _summ, grp);
+					_flag = new FlagChooser!(Flag, true)(_comm, _summ, _uc, grp);
 					mod(_flag);
 					_flag.setLayoutData(new GridData(GridData.FILL_BOTH));
 					static if (is(C == EnemyCard)) {

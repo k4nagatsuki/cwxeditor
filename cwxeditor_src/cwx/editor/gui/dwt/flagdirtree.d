@@ -31,16 +31,16 @@ import java.lang.all;
 public class FlagDirTree : TCPD {
 private:
 	void storeInsert(FlagDir dir, ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, ptrdiff_t[] selectedV, ptrdiff_t[] dirIndices, ptrdiff_t[] flagIndices, ptrdiff_t[] stepIndices, ptrdiff_t[] variantIndices) { mixin(S_TRACE);
-		_undo ~= new UndoInsertDelete(flags, _comm, dir, selectedF, selectedS, selectedV, dirIndices, flagIndices, stepIndices, variantIndices);
+		_undo ~= new UndoInsertDelete(flags, _comm, uc, dir, selectedF, selectedS, selectedV, dirIndices, flagIndices, stepIndices, variantIndices);
 	}
 	void storeDelete(FlagDir dir, ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, ptrdiff_t[] selectedV, FlagDir[ptrdiff_t] ds, cwx.flag.Flag[ptrdiff_t] fs, Step[ptrdiff_t] ss, cwx.flag.Variant[ptrdiff_t] vs) { mixin(S_TRACE);
-		_undo ~= new UndoInsertDelete(flags, _comm, dir, selectedF, selectedS, selectedV, ds, fs, ss, vs);
+		_undo ~= new UndoInsertDelete(flags, _comm, uc, dir, selectedF, selectedS, selectedV, ds, fs, ss, vs);
 	}
 	void storeMove(ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, ptrdiff_t[] selectedV, FlagDir to, ptrdiff_t[] dirIndices, ptrdiff_t[] flagIndices, ptrdiff_t[] stepIndices, ptrdiff_t[] variantIndices, FlagDir from, FlagDir[ptrdiff_t] ds, cwx.flag.Flag[ptrdiff_t] fs, Step[ptrdiff_t] ss, cwx.flag.Variant[ptrdiff_t] vs) { mixin(S_TRACE);
-		_undo ~= new UndoMove(flags, _comm, selectedF, selectedS, selectedV, to, dirIndices, flagIndices, stepIndices, variantIndices, from, ds, fs, ss, vs);
+		_undo ~= new UndoMove(flags, _comm, uc, selectedF, selectedS, selectedV, to, dirIndices, flagIndices, stepIndices, variantIndices, from, ds, fs, ss, vs);
 	}
 	void storeEditDir(FlagDir dir, string oldName) { mixin(S_TRACE);
-		_undo ~= new UndoEditDir(flags, _comm, dir, oldName);
+		_undo ~= new UndoEditDir(flags, _comm, uc, dir, oldName);
 	}
 
 	Props prop;

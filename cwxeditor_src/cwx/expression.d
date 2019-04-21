@@ -181,7 +181,7 @@ public:
 		ExprError[] err;
 		string[char] names;
 		VarValue[string] flags, steps, variants, sysSteps;
-		auto vInfo = VariableInfo(prop, null, "1.50", names, flags, steps, variants, sysSteps);
+		auto vInfo = VariableInfo(prop, null, null, "1.50", names, flags, steps, variants, sysSteps);
 		return .partToVariantVal(.calculate(prop, EvalMode.TypeCheck, vInfo, _expr, err));
 	}
 
@@ -1078,28 +1078,37 @@ struct VariableInfo {
 	string delegate(uint gossipNumber) gossipText;
 
 	/// インスタンスを生成する。
-	this (in CProps prop, in Summary summ, string targVer, string[char] names, VarValue[string] flags, VarValue[string] steps, VarValue[string] variants, VarValue[string] sysSteps) { mixin(S_TRACE);
-		existsFlag = path => summ && summ.flagDirRoot.findFlag(path) !is null;
-		existsStep = path => summ && summ.flagDirRoot.findStep(path) !is null;
-		existsVariant = path => summ && summ.flagDirRoot.findVariant(path) !is null;
-		variantValue = path => summ ? VariantVal(summ.flagDirRoot.findVariant(path)) : VariantVal(false);
+	this (in CProps prop, in Summary summ, in UseCounter uc, string targVer, string[char] names, VarValue[string] flags, VarValue[string] steps, VarValue[string] variants, VarValue[string] sysSteps) { mixin(S_TRACE);
+		existsFlag = path => .findVar!(cwx.flag.Flag)(summ ? summ.flagDirRoot : null, uc, path) !is null;
+		existsStep = path => .findVar!Step(summ ? summ.flagDirRoot : null, uc, path)  !is null;
+		existsVariant = path => .findVar!Variant(summ ? summ.flagDirRoot : null, uc, path) !is null;
+		variantValue = path => summ ? VariantVal(.findVar!Variant(summ ? summ.flagDirRoot : null, uc, path)) : VariantVal(false);
 		flagText = (path, value) { mixin(S_TRACE);
 			if (!summ) return "";
-			auto f = summ.flagDirRoot.findFlag(path);
+			auto f = .findVar!(cwx.flag.Flag)(summ ? summ.flagDirRoot : null, uc, path);
 			auto s = value ? f.on : f.off;
 			if (f.expandSPChars) s = .simpleFormatMsg(s, flags, steps, variants, sysSteps, names, ver => prop.isTargetVersion(summ, targVer, ver), prop.sys.prefixSystemVarName);
 			return s;
 		};
-		flagValue = path => summ ? summ.flagDirRoot.findFlag(path).onOff : false;
+		flagValue = (path) { mixin(S_TRACE);
+			auto f = .findVar!(cwx.flag.Flag)(summ ? summ.flagDirRoot : null, uc, path);
+			return f ? f.onOff : false;
+		};
 		stepText = (path, value) { mixin(S_TRACE);
 			if (!summ) return "";
-			auto f = summ.flagDirRoot.findStep(path);
+			auto f = .findVar!Step(summ ? summ.flagDirRoot : null, uc, path);
 			auto s = f.getValue(value);
 			if (f.expandSPChars) s = .simpleFormatMsg(s, flags, steps, variants, sysSteps, names, ver => prop.isTargetVersion(summ, targVer, ver), prop.sys.prefixSystemVarName);
 			return s;
 		};
-		stepValue = path => summ ? summ.flagDirRoot.findStep(path).select : 0u;
-		stepMax = path => summ ? summ.flagDirRoot.findStep(path).count : 0u;
+		stepValue = (path) { mixin(S_TRACE);
+			auto f = .findVar!Step(summ ? summ.flagDirRoot : null, uc, path);
+			return f ? f.select : 0u;
+		};
+		stepMax = (path) { mixin(S_TRACE);
+			auto f = .findVar!Step(summ ? summ.flagDirRoot : null, uc, path);
+			return f ? f.count : 0u;
+		};
 		selectedPlayerCardNumber = () => 0u;
 
 		findCoupon = (castNumber, pattern, startPos) => 0u;

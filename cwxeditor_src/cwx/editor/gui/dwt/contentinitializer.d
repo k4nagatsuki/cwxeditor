@@ -10,6 +10,7 @@ import cwx.structs;
 import cwx.skin;
 import cwx.summary;
 import cwx.types;
+import cwx.usecounter;
 import cwx.utils;
 import cwx.xml;
 
@@ -249,7 +250,7 @@ class ContentInitialValueEditor : TCPD {
 			return;
 		}
 
-		auto dlg = .createEventDialog(_comm, _summ, _list.getShell(), c, null, false);
+		auto dlg = .createEventDialog(_comm, _summ, _summ ? _summ.useCounter : null, _list.getShell(), c, null, false);
 		dlg.appliedEvent ~= { mixin(S_TRACE);
 			if (c == cc) return;
 			store([cc]);
@@ -357,7 +358,7 @@ class ContentInitialValueEditor : TCPD {
 					auto compiler = new CWXScript(_comm.prop.parent, _summ);
 					auto vars = compiler.eatEmptyVars(script, opt);
 					if (vars.length) { mixin(S_TRACE);
-						auto dlg = new ScriptVarSetDialog(_comm, _summ, _list.getShell(), vars, script, base, opt);
+						auto dlg = new ScriptVarSetDialog(_comm, _summ, _summ.useCounter, _list.getShell(), vars, script, base, opt);
 						dlg.appliedEvent ~= { mixin(S_TRACE);
 							cs ~= dlg.contents;
 						};
@@ -473,7 +474,7 @@ bool hasDialog(CType type, bool existsSummary = true) { mixin(S_TRACE);
 	}
 }
 
-EventDialog createEventDialog(Commons comm, Summary summ, Shell parentShell, Content evt, Content parent, bool create) { mixin(S_TRACE);
+EventDialog createEventDialog(Commons comm, Summary summ, UseCounter uc, Shell parentShell, Content evt, Content parent, bool create) { mixin(S_TRACE);
 	EventDialog dlg;
 	switch (evt.type) {
 	case CType.START_BATTLE: { mixin(S_TRACE);
@@ -488,10 +489,10 @@ EventDialog createEventDialog(Commons comm, Summary summ, Shell parentShell, Con
 			(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
 	} case CType.CHANGE_BG_IMAGE: { mixin(S_TRACE);
-		dlg = new BgImagesDialog(comm, comm.prop, parentShell, summ, parent, evt, null, CType.CHANGE_BG_IMAGE);
+		dlg = new BgImagesDialog(comm, comm.prop, parentShell, summ, uc, parent, evt, null, CType.CHANGE_BG_IMAGE);
 		break;
 	} case CType.EFFECT: { mixin(S_TRACE);
-		dlg = new EffectDialog(comm, comm.prop, parentShell, summ, evt.useCounter, parent, evt);
+		dlg = new EffectDialog(comm, comm.prop, parentShell, summ, uc, parent, evt);
 		break;
 	} case CType.EFFECT_BREAK: { mixin(S_TRACE);
 		dlg = new EffectBreakDialog(comm, comm.prop, parentShell, summ, parent, evt);
@@ -504,10 +505,10 @@ EventDialog createEventDialog(Commons comm, Summary summ, Shell parentShell, Con
 			(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
 	} case CType.TALK_MESSAGE: { mixin(S_TRACE);
-		dlg = new MessageDialog(comm, comm.prop, parentShell, summ, parent, evt);
+		dlg = new MessageDialog(comm, comm.prop, parentShell, summ, uc, parent, evt);
 		break;
 	} case CType.TALK_DIALOG: { mixin(S_TRACE);
-		dlg = new SpeakDialog(comm, comm.prop, parentShell, summ, parent, evt);
+		dlg = new SpeakDialog(comm, comm.prop, parentShell, summ, uc, parent, evt);
 		break;
 	} case CType.PLAY_BGM: { mixin(S_TRACE);
 		dlg = new BgmDialog(comm, comm.prop, parentShell, summ, parent, evt);
@@ -526,16 +527,16 @@ EventDialog createEventDialog(Commons comm, Summary summ, Shell parentShell, Con
 			(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
 	} case CType.BRANCH_FLAG: { mixin(S_TRACE);
-		dlg = new BrFlagDialog(comm, comm.prop, parentShell, summ, parent, evt, summ ? summ.flagDirRoot : null);
+		dlg = new BrFlagDialog(comm, comm.prop, parentShell, summ, uc, parent, evt, summ ? summ.flagDirRoot : null);
 		break;
 	} case CType.BRANCH_MULTI_STEP: { mixin(S_TRACE);
-		dlg = new BrStepNDialog(comm, comm.prop, parentShell, summ, parent, evt, summ ? summ.flagDirRoot : null);
+		dlg = new BrStepNDialog(comm, comm.prop, parentShell, summ, uc, parent, evt, summ ? summ.flagDirRoot : null);
 		break;
 	} case CType.BRANCH_STEP: { mixin(S_TRACE);
-		dlg = new BrStepULDialog(comm, comm.prop, parentShell, summ, parent, evt, summ ? summ.flagDirRoot : null);
+		dlg = new BrStepULDialog(comm, comm.prop, parentShell, summ, uc, parent, evt, summ ? summ.flagDirRoot : null);
 		break;
 	} case CType.BRANCH_SELECT: { mixin(S_TRACE);
-		dlg = new BrMemberDialog(comm, comm.prop, parentShell, summ, parent, evt);
+		dlg = new BrMemberDialog(comm, comm.prop, parentShell, summ, uc, parent, evt);
 		break;
 	} case CType.BRANCH_ABILITY: { mixin(S_TRACE);
 		dlg = new BrPowerDialog(comm, comm.prop, parentShell, summ, parent, evt);
@@ -547,7 +548,7 @@ EventDialog createEventDialog(Commons comm, Summary summ, Shell parentShell, Con
 		dlg = new BrLevelDialog(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
 	} case CType.BRANCH_STATUS: { mixin(S_TRACE);
-		dlg = new BrStateDialog(comm, comm.prop, parentShell, summ, parent, evt);
+		dlg = new BrStateDialog(comm, comm.prop, parentShell, summ, uc, parent, evt);
 		break;
 	} case CType.BRANCH_PARTY_NUMBER: { mixin(S_TRACE);
 		dlg = new BrNumEventDialog(comm, comm.prop, parentShell, summ, parent, evt);
@@ -573,31 +574,31 @@ EventDialog createEventDialog(Commons comm, Summary summ, Shell parentShell, Con
 		dlg = new MoneyEventDialog!(CType.BRANCH_MONEY)(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
 	} case CType.BRANCH_COUPON: { mixin(S_TRACE);
-		dlg = new BranchCouponDialog(comm, comm.prop, parentShell, summ, parent, evt);
+		dlg = new BranchCouponDialog(comm, comm.prop, parentShell, summ, uc, parent, evt);
 		break;
 	} case CType.BRANCH_COMPLETE_STAMP: { mixin(S_TRACE);
-		dlg = new EndEventDialog!(CType.BRANCH_COMPLETE_STAMP)(comm, comm.prop, parentShell, summ, parent, evt);
+		dlg = new EndEventDialog!(CType.BRANCH_COMPLETE_STAMP)(comm, comm.prop, parentShell, summ, uc, parent, evt);
 		break;
 	} case CType.BRANCH_GOSSIP: { mixin(S_TRACE);
-		dlg = new GossipEventDialog!(CType.BRANCH_GOSSIP)(comm, comm.prop, parentShell, summ, parent, evt);
+		dlg = new GossipEventDialog!(CType.BRANCH_GOSSIP)(comm, comm.prop, parentShell, summ, uc, parent, evt);
 		break;
 	} case CType.SET_FLAG: { mixin(S_TRACE);
-		dlg = new FlagSetDialog(comm, comm.prop, parentShell, summ, parent, evt, summ ? summ.flagDirRoot : null);
+		dlg = new FlagSetDialog(comm, comm.prop, parentShell, summ, uc, parent, evt, summ ? summ.flagDirRoot : null);
 		break;
 	} case CType.SET_STEP: { mixin(S_TRACE);
-		dlg = new StepSetDialog(comm, comm.prop, parentShell, summ, parent, evt, summ ? summ.flagDirRoot : null);
+		dlg = new StepSetDialog(comm, comm.prop, parentShell, summ, uc, parent, evt, summ ? summ.flagDirRoot : null);
 		break;
 	} case CType.SET_STEP_UP: { mixin(S_TRACE);
-		dlg = new StepPlusDialog(comm, comm.prop, parentShell, summ, parent, evt, summ ? summ.flagDirRoot : null);
+		dlg = new StepPlusDialog(comm, comm.prop, parentShell, summ, uc, parent, evt, summ ? summ.flagDirRoot : null);
 		break;
 	} case CType.SET_STEP_DOWN: { mixin(S_TRACE);
-		dlg = new StepMinusDialog(comm, comm.prop, parentShell, summ, parent, evt, summ ? summ.flagDirRoot : null);
+		dlg = new StepMinusDialog(comm, comm.prop, parentShell, summ, uc, parent, evt, summ ? summ.flagDirRoot : null);
 		break;
 	} case CType.REVERSE_FLAG: { mixin(S_TRACE);
-		dlg = new FlagRDialog(comm, comm.prop, parentShell, summ, parent, evt, summ ? summ.flagDirRoot : null);
+		dlg = new FlagRDialog(comm, comm.prop, parentShell, summ, uc, parent, evt, summ ? summ.flagDirRoot : null);
 		break;
 	} case CType.CHECK_FLAG: { mixin(S_TRACE);
-		dlg = new FlagJudgeDialog(comm, comm.prop, parentShell, summ, parent, evt, summ ? summ.flagDirRoot : null);
+		dlg = new FlagJudgeDialog(comm, comm.prop, parentShell, summ, uc, parent, evt, summ ? summ.flagDirRoot : null);
 		break;
 	} case CType.GET_CAST: { mixin(S_TRACE);
 		dlg = new AreaSelectDialog!(CType.GET_CAST, CastCard, "summary.casts")
@@ -620,13 +621,13 @@ EventDialog createEventDialog(Commons comm, Summary summ, Shell parentShell, Con
 		dlg = new MoneyEventDialog!(CType.GET_MONEY)(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
 	} case CType.GET_COUPON: { mixin(S_TRACE);
-		dlg = new GetCouponDialog(comm, comm.prop, parentShell, summ, parent, evt);
+		dlg = new GetCouponDialog(comm, comm.prop, parentShell, summ, uc, parent, evt);
 		break;
 	} case CType.GET_COMPLETE_STAMP: { mixin(S_TRACE);
-		dlg = new EndEventDialog!(CType.GET_COMPLETE_STAMP)(comm, comm.prop, parentShell, summ, parent, evt);
+		dlg = new EndEventDialog!(CType.GET_COMPLETE_STAMP)(comm, comm.prop, parentShell, summ, uc, parent, evt);
 		break;
 	} case CType.GET_GOSSIP: { mixin(S_TRACE);
-		dlg = new GossipEventDialog!(CType.GET_GOSSIP)(comm, comm.prop, parentShell, summ, parent, evt);
+		dlg = new GossipEventDialog!(CType.GET_GOSSIP)(comm, comm.prop, parentShell, summ, uc, parent, evt);
 		break;
 	} case CType.LOSE_CAST: { mixin(S_TRACE);
 		dlg = new AreaSelectDialog!(CType.LOSE_CAST, CastCard, "summary.casts")
@@ -649,13 +650,13 @@ EventDialog createEventDialog(Commons comm, Summary summ, Shell parentShell, Con
 		dlg = new MoneyEventDialog!(CType.LOSE_MONEY)(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
 	} case CType.LOSE_COUPON: { mixin(S_TRACE);
-		dlg = new LoseCouponDialog(comm, comm.prop, parentShell, summ, parent, evt);
+		dlg = new LoseCouponDialog(comm, comm.prop, parentShell, summ, uc, parent, evt);
 		break;
 	} case CType.LOSE_COMPLETE_STAMP: { mixin(S_TRACE);
-		dlg = new EndEventDialog!(CType.LOSE_COMPLETE_STAMP)(comm, comm.prop, parentShell, summ, parent, evt);
+		dlg = new EndEventDialog!(CType.LOSE_COMPLETE_STAMP)(comm, comm.prop, parentShell, summ, uc, parent, evt);
 		break;
 	} case CType.LOSE_GOSSIP: { mixin(S_TRACE);
-		dlg = new GossipEventDialog!(CType.LOSE_GOSSIP)(comm, comm.prop, parentShell, summ, parent, evt);
+		dlg = new GossipEventDialog!(CType.LOSE_GOSSIP)(comm, comm.prop, parentShell, summ, uc, parent, evt);
 		break;
 	} case CType.SHOW_PARTY: { mixin(S_TRACE);
 		dlg = new ShowHidePartyDialog(evt.type, comm, comm.prop, parentShell, summ, parent, evt);
@@ -667,16 +668,16 @@ EventDialog createEventDialog(Commons comm, Summary summ, Shell parentShell, Con
 		dlg = new RefreshDialog(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
 	} case CType.SUBSTITUTE_STEP: { mixin(S_TRACE);
-		dlg = new SubstituteStepDialog(comm, comm.prop, parentShell, summ, parent, evt, summ ? summ.flagDirRoot : null);
+		dlg = new SubstituteStepDialog(comm, comm.prop, parentShell, summ, uc, parent, evt, summ ? summ.flagDirRoot : null);
 		break;
 	} case CType.SUBSTITUTE_FLAG: { mixin(S_TRACE);
-		dlg = new SubstituteFlagDialog(comm, comm.prop, parentShell, summ, parent, evt, summ ? summ.flagDirRoot : null);
+		dlg = new SubstituteFlagDialog(comm, comm.prop, parentShell, summ, uc, parent, evt, summ ? summ.flagDirRoot : null);
 		break;
 	} case CType.BRANCH_STEP_CMP: { mixin(S_TRACE);
-		dlg = new BrStepCmpDialog(comm, comm.prop, parentShell, summ, parent, evt, summ ? summ.flagDirRoot : null);
+		dlg = new BrStepCmpDialog(comm, comm.prop, parentShell, summ, uc, parent, evt, summ ? summ.flagDirRoot : null);
 		break;
 	} case CType.BRANCH_FLAG_CMP: { mixin(S_TRACE);
-		dlg = new BrFlagCmpDialog(comm, comm.prop, parentShell, summ, parent, evt, summ ? summ.flagDirRoot : null);
+		dlg = new BrFlagCmpDialog(comm, comm.prop, parentShell, summ, uc, parent, evt, summ ? summ.flagDirRoot : null);
 		break;
 	} case CType.BRANCH_RANDOM_SELECT: { mixin(S_TRACE);
 		dlg = new BrRandomSelectDialog(comm, comm.prop, parentShell, summ, parent, evt);
@@ -685,7 +686,7 @@ EventDialog createEventDialog(Commons comm, Summary summ, Shell parentShell, Con
 		dlg = new BrKeyCodeDialog(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
 	} case CType.CHECK_STEP: { mixin(S_TRACE);
-		dlg = new CheckStepDialog(comm, comm.prop, parentShell, summ, parent, evt, summ ? summ.flagDirRoot : null);
+		dlg = new CheckStepDialog(comm, comm.prop, parentShell, summ, uc, parent, evt, summ ? summ.flagDirRoot : null);
 		break;
 	} case CType.BRANCH_ROUND: { mixin(S_TRACE);
 		dlg = new BranchRoundDialog(comm, comm.prop, parentShell, summ, parent, evt);
@@ -694,13 +695,13 @@ EventDialog createEventDialog(Commons comm, Summary summ, Shell parentShell, Con
 		dlg = new MoveBgImageDialog(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
 	} case CType.REPLACE_BG_IMAGE: { mixin(S_TRACE);
-		dlg = new BgImagesDialog(comm, comm.prop, parentShell, summ, parent, evt, null, CType.REPLACE_BG_IMAGE);
+		dlg = new BgImagesDialog(comm, comm.prop, parentShell, summ, uc, parent, evt, null, CType.REPLACE_BG_IMAGE);
 		break;
 	} case CType.LOSE_BG_IMAGE: { mixin(S_TRACE);
 		dlg = new LoseBgImageDialog(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
 	} case CType.BRANCH_MULTI_COUPON: { mixin(S_TRACE);
-		dlg = new BranchMultiCouponDialog(comm, comm.prop, parentShell, summ, parent, evt);
+		dlg = new BranchMultiCouponDialog(comm, comm.prop, parentShell, summ, uc, parent, evt);
 		break;
 	} case CType.MOVE_CARD: { mixin(S_TRACE);
 		dlg = new MoveCardDialog(comm, comm.prop, parentShell, summ, parent, evt);
@@ -709,13 +710,13 @@ EventDialog createEventDialog(Commons comm, Summary summ, Shell parentShell, Con
 		dlg = new ChangeEnvironmentDialog(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
 	} case CType.BRANCH_VARIANT: { mixin(S_TRACE);
-		dlg = new ExpressionEventDialog(comm, comm.prop, parentShell, summ, parent, CType.BRANCH_VARIANT, evt);
+		dlg = new ExpressionEventDialog(comm, comm.prop, parentShell, summ, uc, parent, CType.BRANCH_VARIANT, evt);
 		break;
 	} case CType.SET_VARIANT: { mixin(S_TRACE);
-		dlg = new SetVariantDialog(comm, comm.prop, parentShell, summ, parent, evt);
+		dlg = new SetVariantDialog(comm, comm.prop, parentShell, summ, uc, parent, evt);
 		break;
 	} case CType.CHECK_VARIANT: { mixin(S_TRACE);
-		dlg = new ExpressionEventDialog(comm, comm.prop, parentShell, summ, parent, CType.CHECK_VARIANT, evt);
+		dlg = new ExpressionEventDialog(comm, comm.prop, parentShell, summ, uc, parent, CType.CHECK_VARIANT, evt);
 		break;
 	} default: assert (0);
 	}

@@ -1321,7 +1321,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 			if (prop.sys.evtChildDefault != n.name && !std.string.isNumeric(n.name)) { mixin(S_TRACE);
 				int num = prop.looks.stepMaxCount;
 				if (summ) { mixin(S_TRACE);
-					auto step = summ.flagDirRoot.findStep(this.step);
+					auto step = .findVar!Step(summ.flagDirRoot, useCounter, this.step);
 					if (step) num = step.count;
 				}
 				string[] array;
@@ -1720,17 +1720,17 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		if (d.use(CArg.AREA)) return cast(typeof(return))summ.area(area);
 		if (d.use(CArg.BATTLE)) return cast(typeof(return))summ.battle(battle);
 		if (d.use(CArg.PACKAGE)) return cast(typeof(return))summ.cwPackage(packages);
-		if (d.use(CArg.FLAG)) return cast(typeof(return))summ.flagDirRoot.findFlag(flag);
-		if (d.use(CArg.STEP)) return cast(typeof(return))summ.flagDirRoot.findStep(step);
-		if (d.use(CArg.VARIANT)) return cast(typeof(return))summ.flagDirRoot.findVariant(variant);
+		if (d.use(CArg.FLAG)) return cast(typeof(return)).findVar!(cwx.flag.Flag)(summ.flagDirRoot, useCounter, flag);
+		if (d.use(CArg.STEP)) return cast(typeof(return)).findVar!Step(summ.flagDirRoot, useCounter, step);
+		if (d.use(CArg.VARIANT)) return cast(typeof(return)).findVar!Variant(summ.flagDirRoot, useCounter, variant);
 		if (d.use(CArg.CAST)) return cast(typeof(return))summ.cwCast(casts);
 		if (d.use(CArg.ITEM)) return cast(typeof(return))summ.item(item);
 		if (d.use(CArg.SKILL)) return cast(typeof(return))summ.skill(skill);
 		if (d.use(CArg.BEAST)) return cast(typeof(return))summ.beast(beast);
 		if (d.use(CArg.INFO)) return cast(typeof(return))summ.info(info);
 		if (d.use(CArg.START)) return tree ? cast(typeof(return))tree.start(start) : null;
-		if (d.use(CArg.FLAG_2)) return cast(typeof(return))summ.flagDirRoot.findFlag(flag2);
-		if (d.use(CArg.STEP_2)) return cast(typeof(return))summ.flagDirRoot.findStep(step2);
+		if (d.use(CArg.FLAG_2)) return cast(typeof(return)).findVar!(cwx.flag.Flag)(summ.flagDirRoot, useCounter, flag2);
+		if (d.use(CArg.STEP_2)) return cast(typeof(return)).findVar!Step(summ.flagDirRoot, useCounter, step2);
 
 		return null;
 	}
@@ -4206,7 +4206,8 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() { mixin(S_TRACE);
+	inout
+	inout(UseCounter) useCounter() { mixin(S_TRACE);
 		return _uc;
 	}
 	/// 変更ハンドラを登録する。

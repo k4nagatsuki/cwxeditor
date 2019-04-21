@@ -2213,6 +2213,7 @@ class Msgs : Properties {
 	auto warningOverrideEnemyCardName = Msg("warningOverrideEnemyCardName", "エネミーカードの名前の上書きは、Wsn.4以降の形式のシナリオしか行えません。"); // Wsn.4
 	auto warningOverrideEnemyCardImage = Msg("warningOverrideEnemyCardImage", "エネミーカードのイメージの上書きは、Wsn.4以降の形式のシナリオしか行えません。"); // Wsn.4
 	auto warningVariant = Msg("warningVariant", "コモンはWsn.4以降の形式のシナリオでしか使用できません。"); // Wsn.4
+	auto warningLocalVariablesOfEffectCard = Msg("warningLocalVariablesOfEffectCard", "カードのローカル変数はWsn.4以降の形式のシナリオでしか使用できません。"); // Wsn.4
 	auto warningExchangeIsItemInClassic = Msg("warningExchangeIsItemInClassic", "クラシックなシナリオでは、最初のアイテムカードとして「%1$s」と同名のカードを所有していると、本来の「%1$s」が配付されません。");
 	auto warningNoActionCard = Msg("warningNoActionCard", "エネミーカードのアクション有無の指定は、Wsn.4以降の形式のシナリオでしか行えません。"); // Wsn.4
 

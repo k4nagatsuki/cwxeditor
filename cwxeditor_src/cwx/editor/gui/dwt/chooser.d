@@ -37,11 +37,11 @@ enum CouponComboType {
 	Cast, /// キャストの経歴用のクーポンを選択肢とする。
 	Valued, /// 評価条件のクーポンを選択肢とする。
 }
-T createCouponCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, CouponComboType type, string initValue, bool expandSPChars = false) { mixin(S_TRACE);
+T createCouponCombo(T = Combo)(Commons comm, Summary summ, UseCounter uc, Composite parent, bool delegate() catchMod, CouponComboType type, string initValue, bool expandSPChars = false) { mixin(S_TRACE);
 	TextMenuModify tmm;
-	return createCouponCombo!T(comm, summ, parent, catchMod, type, initValue, tmm, expandSPChars);
+	return createCouponCombo!T(comm, summ, uc, parent, catchMod, type, initValue, tmm, expandSPChars);
 }
-T createCouponCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, CouponComboType type, string initValue, out TextMenuModify tmm, bool expandSPChars = false) { mixin(S_TRACE);
+T createCouponCombo(T = Combo)(Commons comm, Summary summ, UseCounter uc, Composite parent, bool delegate() catchMod, CouponComboType type, string initValue, out TextMenuModify tmm, bool expandSPChars = false) { mixin(S_TRACE);
 	auto combo = new T(parent, SWT.BORDER | SWT.DROP_DOWN);
 	combo.setVisibleItemCount(comm.prop.var.etc.comboVisibleItemCount);
 	combo.setText(initValue);
@@ -88,11 +88,11 @@ T createCouponCombo(T = Combo)(Commons comm, Summary summ, Composite parent, boo
 
 	if (expandSPChars) { mixin(S_TRACE);
 		new MenuItem(menu, SWT.SEPARATOR);
-		.setupSPCharsMenu(comm, summ, combo, menu, false, true, () => true);
+		.setupSPCharsMenu(comm, summ, uc, combo, menu, false, true, () => true);
 
 		void updateToolTip() { mixin(S_TRACE);
 			if (combo && !combo.isDisposed()) { mixin(S_TRACE);
-				auto toolTip = .createSPCharPreview(comm, summ, combo.getText(), true, null, null);
+				auto toolTip = .createSPCharPreview(comm, summ, uc, combo.getText(), true, null, null);
 				toolTip = toolTip.replace("&", "&&");
 				if (toolTip != combo.getToolTipText()) { mixin(S_TRACE);
 					combo.setToolTipText(toolTip);
@@ -556,6 +556,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 	private Commons _comm;
 	private Props _prop;
 	private Summary _summ = null;
+	private UseCounter _uc = null;
 	private string _selected = "";
 	private IncSearch _flagIncSearch;
 	private bool _canIncSearch = false;
@@ -609,13 +610,34 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 			return _comm.variantDirExpanded;
 		} else static assert (0);
 	}
+	private F[] flags(FlagDir dir) { mixin(S_TRACE);
+		static if (is(F:cwx.flag.Flag)) {
+			return dir.flags;
+		} else static if (is(F:Step)) {
+			return dir.steps;
+		} else static if (is(F:cwx.flag.Variant)) {
+			return dir.variants;
+		} else static assert (0);
+	}
+	private F[] allFlags(FlagDir dir) { mixin(S_TRACE);
+		static if (is(F:cwx.flag.Flag)) {
+			return dir.allFlags;
+		} else static if (is(F:Step)) {
+			return dir.allSteps;
+		} else static if (is(F:cwx.flag.Variant)) {
+			return dir.allVariants;
+		} else static assert (0);
+	}
 	private void refreshFlags() { mixin(S_TRACE);
 		static if (is(F:cwx.flag.Flag)) {
 			auto icon = _prop.images.flag;
+			auto lIcon = _prop.images.localFlag;
 		} else static if (is(F:Step)) {
 			auto icon = _prop.images.step;
+			auto lIcon = _prop.images.localStep;
 		} else static if (is(F:cwx.flag.Variant)) {
 			auto icon = _prop.images.variant;
+			auto lIcon = _prop.images.localVariant;
 		} else static assert (0);
 		string sel = _selected;
 		_selected = "";
@@ -692,6 +714,12 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 				}
 			}
 		}
+		FlagDir localDir = null;
+		if (_uc) { mixin(S_TRACE);
+			if (auto ec = cast(EffectCard)_uc.owner) { mixin(S_TRACE);
+				localDir = ec.flagDirRoot;
+			}
+		}
 		if (_tree) { mixin(S_TRACE);
 			bool recurse(T)(T parent, FlagDir dir, string name) { mixin(S_TRACE);
 				bool selItm = false;
@@ -707,14 +735,21 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 					dirItm.setText(name);
 				}
 				auto dirs = dir.subDirs;
+				FlagDir lDir = null;
+				if (localDir) { mixin(S_TRACE);
+					lDir = localDir.findPath(dir.path, false);
+					if (lDir) { mixin(S_TRACE);
+						foreach (d; lDir.subDirs) { mixin(S_TRACE);
+							if (!dir.containsSubDir(d.name)) dirs ~= d;
+						}
+					}
+				}
 				sortedWithName(dirs, _prop.var.etc.logicalSort, (FlagDir child) { mixin(S_TRACE);
-					static if (is(F:cwx.flag.Flag)) {
-						auto flags = child.allFlags;
-					} else static if (is(F:Step)) {
-						auto flags = child.allSteps;
-					} else static if (is(F:cwx.flag.Variant)) {
-						auto flags = child.allVariants;
-					} else static assert (0);
+					auto flags = this.allFlags(child);
+					if (localDir) { mixin(S_TRACE);
+						auto lDir = localDir.findPath(child.path, false);
+						if (lDir) flags ~= this.allFlags(lDir);
+					}
 					bool hasChild = false;
 					foreach (flag; flags) { mixin(S_TRACE);
 						if (!_flagIncSearch.match(flag.path)) continue;
@@ -724,13 +759,12 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 					if (!hasChild) return;
 					selItm |= recurse(dirItm, child, child.name);
 				});
-				static if (is(F:cwx.flag.Flag)) {
-					auto flags = dir.flags;
-				} else static if (is(F:Step)) {
-					auto flags = dir.steps;
-				} else static if (is(F:cwx.flag.Variant)) {
-					auto flags = dir.variants;
-				} else static assert (0);
+				auto flags = this.flags(dir);
+				if (lDir) { mixin(S_TRACE);
+					foreach (flag; this.flags(lDir)) { mixin(S_TRACE);
+						if (!dir.contains!F(flag.name)) flags ~= flag;
+					}
+				}
 				.sortedWithName(flags, _prop.var.etc.logicalSort, (F flag) { mixin(S_TRACE);
 					auto path = flag.path;
 					if (!has && path == sel) { mixin(S_TRACE);
@@ -745,7 +779,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 						itm = new TreeItem(_tree, SWT.NONE);
 					}
 					itm.setData(flag);
-					itm.setImage(icon);
+					itm.setImage(_uc && _uc.hasID(F.toID(path)) ? lIcon : icon);
 					itm.setText(flag.name);
 					if (!_tree.getSelectionCount() && path == sel) { mixin(S_TRACE);
 						selItm = true;
@@ -781,13 +815,12 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 			}
 
 		} else { mixin(S_TRACE);
-			static if (is(F:cwx.flag.Flag)) {
-				auto flags = _summ ? _summ.flagDirRoot.allFlags : [];
-			} else static if (is(F:Step)) {
-				auto flags = _summ ? _summ.flagDirRoot.allSteps : [];
-			} else static if (is(F:cwx.flag.Variant)) {
-				auto flags = _summ ? _summ.flagDirRoot.allVariants : [];
-			} else static assert (0);
+			auto flags = _summ ? this.allFlags(_summ.flagDirRoot) : [];
+			if (localDir) { mixin(S_TRACE);
+				foreach (flag; this.allFlags(localDir)) { mixin(S_TRACE);
+					if (!_summ.flagDirRoot.find!F(flag.path)) flags ~= flag;
+				}
+			}
 			.sortedWithPath(flags, _prop.var.etc.logicalSort, (F flag) { mixin(S_TRACE);
 				auto path = flag.path;
 				if (!has && path == sel) { mixin(S_TRACE);
@@ -797,7 +830,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 				if (!_flagIncSearch.match(path)) return;
 				auto itm = new TableItem(_list, SWT.NONE);
 				itm.setData(flag);
-				itm.setImage(icon);
+				itm.setImage(_uc && _uc.hasID(F.toID(path)) ? lIcon : icon);
 				itm.setText(path);
 				if (!_list.getSelectionCount() && path == sel) { mixin(S_TRACE);
 					_list.select(_list.getItemCount() - 1);
@@ -961,11 +994,12 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 		layout();
 	}
 
-	this (Commons comm, Summary summ, Composite parent, bool saveExpanded = true) { mixin(S_TRACE);
+	this (Commons comm, Summary summ, UseCounter uc, Composite parent, bool saveExpanded = true) { mixin(S_TRACE);
 		super (parent, SWT.NONE);
 		_comm = comm;
 		_prop = comm.prop;
 		_summ = summ;
+		_uc = uc;
 		_saveExpanded = saveExpanded;
 		setLayout(zeroMarginGridLayout(1, true));
 		_flagIncSearch = new IncSearch(_comm, this, () => _canIncSearch);
@@ -1048,7 +1082,7 @@ T createSelectionCombo(T = Combo)(Commons comm, Composite parent, bool delegate(
 	return combo;
 }
 
-T createVariableCombo(T = Combo, F)(Commons comm, in Summary summ, Composite parent, bool delegate() catchMod, string initValue) { mixin(S_TRACE);
+T createVariableCombo(T = Combo, F)(Commons comm, in Summary summ, in UseCounter uc, Composite parent, bool delegate() catchMod, string initValue) { mixin(S_TRACE);
 	auto combo = new T(parent, SWT.BORDER | SWT.DROP_DOWN);
 	combo.setVisibleItemCount(comm.prop.var.etc.comboVisibleItemCount);
 	combo.setText(initValue);
@@ -1060,19 +1094,23 @@ T createVariableCombo(T = Combo, F)(Commons comm, in Summary summ, Composite par
 		combo.removeAll();
 		hasItem = false;
 
-		static if (is(F:cwx.flag.Flag)) {
-			auto list = summ ? summ.flagDirRoot.allFlags : [];
-		} else static if (is(F:Step)) {
-			auto list = summ ? summ.flagDirRoot.allSteps : [];
-		} else static if (is(F:cwx.flag.Variant)) {
-			auto list = summ ? summ.flagDirRoot.allVariants : [];
-		} else static assert (0);
-		foreach (i, v; list) { mixin(S_TRACE);
+		const(F)[] vars(in FlagDir dir) { mixin(S_TRACE);
+			static if (is(F:cwx.flag.Flag)) {
+				return dir.allFlags;
+			} else static if (is(F:Step)) {
+				return dir.allSteps;
+			} else static if (is(F:cwx.flag.Variant)) {
+				return dir.allVariants;
+			} else static assert (0);
+		}
+		auto list = .allVars!F(summ.flagDirRoot, uc);
+		// BUG: list.dupが機能しないのでキャストが必要 dmd 2.085.0
+		sortedWithPath(cast(F[])list, comm.prop.var.etc.logicalSort, (F v) { mixin(S_TRACE);
 			hasItem = true;
 			auto path = v.path;
-			if (!incSearch.match(path)) continue;
+			if (!incSearch.match(path)) return;
 			combo.add(path);
-		}
+		});
 		combo.setText(id);
 	}
 	void refFlagAndStep(cwx.flag.Flag[] flags, Step[] steps, cwx.flag.Variant[] variants) { mixin(S_TRACE);

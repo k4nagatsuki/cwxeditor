@@ -33,7 +33,7 @@ import cwx.editor.gui.dwt.messageutils;
 import cwx.editor.gui.dwt.customtext;
 
 static import std.algorithm;
-import std.algorithm: map, max, min;
+import std.algorithm: each, map, max, min;
 import std.array;
 import std.ascii;
 import std.conv;
@@ -52,6 +52,7 @@ public class StepEditDialog : AbsDialog {
 private:
 	Commons _comm;
 	Summary _summ;
+	int _readOnly;
 
 	Step _step;
 	FlagDir _dir;
@@ -264,7 +265,7 @@ private:
 				textUseItems(wrapReturnCode(v), flags, steps, variants, fonts, colors);
 				fonts = [];
 				colors = [];
-				auto ws3 = .textWarnings(_comm.prop.parent, _comm.skin, _summ, _comm.prop.var.etc.targetVersion,
+				auto ws3 = .textWarnings(_comm.prop.parent, _comm.skin, _summ, _dir.useCounter, _comm.prop.var.etc.targetVersion,
 					v, flags, steps, variants, fonts, colors, wFlags, wSteps, wVariants, wFonts, wColors).all;
 				foreach (w; ws3) { mixin(S_TRACE);
 					if (w in ws2) continue;
@@ -284,6 +285,7 @@ private:
 	}
 
 	void changeStepCount(bool store, int num) { mixin(S_TRACE);
+		if (_readOnly) return;
 		if (num == 0) return;
 		auto ic = _values.getItemCount();
 		if (ic == num) return;
@@ -337,6 +339,7 @@ private:
 	}
 
 	void delStep(cwx.flag.Flag[] flag, Step[] step, cwx.flag.Variant[] variants) { mixin(S_TRACE);
+		if (_readOnly) return;
 		foreach (s; step) { mixin(S_TRACE);
 			if (s is _step) { mixin(S_TRACE);
 				forceCancel();
@@ -374,8 +377,8 @@ private:
 	string createToolTip(string text) { mixin(S_TRACE);
 		auto toolTip = "";
 		if (_expandSPChars.getSelection()) { mixin(S_TRACE);
-			toolTip = .createSPCharPreview(_comm, _summ, text, true, null, (path) { mixin(S_TRACE);
-				auto step = _summ.flagDirRoot.findStep(path);
+			toolTip = .createSPCharPreview(_comm, _summ, _dir.useCounter, text, true, null, (path) { mixin(S_TRACE);
+				auto step = .findVar!Step(_summ ? _summ.flagDirRoot : null, _dir.useCounter, path);
 				if (step && _step is step) { mixin(S_TRACE);
 					if (_initSelected == _editIndex && _valueEditor && !_valueEditor.isDisposed()) { mixin(S_TRACE);
 						return VarValue(true, _valueEditor.getText(), _expandSPChars.getSelection());
@@ -389,6 +392,7 @@ private:
 		return toolTip;
 	}
 	void refScenario(Summary summ) { mixin(S_TRACE);
+		if (_readOnly) return;
 		if (_summ is summ) forceCancel();
 	}
 	void refDataVersion() { mixin(S_TRACE);
@@ -402,13 +406,15 @@ public:
 	/// Params:
 	/// dir = 設定するステップの親ディレクトリ。
 	/// step = 設定するステップ。新規の場合はnull。
-	this (Commons comm, Summary summ, Shell shell, FlagDir dir, Step step = null) { mixin(S_TRACE);
-		super(comm.prop, shell, false, comm.prop.msgs.dlgTitStep, comm.prop.images.step, true, comm.prop.var.stepDlg, true);
+	this (Commons comm, Summary summ, Shell shell, bool readOnly, FlagDir dir, Step step = null) { mixin(S_TRACE);
+		super (comm.prop, shell, readOnly, comm.prop.msgs.dlgTitStep, comm.prop.images.step, true, comm.prop.var.stepDlg, true);
 		_comm = comm;
 		_summ = summ;
+		_readOnly = readOnly ? SWT.READ_ONLY : SWT.NONE;
 		_dir = dir;
 		_step = step;
 		_undo = new UndoManager(_comm.prop.var.etc.undoMaxEtc);
+		enterClose = readOnly;
 	}
 
 	/// Returns: 編集対象となったステップ。
@@ -445,7 +451,7 @@ protected:
 			l1.setText(_comm.prop.msgs.dlgLblStepName);
 			l1.setLayoutData(new GridData);
 			setEVS(l1);
-			_name = new Text(comp1, SWT.BORDER);
+			_name = new Text(comp1, SWT.BORDER | _readOnly);
 			mod(_name);
 			createTextMenu!Text(_comm, _comm.prop, _name, &catchMod);
 			setGridMinW(_name, _comm.prop.var.etc.flagNameWidth, GridData.FILL_HORIZONTAL);
@@ -462,6 +468,7 @@ protected:
 			_init.setVisibleItemCount(_comm.prop.var.etc.comboVisibleItemCount);
 			setGridMinW(_init, _comm.prop.var.etc.flagInitWidth, GridData.FILL_HORIZONTAL);
 			setEVS(_init);
+			_init.setEnabled(!_readOnly);
 		}
 		{ mixin(S_TRACE);
 			_values = new Table(area, SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER | SWT.VIRTUAL);
@@ -473,13 +480,28 @@ protected:
 			.listener(_values, SWT.MouseMove, &updateToolTip);
 
 			auto menu = new Menu(_values.getShell(), SWT.POP_UP);
-			createMenuItem(_comm, menu, MenuID.Undo, { _undo.undo(); }, &_undo.canUndo);
-			createMenuItem(_comm, menu, MenuID.Redo, { _undo.redo(); }, &_undo.canRedo);
-			new MenuItem(menu, SWT.SEPARATOR);
-			createMenuItem(_comm, menu, MenuID.Up, &upValues, &canUpValues);
-			createMenuItem(_comm, menu, MenuID.Down, &downValues, &canDownValues);
-			new MenuItem(menu, SWT.SEPARATOR);
-			createMenuItem(_comm, menu, MenuID.CreateStepValues, &createStepValues, &canCreateStepValues);
+			if (_readOnly) { mixin(S_TRACE);
+				createMenuItem(_comm, menu, MenuID.Copy, { mixin(S_TRACE);
+					string[] t;
+					foreach (itm; _values.getSelection()) { mixin(S_TRACE);
+						t ~= itm.getText(1).replace("\n", .newline);
+					}
+					if (!t.length) return;
+					auto text = new ArrayWrapperString(std.string.join(t, .newline));
+					_comm.clipboard.setContents([text], [TextTransfer.getInstance()]);
+					_comm.refreshToolBar();
+				}, () => 0 < _values.getSelectionCount());
+				new MenuItem(menu, SWT.SEPARATOR);
+						createMenuItem(_comm, menu, MenuID.SelectAll, { .iota(0, _values.getItemCount()).each!(i => _values.select(i))(); }, () => _values.getItemCount() != _values.getSelectionCount());
+			} else { mixin(S_TRACE);
+				createMenuItem(_comm, menu, MenuID.Undo, { _undo.undo(); }, &_undo.canUndo);
+				createMenuItem(_comm, menu, MenuID.Redo, { _undo.redo(); }, &_undo.canRedo);
+				new MenuItem(menu, SWT.SEPARATOR);
+				createMenuItem(_comm, menu, MenuID.Up, &upValues, &canUpValues);
+				createMenuItem(_comm, menu, MenuID.Down, &downValues, &canDownValues);
+				new MenuItem(menu, SWT.SEPARATOR);
+				createMenuItem(_comm, menu, MenuID.CreateStepValues, &createStepValues, &canCreateStepValues);
+			}
 			_values.setMenu(menu);
 
 			Control createEditor(TableItem itm, int editC) { mixin(S_TRACE);
@@ -487,7 +509,7 @@ protected:
 				_editIndex = itm.getParent().indexOf(itm);
 				auto menu = _valueEditor.getMenu();
 				new MenuItem(menu, SWT.SEPARATOR);
-				.setupSPCharsMenu(_comm, _summ, _valueEditor, menu, false, true, () => _expandSPChars.getSelection());
+				.setupSPCharsMenu(_comm, _summ, _dir.useCounter, _valueEditor, menu, false, true, () => _expandSPChars.getSelection());
 				new MenuItem(menu, SWT.SEPARATOR);
 				createMenuItem(_comm, menu, MenuID.CreateStepValues, &createStepValues, &canCreateStepValues);
 				updateToolTip();
@@ -495,8 +517,10 @@ protected:
 				.listener(_valueEditor, SWT.Modify, &refreshWarning);
 				return _valueEditor;
 			}
-			_tte = new TableTextEdit(_comm, _comm.prop, _values, 1, &valueEditEnd, (itm, column) => true, &createEditor);
-			_tte.quickStart = EditStartType.Quick;
+			if (!_readOnly) { mixin(S_TRACE);
+				_tte = new TableTextEdit(_comm, _comm.prop, _values, 1, &valueEditEnd, (itm, column) => true, &createEditor);
+				_tte.quickStart = EditStartType.Quick;
+			}
 		}
 		{ mixin(S_TRACE);
 			auto comp = new Composite(area, SWT.NONE);
@@ -508,6 +532,7 @@ protected:
 			_stepCount = new Spinner(comp, SWT.BORDER);
 			initSpinner(_stepCount);
 			mod(_stepCount);
+			_stepCount.setEnabled(!_readOnly);
 			_stepCount.setMinimum(1);
 			_stepCount.setMaximum(_comm.prop.var.etc.stepCountMax);
 			.listener(_stepCount, SWT.Selection, () => changeStepCount(true, _stepCount.getSelection()));
@@ -515,28 +540,31 @@ protected:
 
 			_expandSPChars = new Button(comp, SWT.CHECK);
 			mod(_expandSPChars);
+			_expandSPChars.setEnabled(!_readOnly);
 			_expandSPChars.setText(_comm.prop.msgs.expandSPChars);
 			_expandSPChars.setToolTipText(_comm.prop.msgs.expandSPCharsHint.replace("&", "&&"));
 			.listener(_expandSPChars, SWT.Selection, &refDataVersion);
 		}
-		_comm.delFlagAndStep.add(&delStep);
-		_comm.refScenario.add(&refScenario);
-		_comm.refDataVersion.add(&refDataVersion);
-		_comm.refPreviewValues.add(&updateToolTip);
-		_comm.refFlagAndStep.add(&refFlagAndStep);
-		_comm.refPath.add(&refPath);
-		_comm.refPaths.add(&refPaths);
-		_comm.replText.add(&updateToolTip);
-		.listener(area, SWT.Dispose, { mixin(S_TRACE);
-			_comm.delFlagAndStep.remove(&delStep);
-			_comm.refScenario.remove(&refScenario);
-			_comm.refDataVersion.remove(&refDataVersion);
-			_comm.refPreviewValues.remove(&updateToolTip);
-			_comm.refFlagAndStep.remove(&refFlagAndStep);
-			_comm.refPath.remove(&refPath);
-			_comm.refPaths.remove(&refPaths);
-			_comm.replText.remove(&updateToolTip);
-		});
+		if (!_readOnly) { mixin(S_TRACE);
+			_comm.delFlagAndStep.add(&delStep);
+			_comm.refScenario.add(&refScenario);
+			_comm.refDataVersion.add(&refDataVersion);
+			_comm.refPreviewValues.add(&updateToolTip);
+			_comm.refFlagAndStep.add(&refFlagAndStep);
+			_comm.refPath.add(&refPath);
+			_comm.refPaths.add(&refPaths);
+			_comm.replText.add(&updateToolTip);
+			.listener(area, SWT.Dispose, { mixin(S_TRACE);
+				_comm.delFlagAndStep.remove(&delStep);
+				_comm.refScenario.remove(&refScenario);
+				_comm.refDataVersion.remove(&refDataVersion);
+				_comm.refPreviewValues.remove(&updateToolTip);
+				_comm.refFlagAndStep.remove(&refFlagAndStep);
+				_comm.refPath.remove(&refPath);
+				_comm.refPaths.remove(&refPaths);
+				_comm.replText.remove(&updateToolTip);
+			});
+		}
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
@@ -584,10 +612,12 @@ protected:
 
 	@property
 	private bool canCreateStepValues() { mixin(S_TRACE);
+		if (_readOnly) return false;
 		auto index = _values.getSelectionIndex();
 		return 0 <= index && index + 1 < _values.getItemCount();
 	}
 	private void createStepValues() { mixin(S_TRACE);
+		if (_readOnly) return;
 		if (!canCreateStepValues) return;
 		auto t = cast(Text)_tte.editor;
 		auto index = _values.getSelectionIndex();
@@ -596,6 +626,7 @@ protected:
 	}
 
 	private void createStepValues(int index, string lastValue) { mixin(S_TRACE);
+		if (_readOnly) return;
 		auto stored = false;
 		foreach (i; index + 1 .. _values.getItemCount()) { mixin(S_TRACE);
 			lastValue = createNewName(lastValue, (string name) { mixin(S_TRACE);
@@ -615,6 +646,7 @@ protected:
 
 	@property
 	private bool canUpValues() { mixin(S_TRACE);
+		if (_readOnly) return false;
 		return _values.getSelectionCount() && !_values.isSelected(0);
 	}
 	private void upValues() { mixin(S_TRACE);
@@ -638,6 +670,7 @@ protected:
 
 	@property
 	private bool canDownValues() { mixin(S_TRACE);
+		if (_readOnly) return false;
 		return _values.getSelectionCount() && !_values.isSelected(_values.getItemCount() - 1);
 	}
 	private void downValues() { mixin(S_TRACE);
@@ -682,6 +715,7 @@ private:
 	Commons _comm;
 	Summary _summ;
 	Props prop;
+	int _readOnly;
 	cwx.flag.Flag _flag;
 	FlagDir dir;
 
@@ -715,7 +749,7 @@ private:
 				textUseItems(wrapReturnCode(text.getText()), flags, steps, variants, fonts, colors);
 				fonts = [];
 				colors = [];
-				auto ws3 = .textWarnings(_comm.prop.parent, _comm.skin, _summ, _comm.prop.var.etc.targetVersion,
+				auto ws3 = .textWarnings(_comm.prop.parent, _comm.skin, _summ, dir.useCounter, _comm.prop.var.etc.targetVersion,
 					text.getText(), flags, steps, variants, fonts, colors, wFlags, wSteps, wVariants, wFonts, wColors).all;
 				foreach (w; ws3) { mixin(S_TRACE);
 					if (w in ws2) continue;
@@ -764,6 +798,7 @@ private:
 		}
 	}
 	void delFlag(cwx.flag.Flag[] flag, Step[] step, cwx.flag.Variant[] variants) { mixin(S_TRACE);
+		if (_readOnly) return;
 		foreach (f; flag) { mixin(S_TRACE);
 			if (f is _flag) { mixin(S_TRACE);
 				forceCancel();
@@ -783,8 +818,8 @@ private:
 	void updateToolTipImpl(Combo combo) { mixin(S_TRACE);
 		auto toolTip = "";
 		if (_expandSPChars.getSelection()) { mixin(S_TRACE);
-			toolTip = .createSPCharPreview(_comm, _summ, combo.getText(), true, (path) { mixin(S_TRACE);
-				auto flag = _summ.flagDirRoot.findFlag(path);
+			toolTip = .createSPCharPreview(_comm, _summ, dir.useCounter, combo.getText(), true, (path) { mixin(S_TRACE);
+				auto flag = .findVar!(cwx.flag.Flag)(_summ ? _summ.flagDirRoot : null, dir.useCounter, path);
 				if (flag && _flag is flag) { mixin(S_TRACE);
 					return VarValue(true, flagInit.getText(), _expandSPChars.getSelection());
 				}
@@ -797,6 +832,7 @@ private:
 		}
 	}
 	void refScenario(Summary summ) { mixin(S_TRACE);
+		if (_readOnly) return;
 		forceCancel();
 	}
 	void refDataVersion() { mixin(S_TRACE);
@@ -810,12 +846,13 @@ public:
 	/// shell = 親ウィンドウ。
 	/// dir = 設定するフラグの親ディレクトリ。
 	/// flag = 設定するフラグ。新規の場合はnull。
-	this(Commons comm, Summary summ, Shell shell, FlagDir dir, cwx.flag.Flag flag = null) { mixin(S_TRACE);
-		super(comm.prop, shell, false, comm.prop.msgs.dlgTitFlag, comm.prop.images.flag, true,
+	this(Commons comm, Summary summ, Shell shell, bool readOnly, FlagDir dir, cwx.flag.Flag flag = null) { mixin(S_TRACE);
+		super(comm.prop, shell, readOnly, comm.prop.msgs.dlgTitFlag, comm.prop.images.flag, true,
 			comm.prop.var.flagDlg, true);
 		_comm = comm;
 		this.prop = comm.prop;
 		_summ = summ;
+		_readOnly = readOnly ? SWT.READ_ONLY : SWT.NONE;
 		this._flag = flag;
 		this.dir = dir;
 		enterClose = true;
@@ -866,7 +903,7 @@ protected:
 			l1.setText(prop.msgs.dlgLblFlagName);
 			l1.setLayoutData(new GridData);
 			setEVS(l1);
-			flagName = new Text(comp1, SWT.BORDER);
+			flagName = new Text(comp1, SWT.BORDER | _readOnly);
 			createTextMenu!Text(_comm, prop, flagName, &catchMod);
 			mod(flagName);
 			setGridMinW(flagName, prop.var.etc.flagNameWidth, GridData.FILL_HORIZONTAL);
@@ -880,6 +917,7 @@ protected:
 			setEVS(l2);
 			flagInit = new Combo(comp2, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
 			mod(flagInit);
+			flagInit.setEnabled(!_readOnly);
 			setGridMinW(flagInit, prop.var.etc.flagInitWidth, GridData.FILL_HORIZONTAL);
 			setEVS(flagInit);
 		}
@@ -897,29 +935,35 @@ protected:
 			(new Label(comp, SWT.NULL)).setText(prop.msgs.dlgLblFlagTrue);
 			flagTrue = new Combo(comp, SWT.DROP_DOWN | SWT.BORDER);
 			mod(flagTrue);
+			flagTrue.setEnabled(!_readOnly);
 			setComboItems(flagTrue, prop.var.etc.flagTrues.dup);
 			flagTrue.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
 			createTextMenu!Combo(_comm, prop, flagTrue, &catchMod);
-			auto tMenu = flagTrue.getMenu();
-			new MenuItem(tMenu, SWT.SEPARATOR);
-			.setupSPCharsMenu(_comm, _summ, flagTrue, tMenu, false, true, () => _expandSPChars.getSelection());
-			auto tmod = new ModOnOff(0);
-			flagTrue.addModifyListener(tmod);
-			flagTrue.addSelectionListener(tmod);
+			if (!_readOnly) { mixin(S_TRACE);
+				auto tMenu = flagTrue.getMenu();
+				new MenuItem(tMenu, SWT.SEPARATOR);
+				.setupSPCharsMenu(_comm, _summ, dir.useCounter, flagTrue, tMenu, false, true, () => _expandSPChars.getSelection());
+				auto tmod = new ModOnOff(0);
+				flagTrue.addModifyListener(tmod);
+				flagTrue.addSelectionListener(tmod);
+			}
 			setGridMinW(flagTrue, prop.var.etc.flagValueWidth, GridData.FILL_HORIZONTAL);
 
 			(new Label(comp, SWT.NULL)).setText(prop.msgs.dlgLblFlagFalse);
 			flagFalse = new Combo(comp, SWT.DROP_DOWN | SWT.BORDER);
 			mod(flagFalse);
+			flagFalse.setEnabled(!_readOnly);
 			setComboItems(flagFalse, prop.var.etc.flagFalses.dup);
 			flagFalse.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
 			createTextMenu!Combo(_comm, prop, flagFalse, &catchMod);
-			auto fMenu = flagFalse.getMenu();
-			new MenuItem(fMenu, SWT.SEPARATOR);
-			.setupSPCharsMenu(_comm, _summ, flagFalse, fMenu, false, true, () => _expandSPChars.getSelection());
-			auto fmod = new ModOnOff(1);
-			flagFalse.addModifyListener(fmod);
-			flagFalse.addSelectionListener(fmod);
+			if (!_readOnly) { mixin(S_TRACE);
+				auto fMenu = flagFalse.getMenu();
+				new MenuItem(fMenu, SWT.SEPARATOR);
+				.setupSPCharsMenu(_comm, _summ, dir.useCounter, flagFalse, fMenu, false, true, () => _expandSPChars.getSelection());
+				auto fmod = new ModOnOff(1);
+				flagFalse.addModifyListener(fmod);
+				flagFalse.addSelectionListener(fmod);
+			}
 			setGridMinW(flagFalse, prop.var.etc.flagValueWidth, GridData.FILL_HORIZONTAL);
 		}
 		(new Label(area, SWT.SEPARATOR | SWT.HORIZONTAL))
@@ -930,20 +974,23 @@ protected:
 			comp.setLayout(normalGridLayout(1, true));
 			_expandSPChars = new Button(comp, SWT.CHECK);
 			mod(_expandSPChars);
+			_expandSPChars.setEnabled(!_readOnly);
 			_expandSPChars.setText(_comm.prop.msgs.expandSPChars);
 			_expandSPChars.setToolTipText(_comm.prop.msgs.expandSPCharsHint.replace("&", "&&"));
 			.listener(_expandSPChars, SWT.Selection, &refDataVersion);
 			.listener(_expandSPChars, SWT.Selection, &updateToolTip);
 		}
-		_comm.delFlagAndStep.add(&delFlag);
-		_comm.refScenario.add(&refScenario);
-		_comm.refDataVersion.add(&refDataVersion);
-		_comm.refPreviewValues.add(&updateToolTip);
-		_comm.refFlagAndStep.add(&refFlagAndStep);
-		_comm.refPath.add(&refPath);
-		_comm.refPaths.add(&refPaths);
-		_comm.replText.add(&updateToolTip);
-		getShell().addDisposeListener(new Dispose);
+		if (!_readOnly) { mixin(S_TRACE);
+			_comm.delFlagAndStep.add(&delFlag);
+			_comm.refScenario.add(&refScenario);
+			_comm.refDataVersion.add(&refDataVersion);
+			_comm.refPreviewValues.add(&updateToolTip);
+			_comm.refFlagAndStep.add(&refFlagAndStep);
+			_comm.refPath.add(&refPath);
+			_comm.refPaths.add(&refPaths);
+			_comm.replText.add(&updateToolTip);
+			getShell().addDisposeListener(new Dispose);
+		}
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
@@ -997,6 +1044,7 @@ private:
 	Summary _summ;
 	cwx.flag.Variant _variant;
 	FlagDir _dir;
+	int _readOnly;
 
 	Text _name;
 
@@ -1019,18 +1067,20 @@ private:
 	}
 
 	void updateEnabled() { mixin(S_TRACE);
-		_numVal.setEnabled(_typeNum.getSelection());
-		_strVal.setEnabled(_typeStr.getSelection());
-		_boolVal.setEnabled(_typeBool.getSelection());
+		_numVal.setEnabled(!_readOnly && _typeNum.getSelection());
+		_strVal.setEnabled(!_readOnly && _typeStr.getSelection());
+		_boolVal.setEnabled(!_readOnly && _typeBool.getSelection());
 		check();
 	}
 
 	void delVariant(cwx.flag.Flag[] flag, Step[] step, cwx.flag.Variant[] variants) { mixin(S_TRACE);
+		if (_readOnly) return;
 		if (.contains!"a is b"(variants, _variant)) { mixin(S_TRACE);
 			forceCancel();
 		}
 	}
 	void refScenario(Summary summ) { mixin(S_TRACE);
+		if (_readOnly) return;
 		forceCancel();
 	}
 	void refDataVersion() { mixin(S_TRACE);
@@ -1069,7 +1119,7 @@ protected:
 
 			auto l1 = new Label(comp, SWT.NONE);
 			l1.setText(_comm.prop.msgs.variantName);
-			_name = new Text(comp, SWT.BORDER);
+			_name = new Text(comp, SWT.BORDER | _readOnly);
 			.createTextMenu!Text(_comm, _comm.prop, _name, &catchMod);
 			mod(_name);
 			checker(_name);
@@ -1090,9 +1140,10 @@ protected:
 
 			_typeNum = new Button(comp, SWT.RADIO);
 			mod(_typeNum);
+			_typeNum.setEnabled(!_readOnly);
 			_typeNum.setText(_comm.prop.msgs.numberValue);
 			.listener(_typeNum, SWT.Selection, &updateEnabled);
-			_numVal = .createNumberEditor(_comm, comp, SWT.BORDER, &catchMod);
+			_numVal = .createNumberEditor(_comm, comp, SWT.BORDER | _readOnly, &catchMod);
 			mod(_numVal);
 			auto ngd = grabVGD(GridData.HORIZONTAL_ALIGN_BEGINNING);
 			auto gc = new GC(_numVal);
@@ -1112,9 +1163,10 @@ protected:
 
 			_typeStr = new Button(comp, SWT.RADIO);
 			mod(_typeStr);
+			_typeStr.setEnabled(!_readOnly);
 			.listener(_typeStr, SWT.Selection, &updateEnabled);
 			_typeStr.setText(_comm.prop.msgs.stringValue);
-			_strVal = new Text(comp, SWT.BORDER);
+			_strVal = new Text(comp, SWT.BORDER | _readOnly);
 			mod(_strVal);
 			.createTextMenu!Text(_comm, _comm.prop, _strVal, &catchMod);
 			_strVal.setLayoutData(grabVGD(GridData.FILL_HORIZONTAL));
@@ -1122,6 +1174,7 @@ protected:
 
 			_typeBool = new Button(comp, SWT.RADIO);
 			mod(_typeBool);
+			_typeBool.setEnabled(!_readOnly);
 			.listener(_typeBool, SWT.Selection, &updateEnabled);
 			_typeBool.setText(_comm.prop.msgs.booleanValue);
 			_boolVal = new Combo(comp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
@@ -1135,14 +1188,16 @@ protected:
 			_boolVal.setLayoutData(grabVGD(GridData.HORIZONTAL_ALIGN_BEGINNING));
 		}
 
-		_comm.delFlagAndStep.add(&delVariant);
-		_comm.refScenario.add(&refScenario);
-		_comm.refDataVersion.add(&refDataVersion);
-		.listener(area, SWT.Dispose, { mixin(S_TRACE);
-			_comm.delFlagAndStep.remove(&delVariant);
-			_comm.refScenario.remove(&refScenario);
-			_comm.refDataVersion.remove(&refDataVersion);
-		});
+		if (!_readOnly) { mixin(S_TRACE);
+			_comm.delFlagAndStep.add(&delVariant);
+			_comm.refScenario.add(&refScenario);
+			_comm.refDataVersion.add(&refDataVersion);
+			.listener(area, SWT.Dispose, { mixin(S_TRACE);
+				_comm.delFlagAndStep.remove(&delVariant);
+				_comm.refScenario.remove(&refScenario);
+				_comm.refDataVersion.remove(&refDataVersion);
+			});
+		}
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
@@ -1216,6 +1271,7 @@ protected:
 private abstract class FTVUndo : Undo {
 	protected FlagTable _v;
 	protected Commons comm;
+	protected UseCounter useCounter;
 	protected string _dir;
 	private string _selectedDir;
 	private ptrdiff_t[] _selectedF;
@@ -1225,16 +1281,18 @@ private abstract class FTVUndo : Undo {
 	private ptrdiff_t[] _selectedSB;
 	private ptrdiff_t[] _selectedVB;
 	protected FlagDir selDir = null;
-	this (FlagTable v, Commons comm, FlagDir dir) { mixin(S_TRACE);
+	this (FlagTable v, Commons comm, UseCounter uc, FlagDir dir) { mixin(S_TRACE);
 		_v = v;
 		_dir = dir.cwxPath(true);
 		this.comm = comm;
+		this.useCounter = uc;
 		saveSelected(v);
 	}
-	this (FlagTable v, Commons comm, FlagDir dir, ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, ptrdiff_t[] selectedV) { mixin(S_TRACE);
+	this (FlagTable v, Commons comm, UseCounter uc, FlagDir dir, ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, ptrdiff_t[] selectedV) { mixin(S_TRACE);
 		_v = v;
 		_dir = dir.cwxPath(true);
 		this.comm = comm;
+		this.useCounter = uc;
 		_selectedF = selectedF;
 		_selectedS = selectedS;
 		_selectedV = selectedV;
@@ -1295,8 +1353,8 @@ private abstract class FTVUndo : Undo {
 package class UndoAllVariables : FTVUndo {
 	private FlagDir _root;
 	private FlagDir _copyRoot;
-	this (FlagTable v, Commons comm, FlagDir dir, FlagDir root) { mixin(S_TRACE);
-		super (v, comm, dir);
+	this (FlagTable v, Commons comm, UseCounter uc, FlagDir dir, FlagDir root) { mixin(S_TRACE);
+		super (v, comm, uc, dir);
 		_root = root;
 		_copyRoot = new FlagDir(root);
 	}
@@ -1430,12 +1488,12 @@ package class UndoEditN {
 
 package class UndoEdit : FTVUndo {
 	private UndoEditN[] _impl;
-	this (FlagTable v, Commons comm, FlagDir dir, int[] index, string[] oldName, int[] oldValues, string[][] oldNames, VariantVal[] oldVals) in { mixin(S_TRACE);
+	this (FlagTable v, Commons comm, UseCounter uc, FlagDir dir, int[] index, string[] oldName, int[] oldValues, string[][] oldNames, VariantVal[] oldVals) in { mixin(S_TRACE);
 		assert (index.length == oldName.length);
 		assert (!oldValues.length || oldValues.length == index.length);
 		assert (!oldVals.length || oldVals.length == index.length);
 	} body { mixin(S_TRACE);
-		super (v, comm, dir);
+		super (v, comm, uc, dir);
 		foreach (i, idx; index) { mixin(S_TRACE);
 			_impl ~= new UndoEditN(dir, idx, oldName[i], oldValues.length ? oldValues[i] : -1, oldNames.length ? oldNames[i] : [],
 				oldVals.length ? oldVals[i] : VariantVal(false));
@@ -1466,9 +1524,9 @@ package class UndoEdit : FTVUndo {
 				newNameV ~= newName;
 			}
 		}
-		FlagTable.setNames(refF, newNameF, comm.summary.useCounter);
-		FlagTable.setNames(refS, newNameS, comm.summary.useCounter);
-		FlagTable.setNames(refV, newNameV, comm.summary.useCounter);
+		FlagTable.setNames(refF, newNameF, useCounter);
+		FlagTable.setNames(refS, newNameS, useCounter);
+		FlagTable.setNames(refV, newNameV, useCounter);
 		comm.refFlagAndStep.call(refF, refS, refV);
 		if (v && v.flags && !v.flags.isDisposed()) { mixin(S_TRACE);
 			v.refresh();
@@ -1493,8 +1551,8 @@ package class UndoInsertDelete : FTVUndo {
 	private cwx.flag.Variant[ptrdiff_t] _vs;
 
 	/// 追加を元に戻す。
-	this (FlagTable v, Commons comm, FlagDir dir, ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, ptrdiff_t[] selectedV, ptrdiff_t[] dirIndices, ptrdiff_t[] flagIndices, ptrdiff_t[] stepIndices, ptrdiff_t[] variantIndices) { mixin(S_TRACE);
-		super (v, comm, dir, selectedF.dup, selectedS.dup, selectedV.dup);
+	this (FlagTable v, Commons comm, UseCounter uc, FlagDir dir, ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, ptrdiff_t[] selectedV, ptrdiff_t[] dirIndices, ptrdiff_t[] flagIndices, ptrdiff_t[] stepIndices, ptrdiff_t[] variantIndices) { mixin(S_TRACE);
+		super (v, comm, uc, dir, selectedF.dup, selectedS.dup, selectedV.dup);
 		_dirIndices = dirIndices.dup;
 		_flagIndices = flagIndices.dup;
 		_stepIndices = stepIndices.dup;
@@ -1502,8 +1560,8 @@ package class UndoInsertDelete : FTVUndo {
 		_insert = true;
 	}
 	/// 削除を元に戻す。
-	this (FlagTable v, Commons comm, FlagDir dir, ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, ptrdiff_t[] selectedV, FlagDir[ptrdiff_t] ds, cwx.flag.Flag[ptrdiff_t] fs, Step[ptrdiff_t] ss, cwx.flag.Variant[ptrdiff_t] vs) { mixin(S_TRACE);
-		super (v, comm, dir, selectedF.dup, selectedS.dup, selectedV.dup);
+	this (FlagTable v, Commons comm, UseCounter uc, FlagDir dir, ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, ptrdiff_t[] selectedV, FlagDir[ptrdiff_t] ds, cwx.flag.Flag[ptrdiff_t] fs, Step[ptrdiff_t] ss, cwx.flag.Variant[ptrdiff_t] vs) { mixin(S_TRACE);
+		super (v, comm, uc, dir, selectedF.dup, selectedS.dup, selectedV.dup);
 		save(ds, fs, ss, vs);
 		_insert = false;
 	}
@@ -1565,21 +1623,36 @@ package class UndoInsertDelete : FTVUndo {
 		}
 		save(ds, fs, ss, vs);
 		foreach (f; fs) { mixin(S_TRACE);
+			useCounter.deleteID(toFlagId(f.path));
 			dir.remove(f);
 		}
 		foreach (s; ss) { mixin(S_TRACE);
+			useCounter.deleteID(toStepId(s.path));
 			dir.remove(s);
 		}
 		foreach (v; vs) { mixin(S_TRACE);
+			useCounter.deleteID(toVariantId(v.path));
 			dir.remove(v);
 		}
 		foreach (d; ds) { mixin(S_TRACE);
-			dir.remove(d);
-			rfs ~= d.allFlags;
-			rss ~= d.allSteps;
-			rvs ~= d.allVariants;
+			foreach (f; d.allFlags) { mixin(S_TRACE);
+				useCounter.deleteID(toFlagId(f.path));
+				rfs ~= f;
+			}
+			foreach (f; d.allSteps) { mixin(S_TRACE);
+				useCounter.deleteID(toStepId(f.path));
+				rss ~= f;
+			}
+			foreach (f; d.allVariants) { mixin(S_TRACE);
+				useCounter.deleteID(toVariantId(f.path));
+				rvs ~= f;
+			}
 			rds ~= d.allSubDirs;
+			dir.remove(d);
 		}
+		auto v = view();
+		if (v) v.callDeleteEvent();
+		comm.refUseCount.call();
 		rds ~= ds.values;
 		rfs ~= fs.values;
 		rss ~= ss.values;
@@ -1611,26 +1684,41 @@ package class UndoInsertDelete : FTVUndo {
 			auto f = _fs[index];
 			_flagIndices ~= index;
 			dir.insert(index, f, true);
+			useCounter.createID(toFlagId(f.path));
 		}
 		foreach (index; std.algorithm.sort(_ss.keys)) { mixin(S_TRACE);
 			auto s = _ss[index];
 			_stepIndices ~= index;
 			dir.insert(index, s, true);
+			useCounter.createID(toStepId(s.path));
 		}
 		foreach (index; std.algorithm.sort(_vs.keys)) { mixin(S_TRACE);
 			auto v = _vs[index];
 			_variantIndices ~= index;
 			dir.insert(index, v, true);
+			useCounter.createID(toVariantId(v.path));
 		}
 		foreach (index; std.algorithm.sort(_ds.keys)) { mixin(S_TRACE);
 			auto d = _ds[index];
 			_dirIndices ~= index;
 			dir.insert(index, d, true);
-			rfs ~= d.allFlags;
-			rss ~= d.allSteps;
-			rvs ~= d.allVariants;
+			foreach (f; d.allFlags) { mixin(S_TRACE);
+				useCounter.createID(toFlagId(f.path));
+				rfs ~= f;
+			}
+			foreach (f; d.allSteps) { mixin(S_TRACE);
+				useCounter.createID(toStepId(f.path));
+				rss ~= f;
+			}
+			foreach (f; d.allVariants) { mixin(S_TRACE);
+				useCounter.createID(toVariantId(f.path));
+				rvs ~= f;
+			}
 			rds ~= d.allSubDirs;
 		}
+		auto v = view();
+		if (v) v.callDeleteEvent();
+		comm.refUseCount.call();
 		rds ~= _ds.values;
 		rfs ~= _fs.values;
 		rss ~= _ss.values;
@@ -1664,14 +1752,14 @@ package class UndoMove : FTVUndo {
 	private UndoInsertDelete _dir1;
 	private UndoInsertDelete _dir2;
 
-	this (FlagTable v, Commons comm, ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, ptrdiff_t[] selectedV, FlagDir to, ptrdiff_t[] dirIndices, ptrdiff_t[] flagIndices, ptrdiff_t[] stepIndices, ptrdiff_t[] variantIndices, FlagDir from, FlagDir[ptrdiff_t] ds, cwx.flag.Flag[ptrdiff_t] fs, Step[ptrdiff_t] ss, cwx.flag.Variant[ptrdiff_t] vs) { mixin(S_TRACE);
-		super (v, comm, from, selectedF.dup, selectedS.dup, selectedV.dup);
+	this (FlagTable v, Commons comm, UseCounter uc, ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, ptrdiff_t[] selectedV, FlagDir to, ptrdiff_t[] dirIndices, ptrdiff_t[] flagIndices, ptrdiff_t[] stepIndices, ptrdiff_t[] variantIndices, FlagDir from, FlagDir[ptrdiff_t] ds, cwx.flag.Flag[ptrdiff_t] fs, Step[ptrdiff_t] ss, cwx.flag.Variant[ptrdiff_t] vs) { mixin(S_TRACE);
+		super (v, comm, uc, from, selectedF.dup, selectedS.dup, selectedV.dup);
 		assert (dirIndices.length == ds.length);
 		assert (flagIndices.length == fs.length);
 		assert (stepIndices.length == ss.length);
 		assert (variantIndices.length == vs.length);
-		_dir1 = new UndoInsertDelete(v, comm, to, selectedF, selectedS, selectedV, dirIndices, flagIndices, stepIndices, variantIndices);
-		_dir2 = new UndoInsertDelete(v, comm, from, selectedF, selectedS, selectedV, ds, fs, ss, vs);
+		_dir1 = new UndoInsertDelete(v, comm, uc, to, selectedF, selectedS, selectedV, dirIndices, flagIndices, stepIndices, variantIndices);
+		_dir2 = new UndoInsertDelete(v, comm, uc, from, selectedF, selectedS, selectedV, ds, fs, ss, vs);
 	}
 	private void paths(UndoInsertDelete ins, FlagDir dir, out FlagId[] flagIDs, out StepId[] stepIDs, out VariantId[] variantIDs, out cwx.flag.Flag[] flags, out Step[] steps, out cwx.flag.Variant[] variants) { mixin(S_TRACE);
 		assert (dir !is null);
@@ -1695,18 +1783,18 @@ package class UndoMove : FTVUndo {
 	}
 	private void change(FlagTable v, FlagId[] oldF, FlagId[] newF, StepId[] oldS, StepId[] newS, VariantId[] oldV, VariantId[] newV) { mixin(S_TRACE);
 		foreach (nPath, oPath; .zip(newF, oldF)) { mixin(S_TRACE);
-			comm.summary.useCounter.change(oPath, nPath);
+			useCounter.change(oPath, nPath);
 		}
 		foreach (nPath, oPath; .zip(newS, oldS)) { mixin(S_TRACE);
-			comm.summary.useCounter.change(oPath, nPath);
+			useCounter.change(oPath, nPath);
 		}
 		foreach (nPath, oPath; .zip(newV, oldV)) { mixin(S_TRACE);
-			comm.summary.useCounter.change(oPath, nPath);
+			useCounter.change(oPath, nPath);
 		}
 		if (v && v.flags && !v.flags.isDisposed()) { mixin(S_TRACE);
 			v.refresh();
-			v.refreshUseCount();
 		}
+		comm.refUseCount.call();
 	}
 	private void impl(UndoInsertDelete del, UndoInsertDelete ins) { mixin(S_TRACE);
 		auto v = view();
@@ -1756,8 +1844,8 @@ package class UndoMove : FTVUndo {
 }
 package class UndoEditDir : FTVUndo {
 	private string _oldName;
-	this (FlagTable v, Commons comm, FlagDir dir, string oldName) { mixin(S_TRACE);
-		super (v, comm, dir);
+	this (FlagTable v, Commons comm, UseCounter uc, FlagDir dir, string oldName) { mixin(S_TRACE);
+		super (v, comm, uc, dir);
 		_oldName = oldName;
 	}
 	private void impl() { mixin(S_TRACE);
@@ -1768,7 +1856,7 @@ package class UndoEditDir : FTVUndo {
 		assert (dir !is null);
 
 		string oldName = dir.name;
-		dir.rename(_oldName, comm.summary.useCounter);
+		dir.rename(_oldName, useCounter);
 		_oldName = oldName;
 
 		comm.refFlagDir.call([dir]);
@@ -1779,18 +1867,28 @@ package class UndoEditDir : FTVUndo {
 }
 
 public class FlagTable : TCPD {
+public:
+	void delegate()[] createEvent;
+	void delegate()[] deleteEvent;
 private:
 	void storeEdit(int[] index, string[] oldName, int[] oldValues = [], string[][] oldNames = [], VariantVal[] oldVals = []) { mixin(S_TRACE);
-		_undo ~= new UndoEdit(this, _comm, _dir, index, oldName, oldValues, oldNames, oldVals);
+		_undo ~= new UndoEdit(this, _comm, uc, _dir, index, oldName, oldValues, oldNames, oldVals);
 	}
 	void storeEdit(int index, string oldName, int oldValue, string[] oldNames = [], VariantVal oldVal = VariantVal(false)) { mixin(S_TRACE);
-		_undo ~= new UndoEdit(this, _comm, _dir, [index], [oldName], oldValue != -1 ? [oldValue] : [], oldNames.length ? [oldNames] : [], oldVal.valid ? [oldVal] : []);
+		_undo ~= new UndoEdit(this, _comm, uc, _dir, [index], [oldName], oldValue != -1 ? [oldValue] : [], oldNames.length ? [oldNames] : [], oldVal.valid ? [oldVal] : []);
 	}
 	void storeInsert(ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, ptrdiff_t[] selectedV, ptrdiff_t[] flagIndices, ptrdiff_t[] stepIndices, ptrdiff_t[] variantIndices) { mixin(S_TRACE);
-		_undo ~= new UndoInsertDelete(this, _comm, _dir, selectedF, selectedS, selectedV, [], flagIndices, stepIndices, variantIndices);
+		_undo ~= new UndoInsertDelete(this, _comm, uc, _dir, selectedF, selectedS, selectedV, [], flagIndices, stepIndices, variantIndices);
 	}
 	void storeDelete(ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, ptrdiff_t[] selectedV, cwx.flag.Flag[ptrdiff_t] fs, Step[ptrdiff_t] ss, cwx.flag.Variant[ptrdiff_t] vs) { mixin(S_TRACE);
-		_undo ~= new UndoInsertDelete(this, _comm, _dir, selectedF, selectedS, selectedV, null, fs, ss, vs);
+		_undo ~= new UndoInsertDelete(this, _comm, uc, _dir, selectedF, selectedS, selectedV, null, fs, ss, vs);
+	}
+
+	void callCreateEvent() { mixin(S_TRACE);
+		foreach (dlg; createEvent) dlg();
+	}
+	void callDeleteEvent() { mixin(S_TRACE);
+		foreach (dlg; deleteEvent) dlg();
 	}
 
 	static int indexOf(FlagDir dir, CWXPath p) { mixin(S_TRACE);
@@ -1900,6 +1998,8 @@ private:
 	Props prop;
 	Commons _comm;
 	UseCounter uc;
+	int _readOnly;
+	bool _local;
 
 	Table flags;
 
@@ -1934,7 +2034,7 @@ private:
 			p.active();
 			return;
 		}
-		auto dlg = new FlagEditDialog(_comm, _comm.summary, dlgParShl, parent, flag);
+		auto dlg = new FlagEditDialog(_comm, _comm.summary, dlgParShl, _readOnly != SWT.NONE, parent, flag);
 		string oldName = "";
 		int oldValue = 0;
 		string[] oldNames = [flag.on, flag.off];
@@ -1963,6 +2063,9 @@ private:
 					selsV = selectionVariantIndices;
 				}
 				storeInsert(selsF, selsS, selsV, [flag.parent.indexOf(flag)], [], []);
+				uc.createID(toFlagId(flag.path));
+				callCreateEvent();
+				_comm.refUseCount.call();
 				createMode = false;
 			} else { mixin(S_TRACE);
 				storeEdit(indexOf(parent, flag), oldName, oldValue, oldNames);
@@ -1994,7 +2097,7 @@ private:
 			p.active();
 			return;
 		}
-		auto dlg = new StepEditDialog(_comm, _comm.summary, dlgParShl, parent, step);
+		auto dlg = new StepEditDialog(_comm, _comm.summary, dlgParShl, _readOnly != SWT.NONE, parent, step);
 		string oldName = "";
 		int oldValue = 0;
 		string[] oldNames = step.values.dup;
@@ -2023,6 +2126,9 @@ private:
 					selsV = selectionVariantIndices;
 				}
 				storeInsert(selsF, selsS, selsV, [], [step.parent.indexOf(step)], []);
+				uc.createID(toStepId(step.path));
+				callCreateEvent();
+				_comm.refUseCount.call();
 				createMode = false;
 			} else { mixin(S_TRACE);
 				storeEdit(indexOf(parent, step), oldName, oldValue, oldNames);
@@ -2077,6 +2183,9 @@ private:
 					selsV = selectionVariantIndices;
 				}
 				storeInsert(selsF, selsS, selsV, [], [], [variant.parent.indexOf(variant)]);
+				uc.createID(toVariantId(variant.path));
+				callCreateEvent();
+				_comm.refUseCount.call();
 				createMode = false;
 			} else { mixin(S_TRACE);
 				storeEdit(indexOf(parent, variant), oldName, -1, [], oldValue);
@@ -2187,16 +2296,21 @@ private:
 			if (e.detail == DND.DROP_MOVE) { mixin(S_TRACE);
 				foreach (flag; _dragFlags) { mixin(S_TRACE);
 					flag.parent.remove(flag);
+					uc.deleteID(toFlagId(flag.path));
 				}
 				foreach (step; _dragSteps) { mixin(S_TRACE);
 					step.parent.remove(step);
+					uc.deleteID(toStepId(step.path));
 				}
 				foreach (variant; _dragVariants) { mixin(S_TRACE);
 					variant.parent.remove(variant);
+					uc.deleteID(toVariantId(variant.path));
 				}
 				refresh();
+				callDeleteEvent();
 				_comm.delFlagAndStep.call(_dragFlags.values, _dragSteps.values, _dragVariants.values);
 				_comm.refreshToolBar();
+				_comm.refUseCount.call();
 			}
 			_dragFlags = null;
 			_dragSteps = null;
@@ -2205,10 +2319,10 @@ private:
 	}
 	class FlagDrop : DropTargetAdapter {
 		override void dragEnter(DropTargetEvent e){ mixin(S_TRACE);
-			e.detail = DND.DROP_COPY;
+			e.detail =  (!_local || !_comm.summary || !_comm.summary.legacy) ? DND.DROP_COPY : DND.DROP_NONE;
 		}
 		override void dragOver(DropTargetEvent e){ mixin(S_TRACE);
-			e.detail = DND.DROP_COPY;
+			e.detail =  (!_local || !_comm.summary || !_comm.summary.legacy) ? DND.DROP_COPY : DND.DROP_NONE;
 		}
 		override void drop(DropTargetEvent e){ mixin(S_TRACE);
 			if (!isXMLBytes(e.data)) return;
@@ -2497,12 +2611,14 @@ private:
 	}
 
 public:
-	this (Commons comm, Props prop, UndoManager undo) { mixin(S_TRACE);
+	this (Commons comm, Props prop, UndoManager undo, bool local = false, bool readOnly = false) { mixin(S_TRACE);
 		_id = .objectIDValue(this);
 
 		_undo = undo;
 		_comm = comm;
 		this.prop = prop;
+		_readOnly = readOnly ? SWT.READ_ONLY : SWT.NONE;
+		_local = local;
 	}
 
 	/// コントロールを生成する。
@@ -2513,16 +2629,28 @@ public:
 		_comp.setLayout(new FillLayout);
 		flags = .rangeSelectableTable(_comp, SWT.MULTI | SWT.BORDER | SWT.FULL_SELECTION);
 		flags.setHeaderVisible(true);
-		.listener(flags, SWT.FocusIn, gotFocus);
+		if (gotFocus) .listener(flags, SWT.FocusIn, gotFocus);
 		auto nameCol = new TableColumn(flags, SWT.NULL);
 		nameCol.setText(prop.msgs.flagName);
-		saveColumnWidth!("prop.var.etc.flagNameColumn")(prop, nameCol);
+		if (_local) { mixin(S_TRACE);
+			saveColumnWidth!("prop.var.etc.localFlagNameColumn")(prop, nameCol);
+		} else { mixin(S_TRACE);
+			saveColumnWidth!("prop.var.etc.flagNameColumn")(prop, nameCol);
+		}
 		auto initCol = new TableColumn(flags, SWT.NULL);
 		initCol.setText(prop.msgs.flagInit);
-		saveColumnWidth!("prop.var.etc.flagInitColumn")(prop, initCol);
+		if (_local) { mixin(S_TRACE);
+			saveColumnWidth!("prop.var.etc.localFlagInitColumn")(prop, initCol);
+		} else { mixin(S_TRACE);
+			saveColumnWidth!("prop.var.etc.flagInitColumn")(prop, initCol);
+		}
 		auto countCol = new TableColumn(flags, SWT.NULL);
 		countCol.setText(prop.msgs.flagCount);
-		saveColumnWidth!("prop.var.etc.flagCountColumn")(prop, countCol);
+		if (_local) { mixin(S_TRACE);
+			saveColumnWidth!("prop.var.etc.localFlagCountColumn")(prop, countCol);
+		} else { mixin(S_TRACE);
+			saveColumnWidth!("prop.var.etc.flagCountColumn")(prop, countCol);
+		}
 
 		updateIncSearchParent(incSearchParent);
 
@@ -2531,16 +2659,20 @@ public:
 		auto menu = new Menu(flags.getShell(), SWT.POP_UP);
 		createMenuItem(_comm, menu, MenuID.IncSearch, &incSearch, () => _dir.flags.length || _dir.steps.length || _dir.variants.length);
 		new MenuItem(menu, SWT.SEPARATOR);
-		createMenuItem(_comm, menu, MenuID.EditProp, &edit, &canEdit);
+		if (_readOnly) { mixin(S_TRACE);
+			createMenuItem(_comm, menu, MenuID.ShowProp, &edit, &canEdit);
+		} else { mixin(S_TRACE);
+			createMenuItem(_comm, menu, MenuID.EditProp, &edit, &canEdit);
+			new MenuItem(menu, SWT.SEPARATOR);
+			createMenuItem(_comm, menu, MenuID.NewFlag, &createFlag, () => _dir !is null && (!_local || !_comm.summary || !_comm.summary.legacy));
+			createMenuItem(_comm, menu, MenuID.NewStep, &createStep, () => _dir !is null && (!_local || !_comm.summary || !_comm.summary.legacy));
+			createMenuItem(_comm, menu, MenuID.NewVariant, &createVariant, () => _dir && (!_comm.summary || !_comm.summary.legacy));
+			new MenuItem(menu, SWT.SEPARATOR);
+			createMenuItem(_comm, menu, MenuID.Undo, &this.undo, &_undo.canUndo);
+			createMenuItem(_comm, menu, MenuID.Redo, &this.redo, &_undo.canRedo);
+		}
 		new MenuItem(menu, SWT.SEPARATOR);
-		createMenuItem(_comm, menu, MenuID.NewFlag, &createFlag, () => _dir !is null);
-		createMenuItem(_comm, menu, MenuID.NewStep, &createStep, () => _dir !is null);
-		createMenuItem(_comm, menu, MenuID.NewVariant, &createVariant, () => _dir && (!_comm.summary || !_comm.summary.legacy));
-		new MenuItem(menu, SWT.SEPARATOR);
-		createMenuItem(_comm, menu, MenuID.Undo, &this.undo, &_undo.canUndo);
-		createMenuItem(_comm, menu, MenuID.Redo, &this.redo, &_undo.canRedo);
-		new MenuItem(menu, SWT.SEPARATOR);
-		appendMenuTCPD(_comm, menu, this, true, true, true, true, true);
+		appendMenuTCPD(_comm, menu, this, !_readOnly, true, !_readOnly, !_readOnly, !_readOnly);
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.SelectAll, &selectAll, () => flags.getItemCount() && flags.getSelectionCount() != flags.getItemCount());
 		new MenuItem(menu, SWT.SEPARATOR);
@@ -2567,8 +2699,10 @@ public:
 			ssValue(i);
 		}
 
-		new MenuItem(menu, SWT.SEPARATOR);
-		createMenuItem(_comm, menu, MenuID.FindID, &replaceID, &canReplaceID);
+		if (!_readOnly && !_local) { mixin(S_TRACE);
+			new MenuItem(menu, SWT.SEPARATOR);
+			createMenuItem(_comm, menu, MenuID.FindID, &replaceID, &canReplaceID);
+		}
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.CopyVariablePath, &copyVariablePath, &canCopyVariablePath);
 		flags.setMenu(menu);
@@ -2576,17 +2710,21 @@ public:
 		auto ds = new DragSource(flags, DND.DROP_MOVE | DND.DROP_COPY);
 		ds.setTransfer([XMLBytesTransfer.getInstance()]);
 		ds.addDragListener(new FlagDragListener);
-		auto dt = new DropTarget(flags, DND.DROP_COPY);
-		dt.setTransfer([XMLBytesTransfer.getInstance()]);
-		dt.addDropListener(new FlagDrop);
+		if (!_readOnly) { mixin(S_TRACE);
+			auto dt = new DropTarget(flags, DND.DROP_COPY);
+			dt.setTransfer([XMLBytesTransfer.getInstance()]);
+			dt.addDropListener(new FlagDrop);
+		}
 
 		_comm.refUseCount.add(&refreshUseCount);
 		_comm.replText.add(&refresh);
 		flags.addSelectionListener(new SListener);
 		flags.addDisposeListener(new DListener);
 
-		_tte = new TableTextEdit(_comm, prop, flags, 0, &nameEditEnd, null);
-		_tce = new TableTCEdit(_comm, flags, 1, &initCreateEditor, &initEditEnd, null);
+		if (!_readOnly) { mixin(S_TRACE);
+			_tte = new TableTextEdit(_comm, prop, flags, 0, &nameEditEnd, null);
+			_tce = new TableTCEdit(_comm, flags, 1, &initCreateEditor, &initEditEnd, null);
+		}
 
 		_comp.addDisposeListener(new Dispose);
 
@@ -2766,18 +2904,21 @@ public:
 	/// フラグ生成のダイアログボックスを開く。
 	/// 適切に設定された場合、新規フラグを生成する。
 	void createFlag() { mixin(S_TRACE);
+		if (_readOnly) return;
 		editFlag(_dir, null);
 	}
 
 	/// ステップ生成のダイアログボックスを開く。
 	/// 適切に設定された場合、新規ステップを生成する。
 	void createStep() { mixin(S_TRACE);
+		if (_readOnly) return;
 		editStep(_dir, null);
 	}
 
 	/// コモン生成のダイアログボックスを開く。
 	/// 適切に設定された場合、新規ステップを生成する。
 	void createVariant() { mixin(S_TRACE);
+		if (_readOnly) return;
 		editVariant(_dir, null);
 	}
 
@@ -2910,6 +3051,7 @@ public:
 
 	override {
 		void cut(SelectionEvent se) { mixin(S_TRACE);
+			if (_readOnly) return;
 			if (!_dir) return;
 			copy(se);
 			del(se);
@@ -2928,6 +3070,7 @@ public:
 			}
 		}
 		void paste(SelectionEvent se) { mixin(S_TRACE);
+			if (_readOnly) return;
 			if (!_dir) return;
 			auto c = CBtoXML(_comm.clipboard);
 			if (c) { mixin(S_TRACE);
@@ -2941,6 +3084,7 @@ public:
 			}
 		}
 		void del(SelectionEvent se) { mixin(S_TRACE);
+			if (_readOnly) return;
 			if (!_dir) return;
 			enterEdit();
 			auto selsF = selectionFlagIndices;
@@ -2965,21 +3109,27 @@ public:
 			foreach (itm; sels) { mixin(S_TRACE);
 				auto data = itm.getData();
 				if (auto flag = cast(cwx.flag.Flag)data) { mixin(S_TRACE);
+					uc.deleteID(toFlagId(flag.path));
 					_dir.remove(flag);
 				}
 				if (auto step = cast(Step)data) { mixin(S_TRACE);
+					uc.deleteID(toStepId(step.path));
 					_dir.remove(step);
 				}
 				if (auto variant = cast(cwx.flag.Variant)data) { mixin(S_TRACE);
+					uc.deleteID(toVariantId(variant.path));
 					_dir.remove(variant);
 				}
 			}
+			callDeleteEvent();
 			storeDelete(selsF, selsS, selsV, fs, ss, vs);
 			_comm.delFlagAndStep.call(fs.values, ss.values, vs.values);
 			refresh();
 			_comm.refreshToolBar();
+			_comm.refUseCount.call();
 		}
 		void clone(SelectionEvent se) { mixin(S_TRACE);
+			if (_readOnly) return;
 			_comm.clipboard.memoryMode = true;
 			scope (exit) _comm.clipboard.memoryMode = false;
 			copy(se);
@@ -2991,6 +3141,7 @@ public:
 		}
 		@property
 		bool canDoT() { mixin(S_TRACE);
+			if (_readOnly) return false;
 			return flags.getSelectionIndex() != -1;
 		}
 		@property
@@ -2999,18 +3150,22 @@ public:
 		}
 		@property
 		bool canDoP() { mixin(S_TRACE);
-			return _comm.summary !is null && CBisXML(_comm.clipboard);
+			if (_readOnly) return false;
+			return _comm.summary !is null && CBisXML(_comm.clipboard) && (!_local || !_comm.summary || !_comm.summary.legacy);
 		}
 		@property
 		bool canDoD() { mixin(S_TRACE);
+			if (_readOnly) return false;
 			return canDoT;
 		}
 		@property
 		bool canDoClone() { mixin(S_TRACE);
-			return canDoC;
+			if (_readOnly) return false;
+			return canDoC && (!_local || !_comm.summary || !_comm.summary.legacy);
 		}
 	}
 	private bool pasteImpl(ref XNode node) { mixin(S_TRACE);
+		if (_readOnly) return false;
 		try { mixin(S_TRACE);
 			enterEdit();
 			string newPath;
@@ -3029,13 +3184,17 @@ public:
 				if (!cFlags.length && !cSteps.length && !cVariants.length) return false;
 				foreach (f; cFlags) { mixin(S_TRACE);
 					flagIndices ~= f.parent.indexOf(f);
+					uc.createID(toFlagId(f.path));
 				}
 				foreach (s; cSteps) { mixin(S_TRACE);
 					stepIndices ~= s.parent.indexOf(s);
+					uc.createID(toStepId(s.path));
 				}
 				foreach (v; cVariants) { mixin(S_TRACE);
 					variantIndices ~= v.parent.indexOf(v);
+					uc.createID(toVariantId(v.path));
 				}
+				callCreateEvent();
 				storeInsert(selsF, selsS, selsV, flagIndices, stepIndices, variantIndices);
 				Object[] objs;
 				objs ~= cFlags.values;
@@ -3043,6 +3202,7 @@ public:
 				objs ~= cVariants.values;
 				refresh(objs);
 				_comm.refFlagAndStep.call(cFlags.values, cSteps.values, cVariants.values);
+				_comm.refUseCount.call();
 				_comm.refreshToolBar();
 				return true;
 			}
@@ -3053,11 +3213,13 @@ public:
 		return false;
 	}
 	void undo() { mixin(S_TRACE);
+		if (_readOnly) return;
 		cancelEdit();
 		_undo.undo();
 		_comm.refreshToolBar();
 	}
 	void redo() { mixin(S_TRACE);
+		if (_readOnly) return;
 		cancelEdit();
 		_undo.redo();
 		_comm.refreshToolBar();
@@ -3073,6 +3235,8 @@ public:
 	}
 
 	void replaceID() { mixin(S_TRACE);
+		if (_local) return;
+		if (_readOnly) return;
 		auto index = flags.getSelectionIndex();
 		if (index <= -1) return;
 		auto data = flags.getItem(index).getData();
@@ -3082,6 +3246,7 @@ public:
 	}
 	@property
 	bool canReplaceID() { mixin(S_TRACE);
+		if (_readOnly) return false;
 		auto index = flags.getSelectionIndex();
 		if (index <= -1) return false;
 		auto data = flags.getItem(index).getData();

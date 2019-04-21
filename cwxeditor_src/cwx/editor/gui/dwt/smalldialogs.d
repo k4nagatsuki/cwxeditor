@@ -640,6 +640,7 @@ class ScriptVarSetDialog : AbsDialog {
 private:
 	Commons _comm;
 	Summary _summ;
+	UseCounter _uc;
 	const string[] _vars;
 	string _script, _base;
 
@@ -665,17 +666,17 @@ private:
 		string[] strs;
 		_editorTable.length = 0;
 		if (_summ) { mixin(S_TRACE);
-			auto flags = _summ.flagDirRoot.allFlags;
+			auto flags = .allVars!(cwx.flag.Flag)(_summ.flagDirRoot, _uc);
 			sortedWithPath(flags, _comm.prop.var.etc.logicalSort, (cwx.flag.Flag f) { mixin(S_TRACE);
 				strs ~= objName!(typeof(f))(_comm.prop) ~ " - " ~ f.path;
 				_editorTable ~= CWXScript.createString(f.path);
 			});
-			auto steps = _summ.flagDirRoot.allSteps;
+			auto steps = .allVars!Step(_summ.flagDirRoot, _uc);
 			sortedWithPath(steps, _comm.prop.var.etc.logicalSort, (Step f) { mixin(S_TRACE);
 				strs ~= objName!(typeof(f))(_comm.prop) ~ " - " ~ f.path;
 				_editorTable ~= CWXScript.createString(f.path);
 			});
-			auto variants = _summ.flagDirRoot.allVariants;
+			auto variants = .allVars!(cwx.flag.Variant)(_summ.flagDirRoot, _uc);
 			sortedWithPath(variants, _comm.prop.var.etc.logicalSort, (cwx.flag.Variant f) { mixin(S_TRACE);
 				strs ~= objName!(typeof(f))(_comm.prop) ~ " - " ~ f.path;
 				_editorTable ~= CWXScript.createString(f.path);
@@ -767,9 +768,10 @@ private:
 	}
 
 public:
-	this (Commons comm, Summary summ, Shell shell, in string[] vars, string script, string base, in CompileOption opt) { mixin(S_TRACE);
+	this (Commons comm, Summary summ, UseCounter uc, Shell shell, in string[] vars, string script, string base, in CompileOption opt) { mixin(S_TRACE);
 		_comm = comm;
 		_summ = summ;
+		_uc = uc;
 		_vars = vars;
 		_values.length = _vars.length;
 		_script = script;

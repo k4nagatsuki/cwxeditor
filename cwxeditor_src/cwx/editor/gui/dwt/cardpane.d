@@ -1334,7 +1334,7 @@ private:
 			if (0 != linkId(c)) { mixin(S_TRACE);
 				c2 = cast(EffectCard)cardFrom(_summ, _cardType, linkId(c));
 			}
-			if (c2 && _prop.var.etc.showEventTreeMark && ((_prop.var.etc.ignoreEmptyStart ? !c2.isEmpty : 0 < c2.trees.length))) { mixin(S_TRACE);
+			if (c2 && _prop.var.etc.showEventTreeMark && (c2.flagDirRoot.hasFlag || c2.flagDirRoot.hasStep || c2.flagDirRoot.hasVariant || (_prop.var.etc.ignoreEmptyStart ? !c2.isEmpty : 0 < c2.trees.length))) { mixin(S_TRACE);
 				itm.setImage(colIndex(CardTableColumn.Desc), _prop.images.eventTree);
 			} else if (c2 && _prop.var.etc.showEventTreeMark) { mixin(S_TRACE);
 				itm.setImage(colIndex(CardTableColumn.Desc), _prop.images.eventTreeEmpty);

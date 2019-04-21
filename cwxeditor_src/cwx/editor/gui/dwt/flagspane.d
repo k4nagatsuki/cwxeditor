@@ -30,14 +30,15 @@ import java.lang.all;
 /// このコントロールを用いてフラグとステップの編集を行う。
 public class FlagsPane : TCPD {
 private:
-	void storeAll() {
-		_undo ~= new UndoAllVariables(_flags, _comm, _dirs.current, _dirs.rootDir);
+	void storeAll() { mixin(S_TRACE);
+		_undo ~= new UndoAllVariables(_flags, _comm, _useCounter, _dirs.current, _dirs.rootDir);
 	}
 
 	Composite _comp;
 	SplitPane _sash;
 	Commons _comm;
 	Props _prop;
+	UseCounter _useCounter = null;
 
 	FlagDirTree _dirs;
 	FlagTable _flags;
@@ -60,7 +61,7 @@ public:
 		_prop = prop;
 
 		_undo = new UndoManager(_prop.var.etc.undoMaxMainView);
-		_flags = new FlagTable(comm, prop, _undo);
+		_flags = new FlagTable(comm, prop, _undo, false);
 		_dirs = new FlagDirTree(comm, prop, _flags, _undo);
 	}
 
@@ -132,6 +133,7 @@ public:
 		_dirs.enterEdit();
 		_flags.enterEdit();
 
+		_useCounter = uc;
 		_flags.useCounter = uc;
 		_dirs.useCounter = uc;
 		_dirs.rootDir = root;

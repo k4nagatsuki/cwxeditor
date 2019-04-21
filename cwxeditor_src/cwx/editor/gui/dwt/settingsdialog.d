@@ -2034,7 +2034,7 @@ protected:
 	override void setup(Composite area) { mixin(S_TRACE);
 		area.setLayout(normalGridLayout(1, false));
 		{ mixin(S_TRACE);
-			_view = createBgImagesViewAndMenu(_comm, _prop, null, _cont, area, null, _prop.var.etc.showInheritBackground, false);
+			_view = createBgImagesViewAndMenu(_comm, _prop, null, null, _cont, area, null, _prop.var.etc.showInheritBackground, false);
 			mod(_view);
 			_view.setLayoutData(new GridData(GridData.FILL_BOTH));
 		}

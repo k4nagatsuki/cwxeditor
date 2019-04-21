@@ -1,24 +1,25 @@
 
 module cwx.warning;
 
-import cwx.utils;
+import cwx.area;
+import cwx.background;
+import cwx.binary;
+import cwx.card;
+import cwx.event;
+import cwx.expression;
+import cwx.features;
+import cwx.flag;
+import cwx.imagesize;
+import cwx.motion;
 import cwx.msgutils;
 import cwx.path;
 import cwx.props;
-import cwx.summary;
-import cwx.flag;
-import cwx.card;
-import cwx.area;
-import cwx.event;
-import cwx.skin;
-import cwx.background;
-import cwx.types;
-import cwx.features;
-import cwx.imagesize;
-import cwx.motion;
 import cwx.sjis;
-import cwx.binary;
-import cwx.expression;
+import cwx.skin;
+import cwx.summary;
+import cwx.types;
+import cwx.usecounter;
+import cwx.utils;
 
 import std.algorithm;
 import std.ascii;
@@ -76,17 +77,17 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	}
 
 	auto spChars = skin.spChars;
-	auto checkTextRes(string text, in string[] flags, in string[] steps, in string[] variants, in string[] fonts, in char[] colors,
+	auto checkTextRes(string text, in UseCounter uc, in string[] flags, in string[] steps, in string[] variants, in string[] fonts, in char[] colors,
 			ref bool[string] wFlags, ref bool[string] wSteps, ref bool[string] wVariants, ref bool[string] wFonts, ref bool[char] wColors) { mixin(S_TRACE);
-		return .textWarnings(prop, skin, summ, targVer, text, flags, steps, variants, fonts, colors, wFlags, wSteps, wVariants, wFonts, wColors);
+		return .textWarnings(prop, skin, summ, uc, targVer, text, flags, steps, variants, fonts, colors, wFlags, wSteps, wVariants, wFonts, wColors);
 	}
-	string[] checkTextRes2(string text, in string[] flags, in string[] steps, in string[] variants, in string[] fonts, in char[] colors) { mixin(S_TRACE);
+	string[] checkTextRes2(string text, in UseCounter uc, in string[] flags, in string[] steps, in string[] variants, in string[] fonts, in char[] colors) { mixin(S_TRACE);
 		bool[string] wFlags;
 		bool[string] wSteps;
 		bool[string] wVariants;
 		bool[string] wFonts;
 		bool[char] wColors;
-		return checkTextRes(text, flags, steps, variants, fonts, colors, wFlags, wSteps, wVariants, wFonts, wColors).all;
+		return checkTextRes(text, uc, flags, steps, variants, fonts, colors, wFlags, wSteps, wVariants, wFonts, wColors).all;
 	}
 
 	auto flagDir = cast(FlagDir)path;
@@ -108,8 +109,8 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		r ~= .sjisWarnings(prop, summ, flag.on, prop.msgs.flagOnValue);
 		r ~= .sjisWarnings(prop, summ, flag.off, prop.msgs.flagOffValue);
 		if (flag.expandSPChars) { mixin(S_TRACE);
-			r ~= checkTextRes2(flag.on, flag.flagsInText(true), flag.stepsInText(true), flag.variantsInText(true), [], []);
-			r ~= checkTextRes2(flag.off, flag.flagsInText(false), flag.stepsInText(false), flag.variantsInText(false), [], []);
+			r ~= checkTextRes2(flag.on, flag.useCounter, flag.flagsInText(true), flag.stepsInText(true), flag.variantsInText(true), [], []);
+			r ~= checkTextRes2(flag.off, flag.useCounter, flag.flagsInText(false), flag.stepsInText(false), flag.variantsInText(false), [], []);
 		}
 	}
 	auto step = cast(Step)path;
@@ -129,7 +130,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		}
 		if (step.expandSPChars) { mixin(S_TRACE);
 			foreach (i; 0u .. step.count) { mixin(S_TRACE);
-				r ~= checkTextRes2(step.values[i], step.flagsInText(i), step.stepsInText(i), step.variantsInText(i), [], []);
+				r ~= checkTextRes2(step.values[i], step.useCounter, step.flagsInText(i), step.stepsInText(i), step.variantsInText(i), [], []);
 			}
 		}
 	}
@@ -359,10 +360,13 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		foreach (keyCode; effCard.keyCodes) { mixin(S_TRACE);
 			r ~= .sjisWarnings(prop, summ, keyCode, prop.msgs.keyCode);
 		}
+		if ((effCard.flagDirRoot.hasFlag || effCard.flagDirRoot.hasStep || effCard.flagDirRoot.hasVariant) && !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
+			r ~= prop.msgs.warningLocalVariablesOfEffectCard;
+		}
 	}
 	auto bi = cast(BgImage)path;
 	if (bi) { mixin(S_TRACE);
-		if (bi.flag != "" && !(froot && froot.findFlag(bi.flag))) { mixin(S_TRACE);
+		if (bi.flag != "" && !findVar!Flag(froot, bi.useCounter, bi.flag)) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.searchErrorFlagNotFound, bi.flag);
 		}
 		if (bi.cellName != "") { mixin(S_TRACE);
@@ -402,7 +406,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	}
 	auto tc = cast(TextCell)path;
 	if (tc) { mixin(S_TRACE);
-		r ~= checkTextRes2(tc.text, tc.flagsInText, tc.stepsInText, tc.variantsInText, [], []);
+		r ~= checkTextRes2(tc.text, tc.useCounter, tc.flagsInText, tc.stepsInText, tc.variantsInText, [], []);
 		if (!prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
 			r ~= prop.msgs.warningTextCell;
 		}
@@ -478,10 +482,10 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			r ~= prop.msgs.warningExpandSPCharsInMenuCardName;
 		}
 		if (mc.expandSPChars) { mixin(S_TRACE);
-			r ~= checkTextRes2(mc.name, mc.flagsInText, mc.stepsInText, mc.variantsInText, [], []);
+			r ~= checkTextRes2(mc.name, mc.useCounter, mc.flagsInText, mc.stepsInText, mc.variantsInText, [], []);
 		}
 		putCardImages(mc.paths, false);
-		if (mc.flag != "" && !(froot && froot.findFlag(mc.flag))) { mixin(S_TRACE);
+		if (mc.flag != "" && !findVar!Flag(froot, mc.useCounter, mc.flag)) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.searchErrorFlagNotFound, mc.flag);
 		}
 	}
@@ -493,13 +497,13 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (ec.id != 0 && !(summ && summ.cwCast(ec.id))) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.searchErrorCastNotFound, ec.id);
 		}
-		if (ec.flag != "" && !(froot && froot.findFlag(ec.flag))) { mixin(S_TRACE);
+		if (ec.flag != "" && !findVar!Flag(froot, ec.useCounter, ec.flag)) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.searchErrorFlagNotFound, ec.flag);
 		}
 		if (ec.isOverrideName &&  !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningOverrideEnemyCardName;
 		}
-		r ~= checkTextRes2(ec.overrideName, ec.flagsInText, ec.stepsInText, ec.variantsInText, [], []);
+		r ~= checkTextRes2(ec.overrideName, ec.useCounter, ec.flagsInText, ec.stepsInText, ec.variantsInText, [], []);
 		if (ec.isOverrideImage &&  !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningOverrideEnemyCardImage;
 		}
@@ -582,7 +586,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			if (!prop.targetVersion("1.50", targVer) && (fit.length || sit.length || vit.length || foit.length)) { mixin(S_TRACE);
 				r ~= prop.msgs.warningSPCharsInSelections;
 			} else { mixin(S_TRACE);
-				r ~= checkTextRes2("", fit, sit, vit, [], []);
+				r ~= checkTextRes2("", null, fit, sit, vit, [], []);
 			}
 		}
 
@@ -606,7 +610,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 					foreach (coupon; dlg.rCoupons) { mixin(S_TRACE);
 						couponWarnings(coupon, false, prop.msgs.toneCoupons);
 					}
-					r ~= checkTextRes(dlg.text, dlg.flagsInText, dlg.stepsInText, dlg.variantsInText,
+					r ~= checkTextRes(dlg.text, dlg.useCounter, dlg.flagsInText, dlg.stepsInText, dlg.variantsInText,
 						dlg.fontsInText, dlg.colorsInText,
 						wFlags, wSteps, wVariants, wFonts, wColors).noDup;
 					if (i + 1 < c.dialogs.length && !dlg.rCoupons.length) { mixin(S_TRACE);
@@ -616,7 +620,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				}
 			}
 		}
-		r ~= checkTextRes2(c.text, c.flagsInText, c.stepsInText, c.variantsInText, c.fontsInText, c.colorsInText);
+		r ~= checkTextRes2(c.text, c.useCounter, c.flagsInText, c.stepsInText, c.variantsInText, c.fontsInText, c.colorsInText);
 		bool hasStart() { mixin(S_TRACE);
 			foreach (s; c.tree.starts) { mixin(S_TRACE);
 				if (s.name == c.start) return true;
@@ -645,13 +649,13 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			}
 			r ~= ws2;
 		}
-		if (c.flag != "" && !(froot && froot.findFlag(c.flag))) { mixin(S_TRACE);
+		if (c.flag != "" && !findVar!Flag(froot, c.useCounter, c.flag)) { mixin(S_TRACE);
 			// 代入コンテントではランダム値が有効
 			if (c.type != CType.SUBSTITUTE_FLAG || .icmp(prop.sys.randomValue, c.flag) != 0) { mixin(S_TRACE);
 				r ~= .tryFormat(prop.msgs.searchErrorFlagNotFound, c.flag);
 			}
 		}
-		if (c.step != "" && !(froot && froot.findStep(c.step))) { mixin(S_TRACE);
+		if (c.step != "" && !findVar!Step(froot, c.useCounter, c.step)) { mixin(S_TRACE);
 			// 代入コンテントではランダム値・選択メンバ番号が有効
 			if (c.type != CType.SUBSTITUTE_STEP || (.icmp(prop.sys.randomValue, c.step) != 0 && .icmp(prop.sys.selectedPlayerCardNumber, c.step) != 0)) { mixin(S_TRACE);
 				r ~= .tryFormat(prop.msgs.searchErrorStepNotFound, c.step);
@@ -660,7 +664,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				r ~= prop.msgs.warningSelectedPlayerValue;
 			}
 		}
-		if (c.variant != "" && !(froot && froot.findVariant(c.variant))) { mixin(S_TRACE);
+		if (c.variant != "" && !findVar!Variant(froot, c.useCounter, c.variant)) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.searchErrorVariantNotFound, c.flag);
 		}
 		putCardImages(c.cardPaths, false);
@@ -704,10 +708,10 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			r ~= .tryFormat(prop.msgs.searchErrorStartNotFound, c.start);
 		}
 		putMotions(c.motions);
-		if (c.flag2 != "" && !(froot && froot.findFlag(c.flag2))) { mixin(S_TRACE);
+		if (c.flag2 != "" && !findVar!Flag(froot, c.useCounter, c.flag2)) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.searchErrorFlagNotFound, c.flag2);
 		}
-		if (c.step2 != "" && !(froot && froot.findStep(c.step2))) { mixin(S_TRACE);
+		if (c.step2 != "" && !findVar!Step(froot, c.useCounter, c.step2)) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.searchErrorStepNotFound, c.step2);
 		}
 		if (c.flag != "" && c.flag == c.flag2) { mixin(S_TRACE);
@@ -949,7 +953,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		}
 		if (cd.use(CArg.STEP_VALUE)) { mixin(S_TRACE);
 			if (froot && c.step != "") { mixin(S_TRACE);
-				auto s = froot.findStep(c.step);
+				auto s = findVar!Step(froot, c.useCounter, c.step);
 				if (s && s.count < c.stepValue) { mixin(S_TRACE);
 					r ~= .tryFormat(prop.msgs.warningStepOverCount, s.name, s.count, c.stepValue);
 				}
@@ -962,7 +966,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			try {
 				auto value = .to!uint(c.name);
 				if (froot && c.parent.step != "") { mixin(S_TRACE);
-					auto s = froot.findStep(c.parent.step);
+					auto s = findVar!Step(froot, c.parent.useCounter, c.parent.step);
 					if (s && s.count < value) { mixin(S_TRACE);
 						r ~= .tryFormat(prop.msgs.warningStepOverCount, s.name, s.count, value);
 					}
@@ -1079,23 +1083,23 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			} else if (summ) { mixin(S_TRACE);
 				string[char] names;
 				VarValue[string] flags, steps, variants, sysSteps;
-				r ~= .exprErrorToWarnings(prop, c.expression, c.getExpressionErrors(prop, VariableInfo(prop, summ, targVer, names, flags, steps, variants, sysSteps)));
-				r ~= checkTextRes2(c.expression, c.flagsInExpression, c.stepsInExpression, c.variantsInExpression, [], []);
+				r ~= .exprErrorToWarnings(prop, c.expression, c.getExpressionErrors(prop, VariableInfo(prop, summ, c.useCounter, targVer, names, flags, steps, variants, sysSteps)));
+				r ~= checkTextRes2(c.expression, c.useCounter, c.flagsInExpression, c.stepsInExpression, c.variantsInExpression, [], []);
 			}
 		}
 		if ((cd.use(CArg.COUPON) || cd.use(CArg.COUPON_NAMES)) && cd.use(CArg.EXPAND_SP_CHARS) && c.expandSPChars) { mixin(S_TRACE);
 			if (!prop.isTargetVersion(summ, targVer, "4")) r ~= prop.msgs.warningExpandSPCharsInCoupon;
-			r ~= checkTextRes2(c.coupon, c.flagsInCoupons, c.stepsInCoupons, c.variantsInCoupons, [], []);
+			r ~= checkTextRes2(c.coupon, c.useCounter, c.flagsInCoupons, c.stepsInCoupons, c.variantsInCoupons, [], []);
 		}
 		if (cd.use(CArg.GOSSIP) && cd.use(CArg.EXPAND_SP_CHARS) && c.expandSPChars) { mixin(S_TRACE);
 			if (!prop.isTargetVersion(summ, targVer, "4")) r ~= prop.msgs.warningExpandSPCharsInGossip;
-			r ~= checkTextRes2(c.gossip, c.flagsInGossip, c.stepsInGossip, c.variantsInGossip, [], []);
+			r ~= checkTextRes2(c.gossip, c.useCounter, c.flagsInGossip, c.stepsInGossip, c.variantsInGossip, [], []);
 		}
 		if (cd.nextType is CNextType.COUPON && c.expandSPChars) { mixin(S_TRACE);
 			if (!prop.isTargetVersion(summ, targVer, "4")) r ~= prop.msgs.warningExpandSPCharsInCoupon;
 		}
 		if (c.parent && c.parent.expandSPChars && c.parent.detail.nextType is CNextType.COUPON) { mixin(S_TRACE);
-			r ~= checkTextRes2(c.name, c.flagsInName, c.stepsInName, c.variantsInName, [], []);
+			r ~= checkTextRes2(c.name, c.useCounter, c.flagsInName, c.stepsInName, c.variantsInName, [], []);
 		}
 	}
 	return r;
@@ -1141,7 +1145,7 @@ struct TextWarnings {
 
 /// 台詞・メッセージ内で使用されているデータに対する警告を返す。
 /// 警告が行われたデータは引数の連想配列に格納される。
-TextWarnings textWarnings(in CProps prop, in Skin skin, in Summary summ, string targVer,
+TextWarnings textWarnings(in CProps prop, in Skin skin, in Summary summ, in UseCounter uc, string targVer,
 		string text, in string[] flags, in string[] steps, in string[] variants, in string[] fonts, in char[] colors,
 		ref bool[string] wFlags, ref bool[string] wSteps, ref bool[string] wVariants,
 		ref bool[string] wFonts, ref bool[char] wColors) { mixin(S_TRACE);
@@ -1180,7 +1184,7 @@ TextWarnings textWarnings(in CProps prop, in Skin skin, in Summary summ, string 
 		if (put) wFonts[font] = true;
 	}
 	foreach (flag; flags) { mixin(S_TRACE);
-		if (!(froot && froot.findFlag(flag))) { mixin(S_TRACE);
+		if (!.findVar!Flag(froot, uc, flag)) { mixin(S_TRACE);
 			auto msg = .tryFormat(prop.msgs.searchErrorFlagNotFound, flag);
 			all ~= msg;
 			if (!wFlags.get(flag, false)) { mixin(S_TRACE);
@@ -1190,7 +1194,7 @@ TextWarnings textWarnings(in CProps prop, in Skin skin, in Summary summ, string 
 		}
 	}
 	foreach (step; steps) { mixin(S_TRACE);
-		if (!(froot && froot.findStep(step))) { mixin(S_TRACE);
+		if (!.findVar!Step(froot, uc, step)) { mixin(S_TRACE);
 			auto msg = "";
 			if (step.startsWith(prop.sys.prefixSystemVarName)) { mixin(S_TRACE);
 				if (.icmp(prop.sys.selectedPlayerCardNumber, step) == 0) { mixin(S_TRACE);
@@ -1226,7 +1230,7 @@ TextWarnings textWarnings(in CProps prop, in Skin skin, in Summary summ, string 
 		}
 	}
 	foreach (variant; variants) { mixin(S_TRACE);
-		if (!(froot && froot.findVariant(variant))) { mixin(S_TRACE);
+		if (!.findVar!Variant(froot, uc, variant)) { mixin(S_TRACE);
 			auto msg = .tryFormat(prop.msgs.searchErrorVariantNotFound, variant);
 			all ~= msg;
 			if (!wVariants.get(variant, false)) { mixin(S_TRACE);
