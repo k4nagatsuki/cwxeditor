@@ -13,8 +13,8 @@ private:
 	char[] _colors;
 public:
 	/// コンストラクタ。
-	this (string cwxPathCategory = "text") { mixin(S_TRACE);
-		super (cwxPathCategory);
+	this (CWXPath owner, string cwxPathCategory = "text") { mixin(S_TRACE);
+		super (owner, cwxPathCategory);
 	}
 	alias SimpleTextHolder.text text;
 	@property
@@ -139,7 +139,8 @@ private:
 	void delegate() _changed;
 public:
 	/// コンストラクタ。
-	this (string cwxPathCategory = "text") { mixin(S_TRACE);
+	this (CWXPath owner, string cwxPathCategory = "text") { mixin(S_TRACE);
+		this.owner = owner;
 		_cwxPathCategory = cwxPathCategory;
 	}
 

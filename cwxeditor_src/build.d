@@ -8,6 +8,9 @@ immutable string[] CRITICAL = [
 	"d2std" ~ dirSeparator ~ "zip.d",
 	"d2std" ~ dirSeparator ~ "zlib.d",
 ];
+immutable string[] NO_DEBUG_SYMBOLS = [
+	"cwx" ~ dirSeparator ~ "msgs.d",
+];
 immutable string[] RES_DIR = [
 	".",
 	"." ~ dirSeparator ~ "resource",
@@ -54,7 +57,7 @@ version (Windows) {
 	];
 	immutable LIB_32 = LIB_64 ~ "olepro32.lib";
 	immutable DEBUG_FLAGS = [
-//		"-g",
+		"-g",
 		"-debug",
 		"-unittest",
 	];
@@ -161,6 +164,12 @@ immutable CRITICAL_FLAGS = [
 	"-O",
 	"-inline",
 	"-op",
+];
+immutable NO_DEBUG_SYMBOLS_FLAGS = [
+	"-c",
+	"-op",
+	"-debug",
+	"-unittest",
 ];
 immutable RELEASE_FLAGS = [
 	"-release",
@@ -309,6 +318,7 @@ void build(string[] args) {
 	string[string] objs; // コンパイル対象と生成されるオブジェクトファイルのテーブル
 	string[][string] files; // コンパイル対象(ディレクトリ毎)
 	string[] critical; // 速度優先でコンパイルされるべきファイル
+	string[] noDebugSymbols; // リンクエラーになるので-gが使えないファイル
 	string[] res; // リソースのディレクトリ
 	foreach (string file; ".".dirEntries(SpanMode.depth)) {
 		if (file.isDir()) continue;
@@ -317,6 +327,10 @@ void build(string[] args) {
 		if (file.equalsFilename(__FILE__)) continue;
 		if (-1 != CRITICAL.countUntil!equalsFilename(file)) {
 			critical ~= put(file, objs, test);
+			continue;
+		}
+		if (!release && -1 != NO_DEBUG_SYMBOLS.countUntil!equalsFilename(file)) {
+			noDebugSymbols ~= put(file, objs, test);
 			continue;
 		}
 		files[file.dirName] ~= put(file, objs, test);
@@ -347,6 +361,9 @@ void build(string[] args) {
 	flags ~= window ? WINDOW_FLAGS : CONSOLE_FLAGS;
 	if (critical.length) {
 		exec(cmd ~ CRITICAL_FLAGS ~ res ~ critical ~ "-odobjs" ~ dmdOption);
+	}
+	if (noDebugSymbols.length) {
+		exec(cmd ~ NO_DEBUG_SYMBOLS_FLAGS ~ res ~ noDebugSymbols ~ "-odobjs" ~ dmdOption);
 	}
 	version (Windows) {
 		static immutable mscoffbug = 2068 <= __VERSION__ && __VERSION__ <= 2073;

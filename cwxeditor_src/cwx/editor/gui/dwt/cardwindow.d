@@ -1103,7 +1103,8 @@ public:
 			default: break;
 			}
 		} else if (cardType is CardType.Skill || cardType is CardType.Item || cardType is CardType.Beast) {
-			if (cpcategory(path) == "event") { mixin(S_TRACE);
+			cate = cpcategory(path);
+			if (cate == "variable" || cate == "event") { mixin(S_TRACE);
 				if (!cphasattr(path, "nofocus")) .forceFocus(_paneTbl[cardType].widget, shellActivate);
 				assert (cast(EffectCard)card !is null);
 				return _comm.openUseEvents(_prop, _summ, cast(EffectCard)card, shellActivate, false).openCWXPath(path, shellActivate);

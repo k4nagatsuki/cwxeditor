@@ -332,7 +332,7 @@ public:
 
 	/// コンストラクタ。
 	this (string text = "", string[] rCoupons = []) { mixin(S_TRACE);
-		_text = new TextHolder;
+		_text = new TextHolder(this);
 		_text.changeHandler = { mixin(S_TRACE);
 			if (_parent) _parent.changed();
 		};
@@ -525,7 +525,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		_id = .objectIDValue(this) ~ "-" ~ .to!string(idCount);
 		idCount++;
 		_type = type;
-		_name = new SimpleTextHolder("name");
+		_name = new SimpleTextHolder(this, "name");
 		_name.changeHandler = &changed;
 		_name.text = name;
 		_name.owner = this;

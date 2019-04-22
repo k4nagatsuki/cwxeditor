@@ -119,9 +119,9 @@ public:
 
 	/// コピーコンストラクタ。
 	this (in Flag copyBase) { mixin(S_TRACE);
-		_on = new TextHolder;
+		_on = new TextHolder(this);
 		_on.changeHandler = &changed;
-		_off = new TextHolder;
+		_off = new TextHolder(this);
 		_off.changeHandler = &changed;
 
 		_name = copyBase.name;
@@ -132,9 +132,9 @@ public:
 	}
 	/// 名前・On/Off時のテキスト・On/Off状態を指定してインスタンスを生成。
 	this (string name, string on, string off, bool onOff) { mixin(S_TRACE);
-		_on = new TextHolder;
+		_on = new TextHolder(this);
 		_on.changeHandler = &changed;
-		_off = new TextHolder;
+		_off = new TextHolder(this);
 		_off.changeHandler = &changed;
 
 		_on.text = on;
@@ -512,7 +512,7 @@ public:
 				_vals = _vals[0 .. vals.length];
 			} else if (_vals.length < vals.length) { mixin(S_TRACE);
 				foreach (i; _vals.length .. vals.length) { mixin(S_TRACE);
-					auto th = new TextHolder;
+					auto th = new TextHolder(this);
 					th.changeHandler = &changed;
 					if (expandSPChars && _uc) th.setUseCounter(_uc);
 					_vals ~= th;

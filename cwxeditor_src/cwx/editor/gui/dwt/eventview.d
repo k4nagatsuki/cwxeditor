@@ -3245,6 +3245,10 @@ public:
 			}
 		}
 		switch (cate) {
+		case "variable": { mixin(S_TRACE);
+			if (!_flags) return false;
+			return _flags.openCWXPath(.cpbottom(path), shellActivate);
+		}
 		case "event": { mixin(S_TRACE);
 			return open(_cards.getItem(0));
 		}

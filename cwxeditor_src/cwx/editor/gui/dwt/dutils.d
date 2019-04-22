@@ -4311,6 +4311,10 @@ void getSymbols(Commons comm, Summary summ, CWXPath path, bool desc, out string 
 		img = prop.images.summary;
 		text = desc ? .tryFormat(prop.msgs.searchResultSummary, sum.desc.singleLine) : sum.scenarioName;
 	}
+	auto tex = cast(SimpleTextHolder)path;
+	if (tex) { mixin(S_TRACE);
+		path = tex.owner;
+	}
 	auto bgi = cast(BgImage)path;
 	if (bgi) { mixin(S_TRACE);
 		auto ic = cast(ImageCell)bgi;
@@ -4389,24 +4393,6 @@ void getSymbols(Commons comm, Summary summ, CWXPath path, bool desc, out string 
 	if (con) { mixin(S_TRACE);
 		img = prop.images.content(con.type);
 		text = .contentText(comm, con, summ);
-	}
-	auto tex = cast(SimpleTextHolder)path;
-	if (tex) { mixin(S_TRACE);
-		Content c = cast(Content)tex.owner;
-		if (!c) { mixin(S_TRACE);
-			auto dlg = cast(SDialog)tex.owner;
-			if (dlg) path = dlg;
-		}
-		if (c) { mixin(S_TRACE);
-			img = prop.images.content(c.type);
-			text = .contentText(comm, c, summ);
-		}
-		if (auto spc = cast(AbstractSpCard)tex.owner) { mixin(S_TRACE);
-			path = spc;
-		} else if (auto tc = cast(TextCell)tex.owner) { mixin(S_TRACE);
-			img = prop.images.textCell;
-			text = .tryFormat(prop.msgs.searchResultTextCell, tc.name(prop.parent));
-		}
 	}
 	auto expr = cast(Expression)path;
 	if (expr) { mixin(S_TRACE);

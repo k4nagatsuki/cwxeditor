@@ -1,53 +1,54 @@
 
 module cwx.editor.gui.dwt.eventtreeview;
 
-import cwx.event;
-import cwx.summary;
-import cwx.flag;
 import cwx.area;
-import cwx.card;
-import cwx.utils;
-import cwx.types;
-import cwx.skin;
-import cwx.usecounter;
 import cwx.background;
+import cwx.card;
+import cwx.event;
+import cwx.flag;
+import cwx.menu;
+import cwx.msgutils;
 import cwx.path;
 import cwx.script;
+import cwx.skin;
 import cwx.structs;
-import cwx.menu;
-import cwx.types;
-import cwx.xml;
-import cwx.msgutils;
+import cwx.summary;
 import cwx.system;
+import cwx.types;
+import cwx.types;
+import cwx.usecounter;
+import cwx.utils;
 import cwx.warning;
+import cwx.xml;
 
-import cwx.editor.gui.dwt.dutils;
-import cwx.editor.gui.dwt.dprops;
-import cwx.editor.gui.dwt.dskin;
-import cwx.editor.gui.dwt.commons;
-import cwx.editor.gui.dwt.eventdialog;
-import cwx.editor.gui.dwt.messageutils;
-import cwx.editor.gui.dwt.xmlbytestransfer;
-import cwx.editor.gui.dwt.undo;
-import cwx.editor.gui.dwt.properties;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.centerlayout;
-import cwx.editor.gui.dwt.scripterrordialog;
-import cwx.editor.gui.dwt.textdialog;
+import cwx.editor.gui.dwt.chooser;
+import cwx.editor.gui.dwt.commons;
+import cwx.editor.gui.dwt.contentinitializer;
 import cwx.editor.gui.dwt.dmenu;
-import cwx.editor.gui.dwt.smalldialogs;
+import cwx.editor.gui.dwt.dprops;
+import cwx.editor.gui.dwt.dskin;
+import cwx.editor.gui.dwt.dutils;
+import cwx.editor.gui.dwt.eventdialog;
 import cwx.editor.gui.dwt.eventeditor;
 import cwx.editor.gui.dwt.eventview;
-import cwx.editor.gui.dwt.chooser;
-import cwx.editor.gui.dwt.contentinitializer;
 import cwx.editor.gui.dwt.exprutils;
+import cwx.editor.gui.dwt.messageutils;
+import cwx.editor.gui.dwt.properties;
+import cwx.editor.gui.dwt.replacedialog;
+import cwx.editor.gui.dwt.scripterrordialog;
+import cwx.editor.gui.dwt.smalldialogs;
+import cwx.editor.gui.dwt.textdialog;
+import cwx.editor.gui.dwt.undo;
+import cwx.editor.gui.dwt.xmlbytestransfer;
 
 import std.algorithm;
 import std.array : array, replace, replicate;
 import std.ascii;
 import std.conv;
-import std.string;
 import std.datetime;
+import std.string;
 import std.traits;
 
 import org.eclipse.swt.all;
@@ -2118,9 +2119,9 @@ public:
 		if (start.type !is CType.START) return;
 		auto replWin = _comm.mainWin.openReplWin();
 		CWXPath[] arr;
-		foreach (s; start.tree.startUseCounter.values(start.name)) { mixin(S_TRACE);
-			arr ~= cast(Content)s;
-		}
+		SortableCWXPath!IStartUser.sortedPaths(start.tree.startUseCounter.valueSet(start.name), (p) { mixin(S_TRACE);
+			arr ~= p.obj;
+		});
 		replWin.setFindResult(.cwxPlace(_et), arr, _prop.msgs.replStartUsers);
 	}
 	@property

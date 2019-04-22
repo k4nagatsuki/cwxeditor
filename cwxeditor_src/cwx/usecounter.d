@@ -1498,7 +1498,7 @@ private:
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
 	this (CWXPath cwxPath, bool callback = false) { mixin(S_TRACE);
-		_coupon = new SimpleTextHolder;
+		_coupon = new SimpleTextHolder(this);
 		_coupon.changeHandler = &changed;
 		_coupon.owner = cwxPath;
 		_cwxPath = cwxPath;
@@ -1631,7 +1631,7 @@ private:
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
 	this (CWXPath cwxPath, bool callback = false) { mixin(S_TRACE);
-		_gossip = new SimpleTextHolder;
+		_gossip = new SimpleTextHolder(this);
 		_gossip.changeHandler = &changed;
 		_gossip.owner = cwxPath;
 		_cwxPath = cwxPath;

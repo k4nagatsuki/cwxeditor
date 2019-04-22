@@ -1899,6 +1899,7 @@ public:
 		auto d = itm.getData();
 		auto ps = cast(CWXPathString)d;
 		auto data = ps ? ps.path : null;
+		if (auto tex = cast(SimpleTextHolder)data) data = tex.owner;
 		auto img = itm.getImage();
 		auto str = itm.getText();
 		if (auto id = cast(Area)data) { mixin(S_TRACE);
@@ -1951,6 +1952,7 @@ public:
 		auto d = itm.getData();
 		auto ps = cast(CWXPathString)d;
 		auto data = ps ? ps.path : null;
+		if (auto tex = cast(SimpleTextHolder)data) data = tex.owner;
 		auto img = itm.getImage();
 		auto str = itm.getText();
 		if (auto id = cast(Area)data) { mixin(S_TRACE);
@@ -1973,11 +1975,29 @@ public:
 		} else if (auto id = cast(InfoCard)data) { mixin(S_TRACE);
 			replaceID(typeof(id).toID(id.id), true);
 		} else if (auto id = cast(cwx.flag.Flag)data) { mixin(S_TRACE);
-			replaceID(toFlagId(id.path), true);
+			if (auto ec = cast(EffectCard)id.useCounter.owner) { mixin(S_TRACE);
+				CWXPath[] arr;
+				SortableCWXPath!FlagUser.sortedPaths(id.useCounter.valueSet(toFlagId(id.path)), (p) { arr ~= p.obj.owner; });
+				setFindResult(.cwxPlace(ec), arr, _prop.msgs.replLocalVariables);
+			} else { mixin(S_TRACE);
+				replaceID(toFlagId(id.path), true);
+			}
 		} else if (auto id = cast(Step)data) { mixin(S_TRACE);
-			replaceID(toStepId(id.path), true);
+			if (auto ec = cast(EffectCard)id.useCounter.owner) { mixin(S_TRACE);
+				CWXPath[] arr;
+				SortableCWXPath!StepUser.sortedPaths(id.useCounter.valueSet(toStepId(id.path)), (p) { arr ~= p.obj.owner; });
+				setFindResult(.cwxPlace(ec), arr, _prop.msgs.replLocalVariables);
+			} else { mixin(S_TRACE);
+				replaceID(toStepId(id.path), true);
+			}
 		} else if (auto id = cast(cwx.flag.Variant)data) { mixin(S_TRACE);
-			replaceID(toVariantId(id.path), true);
+			if (auto ec = cast(EffectCard)id.useCounter.owner) { mixin(S_TRACE);
+				CWXPath[] arr;
+				SortableCWXPath!VariantUser.sortedPaths(id.useCounter.valueSet(toVariantId(id.path)), (p) { arr ~= p.obj.owner; });
+				setFindResult(.cwxPlace(ec), arr, _prop.msgs.replLocalVariables);
+			} else { mixin(S_TRACE);
+				replaceID(toVariantId(id.path), true);
+			}
 		} else if (img is _prop.images.couponNormal && data is null) { mixin(S_TRACE);
 			replaceID(toCouponId(str), true);
 		} else if (img is _prop.images.gossip && data is null) { mixin(S_TRACE);
@@ -1995,9 +2015,9 @@ public:
 			auto tree = id.tree;
 			if (!tree) return;
 			CWXPath[] arr;
-			foreach (s; id.tree.startUseCounter.values(id.name)) { mixin(S_TRACE);
-				arr ~= cast(Content)s;
-			}
+			SortableCWXPath!IStartUser.sortedPaths(id.tree.startUseCounter.valueSet(id.name), (p) { mixin(S_TRACE);
+				arr ~= p.obj;
+			});
 			setFindResult(arr.length ? .cwxPlace(arr[0]) : null, arr, _prop.msgs.replStartUsers);
 		}
 	}
@@ -2707,6 +2727,9 @@ public:
 					foreach (i, o; subDirs) searchAll(parent, o, count, dlg, cpjoin2(cwxPath, "dir".dup, i));
 				}
 			}
+			if (auto ec = cast(EffectCard)path) { mixin(S_TRACE);
+				searchAll(parent, ec.flagDirRoot, count, dlg, cpjoin2(cwxPath, "variable".dup));
+			}
 			auto eto = cast(EventTreeOwner)path;
 			if (eto) { mixin(S_TRACE);
 				foreach (i, o; eto.trees) searchAll(parent, o, count, dlg, cpjoin2(cwxPath, "event".dup, i));
@@ -2810,30 +2833,10 @@ public:
 		}
 		return dec(path.cwxParent, range);
 	}
-	private class U(T) {
-		CWXPath parent = null;
-		T obj = null;
-		string cwxPath;
-		string[] path;
-		this (T obj) { mixin(S_TRACE);
-			this.obj = obj;
-			parent = .cwxPlace(obj);
-			cwxPath = obj.cwxPath(true);
-			path= cwxPath.cpsplit();
-		}
-		this (CWXPath parent, T obj, string cwxPath) { mixin(S_TRACE);
-			this.parent = parent;
-			this.obj = obj;
-			this.cwxPath = cwxPath;
-		}
-	}
-	private void sortedPaths(T)(HashSet!T paths, CWXPath[] range, void delegate(U!T) yield) { mixin(S_TRACE);
+	private void sortedPaths(T)(HashSet!T paths, CWXPath[] range, void delegate(SortableCWXPath!T) yield) { mixin(S_TRACE);
 		if (!paths) return;
 		if (paths.size < 512) { mixin(S_TRACE);
-			auto array = .map!(a => new U!T(a))(paths.toArray()).array();
-			foreach (u; std.algorithm.sort!((a, b) => .cpcmp(a.path, b.path) < 0)(array)) { mixin(S_TRACE);
-				yield(u);
-			}
+			SortableCWXPath!T.sortedPaths(paths, yield);
 		} else { mixin(S_TRACE);
 			// ある程度の数になるとシナリオ全体をサーチした方が速い
 			T[CWXPath] owners;
@@ -2844,7 +2847,7 @@ public:
 				searchAll(parent, path, count, (CWXPath parent, CWXPath path, ref size_t count, const(char)[] cwxPath) { mixin(S_TRACE);
 					if (auto t = path in owners) { mixin(S_TRACE);
 						count++;
-						auto u = new U!T(parent, *t, cwxPath.idup);
+						auto u = new SortableCWXPath!T(parent, *t, cwxPath.idup);
 						yield(u);
 					}
 				}, path.cwxPath(true).dup);
@@ -2909,12 +2912,12 @@ public:
 					CWXPath[] elems;
 					string[][CWXPath] arrElem;
 					Coupon[][CWXPath] csElem;
-					U!(typeof(users.toArray()[0]))[CWXPath] us;
+					SortableCWXPath!(typeof(users.toArray()[0]))[CWXPath] us;
 				} else static if (is(ID:KeyCodeId)) {
 					FKeyCode[][CWXPath] kcsElem;
-					U!(typeof(users.toArray()[0]))[CWXPath] us;
+					SortableCWXPath!(typeof(users.toArray()[0]))[CWXPath] us;
 				}
-				sortedPaths(users, sRange, (U!(typeof(users.toArray()[0])) su) { mixin(S_TRACE);
+				sortedPaths(users, sRange, (SortableCWXPath!(typeof(users.toArray()[0])) su) { mixin(S_TRACE);
 					auto u = su.obj;
 					if (!dec(u.owner, range)) return;
 					if (_replMode) { mixin(S_TRACE);
@@ -3002,7 +3005,7 @@ public:
 				static if (is(ID:CouponId)) {
 					foreach (path; elems) { mixin(S_TRACE);
 						if (auto p = path in arrElem) { mixin(S_TRACE);
-							void f(U!(typeof(users.toArray()[0])) su, CWXPath path, string[] arr) { mixin(S_TRACE);
+							void f(SortableCWXPath!(typeof(users.toArray()[0])) su, CWXPath path, string[] arr) { mixin(S_TRACE);
 								if (auto targ = cast(Summary)path) { mixin(S_TRACE);
 									store(su.parent, targ, su.cwxPath, [new StrArrUndo(arr, targ.rCoupons.dup, (a) { targ.rCoupons = a.filter!(a => a != "").array(); })]);
 									targ.rCoupons = targ.rCoupons.filter!(a => a != "").array();
@@ -3017,7 +3020,7 @@ public:
 							}
 							f(us[path], path, *p);
 						} else if (auto p = path in csElem) { mixin(S_TRACE);
-							void f2(U!(typeof(users.toArray()[0])) su, CWXPath path, Coupon[] cs) { mixin(S_TRACE);
+							void f2(SortableCWXPath!(typeof(users.toArray()[0])) su, CWXPath path, Coupon[] cs) { mixin(S_TRACE);
 								if (auto targ = cast(CastCard)path) { mixin(S_TRACE);
 									store(su.parent, targ, su.cwxPath, [new CouponsUndo(cs, targ.coupons.dup, (a) { targ.coupons = a.filter!(a => a.name != "").array(); })]);
 									targ.coupons = targ.coupons.filter!(a => a.name != "").array();
@@ -3032,7 +3035,7 @@ public:
 					}
 				} else static if (is(ID:KeyCodeId)) {
 					foreach (path, arr; kcsElem) { mixin(S_TRACE);
-						void f(U!(typeof(users.toArray()[0])) su, CWXPath path, FKeyCode[] arr) { mixin(S_TRACE);
+						void f(SortableCWXPath!(typeof(users.toArray()[0])) su, CWXPath path, FKeyCode[] arr) { mixin(S_TRACE);
 							if (auto targ = cast(EventTree)path) { mixin(S_TRACE);
 								store(su.parent, targ, su.cwxPath, [new FKeyCodesUndo(arr, targ.keyCodes.dup, (fkc) { targ.keyCodes = fkc.filter!(a => a.keyCode != "").array(); })]);
 								targ.keyCodes = targ.keyCodes.filter!(a => a.keyCode != "").array();
@@ -3183,7 +3186,7 @@ public:
 						}
 					}
 				}
-				sortedPaths(users, sRange, (U!(typeof(users.toArray()[0])) su) { mixin(S_TRACE);
+				sortedPaths(users, sRange, (SortableCWXPath!(typeof(users.toArray()[0])) su) { mixin(S_TRACE);
 					auto u = su.obj;
 					if (_replMode) { mixin(S_TRACE);
 						auto id = u.path;
@@ -5063,6 +5066,31 @@ public:
 			}
 			size_t dmy = 0;
 			addResult(parent, e, cwxPath, dmy);
+		}
+	}
+}
+
+class SortableCWXPath(T) {
+	CWXPath parent = null;
+	T obj = null;
+	string cwxPath;
+	string[] path;
+	this (T obj) { mixin(S_TRACE);
+		this.obj = obj;
+		parent = .cwxPlace(obj);
+		cwxPath = obj.cwxPath(true);
+		path= cwxPath.cpsplit();
+	}
+	this (CWXPath parent, T obj, string cwxPath) { mixin(S_TRACE);
+		this.parent = parent;
+		this.obj = obj;
+		this.cwxPath = cwxPath;
+	}
+
+	static void sortedPaths(HashSet!T paths, void delegate(SortableCWXPath!T) yield) { mixin(S_TRACE);
+		auto array = .map!(a => new SortableCWXPath!T(a))(paths.toArray()).array();
+		foreach (u; std.algorithm.sort!((a, b) => .cpcmp(a.path, b.path) < 0)(array)) { mixin(S_TRACE);
+			yield(u);
 		}
 	}
 }

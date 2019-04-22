@@ -1,36 +1,37 @@
 
 module cwx.editor.gui.dwt.flagtable;
 
-import cwx.summary;
-import cwx.flag;
-import cwx.utils;
-import cwx.usecounter;
-import cwx.path;
-import cwx.menu;
-import cwx.types;
-import cwx.system;
 import cwx.card;
 import cwx.event;
-import cwx.xml;
-import cwx.structs;
-import cwx.msgutils;
-import cwx.sjis;
-import cwx.warning;
 import cwx.expression;
+import cwx.flag;
+import cwx.menu;
+import cwx.msgutils;
+import cwx.path;
+import cwx.sjis;
+import cwx.structs;
+import cwx.summary;
+import cwx.system;
+import cwx.types;
+import cwx.usecounter;
+import cwx.utils;
+import cwx.warning;
+import cwx.xml;
 
-import cwx.editor.gui.dwt.dutils;
-import cwx.editor.gui.dwt.dprops;
-import cwx.editor.gui.dwt.commons;
-import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.centerlayout;
-import cwx.editor.gui.dwt.undo;
-import cwx.editor.gui.dwt.dmenu;
-import cwx.editor.gui.dwt.incsearch;
+import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.customtable;
-import cwx.editor.gui.dwt.splitpane;
-import cwx.editor.gui.dwt.messageutils;
 import cwx.editor.gui.dwt.customtext;
+import cwx.editor.gui.dwt.dmenu;
+import cwx.editor.gui.dwt.dprops;
+import cwx.editor.gui.dwt.dutils;
+import cwx.editor.gui.dwt.incsearch;
+import cwx.editor.gui.dwt.messageutils;
+import cwx.editor.gui.dwt.replacedialog;
+import cwx.editor.gui.dwt.splitpane;
+import cwx.editor.gui.dwt.undo;
+import cwx.editor.gui.dwt.xmlbytestransfer;
 
 static import std.algorithm;
 import std.algorithm: each, map, max, min;
@@ -2699,7 +2700,7 @@ public:
 			ssValue(i);
 		}
 
-		if (!_readOnly && !_local) { mixin(S_TRACE);
+		if (!_readOnly) { mixin(S_TRACE);
 			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(_comm, menu, MenuID.FindID, &replaceID, &canReplaceID);
 		}
@@ -3235,14 +3236,34 @@ public:
 	}
 
 	void replaceID() { mixin(S_TRACE);
-		if (_local) return;
 		if (_readOnly) return;
 		auto index = flags.getSelectionIndex();
 		if (index <= -1) return;
 		auto data = flags.getItem(index).getData();
-		if (auto f = cast(cwx.flag.Flag)data) _comm.replaceID(toFlagId(f.path), true);
-		if (auto f = cast(Step)data) _comm.replaceID(toStepId(f.path), true);
-		if (auto f = cast(cwx.flag.Variant)data) _comm.replaceID(toVariantId(f.path), true);
+		if (_local) { mixin(S_TRACE);
+			auto ec = cast(EffectCard)uc.owner;
+			assert (ec !is null);
+			auto replWin = _comm.mainWin.openReplWin();
+			CWXPath[] arr;
+			if (auto f = cast(cwx.flag.Flag)data) { mixin(S_TRACE);
+				SortableCWXPath!FlagUser.sortedPaths(uc.valueSet(toFlagId(f.path)), (p) { mixin(S_TRACE);
+					arr ~= p.obj.owner;
+				});
+			} else if (auto f = cast(Step)data) { mixin(S_TRACE);
+				SortableCWXPath!StepUser.sortedPaths(uc.valueSet(toStepId(f.path)), (p) { mixin(S_TRACE);
+					arr ~= p.obj.owner;
+				});
+			} else if (auto f = cast(cwx.flag.Variant)data) { mixin(S_TRACE);
+				SortableCWXPath!VariantUser.sortedPaths(uc.valueSet(toVariantId(f.path)), (p) { mixin(S_TRACE);
+					arr ~= p.obj.owner;
+				});
+			} else assert (0);
+			replWin.setFindResult(.cwxPlace(ec), arr, _comm.prop.msgs.replLocalVariables);
+		} else { mixin(S_TRACE);
+			if (auto f = cast(cwx.flag.Flag)data) _comm.replaceID(toFlagId(f.path), true);
+			if (auto f = cast(Step)data) _comm.replaceID(toStepId(f.path), true);
+			if (auto f = cast(cwx.flag.Variant)data) _comm.replaceID(toVariantId(f.path), true);
+		}
 	}
 	@property
 	bool canReplaceID() { mixin(S_TRACE);
@@ -3251,6 +3272,52 @@ public:
 		if (index <= -1) return false;
 		auto data = flags.getItem(index).getData();
 		return cast(cwx.flag.Flag)data || cast(Step)data || cast(cwx.flag.Variant)data;
+	}
+
+	bool openCWXPath(string path, bool shellActivate) { mixin(S_TRACE);
+		if (!_dir) return false;
+		auto cate = cpcategory(path);
+		auto index = cpindex(path);
+		switch (cate) {
+		case "flag": { mixin(S_TRACE);
+			if (index >= _dir.flags.length) return false;
+			if (!cphasattr(path, "nofocus")) forceFocus(flags, shellActivate);
+			if (cphasattr(path, "opendialog")) { mixin(S_TRACE);
+				edit(_dir.flags[index]);
+			} else { mixin(S_TRACE);
+				select(_dir.flags[index], cphasattr(path, "only"));
+			}
+			_comm.refreshToolBar();
+			return true;
+		}
+		case "step": { mixin(S_TRACE);
+			if (index >= dir.steps.length) return false;
+			if (!cphasattr(path, "nofocus")) forceFocus(flags, shellActivate);
+			if (cphasattr(path, "opendialog")) { mixin(S_TRACE);
+				edit(_dir.steps[index]);
+			} else { mixin(S_TRACE);
+				select(_dir.steps[index], cphasattr(path, "only"));
+			}
+			_comm.refreshToolBar();
+			return true;
+		}
+		case "variant": { mixin(S_TRACE);
+			if (index >= dir.variants.length) return false;
+			if (!cphasattr(path, "nofocus")) forceFocus(flags, shellActivate);
+			if (cphasattr(path, "opendialog")) { mixin(S_TRACE);
+				edit(dir.variants[index]);
+			} else { mixin(S_TRACE);
+				select(dir.variants[index], cphasattr(path, "only"));
+			}
+			_comm.refreshToolBar();
+			return true;
+		}
+		case "": { mixin(S_TRACE);
+			return true;
+		}
+		default: break;
+		}
+		return false;
 	}
 
 	@property
