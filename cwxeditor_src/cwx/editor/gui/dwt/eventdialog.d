@@ -2427,7 +2427,7 @@ private:
 		} else { mixin(S_TRACE);
 			if (!s.length) return;
 		}
-		auto lDir = _uc && cast(EffectCard)_uc.owner ? (cast(EffectCard)_uc.owner).flagDirRoot : null;
+		auto lDir = _uc && cast(LocalVariableOwner)_uc.owner ? (cast(LocalVariableOwner)_uc.owner).flagDirRoot : null;
 		static if (is(F : cwx.flag.Flag)) {
 			if (!_root.hasFlag && (!lDir || !lDir.hasFlag)) { mixin(S_TRACE);
 				forceCancel();
@@ -2671,7 +2671,7 @@ private:
 	}
 	void delFS(cwx.flag.Flag[] f, Step[] s, cwx.flag.Variant[] v) { mixin(S_TRACE);
 		if (!_root) return;
-		auto lDir = _uc && cast(EffectCard)_uc.owner ? (cast(EffectCard)_uc.owner).flagDirRoot : null;
+		auto lDir = _uc && cast(LocalVariableOwner)_uc.owner ? (cast(LocalVariableOwner)_uc.owner).flagDirRoot : null;
 		static if (is(F : cwx.flag.Flag)) {
 			if (!_root.hasFlag && (!lDir || !lDir.hasFlag)) { mixin(S_TRACE);
 				forceCancel();

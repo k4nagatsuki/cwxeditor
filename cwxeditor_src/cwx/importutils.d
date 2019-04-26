@@ -303,7 +303,7 @@ ImportResult importResource(in CProps prop, Summary to, Summary from, in string[
 					auto id = ids.length ? ids[$-1] + 1 : (toArr.length ? toArr[$-1].id + 1 : 1);
 					auto index = cc.indexOf(c);
 					cc.remove(c);
-					auto nc = new T(c.id, "", [], "");
+					auto nc = new T(prop.sys, c.id, "", [], "");
 					nc.linkId = id;
 					static if (is(typeof(c.hold))) nc.hold = c.hold;
 					cc.insert(index, nc);
@@ -338,7 +338,7 @@ ImportResult importResource(in CProps prop, Summary to, Summary from, in string[
 					std.algorithm.sort(ids);
 					auto id = ids.length ? ids[$-1] + 1 : 1;
 					auto c = b.beast;
-					auto nc = new BeastCard(c.id, "", [], "");
+					auto nc = new BeastCard(prop.sys, c.id, "", [], "");
 					nc.linkId = id;
 					b.newBeast = nc;
 					c.id = id;

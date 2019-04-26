@@ -2032,7 +2032,7 @@ ImageDataWithScale cardImage(C)(Props prop, Skin skin, in Summary summ, in C bas
 			link = true;
 			c = get(c.linkId);
 			if (!c) { mixin(S_TRACE);
-				c = new C(1UL, "", [], "");
+				c = new C(prop.sys, 1UL, "", [], "");
 				noData = true;
 			}
 		}

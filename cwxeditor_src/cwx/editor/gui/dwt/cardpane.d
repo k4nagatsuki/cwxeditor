@@ -550,11 +550,11 @@ private:
 			if (cast(CastCard)c) {
 				return new CastCard(c.id, c.name, c.paths, c.desc);
 			} else if (cast(SkillCard)c) {
-				return new SkillCard(c.id, c.name, c.paths, c.desc);
+				return new SkillCard(comm.prop.sys, c.id, c.name, c.paths, c.desc);
 			} else if (cast(ItemCard)c) {
-				return new ItemCard(c.id, c.name, c.paths, c.desc);
+				return new ItemCard(comm.prop.sys, c.id, c.name, c.paths, c.desc);
 			} else if (cast(BeastCard)c) {
-				return new BeastCard(c.id, c.name, c.paths, c.desc);
+				return new BeastCard(comm.prop.sys, c.id, c.name, c.paths, c.desc);
 			} else if (cast(InfoCard)c) {
 				return new InfoCard(c.id, c.name, c.paths, c.desc);
 			} else assert (0);
@@ -1742,13 +1742,13 @@ private:
 					case CardType.Cast:
 						assert (0);
 					case CardType.Skill:
-						card = new SkillCard(1UL, "", [], "");
+						card = new SkillCard(_prop.sys, 1UL, "", [], "");
 						break;
 					case CardType.Item:
-						card = new ItemCard(1UL, "", [], "");
+						card = new ItemCard(_prop.sys, 1UL, "", [], "");
 						break;
 					case CardType.Beast:
-						card = new BeastCard(1UL, "", [], "");
+						card = new BeastCard(_prop.sys, 1UL, "", [], "");
 						break;
 					case CardType.Info:
 						assert (0);
@@ -1760,17 +1760,17 @@ private:
 				case CardType.Cast:
 					assert (0);
 				case CardType.Skill:
-					auto card2 = new SkillCard(1UL, "", [], "");
+					auto card2 = new SkillCard(_prop.sys, 1UL, "", [], "");
 					card2.linkId = id;
 					card = card2;
 					break;
 				case CardType.Item:
-					auto card2 = new ItemCard(1UL, "", [], "");
+					auto card2 = new ItemCard(_prop.sys, 1UL, "", [], "");
 					card2.linkId = id;
 					card = card2;
 					break;
 				case CardType.Beast:
-					auto card2 = new BeastCard(1UL, "", [], "");
+					auto card2 = new BeastCard(_prop.sys, 1UL, "", [], "");
 					card2.linkId = id;
 					card = card2;
 					break;
@@ -3296,15 +3296,15 @@ public:
 			dlg = new CastCardDialog(_comm, _prop, dlgParShl, _summ, null, false);
 			break;
 		case CardType.Skill:
-			c = new SkillCard(0, "", [], "");
+			c = new SkillCard(_prop.sys, 0, "", [], "");
 			dlg = new EffectCardDialog!SkillCard(_comm, _prop, dlgParShl, _summ, _summ.useCounter, null, false);
 			break;
 		case CardType.Item:
-			c = new ItemCard(0, "", [], "");
+			c = new ItemCard(_prop.sys, 0, "", [], "");
 			dlg = new EffectCardDialog!ItemCard(_comm, _prop, dlgParShl, _summ, _summ.useCounter, null, false);
 			break;
 		case CardType.Beast:
-			c = new BeastCard(0, "", [], "");
+			c = new BeastCard(_prop.sys, 0, "", [], "");
 			dlg = new EffectCardDialog!BeastCard(_comm, _prop, dlgParShl, _summ, _summ.useCounter, null, false);
 			break;
 		case CardType.Info:

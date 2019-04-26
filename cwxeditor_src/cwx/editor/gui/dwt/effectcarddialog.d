@@ -1110,7 +1110,7 @@ protected:
 			_card.desc = wrapReturnCode(_desc.getText());
 			_card.name = _name.getText();
 		} else { mixin(S_TRACE);
-			_card = new C(_summ.newId!(C), _name.getText(),
+			_card = new C(_prop.sys, _summ.newId!(C), _name.getText(),
 				images.images, wrapReturnCode(_desc.getText()));
 		}
 		_card.spell = _needSpell.getSelection();

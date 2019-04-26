@@ -3241,7 +3241,7 @@ public:
 		if (index <= -1) return;
 		auto data = flags.getItem(index).getData();
 		if (_local) { mixin(S_TRACE);
-			auto ec = cast(EffectCard)uc.owner;
+			auto ec = cast(LocalVariableOwner)uc.owner;
 			assert (ec !is null);
 			auto replWin = _comm.mainWin.openReplWin();
 			CWXPath[] arr;

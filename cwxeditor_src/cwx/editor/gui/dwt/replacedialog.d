@@ -1975,7 +1975,7 @@ public:
 		} else if (auto id = cast(InfoCard)data) { mixin(S_TRACE);
 			replaceID(typeof(id).toID(id.id), true);
 		} else if (auto id = cast(cwx.flag.Flag)data) { mixin(S_TRACE);
-			if (auto ec = cast(EffectCard)id.useCounter.owner) { mixin(S_TRACE);
+			if (auto ec = cast(LocalVariableOwner)id.useCounter.owner) { mixin(S_TRACE);
 				CWXPath[] arr;
 				SortableCWXPath!FlagUser.sortedPaths(id.useCounter.valueSet(toFlagId(id.path)), (p) { arr ~= p.obj.owner; });
 				setFindResult(.cwxPlace(ec), arr, _prop.msgs.replLocalVariables);
@@ -1983,7 +1983,7 @@ public:
 				replaceID(toFlagId(id.path), true);
 			}
 		} else if (auto id = cast(Step)data) { mixin(S_TRACE);
-			if (auto ec = cast(EffectCard)id.useCounter.owner) { mixin(S_TRACE);
+			if (auto ec = cast(LocalVariableOwner)id.useCounter.owner) { mixin(S_TRACE);
 				CWXPath[] arr;
 				SortableCWXPath!StepUser.sortedPaths(id.useCounter.valueSet(toStepId(id.path)), (p) { arr ~= p.obj.owner; });
 				setFindResult(.cwxPlace(ec), arr, _prop.msgs.replLocalVariables);
@@ -1991,7 +1991,7 @@ public:
 				replaceID(toStepId(id.path), true);
 			}
 		} else if (auto id = cast(cwx.flag.Variant)data) { mixin(S_TRACE);
-			if (auto ec = cast(EffectCard)id.useCounter.owner) { mixin(S_TRACE);
+			if (auto ec = cast(LocalVariableOwner)id.useCounter.owner) { mixin(S_TRACE);
 				CWXPath[] arr;
 				SortableCWXPath!VariantUser.sortedPaths(id.useCounter.valueSet(toVariantId(id.path)), (p) { arr ~= p.obj.owner; });
 				setFindResult(.cwxPlace(ec), arr, _prop.msgs.replLocalVariables);
@@ -2727,7 +2727,7 @@ public:
 					foreach (i, o; subDirs) searchAll(parent, o, count, dlg, cpjoin2(cwxPath, "dir".dup, i));
 				}
 			}
-			if (auto ec = cast(EffectCard)path) { mixin(S_TRACE);
+			if (auto ec = cast(LocalVariableOwner)path) { mixin(S_TRACE);
 				searchAll(parent, ec.flagDirRoot, count, dlg, cpjoin2(cwxPath, "variable".dup));
 			}
 			auto eto = cast(EventTreeOwner)path;

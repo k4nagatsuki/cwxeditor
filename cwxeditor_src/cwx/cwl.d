@@ -2073,7 +2073,7 @@ private C readEffCard(C)(ref RData d, ref ByteIO f) { mixin(S_TRACE);
 		id = idl - 40000;
 	}
 	string desc = readString(f);
-	auto r = new C(id, name, img.length ? [new CardImage(img, CardImagePosition.Default)] : [], desc);
+	auto r = new C(d.sys, id, name, img.length ? [new CardImage(img, CardImagePosition.Default)] : [], desc);
 	r.physical = toPhysical(f.readUIntL);
 	r.mental = toMental(f.readIntL);
 	r.spell = readBool(f);
@@ -3986,7 +3986,7 @@ private void writeSkill(ref SData d, ref ByteIO f, SkillCard c) { mixin(S_TRACE)
 	if (0 != c.linkId) { mixin(S_TRACE);
 		d.cardRef[c.cwxPath(true)] = linkId;
 		c = d.skill(c.linkId);
-		if (!c) c = new SkillCard(id, "", [], "");
+		if (!c) c = new SkillCard(null, id, "", [], "");
 	}
 	writeEffCard(d, f, c, 0x5, id);
 	writeBool(f, hold);
@@ -4000,7 +4000,7 @@ private void writeItem(ref SData d, ref ByteIO f, ItemCard c) { mixin(S_TRACE);
 	if (0 != c.linkId) { mixin(S_TRACE);
 		d.cardRef[c.cwxPath(true)] = linkId;
 		c = d.item(c.linkId);
-		if (!c) c = new ItemCard(id, "", [], "");
+		if (!c) c = new ItemCard(null, id, "", [], "");
 	}
 	writeEffCard(d, f, c, 0x3, id);
 	writeBool(f, hold);
@@ -4017,7 +4017,7 @@ private void writeBeast(ref SData d, ref ByteIO f, BeastCard c) { mixin(S_TRACE)
 	if (0 != c.linkId) { mixin(S_TRACE);
 		d.cardRef[c.cwxPath(true)] = linkId;
 		c = d.beast(c.linkId);
-		if (!c) c = new BeastCard(id, "", [], "");
+		if (!c) c = new BeastCard(null, id, "", [], "");
 	}
 	writeEffCard(d, f, c, 0x6, id);
 	writeBool(f, false); // Hold

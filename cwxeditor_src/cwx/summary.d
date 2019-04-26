@@ -2215,7 +2215,7 @@ public:
 				};
 				node.parse();
 			};
-			summ._froot = FlagDir.fromXmlNode(summNode, summ, &summ.changeHandler, new XMLInfo(sys, summ.dataVersion));
+			summ._froot.fromXmlNode(summNode, new XMLInfo(sys, summ.dataVersion));
 			summ._froot.changeHandler = &summ.changeHandler;
 			summ._froot.useCounter = summ.useCounter;
 			summ._eventTemplates = evTemps;

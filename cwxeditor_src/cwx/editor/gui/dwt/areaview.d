@@ -4974,7 +4974,7 @@ public:
 		_hasFlag = false;
 		_flag.add(_prop.msgs.defaultSelection(_prop.msgs.noFlagRef));
 		_flag.select(0);
-		.sortedWithPath(.allVars!(cwx.flag.Flag)(_summ.flagDirRoot, _uc), _prop.var.etc.logicalSort, (cwx.flag.Flag fl) { mixin(S_TRACE);
+		.sortedWithPath(.allVars!(cwx.flag.Flag)(_summ.flagDirRoot, null), _prop.var.etc.logicalSort, (cwx.flag.Flag fl) { mixin(S_TRACE);
 			auto path = fl.path;
 			_hasFlag = true;
 			if (!_flagIncSearch.match(path)) return;

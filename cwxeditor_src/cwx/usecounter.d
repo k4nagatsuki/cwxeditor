@@ -2084,6 +2084,7 @@ template IDToUser(ID) {
 /// ローカルのリソースの有無に応じて使用者を振り分ける。
 class UseCounter {
 	private CWXPath _owner = null;
+	private UseCounter _globalUC = null;
 	private SingleUseCounter _global = null;
 	private SingleUseCounter _local = null;
 
@@ -2152,11 +2153,13 @@ class UseCounter {
 
 	/// インスタンスを生成する。
 	this (CWXPath owner) { mixin(S_TRACE);
+		_globalUC = this;
 		this (owner, new SingleUseCounter, null, true);
 	}
 
 	/// 親リソースの使用回数カウンタをグローバル用
 	this (CWXPath owner, UseCounter global) { mixin(S_TRACE);
+		_globalUC = global;
 		this (owner, global._global, new SingleUseCounter, true);
 	}
 	private this (CWXPath owner, SingleUseCounter global, SingleUseCounter local, bool createSub) { mixin(S_TRACE);
@@ -2171,6 +2174,11 @@ class UseCounter {
 	@property
 	inout
 	inout(CWXPath) owner() { return _owner; }
+
+	/// グローバルの使用回数カウンタ。
+	@property
+	inout
+	inout(UseCounter) global() { return _globalUC; }
 
 	/// 「アンドゥリストの中にあるのでカウントはしないが、パスの更新は反映したい」
 	/// 等の場合に使う。

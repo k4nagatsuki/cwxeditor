@@ -438,7 +438,7 @@ public:
 
 	@property
 	override void setUseCounter(UseCounter uc) { mixin(S_TRACE);
-		_text.setUseCounter(uc);
+		_text.setUseCounter(uc.global);
 		super.setUseCounter(uc);
 	}
 	override void removeUseCounter() { mixin(S_TRACE);
@@ -971,7 +971,7 @@ public:
 
 	@property
 	override void setUseCounter(UseCounter uc) { mixin(S_TRACE);
-		super.setUseCounter(uc);
+		super.setUseCounter(uc.global);
 		_cellName.setUseCounter(uc);
 	}
 	/// ditto

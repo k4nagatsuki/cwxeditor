@@ -749,7 +749,7 @@ private:
 				storeEdit(mi);
 				if (_summ && _summ.scenarioPath != "" && sb.beast) _comm.delBeast.call(sb, sb.beast);
 				if (_prop.var.etc.linkCard || !_summ || !_summ.legacy) { mixin(S_TRACE);
-					sb.beast = new BeastCard(1UL, "", [], "");
+					sb.beast = new BeastCard(_prop.sys, 1UL, "", [], "");
 					sb.beast.linkId = b.id;
 				} else { mixin(S_TRACE);
 					sb.beast = b;
@@ -1720,7 +1720,7 @@ public:
 						m.beast = null;
 						auto bid = beast.id;
 						if (bid && sameSc && topLevel && (_prop.var.etc.linkCard || !_summ || !_summ.legacy)) { mixin(S_TRACE);
-							m.beast = new BeastCard(1UL, "", [], "");
+							m.beast = new BeastCard(_prop.sys, 1UL, "", [], "");
 							m.beast.linkId = bid;
 							detail = DND.DROP_LINK;
 						} else { mixin(S_TRACE);

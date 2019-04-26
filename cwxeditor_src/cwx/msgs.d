@@ -1513,6 +1513,8 @@ class Msgs : Properties {
 	auto addRound = Msg("addRound", "ラウンドの追加");
 	auto delRound = Msg("delRound", "ラウンドの削除");
 	auto warningKeyCodeMatchingTypeAnd = Msg("warningKeyCodeMatchingTypeAnd", "キーコードのマッチング条件「全てに一致」は、CardWirth 1.50より前のバージョンでは使用できません。");
+	auto localVariables = Msg("localVariables", "ローカル変数");
+	auto localVariablesOwner = Msg("localVariablesOwner", "[%1$s.%2$s]");
 
 	const string keyCodeTiming(FKCKind id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(FKCKind, "keyCodeTiming"));

@@ -175,7 +175,7 @@ protected:
 		auto grp = new Group(comp, SWT.NONE);
 		grp.setLayout(normalGridLayout(2, false));
 		grp.setText(_prop.msgs.refFlag);
-		_flag = new FlagChooser!(Flag, true)(_comm, _summ, _uc, grp);
+		_flag = new FlagChooser!(Flag, true)(_comm, _summ, null, grp);
 		mod(_flag);
 		_flag.setLayoutData(new GridData(GridData.FILL_BOTH));
 		return grp;
@@ -535,7 +535,7 @@ private:
 			textUseItems(wrapReturnCode(_text.getText()), flags, steps, variants, fonts, colors);
 			fonts = [];
 			colors = [];
-			ws ~= .textWarnings(_prop.parent, summSkin, _summ, _uc, _prop.var.etc.targetVersion,
+			ws ~= .textWarnings(_prop.parent, summSkin, _summ, null, _prop.var.etc.targetVersion,
 				_text.getText(), flags, steps, variants, fonts, colors, wFlags, wSteps, wVariants, wFonts, wColors).all;
 		}
 		if (_updateType.getSelectionIndex() != -1) { mixin(S_TRACE);
@@ -811,7 +811,7 @@ protected:
 			createTextMenu!Text(_comm, _prop, _text, &catchMod);
 			auto menu = _text.getMenu();
 			new MenuItem(menu, SWT.SEPARATOR);
-			.setupSPCharsMenu(_comm, _summ, _uc, _text, menu, false, true, () => true);
+			.setupSPCharsMenu(_comm, _summ, null, _text, menu, false, true, () => true);
 			auto gd1 = new GridData(GridData.FILL_BOTH);
 			gd1.widthHint = _prop.var.etc.textCellBoxWidth;
 			gd1.heightHint = _prop.var.etc.textCellBoxHeight;
@@ -821,10 +821,10 @@ protected:
 			.listener(_text, SWT.Modify, &updatePreview);
 			createSimpleSCharBar(grp, &_text.insert, _comm, _prop, _summ, skin);
 			if (_summ) { mixin(S_TRACE);
-				createFlagStepBar(grp, &_text.insert, _comm, _prop, _summ, _uc, skin, false).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				createFlagStepBar(grp, &_text.insert, _comm, _prop, _summ, null, skin, false).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			}
 
-			_values = new PreviewValues(sash2, _comm, _prop, _summ, _uc, false);
+			_values = new PreviewValues(sash2, _comm, _prop, _summ, null, false);
 			_values.modEvent ~= &updatePreview;
 
 			.setupWeights(sash2, _prop.var.etc.textCellPreviewSashL, _prop.var.etc.textCellPreviewSashR);

@@ -2426,7 +2426,7 @@ fi`;
 				ulong beast = parseAttr!(ulong)(opt, vals, j, 0UL, varTable, msgWidth);
 				if (beast != 0 && _summ) { mixin(S_TRACE);
 					if (opt.linkId) { mixin(S_TRACE);
-						r.beast = new BeastCard(1UL, "", [], "");
+						r.beast = new BeastCard(_prop ? _prop.sys : null, 1UL, "", [], "");
 						r.beast.linkId = beast;
 					} else { mixin(S_TRACE);
 						r.beast = _summ.beast(beast);

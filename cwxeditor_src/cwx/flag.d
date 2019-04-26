@@ -35,6 +35,22 @@ public:
 	}
 }
 
+/// ローカル変数を持つリソース。
+interface LocalVariableOwner : CWXPath {
+	@property
+	const
+	ulong id();
+	@property
+	const
+	string name();
+	@property
+	inout
+	inout(FlagDir) flagDirRoot();
+	@property
+	inout
+	inout(UseCounter) useCounter();
+}
+
 /// フラグとステップの集合をXMLにして返す。
 public string getXML(in FlagDir parent, in Flag[] flags, in Step[] steps, in Variant[] variants) { mixin(S_TRACE);
 	XNode node;
@@ -893,6 +909,7 @@ public class FlagDir : CWXPath {
 private:
 	string _name = "";
 	CWXPath _owner = null;
+	string _localVariablePrefix = "";
 	FlagDir _parent = null;
 	FlagDir[] _subdir;
 	Flag[] _flags;
@@ -921,9 +938,10 @@ public:
 		return parent ~ SEPARATOR ~ path;
 	}
 	/// ルートディレクトリを生成する。
-	package this (CWXPath owner) { mixin(S_TRACE);
+	package this (CWXPath owner, string localVariablePrefix = "") { mixin(S_TRACE);
 		_id = .objectIDValue(this);
 		_owner = owner;
+		_localVariablePrefix = localVariablePrefix;
 	}
 	/// サブディレクトリを生成する。
 	/// Params:
@@ -935,7 +953,7 @@ public:
 	/// コピーコンストラクタ。
 	/// サブディレクトリ等も全てコピーされる。
 	this (CWXPath owner, in FlagDir copyBase) { mixin(S_TRACE);
-		this (owner);
+		this (owner, copyBase._localVariablePrefix);
 		name = copyBase.name;
 		foreach (d; copyBase.subDirs) { mixin(S_TRACE);
 			add(new FlagDir(null, d));
@@ -1006,7 +1024,8 @@ public:
 		if (this is o) return true;
 		auto f = cast(const FlagDir)o;
 		if (!f) return false;
-		return name == f.name
+		return _localVariablePrefix == f._localVariablePrefix
+			&& name == f.name
 			&& _flagNames == f._flagNames
 			&& _stepNames == f._stepNames
 			&& _variantNames == f._variantNames
@@ -1017,6 +1036,7 @@ public:
 	@property
 	inout
 	inout(FlagDir) parent() { mixin(S_TRACE);
+		if (_owner) return null;
 		return _parent;
 	}
 	/// ditto
@@ -1101,6 +1121,7 @@ public:
 	/// ditto
 	@property
 	bool name(string name) { mixin(S_TRACE);
+		assert (_owner is null);
 		name = FlagDir.validName(name);
 		if (!_parent || _parent.canAppendSub(name)) { mixin(S_TRACE);
 			if (_name == name) return true;
@@ -1503,7 +1524,11 @@ public:
 		if (_parent !is null) { mixin(S_TRACE);
 			return _parent.path ~ _name ~ SEPARATOR;
 		} else { mixin(S_TRACE);
-			return "";
+			if (_localVariablePrefix == "") { mixin(S_TRACE);
+				return "";
+			} else { mixin(S_TRACE);
+				return SEPARATOR ~ _localVariablePrefix ~ SEPARATOR;
+			}
 		}
 	}
 
@@ -1584,8 +1609,8 @@ public:
 	/// 指定されたパスのディレクトリが含まれていればtrueを返す。
 	/// 同一のディレクトリツリーかどうかは考慮されない。
 	bool has(string path) { mixin(S_TRACE);
-		path = .toLower(path);
-		auto tpath = .toLower(this.path);
+		path = localPathToPath(path);
+		auto tpath = this.path;
 		size_t len = path.length;
 		size_t tlen = tpath.length;
 		size_t sepLen = SEPARATOR.length;
@@ -1599,9 +1624,9 @@ public:
 		dir2.add(dir3);
 
 		auto dir4 = new FlagDir(cast(CWXPath) null);
-		auto dir5 = new FlagDir("aAAAA");
+		auto dir5 = new FlagDir("aaaaA");
 		dir4.add(dir5);
-		auto dir6 = new FlagDir("fsadFAwegGGGga");
+		auto dir6 = new FlagDir("fsadfawegGGGga");
 		dir5.add(dir6);
 
 		assert (dir1.has(dir1.path));
@@ -1698,7 +1723,7 @@ public:
 					ret = false;
 					return;
 				}
-				c[n.childText("Name", true)] = f;
+				c[removePrefix(n.childText("Name", true))] = f;
 			};
 			node.parse();
 		};
@@ -1859,19 +1884,19 @@ public:
 					// 転送されてきたのが自分自身の場合は末尾に移し変えて終了
 					doc.onTag["Flags"] = (ref XNode node) { mixin(S_TRACE);
 						doc.onTag["Flag"] = (ref XNode node) { mixin(S_TRACE);
-							add(getFlag(node.childText("Name", true)));
+							add(getFlag(removePrefix(node.childText("Name", true))));
 						};
 						node.parse();
 					};
 					doc.onTag["Steps"] = (ref XNode node) { mixin(S_TRACE);
 						doc.onTag["Step"] = (ref XNode node) { mixin(S_TRACE);
-							add(getStep(node.childText("Name", true)));
+							add(getStep(removePrefix(node.childText("Name", true))));
 						};
 						node.parse();
 					};
 					doc.onTag["Variants"] = (ref XNode node) { mixin(S_TRACE);
 						doc.onTag["Variant"] = (ref XNode node) { mixin(S_TRACE);
-							add(getVariant(node.childText("Name", true)));
+							add(getVariant(removePrefix(node.childText("Name", true))));
 						};
 						node.parse();
 					};
@@ -2065,6 +2090,7 @@ public:
 	/// create = trueの場合、見つからなかったときに生成する。
 	/// Returns: 見つかったパス。見つからず、生成もしない場合はnull。
 	FlagDir findPath(string path, bool create) { mixin(S_TRACE);
+		path = localPathToPath(path);
 		if (path.length == 0) { mixin(S_TRACE);
 			return root;
 		} else { mixin(S_TRACE);
@@ -2078,6 +2104,7 @@ public:
 	}
 	inout
 	inout(FlagDir) findPath(string path) { mixin(S_TRACE);
+		path = localPathToPath(path);
 		if (path.length == 0) { mixin(S_TRACE);
 			return root;
 		} else { mixin(S_TRACE);
@@ -2126,6 +2153,7 @@ public:
 	/// path = パス。
 	/// Returns: 見つかったフラグ。見つからなかった場合はnull。
 	Flag findFlag(string path) { mixin(S_TRACE);
+		path = localPathToPath(path);
 		if (path.length > 0) { mixin(S_TRACE);
 			auto dir = findPath(up(path), false);
 			if (dir !is null) { mixin(S_TRACE);
@@ -2137,6 +2165,7 @@ public:
 	/// ditto
 	const
 	const(Flag) findFlag(string path) { mixin(S_TRACE);
+		path = localPathToPath(path);
 		if (path.length > 0) { mixin(S_TRACE);
 			auto dir = findPath(up(path));
 			if (dir !is null) { mixin(S_TRACE);
@@ -2150,6 +2179,7 @@ public:
 	/// path = パス。
 	/// Returns: 見つかったステップ。見つからなかった場合はnull。
 	Step findStep(string path) { mixin(S_TRACE);
+		path = localPathToPath(path);
 		if (path.length > 0) { mixin(S_TRACE);
 			auto dir = findPath(up(path), false);
 			if (dir !is null) { mixin(S_TRACE);
@@ -2161,6 +2191,7 @@ public:
 	/// ditto
 	const
 	const(Step) findStep(string path) { mixin(S_TRACE);
+		path = localPathToPath(path);
 		if (path.length > 0) { mixin(S_TRACE);
 			auto dir = findPath(up(path));
 			if (dir !is null) { mixin(S_TRACE);
@@ -2174,6 +2205,7 @@ public:
 	/// path = パス。
 	/// Returns: 見つかったコモン。見つからなかった場合はnull。
 	Variant findVariant(string path) { mixin(S_TRACE);
+		path = localPathToPath(path);
 		if (path.length > 0) { mixin(S_TRACE);
 			auto dir = findPath(up(path), false);
 			if (dir !is null) { mixin(S_TRACE);
@@ -2185,6 +2217,7 @@ public:
 	/// ditto
 	const
 	const(Variant) findVariant(string path) { mixin(S_TRACE);
+		path = localPathToPath(path);
 		if (path.length > 0) { mixin(S_TRACE);
 			auto dir = findPath(up(path));
 			if (dir !is null) { mixin(S_TRACE);
@@ -2215,6 +2248,16 @@ public:
 		} else static assert (0);
 	}
 
+	const
+	private string localPathToPath(string path) { mixin(S_TRACE);
+		auto p2 = removePrefix(path);
+		if (p2 == path) return path;
+		if (path.length - p2.length - SEPARATOR.length <= SEPARATOR.length) return "";
+		auto prefix = path[SEPARATOR.length .. path.length - p2.length - SEPARATOR.length];
+		if (prefix == root._localVariablePrefix) return p2;
+		return "";
+	}
+
 	/// 配下にある全てのフラグとステップのデータをノードに追加する。
 	const
 	void toNodeAll(ref XNode node, bool logicalSort, bool createEmptyElement = true) { mixin(S_TRACE);
@@ -2240,29 +2283,32 @@ public:
 	}
 
 	/// XMLノードを元に、フラグディレクトリのツリーを生成して返す。
-	/// Params:
-	/// node = ノード。
-	/// change = 変更を通知するハンドラ。
-	/// Returns: ディレクトリツリー。
-	static FlagDir fromXmlNode(ref XNode node, CWXPath owner, void delegate() change, in XMLInfo ver, bool startParse = true) { mixin(S_TRACE);
-		auto root = new FlagDir(owner);
+	void fromXmlNode(ref XNode node, in XMLInfo ver, bool startParse = true) { mixin(S_TRACE);
 		node.onTag["Flags"] = (ref XNode node) { mixin(S_TRACE);
-			fromXmlNodeImpl!(Flag)(node, root, "Flag", &Flag.createFromNode, ver);
+			fromXmlNodeImpl!(Flag)(node, this, "Flag", &Flag.createFromNode, ver);
 		};
 		node.onTag["Steps"] = (ref XNode node) { mixin(S_TRACE);
-			fromXmlNodeImpl!(Step)(node, root, "Step", &Step.createFromNode, ver);
+			fromXmlNodeImpl!(Step)(node, this, "Step", &Step.createFromNode, ver);
 		};
 		node.onTag["Variants"] = (ref XNode node) { mixin(S_TRACE);
-			fromXmlNodeImpl!(Variant)(node, root, "Variant", &Variant.createFromNode, ver);
+			fromXmlNodeImpl!(Variant)(node, this, "Variant", &Variant.createFromNode, ver);
 		};
 		if (startParse) node.parse();
-		root.changeHandler = change;
-		return root;
+	}
+	private static string removePrefix(string path) { mixin(S_TRACE);
+		if (path.startsWith(SEPARATOR)) { mixin(S_TRACE);
+			path = path[SEPARATOR.length .. $];
+			auto i = path.indexOf(SEPARATOR);
+			if (i != -1) { mixin(S_TRACE);
+				return path[i + 1 .. $];
+			}
+		}
+		return path;
 	}
 	private static void fromXmlNodeImpl(E)(ref XNode node,
 			FlagDir root, string es, E function(ref XNode, in XMLInfo) pfunc, in XMLInfo ver) { mixin(S_TRACE);
 		node.onTag[es] = (ref XNode e) { mixin(S_TRACE);
-			string path = e.childText("Name", false);
+			auto path = removePrefix(e.childText("Name", false));
 			if (path) { mixin(S_TRACE);
 				auto parent = up(path);
 				auto dir = parent !is null ? root.findPath(parent, true) : root;
@@ -2374,7 +2420,7 @@ inout(F) findVar(F)(inout(FlagDir) froot, inout(UseCounter) uc, string flag) { m
 	import cwx.card;
 	if (uc) { mixin(S_TRACE);
 		auto owner = uc.owner;
-		if (auto ec = cast(inout(EffectCard))owner) { mixin(S_TRACE);
+		if (auto ec = cast(inout(LocalVariableOwner))owner) { mixin(S_TRACE);
 			auto f = cast(typeof(return))ec.flagDirRoot.find!F(flag);
 			if (f) return f;
 		}
@@ -2390,7 +2436,7 @@ inout(F)[] allVars(F)(inout(FlagDir) froot, inout(UseCounter) uc) { mixin(S_TRAC
 	inout(F)[] r;
 	if (uc) { mixin(S_TRACE);
 		auto owner = uc.owner;
-		if (auto ec = cast(inout(EffectCard))owner) { mixin(S_TRACE);
+		if (auto ec = cast(inout(LocalVariableOwner))owner) { mixin(S_TRACE);
 			static if (is(F:Flag)) {
 				r ~= ec.flagDirRoot.allFlags;
 			} else static if (is(F:Step)) {
@@ -2402,20 +2448,12 @@ inout(F)[] allVars(F)(inout(FlagDir) froot, inout(UseCounter) uc) { mixin(S_TRAC
 	}
 	if (froot) { mixin(S_TRACE);
 		static if (is(F:Flag)) {
-			auto arr = froot.allFlags;
+			r ~= froot.allFlags;
 		} else static if (is(F:Step)) {
-			auto arr = froot.allSteps;
+			r ~= froot.allSteps;
 		} else static if (is(F:Variant)) {
-			auto arr = froot.allVariants;
+			r ~= froot.allVariants;
 		} else static assert (0);
-		foreach (f; arr) { mixin(S_TRACE);
-			if (uc) { mixin(S_TRACE);
-				if (auto ec = cast(inout(EffectCard))uc.owner) { mixin(S_TRACE);
-					if (ec.flagDirRoot.find!F(f.path)) continue;
-				}
-			}
-			r ~= f;
-		}
 	}
 	return r;
 }

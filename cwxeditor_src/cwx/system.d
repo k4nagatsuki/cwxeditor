@@ -574,6 +574,8 @@ class System {
 	@property const bool isSystemVar(string varName) { mixin(S_TRACE);
 		return varName.startsWith(prefixSystemVarName);
 	}
+	/// ローカル変数のプレフィクス。
+	@property const string localVariablePrefix() { return "Local"; }
 	/// フラグ・ステップ値のランダム値ソース名。
 	@property const string randomValue() { mixin(S_TRACE);
 		return "??Random";

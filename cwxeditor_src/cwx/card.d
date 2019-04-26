@@ -376,7 +376,7 @@ interface InfoOwner : CWXPath {
 class CardException : Exception {
 public:
 	this (string msg) { mixin(S_TRACE);
-		super(msg);
+		super (msg);
 	}
 }
 
@@ -476,7 +476,8 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() { mixin(S_TRACE);
+	inout
+	inout(UseCounter) useCounter() { mixin(S_TRACE);
 		return _useCounter;
 	}
 	/// 使用回数カウンタを登録する。
@@ -711,7 +712,7 @@ public:
 	/// lev = レベル。
 	/// lifeMax = ヒットポイント最大値。
 	this (ulong id, string name, in CardImage[] imagePaths, string desc, uint lev, uint lifeMax) { mixin(S_TRACE);
-		super(id, name, imagePaths, desc);
+		super (id, name, imagePaths, desc);
 		_lev = lev;
 		_life = lifeMax;
 		_lifeMax = lifeMax;
@@ -840,12 +841,6 @@ public:
 			c.setUseCounter = uc;
 		}
 		super.setUseCounter = uc;
-	}
-	/// ditto
-	@property
-	override
-	UseCounter useCounter() { mixin(S_TRACE);
-		return super.useCounter;
 	}
 	/// ditto
 	override
@@ -1434,7 +1429,7 @@ public:
 }
 
 /// スキル・アイテム・召喚獣といった、「効果」のあるカードの親クラス。
-abstract class EffectCard : Card, EventTreeOwner, MotionOwner {
+abstract class EffectCard : Card, EventTreeOwner, MotionOwner, LocalVariableOwner {
 private:
 	string _scenario = "";
 	string _author = "";
@@ -1501,15 +1496,15 @@ public:
 	/// name = 名前。
 	/// imagePaths = 画像のパス。
 	/// desc = 解説。
-	this (ulong id, string name, in CardImage[] imagePaths, string desc) { mixin(S_TRACE);
-		super(id, name, imagePaths, desc);
+	this (in System sys, ulong id, string name, in CardImage[] imagePaths, string desc) { mixin(S_TRACE);
+		super (id, name, imagePaths, desc);
 		_ceto = new CETO;
 		_muser = new MotionUser(this);
 		_se1 = new PathUser(this);
 		_se2 = new PathUser(this);
 		_keyCodes = new KeyCodesUser(this);
 		_enh = [Enhance.AVOID:0, Enhance.RESIST:0, Enhance.DEFENSE:0];
-		_flagDirRoot = new FlagDir(this);
+		_flagDirRoot = new FlagDir(this, sys ? sys.localVariablePrefix : "");
 	}
 	/// cからパラメータをコピーする。
 	protected void shallowCopyEffectCard(in EffectCard c) { mixin(S_TRACE);
@@ -1634,8 +1629,21 @@ public:
 	@property
 	abstract void linkId(ulong);
 
+	@property
+	override
+	const
+	ulong id() { return super.id; }
+	alias Card.id id;
+
+	@property
+	override
+	const
+	string name() { return super.name; }
+	alias Card.name name;
+
 	/// このカードが持つローカル変数。
 	@property
+	override
 	inout
 	inout(FlagDir) flagDirRoot() { return _flagDirRoot; }
 
@@ -1862,6 +1870,10 @@ public:
 		flagDirRoot.changeHandler = changeHandler;
 	}
 	@property
+	override
+	inout
+	inout(UseCounter) useCounter() { return super.useCounter; }
+	@property
 	override void setUseCounter(UseCounter uc) { mixin(S_TRACE);
 		auto uc2 = new UseCounter(this, uc);
 		foreach (f; flagDirRoot.allFlags) uc2.createID(toFlagId(f.path));
@@ -2016,7 +2028,7 @@ public:
 		};
 		pNode.onTag["KeyCodes"] = (ref XNode n) { keyCodes = decodeLf(n.value, true); };
 		pNode.onTag["Premium"] = (ref XNode n) { _premi = toPremium(n.value); };
-		_flagDirRoot = FlagDir.fromXmlNode(node, this, changeHandler, ver, false);
+		_flagDirRoot.fromXmlNode(node, ver, false);
 		loadProp(pNode, ver, loadId);
 	}
 	/// ditto
@@ -2084,8 +2096,8 @@ public:
 	/// name = 名前。
 	/// imagePaths = 画像のパス。
 	/// desc = 解説。
-	this (ulong id, string name, in CardImage[] imagePaths, string desc) { mixin(S_TRACE);
-		super(id, name, imagePaths, desc);
+	this (in System sys, ulong id, string name, in CardImage[] imagePaths, string desc) { mixin(S_TRACE);
+		super (sys, id, name, imagePaths, desc);
 		_linkId = new SkillUser(this);
 	}
 	/// cからパラメータをコピーする。
@@ -2191,7 +2203,7 @@ public:
 	const
 	override
 	SkillCard dup() { mixin(S_TRACE);
-		auto copy = new SkillCard(0UL, "", [], "");
+		auto copy = new SkillCard(null, 0UL, "", [], "");
 		copy.deepCopy(this);
 		return copy;
 	}
@@ -2226,7 +2238,7 @@ public:
 			od2.overHold = true;
 			od2.hold = hold;
 			auto c2 = .rebindable(opt.skill(linkId));
-			if (!c2) c2 = new SkillCard(id, "", [], "");
+			if (!c2) c2 = new SkillCard(opt.sys, id, "", [], "");
 			c2.toNodeImpl(cNode, opt, od2);
 			return;
 		}
@@ -2244,7 +2256,7 @@ public:
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
 	static SkillCard createFromNode(ref XNode cNode, in XMLInfo ver) { mixin(S_TRACE);
 		if (cNode.name != XML_NAME) throw new CardException("Node is not skill card: " ~ cNode.name);
-		auto r = new SkillCard(0, "", [], "");
+		auto r = new SkillCard(ver.sys, 0, "", [], "");
 		ulong id = 0UL, linkId = 0UL;
 		bool hold = false;
 		id = readLinkInfo(cNode, linkId, hold);
@@ -2310,8 +2322,8 @@ public:
 	/// name = 名前。
 	/// imagePaths = 画像のパス。
 	/// desc = 解説。
-	this (ulong id, string name, in CardImage[] imagePaths, string desc) { mixin(S_TRACE);
-		super(id, name, imagePaths, desc);
+	this (in System sys, ulong id, string name, in CardImage[] imagePaths, string desc) { mixin(S_TRACE);
+		super (sys, id, name, imagePaths, desc);
 		_linkId = new ItemUser(this);
 		_oEnh = [Enhance.AVOID:0, Enhance.RESIST:0, Enhance.DEFENSE:0];
 	}
@@ -2451,7 +2463,7 @@ public:
 	const
 	override
 	ItemCard dup() { mixin(S_TRACE);
-		auto copy = new ItemCard(0UL, "", [], "");
+		auto copy = new ItemCard(null, 0UL, "", [], "");
 		copy.deepCopy(this);
 		return copy;
 	}
@@ -2486,7 +2498,7 @@ public:
 			od2.overHold = true;
 			od2.hold = hold;
 			auto c2 = .rebindable(opt.item(linkId));
-			if (!c2) c2 = new ItemCard(id, "", [], "");
+			if (!c2) c2 = new ItemCard(opt.sys, id, "", [], "");
 			c2.toNodeImpl(cNode, opt, od2);
 			return;
 		}
@@ -2510,7 +2522,7 @@ public:
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
 	static ItemCard createFromNode(ref XNode cNode, in XMLInfo ver) { mixin(S_TRACE);
 		if (cNode.name != XML_NAME) throw new CardException("Node is not item card: " ~ cNode.name);
-		auto r = new ItemCard(0, "", [], "");
+		auto r = new ItemCard(ver.sys, 0, "", [], "");
 		ulong id = 0UL, linkId = 0UL;
 		bool hold = false;
 		id = readLinkInfo(cNode, linkId, hold);
@@ -2583,8 +2595,8 @@ public:
 	/// name = 名前。
 	/// imagePaths = 画像のパス。
 	/// desc = 解説。
-	this (ulong id, string name, in CardImage[] imagePaths, string desc) { mixin(S_TRACE);
-		super(id, name, imagePaths, desc);
+	this (in System sys, ulong id, string name, in CardImage[] imagePaths, string desc) { mixin(S_TRACE);
+		super (sys, id, name, imagePaths, desc);
 		_linkId = new BeastUser(this);
 	}
 	/// cからパラメータをコピーする。
@@ -2751,7 +2763,7 @@ public:
 			od2.id = id;
 			if (!opt.noLinkId) od2.linkId = linkId;
 			auto c2 = .rebindable(opt.beast(linkId));
-			if (!c2) c2 = new BeastCard(id, "", [], "");
+			if (!c2) c2 = new BeastCard(opt.sys, id, "", [], "");
 			c2.toNodeImpl(cNode, opt, od2);
 			return;
 		}
@@ -2778,7 +2790,7 @@ public:
 	const
 	override
 	BeastCard dup() { mixin(S_TRACE);
-		auto copy = new BeastCard(0UL, "", [], "");
+		auto copy = new BeastCard(null, 0UL, "", [], "");
 		copy.deepCopy(this);
 		return copy;
 	}
@@ -2799,7 +2811,7 @@ public:
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
 	static BeastCard createFromNode(ref XNode cNode, in XMLInfo ver) { mixin(S_TRACE);
 		if (cNode.name != XML_NAME) throw new CardException("Node is not beast card: " ~ cNode.name);
-		auto r = new BeastCard(0, "", [], "");
+		auto r = new BeastCard(ver.sys, 0, "", [], "");
 		ulong id = 0UL, linkId = 0UL;
 		bool hold = false;
 		id = readLinkInfo(cNode, linkId, hold);
@@ -2872,7 +2884,7 @@ public:
 	/// imagePaths = 画像のパス。
 	/// desc = 解説。
 	this (ulong id, string name, in CardImage[] imagePaths, string desc) { mixin(S_TRACE);
-		super(id, name, imagePaths, desc);
+		super (id, name, imagePaths, desc);
 	}
 	/// cからパラメータをコピーする。
 	void shallowCopy(in InfoCard c) { mixin(S_TRACE);
@@ -2983,7 +2995,7 @@ public:
 	/// imagePaths = 画像のパス。
 	/// desc = 解説。
 	this (string name, in CardImage[] imagePaths, string desc) { mixin(S_TRACE);
-		super (0UL, name, imagePaths, desc);
+		super (null, 0UL, name, imagePaths, desc);
 	}
 
 	/// アクションカードの種類。enum ActionCardTypeのメンバ以外の値を返す場合がある。

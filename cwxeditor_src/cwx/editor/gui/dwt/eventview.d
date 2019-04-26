@@ -5,6 +5,7 @@ module cwx.editor.gui.dwt.eventview;
 import cwx.area;
 import cwx.card;
 import cwx.event;
+import cwx.flag;
 import cwx.menu;
 import cwx.path;
 import cwx.script;
@@ -1577,7 +1578,7 @@ public:
 		_sash.setLayoutData(new GridData(GridData.FILL_BOTH));
 		Composite leftComp = _sash;
 		SplitPane leftSash = null;
-		if (cast(EffectCard)_area) { mixin(S_TRACE);
+		if (cast(LocalVariableOwner)_area) { mixin(S_TRACE);
 			leftSash = new SplitPane(_sash, SWT.VERTICAL);
 			leftComp = leftSash;
 		}
@@ -1692,13 +1693,20 @@ public:
 				_cards.addMouseMoveListener(prevTrig);
 			}
 		}
-		if (auto ec = cast(EffectCard)_area) { mixin(S_TRACE);
+		if (auto ec = cast(LocalVariableOwner)_area) { mixin(S_TRACE);
 			assert (leftSash !is null);
 			auto comp = new Composite(leftSash, SWT.NONE);
-			comp.setLayout(new FillLayout);
+			auto vgd = windowGridLayout(1, true);
+			vgd.marginWidth = 0.ppis;
+			vgd.marginHeight = 0.ppis;
+			comp.setLayout(vgd);
+			auto l = new CLabel(comp, SWT.NONE);
+			l.setText(_prop.msgs.localVariables);
+			l.setImage(_prop.images.flagDir);
 			_flags = new FlagTable(comm, prop, _undo, true, readOnly);
 			_flags.useCounter = ec.useCounter;
 			_flags.createControl(comp, comp, null);
+			_flags.widget.setLayoutData(new GridData(GridData.FILL_BOTH));
 			_flags.setDir(ec.flagDirRoot, true);
 
 			void createOrDelete() { mixin(S_TRACE);
@@ -2876,7 +2884,7 @@ public:
 			auto compiler = new CWXScript(_prop.parent, _summ);
 			auto vars = compiler.eatEmptyVars(script, opt);
 			if (vars.length) { mixin(S_TRACE);
-				auto ec = cast(EffectCard)_area;
+				auto ec = cast(LocalVariableOwner)_area;
 				auto dlg = new ScriptVarSetDialog(_comm, _summ, ec ? ec.useCounter : _summ.useCounter, _cards.getShell(), vars, script, base, opt);
 				dlg.appliedEvent ~= { mixin(S_TRACE);
 					put(dlg.contents);

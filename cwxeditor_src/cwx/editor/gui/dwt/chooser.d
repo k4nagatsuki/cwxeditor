@@ -601,7 +601,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 		refreshFlags();
 	}
 	@property
-	private ref bool[string] expandedTable() {
+	private ref bool[string] expandedTable() { mixin(S_TRACE);
 		static if (is(F:cwx.flag.Flag)) {
 			return _comm.flagDirExpanded;
 		} else static if (is(F:Step)) {
@@ -626,6 +626,15 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 			return dir.allSteps;
 		} else static if (is(F:cwx.flag.Variant)) {
 			return dir.allVariants;
+		} else static assert (0);
+	}
+	private bool hasVar(FlagDir dir) { mixin(S_TRACE);
+		static if (is(F:cwx.flag.Flag)) {
+			return dir.hasFlag;
+		} else static if (is(F:Step)) {
+			return dir.hasStep;
+		} else static if (is(F:cwx.flag.Variant)) {
+			return dir.hasVariant;
 		} else static assert (0);
 	}
 	private void refreshFlags() { mixin(S_TRACE);
@@ -715,16 +724,18 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 			}
 		}
 		FlagDir localDir = null;
+		auto localName = "";
 		if (_uc) { mixin(S_TRACE);
-			if (auto ec = cast(EffectCard)_uc.owner) { mixin(S_TRACE);
+			if (auto ec = cast(LocalVariableOwner)_uc.owner) { mixin(S_TRACE);
 				localDir = ec.flagDirRoot;
+				localName = .tryFormat(_prop.msgs.localVariablesOwner, ec.id, ec.name);
 			}
 		}
 		if (_tree) { mixin(S_TRACE);
 			bool recurse(T)(T parent, FlagDir dir, string name) { mixin(S_TRACE);
 				bool selItm = false;
 				TreeItem dirItm = null;
-				if (dir !is _summ.flagDirRoot) {
+				if (dir !is _summ.flagDirRoot) { mixin(S_TRACE);
 					if (parent) {
 						dirItm = new TreeItem(parent, SWT.NONE);
 					} else {
@@ -735,21 +746,8 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 					dirItm.setText(name);
 				}
 				auto dirs = dir.subDirs;
-				FlagDir lDir = null;
-				if (localDir) { mixin(S_TRACE);
-					lDir = localDir.findPath(dir.path, false);
-					if (lDir) { mixin(S_TRACE);
-						foreach (d; lDir.subDirs) { mixin(S_TRACE);
-							if (!dir.containsSubDir(d.name)) dirs ~= d;
-						}
-					}
-				}
 				sortedWithName(dirs, _prop.var.etc.logicalSort, (FlagDir child) { mixin(S_TRACE);
 					auto flags = this.allFlags(child);
-					if (localDir) { mixin(S_TRACE);
-						auto lDir = localDir.findPath(child.path, false);
-						if (lDir) flags ~= this.allFlags(lDir);
-					}
 					bool hasChild = false;
 					foreach (flag; flags) { mixin(S_TRACE);
 						if (!_flagIncSearch.match(flag.path)) continue;
@@ -760,11 +758,6 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 					selItm |= recurse(dirItm, child, child.name);
 				});
 				auto flags = this.flags(dir);
-				if (lDir) { mixin(S_TRACE);
-					foreach (flag; this.flags(lDir)) { mixin(S_TRACE);
-						if (!dir.contains!F(flag.name)) flags ~= flag;
-					}
-				}
 				.sortedWithName(flags, _prop.var.etc.logicalSort, (F flag) { mixin(S_TRACE);
 					auto path = flag.path;
 					if (!has && path == sel) { mixin(S_TRACE);
@@ -787,10 +780,13 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 						_selected = path;
 					}
 				});
-				if (dirItm) {
+				if (dirItm) { mixin(S_TRACE);
 					dirItm.setExpanded(selItm || expandedTable.get(dir.path, _prop.var.etc.expandChooserItems));
 				}
 				return selItm;
+			}
+			if (localDir && hasVar(localDir)) { mixin(S_TRACE);
+				recurse(_tree, localDir, localName);
 			}
 			if (_summ) { mixin(S_TRACE);
 				recurse(_tree, _summ.flagDirRoot, _prop.msgs.flagDirRoot);
@@ -816,11 +812,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 
 		} else { mixin(S_TRACE);
 			auto flags = _summ ? this.allFlags(_summ.flagDirRoot) : [];
-			if (localDir) { mixin(S_TRACE);
-				foreach (flag; this.allFlags(localDir)) { mixin(S_TRACE);
-					if (!_summ.flagDirRoot.find!F(flag.path)) flags ~= flag;
-				}
-			}
+			if (localDir) flags ~= this.allFlags(localDir);
 			.sortedWithPath(flags, _prop.var.etc.logicalSort, (F flag) { mixin(S_TRACE);
 				auto path = flag.path;
 				if (!has && path == sel) { mixin(S_TRACE);
@@ -910,6 +902,8 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 
 	private void saveExpanded() { mixin(S_TRACE);
 		if (_tree.isDisposed()) return;
+		auto local = FlagDir.SEPARATOR ~ _prop.sys.localVariablePrefix ~ FlagDir.SEPARATOR;
+		auto localDirExpanded = expandedTable.get(local, true);
 		bool[string] flagDirExpanded;
 		void recurse(TreeItem itm) { mixin(S_TRACE);
 			auto dir = cast(FlagDir)itm.getData();
@@ -921,6 +915,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 		foreach (itm; _tree.getItems()) { mixin(S_TRACE);
 			recurse(itm);
 		}
+		if (local !in flagDirExpanded) flagDirExpanded[local] = localDirExpanded;
 		expandedTable = flagDirExpanded;
 	}
 	private void initControl() { mixin(S_TRACE);
