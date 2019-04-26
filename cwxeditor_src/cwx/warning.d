@@ -406,7 +406,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	}
 	auto tc = cast(TextCell)path;
 	if (tc) { mixin(S_TRACE);
-		r ~= checkTextRes2(tc.text, tc.useCounter, tc.flagsInText, tc.stepsInText, tc.variantsInText, [], []);
+		r ~= checkTextRes2(tc.text, null, tc.flagsInText, tc.stepsInText, tc.variantsInText, [], []);
 		if (!prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
 			r ~= prop.msgs.warningTextCell;
 		}
@@ -482,7 +482,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			r ~= prop.msgs.warningExpandSPCharsInMenuCardName;
 		}
 		if (mc.expandSPChars) { mixin(S_TRACE);
-			r ~= checkTextRes2(mc.name, mc.useCounter, mc.flagsInText, mc.stepsInText, mc.variantsInText, [], []);
+			r ~= checkTextRes2(mc.name, null, mc.flagsInText, mc.stepsInText, mc.variantsInText, [], []);
 		}
 		putCardImages(mc.paths, false);
 		if (mc.flag != "" && !findVar!Flag(froot, mc.useCounter, mc.flag)) { mixin(S_TRACE);
@@ -503,7 +503,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (ec.isOverrideName &&  !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningOverrideEnemyCardName;
 		}
-		r ~= checkTextRes2(ec.overrideName, ec.useCounter, ec.flagsInText, ec.stepsInText, ec.variantsInText, [], []);
+		r ~= checkTextRes2(ec.overrideName, null, ec.flagsInText, ec.stepsInText, ec.variantsInText, [], []);
 		if (ec.isOverrideImage &&  !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningOverrideEnemyCardImage;
 		}
@@ -586,7 +586,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			if (!prop.targetVersion("1.50", targVer) && (fit.length || sit.length || vit.length || foit.length)) { mixin(S_TRACE);
 				r ~= prop.msgs.warningSPCharsInSelections;
 			} else { mixin(S_TRACE);
-				r ~= checkTextRes2("", null, fit, sit, vit, [], []);
+				r ~= checkTextRes2("", c.useCounter, fit, sit, vit, [], []);
 			}
 		}
 

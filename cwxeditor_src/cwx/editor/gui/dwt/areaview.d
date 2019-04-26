@@ -359,7 +359,7 @@ private:
 			this (AbstractAreaView v, Commons comm, A area, Summary summ) { mixin(S_TRACE);
 				super (v, comm, area, summ);
 				_path = new PathUser(new MCWXPath);
-				if (summ) _path.setUseCounter(area.useCounter.sub);
+				if (v._uc) _path.setUseCounter(v._uc.sub);
 				_path.path = area.music;
 				_volume = area.volume;
 				_loopCount = area.loopCount;
@@ -515,7 +515,7 @@ private:
 					auto node = area.cards[i].toNode(new XMLOption(comm.prop.sys, LATEST_VERSION));
 					auto ver = new XMLInfo(comm.prop.sys, LATEST_VERSION);
 					auto c = C.createFromNode(node, ver);
-					if (summ) c.setUseCounter(area.cards[i].useCounter.sub);
+					if (v._uc) c.setUseCounter(v._uc.sub);
 					_cs[i] = c;
 					_cChks[i] = v ? v._cards.getItem(i).getChecked() : true;
 				}
@@ -523,7 +523,7 @@ private:
 			static if (UseBacks) {
 				foreach (i; bIdcs) { mixin(S_TRACE);
 					auto b = area.backs[i].dup;
-					if (summ) b.setUseCounter(area.backs[i].useCounter.sub);
+					if (v._uc) b.setUseCounter(v._uc.sub);
 					_bs[i] = b;
 					_bChks[i] = v ? v._backs.getItem(i).getChecked() : true;
 				}
@@ -567,8 +567,10 @@ private:
 	static class UndoEdit : AUndo {
 		static if (UseCards) C[int] _cs;
 		static if (UseBacks) BgImage[int] _bs;
+		UseCounter _uc;
 		this (AbstractAreaView v, Commons comm, A area, Summary summ, int[] ckeys, int[] bkeys) { mixin(S_TRACE);
 			super (v, comm, area, summ);
+			_uc = v._uc;
 			static if (UseCards) _cs = saveC(ckeys);
 			static if (UseBacks) _bs = saveB(bkeys);
 		}
@@ -583,7 +585,7 @@ private:
 						c = new C(c.id, c.actions, c.flag, c.x, c.y, c.scale, c.layer, c.cardGroup, c.animationSpeed,
 							c.isOverrideName, c.overrideName, c.isOverrideImage, c.overrideImages);
 					} else static assert (0);
-					if (summ) c.setUseCounter(area.cards[i].useCounter.sub);
+					if (_uc) c.setUseCounter(_uc.sub);
 					cs[i] = c;
 				}
 				return cs;
@@ -595,7 +597,7 @@ private:
 				foreach (i; indices) { mixin(S_TRACE);
 					auto b = area.backs[i];
 					b = b.dup;
-					if (summ) b.setUseCounter(area.backs[i].useCounter.sub);
+					if (_uc) b.setUseCounter(_uc.sub);
 					bs[i] = b;
 				}
 				return bs;
@@ -4588,7 +4590,7 @@ public:
 			VarValue[string] steps;
 			VarValue[string] variants;
 			VarValue[string] sysSteps;
-			getPreviewValues(_prop, _summ, _uc, SPCHAR_TEXT, names, flags, steps, variants, sysSteps);
+			getPreviewValues(_prop, _summ, null, SPCHAR_TEXT, names, flags, steps, variants, sysSteps);
 			return simpleFormatMsg(base, flags, steps, variants, sysSteps, names, ver => _prop.isTargetVersion(_summ, ver),
 				_prop.sys.prefixSystemVarName);
 		}

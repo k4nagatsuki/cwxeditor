@@ -3835,7 +3835,7 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		}
 	} case CType.SUBSTITUTE_STEP: { mixin(S_TRACE);
 		auto t2 = contentTextUseID!(CIDKind.Step)(comm, summ, evt.step2, "%s", evt);
-		auto notHas = .findVar!Step(summ ? summ.flagDirRoot : null, evt ? evt.useCounter : null, evt.step);
+		auto notHas = .findVar!Step(summ ? summ.flagDirRoot : null, evt ? evt.useCounter : null, evt.step) is null;
 		if (notHas && .icmp(evt.step, comm.prop.sys.randomValue) == 0) { mixin(S_TRACE);
 			return .tryFormat(comm.prop.msgs.ctSubstituteStepFromRandom, t2);
 		} else if (notHas && .icmp(evt.step, comm.prop.sys.selectedPlayerCardNumber) == 0) { mixin(S_TRACE);
