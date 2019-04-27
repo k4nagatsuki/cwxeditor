@@ -82,7 +82,7 @@ public:
 	inout
 	inout(HashSet!U) valueSet(K key) { mixin(S_TRACE);
 		auto p = key in _cont;
-		return p ? *p : null;
+		return p ? *p : cast(typeof(return))new HashSet!U;
 	}
 
 	/// キーの使用者を追加する。
