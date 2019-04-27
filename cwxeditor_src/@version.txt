@@ -1,3 +1,3 @@
 ﻿Version.6.3
-2019033000
+2019042700
 http://bitbucket.org/k4nagatsuki/cwxeditor/

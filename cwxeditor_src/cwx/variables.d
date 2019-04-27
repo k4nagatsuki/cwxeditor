@@ -159,9 +159,11 @@ class FlexEtcProps : Properties {
 	auto flagValueWidth = Prop!(int, true, true)("flagValueWidth", 50);
 	auto flagNameColumn = Prop!(int, false, true)("flagNameColumn", 150);
 	auto flagInitColumn = Prop!(int, false, true)("flagInitColumn", 90);
+	auto variableInitializationColumn = Prop!(int, false, true)("variableInitializationColumn", 80);
 	auto flagCountColumn = Prop!(int, false, true)("flagCountColumn", 60);
 	auto localFlagNameColumn = Prop!(int, false, true)("localFlagNameColumn", 100);
 	auto localFlagInitColumn = Prop!(int, false, true)("localFlagInitColumn", 80);
+	auto localVariableInitializationColumn = Prop!(int, false, true)("localVariableInitializationColumn", 80);
 	auto localFlagCountColumn = Prop!(int, false, true)("localFlagCountColumn", 60);
 	auto localVariablesSashL = Prop!(int)("localVariablesSashL", 1);
 	auto localVariablesSashR = Prop!(int)("localVariablesSashR", 4);
@@ -177,8 +179,8 @@ class FlexEtcProps : Properties {
 	auto flagCombiSashR = Prop!(int)("flagCombiSashR", 1);
 	auto mainToolBarCustomSashL = Prop!(int)("mainToolBarCustomSashL", 1);
 	auto mainToolBarCustomSashR = Prop!(int)("mainToolBarCustomSashR", 1);
-	auto stepTopSashL = Prop!(int)("stepTopSashL", 3);
-	auto stepTopSashR = Prop!(int)("stepTopSashR", 2);
+	auto stepTopSashL = Prop!(int)("stepTopSashL", 3, 2019042700);
+	auto stepTopSashR = Prop!(int)("stepTopSashR", 4, 2019042700);
 	auto flagTopSashL = Prop!(int)("flagTopSashL", 3);
 	auto flagTopSashR = Prop!(int)("flagTopSashR", 2);
 	auto toolTipWidth = Prop!(int, true, true)("toolTipWidth", 300);

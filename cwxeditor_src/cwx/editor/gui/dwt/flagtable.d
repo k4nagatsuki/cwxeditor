@@ -54,6 +54,7 @@ private:
 	Commons _comm;
 	Summary _summ;
 	int _readOnly;
+	bool _local;
 
 	Step _step;
 	FlagDir _dir;
@@ -68,6 +69,8 @@ private:
 	Text _valueEditor = null;
 	int _editIndex = -1;
 	Spinner _stepCount;
+	Combo _initTim;
+	VariableInitialization[] _initTims;
 	Button _expandSPChars;
 
 	UndoManager _undo;
@@ -275,6 +278,9 @@ private:
 				}
 			}
 		}
+		if (_initTim.getSelectionIndex() != -1 && !_local && _initTims[_initTim.getSelectionIndex()] !is VariableInitialization.Leave && !_comm.prop.isTargetVersion(_summ, "4")) { mixin(S_TRACE);
+			ws ~= _comm.prop.msgs.warningVariableInitialization;
+		}
 		if (_valueCache.length && _summ.legacy) { mixin(S_TRACE);
 			auto vals = _valueCache[0 .. _stepCount.getSelection()];
 			editing(vals);
@@ -399,6 +405,7 @@ private:
 	void refDataVersion() { mixin(S_TRACE);
 		_stepCount.setEnabled(!_summ.legacy || _stepCount.getSelection() != _comm.prop.looks.stepMaxCount);
 		_expandSPChars.setEnabled(!_summ.legacy || _expandSPChars.getSelection());
+		_initTim.setEnabled(_local || !_summ.legacy || _initTims[_initTim.getSelectionIndex()] !is VariableInitialization.Leave);
 		updateToolTip();
 		refreshWarning();
 	}
@@ -407,11 +414,12 @@ public:
 	/// Params:
 	/// dir = 設定するステップの親ディレクトリ。
 	/// step = 設定するステップ。新規の場合はnull。
-	this (Commons comm, Summary summ, Shell shell, bool readOnly, FlagDir dir, Step step = null) { mixin(S_TRACE);
+	this (Commons comm, Summary summ, Shell shell, bool readOnly, bool local, FlagDir dir, Step step = null) { mixin(S_TRACE);
 		super (comm.prop, shell, readOnly, comm.prop.msgs.dlgTitStep, comm.prop.images.step, true, comm.prop.var.stepDlg, true);
 		_comm = comm;
 		_summ = summ;
 		_readOnly = readOnly ? SWT.READ_ONLY : SWT.NONE;
+		_local = local;
 		_dir = dir;
 		_step = step;
 		_undo = new UndoManager(_comm.prop.var.etc.undoMaxEtc);
@@ -431,49 +439,52 @@ public:
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(normalGridLayout(1, true));
+		area.setLayout(normalGridLayout(2, false));
 		{ mixin(S_TRACE);
 			auto top = new SplitPane(area, SWT.HORIZONTAL);
-			top.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			auto tgd = new GridData(GridData.FILL_HORIZONTAL);
+			tgd.horizontalSpan = 2;
+			top.setLayoutData(tgd);
 			.setupWeights(top, _comm.prop.var.etc.stepTopSashL, _comm.prop.var.etc.stepTopSashR);
 
 			auto comp1 = new Composite(top, SWT.NONE);
 			comp1.setLayout(zeroMarginGridLayout(2, false));
 			auto comp2 = new Composite(top, SWT.NONE);
-			comp2.setLayout(zeroMarginGridLayout(2, false));
-			void setEVS(Control c) { mixin(S_TRACE);
-				auto gd = cast(GridData)c.getLayoutData();
-				assert (gd !is null);
-				gd.grabExcessVerticalSpace = true;
-				c.setLayoutData(gd);
-			}
+			comp2.setLayout(zeroMarginGridLayout(4, false));
 
 			auto l1 = new Label(comp1, SWT.NONE);
 			l1.setText(_comm.prop.msgs.dlgLblStepName);
-			l1.setLayoutData(new GridData);
-			setEVS(l1);
 			_name = new Text(comp1, SWT.BORDER | _readOnly);
 			mod(_name);
 			createTextMenu!Text(_comm, _comm.prop, _name, &catchMod);
 			setGridMinW(_name, _comm.prop.var.etc.flagNameWidth, GridData.FILL_HORIZONTAL);
-			setEVS(_name);
 			checker(_name);
 			.listener(_name, SWT.Modify, &refreshWarning);
 
 			auto l2 = new Label(comp2, SWT.NONE);
 			l2.setText(_comm.prop.msgs.dlgLblStepInit);
-			l2.setLayoutData(new GridData);
-			setEVS(l2);
 			_init = new Combo(comp2, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
 			mod(_init);
 			_init.setVisibleItemCount(_comm.prop.var.etc.comboVisibleItemCount);
 			setGridMinW(_init, _comm.prop.var.etc.flagInitWidth, GridData.FILL_HORIZONTAL);
-			setEVS(_init);
 			_init.setEnabled(!_readOnly);
+
+			auto l3 = new Label(comp2, SWT.NONE);
+			l3.setText(_comm.prop.msgs.stepCount);
+			_stepCount = new Spinner(comp2, SWT.BORDER);
+			initSpinner(_stepCount);
+			mod(_stepCount);
+			_stepCount.setEnabled(!_readOnly);
+			_stepCount.setMinimum(1);
+			_stepCount.setMaximum(_comm.prop.var.etc.stepCountMax);
+			.listener(_stepCount, SWT.Selection, () => changeStepCount(true, _stepCount.getSelection()));
+			.listener(_stepCount, SWT.Modify, () => changeStepCount(true, _stepCount.getSelection()));
 		}
 		{ mixin(S_TRACE);
 			_values = new Table(area, SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER | SWT.VIRTUAL);
-			_values.setLayoutData(new GridData(GridData.FILL_BOTH));
+			auto gd = new GridData(GridData.FILL_BOTH);
+			gd.horizontalSpan = 2;
+			_values.setLayoutData(gd);
 			auto valueNumCol = new TableColumn(_values, SWT.NONE);
 			auto prop = _comm.prop;
 			saveColumnWidth!("prop.var.etc.valueNumberColumn")(_comm.prop, valueNumCol);
@@ -524,27 +535,29 @@ protected:
 			}
 		}
 		{ mixin(S_TRACE);
-			auto comp = new Composite(area, SWT.NONE);
-			comp.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
-			comp.setLayout(zeroMarginGridLayout(3, false));
-
-			auto l = new Label(comp, SWT.NONE);
-			l.setText(_comm.prop.msgs.stepCount);
-			_stepCount = new Spinner(comp, SWT.BORDER);
-			initSpinner(_stepCount);
-			mod(_stepCount);
-			_stepCount.setEnabled(!_readOnly);
-			_stepCount.setMinimum(1);
-			_stepCount.setMaximum(_comm.prop.var.etc.stepCountMax);
-			.listener(_stepCount, SWT.Selection, () => changeStepCount(true, _stepCount.getSelection()));
-			.listener(_stepCount, SWT.Modify, () => changeStepCount(true, _stepCount.getSelection()));
-
-			_expandSPChars = new Button(comp, SWT.CHECK);
+			_expandSPChars = new Button(area, SWT.CHECK);
 			mod(_expandSPChars);
 			_expandSPChars.setEnabled(!_readOnly);
 			_expandSPChars.setText(_comm.prop.msgs.expandSPChars);
 			_expandSPChars.setToolTipText(_comm.prop.msgs.expandSPCharsHint.replace("&", "&&"));
+			_expandSPChars.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
 			.listener(_expandSPChars, SWT.Selection, &refDataVersion);
+			.listener(_expandSPChars, SWT.Selection, &updateToolTip);
+
+			auto comp = new Composite(area, SWT.NONE);
+			comp.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+			comp.setLayout(zeroMarginGridLayout(2, false));
+			auto l = new Label(comp, SWT.NONE);
+			l.setText(_comm.prop.msgs.variableInitialization);
+			_initTim = new Combo(comp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+			mod(_initTim);
+			_initTim.setVisibleItemCount(_comm.prop.var.etc.comboVisibleItemCount);
+			_initTim.setEnabled(!_readOnly);
+			_initTims = FlagTable.selectableInitialization(_local);
+			foreach (tim; _initTims) { mixin(S_TRACE);
+				_initTim.add(_comm.prop.msgs.variableInitializationName(tim));
+			}
+			.listener(_initTim, SWT.Selection, &refDataVersion);
 		}
 		if (!_readOnly) { mixin(S_TRACE);
 			_comm.delFlagAndStep.add(&delStep);
@@ -607,6 +620,7 @@ protected:
 		_init.add(selValue);
 		_init.select(0);
 		_stepCount.setSelection(_values.getItemCount());
+		_initTim.select(cast(int)_initTims.cCountUntil(_step ? _step.initialization : (_local ? VariableInitialization.None : VariableInitialization.Leave)));
 		_expandSPChars.setSelection(_step ? _step.expandSPChars : false);
 		refDataVersion();
 	}
@@ -699,12 +713,12 @@ protected:
 		if (_step.parent) { mixin(S_TRACE);
 			_step.name = this.name;
 			_step.setValues(vals, _initSelected);
-			_step.expandSPChars = _expandSPChars.getSelection();
 		} else { mixin(S_TRACE);
 			_step = new Step(this.name, vals, _initSelected);
-			_step.expandSPChars = _expandSPChars.getSelection();
 			_dir.add(_step);
 		}
+		_step.initialization = _initTims[_initTim.getSelectionIndex()];
+		_step.expandSPChars = _expandSPChars.getSelection();
 		_comm.refFlagAndStep.call([], [_step], []);
 		return true;
 	}
@@ -717,6 +731,8 @@ private:
 	Summary _summ;
 	Props prop;
 	int _readOnly;
+	bool _local;
+
 	cwx.flag.Flag _flag;
 	FlagDir dir;
 
@@ -724,6 +740,9 @@ private:
 	Combo flagInit;
 	Combo flagTrue;
 	Combo flagFalse;
+
+	Combo _initTim;
+	VariableInitialization[] _initTims;
 	Button _expandSPChars;
 
 	void refreshWarning() { mixin(S_TRACE);
@@ -758,6 +777,9 @@ private:
 					ws ~= w;
 				}
 			}
+		}
+		if (_initTim.getSelectionIndex() != -1 && !_local && _initTims[_initTim.getSelectionIndex()] !is VariableInitialization.Leave && !_comm.prop.isTargetVersion(_summ, "4")) { mixin(S_TRACE);
+			ws ~= _comm.prop.msgs.warningVariableInitialization;
 		}
 		ws ~= .sjisWarnings(_comm.prop.parent, _summ, flagName.getText(), _comm.prop.msgs.dlgLblFlagName);
 		ws ~= .sjisWarnings(_comm.prop.parent, _summ, flagTrue.getText(), _comm.prop.msgs.flagOnValue);
@@ -838,6 +860,7 @@ private:
 	}
 	void refDataVersion() { mixin(S_TRACE);
 		_expandSPChars.setEnabled(!_summ.legacy || _expandSPChars.getSelection());
+		_initTim.setEnabled(_local || !_summ.legacy || _initTims[_initTim.getSelectionIndex()] !is VariableInitialization.Leave);
 		updateToolTip();
 		refreshWarning();
 	}
@@ -847,13 +870,14 @@ public:
 	/// shell = 親ウィンドウ。
 	/// dir = 設定するフラグの親ディレクトリ。
 	/// flag = 設定するフラグ。新規の場合はnull。
-	this(Commons comm, Summary summ, Shell shell, bool readOnly, FlagDir dir, cwx.flag.Flag flag = null) { mixin(S_TRACE);
+	this(Commons comm, Summary summ, Shell shell, bool readOnly, bool local, FlagDir dir, cwx.flag.Flag flag = null) { mixin(S_TRACE);
 		super(comm.prop, shell, readOnly, comm.prop.msgs.dlgTitFlag, comm.prop.images.flag, true,
 			comm.prop.var.flagDlg, true);
 		_comm = comm;
 		this.prop = comm.prop;
 		_summ = summ;
 		_readOnly = readOnly ? SWT.READ_ONLY : SWT.NONE;
+		_local = local;
 		this._flag = flag;
 		this.dir = dir;
 		enterClose = true;
@@ -879,10 +903,12 @@ protected:
 	}
 
 	override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(zeroGridLayout(1));
+		area.setLayout(zeroGridLayout(2, false));
 		{ mixin(S_TRACE);
 			auto comp = new Composite(area, SWT.NONE);
-			comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			auto cgd = new GridData(GridData.FILL_HORIZONTAL);
+			cgd.horizontalSpan = 2;
+			comp.setLayoutData(cgd);
 			comp.setLayout(normalGridLayout(1, true));
 
 			auto top = new SplitPane(comp, SWT.HORIZONTAL);
@@ -922,11 +948,14 @@ protected:
 			setGridMinW(flagInit, prop.var.etc.flagInitWidth, GridData.FILL_HORIZONTAL);
 			setEVS(flagInit);
 		}
-		(new Label(area, SWT.SEPARATOR | SWT.HORIZONTAL))
-			.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		auto lgd1 = new GridData(GridData.FILL_HORIZONTAL);
+		lgd1.horizontalSpan = 2;
+		(new Label(area, SWT.SEPARATOR | SWT.HORIZONTAL)).setLayoutData(lgd1);
 		{ mixin(S_TRACE);
 			auto ocomp = new Composite(area, SWT.NONE);
-			ocomp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			auto ogd = new GridData(GridData.FILL_BOTH);
+			ogd.horizontalSpan = 2;
+			ocomp.setLayoutData(ogd);
 			auto cl = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
 			cl.fillHorizontal = true;
 			ocomp.setLayout(cl);
@@ -967,19 +996,34 @@ protected:
 			}
 			setGridMinW(flagFalse, prop.var.etc.flagValueWidth, GridData.FILL_HORIZONTAL);
 		}
-		(new Label(area, SWT.SEPARATOR | SWT.HORIZONTAL))
-			.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		auto lgd2 = new GridData(GridData.FILL_HORIZONTAL);
+		lgd2.horizontalSpan = 2;
+		(new Label(area, SWT.SEPARATOR | SWT.HORIZONTAL)).setLayoutData(lgd2);
 		{ mixin(S_TRACE);
-			auto comp = new Composite(area, SWT.NONE);
-			comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.HORIZONTAL_ALIGN_END));
-			comp.setLayout(normalGridLayout(1, true));
-			_expandSPChars = new Button(comp, SWT.CHECK);
+			auto eComp = new Composite(area, SWT.NONE);
+			eComp.setLayout(normalGridLayout(1, true));
+			_expandSPChars = new Button(eComp, SWT.CHECK);
 			mod(_expandSPChars);
 			_expandSPChars.setEnabled(!_readOnly);
 			_expandSPChars.setText(_comm.prop.msgs.expandSPChars);
 			_expandSPChars.setToolTipText(_comm.prop.msgs.expandSPCharsHint.replace("&", "&&"));
 			.listener(_expandSPChars, SWT.Selection, &refDataVersion);
 			.listener(_expandSPChars, SWT.Selection, &updateToolTip);
+
+			auto comp = new Composite(area, SWT.NONE);
+			comp.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+			comp.setLayout(normalGridLayout(2, false));
+			auto l = new Label(comp, SWT.NONE);
+			l.setText(_comm.prop.msgs.variableInitialization);
+			_initTim = new Combo(comp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+			mod(_initTim);
+			_initTim.setVisibleItemCount(_comm.prop.var.etc.comboVisibleItemCount);
+			_initTim.setEnabled(!_readOnly);
+			_initTims = FlagTable.selectableInitialization(_local);
+			foreach (tim; _initTims) { mixin(S_TRACE);
+				_initTim.add(_comm.prop.msgs.variableInitializationName(tim));
+			}
+			.listener(_initTim, SWT.Selection, &refDataVersion);
 		}
 		if (!_readOnly) { mixin(S_TRACE);
 			_comm.delFlagAndStep.add(&delFlag);
@@ -1003,6 +1047,7 @@ protected:
 			if (-1 == flagFalse.indexOf(_flag.off)) flagFalse.add(_flag.off, 0);
 			setComboItems(flagInit, [flagTrue.getText(), flagFalse.getText()]);
 			flagInit.select(_flag.onOff ? 0 : 1);
+			_initTim.select(cast(int)_initTims.cCountUntil(_flag.initialization));
 			_expandSPChars.setSelection(_flag.expandSPChars);
 		} else { mixin(S_TRACE);
 			flagName.setText("");
@@ -1010,6 +1055,7 @@ protected:
 			flagFalse.setText(prop.var.etc.flagFalses.length > 0 ? prop.var.etc.flagFalses[0] : "");
 			setComboItems(flagInit, [flagTrue.getText(), flagFalse.getText()]);
 			flagInit.select(0);
+			_initTim.select(cast(int)_initTims.cCountUntil(_local ? VariableInitialization.None : VariableInitialization.Leave));
 			_expandSPChars.setSelection(false);
 		}
 		if (!_flag.parent) { mixin(S_TRACE);
@@ -1026,13 +1072,13 @@ protected:
 			_flag.onOff = flagInit.getSelectionIndex() == 0;
 			_flag.on = flagTrue.getText();
 			_flag.off = flagFalse.getText();
-			_flag.expandSPChars = _expandSPChars.getSelection();
 		} else { mixin(S_TRACE);
 			_flag = new cwx.flag.Flag(this.name, flagTrue.getText(), flagFalse.getText(),
 				flagInit.getSelectionIndex() == 0);
-			_flag.expandSPChars = _expandSPChars.getSelection();
 			dir.add(_flag);
 		}
+		_flag.initialization = _initTims[_initTim.getSelectionIndex()];
+		_flag.expandSPChars = _expandSPChars.getSelection();
 		_comm.refFlagAndStep.call([_flag], [], []);
 		return true;
 	}
@@ -1046,6 +1092,7 @@ private:
 	cwx.flag.Variant _variant;
 	FlagDir _dir;
 	int _readOnly;
+	bool _local;
 
 	Text _name;
 
@@ -1056,6 +1103,9 @@ private:
 	Text _numVal;
 	Text _strVal;
 	Combo _boolVal;
+
+	Combo _initTim;
+	VariableInitialization[] _initTims;
 
 	void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
@@ -1088,11 +1138,13 @@ private:
 		refreshWarning();
 	}
 public:
-	this(Commons comm, Summary summ, Shell shell, FlagDir dir, cwx.flag.Variant variant = null) { mixin(S_TRACE);
+	this(Commons comm, Summary summ, Shell shell, bool readOnly, bool local, FlagDir dir, cwx.flag.Variant variant = null) { mixin(S_TRACE);
 		super(comm.prop, shell, false, comm.prop.msgs.dlgTitVariant, comm.prop.images.variant, true,
 			comm.prop.var.variantDlg, true);
 		_comm = comm;
 		_summ = summ;
+		_readOnly = readOnly ? SWT.READ_ONLY : SWT.NONE;
+		_local = local;
 		_variant = variant;
 		_dir = dir;
 		enterClose = true;
@@ -1188,6 +1240,22 @@ protected:
 			_boolVal.add(.variantValueToText(v));
 			_boolVal.setLayoutData(grabVGD(GridData.HORIZONTAL_ALIGN_BEGINNING));
 		}
+		(new Label(area, SWT.SEPARATOR | SWT.HORIZONTAL)).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		{ mixin(S_TRACE);
+			auto comp = new Composite(area, SWT.NONE);
+			comp.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+			comp.setLayout(normalGridLayout(2, false));
+			auto l = new Label(comp, SWT.NONE);
+			l.setText(_comm.prop.msgs.variableInitialization);
+			_initTim = new Combo(comp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+			mod(_initTim);
+			_initTim.setVisibleItemCount(_comm.prop.var.etc.comboVisibleItemCount);
+			_initTim.setEnabled(!_readOnly);
+			_initTims = FlagTable.selectableInitialization(_local);
+			foreach (tim; _initTims) { mixin(S_TRACE);
+				_initTim.add(_comm.prop.msgs.variableInitializationName(tim));
+			}
+		}
 
 		if (!_readOnly) { mixin(S_TRACE);
 			_comm.delFlagAndStep.add(&delVariant);
@@ -1220,12 +1288,14 @@ protected:
 				_boolVal.select(_variant.boolVal ? 0 : 1);
 				break;
 			}
+			_initTim.select(cast(int)_initTims.cCountUntil(_variant.initialization));
 		} else { mixin(S_TRACE);
 			_name.setText("");
 			_typeNum.setSelection(true);
 			_numVal.setText(0.text);
 			_strVal.setText("");
 			_boolVal.select(0);
+			_initTim.select(cast(int)_initTims.cCountUntil(_local ? VariableInitialization.None : VariableInitialization.Leave));
 		}
 		if (!_variant.parent) { mixin(S_TRACE);
 			// 新規作成時
@@ -1264,6 +1334,7 @@ protected:
 			} else assert (0);
 			_dir.add(_variant);
 		}
+		_variant.initialization = _initTims[_initTim.getSelectionIndex()];
 		_comm.refFlagAndStep.call([], [], [_variant]);
 		return true;
 	}
@@ -1386,6 +1457,7 @@ package class UndoEditN {
 		auto f = cast(cwx.flag.Flag)p;
 		if (f) { mixin(S_TRACE);
 			auto flag = new cwx.flag.Flag(f);
+			flag.useCounter = dir.useCounter.sub;
 			_index = f.parent.indexOf(f);
 			flag.name = oldName;
 			if (-1 != value) flag.onOff = value == 0;
@@ -1398,6 +1470,7 @@ package class UndoEditN {
 		auto s = cast(Step)p;
 		if (s) { mixin(S_TRACE);
 			auto step = new Step(s);
+			step.useCounter = dir.useCounter.sub;
 			_index = s.parent.indexOf(s);
 			step.name = oldName;
 			if (-1 != value) step.select = value;
@@ -1408,6 +1481,7 @@ package class UndoEditN {
 		}
 		if (auto v = cast(cwx.flag.Variant)p) { mixin(S_TRACE);
 			auto variant = new cwx.flag.Variant(v);
+			variant.useCounter = dir.useCounter.sub;
 			_index = v.parent.indexOf(v);
 			variant.name = oldName;
 			if (val.valid) { mixin(S_TRACE);
@@ -1432,6 +1506,7 @@ package class UndoEditN {
 		if (cast(cwx.flag.Flag)fB) { mixin(S_TRACE);
 			auto f = dir.flags[_index];
 			_f = new cwx.flag.Flag(f);
+			(cast(cwx.flag.Flag)_f).useCounter = f.useCounter.sub;
 			auto o = cast(cwx.flag.Flag)fB;
 			assert (o);
 			bool refVal = o.on != f.on || o.off != f.off;
@@ -1445,6 +1520,7 @@ package class UndoEditN {
 		} else if (cast(Step)fB) { mixin(S_TRACE);
 			auto s = dir.steps[_index];
 			_f = new Step(s);
+			(cast(Step)_f).useCounter = s.useCounter.sub;
 			auto o = cast(Step)fB;
 			assert (o);
 			bool refVal = o.values != s.values;
@@ -1459,6 +1535,7 @@ package class UndoEditN {
 			assert (cast(cwx.flag.Variant)fB);
 			auto v = dir.variants[_index];
 			_f = new cwx.flag.Variant(v);
+			(cast(cwx.flag.Variant)_f).useCounter = v.useCounter.sub;
 			auto o = cast(cwx.flag.Variant)fB;
 			assert (o);
 			bool refVal = o.type != v.type;
@@ -1537,6 +1614,61 @@ package class UndoEdit : FTVUndo {
 	override void redo() { impl(); }
 	override void dispose() {}
 }
+/// 名前以外のパラメータのアンドゥ。
+package class UndoEditParams : FTVUndo {
+	private cwx.flag.Flag[] _oldFlags;
+	private Step[] _oldSteps;
+	private cwx.flag.Variant[] _oldVariants;
+	this (FlagTable v, Commons comm, UseCounter uc, FlagDir dir, cwx.flag.Flag[] oldFlags, Step[] oldSteps, cwx.flag.Variant[] oldVariants) { mixin(S_TRACE);
+		super (v, comm, uc, dir);
+		_oldFlags = oldFlags;
+		_oldSteps = oldSteps;
+		_oldVariants = oldVariants;
+	}
+	private void impl() { mixin(S_TRACE);
+		auto v = view();
+		udb(v);
+		scope (exit) uda(v);
+		auto dir = this.dir();
+		cwx.flag.Flag[] refF;
+		Step[] refS;
+		cwx.flag.Variant[] refV;
+
+		foreach (i, ref f; _oldFlags) { mixin(S_TRACE);
+			auto t = dir.getFlag(f.name);
+			auto o = new cwx.flag.Flag(t);
+			o.useCounter = dir.useCounter.sub;
+			t.copyFrom(f);
+			f = o;
+			refF ~= t;
+		}
+		foreach (i, ref f; _oldSteps) { mixin(S_TRACE);
+			auto t = dir.getStep(f.name);
+			auto o = new Step(t);
+			o.useCounter = dir.useCounter.sub;
+			t.copyFrom(f);
+			f = o;
+			refS ~= t;
+		}
+		foreach (i, ref f; _oldVariants) { mixin(S_TRACE);
+			auto t = dir.getVariant(f.name);
+			auto o = new cwx.flag.Variant(t);
+			o.useCounter = dir.useCounter.sub;
+			t.copyFrom(f);
+			f = o;
+			refV ~= t;
+		}
+
+		comm.refFlagAndStep.call(refF, refS, refV);
+		if (v && v.flags && !v.flags.isDisposed()) { mixin(S_TRACE);
+			v.refresh();
+		}
+	}
+	override void undo() { impl(); }
+	override void redo() { impl(); }
+	override void dispose() { }
+}
+
 package class UndoInsertDelete : FTVUndo {
 	private bool _insert;
 
@@ -1575,14 +1707,17 @@ package class UndoInsertDelete : FTVUndo {
 		_fs = null;
 		foreach (index, f; fs) { mixin(S_TRACE);
 			_fs[index] = new cwx.flag.Flag(f);
+			_fs[index].useCounter = this.dir.useCounter.sub;
 		}
 		_ss = null;
 		foreach (index, s; ss) { mixin(S_TRACE);
 			_ss[index] = new Step(s);
+			_ss[index].useCounter = this.dir.useCounter.sub;
 		}
 		_vs = null;
 		foreach (index, v; vs) { mixin(S_TRACE);
 			_vs[index] = new cwx.flag.Variant(v);
+			_vs[index].useCounter = this.dir.useCounter.sub;
 		}
 	}
 	private void undoInsert(FlagTable v) { mixin(S_TRACE);
@@ -1598,6 +1733,7 @@ package class UndoInsertDelete : FTVUndo {
 		if (rfs.length || rss.length || rvs.length) { mixin(S_TRACE);
 			comm.delFlagAndStep.call(rfs, rss, rvs);
 		}
+		comm.refUseCount.call();
 	}
 	private void undoInsertImpl(ref cwx.flag.Flag[] rfs, ref Step[] rss, ref cwx.flag.Variant[] rvs, ref FlagDir[] rds) { mixin(S_TRACE);
 		_insert = false;
@@ -1653,7 +1789,6 @@ package class UndoInsertDelete : FTVUndo {
 		}
 		auto v = view();
 		if (v) v.callDeleteEvent();
-		comm.refUseCount.call();
 		rds ~= ds.values;
 		rfs ~= fs.values;
 		rss ~= ss.values;
@@ -1672,6 +1807,7 @@ package class UndoInsertDelete : FTVUndo {
 		if (rfs.length || rss.length || rvs.length) { mixin(S_TRACE);
 			comm.delFlagAndStep.call(rfs, rss, rvs);
 		}
+		comm.refUseCount.call();
 	}
 	private void undoDeleteImpl(ref cwx.flag.Flag[] rfs, ref Step[] rss, ref cwx.flag.Variant[] rvs, ref FlagDir[] rds) { mixin(S_TRACE);
 		_insert = true;
@@ -1719,7 +1855,6 @@ package class UndoInsertDelete : FTVUndo {
 		}
 		auto v = view();
 		if (v) v.callDeleteEvent();
-		comm.refUseCount.call();
 		rds ~= _ds.values;
 		rfs ~= _fs.values;
 		rss ~= _ss.values;
@@ -1831,6 +1966,7 @@ package class UndoMove : FTVUndo {
 		if (rfs.length || rss.length || rvs.length) { mixin(S_TRACE);
 			comm.delFlagAndStep.call(fSet.keys, sSet.keys, vSet.keys);
 		}
+		comm.refUseCount.call();
 	}
 	override void undo() { mixin(S_TRACE);
 		impl(_dir1, _dir2);
@@ -1877,6 +2013,9 @@ private:
 	}
 	void storeEdit(int index, string oldName, int oldValue, string[] oldNames = [], VariantVal oldVal = VariantVal(false)) { mixin(S_TRACE);
 		_undo ~= new UndoEdit(this, _comm, uc, _dir, [index], [oldName], oldValue != -1 ? [oldValue] : [], oldNames.length ? [oldNames] : [], oldVal.valid ? [oldVal] : []);
+	}
+	void storeEditParams(cwx.flag.Flag[] oldFlags, Step[] oldSteps, cwx.flag.Variant[] oldVariants) { mixin(S_TRACE);
+		_undo ~= new UndoEditParams(this, _comm, uc, _dir, oldFlags, oldSteps, oldVariants);
 	}
 	void storeInsert(ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, ptrdiff_t[] selectedV, ptrdiff_t[] flagIndices, ptrdiff_t[] stepIndices, ptrdiff_t[] variantIndices) { mixin(S_TRACE);
 		_undo ~= new UndoInsertDelete(this, _comm, uc, _dir, selectedF, selectedS, selectedV, [], flagIndices, stepIndices, variantIndices);
@@ -1937,7 +2076,8 @@ private:
 
 	static const NAME = 0;
 	static const VALUE = 1;
-	static const UC = 2;
+	static const INIT = 2;
+	static const UC = 3;
 	void refreshFlags() { mixin(S_TRACE);
 		if (_dir) { mixin(S_TRACE);
 			int i = 0;
@@ -1952,6 +2092,7 @@ private:
 				itm.setImage(0, prop.images.variant);
 				itm.setText(NAME, f.name);
 				itm.setText(VALUE, .variantValueToText(f));
+				itm.setText(INIT, prop.msgs.variableInitializationShortName(f.initialization));
 				itm.setText(UC, to!(string)(uc.get(toVariantId(f.path))));
 				itm.setData(f);
 				i++;
@@ -1967,6 +2108,7 @@ private:
 				itm.setImage(0, prop.images.step);
 				itm.setText(NAME, f.name);
 				itm.setText(VALUE, .getStepValue(prop, f, f.select));
+				itm.setText(INIT, prop.msgs.variableInitializationShortName(f.initialization));
 				itm.setText(UC, to!(string)(uc.get(toStepId(f.path))));
 				itm.setData(f);
 				i++;
@@ -1982,6 +2124,7 @@ private:
 				itm.setImage(0, prop.images.flag);
 				itm.setText(NAME, f.name);
 				itm.setText(VALUE, f.onOff ? f.on : f.off);
+				itm.setText(INIT, prop.msgs.variableInitializationShortName(f.initialization));
 				itm.setText(UC, to!(string)(uc.get(toFlagId(f.path))));
 				itm.setData(f);
 				i++;
@@ -2020,6 +2163,7 @@ private:
 	UndoManager _undo;
 	TableTextEdit _tte;
 	TableTCEdit _tce;
+	TableComboEdit!Combo _tie;
 
 	void editFlag(FlagDir parent, cwx.flag.Flag flag) { mixin(S_TRACE);
 		enterEdit();
@@ -2029,13 +2173,14 @@ private:
 			string on = prop.var.etc.flagTrues.length > 0 ? prop.var.etc.flagTrues[0] : "";
 			string off = prop.var.etc.flagFalses.length > 0 ? prop.var.etc.flagFalses[0] : "";
 			flag = new cwx.flag.Flag("", on, off, prop.var.etc.flagInitValue);
+			flag.initialization = _local ? VariableInitialization.None : VariableInitialization.Leave;
 		}
 		auto p = flag in _editDlgsF;
 		if (p) { mixin(S_TRACE);
 			p.active();
 			return;
 		}
-		auto dlg = new FlagEditDialog(_comm, _comm.summary, dlgParShl, _readOnly != SWT.NONE, parent, flag);
+		auto dlg = new FlagEditDialog(_comm, _comm.summary, dlgParShl, _readOnly != SWT.NONE, _local, parent, flag);
 		string oldName = "";
 		int oldValue = 0;
 		string[] oldNames = [flag.on, flag.off];
@@ -2092,13 +2237,14 @@ private:
 				vals ~= .parseDollarParams(prop.var.etc.stepValueName, ['N':.to!string(i)]);
 			}
 			step = new Step("", vals, .min(prop.looks.stepMaxCount - 1, .max(0, prop.var.etc.stepInitValue.value)));
+			step.initialization = _local ? VariableInitialization.None : VariableInitialization.Leave;
 		}
 		auto p = step in _editDlgsS;
 		if (p) { mixin(S_TRACE);
 			p.active();
 			return;
 		}
-		auto dlg = new StepEditDialog(_comm, _comm.summary, dlgParShl, _readOnly != SWT.NONE, parent, step);
+		auto dlg = new StepEditDialog(_comm, _comm.summary, dlgParShl, _readOnly != SWT.NONE, _local, parent, step);
 		string oldName = "";
 		int oldValue = 0;
 		string[] oldNames = step.values.dup;
@@ -2151,13 +2297,14 @@ private:
 		auto old = createMode ? null : variant.name;
 		if (!variant) { mixin(S_TRACE);
 			variant = new cwx.flag.Variant("", 0.0);
+			variant.initialization = _local ? VariableInitialization.None : VariableInitialization.Leave;
 		}
 		auto p = variant in _editDlgsV;
 		if (p) { mixin(S_TRACE);
 			p.active();
 			return;
 		}
-		auto dlg = new VariantEditDialog(_comm, _comm.summary, dlgParShl, parent, variant);
+		auto dlg = new VariantEditDialog(_comm, _comm.summary, dlgParShl, _readOnly != SWT.NONE, _local, parent, variant);
 		auto oldName = "";
 		auto oldValue = VariantVal(false);
 		dlg.applyEvent ~= { mixin(S_TRACE);
@@ -2545,6 +2692,79 @@ private:
 		}
 		_comm.refreshToolBar();
 	}
+	void initTimCreateEditor(TableItem itm, int column, out string[] strs, out string str) { mixin(S_TRACE);
+		assert (!_readOnly);
+		assert (column is INIT);
+		VariableInitialization initialization;
+		auto d = itm.getData();
+		if (auto f = cast(cwx.flag.Flag)d) { mixin(S_TRACE);
+			initialization = f.initialization;
+		} else if (auto f = cast(Step)d) { mixin(S_TRACE);
+			initialization = f.initialization;
+		} else if (auto f = cast(cwx.flag.Variant)d) { mixin(S_TRACE);
+			initialization = f.initialization;
+		} else assert (0);
+
+		str = prop.msgs.variableInitializationShortName(initialization);
+		foreach (tim; selectableInitialization(_local)) { mixin(S_TRACE);
+			strs ~= prop.msgs.variableInitializationShortName(tim);
+		}
+	}
+	void initTimEditEnd(TableItem selItm, int column, Combo combo) { mixin(S_TRACE);
+		assert (!_readOnly);
+		assert (column is INIT);
+		auto tims = selectableInitialization(_local);
+		auto tim = tims[combo.getSelectionIndex()];
+
+		auto itms = flags.getSelection();
+		itms = itms.remove(selItm);
+		itms.insertInPlace(0, selItm);
+
+		cwx.flag.Flag[] refF;
+		Step[] refS;
+		cwx.flag.Variant[] refV;
+		cwx.flag.Flag[] oldF;
+		Step[] oldS;
+		cwx.flag.Variant[] oldV;
+
+		foreach (itm; itms) { mixin(S_TRACE);
+			auto d = itm.getData();
+			if (auto f = cast(cwx.flag.Flag)d) { mixin(S_TRACE);
+				if (f.initialization is tim) continue;
+				oldF ~= new cwx.flag.Flag(f);
+				oldF[$ - 1].useCounter = f.useCounter.sub;
+				refF ~= f;
+				f.initialization = tim;
+			}
+			if (auto f = cast(Step)d) { mixin(S_TRACE);
+				if (f.initialization is tim) continue;
+				oldS ~= new Step(f);
+				oldS[$ - 1].useCounter = f.useCounter.sub;
+				refS ~= f;
+				f.initialization = tim;
+			}
+			if (auto f = cast(cwx.flag.Variant)d) { mixin(S_TRACE);
+				if (f.initialization is tim) continue;
+				oldV ~= new cwx.flag.Variant(f);
+				oldV[$ - 1].useCounter = f.useCounter.sub;
+				refV ~= f;
+				f.initialization = tim;
+			}
+			itm.setText(INIT, prop.msgs.variableInitializationShortName(tim));
+		}
+		if (oldF.length || oldS.length || oldV.length) { mixin(S_TRACE);
+			storeEditParams(oldF, oldS, oldV);
+			_comm.refFlagAndStep.call(refF, refS, refV);
+			_comm.refreshToolBar();
+		}
+	}
+	static VariableInitialization[] selectableInitialization(bool local) { mixin(S_TRACE);
+		if (local) { mixin(S_TRACE);
+			return [VariableInitialization.Leave, VariableInitialization.EventExit, VariableInitialization.None];
+		} else { mixin(S_TRACE);
+			return [VariableInitialization.Leave, VariableInitialization.Complete, VariableInitialization.None];
+		}
+	}
 
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
@@ -2645,6 +2865,13 @@ public:
 		} else { mixin(S_TRACE);
 			saveColumnWidth!("prop.var.etc.flagInitColumn")(prop, initCol);
 		}
+		auto initTimCol = new TableColumn(flags, SWT.NULL);
+		initTimCol.setText(prop.msgs.variableInitializationShort);
+		if (_local) { mixin(S_TRACE);
+			saveColumnWidth!("prop.var.etc.localVariableInitializationColumn")(prop, initTimCol);
+		} else { mixin(S_TRACE);
+			saveColumnWidth!("prop.var.etc.variableInitializationColumn")(prop, initTimCol);
+		}
 		auto countCol = new TableColumn(flags, SWT.NULL);
 		countCol.setText(prop.msgs.flagCount);
 		if (_local) { mixin(S_TRACE);
@@ -2723,8 +2950,19 @@ public:
 		flags.addDisposeListener(new DListener);
 
 		if (!_readOnly) { mixin(S_TRACE);
-			_tte = new TableTextEdit(_comm, prop, flags, 0, &nameEditEnd, null);
-			_tce = new TableTCEdit(_comm, flags, 1, &initCreateEditor, &initEditEnd, null);
+			_tte = new TableTextEdit(_comm, prop, flags, NAME, &nameEditEnd, null);
+			_tce = new TableTCEdit(_comm, flags, VALUE, &initCreateEditor, &initEditEnd, null);
+			_tie = new TableComboEdit!Combo(_comm, prop, flags, INIT, &initTimCreateEditor, &initTimEditEnd, (itm, column) { mixin(S_TRACE);
+				if (_local) return true;
+				auto d = itm.getData();
+				if (auto f = cast(cwx.flag.Flag)d) { mixin(S_TRACE);
+					return !_comm.summary.legacy || f.initialization !is VariableInitialization.Leave;
+				} else if (auto f = cast(Step)d) { mixin(S_TRACE);
+					return !_comm.summary.legacy || f.initialization !is VariableInitialization.Leave;
+				} else if (auto f = cast(cwx.flag.Variant)d) { mixin(S_TRACE);
+					return true;
+				} else assert (0);
+			}, null);
 		}
 
 		_comp.addDisposeListener(new Dispose);
@@ -2779,12 +3017,12 @@ public:
 	private void refreshUseCount() { mixin(S_TRACE);
 		foreach (itm; flags.getItems()) { mixin(S_TRACE);
 			if (cast(cwx.flag.Flag)itm.getData()) { mixin(S_TRACE);
-				itm.setText(2, to!(string)(uc.get(toFlagId((cast(cwx.flag.Flag)itm.getData()).path))));
+				itm.setText(UC, to!(string)(uc.get(toFlagId((cast(cwx.flag.Flag)itm.getData()).path))));
 			} else if (cast(Step)itm.getData()) { mixin(S_TRACE);
-				itm.setText(2, to!(string)(uc.get(toStepId((cast(Step)itm.getData()).path))));
+				itm.setText(UC, to!(string)(uc.get(toStepId((cast(Step)itm.getData()).path))));
 			} else { mixin(S_TRACE);
 				assert (cast(cwx.flag.Variant)itm.getData() !is null);
-				itm.setText(2, to!(string)(uc.get(toVariantId((cast(cwx.flag.Variant)itm.getData()).path))));
+				itm.setText(UC, to!(string)(uc.get(toVariantId((cast(cwx.flag.Variant)itm.getData()).path))));
 			}
 		}
 	}
@@ -3178,7 +3416,7 @@ public:
 			auto selsS = selectionStepIndices;
 			auto selsV = selectionVariantIndices;
 			auto ver = new XMLInfo(prop.sys, LATEST_VERSION);
-			if (_dir.appendFromNode(node, ver, true, false, cFlags, cSteps, cVariants, newPath, rootId)) { mixin(S_TRACE);
+			if (_dir.appendFromNode(node, ver, true, false, _local, cFlags, cSteps, cVariants, newPath, rootId)) { mixin(S_TRACE);
 				ptrdiff_t[] flagIndices;
 				ptrdiff_t[] stepIndices;
 				ptrdiff_t[] variantIndices;
@@ -3229,10 +3467,12 @@ public:
 	void cancelEdit() { mixin(S_TRACE);
 		if (_tte) _tte.cancel();
 		if (_tce) _tce.cancel();
+		if (_tie) _tie.cancel();
 	}
 	void enterEdit() { mixin(S_TRACE);
 		if (_tte) _tte.enter();
 		if (_tce) _tce.enter();
+		if (_tie) _tie.enter();
 	}
 
 	void replaceID() { mixin(S_TRACE);

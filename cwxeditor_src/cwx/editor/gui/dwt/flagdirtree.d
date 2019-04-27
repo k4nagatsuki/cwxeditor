@@ -154,7 +154,7 @@ private:
 					return r;
 				}
 				auto ver = new XMLInfo(prop.sys, LATEST_VERSION);
-				auto ret = dir.appendFromXML(data, ver, false, true, cFlags, cSteps, cVariants, newPath, rootId);
+				auto ret = dir.appendFromXML(data, ver, false, true, false, cFlags, cSteps, cVariants, newPath, rootId);
 				bool samePane = dir.root.id == rootId;
 				final switch (ret) {
 				case FlagDir.AppendXmlResult.DIR_SUCCESS:
@@ -508,7 +508,7 @@ public:
 					auto tblSelsS = flags.selectionStepIndices;
 					auto tblSelsV = flags.selectionVariantIndices;
 					auto ver = new XMLInfo(prop.sys, LATEST_VERSION);
-					switch (cur.appendFromXML(c, ver, true, true, cFlags, cSteps, cVariants, newPath, rootId)) {
+					switch (cur.appendFromXML(c, ver, true, true, false, cFlags, cSteps, cVariants, newPath, rootId)) {
 					case FlagDir.AppendXmlResult.DIR_SUCCESS:
 						refresh(newPath);
 						auto dir = root.findPath(newPath, false);

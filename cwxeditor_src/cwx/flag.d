@@ -126,6 +126,7 @@ private:
 	TextHolder _off;
 	bool _onOff;
 	bool _expandSPChars = false;
+	VariableInitialization _initialization = VariableInitialization.Leave;
 	FlagDir _parent;
 	void delegate() _change = null;
 	UseCounter _uc = null;
@@ -145,6 +146,7 @@ public:
 		_off.text = copyBase.off;
 		_onOff = copyBase.onOff;
 		_expandSPChars = copyBase.expandSPChars;
+		_initialization = copyBase.initialization;
 	}
 	/// 名前・On/Off時のテキスト・On/Off状態を指定してインスタンスを生成。
 	this (string name, string on, string off, bool onOff) { mixin(S_TRACE);
@@ -169,7 +171,8 @@ public:
 			&& off == f.off
 			&& onOff == f.onOff
 			&& name == f.name
-			&& expandSPChars == f.expandSPChars;
+			&& expandSPChars == f.expandSPChars
+			&& initialization == f.initialization;
 	}
 
 	/// flagのパラメータをコピーする。
@@ -179,6 +182,7 @@ public:
 		off = flag.off;
 		onOff = flag.onOff;
 		expandSPChars = flag.expandSPChars;
+		initialization = flag.initialization;
 	}
 	/// このフラグの親ディレクトリ。
 	@property
@@ -304,6 +308,19 @@ public:
 		}
 	}
 
+	/// 初期化タイミング(Wsn.4)。
+	@property
+	const
+	VariableInitialization initialization() { mixin(S_TRACE);
+		return _initialization;
+	}
+	/// ditto
+	@property
+	void initialization(VariableInitialization initialization) { mixin(S_TRACE);
+		if (_change && _initialization != initialization) _change();
+		_initialization = initialization;
+	}
+
 	/// 値のテキスト内で使用されている状態変数のパス。
 	const
 	string[] flagsInText(bool value) { return value ? _on.flagsInText : _off.flagsInText; }
@@ -349,6 +366,7 @@ public:
 		if (!name) throw new FlagException("Flag name not found.");
 		auto flag = new Flag(name, tv, fv, def);
 		flag.expandSPChars = fe.attr!bool("spchars", false, false);
+		flag.initialization = toVariableInitialization(fe.attr("initialize", false, "Leave"));
 		return flag;
 	}
 	/// XMLノードへこのフラグのデータを追加する。
@@ -357,6 +375,7 @@ public:
 		auto e = node.newElement("Flag");
 		e.newAttr("default", fromBool(_onOff));
 		if (expandSPChars) e.newAttr("spchars", expandSPChars);
+		if (initialization !is VariableInitialization.Leave) e.newAttr("initialize", fromVariableInitialization(initialization));
 		e.newElement("Name", path);
 		e.newElement("True", on);
 		e.newElement("False", off);
@@ -383,6 +402,7 @@ private:
 	TextHolder[] _vals;
 	uint _select;
 	bool _expandSPChars = false;
+	VariableInitialization _initialization = VariableInitialization.Leave;
 	FlagDir _parent;
 	void delegate() _change = null;
 	UseCounter _uc = null;
@@ -395,6 +415,7 @@ public:
 		_name = copyBase.name;
 		setValues(copyBase.values, copyBase._select);
 		_expandSPChars = copyBase.expandSPChars;
+		_initialization = copyBase.initialization;
 	}
 	/// ステップ名、各段階のステップ値、選択状態を指定してインスタンスを生成。
 	this (string name, string[] vals, uint select) { mixin(S_TRACE);
@@ -411,7 +432,8 @@ public:
 		return select == f.select
 			&& name == f.name
 			&& values == f.values
-			&& expandSPChars == f.expandSPChars;
+			&& expandSPChars == f.expandSPChars
+			&& initialization == f.initialization;
 	}
 
 	/// stepのパラメータをコピーする。
@@ -419,6 +441,7 @@ public:
 		name = step.name;
 		setValues(step.values, step.select);
 		expandSPChars = step.expandSPChars;
+		initialization = step.initialization;
 	}
 	/// このステップの親ディレクトリ。
 	@property
@@ -558,6 +581,19 @@ public:
 		}
 	}
 
+	/// 初期化タイミング(Wsn.4)。
+	@property
+	const
+	VariableInitialization initialization() { mixin(S_TRACE);
+		return _initialization;
+	}
+	/// ditto
+	@property
+	void initialization(VariableInitialization initialization) { mixin(S_TRACE);
+		if (_change && _initialization != initialization) _change();
+		_initialization = initialization;
+	}
+
 	/// 値のテキスト内で使用されている状態変数のパス。
 	const
 	string[] flagsInText(uint value) { return _vals[value].flagsInText; }
@@ -626,6 +662,7 @@ public:
 		}
 		auto step = new Step(name, vals, def);
 		step.expandSPChars = se.attr!bool("spchars", false, false);
+		step.initialization = toVariableInitialization(se.attr("initialize", false, "Leave"));
 		return step;
 	}
 	/// 指定されたXMLノードにこのステップのデータを追加する。
@@ -634,6 +671,7 @@ public:
 		auto e = node.newElement("Step");
 		e.newAttr("default", _select);
 		if (expandSPChars) e.newAttr("spchars", expandSPChars);
+		if (initialization !is VariableInitialization.Leave) e.newAttr("initialize", fromVariableInitialization(initialization));
 		e.newElement("Name", path);
 		for (int i = 0; i < _vals.length; i++) { mixin(S_TRACE);
 			e.newElement("Value", _vals[i].text);
@@ -664,6 +702,8 @@ private:
 	string _strVal = "";
 	bool _boolVal = true;
 
+	VariableInitialization _initialization = VariableInitialization.Leave;
+
 	FlagDir _parent;
 	void delegate() _change = null;
 	UseCounter _uc = null;
@@ -681,6 +721,7 @@ public:
 		_numVal = copyBase.numVal;
 		_strVal = copyBase.strVal;
 		_boolVal = copyBase.boolVal;
+		_initialization = copyBase.initialization;
 	}
 	/// コモン名、初期値を指定してインスタンスを生成。
 	this (string name, double numVal) { mixin(S_TRACE);
@@ -709,6 +750,7 @@ public:
 		if (!f) return false;
 		if (type != f.type) return false;
 		if (name != f.name) return false;
+		if (initialization != f.initialization) return false;
 		final switch (type) {
 		case VariantType.Number: return numVal.approxEqual(f.numVal);
 		case VariantType.String: return strVal == f.strVal;
@@ -723,6 +765,7 @@ public:
 		_numVal = copyBase.numVal;
 		_strVal = copyBase.strVal;
 		_boolVal = copyBase.boolVal;
+		_initialization = copyBase.initialization;
 	}
 	/// 親ディレクトリ。
 	@property
@@ -817,6 +860,19 @@ public:
 	const
 	bool boolVal() { return _boolVal; }
 
+	/// 初期化タイミング。
+	@property
+	const
+	VariableInitialization initialization() { mixin(S_TRACE);
+		return _initialization;
+	}
+	/// ditto
+	@property
+	void initialization(VariableInitialization initialization) { mixin(S_TRACE);
+		if (_change && _initialization != initialization) _change();
+		_initialization = initialization;
+	}
+
 	const
 	override int opCmp(Object o) { mixin(S_TRACE);
 		return cmp(name, (cast(Variant)o).name);
@@ -871,6 +927,7 @@ public:
 			variant = new Variant(name, .parseBool(defValue));
 			break;
 		}
+		variant.initialization = toVariableInitialization(ve.attr("initialize", false, "Leave"));
 		return variant;
 	}
 	/// 指定されたXMLノードにこのステップのデータを追加する。
@@ -878,6 +935,7 @@ public:
 	void toNode(ref XNode node) { mixin(S_TRACE);
 		auto e = node.newElement("Variant");
 		e.newAttr("defaulttype", .fromVariantType(type));
+		if (initialization !is VariableInitialization.Leave) e.newAttr("initialize", fromVariableInitialization(initialization));
 		final switch (type) {
 		case VariantType.Number:
 		case VariantType.String:
@@ -1856,12 +1914,12 @@ public:
 	/// cVariants = 移動またはコピーしたコモンの旧パスをキーにして新たなコモンを格納する。
 	/// Returns: XMLからの追加を試みた結果。
 	/// See_Also: getXml(FlagDir, Flag[], Step[], Variant[]), getXml(FlagDir)
-	AppendXmlResult appendFromXML(string xml, in XMLInfo ver, bool copy, bool dirMode,
+	AppendXmlResult appendFromXML(string xml, in XMLInfo ver, bool copy, bool dirMode, bool local,
 			out Flag[string] cFlags, out Step[string] cSteps, out Variant[string] cVariants,
 			out string newPath, out string rootId) { mixin(S_TRACE);
 		try { mixin(S_TRACE);
 			auto doc = XNode.parse(xml);
-			return appendFromNode(doc, ver, copy, dirMode, cFlags, cSteps, cVariants, newPath, rootId);
+			return appendFromNode(doc, ver, copy, dirMode, local, cFlags, cSteps, cVariants, newPath, rootId);
 		} catch (Exception e) {
 			printStackTrace();
 			debugln(e);
@@ -1869,12 +1927,24 @@ public:
 		return AppendXmlResult.FAIL;
 	}
 	/// ditto
-	AppendXmlResult appendFromNode(ref XNode doc, in XMLInfo ver, bool copy, bool dirMode,
+	AppendXmlResult appendFromNode(ref XNode doc, in XMLInfo ver, bool copy, bool dirMode, bool local,
 			out Flag[string] cFlags, out Step[string] cSteps, out Variant[string] cVariants,
 			out string newPath, out string rootId) { mixin(S_TRACE);
 		newPath = null;
 		rootId = "";
 		rootId = doc.attr(XML_ATT_ROOT_ID, false, "");
+
+		void validateInitialization() { mixin(S_TRACE);
+			void validateInitializationImpl(F)(F[string] cs) { mixin(S_TRACE);
+				foreach (f; cs) { mixin(S_TRACE);
+					if (local && f.initialization is VariableInitialization.Complete) f.initialization = VariableInitialization.None;
+					if (!local && f.initialization is VariableInitialization.EventExit) f.initialization = VariableInitialization.Leave;
+				}
+			}
+			validateInitializationImpl(cFlags);
+			validateInitializationImpl(cSteps);
+			validateInitializationImpl(cVariants);
+		}
 
 		if (doc.name == XML_ROOT_FLAGS_AND_STEPS) { mixin(S_TRACE);
 			string path;
@@ -1904,13 +1974,16 @@ public:
 					return AppendXmlResult.FLAG_STEP_ON_DIR;
 				}
 				if (loadVariables(doc, cFlags, cSteps, cVariants, copy, ver)) { mixin(S_TRACE);
+					validateInitialization();
 					return AppendXmlResult.FLAG_STEP_SUCCESS;
 				}
 			}
 			return AppendXmlResult.FAIL;
 		}
 		if (dirMode && doc.name == XML_ROOT_FLAG_DIRECTORY) { mixin(S_TRACE);
-			return loadRootFlagDirectory(doc, ver, copy, cFlags, cSteps, cVariants, newPath);
+			auto r = loadRootFlagDirectory(doc, ver, copy, cFlags, cSteps, cVariants, newPath);
+			validateInitialization();
+			return r;
 		}
 		return AppendXmlResult.FAIL;
 	}

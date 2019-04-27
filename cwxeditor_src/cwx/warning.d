@@ -105,6 +105,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (flag.expandSPChars && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningExpandSPChars;
 		}
+		if (cast(Summary)flag.useCounter.owner && flag.initialization !is VariableInitialization.Leave && !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
+			r ~= prop.msgs.warningVariableInitialization;
+		}
 		r ~= .sjisWarnings(prop, summ, flag.name, prop.msgs.dlgLblFlagName);
 		r ~= .sjisWarnings(prop, summ, flag.on, prop.msgs.flagOnValue);
 		r ~= .sjisWarnings(prop, summ, flag.off, prop.msgs.flagOffValue);
@@ -123,6 +126,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		}
 		if (step.expandSPChars && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningExpandSPChars;
+		}
+		if (cast(Summary)step.useCounter.owner && step.initialization !is VariableInitialization.Leave && !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
+			r ~= prop.msgs.warningVariableInitialization;
 		}
 		r ~= .sjisWarnings(prop, summ, step.name, prop.msgs.dlgLblStepName);
 		foreach (val; step.values) { mixin(S_TRACE);

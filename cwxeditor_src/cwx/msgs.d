@@ -1288,6 +1288,26 @@ class Msgs : Properties {
 	auto flagInit = Msg("flagInit", "初期値");
 	auto flagCount = Msg("flagCount", "利用数");
 
+	auto variableInitialization = Msg("variableInitialization", "初期化タイミング"); /// Wsn.4
+	const string variableInitializationName(VariableInitialization id) { mixin(S_TRACE);
+		mixin(EnumToStringSwitch!(VariableInitialization, "variableInitializationName"));
+	}
+	auto variableInitializationNameLeave = Msg("variableInitializationNameLeave", "シナリオ終了時");
+	auto variableInitializationNameComplete = Msg("variableInitializationNameComplete", "済印をつけた時");
+	auto variableInitializationNameEventExit = Msg("variableInitializationNameEventExit", "イベント終了時");
+	auto variableInitializationNameNone = Msg("variableInitializationNameNone", "初期化しない");
+
+	auto variableInitializationShort = Msg("variableInitializationShort", "初期化"); /// Wsn.4
+	const string variableInitializationShortName(VariableInitialization id) { mixin(S_TRACE);
+		mixin(EnumToStringSwitch!(VariableInitialization, "variableInitializationShortName"));
+	}
+	auto variableInitializationShortNameLeave = Msg("variableInitializationShortNameLeave", "シナリオ終了");
+	auto variableInitializationShortNameComplete = Msg("variableInitializationShortNameComplete", "済印つき終了");
+	auto variableInitializationShortNameEventExit = Msg("variableInitializationShortNameEventExit", "イベント終了");
+	auto variableInitializationShortNameNone = Msg("variableInitializationShortNameNone", "しない");
+
+	const string warningVariableInitialization = Msg("warningVariableInitialization", "初期化タイミングの指定は、Wsn.4以降の形式のシナリオでしか行なえません。");
+
 	/// フラグ設定ダイアログ関連。
 	auto dlgTitFlag = Msg("dlgTitFlag", "フラグの設定");
 	auto dlgLblFlagName = Msg("dlgLblFlagName", "フラグ名");

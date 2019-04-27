@@ -1244,6 +1244,33 @@ string fromVariantType(VariantType t) { mixin(S_TRACE);
 	}
 }
 
+/// 状態変数の初期化タイミング(Wsn.4)。
+enum VariableInitialization {
+	Leave, /// シナリオ終了時。
+	Complete, /// 済印をつけた時。
+	EventExit, /// イベント終了時。
+	None, /// 初期化しない。
+}
+/// ditto
+VariableInitialization toVariableInitialization(string name) { mixin(S_TRACE);
+	switch (name) {
+	case "Leave": return VariableInitialization.Leave;
+	case "Complete": return VariableInitialization.Complete;
+	case "EventExit": return VariableInitialization.EventExit;
+	case "None": return VariableInitialization.None;
+	default: throw new Exception("Unknown variable initialization: " ~ name);
+	}
+}
+/// ditto
+string fromVariableInitialization(VariableInitialization t) { mixin(S_TRACE);
+	final switch (t) {
+	case VariableInitialization.Leave: return "Leave";
+	case VariableInitialization.Complete: return "Complete";
+	case VariableInitialization.EventExit: return "EventExit";
+	case VariableInitialization.None: return "None";
+	}
+}
+
 /// 関数のカテゴリ。
 enum FunctionCategory {
 	StringOperation, /// 文字列操作。
