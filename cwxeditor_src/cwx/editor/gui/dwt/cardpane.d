@@ -584,7 +584,7 @@ private:
 				auto c = cardFrom(owner, cardType, id);
 				auto card = create(c);
 				shallowCopy(card, c);
-				card.setUseCounter(comm.summary.useCounter.sub);
+				card.setUseCounter(c.useCounter.sub);
 				_card ~= card;
 			}
 			_id = ids.dup;
@@ -599,7 +599,7 @@ private:
 				auto c = cardFrom(owner, cardType, id);
 				_card[i] = create(c);
 				shallowCopy(_card[i], c);
-				_card[i].setUseCounter(comm.summary.useCounter.sub);
+				_card[i].setUseCounter(c.useCounter.sub);
 				shallowCopy(c, card);
 
 				refCard(v, comm, c);
@@ -784,7 +784,7 @@ private:
 			foreach (id; _ids) { mixin(S_TRACE);
 				auto c = cardFrom(owner, cardType, id);
 				auto card = c.dup;
-				card.setUseCounter(comm.summary.useCounter.sub);
+				card.setUseCounter(c.useCounter.sub);
 				_cards ~= card;
 				_indices ~= cast(int)indexOf(owner, cardType, c);
 			}

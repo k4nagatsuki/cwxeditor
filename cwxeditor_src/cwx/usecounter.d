@@ -2166,7 +2166,7 @@ class UseCounter {
 		_owner = owner;
 		_global = global;
 		_local = local;
-		if (createSub) _sub = new UseCounter(owner, global.sub, local ? local.sub : null, false);
+		if (createSub) _sub = new UseCounter(owner, local ? global : global.sub, local ? local.sub : null, false);
 	}
 
 	/// この使用回数カウンタの所有者を返す。
@@ -2542,7 +2542,9 @@ public:
 	/// idの使用者一覧を返す。
 	@property
 	const
-	IDToUser!ID[] values(ID)(ID id) { return (ucc!ID).values(id); }
+	IDToUser!ID[] values(ID)(ID id) { mixin(S_TRACE);
+		return (ucc!ID).values(id);
+	}
 	/// ditto
 	@property
 	inout

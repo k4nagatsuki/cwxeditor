@@ -1012,7 +1012,7 @@ public:
 	/// サブディレクトリ等も全てコピーされる。
 	this (CWXPath owner, in FlagDir copyBase) { mixin(S_TRACE);
 		this (owner, copyBase._localVariablePrefix);
-		name = copyBase.name;
+		if (copyBase.name != "") name = copyBase.name;
 		foreach (d; copyBase.subDirs) { mixin(S_TRACE);
 			add(new FlagDir(null, d));
 		}
