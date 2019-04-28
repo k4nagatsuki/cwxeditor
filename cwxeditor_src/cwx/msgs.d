@@ -1033,7 +1033,9 @@ class Msgs : Properties {
 	auto ctEffectSound = Msg("ctEffectSound", "「%1$s」を再生");
 	auto ctEffectNoSound = Msg("ctEffectNoSound", "音声無し");
 	auto ctEffect = Msg("ctEffect", "%1$s レベル%2$s %3$s/%4$s 成功率%5$s%6$s %7$s %8$s 効果 = %9$s %10$s %11$s");
+	auto ctEffectWithInitialEffect = Msg("ctEffectWithInitialEffect", "%1$s レベル%2$s %3$s/%4$s 成功率%5$s%6$s %7$s %8$s 効果 = %9$s %10$s %11$s 初期効果あり(%12$s)");
 	auto ctEffectRefAbility = Msg("ctEffectRefAbility", "%1$s %2$s/%3$s 成功率%4$s%5$s %6$s %7$s 効果 = %8$s 参照能力 = %9$sと%10$s %11$s %12$s");
+	auto ctEffectRefAbilityWithInitialEffect = Msg("ctEffectRefAbilityWithInitialEffect", "%1$s %2$s/%3$s 成功率%4$s%5$s %6$s %7$s 効果 = %8$s 参照能力 = %9$sと%10$s %11$s %12$s 初期効果あり(%13$s)");
 	auto ctEffectMotion = Msg("ctEffectMotion", "[%1$s]");
 	auto ctKeyCodes = Msg("ctKeyCodes", "キーコード = %1$s");
 	auto ctNoKeyCode = Msg("ctNoKeyCode", "キーコード無し");
