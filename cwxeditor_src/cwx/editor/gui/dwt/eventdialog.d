@@ -929,7 +929,10 @@ private:
 		}
 	}
 
-	void refFlagAndStep(cwx.flag.Flag[] flags, Step[] steps, cwx.flag.Variant[] variants) { updateToolTip(); }
+	void refFlagAndStep(cwx.flag.Flag[] flags, Step[] steps, cwx.flag.Variant[] variants) { mixin(S_TRACE);
+		updateToolTip();
+		refreshWarning();
+	}
 	void refPath(string o, string n, bool isDir) { updateToolTip(); }
 	void refPaths(string parent) { updateToolTip(); }
 	void updateToolTip() { mixin(S_TRACE);
@@ -1389,7 +1392,10 @@ private:
 		refreshWarning();
 	}
 
-	void refFlagAndStep(cwx.flag.Flag[] flags, Step[] steps, cwx.flag.Variant[] variants) { updateToolTip(); }
+	void refFlagAndStep(cwx.flag.Flag[] flags, Step[] steps, cwx.flag.Variant[] variants) { mixin(S_TRACE);
+		updateToolTip();
+		refreshWarning();
+	}
 	void refPath(string o, string n, bool isDir) { updateToolTip(); }
 	void refPaths(string parent) { updateToolTip(); }
 	void updateToolTip() { mixin(S_TRACE);
