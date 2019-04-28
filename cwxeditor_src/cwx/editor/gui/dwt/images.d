@@ -608,11 +608,17 @@ public:
 			if (this.data) { mixin(S_TRACE);
 				matImgData = this.data.scaled(_targetScale);
 				dataSet.add(matImgData);
+				if (matImgData.transparentPixel == -1 && !(matImgData.alphaData && matImgData.alphaData.length)) { mixin(S_TRACE);
+					noTransparent = true;
+				}
 			} else { mixin(S_TRACE);
 				if (isBinImg(path) || (path !is null && .exists(path))) { mixin(S_TRACE);
-					auto matImgDataWS = .loadImageWithScale(path, _targetScale, false, true);
+					auto matImgDataWS = .loadImageWithScale(path, _targetScale, transparent, true);
 					dataSet.add(matImgDataWS.baseData);
 					matImgData = matImgDataWS.scaled(_targetScale);
+					if (matImgData.transparentPixel == -1 && !(matImgData.alphaData && matImgData.alphaData.length)) { mixin(S_TRACE);
+						noTransparent = true;
+					}
 					if (matImgData.width != ds(initW) || matImgData.height != ds(initH)) { mixin(S_TRACE);
 						if (smoothing && 16 <= matImgData.depth) { mixin(S_TRACE);
 							matImgData = cast(ImageData)matImgData.clone();
@@ -635,9 +641,6 @@ public:
 					// ファイルが無い場合は単に表示しない。
 					matImgData = blankImage(ds(initW), ds(initH));
 				}
-			}
-			if (matImgData.transparentPixel == -1 && !(matImgData.alphaData && matImgData.alphaData.length)) { mixin(S_TRACE);
-				noTransparent = true;
 			}
 			if (appends.length) { mixin(S_TRACE);
 				return matImgData;
