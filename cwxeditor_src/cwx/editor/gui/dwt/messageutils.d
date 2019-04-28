@@ -3193,7 +3193,8 @@ ImageDataWithScale previewMessage(Commons comm, Props prop, in Summary summ, Ima
 		return comm.skin.findImagePath(path, summ ? summ.scenarioPath : "", summ ? summ.dataVersion : LATEST_VERSION).length != 0 || decodeFontPath(path) in comm.skin.spChars;
 	}, rFonts, rColors);
 
-	auto font = .createFontFromPixels(prop.ds(prop.looks.messageFont(legacy)));
+	auto antialias = 2 <= prop.drawingScale;
+	auto font = .createFontFromPixels(prop.ds(prop.looks.messageFont(legacy)), antialias);
 	scope (exit) font.dispose();
 	auto fc = new Color(d, dwtData(prop.var.etc.messageForeColor, alpha));
 	scope (exit) fc.dispose();

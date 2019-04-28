@@ -4687,8 +4687,8 @@ version (Windows) {
 }
 
 /// ピクセルサイズを指定してフォントを生成する。
-Font createFontFromPixels(in CFont font) { mixin(S_TRACE);
-	return .createFontFromPixels(font.name, font.point, font.bold, font.italic);
+Font createFontFromPixels(in CFont font, bool antialias = true) { mixin(S_TRACE);
+	return .createFontFromPixels(font.name, font.point, font.bold, font.italic, false, false, antialias);
 }
 /// ditto
 Font createFontFromPixels(string face, int pixels, bool bold = false, bool italic = false, bool uline = false, bool strike = false, bool antialias = true) { mixin(S_TRACE);
