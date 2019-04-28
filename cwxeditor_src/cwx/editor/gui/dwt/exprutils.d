@@ -756,18 +756,22 @@ private class FunctionCallEditor {
 		intoDisplay(cloc.x, cloc.y, p.x, p.y);
 		_shell.setBounds(cloc.x, cloc.y, p.x, p.y);
 
-		_shell.setLayout(zeroMarginGridLayout(1, true));
+		auto sgl = normalGridLayout(1, true);
+		sgl.marginWidth = 0;
+		_shell.setLayout(sgl);
 
 		auto sash = new SplitPane(_shell, SWT.VERTICAL);
 		sash.setLayoutData(new GridData(GridData.FILL_BOTH));
 		auto top = new Composite(sash, SWT.NONE);
-		top.setLayout(zeroGridLayout(1, true));
+		top.setLayout(zeroMarginGridLayout(1, true));
 		auto bottom = new Composite(sash, SWT.NONE);
-		bottom.setLayout(zeroGridLayout(1, true));
+		bottom.setLayout(zeroMarginGridLayout(1, true));
 		{ mixin(S_TRACE);
 			auto comp = new Composite(top, SWT.NONE);
 			comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			comp.setLayout(normalGridLayout(2, false));
+			auto gd = normalGridLayout(2, false);
+			gd.marginHeight = 0.ppis;
+			comp.setLayout(gd);
 
 			auto l1 = new Label(comp, SWT.NONE);
 			l1.setText(_comm.prop.msgs.functionCategory);
@@ -803,7 +807,9 @@ private class FunctionCallEditor {
 		{ mixin(S_TRACE);
 			auto comp = new Composite(top, SWT.NONE);
 			comp.setLayoutData(new GridData(GridData.FILL_BOTH));
-			comp.setLayout(normalGridLayout(2, false));
+			auto gd = normalGridLayout(2, false);
+			gd.marginHeight = 0.ppis;
+			comp.setLayout(gd);
 
 			auto declL = new Label(comp, SWT.NONE);
 			declL.setText(_comm.prop.msgs.functionDeclaration);
@@ -841,7 +847,9 @@ private class FunctionCallEditor {
 		{ mixin(S_TRACE);
 			auto comp = new Composite(bottom, SWT.NONE);
 			comp.setLayoutData(new GridData(GridData.FILL_BOTH));
-			comp.setLayout(normalGridLayout(1, true));
+			auto gd = normalGridLayout(1, true);
+			gd.marginHeight = 0;
+			comp.setLayout(gd);
 
 			_args = .rangeSelectableTable(comp, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER);
 			_args.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -879,7 +887,9 @@ private class FunctionCallEditor {
 		{ mixin(S_TRACE);
 			auto comp = new Composite(bottom, SWT.NONE);
 			comp.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
-			comp.setLayout(normalGridLayout(1, true));
+			auto gl = normalGridLayout(1, true);
+			gl.marginHeight = 0.ppis;
+			comp.setLayout(gl);
 
 			auto insertFunc = new Button(comp, SWT.PUSH);
 			insertFunc.setText(_comm.prop.msgs.insertFunctionIntoExpressionButton);
