@@ -831,7 +831,7 @@ private class SummaryPreview : Composite {
 			}
 			{ mixin(S_TRACE);
 				void drawCenterText(in CFont fontData, string text, int y) { mixin(S_TRACE);
-					auto font = .createFontFromPixels(fontData);
+					auto font = .createFontFromPixels(fontData, 2 <= _prop.drawingScale);
 					gc.setFont(font);
 					auto p = gc.stringExtent(text);
 					gc.wDrawText(text, (size.width - p.x) / 2, y, true);
@@ -866,7 +866,7 @@ private class SummaryPreview : Composite {
 				drawCenterText(tFont, _sname(), _prop.looks.summaryTitleY * drawingScale);
 				auto dFont = _prop.looks.summaryDescFont(skin.legacy);
 				dFont.point *= drawingScale;
-				auto font = .createFontFromPixels(dFont);
+				auto font = .createFontFromPixels(dFont, 2 <= _prop.drawingScale);
 				gc.setFont(font);
 				int hig = gc.getFontMetrics().getHeight();
 				int x = _prop.looks.summaryDescXY.x *= drawingScale;

@@ -112,7 +112,7 @@ class FixedWidthText(T = Text) {
 		}
 		CFont fontData2 = fontData;
 		fontData2.point = fontData.point.ppis;
-		_widget.setFont(.createFontFromPixels(fontData2));
+		_widget.setFont(.createFontFromPixels(fontData2, 2 <= 1.ppis));
 		calcWidth();
 	}
 	private void calcWidth() { mixin(S_TRACE);

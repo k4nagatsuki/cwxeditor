@@ -3200,7 +3200,7 @@ ImageDataWithScale previewMessage(Commons comm, Props prop, in Summary summ, Ima
 	scope (exit) fc.dispose();
 	auto hc = new Color(d, dwtData(prop.var.etc.messageHemColor, alpha));
 	scope (exit) hc.dispose();
-	auto selFont = .createFontFromPixels(prop.ds(prop.looks.messageSelectFont(legacy)));
+	auto selFont = .createFontFromPixels(prop.ds(prop.looks.messageSelectFont(legacy)), antialias);
 	scope (exit) selFont.dispose();
 
 	gc.setFont(font);

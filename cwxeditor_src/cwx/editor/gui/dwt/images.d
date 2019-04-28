@@ -84,6 +84,7 @@ private:
 		CFont font;
 		CRGB fontColor;
 		TPos textPos = TPos.LEFT;
+		bool antialias = false;
 		byte alpha = cast(byte) 0xFF;
 		FontData fontData = null;
 		ScaleType scaleType = ScaleType.Scale;
@@ -346,18 +347,19 @@ public:
 		appends ~= append;
 	}
 	/// 前面に文字列を追加する。
-	void append(string text, CInsets insets, CFont font, CRGB fontColor, TPos pos = TPos.LEFT) { mixin(S_TRACE);
+	void append(string text, CInsets insets, CFont font, CRGB fontColor, bool antialias, TPos pos = TPos.LEFT) { mixin(S_TRACE);
 		AppImg append;
 		append.text = text;
 		append.insets = insets;
 		append.font = font;
 		append.fontColor = fontColor;
 		append.textPos = pos;
+		append.antialias = antialias;
 		appends ~= append;
 	}
 	/// ditto
-	void append(string text, CPoint point, CFont font, CRGB fontColor) { mixin(S_TRACE);
-		append(text, CInsets(point.y, 0, 0, point.x), font, fontColor, TPos.LEFT);
+	void append(string text, CPoint point, CFont font, CRGB fontColor, bool antialias) { mixin(S_TRACE);
+		append(text, CInsets(point.y, 0, 0, point.x), font, fontColor, antialias, TPos.LEFT);
 	}
 	void setPath(string path) { mixin(S_TRACE);
 		this.path = path;
@@ -722,7 +724,7 @@ public:
 					}
 					if (a.text.length) { mixin(S_TRACE);
 						try { mixin(S_TRACE);
-							auto font = .createFontFromPixels(ds(a.font));
+							auto font = .createFontFromPixels(ds(a.font), a.antialias);
 							scope (exit) font.dispose();
 							dc.setFont(font);
 							scope (exit) dc.setFont(null);
@@ -775,7 +777,7 @@ public:
 				scope (exit) {
 					if (_titColor) color.dispose();
 				}
-				auto font = createFontFromPixels(ds(titFont));
+				auto font = createFontFromPixels(ds(titFont), false);
 				scope (exit) font.dispose();
 				dc.setFont(font);
 				auto extent = dc.wTextExtent(_title);
@@ -871,7 +873,7 @@ public:
 		scope (exit) img.dispose();
 		auto gc = new GC(img);
 		scope (exit) gc.dispose();
-		auto font = .createFontFromPixels(ds(titFont));
+		auto font = .createFontFromPixels(ds(titFont), _titAntialias);
 		scope (exit) font.dispose();
 		auto backColor = new Color(cur, backRgb);
 		scope (exit) backColor.dispose();
@@ -1145,7 +1147,7 @@ public:
 		scope (exit) img2.dispose();
 		gc2 = new GC(img2);
 		scope (exit) gc2.dispose();
-		auto font = .createFontFromPixels(ds(titFont));
+		auto font = .createFontFromPixels(ds(titFont), _titAntialias);
 		scope (exit) font.dispose();
 		auto borderColor = new Color(cur, borderRgb);
 		scope (exit) borderColor.dispose();
