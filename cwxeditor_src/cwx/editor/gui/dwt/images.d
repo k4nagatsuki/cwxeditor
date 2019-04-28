@@ -347,7 +347,7 @@ public:
 		appends ~= append;
 	}
 	/// 前面に文字列を追加する。
-	void append(string text, CInsets insets, CFont font, CRGB fontColor, bool antialias, TPos pos = TPos.LEFT) { mixin(S_TRACE);
+	void append(string text, CInsets insets, CFont font, CRGB fontColor, bool antialias, TPos pos) { mixin(S_TRACE);
 		AppImg append;
 		append.text = text;
 		append.insets = insets;
