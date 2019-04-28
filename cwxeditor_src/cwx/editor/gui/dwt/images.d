@@ -85,6 +85,7 @@ private:
 		CFont font;
 		CRGB fontColor;
 		TPos textPos = TPos.LEFT;
+		bool antialias = false;
 		byte alpha = cast(byte) 0xFF;
 		FontData fontData = null;
 		ScaleType scaleType = ScaleType.Scale;
@@ -349,18 +350,19 @@ public:
 		appends ~= append;
 	}
 	/// 前面に文字列を追加する。
-	void append(string text, CInsets insets, CFont font, CRGB fontColor, TPos pos = TPos.LEFT) { mixin(S_TRACE);
+	void append(string text, CInsets insets, CFont font, CRGB fontColor, bool antialias, TPos pos = TPos.LEFT) { mixin(S_TRACE);
 		AppImg append;
 		append.text = text;
 		append.insets = insets;
 		append.font = font;
 		append.fontColor = fontColor;
 		append.textPos = pos;
+		append.antialias = antialias;
 		appends ~= append;
 	}
 	/// ditto
-	void append(string text, CPoint point, CFont font, CRGB fontColor) { mixin(S_TRACE);
-		append(text, CInsets(point.y, 0, 0, point.x), font, fontColor, TPos.LEFT);
+	void append(string text, CPoint point, CFont font, CRGB fontColor, bool antialias) { mixin(S_TRACE);
+		append(text, CInsets(point.y, 0, 0, point.x), font, fontColor, antialias, TPos.LEFT);
 	}
 	void setPath(string path) { mixin(S_TRACE);
 		this.path = path;
@@ -737,7 +739,7 @@ public:
 					}
 					if (a.text.length) { mixin(S_TRACE);
 						try { mixin(S_TRACE);
-							auto font = .createFontFromPixels(ds(a.font));
+							auto font = .createFontFromPixels(ds(a.font), a.antialias);
 							scope (exit) font.dispose();
 							dc.setFont(font);
 							scope (exit) dc.setFont(null);
@@ -790,14 +792,14 @@ public:
 				scope (exit) {
 					if (_titColor) color.dispose();
 				}
-				auto font = createFontFromPixels(ds(titFont));
+				auto font = createFontFromPixels(ds(titFont), false);
 				scope (exit) font.dispose();
 				dc.setFont(font);
 				auto extent = dc.wTextExtent(_title);
 				if (_titAntialias) { mixin(S_TRACE);
 					CFont titFont2 = ds(this.titFont);
 					titFont2.point = titFont2.point * 2;
-					auto font2 = .createFontFromPixels(ds(titFont2));
+					auto font2 = .createFontFromPixels(ds(titFont2), false);
 					scope (exit) font2.dispose();
 					dc.setFont(font);
 					// 2倍に描画して縮める事でアンチエイリアスする
@@ -876,7 +878,7 @@ public:
 		gc.setBackground(cur.getSystemColor(SWT.COLOR_BLACK));
 		gc.fillRectangle(0, 0, w, h);
 
-		auto font = .createFontFromPixels(ds(titFont));
+		auto font = .createFontFromPixels(ds(titFont), _titAntialias);
 		scope (exit) font.dispose();
 
 		gc.setFont(font);
@@ -1183,7 +1185,7 @@ public:
 		int alpha;
 		auto textRgb = dwtData(textColor, alpha);
 
-		auto font = .createFontFromPixels(ds(titFont));
+		auto font = .createFontFromPixels(ds(titFont), false);
 		scope (exit) font.dispose();
 		auto textColor = new Color(cur, textRgb);
 		scope (exit) textColor.dispose();
@@ -1197,7 +1199,7 @@ public:
 		if (_antialias) { mixin(S_TRACE);
 			auto cFont2x = titFont;
 			cFont2x.point *= 2;
-			auto font2x = .createFontFromPixels(ds(cFont2x));
+			auto font2x = .createFontFromPixels(ds(cFont2x), false);
 			scope (exit) font2x.dispose();
 
 			// テキスト本体を描画

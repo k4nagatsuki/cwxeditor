@@ -1825,7 +1825,7 @@ ImageDataWithScale castCardImage(Props prop, Skin skin, in Summary summ, in Cast
 			gc.fillRectangle(0, 0, data.width, data.height);
 		}
 		gc.drawImage(img, 0, 0);
-		auto font = .createFontFromPixels(prop.ds(prop.looks.statusTimeFont(skin.legacy, number)));
+		auto font = .createFontFromPixels(prop.ds(prop.looks.statusTimeFont(skin.legacy, number)), 2 <= prop.drawingScale);
 		scope (exit) font.dispose();
 		gc.setFont(font);
 		string s = to!(string)(number);
@@ -2140,7 +2140,7 @@ ImageDataWithScale cardImage(C)(Props prop, Skin skin, in Summary summ, in C bas
 			scope (exit) img.dispose();
 			auto gc = new GC(img);
 			scope (exit) gc.dispose();
-			auto font = .createFontFromPixels(prop.ds(prop.looks.useCountFont(skin.legacy)));
+			auto font = .createFontFromPixels(prop.ds(prop.looks.useCountFont(skin.legacy)), 2 <= prop.drawingScale);
 			scope (exit) font.dispose();
 			gc.setFont(font);
 			int alpha;
