@@ -4274,6 +4274,7 @@ public:
 		static if (is(C2 : MenuCard)) {
 			return card.name;
 		} else static if (is(C2 : EnemyCard)) {
+			if (card.isOverrideName) return card.overrideName;
 			auto castCard = summary.cwCast(card.id);
 			return castCard ? castCard.name : "";
 		} else static assert (0, C2);
