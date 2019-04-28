@@ -1713,6 +1713,7 @@ ImageDataWithScale castCardImage(Props prop, Skin skin, in Summary summ, in Cast
 			prop.looks.castCardLevelInsets,
 			prop.looks.castCardLevelFont(skin.legacy),
 			levelColor,
+			true,
 			PileImage.TPos.RIGHT);
 	}
 	foreach (path; isOverrideImage ? overrideImages : c.paths) { mixin(S_TRACE);
@@ -2066,6 +2067,7 @@ ImageDataWithScale cardImage(C)(Props prop, Skin skin, in Summary summ, in C bas
 				prop.looks.skillCardLevelInsets,
 				prop.looks.skillCardLevelFont(skin.legacy),
 				levelColor,
+				true,
 				PileImage.TPos.RIGHT);
 		}
 	}
