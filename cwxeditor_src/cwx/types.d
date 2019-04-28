@@ -1516,6 +1516,12 @@ enum CArg {
 	VARIANT, /// コモン(Wsn.4)。
 	EXPRESSION, /// 式(Wsn.4)。
 	EXPAND_SP_CHARS, /// クーポン・ゴシップで特殊文字を展開する(Wsn.4)。
+	INITIAL_EFFECT, /// 初期効果の有無(Wsn.4)。
+	INITIAL_SOUND_PATH, /// 初期音声(Wsn.4)。
+	INITIAL_SOUND_CHANNEL, /// 初期音声再生チャネル(未使用)。
+	INITIAL_SOUND_VOLUME, /// 初期音声音量(Wsn.4)。
+	INITIAL_SOUND_LOOP_COUNT, /// 初期音声再生回数(Wsn.4)。
+	INITIAL_SOUND_FADE_IN, /// 初期音声フェードイン時間(未使用)。
 }
 
 /// 後続コンテントのnameの型。

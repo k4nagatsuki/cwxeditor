@@ -34,6 +34,7 @@ import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.dutils;
+import cwx.editor.gui.dwt.effectcarddialog;
 import cwx.editor.gui.dwt.incsearch;
 import cwx.editor.gui.dwt.keycodeview;
 import cwx.editor.gui.dwt.materialselect;
@@ -268,6 +269,7 @@ private class RangePanel : Composite {
 		grp.setText(title);
 		auto cl = new CenterLayout;
 		if (ranges.contains(Range.COUPON_HOLDER)) cl.fillHorizontal = true;
+		cl.fillVertical = true;
 		grp.setLayout(cl);
 		auto mainComp = new Composite(grp, SWT.NONE);
 		if (horizontal) { mixin(S_TRACE);
@@ -1985,7 +1987,9 @@ private:
 	MotionView _mview;
 	UseCounter _useCounter;
 	Spinner _lev;
-	MaterialSelect!(MtType.SE, Combo, Combo) _se;
+	Button _initialEffect;
+	SoundSelect _se1;
+	SoundSelect _se2;
 	Scale _sucRate;
 	Button[EffectType] _effTyp;
 	Button[Resist] _res;
@@ -2023,23 +2027,18 @@ private:
 			ws ~= _keyCodes.warnings;
 		}
 
-		if (_summ && _summ.legacy && _se.filePath != "" && !_se.selectedDefDir) ws ~= prop.msgs.warningNotDefaultSE;
-		ws ~= comm.skin.warningSE(prop.parent, _se.filePath, summ && summ.legacy, _prop.var.etc.targetVersion) ~ _se.warnings;
+		if (_initialEffect.getSelection() && !prop.isTargetVersion(summ, "4")) { mixin(S_TRACE);
+			ws ~= prop.msgs.warningInitialEffect;
+		}
+		if (_summ && _summ.legacy && _se1.filePath != "" && !_se1.selectedDefDir) ws ~= prop.msgs.warningNotDefaultSE;
+		ws ~= comm.skin.warningSE(prop.parent, _se1.filePath, summ && summ.legacy, prop.var.etc.targetVersion) ~ _se1.warnings;
+		if (_summ && _summ.legacy && _se2.filePath != "" && !_se2.selectedDefDir) ws ~= prop.msgs.warningNotDefaultSE;
+		ws ~= comm.skin.warningSE(prop.parent, _se2.filePath, summ && summ.legacy, prop.var.etc.targetVersion) ~ _se2.warnings;
 		warning = ws;
 	}
 
 	override
 	protected void refDataVersion() { mixin(S_TRACE);
-		if (summ && summ.legacy) { mixin(S_TRACE);
-			if (_refAbility.getSelection()) { mixin(S_TRACE);
-				_refAbility.setSelection(false);
-				applyEnabled(true);
-			}
-			if (_ignite.getSelection()) { mixin(S_TRACE);
-				_ignite.setSelection(false);
-				applyEnabled(true);
-			}
-		}
 		updateEnabled();
 		super.refDataVersion();
 	}
@@ -2050,6 +2049,8 @@ private:
 		_refAbility.setEnabled(!summ || !summ.legacy);
 		_ability.enabled = _refAbility.getSelection();
 		_lev.setEnabled(!_refAbility.getSelection());
+		_initialEffect.setEnabled(!summ || !summ.legacy || _initialEffect.getSelection());
+		_se1.enabled = _initialEffect.getSelection();
 		refreshWarning();
 	}
 
@@ -2136,15 +2137,6 @@ protected:
 						_res[res] = radio;
 					}
 				}
-				{ mixin(S_TRACE);
-					auto grp = new Group(comp2, SWT.NONE);
-					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-					grp.setText(prop.msgs.cardSpeed);
-					grp.setLayout(new CenterLayout);
-					_cardSpeed = new CardAnimationPanel(comm, summ, grp, CardAnimationPanelType.MoveCard);
-					mod(_cardSpeed);
-					_cardSpeed.modEvent ~= &refreshWarning;
-				}
 			}
 			{ mixin(S_TRACE);
 				auto comp2 = new Composite(comp, SWT.NONE);
@@ -2172,31 +2164,21 @@ protected:
 					_range.setLayoutData(new GridData(GridData.FILL_BOTH));
 				}
 				{ mixin(S_TRACE);
-					auto grp = new Group(comp2, SWT.NONE);
-					grp.setText(_prop.msgs.se);
-					auto gd = new GridData(GridData.FILL_HORIZONTAL);
-					gd.horizontalSpan = 2;
-					grp.setLayoutData(gd);
-					grp.setLayout(normalGridLayout(3, false));
-					_se = new MaterialSelect!(MtType.SE, Combo, Combo)(comm, prop, summ, false, null, included => [prop.msgs.defaultSelection(prop.msgs.soundNone)]);
-					mod(_se);
-					_se.modEvent ~= &refreshWarning;
-					_se.loadedEvent ~= &refreshWarning;
-					_se.createDirsCombo(grp).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-					_se.createStopButton(grp);
-					_se.createPlayButton(grp);
-					auto gdfl = new GridData(GridData.FILL_HORIZONTAL);
-					gdfl.horizontalSpan = 4;
-					_se.createFileList(grp).setLayoutData(gdfl);
-					auto ogd = new GridData(GridData.HORIZONTAL_ALIGN_END);
-					ogd.horizontalSpan = 4;
-					_se.createPlayingOptions(grp).setLayoutData(ogd);
-				}
-				{ mixin(S_TRACE);
 					auto gd = new GridData(GridData.FILL_BOTH);
 					gd.horizontalSpan = 2;
 					createSuccessRateScale(_prop, comp2, _sucRate).setLayoutData(gd);
 					mod(_sucRate);
+				}
+				{ mixin(S_TRACE);
+					auto grp = new Group(comp2, SWT.NONE);
+					auto gd = new GridData(GridData.FILL_BOTH);
+					gd.horizontalSpan = 2;
+					grp.setLayoutData(gd);
+					grp.setText(prop.msgs.cardSpeed);
+					grp.setLayout(new CenterLayout);
+					_cardSpeed = new CardAnimationPanel(comm, summ, grp, CardAnimationPanelType.MoveCard);
+					mod(_cardSpeed);
+					_cardSpeed.modEvent ~= &refreshWarning;
 				}
 			}
 		}
@@ -2229,7 +2211,9 @@ protected:
 			{ mixin(S_TRACE);
 				auto grp = new Group(comp, SWT.NONE);
 				grp.setText(prop.msgs.igniteTitle);
-				grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				auto gd = new GridData(GridData.FILL_HORIZONTAL);
+				gd.horizontalSpan = 2;
+				grp.setLayoutData(gd);
 				grp.setLayout(normalGridLayout(1, true));
 				auto comp2 = new Composite(grp, SWT.NONE);
 				comp2.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -2244,10 +2228,22 @@ protected:
 				auto l = new Label(comp2, SWT.NONE);
 				l.setText(prop.msgs.igniteHint);
 			}
+			auto sash = new SplitPane(comp, SWT.HORIZONTAL);
+			sash.setLayoutData(new GridData(GridData.FILL_BOTH));
 			{ mixin(S_TRACE);
-				auto grp = new Group(comp, SWT.NONE);
+				auto grp = .createEffectSoundPanel(sash, comm, summ, prop.msgs.initialEffectAndSound, false, true, _initialEffect, _se1, _se2);
+				mod(_initialEffect);
+				.listener(_initialEffect, SWT.Selection, &updateEnabled);
+				mod(_se1);
+				_se1.modEvent ~= &refreshWarning;
+				_se1.loadedEvent ~= &refreshWarning;
+				mod(_se2);
+				_se2.modEvent ~= &refreshWarning;
+				_se2.loadedEvent ~= &refreshWarning;
+			}
+			{ mixin(S_TRACE);
+				auto grp = new Group(sash, SWT.NONE);
 				grp.setText(prop.msgs.keyCodes);
-				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				grp.setLayout(normalGridLayout(1, true));
 
 				_keyCodes = new KeyCodeView(comm, summ, grp, SWT.NONE, true, false, &catchMod);
@@ -2255,6 +2251,7 @@ protected:
 				mod(_keyCodes);
 				_keyCodes.modEvent ~= &updateEnabled;
 			}
+			.setupWeights(sash, _prop.var.etc.effectContentSEKeyCodeSashL, _prop.var.etc.effectContentSEKeyCodeSashR);
 		}
 
 		tabf.setLayoutData(area.computeSize(SWT.DEFAULT, SWT.DEFAULT));
@@ -2263,9 +2260,13 @@ protected:
 		if (_evt) { mixin(S_TRACE);
 			_mview.motions = _evt.motions;
 			_lev.setSelection(_evt.signedLevel);
-			_se.path = _evt.soundPath;
-			_se.volume = _evt.soundVolume;
-			_se.loopCount = _evt.soundLoopCount;
+			_initialEffect.setSelection(_evt.initialEffect);
+			_se1.path = _evt.initialSoundPath;
+			_se1.volume = _evt.initialSoundVolume;
+			_se1.loopCount = _evt.initialSoundLoopCount;
+			_se2.path = _evt.soundPath;
+			_se2.volume = _evt.soundVolume;
+			_se2.loopCount = _evt.soundLoopCount;
 			_sucRate.setSelection(_evt.successRate + Content.successRate_max);
 			_effTyp[_evt.effectType].setSelection(true);
 			_res[_evt.resist].setSelection(true);
@@ -2280,7 +2281,9 @@ protected:
 		} else { mixin(S_TRACE);
 			_mview.motions = [];
 			_lev.setSelection(0);
-			_se.path = "";
+			_initialEffect.setSelection(false);
+			_se1.path = "";
+			_se2.path = "";
 			_sucRate.setSelection(Content.successRate_max + Content.successRate_max);
 			_effTyp[EffectType.NONE].setSelection(true);
 			_res[Resist.UNFAIL].setSelection(true);
@@ -2298,9 +2301,13 @@ protected:
 		if (!_evt) _evt = new Content(CType.EFFECT, "");
 		_evt.motions = _mview.motions;
 		_evt.signedLevel = _lev.getSelection();
-		_evt.soundPath = _se.path;
-		_evt.soundVolume = _se.volume;
-		_evt.soundLoopCount = _se.loopCount;
+		_evt.initialEffect = _initialEffect.getSelection();
+		_evt.initialSoundPath = _se1.path;
+		_evt.initialSoundVolume = _se1.volume;
+		_evt.initialSoundLoopCount = _se1.loopCount;
+		_evt.soundPath = _se2.path;
+		_evt.soundVolume = _se2.volume;
+		_evt.soundLoopCount = _se2.loopCount;
 		_evt.successRate = cast(int) _sucRate.getSelection() - Content.successRate_max;
 		_evt.effectType = getRadioValue!(EffectType)(_effTyp);
 		_evt.resist = getRadioValue!(Resist)(_res);

@@ -3171,6 +3171,24 @@ fi`;
 			if (detail.use(CArg.OVERRIDE_CARD_SPEED)) { mixin(S_TRACE);
 				c.overrideCardSpeed = parseAttr!(bool)(opt, node.attr, i, c.overrideCardSpeed, varTable, 0);
 			}
+			if (detail.use(CArg.INITIAL_EFFECT)) { mixin(S_TRACE);
+				c.initialEffect = parseAttr!(bool)(opt, node.attr, i, c.initialEffect, varTable, 0);
+			}
+			if (detail.use(CArg.INITIAL_SOUND_PATH)) { mixin(S_TRACE);
+				c.initialSoundPath = encodePath(parseAttr!(string)(opt, node.attr, i, decodePath(c.initialSoundPath), varTable, 0));
+			}
+			if (detail.use(CArg.INITIAL_SOUND_CHANNEL)) { mixin(S_TRACE);
+				c.initialSoundChannel = parseAttr!(int)(opt, node.attr, i, c.initialSoundChannel, varTable, 0);
+			}
+			if (detail.use(CArg.INITIAL_SOUND_FADE_IN)) { mixin(S_TRACE);
+				c.initialSoundFadeIn = roundTo!uint(parseAttr!(real)(opt, node.attr, i, c.initialSoundFadeIn / 100.0, varTable, 0) * 100.0);
+			}
+			if (detail.use(CArg.INITIAL_SOUND_VOLUME)) { mixin(S_TRACE);
+				c.initialSoundVolume = parseAttr!(int)(opt, node.attr, i, c.initialSoundVolume, varTable, 0);
+			}
+			if (detail.use(CArg.INITIAL_SOUND_LOOP_COUNT)) { mixin(S_TRACE);
+				c.initialSoundLoopCount = parseAttr!(int)(opt, node.attr, i, c.initialSoundLoopCount, varTable, 0);
+			}
 			if (detail.use(CArg.BACKPACK_ENABLED)) { mixin(S_TRACE);
 				c.backpackEnabled = parseAttr!(EnvironmentStatus)(opt, node.attr, i, c.backpackEnabled, varTable, 0);
 			}
@@ -4212,6 +4230,24 @@ fi`;
 			}
 			if (detail.use(CArg.OVERRIDE_CARD_SPEED)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.overrideCardSpeed, indentValue, vars);
+			}
+			if (detail.use(CArg.INITIAL_EFFECT)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.initialEffect, indentValue, vars);
+			}
+			if (detail.use(CArg.INITIAL_SOUND_PATH)) { mixin(S_TRACE);
+				attrs ~= toAttr(encodePath(c.initialSoundPath), indentValue, vars);
+			}
+			if (detail.use(CArg.INITIAL_SOUND_CHANNEL)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.initialSoundChannel, indentValue, vars);
+			}
+			if (detail.use(CArg.INITIAL_SOUND_FADE_IN)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.initialSoundFadeIn / 100.0, indentValue, vars);
+			}
+			if (detail.use(CArg.INITIAL_SOUND_VOLUME)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.initialSoundVolume, indentValue, vars);
+			}
+			if (detail.use(CArg.INITIAL_SOUND_LOOP_COUNT)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.initialSoundLoopCount, indentValue, vars);
 			}
 			if (detail.use(CArg.BACKPACK_ENABLED)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.backpackEnabled, indentValue, vars);

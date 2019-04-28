@@ -2942,7 +2942,7 @@ GridLayout zeroGridLayout(int col, bool eqWid = false) { mixin(S_TRACE);
 }
 
 GridLayout zeroMarginGridLayout(int col, bool eqWid) { mixin(S_TRACE);
-	auto gl = new GridLayout(col, eqWid);
+	auto gl = normalGridLayout(col, eqWid);
 	gl.marginWidth = 0;
 	gl.marginHeight = 0;
 	return gl;

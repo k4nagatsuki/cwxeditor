@@ -1107,6 +1107,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (c.parent && c.parent.expandSPChars && c.parent.detail.nextType is CNextType.COUPON) { mixin(S_TRACE);
 			r ~= checkTextRes2(c.name, c.useCounter, c.flagsInName, c.stepsInName, c.variantsInName, [], []);
 		}
+		if (cd.use(CArg.INITIAL_EFFECT) && c.initialEffect && !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
+			r ~= prop.msgs.warningInitialEffect;
+		}
 	}
 	return r;
 }

@@ -2146,6 +2146,9 @@ class Msgs : Properties {
 	auto se = Msg("se", "効果音");
 	auto se1 = Msg("se1", "初期効果");
 	auto se2 = Msg("se2", "二次効果");
+	auto initialEffectAndSound = Msg("initialEffectAndSound", "効果音と初期効果"); /// Wsn.4
+	auto hasInitialEffect = Msg("hasInitialEffect", "色反転と初期効果音の再生を行う"); // Wsn.4
+	auto warningInitialEffect = Msg("warningInitialEffect", "色反転と初期効果音再生の指定はWsn.4以降の形式のシナリオでしか行えません。"); // Wsn.4
 	auto soundNone = Msg("soundNone", "効果音無し");
 	auto noSelect = Msg("noSelect", "指定無し");
 	auto keyCodes = Msg("keyCodes", "イベント発火のキーコード");

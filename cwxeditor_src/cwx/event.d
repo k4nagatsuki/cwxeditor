@@ -140,7 +140,9 @@ private void static_this () { mixin(S_TRACE);
 		CType.CHANGE_AREA:CDetail("Change", "Area", CNextType.NONE, false, [CArg.AREA:_("id"), CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed"]),
 		CType.CHANGE_BG_IMAGE:CDetail("Change", "BgImage", CNextType.NONE, true, [CArg.BG_IMAGES:_(null), CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed"]),
 		CType.EFFECT:CDetail("Effect", "", CNextType.NONE, true, [CArg.SIGNED_LEVEL:_("level"), CArg.RANGE:"targetm", CArg.EFFECT_TYPE:"effecttype", CArg.RESIST:"resisttype",
-			CArg.SUCCESS_RATE:"successrate", CArg.SOUND_PATH:_("sound"), CArg.SOUND_VOLUME:"volume", CArg.SOUND_LOOP_COUNT:"loopcount", CArg.CARD_VISUAL:"visual",
+			CArg.SUCCESS_RATE:"successrate", CArg.CARD_VISUAL:"visual",
+			CArg.SOUND_PATH:_("sound"), CArg.SOUND_VOLUME:"volume", CArg.SOUND_LOOP_COUNT:"loopcount",
+			CArg.INITIAL_EFFECT:"initialeffect", CArg.INITIAL_SOUND_PATH:_("initialsound"), CArg.INITIAL_SOUND_VOLUME:"initialvolume", CArg.INITIAL_SOUND_LOOP_COUNT:"initialloopcount",
 			CArg.IGNITE:"ignite", CArg.HOLDING_COUPON:"holdingcoupon", CArg.REF_ABILITY:"refability", CArg.PHYSICAL:"physical", CArg.MENTAL:"mental", CArg.CARD_SPEED:"cardspeed", CArg.OVERRIDE_CARD_SPEED:"overridecardspeed",
 			CArg.KEY_CODES:null, CArg.MOTIONS:null]),
 		CType.EFFECT_BREAK:CDetail("Effect", "Break", CNextType.NONE, false, [CArg.CONSUME_CARD:"consumecard"]),
@@ -566,6 +568,12 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		this.soundVolume = c.soundVolume;
 		this.soundLoopCount = c.soundLoopCount;
 		this.soundFadeIn = c.soundFadeIn;
+		this.initialEffect = c.initialEffect;
+		this.initialSoundPath = c.initialSoundPath;
+		this.initialSoundChannel = c.initialSoundChannel;
+		this.initialSoundVolume = c.initialSoundVolume;
+		this.initialSoundLoopCount = c.initialSoundLoopCount;
+		this.initialSoundFadeIn = c.initialSoundFadeIn;
 		this.casts = c.casts;
 		this.item = c.item;
 		this.skill = c.skill;
@@ -732,6 +740,12 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 			&& (!d.use(CArg.SOUND_VOLUME) || soundVolume == c.soundVolume)
 			&& (!d.use(CArg.SOUND_LOOP_COUNT) || soundLoopCount == c.soundLoopCount)
 			&& (!d.use(CArg.SOUND_FADE_IN) || soundFadeIn == c.soundFadeIn)
+			&& (!d.use(CArg.INITIAL_EFFECT) || initialEffect == c.initialEffect)
+			&& (!d.use(CArg.INITIAL_SOUND_PATH) || initialSoundPath == c.initialSoundPath)
+			&& (!d.use(CArg.INITIAL_SOUND_CHANNEL) || initialSoundChannel == c.initialSoundChannel)
+			&& (!d.use(CArg.INITIAL_SOUND_VOLUME) || initialSoundVolume == c.initialSoundVolume)
+			&& (!d.use(CArg.INITIAL_SOUND_LOOP_COUNT) || initialSoundLoopCount == c.initialSoundLoopCount)
+			&& (!d.use(CArg.INITIAL_SOUND_FADE_IN) || initialSoundFadeIn == c.initialSoundFadeIn)
 			&& (!d.use(CArg.CAST) || casts == c.casts)
 			&& (!d.use(CArg.ITEM) || item == c.item)
 			&& (!d.use(CArg.SKILL) || skill == c.skill)
@@ -1006,11 +1020,17 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 			}
 		}
 
+		auto d = detail;
+
 		string oldPath;
 		if (od.use(CArg.BGM_PATH)) oldPath = bgmPath;
-		if (od.use(CArg.SOUND_PATH)) oldPath = soundPath;
+		if (od.use(CArg.SOUND_PATH)) { mixin(S_TRACE);
+			oldPath = soundPath;
+			if (d.use(CArg.INITIAL_SOUND_PATH) && skin.findPath(oldPath, skin.extSound, skin.seDirs, sPath, wsnVer, skin.wsnSoundDirs(wsnVer)) == "") { mixin(S_TRACE);
+			oldPath = initialSoundPath;
+			}
+		}
 
-		auto d = detail;
 		resetValue!(CArg.AREA, ulong, 0)(d, od, &area, base, base.area);
 		resetValue!(CArg.BATTLE, ulong, 0)(d, od, &battle, base, base.battle);
 		resetValue!(CArg.PACKAGE, ulong, 0)(d, od, &packages, base, base.packages);
@@ -1029,6 +1049,12 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		resetValue!(CArg.SOUND_VOLUME, uint, 100)(d, od, &soundVolume, base, base.soundVolume);
 		resetValue!(CArg.SOUND_LOOP_COUNT, uint, 1)(d, od, &soundLoopCount, base, base.soundLoopCount);
 		resetValue!(CArg.SOUND_FADE_IN, uint, 0)(d, od, &soundFadeIn, base, base.soundFadeIn);
+		resetValue!(CArg.INITIAL_EFFECT, bool, false)(d, od, &initialEffect, base, base.initialEffect);
+		resetValue!(CArg.INITIAL_SOUND_PATH, string, "")(d, od, &initialSoundPath, base, base.initialSoundPath);
+		resetValue!(CArg.INITIAL_SOUND_CHANNEL, uint, 0)(d, od, &initialSoundChannel, base, base.initialSoundChannel);
+		resetValue!(CArg.INITIAL_SOUND_VOLUME, uint, 100)(d, od, &initialSoundVolume, base, base.initialSoundVolume);
+		resetValue!(CArg.INITIAL_SOUND_LOOP_COUNT, uint, 1)(d, od, &initialSoundLoopCount, base, base.initialSoundLoopCount);
+		resetValue!(CArg.INITIAL_SOUND_FADE_IN, uint, 0)(d, od, &initialSoundFadeIn, base, base.initialSoundFadeIn);
 		resetValue!(CArg.CAST, ulong, 0)(d, od, &casts, base, base.casts);
 		resetValue!(CArg.ITEM, ulong, 0)(d, od, &item, base, base.item);
 		resetValue!(CArg.SKILL, ulong, 0)(d, od, &skill, base, base.skill);
@@ -1804,8 +1830,9 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 				if (path.path != "" && !path.path.isBinImg) return path.path;
 			}
 		}
-		if (d.use(CArg.BGM_PATH)) return bgmPath;
-		if (d.use(CArg.SOUND_PATH)) return soundPath;
+		if (d.use(CArg.BGM_PATH) && bgmPath != "") return bgmPath;
+		if (d.use(CArg.SOUND_PATH) && soundPath != "") return soundPath;
+		if (d.use(CArg.INITIAL_SOUND_PATH) && initialSoundPath != "") return initialSoundPath;
 
 		return "";
 	}
@@ -1969,6 +1996,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	CardImage[] cardPaths() { mixin(S_TRACE);
 		return .map!(a => new CardImage(cast(CWXPath)null, a))(_cardPaths).array();
 	}
+
 	/// BGMパス。
 	mixin Prop!(PathUser, string, "bgmPath", "", ".path", ".path", true);
 	/// BGM再生チャンネル(Wsn.1)。
@@ -1981,6 +2009,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	mixin Prop!(uint, "bgmLoopCount", 0);
 	/// BGMフェードイン時間(ミリ秒)(Wsn.1)。
 	mixin Prop!(uint, "bgmFadeIn", 0);
+
 	/// SEパス。
 	mixin Prop!(PathUser, string, "soundPath", "", ".path", ".path", true);
 	/// SE再生チャンネル(Wsn.1)。
@@ -1994,6 +2023,23 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	mixin MaxMin!(uint, "soundLoopCount", int.max, 1);
 	/// SEフェードイン時間(ミリ秒)(Wsn.1)。
 	mixin Prop!(uint, "soundFadeIn", 0);
+
+	/// 対象の色反転と初期効果音の再生を行うか(Wsn.4)。
+	mixin Prop!(bool, "initialEffect", false);
+	/// 初期効果SEパス(Wsn.4)。
+	mixin Prop!(PathUser, string, "initialSoundPath", "", ".path", ".path", true);
+	/// 初期効果SE再生チャンネル(Wsn.4)。
+	mixin Prop!(uint, "initialSoundChannel", 0);
+	mixin MaxMin!(uint, "initialSoundChannel", 1, 0);
+	/// 初期効果SE音量(%)(Wsn.4)。
+	mixin Prop!(uint, "initialSoundVolume", 100);
+	mixin MaxMin!(uint, "initialSoundVolume", 100, 0);
+	/// 初期効果SEループ回数(Wsn.4)。
+	mixin Prop!(uint, "initialSoundLoopCount", 1);
+	mixin MaxMin!(uint, "initialSoundLoopCount", int.max, 1);
+	/// 初期効果SEフェードイン時間(ミリ秒)(Wsn.4)。
+	mixin Prop!(uint, "initialSoundFadeIn", 0);
+
 	/// キャストID。
 	mixin Prop!(CastUser, ulong, "casts", 0UL, ".casts", ".casts", true);
 	/// アイテムID。
@@ -2642,6 +2688,12 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		atnPut!(CArg.SOUND_VOLUME, "soundVolume", "")(e, d);
 		atnPut!(CArg.SOUND_LOOP_COUNT, "soundLoopCount", "")(e, d);
 		atnPut!(CArg.SOUND_FADE_IN, "soundFadeIn", "")(e, d);
+		atnPutD!(CArg.INITIAL_EFFECT, "initialEffect", "fromBool", false)(e, d);
+		atnPutD!(CArg.INITIAL_SOUND_PATH, "initialSoundPath", "encodePath", "")(e, d);
+		atnPutD!(CArg.INITIAL_SOUND_CHANNEL, "initialSoundChannel", "", 0)(e, d);
+		atnPutD!(CArg.INITIAL_SOUND_VOLUME, "initialSoundVolume", "", 100)(e, d);
+		atnPutD!(CArg.INITIAL_SOUND_LOOP_COUNT, "initialSoundLoopCount", "", 1)(e, d);
+		atnPutD!(CArg.INITIAL_SOUND_FADE_IN, "initialSoundFadeIn", "", 0)(e, d);
 		atnPut!(CArg.CAST, "casts", "")(e, d);
 		atnPut!(CArg.ITEM, "item", "")(e, d);
 		atnPut!(CArg.SKILL, "skill", "")(e, d);
@@ -2958,6 +3010,12 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		cfnPut!(CArg.SOUND_VOLUME, "soundVolume", "to!(uint)")(en, d, r);
 		cfnPut!(CArg.SOUND_LOOP_COUNT, "soundLoopCount", "to!(uint)")(en, d, r);
 		cfnPut!(CArg.SOUND_FADE_IN, "soundFadeIn", "to!(uint)")(en, d, r);
+		cfnPutD!(CArg.INITIAL_EFFECT, "initialEffect", "parseBool", false)(en, d, r);
+		cfnPutD!(CArg.INITIAL_SOUND_PATH, "initialSoundPath", "decodePath", "")(en, d, r);
+		cfnPutD!(CArg.INITIAL_SOUND_CHANNEL, "initialSoundChannel", "to!(uint)", 0)(en, d, r);
+		cfnPutD!(CArg.INITIAL_SOUND_VOLUME, "initialSoundVolume", "to!(uint)", 100)(en, d, r);
+		cfnPutD!(CArg.INITIAL_SOUND_LOOP_COUNT, "initialSoundLoopCount", "to!(uint)", 1)(en, d, r);
+		cfnPutD!(CArg.INITIAL_SOUND_FADE_IN, "initialSoundFadeIn", "to!(uint)", 0)(en, d, r);
 		cfnPut!(CArg.CAST, "casts", "to!(ulong)")(en, d, r);
 		cfnPut!(CArg.ITEM, "item", "to!(ulong)")(en, d, r);
 		cfnPut!(CArg.SKILL, "skill", "to!(ulong)")(en, d, r);

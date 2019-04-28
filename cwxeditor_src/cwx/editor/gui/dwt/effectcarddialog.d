@@ -146,8 +146,8 @@ private:
 	Button[CardVisual] _vis;
 	Button[Premium] _prem;
 	Scale _sucRate;
-	MaterialSelect!(MtType.SE, Combo, Combo) _se1;
-	MaterialSelect!(MtType.SE, Combo, Combo) _se2;
+	SoundSelect _se1;
+	SoundSelect _se2;
 	KeyCodeView _keyCodes;
 	Text _scenario;
 	TextMenuModify _scenarioTM;
@@ -777,48 +777,19 @@ private:
 		comp.setLayout(normalGridLayout(1, true));
 		auto sash = new SplitPane(comp, SWT.HORIZONTAL);
 		sash.setLayoutData(new GridData(GridData.FILL_BOTH));
-		auto skin = summSkin;
 		{ mixin(S_TRACE);
-			auto grp = new Group(sash, SWT.NONE);
-			grp.setText(_prop.msgs.se);
-			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-			grp.setLayout(normalGridLayout(1, false));
-			MaterialSelect!(MtType.SE, Combo, Combo) createSE(string title) { mixin(S_TRACE);
-				auto comp = new Composite(grp, SWT.NONE);
-				comp.setLayoutData(new GridData(GridData.FILL_BOTH));
-				comp.setLayout(zeroMarginGridLayout(3, false));
-
-				auto se = new MaterialSelect!(MtType.SE, Combo, Combo)(_comm, _prop, _summ, _readOnly != 0, null, included => [_prop.msgs.defaultSelection(_prop.msgs.soundNone)]);
-				mod(se);
-				se.modEvent ~= &refreshWarning;
-				se.loadedEvent ~= &refreshWarning;
-
-				auto l = new CLabel(comp, SWT.NONE);
-				auto gdl = new GridData(GridData.FILL_HORIZONTAL);
-				gdl.horizontalSpan = 3;
-				l.setLayoutData(gdl);
-				l.setImage(_prop.images.sound);
-				l.setText(title);
-
-				se.createDirsCombo(comp).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-				se.createStopButton(comp);
-				se.createPlayButton(comp);
-
-				auto gdfl = new GridData(GridData.FILL_HORIZONTAL);
-				gdfl.horizontalSpan = 3;
-				se.createFileList(comp).setLayoutData(gdfl);
-				auto ogd = new GridData(GridData.FILL_HORIZONTAL);
-				ogd.horizontalSpan = 3;
-				se.createPlayingOptions(comp, false, true).setLayoutData(ogd);
-				return se;
-			}
-			_se1 = createSE(_prop.msgs.se1);
-			_se2 = createSE(_prop.msgs.se2);
+			Button dummy;
+			auto grp = .createEffectSoundPanel(sash, _comm, _summ, _prop.msgs.se, _readOnly != SWT.NONE, false, dummy, _se1, _se2);
+			mod(_se1);
+			_se1.modEvent ~= &refreshWarning;
+			_se1.loadedEvent ~= &refreshWarning;
+			mod(_se2);
+			_se2.modEvent ~= &refreshWarning;
+			_se2.loadedEvent ~= &refreshWarning;
 		}
 		{ mixin(S_TRACE);
 			auto grp = new Group(sash, SWT.NONE);
 			grp.setText(_prop.msgs.keyCodes);
-			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			grp.setLayout(normalGridLayout(1, true));
 
 			_keyCodes = new KeyCodeView(_comm, _summ, grp, _readOnly, true, false, &catchMod);
@@ -1183,4 +1154,56 @@ protected:
 		getShell().setText(text);
 		return true;
 	}
+}
+
+alias MaterialSelect!(MtType.SE, Combo, Combo) SoundSelect;
+
+Composite createEffectSoundPanel(Composite parent, Commons comm, Summary summ, string name, bool readOnly, bool isEffectContent, out Button initialEffect, out SoundSelect se1, out SoundSelect se2) { mixin(S_TRACE);
+	auto grp = new Group(parent, SWT.NONE);
+	grp.setText(name);
+	grp.setLayout(normalGridLayout(1, false));
+	SoundSelect createSE(string title, bool hasInitialEffect) { mixin(S_TRACE);
+		auto comp = new Composite(grp, SWT.NONE);
+		comp.setLayoutData(new GridData(GridData.FILL_BOTH));
+		comp.setLayout(zeroMarginGridLayout(3, false));
+
+		if (hasInitialEffect) { mixin(S_TRACE);
+			initialEffect = new Button(comp, SWT.CHECK);
+			initialEffect.setText(comm.prop.msgs.hasInitialEffect);
+			auto gd = new GridData;
+			gd.horizontalSpan = 3;
+			initialEffect.setLayoutData(gd);
+		}
+
+		auto se = new SoundSelect(comm, comm.prop, summ, readOnly, null, included => [comm.prop.msgs.defaultSelection(comm.prop.msgs.soundNone)]);
+
+		auto l = new CLabel(comp, SWT.NONE);
+		auto gdl = new GridData(GridData.FILL_HORIZONTAL);
+		gdl.horizontalSpan = 3;
+		l.setLayoutData(gdl);
+		l.setImage(comm.prop.images.sound);
+		l.setText(title);
+
+		se.createDirsCombo(comp).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		se.createStopButton(comp);
+		se.createPlayButton(comp);
+
+		auto gdfl = new GridData(GridData.FILL_HORIZONTAL);
+		gdfl.horizontalSpan = 3;
+		se.createFileList(comp).setLayoutData(gdfl);
+		auto ogd = new GridData(GridData.FILL_HORIZONTAL);
+		ogd.horizontalSpan = 3;
+		se.createPlayingOptions(comp, false, true).setLayoutData(ogd);
+
+		if (hasInitialEffect) { mixin(S_TRACE);
+			se.enabled = false;
+			.listener(initialEffect, SWT.Selection, { mixin(S_TRACE);
+				se.enabled = initialEffect.getSelection();
+			});
+		}
+		return se;
+	}
+	se1 = createSE(comm.prop.msgs.se1, isEffectContent);
+	se2 = createSE(comm.prop.msgs.se2, false);
+	return grp;
 }

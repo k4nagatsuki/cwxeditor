@@ -5042,6 +5042,7 @@ public:
 		if (_fileSel) { mixin(S_TRACE);
 			if (d.use(CArg.TALKER_C)) r |= replImagePaths(e.cardPaths, (paths) { e.cardPaths = paths; }, count, uArr2);
 			if (d.use(CArg.BGM_PATH)) r |= replFilePath(e.bgmPath, &e.bgmPath, count, uArr2);
+			if (d.use(CArg.INITIAL_SOUND_PATH)) r |= replFilePath(e.initialSoundPath, &e.initialSoundPath, count, uArr2);
 			if (d.use(CArg.SOUND_PATH)) r |= replFilePath(e.soundPath, &e.soundPath, count, uArr2);
 		}
 		if (_keyCodeSel) { mixin(S_TRACE);

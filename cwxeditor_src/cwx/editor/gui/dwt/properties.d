@@ -180,7 +180,7 @@ public class FlexProps {
 	DialogParam!("branchMemberDialog", SWT.DEFAULT, 400) brMemberDlg;
 	DialogParam!("cardEventDialog", SWT.DEFAULT, SWT.DEFAULT, 2019011300) cardEvtDlg;
 	DialogParam!("flagEventDialog", 350) flagEvtDlg;
-	DialogParam!("effectEventDialog") effEvtDlg;
+	DialogParam!("effectEventDialog", SWT.DEFAULT, SWT.DEFAULT, 2019033000) effEvtDlg;
 	DialogParam!("soundEventDialog") soundEvtDlg;
 	DialogParam!("couponEventDialog", SWT.DEFAULT, SWT.DEFAULT, 2019033000) couponEvtDlg;
 	DialogParam!("multiCouponEventDialog", SWT.DEFAULT, SWT.DEFAULT, 2019033000) multiCouponEvtDlg;
