@@ -2443,16 +2443,16 @@ private:
 		override void dragFinished(DragSourceEvent e) { mixin(S_TRACE);
 			if (!_readOnly && e.detail == DND.DROP_MOVE) { mixin(S_TRACE);
 				foreach (flag; _dragFlags) { mixin(S_TRACE);
-					flag.parent.remove(flag);
 					uc.deleteID(toFlagId(flag.path));
+					flag.parent.remove(flag);
 				}
 				foreach (step; _dragSteps) { mixin(S_TRACE);
-					step.parent.remove(step);
 					uc.deleteID(toStepId(step.path));
+					step.parent.remove(step);
 				}
 				foreach (variant; _dragVariants) { mixin(S_TRACE);
-					variant.parent.remove(variant);
 					uc.deleteID(toVariantId(variant.path));
+					variant.parent.remove(variant);
 				}
 				refresh();
 				callDeleteEvent();
