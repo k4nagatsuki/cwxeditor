@@ -95,7 +95,7 @@ void writeFile(string file, in void[] data, FileSync fsync, void delegate() afte
 
 /// ファイルを出力する。ハードウェアへの出力を確実に行う。
 bool writeFileAndSync(string file, in void[] data) { mixin(S_TRACE);
-import cwx.utils;
+	import cwx.utils;
 	auto tmp = "";
 	size_t i = 0;
 	do { mixin(S_TRACE);

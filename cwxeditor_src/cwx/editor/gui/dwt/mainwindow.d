@@ -2506,13 +2506,58 @@ private:
 			}
 		}
 	}
+
+	Object _sendToPipeMutex;
+	bool _sendPipeThrQuit = false;
+	Tuple!(string delegate(string), "sendRecv", bool delegate(), "next")[] _sendToPipe;
 	/// CWXEditorのプロセスに対してパイプを通じてメッセージを送る。
 	void sendToPipe(string delegate(string) sendRecv, bool delegate() next) { mixin(S_TRACE);
+		synchronized (_sendToPipeMutex) {
+			_sendToPipe ~= typeof(_sendToPipe[0])(sendRecv, next);
+		}
+	}
+	/// ditto
+	void sendPipeThr() { mixin(S_TRACE);
+		try { mixin(S_TRACE);
+			version (Console) {
+				debug std.stdio.writeln("Start Sender Pipe Thread");
+			}
+			while (!_sendPipeThrQuit) { mixin(S_TRACE);
+				auto send = false;
+				typeof(_sendToPipe[0]) data;
+				synchronized (_sendToPipeMutex) {
+					if (_sendToPipe.length) { mixin(S_TRACE);
+						data = _sendToPipe[0];
+						_sendToPipe = _sendToPipe[1 .. $];
+						send = true;
+					}
+				}
+				if (send) { mixin(S_TRACE);
+					sendToPipeImpl(data.sendRecv, data.next);
+				} else { mixin(S_TRACE);
+					core.thread.Thread.sleep(.dur!("msecs")(1));
+				}
+			}
+			synchronized (_sendToPipeMutex) {
+				foreach (data; _sendToPipe) { mixin(S_TRACE);
+					sendToPipeImpl(data.sendRecv, data.next);
+				}
+			}
+			version (Console) {
+				debug writeln("Exit Sender Pipe Thread");
+			}
+		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
+		}
+	}
+	/// ditto
+	void sendToPipeImpl(string delegate(string) sendRecv, bool delegate() next) { mixin(S_TRACE);
 		version (Windows) {
 			WIN32_FIND_DATA fd;
 			char[MAX_PATH] buf;
 			DWORD len;
-			auto handle = FindFirstFileW(r"\\.\pipe\*".toUTFz!(wchar*), &fd);
+			auto handle = FindFirstFileW(r"\\.\pipe\cwxeditor_*".toUTFz!(wchar*), &fd);
 			if (handle == INVALID_HANDLE_VALUE) return;
 			scope (exit) FindClose(handle);
 			do {
@@ -2708,7 +2753,7 @@ public:
 			}
 			bool execute = true;
 			dStr ~= " - " ~ .text(__LINE__);
-			sendToPipe((string recv) { mixin(S_TRACE);
+			sendToPipeImpl((string recv) { mixin(S_TRACE);
 				if (!recv) { mixin(S_TRACE);
 					return "get opened scenario";
 				} else if (std.string.startsWith(recv, "opened scenario ")) { mixin(S_TRACE);
@@ -2725,8 +2770,8 @@ public:
 						return "";
 					}
 				} else if (std.string.startsWith(recv, "opened cwxpath")) { mixin(S_TRACE);
-					if (_opt.selectfile.length) { mixin(S_TRACE);
-						string send = "select file " ~ _opt.selectfile;
+					if (opt.selectfile.length) { mixin(S_TRACE);
+						string send = "select file " ~ opt.selectfile;
 						execute = false;
 						return send;
 					} else { mixin(S_TRACE);
@@ -4821,6 +4866,9 @@ public:
 			if (_pipeName.length) { mixin(S_TRACE);
 				pipe.start();
 			}
+			_sendToPipeMutex = new Object;
+			auto sendPipeThr = new core.thread.Thread(&this.sendPipeThr);
+			sendPipeThr.start();
 			auto backup = new core.thread.Thread(&backupThr);
 			backup.start();
 			version (Windows) {
@@ -4926,6 +4974,12 @@ public:
 			_sync.quit();
 			dStr ~= " - " ~ .text(__LINE__);
 			sendReloadProps();
+			dStr ~= " - " ~ .text(__LINE__);
+			_sendPipeThrQuit = true;
+			sendPipeThr.join(false);
+			version (Console) {
+				debug writeln("Joined Sender Pipe Thread");
+			}
 			version (Console) {
 				debug writeln("Saved Settings");
 			}
