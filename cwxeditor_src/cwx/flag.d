@@ -1887,8 +1887,8 @@ public:
 	private bool readAtt(in XNode node, out string rootId, out string path, out bool sameTree) { mixin(S_TRACE);
 		path = null;
 		sameTree = false;
-		rootId = node.attr(XML_ATT_ROOT_ID, false);
-		path = node.attr(XML_ATT_PATH, false);
+		rootId = node.attr(XML_ATT_ROOT_ID, false, "");
+		path = node.attr(XML_ATT_PATH, false, "");
 		if (rootId !is null && path !is null) { mixin(S_TRACE);
 			sameTree = this.root.id == rootId;
 			return true;
