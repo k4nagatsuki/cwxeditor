@@ -675,12 +675,12 @@ private:
 		}
 		void drop(DropTargetEvent e){ mixin(S_TRACE);
 			e.detail = DND.DROP_NONE;
-			auto files = cast(FileNames) e.data;
+			auto files = cast(FileNames)e.data;
 			bool fromOut;
 			static if (is(C == Table)) {
-				auto toparP = e.item ? (cast(FileNameObj) e.item.getData()).array : selDirPath;
+				auto toparP = e.item ? (cast(FileNameObj)e.item.getData()).array : selDirPath;
 			} else static if (is(C == Tree)) {
-				auto toparP = (cast(FileNameObj) e.item.getData()).array;
+				auto toparP = (cast(FileNameObj)e.item.getData()).array;
 			} else { mixin(S_TRACE);
 				static assert (0);
 			}

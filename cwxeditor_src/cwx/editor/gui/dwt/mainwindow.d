@@ -1041,11 +1041,13 @@ private:
 			e.detail = DND.DROP_LINK;
 		}
 		override void drop(DropTargetEvent e) { mixin(S_TRACE);
-			auto arr = cast(FileNames) e.data;
-			if (arr && arr.array.length > 0) { mixin(S_TRACE);
-				if (qSave(QSaveType.open)) { mixin(S_TRACE);
-					openScenario(arr.array[0], &resetOpt);
-				}
+			dropFiles(cast(FileNames)e.data);
+		}
+	}
+	public void dropFiles(FileNames arr) { mixin(S_TRACE);
+		if (arr && arr.array.length) { mixin(S_TRACE);
+			if (qSave(QSaveType.open)) { mixin(S_TRACE);
+				openScenario(arr.array[0], &resetOpt);
 			}
 		}
 	}
@@ -2840,6 +2842,9 @@ public:
 			_win = _sbshl.shell();
 			_win.setData(new TLPData(this));
 			_win.setImages(_prop.images.icon);
+			auto drop = new DropTarget(_win, DND.DROP_DEFAULT | DND.DROP_LINK);
+			drop.setTransfer([FileTransfer.getInstance()]);
+			drop.addDropListener(new DTListener);
 
 			// FIXME: 最大化中に最小化・最小化解除を行うと最大化前の
 			//        サイズでのレイアウト処理が発生するのを防ぐ
@@ -3748,11 +3753,7 @@ public:
 			createMenuItem(_comm, menu, MenuID.CustomizeToolBar, &customizeToolBar, null);
 			new MenuItem(menu, SWT.SEPARATOR);
 		});
-		if (_cbar.getItemCount()) { mixin(S_TRACE);
-			auto drop = new DropTarget(_cbar, DND.DROP_DEFAULT | DND.DROP_LINK);
-			drop.setTransfer([FileTransfer.getInstance()]);
-			drop.addDropListener(new DTListener);
-		} else { mixin(S_TRACE);
+		if (_cbar.getItemCount() == 0) { mixin(S_TRACE);
 			_cbar.dispose();
 			_cbar = null;
 		}

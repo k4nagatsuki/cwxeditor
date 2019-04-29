@@ -152,7 +152,7 @@ private:
 		override void drop(DropTargetEvent e) { mixin(S_TRACE);
 			assert (_ownerType is OwnerType.Summary);
 			assert (editMode);
-			auto arr = cast(FileNames) e.data;
+			auto arr = cast(FileNames)e.data;
 			if (arr && arr.array.length > 0) { mixin(S_TRACE);
 				_comm.addScenario(_prop, arr.array);
 			}
