@@ -438,7 +438,8 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() { return _uc; }
+	inout
+	inout(UseCounter) useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
@@ -561,7 +562,8 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() { return _uc; }
+	inout
+	inout(UseCounter) useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
@@ -654,7 +656,8 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() { return _uc; }
+	inout
+	inout(UseCounter) useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
@@ -753,7 +756,8 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() { return _uc; }
+	inout
+	inout(UseCounter) useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
@@ -844,7 +848,8 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() { return _uc; }
+	inout
+	inout(UseCounter) useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
@@ -1043,7 +1048,8 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() { return _uc; }
+	inout
+	inout(UseCounter) useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
@@ -1129,7 +1135,8 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() { return _uc; }
+	inout
+	inout(UseCounter) useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
@@ -1209,7 +1216,8 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() { return _uc; }
+	inout
+	inout(UseCounter) useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
@@ -1289,7 +1297,8 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() { return _uc; }
+	inout
+	inout(UseCounter) useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
@@ -1369,7 +1378,8 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() { return _uc; }
+	inout
+	inout(UseCounter) useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
@@ -1449,7 +1459,8 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() { return _uc; }
+	inout
+	inout(UseCounter) useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
@@ -1574,7 +1585,8 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() { return _uc; }
+	inout
+	inout(UseCounter) useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
@@ -1701,7 +1713,8 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() { return _uc; }
+	inout
+	inout(UseCounter) useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
@@ -1785,7 +1798,8 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() { return _uc; }
+	inout
+	inout(UseCounter) useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
@@ -1860,7 +1874,8 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() { return _uc; }
+	inout
+	inout(UseCounter) useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
@@ -1935,7 +1950,8 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() { return _uc; }
+	inout
+	inout(UseCounter) useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
@@ -2010,7 +2026,8 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() { return _uc; }
+	inout
+	inout(UseCounter) useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);

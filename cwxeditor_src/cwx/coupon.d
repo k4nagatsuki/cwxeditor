@@ -58,7 +58,8 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() { mixin(S_TRACE);
+	inout
+	inout(UseCounter) useCounter() { mixin(S_TRACE);
 		return _coupon.useCounter;
 	}
 	/// 使用回数カウンタを登録する。
@@ -163,7 +164,8 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() { return _uc; }
+	inout
+	inout(UseCounter) useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);

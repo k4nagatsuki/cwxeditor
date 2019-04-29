@@ -914,6 +914,30 @@ private:
 		}
 	}
 
+	@property
+	const
+	bool hasFlag() { mixin(S_TRACE);
+		if (!_et) return false;
+		if (_summ.flagDirRoot.hasFlag) return true;
+		if (auto ec = cast(LocalVariableOwner)_et.useCounter.owner) return ec.flagDirRoot.hasFlag;
+		return false;
+	}
+	@property
+	const
+	bool hasStep() { mixin(S_TRACE);
+		if (!_et) return false;
+		if (_summ.flagDirRoot.hasStep) return true;
+		if (auto ec = cast(LocalVariableOwner)_et.useCounter.owner) return ec.flagDirRoot.hasStep;
+		return false;
+	}
+	@property
+	const
+	bool hasVariant() { mixin(S_TRACE);
+		if (!_et) return false;
+		if (_summ.flagDirRoot.hasVariant) return true;
+		if (auto ec = cast(LocalVariableOwner)_et.useCounter.owner) return ec.flagDirRoot.hasVariant;
+		return false;
+	}
 	bool checkOpenDialog(CType type) { mixin(S_TRACE);
 		if (_readOnly) return false;
 		switch (type) {
@@ -924,9 +948,9 @@ private:
 		case CType.LINK_PACKAGE, CType.CALL_PACKAGE: mixin(S_TRACE);
 			return _summ.packages.length > 0;
 		case CType.BRANCH_FLAG, CType.SET_FLAG, CType.REVERSE_FLAG, CType.CHECK_FLAG, CType.SUBSTITUTE_FLAG, CType.BRANCH_FLAG_CMP: mixin(S_TRACE);
-			return _summ.flagDirRoot.hasFlag;
+			return hasFlag;
 		case CType.BRANCH_MULTI_STEP, CType.BRANCH_STEP, CType.SET_STEP, CType.SET_STEP_UP, CType.SET_STEP_DOWN, CType.SUBSTITUTE_STEP, CType.BRANCH_STEP_CMP: mixin(S_TRACE);
-			return _summ.flagDirRoot.hasStep;
+			return hasStep;
 		case CType.BRANCH_CAST, CType.GET_CAST, CType.LOSE_CAST: mixin(S_TRACE);
 			return _summ.casts.length > 0;
 		case CType.BRANCH_ITEM, CType.GET_ITEM: mixin(S_TRACE);
@@ -950,11 +974,11 @@ private:
 		case CType.REDISPLAY: mixin(S_TRACE);
 			return !_summ.legacy;
 		case CType.CHECK_STEP: mixin(S_TRACE);
-			return _summ.flagDirRoot.hasStep;
+			return hasStep;
 		case CType.EFFECT_BREAK: mixin(S_TRACE);
 			return !_summ.legacy;
 		case CType.SET_VARIANT: mixin(S_TRACE);
-			return _summ.flagDirRoot.hasFlag || _summ.flagDirRoot.hasStep || _summ.flagDirRoot.hasVariant;
+			return hasFlag || hasStep || hasVariant;
 		default: mixin(S_TRACE);
 			return true;
 		}

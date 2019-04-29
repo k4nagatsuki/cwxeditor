@@ -409,7 +409,8 @@ public:
 	}
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() { return _text.useCounter; }
+	inout
+	inout(UseCounter) useCounter() { return _text.useCounter; }
 	/// 使用回数カウンタを設定・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
@@ -3650,7 +3651,8 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() { return _uc; }
+	inout
+	inout(UseCounter) useCounter() { return _uc; }
 	/// 使用回数カウンタを設定する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);

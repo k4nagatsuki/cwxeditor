@@ -983,7 +983,8 @@ public:
 
 	/// このシナリオが持つ使用回数カウンタ。
 	@property
-	UseCounter useCounter() { mixin(S_TRACE);
+	inout
+	inout(UseCounter) useCounter() { mixin(S_TRACE);
 		return _uc;
 	}
 

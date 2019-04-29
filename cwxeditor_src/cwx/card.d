@@ -118,7 +118,8 @@ class CardImage : CWXPath {
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() { return _path.useCounter; }
+	inout
+	inout(UseCounter) useCounter() { return _path.useCounter; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { _path.setUseCounter(uc); }
@@ -3129,7 +3130,8 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() { return _uc; }
+	inout
+	inout(UseCounter) useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
