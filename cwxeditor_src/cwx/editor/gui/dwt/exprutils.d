@@ -316,21 +316,21 @@ protected:
 			_expr.expression = evt.expression;
 			if (evt.flag != "") { mixin(S_TRACE);
 				_varTypes[VariableType.Flag].setSelection(true);
-				updateEnabled();
+				selectedVariableType();
 				_flag.selected = evt.flag;
 			} else if (evt.step != "") { mixin(S_TRACE);
 				_varTypes[VariableType.Step].setSelection(true);
-				updateEnabled();
+				selectedVariableType();
 				_step.selected = evt.step;
 			} else { mixin(S_TRACE);
 				_varTypes[VariableType.Variant].setSelection(true);
-				updateEnabled();
+				selectedVariableType();
 				_variant.selected = evt.variant;
 			}
 		} else { mixin(S_TRACE);
 			_expr.expression = "";
 			_varTypes[VariableType.Variant].setSelection(true);
-			updateEnabled();
+			selectedVariableType();
 			_variant.selected = "";
 		}
 

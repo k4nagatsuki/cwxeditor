@@ -530,6 +530,7 @@ private class Function : Part {
 	static this () {
 		FUNCS = [
 			"len": &.funcLen,
+			"find": &.funcFind,
 			"left": &.funcLeft,
 			"right": &.funcRight,
 			"mid": &.funcMid,
@@ -1280,6 +1281,32 @@ private const(Part) funcLen(in CProps prop, EvalMode mode, in VariableInfo vInfo
 	return new NumberValue(func.token, a.strVal.codeLength!dchar);
 }
 
+/// 文字列内を検索する。
+private const(Part) funcFind(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	if (!checkArgCount2(prop, func, args, 2, 3, err)) return new NumberValue(func.token, 0);
+	auto a = checkString(prop, func, args, 0, err);
+	if (!a) return new NumberValue(func.token, 0);
+	auto t = checkString(prop, func, args, 1, err);
+	if (!t) return new NumberValue(func.token, 0);
+	size_t start = 0;
+	if (2 < args.length) { mixin(S_TRACE);
+		auto s = checkMinValue(prop, mode, func, args, 2, 0, err);
+		if (!s) return new NumberValue(func.token, 0);
+		start = cast(size_t)s.numVal;
+		if (start == 0) return new NumberValue(func.token, 0);
+		start--;
+		if (t.strVal.codeLength!dchar <= start) return new NumberValue(func.token, 0);
+		start = .toUTFindex(t.strVal, start);
+	}
+	if (a.strVal == "" && t.strVal != "") { mixin(S_TRACE);
+		return new NumberValue(func.token, .toUCSindex(t.strVal, start) + 1);
+	}
+	auto r = t.strVal[start .. $].indexOf(a.strVal);
+	if (r == -1) return new NumberValue(func.token, 0);
+	r += start;
+	return new NumberValue(func.token, .toUCSindex(t.strVal, r) + 1);
+}
+
 /// 文字列の左側を取り出す。
 private const(Part) funcLeft(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
 	if (!checkArgCount(prop, func, args, 2, err)) return new StringValue(func.token, "");
@@ -1672,6 +1699,11 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 		FuncDef([FunctionCategory.StringOperation], "LEN", prop.msgs.funcDescLen, prop.msgs.funcShortDescLen, prop.msgs.funcExampleLen, [
 			ArgDef(ArgType.String, prop.msgs.exprStringDesc, "", false),
 		], ArgType.Number),
+		FuncDef([FunctionCategory.StringOperation], "FIND", prop.msgs.funcDescFind, prop.msgs.funcShortDescFind, prop.msgs.funcExampleFind, [
+			ArgDef(ArgType.String, prop.msgs.exprFindStringDesc, "", false),
+			ArgDef(ArgType.String, prop.msgs.exprTargetStringDesc, "", false),
+			ArgDef(ArgType.Number, prop.msgs.exprFindStartPositionDesc, "1", true),
+		], ArgType.Number),
 		FuncDef([FunctionCategory.StringOperation], "LEFT", prop.msgs.funcDescLeft, prop.msgs.funcShortDescLeft, prop.msgs.funcExampleLeft, [
 			ArgDef(ArgType.String, prop.msgs.exprStringDesc, "", false),
 			ArgDef(ArgType.Number, prop.msgs.exprStringLengthDesc, "0", false),
@@ -1802,6 +1834,21 @@ unittest { mixin(UTPerf);
 	assert (checkB(.eval(prop, EvalMode.All, vInfo, "4<>4"), false));
 	assert (checkB(.eval(prop, EvalMode.All, vInfo, "3<>4"), true));
 	assert (checkN(.eval(prop, EvalMode.All, vInfo, "LEN(\"TESTあいうえお\")"), 9));
+	assert (checkN(.eval(prop, EvalMode.All, vInfo, "FIND(\"対象文字列\", \"対象文字列\")"), 1));
+	assert (checkN(.eval(prop, EvalMode.All, vInfo, "FIND(\"文字\", \"対象文字列\")"), 3));
+	assert (checkN(.eval(prop, EvalMode.All, vInfo, "FIND(\"文じ\", \"対象文字列\")"), 0));
+	assert (checkN(.eval(prop, EvalMode.All, vInfo, "FIND(\"文字\", \"対象文字列\", 3)"), 3));
+	assert (checkN(.eval(prop, EvalMode.All, vInfo, "FIND(\"文字\", \"対象文字列\", 4)"), 0));
+	assert (checkN(.eval(prop, EvalMode.All, vInfo, "FIND(\"文字\", \"対象文字列\", 0)"), 0));
+	assert (checkN(.eval(prop, EvalMode.All, vInfo, "FIND(\"列\", \"対象文字列\", 5)"), 5));
+	assert (checkN(.eval(prop, EvalMode.All, vInfo, "FIND(\"列\", \"対象文字列\", 6)"), 0));
+	assert (checkN(.eval(prop, EvalMode.All, vInfo, "FIND(\"\", \"対象文字列\")"), 1));
+	assert (checkN(.eval(prop, EvalMode.All, vInfo, "FIND(\"\", \"対象文字列\", 5)"), 5));
+	assert (checkN(.eval(prop, EvalMode.All, vInfo, "FIND(\"\", \"対象文字列\", 6)"), 0));
+	assert (checkN(.eval(prop, EvalMode.All, vInfo, "FIND(\"字\", \"A象B文C字D列\")"), 6));
+	assert (checkN(.eval(prop, EvalMode.All, vInfo, "FIND(\"字\", \"A象B文C字D列\", 6)"), 6));
+	assert (checkN(.eval(prop, EvalMode.All, vInfo, "FIND(\"字\", \"A象B文C字D列\", 7)"), 0));
+	assert (checkN(.eval(prop, EvalMode.All, vInfo, "FIND(\"\", \"\")"), 0));
 	assert (checkS(.eval(prop, EvalMode.All, vInfo, "LEFT(\"あいうえお\", 0)"), ""));
 	assert (checkS(.eval(prop, EvalMode.All, vInfo, "LEFT(\"あいうえお\", 3)"), "あいう"));
 	assert (checkS(.eval(prop, EvalMode.All, vInfo, "LEFT(\"あいうえお\", 8)"), "あいうえお"));

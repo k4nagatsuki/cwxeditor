@@ -2689,6 +2689,7 @@ class Msgs : Properties {
 	auto functionAs = Msg("functionAs", "%1$s → %2$s");
 
 	auto funcDescLen = Msg("funcDescLen", "文字列の長さ(文字数)を返します。");
+	auto funcDescFind = Msg("funcDescFind", "対象文字列内に検索文字列があった場合は位置(1～)を返します。見つからなかった場合は0を返します。");
 	auto funcDescLeft = Msg("funcDescLeft", "文字列の左側を返します。");
 	auto funcDescRight = Msg("funcDescRight", "文字列の右側を返します。");
 	auto funcDescMid = Msg("funcDescMid", "文字列の中間部分を返します。長さを省略した場合は、指定位置より右側を返します。");
@@ -2713,6 +2714,7 @@ class Msgs : Properties {
 	auto funcDescGossipText = Msg("funcDescGossipText", "ゴシップの名前を返します。見つからなかった場合は空文字列を返します。");
 
 	auto funcShortDescLen = Msg("funcShortDescLen", "文字列の長さを返す");
+	auto funcShortDescFind = Msg("funcDescFind", "文字列内を検索");
 	auto funcShortDescLeft = Msg("funcShortDescLeft", "文字列の左側を返す");
 	auto funcShortDescRight = Msg("funcShortDescRight", "文字列の右側を返す");
 	auto funcShortDescMid = Msg("funcShortDescMid", "文字列の中間部分を返す");
@@ -2737,6 +2739,7 @@ class Msgs : Properties {
 	auto funcShortDescGossipText = Msg("funcShortDescGossipText", "ゴシップ名を取得");
 
 	auto funcExampleLen = Msg("funcExampleLen", "LEN(\"対象文字列\") = 5");
+	auto funcExampleFind = Msg("funcExampleFind", "FIND(\"文字\", \"対象文字列\") = 3");
 	auto funcExampleLeft = Msg("funcExampleLeft", "LEFT(\"対象文字列\", 2) = \"対象\"");
 	auto funcExampleRight = Msg("funcExampleRight", "RIGHT(\"対象文字列\", 3) = \"文字列\"");
 	auto funcExampleMid = Msg("funcExampleMid", "MID(\"対象文字列\", 3, 2) = \"文字\"");
@@ -2761,6 +2764,8 @@ class Msgs : Properties {
 	auto funcExampleGossipText = Msg("funcExampleGossipText", "GOSSIPTEXT(FINDGOSSIP(\"*生存\")) = \"ゴブリン生存\"");
 
 	auto exprStringDesc = Msg("exprStringDesc", "文字列");
+	auto exprFindStringDesc = Msg("exprFindStringDesc", "検索文字列");
+	auto exprTargetStringDesc = Msg("exprTargetStringDesc", "対象文字列");
 	auto exprStringLengthDesc = Msg("exprStringLengthDesc", "長さ(文字数)");
 	auto exprStringPositionDesc = Msg("exprStringPositionDesc", "位置(1～)");
 	auto exprAnyValueDesc = Msg("exprAnyValueDesc", "任意の値");
