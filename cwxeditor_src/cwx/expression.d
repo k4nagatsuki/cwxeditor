@@ -1890,7 +1890,7 @@ string variantValueToText(in VariantVal v) { mixin(S_TRACE);
 private string variantValueToTextImpl(VariantType type, double numVal, string strVal, bool boolVal) { mixin(S_TRACE);
 	final switch (type) {
 	case VariantType.Number:
-		auto r = .format("%." ~ .text(Variant.DECIMAL_PLACES) ~ "f", numVal).stripRight("0.");
+		auto r = .format("%." ~ .text(Variant.DECIMAL_PLACES) ~ "f", numVal).stripRight("0").stripRight(".");
 		if (r == "") r = "0";
 		return r;
 	case VariantType.String:
@@ -1898,6 +1898,18 @@ private string variantValueToTextImpl(VariantType type, double numVal, string st
 	case VariantType.Boolean:
 		return boolVal.text().toUpper();
 	}
+} unittest { mixin(UTPerf);
+	assert (.variantValueToTextImpl(VariantType.Number, 12.345, "", false) == "12.345");
+	assert (.variantValueToTextImpl(VariantType.Number, 100.000, "", false) == "100");
+	assert (.variantValueToTextImpl(VariantType.Number, 100.010, "", false) == "100.01");
+	assert (.variantValueToTextImpl(VariantType.Number, 100.12345600001, "", false) == "100.123456");
+	assert (.variantValueToTextImpl(VariantType.Number, 0.0, "", false) == "0");
+	assert (.variantValueToTextImpl(VariantType.Number, 0.000000000000001, "", false) == "0");
+	assert (.variantValueToTextImpl(VariantType.Number, 0.01, "", false) == "0.01");
+	assert (.variantValueToTextImpl(VariantType.String, 0, "TEST", false) == "\"TEST\"");
+	assert (.variantValueToTextImpl(VariantType.String, 0, "TE\"ST", false) == "\"TE\"\"ST\"");
+	assert (.variantValueToTextImpl(VariantType.Boolean, 0, "", true) == "TRUE");
+	assert (.variantValueToTextImpl(VariantType.Boolean, 0, "", false) == "FALSE");
 }
 /// 文字列表現textからコモン値を生成する。
 @property
