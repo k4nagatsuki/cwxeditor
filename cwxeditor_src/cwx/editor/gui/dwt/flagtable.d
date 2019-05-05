@@ -1272,12 +1272,12 @@ protected:
 		scope (exit) ignoreMod = false;
 		if (_variant) { mixin(S_TRACE);
 			_name.setText(_variant.name);
-			_numVal.setText(0.text);
+			_numVal.setText(.variantValueToText(VariantVal(VariantType.Number)));
 			_boolVal.select(0);
 			final switch (_variant.type) {
 			case VariantType.Number:
 				_typeNum.setSelection(true);
-				_numVal.setText(_variant.numVal.text);
+				_numVal.setText(.variantValueToText(_variant));
 				break;
 			case VariantType.String:
 				_typeStr.setSelection(true);
@@ -1292,7 +1292,7 @@ protected:
 		} else { mixin(S_TRACE);
 			_name.setText("");
 			_typeNum.setSelection(true);
-			_numVal.setText(0.text);
+			_numVal.setText(.variantValueToText(VariantVal(VariantType.Number)));
 			_strVal.setText("");
 			_boolVal.select(0);
 			_initTim.select(cast(int)_initTims.cCountUntil(_local ? VariableInitialization.None : VariableInitialization.Leave));

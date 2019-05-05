@@ -1023,9 +1023,9 @@ private const(Part)[] parseSemantics(in CProps prop, ref Token[] tokens, ref siz
 struct VariantVal {
 	bool valid; /// 有効な値か。
 	VariantType type; /// 型。
-	double numVal; /// 数値。
-	string strVal; /// 文字列値
-	bool boolVal; /// 真偽値。
+	double numVal = 0; /// 数値。
+	string strVal = ""; /// 文字列値
+	bool boolVal = false; /// 真偽値。
 
 	/// 有効かどうかを指定して初期化する。
 	this (bool valid) {
