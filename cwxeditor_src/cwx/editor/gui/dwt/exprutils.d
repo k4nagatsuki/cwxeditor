@@ -1002,7 +1002,7 @@ private class FunctionCallEditor {
 				argTypes = [ArgType.Step, ArgType.VariantRef];
 				break;
 			case ArgType.Variant:
-				argTypes = [ArgType.String, ArgType.VariantRef];
+				argTypes = [ArgType.Variant, ArgType.VariantRef];
 				break;
 			case ArgType.Boolean:
 				argTypes = [ArgType.Boolean, ArgType.VariantRef];

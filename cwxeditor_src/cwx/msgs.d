@@ -2770,7 +2770,7 @@ class Msgs : Properties {
 	auto exprStringLengthDesc = Msg("exprStringLengthDesc", "長さ(文字数)");
 	auto exprStringPositionDesc = Msg("exprStringPositionDesc", "位置(1～)");
 	auto exprAnyValueDesc = Msg("exprAnyValueDesc", "任意の値");
-	auto exprValueArgDesc = Msg("exprValueArgDesc", "文字列");
+	auto exprValueArgDesc = Msg("exprValueArgDesc", "文字列または数値");
 	auto exprBooleanDesc = Msg("exprBooleanDesc", "真偽値");
 	auto exprIfTrueDesc = Msg("exprIfTrueDesc", "TRUEの結果");
 	auto exprIfFalseDesc = Msg("exprIfFalseDesc", "FALSEの結果");

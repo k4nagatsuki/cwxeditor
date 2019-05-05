@@ -1404,6 +1404,13 @@ private const(Part) funcInt(in CProps prop, EvalMode mode, in VariableInfo vInfo
 private const(Part) funcIf(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
 	if (!checkArgCount(prop, func, args, 3, err)) return new NumberValue(func.token, 0);
 	auto a = checkBoolean(prop, func, args, 0, err);
+	if (mode is EvalMode.TypeCheck) { mixin(S_TRACE);
+		// trueとfalseで型が一致していない場合は Unknown型を返す。
+		if (cast(NumberValue)args[1] && cast(NumberValue)args[2]) return args[1];
+		if (cast(BooleanValue)args[1] && cast(BooleanValue)args[2]) return args[1];
+		if (cast(StringValue)args[1] && cast(StringValue)args[2]) return args[1];
+		return new UnknownValue(func.token);
+	}
 	if (!a) return args[1];
 	return a.boolVal ? args[1] : args[2];
 }
@@ -1717,13 +1724,13 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 			ArgDef(ArgType.Number, prop.msgs.exprStringPositionDesc, "1", false),
 			ArgDef(ArgType.Number, prop.msgs.exprStringLengthDesc, "0", true),
 		], ArgType.String),
-		FuncDef([FunctionCategory.StringOperation], "STR", prop.msgs.funcDescStr, prop.msgs.funcShortDescStr, prop.msgs.funcExampleStr, [
+		FuncDef([FunctionCategory.StringOperation, FunctionCategory.Conversion], "STR", prop.msgs.funcDescStr, prop.msgs.funcShortDescStr, prop.msgs.funcExampleStr, [
 			ArgDef(ArgType.Any, prop.msgs.exprAnyValueDesc, "", false),
 		], ArgType.String),
-		FuncDef([FunctionCategory.Conversion], "VALUE", prop.msgs.funcDescValue, prop.msgs.funcShortDescValue, prop.msgs.funcExampleValue, [
+		FuncDef([FunctionCategory.NumberOperation, FunctionCategory.Conversion], "VALUE", prop.msgs.funcDescValue, prop.msgs.funcShortDescValue, prop.msgs.funcExampleValue, [
 			ArgDef(ArgType.NumberOrString, prop.msgs.exprValueArgDesc, "0", false),
 		], ArgType.Number),
-		FuncDef([FunctionCategory.Conversion], "INT", prop.msgs.funcDescInt, prop.msgs.funcShortDescInt, prop.msgs.funcExampleInt, [
+		FuncDef([FunctionCategory.NumberOperation, FunctionCategory.Conversion], "INT", prop.msgs.funcDescInt, prop.msgs.funcShortDescInt, prop.msgs.funcExampleInt, [
 			ArgDef(ArgType.NumberOrString, prop.msgs.exprValueArgDesc, "0", false),
 		], ArgType.Number),
 		FuncDef([FunctionCategory.Etc], "IF", prop.msgs.funcDescIf, prop.msgs.funcShortDescIf, prop.msgs.funcExampleIf, [
@@ -1741,7 +1748,7 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 		FuncDef([FunctionCategory.NumberOperation], "MIN", prop.msgs.funcDescMin, prop.msgs.funcShortDescMin, prop.msgs.funcExampleMin, [
 			ArgDef(ArgType.Number, prop.msgs.exprVariableLengthNumberDesc, "0", false, true),
 		], ArgType.Number),
-		FuncDef([FunctionCategory.VariableOperation], "VAR", prop.msgs.funcDescVar, prop.msgs.funcShortDescVar, prop.msgs.funcExampleMax, [
+		FuncDef([FunctionCategory.VariableOperation], "VAR", prop.msgs.funcDescVar, prop.msgs.funcShortDescVar, prop.msgs.funcExampleVar, [
 			ArgDef(ArgType.Variant, prop.msgs.exprVariantDesc, "", false),
 		], ArgType.Any),
 		FuncDef([FunctionCategory.VariableOperation], "FLAGVALUE", prop.msgs.funcDescFlagValue, prop.msgs.funcShortDescFlagValue, prop.msgs.funcExampleFlagValue, [
@@ -1758,7 +1765,7 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 			ArgDef(ArgType.Step, prop.msgs.exprStepDesc, "", false),
 			ArgDef(ArgType.Number, prop.msgs.exprStepValueDesc, "0", true),
 		], ArgType.String),
-		FuncDef([FunctionCategory.VariableOperation], "STEPMAX", prop.msgs.funcDescStepValue, prop.msgs.funcShortDescStepValue, prop.msgs.funcExampleStepValue, [
+		FuncDef([FunctionCategory.VariableOperation], "STEPMAX", prop.msgs.funcDescStepMax, prop.msgs.funcShortDescStepMax, prop.msgs.funcExampleStepMax, [
 			ArgDef(ArgType.Step, prop.msgs.exprStepDesc, "", false),
 		], ArgType.Number),
 		FuncDef([FunctionCategory.CardInformation], "SELECTED", prop.msgs.funcDescSelected, prop.msgs.funcShortDescSelected, prop.msgs.funcExampleSelected, [
