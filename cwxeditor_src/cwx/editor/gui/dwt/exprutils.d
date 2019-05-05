@@ -412,6 +412,9 @@ class ExpressionEditor : Composite {
 	private void checkExpression(bool raiseModEvent) { mixin(S_TRACE);
 		_lastModified = MonoTime.init;
 		if (_raisedExpr == _expr.getText()) return;
+		checkExpressionImpl(raiseModEvent);
+	}
+	private void checkExpressionImpl(bool raiseModEvent) { mixin(S_TRACE);
 		auto oldWS = _ws;
 		_ws = [];
 		_raisedExpr = _expr.getText();
@@ -422,6 +425,14 @@ class ExpressionEditor : Composite {
 		VarValue[string] flags, steps, variants, sysSteps;
 		auto err = expr.getExpressionErrors(_comm.prop.parent, VariableInfo(_comm.prop.parent, _summ, _uc, _comm.prop.var.etc.targetVersion, names, flags, steps, variants, sysSteps));
 		_ws ~= .exprErrorToWarnings(_comm.prop.parent, text, err);
+
+		bool[string] wFlags;
+		bool[string] wSteps;
+		bool[string] wVariants;
+		bool[string] wFonts;
+		bool[char] wColors;
+		_ws ~= .textWarnings(_comm.prop.parent, _comm.skin, _summ, _uc, _comm.prop.var.etc.targetVersion, text, expr.flagsInText, expr.stepsInText, expr.variantsInText, [], [], wFlags, wSteps, wVariants, wFonts, wColors).all;
+
 		auto valid = _returnValue.valid;
 		auto type = _returnValue.type;
 		_returnValue = expr.returnValue(_comm.prop.parent);
@@ -431,6 +442,9 @@ class ExpressionEditor : Composite {
 		if (raiseModEvent && (_returnValue.valid !is valid || _returnValue.type !is type)) { mixin(S_TRACE);
 			modReturnValueEvent.each!(func => func())();
 		}
+	}
+	private void refFlagAndStep(cwx.flag.Flag[] flags, Step[] steps, cwx.flag.Variant[] variants) { mixin(S_TRACE);
+		checkExpressionImpl(true);
 	}
 
 	private Commons _comm;
@@ -614,9 +628,15 @@ class ExpressionEditor : Composite {
 		_display = getDisplay();
 		auto checkThr = new core.thread.Thread(&checkThread);
 		checkThr.start();
+
+		_comm.refFlagAndStep.add(&refFlagAndStep);
+		_comm.delFlagAndStep.add(&refFlagAndStep);
 		.listener(this, SWT.Dispose, { mixin(S_TRACE);
 			_quit = true;
 			checkThr.join();
+
+			_comm.refFlagAndStep.remove(&refFlagAndStep);
+			_comm.delFlagAndStep.remove(&refFlagAndStep);
 		});
 	}
 
