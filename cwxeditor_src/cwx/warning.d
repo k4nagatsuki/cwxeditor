@@ -1083,12 +1083,61 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (cd.use(CArg.CARD_SPEED) && c.cardSpeed != -1 && !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningCardAnimationSpeed;
 		}
-		if (cd.use(CArg.EXPRESSION) && summ) { mixin(S_TRACE);
+		if (cd.use(CArg.EXPRESSION)) { mixin(S_TRACE);
 			if (c.expression == "") { mixin(S_TRACE);
 				r ~= prop.msgs.searchErrorNoExpression;
-			} else if (summ) { mixin(S_TRACE);
+			} else { mixin(S_TRACE);
 				string[char] names;
 				VarValue[string] flags, steps, variants, sysSteps;
+				switch (c.type) {
+				case CType.SET_VARIANT:
+					if (c.flag != "") { mixin(S_TRACE);
+						auto val = c.getExpressionReturnValue(prop);
+						if (val.valid) { mixin(S_TRACE);
+							final switch (val.type) {
+							case VariantType.Number:
+								r ~= .tryFormat(prop.msgs.warningExpressionToFlag, prop.msgs.numberValue);
+								break;
+							case VariantType.String:
+								r ~= .tryFormat(prop.msgs.warningExpressionToFlag, prop.msgs.stringValue);
+								break;
+							case VariantType.Boolean:
+								break;
+							}
+						}
+					} else if (c.step != "") { mixin(S_TRACE);
+						auto val = c.getExpressionReturnValue(prop);
+						if (val.valid) { mixin(S_TRACE);
+							final switch (val.type) {
+							case VariantType.Number:
+								break;
+							case VariantType.String:
+								r ~= .tryFormat(prop.msgs.warningExpressionToStep, prop.msgs.stringValue);
+								break;
+							case VariantType.Boolean:
+								r ~= .tryFormat(prop.msgs.warningExpressionToStep, prop.msgs.booleanValue);
+								break;
+							}
+						}
+					}
+					break;
+				case CType.BRANCH_VARIANT:
+				case CType.CHECK_VARIANT:
+					auto val = c.getExpressionReturnValue(prop);
+					final switch (val.type) {
+					case VariantType.Number:
+						r ~= .tryFormat(prop.msgs.warningExpressionNeedBooleanReturnType, prop.msgs.numberValue, prop.msgs.contentName(c.type));
+						break;
+					case VariantType.String:
+						r ~= .tryFormat(prop.msgs.warningExpressionNeedBooleanReturnType, prop.msgs.stringValue, prop.msgs.contentName(c.type));
+						break;
+					case VariantType.Boolean:
+						break;
+					}
+					break;
+				default:
+					assert (0);
+				}
 				r ~= .exprErrorToWarnings(prop, c.expression, c.getExpressionErrors(prop, VariableInfo(prop, summ, c.useCounter, targVer, names, flags, steps, variants, sysSteps)));
 				r ~= checkTextRes2(c.expression, c.useCounter, c.flagsInExpression, c.stepsInExpression, c.variantsInExpression, [], []);
 			}

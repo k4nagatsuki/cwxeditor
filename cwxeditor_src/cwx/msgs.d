@@ -2673,6 +2673,7 @@ class Msgs : Properties {
 	auto warningExpression = Msg("warningExpression", "%1$s → %2$s");
 	auto warningExpressionPosition = Msg("warningExpressionPosition", " >>>");
 	auto warningExpressionEnd = Msg("warningExpressionEnd", " <<<");
+	auto warningExpressionNeedBooleanReturnType = Msg("warningExpressionNeedBooleanReturnType", "式の結果は%1$sですが、%2$sコンテントでは真偽値でなければなりません。");
 	auto warningExpressionToFlag = Msg("warningExpressionToFlag", "式の結果は%1$sになるため、フラグへ代入できません。");
 	auto warningExpressionToStep = Msg("warningExpressionToStep", "式の結果は%1$sになるため、ステップへ代入できません。");
 

@@ -2605,6 +2605,10 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	ExprError[] getExpressionErrors(in CProps prop, in VariableInfo vInfo) { mixin(S_TRACE);
 		return _expression.getExpressionErrors(prop, vInfo);
 	}
+	/// 型チェック用に式の戻り値を返す。
+	VariantVal getExpressionReturnValue(in CProps prop) { mixin(S_TRACE);
+		return _expression.returnValue(prop);
+	}
 
 	/// コンテントをXMLテキストにして返す。
 	const

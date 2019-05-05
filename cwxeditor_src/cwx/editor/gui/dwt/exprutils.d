@@ -47,7 +47,6 @@ import java.lang.all;
 /// コモン分岐・判定イベントの設定を行うダイアログ(Wsn.4)。
 class ExpressionEventDialog : EventDialog {
 private:
-	CType _cType;
 	ExpressionEditor _expr;
 	UseCounter _uc;
 
@@ -55,7 +54,20 @@ private:
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
 		if (!prop.isTargetVersion(summ, "4")) { mixin(S_TRACE);
-			ws ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(_cType), "4");
+			ws ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(type), "4");
+		}
+		auto val = _expr.returnValue;
+		if (val.valid && val.type !is VariantType.Boolean) { mixin(S_TRACE);
+			final switch (val.type) {
+			case VariantType.Number:
+				ws ~= .tryFormat(prop.msgs.warningExpressionNeedBooleanReturnType, prop.msgs.numberValue, prop.msgs.contentName(type));
+				break;
+			case VariantType.String:
+				ws ~= .tryFormat(prop.msgs.warningExpressionNeedBooleanReturnType, prop.msgs.stringValue, prop.msgs.contentName(type));
+				break;
+			case VariantType.Boolean:
+				assert (0);
+			}
 		}
 		ws ~= _expr.warnings;
 		warning = ws;
@@ -92,6 +104,7 @@ protected:
 			_expr = new ExpressionEditor(comm, summ, _uc, grp, SWT.NONE);
 			mod(_expr);
 			_expr.modEvent ~= &refreshWarning;
+			_expr.modReturnValueEvent ~= &refreshWarning;
 		}
 
 		ignoreMod = true;
@@ -106,7 +119,7 @@ protected:
 	}
 
 	override bool apply() { mixin(S_TRACE);
-		if (!evt) evt = new Content(_cType, "");
+		if (!evt) evt = new Content(type, "");
 		evt.expression = _expr.expression;
 		comm.refCoupons.call();
 		comm.refGossips.call();
