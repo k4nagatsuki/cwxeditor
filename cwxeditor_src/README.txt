@@ -3,7 +3,7 @@ CWXEditor ビルドガイド
 ----------------------
 
 ビルドツール:
- : dmd 2.085.0
+ : dmd 2.086.0
  : Digital Mars rcc
 ライブラリ:
  : DWT at GitHub
@@ -25,8 +25,8 @@ DWTをGitHubから取ってきます。
 
     git clone https://github.com/d-widget-toolkit/dwt.git
     cd dwt
-    dub --build=release :base
-    dub --build=release
+    dub --build=release :base --arch=x86
+    dub --build=release --arch=x86
 
 64ビット版のライブラリを作成する場合は次のようにします。
 
