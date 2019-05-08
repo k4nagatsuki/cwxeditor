@@ -189,7 +189,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		foreach (enh; EnumMembers!Enhance) { mixin(S_TRACE);
 			if (casts.enhanceRound(enh) <= 0) continue;
 			if (casts.enhance(enh) < 0) { mixin(S_TRACE);
-				final switch (Enhance.ACTION) {
+				final switch (enh) {
 				case Enhance.ACTION:
 					statuses ~= Status.DOWN_ACTION;
 					break;
@@ -204,7 +204,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 					break;
 				}
 			} else if (0 < casts.enhance(enh)) {
-				final switch (Enhance.ACTION) {
+				final switch (enh) {
 				case Enhance.ACTION:
 					statuses ~= Status.UP_ACTION;
 					break;
