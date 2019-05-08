@@ -131,85 +131,85 @@ private:
 		ws ~= _couponView.warnings;
 		Status[] statuses;
 		if (_lifeUseMax.getSelection()) { mixin(S_TRACE);
-			statuses ~= Status.FINE;
+			statuses ~= Status.Fine;
 		} else if (_life.getSelection() == 0) { mixin(S_TRACE);
-			statuses ~= Status.UNCONSCIOUS;
+			statuses ~= Status.Unconscious;
 		} else if (_life.getSelection() <= _lifeMax.getSelection() / 5) { mixin(S_TRACE);
-			statuses ~= Status.HEAVY_INJURED;
+			statuses ~= Status.HeavyInjured;
 		} else if (_life.getSelection() < _lifeMax.getSelection()) { mixin(S_TRACE);
-			statuses ~= Status.INJURED;
+			statuses ~= Status.Injured;
 		} else { mixin(S_TRACE);
-			statuses ~= Status.FINE;
+			statuses ~= Status.Fine;
 		}
 		foreach (enh, spn; _liveEnh) { mixin(S_TRACE);
 			if (spn.getSelection() < 0) { mixin(S_TRACE);
 				final switch (enh) {
-				case Enhance.ACTION:
-					statuses ~= Status.DOWN_ACTION;
+				case Enhance.Action:
+					statuses ~= Status.DownAction;
 					break;
-				case Enhance.AVOID:
-					statuses ~= Status.DOWN_AVOID;
+				case Enhance.Avoid:
+					statuses ~= Status.DownAvoid;
 					break;
-				case Enhance.RESIST:
-					statuses ~= Status.DOWN_RESIST;
+				case Enhance.Resist:
+					statuses ~= Status.DownResist;
 					break;
-				case Enhance.DEFENSE:
-					statuses ~= Status.DOWN_DEFENSE;
+				case Enhance.Defense:
+					statuses ~= Status.DownDefense;
 					break;
 				}
 			} else if (0 < spn.getSelection()) {
 				final switch (enh) {
-				case Enhance.ACTION:
-					statuses ~= Status.UP_ACTION;
+				case Enhance.Action:
+					statuses ~= Status.UpAction;
 					break;
-				case Enhance.AVOID:
-					statuses ~= Status.UP_AVOID;
+				case Enhance.Avoid:
+					statuses ~= Status.UpAvoid;
 					break;
-				case Enhance.RESIST:
-					statuses ~= Status.UP_RESIST;
+				case Enhance.Resist:
+					statuses ~= Status.UpResist;
 					break;
-				case Enhance.DEFENSE:
-					statuses ~= Status.UP_DEFENSE;
+				case Enhance.Defense:
+					statuses ~= Status.UpDefense;
 					break;
 				}
 			}
 		}
 		if (0 < _paralyze.getSelection()) { mixin(S_TRACE);
-			statuses ~= Status.PARALYZE;
+			statuses ~= Status.Paralyze;
 		}
 		if (0 < _poison.getSelection()) { mixin(S_TRACE);
-			statuses ~= Status.POISON;
+			statuses ~= Status.Poison;
 		}
 		if (0 < _bind.getSelection()) { mixin(S_TRACE);
-			statuses ~= Status.BIND;
+			statuses ~= Status.Bind;
 		}
 		if (0 < _silence.getSelection()) { mixin(S_TRACE);
-			statuses ~= Status.SILENCE;
+			statuses ~= Status.Silence;
 		}
 		if (0 < _faceUp.getSelection()) { mixin(S_TRACE);
-			statuses ~= Status.FACE_UP;
+			statuses ~= Status.FaceUp;
 		}
 		if (0 < _antiMagic.getSelection()) { mixin(S_TRACE);
-			statuses ~= Status.ANTI_MAGIC;
+			statuses ~= Status.AntiMagic;
 		}
-		auto mtly = _mtlyTbl.get(_mtly.getSelectionIndex(), Mentality.NORMAL);
+		auto mtly = _mtlyTbl.get(_mtly.getSelectionIndex(), Mentality.Normal);
 		final switch (mtly) {
-		case Mentality.NORMAL:
+		case Mentality.Normal:
 			break;
-		case Mentality.SLEEP:
-			statuses ~= Status.SLEEP;
+		case Mentality.Sleep:
+			statuses ~= Status.Sleep;
 			break;
-		case Mentality.CONFUSE:
-			statuses ~= Status.CONFUSE;
+		case Mentality.Confuse:
+			statuses ~= Status.Confuse;
 			break;
-		case Mentality.OVERHEAT:
-			statuses ~= Status.OVERHEAT;
+		case Mentality.Overheat:
+			statuses ~= Status.Overheat;
 			break;
-		case Mentality.BRAVE:
-			statuses ~= Status.BRAVE;
+		case Mentality.Brave:
+			statuses ~= Status.Brave;
 			break;
-		case Mentality.PANIC:
-			statuses ~= Status.PANIC;
+		case Mentality.Panic:
+			statuses ~= Status.Panic;
 			break;
 		}
 		ws ~= .warningInconsistency(_prop.parent, statuses);
@@ -291,8 +291,8 @@ private:
 
 	class SelLifeC : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
-			auto vit = _phyTbl[Physical.VIT];
-			auto min = _phyTbl[Physical.MIN];
+			auto vit = _phyTbl[Physical.Vit];
+			auto min = _phyTbl[Physical.Min];
 			_lifeMax.setSelection(_prop.looks.lifeCalc(_level.getSelection(),
 				(_phyR ? _phyR.getValue(vit) : _phyS.getValue(vit)),
 				(_phyR ? _phyR.getValue(min) : _phyS.getValue(min))));
@@ -621,7 +621,7 @@ private:
 				_automaton = createC(bcomp, _prop.msgs.automaton, _prop.msgs.descAutomaton);
 				_unholy = createC(bcomp, _prop.msgs.unholy, _prop.msgs.descUnholy);
 				_constructure = createC(bcomp, _prop.msgs.constructure, _prop.msgs.descConstructure);
-				foreach (e; [Element.FIRE, Element.ICE]) { mixin(S_TRACE);
+				foreach (e; [Element.Fire, Element.Ice]) { mixin(S_TRACE);
 					string eName = _prop.msgs.elementName(e);
 					auto res = createC(bcomp, .tryFormat(_prop.msgs.resistText, eName), .tryFormat(_prop.msgs.descResist, eName));
 					auto weak = createC(bcomp, .tryFormat(_prop.msgs.weaknessText, eName), .tryFormat(_prop.msgs.descWeakness, eName));
@@ -651,8 +651,8 @@ private:
 		tab.setText(_prop.msgs.tolerant);
 		tab.setControl(comp);
 	}
-	static immutable PHYSICALS = [Physical.DEX, Physical.AGL, Physical.INT,
-		Physical.STR, Physical.VIT, Physical.MIN];
+	static immutable PHYSICALS = [Physical.Dex, Physical.Agl, Physical.Int,
+		Physical.Str, Physical.Vit, Physical.Min];
 	void initPhysical() { mixin(S_TRACE);
 		int[] values = [];
 		if (_phyR && !_phyR.isDisposed()) { mixin(S_TRACE);
@@ -877,8 +877,8 @@ private:
 			auto ggl = normalGridLayout(3, false);
 			ggl.verticalSpacing = 0;
 			grp.setLayout(ggl);
-			static const Ms = [Mental.AGGRESSIVE, Mental.CHEERFUL, Mental.BRAVE,
-				Mental.CAUTIOUS, Mental.TRICKISH];
+			static const Ms = [Mental.Aggressive, Mental.Cheerful, Mental.Brave,
+				Mental.Cautious, Mental.Trickish];
 			void put(Mental m) { mixin(S_TRACE);
 				auto minl = new Label(grp, SWT.NONE);
 				minl.setText(_prop.msgs.mentalName(reverseMental(m)));
@@ -1086,7 +1086,7 @@ private:
 		}
 	}
 
-	static immutable ENHANCE = [Enhance.AVOID, Enhance.RESIST, Enhance.DEFENSE];
+	static immutable ENHANCE = [Enhance.Avoid, Enhance.Resist, Enhance.Defense];
 	void initEnhance() { mixin(S_TRACE);
 		int[] values = [];
 		if (_enhR) { mixin(S_TRACE);
@@ -1214,8 +1214,8 @@ private:
 				mod(_mtly);
 				_mtly.setEnabled(!_readOnly);
 				_mtly.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
-				foreach (i, mtly; [Mentality.NORMAL, Mentality.SLEEP, Mentality.CONFUSE,
-						Mentality.OVERHEAT, Mentality.BRAVE, Mentality.PANIC]) { mixin(S_TRACE);
+				foreach (i, mtly; [Mentality.Normal, Mentality.Sleep, Mentality.Confuse,
+						Mentality.Overheat, Mentality.Brave, Mentality.Panic]) { mixin(S_TRACE);
 					_mtly.add(_prop.msgs.mentalityName(mtly));
 					_mtlyTbl[cast(int)i] = mtly;
 					if (_card && _card.mentality is mtly) { mixin(S_TRACE);
@@ -1232,7 +1232,7 @@ private:
 		}
 		{ mixin(S_TRACE);
 			auto grp = createGrp(_prop.msgs.enhanceLiveBonus);
-			foreach (enh; [Enhance.ACTION, Enhance.AVOID, Enhance.RESIST, Enhance.DEFENSE]) { mixin(S_TRACE);
+			foreach (enh; [Enhance.Action, Enhance.Avoid, Enhance.Resist, Enhance.Defense]) { mixin(S_TRACE);
 				auto comp2 = createComp(grp);
 				auto l = new Label(comp2, SWT.NONE);
 				l.setText(_prop.msgs.enhanceLiveBonusName(enh));
@@ -1828,8 +1828,8 @@ protected:
 		_card.faceUpRound = _faceUp.getSelection();
 		_card.antiMagicRound = _antiMagic.getSelection();
 		_card.mentality = _mtlyRound.getSelection() == 0
-			? Mentality.NORMAL : _mtlyTbl[_mtly.getSelectionIndex()];
-		_card.mentalityRound = _card.mentality == Mentality.NORMAL
+			? Mentality.Normal : _mtlyTbl[_mtly.getSelectionIndex()];
+		_card.mentalityRound = _card.mentality == Mentality.Normal
 			? 0 : _mtlyRound.getSelection();
 
 		_comm.refCoupons.call();

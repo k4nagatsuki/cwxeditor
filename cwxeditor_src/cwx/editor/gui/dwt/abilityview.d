@@ -37,8 +37,8 @@ class AbilityView : Composite {
 			grp.setLayout(cl);
 			auto comp2 = new Composite(grp, SWT.NONE);
 			comp2.setLayout(normalGridLayout(1, true));
-			foreach (phy; [Physical.DEX, Physical.AGL, Physical.INT,
-					Physical.STR, Physical.VIT, Physical.MIN]) { mixin(S_TRACE);
+			foreach (phy; [Physical.Dex, Physical.Agl, Physical.Int,
+					Physical.Str, Physical.Vit, Physical.Min]) { mixin(S_TRACE);
 				auto radio = new Button(comp2, SWT.RADIO);
 				radio.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 				radio.setText(comm.prop.msgs.physicalName(phy));
@@ -60,10 +60,10 @@ class AbilityView : Composite {
 			auto gl = normalGridLayout(2, true);
 			gl.horizontalSpacing = comm.prop.var.etc.radioGroupSeparatorWidth;
 			comp2.setLayout(gl);
-			static const Ms = [Mental.AGGRESSIVE, Mental.UNAGGRESSIVE,
-				Mental.CHEERFUL, Mental.UNCHEERFUL,
-				Mental.BRAVE, Mental.UNBRAVE, Mental.CAUTIOUS, Mental.UNCAUTIOUS,
-				Mental.TRICKISH, Mental.UNTRICKISH];
+			static const Ms = [Mental.Aggressive, Mental.Unaggressive,
+				Mental.Cheerful, Mental.Uncheerful,
+				Mental.Brave, Mental.Unbrave, Mental.Cautious, Mental.Uncautious,
+				Mental.Trickish, Mental.Untrickish];
 			foreach (i, m; Ms) { mixin(S_TRACE);
 				auto radio = new Button(comp2, SWT.RADIO);
 				radio.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -76,8 +76,8 @@ class AbilityView : Composite {
 			}
 		}
 
-		physical = Physical.DEX;
-		mental = Mental.AGGRESSIVE;
+		physical = Physical.Dex;
+		mental = Mental.Aggressive;
 	}
 
 	@property

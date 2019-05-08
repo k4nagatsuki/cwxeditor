@@ -122,7 +122,11 @@ class Msgs : Properties {
 	auto cardImagePosition = Msg("cardImagePosition", "イメージの配置方式:");
 
 	const string cardImagePositionName(CardImagePosition id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(CardImagePosition, "cardImagePositionName"));
+		with (CardImagePosition) final switch (id) {
+		case Default: return cardImagePositionNameDefault;
+		case Center: return cardImagePositionNameCenter;
+		case TopLeft: return cardImagePositionNameTopLeft;
+		}
 	}
 	auto cardImagePositionNameDefault = Msg("cardImagePositionNameDefault", "指定しない");
 	auto cardImagePositionNameCenter = Msg("cardImagePositionNameCenter", "中央寄せ");
@@ -137,7 +141,11 @@ class Msgs : Properties {
 
 	auto smoothing = Msg("smoothing", "サイズ変更時の処理");
 	const string smoothingName(Smoothing id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(Smoothing, "smoothingName"));
+		with (Smoothing) final switch (id) {
+		case Default: return smoothingNameDefault;
+		case True: return smoothingNameTrue;
+		case False: return smoothingNameFalse;
+		}
 	}
 	auto smoothingNameDefault = Msg("smoothingNameDefault", "指定しない");
 	auto smoothingNameTrue = Msg("smoothingNameTrue", "滑らかにする");
@@ -463,7 +471,13 @@ class Msgs : Properties {
 	auto couponHide = Msg("couponHide", "隠蔽クーポン");
 
 	const string couponTypeDesc(CouponType id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(CouponType, "couponTypeDesc"));
+		with (CouponType) final switch (id) {
+		case Normal: return couponTypeDescNormal;
+		case Hide: return couponTypeDescHide;
+		case System: return couponTypeDescSystem;
+		case Dur: return couponTypeDescDur;
+		case DurBattle: return couponTypeDescDurBattle;
+		}
 	}
 	auto couponTypeDescNormal = Msg("couponTypeDescNormal", "ノーマル");
 	auto couponTypeDescHide = Msg("couponTypeDescHide", "隠蔽");
@@ -472,7 +486,13 @@ class Msgs : Properties {
 	auto couponTypeDescDurBattle = Msg("couponTypeDescDurBattle", "戦闘中時限");
 
 	const string couponTypeLongDesc(CouponType id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(CouponType, "couponTypeLongDesc"));
+		with (CouponType) final switch (id) {
+		case Normal: return couponTypeLongDescNormal;
+		case Hide: return couponTypeLongDescHide;
+		case System: return couponTypeLongDescSystem;
+		case Dur: return couponTypeLongDescDur;
+		case DurBattle: return couponTypeLongDescDurBattle;
+		}
 	}
 	auto couponTypeLongDescNormal = Msg("couponTypeLongDescNormal", "ノーマル");
 	auto couponTypeLongDescHide = Msg("couponTypeLongDescHide", "[%1$s...] 隠蔽(称号一覧で非表示)");
@@ -481,7 +501,13 @@ class Msgs : Properties {
 	auto couponTypeLongDescDurBattle = Msg("couponTypeLongDescDurBattle", "[%1$s...] 戦闘中時限(点数分の時間経過及び戦闘終了時に消滅)");
 
 	const string couponTypeShortDesc(CouponType id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(CouponType, "couponTypeShortDesc"));
+		with (CouponType) final switch (id) {
+		case Normal: return couponTypeShortDescNormal;
+		case Hide: return couponTypeShortDescHide;
+		case System: return couponTypeShortDescSystem;
+		case Dur: return couponTypeShortDescDur;
+		case DurBattle: return couponTypeShortDescDurBattle;
+		}
 	}
 	auto couponTypeShortDescNormal = Msg("couponTypeShortDescNormal", "一般");
 	auto couponTypeShortDescHide = Msg("couponTypeShortDescHide", "隠蔽");
@@ -490,7 +516,13 @@ class Msgs : Properties {
 	auto couponTypeShortDescDurBattle = Msg("couponTypeShortDescDurBattle", "戦闘");
 
 	const string couponTypeName(CouponType id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(CouponType, "couponTypeName"));
+		with (CouponType) final switch (id) {
+		case Normal: return couponTypeNameNormal;
+		case Hide: return couponTypeNameHide;
+		case System: return couponTypeNameSystem;
+		case Dur: return couponTypeNameDur;
+		case DurBattle: return couponTypeNameDurBattle;
+		}
 	}
 	auto couponTypeNameNormal = Msg("couponTypeNameNormal", "通常");
 	auto couponTypeNameHide = Msg("couponTypeNameHide", "隠蔽");
@@ -499,7 +531,10 @@ class Msgs : Properties {
 	auto couponTypeNameDurBattle = Msg("couponTypeNameDurBattle", "戦時");
 
 	const string matchingTypeName(MatchingType id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(MatchingType, "matchingTypeName"));
+		with (MatchingType) final switch (id) {
+		case And: return matchingTypeNameAnd;
+		case Or: return matchingTypeNameOr;
+		}
 	}
 	auto matchingTypeNameAnd = Msg("matchingTypeNameAnd", "全てに一致");
 	auto matchingTypeNameOr = Msg("matchingTypeNameOr", "どれか一つに一致");
@@ -517,7 +552,13 @@ class Msgs : Properties {
 	auto colorL = Msg("colorL", "明るい灰色(&L)"); // CardWirth 1.50
 	auto colorD = Msg("colorD", "暗い灰色(&D)"); // CardWirth 1.50
 	const string scTalkerName(Talker id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(Talker, "scTalkerName"));
+		with (Talker) final switch (id) {
+		case Selected: return scTalkerNameSelected;
+		case Unselected: return scTalkerNameUnselected;
+		case Random: return scTalkerNameRandom;
+		case Card: return scTalkerNameCard;
+		case Valued: return scTalkerNameValued;
+		}
 	}
 	auto scTalkerNameSelected = Msg("scTalkerNameSelected", "選択メンバ名(#M)");
 	auto scTalkerNameUnselected = Msg("scTalkerNameUnselected", "選択外ランダムメンバ名(#U)");
@@ -548,7 +589,13 @@ class Msgs : Properties {
 
 	auto transition = Msg("transition", "背景切替方式");
 	const string transitionName(Transition id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(Transition, "transitionName"));
+		with (Transition) final switch (id) {
+		case Default: return transitionNameDefault;
+		case None: return transitionNameNone;
+		case Blinds: return transitionNameBlinds;
+		case PixelDissolve: return transitionNamePixelDissolve;
+		case Fade: return transitionNameFade;
+		}
 	}
 	auto transitionNameDefault = Msg("transitionNameDefault", "プレイヤーの設定を使用");
 	auto transitionNameNone = Msg("transitionNameNone", "アニメーション無し");
@@ -617,7 +664,11 @@ class Msgs : Properties {
 	auto consumeCard = Msg("consumeCard", "イベントを発火させたカードの使用回数を消費する"); // Wsn.3
 	auto environmentStatus = Msg("environmentStatus", "状況の設定"); // Wsn.4
 	const string environmentStatusName(EnvironmentStatus id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(EnvironmentStatus, "environmentStatusName"));
+		with (EnvironmentStatus) final switch (id) {
+		case NotSet: return environmentStatusNameNotSet;
+		case Enable: return environmentStatusNameEnable;
+		case Disable: return environmentStatusNameDisable;
+		}
 	}
 	auto environmentStatusNameNotSet = Msg("environmentStatusNameNotSet", "設定しない");
 	auto environmentStatusNameEnable = Msg("environmentStatusNameEnable", "使用可能にする");
@@ -650,7 +701,11 @@ class Msgs : Properties {
 
 	auto variableType = Msg("variableType", "状態変数タイプ");
 	const string variableTypeName(VariableType id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(VariableType, "variableTypeName"));
+		with (VariableType) final switch (id) {
+		case Flag: return variableTypeNameFlag;
+		case Step: return variableTypeNameStep;
+		case Variant: return variableTypeNameVariant;
+		}
 	}
 	auto variableTypeNameFlag = Msg("variableTypeNameFlag", "フラグ");
 	auto variableTypeNameStep = Msg("variableTypeNameStep", "ステップ");
@@ -659,7 +714,15 @@ class Msgs : Properties {
 	auto functionCategory = Msg("functionCategory", "分類");
 	auto allFunctions = Msg("allFunctions", "全て");
 	const string functionCategoryName(FunctionCategory id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(FunctionCategory, "functionCategoryName"));
+		with (FunctionCategory) final switch (id) {
+		case StringOperation: return functionCategoryNameStringOperation;
+		case NumberOperation: return functionCategoryNameNumberOperation;
+		case Conversion: return functionCategoryNameConversion;
+		case VariableOperation: return functionCategoryNameVariableOperation;
+		case CardInformation: return functionCategoryNameCardInformation;
+		case CouponInformation: return functionCategoryNameCouponInformation;
+		case Etc: return functionCategoryNameEtc;
+		}
 	}
 	auto functionCategoryNameStringOperation = Msg("functionCategoryNameStringOperation", "文字列操作");
 	auto functionCategoryNameNumberOperation = Msg("functionCategoryNameNumberOperation", "数値操作");
@@ -670,7 +733,13 @@ class Msgs : Properties {
 	auto functionCategoryNameEtc = Msg("functionCategoryNameEtc", "その他");
 
 	const string blendModeName(BlendMode id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(BlendMode, "blendModeName"));
+		with (BlendMode) final switch (id) {
+		case Normal: return blendModeNameNormal;
+		case Mask: return blendModeNameMask;
+		case Add: return blendModeNameAdd;
+		case Subtract: return blendModeNameSubtract;
+		case Multiply: return blendModeNameMultiply;
+		}
 	}
 	auto blendModeNameNormal = Msg("blendModeNameNormal", "通常");
 	auto blendModeNameMask = Msg("blendModeNameMask", "マスク");
@@ -679,21 +748,34 @@ class Msgs : Properties {
 	auto blendModeNameMultiply = Msg("blendModeNameMultiply", "乗算");
 
 	const string gradientDirName(GradientDir id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(GradientDir, "gradientDirName"));
+		with (GradientDir) final switch (id) {
+		case None: return gradientDirNameNone;
+		case LeftToRight: return gradientDirNameLeftToRight;
+		case TopToBottom: return gradientDirNameTopToBottom;
+		}
 	}
 	auto gradientDirNameNone = Msg("gradientDirNameNone", "グラデーション無し");
 	auto gradientDirNameLeftToRight = Msg("gradientDirNameLeftToRight", "左から右へ");
 	auto gradientDirNameTopToBottom = Msg("gradientDirNameTopToBottom", "上から下へ");
 
 	const string borderingTypeName(BorderingType id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(BorderingType, "borderingTypeName"));
+		with (BorderingType) final switch (id) {
+		case None: return borderingTypeNameNone;
+		case Outline: return borderingTypeNameOutline;
+		case Inline: return borderingTypeNameInline;
+		}
 	}
 	auto borderingTypeNameNone = Msg("borderingTypeNameNone", "縁取り無し");
 	auto borderingTypeNameOutline = Msg("borderingTypeNameOutline", "形式1");
 	auto borderingTypeNameInline = Msg("borderingTypeNameInline", "形式2");
 
 	const string coordinateTypeName(CoordinateType id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(CoordinateType, "coordinateTypeName"));
+		with (CoordinateType) final switch (id) {
+		case None: return coordinateTypeNameNone;
+		case Absolute: return coordinateTypeNameAbsolute;
+		case Relative: return coordinateTypeNameRelative;
+		case Percentage: return coordinateTypeNamePercentage;
+		}
 	}
 	auto coordinateTypeNameNone = Msg("coordinateTypeNameNone", "変更無し");
 	auto coordinateTypeNameAbsolute = Msg("coordinateTypeNameAbsolute", "直接指定");
@@ -702,7 +784,11 @@ class Msgs : Properties {
 
 	auto startAction = Msg("startAction", "戦闘行動開始タイミング");
 	const string startActionName(StartAction id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(StartAction, "startActionName"));
+		with (StartAction) final switch (id) {
+		case Now: return startActionNameNow;
+		case CurrentRound: return startActionNameCurrentRound;
+		case NextRound: return startActionNameNextRound;
+		}
 	}
 	auto startActionNameNow = Msg("startActionNameNow", "すぐに行動");
 	auto startActionNameCurrentRound = Msg("startActionNameCurrentRound", "加入ラウンドから行動");
@@ -730,7 +816,92 @@ class Msgs : Properties {
 	auto contentNameForWarning = Msg("contentNameForWarning", "コンテント名");
 
 	const string contentName(CType id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(CType, "contentName"));
+		with (CType) final switch (id) {
+		case Start: return contentNameStart;
+		case StartBattle: return contentNameStartBattle;
+		case End: return contentNameEnd;
+		case EndBadEnd: return contentNameEndBadEnd;
+		case ChangeArea: return contentNameChangeArea;
+		case ChangeBgImage: return contentNameChangeBgImage;
+		case Effect: return contentNameEffect;
+		case EffectBreak: return contentNameEffectBreak;
+		case LinkStart: return contentNameLinkStart;
+		case LinkPackage: return contentNameLinkPackage;
+		case TalkMessage: return contentNameTalkMessage;
+		case TalkDialog: return contentNameTalkDialog;
+		case PlayBgm: return contentNamePlayBgm;
+		case PlaySound: return contentNamePlaySound;
+		case Wait: return contentNameWait;
+		case ElapseTime: return contentNameElapseTime;
+		case CallStart: return contentNameCallStart;
+		case CallPackage: return contentNameCallPackage;
+		case BranchFlag: return contentNameBranchFlag;
+		case BranchMultiStep: return contentNameBranchMultiStep;
+		case BranchStep: return contentNameBranchStep;
+		case BranchSelect: return contentNameBranchSelect;
+		case BranchAbility: return contentNameBranchAbility;
+		case BranchRandom: return contentNameBranchRandom;
+		case BranchLevel: return contentNameBranchLevel;
+		case BranchStatus: return contentNameBranchStatus;
+		case BranchPartyNumber: return contentNameBranchPartyNumber;
+		case BranchArea: return contentNameBranchArea;
+		case BranchBattle: return contentNameBranchBattle;
+		case BranchIsBattle: return contentNameBranchIsBattle;
+		case BranchCast: return contentNameBranchCast;
+		case BranchItem: return contentNameBranchItem;
+		case BranchSkill: return contentNameBranchSkill;
+		case BranchInfo: return contentNameBranchInfo;
+		case BranchBeast: return contentNameBranchBeast;
+		case BranchMoney: return contentNameBranchMoney;
+		case BranchCoupon: return contentNameBranchCoupon;
+		case BranchCompleteStamp: return contentNameBranchCompleteStamp;
+		case BranchGossip: return contentNameBranchGossip;
+		case SetFlag: return contentNameSetFlag;
+		case SetStep: return contentNameSetStep;
+		case SetStepUp: return contentNameSetStepUp;
+		case SetStepDown: return contentNameSetStepDown;
+		case ReverseFlag: return contentNameReverseFlag;
+		case CheckFlag: return contentNameCheckFlag;
+		case GetCast: return contentNameGetCast;
+		case GetItem: return contentNameGetItem;
+		case GetSkill: return contentNameGetSkill;
+		case GetInfo: return contentNameGetInfo;
+		case GetBeast: return contentNameGetBeast;
+		case GetMoney: return contentNameGetMoney;
+		case GetCoupon: return contentNameGetCoupon;
+		case GetCompleteStamp: return contentNameGetCompleteStamp;
+		case GetGossip: return contentNameGetGossip;
+		case LoseCast: return contentNameLoseCast;
+		case LoseItem: return contentNameLoseItem;
+		case LoseSkill: return contentNameLoseSkill;
+		case LoseInfo: return contentNameLoseInfo;
+		case LoseBeast: return contentNameLoseBeast;
+		case LoseMoney: return contentNameLoseMoney;
+		case LoseCoupon: return contentNameLoseCoupon;
+		case LoseCompleteStamp: return contentNameLoseCompleteStamp;
+		case LoseGossip: return contentNameLoseGossip;
+		case ShowParty: return contentNameShowParty;
+		case HideParty: return contentNameHideParty;
+		case Redisplay: return contentNameRedisplay;
+		case SubstituteStep: return contentNameSubstituteStep;
+		case SubstituteFlag: return contentNameSubstituteFlag;
+		case BranchStepCmp: return contentNameBranchStepCmp;
+		case BranchFlagCmp: return contentNameBranchFlagCmp;
+		case BranchRandomSelect: return contentNameBranchRandomSelect;
+		case BranchKeyCode: return contentNameBranchKeyCode;
+		case CheckStep: return contentNameCheckStep;
+		case BranchRound: return contentNameBranchRound;
+		case MoveBgImage: return contentNameMoveBgImage;
+		case ReplaceBgImage: return contentNameReplaceBgImage;
+		case LoseBgImage: return contentNameLoseBgImage;
+		case BranchMultiCoupon: return contentNameBranchMultiCoupon;
+		case BranchMultiRandom: return contentNameBranchMultiRandom;
+		case MoveCard: return contentNameMoveCard;
+		case ChangeEnvironment: return contentNameChangeEnvironment;
+		case BranchVariant: return contentNameBranchVariant;
+		case SetVariant: return contentNameSetVariant;
+		case CheckVariant: return contentNameCheckVariant;
+		}
 	}
 	auto contentNameStart = Msg("contentNameStart", "スタート");
 	auto contentNameStartBattle = Msg("contentNameStartBattle", "バトル開始");
@@ -818,7 +989,92 @@ class Msgs : Properties {
 	auto contentNameCheckVariant = Msg("contentNameCheckVariant", "コモン判定"); // Wsn.4
 
 	const string contentDesc(CType id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(CType, "contentDesc"));
+		with (CType) final switch (id) {
+		case Start: return contentDescStart;
+		case StartBattle: return contentDescStartBattle;
+		case End: return contentDescEnd;
+		case EndBadEnd: return contentDescEndBadEnd;
+		case ChangeArea: return contentDescChangeArea;
+		case ChangeBgImage: return contentDescChangeBgImage;
+		case Effect: return contentDescEffect;
+		case EffectBreak: return contentDescEffectBreak;
+		case LinkStart: return contentDescLinkStart;
+		case LinkPackage: return contentDescLinkPackage;
+		case TalkMessage: return contentDescTalkMessage;
+		case TalkDialog: return contentDescTalkDialog;
+		case PlayBgm: return contentDescPlayBgm;
+		case PlaySound: return contentDescPlaySound;
+		case Wait: return contentDescWait;
+		case ElapseTime: return contentDescElapseTime;
+		case CallStart: return contentDescCallStart;
+		case CallPackage: return contentDescCallPackage;
+		case BranchFlag: return contentDescBranchFlag;
+		case BranchMultiStep: return contentDescBranchMultiStep;
+		case BranchStep: return contentDescBranchStep;
+		case BranchSelect: return contentDescBranchSelect;
+		case BranchAbility: return contentDescBranchAbility;
+		case BranchRandom: return contentDescBranchRandom;
+		case BranchLevel: return contentDescBranchLevel;
+		case BranchStatus: return contentDescBranchStatus;
+		case BranchPartyNumber: return contentDescBranchPartyNumber;
+		case BranchArea: return contentDescBranchArea;
+		case BranchBattle: return contentDescBranchBattle;
+		case BranchIsBattle: return contentDescBranchIsBattle;
+		case BranchCast: return contentDescBranchCast;
+		case BranchItem: return contentDescBranchItem;
+		case BranchSkill: return contentDescBranchSkill;
+		case BranchInfo: return contentDescBranchInfo;
+		case BranchBeast: return contentDescBranchBeast;
+		case BranchMoney: return contentDescBranchMoney;
+		case BranchCoupon: return contentDescBranchCoupon;
+		case BranchCompleteStamp: return contentDescBranchCompleteStamp;
+		case BranchGossip: return contentDescBranchGossip;
+		case SetFlag: return contentDescSetFlag;
+		case SetStep: return contentDescSetStep;
+		case SetStepUp: return contentDescSetStepUp;
+		case SetStepDown: return contentDescSetStepDown;
+		case ReverseFlag: return contentDescReverseFlag;
+		case CheckFlag: return contentDescCheckFlag;
+		case GetCast: return contentDescGetCast;
+		case GetItem: return contentDescGetItem;
+		case GetSkill: return contentDescGetSkill;
+		case GetInfo: return contentDescGetInfo;
+		case GetBeast: return contentDescGetBeast;
+		case GetMoney: return contentDescGetMoney;
+		case GetCoupon: return contentDescGetCoupon;
+		case GetCompleteStamp: return contentDescGetCompleteStamp;
+		case GetGossip: return contentDescGetGossip;
+		case LoseCast: return contentDescLoseCast;
+		case LoseItem: return contentDescLoseItem;
+		case LoseSkill: return contentDescLoseSkill;
+		case LoseInfo: return contentDescLoseInfo;
+		case LoseBeast: return contentDescLoseBeast;
+		case LoseMoney: return contentDescLoseMoney;
+		case LoseCoupon: return contentDescLoseCoupon;
+		case LoseCompleteStamp: return contentDescLoseCompleteStamp;
+		case LoseGossip: return contentDescLoseGossip;
+		case ShowParty: return contentDescShowParty;
+		case HideParty: return contentDescHideParty;
+		case Redisplay: return contentDescRedisplay;
+		case SubstituteStep: return contentDescSubstituteStep;
+		case SubstituteFlag: return contentDescSubstituteFlag;
+		case BranchStepCmp: return contentDescBranchStepCmp;
+		case BranchFlagCmp: return contentDescBranchFlagCmp;
+		case BranchRandomSelect: return contentDescBranchRandomSelect;
+		case BranchKeyCode: return contentDescBranchKeyCode;
+		case CheckStep: return contentDescCheckStep;
+		case BranchRound: return contentDescBranchRound;
+		case MoveBgImage: return contentDescMoveBgImage;
+		case ReplaceBgImage: return contentDescReplaceBgImage;
+		case LoseBgImage: return contentDescLoseBgImage;
+		case BranchMultiCoupon: return contentDescBranchMultiCoupon;
+		case BranchMultiRandom: return contentDescBranchMultiRandom;
+		case MoveCard: return contentDescMoveCard;
+		case ChangeEnvironment: return contentDescChangeEnvironment;
+		case BranchVariant: return contentDescBranchVariant;
+		case SetVariant: return contentDescSetVariant;
+		case CheckVariant: return contentDescCheckVariant;
+		}
 	}
 	auto contentDescStart = Msg("contentDescStart", "イベントツリーの起点です。");
 	auto contentDescStartBattle = Msg("contentDescStartBattle", "イベントを終了して任意のバトルを開始します。バトル開始後もイベントを続けたい場合は、開始するバトルの「バトル開始」イベントを作成してください。");
@@ -922,7 +1178,49 @@ class Msgs : Properties {
 	auto msnDesc = Msg("msnDesc", "%1$s - %2$s");
 
 	const string motionName(MType id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(MType, "motionName"));
+		with (MType) final switch (id) {
+		case Heal: return motionNameHeal;
+		case Damage: return motionNameDamage;
+		case Absorb: return motionNameAbsorb;
+		case Paralyze: return motionNameParalyze;
+		case DisParalyze: return motionNameDisParalyze;
+		case Poison: return motionNamePoison;
+		case DisPoison: return motionNameDisPoison;
+		case GetSkillPower: return motionNameGetSkillPower;
+		case LoseSkillPower: return motionNameLoseSkillPower;
+		case Sleep: return motionNameSleep;
+		case Confuse: return motionNameConfuse;
+		case Overheat: return motionNameOverheat;
+		case Brave: return motionNameBrave;
+		case Panic: return motionNamePanic;
+		case Normal: return motionNameNormal;
+		case Bind: return motionNameBind;
+		case DisBind: return motionNameDisBind;
+		case Silence: return motionNameSilence;
+		case DisSilence: return motionNameDisSilence;
+		case FaceUp: return motionNameFaceUp;
+		case FaceDown: return motionNameFaceDown;
+		case AntiMagic: return motionNameAntiMagic;
+		case DisAntiMagic: return motionNameDisAntiMagic;
+		case EnhanceAction: return motionNameEnhanceAction;
+		case EnhanceAvoid: return motionNameEnhanceAvoid;
+		case EnhanceDefense: return motionNameEnhanceDefense;
+		case EnhanceResist: return motionNameEnhanceResist;
+		case VanishTarget: return motionNameVanishTarget;
+		case VanishCard: return motionNameVanishCard;
+		case VanishBeast: return motionNameVanishBeast;
+		case DealAttackCard: return motionNameDealAttackCard;
+		case DealPowerfulAttackCard: return motionNameDealPowerfulAttackCard;
+		case DealCriticalAttackCard: return motionNameDealCriticalAttackCard;
+		case DealFeintCard: return motionNameDealFeintCard;
+		case DealDefenseCard: return motionNameDealDefenseCard;
+		case DealDistanceCard: return motionNameDealDistanceCard;
+		case DealConfuseCard: return motionNameDealConfuseCard;
+		case DealSkillCard: return motionNameDealSkillCard;
+		case SummonBeast: return motionNameSummonBeast;
+		case CancelAction: return motionNameCancelAction;
+		case NoEffect: return motionNameNoEffect;
+		}
 	}
 	auto motionNameHeal = Msg("motionNameHeal", "回復");
 	auto motionNameDamage = Msg("motionNameDamage", "ダメージ");
@@ -967,7 +1265,49 @@ class Msgs : Properties {
 	auto motionNameNoEffect = Msg("motionNameNoEffect", "効果無し"); // Wsn.2
 
 	const string motionDesc(MType id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(MType, "motionDesc"));
+		with (MType) final switch (id) {
+		case Heal: return motionDescHeal;
+		case Damage: return motionDescDamage;
+		case Absorb: return motionDescAbsorb;
+		case Paralyze: return motionDescParalyze;
+		case DisParalyze: return motionDescDisParalyze;
+		case Poison: return motionDescPoison;
+		case DisPoison: return motionDescDisPoison;
+		case GetSkillPower: return motionDescGetSkillPower;
+		case LoseSkillPower: return motionDescLoseSkillPower;
+		case Sleep: return motionDescSleep;
+		case Confuse: return motionDescConfuse;
+		case Overheat: return motionDescOverheat;
+		case Brave: return motionDescBrave;
+		case Panic: return motionDescPanic;
+		case Normal: return motionDescNormal;
+		case Bind: return motionDescBind;
+		case DisBind: return motionDescDisBind;
+		case Silence: return motionDescSilence;
+		case DisSilence: return motionDescDisSilence;
+		case FaceUp: return motionDescFaceUp;
+		case FaceDown: return motionDescFaceDown;
+		case AntiMagic: return motionDescAntiMagic;
+		case DisAntiMagic: return motionDescDisAntiMagic;
+		case EnhanceAction: return motionDescEnhanceAction;
+		case EnhanceAvoid: return motionDescEnhanceAvoid;
+		case EnhanceDefense: return motionDescEnhanceDefense;
+		case EnhanceResist: return motionDescEnhanceResist;
+		case VanishTarget: return motionDescVanishTarget;
+		case VanishCard: return motionDescVanishCard;
+		case VanishBeast: return motionDescVanishBeast;
+		case DealAttackCard: return motionDescDealAttackCard;
+		case DealPowerfulAttackCard: return motionDescDealPowerfulAttackCard;
+		case DealCriticalAttackCard: return motionDescDealCriticalAttackCard;
+		case DealFeintCard: return motionDescDealFeintCard;
+		case DealDefenseCard: return motionDescDealDefenseCard;
+		case DealDistanceCard: return motionDescDealDistanceCard;
+		case DealConfuseCard: return motionDescDealConfuseCard;
+		case DealSkillCard: return motionDescDealSkillCard;
+		case SummonBeast: return motionDescSummonBeast;
+		case CancelAction: return motionDescCancelAction;
+		case NoEffect: return motionDescNoEffect;
+		}
 	}
 	auto motionDescHeal = Msg("motionDescHeal", "対象の生命点を増加させます。");
 	auto motionDescDamage = Msg("motionDescDamage", "対象の生命点を減少させます。");
@@ -1292,7 +1632,12 @@ class Msgs : Properties {
 
 	auto variableInitialization = Msg("variableInitialization", "初期化タイミング"); /// Wsn.4
 	const string variableInitializationName(VariableInitialization id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(VariableInitialization, "variableInitializationName"));
+		with (VariableInitialization) final switch (id) {
+		case Leave: return variableInitializationNameLeave;
+		case Complete: return variableInitializationNameComplete;
+		case EventExit: return variableInitializationNameEventExit;
+		case None: return variableInitializationNameNone;
+		}
 	}
 	auto variableInitializationNameLeave = Msg("variableInitializationNameLeave", "シナリオ終了時");
 	auto variableInitializationNameComplete = Msg("variableInitializationNameComplete", "済印をつけた時");
@@ -1301,7 +1646,12 @@ class Msgs : Properties {
 
 	auto variableInitializationShort = Msg("variableInitializationShort", "初期化"); /// Wsn.4
 	const string variableInitializationShortName(VariableInitialization id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(VariableInitialization, "variableInitializationShortName"));
+		with (VariableInitialization) final switch (id) {
+		case Leave: return variableInitializationShortNameLeave;
+		case Complete: return variableInitializationShortNameComplete;
+		case EventExit: return variableInitializationShortNameEventExit;
+		case None: return variableInitializationShortNameNone;
+		}
 	}
 	auto variableInitializationShortNameLeave = Msg("variableInitializationShortNameLeave", "シナリオ終了");
 	auto variableInitializationShortNameComplete = Msg("variableInitializationShortNameComplete", "済印つき終了");
@@ -1489,7 +1839,11 @@ class Msgs : Properties {
 	auto overrideEnemyCardVisual = Msg("overrideEnemyCardVisual", "外観の上書き");
 	auto updateType = Msg("updateType", "再表示時の処理");
 	const string updateTypeName(UpdateType id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(UpdateType, "updateTypeName"));
+		with (UpdateType) final switch (id) {
+		case Fixed: return updateTypeNameFixed;
+		case Variables: return updateTypeNameVariables;
+		case All: return updateTypeNameAll;
+		}
 	}
 	auto updateTypeNameFixed = Msg("updateTypeNameFixed", "最初に表示した内容に固定");
 	auto updateTypeNameVariables = Msg("updateTypeNameVariables", "状態変数値を更新する");
@@ -1539,7 +1893,12 @@ class Msgs : Properties {
 	auto localVariablesOwner = Msg("localVariablesOwner", "[%1$s.%2$s]");
 
 	const string keyCodeTiming(FKCKind id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(FKCKind, "keyCodeTiming"));
+		with (FKCKind) final switch (id) {
+		case Use: return keyCodeTimingUse;
+		case Success: return keyCodeTimingSuccess;
+		case Failure: return keyCodeTimingFailure;
+		case HasNot: return keyCodeTimingHasNot;
+		}
 	}
 	auto keyCodeTimingUse = Msg("keyCodeTimingUse", "使用");
 	auto keyCodeTimingSuccess = Msg("keyCodeTimingSuccess", "成功");
@@ -1662,7 +2021,14 @@ class Msgs : Properties {
 	auto branchVariantFailure = Msg("branchVariantFailure", "FALSE =〔 %1$s 〕"); // Wsn.4
 
 	const string physicalName(Physical id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(Physical, "physicalName"));
+		with (Physical) final switch (id) {
+		case Dex: return physicalNameDex;
+		case Agl: return physicalNameAgl;
+		case Int: return physicalNameInt;
+		case Str: return physicalNameStr;
+		case Vit: return physicalNameVit;
+		case Min: return physicalNameMin;
+		}
 	}
 	auto physicalNameDex = Msg("physicalNameDex", "器用度");
 	auto physicalNameAgl = Msg("physicalNameAgl", "敏捷度");
@@ -1671,7 +2037,18 @@ class Msgs : Properties {
 	auto physicalNameVit = Msg("physicalNameVit", "生命力");
 	auto physicalNameMin = Msg("physicalNameMin", "精神力");
 	const string mentalName(Mental id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(Mental, "mentalName"));
+		with (Mental) final switch (id) {
+		case Aggressive: return mentalNameAggressive;
+		case Unaggressive: return mentalNameUnaggressive;
+		case Cheerful: return mentalNameCheerful;
+		case Uncheerful: return mentalNameUncheerful;
+		case Brave: return mentalNameBrave;
+		case Unbrave: return mentalNameUnbrave;
+		case Cautious: return mentalNameCautious;
+		case Uncautious: return mentalNameUncautious;
+		case Trickish: return mentalNameTrickish;
+		case Untrickish: return mentalNameUntrickish;
+		}
 	}
 	auto mentalNameAggressive = Msg("mentalNameAggressive", "好戦性");
 	auto mentalNameUnaggressive = Msg("mentalNameUnaggressive", "平和性");
@@ -1684,7 +2061,36 @@ class Msgs : Properties {
 	auto mentalNameTrickish = Msg("mentalNameTrickish", "狡猾性");
 	auto mentalNameUntrickish = Msg("mentalNameUntrickish", "正直性");
 	const string statusName(Status id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(Status, "statusName"));
+		with (Status) final switch (id) {
+		case Active: return statusNameActive;
+		case Inactive: return statusNameInactive;
+		case Alive: return statusNameAlive;
+		case Dead: return statusNameDead;
+		case Fine: return statusNameFine;
+		case Injured: return statusNameInjured;
+		case HeavyInjured: return statusNameHeavyInjured;
+		case Unconscious: return statusNameUnconscious;
+		case Poison: return statusNamePoison;
+		case Sleep: return statusNameSleep;
+		case Bind: return statusNameBind;
+		case Paralyze: return statusNameParalyze;
+		case Confuse: return statusNameConfuse;
+		case Overheat: return statusNameOverheat;
+		case Brave: return statusNameBrave;
+		case Panic: return statusNamePanic;
+		case Silence: return statusNameSilence;
+		case FaceUp: return statusNameFaceUp;
+		case AntiMagic: return statusNameAntiMagic;
+		case UpAction: return statusNameUpAction;
+		case UpAvoid: return statusNameUpAvoid;
+		case UpResist: return statusNameUpResist;
+		case UpDefense: return statusNameUpDefense;
+		case DownAction: return statusNameDownAction;
+		case DownAvoid: return statusNameDownAvoid;
+		case DownResist: return statusNameDownResist;
+		case DownDefense: return statusNameDownDefense;
+		case None: return statusNameNone;
+		}
 	}
 	auto statusNameActive = Msg("statusNameActive", "行動可能");
 	auto statusNameInactive = Msg("statusNameInactive", "行動不可");
@@ -1716,7 +2122,13 @@ class Msgs : Properties {
 	auto statusNameNone = Msg("statusNameNone", "状態指定無し");
 	auto effectTypeElement = Msg("effectTypeElement", "%1$s属性");
 	const string effectTypeName(EffectType id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(EffectType, "effectTypeName"));
+		with (EffectType) final switch (id) {
+		case Physic: return effectTypeNamePhysic;
+		case Magic: return effectTypeNameMagic;
+		case MagicalPhysic: return effectTypeNameMagicalPhysic;
+		case PhysicalMagic: return effectTypeNamePhysicalMagic;
+		case None: return effectTypeNameNone;
+		}
 	}
 	auto effectTypeNamePhysic = Msg("effectTypeNamePhysic", "物理");
 	auto effectTypeNameMagic = Msg("effectTypeNameMagic", "魔法");
@@ -1724,7 +2136,13 @@ class Msgs : Properties {
 	auto effectTypeNamePhysicalMagic = Msg("effectTypeNamePhysicalMagic", "物理的魔法");
 	auto effectTypeNameNone = Msg("effectTypeNameNone", "無");
 	const string effectTypeDesc(EffectType id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(EffectType, "effectTypeDesc"));
+		with (EffectType) final switch (id) {
+		case Physic: return effectTypeDescPhysic;
+		case Magic: return effectTypeDescMagic;
+		case MagicalPhysic: return effectTypeDescMagicalPhysic;
+		case PhysicalMagic: return effectTypeDescPhysicalMagic;
+		case None: return effectTypeDescNone;
+		}
 	}
 	auto effectTypeDescPhysic = Msg("effectTypeDescPhysic", "武器が効かない存在には無効");
 	auto effectTypeDescMagic = Msg("effectTypeDescMagic", "魔法が効かない存在には無効");
@@ -1732,19 +2150,33 @@ class Msgs : Properties {
 	auto effectTypeDescPhysicalMagic = Msg("effectTypeDescPhysicalMagic", "武器と魔法のどちらかが効かない存在には無効");
 	auto effectTypeDescNone = Msg("effectTypeDescNone", "全ての存在に有効");
 	const string resistName(Resist id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(Resist, "resistName"));
+		with (Resist) final switch (id) {
+		case Avoid: return resistNameAvoid;
+		case Resist: return resistNameResist;
+		case Unfail: return resistNameUnfail;
+		}
 	}
 	auto resistNameAvoid = Msg("resistNameAvoid", "回避属性");
 	auto resistNameResist = Msg("resistNameResist", "抵抗属性");
 	auto resistNameUnfail = Msg("resistNameUnfail", "必中属性");
 	const string resistDesc(Resist id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(Resist, "resistDesc"));
+		with (Resist) final switch (id) {
+		case Avoid: return resistDescAvoid;
+		case Resist: return resistDescResist;
+		case Unfail: return resistDescUnfail;
+		}
 	}
 	auto resistDescAvoid = Msg("resistDescAvoid", "回避された場合は効果無し");
 	auto resistDescResist = Msg("resistDescResist", "抵抗された場合は効果半減");
 	auto resistDescUnfail = Msg("resistDescUnfail", "絶対成功");
 	const string cardTargetName(CardTarget id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(CardTarget, "cardTargetName"));
+		with (CardTarget) final switch (id) {
+		case None: return cardTargetNameNone;
+		case User: return cardTargetNameUser;
+		case Party: return cardTargetNameParty;
+		case Enemy: return cardTargetNameEnemy;
+		case Both: return cardTargetNameBoth;
+		}
 	}
 	auto cardTargetNameNone = Msg("cardTargetNameNone", "対象無し");
 	auto cardTargetNameUser = Msg("cardTargetNameUser", "使用者");
@@ -1754,20 +2186,34 @@ class Msgs : Properties {
 	auto cardTargetOne = Msg("cardTargetOne", "一体");
 	auto cardTargetAll = Msg("cardTargetAll", "全体");
 	const string cardVisualName(CardVisual id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(CardVisual, "cardVisualName"));
+		with (CardVisual) final switch (id) {
+		case None: return cardVisualNameNone;
+		case Reverse: return cardVisualNameReverse;
+		case Horizontal: return cardVisualNameHorizontal;
+		case Vertical: return cardVisualNameVertical;
+		}
 	}
 	auto cardVisualNameNone = Msg("cardVisualNameNone", "視覚効果無し");
 	auto cardVisualNameReverse = Msg("cardVisualNameReverse", "対象を反転");
 	auto cardVisualNameHorizontal = Msg("cardVisualNameHorizontal", "対象を横に震動");
 	auto cardVisualNameVertical = Msg("cardVisualNameVertical", "対象を縦に震動");
 	const string premiumName(Premium id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(Premium, "premiumName"));
+		with (Premium) final switch (id) {
+		case Normal: return premiumNameNormal;
+		case Rare: return premiumNameRare;
+		case Premium: return premiumNamePremium;
+		}
 	}
 	auto premiumNameNormal = Msg("premiumNameNormal", "日用品 (破棄可)");
 	auto premiumNameRare = Msg("premiumNameRare", "希少品 (破棄可)");
 	auto premiumNamePremium = Msg("premiumNamePremium", "貴重品 (破棄不可)");
 	const string enhanceName(Enhance id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(Enhance, "enhanceName"));
+		with (Enhance) final switch (id) {
+		case Action: return enhanceNameAction;
+		case Avoid: return enhanceNameAvoid;
+		case Resist: return enhanceNameResist;
+		case Defense: return enhanceNameDefense;
+		}
 	}
 	auto enhanceNameAction = Msg("enhanceNameAction", "行動");
 	auto enhanceNameAvoid = Msg("enhanceNameAvoid", "回避");
@@ -1775,7 +2221,14 @@ class Msgs : Properties {
 	auto enhanceNameDefense = Msg("enhanceNameDefense", "防御");
 	auto mentality = Msg("mentality", "精神状態");
 	const string mentalityName(Mentality id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(Mentality, "mentalityName"));
+		with (Mentality) final switch (id) {
+		case Normal: return mentalityNameNormal;
+		case Sleep: return mentalityNameSleep;
+		case Confuse: return mentalityNameConfuse;
+		case Overheat: return mentalityNameOverheat;
+		case Brave: return mentalityNameBrave;
+		case Panic: return mentalityNamePanic;
+		}
 	}
 	auto mentalityNameNormal = Msg("mentalityNameNormal", "正常");
 	auto mentalityNameSleep = Msg("mentalityNameSleep", "睡眠");
@@ -1790,14 +2243,25 @@ class Msgs : Properties {
 	auto statusAlive = Msg("statusAlive", "※ 生存 = (健康 | 負傷 | 重傷 | 中毒 | 呪縛 | 眠り)");
 	auto statusDead = Msg("statusDead", "※ 非生存 = (意識不明 | 麻痺/石化)");
 	const string targetName(Target.M id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch2!(Target.M, "Target.M", "targetName"));
+		with (Target.M) final switch (id) {
+		case Selected: return targetNameSelected;
+		case Unselected: return targetNameUnselected;
+		case Random: return targetNameRandom;
+		case Party: return targetNameParty;
+		}
 	}
 	auto targetNameSelected = Msg("targetNameSelected", "選択中のメンバ");
 	auto targetNameUnselected = Msg("targetNameUnselected", "選択中以外のメンバ");
 	auto targetNameRandom = Msg("targetNameRandom", "誰か一人");
 	auto targetNameParty = Msg("targetNameParty", "パーティ全員");
 	const string talkerName(Talker id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(Talker, "talkerName"));
+		with (Talker) final switch (id) {
+		case Selected: return talkerNameSelected;
+		case Unselected: return talkerNameUnselected;
+		case Random: return talkerNameRandom;
+		case Card: return talkerNameCard;
+		case Valued: return talkerNameValued;
+		}
 	}
 	auto talkerNameSelected = Msg("talkerNameSelected", "選択中");
 	auto talkerNameUnselected = Msg("talkerNameUnselected", "選択中以外");
@@ -1807,7 +2271,17 @@ class Msgs : Properties {
 	auto talkerNameImage = Msg("talkerNameImage", "画像");
 	auto talkerNameValued = Msg("talkerNameValued", "評価メンバ");
 	const string rangeName(Range id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(Range, "rangeName"));
+		with (Range) final switch (id) {
+		case Selected: return rangeNameSelected;
+		case Random: return rangeNameRandom;
+		case Party: return rangeNameParty;
+		case Backpack: return rangeNameBackpack;
+		case PartyAndBackpack: return rangeNamePartyAndBackpack;
+		case Field: return rangeNameField;
+		case CouponHolder: return rangeNameCouponHolder;
+		case CardTarget: return rangeNameCardTarget;
+		case SelectedCard: return rangeNameSelectedCard;
+		}
 	}
 	auto rangeNameSelected = Msg("rangeNameSelected", "現在選択中のメンバ");
 	auto rangeNameRandom = Msg("rangeNameRandom", "パーティの誰か一人");
@@ -1816,28 +2290,45 @@ class Msgs : Properties {
 	auto rangeNamePartyAndBackpack = Msg("rangeNamePartyAndBackpack", "全体(荷物袋含む)");
 	auto rangeNameField = Msg("rangeNameField", "フィールド全体");
 	auto rangeNameCouponHolder = Msg("rangeNameCouponHolder", "称号所有者");
+	auto rangeNameCardTarget = Msg("rangeNameCardTarget", "カードの使用対象"); // Wsn.2
+	auto rangeNameSelectedCard = Msg("rangeNameSelectedCard", "選択カード"); // Wsn.3
 	auto rangeWithCoupon = Msg("rangeWithCoupon", "称号所有者(%1$s)");
 	auto rangeWithNoCoupon = Msg("rangeWithNoCoupon", "称号所有者(指定無し)");
 	auto rangeDescField = Msg("rangeDescField", "パーティ・荷物袋・エネミーカードを含む");
-	auto rangeNameCardTarget = Msg("rangeNameCardTarget", "カードの使用対象"); // Wsn.2
 	auto rangeDescCardTarget = Msg("rangeDescCardTarget", "使用時イベント中でない場合、対象無しになります"); // Wsn.2
-	auto rangeNameSelectedCard = Msg("rangeNameSelectedCard", "選択カード"); // Wsn.3
 	auto rangeNameSelectedCardForReplace = Msg("rangeNameSelectedCardForReplace", "選択カード(交換)"); // Wsn.3
 	const string castRangeName(CastRange id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(CastRange, "castRangeName"));
+		with (CastRange) final switch (id) {
+		case Party: return castRangeNameParty;
+		case Enemy: return castRangeNameEnemy;
+		case Npc: return castRangeNameNpc;
+		}
 	}
 	auto castRangeNameParty = Msg("castRangeNameParty", "パーティ");
 	auto castRangeNameEnemy = Msg("castRangeNameEnemy", "敵");
 	auto castRangeNameNpc = Msg("castRangeNameNpc", "同行キャスト");
 	const string damageTypeName(DamageType id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(DamageType, "damageTypeName"));
+		with (DamageType) final switch (id) {
+		case LevelRatio: return damageTypeNameLevelRatio;
+		case Normal: return damageTypeNameNormal;
+		case Max: return damageTypeNameMax;
+		case Fixed: return damageTypeNameFixed;
+		}
 	}
 	auto damageTypeNameLevelRatio = Msg("damageTypeNameLevelRatio", "レベルに対応する値");
 	auto damageTypeNameNormal = Msg("damageTypeNameNormal", "値の直接入力");
 	auto damageTypeNameMax = Msg("damageTypeNameMax", "最大値処理");
 	auto damageTypeNameFixed = Msg("damageTypeNameFixed", "固定値");
 	const string elementName(Element id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(Element, "elementName"));
+		with (Element) final switch (id) {
+		case All: return elementNameAll;
+		case Health: return elementNameHealth;
+		case Mind: return elementNameMind;
+		case Miracle: return elementNameMiracle;
+		case Magic: return elementNameMagic;
+		case Fire: return elementNameFire;
+		case Ice: return elementNameIce;
+		}
 	}
 	auto elementNameAll = Msg("elementNameAll", "全");
 	auto elementNameHealth = Msg("elementNameHealth", "肉体");
@@ -1847,7 +2338,15 @@ class Msgs : Properties {
 	auto elementNameFire = Msg("elementNameFire", "炎");
 	auto elementNameIce = Msg("elementNameIce", "冷気");
 	const string elementDesc(Element id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(Element, "elementDesc"));
+		with (Element) final switch (id) {
+		case All: return elementDescAll;
+		case Health: return elementDescHealth;
+		case Mind: return elementDescMind;
+		case Miracle: return elementDescMiracle;
+		case Magic: return elementDescMagic;
+		case Fire: return elementDescFire;
+		case Ice: return elementDescIce;
+		}
 	}
 	auto elementDescAll = Msg("elementDescAll", "全ての存在に有効");
 	auto elementDescHealth = Msg("elementDescHealth", "肉体を持つ存在に有効");
@@ -1862,7 +2361,13 @@ class Msgs : Properties {
 	auto natureUnknown = Msg("natureUnknown", "その他");
 
 	const string effectCardTypeName(EffectCardType id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(EffectCardType, "effectCardTypeName"));
+		with (EffectCardType) final switch (id) {
+		case All: return effectCardTypeNameAll;
+		case Skill: return effectCardTypeNameSkill;
+		case Item: return effectCardTypeNameItem;
+		case Beast: return effectCardTypeNameBeast;
+		case Hand: return effectCardTypeNameHand;
+		}
 	}
 	auto effectCardTypeNameAll = Msg("effectCardTypeNameAll", "全てのカード");
 	auto effectCardTypeNameSkill = Msg("effectCardTypeNameSkill", "特殊技能カード");
@@ -1871,7 +2376,12 @@ class Msgs : Properties {
 	auto effectCardTypeNameHand = Msg("effectCardTypeNameHand", "戦闘時の手札"); // Wsn.2
 
 	const string comparison4Name(Comparison4 id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(Comparison4, "comparison4Name"));
+		with (Comparison4) final switch (id) {
+		case Eq: return comparison4NameEq;
+		case Ne: return comparison4NameNe;
+		case Lt: return comparison4NameLt;
+		case Gt: return comparison4NameGt;
+		}
 	}
 	auto comparison4NameEq = Msg("comparison4NameEq", "であれば");
 	auto comparison4NameNe = Msg("comparison4NameNe", "でなければ");
@@ -1879,14 +2389,22 @@ class Msgs : Properties {
 	auto comparison4NameGt = Msg("comparison4NameGt", "より小さければ");
 
 	const string comparison3Name(Comparison3 id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(Comparison3, "comparison3Name"));
+		with (Comparison3) final switch (id) {
+		case Eq: return comparison3NameEq;
+		case Lt: return comparison3NameLt;
+		case Gt: return comparison3NameGt;
+		}
 	}
 	auto comparison3NameEq = Msg("comparison3NameEq", "である");
 	auto comparison3NameLt = Msg("comparison3NameLt", "より大きい");
 	auto comparison3NameGt = Msg("comparison3NameGt", "より小さい");
 
 	const string comparison3FalseName(Comparison3 id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(Comparison3, "comparison3FalseName"));
+		with (Comparison3) final switch (id) {
+		case Eq: return comparison3FalseNameEq;
+		case Lt: return comparison3FalseNameLt;
+		case Gt: return comparison3FalseNameGt;
+		}
 	}
 	auto comparison3FalseNameEq = Msg("comparison3FalseNameEq", "ではない");
 	auto comparison3FalseNameLt = Msg("comparison3FalseNameLt", "以下");
@@ -1915,20 +2433,32 @@ class Msgs : Properties {
 	auto importOptionHands = Msg("importOptionHands", "キャストの持ち札");
 	auto importOptionBeastsInMotions = Msg("importOptionBeastsInMotions", "効果中の召喚獣");
 	const string importTypeIncludedName(ImportTypeIncluded id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(ImportTypeIncluded, "importTypeIncludedName"));
+		with (ImportTypeIncluded) final switch (id) {
+		case Exclude: return importTypeIncludedNameExclude;
+		case Include: return importTypeIncludedNameInclude;
+		case AsIs: return importTypeIncludedNameAsIs;
+		}
 	}
 	auto importTypeIncludedNameExclude = Msg("importTypeIncludedNameExclude", "格納であれば外部出力する");
 	auto importTypeIncludedNameInclude = Msg("importTypeIncludedNameInclude", "参照であれば格納する");
 	auto importTypeIncludedNameAsIs = Msg("importTypeIncludedNameAsIs", "そのままにする");
 	const string importTypeReference1Name(ImportTypeReference1 id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(ImportTypeReference1, "importTypeReference1Name"));
+		with (ImportTypeReference1) final switch (id) {
+		case Rename: return importTypeReference1NameRename;
+		case NoOverwrite: return importTypeReference1NameNoOverwrite;
+		case Overwrite: return importTypeReference1NameOverwrite;
+		case NoImport: return importTypeReference1NameNoImport;
+		}
 	}
 	auto importTypeReference1NameRename = Msg("importTypeReference1NameRename", "重複した場合は名前を変更する");
 	auto importTypeReference1NameNoOverwrite = Msg("importTypeReference1NameNoOverwrite", "重複した場合はインポートしない");
 	auto importTypeReference1NameOverwrite = Msg("importTypeReference1NameOverwrite", "重複した場合は上書きする");
 	auto importTypeReference1NameNoImport = Msg("importTypeReference1NameNoImport", "インポートしない");
 	const string importTypeReference2Name(ImportTypeReference2 id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(ImportTypeReference2, "importTypeReference2Name"));
+		with (ImportTypeReference2) final switch (id) {
+		case Rename: return importTypeReference2NameRename;
+		case NoImport: return importTypeReference2NameNoImport;
+		}
 	}
 	auto importTypeReference2NameRename = Msg("importTypeReference1NameRename", "新しいIDでインポートする");
 	auto importTypeReference2NameNoImport = Msg("importTypeReference1NameNoImport", "インポートしない");
@@ -1951,7 +2481,11 @@ class Msgs : Properties {
 
 	auto showStatusTime = Msg("showStatusTime", "状態の強度と持続時間");
 	const string showStatusTimeName(ShowStatusTime id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(ShowStatusTime, "showStatusTimeName"));
+		with (ShowStatusTime) final switch (id) {
+		case Always: return showStatusTimeNameAlways;
+		case WithSkin: return showStatusTimeNameWithSkin;
+		case No: return showStatusTimeNameNo;
+		}
 	}
 	auto showStatusTimeNameAlways = Msg("showStatusTimeNameAlways", "常に表示");
 	auto showStatusTimeNameWithSkin = Msg("showStatusTimeNameWithSkin", "スキン使用時のみ表示");
@@ -2081,7 +2615,12 @@ class Msgs : Properties {
 	auto lifeAndMentality = Msg("lifeAndMentality", "体力と精神状態");
 	auto enhanceLiveBonus = Msg("enhanceLiveBonus", "能力ボーナス/ペナルティ");
 	const string enhanceLiveBonusName(Enhance id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(Enhance, "enhanceLiveBonusName"));
+		with (Enhance) final switch (id) {
+		case Action: return enhanceLiveBonusNameAction;
+		case Avoid: return enhanceLiveBonusNameAvoid;
+		case Resist: return enhanceLiveBonusNameResist;
+		case Defense: return enhanceLiveBonusNameDefense;
+		}
 	}
 	auto enhanceLiveBonusNameAction = Msg("enhanceLiveBonusNameAction", "行動");
 	auto enhanceLiveBonusNameAvoid = Msg("enhanceLiveBonusNameAvoid", "回避");
@@ -2100,7 +2639,11 @@ class Msgs : Properties {
 	auto resetLiveStatus = Msg("resetLiveStatus", "通常状態に戻す");
 
 	const string showStyleName(ShowStyle id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(ShowStyle, "showStyleName"));
+		with (ShowStyle) final switch (id) {
+		case Invisible: return showStyleNameInvisible;
+		case Center: return showStyleNameCenter;
+		case FrontOfUser: return showStyleNameFrontOfUser;
+		}
 	}
 	auto showStyleNameInvisible = Msg("showStyleNameInvisible", "表示しない"); // Wsn.4
 	auto showStyleNameCenter = Msg("showStyleNameCenter", "画面中央に表示"); // Wsn.4
@@ -2451,7 +2994,12 @@ class Msgs : Properties {
 	auto dlgTitWallpaper = Msg("dlgTitWallpaper", "壁紙画像の選択");
 	auto wallpaperStyle = Msg("wallpaperStyle", "表示形式");
 	const string wallpaperStyleName(WallpaperStyle id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(WallpaperStyle, "wallpaperStyleName"));
+		with (WallpaperStyle) final switch (id) {
+		case Center: return wallpaperStyleNameCenter;
+		case Tile: return wallpaperStyleNameTile;
+		case ExpandFull: return wallpaperStyleNameExpandFull;
+		case Expand: return wallpaperStyleNameExpand;
+		}
 	}
 	auto wallpaperStyleNameCenter = Msg("wallpaperStyleNameCenter", "中央に表示");
 	auto wallpaperStyleNameTile = Msg("wallpaperStyleNameTile", "並べて表示");
@@ -2533,7 +3081,11 @@ class Msgs : Properties {
 
 	auto dialogStatus = Msg("dialogStatus", "セリフコンテントのステータス");
 	const string dialogStatusName(DialogStatus id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(DialogStatus, "dialogStatusName"));
+		with (DialogStatus) final switch (id) {
+		case Top: return dialogStatusNameTop;
+		case Under: return dialogStatusNameUnder;
+		case UnderWithCoupon: return dialogStatusNameUnderWithCoupon;
+		}
 	}
 	auto dialogStatusNameTop = Msg("dialogStatusNameTop", "最上位のセリフ");
 	auto dialogStatusNameUnder = Msg("dialogStatusNameUnder", "最下位のセリフ");
@@ -2790,7 +3342,250 @@ class Msgs : Properties {
 
 	/// メニュー。
 	const string menuText(MenuID id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(MenuID, "menuText"));
+		with (MenuID) final switch (id) {
+		case None: return menuTextNone;
+
+		case File: return menuTextFile;
+		case Edit: return menuTextEdit;
+		case View: return menuTextView;
+		case Tool: return menuTextTool;
+		case Table: return menuTextTable;
+		case Variable: return menuTextVariable;
+		case Help: return menuTextHelp;
+		case Card: return menuTextCard;
+		case CardsAndBacks: return menuTextCardsAndBacks;
+
+		case DelNotUsedFile: return menuTextDelNotUsedFile;
+		case CreateSubWindow: return menuTextCreateSubWindow;
+		case LeftPane: return menuTextLeftPane;
+		case RightPane: return menuTextRightPane;
+		case ClosePane: return menuTextClosePane;
+		case ClosePaneExcept: return menuTextClosePaneExcept;
+		case ClosePaneLeft: return menuTextClosePaneLeft;
+		case ClosePaneRight: return menuTextClosePaneRight;
+		case ClosePaneAll: return menuTextClosePaneAll;
+		case New: return menuTextNew;
+		case Open: return menuTextOpen;
+		case NewAtNewWindow: return menuTextNewAtNewWindow;
+		case OpenAtNewWindow: return menuTextOpenAtNewWindow;
+		case Close: return menuTextClose;
+		case CloseWin: return menuTextCloseWin;
+		case Save: return menuTextSave;
+		case SaveAs: return menuTextSaveAs;
+		case Reload: return menuTextReload;
+		case EditScenarioHistory: return menuTextEditScenarioHistory;
+		case OpenDir: return menuTextOpenDir;
+		case OpenBackupDir: return menuTextOpenBackupDir;
+		case OpenPlace: return menuTextOpenPlace;
+		case SaveImage: return menuTextSaveImage;
+		case IncludeImage: return menuTextIncludeImage;
+		case LookImages: return menuTextLookImages;
+		case EditLayers: return menuTextEditLayers;
+		case AddLayer: return menuTextAddLayer;
+		case RemoveLayer: return menuTextRemoveLayer;
+		case ChangeVH: return menuTextChangeVH;
+		case SelectConnectedResource: return menuTextSelectConnectedResource;
+		case Find: return menuTextFind;
+		case FindID: return menuTextFindID;
+		case IncSearch: return menuTextIncSearch;
+		case CloseIncSearch: return menuTextCloseIncSearch;
+		case EditProp: return menuTextEditProp;
+		case ShowProp: return menuTextShowProp;
+		case Refresh: return menuTextRefresh;
+		case Undo: return menuTextUndo;
+		case Redo: return menuTextRedo;
+		case Cut: return menuTextCut;
+		case Copy: return menuTextCopy;
+		case Paste: return menuTextPaste;
+		case Delete: return menuTextDelete;
+		case Cut1Content: return menuTextCut1Content;
+		case Copy1Content: return menuTextCopy1Content;
+		case Delete1Content: return menuTextDelete1Content;
+		case PasteInsert: return menuTextPasteInsert;
+		case Clone: return menuTextClone;
+		case SelectAll: return menuTextSelectAll;
+		case CopyAll: return menuTextCopyAll;
+		case ToXMLText: return menuTextToXMLText;
+		case TableView: return menuTextTableView;
+		case VarView: return menuTextVarView;
+		case CardView: return menuTextCardView;
+		case CastView: return menuTextCastView;
+		case SkillView: return menuTextSkillView;
+		case ItemView: return menuTextItemView;
+		case BeastView: return menuTextBeastView;
+		case InfoView: return menuTextInfoView;
+		case FileView: return menuTextFileView;
+		case CouponView: return menuTextCouponView;
+		case GossipView: return menuTextGossipView;
+		case CompleteStampView: return menuTextCompleteStampView;
+		case KeyCodeView: return menuTextKeyCodeView;
+		case CellNameView: return menuTextCellNameView;
+		case CardGroupView: return menuTextCardGroupView;
+		case ExecEngine: return menuTextExecEngine;
+		case ExecEngineAuto: return menuTextExecEngineAuto;
+		case ExecEngineMain: return menuTextExecEngineMain;
+		case ExecEngineWithParty: return menuTextExecEngineWithParty;
+		case ExecEngineWithLastParty: return menuTextExecEngineWithLastParty;
+		case DeleteNotExistsParties: return menuTextDeleteNotExistsParties;
+		case OuterTools: return menuTextOuterTools;
+		case Settings: return menuTextSettings;
+		case VersionInfo: return menuTextVersionInfo;
+		case LockToolBar: return menuTextLockToolBar;
+		case ResetToolBar: return menuTextResetToolBar;
+		case CopyAsText: return menuTextCopyAsText;
+		case OpenAtView: return menuTextOpenAtView;
+		case EventToPackage: return menuTextEventToPackage;
+		case StartToPackage: return menuTextStartToPackage;
+		case WrapTree: return menuTextWrapTree;
+		case CreateContent: return menuTextCreateContent;
+		case ConvertContent: return menuTextConvertContent;
+		case CGroupTerminal: return menuTextCGroupTerminal;
+		case CGroupStandard: return menuTextCGroupStandard;
+		case CGroupData: return menuTextCGroupData;
+		case CGroupUtility: return menuTextCGroupUtility;
+		case CGroupBranch: return menuTextCGroupBranch;
+		case CGroupGet: return menuTextCGroupGet;
+		case CGroupLost: return menuTextCGroupLost;
+		case CGroupVisual: return menuTextCGroupVisual;
+		case CGroupVariant: return menuTextCGroupVariant;
+		case EditSummary: return menuTextEditSummary;
+		case NewAreaDir: return menuTextNewAreaDir;
+		case NewArea: return menuTextNewArea;
+		case NewBattle: return menuTextNewBattle;
+		case NewPackage: return menuTextNewPackage;
+		case ReNumberingAll: return menuTextReNumberingAll;
+		case ReNumbering: return menuTextReNumbering;
+		case EditScene: return menuTextEditScene;
+		case EditSceneDup: return menuTextEditSceneDup;
+		case EditEvent: return menuTextEditEvent;
+		case EditEventDup: return menuTextEditEventDup;
+		case SetStartArea: return menuTextSetStartArea;
+		case NewFlagDir: return menuTextNewFlagDir;
+		case NewFlag: return menuTextNewFlag;
+		case NewStep: return menuTextNewStep;
+		case NewVariant: return menuTextNewVariant;
+		case CreateStepValues: return menuTextCreateStepValues;
+		case PutSPChar: return menuTextPutSPChar;
+		case PutFlagValue: return menuTextPutFlagValue;
+		case PutStepValue: return menuTextPutStepValue;
+		case PutVariantValue: return menuTextPutVariantValue;
+		case PutColor: return menuTextPutColor;
+		case PutSkinSPChar: return menuTextPutSkinSPChar;
+		case PutImageFont: return menuTextPutImageFont;
+		case CreateVariableEventTree: return menuTextCreateVariableEventTree;
+		case InitVariablesTree: return menuTextInitVariablesTree;
+		case CopyVariablePath: return menuTextCopyVariablePath;
+		case Up: return menuTextUp;
+		case Down: return menuTextDown;
+		case Reverse: return menuTextReverse;
+		case SwapToParent: return menuTextSwapToParent;
+		case SwapToChild: return menuTextSwapToChild;
+		case OverDialog: return menuTextOverDialog;
+		case UnderDialog: return menuTextUnderDialog;
+		case CreateDialog: return menuTextCreateDialog;
+		case DeleteDialog: return menuTextDeleteDialog;
+		case CopyToAllDialogs: return menuTextCopyToAllDialogs;
+		case CopyToUpperDialogs: return menuTextCopyToUpperDialogs;
+		case CopyToLowerDialogs: return menuTextCopyToLowerDialogs;
+		case ShowParty: return menuTextShowParty;
+		case ShowMsg: return menuTextShowMsg;
+		case ShowRefCards: return menuTextShowRefCards;
+		case FixedCards: return menuTextFixedCards;
+		case FixedCells: return menuTextFixedCells;
+		case FixedBackground: return menuTextFixedBackground;
+		case ShowGrid: return menuTextShowGrid;
+		case ShowEnemyCardProp: return menuTextShowEnemyCardProp;
+		case ShowCard: return menuTextShowCard;
+		case ShowBack: return menuTextShowBack;
+		case NewMenuCard: return menuTextNewMenuCard;
+		case NewEnemyCard: return menuTextNewEnemyCard;
+		case NewBack: return menuTextNewBack;
+		case NewTextCell: return menuTextNewTextCell;
+		case NewColorCell: return menuTextNewColorCell;
+		case NewPCCell: return menuTextNewPCCell;
+		case AutoArrange: return menuTextAutoArrange;
+		case ManualArrange: return menuTextManualArrange;
+		case PossibleToRunAway: return menuTextPossibleToRunAway;
+		case Mask: return menuTextMask;
+		case Escape: return menuTextEscape;
+		case ChangePos: return menuTextChangePos;
+		case PosTop: return menuTextPosTop;
+		case PosBottom: return menuTextPosBottom;
+		case PosLeft: return menuTextPosLeft;
+		case PosRight: return menuTextPosRight;
+		case PosEven: return menuTextPosEven;
+		case NearTop: return menuTextNearTop;
+		case NearBottom: return menuTextNearBottom;
+		case NearLeft: return menuTextNearLeft;
+		case NearRight: return menuTextNearRight;
+		case NearCenterH: return menuTextNearCenterH;
+		case NearCenterV: return menuTextNearCenterV;
+		case NearCenter: return menuTextNearCenter;
+		case ScaleMin: return menuTextScaleMin;
+		case ScaleMiddle: return menuTextScaleMiddle;
+		case ScaleMax: return menuTextScaleMax;
+		case ScaleBig: return menuTextScaleBig;
+		case ScaleSmall: return menuTextScaleSmall;
+		case ExpandBack: return menuTextExpandBack;
+		case StopBGM: return menuTextStopBGM;
+		case PlayBGM: return menuTextPlayBGM;
+		case NewEvent: return menuTextNewEvent;
+		case NewEventWithDialog: return menuTextNewEventWithDialog;
+		case KeyCodeTiming: return menuTextKeyCodeTiming;
+		case KeyCodeTimingUse: return menuTextKeyCodeTimingUse;
+		case KeyCodeTimingSuccess: return menuTextKeyCodeTimingSuccess;
+		case KeyCodeTimingFailure: return menuTextKeyCodeTimingFailure;
+		case KeyCodeTimingHasNot: return menuTextKeyCodeTimingHasNot;
+		case KeyCodeCond: return menuTextKeyCodeCond;
+		case KeyCodeCondOr: return menuTextKeyCodeCondOr;
+		case KeyCodeCondAnd: return menuTextKeyCodeCondAnd;
+		case AddRangeOfRound: return menuTextAddRangeOfRound;
+		case OpenAtTableView: return menuTextOpenAtTableView;
+		case OpenAtVarView: return menuTextOpenAtVarView;
+		case OpenAtCardView: return menuTextOpenAtCardView;
+		case OpenAtFileView: return menuTextOpenAtFileView;
+		case OpenAtEventView: return menuTextOpenAtEventView;
+		case Comment: return menuTextComment;
+		case ShowCardProp: return menuTextShowCardProp;
+		case ShowCardImage: return menuTextShowCardImage;
+		case ShowCardDetail: return menuTextShowCardDetail;
+		case OpenImportSource: return menuTextOpenImportSource;
+		case NewCast: return menuTextNewCast;
+		case NewSkill: return menuTextNewSkill;
+		case NewItem: return menuTextNewItem;
+		case NewBeast: return menuTextNewBeast;
+		case NewInfo: return menuTextNewInfo;
+		case Import: return menuTextImport;
+		case OpenHand: return menuTextOpenHand;
+		case AddHand: return menuTextAddHand;
+		case RemoveRef: return menuTextRemoveRef;
+		case EditEventAtTimeOfUsing: return menuTextEditEventAtTimeOfUsing;
+		case Hold: return menuTextHold;
+		case PlaySE: return menuTextPlaySE;
+		case StopSE: return menuTextStopSE;
+		case NewDir: return menuTextNewDir;
+		case CopyFilePath: return menuTextCopyFilePath;
+		case CreateArchive: return menuTextCreateArchive;
+		case PutQuick: return menuTextPutQuick;
+		case PutSelect: return menuTextPutSelect;
+		case PutContinue: return menuTextPutContinue;
+		case ToScript: return menuTextToScript;
+		case ToScript1Content: return menuTextToScript1Content;
+		case ToScriptAll: return menuTextToScriptAll;
+		case EvTemplates: return menuTextEvTemplates;
+		case EvTemplatesOfScenario: return menuTextEvTemplatesOfScenario;
+		case Expand: return menuTextExpand;
+		case Collapse: return menuTextCollapse;
+		case SelectCurrentEvent: return menuTextSelectCurrentEvent;
+		case ResetValues: return menuTextResetValues;
+		case ResetValuesAll: return menuTextResetValuesAll;
+		case CustomizeToolBar: return menuTextCustomizeToolBar;
+		case AddTool: return menuTextAddTool;
+		case AddToolBar: return menuTextAddToolBar;
+		case AddToolGroup: return menuTextAddToolGroup;
+		case ResetToolBarSettings: return menuTextResetToolBarSettings;
+		case DeleteNotExistsHistory: return menuTextDeleteNotExistsHistory;
+		}
 	}
 
 	auto menuTextNone = Msg("menuTextNone", "");
@@ -3015,7 +3810,6 @@ class Msgs : Properties {
 	auto menuTextStopSE = Msg("menuTextStopSE", "停止");
 	auto menuTextNewDir = Msg("menuTextNewDir", "新規" ~ DIR);
 	auto menuTextCopyFilePath = Msg("menuTextCopyFilePath", "素材のパスをコピー");
-	auto menuTextReplFilePath = Msg("menuTextReplFilePath", "素材の差替え");
 	auto menuTextCreateArchive = Msg("menuTextCreateArchive", "シナリオを圧縮");
 	auto menuTextPutQuick = Msg("menuTextPutQuick", "すぐに配置する");
 	auto menuTextPutSelect = Msg("menuTextPutSelect", "配置先を選択する");

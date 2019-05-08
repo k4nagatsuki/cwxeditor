@@ -215,7 +215,7 @@ class EventEditor : Composite {
 		_imageWidth = _imageWidth.ppis;
 		_lineHeight = .max(_lineHeight, th);
 		_lineTextY = (_lineHeight - th) / 2;
-		_imgPos = (_lineHeight - _comm.prop.images.content(CType.START).getBounds().height) / 2;
+		_imgPos = (_lineHeight - _comm.prop.images.content(CType.Start).getBounds().height) / 2;
 		_detailAreaWidth = _comm.prop.var.etc.detailAreaWidth;
 
 		auto vbar = getVerticalBar();
@@ -430,23 +430,26 @@ class EventEditor : Composite {
 				auto branch = false;
 				if (c.parent) { mixin(S_TRACE);
 					switch (c.parent.type) {
-					case CType.BRANCH_FLAG:
-					case CType.BRANCH_MULTI_STEP:
-					case CType.BRANCH_STEP:
-					case CType.BRANCH_AREA:
-					case CType.BRANCH_BATTLE:
-					case CType.BRANCH_CAST:
-					case CType.BRANCH_ITEM:
-					case CType.BRANCH_SKILL:
-					case CType.BRANCH_INFO:
-					case CType.BRANCH_BEAST:
+					case CType.BranchFlag:
+					case CType.BranchMultiStep:
+					case CType.BranchStep:
+					case CType.BranchArea:
+					case CType.BranchBattle:
+					case CType.BranchCast:
+					case CType.BranchItem:
+					case CType.BranchSkill:
+					case CType.BranchInfo:
+					case CType.BranchBeast:
+					case CType.BranchCoupon:
+					case CType.BranchMultiCoupon:
+					case CType.BranchGossip:
 						branch = true;
 						break;
 					default:
 						break;
 					}
 				}
-				if (update || branch || (c.parent && c.parent.detail.nextType is CNextType.TEXT)) { mixin(S_TRACE);
+				if (update || branch || (c.parent && c.parent.detail.nextType is CNextType.Text)) { mixin(S_TRACE);
 					_posTable[c.eventId] = _pos[i];
 				}
 
@@ -497,11 +500,11 @@ class EventEditor : Composite {
 		auto eventTextWidth = 0;
 		s = .eventText(_comm, _summ, c.parent, c, !(getStyle() & SWT.READ_ONLY));
 		StartInfo *p = null;
-		if (c.name == "" && c.parent && c.parent.detail.nextType is CNextType.TEXT) { mixin(S_TRACE);
+		if (c.name == "" && c.parent && c.parent.detail.nextType is CNextType.Text) { mixin(S_TRACE);
 			s = _comm.skin.evtChildOK;
 		}
 		if (s.length) eventTextWidth = gc.wTextExtent(s).x;
-		if (_comm.prop.var.etc.showTargetStartLineNumber && c.detail.use(CArg.START)) { mixin(S_TRACE);
+		if (_comm.prop.var.etc.showTargetStartLineNumber && c.detail.use(CArg.Start)) { mixin(S_TRACE);
 			// リンク先スタートコンテントの行
 			p = c.start in _startInfoWithName;
 			if (p) { mixin(S_TRACE);
@@ -513,7 +516,7 @@ class EventEditor : Composite {
 				eventTextWidth += ay * 3;
 			}
 		}
-		if (_comm.prop.var.etc.showTargetStartLineNumber && c.type is CType.START) { mixin(S_TRACE);
+		if (_comm.prop.var.etc.showTargetStartLineNumber && c.type is CType.Start) { mixin(S_TRACE);
 			// スタートコンテントへのリンク元の行
 			auto ay = _lineHeight / 4;
 			auto userWidth = ay * 4;
@@ -537,7 +540,7 @@ class EventEditor : Composite {
 			int height = _lineHeight;
 			int y = heightSum * _lineHeight;
 			heightSum++;
-			if ((_summ ? _comm.prop.var.etc.showTerminalMark : showTerminalMark) && type != CType.START && !c.next.length) { mixin(S_TRACE);
+			if ((_summ ? _comm.prop.var.etc.showTerminalMark : showTerminalMark) && type != CType.Start && !c.next.length) { mixin(S_TRACE);
 				height = _lineHeight * 2;
 				heightSum++;
 			}
@@ -562,7 +565,7 @@ class EventEditor : Composite {
 				}
 				break;
 			}
-			if (type != CType.START && c.next.length == 1 && (!(_summ ? _comm.prop.var.etc.forceIndentBranchContent : forceIndentBranchContent) || !c.type.isBranchContent)) { mixin(S_TRACE);
+			if (type != CType.Start && c.next.length == 1 && (!(_summ ? _comm.prop.var.etc.forceIndentBranchContent : forceIndentBranchContent) || !c.type.isBranchContent)) { mixin(S_TRACE);
 				x += slope;
 				depth2++;
 				c = c.next[0];
@@ -617,7 +620,7 @@ class EventEditor : Composite {
 
 		updateCommentPos(gc, posY);
 		updateScrollBar();
-		if (_pos.length && _pos[$ - 1].content.type is CType.START) { mixin(S_TRACE);
+		if (_pos.length && _pos[$ - 1].content.type is CType.Start) { mixin(S_TRACE);
 			// FIXME: 末尾にスタートコンテントがあると縦スクロールバーの幅がおかしくなる事があるので
 			auto isShowSelection = _showSelection;
 			getDisplay.asyncExec(new class Runnable {
@@ -820,7 +823,7 @@ class EventEditor : Composite {
 		auto ucExtent = gc.wTextExtent(_comm.prop.msgs.startUseCount);
 		foreach (ptrdiff_t i, ref pos; _pos) { mixin(S_TRACE);
 			auto c = pos.content;
-			if (c.type is CType.START) { mixin(S_TRACE);
+			if (c.type is CType.Start) { mixin(S_TRACE);
 				auto startInfo = _startInfos[c.eventId];
 				auto count = _et.startUseCounter.get(toStartId(c.name));
 				if (_pos[0].content is c) count++;
@@ -1360,7 +1363,7 @@ class EventEditor : Composite {
 		auto itm = getItem(new Point(e.x, e.y));
 		if (!itm) return;
 		auto c = cast(Content)itm.getData();
-		if (itm && c.type == CType.START && c.next.length) { mixin(S_TRACE);
+		if (itm && c.type == CType.Start && c.next.length) { mixin(S_TRACE);
 			itm.setExpanded(!itm.getExpanded());
 			callExpandedChanged(itm);
 		}
@@ -1512,7 +1515,7 @@ class EventEditor : Composite {
 			auto c = pos.content;
 			auto startInfo = _startInfos[c.parentStart.eventId];
 			possInfo ~= startInfo;
-			if (c.type == CType.START) { mixin(S_TRACE);
+			if (c.type == CType.Start) { mixin(S_TRACE);
 				if (poss.length <= i) break;
 				if (0 < i && (_summ ? _comm.prop.var.etc.drawContentTreeLine : drawContentTreeLine)) { mixin(S_TRACE);
 					e.gc.setLineWidth(1);
@@ -1537,7 +1540,7 @@ class EventEditor : Composite {
 					setAntialias(SWT.OFF);
 				}
 			}
-			if ((_summ ? _comm.prop.var.etc.showTerminalMark : showTerminalMark) && c.type != CType.START && !c.next.length) { mixin(S_TRACE);
+			if ((_summ ? _comm.prop.var.etc.showTerminalMark : showTerminalMark) && c.type != CType.Start && !c.next.length) { mixin(S_TRACE);
 				// 後続コンテントが置かれるであろう位置を示す
 				// (終端の場合は後続コンテントが置けない事を示す)
 				int terX = calcX(pos) + hw - sx;
@@ -1584,7 +1587,7 @@ class EventEditor : Composite {
 			StartInfo *p = null;
 			auto ctx = 0.ppis;
 			auto cy = (startInfo.y + pos.relY) - sy;
-			if (c.name == "" && c.parent && c.parent.detail.nextType == CNextType.TEXT) { mixin(S_TRACE);
+			if (c.name == "" && c.parent && c.parent.detail.nextType == CNextType.Text) { mixin(S_TRACE);
 				e.gc.setForeground(textColor(c));
 				s = _comm.skin.evtChildOK;
 			} else { mixin(S_TRACE);
@@ -1596,7 +1599,7 @@ class EventEditor : Composite {
 				e.gc.wDrawText(s, ctx - sx, cy + _lineTextY, true);
 				ctx += e.gc.wTextExtent(s).x;
 			}
-			if (_comm.prop.var.etc.showTargetStartLineNumber && c.detail.use(CArg.START)) { mixin(S_TRACE);
+			if (_comm.prop.var.etc.showTargetStartLineNumber && c.detail.use(CArg.Start)) { mixin(S_TRACE);
 				p = c.start in _startInfoWithName;
 				if (p) { mixin(S_TRACE);
 					// 対象スタートコンテントと行番号と矢印
@@ -1621,7 +1624,7 @@ class EventEditor : Composite {
 				}
 			}
 
-			if (_comm.prop.var.etc.showTargetStartLineNumber && c.type is CType.START) { mixin(S_TRACE);
+			if (_comm.prop.var.etc.showTargetStartLineNumber && c.type is CType.Start) { mixin(S_TRACE);
 				// スタートコンテントへのリンク元の行番号
 				auto ay = _lineHeight / 4;
 				int[] lines = [];
@@ -1661,7 +1664,7 @@ class EventEditor : Composite {
 				}
 			}
 
-			if ((_summ ? _comm.prop.var.etc.drawCountOfUseOfStart : drawCountOfUseOfStart) && c.type == CType.START) { mixin(S_TRACE);
+			if ((_summ ? _comm.prop.var.etc.drawCountOfUseOfStart : drawCountOfUseOfStart) && c.type == CType.Start) { mixin(S_TRACE);
 				// スタート使用数
 				auto count = _et.startUseCounter.get(toStartId(c.name));
 				if (_pos[0].content is c) count++;

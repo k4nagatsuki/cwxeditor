@@ -515,10 +515,10 @@ class Skin {
 	string resEnhanceUp(out MaskType maskType, Enhance enh) { mixin(S_TRACE);
 		maskType = MaskType.Mask1_1;
 		switch (enh) {
-		case Enhance.ACTION: return findResource(resourceDir, buildPath("Status", "UP0"), extImage);
-		case Enhance.AVOID: return findResource(resourceDir, buildPath("Status", "UP1"), extImage);
-		case Enhance.RESIST: return findResource(resourceDir, buildPath("Status", "UP2"), extImage);
-		case Enhance.DEFENSE: return findResource(resourceDir, buildPath("Status", "UP3"), extImage);
+		case Enhance.Action: return findResource(resourceDir, buildPath("Status", "UP0"), extImage);
+		case Enhance.Avoid: return findResource(resourceDir, buildPath("Status", "UP1"), extImage);
+		case Enhance.Resist: return findResource(resourceDir, buildPath("Status", "UP2"), extImage);
+		case Enhance.Defense: return findResource(resourceDir, buildPath("Status", "UP3"), extImage);
 		default: assert (0);
 		}
 	}
@@ -527,10 +527,10 @@ class Skin {
 	string resEnhanceDown(out MaskType maskType, Enhance enh) { mixin(S_TRACE);
 		maskType = MaskType.Mask1_1;
 		switch (enh) {
-		case Enhance.ACTION: return findResource(resourceDir, buildPath("Status", "DOWN0"), extImage);
-		case Enhance.AVOID: return findResource(resourceDir, buildPath("Status", "DOWN1"), extImage);
-		case Enhance.RESIST: return findResource(resourceDir, buildPath("Status", "DOWN2"), extImage);
-		case Enhance.DEFENSE: return findResource(resourceDir, buildPath("Status", "DOWN3"), extImage);
+		case Enhance.Action: return findResource(resourceDir, buildPath("Status", "DOWN0"), extImage);
+		case Enhance.Avoid: return findResource(resourceDir, buildPath("Status", "DOWN1"), extImage);
+		case Enhance.Resist: return findResource(resourceDir, buildPath("Status", "DOWN2"), extImage);
+		case Enhance.Defense: return findResource(resourceDir, buildPath("Status", "DOWN3"), extImage);
 		default: assert (0);
 		}
 	}
@@ -539,12 +539,12 @@ class Skin {
 	string resMentality(out MaskType maskType, Mentality mtly) { mixin(S_TRACE);
 		maskType = MaskType.NoMask;
 		switch (mtly) {
-		case Mentality.NORMAL: return findResource(resourceDir, buildPath("Status", "MIND0"), extImage);
-		case Mentality.SLEEP: return findResource(resourceDir, buildPath("Status", "MIND1"), extImage);
-		case Mentality.CONFUSE: return findResource(resourceDir, buildPath("Status", "MIND2"), extImage);
-		case Mentality.OVERHEAT: return findResource(resourceDir, buildPath("Status", "MIND3"), extImage);
-		case Mentality.BRAVE: return findResource(resourceDir, buildPath("Status", "MIND4"), extImage);
-		case Mentality.PANIC: return findResource(resourceDir, buildPath("Status", "MIND5"), extImage);
+		case Mentality.Normal: return findResource(resourceDir, buildPath("Status", "MIND0"), extImage);
+		case Mentality.Sleep: return findResource(resourceDir, buildPath("Status", "MIND1"), extImage);
+		case Mentality.Confuse: return findResource(resourceDir, buildPath("Status", "MIND2"), extImage);
+		case Mentality.Overheat: return findResource(resourceDir, buildPath("Status", "MIND3"), extImage);
+		case Mentality.Brave: return findResource(resourceDir, buildPath("Status", "MIND4"), extImage);
+		case Mentality.Panic: return findResource(resourceDir, buildPath("Status", "MIND5"), extImage);
 		default: assert (0);
 		}
 	}
@@ -1613,8 +1613,8 @@ class Skin {
 	const
 	real mentalMod(E)(E e, Mental mtl) { mixin(S_TRACE);
 		switch (mtl) {
-		case Mental.UNAGGRESSIVE, Mental.UNCHEERFUL, Mental.UNBRAVE,
-				Mental.UNCAUTIOUS, Mental.UNTRICKISH:
+		case Mental.Unaggressive, Mental.Uncheerful, Mental.Unbrave,
+				Mental.Uncautious, Mental.Untrickish:
 			return mentalMod(e, reverseMental(mtl)) * -1.0;
 		default:
 		}
@@ -1856,19 +1856,19 @@ private class ModData {
 			mod._name = node.value;
 		};
 		node.onTag["Physical"] = (ref XNode node) { mixin(S_TRACE);
-			mod._physical[Physical.AGL] = node.attr!int("agl", false, 0);
-			mod._physical[Physical.DEX] = node.attr!int("dex", false, 0);
-			mod._physical[Physical.INT] = node.attr!int("int", false, 0);
-			mod._physical[Physical.MIN] = node.attr!int("min", false, 0);
-			mod._physical[Physical.STR] = node.attr!int("str", false, 0);
-			mod._physical[Physical.VIT] = node.attr!int("vit", false, 0);
+			mod._physical[Physical.Agl] = node.attr!int("agl", false, 0);
+			mod._physical[Physical.Dex] = node.attr!int("dex", false, 0);
+			mod._physical[Physical.Int] = node.attr!int("int", false, 0);
+			mod._physical[Physical.Min] = node.attr!int("min", false, 0);
+			mod._physical[Physical.Str] = node.attr!int("str", false, 0);
+			mod._physical[Physical.Vit] = node.attr!int("vit", false, 0);
 		};
 		node.onTag["Mental"] = (ref XNode node) { mixin(S_TRACE);
-			mod._mental[Mental.AGGRESSIVE] = node.attr!double("aggressive", false, 0);
-			mod._mental[Mental.BRAVE] = node.attr!double("brave", false, 0);
-			mod._mental[Mental.CAUTIOUS] = node.attr!double("cautious", false, 0);
-			mod._mental[Mental.CHEERFUL] = node.attr!double("cheerful", false, 0);
-			mod._mental[Mental.TRICKISH] = node.attr!double("trickish", false, 0);
+			mod._mental[Mental.Aggressive] = node.attr!double("aggressive", false, 0);
+			mod._mental[Mental.Brave] = node.attr!double("brave", false, 0);
+			mod._mental[Mental.Cautious] = node.attr!double("cautious", false, 0);
+			mod._mental[Mental.Cheerful] = node.attr!double("cheerful", false, 0);
+			mod._mental[Mental.Trickish] = node.attr!double("trickish", false, 0);
 		};
 		node.parse();
 

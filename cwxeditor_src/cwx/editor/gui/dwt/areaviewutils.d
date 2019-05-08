@@ -268,11 +268,11 @@ string createAreaViewStatusLine(in Commons comm, in Summary summ, in Skin skin, 
 				break;
 			case CardImageType.Talker:
 				final switch (path.talker) {
-				case Talker.SELECTED:
-				case Talker.UNSELECTED:
-				case Talker.RANDOM:
-				case Talker.VALUED:
-				case Talker.CARD:
+				case Talker.Selected:
+				case Talker.Unselected:
+				case Talker.Random:
+				case Talker.Valued:
+				case Talker.Card:
 					arr ~= comm.prop.msgs.talkerName(path.talker);
 					break;
 				}

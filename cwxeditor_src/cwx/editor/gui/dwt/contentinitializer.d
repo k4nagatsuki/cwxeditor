@@ -138,14 +138,14 @@ class ContentInitialValueEditor : TCPD {
 	@property
 	void bgImagesDefault(BgImageS[] bgImgs) { mixin(S_TRACE);
 		_bgImgs = bgImgs;
-		auto p = CType.CHANGE_BG_IMAGE in _inits;
+		auto p = CType.ChangeBgImage in _inits;
 		if (p) { mixin(S_TRACE);
-			auto itm = _list.getItem(_cTypeTable[CType.CHANGE_BG_IMAGE]);
+			auto itm = _list.getItem(_cTypeTable[CType.ChangeBgImage]);
 			auto c = cast(Content)itm.getData();
 
 			auto skin = findSkin(_comm, _comm.prop, _summ);
 			auto init = initial(skin, c.type);
-			_inits[CType.CHANGE_BG_IMAGE] = init;
+			_inits[CType.ChangeBgImage] = init;
 			if (!_edited.get(c.type, false)) { mixin(S_TRACE);
 				store([c]);
 				c = init.dup;
@@ -437,37 +437,37 @@ class ContentInitialValueEditor : TCPD {
 @property
 bool hasDialog(CType type, bool existsSummary = true) { mixin(S_TRACE);
 	switch (type) {
-	case CType.START:
-	case CType.END_BAD_END:
-	case CType.ELAPSE_TIME:
-	case CType.BRANCH_AREA:
-	case CType.BRANCH_BATTLE:
-	case CType.BRANCH_IS_BATTLE:
-	case CType.BRANCH_MULTI_RANDOM:
+	case CType.Start:
+	case CType.EndBadEnd:
+	case CType.ElapseTime:
+	case CType.BranchArea:
+	case CType.BranchBattle:
+	case CType.BranchIsBattle:
+	case CType.BranchMultiRandom:
 		return false;
-	case CType.START_BATTLE:
-	case CType.LINK_START:
-	case CType.CALL_START:
-	case CType.LINK_PACKAGE:
-	case CType.CALL_PACKAGE:
-	case CType.BRANCH_FLAG:
-	case CType.SET_FLAG:
-	case CType.REVERSE_FLAG:
-	case CType.BRANCH_MULTI_STEP:
-	case CType.BRANCH_STEP:
-	case CType.SET_STEP:
-	case CType.SET_STEP_UP:
-	case CType.SET_STEP_DOWN:
-	case CType.SUBSTITUTE_STEP:
-	case CType.SUBSTITUTE_FLAG:
-	case CType.BRANCH_STEP_CMP:
-	case CType.BRANCH_FLAG_CMP:
-	case CType.CHECK_FLAG:
-	case CType.BRANCH_CAST:
-	case CType.BRANCH_INFO:
-	case CType.GET_INFO:
-	case CType.LOSE_CAST:
-	case CType.LOSE_INFO:
+	case CType.StartBattle:
+	case CType.LinkStart:
+	case CType.CallStart:
+	case CType.LinkPackage:
+	case CType.CallPackage:
+	case CType.BranchFlag:
+	case CType.SetFlag:
+	case CType.ReverseFlag:
+	case CType.BranchMultiStep:
+	case CType.BranchStep:
+	case CType.SetStep:
+	case CType.SetStepUp:
+	case CType.SetStepDown:
+	case CType.SubstituteStep:
+	case CType.SubstituteFlag:
+	case CType.BranchStepCmp:
+	case CType.BranchFlagCmp:
+	case CType.CheckFlag:
+	case CType.BranchCast:
+	case CType.BranchInfo:
+	case CType.GetInfo:
+	case CType.LoseCast:
+	case CType.LoseInfo:
 		return existsSummary;
 	default:
 		return true;
@@ -477,246 +477,246 @@ bool hasDialog(CType type, bool existsSummary = true) { mixin(S_TRACE);
 EventDialog createEventDialog(Commons comm, Summary summ, UseCounter uc, Shell parentShell, Content evt, Content parent, bool create) { mixin(S_TRACE);
 	EventDialog dlg;
 	switch (evt.type) {
-	case CType.START_BATTLE: { mixin(S_TRACE);
-		dlg = new AreaSelectDialog!(CType.START_BATTLE, Battle, "summary.battles")
+	case CType.StartBattle: { mixin(S_TRACE);
+		dlg = new AreaSelectDialog!(CType.StartBattle, Battle, "summary.battles")
 			(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.END: { mixin(S_TRACE);
+	} case CType.End: { mixin(S_TRACE);
 		dlg = new ClearEventDialog(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.CHANGE_AREA: { mixin(S_TRACE);
-		dlg = new AreaSelectDialog!(CType.CHANGE_AREA, Area, "summary.areas")
+	} case CType.ChangeArea: { mixin(S_TRACE);
+		dlg = new AreaSelectDialog!(CType.ChangeArea, Area, "summary.areas")
 			(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.CHANGE_BG_IMAGE: { mixin(S_TRACE);
-		dlg = new BgImagesDialog(comm, comm.prop, parentShell, summ, uc, parent, evt, null, CType.CHANGE_BG_IMAGE);
+	} case CType.ChangeBgImage: { mixin(S_TRACE);
+		dlg = new BgImagesDialog(comm, comm.prop, parentShell, summ, uc, parent, evt, null, CType.ChangeBgImage);
 		break;
-	} case CType.EFFECT: { mixin(S_TRACE);
+	} case CType.Effect: { mixin(S_TRACE);
 		dlg = new EffectDialog(comm, comm.prop, parentShell, summ, uc, parent, evt);
 		break;
-	} case CType.EFFECT_BREAK: { mixin(S_TRACE);
+	} case CType.EffectBreak: { mixin(S_TRACE);
 		dlg = new EffectBreakDialog(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.LINK_START: { mixin(S_TRACE);
-		dlg = new StartSelectDialog!(CType.LINK_START)(comm, comm.prop, parentShell, summ, parent, evt);
+	} case CType.LinkStart: { mixin(S_TRACE);
+		dlg = new StartSelectDialog!(CType.LinkStart)(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.LINK_PACKAGE: { mixin(S_TRACE);
-		dlg = new AreaSelectDialog!(CType.LINK_PACKAGE, Package, "summary.packages")
+	} case CType.LinkPackage: { mixin(S_TRACE);
+		dlg = new AreaSelectDialog!(CType.LinkPackage, Package, "summary.packages")
 			(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.TALK_MESSAGE: { mixin(S_TRACE);
+	} case CType.TalkMessage: { mixin(S_TRACE);
 		dlg = new MessageDialog(comm, comm.prop, parentShell, summ, uc, parent, evt);
 		break;
-	} case CType.TALK_DIALOG: { mixin(S_TRACE);
+	} case CType.TalkDialog: { mixin(S_TRACE);
 		dlg = new SpeakDialog(comm, comm.prop, parentShell, summ, uc, parent, evt);
 		break;
-	} case CType.PLAY_BGM: { mixin(S_TRACE);
+	} case CType.PlayBgm: { mixin(S_TRACE);
 		dlg = new BgmDialog(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.PLAY_SOUND: { mixin(S_TRACE);
+	} case CType.PlaySound: { mixin(S_TRACE);
 		dlg = new SeDialog(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.WAIT: { mixin(S_TRACE);
+	} case CType.Wait: { mixin(S_TRACE);
 		dlg = new WaitEventDialog(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.CALL_START: { mixin(S_TRACE);
-		dlg = new StartSelectDialog!(CType.CALL_START)(comm, comm.prop, parentShell, summ, parent, evt);
+	} case CType.CallStart: { mixin(S_TRACE);
+		dlg = new StartSelectDialog!(CType.CallStart)(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.CALL_PACKAGE: { mixin(S_TRACE);
-		dlg = new AreaSelectDialog!(CType.CALL_PACKAGE, Package, "summary.packages")
+	} case CType.CallPackage: { mixin(S_TRACE);
+		dlg = new AreaSelectDialog!(CType.CallPackage, Package, "summary.packages")
 			(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.BRANCH_FLAG: { mixin(S_TRACE);
+	} case CType.BranchFlag: { mixin(S_TRACE);
 		dlg = new BrFlagDialog(comm, comm.prop, parentShell, summ, uc, parent, evt, summ ? summ.flagDirRoot : null);
 		break;
-	} case CType.BRANCH_MULTI_STEP: { mixin(S_TRACE);
+	} case CType.BranchMultiStep: { mixin(S_TRACE);
 		dlg = new BrStepNDialog(comm, comm.prop, parentShell, summ, uc, parent, evt, summ ? summ.flagDirRoot : null);
 		break;
-	} case CType.BRANCH_STEP: { mixin(S_TRACE);
+	} case CType.BranchStep: { mixin(S_TRACE);
 		dlg = new BrStepULDialog(comm, comm.prop, parentShell, summ, uc, parent, evt, summ ? summ.flagDirRoot : null);
 		break;
-	} case CType.BRANCH_SELECT: { mixin(S_TRACE);
+	} case CType.BranchSelect: { mixin(S_TRACE);
 		dlg = new BrMemberDialog(comm, comm.prop, parentShell, summ, uc, parent, evt);
 		break;
-	} case CType.BRANCH_ABILITY: { mixin(S_TRACE);
+	} case CType.BranchAbility: { mixin(S_TRACE);
 		dlg = new BrPowerDialog(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.BRANCH_RANDOM: { mixin(S_TRACE);
+	} case CType.BranchRandom: { mixin(S_TRACE);
 		dlg = new BrRandomEventDialog(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.BRANCH_LEVEL: { mixin(S_TRACE);
+	} case CType.BranchLevel: { mixin(S_TRACE);
 		dlg = new BrLevelDialog(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.BRANCH_STATUS: { mixin(S_TRACE);
+	} case CType.BranchStatus: { mixin(S_TRACE);
 		dlg = new BrStateDialog(comm, comm.prop, parentShell, summ, uc, parent, evt);
 		break;
-	} case CType.BRANCH_PARTY_NUMBER: { mixin(S_TRACE);
+	} case CType.BranchPartyNumber: { mixin(S_TRACE);
 		dlg = new BrNumEventDialog(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.BRANCH_CAST: { mixin(S_TRACE);
-		dlg = new AreaSelectDialog!(CType.BRANCH_CAST, CastCard, "summary.casts")
+	} case CType.BranchCast: { mixin(S_TRACE);
+		dlg = new AreaSelectDialog!(CType.BranchCast, CastCard, "summary.casts")
 			(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.BRANCH_ITEM: { mixin(S_TRACE);
+	} case CType.BranchItem: { mixin(S_TRACE);
 		dlg = new BrItemDialog(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.BRANCH_SKILL: { mixin(S_TRACE);
+	} case CType.BranchSkill: { mixin(S_TRACE);
 		dlg = new BrSkillDialog(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.BRANCH_INFO: { mixin(S_TRACE);
-		dlg = new AreaSelectDialog!(CType.BRANCH_INFO, InfoCard, "summary.infos")
+	} case CType.BranchInfo: { mixin(S_TRACE);
+		dlg = new AreaSelectDialog!(CType.BranchInfo, InfoCard, "summary.infos")
 			(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.BRANCH_BEAST: { mixin(S_TRACE);
+	} case CType.BranchBeast: { mixin(S_TRACE);
 		dlg = new BrBeastDialog(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.BRANCH_MONEY: { mixin(S_TRACE);
-		dlg = new MoneyEventDialog!(CType.BRANCH_MONEY)(comm, comm.prop, parentShell, summ, parent, evt);
+	} case CType.BranchMoney: { mixin(S_TRACE);
+		dlg = new MoneyEventDialog!(CType.BranchMoney)(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.BRANCH_COUPON: { mixin(S_TRACE);
+	} case CType.BranchCoupon: { mixin(S_TRACE);
 		dlg = new BranchCouponDialog(comm, comm.prop, parentShell, summ, uc, parent, evt);
 		break;
-	} case CType.BRANCH_COMPLETE_STAMP: { mixin(S_TRACE);
-		dlg = new EndEventDialog!(CType.BRANCH_COMPLETE_STAMP)(comm, comm.prop, parentShell, summ, uc, parent, evt);
+	} case CType.BranchCompleteStamp: { mixin(S_TRACE);
+		dlg = new EndEventDialog!(CType.BranchCompleteStamp)(comm, comm.prop, parentShell, summ, uc, parent, evt);
 		break;
-	} case CType.BRANCH_GOSSIP: { mixin(S_TRACE);
-		dlg = new GossipEventDialog!(CType.BRANCH_GOSSIP)(comm, comm.prop, parentShell, summ, uc, parent, evt);
+	} case CType.BranchGossip: { mixin(S_TRACE);
+		dlg = new GossipEventDialog!(CType.BranchGossip)(comm, comm.prop, parentShell, summ, uc, parent, evt);
 		break;
-	} case CType.SET_FLAG: { mixin(S_TRACE);
+	} case CType.SetFlag: { mixin(S_TRACE);
 		dlg = new FlagSetDialog(comm, comm.prop, parentShell, summ, uc, parent, evt, summ ? summ.flagDirRoot : null);
 		break;
-	} case CType.SET_STEP: { mixin(S_TRACE);
+	} case CType.SetStep: { mixin(S_TRACE);
 		dlg = new StepSetDialog(comm, comm.prop, parentShell, summ, uc, parent, evt, summ ? summ.flagDirRoot : null);
 		break;
-	} case CType.SET_STEP_UP: { mixin(S_TRACE);
+	} case CType.SetStepUp: { mixin(S_TRACE);
 		dlg = new StepPlusDialog(comm, comm.prop, parentShell, summ, uc, parent, evt, summ ? summ.flagDirRoot : null);
 		break;
-	} case CType.SET_STEP_DOWN: { mixin(S_TRACE);
+	} case CType.SetStepDown: { mixin(S_TRACE);
 		dlg = new StepMinusDialog(comm, comm.prop, parentShell, summ, uc, parent, evt, summ ? summ.flagDirRoot : null);
 		break;
-	} case CType.REVERSE_FLAG: { mixin(S_TRACE);
+	} case CType.ReverseFlag: { mixin(S_TRACE);
 		dlg = new FlagRDialog(comm, comm.prop, parentShell, summ, uc, parent, evt, summ ? summ.flagDirRoot : null);
 		break;
-	} case CType.CHECK_FLAG: { mixin(S_TRACE);
+	} case CType.CheckFlag: { mixin(S_TRACE);
 		dlg = new FlagJudgeDialog(comm, comm.prop, parentShell, summ, uc, parent, evt, summ ? summ.flagDirRoot : null);
 		break;
-	} case CType.GET_CAST: { mixin(S_TRACE);
-		dlg = new AreaSelectDialog!(CType.GET_CAST, CastCard, "summary.casts")
+	} case CType.GetCast: { mixin(S_TRACE);
+		dlg = new AreaSelectDialog!(CType.GetCast, CastCard, "summary.casts")
 			(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.GET_ITEM: { mixin(S_TRACE);
+	} case CType.GetItem: { mixin(S_TRACE);
 		dlg = new GetItemDialog(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.GET_SKILL: { mixin(S_TRACE);
+	} case CType.GetSkill: { mixin(S_TRACE);
 		dlg = new GetSkillDialog(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.GET_INFO: { mixin(S_TRACE);
-		dlg = new AreaSelectDialog!(CType.GET_INFO, InfoCard, "summary.infos")
+	} case CType.GetInfo: { mixin(S_TRACE);
+		dlg = new AreaSelectDialog!(CType.GetInfo, InfoCard, "summary.infos")
 			(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.GET_BEAST: { mixin(S_TRACE);
+	} case CType.GetBeast: { mixin(S_TRACE);
 		dlg = new GetBeastDialog(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.GET_MONEY: { mixin(S_TRACE);
-		dlg = new MoneyEventDialog!(CType.GET_MONEY)(comm, comm.prop, parentShell, summ, parent, evt);
+	} case CType.GetMoney: { mixin(S_TRACE);
+		dlg = new MoneyEventDialog!(CType.GetMoney)(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.GET_COUPON: { mixin(S_TRACE);
+	} case CType.GetCoupon: { mixin(S_TRACE);
 		dlg = new GetCouponDialog(comm, comm.prop, parentShell, summ, uc, parent, evt);
 		break;
-	} case CType.GET_COMPLETE_STAMP: { mixin(S_TRACE);
-		dlg = new EndEventDialog!(CType.GET_COMPLETE_STAMP)(comm, comm.prop, parentShell, summ, uc, parent, evt);
+	} case CType.GetCompleteStamp: { mixin(S_TRACE);
+		dlg = new EndEventDialog!(CType.GetCompleteStamp)(comm, comm.prop, parentShell, summ, uc, parent, evt);
 		break;
-	} case CType.GET_GOSSIP: { mixin(S_TRACE);
-		dlg = new GossipEventDialog!(CType.GET_GOSSIP)(comm, comm.prop, parentShell, summ, uc, parent, evt);
+	} case CType.GetGossip: { mixin(S_TRACE);
+		dlg = new GossipEventDialog!(CType.GetGossip)(comm, comm.prop, parentShell, summ, uc, parent, evt);
 		break;
-	} case CType.LOSE_CAST: { mixin(S_TRACE);
-		dlg = new AreaSelectDialog!(CType.LOSE_CAST, CastCard, "summary.casts")
+	} case CType.LoseCast: { mixin(S_TRACE);
+		dlg = new AreaSelectDialog!(CType.LoseCast, CastCard, "summary.casts")
 			(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.LOSE_ITEM: { mixin(S_TRACE);
+	} case CType.LoseItem: { mixin(S_TRACE);
 		dlg = new LostItemDialog(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.LOSE_SKILL: { mixin(S_TRACE);
+	} case CType.LoseSkill: { mixin(S_TRACE);
 		dlg = new LostSkillDialog(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.LOSE_INFO: { mixin(S_TRACE);
-		dlg = new AreaSelectDialog!(CType.LOSE_INFO, InfoCard, "summary.infos")
+	} case CType.LoseInfo: { mixin(S_TRACE);
+		dlg = new AreaSelectDialog!(CType.LoseInfo, InfoCard, "summary.infos")
 			(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.LOSE_BEAST: { mixin(S_TRACE);
+	} case CType.LoseBeast: { mixin(S_TRACE);
 		dlg = new LostBeastDialog(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.LOSE_MONEY: { mixin(S_TRACE);
-		dlg = new MoneyEventDialog!(CType.LOSE_MONEY)(comm, comm.prop, parentShell, summ, parent, evt);
+	} case CType.LoseMoney: { mixin(S_TRACE);
+		dlg = new MoneyEventDialog!(CType.LoseMoney)(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.LOSE_COUPON: { mixin(S_TRACE);
+	} case CType.LoseCoupon: { mixin(S_TRACE);
 		dlg = new LoseCouponDialog(comm, comm.prop, parentShell, summ, uc, parent, evt);
 		break;
-	} case CType.LOSE_COMPLETE_STAMP: { mixin(S_TRACE);
-		dlg = new EndEventDialog!(CType.LOSE_COMPLETE_STAMP)(comm, comm.prop, parentShell, summ, uc, parent, evt);
+	} case CType.LoseCompleteStamp: { mixin(S_TRACE);
+		dlg = new EndEventDialog!(CType.LoseCompleteStamp)(comm, comm.prop, parentShell, summ, uc, parent, evt);
 		break;
-	} case CType.LOSE_GOSSIP: { mixin(S_TRACE);
-		dlg = new GossipEventDialog!(CType.LOSE_GOSSIP)(comm, comm.prop, parentShell, summ, uc, parent, evt);
+	} case CType.LoseGossip: { mixin(S_TRACE);
+		dlg = new GossipEventDialog!(CType.LoseGossip)(comm, comm.prop, parentShell, summ, uc, parent, evt);
 		break;
-	} case CType.SHOW_PARTY: { mixin(S_TRACE);
+	} case CType.ShowParty: { mixin(S_TRACE);
 		dlg = new ShowHidePartyDialog(evt.type, comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.HIDE_PARTY: { mixin(S_TRACE);
+	} case CType.HideParty: { mixin(S_TRACE);
 		dlg = new ShowHidePartyDialog(evt.type, comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.REDISPLAY: { mixin(S_TRACE);
+	} case CType.Redisplay: { mixin(S_TRACE);
 		dlg = new RefreshDialog(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.SUBSTITUTE_STEP: { mixin(S_TRACE);
+	} case CType.SubstituteStep: { mixin(S_TRACE);
 		dlg = new SubstituteStepDialog(comm, comm.prop, parentShell, summ, uc, parent, evt, summ ? summ.flagDirRoot : null);
 		break;
-	} case CType.SUBSTITUTE_FLAG: { mixin(S_TRACE);
+	} case CType.SubstituteFlag: { mixin(S_TRACE);
 		dlg = new SubstituteFlagDialog(comm, comm.prop, parentShell, summ, uc, parent, evt, summ ? summ.flagDirRoot : null);
 		break;
-	} case CType.BRANCH_STEP_CMP: { mixin(S_TRACE);
+	} case CType.BranchStepCmp: { mixin(S_TRACE);
 		dlg = new BrStepCmpDialog(comm, comm.prop, parentShell, summ, uc, parent, evt, summ ? summ.flagDirRoot : null);
 		break;
-	} case CType.BRANCH_FLAG_CMP: { mixin(S_TRACE);
+	} case CType.BranchFlagCmp: { mixin(S_TRACE);
 		dlg = new BrFlagCmpDialog(comm, comm.prop, parentShell, summ, uc, parent, evt, summ ? summ.flagDirRoot : null);
 		break;
-	} case CType.BRANCH_RANDOM_SELECT: { mixin(S_TRACE);
+	} case CType.BranchRandomSelect: { mixin(S_TRACE);
 		dlg = new BrRandomSelectDialog(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.BRANCH_KEY_CODE: { mixin(S_TRACE);
+	} case CType.BranchKeyCode: { mixin(S_TRACE);
 		dlg = new BrKeyCodeDialog(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.CHECK_STEP: { mixin(S_TRACE);
+	} case CType.CheckStep: { mixin(S_TRACE);
 		dlg = new CheckStepDialog(comm, comm.prop, parentShell, summ, uc, parent, evt, summ ? summ.flagDirRoot : null);
 		break;
-	} case CType.BRANCH_ROUND: { mixin(S_TRACE);
+	} case CType.BranchRound: { mixin(S_TRACE);
 		dlg = new BranchRoundDialog(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.MOVE_BG_IMAGE: { mixin(S_TRACE);
+	} case CType.MoveBgImage: { mixin(S_TRACE);
 		dlg = new MoveBgImageDialog(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.REPLACE_BG_IMAGE: { mixin(S_TRACE);
-		dlg = new BgImagesDialog(comm, comm.prop, parentShell, summ, uc, parent, evt, null, CType.REPLACE_BG_IMAGE);
+	} case CType.ReplaceBgImage: { mixin(S_TRACE);
+		dlg = new BgImagesDialog(comm, comm.prop, parentShell, summ, uc, parent, evt, null, CType.ReplaceBgImage);
 		break;
-	} case CType.LOSE_BG_IMAGE: { mixin(S_TRACE);
+	} case CType.LoseBgImage: { mixin(S_TRACE);
 		dlg = new LoseBgImageDialog(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.BRANCH_MULTI_COUPON: { mixin(S_TRACE);
+	} case CType.BranchMultiCoupon: { mixin(S_TRACE);
 		dlg = new BranchMultiCouponDialog(comm, comm.prop, parentShell, summ, uc, parent, evt);
 		break;
-	} case CType.MOVE_CARD: { mixin(S_TRACE);
+	} case CType.MoveCard: { mixin(S_TRACE);
 		dlg = new MoveCardDialog(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.CHANGE_ENVIRONMENT: { mixin(S_TRACE);
+	} case CType.ChangeEnvironment: { mixin(S_TRACE);
 		dlg = new ChangeEnvironmentDialog(comm, comm.prop, parentShell, summ, parent, evt);
 		break;
-	} case CType.BRANCH_VARIANT: { mixin(S_TRACE);
-		dlg = new ExpressionEventDialog(comm, comm.prop, parentShell, summ, uc, parent, CType.BRANCH_VARIANT, evt);
+	} case CType.BranchVariant: { mixin(S_TRACE);
+		dlg = new ExpressionEventDialog(comm, comm.prop, parentShell, summ, uc, parent, CType.BranchVariant, evt);
 		break;
-	} case CType.SET_VARIANT: { mixin(S_TRACE);
+	} case CType.SetVariant: { mixin(S_TRACE);
 		dlg = new SetVariantDialog(comm, comm.prop, parentShell, summ, uc, parent, evt);
 		break;
-	} case CType.CHECK_VARIANT: { mixin(S_TRACE);
-		dlg = new ExpressionEventDialog(comm, comm.prop, parentShell, summ, uc, parent, CType.CHECK_VARIANT, evt);
+	} case CType.CheckVariant: { mixin(S_TRACE);
+		dlg = new ExpressionEventDialog(comm, comm.prop, parentShell, summ, uc, parent, CType.CheckVariant, evt);
 		break;
 	} default: assert (0);
 	}
@@ -724,18 +724,18 @@ EventDialog createEventDialog(Commons comm, Summary summ, UseCounter uc, Shell p
 }
 
 Content initial(in Commons comm, in Skin skin, bool legacy, string dataVersion, in BgImageS[] bgImagesDefault, Content c) { mixin(S_TRACE);
-	if (c.type is CType.CHANGE_BG_IMAGE) { mixin(S_TRACE);
+	if (c.type is CType.ChangeBgImage) { mixin(S_TRACE);
 		c.backs = createBgImages(skin, bgImagesDefault);
-	} else if (c.type is CType.TALK_DIALOG) { mixin(S_TRACE);
+	} else if (c.type is CType.TalkDialog) { mixin(S_TRACE);
 		c.dialogs = [new SDialog];
 		if (comm.prop.parent.isTargetVersion(legacy, dataVersion, "2")) c.boundaryCheck = true;
-	} else if (c.type is CType.BRANCH_SKILL || c.type is CType.BRANCH_ITEM || c.type is CType.BRANCH_BEAST) { mixin(S_TRACE);
-		c.range = Range.FIELD;
-	} else if (c.type is CType.LOSE_SKILL || c.type is CType.LOSE_ITEM || c.type is CType.LOSE_BEAST) { mixin(S_TRACE);
-		c.range = Range.FIELD;
-	} else if (c.type is CType.TALK_MESSAGE) { mixin(S_TRACE);
+	} else if (c.type is CType.BranchSkill || c.type is CType.BranchItem || c.type is CType.BranchBeast) { mixin(S_TRACE);
+		c.range = Range.Field;
+	} else if (c.type is CType.LoseSkill || c.type is CType.LoseItem || c.type is CType.LoseBeast) { mixin(S_TRACE);
+		c.range = Range.Field;
+	} else if (c.type is CType.TalkMessage) { mixin(S_TRACE);
 		if (comm.prop.parent.isTargetVersion(legacy, dataVersion, "2")) c.boundaryCheck = true;
-	} else if (c.type is CType.BRANCH_KEY_CODE) { mixin(S_TRACE);
+	} else if (c.type is CType.BranchKeyCode) { mixin(S_TRACE);
 		if (legacy) { mixin(S_TRACE);
 			c.targetIsSkill = true;
 			c.targetIsItem = true;

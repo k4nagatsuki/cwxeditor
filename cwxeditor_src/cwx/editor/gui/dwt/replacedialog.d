@@ -1938,7 +1938,7 @@ public:
 		} else if (img is _prop.images.backs && data is null) { mixin(S_TRACE);
 			return true;
 		} else if (auto id = cast(Content)data) { mixin(S_TRACE);
-			if (id.type !is CType.START) return false;
+			if (id.type !is CType.Start) return false;
 			if (!id.tree) return false;
 			return true;
 		}
@@ -2011,7 +2011,7 @@ public:
 		} else if (img is _prop.images.cards && data is null) { mixin(S_TRACE);
 			replaceID(toCardGroupId(str), true);
 		} else if (auto id = cast(Content)data) { mixin(S_TRACE);
-			if (id.type !is CType.START) return;
+			if (id.type !is CType.Start) return;
 			auto tree = id.tree;
 			if (!tree) return;
 			CWXPath[] arr;
@@ -2950,7 +2950,7 @@ public:
 									store = false;
 								} else if (auto c = cast(Content)u.owner) { mixin(S_TRACE);
 									auto d = c.detail;
-									if (d.use(CArg.COUPONS)) { mixin(S_TRACE);
+									if (d.use(CArg.Coupons)) { mixin(S_TRACE);
 										if (c !in csElem) { mixin(S_TRACE);
 											elems ~= c;
 											csElem[c] = c.coupons.map!(a => new Coupon(a)).array();
@@ -2958,7 +2958,7 @@ public:
 										}
 										store = false;
 									}
-									if (d.use(CArg.COUPON_NAMES)) { mixin(S_TRACE);
+									if (d.use(CArg.CouponNames)) { mixin(S_TRACE);
 										if (c !in arrElem) { mixin(S_TRACE);
 											elems ~= c;
 											arrElem[c] = c.couponNames;
@@ -3013,7 +3013,7 @@ public:
 									store(su.parent, targ, su.cwxPath, [new StrArrUndo(arr, targ.rCoupons.dup, (a) { targ.rCoupons = a.filter!(a => a != "").array(); })]);
 									targ.rCoupons = targ.rCoupons.filter!(a => a != "").array();
 								} else if (auto targ = cast(Content)path) { mixin(S_TRACE);
-									assert (targ.detail.use(CArg.COUPON_NAMES));
+									assert (targ.detail.use(CArg.CouponNames));
 									store(su.parent, targ, su.cwxPath, [new StrArrUndo(arr, targ.couponNames.dup, (a) { targ.couponNames = a.filter!(a => a != "").array(); })]);
 									targ.couponNames = targ.couponNames.filter!(a => a != "").array();
 								} else assert (0);
@@ -3025,7 +3025,7 @@ public:
 									store(su.parent, targ, su.cwxPath, [new CouponsUndo(cs, targ.coupons.dup, (a) { targ.coupons = a.filter!(a => a.name != "").array(); })]);
 									targ.coupons = targ.coupons.filter!(a => a.name != "").array();
 								} else if (auto targ = cast(Content)path) { mixin(S_TRACE);
-									assert (targ.detail.use(CArg.COUPONS));
+									assert (targ.detail.use(CArg.Coupons));
 									store(su.parent, targ, su.cwxPath, [new CouponsUndo(cs, targ.coupons.dup, (a) { targ.coupons = a.filter!(a => a.name != "").array(); })]);
 									targ.coupons = targ.coupons.filter!(a => a.name != "").array();
 								} else assert (0);
@@ -4478,7 +4478,7 @@ public:
 				CWXPath[] route;
 				while (par && !cast(Summary)par) { mixin(S_TRACE);
 					if (auto c = cast(Content)par) { mixin(S_TRACE);
-						if (c.type !is CType.START) { mixin(S_TRACE);
+						if (c.type !is CType.Start) { mixin(S_TRACE);
 							par = par.cwxParent;
 							continue;
 						}
@@ -4965,51 +4965,51 @@ public:
 		assert (!eo || eo.detail.owner);
 		bool r = false;
 		Undo[] uArr2;
-		if ((_eventSel && eo && eo.detail.nextType == CNextType.TEXT)
-				|| (_couponSel && eo && eo.detail.nextType == CNextType.COUPON)) { mixin(S_TRACE);
+		if ((_eventSel && eo && eo.detail.nextType == CNextType.Text)
+				|| (_couponSel && eo && eo.detail.nextType == CNextType.Coupon)) { mixin(S_TRACE);
 			r |= repl(parent, null, "", e.name, name => e.setName(_prop.parent, name), count, uArr2);
 		}
 		if (_varNameSel) { mixin(S_TRACE);
 			if (_flagDirOnRange) { mixin(S_TRACE);
 				// Flag/Step/VariantについてはUseCounter経由で置換される
-				if (d.use(CArg.FLAG)) r |= repl(parent, null, "", e.flag, null, count, uArr2);
-				if (d.use(CArg.STEP)) r |= repl(parent, null, "", e.step, null, count, uArr2);
-				if (d.use(CArg.VARIANT)) r |= repl(parent, null, "", e.variant, null, count, uArr2);
-				if (d.use(CArg.FLAG_2)) r |= repl(parent, null, "", e.flag2, null, count, uArr2);
-				if (d.use(CArg.STEP_2)) r |= repl(parent, null, "", e.step2, null, count, uArr2);
+				if (d.use(CArg.Flag)) r |= repl(parent, null, "", e.flag, null, count, uArr2);
+				if (d.use(CArg.Step)) r |= repl(parent, null, "", e.step, null, count, uArr2);
+				if (d.use(CArg.Variant)) r |= repl(parent, null, "", e.variant, null, count, uArr2);
+				if (d.use(CArg.Flag2)) r |= repl(parent, null, "", e.flag2, null, count, uArr2);
+				if (d.use(CArg.Step2)) r |= repl(parent, null, "", e.step2, null, count, uArr2);
 			} else { mixin(S_TRACE);
-				if (d.use(CArg.FLAG)) r |= repl(parent, null, "", e.flag, &e.flag, count, uArr2);
-				if (d.use(CArg.STEP)) r |= repl(parent, null, "", e.step, &e.step, count, uArr2);
-				if (d.use(CArg.VARIANT)) r |= repl(parent, null, "", e.variant, &e.variant, count, uArr2);
-				if (d.use(CArg.FLAG_2)) r |= repl(parent, null, "", e.flag2, &e.flag2, count, uArr2);
-				if (d.use(CArg.STEP_2)) r |= repl(parent, null, "", e.step2, &e.step2, count, uArr2);
+				if (d.use(CArg.Flag)) r |= repl(parent, null, "", e.flag, &e.flag, count, uArr2);
+				if (d.use(CArg.Step)) r |= repl(parent, null, "", e.step, &e.step, count, uArr2);
+				if (d.use(CArg.Variant)) r |= repl(parent, null, "", e.variant, &e.variant, count, uArr2);
+				if (d.use(CArg.Flag2)) r |= repl(parent, null, "", e.flag2, &e.flag2, count, uArr2);
+				if (d.use(CArg.Step2)) r |= repl(parent, null, "", e.step2, &e.step2, count, uArr2);
 			}
 		}
 		if (_startSel) { mixin(S_TRACE);
 			// スタートへのリンク・コールはSUseCounter経由で置換されるため
 			// ここでは置換しない
-			if (d.use(CArg.START)) r |= repl(parent, null, "", e.start, null, count, uArr2);
-			if (e.type == CType.START) { mixin(S_TRACE);
+			if (d.use(CArg.Start)) r |= repl(parent, null, "", e.start, null, count, uArr2);
+			if (e.type == CType.Start) { mixin(S_TRACE);
 				r |= repl(parent, null, "", e.name, name => e.setName(_prop.parent, name), count, uArr2);
 			}
 		}
 		if (_couponSel) { mixin(S_TRACE);
-			if (d.use(CArg.COUPON)) r |= repl(parent, null, "", e.coupon, &e.coupon, count, uArr2);
-			if (d.use(CArg.COUPONS)) r |= replCoupons(parent, null, "", e, count, uArr2);
-			if (d.use(CArg.COUPON_NAMES)) r |= replCouponNames(parent, null, "", e, count, uArr2);
-			if (d.use(CArg.HOLDING_COUPON)) r |= repl(parent, null, "", e.holdingCoupon, &e.holdingCoupon, count, uArr2);
+			if (d.use(CArg.Coupon)) r |= repl(parent, null, "", e.coupon, &e.coupon, count, uArr2);
+			if (d.use(CArg.Coupons)) r |= replCoupons(parent, null, "", e, count, uArr2);
+			if (d.use(CArg.CouponNames)) r |= replCouponNames(parent, null, "", e, count, uArr2);
+			if (d.use(CArg.HoldingCoupon)) r |= repl(parent, null, "", e.holdingCoupon, &e.holdingCoupon, count, uArr2);
 		}
 		if (_gossipSel) { mixin(S_TRACE);
-			if (d.use(CArg.GOSSIP)) r |= repl(parent, null, "", e.gossip, &e.gossip, count, uArr2);
+			if (d.use(CArg.Gossip)) r |= repl(parent, null, "", e.gossip, &e.gossip, count, uArr2);
 		}
 		if (_endSel) { mixin(S_TRACE);
-			if (d.use(CArg.COMPLETE_STAMP)) r |= repl(parent, null, "", e.completeStamp, &e.completeStamp, count, uArr2);
+			if (d.use(CArg.CompleteStamp)) r |= repl(parent, null, "", e.completeStamp, &e.completeStamp, count, uArr2);
 		}
 		if (_msgSel) { mixin(S_TRACE);
-			if (d.use(CArg.TEXT)) r |= repl(parent, null, "", e.text, &e.text, count, uArr2);
+			if (d.use(CArg.Text)) r |= repl(parent, null, "", e.text, &e.text, count, uArr2);
 		}
-		if (d.use(CArg.TEXT)) r |= replFontsInText(parent, e, count, uArr2);
-		if (d.use(CArg.TEXT)) r |= replFlagsInText(parent, e, count, uArr2);
+		if (d.use(CArg.Text)) r |= replFontsInText(parent, e, count, uArr2);
+		if (d.use(CArg.Text)) r |= replFlagsInText(parent, e, count, uArr2);
 		bool rDlg = false;
 		if (_msgSel || _couponSel || _fileSel || _varNameSel) { mixin(S_TRACE);
 			auto dlgs = e.dialogs;
@@ -5040,23 +5040,23 @@ public:
 			}
 		}
 		if (_fileSel) { mixin(S_TRACE);
-			if (d.use(CArg.TALKER_C)) r |= replImagePaths(e.cardPaths, (paths) { e.cardPaths = paths; }, count, uArr2);
-			if (d.use(CArg.BGM_PATH)) r |= replFilePath(e.bgmPath, &e.bgmPath, count, uArr2);
-			if (d.use(CArg.INITIAL_SOUND_PATH)) r |= replFilePath(e.initialSoundPath, &e.initialSoundPath, count, uArr2);
-			if (d.use(CArg.SOUND_PATH)) r |= replFilePath(e.soundPath, &e.soundPath, count, uArr2);
+			if (d.use(CArg.TalkerC)) r |= replImagePaths(e.cardPaths, (paths) { e.cardPaths = paths; }, count, uArr2);
+			if (d.use(CArg.BgmPath)) r |= replFilePath(e.bgmPath, &e.bgmPath, count, uArr2);
+			if (d.use(CArg.InitialSoundPath)) r |= replFilePath(e.initialSoundPath, &e.initialSoundPath, count, uArr2);
+			if (d.use(CArg.SoundPath)) r |= replFilePath(e.soundPath, &e.soundPath, count, uArr2);
 		}
 		if (_keyCodeSel) { mixin(S_TRACE);
-			if (d.use(CArg.KEY_CODE)) r |= repl(parent, null, "", e.keyCode, &e.keyCode, count, uArr2);
-			if (d.use(CArg.KEY_CODES)) r |= replKeyCode(parent, e, e.cwxPath(true), e, "", count, uArr2);
+			if (d.use(CArg.KeyCode)) r |= repl(parent, null, "", e.keyCode, &e.keyCode, count, uArr2);
+			if (d.use(CArg.KeyCodes)) r |= replKeyCode(parent, e, e.cwxPath(true), e, "", count, uArr2);
 		}
 		if (_cellNameSel) { mixin(S_TRACE);
-			if (d.use(CArg.CELL_NAME)) r |= repl(parent, null, "", e.cellName, &e.cellName, count, uArr2);
+			if (d.use(CArg.CellName)) r |= repl(parent, null, "", e.cellName, &e.cellName, count, uArr2);
 		}
 		if (_cardGroupSel) { mixin(S_TRACE);
-			if (d.use(CArg.CARD_GROUP)) r |= repl(parent, null, "", e.cardGroup, &e.cardGroup, count, uArr2);
+			if (d.use(CArg.CardGroup)) r |= repl(parent, null, "", e.cardGroup, &e.cardGroup, count, uArr2);
 		}
 		if (_expressionSel) { mixin(S_TRACE);
-			if (d.use(CArg.EXPRESSION)) r |= repl(parent, null, "", e.expression, &e.expression, count, uArr2);
+			if (d.use(CArg.Expression)) r |= repl(parent, null, "", e.expression, &e.expression, count, uArr2);
 		}
 		if (_commentSel) { mixin(S_TRACE);
 			r |= repl(parent, null, "", e.comment, &e.comment, count, uArr2);

@@ -118,7 +118,7 @@ private:
 			return r;
 		}
 		void updateEnabled() { mixin(S_TRACE);
-			auto sEnbl = !_summ || !_summ.legacy || !.equal(invokeCond, [Status.ALIVE]);
+			auto sEnbl = !_summ || !_summ.legacy || !.equal(invokeCond, [Status.Alive]);
 			foreach (b; _invokeCond.byValue()) { mixin(S_TRACE);
 				b.setEnabled(sEnbl);
 			}
@@ -190,7 +190,7 @@ private:
 			ws ~= .tryFormat(_prop.msgs.warningNameLenOver, _prop.looks.nameLimit, _prop.looks.nameLimit / 2);
 		}
 		ws ~= _imgPath.warnings;
-		if (_effTyp[EffectType.NONE].getSelection()) { mixin(S_TRACE);
+		if (_effTyp[EffectType.None].getSelection()) { mixin(S_TRACE);
 			ws ~= _prop.msgs.warningEffectTypeNone;
 		}
 		ws ~= .sjisWarnings(_prop.parent, _summ, _desc.getText(), _prop.msgs.desc);
@@ -198,7 +198,7 @@ private:
 		ws ~= .sjisWarnings(_prop.parent, _summ, _author.getText(), _prop.msgs.sourceAuthor);
 		ws ~= _motions.warnings;
 		foreach (m; _motions.motions) { mixin(S_TRACE);
-			if (m.type == MType.VANISH_TARGET && m.element != cast(int) Element.MIRACLE) { mixin(S_TRACE);
+			if (m.type == MType.VanishTarget && m.element != cast(int) Element.Miracle) { mixin(S_TRACE);
 				ws ~= _prop.msgs.warningVanishCast;
 				break;
 			}
@@ -208,14 +208,14 @@ private:
 				ws ~= _prop.msgs.warningShowStyleForBeastCard;
 			}
 			if (!_prop.isTargetVersion(_summ, "3")) { mixin(S_TRACE);
-				if (!.equal(invokeCond, [Status.ALIVE])) { mixin(S_TRACE);
+				if (!.equal(invokeCond, [Status.Alive])) { mixin(S_TRACE);
 					ws ~= _prop.msgs.warningInvocationCondition;
 				}
 				if (!_removeWithUncons.getSelection()) { mixin(S_TRACE);
 					ws ~= _prop.msgs.warningRemoveWithUnconscious;
 				}
 			}
-			if (_invokeCond[Status.UNCONSCIOUS].getSelection() && _removeWithUncons.getSelection()) { mixin(S_TRACE);
+			if (_invokeCond[Status.Unconscious].getSelection() && _removeWithUncons.getSelection()) { mixin(S_TRACE);
 				ws ~= _prop.msgs.warningUnconsciousCondition;
 			}
 		}
@@ -320,9 +320,9 @@ private:
 				grp.setText(_prop.msgs.elementProps);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				grp.setLayout(normalGridLayout(2, true));
-				foreach (i, eff; [EffectType.PHYSIC, EffectType.MAGIC,
-						EffectType.MAGICAL_PHYSIC, EffectType.PHYSICAL_MAGIC,
-						EffectType.NONE]) { mixin(S_TRACE);
+				foreach (i, eff; [EffectType.Physic, EffectType.Magic,
+						EffectType.MagicalPhysic, EffectType.PhysicalMagic,
+						EffectType.None]) { mixin(S_TRACE);
 					auto radio = new Button(grp, SWT.RADIO);
 					mod(radio);
 					radio.setEnabled(!_readOnly);
@@ -344,7 +344,7 @@ private:
 				grp.setText(_prop.msgs.resistProps);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				grp.setLayout(normalGridLayout(2, true));
-				foreach (res; [Resist.AVOID, Resist.RESIST, Resist.UNFAIL]) { mixin(S_TRACE);
+				foreach (res; [Resist.Avoid, Resist.Resist, Resist.Unfail]) { mixin(S_TRACE);
 					auto radio = new Button(grp, SWT.RADIO);
 					mod(radio);
 					radio.setEnabled(!_readOnly);
@@ -566,7 +566,7 @@ private:
 			useModS = null;
 		}
 
-		static const Es = [Enhance.AVOID, Enhance.RESIST, Enhance.DEFENSE];
+		static const Es = [Enhance.Avoid, Enhance.Resist, Enhance.Defense];
 		string[] names;
 		names.length = Es.length;
 		foreach (i, enh; Es) { mixin(S_TRACE);
@@ -662,8 +662,8 @@ private:
 					grp.setLayout(cl);
 					auto comp3 = new Composite(grp, SWT.NONE);
 					comp3.setLayout(normalGridLayout(2, false));
-					foreach (t; [CardTarget.NONE, CardTarget.USER,
-							CardTarget.PARTY, CardTarget.ENEMY, CardTarget.BOTH]) { mixin(S_TRACE);
+					foreach (t; [CardTarget.None, CardTarget.User,
+							CardTarget.Party, CardTarget.Enemy, CardTarget.Both]) { mixin(S_TRACE);
 						auto radio = new Button(comp3, SWT.RADIO);
 						mod(radio);
 						radio.setEnabled(!_readOnly);
@@ -702,8 +702,8 @@ private:
 				grp.setText(_prop.msgs.effectVisual);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				grp.setLayout(normalGridLayout(2, false));
-				foreach (v; [CardVisual.NONE, CardVisual.HORIZONTAL,
-						CardVisual.REVERSE, CardVisual.VERTICAL]) { mixin(S_TRACE);
+				foreach (v; [CardVisual.None, CardVisual.Horizontal,
+						CardVisual.Reverse, CardVisual.Vertical]) { mixin(S_TRACE);
 					auto radio = new Button(grp, SWT.RADIO);
 					mod(radio);
 					radio.setEnabled(!_readOnly);
@@ -717,7 +717,7 @@ private:
 				grp.setText(_prop.msgs.cardPremium);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				grp.setLayout(normalGridLayout(1, false));
-				foreach (p; [Premium.NORMAL, Premium.RARE, Premium.PREMIUM]) { mixin(S_TRACE);
+				foreach (p; [Premium.Normal, Premium.Rare, Premium.Premium]) { mixin(S_TRACE);
 					auto radio = new Button(grp, SWT.RADIO);
 					mod(radio);
 					radio.setEnabled(!_readOnly);
@@ -1022,8 +1022,8 @@ protected:
 			_imgPath.images = [];
 			_scenario.setText(_summ.scenarioName);
 			_author.setText(_summ.author);
-			_effTyp[EffectType.PHYSIC].setSelection(true);
-			_res[Resist.AVOID].setSelection(true);
+			_effTyp[EffectType.Physic].setSelection(true);
+			_res[Resist.Avoid].setSelection(true);
 			static if (is(C == SkillCard)) {
 				_level.setSelection(1);
 			}
@@ -1046,15 +1046,15 @@ protected:
 			static if (is(C:BeastCard)) {
 				_showStyle.select(cast(int).cCountUntil(_showStyles, ShowStyle.Center));
 				foreach (s, b; _invokeCond) { mixin(S_TRACE);
-					b.setSelection(s is Status.ALIVE);
+					b.setSelection(s is Status.Alive);
 				}
 				_removeWithUncons.setSelection(true);
 			}
-			_targ[CardTarget.NONE].setSelection(true);
+			_targ[CardTarget.None].setSelection(true);
 			_one.setSelection(true);
 			refreshEnblOneAll();
-			_vis[CardVisual.NONE].setSelection(true);
-			_prem[Premium.NORMAL].setSelection(true);
+			_vis[CardVisual.None].setSelection(true);
+			_prem[Premium.Normal].setSelection(true);
 			_sucRate.setSelection(Content.successRate_max);
 			_se1.path = "";
 			_se2.path = "";
@@ -1066,9 +1066,9 @@ protected:
 		}
 	}
 	private void refreshEnblOneAll() { mixin(S_TRACE);
-		_oneAllGrp.setEnabled(_targ[CardTarget.PARTY].getSelection()
-			|| _targ[CardTarget.ENEMY].getSelection()
-			|| _targ[CardTarget.BOTH].getSelection());
+		_oneAllGrp.setEnabled(_targ[CardTarget.Party].getSelection()
+			|| _targ[CardTarget.Enemy].getSelection()
+			|| _targ[CardTarget.Both].getSelection());
 		_one.setEnabled(!_readOnly && _oneAllGrp.getEnabled());
 		_all.setEnabled(!_readOnly && _oneAllGrp.getEnabled());
 	}

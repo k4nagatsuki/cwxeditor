@@ -71,7 +71,7 @@ public:
 class CardImage : CWXPath {
 	CardImageType type = CardImageType.File;
 	private uint _pcNumber = 0;
-	private Talker _talker = Talker.SELECTED;
+	private Talker _talker = Talker.Selected;
 	private PathUser _path = null;
 	private CardImagePosition _positionType = CardImagePosition.Default;
 
@@ -199,16 +199,16 @@ class CardImage : CWXPath {
 		isOverrideImage = false;
 		void convPath(string pathTemp, string posTypeTemp) { mixin(S_TRACE);
 			CardImage path = null;
-			if (pathTemp && endsWith(pathTemp, "??" ~ fromTalker(Talker.SELECTED))) { mixin(S_TRACE);
-				path = new CardImage(Talker.SELECTED);
-			} else if (pathTemp && endsWith(pathTemp, "??" ~ fromTalker(Talker.UNSELECTED))) { mixin(S_TRACE);
-				path = new CardImage(Talker.UNSELECTED);
-			} else if (pathTemp && endsWith(pathTemp, "??" ~ fromTalker(Talker.RANDOM))) { mixin(S_TRACE);
-				path = new CardImage(Talker.RANDOM);
-			} else if (pathTemp && endsWith(pathTemp, "??" ~ fromTalker(Talker.CARD))) { mixin(S_TRACE);
-				path = new CardImage(Talker.CARD);
-			} else if (pathTemp && endsWith(pathTemp, "??" ~ fromTalker(Talker.VALUED))) { mixin(S_TRACE);
-				path = new CardImage(Talker.VALUED);
+			if (pathTemp && endsWith(pathTemp, "??" ~ fromTalker(Talker.Selected))) { mixin(S_TRACE);
+				path = new CardImage(Talker.Selected);
+			} else if (pathTemp && endsWith(pathTemp, "??" ~ fromTalker(Talker.Unselected))) { mixin(S_TRACE);
+				path = new CardImage(Talker.Unselected);
+			} else if (pathTemp && endsWith(pathTemp, "??" ~ fromTalker(Talker.Random))) { mixin(S_TRACE);
+				path = new CardImage(Talker.Random);
+			} else if (pathTemp && endsWith(pathTemp, "??" ~ fromTalker(Talker.Card))) { mixin(S_TRACE);
+				path = new CardImage(Talker.Card);
+			} else if (pathTemp && endsWith(pathTemp, "??" ~ fromTalker(Talker.Valued))) { mixin(S_TRACE);
+				path = new CardImage(Talker.Valued);
 			} else if (pathTemp && pathTemp != "") { mixin(S_TRACE);
 				switch (posTypeTemp) {
 				case "Center":
@@ -658,7 +658,7 @@ private:
 	uint _life;
 	uint _lifeMax;
 
-	Mentality _mentali = Mentality.NORMAL;
+	Mentality _mentali = Mentality.Normal;
 	uint _mentaliRound = 0;
 	uint _para = 0;
 	uint _poi = 0;
@@ -719,14 +719,14 @@ public:
 		_lifeMax = lifeMax;
 
 		constructRace();
-		_rEnh[Enhance.ACTION] = 0;
-		_rEnh[Enhance.AVOID] = 0;
-		_rEnh[Enhance.RESIST] = 0;
-		_rEnh[Enhance.DEFENSE] = 0;
-		_rEnhRound[Enhance.ACTION] = 0;
-		_rEnhRound[Enhance.AVOID] = 0;
-		_rEnhRound[Enhance.RESIST] = 0;
-		_rEnhRound[Enhance.DEFENSE] = 0;
+		_rEnh[Enhance.Action] = 0;
+		_rEnh[Enhance.Avoid] = 0;
+		_rEnh[Enhance.Resist] = 0;
+		_rEnh[Enhance.Defense] = 0;
+		_rEnhRound[Enhance.Action] = 0;
+		_rEnhRound[Enhance.Avoid] = 0;
+		_rEnhRound[Enhance.Resist] = 0;
+		_rEnhRound[Enhance.Defense] = 0;
 	}
 	this (ulong id, string name, in CardImage[] imagePaths, string desc) { mixin(S_TRACE);
 		this (id, name, imagePaths, desc, 1, 1);
@@ -746,14 +746,14 @@ public:
 		silenceRound = c.silenceRound;
 		faceUpRound = c.faceUpRound;
 		antiMagicRound = c.antiMagicRound;
-		enhance(Enhance.ACTION, c.enhance(Enhance.ACTION));
-		enhanceRound(Enhance.ACTION, c.enhanceRound(Enhance.ACTION));
-		enhance(Enhance.AVOID, c.enhance(Enhance.AVOID));
-		enhanceRound(Enhance.AVOID, c.enhanceRound(Enhance.AVOID));
-		enhance(Enhance.RESIST, c.enhance(Enhance.RESIST));
-		enhanceRound(Enhance.RESIST, c.enhanceRound(Enhance.RESIST));
-		enhance(Enhance.DEFENSE, c.enhance(Enhance.DEFENSE));
-		enhanceRound(Enhance.DEFENSE, c.enhanceRound(Enhance.DEFENSE));
+		enhance(Enhance.Action, c.enhance(Enhance.Action));
+		enhanceRound(Enhance.Action, c.enhanceRound(Enhance.Action));
+		enhance(Enhance.Avoid, c.enhance(Enhance.Avoid));
+		enhanceRound(Enhance.Avoid, c.enhanceRound(Enhance.Avoid));
+		enhance(Enhance.Resist, c.enhance(Enhance.Resist));
+		enhanceRound(Enhance.Resist, c.enhanceRound(Enhance.Resist));
+		enhance(Enhance.Defense, c.enhance(Enhance.Defense));
+		enhanceRound(Enhance.Defense, c.enhanceRound(Enhance.Defense));
 		Coupon[] cps;
 		foreach (cp; c.coupons) { mixin(S_TRACE);
 			cps ~= new Coupon(cp);
@@ -801,14 +801,14 @@ public:
 			&& silenceRound == c.silenceRound
 			&& faceUpRound == c.faceUpRound
 			&& antiMagicRound == c.antiMagicRound
-			&& enhance(Enhance.ACTION) == c.enhance(Enhance.ACTION)
-			&& enhanceRound(Enhance.ACTION) == c.enhanceRound(Enhance.ACTION)
-			&& enhance(Enhance.AVOID) == c.enhance(Enhance.AVOID)
-			&& enhanceRound(Enhance.AVOID) == c.enhanceRound(Enhance.AVOID)
-			&& enhance(Enhance.RESIST) == c.enhance(Enhance.RESIST)
-			&& enhanceRound(Enhance.RESIST) == c.enhanceRound(Enhance.RESIST)
-			&& enhance(Enhance.DEFENSE) == c.enhance(Enhance.DEFENSE)
-			&& enhanceRound(Enhance.DEFENSE) == c.enhanceRound(Enhance.DEFENSE)
+			&& enhance(Enhance.Action) == c.enhance(Enhance.Action)
+			&& enhanceRound(Enhance.Action) == c.enhanceRound(Enhance.Action)
+			&& enhance(Enhance.Avoid) == c.enhance(Enhance.Avoid)
+			&& enhanceRound(Enhance.Avoid) == c.enhanceRound(Enhance.Avoid)
+			&& enhance(Enhance.Resist) == c.enhance(Enhance.Resist)
+			&& enhanceRound(Enhance.Resist) == c.enhanceRound(Enhance.Resist)
+			&& enhance(Enhance.Defense) == c.enhance(Enhance.Defense)
+			&& enhanceRound(Enhance.Defense) == c.enhanceRound(Enhance.Defense)
 			&& coupons == c.coupons
 			&& skills == c.skills
 			&& items == c.items
@@ -1236,14 +1236,14 @@ public:
 		}
 		{ mixin(S_TRACE);
 			auto eNode = pNode.newElement("Enhance");
-			eNode.newElement("Action", enhance(Enhance.ACTION))
-				.newAttr("duration", enhanceRound(Enhance.ACTION));
-			eNode.newElement("Avoid", enhance(Enhance.AVOID))
-				.newAttr("duration", enhanceRound(Enhance.AVOID));
-			eNode.newElement("Resist", enhance(Enhance.RESIST))
-				.newAttr("duration", enhanceRound(Enhance.RESIST));
-			eNode.newElement("Defense", enhance(Enhance.DEFENSE))
-				.newAttr("duration", enhanceRound(Enhance.DEFENSE));
+			eNode.newElement("Action", enhance(Enhance.Action))
+				.newAttr("duration", enhanceRound(Enhance.Action));
+			eNode.newElement("Avoid", enhance(Enhance.Avoid))
+				.newAttr("duration", enhanceRound(Enhance.Avoid));
+			eNode.newElement("Resist", enhance(Enhance.Resist))
+				.newAttr("duration", enhanceRound(Enhance.Resist));
+			eNode.newElement("Defense", enhance(Enhance.Defense))
+				.newAttr("duration", enhanceRound(Enhance.Defense));
 		}
 		{ mixin(S_TRACE);
 			auto cpNode = pNode.newElement(Coupon.XML_NAME_M);
@@ -1317,10 +1317,10 @@ public:
 					r.enhance(enh, n.valueTo!(int));
 					r.enhanceRound(enh, n.attr!(int)("duration", true));
 				}
-				n.onTag["Action"] = (ref XNode n) { setEnh(n, Enhance.ACTION); };
-				n.onTag["Avoid"] = (ref XNode n) { setEnh(n, Enhance.AVOID); };
-				n.onTag["Resist"] = (ref XNode n) { setEnh(n, Enhance.RESIST); };
-				n.onTag["Defense"] = (ref XNode n) { setEnh(n, Enhance.DEFENSE); };
+				n.onTag["Action"] = (ref XNode n) { setEnh(n, Enhance.Action); };
+				n.onTag["Avoid"] = (ref XNode n) { setEnh(n, Enhance.Avoid); };
+				n.onTag["Resist"] = (ref XNode n) { setEnh(n, Enhance.Resist); };
+				n.onTag["Defense"] = (ref XNode n) { setEnh(n, Enhance.Defense); };
 				n.parse();
 			};
 			Coupon[] coupons;
@@ -1434,15 +1434,15 @@ abstract class EffectCard : Card, EventTreeOwner, MotionOwner, LocalVariableOwne
 private:
 	string _scenario = "";
 	string _author = "";
-	Physical _phy = Physical.DEX;
-	Mental _mtl = Mental.AGGRESSIVE;
-	CardTarget _targ = CardTarget.NONE;
+	Physical _phy = Physical.Dex;
+	Mental _mtl = Mental.Aggressive;
+	CardTarget _targ = CardTarget.None;
 	bool _allRange = false;
 	bool _spell = false;
-	EffectType _effTyp = EffectType.PHYSIC;
-	Resist _res = Resist.AVOID;
+	EffectType _effTyp = EffectType.Physic;
+	Resist _res = Resist.Avoid;
 	int _suc = 0;
-	CardVisual _vis = CardVisual.NONE;
+	CardVisual _vis = CardVisual.None;
 	int[Enhance] _enh;
 	PathUser _se1;
 	PathUser _se2;
@@ -1451,7 +1451,7 @@ private:
 	uint _loopCount1 = 1;
 	uint _loopCount2 = 1;
 	KeyCodesUser _keyCodes;
-	Premium _premi = Premium.NORMAL;
+	Premium _premi = Premium.Normal;
 	MotionUser _muser;
 	AbstractEventTreeOwner _ceto;
 	FlagDir _flagDirRoot;
@@ -1504,7 +1504,7 @@ public:
 		_se1 = new PathUser(this);
 		_se2 = new PathUser(this);
 		_keyCodes = new KeyCodesUser(this);
-		_enh = [Enhance.AVOID:0, Enhance.RESIST:0, Enhance.DEFENSE:0];
+		_enh = [Enhance.Avoid:0, Enhance.Resist:0, Enhance.Defense:0];
 		_flagDirRoot = new FlagDir(this, sys ? sys.localVariablePrefix : "");
 	}
 	/// cからパラメータをコピーする。
@@ -1522,9 +1522,9 @@ public:
 		resist = c.resist;
 		successRate = c.successRate;
 		visual = c.visual;
-		enhance(Enhance.AVOID, c.enhance(Enhance.AVOID));
-		enhance(Enhance.RESIST, c.enhance(Enhance.RESIST));
-		enhance(Enhance.DEFENSE, c.enhance(Enhance.DEFENSE));
+		enhance(Enhance.Avoid, c.enhance(Enhance.Avoid));
+		enhance(Enhance.Resist, c.enhance(Enhance.Resist));
+		enhance(Enhance.Defense, c.enhance(Enhance.Defense));
 		soundPath1 = c.soundPath1;
 		volume1 = c.volume1;
 		loopCount1 = c.loopCount1;
@@ -1554,18 +1554,18 @@ public:
 		linkId = 0;
 		scenario = "";
 		author = "";
-		physical = Physical.DEX;
-		mental = Mental.AGGRESSIVE;
-		target = CardTarget.NONE;
+		physical = Physical.Dex;
+		mental = Mental.Aggressive;
+		target = CardTarget.None;
 		allRange = false;
 		spell = false;
-		effectType = EffectType.PHYSIC;
-		resist = Resist.AVOID;
+		effectType = EffectType.Physic;
+		resist = Resist.Avoid;
 		successRate = 0;
-		visual = CardVisual.NONE;
-		enhance(Enhance.AVOID, 0);
-		enhance(Enhance.RESIST, 0);
-		enhance(Enhance.DEFENSE, 0);
+		visual = CardVisual.None;
+		enhance(Enhance.Avoid, 0);
+		enhance(Enhance.Resist, 0);
+		enhance(Enhance.Defense, 0);
 		soundPath1 = "";
 		volume1 = 100;
 		loopCount1 = 1;
@@ -1573,7 +1573,7 @@ public:
 		volume2 = 100;
 		loopCount2 = 1;
 		keyCodes = [];
-		premium = Premium.NORMAL;
+		premium = Premium.Normal;
 		motions = [];
 		_flagDirRoot.removeAll();
 	}
@@ -1608,9 +1608,9 @@ public:
 			&& resist == c.resist
 			&& successRate == c.successRate
 			&& visual == c.visual
-			&& enhance(Enhance.AVOID) == c.enhance(Enhance.AVOID)
-			&& enhance(Enhance.RESIST) == c.enhance(Enhance.RESIST)
-			&& enhance(Enhance.DEFENSE) == c.enhance(Enhance.DEFENSE)
+			&& enhance(Enhance.Avoid) == c.enhance(Enhance.Avoid)
+			&& enhance(Enhance.Resist) == c.enhance(Enhance.Resist)
+			&& enhance(Enhance.Defense) == c.enhance(Enhance.Defense)
 			&& soundPath1 == c.soundPath1
 			&& volume1 == c.volume1
 			&& loopCount1 == c.loopCount1
@@ -1971,9 +1971,9 @@ public:
 			pNode.newElement("SuccessRate", successRate);
 			pNode.newElement("VisualEffect", fromCardVisual(visual));
 			auto enh = pNode.newElement("Enhance");
-			enh.newAttr("avoid", enhance(Enhance.AVOID));
-			enh.newAttr("resist", enhance(Enhance.RESIST));
-			enh.newAttr("defense", enhance(Enhance.DEFENSE));
+			enh.newAttr("avoid", enhance(Enhance.Avoid));
+			enh.newAttr("resist", enhance(Enhance.Resist));
+			enh.newAttr("defense", enhance(Enhance.Defense));
 			auto se1 = pNode.newElement("SoundPath", encodePath(soundPath1));
 			if (volume1 != 100) se1.newAttr("volume", volume1);
 			if (loopCount1 != 1) se1.newAttr("loopcount", loopCount1);
@@ -2013,9 +2013,9 @@ public:
 		pNode.onTag["SuccessRate"] = (ref XNode n) { _suc = n.valueTo!(int); };
 		pNode.onTag["VisualEffect"] = (ref XNode n) { _vis = toCardVisual(n.value); };
 		pNode.onTag["Enhance"] = (ref XNode n) { mixin(S_TRACE);
-			_enh[Enhance.AVOID] = n.attr!(int)("avoid", true);
-			_enh[Enhance.RESIST] = n.attr!(int)("resist", true);
-			_enh[Enhance.DEFENSE] = n.attr!(int)("defense", true);
+			_enh[Enhance.Avoid] = n.attr!(int)("avoid", true);
+			_enh[Enhance.Resist] = n.attr!(int)("resist", true);
+			_enh[Enhance.Defense] = n.attr!(int)("defense", true);
 		};
 		pNode.onTag["SoundPath"] = (ref XNode n) { mixin(S_TRACE);
 			_se1.path = decodePath(n.value);
@@ -2326,12 +2326,12 @@ public:
 	this (in System sys, ulong id, string name, in CardImage[] imagePaths, string desc) { mixin(S_TRACE);
 		super (sys, id, name, imagePaths, desc);
 		_linkId = new ItemUser(this);
-		_oEnh = [Enhance.AVOID:0, Enhance.RESIST:0, Enhance.DEFENSE:0];
+		_oEnh = [Enhance.Avoid:0, Enhance.Resist:0, Enhance.Defense:0];
 	}
 	private void copyImpl(in ItemCard c) { mixin(S_TRACE);
-		enhanceOwner(Enhance.AVOID, c.enhanceOwner(Enhance.AVOID));
-		enhanceOwner(Enhance.RESIST, c.enhanceOwner(Enhance.RESIST));
-		enhanceOwner(Enhance.DEFENSE, c.enhanceOwner(Enhance.DEFENSE));
+		enhanceOwner(Enhance.Avoid, c.enhanceOwner(Enhance.Avoid));
+		enhanceOwner(Enhance.Resist, c.enhanceOwner(Enhance.Resist));
+		enhanceOwner(Enhance.Defense, c.enhanceOwner(Enhance.Defense));
 		price = c.price;
 		useLimit = c.useLimit;
 		useLimitMax = c.useLimitMax;
@@ -2350,9 +2350,9 @@ public:
 	/// IDを除く内部データをクリアする。
 	override void clearData() { mixin(S_TRACE);
 		super.clearData();
-		enhanceOwner(Enhance.AVOID, 0);
-		enhanceOwner(Enhance.RESIST, 0);
-		enhanceOwner(Enhance.DEFENSE, 0);
+		enhanceOwner(Enhance.Avoid, 0);
+		enhanceOwner(Enhance.Resist, 0);
+		enhanceOwner(Enhance.Defense, 0);
 		price = 0;
 		useLimit = 0;
 		useLimitMax = 0;
@@ -2375,9 +2375,9 @@ public:
 	}
 	const
 	private bool eqImpl(const(ItemCard) c) { mixin(S_TRACE);
-		return enhanceOwner(Enhance.AVOID) == c.enhanceOwner(Enhance.AVOID)
-			&& enhanceOwner(Enhance.RESIST) == c.enhanceOwner(Enhance.RESIST)
-			&& enhanceOwner(Enhance.DEFENSE) == c.enhanceOwner(Enhance.DEFENSE)
+		return enhanceOwner(Enhance.Avoid) == c.enhanceOwner(Enhance.Avoid)
+			&& enhanceOwner(Enhance.Resist) == c.enhanceOwner(Enhance.Resist)
+			&& enhanceOwner(Enhance.Defense) == c.enhanceOwner(Enhance.Defense)
 			&& price == c.price
 			&& useLimit == c.useLimit
 			&& useLimitMax == c.useLimitMax
@@ -2508,9 +2508,9 @@ public:
 			pNode.newElement("UseLimit", useLimit).newAttr("max", useLimitMax);
 			pNode.newElement("Price", price);
 			auto eo = pNode.newElement("EnhanceOwner");
-			eo.newAttr("avoid", enhanceOwner(Enhance.AVOID));
-			eo.newAttr("resist", enhanceOwner(Enhance.RESIST));
-			eo.newAttr("defense", enhanceOwner(Enhance.DEFENSE));
+			eo.newAttr("avoid", enhanceOwner(Enhance.Avoid));
+			eo.newAttr("resist", enhanceOwner(Enhance.Resist));
+			eo.newAttr("defense", enhanceOwner(Enhance.Defense));
 		}
 		pNode.newElement("Hold", fromBool(od && od.overHold ? od.hold : hold));
 	}
@@ -2540,9 +2540,9 @@ public:
 			};
 			pNode.onTag["Price"] = (ref XNode n) { r._price = n.valueTo!(int); };
 			pNode.onTag["EnhanceOwner"] = (ref XNode n) { mixin(S_TRACE);
-				r._oEnh[Enhance.AVOID] = n.attr!(int)("avoid", true);
-				r._oEnh[Enhance.RESIST] = n.attr!(int)("resist", true);
-				r._oEnh[Enhance.DEFENSE] = n.attr!(int)("defense", true);
+				r._oEnh[Enhance.Avoid] = n.attr!(int)("avoid", true);
+				r._oEnh[Enhance.Resist] = n.attr!(int)("resist", true);
+				r._oEnh[Enhance.Defense] = n.attr!(int)("defense", true);
 			};
 			pNode.onTag["Hold"] = (ref XNode n) { r._hold = parseBool(n.value); };
 			r.loadEffProp(cNode, pNode, ver);
@@ -2581,7 +2581,7 @@ class BeastCard : EffectCard {
 private:
 	BeastUser _linkId;
 	uint _useLimit = 0;
-	Status[] _invocationCondition = [Status.ALIVE];
+	Status[] _invocationCondition = [Status.Alive];
 	bool _removeWithUnconscious = true;
 	ShowStyle _showStyle = ShowStyle.Center; // Wsn.4
 public:
@@ -2620,7 +2620,7 @@ public:
 	override void clearData() { mixin(S_TRACE);
 		super.clearData();
 		useLimit = 0;
-		invocationCondition = [Status.ALIVE];
+		invocationCondition = [Status.Alive];
 		removeWithUnconscious = true;
 		showStyle = ShowStyle.Center;
 	}
@@ -2771,7 +2771,7 @@ public:
 		auto pNode = setEffProp(cNode, opt, od);
 		if (0 == linkId || (opt && opt.includeCard)) { mixin(S_TRACE);
 			pNode.newElement("UseLimit", useLimit);
-			if (invocationCondition != [Status.ALIVE]) { mixin(S_TRACE);
+			if (invocationCondition != [Status.Alive]) { mixin(S_TRACE);
 				auto icNode = pNode.newElement("InvocationCondition");
 				foreach (status; invocationCondition) { mixin(S_TRACE);
 					icNode.newElement("Status", fromStatus(status));
@@ -2832,7 +2832,7 @@ public:
 			pNode.onTag["RemovalCondition"] = (ref XNode n) { mixin(S_TRACE);
 				r.removeWithUnconscious = false;
 				n.onTag["Status"] = (ref XNode n) { mixin(S_TRACE);
-					if (.toStatus(n.value) is Status.UNCONSCIOUS) r.removeWithUnconscious = true;
+					if (.toStatus(n.value) is Status.Unconscious) r.removeWithUnconscious = true;
 				};
 				n.parse();
 			};

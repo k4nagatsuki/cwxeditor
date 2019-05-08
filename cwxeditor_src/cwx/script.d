@@ -100,7 +100,7 @@ CType firstContentType(const(CProps) prop, const(Summary) summ, string script) {
 	auto tokens = compiler.tokenize(script, opt);
 	if (compiler.errors.length) return cast(CType)-1;
 	foreach (ref token; tokens) { mixin(S_TRACE);
-		if (token.kind is CWXScript.Kind.START) return CType.START;
+		if (token.kind is CWXScript.Kind.START) return CType.Start;
 		if (token.kind is CWXScript.Kind.SYMBOL) { mixin(S_TRACE);
 			auto p = token.value.toLower() in CWXScript.KEYS.keywords;
 			if (p) { mixin(S_TRACE);
@@ -1041,90 +1041,90 @@ class CWXScript {
 	private static shared immutable Keywords KEYS;
 	shared static this () { mixin(S_TRACE);
 		auto keywords = [
-			cast(string) "start":CType.START,
-			cast(string) "gobattle":CType.START_BATTLE,
-			cast(string) "endsc":CType.END,
-			cast(string) "gameover":CType.END_BAD_END,
-			cast(string) "goarea":CType.CHANGE_AREA,
-			cast(string) "chback":CType.CHANGE_BG_IMAGE,
-			cast(string) "effect":CType.EFFECT,
-			cast(string) "break":CType.EFFECT_BREAK,
-			cast(string) "gostart":CType.LINK_START,
-			cast(string) "gopack":CType.LINK_PACKAGE,
-			cast(string) "msg":CType.TALK_MESSAGE,
-			cast(string) "dialog":CType.TALK_DIALOG,
-			cast(string) "bgm":CType.PLAY_BGM,
-			cast(string) "se":CType.PLAY_SOUND,
-			cast(string) "wait":CType.WAIT,
-			cast(string) "elapse":CType.ELAPSE_TIME,
-			cast(string) "callstart":CType.CALL_START,
-			cast(string) "callpack":CType.CALL_PACKAGE,
-			cast(string) "brflag":CType.BRANCH_FLAG,
-			cast(string) "brstepm":CType.BRANCH_MULTI_STEP,
-			cast(string) "brstept":CType.BRANCH_STEP,
-			cast(string) "selmember":CType.BRANCH_SELECT,
-			cast(string) "brability":CType.BRANCH_ABILITY,
-			cast(string) "brrandom":CType.BRANCH_RANDOM,
-			cast(string) "brlevel":CType.BRANCH_LEVEL,
-			cast(string) "brstatus":CType.BRANCH_STATUS,
-			cast(string) "brcount":CType.BRANCH_PARTY_NUMBER,
-			cast(string) "brarea":CType.BRANCH_AREA,
-			cast(string) "brbattle":CType.BRANCH_BATTLE,
-			cast(string) "bronbattle":CType.BRANCH_IS_BATTLE,
-			cast(string) "brcast":CType.BRANCH_CAST,
-			cast(string) "britem":CType.BRANCH_ITEM,
-			cast(string) "brskill":CType.BRANCH_SKILL,
-			cast(string) "brinfo":CType.BRANCH_INFO,
-			cast(string) "brbeast":CType.BRANCH_BEAST,
-			cast(string) "brmoney":CType.BRANCH_MONEY,
-			cast(string) "brcoupon":CType.BRANCH_COUPON,
-			cast(string) "brstamp":CType.BRANCH_COMPLETE_STAMP,
-			cast(string) "brgossip":CType.BRANCH_GOSSIP,
-			cast(string) "setflag":CType.SET_FLAG,
-			cast(string) "setstep":CType.SET_STEP,
-			cast(string) "stepup":CType.SET_STEP_UP,
-			cast(string) "stepdown":CType.SET_STEP_DOWN,
-			cast(string) "revflag":CType.REVERSE_FLAG,
-			cast(string) "chkflag":CType.CHECK_FLAG,
-			cast(string) "getcast":CType.GET_CAST,
-			cast(string) "getitem":CType.GET_ITEM,
-			cast(string) "getskill":CType.GET_SKILL,
-			cast(string) "getinfo":CType.GET_INFO,
-			cast(string) "getbeast":CType.GET_BEAST,
-			cast(string) "getmoney":CType.GET_MONEY,
-			cast(string) "getcoupon":CType.GET_COUPON,
-			cast(string) "getstamp":CType.GET_COMPLETE_STAMP,
-			cast(string) "getgossip":CType.GET_GOSSIP,
-			cast(string) "losecast":CType.LOSE_CAST,
-			cast(string) "loseitem":CType.LOSE_ITEM,
-			cast(string) "loseskill":CType.LOSE_SKILL,
-			cast(string) "loseinfo":CType.LOSE_INFO,
-			cast(string) "losebeast":CType.LOSE_BEAST,
-			cast(string) "losemoney":CType.LOSE_MONEY,
-			cast(string) "losecoupon":CType.LOSE_COUPON,
-			cast(string) "losestamp":CType.LOSE_COMPLETE_STAMP,
-			cast(string) "losegossip":CType.LOSE_GOSSIP,
-			cast(string) "showparty":CType.SHOW_PARTY,
-			cast(string) "hideparty":CType.HIDE_PARTY,
-			cast(string) "redraw":CType.REDISPLAY,
-			cast(string) "cpstep":CType.SUBSTITUTE_STEP,
-			cast(string) "cpflag":CType.SUBSTITUTE_FLAG,
-			cast(string) "cmpstep":CType.BRANCH_STEP_CMP,
-			cast(string) "cmpflag":CType.BRANCH_FLAG_CMP,
-			cast(string) "selrandom":CType.BRANCH_RANDOM_SELECT,
-			cast(string) "brkeycode":CType.BRANCH_KEY_CODE,
-			cast(string) "chkstep":CType.CHECK_STEP,
-			cast(string) "brround":CType.BRANCH_ROUND,
-			cast(string) "mvback":CType.MOVE_BG_IMAGE, // Wsn.1
-			cast(string) "rplback":CType.REPLACE_BG_IMAGE, // Wsn.1
-			cast(string) "loseback":CType.LOSE_BG_IMAGE, // Wsn.1
-			cast(string) "brcouponm":CType.BRANCH_MULTI_COUPON, // Wsn.2
-			cast(string) "brrandomm":CType.BRANCH_MULTI_RANDOM, // Wsn.2
-			cast(string) "mvcard":CType.MOVE_CARD, // Wsn.3
-			cast(string) "chenv":CType.CHANGE_ENVIRONMENT, // Wsn.4
-			cast(string) "brvar":CType.BRANCH_VARIANT, // Wsn.4
-			cast(string) "setvar":CType.SET_VARIANT, // Wsn.4
-			cast(string) "chkvar":CType.CHECK_VARIANT, // Wsn.4
+			cast(string) "start":CType.Start,
+			cast(string) "gobattle":CType.StartBattle,
+			cast(string) "endsc":CType.End,
+			cast(string) "gameover":CType.EndBadEnd,
+			cast(string) "goarea":CType.ChangeArea,
+			cast(string) "chback":CType.ChangeBgImage,
+			cast(string) "effect":CType.Effect,
+			cast(string) "break":CType.EffectBreak,
+			cast(string) "gostart":CType.LinkStart,
+			cast(string) "gopack":CType.LinkPackage,
+			cast(string) "msg":CType.TalkMessage,
+			cast(string) "dialog":CType.TalkDialog,
+			cast(string) "bgm":CType.PlayBgm,
+			cast(string) "se":CType.PlaySound,
+			cast(string) "wait":CType.Wait,
+			cast(string) "elapse":CType.ElapseTime,
+			cast(string) "callstart":CType.CallStart,
+			cast(string) "callpack":CType.CallPackage,
+			cast(string) "brflag":CType.BranchFlag,
+			cast(string) "brstepm":CType.BranchMultiStep,
+			cast(string) "brstept":CType.BranchStep,
+			cast(string) "selmember":CType.BranchSelect,
+			cast(string) "brability":CType.BranchAbility,
+			cast(string) "brrandom":CType.BranchRandom,
+			cast(string) "brlevel":CType.BranchLevel,
+			cast(string) "brstatus":CType.BranchStatus,
+			cast(string) "brcount":CType.BranchPartyNumber,
+			cast(string) "brarea":CType.BranchArea,
+			cast(string) "brbattle":CType.BranchBattle,
+			cast(string) "bronbattle":CType.BranchIsBattle,
+			cast(string) "brcast":CType.BranchCast,
+			cast(string) "britem":CType.BranchItem,
+			cast(string) "brskill":CType.BranchSkill,
+			cast(string) "brinfo":CType.BranchInfo,
+			cast(string) "brbeast":CType.BranchBeast,
+			cast(string) "brmoney":CType.BranchMoney,
+			cast(string) "brcoupon":CType.BranchCoupon,
+			cast(string) "brstamp":CType.BranchCompleteStamp,
+			cast(string) "brgossip":CType.BranchGossip,
+			cast(string) "setflag":CType.SetFlag,
+			cast(string) "setstep":CType.SetStep,
+			cast(string) "stepup":CType.SetStepUp,
+			cast(string) "stepdown":CType.SetStepDown,
+			cast(string) "revflag":CType.ReverseFlag,
+			cast(string) "chkflag":CType.CheckFlag,
+			cast(string) "getcast":CType.GetCast,
+			cast(string) "getitem":CType.GetItem,
+			cast(string) "getskill":CType.GetSkill,
+			cast(string) "getinfo":CType.GetInfo,
+			cast(string) "getbeast":CType.GetBeast,
+			cast(string) "getmoney":CType.GetMoney,
+			cast(string) "getcoupon":CType.GetCoupon,
+			cast(string) "getstamp":CType.GetCompleteStamp,
+			cast(string) "getgossip":CType.GetGossip,
+			cast(string) "losecast":CType.LoseCast,
+			cast(string) "loseitem":CType.LoseItem,
+			cast(string) "loseskill":CType.LoseSkill,
+			cast(string) "loseinfo":CType.LoseInfo,
+			cast(string) "losebeast":CType.LoseBeast,
+			cast(string) "losemoney":CType.LoseMoney,
+			cast(string) "losecoupon":CType.LoseCoupon,
+			cast(string) "losestamp":CType.LoseCompleteStamp,
+			cast(string) "losegossip":CType.LoseGossip,
+			cast(string) "showparty":CType.ShowParty,
+			cast(string) "hideparty":CType.HideParty,
+			cast(string) "redraw":CType.Redisplay,
+			cast(string) "cpstep":CType.SubstituteStep,
+			cast(string) "cpflag":CType.SubstituteFlag,
+			cast(string) "cmpstep":CType.BranchStepCmp,
+			cast(string) "cmpflag":CType.BranchFlagCmp,
+			cast(string) "selrandom":CType.BranchRandomSelect,
+			cast(string) "brkeycode":CType.BranchKeyCode,
+			cast(string) "chkstep":CType.CheckStep,
+			cast(string) "brround":CType.BranchRound,
+			cast(string) "mvback":CType.MoveBgImage, // Wsn.1
+			cast(string) "rplback":CType.ReplaceBgImage, // Wsn.1
+			cast(string) "loseback":CType.LoseBgImage, // Wsn.1
+			cast(string) "brcouponm":CType.BranchMultiCoupon, // Wsn.2
+			cast(string) "brrandomm":CType.BranchMultiRandom, // Wsn.2
+			cast(string) "mvcard":CType.MoveCard, // Wsn.3
+			cast(string) "chenv":CType.ChangeEnvironment, // Wsn.4
+			cast(string) "brvar":CType.BranchVariant, // Wsn.4
+			cast(string) "setvar":CType.SetVariant, // Wsn.4
+			cast(string) "chkvar":CType.CheckVariant, // Wsn.4
 		];
 		string[CType] commands;
 		foreach (name, type; keywords) { mixin(S_TRACE);
@@ -1905,10 +1905,10 @@ fi`;
 			crw: while (i < attr.length) { mixin(S_TRACE);
 				auto value = attrValue(attr[i], varTable, msgWidth);
 				switch (value) {
-				case "field": r ~= [CastRange.PARTY, CastRange.ENEMY, CastRange.NPC]; break;
-				case "party", "t", "team": r ~= CastRange.PARTY; break;
-				case "enemy": r ~= CastRange.ENEMY; break;
-				case "npc": r ~= CastRange.NPC; break;
+				case "field": r ~= [CastRange.Party, CastRange.Enemy, CastRange.Npc]; break;
+				case "party", "t", "team": r ~= CastRange.Party; break;
+				case "enemy": r ~= CastRange.Enemy; break;
+				case "npc": r ~= CastRange.Npc; break;
 				default: break crw;
 				}
 				i++;
@@ -1952,69 +1952,69 @@ fi`;
 		} else static if (is(T == Transition)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			switch (value) {
-			case "default": i++; return Transition.DEFAULT;
-			case "none": i++; return Transition.NONE;
-			case "blinds", "thread": i++; return Transition.BLINDS;
-			case "dissolve", "shave": i++; return Transition.PIXEL_DISSOLVE;
-			case "fade": i++; return Transition.FADE;
+			case "default": i++; return Transition.Default;
+			case "none": i++; return Transition.None;
+			case "blinds", "thread": i++; return Transition.Blinds;
+			case "dissolve", "shave": i++; return Transition.PixelDissolve;
+			case "fade": i++; return Transition.Fade;
 			default: throwError(_prop.msgs.scriptErrorInvalidTransition, attr[i].token);
 			}
 			return T.init;
 		} else static if (is(T == Range)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			switch (value) {
-			case "m", "selected": i++; return Range.SELECTED;
-			case "r", "random", "one": i++; return Range.RANDOM;
-			case "t", "team": i++; return Range.PARTY;
-			case "coupon": i++; return Range.COUPON_HOLDER;
-			case "card": i++; return Range.CARD_TARGET;
+			case "m", "selected": i++; return Range.Selected;
+			case "r", "random", "one": i++; return Range.Random;
+			case "t", "team": i++; return Range.Party;
+			case "coupon": i++; return Range.CouponHolder;
+			case "card": i++; return Range.CardTarget;
 			case "backpack":
 				static if (Within) goto default;
 				i++;
-				return Range.BACKPACK;
+				return Range.Backpack;
 			case "party":
 				static if (Within) goto case "team";
 				i++;
-				return Range.PARTY_AND_BACKPACK;
+				return Range.PartyAndBackpack;
 			case "field":
 				static if (Within) goto default;
 				i++;
-				return Range.FIELD;
-			case "selcard": i++; return Range.SELECTED_CARD;
+				return Range.Field;
+			case "selcard": i++; return Range.SelectedCard;
 			default: throwError(_prop.msgs.scriptErrorInvalidRange, attr[i].token);
 			}
 			return T.init;
 		} else static if (is(T == Status)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			switch (value) {
-			case "active": i++; return Status.ACTIVE;
-			case "inactive": i++; return Status.INACTIVE;
-			case "alive": i++; return Status.ALIVE;
-			case "dead": i++; return Status.DEAD;
-			case "fine": i++; return Status.FINE;
-			case "injured": i++; return Status.INJURED;
-			case "heavyinjured": i++; return Status.HEAVY_INJURED;
-			case "unconscious": i++; return Status.UNCONSCIOUS;
-			case "poison": i++; return Status.POISON;
-			case "sleep": i++; return Status.SLEEP;
-			case "bind": i++; return Status.BIND;
-			case "paralyze": i++; return Status.PARALYZE;
-			case "confuse": i++; return Status.CONFUSE;
-			case "overheat": i++; return Status.OVERHEAT;
-			case "brave": i++; return Status.BRAVE;
-			case "panic": i++; return Status.PANIC;
-			case "silence": i++; return Status.SILENCE;
-			case "faceup": i++; return Status.FACE_UP;
-			case "antimagic": i++; return Status.ANTI_MAGIC;
-			case "upaction": i++; return Status.UP_ACTION;
-			case "upavoid": i++; return Status.UP_AVOID;
-			case "upresist": i++; return Status.UP_RESIST;
-			case "updefense": i++; return Status.UP_DEFENSE;
-			case "downaction": i++; return Status.DOWN_ACTION;
-			case "downavoid": i++; return Status.DOWN_AVOID;
-			case "downresist": i++; return Status.DOWN_RESIST;
-			case "downdefense": i++; return Status.DOWN_DEFENSE;
-			case "none": i++; return Status.NONE;
+			case "active": i++; return Status.Active;
+			case "inactive": i++; return Status.Inactive;
+			case "alive": i++; return Status.Alive;
+			case "dead": i++; return Status.Dead;
+			case "fine": i++; return Status.Fine;
+			case "injured": i++; return Status.Injured;
+			case "heavyinjured": i++; return Status.HeavyInjured;
+			case "unconscious": i++; return Status.Unconscious;
+			case "poison": i++; return Status.Poison;
+			case "sleep": i++; return Status.Sleep;
+			case "bind": i++; return Status.Bind;
+			case "paralyze": i++; return Status.Paralyze;
+			case "confuse": i++; return Status.Confuse;
+			case "overheat": i++; return Status.Overheat;
+			case "brave": i++; return Status.Brave;
+			case "panic": i++; return Status.Panic;
+			case "silence": i++; return Status.Silence;
+			case "faceup": i++; return Status.FaceUp;
+			case "antimagic": i++; return Status.AntiMagic;
+			case "upaction": i++; return Status.UpAction;
+			case "upavoid": i++; return Status.UpAvoid;
+			case "upresist": i++; return Status.UpResist;
+			case "updefense": i++; return Status.UpDefense;
+			case "downaction": i++; return Status.DownAction;
+			case "downavoid": i++; return Status.DownAvoid;
+			case "downresist": i++; return Status.DownResist;
+			case "downdefense": i++; return Status.DownDefense;
+			case "none": i++; return Status.None;
 			default: throwError(_prop.msgs.scriptErrorInvalidStatus, attr[i].token);
 			}
 			return T.init;
@@ -2030,77 +2030,77 @@ fi`;
 			case "m", "selected":
 				i++;
 				static if (!Within) i++;
-				return Target(Target.M.SELECTED, sleep);
+				return Target(Target.M.Selected, sleep);
 			case "r", "random", "one":
 				i++;
 				static if (!Within) i++;
-				return Target(Target.M.RANDOM, sleep);
+				return Target(Target.M.Random, sleep);
 			case "u", "unselected":
 				i++;
 				static if (!Within) i++;
-				return Target(Target.M.UNSELECTED, sleep);
+				return Target(Target.M.Unselected, sleep);
 			case "t", "team":
 				i++;
 				static if (!Within) i++;
-				return Target(Target.M.PARTY, sleep);
+				return Target(Target.M.Party, sleep);
 			default: throwError(_prop.msgs.scriptErrorInvalidTarget, attr[i].token);
 			}
 			return T.init;
 		} else static if (is(T == EffectType)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			switch (value) {
-			case "physic": i++; return EffectType.PHYSIC;
-			case "magic": i++; return EffectType.MAGIC;
-			case "mphysic": i++; return EffectType.MAGICAL_PHYSIC;
-			case "pmagic": i++; return EffectType.PHYSICAL_MAGIC;
-			case "none": i++; return EffectType.NONE;
+			case "physic": i++; return EffectType.Physic;
+			case "magic": i++; return EffectType.Magic;
+			case "mphysic": i++; return EffectType.MagicalPhysic;
+			case "pmagic": i++; return EffectType.PhysicalMagic;
+			case "none": i++; return EffectType.None;
 			default: throwError(_prop.msgs.scriptErrorInvalidEffectType, attr[i].token);
 			}
 			return T.init;
 		} else static if (is(T == Resist)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			switch (value) {
-			case "avoid": i++; return Resist.AVOID;
-			case "resist": i++; return Resist.RESIST;
-			case "unfail": i++; return Resist.UNFAIL;
+			case "avoid": i++; return Resist.Avoid;
+			case "resist": i++; return Resist.Resist;
+			case "unfail": i++; return Resist.Unfail;
 			default: throwError(_prop.msgs.scriptErrorInvalidResist, attr[i].token);
 			}
 			return T.init;
 		} else static if (is(T == CardVisual)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			switch (value) {
-			case "none": i++; return CardVisual.NONE;
-			case "reverse": i++; return CardVisual.REVERSE;
-			case "hswing": i++; return CardVisual.HORIZONTAL;
-			case "vswing": i++; return CardVisual.VERTICAL;
+			case "none": i++; return CardVisual.None;
+			case "reverse": i++; return CardVisual.Reverse;
+			case "hswing": i++; return CardVisual.Horizontal;
+			case "vswing": i++; return CardVisual.Vertical;
 			default: throwError(_prop.msgs.scriptErrorInvalidCardVisual, attr[i].token);
 			}
 			return T.init;
 		} else static if (is(T == Mental)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			switch (value) {
-			case "agg": i++; return Mental.AGGRESSIVE;
-			case "unagg": i++; return Mental.UNAGGRESSIVE;
-			case "cheerf": i++; return Mental.CHEERFUL;
-			case "uncheerf": i++; return Mental.UNCHEERFUL;
-			case "brave": i++; return Mental.BRAVE;
-			case "unbrave": i++; return Mental.UNBRAVE;
-			case "caut": i++; return Mental.CAUTIOUS;
-			case "uncaut": i++; return Mental.UNCAUTIOUS;
-			case "trick": i++; return Mental.TRICKISH;
-			case "untrick": i++; return Mental.UNTRICKISH;
+			case "agg": i++; return Mental.Aggressive;
+			case "unagg": i++; return Mental.Unaggressive;
+			case "cheerf": i++; return Mental.Cheerful;
+			case "uncheerf": i++; return Mental.Uncheerful;
+			case "brave": i++; return Mental.Brave;
+			case "unbrave": i++; return Mental.Unbrave;
+			case "caut": i++; return Mental.Cautious;
+			case "uncaut": i++; return Mental.Uncautious;
+			case "trick": i++; return Mental.Trickish;
+			case "untrick": i++; return Mental.Untrickish;
 			default: throwError(_prop.msgs.scriptErrorInvalidMental, attr[i].token);
 			}
 			return T.init;
 		} else static if (is(T == Physical)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			switch (value) {
-			case "dex": i++; return Physical.DEX;
-			case "agl": i++; return Physical.AGL;
-			case "int": i++; return Physical.INT;
-			case "str": i++; return Physical.STR;
-			case "vit": i++; return Physical.VIT;
-			case "min": i++; return Physical.MIN;
+			case "dex": i++; return Physical.Dex;
+			case "agl": i++; return Physical.Agl;
+			case "int": i++; return Physical.Int;
+			case "str": i++; return Physical.Str;
+			case "vit": i++; return Physical.Vit;
+			case "min": i++; return Physical.Min;
 			default: throwError(_prop.msgs.scriptErrorInvalidPhysical, attr[i].token);
 			}
 			return T.init;
@@ -2109,80 +2109,80 @@ fi`;
 		} else static if (is(T == MType)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			switch (value) {
-			case "heal": i++; return MType.HEAL;
-			case "damage": i++; return MType.DAMAGE;
-			case "absorb": i++; return MType.ABSORB;
-			case "paralyze": i++; return MType.PARALYZE;
-			case "disparalyze": i++; return MType.DIS_PARALYZE;
-			case "poison": i++; return MType.POISON;
-			case "dispoison": i++; return MType.DIS_POISON;
-			case "getspilit": i++; return MType.GET_SKILL_POWER;
-			case "losespilit": i++; return MType.LOSE_SKILL_POWER;
-			case "sleep": i++; return MType.SLEEP;
-			case "confuse": i++; return MType.CONFUSE;
-			case "overheat": i++; return MType.OVERHEAT;
-			case "brave": i++; return MType.BRAVE;
-			case "panic": i++; return MType.PANIC;
-			case "resetmind": i++; return MType.NORMAL;
-			case "bind": i++; return MType.BIND;
-			case "disbind": i++; return MType.DIS_BIND;
-			case "silence": i++; return MType.SILENCE;
-			case "dissilence": i++; return MType.DIS_SILENCE;
-			case "faceup": i++; return MType.FACE_UP;
-			case "facedown": i++; return MType.FACE_DOWN;
-			case "antimagic": i++; return MType.ANTI_MAGIC;
-			case "disantimagic": i++; return MType.DIS_ANTI_MAGIC;
-			case "enhaction": i++; return MType.ENHANCE_ACTION;
-			case "enhavoid": i++; return MType.ENHANCE_AVOID;
-			case "enhresist": i++; return MType.ENHANCE_RESIST;
-			case "enhdefense": i++; return MType.ENHANCE_DEFENSE;
-			case "vantarget": i++; return MType.VANISH_TARGET;
-			case "vancard": i++; return MType.VANISH_CARD;
-			case "vanbeast": i++; return MType.VANISH_BEAST;
-			case "dealattack": i++; return MType.DEAL_ATTACK_CARD;
-			case "dealpowerful": i++; return MType.DEAL_POWERFUL_ATTACK_CARD;
-			case "dealcritical": i++; return MType.DEAL_CRITICAL_ATTACK_CARD;
-			case "dealfeint": i++; return MType.DEAL_FEINT_CARD;
-			case "dealdefense": i++; return MType.DEAL_DEFENSE_CARD;
-			case "dealdistance": i++; return MType.DEAL_DISTANCE_CARD;
-			case "dealconfuse": i++; return MType.DEAL_CONFUSE_CARD;
-			case "dealskill": i++; return MType.DEAL_SKILL_CARD;
-			case "summon": i++; return MType.SUMMON_BEAST;
-			case "cancelaction": i++; return MType.CANCEL_ACTION;
-			case "noeffect", "none": i++; return MType.NO_EFFECT;
+			case "heal": i++; return MType.Heal;
+			case "damage": i++; return MType.Damage;
+			case "absorb": i++; return MType.Absorb;
+			case "paralyze": i++; return MType.Paralyze;
+			case "disparalyze": i++; return MType.DisParalyze;
+			case "poison": i++; return MType.Poison;
+			case "dispoison": i++; return MType.DisPoison;
+			case "getspilit": i++; return MType.GetSkillPower;
+			case "losespilit": i++; return MType.LoseSkillPower;
+			case "sleep": i++; return MType.Sleep;
+			case "confuse": i++; return MType.Confuse;
+			case "overheat": i++; return MType.Overheat;
+			case "brave": i++; return MType.Brave;
+			case "panic": i++; return MType.Panic;
+			case "resetmind": i++; return MType.Normal;
+			case "bind": i++; return MType.Bind;
+			case "disbind": i++; return MType.DisBind;
+			case "silence": i++; return MType.Silence;
+			case "dissilence": i++; return MType.DisSilence;
+			case "faceup": i++; return MType.FaceUp;
+			case "facedown": i++; return MType.FaceDown;
+			case "antimagic": i++; return MType.AntiMagic;
+			case "disantimagic": i++; return MType.DisAntiMagic;
+			case "enhaction": i++; return MType.EnhanceAction;
+			case "enhavoid": i++; return MType.EnhanceAvoid;
+			case "enhresist": i++; return MType.EnhanceResist;
+			case "enhdefense": i++; return MType.EnhanceDefense;
+			case "vantarget": i++; return MType.VanishTarget;
+			case "vancard": i++; return MType.VanishCard;
+			case "vanbeast": i++; return MType.VanishBeast;
+			case "dealattack": i++; return MType.DealAttackCard;
+			case "dealpowerful": i++; return MType.DealPowerfulAttackCard;
+			case "dealcritical": i++; return MType.DealCriticalAttackCard;
+			case "dealfeint": i++; return MType.DealFeintCard;
+			case "dealdefense": i++; return MType.DealDefenseCard;
+			case "dealdistance": i++; return MType.DealDistanceCard;
+			case "dealconfuse": i++; return MType.DealConfuseCard;
+			case "dealskill": i++; return MType.DealSkillCard;
+			case "summon": i++; return MType.SummonBeast;
+			case "cancelaction": i++; return MType.CancelAction;
+			case "noeffect", "none": i++; return MType.NoEffect;
 			default: throwError(_prop.msgs.scriptErrorInvalidMotionType, attr[i].token);
 			}
 			return T.init;
 		} else static if (is(T == Element)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			switch (value) {
-			case "all": i++; return Element.ALL;
-			case "phy": i++; return Element.HEALTH;
-			case "mind": i++; return Element.MIND;
-			case "holy": i++; return Element.MIRACLE;
-			case "magic": i++; return Element.MAGIC;
-			case "fire": i++; return Element.FIRE;
-			case "ice": i++; return Element.ICE;
+			case "all": i++; return Element.All;
+			case "phy": i++; return Element.Health;
+			case "mind": i++; return Element.Mind;
+			case "holy": i++; return Element.Miracle;
+			case "magic": i++; return Element.Magic;
+			case "fire": i++; return Element.Fire;
+			case "ice": i++; return Element.Ice;
 			default: throwError(_prop.msgs.scriptErrorInvalidElement, attr[i].token);
 			}
 			return T.init;
 		} else static if (is(T == DamageType)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			switch (value) {
-			case "level": i++; return DamageType.LEVEL_RATIO;
-			case "value": i++; return DamageType.NORMAL;
-			case "max": i++; return DamageType.MAX;
+			case "level": i++; return DamageType.LevelRatio;
+			case "value": i++; return DamageType.Normal;
+			case "max": i++; return DamageType.Max;
 			default: throwError(_prop.msgs.scriptErrorInvalidDamageType, attr[i].token);
 			}
 			return T.init;
 		} else static if (is(T == EffectCardType)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			switch (value) {
-			case "all": i++; return EffectCardType.ALL;
-			case "skill": i++; return EffectCardType.SKILL;
-			case "item": i++; return EffectCardType.ITEM;
-			case "beast": i++; return EffectCardType.BEAST;
-			case "hand": i++; return EffectCardType.HAND;
+			case "all": i++; return EffectCardType.All;
+			case "skill": i++; return EffectCardType.Skill;
+			case "item": i++; return EffectCardType.Item;
+			case "beast": i++; return EffectCardType.Beast;
+			case "hand": i++; return EffectCardType.Hand;
 			default: throwError(_prop.msgs.scriptErrorInvalidEffectCardType, attr[i].token);
 			}
 			return T.init;
@@ -2407,22 +2407,22 @@ fi`;
 			}
 			size_t j = 0;
 			auto vals = var(attr[i].values, varTable);
-			MType type = parseAttr!(MType)(opt, vals, j, MType.HEAL, varTable, msgWidth);
-			auto r = new Motion(type, Element.ALL);
+			MType type = parseAttr!(MType)(opt, vals, j, MType.Heal, varTable, msgWidth);
+			auto r = new Motion(type, Element.All);
 			auto detail = r.detail;
-			if (detail.use(MArg.VALUE_TYPE)) { mixin(S_TRACE);
+			if (detail.use(MArg.ValueType)) { mixin(S_TRACE);
 				r.damageType = parseAttr!(DamageType)(opt, vals, j, r.damageType, varTable, msgWidth);
 			}
-			if (detail.use(MArg.U_VALUE)) { mixin(S_TRACE);
+			if (detail.use(MArg.UValue)) { mixin(S_TRACE);
 				r.uValue = parseAttr!(int)(opt, vals, j, cast(int) r.uValue, varTable, msgWidth);
 			}
-			if (detail.use(MArg.A_VALUE)) { mixin(S_TRACE);
+			if (detail.use(MArg.AValue)) { mixin(S_TRACE);
 				r.aValue = parseAttr!(int)(opt, vals, j, r.aValue, varTable, msgWidth);
 			}
-			if (detail.use(MArg.ROUND)) { mixin(S_TRACE);
+			if (detail.use(MArg.Round)) { mixin(S_TRACE);
 				r.round = parseAttr!(int)(opt, vals, j, r.round, varTable, msgWidth);
 			}
-			if (detail.use(MArg.BEAST)) { mixin(S_TRACE);
+			if (detail.use(MArg.Beast)) { mixin(S_TRACE);
 				ulong beast = parseAttr!(ulong)(opt, vals, j, 0UL, varTable, msgWidth);
 				if (beast != 0 && _summ) { mixin(S_TRACE);
 					if (opt.linkId) { mixin(S_TRACE);
@@ -2433,7 +2433,7 @@ fi`;
 					}
 				}
 			}
-			r.element = parseAttr!(Element)(opt, vals, j, Element.ALL, varTable, msgWidth);
+			r.element = parseAttr!(Element)(opt, vals, j, Element.All, varTable, msgWidth);
 			i++;
 			return r;
 		} else static if (is(T == SDialog)) {
@@ -2649,22 +2649,22 @@ fi`;
 		switch (value) {
 		case "n", "none":
 			goto default;
-		case "m", "selected": i++; return Talker.SELECTED;
-		case "u", "unselected": i++; return Talker.UNSELECTED;
-		case "r", "random": i++; return Talker.RANDOM;
+		case "m", "selected": i++; return Talker.Selected;
+		case "u", "unselected": i++; return Talker.Unselected;
+		case "r", "random": i++; return Talker.Random;
 		case "c", "card":
 			static if (Within) {
 				goto default;
 			} else {
 				i++;
-				return Talker.CARD;
+				return Talker.Card;
 			}
-		case "v", "valued": i++; return Talker.VALUED;
+		case "v", "valued": i++; return Talker.Valued;
 		default:
 			throwError(_prop.msgs.scriptErrorInvalidTalker, node.token);
 			i++;
 		}
-		return Talker.SELECTED;
+		return Talker.Selected;
 	}
 
 	private Tuple!(VariableType, "targetType", string, "path") parseVariableType(in CompileOption opt, in Node[] attr, ref size_t i, in const(Node)[][string] varTable) { mixin(S_TRACE);
@@ -2797,7 +2797,7 @@ fi`;
 			c.comment = parseComment(comment);
 			size_t i = 0;
 			auto detail = c.detail;
-			if (detail.use(CArg.TALKER_C)) { mixin(S_TRACE);
+			if (detail.use(CArg.TalkerC)) { mixin(S_TRACE);
 				CardImage[] paths;
 				foreach (path; parseAttr!(CardImage[])(opt, node.attr, i, c.cardPaths, varTable, 0)) {
 					final switch (path.type) {
@@ -2814,26 +2814,26 @@ fi`;
 				}
 				c.cardPaths = paths;
 			}
-			if (detail.use(CArg.TEXT)) { mixin(S_TRACE);
+			if (detail.use(CArg.Text)) { mixin(S_TRACE);
 				c.text = parseAttr!(string)(opt, node.attr, i, c.text, varTable,
 					c.cardPaths.length ? _prop.looks.messageImageLen : _prop.looks.messageLen);
 			}
-			if (detail.use(CArg.TALKER_NC)) { mixin(S_TRACE);
+			if (detail.use(CArg.TalkerNC)) { mixin(S_TRACE);
 				c.talkerNC = parseAttr!(Talker, true)(opt, node.attr, i, c.talkerNC, varTable, 0);
 			}
-			if (detail.use(CArg.DIALOGS)) { mixin(S_TRACE);
+			if (detail.use(CArg.Dialogs)) { mixin(S_TRACE);
 				c.dialogs = parseAttr!(SDialog[])(opt, node.attr, i, c.dialogs, varTable, _prop.looks.messageImageLen);
 				if (!c.dialogs.length) { mixin(S_TRACE);
 					c.dialogs = [new SDialog];
 				}
 			}
-			if (detail.use(CArg.CELL_NAME)) { mixin(S_TRACE);
+			if (detail.use(CArg.CellName)) { mixin(S_TRACE);
 				c.cellName = parseAttr!(string)(opt, node.attr, i, c.cellName, varTable, 0);
 			}
-			if (detail.use(CArg.CARD_GROUP)) { mixin(S_TRACE);
+			if (detail.use(CArg.CardGroup)) { mixin(S_TRACE);
 				c.cardGroup = parseAttr!(string)(opt, node.attr, i, c.cardGroup, varTable, 0);
 			}
-			if (detail.use(CArg.POSITION_TYPE)) { mixin(S_TRACE);
+			if (detail.use(CArg.PositionType)) { mixin(S_TRACE);
 				c.positionType = parseAttr!(CoordinateType)(opt, node.attr, i, c.positionType, varTable, 0);
 			}
 			if (detail.use(CArg.X)) { mixin(S_TRACE);
@@ -2842,117 +2842,117 @@ fi`;
 			if (detail.use(CArg.Y)) { mixin(S_TRACE);
 				c.y = parseAttr!(int)(opt, node.attr, i, c.y, varTable, 0);
 			}
-			if (detail.use(CArg.SIZE_TYPE)) { mixin(S_TRACE);
+			if (detail.use(CArg.SizeType)) { mixin(S_TRACE);
 				c.sizeType = parseAttr!(CoordinateType)(opt, node.attr, i, c.sizeType, varTable, 0);
 			}
-			if (detail.use(CArg.WIDTH)) { mixin(S_TRACE);
+			if (detail.use(CArg.Width)) { mixin(S_TRACE);
 				c.width = parseAttr!(int)(opt, node.attr, i, c.width, varTable, 0);
 			}
-			if (detail.use(CArg.HEIGHT)) { mixin(S_TRACE);
+			if (detail.use(CArg.Height)) { mixin(S_TRACE);
 				c.height = parseAttr!(int)(opt, node.attr, i, c.height, varTable, 0);
 			}
-			if (detail.use(CArg.SCALE)) { mixin(S_TRACE);
+			if (detail.use(CArg.Scale)) { mixin(S_TRACE);
 				c.scale = parseAttr!(int)(opt, node.attr, i, c.scale, varTable, 0);
 			}
-			if (detail.use(CArg.LAYER)) { mixin(S_TRACE);
+			if (detail.use(CArg.Layer)) { mixin(S_TRACE);
 				c.layer = parseAttr!(int)(opt, node.attr, i, c.layer, varTable, 0);
 			}
-			if (detail.use(CArg.BG_IMAGES)) { mixin(S_TRACE);
+			if (detail.use(CArg.BgImages)) { mixin(S_TRACE);
 				c.backs = parseAttr!(BgImage[])(opt, node.attr, i, c.backs, varTable, 0);
 			}
-			if (detail.use(CArg.TARGET_S)) { mixin(S_TRACE);
+			if (detail.use(CArg.TargetS)) { mixin(S_TRACE);
 				c.targetS = parseAttr!(Target)(opt, node.attr, i, c.targetS, varTable, 0);
 			}
-			if (detail.use(CArg.RANGE)) { mixin(S_TRACE);
+			if (detail.use(CArg.Range)) { mixin(S_TRACE);
 				c.range = parseAttr!(Range)(opt, node.attr, i, c.range, varTable, 0);
 			}
-			if (detail.use(CArg.CAST_RANGE)) { mixin(S_TRACE);
+			if (detail.use(CArg.CastRange)) { mixin(S_TRACE);
 				c.castRange = parseAttr!(CastRange[])(opt, node.attr, i, c.castRange, varTable, 0);
 			}
-			if (detail.use(CArg.KEY_CODE_RANGE)) { mixin(S_TRACE);
+			if (detail.use(CArg.KeyCodeRange)) { mixin(S_TRACE);
 				c.keyCodeRange = parseAttr!(Range)(opt, node.attr, i, c.keyCodeRange, varTable, 0);
 			}
-			if (detail.use(CArg.TARGET_IS_SKILL) || detail.use(CArg.TARGET_IS_ITEM) || detail.use(CArg.TARGET_IS_BEAST) || detail.use(CArg.TARGET_IS_HAND)) { mixin(S_TRACE);
+			if (detail.use(CArg.TargetIsSkill) || detail.use(CArg.TargetIsItem) || detail.use(CArg.TargetIsBeast) || detail.use(CArg.TargetIsHand)) { mixin(S_TRACE);
 				auto effectCardTypes = parseAttr!(EffectCardType[])(opt, node.attr, i, [], varTable, 0);
-				if (detail.use(CArg.TARGET_IS_SKILL)) c.targetIsSkill = false;
-				if (detail.use(CArg.TARGET_IS_ITEM)) c.targetIsItem = false;
-				if (detail.use(CArg.TARGET_IS_BEAST)) c.targetIsBeast = false;
-				if (detail.use(CArg.TARGET_IS_HAND)) c.targetIsHand = false;
+				if (detail.use(CArg.TargetIsSkill)) c.targetIsSkill = false;
+				if (detail.use(CArg.TargetIsItem)) c.targetIsItem = false;
+				if (detail.use(CArg.TargetIsBeast)) c.targetIsBeast = false;
+				if (detail.use(CArg.TargetIsHand)) c.targetIsHand = false;
 				foreach (effectCardType; effectCardTypes) { mixin(S_TRACE);
 					final switch (effectCardType) {
-					case EffectCardType.ALL:
-						if (detail.use(CArg.TARGET_IS_SKILL)) c.targetIsSkill = true;
-						if (detail.use(CArg.TARGET_IS_ITEM)) c.targetIsItem = true;
-						if (detail.use(CArg.TARGET_IS_BEAST)) c.targetIsBeast = true;
+					case EffectCardType.All:
+						if (detail.use(CArg.TargetIsSkill)) c.targetIsSkill = true;
+						if (detail.use(CArg.TargetIsItem)) c.targetIsItem = true;
+						if (detail.use(CArg.TargetIsBeast)) c.targetIsBeast = true;
 						break;
-					case EffectCardType.SKILL:
-						if (detail.use(CArg.TARGET_IS_SKILL)) c.targetIsSkill = true;
+					case EffectCardType.Skill:
+						if (detail.use(CArg.TargetIsSkill)) c.targetIsSkill = true;
 						break;
-					case EffectCardType.ITEM:
-						if (detail.use(CArg.TARGET_IS_ITEM)) c.targetIsItem = true;
+					case EffectCardType.Item:
+						if (detail.use(CArg.TargetIsItem)) c.targetIsItem = true;
 						break;
-					case EffectCardType.BEAST:
-						if (detail.use(CArg.TARGET_IS_BEAST)) c.targetIsBeast = true;
+					case EffectCardType.Beast:
+						if (detail.use(CArg.TargetIsBeast)) c.targetIsBeast = true;
 						break;
-					case EffectCardType.HAND:
-						if (detail.use(CArg.TARGET_IS_HAND)) c.targetIsHand = true;
+					case EffectCardType.Hand:
+						if (detail.use(CArg.TargetIsHand)) c.targetIsHand = true;
 						break;
 					}
 				}
 			}
-			if (detail.use(CArg.HOLDING_COUPON) && c.range is Range.COUPON_HOLDER) { mixin(S_TRACE);
+			if (detail.use(CArg.HoldingCoupon) && c.range is Range.CouponHolder) { mixin(S_TRACE);
 				c.holdingCoupon = parseAttr!(string)(opt, node.attr, i, c.holdingCoupon, varTable, 0);
 			}
-			if (detail.use(CArg.AREA)) { mixin(S_TRACE);
+			if (detail.use(CArg.Area)) { mixin(S_TRACE);
 				c.area = parseAttr!(ulong)(opt, node.attr, i, c.area, varTable, 0);
 			}
-			if (detail.use(CArg.BATTLE)) { mixin(S_TRACE);
+			if (detail.use(CArg.Battle)) { mixin(S_TRACE);
 				c.battle = parseAttr!(ulong)(opt, node.attr, i, c.battle, varTable, 0);
 			}
-			if (detail.use(CArg.PACKAGE)) { mixin(S_TRACE);
+			if (detail.use(CArg.Package)) { mixin(S_TRACE);
 				c.packages = parseAttr!(ulong)(opt, node.attr, i, c.packages, varTable, 0);
 			}
-			if (detail.use(CArg.CAST)) { mixin(S_TRACE);
+			if (detail.use(CArg.Cast)) { mixin(S_TRACE);
 				c.casts = parseAttr!(ulong)(opt, node.attr, i, c.casts, varTable, 0);
 			}
-			if (detail.use(CArg.ITEM)) { mixin(S_TRACE);
+			if (detail.use(CArg.Item)) { mixin(S_TRACE);
 				c.item = parseAttr!(ulong)(opt, node.attr, i, c.item, varTable, 0);
 			}
-			if (detail.use(CArg.SKILL)) { mixin(S_TRACE);
+			if (detail.use(CArg.Skill)) { mixin(S_TRACE);
 				c.skill = parseAttr!(ulong)(opt, node.attr, i, c.skill, varTable, 0);
 			}
-			if (detail.use(CArg.INFO)) { mixin(S_TRACE);
+			if (detail.use(CArg.Info)) { mixin(S_TRACE);
 				c.info = parseAttr!(ulong)(opt, node.attr, i, c.info, varTable, 0);
 			}
-			if (detail.use(CArg.BEAST)) { mixin(S_TRACE);
+			if (detail.use(CArg.Beast)) { mixin(S_TRACE);
 				c.beast = parseAttr!(ulong)(opt, node.attr, i, c.beast, varTable, 0);
 			}
-			if (detail.use(CArg.START)) { mixin(S_TRACE);
+			if (detail.use(CArg.Start)) { mixin(S_TRACE);
 				c.start = parseAttr!(string)(opt, node.attr, i, c.start, varTable, 0);
 			}
-			if (detail.use(CArg.COMPLETE)) { mixin(S_TRACE);
+			if (detail.use(CArg.Complete)) { mixin(S_TRACE);
 				c.complete = parseAttr!(bool)(opt, node.attr, i, c.complete, varTable, 0);
 			}
-			if (detail.use(CArg.MONEY)) { mixin(S_TRACE);
+			if (detail.use(CArg.Money)) { mixin(S_TRACE);
 				c.money = parseAttr!(int)(opt, node.attr, i, c.money, varTable, 0);
 			}
-			if (detail.use(CArg.COUPON)) { mixin(S_TRACE);
+			if (detail.use(CArg.Coupon)) { mixin(S_TRACE);
 				c.coupon = parseAttr!(string)(opt, node.attr, i, c.coupon, varTable, 0);
 			}
-			if (detail.use(CArg.COUPON_VALUE)) { mixin(S_TRACE);
+			if (detail.use(CArg.CouponValue)) { mixin(S_TRACE);
 				c.couponValue = parseAttr!(int)(opt, node.attr, i, c.couponValue, varTable, 0);
 			}
-			if (detail.use(CArg.COMPLETE_STAMP)) { mixin(S_TRACE);
+			if (detail.use(CArg.CompleteStamp)) { mixin(S_TRACE);
 				c.completeStamp = parseAttr!(string)(opt, node.attr, i, c.completeStamp, varTable, 0);
 			}
-			if (detail.use(CArg.GOSSIP)) { mixin(S_TRACE);
+			if (detail.use(CArg.Gossip)) { mixin(S_TRACE);
 				c.gossip = parseAttr!(string)(opt, node.attr, i, c.gossip, varTable, 0);
 			}
-			if (detail.use(CArg.KEY_CODE)) { mixin(S_TRACE);
+			if (detail.use(CArg.KeyCode)) { mixin(S_TRACE);
 				c.keyCode = parseAttr!(string)(opt, node.attr, i, c.keyCode, varTable, 0);
 			}
 
-			if (detail.use(CArg.FLAG) && detail.use(CArg.STEP) && detail.use(CArg.VARIANT)) { mixin(S_TRACE);
+			if (detail.use(CArg.Flag) && detail.use(CArg.Step) && detail.use(CArg.Variant)) { mixin(S_TRACE);
 				auto targ = parseVariableType(opt, node.attr, i, varTable);
 				final switch (targ.targetType) {
 				case VariableType.Flag:
@@ -2966,147 +2966,147 @@ fi`;
 					break;
 				}
 			} else { mixin(S_TRACE);
-				if (detail.use(CArg.FLAG)) { mixin(S_TRACE);
+				if (detail.use(CArg.Flag)) { mixin(S_TRACE);
 					c.flag = parseAttr!(string)(opt, node.attr, i, c.flag, varTable, 0);
 				}
-				if (detail.use(CArg.STEP)) { mixin(S_TRACE);
+				if (detail.use(CArg.Step)) { mixin(S_TRACE);
 					c.step = parseAttr!(string)(opt, node.attr, i, c.step, varTable, 0);
 				}
-				if (detail.use(CArg.VARIANT)) { mixin(S_TRACE);
+				if (detail.use(CArg.Variant)) { mixin(S_TRACE);
 					c.variant = parseAttr!(string)(opt, node.attr, i, c.variant, varTable, 0);
 				}
 			}
-			if (detail.use(CArg.FLAG_2)) { mixin(S_TRACE);
+			if (detail.use(CArg.Flag2)) { mixin(S_TRACE);
 				c.flag2 = parseAttr!(string)(opt, node.attr, i, c.flag2, varTable, 0);
 			}
-			if (detail.use(CArg.STEP_2)) { mixin(S_TRACE);
+			if (detail.use(CArg.Step2)) { mixin(S_TRACE);
 				c.step2 = parseAttr!(string)(opt, node.attr, i, c.step2, varTable, 0);
 			}
-			if (detail.use(CArg.COMPARISON_4)) { mixin(S_TRACE);
+			if (detail.use(CArg.Comparison4)) { mixin(S_TRACE);
 				c.comparison4 = parseAttr!(Comparison4)(opt, node.attr, i, c.comparison4, varTable, 0);
 			}
-			if (detail.use(CArg.COMPARISON_3)) { mixin(S_TRACE);
+			if (detail.use(CArg.Comparison3)) { mixin(S_TRACE);
 				c.comparison3 = parseAttr!(Comparison3)(opt, node.attr, i, c.comparison3, varTable, 0);
 			}
-			if (detail.use(CArg.FLAG_VALUE)) { mixin(S_TRACE);
+			if (detail.use(CArg.FlagValue)) { mixin(S_TRACE);
 				c.flagValue = parseAttr!(bool)(opt, node.attr, i, c.flagValue, varTable, 0);
 			}
-			if (detail.use(CArg.STEP_VALUE)) { mixin(S_TRACE);
+			if (detail.use(CArg.StepValue)) { mixin(S_TRACE);
 				c.stepValue = parseAttr!(int)(opt, node.attr, i, c.stepValue, varTable, 0);
 			}
-			if (detail.use(CArg.CARD_NUMBER)) { mixin(S_TRACE);
+			if (detail.use(CArg.CardNumber)) { mixin(S_TRACE);
 				c.cardNumber = parseAttr!(int)(opt, node.attr, i, c.cardNumber, varTable, 0);
 			}
-			if (detail.use(CArg.SELECT_CARD)) { mixin(S_TRACE);
+			if (detail.use(CArg.SelectCard)) { mixin(S_TRACE);
 				c.selectCard = parseAttr!(bool)(opt, node.attr, i, c.selectCard, varTable, 0);
 			}
-			if (detail.use(CArg.MOTIONS)) { mixin(S_TRACE);
+			if (detail.use(CArg.Motions)) { mixin(S_TRACE);
 				c.motions = parseAttr!(Motion[])(opt, node.attr, i, c.motions, varTable, 0);
 			}
-			if (detail.use(CArg.CARD_VISUAL)) { mixin(S_TRACE);
+			if (detail.use(CArg.CardVisual)) { mixin(S_TRACE);
 				c.cardVisual = parseAttr!(CardVisual)(opt, node.attr, i, c.cardVisual, varTable, 0);
 			}
-			if (detail.use(CArg.UNSIGNED_LEVEL)) { mixin(S_TRACE);
+			if (detail.use(CArg.UnsignedLevel)) { mixin(S_TRACE);
 				c.unsignedLevel = parseAttr!(int)(opt, node.attr, i, c.unsignedLevel, varTable, 0);
 			}
-			if (detail.use(CArg.SIGNED_LEVEL)) { mixin(S_TRACE);
+			if (detail.use(CArg.SignedLevel)) { mixin(S_TRACE);
 				c.signedLevel = parseAttr!(int)(opt, node.attr, i, c.signedLevel, varTable, 0);
 			}
-			if (detail.use(CArg.LEVEL_MIN)) { mixin(S_TRACE);
+			if (detail.use(CArg.LevelMin)) { mixin(S_TRACE);
 				c.levelMin = parseAttr!(int)(opt, node.attr, i, c.levelMin, varTable, 0);
 			}
-			if (detail.use(CArg.LEVEL_MAX)) { mixin(S_TRACE);
+			if (detail.use(CArg.LevelMax)) { mixin(S_TRACE);
 				c.levelMax = parseAttr!(int)(opt, node.attr, i, c.levelMax, varTable, 0);
 			}
-			if (detail.use(CArg.WAIT)) { mixin(S_TRACE);
+			if (detail.use(CArg.Wait)) { mixin(S_TRACE);
 				c.wait = parseAttr!(int)(opt, node.attr, i, c.wait, varTable, 0);
 			}
-			if (detail.use(CArg.PERCENT)) { mixin(S_TRACE);
+			if (detail.use(CArg.Percent)) { mixin(S_TRACE);
 				c.percent = parseAttr!(int)(opt, node.attr, i, c.percent, varTable, 0);
 			}
-			if (detail.use(CArg.TARGET_ALL)) { mixin(S_TRACE);
+			if (detail.use(CArg.TargetAll)) { mixin(S_TRACE);
 				c.targetAll = parseAttr!(bool)(opt, node.attr, i, c.targetAll, varTable, 0);
 			}
-			if (detail.use(CArg.SELECTION_METHOD)) { mixin(S_TRACE);
+			if (detail.use(CArg.SelectionMethod)) { mixin(S_TRACE);
 				c.selectionMethod = parseAttr!(SelectionMethod)(opt, node.attr, i, c.selectionMethod, varTable, 0);
 			}
-			if (detail.use(CArg.AVERAGE)) { mixin(S_TRACE);
+			if (detail.use(CArg.Average)) { mixin(S_TRACE);
 				c.average = parseAttr!(bool)(opt, node.attr, i, c.average, varTable, 0);
 			}
-			if (detail.use(CArg.PARTY_NUMBER)) { mixin(S_TRACE);
+			if (detail.use(CArg.PartyNumber)) { mixin(S_TRACE);
 				c.partyNumber = parseAttr!(int)(opt, node.attr, i, c.partyNumber, varTable, 0);
 			}
-			if (detail.use(CArg.SUCCESS_RATE)) { mixin(S_TRACE);
+			if (detail.use(CArg.SuccessRate)) { mixin(S_TRACE);
 				c.successRate = parseAttr!(int)(opt, node.attr, i, c.successRate, varTable, 0);
 			}
-			if (detail.use(CArg.EFFECT_TYPE)) { mixin(S_TRACE);
+			if (detail.use(CArg.EffectType)) { mixin(S_TRACE);
 				c.effectType = parseAttr!(EffectType)(opt, node.attr, i, c.effectType, varTable, 0);
 			}
-			if (detail.use(CArg.RESIST)) { mixin(S_TRACE);
+			if (detail.use(CArg.Resist)) { mixin(S_TRACE);
 				c.resist = parseAttr!(Resist)(opt, node.attr, i, c.resist, varTable, 0);
 			}
-			if (detail.use(CArg.STATUS)) { mixin(S_TRACE);
+			if (detail.use(CArg.Status)) { mixin(S_TRACE);
 				c.status = parseAttr!(Status)(opt, node.attr, i, c.status, varTable, 0);
 			}
-			if (detail.use(CArg.BGM_PATH)) { mixin(S_TRACE);
+			if (detail.use(CArg.BgmPath)) { mixin(S_TRACE);
 				c.bgmPath = encodePath(parseAttr!(string)(opt, node.attr, i, decodePath(c.bgmPath), varTable, 0));
 			}
-			if (detail.use(CArg.BGM_CHANNEL)) { mixin(S_TRACE);
+			if (detail.use(CArg.BgmChannel)) { mixin(S_TRACE);
 				c.bgmChannel = parseAttr!(int)(opt, node.attr, i, c.bgmChannel, varTable, 0);
 			}
-			if (detail.use(CArg.BGM_FADE_IN)) { mixin(S_TRACE);
+			if (detail.use(CArg.BgmFadeIn)) { mixin(S_TRACE);
 				c.bgmFadeIn = roundTo!uint(parseAttr!(real)(opt, node.attr, i, c.bgmFadeIn / 100.0, varTable, 0) * 100.0);
 			}
-			if (detail.use(CArg.BGM_VOLUME)) { mixin(S_TRACE);
+			if (detail.use(CArg.BgmVolume)) { mixin(S_TRACE);
 				c.bgmVolume = parseAttr!(int)(opt, node.attr, i, c.bgmVolume, varTable, 0);
 			}
-			if (detail.use(CArg.BGM_LOOP_COUNT)) { mixin(S_TRACE);
+			if (detail.use(CArg.BgmLoopCount)) { mixin(S_TRACE);
 				c.bgmLoopCount = parseAttr!(int)(opt, node.attr, i, c.bgmLoopCount, varTable, 0);
 			}
-			if (detail.use(CArg.SOUND_PATH)) { mixin(S_TRACE);
+			if (detail.use(CArg.SoundPath)) { mixin(S_TRACE);
 				c.soundPath = encodePath(parseAttr!(string)(opt, node.attr, i, decodePath(c.soundPath), varTable, 0));
 			}
-			if (detail.use(CArg.SOUND_CHANNEL)) { mixin(S_TRACE);
+			if (detail.use(CArg.SoundChannel)) { mixin(S_TRACE);
 				c.soundChannel = parseAttr!(int)(opt, node.attr, i, c.soundChannel, varTable, 0);
 			}
-			if (detail.use(CArg.SOUND_FADE_IN)) { mixin(S_TRACE);
+			if (detail.use(CArg.SoundFadeIn)) { mixin(S_TRACE);
 				c.soundFadeIn = roundTo!uint(parseAttr!(real)(opt, node.attr, i, c.soundFadeIn / 100.0, varTable, 0) * 100.0);
 			}
-			if (detail.use(CArg.SOUND_VOLUME)) { mixin(S_TRACE);
+			if (detail.use(CArg.SoundVolume)) { mixin(S_TRACE);
 				c.soundVolume = parseAttr!(int)(opt, node.attr, i, c.soundVolume, varTable, 0);
 			}
-			if (detail.use(CArg.SOUND_LOOP_COUNT)) { mixin(S_TRACE);
+			if (detail.use(CArg.SoundLoopCount)) { mixin(S_TRACE);
 				c.soundLoopCount = parseAttr!(int)(opt, node.attr, i, c.soundLoopCount, varTable, 0);
 			}
-			if (detail.use(CArg.REF_ABILITY)) { mixin(S_TRACE);
+			if (detail.use(CArg.RefAbility)) { mixin(S_TRACE);
 				c.refAbility = parseAttr!(bool)(opt, node.attr, i, c.refAbility, varTable, 0);
 			}
-			if (detail.use(CArg.PHYSICAL)) { mixin(S_TRACE);
+			if (detail.use(CArg.Physical)) { mixin(S_TRACE);
 				c.physical = parseAttr!(Physical)(opt, node.attr, i, c.physical, varTable, 0);
 			}
-			if (detail.use(CArg.MENTAL)) { mixin(S_TRACE);
+			if (detail.use(CArg.Mental)) { mixin(S_TRACE);
 				c.mental = parseAttr!(Mental)(opt, node.attr, i, c.mental, varTable, 0);
 			}
-			if (detail.use(CArg.ROUND)) { mixin(S_TRACE);
+			if (detail.use(CArg.Round)) { mixin(S_TRACE);
 				c.round = parseAttr!(int)(opt, node.attr, i, c.round, varTable, 0);
 			}
-			if (detail.use(CArg.TRANSITION_SPEED)) { mixin(S_TRACE);
+			if (detail.use(CArg.TransitionSpeed)) { mixin(S_TRACE);
 				c.transitionSpeed = parseAttr!(int)(opt, node.attr, i, c.transitionSpeed, varTable, 0);
 			}
-			if (detail.use(CArg.TRANSITION)) { mixin(S_TRACE);
+			if (detail.use(CArg.Transition)) { mixin(S_TRACE);
 				c.transition = parseAttr!(Transition)(opt, node.attr, i, c.transition, varTable, 0);
 			}
-			if (detail.use(CArg.DO_ANIME)) { mixin(S_TRACE);
+			if (detail.use(CArg.DoAnime)) { mixin(S_TRACE);
 				c.doAnime = parseAttr!(bool)(opt, node.attr, i, c.doAnime, varTable, 0);
 			}
-			if (detail.use(CArg.IGNORE_EFFECT_BOOSTER)) { mixin(S_TRACE);
+			if (detail.use(CArg.IgnoreEffectBooster)) { mixin(S_TRACE);
 				c.ignoreEffectBooster = parseAttr!(bool)(opt, node.attr, i, c.ignoreEffectBooster, varTable, 0);
 			}
-			if (c.talkerNC is Talker.VALUED || c.selectionMethod is SelectionMethod.Valued) { mixin(S_TRACE);
-				if (detail.use(CArg.INIT_VALUE)) { mixin(S_TRACE);
+			if (c.talkerNC is Talker.Valued || c.selectionMethod is SelectionMethod.Valued) { mixin(S_TRACE);
+				if (detail.use(CArg.InitValue)) { mixin(S_TRACE);
 					c.initValue = parseAttr!(int)(opt, node.attr, i, c.initValue, varTable, 0);
 				}
-				if (detail.use(CArg.COUPONS)) { mixin(S_TRACE);
+				if (detail.use(CArg.Coupons)) { mixin(S_TRACE);
 					Coupon[] coupons;
 					bool[string] s;
 					foreach (coupon; parseAttr!(Coupon[])(opt, node.attr, i, c.coupons, varTable, 0)) { mixin(S_TRACE);
@@ -3118,34 +3118,34 @@ fi`;
 					c.coupons = coupons;
 				}
 			}
-			if (detail.use(CArg.SELECTION_COLUMNS)) { mixin(S_TRACE);
+			if (detail.use(CArg.SelectionColumns)) { mixin(S_TRACE);
 				c.selectionColumns = parseAttr!(int)(opt, node.attr, i, c.selectionColumns, varTable, 0);
 			}
-			if (detail.use(CArg.BOUNDARY_CHECK)) { mixin(S_TRACE);
+			if (detail.use(CArg.BoundaryCheck)) { mixin(S_TRACE);
 				c.boundaryCheck = parseAttr!(bool)(opt, node.attr, i, c.boundaryCheck, varTable, 0);
 			}
-			if (detail.use(CArg.CENTERING_X)) { mixin(S_TRACE);
+			if (detail.use(CArg.CenteringX)) { mixin(S_TRACE);
 				c.centeringX = parseAttr!(bool)(opt, node.attr, i, c.centeringX, varTable, 0);
 			}
-			if (detail.use(CArg.CENTERING_Y)) { mixin(S_TRACE);
+			if (detail.use(CArg.CenteringY)) { mixin(S_TRACE);
 				c.centeringY = parseAttr!(bool)(opt, node.attr, i, c.centeringY, varTable, 0);
 			}
-			if (detail.use(CArg.SELECT_TALKER)) { mixin(S_TRACE);
+			if (detail.use(CArg.SelectTalker)) { mixin(S_TRACE);
 				c.selectTalker = parseAttr!(bool)(opt, node.attr, i, c.selectTalker, varTable, 0);
 			}
-			if (detail.use(CArg.INVERT_RESULT)) { mixin(S_TRACE);
+			if (detail.use(CArg.InvertResult)) { mixin(S_TRACE);
 				c.invertResult = parseAttr!(bool)(opt, node.attr, i, c.invertResult, varTable, 0);
 			}
-			if (detail.use(CArg.START_ACTION)) { mixin(S_TRACE);
+			if (detail.use(CArg.StartAction)) { mixin(S_TRACE);
 				c.startAction = parseAttr!(StartAction)(opt, node.attr, i, c.startAction, varTable, 0);
 			}
-			if (detail.use(CArg.IGNITE)) { mixin(S_TRACE);
+			if (detail.use(CArg.Ignite)) { mixin(S_TRACE);
 				c.ignite = parseAttr!(bool)(opt, node.attr, i, c.ignite, varTable, 0);
 			}
-			if (detail.use(CArg.KEY_CODES)) { mixin(S_TRACE);
+			if (detail.use(CArg.KeyCodes)) { mixin(S_TRACE);
 				c.keyCodes = parseAttr!(string[])(opt, node.attr, i, c.keyCodes, varTable, 0);
 			}
-			if (detail.use(CArg.COUPON_NAMES)) { mixin(S_TRACE);
+			if (detail.use(CArg.CouponNames)) { mixin(S_TRACE);
 				string[] names;
 				bool[string] s;
 				foreach (name; parseAttr!(string[])(opt, node.attr, i, names, varTable, 0)) { mixin(S_TRACE);
@@ -3156,43 +3156,43 @@ fi`;
 				}
 				c.couponNames = names;
 			}
-			if (detail.use(CArg.MATCHING_TYPE)) { mixin(S_TRACE);
+			if (detail.use(CArg.MatchingType)) { mixin(S_TRACE);
 				c.matchingType = parseAttr!(MatchingType)(opt, node.attr, i, c.matchingType, varTable, 0);
 			}
-			if (detail.use(CArg.EXPAND_SP_CHARS)) { mixin(S_TRACE);
+			if (detail.use(CArg.ExpandSPChars)) { mixin(S_TRACE);
 				c.expandSPChars = parseAttr!(bool)(opt, node.attr, i, c.expandSPChars, varTable, 0);
 			}
-			if (detail.use(CArg.CONSUME_CARD)) { mixin(S_TRACE);
+			if (detail.use(CArg.ConsumeCard)) { mixin(S_TRACE);
 				c.consumeCard = parseAttr!(bool)(opt, node.attr, i, c.consumeCard, varTable, 0);
 			}
-			if (detail.use(CArg.CARD_SPEED)) { mixin(S_TRACE);
+			if (detail.use(CArg.CardSpeed)) { mixin(S_TRACE);
 				c.cardSpeed = parseAttr!(int)(opt, node.attr, i, c.cardSpeed, varTable, 0);
 			}
-			if (detail.use(CArg.OVERRIDE_CARD_SPEED)) { mixin(S_TRACE);
+			if (detail.use(CArg.OverrideCardSpeed)) { mixin(S_TRACE);
 				c.overrideCardSpeed = parseAttr!(bool)(opt, node.attr, i, c.overrideCardSpeed, varTable, 0);
 			}
-			if (detail.use(CArg.INITIAL_EFFECT)) { mixin(S_TRACE);
+			if (detail.use(CArg.InitialEffect)) { mixin(S_TRACE);
 				c.initialEffect = parseAttr!(bool)(opt, node.attr, i, c.initialEffect, varTable, 0);
 			}
-			if (detail.use(CArg.INITIAL_SOUND_PATH)) { mixin(S_TRACE);
+			if (detail.use(CArg.InitialSoundPath)) { mixin(S_TRACE);
 				c.initialSoundPath = encodePath(parseAttr!(string)(opt, node.attr, i, decodePath(c.initialSoundPath), varTable, 0));
 			}
-			if (detail.use(CArg.INITIAL_SOUND_CHANNEL)) { mixin(S_TRACE);
+			if (detail.use(CArg.InitialSoundChannel)) { mixin(S_TRACE);
 				c.initialSoundChannel = parseAttr!(int)(opt, node.attr, i, c.initialSoundChannel, varTable, 0);
 			}
-			if (detail.use(CArg.INITIAL_SOUND_FADE_IN)) { mixin(S_TRACE);
+			if (detail.use(CArg.InitialSoundFadeIn)) { mixin(S_TRACE);
 				c.initialSoundFadeIn = roundTo!uint(parseAttr!(real)(opt, node.attr, i, c.initialSoundFadeIn / 100.0, varTable, 0) * 100.0);
 			}
-			if (detail.use(CArg.INITIAL_SOUND_VOLUME)) { mixin(S_TRACE);
+			if (detail.use(CArg.InitialSoundVolume)) { mixin(S_TRACE);
 				c.initialSoundVolume = parseAttr!(int)(opt, node.attr, i, c.initialSoundVolume, varTable, 0);
 			}
-			if (detail.use(CArg.INITIAL_SOUND_LOOP_COUNT)) { mixin(S_TRACE);
+			if (detail.use(CArg.InitialSoundLoopCount)) { mixin(S_TRACE);
 				c.initialSoundLoopCount = parseAttr!(int)(opt, node.attr, i, c.initialSoundLoopCount, varTable, 0);
 			}
-			if (detail.use(CArg.BACKPACK_ENABLED)) { mixin(S_TRACE);
+			if (detail.use(CArg.BackpackEnabled)) { mixin(S_TRACE);
 				c.backpackEnabled = parseAttr!(EnvironmentStatus)(opt, node.attr, i, c.backpackEnabled, varTable, 0);
 			}
-			if (detail.use(CArg.EXPRESSION)) { mixin(S_TRACE);
+			if (detail.use(CArg.Expression)) { mixin(S_TRACE);
 				c.expression = parseAttr!(string)(opt, node.attr, i, c.expression, varTable, 0);
 			}
 
@@ -3200,7 +3200,7 @@ fi`;
 				if (_autoWrap <= stack) { mixin(S_TRACE);
 					autoWrapCount++;
 					stack = 0;
-					auto s = new Content(CType.START, .createNewName(.format("Auto wrap (%d)", autoWrapCount), (string name) { mixin(S_TRACE);
+					auto s = new Content(CType.Start, .createNewName(.format("Auto wrap (%d)", autoWrapCount), (string name) { mixin(S_TRACE);
 						foreach (sn; startNames) { mixin(S_TRACE);
 							if (sn == name) { mixin(S_TRACE);
 								return false;
@@ -3209,7 +3209,7 @@ fi`;
 						return true;
 					}));
 					startNames ~= s.name;
-					auto link = new Content(CType.LINK_START, c.name);
+					auto link = new Content(CType.LinkStart, c.name);
 					link.start = s.name;
 					c.add(_prop, link);
 					if (isTop) { mixin(S_TRACE);
@@ -3319,71 +3319,71 @@ fi`;
 			attrs ~= value ? "true": "false";
 		} else static if (is(T : Transition)) {
 			switch (value) {
-			case Transition.DEFAULT: attrs ~= "default"; break;
-			case Transition.NONE: attrs ~= "none"; break;
-			case Transition.BLINDS: attrs ~= "thread"; break;
-			case Transition.PIXEL_DISSOLVE: attrs ~= "shave"; break;
-			case Transition.FADE: attrs ~= "fade"; break;
+			case Transition.Default: attrs ~= "default"; break;
+			case Transition.None: attrs ~= "none"; break;
+			case Transition.Blinds: attrs ~= "thread"; break;
+			case Transition.PixelDissolve: attrs ~= "shave"; break;
+			case Transition.Fade: attrs ~= "fade"; break;
 			default: assert (0);
 			}
 		} else static if (is(T : Range)) {
 			switch (value) {
-			case Range.SELECTED: attrs ~= "M"; break;
-			case Range.RANDOM: attrs ~= "R"; break;
-			case Range.PARTY: attrs ~= "T"; break;
-			case Range.BACKPACK: attrs ~= "backpack"; break;
-			case Range.PARTY_AND_BACKPACK: attrs ~= "party"; break;
-			case Range.FIELD: attrs ~= "field"; break;
-			case Range.COUPON_HOLDER: attrs ~= "coupon"; break; // Wsn.2
-			case Range.CARD_TARGET: attrs ~= "card"; break; // Wsn.2
-			case Range.SELECTED_CARD: attrs ~= "selcard"; break; // Wsn.3
+			case Range.Selected: attrs ~= "M"; break;
+			case Range.Random: attrs ~= "R"; break;
+			case Range.Party: attrs ~= "T"; break;
+			case Range.Backpack: attrs ~= "backpack"; break;
+			case Range.PartyAndBackpack: attrs ~= "party"; break;
+			case Range.Field: attrs ~= "field"; break;
+			case Range.CouponHolder: attrs ~= "coupon"; break; // Wsn.2
+			case Range.CardTarget: attrs ~= "card"; break; // Wsn.2
+			case Range.SelectedCard: attrs ~= "selcard"; break; // Wsn.3
 			default: assert (0);
 			}
 		} else static if (is(T : CastRange)) {
 			switch (value) {
-			case CastRange.PARTY: attrs ~= "party"; break;
-			case CastRange.ENEMY: attrs ~= "enemy"; break;
-			case CastRange.NPC: attrs ~= "npc"; break;
+			case CastRange.Party: attrs ~= "party"; break;
+			case CastRange.Enemy: attrs ~= "enemy"; break;
+			case CastRange.Npc: attrs ~= "npc"; break;
 			default: assert (0);
 			}
 		} else static if (is(T : Status)) {
 			switch (value) {
-			case Status.ACTIVE: attrs ~= "active"; break;
-			case Status.INACTIVE: attrs ~= "inactive"; break;
-			case Status.ALIVE: attrs ~= "alive"; break;
-			case Status.DEAD: attrs ~= "dead"; break;
-			case Status.FINE: attrs ~= "fine"; break;
-			case Status.INJURED: attrs ~= "injured"; break;
-			case Status.HEAVY_INJURED: attrs ~= "heavyinjured"; break;
-			case Status.UNCONSCIOUS: attrs ~= "unconscious"; break;
-			case Status.POISON: attrs ~= "poison"; break;
-			case Status.SLEEP: attrs ~= "sleep"; break;
-			case Status.BIND: attrs ~= "bind"; break;
-			case Status.PARALYZE: attrs ~= "paralyze"; break;
-			case Status.CONFUSE: attrs ~= "confuse"; break;
-			case Status.OVERHEAT: attrs ~= "overheat"; break;
-			case Status.BRAVE: attrs ~= "brave"; break;
-			case Status.PANIC: attrs ~= "panic"; break;
-			case Status.SILENCE: attrs ~= "silence"; break;
-			case Status.FACE_UP: attrs ~= "faceup"; break;
-			case Status.ANTI_MAGIC: attrs ~= "antimagic"; break;
-			case Status.UP_ACTION: attrs ~= "upaction"; break;
-			case Status.UP_AVOID: attrs ~= "upavoid"; break;
-			case Status.UP_RESIST: attrs ~= "upresist"; break;
-			case Status.UP_DEFENSE: attrs ~= "updefense"; break;
-			case Status.DOWN_ACTION: attrs ~= "downaction"; break;
-			case Status.DOWN_AVOID: attrs ~= "downavoid"; break;
-			case Status.DOWN_RESIST: attrs ~= "downresist"; break;
-			case Status.DOWN_DEFENSE: attrs ~= "downdefense"; break;
-			case Status.NONE: attrs ~= "none"; break;
+			case Status.Active: attrs ~= "active"; break;
+			case Status.Inactive: attrs ~= "inactive"; break;
+			case Status.Alive: attrs ~= "alive"; break;
+			case Status.Dead: attrs ~= "dead"; break;
+			case Status.Fine: attrs ~= "fine"; break;
+			case Status.Injured: attrs ~= "injured"; break;
+			case Status.HeavyInjured: attrs ~= "heavyinjured"; break;
+			case Status.Unconscious: attrs ~= "unconscious"; break;
+			case Status.Poison: attrs ~= "poison"; break;
+			case Status.Sleep: attrs ~= "sleep"; break;
+			case Status.Bind: attrs ~= "bind"; break;
+			case Status.Paralyze: attrs ~= "paralyze"; break;
+			case Status.Confuse: attrs ~= "confuse"; break;
+			case Status.Overheat: attrs ~= "overheat"; break;
+			case Status.Brave: attrs ~= "brave"; break;
+			case Status.Panic: attrs ~= "panic"; break;
+			case Status.Silence: attrs ~= "silence"; break;
+			case Status.FaceUp: attrs ~= "faceup"; break;
+			case Status.AntiMagic: attrs ~= "antimagic"; break;
+			case Status.UpAction: attrs ~= "upaction"; break;
+			case Status.UpAvoid: attrs ~= "upavoid"; break;
+			case Status.UpResist: attrs ~= "upresist"; break;
+			case Status.UpDefense: attrs ~= "updefense"; break;
+			case Status.DownAction: attrs ~= "downaction"; break;
+			case Status.DownAvoid: attrs ~= "downavoid"; break;
+			case Status.DownResist: attrs ~= "downresist"; break;
+			case Status.DownDefense: attrs ~= "downdefense"; break;
+			case Status.None: attrs ~= "none"; break;
 			default: assert (0);
 			}
 		} else static if (is(T : Target)) {
 			switch (value.m) {
-			case Target.M.SELECTED: attrs ~= "M"; break;
-			case Target.M.RANDOM: attrs ~= "R"; break;
-			case Target.M.UNSELECTED: attrs ~= "U"; break;
-			case Target.M.PARTY: attrs ~= "T"; break;
+			case Target.M.Selected: attrs ~= "M"; break;
+			case Target.M.Random: attrs ~= "R"; break;
+			case Target.M.Unselected: attrs ~= "U"; break;
+			case Target.M.Party: attrs ~= "T"; break;
 			default: assert (0);
 			}
 			static if (!Within) {
@@ -3391,124 +3391,124 @@ fi`;
 			}
 		} else static if (is(T : EffectType)) {
 			switch (value) {
-			case EffectType.PHYSIC: attrs ~= "physic"; break;
-			case EffectType.MAGIC: attrs ~= "magic"; break;
-			case EffectType.MAGICAL_PHYSIC: attrs ~= "mphysic"; break;
-			case EffectType.PHYSICAL_MAGIC: attrs ~= "pmagic"; break;
-			case EffectType.NONE: attrs ~= "none"; break;
+			case EffectType.Physic: attrs ~= "physic"; break;
+			case EffectType.Magic: attrs ~= "magic"; break;
+			case EffectType.MagicalPhysic: attrs ~= "mphysic"; break;
+			case EffectType.PhysicalMagic: attrs ~= "pmagic"; break;
+			case EffectType.None: attrs ~= "none"; break;
 			default: assert (0);
 			}
 		} else static if (is(T : Resist)) {
 			switch (value) {
-			case Resist.AVOID: attrs ~= "avoid"; break;
-			case Resist.RESIST: attrs ~= "resist"; break;
-			case Resist.UNFAIL: attrs ~= "unfail"; break;
+			case Resist.Avoid: attrs ~= "avoid"; break;
+			case Resist.Resist: attrs ~= "resist"; break;
+			case Resist.Unfail: attrs ~= "unfail"; break;
 			default: assert (0);
 			}
 		} else static if (is(T : CardVisual)) {
 			switch (value) {
-			case CardVisual.NONE: attrs ~= "none"; break;
-			case CardVisual.REVERSE: attrs ~= "reverse"; break;
-			case CardVisual.HORIZONTAL: attrs ~= "hswing"; break;
-			case CardVisual.VERTICAL: attrs ~= "vswing"; break;
+			case CardVisual.None: attrs ~= "none"; break;
+			case CardVisual.Reverse: attrs ~= "reverse"; break;
+			case CardVisual.Horizontal: attrs ~= "hswing"; break;
+			case CardVisual.Vertical: attrs ~= "vswing"; break;
 			default: assert (0);
 			}
 		} else static if (is(T : Mental)) {
 			switch (value) {
-			case Mental.AGGRESSIVE: attrs ~= "agg"; break;
-			case Mental.UNAGGRESSIVE: attrs ~= "unagg"; break;
-			case Mental.CHEERFUL: attrs ~= "cheerf"; break;
-			case Mental.UNCHEERFUL: attrs ~= "uncheerf"; break;
-			case Mental.BRAVE: attrs ~= "brave"; break;
-			case Mental.UNBRAVE: attrs ~= "unbrave"; break;
-			case Mental.CAUTIOUS: attrs ~= "caut"; break;
-			case Mental.UNCAUTIOUS: attrs ~= "uncaut"; break;
-			case Mental.TRICKISH: attrs ~= "trick"; break;
-			case Mental.UNTRICKISH: attrs ~= "untrick"; break;
+			case Mental.Aggressive: attrs ~= "agg"; break;
+			case Mental.Unaggressive: attrs ~= "unagg"; break;
+			case Mental.Cheerful: attrs ~= "cheerf"; break;
+			case Mental.Uncheerful: attrs ~= "uncheerf"; break;
+			case Mental.Brave: attrs ~= "brave"; break;
+			case Mental.Unbrave: attrs ~= "unbrave"; break;
+			case Mental.Cautious: attrs ~= "caut"; break;
+			case Mental.Uncautious: attrs ~= "uncaut"; break;
+			case Mental.Trickish: attrs ~= "trick"; break;
+			case Mental.Untrickish: attrs ~= "untrick"; break;
 			default: assert (0);
 			}
 		} else static if (is(T : Physical)) {
 			switch (value) {
-			case Physical.DEX: attrs ~= "dex"; break;
-			case Physical.AGL: attrs ~= "agl"; break;
-			case Physical.INT: attrs ~= "int"; break;
-			case Physical.STR: attrs ~= "str"; break;
-			case Physical.VIT: attrs ~= "vit"; break;
-			case Physical.MIN: attrs ~= "min"; break;
+			case Physical.Dex: attrs ~= "dex"; break;
+			case Physical.Agl: attrs ~= "agl"; break;
+			case Physical.Int: attrs ~= "int"; break;
+			case Physical.Str: attrs ~= "str"; break;
+			case Physical.Vit: attrs ~= "vit"; break;
+			case Physical.Min: attrs ~= "min"; break;
 			default: assert (0);
 			}
 		} else static if (is(T : Talker)) {
 			attrs ~= toAttrTalker([new CardImage(value)], indentValue, vars);
 		} else static if (is(T : MType)) {
 			switch (value) {
-			case MType.HEAL: attrs ~= "heal"; break;
-			case MType.DAMAGE: attrs ~= "damage"; break;
-			case MType.ABSORB: attrs ~= "absorb"; break;
-			case MType.PARALYZE: attrs ~= "paralyze"; break;
-			case MType.DIS_PARALYZE: attrs ~= "disparalyze"; break;
-			case MType.POISON: attrs ~= "poison"; break;
-			case MType.DIS_POISON: attrs ~= "dispoison"; break;
-			case MType.GET_SKILL_POWER: attrs ~= "getspilit"; break;
-			case MType.LOSE_SKILL_POWER: attrs ~= "losespilit"; break;
-			case MType.SLEEP: attrs ~= "sleep"; break;
-			case MType.CONFUSE: attrs ~= "confuse"; break;
-			case MType.OVERHEAT: attrs ~= "overheat"; break;
-			case MType.BRAVE: attrs ~= "brave"; break;
-			case MType.PANIC: attrs ~= "panic"; break;
-			case MType.NORMAL: attrs ~= "resetmind"; break;
-			case MType.BIND: attrs ~= "bind"; break;
-			case MType.DIS_BIND: attrs ~= "disbind"; break;
-			case MType.SILENCE: attrs ~= "silence"; break;
-			case MType.DIS_SILENCE: attrs ~= "dissilence"; break;
-			case MType.FACE_UP: attrs ~= "faceup"; break;
-			case MType.FACE_DOWN: attrs ~= "facedown"; break;
-			case MType.ANTI_MAGIC: attrs ~= "antimagic"; break;
-			case MType.DIS_ANTI_MAGIC: attrs ~= "disantimagic"; break;
-			case MType.ENHANCE_ACTION: attrs ~= "enhaction"; break;
-			case MType.ENHANCE_AVOID: attrs ~= "enhavoid"; break;
-			case MType.ENHANCE_RESIST: attrs ~= "enhresist"; break;
-			case MType.ENHANCE_DEFENSE: attrs ~= "enhdefense"; break;
-			case MType.VANISH_TARGET: attrs ~= "vantarget"; break;
-			case MType.VANISH_CARD: attrs ~= "vancard"; break;
-			case MType.VANISH_BEAST: attrs ~= "vanbeast"; break;
-			case MType.DEAL_ATTACK_CARD: attrs ~= "dealattack"; break;
-			case MType.DEAL_POWERFUL_ATTACK_CARD: attrs ~= "dealpowerful"; break;
-			case MType.DEAL_CRITICAL_ATTACK_CARD: attrs ~= "dealcritical"; break;
-			case MType.DEAL_FEINT_CARD: attrs ~= "dealfeint"; break;
-			case MType.DEAL_DEFENSE_CARD: attrs ~= "dealdefense"; break;
-			case MType.DEAL_DISTANCE_CARD: attrs ~= "dealdistance"; break;
-			case MType.DEAL_CONFUSE_CARD: attrs ~= "dealconfuse"; break;
-			case MType.DEAL_SKILL_CARD: attrs ~= "dealskill"; break;
-			case MType.SUMMON_BEAST: attrs ~= "summon"; break;
-			case MType.CANCEL_ACTION: attrs ~= "cancelaction"; break;
-			case MType.NO_EFFECT: attrs ~= "noeffect"; break;
+			case MType.Heal: attrs ~= "heal"; break;
+			case MType.Damage: attrs ~= "damage"; break;
+			case MType.Absorb: attrs ~= "absorb"; break;
+			case MType.Paralyze: attrs ~= "paralyze"; break;
+			case MType.DisParalyze: attrs ~= "disparalyze"; break;
+			case MType.Poison: attrs ~= "poison"; break;
+			case MType.DisPoison: attrs ~= "dispoison"; break;
+			case MType.GetSkillPower: attrs ~= "getspilit"; break;
+			case MType.LoseSkillPower: attrs ~= "losespilit"; break;
+			case MType.Sleep: attrs ~= "sleep"; break;
+			case MType.Confuse: attrs ~= "confuse"; break;
+			case MType.Overheat: attrs ~= "overheat"; break;
+			case MType.Brave: attrs ~= "brave"; break;
+			case MType.Panic: attrs ~= "panic"; break;
+			case MType.Normal: attrs ~= "resetmind"; break;
+			case MType.Bind: attrs ~= "bind"; break;
+			case MType.DisBind: attrs ~= "disbind"; break;
+			case MType.Silence: attrs ~= "silence"; break;
+			case MType.DisSilence: attrs ~= "dissilence"; break;
+			case MType.FaceUp: attrs ~= "faceup"; break;
+			case MType.FaceDown: attrs ~= "facedown"; break;
+			case MType.AntiMagic: attrs ~= "antimagic"; break;
+			case MType.DisAntiMagic: attrs ~= "disantimagic"; break;
+			case MType.EnhanceAction: attrs ~= "enhaction"; break;
+			case MType.EnhanceAvoid: attrs ~= "enhavoid"; break;
+			case MType.EnhanceResist: attrs ~= "enhresist"; break;
+			case MType.EnhanceDefense: attrs ~= "enhdefense"; break;
+			case MType.VanishTarget: attrs ~= "vantarget"; break;
+			case MType.VanishCard: attrs ~= "vancard"; break;
+			case MType.VanishBeast: attrs ~= "vanbeast"; break;
+			case MType.DealAttackCard: attrs ~= "dealattack"; break;
+			case MType.DealPowerfulAttackCard: attrs ~= "dealpowerful"; break;
+			case MType.DealCriticalAttackCard: attrs ~= "dealcritical"; break;
+			case MType.DealFeintCard: attrs ~= "dealfeint"; break;
+			case MType.DealDefenseCard: attrs ~= "dealdefense"; break;
+			case MType.DealDistanceCard: attrs ~= "dealdistance"; break;
+			case MType.DealConfuseCard: attrs ~= "dealconfuse"; break;
+			case MType.DealSkillCard: attrs ~= "dealskill"; break;
+			case MType.SummonBeast: attrs ~= "summon"; break;
+			case MType.CancelAction: attrs ~= "cancelaction"; break;
+			case MType.NoEffect: attrs ~= "noeffect"; break;
 			default: assert (0);
 			}
 		} else static if (is(T : Element)) {
 			switch (value) {
-			case Element.ALL: attrs ~= "all"; break;
-			case Element.HEALTH: attrs ~= "phy"; break;
-			case Element.MIND: attrs ~= "mind"; break;
-			case Element.MIRACLE: attrs ~= "holy"; break;
-			case Element.MAGIC: attrs ~= "magic"; break;
-			case Element.FIRE: attrs ~= "fire"; break;
-			case Element.ICE: attrs ~= "ice"; break;
+			case Element.All: attrs ~= "all"; break;
+			case Element.Health: attrs ~= "phy"; break;
+			case Element.Mind: attrs ~= "mind"; break;
+			case Element.Miracle: attrs ~= "holy"; break;
+			case Element.Magic: attrs ~= "magic"; break;
+			case Element.Fire: attrs ~= "fire"; break;
+			case Element.Ice: attrs ~= "ice"; break;
 			default: assert (0);
 			}
 		} else static if (is(T : DamageType)) {
 			switch (value) {
-			case DamageType.LEVEL_RATIO: attrs ~= "level"; break;
-			case DamageType.NORMAL: attrs ~= "value"; break;
-			case DamageType.MAX: attrs ~= "max"; break;
+			case DamageType.LevelRatio: attrs ~= "level"; break;
+			case DamageType.Normal: attrs ~= "value"; break;
+			case DamageType.Max: attrs ~= "max"; break;
 			default: assert (0);
 			}
 		} else static if (is(T : EffectCardType)) {
 			switch (value) {
-			case EffectCardType.ALL: attrs ~= "all"; break;
-			case EffectCardType.SKILL: attrs ~= "skill"; break;
-			case EffectCardType.ITEM: attrs ~= "item"; break;
-			case EffectCardType.BEAST: attrs ~= "beast"; break;
-			case EffectCardType.HAND: attrs ~= "hand"; break;
+			case EffectCardType.All: attrs ~= "all"; break;
+			case EffectCardType.Skill: attrs ~= "skill"; break;
+			case EffectCardType.Item: attrs ~= "item"; break;
+			case EffectCardType.Beast: attrs ~= "beast"; break;
+			case EffectCardType.Hand: attrs ~= "hand"; break;
 			default: assert (0);
 			}
 		} else static if (is(T : Comparison4)) {
@@ -3648,19 +3648,19 @@ fi`;
 			auto detail = value.detail;
 			string[] attrs2;
 			attrs2 ~= toAttr(value.type, indentValue, vars);
-			if (detail.use(MArg.VALUE_TYPE)) { mixin(S_TRACE);
+			if (detail.use(MArg.ValueType)) { mixin(S_TRACE);
 				attrs2 ~= toAttr(value.damageType, indentValue, vars);
 			}
-			if (detail.use(MArg.U_VALUE)) { mixin(S_TRACE);
+			if (detail.use(MArg.UValue)) { mixin(S_TRACE);
 				attrs2 ~= toAttr(value.uValue, indentValue, vars);
 			}
-			if (detail.use(MArg.A_VALUE)) { mixin(S_TRACE);
+			if (detail.use(MArg.AValue)) { mixin(S_TRACE);
 				attrs2 ~= toAttr(value.aValue, indentValue, vars);
 			}
-			if (detail.use(MArg.ROUND)) { mixin(S_TRACE);
+			if (detail.use(MArg.Round)) { mixin(S_TRACE);
 				attrs2 ~= toAttr(value.round, indentValue, vars);
 			}
-			if (detail.use(MArg.BEAST)) { mixin(S_TRACE);
+			if (detail.use(MArg.Beast)) { mixin(S_TRACE);
 				if (value.beast && _summ) { mixin(S_TRACE);
 					attrs2 ~= toAttr(vars.id(_summ.findSameBeast(value.beast), value.beast.linkId), indentValue, vars);
 				} else { mixin(S_TRACE);
@@ -3758,11 +3758,11 @@ fi`;
 				break;
 			case CardImageType.Talker:
 				final switch (cardPath.talker) {
-				case Talker.SELECTED: r ~= "M"; break;
-				case Talker.UNSELECTED: r ~= "U"; break;
-				case Talker.RANDOM: r ~= "R"; break;
-				case Talker.CARD: r ~= "C"; break;
-				case Talker.VALUED: r ~= "V"; break;
+				case Talker.Selected: r ~= "M"; break;
+				case Talker.Unselected: r ~= "U"; break;
+				case Talker.Random: r ~= "R"; break;
+				case Talker.Card: r ~= "C"; break;
+				case Talker.Valued: r ~= "V"; break;
 				}
 				break;
 			}
@@ -3864,11 +3864,11 @@ fi`;
 			string command = keys.commands[c.type];
 			buf ~= command;
 			string[] attrs;
-			if (c.type is CType.START) { mixin(S_TRACE);
+			if (c.type is CType.Start) { mixin(S_TRACE);
 				attrs ~= createString(c.name);
 			}
 			size_t msgLen = 0;
-			if (detail.use(CArg.TALKER_C)) { mixin(S_TRACE);
+			if (detail.use(CArg.TalkerC)) { mixin(S_TRACE);
 				attrs ~= toAttrTalker(c.cardPaths, indentValue, vars);
 				if (c.cardPaths.length) { mixin(S_TRACE);
 					msgLen = _prop.looks.messageImageLen;
@@ -3876,23 +3876,23 @@ fi`;
 					msgLen = _prop.looks.messageLen;
 				}
 			}
-			if (detail.use(CArg.TEXT)) { mixin(S_TRACE);
+			if (detail.use(CArg.Text)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.text, indentValue, vars, msgLen);
 			}
-			if (detail.use(CArg.TALKER_NC)) { mixin(S_TRACE);
+			if (detail.use(CArg.TalkerNC)) { mixin(S_TRACE);
 				attrs ~= toAttr!(true)(c.talkerNC, indentValue, vars);
 				msgLen = _prop.looks.messageImageLen;
 			}
-			if (detail.use(CArg.DIALOGS)) { mixin(S_TRACE);
+			if (detail.use(CArg.Dialogs)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.dialogs, indentValue, vars, msgLen);
 			}
-			if (detail.use(CArg.CELL_NAME)) { mixin(S_TRACE);
+			if (detail.use(CArg.CellName)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.cellName, indentValue, vars);
 			}
-			if (detail.use(CArg.CARD_GROUP)) { mixin(S_TRACE);
+			if (detail.use(CArg.CardGroup)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.cardGroup, indentValue, vars);
 			}
-			if (detail.use(CArg.POSITION_TYPE)) { mixin(S_TRACE);
+			if (detail.use(CArg.PositionType)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.positionType, indentValue, vars);
 			}
 			if (detail.use(CArg.X)) { mixin(S_TRACE);
@@ -3901,130 +3901,130 @@ fi`;
 			if (detail.use(CArg.Y)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.y, indentValue, vars);
 			}
-			if (detail.use(CArg.SIZE_TYPE)) { mixin(S_TRACE);
+			if (detail.use(CArg.SizeType)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.sizeType, indentValue, vars);
 			}
-			if (detail.use(CArg.WIDTH)) { mixin(S_TRACE);
+			if (detail.use(CArg.Width)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.width, indentValue, vars);
 			}
-			if (detail.use(CArg.HEIGHT)) { mixin(S_TRACE);
+			if (detail.use(CArg.Height)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.height, indentValue, vars);
 			}
-			if (detail.use(CArg.SCALE)) { mixin(S_TRACE);
+			if (detail.use(CArg.Scale)) { mixin(S_TRACE);
 				if (c.scale == -1) { mixin(S_TRACE);
 					attrs ~= toAttr(Symbol("none"), indentValue, vars);
 				} else { mixin(S_TRACE);
 					attrs ~= toAttr(c.scale, indentValue, vars);
 				}
 			}
-			if (detail.use(CArg.LAYER)) { mixin(S_TRACE);
+			if (detail.use(CArg.Layer)) { mixin(S_TRACE);
 				if (c.layer == -1) { mixin(S_TRACE);
 					attrs ~= toAttr(Symbol("none"), indentValue, vars);
 				} else { mixin(S_TRACE);
 					attrs ~= toAttr(c.layer, indentValue, vars);
 				}
 			}
-			if (detail.use(CArg.BG_IMAGES)) { mixin(S_TRACE);
+			if (detail.use(CArg.BgImages)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.backs, indentValue, vars);
 			}
-			if (detail.use(CArg.TARGET_S)) { mixin(S_TRACE);
+			if (detail.use(CArg.TargetS)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.targetS, indentValue, vars);
 			}
-			if (detail.use(CArg.RANGE)) { mixin(S_TRACE);
+			if (detail.use(CArg.Range)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.range, indentValue, vars);
 			}
-			if (detail.use(CArg.CAST_RANGE)) { mixin(S_TRACE);
+			if (detail.use(CArg.CastRange)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.castRange, indentValue, vars);
 			}
-			if (detail.use(CArg.KEY_CODE_RANGE)) { mixin(S_TRACE);
+			if (detail.use(CArg.KeyCodeRange)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.keyCodeRange, indentValue, vars);
 			}
-			if (detail.use(CArg.TARGET_IS_SKILL) || detail.use(CArg.TARGET_IS_ITEM) || detail.use(CArg.TARGET_IS_BEAST) || detail.use(CArg.TARGET_IS_HAND)) { mixin(S_TRACE);
+			if (detail.use(CArg.TargetIsSkill) || detail.use(CArg.TargetIsItem) || detail.use(CArg.TargetIsBeast) || detail.use(CArg.TargetIsHand)) { mixin(S_TRACE);
 				EffectCardType[] effectCardTypes;
-				if (detail.use(CArg.TARGET_IS_SKILL) && c.targetIsSkill) { mixin(S_TRACE);
-					effectCardTypes ~= EffectCardType.SKILL;
+				if (detail.use(CArg.TargetIsSkill) && c.targetIsSkill) { mixin(S_TRACE);
+					effectCardTypes ~= EffectCardType.Skill;
 				}
-				if (detail.use(CArg.TARGET_IS_ITEM) && c.targetIsItem) { mixin(S_TRACE);
-					effectCardTypes ~= EffectCardType.ITEM;
+				if (detail.use(CArg.TargetIsItem) && c.targetIsItem) { mixin(S_TRACE);
+					effectCardTypes ~= EffectCardType.Item;
 				}
-				if (detail.use(CArg.TARGET_IS_BEAST) && c.targetIsBeast) { mixin(S_TRACE);
-					effectCardTypes ~= EffectCardType.BEAST;
+				if (detail.use(CArg.TargetIsBeast) && c.targetIsBeast) { mixin(S_TRACE);
+					effectCardTypes ~= EffectCardType.Beast;
 				}
-				if (detail.use(CArg.TARGET_IS_HAND) && c.targetIsHand) { mixin(S_TRACE);
-					effectCardTypes ~= EffectCardType.HAND;
+				if (detail.use(CArg.TargetIsHand) && c.targetIsHand) { mixin(S_TRACE);
+					effectCardTypes ~= EffectCardType.Hand;
 				}
 				attrs ~= toAttr(effectCardTypes, indentValue, vars);
 			}
-			if (detail.use(CArg.HOLDING_COUPON) && c.range is Range.COUPON_HOLDER) { mixin(S_TRACE);
+			if (detail.use(CArg.HoldingCoupon) && c.range is Range.CouponHolder) { mixin(S_TRACE);
 				attrs ~= toAttr(c.holdingCoupon, indentValue, vars);
 			}
-			if (detail.use(CArg.AREA)) { mixin(S_TRACE);
+			if (detail.use(CArg.Area)) { mixin(S_TRACE);
 				auto a = _summ ? _summ.area(c.area) : null;
 				attrs ~= toAttr(vars.id(a, c.area), indentValue, vars);
 			}
-			if (detail.use(CArg.BATTLE)) { mixin(S_TRACE);
+			if (detail.use(CArg.Battle)) { mixin(S_TRACE);
 				auto a = _summ ? _summ.battle(c.battle) : null;
 				attrs ~= toAttr(vars.id(a, c.battle), indentValue, vars);
 			}
-			if (detail.use(CArg.PACKAGE)) { mixin(S_TRACE);
+			if (detail.use(CArg.Package)) { mixin(S_TRACE);
 				auto a = _summ ? _summ.cwPackage(c.packages) : null;
 				attrs ~= toAttr(vars.id(a, c.packages), indentValue, vars);
 			}
-			if (detail.use(CArg.CAST)) { mixin(S_TRACE);
+			if (detail.use(CArg.Cast)) { mixin(S_TRACE);
 				auto a = _summ ? _summ.cwCast(c.casts) : null;
 				attrs ~= toAttr(vars.id(a, c.casts), indentValue, vars);
 			}
-			if (detail.use(CArg.ITEM)) { mixin(S_TRACE);
+			if (detail.use(CArg.Item)) { mixin(S_TRACE);
 				auto a = _summ ? _summ.item(c.item) : null;
 				attrs ~= toAttr(vars.id(a, c.item), indentValue, vars);
 			}
-			if (detail.use(CArg.SKILL)) { mixin(S_TRACE);
+			if (detail.use(CArg.Skill)) { mixin(S_TRACE);
 				auto a = _summ ? _summ.skill(c.skill) : null;
 				attrs ~= toAttr(vars.id(a, c.skill), indentValue, vars);
 			}
-			if (detail.use(CArg.INFO)) { mixin(S_TRACE);
+			if (detail.use(CArg.Info)) { mixin(S_TRACE);
 				auto a = _summ ? _summ.info(c.info) : null;
 				attrs ~= toAttr(vars.id(a, c.info), indentValue, vars);
 			}
-			if (detail.use(CArg.BEAST)) { mixin(S_TRACE);
+			if (detail.use(CArg.Beast)) { mixin(S_TRACE);
 				auto a = _summ ? _summ.beast(c.beast) : null;
 				attrs ~= toAttr(vars.id(a, c.beast), indentValue, vars);
 			}
-			if (detail.use(CArg.START)) { mixin(S_TRACE);
+			if (detail.use(CArg.Start)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.start, indentValue, vars);
 			}
-			if (detail.use(CArg.COMPLETE)) { mixin(S_TRACE);
+			if (detail.use(CArg.Complete)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.complete, indentValue, vars);
 			}
-			if (detail.use(CArg.MONEY)) { mixin(S_TRACE);
+			if (detail.use(CArg.Money)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.money, indentValue, vars);
 			}
-			if (detail.use(CArg.COUPON)) { mixin(S_TRACE);
+			if (detail.use(CArg.Coupon)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.coupon, indentValue, vars);
 			}
-			if (detail.use(CArg.COUPON_VALUE)) { mixin(S_TRACE);
+			if (detail.use(CArg.CouponValue)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.couponValue, indentValue, vars);
 			}
-			if (detail.use(CArg.COMPLETE_STAMP)) { mixin(S_TRACE);
+			if (detail.use(CArg.CompleteStamp)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.completeStamp, indentValue, vars);
 			}
-			if (detail.use(CArg.KEY_CODE)) { mixin(S_TRACE);
+			if (detail.use(CArg.KeyCode)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.keyCode, indentValue, vars);
 			}
-			if (detail.use(CArg.GOSSIP)) { mixin(S_TRACE);
+			if (detail.use(CArg.Gossip)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.gossip, indentValue, vars);
 			}
-			if (detail.use(CArg.FLAG) && detail.use(CArg.STEP) && detail.use(CArg.VARIANT)) { mixin(S_TRACE);
+			if (detail.use(CArg.Flag) && detail.use(CArg.Step) && detail.use(CArg.Variant)) { mixin(S_TRACE);
 				attrs ~= toAttrVariableType(c.flag, c.step, c.variant);
 			} else { mixin(S_TRACE);
-				if (detail.use(CArg.FLAG)) { mixin(S_TRACE);
+				if (detail.use(CArg.Flag)) { mixin(S_TRACE);
 					if (_prop && .icmp(_prop.sys.randomValue, c.flag) == 0) { mixin(S_TRACE);
 						attrs ~= toAttr(Symbol("random"), indentValue, vars);
 					} else { mixin(S_TRACE);
 						attrs ~= toAttr(c.flag, indentValue, vars);
 					}
 				}
-				if (detail.use(CArg.STEP)) { mixin(S_TRACE);
+				if (detail.use(CArg.Step)) { mixin(S_TRACE);
 					if (_prop && .icmp(_prop.sys.randomValue, c.step) == 0) { mixin(S_TRACE);
 						attrs ~= toAttr(Symbol("random"), indentValue, vars);
 					} else if (_prop && .icmp(_prop.sys.selectedPlayerCardNumber, c.step) == 0) { mixin(S_TRACE);
@@ -4033,226 +4033,226 @@ fi`;
 						attrs ~= toAttr(c.step, indentValue, vars);
 					}
 				}
-				if (detail.use(CArg.VARIANT)) { mixin(S_TRACE);
+				if (detail.use(CArg.Variant)) { mixin(S_TRACE);
 					attrs ~= toAttr(c.variant, indentValue, vars);
 				}
 			}
-			if (detail.use(CArg.FLAG_2)) { mixin(S_TRACE);
+			if (detail.use(CArg.Flag2)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.flag2, indentValue, vars);
 			}
-			if (detail.use(CArg.STEP_2)) { mixin(S_TRACE);
+			if (detail.use(CArg.Step2)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.step2, indentValue, vars);
 			}
-			if (detail.use(CArg.COMPARISON_4)) { mixin(S_TRACE);
+			if (detail.use(CArg.Comparison4)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.comparison4, indentValue, vars);
 			}
-			if (detail.use(CArg.COMPARISON_3)) { mixin(S_TRACE);
+			if (detail.use(CArg.Comparison3)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.comparison3, indentValue, vars);
 			}
-			if (detail.use(CArg.FLAG_VALUE)) { mixin(S_TRACE);
+			if (detail.use(CArg.FlagValue)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.flagValue, indentValue, vars);
 			}
-			if (detail.use(CArg.STEP_VALUE)) { mixin(S_TRACE);
+			if (detail.use(CArg.StepValue)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.stepValue, indentValue, vars);
 			}
-			if (detail.use(CArg.CARD_NUMBER)) { mixin(S_TRACE);
+			if (detail.use(CArg.CardNumber)) { mixin(S_TRACE);
 				if (c.cardNumber != 0) { mixin(S_TRACE);
 					attrs ~= toAttr(c.cardNumber, indentValue, vars);
 				} else { mixin(S_TRACE);
 					attrs ~= toAttr(Symbol("all"), indentValue, vars);
 				}
 			}
-			if (detail.use(CArg.SELECT_CARD)) { mixin(S_TRACE);
+			if (detail.use(CArg.SelectCard)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.selectCard, indentValue, vars);
 			}
-			if (detail.use(CArg.MOTIONS)) { mixin(S_TRACE);
+			if (detail.use(CArg.Motions)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.motions, indentValue, vars);
 			}
-			if (detail.use(CArg.CARD_VISUAL)) { mixin(S_TRACE);
+			if (detail.use(CArg.CardVisual)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.cardVisual, indentValue, vars);
 			}
-			if (detail.use(CArg.UNSIGNED_LEVEL)) { mixin(S_TRACE);
+			if (detail.use(CArg.UnsignedLevel)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.unsignedLevel, indentValue, vars);
 			}
-			if (detail.use(CArg.SIGNED_LEVEL)) { mixin(S_TRACE);
+			if (detail.use(CArg.SignedLevel)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.signedLevel, indentValue, vars);
 			}
-			if (detail.use(CArg.LEVEL_MIN)) { mixin(S_TRACE);
+			if (detail.use(CArg.LevelMin)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.levelMin, indentValue, vars);
 			}
-			if (detail.use(CArg.LEVEL_MAX)) { mixin(S_TRACE);
+			if (detail.use(CArg.LevelMax)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.levelMax, indentValue, vars);
 			}
-			if (detail.use(CArg.WAIT)) { mixin(S_TRACE);
+			if (detail.use(CArg.Wait)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.wait, indentValue, vars);
 			}
-			if (detail.use(CArg.PERCENT)) { mixin(S_TRACE);
+			if (detail.use(CArg.Percent)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.percent, indentValue, vars);
 			}
-			if (detail.use(CArg.TARGET_ALL)) { mixin(S_TRACE);
+			if (detail.use(CArg.TargetAll)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.targetAll, indentValue, vars);
 			}
-			if (detail.use(CArg.SELECTION_METHOD)) { mixin(S_TRACE);
+			if (detail.use(CArg.SelectionMethod)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.selectionMethod, indentValue, vars);
 			}
-			if (detail.use(CArg.AVERAGE)) { mixin(S_TRACE);
+			if (detail.use(CArg.Average)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.average, indentValue, vars);
 			}
-			if (detail.use(CArg.PARTY_NUMBER)) { mixin(S_TRACE);
+			if (detail.use(CArg.PartyNumber)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.partyNumber, indentValue, vars);
 			}
-			if (detail.use(CArg.SUCCESS_RATE)) { mixin(S_TRACE);
+			if (detail.use(CArg.SuccessRate)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.successRate, indentValue, vars);
 			}
-			if (detail.use(CArg.EFFECT_TYPE)) { mixin(S_TRACE);
+			if (detail.use(CArg.EffectType)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.effectType, indentValue, vars);
 			}
-			if (detail.use(CArg.RESIST)) { mixin(S_TRACE);
+			if (detail.use(CArg.Resist)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.resist, indentValue, vars);
 			}
-			if (detail.use(CArg.STATUS)) { mixin(S_TRACE);
+			if (detail.use(CArg.Status)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.status, indentValue, vars);
 			}
-			if (detail.use(CArg.BGM_PATH)) { mixin(S_TRACE);
+			if (detail.use(CArg.BgmPath)) { mixin(S_TRACE);
 				if (c.bgmPath.length) { mixin(S_TRACE);
 					attrs ~= toAttr(encodePath(c.bgmPath), indentValue, vars);
 				} else { mixin(S_TRACE);
 					attrs ~= toAttr(Symbol("stop"), indentValue, vars);
 				}
 			}
-			if (detail.use(CArg.BGM_CHANNEL)) { mixin(S_TRACE);
+			if (detail.use(CArg.BgmChannel)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.bgmChannel, indentValue, vars);
 			}
-			if (detail.use(CArg.BGM_FADE_IN)) { mixin(S_TRACE);
+			if (detail.use(CArg.BgmFadeIn)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.bgmFadeIn / 100.0, indentValue, vars);
 			}
-			if (detail.use(CArg.BGM_VOLUME)) { mixin(S_TRACE);
+			if (detail.use(CArg.BgmVolume)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.bgmVolume, indentValue, vars);
 			}
-			if (detail.use(CArg.BGM_LOOP_COUNT)) { mixin(S_TRACE);
+			if (detail.use(CArg.BgmLoopCount)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.bgmLoopCount, indentValue, vars);
 			}
-			if (detail.use(CArg.SOUND_PATH)) { mixin(S_TRACE);
+			if (detail.use(CArg.SoundPath)) { mixin(S_TRACE);
 				attrs ~= toAttr(encodePath(c.soundPath), indentValue, vars);
 			}
-			if (detail.use(CArg.SOUND_CHANNEL)) { mixin(S_TRACE);
+			if (detail.use(CArg.SoundChannel)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.soundChannel, indentValue, vars);
 			}
-			if (detail.use(CArg.SOUND_FADE_IN)) { mixin(S_TRACE);
+			if (detail.use(CArg.SoundFadeIn)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.soundFadeIn / 100.0, indentValue, vars);
 			}
-			if (detail.use(CArg.SOUND_VOLUME)) { mixin(S_TRACE);
+			if (detail.use(CArg.SoundVolume)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.soundVolume, indentValue, vars);
 			}
-			if (detail.use(CArg.SOUND_LOOP_COUNT)) { mixin(S_TRACE);
+			if (detail.use(CArg.SoundLoopCount)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.soundLoopCount, indentValue, vars);
 			}
-			if (detail.use(CArg.REF_ABILITY)) { mixin(S_TRACE);
+			if (detail.use(CArg.RefAbility)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.refAbility, indentValue, vars);
 			}
-			if (detail.use(CArg.PHYSICAL)) { mixin(S_TRACE);
+			if (detail.use(CArg.Physical)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.physical, indentValue, vars);
 			}
-			if (detail.use(CArg.MENTAL)) { mixin(S_TRACE);
+			if (detail.use(CArg.Mental)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.mental, indentValue, vars);
 			}
-			if (detail.use(CArg.ROUND)) { mixin(S_TRACE);
+			if (detail.use(CArg.Round)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.round, indentValue, vars);
 			}
 			if (!legacy) { mixin(S_TRACE);
-				if (detail.use(CArg.TRANSITION_SPEED)) { mixin(S_TRACE);
+				if (detail.use(CArg.TransitionSpeed)) { mixin(S_TRACE);
 					attrs ~= toAttr(c.transitionSpeed, indentValue, vars);
 				}
-				if (detail.use(CArg.TRANSITION)) { mixin(S_TRACE);
+				if (detail.use(CArg.Transition)) { mixin(S_TRACE);
 					attrs ~= toAttr(c.transition, indentValue, vars);
 				}
-				if (detail.use(CArg.DO_ANIME)) { mixin(S_TRACE);
+				if (detail.use(CArg.DoAnime)) { mixin(S_TRACE);
 					attrs ~= toAttr(c.doAnime, indentValue, vars);
 				}
-				if (detail.use(CArg.IGNORE_EFFECT_BOOSTER)) { mixin(S_TRACE);
+				if (detail.use(CArg.IgnoreEffectBooster)) { mixin(S_TRACE);
 					attrs ~= toAttr(c.ignoreEffectBooster, indentValue, vars);
 				}
 			}
-			if (c.talkerNC is Talker.VALUED || c.selectionMethod is SelectionMethod.Valued) { mixin(S_TRACE);
+			if (c.talkerNC is Talker.Valued || c.selectionMethod is SelectionMethod.Valued) { mixin(S_TRACE);
 				// 評価メンバ
-				if (detail.use(CArg.INIT_VALUE)) { mixin(S_TRACE);
+				if (detail.use(CArg.InitValue)) { mixin(S_TRACE);
 					attrs ~= toAttr(c.initValue, indentValue, vars);
 				}
-				if (detail.use(CArg.COUPONS)) { mixin(S_TRACE);
+				if (detail.use(CArg.Coupons)) { mixin(S_TRACE);
 					attrs ~= toAttr(c.coupons, indentValue, vars);
 				}
 			}
-			if (detail.use(CArg.SELECTION_COLUMNS)) { mixin(S_TRACE);
+			if (detail.use(CArg.SelectionColumns)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.selectionColumns, indentValue, vars);
 			}
-			if (detail.use(CArg.BOUNDARY_CHECK)) { mixin(S_TRACE);
+			if (detail.use(CArg.BoundaryCheck)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.boundaryCheck, indentValue, vars);
 			}
-			if (detail.use(CArg.CENTERING_X)) { mixin(S_TRACE);
+			if (detail.use(CArg.CenteringX)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.centeringX, indentValue, vars);
 			}
-			if (detail.use(CArg.CENTERING_Y)) { mixin(S_TRACE);
+			if (detail.use(CArg.CenteringY)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.centeringY, indentValue, vars);
 			}
-			if (detail.use(CArg.SELECT_TALKER)) { mixin(S_TRACE);
+			if (detail.use(CArg.SelectTalker)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.selectTalker, indentValue, vars);
 			}
-			if (detail.use(CArg.INVERT_RESULT)) { mixin(S_TRACE);
+			if (detail.use(CArg.InvertResult)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.invertResult, indentValue, vars);
 			}
-			if (detail.use(CArg.START_ACTION)) { mixin(S_TRACE);
+			if (detail.use(CArg.StartAction)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.startAction, indentValue, vars);
 			}
-			if (detail.use(CArg.IGNITE)) { mixin(S_TRACE);
+			if (detail.use(CArg.Ignite)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.ignite, indentValue, vars);
 			}
-			if (detail.use(CArg.KEY_CODES)) { mixin(S_TRACE);
+			if (detail.use(CArg.KeyCodes)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.keyCodes, indentValue, vars);
 			}
-			if (detail.use(CArg.COUPON_NAMES)) { mixin(S_TRACE);
+			if (detail.use(CArg.CouponNames)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.couponNames, indentValue, vars);
 			}
-			if (detail.use(CArg.MATCHING_TYPE)) { mixin(S_TRACE);
+			if (detail.use(CArg.MatchingType)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.matchingType, indentValue, vars);
 			}
-			if (detail.use(CArg.EXPAND_SP_CHARS)) { mixin(S_TRACE);
+			if (detail.use(CArg.ExpandSPChars)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.expandSPChars, indentValue, vars);
 			}
-			if (detail.use(CArg.CONSUME_CARD)) { mixin(S_TRACE);
+			if (detail.use(CArg.ConsumeCard)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.consumeCard, indentValue, vars);
 			}
-			if (detail.use(CArg.CARD_SPEED)) { mixin(S_TRACE);
+			if (detail.use(CArg.CardSpeed)) { mixin(S_TRACE);
 				if (c.cardSpeed == -1) { mixin(S_TRACE);
 					attrs ~= "default";
 				} else { mixin(S_TRACE);
 					attrs ~= toAttr(c.cardSpeed, indentValue, vars);
 				}
 			}
-			if (detail.use(CArg.OVERRIDE_CARD_SPEED)) { mixin(S_TRACE);
+			if (detail.use(CArg.OverrideCardSpeed)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.overrideCardSpeed, indentValue, vars);
 			}
-			if (detail.use(CArg.INITIAL_EFFECT)) { mixin(S_TRACE);
+			if (detail.use(CArg.InitialEffect)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.initialEffect, indentValue, vars);
 			}
-			if (detail.use(CArg.INITIAL_SOUND_PATH)) { mixin(S_TRACE);
+			if (detail.use(CArg.InitialSoundPath)) { mixin(S_TRACE);
 				attrs ~= toAttr(encodePath(c.initialSoundPath), indentValue, vars);
 			}
-			if (detail.use(CArg.INITIAL_SOUND_CHANNEL)) { mixin(S_TRACE);
+			if (detail.use(CArg.InitialSoundChannel)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.initialSoundChannel, indentValue, vars);
 			}
-			if (detail.use(CArg.INITIAL_SOUND_FADE_IN)) { mixin(S_TRACE);
+			if (detail.use(CArg.InitialSoundFadeIn)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.initialSoundFadeIn / 100.0, indentValue, vars);
 			}
-			if (detail.use(CArg.INITIAL_SOUND_VOLUME)) { mixin(S_TRACE);
+			if (detail.use(CArg.InitialSoundVolume)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.initialSoundVolume, indentValue, vars);
 			}
-			if (detail.use(CArg.INITIAL_SOUND_LOOP_COUNT)) { mixin(S_TRACE);
+			if (detail.use(CArg.InitialSoundLoopCount)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.initialSoundLoopCount, indentValue, vars);
 			}
-			if (detail.use(CArg.BACKPACK_ENABLED)) { mixin(S_TRACE);
+			if (detail.use(CArg.BackpackEnabled)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.backpackEnabled, indentValue, vars);
 			}
-			if (detail.use(CArg.EXPRESSION)) { mixin(S_TRACE);
+			if (detail.use(CArg.Expression)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.expression, indentValue, vars, 0, false, true);
 			}
 
@@ -4261,7 +4261,7 @@ fi`;
 			if (!useIf) { mixin(S_TRACE);
 				foreach (chld; c.next) { mixin(S_TRACE);
 					if (chld.name.length) { mixin(S_TRACE);
-						if (detail.nextType is CNextType.TEXT && chld.name == evtChildOK) { mixin(S_TRACE);
+						if (detail.nextType is CNextType.Text && chld.name == evtChildOK) { mixin(S_TRACE);
 							continue;
 						}
 						useIf = true;
@@ -4279,31 +4279,31 @@ fi`;
 				} else { mixin(S_TRACE);
 					buf ~= idx == 0 ? "if" : "elif";
 				}
-				if (detail.nextType !is CNextType.NONE) { mixin(S_TRACE);
+				if (detail.nextType !is CNextType.None) { mixin(S_TRACE);
 					buf ~= " ";
 				}
 				final switch (detail.nextType) {
-				case CNextType.NONE:
+				case CNextType.None:
 					break;
-				case CNextType.TEXT:
+				case CNextType.Text:
 					buf ~= createString(chld.name);
 					break;
-				case CNextType.BOOL:
+				case CNextType.Bool:
 					buf ~= icmp(chld.name, _prop.sys.evtChildTrue) == 0 ? "true" : "false";
 					break;
-				case CNextType.STEP:
-				case CNextType.ID_AREA:
-				case CNextType.ID_BATTLE:
+				case CNextType.Step:
+				case CNextType.IdArea:
+				case CNextType.IdBattle:
 					if (icmp(chld.name, _prop.sys.evtChildDefault) == 0) { mixin(S_TRACE);
 						buf ~= "default";
 					} else { mixin(S_TRACE);
 						buf ~= chld.name;
 					}
 					break;
-				case CNextType.TRIO:
+				case CNextType.Trio:
 					buf ~= createString(chld.name);
 					break;
-				case CNextType.COUPON: // Wsn.2
+				case CNextType.Coupon: // Wsn.2
 					buf ~= chld.name == "" ? "none" : createString(chld.name);
 					break;
 				}
@@ -4313,7 +4313,7 @@ fi`;
 					addIfs(0, c.next[0]);
 				}
 				buf ~= "\n";
-				if (c.type is CType.START) { mixin(S_TRACE);
+				if (c.type is CType.Start) { mixin(S_TRACE);
 					indentValue ~= indent;
 				}
 				c = c.next[0];
@@ -4327,7 +4327,7 @@ fi`;
 						toScriptImpl(evtChildOK, buf, chld, indent, nextIndent, keys, vars, legacy);
 					} else { mixin(S_TRACE);
 						buf ~= "\n";
-						if (c.type is CType.START) { mixin(S_TRACE);
+						if (c.type is CType.Start) { mixin(S_TRACE);
 							toScriptImpl(evtChildOK, buf, chld, indent, indentValue ~ indent, keys, vars, legacy);
 						} else { mixin(S_TRACE);
 							toScriptImpl(evtChildOK, buf, chld, indent, indentValue, keys, vars, legacy);
@@ -4399,11 +4399,11 @@ CWXScriptKeyword[] keywordInfos(in CProps prop) { mixin(S_TRACE);
 		CWXScriptKeyword("false", "", prop.msgs.flagOff),
 
 		// 背景切替方式
-		CWXScriptKeyword("default", prop.msgs.transition, prop.msgs.transitionName(Transition.DEFAULT)),
-		CWXScriptKeyword("none", prop.msgs.transition, prop.msgs.transitionName(Transition.NONE)),
-		CWXScriptKeyword("thread", prop.msgs.transition, prop.msgs.transitionName(Transition.BLINDS)),
-		CWXScriptKeyword("shave", prop.msgs.transition, prop.msgs.transitionName(Transition.PIXEL_DISSOLVE)),
-		CWXScriptKeyword("fade", prop.msgs.transition, prop.msgs.transitionName(Transition.FADE)),
+		CWXScriptKeyword("default", prop.msgs.transition, prop.msgs.transitionName(Transition.Default)),
+		CWXScriptKeyword("none", prop.msgs.transition, prop.msgs.transitionName(Transition.None)),
+		CWXScriptKeyword("thread", prop.msgs.transition, prop.msgs.transitionName(Transition.Blinds)),
+		CWXScriptKeyword("shave", prop.msgs.transition, prop.msgs.transitionName(Transition.PixelDissolve)),
+		CWXScriptKeyword("fade", prop.msgs.transition, prop.msgs.transitionName(Transition.Fade)),
 
 		// 文字装飾
 		CWXScriptKeyword("bold", prop.msgs.fontStyle, prop.msgs.bold),
@@ -4427,158 +4427,158 @@ CWXScriptKeyword[] keywordInfos(in CProps prop) { mixin(S_TRACE);
 		CWXScriptKeyword("v", prop.msgs.gradient, prop.msgs.gradientDirName(GradientDir.TopToBottom)),
 
 		// 効果
-		CWXScriptKeyword("heal", prop.msgs.motion, prop.msgs.motionName(MType.HEAL)),
-		CWXScriptKeyword("damage", prop.msgs.motion, prop.msgs.motionName(MType.DAMAGE)),
-		CWXScriptKeyword("absorb", prop.msgs.motion, prop.msgs.motionName(MType.ABSORB)),
-		CWXScriptKeyword("paralyze", prop.msgs.motion, prop.msgs.motionName(MType.PARALYZE)),
-		CWXScriptKeyword("disparalyze", prop.msgs.motion, prop.msgs.motionName(MType.DIS_PARALYZE)),
-		CWXScriptKeyword("poison", prop.msgs.motion, prop.msgs.motionName(MType.POISON)),
-		CWXScriptKeyword("dispoison", prop.msgs.motion, prop.msgs.motionName(MType.DIS_POISON)),
-		CWXScriptKeyword("getspilit", prop.msgs.motion, prop.msgs.motionName(MType.GET_SKILL_POWER)),
-		CWXScriptKeyword("losespilit", prop.msgs.motion, prop.msgs.motionName(MType.LOSE_SKILL_POWER)),
-		CWXScriptKeyword("sleep", prop.msgs.motion, prop.msgs.motionName(MType.SLEEP)),
-		CWXScriptKeyword("confuse", prop.msgs.motion, prop.msgs.motionName(MType.CONFUSE)),
-		CWXScriptKeyword("overheat", prop.msgs.motion, prop.msgs.motionName(MType.OVERHEAT)),
-		CWXScriptKeyword("brave", prop.msgs.motion, prop.msgs.motionName(MType.BRAVE)),
-		CWXScriptKeyword("panic", prop.msgs.motion, prop.msgs.motionName(MType.PANIC)),
-		CWXScriptKeyword("resetmind", prop.msgs.motion, prop.msgs.motionName(MType.NORMAL)),
-		CWXScriptKeyword("bind", prop.msgs.motion, prop.msgs.motionName(MType.BIND)),
-		CWXScriptKeyword("disbind", prop.msgs.motion, prop.msgs.motionName(MType.DIS_BIND)),
-		CWXScriptKeyword("silence", prop.msgs.motion, prop.msgs.motionName(MType.SILENCE)),
-		CWXScriptKeyword("dissilence", prop.msgs.motion, prop.msgs.motionName(MType.DIS_SILENCE)),
-		CWXScriptKeyword("faceup", prop.msgs.motion, prop.msgs.motionName(MType.FACE_UP)),
-		CWXScriptKeyword("facedown", prop.msgs.motion, prop.msgs.motionName(MType.FACE_DOWN)),
-		CWXScriptKeyword("antimagic", prop.msgs.motion, prop.msgs.motionName(MType.ANTI_MAGIC)),
-		CWXScriptKeyword("disantimagic", prop.msgs.motion, prop.msgs.motionName(MType.DIS_ANTI_MAGIC)),
-		CWXScriptKeyword("enhaction", prop.msgs.motion, prop.msgs.motionName(MType.ENHANCE_ACTION)),
-		CWXScriptKeyword("enhavoid", prop.msgs.motion, prop.msgs.motionName(MType.ENHANCE_AVOID)),
-		CWXScriptKeyword("enhresist", prop.msgs.motion, prop.msgs.motionName(MType.ENHANCE_DEFENSE)),
-		CWXScriptKeyword("enhdefense", prop.msgs.motion, prop.msgs.motionName(MType.ENHANCE_RESIST)),
-		CWXScriptKeyword("vantarget", prop.msgs.motion, prop.msgs.motionName(MType.VANISH_TARGET)),
-		CWXScriptKeyword("vancard", prop.msgs.motion, prop.msgs.motionName(MType.VANISH_CARD)),
-		CWXScriptKeyword("vanbeast", prop.msgs.motion, prop.msgs.motionName(MType.VANISH_BEAST)),
-		CWXScriptKeyword("dealattack", prop.msgs.motion, prop.msgs.motionName(MType.DEAL_ATTACK_CARD)),
-		CWXScriptKeyword("dealpowerful", prop.msgs.motion, prop.msgs.motionName(MType.DEAL_POWERFUL_ATTACK_CARD)),
-		CWXScriptKeyword("dealcritical", prop.msgs.motion, prop.msgs.motionName(MType.DEAL_CRITICAL_ATTACK_CARD)),
-		CWXScriptKeyword("dealfeint", prop.msgs.motion, prop.msgs.motionName(MType.DEAL_FEINT_CARD)),
-		CWXScriptKeyword("dealdefense", prop.msgs.motion, prop.msgs.motionName(MType.DEAL_DEFENSE_CARD)),
-		CWXScriptKeyword("dealdistance", prop.msgs.motion, prop.msgs.motionName(MType.DEAL_DISTANCE_CARD)),
-		CWXScriptKeyword("dealconfuse", prop.msgs.motion, prop.msgs.motionName(MType.DEAL_CONFUSE_CARD)),
-		CWXScriptKeyword("dealskill", prop.msgs.motion, prop.msgs.motionName(MType.DEAL_SKILL_CARD)),
-		CWXScriptKeyword("cancelaction", prop.msgs.motion, prop.msgs.motionName(MType.CANCEL_ACTION)),
-		CWXScriptKeyword("summon", prop.msgs.motion, prop.msgs.motionName(MType.SUMMON_BEAST)),
-		CWXScriptKeyword("noeffect", prop.msgs.motion, prop.msgs.motionName(MType.NO_EFFECT)),
+		CWXScriptKeyword("heal", prop.msgs.motion, prop.msgs.motionName(MType.Heal)),
+		CWXScriptKeyword("damage", prop.msgs.motion, prop.msgs.motionName(MType.Damage)),
+		CWXScriptKeyword("absorb", prop.msgs.motion, prop.msgs.motionName(MType.Absorb)),
+		CWXScriptKeyword("paralyze", prop.msgs.motion, prop.msgs.motionName(MType.Paralyze)),
+		CWXScriptKeyword("disparalyze", prop.msgs.motion, prop.msgs.motionName(MType.DisParalyze)),
+		CWXScriptKeyword("poison", prop.msgs.motion, prop.msgs.motionName(MType.Poison)),
+		CWXScriptKeyword("dispoison", prop.msgs.motion, prop.msgs.motionName(MType.DisPoison)),
+		CWXScriptKeyword("getspilit", prop.msgs.motion, prop.msgs.motionName(MType.GetSkillPower)),
+		CWXScriptKeyword("losespilit", prop.msgs.motion, prop.msgs.motionName(MType.LoseSkillPower)),
+		CWXScriptKeyword("sleep", prop.msgs.motion, prop.msgs.motionName(MType.Sleep)),
+		CWXScriptKeyword("confuse", prop.msgs.motion, prop.msgs.motionName(MType.Confuse)),
+		CWXScriptKeyword("overheat", prop.msgs.motion, prop.msgs.motionName(MType.Overheat)),
+		CWXScriptKeyword("brave", prop.msgs.motion, prop.msgs.motionName(MType.Brave)),
+		CWXScriptKeyword("panic", prop.msgs.motion, prop.msgs.motionName(MType.Panic)),
+		CWXScriptKeyword("resetmind", prop.msgs.motion, prop.msgs.motionName(MType.Normal)),
+		CWXScriptKeyword("bind", prop.msgs.motion, prop.msgs.motionName(MType.Bind)),
+		CWXScriptKeyword("disbind", prop.msgs.motion, prop.msgs.motionName(MType.DisBind)),
+		CWXScriptKeyword("silence", prop.msgs.motion, prop.msgs.motionName(MType.Silence)),
+		CWXScriptKeyword("dissilence", prop.msgs.motion, prop.msgs.motionName(MType.DisSilence)),
+		CWXScriptKeyword("faceup", prop.msgs.motion, prop.msgs.motionName(MType.FaceUp)),
+		CWXScriptKeyword("facedown", prop.msgs.motion, prop.msgs.motionName(MType.FaceDown)),
+		CWXScriptKeyword("antimagic", prop.msgs.motion, prop.msgs.motionName(MType.AntiMagic)),
+		CWXScriptKeyword("disantimagic", prop.msgs.motion, prop.msgs.motionName(MType.DisAntiMagic)),
+		CWXScriptKeyword("enhaction", prop.msgs.motion, prop.msgs.motionName(MType.EnhanceAction)),
+		CWXScriptKeyword("enhavoid", prop.msgs.motion, prop.msgs.motionName(MType.EnhanceAvoid)),
+		CWXScriptKeyword("enhresist", prop.msgs.motion, prop.msgs.motionName(MType.EnhanceDefense)),
+		CWXScriptKeyword("enhdefense", prop.msgs.motion, prop.msgs.motionName(MType.EnhanceResist)),
+		CWXScriptKeyword("vantarget", prop.msgs.motion, prop.msgs.motionName(MType.VanishTarget)),
+		CWXScriptKeyword("vancard", prop.msgs.motion, prop.msgs.motionName(MType.VanishCard)),
+		CWXScriptKeyword("vanbeast", prop.msgs.motion, prop.msgs.motionName(MType.VanishBeast)),
+		CWXScriptKeyword("dealattack", prop.msgs.motion, prop.msgs.motionName(MType.DealAttackCard)),
+		CWXScriptKeyword("dealpowerful", prop.msgs.motion, prop.msgs.motionName(MType.DealPowerfulAttackCard)),
+		CWXScriptKeyword("dealcritical", prop.msgs.motion, prop.msgs.motionName(MType.DealCriticalAttackCard)),
+		CWXScriptKeyword("dealfeint", prop.msgs.motion, prop.msgs.motionName(MType.DealFeintCard)),
+		CWXScriptKeyword("dealdefense", prop.msgs.motion, prop.msgs.motionName(MType.DealDefenseCard)),
+		CWXScriptKeyword("dealdistance", prop.msgs.motion, prop.msgs.motionName(MType.DealDistanceCard)),
+		CWXScriptKeyword("dealconfuse", prop.msgs.motion, prop.msgs.motionName(MType.DealConfuseCard)),
+		CWXScriptKeyword("dealskill", prop.msgs.motion, prop.msgs.motionName(MType.DealSkillCard)),
+		CWXScriptKeyword("cancelaction", prop.msgs.motion, prop.msgs.motionName(MType.CancelAction)),
+		CWXScriptKeyword("summon", prop.msgs.motion, prop.msgs.motionName(MType.SummonBeast)),
+		CWXScriptKeyword("noeffect", prop.msgs.motion, prop.msgs.motionName(MType.NoEffect)),
 
 		// 効果値計算方式
-		CWXScriptKeyword("level", prop.msgs.calcType, prop.msgs.damageTypeName(DamageType.LEVEL_RATIO)),
-		CWXScriptKeyword("value", prop.msgs.calcType, prop.msgs.damageTypeName(DamageType.NORMAL)),
-		CWXScriptKeyword("max", prop.msgs.calcType, prop.msgs.damageTypeName(DamageType.MAX)),
+		CWXScriptKeyword("level", prop.msgs.calcType, prop.msgs.damageTypeName(DamageType.LevelRatio)),
+		CWXScriptKeyword("value", prop.msgs.calcType, prop.msgs.damageTypeName(DamageType.Normal)),
+		CWXScriptKeyword("max", prop.msgs.calcType, prop.msgs.damageTypeName(DamageType.Max)),
 
 		// 属性
-		CWXScriptKeyword("all", prop.msgs.motionElement, prop.msgs.elementName(Element.ALL)),
-		CWXScriptKeyword("phy", prop.msgs.motionElement, prop.msgs.elementName(Element.HEALTH)),
-		CWXScriptKeyword("mind", prop.msgs.motionElement, prop.msgs.elementName(Element.MIND)),
-		CWXScriptKeyword("holy", prop.msgs.motionElement, prop.msgs.elementName(Element.MIRACLE)),
-		CWXScriptKeyword("magic", prop.msgs.motionElement, prop.msgs.elementName(Element.MAGIC)),
-		CWXScriptKeyword("fire", prop.msgs.motionElement, prop.msgs.elementName(Element.FIRE)),
-		CWXScriptKeyword("ice", prop.msgs.motionElement, prop.msgs.elementName(Element.ICE)),
+		CWXScriptKeyword("all", prop.msgs.motionElement, prop.msgs.elementName(Element.All)),
+		CWXScriptKeyword("phy", prop.msgs.motionElement, prop.msgs.elementName(Element.Health)),
+		CWXScriptKeyword("mind", prop.msgs.motionElement, prop.msgs.elementName(Element.Mind)),
+		CWXScriptKeyword("holy", prop.msgs.motionElement, prop.msgs.elementName(Element.Miracle)),
+		CWXScriptKeyword("magic", prop.msgs.motionElement, prop.msgs.elementName(Element.Magic)),
+		CWXScriptKeyword("fire", prop.msgs.motionElement, prop.msgs.elementName(Element.Fire)),
+		CWXScriptKeyword("ice", prop.msgs.motionElement, prop.msgs.elementName(Element.Ice)),
 
 		// 視覚効果
-		CWXScriptKeyword("none", prop.msgs.effectVisual, prop.msgs.cardVisualName(CardVisual.NONE)),
-		CWXScriptKeyword("reverse", prop.msgs.effectVisual, prop.msgs.cardVisualName(CardVisual.REVERSE)),
-		CWXScriptKeyword("hswing", prop.msgs.effectVisual, prop.msgs.cardVisualName(CardVisual.HORIZONTAL)),
-		CWXScriptKeyword("vswing", prop.msgs.effectVisual, prop.msgs.cardVisualName(CardVisual.VERTICAL)),
+		CWXScriptKeyword("none", prop.msgs.effectVisual, prop.msgs.cardVisualName(CardVisual.None)),
+		CWXScriptKeyword("reverse", prop.msgs.effectVisual, prop.msgs.cardVisualName(CardVisual.Reverse)),
+		CWXScriptKeyword("hswing", prop.msgs.effectVisual, prop.msgs.cardVisualName(CardVisual.Horizontal)),
+		CWXScriptKeyword("vswing", prop.msgs.effectVisual, prop.msgs.cardVisualName(CardVisual.Vertical)),
 
 		// 効果属性
-		CWXScriptKeyword("physic", prop.msgs.elementProps, prop.msgs.effectTypeName(EffectType.PHYSIC)),
-		CWXScriptKeyword("magic", prop.msgs.elementProps, prop.msgs.effectTypeName(EffectType.MAGIC)),
-		CWXScriptKeyword("mphysic", prop.msgs.elementProps, prop.msgs.effectTypeName(EffectType.MAGICAL_PHYSIC)),
-		CWXScriptKeyword("pmagic", prop.msgs.elementProps, prop.msgs.effectTypeName(EffectType.PHYSICAL_MAGIC)),
-		CWXScriptKeyword("none", prop.msgs.elementProps, prop.msgs.effectTypeName(EffectType.NONE)),
+		CWXScriptKeyword("physic", prop.msgs.elementProps, prop.msgs.effectTypeName(EffectType.Physic)),
+		CWXScriptKeyword("magic", prop.msgs.elementProps, prop.msgs.effectTypeName(EffectType.Magic)),
+		CWXScriptKeyword("mphysic", prop.msgs.elementProps, prop.msgs.effectTypeName(EffectType.MagicalPhysic)),
+		CWXScriptKeyword("pmagic", prop.msgs.elementProps, prop.msgs.effectTypeName(EffectType.PhysicalMagic)),
+		CWXScriptKeyword("none", prop.msgs.elementProps, prop.msgs.effectTypeName(EffectType.None)),
 
 		// 抵抗属性
-		CWXScriptKeyword("avoid", prop.msgs.resistProps, prop.msgs.resistName(Resist.AVOID)),
-		CWXScriptKeyword("resist", prop.msgs.resistProps, prop.msgs.resistName(Resist.RESIST)),
-		CWXScriptKeyword("unfail", prop.msgs.resistProps, prop.msgs.resistName(Resist.UNFAIL)),
+		CWXScriptKeyword("avoid", prop.msgs.resistProps, prop.msgs.resistName(Resist.Avoid)),
+		CWXScriptKeyword("resist", prop.msgs.resistProps, prop.msgs.resistName(Resist.Resist)),
+		CWXScriptKeyword("unfail", prop.msgs.resistProps, prop.msgs.resistName(Resist.Unfail)),
 
 		// 話者
 		CWXScriptKeyword("none", prop.msgs.talker, prop.msgs.scTalkerNameNarration),
-		CWXScriptKeyword("M", prop.msgs.talker, prop.msgs.talkerName(Talker.SELECTED)),
-		CWXScriptKeyword("U", prop.msgs.talker, prop.msgs.talkerName(Talker.UNSELECTED)),
-		CWXScriptKeyword("R", prop.msgs.talker, prop.msgs.talkerName(Talker.RANDOM)),
-		CWXScriptKeyword("C", prop.msgs.talker, prop.msgs.talkerName(Talker.CARD)),
+		CWXScriptKeyword("M", prop.msgs.talker, prop.msgs.talkerName(Talker.Selected)),
+		CWXScriptKeyword("U", prop.msgs.talker, prop.msgs.talkerName(Talker.Unselected)),
+		CWXScriptKeyword("R", prop.msgs.talker, prop.msgs.talkerName(Talker.Random)),
+		CWXScriptKeyword("C", prop.msgs.talker, prop.msgs.talkerName(Talker.Card)),
 		CWXScriptKeyword("V", prop.msgs.talker, prop.msgs.scTalkerNameValued),
 
 		// 適用範囲
-		CWXScriptKeyword("M", prop.msgs.range, prop.msgs.rangeName(Range.SELECTED)),
-		CWXScriptKeyword("R", prop.msgs.range, prop.msgs.rangeName(Range.RANDOM)),
-		CWXScriptKeyword("T", prop.msgs.range, prop.msgs.rangeName(Range.PARTY)),
-		CWXScriptKeyword("backpack", prop.msgs.range, prop.msgs.rangeName(Range.BACKPACK)),
-		CWXScriptKeyword("party", prop.msgs.range, prop.msgs.rangeName(Range.PARTY_AND_BACKPACK)),
-		CWXScriptKeyword("field", prop.msgs.range, prop.msgs.rangeName(Range.FIELD)),
-		CWXScriptKeyword("selcard", prop.msgs.range, prop.msgs.rangeName(Range.SELECTED_CARD)),
+		CWXScriptKeyword("M", prop.msgs.range, prop.msgs.rangeName(Range.Selected)),
+		CWXScriptKeyword("R", prop.msgs.range, prop.msgs.rangeName(Range.Random)),
+		CWXScriptKeyword("T", prop.msgs.range, prop.msgs.rangeName(Range.Party)),
+		CWXScriptKeyword("backpack", prop.msgs.range, prop.msgs.rangeName(Range.Backpack)),
+		CWXScriptKeyword("party", prop.msgs.range, prop.msgs.rangeName(Range.PartyAndBackpack)),
+		CWXScriptKeyword("field", prop.msgs.range, prop.msgs.rangeName(Range.Field)),
+		CWXScriptKeyword("selcard", prop.msgs.range, prop.msgs.rangeName(Range.SelectedCard)),
 
 		// 身体特性
-		CWXScriptKeyword("dex", prop.msgs.aptPhysical, prop.msgs.physicalName(Physical.DEX)),
-		CWXScriptKeyword("agl", prop.msgs.aptPhysical, prop.msgs.physicalName(Physical.AGL)),
-		CWXScriptKeyword("int", prop.msgs.aptPhysical, prop.msgs.physicalName(Physical.INT)),
-		CWXScriptKeyword("str", prop.msgs.aptPhysical, prop.msgs.physicalName(Physical.STR)),
-		CWXScriptKeyword("vit", prop.msgs.aptPhysical, prop.msgs.physicalName(Physical.VIT)),
-		CWXScriptKeyword("min", prop.msgs.aptPhysical, prop.msgs.physicalName(Physical.MIN)),
+		CWXScriptKeyword("dex", prop.msgs.aptPhysical, prop.msgs.physicalName(Physical.Dex)),
+		CWXScriptKeyword("agl", prop.msgs.aptPhysical, prop.msgs.physicalName(Physical.Agl)),
+		CWXScriptKeyword("int", prop.msgs.aptPhysical, prop.msgs.physicalName(Physical.Int)),
+		CWXScriptKeyword("str", prop.msgs.aptPhysical, prop.msgs.physicalName(Physical.Str)),
+		CWXScriptKeyword("vit", prop.msgs.aptPhysical, prop.msgs.physicalName(Physical.Vit)),
+		CWXScriptKeyword("min", prop.msgs.aptPhysical, prop.msgs.physicalName(Physical.Min)),
 
 		// 精神特性
-		CWXScriptKeyword("agg", prop.msgs.aptMental, prop.msgs.mentalName(Mental.AGGRESSIVE)),
-		CWXScriptKeyword("unagg", prop.msgs.aptMental, prop.msgs.mentalName(Mental.UNAGGRESSIVE)),
-		CWXScriptKeyword("cheerf", prop.msgs.aptMental, prop.msgs.mentalName(Mental.CHEERFUL)),
-		CWXScriptKeyword("uncheerf", prop.msgs.aptMental, prop.msgs.mentalName(Mental.UNCHEERFUL)),
-		CWXScriptKeyword("brave", prop.msgs.aptMental, prop.msgs.mentalName(Mental.BRAVE)),
-		CWXScriptKeyword("unbrave", prop.msgs.aptMental, prop.msgs.mentalName(Mental.UNBRAVE)),
-		CWXScriptKeyword("caut", prop.msgs.aptMental, prop.msgs.mentalName(Mental.CAUTIOUS)),
-		CWXScriptKeyword("uncaut", prop.msgs.aptMental, prop.msgs.mentalName(Mental.UNCAUTIOUS)),
-		CWXScriptKeyword("trick", prop.msgs.aptMental, prop.msgs.mentalName(Mental.TRICKISH)),
-		CWXScriptKeyword("untrick", prop.msgs.aptMental, prop.msgs.mentalName(Mental.UNTRICKISH)),
+		CWXScriptKeyword("agg", prop.msgs.aptMental, prop.msgs.mentalName(Mental.Aggressive)),
+		CWXScriptKeyword("unagg", prop.msgs.aptMental, prop.msgs.mentalName(Mental.Unaggressive)),
+		CWXScriptKeyword("cheerf", prop.msgs.aptMental, prop.msgs.mentalName(Mental.Cheerful)),
+		CWXScriptKeyword("uncheerf", prop.msgs.aptMental, prop.msgs.mentalName(Mental.Uncheerful)),
+		CWXScriptKeyword("brave", prop.msgs.aptMental, prop.msgs.mentalName(Mental.Brave)),
+		CWXScriptKeyword("unbrave", prop.msgs.aptMental, prop.msgs.mentalName(Mental.Unbrave)),
+		CWXScriptKeyword("caut", prop.msgs.aptMental, prop.msgs.mentalName(Mental.Cautious)),
+		CWXScriptKeyword("uncaut", prop.msgs.aptMental, prop.msgs.mentalName(Mental.Uncautious)),
+		CWXScriptKeyword("trick", prop.msgs.aptMental, prop.msgs.mentalName(Mental.Trickish)),
+		CWXScriptKeyword("untrick", prop.msgs.aptMental, prop.msgs.mentalName(Mental.Untrickish)),
 
 		// 状態
-		CWXScriptKeyword("none", prop.msgs.status, prop.msgs.statusName(Status.NONE)),
-		CWXScriptKeyword("active", prop.msgs.status, prop.msgs.statusName(Status.ACTIVE)),
-		CWXScriptKeyword("inactive", prop.msgs.status, prop.msgs.statusName(Status.INACTIVE)),
-		CWXScriptKeyword("alive", prop.msgs.status, prop.msgs.statusName(Status.ALIVE)),
-		CWXScriptKeyword("dead", prop.msgs.status, prop.msgs.statusName(Status.DEAD)),
-		CWXScriptKeyword("fine", prop.msgs.status, prop.msgs.statusName(Status.FINE)),
-		CWXScriptKeyword("injured", prop.msgs.status, prop.msgs.statusName(Status.INJURED)),
-		CWXScriptKeyword("heavyinjured", prop.msgs.status, prop.msgs.statusName(Status.HEAVY_INJURED)),
-		CWXScriptKeyword("unconscious", prop.msgs.status, prop.msgs.statusName(Status.UNCONSCIOUS)),
-		CWXScriptKeyword("poison", prop.msgs.status, prop.msgs.statusName(Status.POISON)),
-		CWXScriptKeyword("sleep", prop.msgs.status, prop.msgs.statusName(Status.SLEEP)),
-		CWXScriptKeyword("bind", prop.msgs.status, prop.msgs.statusName(Status.BIND)),
-		CWXScriptKeyword("paralyze", prop.msgs.status, prop.msgs.statusName(Status.PARALYZE)),
-		CWXScriptKeyword("confuse", prop.msgs.status, prop.msgs.statusName(Status.CONFUSE)),
-		CWXScriptKeyword("overheat", prop.msgs.status, prop.msgs.statusName(Status.OVERHEAT)),
-		CWXScriptKeyword("brave", prop.msgs.status, prop.msgs.statusName(Status.BRAVE)),
-		CWXScriptKeyword("panic", prop.msgs.status, prop.msgs.statusName(Status.PANIC)),
-		CWXScriptKeyword("silence", prop.msgs.status, prop.msgs.statusName(Status.SILENCE)),
-		CWXScriptKeyword("faceup", prop.msgs.status, prop.msgs.statusName(Status.FACE_UP)),
-		CWXScriptKeyword("antimagic", prop.msgs.status, prop.msgs.statusName(Status.ANTI_MAGIC)),
-		CWXScriptKeyword("upaction", prop.msgs.status, prop.msgs.statusName(Status.UP_ACTION)),
-		CWXScriptKeyword("upavoid", prop.msgs.status, prop.msgs.statusName(Status.UP_AVOID)),
-		CWXScriptKeyword("upresit", prop.msgs.status, prop.msgs.statusName(Status.UP_RESIST)),
-		CWXScriptKeyword("updefense", prop.msgs.status, prop.msgs.statusName(Status.UP_DEFENSE)),
-		CWXScriptKeyword("downaction", prop.msgs.status, prop.msgs.statusName(Status.DOWN_ACTION)),
-		CWXScriptKeyword("downavoid", prop.msgs.status, prop.msgs.statusName(Status.DOWN_AVOID)),
-		CWXScriptKeyword("downresit", prop.msgs.status, prop.msgs.statusName(Status.DOWN_RESIST)),
-		CWXScriptKeyword("downdefense", prop.msgs.status, prop.msgs.statusName(Status.DOWN_DEFENSE)),
+		CWXScriptKeyword("none", prop.msgs.status, prop.msgs.statusName(Status.None)),
+		CWXScriptKeyword("active", prop.msgs.status, prop.msgs.statusName(Status.Active)),
+		CWXScriptKeyword("inactive", prop.msgs.status, prop.msgs.statusName(Status.Inactive)),
+		CWXScriptKeyword("alive", prop.msgs.status, prop.msgs.statusName(Status.Alive)),
+		CWXScriptKeyword("dead", prop.msgs.status, prop.msgs.statusName(Status.Dead)),
+		CWXScriptKeyword("fine", prop.msgs.status, prop.msgs.statusName(Status.Fine)),
+		CWXScriptKeyword("injured", prop.msgs.status, prop.msgs.statusName(Status.Injured)),
+		CWXScriptKeyword("heavyinjured", prop.msgs.status, prop.msgs.statusName(Status.HeavyInjured)),
+		CWXScriptKeyword("unconscious", prop.msgs.status, prop.msgs.statusName(Status.Unconscious)),
+		CWXScriptKeyword("poison", prop.msgs.status, prop.msgs.statusName(Status.Poison)),
+		CWXScriptKeyword("sleep", prop.msgs.status, prop.msgs.statusName(Status.Sleep)),
+		CWXScriptKeyword("bind", prop.msgs.status, prop.msgs.statusName(Status.Bind)),
+		CWXScriptKeyword("paralyze", prop.msgs.status, prop.msgs.statusName(Status.Paralyze)),
+		CWXScriptKeyword("confuse", prop.msgs.status, prop.msgs.statusName(Status.Confuse)),
+		CWXScriptKeyword("overheat", prop.msgs.status, prop.msgs.statusName(Status.Overheat)),
+		CWXScriptKeyword("brave", prop.msgs.status, prop.msgs.statusName(Status.Brave)),
+		CWXScriptKeyword("panic", prop.msgs.status, prop.msgs.statusName(Status.Panic)),
+		CWXScriptKeyword("silence", prop.msgs.status, prop.msgs.statusName(Status.Silence)),
+		CWXScriptKeyword("faceup", prop.msgs.status, prop.msgs.statusName(Status.FaceUp)),
+		CWXScriptKeyword("antimagic", prop.msgs.status, prop.msgs.statusName(Status.AntiMagic)),
+		CWXScriptKeyword("upaction", prop.msgs.status, prop.msgs.statusName(Status.UpAction)),
+		CWXScriptKeyword("upavoid", prop.msgs.status, prop.msgs.statusName(Status.UpAvoid)),
+		CWXScriptKeyword("upresit", prop.msgs.status, prop.msgs.statusName(Status.UpResist)),
+		CWXScriptKeyword("updefense", prop.msgs.status, prop.msgs.statusName(Status.UpDefense)),
+		CWXScriptKeyword("downaction", prop.msgs.status, prop.msgs.statusName(Status.DownAction)),
+		CWXScriptKeyword("downavoid", prop.msgs.status, prop.msgs.statusName(Status.DownAvoid)),
+		CWXScriptKeyword("downresit", prop.msgs.status, prop.msgs.statusName(Status.DownResist)),
+		CWXScriptKeyword("downdefense", prop.msgs.status, prop.msgs.statusName(Status.DownDefense)),
 
 		// 選択対象
-		CWXScriptKeyword("party", prop.msgs.selectMember, .tryFormat(prop.msgs.castRange1, prop.msgs.castRangeName(CastRange.PARTY))),
-		CWXScriptKeyword("enemy", prop.msgs.selectMember, .tryFormat(prop.msgs.castRange1, prop.msgs.castRangeName(CastRange.ENEMY))),
-		CWXScriptKeyword("npc", prop.msgs.selectMember, .tryFormat(prop.msgs.castRange1, prop.msgs.castRangeName(CastRange.NPC))),
+		CWXScriptKeyword("party", prop.msgs.selectMember, .tryFormat(prop.msgs.castRange1, prop.msgs.castRangeName(CastRange.Party))),
+		CWXScriptKeyword("enemy", prop.msgs.selectMember, .tryFormat(prop.msgs.castRange1, prop.msgs.castRangeName(CastRange.Enemy))),
+		CWXScriptKeyword("npc", prop.msgs.selectMember, .tryFormat(prop.msgs.castRange1, prop.msgs.castRangeName(CastRange.Npc))),
 
 		// カード種類
-		CWXScriptKeyword("all", prop.msgs.cardType, prop.msgs.effectCardTypeName(EffectCardType.ALL)),
-		CWXScriptKeyword("skill", prop.msgs.cardType, prop.msgs.effectCardTypeName(EffectCardType.SKILL)),
-		CWXScriptKeyword("item", prop.msgs.cardType, prop.msgs.effectCardTypeName(EffectCardType.ITEM)),
-		CWXScriptKeyword("beast", prop.msgs.cardType, prop.msgs.effectCardTypeName(EffectCardType.BEAST)),
-		CWXScriptKeyword("hand", prop.msgs.cardType, prop.msgs.effectCardTypeName(EffectCardType.HAND)),
+		CWXScriptKeyword("all", prop.msgs.cardType, prop.msgs.effectCardTypeName(EffectCardType.All)),
+		CWXScriptKeyword("skill", prop.msgs.cardType, prop.msgs.effectCardTypeName(EffectCardType.Skill)),
+		CWXScriptKeyword("item", prop.msgs.cardType, prop.msgs.effectCardTypeName(EffectCardType.Item)),
+		CWXScriptKeyword("beast", prop.msgs.cardType, prop.msgs.effectCardTypeName(EffectCardType.Beast)),
+		CWXScriptKeyword("hand", prop.msgs.cardType, prop.msgs.effectCardTypeName(EffectCardType.Hand)),
 
 		// マッチングタイプ (Wsn.2)
 		CWXScriptKeyword("and", prop.msgs.matchingType, prop.msgs.matchingTypeName(MatchingType.And)),

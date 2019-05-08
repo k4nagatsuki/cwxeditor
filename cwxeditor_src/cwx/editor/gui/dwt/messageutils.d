@@ -136,9 +136,9 @@ class AbstractMessageDialog : EventDialog {
 	private class SelPrev : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			updateShowPreview();
-			if (type is CType.TALK_MESSAGE) { mixin(S_TRACE);
+			if (type is CType.TalkMessage) { mixin(S_TRACE);
 				prop.var.etc.showMessagePreview = _preview ? _preview.isVisible() : _previewWin.isVisible();
-			} else if (type is CType.TALK_DIALOG) { mixin(S_TRACE);
+			} else if (type is CType.TalkDialog) { mixin(S_TRACE);
 				prop.var.etc.showDialogPreview = _preview ? _preview.isVisible() : _previewWin.isVisible();
 			} else assert (0);
 			if (!_previewWin) { mixin(S_TRACE);
@@ -286,9 +286,9 @@ class AbstractMessageDialog : EventDialog {
 		_prev.setLayoutData(pgd);
 		_prev.setText(prop.msgs.messagePreview);
 		bool show;
-		if (type is CType.TALK_MESSAGE) { mixin(S_TRACE);
+		if (type is CType.TalkMessage) { mixin(S_TRACE);
 			show = prop.var.etc.showMessagePreview;
-		} else if (type is CType.TALK_DIALOG) { mixin(S_TRACE);
+		} else if (type is CType.TalkDialog) { mixin(S_TRACE);
 			show = prop.var.etc.showDialogPreview;
 		} else assert (0);
 		_prev.setSelection(show);
@@ -301,9 +301,9 @@ class AbstractMessageDialog : EventDialog {
 			scope (exit) shell.setRedraw(true);
 			initPreview2(area, size);
 			updateShowPreview();
-			if (type is CType.TALK_MESSAGE) { mixin(S_TRACE);
+			if (type is CType.TalkMessage) { mixin(S_TRACE);
 				show = prop.var.etc.showMessagePreview;
-			} else if (type is CType.TALK_DIALOG) { mixin(S_TRACE);
+			} else if (type is CType.TalkDialog) { mixin(S_TRACE);
 				show = prop.var.etc.showDialogPreview;
 			} else assert (0);
 			if (show) { mixin(S_TRACE);
@@ -358,9 +358,9 @@ class AbstractMessageDialog : EventDialog {
 	override
 	protected void opened() { mixin(S_TRACE);
 		if (!_previewWin) return;
-		if (type is CType.TALK_MESSAGE) { mixin(S_TRACE);
+		if (type is CType.TalkMessage) { mixin(S_TRACE);
 			if (prop.var.etc.showMessagePreview) _previewWin.open();
-		} else if (type is CType.TALK_DIALOG) { mixin(S_TRACE);
+		} else if (type is CType.TalkDialog) { mixin(S_TRACE);
 			if (prop.var.etc.showDialogPreview) _previewWin.open();
 		} else assert (0);
 	}
@@ -521,7 +521,7 @@ private:
 		string[] ws;
 
 		if (!prop.targetVersion(summ, "1.50")) { mixin(S_TRACE);
-			if (Talker.VALUED is selectedTalker) { mixin(S_TRACE);
+			if (Talker.Valued is selectedTalker) { mixin(S_TRACE);
 				ws ~= prop.msgs.warningValuedTalker;
 			}
 		}
@@ -539,7 +539,7 @@ private:
 				_dlgsL.getItem(cast(int)i).setImage(prop.images.warning);
 				_dlgWarnings ~= dws.all;
 			} else { mixin(S_TRACE);
-				_dlgsL.getItem(cast(int)i).setImage(prop.images.content(CType.TALK_DIALOG));
+				_dlgsL.getItem(cast(int)i).setImage(prop.images.content(CType.TalkDialog));
 			}
 			ws ~= dws.noDup;
 
@@ -548,7 +548,7 @@ private:
 			}
 		}
 
-		if (selectedTalker is Talker.VALUED) { mixin(S_TRACE);
+		if (selectedTalker is Talker.Valued) { mixin(S_TRACE);
 			ws ~= _couponView.warnings;
 		}
 
@@ -638,7 +638,7 @@ private:
 		if (index < 0) index = cast(int)_dlgs.length;
 		_dlgs = _dlgs[0 .. index] ~ dlg ~ _dlgs[index .. $];
 		auto itm = new TableItem(_dlgsL, SWT.NONE, index);
-		itm.setImage(prop.images.content(CType.TALK_DIALOG));
+		itm.setImage(prop.images.content(CType.TalkDialog));
 		_dlgsL.setSelection([itm]);
 		_dlgsL.showSelection();
 		selectChanged();
@@ -785,7 +785,7 @@ private:
 		dlg.rCoupons = rcs;
 	}
 	void updateTalker() { mixin(S_TRACE);
-		_couponView.enabled = (Talker.VALUED is selectedTalker);
+		_couponView.enabled = (Talker.Valued is selectedTalker);
 		_initValue.setEnabled(_couponView.enabled);
 		comm.refreshToolBar();
 	}
@@ -941,7 +941,7 @@ private:
 		_dlgsL.removeAll();
 		foreach (dlg; _dlgs) { mixin(S_TRACE);
 			auto itm = new TableItem(_dlgsL, SWT.NONE);
-			itm.setImage(prop.images.content(CType.TALK_DIALOG));
+			itm.setImage(prop.images.content(CType.TalkDialog));
 			string text = dlg.text.singleLine;
 			// FIXME: ""をsetTextするとArgument cannot be null
 			itm.setText(text.length > 0 ? text : " ");
@@ -1000,7 +1000,7 @@ private:
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, Content parent, Content evt) { mixin(S_TRACE);
 		_id = .objectIDValue(this);
-		super(comm, prop, shell, summ, uc, CType.TALK_DIALOG, parent, evt, prop.var.speakDlg);
+		super(comm, prop, shell, summ, uc, CType.TalkDialog, parent, evt, prop.var.speakDlg);
 	}
 
 	override
@@ -1032,10 +1032,10 @@ public:
 	@property
 	Talker selectedTalker() { mixin(S_TRACE);
 		switch (_talkers.getSelectionIndex()) {
-		case 0: return Talker.SELECTED;
-		case 1: return Talker.UNSELECTED;
-		case 2: return Talker.RANDOM;
-		case 3: return Talker.VALUED;
+		case 0: return Talker.Selected;
+		case 1: return Talker.Unselected;
+		case 2: return Talker.Random;
+		case 3: return Talker.Valued;
 		default: assert (0);
 		}
 	}
@@ -1061,10 +1061,10 @@ protected:
 			_talkers = new Combo(grp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
 			mod(_talkers);
 			_talkers.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			_talkers.add(prop.msgs.defaultSelection(prop.msgs.talkerName(Talker.SELECTED)));
-			_talkers.add(prop.msgs.defaultSelection(prop.msgs.talkerName(Talker.UNSELECTED)));
-			_talkers.add(prop.msgs.defaultSelection(prop.msgs.talkerName(Talker.RANDOM)));
-			_talkers.add(prop.msgs.defaultSelection(prop.msgs.talkerName(Talker.VALUED)));
+			_talkers.add(prop.msgs.defaultSelection(prop.msgs.talkerName(Talker.Selected)));
+			_talkers.add(prop.msgs.defaultSelection(prop.msgs.talkerName(Talker.Unselected)));
+			_talkers.add(prop.msgs.defaultSelection(prop.msgs.talkerName(Talker.Random)));
+			_talkers.add(prop.msgs.defaultSelection(prop.msgs.talkerName(Talker.Valued)));
 			_talkers.addSelectionListener(new SelectTalker);
 		}
 
@@ -1196,16 +1196,16 @@ protected:
 		scope (exit) ignoreMod = false;
 		if (evt) { mixin(S_TRACE);
 			switch (evt.talkerNC) {
-			case Talker.SELECTED:
+			case Talker.Selected:
 				_talkers.select(0);
 				break;
-			case Talker.UNSELECTED:
+			case Talker.Unselected:
 				_talkers.select(1);
 				break;
-			case Talker.RANDOM:
+			case Talker.Random:
 				_talkers.select(2);
 				break;
-			case Talker.VALUED:
+			case Talker.Valued:
 				_talkers.select(3);
 				break;
 			default:
@@ -1246,10 +1246,10 @@ protected:
 	}
 
 	override bool apply() { mixin(S_TRACE);
-		if (!evt) evt = new Content(CType.TALK_DIALOG, "");
+		if (!evt) evt = new Content(CType.TalkDialog, "");
 		evt.dialogs = _dlgs;
 		evt.talkerNC = selectedTalker;
-		if (Talker.VALUED is evt.talkerNC) { mixin(S_TRACE);
+		if (Talker.Valued is evt.talkerNC) { mixin(S_TRACE);
 			evt.coupons = _couponView.coupons;
 			evt.initValue = _initValue.getSelection();
 		} else { mixin(S_TRACE);
@@ -1304,7 +1304,7 @@ private:
 	@property
 	protected override bool hasCharacterTalker() { mixin(S_TRACE);
 		foreach (imgPath; selectedTalkerParam) { mixin(S_TRACE);
-			if (imgPath.type is CardImageType.Talker && imgPath.talker !is Talker.CARD) { mixin(S_TRACE);
+			if (imgPath.type is CardImageType.Talker && imgPath.talker !is Talker.Card) { mixin(S_TRACE);
 				return true;
 			}
 		}
@@ -1354,7 +1354,7 @@ private:
 	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, Content parent, Content evt) { mixin(S_TRACE);
-		super (comm, prop, shell, summ, uc, CType.TALK_MESSAGE, parent, evt, prop.var.msgDlg);
+		super (comm, prop, shell, summ, uc, CType.TalkMessage, parent, evt, prop.var.msgDlg);
 	}
 
 	CardImage[] selectedTalkerParam() { mixin(S_TRACE);
@@ -1483,7 +1483,7 @@ protected:
 		string text;
 		auto paths = selectedTalkerParam();
 		text = lastRet(wrapReturnCode(_text.getText()));
-		if (!evt) evt = new Content(CType.TALK_MESSAGE, "");
+		if (!evt) evt = new Content(CType.TalkMessage, "");
 		evt.text = text;
 		evt.cardPaths = paths;
 		evt.selectionColumns = _selectionColumns.getSelection();
@@ -1549,21 +1549,21 @@ private Composite createTalkerPane(Composite parent, Commons comm, Props prop, S
 		comp.setLayout(zeroMarginGridLayout(1, true));
 	}
 	string[] defs = [
-		prop.msgs.defaultSelection(prop.msgs.talkerName(Talker.SELECTED)),
-		prop.msgs.defaultSelection(prop.msgs.talkerName(Talker.UNSELECTED)),
-		prop.msgs.defaultSelection(prop.msgs.talkerName(Talker.RANDOM)),
-		prop.msgs.defaultSelection(prop.msgs.talkerName(Talker.CARD))
+		prop.msgs.defaultSelection(prop.msgs.talkerName(Talker.Selected)),
+		prop.msgs.defaultSelection(prop.msgs.talkerName(Talker.Unselected)),
+		prop.msgs.defaultSelection(prop.msgs.talkerName(Talker.Random)),
+		prop.msgs.defaultSelection(prop.msgs.talkerName(Talker.Card))
 	];
 	auto s = prop.looks.cardSize;
 	msel = new ImageSelect!(MtType.CARD, Combo)(comp, SWT.NONE, comm, prop, summ, prop.s(s.width), prop.s(s.height),
 		prop.s(CInsets(0, 0, 0, 0)), CardImagePosition.TopLeft, false, () => "", null, included => defs);
-	msel.createDefaultItem = () => new CardImage(Talker.SELECTED);
+	msel.createDefaultItem = () => new CardImage(Talker.Selected);
 	msel.valueFromDef = (defIndex, included, binPath) { mixin(S_TRACE);
 		switch (defIndex) {
-		case 0: return new CardImage(Talker.SELECTED);
-		case 1: return new CardImage(Talker.UNSELECTED);
-		case 2: return new CardImage(Talker.RANDOM);
-		case 3: return new CardImage(Talker.CARD);
+		case 0: return new CardImage(Talker.Selected);
+		case 1: return new CardImage(Talker.Unselected);
+		case 2: return new CardImage(Talker.Random);
+		case 3: return new CardImage(Talker.Card);
 		default: return new CardImage("", CardImagePosition.Default);
 		}
 	};
@@ -1575,17 +1575,17 @@ private Composite createTalkerPane(Composite parent, Commons comm, Props prop, S
 			return -1; // 非対応
 		case CardImageType.Talker:
 			final switch (imgPath.talker) {
-			case Talker.SELECTED: return 0;
-			case Talker.UNSELECTED: return 1;
-			case Talker.RANDOM: return 2;
-			case Talker.CARD: return 3;
-			case Talker.VALUED: return -1; // 非対応
+			case Talker.Selected: return 0;
+			case Talker.Unselected: return 1;
+			case Talker.Random: return 2;
+			case Talker.Card: return 3;
+			case Talker.Valued: return -1; // 非対応
 			}
 		}
 	};
 	auto gd = new GridData(GridData.FILL_BOTH);
 	msel.widget.setLayoutData(gd);
-	msel.images = paths.length ? paths : [new CardImage(Talker.SELECTED)];
+	msel.images = paths.length ? paths : [new CardImage(Talker.Selected)];
 
 	void refImageScale() { mixin(S_TRACE);
 		msel.setPreviewSize(prop.s(s.width), prop.s(s.height), prop.s(CInsets(0, 0, 0, 0)));
@@ -1685,13 +1685,13 @@ private ToolBar createSCharBar(Commons comm, Summary summ, Composite parent,
 	}
 	new ToolItem(bar, SWT.SEPARATOR);
 	createToolItem2(comm, bar, prop.msgs.scRef, prop.images.scRef, &(new PutC(insert, "#I")).put, null);
-	createToolItem2(comm, bar, prop.msgs.scTalkerName(Talker.SELECTED), prop.images.scTalker(Talker.SELECTED),
+	createToolItem2(comm, bar, prop.msgs.scTalkerName(Talker.Selected), prop.images.scTalker(Talker.Selected),
 		&(new PutC(insert, "#M")).put, null);
-	createToolItem2(comm, bar, prop.msgs.scTalkerName(Talker.UNSELECTED), prop.images.scTalker(Talker.UNSELECTED),
+	createToolItem2(comm, bar, prop.msgs.scTalkerName(Talker.Unselected), prop.images.scTalker(Talker.Unselected),
 		&(new PutC(insert, "#U")).put, null);
-	createToolItem2(comm, bar, prop.msgs.scTalkerName(Talker.RANDOM), prop.images.scTalker(Talker.RANDOM),
+	createToolItem2(comm, bar, prop.msgs.scTalkerName(Talker.Random), prop.images.scTalker(Talker.Random),
 		&(new PutC(insert, "#R")).put, null);
-	createToolItem2(comm, bar, prop.msgs.scTalkerName(Talker.CARD), prop.images.scTalker(Talker.CARD),
+	createToolItem2(comm, bar, prop.msgs.scTalkerName(Talker.Card), prop.images.scTalker(Talker.Card),
 		&(new PutC(insert, "#C")).put, null);
 	createToolItem2(comm, bar, prop.msgs.scTeam, prop.images.scTeam, &(new PutC(insert, "#T")).put, null);
 	createToolItem2(comm, bar, prop.msgs.scYado, prop.images.scYado, &(new PutC(insert, "#Y")).put, null);
@@ -1710,11 +1710,11 @@ ToolBar createSimpleSCharBar(Composite parent,
 	bar.addListener(SWT.KeyDown, new class Listener {
 		override void handleEvent(Event e) { e.doit = true; }
 	});
-	createToolItem2(comm, bar, prop.msgs.scTalkerName(Talker.SELECTED), prop.images.scTalker(Talker.SELECTED),
+	createToolItem2(comm, bar, prop.msgs.scTalkerName(Talker.Selected), prop.images.scTalker(Talker.Selected),
 		&(new PutC(insert, "#M")).put, null);
-	createToolItem2(comm, bar, prop.msgs.scTalkerName(Talker.UNSELECTED), prop.images.scTalker(Talker.UNSELECTED),
+	createToolItem2(comm, bar, prop.msgs.scTalkerName(Talker.Unselected), prop.images.scTalker(Talker.Unselected),
 		&(new PutC(insert, "#U")).put, null);
-	createToolItem2(comm, bar, prop.msgs.scTalkerName(Talker.RANDOM), prop.images.scTalker(Talker.RANDOM),
+	createToolItem2(comm, bar, prop.msgs.scTalkerName(Talker.Random), prop.images.scTalker(Talker.Random),
 		&(new PutC(insert, "#R")).put, null);
 	createToolItem2(comm, bar, prop.msgs.scTeam, prop.images.scTeam, &(new PutC(insert, "#T")).put, null);
 	createToolItem2(comm, bar, prop.msgs.scYado, prop.images.scYado, &(new PutC(insert, "#Y")).put, null);
@@ -2964,23 +2964,23 @@ class PreviewValues : Composite {
 			auto itm = new TableItem(_values, SWT.NONE);
 			final switch (cast(SPChar)i) {
 			case SPChar.M:
-				itm.setImage(0, _prop.images.scTalker(Talker.SELECTED));
-				itm.setText(0, _prop.msgs.scTalkerName(Talker.SELECTED));
+				itm.setImage(0, _prop.images.scTalker(Talker.Selected));
+				itm.setText(0, _prop.msgs.scTalkerName(Talker.Selected));
 				itm.setText(1, _prop.var.etc.messageVarSelected);
 				break;
 			case SPChar.U:
-				itm.setImage(0, _prop.images.scTalker(Talker.UNSELECTED));
-				itm.setText(0, _prop.msgs.scTalkerName(Talker.UNSELECTED));
+				itm.setImage(0, _prop.images.scTalker(Talker.Unselected));
+				itm.setText(0, _prop.msgs.scTalkerName(Talker.Unselected));
 				itm.setText(1, _prop.var.etc.messageVarUnselected);
 				break;
 			case SPChar.R:
-				itm.setImage(0, _prop.images.scTalker(Talker.RANDOM));
-				itm.setText(0, _prop.msgs.scTalkerName(Talker.RANDOM));
+				itm.setImage(0, _prop.images.scTalker(Talker.Random));
+				itm.setText(0, _prop.msgs.scTalkerName(Talker.Random));
 				itm.setText(1, _prop.var.etc.messageVarRandom);
 				break;
 			case SPChar.C:
-				itm.setImage(0, _prop.images.scTalker(Talker.CARD));
-				itm.setText(0, _prop.msgs.scTalkerName(Talker.CARD));
+				itm.setImage(0, _prop.images.scTalker(Talker.Card));
+				itm.setText(0, _prop.msgs.scTalkerName(Talker.Card));
 				itm.setText(1, _prop.var.etc.messageVarCard);
 				break;
 			case SPChar.I:
@@ -3291,14 +3291,14 @@ class MsgPreview : Composite {
 				break;
 			case CardImageType.Talker:
 				final switch (imgPath.talker) {
-				case Talker.SELECTED:
-				case Talker.UNSELECTED:
-				case Talker.RANDOM:
-				case Talker.VALUED:
+				case Talker.Selected:
+				case Talker.Unselected:
+				case Talker.Random:
+				case Talker.Valued:
 					tImg ~= new ImageDataWithScale(_prop.images.talker(imgPath.talker).getImageData(), .dpiMuls);
 					pos ~= CardImagePosition.Default;
 					break;
-				case Talker.CARD:
+				case Talker.Card:
 					auto cRect = _prop.looks.cardSize;
 					auto imgData = .menuCard(_comm.skin, _comm.prop.drawingScale);
 					auto data = imgData.scaled(_comm.prop.drawingScale).scaledTo(_comm.prop.ds(cRect.width), _comm.prop.ds(cRect.height));
@@ -3769,20 +3769,20 @@ void setupSPCharsMenu(Commons comm, Summary summ, UseCounter uc, Control ctrl, M
 				}
 				final switch (spc) {
 				case SPChar.M:
-					.createMenuItem2(comm, menu, comm.prop.msgs.scTalkerName(Talker.SELECTED),
-						comm.prop.images.scTalker(Talker.SELECTED), &put, null);
+					.createMenuItem2(comm, menu, comm.prop.msgs.scTalkerName(Talker.Selected),
+						comm.prop.images.scTalker(Talker.Selected), &put, null);
 					break;
 				case SPChar.U:
-					.createMenuItem2(comm, menu, comm.prop.msgs.scTalkerName(Talker.UNSELECTED),
-						comm.prop.images.scTalker(Talker.UNSELECTED), &put, null);
+					.createMenuItem2(comm, menu, comm.prop.msgs.scTalkerName(Talker.Unselected),
+						comm.prop.images.scTalker(Talker.Unselected), &put, null);
 					break;
 				case SPChar.R:
-					.createMenuItem2(comm, menu, comm.prop.msgs.scTalkerName(Talker.RANDOM),
-						comm.prop.images.scTalker(Talker.RANDOM), &put, null);
+					.createMenuItem2(comm, menu, comm.prop.msgs.scTalkerName(Talker.Random),
+						comm.prop.images.scTalker(Talker.Random), &put, null);
 					break;
 				case SPChar.C:
-					.createMenuItem2(comm, menu, comm.prop.msgs.scTalkerName(Talker.CARD),
-						comm.prop.images.scTalker(Talker.CARD), &put, null);
+					.createMenuItem2(comm, menu, comm.prop.msgs.scTalkerName(Talker.Card),
+						comm.prop.images.scTalker(Talker.Card), &put, null);
 					break;
 				case SPChar.I:
 					.createMenuItem2(comm, menu, comm.prop.msgs.scRef, comm.prop.images.scRef, &put, null);

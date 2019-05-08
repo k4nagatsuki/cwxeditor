@@ -36,192 +36,192 @@ private void static_this () { mixin(S_TRACE);
 
 	_CTYPE_GROUP = [
 		CTypeGroup.Terminal:[
-			CType.START,
-			CType.START_BATTLE,
-			CType.END,
-			CType.END_BAD_END,
-			CType.CHANGE_AREA,
-			CType.EFFECT_BREAK,
-			CType.LINK_START,
-			CType.LINK_PACKAGE,
+			CType.Start,
+			CType.StartBattle,
+			CType.End,
+			CType.EndBadEnd,
+			CType.ChangeArea,
+			CType.EffectBreak,
+			CType.LinkStart,
+			CType.LinkPackage,
 		], CTypeGroup.Standard:[
-			CType.TALK_MESSAGE,
-			CType.TALK_DIALOG,
-			CType.PLAY_BGM,
-			CType.PLAY_SOUND,
-			CType.WAIT,
-			CType.ELAPSE_TIME,
-			CType.EFFECT,
-			CType.CHANGE_ENVIRONMENT, // Wsn.4
-			CType.CALL_START,
-			CType.CALL_PACKAGE,
+			CType.TalkMessage,
+			CType.TalkDialog,
+			CType.PlayBgm,
+			CType.PlaySound,
+			CType.Wait,
+			CType.ElapseTime,
+			CType.Effect,
+			CType.ChangeEnvironment, // Wsn.4
+			CType.CallStart,
+			CType.CallPackage,
 		], CTypeGroup.Data:[
-			CType.BRANCH_FLAG,
-			CType.SET_FLAG,
-			CType.REVERSE_FLAG,
-			CType.BRANCH_MULTI_STEP,
-			CType.BRANCH_STEP,
-			CType.SET_STEP,
-			CType.SET_STEP_UP,
-			CType.SET_STEP_DOWN,
-			CType.SUBSTITUTE_STEP,
-			CType.SUBSTITUTE_FLAG,
-			CType.BRANCH_STEP_CMP,
-			CType.BRANCH_FLAG_CMP,
-			CType.CHECK_FLAG,
-			CType.CHECK_STEP,
+			CType.BranchFlag,
+			CType.SetFlag,
+			CType.ReverseFlag,
+			CType.BranchMultiStep,
+			CType.BranchStep,
+			CType.SetStep,
+			CType.SetStepUp,
+			CType.SetStepDown,
+			CType.SubstituteStep,
+			CType.SubstituteFlag,
+			CType.BranchStepCmp,
+			CType.BranchFlagCmp,
+			CType.CheckFlag,
+			CType.CheckStep,
 		], CTypeGroup.Utility:[
-			CType.BRANCH_SELECT,
-			CType.BRANCH_ABILITY,
-			CType.BRANCH_RANDOM,
-			CType.BRANCH_MULTI_RANDOM, // Wsn.2
-			CType.BRANCH_LEVEL,
-			CType.BRANCH_STATUS,
-			CType.BRANCH_PARTY_NUMBER,
-			CType.BRANCH_AREA,
-			CType.BRANCH_BATTLE,
-			CType.BRANCH_IS_BATTLE,
-			CType.BRANCH_RANDOM_SELECT,
-			CType.BRANCH_ROUND,
+			CType.BranchSelect,
+			CType.BranchAbility,
+			CType.BranchRandom,
+			CType.BranchMultiRandom, // Wsn.2
+			CType.BranchLevel,
+			CType.BranchStatus,
+			CType.BranchPartyNumber,
+			CType.BranchArea,
+			CType.BranchBattle,
+			CType.BranchIsBattle,
+			CType.BranchRandomSelect,
+			CType.BranchRound,
 		], CTypeGroup.Branch:[
-			CType.BRANCH_CAST,
-			CType.BRANCH_ITEM,
-			CType.BRANCH_SKILL,
-			CType.BRANCH_INFO,
-			CType.BRANCH_BEAST,
-			CType.BRANCH_MONEY,
-			CType.BRANCH_COUPON,
-			CType.BRANCH_MULTI_COUPON, // Wsn.2
-			CType.BRANCH_COMPLETE_STAMP,
-			CType.BRANCH_GOSSIP,
-			CType.BRANCH_KEY_CODE,
+			CType.BranchCast,
+			CType.BranchItem,
+			CType.BranchSkill,
+			CType.BranchInfo,
+			CType.BranchBeast,
+			CType.BranchMoney,
+			CType.BranchCoupon,
+			CType.BranchMultiCoupon, // Wsn.2
+			CType.BranchCompleteStamp,
+			CType.BranchGossip,
+			CType.BranchKeyCode,
 		], CTypeGroup.Get:[
-			CType.GET_CAST,
-			CType.GET_ITEM,
-			CType.GET_SKILL,
-			CType.GET_INFO,
-			CType.GET_BEAST,
-			CType.GET_MONEY,
-			CType.GET_COUPON,
-			CType.GET_COMPLETE_STAMP,
-			CType.GET_GOSSIP,
+			CType.GetCast,
+			CType.GetItem,
+			CType.GetSkill,
+			CType.GetInfo,
+			CType.GetBeast,
+			CType.GetMoney,
+			CType.GetCoupon,
+			CType.GetCompleteStamp,
+			CType.GetGossip,
 		], CTypeGroup.Lost:[
-			CType.LOSE_CAST,
-			CType.LOSE_ITEM,
-			CType.LOSE_SKILL,
-			CType.LOSE_INFO,
-			CType.LOSE_BEAST,
-			CType.LOSE_MONEY,
-			CType.LOSE_COUPON,
-			CType.LOSE_COMPLETE_STAMP,
-			CType.LOSE_GOSSIP,
+			CType.LoseCast,
+			CType.LoseItem,
+			CType.LoseSkill,
+			CType.LoseInfo,
+			CType.LoseBeast,
+			CType.LoseMoney,
+			CType.LoseCoupon,
+			CType.LoseCompleteStamp,
+			CType.LoseGossip,
 		], CTypeGroup.Visual:[
-			CType.SHOW_PARTY,
-			CType.HIDE_PARTY,
-			CType.MOVE_CARD, // Wsn.3
-			CType.CHANGE_BG_IMAGE,
-			CType.MOVE_BG_IMAGE,
-			CType.REPLACE_BG_IMAGE,
-			CType.LOSE_BG_IMAGE,
-			CType.REDISPLAY,
+			CType.ShowParty,
+			CType.HideParty,
+			CType.MoveCard, // Wsn.3
+			CType.ChangeBgImage,
+			CType.MoveBgImage,
+			CType.ReplaceBgImage,
+			CType.LoseBgImage,
+			CType.Redisplay,
 		], CTypeGroup.Variant:[
-			CType.BRANCH_VARIANT, // Wsn.4
-			CType.SET_VARIANT, // Wsn.4
-			CType.CHECK_VARIANT, // Wsn.4
+			CType.BranchVariant, // Wsn.4
+			CType.SetVariant, // Wsn.4
+			CType.CheckVariant, // Wsn.4
 		],
 	];
 
 	string _(string v) { return v; }
 	_CONTENT_DETAILS = [
-		CType.START:CDetail("Start", "", CNextType.NONE, true),
-		CType.START_BATTLE:CDetail("Start", "Battle", CNextType.NONE, false, [CArg.BATTLE:"id"]),
-		CType.END:CDetail("End", "", CNextType.NONE, false, [CArg.COMPLETE:"complete"]),
-		CType.END_BAD_END:CDetail("End", "BadEnd", CNextType.NONE, false),
-		CType.CHANGE_AREA:CDetail("Change", "Area", CNextType.NONE, false, [CArg.AREA:_("id"), CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed"]),
-		CType.CHANGE_BG_IMAGE:CDetail("Change", "BgImage", CNextType.NONE, true, [CArg.BG_IMAGES:_(null), CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed"]),
-		CType.EFFECT:CDetail("Effect", "", CNextType.NONE, true, [CArg.SIGNED_LEVEL:_("level"), CArg.RANGE:"targetm", CArg.EFFECT_TYPE:"effecttype", CArg.RESIST:"resisttype",
-			CArg.SUCCESS_RATE:"successrate", CArg.CARD_VISUAL:"visual",
-			CArg.SOUND_PATH:_("sound"), CArg.SOUND_VOLUME:"volume", CArg.SOUND_LOOP_COUNT:"loopcount",
-			CArg.INITIAL_EFFECT:"initialeffect", CArg.INITIAL_SOUND_PATH:_("initialsound"), CArg.INITIAL_SOUND_VOLUME:"initialvolume", CArg.INITIAL_SOUND_LOOP_COUNT:"initialloopcount",
-			CArg.IGNITE:"ignite", CArg.HOLDING_COUPON:"holdingcoupon", CArg.REF_ABILITY:"refability", CArg.PHYSICAL:"physical", CArg.MENTAL:"mental", CArg.CARD_SPEED:"cardspeed", CArg.OVERRIDE_CARD_SPEED:"overridecardspeed",
-			CArg.KEY_CODES:null, CArg.MOTIONS:null]),
-		CType.EFFECT_BREAK:CDetail("Effect", "Break", CNextType.NONE, false, [CArg.CONSUME_CARD:"consumecard"]),
-		CType.LINK_START:CDetail("Link", "Start", CNextType.NONE, false, [CArg.START:"link"]),
-		CType.LINK_PACKAGE:CDetail("Link", "Package", CNextType.NONE, false, [CArg.PACKAGE:"link"]),
-		CType.TALK_MESSAGE:CDetail("Talk", "Message", CNextType.TEXT, true, [CArg.TALKER_C:_("path"), CArg.TEXT:null, CArg.SELECTION_COLUMNS:"columns", CArg.BOUNDARY_CHECK:"boundarycheck", CArg.CENTERING_X:"centeringx", CArg.CENTERING_Y:"centeringy", CArg.SELECT_TALKER:"selecttalker"]),
-		CType.TALK_DIALOG:CDetail("Talk", "Dialog", CNextType.TEXT, true, [CArg.TALKER_NC:_("targetm"), CArg.DIALOGS:null, CArg.COUPONS:null, CArg.INIT_VALUE:"initialValue", CArg.SELECTION_COLUMNS:"columns", CArg.BOUNDARY_CHECK:"boundarycheck", CArg.CENTERING_X:"centeringx", CArg.CENTERING_Y:"centeringy", CArg.SELECT_TALKER:"selecttalker"]),
-		CType.PLAY_BGM:CDetail("Play", "Bgm", CNextType.NONE, true, [CArg.BGM_PATH:"path", CArg.BGM_CHANNEL:"channel", CArg.BGM_VOLUME:"volume", CArg.BGM_LOOP_COUNT:"loopcount", CArg.BGM_FADE_IN:"fadein"]),
-		CType.PLAY_SOUND:CDetail("Play", "Sound", CNextType.NONE, true, [CArg.SOUND_PATH:"path", CArg.SOUND_CHANNEL:"channel", CArg.SOUND_VOLUME:"volume", CArg.SOUND_LOOP_COUNT:"loopcount", CArg.SOUND_FADE_IN:"fadein"]),
-		CType.WAIT:CDetail("Wait", "", CNextType.NONE, true, [CArg.WAIT:"value"]),
-		CType.ELAPSE_TIME:CDetail("Elapse", "Time", CNextType.NONE, true),
-		CType.CALL_START:CDetail("Call", "Start", CNextType.NONE, true, [CArg.START:"call"]),
-		CType.CALL_PACKAGE:CDetail("Call", "Package", CNextType.NONE, true, [CArg.PACKAGE:"call"]),
-		CType.BRANCH_FLAG:CDetail("Branch", "Flag", CNextType.BOOL, true, [CArg.FLAG:"flag"]),
-		CType.BRANCH_MULTI_STEP:CDetail("Branch", "MultiStep", CNextType.STEP, true, [CArg.STEP:"step"]),
-		CType.BRANCH_STEP:CDetail("Branch", "Step", CNextType.BOOL, true, [CArg.STEP:_("step"), CArg.STEP_VALUE:"value"]),
-		CType.BRANCH_SELECT:CDetail("Branch", "Select", CNextType.BOOL, true, [CArg.TARGET_ALL:_("targetall"), CArg.SELECTION_METHOD:null, CArg.COUPONS:null, CArg.INIT_VALUE:"initialValue"]),
-		CType.BRANCH_ABILITY:CDetail("Branch", "Ability", CNextType.BOOL, true, [CArg.TARGET_S:_("targetm"), CArg.MENTAL:"mental", CArg.PHYSICAL:"physical", CArg.SIGNED_LEVEL:"value", CArg.INVERT_RESULT:"invert"]),
-		CType.BRANCH_RANDOM:CDetail("Branch", "Random", CNextType.BOOL, true, [CArg.PERCENT:"value"]),
-		CType.BRANCH_LEVEL:CDetail("Branch", "Level", CNextType.BOOL, true, [CArg.AVERAGE:_("average"), CArg.UNSIGNED_LEVEL:"value"]),
-		CType.BRANCH_STATUS:CDetail("Branch", "Status", CNextType.BOOL, true, [CArg.RANGE:_("targetm"), CArg.STATUS:"status", CArg.INVERT_RESULT:"invert"]),
-		CType.BRANCH_PARTY_NUMBER:CDetail("Branch", "PartyNumber", CNextType.BOOL, true, [CArg.PARTY_NUMBER:"value"]),
-		CType.BRANCH_AREA:CDetail("Branch", "Area", CNextType.ID_AREA, true),
-		CType.BRANCH_BATTLE:CDetail("Branch", "Battle", CNextType.ID_BATTLE, true),
-		CType.BRANCH_IS_BATTLE:CDetail("Branch", "IsBattle", CNextType.BOOL, true),
-		CType.BRANCH_CAST:CDetail("Branch", "Cast", CNextType.BOOL, true, [CArg.CAST:"id"]),
-		CType.BRANCH_ITEM:CDetail("Branch", "Item", CNextType.BOOL, true, [CArg.ITEM:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number", CArg.SELECT_CARD:"selectcard", CArg.INVERT_RESULT:"invert"]),
-		CType.BRANCH_SKILL:CDetail("Branch", "Skill", CNextType.BOOL, true, [CArg.SKILL:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number", CArg.SELECT_CARD:"selectcard", CArg.INVERT_RESULT:"invert"]),
-		CType.BRANCH_INFO:CDetail("Branch", "Info", CNextType.BOOL, true, [CArg.INFO:"id"]),
-		CType.BRANCH_BEAST:CDetail("Branch", "Beast", CNextType.BOOL, true, [CArg.BEAST:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number", CArg.SELECT_CARD:"selectcard", CArg.INVERT_RESULT:"invert"]),
-		CType.BRANCH_MONEY:CDetail("Branch", "Money", CNextType.BOOL, true, [CArg.MONEY:"value"]),
-		CType.BRANCH_COUPON:CDetail("Branch", "Coupon", CNextType.BOOL, true, [CArg.RANGE:"targets", CArg.COUPON_NAMES:null, CArg.MATCHING_TYPE:"matchingtype", CArg.INVERT_RESULT:"invert", CArg.EXPAND_SP_CHARS:"spchars"]),
-		CType.BRANCH_COMPLETE_STAMP:CDetail("Branch", "CompleteStamp", CNextType.BOOL, true, [CArg.COMPLETE_STAMP:"scenario"]),
-		CType.BRANCH_GOSSIP:CDetail("Branch", "Gossip", CNextType.BOOL, true, [CArg.GOSSIP:"gossip", CArg.EXPAND_SP_CHARS:"spchars"]),
-		CType.SET_FLAG:CDetail("Set", "Flag", CNextType.NONE, true, [CArg.FLAG:_("flag"), CArg.FLAG_VALUE:"value", CArg.CARD_SPEED:"cardspeed", CArg.OVERRIDE_CARD_SPEED:"overridecardspeed"]),
-		CType.SET_STEP:CDetail("Set", "Step", CNextType.NONE, true, [CArg.STEP:_("step"), CArg.STEP_VALUE:"value"]),
-		CType.SET_STEP_UP:CDetail("Set", "StepUp", CNextType.NONE, true, [CArg.STEP:"step"]),
-		CType.SET_STEP_DOWN:CDetail("Set", "StepDown", CNextType.NONE, true, [CArg.STEP:"step"]),
-		CType.REVERSE_FLAG:CDetail("Reverse", "Flag", CNextType.NONE, true, [CArg.FLAG:"flag", CArg.CARD_SPEED:"cardspeed", CArg.OVERRIDE_CARD_SPEED:"overridecardspeed"]),
-		CType.CHECK_FLAG:CDetail("Check", "Flag", CNextType.NONE, true, [CArg.FLAG:"flag"]),
-		CType.GET_CAST:CDetail("Get", "Cast", CNextType.NONE, true, [CArg.CAST:"id", CArg.START_ACTION:"startaction"]),
-		CType.GET_ITEM:CDetail("Get", "Item", CNextType.NONE, true, [CArg.ITEM:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number"]),
-		CType.GET_SKILL:CDetail("Get", "Skill", CNextType.NONE, true, [CArg.SKILL:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number"]),
-		CType.GET_INFO:CDetail("Get", "Info", CNextType.NONE, true, [CArg.INFO:"id"]),
-		CType.GET_BEAST:CDetail("Get", "Beast", CNextType.NONE, true, [CArg.BEAST:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number"]),
-		CType.GET_MONEY:CDetail("Get", "Money", CNextType.NONE, true, [CArg.MONEY:"value"]),
-		CType.GET_COUPON:CDetail("Get", "Coupon", CNextType.NONE, true, [CArg.COUPON:_("coupon"), CArg.RANGE:"targets", CArg.COUPON_VALUE:"value", CArg.HOLDING_COUPON:"holdingcoupon", CArg.EXPAND_SP_CHARS:"spchars"]),
-		CType.GET_COMPLETE_STAMP:CDetail("Get", "CompleteStamp", CNextType.NONE, true, [CArg.COMPLETE_STAMP:"scenario"]),
-		CType.GET_GOSSIP:CDetail("Get", "Gossip", CNextType.NONE, true, [CArg.GOSSIP:"gossip", CArg.EXPAND_SP_CHARS:"spchars"]),
-		CType.LOSE_CAST:CDetail("Lose", "Cast", CNextType.NONE, true, [CArg.CAST:"id"]),
-		CType.LOSE_ITEM:CDetail("Lose", "Item", CNextType.NONE, true, [CArg.ITEM:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number"]),
-		CType.LOSE_SKILL:CDetail("Lose", "Skill", CNextType.NONE, true, [CArg.SKILL:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number"]),
-		CType.LOSE_INFO:CDetail("Lose", "Info", CNextType.NONE, true, [CArg.INFO:"id"]),
-		CType.LOSE_BEAST:CDetail("Lose", "Beast", CNextType.NONE, true, [CArg.BEAST:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number"]),
-		CType.LOSE_MONEY:CDetail("Lose", "Money", CNextType.NONE, true, [CArg.MONEY:"value"]),
-		CType.LOSE_COUPON:CDetail("Lose", "Coupon", CNextType.NONE, true, [CArg.COUPON:_("coupon"), CArg.RANGE:"targets", CArg.HOLDING_COUPON:"holdingcoupon", CArg.EXPAND_SP_CHARS:"spchars"]),
-		CType.LOSE_COMPLETE_STAMP:CDetail("Lose", "CompleteStamp", CNextType.NONE, true, [CArg.COMPLETE_STAMP:"scenario"]),
-		CType.LOSE_GOSSIP:CDetail("Lose", "Gossip", CNextType.NONE, true, [CArg.GOSSIP:"gossip", CArg.EXPAND_SP_CHARS:"spchars"]),
-		CType.SHOW_PARTY:CDetail("Show", "Party", CNextType.NONE, true, [CArg.CARD_SPEED:"cardspeed"]),
-		CType.HIDE_PARTY:CDetail("Hide", "Party", CNextType.NONE, true, [CArg.CARD_SPEED:"cardspeed"]),
-		CType.REDISPLAY:CDetail("Redisplay", "", CNextType.NONE, true, [CArg.TRANSITION:_("transition"), CArg.TRANSITION_SPEED:"transitionspeed"]),
-		CType.SUBSTITUTE_STEP:CDetail(["Substitute", "Sbustitute"], "Step", CNextType.NONE, true, [CArg.STEP:"from", CArg.STEP_2:"to"]),
-		CType.SUBSTITUTE_FLAG:CDetail(["Substitute", "Sbustitute"], "Flag", CNextType.NONE, true, [CArg.FLAG:"from", CArg.FLAG_2:"to", CArg.CARD_SPEED:"cardspeed", CArg.OVERRIDE_CARD_SPEED:"overridecardspeed"]),
-		CType.BRANCH_STEP_CMP:CDetail("Branch", "StepValue", CNextType.TRIO, true, [CArg.STEP:"from", CArg.STEP_2:"to"]),
-		CType.BRANCH_FLAG_CMP:CDetail("Branch", "FlagValue", CNextType.BOOL, true, [CArg.FLAG:"from", CArg.FLAG_2:"to"]),
-		CType.BRANCH_RANDOM_SELECT:CDetail("Branch", "RandomSelect", CNextType.BOOL, true, [CArg.CAST_RANGE:null, CArg.LEVEL_MIN:"minLevel", CArg.LEVEL_MAX:"maxLevel", CArg.STATUS:"status", CArg.INVERT_RESULT:"invert"]),
-		CType.BRANCH_KEY_CODE:CDetail("Branch", "KeyCode", CNextType.BOOL, true, [CArg.KEY_CODE_RANGE:"targetkc", CArg.TARGET_IS_SKILL:"skill", CArg.TARGET_IS_ITEM:"item", CArg.TARGET_IS_BEAST:"beast", CArg.TARGET_IS_HAND:"hand", CArg.KEY_CODE:"keyCode", CArg.SELECT_CARD:"selectcard", CArg.INVERT_RESULT:"invert"]),
-		CType.CHECK_STEP:CDetail("Check", "Step", CNextType.NONE, true, [CArg.STEP:"step", CArg.STEP_VALUE:"value", CArg.COMPARISON_4:"comparison"]),
-		CType.BRANCH_ROUND:CDetail("Branch", "Round", CNextType.BOOL, true, [CArg.ROUND:"round", CArg.COMPARISON_3:"comparison"]),
-		CType.MOVE_BG_IMAGE:CDetail("Move", "BgImage", CNextType.NONE, true, [CArg.CELL_NAME:"cellname", CArg.POSITION_TYPE:"positiontype", CArg.X:"x", CArg.Y:"y", CArg.SIZE_TYPE:"sizetype", CArg.WIDTH:"width", CArg.HEIGHT:"height", CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed", CArg.DO_ANIME:"doanime", CArg.IGNORE_EFFECT_BOOSTER:"ignoreeffectbooster"]),
-		CType.REPLACE_BG_IMAGE:CDetail("Replace", "BgImage", CNextType.NONE, true, [CArg.CELL_NAME:"cellname", CArg.BG_IMAGES:_(null), CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed", CArg.DO_ANIME:"doanime", CArg.IGNORE_EFFECT_BOOSTER:"ignoreeffectbooster"]),
-		CType.LOSE_BG_IMAGE:CDetail("Lose", "BgImage", CNextType.NONE, true, [CArg.CELL_NAME:"cellname", CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed", CArg.DO_ANIME:"doanime", CArg.IGNORE_EFFECT_BOOSTER:"ignoreeffectbooster"]),
-		CType.BRANCH_MULTI_COUPON:CDetail("Branch", "MultiCoupon", CNextType.COUPON, true , [CArg.RANGE:"targets", CArg.EXPAND_SP_CHARS:"spchars"]), // Wsn.2
-		CType.BRANCH_MULTI_RANDOM:CDetail("Branch", "MultiRandom", CNextType.NONE, true), // Wsn.2
-		CType.MOVE_CARD:CDetail("Move", "Card", CNextType.NONE, true, [CArg.CARD_GROUP:"cardgroup", CArg.POSITION_TYPE:"positiontype", CArg.X:"x", CArg.Y:"y", CArg.SCALE:"scale", CArg.LAYER:"layer", CArg.CARD_SPEED:"cardspeed", CArg.OVERRIDE_CARD_SPEED:"overridecardspeed"]), // Wsn.3
-		CType.CHANGE_ENVIRONMENT:CDetail("Change", "Environment", CNextType.NONE, true, [CArg.BACKPACK_ENABLED:"backpack"]), // Wsn.4
-		CType.BRANCH_VARIANT:CDetail("Branch", "Variant", CNextType.BOOL, true, [CArg.EXPRESSION:null]), // Wsn.4
-		CType.SET_VARIANT:CDetail("Set", "Variant", CNextType.NONE, true, [CArg.VARIANT:"variant", CArg.FLAG:"flag", CArg.STEP:"step", CArg.EXPRESSION:null]), // Wsn.4
-		CType.CHECK_VARIANT:CDetail("Check", "Variant", CNextType.NONE, true, [CArg.EXPRESSION:null]), // Wsn.4
+		CType.Start:CDetail("Start", "", CNextType.None, true),
+		CType.StartBattle:CDetail("Start", "Battle", CNextType.None, false, [CArg.Battle:"id"]),
+		CType.End:CDetail("End", "", CNextType.None, false, [CArg.Complete:"complete"]),
+		CType.EndBadEnd:CDetail("End", "BadEnd", CNextType.None, false),
+		CType.ChangeArea:CDetail("Change", "Area", CNextType.None, false, [CArg.Area:_("id"), CArg.Transition:"transition", CArg.TransitionSpeed:"transitionspeed"]),
+		CType.ChangeBgImage:CDetail("Change", "BgImage", CNextType.None, true, [CArg.BgImages:_(null), CArg.Transition:"transition", CArg.TransitionSpeed:"transitionspeed"]),
+		CType.Effect:CDetail("Effect", "", CNextType.None, true, [CArg.SignedLevel:_("level"), CArg.Range:"targetm", CArg.EffectType:"effecttype", CArg.Resist:"resisttype",
+			CArg.SuccessRate:"successrate", CArg.CardVisual:"visual",
+			CArg.SoundPath:_("sound"), CArg.SoundVolume:"volume", CArg.SoundLoopCount:"loopcount",
+			CArg.InitialEffect:"initialeffect", CArg.InitialSoundPath:_("initialsound"), CArg.InitialSoundVolume:"initialvolume", CArg.InitialSoundLoopCount:"initialloopcount",
+			CArg.Ignite:"ignite", CArg.HoldingCoupon:"holdingcoupon", CArg.RefAbility:"refability", CArg.Physical:"physical", CArg.Mental:"mental", CArg.CardSpeed:"cardspeed", CArg.OverrideCardSpeed:"overridecardspeed",
+			CArg.KeyCodes:null, CArg.Motions:null]),
+		CType.EffectBreak:CDetail("Effect", "Break", CNextType.None, false, [CArg.ConsumeCard:"consumecard"]),
+		CType.LinkStart:CDetail("Link", "Start", CNextType.None, false, [CArg.Start:"link"]),
+		CType.LinkPackage:CDetail("Link", "Package", CNextType.None, false, [CArg.Package:"link"]),
+		CType.TalkMessage:CDetail("Talk", "Message", CNextType.Text, true, [CArg.TalkerC:_("path"), CArg.Text:null, CArg.SelectionColumns:"columns", CArg.BoundaryCheck:"boundarycheck", CArg.CenteringX:"centeringx", CArg.CenteringY:"centeringy", CArg.SelectTalker:"selecttalker"]),
+		CType.TalkDialog:CDetail("Talk", "Dialog", CNextType.Text, true, [CArg.TalkerNC:_("targetm"), CArg.Dialogs:null, CArg.Coupons:null, CArg.InitValue:"initialValue", CArg.SelectionColumns:"columns", CArg.BoundaryCheck:"boundarycheck", CArg.CenteringX:"centeringx", CArg.CenteringY:"centeringy", CArg.SelectTalker:"selecttalker"]),
+		CType.PlayBgm:CDetail("Play", "Bgm", CNextType.None, true, [CArg.BgmPath:"path", CArg.BgmChannel:"channel", CArg.BgmVolume:"volume", CArg.BgmLoopCount:"loopcount", CArg.BgmFadeIn:"fadein"]),
+		CType.PlaySound:CDetail("Play", "Sound", CNextType.None, true, [CArg.SoundPath:"path", CArg.SoundChannel:"channel", CArg.SoundVolume:"volume", CArg.SoundLoopCount:"loopcount", CArg.SoundFadeIn:"fadein"]),
+		CType.Wait:CDetail("Wait", "", CNextType.None, true, [CArg.Wait:"value"]),
+		CType.ElapseTime:CDetail("Elapse", "Time", CNextType.None, true),
+		CType.CallStart:CDetail("Call", "Start", CNextType.None, true, [CArg.Start:"call"]),
+		CType.CallPackage:CDetail("Call", "Package", CNextType.None, true, [CArg.Package:"call"]),
+		CType.BranchFlag:CDetail("Branch", "Flag", CNextType.Bool, true, [CArg.Flag:"flag"]),
+		CType.BranchMultiStep:CDetail("Branch", "MultiStep", CNextType.Step, true, [CArg.Step:"step"]),
+		CType.BranchStep:CDetail("Branch", "Step", CNextType.Bool, true, [CArg.Step:_("step"), CArg.StepValue:"value"]),
+		CType.BranchSelect:CDetail("Branch", "Select", CNextType.Bool, true, [CArg.TargetAll:_("targetall"), CArg.SelectionMethod:null, CArg.Coupons:null, CArg.InitValue:"initialValue"]),
+		CType.BranchAbility:CDetail("Branch", "Ability", CNextType.Bool, true, [CArg.TargetS:_("targetm"), CArg.Mental:"mental", CArg.Physical:"physical", CArg.SignedLevel:"value", CArg.InvertResult:"invert"]),
+		CType.BranchRandom:CDetail("Branch", "Random", CNextType.Bool, true, [CArg.Percent:"value"]),
+		CType.BranchLevel:CDetail("Branch", "Level", CNextType.Bool, true, [CArg.Average:_("average"), CArg.UnsignedLevel:"value"]),
+		CType.BranchStatus:CDetail("Branch", "Status", CNextType.Bool, true, [CArg.Range:_("targetm"), CArg.Status:"status", CArg.InvertResult:"invert"]),
+		CType.BranchPartyNumber:CDetail("Branch", "PartyNumber", CNextType.Bool, true, [CArg.PartyNumber:"value"]),
+		CType.BranchArea:CDetail("Branch", "Area", CNextType.IdArea, true),
+		CType.BranchBattle:CDetail("Branch", "Battle", CNextType.IdBattle, true),
+		CType.BranchIsBattle:CDetail("Branch", "IsBattle", CNextType.Bool, true),
+		CType.BranchCast:CDetail("Branch", "Cast", CNextType.Bool, true, [CArg.Cast:"id"]),
+		CType.BranchItem:CDetail("Branch", "Item", CNextType.Bool, true, [CArg.Item:_("id"), CArg.Range:"targets", CArg.CardNumber:"number", CArg.SelectCard:"selectcard", CArg.InvertResult:"invert"]),
+		CType.BranchSkill:CDetail("Branch", "Skill", CNextType.Bool, true, [CArg.Skill:_("id"), CArg.Range:"targets", CArg.CardNumber:"number", CArg.SelectCard:"selectcard", CArg.InvertResult:"invert"]),
+		CType.BranchInfo:CDetail("Branch", "Info", CNextType.Bool, true, [CArg.Info:"id"]),
+		CType.BranchBeast:CDetail("Branch", "Beast", CNextType.Bool, true, [CArg.Beast:_("id"), CArg.Range:"targets", CArg.CardNumber:"number", CArg.SelectCard:"selectcard", CArg.InvertResult:"invert"]),
+		CType.BranchMoney:CDetail("Branch", "Money", CNextType.Bool, true, [CArg.Money:"value"]),
+		CType.BranchCoupon:CDetail("Branch", "Coupon", CNextType.Bool, true, [CArg.Range:"targets", CArg.CouponNames:null, CArg.MatchingType:"matchingtype", CArg.InvertResult:"invert", CArg.ExpandSPChars:"spchars"]),
+		CType.BranchCompleteStamp:CDetail("Branch", "CompleteStamp", CNextType.Bool, true, [CArg.CompleteStamp:"scenario"]),
+		CType.BranchGossip:CDetail("Branch", "Gossip", CNextType.Bool, true, [CArg.Gossip:"gossip", CArg.ExpandSPChars:"spchars"]),
+		CType.SetFlag:CDetail("Set", "Flag", CNextType.None, true, [CArg.Flag:_("flag"), CArg.FlagValue:"value", CArg.CardSpeed:"cardspeed", CArg.OverrideCardSpeed:"overridecardspeed"]),
+		CType.SetStep:CDetail("Set", "Step", CNextType.None, true, [CArg.Step:_("step"), CArg.StepValue:"value"]),
+		CType.SetStepUp:CDetail("Set", "StepUp", CNextType.None, true, [CArg.Step:"step"]),
+		CType.SetStepDown:CDetail("Set", "StepDown", CNextType.None, true, [CArg.Step:"step"]),
+		CType.ReverseFlag:CDetail("Reverse", "Flag", CNextType.None, true, [CArg.Flag:"flag", CArg.CardSpeed:"cardspeed", CArg.OverrideCardSpeed:"overridecardspeed"]),
+		CType.CheckFlag:CDetail("Check", "Flag", CNextType.None, true, [CArg.Flag:"flag"]),
+		CType.GetCast:CDetail("Get", "Cast", CNextType.None, true, [CArg.Cast:"id", CArg.StartAction:"startaction"]),
+		CType.GetItem:CDetail("Get", "Item", CNextType.None, true, [CArg.Item:_("id"), CArg.Range:"targets", CArg.CardNumber:"number"]),
+		CType.GetSkill:CDetail("Get", "Skill", CNextType.None, true, [CArg.Skill:_("id"), CArg.Range:"targets", CArg.CardNumber:"number"]),
+		CType.GetInfo:CDetail("Get", "Info", CNextType.None, true, [CArg.Info:"id"]),
+		CType.GetBeast:CDetail("Get", "Beast", CNextType.None, true, [CArg.Beast:_("id"), CArg.Range:"targets", CArg.CardNumber:"number"]),
+		CType.GetMoney:CDetail("Get", "Money", CNextType.None, true, [CArg.Money:"value"]),
+		CType.GetCoupon:CDetail("Get", "Coupon", CNextType.None, true, [CArg.Coupon:_("coupon"), CArg.Range:"targets", CArg.CouponValue:"value", CArg.HoldingCoupon:"holdingcoupon", CArg.ExpandSPChars:"spchars"]),
+		CType.GetCompleteStamp:CDetail("Get", "CompleteStamp", CNextType.None, true, [CArg.CompleteStamp:"scenario"]),
+		CType.GetGossip:CDetail("Get", "Gossip", CNextType.None, true, [CArg.Gossip:"gossip", CArg.ExpandSPChars:"spchars"]),
+		CType.LoseCast:CDetail("Lose", "Cast", CNextType.None, true, [CArg.Cast:"id"]),
+		CType.LoseItem:CDetail("Lose", "Item", CNextType.None, true, [CArg.Item:_("id"), CArg.Range:"targets", CArg.CardNumber:"number"]),
+		CType.LoseSkill:CDetail("Lose", "Skill", CNextType.None, true, [CArg.Skill:_("id"), CArg.Range:"targets", CArg.CardNumber:"number"]),
+		CType.LoseInfo:CDetail("Lose", "Info", CNextType.None, true, [CArg.Info:"id"]),
+		CType.LoseBeast:CDetail("Lose", "Beast", CNextType.None, true, [CArg.Beast:_("id"), CArg.Range:"targets", CArg.CardNumber:"number"]),
+		CType.LoseMoney:CDetail("Lose", "Money", CNextType.None, true, [CArg.Money:"value"]),
+		CType.LoseCoupon:CDetail("Lose", "Coupon", CNextType.None, true, [CArg.Coupon:_("coupon"), CArg.Range:"targets", CArg.HoldingCoupon:"holdingcoupon", CArg.ExpandSPChars:"spchars"]),
+		CType.LoseCompleteStamp:CDetail("Lose", "CompleteStamp", CNextType.None, true, [CArg.CompleteStamp:"scenario"]),
+		CType.LoseGossip:CDetail("Lose", "Gossip", CNextType.None, true, [CArg.Gossip:"gossip", CArg.ExpandSPChars:"spchars"]),
+		CType.ShowParty:CDetail("Show", "Party", CNextType.None, true, [CArg.CardSpeed:"cardspeed"]),
+		CType.HideParty:CDetail("Hide", "Party", CNextType.None, true, [CArg.CardSpeed:"cardspeed"]),
+		CType.Redisplay:CDetail("Redisplay", "", CNextType.None, true, [CArg.Transition:_("transition"), CArg.TransitionSpeed:"transitionspeed"]),
+		CType.SubstituteStep:CDetail(["Substitute", "Sbustitute"], "Step", CNextType.None, true, [CArg.Step:"from", CArg.Step2:"to"]),
+		CType.SubstituteFlag:CDetail(["Substitute", "Sbustitute"], "Flag", CNextType.None, true, [CArg.Flag:"from", CArg.Flag2:"to", CArg.CardSpeed:"cardspeed", CArg.OverrideCardSpeed:"overridecardspeed"]),
+		CType.BranchStepCmp:CDetail("Branch", "StepValue", CNextType.Trio, true, [CArg.Step:"from", CArg.Step2:"to"]),
+		CType.BranchFlagCmp:CDetail("Branch", "FlagValue", CNextType.Bool, true, [CArg.Flag:"from", CArg.Flag2:"to"]),
+		CType.BranchRandomSelect:CDetail("Branch", "RandomSelect", CNextType.Bool, true, [CArg.CastRange:null, CArg.LevelMin:"minLevel", CArg.LevelMax:"maxLevel", CArg.Status:"status", CArg.InvertResult:"invert"]),
+		CType.BranchKeyCode:CDetail("Branch", "KeyCode", CNextType.Bool, true, [CArg.KeyCodeRange:"targetkc", CArg.TargetIsSkill:"skill", CArg.TargetIsItem:"item", CArg.TargetIsBeast:"beast", CArg.TargetIsHand:"hand", CArg.KeyCode:"keyCode", CArg.SelectCard:"selectcard", CArg.InvertResult:"invert"]),
+		CType.CheckStep:CDetail("Check", "Step", CNextType.None, true, [CArg.Step:"step", CArg.StepValue:"value", CArg.Comparison4:"comparison"]),
+		CType.BranchRound:CDetail("Branch", "Round", CNextType.Bool, true, [CArg.Round:"round", CArg.Comparison3:"comparison"]),
+		CType.MoveBgImage:CDetail("Move", "BgImage", CNextType.None, true, [CArg.CellName:"cellname", CArg.PositionType:"positiontype", CArg.X:"x", CArg.Y:"y", CArg.SizeType:"sizetype", CArg.Width:"width", CArg.Height:"height", CArg.Transition:"transition", CArg.TransitionSpeed:"transitionspeed", CArg.DoAnime:"doanime", CArg.IgnoreEffectBooster:"ignoreeffectbooster"]),
+		CType.ReplaceBgImage:CDetail("Replace", "BgImage", CNextType.None, true, [CArg.CellName:"cellname", CArg.BgImages:_(null), CArg.Transition:"transition", CArg.TransitionSpeed:"transitionspeed", CArg.DoAnime:"doanime", CArg.IgnoreEffectBooster:"ignoreeffectbooster"]),
+		CType.LoseBgImage:CDetail("Lose", "BgImage", CNextType.None, true, [CArg.CellName:"cellname", CArg.Transition:"transition", CArg.TransitionSpeed:"transitionspeed", CArg.DoAnime:"doanime", CArg.IgnoreEffectBooster:"ignoreeffectbooster"]),
+		CType.BranchMultiCoupon:CDetail("Branch", "MultiCoupon", CNextType.Coupon, true , [CArg.Range:"targets", CArg.ExpandSPChars:"spchars"]), // Wsn.2
+		CType.BranchMultiRandom:CDetail("Branch", "MultiRandom", CNextType.None, true), // Wsn.2
+		CType.MoveCard:CDetail("Move", "Card", CNextType.None, true, [CArg.CardGroup:"cardgroup", CArg.PositionType:"positiontype", CArg.X:"x", CArg.Y:"y", CArg.Scale:"scale", CArg.Layer:"layer", CArg.CardSpeed:"cardspeed", CArg.OverrideCardSpeed:"overridecardspeed"]), // Wsn.3
+		CType.ChangeEnvironment:CDetail("Change", "Environment", CNextType.None, true, [CArg.BackpackEnabled:"backpack"]), // Wsn.4
+		CType.BranchVariant:CDetail("Branch", "Variant", CNextType.Bool, true, [CArg.Expression:null]), // Wsn.4
+		CType.SetVariant:CDetail("Set", "Variant", CNextType.None, true, [CArg.Variant:"variant", CArg.Flag:"flag", CArg.Step:"step", CArg.Expression:null]), // Wsn.4
+		CType.CheckVariant:CDetail("Check", "Variant", CNextType.None, true, [CArg.Expression:null]), // Wsn.4
 	];
 	foreach (cType, detail; _CONTENT_DETAILS) { mixin(S_TRACE);
 		foreach (name; detail.names) { mixin(S_TRACE);
@@ -308,9 +308,9 @@ struct CDetail {
 /// 分岐主体のイベントコンテントか。
 @property
 bool isBranchContent(CType cType) { mixin(S_TRACE);
-	if (cType is CType.BRANCH_MULTI_RANDOM) return true;
+	if (cType is CType.BranchMultiRandom) return true;
 	auto d = CDetail.fromType(cType);
-	return !(d.nextType == CNextType.NONE || d.nextType == CNextType.TEXT);
+	return !(d.nextType == CNextType.None || d.nextType == CNextType.Text);
 }
 
 /// スタートのID。
@@ -535,12 +535,12 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 
 		// イベントタイプによって初期値が異なる
 		switch (type) {
-		case CType.TALK_DIALOG:
+		case CType.TalkDialog:
 			initValue = 1;
 			break;
 		default:
-			if (detail.use(CArg.COUPON) || detail.use(CArg.COUPON_NAMES) || type is CType.BRANCH_MULTI_COUPON) { mixin(S_TRACE);
-				range = Range.SELECTED;
+			if (detail.use(CArg.Coupon) || detail.use(CArg.CouponNames) || type is CType.BranchMultiCoupon) { mixin(S_TRACE);
+				range = Range.Selected;
 			}
 			break;
 		}
@@ -723,138 +723,138 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 			&& name == c.name
 			&& comment == c.comment
 
-			&& (!d.use(CArg.AREA) || area == c.area)
-			&& (!d.use(CArg.BATTLE) || battle == c.battle)
-			&& (!d.use(CArg.PACKAGE) || packages == c.packages)
-			&& (!d.use(CArg.FLAG) || flag == c.flag)
-			&& (!d.use(CArg.STEP) || step == c.step)
-			&& (!d.use(CArg.VARIANT) || variant == c.variant)
-			&& (!d.use(CArg.EXPRESSION) || expression == c.expression)
-			&& (!d.use(CArg.TALKER_C) || cardPaths == c.cardPaths)
-			&& (!d.use(CArg.BGM_PATH) || bgmPath == c.bgmPath)
-			&& (!d.use(CArg.BGM_CHANNEL) || bgmChannel == c.bgmChannel)
-			&& (!d.use(CArg.BGM_VOLUME) || bgmVolume == c.bgmVolume)
-			&& (!d.use(CArg.BGM_LOOP_COUNT) || bgmLoopCount == c.bgmLoopCount)
-			&& (!d.use(CArg.BGM_FADE_IN) || bgmFadeIn == c.bgmFadeIn)
-			&& (!d.use(CArg.SOUND_PATH) || soundPath == c.soundPath)
-			&& (!d.use(CArg.SOUND_CHANNEL) || soundChannel == c.soundChannel)
-			&& (!d.use(CArg.SOUND_VOLUME) || soundVolume == c.soundVolume)
-			&& (!d.use(CArg.SOUND_LOOP_COUNT) || soundLoopCount == c.soundLoopCount)
-			&& (!d.use(CArg.SOUND_FADE_IN) || soundFadeIn == c.soundFadeIn)
-			&& (!d.use(CArg.INITIAL_EFFECT) || initialEffect == c.initialEffect)
-			&& (!d.use(CArg.INITIAL_SOUND_PATH) || initialSoundPath == c.initialSoundPath)
-			&& (!d.use(CArg.INITIAL_SOUND_CHANNEL) || initialSoundChannel == c.initialSoundChannel)
-			&& (!d.use(CArg.INITIAL_SOUND_VOLUME) || initialSoundVolume == c.initialSoundVolume)
-			&& (!d.use(CArg.INITIAL_SOUND_LOOP_COUNT) || initialSoundLoopCount == c.initialSoundLoopCount)
-			&& (!d.use(CArg.INITIAL_SOUND_FADE_IN) || initialSoundFadeIn == c.initialSoundFadeIn)
-			&& (!d.use(CArg.CAST) || casts == c.casts)
-			&& (!d.use(CArg.ITEM) || item == c.item)
-			&& (!d.use(CArg.SKILL) || skill == c.skill)
-			&& (!d.use(CArg.BEAST) || beast == c.beast)
-			&& (!d.use(CArg.INFO) || info == c.info)
+			&& (!d.use(CArg.Area) || area == c.area)
+			&& (!d.use(CArg.Battle) || battle == c.battle)
+			&& (!d.use(CArg.Package) || packages == c.packages)
+			&& (!d.use(CArg.Flag) || flag == c.flag)
+			&& (!d.use(CArg.Step) || step == c.step)
+			&& (!d.use(CArg.Variant) || variant == c.variant)
+			&& (!d.use(CArg.Expression) || expression == c.expression)
+			&& (!d.use(CArg.TalkerC) || cardPaths == c.cardPaths)
+			&& (!d.use(CArg.BgmPath) || bgmPath == c.bgmPath)
+			&& (!d.use(CArg.BgmChannel) || bgmChannel == c.bgmChannel)
+			&& (!d.use(CArg.BgmVolume) || bgmVolume == c.bgmVolume)
+			&& (!d.use(CArg.BgmLoopCount) || bgmLoopCount == c.bgmLoopCount)
+			&& (!d.use(CArg.BgmFadeIn) || bgmFadeIn == c.bgmFadeIn)
+			&& (!d.use(CArg.SoundPath) || soundPath == c.soundPath)
+			&& (!d.use(CArg.SoundChannel) || soundChannel == c.soundChannel)
+			&& (!d.use(CArg.SoundVolume) || soundVolume == c.soundVolume)
+			&& (!d.use(CArg.SoundLoopCount) || soundLoopCount == c.soundLoopCount)
+			&& (!d.use(CArg.SoundFadeIn) || soundFadeIn == c.soundFadeIn)
+			&& (!d.use(CArg.InitialEffect) || initialEffect == c.initialEffect)
+			&& (!d.use(CArg.InitialSoundPath) || initialSoundPath == c.initialSoundPath)
+			&& (!d.use(CArg.InitialSoundChannel) || initialSoundChannel == c.initialSoundChannel)
+			&& (!d.use(CArg.InitialSoundVolume) || initialSoundVolume == c.initialSoundVolume)
+			&& (!d.use(CArg.InitialSoundLoopCount) || initialSoundLoopCount == c.initialSoundLoopCount)
+			&& (!d.use(CArg.InitialSoundFadeIn) || initialSoundFadeIn == c.initialSoundFadeIn)
+			&& (!d.use(CArg.Cast) || casts == c.casts)
+			&& (!d.use(CArg.Item) || item == c.item)
+			&& (!d.use(CArg.Skill) || skill == c.skill)
+			&& (!d.use(CArg.Beast) || beast == c.beast)
+			&& (!d.use(CArg.Info) || info == c.info)
 
-			&& (!d.use(CArg.START) || start == c.start)
-			&& (!d.use(CArg.COUPON) || coupon == c.coupon)
-			&& (!d.use(CArg.GOSSIP) || gossip == c.gossip)
-			&& (!d.use(CArg.COMPLETE_STAMP) || completeStamp == c.completeStamp)
+			&& (!d.use(CArg.Start) || start == c.start)
+			&& (!d.use(CArg.Coupon) || coupon == c.coupon)
+			&& (!d.use(CArg.Gossip) || gossip == c.gossip)
+			&& (!d.use(CArg.CompleteStamp) || completeStamp == c.completeStamp)
 
-			&& (!d.use(CArg.MENTAL) || mental == c.mental)
-			&& (!d.use(CArg.PHYSICAL) || physical == c.physical)
-			&& (!d.use(CArg.STATUS) || status == c.status)
-			&& (!d.use(CArg.RANGE) || range == c.range)
-			&& (!d.use(CArg.CARD_VISUAL) || cardVisual == c.cardVisual)
-			&& (!d.use(CArg.EFFECT_TYPE) || effectType == c.effectType)
-			&& (!d.use(CArg.RESIST) || resist == c.resist)
-			&& (!d.use(CArg.TRANSITION) || transition == c.transition)
+			&& (!d.use(CArg.Mental) || mental == c.mental)
+			&& (!d.use(CArg.Physical) || physical == c.physical)
+			&& (!d.use(CArg.Status) || status == c.status)
+			&& (!d.use(CArg.Range) || range == c.range)
+			&& (!d.use(CArg.CardVisual) || cardVisual == c.cardVisual)
+			&& (!d.use(CArg.EffectType) || effectType == c.effectType)
+			&& (!d.use(CArg.Resist) || resist == c.resist)
+			&& (!d.use(CArg.Transition) || transition == c.transition)
 
-			&& (!d.use(CArg.TARGET_ALL) || targetAll == c.targetAll)
-			&& (!d.use(CArg.SELECTION_METHOD) || selectionMethod == c.selectionMethod)
-			&& (!d.use(CArg.AVERAGE) || average == c.average)
-			&& (!d.use(CArg.COMPLETE) || complete == c.complete)
+			&& (!d.use(CArg.TargetAll) || targetAll == c.targetAll)
+			&& (!d.use(CArg.SelectionMethod) || selectionMethod == c.selectionMethod)
+			&& (!d.use(CArg.Average) || average == c.average)
+			&& (!d.use(CArg.Complete) || complete == c.complete)
 
-			&& (!d.use(CArg.UNSIGNED_LEVEL) || unsignedLevel == c.unsignedLevel)
-			&& (!d.use(CArg.SIGNED_LEVEL) || signedLevel == c.signedLevel)
-			&& (!d.use(CArg.SUCCESS_RATE) || successRate == c.successRate)
-			&& (!d.use(CArg.TRANSITION_SPEED) || transitionSpeed == c.transitionSpeed)
-			&& (!d.use(CArg.CARD_SPEED) || cardSpeed == c.cardSpeed)
-			&& (!d.use(CArg.OVERRIDE_CARD_SPEED) || overrideCardSpeed == c.overrideCardSpeed)
-			&& (!d.use(CArg.PERCENT) || percent == c.percent)
-			&& (!d.use(CArg.FLAG_VALUE) || flagValue == c.flagValue)
-			&& (!d.use(CArg.STEP_VALUE) || stepValue == c.stepValue)
-			&& (!d.use(CArg.COUPON_VALUE) || couponValue == c.couponValue)
-			&& (!d.use(CArg.PARTY_NUMBER) || partyNumber == c.partyNumber)
-			&& (!d.use(CArg.CARD_NUMBER) || cardNumber == c.cardNumber)
-			&& (!d.use(CArg.MONEY) || money == c.money)
-			&& (!d.use(CArg.WAIT) || wait == c.wait)
+			&& (!d.use(CArg.UnsignedLevel) || unsignedLevel == c.unsignedLevel)
+			&& (!d.use(CArg.SignedLevel) || signedLevel == c.signedLevel)
+			&& (!d.use(CArg.SuccessRate) || successRate == c.successRate)
+			&& (!d.use(CArg.TransitionSpeed) || transitionSpeed == c.transitionSpeed)
+			&& (!d.use(CArg.CardSpeed) || cardSpeed == c.cardSpeed)
+			&& (!d.use(CArg.OverrideCardSpeed) || overrideCardSpeed == c.overrideCardSpeed)
+			&& (!d.use(CArg.Percent) || percent == c.percent)
+			&& (!d.use(CArg.FlagValue) || flagValue == c.flagValue)
+			&& (!d.use(CArg.StepValue) || stepValue == c.stepValue)
+			&& (!d.use(CArg.CouponValue) || couponValue == c.couponValue)
+			&& (!d.use(CArg.PartyNumber) || partyNumber == c.partyNumber)
+			&& (!d.use(CArg.CardNumber) || cardNumber == c.cardNumber)
+			&& (!d.use(CArg.Money) || money == c.money)
+			&& (!d.use(CArg.Wait) || wait == c.wait)
 
-			&& (!d.use(CArg.FLAG_2) || flag2 == c.flag2)
-			&& (!d.use(CArg.STEP_2) || step2 == c.step2)
-			&& (!d.use(CArg.CAST_RANGE) || castRange == c.castRange)
-			&& (!d.use(CArg.LEVEL_MIN) || levelMin == c.levelMin)
-			&& (!d.use(CArg.LEVEL_MAX) || levelMax == c.levelMax)
+			&& (!d.use(CArg.Flag2) || flag2 == c.flag2)
+			&& (!d.use(CArg.Step2) || step2 == c.step2)
+			&& (!d.use(CArg.CastRange) || castRange == c.castRange)
+			&& (!d.use(CArg.LevelMin) || levelMin == c.levelMin)
+			&& (!d.use(CArg.LevelMax) || levelMax == c.levelMax)
 
-			&& (!d.use(CArg.KEY_CODE_RANGE) || keyCodeRange == c.keyCodeRange)
-			&& (!d.use(CArg.TARGET_IS_SKILL) || targetIsSkill == c.targetIsSkill)
-			&& (!d.use(CArg.TARGET_IS_ITEM) || targetIsItem == c.targetIsItem)
-			&& (!d.use(CArg.TARGET_IS_BEAST) || targetIsBeast == c.targetIsBeast)
-			&& (!d.use(CArg.TARGET_IS_HAND) || targetIsHand == c.targetIsHand)
-			&& (!d.use(CArg.KEY_CODE) || keyCode == c.keyCode)
+			&& (!d.use(CArg.KeyCodeRange) || keyCodeRange == c.keyCodeRange)
+			&& (!d.use(CArg.TargetIsSkill) || targetIsSkill == c.targetIsSkill)
+			&& (!d.use(CArg.TargetIsItem) || targetIsItem == c.targetIsItem)
+			&& (!d.use(CArg.TargetIsBeast) || targetIsBeast == c.targetIsBeast)
+			&& (!d.use(CArg.TargetIsHand) || targetIsHand == c.targetIsHand)
+			&& (!d.use(CArg.KeyCode) || keyCode == c.keyCode)
 
-			&& (!d.use(CArg.INIT_VALUE) || initValue == c.initValue)
+			&& (!d.use(CArg.InitValue) || initValue == c.initValue)
 
-			&& (!d.use(CArg.COMPARISON_4) || comparison4 == c.comparison4)
-			&& (!d.use(CArg.COMPARISON_3) || comparison3 == c.comparison3)
+			&& (!d.use(CArg.Comparison4) || comparison4 == c.comparison4)
+			&& (!d.use(CArg.Comparison3) || comparison3 == c.comparison3)
 
-			&& (!d.use(CArg.ROUND) || round == c.round)
+			&& (!d.use(CArg.Round) || round == c.round)
 
-			&& (!d.use(CArg.CELL_NAME) || cellName == c.cellName)
-			&& (!d.use(CArg.CARD_GROUP) || cardGroup == c.cardGroup)
-			&& (!d.use(CArg.POSITION_TYPE) || positionType == c.positionType)
+			&& (!d.use(CArg.CellName) || cellName == c.cellName)
+			&& (!d.use(CArg.CardGroup) || cardGroup == c.cardGroup)
+			&& (!d.use(CArg.PositionType) || positionType == c.positionType)
 			&& (!d.use(CArg.X) || x == c.x)
 			&& (!d.use(CArg.Y) || y == c.y)
-			&& (!d.use(CArg.SIZE_TYPE) || sizeType == c.sizeType)
-			&& (!d.use(CArg.WIDTH) || width == c.width)
-			&& (!d.use(CArg.HEIGHT) || height == c.height)
-			&& (!d.use(CArg.SCALE) || scale == c.scale)
-			&& (!d.use(CArg.LAYER) || layer == c.layer)
+			&& (!d.use(CArg.SizeType) || sizeType == c.sizeType)
+			&& (!d.use(CArg.Width) || width == c.width)
+			&& (!d.use(CArg.Height) || height == c.height)
+			&& (!d.use(CArg.Scale) || scale == c.scale)
+			&& (!d.use(CArg.Layer) || layer == c.layer)
 
-			&& (!d.use(CArg.DO_ANIME) || doAnime == c.doAnime)
-			&& (!d.use(CArg.IGNORE_EFFECT_BOOSTER) || ignoreEffectBooster == c.ignoreEffectBooster)
+			&& (!d.use(CArg.DoAnime) || doAnime == c.doAnime)
+			&& (!d.use(CArg.IgnoreEffectBooster) || ignoreEffectBooster == c.ignoreEffectBooster)
 
-			&& (!d.use(CArg.SELECTION_COLUMNS) || selectionColumns == c.selectionColumns)
-			&& (!d.use(CArg.CENTERING_X) || centeringX == c.centeringX)
-			&& (!d.use(CArg.CENTERING_Y) || centeringY == c.centeringY)
-			&& (!d.use(CArg.BOUNDARY_CHECK) || boundaryCheck == c.boundaryCheck)
-			&& (!d.use(CArg.START_ACTION) || startAction == c.startAction)
-			&& (!d.use(CArg.IGNITE) || ignite == c.ignite)
-			&& (!d.use(CArg.KEY_CODES) || keyCodes == c.keyCodes)
+			&& (!d.use(CArg.SelectionColumns) || selectionColumns == c.selectionColumns)
+			&& (!d.use(CArg.CenteringX) || centeringX == c.centeringX)
+			&& (!d.use(CArg.CenteringY) || centeringY == c.centeringY)
+			&& (!d.use(CArg.BoundaryCheck) || boundaryCheck == c.boundaryCheck)
+			&& (!d.use(CArg.StartAction) || startAction == c.startAction)
+			&& (!d.use(CArg.Ignite) || ignite == c.ignite)
+			&& (!d.use(CArg.KeyCodes) || keyCodes == c.keyCodes)
 
-			&& (!d.use(CArg.COUPON_NAMES) || couponNames == c.couponNames)
-			&& (!d.use(CArg.MATCHING_TYPE) || matchingType == c.matchingType)
-			&& (!d.use(CArg.EXPAND_SP_CHARS) || expandSPChars == c.expandSPChars)
+			&& (!d.use(CArg.CouponNames) || couponNames == c.couponNames)
+			&& (!d.use(CArg.MatchingType) || matchingType == c.matchingType)
+			&& (!d.use(CArg.ExpandSPChars) || expandSPChars == c.expandSPChars)
 
-			&& (!d.use(CArg.HOLDING_COUPON) || holdingCoupon == c.holdingCoupon)
-			&& (!d.use(CArg.REF_ABILITY) || refAbility == c.refAbility)
+			&& (!d.use(CArg.HoldingCoupon) || holdingCoupon == c.holdingCoupon)
+			&& (!d.use(CArg.RefAbility) || refAbility == c.refAbility)
 
-			&& (!d.use(CArg.SELECT_CARD) || selectCard == c.selectCard)
-			&& (!d.use(CArg.SELECT_TALKER) || selectTalker == c.selectTalker)
-			&& (!d.use(CArg.INVERT_RESULT) || invertResult == c.invertResult)
-			&& (!d.use(CArg.BACKPACK_ENABLED) || backpackEnabled == c.backpackEnabled)
+			&& (!d.use(CArg.SelectCard) || selectCard == c.selectCard)
+			&& (!d.use(CArg.SelectTalker) || selectTalker == c.selectTalker)
+			&& (!d.use(CArg.InvertResult) || invertResult == c.invertResult)
+			&& (!d.use(CArg.BackpackEnabled) || backpackEnabled == c.backpackEnabled)
 
-			&& (!d.use(CArg.CONSUME_CARD) || consumeCard == c.consumeCard)
+			&& (!d.use(CArg.ConsumeCard) || consumeCard == c.consumeCard)
 
-			&& (!d.use(CArg.MOTIONS) || motions == c.motions)
+			&& (!d.use(CArg.Motions) || motions == c.motions)
 
-			&& (!d.use(CArg.TEXT) || text == c.text)
+			&& (!d.use(CArg.Text) || text == c.text)
 
-			&& (!d.use(CArg.DIALOGS) || dialogs == c.dialogs)
+			&& (!d.use(CArg.Dialogs) || dialogs == c.dialogs)
 
-			&& (!d.use(CArg.TARGET_S) || targetS == c.targetS)
-			&& (!d.use(CArg.TALKER_NC) || talkerNC == c.talkerNC)
+			&& (!d.use(CArg.TargetS) || targetS == c.targetS)
+			&& (!d.use(CArg.TalkerNC) || talkerNC == c.talkerNC)
 
-			&& (!d.use(CArg.BG_IMAGES) || backs == c.backs)
+			&& (!d.use(CArg.BgImages) || backs == c.backs)
 
-			&& (!d.use(CArg.COUPONS) || coupons == c.coupons)
+			&& (!d.use(CArg.Coupons) || coupons == c.coupons)
 
 			&& next == c.next;
 	}
@@ -884,96 +884,96 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 
 	/// プロパティを正規化する。
 	private void validate() { mixin(S_TRACE);
-		if (CType.BRANCH_STATUS is type) { mixin(S_TRACE);
-			if (Status.NONE is _status) _status = Status.ACTIVE;
+		if (CType.BranchStatus is type) { mixin(S_TRACE);
+			if (Status.None is _status) _status = Status.Active;
 		}
-		if (CType.EFFECT is type) { mixin(S_TRACE);
+		if (CType.Effect is type) { mixin(S_TRACE);
 			switch (range) {
-			case Range.SELECTED:
-			case Range.RANDOM:
-			case Range.PARTY:
-			case Range.COUPON_HOLDER:
-			case Range.CARD_TARGET:
+			case Range.Selected:
+			case Range.Random:
+			case Range.Party:
+			case Range.CouponHolder:
+			case Range.CardTarget:
 				break;
 			default:
-				_range = Range.SELECTED;
+				_range = Range.Selected;
 				break;
 			}
 		}
 		switch (type) {
-		case CType.BRANCH_STATUS:
+		case CType.BranchStatus:
 			switch (range) {
-			case Range.SELECTED:
-			case Range.RANDOM:
-			case Range.PARTY:
+			case Range.Selected:
+			case Range.Random:
+			case Range.Party:
 				break;
 			default:
-				_range = Range.SELECTED;
+				_range = Range.Selected;
 				break;
 			}
 			break;
-		case CType.GET_COUPON:
-		case CType.LOSE_COUPON:
+		case CType.GetCoupon:
+		case CType.LoseCoupon:
 			switch (range) {
-			case Range.SELECTED:
-			case Range.RANDOM:
-			case Range.PARTY:
-			case Range.COUPON_HOLDER:
+			case Range.Selected:
+			case Range.Random:
+			case Range.Party:
+			case Range.CouponHolder:
 				break;
 			default:
-				_range = Range.SELECTED;
+				_range = Range.Selected;
 				break;
 			}
 			break;
-		case CType.BRANCH_COUPON:
-		case CType.BRANCH_MULTI_COUPON:
+		case CType.BranchCoupon:
+		case CType.BranchMultiCoupon:
 			switch (range) {
-			case Range.SELECTED:
-			case Range.RANDOM:
-			case Range.PARTY:
-			case Range.FIELD:
+			case Range.Selected:
+			case Range.Random:
+			case Range.Party:
+			case Range.Field:
 				break;
 			default:
-				_range = Range.SELECTED;
+				_range = Range.Selected;
 				break;
 			}
 			break;
-		case CType.BRANCH_SKILL:
-		case CType.BRANCH_ITEM:
-		case CType.BRANCH_BEAST:
-		case CType.GET_SKILL:
-		case CType.GET_ITEM:
-		case CType.GET_BEAST:
-		case CType.LOSE_SKILL:
-		case CType.LOSE_ITEM:
-		case CType.LOSE_BEAST:
+		case CType.BranchSkill:
+		case CType.BranchItem:
+		case CType.BranchBeast:
+		case CType.GetSkill:
+		case CType.GetItem:
+		case CType.GetBeast:
+		case CType.LoseSkill:
+		case CType.LoseItem:
+		case CType.LoseBeast:
 			switch (range) {
-			case Range.SELECTED:
-			case Range.RANDOM:
-			case Range.PARTY:
-			case Range.BACKPACK:
-			case Range.PARTY_AND_BACKPACK:
-			case Range.FIELD:
-			case Range.SELECTED_CARD: // Wsn.3
+			case Range.Selected:
+			case Range.Random:
+			case Range.Party:
+			case Range.Backpack:
+			case Range.PartyAndBackpack:
+			case Range.Field:
+			case Range.SelectedCard: // Wsn.3
 				break;
 			default:
-				_range = Range.SELECTED;
+				_range = Range.Selected;
 				break;
 			}
 			break;
 		default:
 			break;
 		}
-		if (CType.BRANCH_KEY_CODE is type) { mixin(S_TRACE);
+		if (CType.BranchKeyCode is type) { mixin(S_TRACE);
 			switch (keyCodeRange) {
-			case Range.SELECTED:
-			case Range.RANDOM:
-			case Range.BACKPACK:
-			case Range.PARTY_AND_BACKPACK:
-			case Range.SELECTED_CARD: // Wsn.3
+			case Range.Selected:
+			case Range.Random:
+			case Range.Backpack:
+			case Range.PartyAndBackpack:
+			case Range.SelectedCard: // Wsn.3
 				break;
 			default:
-				_keyCodeRange = Range.PARTY_AND_BACKPACK;
+				_keyCodeRange = Range.PartyAndBackpack;
 				break;
 			}
 		}
@@ -983,7 +983,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	const
 	bool canConvert(CType type) { mixin(S_TRACE);
 		if (type == this.type) return false;
-		if (type == CType.START || this.type == CType.START) return false;
+		if (type == CType.Start || this.type == CType.Start) return false;
 		return _next.length ? CONTENT_DETAILS[type].owner : true;
 	}
 
@@ -1014,9 +1014,9 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		}
 
 		if (_suc) { mixin(S_TRACE);
-			if (od.use(CArg.START) && !detail.use(CArg.START)) { mixin(S_TRACE);
+			if (od.use(CArg.Start) && !detail.use(CArg.Start)) { mixin(S_TRACE);
 				_suc.remove(toStartId(_start), this);
-			} else if (!od.use(CArg.START) && detail.use(CArg.START)) { mixin(S_TRACE);
+			} else if (!od.use(CArg.Start) && detail.use(CArg.Start)) { mixin(S_TRACE);
 				_suc.add(toStartId(_start), this);
 			}
 		}
@@ -1024,146 +1024,146 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		auto d = detail;
 
 		string oldPath;
-		if (od.use(CArg.BGM_PATH)) oldPath = bgmPath;
-		if (od.use(CArg.SOUND_PATH)) { mixin(S_TRACE);
+		if (od.use(CArg.BgmPath)) oldPath = bgmPath;
+		if (od.use(CArg.SoundPath)) { mixin(S_TRACE);
 			oldPath = soundPath;
-			if (d.use(CArg.INITIAL_SOUND_PATH) && skin.findPath(oldPath, skin.extSound, skin.seDirs, sPath, wsnVer, skin.wsnSoundDirs(wsnVer)) == "") { mixin(S_TRACE);
+			if (d.use(CArg.InitialSoundPath) && skin.findPath(oldPath, skin.extSound, skin.seDirs, sPath, wsnVer, skin.wsnSoundDirs(wsnVer)) == "") { mixin(S_TRACE);
 			oldPath = initialSoundPath;
 			}
 		}
 
-		resetValue!(CArg.AREA, ulong, 0)(d, od, &area, base, base.area);
-		resetValue!(CArg.BATTLE, ulong, 0)(d, od, &battle, base, base.battle);
-		resetValue!(CArg.PACKAGE, ulong, 0)(d, od, &packages, base, base.packages);
-		resetValue!(CArg.FLAG, string, "")(d, od, &flag, base, base.flag);
-		resetValue!(CArg.STEP, string, "")(d, od, &step, base, base.step);
-		resetValue!(CArg.VARIANT, string, "")(d, od, &variant, base, base.variant);
-		resetValue!(CArg.EXPRESSION, string, "")(d, od, &expression, base, base.expression);
-		resetValue!(CArg.TALKER_C, const(CardImage)[], [])(d, od, &cardPaths, base, base.cardPaths);
-		resetValue!(CArg.BGM_PATH, string, "")(d, od, &bgmPath, base, base.bgmPath);
-		resetValue!(CArg.BGM_CHANNEL, uint, 0)(d, od, &bgmChannel, base, base.bgmChannel);
-		resetValue!(CArg.BGM_VOLUME, uint, 100)(d, od, &bgmVolume, base, base.bgmVolume);
-		resetValue!(CArg.BGM_LOOP_COUNT, uint, 0)(d, od, &bgmLoopCount, base, base.bgmLoopCount);
-		resetValue!(CArg.BGM_FADE_IN, uint, 0)(d, od, &bgmFadeIn, base, base.bgmFadeIn);
-		resetValue!(CArg.SOUND_PATH, string, "")(d, od, &soundPath, base, base.soundPath);
-		resetValue!(CArg.SOUND_CHANNEL, uint, 0)(d, od, &soundChannel, base, base.soundChannel);
-		resetValue!(CArg.SOUND_VOLUME, uint, 100)(d, od, &soundVolume, base, base.soundVolume);
-		resetValue!(CArg.SOUND_LOOP_COUNT, uint, 1)(d, od, &soundLoopCount, base, base.soundLoopCount);
-		resetValue!(CArg.SOUND_FADE_IN, uint, 0)(d, od, &soundFadeIn, base, base.soundFadeIn);
-		resetValue!(CArg.INITIAL_EFFECT, bool, false)(d, od, &initialEffect, base, base.initialEffect);
-		resetValue!(CArg.INITIAL_SOUND_PATH, string, "")(d, od, &initialSoundPath, base, base.initialSoundPath);
-		resetValue!(CArg.INITIAL_SOUND_CHANNEL, uint, 0)(d, od, &initialSoundChannel, base, base.initialSoundChannel);
-		resetValue!(CArg.INITIAL_SOUND_VOLUME, uint, 100)(d, od, &initialSoundVolume, base, base.initialSoundVolume);
-		resetValue!(CArg.INITIAL_SOUND_LOOP_COUNT, uint, 1)(d, od, &initialSoundLoopCount, base, base.initialSoundLoopCount);
-		resetValue!(CArg.INITIAL_SOUND_FADE_IN, uint, 0)(d, od, &initialSoundFadeIn, base, base.initialSoundFadeIn);
-		resetValue!(CArg.CAST, ulong, 0)(d, od, &casts, base, base.casts);
-		resetValue!(CArg.ITEM, ulong, 0)(d, od, &item, base, base.item);
-		resetValue!(CArg.SKILL, ulong, 0)(d, od, &skill, base, base.skill);
-		resetValue!(CArg.BEAST, ulong, 0)(d, od, &beast, base, base.beast);
-		resetValue!(CArg.INFO, ulong, 0)(d, od, &info, base, base.info);
+		resetValue!(CArg.Area, ulong, 0)(d, od, &area, base, base.area);
+		resetValue!(CArg.Battle, ulong, 0)(d, od, &battle, base, base.battle);
+		resetValue!(CArg.Package, ulong, 0)(d, od, &packages, base, base.packages);
+		resetValue!(CArg.Flag, string, "")(d, od, &flag, base, base.flag);
+		resetValue!(CArg.Step, string, "")(d, od, &step, base, base.step);
+		resetValue!(CArg.Variant, string, "")(d, od, &variant, base, base.variant);
+		resetValue!(CArg.Expression, string, "")(d, od, &expression, base, base.expression);
+		resetValue!(CArg.TalkerC, const(CardImage)[], [])(d, od, &cardPaths, base, base.cardPaths);
+		resetValue!(CArg.BgmPath, string, "")(d, od, &bgmPath, base, base.bgmPath);
+		resetValue!(CArg.BgmChannel, uint, 0)(d, od, &bgmChannel, base, base.bgmChannel);
+		resetValue!(CArg.BgmVolume, uint, 100)(d, od, &bgmVolume, base, base.bgmVolume);
+		resetValue!(CArg.BgmLoopCount, uint, 0)(d, od, &bgmLoopCount, base, base.bgmLoopCount);
+		resetValue!(CArg.BgmFadeIn, uint, 0)(d, od, &bgmFadeIn, base, base.bgmFadeIn);
+		resetValue!(CArg.SoundPath, string, "")(d, od, &soundPath, base, base.soundPath);
+		resetValue!(CArg.SoundChannel, uint, 0)(d, od, &soundChannel, base, base.soundChannel);
+		resetValue!(CArg.SoundVolume, uint, 100)(d, od, &soundVolume, base, base.soundVolume);
+		resetValue!(CArg.SoundLoopCount, uint, 1)(d, od, &soundLoopCount, base, base.soundLoopCount);
+		resetValue!(CArg.SoundFadeIn, uint, 0)(d, od, &soundFadeIn, base, base.soundFadeIn);
+		resetValue!(CArg.InitialEffect, bool, false)(d, od, &initialEffect, base, base.initialEffect);
+		resetValue!(CArg.InitialSoundPath, string, "")(d, od, &initialSoundPath, base, base.initialSoundPath);
+		resetValue!(CArg.InitialSoundChannel, uint, 0)(d, od, &initialSoundChannel, base, base.initialSoundChannel);
+		resetValue!(CArg.InitialSoundVolume, uint, 100)(d, od, &initialSoundVolume, base, base.initialSoundVolume);
+		resetValue!(CArg.InitialSoundLoopCount, uint, 1)(d, od, &initialSoundLoopCount, base, base.initialSoundLoopCount);
+		resetValue!(CArg.InitialSoundFadeIn, uint, 0)(d, od, &initialSoundFadeIn, base, base.initialSoundFadeIn);
+		resetValue!(CArg.Cast, ulong, 0)(d, od, &casts, base, base.casts);
+		resetValue!(CArg.Item, ulong, 0)(d, od, &item, base, base.item);
+		resetValue!(CArg.Skill, ulong, 0)(d, od, &skill, base, base.skill);
+		resetValue!(CArg.Beast, ulong, 0)(d, od, &beast, base, base.beast);
+		resetValue!(CArg.Info, ulong, 0)(d, od, &info, base, base.info);
 
-		resetValue!(CArg.START, string, "")(d, od, &start, base, base.start);
-		resetValue!(CArg.GOSSIP, string, "")(d, od, &gossip, base, base.gossip);
-		resetValue!(CArg.COMPLETE_STAMP, string, "")(d, od, &completeStamp, base, base.completeStamp);
+		resetValue!(CArg.Start, string, "")(d, od, &start, base, base.start);
+		resetValue!(CArg.Gossip, string, "")(d, od, &gossip, base, base.gossip);
+		resetValue!(CArg.CompleteStamp, string, "")(d, od, &completeStamp, base, base.completeStamp);
 
-		resetValue!(CArg.MENTAL, Mental, Mental.init)(d, od, &mental, base, base.mental);
-		resetValue!(CArg.PHYSICAL, Physical, Physical.init)(d, od, &physical, base, base.physical);
-		resetValue!(CArg.STATUS, Status, Status.ACTIVE)(d, od, &status, base, base.status);
-		if (d.use(CArg.COUPON) || type is CType.BRANCH_MULTI_COUPON) { mixin(S_TRACE);
-			resetValue!(CArg.RANGE, Range, Range.SELECTED)(d, od, &range, base, base.range);
+		resetValue!(CArg.Mental, Mental, Mental.init)(d, od, &mental, base, base.mental);
+		resetValue!(CArg.Physical, Physical, Physical.init)(d, od, &physical, base, base.physical);
+		resetValue!(CArg.Status, Status, Status.Active)(d, od, &status, base, base.status);
+		if (d.use(CArg.Coupon) || type is CType.BranchMultiCoupon) { mixin(S_TRACE);
+			resetValue!(CArg.Range, Range, Range.Selected)(d, od, &range, base, base.range);
 		} else { mixin(S_TRACE);
-			resetValue!(CArg.RANGE, Range, Range.FIELD)(d, od, &range, base, base.range);
+			resetValue!(CArg.Range, Range, Range.Field)(d, od, &range, base, base.range);
 		}
-		resetValue!(CArg.CARD_VISUAL, CardVisual, CardVisual.NONE)(d, od, &cardVisual, base, base.cardVisual);
-		resetValue!(CArg.EFFECT_TYPE, EffectType, EffectType.NONE)(d, od, &effectType, base, base.effectType);
-		resetValue!(CArg.RESIST, Resist, Resist.UNFAIL)(d, od, &resist, base, base.resist);
-		resetValue!(CArg.TRANSITION, Transition, Transition.DEFAULT)(d, od, &transition, base, base.transition);
+		resetValue!(CArg.CardVisual, CardVisual, CardVisual.None)(d, od, &cardVisual, base, base.cardVisual);
+		resetValue!(CArg.EffectType, EffectType, EffectType.None)(d, od, &effectType, base, base.effectType);
+		resetValue!(CArg.Resist, Resist, Resist.Unfail)(d, od, &resist, base, base.resist);
+		resetValue!(CArg.Transition, Transition, Transition.Default)(d, od, &transition, base, base.transition);
 
-		resetValue!(CArg.TARGET_ALL, bool, false)(d, od, &targetAll, base, base.targetAll);
-		resetValue!(CArg.SELECTION_METHOD, SelectionMethod, SelectionMethod.Manual)(d, od, &selectionMethod, base, base.selectionMethod);
-		resetValue!(CArg.AVERAGE, bool, false)(d, od, &average, base, base.average);
-		resetValue!(CArg.COMPLETE, bool, false)(d, od, &complete, base, base.complete);
+		resetValue!(CArg.TargetAll, bool, false)(d, od, &targetAll, base, base.targetAll);
+		resetValue!(CArg.SelectionMethod, SelectionMethod, SelectionMethod.Manual)(d, od, &selectionMethod, base, base.selectionMethod);
+		resetValue!(CArg.Average, bool, false)(d, od, &average, base, base.average);
+		resetValue!(CArg.Complete, bool, false)(d, od, &complete, base, base.complete);
 
-		resetValue!(CArg.UNSIGNED_LEVEL, int, 1)(d, od, &unsignedLevel, base, base.unsignedLevel);
-		resetValue!(CArg.SIGNED_LEVEL, int, 0)(d, od, &signedLevel, base, base.signedLevel);
-		resetValue!(CArg.SUCCESS_RATE, int, 5)(d, od, &successRate, base, base.successRate);
-		resetValue!(CArg.TRANSITION_SPEED, int, 5u)(d, od, &transitionSpeed, base, base.transitionSpeed);
-		resetValue!(CArg.CARD_SPEED, int, -1)(d, od, &cardSpeed, base, base.cardSpeed);
-		resetValue!(CArg.OVERRIDE_CARD_SPEED, bool, false)(d, od, &overrideCardSpeed, base, base.overrideCardSpeed);
-		resetValue!(CArg.PERCENT, int, 50u)(d, od, &percent, base, base.percent);
-		resetValue!(CArg.FLAG_VALUE, bool, true)(d, od, &flagValue, base, base.flagValue);
-		resetValue!(CArg.STEP_VALUE, int, 0)(d, od, &stepValue, base, base.stepValue);
-		resetValue!(CArg.COUPON_VALUE, int, 0)(d, od, &couponValue, base, base.couponValue);
-		resetValue!(CArg.PARTY_NUMBER, int, 2)(d, od, &partyNumber, base, base.partyNumber);
-		resetValue!(CArg.CARD_NUMBER, int, 1)(d, od, &cardNumber, base, base.cardNumber);
-		resetValue!(CArg.MONEY, int, 0)(d, od, &money, base, base.money);
-		resetValue!(CArg.WAIT, int, 10)(d, od, &wait, base, base.wait);
+		resetValue!(CArg.UnsignedLevel, int, 1)(d, od, &unsignedLevel, base, base.unsignedLevel);
+		resetValue!(CArg.SignedLevel, int, 0)(d, od, &signedLevel, base, base.signedLevel);
+		resetValue!(CArg.SuccessRate, int, 5)(d, od, &successRate, base, base.successRate);
+		resetValue!(CArg.TransitionSpeed, int, 5u)(d, od, &transitionSpeed, base, base.transitionSpeed);
+		resetValue!(CArg.CardSpeed, int, -1)(d, od, &cardSpeed, base, base.cardSpeed);
+		resetValue!(CArg.OverrideCardSpeed, bool, false)(d, od, &overrideCardSpeed, base, base.overrideCardSpeed);
+		resetValue!(CArg.Percent, int, 50u)(d, od, &percent, base, base.percent);
+		resetValue!(CArg.FlagValue, bool, true)(d, od, &flagValue, base, base.flagValue);
+		resetValue!(CArg.StepValue, int, 0)(d, od, &stepValue, base, base.stepValue);
+		resetValue!(CArg.CouponValue, int, 0)(d, od, &couponValue, base, base.couponValue);
+		resetValue!(CArg.PartyNumber, int, 2)(d, od, &partyNumber, base, base.partyNumber);
+		resetValue!(CArg.CardNumber, int, 1)(d, od, &cardNumber, base, base.cardNumber);
+		resetValue!(CArg.Money, int, 0)(d, od, &money, base, base.money);
+		resetValue!(CArg.Wait, int, 10)(d, od, &wait, base, base.wait);
 
-		resetValue!(CArg.FLAG_2, string, "")(d, od, &flag2, base, base.flag2);
-		resetValue!(CArg.STEP_2, string, "")(d, od, &step2, base, base.step2);
-		resetValue!(CArg.CAST_RANGE, CastRange[], [CastRange.PARTY])(d, od, &castRange, base, base.castRange);
-		resetValue!(CArg.LEVEL_MIN, int, 0)(d, od, &levelMin, base, base.levelMin);
-		resetValue!(CArg.LEVEL_MAX, int, 0)(d, od, &levelMax, base, base.levelMax);
+		resetValue!(CArg.Flag2, string, "")(d, od, &flag2, base, base.flag2);
+		resetValue!(CArg.Step2, string, "")(d, od, &step2, base, base.step2);
+		resetValue!(CArg.CastRange, CastRange[], [CastRange.Party])(d, od, &castRange, base, base.castRange);
+		resetValue!(CArg.LevelMin, int, 0)(d, od, &levelMin, base, base.levelMin);
+		resetValue!(CArg.LevelMax, int, 0)(d, od, &levelMax, base, base.levelMax);
 
-		resetValue!(CArg.KEY_CODE_RANGE, Range, Range.PARTY_AND_BACKPACK)(d, od, &keyCodeRange, base, base.keyCodeRange);
-		resetValue!(CArg.TARGET_IS_SKILL, bool, true)(d, od, &targetIsSkill, base, base.targetIsSkill);
-		resetValue!(CArg.TARGET_IS_ITEM, bool, true)(d, od, &targetIsItem, base, base.targetIsItem);
-		resetValue!(CArg.TARGET_IS_BEAST, bool, true)(d, od, &targetIsBeast, base, base.targetIsBeast);
-		resetValue!(CArg.TARGET_IS_HAND, bool, false)(d, od, &targetIsHand, base, base.targetIsHand);
-		resetValue!(CArg.KEY_CODE, string, "")(d, od, &keyCode, base, base.keyCode);
+		resetValue!(CArg.KeyCodeRange, Range, Range.PartyAndBackpack)(d, od, &keyCodeRange, base, base.keyCodeRange);
+		resetValue!(CArg.TargetIsSkill, bool, true)(d, od, &targetIsSkill, base, base.targetIsSkill);
+		resetValue!(CArg.TargetIsItem, bool, true)(d, od, &targetIsItem, base, base.targetIsItem);
+		resetValue!(CArg.TargetIsBeast, bool, true)(d, od, &targetIsBeast, base, base.targetIsBeast);
+		resetValue!(CArg.TargetIsHand, bool, false)(d, od, &targetIsHand, base, base.targetIsHand);
+		resetValue!(CArg.KeyCode, string, "")(d, od, &keyCode, base, base.keyCode);
 
-		if (type is CType.TALK_DIALOG) { mixin(S_TRACE);
-			resetValue!(CArg.INIT_VALUE, int, 1)(d, od, &initValue, base, base.initValue);
+		if (type is CType.TalkDialog) { mixin(S_TRACE);
+			resetValue!(CArg.InitValue, int, 1)(d, od, &initValue, base, base.initValue);
 		} else { mixin(S_TRACE);
-			resetValue!(CArg.INIT_VALUE, int, 0)(d, od, &initValue, base, base.initValue);
+			resetValue!(CArg.InitValue, int, 0)(d, od, &initValue, base, base.initValue);
 		}
 
-		resetValue!(CArg.COMPARISON_4, Comparison4, Comparison4.Eq)(d, od, &comparison4, base, base.comparison4);
-		resetValue!(CArg.COMPARISON_3, Comparison3, Comparison3.Eq)(d, od, &comparison3, base, base.comparison3);
+		resetValue!(CArg.Comparison4, Comparison4, Comparison4.Eq)(d, od, &comparison4, base, base.comparison4);
+		resetValue!(CArg.Comparison3, Comparison3, Comparison3.Eq)(d, od, &comparison3, base, base.comparison3);
 
-		resetValue!(CArg.ROUND, uint, 0)(d, od, &round, base, base.round);
+		resetValue!(CArg.Round, uint, 0)(d, od, &round, base, base.round);
 
-		resetValue!(CArg.CELL_NAME, string, "")(d, od, &cellName, base, base.cellName);
-		resetValue!(CArg.CARD_GROUP, string, "")(d, od, &cardGroup, base, base.cardGroup);
-		resetValue!(CArg.POSITION_TYPE, CoordinateType, CoordinateType.None)(d, od, &positionType, base, base.positionType);
+		resetValue!(CArg.CellName, string, "")(d, od, &cellName, base, base.cellName);
+		resetValue!(CArg.CardGroup, string, "")(d, od, &cardGroup, base, base.cardGroup);
+		resetValue!(CArg.PositionType, CoordinateType, CoordinateType.None)(d, od, &positionType, base, base.positionType);
 		resetValue!(CArg.X, int, 0)(d, od, &x, base, base.x);
 		resetValue!(CArg.Y, int, 0)(d, od, &y, base, base.y);
-		resetValue!(CArg.SIZE_TYPE, CoordinateType, CoordinateType.None)(d, od, &sizeType, base, base.sizeType);
-		resetValue!(CArg.WIDTH, int, 0)(d, od, &width, base, base.width);
-		resetValue!(CArg.HEIGHT, int, 0)(d, od, &height, base, base.height);
-		resetValue!(CArg.SCALE, int, -1)(d, od, &scale, base, base.scale);
-		resetValue!(CArg.LAYER, int, -1)(d, od, &layer, base, base.layer);
+		resetValue!(CArg.SizeType, CoordinateType, CoordinateType.None)(d, od, &sizeType, base, base.sizeType);
+		resetValue!(CArg.Width, int, 0)(d, od, &width, base, base.width);
+		resetValue!(CArg.Height, int, 0)(d, od, &height, base, base.height);
+		resetValue!(CArg.Scale, int, -1)(d, od, &scale, base, base.scale);
+		resetValue!(CArg.Layer, int, -1)(d, od, &layer, base, base.layer);
 
-		resetValue!(CArg.DO_ANIME, bool, false)(d, od, &doAnime, base, base.doAnime);
-		resetValue!(CArg.IGNORE_EFFECT_BOOSTER, bool, true)(d, od, &ignoreEffectBooster, base, base.ignoreEffectBooster);
+		resetValue!(CArg.DoAnime, bool, false)(d, od, &doAnime, base, base.doAnime);
+		resetValue!(CArg.IgnoreEffectBooster, bool, true)(d, od, &ignoreEffectBooster, base, base.ignoreEffectBooster);
 
-		resetValue!(CArg.SELECTION_COLUMNS, uint, 1)(d, od, &selectionColumns, base, base.selectionColumns);
-		resetValue!(CArg.CENTERING_X, bool, false)(d, od, &centeringX, base, base.centeringX);
-		resetValue!(CArg.CENTERING_Y, bool, false)(d, od, &centeringY, base, base.centeringY);
-		resetValue!(CArg.BOUNDARY_CHECK, bool, false)(d, od, &boundaryCheck, base, base.boundaryCheck);
-		resetValue!(CArg.START_ACTION, StartAction, StartAction.NextRound)(d, od, &startAction, base, base.startAction);
-		resetValue!(CArg.IGNITE, bool, false)(d, od, &ignite, base, base.ignite);
-		resetValue!(CArg.KEY_CODES, string[], [])(d, od, &keyCodes, base, base.keyCodes);
+		resetValue!(CArg.SelectionColumns, uint, 1)(d, od, &selectionColumns, base, base.selectionColumns);
+		resetValue!(CArg.CenteringX, bool, false)(d, od, &centeringX, base, base.centeringX);
+		resetValue!(CArg.CenteringY, bool, false)(d, od, &centeringY, base, base.centeringY);
+		resetValue!(CArg.BoundaryCheck, bool, false)(d, od, &boundaryCheck, base, base.boundaryCheck);
+		resetValue!(CArg.StartAction, StartAction, StartAction.NextRound)(d, od, &startAction, base, base.startAction);
+		resetValue!(CArg.Ignite, bool, false)(d, od, &ignite, base, base.ignite);
+		resetValue!(CArg.KeyCodes, string[], [])(d, od, &keyCodes, base, base.keyCodes);
 
-		resetValue!(CArg.MATCHING_TYPE, MatchingType, MatchingType.And)(d, od, &matchingType, base, base.matchingType);
-		resetValue!(CArg.EXPAND_SP_CHARS, bool, false)(d, od, &expandSPChars, base, base.expandSPChars);
+		resetValue!(CArg.MatchingType, MatchingType, MatchingType.And)(d, od, &matchingType, base, base.matchingType);
+		resetValue!(CArg.ExpandSPChars, bool, false)(d, od, &expandSPChars, base, base.expandSPChars);
 
-		resetValue!(CArg.HOLDING_COUPON, string, "")(d, od, &holdingCoupon, base, base.holdingCoupon);
-		resetValue!(CArg.REF_ABILITY, bool, false)(d, od, &refAbility, base, base.refAbility);
+		resetValue!(CArg.HoldingCoupon, string, "")(d, od, &holdingCoupon, base, base.holdingCoupon);
+		resetValue!(CArg.RefAbility, bool, false)(d, od, &refAbility, base, base.refAbility);
 
-		resetValue!(CArg.SELECT_CARD, bool, false)(d, od, &selectCard, base, base.selectCard);
-		resetValue!(CArg.SELECT_TALKER, bool, false)(d, od, &selectTalker, base, base.selectTalker);
-		resetValue!(CArg.INVERT_RESULT, bool, false)(d, od, &invertResult, base, base.invertResult);
-		resetValue!(CArg.BACKPACK_ENABLED, EnvironmentStatus, EnvironmentStatus.NotSet)(d, od, &backpackEnabled, base, base.backpackEnabled);
+		resetValue!(CArg.SelectCard, bool, false)(d, od, &selectCard, base, base.selectCard);
+		resetValue!(CArg.SelectTalker, bool, false)(d, od, &selectTalker, base, base.selectTalker);
+		resetValue!(CArg.InvertResult, bool, false)(d, od, &invertResult, base, base.invertResult);
+		resetValue!(CArg.BackpackEnabled, EnvironmentStatus, EnvironmentStatus.NotSet)(d, od, &backpackEnabled, base, base.backpackEnabled);
 
-		resetValue!(CArg.CONSUME_CARD, bool, true)(d, od, &consumeCard, base, base.consumeCard);
+		resetValue!(CArg.ConsumeCard, bool, true)(d, od, &consumeCard, base, base.consumeCard);
 
-		resetValue!(CArg.MOTIONS, Motion[], [])(d, od, &motions, base, base.motions);
+		resetValue!(CArg.Motions, Motion[], [])(d, od, &motions, base, base.motions);
 
 		// セリフ・メッセージ間の変換
 		auto resetText = true;
 		auto resetDialogs = true;
-		if (d.use(CArg.TEXT) && !d.use(CArg.DIALOGS) && dialogs.length) { mixin(S_TRACE);
+		if (d.use(CArg.Text) && !d.use(CArg.Dialogs) && dialogs.length) { mixin(S_TRACE);
 			auto text = "";
 			final switch (dialogStatus) {
 			case DialogStatus.Top:
@@ -1186,7 +1186,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 			}
 			this.text = text;
 			if (text != "") resetText = false;
-		} else if (d.use(CArg.DIALOGS) && !d.use(CArg.TEXT)) { mixin(S_TRACE);
+		} else if (d.use(CArg.Dialogs) && !d.use(CArg.Text)) { mixin(S_TRACE);
 			if (text == "") { mixin(S_TRACE);
 				dialogs = [new SDialog];
 			} else { mixin(S_TRACE);
@@ -1214,53 +1214,53 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 			}
 		}
 
-		if (resetText) resetValue!(CArg.TEXT, string, "")(d, od, &text, base, base.text);
-		if (resetDialogs) resetValue!(CArg.DIALOGS, SDialog[], [])(d, od, &dialogs, base, base.dialogs);
+		if (resetText) resetValue!(CArg.Text, string, "")(d, od, &text, base, base.text);
+		if (resetDialogs) resetValue!(CArg.Dialogs, SDialog[], [])(d, od, &dialogs, base, base.dialogs);
 
-		resetValue!(CArg.TARGET_S, Target, Target(Target.M.SELECTED, false))(d, od, &targetS, base, base.targetS);
-		resetValue!(CArg.TALKER_NC, Talker, Talker.SELECTED)(d, od, &talkerNC, base, base.talkerNC);
+		resetValue!(CArg.TargetS, Target, Target(Target.M.Selected, false))(d, od, &targetS, base, base.targetS);
+		resetValue!(CArg.TalkerNC, Talker, Talker.Selected)(d, od, &talkerNC, base, base.talkerNC);
 
-		resetValue!(CArg.BG_IMAGES, BgImage[], [])(d, od, &backs, base, base.backs);
+		resetValue!(CArg.BgImages, BgImage[], [])(d, od, &backs, base, base.backs);
 
-		resetValue!(CArg.COUPONS, Coupon[], [])(d, od, &coupons, base, base.coupons);
+		resetValue!(CArg.Coupons, Coupon[], [])(d, od, &coupons, base, base.coupons);
 
-		if ((type is CType.GET_COUPON || type is CType.LOSE_COUPON) && range is Range.FIELD) { mixin(S_TRACE);
+		if ((type is CType.GetCoupon || type is CType.LoseCoupon) && range is Range.Field) { mixin(S_TRACE);
 			// 称号獲得・喪失コンテントでは「フィールド全体」は使用不可
-			range = Range.SELECTED;
+			range = Range.Selected;
 		}
-		if (type is CType.BRANCH_COUPON && !od.use(CArg.RANGE)) { mixin(S_TRACE);
+		if (type is CType.BranchCoupon && !od.use(CArg.Range)) { mixin(S_TRACE);
 			// CArg.RANGEが無いイベントコンテントから称号分岐コンテントへ変換した場合、
-			// rangeの初期値がRange.FIELDになっているので、Range.SELECTEDにしておく
-			range = Range.SELECTED;
+			// rangeの初期値がRange.Fieldになっているので、Range.Selectedにしておく
+			range = Range.Selected;
 		}
 
 		// 称号関係の相互変換
 		auto resetCoupon = true;
 		auto resetCouponNames = true;
-		if (od.use(CArg.COUPON) && d.use(CArg.COUPON_NAMES)) { mixin(S_TRACE);
+		if (od.use(CArg.Coupon) && d.use(CArg.CouponNames)) { mixin(S_TRACE);
 			if (coupon != "") { mixin(S_TRACE);
 				couponNames = [coupon];
 				resetCouponNames = false;
 			}
-		} else if (od.use(CArg.COUPON_NAMES) && d.use(CArg.COUPON)) { mixin(S_TRACE);
+		} else if (od.use(CArg.CouponNames) && d.use(CArg.Coupon)) { mixin(S_TRACE);
 			if (couponNames.length && couponNames[0] != "") { mixin(S_TRACE);
 				coupon = couponNames[0];
 				resetCoupon = false;
 			}
 		}
-		if (resetCoupon) resetValue!(CArg.COUPON, string, "")(d, od, &coupon, base, base.coupon);
-		if (resetCouponNames) resetValue!(CArg.COUPON_NAMES, string[], [])(d, od, &couponNames, base, base.couponNames);
+		if (resetCoupon) resetValue!(CArg.Coupon, string, "")(d, od, &coupon, base, base.coupon);
+		if (resetCouponNames) resetValue!(CArg.CouponNames, string[], [])(d, od, &couponNames, base, base.couponNames);
 
 		// BGMと効果音の相互変換
-		if (d.use(CArg.BGM_PATH) && skin.findPath(oldPath, skin.extBgm, skin.bgmDirs, sPath, wsnVer, skin.wsnMusicDirs(wsnVer)) != "") { mixin(S_TRACE);
+		if (d.use(CArg.BgmPath) && skin.findPath(oldPath, skin.extBgm, skin.bgmDirs, sPath, wsnVer, skin.wsnMusicDirs(wsnVer)) != "") { mixin(S_TRACE);
 			bgmPath = oldPath;
 		}
-		if (d.use(CArg.SOUND_PATH) && skin.findPath(oldPath, skin.extSound, skin.seDirs, sPath, wsnVer, skin.wsnSoundDirs(wsnVer)) != "") { mixin(S_TRACE);
+		if (d.use(CArg.SoundPath) && skin.findPath(oldPath, skin.extSound, skin.seDirs, sPath, wsnVer, skin.wsnSoundDirs(wsnVer)) != "") { mixin(S_TRACE);
 			soundPath = oldPath;
 		}
 
 		// いずれかの状態変数を選択する場合
-		if (d.use(CArg.FLAG) && d.use(CArg.STEP) && d.use(CArg.VARIANT)) { mixin(S_TRACE);
+		if (d.use(CArg.Flag) && d.use(CArg.Step) && d.use(CArg.Variant)) { mixin(S_TRACE);
 			if (variant != "") { mixin(S_TRACE);
 				flag = "";
 				step = "";
@@ -1282,23 +1282,23 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	private void setNameImpl(string name, bool fromCallback) { mixin(S_TRACE);
 		if (_name.text != name) { mixin(S_TRACE);
 			changed();
-			if (type is CType.START && tree) { mixin(S_TRACE);
+			if (type is CType.Start && tree) { mixin(S_TRACE);
 				tree._startNames.remove(this.name);
 				tree._startNames[name] = this;
 			}
-			if (_type is CType.START && _tree) { mixin(S_TRACE);
+			if (_type is CType.Start && _tree) { mixin(S_TRACE);
 				_tree.startUseCounter.change(toStartId(_name.text), toStartId(name), true);
 			}
 			_name.text = name;
 
-			if (!fromCallback && parent && parent.detail.nextType is CNextType.ID_AREA) { mixin(S_TRACE);
+			if (!fromCallback && parent && parent.detail.nextType is CNextType.IdArea) { mixin(S_TRACE);
 				branchAreaCondition = icmp(name, "Default") == 0 ? 0UL : to!ulong(name);
 			}
-			if (!fromCallback && parent && parent.detail.nextType is CNextType.ID_BATTLE) { mixin(S_TRACE);
+			if (!fromCallback && parent && parent.detail.nextType is CNextType.IdBattle) { mixin(S_TRACE);
 				branchBattleCondition = icmp(name, "Default") == 0 ? 0UL : to!ulong(name);
 			}
 			// Wsn.2
-			if (!fromCallback && parent && parent.detail.nextType is CNextType.COUPON) { mixin(S_TRACE);
+			if (!fromCallback && parent && parent.detail.nextType is CNextType.Coupon) { mixin(S_TRACE);
 				branchCouponCondition = name;
 			}
 		}
@@ -1337,14 +1337,14 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		auto summ = cast(Summary)root;
 
 		final switch (detail.nextType) {
-		case CNextType.NONE: n.setNameImpl("", false); break;
-		case CNextType.TEXT: break;
-		case CNextType.BOOL: { mixin(S_TRACE);
+		case CNextType.None: n.setNameImpl("", false); break;
+		case CNextType.Text: break;
+		case CNextType.Bool: { mixin(S_TRACE);
 			if (prop.sys.evtChildTrue != n.name && prop.sys.evtChildFalse != n.name) { mixin(S_TRACE);
 				n.setNameImpl(selectName([prop.sys.evtChildTrue, prop.sys.evtChildFalse], prop.sys.evtChildTrue), false);
 			}
 		} break;
-		case CNextType.STEP: { mixin(S_TRACE);
+		case CNextType.Step: { mixin(S_TRACE);
 			if (prop.sys.evtChildDefault != n.name && !std.string.isNumeric(n.name)) { mixin(S_TRACE);
 				int num = prop.looks.stepMaxCount;
 				if (summ) { mixin(S_TRACE);
@@ -1373,7 +1373,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 				n.setNameImpl(selectName(array, prop.sys.evtChildDefault), false);
 			}
 		} break;
-		case CNextType.ID_AREA: { mixin(S_TRACE);
+		case CNextType.IdArea: { mixin(S_TRACE);
 			if (setNum() && summ) { mixin(S_TRACE);
 				string[] array;
 				foreach (a; summ.areas) { mixin(S_TRACE);
@@ -1383,7 +1383,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 				n.setNameImpl(selectName(array, prop.sys.evtChildDefault), false);
 			}
 		} break;
-		case CNextType.ID_BATTLE: { mixin(S_TRACE);
+		case CNextType.IdBattle: { mixin(S_TRACE);
 			if (setNum() && summ) { mixin(S_TRACE);
 				string[] array;
 				foreach (a; summ.battles) { mixin(S_TRACE);
@@ -1393,12 +1393,12 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 				n.setNameImpl(selectName(array, prop.sys.evtChildDefault), false);
 			}
 		} break;
-		case CNextType.TRIO: { mixin(S_TRACE);
+		case CNextType.Trio: { mixin(S_TRACE);
 			if (prop.sys.evtChildGreater != n.name && prop.sys.evtChildLesser != n.name && prop.sys.evtChildEq != n.name) { mixin(S_TRACE);
 				n.setNameImpl(selectName([prop.sys.evtChildGreater, prop.sys.evtChildLesser, prop.sys.evtChildEq], prop.sys.evtChildGreater), false);
 			}
 		} break;
-		case CNextType.COUPON: break; // Wsn.2
+		case CNextType.Coupon: break; // Wsn.2
 		}
 	}
 
@@ -1422,15 +1422,15 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	private void parent(Content parent) in { mixin(S_TRACE);
 		assert (!parent || parent.detail.owner);
 		assert (parent !is this);
-		assert (type !is CType.START);
+		assert (type !is CType.Start);
 	} body { mixin(S_TRACE);
 		if (_parent is parent) return;
-		bool oldAreaBr = _parent && _parent.detail.nextType == CNextType.ID_AREA;
-		bool newAreaBr = parent && parent.detail.nextType == CNextType.ID_AREA;
-		bool oldBattleBr = _parent && _parent.detail.nextType == CNextType.ID_BATTLE;
-		bool newBattleBr = parent && parent.detail.nextType == CNextType.ID_BATTLE;
-		bool oldCouponBr = _parent && _parent.detail.nextType == CNextType.COUPON;
-		bool newCouponBr = parent && parent.detail.nextType == CNextType.COUPON;
+		bool oldAreaBr = _parent && _parent.detail.nextType == CNextType.IdArea;
+		bool newAreaBr = parent && parent.detail.nextType == CNextType.IdArea;
+		bool oldBattleBr = _parent && _parent.detail.nextType == CNextType.IdBattle;
+		bool newBattleBr = parent && parent.detail.nextType == CNextType.IdBattle;
+		bool oldCouponBr = _parent && _parent.detail.nextType == CNextType.Coupon;
+		bool newCouponBr = parent && parent.detail.nextType == CNextType.Coupon;
 		if (!oldAreaBr && newAreaBr) { mixin(S_TRACE);
 			if (icmp(name, "default") == 0) { mixin(S_TRACE);
 				branchAreaCondition = 0;
@@ -1598,7 +1598,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	/// このコンテントが属すスタートコンテントを返す。
 	@property
 	Content parentStart() { mixin(S_TRACE);
-		if (type is CType.START) return this;
+		if (type is CType.Start) return this;
 		if (!parent) return null;
 		return parent.parentStart;
 	}
@@ -1608,7 +1608,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	const(Content) parentStart() { mixin(S_TRACE);
 		Rebindable!(typeof(return)) c = this;
 		while (c) { mixin(S_TRACE);
-			if (c.type is CType.START) return c;
+			if (c.type is CType.Start) return c;
 			c = c.parent;
 		}
 		return null;
@@ -1744,20 +1744,20 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	inout
 	inout(CWXPath) connectedResource(Summary)(inout(Summary) summ) { mixin(S_TRACE);
 		auto d = detail;
-		if (d.use(CArg.AREA)) return cast(typeof(return))summ.area(area);
-		if (d.use(CArg.BATTLE)) return cast(typeof(return))summ.battle(battle);
-		if (d.use(CArg.PACKAGE)) return cast(typeof(return))summ.cwPackage(packages);
-		if (d.use(CArg.FLAG)) return cast(typeof(return)).findVar!(cwx.flag.Flag)(summ.flagDirRoot, useCounter, flag);
-		if (d.use(CArg.STEP)) return cast(typeof(return)).findVar!Step(summ.flagDirRoot, useCounter, step);
-		if (d.use(CArg.VARIANT)) return cast(typeof(return)).findVar!Variant(summ.flagDirRoot, useCounter, variant);
-		if (d.use(CArg.CAST)) return cast(typeof(return))summ.cwCast(casts);
-		if (d.use(CArg.ITEM)) return cast(typeof(return))summ.item(item);
-		if (d.use(CArg.SKILL)) return cast(typeof(return))summ.skill(skill);
-		if (d.use(CArg.BEAST)) return cast(typeof(return))summ.beast(beast);
-		if (d.use(CArg.INFO)) return cast(typeof(return))summ.info(info);
-		if (d.use(CArg.START)) return tree ? cast(typeof(return))tree.start(start) : null;
-		if (d.use(CArg.FLAG_2)) return cast(typeof(return)).findVar!(cwx.flag.Flag)(summ.flagDirRoot, useCounter, flag2);
-		if (d.use(CArg.STEP_2)) return cast(typeof(return)).findVar!Step(summ.flagDirRoot, useCounter, step2);
+		if (d.use(CArg.Area)) return cast(typeof(return))summ.area(area);
+		if (d.use(CArg.Battle)) return cast(typeof(return))summ.battle(battle);
+		if (d.use(CArg.Package)) return cast(typeof(return))summ.cwPackage(packages);
+		if (d.use(CArg.Flag)) return cast(typeof(return)).findVar!(cwx.flag.Flag)(summ.flagDirRoot, useCounter, flag);
+		if (d.use(CArg.Step)) return cast(typeof(return)).findVar!Step(summ.flagDirRoot, useCounter, step);
+		if (d.use(CArg.Variant)) return cast(typeof(return)).findVar!Variant(summ.flagDirRoot, useCounter, variant);
+		if (d.use(CArg.Cast)) return cast(typeof(return))summ.cwCast(casts);
+		if (d.use(CArg.Item)) return cast(typeof(return))summ.item(item);
+		if (d.use(CArg.Skill)) return cast(typeof(return))summ.skill(skill);
+		if (d.use(CArg.Beast)) return cast(typeof(return))summ.beast(beast);
+		if (d.use(CArg.Info)) return cast(typeof(return))summ.info(info);
+		if (d.use(CArg.Start)) return tree ? cast(typeof(return))tree.start(start) : null;
+		if (d.use(CArg.Flag2)) return cast(typeof(return)).findVar!(cwx.flag.Flag)(summ.flagDirRoot, useCounter, flag2);
+		if (d.use(CArg.Step2)) return cast(typeof(return)).findVar!Step(summ.flagDirRoot, useCounter, step2);
 
 		return null;
 	}
@@ -1766,13 +1766,13 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	CouponId[] connectedCoupons() { mixin(S_TRACE);
 		auto d = detail;
 		CouponId[] r;
-		if (d.use(CArg.COUPON)) r ~= toCouponId(coupon);
-		if (d.use(CArg.COUPONS)) { mixin(S_TRACE);
+		if (d.use(CArg.Coupon)) r ~= toCouponId(coupon);
+		if (d.use(CArg.Coupons)) { mixin(S_TRACE);
 			foreach (coupon; coupons) { mixin(S_TRACE);
 				r ~= toCouponId(coupon.name);
 			}
 		}
-		if (d.use(CArg.COUPON_NAMES)) { mixin(S_TRACE);
+		if (d.use(CArg.CouponNames)) { mixin(S_TRACE);
 			foreach (name; couponNames) { mixin(S_TRACE);
 				r ~= toCouponId(name);
 			}
@@ -1783,22 +1783,22 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	GossipId[] connectedGossips() { mixin(S_TRACE);
 		auto d = detail;
 		GossipId[] r;
-		if (d.use(CArg.GOSSIP)) r ~= toGossipId(gossip);
+		if (d.use(CArg.Gossip)) r ~= toGossipId(gossip);
 		return r;
 	}
 	/// ditto
 	CompleteStampId[] connectedCompleteStamps() { mixin(S_TRACE);
 		auto d = detail;
 		CompleteStampId[] r;
-		if (d.use(CArg.COMPLETE_STAMP)) r ~= toCompleteStampId(completeStamp);
+		if (d.use(CArg.CompleteStamp)) r ~= toCompleteStampId(completeStamp);
 		return r;
 	}
 	/// ditto
 	KeyCodeId[] connectedKeyCodes() { mixin(S_TRACE);
 		auto d = detail;
 		KeyCodeId[] r;
-		if (d.use(CArg.KEY_CODE)) r ~= toKeyCodeId(keyCode);
-		if (d.use(CArg.KEY_CODES)) { mixin(S_TRACE);
+		if (d.use(CArg.KeyCode)) r ~= toKeyCodeId(keyCode);
+		if (d.use(CArg.KeyCodes)) { mixin(S_TRACE);
 			foreach (keyCode; keyCodes) { mixin(S_TRACE);
 				r ~= toKeyCodeId(keyCode);
 			}
@@ -1809,14 +1809,14 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	CellNameId[] connectedCellNames() { mixin(S_TRACE);
 		auto d = detail;
 		CellNameId[] r;
-		if (d.use(CArg.CELL_NAME)) r ~= toCellNameId(cellName);
+		if (d.use(CArg.CellName)) r ~= toCellNameId(cellName);
 		return r;
 	}
 	/// ditto
 	CardGroupId[] connectedCardGroups() { mixin(S_TRACE);
 		auto d = detail;
 		CardGroupId[] r;
-		if (d.use(CArg.CARD_GROUP)) r ~= toCardGroupId(cardGroup);
+		if (d.use(CArg.CardGroup)) r ~= toCardGroupId(cardGroup);
 		return r;
 	}
 
@@ -1826,14 +1826,14 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	const
 	string connectedFile() { mixin(S_TRACE);
 		auto d = detail;
-		if (d.use(CArg.TALKER_C)) { mixin(S_TRACE);
+		if (d.use(CArg.TalkerC)) { mixin(S_TRACE);
 			foreach (path; _cardPaths) { mixin(S_TRACE);
 				if (path.path != "" && !path.path.isBinImg) return path.path;
 			}
 		}
-		if (d.use(CArg.BGM_PATH) && bgmPath != "") return bgmPath;
-		if (d.use(CArg.SOUND_PATH) && soundPath != "") return soundPath;
-		if (d.use(CArg.INITIAL_SOUND_PATH) && initialSoundPath != "") return initialSoundPath;
+		if (d.use(CArg.BgmPath) && bgmPath != "") return bgmPath;
+		if (d.use(CArg.SoundPath) && soundPath != "") return soundPath;
+		if (d.use(CArg.InitialSoundPath) && initialSoundPath != "") return initialSoundPath;
 
 		return "";
 	}
@@ -1948,7 +1948,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	void start(string start) { mixin(S_TRACE);
 		if (_start != start) { mixin(S_TRACE);
 			changed();
-			if (_suc && detail.use(CArg.START)) { mixin(S_TRACE);
+			if (_suc && detail.use(CArg.Start)) { mixin(S_TRACE);
 				_suc.remove(toStartId(_start), this);
 				_suc.add(toStartId(start), this);
 			}
@@ -2078,27 +2078,27 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	/// 肉体系能力。
 	mixin Prop!(Physical, "physical", Physical.init);
 	/// 状態。
-	mixin Prop!(Status, "status", Status.NONE);
+	mixin Prop!(Status, "status", Status.None);
 	/// 範囲。
-	mixin Prop!(Range, "range", Range.FIELD);
+	mixin Prop!(Range, "range", Range.Field);
 	/// カード視覚効果。
-	mixin Prop!(CardVisual, "cardVisual", CardVisual.NONE);
+	mixin Prop!(CardVisual, "cardVisual", CardVisual.None);
 	/// 対象(睡眠者判定含む)。
-	mixin Prop!(Target, "targetS", Target(Target.M.SELECTED, false));
+	mixin Prop!(Target, "targetS", Target(Target.M.Selected, false));
 	/// 話者(カード画像を含めない)。
-	mixin Prop!(Talker, "talkerNC", Talker.SELECTED);
+	mixin Prop!(Talker, "talkerNC", Talker.Selected);
 	private bool check_talkerNC(Talker val) { mixin(S_TRACE);
 		final switch (val) {
-		case Talker.SELECTED, Talker.UNSELECTED, Talker.RANDOM, Talker.VALUED: return true;
-		case Talker.CARD: return false;
+		case Talker.Selected, Talker.Unselected, Talker.Random, Talker.Valued: return true;
+		case Talker.Card: return false;
 		}
 	}
 	/// 効果タイプ。
-	mixin Prop!(EffectType, "effectType", EffectType.NONE);
+	mixin Prop!(EffectType, "effectType", EffectType.None);
 	/// 抵抗属性。
-	mixin Prop!(Resist, "resist", Resist.UNFAIL);
+	mixin Prop!(Resist, "resist", Resist.Unfail);
 	/// 背景切替方式。
-	mixin Prop!(Transition, "transition", Transition.DEFAULT);
+	mixin Prop!(Transition, "transition", Transition.Default);
 
 	/// 全員を対象とするか。
 	mixin Prop!(bool, "targetAll", false);
@@ -2156,7 +2156,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	/// 操作対象ステップ(CardWirth Extender 1.30～)。
 	mixin Prop!(StepUser, string, "step2", "", ".step", ".step", true);
 	/// ランダム選択範囲(CardWirth Extender 1.30～)。
-	mixin Prop!(CastRange[], "castRange", [CastRange.PARTY]);
+	mixin Prop!(CastRange[], "castRange", [CastRange.Party]);
 	/// 下限レベル(CardWirth Extender 1.30～)。
 	mixin Prop!(int, "levelMin", 0);
 	mixin MaxMin!(int, "levelMin", int.max, 0);
@@ -2165,14 +2165,14 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	mixin MaxMin!(int, "levelMax", int.max, 0);
 
 	/// キーコード所持判定範囲(CardWirth 1.50)。
-	mixin Prop!(Range, "keyCodeRange", Range.PARTY_AND_BACKPACK);
+	mixin Prop!(Range, "keyCodeRange", Range.PartyAndBackpack);
 	private bool check_keyCodeRange(Range val) { mixin(S_TRACE);
 		switch (val) {
-		case Range.SELECTED:
-		case Range.RANDOM:
-		case Range.BACKPACK:
-		case Range.PARTY_AND_BACKPACK:
-		case Range.SELECTED_CARD: // Wsn.3
+		case Range.Selected:
+		case Range.Random:
+		case Range.Backpack:
+		case Range.PartyAndBackpack:
+		case Range.SelectedCard: // Wsn.3
 			return true;
 		default:
 			return false;
@@ -2257,7 +2257,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		if (_coupon) _coupon.expandSPChars = val;
 		if (_gossip) _gossip.expandSPChars = val;
 		if (_couponNames) _couponNames.expandSPChars = val;
-		if (detail.nextType is CNextType.COUPON) { mixin(S_TRACE);
+		if (detail.nextType is CNextType.Coupon) { mixin(S_TRACE);
 			foreach (c; _next) { mixin(S_TRACE);
 				if (val) { mixin(S_TRACE);
 					c._name.setUseCounter(_uc);
@@ -2325,7 +2325,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	/// 変更を通知する。
 	override void changed() { mixin(S_TRACE);
 		if (_change) _change();
-		if (type is CType.START) _updateCounter++;
+		if (type is CType.Start) _updateCounter++;
 	}
 
 	private UseCounter _uc = null;
@@ -2361,8 +2361,8 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 				}
 			}
 			if (uc is null
-					|| (c.parent && c.parent.detail.nextType is CNextType.TEXT)
-					|| (c.parent && c.parent.detail.nextType is CNextType.COUPON && c.parent.expandSPChars)) { mixin(S_TRACE);
+					|| (c.parent && c.parent.detail.nextType is CNextType.Text)
+					|| (c.parent && c.parent.detail.nextType is CNextType.Coupon && c.parent.expandSPChars)) { mixin(S_TRACE);
 				c.setUseCounterImpl(c._name, uc);
 			}
 			c._uc = uc;
@@ -2394,10 +2394,10 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		// 再帰は回避する
 		auto c = this;
 		while (true) { mixin(S_TRACE);
-			if (suc && c.detail.use(CArg.START)) { mixin(S_TRACE);
+			if (suc && c.detail.use(CArg.Start)) { mixin(S_TRACE);
 				suc.add(toStartId(c._start), c);
 			}
-			if (c._suc && c.detail.use(CArg.START)) { mixin(S_TRACE);
+			if (c._suc && c.detail.use(CArg.Start)) { mixin(S_TRACE);
 				c._suc.remove(toStartId(c._start), c);
 			}
 			c._suc = suc;
@@ -2417,7 +2417,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		// 再帰は回避する
 		auto c = this;
 		while (true) { mixin(S_TRACE);
-			if (c._suc && c.detail.use(CArg.START)) { mixin(S_TRACE);
+			if (c._suc && c.detail.use(CArg.Start)) { mixin(S_TRACE);
 				c._suc.remove(toStartId(c._start), c);
 			}
 			c._suc = null;
@@ -2441,20 +2441,20 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 
 	override bool changeCallback(AreaId oldVal, AreaId newVal) { mixin(S_TRACE);
 		auto id = icmp(name, "Default") == 0 ? 0UL : to!ulong(name);
-		if (parent && parent.detail.nextType is CNextType.ID_AREA && AreaId(id) == oldVal) { mixin(S_TRACE);
+		if (parent && parent.detail.nextType is CNextType.IdArea && AreaId(id) == oldVal) { mixin(S_TRACE);
 			setNameImpl(newVal == 0UL ? "Default" : to!string(newVal), true);
 		}
 		return true;
 	}
 	override bool changeCallback(BattleId oldVal, BattleId newVal) { mixin(S_TRACE);
 		auto id = icmp(name, "Default") == 0 ? 0UL : to!ulong(name);
-		if (parent && parent.detail.nextType is CNextType.ID_BATTLE && BattleId(id) == oldVal) { mixin(S_TRACE);
+		if (parent && parent.detail.nextType is CNextType.IdBattle && BattleId(id) == oldVal) { mixin(S_TRACE);
 			setNameImpl(newVal == 0UL ? "Default" : to!string(newVal), true);
 		}
 		return true;
 	}
 	override bool changeCallback(CouponId oldVal, CouponId newVal) { mixin(S_TRACE);
-		if (parent && parent.detail.nextType is CNextType.COUPON && CouponId(name) == oldVal) { mixin(S_TRACE);
+		if (parent && parent.detail.nextType is CNextType.Coupon && CouponId(name) == oldVal) { mixin(S_TRACE);
 			setNameImpl(newVal, true);
 		}
 		return true;
@@ -2501,25 +2501,25 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	@property
 	const
 	char[] namesInName() { mixin(S_TRACE);
-		return parent && parent.detail.nextType is CNextType.TEXT ? _name.namesInText : [];
+		return parent && parent.detail.nextType is CNextType.Text ? _name.namesInText : [];
 	}
 	/// 選択肢内で使用されている状態変数のパス。
 	@property
 	const
 	string[] flagsInName() { mixin(S_TRACE);
-		return parent && parent.detail.nextType is CNextType.TEXT ? _name.flagsInText : [];
+		return parent && parent.detail.nextType is CNextType.Text ? _name.flagsInText : [];
 	}
 	/// ditto
 	@property
 	const
 	string[] stepsInName() { mixin(S_TRACE);
-		return parent && parent.detail.nextType is CNextType.TEXT ? _name.stepsInText : [];
+		return parent && parent.detail.nextType is CNextType.Text ? _name.stepsInText : [];
 	}
 	/// ditto
 	@property
 	const
 	string[] variantsInName() { mixin(S_TRACE);
-		return parent && parent.detail.nextType is CNextType.TEXT ? _name.variantsInText : [];
+		return parent && parent.detail.nextType is CNextType.Text ? _name.variantsInText : [];
 	}
 
 	/// クーポン内で使用されている状態変数のパス。
@@ -2527,7 +2527,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	const
 	string[] flagsInCoupons() { mixin(S_TRACE);
 		string[] r;
-		if (parent && parent.detail.nextType is CNextType.COUPON && parent.expandSPChars) r ~= _name.flagsInText;
+		if (parent && parent.detail.nextType is CNextType.Coupon && parent.expandSPChars) r ~= _name.flagsInText;
 		if (expandSPChars && _coupon) r ~= _coupon.flagsInText;
 		if (expandSPChars && _couponNames) r ~= _couponNames.flagsInText;
 		return r;
@@ -2537,7 +2537,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	const
 	string[] stepsInCoupons() { mixin(S_TRACE);
 		string[] r;
-		if (parent && parent.detail.nextType is CNextType.COUPON && parent.expandSPChars) r ~= _name.stepsInText;
+		if (parent && parent.detail.nextType is CNextType.Coupon && parent.expandSPChars) r ~= _name.stepsInText;
 		if (expandSPChars && _coupon) r ~= _coupon.stepsInText;
 		if (expandSPChars && _couponNames) r ~= _couponNames.stepsInText;
 		return r;
@@ -2547,7 +2547,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	const
 	string[] variantsInCoupons() { mixin(S_TRACE);
 		string[] r;
-		if (parent && parent.detail.nextType is CNextType.COUPON && parent.expandSPChars) r ~= _name.variantsInText;
+		if (parent && parent.detail.nextType is CNextType.Coupon && parent.expandSPChars) r ~= _name.variantsInText;
 		if (expandSPChars && _coupon) r ~= _coupon.variantsInText;
 		if (expandSPChars && _couponNames) r ~= _couponNames.variantsInText;
 		return r;
@@ -2671,160 +2671,160 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		if (comment.length) e.newAttr("comment", comment);
 
 		// 単純データ
-		atnPut!(CArg.AREA, "area", "")(e, d);
-		atnPut!(CArg.BATTLE, "battle", "")(e, d);
-		atnPut!(CArg.PACKAGE, "packages", "")(e, d);
-		if (d.use(CArg.FLAG) && d.use(CArg.STEP) && d.use(CArg.VARIANT)) { mixin(S_TRACE);
-			atnPutD!(CArg.FLAG, "flag", "", "")(e, d);
-			atnPutD!(CArg.STEP, "step", "", "")(e, d);
-			atnPutD!(CArg.VARIANT, "variant", "", "")(e, d);
+		atnPut!(CArg.Area, "area", "")(e, d);
+		atnPut!(CArg.Battle, "battle", "")(e, d);
+		atnPut!(CArg.Package, "packages", "")(e, d);
+		if (d.use(CArg.Flag) && d.use(CArg.Step) && d.use(CArg.Variant)) { mixin(S_TRACE);
+			atnPutD!(CArg.Flag, "flag", "", "")(e, d);
+			atnPutD!(CArg.Step, "step", "", "")(e, d);
+			atnPutD!(CArg.Variant, "variant", "", "")(e, d);
 		} else { mixin(S_TRACE);
-			atnPut!(CArg.FLAG, "flag", "")(e, d);
-			atnPut!(CArg.STEP, "step", "")(e, d);
-			atnPut!(CArg.VARIANT, "variant", "")(e, d);
+			atnPut!(CArg.Flag, "flag", "")(e, d);
+			atnPut!(CArg.Step, "step", "")(e, d);
+			atnPut!(CArg.Variant, "variant", "")(e, d);
 		}
-		atnPut!(CArg.BGM_PATH, "bgmPath", "encodePath")(e, d);
-		atnPut!(CArg.BGM_CHANNEL, "bgmChannel", "")(e, d);
-		atnPut!(CArg.BGM_VOLUME, "bgmVolume", "")(e, d);
-		atnPut!(CArg.BGM_LOOP_COUNT, "bgmLoopCount", "")(e, d);
-		atnPut!(CArg.BGM_FADE_IN, "bgmFadeIn", "")(e, d);
-		atnPut!(CArg.SOUND_PATH, "soundPath", "encodePath")(e, d);
-		atnPut!(CArg.SOUND_CHANNEL, "soundChannel", "")(e, d);
-		atnPut!(CArg.SOUND_VOLUME, "soundVolume", "")(e, d);
-		atnPut!(CArg.SOUND_LOOP_COUNT, "soundLoopCount", "")(e, d);
-		atnPut!(CArg.SOUND_FADE_IN, "soundFadeIn", "")(e, d);
-		atnPutD!(CArg.INITIAL_EFFECT, "initialEffect", "fromBool", false)(e, d);
-		atnPutD!(CArg.INITIAL_SOUND_PATH, "initialSoundPath", "encodePath", "")(e, d);
-		atnPutD!(CArg.INITIAL_SOUND_CHANNEL, "initialSoundChannel", "", 0)(e, d);
-		atnPutD!(CArg.INITIAL_SOUND_VOLUME, "initialSoundVolume", "", 100)(e, d);
-		atnPutD!(CArg.INITIAL_SOUND_LOOP_COUNT, "initialSoundLoopCount", "", 1)(e, d);
-		atnPutD!(CArg.INITIAL_SOUND_FADE_IN, "initialSoundFadeIn", "", 0)(e, d);
-		atnPut!(CArg.CAST, "casts", "")(e, d);
-		atnPut!(CArg.ITEM, "item", "")(e, d);
-		atnPut!(CArg.SKILL, "skill", "")(e, d);
-		atnPut!(CArg.BEAST, "beast", "")(e, d);
-		atnPut!(CArg.INFO, "info", "")(e, d);
+		atnPut!(CArg.BgmPath, "bgmPath", "encodePath")(e, d);
+		atnPut!(CArg.BgmChannel, "bgmChannel", "")(e, d);
+		atnPut!(CArg.BgmVolume, "bgmVolume", "")(e, d);
+		atnPut!(CArg.BgmLoopCount, "bgmLoopCount", "")(e, d);
+		atnPut!(CArg.BgmFadeIn, "bgmFadeIn", "")(e, d);
+		atnPut!(CArg.SoundPath, "soundPath", "encodePath")(e, d);
+		atnPut!(CArg.SoundChannel, "soundChannel", "")(e, d);
+		atnPut!(CArg.SoundVolume, "soundVolume", "")(e, d);
+		atnPut!(CArg.SoundLoopCount, "soundLoopCount", "")(e, d);
+		atnPut!(CArg.SoundFadeIn, "soundFadeIn", "")(e, d);
+		atnPutD!(CArg.InitialEffect, "initialEffect", "fromBool", false)(e, d);
+		atnPutD!(CArg.InitialSoundPath, "initialSoundPath", "encodePath", "")(e, d);
+		atnPutD!(CArg.InitialSoundChannel, "initialSoundChannel", "", 0)(e, d);
+		atnPutD!(CArg.InitialSoundVolume, "initialSoundVolume", "", 100)(e, d);
+		atnPutD!(CArg.InitialSoundLoopCount, "initialSoundLoopCount", "", 1)(e, d);
+		atnPutD!(CArg.InitialSoundFadeIn, "initialSoundFadeIn", "", 0)(e, d);
+		atnPut!(CArg.Cast, "casts", "")(e, d);
+		atnPut!(CArg.Item, "item", "")(e, d);
+		atnPut!(CArg.Skill, "skill", "")(e, d);
+		atnPut!(CArg.Beast, "beast", "")(e, d);
+		atnPut!(CArg.Info, "info", "")(e, d);
 
-		atnPut!(CArg.START, "start", "")(e, d);
-		atnPut!(CArg.COUPON, "coupon", "")(e, d);
-		atnPut!(CArg.GOSSIP, "gossip", "")(e, d);
-		atnPut!(CArg.COMPLETE_STAMP, "completeStamp", "")(e, d);
+		atnPut!(CArg.Start, "start", "")(e, d);
+		atnPut!(CArg.Coupon, "coupon", "")(e, d);
+		atnPut!(CArg.Gossip, "gossip", "")(e, d);
+		atnPut!(CArg.CompleteStamp, "completeStamp", "")(e, d);
 
-		atnPut!(CArg.MENTAL, "mental", "fromMental")(e, d);
-		atnPut!(CArg.PHYSICAL, "physical", "fromPhysical")(e, d);
-		atnPut!(CArg.STATUS, "status", "fromStatus")(e, d);
-		atnPut!(CArg.RANGE, "range", "fromRange")(e, d);
-		atnPut!(CArg.CARD_VISUAL, "cardVisual", "fromCardVisual")(e, d);
-		atnPut!(CArg.EFFECT_TYPE, "effectType", "fromEffectType")(e, d);
-		atnPut!(CArg.RESIST, "resist", "fromResist")(e, d);
-		atnPut!(CArg.TRANSITION, "transition", "fromTransition")(e, d);
+		atnPut!(CArg.Mental, "mental", "fromMental")(e, d);
+		atnPut!(CArg.Physical, "physical", "fromPhysical")(e, d);
+		atnPut!(CArg.Status, "status", "fromStatus")(e, d);
+		atnPut!(CArg.Range, "range", "fromRange")(e, d);
+		atnPut!(CArg.CardVisual, "cardVisual", "fromCardVisual")(e, d);
+		atnPut!(CArg.EffectType, "effectType", "fromEffectType")(e, d);
+		atnPut!(CArg.Resist, "resist", "fromResist")(e, d);
+		atnPut!(CArg.Transition, "transition", "fromTransition")(e, d);
 
-		atnPut!(CArg.TARGET_ALL, "targetAll", "fromBool")(e, d);
-		atnPut!(CArg.AVERAGE, "average", "fromBool")(e, d);
-		atnPut!(CArg.COMPLETE, "complete", "fromBool")(e, d);
+		atnPut!(CArg.TargetAll, "targetAll", "fromBool")(e, d);
+		atnPut!(CArg.Average, "average", "fromBool")(e, d);
+		atnPut!(CArg.Complete, "complete", "fromBool")(e, d);
 
-		atnPut!(CArg.UNSIGNED_LEVEL, "unsignedLevel", "")(e, d);
-		atnPut!(CArg.SIGNED_LEVEL, "signedLevel", "")(e, d);
-		atnPut!(CArg.SUCCESS_RATE, "successRate", "")(e, d);
-		atnPut!(CArg.TRANSITION_SPEED, "transitionSpeed", "")(e, d);
-		atnPut!(CArg.PERCENT, "percent", "")(e, d);
-		atnPut!(CArg.FLAG_VALUE, "flagValue", "fromBool")(e, d);
-		atnPut!(CArg.STEP_VALUE, "stepValue", "")(e, d);
-		atnPut!(CArg.COUPON_VALUE, "couponValue", "")(e, d);
-		atnPut!(CArg.PARTY_NUMBER, "partyNumber", "")(e, d);
-		atnPut!(CArg.CARD_NUMBER, "cardNumber", "")(e, d);
-		atnPut!(CArg.MONEY, "money", "")(e, d);
-		atnPut!(CArg.WAIT, "wait", "")(e, d);
+		atnPut!(CArg.UnsignedLevel, "unsignedLevel", "")(e, d);
+		atnPut!(CArg.SignedLevel, "signedLevel", "")(e, d);
+		atnPut!(CArg.SuccessRate, "successRate", "")(e, d);
+		atnPut!(CArg.TransitionSpeed, "transitionSpeed", "")(e, d);
+		atnPut!(CArg.Percent, "percent", "")(e, d);
+		atnPut!(CArg.FlagValue, "flagValue", "fromBool")(e, d);
+		atnPut!(CArg.StepValue, "stepValue", "")(e, d);
+		atnPut!(CArg.CouponValue, "couponValue", "")(e, d);
+		atnPut!(CArg.PartyNumber, "partyNumber", "")(e, d);
+		atnPut!(CArg.CardNumber, "cardNumber", "")(e, d);
+		atnPut!(CArg.Money, "money", "")(e, d);
+		atnPut!(CArg.Wait, "wait", "")(e, d);
 
-		atnPut!(CArg.FLAG_2, "flag2", "")(e, d);
-		atnPut!(CArg.STEP_2, "step2", "")(e, d);
-		atnPut!(CArg.LEVEL_MIN, "levelMin", "")(e, d);
-		atnPut!(CArg.LEVEL_MAX, "levelMax", "")(e, d);
+		atnPut!(CArg.Flag2, "flag2", "")(e, d);
+		atnPut!(CArg.Step2, "step2", "")(e, d);
+		atnPut!(CArg.LevelMin, "levelMin", "")(e, d);
+		atnPut!(CArg.LevelMax, "levelMax", "")(e, d);
 
-		atnPut!(CArg.KEY_CODE_RANGE, "keyCodeRange", "fromRange")(e, d);
-		atnPut!(CArg.KEY_CODE, "keyCode", "")(e, d);
+		atnPut!(CArg.KeyCodeRange, "keyCodeRange", "fromRange")(e, d);
+		atnPut!(CArg.KeyCode, "keyCode", "")(e, d);
 
-		atnPut!(CArg.INIT_VALUE, "initValue", "")(e, d);
+		atnPut!(CArg.InitValue, "initValue", "")(e, d);
 
-		atnPut!(CArg.COMPARISON_4, "comparison4", "fromComparison4")(e, d);
-		atnPut!(CArg.COMPARISON_3, "comparison3", "fromComparison3")(e, d);
+		atnPut!(CArg.Comparison4, "comparison4", "fromComparison4")(e, d);
+		atnPut!(CArg.Comparison3, "comparison3", "fromComparison3")(e, d);
 
-		atnPut!(CArg.ROUND, "round", "")(e, d);
+		atnPut!(CArg.Round, "round", "")(e, d);
 
-		atnPutD!(CArg.CELL_NAME, "cellName", "", "")(e, d);
-		atnPutD!(CArg.CARD_GROUP, "cardGroup", "", "")(e, d);
-		atnPutD!(CArg.POSITION_TYPE, "positionType", "fromCoordinateType", CoordinateType.None)(e, d);
+		atnPutD!(CArg.CellName, "cellName", "", "")(e, d);
+		atnPutD!(CArg.CardGroup, "cardGroup", "", "")(e, d);
+		atnPutD!(CArg.PositionType, "positionType", "fromCoordinateType", CoordinateType.None)(e, d);
 		atnPutD!(CArg.X, "x", "", 0)(e, d);
 		atnPutD!(CArg.Y, "y", "", 0)(e, d);
-		atnPutD!(CArg.SIZE_TYPE, "sizeType", "fromCoordinateType", CoordinateType.None)(e, d);
-		atnPutD!(CArg.WIDTH, "width", "", 0)(e, d);
-		atnPutD!(CArg.HEIGHT, "height", "", 0)(e, d);
-		atnPutD!(CArg.SCALE, "scale", "", -1)(e, d);
-		atnPutD!(CArg.LAYER, "layer", "", -1)(e, d);
+		atnPutD!(CArg.SizeType, "sizeType", "fromCoordinateType", CoordinateType.None)(e, d);
+		atnPutD!(CArg.Width, "width", "", 0)(e, d);
+		atnPutD!(CArg.Height, "height", "", 0)(e, d);
+		atnPutD!(CArg.Scale, "scale", "", -1)(e, d);
+		atnPutD!(CArg.Layer, "layer", "", -1)(e, d);
 
-		atnPutD!(CArg.DO_ANIME, "doAnime", "fromBool", true)(e, d);
-		atnPutD!(CArg.IGNORE_EFFECT_BOOSTER, "ignoreEffectBooster", "fromBool", false)(e, d);
+		atnPutD!(CArg.DoAnime, "doAnime", "fromBool", true)(e, d);
+		atnPutD!(CArg.IgnoreEffectBooster, "ignoreEffectBooster", "fromBool", false)(e, d);
 
-		atnPutD!(CArg.SELECTION_COLUMNS, "selectionColumns", "", 1)(e, d);
-		atnPutD!(CArg.CENTERING_X, "centeringX", "fromBool", false)(e, d);
-		atnPutD!(CArg.CENTERING_Y, "centeringY", "fromBool", false)(e, d);
-		atnPutD!(CArg.BOUNDARY_CHECK, "boundaryCheck", "fromBool", false)(e, d);
-		atnPutD!(CArg.START_ACTION, "startAction", "", StartAction.Now)(e, d);
-		atnPutD!(CArg.IGNITE, "ignite", "fromBool", false)(e, d);
-		atnPutD!(CArg.HOLDING_COUPON, "holdingCoupon", "", "")(e, d);
-		atnPutD!(CArg.REF_ABILITY, "refAbility", "", false)(e, d);
+		atnPutD!(CArg.SelectionColumns, "selectionColumns", "", 1)(e, d);
+		atnPutD!(CArg.CenteringX, "centeringX", "fromBool", false)(e, d);
+		atnPutD!(CArg.CenteringY, "centeringY", "fromBool", false)(e, d);
+		atnPutD!(CArg.BoundaryCheck, "boundaryCheck", "fromBool", false)(e, d);
+		atnPutD!(CArg.StartAction, "startAction", "", StartAction.Now)(e, d);
+		atnPutD!(CArg.Ignite, "ignite", "fromBool", false)(e, d);
+		atnPutD!(CArg.HoldingCoupon, "holdingCoupon", "", "")(e, d);
+		atnPutD!(CArg.RefAbility, "refAbility", "", false)(e, d);
 
-		atnPutD!(CArg.SELECT_CARD, "selectCard", "fromBool", false)(e, d);
-		atnPutD!(CArg.SELECT_TALKER, "selectTalker", "fromBool", false)(e, d);
-		atnPutD!(CArg.INVERT_RESULT, "invertResult", "fromBool", false)(e, d);
-		atnPutD!(CArg.BACKPACK_ENABLED, "backpackEnabled", "fromEnvironmentStatus", EnvironmentStatus.NotSet)(e, d);
+		atnPutD!(CArg.SelectCard, "selectCard", "fromBool", false)(e, d);
+		atnPutD!(CArg.SelectTalker, "selectTalker", "fromBool", false)(e, d);
+		atnPutD!(CArg.InvertResult, "invertResult", "fromBool", false)(e, d);
+		atnPutD!(CArg.BackpackEnabled, "backpackEnabled", "fromEnvironmentStatus", EnvironmentStatus.NotSet)(e, d);
 
-		atnPutD!(CArg.CONSUME_CARD, "consumeCard", "fromBool", true)(e, d);
+		atnPutD!(CArg.ConsumeCard, "consumeCard", "fromBool", true)(e, d);
 
-		atnPutD!(CArg.OVERRIDE_CARD_SPEED, "overrideCardSpeed", "fromBool", false)(e, d);
+		atnPutD!(CArg.OverrideCardSpeed, "overrideCardSpeed", "fromBool", false)(e, d);
 
-		atnPutD!(CArg.EXPAND_SP_CHARS, "expandSPChars", "fromBool", false)(e, d);
+		atnPutD!(CArg.ExpandSPChars, "expandSPChars", "fromBool", false)(e, d);
 
 		// 多少複雑なもの
-		if (d.use(CArg.MOTIONS)) { mixin(S_TRACE);
+		if (d.use(CArg.Motions)) { mixin(S_TRACE);
 			auto me = e.newElement("Motions");
 			foreach (m; motions) { mixin(S_TRACE);
 				m.toNode(me, opt);
 			}
 		}
 
-		if (d.use(CArg.TEXT)) e.newElement("Text", encodeLf(text));
-		if (d.use(CArg.DIALOGS)) { mixin(S_TRACE);
+		if (d.use(CArg.Text)) e.newElement("Text", encodeLf(text));
+		if (d.use(CArg.Dialogs)) { mixin(S_TRACE);
 			auto de = e.newElement("Dialogs");
 			foreach (dlg; dialogs) { mixin(S_TRACE);
 				dlg.toNode(de);
 			}
 		}
 
-		atnPut!(CArg.TARGET_S, "targetS", "fromTarget")(e, d);
-		if (d.use(CArg.TALKER_C)) { mixin(S_TRACE);
+		atnPut!(CArg.TargetS, "targetS", "fromTarget")(e, d);
+		if (d.use(CArg.TalkerC)) { mixin(S_TRACE);
 			CardImage.toNode(e, _cardPaths, true);
 		}
-		atnPut!(CArg.TALKER_NC, "talkerNC", "fromTalker")(e, d);
+		atnPut!(CArg.TalkerNC, "talkerNC", "fromTalker")(e, d);
 
-		if (d.use(CArg.BG_IMAGES)) { mixin(S_TRACE);
-			BgImage.toNode(backs, type is CType.CHANGE_BG_IMAGE, e, opt);
+		if (d.use(CArg.BgImages)) { mixin(S_TRACE);
+			BgImage.toNode(backs, type is CType.ChangeBgImage, e, opt);
 		}
 
-		if (d.use(CArg.CAST_RANGE)) { mixin(S_TRACE);
+		if (d.use(CArg.CastRange)) { mixin(S_TRACE);
 			auto ce = e.newElement("CastRanges");
 			foreach (c; castRange) { mixin(S_TRACE);
 				ce.newElement("CastRange", fromCastRange(c));
 			}
 		}
 
-		if (d.use(CArg.COUPONS)) { mixin(S_TRACE);
+		if (d.use(CArg.Coupons)) { mixin(S_TRACE);
 			auto ce = e.newElement(Coupon.XML_NAME_M);
 			foreach (c; coupons) { mixin(S_TRACE);
 				c.toNode(ce);
 			}
 		}
-		if (d.use(CArg.SELECTION_METHOD)) { mixin(S_TRACE);
+		if (d.use(CArg.SelectionMethod)) { mixin(S_TRACE);
 			if ((opt && opt.isTargetVersion("1")) || selectionMethod is SelectionMethod.Valued) { mixin(S_TRACE);
 				e.newAttr("method", fromSelectionMethod(selectionMethod));
 			} else { mixin(S_TRACE);
@@ -2832,45 +2832,45 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 			}
 		}
 
-		if (d.use(CArg.KEY_CODES)) { mixin(S_TRACE);
+		if (d.use(CArg.KeyCodes)) { mixin(S_TRACE);
 			e.newElement("KeyCodes", encodeLf(keyCodes, false));
 		}
 
 		if (cardSpeed != -1) { mixin(S_TRACE);
 			// -1は未指定。エンジンの設定に従う。あえて指定する場合の値はDefaultとなる。
-			atnPut!(CArg.CARD_SPEED, "cardSpeed", "")(e, d);
+			atnPut!(CArg.CardSpeed, "cardSpeed", "")(e, d);
 		}
 
 		// Wsn.2以降はキーコード所持分岐の探索対象を複数選択可能になった
-		if (type is CType.BRANCH_KEY_CODE) { mixin(S_TRACE);
+		if (type is CType.BranchKeyCode) { mixin(S_TRACE);
 			// Wsn.1以前のために"effectCardType"も付加しておく
-			auto effectCardType = EffectCardType.ALL;
+			auto effectCardType = EffectCardType.All;
 			if (targetIsSkill && targetIsItem && targetIsBeast && !targetIsHand) { mixin(S_TRACE);
-				effectCardType = EffectCardType.ALL;
+				effectCardType = EffectCardType.All;
 				e.newAttr("effectCardType", fromEffectCardType(effectCardType));
 			} else if (targetIsSkill && !targetIsItem && !targetIsBeast && !targetIsHand) { mixin(S_TRACE);
-				effectCardType = EffectCardType.SKILL;
+				effectCardType = EffectCardType.Skill;
 				e.newAttr("effectCardType", fromEffectCardType(effectCardType));
 			} else if (!targetIsSkill && targetIsItem && !targetIsBeast && !targetIsHand) { mixin(S_TRACE);
-				effectCardType = EffectCardType.ITEM;
+				effectCardType = EffectCardType.Item;
 				e.newAttr("effectCardType", fromEffectCardType(effectCardType));
 			} else if (!targetIsSkill && !targetIsItem && targetIsBeast && !targetIsHand) { mixin(S_TRACE);
-				effectCardType = EffectCardType.BEAST;
+				effectCardType = EffectCardType.Beast;
 				e.newAttr("effectCardType", fromEffectCardType(effectCardType));
 			} else { mixin(S_TRACE);
-				atnPut!(CArg.TARGET_IS_SKILL, "targetIsSkill", "fromBool")(e, d);
-				atnPut!(CArg.TARGET_IS_ITEM, "targetIsItem", "fromBool")(e, d);
-				atnPut!(CArg.TARGET_IS_BEAST, "targetIsBeast", "fromBool")(e, d);
-				atnPut!(CArg.TARGET_IS_HAND, "targetIsHand", "fromBool")(e, d);
+				atnPut!(CArg.TargetIsSkill, "targetIsSkill", "fromBool")(e, d);
+				atnPut!(CArg.TargetIsItem, "targetIsItem", "fromBool")(e, d);
+				atnPut!(CArg.TargetIsBeast, "targetIsBeast", "fromBool")(e, d);
+				atnPut!(CArg.TargetIsHand, "targetIsHand", "fromBool")(e, d);
 			}
 		} else { mixin(S_TRACE);
-			atnPut!(CArg.TARGET_IS_SKILL, "targetIsSkill", "fromBool")(e, d);
-			atnPut!(CArg.TARGET_IS_ITEM, "targetIsItem", "fromBool")(e, d);
-			atnPut!(CArg.TARGET_IS_BEAST, "targetIsBeast", "fromBool")(e, d);
-			atnPut!(CArg.TARGET_IS_HAND, "targetIsHand", "fromBool")(e, d);
+			atnPut!(CArg.TargetIsSkill, "targetIsSkill", "fromBool")(e, d);
+			atnPut!(CArg.TargetIsItem, "targetIsItem", "fromBool")(e, d);
+			atnPut!(CArg.TargetIsBeast, "targetIsBeast", "fromBool")(e, d);
+			atnPut!(CArg.TargetIsHand, "targetIsHand", "fromBool")(e, d);
 		}
 		// Wsn.2以降はクーポン分岐が複数クーポン指定になった
-		if (d.use(CArg.COUPON_NAMES)) { mixin(S_TRACE);
+		if (d.use(CArg.CouponNames)) { mixin(S_TRACE);
 			if (couponNames.length > 1) { mixin(S_TRACE);
 				auto ce = e.newElement(Coupon.XML_NAME_M);
 				foreach (c; couponNames) { mixin(S_TRACE);
@@ -2880,14 +2880,14 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 				e.newAttr("coupon", couponNames.length ? couponNames[0] : "");
 			}
 		}
-		if (d.use(CArg.COUPON_NAMES) && 1 < couponNames.length) { mixin(S_TRACE);
+		if (d.use(CArg.CouponNames) && 1 < couponNames.length) { mixin(S_TRACE);
 			// 複数クーポンが指定されている場合は必ず条件を出力
-			atnPut!(CArg.MATCHING_TYPE, "matchingType", "fromMatchingType")(e, d);
+			atnPut!(CArg.MatchingType, "matchingType", "fromMatchingType")(e, d);
 		} else { mixin(S_TRACE);
-			atnPutD!(CArg.MATCHING_TYPE, "matchingType", "fromMatchingType", MatchingType.And)(e, d);
+			atnPutD!(CArg.MatchingType, "matchingType", "fromMatchingType", MatchingType.And)(e, d);
 		}
 		// 式(Wsn.4)
-		if (d.use(CArg.EXPRESSION)) { mixin(S_TRACE);
+		if (d.use(CArg.Expression)) { mixin(S_TRACE);
 			e.newElement("Expression", expression);
 		}
 	}
@@ -2992,117 +2992,117 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		r.comment = en.attr("comment", false).replace("\r\n", "\n").replace("\r", "");
 
 		// 単純データ
-		cfnPut!(CArg.AREA, "area", "to!(ulong)")(en, d, r);
-		cfnPut!(CArg.BATTLE, "battle", "to!(ulong)")(en, d, r);
-		cfnPut!(CArg.PACKAGE, "packages", "to!(ulong)")(en, d, r);
-		if (d.use(CArg.FLAG) && d.use(CArg.STEP) && d.use(CArg.VARIANT)) { mixin(S_TRACE);
+		cfnPut!(CArg.Area, "area", "to!(ulong)")(en, d, r);
+		cfnPut!(CArg.Battle, "battle", "to!(ulong)")(en, d, r);
+		cfnPut!(CArg.Package, "packages", "to!(ulong)")(en, d, r);
+		if (d.use(CArg.Flag) && d.use(CArg.Step) && d.use(CArg.Variant)) { mixin(S_TRACE);
 			// コモン設定コンテントでは省略可とする
-			cfnPutD!(CArg.FLAG, "flag", "", "")(en, d, r);
-			cfnPutD!(CArg.STEP, "step", "", "")(en, d, r);
-			cfnPutD!(CArg.VARIANT, "variant", "", "")(en, d, r);
+			cfnPutD!(CArg.Flag, "flag", "", "")(en, d, r);
+			cfnPutD!(CArg.Step, "step", "", "")(en, d, r);
+			cfnPutD!(CArg.Variant, "variant", "", "")(en, d, r);
 		} else { mixin(S_TRACE);
-			cfnPut!(CArg.FLAG, "flag", "")(en, d, r);
-			cfnPut!(CArg.STEP, "step", "")(en, d, r);
-			cfnPut!(CArg.VARIANT, "variant", "")(en, d, r);
+			cfnPut!(CArg.Flag, "flag", "")(en, d, r);
+			cfnPut!(CArg.Step, "step", "")(en, d, r);
+			cfnPut!(CArg.Variant, "variant", "")(en, d, r);
 		}
-		cfnPut!(CArg.BGM_PATH, "bgmPath", "decodePath")(en, d, r);
-		cfnPut!(CArg.BGM_CHANNEL, "bgmChannel", "to!(uint)")(en, d, r);
-		cfnPut!(CArg.BGM_VOLUME, "bgmVolume", "to!(uint)")(en, d, r);
-		cfnPut!(CArg.BGM_LOOP_COUNT, "bgmLoopCount", "to!(uint)")(en, d, r);
-		cfnPut!(CArg.BGM_FADE_IN, "bgmFadeIn", "to!(uint)")(en, d, r);
-		cfnPut!(CArg.SOUND_PATH, "soundPath", "decodePath")(en, d, r);
-		cfnPut!(CArg.SOUND_CHANNEL, "soundChannel", "to!(uint)")(en, d, r);
-		cfnPut!(CArg.SOUND_VOLUME, "soundVolume", "to!(uint)")(en, d, r);
-		cfnPut!(CArg.SOUND_LOOP_COUNT, "soundLoopCount", "to!(uint)")(en, d, r);
-		cfnPut!(CArg.SOUND_FADE_IN, "soundFadeIn", "to!(uint)")(en, d, r);
-		cfnPutD!(CArg.INITIAL_EFFECT, "initialEffect", "parseBool", false)(en, d, r);
-		cfnPutD!(CArg.INITIAL_SOUND_PATH, "initialSoundPath", "decodePath", "")(en, d, r);
-		cfnPutD!(CArg.INITIAL_SOUND_CHANNEL, "initialSoundChannel", "to!(uint)", 0)(en, d, r);
-		cfnPutD!(CArg.INITIAL_SOUND_VOLUME, "initialSoundVolume", "to!(uint)", 100)(en, d, r);
-		cfnPutD!(CArg.INITIAL_SOUND_LOOP_COUNT, "initialSoundLoopCount", "to!(uint)", 1)(en, d, r);
-		cfnPutD!(CArg.INITIAL_SOUND_FADE_IN, "initialSoundFadeIn", "to!(uint)", 0)(en, d, r);
-		cfnPut!(CArg.CAST, "casts", "to!(ulong)")(en, d, r);
-		cfnPut!(CArg.ITEM, "item", "to!(ulong)")(en, d, r);
-		cfnPut!(CArg.SKILL, "skill", "to!(ulong)")(en, d, r);
-		cfnPut!(CArg.BEAST, "beast", "to!(ulong)")(en, d, r);
-		cfnPut!(CArg.INFO, "info", "to!(ulong)")(en, d, r);
+		cfnPut!(CArg.BgmPath, "bgmPath", "decodePath")(en, d, r);
+		cfnPut!(CArg.BgmChannel, "bgmChannel", "to!(uint)")(en, d, r);
+		cfnPut!(CArg.BgmVolume, "bgmVolume", "to!(uint)")(en, d, r);
+		cfnPut!(CArg.BgmLoopCount, "bgmLoopCount", "to!(uint)")(en, d, r);
+		cfnPut!(CArg.BgmFadeIn, "bgmFadeIn", "to!(uint)")(en, d, r);
+		cfnPut!(CArg.SoundPath, "soundPath", "decodePath")(en, d, r);
+		cfnPut!(CArg.SoundChannel, "soundChannel", "to!(uint)")(en, d, r);
+		cfnPut!(CArg.SoundVolume, "soundVolume", "to!(uint)")(en, d, r);
+		cfnPut!(CArg.SoundLoopCount, "soundLoopCount", "to!(uint)")(en, d, r);
+		cfnPut!(CArg.SoundFadeIn, "soundFadeIn", "to!(uint)")(en, d, r);
+		cfnPutD!(CArg.InitialEffect, "initialEffect", "parseBool", false)(en, d, r);
+		cfnPutD!(CArg.InitialSoundPath, "initialSoundPath", "decodePath", "")(en, d, r);
+		cfnPutD!(CArg.InitialSoundChannel, "initialSoundChannel", "to!(uint)", 0)(en, d, r);
+		cfnPutD!(CArg.InitialSoundVolume, "initialSoundVolume", "to!(uint)", 100)(en, d, r);
+		cfnPutD!(CArg.InitialSoundLoopCount, "initialSoundLoopCount", "to!(uint)", 1)(en, d, r);
+		cfnPutD!(CArg.InitialSoundFadeIn, "initialSoundFadeIn", "to!(uint)", 0)(en, d, r);
+		cfnPut!(CArg.Cast, "casts", "to!(ulong)")(en, d, r);
+		cfnPut!(CArg.Item, "item", "to!(ulong)")(en, d, r);
+		cfnPut!(CArg.Skill, "skill", "to!(ulong)")(en, d, r);
+		cfnPut!(CArg.Beast, "beast", "to!(ulong)")(en, d, r);
+		cfnPut!(CArg.Info, "info", "to!(ulong)")(en, d, r);
 
-		cfnPut!(CArg.START, "start", "")(en, d, r);
-		cfnPut!(CArg.COUPON, "coupon", "")(en, d, r);
-		cfnPut!(CArg.GOSSIP, "gossip", "")(en, d, r);
-		cfnPut!(CArg.COMPLETE_STAMP, "completeStamp", "")(en, d, r);
+		cfnPut!(CArg.Start, "start", "")(en, d, r);
+		cfnPut!(CArg.Coupon, "coupon", "")(en, d, r);
+		cfnPut!(CArg.Gossip, "gossip", "")(en, d, r);
+		cfnPut!(CArg.CompleteStamp, "completeStamp", "")(en, d, r);
 
-		cfnPut!(CArg.MENTAL, "mental", "toMental")(en, d, r);
-		cfnPut!(CArg.PHYSICAL, "physical", "toPhysical")(en, d, r);
-		cfnPut!(CArg.STATUS, "status", "toStatus")(en, d, r);
-		cfnPut!(CArg.RANGE, "range", "toRange")(en, d, r);
-		cfnPut!(CArg.CARD_VISUAL, "cardVisual", "toCardVisual")(en, d, r);
-		cfnPut!(CArg.EFFECT_TYPE, "effectType", "toEffectType")(en, d, r);
-		cfnPut!(CArg.RESIST, "resist", "toResist")(en, d, r);
+		cfnPut!(CArg.Mental, "mental", "toMental")(en, d, r);
+		cfnPut!(CArg.Physical, "physical", "toPhysical")(en, d, r);
+		cfnPut!(CArg.Status, "status", "toStatus")(en, d, r);
+		cfnPut!(CArg.Range, "range", "toRange")(en, d, r);
+		cfnPut!(CArg.CardVisual, "cardVisual", "toCardVisual")(en, d, r);
+		cfnPut!(CArg.EffectType, "effectType", "toEffectType")(en, d, r);
+		cfnPut!(CArg.Resist, "resist", "toResist")(en, d, r);
 
-		cfnPut!(CArg.TARGET_ALL, "targetAll", "parseBool")(en, d, r);
-		cfnPut!(CArg.AVERAGE, "average", "parseBool")(en, d, r);
-		cfnPut!(CArg.COMPLETE, "complete", "parseBool")(en, d, r);
+		cfnPut!(CArg.TargetAll, "targetAll", "parseBool")(en, d, r);
+		cfnPut!(CArg.Average, "average", "parseBool")(en, d, r);
+		cfnPut!(CArg.Complete, "complete", "parseBool")(en, d, r);
 
-		cfnPut!(CArg.UNSIGNED_LEVEL, "unsignedLevel", "to!(int)")(en, d, r);
-		cfnPut!(CArg.SIGNED_LEVEL, "signedLevel", "to!(int)")(en, d, r);
-		cfnPut!(CArg.SUCCESS_RATE, "successRate", "to!(int)")(en, d, r);
-		cfnPut!(CArg.PERCENT, "percent", "to!(int)")(en, d, r);
-		cfnPut!(CArg.FLAG_VALUE, "flagValue", "parseBool")(en, d, r);
-		cfnPut!(CArg.STEP_VALUE, "stepValue", "to!(int)")(en, d, r);
-		cfnPut!(CArg.COUPON_VALUE, "couponValue", "to!(int)")(en, d, r);
-		cfnPut!(CArg.PARTY_NUMBER, "partyNumber", "to!(int)")(en, d, r);
-		cfnPut!(CArg.CARD_NUMBER, "cardNumber", "to!(int)")(en, d, r);
-		cfnPut!(CArg.MONEY, "money", "to!(int)")(en, d, r);
-		cfnPut!(CArg.WAIT, "wait", "to!(int)")(en, d, r);
+		cfnPut!(CArg.UnsignedLevel, "unsignedLevel", "to!(int)")(en, d, r);
+		cfnPut!(CArg.SignedLevel, "signedLevel", "to!(int)")(en, d, r);
+		cfnPut!(CArg.SuccessRate, "successRate", "to!(int)")(en, d, r);
+		cfnPut!(CArg.Percent, "percent", "to!(int)")(en, d, r);
+		cfnPut!(CArg.FlagValue, "flagValue", "parseBool")(en, d, r);
+		cfnPut!(CArg.StepValue, "stepValue", "to!(int)")(en, d, r);
+		cfnPut!(CArg.CouponValue, "couponValue", "to!(int)")(en, d, r);
+		cfnPut!(CArg.PartyNumber, "partyNumber", "to!(int)")(en, d, r);
+		cfnPut!(CArg.CardNumber, "cardNumber", "to!(int)")(en, d, r);
+		cfnPut!(CArg.Money, "money", "to!(int)")(en, d, r);
+		cfnPut!(CArg.Wait, "wait", "to!(int)")(en, d, r);
 
-		cfnPut!(CArg.FLAG_2, "flag2", "")(en, d, r);
-		cfnPut!(CArg.STEP_2, "step2", "")(en, d, r);
-		cfnPut!(CArg.LEVEL_MIN, "levelMin", "to!(int)")(en, d, r);
-		cfnPut!(CArg.LEVEL_MAX, "levelMax", "to!(int)")(en, d, r);
+		cfnPut!(CArg.Flag2, "flag2", "")(en, d, r);
+		cfnPut!(CArg.Step2, "step2", "")(en, d, r);
+		cfnPut!(CArg.LevelMin, "levelMin", "to!(int)")(en, d, r);
+		cfnPut!(CArg.LevelMax, "levelMax", "to!(int)")(en, d, r);
 
-		cfnPut!(CArg.KEY_CODE_RANGE, "keyCodeRange", "toRange")(en, d, r);
-		cfnPut!(CArg.KEY_CODE, "keyCode", "")(en, d, r);
+		cfnPut!(CArg.KeyCodeRange, "keyCodeRange", "toRange")(en, d, r);
+		cfnPut!(CArg.KeyCode, "keyCode", "")(en, d, r);
 
-		cfnPut!(CArg.INIT_VALUE, "initValue", "to!(int)")(en, d, r);
+		cfnPut!(CArg.InitValue, "initValue", "to!(int)")(en, d, r);
 
-		cfnPut!(CArg.COMPARISON_4, "comparison4", "toComparison4")(en, d, r);
-		cfnPut!(CArg.COMPARISON_3, "comparison3", "toComparison3")(en, d, r);
+		cfnPut!(CArg.Comparison4, "comparison4", "toComparison4")(en, d, r);
+		cfnPut!(CArg.Comparison3, "comparison3", "toComparison3")(en, d, r);
 
-		cfnPut!(CArg.ROUND, "round", "to!(uint)")(en, d, r);
+		cfnPut!(CArg.Round, "round", "to!(uint)")(en, d, r);
 
-		cfnPutD!(CArg.CELL_NAME, "cellName", "", "")(en, d, r);
-		cfnPutD!(CArg.CARD_GROUP, "cardGroup", "", "")(en, d, r);
-		cfnPutD!(CArg.POSITION_TYPE, "positionType", "toCoordinateType", CoordinateType.None)(en, d, r);
+		cfnPutD!(CArg.CellName, "cellName", "", "")(en, d, r);
+		cfnPutD!(CArg.CardGroup, "cardGroup", "", "")(en, d, r);
+		cfnPutD!(CArg.PositionType, "positionType", "toCoordinateType", CoordinateType.None)(en, d, r);
 		cfnPutD!(CArg.X, "x", "to!(int)", 0)(en, d, r);
 		cfnPutD!(CArg.Y, "y", "to!(int)", 0)(en, d, r);
-		cfnPutD!(CArg.SIZE_TYPE, "sizeType", "toCoordinateType", CoordinateType.None)(en, d, r);
-		cfnPutD!(CArg.WIDTH, "width", "to!(int)", 0)(en, d, r);
-		cfnPutD!(CArg.HEIGHT, "height", "to!(int)", 0)(en, d, r);
-		cfnPutD!(CArg.SCALE, "scale", "to!(int)", -1)(en, d, r);
-		cfnPutD!(CArg.LAYER, "layer", "to!(int)", -1)(en, d, r);
+		cfnPutD!(CArg.SizeType, "sizeType", "toCoordinateType", CoordinateType.None)(en, d, r);
+		cfnPutD!(CArg.Width, "width", "to!(int)", 0)(en, d, r);
+		cfnPutD!(CArg.Height, "height", "to!(int)", 0)(en, d, r);
+		cfnPutD!(CArg.Scale, "scale", "to!(int)", -1)(en, d, r);
+		cfnPutD!(CArg.Layer, "layer", "to!(int)", -1)(en, d, r);
 
-		cfnPutD!(CArg.DO_ANIME, "doAnime", "parseBool", true)(en, d, r);
-		cfnPutD!(CArg.IGNORE_EFFECT_BOOSTER, "ignoreEffectBooster", "parseBool", false)(en, d, r);
+		cfnPutD!(CArg.DoAnime, "doAnime", "parseBool", true)(en, d, r);
+		cfnPutD!(CArg.IgnoreEffectBooster, "ignoreEffectBooster", "parseBool", false)(en, d, r);
 
-		cfnPutD!(CArg.SELECTION_COLUMNS, "selectionColumns", "to!(uint)", 1)(en, d, r);
-		cfnPutD!(CArg.CENTERING_X, "centeringX", "parseBool", false)(en, d, r);
-		cfnPutD!(CArg.CENTERING_Y, "centeringY", "parseBool", false)(en, d, r);
-		cfnPutD!(CArg.BOUNDARY_CHECK, "boundaryCheck", "parseBool", false)(en, d, r);
-		cfnPutD!(CArg.IGNITE, "ignite", "parseBool", false)(en, d, r);
-		cfnPutD!(CArg.HOLDING_COUPON, "holdingCoupon", "", "")(en, d, r);
-		cfnPutD!(CArg.REF_ABILITY, "refAbility", "parseBool", false)(en, d, r);
+		cfnPutD!(CArg.SelectionColumns, "selectionColumns", "to!(uint)", 1)(en, d, r);
+		cfnPutD!(CArg.CenteringX, "centeringX", "parseBool", false)(en, d, r);
+		cfnPutD!(CArg.CenteringY, "centeringY", "parseBool", false)(en, d, r);
+		cfnPutD!(CArg.BoundaryCheck, "boundaryCheck", "parseBool", false)(en, d, r);
+		cfnPutD!(CArg.Ignite, "ignite", "parseBool", false)(en, d, r);
+		cfnPutD!(CArg.HoldingCoupon, "holdingCoupon", "", "")(en, d, r);
+		cfnPutD!(CArg.RefAbility, "refAbility", "parseBool", false)(en, d, r);
 
-		cfnPutD!(CArg.SELECT_CARD, "selectCard", "parseBool", false)(en, d, r);
-		cfnPutD!(CArg.SELECT_TALKER, "selectTalker", "parseBool", false)(en, d, r);
-		cfnPutD!(CArg.INVERT_RESULT, "invertResult", "parseBool", false)(en, d, r);
-		cfnPutD!(CArg.BACKPACK_ENABLED, "backpackEnabled", "toEnvironmentStatus", EnvironmentStatus.NotSet)(en, d, r);
+		cfnPutD!(CArg.SelectCard, "selectCard", "parseBool", false)(en, d, r);
+		cfnPutD!(CArg.SelectTalker, "selectTalker", "parseBool", false)(en, d, r);
+		cfnPutD!(CArg.InvertResult, "invertResult", "parseBool", false)(en, d, r);
+		cfnPutD!(CArg.BackpackEnabled, "backpackEnabled", "toEnvironmentStatus", EnvironmentStatus.NotSet)(en, d, r);
 
-		cfnPutD!(CArg.CONSUME_CARD, "consumeCard", "parseBool", true)(en, d, r);
+		cfnPutD!(CArg.ConsumeCard, "consumeCard", "parseBool", true)(en, d, r);
 
-		cfnPutD!(CArg.OVERRIDE_CARD_SPEED, "overrideCardSpeed", "parseBool", false)(en, d, r);
+		cfnPutD!(CArg.OverrideCardSpeed, "overrideCardSpeed", "parseBool", false)(en, d, r);
 
-		cfnPutD!(CArg.EXPAND_SP_CHARS, "expandSPChars", "parseBool", false)(en, d, r);
+		cfnPutD!(CArg.ExpandSPChars, "expandSPChars", "parseBool", false)(en, d, r);
 
 		// CardWirthではラウンドイベントで加入したメンバは次ラウンドから
 		// 行動を開始するが、CardWirthPy 1では即時に行動していた。
@@ -3112,19 +3112,19 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		//    `startaction="Now"`として扱う。
 		//  * クラシックなシナリオを変換した時は`startaction="NextRound"`とする。
 		// ここはXMLデータのパースなので、初期値を`Now`しておく。
-		cfnPutD!(CArg.START_ACTION, "startAction", "toStartAction", StartAction.Now)(en, d, r);
+		cfnPutD!(CArg.StartAction, "startAction", "toStartAction", StartAction.Now)(en, d, r);
 
 		// 多少複雑なもの
-		if (d.use(CArg.TRANSITION)) { mixin(S_TRACE);
+		if (d.use(CArg.Transition)) { mixin(S_TRACE);
 			// 歴史的経緯から、transitionは値が存在しない可能性がある
-			auto s = en.attr(d.attr(CArg.TRANSITION), false);
+			auto s = en.attr(d.attr(CArg.Transition), false);
 			if (s.length) r.transition = toTransition(s);
 		}
-		if (d.use(CArg.TRANSITION_SPEED)) { mixin(S_TRACE);
-			auto s = en.attr(d.attr(CArg.TRANSITION_SPEED), false);
+		if (d.use(CArg.TransitionSpeed)) { mixin(S_TRACE);
+			auto s = en.attr(d.attr(CArg.TransitionSpeed), false);
 			if (s.length) r.transitionSpeed = to!(int)(s);
 		}
-		if (d.use(CArg.MOTIONS)) { mixin(S_TRACE);
+		if (d.use(CArg.Motions)) { mixin(S_TRACE);
 			en.onTag["Motions"] = (ref XNode node) { mixin(S_TRACE);
 				Motion[] motions;
 				node.onTag["Motion"] = (ref XNode node) { mixin(S_TRACE);
@@ -3134,10 +3134,10 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 				r.motions = motions;
 			};
 		}
-		if (d.use(CArg.TEXT)) { mixin(S_TRACE);
+		if (d.use(CArg.Text)) { mixin(S_TRACE);
 			en.onTag["Text"] = (ref XNode node) { r.text = decodeLf2(node.value); };
 		}
-		if (d.use(CArg.DIALOGS)) { mixin(S_TRACE);
+		if (d.use(CArg.Dialogs)) { mixin(S_TRACE);
 			en.onTag["Dialogs"] = (ref XNode node) { mixin(S_TRACE);
 				SDialog[] dlgs;
 				node.onTag["Dialog"] = (ref XNode node) { mixin(S_TRACE);
@@ -3148,9 +3148,9 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 				r.dialogs = dlgs;
 			};
 		}
-		if (d.use(CArg.CARD_SPEED)) { mixin(S_TRACE);
+		if (d.use(CArg.CardSpeed)) { mixin(S_TRACE);
 			// Defaultまたは0～10
-			auto attrName = d.attr(CArg.CARD_SPEED);
+			auto attrName = d.attr(CArg.CardSpeed);
 			if (en.hasAttr(attrName)) { mixin(S_TRACE);
 				if (en.attr!string(attrName, true) == "Default") { mixin(S_TRACE);
 					r.cardSpeed = -1;
@@ -3165,10 +3165,10 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 			if (!canSleep && targ.sleep) targ = Target(targ.m, false);
 			return targ;
 		}
-		if (d.use(CArg.TARGET_S)) r.targetS = loadTarget(true);
-		if (d.use(CArg.TALKER_NC)) { mixin(S_TRACE);
+		if (d.use(CArg.TargetS)) r.targetS = loadTarget(true);
+		if (d.use(CArg.TalkerNC)) { mixin(S_TRACE);
 			auto targetm = en.attr("targetm", false, "");
-			foreach (talker; [Talker.SELECTED, Talker.UNSELECTED, Talker.RANDOM, Talker.VALUED]) { mixin(S_TRACE);
+			foreach (talker; [Talker.Selected, Talker.Unselected, Talker.Random, Talker.Valued]) { mixin(S_TRACE);
 				if (targetm == fromTalker(talker)) { mixin(S_TRACE);
 					r.talkerNC = talker;
 					break;
@@ -3176,17 +3176,17 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 			}
 		}
 		CardImage[] cardPaths;
-		if (d.use(CArg.TALKER_C)) { mixin(S_TRACE);
+		if (d.use(CArg.TalkerC)) { mixin(S_TRACE);
 			CardImage.setOnTag(en, cardPaths, true);
 		}
 
-		if (d.use(CArg.BG_IMAGES)) { mixin(S_TRACE);
+		if (d.use(CArg.BgImages)) { mixin(S_TRACE);
 			en.onTag["BgImages"] = (ref XNode node) { mixin(S_TRACE);
-				r.backs = BgImage.bgImagesFromNode(node, cType is CType.CHANGE_BG_IMAGE, ver);
+				r.backs = BgImage.bgImagesFromNode(node, cType is CType.ChangeBgImage, ver);
 			};
 		}
 
-		if (d.use(CArg.CAST_RANGE)) { mixin(S_TRACE);
+		if (d.use(CArg.CastRange)) { mixin(S_TRACE);
 			en.onTag["CastRanges"] = (ref XNode node) { mixin(S_TRACE);
 				CastRange[] castRange;
 				node.onTag["CastRange"] = (ref XNode node) { mixin(S_TRACE);
@@ -3197,7 +3197,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 			};
 		}
 
-		if (d.use(CArg.COUPONS)) { mixin(S_TRACE);
+		if (d.use(CArg.Coupons)) { mixin(S_TRACE);
 			en.onTag[Coupon.XML_NAME_M] = (ref XNode node) { mixin(S_TRACE);
 				Coupon[] coupons;
 				bool[string] names;
@@ -3213,7 +3213,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 			};
 		}
 
-		if (d.use(CArg.SELECTION_METHOD)) { mixin(S_TRACE);
+		if (d.use(CArg.SelectionMethod)) { mixin(S_TRACE);
 			if (en.hasAttr("method")) { mixin(S_TRACE);
 				r.selectionMethod = toSelectionMethod(en.attr("method", false, fromSelectionMethod(SelectionMethod.Manual)));
 			} else { mixin(S_TRACE);
@@ -3221,52 +3221,52 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 			}
 		}
 
-		if (d.use(CArg.KEY_CODES)) { mixin(S_TRACE);
+		if (d.use(CArg.KeyCodes)) { mixin(S_TRACE);
 			en.onTag["KeyCodes"] = (ref XNode n) { mixin(S_TRACE);
 				r.keyCodes = decodeLf(n.value, true);
 			};
 		}
 
-		if (d.use(CArg.EXPRESSION)) { mixin(S_TRACE);
+		if (d.use(CArg.Expression)) { mixin(S_TRACE);
 			en.onTag["Expression"] = (ref XNode node) { r.expression = node.value; };
 		}
 
 		bool hasTarget = false;
-		hasTarget |= cfnPut!(CArg.TARGET_IS_SKILL, "targetIsSkill", "parseBool")(en, d, r);
-		hasTarget |= cfnPut!(CArg.TARGET_IS_ITEM, "targetIsItem", "parseBool")(en, d, r);
-		hasTarget |= cfnPut!(CArg.TARGET_IS_BEAST, "targetIsBeast", "parseBool")(en, d, r);
-		hasTarget |= cfnPut!(CArg.TARGET_IS_HAND, "targetIsHand", "parseBool")(en, d, r);
-		if (cType is CType.BRANCH_KEY_CODE) { mixin(S_TRACE);
+		hasTarget |= cfnPut!(CArg.TargetIsSkill, "targetIsSkill", "parseBool")(en, d, r);
+		hasTarget |= cfnPut!(CArg.TargetIsItem, "targetIsItem", "parseBool")(en, d, r);
+		hasTarget |= cfnPut!(CArg.TargetIsBeast, "targetIsBeast", "parseBool")(en, d, r);
+		hasTarget |= cfnPut!(CArg.TargetIsHand, "targetIsHand", "parseBool")(en, d, r);
+		if (cType is CType.BranchKeyCode) { mixin(S_TRACE);
 			// Wsn.2以降はキーコード所持分岐の探索対象を複数選択可能になったが、
 			// 該当するパラメータが無い場合はWsn.1以前と仮定して読み込む
 			if (!hasTarget && en.hasAttr("effectCardType")) { mixin(S_TRACE);
 				auto effectCardType = toEffectCardType(en.attr("effectCardType", true));
 				final switch (effectCardType) {
-				case EffectCardType.ALL:
+				case EffectCardType.All:
 					r.targetIsSkill = true;
 					r.targetIsItem = true;
 					r.targetIsBeast = true;
 					r.targetIsHand = false;
 					break;
-				case EffectCardType.SKILL:
+				case EffectCardType.Skill:
 					r.targetIsSkill = true;
 					r.targetIsItem = false;
 					r.targetIsBeast = false;
 					r.targetIsHand = false;
 					break;
-				case EffectCardType.ITEM:
+				case EffectCardType.Item:
 					r.targetIsSkill = false;
 					r.targetIsItem = true;
 					r.targetIsBeast = false;
 					r.targetIsHand = false;
 					break;
-				case EffectCardType.BEAST:
+				case EffectCardType.Beast:
 					r.targetIsSkill = false;
 					r.targetIsItem = false;
 					r.targetIsBeast = true;
 					r.targetIsHand = false;
 					break;
-				case EffectCardType.HAND:
+				case EffectCardType.Hand:
 					r.targetIsSkill = false;
 					r.targetIsItem = false;
 					r.targetIsBeast = false;
@@ -3276,7 +3276,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 			}
 		}
 		// Wsn.2以降はクーポン分岐が複数クーポン指定になった(Wsn.2)
-		if (d.use(CArg.COUPON_NAMES)) { mixin(S_TRACE);
+		if (d.use(CArg.CouponNames)) { mixin(S_TRACE);
 			bool[string] names;
 			if (en.hasAttr("coupon") && en.attr("coupon", true) != "") { mixin(S_TRACE);
 				auto coupon = en.attr("coupon", true);
@@ -3295,7 +3295,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 				r.couponNames = r.couponNames ~ couponNames;
 			};
 		}
-		cfnPut!(CArg.MATCHING_TYPE, "matchingType", "toMatchingType")(en, d, r);
+		cfnPut!(CArg.MatchingType, "matchingType", "toMatchingType")(en, d, r);
 
 		if (d.owner && nextContent) { mixin(S_TRACE);
 			en.onTag["Contents"] = (ref XNode node) { mixin(S_TRACE);
@@ -3306,7 +3306,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		en.parse();
 
 		// パース後にpathsの中身が入るのでここで設定
-		if (d.use(CArg.TALKER_C)) { mixin(S_TRACE);
+		if (d.use(CArg.TalkerC)) { mixin(S_TRACE);
 			r.cardPaths = cardPaths;
 		}
 		return r;
@@ -3357,13 +3357,13 @@ private:
 public:
 	/// イベントツリー名を指定してインスタンスを生成。
 	this (string name) { mixin(S_TRACE);
-		this (new Content(CType.START, name));
+		this (new Content(CType.Start, name));
 	}
 	/// スタートコンテントを指定してインスタンスを生成。
 	/// startがすでにイベントツリーに所属している場合、
 	/// コピーが生成される。
 	this (Content start) in { mixin(S_TRACE);
-		assert (start.type == CType.START);
+		assert (start.type == CType.Start);
 	} body { mixin(S_TRACE);
 		this ();
 		if (start.tree) { mixin(S_TRACE);
@@ -3374,7 +3374,7 @@ public:
 	/// スタートコンテント群を指定してインスタンスを生成。
 	this (Content[] starts) in { mixin(S_TRACE);
 		foreach (c; starts) { mixin(S_TRACE);
-			assert (c.type is CType.START);
+			assert (c.type is CType.Start);
 		}
 	} body { mixin(S_TRACE);
 		this ();
@@ -3536,7 +3536,7 @@ public:
 
 	/// スタートコンテントを追加する。
 	void add(Content evt) in { mixin(S_TRACE);
-		assert (evt.type is CType.START);
+		assert (evt.type is CType.Start);
 	} body { mixin(S_TRACE);
 		if (_uc !is null) { mixin(S_TRACE);
 			evt.setUseCounter(_uc);
@@ -3551,7 +3551,7 @@ public:
 	}
 	/// ditto
 	void insert(size_t index, Content evt) in { mixin(S_TRACE);
-		assert (evt.type is CType.START);
+		assert (evt.type is CType.Start);
 	} body { mixin(S_TRACE);
 		if (_uc !is null) { mixin(S_TRACE);
 			evt.setUseCounter(_uc);
@@ -3585,7 +3585,7 @@ public:
 	}
 	/// ditto
 	void remove(Content start) in { mixin(S_TRACE);
-		assert (start.type is CType.START);
+		assert (start.type is CType.Start);
 	} body { mixin(S_TRACE);
 		foreach (i, s; _starts) { mixin(S_TRACE);
 			if (s is start) { mixin(S_TRACE);
@@ -3600,7 +3600,7 @@ public:
 	inout
 	inout(Content)[] starts() out (r) { mixin(S_TRACE);
 		foreach (c; r) { mixin(S_TRACE);
-			assert (c.type is CType.START);
+			assert (c.type is CType.Start);
 		}
 	} body { mixin(S_TRACE);
 		return _starts;
@@ -4451,7 +4451,7 @@ Content createInitVariablesTree(in FlagDir dir) { mixin(S_TRACE);
 }
 /// ditto
 Content createInitVariablesTree(in cwx.flag.Flag[] flags, in Step[] steps, in Variant[] variants) { mixin(S_TRACE);
-	return createInitVariablesTreeImpl!(CType.SET_FLAG, CType.SET_STEP, CType.SET_VARIANT)(flags, steps, variants, (f) => f.onOff, (s) => s.select, (v) => VariantVal(v));
+	return createInitVariablesTreeImpl!(CType.SetFlag, CType.SetStep, CType.SetVariant)(flags, steps, variants, (f) => f.onOff, (s) => s.select, (v) => VariantVal(v));
 }
 /// フラグの値を設定するイベントツリーを生成する。
 Content createSetFlagTree(in FlagDir dir, bool onOff) { mixin(S_TRACE);
@@ -4459,7 +4459,7 @@ Content createSetFlagTree(in FlagDir dir, bool onOff) { mixin(S_TRACE);
 }
 /// ditto
 Content createSetFlagTree(in cwx.flag.Flag[] flags, bool onOff) { mixin(S_TRACE);
-	return createInitVariablesTreeImpl!(CType.SET_FLAG, CType.SET_STEP, CType.SET_VARIANT)(flags, [], [], (f) => onOff, null, null);
+	return createInitVariablesTreeImpl!(CType.SetFlag, CType.SetStep, CType.SetVariant)(flags, [], [], (f) => onOff, null, null);
 }
 /// ステップの値を設定するイベントツリーを生成する。
 Content createSetStepTree(in FlagDir dir, uint select) { mixin(S_TRACE);
@@ -4467,7 +4467,7 @@ Content createSetStepTree(in FlagDir dir, uint select) { mixin(S_TRACE);
 }
 /// ditto
 Content createSetStepTree(in Step[] steps, uint select) { mixin(S_TRACE);
-	return createInitVariablesTreeImpl!(CType.SET_FLAG, CType.SET_STEP, CType.SET_VARIANT)([], steps, [], null, (s) => select, null);
+	return createInitVariablesTreeImpl!(CType.SetFlag, CType.SetStep, CType.SetVariant)([], steps, [], null, (s) => select, null);
 }
 /// フラグを反転するイベントツリーを生成する。
 Content createReverseFlagTree(in FlagDir dir) { mixin(S_TRACE);
@@ -4475,7 +4475,7 @@ Content createReverseFlagTree(in FlagDir dir) { mixin(S_TRACE);
 }
 /// ditto
 Content createReverseFlagTree(in cwx.flag.Flag[] flags) { mixin(S_TRACE);
-	return createInitVariablesTreeImpl!(CType.REVERSE_FLAG, CType.SET_STEP, CType.SET_VARIANT)(flags, [], [], null, null, null);
+	return createInitVariablesTreeImpl!(CType.ReverseFlag, CType.SetStep, CType.SetVariant)(flags, [], [], null, null, null);
 }
 /// ステップを加算するイベントツリーを生成する。
 Content createSetStepUpTree(in FlagDir dir) { mixin(S_TRACE);
@@ -4483,7 +4483,7 @@ Content createSetStepUpTree(in FlagDir dir) { mixin(S_TRACE);
 }
 /// ditto
 Content createSetStepUpTree(in Step[] steps) { mixin(S_TRACE);
-	return createInitVariablesTreeImpl!(CType.SET_FLAG, CType.SET_STEP_UP, CType.SET_VARIANT)([], steps, [], null, null, null);
+	return createInitVariablesTreeImpl!(CType.SetFlag, CType.SetStepUp, CType.SetVariant)([], steps, [], null, null, null);
 }
 /// ステップを減算するイベントツリーを生成する。
 Content createSetStepDownTree(in FlagDir dir) { mixin(S_TRACE);
@@ -4491,7 +4491,7 @@ Content createSetStepDownTree(in FlagDir dir) { mixin(S_TRACE);
 }
 /// ditto
 Content createSetStepDownTree(in Step[] steps) { mixin(S_TRACE);
-	return createInitVariablesTreeImpl!(CType.SET_FLAG, CType.SET_STEP_DOWN, CType.SET_VARIANT)([], steps, [], null, null, null);
+	return createInitVariablesTreeImpl!(CType.SetFlag, CType.SetStepDown, CType.SetVariant)([], steps, [], null, null, null);
 }
 private Content createInitVariablesTreeImpl(CType TypeF, CType TypeS, CType TypeV)(in cwx.flag.Flag[] flags, in Step[] steps, in Variant[] variants,
 		bool delegate(in cwx.flag.Flag) getValueF, uint delegate(in Step) getValueS, VariantVal delegate(in Variant) getValueV) { mixin(S_TRACE);

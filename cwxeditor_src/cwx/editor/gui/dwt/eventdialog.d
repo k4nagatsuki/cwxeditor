@@ -201,16 +201,16 @@ private class RangePanel : Composite {
 
 	string[] warnings() { mixin(S_TRACE);
 		string[] ws;
-		auto b = _range.get(Range.COUPON_HOLDER, null);
+		auto b = _range.get(Range.CouponHolder, null);
 		if (b && b.getSelection()) { mixin(S_TRACE);
 			switch (_type) {
-			case CType.EFFECT:
+			case CType.Effect:
 				if (!_comm.prop.isTargetVersion(_summ, "2")) { mixin(S_TRACE);
 					ws ~= .tryFormat(_comm.prop.msgs.warningCouponHolder, _comm.prop.msgs.contentName(_type), "2");
 				}
 				break;
-			case CType.GET_COUPON:
-			case CType.LOSE_COUPON:
+			case CType.GetCoupon:
+			case CType.LoseCoupon:
 				if (!_comm.prop.isTargetVersion(_summ, "3")) { mixin(S_TRACE);
 					ws ~= .tryFormat(_comm.prop.msgs.warningCouponHolder, _comm.prop.msgs.contentName(_type), "3");
 				}
@@ -220,7 +220,7 @@ private class RangePanel : Composite {
 			}
 			ws ~= .couponWarnings(_comm.prop.parent, _summ, _comm.prop.var.etc.targetVersion, _coupon.getText(), false, _comm.prop.msgs.couponForRange);
 		}
-		b = _range.get(Range.CARD_TARGET, null);
+		b = _range.get(Range.CardTarget, null);
 		if (b && b.getSelection()) { mixin(S_TRACE);
 			if (!_comm.prop.isTargetVersion(_summ, "2")) { mixin(S_TRACE);
 				ws ~= _comm.prop.msgs.warningCardTarget;
@@ -231,13 +231,13 @@ private class RangePanel : Composite {
 
 	private void refDataVersion() { mixin(S_TRACE);
 		auto range = this.range;
-		if ((range is Range.COUPON_HOLDER || range is Range.CARD_TARGET) && _summ.legacy) { mixin(S_TRACE);
+		if ((range is Range.CouponHolder || range is Range.CardTarget) && _summ.legacy) { mixin(S_TRACE);
 			_radioGrp.select(_range[_ranges[0]]);
 		}
 		updateEnabled();
 	}
 	private void updateEnabled() { mixin(S_TRACE);
-		auto b = _range.get(Range.COUPON_HOLDER, null);
+		auto b = _range.get(Range.CouponHolder, null);
 		if (b) { mixin(S_TRACE);
 			if (b && b.getSelection()) { mixin(S_TRACE);
 				_coupon.setEnabled(true);
@@ -248,7 +248,7 @@ private class RangePanel : Composite {
 			}
 			b.setEnabled(!_summ.legacy);
 		}
-		b = _range.get(Range.CARD_TARGET, null);
+		b = _range.get(Range.CardTarget, null);
 		if (b) { mixin(S_TRACE);
 			b.setEnabled(!_summ.legacy);
 		}
@@ -268,7 +268,7 @@ private class RangePanel : Composite {
 		auto grp = new Group(this, SWT.NONE);
 		grp.setText(title);
 		auto cl = new CenterLayout;
-		if (ranges.contains(Range.COUPON_HOLDER)) cl.fillHorizontal = true;
+		if (ranges.contains(Range.CouponHolder)) cl.fillHorizontal = true;
 		cl.fillVertical = true;
 		grp.setLayout(cl);
 		auto mainComp = new Composite(grp, SWT.NONE);
@@ -285,7 +285,7 @@ private class RangePanel : Composite {
 			int fillHorizontal = SWT.NONE;
 			auto radio = new Button(mainComp, SWT.RADIO);
 			cs ~= radio;
-			if (range is Range.COUPON_HOLDER) { mixin(S_TRACE);
+			if (range is Range.CouponHolder) { mixin(S_TRACE);
 				couponComp = new Composite(mainComp, SWT.NONE);
 				couponComp.setLayout(zeroMarginGridLayout(1, true));
 				fillHorizontal = GridData.FILL_HORIZONTAL;
@@ -305,7 +305,7 @@ private class RangePanel : Composite {
 				selB = radio;
 			}
 			_radioGrp.append(radio);
-			if (range is Range.CARD_TARGET) { mixin(S_TRACE);
+			if (range is Range.CardTarget) { mixin(S_TRACE);
 				radio.setToolTipText(prop.msgs.rangeDescCardTarget);
 			}
 		}
@@ -316,7 +316,7 @@ private class RangePanel : Composite {
 		_radioGrp.modEvent ~= &updateEnabled;
 		_radioGrp.modEvent ~= refreshWarning;
 
-		if (Range.COUPON_HOLDER in _range) { mixin(S_TRACE);
+		if (Range.CouponHolder in _range) { mixin(S_TRACE);
 			auto comp = new Composite(couponComp, SWT.NONE);
 			auto cgd = new GridData(GridData.FILL_HORIZONTAL);
 			if (horizontal) cgd.horizontalSpan = cast(int)ranges.length;
@@ -394,7 +394,7 @@ private class RangePanel : Composite {
 
 	@property
 	string holdingCoupon() { mixin(S_TRACE);
-		if (_couponUpdated || range is Range.COUPON_HOLDER) { mixin(S_TRACE);
+		if (_couponUpdated || range is Range.CouponHolder) { mixin(S_TRACE);
 			return _coupon.getText();
 		} else { mixin(S_TRACE);
 			return _initCoupon;
@@ -431,7 +431,7 @@ class TransitionPanel : Composite {
 		.listener(_ts, SWT.Selection, &refreshTS);
 		foreach (i, t; ALL_TRANSITION) { mixin(S_TRACE);
 			auto s = prop.msgs.transitionName(t);
-			if (t is Transition.DEFAULT) s = prop.msgs.defaultSelection(s);
+			if (t is Transition.Default) s = prop.msgs.defaultSelection(s);
 			_ts.add(s);
 			_tsTbl[cast(int)i] = t;
 			if (evt && t == evt.transition) _ts.select(cast(int)i);
@@ -463,7 +463,7 @@ class TransitionPanel : Composite {
 
 	private void refreshTS() { mixin(S_TRACE);
 		_ts.setEnabled(!_summ || !_summ.legacy);
-		_tsSpeed.setEnabled((!_summ || !_summ.legacy) && transition !is Transition.DEFAULT && transition !is Transition.NONE);
+		_tsSpeed.setEnabled((!_summ || !_summ.legacy) && transition !is Transition.Default && transition !is Transition.None);
 	}
 
 	@property
@@ -481,17 +481,17 @@ class AreaSelectDialog(CType Type, A, string Areas) : EventDialog {
 private:
 	AreaChooser!(A, false) _list;
 
-	static if (Type == CType.CHANGE_AREA) {
+	static if (Type == CType.ChangeArea) {
 		TransitionPanel _transition;
 	}
-	static if (Type == CType.GET_CAST) {
+	static if (Type == CType.GetCast) {
 		Combo _startAction;
 		StartAction[] _startActions;
 	}
 
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
-		static if (Type == CType.GET_CAST) {
+		static if (Type == CType.GetCast) {
 			string[] r;
 			if (summ) { mixin(S_TRACE);
 				auto startAction = _startActions[_startAction.getSelectionIndex()];
@@ -509,7 +509,7 @@ private:
 
 	override
 	protected void refDataVersion() { mixin(S_TRACE);
-		static if (Type == CType.GET_CAST) {
+		static if (Type == CType.GetCast) {
 			if (summ && summ.legacy) { mixin(S_TRACE);
 				auto startAction = _startActions[_startAction.getSelectionIndex()];
 				if (startAction !is StartAction.NextRound) { mixin(S_TRACE);
@@ -565,7 +565,7 @@ protected:
 			gd.heightHint = _prop.var.etc.nameTableHeight;
 			_list.setLayoutData(gd);
 		}
-		static if (Type == CType.CHANGE_AREA) {
+		static if (Type == CType.ChangeArea) {
 			{ mixin(S_TRACE);
 				auto sep = new Label(area, SWT.SEPARATOR | SWT.HORIZONTAL);
 				sep.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -577,7 +577,7 @@ protected:
 				_transition = new TransitionPanel(comm, summ, comp, false, _evt, this);
 			}
 		}
-		static if (Type == CType.GET_CAST) {
+		static if (Type == CType.GetCast) {
 			auto comp = new Composite(listComp, SWT.NONE);
 			comp.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 			comp.setLayout(zeroMarginGridLayout(2, false));
@@ -610,24 +610,24 @@ protected:
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_evt) { mixin(S_TRACE);
-			static if (Type == CType.CHANGE_AREA) {
+			static if (Type == CType.ChangeArea) {
 				_list.selected = _evt.area;
-			} else static if (Type == CType.START_BATTLE) {
+			} else static if (Type == CType.StartBattle) {
 				_list.selected = _evt.battle;
-			} else static if (Type == CType.CALL_PACKAGE || Type == CType.LINK_PACKAGE) {
+			} else static if (Type == CType.CallPackage || Type == CType.LinkPackage) {
 				_list.selected = _evt.packages;
-			} else static if (Type == CType.BRANCH_CAST || Type == CType.GET_CAST || Type == CType.LOSE_CAST) {
+			} else static if (Type == CType.BranchCast || Type == CType.GetCast || Type == CType.LoseCast) {
 				_list.selected = _evt.casts;
-			} else static if (Type == CType.BRANCH_INFO || Type == CType.GET_INFO || Type == CType.LOSE_INFO) {
+			} else static if (Type == CType.BranchInfo || Type == CType.GetInfo || Type == CType.LoseInfo) {
 				_list.selected = _evt.info;
 			} else { mixin(S_TRACE);
 				static assert (0);
 			}
-			static if (Type == CType.GET_CAST) {
+			static if (Type == CType.GetCast) {
 				_startAction.select(cast(int)_startActions.countUntil(_evt.startAction));
 			}
 		} else { mixin(S_TRACE);
-			static if (Type == CType.GET_CAST) {
+			static if (Type == CType.GetCast) {
 				if (summ && (summ.legacy || prop.isTargetVersion(summ, "2"))) { mixin(S_TRACE);
 					// クラシックなシナリオまたはWsn.2以降はStartAction.NextRoundがデフォルト
 					_startAction.select(cast(int)_startActions.countUntil(StartAction.NextRound));
@@ -645,22 +645,22 @@ protected:
 		if (!_evt) { mixin(S_TRACE);
 			_evt = new Content(Type, "");
 		}
-		static if (Type == CType.CHANGE_AREA) {
+		static if (Type == CType.ChangeArea) {
 			_evt.area = id;
 			_evt.transition = _transition.transition;
 			_evt.transitionSpeed = _transition.transitionSpeed;
-		} else static if (Type == CType.START_BATTLE) {
+		} else static if (Type == CType.StartBattle) {
 			_evt.battle = id;
-		} else static if (Type == CType.CALL_PACKAGE || Type == CType.LINK_PACKAGE) {
+		} else static if (Type == CType.CallPackage || Type == CType.LinkPackage) {
 			_evt.packages = id;
-		} else static if (Type == CType.BRANCH_CAST || Type == CType.GET_CAST || Type == CType.LOSE_CAST) {
+		} else static if (Type == CType.BranchCast || Type == CType.GetCast || Type == CType.LoseCast) {
 			_evt.casts = id;
-		} else static if (Type == CType.BRANCH_INFO || Type == CType.GET_INFO || Type == CType.LOSE_INFO) {
+		} else static if (Type == CType.BranchInfo || Type == CType.GetInfo || Type == CType.LoseInfo) {
 			_evt.info = id;
 		} else { mixin(S_TRACE);
 			static assert (0);
 		}
-		static if (Type == CType.GET_CAST) {
+		static if (Type == CType.GetCast) {
 			_evt.startAction = _startActions[_startAction.getSelectionIndex()];
 		}
 		return true;
@@ -716,7 +716,7 @@ private:
 			if (!_incSearch.match(s.name)) continue;
 			auto itm = new TableItem(_list, SWT.NONE);
 			itm.setData(s);
-			itm.setImage(0, _prop.images.content(CType.START));
+			itm.setImage(0, _prop.images.content(CType.Start));
 			itm.setText(0, s.name);
 			if (sel == s.name) _list.select(i);
 			i++;
@@ -812,7 +812,7 @@ private:
 
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
-		super (comm, prop, shell, summ, CType.END, parent, evt, false, null, enterClose);
+		super (comm, prop, shell, summ, CType.End, parent, evt, false, null, enterClose);
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
@@ -844,7 +844,7 @@ protected:
 
 	override bool apply() { mixin(S_TRACE);
 		if (!_evt) { mixin(S_TRACE);
-			_evt = new Content(CType.END, "");
+			_evt = new Content(CType.End, "");
 		}
 		_evt.complete = _mark.getSelection();
 		return true;
@@ -867,7 +867,7 @@ private:
 	static if (EditValue) {
 		Spinner _value;
 	}
-	static if (Type is CType.BRANCH_COUPON) {
+	static if (Type is CType.BranchCoupon) {
 		Combo _invertResult;
 	}
 
@@ -888,7 +888,7 @@ private:
 				ws ~= .textWarnings2(comm, summ, _uc, _couponView.couponNames);
 			}
 		} else if (_name) { mixin(S_TRACE);
-			ws ~= .couponWarnings(prop.parent, summ, prop.var.etc.targetVersion, _name.getText(), Type is CType.GET_COUPON || Type is CType.LOSE_COUPON, prop.msgs.couponName);
+			ws ~= .couponWarnings(prop.parent, summ, prop.var.etc.targetVersion, _name.getText(), Type is CType.GetCoupon || Type is CType.LoseCoupon, prop.msgs.couponName);
 			if (_expandSPChars.getSelection()) { mixin(S_TRACE);
 				if (!_comm.prop.isTargetVersion(_summ, "4")) { mixin(S_TRACE);
 					ws ~= _comm.prop.msgs.warningExpandSPCharsInCoupon;
@@ -898,12 +898,12 @@ private:
 		}
 		static if (Field) {
 			if (summ && summ.legacy && !_prop.targetVersion(summ, "1.30")) { mixin(S_TRACE);
-				if (_range.range is Range.FIELD) { mixin(S_TRACE);
+				if (_range.range is Range.Field) { mixin(S_TRACE);
 					ws ~= prop.msgs.warningBranchCouponAtField;
 				}
 			}
 		}
-		static if (Type is CType.BRANCH_COUPON) {
+		static if (Type is CType.BranchCoupon) {
 			if(!prop.isTargetVersion(summ, "4") && _invertResult.getSelectionIndex() == 1) { mixin(S_TRACE);
 				ws ~= prop.msgs.warningInvertResult;
 			}
@@ -914,7 +914,7 @@ private:
 	}
 	override
 	protected void refDataVersion() { mixin(S_TRACE);
-		static if (Type is CType.BRANCH_COUPON) {
+		static if (Type is CType.BranchCoupon) {
 			createCouponView(false);
 		}
 		updateEnabled();
@@ -924,7 +924,7 @@ private:
 	void updateEnabled() { mixin(S_TRACE);
 		_expandSPChars.setEnabled(!_summ.legacy || _expandSPChars.getSelection());
 		updateToolTip();
-		static if (Type is CType.BRANCH_COUPON) {
+		static if (Type is CType.BranchCoupon) {
 			_invertResult.setEnabled(!summ || !summ.legacy || _invertResult.getSelectionIndex() != 0);
 		}
 	}
@@ -996,7 +996,7 @@ private:
 	}
 
 	void createCouponView(bool init) { mixin(S_TRACE);
-		auto multi = !(summ && summ.legacy) && Type is CType.BRANCH_COUPON;
+		auto multi = !(summ && summ.legacy) && Type is CType.BranchCoupon;
 		string[] couponNames;
 		if (_couponView) { mixin(S_TRACE);
 			if (multi) return;
@@ -1059,9 +1059,9 @@ private:
 				comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				comp.setLayout(zeroMarginGridLayout(3, false));
 				{ mixin(S_TRACE);
-					static if (Type is CType.GET_COUPON || Type is CType.LOSE_COUPON) {
+					static if (Type is CType.GetCoupon || Type is CType.LoseCoupon) {
 						auto type = CouponComboType.GetLose;
-					} else static if (Type is CType.BRANCH_COUPON) {
+					} else static if (Type is CType.BranchCoupon) {
 						auto type = CouponComboType.AllCoupons;
 					} else static assert (0);
 					_name = createCouponCombo(comm, summ, _uc, comp, &catchMod, type, _evt ? _evt.coupon : "");
@@ -1125,7 +1125,7 @@ public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, Content parent, Content evt) { mixin(S_TRACE);
 		_uc = uc;
 		DSize dSize;
-		if (!(summ && summ.legacy) && Type is CType.BRANCH_COUPON) { mixin(S_TRACE);
+		if (!(summ && summ.legacy) && Type is CType.BranchCoupon) { mixin(S_TRACE);
 			dSize = prop.var.multiCouponEvtDlg;
 		} else { mixin(S_TRACE);
 			dSize = prop.var.couponEvtDlg;
@@ -1137,7 +1137,7 @@ protected:
 		area.setLayout(normalGridLayout(2, false));
 		auto skin = _comm.skin;
 
-		static immutable HAS_COUPON_HOLDER = Type is CType.GET_COUPON || Type is CType.LOSE_COUPON;
+		static immutable HAS_COUPON_HOLDER = Type is CType.GetCoupon || Type is CType.LoseCoupon;
 
 		static if (HAS_COUPON_HOLDER) {
 			auto sash = new SplitPane(area, SWT.HORIZONTAL);
@@ -1152,10 +1152,10 @@ protected:
 		{ mixin(S_TRACE);
 			auto ranges = RANGE_MEMBER.dup;
 			static if (Field) {
-				ranges ~= Range.FIELD;
+				ranges ~= Range.Field;
 			}
-			static if (Type is CType.GET_COUPON || Type is CType.LOSE_COUPON) {
-				ranges ~= Range.COUPON_HOLDER;
+			static if (Type is CType.GetCoupon || Type is CType.LoseCoupon) {
+				ranges ~= Range.CouponHolder;
 			}
 			auto initCoupon = (evt && evt.holdingCoupon != "") ? evt.holdingCoupon : "";
 			_range = new RangePanel(comm, summ, _uc, leftComp, ranges, initCoupon, _prop.msgs.range, false, this,
@@ -1230,7 +1230,7 @@ protected:
 				lr.setText(.tryFormat(_prop.msgs.couponValueRange, -(cast(int) prop.var.etc.couponValueMax), prop.var.etc.couponValueMax));
 			}
 		}
-		static if (Type is CType.BRANCH_COUPON) {
+		static if (Type is CType.BranchCoupon) {
 			{ mixin(S_TRACE);
 				auto grp = new Group(leftComp, SWT.NONE);
 				grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -1247,7 +1247,7 @@ protected:
 		}
 
 		if (_evt) { mixin(S_TRACE);
-			if (!(summ && summ.legacy) && Type is CType.BRANCH_COUPON) {
+			if (!(summ && summ.legacy) && Type is CType.BranchCoupon) {
 				_couponView.couponNames = _evt.couponNames;
 				if(_evt.matchingType == MatchingType.And){
 					_matchType[MatchingType.And].setSelection(true);
@@ -1256,7 +1256,7 @@ protected:
 				}
 			} else { mixin(S_TRACE);
 				string coupon;
-				if (_evt.detail.use(CArg.COUPON_NAMES)) { mixin(S_TRACE);
+				if (_evt.detail.use(CArg.CouponNames)) { mixin(S_TRACE);
 					coupon = _evt.couponNames.length ? _evt.couponNames[0] : "";
 				} else { mixin(S_TRACE);
 					coupon = _evt.coupon;
@@ -1274,12 +1274,12 @@ protected:
 			static if (EditValue) {
 				_value.setSelection(_evt.couponValue);
 			}
-			static if (Type is CType.BRANCH_COUPON) {
+			static if (Type is CType.BranchCoupon) {
 				_invertResult.select(_evt.invertResult ? 1 : 0);
 			}
 			_expandSPChars.setSelection(_evt.expandSPChars);
 		} else { mixin(S_TRACE);
-			if ((summ && summ.legacy) || !(Type is CType.BRANCH_COUPON)) {
+			if ((summ && summ.legacy) || !(Type is CType.BranchCoupon)) {
 				_type[CouponType.Normal].setSelection(true);
 			} else { mixin(S_TRACE);
 				_couponView.couponNames = [];
@@ -1288,7 +1288,7 @@ protected:
 			static if (EditValue) {
 				_value.setSelection(0);
 			}
-			static if (Type is CType.BRANCH_COUPON) {
+			static if (Type is CType.BranchCoupon) {
 				_invertResult.select(0);
 			}
 			_expandSPChars.setSelection(false);
@@ -1308,7 +1308,7 @@ protected:
 		if (_couponView) { mixin(S_TRACE);
 			_evt.couponNames = _couponView.couponNames;
 			_evt.matchingType = _matchType[MatchingType.And].getSelection() ? MatchingType.And : MatchingType.Or;
-		} else if (_evt.detail.use(CArg.COUPON_NAMES)) { mixin(S_TRACE);
+		} else if (_evt.detail.use(CArg.CouponNames)) { mixin(S_TRACE);
 			_evt.couponNames = _name.getText().length ? [_name.getText()] : [];
 		} else { mixin(S_TRACE);
 			_evt.coupon = _name.getText();
@@ -1317,7 +1317,7 @@ protected:
 		static if (EditValue) {
 			_evt.couponValue = _value.getSelection();
 		}
-		static if (Type is CType.BRANCH_COUPON) {
+		static if (Type is CType.BranchCoupon) {
 			_evt.invertResult = _invertResult.getSelectionIndex() == 1;
 		}
 		_evt.expandSPChars = _expandSPChars.getSelection();
@@ -1329,9 +1329,9 @@ protected:
 	}
 }
 
-alias CouponEventDialog!(CType.BRANCH_COUPON, false, true) BranchCouponDialog;
-alias CouponEventDialog!(CType.GET_COUPON, true, false) GetCouponDialog;
-alias CouponEventDialog!(CType.LOSE_COUPON, false, false) LoseCouponDialog;
+alias CouponEventDialog!(CType.BranchCoupon, false, true) BranchCouponDialog;
+alias CouponEventDialog!(CType.GetCoupon, true, false) GetCouponDialog;
+alias CouponEventDialog!(CType.LoseCoupon, false, false) LoseCouponDialog;
 
 private string[] textWarnings2(Commons comm, in Summary summ, in UseCounter uc, string[] names) { mixin(S_TRACE);
 	string[] ws;
@@ -1418,7 +1418,7 @@ private:
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, Content parent, Content evt) { mixin(S_TRACE);
 		_uc = uc;
-		if (CDetail.fromType(Type).use(CArg.GOSSIP)) { mixin(S_TRACE);
+		if (CDetail.fromType(Type).use(CArg.Gossip)) { mixin(S_TRACE);
 			super (comm, prop, shell, summ, Type, parent, evt, true, prop.var.gossipEvtDlg, true);
 		} else { mixin(S_TRACE);
 			super (comm, prop, shell, summ, Type, parent, evt, true, prop.var.inputEvtDlg, true);
@@ -1438,11 +1438,11 @@ protected:
 			auto comp = new Composite(grp, SWT.NONE);
 			comp.setLayout(normalGridLayout(1, true));
 
-			if (CDetail.fromType(Type).use(CArg.GOSSIP)) { mixin(S_TRACE);
+			if (CDetail.fromType(Type).use(CArg.Gossip)) { mixin(S_TRACE);
 				_name = createGossipCombo(comm, summ, comp, &catchMod, _evt ? mixin(Get) : "");
-			} else if (CDetail.fromType(Type).use(CArg.COMPLETE_STAMP)) { mixin(S_TRACE);
+			} else if (CDetail.fromType(Type).use(CArg.CompleteStamp)) { mixin(S_TRACE);
 				_name = createCompleteStampCombo(comm, summ, comp, &catchMod, _evt ? mixin(Get) : "");
-			} else if (CDetail.fromType(Type).use(CArg.CELL_NAME)) { mixin(S_TRACE);
+			} else if (CDetail.fromType(Type).use(CArg.CellName)) { mixin(S_TRACE);
 				_name = createCellNameCombo(comm, summ, comp, &catchMod, _evt ? mixin(Get) : "");
 			} else assert (0);
 			mod(_name);
@@ -1451,7 +1451,7 @@ protected:
 			_name.setLayoutData(gd);
 			.listener(_name, SWT.Modify, &refreshWarning);
 
-			if (CDetail.fromType(Type).use(CArg.GOSSIP)) { mixin(S_TRACE);
+			if (CDetail.fromType(Type).use(CArg.Gossip)) { mixin(S_TRACE);
 				auto menu = _name.getMenu();
 				new MenuItem(menu, SWT.SEPARATOR);
 				.setupSPCharsMenu(_comm, _summ, _uc, _name, menu, false, true, () => _expandSPChars.getSelection());
@@ -1498,13 +1498,13 @@ protected:
 		mixin(Set);
 		if (_expandSPChars) _evt.expandSPChars = _expandSPChars.getSelection();
 		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
-			if (CDetail.fromType(Type).use(CArg.GOSSIP)) { mixin(S_TRACE);
+			if (CDetail.fromType(Type).use(CArg.Gossip)) { mixin(S_TRACE);
 				comm.refGossips.call();
 			}
-			if (CDetail.fromType(Type).use(CArg.COMPLETE_STAMP)) { mixin(S_TRACE);
+			if (CDetail.fromType(Type).use(CArg.CompleteStamp)) { mixin(S_TRACE);
 				comm.refCompleteStamps.call();
 			}
-			if (CDetail.fromType(Type).use(CArg.CELL_NAME)) { mixin(S_TRACE);
+			if (CDetail.fromType(Type).use(CArg.CellName)) { mixin(S_TRACE);
 				comm.refCellNames.call();
 			}
 		}
@@ -1563,7 +1563,7 @@ private:
 			}
 		}
 		ws ~= ws3;
-		if (type is CType.REPLACE_BG_IMAGE) { mixin(S_TRACE);
+		if (type is CType.ReplaceBgImage) { mixin(S_TRACE);
 			if (!_prop.isTargetVersion(summ, "1")) { mixin(S_TRACE);
 				ws ~= .tryFormat(_prop.msgs.warningUnknownContentWsn, _prop.msgs.contentName(type), "1");
 			}
@@ -1595,14 +1595,14 @@ protected:
 		area.setLayout(normalGridLayout(1, false));
 		auto skin = _comm.skin;
 		{ mixin(S_TRACE);
-			auto showInheritBacks = type !is CType.REPLACE_BG_IMAGE && _prop.var.etc.showInheritBackground;
+			auto showInheritBacks = type !is CType.ReplaceBgImage && _prop.var.etc.showInheritBackground;
 			_view = createBgImagesViewAndMenu(_comm, _prop, _summ, _uc, _cont, area, _refTarget, showInheritBacks, false);
 			mod(_view);
 			_view.setLayoutData(new GridData(GridData.FILL_BOTH));
 			_view.modEvent ~= &refreshWarning;
 		}
 		{ mixin(S_TRACE);
-			if (CDetail.fromType(type).use(CArg.CELL_NAME)) {
+			if (CDetail.fromType(type).use(CArg.CellName)) {
 				auto comp = new Composite(area, SWT.NONE);
 				comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				comp.setLayout(zeroMarginGridLayout(4, false));
@@ -1621,7 +1621,7 @@ protected:
 				_transition.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 			}
 		}
-		if (CDetail.fromType(type).use(CArg.DO_ANIME)) { mixin(S_TRACE);
+		if (CDetail.fromType(type).use(CArg.DoAnime)) { mixin(S_TRACE);
 			auto comp = new Composite(area, SWT.NONE);
 			comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			comp.setLayout(zeroMarginGridLayout(2, false));
@@ -1681,14 +1681,14 @@ private:
 		string[] ws;
 		ws ~= .sjisWarnings(prop.parent, summ, _name.getText(), prop.msgs.cellName);
 		if (!_prop.isTargetVersion(summ, "1")) { mixin(S_TRACE);
-			ws ~= .tryFormat(_prop.msgs.warningUnknownContentWsn, _prop.msgs.contentName(CType.LOSE_BG_IMAGE), "1");
+			ws ~= .tryFormat(_prop.msgs.warningUnknownContentWsn, _prop.msgs.contentName(CType.LoseBgImage), "1");
 		}
 		warning = ws;
 	}
 
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
-		super (comm, prop, shell, summ, CType.LOSE_BG_IMAGE, parent, evt, true, prop.var.loseBgImageEvtDlg, true);
+		super (comm, prop, shell, summ, CType.LoseBgImage, parent, evt, true, prop.var.loseBgImageEvtDlg, true);
 	}
 
 protected:
@@ -1741,7 +1741,7 @@ protected:
 	}
 
 	override bool apply() { mixin(S_TRACE);
-		if (!_evt) _evt = new Content(CType.LOSE_BG_IMAGE, "");
+		if (!_evt) _evt = new Content(CType.LoseBgImage, "");
 		_evt.cellName = _name.getText();
 		_evt.transition = _transition.transition;
 		_evt.transitionSpeed = _transition.transitionSpeed;
@@ -1767,7 +1767,7 @@ private:
 	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
-		super (comm, prop, shell, summ, CType.PLAY_BGM, parent, evt, true, prop.var.soundEvtDlg, true);
+		super (comm, prop, shell, summ, CType.PlayBgm, parent, evt, true, prop.var.soundEvtDlg, true);
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
@@ -1815,7 +1815,7 @@ protected:
 	}
 
 	override bool apply() { mixin(S_TRACE);
-		if (!_evt) _evt = new Content(CType.PLAY_BGM, "");
+		if (!_evt) _evt = new Content(CType.PlayBgm, "");
 		_evt.bgmPath = _msel.path;
 		_evt.bgmVolume = _msel.volume;
 		_evt.bgmLoopCount = _msel.loopCount;
@@ -1838,7 +1838,7 @@ private:
 	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
-		super (comm, prop, shell, summ, CType.PLAY_SOUND, parent, evt, true, prop.var.soundEvtDlg, true);
+		super (comm, prop, shell, summ, CType.PlaySound, parent, evt, true, prop.var.soundEvtDlg, true);
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
@@ -1886,7 +1886,7 @@ protected:
 	}
 
 	override bool apply() { mixin(S_TRACE);
-		if (!_evt) _evt = new Content(CType.PLAY_SOUND, "");
+		if (!_evt) _evt = new Content(CType.PlaySound, "");
 		_evt.soundPath = _msel.path;
 		_evt.soundVolume = _msel.volume;
 		_evt.soundLoopCount = _msel.loopCount;
@@ -1973,13 +1973,13 @@ protected:
 	}
 }
 
-alias NumericEventDialog!(CType.WAIT, "_prop.msgs.waitName",
+alias NumericEventDialog!(CType.Wait, "_prop.msgs.waitName",
 		"_prop.var.etc.waitMax", "_evt.wait", "_evt.wait = value;") WaitEventDialog;
 
-alias NumericEventDialog!(CType.BRANCH_RANDOM, "_prop.msgs.randomName",
+alias NumericEventDialog!(CType.BranchRandom, "_prop.msgs.randomName",
 		"100", "_evt.percent", "_evt.percent = value;", 0, 50) BrRandomEventDialog;
 
-alias NumericEventDialog!(CType.BRANCH_PARTY_NUMBER, "_prop.msgs.partyNumName",
+alias NumericEventDialog!(CType.BranchPartyNumber, "_prop.msgs.partyNumName",
 		"_prop.var.etc.partyMax", "_evt.partyNumber", "_evt.partyNumber = value;", 1, 1) BrNumEventDialog;
 
 template MoneyEventDialog(CType Type) {
@@ -2062,7 +2062,7 @@ private:
 
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, Content parent, Content evt) { mixin(S_TRACE);
-		super (comm, prop, shell, summ, CType.EFFECT, parent, evt, true, prop.var.effEvtDlg, true);
+		super (comm, prop, shell, summ, CType.Effect, parent, evt, true, prop.var.effEvtDlg, true);
 		_useCounter = uc;
 	}
 
@@ -2114,9 +2114,9 @@ protected:
 					grp.setText(_prop.msgs.elementProps);
 					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 					grp.setLayout(normalGridLayout(2, true));
-					foreach (i, eff; [EffectType.PHYSIC, EffectType.MAGIC,
-							EffectType.MAGICAL_PHYSIC, EffectType.PHYSICAL_MAGIC,
-							EffectType.NONE]) { mixin(S_TRACE);
+					foreach (i, eff; [EffectType.Physic, EffectType.Magic,
+							EffectType.MagicalPhysic, EffectType.PhysicalMagic,
+							EffectType.None]) { mixin(S_TRACE);
 						auto radio = new Button(grp, SWT.RADIO);
 						mod(radio);
 						auto gd = new GridData(GridData.FILL_BOTH);
@@ -2134,7 +2134,7 @@ protected:
 					grp.setText(_prop.msgs.resistProps);
 					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 					grp.setLayout(normalGridLayout(2, true));
-					foreach (res; [Resist.AVOID, Resist.RESIST, Resist.UNFAIL]) { mixin(S_TRACE);
+					foreach (res; [Resist.Avoid, Resist.Resist, Resist.Unfail]) { mixin(S_TRACE);
 						auto radio = new Button(grp, SWT.RADIO);
 						mod(radio);
 						radio.setText(_prop.msgs.resistName(res));
@@ -2153,7 +2153,7 @@ protected:
 					grp.setText(_prop.msgs.effectVisual);
 					grp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 					grp.setLayout(normalGridLayout(1, false));
-					foreach (v; [CardVisual.NONE, CardVisual.REVERSE, CardVisual.HORIZONTAL, CardVisual.VERTICAL]) { mixin(S_TRACE);
+					foreach (v; [CardVisual.None, CardVisual.Reverse, CardVisual.Horizontal, CardVisual.Vertical]) { mixin(S_TRACE);
 						auto radio = new Button(grp, SWT.RADIO);
 						mod(radio);
 						radio.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -2163,7 +2163,7 @@ protected:
 				}
 
 				{ mixin(S_TRACE);
-					auto ranges = [Range.SELECTED, Range.RANDOM, Range.PARTY, Range.COUPON_HOLDER, Range.CARD_TARGET];
+					auto ranges = [Range.Selected, Range.Random, Range.Party, Range.CouponHolder, Range.CardTarget];
 					auto title = _prop.msgs.cardEventRange;
 					auto initCoupon = (evt && evt.holdingCoupon != "") ? evt.holdingCoupon : prop.sys.effectTargetCoupon;
 					_range = new RangePanel(comm, summ, _useCounter, comp2, ranges, initCoupon, title, false, this, evt, &catchMod, &refreshWarning, type);
@@ -2291,9 +2291,9 @@ protected:
 			_se1.path = "";
 			_se2.path = "";
 			_sucRate.setSelection(Content.successRate_max + Content.successRate_max);
-			_effTyp[EffectType.NONE].setSelection(true);
-			_res[Resist.UNFAIL].setSelection(true);
-			_vis[CardVisual.NONE].setSelection(true);
+			_effTyp[EffectType.None].setSelection(true);
+			_res[Resist.Unfail].setSelection(true);
+			_vis[CardVisual.None].setSelection(true);
 			_refAbility.setSelection(false);
 			_ignite.setSelection(false);
 			_keyCodes.keyCodes = [];
@@ -2304,7 +2304,7 @@ protected:
 	}
 
 	override bool apply() { mixin(S_TRACE);
-		if (!_evt) _evt = new Content(CType.EFFECT, "");
+		if (!_evt) _evt = new Content(CType.Effect, "");
 		_evt.motions = _mview.motions;
 		_evt.signedLevel = _lev.getSelection();
 		_evt.initialEffect = _initialEffect.getSelection();
@@ -2340,9 +2340,9 @@ private:
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
-		static if (Type is CType.CHECK_STEP) {
+		static if (Type is CType.CheckStep) {
 			if (!_prop.targetVersion(summ, "1.50")) { mixin(S_TRACE);
-				ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(CType.CHECK_STEP), "1.50");
+				ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(CType.CheckStep), "1.50");
 			}
 		}
 		static if (is(typeof(_cardSpeed))) {
@@ -2359,7 +2359,7 @@ private:
 	UseCounter _uc;
 	string _oldSel = "";
 	Table _values;
-	static if (Type is CType.SET_FLAG || Type is CType.REVERSE_FLAG) {
+	static if (Type is CType.SetFlag || Type is CType.ReverseFlag) {
 		CardAnimationPanel _cardSpeed;
 	}
 
@@ -2455,7 +2455,7 @@ private:
 		refreshValues();
 	}
 
-	static if (Type is CType.CHECK_STEP) {
+	static if (Type is CType.CheckStep) {
 		Label _cmpLabel = null;
 		Combo _cmp = null;
 		Comparison4[] _cmps;
@@ -2539,7 +2539,7 @@ protected:
 				} else static assert (0);
 			});
 		}
-		static if (Type is CType.CHECK_STEP) {
+		static if (Type is CType.CheckStep) {
 			auto comp = new Composite(area, SWT.NONE);
 			comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			comp.setLayout(zeroMarginGridLayout(2, false));
@@ -2587,7 +2587,7 @@ protected:
 					static assert (0);
 				}
 			}
-			static if (Type is CType.CHECK_STEP) {
+			static if (Type is CType.CheckStep) {
 				_cmp.select(cast(int)_cmps.countUntil(_evt.comparison4));
 			}
 			static if (is(typeof(_cardSpeed))) {
@@ -2597,7 +2597,7 @@ protected:
 		} else { mixin(S_TRACE);
 			_flags.selected = "";
 			refreshValues();
-			static if (Type is CType.CHECK_STEP) {
+			static if (Type is CType.CheckStep) {
 				_cmp.select(0);
 			}
 			static if (is(typeof(_cardSpeed))) {
@@ -2625,7 +2625,7 @@ protected:
 		} else { mixin(S_TRACE);
 			static assert (0);
 		}
-		static if (Type is CType.CHECK_STEP) {
+		static if (Type is CType.CheckStep) {
 			_evt.comparison4 = _cmps[_cmp.getSelectionIndex()];
 	}
 		static if (is(typeof(_cardSpeed))) {
@@ -2636,16 +2636,16 @@ protected:
 	}
 }
 
-alias FlagStepDialog!(CType.BRANCH_FLAG, cwx.flag.Flag, false) BrFlagDialog;
-alias FlagStepDialog!(CType.BRANCH_MULTI_STEP, Step, false) BrStepNDialog;
-alias FlagStepDialog!(CType.BRANCH_STEP, Step, true) BrStepULDialog;
-alias FlagStepDialog!(CType.SET_FLAG, cwx.flag.Flag, true) FlagSetDialog;
-alias FlagStepDialog!(CType.SET_STEP, Step, true) StepSetDialog;
-alias FlagStepDialog!(CType.SET_STEP_UP, Step, false) StepPlusDialog;
-alias FlagStepDialog!(CType.SET_STEP_DOWN, Step, false) StepMinusDialog;
-alias FlagStepDialog!(CType.REVERSE_FLAG, cwx.flag.Flag, false) FlagRDialog;
-alias FlagStepDialog!(CType.CHECK_FLAG, cwx.flag.Flag, false) FlagJudgeDialog;
-alias FlagStepDialog!(CType.CHECK_STEP, Step, true) CheckStepDialog;
+alias FlagStepDialog!(CType.BranchFlag, cwx.flag.Flag, false) BrFlagDialog;
+alias FlagStepDialog!(CType.BranchMultiStep, Step, false) BrStepNDialog;
+alias FlagStepDialog!(CType.BranchStep, Step, true) BrStepULDialog;
+alias FlagStepDialog!(CType.SetFlag, cwx.flag.Flag, true) FlagSetDialog;
+alias FlagStepDialog!(CType.SetStep, Step, true) StepSetDialog;
+alias FlagStepDialog!(CType.SetStepUp, Step, false) StepPlusDialog;
+alias FlagStepDialog!(CType.SetStepDown, Step, false) StepMinusDialog;
+alias FlagStepDialog!(CType.ReverseFlag, cwx.flag.Flag, false) FlagRDialog;
+alias FlagStepDialog!(CType.CheckFlag, cwx.flag.Flag, false) FlagJudgeDialog;
+alias FlagStepDialog!(CType.CheckStep, Step, true) CheckStepDialog;
 
 /// フラグ・ステップの組み合わせを選択するダイアログ。
 private class FlagStepCombiDialog(CType Type, F, bool Random) : EventDialog {
@@ -2656,7 +2656,7 @@ private:
 	SplitPane _sash;
 	FlagChooser!(F, false, Random) _flags1;
 	FlagChooser!(F, false, false) _flags2;
-	static if (Type is CType.SUBSTITUTE_FLAG) {
+	static if (Type is CType.SubstituteFlag) {
 		CardAnimationPanel _cardSpeed;
 	}
 
@@ -2666,7 +2666,7 @@ private:
 		if (!_prop.targetVersion(summ, "1.30")) { mixin(S_TRACE);
 			ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(Type), "1.30");
 		}
-		static if (Type == CType.SUBSTITUTE_STEP) {
+		static if (Type == CType.SubstituteStep) {
 			if (.icmp(_flags1.selected, prop.sys.selectedPlayerCardNumber) == 0 && !prop.isTargetVersion(summ, "2")) { mixin(S_TRACE);
 				ws ~= _prop.msgs.warningSelectedPlayerValue;
 			}
@@ -2719,10 +2719,10 @@ protected:
 		{ mixin(S_TRACE);
 			auto l1 = new CLabel(left, SWT.NONE);
 			auto l2 = new CLabel(right, SWT.NONE);
-			static if (Type == CType.SUBSTITUTE_STEP || Type == CType.SUBSTITUTE_FLAG) {
+			static if (Type == CType.SubstituteStep || Type == CType.SubstituteFlag) {
 				l1.setText(_prop.msgs.substituteSource);
 				l2.setText(_prop.msgs.substituteTarget);
-			} else static if (Type == CType.BRANCH_STEP_CMP || Type == CType.BRANCH_FLAG_CMP) {
+			} else static if (Type == CType.BranchStepCmp || Type == CType.BranchFlagCmp) {
 				l1.setText(_prop.msgs.cmpSource);
 				l2.setText(_prop.msgs.cmpTarget);
 			} else static assert (0);
@@ -2739,7 +2739,7 @@ protected:
 		_flags1 = new FlagChooser!(F, false, Random)(comm, summ, _uc, left);
 		_flags1.setLayoutData(new GridData(GridData.FILL_BOTH));
 		_flags1.modEvent ~= &applyEnabled;
-		static if (Type == CType.SUBSTITUTE_STEP) {
+		static if (Type == CType.SubstituteStep) {
 			_flags1.modEvent ~= &refreshWarning;
 		}
 		_flags2 = new FlagChooser!(F, false, false)(comm, summ, _uc, right, false);
@@ -2805,10 +2805,10 @@ protected:
 	}
 }
 
-alias FlagStepCombiDialog!(CType.SUBSTITUTE_STEP, Step, true) SubstituteStepDialog;
-alias FlagStepCombiDialog!(CType.SUBSTITUTE_FLAG, cwx.flag.Flag, true) SubstituteFlagDialog;
-alias FlagStepCombiDialog!(CType.BRANCH_STEP_CMP, Step, false) BrStepCmpDialog;
-alias FlagStepCombiDialog!(CType.BRANCH_FLAG_CMP, cwx.flag.Flag, false) BrFlagCmpDialog;
+alias FlagStepCombiDialog!(CType.SubstituteStep, Step, true) SubstituteStepDialog;
+alias FlagStepCombiDialog!(CType.SubstituteFlag, cwx.flag.Flag, true) SubstituteFlagDialog;
+alias FlagStepCombiDialog!(CType.BranchStepCmp, Step, false) BrStepCmpDialog;
+alias FlagStepCombiDialog!(CType.BranchFlagCmp, cwx.flag.Flag, false) BrFlagCmpDialog;
 
 /// メンバ選択分岐の設定を行うダイアログ。
 class BrMemberDialog : EventDialog {
@@ -2845,7 +2845,7 @@ private:
 
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, Content parent, Content evt) { mixin(S_TRACE);
-		super (comm, prop, shell, summ, CType.BRANCH_SELECT, parent, evt, true, prop.var.brMemberDlg, true);
+		super (comm, prop, shell, summ, CType.BranchSelect, parent, evt, true, prop.var.brMemberDlg, true);
 		_uc = uc;
 	}
 protected:
@@ -2904,7 +2904,7 @@ protected:
 	}
 
 	override bool apply() { mixin(S_TRACE);
-		if (!_evt) _evt = new Content(CType.BRANCH_SELECT, "");
+		if (!_evt) _evt = new Content(CType.BranchSelect, "");
 		_evt.targetAll = _all[1].getSelection();
 		foreach (method; EnumMembers!SelectionMethod) { mixin(S_TRACE);
 			if (_method[cast(size_t)method].getSelection()) { mixin(S_TRACE);
@@ -3015,7 +3015,7 @@ private:
 
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
-		super (comm, prop, shell, summ, CType.BRANCH_ABILITY, parent, evt, false, null, true);
+		super (comm, prop, shell, summ, CType.BranchAbility, parent, evt, false, null, true);
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
@@ -3042,7 +3042,7 @@ protected:
 				grp.setText(_prop.msgs.judgeTarget);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				grp.setLayout(normalGridLayout(1, true));
-				foreach (m; [Target.M.SELECTED, Target.M.RANDOM, Target.M.PARTY]) { mixin(S_TRACE);
+				foreach (m; [Target.M.Selected, Target.M.Random, Target.M.Party]) { mixin(S_TRACE);
 					auto radio = new Button(grp, SWT.RADIO);
 					mod(radio);
 					radio.setText(_prop.msgs.targetName(m));
@@ -3088,7 +3088,7 @@ protected:
 			_invertResult.setSelection(_evt.invertResult);
 		} else { mixin(S_TRACE);
 			_lev.setSelection(0);
-			_targ[Target.M.SELECTED].setSelection(true);
+			_targ[Target.M.Selected].setSelection(true);
 			_sleep[1].setSelection(true);
 			_invertResult.setSelection(true);
 		}
@@ -3096,7 +3096,7 @@ protected:
 	}
 
 	override bool apply() { mixin(S_TRACE);
-		if (!_evt) _evt = new Content(CType.BRANCH_ABILITY, "");
+		if (!_evt) _evt = new Content(CType.BranchAbility, "");
 		auto targ = Target(getRadioValue!(Target.M)(_targ), _sleep[0].getSelection());
 		_evt.signedLevel = _lev.getSelection();
 		_evt.targetS = targ;
@@ -3115,7 +3115,7 @@ private:
 
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
-		super (comm, prop, shell, summ, CType.BRANCH_LEVEL, parent, evt, false, null, true);
+		super (comm, prop, shell, summ, CType.BranchLevel, parent, evt, false, null, true);
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
@@ -3163,7 +3163,7 @@ protected:
 	}
 
 	override bool apply() { mixin(S_TRACE);
-		if (!_evt) _evt = new Content(CType.BRANCH_LEVEL, "");
+		if (!_evt) _evt = new Content(CType.BranchLevel, "");
 		_evt.average = _ave[0].getSelection();
 		_evt.unsignedLevel = _lev.getSelection();
 		return true;
@@ -3174,13 +3174,13 @@ Composite createStatusPane(Props prop, Composite area, string title, ref Button[
 	auto grp = new Group(area, SWT.NONE);
 	grp.setText(title);
 	grp.setLayout(normalGridLayout(4, true));
-	auto statuses = [Status.ACTIVE, Status.INACTIVE, Status.ALIVE, Status.DEAD,
-			Status.FINE, Status.INJURED, Status.HEAVY_INJURED, Status.UNCONSCIOUS,
-			Status.POISON, Status.SLEEP, Status.BIND, Status.PARALYZE,
-			Status.CONFUSE, Status.OVERHEAT, Status.BRAVE, Status.PANIC,
-			Status.SILENCE, Status.FACE_UP, Status.ANTI_MAGIC,
-			Status.UP_ACTION, Status.UP_AVOID, Status.UP_RESIST, Status.UP_DEFENSE,
-			Status.DOWN_ACTION, Status.DOWN_AVOID, Status.DOWN_RESIST, Status.DOWN_DEFENSE];
+	auto statuses = [Status.Active, Status.Inactive, Status.Alive, Status.Dead,
+			Status.Fine, Status.Injured, Status.HeavyInjured, Status.Unconscious,
+			Status.Poison, Status.Sleep, Status.Bind, Status.Paralyze,
+			Status.Confuse, Status.Overheat, Status.Brave, Status.Panic,
+			Status.Silence, Status.FaceUp, Status.AntiMagic,
+			Status.UpAction, Status.UpAvoid, Status.UpResist, Status.UpDefense,
+			Status.DownAction, Status.DownAvoid, Status.DownResist, Status.DownDefense];
 	foreach (s; statuses) { mixin(S_TRACE);
 		auto radio = new Button(grp, type);
 		mod(radio);
@@ -3220,8 +3220,8 @@ private:
 		string[] ws;
 		if (!_prop.targetVersion(summ, "1.30")) { mixin(S_TRACE);
 			auto status = getRadioValue!(Status)(_stat);
-			if (Status.CONFUSE <= status) { mixin(S_TRACE);
-				if (Status.SILENCE <= status) { mixin(S_TRACE);
+			if (Status.Confuse <= status) { mixin(S_TRACE);
+				if (Status.Silence <= status) { mixin(S_TRACE);
 					ws ~= .tryFormat(_prop.msgs.warningBranchStatusMental, _prop.msgs.statusName(status), "1.50");
 				} else { mixin(S_TRACE);
 					ws ~= .tryFormat(_prop.msgs.warningBranchStatusMental, _prop.msgs.statusName(status), "1.30");
@@ -3229,7 +3229,7 @@ private:
 			}
 		} else if (!_prop.targetVersion(summ, "1.50")) { mixin(S_TRACE);
 			auto status = getRadioValue!(Status)(_stat);
-			if (Status.SILENCE <= status) { mixin(S_TRACE);
+			if (Status.Silence <= status) { mixin(S_TRACE);
 				ws ~= .tryFormat(_prop.msgs.warningBranchStatusMental, _prop.msgs.statusName(status), "1.50");
 			}
 		}
@@ -3250,14 +3250,14 @@ private:
 
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, Content parent, Content evt) { mixin(S_TRACE);
-		super (comm, prop, shell, summ, CType.BRANCH_STATUS, parent, evt, false, null, true);
+		super (comm, prop, shell, summ, CType.BranchStatus, parent, evt, false, null, true);
 		_uc = uc;
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
 		area.setLayout(normalGridLayout(2, false));
 		{ mixin(S_TRACE);
-			auto ranges = [Range.SELECTED, Range.RANDOM, Range.PARTY];
+			auto ranges = [Range.Selected, Range.Random, Range.Party];
 			auto title = _prop.msgs.judgeTarget;
 			auto initCoupon = evt ? evt.holdingCoupon : "";
 			_range = new RangePanel(comm, summ, _uc, area, ranges, initCoupon, title, false, this, evt, &catchMod, &refreshWarning, type);
@@ -3294,14 +3294,14 @@ protected:
 			_stat[_evt.status].setSelection(true);
 			_invertResult.select(_evt.invertResult ? 1 : 0);
 		} else { mixin(S_TRACE);
-			_stat[Status.ACTIVE].setSelection(true);
+			_stat[Status.Active].setSelection(true);
 			_invertResult.select(0);
 		}
 		refDataVersion();
 	}
 
 	override bool apply() { mixin(S_TRACE);
-		if (!_evt) _evt = new Content(CType.BRANCH_STATUS, "");
+		if (!_evt) _evt = new Content(CType.BranchStatus, "");
 		_evt.range = _range.range;
 		_evt.status = getRadioValue!(Status)(_stat);
 		_evt.invertResult = _invertResult.getSelectionIndex() == 1;
@@ -3323,7 +3323,7 @@ private:
 	}
 	Button[Range] _range;
 	Table _list;
-	static if (Type is CType.BRANCH_SKILL || Type is CType.BRANCH_ITEM || Type is CType.BRANCH_BEAST) {
+	static if (Type is CType.BranchSkill || Type is CType.BranchItem || Type is CType.BranchBeast) {
 		Button _selectCard;
 		Combo _invertResult;
 	}
@@ -3337,7 +3337,7 @@ private:
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
 		auto range = this.range;
-		if (range !is Range.SELECTED_CARD && _selectedID == 0) { mixin(S_TRACE);
+		if (range !is Range.SelectedCard && _selectedID == 0) { mixin(S_TRACE);
 			static if (is(C:SkillCard)) {
 				ws ~= prop.msgs.searchErrorNoSkill;
 			} else static if (is(C:ItemCard)) {
@@ -3351,7 +3351,7 @@ private:
 				ws ~= _prop.msgs.warningSelectCard;
 			}
 		}
-		if (!_prop.isTargetVersion(summ, "3") && range is Range.SELECTED_CARD) { mixin(S_TRACE);
+		if (!_prop.isTargetVersion(summ, "3") && range is Range.SelectedCard) { mixin(S_TRACE);
 			ws ~= .tryFormat(_prop.msgs.warningRangeSelectedCard);
 		}
 		static if (is(typeof(_invertResult))) {
@@ -3373,14 +3373,14 @@ private:
 	}
 	void updateEnabled() { mixin(S_TRACE);
 		static if (Delete) {
-			_allDel.setEnabled(range !is Range.SELECTED_CARD);
-			_num.setEnabled(!_allDel.getSelection() && range !is Range.SELECTED_CARD);
-			_list.setEnabled(range !is Range.SELECTED_CARD && mixin(Cards).length);
+			_allDel.setEnabled(range !is Range.SelectedCard);
+			_num.setEnabled(!_allDel.getSelection() && range !is Range.SelectedCard);
+			_list.setEnabled(range !is Range.SelectedCard && mixin(Cards).length);
 		} else {
-			_num.setEnabled(range !is Range.SELECTED_CARD);
+			_num.setEnabled(range !is Range.SelectedCard);
 			_list.setEnabled(0 < mixin(Cards).length);
 		}
-		auto b = _range[Range.SELECTED_CARD];
+		auto b = _range[Range.SelectedCard];
 		b.setEnabled(!summ || !summ.legacy || b.getSelection());
 		static if (is(typeof(_selectCard))) {
 			_selectCard.setEnabled(!b.getSelection() && (!summ || !summ.legacy || _selectCard.getSelection()));
@@ -3458,7 +3458,7 @@ private:
 		if (cards.length) { mixin(S_TRACE);
 			refreshList();
 		} else { mixin(S_TRACE);
-			static if (Type is CType.LOSE_SKILL || Type is CType.LOSE_ITEM || Type is CType.LOSE_BEAST) {
+			static if (Type is CType.LoseSkill || Type is CType.LoseItem || Type is CType.LoseBeast) {
 				if (summ && summ.legacy) { mixin(S_TRACE);
 					forceCancel();
 				}
@@ -3532,17 +3532,17 @@ protected:
 				grp.setText(_prop.msgs.cardEventRange);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				grp.setLayout(normalGridLayout(1, true));
-				foreach (r; [Range.SELECTED, Range.RANDOM, Range.PARTY,
-						Range.BACKPACK, Range.PARTY_AND_BACKPACK, Range.FIELD, 
-						Range.SELECTED_CARD]) { mixin(S_TRACE);
+				foreach (r; [Range.Selected, Range.Random, Range.Party,
+						Range.Backpack, Range.PartyAndBackpack, Range.Field, 
+						Range.SelectedCard]) { mixin(S_TRACE);
 					auto radio = new Button(grp, SWT.RADIO);
 					mod(radio);
-					if ((Type is CType.GET_SKILL || Type is CType.GET_ITEM || Type is CType.GET_BEAST) && r is Range.SELECTED_CARD) { mixin(S_TRACE);
+					if ((Type is CType.GetSkill || Type is CType.GetItem || Type is CType.GetBeast) && r is Range.SelectedCard) { mixin(S_TRACE);
 						radio.setText(_prop.msgs.rangeNameSelectedCardForReplace);
 					} else { mixin(S_TRACE);
 						radio.setText(_prop.msgs.rangeName(r));
 					}
-					if (r is Range.FIELD) { mixin(S_TRACE);
+					if (r is Range.Field) { mixin(S_TRACE);
 						radio.setToolTipText(_prop.msgs.rangeDescField);
 					}
 					radio.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -3699,15 +3699,15 @@ protected:
 	}
 }
 
-alias CardEventDialog!(CType.BRANCH_SKILL, SkillCard, "_summ.skills", false, Range.FIELD) BrSkillDialog;
-alias CardEventDialog!(CType.BRANCH_ITEM, ItemCard, "_summ.items", false, Range.FIELD) BrItemDialog;
-alias CardEventDialog!(CType.BRANCH_BEAST, BeastCard, "_summ.beasts", false, Range.FIELD) BrBeastDialog;
-alias CardEventDialog!(CType.GET_SKILL, SkillCard, "_summ.skills", false, Range.SELECTED) GetSkillDialog;
-alias CardEventDialog!(CType.GET_ITEM, ItemCard, "_summ.items", false, Range.SELECTED) GetItemDialog;
-alias CardEventDialog!(CType.GET_BEAST, BeastCard, "_summ.beasts", false, Range.SELECTED) GetBeastDialog;
-alias CardEventDialog!(CType.LOSE_SKILL, SkillCard, "_summ.skills", true, Range.FIELD) LostSkillDialog;
-alias CardEventDialog!(CType.LOSE_ITEM, ItemCard, "_summ.items", true, Range.FIELD) LostItemDialog;
-alias CardEventDialog!(CType.LOSE_BEAST, BeastCard, "_summ.beasts", true, Range.FIELD) LostBeastDialog;
+alias CardEventDialog!(CType.BranchSkill, SkillCard, "_summ.skills", false, Range.Field) BrSkillDialog;
+alias CardEventDialog!(CType.BranchItem, ItemCard, "_summ.items", false, Range.Field) BrItemDialog;
+alias CardEventDialog!(CType.BranchBeast, BeastCard, "_summ.beasts", false, Range.Field) BrBeastDialog;
+alias CardEventDialog!(CType.GetSkill, SkillCard, "_summ.skills", false, Range.Selected) GetSkillDialog;
+alias CardEventDialog!(CType.GetItem, ItemCard, "_summ.items", false, Range.Selected) GetItemDialog;
+alias CardEventDialog!(CType.GetBeast, BeastCard, "_summ.beasts", false, Range.Selected) GetBeastDialog;
+alias CardEventDialog!(CType.LoseSkill, SkillCard, "_summ.skills", true, Range.Field) LostSkillDialog;
+alias CardEventDialog!(CType.LoseItem, ItemCard, "_summ.items", true, Range.Field) LostItemDialog;
+alias CardEventDialog!(CType.LoseBeast, BeastCard, "_summ.beasts", true, Range.Field) LostBeastDialog;
 
 /// パーティ表示・隠蔽イベントの設定を行うダイアログ。
 class ShowHidePartyDialog : EventDialog {
@@ -3762,7 +3762,7 @@ private:
 
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
-		super (comm, prop, shell, summ, CType.REDISPLAY, parent, evt, false, null, true);
+		super (comm, prop, shell, summ, CType.Redisplay, parent, evt, false, null, true);
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
@@ -3778,7 +3778,7 @@ protected:
 	}
 
 	override bool apply() { mixin(S_TRACE);
-		if (!_evt) _evt = new Content(CType.REDISPLAY, "");
+		if (!_evt) _evt = new Content(CType.Redisplay, "");
 		_evt.transition = _transition.transition;
 		_evt.transitionSpeed = _transition.transitionSpeed;
 		return true;
@@ -3798,10 +3798,10 @@ private:
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
 		if (!_prop.targetVersion(summ, "1.30")) { mixin(S_TRACE);
-			ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(CType.BRANCH_RANDOM_SELECT), "1.30");
+			ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(CType.BranchRandomSelect), "1.30");
 		} else if (!_prop.targetVersion(summ, "1.50")) { mixin(S_TRACE);
 			auto status = getRadioValue!(Status)(_status);
-			if (Status.SILENCE <= status) { mixin(S_TRACE);
+			if (Status.Silence <= status) { mixin(S_TRACE);
 				ws ~= .tryFormat(_prop.msgs.warningBranchStatusMental, _prop.msgs.statusName(status), "1.50");
 			}
 		}
@@ -3837,7 +3837,7 @@ private:
 	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
-		super (comm, prop, shell, summ, CType.BRANCH_RANDOM_SELECT, parent, evt, false, null, true);
+		super (comm, prop, shell, summ, CType.BranchRandomSelect, parent, evt, false, null, true);
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
@@ -3928,7 +3928,7 @@ protected:
 				_castRange[e].setSelection(true);
 			}
 			_hasLevel.setSelection(0 < _evt.levelMax);
-			_hasStatus.setSelection(Status.NONE !is _evt.status);
+			_hasStatus.setSelection(Status.None !is _evt.status);
 			if (_hasLevel.getSelection()) { mixin(S_TRACE);
 				_levMin.setSelection(_evt.levelMin);
 				_levMax.setSelection(_evt.levelMax);
@@ -3939,23 +3939,23 @@ protected:
 			if (_hasStatus.getSelection()) { mixin(S_TRACE);
 				_status[_evt.status].setSelection(true);
 			} else { mixin(S_TRACE);
-				_status[Status.ACTIVE].setSelection(true);
+				_status[Status.Active].setSelection(true);
 			}
 			_invertResult.select(_evt.invertResult ? 1 : 0);
 		} else { mixin(S_TRACE);
-			_castRange[CastRange.PARTY].setSelection(true);
+			_castRange[CastRange.Party].setSelection(true);
 			_hasLevel.setSelection(false);
 			_hasStatus.setSelection(false);
 			_levMin.setSelection(1);
 			_levMax.setSelection(1);
-			_status[Status.ACTIVE].setSelection(true);
+			_status[Status.Active].setSelection(true);
 			_invertResult.select(0);
 		}
 		refDataVersion();
 	}
 
 	override bool apply() { mixin(S_TRACE);
-		if (!_evt) _evt = new Content(CType.BRANCH_RANDOM_SELECT, "");
+		if (!_evt) _evt = new Content(CType.BranchRandomSelect, "");
 		CastRange[] range;
 		foreach (e, b; _castRange) { mixin(S_TRACE);
 			if (b.getSelection()) range ~= e;
@@ -3973,7 +3973,7 @@ protected:
 		if (hasStatus) { mixin(S_TRACE);
 			_evt.status = getRadioValue!(Status)(_status);
 		} else { mixin(S_TRACE);
-			_evt.status = Status.NONE;
+			_evt.status = Status.None;
 		}
 		_evt.invertResult = _invertResult.getSelectionIndex() == 1;
 		return true;
@@ -3997,17 +3997,17 @@ private:
 		ws ~= .sjisWarnings(prop.parent, summ, _keyCode.getText(), prop.msgs.keyCode);
 		if (_effectCardTypeWsn1.length) { mixin(S_TRACE);
 			if (!_prop.targetVersion(summ, "1.50")) { mixin(S_TRACE);
-				ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(CType.BRANCH_KEY_CODE), "1.50");
+				ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(CType.BranchKeyCode), "1.50");
 			}
-			if (summ && summ.legacy && (_effectCardTypeWsn1[EffectCardType.ALL].getSelection() || _effectCardTypeWsn1[EffectCardType.ITEM].getSelection())) { mixin(S_TRACE);
+			if (summ && summ.legacy && (_effectCardTypeWsn1[EffectCardType.All].getSelection() || _effectCardTypeWsn1[EffectCardType.Item].getSelection())) { mixin(S_TRACE);
 				ws ~= _prop.msgs.warningBranchKeyCodeWithItem;
 			}
 		} else { mixin(S_TRACE);
 			assert (_effectCardTypeWsn2.length);
-			auto skill = _effectCardTypeWsn2[EffectCardType.SKILL].getSelection();
-			auto item = _effectCardTypeWsn2[EffectCardType.ITEM].getSelection();
-			auto beast = _effectCardTypeWsn2[EffectCardType.BEAST].getSelection();
-			auto hand = _effectCardTypeWsn2[EffectCardType.HAND].getSelection();
+			auto skill = _effectCardTypeWsn2[EffectCardType.Skill].getSelection();
+			auto item = _effectCardTypeWsn2[EffectCardType.Item].getSelection();
+			auto beast = _effectCardTypeWsn2[EffectCardType.Beast].getSelection();
+			auto hand = _effectCardTypeWsn2[EffectCardType.Hand].getSelection();
 			if (!_prop.isTargetVersion(summ, "2")
 					&& !(skill && item && beast && !hand)
 					&& !(skill && !item && !beast && !hand)
@@ -4019,7 +4019,7 @@ private:
 				ws ~= _prop.msgs.warningSelectCard;
 			}
 		}
-		if (!_prop.isTargetVersion(summ, "3") && range is Range.SELECTED_CARD) { mixin(S_TRACE);
+		if (!_prop.isTargetVersion(summ, "3") && range is Range.SelectedCard) { mixin(S_TRACE);
 			ws ~= .tryFormat(_prop.msgs.warningRangeSelectedCard);
 		}
 		if(!prop.isTargetVersion(summ, "4") && _invertResult.getSelectionIndex() == 1) { mixin(S_TRACE);
@@ -4031,27 +4031,27 @@ private:
 	override
 	protected void refDataVersion() { mixin(S_TRACE);
 		if (summ && summ.legacy && _effectCardTypeWsn2.length) { mixin(S_TRACE);
-			auto skill = _effectCardTypeWsn2[EffectCardType.SKILL].getSelection();
-			auto item = _effectCardTypeWsn2[EffectCardType.ITEM].getSelection();
-			auto beast = _effectCardTypeWsn2[EffectCardType.BEAST].getSelection();
-			auto hand = _effectCardTypeWsn2[EffectCardType.HAND].getSelection();
+			auto skill = _effectCardTypeWsn2[EffectCardType.Skill].getSelection();
+			auto item = _effectCardTypeWsn2[EffectCardType.Item].getSelection();
+			auto beast = _effectCardTypeWsn2[EffectCardType.Beast].getSelection();
+			auto hand = _effectCardTypeWsn2[EffectCardType.Hand].getSelection();
 			foreach (radio; _effectCardTypeWsn2.byValue()) radio.dispose();
 			_effectCardTypeWsn2 = null;
 			createWsn1Panel();
 
 			if (skill && item && beast && hand) { mixin(S_TRACE);
-				_effectCardTypeWsn1[EffectCardType.ALL].setSelection(true);
+				_effectCardTypeWsn1[EffectCardType.All].setSelection(true);
 			} else if (skill && !item && !beast && !hand) { mixin(S_TRACE);
-				_effectCardTypeWsn1[EffectCardType.SKILL].setSelection(true);
+				_effectCardTypeWsn1[EffectCardType.Skill].setSelection(true);
 			} else if (!skill && item && !beast && hand) { mixin(S_TRACE);
-				_effectCardTypeWsn1[EffectCardType.ITEM].setSelection(true);
+				_effectCardTypeWsn1[EffectCardType.Item].setSelection(true);
 			} else if (!skill && item && !beast && !hand) { mixin(S_TRACE);
-				_effectCardTypeWsn1[EffectCardType.ITEM].setSelection(true);
+				_effectCardTypeWsn1[EffectCardType.Item].setSelection(true);
 				applyEnabled(true);
 			} else if (!skill && !item && beast && !hand) { mixin(S_TRACE);
-				_effectCardTypeWsn1[EffectCardType.BEAST].setSelection(true);
+				_effectCardTypeWsn1[EffectCardType.Beast].setSelection(true);
 			} else { mixin(S_TRACE);
-				_effectCardTypeWsn1[EffectCardType.ALL].setSelection(true);
+				_effectCardTypeWsn1[EffectCardType.All].setSelection(true);
 				applyEnabled(true);
 			}
 			getShell().layout(true, true);
@@ -4062,23 +4062,23 @@ private:
 			_effectCardTypeWsn1 = null;
 			createWsn2Panel();
 			final switch (v) {
-			case EffectCardType.ALL:
-				_effectCardTypeWsn2[EffectCardType.SKILL].setSelection(true);
-				_effectCardTypeWsn2[EffectCardType.ITEM].setSelection(true);
-				_effectCardTypeWsn2[EffectCardType.BEAST].setSelection(true);
-				_effectCardTypeWsn2[EffectCardType.HAND].setSelection(true);
+			case EffectCardType.All:
+				_effectCardTypeWsn2[EffectCardType.Skill].setSelection(true);
+				_effectCardTypeWsn2[EffectCardType.Item].setSelection(true);
+				_effectCardTypeWsn2[EffectCardType.Beast].setSelection(true);
+				_effectCardTypeWsn2[EffectCardType.Hand].setSelection(true);
 				break;
-			case EffectCardType.SKILL:
-				_effectCardTypeWsn2[EffectCardType.SKILL].setSelection(true);
+			case EffectCardType.Skill:
+				_effectCardTypeWsn2[EffectCardType.Skill].setSelection(true);
 				break;
-			case EffectCardType.ITEM:
-				_effectCardTypeWsn2[EffectCardType.ITEM].setSelection(true);
-				_effectCardTypeWsn2[EffectCardType.HAND].setSelection(true);
+			case EffectCardType.Item:
+				_effectCardTypeWsn2[EffectCardType.Item].setSelection(true);
+				_effectCardTypeWsn2[EffectCardType.Hand].setSelection(true);
 				break;
-			case EffectCardType.BEAST:
-				_effectCardTypeWsn2[EffectCardType.BEAST].setSelection(true);
+			case EffectCardType.Beast:
+				_effectCardTypeWsn2[EffectCardType.Beast].setSelection(true);
 				break;
-			case EffectCardType.HAND:
+			case EffectCardType.Hand:
 				assert (0);
 			}
 			getShell().layout(true, true);
@@ -4091,14 +4091,14 @@ private:
 	}
 
 	private void updateEnabled() { mixin(S_TRACE);
-		auto b = _keyCodeRange[Range.SELECTED_CARD];
+		auto b = _keyCodeRange[Range.SelectedCard];
 		b.setEnabled(!summ || !summ.legacy || b.getSelection());
 		_invertResult.setEnabled(!summ || !summ.legacy || _invertResult.getSelectionIndex() != 0);
 		_selectCard.setEnabled(!b.getSelection() && (!summ || !summ.legacy || _selectCard.getSelection()) && _invertResult.getSelectionIndex() == 0);
 	}
 
 	void createWsn1Panel() { mixin(S_TRACE);
-		foreach (r; [EffectCardType.ALL, EffectCardType.SKILL, EffectCardType.ITEM, EffectCardType.BEAST]) { mixin(S_TRACE);
+		foreach (r; [EffectCardType.All, EffectCardType.Skill, EffectCardType.Item, EffectCardType.Beast]) { mixin(S_TRACE);
 			auto radio = new Button(_typeComp, SWT.RADIO);
 			mod(radio);
 			radio.setText(_prop.msgs.effectCardTypeName(r));
@@ -4108,7 +4108,7 @@ private:
 		}
 	}
 	void createWsn2Panel() { mixin(S_TRACE);
-		foreach (r; [EffectCardType.SKILL, EffectCardType.ITEM, EffectCardType.BEAST, EffectCardType.HAND]) { mixin(S_TRACE);
+		foreach (r; [EffectCardType.Skill, EffectCardType.Item, EffectCardType.Beast, EffectCardType.Hand]) { mixin(S_TRACE);
 			auto check = new Button(_typeComp, SWT.CHECK);
 			mod(check);
 			check.setText(_prop.msgs.effectCardTypeName(r));
@@ -4123,7 +4123,7 @@ private:
 
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
-		super (comm, prop, shell, summ, CType.BRANCH_KEY_CODE, parent, evt, false, null, true);
+		super (comm, prop, shell, summ, CType.BranchKeyCode, parent, evt, false, null, true);
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
@@ -4137,8 +4137,8 @@ protected:
 			grp.setLayout(new CenterLayout(SWT.HORIZONTAL));
 			auto comp = new Composite(grp, SWT.NONE);
 			comp.setLayout(zeroMarginGridLayout(1, true));
-			foreach (r; [Range.SELECTED, Range.RANDOM, Range.BACKPACK,
-					Range.PARTY_AND_BACKPACK, Range.SELECTED_CARD]) { mixin(S_TRACE);
+			foreach (r; [Range.Selected, Range.Random, Range.Backpack,
+					Range.PartyAndBackpack, Range.SelectedCard]) { mixin(S_TRACE);
 				auto radio = new Button(comp, SWT.RADIO);
 				mod(radio);
 				radio.setText(_prop.msgs.rangeName(r));
@@ -4210,36 +4210,36 @@ protected:
 			_keyCodeRange[_evt.keyCodeRange].setSelection(true);
 			if (_effectCardTypeWsn1.length) { mixin(S_TRACE);
 				if (_evt.targetIsSkill && _evt.targetIsItem && _evt.targetIsBeast) { mixin(S_TRACE);
-					_effectCardTypeWsn1[EffectCardType.ALL].setSelection(true);
+					_effectCardTypeWsn1[EffectCardType.All].setSelection(true);
 				} else if (_evt.targetIsSkill) { mixin(S_TRACE);
-					_effectCardTypeWsn1[EffectCardType.SKILL].setSelection(true);
+					_effectCardTypeWsn1[EffectCardType.Skill].setSelection(true);
 				} else if (_evt.targetIsItem) { mixin(S_TRACE);
-					_effectCardTypeWsn1[EffectCardType.ITEM].setSelection(true);
+					_effectCardTypeWsn1[EffectCardType.Item].setSelection(true);
 				} else if (_evt.targetIsBeast) { mixin(S_TRACE);
-					_effectCardTypeWsn1[EffectCardType.BEAST].setSelection(true);
+					_effectCardTypeWsn1[EffectCardType.Beast].setSelection(true);
 				} else { mixin(S_TRACE);
-					_effectCardTypeWsn1[EffectCardType.ALL].setSelection(true);
+					_effectCardTypeWsn1[EffectCardType.All].setSelection(true);
 				}
 			} else { mixin(S_TRACE);
 				assert (_effectCardTypeWsn2.length);
-				_effectCardTypeWsn2[EffectCardType.SKILL].setSelection(_evt.targetIsSkill);
-				_effectCardTypeWsn2[EffectCardType.ITEM].setSelection(_evt.targetIsItem);
-				_effectCardTypeWsn2[EffectCardType.BEAST].setSelection(_evt.targetIsBeast);
-				_effectCardTypeWsn2[EffectCardType.HAND].setSelection(_evt.targetIsHand);
+				_effectCardTypeWsn2[EffectCardType.Skill].setSelection(_evt.targetIsSkill);
+				_effectCardTypeWsn2[EffectCardType.Item].setSelection(_evt.targetIsItem);
+				_effectCardTypeWsn2[EffectCardType.Beast].setSelection(_evt.targetIsBeast);
+				_effectCardTypeWsn2[EffectCardType.Hand].setSelection(_evt.targetIsHand);
 			}
 			_invertResult.select(_evt.invertResult ? 1 : 0);
 			_keyCode.setText(_evt.keyCode);
 			_selectCard.setSelection(_evt.selectCard);
 		} else { mixin(S_TRACE);
-			_keyCodeRange[Range.SELECTED].setSelection(true);
+			_keyCodeRange[Range.Selected].setSelection(true);
 			if (_effectCardTypeWsn1.length) { mixin(S_TRACE);
-				_effectCardTypeWsn1[EffectCardType.ALL].setSelection(true);
+				_effectCardTypeWsn1[EffectCardType.All].setSelection(true);
 			} else { mixin(S_TRACE);
 				assert (_effectCardTypeWsn2.length);
-				_effectCardTypeWsn2[EffectCardType.SKILL].setSelection(true);
-				_effectCardTypeWsn2[EffectCardType.ITEM].setSelection(true);
-				_effectCardTypeWsn2[EffectCardType.BEAST].setSelection(true);
-				_effectCardTypeWsn2[EffectCardType.HAND].setSelection(false);
+				_effectCardTypeWsn2[EffectCardType.Skill].setSelection(true);
+				_effectCardTypeWsn2[EffectCardType.Item].setSelection(true);
+				_effectCardTypeWsn2[EffectCardType.Beast].setSelection(true);
+				_effectCardTypeWsn2[EffectCardType.Hand].setSelection(false);
 			}
 			_invertResult.select(0);
 			_keyCode.setText("");
@@ -4250,7 +4250,7 @@ protected:
 	}
 
 	override bool apply() { mixin(S_TRACE);
-		if (!_evt) _evt = new Content(CType.BRANCH_KEY_CODE, "");
+		if (!_evt) _evt = new Content(CType.BranchKeyCode, "");
 
 		_evt.keyCode = _keyCode.getText();
 		_evt.keyCodeRange = this.range;
@@ -4260,32 +4260,32 @@ protected:
 		_evt.targetIsHand = false;
 		if (_effectCardTypeWsn1.length) { mixin(S_TRACE);
 			final switch (getRadioValue!(EffectCardType)(_effectCardTypeWsn1)) {
-			case EffectCardType.ALL:
+			case EffectCardType.All:
 				_evt.targetIsSkill = true;
 				_evt.targetIsItem = true;
 				_evt.targetIsBeast = true;
 				if (summ && summ.legacy) _evt.targetIsHand = true;
 				break;
-			case EffectCardType.SKILL:
+			case EffectCardType.Skill:
 				_evt.targetIsSkill = true;
 				break;
-			case EffectCardType.ITEM:
+			case EffectCardType.Item:
 				_evt.targetIsItem = true;
 				if (summ && summ.legacy) _evt.targetIsHand = true;
 				break;
-			case EffectCardType.BEAST:
+			case EffectCardType.Beast:
 				_evt.targetIsBeast = true;
 				break;
-			case EffectCardType.HAND:
+			case EffectCardType.Hand:
 				_evt.targetIsHand = true;
 				break;
 			}
 		} else { mixin(S_TRACE);
 			assert (_effectCardTypeWsn2.length);
-			_evt.targetIsSkill = _effectCardTypeWsn2[EffectCardType.SKILL].getSelection();
-			_evt.targetIsItem = _effectCardTypeWsn2[EffectCardType.ITEM].getSelection();
-			_evt.targetIsBeast = _effectCardTypeWsn2[EffectCardType.BEAST].getSelection();
-			_evt.targetIsHand = _effectCardTypeWsn2[EffectCardType.HAND].getSelection();
+			_evt.targetIsSkill = _effectCardTypeWsn2[EffectCardType.Skill].getSelection();
+			_evt.targetIsItem = _effectCardTypeWsn2[EffectCardType.Item].getSelection();
+			_evt.targetIsBeast = _effectCardTypeWsn2[EffectCardType.Beast].getSelection();
+			_evt.targetIsHand = _effectCardTypeWsn2[EffectCardType.Hand].getSelection();
 		}
 		_evt.invertResult = _invertResult.getSelectionIndex() == 1;
 		_evt.selectCard = _selectCard.getSelection();
@@ -4304,7 +4304,7 @@ private:
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
 		if (!_prop.targetVersion(summ, "1.50")) { mixin(S_TRACE);
-			ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(CType.BRANCH_ROUND), "1.50");
+			ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(CType.BranchRound), "1.50");
 		}
 		warning = ws;
 	}
@@ -4315,7 +4315,7 @@ private:
 
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
-		super (comm, prop, shell, summ, CType.BRANCH_ROUND, parent, evt, false, null, true);
+		super (comm, prop, shell, summ, CType.BranchRound, parent, evt, false, null, true);
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
@@ -4362,7 +4362,7 @@ protected:
 	}
 
 	override bool apply() { mixin(S_TRACE);
-		if (!_evt) _evt = new Content(CType.BRANCH_ROUND, "");
+		if (!_evt) _evt = new Content(CType.BranchRound, "");
 		_evt.round = _value.getSelection();
 		_evt.comparison3 = _cmps[_cmp.getSelectionIndex()];
 		return true;
@@ -4432,14 +4432,14 @@ private:
 		string[] ws;
 		ws ~= .sjisWarnings(prop.parent, summ, _cellName.getText(), prop.msgs.cellName);
 		if (!_prop.isTargetVersion(summ, "1")) { mixin(S_TRACE);
-			ws ~= .tryFormat(_prop.msgs.warningUnknownContentWsn, _prop.msgs.contentName(CType.MOVE_BG_IMAGE), "1");
+			ws ~= .tryFormat(_prop.msgs.warningUnknownContentWsn, _prop.msgs.contentName(CType.MoveBgImage), "1");
 		}
 		warning = ws;
 	}
 
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
-		super (comm, prop, shell, summ, CType.MOVE_BG_IMAGE, parent, evt, false, null, true);
+		super (comm, prop, shell, summ, CType.MoveBgImage, parent, evt, false, null, true);
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
@@ -4553,7 +4553,7 @@ private:
 		string[] ws;
 		ws ~= .sjisWarnings(prop.parent, summ, _cardGroup.getText(), prop.msgs.cardGroup);
 		if (!_prop.isTargetVersion(summ, "3")) { mixin(S_TRACE);
-			ws ~= .tryFormat(_prop.msgs.warningUnknownContentWsn, _prop.msgs.contentName(CType.MOVE_CARD), "3");
+			ws ~= .tryFormat(_prop.msgs.warningUnknownContentWsn, _prop.msgs.contentName(CType.MoveCard), "3");
 		}
 		ws ~= _cardSpeed.warnings;
 		warning = ws;
@@ -4566,7 +4566,7 @@ private:
 
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
-		super (comm, prop, shell, summ, CType.MOVE_CARD, parent, evt, false, null, true);
+		super (comm, prop, shell, summ, CType.MoveCard, parent, evt, false, null, true);
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
@@ -4718,7 +4718,7 @@ private:
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
 		if (!prop.isTargetVersion(summ, "2")) { mixin(S_TRACE);
-			ws ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(CType.BRANCH_MULTI_COUPON), "2");
+			ws ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(CType.BranchMultiCoupon), "2");
 		}
 		if (_expandSPChars.getSelection()) { mixin(S_TRACE);
 			if (!_comm.prop.isTargetVersion(_summ, "4")) { mixin(S_TRACE);
@@ -4730,14 +4730,14 @@ private:
 
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, Content parent, Content evt) { mixin(S_TRACE);
-		super (comm, prop, shell, summ, CType.BRANCH_MULTI_COUPON, parent, evt, false, null, true);
+		super (comm, prop, shell, summ, CType.BranchMultiCoupon, parent, evt, false, null, true);
 		_uc = uc;
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
 		area.setLayout(normalGridLayout(2, false));
 
-		auto ranges = [Range.SELECTED, Range.RANDOM, Range.PARTY, Range.FIELD];
+		auto ranges = [Range.Selected, Range.Random, Range.Party, Range.Field];
 		auto title = _prop.msgs.judgeTarget;
 		_range = new RangePanel(comm, summ, _uc, area, ranges, "", title, false, this, evt, &catchMod, &refreshWarning, type);
 		_range.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -4761,7 +4761,7 @@ protected:
 	}
 
 	override bool apply() { mixin(S_TRACE);
-		if (!_evt) _evt = new Content(CType.BRANCH_MULTI_COUPON, "");
+		if (!_evt) _evt = new Content(CType.BranchMultiCoupon, "");
 		_evt.range = _range.range;
 		_evt.expandSPChars = _expandSPChars.getSelection();
 		return true;
@@ -4789,7 +4789,7 @@ private:
 	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
-		super (comm, prop, shell, summ, CType.EFFECT_BREAK, parent, evt, false, null, true);
+		super (comm, prop, shell, summ, CType.EffectBreak, parent, evt, false, null, true);
 	}
 
 protected:
@@ -4819,7 +4819,7 @@ protected:
 	}
 
 	override bool apply() { mixin(S_TRACE);
-		if (!_evt) _evt = new Content(CType.EFFECT_BREAK, "");
+		if (!_evt) _evt = new Content(CType.EffectBreak, "");
 		_evt.consumeCard = _consumeCard.getSelection();
 		return true;
 	}
@@ -4835,14 +4835,14 @@ private:
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
 		if (!prop.isTargetVersion(summ, "4")) { mixin(S_TRACE);
-			ws ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(CType.CHANGE_ENVIRONMENT), "4");
+			ws ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(CType.ChangeEnvironment), "4");
 		}
 		warning = ws;
 	}
 
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
-		super (comm, prop, shell, summ, CType.CHANGE_ENVIRONMENT, parent, evt, false, null, true);
+		super (comm, prop, shell, summ, CType.ChangeEnvironment, parent, evt, false, null, true);
 	}
 
 protected:
@@ -4881,7 +4881,7 @@ protected:
 	}
 
 	override bool apply() { mixin(S_TRACE);
-		if (!_evt) _evt = new Content(CType.CHANGE_ENVIRONMENT, "");
+		if (!_evt) _evt = new Content(CType.ChangeEnvironment, "");
 		_evt.backpackEnabled = _backpackEnableds[_backpackEnabled.getSelectionIndex()];
 		return true;
 	}

@@ -265,10 +265,10 @@ ImageDataWithScale lifeGuage2Mask(Skin skin, uint targetScale) { return createIm
 ImageDataWithScale enhanceUp(Skin skin, uint targetScale, Enhance enh) { mixin(S_TRACE);
 	string res;
 	switch (enh) {
-	case Enhance.ACTION: res = "STATUS_UP0"; break;
-	case Enhance.AVOID: res = "STATUS_UP1"; break;
-	case Enhance.RESIST: res = "STATUS_UP2"; break;
-	case Enhance.DEFENSE: res = "STATUS_UP3"; break;
+	case Enhance.Action: res = "STATUS_UP0"; break;
+	case Enhance.Avoid: res = "STATUS_UP1"; break;
+	case Enhance.Resist: res = "STATUS_UP2"; break;
+	case Enhance.Defense: res = "STATUS_UP3"; break;
 	default: assert (0);
 	}
 	return createImg(skin.legacyEngine, res, targetScale, &skin.resEnhanceUp, enh);
@@ -276,10 +276,10 @@ ImageDataWithScale enhanceUp(Skin skin, uint targetScale, Enhance enh) { mixin(S
 ImageDataWithScale enhanceDown(Skin skin, uint targetScale, Enhance enh) { mixin(S_TRACE);
 	string res;
 	switch (enh) {
-	case Enhance.ACTION: res = "STATUS_DOWN0"; break;
-	case Enhance.AVOID: res = "STATUS_DOWN1"; break;
-	case Enhance.RESIST: res = "STATUS_DOWN2"; break;
-	case Enhance.DEFENSE: res = "STATUS_DOWN3"; break;
+	case Enhance.Action: res = "STATUS_DOWN0"; break;
+	case Enhance.Avoid: res = "STATUS_DOWN1"; break;
+	case Enhance.Resist: res = "STATUS_DOWN2"; break;
+	case Enhance.Defense: res = "STATUS_DOWN3"; break;
 	default: assert (0);
 	}
 	return createImg(skin.legacyEngine, res, targetScale, &skin.resEnhanceDown, enh);
@@ -287,12 +287,12 @@ ImageDataWithScale enhanceDown(Skin skin, uint targetScale, Enhance enh) { mixin
 ImageDataWithScale mentality(Skin skin, uint targetScale, Mentality mtly) { mixin(S_TRACE);
 	string res;
 	switch (mtly) {
-	case Mentality.NORMAL: res = "STATUS_MIND0"; break;
-	case Mentality.SLEEP: res = "STATUS_MIND1"; break;
-	case Mentality.CONFUSE: res = "STATUS_MIND2"; break;
-	case Mentality.OVERHEAT: res = "STATUS_MIND3"; break;
-	case Mentality.BRAVE: res = "STATUS_MIND4"; break;
-	case Mentality.PANIC: res = "STATUS_MIND5"; break;
+	case Mentality.Normal: res = "STATUS_MIND0"; break;
+	case Mentality.Sleep: res = "STATUS_MIND1"; break;
+	case Mentality.Confuse: res = "STATUS_MIND2"; break;
+	case Mentality.Overheat: res = "STATUS_MIND3"; break;
+	case Mentality.Brave: res = "STATUS_MIND4"; break;
+	case Mentality.Panic: res = "STATUS_MIND5"; break;
 	default: assert (0);
 	}
 	return createImg(skin.legacyEngine, res, targetScale, &skin.resMentality, mtly);

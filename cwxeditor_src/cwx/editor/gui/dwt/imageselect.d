@@ -872,15 +872,15 @@ private:
 					break;
 				case CardImageType.Talker:
 					final switch (path.talker) {
-					case Talker.SELECTED:
-					case Talker.UNSELECTED:
-					case Talker.RANDOM:
-					case Talker.VALUED:
+					case Talker.Selected:
+					case Talker.Unselected:
+					case Talker.Random:
+					case Talker.Valued:
 						_paintedPaths[i] = "";
 						auto imgData = new ImageDataWithScale(_prop.images.talker(path.talker).getImageData(), .dpiMuls);
 						drawImage(gc, imgData, CardImagePosition.Center, _insets);
 						break;
-					case Talker.CARD:
+					case Talker.Card:
 						_paintedPaths[i] = "";
 						drawImage(gc, .menuCard(summSkin, _prop.drawingScale), CardImagePosition.Center, CInsets(0, 0, 0, 0));
 						break;

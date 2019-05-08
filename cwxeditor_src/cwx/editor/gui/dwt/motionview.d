@@ -283,7 +283,7 @@ private:
 	}
 	void editBeastUseEvent() { mixin(S_TRACE);
 		auto m = selection;
-		if (!m || !m.detail.use(MArg.BEAST)) return;
+		if (!m || !m.detail.use(MArg.Beast)) return;
 		auto b = m.beast;
 		if (!b) return;
 		openBeastEventWin(b);
@@ -333,7 +333,7 @@ private:
 			if (m.damageType != val) { mixin(S_TRACE);
 				storeEdit(_motions.getSelectionIndex());
 				m.damageType = val;
-				valueSpn.setEnabled(val !is DamageType.MAX && (!isEditable || isEditable()));
+				valueSpn.setEnabled(val !is DamageType.Max && (!isEditable || isEditable()));
 				foreach (dlg; modEvent) dlg();
 				foreach (we; warningEvent) we();
 			}
@@ -387,10 +387,10 @@ private:
 			MotionView v;
 			MType type;
 			void create() { mixin(S_TRACE);
-				auto m = new Motion(type, Element.ALL);
-				m.damageType = DamageType.LEVEL_RATIO;
-				if (type == MType.GET_SKILL_POWER || type == MType.LOSE_SKILL_POWER) { mixin(S_TRACE);
-					m.damageType = DamageType.MAX;
+				auto m = new Motion(type, Element.All);
+				m.damageType = DamageType.LevelRatio;
+				if (type == MType.GetSkillPower || type == MType.LoseSkillPower) { mixin(S_TRACE);
+					m.damageType = DamageType.Max;
 				}
 				m.uValue = 1u;
 				m.aValue = 0;
@@ -424,7 +424,7 @@ private:
 	}
 	CardDialog editBeast() { mixin(S_TRACE);
 		auto m = selection;
-		if (m && m.detail.use(MArg.BEAST) && _summ) { mixin(S_TRACE);
+		if (m && m.detail.use(MArg.Beast) && _summ) { mixin(S_TRACE);
 			auto b = m.beast;
 			if (b) { mixin(S_TRACE);
 				if (0 != b.linkId) { mixin(S_TRACE);
@@ -506,7 +506,7 @@ private:
 		Rectangle cardBounds(MouseEvent e) { mixin(S_TRACE);
 			if (!_summ) return null;
 			auto m = selection;
-			if (!m || !m.detail.use(MArg.BEAST)) return null;
+			if (!m || !m.detail.use(MArg.Beast)) return null;
 			auto b = m.beast;
 			if (!b) return null;
 			if (0 != b.linkId) { mixin(S_TRACE);
@@ -526,7 +526,7 @@ private:
 		Rectangle eventTreeMarkRect(MouseEvent e) { mixin(S_TRACE);
 			if (!_summ) return null;
 			auto m = selection;
-			if (!m || !m.detail.use(MArg.BEAST)) return null;
+			if (!m || !m.detail.use(MArg.Beast)) return null;
 			auto b = m.beast;
 			if (!b) return null;
 			if (0 != b.linkId) { mixin(S_TRACE);
@@ -675,7 +675,7 @@ private:
 				}
 			}
 			auto d = m.detail;
-			if (m.type == MType.GET_SKILL_POWER || m.type == MType.LOSE_SKILL_POWER) { mixin(S_TRACE);
+			if (m.type == MType.GetSkillPower || m.type == MType.LoseSkillPower) { mixin(S_TRACE);
 				foreach (typ, radio; _skillPowerType) { mixin(S_TRACE);
 					_skillPowerType[typ].setSelection((typ == m.damageType));
 				}
@@ -684,7 +684,7 @@ private:
 					stack.topControl = _skillPowerComp;
 					_editComp.layout();
 				}
-			} else if (d.use(MArg.BEAST)) { mixin(S_TRACE);
+			} else if (d.use(MArg.Beast)) { mixin(S_TRACE);
 				_beasts.select(0);
 				_selectedBeast = null;
 				_maxNest.setSelection(m.maxNest);
@@ -693,20 +693,20 @@ private:
 					stack.topControl = _summonComp;
 					_editComp.layout();
 				}
-			} else if (d.use(MArg.ROUND) && d.use(MArg.A_VALUE)) { mixin(S_TRACE);
+			} else if (d.use(MArg.Round) && d.use(MArg.AValue)) { mixin(S_TRACE);
 				_abiVal.setSelection(m.aValue + Motion.aValue_max);
 				_abiRound.setSelection(m.round);
 				if (stack.topControl !is _abilityComp) { mixin(S_TRACE);
 					stack.topControl = _abilityComp;
 					_editComp.layout();
 				}
-			} else if (d.use(MArg.ROUND)) { mixin(S_TRACE);
+			} else if (d.use(MArg.Round)) { mixin(S_TRACE);
 				_rndRound.setSelection(m.round);
 				if (stack.topControl !is _roundComp) { mixin(S_TRACE);
 					stack.topControl = _roundComp;
 					_editComp.layout();
 				}
-			} else if (d.use(MArg.U_VALUE)) { mixin(S_TRACE);
+			} else if (d.use(MArg.UValue)) { mixin(S_TRACE);
 				foreach (typ, radio; _dmgTyp) { mixin(S_TRACE);
 					_dmgTyp[typ].setSelection((typ == m.damageType));
 				}
@@ -909,7 +909,7 @@ private:
 		foreach (itm; _motions.getItems()) { mixin(S_TRACE);
 			auto m = cast(Motion) itm.getData();
 			assert (m);
-			if ((m.element !is Element.MIRACLE) && (m.type is MType.VANISH_TARGET)) { mixin(S_TRACE);
+			if ((m.element !is Element.Miracle) && (m.type is MType.VanishTarget)) { mixin(S_TRACE);
 				return true;
 			}
 		}
@@ -1089,83 +1089,83 @@ public:
 				string g = _prop.msgs.msnGroupVitality;
 				foreach (itm; vitalityBar.getItems()) itm.dispose();
 				addDefItems(vitalityBar);
-				createMT(this, vitalityBar, g, MType.HEAL);
-				createMT(this, vitalityBar, g, MType.DAMAGE);
-				createMT(this, vitalityBar, g, MType.ABSORB);
+				createMT(this, vitalityBar, g, MType.Heal);
+				createMT(this, vitalityBar, g, MType.Damage);
+				createMT(this, vitalityBar, g, MType.Absorb);
 
 				g = _prop.msgs.msnGroupPhysical;
 				foreach (itm; physicalBar.getItems()) itm.dispose();
 				addDefItems(physicalBar);
-				createMT(this, physicalBar, g, MType.PARALYZE);
-				createMT(this, physicalBar, g, MType.DIS_PARALYZE);
-				createMT(this, physicalBar, g, MType.POISON);
-				createMT(this, physicalBar, g, MType.DIS_POISON);
+				createMT(this, physicalBar, g, MType.Paralyze);
+				createMT(this, physicalBar, g, MType.DisParalyze);
+				createMT(this, physicalBar, g, MType.Poison);
+				createMT(this, physicalBar, g, MType.DisPoison);
 
 				g = _prop.msgs.msnGroupSkill;
 				foreach (itm; skillBar.getItems()) itm.dispose();
 				addDefItems(skillBar);
-				createMT(this, skillBar, g, MType.GET_SKILL_POWER);
-				createMT(this, skillBar, g, MType.LOSE_SKILL_POWER);
+				createMT(this, skillBar, g, MType.GetSkillPower);
+				createMT(this, skillBar, g, MType.LoseSkillPower);
 
 				g = _prop.msgs.msnGroupMental;
 				foreach (itm; mentalBar.getItems()) itm.dispose();
 				addDefItems(mentalBar);
-				createMT(this, mentalBar, g, MType.SLEEP);
-				createMT(this, mentalBar, g, MType.CONFUSE);
-				createMT(this, mentalBar, g, MType.OVERHEAT);
-				createMT(this, mentalBar, g, MType.BRAVE);
-				createMT(this, mentalBar, g, MType.PANIC);
-				createMT(this, mentalBar, g, MType.NORMAL);
+				createMT(this, mentalBar, g, MType.Sleep);
+				createMT(this, mentalBar, g, MType.Confuse);
+				createMT(this, mentalBar, g, MType.Overheat);
+				createMT(this, mentalBar, g, MType.Brave);
+				createMT(this, mentalBar, g, MType.Panic);
+				createMT(this, mentalBar, g, MType.Normal);
 
 				g = _prop.msgs.msnGroupMagic;
 				foreach (itm; magicBar.getItems()) itm.dispose();
 				addDefItems(magicBar);
-				createMT(this, magicBar, g, MType.BIND);
-				createMT(this, magicBar, g, MType.DIS_BIND);
-				createMT(this, magicBar, g, MType.SILENCE);
-				createMT(this, magicBar, g, MType.DIS_SILENCE);
-				createMT(this, magicBar, g, MType.FACE_UP);
-				createMT(this, magicBar, g, MType.FACE_DOWN);
-				createMT(this, magicBar, g, MType.ANTI_MAGIC);
-				createMT(this, magicBar, g, MType.DIS_ANTI_MAGIC);
+				createMT(this, magicBar, g, MType.Bind);
+				createMT(this, magicBar, g, MType.DisBind);
+				createMT(this, magicBar, g, MType.Silence);
+				createMT(this, magicBar, g, MType.DisSilence);
+				createMT(this, magicBar, g, MType.FaceUp);
+				createMT(this, magicBar, g, MType.FaceDown);
+				createMT(this, magicBar, g, MType.AntiMagic);
+				createMT(this, magicBar, g, MType.DisAntiMagic);
 
 				g = _prop.msgs.msnGroupEnhance;
 				foreach (itm; enhanceBar.getItems()) itm.dispose();
 				addDefItems(enhanceBar);
-				createMT(this, enhanceBar, g, MType.ENHANCE_ACTION);
-				createMT(this, enhanceBar, g, MType.ENHANCE_AVOID);
-				createMT(this, enhanceBar, g, MType.ENHANCE_DEFENSE);
-				createMT(this, enhanceBar, g, MType.ENHANCE_RESIST);
+				createMT(this, enhanceBar, g, MType.EnhanceAction);
+				createMT(this, enhanceBar, g, MType.EnhanceAvoid);
+				createMT(this, enhanceBar, g, MType.EnhanceDefense);
+				createMT(this, enhanceBar, g, MType.EnhanceResist);
 
 				g = _prop.msgs.msnGroupVanish;
 				foreach (itm; vanishBar.getItems()) itm.dispose();
 				addDefItems(vanishBar);
-				createMT(this, vanishBar, g, MType.VANISH_TARGET);
-				createMT(this, vanishBar, g, MType.VANISH_CARD);
-				createMT(this, vanishBar, g, MType.VANISH_BEAST);
+				createMT(this, vanishBar, g, MType.VanishTarget);
+				createMT(this, vanishBar, g, MType.VanishCard);
+				createMT(this, vanishBar, g, MType.VanishBeast);
 
 				g = _prop.msgs.msnGroupCard;
 				foreach (itm; cardBar.getItems()) itm.dispose();
 				addDefItems(cardBar);
-				createMT(this, cardBar, g, MType.DEAL_ATTACK_CARD);
-				createMT(this, cardBar, g, MType.DEAL_POWERFUL_ATTACK_CARD);
-				createMT(this, cardBar, g, MType.DEAL_CRITICAL_ATTACK_CARD);
-				createMT(this, cardBar, g, MType.DEAL_FEINT_CARD);
-				createMT(this, cardBar, g, MType.DEAL_DEFENSE_CARD);
-				createMT(this, cardBar, g, MType.DEAL_DISTANCE_CARD);
-				createMT(this, cardBar, g, MType.DEAL_CONFUSE_CARD);
-				createMT(this, cardBar, g, MType.DEAL_SKILL_CARD);
-				createMT(this, cardBar, g, MType.CANCEL_ACTION); // CardWirth 1.50
+				createMT(this, cardBar, g, MType.DealAttackCard);
+				createMT(this, cardBar, g, MType.DealPowerfulAttackCard);
+				createMT(this, cardBar, g, MType.DealCriticalAttackCard);
+				createMT(this, cardBar, g, MType.DealFeintCard);
+				createMT(this, cardBar, g, MType.DealDefenseCard);
+				createMT(this, cardBar, g, MType.DealDistanceCard);
+				createMT(this, cardBar, g, MType.DealConfuseCard);
+				createMT(this, cardBar, g, MType.DealSkillCard);
+				createMT(this, cardBar, g, MType.CancelAction); // CardWirth 1.50
 
 				g = _prop.msgs.msnGroupBeast;
 				foreach (itm; beastBar.getItems()) itm.dispose();
 				addDefItems(beastBar);
-				createMT(this, beastBar, g, MType.SUMMON_BEAST);
+				createMT(this, beastBar, g, MType.SummonBeast);
 
 				g = _prop.msgs.msnGroupEtc;
 				foreach (itm; etcBar.getItems()) itm.dispose();
 				addDefItems(etcBar);
-				createMT(this, etcBar, g, MType.NO_EFFECT, () => !_summ || !_summ.legacy);
+				createMT(this, etcBar, g, MType.NoEffect, () => !_summ || !_summ.legacy);
 
 				if (!init) _comm.refreshToolBar();
 			}
@@ -1209,8 +1209,8 @@ public:
 			auto col = new FullTableColumn(_motionElm, SWT.NONE);
 			col.column.setText(_prop.msgs.motionElement);
 			string[] toolTip;
-			foreach (i, elm; [Element.ALL, Element.HEALTH, Element.MIND,
-					Element.MIRACLE, Element.MAGIC, Element.FIRE, Element.ICE]) { mixin(S_TRACE);
+			foreach (i, elm; [Element.All, Element.Health, Element.Mind,
+					Element.Miracle, Element.Magic, Element.Fire, Element.Ice]) { mixin(S_TRACE);
 				auto itm = new TableItem(_motionElm, SWT.NONE);
 				itm.setImage(_prop.images.element(elm));
 				itm.setText(_prop.msgs.elementName(elm));
@@ -1432,7 +1432,7 @@ public:
 				auto comp = new Composite(grp, SWT.NONE);
 				comp.setLayout(normalGridLayout(1, false));
 				auto dtl = new DamageTypeListener;
-				foreach (typ; [DamageType.LEVEL_RATIO, DamageType.NORMAL, DamageType.MAX]) { mixin(S_TRACE);
+				foreach (typ; [DamageType.LevelRatio, DamageType.Normal, DamageType.Max]) { mixin(S_TRACE);
 					auto radio = new Button(comp, SWT.RADIO);
 					radio.setEnabled(!_readOnly);
 					radio.setText(_prop.msgs.damageTypeName(typ));
@@ -1453,7 +1453,7 @@ public:
 				auto comp = new Composite(grp, SWT.NONE);
 				comp.setLayout(normalGridLayout(1, false));
 				auto dtl = new DamageTypeListener;
-				foreach (typ; [DamageType.FIXED, DamageType.MAX]) { mixin(S_TRACE);
+				foreach (typ; [DamageType.Fixed, DamageType.Max]) { mixin(S_TRACE);
 					auto radio = new Button(comp, SWT.RADIO);
 					radio.setEnabled(!_readOnly);
 					radio.setText(_prop.msgs.damageTypeName(typ));
@@ -1544,14 +1544,14 @@ public:
 		if (_maxNest) _maxNest.setEnabled(!_readOnly && m && m.beast && 0 != m.beast.linkId && !_prop.isTargetVersion(_summ, "1"));
 
 		if (_valValue) { mixin(S_TRACE);
-			_valValue.setEnabled(m && m.damageType !is DamageType.MAX);
+			_valValue.setEnabled(m && m.damageType !is DamageType.Max);
 		}
 
 		foreach (radio; _skillPowerType.byValue()) { mixin(S_TRACE);
-			radio.setEnabled(m && (!_summ || !_summ.legacy || m.damageType !is DamageType.MAX));
+			radio.setEnabled(m && (!_summ || !_summ.legacy || m.damageType !is DamageType.Max));
 		}
 		if (_skillPowerValue) { mixin(S_TRACE);
-			_skillPowerValue.setEnabled(m && m.damageType !is DamageType.MAX);
+			_skillPowerValue.setEnabled(m && m.damageType !is DamageType.Max);
 		}
 	}
 	@property
@@ -1704,7 +1704,7 @@ public:
 		if (!_summ || _summ.scenarioPath == "") return false;
 		auto m = selection;
 		int detail = DND.DROP_NONE;
-		if (m && m.detail.use(MArg.BEAST)) { mixin(S_TRACE);
+		if (m && m.detail.use(MArg.Beast)) { mixin(S_TRACE);
 			try { mixin(S_TRACE);
 				bool sameSc = _summ.id == node.attr("summId", false);
 				bool topLevel = node.attr!bool("topLevel", false, false);
@@ -1751,7 +1751,7 @@ public:
 			if (!_summ) return false;
 			auto m = selection;
 			if (m) { mixin(S_TRACE);
-				assert (m.detail.use(MArg.BEAST));
+				assert (m.detail.use(MArg.Beast));
 				if (m.beast) { mixin(S_TRACE);
 					auto node = XNode.create(BeastCard.XML_NAME_M);
 					node.newAttr("summId", _summ.id);
@@ -1789,7 +1789,7 @@ public:
 		override void del(SelectionEvent se) { mixin(S_TRACE);
 			auto m = selection;
 			if (m) { mixin(S_TRACE);
-				assert (m.detail.use(MArg.BEAST));
+				assert (m.detail.use(MArg.Beast));
 				if (m.beast) { mixin(S_TRACE);
 					storeEdit(_motions.getSelectionIndex());
 					if (_summ && _summ.scenarioPath != "" && m.beast) _comm.delBeast.call(m, m.beast);
@@ -1852,17 +1852,17 @@ public:
 				}
 			}
 			auto m = cast(Motion)itm.getData();
-			if (m.type is MType.CANCEL_ACTION && !_prop.targetVersion(_summ, "1.50")) { mixin(S_TRACE);
+			if (m.type is MType.CancelAction && !_prop.targetVersion(_summ, "1.50")) { mixin(S_TRACE);
 				put(.tryFormat(_prop.msgs.warningUnknownMotion, _prop.msgs.motionName(m.type), "1.50"));
 			}
-			if (m.type is MType.NO_EFFECT && !_prop.isTargetVersion(_summ, "2")) { mixin(S_TRACE);
+			if (m.type is MType.NoEffect && !_prop.isTargetVersion(_summ, "2")) { mixin(S_TRACE);
 				put(.tryFormat(_prop.msgs.warningUnknownMotionWsn, _prop.msgs.motionName(m.type), "2"));
 			}
-			if (m.type == MType.SUMMON_BEAST && m.beast && 0 != m.beast.linkId && !(_summ && _summ.beast(m.beast.linkId))) { mixin(S_TRACE);
+			if (m.type == MType.SummonBeast && m.beast && 0 != m.beast.linkId && !(_summ && _summ.beast(m.beast.linkId))) { mixin(S_TRACE);
 				put(.tryFormat(_prop.msgs.searchErrorLinkIdBeastNotFound, m.beast.linkId));
 			}
-			if ((m.type == MType.GET_SKILL_POWER || m.type == MType.LOSE_SKILL_POWER)
-					&& m.damageType !is DamageType.MAX && !_prop.isTargetVersion(_summ, "1")) { mixin(S_TRACE);
+			if ((m.type == MType.GetSkillPower || m.type == MType.LoseSkillPower)
+					&& m.damageType !is DamageType.Max && !_prop.isTargetVersion(_summ, "1")) { mixin(S_TRACE);
 				put(_prop.msgs.warningSkillPowerWithFixedValue);
 			}
 		}

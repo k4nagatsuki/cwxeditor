@@ -1013,7 +1013,7 @@ public:
 		void recurse(CWXPath path) { mixin(S_TRACE);
 			if (area0) { mixin(S_TRACE);
 				if (auto c = cast(Content)path) { mixin(S_TRACE);
-					if (c.detail.use(CArg.AREA) && c.area == 0) {
+					if (c.detail.use(CArg.Area) && c.area == 0) {
 						c.area = area0.id;
 					}
 				} else if (auto c = cast(Summary)path) { mixin(S_TRACE);
@@ -1024,21 +1024,21 @@ public:
 			}
 			if (battle0) { mixin(S_TRACE);
 				if (auto c = cast(Content)path) { mixin(S_TRACE);
-					if (c.detail.use(CArg.BATTLE) && c.battle == 0) { mixin(S_TRACE);
+					if (c.detail.use(CArg.Battle) && c.battle == 0) { mixin(S_TRACE);
 						c.battle = battle0.id;
 					}
 				}
 			}
 			if (package0) { mixin(S_TRACE);
 				if (auto c = cast(Content)path) { mixin(S_TRACE);
-					if (c.detail.use(CArg.PACKAGE) && c.packages == 0) { mixin(S_TRACE);
+					if (c.detail.use(CArg.Package) && c.packages == 0) { mixin(S_TRACE);
 						c.packages = package0.id;
 					}
 				}
 			}
 			if (cast0) { mixin(S_TRACE);
 				if (auto c = cast(Content)path) { mixin(S_TRACE);
-					if (c.detail.use(CArg.CAST) && c.casts == 0) { mixin(S_TRACE);
+					if (c.detail.use(CArg.Cast) && c.casts == 0) { mixin(S_TRACE);
 						c.casts = cast0.id;
 					}
 				} else if (auto c = cast(EnemyCard)path) { mixin(S_TRACE);
@@ -1049,28 +1049,28 @@ public:
 			}
 			if (skill0) { mixin(S_TRACE);
 				if (auto c = cast(Content)path) { mixin(S_TRACE);
-					if (c.detail.use(CArg.SKILL) && c.skill == 0) { mixin(S_TRACE);
+					if (c.detail.use(CArg.Skill) && c.skill == 0) { mixin(S_TRACE);
 						c.skill = skill0.id;
 					}
 				}
 			}
 			if (item0) { mixin(S_TRACE);
 				if (auto c = cast(Content)path) { mixin(S_TRACE);
-					if (c.detail.use(CArg.ITEM) && c.item == 0) { mixin(S_TRACE);
+					if (c.detail.use(CArg.Item) && c.item == 0) { mixin(S_TRACE);
 						c.item = item0.id;
 					}
 				}
 			}
 			if (beast0) { mixin(S_TRACE);
 				if (auto c = cast(Content)path) { mixin(S_TRACE);
-					if (c.detail.use(CArg.BEAST) && c.beast == 0) { mixin(S_TRACE);
+					if (c.detail.use(CArg.Beast) && c.beast == 0) { mixin(S_TRACE);
 						c.beast = beast0.id;
 					}
 				}
 			}
 			if (info0) { mixin(S_TRACE);
 				if (auto c = cast(Content)path) { mixin(S_TRACE);
-					if (c.detail.use(CArg.INFO) && c.info == 0) { mixin(S_TRACE);
+					if (c.detail.use(CArg.Info) && c.info == 0) { mixin(S_TRACE);
 						c.info = info0.id;
 					}
 				}

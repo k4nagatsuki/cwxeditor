@@ -16,53 +16,53 @@ private void static_this () { mixin(S_TRACE);
 	if (static_this_completed) return;
 	string _(string v) { return v; }
 	_MOTION_DETAILS = [
-		MType.HEAL:MDetail("Heal", [MArg.VALUE_TYPE:_("damagetype"), MArg.U_VALUE:"value"]),
-		MType.DAMAGE:MDetail("Damage", [MArg.VALUE_TYPE:_("damagetype"), MArg.U_VALUE:"value"]),
-		MType.ABSORB:MDetail("Absorb", [MArg.VALUE_TYPE:_("damagetype"), MArg.U_VALUE:"value"]),
-		MType.PARALYZE:MDetail("Paralyze", [MArg.VALUE_TYPE:_("damagetype"), MArg.U_VALUE:"value"]),
-		MType.DIS_PARALYZE:MDetail("DisParalyze", [MArg.VALUE_TYPE:_("damagetype"), MArg.U_VALUE:"value"]),
-		MType.POISON:MDetail("Poison", [MArg.VALUE_TYPE:_("damagetype"), MArg.U_VALUE:"value"]),
-		MType.DIS_POISON:MDetail("DisPoison", [MArg.VALUE_TYPE:_("damagetype"), MArg.U_VALUE:"value"]),
-		MType.GET_SKILL_POWER:MDetail("GetSkillPower", [
-			MArg.VALUE_TYPE:"damagetype", // Wsn.1
-			MArg.U_VALUE:"value", // Wsn.1
+		MType.Heal:MDetail("Heal", [MArg.ValueType:_("damagetype"), MArg.UValue:"value"]),
+		MType.Damage:MDetail("Damage", [MArg.ValueType:_("damagetype"), MArg.UValue:"value"]),
+		MType.Absorb:MDetail("Absorb", [MArg.ValueType:_("damagetype"), MArg.UValue:"value"]),
+		MType.Paralyze:MDetail("Paralyze", [MArg.ValueType:_("damagetype"), MArg.UValue:"value"]),
+		MType.DisParalyze:MDetail("DisParalyze", [MArg.ValueType:_("damagetype"), MArg.UValue:"value"]),
+		MType.Poison:MDetail("Poison", [MArg.ValueType:_("damagetype"), MArg.UValue:"value"]),
+		MType.DisPoison:MDetail("DisPoison", [MArg.ValueType:_("damagetype"), MArg.UValue:"value"]),
+		MType.GetSkillPower:MDetail("GetSkillPower", [
+			MArg.ValueType:"damagetype", // Wsn.1
+			MArg.UValue:"value", // Wsn.1
 		]),
-		MType.LOSE_SKILL_POWER:MDetail("LoseSkillPower", [
-			MArg.VALUE_TYPE:"damagetype", // Wsn.1
-			MArg.U_VALUE:"value", // Wsn.1
+		MType.LoseSkillPower:MDetail("LoseSkillPower", [
+			MArg.ValueType:"damagetype", // Wsn.1
+			MArg.UValue:"value", // Wsn.1
 		]),
-		MType.SLEEP:MDetail("Sleep", [MArg.ROUND:"duration"]),
-		MType.CONFUSE:MDetail("Confuse", [MArg.ROUND:"duration"]),
-		MType.OVERHEAT:MDetail("Overheat", [MArg.ROUND:"duration"]),
-		MType.BRAVE:MDetail("Brave", [MArg.ROUND:"duration"]),
-		MType.PANIC:MDetail("Panic", [MArg.ROUND:"duration"]),
-		MType.NORMAL:MDetail("Normal"),
-		MType.BIND:MDetail("Bind", [MArg.ROUND:"duration"]),
-		MType.DIS_BIND:MDetail("DisBind"),
-		MType.SILENCE:MDetail("Silence", [MArg.ROUND:"duration"]),
-		MType.DIS_SILENCE:MDetail("DisSilence"),
-		MType.FACE_UP:MDetail("FaceUp", [MArg.ROUND:"duration"]),
-		MType.FACE_DOWN:MDetail("FaceDown"),
-		MType.ANTI_MAGIC:MDetail("AntiMagic", [MArg.ROUND:"duration"]),
-		MType.DIS_ANTI_MAGIC:MDetail("DisAntiMagic"),
-		MType.ENHANCE_ACTION:MDetail("EnhanceAction", [MArg.ROUND:_("duration"), MArg.A_VALUE:"value"]),
-		MType.ENHANCE_AVOID:MDetail("EnhanceAvoid", [MArg.ROUND:_("duration"), MArg.A_VALUE:"value"]),
-		MType.ENHANCE_RESIST:MDetail("EnhanceResist", [MArg.ROUND:_("duration"), MArg.A_VALUE:"value"]),
-		MType.ENHANCE_DEFENSE:MDetail("EnhanceDefense", [MArg.ROUND:_("duration"), MArg.A_VALUE:"value"]),
-		MType.VANISH_TARGET:MDetail("VanishTarget"),
-		MType.VANISH_CARD:MDetail("VanishCard"),
-		MType.VANISH_BEAST:MDetail("VanishBeast"),
-		MType.DEAL_ATTACK_CARD:MDetail("DealAttackCard"),
-		MType.DEAL_POWERFUL_ATTACK_CARD:MDetail("DealPowerfulAttackCard"),
-		MType.DEAL_CRITICAL_ATTACK_CARD:MDetail("DealCriticalAttackCard"),
-		MType.DEAL_FEINT_CARD:MDetail("DealFeintCard"),
-		MType.DEAL_DEFENSE_CARD:MDetail("DealDefenseCard"),
-		MType.DEAL_DISTANCE_CARD:MDetail("DealDistanceCard"),
-		MType.DEAL_CONFUSE_CARD:MDetail("DealConfuseCard"),
-		MType.DEAL_SKILL_CARD:MDetail("DealSkillCard"),
-		MType.SUMMON_BEAST:MDetail("SummonBeast", [MArg.BEAST:cast(string) null]),
-		MType.CANCEL_ACTION:MDetail("CancelAction"), // CardWirth 1.50
-		MType.NO_EFFECT:MDetail("NoEffect"), // Wsn.2
+		MType.Sleep:MDetail("Sleep", [MArg.Round:"duration"]),
+		MType.Confuse:MDetail("Confuse", [MArg.Round:"duration"]),
+		MType.Overheat:MDetail("Overheat", [MArg.Round:"duration"]),
+		MType.Brave:MDetail("Brave", [MArg.Round:"duration"]),
+		MType.Panic:MDetail("Panic", [MArg.Round:"duration"]),
+		MType.Normal:MDetail("Normal"),
+		MType.Bind:MDetail("Bind", [MArg.Round:"duration"]),
+		MType.DisBind:MDetail("DisBind"),
+		MType.Silence:MDetail("Silence", [MArg.Round:"duration"]),
+		MType.DisSilence:MDetail("DisSilence"),
+		MType.FaceUp:MDetail("FaceUp", [MArg.Round:"duration"]),
+		MType.FaceDown:MDetail("FaceDown"),
+		MType.AntiMagic:MDetail("AntiMagic", [MArg.Round:"duration"]),
+		MType.DisAntiMagic:MDetail("DisAntiMagic"),
+		MType.EnhanceAction:MDetail("EnhanceAction", [MArg.Round:_("duration"), MArg.AValue:"value"]),
+		MType.EnhanceAvoid:MDetail("EnhanceAvoid", [MArg.Round:_("duration"), MArg.AValue:"value"]),
+		MType.EnhanceResist:MDetail("EnhanceResist", [MArg.Round:_("duration"), MArg.AValue:"value"]),
+		MType.EnhanceDefense:MDetail("EnhanceDefense", [MArg.Round:_("duration"), MArg.AValue:"value"]),
+		MType.VanishTarget:MDetail("VanishTarget"),
+		MType.VanishCard:MDetail("VanishCard"),
+		MType.VanishBeast:MDetail("VanishBeast"),
+		MType.DealAttackCard:MDetail("DealAttackCard"),
+		MType.DealPowerfulAttackCard:MDetail("DealPowerfulAttackCard"),
+		MType.DealCriticalAttackCard:MDetail("DealCriticalAttackCard"),
+		MType.DealFeintCard:MDetail("DealFeintCard"),
+		MType.DealDefenseCard:MDetail("DealDefenseCard"),
+		MType.DealDistanceCard:MDetail("DealDistanceCard"),
+		MType.DealConfuseCard:MDetail("DealConfuseCard"),
+		MType.DealSkillCard:MDetail("DealSkillCard"),
+		MType.SummonBeast:MDetail("SummonBeast", [MArg.Beast:cast(string) null]),
+		MType.CancelAction:MDetail("CancelAction"), // CardWirth 1.50
+		MType.NoEffect:MDetail("NoEffect"), // Wsn.2
 	];
 	foreach (type, detail; _MOTION_DETAILS) { mixin(S_TRACE);
 		_MTYPE_MAP[detail.name] = type;
@@ -191,9 +191,9 @@ private:
 	/// 召喚獣カードに登録するための変更ハンドラ。
 	void delegate () _change = null;
 
-	Element _el = Element.ALL;
+	Element _el = Element.All;
 
-	DamageType _dtyp = DamageType.LEVEL_RATIO;
+	DamageType _dtyp = DamageType.LevelRatio;
 	uint _uValue = 1u;
 	int _aValue = 0;
 	uint _round = 10u;
@@ -208,8 +208,8 @@ public:
 	this (MType type, Element el) { mixin(S_TRACE);
 		_type = type;
 		_el = el;
-		if (type == MType.GET_SKILL_POWER || type == MType.LOSE_SKILL_POWER) { mixin(S_TRACE);
-			_dtyp = DamageType.MAX;
+		if (type == MType.GetSkillPower || type == MType.LoseSkillPower) { mixin(S_TRACE);
+			_dtyp = DamageType.Max;
 		}
 	}
 	/// 効果の種類。
@@ -462,11 +462,11 @@ public:
 		auto d = detail;
 		e.newAttr("type", d.name);
 		e.newAttr("element", fromElement(element));
-		if (d.use(MArg.VALUE_TYPE)) e.newAttr(d.attr(MArg.VALUE_TYPE), fromDamageType(damageType));
-		if (d.use(MArg.U_VALUE)) e.newAttr(d.attr(MArg.U_VALUE), uValue);
-		if (d.use(MArg.A_VALUE)) e.newAttr(d.attr(MArg.A_VALUE), aValue);
-		if (d.use(MArg.ROUND)) e.newAttr(d.attr(MArg.ROUND), round);
-		if (d.use(MArg.BEAST)) { mixin(S_TRACE);
+		if (d.use(MArg.ValueType)) e.newAttr(d.attr(MArg.ValueType), fromDamageType(damageType));
+		if (d.use(MArg.UValue)) e.newAttr(d.attr(MArg.UValue), uValue);
+		if (d.use(MArg.AValue)) e.newAttr(d.attr(MArg.AValue), aValue);
+		if (d.use(MArg.Round)) e.newAttr(d.attr(MArg.Round), round);
+		if (d.use(MArg.Beast)) { mixin(S_TRACE);
 			auto be = e.newElement("Beasts");
 			if (opt && opt.includeCard) be.newAttr("maxNest", maxNest);
 			if (_beast) { mixin(S_TRACE);
@@ -501,11 +501,11 @@ public:
 		auto type = MTYPE_MAP[node.attr("type", true)];
 		auto d = MOTION_DETAILS[type];
 		auto r = new Motion(type, toElement(node.attr("element", true)));
-		if (d.use(MArg.VALUE_TYPE)) r.damageType = toDamageType(node.attr(d.attr(MArg.VALUE_TYPE), true));
-		if (d.use(MArg.U_VALUE)) r.uValue = node.attr!(uint)(d.attr(MArg.U_VALUE), true);
-		if (d.use(MArg.A_VALUE)) r.aValue = node.attr!(int)(d.attr(MArg.A_VALUE), true);
-		if (d.use(MArg.ROUND)) r.round = node.attr!(uint)(d.attr(MArg.ROUND), true);
-		if (d.use(MArg.BEAST)) { mixin(S_TRACE);
+		if (d.use(MArg.ValueType)) r.damageType = toDamageType(node.attr(d.attr(MArg.ValueType), true));
+		if (d.use(MArg.UValue)) r.uValue = node.attr!(uint)(d.attr(MArg.UValue), true);
+		if (d.use(MArg.AValue)) r.aValue = node.attr!(int)(d.attr(MArg.AValue), true);
+		if (d.use(MArg.Round)) r.round = node.attr!(uint)(d.attr(MArg.Round), true);
+		if (d.use(MArg.Beast)) { mixin(S_TRACE);
 			node.onTag["Beasts"] = (ref XNode node) { mixin(S_TRACE);
 				int maxNestInit = maxNest_init;
 				r.maxNest = node.attr("maxNest", false, maxNestInit);

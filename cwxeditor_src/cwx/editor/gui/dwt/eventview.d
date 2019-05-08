@@ -899,7 +899,7 @@ private:
 	void createEventWithIgnition(Content[] starts) { mixin(S_TRACE);
 		if (_readOnly) return;
 		foreach (s; starts) { mixin(S_TRACE);
-			if (s.type !is CType.START) return;
+			if (s.type !is CType.Start) return;
 		}
 		auto parItm = selectionParent;
 		if (!parItm) return;
@@ -2694,9 +2694,9 @@ public:
 			_comm.delContent.call(s);
 		}
 
-		auto c = new Content(CType.LINK_PACKAGE, "");
+		auto c = new Content(CType.LinkPackage, "");
 		c.packages = id;
-		auto s = new Content(CType.START, et.name);
+		auto s = new Content(CType.Start, et.name);
 		s.add(_prop.parent, c);
 		et.starts = [s];
 
@@ -2878,7 +2878,7 @@ public:
 
 			void put(Content[] cs) { mixin(S_TRACE);
 				if (!cs.length) return;
-				if (cs[0].type !is CType.START) return;
+				if (cs[0].type !is CType.Start) return;
 				createEventWithIgnition(cs);
 			}
 			auto compiler = new CWXScript(_prop.parent, _summ);

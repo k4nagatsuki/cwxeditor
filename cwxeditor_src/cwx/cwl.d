@@ -353,110 +353,110 @@ TypeInfo getType(string file, out ulong id) { mixin(S_TRACE);
 private Target toTargetT(byte b) { mixin(S_TRACE);
 	switch (b) {
 	case 0, -1: // 稀に-1になっている事がある(CardWirth Editorでは空欄)
-		return Target(Target.M.SELECTED, false);
-	case 1: return Target(Target.M.RANDOM, false);
-	case 2: return Target(Target.M.UNSELECTED, false);
+		return Target(Target.M.Selected, false);
+	case 1: return Target(Target.M.Random, false);
+	case 2: return Target(Target.M.Unselected, false);
 	default: throw new SummaryException("Unknown target T: " ~ to!(string)(b));
 	}
 }
 private Target toTargetA(byte b) { mixin(S_TRACE);
 	switch (b) {
-	case 0: return Target(Target.M.SELECTED, false);
-	case 1: return Target(Target.M.RANDOM, false);
-	case 2: return Target(Target.M.PARTY, false);
-	case 3: return Target(Target.M.SELECTED, true);
-	case 4: return Target(Target.M.RANDOM, true);
-	case 5: return Target(Target.M.PARTY, true);
-	case 6: return Target(Target.M.PARTY, false);
+	case 0: return Target(Target.M.Selected, false);
+	case 1: return Target(Target.M.Random, false);
+	case 2: return Target(Target.M.Party, false);
+	case 3: return Target(Target.M.Selected, true);
+	case 4: return Target(Target.M.Random, true);
+	case 5: return Target(Target.M.Party, true);
+	case 6: return Target(Target.M.Party, false);
 	default: throw new SummaryException("Unknown target A: " ~ to!(string)(b));
 	}
 }
 
 private EffectType toEffectType(byte b) { mixin(S_TRACE);
 	switch (b) {
-	case 0: return EffectType.PHYSIC;
-	case 1: return EffectType.MAGIC;
-	case 2: return EffectType.MAGICAL_PHYSIC;
-	case 3: return EffectType.PHYSICAL_MAGIC;
-	case 4: return EffectType.NONE;
+	case 0: return EffectType.Physic;
+	case 1: return EffectType.Magic;
+	case 2: return EffectType.MagicalPhysic;
+	case 3: return EffectType.PhysicalMagic;
+	case 4: return EffectType.None;
 	default: throw new SummaryException("Unknown effect type: " ~ to!(string)(b));
 	}
 }
 private Resist toResist(byte b) { mixin(S_TRACE);
 	switch (b) {
-	case 0: return Resist.AVOID;
-	case 1: return Resist.RESIST;
-	case 2: return Resist.UNFAIL;
+	case 0: return Resist.Avoid;
+	case 1: return Resist.Resist;
+	case 2: return Resist.Unfail;
 	default: throw new SummaryException("Unknown resist: " ~ to!(string)(b));
 	}
 }
 private CardVisual toCardVisual(byte b) { mixin(S_TRACE);
 	switch (b) {
-	case 0: return CardVisual.NONE;
-	case 1: return CardVisual.REVERSE;
-	case 2: return CardVisual.HORIZONTAL;
-	case 3: return CardVisual.VERTICAL;
+	case 0: return CardVisual.None;
+	case 1: return CardVisual.Reverse;
+	case 2: return CardVisual.Horizontal;
+	case 3: return CardVisual.Vertical;
 	default: throw new SummaryException("Unknown card visual: " ~ to!(string)(b));
 	}
 }
 private Range toRange(byte b) { mixin(S_TRACE);
 	switch (b) {
-	case 0: return Range.SELECTED;
-	case 1: return Range.RANDOM;
-	case 2: return Range.PARTY;
-	case 3: return Range.BACKPACK;
-	case 4: return Range.PARTY_AND_BACKPACK;
-	case 5: return Range.FIELD;
+	case 0: return Range.Selected;
+	case 1: return Range.Random;
+	case 2: return Range.Party;
+	case 3: return Range.Backpack;
+	case 4: return Range.PartyAndBackpack;
+	case 5: return Range.Field;
 	default: throw new SummaryException("Unknown range: " ~ to!(string)(b));
 	}
 }
 private Range toRangeE(byte b) { mixin(S_TRACE);
 	switch (b) {
-	case 0: return Range.SELECTED;
-	case 1: return Range.RANDOM;
-	case 2: return Range.PARTY;
-	case 3: return Range.SELECTED;
-	case 4: return Range.RANDOM;
-	case 5: return Range.PARTY;
-	case 6: return Range.PARTY;
+	case 0: return Range.Selected;
+	case 1: return Range.Random;
+	case 2: return Range.Party;
+	case 3: return Range.Selected;
+	case 4: return Range.Random;
+	case 5: return Range.Party;
+	case 6: return Range.Party;
 	default: throw new SummaryException("Unknown range E: " ~ to!(string)(b));
 	}
 }
 /// CardWirth 1.50
 private Range toKeyCodeRange(byte b) { mixin(S_TRACE);
 	switch (b) {
-	case 0: return Range.SELECTED;
-	case 1: return Range.RANDOM;
-	case 2: return Range.BACKPACK;
-	case 3: return Range.PARTY_AND_BACKPACK;
+	case 0: return Range.Selected;
+	case 1: return Range.Random;
+	case 2: return Range.Backpack;
+	case 3: return Range.PartyAndBackpack;
 	default: throw new SummaryException("Unknown range: " ~ to!(string)(b));
 	}
 }
 /// CardWirth Extender 1.30～
 private Range toCouponRange(byte b) { mixin(S_TRACE);
 	switch (b) {
-	case 0: return Range.SELECTED;
-	case 1: return Range.RANDOM;
-	case 2: return Range.PARTY;
-	case 3: return Range.FIELD;
+	case 0: return Range.Selected;
+	case 1: return Range.Random;
+	case 2: return Range.Party;
+	case 3: return Range.Field;
 	default: throw new SummaryException("Unknown range: " ~ to!(string)(b));
 	}
 }
 /// CardWirth Extender 1.30～
 private CastRange[] toCastRanges(byte b) { mixin(S_TRACE);
 	CastRange[] r;
-	if (b & 0b0001) r ~= CastRange.PARTY;
-	if (b & 0b0010) r ~= CastRange.ENEMY;
-	if (b & 0b0100) r ~= CastRange.NPC;
+	if (b & 0b0001) r ~= CastRange.Party;
+	if (b & 0b0010) r ~= CastRange.Enemy;
+	if (b & 0b0100) r ~= CastRange.Npc;
 	return r;
 }
 /// CardWirth 1.50
 private EffectCardType toEffectCardType(byte b) { mixin(S_TRACE);
 	switch (b) {
-	case 0: return EffectCardType.ALL;
-	case 1: return EffectCardType.SKILL;
-	case 2: return EffectCardType.ITEM;
-	case 3: return EffectCardType.BEAST;
+	case 0: return EffectCardType.All;
+	case 1: return EffectCardType.Skill;
+	case 2: return EffectCardType.Item;
+	case 3: return EffectCardType.Beast;
 	default: throw new SummaryException("Unknown range: " ~ to!(string)(b));
 	}
 }
@@ -519,108 +519,108 @@ private CoordinateType toCoordinateType(byte b) { mixin(S_TRACE);
 }
 private Status toStatus(byte b) { mixin(S_TRACE);
 	switch (b) {
-	case 0: return Status.ACTIVE;
-	case 1: return Status.INACTIVE;
-	case 2: return Status.ALIVE;
-	case 3: return Status.DEAD;
-	case 4: return Status.FINE;
-	case 5: return Status.INJURED;
-	case 6: return Status.HEAVY_INJURED;
-	case 7: return Status.UNCONSCIOUS;
-	case 8: return Status.POISON;
-	case 9: return Status.SLEEP;
-	case 10: return Status.BIND;
-	case 11: return Status.PARALYZE;
-	case 12: return Status.CONFUSE;
-	case 13: return Status.OVERHEAT;
-	case 14: return Status.BRAVE;
-	case 15: return Status.PANIC;
-	case 16: return Status.SILENCE;
-	case 17: return Status.FACE_UP;
-	case 18: return Status.ANTI_MAGIC;
-	case 19: return Status.UP_ACTION;
-	case 20: return Status.UP_AVOID;
-	case 21: return Status.UP_RESIST;
-	case 22: return Status.UP_DEFENSE;
-	case 23: return Status.DOWN_ACTION;
-	case 24: return Status.DOWN_AVOID;
-	case 25: return Status.DOWN_RESIST;
-	case 26: return Status.DOWN_DEFENSE;
+	case 0: return Status.Active;
+	case 1: return Status.Inactive;
+	case 2: return Status.Alive;
+	case 3: return Status.Dead;
+	case 4: return Status.Fine;
+	case 5: return Status.Injured;
+	case 6: return Status.HeavyInjured;
+	case 7: return Status.Unconscious;
+	case 8: return Status.Poison;
+	case 9: return Status.Sleep;
+	case 10: return Status.Bind;
+	case 11: return Status.Paralyze;
+	case 12: return Status.Confuse;
+	case 13: return Status.Overheat;
+	case 14: return Status.Brave;
+	case 15: return Status.Panic;
+	case 16: return Status.Silence;
+	case 17: return Status.FaceUp;
+	case 18: return Status.AntiMagic;
+	case 19: return Status.UpAction;
+	case 20: return Status.UpAvoid;
+	case 21: return Status.UpResist;
+	case 22: return Status.UpDefense;
+	case 23: return Status.DownAction;
+	case 24: return Status.DownAvoid;
+	case 25: return Status.DownResist;
+	case 26: return Status.DownDefense;
 	default: throw new SummaryException("Unknown status: " ~ to!(string)(b));
 	}
 }
 private Element toElement(byte b) { mixin(S_TRACE);
 	switch (b) {
-	case 0: return Element.ALL;
-	case 1: return Element.HEALTH;
-	case 2: return Element.MIND;
-	case 3: return Element.MIRACLE;
-	case 4: return Element.MAGIC;
-	case 5: return Element.FIRE;
-	case 6: return Element.ICE;
+	case 0: return Element.All;
+	case 1: return Element.Health;
+	case 2: return Element.Mind;
+	case 3: return Element.Miracle;
+	case 4: return Element.Magic;
+	case 5: return Element.Fire;
+	case 6: return Element.Ice;
 	default: throw new SummaryException("Unknown element: " ~ to!(string)(b));
 	}
 }
 private DamageType toDamageType(byte b) { mixin(S_TRACE);
 	switch (b) {
-	case 0: return DamageType.LEVEL_RATIO;
-	case 1: return DamageType.NORMAL;
-	case 2: return DamageType.MAX;
+	case 0: return DamageType.LevelRatio;
+	case 1: return DamageType.Normal;
+	case 2: return DamageType.Max;
 	default: throw new SummaryException("Unknown damage type: " ~ to!(string)(b));
 	}
 }
 private Physical toPhysical(uint b) { mixin(S_TRACE);
 	switch (b) {
-	case 0: return Physical.DEX;
-	case 1: return Physical.AGL;
-	case 2: return Physical.INT;
-	case 3: return Physical.STR;
-	case 4: return Physical.VIT;
-	case 5: return Physical.MIN;
+	case 0: return Physical.Dex;
+	case 1: return Physical.Agl;
+	case 2: return Physical.Int;
+	case 3: return Physical.Str;
+	case 4: return Physical.Vit;
+	case 5: return Physical.Min;
 	default: throw new SummaryException("Unknown pysical: " ~ to!(string)(b));
 	}
 }
 private Mental toMental(int b) { mixin(S_TRACE);
 	switch (b) {
-	case 1: return Mental.AGGRESSIVE;
-	case 2: return Mental.CHEERFUL;
-	case 3: return Mental.BRAVE;
-	case 4: return Mental.CAUTIOUS;
-	case 5: return Mental.TRICKISH;
-	case -1: return Mental.UNAGGRESSIVE;
-	case -2: return Mental.UNCHEERFUL;
-	case -3: return Mental.UNBRAVE;
-	case -4: return Mental.UNCAUTIOUS;
-	case -5: return Mental.UNTRICKISH;
+	case 1: return Mental.Aggressive;
+	case 2: return Mental.Cheerful;
+	case 3: return Mental.Brave;
+	case 4: return Mental.Cautious;
+	case 5: return Mental.Trickish;
+	case -1: return Mental.Unaggressive;
+	case -2: return Mental.Uncheerful;
+	case -3: return Mental.Unbrave;
+	case -4: return Mental.Uncautious;
+	case -5: return Mental.Untrickish;
 	default: throw new SummaryException("Unknown mental: " ~ to!(string)(b));
 	}
 }
 private Mentality toMentality(byte b) { mixin(S_TRACE);
 	switch (b) {
-	case 0: return Mentality.NORMAL;
-	case 1: return Mentality.SLEEP;
-	case 2: return Mentality.CONFUSE;
-	case 3: return Mentality.OVERHEAT;
-	case 4: return Mentality.BRAVE;
-	case 5: return Mentality.PANIC;
+	case 0: return Mentality.Normal;
+	case 1: return Mentality.Sleep;
+	case 2: return Mentality.Confuse;
+	case 3: return Mentality.Overheat;
+	case 4: return Mentality.Brave;
+	case 5: return Mentality.Panic;
 	default: throw new SummaryException("Unknown mentality: " ~ to!(string)(b));
 	}
 }
 private CardTarget toCardTarget(byte b) { mixin(S_TRACE);
 	switch (b) {
-	case 0: return CardTarget.NONE;
-	case 1: return CardTarget.USER;
-	case 2: return CardTarget.PARTY;
-	case 3: return CardTarget.ENEMY;
-	case 4: return CardTarget.BOTH;
+	case 0: return CardTarget.None;
+	case 1: return CardTarget.User;
+	case 2: return CardTarget.Party;
+	case 3: return CardTarget.Enemy;
+	case 4: return CardTarget.Both;
 	default: throw new SummaryException("Unknown card target: " ~ to!(string)(b));
 	}
 }
 private Premium toPremium(byte b) { mixin(S_TRACE);
 	switch (b) {
-	case 0: return Premium.NORMAL;
-	case 1: return Premium.RARE;
-	case 2: return Premium.PREMIUM;
+	case 0: return Premium.Normal;
+	case 1: return Premium.Rare;
+	case 2: return Premium.Premium;
 	default: throw new SummaryException("Unknown card premium: " ~ to!(string)(b));
 	}
 }
@@ -809,17 +809,17 @@ private Motion readMotion(ref RData d, int dataVersion, ref ByteIO f, size_t ind
 		Motion m;
 		if (tType == 0u) { mixin(S_TRACE);
 			switch (type) {
-			case 0: m = new Motion(MType.HEAL, el); break;
-			case 1: m = new Motion(MType.DAMAGE, el); break;
-			case 2: m = new Motion(MType.ABSORB, el); break;
+			case 0: m = new Motion(MType.Heal, el); break;
+			case 1: m = new Motion(MType.Damage, el); break;
+			case 2: m = new Motion(MType.Absorb, el); break;
 			default: throw new SummaryException("Unknown motion: " ~ to!(string)(tType) ~ ", " ~ to!(string)(type));
 			}
 		} else { mixin(S_TRACE);
 			switch (type) {
-			case 0: m = new Motion(MType.PARALYZE, el); break;
-			case 1: m = new Motion(MType.DIS_PARALYZE, el); break;
-			case 2: m = new Motion(MType.POISON, el); break;
-			case 3: m = new Motion(MType.DIS_POISON, el); break;
+			case 0: m = new Motion(MType.Paralyze, el); break;
+			case 1: m = new Motion(MType.DisParalyze, el); break;
+			case 2: m = new Motion(MType.Poison, el); break;
+			case 3: m = new Motion(MType.DisPoison, el); break;
 			default: throw new SummaryException("Unknown motion: " ~ to!(string)(tType) ~ ", " ~ to!(string)(type));
 			}
 		}
@@ -829,8 +829,8 @@ private Motion readMotion(ref RData d, int dataVersion, ref ByteIO f, size_t ind
 	}
 	case 2: { mixin(S_TRACE);
 		switch (type) {
-		case 0: return new Motion(MType.GET_SKILL_POWER, el);
-		case 1: return new Motion(MType.LOSE_SKILL_POWER, el);
+		case 0: return new Motion(MType.GetSkillPower, el);
+		case 1: return new Motion(MType.LoseSkillPower, el);
 		default: throw new SummaryException("Unknown motion: " ~ to!(string)(tType) ~ ", " ~ to!(string)(type));
 		}
 	}
@@ -844,28 +844,28 @@ private Motion readMotion(ref RData d, int dataVersion, ref ByteIO f, size_t ind
 		Motion m;
 		if (tType == 3u) { mixin(S_TRACE);
 			switch (type) {
-			case 0: m = new Motion(MType.SLEEP, el); break;
-			case 1: m = new Motion(MType.CONFUSE, el); break;
-			case 2: m = new Motion(MType.OVERHEAT, el); break;
-			case 3: m = new Motion(MType.BRAVE, el); break;
-			case 4: m = new Motion(MType.PANIC, el); break;
-			case 5: m = new Motion(MType.NORMAL, el); break;
+			case 0: m = new Motion(MType.Sleep, el); break;
+			case 1: m = new Motion(MType.Confuse, el); break;
+			case 2: m = new Motion(MType.Overheat, el); break;
+			case 3: m = new Motion(MType.Brave, el); break;
+			case 4: m = new Motion(MType.Panic, el); break;
+			case 5: m = new Motion(MType.Normal, el); break;
 			default: throw new SummaryException("Unknown motion: " ~ to!(string)(tType) ~ ", " ~ to!(string)(type));
 			}
 		} else { mixin(S_TRACE);
 			switch (type) {
-			case 0: m = new Motion(MType.BIND, el); break;
-			case 1: m = new Motion(MType.DIS_BIND, el); break;
-			case 2: m = new Motion(MType.SILENCE, el); break;
-			case 3: m = new Motion(MType.DIS_SILENCE, el); break;
-			case 4: m = new Motion(MType.FACE_UP, el); break;
-			case 5: m = new Motion(MType.FACE_DOWN, el); break;
-			case 6: m = new Motion(MType.ANTI_MAGIC, el); break;
-			case 7: m = new Motion(MType.DIS_ANTI_MAGIC, el); break;
+			case 0: m = new Motion(MType.Bind, el); break;
+			case 1: m = new Motion(MType.DisBind, el); break;
+			case 2: m = new Motion(MType.Silence, el); break;
+			case 3: m = new Motion(MType.DisSilence, el); break;
+			case 4: m = new Motion(MType.FaceUp, el); break;
+			case 5: m = new Motion(MType.FaceDown, el); break;
+			case 6: m = new Motion(MType.AntiMagic, el); break;
+			case 7: m = new Motion(MType.DisAntiMagic, el); break;
 			default: throw new SummaryException("Unknown motion: " ~ to!(string)(tType) ~ ", " ~ to!(string)(type));
 			}
 		}
-		if (m.detail.use(MArg.ROUND)) m.round = rnd;
+		if (m.detail.use(MArg.Round)) m.round = rnd;
 		return m;
 	}
 	case 5: { mixin(S_TRACE);
@@ -878,10 +878,10 @@ private Motion readMotion(ref RData d, int dataVersion, ref ByteIO f, size_t ind
 		}
 		Motion m;
 		switch (type) {
-		case 0: m = new Motion(MType.ENHANCE_ACTION, el); break;
-		case 1: m = new Motion(MType.ENHANCE_AVOID, el); break;
-		case 2: m = new Motion(MType.ENHANCE_RESIST, el); break;
-		case 3: m = new Motion(MType.ENHANCE_DEFENSE, el); break;
+		case 0: m = new Motion(MType.EnhanceAction, el); break;
+		case 1: m = new Motion(MType.EnhanceAvoid, el); break;
+		case 2: m = new Motion(MType.EnhanceResist, el); break;
+		case 3: m = new Motion(MType.EnhanceDefense, el); break;
 		default: throw new SummaryException("Unknown motion: " ~ to!(string)(tType) ~ ", " ~ to!(string)(type));
 		}
 		m.round = rnd;
@@ -890,23 +890,23 @@ private Motion readMotion(ref RData d, int dataVersion, ref ByteIO f, size_t ind
 	}
 	case 6: { mixin(S_TRACE);
 		switch (type) {
-		case 0: return new Motion(MType.VANISH_TARGET, el);
-		case 1: return new Motion(MType.VANISH_CARD, el);
-		case 2: return new Motion(MType.VANISH_BEAST, el);
+		case 0: return new Motion(MType.VanishTarget, el);
+		case 1: return new Motion(MType.VanishCard, el);
+		case 2: return new Motion(MType.VanishBeast, el);
 		default: throw new SummaryException("Unknown motion: " ~ to!(string)(tType) ~ ", " ~ to!(string)(type));
 		}
 	}
 	case 7: { mixin(S_TRACE);
 		switch (type) {
-		case 0: return new Motion(MType.DEAL_ATTACK_CARD, el);
-		case 1: return new Motion(MType.DEAL_POWERFUL_ATTACK_CARD, el);
-		case 2: return new Motion(MType.DEAL_CRITICAL_ATTACK_CARD, el);
-		case 3: return new Motion(MType.DEAL_FEINT_CARD, el);
-		case 4: return new Motion(MType.DEAL_DEFENSE_CARD, el);
-		case 5: return new Motion(MType.DEAL_DISTANCE_CARD, el);
-		case 6: return new Motion(MType.DEAL_CONFUSE_CARD, el);
-		case 7: return new Motion(MType.DEAL_SKILL_CARD, el);
-		case 8: return new Motion(MType.CANCEL_ACTION, el); // CardWirth 1.50
+		case 0: return new Motion(MType.DealAttackCard, el);
+		case 1: return new Motion(MType.DealPowerfulAttackCard, el);
+		case 2: return new Motion(MType.DealCriticalAttackCard, el);
+		case 3: return new Motion(MType.DealFeintCard, el);
+		case 4: return new Motion(MType.DealDefenseCard, el);
+		case 5: return new Motion(MType.DealDistanceCard, el);
+		case 6: return new Motion(MType.DealConfuseCard, el);
+		case 7: return new Motion(MType.DealSkillCard, el);
+		case 8: return new Motion(MType.CancelAction, el); // CardWirth 1.50
 		default: throw new SummaryException("Unknown motion: " ~ to!(string)(tType) ~ ", " ~ to!(string)(type));
 		}
 	}
@@ -918,7 +918,7 @@ private Motion readMotion(ref RData d, int dataVersion, ref ByteIO f, size_t ind
 			// d.dataVersionを上書きしない
 			beast = loadBeast(d2, f, 1);
 		}
-		auto m = new Motion(MType.SUMMON_BEAST, el);
+		auto m = new Motion(MType.SummonBeast, el);
 		m.newBeast = beast;
 		return m;
 	}
@@ -930,27 +930,27 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 		Content e;
 		switch (type) {
 		case 0:
-			e = new Content(CType.START, name);
+			e = new Content(CType.Start, name);
 			break;
 		case 1:
-			e = new Content(CType.LINK_START, name);
+			e = new Content(CType.LinkStart, name);
 			e.start = readString(f);
 			break;
 		case 2:
-			e = new Content(CType.START_BATTLE, name);
+			e = new Content(CType.StartBattle, name);
 			e.battle = f.readUIntL;
 			break;
 		case 3:
-			e = new Content(CType.END, name);
+			e = new Content(CType.End, name);
 			e.complete = readBool(f);
 			break;
 		case 4:
-			e = new Content(CType.END_BAD_END, name);
+			e = new Content(CType.EndBadEnd, name);
 			break;
 		case 5:
-			e = new Content(CType.CHANGE_AREA, name);
+			e = new Content(CType.ChangeArea, name);
 			e.area = f.readUIntL;
-			e.transition = Transition.DEFAULT;
+			e.transition = Transition.Default;
 			e.transitionSpeed = 5u;
 			break;
 		case 6: { mixin(S_TRACE);
@@ -959,13 +959,13 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			bool hasTalker = true;
 			switch (msgPath) {
 			case "": hasTalker = false; break;
-			case "??Selected": msgTalker = Talker.SELECTED; break;
-			case "??Unselected": msgTalker = Talker.UNSELECTED; break;
-			case "??Random": msgTalker = Talker.RANDOM; break;
-			case "??Card": msgTalker = Talker.CARD; break;
+			case "??Selected": msgTalker = Talker.Selected; break;
+			case "??Unselected": msgTalker = Talker.Unselected; break;
+			case "??Random": msgTalker = Talker.Random; break;
+			case "??Card": msgTalker = Talker.Card; break;
 			default: hasTalker = false; break;
 			}
-			e = new Content(CType.TALK_MESSAGE, name);
+			e = new Content(CType.TalkMessage, name);
 			auto s = readString(f, true);
 			e.text = s;
 			if (hasTalker) {
@@ -978,23 +978,23 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			break;
 		}
 		case 7:
-			e = new Content(CType.PLAY_BGM, name);
+			e = new Content(CType.PlayBgm, name);
 			e.bgmPath = decodePathLegacy(readString(f));
 			break;
 		case 8: { mixin(S_TRACE);
 			BgImage[] bgImgs = readBgImages(d, f, false);
-			e = new Content(CType.CHANGE_BG_IMAGE, name);
+			e = new Content(CType.ChangeBgImage, name);
 			e.backs = bgImgs;
-			e.transition = Transition.DEFAULT;
+			e.transition = Transition.Default;
 			e.transitionSpeed = 5u;
 			break;
 		}
 		case 9:
-			e = new Content(CType.PLAY_SOUND, name);
+			e = new Content(CType.PlaySound, name);
 			e.soundPath = decodePathLegacy(readString(f));
 			break;
 		case 10:
-			e = new Content(CType.WAIT, name);
+			e = new Content(CType.Wait, name);
 			e.wait = f.readUIntL;
 			break;
 		case 11: { mixin(S_TRACE);
@@ -1013,7 +1013,7 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			for (uint i = 0u; i < effMotionNum; i++) { mixin(S_TRACE);
 				effMotions[i] = readMotion(d, dataVersion, f, i);
 			}
-			e = new Content(CType.EFFECT, name);
+			e = new Content(CType.Effect, name);
 			e.signedLevel = effLev;
 			e.range = toRangeE(effTarget);
 			e.effectType = toEffectType(effType);
@@ -1027,7 +1027,7 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 		case 12: { mixin(S_TRACE);
 			bool brMemAll = readBool(f);
 			bool brMemRnd = readBool(f);
-			e = new Content(CType.BRANCH_SELECT, name);
+			e = new Content(CType.BranchSelect, name);
 			e.targetAll = brMemAll;
 			e.selectionMethod = brMemRnd ? SelectionMethod.Random : SelectionMethod.Manual;
 			break;
@@ -1037,7 +1037,7 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			byte targ = f.readByte;
 			uint phy = f.readUIntL;
 			int mtl = f.readIntL;
-			e = new Content(CType.BRANCH_ABILITY, name);
+			e = new Content(CType.BranchAbility, name);
 			e.targetS = toTargetA(targ);
 			e.mental = toMental(mtl);
 			e.physical = toPhysical(phy);
@@ -1045,50 +1045,50 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			break;
 		}
 		case 14:
-			e = new Content(CType.BRANCH_RANDOM, name);
+			e = new Content(CType.BranchRandom, name);
 			e.percent = f.readUIntL;
 			break;
 		case 15:
-			e = new Content(CType.BRANCH_FLAG, name);
+			e = new Content(CType.BranchFlag, name);
 			e.flag = readString(f);
 			break;
 		case 16: { mixin(S_TRACE);
 			string flag = readString(f);
 			bool val = readBool(f);
-			e = new Content(CType.SET_FLAG, name);
+			e = new Content(CType.SetFlag, name);
 			e.flag = flag;
 			e.flagValue = val;
 			break;
 		}
 		case 17:
-			e = new Content(CType.BRANCH_MULTI_STEP, name);
+			e = new Content(CType.BranchMultiStep, name);
 			e.step = readString(f);
 			break;
 		case 18: { mixin(S_TRACE);
 			string step = readString(f);
 			uint val = f.readUIntL;
 			if (10u <= val) val = 10u - 1u;
-			e = new Content(CType.SET_STEP, name);
+			e = new Content(CType.SetStep, name);
 			e.step = step;
 			e.stepValue = val;
 			break;
 		}
 		case 19:
-			e = new Content(CType.BRANCH_CAST, name);
+			e = new Content(CType.BranchCast, name);
 			e.casts = f.readUIntL;
 			break;
 		case 20: { mixin(S_TRACE);
 			ulong id = f.readUIntL;
 			if (dataVersion <= 2) { mixin(S_TRACE);
-				e = new Content(CType.BRANCH_ITEM, name);
+				e = new Content(CType.BranchItem, name);
 				e.item = id;
-				e.range = Range.PARTY_AND_BACKPACK;
+				e.range = Range.PartyAndBackpack;
 				e.cardNumber = 1;
 				break;
 			}
 			uint num = f.readUIntL;
 			byte rng = f.readByte;
-			e = new Content(CType.BRANCH_ITEM, name);
+			e = new Content(CType.BranchItem, name);
 			e.item = id;
 			e.range = toRange(rng);
 			e.cardNumber = num;
@@ -1097,70 +1097,70 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 		case 21: { mixin(S_TRACE);
 			ulong id = f.readUIntL;
 			if (dataVersion <= 2) { mixin(S_TRACE);
-				e = new Content(CType.BRANCH_SKILL, name);
+				e = new Content(CType.BranchSkill, name);
 				e.item = id;
-				e.range = Range.PARTY_AND_BACKPACK;
+				e.range = Range.PartyAndBackpack;
 				e.cardNumber = 1;
 				break;
 			}
 			uint num = f.readUIntL;
 			byte rng = f.readByte;
-			e = new Content(CType.BRANCH_SKILL, name);
+			e = new Content(CType.BranchSkill, name);
 			e.skill = id;
 			e.range = toRange(rng);
 			e.cardNumber = num;
 			break;
 		}
 		case 22:
-			e = new Content(CType.BRANCH_INFO, name);
+			e = new Content(CType.BranchInfo, name);
 			e.info = f.readUIntL;
 			break;
 		case 23: { mixin(S_TRACE);
 			ulong id = f.readUIntL;
 			if (dataVersion <= 2) { mixin(S_TRACE);
-				e = new Content(CType.BRANCH_BEAST, name);
+				e = new Content(CType.BranchBeast, name);
 				e.item = id;
-				e.range = Range.PARTY_AND_BACKPACK;
+				e.range = Range.PartyAndBackpack;
 				e.cardNumber = 1;
 				break;
 			}
 			uint num = f.readUIntL;
 			byte rng = f.readByte;
-			e = new Content(CType.BRANCH_BEAST, name);
+			e = new Content(CType.BranchBeast, name);
 			e.beast = id;
 			e.range = toRange(rng);
 			e.cardNumber = num;
 			break;
 		}
 		case 24:
-			e = new Content(CType.BRANCH_MONEY, name);
+			e = new Content(CType.BranchMoney, name);
 			e.money = f.readUIntL;
 			break;
 		case 25: { mixin(S_TRACE);
 			string coupon = readString(f);
 			f.readUIntL;
 			byte rng = f.readByte;
-			e = new Content(CType.BRANCH_COUPON, name);
+			e = new Content(CType.BranchCoupon, name);
 			e.couponNames = [coupon];
 			e.range = toCouponRange(rng);
 			break;
 		}
 		case 26:
-			e = new Content(CType.GET_CAST, name);
+			e = new Content(CType.GetCast, name);
 			e.casts = f.readUIntL;
 			break;
 		case 27: { mixin(S_TRACE);
 			ulong id = f.readUIntL;
 			if (dataVersion <= 2) { mixin(S_TRACE);
-				e = new Content(CType.GET_ITEM, name);
+				e = new Content(CType.GetItem, name);
 				e.item = id;
-				e.range = Range.PARTY_AND_BACKPACK;
+				e.range = Range.PartyAndBackpack;
 				e.cardNumber = 1;
 				break;
 			}
 			uint num = f.readUIntL;
 			byte rng = f.readByte;
-			e = new Content(CType.GET_ITEM, name);
+			e = new Content(CType.GetItem, name);
 			e.item = id;
 			e.range = toRange(rng);
 			e.cardNumber = num;
@@ -1169,71 +1169,71 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 		case 28: { mixin(S_TRACE);
 			ulong id = f.readUIntL;
 			if (dataVersion <= 2) { mixin(S_TRACE);
-				e = new Content(CType.GET_SKILL, name);
+				e = new Content(CType.GetSkill, name);
 				e.item = id;
-				e.range = Range.PARTY_AND_BACKPACK;
+				e.range = Range.PartyAndBackpack;
 				e.cardNumber = 1;
 				break;
 			}
 			uint num = f.readUIntL;
 			byte rng = f.readByte;
-			e = new Content(CType.GET_SKILL, name);
+			e = new Content(CType.GetSkill, name);
 			e.skill = id;
 			e.range = toRange(rng);
 			e.cardNumber = num;
 			break;
 		}
 		case 29:
-			e = new Content(CType.GET_INFO, name);
+			e = new Content(CType.GetInfo, name);
 			e.info = f.readUIntL;
 			break;
 		case 30: { mixin(S_TRACE);
 			ulong id = f.readUIntL;
 			if (dataVersion <= 2) { mixin(S_TRACE);
-				e = new Content(CType.GET_BEAST, name);
+				e = new Content(CType.GetBeast, name);
 				e.item = id;
-				e.range = Range.PARTY_AND_BACKPACK;
+				e.range = Range.PartyAndBackpack;
 				e.cardNumber = 1;
 				break;
 			}
 			uint num = f.readUIntL;
 			byte rng = f.readByte;
-			e = new Content(CType.GET_BEAST, name);
+			e = new Content(CType.GetBeast, name);
 			e.beast = id;
 			e.range = toRange(rng);
 			e.cardNumber = num;
 			break;
 		}
 		case 31:
-			e = new Content(CType.GET_MONEY, name);
+			e = new Content(CType.GetMoney, name);
 			e.money = f.readUIntL;
 			break;
 		case 32: { mixin(S_TRACE);
 			string coupon = readString(f);
 			int val = f.readIntL;
 			byte rng = f.readByte;
-			e = new Content(CType.GET_COUPON, name);
+			e = new Content(CType.GetCoupon, name);
 			e.coupon = coupon;
 			e.range = toRange(rng);
 			e.couponValue = val;
 			break;
 		}
 		case 33:
-			e = new Content(CType.LOSE_CAST, name);
+			e = new Content(CType.LoseCast, name);
 			e.casts = f.readUIntL;
 			break;
 		case 34: { mixin(S_TRACE);
 			ulong id = f.readUIntL;
 			if (dataVersion <= 2) { mixin(S_TRACE);
-				e = new Content(CType.LOSE_ITEM, name);
+				e = new Content(CType.LoseItem, name);
 				e.item = id;
-				e.range = Range.PARTY_AND_BACKPACK;
+				e.range = Range.PartyAndBackpack;
 				e.cardNumber = 1;
 				break;
 			}
 			uint num = f.readUIntL;
 			byte rng = f.readByte;
-			e = new Content(CType.LOSE_ITEM, name);
+			e = new Content(CType.LoseItem, name);
 			e.item = id;
 			e.range = toRange(rng);
 			e.cardNumber = num;
@@ -1242,50 +1242,50 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 		case 35: { mixin(S_TRACE);
 			ulong id = f.readUIntL;
 			if (dataVersion <= 2) { mixin(S_TRACE);
-				e = new Content(CType.LOSE_SKILL, name);
+				e = new Content(CType.LoseSkill, name);
 				e.item = id;
-				e.range = Range.PARTY_AND_BACKPACK;
+				e.range = Range.PartyAndBackpack;
 				e.cardNumber = 1;
 				break;
 			}
 			uint num = f.readUIntL;
 			byte rng = f.readByte;
-			e = new Content(CType.LOSE_SKILL, name);
+			e = new Content(CType.LoseSkill, name);
 			e.skill = id;
 			e.range = toRange(rng);
 			e.cardNumber = num;
 			break;
 		}
 		case 36:
-			e = new Content(CType.LOSE_INFO, name);
+			e = new Content(CType.LoseInfo, name);
 			e.info = f.readUIntL;
 			break;
 		case 37: { mixin(S_TRACE);
 			ulong id = f.readUIntL;
 			if (dataVersion <= 2) { mixin(S_TRACE);
-				e = new Content(CType.LOSE_BEAST, name);
+				e = new Content(CType.LoseBeast, name);
 				e.item = id;
-				e.range = Range.PARTY_AND_BACKPACK;
+				e.range = Range.PartyAndBackpack;
 				e.cardNumber = 1;
 				break;
 			}
 			uint num = f.readUIntL;
 			byte rng = f.readByte;
-			e = new Content(CType.LOSE_BEAST, name);
+			e = new Content(CType.LoseBeast, name);
 			e.beast = id;
 			e.range = toRange(rng);
 			e.cardNumber = num;
 			break;
 		}
 		case 38:
-			e = new Content(CType.LOSE_MONEY, name);
+			e = new Content(CType.LoseMoney, name);
 			e.money = f.readUIntL;
 			break;
 		case 39: { mixin(S_TRACE);
 			string coupon = readString(f);
 			f.readUIntL;
 			byte rng = f.readByte;
-			e = new Content(CType.LOSE_COUPON, name);
+			e = new Content(CType.LoseCoupon, name);
 			e.coupon = coupon;
 			e.range = toRange(rng);
 			break;
@@ -1296,7 +1296,7 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			Coupon[] coupons = [];
 			int initValue = 0;
 			if (3 == targ) { mixin(S_TRACE);
-				t = Talker.VALUED;
+				t = Talker.Valued;
 				uint cpNum = f.readUIntL;
 				foreach (i; 0 .. cpNum) { mixin(S_TRACE);
 					coupons ~= new Coupon(readString(f), f.readIntL);
@@ -1307,9 +1307,9 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 				}
 			} else { mixin(S_TRACE);
 				switch (toTargetT(targ).m) {
-				case Target.M.SELECTED: t = Talker.SELECTED; break;
-				case Target.M.UNSELECTED: t = Talker.UNSELECTED; break;
-				case Target.M.RANDOM: t = Talker.RANDOM; break;
+				case Target.M.Selected: t = Talker.Selected; break;
+				case Target.M.Unselected: t = Talker.Unselected; break;
+				case Target.M.Random: t = Talker.Random; break;
 				default: throw new SummaryException("Unknown talker: " ~ to!(string)(targ));
 				}
 			}
@@ -1320,7 +1320,7 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 				string text = readString(f, true);
 				dlgs ~= new SDialog(text, cps);
 			}
-			e = new Content(CType.TALK_DIALOG, name);
+			e = new Content(CType.TalkDialog, name);
 			e.talkerNC = t;
 			e.dialogs = dlgs;
 			e.coupons = coupons;
@@ -1328,33 +1328,33 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			break;
 		}
 		case 41:
-			e = new Content(CType.SET_STEP_UP, name);
+			e = new Content(CType.SetStepUp, name);
 			e.step = readString(f);
 			break;
 		case 42:
-			e = new Content(CType.SET_STEP_DOWN, name);
+			e = new Content(CType.SetStepDown, name);
 			e.step = readString(f);
 			break;
 		case 43:
-			e = new Content(CType.REVERSE_FLAG, name);
+			e = new Content(CType.ReverseFlag, name);
 			e.flag = readString(f);
 			break;
 		case 44: { mixin(S_TRACE);
 			string step = readString(f);
 			uint val = f.readUIntL;
 			if (10u <= val) val = 10u - 1u;
-			e = new Content(CType.BRANCH_STEP, name);
+			e = new Content(CType.BranchStep, name);
 			e.step = step;
 			e.stepValue = val;
 			break;
 		}
 		case 45:
-			e = new Content(CType.ELAPSE_TIME, name);
+			e = new Content(CType.ElapseTime, name);
 			break;
 		case 46: { mixin(S_TRACE);
 			bool avg = readBool(f);
 			uint val = f.readUIntL;
-			e = new Content(CType.BRANCH_LEVEL, name);
+			e = new Content(CType.BranchLevel, name);
 			e.average = avg;
 			e.unsignedLevel = val;
 			break;
@@ -1362,100 +1362,100 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 		case 47: { mixin(S_TRACE);
 			byte stat = f.readByte;
 			byte targ = f.readByte;
-			e = new Content(CType.BRANCH_STATUS, name);
+			e = new Content(CType.BranchStatus, name);
 			e.range = toRangeE(targ);
 			e.status = toStatus(stat);
 			break;
 		}
 		case 48:
-			e = new Content(CType.BRANCH_PARTY_NUMBER, name);
+			e = new Content(CType.BranchPartyNumber, name);
 			e.partyNumber = f.readUIntL;
 			break;
 		case 49:
-			e = new Content(CType.SHOW_PARTY, name);
+			e = new Content(CType.ShowParty, name);
 			break;
 		case 50:
-			e = new Content(CType.HIDE_PARTY, name);
+			e = new Content(CType.HideParty, name);
 			break;
 		case 51:
-			e = new Content(CType.EFFECT_BREAK, name);
+			e = new Content(CType.EffectBreak, name);
 			break;
 		case 52:
-			e = new Content(CType.CALL_START, name);
+			e = new Content(CType.CallStart, name);
 			e.start = readString(f);
 			break;
 		case 53:
-			e = new Content(CType.LINK_PACKAGE, name);
+			e = new Content(CType.LinkPackage, name);
 			e.packages = f.readUIntL;
 			break;
 		case 54:
-			e = new Content(CType.CALL_PACKAGE, name);
+			e = new Content(CType.CallPackage, name);
 			e.packages = f.readUIntL;
 			break;
 		case 55:
-			e = new Content(CType.BRANCH_AREA, name);
+			e = new Content(CType.BranchArea, name);
 			break;
 		case 56:
-			e = new Content(CType.BRANCH_BATTLE, name);
+			e = new Content(CType.BranchBattle, name);
 			break;
 		case 57:
-			e = new Content(CType.BRANCH_COMPLETE_STAMP, name);
+			e = new Content(CType.BranchCompleteStamp, name);
 			e.completeStamp = readString(f);
 			break;
 		case 58:
-			e = new Content(CType.GET_COMPLETE_STAMP, name);
+			e = new Content(CType.GetCompleteStamp, name);
 			e.completeStamp = readString(f);
 			break;
 		case 59:
-			e = new Content(CType.LOSE_COMPLETE_STAMP, name);
+			e = new Content(CType.LoseCompleteStamp, name);
 			e.completeStamp = readString(f);
 			break;
 		case 60:
-			e = new Content(CType.BRANCH_GOSSIP, name);
+			e = new Content(CType.BranchGossip, name);
 			e.gossip = readString(f);
 			break;
 		case 61:
-			e = new Content(CType.GET_GOSSIP, name);
+			e = new Content(CType.GetGossip, name);
 			e.gossip = readString(f);
 			break;
 		case 62:
-			e = new Content(CType.LOSE_GOSSIP, name);
+			e = new Content(CType.LoseGossip, name);
 			e.gossip = readString(f);
 			break;
 		case 63:
-			e = new Content(CType.BRANCH_IS_BATTLE, name);
+			e = new Content(CType.BranchIsBattle, name);
 			break;
 		case 64:
-			e = new Content(CType.REDISPLAY, name);
-			e.transition = Transition.DEFAULT;
+			e = new Content(CType.Redisplay, name);
+			e.transition = Transition.Default;
 			e.transitionSpeed = 5u;
 			break;
 		case 65:
-			e = new Content(CType.CHECK_FLAG, name);
+			e = new Content(CType.CheckFlag, name);
 			e.flag = readString(f);
 			break;
 		case 66:
-			e = new Content(CType.SUBSTITUTE_STEP, name);
+			e = new Content(CType.SubstituteStep, name);
 			e.step = readString(f);
 			e.step2 = readString(f);
 			break;
 		case 67:
-			e = new Content(CType.SUBSTITUTE_FLAG, name);
+			e = new Content(CType.SubstituteFlag, name);
 			e.flag = readString(f);
 			e.flag2 = readString(f);
 			break;
 		case 68:
-			e = new Content(CType.BRANCH_STEP_CMP, name);
+			e = new Content(CType.BranchStepCmp, name);
 			e.step = readString(f);
 			e.step2 = readString(f);
 			break;
 		case 69:
-			e = new Content(CType.BRANCH_FLAG_CMP, name);
+			e = new Content(CType.BranchFlagCmp, name);
 			e.flag = readString(f);
 			e.flag2 = readString(f);
 			break;
 		case 70:
-			e = new Content(CType.BRANCH_RANDOM_SELECT, name);
+			e = new Content(CType.BranchRandomSelect, name);
 			e.castRange = toCastRanges(f.readByte);
 			ubyte style = f.readUByte;
 			if (style & 0b01) { mixin(S_TRACE);
@@ -1468,38 +1468,38 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			if (style & 0b10) { mixin(S_TRACE);
 				e.status = toStatus(f.readByte);
 			} else { mixin(S_TRACE);
-				e.status = Status.NONE;
+				e.status = Status.None;
 			}
 			break;
 		case 71:
-			e = new Content(CType.BRANCH_KEY_CODE, name);
+			e = new Content(CType.BranchKeyCode, name);
 			e.keyCodeRange = toKeyCodeRange(f.readByte);
 			final switch (toEffectCardType(f.readByte)) {
-			case EffectCardType.ALL:
+			case EffectCardType.All:
 				e.targetIsSkill = true;
 				e.targetIsItem = true;
 				e.targetIsBeast = true;
 				e.targetIsHand = true; // BUG: CardWirth 1.50ではアイテムが対象にあると手札も検索される
 				break;
-			case EffectCardType.SKILL:
+			case EffectCardType.Skill:
 				e.targetIsSkill = true;
 				e.targetIsItem = false;
 				e.targetIsBeast = false;
 				e.targetIsHand = false;
 				break;
-			case EffectCardType.ITEM:
+			case EffectCardType.Item:
 				e.targetIsSkill = false;
 				e.targetIsItem = true;
 				e.targetIsBeast = false;
 				e.targetIsHand = true; // BUG: CardWirth 1.50ではアイテムが対象にあると手札も検索される
 				break;
-			case EffectCardType.BEAST:
+			case EffectCardType.Beast:
 				e.targetIsSkill = false;
 				e.targetIsItem = false;
 				e.targetIsBeast = true;
 				e.targetIsHand = false;
 				break;
-			case EffectCardType.HAND: // 実際にはありえない
+			case EffectCardType.Hand: // 実際にはありえない
 				e.targetIsSkill = false;
 				e.targetIsItem = false;
 				e.targetIsBeast = false;
@@ -1509,19 +1509,19 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			e.keyCode = readString(f);
 			break;
 		case 72:
-			e = new Content(CType.CHECK_STEP, name);
+			e = new Content(CType.CheckStep, name);
 			e.step = readString(f);
 			e.stepValue = f.readUIntL;
 			if (10u <= e.stepValue) e.stepValue = 10u - 1u;
 			e.comparison4 = toComparison4(f.readByte);
 			break;
 		case 73:
-			e = new Content(CType.BRANCH_ROUND, name);
+			e = new Content(CType.BranchRound, name);
 			e.comparison3 = toComparison3(f.readByte);
 			e.round = f.readUIntL;
 			break;
 		case 74:
-			e = new Content(CType.MOVE_BG_IMAGE, name);
+			e = new Content(CType.MoveBgImage, name);
 			e.cellName = readExString(f);
 			ubyte ctrl = f.readUByte;
 			if (ctrl & 0b01) { mixin(S_TRACE);
@@ -1534,20 +1534,20 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 				e.width = f.readExInt;
 				e.height = f.readExInt;
 			}
-			e.transition = Transition.DEFAULT;
+			e.transition = Transition.Default;
 			e.transitionSpeed = 5u;
 			break;
 		case 75:
-			e = new Content(CType.LOSE_BG_IMAGE, name);
+			e = new Content(CType.LoseBgImage, name);
 			e.cellName = readExString(f);
-			e.transition = Transition.DEFAULT;
+			e.transition = Transition.Default;
 			e.transitionSpeed = 5u;
 			break;
 		case 76:
-			e = new Content(CType.REPLACE_BG_IMAGE, name);
+			e = new Content(CType.ReplaceBgImage, name);
 			e.cellName = readExString(f);
 			e.backs = readBgImages(d, f, false, true);
-			e.transition = Transition.DEFAULT;
+			e.transition = Transition.Default;
 			e.transitionSpeed = 5u;
 			break;
 		default: throw new SummaryException("Unknown content type: " ~ to!(string)(type));
@@ -1992,10 +1992,10 @@ private CastCard loadCast(ref RData d, ref ByteIO f, ulong fid) { mixin(S_TRACE)
 	r.automaton = readBool(f);
 	r.unholy = readBool(f);
 	r.constructure = readBool(f);
-	r.resist(Element.FIRE, readBool(f));
-	r.resist(Element.ICE, readBool(f));
-	r.weakness(Element.FIRE, readBool(f));
-	r.weakness(Element.ICE, readBool(f));
+	r.resist(Element.Fire, readBool(f));
+	r.resist(Element.Ice, readBool(f));
+	r.weakness(Element.Fire, readBool(f));
+	r.weakness(Element.Ice, readBool(f));
 	r.level = f.readUIntL;
 	f.readUIntL; // 所持金。現行エンジンでは未使用
 	r.desc = readString(f, true, true);
@@ -2003,34 +2003,34 @@ private CastCard loadCast(ref RData d, ref ByteIO f, ulong fid) { mixin(S_TRACE)
 	r.lifeMax = f.readUIntL;
 	r.paralyze = f.readUIntL;
 	r.poison = f.readUIntL;
-	r.defaultEnhance(Enhance.AVOID, f.readUIntL);
-	r.defaultEnhance(Enhance.RESIST, f.readUIntL);
-	r.defaultEnhance(Enhance.DEFENSE, f.readUIntL);
-	r.physical(Physical.DEX, f.readUIntL);
-	r.physical(Physical.AGL, f.readUIntL);
-	r.physical(Physical.INT, f.readUIntL);
-	r.physical(Physical.STR, f.readUIntL);
-	r.physical(Physical.VIT, f.readUIntL);
-	r.physical(Physical.MIN, f.readUIntL);
-	r.mental(Mental.AGGRESSIVE, f.readIntL);
-	r.mental(Mental.CHEERFUL, f.readIntL);
-	r.mental(Mental.BRAVE, f.readIntL);
-	r.mental(Mental.CAUTIOUS, f.readIntL);
-	r.mental(Mental.TRICKISH, f.readIntL);
+	r.defaultEnhance(Enhance.Avoid, f.readUIntL);
+	r.defaultEnhance(Enhance.Resist, f.readUIntL);
+	r.defaultEnhance(Enhance.Defense, f.readUIntL);
+	r.physical(Physical.Dex, f.readUIntL);
+	r.physical(Physical.Agl, f.readUIntL);
+	r.physical(Physical.Int, f.readUIntL);
+	r.physical(Physical.Str, f.readUIntL);
+	r.physical(Physical.Vit, f.readUIntL);
+	r.physical(Physical.Min, f.readUIntL);
+	r.mental(Mental.Aggressive, f.readIntL);
+	r.mental(Mental.Cheerful, f.readIntL);
+	r.mental(Mental.Brave, f.readIntL);
+	r.mental(Mental.Cautious, f.readIntL);
+	r.mental(Mental.Trickish, f.readIntL);
 	r.mentality = toMentality(f.readByte);
 	r.mentalityRound = f.readUIntL;
 	r.bindRound = f.readUIntL;
 	r.silenceRound = f.readUIntL;
 	r.faceUpRound = f.readUIntL;
 	r.antiMagicRound = f.readUIntL;
-	r.enhance(Enhance.ACTION, f.readUIntL);
-	r.enhanceRound(Enhance.ACTION, f.readUIntL);
-	r.enhance(Enhance.AVOID, f.readUIntL);
-	r.enhanceRound(Enhance.AVOID, f.readUIntL);
-	r.enhance(Enhance.RESIST, f.readUIntL);
-	r.enhanceRound(Enhance.RESIST, f.readUIntL);
-	r.enhance(Enhance.DEFENSE, f.readUIntL);
-	r.enhanceRound(Enhance.DEFENSE, f.readUIntL);
+	r.enhance(Enhance.Action, f.readUIntL);
+	r.enhanceRound(Enhance.Action, f.readUIntL);
+	r.enhance(Enhance.Avoid, f.readUIntL);
+	r.enhanceRound(Enhance.Avoid, f.readUIntL);
+	r.enhance(Enhance.Resist, f.readUIntL);
+	r.enhanceRound(Enhance.Resist, f.readUIntL);
+	r.enhance(Enhance.Defense, f.readUIntL);
+	r.enhanceRound(Enhance.Defense, f.readUIntL);
 	uint itmNum = f.readUIntL;
 	for (uint i = 0u; i < itmNum; i++) { mixin(S_TRACE);
 		r.add(loadItem(d, f, i + 1), true);
@@ -2090,9 +2090,9 @@ private C readEffCard(C)(ref RData d, ref ByteIO f) { mixin(S_TRACE);
 		motions[i] = readMotion(d, d.dataVersion, f, i);
 	}
 	r.motions = motions;
-	r.enhance(Enhance.AVOID, f.readIntL);
-	r.enhance(Enhance.RESIST, f.readIntL);
-	r.enhance(Enhance.DEFENSE, f.readIntL);
+	r.enhance(Enhance.Avoid, f.readIntL);
+	r.enhance(Enhance.Resist, f.readIntL);
+	r.enhance(Enhance.Defense, f.readIntL);
 	string sp1 = readString(f);
 	r.soundPath1 = (sp1 == "（なし）" || sp1 == "（なし）.wav") ? "" : decodePathLegacy(sp1);
 	string sp2 = readString(f);
@@ -2136,9 +2136,9 @@ private ItemCard loadItem(ref RData d, ref ByteIO f, ulong fid) { mixin(S_TRACE)
 	r.useLimit = f.readUIntL;
 	r.useLimitMax = f.readUIntL;
 	r.price = f.readUIntL;
-	r.enhanceOwner(Enhance.AVOID, f.readUIntL);
-	r.enhanceOwner(Enhance.RESIST, f.readUIntL);
-	r.enhanceOwner(Enhance.DEFENSE, f.readUIntL);
+	r.enhanceOwner(Enhance.Avoid, f.readUIntL);
+	r.enhanceOwner(Enhance.Resist, f.readUIntL);
+	r.enhanceOwner(Enhance.Defense, f.readUIntL);
 	return r;
 }
 private BeastCard loadBeast(ref RData d, ref ByteIO f, ulong fid) { mixin(S_TRACE);
@@ -2467,26 +2467,26 @@ void putExData(ref SData d, CWXPath cp) { mixin(S_TRACE);
 
 private byte fromTargetT(Target v) { mixin(S_TRACE);
 	switch (v.m) {
-	case Target.M.SELECTED: return 0;
-	case Target.M.RANDOM: return 1;
-	case Target.M.UNSELECTED: return 2;
+	case Target.M.Selected: return 0;
+	case Target.M.Random: return 1;
+	case Target.M.Unselected: return 2;
 	default: throw new SummaryException("Unknown target T value: " ~ to!(string)(cast(int)v.m));
 	}
 }
 private byte fromTargetA(Target v) { mixin(S_TRACE);
-	if (v.m == Target.M.UNSELECTED) throw new SummaryException("Unknown target A value with sleep: " ~ to!(string)(cast(int)v.m));
+	if (v.m == Target.M.Unselected) throw new SummaryException("Unknown target A value with sleep: " ~ to!(string)(cast(int)v.m));
 	if (v.sleep) { mixin(S_TRACE);
 		switch (v.m) {
-		case Target.M.SELECTED: return 3;
-		case Target.M.RANDOM: return 4;
-		case Target.M.PARTY: return 5;
+		case Target.M.Selected: return 3;
+		case Target.M.Random: return 4;
+		case Target.M.Party: return 5;
 		default: throw new SummaryException("Unknown target A value with sleep: " ~ to!(string)(cast(int)v.m));
 		}
 	} else { mixin(S_TRACE);
 		switch (v.m) {
-		case Target.M.SELECTED: return 0;
-		case Target.M.RANDOM: return 1;
-		case Target.M.PARTY: return 2;
+		case Target.M.Selected: return 0;
+		case Target.M.Random: return 1;
+		case Target.M.Party: return 2;
 		default: throw new SummaryException("Unknown target A value: " ~ to!(string)(cast(int)v.m));
 		}
 	}
@@ -2494,63 +2494,63 @@ private byte fromTargetA(Target v) { mixin(S_TRACE);
 
 private byte fromEffectType(EffectType v) { mixin(S_TRACE);
 	switch (v) {
-	case EffectType.PHYSIC: return 0;
-	case EffectType.MAGIC: return 1;
-	case EffectType.MAGICAL_PHYSIC: return 2;
-	case EffectType.PHYSICAL_MAGIC: return 3;
-	case EffectType.NONE: return 4;
+	case EffectType.Physic: return 0;
+	case EffectType.Magic: return 1;
+	case EffectType.MagicalPhysic: return 2;
+	case EffectType.PhysicalMagic: return 3;
+	case EffectType.None: return 4;
 	default: throw new SummaryException("Unknown effect type value: " ~ to!(string)(cast(int)v));
 	}
 }
 private byte fromResist(Resist v) { mixin(S_TRACE);
 	switch (v) {
-	case Resist.AVOID: return 0;
-	case Resist.RESIST: return 1;
-	case Resist.UNFAIL: return 2;
+	case Resist.Avoid: return 0;
+	case Resist.Resist: return 1;
+	case Resist.Unfail: return 2;
 	default: throw new SummaryException("Unknown resist value: " ~ to!(string)(cast(int)v));
 	}
 }
 private byte fromCardVisual(CardVisual v) { mixin(S_TRACE);
 	switch (v) {
-	case CardVisual.NONE: return 0;
-	case CardVisual.REVERSE: return 1;
-	case CardVisual.HORIZONTAL: return 2;
-	case CardVisual.VERTICAL: return 3;
+	case CardVisual.None: return 0;
+	case CardVisual.Reverse: return 1;
+	case CardVisual.Horizontal: return 2;
+	case CardVisual.Vertical: return 3;
 	default: throw new SummaryException("Unknown card visual value: " ~ to!(string)(cast(int)v));
 	}
 }
 private byte fromRange(Range v) { mixin(S_TRACE);
 	final switch (v) {
-	case Range.SELECTED: return 0;
-	case Range.RANDOM: return 1;
-	case Range.PARTY: return 2;
-	case Range.BACKPACK: return 3;
-	case Range.PARTY_AND_BACKPACK: return 4;
-	case Range.FIELD: return 5;
-	case Range.COUPON_HOLDER: return 0; // Wsn.2
-	case Range.CARD_TARGET: return 0; // Wsn.2
-	case Range.SELECTED_CARD: return 0; // Wsn.3
+	case Range.Selected: return 0;
+	case Range.Random: return 1;
+	case Range.Party: return 2;
+	case Range.Backpack: return 3;
+	case Range.PartyAndBackpack: return 4;
+	case Range.Field: return 5;
+	case Range.CouponHolder: return 0; // Wsn.2
+	case Range.CardTarget: return 0; // Wsn.2
+	case Range.SelectedCard: return 0; // Wsn.3
 	}
 }
 /// CardWirth 1.50
 private byte fromKeyCodeRange(Range v) { mixin(S_TRACE);
 	switch (v) {
-	case Range.SELECTED: return 0;
-	case Range.RANDOM: return 1;
-	case Range.BACKPACK: return 2;
-	case Range.PARTY_AND_BACKPACK: return 3;
-	case Range.COUPON_HOLDER: return 0; // Wsn.2
-	case Range.SELECTED_CARD: return 0; // Wsn.3
+	case Range.Selected: return 0;
+	case Range.Random: return 1;
+	case Range.Backpack: return 2;
+	case Range.PartyAndBackpack: return 3;
+	case Range.CouponHolder: return 0; // Wsn.2
+	case Range.SelectedCard: return 0; // Wsn.3
 	default: throw new SummaryException("Unknown range value: " ~ to!(string)(cast(int)v));
 	}
 }
 /// CardWirth Extender 1.30～
 private byte fromCouponRange(Range v) { mixin(S_TRACE);
 	switch (v) {
-	case Range.SELECTED: return 0;
-	case Range.RANDOM: return 1;
-	case Range.PARTY: return 2;
-	case Range.FIELD: return 3;
+	case Range.Selected: return 0;
+	case Range.Random: return 1;
+	case Range.Party: return 2;
+	case Range.Field: return 3;
 	default: throw new SummaryException("Unknown range value: " ~ to!(string)(cast(int)v));
 	}
 }
@@ -2559,9 +2559,9 @@ private byte fromCastRanges(in CastRange[] v) { mixin(S_TRACE);
 	byte r = 0;
 	foreach (e; v) { mixin(S_TRACE);
 		switch (e) {
-		case CastRange.PARTY: r |= 0b0001; break;
-		case CastRange.ENEMY: r |= 0b0010; break;
-		case CastRange.NPC:   r |= 0b0100; break;
+		case CastRange.Party: r |= 0b0001; break;
+		case CastRange.Enemy: r |= 0b0010; break;
+		case CastRange.Npc:   r |= 0b0100; break;
 		default: throw new SummaryException("Unknown cast range value: " ~ to!(string)(cast(int)e));
 		}
 	}
@@ -2570,11 +2570,11 @@ private byte fromCastRanges(in CastRange[] v) { mixin(S_TRACE);
 /// CardWirth 1.50
 private byte fromEffectCardType(EffectCardType v) { mixin(S_TRACE);
 	switch (v) {
-	case EffectCardType.ALL: return 0;
-	case EffectCardType.SKILL: return 1;
-	case EffectCardType.ITEM: return 2;
-	case EffectCardType.BEAST: return 3;
-	case EffectCardType.HAND: assert (0);
+	case EffectCardType.All: return 0;
+	case EffectCardType.Skill: return 1;
+	case EffectCardType.Item: return 2;
+	case EffectCardType.Beast: return 3;
+	case EffectCardType.Hand: assert (0);
 	default: throw new SummaryException("Unknown range value: " ~ to!(string)(cast(int)v));
 	}
 }
@@ -2636,108 +2636,108 @@ private byte fromCoordinateType(CoordinateType v) { mixin(S_TRACE);
 }
 private byte fromStatus(Status v) { mixin(S_TRACE);
 	switch (v) {
-	case Status.ACTIVE: return 0;
-	case Status.INACTIVE: return 1;
-	case Status.ALIVE: return 2;
-	case Status.DEAD: return 3;
-	case Status.FINE: return 4;
-	case Status.INJURED: return 5;
-	case Status.HEAVY_INJURED: return 6;
-	case Status.UNCONSCIOUS: return 7;
-	case Status.POISON: return 8;
-	case Status.SLEEP: return 9;
-	case Status.BIND: return 10;
-	case Status.PARALYZE: return 11;
-	case Status.CONFUSE: return 12;
-	case Status.OVERHEAT: return 13;
-	case Status.BRAVE: return 14;
-	case Status.PANIC: return 15;
-	case Status.SILENCE: return 16;
-	case Status.FACE_UP: return 17;
-	case Status.ANTI_MAGIC: return 18;
-	case Status.UP_ACTION: return 19;
-	case Status.UP_AVOID: return 20;
-	case Status.UP_RESIST: return 21;
-	case Status.UP_DEFENSE: return 22;
-	case Status.DOWN_ACTION: return 23;
-	case Status.DOWN_AVOID: return 24;
-	case Status.DOWN_RESIST: return 25;
-	case Status.DOWN_DEFENSE: return 26;
+	case Status.Active: return 0;
+	case Status.Inactive: return 1;
+	case Status.Alive: return 2;
+	case Status.Dead: return 3;
+	case Status.Fine: return 4;
+	case Status.Injured: return 5;
+	case Status.HeavyInjured: return 6;
+	case Status.Unconscious: return 7;
+	case Status.Poison: return 8;
+	case Status.Sleep: return 9;
+	case Status.Bind: return 10;
+	case Status.Paralyze: return 11;
+	case Status.Confuse: return 12;
+	case Status.Overheat: return 13;
+	case Status.Brave: return 14;
+	case Status.Panic: return 15;
+	case Status.Silence: return 16;
+	case Status.FaceUp: return 17;
+	case Status.AntiMagic: return 18;
+	case Status.UpAction: return 19;
+	case Status.UpAvoid: return 20;
+	case Status.UpResist: return 21;
+	case Status.UpDefense: return 22;
+	case Status.DownAction: return 23;
+	case Status.DownAvoid: return 24;
+	case Status.DownResist: return 25;
+	case Status.DownDefense: return 26;
 	default: throw new SummaryException("Unknown status value: " ~ to!(string)(cast(int)v));
 	}
 }
 private byte fromElement(Element v) { mixin(S_TRACE);
 	switch (v) {
-	case Element.ALL: return 0;
-	case Element.HEALTH: return 1;
-	case Element.MIND: return 2;
-	case Element.MIRACLE: return 3;
-	case Element.MAGIC: return 4;
-	case Element.FIRE: return 5;
-	case Element.ICE: return 6;
+	case Element.All: return 0;
+	case Element.Health: return 1;
+	case Element.Mind: return 2;
+	case Element.Miracle: return 3;
+	case Element.Magic: return 4;
+	case Element.Fire: return 5;
+	case Element.Ice: return 6;
 	default: throw new SummaryException("Unknown element value: " ~ to!(string)(cast(int)v));
 	}
 }
 private byte fromDamageType(DamageType v) { mixin(S_TRACE);
 	switch (v) {
-	case DamageType.LEVEL_RATIO: return 0;
-	case DamageType.NORMAL: return 1;
-	case DamageType.MAX: return 2;
+	case DamageType.LevelRatio: return 0;
+	case DamageType.Normal: return 1;
+	case DamageType.Max: return 2;
 	default: throw new SummaryException("Unknown damage type value: " ~ to!(string)(cast(int)v));
 	}
 }
 private uint fromPhysical(Physical v) { mixin(S_TRACE);
 	switch (v) {
-	case Physical.DEX: return 0;
-	case Physical.AGL: return 1;
-	case Physical.INT: return 2;
-	case Physical.STR: return 3;
-	case Physical.VIT: return 4;
-	case Physical.MIN: return 5;
+	case Physical.Dex: return 0;
+	case Physical.Agl: return 1;
+	case Physical.Int: return 2;
+	case Physical.Str: return 3;
+	case Physical.Vit: return 4;
+	case Physical.Min: return 5;
 	default: throw new SummaryException("Unknown pysical value: " ~ to!(string)(cast(int)v));
 	}
 }
 private int fromMental(Mental v) { mixin(S_TRACE);
 	switch (v) {
-	case Mental.AGGRESSIVE: return 1;
-	case Mental.CHEERFUL: return 2;
-	case Mental.BRAVE: return 3;
-	case Mental.CAUTIOUS: return 4;
-	case Mental.TRICKISH: return 5;
-	case Mental.UNAGGRESSIVE: return -1;
-	case Mental.UNCHEERFUL: return -2;
-	case Mental.UNBRAVE: return -3;
-	case Mental.UNCAUTIOUS: return -4;
-	case Mental.UNTRICKISH: return -5;
+	case Mental.Aggressive: return 1;
+	case Mental.Cheerful: return 2;
+	case Mental.Brave: return 3;
+	case Mental.Cautious: return 4;
+	case Mental.Trickish: return 5;
+	case Mental.Unaggressive: return -1;
+	case Mental.Uncheerful: return -2;
+	case Mental.Unbrave: return -3;
+	case Mental.Uncautious: return -4;
+	case Mental.Untrickish: return -5;
 	default: throw new SummaryException("Unknown mental value: " ~ to!(string)(cast(int)v));
 	}
 }
 private byte fromMentality(Mentality v) { mixin(S_TRACE);
 	switch (v) {
-	case Mentality.NORMAL: return 0;
-	case Mentality.SLEEP: return 1;
-	case Mentality.CONFUSE: return 2;
-	case Mentality.OVERHEAT: return 3;
-	case Mentality.BRAVE: return 4;
-	case Mentality.PANIC: return 5;
+	case Mentality.Normal: return 0;
+	case Mentality.Sleep: return 1;
+	case Mentality.Confuse: return 2;
+	case Mentality.Overheat: return 3;
+	case Mentality.Brave: return 4;
+	case Mentality.Panic: return 5;
 	default: throw new SummaryException("Unknown mentality value: " ~ to!(string)(cast(int)v));
 	}
 }
 private byte fromCardTarget(CardTarget v) { mixin(S_TRACE);
 	switch (v) {
-	case CardTarget.NONE: return 0;
-	case CardTarget.USER: return 1;
-	case CardTarget.PARTY: return 2;
-	case CardTarget.ENEMY: return 3;
-	case CardTarget.BOTH: return 4;
+	case CardTarget.None: return 0;
+	case CardTarget.User: return 1;
+	case CardTarget.Party: return 2;
+	case CardTarget.Enemy: return 3;
+	case CardTarget.Both: return 4;
 	default: throw new SummaryException("Unknown card target value: " ~ to!(string)(cast(int)v));
 	}
 }
 private byte fromPremium(Premium v) { mixin(S_TRACE);
 	switch (v) {
-	case Premium.NORMAL: return 0;
-	case Premium.RARE: return 1;
-	case Premium.PREMIUM: return 2;
+	case Premium.Normal: return 0;
+	case Premium.Rare: return 1;
+	case Premium.Premium: return 2;
 	default: throw new SummaryException("Unknown card premium value: " ~ to!(string)(cast(int)v));
 	}
 }
@@ -2850,167 +2850,167 @@ private void writeMotion(ref SData d, ref ByteIO f, Motion m) { mixin(S_TRACE);
 	byte tType;
 	byte type;
 	switch (m.type) {
-	case MType.HEAL:
+	case MType.Heal:
 		tType = 0;
 		type = 0;
 		break;
-	case MType.DAMAGE:
+	case MType.Damage:
 		tType = 0;
 		type = 1;
 		break;
-	case MType.ABSORB:
+	case MType.Absorb:
 		tType = 0;
 		type = 2;
 		break;
-	case MType.PARALYZE:
+	case MType.Paralyze:
 		tType = 1;
 		type = 0;
 		break;
-	case MType.DIS_PARALYZE:
+	case MType.DisParalyze:
 		tType = 1;
 		type = 1;
 		break;
-	case MType.POISON:
+	case MType.Poison:
 		tType = 1;
 		type = 2;
 		break;
-	case MType.DIS_POISON:
+	case MType.DisPoison:
 		tType = 1;
 		type = 3;
 		break;
-	case MType.GET_SKILL_POWER:
+	case MType.GetSkillPower:
 		tType = 2;
 		type = 0;
 		break;
-	case MType.LOSE_SKILL_POWER:
+	case MType.LoseSkillPower:
 		tType = 2;
 		type = 1;
 		break;
-	case MType.SLEEP:
+	case MType.Sleep:
 		tType = 3;
 		type = 0;
 		break;
-	case MType.CONFUSE:
+	case MType.Confuse:
 		tType = 3;
 		type = 1;
 		break;
-	case MType.OVERHEAT:
+	case MType.Overheat:
 		tType = 3;
 		type = 2;
 		break;
-	case MType.BRAVE:
+	case MType.Brave:
 		tType = 3;
 		type = 3;
 		break;
-	case MType.PANIC:
+	case MType.Panic:
 		tType = 3;
 		type = 4;
 		break;
-	case MType.NORMAL:
+	case MType.Normal:
 		tType = 3;
 		type = 5;
 		break;
-	case MType.BIND:
+	case MType.Bind:
 		tType = 4;
 		type = 0;
 		break;
-	case MType.DIS_BIND:
+	case MType.DisBind:
 		tType = 4;
 		type = 1;
 		break;
-	case MType.SILENCE:
+	case MType.Silence:
 		tType = 4;
 		type = 2;
 		break;
-	case MType.DIS_SILENCE:
+	case MType.DisSilence:
 		tType = 4;
 		type = 3;
 		break;
-	case MType.FACE_UP:
+	case MType.FaceUp:
 		tType = 4;
 		type = 4;
 		break;
-	case MType.FACE_DOWN:
+	case MType.FaceDown:
 		tType = 4;
 		type = 5;
 		break;
-	case MType.ANTI_MAGIC:
+	case MType.AntiMagic:
 		tType = 4;
 		type = 6;
 		break;
-	case MType.DIS_ANTI_MAGIC:
+	case MType.DisAntiMagic:
 		tType = 4;
 		type = 7;
 		break;
-	case MType.ENHANCE_ACTION:
+	case MType.EnhanceAction:
 		tType = 5;
 		type = 0;
 		break;
-	case MType.ENHANCE_AVOID:
+	case MType.EnhanceAvoid:
 		tType = 5;
 		type = 1;
 		break;
-	case MType.ENHANCE_RESIST:
+	case MType.EnhanceResist:
 		tType = 5;
 		type = 2;
 		break;
-	case MType.ENHANCE_DEFENSE:
+	case MType.EnhanceDefense:
 		tType = 5;
 		type = 3;
 		break;
-	case MType.VANISH_TARGET:
+	case MType.VanishTarget:
 		tType = 6;
 		type = 0;
 		break;
-	case MType.VANISH_CARD:
+	case MType.VanishCard:
 		tType = 6;
 		type = 1;
 		break;
-	case MType.VANISH_BEAST:
+	case MType.VanishBeast:
 		tType = 6;
 		type = 2;
 		break;
-	case MType.DEAL_ATTACK_CARD:
+	case MType.DealAttackCard:
 		tType = 7;
 		type = 0;
 		break;
-	case MType.DEAL_POWERFUL_ATTACK_CARD:
+	case MType.DealPowerfulAttackCard:
 		tType = 7;
 		type = 1;
 		break;
-	case MType.DEAL_CRITICAL_ATTACK_CARD:
+	case MType.DealCriticalAttackCard:
 		tType = 7;
 		type = 2;
 		break;
-	case MType.DEAL_FEINT_CARD:
+	case MType.DealFeintCard:
 		tType = 7;
 		type = 3;
 		break;
-	case MType.DEAL_DEFENSE_CARD:
+	case MType.DealDefenseCard:
 		tType = 7;
 		type = 4;
 		break;
-	case MType.DEAL_DISTANCE_CARD:
+	case MType.DealDistanceCard:
 		tType = 7;
 		type = 5;
 		break;
-	case MType.DEAL_CONFUSE_CARD:
+	case MType.DealConfuseCard:
 		tType = 7;
 		type = 6;
 		break;
-	case MType.DEAL_SKILL_CARD:
+	case MType.DealSkillCard:
 		tType = 7;
 		type = 7;
 		break;
-	case MType.SUMMON_BEAST:
+	case MType.SummonBeast:
 		tType = 8;
 		type = 0;
 		break;
-	case MType.CANCEL_ACTION: // CardWirth 1.50
+	case MType.CancelAction: // CardWirth 1.50
 		tType = 7;
 		type = 8;
 		break;
-	case MType.NO_EFFECT: // Wsn.2(ダメージに変換)
+	case MType.NoEffect: // Wsn.2(ダメージに変換)
 		tType = 0;
 		type = 1;
 		break;
@@ -3034,7 +3034,7 @@ private void writeMotion(ref SData d, ref ByteIO f, Motion m) { mixin(S_TRACE);
 	case 2:
 		break;
 	case 3, 4:
-		f.writeL(cast(uint)m.detail.use(MArg.ROUND) ? m.round : 0xA);
+		f.writeL(cast(uint)m.detail.use(MArg.Round) ? m.round : 0xA);
 		break;
 	case 5:
 		f.writeL(cast(uint)m.aValue);
@@ -3083,93 +3083,93 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 	while (true) { mixin(S_TRACE);
 		byte type;
 		final switch (e2.type) {
-		case CType.START: type = 0; break;
-		case CType.LINK_START: type = 1; break;
-		case CType.START_BATTLE: type = 2; break;
-		case CType.END: type = 3; break;
-		case CType.END_BAD_END: type = 4; break;
-		case CType.CHANGE_AREA: type = 5; break;
-		case CType.TALK_MESSAGE: type = 6; break;
-		case CType.PLAY_BGM: type = 7; break;
-		case CType.CHANGE_BG_IMAGE: type = 8; break;
-		case CType.PLAY_SOUND: type = 9; break;
-		case CType.WAIT: type = 10; break;
-		case CType.EFFECT: type = 11; break;
-		case CType.BRANCH_SELECT: type = 12; break;
-		case CType.BRANCH_ABILITY: type = 13; break;
-		case CType.BRANCH_RANDOM: type = 14; break;
-		case CType.BRANCH_FLAG: type = 15; break;
-		case CType.SET_FLAG: type = 16; break;
-		case CType.BRANCH_MULTI_STEP: type = 17; break;
-		case CType.SET_STEP: type = 18; break;
-		case CType.BRANCH_CAST: type = 19; break;
-		case CType.BRANCH_ITEM: type = 20; break;
-		case CType.BRANCH_SKILL: type = 21; break;
-		case CType.BRANCH_INFO: type = 22; break;
-		case CType.BRANCH_BEAST: type = 23; break;
-		case CType.BRANCH_MONEY: type = 24; break;
-		case CType.BRANCH_COUPON: type = 25; break;
-		case CType.GET_CAST: type = 26; break;
-		case CType.GET_ITEM: type = 27; break;
-		case CType.GET_SKILL: type = 28; break;
-		case CType.GET_INFO: type = 29; break;
-		case CType.GET_BEAST: type = 30; break;
-		case CType.GET_MONEY: type = 31; break;
-		case CType.GET_COUPON: type = 32; break;
-		case CType.LOSE_CAST: type = 33; break;
-		case CType.LOSE_ITEM: type = 34; break;
-		case CType.LOSE_SKILL: type = 35; break;
-		case CType.LOSE_INFO: type = 36; break;
-		case CType.LOSE_BEAST: type = 37; break;
-		case CType.LOSE_MONEY: type = 38; break;
-		case CType.LOSE_COUPON: type = 39; break;
-		case CType.TALK_DIALOG: type = 40; break;
-		case CType.SET_STEP_UP: type = 41; break;
-		case CType.SET_STEP_DOWN: type = 42; break;
-		case CType.REVERSE_FLAG: type = 43; break;
-		case CType.BRANCH_STEP: type = 44; break;
-		case CType.ELAPSE_TIME: type = 45; break;
-		case CType.BRANCH_LEVEL: type = 46; break;
-		case CType.BRANCH_STATUS: type = 47; break;
-		case CType.BRANCH_PARTY_NUMBER: type = 48; break;
-		case CType.SHOW_PARTY: type = 49; break;
-		case CType.HIDE_PARTY: type = 50; break;
-		case CType.EFFECT_BREAK: type = 51; break;
-		case CType.CALL_START: type = 52; break;
-		case CType.LINK_PACKAGE: type = 53; break;
-		case CType.CALL_PACKAGE: type = 54; break;
-		case CType.BRANCH_AREA: type = 55; break;
-		case CType.BRANCH_BATTLE: type = 56; break;
-		case CType.BRANCH_COMPLETE_STAMP: type = 57; break;
-		case CType.GET_COMPLETE_STAMP: type = 58; break;
-		case CType.LOSE_COMPLETE_STAMP: type = 59; break;
-		case CType.BRANCH_GOSSIP: type = 60; break;
-		case CType.GET_GOSSIP: type = 61; break;
-		case CType.LOSE_GOSSIP: type = 62; break;
-		case CType.BRANCH_IS_BATTLE: type = 63; break;
-		case CType.REDISPLAY: type = 64; break;
-		case CType.CHECK_FLAG: type = 65; break;
-		case CType.SUBSTITUTE_STEP: type = 66; break;
-		case CType.SUBSTITUTE_FLAG: type = 67; break;
-		case CType.BRANCH_STEP_CMP: type = 68; break;
-		case CType.BRANCH_FLAG_CMP: type = 69; break;
-		case CType.BRANCH_RANDOM_SELECT: type = 70; break;
-		case CType.BRANCH_KEY_CODE: type = 71; break;
-		case CType.CHECK_STEP: type = 72; break;
-		case CType.BRANCH_ROUND: type = 73; break;
-/+		case CType.MOVE_BG_IMAGE: type = 74; break;
-		case CType.LOSE_BG_IMAGE: type = 75; break;
-		case CType.REPLACE_BG_IMAGE: type = 76; break;
-+/		case CType.MOVE_BG_IMAGE: type = 6; break; // Wsn.1
-		case CType.LOSE_BG_IMAGE: type = 6; break; // Wsn.1
-		case CType.REPLACE_BG_IMAGE: type = 6; break; // Wsn.1
-		case CType.BRANCH_MULTI_COUPON: type = 6; break; // Wsn.2
-		case CType.BRANCH_MULTI_RANDOM: type = 6; break; // Wsn.2
-		case CType.MOVE_CARD: type = 6; break; // Wsn.3
-		case CType.CHANGE_ENVIRONMENT: type = 6; break; // Wsn.4
-		case CType.BRANCH_VARIANT: type = 6; break; // Wsn.4
-		case CType.SET_VARIANT: type = 6; break; // Wsn.4
-		case CType.CHECK_VARIANT: type = 6; break; // Wsn.4
+		case CType.Start: type = 0; break;
+		case CType.LinkStart: type = 1; break;
+		case CType.StartBattle: type = 2; break;
+		case CType.End: type = 3; break;
+		case CType.EndBadEnd: type = 4; break;
+		case CType.ChangeArea: type = 5; break;
+		case CType.TalkMessage: type = 6; break;
+		case CType.PlayBgm: type = 7; break;
+		case CType.ChangeBgImage: type = 8; break;
+		case CType.PlaySound: type = 9; break;
+		case CType.Wait: type = 10; break;
+		case CType.Effect: type = 11; break;
+		case CType.BranchSelect: type = 12; break;
+		case CType.BranchAbility: type = 13; break;
+		case CType.BranchRandom: type = 14; break;
+		case CType.BranchFlag: type = 15; break;
+		case CType.SetFlag: type = 16; break;
+		case CType.BranchMultiStep: type = 17; break;
+		case CType.SetStep: type = 18; break;
+		case CType.BranchCast: type = 19; break;
+		case CType.BranchItem: type = 20; break;
+		case CType.BranchSkill: type = 21; break;
+		case CType.BranchInfo: type = 22; break;
+		case CType.BranchBeast: type = 23; break;
+		case CType.BranchMoney: type = 24; break;
+		case CType.BranchCoupon: type = 25; break;
+		case CType.GetCast: type = 26; break;
+		case CType.GetItem: type = 27; break;
+		case CType.GetSkill: type = 28; break;
+		case CType.GetInfo: type = 29; break;
+		case CType.GetBeast: type = 30; break;
+		case CType.GetMoney: type = 31; break;
+		case CType.GetCoupon: type = 32; break;
+		case CType.LoseCast: type = 33; break;
+		case CType.LoseItem: type = 34; break;
+		case CType.LoseSkill: type = 35; break;
+		case CType.LoseInfo: type = 36; break;
+		case CType.LoseBeast: type = 37; break;
+		case CType.LoseMoney: type = 38; break;
+		case CType.LoseCoupon: type = 39; break;
+		case CType.TalkDialog: type = 40; break;
+		case CType.SetStepUp: type = 41; break;
+		case CType.SetStepDown: type = 42; break;
+		case CType.ReverseFlag: type = 43; break;
+		case CType.BranchStep: type = 44; break;
+		case CType.ElapseTime: type = 45; break;
+		case CType.BranchLevel: type = 46; break;
+		case CType.BranchStatus: type = 47; break;
+		case CType.BranchPartyNumber: type = 48; break;
+		case CType.ShowParty: type = 49; break;
+		case CType.HideParty: type = 50; break;
+		case CType.EffectBreak: type = 51; break;
+		case CType.CallStart: type = 52; break;
+		case CType.LinkPackage: type = 53; break;
+		case CType.CallPackage: type = 54; break;
+		case CType.BranchArea: type = 55; break;
+		case CType.BranchBattle: type = 56; break;
+		case CType.BranchCompleteStamp: type = 57; break;
+		case CType.GetCompleteStamp: type = 58; break;
+		case CType.LoseCompleteStamp: type = 59; break;
+		case CType.BranchGossip: type = 60; break;
+		case CType.GetGossip: type = 61; break;
+		case CType.LoseGossip: type = 62; break;
+		case CType.BranchIsBattle: type = 63; break;
+		case CType.Redisplay: type = 64; break;
+		case CType.CheckFlag: type = 65; break;
+		case CType.SubstituteStep: type = 66; break;
+		case CType.SubstituteFlag: type = 67; break;
+		case CType.BranchStepCmp: type = 68; break;
+		case CType.BranchFlagCmp: type = 69; break;
+		case CType.BranchRandomSelect: type = 70; break;
+		case CType.BranchKeyCode: type = 71; break;
+		case CType.CheckStep: type = 72; break;
+		case CType.BranchRound: type = 73; break;
+/+		case CType.MoveBgImage: type = 74; break;
+		case CType.LoseBgImage: type = 75; break;
+		case CType.ReplaceBgImage: type = 76; break;
++/		case CType.MoveBgImage: type = 6; break; // Wsn.1
+		case CType.LoseBgImage: type = 6; break; // Wsn.1
+		case CType.ReplaceBgImage: type = 6; break; // Wsn.1
+		case CType.BranchMultiCoupon: type = 6; break; // Wsn.2
+		case CType.BranchMultiRandom: type = 6; break; // Wsn.2
+		case CType.MoveCard: type = 6; break; // Wsn.3
+		case CType.ChangeEnvironment: type = 6; break; // Wsn.4
+		case CType.BranchVariant: type = 6; break; // Wsn.4
+		case CType.SetVariant: type = 6; break; // Wsn.4
+		case CType.CheckVariant: type = 6; break; // Wsn.4
 		}
 		f.write(type);
 		string name = e2.name;
@@ -3195,23 +3195,23 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 	}
 	foreach_reverse (e; lazys) { mixin(S_TRACE);
 		final switch (e.type) {
-		case CType.START:
+		case CType.Start:
 			break;
-		case CType.LINK_START:
+		case CType.LinkStart:
 			writeString(f, e.start);
 			break;
-		case CType.START_BATTLE:
+		case CType.StartBattle:
 			f.writeL(cast(uint)e.battle);
 			break;
-		case CType.END:
+		case CType.End:
 			writeBool(f, e.complete);
 			break;
-		case CType.END_BAD_END:
+		case CType.EndBadEnd:
 			break;
-		case CType.CHANGE_AREA:
+		case CType.ChangeArea:
 			f.writeL(cast(uint)e.area);
 			break;
-		case CType.TALK_MESSAGE:
+		case CType.TalkMessage:
 			string path = "";
 			if (e.cardPaths.length) { mixin(S_TRACE);
 				auto imgPath = e.cardPaths[0];
@@ -3230,19 +3230,19 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 			writeString(f, path);
 			writeString(f, lastRet(e.text), true);
 			break;
-		case CType.PLAY_BGM:
+		case CType.PlayBgm:
 			writeString(f, encodePathLegacy(e.bgmPath));
 			break;
-		case CType.CHANGE_BG_IMAGE:
+		case CType.ChangeBgImage:
 			writeBgImages(d, f, e.backs);
 			break;
-		case CType.PLAY_SOUND:
+		case CType.PlaySound:
 			writeString(f, encodePathLegacy(e.soundPath));
 			break;
-		case CType.WAIT:
+		case CType.Wait:
 			f.writeL(cast(uint)e.wait);
 			break;
-		case CType.EFFECT:
+		case CType.Effect:
 			f.writeL(cast(int)e.signedLevel);
 			byte targ = fromRange(e.range);
 			f.write(targ);
@@ -3256,129 +3256,129 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 				writeMotion(d, f, m);
 			}
 			break;
-		case CType.BRANCH_SELECT:
+		case CType.BranchSelect:
 			writeBool(f, e.targetAll);
 			writeBool(f, e.selectionMethod is SelectionMethod.Random);
 			break;
-		case CType.BRANCH_ABILITY:
+		case CType.BranchAbility:
 			f.writeL(cast(int)e.signedLevel);
 			f.write(fromTargetA(e.targetS));
 			f.writeL(cast(uint)fromPhysical(e.physical));
 			f.writeL(cast(int)fromMental(e.mental));
 			break;
-		case CType.BRANCH_RANDOM:
+		case CType.BranchRandom:
 			f.writeL(cast(uint)e.percent);
 			break;
-		case CType.BRANCH_FLAG:
+		case CType.BranchFlag:
 			writeString(f, e.flag);
 			break;
-		case CType.SET_FLAG:
+		case CType.SetFlag:
 			writeString(f, e.flag);
 			writeBool(f, e.flagValue);
 			break;
-		case CType.BRANCH_MULTI_STEP:
+		case CType.BranchMultiStep:
 			writeString(f, e.step);
 			break;
-		case CType.SET_STEP:
+		case CType.SetStep:
 			writeString(f, e.step);
 			f.writeL(e.stepValue < 10u ? cast(uint)e.stepValue : 10u - 1u);
 			break;
-		case CType.BRANCH_CAST:
+		case CType.BranchCast:
 			f.writeL(cast(uint)e.casts);
 			break;
-		case CType.BRANCH_ITEM:
+		case CType.BranchItem:
 			f.writeL(cast(uint)e.item);
 			f.writeL(cast(uint)e.cardNumber);
 			f.write(fromRange(e.range));
 			break;
-		case CType.BRANCH_SKILL:
+		case CType.BranchSkill:
 			f.writeL(cast(uint)e.skill);
 			f.writeL(cast(uint)e.cardNumber);
 			f.write(fromRange(e.range));
 			break;
-		case CType.BRANCH_INFO:
+		case CType.BranchInfo:
 			f.writeL(cast(uint)e.info);
 			break;
-		case CType.BRANCH_BEAST:
+		case CType.BranchBeast:
 			f.writeL(cast(uint)e.beast);
 			f.writeL(cast(uint)e.cardNumber);
 			f.write(fromRange(e.range));
 			break;
-		case CType.BRANCH_MONEY:
+		case CType.BranchMoney:
 			f.writeL(cast(uint)e.money);
 			break;
-		case CType.BRANCH_COUPON:
+		case CType.BranchCoupon:
 			writeString(f, e.couponNames.length ? e.couponNames[0] : "");
 			f.writeL(cast(int)0x0);
 			f.write(fromCouponRange(e.range));
 			break;
-		case CType.GET_CAST:
+		case CType.GetCast:
 			f.writeL(cast(uint)e.casts);
 			break;
-		case CType.GET_ITEM:
+		case CType.GetItem:
 			f.writeL(cast(uint)e.item);
 			f.writeL(cast(uint)e.cardNumber);
 			f.write(fromRange(e.range));
 			break;
-		case CType.GET_SKILL:
+		case CType.GetSkill:
 			f.writeL(cast(uint)e.skill);
 			f.writeL(cast(uint)e.cardNumber);
 			f.write(fromRange(e.range));
 			break;
-		case CType.GET_INFO:
+		case CType.GetInfo:
 			f.writeL(cast(uint)e.info);
 			break;
-		case CType.GET_BEAST:
+		case CType.GetBeast:
 			f.writeL(cast(uint)e.beast);
 			f.writeL(cast(uint)e.cardNumber);
 			f.write(fromRange(e.range));
 			break;
-		case CType.GET_MONEY:
+		case CType.GetMoney:
 			f.writeL(cast(uint)e.money);
 			break;
-		case CType.GET_COUPON:
+		case CType.GetCoupon:
 			writeString(f, e.coupon);
 			f.writeL(cast(int)e.couponValue);
 			f.write(fromRange(e.range));
 			break;
-		case CType.LOSE_CAST:
+		case CType.LoseCast:
 			f.writeL(cast(uint)e.casts);
 			break;
-		case CType.LOSE_ITEM:
+		case CType.LoseItem:
 			f.writeL(cast(uint)e.item);
 			f.writeL(cast(uint)e.cardNumber);
 			f.write(fromRange(e.range));
 			break;
-		case CType.LOSE_SKILL:
+		case CType.LoseSkill:
 			f.writeL(cast(uint)e.skill);
 			f.writeL(cast(uint)e.cardNumber);
 			f.write(fromRange(e.range));
 			break;
-		case CType.LOSE_INFO:
+		case CType.LoseInfo:
 			f.writeL(cast(uint)e.info);
 			break;
-		case CType.LOSE_BEAST:
+		case CType.LoseBeast:
 			f.writeL(cast(uint)e.beast);
 			f.writeL(cast(uint)e.cardNumber);
 			f.write(fromRange(e.range));
 			break;
-		case CType.LOSE_MONEY:
+		case CType.LoseMoney:
 			f.writeL(cast(uint)e.money);
 			break;
-		case CType.LOSE_COUPON:
+		case CType.LoseCoupon:
 			writeString(f, e.coupon);
 			f.writeL(cast(int)0x0);
 			f.write(fromRange(e.range));
 			break;
-		case CType.TALK_DIALOG:
+		case CType.TalkDialog:
 			switch (e.talkerNC) {
-			case Talker.SELECTED: f.writeL(cast(byte)0); break;
-			case Talker.RANDOM: f.writeL(cast(byte)1); break;
-			case Talker.UNSELECTED: f.writeL(cast(byte)2); break;
-			case Talker.VALUED: f.writeL(cast(byte)3); break;
+			case Talker.Selected: f.writeL(cast(byte)0); break;
+			case Talker.Random: f.writeL(cast(byte)1); break;
+			case Talker.Unselected: f.writeL(cast(byte)2); break;
+			case Talker.Valued: f.writeL(cast(byte)3); break;
 			default: throw new SummaryException("Unknown talker value: " ~ to!(string)(cast(int)e.talkerNC));
 			}
-			if (Talker.VALUED == e.talkerNC) { mixin(S_TRACE);
+			if (Talker.Valued == e.talkerNC) { mixin(S_TRACE);
 				Coupon[] coupons;
 				bool[string] cSet;
 				foreach (cc; e.coupons) { mixin(S_TRACE);
@@ -3405,99 +3405,99 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 				writeString(f, lastRet(dlg.text), true);
 			}
 			break;
-		case CType.SET_STEP_UP:
+		case CType.SetStepUp:
 			writeString(f, e.step);
 			break;
-		case CType.SET_STEP_DOWN:
+		case CType.SetStepDown:
 			writeString(f, e.step);
 			break;
-		case CType.REVERSE_FLAG:
+		case CType.ReverseFlag:
 			writeString(f, e.flag);
 			break;
-		case CType.BRANCH_STEP:
+		case CType.BranchStep:
 			writeString(f, e.step);
 			f.writeL(e.stepValue < 10u ? cast(uint)e.stepValue : 10u - 1u);
 			break;
-		case CType.ELAPSE_TIME:
+		case CType.ElapseTime:
 			break;
-		case CType.BRANCH_LEVEL:
+		case CType.BranchLevel:
 			writeBool(f, e.average);
 			f.writeL(cast(uint)e.unsignedLevel);
 			break;
-		case CType.BRANCH_STATUS:
+		case CType.BranchStatus:
 			f.write(fromStatus(e.status));
 			f.write(fromRange(e.range));
 			break;
-		case CType.BRANCH_PARTY_NUMBER:
+		case CType.BranchPartyNumber:
 			f.writeL(cast(uint)e.partyNumber);
 			break;
-		case CType.SHOW_PARTY:
+		case CType.ShowParty:
 			break;
-		case CType.HIDE_PARTY:
+		case CType.HideParty:
 			break;
-		case CType.EFFECT_BREAK:
+		case CType.EffectBreak:
 			break;
-		case CType.CALL_START:
+		case CType.CallStart:
 			writeString(f, e.start);
 			break;
-		case CType.LINK_PACKAGE:
+		case CType.LinkPackage:
 			f.writeL(cast(uint)e.packages);
 			break;
-		case CType.CALL_PACKAGE:
+		case CType.CallPackage:
 			f.writeL(cast(uint)e.packages);
 			break;
-		case CType.BRANCH_AREA:
+		case CType.BranchArea:
 			break;
-		case CType.BRANCH_BATTLE:
+		case CType.BranchBattle:
 			break;
-		case CType.BRANCH_COMPLETE_STAMP:
+		case CType.BranchCompleteStamp:
 			writeString(f, e.completeStamp);
 			break;
-		case CType.GET_COMPLETE_STAMP:
+		case CType.GetCompleteStamp:
 			writeString(f, e.completeStamp);
 			break;
-		case CType.LOSE_COMPLETE_STAMP:
+		case CType.LoseCompleteStamp:
 			writeString(f, e.completeStamp);
 			break;
-		case CType.BRANCH_GOSSIP:
+		case CType.BranchGossip:
 			writeString(f, e.gossip);
 			break;
-		case CType.GET_GOSSIP:
+		case CType.GetGossip:
 			writeString(f, e.gossip);
 			break;
-		case CType.LOSE_GOSSIP:
+		case CType.LoseGossip:
 			writeString(f, e.gossip);
 			break;
-		case CType.BRANCH_IS_BATTLE:
+		case CType.BranchIsBattle:
 			break;
-		case CType.REDISPLAY:
+		case CType.Redisplay:
 			break;
-		case CType.CHECK_FLAG:
+		case CType.CheckFlag:
 			writeString(f, e.flag);
 			break;
-		case CType.SUBSTITUTE_STEP:
+		case CType.SubstituteStep:
 			writeString(f, e.step);
 			writeString(f, e.step2);
 			break;
-		case CType.SUBSTITUTE_FLAG:
+		case CType.SubstituteFlag:
 			writeString(f, e.flag);
 			writeString(f, e.flag2);
 			break;
-		case CType.BRANCH_STEP_CMP:
+		case CType.BranchStepCmp:
 			writeString(f, e.step);
 			writeString(f, e.step2);
 			break;
-		case CType.BRANCH_FLAG_CMP:
+		case CType.BranchFlagCmp:
 			writeString(f, e.flag);
 			writeString(f, e.flag2);
 			break;
-		case CType.BRANCH_RANDOM_SELECT:
+		case CType.BranchRandomSelect:
 			f.write(fromCastRanges(e.castRange));
 			ubyte style = 0b00;
 			if (0 < e.levelMax) { mixin(S_TRACE);
 				style |= 0b01;
 			}
-			if (e.status !is Status.NONE) { mixin(S_TRACE);
+			if (e.status !is Status.None) { mixin(S_TRACE);
 				style |= 0b10;
 			}
 			f.write(style);
@@ -3509,31 +3509,31 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 				f.write(fromStatus(e.status));
 			}
 			break;
-		case CType.BRANCH_KEY_CODE:
+		case CType.BranchKeyCode:
 			f.write(fromKeyCodeRange(e.keyCodeRange));
 			if (e.targetIsSkill && e.targetIsItem && e.targetIsBeast) { mixin(S_TRACE);
-				f.write(fromEffectCardType(EffectCardType.ALL));
+				f.write(fromEffectCardType(EffectCardType.All));
 			} else if (e.targetIsSkill) { mixin(S_TRACE);
-				f.write(fromEffectCardType(EffectCardType.SKILL));
+				f.write(fromEffectCardType(EffectCardType.Skill));
 			} else if (e.targetIsItem) { mixin(S_TRACE);
-				f.write(fromEffectCardType(EffectCardType.ITEM));
+				f.write(fromEffectCardType(EffectCardType.Item));
 			} else if (e.targetIsBeast) { mixin(S_TRACE);
-				f.write(fromEffectCardType(EffectCardType.BEAST));
+				f.write(fromEffectCardType(EffectCardType.Beast));
 			} else { mixin(S_TRACE);
-				f.write(fromEffectCardType(EffectCardType.ALL));
+				f.write(fromEffectCardType(EffectCardType.All));
 			}
 			writeString(f, e.keyCode);
 			break;
-		case CType.CHECK_STEP:
+		case CType.CheckStep:
 			writeString(f, e.step);
 			f.writeL(e.stepValue < 10u ? cast(uint)e.stepValue : 10u - 1u);
 			f.write(fromComparison4(e.comparison4));
 			break;
-		case CType.BRANCH_ROUND:
+		case CType.BranchRound:
 			f.write(fromComparison3(e.comparison3));
 			f.writeL(cast(uint)e.round);
 			break;
-/+		case CType.MOVE_BG_IMAGE:
+/+		case CType.MoveBgImage:
 			writeExString(f, e.cellName);
 			ubyte ctrl = 0b00;
 			if (e.positionType !is CoordinateType.None) { mixin(S_TRACE);
@@ -3554,23 +3554,23 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 				f.writeExInt(e.height);
 			}
 			break;
-		case CType.LOSE_BG_IMAGE:
+		case CType.LoseBgImage:
 			writeExString(f, e.cellName);
 			break;
-		case CType.REPLACE_BG_IMAGE:
+		case CType.ReplaceBgImage:
 			writeExString(f, e.cellName);
 			writeBgImages(d, f, e.backs, true);
 			break;
-+/		case CType.MOVE_BG_IMAGE: // Wsn.1
-		case CType.LOSE_BG_IMAGE: // Wsn.1
-		case CType.REPLACE_BG_IMAGE: // Wsn.1
-		case CType.BRANCH_MULTI_COUPON: // Wsn.2
-		case CType.BRANCH_MULTI_RANDOM: // Wsn.2
-		case CType.MOVE_CARD: // Wsn.3
-		case CType.CHANGE_ENVIRONMENT: // Wsn.4
-		case CType.BRANCH_VARIANT: // Wsn.4
-		case CType.SET_VARIANT: // Wsn.4
-		case CType.CHECK_VARIANT: // Wsn.4
++/		case CType.MoveBgImage: // Wsn.1
+		case CType.LoseBgImage: // Wsn.1
+		case CType.ReplaceBgImage: // Wsn.1
+		case CType.BranchMultiCoupon: // Wsn.2
+		case CType.BranchMultiRandom: // Wsn.2
+		case CType.MoveCard: // Wsn.3
+		case CType.ChangeEnvironment: // Wsn.4
+		case CType.BranchVariant: // Wsn.4
+		case CType.SetVariant: // Wsn.4
+		case CType.CheckVariant: // Wsn.4
 			// 非対応コンテントはメッセージコンテントの内容に説明を書いたものに置換する
 			writeString(f, "");
 			writeString(f, lastRet(d.prop.msgs.contentName(e.type)), true);
@@ -3875,10 +3875,10 @@ private void writeCast(ref SData d, ref ByteIO f, CastCard c) { mixin(S_TRACE);
 	writeBool(f, c.automaton);
 	writeBool(f, c.unholy);
 	writeBool(f, c.constructure);
-	writeBool(f, c.resist(Element.FIRE));
-	writeBool(f, c.resist(Element.ICE));
-	writeBool(f, c.weakness(Element.FIRE));
-	writeBool(f, c.weakness(Element.ICE));
+	writeBool(f, c.resist(Element.Fire));
+	writeBool(f, c.resist(Element.Ice));
+	writeBool(f, c.weakness(Element.Fire));
+	writeBool(f, c.weakness(Element.Ice));
 	f.writeL(cast(uint)c.level);
 	f.writeL(cast(uint)0u); // 所持金。現行エンジンでは未使用
 	writeString(f, c.desc, true, true);
@@ -3886,27 +3886,27 @@ private void writeCast(ref SData d, ref ByteIO f, CastCard c) { mixin(S_TRACE);
 	f.writeL(cast(uint)c.lifeMax);
 	f.writeL(cast(uint)c.paralyze);
 	f.writeL(cast(uint)c.poison);
-	f.writeL(cast(int)c.defaultEnhance(Enhance.AVOID));
-	f.writeL(cast(int)c.defaultEnhance(Enhance.RESIST));
-	f.writeL(cast(int)c.defaultEnhance(Enhance.DEFENSE));
-	f.writeL(cast(uint)c.physical(Physical.DEX));
-	f.writeL(cast(uint)c.physical(Physical.AGL));
-	f.writeL(cast(uint)c.physical(Physical.INT));
-	f.writeL(cast(uint)c.physical(Physical.STR));
-	f.writeL(cast(uint)c.physical(Physical.VIT));
-	f.writeL(cast(uint)c.physical(Physical.MIN));
-	f.writeL(cast(int)c.mental(Mental.AGGRESSIVE));
-	f.writeL(cast(int)c.mental(Mental.CHEERFUL));
-	f.writeL(cast(int)c.mental(Mental.BRAVE));
-	f.writeL(cast(int)c.mental(Mental.CAUTIOUS));
-	f.writeL(cast(int)c.mental(Mental.TRICKISH));
+	f.writeL(cast(int)c.defaultEnhance(Enhance.Avoid));
+	f.writeL(cast(int)c.defaultEnhance(Enhance.Resist));
+	f.writeL(cast(int)c.defaultEnhance(Enhance.Defense));
+	f.writeL(cast(uint)c.physical(Physical.Dex));
+	f.writeL(cast(uint)c.physical(Physical.Agl));
+	f.writeL(cast(uint)c.physical(Physical.Int));
+	f.writeL(cast(uint)c.physical(Physical.Str));
+	f.writeL(cast(uint)c.physical(Physical.Vit));
+	f.writeL(cast(uint)c.physical(Physical.Min));
+	f.writeL(cast(int)c.mental(Mental.Aggressive));
+	f.writeL(cast(int)c.mental(Mental.Cheerful));
+	f.writeL(cast(int)c.mental(Mental.Brave));
+	f.writeL(cast(int)c.mental(Mental.Cautious));
+	f.writeL(cast(int)c.mental(Mental.Trickish));
 	f.write(fromMentality(c.mentality));
 	f.writeL(cast(uint)c.mentalityRound);
 	f.writeL(cast(uint)c.bindRound);
 	f.writeL(cast(uint)c.silenceRound);
 	f.writeL(cast(uint)c.faceUpRound);
 	f.writeL(cast(uint)c.antiMagicRound);
-	foreach (enh; [Enhance.ACTION, Enhance.AVOID, Enhance.RESIST, Enhance.DEFENSE]) { mixin(S_TRACE);
+	foreach (enh; [Enhance.Action, Enhance.Avoid, Enhance.Resist, Enhance.Defense]) { mixin(S_TRACE);
 		int val = c.enhance(enh);
 		uint round = c.enhanceRound(enh);
 		if (!val) round = 0;
@@ -3959,9 +3959,9 @@ private void writeEffCard(ref SData d, ref ByteIO f, EffectCard c, byte type, ul
 	foreach (m; c.motions) { mixin(S_TRACE);
 		writeMotion(d, f, m);
 	}
-	f.writeL(cast(int)c.enhance(Enhance.AVOID));
-	f.writeL(cast(int)c.enhance(Enhance.RESIST));
-	f.writeL(cast(int)c.enhance(Enhance.DEFENSE));
+	f.writeL(cast(int)c.enhance(Enhance.Avoid));
+	f.writeL(cast(int)c.enhance(Enhance.Resist));
+	f.writeL(cast(int)c.enhance(Enhance.Defense));
 	writeString(f, c.soundPath1.length ? encodePathLegacy(c.soundPath1) : "（なし）");
 	writeString(f, c.soundPath2.length ? encodePathLegacy(c.soundPath2) : "（なし）");
 	for (uint i = 0u; i < 5u; i++) { mixin(S_TRACE);
@@ -4007,9 +4007,9 @@ private void writeItem(ref SData d, ref ByteIO f, ItemCard c) { mixin(S_TRACE);
 	f.writeL(cast(uint)c.useLimit);
 	f.writeL(cast(uint)c.useLimitMax);
 	f.writeL(cast(uint)c.price);
-	f.writeL(cast(int)c.enhanceOwner(Enhance.AVOID));
-	f.writeL(cast(int)c.enhanceOwner(Enhance.RESIST));
-	f.writeL(cast(int)c.enhanceOwner(Enhance.DEFENSE));
+	f.writeL(cast(int)c.enhanceOwner(Enhance.Avoid));
+	f.writeL(cast(int)c.enhanceOwner(Enhance.Resist));
+	f.writeL(cast(int)c.enhanceOwner(Enhance.Defense));
 }
 private void writeBeast(ref SData d, ref ByteIO f, BeastCard c) { mixin(S_TRACE);
 	ulong id = c.id;

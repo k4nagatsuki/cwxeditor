@@ -2911,17 +2911,17 @@ public:
 		evt.setMenu(mEvt);
 		createMenuItem(_comm, mEvt, MenuID.InitVariablesTree, &copyInitTree, () => 0 < flags.getSelectionCount());
 		new MenuItem(mEvt, SWT.SEPARATOR);
-		createMenuItem2(_comm, mEvt, MenuProps.buildMenu(prop.msgs.contentName(CType.REVERSE_FLAG), "R", "", false), prop.images.content(CType.REVERSE_FLAG), &copyFlagReverseTree, () => 0 < selectionFlags.length);
+		createMenuItem2(_comm, mEvt, MenuProps.buildMenu(prop.msgs.contentName(CType.ReverseFlag), "R", "", false), prop.images.content(CType.ReverseFlag), &copyFlagReverseTree, () => 0 < selectionFlags.length);
 		new MenuItem(mEvt, SWT.SEPARATOR);
-		createMenuItem2(_comm, mEvt, MenuProps.buildMenu(prop.msgs.setFlagTrue, "T", "", false), prop.images.content(CType.SET_FLAG), () => copyFlagTree(true), () => 0 < selectionFlags.length);
-		createMenuItem2(_comm, mEvt, MenuProps.buildMenu(prop.msgs.setFlagFalse, "F", "", false), prop.images.content(CType.SET_FLAG), () => copyFlagTree(false), () => 0 < selectionFlags.length);
+		createMenuItem2(_comm, mEvt, MenuProps.buildMenu(prop.msgs.setFlagTrue, "T", "", false), prop.images.content(CType.SetFlag), () => copyFlagTree(true), () => 0 < selectionFlags.length);
+		createMenuItem2(_comm, mEvt, MenuProps.buildMenu(prop.msgs.setFlagFalse, "F", "", false), prop.images.content(CType.SetFlag), () => copyFlagTree(false), () => 0 < selectionFlags.length);
 		new MenuItem(mEvt, SWT.SEPARATOR);
-		createMenuItem2(_comm, mEvt, MenuProps.buildMenu(prop.msgs.contentName(CType.SET_STEP_UP), "U", "", false), prop.images.content(CType.SET_STEP_UP), &copyStepUpTree, () => 0 < selectionSteps.length);
-		createMenuItem2(_comm, mEvt, MenuProps.buildMenu(prop.msgs.contentName(CType.SET_STEP_DOWN), "D", "", false), prop.images.content(CType.SET_STEP_DOWN), &copyStepDownTree, () => 0 < selectionSteps.length);
+		createMenuItem2(_comm, mEvt, MenuProps.buildMenu(prop.msgs.contentName(CType.SetStepUp), "U", "", false), prop.images.content(CType.SetStepUp), &copyStepUpTree, () => 0 < selectionSteps.length);
+		createMenuItem2(_comm, mEvt, MenuProps.buildMenu(prop.msgs.contentName(CType.SetStepDown), "D", "", false), prop.images.content(CType.SetStepDown), &copyStepDownTree, () => 0 < selectionSteps.length);
 		new MenuItem(mEvt, SWT.SEPARATOR);
 		void ssValue(uint i) { mixin(S_TRACE);
 			string mnemonic = i < 10 ? .text(i) : "";
-			createMenuItem2(_comm, mEvt, MenuProps.buildMenu(.tryFormat(prop.msgs.setStepValue, .parseDollarParams(prop.var.etc.stepValueName, ['N':.to!string(i)])), mnemonic, "", false), prop.images.content(CType.SET_STEP), () => copyStepTree(i), () => 0 < selectionSteps.length);
+			createMenuItem2(_comm, mEvt, MenuProps.buildMenu(.tryFormat(prop.msgs.setStepValue, .parseDollarParams(prop.var.etc.stepValueName, ['N':.to!string(i)])), mnemonic, "", false), prop.images.content(CType.SetStep), () => copyStepTree(i), () => 0 < selectionSteps.length);
 		}
 		foreach (i; 0..prop.looks.stepMaxCount) { mixin(S_TRACE);
 			ssValue(i);

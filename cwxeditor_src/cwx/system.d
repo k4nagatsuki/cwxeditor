@@ -269,23 +269,23 @@ class System {
 	Aptitude actionCardAptitude(ActionCardType type) { mixin(S_TRACE);
 		switch (type) {
 		case ActionCardType.Exchange:
-			return Aptitude(Physical.INT, Mental.CAUTIOUS);
+			return Aptitude(Physical.Int, Mental.Cautious);
 		case ActionCardType.Attack:
-			return Aptitude(Physical.STR, Mental.BRAVE);
+			return Aptitude(Physical.Str, Mental.Brave);
 		case ActionCardType.PowerfulAttack:
-			return Aptitude(Physical.STR, Mental.AGGRESSIVE);
+			return Aptitude(Physical.Str, Mental.Aggressive);
 		case ActionCardType.CriticalAttack:
-			return Aptitude(Physical.DEX, Mental.BRAVE);
+			return Aptitude(Physical.Dex, Mental.Brave);
 		case ActionCardType.Feint:
-			return Aptitude(Physical.DEX, Mental.TRICKISH);
+			return Aptitude(Physical.Dex, Mental.Trickish);
 		case ActionCardType.Defense:
-			return Aptitude(Physical.MIN, Mental.CAUTIOUS);
+			return Aptitude(Physical.Min, Mental.Cautious);
 		case ActionCardType.Distance:
-			return Aptitude(Physical.AGL, Mental.CAUTIOUS);
+			return Aptitude(Physical.Agl, Mental.Cautious);
 		case ActionCardType.RunAway:
-			return Aptitude(Physical.AGL, Mental.UNBRAVE);
+			return Aptitude(Physical.Agl, Mental.Unbrave);
 		case ActionCardType.Confuse:
-			return Aptitude(Physical.INT, Mental.UNTRICKISH);
+			return Aptitude(Physical.Int, Mental.Untrickish);
 		default:
 			throw new Exception("Invalid action type: %s".format(cast(int)type));
 		}
@@ -294,23 +294,23 @@ class System {
 	/// 行動順にかかわる能力。
 	@property
 	const
-	Aptitude actionOrderAptitude() { return Aptitude(Physical.AGL, Mental.UNCAUTIOUS); }
+	Aptitude actionOrderAptitude() { return Aptitude(Physical.Agl, Mental.Uncautious); }
 	/// 逃走成功率にかかわる能力。
 	@property
 	const
-	Aptitude runAwaySpeedAptitude() { return Aptitude(Physical.AGL, Mental.TRICKISH); }
+	Aptitude runAwaySpeedAptitude() { return Aptitude(Physical.Agl, Mental.Trickish); }
 	/// 毒や麻痺からの回復力にかかわる能力。
 	@property
 	const
-	Aptitude resilienceAptitude() { return Aptitude(Physical.VIT, Mental.AGGRESSIVE); }
+	Aptitude resilienceAptitude() { return Aptitude(Physical.Vit, Mental.Aggressive); }
 	/// 抵抗にかかわる能力。
 	@property
 	const
-	Aptitude resistanceAptitude() { return Aptitude(Physical.MIN, Mental.BRAVE); }
+	Aptitude resistanceAptitude() { return Aptitude(Physical.Min, Mental.Brave); }
 	/// 回避にかかわる能力。
 	@property
 	const
-	Aptitude avoidanceAptitude() { return Aptitude(Physical.AGL, Mental.CAUTIOUS); }
+	Aptitude avoidanceAptitude() { return Aptitude(Physical.Agl, Mental.Cautious); }
 
 	/// ペナルティカードであればtrue。
 	const
@@ -595,20 +595,20 @@ class System {
 		R[T] r;
 		static if (is(T:Physical)) {
 			static immutable KEYS = [
-				Physical.DEX,
-				Physical.AGL,
-				Physical.INT,
-				Physical.STR,
-				Physical.VIT,
-				Physical.MIN,
+				Physical.Dex,
+				Physical.Agl,
+				Physical.Int,
+				Physical.Str,
+				Physical.Vit,
+				Physical.Min,
 			];
 		} else static if (is(T:Mental)) {
 			static immutable KEYS = [
-				Mental.AGGRESSIVE,
-				Mental.CAUTIOUS,
-				Mental.BRAVE,
-				Mental.CHEERFUL,
-				Mental.TRICKISH,
+				Mental.Aggressive,
+				Mental.Cautious,
+				Mental.Brave,
+				Mental.Cheerful,
+				Mental.Trickish,
 			];
 		} else static assert (0);
 		foreach (iKey, key; KEYS) { mixin(S_TRACE);

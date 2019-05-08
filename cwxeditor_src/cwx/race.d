@@ -80,24 +80,24 @@ template RaceParam(bool Set) {
 		unholy = r.unholy;
 		weaponResist = r.weaponResist;
 		magicResist = r.magicResist;
-		resist(Element.FIRE, r.resist(Element.FIRE));
-		resist(Element.ICE, r.resist(Element.ICE));
-		weakness(Element.FIRE, r.weakness(Element.FIRE));
-		weakness(Element.ICE, r.weakness(Element.ICE));
-		physical(Physical.DEX, r.physical(Physical.DEX));
-		physical(Physical.AGL, r.physical(Physical.AGL));
-		physical(Physical.INT, r.physical(Physical.INT));
-		physical(Physical.STR, r.physical(Physical.STR));
-		physical(Physical.VIT, r.physical(Physical.VIT));
-		physical(Physical.MIN, r.physical(Physical.MIN));
-		mental(Mental.AGGRESSIVE, r.mental(Mental.AGGRESSIVE));
-		mental(Mental.CHEERFUL, r.mental(Mental.CHEERFUL));
-		mental(Mental.BRAVE, r.mental(Mental.BRAVE));
-		mental(Mental.CAUTIOUS, r.mental(Mental.CAUTIOUS));
-		mental(Mental.TRICKISH, r.mental(Mental.TRICKISH));
-		defaultEnhance(Enhance.AVOID, r.defaultEnhance(Enhance.AVOID));
-		defaultEnhance(Enhance.RESIST, r.defaultEnhance(Enhance.RESIST));
-		defaultEnhance(Enhance.DEFENSE, r.defaultEnhance(Enhance.DEFENSE));
+		resist(Element.Fire, r.resist(Element.Fire));
+		resist(Element.Ice, r.resist(Element.Ice));
+		weakness(Element.Fire, r.weakness(Element.Fire));
+		weakness(Element.Ice, r.weakness(Element.Ice));
+		physical(Physical.Dex, r.physical(Physical.Dex));
+		physical(Physical.Agl, r.physical(Physical.Agl));
+		physical(Physical.Int, r.physical(Physical.Int));
+		physical(Physical.Str, r.physical(Physical.Str));
+		physical(Physical.Vit, r.physical(Physical.Vit));
+		physical(Physical.Min, r.physical(Physical.Min));
+		mental(Mental.Aggressive, r.mental(Mental.Aggressive));
+		mental(Mental.Cheerful, r.mental(Mental.Cheerful));
+		mental(Mental.Brave, r.mental(Mental.Brave));
+		mental(Mental.Cautious, r.mental(Mental.Cautious));
+		mental(Mental.Trickish, r.mental(Mental.Trickish));
+		defaultEnhance(Enhance.Avoid, r.defaultEnhance(Enhance.Avoid));
+		defaultEnhance(Enhance.Resist, r.defaultEnhance(Enhance.Resist));
+		defaultEnhance(Enhance.Defense, r.defaultEnhance(Enhance.Defense));
 	}
 
 	/// パラメータを比較する。
@@ -109,24 +109,24 @@ template RaceParam(bool Set) {
 			&& unholy == r.unholy
 			&& weaponResist == r.weaponResist
 			&& magicResist == r.magicResist
-			&& resist(Element.FIRE) == r.resist(Element.FIRE)
-			&& resist(Element.ICE) == r.resist(Element.ICE)
-			&& weakness(Element.FIRE) == r.weakness(Element.FIRE)
-			&& weakness(Element.ICE) == r.weakness(Element.ICE)
-			&& physical(Physical.DEX) == r.physical(Physical.DEX)
-			&& physical(Physical.AGL) == r.physical(Physical.AGL)
-			&& physical(Physical.INT) == r.physical(Physical.INT)
-			&& physical(Physical.STR) == r.physical(Physical.STR)
-			&& physical(Physical.VIT) == r.physical(Physical.VIT)
-			&& physical(Physical.MIN) == r.physical(Physical.MIN)
-			&& mental(Mental.AGGRESSIVE) == r.mental(Mental.AGGRESSIVE)
-			&& mental(Mental.CHEERFUL) == r.mental(Mental.CHEERFUL)
-			&& mental(Mental.BRAVE) == r.mental(Mental.BRAVE)
-			&& mental(Mental.CAUTIOUS) == r.mental(Mental.CAUTIOUS)
-			&& mental(Mental.TRICKISH) == r.mental(Mental.TRICKISH)
-			&& defaultEnhance(Enhance.AVOID) ==r.defaultEnhance(Enhance.AVOID)
-			&& defaultEnhance(Enhance.RESIST) == r.defaultEnhance(Enhance.RESIST)
-			&& defaultEnhance(Enhance.DEFENSE) == r.defaultEnhance(Enhance.DEFENSE);
+			&& resist(Element.Fire) == r.resist(Element.Fire)
+			&& resist(Element.Ice) == r.resist(Element.Ice)
+			&& weakness(Element.Fire) == r.weakness(Element.Fire)
+			&& weakness(Element.Ice) == r.weakness(Element.Ice)
+			&& physical(Physical.Dex) == r.physical(Physical.Dex)
+			&& physical(Physical.Agl) == r.physical(Physical.Agl)
+			&& physical(Physical.Int) == r.physical(Physical.Int)
+			&& physical(Physical.Str) == r.physical(Physical.Str)
+			&& physical(Physical.Vit) == r.physical(Physical.Vit)
+			&& physical(Physical.Min) == r.physical(Physical.Min)
+			&& mental(Mental.Aggressive) == r.mental(Mental.Aggressive)
+			&& mental(Mental.Cheerful) == r.mental(Mental.Cheerful)
+			&& mental(Mental.Brave) == r.mental(Mental.Brave)
+			&& mental(Mental.Cautious) == r.mental(Mental.Cautious)
+			&& mental(Mental.Trickish) == r.mental(Mental.Trickish)
+			&& defaultEnhance(Enhance.Avoid) ==r.defaultEnhance(Enhance.Avoid)
+			&& defaultEnhance(Enhance.Resist) == r.defaultEnhance(Enhance.Resist)
+			&& defaultEnhance(Enhance.Defense) == r.defaultEnhance(Enhance.Defense);
 	}
 
 	public {
@@ -238,29 +238,29 @@ template RaceParam(bool Set) {
 		const
 		double mental(Mental m) { mixin(S_TRACE);
 			final switch (m) {
-			case Mental.AGGRESSIVE, Mental.CHEERFUL, Mental.BRAVE, Mental.CAUTIOUS, Mental.TRICKISH:
+			case Mental.Aggressive, Mental.Cheerful, Mental.Brave, Mental.Cautious, Mental.Trickish:
 				return _mtl[m];
-			case Mental.UNAGGRESSIVE:
-				return _mtl[Mental.AGGRESSIVE] * -1;
-			case Mental.UNCHEERFUL:
-				return _mtl[Mental.CHEERFUL] * -1;
-			case Mental.UNBRAVE:
-				return _mtl[Mental.BRAVE] * -1;
-			case Mental.UNCAUTIOUS:
-				return _mtl[Mental.CAUTIOUS] * -1;
-			case Mental.UNTRICKISH:
-				return _mtl[Mental.TRICKISH] * -1;
+			case Mental.Unaggressive:
+				return _mtl[Mental.Aggressive] * -1;
+			case Mental.Uncheerful:
+				return _mtl[Mental.Cheerful] * -1;
+			case Mental.Unbrave:
+				return _mtl[Mental.Brave] * -1;
+			case Mental.Uncautious:
+				return _mtl[Mental.Cautious] * -1;
+			case Mental.Untrickish:
+				return _mtl[Mental.Trickish] * -1;
 			}
 		}
 		static if (Set) {
 			/// ditto
 			void mental(Mental m, double val) { mixin(S_TRACE);
 				final switch (m) {
-				case Mental.AGGRESSIVE, Mental.CHEERFUL, Mental.BRAVE, Mental.CAUTIOUS, Mental.TRICKISH:
+				case Mental.Aggressive, Mental.Cheerful, Mental.Brave, Mental.Cautious, Mental.Trickish:
 					if (_mtl[m] != val) changed();
 					_mtl[m] = val;
 					break;
-				case Mental.UNAGGRESSIVE, Mental.UNCHEERFUL, Mental.UNBRAVE, Mental.UNCAUTIOUS, Mental.UNTRICKISH:
+				case Mental.Unaggressive, Mental.Uncheerful, Mental.Unbrave, Mental.Uncautious, Mental.Untrickish:
 					if (_mtl[m] != val * -1) changed();
 					_mtl[m] = val * -1;
 					break;
@@ -279,24 +279,24 @@ template RaceParam(bool Set) {
 		}
 	}
 	private void constructRace() { mixin(S_TRACE);
-		_res[Element.FIRE] = false;
-		_res[Element.ICE] = false;
-		_weak[Element.FIRE] = false;
-		_weak[Element.ICE] = false;
-		_phy[Physical.DEX] = 0;
-		_phy[Physical.AGL] = 0;
-		_phy[Physical.INT] = 0;
-		_phy[Physical.STR] = 0;
-		_phy[Physical.VIT] = 0;
-		_phy[Physical.MIN] = 0;
-		_mtl[Mental.AGGRESSIVE] = 0;
-		_mtl[Mental.CHEERFUL] = 0;
-		_mtl[Mental.BRAVE] = 0;
-		_mtl[Mental.CAUTIOUS] = 0;
-		_mtl[Mental.TRICKISH] = 0;
-		_dEnh[Enhance.AVOID] = 0;
-		_dEnh[Enhance.RESIST] = 0;
-		_dEnh[Enhance.DEFENSE] = 0;
+		_res[Element.Fire] = false;
+		_res[Element.Ice] = false;
+		_weak[Element.Fire] = false;
+		_weak[Element.Ice] = false;
+		_phy[Physical.Dex] = 0;
+		_phy[Physical.Agl] = 0;
+		_phy[Physical.Int] = 0;
+		_phy[Physical.Str] = 0;
+		_phy[Physical.Vit] = 0;
+		_phy[Physical.Min] = 0;
+		_mtl[Mental.Aggressive] = 0;
+		_mtl[Mental.Cheerful] = 0;
+		_mtl[Mental.Brave] = 0;
+		_mtl[Mental.Cautious] = 0;
+		_mtl[Mental.Trickish] = 0;
+		_dEnh[Enhance.Avoid] = 0;
+		_dEnh[Enhance.Resist] = 0;
+		_dEnh[Enhance.Defense] = 0;
 	}
 	const
 	private void setFeature(ref XNode parent) { mixin(S_TRACE);
@@ -310,32 +310,32 @@ template RaceParam(bool Set) {
 		ne.newAttr("weapon", fromBool(_weaponRes));
 		ne.newAttr("magic", fromBool(_magicRes));
 		auto r = fNode.newElement("Resist");
-		r.newAttr("fire", fromBool(_res.get(Element.FIRE, false)));
-		r.newAttr("ice", fromBool(_res.get(Element.ICE, false)));
+		r.newAttr("fire", fromBool(_res.get(Element.Fire, false)));
+		r.newAttr("ice", fromBool(_res.get(Element.Ice, false)));
 		auto w = fNode.newElement("Weakness");
-		w.newAttr("fire", fromBool(_weak.get(Element.FIRE, false)));
-		w.newAttr("ice", fromBool(_weak.get(Element.ICE, false)));
+		w.newAttr("fire", fromBool(_weak.get(Element.Fire, false)));
+		w.newAttr("ice", fromBool(_weak.get(Element.Ice, false)));
 	}
 	const
 	private void setAbility(ref XNode parent) { mixin(S_TRACE);
 		auto aNode = parent.newElement("Ability");
 		auto phy = aNode.newElement("Physical");
-		phy.newAttr("dex", _phy[Physical.DEX]);
-		phy.newAttr("agl", _phy[Physical.AGL]);
-		phy.newAttr("int", _phy[Physical.INT]);
-		phy.newAttr("str", _phy[Physical.STR]);
-		phy.newAttr("vit", _phy[Physical.VIT]);
-		phy.newAttr("min", _phy[Physical.MIN]);
+		phy.newAttr("dex", _phy[Physical.Dex]);
+		phy.newAttr("agl", _phy[Physical.Agl]);
+		phy.newAttr("int", _phy[Physical.Int]);
+		phy.newAttr("str", _phy[Physical.Str]);
+		phy.newAttr("vit", _phy[Physical.Vit]);
+		phy.newAttr("min", _phy[Physical.Min]);
 		auto mtl = aNode.newElement("Mental");
-		mtl.newAttr("aggressive", _mtl[Mental.AGGRESSIVE]);
-		mtl.newAttr("cheerful", _mtl[Mental.CHEERFUL]);
-		mtl.newAttr("brave", _mtl[Mental.BRAVE]);
-		mtl.newAttr("cautious", _mtl[Mental.CAUTIOUS]);
-		mtl.newAttr("trickish", _mtl[Mental.TRICKISH]);
+		mtl.newAttr("aggressive", _mtl[Mental.Aggressive]);
+		mtl.newAttr("cheerful", _mtl[Mental.Cheerful]);
+		mtl.newAttr("brave", _mtl[Mental.Brave]);
+		mtl.newAttr("cautious", _mtl[Mental.Cautious]);
+		mtl.newAttr("trickish", _mtl[Mental.Trickish]);
 		auto enh = aNode.newElement("Enhance");
-		enh.newAttr("avoid", _dEnh.get(Enhance.AVOID, false));
-		enh.newAttr("resist", _dEnh.get(Enhance.RESIST, false));
-		enh.newAttr("defense", _dEnh.get(Enhance.DEFENSE, false));
+		enh.newAttr("avoid", _dEnh.get(Enhance.Avoid, false));
+		enh.newAttr("resist", _dEnh.get(Enhance.Resist, false));
+		enh.newAttr("defense", _dEnh.get(Enhance.Defense, false));
 	}
 	private void loadFeature(ref XNode fNode, in XMLInfo ver) { mixin(S_TRACE);
 		assert (fNode.name == "Feature");
@@ -350,36 +350,36 @@ template RaceParam(bool Set) {
 			_magicRes = parseBool(neNode.attr("magic", true));
 		};
 		fNode.onTag["Resist"] = (ref XNode rNode) { mixin(S_TRACE);
-			_res[Element.FIRE] = parseBool(rNode.attr("fire", true));
-			_res[Element.ICE] = parseBool(rNode.attr("ice", true));
+			_res[Element.Fire] = parseBool(rNode.attr("fire", true));
+			_res[Element.Ice] = parseBool(rNode.attr("ice", true));
 		};
 		fNode.onTag["Weakness"] = (ref XNode wNode) { mixin(S_TRACE);
-			_weak[Element.FIRE] = parseBool(wNode.attr("fire", true));
-			_weak[Element.ICE] = parseBool(wNode.attr("ice", true));
+			_weak[Element.Fire] = parseBool(wNode.attr("fire", true));
+			_weak[Element.Ice] = parseBool(wNode.attr("ice", true));
 		};
 		fNode.parse();
 	}
 	private void loadAbility(ref XNode aNode, in XMLInfo ver) { mixin(S_TRACE);
 		assert (aNode.name == "Ability");
 		aNode.onTag["Physical"] = (ref XNode phyNode) { mixin(S_TRACE);
-			_phy[Physical.DEX] = phyNode.attr!(int)("dex", true);
-			_phy[Physical.AGL] = phyNode.attr!(int)("agl", true);
-			_phy[Physical.INT] = phyNode.attr!(int)("int", true);
-			_phy[Physical.STR] = phyNode.attr!(int)("str", true);
-			_phy[Physical.VIT] = phyNode.attr!(int)("vit", true);
-			_phy[Physical.MIN] = phyNode.attr!(int)("min", true);
+			_phy[Physical.Dex] = phyNode.attr!(int)("dex", true);
+			_phy[Physical.Agl] = phyNode.attr!(int)("agl", true);
+			_phy[Physical.Int] = phyNode.attr!(int)("int", true);
+			_phy[Physical.Str] = phyNode.attr!(int)("str", true);
+			_phy[Physical.Vit] = phyNode.attr!(int)("vit", true);
+			_phy[Physical.Min] = phyNode.attr!(int)("min", true);
 		};
 		aNode.onTag["Mental"] = (ref XNode mtlNode) { mixin(S_TRACE);
-			_mtl[Mental.AGGRESSIVE] = mtlNode.attr!(double)("aggressive", true);
-			_mtl[Mental.CHEERFUL] = mtlNode.attr!(double)("cheerful", true);
-			_mtl[Mental.BRAVE] = mtlNode.attr!(double)("brave", true);
-			_mtl[Mental.CAUTIOUS] = mtlNode.attr!(double)("cautious", true);
-			_mtl[Mental.TRICKISH] = mtlNode.attr!(double)("trickish", true);
+			_mtl[Mental.Aggressive] = mtlNode.attr!(double)("aggressive", true);
+			_mtl[Mental.Cheerful] = mtlNode.attr!(double)("cheerful", true);
+			_mtl[Mental.Brave] = mtlNode.attr!(double)("brave", true);
+			_mtl[Mental.Cautious] = mtlNode.attr!(double)("cautious", true);
+			_mtl[Mental.Trickish] = mtlNode.attr!(double)("trickish", true);
 		};
 		aNode.onTag["Enhance"] = (ref XNode enhNode) { mixin(S_TRACE);
-			_dEnh[Enhance.AVOID] = enhNode.attr!(int)("avoid", true);
-			_dEnh[Enhance.RESIST] = enhNode.attr!(int)("resist", true);
-			_dEnh[Enhance.DEFENSE] = enhNode.attr!(int)("defense", true);
+			_dEnh[Enhance.Avoid] = enhNode.attr!(int)("avoid", true);
+			_dEnh[Enhance.Resist] = enhNode.attr!(int)("resist", true);
+			_dEnh[Enhance.Defense] = enhNode.attr!(int)("defense", true);
 		};
 		aNode.parse();
 	}

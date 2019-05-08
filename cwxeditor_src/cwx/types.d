@@ -32,59 +32,59 @@ public:
 
 /// 精神状態。
 enum Mentality {
-	NORMAL, /// 正常。
-	SLEEP, /// 睡眠。
-	CONFUSE, /// 混乱。
-	OVERHEAT, /// 激昂。
-	BRAVE, /// 勇敢。
-	PANIC /// 恐慌。
+	Normal, /// 正常。
+	Sleep, /// 睡眠。
+	Confuse, /// 混乱。
+	Overheat, /// 激昂。
+	Brave, /// 勇敢。
+	Panic /// 恐慌。
 }
 /// ditto
 Mentality toMentality(string s) { mixin(S_TRACE);
 	switch (s) {
-	case "Normal": return Mentality.NORMAL;
-	case "Panic": return Mentality.PANIC;
-	case "Brave": return Mentality.BRAVE;
-	case "Overheat": return Mentality.OVERHEAT;
-	case "Confuse": return Mentality.CONFUSE;
-	case "Sleep": return Mentality.SLEEP;
+	case "Normal": return Mentality.Normal;
+	case "Panic": return Mentality.Panic;
+	case "Brave": return Mentality.Brave;
+	case "Overheat": return Mentality.Overheat;
+	case "Confuse": return Mentality.Confuse;
+	case "Sleep": return Mentality.Sleep;
 	default: throw new Exception("Unknown Mentality: " ~ s);
 	}
 }
 /// ditto
 string fromMentality(Mentality m) { mixin(S_TRACE);
 	final switch (m) {
-	case Mentality.NORMAL: return "Normal";
-	case Mentality.PANIC: return "Panic";
-	case Mentality.BRAVE: return "Brave";
-	case Mentality.OVERHEAT: return "Overheat";
-	case Mentality.CONFUSE: return "Confuse";
-	case Mentality.SLEEP: return "Sleep";
+	case Mentality.Normal: return "Normal";
+	case Mentality.Panic: return "Panic";
+	case Mentality.Brave: return "Brave";
+	case Mentality.Overheat: return "Overheat";
+	case Mentality.Confuse: return "Confuse";
+	case Mentality.Sleep: return "Sleep";
 	}
 }
 
 /// 効果属性。
 enum EffectType {
-	PHYSIC, /// 物理。
-	MAGIC, /// 魔法。
-	MAGICAL_PHYSIC, /// 魔法的物理。
-	PHYSICAL_MAGIC, /// 物理的魔法。
-	NONE, /// 無。
+	Physic, /// 物理。
+	Magic, /// 魔法。
+	MagicalPhysic, /// 魔法的物理。
+	PhysicalMagic, /// 物理的魔法。
+	None, /// 無。
 }
 /// 文字列から効果属性を生成。
 EffectType toEffectType(string name) { mixin(S_TRACE);
 	switch (name) {
 	case "Physic":
-		return EffectType.PHYSIC;
+		return EffectType.Physic;
 	case "Magic":
-		return EffectType.MAGIC;
+		return EffectType.Magic;
 	case "MagicalPhysic":
-		return EffectType.MAGICAL_PHYSIC;
+		return EffectType.MagicalPhysic;
 	case "PhysicalMagic":
-		return EffectType.PHYSICAL_MAGIC;
+		return EffectType.PhysicalMagic;
 	case "None":
 	case "Normal": // BUG: 古いスキンで「カード交換」「逃走」に設定されている
-		return EffectType.NONE;
+		return EffectType.None;
 	default:
 		throw new MotionException("Unknown effecttype: " ~ name);
 	}
@@ -92,33 +92,33 @@ EffectType toEffectType(string name) { mixin(S_TRACE);
 /// 効果属性を文字列に変換。
 string fromEffectType(EffectType etyp) { mixin(S_TRACE);
 	final switch (etyp) {
-	case EffectType.PHYSIC:
+	case EffectType.Physic:
 		return "Physic";
-	case EffectType.MAGIC:
+	case EffectType.Magic:
 		return "Magic";
-	case EffectType.MAGICAL_PHYSIC:
+	case EffectType.MagicalPhysic:
 		return "MagicalPhysic";
-	case EffectType.PHYSICAL_MAGIC:
+	case EffectType.PhysicalMagic:
 		return "PhysicalMagic";
-	case EffectType.NONE:
+	case EffectType.None:
 		return "None";
 	}
 }
 /// 抵抗属性。
 enum Resist {
-	AVOID, /// 回避。
-	RESIST, /// 抵抗。
-	UNFAIL, /// 必中。
+	Avoid, /// 回避。
+	Resist, /// 抵抗。
+	Unfail, /// 必中。
 }
 /// 文字列から抵抗属性を生成。
 Resist toResist(string name) { mixin(S_TRACE);
 	switch (name) {
 	case "Avoid":
-		return Resist.AVOID;
+		return Resist.Avoid;
 	case "Resist":
-		return Resist.RESIST;
+		return Resist.Resist;
 	case "Unfail":
-		return Resist.UNFAIL;
+		return Resist.Unfail;
 	default:
 		throw new MotionException("Unknown resist: " ~ name);
 	}
@@ -126,32 +126,32 @@ Resist toResist(string name) { mixin(S_TRACE);
 /// 抵抗属性から文字列へ変換。
 string fromResist(Resist resist) { mixin(S_TRACE);
 	final switch (resist) {
-	case Resist.AVOID:
+	case Resist.Avoid:
 		return "Avoid";
-	case Resist.RESIST:
+	case Resist.Resist:
 		return "Resist";
-	case Resist.UNFAIL:
+	case Resist.Unfail:
 		return "Unfail";
 	}
 }
 /// 視覚効果。
 enum CardVisual {
-	NONE, /// 無し。
-	REVERSE, /// 反転。
-	HORIZONTAL, /// 横震動。
-	VERTICAL, /// 縦振動。
+	None, /// 無し。
+	Reverse, /// 反転。
+	Horizontal, /// 横震動。
+	Vertical, /// 縦振動。
 }
 /// 文字列から視覚効果を生成。
 CardVisual toCardVisual(string name) { mixin(S_TRACE);
 	switch (name) {
 	case "None":
-		return CardVisual.NONE;
+		return CardVisual.None;
 	case "Reverse":
-		return CardVisual.REVERSE;
+		return CardVisual.Reverse;
 	case "Horizontal":
-		return CardVisual.HORIZONTAL;
+		return CardVisual.Horizontal;
 	case "Vertical":
-		return CardVisual.VERTICAL;
+		return CardVisual.Vertical;
 	default:
 		throw new MotionException("Unknown cardvisual: " ~ name);
 	}
@@ -159,43 +159,43 @@ CardVisual toCardVisual(string name) { mixin(S_TRACE);
 /// 視覚効果から文字列へ変換。
 string fromCardVisual(CardVisual vis) { mixin(S_TRACE);
 	final switch (vis) {
-	case CardVisual.NONE:
+	case CardVisual.None:
 		return "None";
-	case CardVisual.REVERSE:
+	case CardVisual.Reverse:
 		return "Reverse";
-	case CardVisual.HORIZONTAL:
+	case CardVisual.Horizontal:
 		return "Horizontal";
-	case CardVisual.VERTICAL:
+	case CardVisual.Vertical:
 		return "Vertical";
 	}
 }
 /// 効果属性。
 enum Element {
-	ALL, /// 全。
-	HEALTH, /// 肉体。
-	MIND, /// 精神。
-	MIRACLE, /// 神聖。
-	MAGIC, /// 魔法。
-	FIRE, /// 炎。
-	ICE, /// 冷気。
+	All, /// 全。
+	Health, /// 肉体。
+	Mind, /// 精神。
+	Miracle, /// 神聖。
+	Magic, /// 魔法。
+	Fire, /// 炎。
+	Ice, /// 冷気。
 }
 /// 文字列から効果属性を生成。
 Element toElement(string name) { mixin(S_TRACE);
 	switch (name) {
 	case "All":
-		return Element.ALL;
+		return Element.All;
 	case "Health":
-		return Element.HEALTH;
+		return Element.Health;
 	case "Mind":
-		return Element.MIND;
+		return Element.Mind;
 	case "Miracle":
-		return Element.MIRACLE;
+		return Element.Miracle;
 	case "Magic":
-		return Element.MAGIC;
+		return Element.Magic;
 	case "Fire":
-		return Element.FIRE;
+		return Element.Fire;
 	case "Ice":
-		return Element.ICE;
+		return Element.Ice;
 	default:
 		throw new MotionException("Unknown element: " ~ name);
 	}
@@ -203,40 +203,40 @@ Element toElement(string name) { mixin(S_TRACE);
 /// 効果属性から文字列へ変換。
 string fromElement(Element el) { mixin(S_TRACE);
 	final switch (el) {
-	case Element.ALL:
+	case Element.All:
 		return "All";
-	case Element.HEALTH:
+	case Element.Health:
 		return "Health";
-	case Element.MIND:
+	case Element.Mind:
 		return "Mind";
-	case Element.MIRACLE:
+	case Element.Miracle:
 		return "Miracle";
-	case Element.MAGIC:
+	case Element.Magic:
 		return "Magic";
-	case Element.FIRE:
+	case Element.Fire:
 		return "Fire";
-	case Element.ICE:
+	case Element.Ice:
 		return "Ice";
 	}
 }
 /// 効果計算。
 enum DamageType {
-	LEVEL_RATIO, /// レベル比。
-	NORMAL, /// 値の直接指定。
-	MAX, /// 最大値。
-	FIXED, /// 固定値(Wsn.1)。
+	LevelRatio, /// レベル比。
+	Normal, /// 値の直接指定。
+	Max, /// 最大値。
+	Fixed, /// 固定値(Wsn.1)。
 }
 /// 文字列から効果計算方式を生成。
 DamageType toDamageType(string name) { mixin(S_TRACE);
 	switch (name) {
 	case "LevelRatio":
-		return DamageType.LEVEL_RATIO;
+		return DamageType.LevelRatio;
 	case "Normal":
-		return DamageType.NORMAL;
+		return DamageType.Normal;
 	case "Max":
-		return DamageType.MAX;
+		return DamageType.Max;
 	case "Fixed":
-		return DamageType.FIXED;
+		return DamageType.Fixed;
 	default:
 		throw new MotionException("Unknown damagetype: " ~ name);
 	}
@@ -244,13 +244,13 @@ DamageType toDamageType(string name) { mixin(S_TRACE);
 /// 効果計算方式を文字列へ変換。
 string fromDamageType(DamageType dtyp) { mixin(S_TRACE);
 	final switch (dtyp) {
-	case DamageType.LEVEL_RATIO:
+	case DamageType.LevelRatio:
 		return "LevelRatio";
-	case DamageType.NORMAL:
+	case DamageType.Normal:
 		return "Normal";
-	case DamageType.MAX:
+	case DamageType.Max:
 		return "Max";
-	case DamageType.FIXED:
+	case DamageType.Fixed:
 		return "Fixed";
 	}
 }
@@ -260,10 +260,10 @@ struct Target {
 public:
 	/// メンバ種別。
 	enum M {
-		SELECTED, /// 選択中メンバ。
-		UNSELECTED, /// 非選択メンバ。
-		RANDOM, /// ランダムメンバ。
-		PARTY, /// 全員。
+		Selected, /// 選択中メンバ。
+		Unselected, /// 非選択メンバ。
+		Random, /// ランダムメンバ。
+		Party, /// 全員。
 	}
 	M m; /// メンバ種別。
 	bool sleep; /// 睡眠時有効可否。
@@ -284,21 +284,21 @@ private:
 Target toTarget(string name) { mixin(S_TRACE);
 	switch (name) {
 	case "Selected":
-		return Target(Target.M.SELECTED, false);
+		return Target(Target.M.Selected, false);
 	case "Unselected":
-		return Target(Target.M.UNSELECTED, false);
+		return Target(Target.M.Unselected, false);
 	case "Random":
-		return Target(Target.M.RANDOM, false);
+		return Target(Target.M.Random, false);
 	case "Party":
-		return Target(Target.M.PARTY, false);
+		return Target(Target.M.Party, false);
 	case "SelectedSleep":
-		return Target(Target.M.SELECTED, true);
+		return Target(Target.M.Selected, true);
 	case "UnselectedSleep":
-		return Target(Target.M.UNSELECTED, true);
+		return Target(Target.M.Unselected, true);
 	case "RandomSleep":
-		return Target(Target.M.RANDOM, true);
+		return Target(Target.M.Random, true);
 	case "PartySleep":
-		return Target(Target.M.PARTY, true);
+		return Target(Target.M.Party, true);
 	default:
 		throw new MotionException("Unknown targetm: " ~ name);
 	}
@@ -309,53 +309,53 @@ string fromTarget(Target targ) { mixin(S_TRACE);
 		return sleep ? text ~ "Sleep" : text;
 	}
 	final switch (targ.m) {
-	case Target.M.SELECTED:
+	case Target.M.Selected:
 		return targetText("Selected", targ.sleep);
-	case Target.M.UNSELECTED:
+	case Target.M.Unselected:
 		return targetText("Unselected", targ.sleep);
-	case Target.M.RANDOM:
+	case Target.M.Random:
 		return targetText("Random", targ.sleep);
-	case Target.M.PARTY:
+	case Target.M.Party:
 		return targetText("Party", targ.sleep);
 	}
 }
 
 /// 精神要素。
 enum Mental {
-	AGGRESSIVE, /// 好戦
-	UNAGGRESSIVE, /// 平和
-	CHEERFUL, /// 社交
-	UNCHEERFUL, /// 内向
-	BRAVE, /// 勇敢
-	UNBRAVE, /// 臆病
-	CAUTIOUS, /// 慎重
-	UNCAUTIOUS, /// 大胆
-	TRICKISH, /// 狡猾
-	UNTRICKISH, /// 正直
+	Aggressive, /// 好戦
+	Unaggressive, /// 平和
+	Cheerful, /// 社交
+	Uncheerful, /// 内向
+	Brave, /// 勇敢
+	Unbrave, /// 臆病
+	Cautious, /// 慎重
+	Uncautious, /// 大胆
+	Trickish, /// 狡猾
+	Untrickish, /// 正直
 }
 /// 文字列から精神要素を生成。
 Mental toMental(string name) { mixin(S_TRACE);
 	switch (name) {
 	case "Aggressive":
-		return Mental.AGGRESSIVE;
+		return Mental.Aggressive;
 	case "Unaggressive":
-		return Mental.UNAGGRESSIVE;
+		return Mental.Unaggressive;
 	case "Cheerful":
-		return Mental.CHEERFUL;
+		return Mental.Cheerful;
 	case "Uncheerful":
-		return Mental.UNCHEERFUL;
+		return Mental.Uncheerful;
 	case "Brave":
-		return Mental.BRAVE;
+		return Mental.Brave;
 	case "Unbrave":
-		return Mental.UNBRAVE;
+		return Mental.Unbrave;
 	case "Cautious":
-		return Mental.CAUTIOUS;
+		return Mental.Cautious;
 	case "Uncautious":
-		return Mental.UNCAUTIOUS;
+		return Mental.Uncautious;
 	case "Trickish":
-		return Mental.TRICKISH;
+		return Mental.Trickish;
 	case "Untrickish":
-		return Mental.UNTRICKISH;
+		return Mental.Untrickish;
 	default:
 		throw new MotionException("Unknown mental: " ~ name);
 	}
@@ -363,77 +363,77 @@ Mental toMental(string name) { mixin(S_TRACE);
 ///精神要素を文字列へ変換。
 string fromMental(Mental m) { mixin(S_TRACE);
 	final switch (m) {
-	case Mental.AGGRESSIVE:
+	case Mental.Aggressive:
 		return "Aggressive";
-	case Mental.UNAGGRESSIVE:
+	case Mental.Unaggressive:
 		return "Unaggressive";
-	case Mental.CHEERFUL:
+	case Mental.Cheerful:
 		return "Cheerful";
-	case Mental.UNCHEERFUL:
+	case Mental.Uncheerful:
 		return "Uncheerful";
-	case Mental.BRAVE:
+	case Mental.Brave:
 		return "Brave";
-	case Mental.UNBRAVE:
+	case Mental.Unbrave:
 		return "Unbrave";
-	case Mental.CAUTIOUS:
+	case Mental.Cautious:
 		return "Cautious";
-	case Mental.UNCAUTIOUS:
+	case Mental.Uncautious:
 		return "Uncautious";
-	case Mental.TRICKISH:
+	case Mental.Trickish:
 		return "Trickish";
-	case Mental.UNTRICKISH:
+	case Mental.Untrickish:
 		return "Untrickish";
 	}
 }
 /// 精神要素の対立側を返す。
 Mental reverseMental(Mental m) { mixin(S_TRACE);
 	final switch (m) {
-	case Mental.AGGRESSIVE:
-		return Mental.UNAGGRESSIVE;
-	case Mental.UNAGGRESSIVE:
-		return Mental.AGGRESSIVE;
-	case Mental.CHEERFUL:
-		return Mental.UNCHEERFUL;
-	case Mental.UNCHEERFUL:
-		return Mental.CHEERFUL;
-	case Mental.BRAVE:
-		return Mental.UNBRAVE;
-	case Mental.UNBRAVE:
-		return Mental.BRAVE;
-	case Mental.CAUTIOUS:
-		return Mental.UNCAUTIOUS;
-	case Mental.UNCAUTIOUS:
-		return Mental.CAUTIOUS;
-	case Mental.TRICKISH:
-		return Mental.UNTRICKISH;
-	case Mental.UNTRICKISH:
-		return Mental.TRICKISH;
+	case Mental.Aggressive:
+		return Mental.Unaggressive;
+	case Mental.Unaggressive:
+		return Mental.Aggressive;
+	case Mental.Cheerful:
+		return Mental.Uncheerful;
+	case Mental.Uncheerful:
+		return Mental.Cheerful;
+	case Mental.Brave:
+		return Mental.Unbrave;
+	case Mental.Unbrave:
+		return Mental.Brave;
+	case Mental.Cautious:
+		return Mental.Uncautious;
+	case Mental.Uncautious:
+		return Mental.Cautious;
+	case Mental.Trickish:
+		return Mental.Untrickish;
+	case Mental.Untrickish:
+		return Mental.Trickish;
 	}
 }
 /// 肉体要素。
 enum Physical {
-	DEX, /// 敏捷度。
-	AGL, /// 器用度。
-	INT, /// 知力。
-	STR, /// 膂力。
-	VIT, /// 生命力。
-	MIN, /// 精神力。
+	Dex, /// 敏捷度。
+	Agl, /// 器用度。
+	Int, /// 知力。
+	Str, /// 膂力。
+	Vit, /// 生命力。
+	Min, /// 精神力。
 }
 /// 文字列から肉体要素を生成。
 Physical toPhysical(string name) { mixin(S_TRACE);
 	switch (name) {
 	case "Dex":
-		return Physical.DEX;
+		return Physical.Dex;
 	case "Agl":
-		return Physical.AGL;
+		return Physical.Agl;
 	case "Int":
-		return Physical.INT;
+		return Physical.Int;
 	case "Str":
-		return Physical.STR;
+		return Physical.Str;
 	case "Vit":
-		return Physical.VIT;
+		return Physical.Vit;
 	case "Min":
-		return Physical.MIN;
+		return Physical.Min;
 	default:
 		throw new MotionException("Unknown physical: " ~ name);
 	}
@@ -441,110 +441,110 @@ Physical toPhysical(string name) { mixin(S_TRACE);
 /// 肉体要素を文字列へ変換。
 string fromPhysical(Physical p) { mixin(S_TRACE);
 	final switch (p) {
-	case Physical.DEX:
+	case Physical.Dex:
 		return "Dex";
-	case Physical.AGL:
+	case Physical.Agl:
 		return "Agl";
-	case Physical.INT:
+	case Physical.Int:
 		return "Int";
-	case Physical.STR:
+	case Physical.Str:
 		return "Str";
-	case Physical.VIT:
+	case Physical.Vit:
 		return "Vit";
-	case Physical.MIN:
+	case Physical.Min:
 		return "Min";
 	}
 }
 /// 状態。
 enum Status {
-	ACTIVE, /// 行動可能。
-	INACTIVE, /// 行動不可。
-	ALIVE, /// 生存。
-	DEAD, /// 非生存。
-	FINE, /// 健康。
-	INJURED, /// 負傷。
-	HEAVY_INJURED, /// 重症。
-	UNCONSCIOUS, /// 意識不明。
-	POISON, /// 中毒。
-	SLEEP, /// 睡眠。
-	BIND, /// 呪縛。
-	PARALYZE, /// 麻痺/石化。
-	CONFUSE, /// 混乱(CardWirth Extender 1.30～)。
-	OVERHEAT, /// 激昂(CardWirth Extender 1.30～)。
-	BRAVE, /// 勇敢(CardWirth Extender 1.30～)。
-	PANIC, /// 恐慌(CardWirth Extender 1.30～)。
-	SILENCE, /// 沈黙(CardWirth 1.50)。
-	FACE_UP, /// 暴露(CardWirth 1.50)。
-	ANTI_MAGIC, /// 魔法無効化(CardWirth 1.50)。
-	UP_ACTION, /// 行動力上昇(CardWirth 1.50)。
-	UP_AVOID, /// 回避力上昇(CardWirth 1.50)。
-	UP_RESIST, /// 抵抗力上昇(CardWirth 1.50)。
-	UP_DEFENSE, /// 防御力上昇(CardWirth 1.50)。
-	DOWN_ACTION, /// 行動力低下(CardWirth 1.50)。
-	DOWN_AVOID, /// 回避力低下(CardWirth 1.50)。
-	DOWN_RESIST, /// 抵抗力低下(CardWirth 1.50)。
-	DOWN_DEFENSE, /// 防御力低下(CardWirth 1.50)。
-	NONE, /// 状態指定無し。
+	Active, /// 行動可能。
+	Inactive, /// 行動不可。
+	Alive, /// 生存。
+	Dead, /// 非生存。
+	Fine, /// 健康。
+	Injured, /// 負傷。
+	HeavyInjured, /// 重症。
+	Unconscious, /// 意識不明。
+	Poison, /// 中毒。
+	Sleep, /// 睡眠。
+	Bind, /// 呪縛。
+	Paralyze, /// 麻痺/石化。
+	Confuse, /// 混乱(CardWirth Extender 1.30～)。
+	Overheat, /// 激昂(CardWirth Extender 1.30～)。
+	Brave, /// 勇敢(CardWirth Extender 1.30～)。
+	Panic, /// 恐慌(CardWirth Extender 1.30～)。
+	Silence, /// 沈黙(CardWirth 1.50)。
+	FaceUp, /// 暴露(CardWirth 1.50)。
+	AntiMagic, /// 魔法無効化(CardWirth 1.50)。
+	UpAction, /// 行動力上昇(CardWirth 1.50)。
+	UpAvoid, /// 回避力上昇(CardWirth 1.50)。
+	UpResist, /// 抵抗力上昇(CardWirth 1.50)。
+	UpDefense, /// 防御力上昇(CardWirth 1.50)。
+	DownAction, /// 行動力低下(CardWirth 1.50)。
+	DownAvoid, /// 回避力低下(CardWirth 1.50)。
+	DownResist, /// 抵抗力低下(CardWirth 1.50)。
+	DownDefense, /// 防御力低下(CardWirth 1.50)。
+	None, /// 状態指定無し。
 }
 /// 文字列から状態を生成。
 Status toStatus(string name) { mixin(S_TRACE);
 	switch (name) {
 	case "Active":
-		return Status.ACTIVE;
+		return Status.Active;
 	case "Inactive":
-		return Status.INACTIVE;
+		return Status.Inactive;
 	case "Alive":
-		return Status.ALIVE;
+		return Status.Alive;
 	case "Dead":
-		return Status.DEAD;
+		return Status.Dead;
 	case "Fine":
-		return Status.FINE;
+		return Status.Fine;
 	case "Injured":
-		return Status.INJURED;
+		return Status.Injured;
 	case "HeavyInjured":
-		return Status.HEAVY_INJURED;
+		return Status.HeavyInjured;
 	case "Unconscious":
-		return Status.UNCONSCIOUS;
+		return Status.Unconscious;
 	case "Poison":
-		return Status.POISON;
+		return Status.Poison;
 	case "Sleep":
-		return Status.SLEEP;
+		return Status.Sleep;
 	case "Bind":
-		return Status.BIND;
+		return Status.Bind;
 	case "Paralyze":
-		return Status.PARALYZE;
+		return Status.Paralyze;
 	case "Confuse":
-		return Status.CONFUSE;
+		return Status.Confuse;
 	case "Overheat":
-		return Status.OVERHEAT;
+		return Status.Overheat;
 	case "Brave":
-		return Status.BRAVE;
+		return Status.Brave;
 	case "Panic":
-		return Status.PANIC;
+		return Status.Panic;
 	case "Silence":
-		return Status.SILENCE;
+		return Status.Silence;
 	case "FaceUp":
-		return Status.FACE_UP;
+		return Status.FaceUp;
 	case "AntiMagic":
-		return Status.ANTI_MAGIC;
+		return Status.AntiMagic;
 	case "UpAction":
-		return Status.UP_ACTION;
+		return Status.UpAction;
 	case "UpAvoid":
-		return Status.UP_AVOID;
+		return Status.UpAvoid;
 	case "UpResist":
-		return Status.UP_RESIST;
+		return Status.UpResist;
 	case "UpDefense":
-		return Status.UP_DEFENSE;
+		return Status.UpDefense;
 	case "DownAction":
-		return Status.DOWN_ACTION;
+		return Status.DownAction;
 	case "DownAvoid":
-		return Status.DOWN_AVOID;
+		return Status.DownAvoid;
 	case "DownResist":
-		return Status.DOWN_RESIST;
+		return Status.DownResist;
 	case "DownDefense":
-		return Status.DOWN_DEFENSE;
+		return Status.DownDefense;
 	case "None":
-		return Status.NONE;
+		return Status.None;
 	default:
 		throw new MotionException("Unknown status: " ~ name);
 	}
@@ -552,97 +552,97 @@ Status toStatus(string name) { mixin(S_TRACE);
 /// 状態を文字列へ変換。
 string fromStatus(Status stat) { mixin(S_TRACE);
 	final switch (stat) {
-	case Status.ACTIVE:
+	case Status.Active:
 		return "Active";
-	case Status.INACTIVE:
+	case Status.Inactive:
 		return "Inactive";
-	case Status.ALIVE:
+	case Status.Alive:
 		return "Alive";
-	case Status.DEAD:
+	case Status.Dead:
 		return "Dead";
-	case Status.FINE:
+	case Status.Fine:
 		return "Fine";
-	case Status.INJURED:
+	case Status.Injured:
 		return "Injured";
-	case Status.HEAVY_INJURED:
+	case Status.HeavyInjured:
 		return "HeavyInjured";
-	case Status.UNCONSCIOUS:
+	case Status.Unconscious:
 		return "Unconscious";
-	case Status.POISON:
+	case Status.Poison:
 		return "Poison";
-	case Status.SLEEP:
+	case Status.Sleep:
 		return "Sleep";
-	case Status.BIND:
+	case Status.Bind:
 		return "Bind";
-	case Status.PARALYZE:
+	case Status.Paralyze:
 		return "Paralyze";
-	case Status.CONFUSE:
+	case Status.Confuse:
 		return "Confuse";
-	case Status.OVERHEAT:
+	case Status.Overheat:
 		return "Overheat";
-	case Status.BRAVE:
+	case Status.Brave:
 		return "Brave";
-	case Status.PANIC:
+	case Status.Panic:
 		return "Panic";
-	case Status.SILENCE:
+	case Status.Silence:
 		return "Silence";
-	case Status.FACE_UP:
+	case Status.FaceUp:
 		return "FaceUp";
-	case Status.ANTI_MAGIC:
+	case Status.AntiMagic:
 		return "AntiMagic";
-	case Status.UP_ACTION:
+	case Status.UpAction:
 		return "UpAction";
-	case Status.UP_AVOID:
+	case Status.UpAvoid:
 		return "UpAvoid";
-	case Status.UP_RESIST:
+	case Status.UpResist:
 		return "UpResist";
-	case Status.UP_DEFENSE:
+	case Status.UpDefense:
 		return "UpDefense";
-	case Status.DOWN_ACTION:
+	case Status.DownAction:
 		return "DownAction";
-	case Status.DOWN_AVOID:
+	case Status.DownAvoid:
 		return "DownAvoid";
-	case Status.DOWN_RESIST:
+	case Status.DownResist:
 		return "DownResist";
-	case Status.DOWN_DEFENSE:
+	case Status.DownDefense:
 		return "DownDefense";
-	case Status.NONE:
+	case Status.None:
 		return "None";
 	}
 }
 /// 適用範囲。
 enum Range {
-	SELECTED, /// 選択中メンバ。
-	RANDOM, /// 誰か一人。
-	PARTY, /// パーティ全員。
-	BACKPACK, /// 荷物袋。
-	PARTY_AND_BACKPACK, /// 全員と荷物袋。
-	FIELD, /// フィールド全体。
-	COUPON_HOLDER, /// 称号所有者(Wsn.2)。
-	CARD_TARGET, /// カードの効果対象(Wsn.2)。
-	SELECTED_CARD, /// 選択カード(Wsn.3)。
+	Selected, /// 選択中メンバ。
+	Random, /// 誰か一人。
+	Party, /// パーティ全員。
+	Backpack, /// 荷物袋。
+	PartyAndBackpack, /// 全員と荷物袋。
+	Field, /// フィールド全体。
+	CouponHolder, /// 称号所有者(Wsn.2)。
+	CardTarget, /// カードの効果対象(Wsn.2)。
+	SelectedCard, /// 選択カード(Wsn.3)。
 }
 /// 文字列から適用範囲を生成。
 Range toRange(string name) { mixin(S_TRACE);
 	switch (name) {
 	case "Selected":
-		return Range.SELECTED;
+		return Range.Selected;
 	case "Random":
-		return Range.RANDOM;
+		return Range.Random;
 	case "Party":
-		return Range.PARTY;
+		return Range.Party;
 	case "Backpack":
-		return Range.BACKPACK;
+		return Range.Backpack;
 	case "PartyAndBackpack":
-		return Range.PARTY_AND_BACKPACK;
+		return Range.PartyAndBackpack;
 	case "Field":
-		return Range.FIELD;
+		return Range.Field;
 	case "CouponHolder":
-		return Range.COUPON_HOLDER;
+		return Range.CouponHolder;
 	case "CardTarget":
-		return Range.CARD_TARGET;
+		return Range.CardTarget;
 	case "SelectedCard":
-		return Range.SELECTED_CARD;
+		return Range.SelectedCard;
 	default:
 		throw new MotionException("Unknown targets: " ~ name);
 	}
@@ -650,44 +650,44 @@ Range toRange(string name) { mixin(S_TRACE);
 /// 適用範囲を文字列へ変換。
 string fromRange(Range r) { mixin(S_TRACE);
 	final switch (r) {
-	case Range.SELECTED:
+	case Range.Selected:
 		return "Selected";
-	case Range.RANDOM:
+	case Range.Random:
 		return "Random";
-	case Range.PARTY:
+	case Range.Party:
 		return "Party";
-	case Range.BACKPACK:
+	case Range.Backpack:
 		return "Backpack";
-	case Range.PARTY_AND_BACKPACK:
+	case Range.PartyAndBackpack:
 		return "PartyAndBackpack";
-	case Range.FIELD:
+	case Range.Field:
 		return "Field";
-	case Range.COUPON_HOLDER:
+	case Range.CouponHolder:
 		return "CouponHolder";
-	case Range.CARD_TARGET:
+	case Range.CardTarget:
 		return "CardTarget";
-	case Range.SELECTED_CARD:
+	case Range.SelectedCard:
 		return "SelectedCard";
 	}
 }
 /// 効果対象や話者選択時に現れる適用範囲。
-Range[] RANGE_MEMBER = [Range.SELECTED, Range.RANDOM, Range.PARTY];
+Range[] RANGE_MEMBER = [Range.Selected, Range.Random, Range.Party];
 
 /// キャスト選択範囲。CardWirth Extender 1.30～
 enum CastRange {
-	PARTY = 0b0001, /// パーティ全体。
-	ENEMY = 0b0010, /// 敵全体。
-	NPC   = 0b0100, /// 同行キャスト全体。
+	Party = 0b0001, /// パーティ全体。
+	Enemy = 0b0010, /// 敵全体。
+	Npc   = 0b0100, /// 同行キャスト全体。
 }
 /// 文字列からキャスト選択範囲を生成。
 CastRange toCastRange(string name) { mixin(S_TRACE);
 	switch (name) {
 	case "Party":
-		return CastRange.PARTY;
+		return CastRange.Party;
 	case "Enemy":
-		return CastRange.ENEMY;
+		return CastRange.Enemy;
 	case "Npc":
-		return CastRange.NPC;
+		return CastRange.Npc;
 	default:
 		throw new MotionException("Unknown targets: " ~ name);
 	}
@@ -695,32 +695,32 @@ CastRange toCastRange(string name) { mixin(S_TRACE);
 /// キャスト選択範囲を文字列へ変換。
 string fromCastRange(CastRange r) { mixin(S_TRACE);
 	final switch (r) {
-	case CastRange.PARTY:
+	case CastRange.Party:
 		return "Party";
-	case CastRange.ENEMY:
+	case CastRange.Enemy:
 		return "Enemy";
-	case CastRange.NPC:
+	case CastRange.Npc:
 		return "Npc";
 	}
 }
 /// 能力修正。
 enum Enhance {
-	ACTION, /// 行動。
-	AVOID, /// 回避。
-	RESIST, /// 抵抗。
-	DEFENSE, /// 防御。
+	Action, /// 行動。
+	Avoid, /// 回避。
+	Resist, /// 抵抗。
+	Defense, /// 防御。
 }
 /// 文字列から能力修正種別を生成。
 Enhance toEnhance(string name) { mixin(S_TRACE);
 	switch (name) {
 	case "Action":
-		return Enhance.ACTION;
+		return Enhance.Action;
 	case "Avoid":
-		return Enhance.AVOID;
+		return Enhance.Avoid;
 	case "Resist":
-		return Enhance.RESIST;
+		return Enhance.Resist;
 	case "Defense":
-		return Enhance.DEFENSE;
+		return Enhance.Defense;
 	default:
 		throw new Exception("Unknown enhance: " ~ name);
 	}
@@ -728,31 +728,31 @@ Enhance toEnhance(string name) { mixin(S_TRACE);
 /// 能力修正種別を文字列へ変換。
 string fromEnhance(Enhance r) { mixin(S_TRACE);
 	final switch (r) {
-	case Enhance.ACTION:
+	case Enhance.Action:
 		return "Action";
-	case Enhance.AVOID:
+	case Enhance.Avoid:
 		return "Avoid";
-	case Enhance.RESIST:
+	case Enhance.Resist:
 		return "Resist";
-	case Enhance.DEFENSE:
+	case Enhance.Defense:
 		return "Defense";
 	}
 }
 /// カードの希少度。
 enum Premium {
-	NORMAL, /// 日用品。
-	RARE, /// 希少品。
-	PREMIUM, /// 貴重品。
+	Normal, /// 日用品。
+	Rare, /// 希少品。
+	Premium, /// 貴重品。
 }
 /// 文字列から希少度を生成。
 Premium toPremium(string name) { mixin(S_TRACE);
 	switch (name) {
 	case "Normal":
-		return Premium.NORMAL;
+		return Premium.Normal;
 	case "Rare":
-		return Premium.RARE;
+		return Premium.Rare;
 	case "Premium":
-		return Premium.PREMIUM;
+		return Premium.Premium;
 	default:
 		throw new Exception("Unknown premium: " ~ name);
 	}
@@ -760,35 +760,35 @@ Premium toPremium(string name) { mixin(S_TRACE);
 /// 希少度を文字列へ変換。
 string fromPremium(Premium r) { mixin(S_TRACE);
 	final switch (r) {
-	case Premium.NORMAL:
+	case Premium.Normal:
 		return "Normal";
-	case Premium.RARE:
+	case Premium.Rare:
 		return "Rare";
-	case Premium.PREMIUM:
+	case Premium.Premium:
 		return "Premium";
 	}
 }
 /// カード効果の標的。
 enum CardTarget {
-	NONE, /// 対象無し。
-	USER, /// 使用者。
-	PARTY, /// 味方。
-	ENEMY, /// 敵方。
-	BOTH, /// 双方。
+	None, /// 対象無し。
+	User, /// 使用者。
+	Party, /// 味方。
+	Enemy, /// 敵方。
+	Both, /// 双方。
 }
 /// 文字列からカード効果標的を生成。
 CardTarget toCardTarget(string name) { mixin(S_TRACE);
 	switch (name) {
 	case "None":
-		return CardTarget.NONE;
+		return CardTarget.None;
 	case "User":
-		return CardTarget.USER;
+		return CardTarget.User;
 	case "Party":
-		return CardTarget.PARTY;
+		return CardTarget.Party;
 	case "Enemy":
-		return CardTarget.ENEMY;
+		return CardTarget.Enemy;
 	case "Both":
-		return CardTarget.BOTH;
+		return CardTarget.Both;
 	default:
 		throw new Exception("Unknown card target: " ~ name);
 	}
@@ -796,73 +796,73 @@ CardTarget toCardTarget(string name) { mixin(S_TRACE);
 /// カード効果標的を文字列へ変換。
 string fromCardTarget(CardTarget r) { mixin(S_TRACE);
 	final switch (r) {
-	case CardTarget.NONE:
+	case CardTarget.None:
 		return "None";
-	case CardTarget.USER:
+	case CardTarget.User:
 		return "User";
-	case CardTarget.PARTY:
+	case CardTarget.Party:
 		return "Party";
-	case CardTarget.ENEMY:
+	case CardTarget.Enemy:
 		return "Enemy";
-	case CardTarget.BOTH:
+	case CardTarget.Both:
 		return "Both";
 	}
 }
 
 /// メッセージの話者。
 enum Talker {
-	SELECTED, /// 選択中メンバ。
-	UNSELECTED, /// 非選択メンバ。
-	RANDOM, /// ランダムメンバ。
-	CARD, /// カード。
-	VALUED, /// 評価メンバ。
+	Selected, /// 選択中メンバ。
+	Unselected, /// 非選択メンバ。
+	Random, /// ランダムメンバ。
+	Card, /// カード。
+	Valued, /// 評価メンバ。
 }
 
 /// Talkerを文字列に変換する。
 string fromTalker(Talker talker) { mixin(S_TRACE);
 	final switch (talker) {
-	case Talker.SELECTED:
+	case Talker.Selected:
 		return "Selected";
-	case Talker.UNSELECTED:
+	case Talker.Unselected:
 		return "Unselected";
-	case Talker.RANDOM:
+	case Talker.Random:
 		return "Random";
-	case Talker.CARD:
+	case Talker.Card:
 		return "Card";
-	case Talker.VALUED:
+	case Talker.Valued:
 		return "Valued";
 	}
 }
 
 /// 背景遷移エフェクト。
 enum Transition {
-	DEFAULT, /// ユーザ指定。
-	NONE, /// アニメーション無し。
-	BLINDS, /// ブラインド式。
-	PIXEL_DISSOLVE, /// ピクセルディゾルブ式。
-	FADE, /// フェード式。
+	Default, /// ユーザ指定。
+	None, /// アニメーション無し。
+	Blinds, /// ブラインド式。
+	PixelDissolve, /// ピクセルディゾルブ式。
+	Fade, /// フェード式。
 }
 /// ditto
 Transition[] ALL_TRANSITION = [
-	Transition.DEFAULT,
-	Transition.NONE,
-	Transition.BLINDS,
-	Transition.PIXEL_DISSOLVE,
-	Transition.FADE,
+	Transition.Default,
+	Transition.None,
+	Transition.Blinds,
+	Transition.PixelDissolve,
+	Transition.Fade,
 ];
 /// 文字列から背景遷移エフェクトを生成。
 Transition toTransition(string name) { mixin(S_TRACE);
 	switch (name) {
 	case "Default":
-		return Transition.DEFAULT;
+		return Transition.Default;
 	case "None":
-		return Transition.NONE;
+		return Transition.None;
 	case "Blinds":
-		return Transition.BLINDS;
+		return Transition.Blinds;
 	case "PixelDissolve":
-		return Transition.PIXEL_DISSOLVE;
+		return Transition.PixelDissolve;
 	case "Fade":
-		return Transition.FADE;
+		return Transition.Fade;
 	default:
 		throw new Exception("Unknown transition: " ~ name);
 	}
@@ -870,46 +870,46 @@ Transition toTransition(string name) { mixin(S_TRACE);
 /// 背景遷移エフェクトを文字列へ変換。
 string fromTransition(Transition t) { mixin(S_TRACE);
 	final switch (t) {
-	case Transition.DEFAULT:
+	case Transition.Default:
 		return "Default";
-	case Transition.NONE:
+	case Transition.None:
 		return "None";
-	case Transition.BLINDS:
+	case Transition.Blinds:
 		return "Blinds";
-	case Transition.PIXEL_DISSOLVE:
+	case Transition.PixelDissolve:
 		return "PixelDissolve";
-	case Transition.FADE:
+	case Transition.Fade:
 		return "Fade";
 	}
 }
 
 /// 効果カードタイプ。
 enum EffectCardType {
-	ALL, /// 全種類。
-	SKILL, /// 特殊技能。
-	ITEM, /// アイテム。
-	BEAST, /// 召喚獣。
-	HAND, /// 手札(Wsn.2)。
+	All, /// 全種類。
+	Skill, /// 特殊技能。
+	Item, /// アイテム。
+	Beast, /// 召喚獣。
+	Hand, /// 手札(Wsn.2)。
 }
 /// ditto
 EffectCardType toEffectCardType(string name) { mixin(S_TRACE);
 	switch (name) {
-	case "All":   return EffectCardType.ALL;
-	case "Skill": return EffectCardType.SKILL;
-	case "Item":  return EffectCardType.ITEM;
-	case "Beast": return EffectCardType.BEAST;
-	case "Hand":  return EffectCardType.HAND;
+	case "All":   return EffectCardType.All;
+	case "Skill": return EffectCardType.Skill;
+	case "Item":  return EffectCardType.Item;
+	case "Beast": return EffectCardType.Beast;
+	case "Hand":  return EffectCardType.Hand;
 	default: throw new Exception("Unknown card type: " ~ name);
 	}
 }
 /// ditto
 string fromEffectCardType(EffectCardType t) { mixin(S_TRACE);
 	final switch (t) {
-	case EffectCardType.ALL:   return "All";
-	case EffectCardType.SKILL: return "Skill";
-	case EffectCardType.ITEM:  return "Item";
-	case EffectCardType.BEAST: return "Beast";
-	case EffectCardType.HAND:  return "Hand";
+	case EffectCardType.All:   return "All";
+	case EffectCardType.Skill: return "Skill";
+	case EffectCardType.Item:  return "Item";
+	case EffectCardType.Beast: return "Beast";
+	case EffectCardType.Hand:  return "Hand";
 	}
 }
 
@@ -1292,106 +1292,106 @@ enum FKCKind {
 
 /// コンテントのタイプ。
 enum CType {
-	START,
-	START_BATTLE,
-	END,
-	END_BAD_END,
-	CHANGE_AREA,
-	CHANGE_BG_IMAGE,
-	EFFECT,
-	EFFECT_BREAK,
-	LINK_START,
-	LINK_PACKAGE,
-	TALK_MESSAGE,
-	TALK_DIALOG,
-	PLAY_BGM,
-	PLAY_SOUND,
-	WAIT,
-	ELAPSE_TIME,
-	CALL_START,
-	CALL_PACKAGE,
-	BRANCH_FLAG,
-	BRANCH_MULTI_STEP,
-	BRANCH_STEP,
-	BRANCH_SELECT,
-	BRANCH_ABILITY,
-	BRANCH_RANDOM,
-	BRANCH_LEVEL,
-	BRANCH_STATUS,
-	BRANCH_PARTY_NUMBER,
-	BRANCH_AREA,
-	BRANCH_BATTLE,
-	BRANCH_IS_BATTLE,
-	BRANCH_CAST,
-	BRANCH_ITEM,
-	BRANCH_SKILL,
-	BRANCH_INFO,
-	BRANCH_BEAST,
-	BRANCH_MONEY,
-	BRANCH_COUPON,
-	BRANCH_COMPLETE_STAMP,
-	BRANCH_GOSSIP,
-	SET_FLAG,
-	SET_STEP,
-	SET_STEP_UP,
-	SET_STEP_DOWN,
-	REVERSE_FLAG,
-	CHECK_FLAG,
-	GET_CAST,
-	GET_ITEM,
-	GET_SKILL,
-	GET_INFO,
-	GET_BEAST,
-	GET_MONEY,
-	GET_COUPON,
-	GET_COMPLETE_STAMP,
-	GET_GOSSIP,
-	LOSE_CAST,
-	LOSE_ITEM,
-	LOSE_SKILL,
-	LOSE_INFO,
-	LOSE_BEAST,
-	LOSE_MONEY,
-	LOSE_COUPON,
-	LOSE_COMPLETE_STAMP,
-	LOSE_GOSSIP,
-	SHOW_PARTY,
-	HIDE_PARTY,
-	REDISPLAY,
-	SUBSTITUTE_STEP, /// ステップ代入(CardWirth Extender 1.30)。
-	SUBSTITUTE_FLAG, /// フラグ代入(CardWirth Extender 1.30)。
-	BRANCH_STEP_CMP, /// ステップ値分岐(CardWirth Extender 1.30)。
-	BRANCH_FLAG_CMP, /// フラグ値分岐(CardWirth Extender 1.30)。
-	BRANCH_RANDOM_SELECT, /// ランダム選択(CardWirth Extender 1.30)。
-	BRANCH_KEY_CODE, /// キーコード所持分岐(CardWirth 1.50)。
-	CHECK_STEP, /// ステップ判定(CardWirth 1.50)。
-	BRANCH_ROUND, /// ラウンド分岐(CardWirth 1.50)。
-	MOVE_BG_IMAGE, /// 背景再配置(Wsn.1)。
-	REPLACE_BG_IMAGE, /// 背景置換(Wsn.1)。
-	LOSE_BG_IMAGE, /// 背景削除(Wsn.1)。
-	BRANCH_MULTI_COUPON, /// クーポン多岐分岐(Wsn.2)。
-	BRANCH_MULTI_RANDOM, /// ランダム多岐分岐(Wsn.2)。
-	MOVE_CARD, /// カード再配置(Wsn.3)。
-	CHANGE_ENVIRONMENT, /// 状況設定(Wsn.4)。
-	BRANCH_VARIANT, /// コモン分岐(Wsn.4)。
-	SET_VARIANT, /// コモン設定(Wsn.4)。
-	CHECK_VARIANT, /// コモン判定(Wsn.4)。
+	Start,
+	StartBattle,
+	End,
+	EndBadEnd,
+	ChangeArea,
+	ChangeBgImage,
+	Effect,
+	EffectBreak,
+	LinkStart,
+	LinkPackage,
+	TalkMessage,
+	TalkDialog,
+	PlayBgm,
+	PlaySound,
+	Wait,
+	ElapseTime,
+	CallStart,
+	CallPackage,
+	BranchFlag,
+	BranchMultiStep,
+	BranchStep,
+	BranchSelect,
+	BranchAbility,
+	BranchRandom,
+	BranchLevel,
+	BranchStatus,
+	BranchPartyNumber,
+	BranchArea,
+	BranchBattle,
+	BranchIsBattle,
+	BranchCast,
+	BranchItem,
+	BranchSkill,
+	BranchInfo,
+	BranchBeast,
+	BranchMoney,
+	BranchCoupon,
+	BranchCompleteStamp,
+	BranchGossip,
+	SetFlag,
+	SetStep,
+	SetStepUp,
+	SetStepDown,
+	ReverseFlag,
+	CheckFlag,
+	GetCast,
+	GetItem,
+	GetSkill,
+	GetInfo,
+	GetBeast,
+	GetMoney,
+	GetCoupon,
+	GetCompleteStamp,
+	GetGossip,
+	LoseCast,
+	LoseItem,
+	LoseSkill,
+	LoseInfo,
+	LoseBeast,
+	LoseMoney,
+	LoseCoupon,
+	LoseCompleteStamp,
+	LoseGossip,
+	ShowParty,
+	HideParty,
+	Redisplay,
+	SubstituteStep, /// ステップ代入(CardWirth Extender 1.30)。
+	SubstituteFlag, /// フラグ代入(CardWirth Extender 1.30)。
+	BranchStepCmp, /// ステップ値分岐(CardWirth Extender 1.30)。
+	BranchFlagCmp, /// フラグ値分岐(CardWirth Extender 1.30)。
+	BranchRandomSelect, /// ランダム選択(CardWirth Extender 1.30)。
+	BranchKeyCode, /// キーコード所持分岐(CardWirth 1.50)。
+	CheckStep, /// ステップ判定(CardWirth 1.50)。
+	BranchRound, /// ラウンド分岐(CardWirth 1.50)。
+	MoveBgImage, /// 背景再配置(Wsn.1)。
+	ReplaceBgImage, /// 背景置換(Wsn.1)。
+	LoseBgImage, /// 背景削除(Wsn.1)。
+	BranchMultiCoupon, /// クーポン多岐分岐(Wsn.2)。
+	BranchMultiRandom, /// ランダム多岐分岐(Wsn.2)。
+	MoveCard, /// カード再配置(Wsn.3)。
+	ChangeEnvironment, /// 状況設定(Wsn.4)。
+	BranchVariant, /// コモン分岐(Wsn.4)。
+	SetVariant, /// コモン設定(Wsn.4)。
+	CheckVariant, /// コモン判定(Wsn.4)。
 }
 
 /// WSN形式のシナリオでのみ使用できるイベントコンテントか。
 @property
 bool isWsnContent(CType cType) { mixin(S_TRACE);
 	with (CType) switch (cType) {
-	case MOVE_BG_IMAGE: // Wsn.1
-	case REPLACE_BG_IMAGE: // Wsn.1
-	case LOSE_BG_IMAGE: // Wsn.1
-	case BRANCH_MULTI_COUPON: // Wsn.2
-	case BRANCH_MULTI_RANDOM: // Wsn.2
-	case MOVE_CARD: // Wsn.3
-	case CHANGE_ENVIRONMENT: // Wsn.4
-	case BRANCH_VARIANT: // Wsn.4
-	case SET_VARIANT: // Wsn.4
-	case CHECK_VARIANT: // Wsn.4
+	case MoveBgImage: // Wsn.1
+	case ReplaceBgImage: // Wsn.1
+	case LoseBgImage: // Wsn.1
+	case BranchMultiCoupon: // Wsn.2
+	case BranchMultiRandom: // Wsn.2
+	case MoveCard: // Wsn.3
+	case ChangeEnvironment: // Wsn.4
+	case BranchVariant: // Wsn.4
+	case SetVariant: // Wsn.4
+	case CheckVariant: // Wsn.4
 		return true;
 	default:
 		return false;
@@ -1412,207 +1412,207 @@ enum CTypeGroup {
 }
 
 enum CArg {
-	AREA,
-	BATTLE,
-	PACKAGE,
-	FLAG,
-	STEP,
-	BGM_PATH,
-	BGM_CHANNEL,
-	BGM_VOLUME,
-	BGM_LOOP_COUNT,
-	BGM_FADE_IN,
-	SOUND_PATH,
-	SOUND_CHANNEL,
-	SOUND_VOLUME,
-	SOUND_LOOP_COUNT,
-	SOUND_FADE_IN,
-	CAST,
-	ITEM,
-	SKILL,
-	BEAST,
-	INFO,
-	MOTIONS,
-	TEXT,
-	DIALOGS,
-	START,
-	COUPON,
-	GOSSIP,
-	COMPLETE_STAMP,
-	MENTAL,
-	PHYSICAL,
-	STATUS,
-	RANGE,
-	CARD_VISUAL,
-	TARGET_S,
-	TALKER_C,
-	TALKER_NC,
-	EFFECT_TYPE,
-	RESIST,
-	TRANSITION,
-	TARGET_ALL,
-	SELECTION_METHOD,
-	AVERAGE,
-	COMPLETE,
-	UNSIGNED_LEVEL,
-	SIGNED_LEVEL,
-	SUCCESS_RATE,
-	TRANSITION_SPEED,
-	PERCENT,
-	FLAG_VALUE,
-	STEP_VALUE,
-	COUPON_VALUE,
-	PARTY_NUMBER,
-	CARD_NUMBER,
-	MONEY,
-	WAIT,
-	BG_IMAGES,
-	STEP_2, /// 操作ターゲットステップ(CardWirth Extender 1.30～)。
-	FLAG_2, /// 操作ターゲットフラグ(CardWirth Extender 1.30～)。
-	CAST_RANGE, /// キャスト選択範囲(CardWirth Extender 1.30～)。
-	LEVEL_MIN, /// 下限レベル(CardWirth Extender 1.30～)。
-	LEVEL_MAX, /// 上限レベル(CardWirth Extender 1.30～)。
-	KEY_CODE_RANGE, /// キーコード所持判定範囲(CardWirth 1.50)。
-	KEY_CODE, /// キーコード(CardWirth 1.50)。
-	COUPONS, /// 得点付きクーポン群(CardWirth 1.50)。
-	INIT_VALUE, /// 評価メンバ初期点(CardWirth 1.50)。
-	COMPARISON_4, /// 4路比較条件(CardWirth 1.50)。
-	COMPARISON_3, /// 3路比較条件(CardWirth 1.50)。
-	ROUND, /// ラウンド(CardWirth 1.50)。
-	CELL_NAME, /// セル名称(Wsn.1)。
-	POSITION_TYPE, /// 位置形式(Wsn.1)。
+	Area,
+	Battle,
+	Package,
+	Flag,
+	Step,
+	BgmPath,
+	BgmChannel,
+	BgmVolume,
+	BgmLoopCount,
+	BgmFadeIn,
+	SoundPath,
+	SoundChannel,
+	SoundVolume,
+	SoundLoopCount,
+	SoundFadeIn,
+	Cast,
+	Item,
+	Skill,
+	Beast,
+	Info,
+	Motions,
+	Text,
+	Dialogs,
+	Start,
+	Coupon,
+	Gossip,
+	CompleteStamp,
+	Mental,
+	Physical,
+	Status,
+	Range,
+	CardVisual,
+	TargetS,
+	TalkerC,
+	TalkerNC,
+	EffectType,
+	Resist,
+	Transition,
+	TargetAll,
+	SelectionMethod,
+	Average,
+	Complete,
+	UnsignedLevel,
+	SignedLevel,
+	SuccessRate,
+	TransitionSpeed,
+	Percent,
+	FlagValue,
+	StepValue,
+	CouponValue,
+	PartyNumber,
+	CardNumber,
+	Money,
+	Wait,
+	BgImages,
+	Step2, /// 操作ターゲットステップ(CardWirth Extender 1.30～)。
+	Flag2, /// 操作ターゲットフラグ(CardWirth Extender 1.30～)。
+	CastRange, /// キャスト選択範囲(CardWirth Extender 1.30～)。
+	LevelMin, /// 下限レベル(CardWirth Extender 1.30～)。
+	LevelMax, /// 上限レベル(CardWirth Extender 1.30～)。
+	KeyCodeRange, /// キーコード所持判定範囲(CardWirth 1.50)。
+	KeyCode, /// キーコード(CardWirth 1.50)。
+	Coupons, /// 得点付きクーポン群(CardWirth 1.50)。
+	InitValue, /// 評価メンバ初期点(CardWirth 1.50)。
+	Comparison4, /// 4路比較条件(CardWirth 1.50)。
+	Comparison3, /// 3路比較条件(CardWirth 1.50)。
+	Round, /// ラウンド(CardWirth 1.50)。
+	CellName, /// セル名称(Wsn.1)。
+	PositionType, /// 位置形式(Wsn.1)。
 	X, /// 位置(Wsn.1)。
 	Y, /// 位置(Wsn.1)。
-	SIZE_TYPE, /// サイズ形式(Wsn.1)。
-	WIDTH, /// サイズ(Wsn.1)。
-	HEIGHT, /// サイズ(Wsn.1)。
-	DO_ANIME, /// JPY1アニメーションを実行する(Wsn.1)。
-	IGNORE_EFFECT_BOOSTER, /// エフェクトブースター関係のセルを無視する(Wsn.1)。
-	SELECTION_COLUMNS, /// 後続選択肢の列数(Wsn.1)。
-	START_ACTION, /// キャスト同行時の戦闘行動開始タイミング(Wsn.2)。
-	IGNITE, /// イベントの発火有無(Wsn.2)。
-	KEY_CODES, /// イベント発火のキーコード(Wsn.2)。
-	TARGET_IS_SKILL, /// 特殊技能カードが対象か(Wsn.2)。
-	TARGET_IS_ITEM, /// アイテムカードが対象か(Wsn.2)。
-	TARGET_IS_BEAST, /// 召喚獣カードが対象か(Wsn.2)。
-	TARGET_IS_HAND, /// 戦闘時の手札が対象か(Wsn.2)。
-	HOLDING_COUPON, /// 範囲で称号所持者を指定した時の称号名(Wsn.2)。
-	REF_ABILITY, /// 選択メンバの能力参照(Wsn.2)。
-	CENTERING_X, /// メッセージを横方向に中央寄せして表示する(Wsn.2)。
-	CENTERING_Y, /// メッセージを縦方向に中央寄せして表示する(Wsn.2)。
-	BOUNDARY_CHECK, /// メッセージの禁則処理(Wsn.2)。
-	COUPON_NAMES, /// 複数クーポン名(Wsn.2)。
-	MATCHING_TYPE, /// マッチングタイプ(Wsn.2)。
-	SELECT_CARD, /// 選択カードを変更する(Wsn.3)。
-	SELECT_TALKER, /// 話者を選択する(Wsn.3)。
-	CARD_GROUP, /// カードグループ(Wsn.3)。
-	SCALE, /// スケール(Wsn.3)。
-	LAYER, /// レイヤ(Wsn.3)。
-	CONSUME_CARD, /// 使用中のカードを消費する(Wsn.3)。
-	INVERT_RESULT, /// 条件に合わない場合に成功とする(Wsn.4)。
-	CARD_SPEED, /// カードアニメーション速度(Wsn.4)。
-	OVERRIDE_CARD_SPEED, /// 速度設定をカード本体の設定より優先する(Wsn.4)。
-	BACKPACK_ENABLED, /// 荷物袋の使用可否(Wsn.4)。
-	VARIANT, /// コモン(Wsn.4)。
-	EXPRESSION, /// 式(Wsn.4)。
-	EXPAND_SP_CHARS, /// クーポン・ゴシップで特殊文字を展開する(Wsn.4)。
-	INITIAL_EFFECT, /// 初期効果の有無(Wsn.4)。
-	INITIAL_SOUND_PATH, /// 初期音声(Wsn.4)。
-	INITIAL_SOUND_CHANNEL, /// 初期音声再生チャネル(未使用)。
-	INITIAL_SOUND_VOLUME, /// 初期音声音量(Wsn.4)。
-	INITIAL_SOUND_LOOP_COUNT, /// 初期音声再生回数(Wsn.4)。
-	INITIAL_SOUND_FADE_IN, /// 初期音声フェードイン時間(未使用)。
+	SizeType, /// サイズ形式(Wsn.1)。
+	Width, /// サイズ(Wsn.1)。
+	Height, /// サイズ(Wsn.1)。
+	DoAnime, /// JPY1アニメーションを実行する(Wsn.1)。
+	IgnoreEffectBooster, /// エフェクトブースター関係のセルを無視する(Wsn.1)。
+	SelectionColumns, /// 後続選択肢の列数(Wsn.1)。
+	StartAction, /// キャスト同行時の戦闘行動開始タイミング(Wsn.2)。
+	Ignite, /// イベントの発火有無(Wsn.2)。
+	KeyCodes, /// イベント発火のキーコード(Wsn.2)。
+	TargetIsSkill, /// 特殊技能カードが対象か(Wsn.2)。
+	TargetIsItem, /// アイテムカードが対象か(Wsn.2)。
+	TargetIsBeast, /// 召喚獣カードが対象か(Wsn.2)。
+	TargetIsHand, /// 戦闘時の手札が対象か(Wsn.2)。
+	HoldingCoupon, /// 範囲で称号所持者を指定した時の称号名(Wsn.2)。
+	RefAbility, /// 選択メンバの能力参照(Wsn.2)。
+	CenteringX, /// メッセージを横方向に中央寄せして表示する(Wsn.2)。
+	CenteringY, /// メッセージを縦方向に中央寄せして表示する(Wsn.2)。
+	BoundaryCheck, /// メッセージの禁則処理(Wsn.2)。
+	CouponNames, /// 複数クーポン名(Wsn.2)。
+	MatchingType, /// マッチングタイプ(Wsn.2)。
+	SelectCard, /// 選択カードを変更する(Wsn.3)。
+	SelectTalker, /// 話者を選択する(Wsn.3)。
+	CardGroup, /// カードグループ(Wsn.3)。
+	Scale, /// スケール(Wsn.3)。
+	Layer, /// レイヤ(Wsn.3)。
+	ConsumeCard, /// 使用中のカードを消費する(Wsn.3)。
+	InvertResult, /// 条件に合わない場合に成功とする(Wsn.4)。
+	CardSpeed, /// カードアニメーション速度(Wsn.4)。
+	OverrideCardSpeed, /// 速度設定をカード本体の設定より優先する(Wsn.4)。
+	BackpackEnabled, /// 荷物袋の使用可否(Wsn.4)。
+	Variant, /// コモン(Wsn.4)。
+	Expression, /// 式(Wsn.4)。
+	ExpandSPChars, /// クーポン・ゴシップで特殊文字を展開する(Wsn.4)。
+	InitialEffect, /// 初期効果の有無(Wsn.4)。
+	InitialSoundPath, /// 初期音声(Wsn.4)。
+	InitialSoundChannel, /// 初期音声再生チャネル(未使用)。
+	InitialSoundVolume, /// 初期音声音量(Wsn.4)。
+	InitialSoundLoopCount, /// 初期音声再生回数(Wsn.4)。
+	InitialSoundFadeIn, /// 初期音声フェードイン時間(未使用)。
 }
 
 /// 後続コンテントのnameの型。
 enum CNextType {
-	NONE, /// 無し。
-	TEXT, /// テキスト。
-	BOOL, /// True/False。
-	STEP, /// ステップ値。
-	ID_AREA, /// エリアID。
-	ID_BATTLE, /// バトルID。
-	TRIO, /// 大なり、少なり、一致(CardWirth Extender 1.30)。
-	COUPON, /// 称号(Wsn.2)。
+	None, /// 無し。
+	Text, /// テキスト。
+	Bool, /// True/False。
+	Step, /// ステップ値。
+	IdArea, /// エリアID。
+	IdBattle, /// バトルID。
+	Trio, /// 大なり、少なり、一致(CardWirth Extender 1.30)。
+	Coupon, /// 称号(Wsn.2)。
 }
 /// ditto
 CNextType toCNextType(string name) { mixin(S_TRACE);
 	switch (name) {
-	case "None": return CNextType.NONE;
-	case "Text": return CNextType.TEXT;
-	case "Bool": return CNextType.BOOL;
-	case "Step": return CNextType.STEP;
-	case "IdArea": return CNextType.ID_AREA;
-	case "IdBattle": return CNextType.ID_BATTLE;
-	case "Trio": return CNextType.TRIO;
-	case "Coupon": return CNextType.COUPON;
+	case "None": return CNextType.None;
+	case "Text": return CNextType.Text;
+	case "Bool": return CNextType.Bool;
+	case "Step": return CNextType.Step;
+	case "IdArea": return CNextType.IdArea;
+	case "IdBattle": return CNextType.IdBattle;
+	case "Trio": return CNextType.Trio;
+	case "Coupon": return CNextType.Coupon;
 	default: throw new Exception("Unknown content next type: " ~ name);
 	}
 }
 /// ditto
 string fromCNextType(CNextType t) { mixin(S_TRACE);
 	final switch (t) {
-	case CNextType.NONE: return "None";
-	case CNextType.TEXT: return "Text";
-	case CNextType.BOOL: return "Bool";
-	case CNextType.STEP: return "Step";
-	case CNextType.ID_AREA: return "IdArea";
-	case CNextType.ID_BATTLE: return "IdBattle";
-	case CNextType.TRIO: return "Trio";
-	case CNextType.COUPON: return "Coupon";
+	case CNextType.None: return "None";
+	case CNextType.Text: return "Text";
+	case CNextType.Bool: return "Bool";
+	case CNextType.Step: return "Step";
+	case CNextType.IdArea: return "IdArea";
+	case CNextType.IdBattle: return "IdBattle";
+	case CNextType.Trio: return "Trio";
+	case CNextType.Coupon: return "Coupon";
 	}
 }
 
 enum MType {
-	HEAL,
-	DAMAGE,
-	ABSORB,
-	PARALYZE,
-	DIS_PARALYZE,
-	POISON,
-	DIS_POISON,
-	GET_SKILL_POWER,
-	LOSE_SKILL_POWER,
-	SLEEP,
-	CONFUSE,
-	OVERHEAT,
-	BRAVE,
-	PANIC,
-	NORMAL,
-	BIND,
-	DIS_BIND,
-	SILENCE,
-	DIS_SILENCE,
-	FACE_UP,
-	FACE_DOWN,
-	ANTI_MAGIC,
-	DIS_ANTI_MAGIC,
-	ENHANCE_ACTION,
-	ENHANCE_AVOID,
-	ENHANCE_RESIST,
-	ENHANCE_DEFENSE,
-	VANISH_TARGET,
-	VANISH_CARD,
-	VANISH_BEAST,
-	DEAL_ATTACK_CARD,
-	DEAL_POWERFUL_ATTACK_CARD,
-	DEAL_CRITICAL_ATTACK_CARD,
-	DEAL_FEINT_CARD,
-	DEAL_DEFENSE_CARD,
-	DEAL_DISTANCE_CARD,
-	DEAL_CONFUSE_CARD,
-	DEAL_SKILL_CARD,
-	SUMMON_BEAST,
-	CANCEL_ACTION, // CardWirth 1.50
-	NO_EFFECT, // Wsn.2
+	Heal,
+	Damage,
+	Absorb,
+	Paralyze,
+	DisParalyze,
+	Poison,
+	DisPoison,
+	GetSkillPower,
+	LoseSkillPower,
+	Sleep,
+	Confuse,
+	Overheat,
+	Brave,
+	Panic,
+	Normal,
+	Bind,
+	DisBind,
+	Silence,
+	DisSilence,
+	FaceUp,
+	FaceDown,
+	AntiMagic,
+	DisAntiMagic,
+	EnhanceAction,
+	EnhanceAvoid,
+	EnhanceResist,
+	EnhanceDefense,
+	VanishTarget,
+	VanishCard,
+	VanishBeast,
+	DealAttackCard,
+	DealPowerfulAttackCard,
+	DealCriticalAttackCard,
+	DealFeintCard,
+	DealDefenseCard,
+	DealDistanceCard,
+	DealConfuseCard,
+	DealSkillCard,
+	SummonBeast,
+	CancelAction, // CardWirth 1.50
+	NoEffect, // Wsn.2
 }
 
 enum MArg {
-	VALUE_TYPE, /// レベル比・直接等、値のタイプ。
-	U_VALUE, /// ダメージ・回復量。
-	A_VALUE, /// ボーナス値。
-	ROUND, /// 継続ラウンド数。
-	BEAST /// 召喚獣カード。
+	ValueType, /// レベル比・直接等、値のタイプ。
+	UValue, /// ダメージ・回復量。
+	AValue, /// ボーナス値。
+	Round, /// 継続ラウンド数。
+	Beast /// 召喚獣カード。
 }
 
 /// メニューのID。

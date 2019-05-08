@@ -264,90 +264,90 @@ public:
 
 	Image content(CType type) { mixin(S_TRACE);
 		final switch (type) {
-		case CType.START: return imgd!("evt_start.png");
-		case CType.START_BATTLE: return imgd!("evt_battle.png");
-		case CType.END: return imgd!("evt_clear.png");
-		case CType.END_BAD_END: return imgd!("evt_gameover.png");
-		case CType.CHANGE_AREA: return imgd!("evt_area.png");
-		case CType.CHANGE_BG_IMAGE: return imgd!("evt_back.png");
-		case CType.EFFECT: return imgd!("evt_effect.png");
-		case CType.EFFECT_BREAK: return imgd!("evt_stop.png");
-		case CType.LINK_START: return imgd!("evt_link_s.png");
-		case CType.LINK_PACKAGE: return imgd!("evt_link_p.png");
-		case CType.TALK_MESSAGE: return imgd!("evt_message.png");
-		case CType.TALK_DIALOG: return imgd!("evt_speak.png");
-		case CType.PLAY_BGM: return imgd!("evt_bgm.png");
-		case CType.PLAY_SOUND: return imgd!("evt_se.png");
-		case CType.WAIT: return imgd!("evt_wait.png");
-		case CType.ELAPSE_TIME: return imgd!("evt_time.png");
-		case CType.CALL_START: return imgd!("evt_call_s.png");
-		case CType.CALL_PACKAGE: return imgd!("evt_call_p.png");
-		case CType.BRANCH_FLAG: return imgd!("evt_br_flag.png");
-		case CType.BRANCH_MULTI_STEP: return imgd!("evt_br_step_n.png");
-		case CType.BRANCH_STEP: return imgd!("evt_br_step_ul.png");
-		case CType.BRANCH_SELECT: return imgd!("evt_br_member.png");
-		case CType.BRANCH_ABILITY: return imgd!("evt_br_power.png");
-		case CType.BRANCH_RANDOM: return imgd!("evt_br_random.png");
-		case CType.BRANCH_LEVEL: return imgd!("evt_br_level.png");
-		case CType.BRANCH_STATUS: return imgd!("evt_br_state.png");
-		case CType.BRANCH_PARTY_NUMBER: return imgd!("evt_br_num.png");
-		case CType.BRANCH_AREA: return imgd!("evt_br_area.png");
-		case CType.BRANCH_BATTLE: return imgd!("evt_br_battle.png");
-		case CType.BRANCH_IS_BATTLE: return imgd!("evt_br_on_battle.png");
-		case CType.BRANCH_CAST: return imgd!("evt_br_cast.png");
-		case CType.BRANCH_ITEM: return imgd!("evt_br_item.png");
-		case CType.BRANCH_SKILL: return imgd!("evt_br_skill.png");
-		case CType.BRANCH_INFO: return imgd!("evt_br_info.png");
-		case CType.BRANCH_BEAST: return imgd!("evt_br_beast.png");
-		case CType.BRANCH_MONEY: return imgd!("evt_br_money.png");
-		case CType.BRANCH_COUPON: return imgd!("evt_br_coupon.png");
-		case CType.BRANCH_COMPLETE_STAMP: return imgd!("evt_br_end.png");
-		case CType.BRANCH_GOSSIP: return imgd!("evt_br_gossip.png");
-		case CType.SET_FLAG: return imgd!("evt_flag_set.png");
-		case CType.SET_STEP: return imgd!("evt_step_set.png");
-		case CType.SET_STEP_UP: return imgd!("evt_step_plus.png");
-		case CType.SET_STEP_DOWN: return imgd!("evt_step_minus.png");
-		case CType.REVERSE_FLAG: return imgd!("evt_flag_r.png");
-		case CType.CHECK_FLAG: return imgd!("evt_flag_judge.png");
-		case CType.GET_CAST: return imgd!("cast.png");
-		case CType.GET_ITEM: return imgd!("item.png");
-		case CType.GET_SKILL: return imgd!("skill.png");
-		case CType.GET_INFO: return imgd!("info.png");
-		case CType.GET_BEAST: return imgd!("beast.png");
-		case CType.GET_MONEY: return imgd!("money.png");
-		case CType.GET_COUPON: return imgd!("coupon.png");
-		case CType.GET_COMPLETE_STAMP: return imgd!("end.png");
-		case CType.GET_GOSSIP: return imgd!("gossip.png");
-		case CType.LOSE_CAST: return imgd!("evt_lost_cast.png");
-		case CType.LOSE_ITEM: return imgd!("evt_lost_item.png");
-		case CType.LOSE_SKILL: return imgd!("evt_lost_skill.png");
-		case CType.LOSE_INFO: return imgd!("evt_lost_info.png");
-		case CType.LOSE_BEAST: return imgd!("evt_lost_beast.png");
-		case CType.LOSE_MONEY: return imgd!("evt_lost_money.png");
-		case CType.LOSE_COUPON: return imgd!("evt_lost_coupon.png");
-		case CType.LOSE_COMPLETE_STAMP: return imgd!("evt_lost_end.png");
-		case CType.LOSE_GOSSIP: return imgd!("evt_lost_gossip.png");
-		case CType.SHOW_PARTY: return imgd!("evt_show_party.png");
-		case CType.HIDE_PARTY: return imgd!("evt_hide_party.png");
-		case CType.REDISPLAY: return imgd!("evt_refresh.png");
-		case CType.SUBSTITUTE_STEP: return imgd!("evt_cpstep.png");
-		case CType.SUBSTITUTE_FLAG: return imgd!("evt_cpflag.png");
-		case CType.BRANCH_STEP_CMP: return imgd!("evt_cmpstep.png");
-		case CType.BRANCH_FLAG_CMP: return imgd!("evt_cmpflag.png");
-		case CType.BRANCH_RANDOM_SELECT: return imgd!("evt_br_rndsel.png");
-		case CType.BRANCH_KEY_CODE: return imgd!("evt_br_keycode.png");
-		case CType.CHECK_STEP: return imgd!("evt_check_step.png");
-		case CType.BRANCH_ROUND: return imgd!("evt_br_round.png");
-		case CType.MOVE_BG_IMAGE: return imgd!("evt_mv_back.png"); // Wsn.1
-		case CType.REPLACE_BG_IMAGE: return imgd!("evt_rpl_back.png"); // Wsn.1
-		case CType.LOSE_BG_IMAGE: return imgd!("evt_lose_back.png"); // Wsn.1
-		case CType.BRANCH_MULTI_COUPON: return imgd!("evt_br_multi_coupon.png"); // Wsn.2
-		case CType.BRANCH_MULTI_RANDOM: return imgd!("evt_br_multi_random.png"); // Wsn.2
-		case CType.MOVE_CARD: return imgd!("evt_mv_card.png"); // Wsn.3
-		case CType.CHANGE_ENVIRONMENT: return imgd!("evt_ch_env.png"); // Wsn.4
-		case CType.BRANCH_VARIANT: return imgd!("evt_br_var.png"); // Wsn.4
-		case CType.SET_VARIANT: return imgd!("evt_set_var.png"); // Wsn.4
-		case CType.CHECK_VARIANT: return imgd!("evt_chk_var.png"); // Wsn.4
+		case CType.Start: return imgd!("evt_start.png");
+		case CType.StartBattle: return imgd!("evt_battle.png");
+		case CType.End: return imgd!("evt_clear.png");
+		case CType.EndBadEnd: return imgd!("evt_gameover.png");
+		case CType.ChangeArea: return imgd!("evt_area.png");
+		case CType.ChangeBgImage: return imgd!("evt_back.png");
+		case CType.Effect: return imgd!("evt_effect.png");
+		case CType.EffectBreak: return imgd!("evt_stop.png");
+		case CType.LinkStart: return imgd!("evt_link_s.png");
+		case CType.LinkPackage: return imgd!("evt_link_p.png");
+		case CType.TalkMessage: return imgd!("evt_message.png");
+		case CType.TalkDialog: return imgd!("evt_speak.png");
+		case CType.PlayBgm: return imgd!("evt_bgm.png");
+		case CType.PlaySound: return imgd!("evt_se.png");
+		case CType.Wait: return imgd!("evt_wait.png");
+		case CType.ElapseTime: return imgd!("evt_time.png");
+		case CType.CallStart: return imgd!("evt_call_s.png");
+		case CType.CallPackage: return imgd!("evt_call_p.png");
+		case CType.BranchFlag: return imgd!("evt_br_flag.png");
+		case CType.BranchMultiStep: return imgd!("evt_br_step_n.png");
+		case CType.BranchStep: return imgd!("evt_br_step_ul.png");
+		case CType.BranchSelect: return imgd!("evt_br_member.png");
+		case CType.BranchAbility: return imgd!("evt_br_power.png");
+		case CType.BranchRandom: return imgd!("evt_br_random.png");
+		case CType.BranchLevel: return imgd!("evt_br_level.png");
+		case CType.BranchStatus: return imgd!("evt_br_state.png");
+		case CType.BranchPartyNumber: return imgd!("evt_br_num.png");
+		case CType.BranchArea: return imgd!("evt_br_area.png");
+		case CType.BranchBattle: return imgd!("evt_br_battle.png");
+		case CType.BranchIsBattle: return imgd!("evt_br_on_battle.png");
+		case CType.BranchCast: return imgd!("evt_br_cast.png");
+		case CType.BranchItem: return imgd!("evt_br_item.png");
+		case CType.BranchSkill: return imgd!("evt_br_skill.png");
+		case CType.BranchInfo: return imgd!("evt_br_info.png");
+		case CType.BranchBeast: return imgd!("evt_br_beast.png");
+		case CType.BranchMoney: return imgd!("evt_br_money.png");
+		case CType.BranchCoupon: return imgd!("evt_br_coupon.png");
+		case CType.BranchCompleteStamp: return imgd!("evt_br_end.png");
+		case CType.BranchGossip: return imgd!("evt_br_gossip.png");
+		case CType.SetFlag: return imgd!("evt_flag_set.png");
+		case CType.SetStep: return imgd!("evt_step_set.png");
+		case CType.SetStepUp: return imgd!("evt_step_plus.png");
+		case CType.SetStepDown: return imgd!("evt_step_minus.png");
+		case CType.ReverseFlag: return imgd!("evt_flag_r.png");
+		case CType.CheckFlag: return imgd!("evt_flag_judge.png");
+		case CType.GetCast: return imgd!("cast.png");
+		case CType.GetItem: return imgd!("item.png");
+		case CType.GetSkill: return imgd!("skill.png");
+		case CType.GetInfo: return imgd!("info.png");
+		case CType.GetBeast: return imgd!("beast.png");
+		case CType.GetMoney: return imgd!("money.png");
+		case CType.GetCoupon: return imgd!("coupon.png");
+		case CType.GetCompleteStamp: return imgd!("end.png");
+		case CType.GetGossip: return imgd!("gossip.png");
+		case CType.LoseCast: return imgd!("evt_lost_cast.png");
+		case CType.LoseItem: return imgd!("evt_lost_item.png");
+		case CType.LoseSkill: return imgd!("evt_lost_skill.png");
+		case CType.LoseInfo: return imgd!("evt_lost_info.png");
+		case CType.LoseBeast: return imgd!("evt_lost_beast.png");
+		case CType.LoseMoney: return imgd!("evt_lost_money.png");
+		case CType.LoseCoupon: return imgd!("evt_lost_coupon.png");
+		case CType.LoseCompleteStamp: return imgd!("evt_lost_end.png");
+		case CType.LoseGossip: return imgd!("evt_lost_gossip.png");
+		case CType.ShowParty: return imgd!("evt_show_party.png");
+		case CType.HideParty: return imgd!("evt_hide_party.png");
+		case CType.Redisplay: return imgd!("evt_refresh.png");
+		case CType.SubstituteStep: return imgd!("evt_cpstep.png");
+		case CType.SubstituteFlag: return imgd!("evt_cpflag.png");
+		case CType.BranchStepCmp: return imgd!("evt_cmpstep.png");
+		case CType.BranchFlagCmp: return imgd!("evt_cmpflag.png");
+		case CType.BranchRandomSelect: return imgd!("evt_br_rndsel.png");
+		case CType.BranchKeyCode: return imgd!("evt_br_keycode.png");
+		case CType.CheckStep: return imgd!("evt_check_step.png");
+		case CType.BranchRound: return imgd!("evt_br_round.png");
+		case CType.MoveBgImage: return imgd!("evt_mv_back.png"); // Wsn.1
+		case CType.ReplaceBgImage: return imgd!("evt_rpl_back.png"); // Wsn.1
+		case CType.LoseBgImage: return imgd!("evt_lose_back.png"); // Wsn.1
+		case CType.BranchMultiCoupon: return imgd!("evt_br_multi_coupon.png"); // Wsn.2
+		case CType.BranchMultiRandom: return imgd!("evt_br_multi_random.png"); // Wsn.2
+		case CType.MoveCard: return imgd!("evt_mv_card.png"); // Wsn.3
+		case CType.ChangeEnvironment: return imgd!("evt_ch_env.png"); // Wsn.4
+		case CType.BranchVariant: return imgd!("evt_br_var.png"); // Wsn.4
+		case CType.SetVariant: return imgd!("evt_set_var.png"); // Wsn.4
+		case CType.CheckVariant: return imgd!("evt_chk_var.png"); // Wsn.4
 		}
 	}
 
@@ -355,80 +355,80 @@ public:
 
 	Image motion(MType type) { mixin(S_TRACE);
 		final switch (type) {
-		case MType.HEAL: return imgd!("msn_heal.png");
-		case MType.DAMAGE: return imgd!("msn_damage.png");
-		case MType.ABSORB: return imgd!("msn_absorb.png");
-		case MType.PARALYZE: return imgd!("msn_paralyze.png");
-		case MType.DIS_PARALYZE: return imgd!("msn_dis_paralyze.png");
-		case MType.POISON: return imgd!("msn_poison.png");
-		case MType.DIS_POISON: return imgd!("msn_dis_poison.png");
-		case MType.GET_SKILL_POWER: return imgd!("msn_get_skill_power.png");
-		case MType.LOSE_SKILL_POWER: return imgd!("msn_lose_skill_power.png");
-		case MType.SLEEP: return imgd!("msn_sleep.png");
-		case MType.CONFUSE: return imgd!("msn_confuse.png");
-		case MType.OVERHEAT: return imgd!("msn_overheat.png");
-		case MType.BRAVE: return imgd!("msn_brave.png");
-		case MType.PANIC: return imgd!("msn_panic.png");
-		case MType.NORMAL: return imgd!("msn_wakeup.png");
-		case MType.BIND: return imgd!("msn_bind.png");
-		case MType.DIS_BIND: return imgd!("msn_dis_bind.png");
-		case MType.SILENCE: return imgd!("msn_silence.png");
-		case MType.DIS_SILENCE: return imgd!("msn_dis_silence.png");
-		case MType.FACE_UP: return imgd!("msn_face_up.png");
-		case MType.FACE_DOWN: return imgd!("msn_face_down.png");
-		case MType.ANTI_MAGIC: return imgd!("msn_anti_magic.png");
-		case MType.DIS_ANTI_MAGIC: return imgd!("msn_dis_anti_magic.png");
-		case MType.ENHANCE_ACTION: return imgd!("msn_enh_action.png");
-		case MType.ENHANCE_AVOID: return imgd!("msn_enh_avoid.png");
-		case MType.ENHANCE_DEFENSE: return imgd!("msn_enh_defense.png");
-		case MType.ENHANCE_RESIST: return imgd!("msn_enh_resist.png");
-		case MType.VANISH_TARGET: return imgd!("evt_lost_cast.png");
-		case MType.VANISH_CARD: return imgd!("msn_vanish_hand.png");
-		case MType.VANISH_BEAST: return imgd!("evt_lost_beast.png");
-		case MType.DEAL_ATTACK_CARD: return imgd!("hand_attack.png");
-		case MType.DEAL_POWERFUL_ATTACK_CARD: return imgd!("hand_p_attack.png");
-		case MType.DEAL_CRITICAL_ATTACK_CARD: return imgd!("hand_c_attack.png");
-		case MType.DEAL_FEINT_CARD: return imgd!("hand_feint.png");
-		case MType.DEAL_DEFENSE_CARD: return imgd!("hand_defense.png");
-		case MType.DEAL_DISTANCE_CARD: return imgd!("hand_distance.png");
-		case MType.DEAL_CONFUSE_CARD: return imgd!("hand_confuse.png");
-		case MType.DEAL_SKILL_CARD: return imgd!("hand_skill.png");
-		case MType.SUMMON_BEAST: return imgd!("msn_summon.png");
-		case MType.CANCEL_ACTION: return imgd!("msn_cancel_action.png"); // CardWirth 1.50
-		case MType.NO_EFFECT: return imgd!("msn_no_effect.png"); // Wsn.2
+		case MType.Heal: return imgd!("msn_heal.png");
+		case MType.Damage: return imgd!("msn_damage.png");
+		case MType.Absorb: return imgd!("msn_absorb.png");
+		case MType.Paralyze: return imgd!("msn_paralyze.png");
+		case MType.DisParalyze: return imgd!("msn_dis_paralyze.png");
+		case MType.Poison: return imgd!("msn_poison.png");
+		case MType.DisPoison: return imgd!("msn_dis_poison.png");
+		case MType.GetSkillPower: return imgd!("msn_get_skill_power.png");
+		case MType.LoseSkillPower: return imgd!("msn_lose_skill_power.png");
+		case MType.Sleep: return imgd!("msn_sleep.png");
+		case MType.Confuse: return imgd!("msn_confuse.png");
+		case MType.Overheat: return imgd!("msn_overheat.png");
+		case MType.Brave: return imgd!("msn_brave.png");
+		case MType.Panic: return imgd!("msn_panic.png");
+		case MType.Normal: return imgd!("msn_wakeup.png");
+		case MType.Bind: return imgd!("msn_bind.png");
+		case MType.DisBind: return imgd!("msn_dis_bind.png");
+		case MType.Silence: return imgd!("msn_silence.png");
+		case MType.DisSilence: return imgd!("msn_dis_silence.png");
+		case MType.FaceUp: return imgd!("msn_face_up.png");
+		case MType.FaceDown: return imgd!("msn_face_down.png");
+		case MType.AntiMagic: return imgd!("msn_anti_magic.png");
+		case MType.DisAntiMagic: return imgd!("msn_dis_anti_magic.png");
+		case MType.EnhanceAction: return imgd!("msn_enh_action.png");
+		case MType.EnhanceAvoid: return imgd!("msn_enh_avoid.png");
+		case MType.EnhanceDefense: return imgd!("msn_enh_defense.png");
+		case MType.EnhanceResist: return imgd!("msn_enh_resist.png");
+		case MType.VanishTarget: return imgd!("evt_lost_cast.png");
+		case MType.VanishCard: return imgd!("msn_vanish_hand.png");
+		case MType.VanishBeast: return imgd!("evt_lost_beast.png");
+		case MType.DealAttackCard: return imgd!("hand_attack.png");
+		case MType.DealPowerfulAttackCard: return imgd!("hand_p_attack.png");
+		case MType.DealCriticalAttackCard: return imgd!("hand_c_attack.png");
+		case MType.DealFeintCard: return imgd!("hand_feint.png");
+		case MType.DealDefenseCard: return imgd!("hand_defense.png");
+		case MType.DealDistanceCard: return imgd!("hand_distance.png");
+		case MType.DealConfuseCard: return imgd!("hand_confuse.png");
+		case MType.DealSkillCard: return imgd!("hand_skill.png");
+		case MType.SummonBeast: return imgd!("msn_summon.png");
+		case MType.CancelAction: return imgd!("msn_cancel_action.png"); // CardWirth 1.50
+		case MType.NoEffect: return imgd!("msn_no_effect.png"); // Wsn.2
 		}
 	}
 
 	Image element(Element el) { mixin(S_TRACE);
 		final switch (el) {
-		case Element.ALL:
+		case Element.All:
 			return imgd!("elm_all.png");
-		case Element.HEALTH:
+		case Element.Health:
 			return imgd!("elm_health.png");
-		case Element.MIND:
+		case Element.Mind:
 			return imgd!("elm_mind.png");
-		case Element.MIRACLE:
+		case Element.Miracle:
 			return imgd!("elm_miracle.png");
-		case Element.MAGIC:
+		case Element.Magic:
 			return imgd!("elm_magic.png");
-		case Element.FIRE:
+		case Element.Fire:
 			return imgd!("elm_fire.png");
-		case Element.ICE:
+		case Element.Ice:
 			return imgd!("elm_ice.png");
 		}
 	}
 
 	Image talker(Talker t) { mixin(S_TRACE);
 		final switch (t) {
-		case Talker.SELECTED:
+		case Talker.Selected:
 			return imgd!("talker_sel.png");
-		case Talker.UNSELECTED:
+		case Talker.Unselected:
 			return imgd!("talker_unsel.png");
-		case Talker.RANDOM:
+		case Talker.Random:
 			return imgd!("talker_random.png");
-		case Talker.VALUED:
+		case Talker.Valued:
 			return imgd!("talker_valued.png");
-		case Talker.CARD:
+		case Talker.Card:
 			throw new Exception("Narration, image and card haven't image.");
 		}
 	}
@@ -493,15 +493,15 @@ public:
 	}
 	Image scTalker(Talker talker) { mixin(S_TRACE);
 		final switch (talker) {
-		case Talker.SELECTED:
+		case Talker.Selected:
 			return imgd!("sc_m.png");
-		case Talker.UNSELECTED:
+		case Talker.Unselected:
 			return imgd!("sc_u.png");
-		case Talker.RANDOM:
+		case Talker.Random:
 			return imgd!("sc_r.png");
-		case Talker.CARD:
+		case Talker.Card:
 			return imgd!("sc_c.png");
-		case Talker.VALUED:
+		case Talker.Valued:
 			throw new Exception("Narration and image haven't image.");
 		}
 	}

@@ -647,15 +647,15 @@ private class ImageLayerItem : Item {
 			break;
 		case CardImageType.Talker:
 			final switch (path.talker) {
-			case Talker.SELECTED:
-			case Talker.UNSELECTED:
-			case Talker.RANDOM:
-			case Talker.VALUED:
+			case Talker.Selected:
+			case Talker.Unselected:
+			case Talker.Random:
+			case Talker.Valued:
 				auto imgData = _parent._comm.prop.images.talker(path.talker).getImageData();
 				auto dataWS = new ImageDataWithScale(imgData, .dpiMuls);
 				setImage(new Image(d, dataWS.scaled(_parent._comm.prop.var.etc.imageScale)));
 				break;
-			case Talker.CARD:
+			case Talker.Card:
 				auto scale = _parent._comm.prop.var.etc.imageScale;
 				auto imgData = .menuCard(skin, _parent._comm.prop.drawingScale);
 				auto data = imgData.scaled(_parent._comm.prop.drawingScale).scaledTo(_parent._comm.prop.s(cRect.width), _parent._comm.prop.s(cRect.height));

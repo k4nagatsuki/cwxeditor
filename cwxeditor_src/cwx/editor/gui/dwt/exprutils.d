@@ -154,7 +154,7 @@ private:
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
 		if (!prop.isTargetVersion(summ, "4")) { mixin(S_TRACE);
-			ws ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(CType.SET_VARIANT), "4");
+			ws ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(CType.SetVariant), "4");
 		}
 		ws ~= _expr.warnings;
 		if (_flag) { mixin(S_TRACE);
@@ -271,7 +271,7 @@ private:
 
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, Content parent, Content evt) { mixin(S_TRACE);
-		super (comm, prop, shell, summ, CType.SET_VARIANT, parent, evt, true, prop.var.expressionWithTargetDlg, true);
+		super (comm, prop, shell, summ, CType.SetVariant, parent, evt, true, prop.var.expressionWithTargetDlg, true);
 		_uc = uc;
 	}
 
@@ -359,7 +359,7 @@ protected:
 	}
 
 	override bool apply() { mixin(S_TRACE);
-		if (!evt) evt = new Content(CType.SET_VARIANT, "");
+		if (!evt) evt = new Content(CType.SetVariant, "");
 		evt.expression = _expr.expression;
 		if (_flag) { mixin(S_TRACE);
 			evt.flag = _flag.selected;

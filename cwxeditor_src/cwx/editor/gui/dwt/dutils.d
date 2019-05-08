@@ -1688,7 +1688,7 @@ ImageDataWithScale castCardImage(Props prop, Skin skin, in Summary summ, in Cast
 	} else if (c.bindRound > 0) { mixin(S_TRACE);
 		id = .castCardBind(skin, prop.drawingScale);
 		whiteName = true;
-	} else if (c.mentality == Mentality.SLEEP && c.mentalityRound > 0) { mixin(S_TRACE);
+	} else if (c.mentality == Mentality.Sleep && c.mentalityRound > 0) { mixin(S_TRACE);
 		id = .castCardSleep(skin, prop.drawingScale);
 		whiteName = true;
 	} else if (c.life <= c.lifeMax / 5) { mixin(S_TRACE);
@@ -1853,11 +1853,11 @@ ImageDataWithScale castCardImage(Props prop, Skin skin, in Summary summ, in Cast
 	}
 	if (c.mentalityRound > 0) { mixin(S_TRACE);
 		switch (c.mentality) {
-		case Mentality.NORMAL: break;
-		case Mentality.SLEEP:
-			if (showSleepAndBind) goto case Mentality.CONFUSE;
+		case Mentality.Normal: break;
+		case Mentality.Sleep:
+			if (showSleepAndBind) goto case Mentality.Confuse;
 			break;
-		case Mentality.CONFUSE, Mentality.OVERHEAT, Mentality.BRAVE, Mentality.PANIC: { mixin(S_TRACE);
+		case Mentality.Confuse, Mentality.Overheat, Mentality.Brave, Mentality.Panic: { mixin(S_TRACE);
 			status(.mentality(skin, prop.drawingScale, c.mentality), c.mentalityRound);
 		} break;
 		default: assert (0);
@@ -1910,10 +1910,10 @@ ImageDataWithScale castCardImage(Props prop, Skin skin, in Summary summ, in Cast
 			put(.enhanceDown(skin, prop.drawingScale, enh), back);
 		}
 	}
-	enh(Enhance.ACTION);
-	enh(Enhance.AVOID);
-	enh(Enhance.RESIST);
-	enh(Enhance.DEFENSE);
+	enh(Enhance.Action);
+	enh(Enhance.Avoid);
+	enh(Enhance.Resist);
+	enh(Enhance.Defense);
 	int beastCountMax = prop.looks.beastCardMaxNum(c.level);
 	int beastCount = 0;
 	foreach (b; c.beasts) { mixin(S_TRACE);
@@ -1986,13 +1986,13 @@ void addToPileImage(in CardImage img, PileImage pile, Props prop, Skin skin, in 
 		break;
 	case CardImageType.Talker:
 		final switch (img.talker) {
-		case Talker.SELECTED:
-		case Talker.UNSELECTED:
-		case Talker.RANDOM:
-		case Talker.VALUED:
+		case Talker.Selected:
+		case Talker.Unselected:
+		case Talker.Random:
+		case Talker.Valued:
 			pile.append(new ImageDataWithScale(prop.images.talker(img.talker).getImageData(), .dpiMuls), matPad, type, true);
 			break;
-		case Talker.CARD:
+		case Talker.Card:
 			auto cRect = prop.looks.cardSize;
 			auto tImg = .menuCard(skin, prop.drawingScale);
 			auto tImgData = tImg.scaled(prop.drawingScale).scaledTo(prop.ds(cRect.width), prop.ds(cRect.height));
@@ -2045,14 +2045,14 @@ ImageDataWithScale cardImage(C)(Props prop, Skin skin, in Summary summ, in C bas
 	scope r = new PileImage(card, prop.drawingScale, w, h, true);
 	static if (!is(C == InfoCard)) {
 		final switch (c.premium) {
-		case Premium.PREMIUM, Premium.RARE:
+		case Premium.Premium, Premium.Rare:
 			scope pp = prop.looks.premiumXY;
-			auto img = c.premium == Premium.PREMIUM
+			auto img = c.premium == Premium.Premium
 				? .premier(skin, prop.drawingScale) : .rare(skin, prop.drawingScale);
 			r.append(img, CInsets(pp.y, pp.x, h - pp.y - img.getHeight(NORMAL_SCALE), w - pp.x - img.getWidth(NORMAL_SCALE)), ScaleType.Cut);
 			r.append(img, CInsets(h - pp.y - img.getHeight(NORMAL_SCALE), w - pp.x - img.getWidth(NORMAL_SCALE), pp.y, pp.x), ScaleType.Cut);
 			break;
-		case Premium.NORMAL:
+		case Premium.Normal:
 			break;
 		}
 	}
@@ -3269,11 +3269,11 @@ string contentTextUseID(CIDKind Kind, ID)(Commons comm, Summary summ, ID id, str
 			goto case CardImageType.File; // 非対応
 		case CardImageType.Talker:
 			final switch (id.talker) {
-			case Talker.SELECTED:
-			case Talker.UNSELECTED:
-			case Talker.RANDOM:
-			case Talker.CARD:
-			case Talker.VALUED:
+			case Talker.Selected:
+			case Talker.Unselected:
+			case Talker.Random:
+			case Talker.Card:
+			case Talker.Valued:
 				name = comm.prop.msgs.talkerName(id.talker);
 				use = true;
 				find = () => true;
@@ -3403,7 +3403,7 @@ string contentTextUseID(CIDKind Kind, ID)(Commons comm, Summary summ, ID id, str
 }
 
 string rangeName(in Props prop, Range range, string coupon) { mixin(S_TRACE);
-	if (range is Range.COUPON_HOLDER) { mixin(S_TRACE);
+	if (range is Range.CouponHolder) { mixin(S_TRACE);
 		if (coupon == "") { mixin(S_TRACE);
 			return prop.msgs.rangeWithNoCoupon;
 		} else { mixin(S_TRACE);
@@ -3436,15 +3436,15 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		return buf;
 	}
 	final switch (evt.type) {
-	case CType.START: { mixin(S_TRACE);
+	case CType.Start: { mixin(S_TRACE);
 		return .tryFormat(comm.prop.msgs.ctStart, evt.name);
-	} case CType.START_BATTLE: { mixin(S_TRACE);
+	} case CType.StartBattle: { mixin(S_TRACE);
 		return contentTextUseID!(CIDKind.Battle)(comm, summ, evt.battle, comm.prop.msgs.ctStartBattle, evt);
-	} case CType.END: { mixin(S_TRACE);
+	} case CType.End: { mixin(S_TRACE);
 		return evt.complete ? comm.prop.msgs.ctEndComplete : comm.prop.msgs.ctEndNoComplete;
-	} case CType.END_BAD_END: { mixin(S_TRACE);
+	} case CType.EndBadEnd: { mixin(S_TRACE);
 		return comm.prop.msgs.ctGameOver;
-	} case CType.CHANGE_AREA: { mixin(S_TRACE);
+	} case CType.ChangeArea: { mixin(S_TRACE);
 		if (summ && summ.legacy) { mixin(S_TRACE);
 			return contentTextUseID!(CIDKind.Area)(comm, summ, evt.area, comm.prop.msgs.ctChangeAreaClassic, evt);
 		} else { mixin(S_TRACE);
@@ -3452,14 +3452,14 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 			string v = comm.prop.msgs.transitionName(evt.transition);
 			return .tryFormat(comm.prop.msgs.ctChangeArea, a, v, evt.transitionSpeed);
 		}
-	} case CType.CHANGE_BG_IMAGE: { mixin(S_TRACE);
+	} case CType.ChangeBgImage: { mixin(S_TRACE);
 		if (summ && summ.legacy) { mixin(S_TRACE);
 			return .tryFormat(comm.prop.msgs.ctChangeBgImageClassic, bgImageString);
 		} else { mixin(S_TRACE);
 			string v = comm.prop.msgs.transitionName(evt.transition);
 			return .tryFormat(comm.prop.msgs.ctChangeBgImage, bgImageString, v, evt.transitionSpeed);
 		}
-	} case CType.EFFECT: { mixin(S_TRACE);
+	} case CType.Effect: { mixin(S_TRACE);
 		string tt = .rangeName(comm.prop, evt.range, evt.holdingCoupon);
 		int tl = evt.signedLevel;
 		string tet = comm.prop.msgs.effectTypeName(evt.effectType);
@@ -3508,13 +3508,13 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 				return .tryFormat(comm.prop.msgs.ctEffect, tt, tl, tet, tr, tsf, ts, tsnd, tcv, teff, ignite, keyCode);
 			}
 		}
-	} case CType.EFFECT_BREAK: { mixin(S_TRACE);
+	} case CType.EffectBreak: { mixin(S_TRACE);
 		return evt.consumeCard ? comm.prop.msgs.ctEffectBreakConsumeCard : comm.prop.msgs.ctEffectBreakNoConsumeCard;
-	} case CType.LINK_START: { mixin(S_TRACE);
+	} case CType.LinkStart: { mixin(S_TRACE);
 		return contentTextUseID!(CIDKind.Start)(comm, summ, evt.start, comm.prop.msgs.ctLinkStart, evt);
-	} case CType.LINK_PACKAGE: { mixin(S_TRACE);
+	} case CType.LinkPackage: { mixin(S_TRACE);
 		return contentTextUseID!(CIDKind.Package)(comm, summ, evt.packages, comm.prop.msgs.ctLinkPackage, evt);
-	} case CType.TALK_MESSAGE: { mixin(S_TRACE);
+	} case CType.TalkMessage: { mixin(S_TRACE);
 		string text = evt.text;
 		text = (text == "") ? comm.prop.msgs.noText : text.singleLine;
 		if (evt.cardPaths.length) {
@@ -3533,7 +3533,7 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 				return .tryFormat(comm.prop.msgs.ctTalkMessageNarrationWithAttrs, text, attrs);
 			}
 		}
-	} case CType.TALK_DIALOG: { mixin(S_TRACE);
+	} case CType.TalkDialog: { mixin(S_TRACE);
 		assert (evt.dialogs.length);
 		int status = comm.prop.var.etc.dialogStatus;
 		switch (status) {
@@ -3551,7 +3551,7 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		default:
 			return .talkDialogText(comm, evt, evt.dialogs[0]);
 		}
-	} case CType.PLAY_BGM: { mixin(S_TRACE);
+	} case CType.PlayBgm: { mixin(S_TRACE);
 		if ("" == evt.bgmPath) { mixin(S_TRACE);
 			auto channel = evt.bgmChannel == 0 ? comm.prop.msgs.mainChannel : comm.prop.msgs.subChannel;
 			auto fadeIn = .formatReal(evt.bgmFadeIn / 100.0, 3); // ms -> 0.1s
@@ -3564,31 +3564,31 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 			auto fadeIn = .formatReal(evt.bgmFadeIn / 100.0, 3); // ms -> 0.1s
 			return .tryFormat(comm.prop.msgs.ctPlayBGM, s, channel, fadeIn, volume, loopCount);
 		}
-	} case CType.PLAY_SOUND: { mixin(S_TRACE);
+	} case CType.PlaySound: { mixin(S_TRACE);
 		auto s = contentTextUseID!(CIDKind.SE)(comm, summ, evt.soundPath, "%s", evt);
 		auto volume = evt.soundVolume;
 		auto loopCount = evt.soundLoopCount == 0 ? comm.prop.msgs.infinity : .text(evt.soundLoopCount);
 		auto channel = evt.soundChannel == 0 ? comm.prop.msgs.mainChannel : comm.prop.msgs.subChannel;
 		auto fadeIn = .formatReal(evt.soundFadeIn / 100.0, 3); // ms -> 0.1s
 		return .tryFormat(comm.prop.msgs.ctPlaySound, s, channel, fadeIn, volume, loopCount);
-	} case CType.WAIT: { mixin(S_TRACE);
+	} case CType.Wait: { mixin(S_TRACE);
 		return .tryFormat(comm.prop.msgs.ctWait, evt.wait);
-	} case CType.ELAPSE_TIME: { mixin(S_TRACE);
+	} case CType.ElapseTime: { mixin(S_TRACE);
 		return comm.prop.msgs.ctElapseTime;
-	} case CType.CALL_START: { mixin(S_TRACE);
+	} case CType.CallStart: { mixin(S_TRACE);
 		return contentTextUseID!(CIDKind.Start)(comm, summ, evt.start, comm.prop.msgs.ctCallStart, evt);
-	} case CType.CALL_PACKAGE: { mixin(S_TRACE);
+	} case CType.CallPackage: { mixin(S_TRACE);
 		return contentTextUseID!(CIDKind.Package)(comm, summ, evt.packages, comm.prop.msgs.ctCallPackage, evt);
-	} case CType.BRANCH_FLAG: { mixin(S_TRACE);
+	} case CType.BranchFlag: { mixin(S_TRACE);
 		return contentTextUseID!(CIDKind.Flag)(comm, summ, evt.flag, comm.prop.msgs.ctBranchFlag, evt);
-	} case CType.BRANCH_MULTI_STEP: { mixin(S_TRACE);
+	} case CType.BranchMultiStep: { mixin(S_TRACE);
 		return contentTextUseID!(CIDKind.Step)(comm, summ, evt.step, comm.prop.msgs.ctBranchMultiStep, evt);
-	} case CType.BRANCH_STEP: { mixin(S_TRACE);
+	} case CType.BranchStep: { mixin(S_TRACE);
 		string s = contentTextUseID!(CIDKind.Step)(comm, summ, evt.step, "%s", evt);
 		auto step = .findVar!Step(summ ? summ.flagDirRoot : null, evt ? evt.useCounter : null, evt.step);
 		string v = step ? getStepValue(comm.prop, step, evt.stepValue) : .parseDollarParams(comm.prop.var.etc.stepValueName, ['N':.to!string(evt.stepValue)]);
 		return .tryFormat(comm.prop.msgs.ctBranchStep, s, v);
-	} case CType.BRANCH_SELECT: { mixin(S_TRACE);
+	} case CType.BranchSelect: { mixin(S_TRACE);
 		string t = evt.targetAll ? comm.prop.msgs.ctBranchSelectAll : comm.prop.msgs.ctBranchSelectActive;
 		string r;
 		final switch (evt.selectionMethod) {
@@ -3608,7 +3608,7 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 			break;
 		}
 		return .tryFormat(comm.prop.msgs.ctBranchSelect, t, r);
-	} case CType.BRANCH_ABILITY: { mixin(S_TRACE);
+	} case CType.BranchAbility: { mixin(S_TRACE);
 		string t = comm.prop.msgs.targetName(evt.targetS.m);
 		string p = comm.prop.msgs.physicalName(evt.physical);
 		string m = comm.prop.msgs.mentalName(evt.mental);
@@ -3616,30 +3616,30 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		auto l = evt.signedLevel;
 		auto hl = evt.invertResult ? comm.prop.msgs.abilityLowest : comm.prop.msgs.abilityHighest;
 		return .tryFormat(comm.prop.msgs.ctBranchAbility, t, s, p, m, hl, l);
-	} case CType.BRANCH_RANDOM: { mixin(S_TRACE);
+	} case CType.BranchRandom: { mixin(S_TRACE);
 		return .tryFormat(comm.prop.msgs.ctBranchRandom, evt.percent);
-	} case CType.BRANCH_LEVEL: { mixin(S_TRACE);
+	} case CType.BranchLevel: { mixin(S_TRACE);
 		string a = evt.average ? comm.prop.msgs.ctBranchLevelAverage : comm.prop.msgs.ctBranchLevelSelected;
 		auto l = evt.unsignedLevel;
 		return .tryFormat(comm.prop.msgs.ctBranchLevel, a, l);
-	} case CType.BRANCH_STATUS: { mixin(S_TRACE);
+	} case CType.BranchStatus: { mixin(S_TRACE);
 		string t = .rangeName(comm.prop, evt.range, evt.holdingCoupon);
 		string s = comm.prop.msgs.statusName(evt.status);
 		auto resultType = evt.invertResult ? comm.prop.msgs.haveNotForStatus : comm.prop.msgs.haveForStatus;
 		return .tryFormat(comm.prop.msgs.ctBranchStatus, t, s, resultType);
-	} case CType.BRANCH_PARTY_NUMBER: { mixin(S_TRACE);
+	} case CType.BranchPartyNumber: { mixin(S_TRACE);
 		return .tryFormat(comm.prop.msgs.ctBranchPartyNumber, evt.partyNumber);
-	} case CType.BRANCH_AREA: { mixin(S_TRACE);
+	} case CType.BranchArea: { mixin(S_TRACE);
 		return comm.prop.msgs.ctBranchArea;
-	} case CType.BRANCH_BATTLE: { mixin(S_TRACE);
+	} case CType.BranchBattle: { mixin(S_TRACE);
 		return comm.prop.msgs.ctBranchBattle;
-	} case CType.BRANCH_IS_BATTLE: { mixin(S_TRACE);
+	} case CType.BranchIsBattle: { mixin(S_TRACE);
 		return comm.prop.msgs.ctBranchIsBattle;
-	} case CType.BRANCH_CAST: { mixin(S_TRACE);
+	} case CType.BranchCast: { mixin(S_TRACE);
 		return contentTextUseID!(CIDKind.Cast)(comm, summ, evt.casts, comm.prop.msgs.ctBranchCast, evt);
-	} case CType.BRANCH_ITEM: { mixin(S_TRACE);
+	} case CType.BranchItem: { mixin(S_TRACE);
 		string name = contentTextUseID!(CIDKind.Item)(comm, summ, evt.item, "%s", evt);
-		if (evt.range is Range.SELECTED_CARD) { mixin(S_TRACE);
+		if (evt.range is Range.SelectedCard) { mixin(S_TRACE);
 			auto resultType = evt.invertResult ? comm.prop.msgs.notMatchCard : comm.prop.msgs.matchCard;
 			return .tryFormat(comm.prop.msgs.ctBranchItemForSelectedCard, name, resultType);
 		} else { mixin(S_TRACE);
@@ -3647,9 +3647,9 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 			auto selectCard = evt.selectCard ? comm.prop.msgs.ctSelectFoundCard : comm.prop.msgs.noSelectFoundCard;
 			return .tryFormat(comm.prop.msgs.ctBranchItem, name, resultType, .rangeName(comm.prop, evt.range, evt.holdingCoupon), evt.cardNumber, selectCard);
 		}
-	} case CType.BRANCH_SKILL: { mixin(S_TRACE);
+	} case CType.BranchSkill: { mixin(S_TRACE);
 		string name = contentTextUseID!(CIDKind.Skill)(comm, summ, evt.skill, "%s", evt);
-		if (evt.range is Range.SELECTED_CARD) { mixin(S_TRACE);
+		if (evt.range is Range.SelectedCard) { mixin(S_TRACE);
 			auto resultType = evt.invertResult ? comm.prop.msgs.notMatchCard : comm.prop.msgs.matchCard;
 			return .tryFormat(comm.prop.msgs.ctBranchSkillForSelectedCard, name, resultType);
 		} else { mixin(S_TRACE);
@@ -3657,11 +3657,11 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 			auto selectCard = evt.selectCard ? comm.prop.msgs.ctSelectFoundCard : comm.prop.msgs.noSelectFoundCard;
 			return .tryFormat(comm.prop.msgs.ctBranchSkill, name, resultType, .rangeName(comm.prop, evt.range, evt.holdingCoupon), evt.cardNumber, selectCard);
 		}
-	} case CType.BRANCH_INFO: { mixin(S_TRACE);
+	} case CType.BranchInfo: { mixin(S_TRACE);
 		return contentTextUseID!(CIDKind.Info)(comm, summ, evt.info, comm.prop.msgs.ctBranchInfo, evt);
-	} case CType.BRANCH_BEAST: { mixin(S_TRACE);
+	} case CType.BranchBeast: { mixin(S_TRACE);
 		string name = contentTextUseID!(CIDKind.Beast)(comm, summ, evt.beast, "%s", evt);
-		if (evt.range is Range.SELECTED_CARD) { mixin(S_TRACE);
+		if (evt.range is Range.SelectedCard) { mixin(S_TRACE);
 			auto resultType = evt.invertResult ? comm.prop.msgs.notMatchCard : comm.prop.msgs.matchCard;
 			return .tryFormat(comm.prop.msgs.ctBranchBeastForSelectedCard, name, resultType);
 		} else { mixin(S_TRACE);
@@ -3669,9 +3669,9 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 			auto selectCard = evt.selectCard ? comm.prop.msgs.ctSelectFoundCard : comm.prop.msgs.noSelectFoundCard;
 			return .tryFormat(comm.prop.msgs.ctBranchBeast, name, resultType, .rangeName(comm.prop, evt.range, evt.holdingCoupon), evt.cardNumber, selectCard);
 		}
-	} case CType.BRANCH_MONEY: { mixin(S_TRACE);
+	} case CType.BranchMoney: { mixin(S_TRACE);
 		return .tryFormat(comm.prop.msgs.ctBranchMoney, evt.money);
-	} case CType.BRANCH_COUPON: { mixin(S_TRACE);
+	} case CType.BranchCoupon: { mixin(S_TRACE);
 		string rangeName = .rangeName(comm.prop, evt.range, evt.holdingCoupon);
 		string[] c = evt.couponNames.dup;
 		string r;
@@ -3697,16 +3697,16 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 			r = .tryFormat(s, namesStr, type, resultType, rangeName);
 		}
 		return r;
-	} case CType.BRANCH_COMPLETE_STAMP: { mixin(S_TRACE);
+	} case CType.BranchCompleteStamp: { mixin(S_TRACE);
 		string c = evt.completeStamp;
 		if (!c || !c.length) c = comm.prop.msgs.noSelectCompleteStamp;
 		return .tryFormat(comm.prop.msgs.ctBranchCompleteStamp, c);
-	} case CType.BRANCH_GOSSIP: { mixin(S_TRACE);
+	} case CType.BranchGossip: { mixin(S_TRACE);
 		string c = evt.gossip;
 		if (!c || !c.length) c = comm.prop.msgs.noSelectGossip;
 		string s = evt.expandSPChars ? comm.prop.msgs.ctBranchGossipExpandSPChars : comm.prop.msgs.ctBranchGossip;
 		return .tryFormat(s, c);
-	} case CType.SET_FLAG: { mixin(S_TRACE);
+	} case CType.SetFlag: { mixin(S_TRACE);
 		string name = contentTextUseID!(CIDKind.Flag)(comm, summ, evt.flag, "%s", evt);
 		string on = comm.prop.msgs.flagOn;
 		string off = comm.prop.msgs.flagOff;
@@ -3716,7 +3716,7 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 			off = o.off;
 		}
 		return .tryFormat(comm.prop.msgs.ctSetFlag, name, evt.flagValue ? on : off, .cardSpeedAttrText(comm, evt));
-	} case CType.SET_STEP: { mixin(S_TRACE);
+	} case CType.SetStep: { mixin(S_TRACE);
 		string name = contentTextUseID!(CIDKind.Step)(comm, summ, evt.step, "%s", evt);
 		string value;
 		auto o = .findVar!Step(summ ? summ.flagDirRoot : null, evt ? evt.useCounter : null, evt.step);
@@ -3726,13 +3726,13 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 			value = .parseDollarParams(comm.prop.var.etc.stepValueName, ['N':.to!string(evt.stepValue)]);
 		}
 		return .tryFormat(comm.prop.msgs.ctSetStep, name, value);
-	} case CType.SET_STEP_UP: { mixin(S_TRACE);
+	} case CType.SetStepUp: { mixin(S_TRACE);
 		return contentTextUseID!(CIDKind.Step)(comm, summ, evt.step, comm.prop.msgs.ctSetStepUp, evt);
-	} case CType.SET_STEP_DOWN: { mixin(S_TRACE);
+	} case CType.SetStepDown: { mixin(S_TRACE);
 		return contentTextUseID!(CIDKind.Step)(comm, summ, evt.step, comm.prop.msgs.ctSetStepDown, evt);
-	} case CType.REVERSE_FLAG: { mixin(S_TRACE);
+	} case CType.ReverseFlag: { mixin(S_TRACE);
 		return .tryFormat(comm.prop.msgs.ctReverseFlag, contentTextUseID!(CIDKind.Flag)(comm, summ, evt.flag, "%s", evt), .cardSpeedAttrText(comm, evt));
-	} case CType.CHECK_FLAG: { mixin(S_TRACE);
+	} case CType.CheckFlag: { mixin(S_TRACE);
 		string name = contentTextUseID!(CIDKind.Flag)(comm, summ, evt.flag, "%s", evt);
 		string on = comm.prop.msgs.flagOn;
 		auto o = .findVar!(cwx.flag.Flag)(summ ? summ.flagDirRoot : null, evt ? evt.useCounter : null, evt.flag);
@@ -3740,36 +3740,36 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 			on = o.on;
 		}
 		return .tryFormat(comm.prop.msgs.ctCheckFlag, name, on);
-	} case CType.GET_CAST: { mixin(S_TRACE);
+	} case CType.GetCast: { mixin(S_TRACE);
 		auto name = contentTextUseID!(CIDKind.Cast)(comm, summ, evt.casts, "%s", evt);
 		auto startAction = comm.prop.msgs.startActionName(evt.startAction);
 		return .tryFormat(comm.prop.msgs.ctGetCast, name, startAction);
-	} case CType.GET_ITEM: { mixin(S_TRACE);
+	} case CType.GetItem: { mixin(S_TRACE);
 		string name = contentTextUseID!(CIDKind.Item)(comm, summ, evt.item, "%s", evt);
-		if (evt.range is Range.SELECTED_CARD) { mixin(S_TRACE);
+		if (evt.range is Range.SelectedCard) { mixin(S_TRACE);
 			return .tryFormat(comm.prop.msgs.ctGetItemForSelectedCard, name);
 		} else { mixin(S_TRACE);
 			return .tryFormat(comm.prop.msgs.ctGetItem, name, .rangeName(comm.prop, evt.range, evt.holdingCoupon), evt.cardNumber);
 		}
-	} case CType.GET_SKILL: { mixin(S_TRACE);
+	} case CType.GetSkill: { mixin(S_TRACE);
 		string name = contentTextUseID!(CIDKind.Skill)(comm, summ, evt.skill, "%s", evt);
-		if (evt.range is Range.SELECTED_CARD) { mixin(S_TRACE);
+		if (evt.range is Range.SelectedCard) { mixin(S_TRACE);
 			return .tryFormat(comm.prop.msgs.ctGetSkillForSelectedCard, name);
 		} else { mixin(S_TRACE);
 			return .tryFormat(comm.prop.msgs.ctGetSkill, name, .rangeName(comm.prop, evt.range, evt.holdingCoupon), evt.cardNumber);
 		}
-	} case CType.GET_INFO: { mixin(S_TRACE);
+	} case CType.GetInfo: { mixin(S_TRACE);
 		return contentTextUseID!(CIDKind.Info)(comm, summ, evt.info, comm.prop.msgs.ctGetInfo, evt);
-	} case CType.GET_BEAST: { mixin(S_TRACE);
+	} case CType.GetBeast: { mixin(S_TRACE);
 		string name = contentTextUseID!(CIDKind.Beast)(comm, summ, evt.beast, "%s", evt);
-		if (evt.range is Range.SELECTED_CARD) { mixin(S_TRACE);
+		if (evt.range is Range.SelectedCard) { mixin(S_TRACE);
 			return .tryFormat(comm.prop.msgs.ctGetBeastForSelectedCard, name);
 		} else { mixin(S_TRACE);
 			return .tryFormat(comm.prop.msgs.ctGetBeast, name, .rangeName(comm.prop, evt.range, evt.holdingCoupon), evt.cardNumber);
 		}
-	} case CType.GET_MONEY: { mixin(S_TRACE);
+	} case CType.GetMoney: { mixin(S_TRACE);
 		return .tryFormat(comm.prop.msgs.ctGetMoney, evt.money);
-	} case CType.GET_COUPON: { mixin(S_TRACE);
+	} case CType.GetCoupon: { mixin(S_TRACE);
 		string c = evt.coupon;
 		if (!c || !c.length) c = comm.prop.msgs.noSelectCoupon;
 		string cvs = "";
@@ -3780,71 +3780,71 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		}
 		string s = evt.expandSPChars ? comm.prop.msgs.ctGetCouponExpandSPChars : comm.prop.msgs.ctGetCoupon;
 		return .tryFormat(s, c, cvs, .rangeName(comm.prop, evt.range, evt.holdingCoupon));
-	} case CType.GET_COMPLETE_STAMP: { mixin(S_TRACE);
+	} case CType.GetCompleteStamp: { mixin(S_TRACE);
 		string c = evt.completeStamp;
 		if (!c || !c.length) c = comm.prop.msgs.noSelectCompleteStamp;
 		return .tryFormat(comm.prop.msgs.ctGetCompleteStamp, c);
-	} case CType.GET_GOSSIP: { mixin(S_TRACE);
+	} case CType.GetGossip: { mixin(S_TRACE);
 		string c = evt.gossip;
 		if (!c || !c.length) c = comm.prop.msgs.noSelectGossip;
 		string s = evt.expandSPChars ? comm.prop.msgs.ctGetGossipExpandSPChars : comm.prop.msgs.ctGetGossip;
 		return .tryFormat(s, c);
-	} case CType.LOSE_CAST: { mixin(S_TRACE);
+	} case CType.LoseCast: { mixin(S_TRACE);
 		return contentTextUseID!(CIDKind.Cast)(comm, summ, evt.casts, comm.prop.msgs.ctLoseCast, evt);
-	} case CType.LOSE_ITEM: { mixin(S_TRACE);
-		if (evt.range is Range.SELECTED_CARD) { mixin(S_TRACE);
+	} case CType.LoseItem: { mixin(S_TRACE);
+		if (evt.range is Range.SelectedCard) { mixin(S_TRACE);
 			return comm.prop.msgs.ctLoseItemForSelectedCard;
 		} else { mixin(S_TRACE);
 			string name = contentTextUseID!(CIDKind.Item)(comm, summ, evt.item, "%s", evt);
 			string count = loseCardCount();
 			return .tryFormat(comm.prop.msgs.ctLoseItem, name, .rangeName(comm.prop, evt.range, evt.holdingCoupon), count);
 		}
-	} case CType.LOSE_SKILL: { mixin(S_TRACE);
-		if (evt.range is Range.SELECTED_CARD) { mixin(S_TRACE);
+	} case CType.LoseSkill: { mixin(S_TRACE);
+		if (evt.range is Range.SelectedCard) { mixin(S_TRACE);
 			return comm.prop.msgs.ctLoseSkillForSelectedCard;
 		} else { mixin(S_TRACE);
 			string name = contentTextUseID!(CIDKind.Skill)(comm, summ, evt.skill, "%s", evt);
 			string count = loseCardCount();
 			return .tryFormat(comm.prop.msgs.ctLoseSkill, name, .rangeName(comm.prop, evt.range, evt.holdingCoupon), count);
 		}
-	} case CType.LOSE_INFO: { mixin(S_TRACE);
+	} case CType.LoseInfo: { mixin(S_TRACE);
 		return contentTextUseID!(CIDKind.Info)(comm, summ, evt.info, comm.prop.msgs.ctLoseInfo, evt);
-	} case CType.LOSE_BEAST: { mixin(S_TRACE);
-		if (evt.range is Range.SELECTED_CARD) { mixin(S_TRACE);
+	} case CType.LoseBeast: { mixin(S_TRACE);
+		if (evt.range is Range.SelectedCard) { mixin(S_TRACE);
 			return comm.prop.msgs.ctLoseBeastForSelectedCard;
 		} else { mixin(S_TRACE);
 			string name = contentTextUseID!(CIDKind.Beast)(comm, summ, evt.beast, "%s", evt);
 			string count = loseCardCount();
 			return .tryFormat(comm.prop.msgs.ctLoseBeast, name, .rangeName(comm.prop, evt.range, evt.holdingCoupon), count);
 		}
-	} case CType.LOSE_MONEY: { mixin(S_TRACE);
+	} case CType.LoseMoney: { mixin(S_TRACE);
 		return .tryFormat(comm.prop.msgs.ctLoseMoney, evt.money);
-	} case CType.LOSE_COUPON: { mixin(S_TRACE);
+	} case CType.LoseCoupon: { mixin(S_TRACE);
 		string c = evt.coupon;
 		if (!c || !c.length) c = comm.prop.msgs.noSelectCoupon;
 		string s = evt.expandSPChars ? comm.prop.msgs.ctLoseCouponExpandSPChars : comm.prop.msgs.ctLoseCoupon;
 		return .tryFormat(s, c, .rangeName(comm.prop, evt.range, evt.holdingCoupon));
-	} case CType.LOSE_COMPLETE_STAMP: { mixin(S_TRACE);
+	} case CType.LoseCompleteStamp: { mixin(S_TRACE);
 		string c = evt.completeStamp;
 		if (!c || !c.length) c = comm.prop.msgs.noSelectCompleteStamp;
 		return .tryFormat(comm.prop.msgs.ctLoseCompleteStamp, c);
-	} case CType.LOSE_GOSSIP: { mixin(S_TRACE);
+	} case CType.LoseGossip: { mixin(S_TRACE);
 		string c = evt.gossip;
 		if (!c || !c.length) c = comm.prop.msgs.noSelectGossip;
 		string s = evt.expandSPChars ? comm.prop.msgs.ctLoseGossipExpandSPChars : comm.prop.msgs.ctLoseGossip;
 		return .tryFormat(s, c);
-	} case CType.SHOW_PARTY: { mixin(S_TRACE);
+	} case CType.ShowParty: { mixin(S_TRACE);
 		return .tryFormat(comm.prop.msgs.ctShowParty, .cardSpeedAttrText(comm, evt));
-	} case CType.HIDE_PARTY: { mixin(S_TRACE);
+	} case CType.HideParty: { mixin(S_TRACE);
 		return .tryFormat(comm.prop.msgs.ctHideParty, .cardSpeedAttrText(comm, evt));
-	} case CType.REDISPLAY: { mixin(S_TRACE);
+	} case CType.Redisplay: { mixin(S_TRACE);
 		if (summ && summ.legacy) { mixin(S_TRACE);
 			return comm.prop.msgs.ctRedisplayClassic;
 		} else { mixin(S_TRACE);
 			string v = comm.prop.msgs.transitionName(evt.transition);
 			return .tryFormat(comm.prop.msgs.ctRedisplay, v, evt.transitionSpeed);
 		}
-	} case CType.SUBSTITUTE_STEP: { mixin(S_TRACE);
+	} case CType.SubstituteStep: { mixin(S_TRACE);
 		auto t2 = contentTextUseID!(CIDKind.Step)(comm, summ, evt.step2, "%s", evt);
 		auto notHas = .findVar!Step(summ ? summ.flagDirRoot : null, evt ? evt.useCounter : null, evt.step) is null;
 		if (notHas && .icmp(evt.step, comm.prop.sys.randomValue) == 0) { mixin(S_TRACE);
@@ -3855,7 +3855,7 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 			auto t1 = contentTextUseID!(CIDKind.Step)(comm, summ, evt.step, "%s", evt);
 			return .tryFormat(comm.prop.msgs.ctSubstituteStep, t1, t2);
 		}
-	} case CType.SUBSTITUTE_FLAG: { mixin(S_TRACE);
+	} case CType.SubstituteFlag: { mixin(S_TRACE);
 		auto t2 = contentTextUseID!(CIDKind.Flag)(comm, summ, evt.flag2, "%s", evt);
 		if (summ && .findVar!(cwx.flag.Flag)(summ ? summ.flagDirRoot : null, evt ? evt.useCounter : null, evt.flag) is null && .icmp(evt.flag, comm.prop.sys.randomValue) == 0) { mixin(S_TRACE);
 			return .tryFormat(comm.prop.msgs.ctSubstituteFlagFromRandom, t2, .cardSpeedAttrText(comm, evt));
@@ -3863,18 +3863,18 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 			auto t1 = contentTextUseID!(CIDKind.Flag)(comm, summ, evt.flag, "%s", evt);
 			return .tryFormat(comm.prop.msgs.ctSubstituteFlag, t1, t2, .cardSpeedAttrText(comm, evt));
 		}
-	} case CType.BRANCH_STEP_CMP: { mixin(S_TRACE);
+	} case CType.BranchStepCmp: { mixin(S_TRACE);
 		auto t1 = contentTextUseID!(CIDKind.Step)(comm, summ, evt.step, "%s", evt);
 		auto t2 = contentTextUseID!(CIDKind.Step)(comm, summ, evt.step2, "%s", evt);
 		return .tryFormat(comm.prop.msgs.ctBranchStepCmp, t1, t2);
-	} case CType.BRANCH_FLAG_CMP: { mixin(S_TRACE);
+	} case CType.BranchFlagCmp: { mixin(S_TRACE);
 		auto t1 = contentTextUseID!(CIDKind.Flag)(comm, summ, evt.flag, "%s", evt);
 		auto t2 = contentTextUseID!(CIDKind.Flag)(comm, summ, evt.flag2, "%s", evt);
 		return .tryFormat(comm.prop.msgs.ctBranchFlagCmp, t1, t2);
-	} case CType.BRANCH_RANDOM_SELECT: { mixin(S_TRACE);
+	} case CType.BranchRandomSelect: { mixin(S_TRACE);
 		string r = castRangesName(comm.prop, evt.castRange);
 		bool hasLevel = 0 < evt.levelMax;
-		bool hasStatus = evt.status !is Status.NONE;
+		bool hasStatus = evt.status !is Status.None;
 		if (hasLevel || hasStatus) { mixin(S_TRACE);
 			string s = comm.prop.msgs.statusName(evt.status);
 			auto l1 = evt.levelMin, l2 = evt.levelMax;
@@ -3894,15 +3894,15 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		} else { mixin(S_TRACE);
 			return .tryFormat(comm.prop.msgs.ctRandomSelectN, r);
 		}
-	} case CType.BRANCH_KEY_CODE: { mixin(S_TRACE);
+	} case CType.BranchKeyCode: { mixin(S_TRACE);
 		auto name = evt.keyCode == "" ? comm.prop.msgs.noKeyCode : evt.keyCode;
 		auto selectCard = evt.selectCard ? comm.prop.msgs.ctSelectFoundCard : comm.prop.msgs.noSelectFoundCard;
 		string resultType = evt.invertResult ? comm.prop.msgs.haveNot : comm.prop.msgs.have;
-		if (evt.keyCodeRange is Range.SELECTED_CARD) { mixin(S_TRACE);
+		if (evt.keyCodeRange is Range.SelectedCard) { mixin(S_TRACE);
 			resultType = evt.invertResult ? comm.prop.msgs.haveNotForSelectedCard : comm.prop.msgs.haveForSelectedCard;
 		}
 		if (evt.targetIsSkill && evt.targetIsItem && evt.targetIsBeast && evt.targetIsHand) { mixin(S_TRACE);
-			if (evt.keyCodeRange is Range.SELECTED_CARD) { mixin(S_TRACE);
+			if (evt.keyCodeRange is Range.SelectedCard) { mixin(S_TRACE);
 				return .tryFormat(comm.prop.msgs.ctBranchKeyCodeAllTypeForSelectedCard, name, resultType, selectCard);
 			} else { mixin(S_TRACE);
 				auto range = .rangeName(comm.prop, evt.keyCodeRange, evt.holdingCoupon);
@@ -3918,14 +3918,14 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 			if (targets.length) { mixin(S_TRACE);
 				target = targets.join(comm.prop.msgs.targetSeparator.value);
 			}
-			if (evt.keyCodeRange is Range.SELECTED_CARD) { mixin(S_TRACE);
+			if (evt.keyCodeRange is Range.SelectedCard) { mixin(S_TRACE);
 				return .tryFormat(comm.prop.msgs.ctBranchKeyCodeForSelectedCard, name, resultType, target, selectCard);
 			} else { mixin(S_TRACE);
 				auto range = .rangeName(comm.prop, evt.keyCodeRange, evt.holdingCoupon);
 				return .tryFormat(comm.prop.msgs.ctBranchKeyCode, name, target, resultType, range, selectCard);
 			}
 		}
-	} case CType.CHECK_STEP: { mixin(S_TRACE);
+	} case CType.CheckStep: { mixin(S_TRACE);
 		string name = contentTextUseID!(CIDKind.Step)(comm, summ, evt.step, "%s", evt);
 		string value;
 		auto o = .findVar!Step(summ ? summ.flagDirRoot : null, evt ? evt.useCounter : null, evt.step);
@@ -3936,10 +3936,10 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		}
 		string cmp = comm.prop.msgs.comparison4Name(evt.comparison4);
 		return .tryFormat(comm.prop.msgs.ctCheckStep, name, value, cmp);
-	} case CType.BRANCH_ROUND: { mixin(S_TRACE);
+	} case CType.BranchRound: { mixin(S_TRACE);
 		string cmp = comm.prop.msgs.comparison3Name(evt.comparison3);
 		return .tryFormat(comm.prop.msgs.ctBranchRound, evt.round, cmp);
-	} case CType.MOVE_BG_IMAGE: { mixin(S_TRACE);
+	} case CType.MoveBgImage: { mixin(S_TRACE);
 		string cellName = evt.cellName;
 		if (!cellName || !cellName.length) cellName = comm.prop.msgs.noSelectCellName;
 		string posType = comm.prop.msgs.coordinateTypeName(evt.positionType);
@@ -3966,7 +3966,7 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		} else { mixin(S_TRACE);
 			return .tryFormat(comm.prop.msgs.ctMoveBgImageNoSet, cellName);
 		}
-	} case CType.REPLACE_BG_IMAGE: { mixin(S_TRACE);
+	} case CType.ReplaceBgImage: { mixin(S_TRACE);
 		string cellName = evt.cellName;
 		if (!cellName || !cellName.length) cellName = comm.prop.msgs.noSelectCellName;
 		if (summ && summ.legacy) { mixin(S_TRACE);
@@ -3975,7 +3975,7 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 			string ts = comm.prop.msgs.transitionName(evt.transition);
 			return .tryFormat(comm.prop.msgs.ctReplaceBgImage, cellName, bgImageString, ts, evt.transitionSpeed);
 		}
-	} case CType.LOSE_BG_IMAGE: { mixin(S_TRACE);
+	} case CType.LoseBgImage: { mixin(S_TRACE);
 		string cellName = evt.cellName;
 		if (!cellName || !cellName.length) cellName = comm.prop.msgs.noSelectCellName;
 		if (summ && summ.legacy) { mixin(S_TRACE);
@@ -3984,13 +3984,13 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 			string ts = comm.prop.msgs.transitionName(evt.transition);
 			return .tryFormat(comm.prop.msgs.ctLoseBgImage, cellName, ts, evt.transitionSpeed);
 		}
-	} case CType.BRANCH_MULTI_COUPON: { mixin(S_TRACE);
+	} case CType.BranchMultiCoupon: { mixin(S_TRACE);
 		auto range = .rangeName(comm.prop, evt.range, evt.holdingCoupon);
 		string s = evt.expandSPChars ? comm.prop.msgs.ctBranchMultiCouponExpandSPChars : comm.prop.msgs.ctBranchMultiCoupon;
 		return .tryFormat(s, range);
-	} case CType.BRANCH_MULTI_RANDOM: { mixin(S_TRACE);
+	} case CType.BranchMultiRandom: { mixin(S_TRACE);
 		return comm.prop.msgs.ctBranchMultiRandom;
-	} case CType.MOVE_CARD: { mixin(S_TRACE);
+	} case CType.MoveCard: { mixin(S_TRACE);
 		auto cardGroup = evt.cardGroup;
 		if (!cardGroup || !cardGroup.length) cardGroup = comm.prop.msgs.noSelectCardGroup;
 		auto posType = comm.prop.msgs.coordinateTypeName(evt.positionType);
@@ -4002,7 +4002,7 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		} else { mixin(S_TRACE);
 			return .tryFormat(comm.prop.msgs.ctMoveCard, cardGroup, posType, evt.x, evt.y, scale, layer, .cardSpeedAttrText(comm, evt));
 		}
-	} case CType.CHANGE_ENVIRONMENT: { mixin(S_TRACE);
+	} case CType.ChangeEnvironment: { mixin(S_TRACE);
 		string[] params = [];
 		if (evt.backpackEnabled !is EnvironmentStatus.NotSet) { mixin(S_TRACE);
 			params ~= .tryFormat(comm.prop.msgs.ctEnvironmentBackpack, comm.prop.msgs.environmentStatusName(evt.backpackEnabled));
@@ -4012,10 +4012,10 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		} else { mixin(S_TRACE);
 			return comm.prop.msgs.ctChangeEnvironmentNotSet;
 		}
-	} case CType.BRANCH_VARIANT: { mixin(S_TRACE);
+	} case CType.BranchVariant: { mixin(S_TRACE);
 		auto expr = evt.expression == "" ? comm.prop.msgs.noExpression : .exprStr(evt.expression);
 		return .tryFormat(comm.prop.msgs.ctBranchVariant, expr);
-	} case CType.SET_VARIANT: { mixin(S_TRACE);
+	} case CType.SetVariant: { mixin(S_TRACE);
 		string name;
 		if (evt.step != "") { mixin(S_TRACE);
 			name = .contentTextUseID!(CIDKind.Step)(comm, summ, evt.step, "%s", evt);
@@ -4026,7 +4026,7 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		}
 		auto expr = evt.expression == "" ? comm.prop.msgs.noExpression : .exprStr(evt.expression);
 		return .tryFormat(comm.prop.msgs.ctSetVariant, name, expr);
-	} case CType.CHECK_VARIANT: { mixin(S_TRACE);
+	} case CType.CheckVariant: { mixin(S_TRACE);
 		auto expr = evt.expression == "" ? comm.prop.msgs.noExpression : .exprStr(evt.expression);
 		return .tryFormat(comm.prop.msgs.ctCheckVariant, expr);
 	}
@@ -4416,7 +4416,7 @@ void getSymbols(Commons comm, Summary summ, CWXPath path, bool desc, out string 
 	auto sdlg = cast(SDialog)path;
 	if (sdlg) { mixin(S_TRACE);
 		con = sdlg.parent;
-		img = prop.images.content(CType.TALK_DIALOG);
+		img = prop.images.content(CType.TalkDialog);
 		text = .talkDialogText(comm, con, sdlg);
 	}
 	auto fla = cast(cwx.flag.Flag)path;
