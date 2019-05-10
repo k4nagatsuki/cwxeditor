@@ -1,0 +1,65 @@
+{
+	"name": "CWXEditor",
+	"description": "A CardWirth Editor for CardWirth 1.28-1.50 and WSN.",
+	"license": "CC0",
+	"authors": [
+		"k4nagatsuki"
+	],
+
+	"targetName": "cwxeditor",
+	"targetType": "executable",
+	"application": "cwx/editor/gui/dwt/cwxeditor.d",
+
+	"sourcePaths": [
+		".",
+	],
+	"excludedSourceFiles": [
+		"build.d",
+		"private/*"
+	],
+	"stringImportPaths": [
+		".",
+		"resource"
+	],
+	"dependencies": {
+		"dwt": "~>1.0.1"
+	},
+
+	"preBuildCommands-windows-x86": [
+		"rcc cwxeditor.rc"
+	],
+	"lflags-windows-x86": [
+		"/rc:cwxeditor.res",
+		"bassloop32.obj"
+	],
+
+	"preBuildCommands-windows-x86_64": [
+		"rc cwxeditor.rc"
+	],
+	"lflags-windows-x86_64": [
+		"cwxeditor.res",
+		"bassloop64.obj",
+		"-L/STACK:4194304"
+	],
+
+	"buildTypes": {
+		"gui": {
+			"lflags-windows-x86": [
+				"/exet:nt/su:windows:4.0"
+			],
+			"lflags-windows-x86_64": [
+				"/SUBSYSTEM:Windows",
+				"/ENTRY:mainCRTStartup"
+			]
+		},
+		"release": {
+			"lflags-windows-x86": [
+				"/exet:nt/su:windows:4.0"
+			],
+			"lflags-windows-x86_64": [
+				"/SUBSYSTEM:Windows",
+				"/ENTRY:mainCRTStartup"
+			]
+		}
+	}
+}
