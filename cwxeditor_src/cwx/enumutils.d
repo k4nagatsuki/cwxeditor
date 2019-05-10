@@ -13,9 +13,8 @@ import std.uni;
 @safe
 pure
 string enumToString(E)(E e) {
-	mixin("final switch (e) {"
-		~ enumToStringImpl!(E, 0)
-		~ "}");
+	auto name = e.text();
+	return std.ascii.toLower(name[0]) ~ name[1 .. $];
 } unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	enum En {
@@ -24,24 +23,12 @@ string enumToString(E)(E e) {
 	assert (enumToString(En.Abc) == "abc");
 	assert (enumToString(En.Def) == "def");
 }
-private template enumToStringImpl(E, size_t Index) {
-	static if (EnumMembers!E.length <= Index) {
-		immutable enumToStringImpl = "";
-	} else {
-		immutable enumToStringImpl = "case E." ~ .text(EnumMembers!E[Index])
-			~ ": return `" ~ .capLower(.text(EnumMembers!E[Index])) ~ "`;"
-			~ enumToStringImpl!(E, Index + 1);
-	}
-}
 
 /// 先頭を小文字にしたEnumメンバ名文字列をEnum値に変換する。
 @safe
 pure
 E stringToEnum(E)(string name) {
-	mixin("switch (name) {"
-		~ stringToEnumImpl!(E, 0)
-		~ "default: return E.init;"
-		~ "}");
+	return .to!E(std.ascii.toUpper(name[0]) ~ name[1 .. $]);
 } unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	enum En {
@@ -49,15 +36,6 @@ E stringToEnum(E)(string name) {
 	}
 	assert (stringToEnum!En("abc") == En.Abc);
 	assert (stringToEnum!En("def") == En.Def);
-}
-private template stringToEnumImpl(E, size_t Index) {
-	static if (EnumMembers!E.length <= Index) {
-		immutable stringToEnumImpl = "";
-	} else {
-		immutable stringToEnumImpl = "case `" ~ .capLower(.text(EnumMembers!E[Index])) ~ "`:"
-			~ "return E." ~ .text(EnumMembers!E[Index]) ~ ";"
-			~ stringToEnumImpl!(E, Index + 1);
-	}
 }
 
 /// enumのメンバ毎のメソッド呼出のswitch文を生成する。
@@ -85,7 +63,7 @@ template EnumToStringMethod(E, string MethodName, string Prefix) {
 private template EnumToStringCase(E, string EName, string Prefix, size_t Index) {
 	private import std.traits;
 	private import std.conv;
-	private immutable Case = "\tcase " ~ EName ~ "." ~ to!string(EnumMembers!E[Index]) ~ ": return " ~ Prefix ~ .upperToCap(std.conv.text(EnumMembers!E[Index])) ~ ";\n";
+	private immutable Case = "\tcase " ~ EName ~ "." ~ to!string(EnumMembers!E[Index]) ~ ": return " ~ Prefix ~ std.conv.text(EnumMembers!E[Index]) ~ ";\n";
 	static if (Index + 1 < EnumMembers!E.length) {
 		immutable EnumToStringCase = Case ~ EnumToStringCase!(E, EName, Prefix, Index + 1);
 	} else {
@@ -95,7 +73,7 @@ private template EnumToStringCase(E, string EName, string Prefix, size_t Index) 
 private template EnumToStringCaseSet(E, string EName, string Prefix, string ValueName, size_t Index) {
 	private import std.traits;
 	private import std.conv;
-	private immutable Case = "\tcase " ~ EName ~ "." ~ to!string(EnumMembers!E[Index]) ~ ": " ~ Prefix ~ .upperToCap(std.conv.text(EnumMembers!E[Index])) ~ " = " ~ ValueName ~ "; break;\n";
+	private immutable Case = "\tcase " ~ EName ~ "." ~ to!string(EnumMembers!E[Index]) ~ ": " ~ Prefix ~ std.conv.text(EnumMembers!E[Index]) ~ " = " ~ ValueName ~ "; break;\n";
 	static if (Index + 1 < EnumMembers!E.length) {
 		immutable EnumToStringCaseSet = Case ~ EnumToStringCaseSet!(E, EName, Prefix, ValueName, Index + 1);
 	} else {

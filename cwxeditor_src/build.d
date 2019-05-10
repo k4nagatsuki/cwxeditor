@@ -9,7 +9,7 @@ immutable string[] CRITICAL = [
 	"d2std" ~ dirSeparator ~ "zlib.d",
 ];
 immutable string[] NO_DEBUG_SYMBOLS = [
-	"cwx" ~ dirSeparator ~ "msgs.d",
+	// Nothing
 ];
 immutable string[] RES_DIR = [
 	".",
@@ -153,12 +153,14 @@ version (Windows) {
 }
 
 immutable FLAGS = [
+	"-w",
 	"-op",
 	// BUG: dmd 2.067.0 occurs compile error.
 //	"-property",
 	"-c",
 ];
 immutable CRITICAL_FLAGS = [
+	"-w",
 	"-c",
 	"-release",
 	"-O",
@@ -166,6 +168,7 @@ immutable CRITICAL_FLAGS = [
 	"-op",
 ];
 immutable NO_DEBUG_SYMBOLS_FLAGS = [
+	"-w",
 	"-c",
 	"-op",
 	"-debug",
@@ -182,6 +185,7 @@ immutable CONSOLE_FLAGS = [
 	"-version=Console",
 ];
 immutable string[] WINDOW_FLAGS = [
+	// Nothing
 ];
 immutable string[] RELEASE_FLAGS_L = [
 	"-release",

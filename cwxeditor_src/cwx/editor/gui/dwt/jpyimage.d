@@ -390,7 +390,7 @@ private ImageDataWithScale loadJPTXImage(in Props prop, string path, uint target
 		}
 		if (text == "\n") { mixin(S_TRACE);
 			// wrap
-			height *= ts(param.lineheight) / 100.0;
+			height = cast(int)(height * ts(param.lineheight) / 100.0);
 			y += height;
 			x = ts(0);
 			return;

@@ -525,13 +525,17 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			}
 		}
 		if (!noActionWarn) { mixin(S_TRACE);
-			foreach (type; EnumMembers!ActionCardType) { mixin(S_TRACE);
-				if (type is ActionCardType.Exchange && (summ && summ.legacy)) continue;
-				if (type is ActionCardType.RunAway) continue;
+			bool checkActionCardType(ActionCardType type) { mixin(S_TRACE);
+				if (type is ActionCardType.Exchange && (summ && summ.legacy)) return true;
+				if (type is ActionCardType.RunAway) return true;
 				if (!ec.action(type) && !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
 					r ~= prop.msgs.warningNoActionCard;
-					break;
+					return false;
 				}
+				return true;
+			}
+			foreach (type; EnumMembers!ActionCardType) { mixin(S_TRACE);
+				if (!checkActionCardType(type)) break;
 			}
 		}
 		putCardImages(ec.overrideImages, false);

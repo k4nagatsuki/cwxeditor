@@ -572,8 +572,8 @@ class FlexEtcProps : Properties {
 	auto replaceNameCellName = Prop!(bool)("replaceNameCellName", true);
 	auto replaceNameCardGroup = Prop!(bool)("replaceNameCardGroup", true);
 
-	mixin EnumToMembers!(CType, cType => "auto searchContents" ~ .upperToCap(.text(cType))
-		~ " = Prop!(bool)(\"searchContents" ~ .upperToCap(.text(cType)) ~ "\", false);\n");
+	mixin EnumToMembers!(CType, cType => "auto searchContents" ~ .text(cType)
+		~ " = Prop!(bool)(\"searchContents" ~ .text(cType) ~ "\", false);\n");
 
 	const
 	bool searchContents(CType id) { mixin(S_TRACE);
