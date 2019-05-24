@@ -2838,6 +2838,13 @@ void initSpinner(Spinner spn) { mixin(S_TRACE);
 	if (spn.getStyle() & SWT.READ_ONLY) { mixin(S_TRACE);
 		spn.setEnabled(false);
 	}
+
+	// FIXME: 最初の表示時にスピナが空欄になる問題に対処 Wine 4.0.1
+	spn.getDisplay().asyncExec(new class Runnable {
+		override void run() { mixin(S_TRACE);
+			spn.setSelection(spn.getSelection());
+		}
+	});
 }
 
 class CloseRemover(Window) : DisposeListener {

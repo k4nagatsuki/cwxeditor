@@ -48,6 +48,7 @@ import std.array : array, replace, replicate;
 import std.ascii;
 import std.conv;
 import std.datetime;
+import std.range;
 import std.string;
 import std.traits;
 
@@ -4454,7 +4455,7 @@ class ContentsToolBox {
 	private Props _prop;
 	private Summary _summ;
 	private EventTreeView _parent = null;
-	private CoolBar _cbar;
+	private Composite _cbar;
 
 	private Menu _templMenu;
 	private ToolItem _templTI;
@@ -4972,9 +4973,9 @@ class ContentsToolBox {
 		_comm.selContentTool.add(&selContentTool);
 
 		Label[] labels;
-		_cbar = createCoolBar!("contents")(_comm, cbarPar, (CoolBar cbar) { mixin(S_TRACE);
-			void createCoolItem(CoolBar cbar, ToolBar tbar, int index = -1) { mixin(S_TRACE);
-				.createCoolItem(cbar, tbar, index);
+		_cbar = createCoolBar!("contents")(_comm, cbarPar, false, (Composite cbar) { mixin(S_TRACE);
+			void createCoolItem(Composite comp, ToolBar tbar) { mixin(S_TRACE);
+				if (auto cbar = cast(CoolBar)comp) .createCoolItem(cbar, tbar);
 			}
 			if (!_prop.var.etc.contentsFloat || _autoHideTools) { mixin(S_TRACE);
 				cbar.addMouseListener(new TMListener);
@@ -4982,55 +4983,75 @@ class ContentsToolBox {
 			auto g = new ToolItemGroup;
 			_radioGroup = g;
 
-			auto atm = new ToolBar(cbar, SWT.FLAT);
-			atm.addMouseListener(new TMListener);
-			_arrowTI = createToolItem2(_comm, atm, _prop.msgs.evtArrow, _prop.images.evtArrow, &arrow, null, SWT.RADIO);
-			if (_putMode !is MenuID.PutQuick) _arrowTI.setSelection(true);
-			g.append(_arrowTI);
-			createCoolItem(cbar, atm);
-
-			auto mode = new ToolBar(cbar, SWT.FLAT);
-			mode.addMouseListener(new TMListener);
-			Menu putModeMenu;
-			void delegate() dlg = null;
-			_putModeTI = createDropDownItem2(_comm, mode, _prop.msgs.menuText(_putMode), _prop.images.menu(_putMode), dlg, putModeMenu, MenuID.None, null);
-			_putQuickMI = createMenuItem(_comm, putModeMenu, MenuID.PutQuick, &updatePutMode, null, SWT.RADIO);
-			_putSelectMI = createMenuItem(_comm, putModeMenu, MenuID.PutSelect, &updatePutMode, null, SWT.RADIO);
-			_putContinueMI = createMenuItem(_comm, putModeMenu, MenuID.PutContinue, &updatePutMode, null, SWT.RADIO);
-			_autoOpenTI = createToolItem2(_comm, mode, _prop.msgs.evtAutoOpen, _prop.images.evtAutoOpen, &autoOpen, null, SWT.CHECK);
-			_autoOpenTI.setSelection(_autoOpen);
-			_insertFirstTI = createToolItem2(_comm, mode, _prop.msgs.evtInsertFirst, _prop.images.evtInsertFirst, &insertFirst, null, SWT.CHECK);
-			_insertFirstTI.setSelection(_insertFirst);
-			new ToolItem(mode, SWT.SEPARATOR);
-			_templTI = createDropDownItem(_comm, mode, MenuID.EvTemplates, null, _templMenu, () => _summ && _parent._et && (_prop.var.etc.eventTemplates.length || _summ.eventTemplates.length));
-
-			_putQuickMI.setSelection(_putMode is MenuID.PutQuick);
-			_putSelectMI.setSelection(_putMode is MenuID.PutSelect);
-			_putContinueMI.setSelection(_putMode is MenuID.PutContinue);
-			refreshTemplatesM();
-			createCoolItem(cbar, mode);
+			foreach (i; .iota(0, cast(int)(2 + CTYPE_GROUPS_LIST.length))) { mixin(S_TRACE);
+				if (!.contains(_prop.var.etc.contentsOrder, i)) { mixin(S_TRACE);
+					_prop.var.etc.contentsOrder.value ~= i;
+				}
+			}
+			_prop.var.etc.contentsOrder = .filter!(i => 0 <= i && i < 2 + CTYPE_GROUPS_LIST.length)(_prop.var.etc.contentsOrder.value).array();
+			int[int] barIndexToTrueIndex;
+			if (auto bar = cast(CoolBar)cbar) { mixin(S_TRACE);
+				.listener(cbar, SWT.Dispose, { mixin(S_TRACE);
+					_prop.var.etc.contentsOrder = .map!(barIndex => barIndexToTrueIndex[barIndex])(bar.getItemOrder()).array();
+				});
+			}
 
 			auto tml = new TMListener;
-			foreach (cGrp; EnumMembers!CTypeGroup) { mixin(S_TRACE);
-				auto cs = CTYPE_GROUP[cGrp];
-				auto eBar = new ToolBar(cbar, SWT.FLAT);
-				eBar.addMouseListener(tml);
-				if (_prop.var.etc.showContentsGroupName) { mixin(S_TRACE);
-					auto menuID = cTypeGroupToMenuID(cGrp);
-					labels ~= createLabel(eBar, _prop.msgs.menuText(menuID), WGL_SPACING.ppis);
+			foreach (index, i; _prop.var.etc.contentsOrder) { mixin(S_TRACE);
+				barIndexToTrueIndex[cast(int)index] = i;
+				switch (i) {
+				case 0:
+					auto atm = new ToolBar(cbar, SWT.FLAT);
+					atm.addMouseListener(new TMListener);
+					_arrowTI = createToolItem2(_comm, atm, _prop.msgs.evtArrow, _prop.images.evtArrow, &arrow, null, SWT.RADIO);
+					if (_putMode !is MenuID.PutQuick) _arrowTI.setSelection(true);
+					g.append(_arrowTI);
+					createCoolItem(cbar, atm);
+					break;
+				case 1:
+					auto mode = new ToolBar(cbar, SWT.FLAT);
+					mode.addMouseListener(new TMListener);
+					Menu putModeMenu;
+					void delegate() dlg = null;
+					_putModeTI = createDropDownItem2(_comm, mode, _prop.msgs.menuText(_putMode), _prop.images.menu(_putMode), dlg, putModeMenu, MenuID.None, null);
+					_putQuickMI = createMenuItem(_comm, putModeMenu, MenuID.PutQuick, &updatePutMode, null, SWT.RADIO);
+					_putSelectMI = createMenuItem(_comm, putModeMenu, MenuID.PutSelect, &updatePutMode, null, SWT.RADIO);
+					_putContinueMI = createMenuItem(_comm, putModeMenu, MenuID.PutContinue, &updatePutMode, null, SWT.RADIO);
+					_autoOpenTI = createToolItem2(_comm, mode, _prop.msgs.evtAutoOpen, _prop.images.evtAutoOpen, &autoOpen, null, SWT.CHECK);
+					_autoOpenTI.setSelection(_autoOpen);
+					_insertFirstTI = createToolItem2(_comm, mode, _prop.msgs.evtInsertFirst, _prop.images.evtInsertFirst, &insertFirst, null, SWT.CHECK);
+					_insertFirstTI.setSelection(_insertFirst);
+					new ToolItem(mode, SWT.SEPARATOR);
+					_templTI = createDropDownItem(_comm, mode, MenuID.EvTemplates, null, _templMenu, () => _summ && _parent._et && (_prop.var.etc.eventTemplates.length || _summ.eventTemplates.length));
+
+					_putQuickMI.setSelection(_putMode is MenuID.PutQuick);
+					_putSelectMI.setSelection(_putMode is MenuID.PutSelect);
+					_putContinueMI.setSelection(_putMode is MenuID.PutContinue);
+					refreshTemplatesM();
+					createCoolItem(cbar, mode);
+					break;
+				default:
+					auto cGrpIdx = i - 2;
+					if (0 <= cGrpIdx && cGrpIdx < CTYPE_GROUPS_LIST.length) { mixin(S_TRACE);
+						auto cGrp = CTYPE_GROUPS_LIST[cGrpIdx];
+						auto cs = CTYPE_GROUP[cGrp];
+						auto eBar = new ToolBar(cbar, SWT.FLAT);
+						eBar.addMouseListener(tml);
+						if (_prop.var.etc.showContentsGroupName) { mixin(S_TRACE);
+							auto menuID = cTypeGroupToMenuID(cGrp);
+							labels ~= createLabel(eBar, _prop.msgs.menuText(menuID), WGL_SPACING.ppis);
+						}
+						foreach (cType; cs) { mixin(S_TRACE);
+							createEI(cType, eBar, g);
+						}
+						createCoolItem(cbar, eBar);
+						if (_prop.var.etc.showEventContentDescription) { mixin(S_TRACE);
+							.setupToolTips(eBar, _prop);
+						}
+						_comm.put(eBar);
+					}
+					break;
 				}
-				foreach (cType; cs) { mixin(S_TRACE);
-					createEI(cType, eBar, g);
-				}
-				if (cGrp is CTypeGroup.Visual) { mixin(S_TRACE);
-					createCoolItem(cbar, eBar, 3);
-				} else { mixin(S_TRACE);
-					createCoolItem(cbar, eBar);
-				}
-				if (_prop.var.etc.showEventContentDescription) { mixin(S_TRACE);
-					.setupToolTips(eBar, _prop);
-				}
-				_comm.put(eBar);
 			}
 			updatePutMode();
 		}, (menu) { mixin(S_TRACE);

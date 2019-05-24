@@ -1183,6 +1183,7 @@ private:
 			rl.marginRight = 0;
 			rl.marginTop = 0;
 			rl.marginBottom = 0;
+			rl.spacing = rl.spacing.ppis;
 			comp2.setLayout(rl);
 			return comp2;
 		}

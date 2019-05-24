@@ -890,6 +890,11 @@ private:
 		auto rl = new RowLayout(SWT.HORIZONTAL);
 		rl.wrap = true;
 		rl.pack = false;
+		rl.marginLeft = rl.marginLeft.ppis;
+		rl.marginRight = rl.marginRight.ppis;
+		rl.marginTop = rl.marginTop.ppis;
+		rl.marginBottom = rl.marginBottom.ppis;
+		rl.spacing = rl.spacing.ppis;
 		comp.setLayout(rl);
 		return comp;
 	}

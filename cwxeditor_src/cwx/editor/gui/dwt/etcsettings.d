@@ -120,6 +120,7 @@ class EtcSettings : Composite {
 		boolSetting(comp, prop.var.etc.xmlCopy, prop.msgs.xmlCopy);
 		boolSetting(comp, prop.var.etc.logicalSort, prop.msgs.logicalSort);
 		boolSetting(comp, prop.var.etc.canVanishWorkAreaInMainWindow, prop.msgs.canVanishWorkAreaInMainWindow);
+		boolSetting(comp, prop.var.etc.useCoolBar, prop.msgs.useCoolBar);
 
 		comp = createComp(prop.msgs.etcSettingsLoad);
 		boolSetting(comp, prop.var.etc.saveSkinName, prop.msgs.saveSkinName);

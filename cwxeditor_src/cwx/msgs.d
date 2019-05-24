@@ -2355,6 +2355,7 @@ class Msgs : Properties {
 	auto xmlCopy = Msg("xmlCopy", "コピーや切り取りを常にXML形式で行う");
 	auto logicalSort = Msg("logicalSort", "数値参照型ソートを行う(1, 10, 2, 3, ... → 1, 2, 3, 10, ...)");
 	auto canVanishWorkAreaInMainWindow = Msg("canVanishWorkAreaInMainWindow", "サブウィンドウに編集エリアがあればメインウィンドウの編集エリアを閉じる");
+	auto useCoolBar = Msg("useCoolBar", "配置変更可能なツールバーを使用する");
 
 	auto etcSettingsLoad = Msg("etcSettingsLoad", "読込と保存");
 	auto saveSkinName = Msg("saveSkinName", "WSN(XML)形式のシナリオでスキンタイプに加えてスキン名称も保存する");

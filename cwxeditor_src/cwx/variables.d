@@ -177,6 +177,7 @@ class FlexEtcProps : Properties {
 	auto showEventToolBar = Prop!(bool, true)("showEventToolBar", true, 2017042400);
 	auto flagCombiSashL = Prop!(int)("flagCombiSashL", 1);
 	auto flagCombiSashR = Prop!(int)("flagCombiSashR", 1);
+	auto useCoolBar = Prop!(bool)("useCoolBar", true);
 	auto mainToolBarCustomSashL = Prop!(int)("mainToolBarCustomSashL", 1);
 	auto mainToolBarCustomSashR = Prop!(int)("mainToolBarCustomSashR", 1);
 	auto stepTopSashL = Prop!(int)("stepTopSashL", 3, 2019042700);

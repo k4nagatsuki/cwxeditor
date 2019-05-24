@@ -643,10 +643,12 @@ private class CBarListener(string Name) : MouseMoveListener, DisposeListener {
 	private CoolBar _cbar;
 	private MenuItem _lock;
 	private int[] _wrapIndices;
-	this (Props prop, CoolBar cbar) { mixin(S_TRACE);
+	private bool _saveOrder;
+	this (Props prop, CoolBar cbar, bool saveOrder) { mixin(S_TRACE);
 		_prop = prop;
 		_cbar = cbar;
 		_wrapIndices = _cbar.getWrapIndices();
+		_saveOrder = saveOrder;
 	}
 	override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 		auto cbar = cast(CoolBar)e.widget;
@@ -655,10 +657,12 @@ private class CBarListener(string Name) : MouseMoveListener, DisposeListener {
 			ixs ~= i;
 		}
 		mixin("_prop.var.etc." ~ Name ~ "Lock = cbar.getLocked();");
-		if (ixs == cbar.getItemOrder()) { mixin(S_TRACE);
-			mixin("_prop.var.etc." ~ Name ~ "Order = [];");
-		} else { mixin(S_TRACE);
-			mixin("_prop.var.etc." ~ Name ~ "Order = cbar.getItemOrder();");
+		if (_saveOrder) { mixin(S_TRACE);
+			if (ixs == cbar.getItemOrder()) { mixin(S_TRACE);
+				mixin("_prop.var.etc." ~ Name ~ "Order = [];");
+			} else { mixin(S_TRACE);
+				mixin("_prop.var.etc." ~ Name ~ "Order = cbar.getItemOrder();");
+			}
 		}
 		mixin("_prop.var.etc." ~ Name ~ "WrapIndices = getWrapIndices2(cbar);");
 	}
@@ -703,14 +707,57 @@ private class CBarListener(string Name) : MouseMoveListener, DisposeListener {
 		}
 	}
 }
-CoolBar createCoolBar(string Name)(Commons comm, Composite parent,
-		void delegate(CoolBar) setupItems, void delegate(Menu) putMenu = null) { mixin(S_TRACE);
+Composite createCoolBar(string Name)(Commons comm, Composite parent, bool saveOrder,
+		void delegate(Composite) setupItems, void delegate(Menu) putMenu = null) { mixin(S_TRACE);
+	if (!comm.prop.var.etc.useCoolBar) { mixin(S_TRACE);
+		auto cbar = new Composite(parent, SWT.NONE);
+		auto rl = new RowLayout(SWT.HORIZONTAL);
+		rl.center = false;
+		rl.wrap = true;
+		rl.pack = true;
+		rl.marginLeft = 1;
+		rl.marginRight = 1;
+		rl.marginTop = 1;
+		rl.marginBottom = 1;
+		rl.spacing = 3;
+		cbar.setLayout(rl);
+		setupItems(cbar);
+		if (putMenu) { mixin(S_TRACE);
+			auto menu = new Menu(parent.getShell(), SWT.POP_UP);
+			putMenu(menu);
+			cbar.setMenu(menu);
+			foreach (itm; cbar.getChildren()) { mixin(S_TRACE);
+				itm.setMenu(menu);
+			}
+		}
+		.listener(cbar, SWT.Paint, (e) { mixin(S_TRACE);
+			auto x = int.min;
+			auto y = int.min;
+			auto ca = cbar.getClientArea();
+			e.gc.setForeground(cbar.getDisplay().getSystemColor(SWT.COLOR_WIDGET_NORMAL_SHADOW));
+			foreach (itm; cbar.getChildren()) { mixin(S_TRACE);
+				auto b = itm.getBounds();
+				if (x != int.min && x < b.x) { mixin(S_TRACE);
+					e.gc.drawLine(b.x - 2, b.y - 1, b.x - 2, b.y + b.height + 1);
+				}
+				x = b.x;
+				if (y != int.min && y < b.y) { mixin(S_TRACE);
+					e.gc.drawLine(ca.x, b.y - 2, ca.x + ca.width, b.y - 2);
+					x = int.min;
+				}
+				y = b.y;
+			}
+		});
+		return cbar;
+	}
 	auto cbar = new CoolBar(parent, SWT.NONE);
 
 	setupItems(cbar);
 
-	if (mixin("comm.prop.var.etc." ~ Name ~ "Order.length") == cbar.getItemCount()) { mixin(S_TRACE);
-		cbar.setItemOrder(mixin("comm.prop.var.etc." ~ Name ~ "Order.dup"));
+	if (saveOrder) { mixin(S_TRACE);
+		if (mixin("comm.prop.var.etc." ~ Name ~ "Order.length") == cbar.getItemCount()) { mixin(S_TRACE);
+			cbar.setItemOrder(mixin("comm.prop.var.etc." ~ Name ~ "Order.dup"));
+		}
 	}
 	int[] wi;
 	foreach (i; mixin("comm.prop.var.etc." ~ Name ~ "WrapIndices")) { mixin(S_TRACE);
@@ -719,13 +766,14 @@ CoolBar createCoolBar(string Name)(Commons comm, Composite parent,
 	if (wi != cbar.getWrapIndices()) cbar.setWrapIndices(wi);
 	cbar.setLocked(mixin("comm.prop.var.etc." ~ Name ~ "Lock"));
 
-	auto ls = new CBarListener!(Name)(comm.prop, cbar);
+	auto ls = new CBarListener!(Name)(comm.prop, cbar, saveOrder);
 	cbar.addMouseMoveListener(ls);
 	cbar.addDisposeListener(ls);
 
 	auto menu = new Menu(parent.getShell(), SWT.POP_UP);
 	if (putMenu) { mixin(S_TRACE);
 		putMenu(menu);
+		if (menu.getItemCount()) new MenuItem(menu, SWT.SEPARATOR);
 	}
 	ls._lock = createMenuItem(comm, menu, MenuID.LockToolBar, &ls.lock, null, SWT.CHECK);
 	new MenuItem(menu, SWT.SEPARATOR);

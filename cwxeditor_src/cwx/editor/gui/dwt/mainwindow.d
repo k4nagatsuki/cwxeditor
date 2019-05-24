@@ -61,6 +61,7 @@ import std.utf;
 import std.process;
 import std.string;
 import std.datetime;
+import std.range;
 import std.regex;
 import std.array;
 import std.algorithm;
@@ -1848,7 +1849,7 @@ private:
 		_toolComp.getParent().layout();
 	}
 	Composite _toolComp;
-	private CoolBar _cbar = null;
+	private Composite _cbar = null;
 	class SListener : ShellAdapter {
 		override void shellClosed(ShellEvent e) { mixin(S_TRACE);
 			e.doit = qSave(QSaveType.close);
@@ -3331,7 +3332,7 @@ public:
 			}
 
 			dStr ~= " - " ~ .text(__LINE__);
-			createMainToolBar();
+			createMainToolBar(false);
 
 			_comm.baseShell(this, _tableWin, _flagWin, _castWin, _skillWin, _itemWin, _beastWin, _infoWin, _dirWin,
 				_couponWin, _gossipWin, _completeStampWin, _keyCodeWin, _cellNameWin, _cardGroupWin);
@@ -3442,7 +3443,7 @@ public:
 			throw e;
 		}
 	}
-	private void createMainToolBar() { mixin(S_TRACE);
+	private void createMainToolBar(bool saveOrder) { mixin(S_TRACE);
 		_tmExecEngine = null;
 		_tiExecEngine = null;
 		_tmExecEngineWithParty = null;
@@ -3452,16 +3453,49 @@ public:
 		_toolRG = [];
 		_toolBar = [];
 		_tool = null;
-		if (_cbar) _cbar.dispose();
-		_cbar = createCoolBar!("tools")(_comm, _toolComp, (CoolBar cbar) { mixin(S_TRACE);
-			void createCoolItem(CoolBar cbar, ToolBar tbar) { mixin(S_TRACE);
-				.createCoolItem(cbar, tbar);
+		if (_cbar) { mixin(S_TRACE);
+			auto oldTools = _prop.var.etc.mainToolBar.dup;
+			auto oldOrder = _prop.var.etc.toolsOrder.dup;
+			_cbar.dispose();
+			if (!saveOrder) { mixin(S_TRACE);
+				_prop.var.etc.mainToolBar = oldTools;
+				_prop.var.etc.toolsOrder = oldOrder;
+			}
+		}
+		void arrangeOrder() { mixin(S_TRACE);
+			// メインツールバーの順序をCoolBarのItemOrderに基づいて整理する
+			foreach (i; .iota(0, cast(int)_prop.var.etc.mainToolBar.tools.length)) { mixin(S_TRACE);
+				if (!.contains(_prop.var.etc.toolsOrder, i)) { mixin(S_TRACE);
+					_prop.var.etc.toolsOrder.value ~= i;
+				}
+			}
+			Tool[][] tools;
+			foreach (i; _prop.var.etc.toolsOrder) { mixin(S_TRACE);
+				if (0 <= i && i < _prop.var.etc.mainToolBar.tools.length) { mixin(S_TRACE);
+					tools ~= _prop.var.etc.mainToolBar.tools[i];
+				}
+			}
+			_prop.var.etc.mainToolBar.tools = tools;
+			_prop.var.etc.toolsOrder = .iota(0, cast(int)tools.length).array();
+		}
+		_cbar = createCoolBar!("tools")(_comm, _toolComp, false, (Composite cbar) { mixin(S_TRACE);
+			void createCoolItem(Composite comp, ToolBar tbar) { mixin(S_TRACE);
+				if (auto cbar = cast(CoolBar)comp) .createCoolItem(cbar, tbar);
 				_toolBar ~= tbar;
 			}
 			auto cardRG = new RadioGroupAndSet!ToolItem;
 			cardRG.menuIDs.add(MenuID.ShowCardProp);
 			cardRG.menuIDs.add(MenuID.ShowCardImage);
 			cardRG.menuIDs.add(MenuID.ShowCardDetail);
+
+			arrangeOrder();
+			if (auto bar = cast(CoolBar)cbar) { mixin(S_TRACE);
+				.listener(cbar, SWT.Dispose, { mixin(S_TRACE);
+					_prop.var.etc.toolsOrder = bar.getItemOrder();
+					arrangeOrder();
+				});
+			}
+
 			foreach (toolbar; _prop.var.etc.mainToolBar.tools) { mixin(S_TRACE);
 				auto bar = new ToolBar(cbar, SWT.FLAT);
 				foreach (tool; toolbar) { mixin(S_TRACE);
@@ -3750,10 +3784,15 @@ public:
 				_toolRG ~= cardRG;
 			}
 		}, (menu) { mixin(S_TRACE);
-			createMenuItem(_comm, menu, MenuID.CustomizeToolBar, &customizeToolBar, null);
-			new MenuItem(menu, SWT.SEPARATOR);
+			createMenuItem(_comm, menu, MenuID.CustomizeToolBar, { mixin(S_TRACE);
+				if (auto bar = cast(CoolBar)_cbar) { mixin(S_TRACE);
+					_prop.var.etc.toolsOrder = bar.getItemOrder();
+				}
+				arrangeOrder();
+				customizeToolBar();
+			}, null);
 		});
-		if (_cbar.getItemCount() == 0) { mixin(S_TRACE);
+		if (cast(CoolBar)_cbar ? (cast(CoolBar)_cbar).getItemCount() == 0 : _cbar.getChildren().length == 0) { mixin(S_TRACE);
 			_cbar.dispose();
 			_cbar = null;
 		}
@@ -3801,19 +3840,20 @@ public:
 		auto dlg = new ToolBarCustomDialog(_comm, _win, _prop.var.etc.mainToolBar, _prop.var.etc.mainToolBar.INIT);
 		dlg.appliedEvent ~= { mixin(S_TRACE);
 			_prop.var.etc.mainToolBar = dlg.tools;
-			updateMainToolBar();
+			_prop.var.etc.toolsOrder = .iota(0, cast(int)dlg.tools.tools.length).array();
+			updateMainToolBar(false);
 			sendReloadPropsAndSave();
 		};
 		_customizeToolBarDlg = dlg;
 		dlg.closeEvent ~= { _customizeToolBarDlg = null; };
 		dlg.open();
 	}
-	public void updateMainToolBar() { mixin(S_TRACE);
+	public void updateMainToolBar(bool saveOrder = true) { mixin(S_TRACE);
 		if (_win.isVisible()) _win.setRedraw(false);
 		scope (exit) {
 			if (_win.isVisible()) _win.setRedraw(true);
 		}
-		createMainToolBar();
+		createMainToolBar(saveOrder);
 		refShowMainToolBar();
 		_toolComp.layout(true);
 		_toolComp.getParent().layout(true);

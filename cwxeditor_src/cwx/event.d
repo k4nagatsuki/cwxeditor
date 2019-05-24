@@ -230,6 +230,19 @@ private void static_this () { mixin(S_TRACE);
 	}
 }
 
+/// コンテントタイプのツールバー上の並び順の配列。
+immutable CTYPE_GROUPS_LIST = [
+	CTypeGroup.Terminal,
+	CTypeGroup.Visual,
+	CTypeGroup.Standard,
+	CTypeGroup.Data,
+	CTypeGroup.Utility,
+	CTypeGroup.Branch,
+	CTypeGroup.Get,
+	CTypeGroup.Lost,
+	CTypeGroup.Variant,
+];
+
 private CType[][CTypeGroup] _CTYPE_GROUP;
 /// コンテントタイプの分類毎の配列。
 @property

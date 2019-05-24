@@ -1704,6 +1704,7 @@ struct OldSettings {
 	ExecutionParty lastExecutedParty;
 	ExecutionParty[] executedParties;
 	uint executedPartiesMax;
+	bool useCoolBar;
 	this (Props prop) { mixin(S_TRACE);
 		this.prop = prop;
 		this.drawingScale = prop.var.etc.drawingScale;
@@ -1779,6 +1780,7 @@ struct OldSettings {
 		this.lastExecutedParty = prop.var.etc.lastExecutedParty;
 		this.executedParties = prop.var.etc.executedParties;
 		this.executedPartiesMax = prop.var.etc.executedPartiesMax;
+		this.useCoolBar = prop.var.etc.useCoolBar;
 	}
 	void raiseEvent(Commons comm) { mixin(S_TRACE);
 		bool refSkin = false;
@@ -1961,7 +1963,8 @@ struct OldSettings {
 		}
 		if (this.contentsFloat != prop.var.etc.contentsFloat || this.contentsAutoHide != prop.var.etc.contentsAutoHide
 				|| this.showContentsGroupName != prop.var.etc.showContentsGroupName
-				|| this.showEventContentDescription != prop.var.etc.showEventContentDescription) { mixin(S_TRACE);
+				|| this.showEventContentDescription != prop.var.etc.showEventContentDescription
+				|| this.useCoolBar != prop.var.etc.useCoolBar) { mixin(S_TRACE);
 			comm.refContentsToolBoxStyle.call();
 		}
 		if (this.showMotionDescription != prop.var.etc.showMotionDescription) { mixin(S_TRACE);
@@ -1970,7 +1973,7 @@ struct OldSettings {
 		if (this.showCloseButtonAllTab != prop.var.etc.showCloseButtonAllTab && comm.mainWin.dock) { mixin(S_TRACE);
 			comm.mainWin.dock.updateCloseButtons();
 		}
-		if (this.mainToolBar != prop.var.etc.mainToolBar) { mixin(S_TRACE);
+		if (this.mainToolBar != prop.var.etc.mainToolBar || this.useCoolBar != prop.var.etc.useCoolBar) { mixin(S_TRACE);
 			comm.mainWin.updateMainToolBar();
 		}
 		if (this.showItemNumberOfSceneAndEventView != prop.var.etc.showItemNumberOfSceneAndEventView) { mixin(S_TRACE);

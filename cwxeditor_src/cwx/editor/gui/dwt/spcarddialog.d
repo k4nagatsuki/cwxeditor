@@ -601,6 +601,7 @@ protected:
 						rl.marginBottom = 0;
 						rl.marginLeft = 0;
 						rl.marginRight = 0;
+						rl.spacing = rl.spacing.ppis;
 						rl.fill = true;
 						aComp.setLayout(rl);
 						void refSkin2() { mixin(S_TRACE);
