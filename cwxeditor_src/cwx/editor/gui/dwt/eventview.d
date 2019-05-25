@@ -1744,27 +1744,31 @@ public:
 			};
 			getDisplay().addFilter(SWT.FocusIn, fi);
 			.listener(this, SWT.Dispose, { getDisplay().removeFilter(SWT.FocusIn, fi); });
-			// 遅延実行
-			auto initTools = new class PaintListener {
-				override void paintControl(PaintEvent e) { mixin(S_TRACE);
-					_cards.removePaintListener(this);
-					_toolbar.setRedraw(false);
-					scope (exit) _toolbar.setRedraw(true);
-					if (setupToolBar()) { mixin(S_TRACE);
-						_comm.refreshToolBar();
+			if (_prop.var.etc.useCoolBar) { mixin(S_TRACE);
+				// 遅延実行
+				auto initTools = new class PaintListener {
+					override void paintControl(PaintEvent e) { mixin(S_TRACE);
+						_cards.removePaintListener(this);
+						_toolbar.setRedraw(false);
+						scope (exit) _toolbar.setRedraw(true);
+						if (setupToolBar()) { mixin(S_TRACE);
+							_comm.refreshToolBar();
+						}
 					}
-				}
-			};
-			_cards.addPaintListener(initTools);
-			setupToolBar0(); // レイアウトのため最初のアイテムだけ生成しておく
+				};
+				_cards.addPaintListener(initTools);
+				setupToolBar0(); // レイアウトのため最初のアイテムだけ生成しておく
+			} else { mixin(S_TRACE);
+				setupToolBar();
+			}
 		}
-		if (cast(Area)_area) {
+		if (cast(Area)_area) { mixin(S_TRACE);
 			.setupWeights(_sash, _prop.var.areaEventWin.eventSashL, _prop.var.areaEventWin.eventSashR);
-		} else if (cast(Battle)_area) {
+		} else if (cast(Battle)_area) { mixin(S_TRACE);
 			.setupWeights(_sash, _prop.var.battleEventWin.eventSashL, _prop.var.battleEventWin.eventSashR);
-		} else if (cast(Package)_area) {
+		} else if (cast(Package)_area) { mixin(S_TRACE);
 			.setupWeights(_sash, _prop.var.packageWin.eventSashL, _prop.var.packageWin.eventSashR);
-		} else if (cast(EffectCard)_area) {
+		} else if (cast(EffectCard)_area) { mixin(S_TRACE);
 			.setupWeights(_sash, _prop.var.cardEventWin.eventSashL, _prop.var.cardEventWin.eventSashR);
 		} else { mixin(S_TRACE);
 			 assert (0);

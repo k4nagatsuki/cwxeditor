@@ -962,6 +962,20 @@ void setupToolTips(ToolBar bar, in Props prop) { mixin(S_TRACE);
 	});
 	.listener(bar, SWT.MouseExit, &release);
 	.listener(bar, SWT.Dispose, &release);
+
+	// FIXME: 別Shell上にカーソルが移動した時にMouseExitが発生しない Wine 4.0.1
+	auto exit = new class Listener {
+		override void handleEvent(Event e) { mixin(S_TRACE);
+			if (bar.isDisposed()) return;
+			auto c = cast(Control)e.widget;
+			if (!c || c.isDisposed() || c.getShell() !is bar.getShell()) release();
+		}
+	};
+	auto d = bar.getDisplay();
+	d.addFilter(SWT.MouseEnter, exit);
+	.listener(bar, SWT.Dispose, { mixin(S_TRACE);
+		d.removeFilter(SWT.MouseEnter, exit);
+	});
 }
 
 void doMenu(E)(MenuItem menu, E e) { mixin(S_TRACE);
