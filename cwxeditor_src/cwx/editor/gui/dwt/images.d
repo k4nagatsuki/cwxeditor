@@ -2918,9 +2918,12 @@ private:
 		}
 	}
 
-	bool _cancelFullRedraw = false;
-	/// なぜか関係ないSpinnerの値を設定しただけでフル再描画がかかるので
-	/// それを一度だけキャンセルできるようにする。
+	auto _cancelFullRedraw = false;
+	auto _partRedraw = false;
+	/// BUG: なぜか関係ないSpinnerの値を設定しただけでフル再描画がかかるので
+	///      それを一度だけキャンセルできるようにする。
+	/// BUG: Wine 4.0.1 部分再描画の時にキャンセルが発生してしまうので
+	///      _partRedrawフラグを設けてtrueの時はキャンセルしないようにする。
 	public void cancelFullRedraw() { mixin(S_TRACE);
 		_cancelFullRedraw = true;
 		redraw();
@@ -2933,12 +2936,13 @@ private:
 
 		override void paintControl(PaintEvent e) { mixin(S_TRACE);
 			auto rect = getClientArea();
-			if (_cancelFullRedraw) { mixin(S_TRACE);
+			if (_cancelFullRedraw && !_partRedraw) { mixin(S_TRACE);
 				_cancelFullRedraw = false;
 				if (rect.x == e.x && rect.y == e.y && rect.width == e.width && rect.height == e.height) { mixin(S_TRACE);
 					return;
 				}
 			}
+			_partRedraw = false;
 			auto bWidth = ds(_width);
 			auto bHeight = ds(_height);
 			auto d = getShell().getDisplay();
@@ -3269,6 +3273,7 @@ private:
 	}
 	void addRedraw(int x, int y, int width, int height) { mixin(S_TRACE);
 		_cancelFullRedraw = false;
+		_partRedraw = true;
 		redraw(x * _imageScale, y * _imageScale, width * _imageScale, height * _imageScale, false);
 	}
 
