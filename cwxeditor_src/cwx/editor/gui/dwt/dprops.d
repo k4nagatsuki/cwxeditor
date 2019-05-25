@@ -241,6 +241,19 @@ public:
 		font.point = ds(font.point);
 		return font;
 	}
+
+	/// フォントが存在しない場合は代替フォントを選択する。
+	const
+	CFont adjustFont(in CFont font) { mixin(S_TRACE);
+		CFont f = font;
+		f.name = adjustFont(font.name);
+		return f;
+	}
+	/// ditto
+	const
+	string adjustFont(string face) { mixin(S_TRACE);
+		return Display.getCurrent().getFontList(face, true).length ? face : looks.alternativeFont(face);
+	}
 }
 
 /// CPoint等の構造体をSWTのクラスに変換するための関数。

@@ -65,7 +65,7 @@ protected:
 		}
 		auto font = _viewer.getFont();
 		auto fSize = font ? cast(uint) font.getFontData()[0].height : 0;
-		_viewer.setFont(new Font(Display.getCurrent(), dwtData(_prop.looks.textDlgFont(fSize))));
+		_viewer.setFont(new Font(Display.getCurrent(), dwtData(_prop.adjustFont(_prop.looks.textDlgFont(fSize)))));
 		closeEvent ~= () { mixin(S_TRACE);
 			_viewer.getFont().dispose();
 		};

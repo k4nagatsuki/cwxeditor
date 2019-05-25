@@ -130,6 +130,25 @@ public:
 	@property const CSize viewSize() { return CSize(632, 420); }
 	@property const uint partyTop() { return 280; }
 
+	/// フォントが存在しなかった時の代替フォント名を返す。
+	const string alternativeFont(string face) { mixin(S_TRACE);
+		if (face.startsWith("@")) return "@" ~ alternativeFont(face[1 .. $]);
+		switch (face) {
+		case "ＭＳ ゴシック":
+			return "IPAゴシック";
+		case "ＭＳ Ｐゴシック":
+			return "IPA Pゴシック";
+		case "ＭＳ 明朝":
+			return "IPA明朝";
+		case "ＭＳ Ｐ明朝":
+			return "IPA P明朝";
+		case "MS UI Gothic":
+			return "IPA UIゴシック";
+		default:
+			return face;
+		}
+	}
+
 	@property const string monospace() { mixin(S_TRACE);
 		version (Windows) {
 			return "ＭＳ ゴシック";
@@ -138,28 +157,35 @@ public:
 		}
 	}
 
-	private static string gothic(bool legacy) { mixin(S_TRACE);
+	static string gothic(bool legacy) { mixin(S_TRACE);
 		version (Windows) {
 			return "ＭＳ ゴシック";
 		} else {
 			return "IPAゴシック";
 		}
 	}
-	private static string pgothic(bool legacy) { mixin(S_TRACE);
+	static string pgothic(bool legacy) { mixin(S_TRACE);
 		version (Windows) {
 			return "ＭＳ Ｐゴシック";
 		} else {
 			return "IPA Pゴシック";
 		}
 	}
-	private static string mincho(bool legacy) { mixin(S_TRACE);
+	static string mincho(bool legacy) { mixin(S_TRACE);
 		version (Windows) {
 			return "ＭＳ 明朝";
 		} else {
 			return "IPA明朝";
 		}
 	}
-	private static string uigothic(bool legacy) { mixin(S_TRACE);
+	static string pmincho(bool legacy) { mixin(S_TRACE);
+		version (Windows) {
+			return "ＭＳ Ｐ明朝";
+		} else {
+			return "IPA P明朝";
+		}
+	}
+	static string uigothic(bool legacy) { mixin(S_TRACE);
 		version (Windows) {
 			return "MS UI Gothic";
 		} else {

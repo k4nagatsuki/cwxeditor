@@ -305,7 +305,7 @@ private:
 			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			grp.setLayout(new CenterLayout(SWT.HORIZONTAL));
 			grp.setText(_prop.msgs.desc);
-			_desc = new FixedWidthText!Text(_prop.looks.summaryDescFont(summSkin.legacy), _prop.looks.summaryDescLen, grp, SWT.BORDER | _readOnly);
+			_desc = new FixedWidthText!Text(_prop.adjustFont(_prop.looks.summaryDescFont(summSkin.legacy)), _prop.looks.summaryDescLen, grp, SWT.BORDER | _readOnly);
 			createTextMenu!Text(_comm, _prop, _desc.widget, &catchMod);
 			mod(_desc.widget);
 			_desc.widget.setLayoutData(_desc.computeTextBaseSize(_prop.looks.summaryDescLine));
@@ -497,7 +497,7 @@ private:
 	void refSkin(Object sender) { mixin(S_TRACE);
 		if (_readOnly) return;
 		refreshPreview();
-		_desc.font = _prop.looks.summaryDescFont(summSkin.legacy);
+		_desc.font = _prop.adjustFont(_prop.looks.summaryDescFont(summSkin.legacy));
 		if (sender is this) return;
 		refreshTypes();
 	}
@@ -857,16 +857,16 @@ private class SummaryPreview : Composite {
 				} else { mixin(S_TRACE);
 					levText = "";
 				}
-				auto lFont = _prop.looks.summaryLevelFont(skin.legacy);
+				auto lFont = _prop.adjustFont(_prop.looks.summaryLevelFont(skin.legacy));
 				lFont.point *= drawingScale;
 				drawCenterText(lFont, levText, _prop.looks.summaryLevelY * drawingScale);
 				c.dispose();
 				gc.setAlpha(255);
 				gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
-				auto tFont = _prop.looks.summaryTitleFont(skin.legacy);
+				auto tFont = _prop.adjustFont(_prop.looks.summaryTitleFont(skin.legacy));
 				tFont.point *= drawingScale;
 				drawCenterText(tFont, _sname(), _prop.looks.summaryTitleY * drawingScale);
-				auto dFont = _prop.looks.summaryDescFont(skin.legacy);
+				auto dFont = _prop.adjustFont(_prop.looks.summaryDescFont(skin.legacy));
 				dFont.point *= drawingScale;
 				auto font = .createFontFromPixels(dFont, 2 <= _prop.drawingScale);
 				gc.setFont(font);
@@ -884,7 +884,7 @@ private class SummaryPreview : Composite {
 				}
 				gc.setFont(null);
 				font.dispose();
-				auto pFont = _prop.looks.summaryPageFont(skin.legacy);
+				auto pFont = _prop.adjustFont(_prop.looks.summaryPageFont(skin.legacy));
 				pFont.point *= drawingScale;
 				drawCenterText(pFont, _prop.msgs.summaryPageDummy, _prop.looks.summaryPageY * drawingScale);
 			}

@@ -445,7 +445,7 @@ private:
 			cl.fillVertical = true;
 			grp.setLayout(cl);
 			grp.setText(_prop.msgs.desc);
-			_desc = new FixedWidthText!Text(_prop.looks.cardDescFont(summSkin.legacy), _prop.looks.cardDescLen, grp, SWT.BORDER | _readOnly);
+			_desc = new FixedWidthText!Text(_prop.adjustFont(_prop.looks.cardDescFont(summSkin.legacy)), _prop.looks.cardDescLen, grp, SWT.BORDER | _readOnly);
 			mod(_desc.widget);
 			createTextMenu!Text(_comm, _prop, _desc.widget, &catchMod);
 			auto p = _desc.computeTextBaseSize(1);
@@ -1380,7 +1380,7 @@ private:
 		}
 	}
 	void refSkin() { mixin(S_TRACE);
-		_desc.font = _prop.looks.cardDescFont(summSkin.legacy);
+		_desc.font = _prop.adjustFont(_prop.looks.cardDescFont(summSkin.legacy));
 		refreshSex();
 		refreshPeriod();
 		refreshNature();

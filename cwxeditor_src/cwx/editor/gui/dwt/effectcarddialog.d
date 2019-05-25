@@ -488,7 +488,7 @@ private:
 			grp.setLayoutData(gd);
 			grp.setLayout(new CenterLayout(SWT.HORIZONTAL));
 			grp.setText(_prop.msgs.desc);
-			_desc = new FixedWidthText!Text(_prop.looks.cardDescFont(summSkin.legacy), _prop.looks.cardDescLen, grp, SWT.BORDER | _readOnly);
+			_desc = new FixedWidthText!Text(_prop.adjustFont(_prop.looks.cardDescFont(summSkin.legacy)), _prop.looks.cardDescLen, grp, SWT.BORDER | _readOnly);
 			mod(_desc.widget);
 			createTextMenu!Text(_comm, _prop, _desc.widget, &catchMod);
 			_desc.widget.setLayoutData(_desc.computeTextBaseSize(_prop.looks.cardDescLine));
@@ -813,7 +813,7 @@ private:
 		forceCancel();
 	}
 	void refSkin() { mixin(S_TRACE);
-		_desc.font = _prop.looks.cardDescFont(summSkin.legacy);
+		_desc.font = _prop.adjustFont(_prop.looks.cardDescFont(summSkin.legacy));
 	}
 	void refDataVersion() { mixin(S_TRACE);
 		updateEnabled();

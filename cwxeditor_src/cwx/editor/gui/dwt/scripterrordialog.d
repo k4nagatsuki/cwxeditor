@@ -112,7 +112,7 @@ protected:
 		_result.setText(buf);
 		auto font = _result.getFont();
 		auto fSize = font ? cast(uint) font.getFontData()[0].height : 0;
-		_result.setFont(new Font(Display.getCurrent(), dwtData(_prop.looks.scriptErrorFont(fSize))));
+		_result.setFont(new Font(Display.getCurrent(), dwtData(_prop.adjustFont(_prop.looks.scriptErrorFont(fSize)))));
 		_result.addDisposeListener(new Dispose);
 	}
 }

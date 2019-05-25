@@ -867,7 +867,7 @@ private:
 					_paintedPaths[i] = "";
 					auto pcNum = path.pcNumber;
 					if (0 != pcNum) { mixin(S_TRACE);
-						drawCenterText(dwtData(_prop.looks.pcNumberFont(summSkin.legacy)), gc, _image.getClientArea(), .text(pcNum));
+						drawCenterText(dwtData(_prop.adjustFont(_prop.looks.pcNumberFont(summSkin.legacy))), gc, _image.getClientArea(), .text(pcNum));
 					}
 					break;
 				case CardImageType.Talker:

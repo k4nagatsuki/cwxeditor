@@ -168,7 +168,7 @@ class ContentCommentDialog : AbsDialog {
 		createTextMenu!Text(_comm, _prop, _comment, &catchMod);
 		auto font = _comment.getFont();
 		auto fSize = font ? cast(uint) font.getFontData()[0].height : 0;
-		_comment.setFont(new Font(Display.getCurrent(), dwtData(_prop.looks.textDlgFont(fSize))));
+		_comment.setFont(new Font(Display.getCurrent(), dwtData(_prop.adjustFont(_prop.looks.textDlgFont(fSize)))));
 		_comment.setSelection(cast(int)to!dstring(_comment.getText()).length);
 		closeEvent ~= () { mixin(S_TRACE);
 			_comment.getFont().dispose();

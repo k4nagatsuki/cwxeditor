@@ -929,7 +929,7 @@ private:
 		}
 	}
 	protected override void refSkin() { mixin(S_TRACE);
-		_text.font = prop.looks.messageFont(summSkin.legacy);
+		_text.font = prop.adjustFont(prop.looks.messageFont(summSkin.legacy));
 	}
 	void refreshDlgList() { mixin(S_TRACE);
 		bool oldIgnoreMod = ignoreMod;
@@ -1350,7 +1350,7 @@ private:
 		_text.insert(put);
 	}
 	protected override void refSkin() { mixin(S_TRACE);
-		_text.font = prop.looks.messageFont(summSkin.legacy);
+		_text.font = prop.adjustFont(prop.looks.messageFont(summSkin.legacy));
 	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, Content parent, Content evt) { mixin(S_TRACE);
@@ -1600,7 +1600,7 @@ private Composite createTalkerPane(Composite parent, Commons comm, Props prop, S
 
 private FixedWidthText!Text createMessagePane(Commons comm, Props prop, bool image, Composite parent, Summary summ) { mixin(S_TRACE);
 	int len = image ? prop.looks.messageImageLen : prop.looks.messageLen;
-	auto r = new FixedWidthText!Text(prop.looks.messageFont(comm.skin.legacy), len, parent, SWT.BORDER, true);
+	auto r = new FixedWidthText!Text(prop.adjustFont(prop.looks.messageFont(comm.skin.legacy)), len, parent, SWT.BORDER, true);
 	auto d = r.widget.getDisplay();
 	auto normBack = r.widget.getBackground();
 	auto normFore = r.widget.getForeground();
@@ -3416,13 +3416,13 @@ ImageDataWithScale previewMessage(Commons comm, Props prop, in Summary summ, Ima
 	}, rFonts, rColors);
 
 	auto antialias = 2 <= prop.drawingScale;
-	auto font = .createFontFromPixels(prop.ds(prop.looks.messageFont(legacy)), antialias);
+	auto font = .createFontFromPixels(prop.ds(prop.adjustFont(prop.looks.messageFont(legacy))), antialias);
 	scope (exit) font.dispose();
 	auto fc = new Color(d, dwtData(prop.var.etc.messageForeColor, alpha));
 	scope (exit) fc.dispose();
 	auto hc = new Color(d, dwtData(prop.var.etc.messageHemColor, alpha));
 	scope (exit) hc.dispose();
-	auto selFont = .createFontFromPixels(prop.ds(prop.looks.messageSelectFont(legacy)), antialias);
+	auto selFont = .createFontFromPixels(prop.ds(prop.adjustFont(prop.looks.messageSelectFont(legacy))), antialias);
 	scope (exit) selFont.dispose();
 
 	gc.setFont(font);

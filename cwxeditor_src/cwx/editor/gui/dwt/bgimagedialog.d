@@ -585,7 +585,7 @@ private:
 
 		auto ca = _prevPanel.getClientArea();
 		if (_preview) _preview.dispose();
-		_preview = new PileImage(wrapReturnCode(_text.getText()), _prop.drawingScale, _fontName.getText(),
+		_preview = new PileImage(wrapReturnCode(_text.getText()), _prop.drawingScale, _prop.adjustFont(_fontName.getText()),
 			_size.getSelection(), tColor, _bold.getSelection(), _italic.getSelection(),
 			_underline.getSelection(), _strike.getSelection(), _vertical.getSelection(), _antialias.getSelection(),
 			bType, bColor, _borderingWidth.getSelection(), ca.x / _prop.var.etc.imageScale, ca.y / _prop.var.etc.imageScale, ca.width / _prop.var.etc.imageScale, ca.height / _prop.var.etc.imageScale);
@@ -717,14 +717,30 @@ protected:
 						nameSet[name] = true;
 					}
 				}
+				// Windowsに標準的に存在するフォントは無条件に選択可能にする
+				foreach (name; [
+					_prop.looks.gothic(true),
+					_prop.looks.pgothic(true),
+					_prop.looks.mincho(true),
+					_prop.looks.pmincho(true),
+					_prop.looks.uigothic(true),
+					"@" ~ _prop.looks.gothic(true),
+					"@" ~ _prop.looks.pgothic(true),
+					"@" ~ _prop.looks.mincho(true),
+					"@" ~ _prop.looks.pmincho(true),
+					"@" ~ _prop.looks.uigothic(true),
+				]) { mixin(S_TRACE);
+					if (!nameSet.get(name, false)) { mixin(S_TRACE);
+						names ~= name;
+						nameSet[name] = true;
+					}
+				}
 				if (_prop.var.etc.logicalSort) { mixin(S_TRACE);
 					names = sort!(fnncmp)(names);
 				} else { mixin(S_TRACE);
 					names = sort!(fncmp)(names);
 				}
-				foreach (name; names) { mixin(S_TRACE);
-					_fontName.add(name);
-				}
+				_fontName.setItems(names);
 				.listener(_fontName, SWT.Selection, &updatePreview);
 
 				auto l1 = new Label(comp2, SWT.NONE);
@@ -1282,7 +1298,7 @@ private:
 	class Paint : PaintListener {
 		override void paintControl(PaintEvent e) { mixin(S_TRACE);
 			auto pcNum = _pcNumber.getSelectionIndex() + 1;
-			drawCenterText(dwtData(_prop.looks.pcNumberFont(_comm.skin.legacy)), e.gc, _prevPanel.getClientArea(), .text(pcNum));
+			drawCenterText(dwtData(_prop.adjustFont(_prop.looks.pcNumberFont(_comm.skin.legacy))), e.gc, _prevPanel.getClientArea(), .text(pcNum));
 		}
 	}
 public:

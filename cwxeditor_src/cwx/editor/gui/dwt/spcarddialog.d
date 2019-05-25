@@ -300,7 +300,7 @@ private:
 	}
 	void refSkin() { mixin(S_TRACE);
 		static if (is(C == MenuCard)) {
-			_desc.font = _prop.looks.cardDescFont(_comm.skin.legacy);
+			_desc.font = _prop.adjustFont(_prop.looks.cardDescFont(_comm.skin.legacy));
 		}
 		static if (is(C == EnemyCard)) {
 			_image.redraw();
@@ -694,7 +694,7 @@ protected:
 					grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 					grp.setLayout(new CenterLayout(SWT.HORIZONTAL));
 					grp.setText(_prop.msgs.desc);
-					_desc = new FixedWidthText!Text(_prop.looks.cardDescFont(summSkin.legacy), _prop.looks.cardDescLen, grp, SWT.BORDER);
+					_desc = new FixedWidthText!Text(_prop.adjustFont(_prop.looks.cardDescFont(summSkin.legacy)), _prop.looks.cardDescLen, grp, SWT.BORDER);
 					createTextMenu!Text(_comm, _prop, _desc.widget, &catchMod);
 					mod(_desc.widget);
 					_desc.widget.setLayoutData(_desc.computeTextBaseSize(_prop.looks.cardDescLine));

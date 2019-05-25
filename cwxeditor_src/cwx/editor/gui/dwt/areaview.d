@@ -5344,7 +5344,7 @@ public:
 			return createBackgroundImage(_prop, skin, _summ, path, back.x, back.y, back.width, back.height, back.mask, back.layer, back.smoothing is Smoothing.True);
 		}
 		private FlexImage create(TextCell back) { mixin(S_TRACE);
-			auto r = new FlexImage(back.text, _prop.drawingScale, back.fontName, back.size, back.color,
+			auto r = new FlexImage(back.text, _prop.drawingScale, _prop.adjustFont(back.fontName), back.size, back.color,
 				back.bold, back.italic, back.underline, back.strike, back.vertical, back.antialias,
 				back.borderingType, back.borderingColor, back.borderingWidth,
 				back.x, back.y, back.width, back.height);
@@ -5397,7 +5397,7 @@ public:
 					}
 				}
 				gc.drawOval(_prop.ds(0), _prop.ds(0), width - 1, height - 1);
-				auto font = _prop.looks.pcNumberFont(skin.legacy);
+				auto font = _prop.adjustFont(_prop.looks.pcNumberFont(skin.legacy));
 				font.point /= .dpiMuls;
 				drawCenterText(.dwtData(_prop.ds(font)), gc, new Rectangle(_prop.ds(0), _prop.ds(0), width - 1, height - 1), .text(back.pcNumber));
 			}, _prop.drawingScale, back.x, back.y, size.width, size.height, false);

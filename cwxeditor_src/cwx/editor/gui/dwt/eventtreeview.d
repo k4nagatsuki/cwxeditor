@@ -1474,7 +1474,7 @@ private:
 		auto back = e.gc.getBackground();
 		auto font = e.gc.getFont();
 		auto fSize = font ? cast(uint)font.getFontData()[0].height : 0;
-		e.gc.setFont(new Font(_tree.control.getDisplay(), dwtData(_prop.looks.textDlgFont(fSize))));
+		e.gc.setFont(new Font(_tree.control.getDisplay(), dwtData(_prop.adjustFont(_prop.looks.textDlgFont(fSize)))));
 		scope (exit) e.gc.getFont().dispose();
 		Rectangle[] boxes;
 		TreeItem[] itms;

@@ -642,7 +642,7 @@ private class ImageLayerItem : Item {
 			if (0 != pcNum) { mixin(S_TRACE);
 				name = .tryFormat(_parent._comm.prop.msgs.pcNumber, path.pcNumber);
 				auto rect = new Rectangle(0, y, cRect.width, cRect.height);
-				drawCenterText(dwtData(_parent._comm.prop.looks.pcNumberFont(skin.legacy)), gc, rect, .text(pcNum));
+				drawCenterText(dwtData(_parent._comm.prop.adjustFont(_parent._comm.prop.looks.pcNumberFont(skin.legacy))), gc, rect, .text(pcNum));
 			}
 			break;
 		case CardImageType.Talker:

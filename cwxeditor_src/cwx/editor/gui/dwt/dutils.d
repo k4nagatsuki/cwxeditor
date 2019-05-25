@@ -1711,7 +1711,7 @@ ImageDataWithScale castCardImage(Props prop, Skin skin, in Summary summ, in Cast
 		}
 		r.append(to!(string)(c.level),
 			prop.looks.castCardLevelInsets,
-			prop.looks.castCardLevelFont(skin.legacy),
+			prop.adjustFont(prop.looks.castCardLevelFont(skin.legacy)),
 			levelColor,
 			true,
 			PileImage.TPos.RIGHT);
@@ -1826,7 +1826,7 @@ ImageDataWithScale castCardImage(Props prop, Skin skin, in Summary summ, in Cast
 			gc.fillRectangle(0, 0, data.width, data.height);
 		}
 		gc.drawImage(img, 0, 0);
-		auto font = .createFontFromPixels(prop.ds(prop.looks.statusTimeFont(skin.legacy, number)), 2 <= prop.drawingScale);
+		auto font = .createFontFromPixels(prop.ds(prop.adjustFont(prop.looks.statusTimeFont(skin.legacy, number))), 2 <= prop.drawingScale);
 		scope (exit) font.dispose();
 		gc.setFont(font);
 		string s = to!(string)(number);
@@ -1936,7 +1936,7 @@ ImageDataWithScale castCardImage(Props prop, Skin skin, in Summary summ, in Cast
 		r.append(bid, stp, ScaleType.Cut);
 	}
 	auto x = prop.looks.castCardNamePoint.x;
-	r.setTitle(isOverrideName ? overrideName : c.name, prop.looks.castCardNameFont(skin.legacy), dwtData(prop.looks.castCardNamePoint),
+	r.setTitle(isOverrideName ? overrideName : c.name, prop.adjustFont(prop.looks.castCardNameFont(skin.legacy)), dwtData(prop.looks.castCardNamePoint),
 		skin.legacy ? 0 : w - x * 2, !skin.legacy);
 	if (skin.legacy) { mixin(S_TRACE);
 		// 状態によって固定で文字が白くなる
@@ -1960,7 +1960,7 @@ void addToPileImage(in CardImage img, PileImage pile, Props prop, Skin skin, in 
 	final switch (img.type) {
 	case CardImageType.PCNumber:
 		if (0 < img.pcNumber) { mixin(S_TRACE);
-			auto font = prop.looks.pcNumberFont(skin.legacy);
+			auto font = prop.adjustFont(prop.looks.pcNumberFont(skin.legacy));
 			font.point /= 2;
 			pile.append(dwtData(font), .text(img.pcNumber), prop.looks.menuCardInsets);
 		}
@@ -2065,7 +2065,7 @@ ImageDataWithScale cardImage(C)(Props prop, Skin skin, in Summary summ, in C bas
 			}
 			r.append(to!(string)(c.level),
 				prop.looks.skillCardLevelInsets,
-				prop.looks.skillCardLevelFont(skin.legacy),
+				prop.adjustFont(prop.looks.skillCardLevelFont(skin.legacy)),
 				levelColor,
 				true,
 				PileImage.TPos.RIGHT);
@@ -2117,7 +2117,7 @@ ImageDataWithScale cardImage(C)(Props prop, Skin skin, in Summary summ, in C bas
 		}
 	}
 	auto x = prop.looks.cardNamePoint.x;
-	r.setTitle(c.name, prop.looks.cardNameFont(skin.legacy), dwtData(prop.looks.cardNamePoint),
+	r.setTitle(c.name, prop.adjustFont(prop.looks.cardNameFont(skin.legacy)), dwtData(prop.looks.cardNamePoint),
 		skin.legacy ? 0 : w - x * 2, !skin.legacy);
 	if (!skin.legacy) { mixin(S_TRACE);
 		if (getRGBAverage(card.scaled(prop.drawingScale), prop.ds(prop.looks.cardNameArea)) < prop.var.etc.negativeCardNameBorder) { mixin(S_TRACE);
@@ -2142,7 +2142,7 @@ ImageDataWithScale cardImage(C)(Props prop, Skin skin, in Summary summ, in C bas
 			scope (exit) img.dispose();
 			auto gc = new GC(img);
 			scope (exit) gc.dispose();
-			auto font = .createFontFromPixels(prop.ds(prop.looks.useCountFont(skin.legacy)), 2 <= prop.drawingScale);
+			auto font = .createFontFromPixels(prop.ds(prop.adjustFont(prop.looks.useCountFont(skin.legacy))), 2 <= prop.drawingScale);
 			scope (exit) font.dispose();
 			gc.setFont(font);
 			int alpha;

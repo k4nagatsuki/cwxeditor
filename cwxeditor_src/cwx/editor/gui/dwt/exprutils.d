@@ -476,7 +476,7 @@ class ExpressionEditor : Composite {
 		_expr.setTabs(_comm.prop.var.etc.tabs);
 		auto font = _expr.getFont();
 		auto fSize = font ? cast(uint)font.getFontData()[0].height : 0;
-		_expr.setFont(new Font(getDisplay(), dwtData(_comm.prop.looks.textDlgFont(fSize))));
+		_expr.setFont(new Font(getDisplay(), dwtData(_comm.prop.adjustFont(_comm.prop.looks.textDlgFont(fSize)))));
 		.listener(this, SWT.Dispose, { mixin(S_TRACE);
 			_expr.getFont().dispose();
 		});
@@ -850,7 +850,7 @@ private class FunctionCallEditor {
 			createTextMenu!Text(_comm, _comm.prop, _decl, null);
 			auto baseFont = _decl.getFont();
 			auto fSize = baseFont ? cast(uint)baseFont.getFontData()[0].height : 0;
-			auto font = new Font(_shell.getDisplay(), .dwtData(_comm.prop.looks.textDlgFont(fSize)));
+			auto font = new Font(_shell.getDisplay(), .dwtData(_comm.prop.adjustFont(_comm.prop.looks.textDlgFont(fSize))));
 			.listener(comp, SWT.Dispose, { font.dispose(); });
 			_decl.setFont(font);
 			auto gc = new GC(_decl);
