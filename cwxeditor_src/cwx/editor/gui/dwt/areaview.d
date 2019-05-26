@@ -359,7 +359,7 @@ private:
 			this (AbstractAreaView v, Commons comm, A area, Summary summ) { mixin(S_TRACE);
 				super (v, comm, area, summ);
 				_path = new PathUser(new MCWXPath);
-				if (v._uc) _path.setUseCounter(v._uc.sub);
+				if (area.useCounter) _path.setUseCounter(area.useCounter.sub);
 				_path.path = area.music;
 				_volume = area.volume;
 				_loopCount = area.loopCount;
@@ -515,7 +515,7 @@ private:
 					auto node = area.cards[i].toNode(new XMLOption(comm.prop.sys, LATEST_VERSION));
 					auto ver = new XMLInfo(comm.prop.sys, LATEST_VERSION);
 					auto c = C.createFromNode(node, ver);
-					if (v._uc) c.setUseCounter(v._uc.sub);
+					if (area.useCounter) c.setUseCounter(area.useCounter.sub);
 					_cs[i] = c;
 					_cChks[i] = v ? v._cards.getItem(i).getChecked() : true;
 				}
@@ -523,7 +523,7 @@ private:
 			static if (UseBacks) {
 				foreach (i; bIdcs) { mixin(S_TRACE);
 					auto b = area.backs[i].dup;
-					if (v._uc) b.setUseCounter(v._uc.sub);
+					if (area.useCounter) b.setUseCounter(area.useCounter.sub);
 					_bs[i] = b;
 					_bChks[i] = v ? v._backs.getItem(i).getChecked() : true;
 				}
@@ -585,7 +585,7 @@ private:
 						c = new C(c.id, c.actions, c.flag, c.x, c.y, c.scale, c.layer, c.cardGroup, c.animationSpeed,
 							c.isOverrideName, c.overrideName, c.isOverrideImage, c.overrideImages);
 					} else static assert (0);
-					if (_uc) c.setUseCounter(_uc.sub);
+					if (area.useCounter) c.setUseCounter(area.useCounter.sub);
 					cs[i] = c;
 				}
 				return cs;
@@ -597,7 +597,7 @@ private:
 				foreach (i; indices) { mixin(S_TRACE);
 					auto b = area.backs[i];
 					b = b.dup;
-					if (_uc) b.setUseCounter(_uc.sub);
+					if (area.useCounter) b.setUseCounter(area.useCounter.sub);
 					bs[i] = b;
 				}
 				return bs;

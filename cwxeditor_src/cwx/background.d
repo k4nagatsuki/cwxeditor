@@ -1266,6 +1266,11 @@ public:
 	@property
 	CWXPath cwxParent() { return null; }
 
+	/// 使用回数カウンタ(不対応)。
+	@property
+	inout
+	inout(UseCounter) useCounter() { return null; }
+
 	/// 背景イメージ群。
 	@property
 	inout
@@ -1319,7 +1324,7 @@ public:
 
 	/// 背景イメージ群をXMLノードにする。
 	static string BtoXML(BgImage[] backs, XMLOption opt) { mixin(S_TRACE);
-		scope doc = XNode.create("MenuCardsAndBgImages");
+		auto doc = XNode.create("MenuCardsAndBgImages");
 		if (backs.length) { mixin(S_TRACE);
 			auto be = doc.newElement(BgImage.XML_NAME_M);
 			foreach (b; backs) { mixin(S_TRACE);
@@ -1331,7 +1336,7 @@ public:
 	/// XMLノードから背景イメージ群を読み出す。
 	static bool BfromXML(string xml, out BgImage[] backs, in XMLInfo ver) { mixin(S_TRACE);
 		try { mixin(S_TRACE);
-			scope doc = XNode.parse(xml);
+			auto doc = XNode.parse(xml);
 			if (doc.name == "MenuCardsAndBgImages") { mixin(S_TRACE);
 				doc.onTag[BgImage.XML_NAME_M] = (ref XNode node) { mixin(S_TRACE);
 					node.onTag[null] = (ref XNode node) { mixin(S_TRACE);
