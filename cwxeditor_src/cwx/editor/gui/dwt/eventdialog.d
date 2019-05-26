@@ -2009,6 +2009,8 @@ private:
 	Button _refAbility;
 	AbilityView _ability;
 
+	Button _absorbToSelected;
+
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
@@ -2036,6 +2038,9 @@ private:
 		if (_initialEffect.getSelection() && !prop.isTargetVersion(summ, "4")) { mixin(S_TRACE);
 			ws ~= prop.msgs.warningInitialEffect;
 		}
+		if (_absorbToSelected.getSelection() && !prop.isTargetVersion(summ, "4")) { mixin(S_TRACE);
+			ws ~= prop.msgs.warningAbsorbToSelected;
+		}
 		if (_summ && _summ.legacy && _se1.filePath != "" && !_se1.selectedDefDir) ws ~= prop.msgs.warningNotDefaultSE;
 		ws ~= comm.skin.warningSE(prop.parent, _se1.filePath, summ && summ.legacy, prop.var.etc.targetVersion) ~ _se1.warnings;
 		if (_summ && _summ.legacy && _se2.filePath != "" && !_se2.selectedDefDir) ws ~= prop.msgs.warningNotDefaultSE;
@@ -2056,6 +2061,7 @@ private:
 		_ability.enabled = _refAbility.getSelection();
 		_lev.setEnabled(!_refAbility.getSelection());
 		_initialEffect.setEnabled(!summ || !summ.legacy || _initialEffect.getSelection());
+		_absorbToSelected.setEnabled(!summ || !summ.legacy || _absorbToSelected.getSelection());
 		_se1.enabled = _initialEffect.getSelection();
 		refreshWarning();
 	}
@@ -2142,6 +2148,16 @@ protected:
 						radio.setLayoutData(new GridData(GridData.FILL_BOTH));
 						_res[res] = radio;
 					}
+				}
+				{ mixin(S_TRACE);
+					auto grp = new Group(comp2, SWT.NONE);
+					grp.setText(_prop.msgs.absorbSettings);
+					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+					grp.setLayout(new CenterLayout);
+					_absorbToSelected = new Button(grp, SWT.CHECK);
+					mod(_absorbToSelected);
+					_absorbToSelected.setText(_prop.msgs.absorbToSelected);
+					.listener(_absorbToSelected, SWT.Selection, &updateEnabled);
 				}
 			}
 			{ mixin(S_TRACE);
@@ -2284,6 +2300,7 @@ protected:
 			_keyCodes.keyCodes = _evt.keyCodes;
 			_cardSpeed.speed = _evt.cardSpeed;
 			_cardSpeed.overrideCardSpeed = _evt.overrideCardSpeed;
+			_absorbToSelected.setSelection(_evt.absorbTo is AbsorbTo.Selected);
 		} else { mixin(S_TRACE);
 			_mview.motions = [];
 			_lev.setSelection(0);
@@ -2299,6 +2316,7 @@ protected:
 			_keyCodes.keyCodes = [];
 			_cardSpeed.speed = -1;
 			_cardSpeed.overrideCardSpeed = false;
+			_absorbToSelected.setSelection(false);
 		}
 		refDataVersion();
 	}
@@ -2330,6 +2348,7 @@ protected:
 		}
 		_evt.cardSpeed = _cardSpeed.speed;
 		_evt.overrideCardSpeed = _cardSpeed.overrideCardSpeed;
+		_evt.absorbTo = _absorbToSelected.getSelection() ? AbsorbTo.Selected : AbsorbTo.None;
 		return true;
 	}
 }

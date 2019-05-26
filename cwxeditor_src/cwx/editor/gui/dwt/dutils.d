@@ -3467,20 +3467,33 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 			return .tryFormat(comm.prop.msgs.ctChangeBgImage, bgImageString, v, evt.transitionSpeed);
 		}
 	} case CType.Effect: { mixin(S_TRACE);
-		string tt = .rangeName(comm.prop, evt.range, evt.holdingCoupon);
-		int tl = evt.signedLevel;
-		string tet = comm.prop.msgs.effectTypeName(evt.effectType);
-		string tr = comm.prop.msgs.resistName(evt.resist);
-		string tsf = evt.successRate >= 0 ? "+" : "-";
-		int ts = std.math.abs(evt.successRate);
-		string tsnd = contentTextUseID!(CIDKind.SE)(comm, summ, evt.soundPath, comm.prop.msgs.ctEffectSound, evt);
-		string tinitial = contentTextUseID!(CIDKind.SE)(comm, summ, evt.initialSoundPath, comm.prop.msgs.ctEffectSound, evt);
-		string tcv = comm.prop.msgs.cardVisualName(evt.cardVisual);
-		if (evt.cardSpeed != -1) { mixin(S_TRACE);
-			if (evt.overrideCardSpeed) { mixin(S_TRACE);
-				tcv = .tryFormat(comm.prop.msgs.cardVisualWithOverrideSpeed, tcv, evt.cardSpeed);
+		auto tt = .rangeName(comm.prop, evt.range, evt.holdingCoupon);
+		auto tl = evt.signedLevel;
+		auto tet = comm.prop.msgs.effectTypeName(evt.effectType);
+		auto tr = comm.prop.msgs.resistName(evt.resist);
+		auto tsf = evt.successRate >= 0 ? "+" : "-";
+		auto ts = std.math.abs(evt.successRate);
+		string[] args;
+		if (evt.soundPath != "") { mixin(S_TRACE);
+			args ~= contentTextUseID!(CIDKind.SE)(comm, summ, evt.soundPath, comm.prop.msgs.ctEffectSound, evt);
+		}
+		if (evt.cardVisual != CardVisual.None) { mixin(S_TRACE);
+			auto tcv = comm.prop.msgs.cardVisualName(evt.cardVisual);
+			if (evt.cardSpeed == -1) { mixin(S_TRACE);
+				args ~= tcv;
 			} else { mixin(S_TRACE);
-				tcv = .tryFormat(comm.prop.msgs.cardVisualWithSpeed, tcv, evt.cardSpeed);
+				if (evt.overrideCardSpeed) { mixin(S_TRACE);
+					args ~= .tryFormat(comm.prop.msgs.cardVisualWithOverrideSpeed, tcv, evt.cardSpeed);
+				} else { mixin(S_TRACE);
+					args ~= .tryFormat(comm.prop.msgs.cardVisualWithSpeed, tcv, evt.cardSpeed);
+				}
+			}
+		}
+		if (evt.initialEffect) { mixin(S_TRACE);
+			if (evt.initialSoundPath == "") { mixin(S_TRACE);
+				args ~= comm.prop.msgs.ctInitialEffect;
+			} else { mixin(S_TRACE);
+				args ~= .tryFormat(comm.prop.msgs.ctInitialEffectWithSound, contentTextUseID!(CIDKind.SE)(comm, summ, evt.initialSoundPath, comm.prop.msgs.ctEffectSound, evt));
 			}
 		}
 		string teff = evt.motions ? "" : comm.prop.msgs.noEffect;
@@ -3488,32 +3501,30 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 			teff ~= .tryFormat(comm.prop.msgs.ctEffectMotion, comm.prop.msgs.motionName(m.type));
 			if (i + 1 < evt.motions.length) teff ~= " ";
 		}
-		auto ignite = evt.ignite ? comm.prop.msgs.igniteTrue : comm.prop.msgs.igniteFalse;
-		string keyCode;
-		if (evt.keyCodes.length) { mixin(S_TRACE);
-			string keyCodes = "";
-			foreach (i, kc; evt.keyCodes) { mixin(S_TRACE);
-				if (0 < i) keyCodes ~= " ";
-				keyCodes ~= kc;
+		if (evt.ignite) { mixin(S_TRACE);
+			if (evt.keyCodes.length) { mixin(S_TRACE);
+				auto keyCodes = "";
+				foreach (i, kc; evt.keyCodes) { mixin(S_TRACE);
+					if (0 < i) keyCodes ~= " ";
+					keyCodes ~= kc;
+				}
+				args ~= .tryFormat(comm.prop.msgs.ctIgniteWithKeyCode, .tryFormat(comm.prop.msgs.ctKeyCodes, keyCodes));
+			} else { mixin(S_TRACE);
+				args ~= comm.prop.msgs.ctIgnite;
 			}
-			keyCode = .tryFormat(comm.prop.msgs.ctKeyCodes, keyCodes);
-		} else {
-			keyCode = comm.prop.msgs.ctNoKeyCode;
 		}
 		if (evt.refAbility) { mixin(S_TRACE);
 			auto p = comm.prop.msgs.physicalName(evt.physical);
 			auto m = comm.prop.msgs.mentalName(evt.mental);
-			if (evt.initialEffect) { mixin(S_TRACE);
-				return .tryFormat(comm.prop.msgs.ctEffectRefAbilityWithInitialEffect, tt, tet, tr, tsf, ts, tsnd, tcv, teff, m, p, ignite, keyCode, tinitial);
-			} else { mixin(S_TRACE);
-				return .tryFormat(comm.prop.msgs.ctEffectRefAbility, tt, tet, tr, tsf, ts, tsnd, tcv, teff, m, p, ignite, keyCode);
-			}
+			args ~= .tryFormat(comm.prop.msgs.ctRefAbility, p, m);
+		}
+		if (evt.absorbTo is AbsorbTo.Selected) { mixin(S_TRACE);
+			args ~= comm.prop.msgs.ctAbsorbToSelected;
+		}
+		if (args.length) { mixin(S_TRACE);
+			return .tryFormat(comm.prop.msgs.ctEffectWith, tt, tl, tet, tr, tsf, ts, teff, args.join(" "));
 		} else { mixin(S_TRACE);
-			if (evt.initialEffect) { mixin(S_TRACE);
-				return .tryFormat(comm.prop.msgs.ctEffectWithInitialEffect, tt, tl, tet, tr, tsf, ts, tsnd, tcv, teff, ignite, keyCode, tinitial);
-			} else { mixin(S_TRACE);
-				return .tryFormat(comm.prop.msgs.ctEffect, tt, tl, tet, tr, tsf, ts, tsnd, tcv, teff, ignite, keyCode);
-			}
+			return .tryFormat(comm.prop.msgs.ctEffect, tt, tl, tet, tr, tsf, ts, teff);
 		}
 	} case CType.EffectBreak: { mixin(S_TRACE);
 		return evt.consumeCard ? comm.prop.msgs.ctEffectBreakConsumeCard : comm.prop.msgs.ctEffectBreakNoConsumeCard;

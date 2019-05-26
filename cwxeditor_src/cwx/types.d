@@ -1271,6 +1271,12 @@ string fromVariableInitialization(VariableInitialization t) { mixin(S_TRACE);
 	}
 }
 
+/// 吸収効果での吸収者(Wsn.4)。
+enum AbsorbTo {
+	None, /// 吸収者無し。
+	Selected, /// 選択メンバ。
+}
+
 /// 関数のカテゴリ。
 enum FunctionCategory {
 	StringOperation, /// 文字列操作。
@@ -1522,6 +1528,7 @@ enum CArg {
 	InitialSoundVolume, /// 初期音声音量(Wsn.4)。
 	InitialSoundLoopCount, /// 初期音声再生回数(Wsn.4)。
 	InitialSoundFadeIn, /// 初期音声フェードイン時間(未使用)。
+	AbsorbTo, /// 吸収効果での吸収者(Wsn.4)。
 }
 
 /// 後続コンテントのnameの型。

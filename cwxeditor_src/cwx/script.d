@@ -2592,6 +2592,14 @@ fi`;
 				}
 			}
 			return defValue;
+		} else static if (is(T == AbsorbTo)) { // Wsn.4
+			auto value = attrValue(attr[i], varTable, msgWidth);
+			switch (value) {
+			case "none": i++; return AbsorbTo.None;
+			case "m", "selected": i++; return AbsorbTo.Selected;
+			default: throwError(_prop.msgs.scriptErrorInvalidAbsorbTo, attr[i].token);
+			}
+			return T.init;
 		} else static if (is(T == int)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			if (attr[i].token.kind is Kind.SYMBOL && value == "all") { mixin(S_TRACE);
@@ -3189,6 +3197,9 @@ fi`;
 			if (detail.use(CArg.InitialSoundLoopCount)) { mixin(S_TRACE);
 				c.initialSoundLoopCount = parseAttr!(int)(opt, node.attr, i, c.initialSoundLoopCount, varTable, 0);
 			}
+			if (detail.use(CArg.AbsorbTo)) { mixin(S_TRACE);
+				c.absorbTo = parseAttr!(AbsorbTo)(opt, node.attr, i, c.absorbTo, varTable, 0);
+			}
 			if (detail.use(CArg.BackpackEnabled)) { mixin(S_TRACE);
 				c.backpackEnabled = parseAttr!(EnvironmentStatus)(opt, node.attr, i, c.backpackEnabled, varTable, 0);
 			}
@@ -3710,18 +3721,21 @@ fi`;
 			case UpdateType.All: attrs ~= "all"; break;
 			}
 		} else static if (is(T:EnvironmentStatus)) { //Wsn.4
-			switch (value) {
+			final switch (value) {
 			case EnvironmentStatus.NotSet: attrs ~= "none"; break;
 			case EnvironmentStatus.Enable: attrs ~= "on"; break;
 			case EnvironmentStatus.Disable: attrs ~= "off"; break;
-			default: assert (0);
 			}
 		} else static if (is(T:VariableType)) { //Wsn.4
-			switch (value) {
+			final switch (value) {
 			case VariableType.Flag: attrs ~= "flag"; break;
 			case VariableType.Step: attrs ~= "step"; break;
 			case VariableType.Variant: attrs ~= "variant"; break;
-			default: assert (0);
+			}
+		} else static if (is(T:AbsorbTo)) { //Wsn.4
+			final switch (value) {
+			case AbsorbTo.None: attrs ~= "none"; break;
+			case AbsorbTo.Selected: attrs ~= "M"; break;
 			}
 		} else static if (is(T : int)) {
 			attrs ~= to!(string)(value);
@@ -4248,6 +4262,9 @@ fi`;
 			}
 			if (detail.use(CArg.InitialSoundLoopCount)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.initialSoundLoopCount, indentValue, vars);
+			}
+			if (detail.use(CArg.AbsorbTo)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.absorbTo, indentValue, vars);
 			}
 			if (detail.use(CArg.BackpackEnabled)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.backpackEnabled, indentValue, vars);

@@ -143,7 +143,8 @@ private void static_this () { mixin(S_TRACE);
 			CArg.SuccessRate:"successrate", CArg.CardVisual:"visual",
 			CArg.SoundPath:_("sound"), CArg.SoundVolume:"volume", CArg.SoundLoopCount:"loopcount",
 			CArg.InitialEffect:"initialeffect", CArg.InitialSoundPath:_("initialsound"), CArg.InitialSoundVolume:"initialvolume", CArg.InitialSoundLoopCount:"initialloopcount",
-			CArg.Ignite:"ignite", CArg.HoldingCoupon:"holdingcoupon", CArg.RefAbility:"refability", CArg.Physical:"physical", CArg.Mental:"mental", CArg.CardSpeed:"cardspeed", CArg.OverrideCardSpeed:"overridecardspeed",
+			CArg.Ignite:"ignite", CArg.HoldingCoupon:"holdingcoupon", CArg.RefAbility:"refability", CArg.Physical:"physical", CArg.Mental:"mental",
+			CArg.CardSpeed:"cardspeed", CArg.OverrideCardSpeed:"overridecardspeed", CArg.AbsorbTo:"absorbto",
 			CArg.KeyCodes:null, CArg.Motions:null]),
 		CType.EffectBreak:CDetail("Effect", "Break", CNextType.None, false, [CArg.ConsumeCard:"consumecard"]),
 		CType.LinkStart:CDetail("Link", "Start", CNextType.None, false, [CArg.Start:"link"]),
@@ -676,6 +677,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 
 		this.holdingCoupon = c.holdingCoupon;
 		this.refAbility = c.refAbility;
+		this.absorbTo = c.absorbTo;
 
 		this.selectCard = c.selectCard;
 		this.selectTalker = c.selectTalker;
@@ -848,6 +850,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 
 			&& (!d.use(CArg.HoldingCoupon) || holdingCoupon == c.holdingCoupon)
 			&& (!d.use(CArg.RefAbility) || refAbility == c.refAbility)
+			&& (!d.use(CArg.AbsorbTo) || absorbTo == c.absorbTo)
 
 			&& (!d.use(CArg.SelectCard) || selectCard == c.selectCard)
 			&& (!d.use(CArg.SelectTalker) || selectTalker == c.selectTalker)
@@ -1163,6 +1166,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 
 		resetValue!(CArg.HoldingCoupon, string, "")(d, od, &holdingCoupon, base, base.holdingCoupon);
 		resetValue!(CArg.RefAbility, bool, false)(d, od, &refAbility, base, base.refAbility);
+		resetValue!(CArg.AbsorbTo, AbsorbTo, AbsorbTo.None)(d, od, &absorbTo, base, base.absorbTo);
 
 		resetValue!(CArg.SelectCard, bool, false)(d, od, &selectCard, base, base.selectCard);
 		resetValue!(CArg.SelectTalker, bool, false)(d, od, &selectTalker, base, base.selectTalker);
@@ -2284,6 +2288,8 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 
 	/// 選択メンバの能力参照(Wsn.2)。
 	mixin Prop!(bool, "refAbility", false);
+	/// 吸収効果の吸収先(Wsn.4)。
+	mixin Prop!(AbsorbTo, "absorbTo", AbsorbTo.None);
 
 	/// 選択カードを変更する(Wsn.3)。
 	mixin Prop!(bool, "selectCard", false);
@@ -2786,6 +2792,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		atnPutD!(CArg.Ignite, "ignite", "fromBool", false)(e, d);
 		atnPutD!(CArg.HoldingCoupon, "holdingCoupon", "", "")(e, d);
 		atnPutD!(CArg.RefAbility, "refAbility", "", false)(e, d);
+		atnPutD!(CArg.AbsorbTo, "absorbTo", "to!string", AbsorbTo.None)(e, d);
 
 		atnPutD!(CArg.SelectCard, "selectCard", "fromBool", false)(e, d);
 		atnPutD!(CArg.SelectTalker, "selectTalker", "fromBool", false)(e, d);
@@ -3105,6 +3112,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		cfnPutD!(CArg.Ignite, "ignite", "parseBool", false)(en, d, r);
 		cfnPutD!(CArg.HoldingCoupon, "holdingCoupon", "", "")(en, d, r);
 		cfnPutD!(CArg.RefAbility, "refAbility", "parseBool", false)(en, d, r);
+		cfnPutD!(CArg.AbsorbTo, "absorbTo", "to!AbsorbTo", AbsorbTo.None)(en, d, r);
 
 		cfnPutD!(CArg.SelectCard, "selectCard", "parseBool", false)(en, d, r);
 		cfnPutD!(CArg.SelectTalker, "selectTalker", "parseBool", false)(en, d, r);

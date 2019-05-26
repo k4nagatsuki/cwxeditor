@@ -717,6 +717,9 @@ class Msgs : Properties {
 	auto refAbilityTitle = Msg("refAbilityTitle", "能力参照");
 	auto refAbility = Msg("refAbility", "成功率と効果値の計算に選択中のメンバのレベルと能力を使用する");
 
+	auto absorbSettings = Msg("absorbSettings", "吸収効果");
+	auto absorbToSelected = Msg("absorbToSelected", "選択メンバを吸収者にする");
+
 	/// イベント。
 	auto evtArrow = Msg("evtArrow", "イベント編集");
 
@@ -1031,11 +1034,14 @@ class Msgs : Properties {
 	auto ctChangeBgImageClassic = Msg("ctChangeBgImageClassic", "背景ファイル = %1$s");
 	auto ctChangeBgImageFile = Msg("ctChangeBgImageFile", "[%1$s]");
 	auto ctEffectSound = Msg("ctEffectSound", "「%1$s」を再生");
-	auto ctEffectNoSound = Msg("ctEffectNoSound", "音声無し");
-	auto ctEffect = Msg("ctEffect", "%1$s レベル%2$s %3$s/%4$s 成功率%5$s%6$s %7$s %8$s 効果 = %9$s %10$s %11$s");
-	auto ctEffectWithInitialEffect = Msg("ctEffectWithInitialEffect", "%1$s レベル%2$s %3$s/%4$s 成功率%5$s%6$s %7$s %8$s 効果 = %9$s %10$s %11$s 初期効果あり(%12$s)");
-	auto ctEffectRefAbility = Msg("ctEffectRefAbility", "%1$s %2$s/%3$s 成功率%4$s%5$s %6$s %7$s 効果 = %8$s 参照能力 = %9$sと%10$s %11$s %12$s");
-	auto ctEffectRefAbilityWithInitialEffect = Msg("ctEffectRefAbilityWithInitialEffect", "%1$s %2$s/%3$s 成功率%4$s%5$s %6$s %7$s 効果 = %8$s 参照能力 = %9$sと%10$s %11$s %12$s 初期効果あり(%13$s)");
+	auto ctInitialEffect = Msg("ctInitialEffect", "初期効果あり");
+	auto ctInitialEffectWithSound = Msg("ctInitialEffectWithSound", "初期効果あり(%1$s)");
+	auto ctIgnite = Msg("ctIgnite", "イベント発火あり");
+	auto ctIgniteWithKeyCode = Msg("ctIgniteWithKeyCode", "イベント発火あり(%1$s)");
+	auto ctRefAbility = Msg("ctRefAbility", "参照能力 = %1$sと%2$s");
+	auto ctAbsorbToSelected = Msg("ctAbsorbToSelected", "吸収者 = 選択メンバ");
+	auto ctEffect = Msg("ctEffect", "%1$s レベル%2$s %3$s/%4$s 成功率%5$s%6$s 効果 = %7$s");
+	auto ctEffectWith = Msg("ctEffectWith", "%1$s レベル%2$s %3$s/%4$s 成功率%5$s%6$s 効果 = %7$s %8$s");
 	auto ctEffectMotion = Msg("ctEffectMotion", "[%1$s]");
 	auto ctKeyCodes = Msg("ctKeyCodes", "キーコード = %1$s");
 	auto ctNoKeyCode = Msg("ctNoKeyCode", "キーコード無し");
@@ -2153,6 +2159,7 @@ class Msgs : Properties {
 	auto initialEffectAndSound = Msg("initialEffectAndSound", "効果音と初期効果"); /// Wsn.4
 	auto hasInitialEffect = Msg("hasInitialEffect", "色反転と初期効果音の再生を行う"); // Wsn.4
 	auto warningInitialEffect = Msg("warningInitialEffect", "色反転と初期効果音再生の指定はWsn.4以降の形式のシナリオでしか行えません。"); // Wsn.4
+	auto warningAbsorbToSelected = Msg("warningAbsorbToSelected", "吸収者の指定はWsn.4以降の形式のシナリオでしか行えません。"); // Wsn.4
 	auto soundNone = Msg("soundNone", "効果音無し");
 	auto noSelect = Msg("noSelect", "指定無し");
 	auto keyCodes = Msg("keyCodes", "イベント発火のキーコード");
@@ -2621,6 +2628,7 @@ class Msgs : Properties {
 	auto scriptErrorInvalidUpdateType = Msg("scriptErrorInvalidUpdateType", "未知の更新タイプです。"); // Wsn.4
 	auto scriptErrorInvalidEnvironmentStatus = Msg("scriptErrorInvalidEnvironmentStatus", "未知の状況です。"); // Wsn.4
 	auto scriptErrorInvalidVariableType = Msg("scriptErrorInvalidVariableType", "未知の状態変数です。"); // Wsn.4
+	auto scriptErrorInvalidAbsorbTo = Msg("scriptErrorInvalidAbsorbTo", "未知の吸収者です。"); // Wsn.4
 
 	auto dlgTitScriptVarSet = Msg("dlgTitScriptVarSet", "値が未決定の変数の設定");
 	auto scriptVarSet = Msg("scriptVarSet", "変数に値を入力");

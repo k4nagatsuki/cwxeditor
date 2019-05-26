@@ -1163,6 +1163,11 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (cd.use(CArg.InitialEffect) && c.initialEffect && !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningInitialEffect;
 		}
+		if (cd.use(CArg.AbsorbTo)) { mixin(S_TRACE);
+			if (c.absorbTo && c.absorbTo is AbsorbTo.Selected && !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
+				r ~= prop.msgs.warningAbsorbToSelected;
+			}
+		}
 	}
 	return r;
 }

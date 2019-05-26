@@ -783,7 +783,7 @@
 	<dd>ゲームオーバー</dd>
 	<dt class="content"><a href="#GOAREA">goarea <span class="args"><span class="arg">&lt;ID&gt;</span>, <span class="arg">&lt;画面切替スピード&gt;</span>, <span class="arg">&lt;切替方式&gt;</span></span></a></dt>
 	<dd>エリアの移動</dd>
-	<dt class="content"><a href="#EFFECT">effect <span class="args"> (<span class="arg">&lt;効果対象&gt;</span> | <span class="arg">coupon</span>, <span class="arg">&lt;称号名&gt;</span>), <span class="array">[<span class="arg">&lt;効果種別&gt;</span>, (<span class="arg">&lt;ダメージタイプ&gt;</span>, <span class="arg">&lt;値&gt;</span> | <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;増減値&gt;</span>, <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;召喚獣ID&gt;</span>), <span class="arg">&lt;属性&gt;</span>] ...</span>, <span class="arg">&lt;視覚効果&gt;</span>, <span class="arg">&lt;効果レベル&gt;</span>, <span class="arg">&lt;成功率&gt;</span>, <span class="arg">&lt;効果属性&gt;</span>, <span class="arg">&lt;抵抗属性&gt;</span>, <span class="arg">&lt;音声パス&gt;</span>, <span class="arg">&lt;音量&gt;</span>, <span class="arg">&lt;ループ回数&gt;</span>, <span class="arg">&lt;選択メンバの能力参照&gt;</span>, <span class="arg">&lt;身体的要素&gt;</span>, <span class="arg">&lt;精神的要素&gt;</span>, <span class="arg">&lt;イベント発火の有無&gt;</span>, <span class="arg">&lt;キーコード&gt;</span> ..., <span class="arg">&lt;カード速度&gt;</span>, <span class="arg">&lt;速度の優先&gt;</span>, <span class="arg">&lt;初期効果の有無&gt;</span>, <span class="arg">&lt;初期音声パス&gt;</span>, <span class="arg">&lt;初期音声音量&gt;</span>, <span class="arg">&lt;初期音声ループ回数&gt;</span></span></a></dt>
+	<dt class="content"><a href="#EFFECT">effect <span class="args"> (<span class="arg">&lt;効果対象&gt;</span> | <span class="arg">coupon</span>, <span class="arg">&lt;称号名&gt;</span>), <span class="array">[<span class="arg">&lt;効果種別&gt;</span>, (<span class="arg">&lt;ダメージタイプ&gt;</span>, <span class="arg">&lt;値&gt;</span> | <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;増減値&gt;</span>, <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;召喚獣ID&gt;</span>), <span class="arg">&lt;属性&gt;</span>] ...</span>, <span class="arg">&lt;視覚効果&gt;</span>, <span class="arg">&lt;効果レベル&gt;</span>, <span class="arg">&lt;成功率&gt;</span>, <span class="arg">&lt;効果属性&gt;</span>, <span class="arg">&lt;抵抗属性&gt;</span>, <span class="arg">&lt;音声パス&gt;</span>, <span class="arg">&lt;音量&gt;</span>, <span class="arg">&lt;ループ回数&gt;</span>, <span class="arg">&lt;選択メンバの能力参照&gt;</span>, <span class="arg">&lt;身体的要素&gt;</span>, <span class="arg">&lt;精神的要素&gt;</span>, <span class="arg">&lt;イベント発火の有無&gt;</span>, <span class="arg">&lt;キーコード&gt;</span> ..., <span class="arg">&lt;カード速度&gt;</span>, <span class="arg">&lt;速度の優先&gt;</span>, <span class="arg">&lt;初期効果の有無&gt;</span>, <span class="arg">&lt;初期音声パス&gt;</span>, <span class="arg">&lt;初期音声音量&gt;</span>, <span class="arg">&lt;初期音声ループ回数&gt;</span>, <span class="arg">&lt;吸収者&gt;</span></span></a></dt>
 	<dd>効果</dd>
 	<dt class="content"><a href="#BREA">break <span class="args"><span class="arg">&lt;カード消費の有無&gt;</span></span></a></dt>
 	<dd>イベントの中断</dd>
@@ -1038,7 +1038,7 @@
 
 <pre><code class="samplecode"><span class="keywords">goarea</span> <span class="num">2</span>, <span class="num">10</span>, <span class="code">fade</span> <span class="comment">// 画面をフェード式でゆっくりと切り替えながらエリア2へ移動</span></code></pre>
 
-<h3 class="content"><a id="EFFECT" name="EFFECT">effect <span class="args">(<span class="arg">&lt;効果対象&gt;</span> | <span class="arg">coupon</span>, <span class="arg">&lt;称号名&gt;</span>), <span class="array">[<span class="arg">&lt;効果種別&gt;</span>, (<span class="arg">&lt;ダメージタイプ&gt;</span>, <span class="arg">&lt;値&gt;</span> | <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;増減値&gt;</span>, <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;召喚獣ID&gt;</span>), <span class="arg">&lt;属性&gt;</span>] ...</span>, <span class="arg">&lt;視覚効果&gt;</span>, <span class="arg">&lt;効果レベル&gt;</span>, <span class="arg">&lt;成功率&gt;</span>, <span class="arg">&lt;効果属性&gt;</span>, <span class="arg">&lt;抵抗属性&gt;</span>, <span class="arg">&lt;音声パス&gt;</span>, <span class="arg">&lt;音量&gt;</span>, <span class="arg">&lt;ループ回数&gt;</span>, <span class="arg">&lt;選択メンバの能力参照&gt;</span>, <span class="arg">&lt;身体的要素&gt;</span>, <span class="arg">&lt;精神的要素&gt;</span>, <span class="arg">&lt;イベント発火の有無&gt;</span>, <span class="arg">&lt;キーコード&gt;</span> ..., <span class="arg">&lt;カード速度&gt;</span>, <span class="arg">&lt;速度の優先&gt;</span>, <span class="arg">&lt;初期効果の有無&gt;</span>, <span class="arg">&lt;初期音声パス&gt;</span>, <span class="arg">&lt;初期音声音量&gt;</span>, <span class="arg">&lt;初期音声ループ回数&gt;</span></span></a></h3>
+<h3 class="content"><a id="EFFECT" name="EFFECT">effect <span class="args">(<span class="arg">&lt;効果対象&gt;</span> | <span class="arg">coupon</span>, <span class="arg">&lt;称号名&gt;</span>), <span class="array">[<span class="arg">&lt;効果種別&gt;</span>, (<span class="arg">&lt;ダメージタイプ&gt;</span>, <span class="arg">&lt;値&gt;</span> | <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;増減値&gt;</span>, <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;召喚獣ID&gt;</span>), <span class="arg">&lt;属性&gt;</span>] ...</span>, <span class="arg">&lt;視覚効果&gt;</span>, <span class="arg">&lt;効果レベル&gt;</span>, <span class="arg">&lt;成功率&gt;</span>, <span class="arg">&lt;効果属性&gt;</span>, <span class="arg">&lt;抵抗属性&gt;</span>, <span class="arg">&lt;音声パス&gt;</span>, <span class="arg">&lt;音量&gt;</span>, <span class="arg">&lt;ループ回数&gt;</span>, <span class="arg">&lt;選択メンバの能力参照&gt;</span>, <span class="arg">&lt;身体的要素&gt;</span>, <span class="arg">&lt;精神的要素&gt;</span>, <span class="arg">&lt;イベント発火の有無&gt;</span>, <span class="arg">&lt;キーコード&gt;</span> ..., <span class="arg">&lt;カード速度&gt;</span>, <span class="arg">&lt;速度の優先&gt;</span>, <span class="arg">&lt;初期効果の有無&gt;</span>, <span class="arg">&lt;初期音声パス&gt;</span>, <span class="arg">&lt;初期音声音量&gt;</span>, <span class="arg">&lt;初期音声ループ回数&gt;</span>, <span class="arg">&lt;吸収者&gt;</span></span></a></h3>
 
 <p class="fullname">(Effect)</p>
 <p class="desc">パーティや選択中のメンバに対して回復やダメージ、カード配布等の効果を適用します。</p>
@@ -1053,7 +1053,7 @@
 	<dt class="keyword"><code>damage</code></dt>
 	<dd class="worddesc">ダメージ。</dd>
 	<dt class="keyword"><code>absorb</code></dt>
-	<dd class="worddesc">吸収。</dd>
+	<dd class="worddesc">吸収。効果コンテントにおける吸収効果は、特に吸収者を指定しない限りはダメージ効果と同じです。</dd>
 	<dt class="keyword"><code>paralyze</code></dt>
 	<dd class="worddesc">麻痺。</dd>
 	<dt class="keyword"><code>disparalyze</code></dt>
@@ -1276,7 +1276,8 @@
 <p class="desc">初期音声音量には、初期音声の再生音量をパーセンテージで指定します。この音量の値はエンジンの設定を最大値としてのものなので、エンジンの音量設定が50%となっている場合、ここで50%を指定すると最終的に25%の音量となります。省略した場合は100%です。</p>
 <p class="desc">初期音声ループ回数には、初期音声を何回ループ再生するかを指定します。0は無限ループです。省略した場合は1です。</p>
 <p class="desc">初期音声パス・初期音声音量・初期音声ループ回数は、初期効果の有無が<code class="code">false</code>の時は無視されます。</p>
-<p class="desc"><em class="warning">カード速度・速度の優先・初期効果の有無・初期音声パス・初期音声音量・初期音声ループ回数はWsn.4以降のWSN形式シナリオでのみ機能します。</em></p>
+<p class="desc">吸収者に<code class="code">M</code>または<code class="code">selected</code>を指定すると、選択メンバが吸収効果における吸収者になります。<code class="code">none</code>を指定した場合、吸収者はいなくなります。その場合の吸収効果はダメージ効果と同じ挙動になります。</p>
+<p class="desc"><em class="warning">カード速度・速度の優先・初期効果の有無・初期音声パス・初期音声音量・初期音声ループ回数・吸収者はWsn.4以降のWSN形式シナリオでのみ機能します。</em></p>
 
 <h4 class="example">例</h4>
 
