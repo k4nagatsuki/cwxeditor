@@ -1949,7 +1949,7 @@ public:
 			selectImpl(_cards.getItem(0));
 			foreach (t; indices) { mixin(S_TRACE);
 				auto c = cards[t[0]];
-				auto cItm = _cards.getItem(cardsIndex + t[0]);
+				auto cItm = _cards.getItem(cardsIndex + cast(int)t[0]);
 				cItm.setText(cardName(c));
 				cItm.setImage(cardIcon(c));
 				cItm.setData(c);
