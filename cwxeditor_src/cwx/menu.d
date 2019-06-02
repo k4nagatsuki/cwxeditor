@@ -189,6 +189,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.AutoArrange] = "A";
 		_mnemonic[MenuID.ManualArrange] = "U";
 		_mnemonic[MenuID.PossibleToRunAway] = "R";
+		_mnemonic[MenuID.SortWithPosition] = "O";
 		_mnemonic[MenuID.Mask] = "M";
 		_mnemonic[MenuID.Escape] = "E";
 		_mnemonic[MenuID.ChangePos] = "P";
@@ -429,6 +430,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.AutoArrange] = "";
 		_hotkey[MenuID.ManualArrange] = "";
 		_hotkey[MenuID.PossibleToRunAway] = "";
+		_hotkey[MenuID.SortWithPosition] = "";
 		_hotkey[MenuID.Mask] = "";
 		_hotkey[MenuID.Escape] = "";
 		_hotkey[MenuID.ChangePos] = "";
@@ -927,6 +929,7 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.AutoArrange:
 	case MenuID.ManualArrange:
 	case MenuID.PossibleToRunAway:
+	case MenuID.SortWithPosition:
 	case MenuID.Mask:
 	case MenuID.Escape:
 	case MenuID.ChangePos:
@@ -1168,6 +1171,7 @@ bool isGlobalMenu(MenuID id) {
 	case MenuID.AutoArrange:
 	case MenuID.ManualArrange:
 	case MenuID.PossibleToRunAway:
+	case MenuID.SortWithPosition:
 	case MenuID.Mask:
 	case MenuID.Escape:
 	case MenuID.ChangePos:

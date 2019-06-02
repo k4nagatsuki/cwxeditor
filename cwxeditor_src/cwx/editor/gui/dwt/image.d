@@ -683,6 +683,7 @@ public:
 		case MenuID.AutoArrange: return imgd!("auto.png");
 		case MenuID.ManualArrange: return imgd!("custom.png");
 		case MenuID.PossibleToRunAway: return imgd!("possible_run_away.png");
+		case MenuID.SortWithPosition: return imgd!("sort_with_pos.png");
 		case MenuID.Mask: return imgd!("mask.png");
 		case MenuID.Escape: return imgd!("escape.png");
 		case MenuID.ChangePos: return imgd!("chg_pos.png");

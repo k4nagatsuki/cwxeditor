@@ -1621,8 +1621,10 @@ public:
 					}
 				});
 				_comm.refMenuCardAndBgImageList.add(&_cards.redraw);
+				_comm.refMenuCardIndices.add(&refMenuCardIndices);
 				.listener(_cards, SWT.Dispose, { mixin(S_TRACE);
 					_comm.refMenuCardAndBgImageList.remove(&_cards.redraw);
+					_comm.refMenuCardIndices.remove(&refMenuCardIndices);
 				});
 			}
 
@@ -1829,11 +1831,11 @@ public:
 	private string cardName(AbstractSpCard c) { mixin(S_TRACE);
 		if (auto card = cast(MenuCard)c) { mixin(S_TRACE);
 			return card.name;
-		} else { mixin(S_TRACE);
-			assert (cast(EnemyCard)c !is null);
-			auto castCard = _summ.cwCast((cast(EnemyCard)c).id);
+		} else if (auto card = cast(EnemyCard)c) { mixin(S_TRACE);
+			if (card.isOverrideName) return card.overrideName;
+			auto castCard = _summ.cwCast(card.id);
 			return castCard ? castCard.name : "";
-		}
+		} else assert (0);
 	}
 	private void addCard(string cwxPath) { mixin(S_TRACE);
 		if (!cpeq(_area.cwxPath(true), cpparent(cwxPath))) return;
@@ -1922,6 +1924,68 @@ public:
 		std.algorithm.reverse(indices);
 		udCard(indices, &treeItemDown, 1, count);
 	}
+	private void refMenuCardIndices(const(AbstractArea) area, const(Tuple!(size_t, size_t))[] indices) { mixin(S_TRACE);
+		if (area !is _area) return;
+		_cards.setRedraw(false);
+		scope (exit) _cards.setRedraw(true);
+		auto parItm = selectionParent;
+		auto par = parItm ? cast(EventTreeOwner)parItm.getData() : null;
+		auto etItm = selectionEventTree;
+		auto igItm = etItm && selection && selection.getParentItem() is etItm ? selection : null;
+		auto eventTreeIndex = parItm && etItm ? parItm.indexOf(etItm) : -1;
+		auto ignitionIndex = igItm ? etItm.indexOf(igItm) : -1;
+
+		void impl(C)(C[] cards) { mixin(S_TRACE);
+			bool[size_t] expanded;
+			bool[string] etExpanded;
+			foreach (t; indices) { mixin(S_TRACE);
+				auto cItm = _cards.getItem(cardsIndex + cast(int)t[0]);
+				expanded[t[1]] = cItm.getExpanded();
+				foreach (i, et; (cast(C)cItm.getData()).trees) { mixin(S_TRACE);
+					etExpanded[et.eventTreeId] = cItm.getItem(cast(int)i).getExpanded();
+				}
+			}
+			auto selItm = selection;
+			selectImpl(_cards.getItem(0));
+			foreach (t; indices) { mixin(S_TRACE);
+				auto c = cards[t[0]];
+				auto cItm = _cards.getItem(cardsIndex + t[0]);
+				cItm.setText(cardName(c));
+				cItm.setImage(cardIcon(c));
+				cItm.setData(c);
+				cItm.removeAll();
+				foreach (et; c.trees) { mixin(S_TRACE);
+					auto eItm = .createTreeItem(cItm, et, et.name, etImage(et));
+					refreshFires(eItm);
+					eItm.setExpanded(etExpanded.get(et.eventTreeId, false));
+				}
+				cItm.setExpanded(expanded.get(t[0], true));
+			}
+			if (par) { mixin(S_TRACE);
+				foreach (parItm2; _cards.getItems()) { mixin(S_TRACE);
+					if (cast(EventTreeOwner)parItm2.getData() is par) { mixin(S_TRACE);
+						auto sel = parItm2;
+						if (eventTreeIndex != -1) sel = sel.getItem(eventTreeIndex);
+						if (ignitionIndex != -1) sel = sel.getItem(ignitionIndex);
+						selectImpl(sel);
+						_cards.showSelection();
+						return;
+					}
+				}
+			}
+			if (selItm && !selItm.isDisposed()) { mixin(S_TRACE);
+				selectImpl(selItm);
+				_cards.showSelection();
+				return;
+			}
+		}
+		if (auto a = cast(Area)_area) { mixin(S_TRACE);
+			impl(a.cards);
+		} else if (auto a = cast(Battle)_area) { mixin(S_TRACE);
+			impl(a.cards);
+		} else assert (0);
+	}
+
 	private bool _initialed = false;
 	bool initial() { mixin(S_TRACE);
 		if (!_initialed) { mixin(S_TRACE);

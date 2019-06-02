@@ -3693,6 +3693,7 @@ public:
 						case MenuID.AutoArrange:
 						case MenuID.ManualArrange:
 						case MenuID.PossibleToRunAway:
+						case MenuID.SortWithPosition:
 						case MenuID.Mask:
 						case MenuID.Escape:
 						case MenuID.ChangePos:

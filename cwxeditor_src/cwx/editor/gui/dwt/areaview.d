@@ -1,58 +1,59 @@
 
 module cwx.editor.gui.dwt.areaview;
 
-import cwx.utils;
 import cwx.area;
+import cwx.background;
 import cwx.card;
 import cwx.flag;
-import cwx.summary;
-import cwx.background;
-import cwx.props;
-import cwx.imagesize;
-import cwx.xml;
-import cwx.skin;
-import cwx.usecounter;
-import cwx.path;
-import cwx.structs;
-import cwx.sjis;
 import cwx.graphics;
-import cwx.types;
+import cwx.imagesize;
 import cwx.menu;
 import cwx.msgutils;
+import cwx.path;
+import cwx.props;
+import cwx.sjis;
+import cwx.skin;
+import cwx.structs;
+import cwx.summary;
 import cwx.system;
+import cwx.types;
+import cwx.usecounter;
+import cwx.utils;
+import cwx.xml;
 
 import cwx.editor.gui.sound;
 
-import cwx.editor.gui.dwt.dutils;
-import cwx.editor.gui.dwt.dprops;
-import cwx.editor.gui.dwt.images;
-import cwx.editor.gui.dwt.dskin;
-import cwx.editor.gui.dwt.commons;
-import cwx.editor.gui.dwt.centerlayout;
-import cwx.editor.gui.dwt.spcarddialog;
+import cwx.editor.gui.dwt.absdialog;
+import cwx.editor.gui.dwt.areaviewutils;
+import cwx.editor.gui.dwt.areawindow;
 import cwx.editor.gui.dwt.bgimagedialog;
-import cwx.editor.gui.dwt.materialselect;
+import cwx.editor.gui.dwt.centerlayout;
+import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.customtable;
-import cwx.editor.gui.dwt.xmlbytestransfer;
+import cwx.editor.gui.dwt.dmenu;
+import cwx.editor.gui.dwt.dprops;
+import cwx.editor.gui.dwt.dskin;
+import cwx.editor.gui.dwt.dutils;
+import cwx.editor.gui.dwt.images;
+import cwx.editor.gui.dwt.incsearch;
+import cwx.editor.gui.dwt.jpyimage;
+import cwx.editor.gui.dwt.materialselect;
+import cwx.editor.gui.dwt.messageutils;
+import cwx.editor.gui.dwt.spcarddialog;
 import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.undo;
-import cwx.editor.gui.dwt.jpyimage;
-import cwx.editor.gui.dwt.areawindow;
-import cwx.editor.gui.dwt.messageutils;
-import cwx.editor.gui.dwt.areaviewutils;
-import cwx.editor.gui.dwt.dmenu;
-import cwx.editor.gui.dwt.absdialog;
-import cwx.editor.gui.dwt.incsearch;
+import cwx.editor.gui.dwt.xmlbytestransfer;
 
 import std.algorithm;
+import std.conv;
+import std.datetime;
+import std.file;
 import std.math;
 import std.path;
-import std.file;
-import std.traits;
-import std.datetime;
-import std.string;
-import std.conv;
 import std.range;
+import std.string;
+import std.traits;
+import std.typecons;
 
 import org.eclipse.swt.all;
 
@@ -333,7 +334,7 @@ private:
 			}
 			override void undo() { impl(); }
 			override void redo() { impl(); }
-			override void dispose() {}
+			override void dispose() { }
 		}
 	}
 	static if (is(A == Battle)) {
@@ -421,7 +422,7 @@ private:
 			}
 			override void undo() { impl(); }
 			override void redo() { impl(); }
-			override void dispose() {}
+			override void dispose() { }
 		}
 	}
 	template Reselect() {
@@ -434,8 +435,14 @@ private:
 		}
 		private void reselect(AbstractAreaView[] vs) { mixin(S_TRACE);
 			foreach (v; vs) { mixin(S_TRACE);
-				static if (UseCards) v._cards.select(_cIdcs);
-				static if (UseBacks) v._backs.select(_bIdcs);
+				static if (UseCards) {
+					v._cards.select(_cIdcs);
+					v.listSelectC();
+				}
+				static if (UseBacks) {
+					v._backs.select(_bIdcs);
+					v.listSelectB();
+				}
 			}
 		}
 		private void add(int i) { mixin(S_TRACE);
@@ -476,10 +483,42 @@ private:
 				downImpl(vs, comm, area, _cIdcs, _bIdcs, _count, false);
 			}
 		}
-		override void dispose() {}
+		override void dispose() { }
 	}
 	alias UndoUD!(-1) UndoUp;
 	alias UndoUD!(1) UndoDown;
+	static if (UseCards) {
+		static class UndoCardIndices : AUndo {
+			mixin Reselect;
+			private Tuple!(size_t, size_t)[] _indices;
+			this (AbstractAreaView v, Commons comm, A area, Summary summ, int[] cIdcs, int[] bIdcs, Tuple!(size_t, size_t)[] indices) { mixin(S_TRACE);
+				super (v, comm, area, summ);
+				_cIdcs = cIdcs;
+				_bIdcs = bIdcs;
+				_indices = indices;
+			}
+			private void impl() { mixin(S_TRACE);
+				auto vs = views();
+				udb(vs);
+				scope (exit) uda(vs);
+
+				_indices = .map!(t => .tuple(t[1], t[0]))(_indices).array();
+				area.setCardIndices(_indices);
+				comm.refMenuCardIndices.call(area, _indices);
+				reselect(vs);
+			}
+			override void undo() { impl(); }
+			override void redo() { impl(); }
+			override void dispose() { }
+		}
+		UndoCardIndices createUndoCardIndices(Tuple!(size_t, size_t)[] indices) { mixin(S_TRACE);
+			int[] cs;
+			int[] bs;
+			static if (UseCards) cs = _cards.getSelectionIndices();
+			static if (UseBacks) bs = _backs.getSelectionIndices();
+			return new UndoCardIndices(this, _comm, _area, _summ, cs, bs, indices);
+		}
+	}
 	static class UndoInsert : AUndo {
 		mixin Reselect;
 		private UndoDelete _delUndo = null;
@@ -2731,6 +2770,8 @@ private:
 					createMenuItem(_comm, menu, MenuID.FindID, &findCellName, &canFindCellName);
 				} else {
 					createMenuItem(_comm, menu, MenuID.FindID, &findCardGroup, &canFindCardGroup);
+					new MenuItem(menu, SWT.SEPARATOR);
+					.createMenuItem(_comm, menu, MenuID.SortWithPosition, &sortWithPosition, &canSortWithPosition);
 				}
 			}
 			list.setMenu(menu);
@@ -2836,6 +2877,28 @@ private:
 				if ((cast(AbstractSpCard)itm.getData()).cardGroup != "") return true;
 			}
 			return false;
+		}
+		void sortWithPosition() { mixin(S_TRACE);
+			auto indices = indicesFromPosition();
+			if (!indices.length) return;
+			_undo ~= createUndoCardIndices(indices);
+			_area.setCardIndices(indices);
+			_comm.refMenuCardIndices.call(_area, indices);
+		}
+		@property
+		bool canSortWithPosition() { mixin(S_TRACE);
+			return 0 < indicesFromPosition().length;
+		}
+		Tuple!(size_t, size_t)[] indicesFromPosition() { mixin(S_TRACE);
+			auto cs = _area.cards;
+			auto indices = .iota(0, cs.length).array();
+			if (_cards.getSelectionCount()) { mixin(S_TRACE);
+				indices = .filter!(i => _cards.isSelected(cast(int)i))(indices).array();
+			}
+			auto newIndices = std.algorithm.sort!((a, b) => cs[a].y < cs[b].y || (cs[a].y == cs[b].y && cs[a].x < cs[b].x) || (cs[a].y == cs[b].y && cs[a].x == cs[b].x && a < b))(indices.dup).array();
+			auto newIndices2 = .map!(i => indices[.countUntil(newIndices, i)])(indices);
+			auto r = .filter!(t => t[0] != t[1])(.zip(indices, newIndices2)).array();
+			return r;
 		}
 	}
 	static if (UseBacks) {
@@ -3541,10 +3604,16 @@ public:
 			}
 		}
 
-		static if (UseCards) _comm.refMenuCardAndBgImageList.add(&_cards.redraw);
+		static if (UseCards) {
+			_comm.refMenuCardAndBgImageList.add(&_cards.redraw);
+			_comm.refMenuCardIndices.add(&refMenuCardIndices);
+		}
 		static if (UseBacks) _comm.refMenuCardAndBgImageList.add(&_backs.redraw);
 		.listener(this, SWT.Dispose, { mixin(S_TRACE);
-			static if (UseCards) _comm.refMenuCardAndBgImageList.remove(&_cards.redraw);
+			static if (UseCards) {
+				_comm.refMenuCardAndBgImageList.remove(&_cards.redraw);
+				_comm.refMenuCardIndices.remove(&refMenuCardIndices);
+			}
 			static if (UseBacks) _comm.refMenuCardAndBgImageList.remove(&_backs.redraw);
 		});
 
@@ -3684,13 +3753,20 @@ public:
 		}
 	}
 	static if (UseCards) {
+		private void refreshCard(size_t i) { mixin(S_TRACE);
+			auto fi = cast(FlexImage)_imgp.images[cardsIndex + i];
+			assert (fi !is null);
+			auto v = fi.visible;
+			auto selected = fi.selected;
+			fi = create(_area.cards[i]);
+			fi.visible = v;
+			_imgp.set(cardsIndex + cast(int)i, fi);
+			if (selected) _imgp.select(fi);
+			_imgp.redrawImage(fi);
+		}
 		private void refreshCardState() { mixin(S_TRACE);
 			foreach (i, c; _area.cards) { mixin(S_TRACE);
-				auto v = _imgp.images[cardsIndex + i].visible;
-				auto fi = create(c);
-				fi.visible = v;
-				_imgp.set(cardsIndex + cast(int)i, fi);
-				_imgp.redrawImage(fi);
+				refreshCard(i);
 			}
 		}
 		private void refreshCardNamePreview() { mixin(S_TRACE);
@@ -3700,15 +3776,30 @@ public:
 				} else static if (is(C:EnemyCard)) {
 					if (!c.isOverrideName) continue;
 				} else static assert (0);
-				auto v = _imgp.images[cardsIndex + i].visible;
-				auto fi = create(c);
+				auto fi = cast(FlexImage)_imgp.images[cardsIndex + i];
+				auto v = fi.visible;
+				auto selected = fi.selected;
+				fi = create(c);
 				fi.visible = v;
 				_imgp.set(cardsIndex + cast(int)i, fi);
+				if (selected) _imgp.select(fi);
 				_imgp.redrawImage(fi);
 			}
 		}
 		private void refreshCardNamePreviewF(cwx.flag.Flag[] flags, Step[] steps, cwx.flag.Variant[] variants) { mixin(S_TRACE);
 			refreshCardNamePreview();
+		}
+		private void refMenuCardIndices(const(AbstractArea) area, const(Tuple!(size_t, size_t))[] indices) { mixin(S_TRACE);
+			if (area !is _area) return;
+			foreach (t; indices) { mixin(S_TRACE);
+				auto i = t[0];
+				refreshCard(i);
+				auto c = _area.cards[i];
+				auto itm = _cards.getItem(cast(int)i);
+				itm.setText(cardNameWithGroup(c));
+				itm.setImage(cardImg(c));
+				itm.setData(c);
+			}
 		}
 	}
 	private void refreshPanel() { mixin(S_TRACE);

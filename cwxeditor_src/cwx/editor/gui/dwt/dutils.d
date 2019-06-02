@@ -1506,7 +1506,7 @@ private int treeItemUD2(T, string SwapOK, string ToIndex)(T parent, TreeItem itm
 	}
 	return -1;
 }
-private TreeItem cloneItem(T)(T parent, TreeItem old, int index) { mixin(S_TRACE);
+TreeItem cloneItem(T)(T parent, TreeItem old, int index) { mixin(S_TRACE);
 	auto ti = new TreeItem(parent, old.getStyle(), index);
 	ti.setData(old.getData());
 	ti.setChecked(old.getChecked());
@@ -1524,6 +1524,20 @@ private TreeItem cloneItem(T)(T parent, TreeItem old, int index) { mixin(S_TRACE
 	}
 	ti.setExpanded(old.getExpanded());
 	return ti;
+}
+void swapTreeItem(T)(T parent, int index1, int index2) { mixin(S_TRACE);
+	if (index1 == index2) return;
+	if (index2 < index1) { mixin(S_TRACE);
+		auto temp = index1;
+		index1 = index2;
+		index2 = temp;
+	}
+	auto itm1 = parent.getItem(index1);
+	auto itm2 = parent.getItem(index2);
+	.cloneItem(parent, itm1, index2);
+	.cloneItem(parent, itm2, index1);
+	itm1.dispose();
+	itm2.dispose();
 }
 
 void treeExpandedAll(TreeItem tree) { mixin(S_TRACE);

@@ -19,6 +19,7 @@ import std.file;
 import std.math;
 import std.string;
 import std.traits;
+import std.typecons;
 
 /// エリア等の所持者を示すインタフェース。
 interface AreaOwner : CWXPath {
@@ -1263,10 +1264,23 @@ public:
 
 	/// メニューカードのインデックスを交換する。
 	void swapCards(size_t index1, size_t index2) { mixin(S_TRACE);
-		if (index1 != index2) changed();
+		if (index1 == index2) return;
+		changed();
 		auto temp = _cards[index1];
 		_cards[index1] = _cards[index2];
 		_cards[index2] = temp;
+	}
+	/// メニューカードのインデックスを設定する。
+	void setCardIndices(in Tuple!(size_t, size_t)[] indices) { mixin(S_TRACE);
+		MenuCard[] cards;
+		foreach (t; indices) { mixin(S_TRACE);
+			if (t[0] == t[1]) continue;
+			if (!cards.length) { mixin(S_TRACE);
+				changed();
+				cards = _cards.dup;
+			}
+			_cards[t[1]] = cards[t[0]];
+		}
 	}
 	/// 背景イメージのインデックスを交換する。
 	void swapBacks(size_t index1, size_t index2) { mixin(S_TRACE);
@@ -1898,11 +1912,25 @@ public:
 
 	/// エネミーカードのインデックスを交換する。
 	void swapCards(size_t index1, size_t index2) { mixin(S_TRACE);
-		if (index1 != index2) changed();
+		if (index1 == index2) return;
+		changed();
 		auto temp = _cards[index1];
 		_cards[index1] = _cards[index2];
 		_cards[index2] = temp;
 	}
+	/// エネミーカードのインデックスを設定する。
+	void setCardIndices(in Tuple!(size_t, size_t)[] indices) { mixin(S_TRACE);
+		EnemyCard[] cards;
+		foreach (t; indices) { mixin(S_TRACE);
+			if (t[0] == t[1]) continue;
+			if (!cards.length) { mixin(S_TRACE);
+				changed();
+				cards = _cards.dup;
+			}
+			_cards[t[1]] = cards[t[0]];
+		}
+	}
+
 	/// エネミーカード群。
 	@property
 	EnemyCard[] cards() { mixin(S_TRACE);

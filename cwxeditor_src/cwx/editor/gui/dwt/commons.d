@@ -416,6 +416,7 @@ class Commons {
 	Dlg!(string) delMenuCard;
 	Dlg!(string, int[], int) upMenuCard;
 	Dlg!(string, int[], int) downMenuCard;
+	Dlg!(const(AbstractArea), const(Tuple!(size_t, size_t))[]) refMenuCardIndices;
 	Dlg!(string) addBgImage;
 	Dlg!(string) refBgImage;
 	Dlg!(string) delBgImage;

@@ -2967,6 +2967,7 @@ class Msgs : Properties {
 	auto menuTextAutoArrange = Msg("menuTextAutoArrange", "カードを自動的に並べる");
 	auto menuTextManualArrange = Msg("menuTextManualArrange", "カードの位置を自分で決定する");
 	auto menuTextPossibleToRunAway = Msg("menuTextPossibleToRunAway", "パーティの逃走を許可");
+	auto menuTextSortWithPosition = Msg("menuTextSortWithPosition", "左上から右下の順で整列");
 	auto menuTextMask = Msg("menuTextMask", "透明色を使用");
 	auto menuTextEscape = Msg("menuTextEscape", "エネミーの逃走の有無");
 	auto menuTextChangePos = Msg("menuTextChangePos", "位置とサイズの変更");

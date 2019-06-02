@@ -1787,6 +1787,7 @@ enum MenuID {
 	AutoArrange,
 	ManualArrange,
 	PossibleToRunAway, // Wsn.3
+	SortWithPosition,
 	Mask,
 	Escape,
 	ChangePos,
