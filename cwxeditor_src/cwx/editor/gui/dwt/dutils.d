@@ -4050,11 +4050,11 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 	} case CType.SetVariant: { mixin(S_TRACE);
 		string name;
 		if (evt.step != "") { mixin(S_TRACE);
-			name = .contentTextUseID!(CIDKind.Step)(comm, summ, evt.step, "%s", evt);
+			name = .contentTextUseID!(CIDKind.Step)(comm, summ, evt.step, comm.prop.msgs.ctStepName, evt);
 		} else if (evt.flag != "") { mixin(S_TRACE);
-			name = .contentTextUseID!(CIDKind.Flag)(comm, summ, evt.flag, "%s", evt);
+			name = .contentTextUseID!(CIDKind.Flag)(comm, summ, evt.flag, comm.prop.msgs.ctFlagName, evt);
 		} else { mixin(S_TRACE);
-			name = .contentTextUseID!(CIDKind.Variant)(comm, summ, evt.variant, "%s", evt);
+			name = .contentTextUseID!(CIDKind.Variant)(comm, summ, evt.variant, comm.prop.msgs.ctVariantName, evt);
 		}
 		auto expr = evt.expression == "" ? comm.prop.msgs.noExpression : .exprStr(evt.expression);
 		return .tryFormat(comm.prop.msgs.ctSetVariant, name, expr);

@@ -1191,6 +1191,9 @@ class Msgs : Properties {
 	auto ctEnvironmentBackpack = Msg("ctEnvironmentBackpack", "荷物袋を%1$s"); // Wsn.4
 	auto ctBranchVariant = Msg("ctBranchVariant", "式〔 %1$s 〕"); // Wsn.4
 	auto ctSetVariant = Msg("ctSetVariant", "%1$s =〔 %2$s 〕"); // Wsn.4
+	auto ctFlagName = Msg("ctFlagName", "フラグ「%1$s」"); // Wsn.4
+	auto ctStepName = Msg("ctStepName", "ステップ「%1$s」"); // Wsn.4
+	auto ctVariantName = Msg("ctVariantName", "コモン「%1$s」"); // Wsn.4
 	auto ctCheckVariant = Msg("ctCheckVariant", "式〔 %1$s 〕"); // Wsn.4
 
 	auto ctBranchSkillForSelectedCard = Msg("ctBranchSkillForSelectedCard", "特殊技能カード「%1$s」と選択カードの%2$sで分岐");
