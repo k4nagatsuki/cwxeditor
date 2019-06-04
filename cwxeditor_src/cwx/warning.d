@@ -675,7 +675,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			}
 		}
 		if (c.variant != "" && !findVar!Variant(froot, c.useCounter, c.variant)) { mixin(S_TRACE);
-			r ~= .tryFormat(prop.msgs.searchErrorVariantNotFound, c.flag);
+			r ~= .tryFormat(prop.msgs.searchErrorVariantNotFound, c.variant);
 		}
 		putCardImages(c.cardPaths, false);
 		if (c.bgmPath != "") { mixin(S_TRACE);

@@ -1071,7 +1071,7 @@ class Msgs : Properties {
 	auto ctCallPackage = Msg("ctCallPackage", "パッケージ「%1$s」のコール");
 	auto ctBranchFlag = Msg("ctBranchFlag", "フラグ「%1$s」の値で分岐");
 	auto ctBranchMultiStep = Msg("ctBranchMultiStep", "ステップ「%1$s」の値で分岐");
-	auto ctBranchStep = Msg("ctBranchStep", "ステップ「%1$s」の値が[%2$s]以上・未満で分岐");
+	auto ctBranchStep = Msg("ctBranchStep", "%1$sの値が[%2$s]以上・未満で分岐");
 	auto ctBranchSelectAll = Msg("ctBranchSelectAll", "パーティ全員");
 	auto ctBranchSelectActive = Msg("ctBranchSelectActive", "動けるメンバ");
 	auto ctBranchSelectAuto = Msg("ctBranchSelectAuto", "ランダム");
