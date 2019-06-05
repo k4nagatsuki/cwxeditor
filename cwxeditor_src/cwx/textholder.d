@@ -6,6 +6,15 @@ import cwx.msgutils;
 import cwx.path;
 import cwx.usecounter;
 
+/// TextHolderの用途。
+enum TextHolderType {
+	Message, /// メッセージ・セリフ。
+	SimpleText, /// テキストセル・選択肢。
+	Coupon, /// クーポン。
+	Gossip, /// ゴシップ。
+	CardName, /// メニュー・エネミーカード名。
+}
+
 /// メッセージやダイアログが持つテキスト。
 class TextHolder : SimpleTextHolder, ITextHolder, ChgPathCallback {
 private:
@@ -14,7 +23,7 @@ private:
 public:
 	/// コンストラクタ。
 	this (CWXPath owner, string cwxPathCategory = "text") { mixin(S_TRACE);
-		super (owner, cwxPathCategory);
+		super (owner, TextHolderType.Message, cwxPathCategory);
 	}
 	alias SimpleTextHolder.text text;
 	@property
@@ -112,7 +121,9 @@ public:
 	alias SimpleTextHolder.changeCallback changeCallback;
 	override bool changeCallback(PathId oldVal, PathId newVal) { mixin(S_TRACE);
 		if (!(cast(string)newVal).isSPFontFile) return false;
+		removeUC();
 		_text = replTextUseFont(_text, cast(string)oldVal, cast(string)newVal);
+		addUC();
 		if (_changed) _changed();
 		return true;
 	}
@@ -130,6 +141,8 @@ interface ITextHolder : ISimpleTextHolder {
 /// ファイル以外の特殊文字に対応したテキスト。
 class SimpleTextHolder : CWXPath, ISimpleTextHolder, ChgFlagCallback, ChgStepCallback, ChgVariantCallback {
 private:
+	TextHolderType _type;
+	CWXPath _localOwner;
 	string _text;
 	FlagUser[] _flagusers;
 	StepUser[] _stepusers;
@@ -139,10 +152,17 @@ private:
 	void delegate() _changed;
 public:
 	/// コンストラクタ。
-	this (CWXPath owner, string cwxPathCategory = "text") { mixin(S_TRACE);
+	this (CWXPath owner, TextHolderType type, string cwxPathCategory = "text") { mixin(S_TRACE);
 		this.owner = owner;
+		_type = type;
+		_localOwner = owner;
 		_cwxPathCategory = cwxPathCategory;
 	}
+
+	/// テキストの用途。
+	@property
+	const
+	TextHolderType type() { return _type; }
 
 	/// 変更ハンドラを登録する。
 	@property
@@ -280,19 +300,62 @@ public:
 		_variantusers[index].change(id);
 	}
 	override bool changeCallback(FlagId oldVal, FlagId newVal) { mixin(S_TRACE);
+		removeUC();
 		_text = replTextUseFlag(_text, cast(string)oldVal, cast(string)newVal);
+		addUC();
 		if (_changed) _changed();
 		return true;
 	}
 	override bool changeCallback(StepId oldVal, StepId newVal) { mixin(S_TRACE);
+		removeUC();
 		_text = replTextUseStep(_text, cast(string)oldVal, cast(string)newVal);
+		addUC();
 		if (_changed) _changed();
 		return true;
 	}
 	override bool changeCallback(VariantId oldVal, VariantId newVal) { mixin(S_TRACE);
+		removeUC();
 		_text = replTextUseVariant(_text, cast(string)oldVal, cast(string)newVal);
+		addUC();
 		if (_changed) _changed();
 		return true;
+	}
+
+	private void addUC() { mixin(S_TRACE);
+		if (!useCounter) return;
+		if (!_localOwner) return;
+		final switch (type) {
+		case TextHolderType.Coupon:
+			assert (cast(CouponUser)_localOwner);
+			useCounter.add(toCouponId(_text), cast(CouponUser)_localOwner);
+			break;
+		case TextHolderType.Gossip:
+			assert (cast(GossipUser)_localOwner);
+			useCounter.add(toGossipId(_text), cast(GossipUser)_localOwner);
+			break;
+		case TextHolderType.Message:
+		case TextHolderType.SimpleText:
+		case TextHolderType.CardName:
+			break;
+		}
+	}
+	private void removeUC() { mixin(S_TRACE);
+		if (!useCounter) return;
+		if (!_localOwner) return;
+		final switch (type) {
+		case TextHolderType.Coupon:
+			assert (cast(CouponUser)_localOwner);
+			useCounter.remove(toCouponId(_text), cast(CouponUser)_localOwner);
+			break;
+		case TextHolderType.Gossip:
+			assert (cast(GossipUser)_localOwner);
+			useCounter.remove(toGossipId(_text), cast(GossipUser)_localOwner);
+			break;
+		case TextHolderType.Message:
+		case TextHolderType.SimpleText:
+		case TextHolderType.CardName:
+			break;
+		}
 	}
 
 	override void changed() { }

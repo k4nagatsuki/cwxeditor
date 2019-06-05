@@ -542,7 +542,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		_id = .objectIDValue(this) ~ "-" ~ .to!string(idCount);
 		idCount++;
 		_type = type;
-		_name = new SimpleTextHolder(this, "name");
+		_name = new SimpleTextHolder(this, TextHolderType.SimpleText, "name");
 		_name.changeHandler = &changed;
 		_name.text = name;
 		_name.owner = this;
@@ -1482,6 +1482,9 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		} else if (oldCouponBr && !newCouponBr) { mixin(S_TRACE);
 			branchCouponCondition = "";
 		}
+		if (_branchCouponCondition) { mixin(S_TRACE);
+			_branchCouponCondition.expandSPChars = parent && parent.expandSPChars;
+		}
 		_parent = parent;
 	}
 	/// ditto
@@ -2274,14 +2277,8 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		if (_coupon) _coupon.expandSPChars = val;
 		if (_gossip) _gossip.expandSPChars = val;
 		if (_couponNames) _couponNames.expandSPChars = val;
-		if (detail.nextType is CNextType.Coupon) { mixin(S_TRACE);
-			foreach (c; _next) { mixin(S_TRACE);
-				if (val) { mixin(S_TRACE);
-					c._name.setUseCounter(_uc);
-				} else { mixin(S_TRACE);
-					c._name.removeUseCounter();
-				}
-			}
+		foreach (c; _next) { mixin(S_TRACE);
+			c._branchCouponCondition.expandSPChars = val;
 		}
 		return true;
 	}
@@ -2317,6 +2314,9 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	mixin Prop!(BattleUser, ulong, "branchBattleCondition", 0UL, ".battle", ".battle", true, true);
 	/// クーポン多岐分岐条件名(Wsn.2)。
 	mixin Prop!(CouponUser, string, "branchCouponCondition", "", ".coupon", ".coupon", true, true);
+	private void create_branchCouponCondition(CouponUser u) { mixin(S_TRACE);
+		u.expandSPChars = parent && parent.expandSPChars;
+	}
 
 	private void delegate() _change;
 	/// 変更ハンドラを登録する。

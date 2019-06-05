@@ -1509,7 +1509,7 @@ private:
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
 	this (CWXPath cwxPath, bool callback = false) { mixin(S_TRACE);
-		_coupon = new SimpleTextHolder(this);
+		_coupon = new SimpleTextHolder(this, TextHolderType.Coupon);
 		_coupon.changeHandler = &changed;
 		_coupon.owner = cwxPath;
 		_cwxPath = cwxPath;
@@ -1643,7 +1643,7 @@ private:
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
 	this (CWXPath cwxPath, bool callback = false) { mixin(S_TRACE);
-		_gossip = new SimpleTextHolder(this);
+		_gossip = new SimpleTextHolder(this, TextHolderType.Gossip);
 		_gossip.changeHandler = &changed;
 		_gossip.owner = cwxPath;
 		_cwxPath = cwxPath;
@@ -2334,7 +2334,7 @@ class UseCounter {
 	}
 
 	/// IDの所有者を追跡する。
-	private void add(ID, User)(ID id, User user) if (is(User:IDToUser!ID)) { mixin(S_TRACE);
+	package void add(ID, User)(ID id, User user) if (is(User:IDToUser!ID)) { mixin(S_TRACE);
 		if (_local && id in localIDs!ID) { mixin(S_TRACE);
 			_local.add(id, user);
 		} else { mixin(S_TRACE);
@@ -2342,7 +2342,7 @@ class UseCounter {
 		}
 	}
 	/// IDの所有者を追跡から除外する。
-	private void remove(ID, User)(ID id, User user) if (is(User:IDToUser!ID)) { mixin(S_TRACE);
+	package void remove(ID, User)(ID id, User user) if (is(User:IDToUser!ID)) { mixin(S_TRACE);
 		if (_local && id in localIDs!ID) { mixin(S_TRACE);
 			_local.remove(id, user);
 		} else { mixin(S_TRACE);

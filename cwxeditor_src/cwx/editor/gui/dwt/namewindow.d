@@ -1,10 +1,12 @@
 
 module cwx.editor.gui.dwt.namewindow;
 
+import cwx.flag;
 import cwx.menu;
 import cwx.path;
 import cwx.structs;
 import cwx.summary;
+import cwx.textholder;
 import cwx.types;
 import cwx.usecounter;
 import cwx.utils;
@@ -317,8 +319,10 @@ public:
 		_comm.refUseCount.add(&refUseCount);
 		static if (is(ID:CouponId)) { mixin(S_TRACE);
 			_comm.refCoupons.add(&refID);
+			_comm.refFlagAndStep.add(&refIDFS);
 		} else static if (is(ID:GossipId)) { mixin(S_TRACE);
 			_comm.refGossips.add(&refID);
+			_comm.refFlagAndStep.add(&refIDFS);
 		} else static if (is(ID:CompleteStampId)) { mixin(S_TRACE);
 			_comm.refCompleteStamps.add(&refID);
 		} else static if (is(ID:KeyCodeId)) { mixin(S_TRACE);
@@ -334,8 +338,10 @@ public:
 			_comm.refUseCount.remove(&refUseCount);
 			static if (is(ID:CouponId)) { mixin(S_TRACE);
 				_comm.refCoupons.remove(&refID);
+				_comm.refFlagAndStep.remove(&refIDFS);
 			} else static if (is(ID:GossipId)) { mixin(S_TRACE);
 				_comm.refGossips.remove(&refID);
+				_comm.refFlagAndStep.remove(&refIDFS);
 			} else static if (is(ID:CompleteStampId)) { mixin(S_TRACE);
 				_comm.refCompleteStamps.remove(&refID);
 			} else static if (is(ID:KeyCodeId)) { mixin(S_TRACE);
@@ -572,6 +578,31 @@ public:
 		if (sender is this) return;
 		if (!_inProc) _undo.reset();
 		updateList();
+	}
+	static if (is(ID:CouponId) || is(ID:GossipId)) {
+		private void refIDFS(cwx.flag.Flag[] flags, Step[] steps, cwx.flag.Variant[] variants) { mixin(S_TRACE);
+			if (!_list || _list.isDisposed()) return;
+			if (!_summ) return;
+			bool update(F)(F[] list) { mixin(S_TRACE);
+				foreach (f; list) { mixin(S_TRACE);
+					auto path = f.path;
+					foreach (u; _summ.useCounter.values(F.toID(path))) { mixin(S_TRACE);
+						if (auto th = cast(SimpleTextHolder)u.owner) { mixin(S_TRACE);
+							static if (is(ID:CouponId)) static immutable TYPE = TextHolderType.Coupon;
+							static if (is(ID:GossipId)) static immutable TYPE = TextHolderType.Gossip;
+							if (th.type is TYPE) { mixin(S_TRACE);
+								refID(null);
+								return true;
+							}
+						}
+					}
+				}
+				return false;
+			}
+			if (update(flags)) return;
+			if (update(steps)) return;
+			if (update(variants)) return;
+		}
 	}
 
 	void sort() { mixin(S_TRACE);

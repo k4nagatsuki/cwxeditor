@@ -183,7 +183,7 @@ public:
 	/// 空のインスタンスを生成する。
 	this () { mixin(S_TRACE);
 		super ("", 0, 0, 0, 0, false);
-		_text = new SimpleTextHolder(this);
+		_text = new SimpleTextHolder(this, TextHolderType.SimpleText);
 		_text.changeHandler = &changed;
 	}
 
@@ -193,7 +193,7 @@ public:
 			BorderingType borderingType, CRGB borderingColor, uint borderingWidth,
 			UpdateType updateType, string flag, int x, int y, int w, int h, bool mask) { mixin(S_TRACE);
 		super (flag, x, y, w, h, mask);
-		_text = new SimpleTextHolder(this);
+		_text = new SimpleTextHolder(this, TextHolderType.SimpleText);
 		_text.changeHandler = &changed;
 		_text.text = text;
 		_text.owner = this;
