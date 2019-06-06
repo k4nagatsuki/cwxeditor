@@ -2668,7 +2668,7 @@ private:
 		cancelEdit();
 		_undo.reset();
 	}
-	private void delegate() _openHand = null;
+	private void delegate(CastCard) _openHand = null;
 	void refUndoMax() { mixin(S_TRACE);
 		assert (editMode);
 		_undo.max = _prop.var.etc.undoMaxMainView;
@@ -2798,7 +2798,7 @@ private:
 		return false;
 	}
 public:
-	this (Commons comm, Props prop, Summary summ, Composite parent, OwnerType ownerType, CardType cardType, int style, Summary toc, void delegate() openHand = null) { mixin(S_TRACE);
+	this (Commons comm, Props prop, Summary summ, Composite parent, OwnerType ownerType, CardType cardType, int style, Summary toc, void delegate(CastCard) openHand = null) { mixin(S_TRACE);
 		_parent = parent;
 		_toc = toc;
 		assert (!editMode);
@@ -2995,7 +2995,12 @@ public:
 				new MenuItem(pop, SWT.SEPARATOR);
 			}
 			if (_cardType is CardType.Cast) { mixin(S_TRACE);
-				createMenuItem(_comm, pop, MenuID.OpenHand, _openHand, () => selection !is null);
+				createMenuItem(_comm, pop, MenuID.OpenHand, { mixin(S_TRACE);
+					foreach (card; selectedCards) { mixin(S_TRACE);
+						assert (cast(CastCard)card);
+						_openHand(cast(CastCard)card);
+					}
+				}, () => selection !is null);
 				new MenuItem(pop, SWT.SEPARATOR);
 			}
 			appendMenuTCPD(_comm, pop, this, false, true, false, false, false);
@@ -3734,9 +3739,13 @@ public:
 	}
 	void editHandWith(CastCard card) { mixin(S_TRACE);
 		assert (_cardType is CardType.Cast);
-		assert (editMode);
-		enterEdit();
-		_comm.openHands(_prop, _summ, card, true);
+		if (_openHand) { mixin(S_TRACE);
+			_openHand(card);
+		} else { mixin(S_TRACE);
+			assert (editMode);
+			enterEdit();
+			_comm.openHands(_prop, _summ, card, true);
+		}
 	}
 
 	private void udImpl(bool up) { mixin(S_TRACE);

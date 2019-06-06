@@ -165,13 +165,10 @@ private:
 		return _comm.mainWin.shell.getShell();
 	}
 
-	void openHand() { mixin(S_TRACE);
+	void openHand(CastCard card) { mixin(S_TRACE);
 		assert (CardType.Cast in _paneTbl);
 		assert (!editMode);
-		auto sels = _paneTbl[CardType.Cast].selectedCards;
-		foreach (sel; sels) { mixin(S_TRACE);
-			_comm.openAddHands(_prop, _summ, cast(CastCard)sel, _toc, true);
-		}
+		_comm.openAddHands(_prop, _summ, card, _toc, true);
 	}
 
 public:
