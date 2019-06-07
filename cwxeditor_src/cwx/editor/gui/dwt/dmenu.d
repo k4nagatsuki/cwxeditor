@@ -547,6 +547,7 @@ ToolItem createDropDownItem2(Commons comm, ToolBar bar, string text, Image img, 
 	d.id = id;
 	d.enabled = enabled;
 	ti.setData(d);
+	.listener(ti, SWT.Dispose, &menu.dispose);
 	return ti;
 }
 void showDropDownMenu(ToolItem ti, Menu menu) {
