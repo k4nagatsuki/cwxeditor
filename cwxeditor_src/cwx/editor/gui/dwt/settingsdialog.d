@@ -1579,8 +1579,10 @@ protected:
 		_prop.var.etc.showStatusTime = cast(ShowStatusTime)_showStatusTimeTbl2[_showStatusTime.getSelectionIndex()];
 		_prop.var.etc.savedSound = _savedSound.getText();
 		if (_prop.var.etc.historyMax < _prop.var.etc.openHistories.length) { mixin(S_TRACE);
-			_prop.var.etc.openHistories
-				= _prop.var.etc.openHistories[0 .. _prop.var.etc.historyMax].dup;
+			_prop.var.etc.openHistories = _prop.var.etc.openHistories[0 .. _prop.var.etc.historyMax].dup;
+		}
+		if (_prop.var.etc.historyMax < _prop.var.etc.importHistory.length) { mixin(S_TRACE);
+			_prop.var.etc.importHistory = _prop.var.etc.importHistory[0 .. _prop.var.etc.historyMax].dup;
 		}
 		if (_prop.var.etc.searchHistoryMax < _prop.var.etc.searchHistories.length) { mixin(S_TRACE);
 			_prop.var.etc.searchHistories
@@ -1649,6 +1651,7 @@ struct OldSettings {
 	bool oldSmoothingCard;
 	bool oldLogicalSort;
 	const OpenHistory[] oldOpenHistories;
+	const OpenHistory[] importHistory;
 	const string[] oldSearchHistories;
 	const string[] oldReplaceHistories;
 	const string[] oldGrepDirHistories;
@@ -1724,6 +1727,7 @@ struct OldSettings {
 		this.showSceneViewSelectionFilter = prop.var.etc.showSceneViewSelectionFilter;
 		this.oldLogicalSort = prop.var.etc.logicalSort;
 		this.oldOpenHistories = prop.var.etc.openHistories;
+		this.importHistory = prop.var.etc.importHistory;
 		this.oldSearchHistories = prop.var.etc.searchHistories;
 		this.oldGrepDirHistories = prop.var.etc.grepDirHistories;
 		this.oldReplaceHistories = prop.var.etc.replaceHistories;
@@ -1854,6 +1858,9 @@ struct OldSettings {
 		comm.refClassicSkin.call();
 		if (oldOpenHistories != prop.var.etc.openHistories) { mixin(S_TRACE);
 			comm.refHistories.call();
+		}
+		if (importHistory != prop.var.etc.importHistory) { mixin(S_TRACE);
+			comm.refImportHistory.call();
 		}
 		if (oldSearchHistories != prop.var.etc.searchHistories || oldReplaceHistories != prop.var.etc.replaceHistories || oldGrepDirHistories != prop.var.etc.grepDirHistories) { mixin(S_TRACE);
 			comm.refSearchHistories.call();

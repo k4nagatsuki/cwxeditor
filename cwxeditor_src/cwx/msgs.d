@@ -89,6 +89,7 @@ class Msgs : Properties {
 	auto cwxPathOpenError = Msg("cwxPathOpenError", "パス [%1$s] を開けません。");
 	auto filePathOpenError = Msg("filePathOpenError", "パス [%1$s] を開けません。");
 	auto editScenarioHistory = Msg("editScenarioHistory", "履歴とブックマークの編集");
+	auto editImportHistory = Msg("editImportHistory", "追加元の履歴とブックマークの編集");
 	auto scenarioBookmarkHint = Msg("scenarioBookmarkHint", "ブックマークに登録したいシナリオはチェックしてください。");
 	auto historyScenarioFileName = Msg("historyScenarioFileName", "ファイル名");
 	auto historyScenarioPath = Msg("historyScenarioPath", "場所");
@@ -2838,6 +2839,7 @@ class Msgs : Properties {
 	auto menuTextSaveAs = Msg("menuTextSaveAs", "名前を付けて保存");
 	auto menuTextReload = Msg("menuTextReload", "再読込");
 	auto menuTextEditScenarioHistory = Msg("menuTextEditScenarioHistory", "履歴とブックマークの編集");
+	auto menuTextEditImportHistory = Msg("menuTextEditImportHistory", "履歴とブックマークの編集");
 	auto menuTextOpenDir = Msg("menuTextOpenDir", "シナリオの" ~ DIR ~ "を開く");
 	auto menuTextOpenBackupDir = Msg("menuTextOpenBackupDir", "バックアップ" ~ DIR ~ "を開く");
 	auto menuTextOpenPlace = Msg("menuTextOpenPlace", "ファイルの場所を開く");
@@ -3015,6 +3017,7 @@ class Msgs : Properties {
 	auto menuTextShowCardImage = Msg("menuTextShowCardImage", "カード表示");
 	auto menuTextShowCardDetail = Msg("menuTextShowCardDetail", "詳細表示");
 	auto menuTextOpenImportSource = Msg("menuTextOpenImportSource", "外部シナリオから追加");
+	auto menuTextSelectImportSource = Msg("menuTextSelectImportSource", "追加元のシナリオを選択");
 	auto menuTextNewCast = Msg("menuTextNewCast", "キャストカードの作成");
 	auto menuTextNewSkill = Msg("menuTextNewSkill", "特殊技能カードの作成");
 	auto menuTextNewItem = Msg("menuTextNewItem", "アイテムカードの作成");

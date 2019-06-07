@@ -57,6 +57,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.SaveAs] = "A";
 		_mnemonic[MenuID.Reload] = "R";
 		_mnemonic[MenuID.EditScenarioHistory] = "H";
+		_mnemonic[MenuID.EditImportHistory] = "H";
 		_mnemonic[MenuID.OpenDir] = "O";
 		_mnemonic[MenuID.OpenBackupDir] = "B";
 		_mnemonic[MenuID.OpenPlace] = "O";
@@ -234,6 +235,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.ShowCardImage] = "R";
 		_mnemonic[MenuID.ShowCardDetail] = "D";
 		_mnemonic[MenuID.OpenImportSource] = "A";
+		_mnemonic[MenuID.SelectImportSource] = "A";
 		_mnemonic[MenuID.NewCast] = "C";
 		_mnemonic[MenuID.NewSkill] = "S";
 		_mnemonic[MenuID.NewItem] = "I";
@@ -298,6 +300,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.SaveAs] = "";
 		_hotkey[MenuID.Reload] = "";
 		_hotkey[MenuID.EditScenarioHistory] = "";
+		_hotkey[MenuID.EditImportHistory] = "";
 		_hotkey[MenuID.OpenDir] = "";
 		_hotkey[MenuID.OpenBackupDir] = "";
 		_hotkey[MenuID.OpenPlace] = "";
@@ -476,6 +479,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.ShowCardImage] = "";
 		_hotkey[MenuID.ShowCardDetail] = "";
 		_hotkey[MenuID.OpenImportSource] = "";
+		_hotkey[MenuID.SelectImportSource] = "";
 		_hotkey[MenuID.NewCast] = "";
 		_hotkey[MenuID.NewSkill] = "";
 		_hotkey[MenuID.NewItem] = "";
@@ -680,6 +684,7 @@ bool isPMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.OpenAtNewWindow:
 	case MenuID.SaveAs:
 	case MenuID.EditScenarioHistory:
+	case MenuID.EditImportHistory:
 	case MenuID.SaveImage:
 	case MenuID.Find:
 	case MenuID.FindID:
@@ -701,6 +706,7 @@ bool isPMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.NewColorCell:
 	case MenuID.NewPCCell:
 	case MenuID.OpenImportSource:
+	case MenuID.SelectImportSource:
 	case MenuID.NewEventWithDialog:
 	case MenuID.NewCast:
 	case MenuID.NewSkill:
@@ -828,6 +834,7 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.ShowCardImage:
 	case MenuID.ShowCardDetail:
 	case MenuID.OpenImportSource:
+	case MenuID.SelectImportSource:
 	case MenuID.NewCast:
 	case MenuID.NewSkill:
 	case MenuID.NewItem:
@@ -843,6 +850,8 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.ToScript:
 	case MenuID.ToScriptAll:
 	case MenuID.ToScript1Content:
+	case MenuID.EditScenarioHistory:
+	case MenuID.EditImportHistory:
 	case MenuID.DeleteNotExistsHistory:
 	case MenuID.DeleteNotExistsParties:
 		return true;
@@ -865,7 +874,6 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.ClosePaneRight:
 	case MenuID.ClosePaneAll:
 	case MenuID.CloseWin:
-	case MenuID.EditScenarioHistory:
 	case MenuID.OpenPlace:
 	case MenuID.SaveImage:
 	case MenuID.IncludeImage:
@@ -1052,6 +1060,7 @@ bool isGlobalMenu(MenuID id) {
 	case MenuID.ShowCardImage:
 	case MenuID.ShowCardDetail:
 	case MenuID.OpenImportSource:
+	case MenuID.SelectImportSource:
 	case MenuID.NewCast:
 	case MenuID.NewSkill:
 	case MenuID.NewItem:
@@ -1060,6 +1069,8 @@ bool isGlobalMenu(MenuID id) {
 	case MenuID.NewDir:
 	case MenuID.CreateArchive:
 	case MenuID.EvTemplatesOfScenario:
+	case MenuID.EditScenarioHistory:
+	case MenuID.EditImportHistory:
 	case MenuID.DeleteNotExistsHistory:
 		return true;
 	case MenuID.None:
@@ -1080,7 +1091,6 @@ bool isGlobalMenu(MenuID id) {
 	case MenuID.ClosePaneRight:
 	case MenuID.ClosePaneAll:
 	case MenuID.CloseWin:
-	case MenuID.EditScenarioHistory:
 	case MenuID.OpenPlace:
 	case MenuID.SaveImage:
 	case MenuID.IncludeImage:

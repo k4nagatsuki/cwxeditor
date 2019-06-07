@@ -551,6 +551,7 @@ public:
 		case MenuID.SaveAs: return imgd!("save_a.png");
 		case MenuID.Reload: return imgd!("reload.png");
 		case MenuID.EditScenarioHistory: return imgd!("edit_sc_hist.png");
+		case MenuID.EditImportHistory: return imgd!("edit_import_hist.png");
 		case MenuID.OpenDir: return imgd!("folder.png");
 		case MenuID.OpenBackupDir: return imgd!("open_backup.png");
 		case MenuID.OpenPlace: return imgd!("folder.png");
@@ -728,6 +729,7 @@ public:
 		case MenuID.ShowCardImage: return imgd!("card_list.png");
 		case MenuID.ShowCardDetail: return imgd!("card_table.png");
 		case MenuID.OpenImportSource: return imgd!("add_scenario.png");
+		case MenuID.SelectImportSource: return imgd!("sel_import_target.png");
 		case MenuID.NewCast: return imgd!("cast_new.png");
 		case MenuID.NewSkill: return imgd!("skill_new.png");
 		case MenuID.NewItem: return imgd!("item_new.png");

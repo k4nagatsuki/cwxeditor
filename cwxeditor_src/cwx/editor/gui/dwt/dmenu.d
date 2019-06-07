@@ -521,10 +521,10 @@ Menu createMenu(Commons comm, Menu bar, MenuID id) { mixin(S_TRACE);
 	return m;
 }
 
-ToolItem createDropDownItem(Commons comm, ToolBar bar, MenuID id, void delegate() func, out Menu menu, bool delegate() enabled) { mixin(S_TRACE);
-	return createDropDownItem2(comm, bar, comm.prop.buildTool(id), comm.prop.images.menu(id), func, menu, id, enabled);
+ToolItem createDropDownItem(Commons comm, ToolBar bar, MenuID id, void delegate() func, out Menu menu, bool delegate() enabled, bool openArrowAlways = false) { mixin(S_TRACE);
+	return createDropDownItem2(comm, bar, comm.prop.buildTool(id), comm.prop.images.menu(id), func, menu, id, enabled, openArrowAlways);
 }
-ToolItem createDropDownItem2(Commons comm, ToolBar bar, string text, Image img, void delegate() func, out Menu menu, MenuID id, bool delegate() enabled) { mixin(S_TRACE);
+ToolItem createDropDownItem2(Commons comm, ToolBar bar, string text, Image img, void delegate() func, out Menu menu, MenuID id, bool delegate() enabled, bool openArrowAlways = false) { mixin(S_TRACE);
 	auto ti = new ToolItem(bar, SWT.DROP_DOWN);
 	ti.setToolTipText(text);
 	ti.setImage(img);
@@ -532,7 +532,7 @@ ToolItem createDropDownItem2(Commons comm, ToolBar bar, string text, Image img, 
 	auto menu2 = menu;
 	class Push : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
-			if ((!func || SWT.ARROW == e.detail) && 0 < menu2.getItemCount()) { mixin(S_TRACE);
+			if ((!func || SWT.ARROW == e.detail) && (openArrowAlways || 0 < menu2.getItemCount())) { mixin(S_TRACE);
 				auto b = ti.getBounds();
 				auto pt = bar.toDisplay(b.x, b.y + b.height);
 				menu2.setLocation(pt);

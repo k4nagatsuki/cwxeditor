@@ -3,7 +3,9 @@ module cwx.editor.gui.dwt.history;
 
 import cwx.menu;
 import cwx.path;
+import cwx.skin;
 import cwx.structs;
+import cwx.summary;
 import cwx.types;
 import cwx.utils;
 
@@ -41,6 +43,8 @@ class ScenarioHistoryDialog : AbsDialog {
 		}
 	}
 	private Hist[] _hist;
+	private OpenHistory[] _history;
+	private OpenHistory[] _bookmark;
 
 	private UndoManager _undo;
 
@@ -174,11 +178,21 @@ class ScenarioHistoryDialog : AbsDialog {
 		_undo.max = _comm.prop.var.etc.undoMaxEtc;
 	}
 
-	this (Commons comm, Shell shell) { mixin(S_TRACE);
+	this (Commons comm, Shell shell, string title, Image icon, OpenHistory[] history, OpenHistory[] bookmark) { mixin(S_TRACE);
 		_comm = comm;
+		_history = history;
+		_bookmark = bookmark;
 		auto size = _comm.prop.var.scenarioHistoryDlg;
-		super (_comm.prop, shell, false, _comm.prop.msgs.editScenarioHistory, _comm.prop.images.menu(MenuID.EditScenarioHistory), true, size, true, true);
+		super (_comm.prop, shell, false, title, icon, true, size, true, true);
 	}
+
+	@property
+	inout
+	inout(OpenHistory)[] bookmark() { return _bookmark; }
+
+	@property
+	inout
+	inout(OpenHistory)[] history() { return _history; }
 
 	protected override void setup(Composite area) { mixin(S_TRACE);
 		area.setLayout(normalGridLayout(1, false));
@@ -233,8 +247,8 @@ class ScenarioHistoryDialog : AbsDialog {
 		createMenuItem(_comm, menu, MenuID.DeleteNotExistsHistory, &delNotExists, () => 0 < _list.getItemCount());
 		_list.setMenu(menu);
 
-		_hist = .map!(h => Hist(h, true))(_comm.prop.var.etc.scenarioBookmarks).array();
-		_hist ~= .map!(h => Hist(h, false))(_comm.prop.var.etc.openHistories).array();
+		_hist = .map!(h => Hist(h, true))(_bookmark).array();
+		_hist ~= .map!(h => Hist(h, false))(_history).array();
 		_list.setItemCount(cast(int)_hist.length);
 		.listener(_list, SWT.SetData, (e) { mixin(S_TRACE);
 			auto m = _hist[e.index];
@@ -373,14 +387,8 @@ class ScenarioHistoryDialog : AbsDialog {
 	}
 
 	protected override bool apply() { mixin(S_TRACE);
-		auto scenarioBookmarks = _hist.filter!(h => h.bookmark)().map!(h => h.hist)().array();
-		auto openHistories = _hist.filter!(h => !h.bookmark)().map!(h => h.hist)().array();
-
-		if (scenarioBookmarks != _comm.prop.var.etc.scenarioBookmarks || _comm.prop.var.etc.openHistories != openHistories) { mixin(S_TRACE);
-			_comm.prop.var.etc.scenarioBookmarks = scenarioBookmarks;
-			_comm.prop.var.etc.openHistories = openHistories;
-			_comm.refHistories.call();
-		}
+		_bookmark = _hist.filter!(h => h.bookmark)().map!(h => h.hist)().array();
+		_history = _hist.filter!(h => !h.bookmark)().map!(h => h.hist)().array();
 		return true;
 	}
 }
@@ -430,4 +438,74 @@ string[] fullHistToCWXPaths(string hist) { mixin(S_TRACE);
 	assert (fullHistToCWXPaths(r"C:\test\test1") == []);
 	assert (fullHistToCWXPaths(`"C:\test\test1" aaa&bbb`) == ["aaa", "bbb"]);
 	assert (fullHistToCWXPaths(`"C:\test\test1" &aaa&bbb&&`) == ["", "aaa", "bbb", "", ""]);
+}
+
+string createHistString(in Summary summ) { mixin(S_TRACE);
+	if (!summ) return "";
+	string hist;
+	if (summ.readOnlyPath != "") { mixin(S_TRACE);
+		if (!summ.readOnlyPath.exists()) return "";
+		if (summ.readOnlyPath.isDir()) { mixin(S_TRACE);
+			hist = std.path.buildPath(summ.readOnlyPath, "Summary.wsm");
+		} else { mixin(S_TRACE);
+			hist = summ.readOnlyPath;
+		}
+	} else if (summ.legacy) { mixin(S_TRACE);
+		if (summ.useTemp) { mixin(S_TRACE);
+			hist = summ.origZipName;
+		} else { mixin(S_TRACE);
+			hist = std.path.buildPath(summ.scenarioPath, "Summary.wsm");
+		}
+	} else if (summ.useTemp) { mixin(S_TRACE);
+		hist = summ.origZipName;
+		if (!hist.length) return "";
+	} else { mixin(S_TRACE);
+		hist = std.path.buildPath(summ.scenarioPath, "Summary.xml");
+	}
+	return nabs(hist);
+}
+
+OpenHistory findHistory(in Commons comm, string hist) { mixin(S_TRACE);
+	if ("" == hist) return OpenHistory("");
+	foreach (h; comm.prop.var.etc.scenarioBookmarks) { mixin(S_TRACE);
+		if (.cfnmatch(.fullHistToHist(h.path), hist)) { mixin(S_TRACE);
+			return h;
+		}
+	}
+	foreach (h; comm.prop.var.etc.openHistories) { mixin(S_TRACE);
+		if (.cfnmatch(.fullHistToHist(h.path), hist)) { mixin(S_TRACE);
+			return h;
+		}
+	}
+	return OpenHistory("");
+}
+
+void addHistory(Commons comm, OpenHistory hist, ref OpenHistory[] openHistories, ref OpenHistory[] bookmarks) { mixin(S_TRACE);
+	if ("" == hist.path) return;
+	auto p = .fullHistToHist(hist.path);
+	if (comm.prop.var.etc.historyMax == 0) { mixin(S_TRACE);
+		openHistories = [];
+	} else { mixin(S_TRACE);
+		auto bookmarked = false;
+		foreach (h; bookmarks) { mixin(S_TRACE);
+			if (.cfnmatch(.fullHistToHist(h.path), p)) { mixin(S_TRACE);
+				// すでにブックマークに登録されている
+				bookmarked = true;
+				break;
+			}
+		}
+		if (!bookmarked) { mixin(S_TRACE);
+			auto hists = openHistories.dup;
+			foreach (i, h; hists) { mixin(S_TRACE);
+				if (.cfnmatch(.fullHistToHist(h.path), p)) { mixin(S_TRACE);
+					// すでに履歴中に存在するため、最新位置に移動
+					hist = h;
+					openHistories = hists[0 .. i] ~ hists[i + 1 .. $];
+					hists = openHistories.dup;
+					break;
+				}
+			}
+			openHistories = [hist] ~ (hists.length < comm.prop.var.etc.historyMax ? hists : hists[0 .. $ - 1]);
+		}
+	}
 }

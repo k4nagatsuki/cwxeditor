@@ -2,44 +2,46 @@
 module cwx.editor.gui.dwt.cardwindow;
 
 import cwx.card;
-import cwx.summary;
-import cwx.utils;
-import cwx.usecounter;
-import cwx.types;
-import cwx.xml;
-import cwx.skin;
-import cwx.path;
-import cwx.motion;
 import cwx.menu;
-import cwx.types;
+import cwx.motion;
+import cwx.path;
+import cwx.skin;
+import cwx.structs;
+import cwx.summary;
 import cwx.system;
+import cwx.types;
+import cwx.types;
+import cwx.usecounter;
+import cwx.utils;
+import cwx.xml;
 
-import cwx.editor.gui.dwt.smalldialogs;
-import cwx.editor.gui.dwt.images;
-import cwx.editor.gui.dwt.dskin;
-import cwx.editor.gui.dwt.cardlist;
-import cwx.editor.gui.dwt.dutils;
-import cwx.editor.gui.dwt.dprops;
-import cwx.editor.gui.dwt.eventwindow;
-import cwx.editor.gui.dwt.customtext;
-import cwx.editor.gui.dwt.castcarddialog;
-import cwx.editor.gui.dwt.effectcarddialog;
-import cwx.editor.gui.dwt.infocarddialog;
-import cwx.editor.gui.dwt.xmlbytestransfer;
-import cwx.editor.gui.dwt.commons;
-import cwx.editor.gui.dwt.undo;
-import cwx.editor.gui.dwt.cardpane;
-import cwx.editor.gui.dwt.loader;
-import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.areatable;
+import cwx.editor.gui.dwt.cardlist;
+import cwx.editor.gui.dwt.cardpane;
+import cwx.editor.gui.dwt.castcarddialog;
+import cwx.editor.gui.dwt.commons;
+import cwx.editor.gui.dwt.customtext;
+import cwx.editor.gui.dwt.dmenu;
+import cwx.editor.gui.dwt.dprops;
+import cwx.editor.gui.dwt.dskin;
+import cwx.editor.gui.dwt.dutils;
+import cwx.editor.gui.dwt.effectcarddialog;
+import cwx.editor.gui.dwt.eventwindow;
+import cwx.editor.gui.dwt.history;
+import cwx.editor.gui.dwt.images;
+import cwx.editor.gui.dwt.infocarddialog;
+import cwx.editor.gui.dwt.loader;
+import cwx.editor.gui.dwt.smalldialogs;
+import cwx.editor.gui.dwt.undo;
+import cwx.editor.gui.dwt.xmlbytestransfer;
 
 import std.algorithm;
 import std.array;
-import std.utf;
-import std.string;
 import std.datetime;
-import std.typetuple;
 import std.path;
+import std.string;
+import std.typetuple;
+import std.utf;
 
 import org.eclipse.swt.all;
 
@@ -326,6 +328,7 @@ public:
 			putMenuAction(MenuID.Refresh, &refreshM, () => _summ !is null);
 			if (_ownerType is OwnerType.Summary) { mixin(S_TRACE);
 				putMenuAction(MenuID.OpenImportSource, &addScenario, () => _summ !is null);
+				putMenuAction(MenuID.SelectImportSource, &addScenario, () => _summ !is null);
 			}
 			putMenuAction(MenuID.Undo, &undo, &canUndo);
 			putMenuAction(MenuID.Redo, &redo, &canRedo);
@@ -1186,6 +1189,14 @@ private:
 			foreach (i, t; ccs) { mixin(S_TRACE);
 				auto cc = t.summary;
 				if (cc) { mixin(S_TRACE);
+					OpenHistory hist;
+					auto skin = comm.findSkinFromHistory(cc, hist);
+					if (cc.legacy && hist.path.length && (hist.skinType.length || hist.skinEngine.length)) { mixin(S_TRACE);
+						cc.type = hist.skinType;
+					}
+					if (cc.legacy && hist.skinName.length) { mixin(S_TRACE);
+						cc.skinName = hist.skinName;
+					}
 					if (cc.type == "" && !cc.legacy) { mixin(S_TRACE);
 						cc.type = prop.var.etc.defaultSkin;
 					}
@@ -1197,9 +1208,11 @@ private:
 					auto acw = new CardWindow(comm, prop, CardWindowKind.ImportSource, pane, cc, cc, toc);
 					acw.shell.addDisposeListener(new DelTemp(cc));
 					r ~= acw;
+					.addHistory(comm, OpenHistory(.createHistString(cc)), comm.prop.var.etc.importHistory.value, comm.prop.var.etc.importBookmarks);
 				}
 			}
 			addScenario(r);
+			comm.refImportHistory.call();
 		}
 	}
 	this() { }
@@ -1227,9 +1240,10 @@ public:
 		loadScenarios(prop, loadOption(prop), comm.mainShell, comm.sync, status, prop.msgs.dlgTitAddScenario, &addS.addS);
 	}
 	static void openScenario(Commons comm, Props prop, Composite parent, void delegate(string) status,
-			Summary summ, Summary toc, string[] files, void delegate(CardWindow[]) addScenario) { mixin(S_TRACE);
+			Summary summ, Summary toc, string[] files, void delegate(CardWindow[]) addScenario,
+			void delegate() failure = null) { mixin(S_TRACE);
 		parent = pane(parent);
 		auto addS = new AddS(comm, prop, parent, toc, addScenario);
-		loadScenariosFromFile(prop, loadOption(prop), comm.mainShell, comm.sync, status, files, &addS.addS);
+		loadScenariosFromFile(prop, loadOption(prop), comm.mainShell, comm.sync, status, files, &addS.addS, failure);
 	}
 }

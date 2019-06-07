@@ -1,49 +1,50 @@
 
 module cwx.editor.gui.dwt.commons;
 
-import cwx.card;
 import cwx.area;
-import cwx.flag;
-import cwx.summary;
-import cwx.utils;
+import cwx.card;
 import cwx.event;
-import cwx.skin;
-import cwx.xml;
-import cwx.menu;
-import cwx.types;
-import cwx.structs;
-import cwx.system;
-import cwx.importutils;
-import cwx.path;
-import cwx.usecounter;
 import cwx.filesync;
+import cwx.flag;
+import cwx.importutils;
+import cwx.menu;
+import cwx.path;
+import cwx.skin;
+import cwx.structs;
+import cwx.summary;
+import cwx.system;
+import cwx.types;
+import cwx.usecounter;
+import cwx.utils;
+import cwx.xml;
 
-import cwx.editor.gui.dwt.dskin;
-import cwx.editor.gui.dwt.dprops;
-import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.areaview;
-import cwx.editor.gui.dwt.mainwindow;
 import cwx.editor.gui.dwt.areawindow;
-import cwx.editor.gui.dwt.cardwindow;
 import cwx.editor.gui.dwt.cardpane;
-import cwx.editor.gui.dwt.eventwindow;
-import cwx.editor.gui.dwt.eventview;
-import cwx.editor.gui.dwt.eventtreeview;
-import cwx.editor.gui.dwt.directorywindow;
+import cwx.editor.gui.dwt.cardwindow;
 import cwx.editor.gui.dwt.datawindow;
-import cwx.editor.gui.dwt.flagspane;
-import cwx.editor.gui.dwt.dockingfolder;
-import cwx.editor.gui.dwt.sbshell;
-import cwx.editor.gui.dwt.undo;
+import cwx.editor.gui.dwt.directorywindow;
 import cwx.editor.gui.dwt.dmenu;
-import cwx.editor.gui.dwt.xmlbytestransfer;
-import cwx.editor.gui.dwt.smalldialogs;
+import cwx.editor.gui.dwt.dockingfolder;
+import cwx.editor.gui.dwt.dprops;
+import cwx.editor.gui.dwt.dskin;
+import cwx.editor.gui.dwt.dutils;
+import cwx.editor.gui.dwt.eventtreeview;
+import cwx.editor.gui.dwt.eventview;
+import cwx.editor.gui.dwt.eventwindow;
+import cwx.editor.gui.dwt.flagspane;
+import cwx.editor.gui.dwt.history;
+import cwx.editor.gui.dwt.mainwindow;
 import cwx.editor.gui.dwt.namewindow;
+import cwx.editor.gui.dwt.sbshell;
+import cwx.editor.gui.dwt.smalldialogs;
+import cwx.editor.gui.dwt.undo;
+import cwx.editor.gui.dwt.xmlbytestransfer;
 
 import std.conv;
 import std.exception;
-import std.path;
 import std.file;
+import std.path;
 import std.typecons;
 
 import core.sync.mutex;
@@ -337,6 +338,7 @@ class Commons {
 	Dlg!(Shell) save;
 	Dlg!() saved;
 	Dlg!() refHistories;
+	Dlg!() refImportHistory;
 	Dlg!() refSearchHistories;
 	Dlg!() refExecutedParties;
 	Dlg!(Summary) refScenario;
@@ -751,8 +753,17 @@ class Commons {
 	/// 履歴を見て適用するべきスキンを探す。
 	Skin findSkinFromHistory(in Summary summ) { mixin(S_TRACE);
 		OpenHistory hist;
-		return _main.findSkinFromHistory(summ, hist);
+		return findSkinFromHistory(summ, hist);
 	}
+	/// ditto
+	Skin findSkinFromHistory(in Summary summ, out OpenHistory hist) { mixin(S_TRACE);
+		hist = .findHistory(this, .createHistString(summ));
+		if (hist.path.length && (hist.skinType.length || hist.skinEngine.length)) { mixin(S_TRACE);
+			return .findSkin(this, prop, summ, hist.skinType, hist.skinName, hist.skinEngine);
+		}
+		return .findSkin(this, prop, summ);
+	}
+
 	/// スキンに属する素材の拡張子が変更された場合は追従する。
 	void updateSkinMaterialsExtension(UseCounter useCounter, Skin oldSkin, Skin newSkin) { mixin(S_TRACE);
 		if (!useCounter) return;
@@ -1247,12 +1258,12 @@ class Commons {
 		AddCard.openScenario(this, prop, parent, setStatusLine, summ, summ, &addScenarioImpl);
 	}
 	/// ditto
-	void addScenario(Props prop, string[] paths) { mixin(S_TRACE);
+	void addScenario(Props prop, string[] paths, void delegate() failure = null) { mixin(S_TRACE);
 		auto summ = mainWin.summary;
 		if (!summ) return;
 		void delegate(string) setStatusLine = &mainWin.setStatusLine;
 		auto parent = mainWin.shell;
-		AddCard.openScenario(this, prop, parent, setStatusLine, summ, summ, paths, &addScenarioImpl);
+		AddCard.openScenario(this, prop, parent, setStatusLine, summ, summ, paths, &addScenarioImpl, failure);
 	}
 	/// ditto
 	void doImport(Summary to, Summary from, in string[] resCWXPath) { mixin(S_TRACE);

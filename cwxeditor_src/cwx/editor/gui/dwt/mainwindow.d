@@ -715,6 +715,10 @@ private:
 		sendReloadProps();
 	}
 
+	void refImportHistory() { mixin(S_TRACE);
+		sendReloadPropsAndSave();
+	}
+
 	Menu _mOuterTools;
 	Menu _tmOuterTools;
 	void refreshOuterTools() { mixin(S_TRACE);
@@ -1125,13 +1129,6 @@ private:
 	int ncmp(string a, string b) { mixin(S_TRACE);
 		return cwx.utils.ncmp(a, b);
 	}
-	public Skin findSkinFromHistory(in Summary summ, out OpenHistory hist) { mixin(S_TRACE);
-		hist = findHist(createHistString(summ));
-		if (hist.path.length && (hist.skinType.length || hist.skinEngine.length)) { mixin(S_TRACE);
-			return findSkin(_comm, _prop, summ, hist.skinType, hist.skinName, hist.skinEngine);
-		}
-		return findSkin(_comm, _prop, summ);
-	}
 	void openScenario(Summary summ, const string[] errorFiles) { mixin(S_TRACE);
 		string dStr = .text(__LINE__);
 		if (_prop.var.etc.cautionToScenarioLoadErrors && errorFiles.length) { mixin(S_TRACE);
@@ -1143,7 +1140,7 @@ private:
 			assert (summ);
 			dStr ~= " - " ~ .text(__LINE__);
 			OpenHistory hist;
-			auto skin = findSkinFromHistory(summ, hist);
+			auto skin = _comm.findSkinFromHistory(summ, hist);
 			dStr ~= " - " ~ .text(__LINE__);
 			if (summ.legacy && hist.path.length && (hist.skinType.length || hist.skinEngine.length)) { mixin(S_TRACE);
 				summ.type = hist.skinType;
@@ -1880,6 +1877,7 @@ private:
 			_comm.refScenario.remove(&refScenario);
 			_comm.refSoundType.remove(&refSoundType);
 			_comm.refExecutedParties.remove(&refExecutedParties);
+			_comm.refImportHistory.remove(&refImportHistory);
 			version (Console) {
 				debug writeln("Removed Receivers");
 			}
@@ -1963,47 +1961,92 @@ private:
 		}
 	}
 
+	@property
+	const
+	bool canEditScenarioHistory() { return _comm.prop.var.etc.scenarioBookmarks.length || _comm.prop.var.etc.openHistories.length; }
+
 	private ScenarioHistoryDialog _scHistDlg = null;
 	private void editScenarioHistory() { mixin(S_TRACE);
 		if (_scHistDlg) { mixin(S_TRACE);
 			_scHistDlg.active();
 		} else { mixin(S_TRACE);
-			_scHistDlg = new ScenarioHistoryDialog(_comm, _win);
+			_scHistDlg = new ScenarioHistoryDialog(_comm, _win, _prop.msgs.editScenarioHistory, _prop.images.menu(MenuID.EditScenarioHistory), _prop.var.etc.openHistories, _prop.var.etc.scenarioBookmarks);
 			_scHistDlg.closeEvent ~= { mixin(S_TRACE);
 				_scHistDlg = null;
 			};
 			_scHistDlg.appliedEvent ~= { mixin(S_TRACE);
-				_prop.var.save(dock);
-				sendReloadProps();
+				if (_scHistDlg.bookmark != _comm.prop.var.etc.scenarioBookmarks || _scHistDlg.history != _comm.prop.var.etc.openHistories) { mixin(S_TRACE);
+					_prop.var.etc.scenarioBookmarks = _scHistDlg.bookmark;
+					_prop.var.etc.openHistories = _scHistDlg.history;
+					_comm.refHistories.call();
+					_prop.var.save(dock);
+					sendReloadProps();
+				}
 			};
 			_scHistDlg.open();
 		}
 	}
+
+	@property
+	const
+	bool canEditImportHistory() { return _comm.prop.var.etc.importBookmarks.length || _comm.prop.var.etc.importHistory.length; }
+
+	private ScenarioHistoryDialog _importHistDlg = null;
+	private void editImportHistory() { mixin(S_TRACE);
+		if (_importHistDlg) { mixin(S_TRACE);
+			_importHistDlg.active();
+		} else { mixin(S_TRACE);
+			_importHistDlg = new ScenarioHistoryDialog(_comm, _win, _prop.msgs.editImportHistory, _prop.images.menu(MenuID.EditImportHistory), _prop.var.etc.importHistory, _prop.var.etc.importBookmarks);
+			_importHistDlg.closeEvent ~= { mixin(S_TRACE);
+				_importHistDlg = null;
+			};
+			_importHistDlg.appliedEvent ~= { mixin(S_TRACE);
+				if (_importHistDlg.bookmark != _comm.prop.var.etc.importBookmarks || _importHistDlg.history != _comm.prop.var.etc.importHistory) { mixin(S_TRACE);
+					_prop.var.etc.importBookmarks = _importHistDlg.bookmark;
+					_prop.var.etc.importHistory = _importHistDlg.history;
+					_comm.refImportHistory.call();
+				}
+			};
+			_importHistDlg.open();
+		}
+	}
+
 	@property
 	const
 	private bool canDelNotExistsScenario() { mixin(S_TRACE);
-		return _prop.var.etc.scenarioBookmarks.length ||  _prop.var.etc.openHistories.length;
+		return _prop.var.etc.scenarioBookmarks.length ||  _prop.var.etc.openHistories.length || _prop.var.etc.importBookmarks.length ||  _prop.var.etc.importHistory.length;
 	}
 	private void delNotExistsScenario() { mixin(S_TRACE);
-		OpenHistory[] bookmarks;
-		OpenHistory[] history;
-		foreach (m; _prop.var.etc.scenarioBookmarks) { mixin(S_TRACE);
-			auto f = .fullHistToHist(m.path);
-			if (f.exists()) bookmarks ~= m;
+		OpenHistory[] filter(OpenHistory[] arr) { mixin(S_TRACE);
+			OpenHistory[] r;
+			foreach (m; arr) { mixin(S_TRACE);
+				auto f = .fullHistToHist(m.path);
+				if (f.exists()) r ~= m;
+			}
+			return r;
 		}
-		foreach (m; _prop.var.etc.openHistories) { mixin(S_TRACE);
-			auto f = .fullHistToHist(m.path);
-			if (f.exists()) history ~= m;
+		auto update = false;
+		auto bookmarks = filter(_prop.var.etc.scenarioBookmarks);
+		auto history = filter(_prop.var.etc.openHistories);
+		if (bookmarks.length != _prop.var.etc.scenarioBookmarks.length || history.length != _prop.var.etc.openHistories.length) { mixin(S_TRACE);
+			_prop.var.etc.scenarioBookmarks = bookmarks;
+			_prop.var.etc.openHistories = history;
+			_comm.refHistories.call();
+			update = true;
 		}
-		if (bookmarks.length == _prop.var.etc.scenarioBookmarks.length && history.length == _prop.var.etc.openHistories.length) return;
-
-		_prop.var.etc.scenarioBookmarks = bookmarks;
-		_prop.var.etc.openHistories = history;
-
-		_comm.refHistories.call();
-		_prop.var.save(dock);
-		sendReloadProps();
-		_comm.refreshToolBar();
+		auto iBookmarks = filter(_prop.var.etc.importBookmarks);
+		auto iHistory = filter(_prop.var.etc.importHistory);
+		if (iBookmarks.length != _prop.var.etc.importBookmarks.length || iHistory.length != _prop.var.etc.importHistory.length) { mixin(S_TRACE);
+			_prop.var.etc.importBookmarks = iBookmarks;
+			_prop.var.etc.importHistory = iHistory;
+			_comm.refImportHistory.call();
+			update = true;
+		}
+		if (update) { mixin(S_TRACE);
+			_prop.var.save(dock);
+			sendReloadProps();
+			_comm.refreshToolBar();
+		}
 	}
 
 	void setHistSkin() { mixin(S_TRACE);
@@ -2028,46 +2071,8 @@ private:
 		}
 		history = hists;
 	}
-	OpenHistory findHist(string hist) { mixin(S_TRACE);
-		if ("" == hist) return OpenHistory("");
-		foreach (h; _prop.var.etc.scenarioBookmarks) { mixin(S_TRACE);
-			if (cfnmatch(fullHistToHist(h.path), hist)) { mixin(S_TRACE);
-				return h;
-			}
-		}
-		foreach (h; _prop.var.etc.openHistories) { mixin(S_TRACE);
-			if (cfnmatch(fullHistToHist(h.path), hist)) { mixin(S_TRACE);
-				return h;
-			}
-		}
-		return OpenHistory("");
-	}
 	string findFullHist(string hist) { mixin(S_TRACE);
-		return findHist(hist).path;
-	}
-	static string createHistString(in Summary summary) { mixin(S_TRACE);
-		if (!summary) return "";
-		string hist;
-		if (summary.readOnlyPath != "") { mixin(S_TRACE);
-			if (!summary.readOnlyPath.exists()) return "";
-			if (summary.readOnlyPath.isDir()) { mixin(S_TRACE);
-				hist = std.path.buildPath(summary.readOnlyPath, "Summary.wsm");
-			} else { mixin(S_TRACE);
-				hist = summary.readOnlyPath;
-			}
-		} else if (summary.legacy) { mixin(S_TRACE);
-			if (summary.useTemp) { mixin(S_TRACE);
-				hist = summary.origZipName;
-			} else { mixin(S_TRACE);
-				hist = std.path.buildPath(summary.scenarioPath, "Summary.wsm");
-			}
-		} else if (summary.useTemp) { mixin(S_TRACE);
-			hist = summary.origZipName;
-			if (!hist.length) return "";
-		} else { mixin(S_TRACE);
-			hist = std.path.buildPath(summary.scenarioPath, "Summary.xml");
-		}
-		return nabs(hist);
+		return .findHistory(_comm, hist).path;
 	}
 	string createFullHistString() { mixin(S_TRACE);
 		string hist = createHistString(summary);
@@ -2119,38 +2124,13 @@ private:
 	void addHistory() { mixin(S_TRACE);
 		auto hist = OpenHistory(createFullHistString());
 		if ("" == hist.path) return;
-		string p = fullHistToHist(hist.path);
+		auto p = fullHistToHist(hist.path);
 		if (summary.readOnlyPath != "") { mixin(S_TRACE);
 			_prop.var.etc.scenarioPath = .nabs(summary.readOnlyPath.dirName());
 		} else { mixin(S_TRACE);
 			_prop.var.etc.scenarioPath = summary.useTemp ? dirName(p) : dirName(dirName(p));
 		}
-		if (_prop.var.etc.historyMax == 0) { mixin(S_TRACE);
-			_prop.var.etc.openHistories = [];
-		} else { mixin(S_TRACE);
-			auto bookmarked = false;
-			foreach (h; _prop.var.etc.scenarioBookmarks) { mixin(S_TRACE);
-				if (cfnmatch(fullHistToHist(h.path), p)) { mixin(S_TRACE);
-					// すでにブックマークに登録されている
-					bookmarked = true;
-					break;
-				}
-			}
-			if (!bookmarked) { mixin(S_TRACE);
-				auto hists = _prop.var.etc.openHistories.dup;
-				foreach (i, h; hists) { mixin(S_TRACE);
-					if (cfnmatch(fullHistToHist(h.path), p)) { mixin(S_TRACE);
-						// すでに履歴中に存在するため、最新位置に移動
-						hist = h;
-						_prop.var.etc.openHistories = hists[0 .. i] ~ hists[i + 1 .. $];
-						hists = _prop.var.etc.openHistories.dup;
-						break;
-					}
-				}
-				_prop.var.etc.openHistories
-					= [hist] ~ (hists.length < _prop.var.etc.historyMax ? hists : hists[0 .. $ - 1]);
-			}
-		}
+		.addHistory(_comm, hist, _prop.var.etc.openHistories.value, _prop.var.etc.scenarioBookmarks.value);
 		if (summary && !_comm.isChanged) writeDock();
 		_prop.var.etc.lastScenario = p;
 		_prop.var.save(dock);
@@ -2158,8 +2138,14 @@ private:
 		_comm.refHistories.call();
 	}
 	class Hist {
+		static enum Type {
+			Open,
+			Import
+		}
+		private Type _type;
 		private string _hist;
-		this(Menu menu, int num, string hist) { mixin(S_TRACE);
+		this(Menu menu, Type type, int num, string hist) { mixin(S_TRACE);
+			_type = type;
 			hist = fullHistToHist(hist);
 			string text;
 			auto snipLen = _prop.var.etc.historySnipLength;
@@ -2195,11 +2181,18 @@ private:
 			_hist = hist;
 		}
 		private void run() { mixin(S_TRACE);
-			if (qSave(QSaveType.open)) { mixin(S_TRACE);
-				openScenario(_hist, { mixin(S_TRACE);
-					delHist();
-					resetOpt();
-				});
+			final switch (_type) {
+			case Type.Open:
+				if (qSave(QSaveType.open)) { mixin(S_TRACE);
+					openScenario(_hist, { mixin(S_TRACE);
+						delHist();
+						resetOpt();
+					});
+				}
+				break;
+			case Type.Import:
+				_comm.addScenario(_prop, [_hist], &delHist);
+				break;
 			}
 		}
 		private void delHist() { mixin(S_TRACE);
@@ -2314,23 +2307,50 @@ private:
 		if (_prop.var.etc.scenarioBookmarks.length) { mixin(S_TRACE);
 			new MenuItem(_menuFile, SWT.SEPARATOR);
 			foreach (hist; _prop.var.etc.scenarioBookmarks) { mixin(S_TRACE);
-				new Hist(_menuFile, i, hist.path);
+				new Hist(_menuFile, Hist.Type.Open, i, hist.path);
 				i++;
 			}
 		}
 		if (_prop.var.etc.openHistories.length) {
 			new MenuItem(_menuFile, SWT.SEPARATOR);
 			foreach (hist; _prop.var.etc.openHistories) { mixin(S_TRACE);
-				new Hist(_menuFile, i, hist.path);
+				new Hist(_menuFile, Hist.Type.Open, i, hist.path);
 				i++;
 			}
 		}
 		new MenuItem(_menuFile, SWT.SEPARATOR);
-		mixin(MenuAction!("_menuFile", MenuID.EditScenarioHistory, SWT.PUSH, "editScenarioHistory", "() => _prop.var.etc.scenarioBookmarks.length || _prop.var.etc.openHistories.length"));
+		mixin(MenuAction!("_menuFile", MenuID.EditScenarioHistory, SWT.PUSH, "editScenarioHistory", "&canEditScenarioHistory"));
 		new MenuItem(_menuFile, SWT.SEPARATOR);
 		createMenuItem(_comm, _menuFile, MenuID.Close, &exitAll, null);
 		setupMenu(_menu);
 	}
+
+	void createImportHistoryMenu(Menu menu, bool withSelectScenario) { mixin(S_TRACE);
+		foreach (itm; menu.getItems()) { mixin(S_TRACE);
+			itm.dispose();
+		}
+		if (withSelectScenario) { mixin(S_TRACE);
+			.createMenuItem(_comm, menu, MenuID.SelectImportSource, &addScenario, &canAddScenario);
+		}
+		auto i = 0;
+		if (_prop.var.etc.importBookmarks.length) { mixin(S_TRACE);
+			if (menu.getItemCount()) new MenuItem(menu, SWT.SEPARATOR);
+			foreach (hist; _prop.var.etc.importBookmarks) { mixin(S_TRACE);
+				new Hist(menu, Hist.Type.Import, i, hist.path);
+				i++;
+			}
+		}
+		if (_prop.var.etc.importHistory.length) {
+			if (menu.getItemCount()) new MenuItem(menu, SWT.SEPARATOR);
+			foreach (hist; _prop.var.etc.importHistory) { mixin(S_TRACE);
+				new Hist(menu, Hist.Type.Import, i, hist.path);
+				i++;
+			}
+		}
+		if (menu.getItemCount()) new MenuItem(menu, SWT.SEPARATOR);
+		.createMenuItem(_comm, menu, MenuID.EditImportHistory, &editImportHistory, () => _prop.var.etc.importBookmarks.length || _prop.var.etc.importHistory.length);
+	}
+
 	string _pipeName = "";
 	class OpenCWXPath : Runnable {
 		string path;
@@ -2871,6 +2891,7 @@ public:
 			_comm.refScenario.add(&refScenario);
 			_comm.refSoundType.add(&refSoundType);
 			_comm.refExecutedParties.add(&refExecutedParties);
+			_comm.refImportHistory.add(&refImportHistory);
 			_win.addDisposeListener(new DListener);
 			_win.addShellListener(new SListener);
 			_comm.refreshWallpaper(_prop);
@@ -3305,7 +3326,12 @@ public:
 				_mOuterTools = new Menu(otmi);
 				otmi.setMenu(_mOuterTools);
 				new MenuItem(mt, SWT.SEPARATOR);
-				mixin(MenuAction!("mt", MenuID.OpenImportSource, SWT.PUSH, "addScenario", "&canAddScenario"));
+				auto impmi = createMenuItem(_comm, mt, MenuID.OpenImportSource, dummy, () => canAddScenario || canEditImportHistory, SWT.CASCADE);
+				auto impm = new Menu(impmi);
+				impmi.setMenu(impm);
+				.listener(impm, SWT.Show, { mixin(S_TRACE);
+					createImportHistoryMenu(impm, true);
+				});
 				new MenuItem(mt, SWT.SEPARATOR);
 				mixin(MenuAction!("mt", MenuID.CustomizeToolBar, SWT.PUSH, "customizeToolBar", "null"));
 				new MenuItem(mt, SWT.SEPARATOR);
@@ -3449,6 +3475,7 @@ public:
 		_tmExecEngineWithParty = null;
 		_tiExecEngineWithParty = null;
 		_tmOuterTools = null;
+		_tmOpenImportSource = null;
 
 		_toolRG = [];
 		_toolBar = [];
@@ -3514,7 +3541,8 @@ public:
 						case MenuID.SaveAs: act = &saveScenarioA; can = () => summary !is null && !_inSaving; break;
 						case MenuID.CreateArchive: act = &_dirWin.createArchive; can = &_dirWin.canCreateArchive; break;
 						case MenuID.Reload: act = &reload; can = () => _prop.var.etc.scenarioBookmarks.length || _prop.var.etc.openHistories.length; break;
-						case MenuID.EditScenarioHistory: act = &editScenarioHistory; can = () => summary !is null; break;
+						case MenuID.EditScenarioHistory: act = &editScenarioHistory; can = &canEditScenarioHistory; break;
+						case MenuID.EditImportHistory: act = &editImportHistory; can = &canEditImportHistory; break;
 						case MenuID.Refresh: actS = &refreshAll; can = () => summary !is null; break;
 						case MenuID.Find: act = &replaceText; can = null; break;
 						case MenuID.ReNumberingAll: act = &reNumberingAll; can = () => summary !is null; break;
@@ -3550,7 +3578,8 @@ public:
 						case MenuID.NewItem: act = &newItem; can = &canNewItem; break;
 						case MenuID.NewBeast: act = &newBeast; can = &canNewBeast; break;
 						case MenuID.NewInfo: act = &newInfo; can = &canNewInfo; break;
-						case MenuID.OpenImportSource: act = &addScenario; can = &canAddScenario; break;
+						case MenuID.OpenImportSource: createOpenImportSourceTI(bar); continue;
+						case MenuID.SelectImportSource: act = &addScenario; can = &canAddScenario; break;
 						case MenuID.OpenDir: act = &openDirectory; can = &canOpenDirectory; break;
 						case MenuID.OpenBackupDir: act = &openBackupDirectory; can = &canOpenBackupDirectory; break;
 						case MenuID.NewDir: act = &_dirWin.createNewFolder; can = &_dirWin.canCreateNewFolder; break;
@@ -3831,6 +3860,15 @@ public:
 		_mainMenu.add(MenuID.OuterTools);
 		auto ti = createDropDownItem(_comm, bar, MenuID.OuterTools, null, _tmOuterTools, () => _prop.var.etc.outerTools.length > 0);
 		_tool[MenuID.OuterTools] = ti;
+	}
+	private Menu _tmOpenImportSource = null;
+	private void createOpenImportSourceTI(ToolBar bar) { mixin(S_TRACE);
+		_mainMenu.add(MenuID.OpenImportSource);
+		auto ti = createDropDownItem(_comm, bar, MenuID.OpenImportSource, &addScenario, _tmOpenImportSource, () => canAddScenario || canEditImportHistory, true);
+		_tool[MenuID.OpenImportSource] = ti;
+		.listener(_tmOpenImportSource, SWT.Show, { mixin(S_TRACE);
+			createImportHistoryMenu(_tmOpenImportSource, false);
+		});
 	}
 	ToolBarCustomDialog _customizeToolBarDlg = null;
 	private void customizeToolBar() { mixin(S_TRACE);

@@ -420,6 +420,8 @@ class FlexEtcProps : Properties {
 	auto historyMax = Prop!(int)("historyMax", 10);
 	auto historySnipLength = Prop!(int)("historySnipLength", 30);
 	auto lastScenario = Prop!(string)("lastScenario", "");
+	auto importHistory = Prop!(OpenHistory[])("importHistory", []);
+	auto importBookmarks = Prop!(OpenHistory[])("importBookmarks", []);
 	auto searchResultTableWidth = Prop!(int, true, true)("searchResultTableWidth", 400);
 	auto searchResultTableHeight = Prop!(int, true, true)("searchResultTableHeight", 200);
 	version (Windows) {
