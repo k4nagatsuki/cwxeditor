@@ -696,7 +696,10 @@ private:
 		_phyParent.layout();
 	}
 	void modPhysical() { mixin(S_TRACE);
-		if (ignoreMod) return;
+		modPhysical(false);
+	}
+	void modPhysical(bool force) { mixin(S_TRACE);
+		if (ignoreMod && !force) return;
 		int[] vals;
 		if (_phyR) vals = _phyR.getValues();
 		if (_phyS) vals = _phyS.getValues();
@@ -847,7 +850,7 @@ private:
 			} else { mixin(S_TRACE);
 				_phyS.setValues(vals);
 			}
-			modPhysical();
+			modPhysical(false);
 		}
 	}
 	void constructMental(CTabFolder tabf) { mixin(S_TRACE);
@@ -1721,7 +1724,7 @@ protected:
 			resetLiveStatus();
 		}
 		setMaxLife();
-		modPhysical();
+		modPhysical(true);
 	}
 
 	private Coupon createCoupon(E)(Button[E] radios, string delegate(E) coupon) { mixin(S_TRACE);
