@@ -2278,7 +2278,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		if (_gossip) _gossip.expandSPChars = val;
 		if (_couponNames) _couponNames.expandSPChars = val;
 		foreach (c; _next) { mixin(S_TRACE);
-			c._branchCouponCondition.expandSPChars = val;
+			if (c._branchCouponCondition) c._branchCouponCondition.expandSPChars = val;
 		}
 		return true;
 	}
