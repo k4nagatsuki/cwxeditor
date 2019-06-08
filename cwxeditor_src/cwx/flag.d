@@ -996,7 +996,8 @@ public:
 		return parent ~ SEPARATOR ~ path;
 	}
 	/// ルートディレクトリを生成する。
-	package this (CWXPath owner, string localVariablePrefix = "") { mixin(S_TRACE);
+	/// ローカル変数のルートディレクトリの場合はownerにローカル変数の所持者を指定する。
+	package this (CWXPath owner, string localVariablePrefix) { mixin(S_TRACE);
 		_id = .objectIDValue(this);
 		_owner = owner;
 		_localVariablePrefix = localVariablePrefix;
@@ -1010,6 +1011,7 @@ public:
 	}
 	/// コピーコンストラクタ。
 	/// サブディレクトリ等も全てコピーされる。
+	/// ローカル変数のルートディレクトリの場合はownerにローカル変数の所持者を指定する。
 	this (CWXPath owner, in FlagDir copyBase) { mixin(S_TRACE);
 		this (owner, copyBase._localVariablePrefix);
 		if (copyBase.name != "") name = copyBase.name;
@@ -1026,6 +1028,12 @@ public:
 			add(new Variant(s));
 		}
 	}
+
+	/// ローカル変数のルートディレクトリの場合は、ローカル変数の所持者。
+	@property
+	inout
+	inout(CWXPath) localOwner() { return _owner; }
+
 	@property
 	override string cwxPath(bool id) { mixin(S_TRACE);
 		if (_owner) { mixin(S_TRACE);
@@ -1675,13 +1683,13 @@ public:
 		return (len <= tlen) && (tpath[0 .. len] == path);
 	} unittest { mixin(S_TRACE);
 		debug mixin(UTPerf);
-		auto dir1 = new FlagDir(cast(CWXPath) null);
+		auto dir1 = new FlagDir(cast(CWXPath)null, "");
 		auto dir2 = new FlagDir("aaaaA");
 		dir1.add(dir2);
 		auto dir3 = new FlagDir("fsadfawegGGGg");
 		dir2.add(dir3);
 
-		auto dir4 = new FlagDir(cast(CWXPath) null);
+		auto dir4 = new FlagDir(cast(CWXPath)null, "");
 		auto dir5 = new FlagDir("aaaaA");
 		dir4.add(dir5);
 		auto dir6 = new FlagDir("fsadfawegGGGga");

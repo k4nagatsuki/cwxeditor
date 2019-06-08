@@ -1428,14 +1428,14 @@ package class UndoAllVariables : FTVUndo {
 	this (FlagTable v, Commons comm, UseCounter uc, FlagDir dir, FlagDir root) { mixin(S_TRACE);
 		super (v, comm, uc, dir);
 		_root = root;
-		_copyRoot = new FlagDir(root);
+		_copyRoot = new FlagDir(root.localOwner, root);
 	}
 	private void impl() { mixin(S_TRACE);
 		auto v = view();
 		udb(v);
 		scope (exit) uda(v);
 		auto copy = _copyRoot;
-		_copyRoot = new FlagDir(_root);
+		_copyRoot = new FlagDir(_root.localOwner, _root);
 
 		_root.removeAll();
 		foreach (f; copy.flags) _root.add(f);
@@ -1702,7 +1702,7 @@ package class UndoInsertDelete : FTVUndo {
 	private void save(FlagDir[ptrdiff_t] ds, cwx.flag.Flag[ptrdiff_t] fs, Step[ptrdiff_t] ss, cwx.flag.Variant[ptrdiff_t] vs) { mixin(S_TRACE);
 		_ds = null;
 		foreach (index, d; ds) { mixin(S_TRACE);
-			_ds[index] = new FlagDir(d);
+			_ds[index] = new FlagDir(d.localOwner, d);
 		}
 		_fs = null;
 		foreach (index, f; fs) { mixin(S_TRACE);

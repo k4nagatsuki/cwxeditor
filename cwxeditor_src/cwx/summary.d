@@ -196,7 +196,7 @@ private:
 		_sPath = sPath;
 		_id = .objectIDValue(this);
 		_uc = new UseCounter(this);
-		_froot = new FlagDir(this);
+		_froot = new FlagDir(this, "");
 		_froot.changeHandler = &changeHandler;
 		_froot.useCounter = useCounter;
 		_startAreaId = new AreaUser(this);
