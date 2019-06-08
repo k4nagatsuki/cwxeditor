@@ -982,7 +982,7 @@ private:
 	}
 	void selectMenu() { mixin(S_TRACE);
 		ignoreMod = true;
-		scope (exit) ignoreMod = false;
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		auto i = _menu.getSelectionIndex();
 		if (-1 == i) return;
 		auto itm = _menu.getItem(i);
@@ -994,7 +994,7 @@ private:
 	}
 	void applyMenu() { mixin(S_TRACE);
 		ignoreMod = true;
-		scope (exit) ignoreMod = false;
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		auto i = _menu.getSelectionIndex();
 		if (i == -1) return;
 		auto itm = _menu.getItem(i);
@@ -1048,7 +1048,7 @@ private:
 	class DelMenuAccel : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			ignoreMod = true;
-			scope (exit) ignoreMod = false;
+			scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 			_mnemonic.setText("");
 			_hotkey.widget.setText("");
 			applyMenu();
@@ -2349,7 +2349,10 @@ private:
 
 	void selected() { mixin(S_TRACE);
 		_ignoreMod(true);
-		scope (exit) _ignoreMod(false);
+		scope (exit) .asyncExec(getShell().getDisplay(), { mixin(S_TRACE);
+			_canApply = false;
+			_ignoreMod(false);
+		});
 		int i = _list.getSelectionIndex();
 		_lastSelected = i;
 		_del.setEnabled(i >= 0);
@@ -2654,9 +2657,10 @@ private:
 		return spn;
 	}
 	void modB(C)(Button button, List list, C ctrl, ref bool flag) { mixin(S_TRACE);
-		static if (is(C : Button)) {
+		static if (is(C:Button)) {
 			ctrl.addSelectionListener(new class SelectionAdapter {
 				override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
+					if (!_catchMod()) return;
 					if (0 < list.getItemCount()) { mixin(S_TRACE);
 						button.setEnabled(true);
 					}
@@ -2666,6 +2670,7 @@ private:
 		} else { mixin(S_TRACE);
 			ctrl.addModifyListener(new class ModifyListener {
 				override void modifyText(ModifyEvent e) { mixin(S_TRACE);
+					if (!_catchMod()) return;
 					if (0 < list.getItemCount()) { mixin(S_TRACE);
 						button.setEnabled(true);
 					}

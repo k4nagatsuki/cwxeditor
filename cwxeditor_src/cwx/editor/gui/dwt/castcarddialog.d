@@ -722,7 +722,7 @@ private:
 	}
 	void refCastCardParameterEditStyle() { mixin(S_TRACE);
 		ignoreMod = true;
-		scope (exit) ignoreMod = false;
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		_physicalComp.setRedraw(false);
 		scope (exit) _physicalComp.setRedraw(true);
 		_mentalComp.setRedraw(false);
@@ -1587,7 +1587,7 @@ protected:
 	private void refCard(CastCard card) { mixin(S_TRACE);
 		if (_card && _card !is card) return;
 		ignoreMod = true;
-		scope (exit) ignoreMod = false;
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		auto skin = summSkin;
 		if (_card) { mixin(S_TRACE);
 			_imgPath.images = _card.paths;

@@ -258,7 +258,7 @@ class EventTreeDialog : AbsDialog {
 		});
 
 		ignoreMod = true;
-		scope (exit) ignoreMod = false;
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 
 		assert (_et !is null);
 		_name.setText(_et.name);

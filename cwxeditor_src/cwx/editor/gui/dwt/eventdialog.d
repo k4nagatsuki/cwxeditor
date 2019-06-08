@@ -608,7 +608,7 @@ protected:
 		}
 
 		ignoreMod = true;
-		scope (exit) ignoreMod = false;
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		if (_evt) { mixin(S_TRACE);
 			static if (Type == CType.ChangeArea) {
 				_list.selected = _evt.area;
@@ -780,7 +780,7 @@ protected:
 		if (!summ) _list.setEnabled(false);
 
 		ignoreMod = true;
-		scope (exit) ignoreMod = false;
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		if (_evt) { mixin(S_TRACE);
 			_selected = _evt.start;
 			foreach (i, itm; _list.getItems()) { mixin(S_TRACE);
@@ -1484,7 +1484,7 @@ protected:
 		}
 
 		ignoreMod = true;
-		scope (exit) ignoreMod = false;
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		if (_evt) { mixin(S_TRACE);
 			_name.setText(mixin(Get));
 			if (_expandSPChars) _expandSPChars.setSelection(_evt.expandSPChars);
@@ -1636,7 +1636,7 @@ protected:
 		}
 
 		ignoreMod = true;
-		scope (exit) ignoreMod = false;
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		if (_evt) { mixin(S_TRACE);
 			if (_cellName) _cellName.setText(_evt.cellName);
 			if (_doAnime) _doAnime.setSelection(_evt.doAnime);
@@ -1728,7 +1728,7 @@ protected:
 		}
 
 		ignoreMod = true;
-		scope (exit) ignoreMod = false;
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		if (_evt) { mixin(S_TRACE);
 			_name.setText(_evt.cellName);
 			_doAnime.setSelection(_evt.doAnime);
@@ -1803,7 +1803,7 @@ protected:
 			_msel.createFadeIn(comp).setLayoutData(h4GD(GridData.HORIZONTAL_ALIGN_END));
 		}
 		ignoreMod = true;
-		scope (exit) ignoreMod = false;
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		_msel.path = _evt ? _evt.bgmPath : "";
 		if (_evt) { mixin(S_TRACE);
 			_msel.volume = _evt.bgmVolume;
@@ -1874,7 +1874,7 @@ protected:
 			_msel.createFadeIn(comp).setLayoutData(h5GD(GridData.HORIZONTAL_ALIGN_END));
 		}
 		ignoreMod = true;
-		scope (exit) ignoreMod = false;
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		_msel.path = _evt ? _evt.soundPath : "";
 		if (_evt) { mixin(S_TRACE);
 			_msel.volume = _evt.soundVolume;
@@ -1957,7 +1957,7 @@ protected:
 		}
 
 		ignoreMod = true;
-		scope (exit) ignoreMod = false;
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		if (_evt) { mixin(S_TRACE);
 			_value.setSelection(mixin(Get));
 		} else { mixin(S_TRACE);
@@ -2278,7 +2278,7 @@ protected:
 
 		tabf.setLayoutData(area.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		ignoreMod = true;
-		scope (exit) ignoreMod = false;
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		if (_evt) { mixin(S_TRACE);
 			_mview.motions = _evt.motions;
 			_lev.setSelection(_evt.signedLevel);
@@ -2586,7 +2586,7 @@ protected:
 		}
 
 		ignoreMod = true;
-		scope (exit) ignoreMod = false;
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		if (_evt) { mixin(S_TRACE);
 			static if (is(F == cwx.flag.Flag)) {
 				_flags.selected = _evt.flag;
@@ -2778,7 +2778,7 @@ protected:
 		}
 
 		ignoreMod = true;
-		scope (exit) ignoreMod = false;
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		if (_evt) { mixin(S_TRACE);
 			static if (is(F == cwx.flag.Flag)) {
 				_flags1.selected = _evt.flag;
@@ -2908,7 +2908,7 @@ protected:
 		}
 
 		ignoreMod = true;
-		scope (exit) ignoreMod = false;
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		if (_evt) { mixin(S_TRACE);
 			_all[_evt.targetAll ? 1 : 0].setSelection(true);
 			_method[cast(size_t)_evt.selectionMethod].setSelection(true);
@@ -3097,7 +3097,7 @@ protected:
 		_ability.setLayoutData(new GridData(GridData.FILL_BOTH));
 
 		ignoreMod = true;
-		scope (exit) ignoreMod = false;
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		if (_evt) { mixin(S_TRACE);
 			_lev.setSelection(_evt.signedLevel);
 			_targ[_evt.targetS.m].setSelection(true);
@@ -3171,7 +3171,7 @@ protected:
 		}
 
 		ignoreMod = true;
-		scope (exit) ignoreMod = false;
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		if (_evt) { mixin(S_TRACE);
 			_ave[_evt.average ? 0 : 1].setSelection(true);
 			_lev.setSelection(_evt.unsignedLevel);
@@ -3308,7 +3308,7 @@ protected:
 		hint.setLayoutData(hgd);
 
 		ignoreMod = true;
-		scope (exit) ignoreMod = false;
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		if (_evt) { mixin(S_TRACE);
 			_stat[_evt.status].setSelection(true);
 			_invertResult.select(_evt.invertResult ? 1 : 0);
@@ -3633,7 +3633,7 @@ protected:
 		}
 
 		ignoreMod = true;
-		scope (exit) ignoreMod = false;
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		if (_evt) { mixin(S_TRACE);
 			static if (is(C == SkillCard)) {
 				_selectedID = _evt.skill;
@@ -3758,7 +3758,7 @@ protected:
 		}
 
 		ignoreMod = true;
-		scope (exit) ignoreMod = false;
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		if (_evt) { mixin(S_TRACE);
 			_cardSpeed.speed = _evt.cardSpeed;
 		} else { mixin(S_TRACE);
@@ -3941,7 +3941,7 @@ protected:
 		hint.setLayoutData(hgd);
 
 		ignoreMod = true;
-		scope (exit) ignoreMod = false;
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		if (_evt) { mixin(S_TRACE);
 			foreach (e; _evt.castRange) { mixin(S_TRACE);
 				_castRange[e].setSelection(true);
@@ -4224,7 +4224,7 @@ protected:
 		}
 
 		ignoreMod = true;
-		scope (exit) ignoreMod = false;
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		if (_evt) { mixin(S_TRACE);
 			_keyCodeRange[_evt.keyCodeRange].setSelection(true);
 			if (_effectCardTypeWsn1.length) { mixin(S_TRACE);
@@ -4369,7 +4369,7 @@ protected:
 		}
 
 		ignoreMod = true;
-		scope (exit) ignoreMod = false;
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		if (_evt) { mixin(S_TRACE);
 			_value.setSelection(_evt.round);
 			_cmp.select(cast(int)_cmps.countUntil(_evt.comparison3));
@@ -4510,7 +4510,7 @@ protected:
 		}
 
 		ignoreMod = true;
-		scope (exit) ignoreMod = false;
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		if (_evt) { mixin(S_TRACE);
 			_cellName.setText(_evt.cellName);
 			_positionType[_evt.positionType].setSelection(true);
@@ -4683,7 +4683,7 @@ protected:
 		}
 
 		ignoreMod = true;
-		scope (exit) ignoreMod = false;
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		if (_evt) { mixin(S_TRACE);
 			_cardGroup.setText(_evt.cardGroup);
 			_positionType[_evt.positionType].setSelection(true);
@@ -4772,7 +4772,7 @@ protected:
 		.listener(_expandSPChars, SWT.Selection, &refreshWarning);
 
 		ignoreMod = true;
-		scope (exit) ignoreMod = false;
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		if (_evt) { mixin(S_TRACE);
 			_expandSPChars.setSelection(_evt.expandSPChars);
 		}
@@ -4827,7 +4827,7 @@ protected:
 		}
 
 		ignoreMod = true;
-		scope (exit) ignoreMod = false;
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		if (_evt) { mixin(S_TRACE);
 			_consumeCard.setSelection(_evt.consumeCard);
 		} else { mixin(S_TRACE);
@@ -4889,7 +4889,7 @@ protected:
 		}
 
 		ignoreMod = true;
-		scope (exit) ignoreMod = false;
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		if (_evt) { mixin(S_TRACE);
 			_backpackEnabled.select(cast(int)_backpackEnableds.countUntil(_evt.backpackEnabled));
 		} else { mixin(S_TRACE);

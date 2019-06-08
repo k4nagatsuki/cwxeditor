@@ -263,7 +263,7 @@ private:
 		}
 		void refreshCasts() { mixin(S_TRACE);
 			ignoreMod = true;
-			scope (exit) ignoreMod = false;
+			scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 			if (_summ) { mixin(S_TRACE);
 				if (!_summ.casts.length) { mixin(S_TRACE);
 					forceCancel();
@@ -743,7 +743,7 @@ protected:
 		_comm.refTargetVersion.add(&refDataVersion);
 		_comm.refPreviewValues.add(&updateToolTip);
 		ignoreMod = true;
-		scope (exit) ignoreMod = false;
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		if (_card) { mixin(S_TRACE);
 			static if (is(C == MenuCard)) {
 				_imgPath.images = _card.paths;

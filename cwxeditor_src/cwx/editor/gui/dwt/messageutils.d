@@ -1193,7 +1193,7 @@ protected:
 		});
 
 		ignoreMod = true;
-		scope (exit) ignoreMod = false;
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		if (evt) { mixin(S_TRACE);
 			switch (evt.talkerNC) {
 			case Talker.Selected:
@@ -1450,7 +1450,7 @@ protected:
 		_tabf.addSelectionListener(new SL);
 
 		ignoreMod = true;
-		scope (exit) ignoreMod = false;
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		_tabf.setSelection(0);
 		if (evt) { mixin(S_TRACE);
 			_text.setText(evt.text);

@@ -581,7 +581,7 @@ protected:
 		}
 
 		ignoreMod = true;
-		scope (exit) ignoreMod = false;
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		if (_step !is null) { mixin(S_TRACE);
 			if (_step.parent) { mixin(S_TRACE);
 				_name.setText(_step.name);
@@ -1038,7 +1038,7 @@ protected:
 		}
 
 		ignoreMod = true;
-		scope (exit) ignoreMod = false;
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		if (_flag !is null) { mixin(S_TRACE);
 			flagName.setText(_flag.name);
 			flagTrue.setText(_flag.on);
@@ -1269,7 +1269,7 @@ protected:
 		}
 
 		ignoreMod = true;
-		scope (exit) ignoreMod = false;
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		if (_variant) { mixin(S_TRACE);
 			_name.setText(_variant.name);
 			_numVal.setText(.variantValueToText(VariantVal(VariantType.Number)));

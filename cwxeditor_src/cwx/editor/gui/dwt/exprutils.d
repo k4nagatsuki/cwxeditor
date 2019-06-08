@@ -108,7 +108,7 @@ protected:
 		}
 
 		ignoreMod = true;
-		scope (exit) ignoreMod = false;
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		if (evt) { mixin(S_TRACE);
 			_expr.expression = evt.expression;
 		} else { mixin(S_TRACE);
@@ -324,7 +324,7 @@ protected:
 		}
 
 		ignoreMod = true;
-		scope (exit) ignoreMod = false;
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		if (evt) { mixin(S_TRACE);
 			_expr.expression = evt.expression;
 			if (evt.flag != "") { mixin(S_TRACE);
