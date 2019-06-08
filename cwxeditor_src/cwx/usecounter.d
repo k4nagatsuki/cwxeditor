@@ -319,11 +319,12 @@ public:
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
-		if (uc && _flag) { mixin(S_TRACE);
-			uc.add(toFlagId(_flag), this);
-		}
+		if (_uc is uc) return;
 		if (_uc && _flag) { mixin(S_TRACE);
 			_uc.remove(toFlagId(_flag), this);
+		}
+		if (uc && _flag) { mixin(S_TRACE);
+			uc.add(toFlagId(_flag), this);
 		}
 		_uc = uc;
 	}
@@ -443,11 +444,12 @@ public:
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
-		if (uc && _step) { mixin(S_TRACE);
-			uc.add(toStepId(_step), this);
-		}
+		if (_uc is uc) return;
 		if (_uc && _step) { mixin(S_TRACE);
 			_uc.remove(toStepId(_step), this);
+		}
+		if (uc && _step) { mixin(S_TRACE);
+			uc.add(toStepId(_step), this);
 		}
 		_uc = uc;
 	}
@@ -567,11 +569,12 @@ public:
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
-		if (uc && _variant) { mixin(S_TRACE);
-			uc.add(toVariantId(_variant), this);
-		}
+		if (_uc is uc) return;
 		if (_uc && _variant) { mixin(S_TRACE);
 			_uc.remove(toVariantId(_variant), this);
+		}
+		if (uc && _variant) { mixin(S_TRACE);
+			uc.add(toVariantId(_variant), this);
 		}
 		_uc = uc;
 	}
@@ -661,11 +664,12 @@ public:
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
-		if (uc && _id > 0) { mixin(S_TRACE);
-			uc.add(toAreaId(_id), this);
-		}
+		if (_uc is uc) return;
 		if (_uc && _id > 0) { mixin(S_TRACE);
 			_uc.remove(toAreaId(_id), this);
+		}
+		if (uc && _id > 0) { mixin(S_TRACE);
+			uc.add(toAreaId(_id), this);
 		}
 		_uc = uc;
 	}
@@ -761,11 +765,12 @@ public:
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
-		if (uc && _id > 0) { mixin(S_TRACE);
-			uc.add(toBattleId(_id), this);
-		}
+		if (_uc is uc) return;
 		if (_uc && _id > 0) { mixin(S_TRACE);
 			_uc.remove(toBattleId(_id), this);
+		}
+		if (uc && _id > 0) { mixin(S_TRACE);
+			uc.add(toBattleId(_id), this);
 		}
 		_uc = uc;
 	}
@@ -853,11 +858,12 @@ public:
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
-		if (uc && _id > 0) { mixin(S_TRACE);
-			uc.add(toPackageId(_id), this);
-		}
+		if (_uc is uc) return;
 		if (_uc && _id > 0) { mixin(S_TRACE);
 			_uc.remove(toPackageId(_id), this);
+		}
+		if (uc && _id > 0) { mixin(S_TRACE);
+			uc.add(toPackageId(_id), this);
 		}
 		_uc = uc;
 	}
@@ -1053,11 +1059,12 @@ public:
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
-		if (uc && _path.valid) { mixin(S_TRACE);
-			uc.add(_path, this);
-		}
+		if (_uc is uc) return;
 		if (_uc && _path.valid) { mixin(S_TRACE);
 			_uc.remove(_path, this);
+		}
+		if (uc && _path.valid) { mixin(S_TRACE);
+			uc.add(_path, this);
 		}
 		_uc = uc;
 	}
@@ -1140,11 +1147,12 @@ public:
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
-		if (uc && _id > 0) { mixin(S_TRACE);
-			uc.add(toCastId(_id), this);
-		}
+		if (_uc is uc) return;
 		if (_uc && _id > 0) { mixin(S_TRACE);
 			_uc.remove(toCastId(_id), this);
+		}
+		if (uc && _id > 0) { mixin(S_TRACE);
+			uc.add(toCastId(_id), this);
 		}
 		_uc = uc;
 	}
@@ -1221,11 +1229,12 @@ public:
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
-		if (uc && _id > 0) { mixin(S_TRACE);
-			uc.add(toSkillId(_id), this);
-		}
+		if (_uc is uc) return;
 		if (_uc && _id > 0) { mixin(S_TRACE);
 			_uc.remove(toSkillId(_id), this);
+		}
+		if (uc && _id > 0) { mixin(S_TRACE);
+			uc.add(toSkillId(_id), this);
 		}
 		_uc = uc;
 	}
@@ -1302,11 +1311,12 @@ public:
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
-		if (uc && _id > 0) { mixin(S_TRACE);
-			uc.add(toItemId(_id), this);
-		}
+		if (_uc is uc) return;
 		if (_uc && _id > 0) { mixin(S_TRACE);
 			_uc.remove(toItemId(_id), this);
+		}
+		if (uc && _id > 0) { mixin(S_TRACE);
+			uc.add(toItemId(_id), this);
 		}
 		_uc = uc;
 	}
@@ -1383,11 +1393,12 @@ public:
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
-		if (uc && _id > 0) { mixin(S_TRACE);
-			uc.add(toBeastId(_id), this);
-		}
+		if (_uc is uc) return;
 		if (_uc && _id > 0) { mixin(S_TRACE);
 			_uc.remove(toBeastId(_id), this);
+		}
+		if (uc && _id > 0) { mixin(S_TRACE);
+			uc.add(toBeastId(_id), this);
 		}
 		_uc = uc;
 	}
@@ -1464,11 +1475,12 @@ public:
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
-		if (uc && _id > 0) { mixin(S_TRACE);
-			uc.add(toInfoId(_id), this);
-		}
+		if (_uc is uc) return;
 		if (_uc && _id > 0) { mixin(S_TRACE);
 			_uc.remove(toInfoId(_id), this);
+		}
+		if (uc && _id > 0) { mixin(S_TRACE);
+			uc.add(toInfoId(_id), this);
 		}
 		_uc = uc;
 	}
@@ -1591,11 +1603,11 @@ public:
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
 		if (uc is _uc) return;
-		if (uc && _coupon.text != "") { mixin(S_TRACE);
-			uc.add(toCouponId(_coupon.text), this);
-		}
 		if (_uc && _coupon.text != "") { mixin(S_TRACE);
 			_uc.remove(toCouponId(_coupon.text), this);
+		}
+		if (uc && _coupon.text != "") { mixin(S_TRACE);
+			uc.add(toCouponId(_coupon.text), this);
 		}
 		if (expandSPChars) _coupon.setUseCounter(uc);
 		_uc = uc;
@@ -1719,11 +1731,11 @@ public:
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
 		if (uc is _uc) return;
-		if (uc && _gossip.text != "") { mixin(S_TRACE);
-			uc.add(toGossipId(_gossip.text), this);
-		}
 		if (_uc && _gossip.text != "") { mixin(S_TRACE);
 			_uc.remove(toGossipId(_gossip.text), this);
+		}
+		if (uc && _gossip.text != "") { mixin(S_TRACE);
+			uc.add(toGossipId(_gossip.text), this);
 		}
 		if (expandSPChars) _gossip.setUseCounter(uc);
 		_uc = uc;
@@ -1803,11 +1815,12 @@ public:
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
-		if (uc && _completeStamp != "") { mixin(S_TRACE);
-			uc.add(toCompleteStampId(_completeStamp), this);
-		}
+		if (_uc is uc) return;
 		if (_uc && _completeStamp != "") { mixin(S_TRACE);
 			_uc.remove(toCompleteStampId(_completeStamp), this);
+		}
+		if (uc && _completeStamp != "") { mixin(S_TRACE);
+			uc.add(toCompleteStampId(_completeStamp), this);
 		}
 		_uc = uc;
 	}
@@ -1879,11 +1892,12 @@ public:
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
-		if (uc && _keyCode != "") { mixin(S_TRACE);
-			uc.add(toKeyCodeId(_keyCode), this);
-		}
+		if (_uc is uc) return;
 		if (_uc && _keyCode != "") { mixin(S_TRACE);
 			_uc.remove(toKeyCodeId(_keyCode), this);
+		}
+		if (uc && _keyCode != "") { mixin(S_TRACE);
+			uc.add(toKeyCodeId(_keyCode), this);
 		}
 		_uc = uc;
 	}
@@ -1955,11 +1969,12 @@ public:
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
-		if (uc && _cellName != "") { mixin(S_TRACE);
-			uc.add(toCellNameId(_cellName), this);
-		}
+		if (_uc is uc) return;
 		if (_uc && _cellName != "") { mixin(S_TRACE);
 			_uc.remove(toCellNameId(_cellName), this);
+		}
+		if (uc && _cellName != "") { mixin(S_TRACE);
+			uc.add(toCellNameId(_cellName), this);
 		}
 		_uc = uc;
 	}
@@ -2031,11 +2046,12 @@ public:
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
-		if (uc && _cardGroup != "") { mixin(S_TRACE);
-			uc.add(toCardGroupId(_cardGroup), this);
-		}
+		if (_uc is uc) return;
 		if (_uc && _cardGroup != "") { mixin(S_TRACE);
 			_uc.remove(toCardGroupId(_cardGroup), this);
+		}
+		if (uc && _cardGroup != "") { mixin(S_TRACE);
+			uc.add(toCardGroupId(_cardGroup), this);
 		}
 		_uc = uc;
 	}
