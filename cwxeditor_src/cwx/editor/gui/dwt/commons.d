@@ -1462,8 +1462,8 @@ class Commons {
 				// 敷き詰める場合、あまり細かいイメージだとパフォーマンスが落ちるので
 				// あらかじめある程度敷き詰めたものを用意しておく
 				if (data.width <= minWidth || data.height <= minHeight) { mixin(S_TRACE);
-					auto width = data.width * (minWidth / data.width);
-					auto height = data.height * (minHeight / data.height);
+					auto width = cast(int)(data.width * (cast(double)minWidth / data.width));
+					auto height = cast(int)(data.height * (cast(double)minHeight / data.height));
 					auto img = new Image(Display.getCurrent(), data);
 					scope (exit) img.dispose();
 					_wallpaper = new Image(Display.getCurrent(), width, height);
