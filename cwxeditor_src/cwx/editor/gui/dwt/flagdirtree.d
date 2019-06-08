@@ -499,6 +499,7 @@ public:
 			if (c) { mixin(S_TRACE);
 				try { mixin(S_TRACE);
 					auto cur = current;
+					assert (cur !is null);
 					string newPath;
 					string rootId;
 					cwx.flag.Flag[string] cFlags;
@@ -511,7 +512,9 @@ public:
 					switch (cur.appendFromXML(c, ver, true, true, false, cFlags, cSteps, cVariants, newPath, rootId)) {
 					case FlagDir.AppendXmlResult.DIR_SUCCESS:
 						refresh(newPath);
+						assert (root !is null);
 						auto dir = root.findPath(newPath, false);
+						assert (dir !is null);
 						storeInsert(dir.parent, tblSelsF, tblSelsS, tblSelsV, [dir.parent.indexOf(dir)], [], [], []);
 						_comm.refFlagDir.call(this, [dir]);
 						refresh();
@@ -523,12 +526,15 @@ public:
 						ptrdiff_t[] stepIndices;
 						ptrdiff_t[] variantIndices;
 						foreach (f; cFlags) { mixin(S_TRACE);
+							assert (f.parent !is null);
 							flagIndices ~= f.parent.indexOf(f);
 						}
 						foreach (s; cSteps) { mixin(S_TRACE);
+							assert (s.parent !is null);
 							stepIndices ~= s.parent.indexOf(s);
 						}
 						foreach (v; cVariants) { mixin(S_TRACE);
+							assert (v.parent !is null);
 							variantIndices ~= v.parent.indexOf(v);
 						}
 						storeInsert(cur, tblSelsF, tblSelsS, tblSelsV, [], flagIndices, stepIndices, variantIndices);
