@@ -151,7 +151,9 @@ version (Windows) {
 			scope (exit) DeleteObject(hbmp);
 			ImageData data = null;
 			void put() { mixin(S_TRACE);
-				auto img = Image.win32_new(Display.getCurrent(), SWT.ICON, hbmp);
+				auto display = Display.getCurrent();
+				if (!display || display.isDisposed()) return;
+				auto img = Image.win32_new(display, SWT.ICON, hbmp);
 				data = img.getImageData();
 				img.destroy();
 			}
