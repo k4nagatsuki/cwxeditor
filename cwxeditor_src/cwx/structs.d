@@ -1251,9 +1251,10 @@ struct OpenHistory {
 	}
 	/// ditto
 	const
-	void toNode(ref XNode node) { mixin(S_TRACE);
+	XNode toNode(ref XNode node) { mixin(S_TRACE);
 		auto e = node.newElement(XML_NAME, path);
 		toNodeImpl(e);
+		return e;
 	}
 	/// ditto
 	const
@@ -1294,9 +1295,10 @@ struct ExecutionParty {
 	}
 	/// ditto
 	const
-	void toNode(ref XNode node, string name = XML_NAME) { mixin(S_TRACE);
+	XNode toNode(ref XNode node, string name = XML_NAME) { mixin(S_TRACE);
 		auto e = node.newElement(name);
 		toNodeImpl(e);
+		return e;
 	}
 	/// ditto
 	const

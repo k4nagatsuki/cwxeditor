@@ -58,6 +58,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.Reload] = "R";
 		_mnemonic[MenuID.EditScenarioHistory] = "H";
 		_mnemonic[MenuID.EditImportHistory] = "H";
+		_mnemonic[MenuID.EditExecutedPartyHistory] = "H";
 		_mnemonic[MenuID.OpenDir] = "O";
 		_mnemonic[MenuID.OpenBackupDir] = "B";
 		_mnemonic[MenuID.OpenPlace] = "O";
@@ -301,6 +302,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.Reload] = "";
 		_hotkey[MenuID.EditScenarioHistory] = "";
 		_hotkey[MenuID.EditImportHistory] = "";
+		_hotkey[MenuID.EditExecutedPartyHistory] = "";
 		_hotkey[MenuID.OpenDir] = "";
 		_hotkey[MenuID.OpenBackupDir] = "";
 		_hotkey[MenuID.OpenPlace] = "";
@@ -685,6 +687,7 @@ bool isPMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.SaveAs:
 	case MenuID.EditScenarioHistory:
 	case MenuID.EditImportHistory:
+	case MenuID.EditExecutedPartyHistory:
 	case MenuID.SaveImage:
 	case MenuID.Find:
 	case MenuID.FindID:
@@ -851,6 +854,7 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.ToScriptAll:
 	case MenuID.ToScript1Content:
 	case MenuID.EditScenarioHistory:
+	case MenuID.EditExecutedPartyHistory:
 	case MenuID.EditImportHistory:
 	case MenuID.DeleteNotExistsHistory:
 	case MenuID.DeleteNotExistsParties:
@@ -1071,6 +1075,7 @@ bool isGlobalMenu(MenuID id) {
 	case MenuID.EvTemplatesOfScenario:
 	case MenuID.EditScenarioHistory:
 	case MenuID.EditImportHistory:
+	case MenuID.EditExecutedPartyHistory:
 	case MenuID.DeleteNotExistsHistory:
 		return true;
 	case MenuID.None:

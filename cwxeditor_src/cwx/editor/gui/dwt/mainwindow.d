@@ -228,35 +228,46 @@ private:
 
 		.createExecEngineMenu(_comm, menu, mWithParty, () => summary !is null, &origScenarioPath, &execEngineP, &canExecClassic);
 
-		if (mWithParty && _prop.var.etc.executedParties.length) { mixin(S_TRACE);
-			new MenuItem(mWithParty, SWT.SEPARATOR);
-			foreach (num, ep; _prop.var.etc.executedParties) { mixin(S_TRACE);
-				void put(ExecutionParty ep) { mixin(S_TRACE);
-					string nstr;
-					if (num < 10) { mixin(S_TRACE);
-						nstr = "&" ~ to!(string)(num);
-					} else { mixin(S_TRACE);
-						nstr = to!(string)(num);
-					}
-					auto name = .tryFormat(_prop.msgs.execEngineWithParty, ep.engineName, ep.yadoName, ep.partyName);
-					auto img = ep.isClassic ? _prop.images.classicEngine : _prop.images.menu(MenuID.ExecEngineMain);
-					auto warn = !existsParty(ep);
-					if (warn) { mixin(S_TRACE);
-						img = _prop.images.warning;
-					}
-					auto mi = createMenuItem2(_comm, mWithParty, nstr ~ " " ~ name, img, { mixin(S_TRACE);
-						auto scenario = .tryFormat(`"%s"`, origScenarioPath);
-						execEngineP(ep.enginePath, scenario, ep);
-					}, () => canExecEngineWithParty && (!ep.isClassic || canExecClassic));
-					if (!warn) .putEngineIcon(_comm, mi, null, ep.enginePath, () => !existsParty(ep));
+		if (mWithParty && (_prop.var.etc.executedPartyBookmarks.length || _prop.var.etc.executedParties.length)) { mixin(S_TRACE);
+			auto num = 0;
+			void put(ExecutionParty ep) { mixin(S_TRACE);
+				string nstr;
+				if (num < 10) { mixin(S_TRACE);
+					nstr = "&" ~ to!(string)(num);
+				} else { mixin(S_TRACE);
+					nstr = to!(string)(num);
 				}
-				put(ep);
+				auto name = .tryFormat(_prop.msgs.execEngineWithParty, ep.engineName, ep.yadoName, ep.partyName);
+				auto img = ep.isClassic ? _prop.images.classicEngine : _prop.images.menu(MenuID.ExecEngineMain);
+				auto warn = !existsParty(_comm, ep);
+				if (warn) { mixin(S_TRACE);
+					img = _prop.images.warning;
+				}
+				auto mi = createMenuItem2(_comm, mWithParty, nstr ~ " " ~ name, img, { mixin(S_TRACE);
+					auto scenario = .tryFormat(`"%s"`, origScenarioPath);
+					execEngineP(ep.enginePath, scenario, ep);
+				}, () => canExecEngineWithParty && (!ep.isClassic || canExecClassic));
+				if (!warn) .putEngineIcon(_comm, mi, null, ep.enginePath, () => !existsParty(_comm, ep));
+			}
+			if (_prop.var.etc.executedPartyBookmarks.length) { mixin(S_TRACE);
+				new MenuItem(mWithParty, SWT.SEPARATOR);
+				foreach (ep; _prop.var.etc.executedPartyBookmarks) { mixin(S_TRACE);
+					put(ep);
+					num++;
+				}
+			}
+			if (_prop.var.etc.executedParties.length) { mixin(S_TRACE);
+				if (0 < num) new MenuItem(mWithParty, SWT.SEPARATOR);
+				foreach (ep; _prop.var.etc.executedParties) { mixin(S_TRACE);
+					put(ep);
+					num++;
+				}
 			}
 		}
 
 		if (0 < _prop.var.etc.executedPartiesMax) { mixin(S_TRACE);
 			new MenuItem(mWithParty, SWT.SEPARATOR);
-			.createMenuItem(_comm, mWithParty, MenuID.DeleteNotExistsParties, &delNotExistsParty, &canDelNotExistsParty);
+			.createMenuItem(_comm, mWithParty, MenuID.EditExecutedPartyHistory, &editExecutedPartyHistory, &canEditExecutedPartyHistory);
 		}
 
 		auto autoE = nabs(execEnginePath);
@@ -280,20 +291,6 @@ private:
 		return autoE;
 	}
 
-	bool existsParty(in ExecutionParty ep) { mixin(S_TRACE);
-		string yadoDir;
-		if (ep.isClassic) { mixin(S_TRACE);
-			yadoDir = ep.enginePath.dirName().buildPath(_prop.sys.yadoName(ep.enginePath.baseName()));
-		} else { mixin(S_TRACE);
-			yadoDir = ep.enginePath.dirName().buildPath("Yado");
-		}
-
-		auto yadoPath = yadoDir.buildPath(ep.yadoPath.baseName());
-		auto partyPath = ep.isClassic ? yadoPath.buildPath(ep.partyPath.baseName()).setExtension(".wpl") : yadoPath.buildPath("Party").buildPath(ep.partyPath.baseName());
-		return ep.enginePath != "" && ep.enginePath.exists() && ep.enginePath.isFile()
-			&& yadoPath.exists() && yadoPath.isDir()
-			&& partyPath.exists() && (ep.isClassic ? partyPath.isFile() : partyPath.isDir());
-	}
 	@property
 	const
 	bool canDelNotExistsParty() { mixin(S_TRACE);
@@ -302,7 +299,7 @@ private:
 	void delNotExistsParty() { mixin(S_TRACE);
 		ExecutionParty[] eps;
 		foreach (ep; _prop.var.etc.executedParties) { mixin(S_TRACE);
-			if (existsParty(ep)) eps ~= ep;
+			if (.existsParty(_comm, ep)) eps ~= ep;
 		}
 		if (_prop.var.etc.executedParties.length == eps.length) return;
 		_prop.var.etc.executedParties = eps;
@@ -1649,6 +1646,23 @@ private:
 			_prop.var.save(dock);
 			sendReloadProps();
 			_comm.refreshToolBar();
+		}
+	}
+
+	@property
+	const
+	bool canEditExecutedPartyHistory() { return _comm.prop.var.etc.executedPartyBookmarks.length || _comm.prop.var.etc.executedParties.length; }
+
+	private ExecutedPartyHistoryDialog _partyHistDlg = null;
+	private void editExecutedPartyHistory() { mixin(S_TRACE);
+		if (_partyHistDlg) { mixin(S_TRACE);
+			_partyHistDlg.active();
+		} else { mixin(S_TRACE);
+			_partyHistDlg = new ExecutedPartyHistoryDialog(_comm, _win);
+			_partyHistDlg.closeEvent ~= { mixin(S_TRACE);
+				_partyHistDlg = null;
+			};
+			_partyHistDlg.open();
 		}
 	}
 
@@ -3146,6 +3160,7 @@ public:
 						case MenuID.Reload: act = &reload; can = () => _prop.var.etc.scenarioBookmarks.length || _prop.var.etc.openHistories.length; break;
 						case MenuID.EditScenarioHistory: act = &editScenarioHistory; can = &canEditScenarioHistory; break;
 						case MenuID.EditImportHistory: act = &editImportHistory; can = &canEditImportHistory; break;
+						case MenuID.EditExecutedPartyHistory: act = &editExecutedPartyHistory; can = &canEditExecutedPartyHistory; break;
 						case MenuID.Refresh: actS = &refreshAll; can = () => summary !is null; break;
 						case MenuID.Find: act = &replaceText; can = null; break;
 						case MenuID.ReNumberingAll: act = &reNumberingAll; can = () => summary !is null; break;

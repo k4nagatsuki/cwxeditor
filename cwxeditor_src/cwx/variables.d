@@ -207,6 +207,9 @@ class FlexEtcProps : Properties {
 	auto authorNewAreaNameSashR = Prop!(int)("authorNewAreaNameSashR", 1);
 	auto historyScenarioNameColumn = Prop!(int, false, true)("historyScenarioNameColumn", 150);
 	auto historyScenarioPathColumn = Prop!(int, false, true)("historyScenarioPathColumn", 300);
+	auto executionPartyNameColumn = Prop!(int, false, true)("executionPartyNameColumn", 150);
+	auto executionPartyYadoColumn = Prop!(int, false, true)("executionPartyYadoColumn", 150);
+	auto executionPartyEngineColumn = Prop!(int, false, true)("executionPartyEngineColumn", 150);
 	auto expressionAndTargetSashT = Prop!(int)("expressionAndTargetSashT", -1);
 	auto expressionAndTargetSashB = Prop!(int)("expressionAndTargetSashB", -1);
 	auto expressionFunctionAndArgsSashT = Prop!(int)("expressionFunctionAndArgsSashT", 3);
@@ -433,6 +436,7 @@ class FlexEtcProps : Properties {
 	auto enginePath = Prop!(string)("enginePath", "");
 	auto lastExecutedParty = Prop!(ExecutionParty)("lastExecutedParty", ExecutionParty.init);
 	auto executedParties = Prop!(ExecutionParty[])("executedParties", []);
+	auto executedPartyBookmarks = Prop!(ExecutionParty[])("executedPartyBookmarks", []);
 	auto executedPartiesMax = Prop!(uint)("executedPartiesMax", 10);
 	auto dataDir = Prop!(string, true)("dataDir", "Data");
 	auto findEnginePath = Prop!(bool)("findEnginePath", true);

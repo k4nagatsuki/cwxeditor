@@ -8,6 +8,7 @@ import cwx.structs;
 import cwx.summary;
 import cwx.types;
 import cwx.utils;
+import cwx.xml;
 
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.commons;
@@ -18,6 +19,7 @@ import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.incsearch;
 import cwx.editor.gui.dwt.undo;
+import cwx.editor.gui.dwt.xmlbytestransfer;
 
 import std.algorithm;
 import std.ascii;
@@ -31,7 +33,7 @@ import org.eclipse.swt.all;
 import java.lang.all;
 
 /// 開いたシナリオの履歴とブックマークを編集する。
-class ScenarioHistoryDialog : AbsDialog {
+class ScenarioHistoryDialog : AbsDialog, TCPD {
 	private Commons _comm;
 	private Table _list;
 	private static struct Hist {
@@ -86,13 +88,13 @@ class ScenarioHistoryDialog : AbsDialog {
 			e.doit = 0 < _list.getSelectionCount();
 		}
 		override void dragSetData(DragSourceEvent e) { mixin(S_TRACE);
-			if (FileTransfer.getInstance().isSupportedType(e.dataType)) { mixin(S_TRACE);
+			if (XMLBytesTransfer.getInstance().isSupportedType(e.dataType)) { mixin(S_TRACE);
 				auto sels = _list.getSelectionIndices();
 				assert (0 < sels.length);
 				auto sel = _list.getSelectionIndex();
 				assert (sel != -1);
 				_dragItm =_list.getItem(sel);
-				e.data = new FileNames(sels.map!(i => toSFileName(.fullHistToHist(_hist[i].hist.path)))().array());
+				e.data = .bytesFromXML(createNode(sels).text);
 			}
 		}
 		override void dragFinished(DragSourceEvent e) { mixin(S_TRACE);
@@ -101,7 +103,7 @@ class ScenarioHistoryDialog : AbsDialog {
 	}
 	private class DropHist : DropTargetAdapter {
 		private void move(DropTargetEvent e) { mixin(S_TRACE);
-			e.detail = DND.DROP_LINK;
+			e.detail = _dragItm ? DND.DROP_MOVE : DND.DROP_COPY;
 		}
 		override void dragEnter(DropTargetEvent e){ mixin(S_TRACE);
 			move(e);
@@ -129,10 +131,8 @@ class ScenarioHistoryDialog : AbsDialog {
 				}
 				applyEnabled();
 				_comm.refreshToolBar();
-			} else { mixin(S_TRACE);
+			} else if (auto files = cast(FileNames)e.data) { mixin(S_TRACE);
 				// ファイルリストのドロップで履歴にパスを追加する
-				auto files = cast(FileNames)e.data;
-				if (!files) return;
 				bool[string] paths;
 				string normCase(string path) { mixin(S_TRACE);
 					static if (filenameCmp("A", "a") == 0) {
@@ -171,9 +171,23 @@ class ScenarioHistoryDialog : AbsDialog {
 				_list.clearAll();
 				_list.deselectAll();
 				_list.select(dropIndex);
+				_list.showSelection();
 				e.detail = DND.DROP_LINK;
 				applyEnabled();
 				_comm.refreshToolBar();
+			} else { mixin(S_TRACE);
+				// 他のビューからのドロップ
+				if (!.isXMLBytes(e.data)) return;
+				auto xml = .bytesToXML(e.data);
+				try { mixin(S_TRACE);
+					auto node = XNode.parse(xml);
+					if (pasteImpl(node)) { mixin(S_TRACE);
+						e.detail = DND.DROP_COPY;
+					}
+				} catch (Exception e) { mixin(S_TRACE);
+					printStackTrace();
+					debugln(e);
+				}
 			}
 		}
 	}
@@ -237,14 +251,17 @@ class ScenarioHistoryDialog : AbsDialog {
 		saveColumnWidth!("prop.var.etc.historyScenarioPathColumn")(_comm.prop, pathCol);
 
 		auto menu = new Menu(_list.getShell(), SWT.POP_UP);
+		createMenuItem(_comm, menu, MenuID.OpenDir, &openSelection, &canOpenSelection);
+		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.Undo, { _undo.undo(); }, &_undo.canUndo);
 		createMenuItem(_comm, menu, MenuID.Redo, { _undo.redo(); }, &_undo.canRedo);
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.Up, &up, &canUp);
 		createMenuItem(_comm, menu, MenuID.Down, &down, &canDown);
 		new MenuItem(menu, SWT.SEPARATOR);
+		.appendMenuTCPD(_comm, menu, this, true, true, true, true, false);
+		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.CopyAsText, &copyAsText, () => 0 < _list.getSelectionCount());
-		createMenuItem(_comm, menu, MenuID.Delete, &del, () => 0 < _list.getSelectionCount());
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.SelectAll, &_list.selectAll, () => _list.getItemCount() && _list.getSelectionCount() != _list.getItemCount());
 		new MenuItem(menu, SWT.SEPARATOR);
@@ -265,11 +282,11 @@ class ScenarioHistoryDialog : AbsDialog {
 			itm.setChecked(m.bookmark);
 		});
 
-		auto drag = new DragSource(_list, DND.DROP_LINK);
-		drag.setTransfer([FileTransfer.getInstance()]);
+		auto drag = new DragSource(_list, DND.DROP_COPY);
+		drag.setTransfer([XMLBytesTransfer.getInstance()]);
 		drag.addDragListener(new DragHist);
-		auto drop = new DropTarget(_list, DND.DROP_DEFAULT | DND.DROP_LINK);
-		drop.setTransfer([FileTransfer.getInstance()]);
+		auto drop = new DropTarget(_list, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_MOVE | DND.DROP_LINK);
+		drop.setTransfer([XMLBytesTransfer.getInstance(), FileTransfer.getInstance()]);
 		drop.addDropListener(new DropHist);
 	}
 
@@ -281,7 +298,20 @@ class ScenarioHistoryDialog : AbsDialog {
 			return path;
 		}
 	}
+	private static string toKeyFileName(in OpenHistory oh) { mixin(S_TRACE);
+		return .filenameCmp("a", "A") == 0 ? .nabs(oh.path).toLower() : .nabs(oh.path);
+	}
 
+	@property
+	private bool canOpenSelection() { mixin(S_TRACE);
+		foreach (i; _list.getSelectionIndices()) { mixin(S_TRACE);
+			auto path = toSFileName(.fullHistToHist(_hist[i].hist.path));
+			if (path.exists()) { mixin(S_TRACE);
+				return true;
+			}
+		}
+		return false;
+	}
 	private void openSelection() { mixin(S_TRACE);
 		foreach (i; _list.getSelectionIndices()) { mixin(S_TRACE);
 			auto path = toSFileName(.fullHistToHist(_hist[i].hist.path));
@@ -341,6 +371,85 @@ class ScenarioHistoryDialog : AbsDialog {
 		_list.clearAll();
 	}
 
+	private XNode createNode(int[] indices) { mixin(S_TRACE);
+		auto doc = XNode.create("openHistories");
+		foreach (index; indices) { mixin(S_TRACE);
+			auto e = _hist[index].hist.toNode(doc);
+			if (_hist[index].bookmark) { mixin(S_TRACE);
+				e.newAttr("bookmark", .fromBool(_hist[index].bookmark));
+			}
+		}
+		return doc;
+	}
+
+	override void cut(SelectionEvent se) { mixin(S_TRACE);
+		copy(se);
+		del(se);
+	}
+	override void copy(SelectionEvent se) { mixin(S_TRACE);
+		auto indices = _list.getSelectionIndices();
+		if (!indices.length) return;
+		XMLtoCB(_comm.prop, _comm.clipboard, createNode(indices).text);
+		_comm.refreshToolBar();
+	}
+	override void paste(SelectionEvent se) { mixin(S_TRACE);
+		auto c = CBtoXML(_comm.clipboard);
+		if (c) { mixin(S_TRACE);
+			try { mixin(S_TRACE);
+				auto node = XNode.parse(c);
+				pasteImpl(node);
+			} catch (Exception e) { mixin(S_TRACE);
+				printStackTrace();
+				debugln(e);
+			}
+		}
+	}
+	override void del(SelectionEvent se) { mixin(S_TRACE);
+		delImpl();
+	}
+	override void clone(SelectionEvent se) { assert (false); }
+	@property override bool canDoTCPD() { return true; }
+	@property override bool canDoT() { return canDoC; }
+	@property override bool canDoC() { return 0 < _list.getSelectionCount(); }
+	@property override bool canDoP() { return CBisXML(_comm.clipboard); }
+	@property override bool canDoD() { return 0 < _list.getSelectionCount(); }
+	@property override bool canDoClone() { return false; }
+
+	private bool pasteImpl(ref XNode node) { mixin(S_TRACE);
+		if (node.name != "openHistories") return false;
+		int[string] set;
+		foreach (i, oh; _hist) { mixin(S_TRACE);
+			set[toKeyFileName(oh.hist)] = cast(int)i;
+		}
+		Hist[] hists;
+		int[] selIndices;
+		node.onTag[OpenHistory.XML_NAME] = (ref XNode node) { mixin(S_TRACE);
+			OpenHistory oh;
+			oh.fromNode(node);
+			auto key = toKeyFileName(oh);
+			if (auto p = key in set) { mixin(S_TRACE);
+				selIndices ~= *p;
+				return;
+			}
+			auto bookmark = node.attr("bookmark", false, false);
+			auto i = cast(int)(_hist.length + hists.length);
+			hists ~= Hist(oh, bookmark);
+			selIndices ~= i;
+			set[key] = i;
+		};
+		node.parse();
+		if (!hists.length) return false;
+		store();
+		_hist ~= hists;
+		_list.setItemCount(cast(int)_hist.length);
+		_list.deselectAll();
+		_list.select(selIndices);
+		_list.showSelection();
+		applyEnabled();
+		_comm.refreshToolBar();
+		return true;
+	}
+
 	private void copyAsText() { mixin(S_TRACE);
 		string[] t;
 		foreach (index; _list.getSelectionIndices()) { mixin(S_TRACE);
@@ -352,7 +461,7 @@ class ScenarioHistoryDialog : AbsDialog {
 		_comm.refreshToolBar();
 	}
 
-	private void del() { mixin(S_TRACE);
+	private void delImpl() { mixin(S_TRACE);
 		auto indices = _list.getSelectionIndices();
 		if (!indices.length) return;
 		store();

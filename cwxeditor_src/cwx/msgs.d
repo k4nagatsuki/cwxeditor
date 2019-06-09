@@ -94,6 +94,11 @@ class Msgs : Properties {
 	auto historyScenarioFileName = Msg("historyScenarioFileName", "ファイル名");
 	auto historyScenarioPath = Msg("historyScenarioPath", "場所");
 
+	auto editExecutedPartyHistory = Msg("editExecutedPartyHistory", "パーティの履歴とブックマークの編集");
+	auto executionPartyName = Msg("executionPartyName", "パーティ");
+	auto executionPartyYado = Msg("executionPartyYado", "拠点");
+	auto executionPartyEngine = Msg("executionPartyEngine", "エンジン");
+
 	auto loadSkinError = Msg("loadSkinError", "デフォルトのスキン「%1$s」が見つかりません。\n" ~ CARD_WIRTH_PY_EXE ~ "本体の場所が正しくないか、Data" ~ DIR ~ "が正しく配置されていない可能性があります。\nこのまま開始すると、一部リソース画像が非表示になります。");
 	auto useDefaultSkin = Msg("useDefaultSkin", "スキン「%1$s」が見つかりません。\nデフォルトのスキン「%1$s」を使用します。");
 	auto scenarioName = Msg("scenarioName", "シナリオ名");
@@ -2840,6 +2845,7 @@ class Msgs : Properties {
 	auto menuTextReload = Msg("menuTextReload", "再読込");
 	auto menuTextEditScenarioHistory = Msg("menuTextEditScenarioHistory", "履歴とブックマークの編集");
 	auto menuTextEditImportHistory = Msg("menuTextEditImportHistory", "履歴とブックマークの編集");
+	auto menuTextEditExecutedPartyHistory = Msg("menuTextEditExecutedPartyHistory", "履歴とブックマークの編集");
 	auto menuTextOpenDir = Msg("menuTextOpenDir", "シナリオの" ~ DIR ~ "を開く");
 	auto menuTextOpenBackupDir = Msg("menuTextOpenBackupDir", "バックアップ" ~ DIR ~ "を開く");
 	auto menuTextOpenPlace = Msg("menuTextOpenPlace", "ファイルの場所を開く");

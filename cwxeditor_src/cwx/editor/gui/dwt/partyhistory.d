@@ -10,13 +10,19 @@ import cwx.utils;
 import cwx.win32res;
 import cwx.xml;
 
+import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.commons;
+import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.dutils;
+import cwx.editor.gui.dwt.undo;
+import cwx.editor.gui.dwt.xmlbytestransfer;
 
 import core.thread;
 
+import std.algorithm;
+import std.array;
 import std.file;
 import std.path;
 import std.string;
@@ -24,6 +30,414 @@ import std.string;
 import org.eclipse.swt.all;
 
 import java.lang.all;
+
+/// 使用したパーティの履歴とブックマークを編集する。
+class ExecutedPartyHistoryDialog : AbsDialog, TCPD {
+	private Commons _comm;
+	private Table _list;
+	private static struct Hist {
+		ExecutionParty hist;
+		bool bookmark;
+		this (in ExecutionParty hist, bool bookmark) { mixin(S_TRACE);
+			this.hist = hist;
+			this.bookmark = bookmark;
+		}
+	}
+	private Hist[] _hist;
+	private Image[string] _icon;
+
+	private UndoManager _undo;
+
+	private class HUndo : Undo {
+		private int[] _selected;
+		private Hist[] _oldHist;
+
+		this () { mixin(S_TRACE);
+			save();
+		}
+		private void save() { mixin(S_TRACE);
+			_selected = _list.getSelectionIndices();
+			_oldHist = _hist.dup;
+		}
+		private void impl() { mixin(S_TRACE);
+			auto selected = _selected;
+			auto oldHist = _oldHist;
+			save();
+			_hist = oldHist.dup;
+			_list.setItemCount(cast(int)_hist.length);
+			_list.clearAll();
+			_list.setSelection(selected);
+			_comm.refreshToolBar();
+			applyEnabled();
+		}
+		override void undo() { impl(); }
+		override void redo() { impl(); }
+		override void dispose() { mixin(S_TRACE);
+			// 処理無し
+		}
+	}
+	private void store() { mixin(S_TRACE);
+		_undo ~= new HUndo();
+	}
+
+	private TableItem _dragItm = null;
+	private class DragHist : DragSourceAdapter {
+		override void dragStart(DragSourceEvent e) { mixin(S_TRACE);
+			e.doit = 0 < _list.getSelectionCount();
+		}
+		override void dragSetData(DragSourceEvent e) { mixin(S_TRACE);
+			if (XMLBytesTransfer.getInstance().isSupportedType(e.dataType)) { mixin(S_TRACE);
+				auto sels = _list.getSelectionIndices();
+				assert (0 < sels.length);
+				auto sel = _list.getSelectionIndex();
+				assert (sel != -1);
+				_dragItm =_list.getItem(sel);
+				e.data = .bytesFromXML(createNode(sels).text);
+			}
+		}
+		override void dragFinished(DragSourceEvent e) { mixin(S_TRACE);
+			_dragItm = null;
+		}
+	}
+	private class DropHist : DropTargetAdapter {
+		private void move(DropTargetEvent e) { mixin(S_TRACE);
+			e.detail = _dragItm ? DND.DROP_MOVE : DND.DROP_COPY;
+		}
+		override void dragEnter(DropTargetEvent e){ mixin(S_TRACE);
+			move(e);
+		}
+		override void dragOver(DropTargetEvent e){ mixin(S_TRACE);
+			move(e);
+		}
+		override void drop(DropTargetEvent e){ mixin(S_TRACE);
+			e.detail = DND.DROP_NONE;
+			if (_dragItm) { mixin(S_TRACE);
+				// 同じビュー上のドラッグ&ドロップ(位置の移動)
+				if (_dragItm is e.item) return;
+				e.detail = DND.DROP_MOVE;
+				auto dragIndex = _list.indexOf(_dragItm);
+				auto dropIndex = cast(TableItem)e.item ? _list.indexOf(cast(TableItem)e.item) : _list.getItemCount();
+				assert (dragIndex != -1);
+				assert (dropIndex != -1);
+				assert (dragIndex != dropIndex);
+				store();
+				if (dropIndex < dragIndex) { mixin(S_TRACE);
+					upImpl(dragIndex - dropIndex);
+				} else { mixin(S_TRACE);
+					assert (dragIndex < dropIndex);
+					downImpl(dropIndex - dragIndex);
+				}
+				applyEnabled();
+				_comm.refreshToolBar();
+			} else { mixin(S_TRACE);
+				// 他のビューからのドロップ
+				if (!.isXMLBytes(e.data)) return;
+				auto xml = .bytesToXML(e.data);
+				try { mixin(S_TRACE);
+					auto node = XNode.parse(xml);
+					if (pasteImpl(node)) { mixin(S_TRACE);
+						e.detail = DND.DROP_COPY;
+					}
+				} catch (Exception e) { mixin(S_TRACE);
+					printStackTrace();
+					debugln(e);
+				}
+			}
+		}
+	}
+
+	private void refUndoMax() { mixin(S_TRACE);
+		_undo.max = _comm.prop.var.etc.undoMaxEtc;
+	}
+
+	this (Commons comm, Shell shell) { mixin(S_TRACE);
+		_comm = comm;
+		auto size = _comm.prop.var.executedPartyHistoryDlg;
+		super (_comm.prop, shell, false, _comm.prop.msgs.editExecutedPartyHistory, _comm.prop.images.menu(MenuID.EditScenarioHistory), true, size, true, true);
+	}
+
+	protected override void setup(Composite area) { mixin(S_TRACE);
+		area.setLayout(normalGridLayout(1, false));
+
+		_undo = new UndoManager(_comm.prop.var.etc.undoMaxEtc);
+		_comm.refUndoMax.add(&refUndoMax);
+		.listener(area, SWT.Dispose, { mixin(S_TRACE);
+			_comm.refUndoMax.remove(&refUndoMax);
+		});
+
+		auto label = new Label(area, SWT.WRAP);
+		label.setText(_comm.prop.msgs.scenarioBookmarkHint);
+		label.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+		_list = .rangeSelectableTable(area, SWT.MULTI | SWT.CHECK | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.VIRTUAL);
+		_list.setHeaderVisible(true);
+		.listener(_list, SWT.Selection, (e) { mixin(S_TRACE);
+			if (e.detail == SWT.CHECK) { mixin(S_TRACE);
+				updateChecked(e);
+				foreach (i; _list.getSelectionIndices() ~ _list.indexOf(cast(TableItem)e.item)) { mixin(S_TRACE);
+					_hist[i].bookmark = _list.getItem(i).getChecked();
+				}
+				applyEnabled();
+			}
+		});
+		_list.setLayoutData(new GridData(GridData.FILL_BOTH));
+
+		auto nameCol = new TableColumn(_list, SWT.NONE);
+		nameCol.setText(_comm.prop.msgs.executionPartyName);
+		auto yadoCol = new TableColumn(_list, SWT.NONE);
+		yadoCol.setText(_comm.prop.msgs.executionPartyYado);
+		auto engineCol = new TableColumn(_list, SWT.NONE);
+		engineCol.setText(_comm.prop.msgs.executionPartyEngine);
+
+		saveColumnWidth!("prop.var.etc.executionPartyNameColumn")(_comm.prop, nameCol);
+		saveColumnWidth!("prop.var.etc.executionPartyYadoColumn")(_comm.prop, yadoCol);
+		saveColumnWidth!("prop.var.etc.executionPartyEngineColumn")(_comm.prop, engineCol);
+
+		auto menu = new Menu(_list.getShell(), SWT.POP_UP);
+		createMenuItem(_comm, menu, MenuID.Undo, { _undo.undo(); }, &_undo.canUndo);
+		createMenuItem(_comm, menu, MenuID.Redo, { _undo.redo(); }, &_undo.canRedo);
+		new MenuItem(menu, SWT.SEPARATOR);
+		createMenuItem(_comm, menu, MenuID.Up, &up, &canUp);
+		createMenuItem(_comm, menu, MenuID.Down, &down, &canDown);
+		new MenuItem(menu, SWT.SEPARATOR);
+		.appendMenuTCPD(_comm, menu, this, true, true, true, true, false);
+		new MenuItem(menu, SWT.SEPARATOR);
+		createMenuItem(_comm, menu, MenuID.SelectAll, &_list.selectAll, () => _list.getItemCount() && _list.getSelectionCount() != _list.getItemCount());
+		new MenuItem(menu, SWT.SEPARATOR);
+		createMenuItem(_comm, menu, MenuID.DeleteNotExistsParties, &delNotExists, () => 0 < _list.getItemCount());
+		_list.setMenu(menu);
+
+		_hist = .map!(h => Hist(h, true))(_comm.prop.var.etc.executedPartyBookmarks).array();
+		_hist ~= .map!(h => Hist(h, false))(_comm.prop.var.etc.executedParties).array();
+		_list.setItemCount(cast(int)_hist.length);
+		.listener(_list, SWT.SetData, (e) { mixin(S_TRACE);
+			auto m = _hist[e.index];
+			auto itm = cast(TableItem)e.item;
+			if (.existsParty(_comm, m.hist)) { mixin(S_TRACE);
+				itm.setImage(_comm.prop.images.menu(MenuID.ExecEngine));
+				// エンジンアイコン
+				if (!.cfnmatch(m.hist.enginePath.extension(), ".py")) { mixin(S_TRACE);
+					auto p = m.hist.enginePath in _icon;
+					if (p && *p) { mixin(S_TRACE);
+						itm.setImage(*p);
+					} else { mixin(S_TRACE);
+						auto imgData = .loadIcon(m.hist.enginePath, 16.ppis, 16.ppis);
+						if (imgData) { mixin(S_TRACE);
+							auto img = new Image(_list.getDisplay(), imgData);
+							itm.setImage(img);
+							_icon[m.hist.enginePath] = img;
+						} else { mixin(S_TRACE);
+							_icon[m.hist.enginePath] = null;
+						}
+					}
+				}
+			} else { mixin(S_TRACE);
+				itm.setImage(_comm.prop.images.warning);
+			}
+			itm.setText(0, m.hist.partyName);
+			itm.setText(1, m.hist.yadoName);
+			itm.setText(2, m.hist.engineName);
+			itm.setChecked(m.bookmark);
+		});
+
+		auto drag = new DragSource(_list, DND.DROP_COPY);
+		drag.setTransfer([XMLBytesTransfer.getInstance()]);
+		drag.addDragListener(new DragHist);
+		auto drop = new DropTarget(_list, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_MOVE);
+		drop.setTransfer([XMLBytesTransfer.getInstance()]);
+		drop.addDropListener(new DropHist);
+
+		_comm.refClassicSkin.add(&refClassicSkin);
+		.listener(_list, SWT.Dispose, { mixin(S_TRACE);
+			_comm.refClassicSkin.remove(&refClassicSkin);
+			foreach (img; _icon.byValue()) { mixin(S_TRACE);
+				img.dispose();
+			}
+		});
+	}
+
+	@property
+	private bool canUp() { mixin(S_TRACE);
+		return _list.getSelectionCount() && 0 < .minElement(_list.getSelectionIndices());
+	}
+	private void up() { mixin(S_TRACE);
+		if (!canUp) return;
+		store();
+		upImpl(1);
+		applyEnabled();
+		_comm.refreshToolBar();
+	}
+	private void upImpl(size_t count) { mixin(S_TRACE);
+		auto indices = _list.getSelectionIndices();
+		indices = indices.sort().array();
+		foreach (i; 0 .. count) { mixin(S_TRACE);
+			if (indices[0] <= 0) break;
+			foreach (index; indices) { mixin(S_TRACE);
+				.swap(_hist[index - 1], _hist[index]);
+			}
+			indices[] -= 1;
+		}
+		_list.setSelection(indices);
+		_list.clearAll();
+	}
+
+	@property
+	private bool canDown() { mixin(S_TRACE);
+		return _list.getSelectionCount() && .maxElement(_list.getSelectionIndices()) + 1 < _list.getItemCount();
+	}
+	private void down() { mixin(S_TRACE);
+		if (!canDown) return;
+		store();
+		downImpl(1);
+		applyEnabled();
+		_comm.refreshToolBar();
+	}
+	private void downImpl(size_t count) { mixin(S_TRACE);
+		auto indices = _list.getSelectionIndices();
+		indices = indices.sort().array();
+		foreach (i; 0 .. count) { mixin(S_TRACE);
+			if (_hist.length <= indices[$ - 1] + 1) break;
+			foreach_reverse (index; indices) { mixin(S_TRACE);
+				.swap(_hist[index], _hist[index + 1]);
+			}
+			indices[] += 1;
+		}
+		_list.setSelection(indices);
+		_list.clearAll();
+	}
+
+	private XNode createNode(int[] indices) { mixin(S_TRACE);
+		auto doc = XNode.create("executionParties");
+		foreach (index; indices) { mixin(S_TRACE);
+			auto e = _hist[index].hist.toNode(doc);
+			if (_hist[index].bookmark) { mixin(S_TRACE);
+				e.newAttr("bookmark", .fromBool(_hist[index].bookmark));
+			}
+		}
+		return doc;
+	}
+
+	override void cut(SelectionEvent se) { mixin(S_TRACE);
+		copy(se);
+		del(se);
+	}
+	override void copy(SelectionEvent se) { mixin(S_TRACE);
+		auto indices = _list.getSelectionIndices();
+		if (!indices.length) return;
+		XMLtoCB(_comm.prop, _comm.clipboard, createNode(indices).text);
+		_comm.refreshToolBar();
+	}
+	override void paste(SelectionEvent se) { mixin(S_TRACE);
+		auto c = CBtoXML(_comm.clipboard);
+		if (c) { mixin(S_TRACE);
+			try { mixin(S_TRACE);
+				auto node = XNode.parse(c);
+				pasteImpl(node);
+			} catch (Exception e) { mixin(S_TRACE);
+				printStackTrace();
+				debugln(e);
+			}
+		}
+	}
+	override void del(SelectionEvent se) { mixin(S_TRACE);
+		delImpl();
+	}
+	override void clone(SelectionEvent se) { assert (false); }
+	@property override bool canDoTCPD() { return true; }
+	@property override bool canDoT() { return canDoC; }
+	@property override bool canDoC() { return 0 < _list.getSelectionCount(); }
+	@property override bool canDoP() { return CBisXML(_comm.clipboard); }
+	@property override bool canDoD() { return 0 < _list.getSelectionCount(); }
+	@property override bool canDoClone() { return false; }
+
+	private bool pasteImpl(ref XNode node) { mixin(S_TRACE);
+		if (node.name != "executionParties") return false;
+		int[ExecutionParty] set;
+		foreach (i, ep; _hist) { mixin(S_TRACE);
+			set[ep.hist] = cast(int)i;
+		}
+		Hist[] hists;
+		int[] selIndices;
+		node.onTag[ExecutionParty.XML_NAME] = (ref XNode node) { mixin(S_TRACE);
+			ExecutionParty ep;
+			ep.fromNode(node);
+			if (auto p = ep in set) { mixin(S_TRACE);
+				selIndices ~= *p;
+				return;
+			}
+			auto bookmark = node.attr("bookmark", false, false);
+			auto i = cast(int)(_hist.length + hists.length);
+			hists ~= Hist(ep, bookmark);
+			selIndices ~= i;
+			set[ep] = i;
+		};
+		node.parse();
+		if (!hists.length) return false;
+		store();
+		_hist ~= hists;
+		_list.setItemCount(cast(int)_hist.length);
+		_list.deselectAll();
+		_list.select(selIndices);
+		_list.showSelection();
+		applyEnabled();
+		_comm.refreshToolBar();
+		return true;
+	}
+	private void delImpl() { mixin(S_TRACE);
+		auto indices = _list.getSelectionIndices();
+		if (!indices.length) return;
+		store();
+		foreach_reverse (index; indices) { mixin(S_TRACE);
+			_hist = .remove(_hist, index);
+		}
+		_list.deselectAll();
+		_list.setItemCount(cast(int)_hist.length);
+		_list.clearAll();
+		applyEnabled();
+		_comm.refreshToolBar();
+	}
+
+	private void delNotExists() { mixin(S_TRACE);
+		auto indices = _list.getSelectionIndices();
+		bool[Hist] sels;
+		foreach (i; indices) { mixin(S_TRACE);
+			sels[_hist[i]] = true;
+		}
+		Hist[] hist;
+		int[] indices2;
+		foreach (i, m; _hist) { mixin(S_TRACE);
+			if (.existsParty(_comm, m.hist)) { mixin(S_TRACE);
+				if (m in sels) indices2 ~= cast(int)hist.length;
+				hist ~= m;
+			}
+		}
+		if (_hist.length == hist.length) return;
+		store();
+		_hist = hist;
+		_list.setSelection(indices2);
+		_list.setItemCount(cast(int)_hist.length);
+		_list.clearAll();
+		applyEnabled();
+		_comm.refreshToolBar();
+	}
+
+	private void refClassicSkin() { mixin(S_TRACE);
+		// アイコン更新
+		foreach (img; _icon.byValue()) { mixin(S_TRACE);
+			img.dispose();
+		}
+		_icon = null;
+		_list.clearAll();
+	}
+
+	protected override bool apply() { mixin(S_TRACE);
+		_comm.prop.var.etc.executedPartyBookmarks = _hist.filter!(h => h.bookmark)().map!(h => h.hist)().array();
+		_comm.prop.var.etc.executedParties = _hist.filter!(h => !h.bookmark)().map!(h => h.hist)().array();
+		_comm.refExecutedParties.call();
+		_comm.refreshToolBar();
+		return true;
+	}
+}
 
 /// エンジン実行及びシナリオ開始のメニューを生成する。
 void createExecEngineMenu(Commons comm, Menu menu, Menu mWithParty,
@@ -446,4 +860,19 @@ void putEngineIcon(Commons comm, MenuItem mi1, MenuItem mi2, string ePath, bool 
 	if (!.cfnmatch(ePath.extension(), ".py")) { mixin(S_TRACE);
 		putIcon(comm, mi1, mi2, ePath, hasWarning);
 	}
+}
+
+bool existsParty(in Commons comm, in ExecutionParty ep) { mixin(S_TRACE);
+	string yadoDir;
+	if (ep.isClassic) { mixin(S_TRACE);
+		yadoDir = ep.enginePath.dirName().buildPath(comm.prop.sys.yadoName(ep.enginePath.baseName()));
+	} else { mixin(S_TRACE);
+		yadoDir = ep.enginePath.dirName().buildPath("Yado");
+	}
+
+	auto yadoPath = yadoDir.buildPath(ep.yadoPath.baseName());
+	auto partyPath = ep.isClassic ? yadoPath.buildPath(ep.partyPath.baseName()).setExtension(".wpl") : yadoPath.buildPath("Party").buildPath(ep.partyPath.baseName());
+	return ep.enginePath != "" && ep.enginePath.exists() && ep.enginePath.isFile()
+		&& yadoPath.exists() && yadoPath.isDir()
+		&& partyPath.exists() && (ep.isClassic ? partyPath.isFile() : partyPath.isDir());
 }
