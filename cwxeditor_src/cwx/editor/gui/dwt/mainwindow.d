@@ -3864,7 +3864,7 @@ public:
 	private Menu _tmOpenImportSource = null;
 	private void createOpenImportSourceTI(ToolBar bar) { mixin(S_TRACE);
 		_mainMenu.add(MenuID.OpenImportSource);
-		auto ti = createDropDownItem(_comm, bar, MenuID.OpenImportSource, &addScenario, _tmOpenImportSource, () => canAddScenario || canEditImportHistory, true);
+		auto ti = .createDropDownItem(_comm, bar, MenuID.OpenImportSource, &addScenario, _tmOpenImportSource, () => canAddScenario || canEditImportHistory, (bool arrow) => arrow || !canAddScenario);
 		_tool[MenuID.OpenImportSource] = ti;
 		.listener(_tmOpenImportSource, SWT.Show, { mixin(S_TRACE);
 			createImportHistoryMenu(_tmOpenImportSource, false);

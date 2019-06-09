@@ -2857,7 +2857,7 @@ void initSpinner(Spinner spn) { mixin(S_TRACE);
 	spn.getDisplay().asyncExec(new class Runnable {
 		override void run() { mixin(S_TRACE);
 			if (spn.isDisposed()) return;
-//			spn.setSelection(spn.getSelection());
+			spn.setSelection(spn.getSelection());
 		}
 	});
 }

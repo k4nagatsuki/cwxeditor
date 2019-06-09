@@ -101,7 +101,7 @@ class ScenarioHistoryDialog : AbsDialog {
 	}
 	private class DropHist : DropTargetAdapter {
 		private void move(DropTargetEvent e) { mixin(S_TRACE);
-			e.detail = DND.DROP_MOVE;
+			e.detail = DND.DROP_LINK;
 		}
 		override void dragEnter(DropTargetEvent e){ mixin(S_TRACE);
 			move(e);
@@ -167,6 +167,10 @@ class ScenarioHistoryDialog : AbsDialog {
 				auto dropIndex = cast(TableItem)e.item ? _list.indexOf(cast(TableItem)e.item) : _list.getItemCount();
 				assert (dropIndex != -1);
 				_hist = _hist[0 .. dropIndex] ~ targ ~ _hist[dropIndex .. $];
+				_list.setItemCount(cast(int)_hist.length);
+				_list.clearAll();
+				_list.deselectAll();
+				_list.select(dropIndex);
 				e.detail = DND.DROP_LINK;
 				applyEnabled();
 				_comm.refreshToolBar();
@@ -261,10 +265,10 @@ class ScenarioHistoryDialog : AbsDialog {
 			itm.setChecked(m.bookmark);
 		});
 
-		auto drag = new DragSource(_list, DND.DROP_MOVE | DND.DROP_LINK);
+		auto drag = new DragSource(_list, DND.DROP_LINK);
 		drag.setTransfer([FileTransfer.getInstance()]);
 		drag.addDragListener(new DragHist);
-		auto drop = new DropTarget(_list, DND.DROP_DEFAULT | DND.DROP_MOVE | DND.DROP_LINK);
+		auto drop = new DropTarget(_list, DND.DROP_DEFAULT | DND.DROP_LINK);
 		drop.setTransfer([FileTransfer.getInstance()]);
 		drop.addDropListener(new DropHist);
 	}
