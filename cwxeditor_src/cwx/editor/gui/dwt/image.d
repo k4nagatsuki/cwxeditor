@@ -553,6 +553,7 @@ public:
 		case MenuID.EditScenarioHistory: return imgd!("edit_sc_hist.png");
 		case MenuID.EditImportHistory: return imgd!("edit_import_hist.png");
 		case MenuID.EditExecutedPartyHistory: return imgd!("edit_party_hist.png");
+		case MenuID.PutParty: return imgd!("sc_t.png");
 		case MenuID.OpenDir: return imgd!("folder.png");
 		case MenuID.OpenBackupDir: return imgd!("open_backup.png");
 		case MenuID.OpenPlace: return imgd!("folder.png");

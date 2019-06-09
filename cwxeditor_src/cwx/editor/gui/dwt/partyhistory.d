@@ -26,6 +26,7 @@ import std.array;
 import std.file;
 import std.path;
 import std.string;
+import std.typecons;
 
 import org.eclipse.swt.all;
 
@@ -194,6 +195,27 @@ class ExecutedPartyHistoryDialog : AbsDialog, TCPD {
 		saveColumnWidth!("prop.var.etc.executionPartyEngineColumn")(_comm.prop, engineCol);
 
 		auto menu = new Menu(_list.getShell(), SWT.POP_UP);
+		void delegate() dummy;
+		auto selMI = .createMenuItem(_comm, menu, MenuID.PutParty, dummy, () => 0 < _comm.prop.var.etc.classicEngines.length, SWT.CASCADE);
+		auto selM = new Menu(selMI);
+		.createExecEngineMenu(_comm, null, selM, () => true, () => "", (epKey) { mixin(S_TRACE);
+			foreach (h; _hist) { mixin(S_TRACE);
+				if (.epKey(h.hist.enginePath, h.hist.yadoPath, h.hist.partyPath) == epKey) return false;
+			}
+			return true;
+		}, (path, scenario, ep) { mixin(S_TRACE);
+			store();
+			auto index = _list.getItemCount();
+			_hist ~= Hist(ep, false);
+			_list.setItemCount(cast(int)_hist.length);
+			_list.deselectAll();
+			_list.select(index);
+			_list.showSelection();
+			applyEnabled();
+			_comm.refreshToolBar();
+		}, () => true);
+		selMI.setMenu(selM);
+		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.Undo, { _undo.undo(); }, &_undo.canUndo);
 		createMenuItem(_comm, menu, MenuID.Redo, { _undo.redo(); }, &_undo.canRedo);
 		new MenuItem(menu, SWT.SEPARATOR);
@@ -352,16 +374,17 @@ class ExecutedPartyHistoryDialog : AbsDialog, TCPD {
 
 	private bool pasteImpl(ref XNode node) { mixin(S_TRACE);
 		if (node.name != "executionParties") return false;
-		int[ExecutionParty] set;
+		int[EPKey] set;
 		foreach (i, ep; _hist) { mixin(S_TRACE);
-			set[ep.hist] = cast(int)i;
+			set[.epKey(ep.hist.enginePath, ep.hist.yadoPath, ep.hist.partyPath)] = cast(int)i;
 		}
 		Hist[] hists;
 		int[] selIndices;
 		node.onTag[ExecutionParty.XML_NAME] = (ref XNode node) { mixin(S_TRACE);
 			ExecutionParty ep;
 			ep.fromNode(node);
-			if (auto p = ep in set) { mixin(S_TRACE);
+			auto epKey = .epKey(ep.enginePath, ep.yadoPath, ep.partyPath);
+			if (auto p = epKey in set) { mixin(S_TRACE);
 				selIndices ~= *p;
 				return;
 			}
@@ -369,7 +392,7 @@ class ExecutedPartyHistoryDialog : AbsDialog, TCPD {
 			auto i = cast(int)(_hist.length + hists.length);
 			hists ~= Hist(ep, bookmark);
 			selIndices ~= i;
-			set[ep] = i;
+			set[epKey] = i;
 		};
 		node.parse();
 		if (!hists.length) return false;
@@ -443,6 +466,7 @@ class ExecutedPartyHistoryDialog : AbsDialog, TCPD {
 void createExecEngineMenu(Commons comm, Menu menu, Menu mWithParty,
 		bool delegate() canExecWithParty,
 		string delegate() origScenarioPath,
+		bool delegate(in EPKey epKey) selectableParty,
 		void delegate(string path, string scenario, ExecutionParty ep) execEngineP,
 		bool delegate() canExecClassic) { mixin(S_TRACE);
 	class ExecWithPartyClassic : MenuAdapter {
@@ -487,7 +511,7 @@ void createExecEngineMenu(Commons comm, Menu menu, Menu mWithParty,
 				ep.partyName = name;
 				ep.partyPath = name; // クラシックなエンジンは宿名にフォルダ名を使用している
 				execEngineP(path, .tryFormat(`"%s"`, origScenarioPath()), ep);
-			}, () => true);
+			}, () => !selectableParty || selectableParty(.epKey(path, yPath.baseName(), name)));
 		}
 	}
 	class ExecEngine : MenuAdapter {
@@ -543,7 +567,7 @@ void createExecEngineMenu(Commons comm, Menu menu, Menu mWithParty,
 				ep.partyName = name;
 				ep.partyPath = party;
 				execEngineP(path, .tryFormat(`"%s"`, origScenarioPath()), ep);
-			}, () => true);
+			}, () => !selectableParty || selectableParty(.epKey(path, yPath.baseName(), party)));
 		}
 	}
 
@@ -875,4 +899,15 @@ bool existsParty(in Commons comm, in ExecutionParty ep) { mixin(S_TRACE);
 	return ep.enginePath != "" && ep.enginePath.exists() && ep.enginePath.isFile()
 		&& yadoPath.exists() && yadoPath.isDir()
 		&& partyPath.exists() && (ep.isClassic ? partyPath.isFile() : partyPath.isDir());
+}
+
+alias Tuple!(string, "engine", string, "yado", string, "party") EPKey;
+
+private EPKey epKey(string engine, string yado, string party) { mixin(S_TRACE);
+	engine = .nabs(engine);
+	static if (.filenameCmp("A", "a") == 0) { mixin(S_TRACE);
+		return EPKey(engine.toLower(), yado.toLower(), party.toLower());
+	} else { mixin(S_TRACE);
+		return EPKey(engine, yado, party);
+	}
 }

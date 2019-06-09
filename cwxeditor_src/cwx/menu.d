@@ -59,6 +59,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.EditScenarioHistory] = "H";
 		_mnemonic[MenuID.EditImportHistory] = "H";
 		_mnemonic[MenuID.EditExecutedPartyHistory] = "H";
+		_mnemonic[MenuID.PutParty] = "S";
 		_mnemonic[MenuID.OpenDir] = "O";
 		_mnemonic[MenuID.OpenBackupDir] = "B";
 		_mnemonic[MenuID.OpenPlace] = "O";
@@ -303,6 +304,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.EditScenarioHistory] = "";
 		_hotkey[MenuID.EditImportHistory] = "";
 		_hotkey[MenuID.EditExecutedPartyHistory] = "";
+		_hotkey[MenuID.PutParty] = "";
 		_hotkey[MenuID.OpenDir] = "";
 		_hotkey[MenuID.OpenBackupDir] = "";
 		_hotkey[MenuID.OpenPlace] = "";
@@ -1000,6 +1002,7 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.AddToolBar:
 	case MenuID.AddToolGroup:
 	case MenuID.ResetToolBarSettings:
+	case MenuID.PutParty:
 		return false;
 	}
 }
@@ -1253,6 +1256,7 @@ bool isGlobalMenu(MenuID id) {
 	case MenuID.AddToolBar:
 	case MenuID.AddToolGroup:
 	case MenuID.ResetToolBarSettings:
+	case MenuID.PutParty:
 		return false;
 	}
 }
@@ -1295,6 +1299,7 @@ bool isLocalMenu(MenuID id) {
 	case MenuID.Collapse:
 	case MenuID.ResetValues:
 	case MenuID.ResetValuesAll:
+	case MenuID.PutParty:
 		return true;
 	default:
 		return false;

@@ -226,7 +226,7 @@ private:
 			}
 		}
 
-		.createExecEngineMenu(_comm, menu, mWithParty, () => summary !is null, &origScenarioPath, &execEngineP, &canExecClassic);
+		.createExecEngineMenu(_comm, menu, mWithParty, () => summary !is null, &origScenarioPath, epKey => true, &execEngineP, &canExecClassic);
 
 		if (mWithParty && (_prop.var.etc.executedPartyBookmarks.length || _prop.var.etc.executedParties.length)) { mixin(S_TRACE);
 			auto num = 0;
@@ -266,7 +266,7 @@ private:
 		}
 
 		if (0 < _prop.var.etc.executedPartiesMax) { mixin(S_TRACE);
-			new MenuItem(mWithParty, SWT.SEPARATOR);
+			if (mWithParty.getItemCount()) new MenuItem(mWithParty, SWT.SEPARATOR);
 			.createMenuItem(_comm, mWithParty, MenuID.EditExecutedPartyHistory, &editExecutedPartyHistory, &canEditExecutedPartyHistory);
 		}
 
@@ -1306,6 +1306,7 @@ private:
 	}
 	@property
 	bool canExecEngineWithParty() { mixin(S_TRACE);
+		if (_prop.var.etc.classicEngines.length) return true;
 		if (!summary || (summary.useTemp && summary.origZipName == "")) return false;
 		if (summary.readOnlyPath != "") return false;
 		if (!canExecEngine && !_prop.var.etc.classicEngines.length) return false;
@@ -1563,7 +1564,7 @@ private:
 
 	@property
 	const
-	bool canEditScenarioHistory() { return _comm.prop.var.etc.scenarioBookmarks.length || _comm.prop.var.etc.openHistories.length; }
+	bool canEditScenarioHistory() { return true; }
 
 	private ScenarioHistoryDialog _scHistDlg = null;
 	private void editScenarioHistory() { mixin(S_TRACE);
@@ -1589,7 +1590,7 @@ private:
 
 	@property
 	const
-	bool canEditImportHistory() { return _comm.prop.var.etc.importBookmarks.length || _comm.prop.var.etc.importHistory.length; }
+	bool canEditImportHistory() { return true; }
 
 	private ScenarioHistoryDialog _importHistDlg = null;
 	private void editImportHistory() { mixin(S_TRACE);
@@ -1651,7 +1652,7 @@ private:
 
 	@property
 	const
-	bool canEditExecutedPartyHistory() { return _comm.prop.var.etc.executedPartyBookmarks.length || _comm.prop.var.etc.executedParties.length; }
+	bool canEditExecutedPartyHistory() { return _comm.prop.var.etc.executedPartyBookmarks.length || _comm.prop.var.etc.executedParties.length || _comm.prop.var.etc.classicEngines.length; }
 
 	private ExecutedPartyHistoryDialog _partyHistDlg = null;
 	private void editExecutedPartyHistory() { mixin(S_TRACE);
@@ -1965,7 +1966,7 @@ private:
 			}
 		}
 		if (menu.getItemCount()) new MenuItem(menu, SWT.SEPARATOR);
-		.createMenuItem(_comm, menu, MenuID.EditImportHistory, &editImportHistory, () => _prop.var.etc.importBookmarks.length || _prop.var.etc.importHistory.length);
+		.createMenuItem(_comm, menu, MenuID.EditImportHistory, &editImportHistory, &canEditImportHistory);
 	}
 
 	string _pipeName = "";
@@ -3397,6 +3398,7 @@ public:
 						case MenuID.AddToolBar:
 						case MenuID.AddToolGroup:
 						case MenuID.ResetToolBarSettings:
+						case MenuID.PutParty:
 							debugln(tool.menu);
 							continue;
 						}

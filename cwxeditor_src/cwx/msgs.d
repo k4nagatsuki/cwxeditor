@@ -2846,6 +2846,7 @@ class Msgs : Properties {
 	auto menuTextEditScenarioHistory = Msg("menuTextEditScenarioHistory", "履歴とブックマークの編集");
 	auto menuTextEditImportHistory = Msg("menuTextEditImportHistory", "履歴とブックマークの編集");
 	auto menuTextEditExecutedPartyHistory = Msg("menuTextEditExecutedPartyHistory", "履歴とブックマークの編集");
+	auto menuTextPutParty = Msg("menuTextPutParty", "パーティを選択して追加");
 	auto menuTextOpenDir = Msg("menuTextOpenDir", "シナリオの" ~ DIR ~ "を開く");
 	auto menuTextOpenBackupDir = Msg("menuTextOpenBackupDir", "バックアップ" ~ DIR ~ "を開く");
 	auto menuTextOpenPlace = Msg("menuTextOpenPlace", "ファイルの場所を開く");

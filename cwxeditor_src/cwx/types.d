@@ -1657,6 +1657,7 @@ enum MenuID {
 	EditScenarioHistory,
 	EditImportHistory,
 	EditExecutedPartyHistory,
+	PutParty,
 	OpenDir,
 	OpenBackupDir,
 	OpenPlace,
