@@ -34,6 +34,16 @@ import java.lang.all;
 
 /// 使用したパーティの履歴とブックマークを編集する。
 class ExecutedPartyHistoryDialog : AbsDialog, TCPD {
+
+	private void refreshWarning() { mixin(S_TRACE);
+		string[] ws;
+		auto num = .count!(h => !h.bookmark)(_hist);
+		if (_comm.prop.var.etc.executedPartiesMax < num) { mixin(S_TRACE);
+			ws ~= .tryFormat(_comm.prop.msgs.warningHistoryTooMany, num, _comm.prop.var.etc.executedPartiesMax);
+		}
+		warning = ws;
+	}
+
 	private Commons _comm;
 	private Table _list;
 	private static struct Hist {
@@ -68,8 +78,9 @@ class ExecutedPartyHistoryDialog : AbsDialog, TCPD {
 			_list.setItemCount(cast(int)_hist.length);
 			_list.clearAll();
 			_list.setSelection(selected);
-			_comm.refreshToolBar();
+			refreshWarning();
 			applyEnabled();
+			_comm.refreshToolBar();
 		}
 		override void undo() { impl(); }
 		override void redo() { impl(); }
@@ -128,6 +139,7 @@ class ExecutedPartyHistoryDialog : AbsDialog, TCPD {
 					assert (dragIndex < dropIndex);
 					downImpl(dropIndex - dragIndex);
 				}
+				refreshWarning();
 				applyEnabled();
 				_comm.refreshToolBar();
 			} else { mixin(S_TRACE);
@@ -178,6 +190,7 @@ class ExecutedPartyHistoryDialog : AbsDialog, TCPD {
 				foreach (i; _list.getSelectionIndices() ~ _list.indexOf(cast(TableItem)e.item)) { mixin(S_TRACE);
 					_hist[i].bookmark = _list.getItem(i).getChecked();
 				}
+				refreshWarning();
 				applyEnabled();
 			}
 		});
@@ -211,6 +224,7 @@ class ExecutedPartyHistoryDialog : AbsDialog, TCPD {
 			_list.deselectAll();
 			_list.select(index);
 			_list.showSelection();
+			refreshWarning();
 			applyEnabled();
 			_comm.refreshToolBar();
 		}, () => true);
@@ -270,8 +284,11 @@ class ExecutedPartyHistoryDialog : AbsDialog, TCPD {
 		drop.addDropListener(new DropHist);
 
 		_comm.refClassicSkin.add(&refClassicSkin);
+		_comm.refPartyHistoryMax.add(&refHistoryMax);
 		.listener(_list, SWT.Dispose, { mixin(S_TRACE);
 			_comm.refClassicSkin.remove(&refClassicSkin);
+			_comm.refPartyHistoryMax.remove(&refHistoryMax);
+
 			foreach (img; _icon.byValue()) { mixin(S_TRACE);
 				img.dispose();
 			}
@@ -402,6 +419,7 @@ class ExecutedPartyHistoryDialog : AbsDialog, TCPD {
 		_list.deselectAll();
 		_list.select(selIndices);
 		_list.showSelection();
+		refreshWarning();
 		applyEnabled();
 		_comm.refreshToolBar();
 		return true;
@@ -416,6 +434,7 @@ class ExecutedPartyHistoryDialog : AbsDialog, TCPD {
 		_list.deselectAll();
 		_list.setItemCount(cast(int)_hist.length);
 		_list.clearAll();
+		refreshWarning();
 		applyEnabled();
 		_comm.refreshToolBar();
 	}
@@ -440,6 +459,7 @@ class ExecutedPartyHistoryDialog : AbsDialog, TCPD {
 		_list.setSelection(indices2);
 		_list.setItemCount(cast(int)_hist.length);
 		_list.clearAll();
+		refreshWarning();
 		applyEnabled();
 		_comm.refreshToolBar();
 	}
@@ -453,9 +473,20 @@ class ExecutedPartyHistoryDialog : AbsDialog, TCPD {
 		_list.clearAll();
 	}
 
+	private void refHistoryMax() { mixin(S_TRACE);
+		auto num = .count!(h => !h.bookmark)(_hist);
+		if (_comm.prop.var.etc.executedParties.length < _comm.prop.var.etc.executedPartiesMax && _comm.prop.var.etc.executedParties.length < num) { mixin(S_TRACE);
+			applyEnabled();
+		}
+		refreshWarning();
+	}
+
 	protected override bool apply() { mixin(S_TRACE);
 		_comm.prop.var.etc.executedPartyBookmarks = _hist.filter!(h => h.bookmark)().map!(h => h.hist)().array();
 		_comm.prop.var.etc.executedParties = _hist.filter!(h => !h.bookmark)().map!(h => h.hist)().array();
+		if (_comm.prop.var.etc.executedPartiesMax < _comm.prop.var.etc.executedParties.length) { mixin(S_TRACE);
+			_comm.prop.var.etc.executedParties = _comm.prop.var.etc.executedParties[0 .. _comm.prop.var.etc.executedPartiesMax];
+		}
 		_comm.refExecutedParties.call();
 		_comm.refreshToolBar();
 		return true;

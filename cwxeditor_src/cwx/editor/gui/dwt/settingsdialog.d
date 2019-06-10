@@ -1652,6 +1652,7 @@ struct OldSettings {
 	bool oldLogicalSort;
 	const OpenHistory[] oldOpenHistories;
 	const OpenHistory[] importHistory;
+	uint historyMax;
 	const string[] oldSearchHistories;
 	const string[] oldReplaceHistories;
 	const string[] oldGrepDirHistories;
@@ -1728,6 +1729,8 @@ struct OldSettings {
 		this.oldLogicalSort = prop.var.etc.logicalSort;
 		this.oldOpenHistories = prop.var.etc.openHistories;
 		this.importHistory = prop.var.etc.importHistory;
+		this.historyMax = prop.var.etc.historyMax;
+		this.executedPartiesMax = prop.var.etc.executedPartiesMax;
 		this.oldSearchHistories = prop.var.etc.searchHistories;
 		this.oldGrepDirHistories = prop.var.etc.grepDirHistories;
 		this.oldReplaceHistories = prop.var.etc.replaceHistories;
@@ -1862,6 +1865,9 @@ struct OldSettings {
 		if (importHistory != prop.var.etc.importHistory) { mixin(S_TRACE);
 			comm.refImportHistory.call();
 		}
+		if (historyMax != prop.var.etc.historyMax) { mixin(S_TRACE);
+			comm.refHistoryMax.call();
+		}
 		if (oldSearchHistories != prop.var.etc.searchHistories || oldReplaceHistories != prop.var.etc.replaceHistories || oldGrepDirHistories != prop.var.etc.grepDirHistories) { mixin(S_TRACE);
 			comm.refSearchHistories.call();
 		}
@@ -1988,6 +1994,9 @@ struct OldSettings {
 		}
 		if (lastExecutedParty != prop.var.etc.lastExecutedParty || executedParties != prop.var.etc.executedParties || executedPartiesMax != prop.var.etc.executedPartiesMax) { mixin(S_TRACE);
 			comm.refExecutedParties.call();
+		}
+		if (executedPartiesMax != prop.var.etc.executedPartiesMax) { mixin(S_TRACE);
+			comm.refPartyHistoryMax.call();
 		}
 		if (comm.summary && !comm.summary.legacy && this.xmlFileNameIsIDOnly != prop.var.etc.xmlFileNameIsIDOnly) { mixin(S_TRACE);
 			if (comm.summary.expandXMLs) { mixin(S_TRACE);

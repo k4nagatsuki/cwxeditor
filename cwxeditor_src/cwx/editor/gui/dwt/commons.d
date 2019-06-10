@@ -339,8 +339,10 @@ class Commons {
 	Dlg!() saved;
 	Dlg!() refHistories;
 	Dlg!() refImportHistory;
+	Dlg!() refHistoryMax;
 	Dlg!() refSearchHistories;
 	Dlg!() refExecutedParties;
+	Dlg!() refPartyHistoryMax;
 	Dlg!(Summary) refScenario;
 	Dlg!() refScenarioName;
 	Dlg!() refScenarioPath;

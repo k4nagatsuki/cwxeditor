@@ -93,6 +93,7 @@ class Msgs : Properties {
 	auto scenarioBookmarkHint = Msg("scenarioBookmarkHint", "ブックマークに登録したいシナリオはチェックしてください。");
 	auto historyScenarioFileName = Msg("historyScenarioFileName", "ファイル名");
 	auto historyScenarioPath = Msg("historyScenarioPath", "場所");
+	auto warningHistoryTooMany = Msg("warningHistoryTooMany", "履歴が多すぎます(%1$s件)。%2$s件を超えた分は適用時に破棄されます。");
 
 	auto editExecutedPartyHistory = Msg("editExecutedPartyHistory", "パーティの履歴とブックマークの編集");
 	auto executionPartyName = Msg("executionPartyName", "パーティ");
