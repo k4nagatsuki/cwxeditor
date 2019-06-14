@@ -415,7 +415,7 @@ private:
 		}
 		override void undo() { impl(); }
 		override void redo() { impl(); }
-		override void dispose() {}
+		override void dispose() { }
 	}
 	EVUndo store(EventTree tree, bool put = true) { mixin(S_TRACE);
 		auto undo = new UndoTreeData(_comm, _area, tree);
