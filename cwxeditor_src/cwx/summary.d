@@ -101,6 +101,7 @@ struct SaveOption {
 	bool xmlFileNameIsIDOnly = false; /// XMLファイルの名称をIDのみで設定するか。
 	bool autoUpdateJpy1File = false; /// エフェクトブースターファイル内のパス情報を自動更新する。
 	bool saveSkinName = true; /// スキンタイプに加えてスキン名称も保存するか。
+	uint dataVersion = 4; /// クラシックなシナリオのデータバージョン。
 	void delegate() savedCallback = null; /// 保存完了通知を受け取る場合は設定する。
 }
 
@@ -214,7 +215,7 @@ public:
 		if (!_legacy) _loadScaledImage = true;
 		if (_useTemp) { mixin(S_TRACE);
 			_tempPath = _sPath;
-			lock(_tempPath, _useTemp);
+			lock(_tempPath, _useTemp, _lock);
 		}
 	}
 
@@ -589,7 +590,7 @@ public:
 						r._toX = false;
 						r._tempPath = fn;
 						r._legacy = false;
-						r.lock(r._tempPath, r._useTemp);
+						lock(r._tempPath, r._useTemp, r._lock);
 						if (scTemplate) { mixin(S_TRACE);
 							r._zipName = "";
 							r._origZipName = "";
@@ -616,7 +617,7 @@ public:
 							return createFromTemplate(r);
 						} else { mixin(S_TRACE);
 							if (7 <= dataVersion) toX(r);
-							r.lock(r._tempPath, r._useTemp);
+							lock(r._tempPath, r._useTemp, r._lock);
 							return r;
 						}
 					}
@@ -658,7 +659,7 @@ public:
 							r.repairID0();
 							if (7 <= dataVersion) { mixin(S_TRACE);
 								toX(r);
-								r.lock(r._tempPath, r._useTemp);
+								lock(r._tempPath, r._useTemp, r._lock);
 							}
 							return r;
 						}
@@ -680,7 +681,7 @@ public:
 							copyAll(r.scenarioPath, temp);
 							r._tempPath = temp;
 							r._useTemp = true;
-							r.lock(r._tempPath, r._useTemp);
+							lock(r._tempPath, r._useTemp, r._lock);
 						}
 						r.refCheckPaths();
 						r.updateJpy1List(prop);
@@ -710,10 +711,10 @@ public:
 		}
 		return null;
 	}
-	private void lock(string tempPath, bool useTemp) { mixin(S_TRACE);
-		assert (!_lock.isOpen);
+	private static void lock(string tempPath, bool useTemp, ref File lock) { mixin(S_TRACE);
+		assert (!lock.isOpen);
 		if (useTemp) { mixin(S_TRACE);
-			_lock = File(std.path.buildPath(tempPath, "cwxeditor.lock"), "wb");
+			lock = File(std.path.buildPath(tempPath, "cwxeditor.lock"), "wb");
 		}
 	}
 	/// 一時展開先を削除する。
@@ -1204,7 +1205,7 @@ public:
 		_legacy = false;
 		this.scenarioPath = scenarioPath;
 		_tempPath = scenarioPath;
-		if (!_lock.isOpen) lock(_tempPath, true);
+		if (!_lock.isOpen) lock(_tempPath, true, _lock);
 	}
 
 	/// データバージョン。
@@ -2596,30 +2597,25 @@ public:
 		return temp;
 	}
 	/// 新規にシナリオのディレクトリを作成し、現在のファイルをコピーする。
-	private string toNewDirectory(in CProps prop, string fileOrDir, string tempPath, out string[] copyFail, out bool useTemp) { mixin(S_TRACE);
+	private string toNewDirectory(in CProps prop, string fileOrDir, string tempPath, out string[] copyFail, out bool useTemp, out string origZipName) { mixin(S_TRACE);
 		copyFail = [];
 		bool isDir;
-		string sPath, zipName;
+		string sPath;
 		string ext = fileOrDir.extension();
 		string baseName = fileOrDir.baseName();
 		if (.cfnmatch(baseName, "Summary.wsm") || .cfnmatch(baseName, "Summary.xml")) { mixin(S_TRACE);
 			isDir = true;
 			sPath = fileOrDir.dirName();
-			zipName = "";
-			_origZipName = "";
+			origZipName = "";
 		} else if (!(.exists(fileOrDir) && .isDir(fileOrDir)) && (ext.cfnmatch(".zip") || ext.cfnmatch(".cab") || ext.cfnmatch(".wsn"))) { mixin(S_TRACE);
 			isDir = false;
 			sPath = Summary.createTempDirFromName(tempPath, fileOrDir.baseName().stripExtension());
-			zipName = fileOrDir;
-			_origZipName = fileOrDir;
+			origZipName = fileOrDir;
 		} else { mixin(S_TRACE);
 			isDir = true;
 			sPath = fileOrDir;
-			zipName = "";
-			_origZipName = fileOrDir;
+			origZipName = fileOrDir;
 		}
-		_readOnlyPath = "";
-		_toX = false;
 		auto list = clistdir(scenarioPath);
 		if (!.exists(sPath)) mkdirRecurse(sPath);
 		useTemp = !isDir;
@@ -2659,7 +2655,7 @@ public:
 			// クラシック形式で保存
 			string[] copyFail;
 			bool useTemp;
-			auto sPath = toNewDirectory(prop, fname, tempPath, copyFail, useTemp);
+			auto sPath = toNewDirectory(prop, fname, tempPath, copyFail, useTemp, _origZipName);
 			foreach (fail; copyFail) { mixin(S_TRACE);
 				// 一部コピー失敗しても中断しない
 				showWarn(.tryFormat(prop.msgs.fileCopyError, fail));
@@ -2685,7 +2681,7 @@ public:
 				toX = true;
 				_legacy = false;
 			} else { mixin(S_TRACE);
-				sPath = toNewDirectory(prop, fname, tempPath, copyFail, useTemp);
+				sPath = toNewDirectory(prop, fname, tempPath, copyFail, useTemp, _origZipName);
 			}
 			foreach (fail; copyFail) { mixin(S_TRACE);
 				// 一部コピー失敗しても中断しない
@@ -2738,6 +2734,8 @@ public:
 			}
 			saveProc(prop, skin, opt2, true, fname, p, scenarioPath, legacy, false, defExpandXMLs, true, sync);
 		}
+		_readOnlyPath = "";
+		_toX = false;
 	}
 	private void saveProc(in CProps prop, in Skin skin, in SaveOption opt, bool archive,
 			string zipName, string temp, string sPath, bool legacy, bool legacyToX, bool defExpandXMLs,
@@ -2763,10 +2761,8 @@ public:
 			}
 			bool expand = false;
 			if (legacy && !legacyToX) { mixin(S_TRACE);
-				auto oldPath = scenarioPath;
+				saveLScenario(this, sPath, skin, prop, opt, sync);
 				scenarioPath = sPath;
-				scope (failure) scenarioPath = oldPath;
-				saveLScenario(this, skin, prop, opt, sync);
 				bool useTemp = archive;
 				.enforce(useTemp == (0 < zipName.length));
 				if (useTemp) { mixin(S_TRACE);
@@ -2786,7 +2782,7 @@ public:
 						}
 						releaseLockFile();
 						if (useTemp && !_lock.isOpen) { mixin(S_TRACE);
-							lock(sPath, useTemp);
+							lock(sPath, useTemp, _lock);
 						}
 					}
 					if (opt.archiveInNewThread) { mixin(S_TRACE);
@@ -2798,7 +2794,7 @@ public:
 				} else { mixin(S_TRACE);
 					releaseLockFile();
 					if (useTemp && !_lock.isOpen) { mixin(S_TRACE);
-						lock(sPath, useTemp);
+						lock(sPath, useTemp, _lock);
 					}
 				}
 				_expandXMLs = false;
@@ -2908,6 +2904,74 @@ public:
 			throw new SummaryException(.tryFormat(prop.msgs.saveError, scenarioName));
 		}
 	}
+
+	/// 編集中のシナリオを別の場所にエクスポートする。
+	void exportClassicScenario(in CProps prop, in Skin skin, in SaveOption opt, string fname, string tempPath, void delegate(string) showWarn, FileSync sync) { mixin(S_TRACE);
+		SaveOption opt2 = opt;
+		opt2.saveChangedOnly = false; // 部分保存ができるのは上書き時のみ
+
+		_inSaving = true;
+		auto callSaved = true;
+		scope (exit) {
+			if (callSaved) {
+				void saved() { mixin(S_TRACE);
+					sync.sync();
+					_inSaving = false;
+					if (opt.savedCallback) opt.savedCallback();
+				}
+				.task(&saved).executeInNewThread();
+			}
+		}
+
+		string[] copyFail;
+		bool useTemp;
+		string origZipName;
+		auto sPath = toNewDirectory(prop, fname, tempPath, copyFail, useTemp, origZipName);
+		auto lock = File.init;
+		if (useTemp) { mixin(S_TRACE);
+			Summary.lock(sPath, useTemp, lock);
+		}
+		foreach (fail; copyFail) { mixin(S_TRACE);
+			// 一部コピー失敗しても中断しない
+			showWarn(.tryFormat(prop.msgs.fileCopyError, fail));
+		}
+		auto zipName = useTemp ? fname : "";
+		auto temp = sPath;
+		scope (failure) {
+			if (useTemp) {
+				delAll(temp);
+				lock.close();
+			}
+		}
+		.saveLScenario(this, sPath, skin, prop, opt2, sync);
+		.enforce(useTemp == (0 < zipName.length));
+		if (useTemp) { mixin(S_TRACE);
+			void t1() { mixin(S_TRACE);
+				scope (exit) {
+					sync.sync();
+					_inSaving = false;
+					if (opt2.savedCallback) opt2.savedCallback();
+				}
+				sync.sync();
+				if (cfnmatch(.extension(zipName), ".cab")) { mixin(S_TRACE);
+					.cab(temp, zipName, (string file) { mixin(S_TRACE);
+						return !cfnmatch(baseName(file), "cwxeditor.lock");
+					});
+				} else { mixin(S_TRACE);
+					.zip(temp, zipName, true, [std.path.buildPath(temp, "cwxeditor.lock")], true, sync);
+				}
+				lock.close();
+				delAll(temp);
+			}
+			if (opt2.archiveInNewThread) { mixin(S_TRACE);
+				.task(&t1).executeInNewThread();
+				callSaved = false;
+			} else { mixin(S_TRACE);
+				t1();
+			}
+		}
+	}
+
 	/// シナリオのフォルダのアーカイブを作成する。
 	ZipArchive createZipData(in string[] ignorePaths, bool useSysEnc, bool isWsn, out ubyte*[] data, FileSync sync) { mixin(S_TRACE);
 		sync.sync();
