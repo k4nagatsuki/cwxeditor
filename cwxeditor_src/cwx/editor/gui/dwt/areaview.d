@@ -513,9 +513,7 @@ private:
 			super (v, comm, area, summ);
 			static if (UseCards) {
 				foreach (i; cIdcs) { mixin(S_TRACE);
-					auto node = area.cards[i].toNode(new XMLOption(comm.prop.sys, LATEST_VERSION));
-					auto ver = new XMLInfo(comm.prop.sys, LATEST_VERSION);
-					auto c = C.createFromNode(node, ver);
+					auto c = area.cards[i].dup;
 					if (summ) c.setUseCounter(summ.useCounter.sub);
 					_cs[i] = c;
 					_cChks[i] = v ? v._cards.getItem(i).getChecked() : true;
@@ -536,12 +534,12 @@ private:
 			scope (exit) uda(vs);
 			static if (UseCards) {
 				foreach (i; std.algorithm.sort(_cs.keys)) { mixin(S_TRACE);
-					appendCardImpl(vs, comm, summ, area, i, _cs[i], true, false, _cChks[i]);
+					appendCardImpl(vs, comm, summ, area, i, _cs[i].dup, true, false, _cChks[i]);
 				}
 			}
 			static if (UseBacks) {
 				foreach (i; std.algorithm.sort(_bs.keys)) { mixin(S_TRACE);
-					appendBgImageImpl(vs, comm, summ, area, i, _bs[i], true, false, _bChks[i]);
+					appendBgImageImpl(vs, comm, summ, area, i, _bs[i].dup, true, false, _bChks[i]);
 				}
 			}
 			foreach (v; vs) v.refreshSelected();

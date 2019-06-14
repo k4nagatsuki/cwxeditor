@@ -309,7 +309,7 @@ public:
 	@property
 	const
 	override
-	AbstractSpCard dup() {
+	EnemyCard dup() {
 		auto r = new EnemyCard(id, escape, flag, x, y, scale, layer, cardGroup);
 		r.deepCopyEventTreeOwner(this);
 		return r;
@@ -500,7 +500,7 @@ public:
 	@property
 	const
 	override
-	AbstractSpCard dup() { mixin(S_TRACE);
+	MenuCard dup() { mixin(S_TRACE);
 		auto r = new MenuCard(name, paths, desc, flag, x, y, scale, layer, cardGroup);
 		r.deepCopyEventTreeOwner(this);
 		return r;
