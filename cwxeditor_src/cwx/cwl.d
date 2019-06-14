@@ -2219,7 +2219,7 @@ struct SData {
 	}
 }
 /// 4.0形式のCardWirthシナリオを保存する。
-void saveLScenario(Summary summ, const Skin skin, const CProps prop, in SaveOption opt, FileSync sync) { mixin(S_TRACE);
+void saveLScenario(Summary summ, string scenarioPath, const Skin skin, const CProps prop, in SaveOption opt, FileSync sync) { mixin(S_TRACE);
 	HashSet!Object changed = null;
 	if (opt.saveChangedOnly) changed = summ.changedResources;
 
@@ -2230,7 +2230,7 @@ void saveLScenario(Summary summ, const Skin skin, const CProps prop, in SaveOpti
 		foreach (file; clistdir(opt.backupDir)) { mixin(S_TRACE);
 			.delAll(opt.backupDir.buildPath(file));
 		}
-		auto summPath = std.path.buildPath(summ.scenarioPath, "Summary.wsm");
+		auto summPath = std.path.buildPath(scenarioPath, "Summary.wsm");
 		if (summPath.exists()) { mixin(S_TRACE);
 			summPath.copy(opt.backupDir.buildPath("Summary.wsm"));
 		}
@@ -2248,7 +2248,7 @@ void saveLScenario(Summary summ, const Skin skin, const CProps prop, in SaveOpti
 		InfoCard[] infos;
 		bool[string] wids;
 		this () {
-			d = SData(prop, summ.scenarioPath, skin, opt.saveInnerImagePath, opt.logicalSort, (id) => summ.skill(id), (id) => summ.item(id), (id) => summ.beast(id), opt);
+			d = SData(prop, scenarioPath, skin, opt.saveInnerImagePath, opt.logicalSort, (id) => summ.skill(id), (id) => summ.item(id), (id) => summ.beast(id), opt);
 		}
 		void writeFile(CWXPath a, string name, void delegate(ref ByteIO f) write) { mixin(S_TRACE);
 			auto path = std.path.buildPath(d.sPath, name);
@@ -2358,9 +2358,9 @@ void saveLScenario(Summary summ, const Skin skin, const CProps prop, in SaveOpti
 		save1.wids[file] = true;
 	}
 
-	foreach (file; .clistdir(summ.scenarioPath)) { mixin(S_TRACE);
+	foreach (file; .clistdir(scenarioPath)) { mixin(S_TRACE);
 		if (!std.regex.match(file, SYS_FNAME).empty && file !in save1.wids && file !in save2.wids) { mixin(S_TRACE);
-		auto path = std.path.buildPath(summ.scenarioPath, file);
+		auto path = std.path.buildPath(scenarioPath, file);
 			if (canBackup) { mixin(S_TRACE);
 				if (!opt.backupDir.exists()) opt.backupDir.mkdirRecurse();
 				path.rename(opt.backupDir.buildPath(file));
