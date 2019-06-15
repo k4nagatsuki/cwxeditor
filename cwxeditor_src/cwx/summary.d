@@ -2414,7 +2414,7 @@ public:
 
 	/// カード画像のマップを生成して返す。
 	const
-	private string[][immutable(ubyte[])] cardImgTable(string mtdir, in Skin skin, UseCounter uc, out ubyte*[] ptrs) { mixin(S_TRACE);
+	private string[][immutable(ubyte[])] cardImgTable(string mtdir, string relMT, in Skin skin, UseCounter uc, out ubyte*[] ptrs) { mixin(S_TRACE);
 		string[][immutable(ubyte[])] r;
 		foreach (file; clistdir(mtdir)) { mixin(S_TRACE);
 			if (skin.isCardImage(std.path.buildPath(mtdir, file), true)) { mixin(S_TRACE);
@@ -2422,7 +2422,7 @@ public:
 				auto mBytes = readBinaryFrom!ubyte(std.path.buildPath(mtdir, file), ptr);
 				ptrs ~= ptr;
 				auto bytes = assumeUnique(mBytes);
-				r[bytes] ~= std.path.buildPath(skin.materialPath, file);
+				r[bytes] ~= std.path.buildPath(relMT, file);
 			}
 		}
 		foreach (key, v; r.values) { mixin(S_TRACE);
@@ -2456,7 +2456,7 @@ public:
 		return r;
 	}
 	const
-	private bool moveBinData(ref string[][immutable(ubyte[])] cis, PathUser targ, string fname, string mt, in Skin toSkin) { mixin(S_TRACE);
+	private bool moveBinData(ref string[][immutable(ubyte[])] cis, PathUser targ, string fname, string mt, string relMT, in Skin toSkin) { mixin(S_TRACE);
 		string img = targ.path;
 		bool writeBytes(ubyte[] bytes, string ext) { mixin(S_TRACE);
 			string[] *files = bytes in cis;
@@ -2466,7 +2466,7 @@ public:
 			} else { mixin(S_TRACE);
 				auto file = createFileI(mt, fname, ext, "", false);
 				std.file.write(file, bytes);
-				targ.path = std.path.buildPath(toSkin.materialPath, baseName(file));
+				targ.path = std.path.buildPath(relMT, baseName(file));
 				cis[assumeUnique(bytes)] ~= targ.path;
 				return true;
 			}
@@ -2489,16 +2489,24 @@ public:
 		.enforce(legacy);
 		copyFail = [];
 		auto uc = useCounter;
-		string mt = std.path.buildPath(temp, toSkin.materialPath);
-		try { mixin(S_TRACE);
-			if (!mt.exists()) mkdirRecurse(mt);
-		} catch (Exception e) {
-			// 稀な条件でMaterialだけ生成されない場合がある模様
-			printStackTrace();
-			debugln(e);
-		}
-		if (!.exists(mt)) { mixin(S_TRACE);
+		auto mt = std.path.buildPath(temp, toSkin.materialPath);
+		auto relMT = toSkin.materialPath;
+		if (.exists(std.path.buildPath(scenarioPath, toSkin.materialPath))) { mixin(S_TRACE);
+			// すでにMaterialがある場合は重複させない
 			mt = temp;
+			relMT = "";
+		} else { mixin(S_TRACE);
+			try { mixin(S_TRACE);
+				.mkdirRecurse(mt);
+			} catch (Exception e) {
+				// 稀な条件でMaterialだけ生成されない場合がある模様
+				printStackTrace();
+				debugln(e);
+			}
+			if (!.exists(mt)) { mixin(S_TRACE);
+				mt = temp;
+				relMT = "";
+			}
 		}
 		foreach (file; clistdir(scenarioPath)) { mixin(S_TRACE);
 			if (cfnmatch(file, "cwxeditor.lock")) { mixin(S_TRACE);
@@ -2568,7 +2576,7 @@ public:
 			}
 		}
 		ubyte*[] ptrs;
-		auto table = cardImgTable(mt, toSkin, uc, ptrs);
+		auto table = cardImgTable(mt, relMT, toSkin, uc, ptrs);
 		loadScaledImage = true;
 		foreach (p; uc.keys!PathId) { mixin(S_TRACE);
 			if (p.isBinData) { mixin(S_TRACE);
@@ -2582,7 +2590,7 @@ public:
 				}
 				foreach (ipu; std.algorithm.sort!pcmp(users2)) { mixin(S_TRACE);
 					auto exportedName = .pathUserToExportedImageName(prop, scenarioName, author, ipu.u);
-					moveBinData(table, ipu.u, exportedName, mt, toSkin);
+					moveBinData(table, ipu.u, exportedName, mt, relMT, toSkin);
 				}
 			} else if (loadScaledImage) { mixin(S_TRACE);
 				auto path = cast(string)p;
