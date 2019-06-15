@@ -553,6 +553,7 @@ private class Function : Part {
 			"coupontext": &.funcCouponText,
 			"findgossip": &.funcFindGossip,
 			"gossiptext": &.funcGossipText,
+			"partyname": &.funcPartyName,
 		];
 	}
 
@@ -1079,6 +1080,9 @@ struct VariableInfo {
 	/// ゴシップの取得。
 	string delegate(uint gossipNumber) gossipText;
 
+	/// パーティ名の取得。
+	string delegate() partyName;
+
 	/// インスタンスを生成する。
 	this (in CProps prop, in Summary summ, in UseCounter uc, string targVer, string[char] names, VarValue[string] flags, VarValue[string] steps, VarValue[string] variants, VarValue[string] sysSteps) { mixin(S_TRACE);
 		existsFlag = path => .findVar!(cwx.flag.Flag)(summ ? summ.flagDirRoot : null, uc, path) !is null;
@@ -1117,6 +1121,8 @@ struct VariableInfo {
 		couponText = (castNumber, couponNumber) => "";
 		findGossip = (pattern, startPos) => 0u;
 		gossipText = (gossipNumber) => "";
+
+		partyName = () => "";
 	}
 }
 
@@ -1668,6 +1674,17 @@ private const(Part) funcGossipText(in CProps prop, EvalMode mode, in VariableInf
 	return new StringValue(func.token, vInfo.gossipText(cast(uint)gn.numVal));
 }
 
+/// パーティ名を取得する。
+private const(Part) funcPartyName(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	if (mode !is EvalMode.TypeCheck) { mixin(S_TRACE);
+		if (!vInfo.partyName) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
+	}
+	if (!checkArgCount(prop, func, args, 0, err)) return new StringValue(func.token, "");
+	if (mode is EvalMode.TypeCheck) return new StringValue(func.token, "");
+
+	return new StringValue(func.token, vInfo.partyName());
+}
+
 /// 入力支援用に関数の引数の型を表現する。
 enum ArgType {
 	Number, /// 数値。
@@ -1788,6 +1805,8 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 		], ArgType.Number),
 		FuncDef([FunctionCategory.CouponInformation], "GOSSIPTEXT", prop.msgs.funcDescGossipText, prop.msgs.funcShortDescGossipText, prop.msgs.funcExampleGossipText, [
 			ArgDef(ArgType.Number, prop.msgs.exprGossipNumberDesc, "1", false),
+		], ArgType.String),
+		FuncDef([FunctionCategory.Etc], "PARTYNAME", prop.msgs.funcDescPartyName, prop.msgs.funcShortDescPartyName, prop.msgs.funcExamplePartyName, [
 		], ArgType.String),
 	];
 }

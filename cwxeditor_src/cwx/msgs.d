@@ -2734,6 +2734,7 @@ class Msgs : Properties {
 	auto funcDescCouponText = Msg("funcDescCouponText", "キャラクターの所持するクーポンの名前を返します。見つからなかった場合は空文字列を返します。");
 	auto funcDescFindGossip = Msg("funcDescFindGossip", "ゴシップを検索し、ゴシップ番号を返します。見つからなかった場合は0を返します。次の特殊文字が使用できます。\n* = 任意文字列, ? = 任意1文字, [ABC] = A・B・Cのいずれか1文字, [!ABC] = A・B・Cのいずれでもない1文字。\n特殊文字を普通の文字のように検索したい時は[[]のように[]で囲います。");
 	auto funcDescGossipText = Msg("funcDescGossipText", "ゴシップの名前を返します。見つからなかった場合は空文字列を返します。");
+	auto funcDescPartyName = Msg("funcDescPartyName", "操作中のパーティの名前を返します。");
 
 	auto funcShortDescLen = Msg("funcShortDescLen", "文字列の長さを返す");
 	auto funcShortDescFind = Msg("funcDescFind", "文字列内を検索");
@@ -2759,6 +2760,7 @@ class Msgs : Properties {
 	auto funcShortDescCouponText = Msg("funcShortDescCouponText", "クーポン名を取得");
 	auto funcShortDescFindGossip = Msg("funcShortDescFindGossip", "ゴシップを検索");
 	auto funcShortDescGossipText = Msg("funcShortDescGossipText", "ゴシップ名を取得");
+	auto funcShortDescPartyName = Msg("funcShortDescPartyName", "パーティ名を取得");
 
 	auto funcExampleLen = Msg("funcExampleLen", "LEN(\"対象文字列\") = 5");
 	auto funcExampleFind = Msg("funcExampleFind", "FIND(\"文字\", \"対象文字列\") = 3");
@@ -2784,6 +2786,7 @@ class Msgs : Properties {
 	auto funcExampleCouponText = Msg("funcExampleCouponText", "COUPONTEXT(SELECTED(), FINDCOUPON(SELECTED(), \"*退治\")) = \"ゴブリン退治\"");
 	auto funcExampleFindGossip = Msg("funcExampleFindGossip", "FINDGOSSIP(\"*生存\") <> 0");
 	auto funcExampleGossipText = Msg("funcExampleGossipText", "GOSSIPTEXT(FINDGOSSIP(\"*生存\")) = \"ゴブリン生存\"");
+	auto funcExamplePartyName = Msg("funcExamplePartyName", "PARTYNAME()");
 
 	auto exprStringDesc = Msg("exprStringDesc", "文字列");
 	auto exprFindStringDesc = Msg("exprFindStringDesc", "検索文字列");
