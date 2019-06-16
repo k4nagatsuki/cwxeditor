@@ -2730,6 +2730,7 @@ class Msgs : Properties {
 	auto funcDescStepMax = Msg("funcDescStepMax", "ステップの最大値を返します。");
 	auto funcDescSelected = Msg("funcDescSelected", "選択メンバの番号を1以上の数値で返します。選択メンバがいない場合は0を返します。");
 	auto funcDescCastType = Msg("funcDescCastType", "キャラクターのタイプを返します(1=プレイヤー, 2=エネミー, 3=同行キャスト)。該当者がいない場合は0を返します。");
+	auto funcDescCastName = Msg("funcDescCastName", "キャラクターの名前を返します。該当者がいない場合は空文字列を返します。");
 	auto funcDescFindCoupon = Msg("funcDescFindCoupon", "キャラクターの所持するクーポンを検索し、クーポン番号を返します。見つからなかった場合は0を返します。次の特殊文字が使用できます。\n* = 任意文字列, ? = 任意1文字, [ABC] = A・B・Cのいずれか1文字, [!ABC] = A・B・Cのいずれでもない1文字。\n特殊文字を普通の文字のように検索したい時は[[]のように[]で囲います。");
 	auto funcDescCouponText = Msg("funcDescCouponText", "キャラクターの所持するクーポンの名前を返します。見つからなかった場合は空文字列を返します。");
 	auto funcDescFindGossip = Msg("funcDescFindGossip", "ゴシップを検索し、ゴシップ番号を返します。見つからなかった場合は0を返します。次の特殊文字が使用できます。\n* = 任意文字列, ? = 任意1文字, [ABC] = A・B・Cのいずれか1文字, [!ABC] = A・B・Cのいずれでもない1文字。\n特殊文字を普通の文字のように検索したい時は[[]のように[]で囲います。");
@@ -2756,6 +2757,7 @@ class Msgs : Properties {
 	auto funcShortDescStepMax = Msg("funcShortDescStepMax", "ステップの最大値を返す");
 	auto funcShortDescSelected = Msg("funcShortDescSelected", "選択メンバを返す");
 	auto funcShortDescCastType = Msg("funcShortDescCastType", "キャラクターのタイプを返す");
+	auto funcShortDescCastName = Msg("funcShortDescCastName", "キャラクターの名前を返す");
 	auto funcShortDescFindCoupon = Msg("funcShortDescFindCoupon", "クーポンを検索");
 	auto funcShortDescCouponText = Msg("funcShortDescCouponText", "クーポン名を取得");
 	auto funcShortDescFindGossip = Msg("funcShortDescFindGossip", "ゴシップを検索");
@@ -2782,6 +2784,7 @@ class Msgs : Properties {
 	auto funcExampleStepMax = Msg("funcExampleStepMax", "STEPMAX(\"ステップA\") = 9");
 	auto funcExampleSelected = Msg("funcExampleSelected", "SELECTED() <> 0");
 	auto funcExampleCastType = Msg("funcExampleCastType", "CASTTYPE(SELECTED()) = 1");
+	auto funcExampleCastName = Msg("funcExampleCastName", "CASTNAME(SELECTED()) = \"コボルト\"");
 	auto funcExampleFindCoupon = Msg("funcExampleFindCoupon", "FINDCOUPON(SELECTED(), \"*退治\") <> 0");
 	auto funcExampleCouponText = Msg("funcExampleCouponText", "COUPONTEXT(SELECTED(), FINDCOUPON(SELECTED(), \"*退治\")) = \"ゴブリン退治\"");
 	auto funcExampleFindGossip = Msg("funcExampleFindGossip", "FINDGOSSIP(\"*生存\") <> 0");

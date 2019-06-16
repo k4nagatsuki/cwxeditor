@@ -549,6 +549,7 @@ private class Function : Part {
 			"stepmax": &.funcStepMax,
 			"selected": &.funcSelected,
 			"casttype": &.funcCastType,
+			"castname": &.funcCastName,
 			"findcoupon": &.funcFindCoupon,
 			"coupontext": &.funcCouponText,
 			"findgossip": &.funcFindGossip,
@@ -1080,6 +1081,8 @@ struct VariableInfo {
 	/// ゴシップの取得。
 	string delegate(uint gossipNumber) gossipText;
 
+	/// キャラクター名を取得。
+	string delegate(uint) castName;
 	/// パーティ名の取得。
 	string delegate() partyName;
 
@@ -1122,6 +1125,7 @@ struct VariableInfo {
 		findGossip = (pattern, startPos) => 0u;
 		gossipText = (gossipNumber) => "";
 
+		castName = (castNumber) => "";
 		partyName = () => "";
 	}
 }
@@ -1601,6 +1605,17 @@ private const(Part) funcCastType(in CProps prop, EvalMode mode, in VariableInfo 
 	return new NumberValue(func.token, v <= prop.looks.partyMax ? 1 : 0);
 }
 
+/// キャラクターの名前を返す。
+/// 該当者がいない場合は0を返す。
+private const(Part) funcCastName(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	if (!checkArgCount(prop, func, args, 1, err)) return new StringValue(func.token, "");
+	auto n = checkMinValue(prop, mode, func, args, 0, 0, err);
+	if (!n) return new StringValue(func.token, "");
+	auto v = cast(uint)n.numVal;
+	if (v == 0) return new StringValue(func.token, "");
+	return new StringValue(func.token, vInfo.castName(v));
+}
+
 /// クーポンを検索する。
 private const(Part) funcFindCoupon(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
 	if (mode !is EvalMode.TypeCheck) { mixin(S_TRACE);
@@ -1790,6 +1805,9 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 		FuncDef([FunctionCategory.CardInformation], "CASTTYPE", prop.msgs.funcDescCastType, prop.msgs.funcShortDescCastType, prop.msgs.funcExampleCastType, [
 			ArgDef(ArgType.Number, prop.msgs.exprCastNumberDesc, "1", false),
 		], ArgType.Number),
+		FuncDef([FunctionCategory.CardInformation], "CASTNAME", prop.msgs.funcDescCastName, prop.msgs.funcShortDescCastName, prop.msgs.funcExampleCastName, [
+			ArgDef(ArgType.Number, prop.msgs.exprCastNumberDesc, "1", false),
+		], ArgType.String),
 		FuncDef([FunctionCategory.CouponInformation], "FINDCOUPON", prop.msgs.funcDescFindCoupon, prop.msgs.funcShortDescFindCoupon, prop.msgs.funcExampleFindCoupon, [
 			ArgDef(ArgType.Number, prop.msgs.exprCastNumberDesc, "1", false),
 			ArgDef(ArgType.String, prop.msgs.exprFindPatternDesc, "*", false),
