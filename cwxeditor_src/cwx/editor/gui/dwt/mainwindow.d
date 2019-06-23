@@ -250,14 +250,14 @@ private:
 				if (!warn) .putEngineIcon(_comm, mi, null, ep.enginePath, () => !existsParty(_comm, ep));
 			}
 			if (_prop.var.etc.executedPartyBookmarks.length) { mixin(S_TRACE);
-				new MenuItem(mWithParty, SWT.SEPARATOR);
+				if (mWithParty.getItemCount()) new MenuItem(mWithParty, SWT.SEPARATOR);
 				foreach (ep; _prop.var.etc.executedPartyBookmarks) { mixin(S_TRACE);
 					put(ep);
 					num++;
 				}
 			}
 			if (_prop.var.etc.executedParties.length) { mixin(S_TRACE);
-				if (0 < num) new MenuItem(mWithParty, SWT.SEPARATOR);
+				if (mWithParty.getItemCount()) new MenuItem(mWithParty, SWT.SEPARATOR);
 				foreach (ep; _prop.var.etc.executedParties) { mixin(S_TRACE);
 					put(ep);
 					num++;
