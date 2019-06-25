@@ -1599,7 +1599,9 @@ private:
 				texts ~= lines;
 			}
 			if ((_summ ? _prop.var.etc.drawContentWarnings : drawContentWarnings)) { mixin(S_TRACE);
-				auto warnings = .warnings(_prop.parent, summSkin, _summ, c, _prop.var.etc.targetVersion);
+				auto isClassic = _summ && _summ.legacy;
+				auto wsnVer = _summ ? _summ.dataVersion : LATEST_VERSION;
+				auto warnings = .warnings(_prop.parent, summSkin, _summ, c, isClassic, wsnVer, _prop.var.etc.targetVersion);
 				if (warnings.length) { mixin(S_TRACE);
 					warnings = warnings.sort().uniq().array();
 					auto b = itm.getBounds();

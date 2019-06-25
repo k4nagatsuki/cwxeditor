@@ -1086,9 +1086,7 @@ private:
 
 			immutable string[] targetVersionVals = [
 				"CardWirthPy",
-				// FIXME: CardWirth 1.60
-/+				"1.60",
-+/				"1.50",
+				"1.50",
 				"1.30",
 				"1.29",
 				"1.28",

@@ -1118,9 +1118,13 @@ class CouponView(CVType Type) : Composite {
 				ws ~= _prop.msgs.warningSystemCouponForHistory;
 			}
 		} else static if (Type == CVType.Valued) {
-			ws ~= .couponWarnings(_prop.parent, _summ, _prop.var.etc.targetVersion, name, false, _prop.msgs.valued);
+			auto isClassic = _summ && _summ.legacy;
+			auto wsnVer = _summ ? _summ.dataVersion : LATEST_VERSION;
+			ws ~= .couponWarnings(_prop.parent, isClassic, wsnVer, _prop.var.etc.targetVersion, name, false, _prop.msgs.valued);
 		} else static if (Type == CVType.NoValued) {
-			ws ~= .couponWarnings(_prop.parent, _summ, _prop.var.etc.targetVersion, name, true, _prop.msgs.couponName);
+			auto isClassic = _summ && _summ.legacy;
+			auto wsnVer = _summ ? _summ.dataVersion : LATEST_VERSION;
+			ws ~= .couponWarnings(_prop.parent, isClassic, wsnVer, _prop.var.etc.targetVersion, name, true, _prop.msgs.couponName);
 		} else static assert (0);
 		return ws;
 	}

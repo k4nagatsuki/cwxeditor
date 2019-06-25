@@ -31,9 +31,8 @@ import std.traits;
 import std.typecons : Tuple;
 
 /// pathの内容を調査し、警告すべき点があればメッセージ群を返す。
-string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path, string targVer) { mixin(S_TRACE);
-	if (!summ || !summ.legacy) targVer = "";
-	auto wsnVer = summ ? summ.dataVersion : LATEST_VERSION;
+string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path, bool isClassic, string wsnVer, string targVer) { mixin(S_TRACE);
+	if (!isClassic) targVer = "";
 	auto sPath = summ ? summ.scenarioPath : "";
 	auto froot = summ ? summ.flagDirRoot : null;
 	string[] r;
@@ -46,13 +45,13 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 					r ~= .tryFormat(prop.msgs.searchErrorImageNotFound, .encodePath(imagePath.path));
 				}
 				if (imagePath.path != "") {
-					r ~= skin.warningImage(prop, imagePath.path, summ ? summ.legacy : false, includeType, targVer);
+					r ~= skin.warningImage(prop, imagePath.path, isClassic, includeType, targVer);
 				}
 			}
 			if (imagePath.type is CardImageType.PCNumber && !prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
 				r ~= prop.msgs.warningPCNumberClassic;
 			}
-			if (!warnPos && imagePath.positionType !is CardImagePosition.Default && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+			if (!warnPos && imagePath.positionType !is CardImagePosition.Default && !prop.isTargetVersion(isClassic, wsnVer, "2")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningCardImagePosition;
 				warnPos = true;
 			}
@@ -68,18 +67,18 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (!psumm.area(psumm.startArea)) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorStartAreaNotFound;
 		}
-		r ~= .sjisWarnings(prop, summ, psumm.scenarioName, prop.msgs.title);
-		r ~= .sjisWarnings(prop, summ, psumm.desc, prop.msgs.desc);
-		r ~= .sjisWarnings(prop, summ, psumm.author, prop.msgs.author);
+		r ~= .sjisWarnings(prop, isClassic, psumm.scenarioName, prop.msgs.title);
+		r ~= .sjisWarnings(prop, isClassic, psumm.desc, prop.msgs.desc);
+		r ~= .sjisWarnings(prop, isClassic, psumm.author, prop.msgs.author);
 		foreach (rc; psumm.rCoupons) { mixin(S_TRACE);
-			r ~= .sjisWarnings(prop, summ, rc, prop.msgs.rCoupons);
+			r ~= .sjisWarnings(prop, isClassic, rc, prop.msgs.rCoupons);
 		}
 	}
 
 	auto spChars = skin.spChars;
 	auto checkTextRes(string text, in UseCounter uc, in string[] flags, in string[] steps, in string[] variants, in string[] fonts, in char[] colors,
 			ref bool[string] wFlags, ref bool[string] wSteps, ref bool[string] wVariants, ref bool[string] wFonts, ref bool[char] wColors) { mixin(S_TRACE);
-		return .textWarnings(prop, skin, summ, uc, targVer, text, flags, steps, variants, fonts, colors, wFlags, wSteps, wVariants, wFonts, wColors);
+		return .textWarnings(prop, skin, summ, uc, isClassic, wsnVer, targVer, text, flags, steps, variants, fonts, colors, wFlags, wSteps, wVariants, wFonts, wColors);
 	}
 	string[] checkTextRes2(string text, in UseCounter uc, in string[] flags, in string[] steps, in string[] variants, in string[] fonts, in char[] colors) { mixin(S_TRACE);
 		bool[string] wFlags;
@@ -95,22 +94,22 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (flagDir.parent is froot && prop.sys.isSystemVar(flagDir.name)) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.searchErrorSystemVariable, flagDir.name);
 		}
-		r ~= .sjisWarnings(prop, summ, flagDir.name, "");
+		r ~= .sjisWarnings(prop, isClassic, flagDir.name, "");
 	}
 	auto flag = cast(cwx.flag.Flag)path;
 	if (flag) { mixin(S_TRACE);
 		if (flag.parent is froot && prop.sys.isSystemVar(flag.name)) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.searchErrorSystemVariable, flag.name);
 		}
-		if (flag.expandSPChars && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+		if (flag.expandSPChars && !prop.isTargetVersion(isClassic, wsnVer, "2")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningExpandSPChars;
 		}
-		if (cast(Summary)flag.useCounter.owner && flag.initialization !is VariableInitialization.Leave && !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
+		if (cast(Summary)flag.useCounter.owner && flag.initialization !is VariableInitialization.Leave && !prop.isTargetVersion(isClassic, wsnVer, "4")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningVariableInitialization;
 		}
-		r ~= .sjisWarnings(prop, summ, flag.name, prop.msgs.dlgLblFlagName);
-		r ~= .sjisWarnings(prop, summ, flag.on, prop.msgs.flagOnValue);
-		r ~= .sjisWarnings(prop, summ, flag.off, prop.msgs.flagOffValue);
+		r ~= .sjisWarnings(prop, isClassic, flag.name, prop.msgs.dlgLblFlagName);
+		r ~= .sjisWarnings(prop, isClassic, flag.on, prop.msgs.flagOnValue);
+		r ~= .sjisWarnings(prop, isClassic, flag.off, prop.msgs.flagOffValue);
 		if (flag.expandSPChars) { mixin(S_TRACE);
 			r ~= checkTextRes2(flag.on, flag.useCounter, flag.flagsInText(true), flag.stepsInText(true), flag.variantsInText(true), [], []);
 			r ~= checkTextRes2(flag.off, flag.useCounter, flag.flagsInText(false), flag.stepsInText(false), flag.variantsInText(false), [], []);
@@ -121,18 +120,18 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (step.parent is froot && prop.sys.isSystemVar(step.name)) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.searchErrorSystemVariable, step.name);
 		}
-		if (step.count != prop.looks.stepMaxCount && summ && summ.legacy) {
+		if (step.count != prop.looks.stepMaxCount && isClassic) {
 			r ~= .tryFormat(prop.msgs.warningStepCount, prop.looks.stepMaxCount);
 		}
-		if (step.expandSPChars && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+		if (step.expandSPChars && !prop.isTargetVersion(isClassic, wsnVer, "2")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningExpandSPChars;
 		}
-		if (cast(Summary)step.useCounter.owner && step.initialization !is VariableInitialization.Leave && !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
+		if (cast(Summary)step.useCounter.owner && step.initialization !is VariableInitialization.Leave && !prop.isTargetVersion(isClassic, wsnVer, "4")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningVariableInitialization;
 		}
-		r ~= .sjisWarnings(prop, summ, step.name, prop.msgs.dlgLblStepName);
+		r ~= .sjisWarnings(prop, isClassic, step.name, prop.msgs.dlgLblStepName);
 		foreach (val; step.values) { mixin(S_TRACE);
-			r ~= .sjisWarnings(prop, summ, val, prop.msgs.stepValueForWarning);
+			r ~= .sjisWarnings(prop, isClassic, val, prop.msgs.stepValueForWarning);
 		}
 		if (step.expandSPChars) { mixin(S_TRACE);
 			foreach (i; 0u .. step.count) { mixin(S_TRACE);
@@ -141,7 +140,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		}
 	}
 	if (auto variant = cast(Variant)path) { mixin(S_TRACE);
-		if (!prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
+		if (!prop.isTargetVersion(isClassic, wsnVer, "4")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningVariant;
 		}
 	}
@@ -150,7 +149,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (eventTree.fireEveryRound && !prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
 			r ~= prop.msgs.warningEveryRound;
 		}
-		if (eventTree.fireRoundEnd && !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
+		if (eventTree.fireRoundEnd && !prop.isTargetVersion(isClassic, wsnVer, "4")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningRoundEnd;
 		}
 		if (eventTree.fireRound0 && !prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
@@ -163,7 +162,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			r ~= prop.msgs.searchErrorKeyCodeMatchingAll;
 		}
 		foreach (keyCode; eventTree.keyCodes) { mixin(S_TRACE);
-			r ~= .sjisWarnings(prop, summ, keyCode.keyCode, prop.msgs.keyCode);
+			r ~= .sjisWarnings(prop, isClassic, keyCode.keyCode, prop.msgs.keyCode);
 			if (!prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
 				if (keyCode.kind is FKCKind.HasNot) { mixin(S_TRACE);
 					r ~= prop.msgs.warningHasNotKeyCode;
@@ -173,14 +172,14 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	}
 	auto playerEvents = cast(PlayerCardEvents)path;
 	if (playerEvents) { mixin(S_TRACE);
-		if (playerEvents.trees.length && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+		if (playerEvents.trees.length && !prop.isTargetVersion(isClassic, wsnVer, "2")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningPlayerCardEvents;
 		}
 	}
 	auto casts = cast(CastCard)path;
 	if (casts) { mixin(S_TRACE);
 		foreach (cc; casts.coupons) { mixin(S_TRACE);
-			r ~= .sjisWarnings(prop, summ, cc.coupon, prop.msgs.history);
+			r ~= .sjisWarnings(prop, isClassic, cc.coupon, prop.msgs.history);
 			if (cc.coupon.startsWith(prop.sys.couponSystem) && cc.coupon != prop.sys.levelLimit && cc.coupon != prop.sys.ep && !prop.sys.isGene(cc.coupon)) { mixin(S_TRACE);
 				r ~= prop.msgs.warningSystemCouponForHistory;
 			}
@@ -288,8 +287,8 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	}
 	auto card = cast(Card)path;
 	if (card) { mixin(S_TRACE);
-		r ~= .sjisWarnings(prop, summ, card.name, prop.msgs.name);
-		r ~= .sjisWarnings(prop, summ, card.desc, prop.msgs.desc);
+		r ~= .sjisWarnings(prop, isClassic, card.name, prop.msgs.name);
+		r ~= .sjisWarnings(prop, isClassic, card.desc, prop.msgs.desc);
 		putCardImages(card.paths, true);
 	}
 	void putMotions(in Motion[] motions) { mixin(S_TRACE);
@@ -304,7 +303,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			if (m.type is MType.CancelAction && !prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
 				put(.tryFormat(prop.msgs.warningUnknownMotion, prop.msgs.motionName(m.type), "1.50"));
 			}
-			if (m.type is MType.NoEffect && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+			if (m.type is MType.NoEffect && !prop.isTargetVersion(isClassic, wsnVer, "2")) { mixin(S_TRACE);
 				put(.tryFormat(prop.msgs.warningUnknownMotion, prop.msgs.motionName(m.type), "2"));
 			}
 			if (m.type == MType.SummonBeast && !m.beast) { mixin(S_TRACE);
@@ -314,19 +313,19 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				put(.tryFormat(prop.msgs.searchErrorLinkIdBeastNotFound, m.beast.linkId));
 			}
 			if ((m.type == MType.GetSkillPower || m.type == MType.LoseSkillPower)
-					&& m.damageType !is DamageType.Max && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
+					&& m.damageType !is DamageType.Max && !prop.isTargetVersion(isClassic, wsnVer, "1")) { mixin(S_TRACE);
 				put(prop.msgs.warningSkillPowerWithFixedValue);
 			}
 		}
 	}
 	auto effCard = cast(EffectCard)path;
 	if (effCard) { mixin(S_TRACE);
-		r ~= .sjisWarnings(prop, summ, effCard.scenario, prop.msgs.sourceScenario);
-		r ~= .sjisWarnings(prop, summ, effCard.author, prop.msgs.sourceAuthor);
+		r ~= .sjisWarnings(prop, isClassic, effCard.scenario, prop.msgs.sourceScenario);
+		r ~= .sjisWarnings(prop, isClassic, effCard.author, prop.msgs.sourceAuthor);
 		putMotions(effCard.motions);
 		auto beast = cast(BeastCard)effCard;
 		if (beast) { mixin(S_TRACE);
-			if (beast.showStyle != ShowStyle.Center && !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
+			if (beast.showStyle != ShowStyle.Center && !prop.isTargetVersion(isClassic, wsnVer, "4")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningShowStyleForBeastCard;
 			}
 			if (!.equal(beast.invocationCondition, [Status.Alive])) { mixin(S_TRACE);
@@ -340,33 +339,33 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			}
 		}
 		if (effCard.soundPath1 != "") { mixin(S_TRACE);
-			r ~= skin.warningSE(prop, effCard.soundPath1, summ ? summ.legacy : false, targVer);
+			r ~= skin.warningSE(prop, effCard.soundPath1, isClassic, targVer);
 			if (!skin.findPath(effCard.soundPath1, skin.extSound, skin.seDirs, sPath, wsnVer, skin.wsnSoundDirs(wsnVer)).length) { mixin(S_TRACE);
 				r ~= .tryFormat(prop.msgs.searchErrorSENotFound, .encodePath(effCard.soundPath1));
 			}
-			if ((effCard.volume1 != 100 || effCard.volume2 != 100) && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
+			if ((effCard.volume1 != 100 || effCard.volume2 != 100) && !prop.isTargetVersion(isClassic, wsnVer, "1")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningVolume;
 			}
 		}
 		if (effCard.soundPath2 != "") { mixin(S_TRACE);
-			r ~= skin.warningSE(prop, effCard.soundPath2, summ ? summ.legacy : false, targVer);
+			r ~= skin.warningSE(prop, effCard.soundPath2, isClassic, targVer);
 			if (!skin.findPath(effCard.soundPath2, skin.extSound, skin.seDirs, sPath, wsnVer, skin.wsnSoundDirs(wsnVer)).length) { mixin(S_TRACE);
 				r ~= .tryFormat(prop.msgs.searchErrorSENotFound, .encodePath(effCard.soundPath2));
 			}
-			if ((effCard.loopCount1 != 1 || effCard.loopCount2 != 1) && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
+			if ((effCard.loopCount1 != 1 || effCard.loopCount2 != 1) && !prop.isTargetVersion(isClassic, wsnVer, "1")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningLoopCount;
 			}
 		}
 		if (prop.sys.isRunAway(effCard.keyCodes)) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.warningRunAwayCard, prop.sys.runAway);
 		}
-		if (prop.looks.keyCodesMaxLegacy < effCard.keyCodes.length && summ && summ.legacy) { mixin(S_TRACE);
+		if (prop.looks.keyCodesMaxLegacy < effCard.keyCodes.length && isClassic) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.warningKeyCodeCount, prop.looks.keyCodesMaxLegacy);
 		}
 		foreach (keyCode; effCard.keyCodes) { mixin(S_TRACE);
-			r ~= .sjisWarnings(prop, summ, keyCode, prop.msgs.keyCode);
+			r ~= .sjisWarnings(prop, isClassic, keyCode, prop.msgs.keyCode);
 		}
-		if ((effCard.flagDirRoot.hasFlag || effCard.flagDirRoot.hasStep || effCard.flagDirRoot.hasVariant) && !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
+		if ((effCard.flagDirRoot.hasFlag || effCard.flagDirRoot.hasStep || effCard.flagDirRoot.hasVariant) && !prop.isTargetVersion(isClassic, wsnVer, "4")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningLocalVariablesOfEffectCard;
 		}
 	}
@@ -376,8 +375,8 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			r ~= .tryFormat(prop.msgs.searchErrorFlagNotFound, bi.flag);
 		}
 		if (bi.cellName != "") { mixin(S_TRACE);
-			r ~= .sjisWarnings(prop, summ, bi.cellName, prop.msgs.bgImageCellName);
-			if (!prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
+			r ~= .sjisWarnings(prop, isClassic, bi.cellName, prop.msgs.bgImageCellName);
+			if (!prop.isTargetVersion(isClassic, wsnVer, "1")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningBgImageCellName;
 			}
 		}
@@ -386,7 +385,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 /+			if (!prop.targetVersion("1.60", targVer)) { mixin(S_TRACE);
 				r ~= prop.msgs.warningBgImageForeground;
 			}
-+/			if (!prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
++/			if (!prop.isTargetVersion(isClassic, wsnVer, "1")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningLayer;
 			}
 		}
@@ -404,9 +403,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			r ~= .tryFormat(prop.msgs.searchErrorImageNotFound, .encodePath(ic.path));
 		}
 		if (ic.path != "") { mixin(S_TRACE);
-			r ~= skin.warningImage(prop, ic.path, summ ? summ.legacy : false, false, targVer);
+			r ~= skin.warningImage(prop, ic.path, isClassic, false, targVer);
 		}
-		if (ic.smoothing !is Smoothing.Default && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+		if (ic.smoothing !is Smoothing.Default && !prop.isTargetVersion(isClassic, wsnVer, "2")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningBgImageSmoothing;
 		}
 	}
@@ -416,16 +415,16 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (!prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
 			r ~= prop.msgs.warningTextCell;
 		}
-		if (summ && summ.legacy) { mixin(S_TRACE);
+		if (isClassic) { mixin(S_TRACE);
 			if (tc.updateType !is UpdateType.Fixed) { mixin(S_TRACE);
 				r ~= prop.msgs.warningUpdateTypeNotFixed;
 			}
 		} else { mixin(S_TRACE);
-			if (tc.updateType !is UpdateType.Variables && !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
+			if (tc.updateType !is UpdateType.Variables && !prop.isTargetVersion(isClassic, wsnVer, "4")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningUpdateType;
 			}
 		}
-		if (tc.antialias && !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
+		if (tc.antialias && !prop.isTargetVersion(isClassic, wsnVer, "4")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningAntialiasedTextCell;
 		}
 	}
@@ -437,20 +436,20 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	}
 	auto pc = cast(PCCell)path;
 	if (pc) { mixin(S_TRACE);
-		if (!prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
+		if (!prop.isTargetVersion(isClassic, wsnVer, "1")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningPCCell;
 		}
-		if (pc.smoothing !is Smoothing.Default && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+		if (pc.smoothing !is Smoothing.Default && !prop.isTargetVersion(isClassic, wsnVer, "2")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningBgImageSmoothing;
 		}
 	}
 	auto aa = cast(AbstractArea)path;
 	if (aa) { mixin(S_TRACE);
-		r ~= .sjisWarnings(prop, summ, aa.name, prop.msgs.name);
+		r ~= .sjisWarnings(prop, isClassic, aa.name, prop.msgs.name);
 	}
 	auto btl = cast(Battle)path;
 	if (btl) { mixin(S_TRACE);
-		if (!btl.possibleToRunAway && !prop.isTargetVersion(summ, targVer, "3")) { mixin(S_TRACE);
+		if (!btl.possibleToRunAway && !prop.isTargetVersion(isClassic, wsnVer, "3")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningPossibleToRunAway;
 		}
 		if (!btl.possibleToRunAway) { mixin(S_TRACE);
@@ -462,29 +461,29 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			}
 		}
 		if (btl.music != "") { mixin(S_TRACE);
-			r ~= skin.warningBGM(prop, btl.music, summ ? summ.legacy : false, targVer);
+			r ~= skin.warningBGM(prop, btl.music, isClassic, targVer);
 			if (!skin.findPath(btl.music, skin.extBgm, skin.bgmDirs, sPath, wsnVer, skin.wsnMusicDirs(wsnVer)).length) { mixin(S_TRACE);
 				r ~= .tryFormat(prop.msgs.searchErrorBGMNotFound, .encodePath(btl.music));
 			}
-			if (btl.volume != 100 && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
+			if (btl.volume != 100 && !prop.isTargetVersion(isClassic, wsnVer, "1")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningVolume;
 			}
-			if (btl.loopCount != 0 && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
+			if (btl.loopCount != 0 && !prop.isTargetVersion(isClassic, wsnVer, "1")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningLoopCount;
 			}
-			if (btl.fadeIn != 0 && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
+			if (btl.fadeIn != 0 && !prop.isTargetVersion(isClassic, wsnVer, "1")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningFadeIn;
 			}
 		}
-		if (btl.continueBGM && !prop.isTargetVersion(summ, targVer, "3")) { mixin(S_TRACE);
+		if (btl.continueBGM && !prop.isTargetVersion(isClassic, wsnVer, "3")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningContinueBGM;
 		}
 	}
 	auto mc = cast(MenuCard)path;
 	if (mc) { mixin(S_TRACE);
-		r ~= .sjisWarnings(prop, summ, mc.name, prop.msgs.name);
-		r ~= .sjisWarnings(prop, summ, mc.desc, prop.msgs.desc);
-		if (mc.expandSPChars &&  !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
+		r ~= .sjisWarnings(prop, isClassic, mc.name, prop.msgs.name);
+		r ~= .sjisWarnings(prop, isClassic, mc.desc, prop.msgs.desc);
+		if (mc.expandSPChars &&  !prop.isTargetVersion(isClassic, wsnVer, "4")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningExpandSPCharsInMenuCardName;
 		}
 		if (mc.expandSPChars) { mixin(S_TRACE);
@@ -506,17 +505,17 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (ec.flag != "" && !findVar!Flag(froot, ec.useCounter, ec.flag)) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.searchErrorFlagNotFound, ec.flag);
 		}
-		if (ec.isOverrideName &&  !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
+		if (ec.isOverrideName &&  !prop.isTargetVersion(isClassic, wsnVer, "4")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningOverrideEnemyCardName;
 		}
 		r ~= checkTextRes2(ec.overrideName, null, ec.flagsInText, ec.stepsInText, ec.variantsInText, [], []);
-		if (ec.isOverrideImage &&  !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
+		if (ec.isOverrideImage &&  !prop.isTargetVersion(isClassic, wsnVer, "4")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningOverrideEnemyCardImage;
 		}
 		auto noActionWarn = false;
-		if (summ && summ.legacy) { mixin(S_TRACE);
+		if (isClassic) { mixin(S_TRACE);
 			auto c = summ ? summ.cwCast(ec.id) : null;
-			auto hasExchange = c && c.items.length && summ.baseCard(c.items[0]).name == skin.actionCardName(prop.sys, ActionCardType.Exchange);
+			auto hasExchange = c && c.items.length && summ && summ.baseCard(c.items[0]).name == skin.actionCardName(prop.sys, ActionCardType.Exchange);
 			if (ec.action(ActionCardType.Exchange) && hasExchange) { mixin(S_TRACE);
 				r ~= .tryFormat(prop.msgs.warningExchangeIsItemInClassic, skin.actionCardName(prop.sys, ActionCardType.Exchange));
 			} else if (!ec.action(ActionCardType.Exchange) && !hasExchange) { mixin(S_TRACE);
@@ -526,9 +525,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		}
 		if (!noActionWarn) { mixin(S_TRACE);
 			bool checkActionCardType(ActionCardType type) { mixin(S_TRACE);
-				if (type is ActionCardType.Exchange && (summ && summ.legacy)) return true;
+				if (type is ActionCardType.Exchange && isClassic) return true;
 				if (type is ActionCardType.RunAway) return true;
-				if (!ec.action(type) && !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
+				if (!ec.action(type) && !prop.isTargetVersion(isClassic, wsnVer, "4")) { mixin(S_TRACE);
 					r ~= prop.msgs.warningNoActionCard;
 					return false;
 				}
@@ -542,23 +541,23 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	}
 	auto spc = cast(AbstractSpCard)path;
 	if (spc) { mixin(S_TRACE);
-		r ~= .sjisWarnings(prop, summ, spc.cardGroup, prop.msgs.cardGroup);
+		r ~= .sjisWarnings(prop, isClassic, spc.cardGroup, prop.msgs.cardGroup);
 		if (spc.layer != LAYER_MENU_CARD) {
 			// 1.60
 /+			if (!prop.targetVersion("1.60", targVer)) { mixin(S_TRACE);
 				r ~= prop.msgs.warningBgImageForeground;
 			}
-+/			if (!prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
++/			if (!prop.isTargetVersion(isClassic, wsnVer, "1")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningLayer;
 			}
 		}
 		if (spc.cardGroup != "") {
-			if (!prop.isTargetVersion(summ, targVer, "3")) { mixin(S_TRACE);
+			if (!prop.isTargetVersion(isClassic, wsnVer, "3")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningCardGroup;
 			}
 		}
 		if (spc.animationSpeed != -1) { mixin(S_TRACE);
-			if (!prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
+			if (!prop.isTargetVersion(isClassic, wsnVer, "4")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningCardAnimationSpeed;
 			}
 		}
@@ -567,9 +566,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	if (c) { mixin(S_TRACE);
 		auto cd = c.detail;
 		if (!c.parent || c.parent.detail.nextType is CNextType.Text || c.parent.detail.nextType is CNextType.Coupon) { mixin(S_TRACE);
-			r ~= .sjisWarnings(prop, summ, c.name, prop.msgs.contentNameForWarning);
+			r ~= .sjisWarnings(prop, isClassic, c.name, prop.msgs.contentNameForWarning);
 		}
-		if ((summ ? summ.legacy : false) && c.type == CType.Wait && !c.next.length) { mixin(S_TRACE);
+		if (isClassic && c.type == CType.Wait && !c.next.length) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorIgnoreWait;
 		}
 		if (c.parent) { mixin(S_TRACE);
@@ -601,7 +600,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		}
 
 		void couponWarnings(string coupon, bool getLose, string name) { mixin(S_TRACE);
-			r ~= .couponWarnings(prop, summ, targVer, coupon, getLose, name);
+			r ~= .couponWarnings(prop, isClassic, wsnVer, targVer, coupon, getLose, name);
 		}
 
 		if (c.type == CType.TalkDialog) { mixin(S_TRACE);
@@ -641,7 +640,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			bool[string] tbl;
 			string[] ws2;
 			foreach (back; c.backs) { mixin(S_TRACE);
-				auto ws = warnings(prop, skin, summ, back, targVer);
+				auto ws = .warnings(prop, skin, summ, back, isClassic, wsnVer, targVer);
 				if (cd.use(CArg.IgnoreEffectBooster) && c.ignoreEffectBooster) { mixin(S_TRACE);
 					if (auto ic2 = cast(ImageCell)back) { mixin(S_TRACE);
 						auto ext = ic2.path.extension().toLower();
@@ -670,7 +669,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			if (c.type != CType.SubstituteStep || (.icmp(prop.sys.randomValue, c.step) != 0 && .icmp(prop.sys.selectedPlayerCardNumber, c.step) != 0)) { mixin(S_TRACE);
 				r ~= .tryFormat(prop.msgs.searchErrorStepNotFound, c.step);
 			}
-			if (c.type == CType.SubstituteStep && .icmp(prop.sys.selectedPlayerCardNumber, c.step) == 0 && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+			if (c.type == CType.SubstituteStep && .icmp(prop.sys.selectedPlayerCardNumber, c.step) == 0 && !prop.isTargetVersion(isClassic, wsnVer, "2")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningSelectedPlayerValue;
 			}
 		}
@@ -679,13 +678,13 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		}
 		putCardImages(c.cardPaths, false);
 		if (c.bgmPath != "") { mixin(S_TRACE);
-			r ~= skin.warningBGM(prop, c.bgmPath, summ ? summ.legacy : false, targVer);
+			r ~= skin.warningBGM(prop, c.bgmPath, isClassic, targVer);
 		}
 		if (c.bgmPath != "" && !skin.findPath(c.bgmPath, skin.extBgm, skin.bgmDirs, sPath, wsnVer, skin.wsnMusicDirs(wsnVer)).length) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.searchErrorBGMNotFound, .encodePath(c.bgmPath));
 		}
 		if (c.soundPath != "") { mixin(S_TRACE);
-			r ~= skin.warningSE(prop, c.soundPath, summ ? summ.legacy : false, targVer);
+			r ~= skin.warningSE(prop, c.soundPath, isClassic, targVer);
 		}
 		if (c.soundPath != "" && !skin.findPath(c.soundPath, skin.extSound, skin.seDirs, sPath, wsnVer, skin.wsnSoundDirs(wsnVer)).length) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.searchErrorSENotFound, .encodePath(c.soundPath));
@@ -734,7 +733,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			if (!c.couponNames.length) { mixin(S_TRACE);
 				r ~= prop.msgs.searchErrorNoCoupon;
 			}
-			if(!prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+			if(!prop.isTargetVersion(isClassic, wsnVer, "2")) { mixin(S_TRACE);
 				if (1 < c.couponNames.length) { mixin(S_TRACE);
 					r ~= prop.msgs.warningBranchCouponMulti;
 				}
@@ -764,31 +763,31 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				cwxPath = cwxPath.cwxParent();
 			}
 		}
-		if (c.bgmChannel != 0 && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
+		if (c.bgmChannel != 0 && !prop.isTargetVersion(isClassic, wsnVer, "1")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningChannel;
 		}
-		if (c.bgmFadeIn != 0 && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
+		if (c.bgmFadeIn != 0 && !prop.isTargetVersion(isClassic, wsnVer, "1")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningFadeIn;
 		}
 		if (c.bgmPath != "") { mixin(S_TRACE);
-			if (c.bgmVolume != 100 && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
+			if (c.bgmVolume != 100 && !prop.isTargetVersion(isClassic, wsnVer, "1")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningVolume;
 			}
-			if (c.bgmLoopCount != 0 && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
+			if (c.bgmLoopCount != 0 && !prop.isTargetVersion(isClassic, wsnVer, "1")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningLoopCount;
 			}
 		}
 		if (c.soundPath != "") { mixin(S_TRACE);
-			if (c.soundFadeIn != 0 && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
+			if (c.soundFadeIn != 0 && !prop.isTargetVersion(isClassic, wsnVer, "1")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningFadeIn;
 			}
-			if (c.soundVolume != 100 && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
+			if (c.soundVolume != 100 && !prop.isTargetVersion(isClassic, wsnVer, "1")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningVolume;
 			}
-			if (c.soundLoopCount != 1 && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
+			if (c.soundLoopCount != 1 && !prop.isTargetVersion(isClassic, wsnVer, "1")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningLoopCount;
 			}
-			if (c.soundChannel!= 0 && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
+			if (c.soundChannel!= 0 && !prop.isTargetVersion(isClassic, wsnVer, "1")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningChannel;
 			}
 		}
@@ -844,27 +843,27 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			r ~= prop.msgs.searchErrorNoStep;
 		}
 		if (cd.use(CArg.Coupon)) { mixin(S_TRACE);
-			r ~= .sjisWarnings(prop, summ, c.coupon, prop.msgs.couponName);
+			r ~= .sjisWarnings(prop, isClassic, c.coupon, prop.msgs.couponName);
 			if (c.coupon == "") r ~= prop.msgs.searchErrorNoCoupon;
 		}
 		if (cd.use(CArg.Gossip)) { mixin(S_TRACE);
-			r ~= .sjisWarnings(prop, summ, c.gossip, prop.msgs.gossipName);
+			r ~= .sjisWarnings(prop, isClassic, c.gossip, prop.msgs.gossipName);
 			if (c.gossip == "") r ~= prop.msgs.searchErrorNoGossip;
 		}
 		if (cd.use(CArg.CompleteStamp)) { mixin(S_TRACE);
-			r ~= .sjisWarnings(prop, summ, c.completeStamp, prop.msgs.endName);
+			r ~= .sjisWarnings(prop, isClassic, c.completeStamp, prop.msgs.endName);
 			if (c.completeStamp == "") r ~= prop.msgs.searchErrorNoCompleteStamp;
 		}
 		if (cd.use(CArg.KeyCode)) { mixin(S_TRACE);
-			r ~= .sjisWarnings(prop, summ, c.keyCode, prop.msgs.keyCode);
+			r ~= .sjisWarnings(prop, isClassic, c.keyCode, prop.msgs.keyCode);
 			if (c.keyCode == "") r ~= prop.msgs.searchErrorNoKeyCode;
 		}
 		if (cd.use(CArg.CellName) && c.cellName == "") { mixin(S_TRACE);
-			r ~= .sjisWarnings(prop, summ, c.cellName, prop.msgs.cellName);
+			r ~= .sjisWarnings(prop, isClassic, c.cellName, prop.msgs.cellName);
 			r ~= prop.msgs.searchErrorNoCellName;
 		}
 		if (cd.use(CArg.CardGroup) && c.cardGroup == "") { mixin(S_TRACE);
-			r ~= .sjisWarnings(prop, summ, c.cardGroup, prop.msgs.cardGroup);
+			r ~= .sjisWarnings(prop, isClassic, c.cardGroup, prop.msgs.cardGroup);
 			r ~= prop.msgs.searchErrorNoCardGroup;
 		}
 		uint maxNextLen(in Content c) { mixin(S_TRACE);
@@ -890,7 +889,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (cd.nextType is CNextType.Text && maxNextLen(c) < rows(c)) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.warningSelectionBarIsMany, rows(c), maxNextLen(c));
 		}
-		if (cd.nextType is CNextType.Text && c.selectionColumns != 1 && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
+		if (cd.nextType is CNextType.Text && c.selectionColumns != 1 && !prop.isTargetVersion(isClassic, wsnVer, "1")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningSelectionColumns;
 		}
 
@@ -904,7 +903,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (c.range == Range.Field && cd.use(CArg.Coupon) && !prop.targetVersion("1.30", targVer)) { mixin(S_TRACE);
 			r ~= prop.msgs.warningBranchCouponAtField;
 		}
-		if (c.selectionMethod is SelectionMethod.Valued && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
+		if (c.selectionMethod is SelectionMethod.Valued && !prop.isTargetVersion(isClassic, wsnVer, "1")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningValuedSelectionMethod;
 		}
 		if (c.type is CType.CheckStep && !prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
@@ -931,34 +930,34 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (c.type is CType.BranchRound && !prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.warningUnknownContent, prop.msgs.contentName(CType.BranchRound), "1.50");
 		}
-		if (c.type is CType.ReplaceBgImage && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
+		if (c.type is CType.ReplaceBgImage && !prop.isTargetVersion(isClassic, wsnVer, "1")) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(CType.ReplaceBgImage), "1");
 		}
-		if (c.type is CType.LoseBgImage && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
+		if (c.type is CType.LoseBgImage && !prop.isTargetVersion(isClassic, wsnVer, "1")) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(CType.LoseBgImage), "1");
 		}
-		if (c.type is CType.MoveBgImage && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
+		if (c.type is CType.MoveBgImage && !prop.isTargetVersion(isClassic, wsnVer, "1")) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(CType.MoveBgImage), "1");
 		}
-		if (c.type is CType.BranchMultiCoupon && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+		if (c.type is CType.BranchMultiCoupon && !prop.isTargetVersion(isClassic, wsnVer, "2")) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(CType.BranchMultiCoupon), "2");
 		}
-		if (c.type is CType.BranchMultiRandom && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+		if (c.type is CType.BranchMultiRandom && !prop.isTargetVersion(isClassic, wsnVer, "2")) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(CType.BranchMultiRandom), "2");
 		}
-		if (c.type is CType.MoveCard && !prop.isTargetVersion(summ, targVer, "3")) { mixin(S_TRACE);
+		if (c.type is CType.MoveCard && !prop.isTargetVersion(isClassic, wsnVer, "3")) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(CType.MoveCard), "3");
 		}
-		if (c.type is CType.ChangeEnvironment && !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
+		if (c.type is CType.ChangeEnvironment && !prop.isTargetVersion(isClassic, wsnVer, "4")) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(CType.ChangeEnvironment), "4");
 		}
-		if (c.type is CType.BranchVariant && !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
+		if (c.type is CType.BranchVariant && !prop.isTargetVersion(isClassic, wsnVer, "4")) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(CType.BranchVariant), "4");
 		}
-		if (c.type is CType.SetVariant && !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
+		if (c.type is CType.SetVariant && !prop.isTargetVersion(isClassic, wsnVer, "4")) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(CType.SetVariant), "4");
 		}
-		if (c.type is CType.CheckVariant && !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
+		if (c.type is CType.CheckVariant && !prop.isTargetVersion(isClassic, wsnVer, "4")) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(CType.CheckVariant), "4");
 		}
 		if (cd.use(CArg.StepValue)) { mixin(S_TRACE);
@@ -968,7 +967,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 					r ~= .tryFormat(prop.msgs.warningStepOverCount, s.name, s.count, c.stepValue);
 				}
 			}
-			if (summ && summ.legacy && prop.looks.stepMaxCount < c.stepValue) { mixin(S_TRACE);
+			if (isClassic && prop.looks.stepMaxCount < c.stepValue) { mixin(S_TRACE);
 				r ~= .tryFormat(prop.msgs.warningStepCount, prop.looks.stepMaxCount);
 			}
 		}
@@ -981,7 +980,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 						r ~= .tryFormat(prop.msgs.warningStepOverCount, s.name, s.count, value);
 					}
 				}
-				if (summ && summ.legacy && prop.looks.stepMaxCount < value) { mixin(S_TRACE);
+				if (isClassic && prop.looks.stepMaxCount < value) { mixin(S_TRACE);
 					r ~= .tryFormat(prop.msgs.warningStepCount, prop.looks.stepMaxCount);
 				}
 			} catch (ConvException e) {
@@ -989,29 +988,29 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				printStackTrace();
 			}
 		}
-		if (summ && summ.legacy && (c.type is CType.ChangeArea || c.type is CType.StartBattle || c.type is CType.End)) { mixin(S_TRACE);
+		if (isClassic && (c.type is CType.ChangeArea || c.type is CType.StartBattle || c.type is CType.End)) { mixin(S_TRACE);
 			auto tree = c.tree;
 			if (tree && tree.fireRound0) { mixin(S_TRACE);
 				r ~= .tryFormat(prop.msgs.warningEndOrChangeAreaInRound0);
 			}
 		}
-		if (cd.use(CArg.StartAction) && summ) { mixin(S_TRACE);
-			if (summ.legacy && c.startAction !is StartAction.NextRound) { mixin(S_TRACE);
+		if (cd.use(CArg.StartAction)) { mixin(S_TRACE);
+			if (isClassic && c.startAction !is StartAction.NextRound) { mixin(S_TRACE);
 				// クラシックなシナリオではStartAction.NextRoundがデフォルト
 				r ~= .tryFormat(prop.msgs.warningStartAction);
-			} else if (!summ.legacy && !prop.isTargetVersion(summ, targVer, "2") && c.startAction !is StartAction.Now) { mixin(S_TRACE);
+			} else if (!isClassic && !prop.isTargetVersion(isClassic, wsnVer, "2") && c.startAction !is StartAction.Now) { mixin(S_TRACE);
 				// Wsn.1以前は戦闘行動開始タイミング指定不可かつStartAction.Nowがデフォルト
 				r ~= .tryFormat(prop.msgs.warningStartAction);
 			}
 		}
 		if (cd.use(CArg.RefAbility)) { mixin(S_TRACE);
-			if (c.refAbility && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+			if (c.refAbility && !prop.isTargetVersion(isClassic, wsnVer, "2")) { mixin(S_TRACE);
 				// Wsn.1以前は選択者の能力参照は指定不可
 				r ~= .tryFormat(prop.msgs.warningRefAbility);
 			}
 		}
 		if (cd.use(CArg.Ignite)) { mixin(S_TRACE);
-			if (c.ignite && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+			if (c.ignite && !prop.isTargetVersion(isClassic, wsnVer, "2")) { mixin(S_TRACE);
 				// Wsn.1以前はイベントの発火有無は指定不可
 				r ~= .tryFormat(prop.msgs.warningIgnite);
 			}
@@ -1024,14 +1023,14 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				r ~= .tryFormat(prop.msgs.warningRunAwayCard, prop.sys.runAway);
 			}
 		}
-		if (c.type is CType.BranchKeyCode && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
-			if (summ.legacy
+		if (c.type is CType.BranchKeyCode && !prop.isTargetVersion(isClassic, wsnVer, "2")) { mixin(S_TRACE);
+			if (isClassic
 					&& !(c.targetIsSkill && c.targetIsItem && c.targetIsBeast && c.targetIsHand)
 					&& !(c.targetIsSkill && !c.targetIsItem && !c.targetIsBeast && !c.targetIsHand)
 					&& !(!c.targetIsSkill && c.targetIsItem && !c.targetIsBeast && c.targetIsHand)
 					&& !(!c.targetIsSkill && !c.targetIsItem && c.targetIsBeast && !c.targetIsHand)) { mixin(S_TRACE);
 				r ~= .tryFormat(prop.msgs.warningBranchKeyCodeAtClassic);
-			} else if (!summ.legacy
+			} else if (!isClassic
 					&& !(c.targetIsSkill && c.targetIsItem && c.targetIsBeast && !c.targetIsHand)
 					&& !(c.targetIsSkill && !c.targetIsItem && !c.targetIsBeast && !c.targetIsHand)
 					&& !(!c.targetIsSkill && c.targetIsItem && !c.targetIsBeast && !c.targetIsHand)
@@ -1042,13 +1041,13 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (c.range is Range.CouponHolder) { mixin(S_TRACE);
 			switch (c.type) {
 			case CType.Effect:
-				if (!prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+				if (!prop.isTargetVersion(isClassic, wsnVer, "2")) { mixin(S_TRACE);
 					r ~= .tryFormat(prop.msgs.warningCouponHolder, prop.msgs.contentName(c.type), "2");
 				}
 				break;
 			case CType.GetCoupon:
 			case CType.LoseCoupon:
-				if (!prop.isTargetVersion(summ, targVer, "3")) { mixin(S_TRACE);
+				if (!prop.isTargetVersion(isClassic, wsnVer, "3")) { mixin(S_TRACE);
 					r ~= .tryFormat(prop.msgs.warningCouponHolder, prop.msgs.contentName(c.type), "3");
 				}
 				break;
@@ -1059,32 +1058,32 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				r ~= prop.msgs.warningNoHoldingCoupon;
 			}
 		}
-		if (c.range is Range.CardTarget && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+		if (c.range is Range.CardTarget && !prop.isTargetVersion(isClassic, wsnVer, "2")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningCardTarget;
 		}
-		if (c.boundaryCheck && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+		if (c.boundaryCheck && !prop.isTargetVersion(isClassic, wsnVer, "2")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningBoundaryCheck;
 		}
-		if (c.centeringX && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+		if (c.centeringX && !prop.isTargetVersion(isClassic, wsnVer, "2")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningCenteringX;
 		}
-		if (c.centeringY && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+		if (c.centeringY && !prop.isTargetVersion(isClassic, wsnVer, "2")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningCenteringY;
 		}
 		if ((c.type is CType.BranchKeyCode || c.type is CType.BranchSkill || c.type is CType.BranchItem || c.type is CType.BranchBeast)
-				&& c.selectCard && !prop.isTargetVersion(summ, targVer, "3")) { mixin(S_TRACE);
+				&& c.selectCard && !prop.isTargetVersion(isClassic, wsnVer, "3")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningSelectCard;
 		}
-		if (cd.use(CArg.SelectTalker) && c.selectTalker && hasCharacterTalker(c) && !prop.isTargetVersion(summ, targVer, "3")) { mixin(S_TRACE);
+		if (cd.use(CArg.SelectTalker) && c.selectTalker && hasCharacterTalker(c) && !prop.isTargetVersion(isClassic, wsnVer, "3")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningSelectTalker;
 		}
-		if (cd.use(CArg.InvertResult) && c.invertResult && c.invertResult && !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
+		if (cd.use(CArg.InvertResult) && c.invertResult && c.invertResult && !prop.isTargetVersion(isClassic, wsnVer, "4")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningInvertResult;
 		}
-		if (cd.use(CArg.ConsumeCard) && !c.consumeCard && !prop.isTargetVersion(summ, targVer, "3")) { mixin(S_TRACE);
+		if (cd.use(CArg.ConsumeCard) && !c.consumeCard && !prop.isTargetVersion(isClassic, wsnVer, "3")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningConsumeCard;
 		}
-		if (cd.use(CArg.CardSpeed) && c.cardSpeed != -1 && !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
+		if (cd.use(CArg.CardSpeed) && c.cardSpeed != -1 && !prop.isTargetVersion(isClassic, wsnVer, "4")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningCardAnimationSpeed;
 		}
 		if (cd.use(CArg.Expression)) { mixin(S_TRACE);
@@ -1147,24 +1146,24 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			}
 		}
 		if ((cd.use(CArg.Coupon) || cd.use(CArg.CouponNames)) && cd.use(CArg.ExpandSPChars) && c.expandSPChars) { mixin(S_TRACE);
-			if (!prop.isTargetVersion(summ, targVer, "4")) r ~= prop.msgs.warningExpandSPCharsInCoupon;
+			if (!prop.isTargetVersion(isClassic, wsnVer, "4")) r ~= prop.msgs.warningExpandSPCharsInCoupon;
 			r ~= checkTextRes2(c.coupon, c.useCounter, c.flagsInCoupons, c.stepsInCoupons, c.variantsInCoupons, [], []);
 		}
 		if (cd.use(CArg.Gossip) && cd.use(CArg.ExpandSPChars) && c.expandSPChars) { mixin(S_TRACE);
-			if (!prop.isTargetVersion(summ, targVer, "4")) r ~= prop.msgs.warningExpandSPCharsInGossip;
+			if (!prop.isTargetVersion(isClassic, wsnVer, "4")) r ~= prop.msgs.warningExpandSPCharsInGossip;
 			r ~= checkTextRes2(c.gossip, c.useCounter, c.flagsInGossip, c.stepsInGossip, c.variantsInGossip, [], []);
 		}
 		if (cd.nextType is CNextType.Coupon && c.expandSPChars) { mixin(S_TRACE);
-			if (!prop.isTargetVersion(summ, targVer, "4")) r ~= prop.msgs.warningExpandSPCharsInCoupon;
+			if (!prop.isTargetVersion(isClassic, wsnVer, "4")) r ~= prop.msgs.warningExpandSPCharsInCoupon;
 		}
 		if (c.parent && c.parent.expandSPChars && c.parent.detail.nextType is CNextType.Coupon) { mixin(S_TRACE);
 			r ~= checkTextRes2(c.name, c.useCounter, c.flagsInName, c.stepsInName, c.variantsInName, [], []);
 		}
-		if (cd.use(CArg.InitialEffect) && c.initialEffect && !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
+		if (cd.use(CArg.InitialEffect) && c.initialEffect && !prop.isTargetVersion(isClassic, wsnVer, "4")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningInitialEffect;
 		}
 		if (cd.use(CArg.AbsorbTo)) { mixin(S_TRACE);
-			if (c.absorbTo && c.absorbTo is AbsorbTo.Selected && !prop.isTargetVersion(summ, targVer, "4")) { mixin(S_TRACE);
+			if (c.absorbTo && c.absorbTo is AbsorbTo.Selected && !prop.isTargetVersion(isClassic, wsnVer, "4")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningAbsorbToSelected;
 			}
 		}
@@ -1212,7 +1211,7 @@ struct TextWarnings {
 
 /// 台詞・メッセージ内で使用されているデータに対する警告を返す。
 /// 警告が行われたデータは引数の連想配列に格納される。
-TextWarnings textWarnings(in CProps prop, in Skin skin, in Summary summ, in UseCounter uc, string targVer,
+TextWarnings textWarnings(in CProps prop, in Skin skin, in Summary summ, in UseCounter uc, bool isClassic, string wsnVer, string targVer,
 		string text, in string[] flags, in string[] steps, in string[] variants, in string[] fonts, in char[] colors,
 		ref bool[string] wFlags, ref bool[string] wSteps, ref bool[string] wVariants,
 		ref bool[string] wFonts, ref bool[char] wColors) { mixin(S_TRACE);
@@ -1222,9 +1221,8 @@ TextWarnings textWarnings(in CProps prop, in Skin skin, in Summary summ, in UseC
 	auto sPath = summ ? summ.scenarioPath : "";
 	auto spChars = skin.spChars;
 	auto froot = summ ? summ.flagDirRoot : null;
-	auto wsnVer = summ ? summ.dataVersion : LATEST_VERSION;
 
-	auto sw = .sjisWarnings(prop, summ, text, prop.msgs.message);
+	auto sw = .sjisWarnings(prop, isClassic, text, prop.msgs.message);
 	all ~= sw;
 	noDup ~= sw;
 
@@ -1232,7 +1230,7 @@ TextWarnings textWarnings(in CProps prop, in Skin skin, in Summary summ, in UseC
 		dchar c = decodeFontPath(font);
 		if (c in spChars) continue;
 		bool put = false;
-		if (summ && summ.legacy && !.isSJIS1ByteChar(c)) { mixin(S_TRACE);
+		if (isClassic && !.isSJIS1ByteChar(c)) { mixin(S_TRACE);
 			auto msg = .tryFormat(prop.msgs.searchErrorSPFontIsNotSJIS1ByteChar, .tryFormat("#%s", c));
 			all ~= msg;
 			if (!wFonts.get(font, false)) { mixin(S_TRACE);
@@ -1266,7 +1264,7 @@ TextWarnings textWarnings(in CProps prop, in Skin skin, in Summary summ, in UseC
 			if (step.startsWith(prop.sys.prefixSystemVarName)) { mixin(S_TRACE);
 				if (.icmp(prop.sys.selectedPlayerCardNumber, step) == 0) { mixin(S_TRACE);
 					// 選択メンバ番号(Wsn.2)
-					if (!prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+					if (!prop.isTargetVersion(isClassic, wsnVer, "2")) { mixin(S_TRACE);
 						msg ~= prop.msgs.warningSelectedPlayerCardNumber;
 					}
 				} else { mixin(S_TRACE);
@@ -1274,7 +1272,7 @@ TextWarnings textWarnings(in CProps prop, in Skin skin, in Summary summ, in UseC
 					foreach (i; 1 .. prop.looks.partyMax + 1) { mixin(S_TRACE);
 						if (.icmp(prop.sys.playerCardName(cast(uint)i), step) == 0) { mixin(S_TRACE);
 							// プレイヤーキャラクタ名(Wsn.2)
-							if (!prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+							if (!prop.isTargetVersion(isClassic, wsnVer, "2")) { mixin(S_TRACE);
 								msg ~= .tryFormat(prop.msgs.warningPlayerCardName, i);
 							}
 							isPC = true;
@@ -1306,7 +1304,7 @@ TextWarnings textWarnings(in CProps prop, in Skin skin, in Summary summ, in UseC
 			}
 		}
 	}
-	if ((summ && summ.legacy) && !prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
+	if (isClassic && !prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
 		foreach (color; colors) { mixin(S_TRACE);
 			switch (std.ascii.toUpper(color)) {
 			case 'O', 'P', 'L', 'D':
@@ -1326,18 +1324,18 @@ TextWarnings textWarnings(in CProps prop, in Skin skin, in Summary summ, in UseC
 }
 
 /// システムクーポンに関する警告を返す。
-string[] couponWarnings(in CProps prop, in Summary summ, string targVer, string coupon, bool getLose, string itemName) { mixin(S_TRACE);
+string[] couponWarnings(in CProps prop, bool isClassic, string wsnVer, string targVer, string coupon, bool getLose, string itemName) { mixin(S_TRACE);
 	string[] r;
-	r ~= .sjisWarnings(prop, summ, coupon, itemName);
+	r ~= .sjisWarnings(prop, isClassic, coupon, itemName);
 	if (coupon == prop.sys.userCoupon || coupon == prop.sys.eventTargetCoupon || coupon == prop.sys.effectOutOfTargetCoupon) { mixin(S_TRACE);
-		if (!prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+		if (!prop.isTargetVersion(isClassic, wsnVer, "2")) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.warningWsnSystemCoupon, coupon, "2");
 		}
 		if (getLose) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.warningCanNotGetSetCoupon, coupon);
 		}
 	} else if (coupon == prop.sys.effectTargetCoupon) { mixin(S_TRACE);
-		if (!prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+		if (!prop.isTargetVersion(isClassic, wsnVer, "2")) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.warningWsnSystemCoupon, coupon, "2");
 		}
 	} else if (getLose && coupon.startsWith(prop.sys.couponSystem)) { mixin(S_TRACE);

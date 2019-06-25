@@ -269,7 +269,9 @@ private:
 				textUseItems(wrapReturnCode(v), flags, steps, variants, fonts, colors);
 				fonts = [];
 				colors = [];
-				auto ws3 = .textWarnings(_comm.prop.parent, _comm.skin, _summ, _dir.useCounter, _comm.prop.var.etc.targetVersion,
+				auto isClassic = _summ && _summ.legacy;
+				auto wsnVer = _summ ? _summ.dataVersion : LATEST_VERSION;
+				auto ws3 = .textWarnings(_comm.prop.parent, _comm.skin, _summ, _dir.useCounter, isClassic, wsnVer, _comm.prop.var.etc.targetVersion,
 					v, flags, steps, variants, fonts, colors, wFlags, wSteps, wVariants, wFonts, wColors).all;
 				foreach (w; ws3) { mixin(S_TRACE);
 					if (w in ws2) continue;
@@ -769,7 +771,9 @@ private:
 				textUseItems(wrapReturnCode(text.getText()), flags, steps, variants, fonts, colors);
 				fonts = [];
 				colors = [];
-				auto ws3 = .textWarnings(_comm.prop.parent, _comm.skin, _summ, dir.useCounter, _comm.prop.var.etc.targetVersion,
+				auto isClassic = _summ && _summ.legacy;
+				auto wsnVer = _summ ? _summ.dataVersion : LATEST_VERSION;
+				auto ws3 = .textWarnings(_comm.prop.parent, _comm.skin, _summ, dir.useCounter, isClassic, wsnVer, _comm.prop.var.etc.targetVersion,
 					text.getText(), flags, steps, variants, fonts, colors, wFlags, wSteps, wVariants, wFonts, wColors).all;
 				foreach (w; ws3) { mixin(S_TRACE);
 					if (w in ws2) continue;

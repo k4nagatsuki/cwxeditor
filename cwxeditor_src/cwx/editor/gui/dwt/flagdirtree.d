@@ -377,7 +377,10 @@ public:
 		.treeWarning(_comm.prop, dirs, (itm) { mixin(S_TRACE);
 			auto flagDir = cast(FlagDir)itm.getData();
 			if (!flagDir) return new string[0];
-			return .warnings(_comm.prop.parent, _comm.skin, _comm.summary, flagDir, _comm.prop.var.etc.targetVersion);
+			auto summ = _comm.summary;
+			auto isClassic = summ && summ.legacy;
+			auto wsnVer = summ ? summ.dataVersion : LATEST_VERSION;
+			return .warnings(_comm.prop.parent, _comm.skin, summ, flagDir, isClassic, wsnVer, _comm.prop.var.etc.targetVersion);
 		});
 
 		edit = new TreeEdit(_comm, dirs, &editEnd, &createEditor);

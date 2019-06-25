@@ -218,7 +218,9 @@ private class RangePanel : Composite {
 			default:
 				assert (0);
 			}
-			ws ~= .couponWarnings(_comm.prop.parent, _summ, _comm.prop.var.etc.targetVersion, _coupon.getText(), false, _comm.prop.msgs.couponForRange);
+			auto isClassic = _summ && _summ.legacy;
+			auto wsnVer = _summ ? _summ.dataVersion : LATEST_VERSION;
+			ws ~= .couponWarnings(_comm.prop.parent, isClassic, wsnVer, _comm.prop.var.etc.targetVersion, _coupon.getText(), false, _comm.prop.msgs.couponForRange);
 		}
 		b = _range.get(Range.CardTarget, null);
 		if (b && b.getSelection()) { mixin(S_TRACE);
@@ -888,7 +890,9 @@ private:
 				ws ~= .textWarnings2(comm, summ, _uc, _couponView.couponNames);
 			}
 		} else if (_name) { mixin(S_TRACE);
-			ws ~= .couponWarnings(prop.parent, summ, prop.var.etc.targetVersion, _name.getText(), Type is CType.GetCoupon || Type is CType.LoseCoupon, prop.msgs.couponName);
+			auto isClassic = summ && summ.legacy;
+			auto wsnVer = summ ? summ.dataVersion : LATEST_VERSION;
+			ws ~= .couponWarnings(prop.parent, isClassic, wsnVer, prop.var.etc.targetVersion, _name.getText(), Type is CType.GetCoupon || Type is CType.LoseCoupon, prop.msgs.couponName);
 			if (_expandSPChars.getSelection()) { mixin(S_TRACE);
 				if (!_comm.prop.isTargetVersion(_summ, "4")) { mixin(S_TRACE);
 					ws ~= _comm.prop.msgs.warningExpandSPCharsInCoupon;
@@ -1350,7 +1354,9 @@ private string[] textWarnings2(Commons comm, in Summary summ, in UseCounter uc, 
 		.textUseItems(v, flags, steps, variants, fonts, colors);
 		fonts = [];
 		colors = [];
-		auto ws3 = .textWarnings(comm.prop.parent, comm.skin, summ, uc, comm.prop.var.etc.targetVersion,
+		auto isClassic = summ && summ.legacy;
+		auto wsnVer = summ ? summ.dataVersion : LATEST_VERSION;
+		auto ws3 = .textWarnings(comm.prop.parent, comm.skin, summ, uc, isClassic, wsnVer, comm.prop.var.etc.targetVersion,
 			v, flags, steps, variants, fonts, colors, wFlags, wSteps, wVariants, wFonts, wColors).all;
 		foreach (w; ws3) { mixin(S_TRACE);
 			if (w in ws2) continue;
@@ -1546,7 +1552,9 @@ private:
 		string[] ws3;
 		if (_cellName) ws ~= .sjisWarnings(prop.parent, summ, _cellName.getText(), prop.msgs.cellName);
 		foreach (back; _cont.backs) { mixin(S_TRACE);
-			auto ws2 = .warnings(prop.parent, skin, summ, back, _prop.var.etc.targetVersion);
+			auto isClassic = summ && summ.legacy;
+			auto wsnVer = summ ? summ.dataVersion : LATEST_VERSION;
+			auto ws2 = .warnings(prop.parent, skin, summ, back, isClassic, wsnVer, _prop.var.etc.targetVersion);
 			if (_ignoreEffectBooster && _ignoreEffectBooster.getSelection()) { mixin(S_TRACE);
 				if (auto ic = cast(ImageCell)back) { mixin(S_TRACE);
 					auto ext = ic.path.extension().toLower();
@@ -2848,7 +2856,9 @@ private:
 		}
 
 		foreach (coupon; _couponView.coupons) { mixin(S_TRACE);
-			ws ~= couponWarnings(prop.parent, summ, prop.var.etc.targetVersion, coupon.name, false, prop.msgs.valued);
+			auto isClassic = summ && summ.legacy;
+			auto wsnVer = summ ? summ.dataVersion : LATEST_VERSION;
+			ws ~= couponWarnings(prop.parent, isClassic, wsnVer, prop.var.etc.targetVersion, coupon.name, false, prop.msgs.valued);
 		}
 
 		warning = ws;

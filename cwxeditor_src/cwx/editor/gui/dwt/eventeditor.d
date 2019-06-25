@@ -1750,7 +1750,9 @@ class EventEditor : Composite {
 
 			// 警告
 			if (_summ ? _comm.prop.var.etc.drawContentWarnings : drawContentWarnings) { mixin(S_TRACE);
-				auto warnings = .warnings(_comm.prop.parent, _comm.skin, _summ, c, _comm.prop.var.etc.targetVersion);
+				auto isClassic = _summ && _summ.legacy;
+				auto wsnVer = _summ ? _summ.dataVersion : LATEST_VERSION;
+				auto warnings = .warnings(_comm.prop.parent, _comm.skin, _summ, c, isClassic, wsnVer, _comm.prop.var.etc.targetVersion);
 				if (warnings.length) { mixin(S_TRACE);
 					warnings = warnings.sort().uniq().array();
 					int ww = _comm.prop.var.etc.warningImageWidth;

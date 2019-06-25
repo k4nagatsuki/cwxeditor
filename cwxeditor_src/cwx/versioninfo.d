@@ -40,6 +40,23 @@ immutable ENGINES = [
 	"CardWirthPy 0.12.3",
 ];
 
+/// 対応するCardWirthのバージョン。
+immutable CLASSIC_VERSIONS = [
+//	"1.60",
+	"1.50",
+	"1.30",
+	"1.29",
+	"1.28",
+];
+/// CardWirthのバージョンに対応するエンジン名。
+immutable CLASSIC_ENGINES = [
+//	"CardWirthNext 1.60",
+	"CardWirth 1.50",
+	"CardWirth 1.30",
+	"CardWirth 1.29",
+	"CardWirth 1.28",
+];
+
 /// イメージのスケーリングにおいて使用可能なスケール。
 immutable IMAGE_SCALES = [ 2, 4, 8, 16 ];
 

@@ -2603,7 +2603,9 @@ public:
 		if (!cast(Area)_area && !cast(Battle)_area) return [];
 
 		if (auto playerEvents = cast(PlayerCardEvents)itm.getData()) { mixin(S_TRACE);
-			return .warnings(_prop.parent, summSkin, _summ, playerEvents, _prop.var.etc.targetVersion);
+			auto isClassic = _summ && _summ.legacy;
+			auto wsnVer = _summ ? _summ.dataVersion : LATEST_VERSION;
+			return .warnings(_prop.parent, summSkin, _summ, playerEvents, isClassic, wsnVer, _prop.var.etc.targetVersion);
 		}
 		if (auto btl = cast(Battle)_area) { mixin(S_TRACE);
 			if (!btl.possibleToRunAway && itm.getData() is ESCAPE) { mixin(S_TRACE);

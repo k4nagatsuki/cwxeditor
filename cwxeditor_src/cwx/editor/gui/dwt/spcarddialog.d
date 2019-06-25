@@ -104,7 +104,9 @@ private:
 			textUseItems(wrapReturnCode(t.getText()), flags, steps, variants, fonts, colors);
 			fonts = [];
 			colors = [];
-			ws ~= .textWarnings(_prop.parent, summSkin, _summ, null, _prop.var.etc.targetVersion,
+			auto isClassic = _summ && _summ.legacy;
+			auto wsnVer = _summ ? _summ.dataVersion : LATEST_VERSION;
+			ws ~= .textWarnings(_prop.parent, summSkin, _summ, null, isClassic, wsnVer, _prop.var.etc.targetVersion,
 				t.getText(), flags, steps, variants, fonts, colors, wFlags, wSteps, wVariants, wFonts, wColors).all;
 		}
 		static if (is(C:EnemyCard)) {

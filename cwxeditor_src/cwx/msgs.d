@@ -220,7 +220,12 @@ class Msgs : Properties {
 	auto allCheck = Msg("allCheck", "全てチェック/全てチェックを外す(&L)");
 	auto allSelect = Msg("allSelect", "全て選択/全て選択を外す(&L)");
 
-	auto replError = Msg("replError", "重複する分岐(フラグ分岐が両方ともTRUEになっている等)・条件クーポンに抜けがあるセリフコンテント・存在しない素材を参照しているコンテント等を検索します。");
+	auto replError = Msg("replError", "重複する分岐(フラグ分岐が両方ともTRUEになっている等)・条件クーポンに抜けがあるセリフコンテント・存在しない素材を参照しているコンテント・基準とするバージョンのCardWirthに存在しない機能の使用等を検出します。");
+	auto searchErrorCondition = Msg("searchErrorCondition", "検出条件");
+	auto searchErrorTargetVersion = Msg("searchErrorTargetVersion", "基準とするバージョン");
+	auto searchErrorTargetVersionNotSet = Msg("searchErrorTargetVersionNotSet", "[自動選択]");
+	auto searchErrorTargetVersionHint = Msg("searchErrorTargetVersionHint", "※ 自動選択では、シナリオのデータバージョン及び対象エンジン設定が採用されます");
+	auto searchErrorTargetVersionName = Msg("searchErrorTargetVersionName", "%1$s (%2$s)");
 
 	auto replFrom = Msg("replFrom", "検索(置換前)");
 	auto replTo = Msg("replTo", "置換後");

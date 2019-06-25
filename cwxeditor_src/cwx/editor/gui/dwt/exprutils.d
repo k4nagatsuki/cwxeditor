@@ -431,7 +431,9 @@ class ExpressionEditor : Composite {
 		bool[string] wVariants;
 		bool[string] wFonts;
 		bool[char] wColors;
-		_ws ~= .textWarnings(_comm.prop.parent, _comm.skin, _summ, _uc, _comm.prop.var.etc.targetVersion, text, expr.flagsInText, expr.stepsInText, expr.variantsInText, [], [], wFlags, wSteps, wVariants, wFonts, wColors).all;
+		auto isClassic = _summ && _summ.legacy;
+		auto wsnVer = _summ ? _summ.dataVersion : LATEST_VERSION;
+		_ws ~= .textWarnings(_comm.prop.parent, _comm.skin, _summ, _uc, isClassic, wsnVer, _comm.prop.var.etc.targetVersion, text, expr.flagsInText, expr.stepsInText, expr.variantsInText, [], [], wFlags, wSteps, wVariants, wFonts, wColors).all;
 
 		auto valid = _returnValue.valid;
 		auto type = _returnValue.type;

@@ -1985,7 +1985,8 @@ public:
 			initTree(_comm, _dirTree, false);
 			.treeWarning(_prop, _dirTree, delegate string[] (TreeItem itm) { mixin(S_TRACE);
 				if (auto summ = cast(Summary)itm.getData()) { mixin(S_TRACE);
-					return .warnings(_prop.parent, summSkin, _summ, _summ, _prop.var.etc.targetVersion);
+					assert (summ is _summ);
+					return .warnings(_prop.parent, summSkin, _summ, _summ, _summ.legacy, _summ.dataVersion, _prop.var.etc.targetVersion);
 				}
 				if (auto dt = cast(DirTree)itm.getData()) { mixin(S_TRACE);
 					return .sjisWarnings(_prop.parent, _summ, dt.name, _prop.msgs.areaDirName);

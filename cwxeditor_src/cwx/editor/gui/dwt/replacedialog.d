@@ -312,6 +312,10 @@ private:
 
 	Button[] _noSummText;
 
+	alias Tuple!(string, "name", bool, "isClassic", string, "wsnVer", string, "targVer") VerInfo;
+	Combo _targetVer;
+	VerInfo[] _verInfos;
+
 	Button _unuseFlag;
 	Button _unuseStep;
 	Button _unuseVariant;
@@ -1347,7 +1351,38 @@ private:
 			l.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			l.setText(_prop.msgs.replError);
 		}
+		{ mixin(S_TRACE);
+			auto grp = new Group(comp2, SWT.NONE);
+			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			grp.setText(_prop.msgs.searchErrorCondition);
+			grp.setLayout(normalGridLayout(2, false));
+			auto l = new Label(grp, SWT.NONE);
+			l.setText(_prop.msgs.searchErrorTargetVersion);
 
+			_targetVer = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+			_targetVer.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
+			_targetVer.add(_prop.msgs.searchErrorTargetVersionNotSet);
+			_targetVer.select(0);
+			foreach (wsnVer, wsnName, engineName; .zip(VERSIONS, VERSION_NAMES, ENGINES)) { mixin(S_TRACE);
+				_targetVer.add(.tryFormat(_prop.msgs.searchErrorTargetVersionName, wsnName, engineName));
+				_verInfos ~= VerInfo(wsnName, false, wsnVer, "");
+				if (wsnName == _prop.var.etc.searchErrorTargetVersion) _targetVer.select(_targetVer.getItemCount() - 1);
+			}
+			foreach (targVer, engineName; .zip(CLASSIC_VERSIONS, CLASSIC_ENGINES)) { mixin(S_TRACE);
+				_targetVer.add(engineName);
+				_verInfos ~= VerInfo(engineName, true, "", targVer);
+				if (engineName == _prop.var.etc.searchErrorTargetVersion) _targetVer.select(_targetVer.getItemCount() - 1);
+			}
+			.listener(_targetVer, SWT.Dispose, { mixin(S_TRACE);
+				auto targIndex = _targetVer.getSelectionIndex();
+				_prop.var.etc.searchErrorTargetVersion = targIndex <= 0 ? "" : _verInfos[targIndex - 1].name;
+			});
+			auto hint = new Label(grp, SWT.NONE);
+			hint.setText(_prop.msgs.searchErrorTargetVersionHint);
+			auto hgd = new GridData;
+			hgd.horizontalSpan = 2;
+			hint.setLayoutData(hgd);
+		}
 		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText(_prop.msgs.replForError);
 		tab.setControl(comp);
@@ -3632,7 +3667,17 @@ public:
 		auto froot = _summ.flagDirRoot;
 		auto sPath = _summ.scenarioPath;
 		auto skin = _comm.skin;
+		auto isClassic = _summ.legacy;
+		auto wsnVer = _summ.dataVersion;
 		auto targVer = _prop.var.etc.targetVersion;
+		auto targIndex = _targetVer.getSelectionIndex();
+		if (0 < targIndex) { mixin(S_TRACE);
+			auto verInfo = _verInfos[targIndex - 1];
+			isClassic = verInfo.isClassic;
+			wsnVer = verInfo.wsnVer;
+			targVer = verInfo.targVer;
+		}
+
 		reset();
 		_lastFind = _tabf.getSelection();
 
@@ -3652,7 +3697,7 @@ public:
 		void search(CWXPath path) { mixin(S_TRACE);
 			searchAll(.cwxPlace(path), path, count, (CWXPath parent, CWXPath path, ref size_t count, const(char)[] cwxPath) { mixin(S_TRACE);
 				if (cancel) return;
-				auto warnings = .warnings(_prop.parent, skin, _summ, path, targVer);
+				auto warnings = .warnings(_prop.parent, skin, _summ, path, isClassic, wsnVer, targVer);
 				foreach (warning; warnings) { mixin(S_TRACE);
 					addResult(parent, path, cwxPath.idup, count, warning);
 				}

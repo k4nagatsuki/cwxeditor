@@ -129,7 +129,9 @@ class AbstractMessageDialog : EventDialog {
 
 	private TextWarnings textWarnings(string text, in string[] flags, in string[] steps, in string[] variants, in string[] fonts, in char[] colors,
 			ref bool[string] wFlags, ref bool[string] wSteps, ref bool[string] wVariants, ref bool[string] wFonts, ref bool[char] wColors) { mixin(S_TRACE);
-		return .textWarnings(prop.parent, summSkin, summ, _uc, prop.var.etc.targetVersion,
+		auto isClassic = summ && summ.legacy;
+		auto wsnVer = summ ? summ.dataVersion : LATEST_VERSION;
+		return .textWarnings(prop.parent, summSkin, summ, _uc, isClassic, wsnVer, prop.var.etc.targetVersion,
 			text, flags, steps, variants, fonts, colors, wFlags, wSteps, wVariants, wFonts, wColors);
 	}
 
@@ -544,7 +546,9 @@ private:
 			ws ~= dws.noDup;
 
 			foreach (coupon; dlg.rCoupons) { mixin(S_TRACE);
-				ws ~= couponWarnings(prop.parent, summ, prop.var.etc.targetVersion, coupon, false, prop.msgs.toneCoupons);
+				auto isClassic = summ && summ.legacy;
+				auto wsnVer = summ ? summ.dataVersion : LATEST_VERSION;
+				ws ~= couponWarnings(prop.parent, isClassic, wsnVer, prop.var.etc.targetVersion, coupon, false, prop.msgs.toneCoupons);
 			}
 		}
 
