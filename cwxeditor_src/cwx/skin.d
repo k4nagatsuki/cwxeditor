@@ -1694,6 +1694,7 @@ class Skin {
 			foreach (type; EnumMembers!ActionCardType) r ~= type;
 		} else { mixin(S_TRACE);
 			r = _actionCards.keys();
+			.sort(r);
 		}
 		ActionCardType[] r2;
 		foreach (type; r) { mixin(S_TRACE);
