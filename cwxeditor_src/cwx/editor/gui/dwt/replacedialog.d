@@ -4173,6 +4173,7 @@ public:
 		opt.textOnly = true;
 		opt.expandXMLs = false;
 		opt.summaryOnly = true;
+		opt.numberStepToVariantThreshold = _prop.var.etc.numberStepToVariantThreshold;
 		foreach (b; _noSummText) { mixin(S_TRACE);
 			if (b.getSelection()) { mixin(S_TRACE);
 				opt.summaryOnly = false;

@@ -663,6 +663,7 @@ private:
 		opt.textOnly = false;
 		opt.doubleIO = _prop.var.etc.doubleIO;
 		opt.expandXMLs = old ? old.expandXMLs : _prop.var.etc.expandXMLs;
+		opt.numberStepToVariantThreshold = _prop.var.etc.numberStepToVariantThreshold;
 		auto d = _win.getDisplay();
 		opt.processFunc = (string sName, string fileName) {
 			d.asyncExec(new class Runnable {

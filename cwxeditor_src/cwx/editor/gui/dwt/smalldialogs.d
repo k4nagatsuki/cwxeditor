@@ -409,6 +409,7 @@ protected:
 						opt.textOnly = false;
 						opt.doubleIO = _prop.var.etc.doubleIO;
 						opt.expandXMLs = _prop.var.etc.expandXMLs;
+						opt.numberStepToVariantThreshold = _prop.var.etc.numberStepToVariantThreshold;
 						Skin defSkin = .findSkin2(_prop, _prop.var.etc.defaultSkin, _prop.var.etc.defaultSkinName);
 						string[] errorFiles;
 						summ = Summary.loadScenarioFromFile(_prop.parent, opt, errorFiles, tPath, _prop.tempPath, defSkin, () => dir);
