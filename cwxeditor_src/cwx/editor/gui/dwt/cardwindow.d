@@ -1230,7 +1230,6 @@ private:
 		opt.textOnly = false;
 		opt.doubleIO = prop.var.etc.doubleIO;
 		opt.expandXMLs = false;
-		opt.numberStepToVariantThreshold = prop.var.etc.numberStepToVariantThreshold;
 		return opt;
 	}
 public:
