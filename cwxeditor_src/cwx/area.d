@@ -631,8 +631,10 @@ public:
 			};
 			CardImage.setOnTag(pNode, overrideImages, isOverrideImage, false);
 			pNode.onTag["Actions"] = (ref XNode n) { mixin(S_TRACE);
-				if (n.name != "Action") return;
-				actions[cast(ActionCardType)(n.attr!int("type", true))] = parseBool(n.text);
+				n.onTag["Action"] = (ref XNode n) { mixin(S_TRACE);
+					actions[cast(ActionCardType)(n.attr!int("id", true))] = .parseBool(n.value);
+				};
+				n.parse();
 			};
 			loadProp(pNode, flag, x, y, scale, layer, cardGroup, animationSpeed);
 		};
