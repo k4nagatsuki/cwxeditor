@@ -500,14 +500,17 @@ void fixCWNext16BitBitmap(ref byte[] bytes) { mixin(S_TRACE);
 	auto biClrImporant = f.readUIntL();
 	auto lineSize = ((biWidth * biBitCount + 31) / 32) * 4;
 	auto height = biHeight < 0 ? -biHeight : biHeight;
-	if (biCompression == 3) {
-		auto bitFieldR = f.readUIntL();
-		auto bitFieldG = f.readUIntL();
-		auto bitFieldB = f.readUIntL();
-	}
 	if (bytes.length - bfOffBits != lineSize * height) {
-		// bfOffBitsを現在位置に修正
-		bfOffBits = cast(uint)f.pointer;
+		// bfOffBitsをヘッダ直後に修正
+		bfOffBits = 14 + 40;
+		if (biCompression == 3) {
+			// ビットフィールド情報がある場合
+			bfOffBits += 4 * 3;
+		}
+		if (biBitCount == 1 || biBitCount == 4 || biBitCount == 8) {
+			if (biClrUsed == 0) biClrUsed = biBitCount * biBitCount;
+		}
+		bfOffBits += biClrUsed * 4;
 		f.pointer = 10;
 		f.writeL(cast(uint)bfOffBits);
 	}
@@ -531,7 +534,7 @@ void fixCWNext32BitBitmap(ref byte[] bytes) { mixin(S_TRACE);
 	auto biHeight = f.readIntL();
 	auto biPlanes = f.readUShortL();
 	auto biBitCount = f.readUShortL();
-	if (biBitCount != 32) return;
+	if (biBitCount != 32 && biBitCount != 24) return;
 	auto biCompression = f.readUIntL();
 	auto biSizeImage = f.readUIntL();
 	auto biXPixPerMeter = f.readIntL();
