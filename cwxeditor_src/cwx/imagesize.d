@@ -547,3 +547,36 @@ void fixCWNext32BitBitmap(ref byte[] bytes) { mixin(S_TRACE);
 		bytes = bytes[0 .. 14 + biSize] ~ bytes[14 + biSize + biClrUsed * 4 .. $];
 	}
 }
+
+/// ビットマップイメージのデータbytesからビットフィールド情報を取得する。
+/// ビットフィールド情報が無い場合はfalseを返す。
+bool getBitField(in byte[] bytes, out uint r, out uint g, out uint b) { mixin(S_TRACE);
+	if (bytes.length  < 14 + 40) return false;
+	auto f = ByteIO(bytes);
+	if ('B' != f.readByteL()) return false;
+	if ('M' != f.readByteL()) return false;
+	auto bfSize = f.readUIntL();
+	auto bfReserved1 = f.readUShortL();
+	auto bfReserved2 = f.readUShortL();
+	auto bfOffBits = f.readUIntL();
+	if (bfOffBits == 0) return false;
+	auto biSize = f.readUIntL();
+	if (biSize != 40) return false;
+	auto biWidth = f.readUIntL();
+	auto biHeight = f.readIntL();
+	auto biPlanes = f.readUShortL();
+	auto biBitCount = f.readUShortL();
+	auto biCompression = f.readUIntL();
+	auto biSizeImage = f.readUIntL();
+	auto biXPixPerMeter = f.readIntL();
+	auto biYPixPerMeter = f.readIntL();
+	auto biClrUsed = f.readUIntL();
+	auto biClrImporant = f.readUIntL();
+	if (biCompression == 3) { mixin(S_TRACE);
+		r = f.readUIntL();
+		g = f.readUIntL();
+		b = f.readUIntL();
+		return true;
+	}
+	return false;
+}

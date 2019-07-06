@@ -215,6 +215,15 @@ ImageData loadImage(Props prop, in Skin skin, in Summary summ, string path, bool
 					}
 				}
 			}
+			uint r, g, b;
+			if (.getBitField(bytes, r, g, b) && data.depth == 32 && data.palette) { mixin(S_TRACE);
+				// BUG: このケースでビットフィールドの設定がおかしくなる
+				if (r == 0x00ff0000 && g == 0x0000ff00 && b == 0x000000ff) { mixin(S_TRACE);
+					data.palette.redMask = b << 8;
+					data.palette.greenMask = g << 8;
+					data.palette.blueMask = r << 8;
+				}
+			}
 			// GIFの透過色指定は無視される
 			ext = .imageType(cast(ubyte[])bytes);
 			if (data.depth <= 8 && ext == ".gif") data.transparentPixel = -1;
