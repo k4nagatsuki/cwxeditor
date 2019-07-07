@@ -2871,6 +2871,7 @@ public:
 		if (p) { mixin(S_TRACE);
 			return *p;
 		}
+		if (!path.cwxParent) return true;
 		return dec(path.cwxParent, range);
 	}
 	private void sortedPaths(T)(HashSet!T paths, CWXPath[] range, void delegate(SortableCWXPath!T) yield) { mixin(S_TRACE);
