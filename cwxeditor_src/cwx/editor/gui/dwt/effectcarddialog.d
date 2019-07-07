@@ -58,6 +58,7 @@ private:
 	Commons _comm;
 	Props _prop;
 	Summary _summ;
+	CWXPath _ucOwner;
 	UseCounter _useCounter;
 	C _card;
 
@@ -630,7 +631,7 @@ private:
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(normalGridLayout(1, false));
 		{ mixin(S_TRACE);
-			_motions = new MotionView(_comm, _prop, _summ, _useCounter, comp, _readOnly);
+			_motions = new MotionView(_comm, _prop, _summ, _ucOwner, _useCounter, comp, _readOnly);
 			mod(_motions);
 			_motions.warningEvent ~= &refreshWarning;
 			_motions.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -841,10 +842,11 @@ private:
 		}
 	}
 public:
-	this(Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, C card, bool readOnly) { mixin(S_TRACE);
+	this(Commons comm, Props prop, Shell shell, Summary summ, CWXPath ucOwner, UseCounter uc, C card, bool readOnly) { mixin(S_TRACE);
 		assert (summ !is null);
 		_comm = comm;
 		_summ = summ;
+		_ucOwner = .renameInfo(ucOwner);
 		_useCounter = uc;
 		_card = card;
 		_prop = prop;

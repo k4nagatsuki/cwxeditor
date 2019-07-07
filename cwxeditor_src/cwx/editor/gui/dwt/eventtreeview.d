@@ -489,7 +489,7 @@ private:
 			foreach (c; cs) { mixin(S_TRACE);
 				_path ~= c.ctPath;
 				_c ~= c.dup;
-				_c[$ - 1].setUseCounter(c.useCounter.sub);
+				_c[$ - 1].setUseCounter(c.useCounter.sub, c);
 			}
 		}
 		private void impl() { mixin(S_TRACE);
@@ -516,7 +516,7 @@ private:
 					}));
 					et.startUseCounter.change(tc.name, c.name);
 				}
-				_c[i].setUseCounter(tc.useCounter.sub);
+				_c[i].setUseCounter(tc.useCounter.sub, tc);
 				string text;
 				if (pc) { mixin(S_TRACE);
 					pc.insert(prop.parent, index, c);
@@ -600,7 +600,7 @@ private:
 			scope (exit) foreach (v; vs) v._tree.control.setRedraw(true);
 			for (size_t i = 0; i < _count; i++) { mixin(S_TRACE);
 				auto c = et.starts[_index].dup;
-				c.setUseCounter(et.starts[_index].useCounter.sub);
+				c.setUseCounter(et.starts[_index].useCounter.sub, et.starts[_index]);
 				_c ~= c;
 				delImpl(vs, comm, et, et.starts[_index]);
 			}
@@ -635,7 +635,7 @@ private:
 			super (comm, prop, summ, et, area);
 			_index = index;
 			_c = del.dup;
-			_c.setUseCounter(del.useCounter.sub);
+			_c.setUseCounter(del.useCounter.sub, del);
 		}
 		override void undo() { mixin(S_TRACE);
 			auto vs = views();
@@ -987,10 +987,10 @@ private:
 
 	void updateSkinMaterialsExtension(Content c) { mixin(S_TRACE);
 		auto uc = c.useCounter;
-		c.setUseCounter(new UseCounter(null));
+		c.setUseCounter(new UseCounter(null), null);
 		scope (exit) {
 			if (uc) {
-				c.setUseCounter(uc);
+				c.setUseCounter(uc, null);
 			} else {
 				c.removeUseCounter();
 			}

@@ -584,7 +584,7 @@ private:
 				auto c = cardFrom(owner, cardType, id);
 				auto card = create(c);
 				shallowCopy(card, c);
-				card.setUseCounter(c.useCounter.sub);
+				card.setUseCounter(c.useCounter.sub, c);
 				_card ~= card;
 			}
 			_id = ids.dup;
@@ -599,7 +599,7 @@ private:
 				auto c = cardFrom(owner, cardType, id);
 				_card[i] = create(c);
 				shallowCopy(_card[i], c);
-				_card[i].setUseCounter(c.useCounter.sub);
+				_card[i].setUseCounter(c.useCounter.sub, c);
 				shallowCopy(c, card);
 
 				refCard(v, comm, c);
@@ -784,7 +784,7 @@ private:
 			foreach (id; _ids) { mixin(S_TRACE);
 				auto c = cardFrom(owner, cardType, id);
 				auto card = c.dup;
-				card.setUseCounter(c.useCounter.sub);
+				card.setUseCounter(c.useCounter.sub, c);
 				_cards ~= card;
 				_indices ~= cast(int)indexOf(owner, cardType, c);
 			}
@@ -1889,7 +1889,7 @@ private:
 		if (fromSPath.length > 0 && !cfnmatch(fromSPath, nabs(ownerScenarioPath))) { mixin(S_TRACE);
 			auto uc = new UseCounter(null);
 			foreach (c; cs) { mixin(S_TRACE);
-				c.setUseCounter(uc);
+				c.setUseCounter(uc, null);
 			}
 			bool copy;
 			bool r = qMaterialCopy(_comm, dlgParShl, uc, _summ.scenarioPath, fromSPath, copy, _summ.legacy,
@@ -3302,15 +3302,15 @@ public:
 			break;
 		case CardType.Skill:
 			c = new SkillCard(_prop.sys, 0, "", [], "");
-			dlg = new EffectCardDialog!SkillCard(_comm, _prop, dlgParShl, _summ, _summ.useCounter, null, false);
+			dlg = new EffectCardDialog!SkillCard(_comm, _prop, dlgParShl, _summ, _owner, _summ.useCounter, null, false);
 			break;
 		case CardType.Item:
 			c = new ItemCard(_prop.sys, 0, "", [], "");
-			dlg = new EffectCardDialog!ItemCard(_comm, _prop, dlgParShl, _summ, _summ.useCounter, null, false);
+			dlg = new EffectCardDialog!ItemCard(_comm, _prop, dlgParShl, _summ, _owner, _summ.useCounter, null, false);
 			break;
 		case CardType.Beast:
 			c = new BeastCard(_prop.sys, 0, "", [], "");
-			dlg = new EffectCardDialog!BeastCard(_comm, _prop, dlgParShl, _summ, _summ.useCounter, null, false);
+			dlg = new EffectCardDialog!BeastCard(_comm, _prop, dlgParShl, _summ, _owner, _summ.useCounter, null, false);
 			break;
 		case CardType.Info:
 			c = new InfoCard(0, "", [], "");
@@ -3645,13 +3645,13 @@ public:
 			dlg = new CastCardDialog(_comm, _prop, dlgParShl, _summ, cast(CastCard)c, !editMode);
 			break;
 		case CardType.Skill:
-			dlg = new EffectCardDialog!SkillCard(_comm, _prop, dlgParShl, _summ, _summ.useCounter, cast(SkillCard)c, !editMode);
+			dlg = new EffectCardDialog!SkillCard(_comm, _prop, dlgParShl, _summ, _owner, _summ.useCounter, cast(SkillCard)c, !editMode);
 			break;
 		case CardType.Item:
-			dlg = new EffectCardDialog!ItemCard(_comm, _prop, dlgParShl, _summ, _summ.useCounter, cast(ItemCard)c, !editMode);
+			dlg = new EffectCardDialog!ItemCard(_comm, _prop, dlgParShl, _summ, _owner, _summ.useCounter, cast(ItemCard)c, !editMode);
 			break;
 		case CardType.Beast:
-			dlg = new EffectCardDialog!BeastCard(_comm, _prop, dlgParShl, _summ, _summ.useCounter, cast(BeastCard)c, !editMode);
+			dlg = new EffectCardDialog!BeastCard(_comm, _prop, dlgParShl, _summ, _owner, _summ.useCounter, cast(BeastCard)c, !editMode);
 			break;
 		case CardType.Info:
 			dlg = new InfoCardDialog(_comm, _prop, dlgParShl, _summ, cast(InfoCard)c, !editMode);

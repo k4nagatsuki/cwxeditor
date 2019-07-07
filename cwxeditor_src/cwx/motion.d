@@ -113,6 +113,7 @@ private:
 	Motion[] _motions;
 	void delegate() _change = null;
 	UseCounter _uc = null;
+	CWXPath _ucOwner = null;
 	MotionOwner _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
@@ -136,11 +137,12 @@ public:
 	inout(UseCounter) useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
-	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+	void setUseCounter(UseCounter uc, CWXPath ucOwner) { mixin(S_TRACE);
 		foreach (m; _motions) { mixin(S_TRACE);
-			m.setUseCounter(uc);
+			m.setUseCounter(uc, ucOwner);
 		}
 		_uc = uc;
+		_ucOwner = .renameInfo(ucOwner);
 	}
 	/// ditto
 	void removeUseCounter() { mixin(S_TRACE);
@@ -148,6 +150,7 @@ public:
 			m.removeUseCounter();
 		}
 		_uc = null;
+		_ucOwner = null;
 	}
 	/// 効果群。
 	@property
@@ -161,7 +164,7 @@ public:
 			}
 			foreach (m; motions) { mixin(S_TRACE);
 				m.changeHandler = _change;
-				if (_uc) m.setUseCounter(_uc);
+				if (_uc) m.setUseCounter(_uc, _ucOwner);
 				m._owner = _cwxPath;
 			}
 			_motions = motions;
@@ -188,6 +191,7 @@ private:
 	MType _type;
 
 	UseCounter _uc = null;
+	CWXPath _ucOwner = null;
 	/// 召喚獣カードに登録するための変更ハンドラ。
 	void delegate () _change = null;
 
@@ -236,11 +240,12 @@ public:
 	inout(UseCounter) useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
-	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+	void setUseCounter(UseCounter uc, CWXPath ucOwner) { mixin(S_TRACE);
 		if (_beast) { mixin(S_TRACE);
-			_beast.setUseCounter(uc);
+			_beast.setUseCounter(uc, ucOwner);
 		}
 		_uc = uc;
+		_ucOwner = .renameInfo(ucOwner);
 	}
 	/// ditto
 	void removeUseCounter() { mixin(S_TRACE);
@@ -248,6 +253,7 @@ public:
 			_beast.removeUseCounter();
 		}
 		_uc = null;
+		_ucOwner = null;
 	}
 
 	/// コピーを作成する。
@@ -411,7 +417,7 @@ public:
 		_beast = beast;
 		_beast.id = 1L;
 		_beast.changeHandler = _change;
-		if (_uc) _beast.setUseCounter(_uc);
+		if (_uc) _beast.setUseCounter(_uc, _ucOwner);
 		_beast.owner = this;
 	}
 

@@ -91,7 +91,7 @@ private:
 		this (MotionView v, Commons comm, Summary summ, ptrdiff_t index) { mixin(S_TRACE);
 			super (v, comm, summ);
 			_old = v.motion(index).dup;
-			_old.setUseCounter(v._useCounter.sub);
+			_old.setUseCounter(v._useCounter.sub, v._ucOwner);
 			_index = index;
 		}
 		private void impl() { mixin(S_TRACE);
@@ -102,7 +102,7 @@ private:
 			auto old = _old;
 			_old.removeUseCounter();
 			_old = v.motion(_index).dup;
-			_old.setUseCounter(v._useCounter.sub);
+			_old.setUseCounter(v._useCounter.sub, v._ucOwner);
 			auto m = v.motion(_index);
 			v.motion(_index, old, false);
 		}
@@ -182,7 +182,7 @@ private:
 		private void initUndoDelete(MotionView v) { mixin(S_TRACE);
 			if (!v || v.isDisposed()) return;
 			_m = v.motion(_index).dup;
-			_m.setUseCounter(v._useCounter.sub);
+			_m.setUseCounter(v._useCounter.sub, v._ucOwner);
 		}
 		private void undoInsert() { mixin(S_TRACE);
 			auto v = view();
@@ -234,6 +234,7 @@ private:
 	Props _prop;
 	Summary _summ;
 	UseCounter _useCounter;
+	CWXPath _ucOwner;
 	UndoManager _undo;
 	KeyDownFilter _kdFilter;
 
@@ -311,7 +312,7 @@ private:
 			_comm.delBeast.call(o, o.beast);
 		}
 		itm.setData(m);
-		m.setUseCounter(_useCounter ? _useCounter.sub : null);
+		m.setUseCounter(_useCounter ? _useCounter.sub : null, _ucOwner);
 		m.changeHandler = &changed;
 		if (index == _motions.getSelectionIndex()) { mixin(S_TRACE);
 			refreshSels();
@@ -450,7 +451,7 @@ private:
 					assert (absDlg !is null);
 					absDlg.active();
 				} else { mixin(S_TRACE);
-					_beastDlg = new EffectCardDialog!(BeastCard)(_comm, _prop, getShell(), _summ, _useCounter, b, _readOnly != SWT.NONE);
+					_beastDlg = new EffectCardDialog!(BeastCard)(_comm, _prop, getShell(), _summ, _ucOwner, _useCounter, b, _readOnly != SWT.NONE);
 					auto absDlg = cast(AbsDialog)_beastDlg;
 					assert (absDlg !is null);
 					absDlg.open();
@@ -649,7 +650,7 @@ private:
 		itm.setImage(_prop.images.motion(motion.type));
 		itm.setText(_descs[motion.type]);
 		itm.setData(motion);
-		motion.setUseCounter(_useCounter ? _useCounter.sub : null);
+		motion.setUseCounter(_useCounter ? _useCounter.sub : null, _ucOwner);
 		motion.changeHandler = &changed;
 		if (callMod) { mixin(S_TRACE);
 			foreach (dlg; modEvent) dlg();
@@ -1042,13 +1043,14 @@ private:
 		_undo.max = _prop.var.etc.undoMaxEtc;
 	}
 public:
-	this (Commons comm, Props prop, Summary summ, UseCounter uc, Composite parent, int style, UndoManager undo = null) { mixin(S_TRACE);
+	this (Commons comm, Props prop, Summary summ, CWXPath ucOwner, UseCounter uc, Composite parent, int style, UndoManager undo = null) { mixin(S_TRACE);
 		super(parent, SWT.NONE);
 		_id = .objectIDValue(this);
 		_readOnly = style & SWT.READ_ONLY;
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
+		_ucOwner = .renameInfo(ucOwner);
 		_useCounter = uc;
 		if (_readOnly || !_summ || _summ.scenarioPath == "") { mixin(S_TRACE);
 			_summSkin = findSkin(_comm, _prop, _summ);
@@ -1698,7 +1700,7 @@ public:
 		if (!_summ || _summ.scenarioPath == "") return false;
 		if (fromSPath.length && !cfnmatch(nabs(fromSPath), nabs(_summ.scenarioPath))) { mixin(S_TRACE);
 			auto uc = new UseCounter(null);
-			card.setUseCounter(uc);
+			card.setUseCounter(uc, null);
 			bool copy;
 			bool r = qMaterialCopy(_comm, getShell(), uc,
 				_summ.scenarioPath, fromSPath, copy, _summ.legacy,

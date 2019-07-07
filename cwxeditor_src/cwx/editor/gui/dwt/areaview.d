@@ -552,7 +552,7 @@ private:
 			static if (UseCards) {
 				foreach (i; cIdcs) { mixin(S_TRACE);
 					auto c = area.cards[i].dup;
-					if (area.useCounter) c.setUseCounter(area.useCounter.sub);
+					if (area.useCounter) c.setUseCounter(area.useCounter.sub, area);
 					_cs[i] = c;
 					_cChks[i] = v ? v._cards.getItem(i).getChecked() : true;
 				}
@@ -560,7 +560,7 @@ private:
 			static if (UseBacks) {
 				foreach (i; bIdcs) { mixin(S_TRACE);
 					auto b = area.backs[i].dup;
-					if (area.useCounter) b.setUseCounter(area.useCounter.sub);
+					if (area.useCounter) b.setUseCounter(area.useCounter.sub, area);
 					_bs[i] = b;
 					_bChks[i] = v ? v._backs.getItem(i).getChecked() : true;
 				}
@@ -622,7 +622,7 @@ private:
 						c = new C(c.id, c.actions, c.flag, c.x, c.y, c.scale, c.layer, c.cardGroup, c.animationSpeed,
 							c.isOverrideName, c.overrideName, c.isOverrideImage, c.overrideImages);
 					} else static assert (0);
-					if (area.useCounter) c.setUseCounter(area.useCounter.sub);
+					if (area.useCounter) c.setUseCounter(area.useCounter.sub, area);
 					cs[i] = c;
 				}
 				return cs;
@@ -634,7 +634,7 @@ private:
 				foreach (i; indices) { mixin(S_TRACE);
 					auto b = area.backs[i];
 					b = b.dup;
-					if (area.useCounter) b.setUseCounter(area.useCounter.sub);
+					if (area.useCounter) b.setUseCounter(area.useCounter.sub, area);
 					bs[i] = b;
 				}
 				return bs;

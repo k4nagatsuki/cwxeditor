@@ -239,10 +239,10 @@ public:
 	}
 
 	@property
-	override void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+	override void setUseCounter(UseCounter uc, CWXPath ucOwner) { mixin(S_TRACE);
 		_user.setUseCounter(uc);
-		_cardGroup.setUseCounter(uc);
-		super.setUseCounter(uc);
+		_cardGroup.setUseCounter(uc, ucOwner);
+		super.setUseCounter(uc, ucOwner);
 	}
 	override void removeUseCounter() { mixin(S_TRACE);
 		_user.removeUseCounter();
@@ -511,13 +511,13 @@ public:
 	}
 
 	@property
-	override void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+	override void setUseCounter(UseCounter uc, CWXPath ucOwner) { mixin(S_TRACE);
 		_user.setUseCounter(uc);
 		_overrideName.setUseCounter(uc.global);
 		foreach (path; _overrideImages) { mixin(S_TRACE);
 			path.setUseCounter(uc);
 		}
-		super.setUseCounter(uc);
+		super.setUseCounter(uc, ucOwner);
 	}
 	override void removeUseCounter() { mixin(S_TRACE);
 		_user.removeUseCounter();
@@ -817,14 +817,14 @@ public:
 	}
 
 	@property
-	override void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+	override void setUseCounter(UseCounter uc, CWXPath ucOwner) { mixin(S_TRACE);
 		foreach (path; _paths) { mixin(S_TRACE);
 			path.setUseCounter(uc);
 		}
 		if (expandSPChars) { mixin(S_TRACE);
 			_name.setUseCounter(uc.global);
 		}
-		super.setUseCounter(uc);
+		super.setUseCounter(uc, ucOwner);
 	}
 	override void removeUseCounter() { mixin(S_TRACE);
 		foreach (path; _paths) { mixin(S_TRACE);
@@ -1321,7 +1321,7 @@ public:
 	/// メニューカードを追加する。
 	void append(MenuCard card) { mixin(S_TRACE);
 		card.changeHandler = changeHandler;
-		if (useCounter) card.setUseCounter = useCounter;
+		if (useCounter) card.setUseCounter(useCounter, ucOwner);
 		card._owner = this;
 		_cards ~= card;
 		changed();
@@ -1332,7 +1332,7 @@ public:
 			append(card);
 		} else { mixin(S_TRACE);
 			card.changeHandler = changeHandler;
-			if (useCounter) card.setUseCounter = useCounter;
+			if (useCounter) card.setUseCounter(useCounter, ucOwner);
 			card._owner = this;
 			_cards = _cards[0 .. index] ~ card ~ _cards[index .. $];
 			changed();
@@ -1350,7 +1350,7 @@ public:
 	/// 背景画像を追加する。
 	void append(BgImage back) { mixin(S_TRACE);
 		back.changeHandler = changeHandler;
-		if (useCounter) back.setUseCounter = useCounter;
+		if (useCounter) back.setUseCounter(useCounter, ucOwner);
 		back.owner = this;
 		_bgImgs ~= back;
 		changed();
@@ -1361,7 +1361,7 @@ public:
 			append(back);
 		} else { mixin(S_TRACE);
 			back.changeHandler = changeHandler;
-			if (useCounter) back.setUseCounter = useCounter;
+			if (useCounter) back.setUseCounter(useCounter, ucOwner);
 			back.owner = this;
 			_bgImgs = _bgImgs[0 .. index] ~ back ~ _bgImgs[index .. $];
 			changed();
@@ -1373,7 +1373,7 @@ public:
 		_bgImgs[index].removeUseCounter();
 		_bgImgs[index].owner = null;
 		back.changeHandler = changeHandler;
-		if (useCounter) back.setUseCounter = useCounter;
+		if (useCounter) back.setUseCounter(useCounter, ucOwner);
 		back.owner = this;
 		_bgImgs[index] = back;
 		changed();
@@ -1388,15 +1388,15 @@ public:
 	}
 
 	@property
-	override void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+	override void setUseCounter(UseCounter uc, CWXPath ucOwner) { mixin(S_TRACE);
 		foreach (c; _cards) { mixin(S_TRACE);
-			c.setUseCounter(uc);
+			c.setUseCounter(uc, ucOwner);
 		}
 		foreach (bg; _bgImgs) { mixin(S_TRACE);
-			bg.setUseCounter(uc);
+			bg.setUseCounter(uc, ucOwner);
 		}
-		playerEvents.setUseCounter(uc);
-		super.setUseCounter(uc);
+		playerEvents.setUseCounter(uc, ucOwner);
+		super.setUseCounter(uc, ucOwner);
 	}
 
 	override void removeUseCounter() { mixin(S_TRACE);
@@ -1886,7 +1886,7 @@ public:
 	/// エネミーカードを追加する。
 	void append(EnemyCard card) { mixin(S_TRACE);
 		card.changeHandler = changeHandler;
-		if (useCounter) card.setUseCounter = useCounter;
+		if (useCounter) card.setUseCounter(useCounter, ucOwner);
 		card._owner = this;
 		_cards ~= card;
 		changed();
@@ -1897,7 +1897,7 @@ public:
 			append(card);
 		} else { mixin(S_TRACE);
 			card.changeHandler = changeHandler;
-			if (useCounter) card.setUseCounter = useCounter;
+			if (useCounter) card.setUseCounter(useCounter, ucOwner);
 			card._owner = this;
 			_cards = _cards[0 .. index] ~ card ~ _cards[index .. $];
 			changed();
@@ -1972,13 +1972,13 @@ public:
 	}
 
 	@property
-	override void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+	override void setUseCounter(UseCounter uc, CWXPath ucOwner) { mixin(S_TRACE);
 		foreach (c; _cards) { mixin(S_TRACE);
-			c.setUseCounter(uc);
+			c.setUseCounter(uc, ucOwner);
 		}
 		_music.setUseCounter(uc);
-		playerEvents.setUseCounter(uc);
-		super.setUseCounter(uc);
+		playerEvents.setUseCounter(uc, ucOwner);
+		super.setUseCounter(uc, ucOwner);
 	}
 
 	override void removeUseCounter() { mixin(S_TRACE);

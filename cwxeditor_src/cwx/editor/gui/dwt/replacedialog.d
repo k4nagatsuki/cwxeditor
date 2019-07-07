@@ -3378,8 +3378,10 @@ public:
 			}
 		}
 		foreach (u; uc.sub.values(oldVal)) { mixin(S_TRACE);
-			UseCounter.replaceID(newVal, u);
-			undo.users ~= u;
+			if (!useRangeT || dec(u.ucOwner, rangeT)) { mixin(S_TRACE);
+				UseCounter.replaceID(newVal, u);
+				undo.users ~= u;
+			}
 		}
 		undoManager ~= undo;
 		// 変更の結果、他のキーと同一の名前になったら統合する

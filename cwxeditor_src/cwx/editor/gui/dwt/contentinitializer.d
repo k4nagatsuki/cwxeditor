@@ -492,7 +492,7 @@ EventDialog createEventDialog(Commons comm, Summary summ, UseCounter uc, Shell p
 		dlg = new BgImagesDialog(comm, comm.prop, parentShell, summ, uc, parent, evt, null, CType.ChangeBgImage);
 		break;
 	} case CType.Effect: { mixin(S_TRACE);
-		dlg = new EffectDialog(comm, comm.prop, parentShell, summ, uc, parent, evt);
+		dlg = new EffectDialog(comm, comm.prop, parentShell, summ, parent, uc, parent, evt);
 		break;
 	} case CType.EffectBreak: { mixin(S_TRACE);
 		dlg = new EffectBreakDialog(comm, comm.prop, parentShell, summ, parent, evt);

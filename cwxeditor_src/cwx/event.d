@@ -339,6 +339,7 @@ alias UCCont!(StartId, IStartUser) SUseCounter;
 /// 口調分け条件とメッセージ内容を持つクラス。
 static class SDialog : CWXPath, ITextHolder {
 private:
+	CWXPath _ucOwner = null;
 	CouponUser[] _rCoupons = [];
 	TextHolder _text;
 	Content _parent;
@@ -406,7 +407,7 @@ public:
 				c = new CouponUser(this);
 				c.coupon = rCoupons[i];
 				if (useCounter) { mixin(S_TRACE);
-					c.setUseCounter = useCounter;
+					c.setUseCounter(useCounter, _ucOwner);
 				}
 			}
 		}
@@ -427,11 +428,12 @@ public:
 	inout(UseCounter) useCounter() { return _text.useCounter; }
 	/// 使用回数カウンタを設定・除去する。
 	@property
-	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+	void setUseCounter(UseCounter uc, CWXPath ucOwner) { mixin(S_TRACE);
 		_text.setUseCounter(uc);
 		foreach (ref c; _rCoupons) { mixin(S_TRACE);
-			c.setUseCounter = useCounter;
+			c.setUseCounter(useCounter, ucOwner);
 		}
+		_ucOwner = .renameInfo(ucOwner);
 	}
 	/// ditto
 	void removeUseCounter() { mixin(S_TRACE);
@@ -439,6 +441,7 @@ public:
 		foreach (ref c; _rCoupons) { mixin(S_TRACE);
 			c.removeUseCounter();
 		}
+		_ucOwner = null;
 	}
 
 	override void changed() { }
@@ -1717,7 +1720,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		if (c.parent) c.parent.remove(c);
 		validText(prop, c);
 		c.parent = this;
-		if (_uc !is null) c.setUseCounter(useCounter);
+		if (_uc !is null) c.setUseCounter(useCounter, _ucOwner);
 		if (_suc !is null) c.setSUseCounter(startUseCounter);
 		c.changeHandler = changeHandler;
 		_next ~= c;
@@ -1731,7 +1734,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 			if (c.parent) c.parent.remove(c);
 			validText(prop, c);
 			c.parent = this;
-			if (_uc !is null) c.setUseCounter(useCounter);
+			if (_uc !is null) c.setUseCounter(useCounter, _ucOwner);
 			if (_suc !is null) c.setSUseCounter(startUseCounter);
 			c.changeHandler = changeHandler;
 			_next = _next[0 .. index] ~ c ~ _next[index .. $];
@@ -2348,12 +2351,20 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	}
 
 	private UseCounter _uc = null;
-	private void setUseCounterImpl(T)(ref T v, UseCounter uc) { mixin(S_TRACE);
+	private CWXPath _ucOwner = null;
+	private void setUseCounterImpl(T)(ref T v, UseCounter uc, CWXPath ucOwner) { mixin(S_TRACE);
 		static if (is(T : EventTree)) {
 			return;
 		} else {
 			static if (is(T : Content)) if (parent is v) return;
-			static if (is(typeof(v.setUseCounter(uc)))) {
+			static if (is(typeof(v.setUseCounter(uc, ucOwner)))) {
+				static if (is(typeof(v is null))) if (!v) return;
+				if (uc) { mixin(S_TRACE);
+					v.setUseCounter(uc, ucOwner);
+				} else { mixin(S_TRACE);
+					v.removeUseCounter();
+				}
+			} else static if (is(typeof(v.setUseCounter(uc)))) {
 				static if (is(typeof(v is null))) if (!v) return;
 				if (uc) { mixin(S_TRACE);
 					v.setUseCounter(uc);
@@ -2362,7 +2373,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 				}
 			} else static if (!isSomeString!(T) && is(typeof(v[0u]))) {
 				foreach (i, vc; v) { mixin(S_TRACE);
-					setUseCounterImpl(vc, uc);
+					setUseCounterImpl(vc, uc, ucOwner);
 					v[i] = vc;
 				}
 			}
@@ -2370,26 +2381,27 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	}
 	/// 使用回数カウンタを設定・除去する。
 	@property
-	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+	void setUseCounter(UseCounter uc, CWXPath ucOwner) { mixin(S_TRACE);
 		auto c = this;
 		while (true) { mixin(S_TRACE);
 			foreach (v; c.tupleof) { mixin(S_TRACE);
 				static if (is(typeof(v):typeof(c._name))) if (v is c._name) continue;
 				static if (!is(typeof(v):Content[])) { mixin(S_TRACE);
-					c.setUseCounterImpl(v, uc);
+					c.setUseCounterImpl(v, uc, ucOwner);
 				}
 			}
 			if (uc is null
 					|| (c.parent && c.parent.detail.nextType is CNextType.Text)
 					|| (c.parent && c.parent.detail.nextType is CNextType.Coupon && c.parent.expandSPChars)) { mixin(S_TRACE);
-				c.setUseCounterImpl(c._name, uc);
+				c.setUseCounterImpl(c._name, uc, ucOwner);
 			}
 			c._uc = uc;
+			c._ucOwner = .renameInfo(ucOwner);
 			if (c._next.length == 1) {
 				c = c._next[0];
 			} else {
 				foreach (n; c._next) {
-					n.setUseCounter(uc);
+					n.setUseCounter(uc, ucOwner);
 				}
 				break;
 			}
@@ -2397,8 +2409,9 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	}
 	/// ditto
 	void removeUseCounter() { mixin(S_TRACE);
-		setUseCounter(null);
+		setUseCounter(null, null);
 		_uc = null;
+		_ucOwner = null;
 	}
 	/// 使用回数カウンタを返す。存在しない場合はnullを返す。
 	@property
@@ -3366,6 +3379,7 @@ private:
 
 	Content[] _starts;
 	UseCounter _uc;
+	CWXPath _ucOwner;
 	SUseCounter _suc;
 	void delegate() _change = null;
 
@@ -3560,7 +3574,7 @@ public:
 		assert (evt.type is CType.Start);
 	} body { mixin(S_TRACE);
 		if (_uc !is null) { mixin(S_TRACE);
-			evt.setUseCounter(_uc);
+			evt.setUseCounter(_uc, _ucOwner);
 		}
 		if (evt._tree) evt._tree._startNames.remove(evt.name);
 		evt.setSUseCounter(_suc);
@@ -3575,7 +3589,7 @@ public:
 		assert (evt.type is CType.Start);
 	} body { mixin(S_TRACE);
 		if (_uc !is null) { mixin(S_TRACE);
-			evt.setUseCounter(_uc);
+			evt.setUseCounter(_uc, _ucOwner);
 		}
 		if (evt._tree) evt._tree._startNames.remove(evt.name);
 		evt.setSUseCounter(_suc);
@@ -3680,14 +3694,15 @@ public:
 	inout(UseCounter) useCounter() { return _uc; }
 	/// 使用回数カウンタを設定する。
 	@property
-	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+	void setUseCounter(UseCounter uc, CWXPath ucOwner) { mixin(S_TRACE);
 		foreach (s; starts) { mixin(S_TRACE);
-			s.setUseCounter(uc);
+			s.setUseCounter(uc, ucOwner);
 		}
 		foreach (kc; _keyCodes) { mixin(S_TRACE);
-			kc.user.setUseCounter(uc);
+			kc.user.setUseCounter(uc, ucOwner);
 		}
 		_uc = uc;
+		_ucOwner = .renameInfo(ucOwner);
 	}
 	/// 使用回数カウンタを外す。
 	void removeUseCounter() { mixin(S_TRACE);
@@ -3698,6 +3713,7 @@ public:
 			kc.user.removeUseCounter();
 		}
 		_uc = null;
+		_ucOwner = null;
 	}
 
 	/// スタートの使用回数カウンタ。
@@ -3865,7 +3881,7 @@ public:
 		if (!fireKeyCode(keyCode)) { mixin(S_TRACE);
 			changed();
 			auto user = new KeyCodeUser(this);
-			if (useCounter) user.setUseCounter = useCounter;
+			if (useCounter) user.setUseCounter(useCounter, _ucOwner);
 			user.keyCode = keyCode.keyCode;
 			if (insertIndex < 0 || _keyCodes.length <= insertIndex) { mixin(S_TRACE);
 				_keyCodes ~= FKeyCodeU(user, keyCode.kind);
@@ -3892,7 +3908,7 @@ public:
 		FKeyCodeU[] users;
 		foreach (keyCode; keyCodes2) {
 			auto user = new KeyCodeUser(this);
-			if (useCounter) user.setUseCounter = useCounter;
+			if (useCounter) user.setUseCounter(useCounter, _ucOwner);
 			user.keyCode = keyCode.keyCode;
 			users ~= FKeyCodeU(user, keyCode.kind);
 		}
@@ -3936,7 +3952,7 @@ public:
 				c = FKeyCodeU(new KeyCodeUser(this), keyCodes[i].kind);
 				c.user.keyCode = keyCodes[i].keyCode;
 				if (useCounter) { mixin(S_TRACE);
-					c.user.setUseCounter = useCounter;
+					c.user.setUseCounter(useCounter, _ucOwner);
 				}
 			}
 		}
@@ -4258,6 +4274,7 @@ public abstract class AbstractEventTreeOwner : EventTreeOwner {
 private:
 	EventTree[] _evts;
 	UseCounter _uc;
+	CWXPath _ucOwner;
 	void delegate() _change;
 public:
 	@property
@@ -4295,6 +4312,10 @@ public:
 	inout(UseCounter) useCounter() { mixin(S_TRACE);
 		return _uc;
 	}
+	/// 名称・称号の検索範囲を限定するための情報。
+	@property
+	inout
+	inout(CWXPath) ucOwner() { return _ucOwner; }
 	/// 変更ハンドラを登録する。
 	@property
 	void changeHandler(void delegate() change) { mixin(S_TRACE);
@@ -4345,7 +4366,7 @@ public:
 		if (!canHasFireKeyCode) evt.removeKeyCodesAll();
 
 		if (_uc !is null) { mixin(S_TRACE);
-			evt.setUseCounter(_uc);
+			evt.setUseCounter(_uc, _ucOwner);
 		}
 		evt.changeHandler = changeHandler;
 		evt._owner = con;
@@ -4422,11 +4443,12 @@ public:
 
 	/// 使用回数カウンタを登録・除去する。
 	@property
-	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+	void setUseCounter(UseCounter uc, CWXPath ucOwner) { mixin(S_TRACE);
 		foreach (tree; _evts) { mixin(S_TRACE);
-			tree.setUseCounter(uc);
+			tree.setUseCounter(uc, ucOwner);
 		}
 		_uc = uc;
+		_ucOwner = .renameInfo(ucOwner);
 	}
 	/// ditto
 	void removeUseCounter() { mixin(S_TRACE);
@@ -4434,6 +4456,7 @@ public:
 			tree.removeUseCounter();
 		}
 		_uc = null;
+		_ucOwner = null;
 	}
 
 	/// XMLノードからイベントツリーを読み出して返す。

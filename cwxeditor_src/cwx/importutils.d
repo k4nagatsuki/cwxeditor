@@ -105,7 +105,11 @@ ImportResult importResource(in CProps prop, Summary to, Summary from, in string[
 			if (!a) return null;
 			auto b = cast(T)a.dup;
 			assert (b !is null);
-			b.setUseCounter(uc);
+			static if (is(typeof(b.setUseCounter(uc)))) {
+				b.setUseCounter(uc);
+			} else {
+				b.setUseCounter(uc, null);
+			}
 			objs ~= b;
 			return b;
 		}
@@ -165,7 +169,11 @@ ImportResult importResource(in CProps prop, Summary to, Summary from, in string[
 					static if (is(U:AbstractArea)) {
 						a.name = sName ~ "\\" ~ a.name;
 					}
-					a.setUseCounter(uc);
+					static if (is(typeof(a.setUseCounter(uc)))) {
+						a.setUseCounter(uc);
+					} else {
+						a.setUseCounter(uc, null);
+					}
 					table[id] = a;
 					r = true;
 				}

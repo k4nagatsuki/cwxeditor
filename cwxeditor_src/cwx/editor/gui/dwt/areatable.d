@@ -584,7 +584,7 @@ private:
 			_delIndex = toIndexFrom(summ, uid(_id, _type), _type);
 			_isStartArea = cast(Area)area && summ.startArea == area.id;
 			_area = area.dup;
-			_area.setUseCounter(summ.useCounter.sub);
+			_area.setUseCounter(summ.useCounter.sub, area);
 		}
 		private void undoInsert() { mixin(S_TRACE);
 			auto v = view();
@@ -2944,7 +2944,7 @@ public:
 		if (fromSPath.length > 0 && !cfnmatch(fromSPath, .nabs(_summ.scenarioPath))) { mixin(S_TRACE);
 			auto uc = new UseCounter(null);
 			foreach (a; as) { mixin(S_TRACE);
-				a.setUseCounter(uc);
+				a.setUseCounter(uc, null);
 			}
 			bool copy;
 			bool r = qMaterialCopy(_comm, _areas.getShell(), uc, _summ.scenarioPath, fromSPath, copy, _summ.legacy,

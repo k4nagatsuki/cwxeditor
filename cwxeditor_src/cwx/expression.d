@@ -32,8 +32,9 @@ private:
 	VariantUser[] _variants;
 	CouponUser[] _coupons;
 	GossipUser[] _gossips;
-	UseCounter _uc;
-	void delegate() _changed;
+	UseCounter _uc = null;
+	CWXPath _ucOwner = null;
+	void delegate() _changed = null;
 	const(Part)[] _expr;
 
 public:
@@ -84,7 +85,7 @@ public:
 					auto id = a.strVal;
 					if (id == "") continue;
 					auto u = new CouponUser(this, true);
-					if (_uc) u.setUseCounter(_uc);
+					if (_uc) u.setUseCounter(_uc, _ucOwner);
 					u.coupon = id;
 					_coupons ~= u;
 					continue;
@@ -117,7 +118,7 @@ public:
 					break;
 				case "findgossip":
 					auto u = new GossipUser(this, true);
-					if (_uc) u.setUseCounter(_uc);
+					if (_uc) u.setUseCounter(_uc, _ucOwner);
 					u.gossip = id;
 					_gossips ~= u;
 					break;
@@ -134,7 +135,7 @@ public:
 		assert (std.algorithm.sort(exp.stepsInText).array() == ["TESTSTEP", "TestStep", "teststep"]);
 		assert (std.algorithm.sort(exp.variantsInText).array() == ["testvar", "testvar"]);
 		auto uc = new UseCounter(null);
-		exp.setUseCounter(uc);
+		exp.setUseCounter(uc, null);
 		uc.change(toFlagId("testflag"), toFlagId("_replflag_"));
 		uc.change(toStepId("TestStep"), toStepId("RplStp"));
 		uc.change(toVariantId("testvar"), toVariantId("_replvar_"));
@@ -216,13 +217,14 @@ public:
 	inout(UseCounter) useCounter() { return _uc; }
 	/// 使用回数カウンタを設定する。
 	@property
-	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+	void setUseCounter(UseCounter uc, CWXPath ucOwner) { mixin(S_TRACE);
 		.each!(u => u.setUseCounter(uc))(_flags);
 		.each!(u => u.setUseCounter(uc))(_steps);
 		.each!(u => u.setUseCounter(uc))(_variants);
-		.each!(u => u.setUseCounter(uc))(_coupons);
-		.each!(u => u.setUseCounter(uc))(_gossips);
+		.each!(u => u.setUseCounter(uc, ucOwner))(_coupons);
+		.each!(u => u.setUseCounter(uc, ucOwner))(_gossips);
 		_uc = uc;
+		_ucOwner = ucOwner;
 	}
 	private void removeTextUseCounter() { mixin(S_TRACE);
 		.each!(u => u.removeUseCounter())(_flags);
@@ -235,6 +237,7 @@ public:
 	void removeUseCounter() { mixin(S_TRACE);
 		removeTextUseCounter();
 		_uc = null;
+		_ucOwner = null;
 	}
 
 	/// 個別に状態変数パスを変更する。

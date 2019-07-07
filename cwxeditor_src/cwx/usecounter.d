@@ -1514,6 +1514,7 @@ CouponId toCouponId(string id) { return CouponId(id); }
 class CouponUser : User!CouponId {
 private:
 	UseCounter _uc;
+	CWXPath _ucOwner;
 	SimpleTextHolder _coupon;
 	bool _expandSPChars = false;
 	CWXPath _cwxPath;
@@ -1601,7 +1602,7 @@ public:
 	inout(UseCounter) useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
-	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+	void setUseCounter(UseCounter uc, CWXPath ucOwner) { mixin(S_TRACE);
 		if (uc is _uc) return;
 		if (_uc && _coupon.text != "") { mixin(S_TRACE);
 			_uc.remove(toCouponId(_coupon.text), this);
@@ -1611,6 +1612,7 @@ public:
 		}
 		if (expandSPChars) _coupon.setUseCounter(uc);
 		_uc = uc;
+		_ucOwner = .renameInfo(ucOwner);
 	}
 	/// ditto
 	void removeUseCounter() { mixin(S_TRACE);
@@ -1619,7 +1621,13 @@ public:
 		}
 		_coupon.removeUseCounter();
 		_uc = null;
+		_ucOwner = null;
 	}
+	/// この使用者の所属先。必ずエリア・バトル・パッケージまたは
+	/// 効果内の召喚獣カードを除く効果系カードになる。
+	inout
+	inout(CWXPath) ucOwner() { return _ucOwner; }
+
 	override bool change(CouponId newVal) { mixin(S_TRACE);
 		if (_coupon.text == newVal.id) return true;
 		changed();
@@ -1648,6 +1656,7 @@ GossipId toGossipId(string id) { return GossipId(id); }
 class GossipUser : User!GossipId {
 private:
 	UseCounter _uc;
+	CWXPath _ucOwner;
 	SimpleTextHolder _gossip;
 	bool _expandSPChars = false;
 	CWXPath _cwxPath;
@@ -1729,7 +1738,7 @@ public:
 	inout(UseCounter) useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
-	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+	void setUseCounter(UseCounter uc, CWXPath ucOwner) { mixin(S_TRACE);
 		if (uc is _uc) return;
 		if (_uc && _gossip.text != "") { mixin(S_TRACE);
 			_uc.remove(toGossipId(_gossip.text), this);
@@ -1739,6 +1748,7 @@ public:
 		}
 		if (expandSPChars) _gossip.setUseCounter(uc);
 		_uc = uc;
+		_ucOwner = .renameInfo(ucOwner);
 	}
 	/// ditto
 	void removeUseCounter() { mixin(S_TRACE);
@@ -1747,7 +1757,13 @@ public:
 		}
 		_gossip.removeUseCounter();
 		_uc = null;
+		_ucOwner = null;
 	}
+	/// この使用者の所属先。必ずエリア・バトル・パッケージまたは
+	/// 効果内の召喚獣カードを除く効果系カードになる。
+	inout
+	inout(CWXPath) ucOwner() { return _ucOwner; }
+
 	override bool change(GossipId newVal) { mixin(S_TRACE);
 		if (_gossip.text == newVal.id) return true;
 		changed();
@@ -1776,6 +1792,7 @@ CompleteStampId toCompleteStampId(string id) { return CompleteStampId(id); }
 class CompleteStampUser : User!CompleteStampId {
 private:
 	UseCounter _uc;
+	CWXPath _ucOwner;
 	string _completeStamp;
 	CWXPath _cwxPath;
 public:
@@ -1814,7 +1831,7 @@ public:
 	inout(UseCounter) useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
-	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+	void setUseCounter(UseCounter uc, CWXPath ucOwner) { mixin(S_TRACE);
 		if (_uc is uc) return;
 		if (_uc && _completeStamp != "") { mixin(S_TRACE);
 			_uc.remove(toCompleteStampId(_completeStamp), this);
@@ -1823,6 +1840,7 @@ public:
 			uc.add(toCompleteStampId(_completeStamp), this);
 		}
 		_uc = uc;
+		_ucOwner = .renameInfo(ucOwner);
 	}
 	/// ditto
 	void removeUseCounter() { mixin(S_TRACE);
@@ -1830,7 +1848,13 @@ public:
 			_uc.remove(toCompleteStampId(_completeStamp), this);
 		}
 		_uc = null;
+		_ucOwner = null;
 	}
+	/// この使用者の所属先。必ずエリア・バトル・パッケージまたは
+	/// 効果内の召喚獣カードを除く効果系カードになる。
+	inout
+	inout(CWXPath) ucOwner() { return _ucOwner; }
+
 	override bool change(CompleteStampId newVal) { mixin(S_TRACE);
 		if (_completeStamp != newVal.id) changed();
 		_completeStamp = newVal.id;
@@ -1853,6 +1877,7 @@ KeyCodeId toKeyCodeId(string id) { return KeyCodeId(id); }
 class KeyCodeUser : User!KeyCodeId {
 private:
 	UseCounter _uc;
+	CWXPath _ucOwner;
 	string _keyCode;
 	CWXPath _cwxPath;
 public:
@@ -1891,7 +1916,7 @@ public:
 	inout(UseCounter) useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
-	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+	void setUseCounter(UseCounter uc, CWXPath ucOwner) { mixin(S_TRACE);
 		if (_uc is uc) return;
 		if (_uc && _keyCode != "") { mixin(S_TRACE);
 			_uc.remove(toKeyCodeId(_keyCode), this);
@@ -1900,6 +1925,7 @@ public:
 			uc.add(toKeyCodeId(_keyCode), this);
 		}
 		_uc = uc;
+		_ucOwner = .renameInfo(ucOwner);
 	}
 	/// ditto
 	void removeUseCounter() { mixin(S_TRACE);
@@ -1907,7 +1933,13 @@ public:
 			_uc.remove(toKeyCodeId(_keyCode), this);
 		}
 		_uc = null;
+		_ucOwner = null;
 	}
+	/// この使用者の所属先。必ずエリア・バトル・パッケージまたは
+	/// 効果内の召喚獣カードを除く効果系カードになる。
+	inout
+	inout(CWXPath) ucOwner() { return _ucOwner; }
+
 	override bool change(KeyCodeId newVal) { mixin(S_TRACE);
 		if (_keyCode != newVal.id) changed();
 		_keyCode = newVal.id;
@@ -1930,6 +1962,7 @@ CellNameId toCellNameId(string id) { return CellNameId(id); }
 class CellNameUser : User!CellNameId {
 private:
 	UseCounter _uc;
+	CWXPath _ucOwner;
 	string _cellName;
 	CWXPath _cwxPath;
 public:
@@ -1968,7 +2001,7 @@ public:
 	inout(UseCounter) useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
-	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+	void setUseCounter(UseCounter uc, CWXPath ucOwner) { mixin(S_TRACE);
 		if (_uc is uc) return;
 		if (_uc && _cellName != "") { mixin(S_TRACE);
 			_uc.remove(toCellNameId(_cellName), this);
@@ -1977,6 +2010,7 @@ public:
 			uc.add(toCellNameId(_cellName), this);
 		}
 		_uc = uc;
+		_ucOwner = .renameInfo(ucOwner);
 	}
 	/// ditto
 	void removeUseCounter() { mixin(S_TRACE);
@@ -1984,7 +2018,13 @@ public:
 			_uc.remove(toCellNameId(_cellName), this);
 		}
 		_uc = null;
+		_ucOwner = null;
 	}
+	/// この使用者の所属先。必ずエリア・バトル・パッケージまたは
+	/// 効果内の召喚獣カードを除く効果系カードになる。
+	inout
+	inout(CWXPath) ucOwner() { return _ucOwner; }
+
 	override bool change(CellNameId newVal) { mixin(S_TRACE);
 		if (_cellName != newVal.id) changed();
 		_cellName = newVal.id;
@@ -2007,6 +2047,7 @@ CardGroupId toCardGroupId(string id) { return CardGroupId(id); }
 class CardGroupUser : User!CardGroupId {
 private:
 	UseCounter _uc;
+	CWXPath _ucOwner;
 	string _cardGroup;
 	CWXPath _cwxPath;
 public:
@@ -2045,7 +2086,7 @@ public:
 	inout(UseCounter) useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
-	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+	void setUseCounter(UseCounter uc, CWXPath ucOwner) { mixin(S_TRACE);
 		if (_uc is uc) return;
 		if (_uc && _cardGroup != "") { mixin(S_TRACE);
 			_uc.remove(toCardGroupId(_cardGroup), this);
@@ -2054,6 +2095,7 @@ public:
 			uc.add(toCardGroupId(_cardGroup), this);
 		}
 		_uc = uc;
+		_ucOwner = .renameInfo(ucOwner);
 	}
 	/// ditto
 	void removeUseCounter() { mixin(S_TRACE);
@@ -2061,7 +2103,13 @@ public:
 			_uc.remove(toCardGroupId(_cardGroup), this);
 		}
 		_uc = null;
+		_ucOwner = null;
 	}
+	/// この使用者の所属先。必ずエリア・バトル・パッケージまたは
+	/// 効果内の召喚獣カードを除く効果系カードになる。
+	inout
+	inout(CWXPath) ucOwner() { return _ucOwner; }
+
 	override bool change(CardGroupId newVal) { mixin(S_TRACE);
 		if (_cardGroup != newVal.id) changed();
 		_cardGroup = newVal.id;
@@ -2590,4 +2638,17 @@ public:
 	private void add(ID, User)(ID id, User user) if (is(User:IDToUser!ID)) { (ucc!ID).add(id, user); }
 	/// IDの所有者を追跡から除外する。
 	private void remove(ID, User)(ID id, User user) if (is(User:IDToUser!ID)) { (ucc!ID).remove(id, user); }
+}
+
+/// 称号・名称置換の範囲限定用の情報(リソースの所属情報)を返す。
+CWXPath renameInfo(CWXPath path) { mixin(S_TRACE);
+	import cwx.area;
+	import cwx.card;
+	import cwx.motion;
+	import cwx.summary;
+	if (!path) return path;
+	while (path.cwxParent && !cast(Summary)path && !cast(CastCard)path && !cast(AbstractArea)path && !(cast(EffectCard)path && !cast(Motion)(cast(EffectCard)path).cwxParent)) { mixin(S_TRACE);
+		path = path.cwxParent;
+	}
+	return path;
 }

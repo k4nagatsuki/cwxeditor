@@ -439,7 +439,7 @@ private:
 			_starts = new Content[tree.starts.length];
 			foreach (i, s; tree.starts) { mixin(S_TRACE);
 				_starts[i] = s.dup;
-				_starts[i].setUseCounter(s.useCounter.sub);
+				_starts[i].setUseCounter(s.useCounter.sub, s);
 			}
 		}
 		private TreeItem getItem(EventView v) { mixin(S_TRACE);
@@ -546,7 +546,7 @@ private:
 			_ownerIndex = cast(int).cCountUntil!("a is b")(etos(area), owner);
 			_treeIndex = cast(int).cCountUntil!("a is b")(owner.trees, tree);
 			_tree = tree.dup;
-			_tree.setUseCounter(tree.useCounter.sub);
+			_tree.setUseCounter(tree.useCounter.sub, tree);
 		}
 		override void undo() { mixin(S_TRACE);
 			auto vs = views();

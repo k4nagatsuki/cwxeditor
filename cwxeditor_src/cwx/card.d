@@ -392,6 +392,7 @@ private:
 	bool _changed = false;
 	CardImage[] _paths;
 	UseCounter _useCounter = null;
+	CWXPath _ucOwner = null;
 public:
 	/// 唯一のコンストラクタ。
 	/// Params:
@@ -483,8 +484,9 @@ public:
 	}
 	/// 使用回数カウンタを登録する。
 	@property
-	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+	void setUseCounter(UseCounter uc, CWXPath ucOwner) { mixin(S_TRACE);
 		_useCounter = uc;
+		_ucOwner = .renameInfo(ucOwner);
 		foreach (path; _paths) { mixin(S_TRACE);
 			path.setUseCounter(uc);
 		}
@@ -828,20 +830,20 @@ public:
 	/// 使用回数カウンタ。
 	@property
 	override
-	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+	void setUseCounter(UseCounter uc, CWXPath ucOwner) { mixin(S_TRACE);
 		foreach (c; _items) { mixin(S_TRACE);
-			c.setUseCounter = uc;
+			c.setUseCounter(uc, ucOwner);
 		}
 		foreach (c; _skills) { mixin(S_TRACE);
-			c.setUseCounter = uc;
+			c.setUseCounter(uc, ucOwner);
 		}
 		foreach (c; _beasts) { mixin(S_TRACE);
-			c.setUseCounter = uc;
+			c.setUseCounter(uc, ucOwner);
 		}
 		foreach (c; _coupons) { mixin(S_TRACE);
-			c.setUseCounter = uc;
+			c.setUseCounter(uc, ucOwner);
 		}
-		super.setUseCounter = uc;
+		super.setUseCounter(uc, ucOwner);
 	}
 	/// ditto
 	override
@@ -915,7 +917,7 @@ public:
 		foreach (c; coupons) { mixin(S_TRACE);
 			c.owner = this;
 			if (useCounter) { mixin(S_TRACE);
-				c.setUseCounter = useCounter;
+				c.setUseCounter(useCounter, _ucOwner);
 			}
 		}
 		_coupons = coupons;
@@ -931,7 +933,7 @@ public:
 			c.id = arr[$ - 1].id + 1L;
 		}
 		if (useCounter) { mixin(S_TRACE);
-			c.setUseCounter = useCounter;
+			c.setUseCounter(useCounter, _ucOwner);
 		}
 		c.changeHandler = changeHandler;
 		c.owner = this;
@@ -989,7 +991,7 @@ public:
 					arr[i].id = arr[i].id + 1L;
 				}
 			}
-			c.setUseCounter = useCounter;
+			c.setUseCounter(useCounter, _ucOwner);
 			c.changeHandler = changeHandler;
 			c.owner = this;
 			changed();
@@ -1875,19 +1877,19 @@ public:
 	inout
 	inout(UseCounter) useCounter() { return super.useCounter; }
 	@property
-	override void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+	override void setUseCounter(UseCounter uc, CWXPath ucOwner) { mixin(S_TRACE);
 		auto uc2 = new UseCounter(this, uc);
 		foreach (f; flagDirRoot.allFlags) uc2.createID(toFlagId(f.path));
 		foreach (f; flagDirRoot.allSteps) uc2.createID(toStepId(f.path));
 		foreach (f; flagDirRoot.allVariants) uc2.createID(toVariantId(f.path));
 		setUseCounterImpl(uc2);
-		_ceto.setUseCounter = uc2;
-		_muser.setUseCounter = uc2;
-		_se1.setUseCounter = uc2;
-		_se2.setUseCounter = uc2;
-		_keyCodes.setUseCounter = uc2;
-		flagDirRoot.useCounter = uc2;
-		super.setUseCounter = uc2;
+		_ceto.setUseCounter(uc2, ucOwner);
+		_muser.setUseCounter(uc2, ucOwner);
+		_se1.setUseCounter(uc2);
+		_se2.setUseCounter(uc2);
+		_keyCodes.setUseCounter(uc2, ucOwner);
+		flagDirRoot.useCounter(uc2);
+		super.setUseCounter(uc2, ucOwner);
 	}
 	@property
 	override void removeUseCounter() { mixin(S_TRACE);
@@ -3111,6 +3113,7 @@ private:
 	KeyCodeUser[] _keyCodes;
 	void delegate() _change = null;
 	UseCounter _uc = null;
+	CWXPath _ucOwner = null;
 	CWXPath _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
@@ -3134,11 +3137,12 @@ public:
 	inout(UseCounter) useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
-	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+	void setUseCounter(UseCounter uc, CWXPath ucOwner) { mixin(S_TRACE);
 		foreach (u; _keyCodes) { mixin(S_TRACE);
-			u.setUseCounter(uc);
+			u.setUseCounter(uc, ucOwner);
 		}
 		_uc = uc;
+		_ucOwner = .renameInfo(ucOwner);
 	}
 	/// ditto
 	void removeUseCounter() { mixin(S_TRACE);
@@ -3146,6 +3150,7 @@ public:
 			u.removeUseCounter();
 		}
 		_uc = null;
+		_ucOwner = null;
 	}
 	/// キーコード群。
 	@property
@@ -3159,7 +3164,7 @@ public:
 			foreach (keyCode; keyCodes) { mixin(S_TRACE);
 				auto u = new KeyCodeUser(_cwxPath);
 				u.keyCode = keyCode;
-				if (_uc) u.setUseCounter(_uc);
+				if (_uc) u.setUseCounter(_uc, _ucOwner);
 				_keyCodes ~= u;
 			}
 		}

@@ -64,8 +64,8 @@ public:
 	}
 	/// 使用回数カウンタを登録する。
 	@property
-	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
-		_coupon.setUseCounter(uc);
+	void setUseCounter(UseCounter uc, CWXPath ucOwner) { mixin(S_TRACE);
+		_coupon.setUseCounter(uc, ucOwner);
 	}
 	/// 使用回数カウンタを取り除く。
 	void removeUseCounter() { mixin(S_TRACE);
@@ -145,6 +145,7 @@ private:
 	bool _expandSPChars = false;
 	void delegate() _change = null;
 	UseCounter _uc = null;
+	CWXPath _ucOwner = null;
 	CWXPath _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
@@ -168,11 +169,12 @@ public:
 	inout(UseCounter) useCounter() { return _uc; }
 	/// 使用回数カウンタを登録・除去する。
 	@property
-	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+	void setUseCounter(UseCounter uc, CWXPath ucOwner) { mixin(S_TRACE);
 		foreach (u; _coupons) { mixin(S_TRACE);
-			u.setUseCounter(uc);
+			u.setUseCounter(uc, ucOwner);
 		}
 		_uc = uc;
+		_ucOwner = .renameInfo(ucOwner);
 	}
 	/// ditto
 	void removeUseCounter() { mixin(S_TRACE);
@@ -180,6 +182,7 @@ public:
 			u.removeUseCounter();
 		}
 		_uc = null;
+		_ucOwner = null;
 	}
 	/// クーポン群。
 	@property
@@ -195,7 +198,7 @@ public:
 				auto u = new CouponUser(_cwxPath);
 				u.expandSPChars = expandSPChars;
 				u.coupon = coupon;
-				if (_uc) u.setUseCounter(_uc);
+				if (_uc) u.setUseCounter(_uc, _ucOwner);
 				_coupons ~= u;
 			}
 		}

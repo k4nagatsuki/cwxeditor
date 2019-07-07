@@ -2025,6 +2025,7 @@ template MoneyEventDialog(CType Type) {
 class EffectDialog : EventDialog {
 private:
 	MotionView _mview;
+	CWXPath _ucOwner;
 	UseCounter _useCounter;
 	Spinner _lev;
 	Button _initialEffect;
@@ -2101,8 +2102,9 @@ private:
 	}
 
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, Content parent, Content evt) { mixin(S_TRACE);
+	this (Commons comm, Props prop, Shell shell, Summary summ, CWXPath ucOwner, UseCounter uc, Content parent, Content evt) { mixin(S_TRACE);
 		super (comm, prop, shell, summ, CType.Effect, parent, evt, true, prop.var.effEvtDlg, true);
+		_ucOwner = .renameInfo(ucOwner);
 		_useCounter = uc;
 	}
 
@@ -2120,7 +2122,7 @@ protected:
 		auto tabM = new CTabItem(tabf, SWT.NONE);
 		tabM.setText(_prop.msgs.motion);
 		{ mixin(S_TRACE);
-			_mview = new MotionView(_comm, _prop, _summ, _useCounter, tabf, SWT.NONE);
+			_mview = new MotionView(_comm, _prop, _summ, _ucOwner, _useCounter, tabf, SWT.NONE);
 			mod(_mview);
 			_mview.warningEvent ~= &refreshWarning;
 			tabM.setControl(_mview);

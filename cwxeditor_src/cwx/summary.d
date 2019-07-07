@@ -1455,7 +1455,7 @@ public:
 				c = new CouponUser(this);
 				c.coupon = rCoupons[i];
 				if (useCounter) { mixin(S_TRACE);
-					c.setUseCounter = useCounter;
+					c.setUseCounter(useCounter, null);
 				}
 			}
 		}
@@ -1746,7 +1746,7 @@ public:
 			static if (is(typeof(c.linkId))) {
 				c.linkId = 0;
 			}
-			c.setUseCounter = _uc;
+			c.setUseCounter(_uc, null);
 			c.changeHandler = &changeHandler;
 			c.owner = this;
 			c.changed();
@@ -1814,7 +1814,7 @@ public:
 			area.linkId = 0;
 		}
 		arr ~= area;
-		area.setUseCounter = _uc;
+		area.setUseCounter(_uc, null);
 		area.changeHandler = &changeHandler;
 		area.owner = this;
 		area.changed();
@@ -2237,7 +2237,7 @@ public:
 		auto doc = XNode.parse(xml);
 		if (doc.name == name) { mixin(S_TRACE);
 			auto area = A.createFromNode(doc, ver);
-			if (uc) area.setUseCounter = uc;
+			if (uc) area.setUseCounter(uc, null);
 			if (change) area.changeHandler = change;
 			area.owner = this;
 			areas ~= area;

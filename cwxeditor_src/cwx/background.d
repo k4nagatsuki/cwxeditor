@@ -127,9 +127,9 @@ public:
 	}
 
 	@property
-	override void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+	override void setUseCounter(UseCounter uc, CWXPath ucOwner) { mixin(S_TRACE);
 		_user.setUseCounter(uc);
-		super.setUseCounter(uc);
+		super.setUseCounter(uc, ucOwner);
 	}
 	override void removeUseCounter() { mixin(S_TRACE);
 		_user.removeUseCounter();
@@ -437,9 +437,9 @@ public:
 	}
 
 	@property
-	override void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+	override void setUseCounter(UseCounter uc, CWXPath ucOwner) { mixin(S_TRACE);
 		_text.setUseCounter(uc.global);
-		super.setUseCounter(uc);
+		super.setUseCounter(uc, ucOwner);
 	}
 	override void removeUseCounter() { mixin(S_TRACE);
 		_text.removeUseCounter();
@@ -887,11 +887,12 @@ public:
 	}
 }
 
-public abstract class BgImage : FlagUser, CWXPath {
+public abstract class BgImage : CWXPath {
 private:
 	bool _mask = false;
 	int _x, _y;
 	int _w, _h;
+	FlagUser _flag;
 	CellNameUser _cellName;
 	int _layer = LAYER_BACK_CELL;
 	void delegate() _change;
@@ -900,13 +901,13 @@ public:
 	static immutable XML_NAME_M = "BgImages";
 
 	protected this (string flag, int x, int y, int w, int h, bool mask) { mixin(S_TRACE);
-		super (this);
-		super.flag = flag;
 		_x = x;
 		_y = y;
 		_w = w;
 		_h = h;
 		_mask = mask;
+		_flag = new FlagUser(this);
+		_flag.flag = flag;
 		_cellName = new CellNameUser(this);
 	}
 
@@ -969,24 +970,30 @@ public:
 		if (_change) _change();
 	}
 
+	/// 使用回数カウンタ。
+	inout
+	inout(UseCounter) useCounter() { return _flag.useCounter; }
+	/// ditto
 	@property
-	override void setUseCounter(UseCounter uc) { mixin(S_TRACE);
-		super.setUseCounter(uc.global);
-		_cellName.setUseCounter(uc);
+	void setUseCounter(UseCounter uc, CWXPath ucOwner) { mixin(S_TRACE);
+		_flag.setUseCounter(uc.global);
+		_cellName.setUseCounter(uc, ucOwner);
 	}
 	/// ditto
-	override void removeUseCounter() { mixin(S_TRACE);
-		super.removeUseCounter();
+	void removeUseCounter() { mixin(S_TRACE);
+		_flag.removeUseCounter();
 		_cellName.removeUseCounter();
 	}
 
+	/// フラグ。
 	@property
-	override
+	const
+	string flag() { return _flag.flag; }
+	@property
 	void flag(string flag) { mixin(S_TRACE);
 		if (this.flag != flag) changed();
-		super.flag = flag;
+		_flag.flag = flag;
 	}
-	alias typeof(super).flag flag;
 
 	/// 透明色を使用するか。
 	@property
@@ -1084,10 +1091,6 @@ public:
 		return "";
 	}
 
-	override bool change(FlagId id) { mixin(S_TRACE);
-		return super.change(id);
-	}
-
 	static BgImage[] bgImagesFromNode(ref XNode node, bool canInherit, in XMLInfo ver) { mixin(S_TRACE);
 		assert (node.name == XML_NAME_M);
 		BgImage[] bgImgs;
@@ -1146,7 +1149,7 @@ public:
 	protected void toNodeCommon(ref XNode e, bool useMask) {
 		if (useMask) e.newAttr("mask", fromBool(_mask));
 		if (cellName != "") e.newAttr("cellname", cellName);
-		e.newElement("Flag", super.flag);
+		e.newElement("Flag", flag);
 		auto ln = e.newElement("Location");
 		ln.newAttr("left", _x);
 		ln.newAttr("top", _y);
