@@ -14,7 +14,7 @@ immutable APP_WEB_SITE_URI =  splitLines(import("@version.txt"))[2];
 /// 最新のWSNデータバージョン。
 immutable LATEST_VERSION = "4";
 /// 標準で選択されるデータバージョン。
-immutable DEFAULT_VERSION = "3";
+immutable DEFAULT_VERSION = "4";
 /// 対応するWSNデータバージョン。
 immutable VERSIONS = [
 	"4",
@@ -42,7 +42,7 @@ immutable ENGINES = [
 
 /// 対応するCardWirthのバージョン。
 immutable CLASSIC_VERSIONS = [
-//	"1.60",
+	"1.60",
 	"1.50",
 	"1.30",
 	"1.29",
@@ -50,7 +50,7 @@ immutable CLASSIC_VERSIONS = [
 ];
 /// CardWirthのバージョンに対応するエンジン名。
 immutable CLASSIC_ENGINES = [
-//	"CardWirthNext 1.60",
+	"CardWirthNext 1.60",
 	"CardWirth 1.50",
 	"CardWirth 1.30",
 	"CardWirth 1.29",

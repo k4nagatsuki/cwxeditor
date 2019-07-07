@@ -406,6 +406,12 @@ private class RangePanel : Composite {
 
 /// 背景切替方式と背景切替速度。
 class TransitionPanel : Composite {
+	void delegate()[] modEvent;
+	private void raiseModEvent() { mixin(S_TRACE);
+		foreach (dlg; modEvent) dlg();
+	}
+
+	private Commons _comm;
 	private Combo _ts;
 	private Spinner _tsSpeed;
 	private Transition[int] _tsTbl;
@@ -413,6 +419,7 @@ class TransitionPanel : Composite {
 
 	this (Commons comm, Summary summ, Composite parent, bool horizontal, in Content evt, AbsDialog modDlg) { mixin(S_TRACE);
 		super (parent, SWT.NONE);
+		_comm = comm;
 		auto prop = comm.prop;
 		_summ = summ;
 		if (horizontal) { mixin(S_TRACE);
@@ -431,6 +438,7 @@ class TransitionPanel : Composite {
 		}
 		_ts.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
 		.listener(_ts, SWT.Selection, &refreshTS);
+		.listener(_ts, SWT.Selection, &raiseModEvent);
 		foreach (i, t; ALL_TRANSITION) { mixin(S_TRACE);
 			auto s = prop.msgs.transitionName(t);
 			if (t is Transition.Default) s = prop.msgs.defaultSelection(s);
@@ -443,6 +451,7 @@ class TransitionPanel : Composite {
 		_tsSpeed = new Spinner(this, SWT.BORDER);
 		initSpinner(_tsSpeed);
 		modDlg.mod(_tsSpeed);
+		.listener(_tsSpeed, SWT.Selection, &raiseModEvent);
 		_tsSpeed.setMaximum(Content.transitionSpeed_max);
 		_tsSpeed.setMinimum(Content.transitionSpeed_min);
 		auto hint = new Label(this, SWT.NONE);
@@ -464,8 +473,8 @@ class TransitionPanel : Composite {
 	}
 
 	private void refreshTS() { mixin(S_TRACE);
-		_ts.setEnabled(!_summ || !_summ.legacy);
-		_tsSpeed.setEnabled((!_summ || !_summ.legacy) && transition !is Transition.Default && transition !is Transition.None);
+		_ts.setEnabled(!_summ || !_summ.legacy || _tsTbl[_ts.getSelectionIndex()] !is Transition.Default);
+		_tsSpeed.setEnabled(transition !is Transition.Default && transition !is Transition.None);
 	}
 
 	@property
@@ -475,6 +484,15 @@ class TransitionPanel : Composite {
 	@property
 	int transitionSpeed() { mixin(S_TRACE);
 		return _tsSpeed.getSelection();
+	}
+
+	@property
+	string[] warnings() { mixin(S_TRACE);
+		string[] ws;
+		if (_tsTbl[_ts.getSelectionIndex()] !is Transition.Default && !_comm.prop.isTargetVersion(_summ, "")) { mixin(S_TRACE);
+			ws ~= _comm.prop.msgs.warningTransitionType;
+		}
+		return ws;
 	}
 }
 
@@ -504,6 +522,9 @@ private:
 					// Wsn.1以前は戦闘行動開始タイミング指定不可かつStartAction.Nowがデフォルト
 					r ~= .tryFormat(prop.msgs.warningStartAction);
 				}
+			}
+			static if (Type == CType.ChangeArea) {
+				ws ~= _transition.warnings;
 			}
 			warning = r;
 		}
@@ -577,6 +598,7 @@ protected:
 				comp.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 				comp.setLayout(normalGridLayout(1, false));
 				_transition = new TransitionPanel(comm, summ, comp, false, _evt, this);
+				_transition.modEvent ~= &refreshWarning;
 			}
 		}
 		static if (Type == CType.GetCast) {
@@ -1576,6 +1598,7 @@ private:
 				ws ~= .tryFormat(_prop.msgs.warningUnknownContentWsn, _prop.msgs.contentName(type), "1");
 			}
 		}
+		ws ~= _transition.warnings;
 		warning = ws;
 	}
 
@@ -1628,6 +1651,7 @@ protected:
 				_transition = new TransitionPanel(comm, summ, area, true, _evt, this);
 				_transition.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 			}
+			_transition.modEvent ~= &refreshWarning;
 		}
 		if (CDetail.fromType(type).use(CArg.DoAnime)) { mixin(S_TRACE);
 			auto comp = new Composite(area, SWT.NONE);
@@ -1691,6 +1715,7 @@ private:
 		if (!_prop.isTargetVersion(summ, "1")) { mixin(S_TRACE);
 			ws ~= .tryFormat(_prop.msgs.warningUnknownContentWsn, _prop.msgs.contentName(CType.LoseBgImage), "1");
 		}
+		ws ~= _transition.warnings;
 		warning = ws;
 	}
 
@@ -1720,6 +1745,7 @@ protected:
 			.listener(_name, SWT.Modify, &refreshWarning);
 		}
 		_transition = new TransitionPanel(comm, summ, area, true, _evt, this);
+		_transition.modEvent ~= &refreshWarning;
 		_transition.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 
 		{ mixin(S_TRACE);
@@ -3789,6 +3815,13 @@ class RefreshDialog : EventDialog {
 private:
 	TransitionPanel _transition;
 
+	override
+	protected void refreshWarning() { mixin(S_TRACE);
+		string[] ws;
+		ws ~= _transition.warnings;
+		warning = ws;
+	}
+
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
 		super (comm, prop, shell, summ, CType.Redisplay, parent, evt, false, null, true);
@@ -3803,6 +3836,7 @@ protected:
 			grp.setLayout(new CenterLayout);
 
 			_transition = new TransitionPanel(comm, summ, grp, false, _evt, this);
+			_transition.modEvent ~= &refreshWarning;
 		}
 	}
 
@@ -4463,6 +4497,7 @@ private:
 		if (!_prop.isTargetVersion(summ, "1")) { mixin(S_TRACE);
 			ws ~= .tryFormat(_prop.msgs.warningUnknownContentWsn, _prop.msgs.contentName(CType.MoveBgImage), "1");
 		}
+		ws ~= _transition.warnings;
 		warning = ws;
 	}
 
@@ -4499,6 +4534,7 @@ protected:
 
 		{ mixin(S_TRACE);
 			_transition = new TransitionPanel(comm, summ, area, true, _evt, this);
+			_transition.modEvent ~= &refreshWarning;
 			auto gd = new GridData(GridData.HORIZONTAL_ALIGN_END);
 			gd.horizontalSpan = 2;
 			_transition.setLayoutData(gd);

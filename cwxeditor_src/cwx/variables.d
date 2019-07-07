@@ -616,6 +616,8 @@ class FlexEtcProps : Properties {
 
 	auto usedCouponToCombo = Prop!(bool, true)("usedCouponToCombo", true);
 
+	auto numberStepToVariantThreshold = Prop!(uint, true)("numberStepToVariantThreshold", 100);
+
 	auto newScenarioName = Prop!(string, true)("newScenarioName", "新規シナリオ");
 	auto newAreaName = Prop!(string)("newAreaName", "開始エリア");
 

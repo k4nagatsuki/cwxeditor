@@ -87,6 +87,7 @@ struct LoadOption {
 	bool summaryOnly = false; /// 概要のみを読み込むか。
 	/// ロードが進行する毎に呼び出される関数を指定する。
 	void delegate(string sName, string fileName) processFunc = null;
+	uint numberStepToVariantThreshold = 0; /// データバージョン7で数値ステップをコモンへ変換する値数の閾値。
 }
 
 /// 保存時オプション。

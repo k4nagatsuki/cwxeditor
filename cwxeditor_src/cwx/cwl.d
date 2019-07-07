@@ -8,36 +8,39 @@ import core.stdc.string;
 import std.array;
 import std.conv;
 import std.file;
-import std.path;
 import std.math;
+import std.path;
+import std.regex;
 import std.stdio;
 import std.string;
-import std.regex;
 import std.utf;
 
-import cwx.binary;
-import cwx.summary;
-import cwx.card;
-import cwx.coupon;
-import cwx.flag;
 import cwx.area;
 import cwx.background;
-import cwx.motion;
+import cwx.binary;
+import cwx.card;
+import cwx.coupon;
 import cwx.event;
+import cwx.filesync;
+import cwx.flag;
+import cwx.imagesize;
+import cwx.motion;
+import cwx.msgutils;
+import cwx.path;
+import cwx.props;
+import cwx.sjis;
+import cwx.skin;
+import cwx.structs;
+import cwx.summary;
+import cwx.system;
 import cwx.types;
 import cwx.utils;
-import cwx.sjis;
 import cwx.xml;
-import cwx.path;
-import cwx.skin;
-import cwx.imagesize;
-import cwx.structs;
-import cwx.system;
-import cwx.props;
-import cwx.filesync;
 
-import std.algorithm : min;
 static import std.algorithm;
+import std.algorithm : any, map, min;
+import std.range : iota;
+import std.typecons : Rebindable, Tuple, tuple;
 
 private bool sWith(string f, string s, out ulong id) { mixin(S_TRACE);
 	if (!fnstartsWith(f, s)) return false;
@@ -56,19 +59,28 @@ private string decodePathLegacy(string path) { mixin(S_TRACE);
 }
 
 private struct RData {
-	const System sys;
+	Rebindable!(const(CProps)) prop;
 	bool cardOnly;
 	string sPath;
 	string skinType;
 	string skinName;
+	uint numberStepToVariantThreshold;
 	int dataVersion;
-	this (const System sys, bool cardOnly, string sPath, string skinType, string skinName) { mixin(S_TRACE);
-		this.sys = sys;
+	uint[string] numberSteps;
+	bool[string] stepNames;
+	this (const(CProps) prop, bool cardOnly, string sPath, string skinType, string skinName, uint numberStepToVariantThreshold) { mixin(S_TRACE);
+		this.prop = prop;
 		this.cardOnly = cardOnly;
 		this.sPath = sPath;
 		this.skinType = skinType;
 		this.skinName = skinName;
+		this.numberStepToVariantThreshold = numberStepToVariantThreshold;
 		this.dataVersion = 0;
+	}
+	this (in RData d) { mixin(S_TRACE);
+		this (d.prop, d.cardOnly, d.sPath, d.skinType, d.skinName, d.numberStepToVariantThreshold);
+		foreach (key, value; d.numberSteps) numberSteps[key] = value;
+		foreach (key, value; d.stepNames) stepNames[key] = value;
 	}
 }
 /// 4.0形式のCardWirthシナリオを読込む。
@@ -79,19 +91,19 @@ Summary loadLScenario(string p, string skinType, string skinName, const CProps p
 	auto sPath = p;
 	string summPath = std.path.buildPath(p, "Summary.wsm");
 	Summary summ;
-	RData* d;
+	RData d;
 	ulong startAreaId;
 	if (.exists(summPath)) { mixin(S_TRACE);
-		d = new RData(prop.sys, opt.cardOnly, sPath, skinType, skinName);
+		d = RData(prop, opt.cardOnly, sPath, skinType, skinName, opt.numberStepToVariantThreshold);
 		{ mixin(S_TRACE);
 			ubyte* ptr = null;
 			auto bytes = ByteIO(readBinaryFrom!ubyte(summPath, ptr));
 			scope (exit) freeAll(ptr);
-			summ = loadSummary(*d, bytes, startAreaId);
+			summ = loadSummary(d, bytes, startAreaId);
 		}
 	} else { mixin(S_TRACE);
 		if (!newName) throw new SummaryException("Not Scenario: " ~ p);
-		d = new RData(prop.sys, opt.cardOnly, sPath, skinType, skinName);
+		d = RData(prop, opt.cardOnly, sPath, skinType, skinName, opt.numberStepToVariantThreshold);
 		summ = new Summary(newName, d.skinType, d.skinName, d.sPath, false, true);
 	}
 	dataVersion = d.dataVersion;
@@ -108,8 +120,8 @@ Summary loadLScenario(string p, string skinType, string skinName, const CProps p
 		string[] files;
 		string[] errorFiles;
 		ulong wait = 0L;
-		this (ref RData d) {
-			this.d = d;
+		this (in RData d) {
+			this.d = RData(d);
 		}
 		void load() { mixin(S_TRACE);
 			version (Console) {
@@ -151,7 +163,12 @@ Summary loadLScenario(string p, string skinType, string skinName, const CProps p
 					if (sWith(base, "Info", id)) { mixin(S_TRACE);
 						infos ~= .loadInfo(d, f, id);
 					}
-				} catch (Exception e) {
+					debug {
+						if (f.pointer != bytes.length) { mixin(S_TRACE);
+							debugln("Rest bytes: %s(0x%08X < 0x%08X)".format(base, f.pointer, bytes.length));
+						}
+					}
+				} catch (Throwable e) {
 					printStackTrace();
 					debugln(file ~ " - " ~ e.msg);
 					errorFiles ~= file.baseName();
@@ -163,8 +180,8 @@ Summary loadLScenario(string p, string skinType, string skinName, const CProps p
 		}
 	}
 	if (opt.summaryOnly) return summ;
-	auto load1 = new Load(*d);
-	auto load2 = new Load(*d);
+	auto load1 = new Load(d);
+	auto load2 = new Load(d);
 	foreach (file; clistdir(sPath)) { mixin(S_TRACE);
 		if (cfnmatch(extension(file), ".wid")) { mixin(S_TRACE);
 			file = std.path.buildPath(sPath, file);
@@ -211,6 +228,7 @@ Summary loadLScenario(string p, string skinType, string skinName, const CProps p
 	summ.resetChanged();
 	errorFiles ~= load1.errorFiles;
 	errorFiles ~= load2.errorFiles;
+
 	return summ;
 }
 
@@ -226,7 +244,11 @@ void loadComment(Summary summ) { mixin(S_TRACE);
 			auto ct = cast(Content)summ.findCWXPath(path);
 			if (!ct) return;
 			// BUG: 2.10以前のバグで\rが混在する可能性があるため置換
-			ct.comment = node.value.replace("\r\n", "\n").replace("\r", "");
+			auto c = node.value.replace("\r\n", "\n").replace("\r", "");
+			if (c != "") { mixin(S_TRACE);
+				if (ct.comment.strip() != "") ct.comment = ct.comment ~ "\n";
+				ct.comment = ct.comment ~ c;
+			}
 		};
 		node.parse();
 	}
@@ -399,7 +421,21 @@ private CardVisual toCardVisual(byte b) { mixin(S_TRACE);
 	default: throw new SummaryException("Unknown card visual: " ~ to!(string)(b));
 	}
 }
-private Range toRange(byte b) { mixin(S_TRACE);
+private Range toRange(in RData d, byte b, Content e, int dataVersion) { mixin(S_TRACE);
+	if (7 <= dataVersion) { mixin(S_TRACE);
+		switch (b) {
+		case 6: // 荷物袋のみ
+			//e.comment = .tryFormat(d.prop.msgs.convertFromNextWarning, d.prop.msgs.convertFromNextWarningBackpackOnly);
+			b = 3;
+			break;
+		case 7: // 選択メンバのバックパック
+			e.comment = tryFormat(d.prop.msgs.convertFromNextWarning, d.prop.msgs.convertFromNextWarningBackpackOfSelectedMember);
+			b = 0;
+			break;
+		default:
+			break;
+		}
+	}
 	switch (b) {
 	case 0: return Range.Selected;
 	case 1: return Range.Random;
@@ -422,8 +458,31 @@ private Range toRangeE(byte b) { mixin(S_TRACE);
 	default: throw new SummaryException("Unknown range E: " ~ to!(string)(b));
 	}
 }
+private Range toRangeEffectContent(byte b) { mixin(S_TRACE);
+	switch (b) {
+	case 0: return Range.Selected;
+	case 1: return Range.Random;
+	case 2: return Range.Party;
+	case 3: return Range.CardTarget;
+	default: throw new SummaryException("Unknown range EffectContent: " ~ to!(string)(b));
+	}
+}
 /// CardWirth 1.50
-private Range toKeyCodeRange(byte b) { mixin(S_TRACE);
+private Range toKeyCodeRange(in RData d, byte b, Content e, int dataVersion) { mixin(S_TRACE);
+	if (7 <= dataVersion) { mixin(S_TRACE);
+		switch (b) {
+		case 4: // 荷物袋のみ
+			//e.comment = .tryFormat(d.prop.msgs.convertFromNextWarning, d.prop.msgs.convertFromNextWarningBackpackOnly);
+			b = 2;
+			break;
+		case 5: // 選択メンバのバックパック
+			e.comment = tryFormat(d.prop.msgs.convertFromNextWarning, d.prop.msgs.convertFromNextWarningBackpackOfSelectedMember);
+			b = 0;
+			break;
+		default:
+			break;
+		}
+	}
 	switch (b) {
 	case 0: return Range.Selected;
 	case 1: return Range.Random;
@@ -508,7 +567,7 @@ private GradientDir toGradientDir(byte b) { mixin(S_TRACE);
 	default: throw new SummaryException("Unknown gradient direction value: " ~ to!(string)(b));
 	}
 }
-/// CardWirth 1.60
+/// Wsn.1
 private CoordinateType toCoordinateType(byte b) { mixin(S_TRACE);
 	switch (b) {
 	case 0: return CoordinateType.Absolute;
@@ -628,12 +687,12 @@ private bool readBool(ref ByteIO f) { mixin(S_TRACE);
 	return f.readByte ? true : false;
 }
 private string readExImage(in RData d, ref ByteIO f) { mixin(S_TRACE);
-	return readStringImpl(d, f, () => cast(uint)f.readExInt);
+	return readImageImpl(d, f, () => f.readExUInt());
 }
 private string readImage(in RData d, ref ByteIO f) { mixin(S_TRACE);
-	return readStringImpl(d, f, &f.readUIntL);
+	return readImageImpl(d, f, &f.readUIntL);
 }
-private string readStringImpl(in RData d, ref ByteIO f, uint delegate() readSize) { mixin(S_TRACE);
+private string readImageImpl(in RData d, ref ByteIO f, uint delegate() readSize) { mixin(S_TRACE);
 	uint len = readSize();
 	if (!len) return "";
 	auto img = f.read(len);
@@ -657,7 +716,7 @@ private string readStringImpl(in RData d, ref ByteIO f, uint delegate() readSize
 	return bImgToStr(img);
 }
 private string readExString(ref ByteIO f, bool lns = false, bool cutText = false) { mixin(S_TRACE);
-	return readStringImpl(f, lns, cutText, () => cast(uint)f.readExInt);
+	return readStringImpl(f, lns, cutText, () => f.readExUInt());
 }
 private string readString(ref ByteIO f, bool lns = false, bool cutText = false) { mixin(S_TRACE);
 	return readStringImpl(f, lns, cutText, &f.readUIntL);
@@ -683,7 +742,7 @@ private string readStringImpl(ref ByteIO f, bool lns, bool cutText, uint delegat
 	return str;
 }
 private string readString(ref ByteIO f, ref string[string] addInfo, bool lns = false, bool cutText = false) { mixin(S_TRACE);
-	uint len = f.readUIntL;
+	uint len = f.readUIntL();
 	if (!len) return "";
 	string str = cast(string)f.read(len);
 	if (!lns && str[$ - 1] == '\0') str = str[0 .. $ - 1];
@@ -712,30 +771,61 @@ private string readString(ref ByteIO f, ref string[string] addInfo, bool lns = f
 	str = replace(str, "\r\n", "\n");
 	return str;
 }
+private string[] readExStrings(ref ByteIO f) { mixin(S_TRACE);
+	auto str = readExString(f, true);
+	return str.length ? splitLines(str) : cast(string[]) [];
+}
 private string[] readStrings(ref ByteIO f) { mixin(S_TRACE);
 	auto str = readString(f, true);
 	return str.length ? splitLines(str) : cast(string[]) [];
 }
+
+private string readSound(in RData d, ref ByteIO f) { mixin(S_TRACE);
+	auto type = f.readByte;
+	switch (type) {
+	case 0: // 無し
+		return "";
+	case 1: // パス指定
+		return readExString(f);
+	case 2: // 埋め込み
+		auto len = f.readExUInt();
+		if (!len) return "";
+		auto snd = f.read(len);
+		return bSndToStr(snd);
+	default:
+		throw new Exception("Unknown sound type: %s".format(type));
+	}
+}
+
 private Summary loadSummary(ref RData d, ref ByteIO f, out ulong startAreaId) { mixin(S_TRACE);
 	string img = readImage(d, f);
-	byte b;
-	auto summ = new Summary(readString(f), d.skinType, d.skinName, d.sPath, false, true);
-	summ.imagePaths = img.length ? [new CardImage(img, CardImagePosition.Default)] : [];
-	summ.desc = readString(f, true);
-	summ.author = readString(f);
-	if (d.cardOnly) return summ;
-	summ.rCoupons = readStrings(f);
-	summ.rCouponNum = f.readUIntL;
+	auto name = readString(f);
+	auto imagePaths = img.length ? [new CardImage(img, CardImagePosition.Default)] : [];
+	auto desc = readString(f, true);
+	auto author = readString(f);
+	auto rCoupons = readStrings(f);
+	auto rCouponNum = f.readUIntL;
 	auto area = f.readUIntL;
 	if (area < 19999) { mixin(S_TRACE);
 		d.dataVersion = 0;
 	} else if (area < 39999) { mixin(S_TRACE);
 		d.dataVersion = 2;
 		startAreaId = area - 20000u;
-	} else { mixin(S_TRACE);
+	} else if (area < 69999) { mixin(S_TRACE);
 		d.dataVersion = 4;
 		startAreaId = area - 40000u;
+	} else { mixin(S_TRACE);
+		d.dataVersion = 7;
+		startAreaId = area - 70000u;
 	}
+	auto summ = new Summary(name, d.skinType, d.skinName, d.sPath, false, true);
+	summ.imagePaths = imagePaths;
+	summ.desc = desc;
+	summ.author = author;
+	if (d.cardOnly) return summ;
+	summ.rCoupons = rCoupons;
+	summ.rCouponNum = rCouponNum;
+
 	FlagDir flagsParent(string path) { mixin(S_TRACE);
 		FlagDir dir = summ.flagDirRoot;
 		string par = FlagDir.up(path);
@@ -753,40 +843,137 @@ private Summary loadSummary(ref RData d, ref ByteIO f, out ulong startAreaId) { 
 		}
 		return dir;
 	}
-	uint stepNum = f.readUIntL;
-	for (uint i = 0u; i < stepNum; i++) { mixin(S_TRACE);
-		string path = readString(f);
-		uint sel = f.readUIntL;
-		string[] vals;
-		vals.length = 10u;
-		for (uint j = 0u; j < 10u; j++) { mixin(S_TRACE);
-			vals[j] = readString(f);
+	if (d.dataVersion < 7) { mixin(S_TRACE);
+		uint stepNum = f.readUIntL;
+		for (uint i = 0u; i < stepNum; i++) { mixin(S_TRACE);
+			string path = readString(f);
+			uint sel = f.readUIntL;
+			string[] vals;
+			vals.length = 10u;
+			for (uint j = 0u; j < 10u; j++) { mixin(S_TRACE);
+				vals[j] = readString(f);
+			}
+			if (vals.length <= sel) sel = cast(uint)vals.length - 1;
+			if (!flagsParent(path).add(new Step(FlagDir.basename(path), vals, sel))) { mixin(S_TRACE);
+				throw new SummaryException("Invalid step path: " ~ path);
+			}
 		}
-		if (vals.length <= sel) sel = cast(uint)vals.length - 1;
-		if (!flagsParent(path).add(new Step(FlagDir.basename(path), vals, sel))) { mixin(S_TRACE);
-			throw new SummaryException("Invalid step path: " ~ path);
+		uint flagNum = f.readUIntL;
+		for (uint i = 0u; i < flagNum; i++) { mixin(S_TRACE);
+			string path = readString(f);
+			bool sel = readBool(f);
+			string on = readString(f);
+			string off = readString(f);
+			if (!flagsParent(path).add(new cwx.flag.Flag(FlagDir.basename(path), on, off, sel))) { mixin(S_TRACE);
+				throw new SummaryException("Invalid flag path: " ~ path);
+			}
 		}
+		f.readUIntL;
+		if (d.dataVersion != 0) { mixin(S_TRACE);
+			summ.levelMin = f.readUIntL;
+			summ.levelMax = f.readUIntL;
+		}
+	} else { mixin(S_TRACE);
+		f.readByte; // 不明(0)
+		f.readByte; // 不明(0)
+		f.readByte; // 不明(0)
+		f.readByte; // 不明(0)
+		f.readByte; // 不明(0)
+		f.readByte; // 不明(0)
+		f.readByte; // 不明(0)
+		f.readByte; // 不明(0)
+		f.readByte; // 不明(0)
+		f.readByte; // 不明(0)
+		f.readByte; // 不明(0)
+		f.readByte; // 不明(0)
+		f.readByte; // 不明(0)
+		f.readByte; // 不明(0)
+		f.readByte; // 不明(0)
+		f.readByte; // 不明(0)
+		f.readByte; // 不明(0)
+		f.readByte; // 不明(0)
+		f.readByte; // 不明(0)
+		f.readByte; // 不明(0)
+		auto stepNum = f.readExUInt;
+		for (uint i = 0u; i < stepNum; i++) { mixin(S_TRACE);
+			auto path = readExString(f);
+			auto type = f.readUByte;
+			auto expandVars = (type & 0b10000000) != 0;
+			type &= 0b01111111;
+			if (expandVars) { mixin(S_TRACE);
+				f.readUByte; // 不明(0x02)
+			}
+			auto valNum = f.readExUInt;
+			switch (type) {
+			case 1:
+				auto vals = new string[valNum];
+				for (uint j = 0u; j < valNum; j++) { mixin(S_TRACE);
+					vals[j] = readExString(f);
+				}
+				auto sel = f.readExUInt;
+				if (vals.length <= sel) sel = cast(uint)vals.length - 1;
+				auto s = new Step(FlagDir.basename(path), vals, sel);
+				s.expandSPChars = expandVars;
+				if (!flagsParent(path).add(s)) { mixin(S_TRACE);
+					throw new SummaryException("Invalid step path: " ~ path);
+				}
+				break;
+			case 2:
+				// 値の数の多い数値ステップはコモンに置換する
+				auto sel = f.readExUInt;
+				if (valNum <= d.numberStepToVariantThreshold) { mixin(S_TRACE);
+					auto vals = .iota(0, valNum).map!text().array();
+					if (vals.length <= sel) sel = cast(uint)vals.length - 1;
+					auto s = new Step(FlagDir.basename(path), vals, sel);
+					if (!flagsParent(path).add(s)) { mixin(S_TRACE);
+						throw new SummaryException("Invalid step path: " ~ path);
+					}
+				} else { mixin(S_TRACE);
+					auto v = new Variant(FlagDir.basename(path), cast(double)sel);
+					if (!flagsParent(path).add(v)) { mixin(S_TRACE);
+						throw new SummaryException("Invalid variant path: " ~ path);
+					}
+					d.numberSteps[path] = valNum;
+				}
+				break;
+			default:
+				throw new Exception("Invalid step type: %s".format(type));
+			}
+			d.stepNames[path] = true;
+		}
+		foreach (step; summ.flagDirRoot.allSteps) { mixin(S_TRACE);
+			if (!step.expandSPChars) continue;
+			foreach (i; 0 .. step.count) { mixin(S_TRACE);
+				auto value = step.getValue(i);
+				foreach (path; d.numberSteps.byKey()) { mixin(S_TRACE);
+					value = .replStepToVariantInText(value, path, path);
+				}
+				step.setValue(i, value);
+			}
+		}
+		auto flagNum = f.readExUInt;
+		for (uint i = 0u; i < flagNum; i++) { mixin(S_TRACE);
+			auto path = readExString(f);
+			auto sel = readBool(f);
+			auto on = readExString(f);
+			auto off = readExString(f);
+			if (!flagsParent(path).add(new cwx.flag.Flag(FlagDir.basename(path), on, off, sel))) { mixin(S_TRACE);
+				throw new SummaryException("Invalid flag path: " ~ path);
+			}
+		}
+		summ.levelMin = f.readExUInt;
+		summ.levelMax = f.readExUInt;
 	}
-	uint flagNum = f.readUIntL;
-	for (uint i = 0u; i < flagNum; i++) { mixin(S_TRACE);
-		string path = readString(f);
-		bool sel = readBool(f);
-		string on = readString(f);
-		string off = readString(f);
-		if (!flagsParent(path).add(new cwx.flag.Flag(FlagDir.basename(path), on, off, sel))) { mixin(S_TRACE);
-			throw new SummaryException("Invalid flag path: " ~ path);
+	debug {
+		if (f.pointer != f.length) { mixin(S_TRACE);
+			debugln("Rest bytes: %s(0x%08X < 0x%08X)".format("Summary.wsm", f.pointer, f.length));
 		}
-	}
-	f.readUIntL;
-	if (d.dataVersion != 0) { mixin(S_TRACE);
-		summ.levelMin = f.readUIntL;
-		summ.levelMax = f.readUIntL;
 	}
 	return summ;
 }
 private Motion readMotion(ref RData d, int dataVersion, ref ByteIO f, size_t index) { mixin(S_TRACE);
 	byte tType = f.readByte;
-	if (dataVersion > 2) { mixin(S_TRACE);
+	if (2 < dataVersion) { mixin(S_TRACE);
 		f.readByte;
 		f.readByte;
 		f.readByte;
@@ -836,7 +1023,7 @@ private Motion readMotion(ref RData d, int dataVersion, ref ByteIO f, size_t ind
 	}
 	case 3, 4: { mixin(S_TRACE);
 		uint rnd;
-		if (dataVersion > 2) { mixin(S_TRACE);
+		if (2 < dataVersion) { mixin(S_TRACE);
 			rnd = f.readUIntL;
 		} else { mixin(S_TRACE);
 			rnd = 10;
@@ -871,7 +1058,7 @@ private Motion readMotion(ref RData d, int dataVersion, ref ByteIO f, size_t ind
 	case 5: { mixin(S_TRACE);
 		uint val = f.readUIntL;
 		uint rnd;
-		if (dataVersion > 2) { mixin(S_TRACE);
+		if (2 < dataVersion) { mixin(S_TRACE);
 			rnd = f.readUIntL;
 		} else { mixin(S_TRACE);
 			rnd = 10;
@@ -926,7 +1113,30 @@ private Motion readMotion(ref RData d, int dataVersion, ref ByteIO f, size_t ind
 	}
 }
 private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_TRACE);
-	static Content readImpl(ref RData d, ref ByteIO f, int dataVersion, byte type, string name, ref string[string] info) { mixin(S_TRACE);
+	static string checkStepExpression(in RData d, string step, uint stepValue, Comparison4 comparison4) { mixin(S_TRACE);
+		string v;
+		if (step in d.numberSteps) { mixin(S_TRACE);
+			v = "@\"%s\"".format(step.replace("\"", "\"\""));
+		} else { mixin(S_TRACE);
+			v = "STEPVALUE(\"%s\")".format(step.replace("\"", "\"\""));
+		}
+		string cmp4;
+		final switch (comparison4) {
+		case Comparison4.Eq: cmp4 = "="; break;
+		case Comparison4.Ne: cmp4 = "<>"; break;
+		case Comparison4.Lt: cmp4 = ">"; break;
+		case Comparison4.Gt: cmp4 = "<"; break;
+		}
+		return "%s %s %s".format(v, cmp4, stepValue);
+	}
+	static string checkFlagExpression(string flag) { mixin(S_TRACE);
+		return "FLAGVALUE(\"%s\")".format(flag.replace("\"", "\"\""));
+	}
+	static Content readImpl(ref RData d, ref ByteIO f, int dataVersion, byte type, string name,
+			ref string[string] info, ref string[string] branchMultiStep, ref Tuple!(string, string)[string] branchStepCmp) { mixin(S_TRACE);
+		//cdebugln("Read Content --------------------------------------------------");
+		//cdebugln(type);
+		//cdebugln("0x%04X".format(f.pointer));
 		Content e;
 		switch (type) {
 		case 0:
@@ -934,11 +1144,11 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			break;
 		case 1:
 			e = new Content(CType.LinkStart, name);
-			e.start = readString(f);
+			e.start = dataVersion < 7 ? readString(f) : readExString(f);
 			break;
 		case 2:
 			e = new Content(CType.StartBattle, name);
-			e.battle = f.readUIntL;
+			e.battle = dataVersion < 7 ? f.readUIntL : f.readExUInt;
 			break;
 		case 3:
 			e = new Content(CType.End, name);
@@ -949,12 +1159,19 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			break;
 		case 5:
 			e = new Content(CType.ChangeArea, name);
-			e.area = f.readUIntL;
+			e.area = dataVersion < 7 ? f.readUIntL : f.readExUInt;
 			e.transition = Transition.Default;
 			e.transitionSpeed = 5u;
 			break;
 		case 6: { mixin(S_TRACE);
-			string msgPath = readString(f);
+			auto msgPath = "";
+			ubyte tb;
+			if (dataVersion < 7) { mixin(S_TRACE);
+				msgPath = readString(f);
+			} else { mixin(S_TRACE);
+				tb = f.readUByte;
+				if ((tb & 0b00000001) != 0) msgPath = readExString(f);
+			}
 			Talker msgTalker;
 			bool hasTalker = true;
 			switch (msgPath) {
@@ -966,23 +1183,29 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			default: hasTalker = false; break;
 			}
 			e = new Content(CType.TalkMessage, name);
-			auto s = readString(f, true);
+			auto s = dataVersion < 7 ? readString(f) : readExString(f);
+			foreach (path; d.numberSteps.byKey()) { mixin(S_TRACE);
+				s = .replStepToVariantInText(s, path, path);
+			}
 			e.text = s;
-			if (hasTalker) {
+			if (hasTalker) { mixin(S_TRACE);
 				e.cardPaths = [new CardImage(msgTalker)];
-			} else if (msgPath.length) {
+			} else if (msgPath.length) { mixin(S_TRACE);
 				e.cardPaths = [new CardImage(decodePathLegacy(msgPath), CardImagePosition.Default)];
-			} else {
+			} else { mixin(S_TRACE);
 				e.cardPaths = [];
+			}
+			if (7 <= dataVersion && (tb & 0b10000000) != 0) { mixin(S_TRACE);
+				e.selectionColumns = f.readExUInt;
 			}
 			break;
 		}
 		case 7:
 			e = new Content(CType.PlayBgm, name);
-			e.bgmPath = decodePathLegacy(readString(f));
+			e.bgmPath = decodePathLegacy(dataVersion < 7 ? readString(f) : readExString(f));
 			break;
 		case 8: { mixin(S_TRACE);
-			BgImage[] bgImgs = readBgImages(d, f, false);
+			BgImage[] bgImgs = readBgImages(d, f, dataVersion, false);
 			e = new Content(CType.ChangeBgImage, name);
 			e.backs = bgImgs;
 			e.transition = Transition.Default;
@@ -991,37 +1214,64 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 		}
 		case 9:
 			e = new Content(CType.PlaySound, name);
-			e.soundPath = decodePathLegacy(readString(f));
+			e.soundPath = decodePathLegacy(dataVersion < 7 ? readString(f) : readExString(f));
 			break;
 		case 10:
 			e = new Content(CType.Wait, name);
-			e.wait = f.readUIntL;
+			if (dataVersion < 7) { mixin(S_TRACE);
+				e.wait = f.readUIntL;
+			} else { mixin(S_TRACE);
+				auto i = f.readExInt;
+				e.wait = i < 0 ? .roundTo!uint(-i / 100.0) : i;
+				if (i < 0 && e.wait * 100 != -i) e.comment = .tryFormat(d.prop.msgs.convertFromNextWarning, .tryFormat(d.prop.msgs.convertFromNextWarningWaitMillis, -i));
+			}
 			break;
 		case 11: { mixin(S_TRACE);
-			uint effLev = f.readUIntL;
-			byte effTarget = f.readByte;
-			if (effTarget == 2) effTarget = 6;
-			byte effType = f.readByte;
-			byte effResist = f.readByte;
-			int effSuc = f.readIntL;
-			string sp = readString(f);
-			string effSePath = (sp == "（なし）" || sp == "（なし）.wav") ? "" : decodePathLegacy(sp);
-			byte effVis = f.readByte;
-			uint effMotionNum = f.readUIntL;
+			e = new Content(CType.Effect, name);
+			uint effMotionNum;
+			if (dataVersion < 7) { mixin(S_TRACE);
+				e.signedLevel = f.readIntL;
+				byte effTarget = f.readByte;
+				e.range = toRangeEffectContent(effTarget);
+				e.effectType = toEffectType(f.readByte);
+				e.resist = toResist(f.readByte);
+				e.successRate = f.readIntL;
+				string sp = readString(f);
+				e.soundPath = (sp == "（なし）" || sp == "（なし）.wav") ? "" : decodePathLegacy(sp);
+				e.cardVisual = toCardVisual(f.readByte);
+				effMotionNum = f.readUIntL;
+			} else { mixin(S_TRACE);
+				e.signedLevel = f.readExInt;
+				auto effTarget = f.readByte;
+				e.range = toRangeEffectContent(effTarget);
+				e.effectType = toEffectType(f.readByte);
+				e.resist = toResist(f.readByte);
+				e.successRate = f.readExInt;
+				auto sp = readSound(d, f);
+				e.soundPath = (sp == "（なし）" || sp == "（なし）.wav") ? "" : decodePathLegacy(sp);
+				e.cardVisual = toCardVisual(f.readByte);
+				effMotionNum = f.readExUInt;
+			}
 			Motion[] effMotions;
 			effMotions.length = effMotionNum;
+			auto hasDamage = false;
 			for (uint i = 0u; i < effMotionNum; i++) { mixin(S_TRACE);
 				effMotions[i] = readMotion(d, dataVersion, f, i);
+				switch (effMotions[i].type) {
+				case MType.Damage:
+				case MType.Absorb:
+				case MType.Paralyze:
+				case MType.VanishTarget:
+					hasDamage = true;
+					break;
+				default:
+					break;
+				}
 			}
-			e = new Content(CType.Effect, name);
-			e.signedLevel = effLev;
-			e.range = toRangeE(effTarget);
-			e.effectType = toEffectType(effType);
-			e.resist = toResist(effResist);
-			e.successRate = effSuc;
-			e.soundPath = effSePath;
-			e.cardVisual = toCardVisual(effVis);
 			e.motions = effMotions;
+			if (7 <= dataVersion && hasDamage) { mixin(S_TRACE);
+				e.ignite = true; // 死亡イベントが発火する
+			}
 			break;
 		}
 		case 12: { mixin(S_TRACE);
@@ -1033,27 +1283,30 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			break;
 		}
 		case 13: { mixin(S_TRACE);
-			uint val = f.readUIntL;
-			byte targ = f.readByte;
-			uint phy = f.readUIntL;
-			int mtl = f.readIntL;
 			e = new Content(CType.BranchAbility, name);
-			e.targetS = toTargetA(targ);
-			e.mental = toMental(mtl);
-			e.physical = toPhysical(phy);
-			e.signedLevel = val;
+			if (dataVersion < 7) { mixin(S_TRACE);
+				e.signedLevel = f.readUIntL;
+				e.targetS = toTargetA(f.readByte);
+				e.physical = toPhysical(f.readUIntL);
+				e.mental = toMental(f.readIntL);
+			} else { mixin(S_TRACE);
+				e.signedLevel = f.readExInt;
+				e.targetS = toTargetA(f.readByte);
+				e.physical = toPhysical(f.readExInt);
+				e.mental = toMental(f.readExInt);
+			}
 			break;
 		}
 		case 14:
 			e = new Content(CType.BranchRandom, name);
-			e.percent = f.readUIntL;
+			e.percent = dataVersion < 7 ? f.readUIntL : f.readExUInt;
 			break;
 		case 15:
 			e = new Content(CType.BranchFlag, name);
-			e.flag = readString(f);
+			e.flag = dataVersion < 7 ? readString(f) : readExString(f);
 			break;
 		case 16: { mixin(S_TRACE);
-			string flag = readString(f);
+			string flag = dataVersion < 7 ? readString(f) : readExString(f);
 			bool val = readBool(f);
 			e = new Content(CType.SetFlag, name);
 			e.flag = flag;
@@ -1061,24 +1314,38 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			break;
 		}
 		case 17:
-			e = new Content(CType.BranchMultiStep, name);
-			e.step = readString(f);
+			auto step = dataVersion < 7 ? readString(f) : readExString(f);
+			auto p = step in d.numberSteps;
+			if (p) { mixin(S_TRACE);
+				e = new Content(CType.TalkMessage, name);
+				e.comment = "%s: %s".format(d.prop.msgs.contentName(CType.BranchMultiStep), step);
+				branchMultiStep[e.eventId] = step;
+			} else { mixin(S_TRACE);
+				e = new Content(CType.BranchMultiStep, name);
+				e.step = step;
+			}
 			break;
 		case 18: { mixin(S_TRACE);
-			string step = readString(f);
-			uint val = f.readUIntL;
-			if (10u <= val) val = 10u - 1u;
-			e = new Content(CType.SetStep, name);
-			e.step = step;
-			e.stepValue = val;
+			auto step = dataVersion < 7 ? readString(f) : readExString(f);
+			uint val = dataVersion < 7 ? f.readUIntL : f.readExInt;
+			auto p = step in d.numberSteps;
+			if (p) { mixin(S_TRACE);
+				e = new Content(CType.SetVariant, name);
+				e.variant = step;
+				e.expression = .text(val);
+			} else { mixin(S_TRACE);
+				e = new Content(CType.SetStep, name);
+				e.step = step;
+				e.stepValue = val;
+			}
 			break;
 		}
 		case 19:
 			e = new Content(CType.BranchCast, name);
-			e.casts = f.readUIntL;
+			e.casts = dataVersion < 7 ? f.readUIntL : f.readExUInt;
 			break;
 		case 20: { mixin(S_TRACE);
-			ulong id = f.readUIntL;
+			ulong id = dataVersion < 7 ? readUIntL(f) : readExUInt(f);
 			if (dataVersion <= 2) { mixin(S_TRACE);
 				e = new Content(CType.BranchItem, name);
 				e.item = id;
@@ -1086,16 +1353,16 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 				e.cardNumber = 1;
 				break;
 			}
-			uint num = f.readUIntL;
+			uint num = dataVersion < 7 ? readUIntL(f) : readExUInt(f);
 			byte rng = f.readByte;
 			e = new Content(CType.BranchItem, name);
 			e.item = id;
-			e.range = toRange(rng);
+			e.range = toRange(d, rng, e, dataVersion);
 			e.cardNumber = num;
 			break;
 		}
 		case 21: { mixin(S_TRACE);
-			ulong id = f.readUIntL;
+			ulong id = dataVersion < 7 ? readUIntL(f) : readExUInt(f);
 			if (dataVersion <= 2) { mixin(S_TRACE);
 				e = new Content(CType.BranchSkill, name);
 				e.item = id;
@@ -1103,20 +1370,20 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 				e.cardNumber = 1;
 				break;
 			}
-			uint num = f.readUIntL;
+			uint num = dataVersion < 7 ? readUIntL(f) : readExUInt(f);
 			byte rng = f.readByte;
 			e = new Content(CType.BranchSkill, name);
 			e.skill = id;
-			e.range = toRange(rng);
+			e.range = toRange(d, rng, e, dataVersion);
 			e.cardNumber = num;
 			break;
 		}
 		case 22:
 			e = new Content(CType.BranchInfo, name);
-			e.info = f.readUIntL;
+			e.info = dataVersion < 7 ? f.readUIntL : f.readExUInt;
 			break;
 		case 23: { mixin(S_TRACE);
-			ulong id = f.readUIntL;
+			ulong id = dataVersion < 7 ? readUIntL(f) : readExUInt(f);
 			if (dataVersion <= 2) { mixin(S_TRACE);
 				e = new Content(CType.BranchBeast, name);
 				e.item = id;
@@ -1124,33 +1391,35 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 				e.cardNumber = 1;
 				break;
 			}
-			uint num = f.readUIntL;
+			uint num = dataVersion < 7 ? readUIntL(f) : readExUInt(f);
 			byte rng = f.readByte;
 			e = new Content(CType.BranchBeast, name);
 			e.beast = id;
-			e.range = toRange(rng);
+			e.range = toRange(d, rng, e, dataVersion);
 			e.cardNumber = num;
 			break;
 		}
 		case 24:
 			e = new Content(CType.BranchMoney, name);
-			e.money = f.readUIntL;
+			e.money = dataVersion < 7 ? f.readUIntL : f.readExUInt;
 			break;
 		case 25: { mixin(S_TRACE);
-			string coupon = readString(f);
-			f.readUIntL;
-			byte rng = f.readByte;
+			auto coupon = dataVersion < 7 ? readString(f) : readExString(f);
+			auto val = dataVersion < 7 ? readIntL(f) : readExInt(f);
+			auto rng = f.readByte;
+			auto invertResult = dataVersion < 7 ? false : f.readBool;
 			e = new Content(CType.BranchCoupon, name);
 			e.couponNames = [coupon];
 			e.range = toCouponRange(rng);
+			e.invertResult = invertResult;
 			break;
 		}
 		case 26:
 			e = new Content(CType.GetCast, name);
-			e.casts = f.readUIntL;
+			e.casts = dataVersion < 7 ? f.readUIntL : f.readExUInt;
 			break;
 		case 27: { mixin(S_TRACE);
-			ulong id = f.readUIntL;
+			ulong id = dataVersion < 7 ? readUIntL(f) : readExUInt(f);
 			if (dataVersion <= 2) { mixin(S_TRACE);
 				e = new Content(CType.GetItem, name);
 				e.item = id;
@@ -1158,16 +1427,16 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 				e.cardNumber = 1;
 				break;
 			}
-			uint num = f.readUIntL;
+			uint num = dataVersion < 7 ? readUIntL(f) : readExUInt(f);
 			byte rng = f.readByte;
 			e = new Content(CType.GetItem, name);
 			e.item = id;
-			e.range = toRange(rng);
+			e.range = toRange(d, rng, e, dataVersion);
 			e.cardNumber = num;
 			break;
 		}
 		case 28: { mixin(S_TRACE);
-			ulong id = f.readUIntL;
+			ulong id = dataVersion < 7 ? readUIntL(f) : readExUInt(f);
 			if (dataVersion <= 2) { mixin(S_TRACE);
 				e = new Content(CType.GetSkill, name);
 				e.item = id;
@@ -1175,20 +1444,20 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 				e.cardNumber = 1;
 				break;
 			}
-			uint num = f.readUIntL;
+			uint num = dataVersion < 7 ? readUIntL(f) : readExUInt(f);
 			byte rng = f.readByte;
 			e = new Content(CType.GetSkill, name);
 			e.skill = id;
-			e.range = toRange(rng);
+			e.range = toRange(d, rng, e, dataVersion);
 			e.cardNumber = num;
 			break;
 		}
 		case 29:
 			e = new Content(CType.GetInfo, name);
-			e.info = f.readUIntL;
+			e.info = dataVersion < 7 ? f.readUIntL : f.readExUInt;
 			break;
 		case 30: { mixin(S_TRACE);
-			ulong id = f.readUIntL;
+			ulong id = dataVersion < 7 ? readUIntL(f) : readExUInt(f);
 			if (dataVersion <= 2) { mixin(S_TRACE);
 				e = new Content(CType.GetBeast, name);
 				e.item = id;
@@ -1196,34 +1465,35 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 				e.cardNumber = 1;
 				break;
 			}
-			uint num = f.readUIntL;
+			uint num = dataVersion < 7 ? readUIntL(f) : readExUInt(f);
 			byte rng = f.readByte;
 			e = new Content(CType.GetBeast, name);
 			e.beast = id;
-			e.range = toRange(rng);
+			e.range = toRange(d, rng, e, dataVersion);
 			e.cardNumber = num;
 			break;
 		}
 		case 31:
 			e = new Content(CType.GetMoney, name);
-			e.money = f.readUIntL;
+			e.money = dataVersion < 7 ? f.readUIntL : f.readExUInt;
 			break;
 		case 32: { mixin(S_TRACE);
-			string coupon = readString(f);
-			int val = f.readIntL;
-			byte rng = f.readByte;
+			auto coupon = dataVersion < 7 ? readString(f) : readExString(f);
+			auto val = dataVersion < 7 ? readIntL(f) : readExInt(f);
+			auto rng = f.readByte;
+			if (7 <= dataVersion) f.readByte; // 不所持条件
 			e = new Content(CType.GetCoupon, name);
 			e.coupon = coupon;
-			e.range = toRange(rng);
+			e.range = toRange(d, rng, e, dataVersion);
 			e.couponValue = val;
 			break;
 		}
 		case 33:
 			e = new Content(CType.LoseCast, name);
-			e.casts = f.readUIntL;
+			e.casts = dataVersion < 7 ? f.readUIntL : f.readExUInt;
 			break;
 		case 34: { mixin(S_TRACE);
-			ulong id = f.readUIntL;
+			ulong id = dataVersion < 7 ? readUIntL(f) : readExUInt(f);
 			if (dataVersion <= 2) { mixin(S_TRACE);
 				e = new Content(CType.LoseItem, name);
 				e.item = id;
@@ -1231,16 +1501,16 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 				e.cardNumber = 1;
 				break;
 			}
-			uint num = f.readUIntL;
+			uint num = dataVersion < 7 ? readUIntL(f) : readExUInt(f);
 			byte rng = f.readByte;
 			e = new Content(CType.LoseItem, name);
 			e.item = id;
-			e.range = toRange(rng);
+			e.range = toRange(d, rng, e, dataVersion);
 			e.cardNumber = num;
 			break;
 		}
 		case 35: { mixin(S_TRACE);
-			ulong id = f.readUIntL;
+			ulong id = dataVersion < 7 ? readUIntL(f) : readExUInt(f);
 			if (dataVersion <= 2) { mixin(S_TRACE);
 				e = new Content(CType.LoseSkill, name);
 				e.item = id;
@@ -1248,20 +1518,20 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 				e.cardNumber = 1;
 				break;
 			}
-			uint num = f.readUIntL;
+			uint num = dataVersion < 7 ? readUIntL(f) : readExUInt(f);
 			byte rng = f.readByte;
 			e = new Content(CType.LoseSkill, name);
 			e.skill = id;
-			e.range = toRange(rng);
+			e.range = toRange(d, rng, e, dataVersion);
 			e.cardNumber = num;
 			break;
 		}
 		case 36:
 			e = new Content(CType.LoseInfo, name);
-			e.info = f.readUIntL;
+			e.info = dataVersion < 7 ? f.readUIntL : f.readExUInt;
 			break;
 		case 37: { mixin(S_TRACE);
-			ulong id = f.readUIntL;
+			ulong id = dataVersion < 7 ? readUIntL(f) : readExUInt(f);
 			if (dataVersion <= 2) { mixin(S_TRACE);
 				e = new Content(CType.LoseBeast, name);
 				e.item = id;
@@ -1269,25 +1539,26 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 				e.cardNumber = 1;
 				break;
 			}
-			uint num = f.readUIntL;
+			uint num = dataVersion < 7 ? readUIntL(f) : readExUInt(f);
 			byte rng = f.readByte;
 			e = new Content(CType.LoseBeast, name);
 			e.beast = id;
-			e.range = toRange(rng);
+			e.range = toRange(d, rng, e, dataVersion);
 			e.cardNumber = num;
 			break;
 		}
 		case 38:
 			e = new Content(CType.LoseMoney, name);
-			e.money = f.readUIntL;
+			e.money = dataVersion < 7 ? f.readUIntL : f.readExUInt;
 			break;
 		case 39: { mixin(S_TRACE);
-			string coupon = readString(f);
-			f.readUIntL;
-			byte rng = f.readByte;
+			auto coupon = dataVersion < 7 ? readString(f) : readExString(f);
+			auto val = dataVersion < 7 ? readIntL(f) : readExInt(f);
+			auto rng = f.readByte;
+			if (7 <= dataVersion) f.readByte; // 不所持条件
 			e = new Content(CType.LoseCoupon, name);
 			e.coupon = coupon;
-			e.range = toRange(rng);
+			e.range = toRange(d, rng, e, dataVersion);
 			break;
 		}
 		case 40: { mixin(S_TRACE);
@@ -1297,9 +1568,16 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			int initValue = 0;
 			if (3 == targ) { mixin(S_TRACE);
 				t = Talker.Valued;
-				uint cpNum = f.readUIntL;
-				foreach (i; 0 .. cpNum) { mixin(S_TRACE);
-					coupons ~= new Coupon(readString(f), f.readIntL);
+				if (dataVersion < 7) { mixin(S_TRACE);
+					auto cpNum = readUIntL(f);
+					foreach (i; 0 .. cpNum) { mixin(S_TRACE);
+						coupons ~= new Coupon(readString(f), f.readIntL);
+					}
+				} else { mixin(S_TRACE);
+					auto cpNum = readExUInt(f);
+					foreach (i; 0 .. cpNum) { mixin(S_TRACE);
+						coupons ~= new Coupon(readExString(f), f.readExInt);
+					}
 				}
 				if (coupons.length && coupons[0].name == "") { mixin(S_TRACE);
 					initValue = coupons[0].value;
@@ -1313,39 +1591,77 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 				default: throw new SummaryException("Unknown talker: " ~ to!(string)(targ));
 				}
 			}
-			uint dlgNum = f.readUIntL;
 			SDialog[] dlgs;
-			for (uint i = 0u; i < dlgNum; i++) { mixin(S_TRACE);
-				string[] cps = readStrings(f);
-				string text = readString(f, true);
-				dlgs ~= new SDialog(text, cps);
+			if (dataVersion < 7) { mixin(S_TRACE);
+				uint dlgNum = f.readUIntL;
+				for (uint i = 0u; i < dlgNum; i++) { mixin(S_TRACE);
+					string[] cps = readStrings(f);
+					string text = readString(f, true);
+					dlgs ~= new SDialog(text, cps);
+				}
+			} else { mixin(S_TRACE);
+				uint dlgNum = f.readExUInt;
+				for (uint i = 0u; i < dlgNum; i++) { mixin(S_TRACE);
+					string[] cps = readExStrings(f);
+					string text = readExString(f, true);
+					foreach (path; d.numberSteps.byKey()) { mixin(S_TRACE);
+						text = .replStepToVariantInText(text, path, path);
+					}
+					dlgs ~= new SDialog(text, cps);
+				}
 			}
 			e = new Content(CType.TalkDialog, name);
 			e.talkerNC = t;
 			e.dialogs = dlgs;
 			e.coupons = coupons;
 			e.initValue = initValue;
+			if (7 <= dataVersion) { mixin(S_TRACE);
+				auto ob = f.readUByte;
+				e.selectTalker = (ob & 0b00000001) != 0;
+				if (ob & 0b00000010) e.selectionColumns = f.readUByte;
+			}
 			break;
 		}
 		case 41:
-			e = new Content(CType.SetStepUp, name);
-			e.step = readString(f);
+			auto step = dataVersion < 7 ? readString(f) : readExString(f);
+			auto p = step in d.numberSteps;
+			if (p) { mixin(S_TRACE);
+				e = new Content(CType.SetVariant, name);
+				e.variant = step;
+				e.expression = "MIN(@\"%s\" + 1, %s)".format(step.replace("\"", "\"\""), *p - 1);
+			} else { mixin(S_TRACE);
+				e = new Content(CType.SetStepUp, name);
+				e.step = step;
+			}
 			break;
 		case 42:
-			e = new Content(CType.SetStepDown, name);
-			e.step = readString(f);
+			auto step = dataVersion < 7 ? readString(f) : readExString(f);
+			auto p = step in d.numberSteps;
+			if (p) { mixin(S_TRACE);
+				e = new Content(CType.SetVariant, name);
+				e.variant = step;
+				e.expression = "MAX(@\"%s\" - 1, 0)".format(step.replace("\"", "\"\""));
+			} else { mixin(S_TRACE);
+				e = new Content(CType.SetStepDown, name);
+				e.step = step;
+			}
 			break;
 		case 43:
 			e = new Content(CType.ReverseFlag, name);
-			e.flag = readString(f);
+			e.flag = dataVersion < 7 ? readString(f) : readExString(f);
 			break;
 		case 44: { mixin(S_TRACE);
-			string step = readString(f);
-			uint val = f.readUIntL;
-			if (10u <= val) val = 10u - 1u;
-			e = new Content(CType.BranchStep, name);
-			e.step = step;
-			e.stepValue = val;
+			auto step = dataVersion < 7 ? readString(f) : readExString(f);
+			uint val = dataVersion < 7 ? f.readUIntL : f.readExInt;
+			auto p = step in d.numberSteps;
+			if (p) { mixin(S_TRACE);
+				e = new Content(CType.BranchVariant, name);
+				e.expression = "%s <= @\"%s\"".format(val, step.replace("\"", "\"\""));
+			} else { mixin(S_TRACE);
+				e = new Content(CType.BranchStep, name);
+				e.step = step;
+				e.stepValue = val;
+			}
 			break;
 		}
 		case 45:
@@ -1353,7 +1669,7 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			break;
 		case 46: { mixin(S_TRACE);
 			bool avg = readBool(f);
-			uint val = f.readUIntL;
+			uint val = dataVersion < 7 ? f.readUIntL : f.readExUInt;
 			e = new Content(CType.BranchLevel, name);
 			e.average = avg;
 			e.unsignedLevel = val;
@@ -1369,7 +1685,7 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 		}
 		case 48:
 			e = new Content(CType.BranchPartyNumber, name);
-			e.partyNumber = f.readUIntL;
+			e.partyNumber = dataVersion < 7 ? f.readUIntL : f.readExUInt;
 			break;
 		case 49:
 			e = new Content(CType.ShowParty, name);
@@ -1382,15 +1698,15 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			break;
 		case 52:
 			e = new Content(CType.CallStart, name);
-			e.start = readString(f);
+			e.start = dataVersion < 7 ? readString(f) : readExString(f);
 			break;
 		case 53:
 			e = new Content(CType.LinkPackage, name);
-			e.packages = f.readUIntL;
+			e.packages = dataVersion < 7 ? f.readUIntL : f.readExUInt;
 			break;
 		case 54:
 			e = new Content(CType.CallPackage, name);
-			e.packages = f.readUIntL;
+			e.packages = dataVersion < 7 ? f.readUIntL : f.readExUInt;
 			break;
 		case 55:
 			e = new Content(CType.BranchArea, name);
@@ -1400,27 +1716,27 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			break;
 		case 57:
 			e = new Content(CType.BranchCompleteStamp, name);
-			e.completeStamp = readString(f);
+			e.completeStamp = dataVersion < 7 ? readString(f) : readExString(f);
 			break;
 		case 58:
 			e = new Content(CType.GetCompleteStamp, name);
-			e.completeStamp = readString(f);
+			e.completeStamp = dataVersion < 7 ? readString(f) : readExString(f);
 			break;
 		case 59:
 			e = new Content(CType.LoseCompleteStamp, name);
-			e.completeStamp = readString(f);
+			e.completeStamp = dataVersion < 7 ? readString(f) : readExString(f);
 			break;
 		case 60:
 			e = new Content(CType.BranchGossip, name);
-			e.gossip = readString(f);
+			e.gossip = dataVersion < 7 ? readString(f) : readExString(f);
 			break;
 		case 61:
 			e = new Content(CType.GetGossip, name);
-			e.gossip = readString(f);
+			e.gossip = dataVersion < 7 ? readString(f) : readExString(f);
 			break;
 		case 62:
 			e = new Content(CType.LoseGossip, name);
-			e.gossip = readString(f);
+			e.gossip = dataVersion < 7 ? readString(f) : readExString(f);
 			break;
 		case 63:
 			e = new Content(CType.BranchIsBattle, name);
@@ -1432,35 +1748,75 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			break;
 		case 65:
 			e = new Content(CType.CheckFlag, name);
-			e.flag = readString(f);
+			e.flag = dataVersion < 7 ? readString(f) : readExString(f);
 			break;
 		case 66:
-			e = new Content(CType.SubstituteStep, name);
-			e.step = readString(f);
-			e.step2 = readString(f);
+			auto step1 = dataVersion < 7 ? readString(f) : readExString(f);
+			auto step2 = dataVersion < 7 ? readString(f) : readExString(f);
+			auto p1 = step1 in d.numberSteps;
+			auto p2 = step2 in d.numberSteps;
+			if (p1 || p2) { mixin(S_TRACE);
+				e = new Content(CType.SetVariant, name);
+				if (p2) { mixin(S_TRACE);
+					e.variant = step2;
+				} else { mixin(S_TRACE);
+					e.step = step2;
+				}
+				if (p1) { mixin(S_TRACE);
+					e.expression = "@\"%s\"".format(step1.replace("\"", "\"\""));
+				} else if (.icmp(step1, d.prop.sys.randomValue) == 0 && step1 !in d.stepNames) { mixin(S_TRACE);
+					assert (p2 !is null);
+					e.expression = "DICE(1, %s) - 1".format(*p2);
+				} else if (.icmp(step1, d.prop.sys.selectedPlayerCardNumber) == 0 && step1 !in d.stepNames) { mixin(S_TRACE);
+					assert (p2 !is null);
+					e.expression = "IF(CASTTYPE(SELECTED()) = 1, SELECTED(), 0)";
+				} else { mixin(S_TRACE);
+					assert (p2 !is null);
+					e.expression = "STEPVALUE(\"%s\")".format(step1.replace("\"", "\"\""));
+				}
+			} else { mixin(S_TRACE);
+				e = new Content(CType.SubstituteStep, name);
+				e.step = step1;
+				e.step2 = step2;
+			}
 			break;
 		case 67:
 			e = new Content(CType.SubstituteFlag, name);
-			e.flag = readString(f);
-			e.flag2 = readString(f);
+			e.flag = dataVersion < 7 ? readString(f) : readExString(f);
+			e.flag2 = dataVersion < 7 ? readString(f) : readExString(f);
 			break;
 		case 68:
-			e = new Content(CType.BranchStepCmp, name);
-			e.step = readString(f);
-			e.step2 = readString(f);
+			auto step1 = dataVersion < 7 ? readString(f) : readExString(f);
+			auto step2 = dataVersion < 7 ? readString(f) : readExString(f);
+			auto p1 = step1 in d.numberSteps;
+			auto p2 = step2 in d.numberSteps;
+			if (p1 || p2) { mixin(S_TRACE);
+				e = new Content(CType.TalkMessage, name);
+				e.comment = "%s: %s, %s".format(d.prop.msgs.contentName(CType.BranchStepCmp), step1, step2);
+				branchStepCmp[e.eventId] = .tuple(step1, step2);
+			} else { mixin(S_TRACE);
+				e = new Content(CType.BranchStepCmp, name);
+				e.step = step1;
+				e.step2 = step2;
+			}
 			break;
 		case 69:
 			e = new Content(CType.BranchFlagCmp, name);
-			e.flag = readString(f);
-			e.flag2 = readString(f);
+			e.flag = dataVersion < 7 ? readString(f) : readExString(f);
+			e.flag2 = dataVersion < 7 ? readString(f) : readExString(f);
 			break;
 		case 70:
 			e = new Content(CType.BranchRandomSelect, name);
 			e.castRange = toCastRanges(f.readByte);
 			ubyte style = f.readUByte;
 			if (style & 0b01) { mixin(S_TRACE);
-				e.levelMin = f.readUIntL;
-				e.levelMax = f.readUIntL;
+				if (dataVersion < 7) { mixin(S_TRACE);
+					e.levelMin = f.readUIntL;
+					e.levelMax = f.readUIntL;
+				} else { mixin(S_TRACE);
+					e.levelMin = f.readExUInt;
+					e.levelMax = f.readExUInt;
+				}
 			} else { mixin(S_TRACE);
 				e.levelMin = 0;
 				e.levelMax = 0;
@@ -1473,8 +1829,9 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			break;
 		case 71:
 			e = new Content(CType.BranchKeyCode, name);
-			e.keyCodeRange = toKeyCodeRange(f.readByte);
-			final switch (toEffectCardType(f.readByte)) {
+			e.keyCodeRange = toKeyCodeRange(d, f.readByte, e, dataVersion);
+			auto effCardTyp = toEffectCardType(f.readByte);
+			final switch (effCardTyp) {
 			case EffectCardType.All:
 				e.targetIsSkill = true;
 				e.targetIsItem = true;
@@ -1506,19 +1863,27 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 				e.targetIsHand = true;
 				break;
 			}
-			e.keyCode = readString(f);
+			e.keyCode = dataVersion < 7 ? readString(f) : readExString(f);
 			break;
 		case 72:
-			e = new Content(CType.CheckStep, name);
-			e.step = readString(f);
-			e.stepValue = f.readUIntL;
-			if (10u <= e.stepValue) e.stepValue = 10u - 1u;
-			e.comparison4 = toComparison4(f.readByte);
+			auto step = dataVersion < 7 ? readString(f) : readExString(f);
+			auto stepValue = dataVersion < 7 ? f.readUIntL : f.readExInt;
+			auto comparison4 = toComparison4(f.readByte);
+			auto p = step in d.numberSteps;
+			if (p) { mixin(S_TRACE);
+				e = new Content(CType.CheckVariant, name);
+				e.expression = checkStepExpression(d, step, stepValue, comparison4);
+			} else { mixin(S_TRACE);
+				e = new Content(CType.CheckStep, name);
+				e.step = step;
+				e.stepValue = stepValue;
+				e.comparison4 = comparison4;
+			}
 			break;
 		case 73:
 			e = new Content(CType.BranchRound, name);
 			e.comparison3 = toComparison3(f.readByte);
-			e.round = f.readUIntL;
+			e.round = dataVersion < 7 ? f.readUIntL : f.readExUInt;
 			break;
 		case 74:
 			e = new Content(CType.MoveBgImage, name);
@@ -1546,9 +1911,36 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 		case 76:
 			e = new Content(CType.ReplaceBgImage, name);
 			e.cellName = readExString(f);
-			e.backs = readBgImages(d, f, false, true);
+			e.backs = readBgImages(d, f, dataVersion, false, true);
 			e.transition = Transition.Default;
 			e.transitionSpeed = 5u;
+			break;
+		case 77:
+			e = new Content(CType.MoveCard, name);
+			e.cardGroup = readExString(f);
+			auto anime = f.readBool;
+			auto move = f.readBool;
+			if (move) { mixin(S_TRACE);
+				e.positionType = toCoordinateType(f.readByte);
+				e.x = f.readExInt;
+				e.y = f.readExInt;
+				e.cardSpeed = anime ? -1 : 0;
+				if (anime) e.overrideCardSpeed = true;
+			}
+			break;
+		case 78:
+			auto fb = f.readUByte;
+			e = new Content(CType.ChangeEnvironment, name);
+			auto fBackpack = (fb & 0b00000001) != 0;
+			auto fSave = (fb & 0b00000010) != 0;
+			auto fCamp = (fb & 0b00000100) != 0;
+			if (fSave || fCamp) { mixin(S_TRACE);
+				string[] lines;
+				if (fSave) lines ~= .tryFormat(d.prop.msgs.convertFromNextWarning, d.prop.msgs.convertFromNextWarningForbidSave);
+				if (fCamp) lines ~= .tryFormat(d.prop.msgs.convertFromNextWarning, d.prop.msgs.convertFromNextWarningForbidCamp);
+				e.comment = lines.join("\n");
+			}
+			e.backpackEnabled = fBackpack || fCamp ? EnvironmentStatus.Disable : EnvironmentStatus.Enable;
 			break;
 		default: throw new SummaryException("Unknown content type: " ~ to!(string)(type));
 		}
@@ -1569,14 +1961,17 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 		string name = readString(f, info, false, false);
 		auto cNum = f.readUIntL;
 		int dataVersion;
-		if (cNum < 19999) { mixin(S_TRACE);
+		if (cNum <= 19999) { mixin(S_TRACE);
 			dataVersion = 0;
-		} else if (cNum < 39999) { mixin(S_TRACE);
+		} else if (cNum <= 39999) { mixin(S_TRACE);
 			dataVersion = 2;
 			cNum -= 20000u;
-		} else { mixin(S_TRACE);
+		} else if (cNum <= 69999) { mixin(S_TRACE);
 			dataVersion = 4;
 			cNum -= 40000u;
+		} else { mixin(S_TRACE);
+			dataVersion = 7;
+			cNum -= 70000u;
 		}
 		dataVersions ~= dataVersion;
 		types ~= type;
@@ -1595,12 +1990,126 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			break;
 		}
 	}
+
+	string[string] branchMultiStep;
+	Tuple!(string, string)[string] branchStepCmp;
+
 	Content e = null;
 	foreach_reverse (i, type; types) { mixin(S_TRACE);
-		e = readImpl(d, f, dataVersions[i], type, names[i], infos[i]);
-		if (e.detail.owner) { mixin(S_TRACE);
+		e = readImpl(d, f, dataVersions[i], type, names[i], infos[i], branchMultiStep, branchStepCmp);
+		auto ed = e.detail;
+		if (ed.owner) { mixin(S_TRACE);
+			static immutable REG_C = .ctRegex!("^[0-9]+$");
+			auto defExpr = "";
+			if (auto p = e.eventId in branchMultiStep) { mixin(S_TRACE);
+				if (.any(.map!(c => c.name == "Default")(children))) { mixin(S_TRACE);
+					// 数値ステップの多岐分岐をコモン版へ変換した時の「その他」の式
+					// (他の全ての選択肢に一致しない)を生成しておく
+					auto step = *p;
+					auto encoded = step.replace("\"", "\"\"");
+					assert (step in d.numberSteps);
+					string[] arr;
+					bool[string] ccNames;
+					foreach (cc; children) { mixin(S_TRACE);
+						if (.match(cc.name, REG_C).empty) continue;
+						if (cc.name in ccNames) continue;
+						ccNames[cc.name] = true;
+						arr ~= "@\"%s\" = %s".format(encoded, cc.name);
+					}
+					if (arr.length) { mixin(S_TRACE);
+						defExpr = "not (%s)".format(arr.join(" or "));
+					} else { mixin(S_TRACE);
+						defExpr = "TRUE";
+					}
+				}
+			}
 			foreach (c; children) { mixin(S_TRACE);
-				e.add(null, c);
+				if (ed.nextType is CNextType.Text) { mixin(S_TRACE);
+					auto name2 = c.name;
+					foreach (path; d.numberSteps.byKey()) { mixin(S_TRACE);
+						name2 = .replStepToVariantInText(name2, path, path);
+					}
+					c.setName(null, name2);
+				}
+				void mergeCheckContent(Content chk) { mixin(S_TRACE);
+					// 数値ステップの多岐分岐と比較をコモン版に置換する時、
+					// 直後のイベントコンテントがCheck系であればそれとマージする
+					if (c.type is CType.CheckFlag) { mixin(S_TRACE);
+						chk.expression = "(%s) and (%s)".format(chk.expression, checkFlagExpression(c.flag));
+						foreach (cc; c.next) { mixin(S_TRACE);
+							cc.setName(null, "");
+							chk.add(null, cc);
+						}
+						e.add(null, chk);
+					} else if (c.type is CType.CheckStep) { mixin(S_TRACE);
+						chk.expression = "(%s) and (%s)".format(chk.expression, checkStepExpression(d, c.step, c.stepValue, c.comparison4));
+						foreach (cc; c.next) { mixin(S_TRACE);
+							cc.setName(null, "");
+							chk.add(null, cc);
+						}
+						e.add(null, chk);
+					} else if (c.type is CType.CheckVariant) { mixin(S_TRACE);
+						chk.expression = "(%s) and (%s)".format(chk.expression, c.expression);
+						foreach (cc; c.next) { mixin(S_TRACE);
+							cc.setName(null, "");
+							chk.add(null, cc);
+						}
+						e.add(null, chk);
+					} else { mixin(S_TRACE);
+						c.setName(null, "");
+						chk.add(null, c);
+						e.add(null, chk);
+					}
+				}
+				if (auto p = e.eventId in branchMultiStep) { mixin(S_TRACE);
+					// 数値ステップの多岐分岐をコモン判定へ置換
+					auto chk = new Content(CType.CheckVariant, "");
+					auto step = *p;
+					auto encoded = step.replace("\"", "\"\"");
+					assert (step in d.numberSteps);
+					if (c.name == "Default") { mixin(S_TRACE);
+						chk.expression = defExpr;
+					} else if (!.match(c.name, REG_C).empty) { mixin(S_TRACE);
+						chk.expression = "@\"%s\" = %s".format(encoded, c.name);
+					} else { mixin(S_TRACE);
+						chk.expression = "FALSE";
+					}
+					mergeCheckContent(chk);
+					branchMultiStep.remove(c.eventId);
+				} else if (auto p = e.eventId in branchStepCmp) { mixin(S_TRACE);
+					// 数値ステップないし普通ステップの比較分岐をコモン判定へ置換
+					auto chk = new Content(CType.CheckVariant, "");
+					auto step1 = (*p)[0];
+					auto step2 = (*p)[1];
+					auto encoded1 = step1.replace("\"", "\"\"");
+					auto encoded2 = step2.replace("\"", "\"\"");
+					string exprStep1;
+					string exprStep2;
+					if (step1 in d.numberSteps) { mixin(S_TRACE);
+						exprStep1 = "@\"%s\"".format(encoded1);
+					} else { mixin(S_TRACE);
+						exprStep1 = "STEPVALUE(\"%s\")".format(encoded1);
+					}
+					if (step2 in d.numberSteps) { mixin(S_TRACE);
+						exprStep2 = "@\"%s\"".format(encoded2);
+					} else { mixin(S_TRACE);
+						exprStep2 = "STEPVALUE(\"%s\")".format(encoded2);
+					}
+					switch (c.name) {
+					case "<":
+					case ">":
+					case "=":
+						chk.expression = "%s %s %s".format(exprStep1, c.name, exprStep2);
+						break;
+					default:
+						chk.expression = "FALSE";
+						break;
+					}
+					mergeCheckContent(chk);
+					branchStepCmp.remove(c.eventId);
+				} else { mixin(S_TRACE);
+					e.add(null, c);
+				}
 			}
 		}
 		children = [e];
@@ -1610,6 +2119,13 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 private EventTree readCEventTree(ref RData d, ref ByteIO f, size_t index) { mixin(S_TRACE);
 	EventTree tree = null;
 	uint cNum = f.readUIntL;
+	auto v = d.dataVersion;
+	scope (exit) d.dataVersion = v;
+	if (0x7000000 <= cNum) { mixin(S_TRACE);
+		// データバージョン？
+		cNum -= 0x7000000;
+		d.dataVersion = 7;
+	}
 	for (uint i = 0u; i < cNum; i++) { mixin(S_TRACE);
 		auto start = readContent(d, f, i);
 		if (tree) { mixin(S_TRACE);
@@ -1624,6 +2140,13 @@ private EventTree readCEventTree(ref RData d, ref ByteIO f, size_t index) { mixi
 private EventTree readEventTree(ref RData d, ref ByteIO f, bool enemyCard, size_t index) { mixin(S_TRACE);
 	EventTree tree = null;
 	uint cNum = f.readUIntL;
+	auto v = d.dataVersion;
+	scope (exit) d.dataVersion = v;
+	if (0x7000000 <= cNum) { mixin(S_TRACE);
+		// データバージョン？
+		cNum -= 0x7000000;
+		d.dataVersion = 7;
+	}
 	for (uint i = 0u; i < cNum; i++) { mixin(S_TRACE);
 		auto start = readContent(d, f, i);
 		if (tree) { mixin(S_TRACE);
@@ -1633,9 +2156,9 @@ private EventTree readEventTree(ref RData d, ref ByteIO f, bool enemyCard, size_
 		}
 	}
 	if (!tree) tree = new EventTree("");
-	uint igNum = f.readUIntL;
+	uint igNum = d.dataVersion < 7 ? f.readUIntL : f.readExUInt;
 	for (uint i = 0u; i < igNum; i++) { mixin(S_TRACE);
-		int ig = f.readIntL;
+		int ig = d.dataVersion < 7 ? f.readIntL : f.readExUInt;
 		if (ig < 0) { mixin(S_TRACE);
 			tree.addRound(-ig);
 		} else { mixin(S_TRACE);
@@ -1650,15 +2173,18 @@ private EventTree readEventTree(ref RData d, ref ByteIO f, bool enemyCard, size_
 		}
 	}
 	tree.sortRounds();
-	auto keyCodes = readStrings(f);
-	if (keyCodes.length && "MatchingType=All" == keyCodes[0]) { mixin(S_TRACE);
+	if (7 <= d.dataVersion) { mixin(S_TRACE);
+		tree.keyCodeMatchingType = f.readBool ? MatchingType.And : MatchingType.Or;
+	}
+	auto keyCodes = d.dataVersion < 7 ? readStrings(f) : readExStrings(f);
+	if (d.dataVersion < 7 && keyCodes.length && "MatchingType=All" == keyCodes[0]) { mixin(S_TRACE);
 		// CardWirth 1.50
 		tree.keyCodeMatchingType = MatchingType.And;
 		keyCodes = keyCodes[1 .. $];
 	}
 	FKeyCode[] kcArray;
 	foreach (keyCode; keyCodes) { mixin(S_TRACE);
-		auto kind = d.sys.fireKeyCodeKindRef(keyCode);
+		auto kind = d.prop.sys.fireKeyCodeKindRef(keyCode);
 		kcArray ~= FKeyCode(keyCode, kind);
 	}
 	tree.keyCodes = kcArray;
@@ -1689,7 +2215,7 @@ private BgImage readBgImage(in RData d, ref ByteIO f, bool area, size_t index) {
 		string flag = readString(f);
 		f.readByte;
 		return new ImageCell(imgPath, flag, x, y, w, h, mask);
-	} else { mixin(S_TRACE);
+	} else if (dataVersion <= 6) { mixin(S_TRACE);
 		byte type = f.readByte;
 		switch (type) {
 		case 0:
@@ -1811,20 +2337,131 @@ private BgImage readBgImage(in RData d, ref ByteIO f, bool area, size_t index) {
 		default:
 			throw new SummaryException("Unknown cell type: " ~ to!string(type));
 		}
+	} else { mixin(S_TRACE);
+		byte type = f.readByte;
+		switch (type) {
+		case 0:
+			// イメージセル
+			bool mask = readBool(f);
+			bool foreground = readBool(f);
+			bool included = readBool(f);
+			string imgPath;
+			if (included) { mixin(S_TRACE);
+				imgPath = readExImage(d, f);
+			} else { mixin(S_TRACE);
+				imgPath = .decodePathLegacy(readExString(f));
+			}
+			auto flag = readExString(f);
+			f.readByte; // 不明(0)
+			auto cellName = readExString(f);
+			auto cell = new ImageCell(imgPath, flag, x, y, w, h, mask);
+			cell.layer = foreground ? LAYER_FORE_CELL : LAYER_BACK_CELL;
+			cell.cellName = cellName;
+			return cell;
+		case 2:
+			// テキストセル
+			bool mask = readBool(f);
+			bool foreground = readBool(f);
+			string text = readExString(f).replace("\r", "");
+			foreach (path; d.numberSteps.byKey()) { mixin(S_TRACE);
+				text = .replStepToVariantInText(text, path, path);
+			}
+			string fontName = readExString(f);
+			uint size = f.readExUInt;
+			auto r = f.readUByte;
+			auto g = f.readUByte;
+			auto b = f.readUByte;
+			auto a = f.readUByte;
+			auto color = CRGB(r, g, b, a);
+			ubyte style = f.readUByte;
+			bool bold      = (style & 0b0000001) != 0;
+			bool italic    = (style & 0b0000010) != 0;
+			bool underline = (style & 0b0000100) != 0;
+			bool strike    = (style & 0b0001000) != 0;
+			bool bordering = (style & 0b0010000) != 0;
+			bool vertical  = (style & 0b0100000) != 0;
+			auto borderingType = BorderingType.None;
+			auto borderingColor = CRGB(255, 255, 255, 255);
+			uint borderingWidth = 1;
+			if (bordering) { mixin(S_TRACE);
+				borderingType = toBorderingType(f.readByte);
+				r = f.readUByte;
+				g = f.readUByte;
+				b = f.readUByte;
+				a = f.readUByte;
+				borderingColor = CRGB(r, g, b, a);
+				borderingWidth = f.readExUInt;
+			}
+			f.readByte; // 不明(0xC8)
+			f.readByte; // 不明(0x01)
+			f.readByte; // 不明(0)
+			f.readByte; // 不明(0)
+			f.readByte; // 不明(縦書き時:2,他:0)
+			auto flag = readExString(f);
+			f.readByte; // 不明(0)
+			auto cellName = readExString(f);
+			auto cell = new TextCell(text, fontName, size, color, bold, italic, underline, strike, vertical, false,
+				borderingType, borderingColor, borderingWidth, UpdateType.Fixed, flag, x, y, w, h, mask);
+			cell.layer = foreground ? LAYER_FORE_CELL : LAYER_BACK_CELL;
+			cell.cellName = cellName;
+			return cell;
+		case 3:
+			// カラーセル
+			bool mask = false;
+			auto blend = toBlendMode(f.readByte, mask);
+			bool foreground = readBool(f);
+			auto gradient = toGradientDir(f.readByte);
+			auto b = f.readUByte;
+			auto g = f.readUByte;
+			auto r = f.readUByte;
+			auto a = f.readUByte;
+			auto color1 = CRGB(r, g, b, a);
+			auto color2 = CRGB(0, 0, 0, 255);
+			if (gradient !is GradientDir.None) { mixin(S_TRACE);
+				b = f.readUByte;
+				g = f.readUByte;
+				r = f.readUByte;
+				a = f.readUByte;
+				color2 = CRGB(r, g, b, a);
+			}
+			auto flag = readExString(f);
+			f.readByte; // 不明(0)
+			auto cellName = readExString(f);
+			auto cell = new ColorCell(blend, gradient, color1, color2, flag, x, y, w, h, mask);
+			cell.layer = foreground ? LAYER_FORE_CELL : LAYER_BACK_CELL;
+			cell.cellName = cellName;
+			return cell;
+		case 4:
+			// PCイメージセル
+			bool mask = readBool(f);
+			bool foreground = readBool(f);
+			ubyte pcNumber = f.readUByte;
+			auto flag = readExString(f);
+			f.readByte; // 不明(0)
+			auto cellName = readExString(f);
+			auto cell = new PCCell(pcNumber, false, flag, x, y, w, h, mask);
+			cell.layer = foreground ? LAYER_FORE_CELL : LAYER_BACK_CELL;
+			cell.cellName = cellName;
+			return cell;
+		default:
+			throw new SummaryException("Unknown cell type: " ~ to!string(type));
+		}
 	}
 }
-private BgImage[] readBgImages(in RData d, ref ByteIO f, bool area, bool replBgImg = false) { mixin(S_TRACE);
+private BgImage[] readBgImages(in RData d, ref ByteIO f, int dataVersion, bool area, bool replBgImg = false) { mixin(S_TRACE);
 	BgImage[] bgImgs;
-	if (replBgImg) { mixin(S_TRACE);
-		bgImgs.length = f.readExUInt;
-	} else { mixin(S_TRACE);
+	if (dataVersion < 7) { mixin(S_TRACE);
 		bgImgs.length = f.readUIntL;
+	} else { mixin(S_TRACE);
+		bgImgs.length = f.readExUInt;
 	}
 	for (uint i = 0u; i < bgImgs.length; i++) { mixin(S_TRACE);
 		bgImgs[i] = readBgImage(d, f, area, i);
 	}
 	if (replBgImg) return bgImgs;
-	if (!bgImgs.length) return bgImgs;
+	if (!bgImgs.length) { mixin(S_TRACE);
+		return bgImgs;
+	}
 	auto b = cast(ImageCell)bgImgs[0u];
 	if (b && b.path == "" && b.flag == ""
 			&& b.x == 0 && b.y == 0 && b.width == 632 && b.height == 420 && !b.mask && b.cellName == "") { mixin(S_TRACE);
@@ -1836,355 +2473,640 @@ private BgImage[] readBgImages(in RData d, ref ByteIO f, bool area, bool replBgI
 	}
 }
 private void readAreaHeader(ref RData d, ref ByteIO f, out ulong id, out string name) { mixin(S_TRACE);
-	f.readByte;
-	byte b = f.readByte;
-	if (b == 'B') { mixin(S_TRACE);
-		f.read(69);
-		name = readString(f);
-		auto idl = f.readUIntL;
-		if (idl < 19999) { mixin(S_TRACE);
-			d.dataVersion = 0;
-			id = idl;
-		} else { mixin(S_TRACE);
-			d.dataVersion = 2;
-			id = idl - 20000u;
-		}
+	auto tb = f.readUByte;
+	if (tb == 0xFF) { mixin(S_TRACE);
+		d.dataVersion = f.readUByte;
+		name = readExString(f);
+		id = f.readExUInt;
 	} else { mixin(S_TRACE);
-		d.dataVersion = 4;
-		f.readByte;
-		f.readByte;
-		f.readByte;
-		name = readString(f);
-		id = f.readUIntL - 40000u;
+		byte b = f.readByte;
+		if (b == 'B') { mixin(S_TRACE);
+			f.read(69);
+			name = readString(f);
+			auto idl = f.readUIntL;
+			if (idl < 19999) { mixin(S_TRACE);
+				d.dataVersion = 0;
+				id = idl;
+			} else { mixin(S_TRACE);
+				d.dataVersion = 2;
+				id = idl - 20000u;
+			}
+		} else { mixin(S_TRACE);
+			d.dataVersion = 4;
+			f.readByte;
+			f.readByte;
+			f.readByte;
+			name = readString(f);
+			id = f.readUIntL - 40000u;
+		}
 	}
 }
 private Area loadArea(ref RData d, ref ByteIO f, ulong fid) { mixin(S_TRACE);
+	auto v = d.dataVersion;
+	scope (exit) d.dataVersion = v;
 	ulong id;
 	string name;
 	readAreaHeader(d, f, id, name);
 	auto a = new Area(id, name);
-	uint evtNum = f.readUIntL;
-	for (uint i = 0; i < evtNum; i++) { mixin(S_TRACE);
-		a.add(readEventTree(d, f, false, i));
-	}
-	a.spAuto = !readBool(f);
-	uint cNum = f.readUIntL;
-	for (uint i = 0; i < cNum; i++) { mixin(S_TRACE);
-		f.readByte;
-		string img = readImage(d, f);
-		string cName = readString(f);
-		f.readUIntL;
-		string desc = readString(f);
-		uint cEvtNum = f.readUIntL;
-		EventTree[] trees;
-		trees.length = cEvtNum;
-		for (uint j = 0; j < cEvtNum; j++) { mixin(S_TRACE);
-			trees[j] = readEventTree(d, f, false, j);
+	if (d.dataVersion < 7) { mixin(S_TRACE);
+		uint evtNum = f.readUIntL;
+		for (uint i = 0; i < evtNum; i++) { mixin(S_TRACE);
+			a.add(readEventTree(d, f, false, i));
 		}
-		string flag = readString(f);
-		uint scale = f.readUIntL;
-		int x = f.readIntL;
-		int y = f.readIntL;
-		CardImage imgPath = null;
-		if (d.dataVersion <= 2) { mixin(S_TRACE);
-			// 格納のみ
-			imgPath = img ? new CardImage(img, CardImagePosition.Default) : null;
-		} else { mixin(S_TRACE);
-			auto file = decodePathLegacy(readString(f));
-			if (isNumeric(file)) { mixin(S_TRACE);
-				// PC画像
-				try { mixin(S_TRACE);
-					auto pcNum = .to!uint(file);
-					if (0 < pcNum) imgPath = new CardImage(pcNum);
-				} catch (Exception e) {
-					printStackTrace();
-					debugln(e);
+		a.spAuto = !readBool(f);
+		uint cNum = f.readUIntL;
+		for (uint i = 0; i < cNum; i++) { mixin(S_TRACE);
+			f.readByte;
+			string img = readImage(d, f);
+			string cName = readString(f);
+			f.readUIntL;
+			string desc = readString(f);
+			uint cEvtNum = f.readUIntL;
+			EventTree[] trees;
+			trees.length = cEvtNum;
+			for (uint j = 0; j < cEvtNum; j++) { mixin(S_TRACE);
+				trees[j] = readEventTree(d, f, false, j);
+			}
+			string flag = readString(f);
+			uint scale = f.readUIntL;
+			int x = f.readIntL;
+			int y = f.readIntL;
+			CardImage imgPath = null;
+			if (d.dataVersion <= 2) { mixin(S_TRACE);
+				// 格納のみ
+				imgPath = img ? new CardImage(img, CardImagePosition.Default) : null;
+			} else { mixin(S_TRACE);
+				auto file = decodePathLegacy(readString(f));
+				if (isNumeric(file)) { mixin(S_TRACE);
+					// PC画像
+					try { mixin(S_TRACE);
+						auto pcNum = .to!uint(file);
+						if (0 < pcNum) imgPath = new CardImage(pcNum);
+					} catch (Exception e) {
+						printStackTrace();
+						debugln(e);
+					}
+				}
+				if (!imgPath && file.length) { mixin(S_TRACE);
+					// ファイル指定
+					imgPath = new CardImage(file, CardImagePosition.Default);
+				}
+				if (!imgPath && img.length) {
+					// イメージ格納
+					imgPath = new CardImage(img, CardImagePosition.Default);
 				}
 			}
-			if (!imgPath && file.length) { mixin(S_TRACE);
-				// ファイル指定
+			auto c = new MenuCard(cName, false, imgPath ? [imgPath] : [], desc, flag, x, y, scale, LAYER_MENU_CARD, "", -1);
+			foreach (tree; trees) { mixin(S_TRACE);
+				c.add(tree);
+			}
+			a.append(c);
+		}
+	} else { mixin(S_TRACE);
+		uint evtNum = f.readExUInt;
+		for (uint i = 0; i < evtNum; i++) { mixin(S_TRACE);
+			a.add(readEventTree(d, f, false, i));
+		}
+		a.spAuto = !readBool(f);
+		uint cNum = f.readExUInt;
+		for (uint i = 0; i < cNum; i++) { mixin(S_TRACE);
+			f.readUByte; // 不明(0x80)
+			f.readUByte; // バージョン情報？(0x07)
+			f.readUByte; // 不明(0)
+			string img = readImage(d, f);
+			string cName = readExString(f);
+			f.readUByte; // 不明(0)
+			string desc = readExString(f);
+			uint cEvtNum = f.readExUInt;
+			EventTree[] trees;
+			trees.length = cEvtNum;
+			for (uint j = 0; j < cEvtNum; j++) { mixin(S_TRACE);
+				trees[j] = readEventTree(d, f, false, j);
+			}
+			string flag = readExString(f);
+			uint scale = f.readExUInt;
+			int x = f.readExInt;
+			int y = f.readExInt;
+			auto sb = f.readUByte;
+			auto imgType = sb & 0x0F;
+
+			CardImage imgPath = null;
+			switch (imgType) {
+			case 0: // イメージ無しないし格納
+				if (img != "") imgPath = new CardImage(img, CardImagePosition.Default);
+				break;
+			case 1: // ファイル指定
+				auto file = decodePathLegacy(readExString(f));
 				imgPath = new CardImage(file, CardImagePosition.Default);
+				break;
+			case 2: // PC番号
+				auto pcNum = f.readUByte;
+				imgPath = new CardImage(pcNum);
+				break;
+			default:
+				throw new Exception("Invalid menu card image type: %s".format(imgType));
 			}
-			if (!imgPath && img.length) {
-				// イメージ格納
-				imgPath = new CardImage(img, CardImagePosition.Default);
+
+			auto cardGroup = readExString(f);
+			auto noAnime = (sb & 0b00010000) != 0;
+			auto expandVars = (sb & 0b00100000) != 0;
+			auto animationSpeed = noAnime ? 0 : -1;
+
+			auto c = new MenuCard(cName, expandVars, imgPath ? [imgPath] : [], desc, flag, x, y, scale, LAYER_MENU_CARD, cardGroup, animationSpeed);
+			foreach (tree; trees) { mixin(S_TRACE);
+				c.add(tree);
 			}
+			a.append(c);
 		}
-		auto c = new MenuCard(cName, false, imgPath ? [imgPath] : [], desc, flag, x, y, scale, LAYER_MENU_CARD, "", -1);
-		foreach (tree; trees) { mixin(S_TRACE);
-			c.add(tree);
-		}
-		a.append(c);
 	}
-	foreach (bg; readBgImages(d, f, true)) { mixin(S_TRACE);
+	foreach (bg; readBgImages(d, f, d.dataVersion, true)) { mixin(S_TRACE);
 		a.append(bg);
 	}
 	return a;
 }
 private Battle loadBattle(ref RData d, ref ByteIO f, ulong fid) { mixin(S_TRACE);
+	auto v = d.dataVersion;
+	scope (exit) d.dataVersion = v;
 	ulong id;
 	string name;
 	readAreaHeader(d, f, id, name);
 	auto r = new Battle(id, name, "");
-	uint evtNum = f.readUIntL;
-	for (uint i = 0u; i < evtNum; i++) { mixin(S_TRACE);
-		r.add(readEventTree(d, f, false, i));
-	}
-	r.spAuto = !readBool(f);
-	uint cNum = f.readUIntL;
-	for (uint i = 0u; i < cNum; i++) { mixin(S_TRACE);
-		ulong cId = f.readUIntL;
-		uint cEvtNum = f.readUIntL;
-		EventTree[] cTrees;
-		cTrees.length = cEvtNum;
-		for (uint j = 0u; j < cEvtNum; j++) { mixin(S_TRACE);
-			cTrees[j] = readEventTree(d, f, true, j);
+	if (d.dataVersion < 7) { mixin(S_TRACE);
+		uint evtNum = f.readUIntL;
+		for (uint i = 0u; i < evtNum; i++) { mixin(S_TRACE);
+			r.add(readEventTree(d, f, false, i));
 		}
-		string flag = readString(f);
-		uint scale = f.readUIntL;
-		int x = f.readIntL;
-		int y = f.readIntL;
-		bool escape = readBool(f);
-		auto c = new EnemyCard(cId, [ActionCardType.RunAway:escape], flag, x, y, scale, LAYER_MENU_CARD, "", -1, false, "", false, []);
-		foreach (tree; cTrees) { mixin(S_TRACE);
-			c.add(tree);
+		r.spAuto = !readBool(f);
+		uint cNum = f.readUIntL;
+		for (uint i = 0u; i < cNum; i++) { mixin(S_TRACE);
+			ulong cId = f.readUIntL;
+			uint cEvtNum = f.readUIntL;
+			EventTree[] cTrees;
+			cTrees.length = cEvtNum;
+			for (uint j = 0u; j < cEvtNum; j++) { mixin(S_TRACE);
+				cTrees[j] = readEventTree(d, f, true, j);
+			}
+			string flag = readString(f);
+			uint scale = f.readUIntL;
+			int x = f.readIntL;
+			int y = f.readIntL;
+			bool escape = readBool(f);
+			auto c = new EnemyCard(cId, [ActionCardType.RunAway:escape], flag, x, y, scale, LAYER_MENU_CARD, "", -1, false, "", false, []);
+			foreach (tree; cTrees) { mixin(S_TRACE);
+				c.add(tree);
+			}
+			r.append(c);
 		}
-		r.append(c);
-	}
-	if (d.dataVersion > 0) { mixin(S_TRACE);
-		r.music = decodePathLegacy(readString(f));
+		if (0 < d.dataVersion) { mixin(S_TRACE);
+			r.music = decodePathLegacy(readString(f));
+		} else { mixin(S_TRACE);
+			r.music = "DefBattle.mid";
+		}
 	} else { mixin(S_TRACE);
-		r.music = "DefBattle.mid";
+		uint evtNum = f.readExUInt;
+		for (uint i = 0; i < evtNum; i++) { mixin(S_TRACE);
+			r.add(readEventTree(d, f, false, i));
+		}
+		r.spAuto = !readBool(f);
+		uint cNum = f.readExUInt;
+		for (uint i = 0; i < cNum; i++) { mixin(S_TRACE);
+			ulong cId = f.readExUInt;
+			uint cEvtNum = f.readUIntL;
+			EventTree[] cTrees;
+			cTrees.length = cEvtNum;
+			for (uint j = 0u; j < cEvtNum; j++) { mixin(S_TRACE);
+				cTrees[j] = readEventTree(d, f, true, j);
+			}
+			string flag = readString(f);
+			uint scale = f.readUIntL;
+			int x = f.readIntL;
+			int y = f.readIntL;
+			auto sb = f.readUByte;
+			auto escape = (sb & 0b0001) != 0;
+			auto pcImage = (sb & 0b0010) != 0;
+			auto isOverrideName = (sb & 0b0100) != 0;
+			uint pcNum = 0;
+			if (pcImage) pcNum = f.readUByte;
+			string overrideName;
+			if (isOverrideName) overrideName = readExString(f);
+
+			auto c = new EnemyCard(cId, [ActionCardType.RunAway:escape], flag, x, y, scale, LAYER_MENU_CARD, "", -1, isOverrideName, overrideName, pcImage, pcImage ? [new CardImage(pcNum)] : []);
+			foreach (tree; cTrees) { mixin(S_TRACE);
+				c.add(tree);
+			}
+			r.append(c);
+		}
+		r.music = decodePathLegacy(readExString(f));
 	}
 	return r;
 }
 private Package loadPackage(ref RData d, ref ByteIO f, ulong fid) { mixin(S_TRACE);
-	f.readUIntL;
-	string name = readString(f);
-	ulong id = f.readUIntL;
+	d.dataVersion = f.readUIntL;
+	string name;
+	ulong id;
+	uint evtNum;
+	if (d.dataVersion < 7) { mixin(S_TRACE);
+		name = readString(f);
+		id = f.readUIntL;
+		evtNum = f.readUIntL;
+	} else { mixin(S_TRACE);
+		name = readExString(f);
+		id = f.readExUInt;
+		evtNum = f.readExUInt;
+	}
 	auto r = new Package(id, name);
-	uint evtNum = f.readUIntL;
 	for (uint i = 0u; i < evtNum; i++) { mixin(S_TRACE);
 		r.add(readCEventTree(d, f, i));
 	}
 	return r;
 }
 private CastCard loadCast(ref RData d, ref ByteIO f, ulong fid) { mixin(S_TRACE);
-	f.readByte;
-	string img = readImage(d, f);
-	string name = readString(f);
-	ulong idl = f.readUIntL;
-	ulong id;
-	if (idl < 19999) { mixin(S_TRACE);
-		d.dataVersion = 0;
-		id = idl;
-	} else if (idl < 39999) { mixin(S_TRACE);
-		d.dataVersion = 2;
-		id = idl - 20000;
-	} else { mixin(S_TRACE);
-		d.dataVersion = 4;
-		id = idl - 40000;
-	}
-	auto r = new CastCard(id, name, img.length ? [new CardImage(img, CardImagePosition.Default)] : [], "", 1u, 1u);
-	r.weaponResist = readBool(f);
-	r.magicResist = readBool(f);
-	r.undead = readBool(f);
-	r.automaton = readBool(f);
-	r.unholy = readBool(f);
-	r.constructure = readBool(f);
-	r.resist(Element.Fire, readBool(f));
-	r.resist(Element.Ice, readBool(f));
-	r.weakness(Element.Fire, readBool(f));
-	r.weakness(Element.Ice, readBool(f));
-	r.level = f.readUIntL;
-	f.readUIntL; // 所持金。現行エンジンでは未使用
-	r.desc = readString(f, true, true);
-	r.life = f.readUIntL;
-	r.lifeMax = f.readUIntL;
-	r.paralyze = f.readUIntL;
-	r.poison = f.readUIntL;
-	r.defaultEnhance(Enhance.Avoid, f.readUIntL);
-	r.defaultEnhance(Enhance.Resist, f.readUIntL);
-	r.defaultEnhance(Enhance.Defense, f.readUIntL);
-	r.physical(Physical.Dex, f.readUIntL);
-	r.physical(Physical.Agl, f.readUIntL);
-	r.physical(Physical.Int, f.readUIntL);
-	r.physical(Physical.Str, f.readUIntL);
-	r.physical(Physical.Vit, f.readUIntL);
-	r.physical(Physical.Min, f.readUIntL);
-	r.mental(Mental.Aggressive, f.readIntL);
-	r.mental(Mental.Cheerful, f.readIntL);
-	r.mental(Mental.Brave, f.readIntL);
-	r.mental(Mental.Cautious, f.readIntL);
-	r.mental(Mental.Trickish, f.readIntL);
-	r.mentality = toMentality(f.readByte);
-	r.mentalityRound = f.readUIntL;
-	r.bindRound = f.readUIntL;
-	r.silenceRound = f.readUIntL;
-	r.faceUpRound = f.readUIntL;
-	r.antiMagicRound = f.readUIntL;
-	r.enhance(Enhance.Action, f.readUIntL);
-	r.enhanceRound(Enhance.Action, f.readUIntL);
-	r.enhance(Enhance.Avoid, f.readUIntL);
-	r.enhanceRound(Enhance.Avoid, f.readUIntL);
-	r.enhance(Enhance.Resist, f.readUIntL);
-	r.enhanceRound(Enhance.Resist, f.readUIntL);
-	r.enhance(Enhance.Defense, f.readUIntL);
-	r.enhanceRound(Enhance.Defense, f.readUIntL);
-	uint itmNum = f.readUIntL;
-	for (uint i = 0u; i < itmNum; i++) { mixin(S_TRACE);
-		r.add(loadItem(d, f, i + 1), true);
-	}
-	uint sklNum = f.readUIntL;
-	for (uint i = 0u; i < sklNum; i++) { mixin(S_TRACE);
-		r.add(loadSkill(d, f, i + 1), true);
-	}
-	uint bstNum = f.readUIntL;
-	for (uint i = 0u; i < bstNum; i++) { mixin(S_TRACE);
-		r.add(loadBeast(d, f, i + 1), true);
-	}
-	if (d.dataVersion > 0) { mixin(S_TRACE);
-		uint cpnNum = f.readUIntL;
+	auto v = d.dataVersion;
+	scope (exit) d.dataVersion = v;
+	auto b = f.readUByte;
+	CastCard r;
+	if (b == 0x80) { mixin(S_TRACE);
+		d.dataVersion = f.readByte;
+		f.readByte; // Type: Mate=2
+		auto img = readImage(d, f);
+		auto name = readExString(f);
+		auto id = f.readExUInt;
+		r = new CastCard(id, name, img.length ? [new CardImage(img, CardImagePosition.Default)] : [], "", 1u, 1u);
+		auto eb1 = f.readUByte;
+		auto eb2 = f.readUByte;
+		r.weaponResist = (eb1 & 0b00000001) != 0;
+		r.magicResist = (eb1 & 0b00000010) != 0;
+		r.undead = (eb1 & 0b00000100) != 0;
+		r.automaton = (eb1 & 0b00001000) != 0;
+		r.unholy = (eb1 & 0b00010000) != 0;
+		r.constructure = (eb1 & 0b00100000) != 0;
+		r.resist(Element.Fire, (eb1 & 0b01000000) != 0);
+		r.resist(Element.Ice, (eb1 & 0b10000000) != 0);
+		r.weakness(Element.Fire, (eb2 & 0b00000001) != 0);
+		r.weakness(Element.Ice, (eb2 & 0b00000010) != 0);
+		r.level = f.readExUInt;
+		r.desc = readExString(f, true, true);
+		r.life = f.readExUInt;
+		r.lifeMax = f.readExUInt;
+		r.paralyze = f.readExUInt;
+		r.poison = f.readExUInt;
+		r.defaultEnhance(Enhance.Avoid, f.readExInt);
+		r.defaultEnhance(Enhance.Resist, f.readExInt);
+		r.defaultEnhance(Enhance.Defense, f.readExInt);
+		r.physical(Physical.Dex, f.readExUInt);
+		r.physical(Physical.Agl, f.readExUInt);
+		r.physical(Physical.Int, f.readExUInt);
+		r.physical(Physical.Str, f.readExUInt);
+		r.physical(Physical.Vit, f.readExUInt);
+		r.physical(Physical.Min, f.readExUInt);
+		r.mental(Mental.Aggressive, f.readExInt);
+		r.mental(Mental.Cheerful, f.readExInt);
+		r.mental(Mental.Brave, f.readExInt);
+		r.mental(Mental.Cautious, f.readExInt);
+		r.mental(Mental.Trickish, f.readExInt);
+		r.mentality = toMentality(f.readByte);
+		r.mentalityRound = f.readExUInt;
+		r.bindRound = f.readExUInt;
+		r.silenceRound = f.readExUInt;
+		r.faceUpRound = f.readExUInt;
+		r.antiMagicRound = f.readExUInt;
+		r.enhance(Enhance.Action, f.readExInt);
+		r.enhanceRound(Enhance.Action, f.readExUInt);
+		r.enhance(Enhance.Avoid, f.readExInt);
+		r.enhanceRound(Enhance.Avoid, f.readExUInt);
+		r.enhance(Enhance.Resist, f.readExInt);
+		r.enhanceRound(Enhance.Resist, f.readExUInt);
+		r.enhance(Enhance.Defense, f.readExInt);
+		r.enhanceRound(Enhance.Defense, f.readExUInt);
+		auto itmNum = f.readExUInt;
+		for (uint i = 0u; i < itmNum; i++) { mixin(S_TRACE);
+			r.add(loadItem(d, f, i + 1), true);
+		}
+		auto sklNum = f.readExUInt;
+		for (uint i = 0u; i < sklNum; i++) { mixin(S_TRACE);
+			r.add(loadSkill(d, f, i + 1), true);
+		}
+		auto bstNum = f.readExUInt;
+		for (uint i = 0u; i < bstNum; i++) { mixin(S_TRACE);
+			r.add(loadBeast(d, f, i + 1), true);
+		}
+		f.readByte; // 不明
+		auto cpnNum = f.readExUInt;
 		Coupon[] cpns;
 		cpns.length = cpnNum;
 		for (uint i = 0u; i < cpnNum; i++) { mixin(S_TRACE);
-			string coupon = readString(f);
-			int val = f.readIntL;
+			auto coupon = readString(f);
+			auto val = f.readIntL;
 			cpns[i] = new Coupon(coupon, val);
 		}
 		r.coupons = cpns;
+	} else { mixin(S_TRACE);
+		auto img = readImage(d, f);
+		auto name = readString(f);
+		ulong idl = f.readUIntL;
+		ulong id;
+		if (idl < 19999) { mixin(S_TRACE);
+			d.dataVersion = 0;
+			id = idl;
+		} else if (idl < 39999) { mixin(S_TRACE);
+			d.dataVersion = 2;
+			id = idl - 20000;
+		} else { mixin(S_TRACE);
+			d.dataVersion = 4;
+			id = idl - 40000;
+		}
+		r = new CastCard(id, name, img.length ? [new CardImage(img, CardImagePosition.Default)] : [], "", 1u, 1u);
+		r.weaponResist = readBool(f);
+		r.magicResist = readBool(f);
+		r.undead = readBool(f);
+		r.automaton = readBool(f);
+		r.unholy = readBool(f);
+		r.constructure = readBool(f);
+		r.resist(Element.Fire, readBool(f));
+		r.resist(Element.Ice, readBool(f));
+		r.weakness(Element.Fire, readBool(f));
+		r.weakness(Element.Ice, readBool(f));
+		r.level = f.readUIntL;
+		f.readUIntL; // 所持金。現行エンジンでは未使用
+		r.desc = readString(f, true, true);
+		r.life = f.readUIntL;
+		r.lifeMax = f.readUIntL;
+		r.paralyze = f.readUIntL;
+		r.poison = f.readUIntL;
+		r.defaultEnhance(Enhance.Avoid, f.readUIntL);
+		r.defaultEnhance(Enhance.Resist, f.readUIntL);
+		r.defaultEnhance(Enhance.Defense, f.readUIntL);
+		r.physical(Physical.Dex, f.readUIntL);
+		r.physical(Physical.Agl, f.readUIntL);
+		r.physical(Physical.Int, f.readUIntL);
+		r.physical(Physical.Str, f.readUIntL);
+		r.physical(Physical.Vit, f.readUIntL);
+		r.physical(Physical.Min, f.readUIntL);
+		r.mental(Mental.Aggressive, f.readIntL);
+		r.mental(Mental.Cheerful, f.readIntL);
+		r.mental(Mental.Brave, f.readIntL);
+		r.mental(Mental.Cautious, f.readIntL);
+		r.mental(Mental.Trickish, f.readIntL);
+		r.mentality = toMentality(f.readByte);
+		r.mentalityRound = f.readUIntL;
+		r.bindRound = f.readUIntL;
+		r.silenceRound = f.readUIntL;
+		r.faceUpRound = f.readUIntL;
+		r.antiMagicRound = f.readUIntL;
+		r.enhance(Enhance.Action, f.readUIntL);
+		r.enhanceRound(Enhance.Action, f.readUIntL);
+		r.enhance(Enhance.Avoid, f.readUIntL);
+		r.enhanceRound(Enhance.Avoid, f.readUIntL);
+		r.enhance(Enhance.Resist, f.readUIntL);
+		r.enhanceRound(Enhance.Resist, f.readUIntL);
+		r.enhance(Enhance.Defense, f.readUIntL);
+		r.enhanceRound(Enhance.Defense, f.readUIntL);
+		uint itmNum = f.readUIntL;
+		for (uint i = 0u; i < itmNum; i++) { mixin(S_TRACE);
+			r.add(loadItem(d, f, i + 1), true);
+		}
+		uint sklNum = f.readUIntL;
+		for (uint i = 0u; i < sklNum; i++) { mixin(S_TRACE);
+			r.add(loadSkill(d, f, i + 1), true);
+		}
+		uint bstNum = f.readUIntL;
+		for (uint i = 0u; i < bstNum; i++) { mixin(S_TRACE);
+			r.add(loadBeast(d, f, i + 1), true);
+		}
+		if (0 < d.dataVersion) { mixin(S_TRACE);
+			uint cpnNum = f.readUIntL;
+			Coupon[] cpns;
+			cpns.length = cpnNum;
+			for (uint i = 0u; i < cpnNum; i++) { mixin(S_TRACE);
+				string coupon = readString(f);
+				int val = f.readIntL;
+				cpns[i] = new Coupon(coupon, val);
+			}
+			r.coupons = cpns;
+		}
 	}
 	return r;
 }
 private C readEffCard(C)(ref RData d, ref ByteIO f) { mixin(S_TRACE);
-	f.readByte;
-	string img = readImage(d, f);
-	string name = readString(f);
-	ulong idl = f.readUIntL;
-	ulong id;
-	if (idl < 19999) { mixin(S_TRACE);
-		d.dataVersion = 0;
-		id = idl;
-	} else if (idl < 39999) { mixin(S_TRACE);
-		d.dataVersion = 2;
-		id = idl - 20000;
-	} else { mixin(S_TRACE);
-		d.dataVersion = 4;
-		id = idl - 40000;
-	}
-	string desc = readString(f);
-	auto r = new C(d.sys, id, name, img.length ? [new CardImage(img, CardImagePosition.Default)] : [], desc);
-	r.physical = toPhysical(f.readUIntL);
-	r.mental = toMental(f.readIntL);
-	r.spell = readBool(f);
-	r.allRange = readBool(f);
-	r.target = toCardTarget(f.readByte);
-	r.effectType = toEffectType(f.readByte);
-	r.resist = toResist(f.readByte);
-	r.successRate = f.readIntL;
-	r.visual = toCardVisual(f.readByte);
-	uint mNum = f.readUIntL;
-	Motion[] motions;
-	motions.length = mNum;
-	for (uint i = 0u; i < mNum; i++) { mixin(S_TRACE);
-		motions[i] = readMotion(d, d.dataVersion, f, i);
-	}
-	r.motions = motions;
-	r.enhance(Enhance.Avoid, f.readIntL);
-	r.enhance(Enhance.Resist, f.readIntL);
-	r.enhance(Enhance.Defense, f.readIntL);
-	string sp1 = readString(f);
-	r.soundPath1 = (sp1 == "（なし）" || sp1 == "（なし）.wav") ? "" : decodePathLegacy(sp1);
-	string sp2 = readString(f);
-	r.soundPath2 = (sp2 == "（なし）" || sp2 == "（なし）.wav") ? "" : decodePathLegacy(sp2);
-	string[] keyCodes;
-	keyCodes.length = 5u;
-	uint keyCodeCount = 0;
-	for (uint i = 0u; i < 5u; i++) { mixin(S_TRACE);
-		keyCodes[i] = readString(f);
-		if (keyCodes[i] != "") keyCodeCount = i + 1;
-	}
-	keyCodes.length = keyCodeCount;
-	r.keyCodes = keyCodes;
-	if (d.dataVersion > 0) { mixin(S_TRACE);
+	auto b = f.readUByte;
+	C r;
+	if (b == 0x80) { mixin(S_TRACE);
+		d.dataVersion = f.readByte;
+		f.readByte; // Type: Skill=5, Item=3, Beast=6
+		auto img = readImage(d, f);
+		auto name = readExString(f);
+		auto id = f.readExUInt;
+		auto desc = readExString(f);
+		r = new C(d.prop.sys, id, name, img.length ? [new CardImage(img, CardImagePosition.Default)] : [], desc);
+		r.physical = toPhysical(f.readExInt);
+		r.mental = toMental(f.readExInt);
+		r.spell = readBool(f);
+		r.allRange = readBool(f);
+		r.target = toCardTarget(f.readByte);
+		r.effectType = toEffectType(f.readByte);
+		r.resist = toResist(f.readByte);
+		r.successRate = f.readExInt;
+		r.visual = toCardVisual(f.readByte);
+		uint mNum = f.readExUInt;
+		Motion[] motions;
+		motions.length = mNum;
+		for (uint i = 0u; i < mNum; i++) { mixin(S_TRACE);
+			motions[i] = readMotion(d, d.dataVersion, f, i);
+		}
+		r.motions = motions;
+		r.enhance(Enhance.Avoid, f.readExInt);
+		r.enhance(Enhance.Resist, f.readExInt);
+		r.enhance(Enhance.Defense, f.readExInt);
+
+		auto sp1 = readSound(d, f);
+		r.soundPath1 = (sp1 == "（なし）" || sp1 == "（なし）.wav") ? "" : decodePathLegacy(sp1);
+		auto sp2 = readSound(d, f);
+		r.soundPath2 = (sp2 == "（なし）" || sp2 == "（なし）.wav") ? "" : decodePathLegacy(sp2);
+
+		auto keyCodeNum = f.readExUInt;
+		auto keyCodes = new string[keyCodeNum];
+		uint keyCodeCount = 0;
+		for (uint i = 0u; i < keyCodeNum; i++) { mixin(S_TRACE);
+			keyCodes[i] = readExString(f);
+			if (keyCodes[i] != "") keyCodeCount = i + 1;
+		}
+		keyCodes.length = keyCodeCount;
+		r.keyCodes = keyCodes;
 		r.premium = toPremium(f.readByte);
-	}
-	if (d.dataVersion > 2) { mixin(S_TRACE);
-		r.scenario = readString(f);
-		r.author = readString(f);
-		uint evtNum = f.readUIntL;
+		f.readByte; // 不明
+		r.scenario = readExString(f);
+		r.author = readExString(f);
+		uint evtNum = f.readExUInt;
 		for (uint i = 0u; i < evtNum; i++) { mixin(S_TRACE);
 			r.add(readCEventTree(d, f, i));
+		}
+	} else { mixin(S_TRACE);
+		auto img = readImage(d, f);
+		auto name = readString(f);
+		auto idl = f.readUIntL;
+		ulong id;
+		if (idl < 19999) { mixin(S_TRACE);
+			d.dataVersion = 0;
+			id = idl;
+		} else if (idl < 39999) { mixin(S_TRACE);
+			d.dataVersion = 2;
+			id = idl - 20000;
+		} else { mixin(S_TRACE);
+			d.dataVersion = 4;
+			id = idl - 40000;
+		}
+		auto desc = readString(f);
+		r = new C(d.prop.sys, id, name, img.length ? [new CardImage(img, CardImagePosition.Default)] : [], desc);
+		r.physical = toPhysical(f.readUIntL);
+		r.mental = toMental(f.readIntL);
+		r.spell = readBool(f);
+		r.allRange = readBool(f);
+		r.target = toCardTarget(f.readByte);
+		r.effectType = toEffectType(f.readByte);
+		r.resist = toResist(f.readByte);
+		r.successRate = f.readIntL;
+		r.visual = toCardVisual(f.readByte);
+		uint mNum = f.readUIntL;
+		Motion[] motions;
+		motions.length = mNum;
+		for (uint i = 0u; i < mNum; i++) { mixin(S_TRACE);
+			motions[i] = readMotion(d, d.dataVersion, f, i);
+		}
+		r.motions = motions;
+		r.enhance(Enhance.Avoid, f.readIntL);
+		r.enhance(Enhance.Resist, f.readIntL);
+		r.enhance(Enhance.Defense, f.readIntL);
+		string sp1 = readString(f);
+		r.soundPath1 = (sp1 == "（なし）" || sp1 == "（なし）.wav") ? "" : decodePathLegacy(sp1);
+		string sp2 = readString(f);
+		r.soundPath2 = (sp2 == "（なし）" || sp2 == "（なし）.wav") ? "" : decodePathLegacy(sp2);
+		string[] keyCodes;
+		keyCodes.length = 5u;
+		uint keyCodeCount = 0;
+		for (uint i = 0u; i < 5u; i++) { mixin(S_TRACE);
+			keyCodes[i] = readString(f);
+			if (keyCodes[i] != "") keyCodeCount = i + 1;
+		}
+		keyCodes.length = keyCodeCount;
+		r.keyCodes = keyCodes;
+		if (0 < d.dataVersion) { mixin(S_TRACE);
+			r.premium = toPremium(f.readByte);
+		}
+		if (2 < d.dataVersion) { mixin(S_TRACE);
+			r.scenario = readString(f);
+			r.author = readString(f);
+			uint evtNum = f.readUIntL;
+			for (uint i = 0u; i < evtNum; i++) { mixin(S_TRACE);
+				r.add(readCEventTree(d, f, i));
+			}
 		}
 	}
 	return r;
 }
 private SkillCard loadSkill(ref RData d, ref ByteIO f, ulong fid) { mixin(S_TRACE);
+	auto v = d.dataVersion;
+	scope (exit) d.dataVersion = v;
 	auto r = readEffCard!(SkillCard)(d, f);
-	if (d.dataVersion > 2) { mixin(S_TRACE);
+	if (2 < d.dataVersion) { mixin(S_TRACE);
 		r.hold = readBool(f);
 	}
-	r.level = f.readUIntL;
-	r.useLimit = f.readUIntL;
+	if (d.dataVersion < 7) { mixin(S_TRACE);
+		r.level = f.readUIntL;
+		r.useLimit = f.readUIntL;
+	} else { mixin(S_TRACE);
+		r.level = f.readExInt;
+		r.useLimit = f.readExUInt;
+		f.readBool; // バックパック対応
+	}
 	return r;
 }
 private ItemCard loadItem(ref RData d, ref ByteIO f, ulong fid) { mixin(S_TRACE);
+	auto v = d.dataVersion;
+	scope (exit) d.dataVersion = v;
 	auto r = readEffCard!(ItemCard)(d, f);
-	if (d.dataVersion > 2) { mixin(S_TRACE);
+	if (2 < d.dataVersion) { mixin(S_TRACE);
 		r.hold = readBool(f);
 	}
-	r.useLimit = f.readUIntL;
-	r.useLimitMax = f.readUIntL;
-	r.price = f.readUIntL;
-	r.enhanceOwner(Enhance.Avoid, f.readUIntL);
-	r.enhanceOwner(Enhance.Resist, f.readUIntL);
-	r.enhanceOwner(Enhance.Defense, f.readUIntL);
+	if (d.dataVersion < 7) { mixin(S_TRACE);
+		r.useLimit = f.readUIntL;
+		r.useLimitMax = f.readUIntL;
+		r.price = f.readUIntL;
+		r.enhanceOwner(Enhance.Avoid, f.readUIntL);
+		r.enhanceOwner(Enhance.Resist, f.readUIntL);
+		r.enhanceOwner(Enhance.Defense, f.readUIntL);
+	} else { mixin(S_TRACE);
+		r.useLimit = f.readExUInt;
+		r.useLimitMax = f.readExUInt;
+		r.price = f.readExUInt;
+		r.enhanceOwner(Enhance.Avoid, f.readExInt);
+		r.enhanceOwner(Enhance.Resist, f.readExInt);
+		r.enhanceOwner(Enhance.Defense, f.readExInt);
+		// バックパック対応は記憶されない(バグ？)
+	}
 	return r;
 }
 private BeastCard loadBeast(ref RData d, ref ByteIO f, ulong fid) { mixin(S_TRACE);
+	auto v = d.dataVersion;
+	scope (exit) d.dataVersion = v;
 	auto r = readEffCard!(BeastCard)(d, f);
-	if (d.dataVersion > 2) { mixin(S_TRACE);
+	if (2 < d.dataVersion) { mixin(S_TRACE);
 		readBool(f); // Hold
 	}
-	r.useLimit = f.readUIntL;
+	r.useLimit = d.dataVersion < 7 ? f.readUIntL : f.readExUInt;
+	// バックパック対応は記憶されない(バグ？)
+	if (7 <= d.dataVersion) f.readByte; // 不明(使用回数あり=1, 使用回数無し=0。付帯フラグか？)
 	return r;
 }
 private InfoCard loadInfo(ref RData d, ref ByteIO f, ulong fid) { mixin(S_TRACE);
-	f.readByte;
-	string img = readImage(d, f);
-	string name = readString(f);
-	ulong idl = f.readUIntL;
+	auto v = d.dataVersion;
+	scope (exit) d.dataVersion = v;
+	auto b = f.readUByte;
+	string img;
+	string name;
 	ulong id;
-	if (idl < 19999) { mixin(S_TRACE);
-		d.dataVersion = 0;
-		id = idl;
-	} else if (idl < 39999) { mixin(S_TRACE);
-		d.dataVersion = 2;
-		id = idl - 20000;
+	string desc;
+	if (b == 0x80) { mixin(S_TRACE);
+		d.dataVersion = f.readByte;
+		f.readByte; // Type: Info=4
+		img = readImage(d, f);
+		name = readExString(f);
+		id = f.readExUInt;
+		desc = readExString(f);
 	} else { mixin(S_TRACE);
-		d.dataVersion = 4;
-		id = idl - 40000;
+		img = readImage(d, f);
+		name = readString(f);
+		ulong idl = f.readUIntL;
+		if (idl < 19999) { mixin(S_TRACE);
+			d.dataVersion = 0;
+			id = idl;
+		} else if (idl < 39999) { mixin(S_TRACE);
+			d.dataVersion = 2;
+			id = idl - 20000;
+		} else { mixin(S_TRACE);
+			d.dataVersion = 4;
+			id = idl - 40000;
+		}
+		desc = readString(f);
 	}
-	string desc = readString(f);
 	return new InfoCard(id, name, img.length ? [new CardImage(img, CardImagePosition.Default)] : [], desc);
 }
 
 /// パーティ見出しデータ(*.wpl)からパーティ名を取得する。
-string readPartyName(in CProps prop, string wpl) { mixin(S_TRACE);
-	auto d = RData(prop.sys, false, "", "", "");
+string readPartyName(const CProps prop, string wpl) { mixin(S_TRACE);
+	auto d = RData(prop, false, "", "", "", 0);
 	ubyte* ptr = null;
 	auto f = ByteIO(readBinaryFrom!ubyte(wpl, ptr));
 	scope (exit) freeAll(ptr);
 	f.readUShortL; // 不明(0)
 	readString(f); // 宿名
 	readImage(d, f); // 宿イメージ
-	readStrings(f); // メンバリスト
+	readString(f); // メンバリスト
 	return readString(f); // パーティ名
 }
 
 /// 宿情報(Environment.wyd)からデバッグ宿か否かを取得する。
-bool isDebugYado(in CProps prop, string yadoDir) { mixin(S_TRACE);
-	auto d = RData(prop.sys, false, "", "", "");
+bool isDebugYado(const CProps prop, string yadoDir) { mixin(S_TRACE);
+	auto d = RData(prop, false, "", "", "", 0);
 	auto env = yadoDir.buildPath("Environment.wyd");
 	ubyte* ptr = null;
 	auto f = ByteIO(readBinaryFrom!ubyte(env, ptr));
@@ -2532,6 +3454,19 @@ private byte fromRange(Range v) { mixin(S_TRACE);
 	case Range.SelectedCard: return 0; // Wsn.3
 	}
 }
+private byte fromRangeEffectContent(Range v) { mixin(S_TRACE);
+	final switch (v) {
+	case Range.Selected: return 0;
+	case Range.Random: return 1;
+	case Range.Party: return 2;
+	case Range.Backpack: return 0;
+	case Range.PartyAndBackpack: return 0;
+	case Range.Field: return 0;
+	case Range.CouponHolder: return 0;
+	case Range.CardTarget: return 3;
+	case Range.SelectedCard: return 0;
+	}
+}
 /// CardWirth 1.50
 private byte fromKeyCodeRange(Range v) { mixin(S_TRACE);
 	switch (v) {
@@ -2625,7 +3560,7 @@ private byte fromGradientDir(GradientDir v) { mixin(S_TRACE);
 	default: throw new SummaryException("Unknown gradient direction value: " ~ to!(string)(cast(int)v));
 	}
 }
-/// CardWirth 1.60
+/// Wsn.1
 private byte fromCoordinateType(CoordinateType v) { mixin(S_TRACE);
 	switch (v) {
 	case CoordinateType.Absolute: return 0;
@@ -2746,7 +3681,7 @@ private void writeBool(ref ByteIO f, bool b) { mixin(S_TRACE);
 	f.writeL(cast(byte)(b ? 1 : 0));
 }
 private void writeExImage(ref SData d, ref ByteIO f, CWXPath cp, string imgPath) { mixin(S_TRACE);
-	writeImageImpl(d, f, cp, imgPath, (val) => f.writeExInt(val));
+	writeImageImpl(d, f, cp, imgPath, (val) => f.writeExUInt(val));
 }
 private void writeImage(ref SData d, ref ByteIO f, CWXPath cp, string imgPath) { mixin(S_TRACE);
 	writeImageImpl(d, f, cp, imgPath, &f.writeL);
@@ -2775,8 +3710,8 @@ private void writeImageImpl(ref SData d, ref ByteIO f, CWXPath cp, string imgPat
 	writeSize(cast(uint)bytes.length);
 	f.write(bytes);
 }
-private void writeExString(ref ByteIO f, string str) { mixin(S_TRACE);
-	writeStringImpl(f, str, true, false, (val) => f.writeExInt(val));
+private void writeExString(ref ByteIO f, string str, bool lns = false, bool cutText = false) { mixin(S_TRACE);
+	writeStringImpl(f, str, lns, cutText, (val) => f.writeExUInt(val));
 }
 private void writeString(ref ByteIO f, string str, bool lns = false, bool cutText = false) { mixin(S_TRACE);
 	writeStringImpl(f, str, lns, cutText, &f.writeL);
@@ -2790,7 +3725,7 @@ private void writeStringImpl(ref ByteIO f, string str, bool lns, bool cutText, v
 		str = tosjis(str);
 		if (!lns) str ~= "\0";
 		writeSize(cast(uint)str.length);
-		f.writeL(cast(ubyte[]) str);
+		f.writeL(cast(ubyte[])str);
 	} else { mixin(S_TRACE);
 		if (lns) { mixin(S_TRACE);
 			writeSize(cast(uint)0);
@@ -2800,11 +3735,20 @@ private void writeStringImpl(ref ByteIO f, string str, bool lns, bool cutText, v
 		}
 	}
 }
+private void writeExStrings(ref ByteIO f, string[] strs) { mixin(S_TRACE);
+	if (strs.length) { mixin(S_TRACE);
+		auto s = std.string.join(strs, "\n");
+		if (s.length && s[$ - 1] != '\n') s ~= '\n';
+		writeExString(f, s, true);
+	} else { mixin(S_TRACE);
+		writeExString(f, "", true);
+	}
+}
 private void writeStrings(ref ByteIO f, string[] strs) { mixin(S_TRACE);
 	if (strs.length) { mixin(S_TRACE);
 		auto s = std.string.join(strs, "\n");
 		if (s.length && s[$ - 1] != '\n') s ~= '\n';
-		writeString(f,  s, true);
+		writeString(f, s, true);
 	} else { mixin(S_TRACE);
 		f.writeL(cast(uint)0);
 	}
@@ -2818,33 +3762,88 @@ private void writeSummary(ref SData d, ref ByteIO f, Summary summ) { mixin(S_TRA
 	writeString(f, summ.author);
 	writeStrings(f, summ.rCoupons);
 	f.writeL(cast(uint)summ.rCouponNum);
-	f.writeL(cast(uint)(summ.startArea + 40000u));
-	auto steps = summ.flagDirRoot.allSteps;
-	f.writeL(cast(uint)steps.length);
-	void putStep(Step step) { mixin(S_TRACE);
-		writeString(f, step.path);
-		f.writeL((step.select < 10u) ? cast(uint)step.select : (10u - 1u));
-		for (uint i = 0u; i < 10u; i++) { mixin(S_TRACE);
-			if (i < step.count) { mixin(S_TRACE);
-				writeString(f, step.getValue(i));
-			} else { mixin(S_TRACE);
-				writeString(f, "Step - " ~ to!(string)(i + 1u));
+	if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+		f.writeL(cast(uint)(summ.startArea + 40000u));
+		auto steps = summ.flagDirRoot.allSteps;
+		f.writeL(cast(uint)steps.length);
+		void putStep(Step step) { mixin(S_TRACE);
+			writeString(f, step.path);
+			f.writeL((step.select < 10u) ? cast(uint)step.select : (10u - 1u));
+			for (uint i = 0u; i < 10u; i++) { mixin(S_TRACE);
+				if (i < step.count) { mixin(S_TRACE);
+					writeString(f, step.getValue(i));
+				} else { mixin(S_TRACE);
+					writeString(f, "Step - " ~ to!(string)(i + 1u));
+				}
 			}
 		}
+		.sortedWithPath(steps, d.logicalSort, &putStep);
+		auto flags = summ.flagDirRoot.allFlags;
+		f.writeL(cast(uint)flags.length);
+		void putFlag(Flag flag) { mixin(S_TRACE);
+			writeString(f, flag.path);
+			writeBool(f, flag.onOff);
+			writeString(f, flag.on);
+			writeString(f, flag.off);
+		}
+		.sortedWithPath(flags, d.logicalSort, &putFlag);
+		f.writeL(cast(uint)0u);
+		f.writeL(cast(uint)summ.levelMin);
+		f.writeL(cast(uint)summ.levelMax);
+	} else { mixin(S_TRACE);
+		f.writeL(cast(uint)(summ.startArea + 70000u));
+		f.write(cast(byte)0); // 不明(0)
+		f.write(cast(byte)0); // 不明(0)
+		f.write(cast(byte)0); // 不明(0)
+		f.write(cast(byte)0); // 不明(0)
+		f.write(cast(byte)0); // 不明(0)
+		f.write(cast(byte)0); // 不明(0)
+		f.write(cast(byte)0); // 不明(0)
+		f.write(cast(byte)0); // 不明(0)
+		f.write(cast(byte)0); // 不明(0)
+		f.write(cast(byte)0); // 不明(0)
+		f.write(cast(byte)0); // 不明(0)
+		f.write(cast(byte)0); // 不明(0)
+		f.write(cast(byte)0); // 不明(0)
+		f.write(cast(byte)0); // 不明(0)
+		f.write(cast(byte)0); // 不明(0)
+		f.write(cast(byte)0); // 不明(0)
+		f.write(cast(byte)0); // 不明(0)
+		f.write(cast(byte)0); // 不明(0)
+		f.write(cast(byte)0); // 不明(0)
+		f.write(cast(byte)0); // 不明(0)
+		auto steps = summ.flagDirRoot.allSteps;
+		f.writeExUInt(cast(uint)steps.length);
+		void putStepEx(Step step) { mixin(S_TRACE);
+			writeExString(f, step.path);
+			ubyte type = 1;
+			if (step.expandSPChars) { mixin(S_TRACE);
+				type |= 0b10000000;
+				f.write(type);
+				f.write(cast(ubyte)2);
+			} else { mixin(S_TRACE);
+				f.write(type);
+			}
+
+			f.writeExUInt(step.count);
+			foreach (i; 0 .. step.count) { mixin(S_TRACE);
+				writeExString(f, step.getValue(i));
+			}
+			f.writeExUInt(step.select);
+		}
+		.sortedWithPath(steps, d.logicalSort, &putStepEx);
+		auto flags = summ.flagDirRoot.allFlags;
+		f.writeExUInt(cast(uint)flags.length);
+		void putFlagEx(Flag flag) { mixin(S_TRACE);
+			writeExString(f, flag.path);
+			writeBool(f, flag.onOff);
+			writeExString(f, flag.on);
+			writeExString(f, flag.off);
+		}
+		.sortedWithPath(flags, d.logicalSort, &putFlagEx);
+		f.writeExUInt(summ.levelMin);
+		f.writeExUInt(summ.levelMax);
 	}
-	.sortedWithPath(steps, d.logicalSort, &putStep);
-	auto flags = summ.flagDirRoot.allFlags;
-	f.writeL(cast(uint)flags.length);
-	void putFlag(Flag flag) { mixin(S_TRACE);
-		writeString(f, flag.path);
-		writeBool(f, flag.onOff);
-		writeString(f, flag.on);
-		writeString(f, flag.off);
-	}
-	.sortedWithPath(flags, d.logicalSort, &putFlag);
-	f.writeL(cast(uint)0u);
-	f.writeL(cast(uint)summ.levelMin);
-	f.writeL(cast(uint)summ.levelMax);
 }
 private void writeMotion(ref SData d, ref ByteIO f, Motion m) { mixin(S_TRACE);
 	byte tType;
@@ -3157,16 +4156,13 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 		case CType.BranchKeyCode: type = 71; break;
 		case CType.CheckStep: type = 72; break;
 		case CType.BranchRound: type = 73; break;
-/+		case CType.MoveBgImage: type = 74; break;
-		case CType.LoseBgImage: type = 75; break;
-		case CType.ReplaceBgImage: type = 76; break;
-+/		case CType.MoveBgImage: type = 6; break; // Wsn.1
-		case CType.LoseBgImage: type = 6; break; // Wsn.1
-		case CType.ReplaceBgImage: type = 6; break; // Wsn.1
+		case CType.MoveBgImage: type = d.opt.dataVersion < 7 ? 6 : 74; break; // Wsn.1
+		case CType.LoseBgImage: type = d.opt.dataVersion < 7 ? 6 : 75; break; // Wsn.1
+		case CType.ReplaceBgImage: type = d.opt.dataVersion < 7 ? 6 : 76; break; // Wsn.1
 		case CType.BranchMultiCoupon: type = 6; break; // Wsn.2
 		case CType.BranchMultiRandom: type = 6; break; // Wsn.2
-		case CType.MoveCard: type = 6; break; // Wsn.3
-		case CType.ChangeEnvironment: type = 6; break; // Wsn.4
+		case CType.MoveCard: type = d.opt.dataVersion < 7 ? 6 : 77; break; // Wsn.3
+		case CType.ChangeEnvironment: type = d.opt.dataVersion < 7 ? 6 : 78; break; // Wsn.4
 		case CType.BranchVariant: type = 6; break; // Wsn.4
 		case CType.SetVariant: type = 6; break; // Wsn.4
 		case CType.CheckVariant: type = 6; break; // Wsn.4
@@ -3179,7 +4175,11 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 		}
 		lazys ~= e2;
 		if (e2.detail.owner && e2.next.length) { mixin(S_TRACE);
-			f.writeL(cast(uint)(40000 + e2.next.length));
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				f.writeL(cast(uint)(40000 + e2.next.length));
+			} else { mixin(S_TRACE);
+				f.writeL(cast(uint)(70000 + e2.next.length));
+			}
 			if (e2.next.length == 1) { mixin(S_TRACE);
 				e2 = e2.next[0];
 			} else { mixin(S_TRACE);
@@ -3189,7 +4189,11 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 				break;
 			}
 		} else { mixin(S_TRACE);
-			f.writeL(cast(uint)40000);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				f.writeL(cast(uint)40000);
+			} else { mixin(S_TRACE);
+				f.writeL(cast(uint)70000);
+			}
 			break;
 		}
 	}
@@ -3198,10 +4202,18 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 		case CType.Start:
 			break;
 		case CType.LinkStart:
-			writeString(f, e.start);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				writeString(f, e.start);
+			} else { mixin(S_TRACE);
+				writeExString(f, e.start);
+			}
 			break;
 		case CType.StartBattle:
-			f.writeL(cast(uint)e.battle);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				f.writeL(cast(uint)e.battle);
+			} else { mixin(S_TRACE);
+				f.writeExUInt(cast(uint)e.battle);
+			}
 			break;
 		case CType.End:
 			writeBool(f, e.complete);
@@ -3209,7 +4221,11 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 		case CType.EndBadEnd:
 			break;
 		case CType.ChangeArea:
-			f.writeL(cast(uint)e.area);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				f.writeL(cast(uint)e.area);
+			} else { mixin(S_TRACE);
+				f.writeExUInt(cast(uint)e.area);
+			}
 			break;
 		case CType.TalkMessage:
 			string path = "";
@@ -3227,31 +4243,66 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 					break;
 				}
 			}
-			writeString(f, path);
-			writeString(f, lastRet(e.text), true);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				writeString(f, path);
+				writeString(f, lastRet(e.text), true);
+			} else { mixin(S_TRACE);
+				ubyte tb = 0;
+				if (path != "") tb |= 0b00000001;
+				if (1 < e.selectionColumns) tb |= 0b10000000;
+				f.write(tb);
+				if (path != "") writeExString(f, path);
+				writeExString(f, lastRet(e.text), true);
+				if (1 < e.selectionColumns) f.writeExUInt(e.selectionColumns);
+			}
 			break;
 		case CType.PlayBgm:
-			writeString(f, encodePathLegacy(e.bgmPath));
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				writeString(f, encodePathLegacy(e.bgmPath));
+			} else { mixin(S_TRACE);
+				writeExString(f, encodePathLegacy(e.bgmPath));
+			}
 			break;
 		case CType.ChangeBgImage:
 			writeBgImages(d, f, e.backs);
 			break;
 		case CType.PlaySound:
-			writeString(f, encodePathLegacy(e.soundPath));
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				writeString(f, encodePathLegacy(e.soundPath));
+			} else { mixin(S_TRACE);
+				writeExString(f, encodePathLegacy(e.soundPath));
+			}
 			break;
 		case CType.Wait:
-			f.writeL(cast(uint)e.wait);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				f.writeL(cast(uint)e.wait);
+			} else { mixin(S_TRACE);
+				f.writeExInt(e.wait);
+			}
 			break;
 		case CType.Effect:
-			f.writeL(cast(int)e.signedLevel);
-			byte targ = fromRange(e.range);
-			f.write(targ);
-			f.write(fromEffectType(e.effectType));
-			f.write(fromResist(e.resist));
-			f.writeL(cast(int)e.successRate);
-			writeString(f, e.soundPath.length ? encodePathLegacy(e.soundPath) : "（なし）");
-			f.write(fromCardVisual(e.cardVisual));
-			f.writeL(cast(uint)e.motions.length);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				f.writeL(cast(int)e.signedLevel);
+				byte targ = fromRange(e.range);
+				f.write(targ);
+				f.write(fromEffectType(e.effectType));
+				f.write(fromResist(e.resist));
+				f.writeL(cast(int)e.successRate);
+				writeString(f, e.soundPath.length ? encodePathLegacy(e.soundPath) : "（なし）");
+				f.write(fromCardVisual(e.cardVisual));
+				f.writeL(cast(uint)e.motions.length);
+			} else { mixin(S_TRACE);
+				f.writeExInt(e.signedLevel);
+				byte targ = fromRangeEffectContent(e.range);
+				f.write(targ);
+				f.write(fromEffectType(e.effectType));
+				f.write(fromResist(e.resist));
+				f.writeExInt(e.successRate);
+				f.write(cast(ubyte)1); // パス指定
+				writeExString(f, e.soundPath.length ? encodePathLegacy(e.soundPath) : "（なし）");
+				f.write(fromCardVisual(e.cardVisual));
+				f.writeExUInt(cast(uint)e.motions.length);
+			}
 			foreach (m; e.motions) { mixin(S_TRACE);
 				writeMotion(d, f, m);
 			}
@@ -3261,125 +4312,255 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 			writeBool(f, e.selectionMethod is SelectionMethod.Random);
 			break;
 		case CType.BranchAbility:
-			f.writeL(cast(int)e.signedLevel);
-			f.write(fromTargetA(e.targetS));
-			f.writeL(cast(uint)fromPhysical(e.physical));
-			f.writeL(cast(int)fromMental(e.mental));
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				f.writeL(cast(int)e.signedLevel);
+				f.write(fromTargetA(e.targetS));
+				f.writeL(cast(uint)fromPhysical(e.physical));
+				f.writeL(cast(int)fromMental(e.mental));
+			} else { mixin(S_TRACE);
+				f.writeExInt(e.signedLevel);
+				f.write(fromTargetA(e.targetS));
+				f.writeExInt(fromPhysical(e.physical));
+				f.writeExInt(fromMental(e.mental));
+			}
 			break;
 		case CType.BranchRandom:
-			f.writeL(cast(uint)e.percent);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				f.writeL(cast(uint)e.percent);
+			} else { mixin(S_TRACE);
+				f.writeExUInt(e.percent);
+			}
 			break;
 		case CType.BranchFlag:
-			writeString(f, e.flag);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				writeString(f, e.flag);
+			} else { mixin(S_TRACE);
+				writeExString(f, e.flag);
+			}
 			break;
 		case CType.SetFlag:
-			writeString(f, e.flag);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				writeString(f, e.flag);
+			} else { mixin(S_TRACE);
+				writeExString(f, e.flag);
+			}
 			writeBool(f, e.flagValue);
 			break;
 		case CType.BranchMultiStep:
-			writeString(f, e.step);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				writeString(f, e.step);
+			} else { mixin(S_TRACE);
+				writeExString(f, e.step);
+			}
 			break;
 		case CType.SetStep:
-			writeString(f, e.step);
-			f.writeL(e.stepValue < 10u ? cast(uint)e.stepValue : 10u - 1u);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				writeString(f, e.step);
+				f.writeL(e.stepValue < 10u ? cast(uint)e.stepValue : 10u - 1u);
+			} else { mixin(S_TRACE);
+				writeExString(f, e.step);
+				f.writeExInt(e.stepValue);
+			}
 			break;
 		case CType.BranchCast:
-			f.writeL(cast(uint)e.casts);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				f.writeL(cast(uint)e.casts);
+			} else { mixin(S_TRACE);
+				f.writeExUInt(cast(uint)e.casts);
+			}
 			break;
 		case CType.BranchItem:
-			f.writeL(cast(uint)e.item);
-			f.writeL(cast(uint)e.cardNumber);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				f.writeL(cast(uint)e.item);
+				f.writeL(cast(uint)e.cardNumber);
+			} else { mixin(S_TRACE);
+				f.writeExUInt(cast(uint)e.item);
+				f.writeExUInt(e.cardNumber);
+			}
 			f.write(fromRange(e.range));
 			break;
 		case CType.BranchSkill:
-			f.writeL(cast(uint)e.skill);
-			f.writeL(cast(uint)e.cardNumber);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				f.writeL(cast(uint)e.skill);
+				f.writeL(cast(uint)e.cardNumber);
+			} else { mixin(S_TRACE);
+				f.writeExUInt(cast(uint)e.skill);
+				f.writeExUInt(e.cardNumber);
+			}
 			f.write(fromRange(e.range));
 			break;
 		case CType.BranchInfo:
-			f.writeL(cast(uint)e.info);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				f.writeL(cast(uint)e.info);
+			} else { mixin(S_TRACE);
+				f.writeExUInt(cast(uint)e.info);
+			}
 			break;
 		case CType.BranchBeast:
-			f.writeL(cast(uint)e.beast);
-			f.writeL(cast(uint)e.cardNumber);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				f.writeL(cast(uint)e.beast);
+				f.writeL(cast(uint)e.cardNumber);
+			} else { mixin(S_TRACE);
+				f.writeExUInt(cast(uint)e.beast);
+				f.writeExUInt(e.cardNumber);
+			}
 			f.write(fromRange(e.range));
 			break;
 		case CType.BranchMoney:
-			f.writeL(cast(uint)e.money);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				f.writeL(cast(uint)e.money);
+			} else { mixin(S_TRACE);
+				f.writeExUInt(e.money);
+			}
 			break;
 		case CType.BranchCoupon:
-			writeString(f, e.couponNames.length ? e.couponNames[0] : "");
-			f.writeL(cast(int)0x0);
-			f.write(fromCouponRange(e.range));
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				writeString(f, e.couponNames.length ? e.couponNames[0] : "");
+				f.writeL(cast(int)0x0);
+				f.write(fromCouponRange(e.range));
+			} else { mixin(S_TRACE);
+				writeExString(f, e.couponNames.length ? e.couponNames[0] : "");
+				f.writeExInt(0x0);
+				f.write(fromCouponRange(e.range));
+				writeBool(f, e.invertResult);
+			}
 			break;
 		case CType.GetCast:
-			f.writeL(cast(uint)e.casts);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				f.writeL(cast(uint)e.casts);
+			} else { mixin(S_TRACE);
+				f.writeExUInt(cast(uint)e.casts);
+			}
 			break;
 		case CType.GetItem:
-			f.writeL(cast(uint)e.item);
-			f.writeL(cast(uint)e.cardNumber);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				f.writeL(cast(uint)e.item);
+				f.writeL(cast(uint)e.cardNumber);
+			} else { mixin(S_TRACE);
+				f.writeExUInt(cast(uint)e.item);
+				f.writeExUInt(e.cardNumber);
+			}
 			f.write(fromRange(e.range));
 			break;
 		case CType.GetSkill:
-			f.writeL(cast(uint)e.skill);
-			f.writeL(cast(uint)e.cardNumber);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				f.writeL(cast(uint)e.skill);
+				f.writeL(cast(uint)e.cardNumber);
+			} else { mixin(S_TRACE);
+				f.writeExUInt(cast(uint)e.skill);
+				f.writeExUInt(e.cardNumber);
+			}
 			f.write(fromRange(e.range));
 			break;
 		case CType.GetInfo:
-			f.writeL(cast(uint)e.info);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				f.writeL(cast(uint)e.info);
+			} else { mixin(S_TRACE);
+				f.writeExUInt(cast(uint)e.info);
+			}
 			break;
 		case CType.GetBeast:
-			f.writeL(cast(uint)e.beast);
-			f.writeL(cast(uint)e.cardNumber);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				f.writeL(cast(uint)e.beast);
+				f.writeL(cast(uint)e.cardNumber);
+			} else { mixin(S_TRACE);
+				f.writeExUInt(cast(uint)e.beast);
+				f.writeExUInt(e.cardNumber);
+			}
 			f.write(fromRange(e.range));
 			break;
 		case CType.GetMoney:
-			f.writeL(cast(uint)e.money);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				f.writeL(cast(uint)e.money);
+			} else { mixin(S_TRACE);
+				f.writeExUInt(e.money);
+			}
 			break;
 		case CType.GetCoupon:
-			writeString(f, e.coupon);
-			f.writeL(cast(int)e.couponValue);
-			f.write(fromRange(e.range));
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				writeString(f, e.coupon);
+				f.writeL(cast(int)e.couponValue);
+				f.write(fromRange(e.range));
+			} else { mixin(S_TRACE);
+				writeExString(f, e.coupon);
+				f.writeExInt(e.couponValue);
+				f.write(fromRange(e.range));
+				writeBool(f, false); // 不所持条件
+			}
 			break;
 		case CType.LoseCast:
-			f.writeL(cast(uint)e.casts);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				f.writeL(cast(uint)e.casts);
+			} else { mixin(S_TRACE);
+				f.writeExUInt(cast(uint)e.casts);
+			}
 			break;
 		case CType.LoseItem:
-			f.writeL(cast(uint)e.item);
-			f.writeL(cast(uint)e.cardNumber);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				f.writeL(cast(uint)e.item);
+				f.writeL(cast(uint)e.cardNumber);
+			} else { mixin(S_TRACE);
+				f.writeExUInt(cast(uint)e.item);
+				f.writeExUInt(e.cardNumber);
+			}
 			f.write(fromRange(e.range));
 			break;
 		case CType.LoseSkill:
-			f.writeL(cast(uint)e.skill);
-			f.writeL(cast(uint)e.cardNumber);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				f.writeL(cast(uint)e.skill);
+				f.writeL(cast(uint)e.cardNumber);
+			} else { mixin(S_TRACE);
+				f.writeExUInt(cast(uint)e.skill);
+				f.writeExUInt(e.cardNumber);
+			}
 			f.write(fromRange(e.range));
 			break;
 		case CType.LoseInfo:
-			f.writeL(cast(uint)e.info);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				f.writeL(cast(uint)e.info);
+			} else { mixin(S_TRACE);
+				f.writeExUInt(cast(uint)e.info);
+			}
 			break;
 		case CType.LoseBeast:
-			f.writeL(cast(uint)e.beast);
-			f.writeL(cast(uint)e.cardNumber);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				f.writeL(cast(uint)e.beast);
+				f.writeL(cast(uint)e.cardNumber);
+			} else { mixin(S_TRACE);
+				f.writeExUInt(cast(uint)e.beast);
+				f.writeExUInt(e.cardNumber);
+			}
 			f.write(fromRange(e.range));
 			break;
 		case CType.LoseMoney:
-			f.writeL(cast(uint)e.money);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				f.writeL(cast(uint)e.money);
+			} else { mixin(S_TRACE);
+				f.writeExUInt(e.money);
+			}
 			break;
 		case CType.LoseCoupon:
-			writeString(f, e.coupon);
-			f.writeL(cast(int)0x0);
-			f.write(fromRange(e.range));
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				writeString(f, e.coupon);
+				f.writeL(cast(int)0x0);
+				f.write(fromRange(e.range));
+			} else { mixin(S_TRACE);
+				writeExString(f, e.coupon);
+				f.writeExInt(0x0);
+				f.write(fromRange(e.range));
+				writeBool(f, false); // 不所持条件
+			}
 			break;
 		case CType.TalkDialog:
 			switch (e.talkerNC) {
-			case Talker.Selected: f.writeL(cast(byte)0); break;
-			case Talker.Random: f.writeL(cast(byte)1); break;
-			case Talker.Unselected: f.writeL(cast(byte)2); break;
-			case Talker.Valued: f.writeL(cast(byte)3); break;
+			case Talker.Selected: f.write(cast(byte)0); break;
+			case Talker.Random: f.write(cast(byte)1); break;
+			case Talker.Unselected: f.write(cast(byte)2); break;
+			case Talker.Valued: f.write(cast(byte)3); break;
 			default: throw new SummaryException("Unknown talker value: " ~ to!(string)(cast(int)e.talkerNC));
 			}
+			Coupon[] coupons;
 			if (Talker.Valued == e.talkerNC) { mixin(S_TRACE);
-				Coupon[] coupons;
 				bool[string] cSet;
 				foreach (cc; e.coupons) { mixin(S_TRACE);
 					auto name2 = cc.name.tosjis().touni();
@@ -3387,49 +4568,102 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 					cSet[name2] = true;
 					coupons ~= cc;
 				}
-				if (0 == e.initValue) { mixin(S_TRACE);
-					f.writeL(cast(uint)coupons.length);
-				} else { mixin(S_TRACE);
-					f.writeL(cast(uint)coupons.length + 1);
-					writeString(f, "");
-					f.writeL(cast(int)e.initValue);
-				}
-				foreach (c; coupons) { mixin(S_TRACE);
-					writeString(f, c.name);
-					f.writeL(cast(int)c.value);
-				}
 			}
-			f.writeL(cast(uint)e.dialogs.length);
-			foreach (dlg; e.dialogs) { mixin(S_TRACE);
-				writeStrings(f, dlg.rCoupons);
-				writeString(f, lastRet(dlg.text), true);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				if (Talker.Valued == e.talkerNC) { mixin(S_TRACE);
+					if (0 == e.initValue) { mixin(S_TRACE);
+						f.writeL(cast(uint)coupons.length);
+					} else { mixin(S_TRACE);
+						f.writeL(cast(uint)coupons.length + 1);
+						writeString(f, "");
+						f.writeL(cast(int)e.initValue);
+					}
+					foreach (c; coupons) { mixin(S_TRACE);
+						writeString(f, c.name);
+						f.writeL(cast(int)c.value);
+					}
+				}
+				f.writeL(cast(uint)e.dialogs.length);
+				foreach (dlg; e.dialogs) { mixin(S_TRACE);
+					writeStrings(f, dlg.rCoupons);
+					writeString(f, lastRet(dlg.text), true);
+				}
+			} else { mixin(S_TRACE);
+				if (Talker.Valued == e.talkerNC) { mixin(S_TRACE);
+					if (0 == e.initValue) { mixin(S_TRACE);
+						f.writeExUInt(cast(uint)coupons.length);
+					} else { mixin(S_TRACE);
+						f.writeExUInt(cast(uint)coupons.length + 1u);
+						writeExString(f, "");
+						f.writeExInt(e.initValue);
+					}
+					foreach (c; coupons) { mixin(S_TRACE);
+						writeExString(f, c.name);
+						f.writeExInt(c.value);
+					}
+				}
+				f.writeExUInt(cast(uint)e.dialogs.length);
+				foreach (dlg; e.dialogs) { mixin(S_TRACE);
+					writeExStrings(f, dlg.rCoupons);
+					writeExString(f, lastRet(dlg.text), true);
+				}
+				ubyte ob = 0;
+				if (e.selectTalker) ob |= 0b00000001;
+				if (1 < e.selectionColumns) ob |= 0b00000010;
+				f.write(ob);
+				if (1 < e.selectionColumns) f.write(cast(ubyte)e.selectionColumns);
 			}
 			break;
 		case CType.SetStepUp:
-			writeString(f, e.step);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				writeString(f, e.step);
+			} else { mixin(S_TRACE);
+				writeExString(f, e.step);
+			}
 			break;
 		case CType.SetStepDown:
-			writeString(f, e.step);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				writeString(f, e.step);
+			} else { mixin(S_TRACE);
+				writeExString(f, e.step);
+			}
 			break;
 		case CType.ReverseFlag:
-			writeString(f, e.flag);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				writeString(f, e.flag);
+			} else { mixin(S_TRACE);
+				writeExString(f, e.flag);
+			}
 			break;
 		case CType.BranchStep:
-			writeString(f, e.step);
-			f.writeL(e.stepValue < 10u ? cast(uint)e.stepValue : 10u - 1u);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				writeString(f, e.step);
+				f.writeL(e.stepValue < 10u ? cast(uint)e.stepValue : 10u - 1u);
+			} else { mixin(S_TRACE);
+				writeExString(f, e.step);
+				f.writeExInt(e.stepValue);
+			}
 			break;
 		case CType.ElapseTime:
 			break;
 		case CType.BranchLevel:
 			writeBool(f, e.average);
-			f.writeL(cast(uint)e.unsignedLevel);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				f.writeL(cast(uint)e.unsignedLevel);
+			} else { mixin(S_TRACE);
+				f.writeExUInt(e.unsignedLevel);
+			}
 			break;
 		case CType.BranchStatus:
 			f.write(fromStatus(e.status));
 			f.write(fromRange(e.range));
 			break;
 		case CType.BranchPartyNumber:
-			f.writeL(cast(uint)e.partyNumber);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				f.writeL(cast(uint)e.partyNumber);
+			} else { mixin(S_TRACE);
+				f.writeExUInt(e.partyNumber);
+			}
 			break;
 		case CType.ShowParty:
 			break;
@@ -3438,58 +4672,118 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 		case CType.EffectBreak:
 			break;
 		case CType.CallStart:
-			writeString(f, e.start);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				writeString(f, e.start);
+			} else { mixin(S_TRACE);
+				writeExString(f, e.start);
+			}
 			break;
 		case CType.LinkPackage:
-			f.writeL(cast(uint)e.packages);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				f.writeL(cast(uint)e.packages);
+			} else { mixin(S_TRACE);
+				f.writeExUInt(cast(uint)e.packages);
+			}
 			break;
 		case CType.CallPackage:
-			f.writeL(cast(uint)e.packages);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				f.writeL(cast(uint)e.packages);
+			} else { mixin(S_TRACE);
+				f.writeExUInt(cast(uint)e.packages);
+			}
 			break;
 		case CType.BranchArea:
 			break;
 		case CType.BranchBattle:
 			break;
 		case CType.BranchCompleteStamp:
-			writeString(f, e.completeStamp);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				writeString(f, e.completeStamp);
+			} else { mixin(S_TRACE);
+				writeExString(f, e.completeStamp);
+			}
 			break;
 		case CType.GetCompleteStamp:
-			writeString(f, e.completeStamp);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				writeString(f, e.completeStamp);
+			} else { mixin(S_TRACE);
+				writeExString(f, e.completeStamp);
+			}
 			break;
 		case CType.LoseCompleteStamp:
-			writeString(f, e.completeStamp);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				writeString(f, e.completeStamp);
+			} else { mixin(S_TRACE);
+				writeExString(f, e.completeStamp);
+			}
 			break;
 		case CType.BranchGossip:
-			writeString(f, e.gossip);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				writeString(f, e.gossip);
+			} else { mixin(S_TRACE);
+				writeExString(f, e.gossip);
+			}
 			break;
 		case CType.GetGossip:
-			writeString(f, e.gossip);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				writeString(f, e.gossip);
+			} else { mixin(S_TRACE);
+				writeExString(f, e.gossip);
+			}
 			break;
 		case CType.LoseGossip:
-			writeString(f, e.gossip);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				writeString(f, e.gossip);
+			} else { mixin(S_TRACE);
+				writeExString(f, e.gossip);
+			}
 			break;
 		case CType.BranchIsBattle:
 			break;
 		case CType.Redisplay:
 			break;
 		case CType.CheckFlag:
-			writeString(f, e.flag);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				writeString(f, e.flag);
+			} else { mixin(S_TRACE);
+				writeExString(f, e.flag);
+			}
 			break;
 		case CType.SubstituteStep:
-			writeString(f, e.step);
-			writeString(f, e.step2);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				writeString(f, e.step);
+				writeString(f, e.step2);
+			} else { mixin(S_TRACE);
+				writeExString(f, e.step);
+				writeExString(f, e.step2);
+			}
 			break;
 		case CType.SubstituteFlag:
-			writeString(f, e.flag);
-			writeString(f, e.flag2);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				writeString(f, e.flag);
+				writeString(f, e.flag2);
+			} else { mixin(S_TRACE);
+				writeExString(f, e.flag);
+				writeExString(f, e.flag2);
+			}
 			break;
 		case CType.BranchStepCmp:
-			writeString(f, e.step);
-			writeString(f, e.step2);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				writeString(f, e.step);
+				writeString(f, e.step2);
+			} else { mixin(S_TRACE);
+				writeExString(f, e.step);
+				writeExString(f, e.step2);
+			}
 			break;
 		case CType.BranchFlagCmp:
-			writeString(f, e.flag);
-			writeString(f, e.flag2);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				writeString(f, e.flag);
+				writeString(f, e.flag2);
+			} else { mixin(S_TRACE);
+				writeExString(f, e.flag);
+				writeExString(f, e.flag2);
+			}
 			break;
 		case CType.BranchRandomSelect:
 			f.write(fromCastRanges(e.castRange));
@@ -3502,8 +4796,13 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 			}
 			f.write(style);
 			if (style & 0b01) { mixin(S_TRACE);
-				f.writeL(e.levelMin);
-				f.writeL(e.levelMax);
+				if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+					f.writeL(cast(uint)e.levelMin);
+					f.writeL(cast(uint)e.levelMax);
+				} else { mixin(S_TRACE);
+					f.writeExUInt(e.levelMin);
+					f.writeExUInt(e.levelMax);
+				}
 			}
 			if (style & 0b10) { mixin(S_TRACE);
 				f.write(fromStatus(e.status));
@@ -3522,18 +4821,32 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 			} else { mixin(S_TRACE);
 				f.write(fromEffectCardType(EffectCardType.All));
 			}
-			writeString(f, e.keyCode);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				writeString(f, e.keyCode);
+			} else { mixin(S_TRACE);
+				writeExString(f, e.keyCode);
+			}
 			break;
 		case CType.CheckStep:
-			writeString(f, e.step);
-			f.writeL(e.stepValue < 10u ? cast(uint)e.stepValue : 10u - 1u);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				writeString(f, e.step);
+				f.writeL(e.stepValue < 10u ? cast(uint)e.stepValue : 10u - 1u);
+			} else { mixin(S_TRACE);
+				writeExString(f, e.step);
+				f.writeExInt(e.stepValue);
+			}
 			f.write(fromComparison4(e.comparison4));
 			break;
 		case CType.BranchRound:
 			f.write(fromComparison3(e.comparison3));
-			f.writeL(cast(uint)e.round);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				f.writeL(cast(uint)e.round);
+			} else { mixin(S_TRACE);
+				f.writeExUInt(e.round);
+			}
 			break;
-/+		case CType.MoveBgImage:
+		case CType.MoveBgImage:
+			if (d.opt.dataVersion < 7) goto case CType.BranchMultiCoupon;
 			writeExString(f, e.cellName);
 			ubyte ctrl = 0b00;
 			if (e.positionType !is CoordinateType.None) { mixin(S_TRACE);
@@ -3555,40 +4868,71 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 			}
 			break;
 		case CType.LoseBgImage:
+			if (d.opt.dataVersion < 7) goto case CType.BranchMultiCoupon;
 			writeExString(f, e.cellName);
 			break;
 		case CType.ReplaceBgImage:
+			if (d.opt.dataVersion < 7) goto case CType.BranchMultiCoupon;
 			writeExString(f, e.cellName);
 			writeBgImages(d, f, e.backs, true);
 			break;
-+/		case CType.MoveBgImage: // Wsn.1
-		case CType.LoseBgImage: // Wsn.1
-		case CType.ReplaceBgImage: // Wsn.1
+		case CType.MoveCard: // Wsn.3
+			if (d.opt.dataVersion < 7) goto case CType.BranchMultiCoupon;
+			writeExString(f, e.cardGroup);
+			writeBool(f, e.cardSpeed <= 1); // カード速度1以下はアニメーション無しとして扱う
+			if (e.positionType is CoordinateType.None) { mixin(S_TRACE);
+				f.writeBool(false);
+			} else { mixin(S_TRACE);
+				f.writeBool(true);
+				f.write(fromCoordinateType(e.positionType));
+				f.writeExInt(e.x);
+				f.writeExInt(e.y);
+			}
+			break;
+		case CType.ChangeEnvironment: // Wsn.3
+			if (d.opt.dataVersion < 7) goto case CType.BranchMultiCoupon;
+			ubyte fb = 0;
+			final switch (e.backpackEnabled) {
+			case EnvironmentStatus.NotSet:
+				break;
+			case EnvironmentStatus.Enable:
+				break;
+			case EnvironmentStatus.Disable:
+				fb |= 0b00000001;
+				break;
+			}
+			// セーブの制限 0b00000010
+			// キャンプの制限 0b00000100
+			f.write(fb);
+			break;
 		case CType.BranchMultiCoupon: // Wsn.2
 		case CType.BranchMultiRandom: // Wsn.2
-		case CType.MoveCard: // Wsn.3
-		case CType.ChangeEnvironment: // Wsn.4
 		case CType.BranchVariant: // Wsn.4
 		case CType.SetVariant: // Wsn.4
 		case CType.CheckVariant: // Wsn.4
 			// 非対応コンテントはメッセージコンテントの内容に説明を書いたものに置換する
-			writeString(f, "");
-			writeString(f, lastRet(d.prop.msgs.contentName(e.type)), true);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				writeString(f, "");
+				writeString(f, lastRet(d.prop.msgs.contentName(e.type)), true);
+			} else { mixin(S_TRACE);
+				f.write(cast(ubyte)0);
+				writeExString(f, lastRet(d.prop.msgs.contentName(e.type)), true);
+			}
 			break;
 		}
 	}
 }
 private void writeCEventTree(ref SData d, ref ByteIO f, EventTree tree) { mixin(S_TRACE);
-	f.writeL(cast(uint)tree.starts.length);
+	if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+		f.writeL(cast(uint)tree.starts.length);
+	} else { mixin(S_TRACE);
+		f.writeL(cast(uint)(tree.starts.length + 0x7000000));
+	}
 	foreach (evt; tree.starts) { mixin(S_TRACE);
 		writeContent(d, f, evt);
 	}
 }
 private void writeEventTree(ref SData d, ref ByteIO f, EventTree tree) { mixin(S_TRACE);
-	f.writeL(cast(uint)tree.starts.length);
-	foreach (evt; tree.starts) { mixin(S_TRACE);
-		writeContent(d, f, evt);
-	}
 	int[] igs;
 	if (tree.fireEnter) igs ~= 1;
 	if (tree.fireEscape) igs ~= 2;
@@ -3598,44 +4942,43 @@ private void writeEventTree(ref SData d, ref ByteIO f, EventTree tree) { mixin(S
 	foreach (rnd; tree.rounds) { mixin(S_TRACE);
 		igs ~= -(cast(int)rnd);
 	}
-	f.writeL(cast(uint)igs.length);
-	foreach (ig; igs) { mixin(S_TRACE);
-		f.writeL(cast(int)ig);
-	}
 	string[] keyCodes;
 	foreach (keyCode; tree.keyCodes) { mixin(S_TRACE);
 		keyCodes ~= d.prop.sys.convFireKeyCode(keyCode);
 	}
-	if (MatchingType.And is tree.keyCodeMatchingType) { mixin(S_TRACE);
-		// CardWirth 1.50
-		writeStrings(f, ["MatchingType=All"] ~ keyCodes);
+
+	if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+		f.writeL(cast(uint)tree.starts.length);
+		foreach (evt; tree.starts) { mixin(S_TRACE);
+			writeContent(d, f, evt);
+		}
+		f.writeL(cast(uint)igs.length);
+		foreach (ig; igs) { mixin(S_TRACE);
+			f.writeL(cast(int)ig);
+		}
+		if (MatchingType.And is tree.keyCodeMatchingType) { mixin(S_TRACE);
+			// CardWirth 1.50
+			writeStrings(f, ["MatchingType=All"] ~ keyCodes);
+		} else { mixin(S_TRACE);
+			writeStrings(f, keyCodes);
+		}
 	} else { mixin(S_TRACE);
-		writeStrings(f, keyCodes);
+		f.writeL(cast(uint)(tree.starts.length + 0x7000000));
+		foreach (evt; tree.starts) { mixin(S_TRACE);
+			writeContent(d, f, evt);
+		}
+		f.writeExUInt(cast(uint)igs.length);
+		foreach (ig; igs) { mixin(S_TRACE);
+			f.writeExUInt(cast(uint)ig);
+		}
+		writeBool(f, MatchingType.And is tree.keyCodeMatchingType);
+		writeExStrings(f, keyCodes);
 	}
 }
 private void writeBgImage(ref SData d, ref ByteIO f, BgImage b) { mixin(S_TRACE);
-	auto ic = cast(ImageCell)b;
-	if (ic) { mixin(S_TRACE);
-		bool included = isBinImg(ic.path);
-		// 1.60
-		/+if (included || ic.foreground || ic.cellName != "") { mixin(S_TRACE);
-			f.writeL(cast(int)ic.x);
-			f.writeL(cast(int)ic.y);
-			f.writeL(cast(uint)ic.width + 70000u);
-			f.writeL(cast(uint)ic.height);
-			f.write(cast(byte)0);
-			writeBool(f, ic.mask);
-			writeBool(f, ic.foreground);
-			writeBool(f, included);
-			if (included) { mixin(S_TRACE);
-				writeExImage(d, f, ic, ic.path);
-			} else { mixin(S_TRACE);
-				writeString(f, encodePathLegacy(ic.path));
-			}
-			writeString(f, ic.flag);
-			f.writeL(cast(byte)0x0);
-			writeExString(f, ic.cellName);
-		} else +/{ mixin(S_TRACE);
+	if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+		auto ic = cast(ImageCell)b;
+		if (ic) { mixin(S_TRACE);
 			f.writeL(cast(int)ic.x);
 			f.writeL(cast(int)ic.y);
 			f.writeL(cast(uint)ic.width + 40000u);
@@ -3645,125 +4988,175 @@ private void writeBgImage(ref SData d, ref ByteIO f, BgImage b) { mixin(S_TRACE)
 			writeString(f, ic.flag);
 			f.writeL(cast(byte)0x0);
 		}
-	}
-	auto tc = cast(TextCell)b;
-	if (tc) { mixin(S_TRACE);
-		f.writeL(cast(int)tc.x);
-		f.writeL(cast(int)tc.y);
-		// 1.60
-		/+if (tc.foreground || tc.cellName != "") {
-			f.writeL(cast(uint)tc.width + 70000u);
-		} else +/{
+		auto tc = cast(TextCell)b;
+		if (tc) { mixin(S_TRACE);
+			f.writeL(cast(int)tc.x);
+			f.writeL(cast(int)tc.y);
 			f.writeL(cast(uint)tc.width + 60000u);
-		}
-		f.writeL(cast(uint)tc.height);
-		f.write(cast(byte)2);
-		writeBool(f, tc.mask);
-		// 1.60
-/+		if (tc.foreground || tc.cellName != "") {
-			writeBool(f, tc.foreground);
-		}
-+/		writeString(f, tc.text);
-		writeString(f, tc.fontName);
-		f.writeL(cast(uint)tc.size);
-		auto color = tc.color;
-		f.write(cast(ubyte)color.r);
-		f.write(cast(ubyte)color.g);
-		f.write(cast(ubyte)color.b);
-		f.write(cast(ubyte)color.a);
-		bool bordering = tc.borderingType !is BorderingType.None;
-		ubyte style = 0;
-		if (tc.bold)      style |= 0b0000001;
-		if (tc.italic)    style |= 0b0000010;
-		if (tc.underline) style |= 0b0000100;
-		if (tc.strike)    style |= 0b0001000;
-		if (bordering)    style |= 0b0010000;
-		if (tc.vertical)  style |= 0b0100000;
-		f.write(style);
+			f.writeL(cast(uint)tc.height);
+			f.write(cast(byte)2);
+			writeBool(f, tc.mask);
+			writeString(f, tc.text);
+			writeString(f, tc.fontName);
+			f.writeL(cast(uint)tc.size);
+			auto color = tc.color;
+			f.write(cast(ubyte)color.r);
+			f.write(cast(ubyte)color.g);
+			f.write(cast(ubyte)color.b);
+			f.write(cast(ubyte)color.a);
+			bool bordering = tc.borderingType !is BorderingType.None;
+			ubyte style = 0;
+			if (tc.bold)      style |= 0b0000001;
+			if (tc.italic)    style |= 0b0000010;
+			if (tc.underline) style |= 0b0000100;
+			if (tc.strike)    style |= 0b0001000;
+			if (bordering)    style |= 0b0010000;
+			if (tc.vertical)  style |= 0b0100000;
+			f.write(style);
 
-		if (bordering) { mixin(S_TRACE);
-			f.write(fromBorderingType(tc.borderingType));
-			auto bColor = tc.borderingColor;
-			f.write(cast(ubyte)bColor.r);
-			f.write(cast(ubyte)bColor.g);
-			f.write(cast(ubyte)bColor.b);
-			f.write(cast(ubyte)bColor.a);
-			f.writeL(cast(uint)tc.borderingWidth);
-		}
-		f.write(cast(byte)100);
-		f.writeL(cast(uint)0);
-		f.writeL(cast(uint)0);
-		f.write(cast(byte)(tc.vertical ? 2 : 0));
+			if (bordering) { mixin(S_TRACE);
+				f.write(fromBorderingType(tc.borderingType));
+				auto bColor = tc.borderingColor;
+				f.write(cast(ubyte)bColor.r);
+				f.write(cast(ubyte)bColor.g);
+				f.write(cast(ubyte)bColor.b);
+				f.write(cast(ubyte)bColor.a);
+				f.writeL(cast(uint)tc.borderingWidth);
+			}
+			f.write(cast(byte)100);
+			f.writeL(cast(uint)0);
+			f.writeL(cast(uint)0);
+			f.write(cast(byte)(tc.vertical ? 2 : 0));
 
-		writeString(f, tc.flag);
-		f.writeL(cast(byte)0x0);
-		// 1.60
-/+		if (tc.foreground || tc.cellName != "") {
+			writeString(f, tc.flag);
+			f.writeL(cast(byte)0x0);
+		}
+		auto cc = cast(ColorCell)b;
+		if (cc) { mixin(S_TRACE);
+			f.writeL(cast(int)cc.x);
+			f.writeL(cast(int)cc.y);
+			f.writeL(cast(uint)cc.width + 60000u);
+			f.writeL(cast(uint)cc.height);
+			f.write(cast(byte)3);
+			f.write(fromBlendMode(cc.blendMode, cc.mask));
+			f.write(fromGradientDir(cc.gradientDir));
+			auto color1 = cc.color1;
+			f.write(cast(ubyte)color1.b);
+			f.write(cast(ubyte)color1.g);
+			f.write(cast(ubyte)color1.r);
+			f.write(cast(ubyte)color1.a);
+			if (cc.gradientDir !is GradientDir.None) { mixin(S_TRACE);
+				auto color2 = cc.color2;
+				f.write(cast(ubyte)color2.b);
+				f.write(cast(ubyte)color2.g);
+				f.write(cast(ubyte)color2.r);
+				f.write(cast(ubyte)color2.a);
+			}
+			writeString(f, cc.flag);
+			f.writeL(cast(byte)0x0);
+		}
+		auto pc = cast(PCCell)b;
+		if (pc) { mixin(S_TRACE);
+			f.writeL(cast(int)pc.x);
+			f.writeL(cast(int)pc.y);
+			f.writeL(cast(uint)pc.width + 60000u);
+			f.writeL(cast(uint)pc.height);
+			f.write(cast(byte)4);
+			writeBool(f, pc.mask);
+			f.write(cast(ubyte)pc.pcNumber);
+			writeString(f, pc.flag);
+			f.writeL(cast(byte)0x0);
+		}
+	} else { mixin(S_TRACE);
+		f.writeL(cast(int)b.x);
+		f.writeL(cast(int)b.y);
+		f.writeL(cast(uint)b.width + 70000u);
+		f.writeL(cast(uint)b.height);
+
+		auto ic = cast(ImageCell)b;
+		if (ic) { mixin(S_TRACE);
+			f.write(cast(byte)0);
+			writeBool(f, ic.mask);
+			writeBool(f, LAYER_MENU_CARD < ic.layer);
+			writeBool(f, false);
+			writeExString(f, .encodePathLegacy(ic.path));
+			writeExString(f, ic.flag);
+			f.write(cast(byte)0); // 不明(0)
+			writeExString(f, ic.cellName);
+		}
+		auto tc = cast(TextCell)b;
+		if (tc) { mixin(S_TRACE);
+			f.write(cast(byte)2);
+			writeBool(f, tc.mask);
+			writeBool(f, LAYER_MENU_CARD < tc.layer);
+			writeExString(f, tc.text);
+			writeExString(f, tc.fontName);
+			f.writeExUInt(tc.size);
+			auto color = tc.color;
+			f.write(cast(ubyte)color.r);
+			f.write(cast(ubyte)color.g);
+			f.write(cast(ubyte)color.b);
+			f.write(cast(ubyte)color.a);
+			bool bordering = tc.borderingType !is BorderingType.None;
+			ubyte style = 0;
+			if (tc.bold)      style |= 0b0000001;
+			if (tc.italic)    style |= 0b0000010;
+			if (tc.underline) style |= 0b0000100;
+			if (tc.strike)    style |= 0b0001000;
+			if (bordering)    style |= 0b0010000;
+			if (tc.vertical)  style |= 0b0100000;
+			f.write(style);
+			if (bordering) { mixin(S_TRACE);
+				f.write(fromBorderingType(tc.borderingType));
+				auto bColor = tc.borderingColor;
+				f.write(cast(ubyte)bColor.r);
+				f.write(cast(ubyte)bColor.g);
+				f.write(cast(ubyte)bColor.b);
+				f.write(cast(ubyte)bColor.a);
+				f.writeExUInt(tc.borderingWidth);
+			}
+			f.write(cast(byte)0xC8); // 不明(0xC8)
+			f.write(cast(byte)0x01); // 不明(0x01)
+			f.write(cast(byte)0); // 不明(0)
+			f.write(cast(byte)0); // 不明(0)
+			f.write(cast(byte)(tc.vertical ? 2 : 0)); // 不明(縦書き時:2,他:0)
+			writeExString(f, tc.flag);
+			f.write(cast(byte)0); // 不明(0)
 			writeExString(f, tc.cellName);
 		}
-+/	}
-	auto cc = cast(ColorCell)b;
-	if (cc) { mixin(S_TRACE);
-		f.writeL(cast(int)cc.x);
-		f.writeL(cast(int)cc.y);
-		// 1.60
-		/+if (cc.foreground || cc.cellName != "") {
-			f.writeL(cast(uint)cc.width + 70000u);
-		} else +/{
-			f.writeL(cast(uint)cc.width + 60000u);
-		}
-		f.writeL(cast(uint)cc.height);
-		f.write(cast(byte)3);
-		f.write(fromBlendMode(cc.blendMode, cc.mask));
-		// 1.60
-/+		if (cc.foreground || cc.cellName != "") {
-			writeBool(f, cc.foreground);
-		}
-+/		f.write(fromGradientDir(cc.gradientDir));
-		auto color1 = cc.color1;
-		f.write(cast(ubyte)color1.b);
-		f.write(cast(ubyte)color1.g);
-		f.write(cast(ubyte)color1.r);
-		f.write(cast(ubyte)color1.a);
-		if (cc.gradientDir !is GradientDir.None) { mixin(S_TRACE);
-			auto color2 = cc.color2;
-			f.write(cast(ubyte)color2.b);
-			f.write(cast(ubyte)color2.g);
-			f.write(cast(ubyte)color2.r);
-			f.write(cast(ubyte)color2.a);
-		}
-		writeString(f, cc.flag);
-		f.writeL(cast(byte)0x0);
-		// 1.60
-/+		if (cc.foreground || cc.cellName != "") {
+		auto cc = cast(ColorCell)b;
+		if (cc) { mixin(S_TRACE);
+			f.write(cast(byte)3);
+			f.write(fromBlendMode(cc.blendMode, cc.mask));
+			writeBool(f, LAYER_MENU_CARD < cc.layer);
+			f.write(fromGradientDir(cc.gradientDir));
+			auto color1 = cc.color1;
+			f.write(cast(ubyte)color1.b);
+			f.write(cast(ubyte)color1.g);
+			f.write(cast(ubyte)color1.r);
+			f.write(cast(ubyte)color1.a);
+			if (cc.gradientDir !is GradientDir.None) { mixin(S_TRACE);
+				auto color2 = cc.color2;
+				f.write(cast(ubyte)color2.b);
+				f.write(cast(ubyte)color2.g);
+				f.write(cast(ubyte)color2.r);
+				f.write(cast(ubyte)color2.a);
+			}
+			writeExString(f, cc.flag);
+			f.write(cast(byte)0); // 不明(0)
 			writeExString(f, cc.cellName);
 		}
-+/	}
-	auto pc = cast(PCCell)b;
-	if (pc) { mixin(S_TRACE);
-		f.writeL(cast(int)pc.x);
-		f.writeL(cast(int)pc.y);
-		// 1.60
-		/+if (pc.foreground || pc.cellName != "") {
-			f.writeL(cast(uint)pc.width + 70000u);
-		} else +/{
-			f.writeL(cast(uint)pc.width + 60000u);
-		}
-		f.writeL(cast(uint)pc.height);
-		f.write(cast(byte)4);
-		writeBool(f, pc.mask);
-		// 1.60
-/+		if (pc.foreground || pc.cellName != "") {
-			writeBool(f, pc.foreground);
-		}
-+/		f.write(cast(ubyte)pc.pcNumber);
-		writeString(f, pc.flag);
-		f.writeL(cast(byte)0x0);
-		// 1.60
-/+		if (pc.foreground || pc.cellName != "") {
+		auto pc = cast(PCCell)b;
+		if (pc) { mixin(S_TRACE);
+			f.write(cast(byte)4);
+			writeBool(f, pc.mask);
+			writeBool(f, LAYER_MENU_CARD < pc.layer);
+			f.write(cast(ubyte)pc.pcNumber);
+			writeExString(f, pc.flag);
+			f.write(cast(byte)0); // 不明(0)
 			writeExString(f, pc.cellName);
 		}
-+/	}
+	}
 }
 private void writeBgImages(ref SData d, ref ByteIO f, BgImage[] backs, bool replBgImg = false) { mixin(S_TRACE);
 	if (replBgImg)  { mixin(S_TRACE);
@@ -3772,9 +5165,17 @@ private void writeBgImages(ref SData d, ref ByteIO f, BgImage[] backs, bool repl
 		auto b = backs.length ? cast(ImageCell)backs[0] : null;
 		if (b && b.path != "" && b.flag == "" && b.x == 0 && b.y == 0
 				&& b.width == 632 && b.height == 420 && !b.mask && b.cellName == "") { mixin(S_TRACE);
-			f.writeL(cast(uint)backs.length);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				f.writeL(cast(uint)backs.length);
+			} else { mixin(S_TRACE);
+				f.writeExUInt(cast(uint)backs.length);
+			}
 		} else { mixin(S_TRACE);
-			f.writeL(cast(uint)backs.length + 1u);
+			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+				f.writeL(cast(uint)backs.length + 1u);
+			} else { mixin(S_TRACE);
+				f.writeExUInt(cast(uint)backs.length + 1u);
+			}
 			writeBgImage(d, f, new ImageCell("", "", 0, 0, 632, 420, false));
 		}
 	}
@@ -3783,148 +5184,206 @@ private void writeBgImages(ref SData d, ref ByteIO f, BgImage[] backs, bool repl
 	}
 }
 private void writeArea(ref SData d, ref ByteIO f, Area a) { mixin(S_TRACE);
-	f.writeL(cast(byte)0x0);
-	f.writeL(cast(uint)0x0);
-	writeString(f, a.name);
-	f.writeL(cast(uint)(a.id + 40000u));
-	f.writeL(cast(uint)a.trees.length);
-	foreach (tree; a.trees) { mixin(S_TRACE);
-		writeEventTree(d, f, tree);
-	}
-	writeBool(f, !a.spAuto);
-	f.writeL(cast(uint)a.cards.length);
-	foreach (c; a.cards) { mixin(S_TRACE);
+	if (d.opt.dataVersion < 7) { mixin(S_TRACE);
 		f.writeL(cast(byte)0x0);
-		bool saveBinImg;
-		auto paths = c.paths;
-		auto path = paths.length ? paths[0] : null;
-		if (path && path.type is CardImageType.File && isBinImg(path.path)) { mixin(S_TRACE);
-			writeImage(d, f, c, path.path);
-			saveBinImg = true;
-		} else { mixin(S_TRACE);
-			writeImage(d, f, c, "");
-			saveBinImg = false;
-		}
-		writeString(f, c.name);
-		f.writeL(cast(byte)0x40);
-		f.writeL(cast(byte)0x9C);
-		f.writeL(cast(byte)0x0);
-		f.writeL(cast(byte)0x0);
-		writeString(f, c.desc);
-		f.writeL(cast(uint)c.trees.length);
-		foreach (tree; c.trees) { mixin(S_TRACE);
+		f.writeL(cast(uint)0x0);
+		writeString(f, a.name);
+		f.writeL(cast(uint)(a.id + 40000u));
+		f.writeL(cast(uint)a.trees.length);
+		foreach (tree; a.trees) { mixin(S_TRACE);
 			writeEventTree(d, f, tree);
 		}
-		writeString(f, c.flag);
-		f.writeL(cast(uint)c.scale);
-		f.writeL(cast(int)c.x);
-		f.writeL(cast(int)c.y);
-		if (path && path.type is CardImageType.File) { mixin(S_TRACE);
-			writeString(f, saveBinImg ? "" : encodePathLegacy(path.path));
-		} else if (path && path.type is CardImageType.PCNumber && 0 < path.pcNumber) { mixin(S_TRACE);
-			writeString(f, .text(path.pcNumber));
-		} else {
-			writeString(f, "");
+		writeBool(f, !a.spAuto);
+		f.writeL(cast(uint)a.cards.length);
+		foreach (c; a.cards) { mixin(S_TRACE);
+			f.writeL(cast(byte)0x0);
+			bool saveBinImg;
+			auto paths = c.paths;
+			auto path = paths.length ? paths[0] : null;
+			if (path && path.type is CardImageType.File && isBinImg(path.path)) { mixin(S_TRACE);
+				writeImage(d, f, c, path.path);
+				saveBinImg = true;
+			} else { mixin(S_TRACE);
+				writeImage(d, f, c, "");
+				saveBinImg = false;
+			}
+			writeString(f, c.name);
+			f.writeL(cast(byte)0x40);
+			f.writeL(cast(byte)0x9C);
+			f.writeL(cast(byte)0x0);
+			f.writeL(cast(byte)0x0);
+			writeString(f, c.desc);
+			f.writeL(cast(uint)c.trees.length);
+			foreach (tree; c.trees) { mixin(S_TRACE);
+				writeEventTree(d, f, tree);
+			}
+			writeString(f, c.flag);
+			f.writeL(cast(uint)c.scale);
+			f.writeL(cast(int)c.x);
+			f.writeL(cast(int)c.y);
+			if (path && path.type is CardImageType.File) { mixin(S_TRACE);
+				writeString(f, saveBinImg ? "" : encodePathLegacy(path.path));
+			} else if (path && path.type is CardImageType.PCNumber && 0 < path.pcNumber) { mixin(S_TRACE);
+				writeString(f, .text(path.pcNumber));
+			} else {
+				writeString(f, "");
+			}
 		}
+		writeBgImages(d, f, a.backs);
+	} else { mixin(S_TRACE);
+		f.write(cast(ubyte)0xFF);
+		f.write(cast(ubyte)d.opt.dataVersion);
+		writeExString(f, a.name);
+		f.writeExUInt(cast(uint)a.id);
+
+		f.writeExUInt(cast(uint)a.trees.length);
+		foreach (tree; a.trees) { mixin(S_TRACE);
+			writeEventTree(d, f, tree);
+		}
+		writeBool(f, !a.spAuto);
+		f.writeExUInt(cast(uint)a.cards.length);
+		foreach (c; a.cards) { mixin(S_TRACE);
+			f.write(cast(ubyte)0x80); // 不明(0x80)
+			f.write(cast(ubyte)d.opt.dataVersion); // バージョン情報？(0x07)
+			f.write(cast(ubyte)0); // 不明(0)
+			bool saveBinImg;
+			auto paths = c.paths;
+			auto path = paths.length ? paths[0] : null;
+			if (path && path.type is CardImageType.File && isBinImg(path.path)) { mixin(S_TRACE);
+				writeImage(d, f, c, path.path);
+				saveBinImg = true;
+			} else { mixin(S_TRACE);
+				writeImage(d, f, c, "");
+				saveBinImg = false;
+			}
+			writeExString(f, c.name);
+			f.write(cast(byte)0); // 不明
+			writeExString(f, c.desc);
+			f.writeExUInt(cast(uint)c.trees.length);
+			foreach (tree; c.trees) { mixin(S_TRACE);
+				writeEventTree(d, f, tree);
+			}
+			writeExString(f, c.flag);
+			f.writeExUInt(c.scale);
+			f.writeExInt(c.x);
+			f.writeExInt(c.y);
+
+			ubyte sb = 0;
+			// カード速度1以下はアニメーション無しとして扱う
+			if (c.animationSpeed <= 1) { mixin(S_TRACE);
+				sb |= 0b00010000;
+			}
+			if (c.expandSPChars) { mixin(S_TRACE);
+				sb |= 0b00100000;
+			}
+
+			if (path && path.type is CardImageType.File) { mixin(S_TRACE);
+				if (saveBinImg) { mixin(S_TRACE);
+					// イメージ格納
+					f.write(cast(ubyte)(sb | 0x0));
+				} else { mixin(S_TRACE);
+					// ファイル指定
+					f.write(cast(ubyte)(sb | 0x1));
+					writeExString(f, encodePathLegacy(path.path));
+				}
+			} else if (path && path.type is CardImageType.PCNumber && 0 < path.pcNumber) { mixin(S_TRACE);
+				// PC番号
+				f.write(cast(ubyte)(sb | 0x2));
+				f.write(cast(ubyte)path.pcNumber);
+			} else {
+				// イメージ無し
+				f.write(cast(ubyte)(sb | 0x0));
+			}
+			writeExString(f, c.cardGroup);
+		}
+		writeBgImages(d, f, a.backs);
 	}
-	writeBgImages(d, f, a.backs);
 }
 private void writeBattle(ref SData d, ref ByteIO f, Battle a) { mixin(S_TRACE);
-	f.writeL(cast(byte)0x1);
-	f.writeL(cast(uint)0x0);
-	writeString(f, a.name);
-	f.writeL(cast(uint)(a.id + 40000u));
-	f.writeL(cast(uint)a.trees.length);
-	foreach (tree; a.trees) { mixin(S_TRACE);
-		writeEventTree(d, f, tree);
-	}
-	writeBool(f, !a.spAuto);
-	f.writeL(cast(uint)a.cards.length);
-	foreach (c; a.cards) { mixin(S_TRACE);
-		f.writeL(cast(uint)c.id);
-		f.writeL(cast(uint)c.trees.length);
-		foreach (tree; c.trees) { mixin(S_TRACE);
+	if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+		f.writeL(cast(byte)0x1);
+		f.writeL(cast(uint)0x0);
+		writeString(f, a.name);
+		f.writeL(cast(uint)(a.id + 40000u));
+		f.writeL(cast(uint)a.trees.length);
+		foreach (tree; a.trees) { mixin(S_TRACE);
 			writeEventTree(d, f, tree);
 		}
-		writeString(f, c.flag);
-		f.writeL(cast(uint)c.scale);
-		f.writeL(cast(int)c.x);
-		f.writeL(cast(int)c.y);
-		writeBool(f, c.actions.get(ActionCardType.RunAway, false));
+		writeBool(f, !a.spAuto);
+		f.writeL(cast(uint)a.cards.length);
+		foreach (c; a.cards) { mixin(S_TRACE);
+			f.writeL(cast(uint)c.id);
+			f.writeL(cast(uint)c.trees.length);
+			foreach (tree; c.trees) { mixin(S_TRACE);
+				writeEventTree(d, f, tree);
+			}
+			writeString(f, c.flag);
+			f.writeL(cast(uint)c.scale);
+			f.writeL(cast(int)c.x);
+			f.writeL(cast(int)c.y);
+			writeBool(f, c.action(ActionCardType.RunAway));
+		}
+		writeString(f, encodePathLegacy(a.music));
+	} else { mixin(S_TRACE);
+		f.write(cast(ubyte)0xFF);
+		f.write(cast(ubyte)d.opt.dataVersion);
+		writeExString(f, a.name);
+		f.writeExUInt(cast(uint)a.id);
+
+		f.writeExUInt(cast(uint)a.trees.length);
+		foreach (tree; a.trees) { mixin(S_TRACE);
+			writeEventTree(d, f, tree);
+		}
+		writeBool(f, !a.spAuto);
+		f.writeExUInt(cast(uint)a.cards.length);
+		foreach (c; a.cards) { mixin(S_TRACE);
+			f.writeExUInt(cast(uint)c.id);
+			f.writeL(cast(uint)c.trees.length);
+			foreach (tree; c.trees) { mixin(S_TRACE);
+				writeEventTree(d, f, tree);
+			}
+			writeString(f, c.flag);
+			f.writeL(cast(uint)c.scale);
+			f.writeL(cast(int)c.x);
+			f.writeL(cast(int)c.y);
+
+			auto pcNumber = 0u;
+			if (c.isOverrideImage) { mixin(S_TRACE);
+				auto paths = c.overrideImages;
+				auto path = paths.length ? paths[0] : null;
+				if (path && path.type is CardImageType.PCNumber && 0 < path.pcNumber) { mixin(S_TRACE);
+					pcNumber = path.pcNumber;
+				}
+			}
+
+			ubyte sb = 0;
+			if (c.action(ActionCardType.RunAway)) sb |= 0b0001;
+			if (0u < pcNumber) sb |= 0b0010;
+			if (c.isOverrideName) sb |= 0b0100;
+			f.write(sb);
+			if (0u < pcNumber) f.write(cast(ubyte)pcNumber);
+			if (c.isOverrideName) writeExString(f, c.overrideName);
+		}
+		writeExString(f, encodePathLegacy(a.music));
 	}
-	writeString(f, encodePathLegacy(a.music));
 }
 private void writePackage(ref SData d, ref ByteIO f, Package a) { mixin(S_TRACE);
-	f.writeL(cast(uint)0x4);
-	writeString(f, a.name);
-	f.writeL(cast(uint)a.id);
-	f.writeL(cast(uint)a.trees.length);
+	if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+		f.writeL(cast(uint)0x4);
+		writeString(f, a.name);
+		f.writeL(cast(uint)a.id);
+		f.writeL(cast(uint)a.trees.length);
+	} else { mixin(S_TRACE);
+		f.writeL(cast(uint)7);
+		writeExString(f, a.name);
+		f.writeExUInt(cast(uint)a.id);
+		f.writeExUInt(cast(uint)a.trees.length);
+	}
 	foreach (tree; a.trees) { mixin(S_TRACE);
 		writeCEventTree(d, f, tree);
 	}
 }
 private void writeCast(ref SData d, ref ByteIO f, CastCard c) { mixin(S_TRACE);
-	f.writeL(cast(byte)0x2);
-	auto paths = c.paths;
-	writeImage(d, f, c, paths.length && paths[0].type is CardImageType.File ? paths[0].path : "");
-	writeString(f, c.name);
-	f.writeL(cast(uint)(c.id + 40000u));
-	writeBool(f, c.weaponResist);
-	writeBool(f, c.magicResist);
-	writeBool(f, c.undead);
-	writeBool(f, c.automaton);
-	writeBool(f, c.unholy);
-	writeBool(f, c.constructure);
-	writeBool(f, c.resist(Element.Fire));
-	writeBool(f, c.resist(Element.Ice));
-	writeBool(f, c.weakness(Element.Fire));
-	writeBool(f, c.weakness(Element.Ice));
-	f.writeL(cast(uint)c.level);
-	f.writeL(cast(uint)0u); // 所持金。現行エンジンでは未使用
-	writeString(f, c.desc, true, true);
-	f.writeL(cast(uint)c.life);
-	f.writeL(cast(uint)c.lifeMax);
-	f.writeL(cast(uint)c.paralyze);
-	f.writeL(cast(uint)c.poison);
-	f.writeL(cast(int)c.defaultEnhance(Enhance.Avoid));
-	f.writeL(cast(int)c.defaultEnhance(Enhance.Resist));
-	f.writeL(cast(int)c.defaultEnhance(Enhance.Defense));
-	f.writeL(cast(uint)c.physical(Physical.Dex));
-	f.writeL(cast(uint)c.physical(Physical.Agl));
-	f.writeL(cast(uint)c.physical(Physical.Int));
-	f.writeL(cast(uint)c.physical(Physical.Str));
-	f.writeL(cast(uint)c.physical(Physical.Vit));
-	f.writeL(cast(uint)c.physical(Physical.Min));
-	f.writeL(cast(int)c.mental(Mental.Aggressive));
-	f.writeL(cast(int)c.mental(Mental.Cheerful));
-	f.writeL(cast(int)c.mental(Mental.Brave));
-	f.writeL(cast(int)c.mental(Mental.Cautious));
-	f.writeL(cast(int)c.mental(Mental.Trickish));
-	f.write(fromMentality(c.mentality));
-	f.writeL(cast(uint)c.mentalityRound);
-	f.writeL(cast(uint)c.bindRound);
-	f.writeL(cast(uint)c.silenceRound);
-	f.writeL(cast(uint)c.faceUpRound);
-	f.writeL(cast(uint)c.antiMagicRound);
-	foreach (enh; [Enhance.Action, Enhance.Avoid, Enhance.Resist, Enhance.Defense]) { mixin(S_TRACE);
-		int val = c.enhance(enh);
-		uint round = c.enhanceRound(enh);
-		if (!val) round = 0;
-		f.writeL(val);
-		f.writeL(round);
-	}
-	f.writeL(cast(uint)c.items.length);
-	foreach (cc; c.items) { mixin(S_TRACE);
-		writeItem(d, f, cc);
-	}
-	f.writeL(cast(uint)c.skills.length);
-	foreach (cc; c.skills) { mixin(S_TRACE);
-		writeSkill(d, f, cc);
-	}
-	f.writeL(cast(uint)c.beasts.length);
-	foreach (cc; c.beasts) { mixin(S_TRACE);
-		writeBeast(d, f, cc);
-	}
 	Coupon[] coupons;
 	bool[string] cSet;
 	foreach (cc; c.coupons) { mixin(S_TRACE);
@@ -3933,50 +5392,230 @@ private void writeCast(ref SData d, ref ByteIO f, CastCard c) { mixin(S_TRACE);
 		cSet[name2] = true;
 		coupons ~= cc;
 	}
-	f.writeL(cast(uint)coupons.length);
-	foreach (cc; coupons) { mixin(S_TRACE);
-		writeString(f, cc.name);
-		f.writeL(cast(int)cc.value);
+	if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+		f.writeL(cast(byte)0x2);
+		auto paths = c.paths;
+		writeImage(d, f, c, paths.length && paths[0].type is CardImageType.File ? paths[0].path : "");
+		writeString(f, c.name);
+		f.writeL(cast(uint)(c.id + 40000u));
+		writeBool(f, c.weaponResist);
+		writeBool(f, c.magicResist);
+		writeBool(f, c.undead);
+		writeBool(f, c.automaton);
+		writeBool(f, c.unholy);
+		writeBool(f, c.constructure);
+		writeBool(f, c.resist(Element.Fire));
+		writeBool(f, c.resist(Element.Ice));
+		writeBool(f, c.weakness(Element.Fire));
+		writeBool(f, c.weakness(Element.Ice));
+		f.writeL(cast(uint)c.level);
+		f.writeL(cast(uint)0u); // 所持金。現行エンジンでは未使用
+		writeString(f, c.desc, true, true);
+		f.writeL(cast(uint)c.life);
+		f.writeL(cast(uint)c.lifeMax);
+		f.writeL(cast(uint)c.paralyze);
+		f.writeL(cast(uint)c.poison);
+		f.writeL(cast(int)c.defaultEnhance(Enhance.Avoid));
+		f.writeL(cast(int)c.defaultEnhance(Enhance.Resist));
+		f.writeL(cast(int)c.defaultEnhance(Enhance.Defense));
+		f.writeL(cast(uint)c.physical(Physical.Dex));
+		f.writeL(cast(uint)c.physical(Physical.Agl));
+		f.writeL(cast(uint)c.physical(Physical.Int));
+		f.writeL(cast(uint)c.physical(Physical.Str));
+		f.writeL(cast(uint)c.physical(Physical.Vit));
+		f.writeL(cast(uint)c.physical(Physical.Min));
+		f.writeL(cast(int)c.mental(Mental.Aggressive));
+		f.writeL(cast(int)c.mental(Mental.Cheerful));
+		f.writeL(cast(int)c.mental(Mental.Brave));
+		f.writeL(cast(int)c.mental(Mental.Cautious));
+		f.writeL(cast(int)c.mental(Mental.Trickish));
+		f.write(fromMentality(c.mentality));
+		f.writeL(cast(uint)c.mentalityRound);
+		f.writeL(cast(uint)c.bindRound);
+		f.writeL(cast(uint)c.silenceRound);
+		f.writeL(cast(uint)c.faceUpRound);
+		f.writeL(cast(uint)c.antiMagicRound);
+		foreach (enh; [Enhance.Action, Enhance.Avoid, Enhance.Resist, Enhance.Defense]) { mixin(S_TRACE);
+			int val = c.enhance(enh);
+			uint round = c.enhanceRound(enh);
+			if (!val) round = 0;
+			f.writeL(val);
+			f.writeL(round);
+		}
+		f.writeL(cast(uint)c.items.length);
+		foreach (cc; c.items) { mixin(S_TRACE);
+			writeItem(d, f, cc);
+		}
+		f.writeL(cast(uint)c.skills.length);
+		foreach (cc; c.skills) { mixin(S_TRACE);
+			writeSkill(d, f, cc);
+		}
+		f.writeL(cast(uint)c.beasts.length);
+		foreach (cc; c.beasts) { mixin(S_TRACE);
+			writeBeast(d, f, cc);
+		}
+		f.writeL(cast(uint)coupons.length);
+		foreach (cc; coupons) { mixin(S_TRACE);
+			writeString(f, cc.name);
+			f.writeL(cast(int)cc.value);
+		}
+	} else { mixin(S_TRACE);
+		f.write(cast(ubyte)0x80);
+		f.write(cast(ubyte)d.opt.dataVersion);
+		f.write(cast(ubyte)2);
+		auto paths = c.paths;
+		writeImage(d, f, c, paths.length && paths[0].type is CardImageType.File ? paths[0].path : "");
+		writeExString(f, c.name);
+		f.writeExUInt(cast(uint)c.id);
+		ubyte eb1 = 0;
+		ubyte eb2 = 0;
+		if (c.weaponResist) eb1 |= 0b00000001;
+		if (c.magicResist) eb1 |= 0b00000010;
+		if (c.undead) eb1 |= 0b00000100;
+		if (c.automaton) eb1 |= 0b00001000;
+		if (c.unholy) eb1 |= 0b00010000;
+		if (c.constructure) eb1 |= 0b00100000;
+		if (c.resist(Element.Fire)) eb1 |= 0b01000000;
+		if (c.resist(Element.Ice)) eb1 |= 0b10000000;
+		if (c.weakness(Element.Fire)) eb2 |= 0b00000001;
+		if (c.weakness(Element.Ice)) eb2 |= 0b00000010;
+		f.write(eb1);
+		f.write(eb2);
+		f.writeExUInt(c.level);
+		writeExString(f, c.desc, true, true);
+		f.writeExUInt(c.life);
+		f.writeExUInt(c.lifeMax);
+		f.writeExUInt(c.paralyze);
+		f.writeExUInt(c.poison);
+		f.writeExInt(c.defaultEnhance(Enhance.Avoid));
+		f.writeExInt(c.defaultEnhance(Enhance.Resist));
+		f.writeExInt(c.defaultEnhance(Enhance.Defense));
+		f.writeExUInt(c.physical(Physical.Dex));
+		f.writeExUInt(c.physical(Physical.Agl));
+		f.writeExUInt(c.physical(Physical.Int));
+		f.writeExUInt(c.physical(Physical.Str));
+		f.writeExUInt(c.physical(Physical.Vit));
+		f.writeExUInt(c.physical(Physical.Min));
+		f.writeExInt(cast(int)c.mental(Mental.Aggressive));
+		f.writeExInt(cast(int)c.mental(Mental.Cheerful));
+		f.writeExInt(cast(int)c.mental(Mental.Brave));
+		f.writeExInt(cast(int)c.mental(Mental.Cautious));
+		f.writeExInt(cast(int)c.mental(Mental.Trickish));
+		f.write(fromMentality(c.mentality));
+		f.writeExUInt(c.mentalityRound);
+		f.writeExUInt(c.bindRound);
+		f.writeExUInt(c.silenceRound);
+		f.writeExUInt(c.faceUpRound);
+		f.writeExUInt(c.antiMagicRound);
+		foreach (enh; [Enhance.Action, Enhance.Avoid, Enhance.Resist, Enhance.Defense]) { mixin(S_TRACE);
+			auto val = c.enhance(enh);
+			auto round = c.enhanceRound(enh);
+			if (!val) round = 0;
+			f.writeExInt(val);
+			f.writeExUInt(round);
+		}
+		f.writeExUInt(cast(uint)c.items.length);
+		foreach (cc; c.items) { mixin(S_TRACE);
+			writeItem(d, f, cc);
+		}
+		f.writeExUInt(cast(uint)c.skills.length);
+		foreach (cc; c.skills) { mixin(S_TRACE);
+			writeSkill(d, f, cc);
+		}
+		f.writeExUInt(cast(uint)c.beasts.length);
+		foreach (cc; c.beasts) { mixin(S_TRACE);
+			writeBeast(d, f, cc);
+		}
+		f.write(cast(byte)0); // 不明
+		f.writeExUInt(cast(uint)coupons.length);
+		foreach (cc; coupons) { mixin(S_TRACE);
+			writeString(f, cc.name);
+			f.writeL(cast(int)cc.value);
+		}
 	}
 }
 private void writeEffCard(ref SData d, ref ByteIO f, EffectCard c, byte type, ulong id) { mixin(S_TRACE);
-	f.write(type);
-	auto paths = c.paths;
-	writeImage(d, f, c, paths.length && paths[0].type is CardImageType.File ? paths[0].path : "");
-	writeString(f, c.name);
-	f.writeL(cast(uint)(id + 40000u));
-	writeString(f, c.desc);
-	f.writeL(cast(uint)fromPhysical(c.physical));
-	f.writeL(cast(int)fromMental(c.mental));
-	writeBool(f, c.spell);
-	writeBool(f, c.allRange);
-	f.write(fromCardTarget(c.target));
-	f.write(fromEffectType(c.effectType));
-	f.write(fromResist(c.resist));
-	f.writeL(cast(int)c.successRate);
-	f.write(fromCardVisual(c.visual));
-	f.writeL(cast(uint)c.motions.length);
-	foreach (m; c.motions) { mixin(S_TRACE);
-		writeMotion(d, f, m);
-	}
-	f.writeL(cast(int)c.enhance(Enhance.Avoid));
-	f.writeL(cast(int)c.enhance(Enhance.Resist));
-	f.writeL(cast(int)c.enhance(Enhance.Defense));
-	writeString(f, c.soundPath1.length ? encodePathLegacy(c.soundPath1) : "（なし）");
-	writeString(f, c.soundPath2.length ? encodePathLegacy(c.soundPath2) : "（なし）");
-	for (uint i = 0u; i < 5u; i++) { mixin(S_TRACE);
-		if (i < c.keyCodes.length) { mixin(S_TRACE);
-			writeString(f, c.keyCodes[i]);
-		} else { mixin(S_TRACE);
-			writeString(f, "");
+	if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+		f.write(type);
+		auto paths = c.paths;
+		writeImage(d, f, c, paths.length && paths[0].type is CardImageType.File ? paths[0].path : "");
+		writeString(f, c.name);
+		f.writeL(cast(uint)(id + 40000u));
+		writeString(f, c.desc);
+		f.writeL(cast(uint)fromPhysical(c.physical));
+		f.writeL(cast(int)fromMental(c.mental));
+		writeBool(f, c.spell);
+		writeBool(f, c.allRange);
+		f.write(fromCardTarget(c.target));
+		f.write(fromEffectType(c.effectType));
+		f.write(fromResist(c.resist));
+		f.writeL(cast(int)c.successRate);
+		f.write(fromCardVisual(c.visual));
+		f.writeL(cast(uint)c.motions.length);
+		foreach (m; c.motions) { mixin(S_TRACE);
+			writeMotion(d, f, m);
 		}
-	}
-	f.write(fromPremium(c.premium));
-	writeString(f, c.scenario);
-	writeString(f, c.author);
-	f.writeL(cast(uint)c.trees.length);
-	foreach (tree; c.trees) { mixin(S_TRACE);
-		writeCEventTree(d, f, tree);
+		f.writeL(cast(int)c.enhance(Enhance.Avoid));
+		f.writeL(cast(int)c.enhance(Enhance.Resist));
+		f.writeL(cast(int)c.enhance(Enhance.Defense));
+		writeString(f, c.soundPath1.length ? encodePathLegacy(c.soundPath1) : "（なし）");
+		writeString(f, c.soundPath2.length ? encodePathLegacy(c.soundPath2) : "（なし）");
+		for (uint i = 0u; i < 5u; i++) { mixin(S_TRACE);
+			if (i < c.keyCodes.length) { mixin(S_TRACE);
+				writeString(f, c.keyCodes[i]);
+			} else { mixin(S_TRACE);
+				writeString(f, "");
+			}
+		}
+		f.write(fromPremium(c.premium));
+		writeString(f, c.scenario);
+		writeString(f, c.author);
+		f.writeL(cast(uint)c.trees.length);
+		foreach (tree; c.trees) { mixin(S_TRACE);
+			writeCEventTree(d, f, tree);
+		}
+	} else { mixin(S_TRACE);
+		f.write(cast(ubyte)0x80);
+		f.write(cast(ubyte)d.opt.dataVersion);
+		f.write(type);
+		auto paths = c.paths;
+		writeImage(d, f, c, paths.length && paths[0].type is CardImageType.File ? paths[0].path : "");
+		writeExString(f, c.name);
+		f.writeExUInt(cast(uint)id);
+		writeExString(f, c.desc);
+		f.writeExInt(fromPhysical(c.physical));
+		f.writeExInt(fromMental(c.mental));
+		writeBool(f, c.spell);
+		writeBool(f, c.allRange);
+		f.write(fromCardTarget(c.target));
+		f.write(fromEffectType(c.effectType));
+		f.write(fromResist(c.resist));
+		f.writeExInt(c.successRate);
+		f.write(fromCardVisual(c.visual));
+		f.writeExUInt(cast(uint)c.motions.length);
+		foreach (m; c.motions) { mixin(S_TRACE);
+			writeMotion(d, f, m);
+		}
+		f.writeExInt(c.enhance(Enhance.Avoid));
+		f.writeExInt(c.enhance(Enhance.Resist));
+		f.writeExInt(c.enhance(Enhance.Defense));
+		f.write(cast(ubyte)1); // パス指定
+		writeExString(f, c.soundPath1.length ? encodePathLegacy(c.soundPath1) : "（なし）");
+		f.write(cast(ubyte)1); // パス指定
+		writeExString(f, c.soundPath2.length ? encodePathLegacy(c.soundPath2) : "（なし）");
+
+		f.writeExUInt(cast(uint)c.keyCodes.length);
+		foreach (keyCode; c.keyCodes) { mixin(S_TRACE);
+			writeExString(f, keyCode);
+		}
+		f.write(fromPremium(c.premium));
+		f.write(cast(byte)0); // 不明
+		writeExString(f, c.scenario);
+		writeExString(f, c.author);
+		f.writeExUInt(cast(uint)c.trees.length);
+		foreach (tree; c.trees) { mixin(S_TRACE);
+			writeCEventTree(d, f, tree);
+		}
 	}
 }
 private void writeSkill(ref SData d, ref ByteIO f, SkillCard c) { mixin(S_TRACE);
@@ -3990,8 +5629,15 @@ private void writeSkill(ref SData d, ref ByteIO f, SkillCard c) { mixin(S_TRACE)
 	}
 	writeEffCard(d, f, c, 0x5, id);
 	writeBool(f, hold);
-	f.writeL(cast(uint)c.level);
-	f.writeL(cast(uint)c.useLimit);
+
+	if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+		f.writeL(cast(uint)c.level);
+		f.writeL(cast(uint)c.useLimit);
+	} else { mixin(S_TRACE);
+		f.writeExInt(c.level);
+		f.writeExUInt(c.useLimit);
+		writeBool(f, true); // バックパック対応
+	}
 }
 private void writeItem(ref SData d, ref ByteIO f, ItemCard c) { mixin(S_TRACE);
 	ulong id = c.id;
@@ -4004,12 +5650,22 @@ private void writeItem(ref SData d, ref ByteIO f, ItemCard c) { mixin(S_TRACE);
 	}
 	writeEffCard(d, f, c, 0x3, id);
 	writeBool(f, hold);
-	f.writeL(cast(uint)c.useLimit);
-	f.writeL(cast(uint)c.useLimitMax);
-	f.writeL(cast(uint)c.price);
-	f.writeL(cast(int)c.enhanceOwner(Enhance.Avoid));
-	f.writeL(cast(int)c.enhanceOwner(Enhance.Resist));
-	f.writeL(cast(int)c.enhanceOwner(Enhance.Defense));
+
+	if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+		f.writeL(cast(uint)c.useLimit);
+		f.writeL(cast(uint)c.useLimitMax);
+		f.writeL(cast(uint)c.price);
+		f.writeL(cast(int)c.enhanceOwner(Enhance.Avoid));
+		f.writeL(cast(int)c.enhanceOwner(Enhance.Resist));
+		f.writeL(cast(int)c.enhanceOwner(Enhance.Defense));
+	} else { mixin(S_TRACE);
+		f.writeExUInt(c.useLimit);
+		f.writeExUInt(c.useLimitMax);
+		f.writeExUInt(c.price);
+		f.writeExInt(c.enhanceOwner(Enhance.Avoid));
+		f.writeExInt(c.enhanceOwner(Enhance.Resist));
+		f.writeExInt(c.enhanceOwner(Enhance.Defense));
+	}
 }
 private void writeBeast(ref SData d, ref ByteIO f, BeastCard c) { mixin(S_TRACE);
 	ulong id = c.id;
@@ -4021,13 +5677,30 @@ private void writeBeast(ref SData d, ref ByteIO f, BeastCard c) { mixin(S_TRACE)
 	}
 	writeEffCard(d, f, c, 0x6, id);
 	writeBool(f, false); // Hold
-	f.writeL(cast(uint)c.useLimit);
+
+	if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+		f.writeL(cast(uint)c.useLimit);
+	} else { mixin(S_TRACE);
+		f.writeExUInt(c.useLimit);
+		f.write(cast(byte)(c.useLimit ? 1 : 0)); // 不明(使用回数あり=1, 使用回数無し=0。付帯フラグか？)
+	}
 }
 private void writeInfo(ref SData d, ref ByteIO f, InfoCard c) { mixin(S_TRACE);
-	f.writeL(cast(byte)0x4);
-	auto paths = c.paths;
-	writeImage(d, f, c, paths.length && paths[0].type is CardImageType.File ? paths[0].path : "");
-	writeString(f, c.name);
-	f.writeL(cast(uint)(c.id + 40000u));
-	writeString(f, c.desc);
+	if (d.opt.dataVersion < 7) { mixin(S_TRACE);
+		f.writeL(cast(byte)0x4);
+		auto paths = c.paths;
+		writeImage(d, f, c, paths.length && paths[0].type is CardImageType.File ? paths[0].path : "");
+		writeString(f, c.name);
+		f.writeL(cast(uint)(c.id + 40000u));
+		writeString(f, c.desc);
+	} else { mixin(S_TRACE);
+		f.writeL(cast(byte)0x80);
+		f.writeL(cast(ubyte)d.opt.dataVersion);
+		f.writeL(cast(byte)0x4);
+		auto paths = c.paths;
+		writeImage(d, f, c, paths.length && paths[0].type is CardImageType.File ? paths[0].path : "");
+		writeExString(f, c.name);
+		f.writeExUInt(cast(uint)c.id);
+		writeExString(f, c.desc);
+	}
 }

@@ -409,6 +409,7 @@ protected:
 						opt.textOnly = false;
 						opt.doubleIO = _prop.var.etc.doubleIO;
 						opt.expandXMLs = _prop.var.etc.expandXMLs;
+						opt.numberStepToVariantThreshold = _prop.var.etc.numberStepToVariantThreshold;
 						Skin defSkin = .findSkin2(_prop, _prop.var.etc.defaultSkin, _prop.var.etc.defaultSkinName);
 						string[] errorFiles;
 						summ = Summary.loadScenarioFromFile(_prop.parent, opt, errorFiles, tPath, _prop.tempPath, defSkin, () => dir);
@@ -931,9 +932,7 @@ class ImportOptionDialog : AbsDialog {
 	private Combo _battles;
 	private Combo _packages;
 	private Combo _includedFiles;
-	// FIXME: CardWirth 1.60 格納イメージ
-/+	private Combo _includedBgImages;
-+/	private Combo _hands;
+	private Combo _hands;
 	private Combo _beastsInMotions;
 	private Button _overwriteScenarioInfo;
 
@@ -1006,9 +1005,7 @@ class ImportOptionDialog : AbsDialog {
 		_battles = create(_prop.images.battle, _prop.msgs.importOptionBattles, _prop.var.etc.importOptionBattles, _opt.battles);
 		_packages = create(_prop.images.packages, _prop.msgs.importOptionPackages, _prop.var.etc.importOptionPackages, _opt.packages);
 		_includedFiles = create(_prop.images.cards, _prop.msgs.importOptionIncludedFiles, _canIncludeImage ? _prop.var.etc.importOptionIncludedFiles : _prop.var.etc.importOptionIncludedFilesWithoutIncluding, _opt.includedFiles, _canIncludeImage);
-		// FIXME: CardWirth 1.60 格納イメージ
-/+		_includedBgImages = create(_prop.images.backs, _prop.msgs.importOptionIncludedBgImages, _prop.var.etc.importOptionIncludedBgImages, _opt.includedBgImages);
-+/		_hands = create(_prop.images.menu(MenuID.OpenHand), _prop.msgs.importOptionHands, _prop.var.etc.importOptionHands, _opt.hands);
+		_hands = create(_prop.images.menu(MenuID.OpenHand), _prop.msgs.importOptionHands, _prop.var.etc.importOptionHands, _opt.hands);
 		_beastsInMotions = create(_prop.images.beast, _prop.msgs.importOptionBeastsInMotions, _prop.var.etc.importOptionBeastsInMotions, _opt.beastsInMotions);
 		auto sep = new Label(area, SWT.SEPARATOR | SWT.HORIZONTAL);
 		sep.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -1052,9 +1049,7 @@ class ImportOptionDialog : AbsDialog {
 		put(_battles, _prop.var.etc.importOptionBattles.value, _opt.battles);
 		put(_packages, _prop.var.etc.importOptionPackages.value, _opt.packages);
 		put(_includedFiles, _canIncludeImage ? _prop.var.etc.importOptionIncludedFiles.value : _prop.var.etc.importOptionIncludedFilesWithoutIncluding.value, _opt.includedFiles, _canIncludeImage);
-		// FIXME: CardWirth 1.60 格納イメージ
-/+		put(_includedBgImages, _prop.var.etc.importOptionIncludedBgImages.value, _opt.includedBgImages);
-+/		put(_hands, _prop.var.etc.importOptionHands.value, _opt.hands);
+		put(_hands, _prop.var.etc.importOptionHands.value, _opt.hands);
 		put(_beastsInMotions, _prop.var.etc.importOptionBeastsInMotions.value, _opt.beastsInMotions);
 		_opt.overwriteScenarioInfo = _overwriteScenarioInfo.getSelection();
 		_prop.var.etc.importOptionOverwriteScenarioInfo = _opt.overwriteScenarioInfo;

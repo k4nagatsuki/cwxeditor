@@ -527,7 +527,7 @@ private class UnknownValue : Part {
 /// 関数の名前と引数。
 private class Function : Part {
 	private static immutable typeof(&.funcLen)[string] FUNCS;
-	static this () {
+	shared static this () {
 		FUNCS = [
 			"len": &.funcLen,
 			"find": &.funcFind,

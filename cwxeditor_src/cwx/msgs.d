@@ -1258,8 +1258,11 @@ class Msgs : Properties {
 	auto filterScenarioSave = Msg("filterScenarioSave", "WSN(XML)形式のシナリオ (*.wsn)");
 	auto filterScenarioSaveDir = Msg("filterScenarioSaveDir", "展開されたWSN(XML)形式シナリオ (Summary.xml)");
 	auto filterScenarioSaveClassic = Msg("filterScenarioSaveClassic", "クラシックシナリオ (Summary.wsm)");
+	auto filterScenarioSaveClassic7 = Msg("filterScenarioSaveClassic7", "CardWirthNext 1.60形式としてエクスポート (Summary.wsm)");
 	auto filterScenarioSaveZip = Msg("filterScenarioSaveZip", "ZIP圧縮されたクラシックシナリオ (*.zip)");
 	auto filterScenarioSaveCab = Msg("filterScenarioSaveCab", "CAB圧縮されたクラシックシナリオ (*.cab)");
+	auto filterScenarioSaveZip7 = Msg("filterScenarioSaveZip7", "ZIP圧縮されたCardWirthNext 1.60形式としてエクスポート (*.zip)");
+	auto filterScenarioSaveCab7 = Msg("filterScenarioSaveCab7", "CAB圧縮されたCardWirthNext 1.60形式としてエクスポート (*.cab)");
 	auto warningXToClassic = Msg("warningXToClassic", "WSN(XML)形式のシナリオをクラシック形式に変換すると一部データが失われる可能性がある他、対応していない形式の素材で不具合が発生する恐れがあります。\nクラシック形式で保存しますか？");
 	auto saveToNotEmptyDir = Msg("saveToNotEmptyDir", "%1$sは空ではありません。\n本当にここにシナリオを保存しますか？");
 	auto notScenario = Msg("notScenario", "%1$sはシナリオ圧縮ファイルではありません");
@@ -2206,9 +2209,9 @@ class Msgs : Properties {
 	auto warningTextCell = Msg("warningTextCell", "テキストセルは、CardWirth 1.50より前のバージョンでは使用できません。");
 	auto warningColorCell = Msg("warningColorCell", "カラーセルは、CardWirth 1.50より前のバージョンでは使用できません。");
 	auto warningPCCell = Msg("warningPCCell", "プレイヤーキャラクタセルは、Wsn.1以降の形式のシナリオでしか使用できません。");
+	auto warningExpandedPCCell = Msg("warningExpandedPCCell", "セルに合わせて拡大・縮小するプレイヤーキャラクタセルは、Wsn.1以降の形式のシナリオでしか使用できません。");
 	auto warningEffectBoosterFileWithReplaceBgImage = Msg("warningEffectBoosterFileWithReplaceBgImage", "エフェクトブースター関係の背景セルは無視するように指定されています。");
-	auto warningBgImageIncluded = Msg("warningBgImageForeground", "背景セルのイメージ格納は、CardWirth 1.60より前のバージョンでは行えません。");
-	auto warningBgImageForeground = Msg("warningBgImageForeground", "カードよりも前の表示は、CardWirth 1.60より前のバージョンでは行えません。");
+	auto warningBgImageIncluded = Msg("warningBgImageIncluded", "背景セルのイメージ格納は、CardWirth 1.60より前のバージョンでは行えません。");
 	auto warningBgImageCellName = Msg("warningBgImageCellName", "背景セル名称は、Wsn.1以降の形式のシナリオでしか設定できません。");
 	auto warningCardGroup = Msg("warningCardGroup", "カードグループは、Wsn.3以降の形式のシナリオでしか設定できません。");
 	auto warningSelectionBarIsMany = Msg("warningSelectionBarIsMany", "選択肢が%1$s行ありますが、%2$s行までしか表示できません。");
@@ -2225,6 +2228,7 @@ class Msgs : Properties {
 	auto warningValuedSelectionMethod = Msg("warningValuedSelectionMethod", "評価条件によるメンバ選択分岐は、Wsn.1以降の形式のシナリオしか行えません。");
 	auto warningSkillPowerWithFixedValue = Msg("warningSkillPowerWithFixedValue", "精神力操作の固定値指定は、Wsn.1以降の形式のシナリオしか行えません。"); // Wsn.1
 	auto warningIncludedImage = Msg("warningIncludedImage", "WSN形式のシナリオでは格納イメージは使用できません。");
+	auto warningTransitionType = Msg("warningTransitionType", "背景切替方式の指定は、WSN形式のシナリオでしか行なえません。");
 	auto warningSelectionColumns = Msg("warningSelectionColumns", "選択肢の複数列表示は、Wsn.1以降の形式のシナリオしか行えません。");
 	auto warningRunAwayCard = Msg("warningRunAwayCard", "キーコード「%1$s」付きのカードは死亡イベントを発生させないため、シナリオを誤動作させる可能性があります。");
 	auto warningEndOrChangeAreaInRound0 = Msg("warningEndOrChangeAreaInRound0", "クラシックエンジンのバグにより、バトル開始イベント中にシナリオ終了やエリア移動を行うと、プレイヤーのデータの破損を含めた異常が発生する可能性があります。");
@@ -2268,6 +2272,18 @@ class Msgs : Properties {
 	auto warningLocalVariablesOfEffectCard = Msg("warningLocalVariablesOfEffectCard", "カードのローカル変数はWsn.4以降の形式のシナリオでしか使用できません。"); // Wsn.4
 	auto warningExchangeIsItemInClassic = Msg("warningExchangeIsItemInClassic", "クラシックなシナリオでは、最初のアイテムカードとして「%1$s」と同名のカードを所有していると、本来の「%1$s」が配付されません。");
 	auto warningNoActionCard = Msg("warningNoActionCard", "エネミーカードのアクション有無の指定は、Wsn.4以降の形式のシナリオでしか行えません。"); // Wsn.4
+
+	auto warningLayerV7 = Msg("warningLayerV7", "前面セルにはレイヤ値%1$sを指定してください。");
+	auto warningReplaceBgImageV7 = Msg("warningReplaceBgImageV7", "CardWirthNext 1.60の背景置換コンテントでは、JPY1のアニメーションは実行されず、エフェクトブースターのセルは無視されます。");
+	auto warningLoseBgImageV7 = Msg("warningLoseBgImageV7", "CardWirthNext 1.60の背景置換コンテントでは、JPY1のアニメーションは実行され、エフェクトブースターのセルは無視されます。");
+	auto warningMoveBgImageV7 = Msg("warningMoveBgImageV7", "CardWirthNext 1.60の背景置換コンテントでは、JPY1のアニメーションは実行され、エフェクトブースターのセルは無視されます。");
+	auto warningMoveCardV7 = Msg("warningMoveCardV7", "CardWirthNext 1.60のカード移動コンテントでは、拡大率変更・レイヤ変更・最速かつ上書き以外のカードのアニメーション速度指定は行えません。");
+	auto warningChangeEnvironmentV7 = Msg("warningChangeEnvironmentV7", "CardWirthNext 1.60の禁止コンテントでは、禁止状態を未指定にする事はできません。");
+	auto warningIgnoreKeyCodeV7 = Msg("warningIgnoreKeyCodeV7", "CardWirthNext 1.60では、効果コンテントにキーコードは指定できません。");
+	auto warningIgniteDeadEvent = Msg("warningIgniteDeadEvent", "CardWirthNext 1.60では、効果コンテントで死亡イベントが発火します。");
+	auto warningIgniteNoDeadEvent = Msg("warningIgniteNoDeadEvent", "効果コンテントに死亡イベント発火要因となる効果が含まれていません。");
+	auto warningCheckFlagV7 = Msg("warningCheckFlagV7", "CardWirthNext 1.60では、フラグ値の変更の直後にフラグ判定を行うと、値の変化が判定結果に反映されません。");
+	auto warningCheckStepV7 = Msg("warningCheckStepV7", "CardWirthNext 1.60では、ステップ値の変更の直後にステップ判定を行うと、値の変化が判定結果に反映されません。");
 
 	auto unknownStepValue = Msg("unknownStepValue", "存在しないステップ値(%1$s)");
 
@@ -3089,6 +3105,14 @@ class Msgs : Properties {
 	auto foldTree = Msg("foldTree", "全コンテントツリーを閉じる");
 	auto showEventTreeDetail = Msg("showEventTreeDetail", "イベントコンテントの詳細を表示");
 	auto showEventTreeLineNumber = Msg("showEventTreeLineNumber", "行番号を表示");
+
+	auto convertFromNextWarning = Msg("convertFromNextWarning", "@@@NEXT: %1$s");
+	auto convertFromNextWarningBackpackOnly = Msg("convertFromNextWarningBackpackOnly", "「荷物袋のみ」の指定");
+	auto convertFromNextWarningBackpackOfSelectedMember = Msg("convertFromNextWarningBackpackOfSelectedMember", "「選択メンバのバックパック」の指定");
+	auto convertFromNextWarningNoForbid = Msg("convertFromNextWarningNoForbid", "制限コンテント(制限解除)");
+	auto convertFromNextWarningForbidSave = Msg("convertFromNextWarningForbidSave", "セーブ・中断の制限");
+	auto convertFromNextWarningForbidCamp = Msg("convertFromNextWarningForbidCamp", "キャンプの制限");
+	auto convertFromNextWarningWaitMillis = Msg("convertFromNextWarningWaitMillis", "ミリ秒単位の空白時間(%1$sミリ秒)");
 
 	auto sex = AAMsg("sex", "key", "name");
 	auto period = AAMsg("period", "key", "name");

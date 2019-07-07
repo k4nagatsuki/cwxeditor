@@ -663,6 +663,7 @@ private:
 		opt.textOnly = false;
 		opt.doubleIO = _prop.var.etc.doubleIO;
 		opt.expandXMLs = old ? old.expandXMLs : _prop.var.etc.expandXMLs;
+		opt.numberStepToVariantThreshold = _prop.var.etc.numberStepToVariantThreshold;
 		auto d = _win.getDisplay();
 		opt.processFunc = (string sName, string fileName) {
 			d.asyncExec(new class Runnable {
@@ -1000,6 +1001,7 @@ private:
 		opt.archiveInNewThread = _prop.var.etc.archiveInNewThread && !initial && summary.useTemp;
 		opt.autoUpdateJpy1File = _prop.var.etc.autoUpdateJpy1File;
 		opt.saveSkinName = _prop.var.etc.saveSkinName;
+		opt.dataVersion = 4;
 		if (opt.archiveInNewThread && !initial) { mixin(S_TRACE);
 			opt.savedCallback = { mixin(S_TRACE);
 				synchronized (_displayMutex) { mixin(S_TRACE);
@@ -1082,19 +1084,35 @@ private:
 			static immutable FILTER_XML = 1;
 			static immutable FILTER_WSM = 2;
 			static immutable FILTER_ZIP = 3;
-			static immutable FILTER_CAB = 4;
+			ptrdiff_t filterCab = -1;
 			string[] filters = ["*.wsn", "Summary.xml", "Summary.wsm", "*.zip"];
 			string[] names = [_prop.msgs.filterScenarioSave, _prop.msgs.filterScenarioSaveDir, _prop.msgs.filterScenarioSaveClassic, _prop.msgs.filterScenarioSaveZip];
 			if (canUncab) { mixin(S_TRACE);
+				filterCab = filters.length;
 				filters ~= "*.cab";
 				names ~= _prop.msgs.filterScenarioSaveCab;
 			}
+			// クラシック(データバージョン=7)のエクスポート
+			auto filterClassic7 = filters.length;
+			filters ~= "Summary.wsm";
+			names ~= _prop.msgs.filterScenarioSaveClassic7;
+			auto filterZip7 = filters.length;
+			filters ~= "*.zip";
+			names ~= _prop.msgs.filterScenarioSaveZip7;
+			ptrdiff_t filterCab7 = -1;
+			if (canUncab) { mixin(S_TRACE);
+				filterCab7 = filters.length;
+				filters ~= "*.cab";
+				names ~= _prop.msgs.filterScenarioSaveCab7;
+			}
+
 			string fname = null;
 			int filter = FILTER_WSN;
 			if (summary.legacy) { mixin(S_TRACE);
 				filter = FILTER_WSM;
 			}
 			bool classic;
+			bool exportSc = false;
 			string filterPath = scenarioFilterPath(_prop);
 			string fileName;
 			if (summary.readOnlyPath != "") { mixin(S_TRACE);
@@ -1133,32 +1151,32 @@ private:
 					}
 					return true;
 				}
-				final switch (filter) {
-				case FILTER_WSN:
-					classic = false;
+				if (filter == -1) { mixin(S_TRACE);
 					break;
-				case FILTER_XML:
+				} else if (filter == FILTER_WSN) { mixin(S_TRACE);
+					classic = false;
+				} else if (filter == FILTER_XML) { mixin(S_TRACE);
 					fname = dir.buildPath("Summary.xml");
 					if (!checkDir()) continue;
 					classic = false;
-					break;
-				case FILTER_WSM:
+				} else if (filter == FILTER_WSM || filter == filterClassic7) { mixin(S_TRACE);
 					fname = dir.buildPath("Summary.wsm");
 					if (!checkDir()) continue;
 					classic = true;
-					goto case FILTER_ZIP;
-				case FILTER_ZIP, FILTER_CAB:
-					if (!summary.legacy) { mixin(S_TRACE);
-						auto dlg = new DWTMessageBox(shell, SWT.ICON_QUESTION | SWT.YES | SWT.NO);
-						dlg.setMessage(_prop.msgs.warningXToClassic);
-						dlg.setText(_prop.msgs.dlgTitQuestion);
-						if (SWT.YES != dlg.open()) { mixin(S_TRACE);
-							continue;
-						}
-					}
+				} else if (filter == FILTER_ZIP || filter == filterCab || filter == filterZip7 || filter == filterCab7) { mixin(S_TRACE);
 					classic = true;
+				} else { mixin(S_TRACE);
 					break;
 				}
+				if (!summary.legacy && classic) { mixin(S_TRACE);
+					auto dlg = new DWTMessageBox(shell, SWT.ICON_QUESTION | SWT.YES | SWT.NO);
+					dlg.setMessage(_prop.msgs.warningXToClassic);
+					dlg.setText(_prop.msgs.dlgTitQuestion);
+					if (SWT.YES != dlg.open()) { mixin(S_TRACE);
+						continue;
+					}
+				}
+				exportSc = filter == filterClassic7 || filter == filterZip7 || filter == filterCab7;
 				break;
 			}
 			if (fname) { mixin(S_TRACE);
@@ -1173,24 +1191,40 @@ private:
 					beforeSave();
 					auto oldClassic = summary.legacy;
 					auto oldSkin = _comm.skin;
-					_comm.skin = findSkin(_comm, _prop, summary, classic, fname, classic ? "" : summary.type);
-					if (_comm.skin.isEmpty) _comm.skin = defSkin;
-					_comm.updateSkinMaterialsExtension(summary.useCounter, oldSkin, _comm.skin);
+					auto newSkin = findSkin(_comm, _prop, summary, classic, fname, classic ? "" : summary.type);
+					if (newSkin.isEmpty) newSkin = defSkin;
+					_comm.updateSkinMaterialsExtension(summary.useCounter, oldSkin, newSkin);
+					if (!exportSc) _comm.skin = newSkin;
+					auto isChanged = summary.isChanged;
 					{ mixin(S_TRACE);
 						_saveSync.lock();
 						scope (exit) _saveSync.unlock();
-						summary.saveWithName(_prop.parent, _comm.skin, createSaveOpt(false),
-							fname, tempPath, expandXMLs, defSkin, (string msg) { mixin(S_TRACE);
+						if (exportSc) { mixin(S_TRACE);
+							auto opt = createSaveOpt(false);
+							opt.dataVersion = 7;
+							summary.exportClassicScenario(_prop.parent, newSkin, opt, fname, tempPath, (string msg) { mixin(S_TRACE);
 								DWTMessageBox.showWarning(msg, _prop.msgs.dlgTitWarning, shell);
-							}, classic, _sync);
+							}, _sync);
+						} else { mixin(S_TRACE);
+							summary.saveWithName(_prop.parent, newSkin, createSaveOpt(false),
+								fname, tempPath, expandXMLs, defSkin, (string msg) { mixin(S_TRACE);
+									DWTMessageBox.showWarning(msg, _prop.msgs.dlgTitWarning, shell);
+								}, classic, _sync);
+						}
+					}
+					if (exportSc) { mixin(S_TRACE);
+						_comm.updateSkinMaterialsExtension(summary.useCounter, newSkin, oldSkin);
+						if (!isChanged) summary.resetChanged();
 					}
 					_comm.saved.call();
 					refreshTitle();
-					_comm.refScenarioPath.call();
-					_comm.refSkin.call();
-					if (oldClassic != summary.legacy) _comm.refDataVersion.call();
-					_comm.refPaths.call("");
-					addHistory();
+					if (!exportSc) { mixin(S_TRACE);
+						_comm.refScenarioPath.call();
+						_comm.refSkin.call();
+						if (oldClassic != summary.legacy) _comm.refDataVersion.call();
+						_comm.refPaths.call("");
+						addHistory();
+					}
 					core.memory.GC.collect();
 					playSavedSound();
 				} catch (SummaryException e) {

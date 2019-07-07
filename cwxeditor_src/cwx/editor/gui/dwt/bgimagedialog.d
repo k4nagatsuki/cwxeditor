@@ -399,16 +399,9 @@ protected:
 			auto comp = new Composite(area, SWT.NONE);
 			comp.setLayout(normalGridLayout(1, false));
 			void imgs(Composite parent) { mixin(S_TRACE);
-				bool including = _back && isBinImg(_back.path);
-				// FIXME: CardWirth 1.60 背景イメージの格納 ここから
-/+				_imgPath = new ImageSelect!(MtType.BG_IMG)(parent, SWT.NONE, _comm, _prop, _summ,
-					_prop.var.etc.bgImageSampleWidth, _prop.var.etc.bgImageSampleHeight, CInsets(0, 0, 0, 0), including, true,
-					() => _summ ? .toExportedImageNameWithCardName(_prop.parent, _summ.scenarioName, _summ.author, _cellName.getText()) : _cellName.getText(),
-					&selectEasySetting);
-+/				_imgPath = new ImageSelect!(MtType.BG_IMG)(parent, SWT.NONE, _comm, _prop, _summ,
+				_imgPath = new ImageSelect!(MtType.BG_IMG)(parent, SWT.NONE, _comm, _prop, _summ,
 					_prop.var.etc.bgImageSampleWidth, _prop.var.etc.bgImageSampleHeight, CInsets(0, 0, 0, 0),
 					CardImagePosition.TopLeft, false, () => "", &selectEasySetting);
-				// FIXME: CardWirth 1.60 背景イメージの格納 ここまで
 				mod(_imgPath);
 				_imgPath.modEvent ~= &refreshWarning;
 				_imgPath.modEvent ~= () =>_easy.select(0);
