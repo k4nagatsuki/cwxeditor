@@ -38,7 +38,7 @@ import cwx.utils;
 import cwx.xml;
 
 static import std.algorithm;
-import std.algorithm : any, map, min;
+import std.algorithm : any, equal, map, min;
 import std.range : iota;
 import std.typecons : Rebindable, Tuple, tuple;
 
@@ -3830,7 +3830,14 @@ private void writeSummary(ref SData d, ref ByteIO f, Summary summ) { mixin(S_TRA
 			if (step.expandSPChars) { mixin(S_TRACE);
 				type |= 0b10000000;
 				f.write(type);
-				f.write(cast(ubyte)2);
+				f.write(cast(ubyte)2); // 不明
+			} else if (.equal(step.values, .iota(0, step.count).map!text())) { mixin(S_TRACE);
+				// 値が 0 .. Count と一致する場合は数値ステップとして扱ってよい
+				type = 2;
+				f.write(type);
+				f.writeExUInt(step.count);
+				f.writeExUInt(step.select);
+				return;
 			} else { mixin(S_TRACE);
 				f.write(type);
 			}
