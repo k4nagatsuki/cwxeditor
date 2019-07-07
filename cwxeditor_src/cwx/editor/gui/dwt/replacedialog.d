@@ -3378,7 +3378,7 @@ public:
 			}
 		}
 		foreach (u; uc.sub.values(oldVal)) { mixin(S_TRACE);
-			if (!useRangeT || dec(u.ucOwner, rangeT)) { mixin(S_TRACE);
+			if (!useRangeT || !u.ucOwner || dec(u.ucOwner, rangeT)) { mixin(S_TRACE);
 				UseCounter.replaceID(newVal, u);
 				undo.users ~= u;
 			}
