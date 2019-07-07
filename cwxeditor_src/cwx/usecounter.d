@@ -2199,7 +2199,7 @@ class UseCounter {
 		_owner = owner;
 		_global = global;
 		_local = local;
-		if (createSub) _sub = new UseCounter(owner, local ? global : global.sub, local ? local.sub : null, false);
+		if (createSub) _sub = new UseCounter(owner, global.sub, local ? local.sub : null, false);
 	}
 
 	/// この使用回数カウンタの所有者を返す。
@@ -2228,25 +2228,27 @@ class UseCounter {
 
 	/// ローカルIDの発生を通知する。
 	void createID(ID)(ID id) in (!_local || id !in localIDs!ID) { mixin(S_TRACE);
-		if (!_local) return;
-		localIDs!ID[id] = true;
-		foreach (u; _global.values(id)) { mixin(S_TRACE);
-			if (u.useCounter !is this) continue;
-			_global.remove(id, u);
-			_local.add(id, u);
+		if (_local) { mixin(S_TRACE);
+			localIDs!ID[id] = true;
+			foreach (u; _global.values(id)) { mixin(S_TRACE);
+				if (u.useCounter !is this) continue;
+				_global.remove(id, u);
+				_local.add(id, u);
+			}
 		}
 		if (_sub) _sub.createID(id);
 	}
 	/// ローカルIDの消滅を通知する。
 	void deleteID(ID)(ID id) in (!_local || id in localIDs!ID) { mixin(S_TRACE);
-		if (!_local) return;
-		localIDs!ID.remove(id);
-		foreach (u; _local.values(id)) { mixin(S_TRACE);
-			if (u.useCounter !is this) continue;
-			_local.remove(id, u);
-			_global.add(id, u);
+		if (_local) { mixin(S_TRACE);
+			localIDs!ID.remove(id);
+			foreach (u; _local.values(id)) { mixin(S_TRACE);
+				if (u.useCounter !is this) continue;
+				_local.remove(id, u);
+				_global.add(id, u);
+			}
+			assert (_local.get(id) == 0);
 		}
-		assert (_local.get(id) == 0);
 		if (_sub) _sub.deleteID(id);
 	}
 

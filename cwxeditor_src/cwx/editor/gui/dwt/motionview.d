@@ -753,6 +753,7 @@ private:
 					sb.beast.linkId = b.id;
 				} else { mixin(S_TRACE);
 					sb.beast = b;
+					sb.beast.setUseCounter(_useCounter.sub);
 				}
 			} else { mixin(S_TRACE);
 				if (!sb.beast) return;
@@ -1725,6 +1726,7 @@ public:
 							detail = DND.DROP_LINK;
 						} else { mixin(S_TRACE);
 							m.newBeast = beast;
+							m.beast.setUseCounter(_useCounter.sub);
 							detail = DND.DROP_COPY;
 						}
 						resetMaxNest(m);
