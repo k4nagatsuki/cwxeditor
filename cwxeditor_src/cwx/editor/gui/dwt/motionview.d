@@ -268,6 +268,9 @@ private:
 	}
 
 	HashSet!EventWindow _beWin;
+	void changed() { mixin(S_TRACE);
+		foreach (dlg; modEvent) dlg();
+	}
 	EventWindow openBeastEventWin(BeastCard beast) { mixin(S_TRACE);
 		if (!_summ) return null;
 		if (0 != beast.linkId) { mixin(S_TRACE);
@@ -308,6 +311,8 @@ private:
 			_comm.delBeast.call(o, o.beast);
 		}
 		itm.setData(m);
+		m.setUseCounter(_useCounter ? _useCounter.sub : null);
+		m.changeHandler = &changed;
 		if (index == _motions.getSelectionIndex()) { mixin(S_TRACE);
 			refreshSels();
 		}
@@ -607,6 +612,7 @@ private:
 			if (_summ && _summ.scenarioPath != "" && m.beast) { mixin(S_TRACE);
 				_comm.delBeast.call(m, m.beast);
 			}
+			m.removeUseCounter();
 			_motions.remove(index);
 			if (index >= _motions.getItemCount()) index--;
 			if (index >= 0) { mixin(S_TRACE);
@@ -644,6 +650,7 @@ private:
 		itm.setText(_descs[motion.type]);
 		itm.setData(motion);
 		motion.setUseCounter(_useCounter ? _useCounter.sub : null);
+		motion.changeHandler = &changed;
 		if (callMod) { mixin(S_TRACE);
 			foreach (dlg; modEvent) dlg();
 		}
@@ -898,6 +905,7 @@ private:
 						foreach (we; warningEvent) we();
 					}
 				}
+				(cast(Motion)_itm.getData()).removeUseCounter();
 				_itm.dispose();
 				_motions.redraw();
 				foreach (dlg; modEvent) dlg();
@@ -949,6 +957,9 @@ private:
 			foreach (w; _beWin.toArray()) { mixin(S_TRACE);
 				_comm.close(w.shell);
 			}
+			foreach (m; motions) { mixin(S_TRACE);
+				if (m.cwxParent is null) m.removeUseCounter();
+			}
 		}
 	}
 	class KeyDownFilter : Listener {
@@ -983,6 +994,7 @@ private:
 		refBeasts();
 	}
 	void refBeasts() { mixin(S_TRACE);
+		if (_motions.isDisposed()) return;
 		if (!_summ) return;
 		setRedraw(false);
 		scope (exit) setRedraw(true);
@@ -1592,7 +1604,6 @@ public:
 		_undo.reset();
 		foreach (i, m; motions) { mixin(S_TRACE);
 			m = m.dup;
-			m.setUseCounter(_useCounter ? _useCounter.sub : null);
 			appendMotion(m, -1, false, false, false);
 			if (0 == i) _motions.select(0);
 		}
@@ -1607,7 +1618,7 @@ public:
 		Motion[] r;
 		r.length = _motions.getItemCount();
 		foreach (i, itm; _motions.getItems()) { mixin(S_TRACE);
-			r[i] = cast(Motion) itm.getData();
+			r[i] = cast(Motion)itm.getData();
 		}
 		return r;
 	}
