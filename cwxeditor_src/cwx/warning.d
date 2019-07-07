@@ -586,10 +586,10 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			auto wNC = .warningNextCondition(prop, c.parent.detail.nextType, c.name);
 			if (wNC) r ~= wNC;
 		}
-		if (c.type is CType.CheckFlag && c.parent && (c.parent.type is CType.SetFlag || c.parent.type is CType.ReverseFlag || c.parent.type is CType.SubstituteFlag)) { mixin(S_TRACE);
+		if (c.type is CType.CheckFlag && c.parent && (c.parent.type is CType.SetFlag || c.parent.type is CType.ReverseFlag || c.parent.type is CType.SubstituteFlag) && c.flag != "" && c.flag == c.parent.flag) { mixin(S_TRACE);
 			r ~= prop.msgs.warningCheckFlagV7;
 		}
-		if (c.type is CType.CheckStep && c.parent && (c.parent.type is CType.SetStep || c.parent.type is CType.SetStepUp || c.parent.type is CType.SetStepDown || c.parent.type is CType.SubstituteStep)) { mixin(S_TRACE);
+		if (c.type is CType.CheckStep && c.parent && (c.parent.type is CType.SetStep || c.parent.type is CType.SetStepUp || c.parent.type is CType.SetStepDown || c.parent.type is CType.SubstituteStep) && c.step != "" && c.step == c.parent.step) { mixin(S_TRACE);
 			r ~= prop.msgs.warningCheckStepV7;
 		}
 		if (cd.owner && cd.nextType != CNextType.Text) { mixin(S_TRACE);
