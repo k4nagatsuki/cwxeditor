@@ -121,7 +121,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (step.parent is froot && prop.sys.isSystemVar(step.name)) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.searchErrorSystemVariable, step.name);
 		}
-		if (step.count != prop.looks.stepMaxCount && isClassic) {
+		if (isClassic && !is160 && step.count != prop.looks.stepMaxCount) {
 			r ~= .tryFormat(prop.msgs.warningStepCount, prop.looks.stepMaxCount);
 		}
 		if (step.expandSPChars && !prop.isTargetVersion(isClassic, wsnVer, "2") && !is160) { mixin(S_TRACE);
@@ -360,7 +360,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (prop.sys.isRunAway(effCard.keyCodes)) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.warningRunAwayCard, prop.sys.runAway);
 		}
-		if (prop.looks.keyCodesMaxLegacy < effCard.keyCodes.length && isClassic) { mixin(S_TRACE);
+		if (prop.looks.keyCodesMaxLegacy < effCard.keyCodes.length && isClassic && !is160) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.warningKeyCodeCount, prop.looks.keyCodesMaxLegacy);
 		}
 		foreach (keyCode; effCard.keyCodes) { mixin(S_TRACE);
@@ -579,7 +579,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (!c.parent || c.parent.detail.nextType is CNextType.Text || c.parent.detail.nextType is CNextType.Coupon) { mixin(S_TRACE);
 			r ~= .sjisWarnings(prop, isClassic, c.name, prop.msgs.contentNameForWarning);
 		}
-		if (isClassic && c.type == CType.Wait && !c.next.length) { mixin(S_TRACE);
+		if (isClassic && !is160 && c.type == CType.Wait && !c.next.length) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorIgnoreWait;
 		}
 		if (c.parent) { mixin(S_TRACE);
@@ -985,7 +985,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		}
 		if (c.type is CType.MoveCard && !prop.isTargetVersion(isClassic, wsnVer, "3")) { mixin(S_TRACE);
 			if (is160) { mixin(S_TRACE);
-				if ((c.overrideCardSpeed && 1 < c.cardSpeed) || (c.cardSpeed != -1 && !c.overrideCardSpeed) || c.scale != -1 || c.layer != -1) { mixin(S_TRACE);
+				if (!((c.overrideCardSpeed && c.cardSpeed < 1) || (!c.overrideCardSpeed && c.cardSpeed == -1)) || c.scale != -1 || c.layer != -1) { mixin(S_TRACE);
 					r ~= prop.msgs.warningMoveCardV7;
 				}
 			} else { mixin(S_TRACE);
@@ -1017,7 +1017,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 					r ~= .tryFormat(prop.msgs.warningStepOverCount, s.name, s.count, c.stepValue);
 				}
 			}
-			if (isClassic && prop.looks.stepMaxCount < c.stepValue) { mixin(S_TRACE);
+			if (isClassic && !is160 && prop.looks.stepMaxCount < c.stepValue) { mixin(S_TRACE);
 				r ~= .tryFormat(prop.msgs.warningStepCount, prop.looks.stepMaxCount);
 			}
 		}
@@ -1030,7 +1030,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 						r ~= .tryFormat(prop.msgs.warningStepOverCount, s.name, s.count, value);
 					}
 				}
-				if (isClassic && prop.looks.stepMaxCount < value) { mixin(S_TRACE);
+				if (isClassic && !is160 && prop.looks.stepMaxCount < value) { mixin(S_TRACE);
 					r ~= .tryFormat(prop.msgs.warningStepCount, prop.looks.stepMaxCount);
 				}
 			} catch (ConvException e) {

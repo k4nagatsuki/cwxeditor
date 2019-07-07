@@ -2557,6 +2557,7 @@ public:
 				auto isEngineMaterial = false;
 				if (!std.path.buildPath(scenarioPath, cast(string)key).exists()) continue;
 				auto fname = cast(string)key;
+				if (fname == "") continue;
 				if (istartsWith(fname, "font_") && fname.to!dstring.length == 10 && fname.extension().toLower() == ".bmp") continue;
 				auto p = std.path.buildPath(scenarioPath, fname);
 				uc.change(key, toPathId(std.path.buildPath(toSkin.materialPath, fname)));
@@ -2595,6 +2596,7 @@ public:
 				}
 			} else if (loadScaledImage) { mixin(S_TRACE);
 				auto path = cast(string)p;
+				if (path == "") continue;
 				auto info = .scaledImageInfo(path);
 				if (info.path != "") { mixin(S_TRACE);
 					// スケーリングされたイメージのようなファイル名が使用されている
@@ -3145,6 +3147,7 @@ public:
 			}
 			foreach (path; useCounter.keys!PathId) { mixin(S_TRACE);
 				auto p = cast(string)path;
+				if (p == "") continue;
 				if (!path.isBinData && !tbl.contains(path)) { mixin(S_TRACE);
 					paths ~= encodePath(p);
 				}

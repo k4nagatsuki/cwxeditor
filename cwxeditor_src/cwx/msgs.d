@@ -2277,7 +2277,7 @@ class Msgs : Properties {
 	auto warningReplaceBgImageV7 = Msg("warningReplaceBgImageV7", "CardWirthNext 1.60の背景置換コンテントでは、JPY1のアニメーションは実行されず、エフェクトブースターのセルは無視されます。");
 	auto warningLoseBgImageV7 = Msg("warningLoseBgImageV7", "CardWirthNext 1.60の背景置換コンテントでは、JPY1のアニメーションは実行され、エフェクトブースターのセルは無視されます。");
 	auto warningMoveBgImageV7 = Msg("warningMoveBgImageV7", "CardWirthNext 1.60の背景置換コンテントでは、JPY1のアニメーションは実行され、エフェクトブースターのセルは無視されます。");
-	auto warningMoveCardV7 = Msg("warningMoveCardV7", "CardWirthNext 1.60のカード移動コンテントでは、拡大率変更・レイヤ変更・最速かつ上書き以外のカードのアニメーション速度指定は行えません。");
+	auto warningMoveCardV7 = Msg("warningMoveCardV7", "CardWirthNext 1.60のカード移動コンテントでは、拡大率変更・レイヤ変更・アニメーション有無以外のアニメーション速度指定は行えません。");
 	auto warningChangeEnvironmentV7 = Msg("warningChangeEnvironmentV7", "CardWirthNext 1.60の禁止コンテントでは、禁止状態を未指定にする事はできません。");
 	auto warningIgnoreKeyCodeV7 = Msg("warningIgnoreKeyCodeV7", "CardWirthNext 1.60では、効果コンテントにキーコードは指定できません。");
 	auto warningIgniteDeadEvent = Msg("warningIgniteDeadEvent", "CardWirthNext 1.60では、効果コンテントで死亡イベントが発火します。");

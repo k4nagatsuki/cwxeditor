@@ -1899,12 +1899,16 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 				e.width = f.readExInt;
 				e.height = f.readExInt;
 			}
+			e.doAnime = true;
+			e.ignoreEffectBooster = true;
 			e.transition = Transition.Default;
 			e.transitionSpeed = 5u;
 			break;
 		case 75:
 			e = new Content(CType.LoseBgImage, name);
 			e.cellName = readExString(f);
+			e.doAnime = true;
+			e.ignoreEffectBooster = true;
 			e.transition = Transition.Default;
 			e.transitionSpeed = 5u;
 			break;
@@ -1912,6 +1916,8 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			e = new Content(CType.ReplaceBgImage, name);
 			e.cellName = readExString(f);
 			e.backs = readBgImages(d, f, dataVersion, false, true);
+			e.doAnime = false;
+			e.ignoreEffectBooster = true;
 			e.transition = Transition.Default;
 			e.transitionSpeed = 5u;
 			break;
@@ -1925,7 +1931,7 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 				e.x = f.readExInt;
 				e.y = f.readExInt;
 				e.cardSpeed = anime ? -1 : 0;
-				if (anime) e.overrideCardSpeed = true;
+				if (!anime) e.overrideCardSpeed = true;
 			}
 			break;
 		case 78:
@@ -2030,6 +2036,10 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 						name2 = .replStepToVariantInText(name2, path, path);
 					}
 					c.setName(null, name2);
+				} else if (7 <= d.dataVersion && ed.nextType is CNextType.None && c.name != "") { mixin(S_TRACE);
+					// データバージョン7のシナリオは必ず内容の変換を伴うため、
+					// 不正なコンテント名をここで修正してもよい
+					c.setName(null, "");
 				}
 				void mergeCheckContent(Content chk) { mixin(S_TRACE);
 					// 数値ステップの多岐分岐と比較をコモン版に置換する時、

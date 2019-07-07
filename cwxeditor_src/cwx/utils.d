@@ -534,6 +534,10 @@ string soundType(in ubyte[] b) { mixin(S_TRACE);
 		// MOD
 		return ".mod";
 	}
+	if (4L <= b.length && 0xFF == b[0] && 0xFB == b[1]) { mixin(S_TRACE);
+		/// MP3?
+		return ".mp3";
+	}
 	return "";
 }
 
