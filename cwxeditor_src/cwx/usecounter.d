@@ -2217,7 +2217,7 @@ class UseCounter {
 	/// 等の場合に使う。
 	@property
 	UseCounter sub() { mixin(S_TRACE);
-		return _sub;
+		return _sub ? _sub : this;
 	}
 
 	/// ローカルIDの有無。
@@ -2356,6 +2356,7 @@ class UseCounter {
 		if (_local && id in localIDs!ID) { mixin(S_TRACE);
 			_local.add(id, user);
 		} else { mixin(S_TRACE);
+			assert(_global);
 			_global.add(id, user);
 		}
 	}
@@ -2554,7 +2555,7 @@ public:
 	/// 等の場合に使う。
 	@property
 	SingleUseCounter sub() { mixin(S_TRACE);
-		return _child;
+		return _child ? _child : this;
 	}
 
 	/// ID・Tの変更を通知する。

@@ -643,6 +643,7 @@ private:
 		itm.setImage(_prop.images.motion(motion.type));
 		itm.setText(_descs[motion.type]);
 		itm.setData(motion);
+		motion.setUseCounter(_useCounter ? _useCounter.sub : null);
 		if (callMod) { mixin(S_TRACE);
 			foreach (dlg; modEvent) dlg();
 		}
@@ -753,7 +754,6 @@ private:
 					sb.beast.linkId = b.id;
 				} else { mixin(S_TRACE);
 					sb.beast = b;
-					sb.beast.setUseCounter(_useCounter.sub);
 				}
 			} else { mixin(S_TRACE);
 				if (!sb.beast) return;
@@ -1591,7 +1591,9 @@ public:
 		_motions.setRedraw(false);
 		_undo.reset();
 		foreach (i, m; motions) { mixin(S_TRACE);
-			appendMotion(m.dup, -1, false, false, false);
+			m = m.dup;
+			m.setUseCounter(_useCounter ? _useCounter.sub : null);
+			appendMotion(m, -1, false, false, false);
 			if (0 == i) _motions.select(0);
 		}
 		_motions.showSelection();
@@ -1726,7 +1728,6 @@ public:
 							detail = DND.DROP_LINK;
 						} else { mixin(S_TRACE);
 							m.newBeast = beast;
-							m.beast.setUseCounter(_useCounter.sub);
 							detail = DND.DROP_COPY;
 						}
 						resetMaxNest(m);
