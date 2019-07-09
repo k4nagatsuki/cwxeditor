@@ -378,6 +378,7 @@ class Skin {
 	private string _type;
 	private string _author;
 	private string _desc;
+	private bool _sourceOfMaterialsIsClassicEngine = false;
 	private string[dchar] _spChars;
 	private Race[] _races;
 
@@ -408,6 +409,11 @@ class Skin {
 	@property
 	const
 	string path() { return _path; }
+	/// 含まれる素材はクラシックなエンジンからそのまま持ってきたものか。
+	@property
+	const
+	bool sourceOfMaterialsIsClassicEngine() { return _sourceOfMaterialsIsClassicEngine; }
+
 	/// スキンが存在しない時に使用される空スキンか。
 	@property
 	const
@@ -1765,11 +1771,15 @@ class Skin {
 			_number1Coupon = "";
 			_actionCards = null;
 			_spChars = null;
-			sNode.onTag["Property"] = (ref XNode pNode) {  mixin(S_TRACE);
+			_sourceOfMaterialsIsClassicEngine = false;
+			sNode.onTag["Property"] = (ref XNode pNode) { mixin(S_TRACE);
 				pNode.onTag["Name"] = (ref XNode n) { _name = n.value; };
 				pNode.onTag["Type"] = (ref XNode n) { _type = n.value; };
 				pNode.onTag["Author"] = (ref XNode n) { _author = n.value; };
 				pNode.onTag["Description"] = (ref XNode n) { _desc = n.value; };
+				pNode.onTag["SourceOfMaterialsIsClassicEngine"] = (ref XNode n) { mixin(S_TRACE);
+					_sourceOfMaterialsIsClassicEngine = .parseBool(n.value);
+				};
 				pNode.parse();
 			};
 			sNode.onTag["Races"] = (ref XNode node) { mixin(S_TRACE);

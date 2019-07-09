@@ -2405,6 +2405,7 @@ class Msgs : Properties {
 	auto saveChangedOnly = Msg("saveChangedOnly", "上書き時に更新されたファイルだけを保存する");
 	auto expandXMLs = Msg("expandXMLs", "圧縮されたシナリオの読込み時にXMLファイルを展開する");
 	auto xmlFileNameIsIDOnly = Msg("xmlFileNameIsIDOnly", "XMLファイルの名前にエリア名などを含めずIDのみで設定する");
+	auto replaceClassicResourceExtension = Msg("replaceClassicResourceExtension", "クラシックなシナリオの保存時にスキン付属リソースの拡張子を変換する");
 	auto saveInnerImagePath = Msg("saveInnerImagePath", "クラシックなシナリオで格納イメージのファイルパスを保存する");
 	auto addNewClassicEngine = Msg("addNewClassicEngine", "未知のクラシックエンジンを見つけたら記憶する");
 	auto openLastScenario = Msg("openLastScenario", "終了時に開いていたシナリオを次の起動時に開く");

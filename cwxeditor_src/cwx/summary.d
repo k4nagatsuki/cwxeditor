@@ -104,6 +104,10 @@ struct SaveOption {
 	bool saveSkinName = true; /// スキンタイプに加えてスキン名称も保存するか。
 	uint dataVersion = 4; /// クラシックなシナリオのデータバージョン。
 	void delegate() savedCallback = null; /// 保存完了通知を受け取る場合は設定する。
+	bool replaceClassicResourceExtension = false; /// クラシックなシナリオの保存時にスキン付属リソースの拡張子を書き換える。
+	string tableExtension = ".bmp";
+	string midiExtension = ".mid";
+	string waveExtension = ".wav";
 }
 
 /// 貼り紙。シナリオの情報が入る。

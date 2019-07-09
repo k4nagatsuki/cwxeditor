@@ -446,6 +446,10 @@ class FlexEtcProps : Properties {
 	auto lastSkinType = Prop!(string)("lastSkinType", "");
 	auto lastSkinName = Prop!(string)("lastSkinName", "");
 	auto saveSkinName = Prop!(bool)("saveSkinName", true);
+	auto replaceClassicResourceExtension = Prop!(bool)("replaceClassicResourceExtension", true);
+	auto tableExtension = Prop!(string, true)("tableExtension", ".bmp");
+	auto midiExtension = Prop!(string, true)("midiExtension", ".mid");
+	auto waveExtension = Prop!(string, true)("waveExtension", ".wav");
 
 	auto classicEngineRegex = Prop!(string)("classicEngineRegex", "^(CW´|.+Wirth(_.+|Next)?)\\.exe$");
 	auto classicDataDirRegex = Prop!(string)("classicDataDirRegex", "^Data|D_[A-Z]1|[A-Z]_dt$");

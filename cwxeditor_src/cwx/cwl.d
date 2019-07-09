@@ -54,6 +54,32 @@ private string encodePathLegacy(string path) { mixin(S_TRACE);
 	// エフェクトブースターは'/'区切りのパスを受け付けない
 	return isBinImg(path) ? path : replace(path, dirSeparator, "\\");
 }
+/// スキン使用時に限り、クラシックなシナリオのために拡張子を置換する。
+private string encodePathRes(in SData d, string path, string resExt, in string[] resDirs, in string[] resExts) { mixin(S_TRACE);
+	path = path.encodePathLegacy();
+	if (!d.opt.replaceClassicResourceExtension || (d.skin.legacy && d.opt.dataVersion < 7) || d.skin.sourceOfMaterialsIsClassicEngine) return path;
+	auto ext = path.extension().toLower();
+	if (ext != resExt && resExts.contains(ext)) { mixin(S_TRACE);
+		bool isSkinMaterial, isEngineMaterial;
+		d.skin.findPathF(path, resExts, resDirs, d.sPath, LATEST_VERSION, [], isSkinMaterial, isEngineMaterial);
+		if (isSkinMaterial) { mixin(S_TRACE);
+			return path.setExtension(resExt);
+		}
+	}
+	return path;
+}
+/// ditto
+private string encodePathTable(in SData d, string path) { mixin(S_TRACE);
+	return .encodePathRes(d, path, d.opt.tableExtension, d.skin.tableDirs, d.skin.extImage);
+}
+/// ditto
+private string encodePathMidi(in SData d, string path) { mixin(S_TRACE);
+	return .encodePathRes(d, path, d.opt.midiExtension, d.skin.bgmDirs, d.skin.extBgm);
+}
+/// ditto
+private string encodePathWave(in SData d, string path) { mixin(S_TRACE);
+	return .encodePathRes(d, path, d.opt.waveExtension, d.skin.seDirs, d.skin.extSound);
+}
 private string decodePathLegacy(string path) { mixin(S_TRACE);
 	return isBinImg(path) ? path : replace(path, "\\", dirSeparator);
 }
@@ -4250,7 +4276,7 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 				auto imgPath = e.cardPaths[0];
 				final switch (imgPath.type) {
 				case CardImageType.File:
-					path = encodePathLegacy(imgPath.path);
+					path = .encodePathTable(d, imgPath.path);
 					break;
 				case CardImageType.PCNumber:
 					// 非対応
@@ -4275,9 +4301,9 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 			break;
 		case CType.PlayBgm:
 			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
-				writeString(f, encodePathLegacy(e.bgmPath));
+				writeString(f, .encodePathMidi(d, e.bgmPath));
 			} else { mixin(S_TRACE);
-				writeExString(f, encodePathLegacy(e.bgmPath));
+				writeExString(f, .encodePathMidi(d, e.bgmPath));
 			}
 			break;
 		case CType.ChangeBgImage:
@@ -4285,9 +4311,9 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 			break;
 		case CType.PlaySound:
 			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
-				writeString(f, encodePathLegacy(e.soundPath));
+				writeString(f, .encodePathWave(d, e.soundPath));
 			} else { mixin(S_TRACE);
-				writeExString(f, encodePathLegacy(e.soundPath));
+				writeExString(f, .encodePathWave(d, e.soundPath));
 			}
 			break;
 		case CType.Wait:
@@ -4305,7 +4331,7 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 				f.write(fromEffectType(e.effectType));
 				f.write(fromResist(e.resist));
 				f.writeL(cast(int)e.successRate);
-				writeString(f, e.soundPath.length ? encodePathLegacy(e.soundPath) : "（なし）");
+				writeString(f, e.soundPath.length ? .encodePathWave(d, e.soundPath) : "（なし）");
 				f.write(fromCardVisual(e.cardVisual));
 				f.writeL(cast(uint)e.motions.length);
 			} else { mixin(S_TRACE);
@@ -4316,7 +4342,7 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 				f.write(fromResist(e.resist));
 				f.writeExInt(e.successRate);
 				f.write(cast(ubyte)1); // パス指定
-				writeExString(f, e.soundPath.length ? encodePathLegacy(e.soundPath) : "（なし）");
+				writeExString(f, e.soundPath.length ? .encodePathWave(d, e.soundPath) : "（なし）");
 				f.write(fromCardVisual(e.cardVisual));
 				f.writeExUInt(cast(uint)e.motions.length);
 			}
@@ -5000,7 +5026,7 @@ private void writeBgImage(ref SData d, ref ByteIO f, BgImage b) { mixin(S_TRACE)
 			f.writeL(cast(int)ic.y);
 			f.writeL(cast(uint)ic.width + 40000u);
 			f.writeL(cast(uint)ic.height);
-			writeString(f, encodePathLegacy(ic.path));
+			writeString(f, .encodePathTable(d, ic.path));
 			writeBool(f, ic.mask);
 			writeString(f, ic.flag);
 			f.writeL(cast(byte)0x0);
@@ -5096,7 +5122,7 @@ private void writeBgImage(ref SData d, ref ByteIO f, BgImage b) { mixin(S_TRACE)
 			writeBool(f, ic.mask);
 			writeBool(f, LAYER_MENU_CARD < ic.layer);
 			writeBool(f, false);
-			writeExString(f, .encodePathLegacy(ic.path));
+			writeExString(f, .encodePathTable(d, ic.path));
 			writeExString(f, ic.flag);
 			f.write(cast(byte)0); // 不明(0)
 			writeExString(f, ic.cellName);
@@ -5239,7 +5265,7 @@ private void writeArea(ref SData d, ref ByteIO f, Area a) { mixin(S_TRACE);
 			f.writeL(cast(int)c.x);
 			f.writeL(cast(int)c.y);
 			if (path && path.type is CardImageType.File) { mixin(S_TRACE);
-				writeString(f, saveBinImg ? "" : encodePathLegacy(path.path));
+				writeString(f, saveBinImg ? "" : .encodePathTable(d, path.path));
 			} else if (path && path.type is CardImageType.PCNumber && 0 < path.pcNumber) { mixin(S_TRACE);
 				writeString(f, .text(path.pcNumber));
 			} else {
@@ -5301,7 +5327,7 @@ private void writeArea(ref SData d, ref ByteIO f, Area a) { mixin(S_TRACE);
 				} else { mixin(S_TRACE);
 					// ファイル指定
 					f.write(cast(ubyte)(sb | 0x1));
-					writeExString(f, encodePathLegacy(path.path));
+					writeExString(f, .encodePathTable(d, path.path));
 				}
 			} else if (path && path.type is CardImageType.PCNumber && 0 < path.pcNumber) { mixin(S_TRACE);
 				// PC番号
@@ -5340,7 +5366,7 @@ private void writeBattle(ref SData d, ref ByteIO f, Battle a) { mixin(S_TRACE);
 			f.writeL(cast(int)c.y);
 			writeBool(f, c.action(ActionCardType.RunAway));
 		}
-		writeString(f, encodePathLegacy(a.music));
+		writeString(f, .encodePathMidi(d, a.music));
 	} else { mixin(S_TRACE);
 		f.write(cast(ubyte)0xFF);
 		f.write(cast(ubyte)d.opt.dataVersion);
@@ -5381,7 +5407,7 @@ private void writeBattle(ref SData d, ref ByteIO f, Battle a) { mixin(S_TRACE);
 			if (0u < pcNumber) f.write(cast(ubyte)pcNumber);
 			if (c.isOverrideName) writeExString(f, c.overrideName);
 		}
-		writeExString(f, encodePathLegacy(a.music));
+		writeExString(f, .encodePathMidi(d, a.music));
 	}
 }
 private void writePackage(ref SData d, ref ByteIO f, Package a) { mixin(S_TRACE);
@@ -5575,8 +5601,8 @@ private void writeEffCard(ref SData d, ref ByteIO f, EffectCard c, byte type, ul
 		f.writeL(cast(int)c.enhance(Enhance.Avoid));
 		f.writeL(cast(int)c.enhance(Enhance.Resist));
 		f.writeL(cast(int)c.enhance(Enhance.Defense));
-		writeString(f, c.soundPath1.length ? encodePathLegacy(c.soundPath1) : "（なし）");
-		writeString(f, c.soundPath2.length ? encodePathLegacy(c.soundPath2) : "（なし）");
+		writeString(f, c.soundPath1.length ? .encodePathWave(d, c.soundPath1) : "（なし）");
+		writeString(f, c.soundPath2.length ? .encodePathWave(d, c.soundPath2) : "（なし）");
 		for (uint i = 0u; i < 5u; i++) { mixin(S_TRACE);
 			if (i < c.keyCodes.length) { mixin(S_TRACE);
 				writeString(f, c.keyCodes[i]);
@@ -5617,9 +5643,9 @@ private void writeEffCard(ref SData d, ref ByteIO f, EffectCard c, byte type, ul
 		f.writeExInt(c.enhance(Enhance.Resist));
 		f.writeExInt(c.enhance(Enhance.Defense));
 		f.write(cast(ubyte)1); // パス指定
-		writeExString(f, c.soundPath1.length ? encodePathLegacy(c.soundPath1) : "（なし）");
+		writeExString(f, c.soundPath1.length ? .encodePathWave(d, c.soundPath1) : "（なし）");
 		f.write(cast(ubyte)1); // パス指定
-		writeExString(f, c.soundPath2.length ? encodePathLegacy(c.soundPath2) : "（なし）");
+		writeExString(f, c.soundPath2.length ? .encodePathWave(d, c.soundPath2) : "（なし）");
 
 		f.writeExUInt(cast(uint)c.keyCodes.length);
 		foreach (keyCode; c.keyCodes) { mixin(S_TRACE);

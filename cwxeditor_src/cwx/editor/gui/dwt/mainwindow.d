@@ -1002,6 +1002,10 @@ private:
 		opt.autoUpdateJpy1File = _prop.var.etc.autoUpdateJpy1File;
 		opt.saveSkinName = _prop.var.etc.saveSkinName;
 		opt.dataVersion = 4;
+		opt.replaceClassicResourceExtension = _prop.var.etc.replaceClassicResourceExtension;
+		opt.tableExtension = _prop.var.etc.tableExtension;
+		opt.midiExtension = _prop.var.etc.midiExtension;
+		opt.waveExtension = _prop.var.etc.waveExtension;
 		if (opt.archiveInNewThread && !initial) { mixin(S_TRACE);
 			opt.savedCallback = { mixin(S_TRACE);
 				synchronized (_displayMutex) { mixin(S_TRACE);
@@ -1193,9 +1197,10 @@ private:
 					auto oldSkin = _comm.skin;
 					auto newSkin = findSkin(_comm, _prop, summary, classic, fname, classic ? "" : summary.type);
 					if (newSkin.isEmpty) newSkin = defSkin;
-					_comm.updateSkinMaterialsExtension(summary.useCounter, oldSkin, newSkin);
-					if (!exportSc) _comm.skin = newSkin;
-					auto isChanged = summary.isChanged;
+					if (!exportSc) { mixin(S_TRACE);
+						_comm.skin = newSkin;
+						_comm.updateSkinMaterialsExtension(summary.useCounter, oldSkin, _comm.skin);
+					}
 					{ mixin(S_TRACE);
 						_saveSync.lock();
 						scope (exit) _saveSync.unlock();
@@ -1211,10 +1216,6 @@ private:
 									DWTMessageBox.showWarning(msg, _prop.msgs.dlgTitWarning, shell);
 								}, classic, _sync);
 						}
-					}
-					if (exportSc) { mixin(S_TRACE);
-						_comm.updateSkinMaterialsExtension(summary.useCounter, newSkin, oldSkin);
-						if (!isChanged) summary.resetChanged();
 					}
 					_comm.saved.call();
 					refreshTitle();

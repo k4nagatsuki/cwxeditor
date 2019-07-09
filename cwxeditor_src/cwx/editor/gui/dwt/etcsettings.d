@@ -132,6 +132,7 @@ class EtcSettings : Composite {
 		boolSetting(comp, prop.var.etc.saveChangedOnly, prop.msgs.saveChangedOnly);
 		boolSetting(comp, prop.var.etc.xmlFileNameIsIDOnly, prop.msgs.xmlFileNameIsIDOnly);
 		boolSetting(comp, prop.var.etc.expandXMLs, prop.msgs.expandXMLs);
+		boolSetting(comp, prop.var.etc.replaceClassicResourceExtension, prop.msgs.replaceClassicResourceExtension);
 		boolSetting(comp, prop.var.etc.saveInnerImagePath, prop.msgs.saveInnerImagePath);
 		boolSetting(comp, prop.var.etc.addNewClassicEngine, prop.msgs.addNewClassicEngine);
 		boolSetting(comp, prop.var.etc.openLastScenario, prop.msgs.openLastScenario);

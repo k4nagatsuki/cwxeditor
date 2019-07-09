@@ -1694,6 +1694,8 @@ struct OldSettings {
 	bool showCloseButtonAllTab;
 	bool showMotionDescription;
 	bool xmlFileNameIsIDOnly;
+	bool replaceClassicResourceExtension;
+	bool saveInnerImagePath;
 	bool showSummaryPreview;
 	bool showMessagePreview;
 	ToolBarSettings mainToolBar;
@@ -1776,6 +1778,8 @@ struct OldSettings {
 		this.mainToolBar = prop.var.etc.mainToolBar;
 		this.showMotionDescription = prop.var.etc.showMotionDescription;
 		this.xmlFileNameIsIDOnly = prop.var.etc.xmlFileNameIsIDOnly;
+		this.replaceClassicResourceExtension = prop.var.etc.replaceClassicResourceExtension;
+		this.saveInnerImagePath = prop.var.etc.saveInnerImagePath;
 		this.showSummaryPreview = prop.var.etc.showSummaryPreview;
 		this.showMessagePreview = prop.var.etc.showMessagePreview;
 		this.stepValueName = prop.var.etc.stepValueName;
@@ -2011,6 +2015,17 @@ struct OldSettings {
 			}
 		}
 		if (this.saveSkinName != prop.var.etc.saveSkinName) { mixin(S_TRACE);
+			comm.summary.changed();
+		}
+		if (comm.summary && comm.summary.legacy && (this.saveInnerImagePath != prop.var.etc.saveInnerImagePath || this.replaceClassicResourceExtension != prop.var.etc.replaceClassicResourceExtension)) { mixin(S_TRACE);
+			foreach (a; comm.summary.areas) a.changed();
+			foreach (a; comm.summary.battles) a.changed();
+			foreach (a; comm.summary.packages) a.changed();
+			foreach (a; comm.summary.casts) a.changed();
+			foreach (a; comm.summary.skills) a.changed();
+			foreach (a; comm.summary.items) a.changed();
+			foreach (a; comm.summary.beasts) a.changed();
+			foreach (a; comm.summary.infos) a.changed();
 			comm.summary.changed();
 		}
 	}
