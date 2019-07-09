@@ -748,16 +748,8 @@ protected:
 			_comm.refImageScale.call();
 			_comm.refUseCount.call();
 		}
-		if (_comm.skin.legacy && _prop.var.etc.replaceClassicResourceExtension && !oldSkin.sourceOfMaterialsIsClassicEngine && !_comm.skin.sourceOfMaterialsIsClassicEngine) { mixin(S_TRACE);
-			foreach (a; _comm.summary.areas) a.changed();
-			foreach (a; _comm.summary.battles) a.changed();
-			foreach (a; _comm.summary.packages) a.changed();
-			foreach (a; _comm.summary.casts) a.changed();
-			foreach (a; _comm.summary.skills) a.changed();
-			foreach (a; _comm.summary.items) a.changed();
-			foreach (a; _comm.summary.beasts) a.changed();
-			foreach (a; _comm.summary.infos) a.changed();
-			_comm.summary.changed();
+		if (_summ.legacy && _prop.var.etc.replaceClassicResourceExtension && (!oldSkin.legacy && !oldSkin.sourceOfMaterialsIsClassicEngine) != (!_comm.skin.legacy && !_comm.skin.sourceOfMaterialsIsClassicEngine)) { mixin(S_TRACE);
+			_comm.summary.changedAll();
 		}
 		return true;
 	}

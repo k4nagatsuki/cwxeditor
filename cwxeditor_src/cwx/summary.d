@@ -883,6 +883,18 @@ public:
 	void changed() { mixin(S_TRACE);
 		changeHandler();
 	}
+	/// 全てのリソースを変更状態にする。
+	void changedAll() { mixin(S_TRACE);
+		foreach (a; areas) a.changed();
+		foreach (a; battles) a.changed();
+		foreach (a; packages) a.changed();
+		foreach (a; casts) a.changed();
+		foreach (a; skills) a.changed();
+		foreach (a; items) a.changed();
+		foreach (a; beasts) a.changed();
+		foreach (a; infos) a.changed();
+		changed();
+	}
 	/// 変更されたファイル単位のリソースの一覧を返す。
 	@property
 	HashSet!Object changedResources() { mixin(S_TRACE);

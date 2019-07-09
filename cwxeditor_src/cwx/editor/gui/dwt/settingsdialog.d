@@ -2002,14 +2002,7 @@ struct OldSettings {
 		}
 		if (comm.summary && !comm.summary.legacy && this.xmlFileNameIsIDOnly != prop.var.etc.xmlFileNameIsIDOnly) { mixin(S_TRACE);
 			if (comm.summary.expandXMLs) { mixin(S_TRACE);
-				foreach (a; comm.summary.areas) a.changed();
-				foreach (a; comm.summary.battles) a.changed();
-				foreach (a; comm.summary.packages) a.changed();
-				foreach (a; comm.summary.casts) a.changed();
-				foreach (a; comm.summary.skills) a.changed();
-				foreach (a; comm.summary.items) a.changed();
-				foreach (a; comm.summary.beasts) a.changed();
-				foreach (a; comm.summary.infos) a.changed();
+				comm.summary.changedAll();
 			} else { mixin(S_TRACE);
 				comm.summary.changed();
 			}
@@ -2017,16 +2010,11 @@ struct OldSettings {
 		if (this.saveSkinName != prop.var.etc.saveSkinName) { mixin(S_TRACE);
 			comm.summary.changed();
 		}
-		if (comm.summary && comm.summary.legacy && (this.saveInnerImagePath != prop.var.etc.saveInnerImagePath || this.replaceClassicResourceExtension != prop.var.etc.replaceClassicResourceExtension)) { mixin(S_TRACE);
-			foreach (a; comm.summary.areas) a.changed();
-			foreach (a; comm.summary.battles) a.changed();
-			foreach (a; comm.summary.packages) a.changed();
-			foreach (a; comm.summary.casts) a.changed();
-			foreach (a; comm.summary.skills) a.changed();
-			foreach (a; comm.summary.items) a.changed();
-			foreach (a; comm.summary.beasts) a.changed();
-			foreach (a; comm.summary.infos) a.changed();
-			comm.summary.changed();
+		if (comm.summary && comm.summary.legacy && this.saveInnerImagePath != prop.var.etc.saveInnerImagePath) { mixin(S_TRACE);
+			comm.summary.changedAll();
+		}
+		if (comm.summary && comm.summary.legacy && !comm.skin.legacy && !comm.skin.sourceOfMaterialsIsClassicEngine && this.replaceClassicResourceExtension != prop.var.etc.replaceClassicResourceExtension) { mixin(S_TRACE);
+			comm.summary.changedAll();
 		}
 	}
 }
