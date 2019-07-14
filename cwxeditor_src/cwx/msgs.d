@@ -96,6 +96,7 @@ class Msgs : Properties {
 	auto warningHistoryTooMany = Msg("warningHistoryTooMany", "履歴が多すぎます(%1$s件)。%2$s件を超えた分は適用時に破棄されます。");
 
 	auto editExecutedPartyHistory = Msg("editExecutedPartyHistory", "パーティの履歴とブックマークの編集");
+	auto executionPartyBookmarkHint = Msg("executionPartyBookmarkHint", "ブックマークに登録したいパーティはチェックしてください。");
 	auto executionPartyName = Msg("executionPartyName", "パーティ");
 	auto executionPartyYado = Msg("executionPartyYado", "拠点");
 	auto executionPartyEngine = Msg("executionPartyEngine", "エンジン");

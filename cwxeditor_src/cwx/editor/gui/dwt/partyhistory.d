@@ -166,7 +166,7 @@ class ExecutedPartyHistoryDialog : AbsDialog, TCPD {
 	this (Commons comm, Shell shell) { mixin(S_TRACE);
 		_comm = comm;
 		auto size = _comm.prop.var.executedPartyHistoryDlg;
-		super (_comm.prop, shell, false, _comm.prop.msgs.editExecutedPartyHistory, _comm.prop.images.menu(MenuID.EditScenarioHistory), true, size, true, true);
+		super (_comm.prop, shell, false, _comm.prop.msgs.editExecutedPartyHistory, _comm.prop.images.menu(MenuID.EditExecutedPartyHistory), true, size, true, true);
 	}
 
 	protected override void setup(Composite area) { mixin(S_TRACE);
@@ -179,7 +179,7 @@ class ExecutedPartyHistoryDialog : AbsDialog, TCPD {
 		});
 
 		auto label = new Label(area, SWT.WRAP);
-		label.setText(_comm.prop.msgs.scenarioBookmarkHint);
+		label.setText(_comm.prop.msgs.executionPartyBookmarkHint);
 		label.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 		_list = .rangeSelectableTable(area, SWT.MULTI | SWT.CHECK | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.VIRTUAL);
