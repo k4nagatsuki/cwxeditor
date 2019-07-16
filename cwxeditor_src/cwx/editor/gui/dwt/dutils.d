@@ -4647,6 +4647,7 @@ private bool isEnableGdipAndNotTrueTypeFont(GC gc) { mixin(S_TRACE);
 
 /// titleをsizeまで縮めて描画する。
 void shrinkDrawText(GC gc, string title, int x, int y, in Point size, bool smoothing, in CRGB hemmingColor = CRGB(0, 0, 0, 0)) { mixin(S_TRACE);
+	if (size.x <= 0 || size.y <= 0) return;
 	auto d = gc.getDevice();
 	auto extent = gc.wTextExtent(title);
 	auto img = new Image(d, extent.x, extent.y);
