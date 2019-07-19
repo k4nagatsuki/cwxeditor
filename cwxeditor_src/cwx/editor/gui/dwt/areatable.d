@@ -260,6 +260,14 @@ private:
 		}
 		private void resetID(alias ToID, A)(AreaTable v, A[] arr, ulong[] ids) { mixin(S_TRACE);
 			ulong[] oldIDs;
+			auto chg = false;
+			foreach (i, a; arr) { mixin(S_TRACE);
+				if (a.id != ids[i]) { mixin(S_TRACE);
+					chg = true;
+					break;
+				}
+			}
+			if (!chg) return;
 			foreach (i, a; arr) { mixin(S_TRACE);
 				auto oID = a.id;
 				a.id = ulong.max - arr.length + i;
