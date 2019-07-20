@@ -1158,6 +1158,11 @@ public:
 	inout
 	inout(UseCounter) useCounter() { return _uc; }
 
+	/// このディレクトリ以下に所属する状態変数が無いか。
+	@property
+	const
+	private bool empty() { return !(hasFlag || hasStep || hasVariant); }
+
 	/// 最上位のディレクトリ。
 	@property
 	inout
@@ -1191,7 +1196,7 @@ public:
 		name = FlagDir.validName(name);
 		if (!_parent || _parent.canAppendSub(name)) { mixin(S_TRACE);
 			if (_name == name) return true;
-			if (_change) _change();
+			if (_change && !empty) _change();
 			if (_parent) { mixin(S_TRACE);
 				_parent._dirNames.remove(_name);
 				_parent._dirNames[name] = this;
@@ -1297,7 +1302,7 @@ public:
 			item.changeHandler = _change;
 			item.useCounter = _uc;
 			names!F[item.name] = item;
-			if (_change) _change();
+			if (_change && !empty) _change();
 			return true;
 		}
 		return false;
@@ -1344,7 +1349,11 @@ public:
 				arr[i].useCounter = null;
 				arr = arr[0 .. i] ~ arr[i + 1 .. $];
 				(names!T).remove(e.name);
-				if (_change) _change();
+				static if (is(T:FlagDir)) {
+					if (_change && !e.empty) _change();
+				} else {
+					if (_change) _change();
+				}
 				return true;
 			}
 		}
@@ -1368,14 +1377,15 @@ public:
 	}
 	void removeAll() { mixin(S_TRACE);
 		void removeAllImpl(F)(ref F[] list, ref F[string] table) { mixin(S_TRACE);
+			auto empty = this.empty;
 			foreach (e; list) {
 				e.parent = null;
 				e.changeHandler = null;
 				e.useCounter = null;
-				if (_change) _change();
 			}
 			list = [];
 			table = null;
+			if (_change && !empty) _change();
 		}
 		removeAllImpl(_flags, _flagNames);
 		removeAllImpl(_steps, _stepNames);
@@ -1463,15 +1473,6 @@ public:
 	const
 	ptrdiff_t indexOf(in FlagDir f) { mixin(S_TRACE);
 		return .cCountUntil!("a is b")(_subdir, f);
-	}
-
-	/// サブディレクトリの位置を交換する。
-	void swapDir(int index1, int index2) { mixin(S_TRACE);
-		if (index1 == index2) return;
-		enforce(0 <= index1 && index1 < _subdir.length);
-		enforce(0 <= index2 && index2 < _subdir.length);
-		if (_change) _change();
-		std.algorithm.swap(_subdir[index1], _subdir[index2]);
 	}
 
 	/// フラグ・ステップ・サブディレクトリを名前で検索して取得する。
