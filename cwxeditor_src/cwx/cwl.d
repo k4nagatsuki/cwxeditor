@@ -3321,7 +3321,7 @@ void saveLScenario(Summary summ, string scenarioPath, const Skin skin, const CPr
 		auto path = std.path.buildPath(scenarioPath, file);
 			if (canBackup) { mixin(S_TRACE);
 				if (!opt.backupDir.exists()) opt.backupDir.mkdirRecurse();
-				path.rename(opt.backupDir.buildPath(file));
+				path.renameFile(opt.backupDir.buildPath(file));
 			} else { mixin(S_TRACE);
 				preRemove(path);
 				std.file.remove(path);

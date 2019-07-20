@@ -1641,6 +1641,27 @@ void copyAll(string a, string b, bool overwrite = false) { mixin(S_TRACE);
 	}
 }
 
+/// ファイルの移動を行う。
+/// ドライブ間移動の場合はコピーしてからfromを削除する。
+void renameFile(string from, string to) { mixin(S_TRACE);
+	version (Windows) {
+		from = .nabs(from);
+		to = .nabs(to);
+		if (from.driveName.cfnmatch(to.driveName)) { mixin(S_TRACE);
+			.preRemove(to);
+			std.file.rename(from, to);
+		} else { mixin(S_TRACE);
+			.preRemove(to);
+			std.file.copy(from, to);
+			.preRemove(from);
+			std.file.remove(from);
+		}
+	} else {
+		.preRemove(to);
+		std.file.rename(from, to);
+	}
+}
+
 /// listDirの代替。指定されたディレクトリに含まれるファイル名の一覧を返す。
 string[] clistdir(string dir) { mixin(S_TRACE);
 	string[] r;

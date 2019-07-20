@@ -2140,24 +2140,6 @@ public:
 		if (targs.length && !.exists(path)) { mixin(S_TRACE);
 			mkdir(path);
 		}
-		void renameFile(string from, string to) { mixin(S_TRACE);
-			version (Windows) {
-				from = .nabs(from);
-				to = .nabs(to);
-				if (from.driveName.cfnmatch(to.driveName)) { mixin(S_TRACE);
-					.preRemove(to);
-					std.file.rename(from, to);
-				} else { mixin(S_TRACE);
-					.preRemove(to);
-					std.file.copy(from, to);
-					.preRemove(from);
-					std.file.remove(from);
-				}
-			} else {
-				.preRemove(to);
-				std.file.rename(from, to);
-			}
-		}
 		bool[string] wrote;
 		foreach (name, a; saveSet) { mixin(S_TRACE);
 			wrote[name] = true;
@@ -2166,7 +2148,7 @@ public:
 				if (canBackup && file.exists()) { mixin(S_TRACE);
 					if (!backupDir.exists()) backupDir.mkdirRecurse();
 					auto backFile = backupDir.buildPath(name);
-					renameFile(file, backFile);
+					.renameFile(file, backFile);
 				}
 				.writeFile(file, a.toXML(xOpt), sync);
 			}
@@ -2184,7 +2166,7 @@ public:
 				if (canBackup) { mixin(S_TRACE);
 					if (!backupDir.exists()) backupDir.mkdirRecurse();
 					auto backFile = backupDir.buildPath(name);
-					renameFile(file, backFile);
+					.renameFile(file, backFile);
 				} else { mixin(S_TRACE);
 					std.file.remove(file);
 				}
