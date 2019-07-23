@@ -1344,7 +1344,7 @@ private:
 		}
 		itm.setText(colIndex(CardTableColumn.Desc), desc);
 		if (colIndex(CardTableColumn.UC) != -1) { mixin(S_TRACE);
-			itm.setText(colIndex(CardTableColumn.UC), to!(string)(ucGet(c.useCounter, _cardType, c.id)));
+			itm.setText(colIndex(CardTableColumn.UC), to!(string)(ucGet(_summ.useCounter, _cardType, c.id)));
 		}
 		if (useNum) { mixin(S_TRACE);
 			auto num = cardNum(c);
