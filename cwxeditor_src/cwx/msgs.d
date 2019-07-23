@@ -3050,8 +3050,8 @@ class Msgs : Properties {
 	auto menuTextOpenAtFileView = Msg("menuTextOpenAtFileView", "ファイルビューで開く");
 	auto menuTextOpenAtEventView = Msg("menuTextOpenAtEventView", "イベントビューで開く");
 	auto menuTextComment = Msg("menuTextComment", "コメントを記述");
-	auto menuTextShowCardProp = Msg("menuTextShowCardProp", "詳細情報を表示");
-	auto menuTextShowCardImage = Msg("menuTextShowCardImage", "カード表示");
+	auto menuTextShowCardProp = Msg("menuTextShowCardProp", "カード表示");
+	auto menuTextShowCardImage = Msg("menuTextShowCardImage", "簡略カード表示");
 	auto menuTextShowCardDetail = Msg("menuTextShowCardDetail", "詳細表示");
 	auto menuTextOpenImportSource = Msg("menuTextOpenImportSource", "外部シナリオから追加");
 	auto menuTextSelectImportSource = Msg("menuTextSelectImportSource", "追加元のシナリオを選択");
