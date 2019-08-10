@@ -153,6 +153,7 @@ class EtcSettings : Composite {
 		boolSetting(comp, prop.var.etc.incrementNewAreaName, prop.msgs.incrementNewAreaName);
 
 		comp = createComp(prop.msgs.etcSettingsScene);
+		boolSetting(comp, prop.var.etc.switchFixedWithCheckBox, prop.msgs.switchFixedWithCheckBox);
 		boolSetting(comp, prop.var.etc.showSceneViewSelectionFilter, prop.msgs.showSceneViewSelectionFilter);
 		version (OSX) {
 			// OSXではXOR描画はサポート無し

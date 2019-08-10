@@ -1701,6 +1701,7 @@ struct OldSettings {
 	ToolBarSettings mainToolBar;
 	string stepValueName;
 	bool showCurrentValueOnTopAlways;
+	bool switchFixedWithCheckBox;
 	bool drawXORSelectionLine;
 	bool showSceneViewSelectionFilter;
 	bool saveSkinName;
@@ -1724,6 +1725,7 @@ struct OldSettings {
 		this.eventTemplates = prop.var.etc.eventTemplates;
 		this.oldIgnorePaths = prop.var.etc.ignorePaths;
 		this.oldSmoothingCard = prop.var.etc.smoothingCard;
+		this.switchFixedWithCheckBox = prop.var.etc.switchFixedWithCheckBox;
 		this.drawXORSelectionLine = prop.var.etc.drawXORSelectionLine;
 		this.showSceneViewSelectionFilter = prop.var.etc.showSceneViewSelectionFilter;
 		this.oldLogicalSort = prop.var.etc.logicalSort;
@@ -1849,6 +1851,9 @@ struct OldSettings {
 		}
 		if (oldSmoothingCard != prop.var.etc.smoothingCard || this.showStatusTime != prop.var.etc.showStatusTime) { mixin(S_TRACE);
 			comm.refCardState.call();
+		}
+		if (switchFixedWithCheckBox != prop.var.etc.switchFixedWithCheckBox) { mixin(S_TRACE);
+			comm.refSwitchFixedWithCheckBox.call();
 		}
 		if (drawXORSelectionLine != prop.var.etc.drawXORSelectionLine || showSceneViewSelectionFilter != prop.var.etc.showSceneViewSelectionFilter) { mixin(S_TRACE);
 			comm.refImagePaneSelectionFilter.call();

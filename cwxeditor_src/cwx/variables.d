@@ -505,6 +505,7 @@ class FlexEtcProps : Properties {
 	auto incrementNewAreaName = Prop!(bool)("incrementNewAreaName", true);
 	auto saveNeedChanged = Prop!(bool)("saveNeedChanged", true);
 	auto canVanishWorkAreaInMainWindow = Prop!(bool)("canVanishWorkAreaInMainWindow", false);
+	auto switchFixedWithCheckBox = Prop!(bool)("switchFixedWithCheckBox", true);
 	auto drawXORSelectionLine = Prop!(bool)("drawXORSelectionLine", false);
 	auto showSceneViewSelectionFilter = Prop!(bool)("showSceneViewSelectionFilter", true);
 	auto showItemNumberOfSceneAndEventView = Prop!(bool)("showItemNumberOfSceneAndEventView", true);

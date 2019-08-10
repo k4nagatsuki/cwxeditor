@@ -542,10 +542,12 @@ private:
 		static if (UseCards) {
 			C[int] _cs;
 			bool[int] _cChks;
+			bool[int] _cGrys;
 		}
 		static if (UseBacks) {
 			BgImage[int] _bs;
 			bool[int] _bChks;
+			bool[int] _bGrys;
 		}
 		this (AbstractAreaView v, Commons comm, A area, Summary summ, int[] cIdcs, int[] bIdcs) { mixin(S_TRACE);
 			super (v, comm, area, summ);
@@ -555,6 +557,7 @@ private:
 					if (area.useCounter) c.setUseCounter(area.useCounter.sub, area);
 					_cs[i] = c;
 					_cChks[i] = v ? v._cards.getItem(i).getChecked() : true;
+					_cGrys[i] = v ? v._cards.getItem(i).getGrayed() : true;
 				}
 			}
 			static if (UseBacks) {
@@ -563,6 +566,7 @@ private:
 					if (area.useCounter) b.setUseCounter(area.useCounter.sub, area);
 					_bs[i] = b;
 					_bChks[i] = v ? v._backs.getItem(i).getChecked() : true;
+					_bGrys[i] = v ? v._backs.getItem(i).getGrayed() : true;
 				}
 			}
 		}
@@ -572,12 +576,12 @@ private:
 			scope (exit) uda(vs);
 			static if (UseCards) {
 				foreach (i; std.algorithm.sort(_cs.keys)) { mixin(S_TRACE);
-					appendCardImpl(vs, comm, summ, area, i, _cs[i].dup, true, false, _cChks[i]);
+					appendCardImpl(vs, comm, summ, area, i, _cs[i].dup, true, false, _cChks[i], _cGrys[i]);
 				}
 			}
 			static if (UseBacks) {
 				foreach (i; std.algorithm.sort(_bs.keys)) { mixin(S_TRACE);
-					appendBgImageImpl(vs, comm, summ, area, i, _bs[i].dup, true, false, _bChks[i]);
+					appendBgImageImpl(vs, comm, summ, area, i, _bs[i].dup, true, false, _bChks[i], _bGrys[i]);
 				}
 			}
 			foreach (v; vs) v.refreshSelected();
@@ -911,7 +915,7 @@ private:
 				}
 				v.refreshControls();
 				v.callModEvent();
-				v.updateFixedCards();
+				v.checked();
 			}
 			if (_summ && _summ.scenarioPath != "") { mixin(S_TRACE);
 				_comm.refMenuCard.call(card.cwxPath(true));
@@ -1015,7 +1019,7 @@ private:
 				}
 				v.refreshControls();
 				v.callModEvent();
-				v.updateFixedBackground();
+				v.checked();
 			}
 			if (_summ && _summ.scenarioPath != "") { mixin(S_TRACE);
 				_comm.refBgImage.call(back.cwxPath(true));
@@ -2001,6 +2005,28 @@ private:
 			_imgp.drawingScale = _prop.drawingScale;
 			if (_imgp.images.length) refreshPanel();
 		}
+		void refSwitchFixedWithCheckBox() { mixin(S_TRACE);
+			if (!_prop.var.etc.switchFixedWithCheckBox) { mixin(S_TRACE);
+				auto changed = false;
+				static if (UseCards) {
+					foreach (itm; _cards.getItems()) { mixin(S_TRACE);
+						if (itm.getGrayed()) { mixin(S_TRACE);
+							itm.setGrayed(false);
+							changed = true;
+						}
+					}
+				}
+				static if (UseBacks) {
+					foreach (itm; _backs.getItems()) { mixin(S_TRACE);
+						if (itm.getGrayed()) { mixin(S_TRACE);
+							itm.setGrayed(false);
+							changed = true;
+						}
+					}
+				}
+				if (changed) checked();
+			}
+		}
 		static if (UseCards) {
 			void refImagePaneSelectionFilter() { mixin(S_TRACE);
 				_imgp.drawXORSelectionLine = _prop.var.etc.drawXORSelectionLine;
@@ -2029,6 +2055,7 @@ private:
 		_imgp.gridHighlightColor(new Color(d, dwtData(_prop.var.etc.gridHighlightColor, alpha)));
 		_comm.refWallpaper.add(&refreshWallpaper);
 		_comm.refImageScale.add(&refImageScale);
+		_comm.refSwitchFixedWithCheckBox.add(&refSwitchFixedWithCheckBox);
 		static if (UseCards) {
 			_comm.refImagePaneSelectionFilter.add(&refImagePaneSelectionFilter);
 		}
@@ -2037,6 +2064,7 @@ private:
 				_imgp.setBackgroundImage(cast(Image)null);
 				_comm.refWallpaper.remove(&refreshWallpaper);
 				_comm.refImageScale.remove(&refImageScale);
+				_comm.refSwitchFixedWithCheckBox.remove(&refSwitchFixedWithCheckBox);
 				static if (UseCards) {
 					_comm.refImagePaneSelectionFilter.remove(&refImagePaneSelectionFilter);
 				}
@@ -2710,6 +2738,27 @@ private:
 		}
 
 		auto list = .rangeSelectableTable(comp, SWT.MULTI | SWT.CHECK | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
+		.listener(list, SWT.Selection, (e) { mixin(S_TRACE);
+			if (e.detail != SWT.CHECK) return;
+			auto itm = cast(TableItem)e.item;
+			if (itm.getGrayed()) { mixin(S_TRACE);
+				itm.setGrayed(false);
+				itm.setChecked(true);
+			} else if (itm.getChecked()) { mixin(S_TRACE);
+				itm.setGrayed(_prop.var.etc.switchFixedWithCheckBox);
+				itm.setChecked(true);
+			} else { mixin(S_TRACE);
+				itm.setGrayed(false);
+				itm.setChecked(false);
+			}
+			if (list.isSelected(list.indexOf(itm))) { mixin(S_TRACE);
+				foreach (itm2; list.getSelection()) { mixin(S_TRACE);
+					if (itm is itm2) continue;
+					itm2.setGrayed(itm.getGrayed());
+					itm2.setChecked(itm.getChecked());
+				}
+			}
+		});
 		new FullTableColumn(list, SWT.NONE);
 		auto mkl = new MKListener!(C)(edit, items);
 		auto closePreview = new ClosePreview;
@@ -3107,20 +3156,32 @@ private:
 	void checked() { mixin(S_TRACE);
 		static if (UseCards) {
 			foreach (i, itm; _cards.getItems()) { mixin(S_TRACE);
-				auto img = _imgp.images[cardsIndex + i];
+				auto img = cast(FlexImage)_imgp.images[cardsIndex + i];
 				auto visible = _viewCards && itm.getChecked();
-				if (img.visible != visible) { mixin(S_TRACE);
+				auto fixed = isFixedCards || (visible && itm.getGrayed());
+				if (img.visible != visible || img.fixed != fixed) { mixin(S_TRACE);
 					img.visible = visible;
+					img.fixed = fixed;
 					_imgp.redrawImage(img);
 				}
 			}
 		}
 		static if (UseBacks) {
+			auto firstB = false;
 			foreach (i, itm; _backs.getItems()) { mixin(S_TRACE);
-				auto img = _imgp.images[i];
+				auto img = cast(FlexImage)_imgp.images[i];
 				auto visible = _viewBacks && itm.getChecked();
-				if (img.visible != visible) { mixin(S_TRACE);
+				auto fixed = _fixedB || (visible && itm.getGrayed());
+				if (_fixedFirstB && !firstB) { mixin(S_TRACE);
+					const vs = _prop.looks.viewSize;
+					if (img.x == 0 && img.y == 0 && img.width == vs.width && img.height == vs.height) { mixin(S_TRACE);
+						firstB = true;
+						fixed = true;
+					}
+				}
+				if (img.visible != visible || img.fixed != fixed) { mixin(S_TRACE);
 					img.visible = visible;
+					img.fixed = fixed;
 					_imgp.redrawImage(img);
 				}
 			}
@@ -3755,9 +3816,11 @@ public:
 			auto fi = cast(FlexImage)_imgp.images[cardsIndex + i];
 			assert (fi !is null);
 			auto v = fi.visible;
+			auto f = fi.fixed;
 			auto selected = fi.selected;
 			fi = create(_area.cards[i]);
 			fi.visible = v;
+			fi.fixed = f;
 			_imgp.set(cardsIndex + cast(int)i, fi);
 			if (selected) _imgp.select(fi);
 			_imgp.redrawImage(fi);
@@ -3776,9 +3839,11 @@ public:
 				} else static assert (0);
 				auto fi = cast(FlexImage)_imgp.images[cardsIndex + i];
 				auto v = fi.visible;
+				auto f = fi.fixed;
 				auto selected = fi.selected;
 				fi = create(c);
 				fi.visible = v;
+				fi.fixed = f;
 				_imgp.set(cardsIndex + cast(int)i, fi);
 				if (selected) _imgp.select(fi);
 				_imgp.redrawImage(fi);
@@ -3806,8 +3871,10 @@ public:
 			foreach (i, c; _area.cards) { mixin(S_TRACE);
 				auto itm = _cards.getItem(cast(int)i);
 				auto v = _imgp.images[cardsIndex + i].visible;
+				auto f = (cast(FlexImage)_imgp.images[cardsIndex + i]).fixed;
 				auto fi = create(c);
 				fi.visible = v;
+				fi.fixed = f;
 				_imgp.set(cardsIndex + cast(int)i, fi);
 				itm.setText(cardNameWithGroup(c));
 				itm.setImage(cardImg(c));
@@ -3818,14 +3885,16 @@ public:
 			foreach (i, b; _area.backs) { mixin(S_TRACE);
 				auto itm = _backs.getItem(cast(int)i);
 				auto v = _imgp.images[i].visible;
+				auto f = (cast(FlexImage)_imgp.images[i]).fixed;
 				auto fi = create(b);
 				fi.visible = v;
+				fi.fixed = f;
 				_imgp.set(cast(int)i, fi);
 				itm.setText(b.name(_prop.parent));
 				itm.setImage(backImg(b));
 				itm.setData(b);
 			}
-			updateFixedBackground();
+			checked();
 		}
 
 		static if (RefCards) {
@@ -4151,6 +4220,7 @@ public:
 						auto itm = v._cards.getItem(cast(int)i);
 						auto fi = v.create(card);
 						fi.visible = itm.getChecked();
+						fi.fixed = fi.visible && itm.getGrayed();
 						v._imgp.set(v.cardsIndex + cast(int)i, fi);
 						if (v._cards.isSelected(cast(int)i) && v._viewCards) v._imgp.select(fi);
 						itm.setText(v.cardNameWithGroup(c));
@@ -4401,6 +4471,7 @@ public:
 						auto itm = v._backs.getItem(cast(int)i);
 						auto fi = v.create(back);
 						fi.visible = itm.getChecked();
+						fi.fixed = fi.visible && itm.getGrayed();
 						v._imgp.set(cast(int)i, fi);
 						if (v._backs.isSelected(cast(int)i) && v._viewBacks) v._imgp.select(fi);
 						itm.setText(back.name(_prop.parent));
@@ -4408,7 +4479,7 @@ public:
 						itm.setData(b);
 						v.refreshControls();
 						v.refreshFlags();
-						v.updateFixedBackground();
+						v.checked();
 						v.callModEvent();
 					}
 					if (_summ && _summ.scenarioPath != "") { mixin(S_TRACE);
@@ -5124,7 +5195,7 @@ public:
 		void reverseFixedCards() { mixin(S_TRACE);
 			if (_readOnly) return;
 			_fixedC = !_fixedC;
-			updateFixedCards();
+			checked();
 			if (_vfcMenu) _vfcMenu.setSelection(_fixedC);
 			if (_vfcTMenu) _vfcTMenu.setSelection(_fixedC);
 			static if (is(C:MenuCard)) {
@@ -5133,15 +5204,12 @@ public:
 				_prop.var.etc.fixedImagesBattle = _fixedC;
 			} else static assert (0);
 		}
-		private void updateFixedCards() { mixin(S_TRACE);
-			_imgp.fixedRange(_fixedC, cardsIndex, cardsIndex + cast(int)_area.cards.length);
-		}
 	}
 	static if (UseBacks) {
 		void reverseFixedCells() { mixin(S_TRACE);
 			if (_readOnly) return;
 			_fixedB = !_fixedB;
-			updateFixedBackground();
+			checked();
 			if (_vfbMenu) _vfbMenu.setSelection(_fixedB);
 			if (_vfbTMenu) _vfbTMenu.setSelection(_fixedB);
 			_prop.var.etc.fixedImagesCells = _fixedB;
@@ -5149,24 +5217,10 @@ public:
 		void reverseFixedBackground() { mixin(S_TRACE);
 			if (_readOnly) return;
 			_fixedFirstB = !_fixedFirstB;
-			updateFixedBackground();
+			checked();
 			if (_vffbMenu) _vffbMenu.setSelection(_fixedFirstB);
 			if (_vffbTMenu) _vffbTMenu.setSelection(_fixedFirstB);
 			_prop.var.etc.fixedImagesBackground = _fixedFirstB;
-		}
-		private void updateFixedBackground() { mixin(S_TRACE);
-			if (isFixedBackground) { mixin(S_TRACE);
-				auto vs = _prop.looks.viewSize;
-				foreach (i, back; _area.backs) { mixin(S_TRACE);
-					if (0 == back.x && 0 == back.y && vs.width == back.width && vs.height == back.height) { mixin(S_TRACE);
-						_imgp.fixedRange(_fixedB, 0, cast(int)i);
-						_imgp.fixedRange(_fixedFirstB, cast(int)i, cast(int)i + 1);
-						_imgp.fixedRange(_fixedB, cast(int)i + 1, cast(int)_area.backs.length);
-						return;
-					}
-				}
-			}
-			_imgp.fixedRange(_fixedB, 0, cast(int)_area.backs.length);
 		}
 	}
 	void reverseShowGrid() { mixin(S_TRACE);
@@ -5202,17 +5256,19 @@ public:
 			appendCardImpl(views(), _comm, _summ, _area, index, card, select, refresh, check);
 		}
 		/// ditto
-		private static void appendCardImpl(AbstractAreaView[] vs, Commons comm, Summary summ, A area, int index, C card, bool select, bool refresh, bool check = true) { mixin(S_TRACE);
+		private static void appendCardImpl(AbstractAreaView[] vs, Commons comm, Summary summ, A area, int index, C card, bool select, bool refresh, bool check = true, bool grayed = false) { mixin(S_TRACE);
 			area.insert(index, card);
 			foreach (v; vs) { mixin(S_TRACE);
 				auto img = v.create(card);
+				img.visible = v.isViewCards && check;
+				img.fixed = v.isFixedCards || (img.visible && grayed);
 				v._imgp.deselectAll();
 				v._imgp.insert(v.cardsIndex + index, img);
-				v._imgp.images[v.cardsIndex + index].visible = v.isViewCards && check;
 				auto itm = new TableItem(v._cards, SWT.NONE, index);
 				itm.setImage(v.cardImg(card));
 				itm.setData(card);
-				itm.setChecked(check);
+				itm.setGrayed(grayed);
+				itm.setChecked(!grayed && check);
 				itm.setText(v.cardNameWithGroup(card));
 				if (select && v.isViewCards) { mixin(S_TRACE);
 					v._imgp.select(img);
@@ -5379,17 +5435,19 @@ public:
 			appendBgImageImpl(views(), _comm, _summ, _area, index, back, select, refresh, check);
 		}
 		/// ditto
-		private static void appendBgImageImpl(AbstractAreaView[] vs, Commons comm, Summary summ, A area, int index, BgImage back, bool select, bool refresh, bool check = true) { mixin(S_TRACE);
+		private static void appendBgImageImpl(AbstractAreaView[] vs, Commons comm, Summary summ, A area, int index, BgImage back, bool select, bool refresh, bool check = true, bool grayed = false) { mixin(S_TRACE);
 			area.insert(index, back);
 			foreach (v; vs) { mixin(S_TRACE);
 				v._imgp.deselectAll();
 				auto img = v.create(back);
+				img.visible = v.isViewBacks && check;
+				img.fixed = v.isFixedCells || (img.visible && grayed);
 				v._imgp.insert(index, img);
-				v._imgp.images[index].visible = v.isViewBacks && check;
 				auto itm = new TableItem(v._backs, SWT.NONE, index);
 				itm.setImage(v.backImg(back));
 				itm.setData(back);
-				itm.setChecked(check);
+				itm.setGrayed(grayed);
+				itm.setChecked(!grayed && check);
 				itm.setText(back.name(comm.prop.parent));
 				if (select && v.isViewBacks) { mixin(S_TRACE);
 					v._imgp.select(img);
@@ -5404,7 +5462,7 @@ public:
 			}
 			foreach (v; vs) { mixin(S_TRACE);
 				v.refreshFlags();
-				v.updateFixedBackground();
+				v.checked();
 				v.callModEvent();
 			}
 		}
@@ -5421,7 +5479,7 @@ public:
 			assert (img !is null);
 			_backTbl[img] = back;
 			img.visible = _viewBacks;
-			img.fixed = isFixedBackground;
+			img.fixed = isFixedCells;
 			img.layer = back.layer * 10;
 			img.addSelectionListener(&selectImageB);
 			img.addResizeListener(&resizeImageB);
@@ -5516,7 +5574,7 @@ public:
 					}
 				}
 				if (select && v._viewBacks) v._imgp.select(imgs);
-				v.updateFixedBackground();
+				v.checked();
 				if (!initialize) v.callModEvent();
 			}
 		}

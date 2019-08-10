@@ -334,6 +334,7 @@ class Commons {
 	Dlg!() changed;
 	Dlg!() refToolsEnabled;
 	Dlg!() refImageScale;
+	Dlg!() refSwitchFixedWithCheckBox;
 	Dlg!() refImagePaneSelectionFilter;
 	Dlg!(Shell) save;
 	Dlg!() saved;

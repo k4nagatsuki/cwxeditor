@@ -2758,17 +2758,22 @@ private:
 				dragStartY = y;
 				auto tgl = Toggle.NONE;
 				FlexImage img = null;
-				if (!alt) {
+				FlexImage selectionImg = null;
+				if (!alt) { mixin(S_TRACE);
 					foreach (move; [false, true]) { mixin(S_TRACE);
 						if (tgl !is Toggle.NONE) break;
 						foreach_reverse (t; fBacks) { mixin(S_TRACE);
 							auto i = t[0];
 							auto pimg = t[1];
-							if (cast(FlexImage) pimg) { mixin(S_TRACE);
-								img = cast(FlexImage) pimg;
+							if (cast(FlexImage)pimg) { mixin(S_TRACE);
+								img = cast(FlexImage)pimg;
 								if (img.visible) { mixin(S_TRACE);
 									tgl = img.inToggle(dx, dy, move);
 									if (tgl !is Toggle.NONE) { mixin(S_TRACE);
+										if (!selectionImg) selectionImg = img;
+										if (img.fixed) { mixin(S_TRACE);
+											continue;
+										}
 										break;
 									}
 								}
@@ -2789,15 +2794,15 @@ private:
 					_mouseP = img;
 					if (me.button == 1) { mixin(S_TRACE);
 						if (!_ctrl && !_shift) { mixin(S_TRACE);
-							if (!img.selected) doDeselectAll();
-							doSelect(img);
+							if (!selectionImg.fixed && !selectionImg.selected) doDeselectAll();
+							doSelect(selectionImg);
 						}
 						dragTgl = tgl;
 					} else if (me.button == 3) { mixin(S_TRACE);
-						if (!img.selected) doDeselectAll();
-						doSelect(img);
+						if (!selectionImg.fixed && !selectionImg.selected) doDeselectAll();
+						doSelect(selectionImg);
 					}
-					if (_mouseP.fixed) { mixin(S_TRACE);
+					if (_mouseP.fixed && _mouseP !is selectionImg) { mixin(S_TRACE);
 						_rangeStartPos = new Point(x, y);
 						_rangeEndPos = new Point(x, y);
 						_rangeSelected = false;

@@ -2427,6 +2427,7 @@ class Msgs : Properties {
 	auto incrementNewAreaName = Msg("incrementNewAreaName", "エリア等の作成時に既存のアイテムと重複しない名前を生成する");
 
 	auto etcSettingsScene = Msg("etcSettingsScene", "シーンビューの設定");
+	auto switchFixedWithCheckBox = Msg("switchFixedWithCheckBox", "チェックボックスで個別のカードと背景セルの固定状態を切り替える");
 	auto showSceneViewSelectionFilter = Msg("showSceneViewSelectionFilter", "選択されたカードの上に半透明のカーテンをかける");
 	auto drawXORSelectionLine = Msg("drawXORSelectionLine", "選択枠を色の反転で描画する");
 	auto smoothingCard = Msg("smoothingCard", "カードのサイズ変更時にスムージングを行う");
