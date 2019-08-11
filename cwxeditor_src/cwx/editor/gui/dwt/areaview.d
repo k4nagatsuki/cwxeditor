@@ -5268,7 +5268,7 @@ public:
 				itm.setImage(v.cardImg(card));
 				itm.setData(card);
 				itm.setGrayed(grayed);
-				itm.setChecked(!grayed && check);
+				itm.setChecked(check);
 				itm.setText(v.cardNameWithGroup(card));
 				if (select && v.isViewCards) { mixin(S_TRACE);
 					v._imgp.select(img);
@@ -5447,7 +5447,7 @@ public:
 				itm.setImage(v.backImg(back));
 				itm.setData(back);
 				itm.setGrayed(grayed);
-				itm.setChecked(!grayed && check);
+				itm.setChecked(check);
 				itm.setText(back.name(comm.prop.parent));
 				if (select && v.isViewBacks) { mixin(S_TRACE);
 					v._imgp.select(img);
