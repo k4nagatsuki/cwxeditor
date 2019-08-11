@@ -2684,6 +2684,12 @@ private:
 		}
 		override void mouseDoubleClick(MouseEvent e) { mixin(S_TRACE);
 			if (e.button == 1) { mixin(S_TRACE);
+				auto list = cast(Table)e.widget;
+				assert (list);
+				auto itm = list.getItem(new Point(e.x, e.y));
+				if (!itm) return;
+				// チェックボックスの領域をダブルクリックした時は編集開始を避ける
+				if (e.x < itm.getImageBounds(0).x) return;
 				edit(e);
 			}
 		}

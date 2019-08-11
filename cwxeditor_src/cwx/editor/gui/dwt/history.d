@@ -250,7 +250,15 @@ class ScenarioHistoryDialog : AbsDialog, TCPD {
 				applyEnabled();
 			}
 		});
-		.listener(_list, SWT.MouseDoubleClick, &openSelection);
+		.listener(_list, SWT.MouseDoubleClick, (e) { mixin(S_TRACE);
+			auto list = cast(Table)e.widget;
+			assert (list);
+			auto itm = list.getItem(new Point(e.x, e.y));
+			if (!itm) return;
+			// チェックボックスの領域をダブルクリックした時は編集開始を避ける
+			if (e.x < itm.getImageBounds(0).x) return;
+			openSelection();
+		});
 		.listener(_list, SWT.KeyDown, (e) { mixin(S_TRACE);
 			if (.isEnterKey(e.keyCode)) openSelection();
 		});
