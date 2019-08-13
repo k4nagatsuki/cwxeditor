@@ -422,6 +422,7 @@ class FlexEtcProps : Properties {
 	auto scenarioBookmarks = Prop!(OpenHistory[])("scenarioBookmarks", []);
 	auto historyMax = Prop!(int)("historyMax", 10);
 	auto historySnipLength = Prop!(int)("historySnipLength", 30);
+	auto removeScenarioHistoryNonExistingWithPriority = Prop!(bool, true)("removeScenarioHistoryNonExistingWithPriority", true);
 	auto lastScenario = Prop!(string)("lastScenario", "");
 	auto importHistory = Prop!(OpenHistory[])("importHistory", []);
 	auto importBookmarks = Prop!(OpenHistory[])("importBookmarks", []);
@@ -438,6 +439,7 @@ class FlexEtcProps : Properties {
 	auto executedParties = Prop!(ExecutionParty[])("executedParties", []);
 	auto executedPartyBookmarks = Prop!(ExecutionParty[])("executedPartyBookmarks", []);
 	auto executedPartiesMax = Prop!(uint)("executedPartiesMax", 10);
+	auto removePartyHistoryNonExistingWithPriority = Prop!(bool, true)("removePartyHistoryNonExistingWithPriority", true);
 	auto dataDir = Prop!(string, true)("dataDir", "Data");
 	auto findEnginePath = Prop!(bool)("findEnginePath", true);
 	auto defaultSkin = Prop!(string, true)("defaultSkin", "MedievalFantasy");

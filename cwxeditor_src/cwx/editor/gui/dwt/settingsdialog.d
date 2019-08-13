@@ -2,60 +2,61 @@
 module cwx.editor.gui.dwt.settingsdialog;
 
 import cwx.background;
-import cwx.utils;
-import cwx.xml;
-import cwx.summary;
-import cwx.skin;
-import cwx.graphics;
-import cwx.structs;
-import cwx.menu;
-import cwx.variables;
 import cwx.cab;
-import cwx.script;
-import cwx.props;
-import cwx.features;
-import cwx.types;
-import cwx.imagesize;
-import cwx.settings;
 import cwx.event;
+import cwx.features;
+import cwx.graphics;
+import cwx.imagesize;
+import cwx.menu;
+import cwx.props;
+import cwx.script;
+import cwx.settings;
+import cwx.skin;
+import cwx.structs;
+import cwx.summary;
+import cwx.types;
+import cwx.utils;
+import cwx.variables;
+import cwx.xml;
 
 import cwx.editor.gui.sound;
 
-import cwx.editor.gui.dwt.dprops;
-import cwx.editor.gui.dwt.properties;
-import cwx.editor.gui.dwt.dutils;
-import cwx.editor.gui.dwt.dskin;
-import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.absdialog;
-import cwx.editor.gui.dwt.splitpane;
-import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.areaview;
 import cwx.editor.gui.dwt.areaviewutils;
-import cwx.editor.gui.dwt.xmlbytestransfer;
-import cwx.editor.gui.dwt.dockingfolder;
-import cwx.editor.gui.dwt.customtext;
-import cwx.editor.gui.dwt.undo;
-import cwx.editor.gui.dwt.dmenu;
-import cwx.editor.gui.dwt.customtable;
-import cwx.editor.gui.dwt.loader;
-import cwx.editor.gui.dwt.scripterrordialog;
-import cwx.editor.gui.dwt.incsearch;
-import cwx.editor.gui.dwt.etcsettings;
+import cwx.editor.gui.dwt.centerlayout;
+import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.contentinitializer;
+import cwx.editor.gui.dwt.customtable;
+import cwx.editor.gui.dwt.customtext;
+import cwx.editor.gui.dwt.dmenu;
+import cwx.editor.gui.dwt.dockingfolder;
+import cwx.editor.gui.dwt.dprops;
+import cwx.editor.gui.dwt.dskin;
+import cwx.editor.gui.dwt.dutils;
+import cwx.editor.gui.dwt.etcsettings;
+import cwx.editor.gui.dwt.history;
+import cwx.editor.gui.dwt.incsearch;
+import cwx.editor.gui.dwt.loader;
+import cwx.editor.gui.dwt.properties;
+import cwx.editor.gui.dwt.scripterrordialog;
+import cwx.editor.gui.dwt.splitpane;
+import cwx.editor.gui.dwt.undo;
+import cwx.editor.gui.dwt.xmlbytestransfer;
 
 static import std.algorithm;
 import std.algorithm : max, min, map, stripRight;
-import std.path;
-import std.file;
-import std.string;
-import std.functional;
-import std.traits;
 import std.array;
 import std.ascii;
-import std.exception;
-import std.range : iota;
-import std.math;
 import std.conv;
+import std.exception;
+import std.file;
+import std.functional;
+import std.math;
+import std.path;
+import std.range : iota;
+import std.string;
+import std.traits;
 
 import org.eclipse.swt.all;
 import java.lang.all;
@@ -1577,22 +1578,19 @@ protected:
 		_prop.var.etc.showStatusTime = cast(ShowStatusTime)_showStatusTimeTbl2[_showStatusTime.getSelectionIndex()];
 		_prop.var.etc.savedSound = _savedSound.getText();
 		if (_prop.var.etc.historyMax < _prop.var.etc.openHistories.length) { mixin(S_TRACE);
-			_prop.var.etc.openHistories = _prop.var.etc.openHistories[0 .. _prop.var.etc.historyMax].dup;
+			_prop.var.etc.openHistories = .removeHistoryNonExisting(_comm, _prop.var.etc.removeScenarioHistoryNonExistingWithPriority, _prop.var.etc.openHistories, _prop.var.etc.historyMax);
 		}
 		if (_prop.var.etc.historyMax < _prop.var.etc.importHistory.length) { mixin(S_TRACE);
-			_prop.var.etc.importHistory = _prop.var.etc.importHistory[0 .. _prop.var.etc.historyMax].dup;
+			_prop.var.etc.importHistory = .removeHistoryNonExisting(_comm, _prop.var.etc.removeScenarioHistoryNonExistingWithPriority, _prop.var.etc.importHistory, _prop.var.etc.historyMax);
 		}
 		if (_prop.var.etc.searchHistoryMax < _prop.var.etc.searchHistories.length) { mixin(S_TRACE);
-			_prop.var.etc.searchHistories
-				= _prop.var.etc.searchHistories[0 .. _prop.var.etc.searchHistoryMax].dup;
+			_prop.var.etc.searchHistories = _prop.var.etc.searchHistories[0 .. _prop.var.etc.searchHistoryMax].dup;
 		}
 		if (_prop.var.etc.searchHistoryMax < _prop.var.etc.grepDirHistories.length) { mixin(S_TRACE);
-			_prop.var.etc.grepDirHistories
-				= _prop.var.etc.grepDirHistories[0 .. _prop.var.etc.searchHistoryMax].dup;
+			_prop.var.etc.grepDirHistories = _prop.var.etc.grepDirHistories[0 .. _prop.var.etc.searchHistoryMax].dup;
 		}
 		if (_prop.var.etc.executedPartiesMax < _prop.var.etc.executedParties.length) { mixin(S_TRACE);
-			_prop.var.etc.executedParties
-				= _prop.var.etc.executedParties[0 .. _prop.var.etc.executedPartiesMax].dup;
+			_prop.var.etc.executedParties = .removeHistoryNonExisting(_comm, _prop.var.etc.removePartyHistoryNonExistingWithPriority, _prop.var.etc.executedParties, _prop.var.etc.executedPartiesMax);
 		}
 		_prop.var.etc.bgImageSettings = _bgStgs.array;
 		_prop.var.etc.bgImagesDefault = _bgImagesDefault;

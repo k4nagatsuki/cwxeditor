@@ -16,6 +16,7 @@ import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.dutils;
+import cwx.editor.gui.dwt.history;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 
@@ -484,9 +485,7 @@ class ExecutedPartyHistoryDialog : AbsDialog, TCPD {
 	protected override bool apply() { mixin(S_TRACE);
 		_comm.prop.var.etc.executedPartyBookmarks = _hist.filter!(h => h.bookmark)().map!(h => h.hist)().array();
 		_comm.prop.var.etc.executedParties = _hist.filter!(h => !h.bookmark)().map!(h => h.hist)().array();
-		if (_comm.prop.var.etc.executedPartiesMax < _comm.prop.var.etc.executedParties.length) { mixin(S_TRACE);
-			_comm.prop.var.etc.executedParties = _comm.prop.var.etc.executedParties[0 .. _comm.prop.var.etc.executedPartiesMax];
-		}
+		_comm.prop.var.etc.executedParties = .removeHistoryNonExisting(_comm, _comm.prop.var.etc.removePartyHistoryNonExistingWithPriority, _comm.prop.var.etc.executedParties, _comm.prop.var.etc.executedPartiesMax);
 		_comm.refExecutedParties.call();
 		_comm.refreshToolBar();
 		return true;

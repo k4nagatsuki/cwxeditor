@@ -1306,7 +1306,7 @@ private:
 						}
 					}
 					if (!has) _prop.var.etc.executedParties = [ep] ~ _prop.var.etc.executedParties;
-					_prop.var.etc.executedParties.length = .min(_prop.var.etc.executedParties.length, _prop.var.etc.executedPartiesMax.value);
+					_comm.prop.var.etc.executedParties = .removeHistoryNonExisting(_comm, _comm.prop.var.etc.removePartyHistoryNonExistingWithPriority, _comm.prop.var.etc.executedParties, _comm.prop.var.etc.executedPartiesMax);
 				} else { mixin(S_TRACE);
 					_prop.var.etc.executedParties.length = 0;
 				}

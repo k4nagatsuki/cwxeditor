@@ -530,9 +530,7 @@ class ScenarioHistoryDialog : AbsDialog, TCPD {
 	}
 
 	private void refHistoryMax() { mixin(S_TRACE);
-		if (_comm.prop.var.etc.historyMax < _history.length) { mixin(S_TRACE);
-			_history = _history[0 .. _comm.prop.var.etc.historyMax];
-		}
+		_history = .removeHistoryNonExisting(_comm, _comm.prop.var.etc.removeScenarioHistoryNonExistingWithPriority, _history, _comm.prop.var.etc.historyMax);
 		auto num = .count!(h => !h.bookmark)(_hist);
 		if (_history.length < _comm.prop.var.etc.historyMax && _history.length < num) { mixin(S_TRACE);
 			applyEnabled();
@@ -543,9 +541,7 @@ class ScenarioHistoryDialog : AbsDialog, TCPD {
 	protected override bool apply() { mixin(S_TRACE);
 		_bookmark = _hist.filter!(h => h.bookmark)().map!(h => h.hist)().array();
 		_history = _hist.filter!(h => !h.bookmark)().map!(h => h.hist)().array();
-		if (_comm.prop.var.etc.historyMax < _history.length) { mixin(S_TRACE);
-			_history = _history[0 .. _comm.prop.var.etc.historyMax];
-		}
+		_history = .removeHistoryNonExisting(_comm, _comm.prop.var.etc.removeScenarioHistoryNonExistingWithPriority, _history, _comm.prop.var.etc.historyMax);
 		return true;
 	}
 }
@@ -662,7 +658,32 @@ void addHistory(Commons comm, OpenHistory hist, ref OpenHistory[] openHistories,
 					break;
 				}
 			}
-			openHistories = [hist] ~ (hists.length < comm.prop.var.etc.historyMax ? hists : hists[0 .. $ - 1]);
+			openHistories = .removeHistoryNonExisting(comm, comm.prop.var.etc.removeScenarioHistoryNonExistingWithPriority, hist ~ hists, comm.prop.var.etc.historyMax);
 		}
 	}
+}
+
+/// 履歴が最大件数を超える時に古い履歴を削除。
+/// removeNonExistingWithPariorityがtrueの場合は存在しないものを優先して削除する。
+Hist[] removeHistoryNonExisting(Hist)(in Commons comm, bool removeNonExistingWithPariority, Hist[] hists, size_t historyMax) { mixin(S_TRACE);
+	if (historyMax < hists.length) { mixin(S_TRACE);
+		if (removeNonExistingWithPariority) { mixin(S_TRACE);
+			foreach_reverse (i, h; hists) { mixin(S_TRACE);
+				static if (is(Hist:OpenHistory)) {
+					auto exist = .fullHistToHist(h.path).exists();
+				} else static if (is(Hist:ExecutionParty)) {
+					import cwx.editor.gui.dwt.partyhistory;
+					auto exist = existsParty(comm, h);
+				} else static assert (0);
+				if (!exist) { mixin(S_TRACE);
+					hists = hists.remove(i);
+					if (hists.length <= historyMax) break;
+				}
+			}
+		}
+		if (historyMax < hists.length) { mixin(S_TRACE);
+			hists = hists[0 .. historyMax];
+		}
+	}
+	return hists;
 }
