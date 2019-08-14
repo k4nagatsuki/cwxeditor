@@ -9,7 +9,7 @@ immutable string[] CRITICAL = [
 	"d2std" ~ dirSeparator ~ "zlib.d",
 ];
 immutable string[] NO_DEBUG_SYMBOLS = [
-	// Nothing
+	"cwx" ~ dirSeparator ~ "msgs.d",
 ];
 immutable string[] RES_DIR = [
 	".",
