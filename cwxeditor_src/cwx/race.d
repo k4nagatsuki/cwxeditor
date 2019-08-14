@@ -7,6 +7,9 @@ import cwx.types;
 import cwx.xml;
 import cwx.system;
 
+/// 1レベル毎のEP増加量の標準値。
+immutable DEFAULT_EP_PER_LEVEL = 10u;
+
 /// 種族関連の例外。
 class RaceException : Exception {
 public:
@@ -20,6 +23,8 @@ class Race : CouponsOwner {
 private:
 	string _name;
 	string _desc;
+	double _levelCoefficient = 1.0;
+	uint _epPerLevel = DEFAULT_EP_PER_LEVEL;
 	mixin RaceParam!(false);
 	Coupon[] _coupons;
 	this () {}
@@ -39,6 +44,10 @@ public:
 				r._coupons ~= coupon;
 			};
 		};
+		node.onTag["Coefficient"] = (ref XNode node) { mixin(S_TRACE);
+			r._levelCoefficient = node.attr!double("level", false, 1.0);
+			r._epPerLevel = node.attr!uint("ep", false, 10);
+		};
 		node.parse();
 		if (!r._name) throw new Exception("Race name not found.");
 		return r;
@@ -51,6 +60,16 @@ public:
 	@property
 	const
 	string desc() { return _desc; }
+
+	/// レベル判定式に掛ける係数。
+	@property
+	const
+	double levelCoefficient() { return _levelCoefficient; }
+	/// １レベル毎のEP獲得量。
+	@property
+	const
+	uint epPerLevel() { return _epPerLevel; }
+
 	/// 初期クーポン。
 	@property
 	inout

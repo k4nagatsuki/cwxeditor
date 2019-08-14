@@ -398,7 +398,7 @@ private:
 			_race.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 			_race.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			void refSkin() { mixin(S_TRACE);
-				auto selected = _race.getText();
+				auto selected = _race.getSelectionIndex() <= 0 ? "" : _race.getText();
 				auto skin = summSkin;
 				_race.removeAll();
 				_race.add(_prop.msgs.defaultSelection(_prop.msgs.noRace));
@@ -407,6 +407,26 @@ private:
 					if (race.name == selected) _race.select(_race.getItemCount() - 1);
 				}
 				if (_race.getSelectionIndex() == -1) _race.select(0);
+				auto raceCoupon = selected == "" ? "" : _prop.sys.raceCoupon(selected);
+
+				if (_couponView) { mixin(S_TRACE);
+					int[string] races;
+					foreach (i, race; skin.races) { mixin(S_TRACE);
+						races[_prop.sys.raceCoupon(race.name)] = cast(int)i;
+					}
+					Coupon[] coupons;
+					auto found = selected == "";
+					foreach (i, coupon; _couponView.coupons) { mixin(S_TRACE);
+						if (auto p = coupon.name in races) { mixin(S_TRACE);
+							_race.select(*p + 1);
+						} else { mixin(S_TRACE);
+							coupons ~= coupon;
+						}
+						found = found || coupon.name == raceCoupon;
+					}
+					if (!found) coupons ~= new Coupon(raceCoupon, 0);
+					_couponView.coupons = coupons;
+				}
 				raceToolTip();
 			}
 			_comm.refSkin.add(&refSkin);
@@ -1836,8 +1856,37 @@ protected:
 		_card.mentalityRound = _card.mentality == Mentality.Normal
 			? 0 : _mtlyRound.getSelection();
 
+		.updateCoefficients(_comm, [_card]);
+
 		_comm.refCoupons.call();
 		getShell().setText(.tryFormat(_prop.msgs.dlgTitCast, _card.name));
 		return true;
+	}
+}
+
+/// レベル判定式の係数とEP獲得量を種族の値で更新する。
+void updateCoefficients(in Commons comm, CastCard[] casts) { mixin(S_TRACE);
+	if (comm.summary.legacy) return;
+	Rebindable!(const(Race))[string] races;
+	foreach (race; comm.skin.races) { mixin(S_TRACE);
+		races[comm.prop.sys.raceCoupon(race.name)] = race;
+	}
+	foreach (c; casts) { mixin(S_TRACE);
+		auto found = false;
+		foreach (coupon; c.coupons) { mixin(S_TRACE);
+			if (comm.prop.sys.isRaceCoupon(coupon.name)) { mixin(S_TRACE);
+				auto p = coupon.name in races;
+				if (p) { mixin(S_TRACE);
+					found = true;
+					c.levelCoefficient = p.levelCoefficient;
+					c.epPerLevel = p.epPerLevel;
+					break;
+				}
+			}
+		}
+		if (!found) { mixin(S_TRACE);
+			c.levelCoefficient = 1.0;
+			c.epPerLevel = DEFAULT_EP_PER_LEVEL;
+		}
 	}
 }

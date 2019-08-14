@@ -711,7 +711,8 @@ class Commons {
 	ClipData clipboard() { return _clipboard; }
 
 	@property
-	Summary summary() { mixin(S_TRACE);
+	inout
+	inout(Summary) summary() { mixin(S_TRACE);
 		return _tableWin.summary;
 	}
 

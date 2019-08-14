@@ -427,6 +427,11 @@ class System {
 	string raceCoupon(string raceName) { mixin(S_TRACE);
 		return "＠Ｒ" ~ raceName;
 	}
+	/// 種族名クーポンか。
+	const
+	bool isRaceCoupon(string coupon) { mixin(S_TRACE);
+		return coupon.startsWith("＠Ｒ");
+	}
 
 	/// レベル上限を示すシステムクーポン。
 	@property const string levelLimit() { return "＠レベル上限"; }

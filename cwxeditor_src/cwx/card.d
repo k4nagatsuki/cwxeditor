@@ -670,6 +670,8 @@ private:
 	uint _antiMgcRound = 0;
 	int[Enhance] _rEnh;
 	uint[Enhance] _rEnhRound;
+	double _levelCoefficient = 1.0;
+	uint _epPerLevel = DEFAULT_EP_PER_LEVEL;
 	Coupon[] _coupons;
 	ItemCard[] _items;
 	SkillCard[] _skills;
@@ -756,6 +758,8 @@ public:
 		enhanceRound(Enhance.Resist, c.enhanceRound(Enhance.Resist));
 		enhance(Enhance.Defense, c.enhance(Enhance.Defense));
 		enhanceRound(Enhance.Defense, c.enhanceRound(Enhance.Defense));
+		levelCoefficient = c.levelCoefficient;
+		epPerLevel = c.epPerLevel;
 		Coupon[] cps;
 		foreach (cp; c.coupons) { mixin(S_TRACE);
 			cps ~= new Coupon(cp);
@@ -811,6 +815,8 @@ public:
 			&& enhanceRound(Enhance.Resist) == c.enhanceRound(Enhance.Resist)
 			&& enhance(Enhance.Defense) == c.enhance(Enhance.Defense)
 			&& enhanceRound(Enhance.Defense) == c.enhanceRound(Enhance.Defense)
+			&& levelCoefficient == c.levelCoefficient
+			&& epPerLevel == c.epPerLevel
 			&& coupons == c.coupons
 			&& skills == c.skills
 			&& items == c.items
@@ -887,7 +893,7 @@ public:
 	const
 	uint lifeMax() { return _lifeMax; }
 	/// ditto
-			@property
+	@property
 	void lifeMax(uint lifeMax) { mixin(S_TRACE);
 		if (_lifeMax != lifeMax) changed();
 		_lifeMax = lifeMax;
@@ -900,6 +906,29 @@ public:
 			mVal = mVal < 0 ? mVal + 0.5 : mVal - 0.5;
 		}
 		return physical(phy) + cast(int)mVal;
+	}
+
+	/// レベル判定式に掛ける係数。
+	@property
+	const
+	double levelCoefficient() { return _levelCoefficient; }
+	/// ditto
+	@property
+	void levelCoefficient(double value) { mixin(S_TRACE);
+		if (_levelCoefficient == value) return;
+		changed();
+		_levelCoefficient = value;
+	}
+	/// １レベル毎のEP獲得量。
+	@property
+	const
+	uint epPerLevel() { return _epPerLevel; }
+	/// ditto
+	@property
+	void epPerLevel(uint value) { mixin(S_TRACE);
+		if (_epPerLevel == value) return;
+		changed();
+		_epPerLevel = value;
 	}
 
 	/// 所持するクーポン。
@@ -1247,6 +1276,11 @@ public:
 			eNode.newElement("Defense", enhance(Enhance.Defense))
 				.newAttr("duration", enhanceRound(Enhance.Defense));
 		}
+		if (levelCoefficient != 1.0 || epPerLevel != DEFAULT_EP_PER_LEVEL) { mixin(S_TRACE);
+			auto coeff = pNode.newElement("Coefficient");
+			if (levelCoefficient != 1.0) coeff.newAttr("level", levelCoefficient);
+			if (epPerLevel != 10) coeff.newAttr("ep", epPerLevel);
+		}
 		{ mixin(S_TRACE);
 			auto cpNode = pNode.newElement(Coupon.XML_NAME_M);
 			foreach (c; _coupons) { mixin(S_TRACE);
@@ -1324,6 +1358,10 @@ public:
 				n.onTag["Resist"] = (ref XNode n) { setEnh(n, Enhance.Resist); };
 				n.onTag["Defense"] = (ref XNode n) { setEnh(n, Enhance.Defense); };
 				n.parse();
+			};
+			pNode.onTag["Coefficient"] = (ref XNode node) { mixin(S_TRACE);
+				r.levelCoefficient = node.attr!double("level", false, 1.0);
+				r.epPerLevel = node.attr!uint("ep", false, 10);
 			};
 			Coupon[] coupons;
 			bool[string] names;

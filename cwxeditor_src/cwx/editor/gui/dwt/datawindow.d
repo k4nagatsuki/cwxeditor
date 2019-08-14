@@ -459,7 +459,8 @@ public:
 
 	/// Returns: 貼り紙。
 	@property
-	Summary summary() { mixin(S_TRACE);
+	inout
+	inout(Summary) summary() { mixin(S_TRACE);
 		return _summ;
 	}
 	static if (UseArea) {

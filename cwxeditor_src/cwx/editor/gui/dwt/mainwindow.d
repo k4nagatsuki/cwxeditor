@@ -27,6 +27,7 @@ import cwx.editor.gui.sound;
 
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.cardwindow;
+import cwx.editor.gui.dwt.castcarddialog;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.customtoolbar;
@@ -2290,6 +2291,10 @@ private:
 	void refSkin() { mixin(S_TRACE);
 		refSoundType();
 		setHistSkin();
+		if (summary && !summary.legacy) { mixin(S_TRACE);
+			// レベル判定式の係数とEP獲得量を種族の値で更新する
+			.updateCoefficients(_comm, summary.casts);
+		}
 	}
 	void refScenario(Summary summ) { mixin(S_TRACE);
 		assert (summ is summary);

@@ -910,7 +910,9 @@ class CouponView(CVType Type) : Composite {
 	}
 	@property
 	void coupons(in Coupon[] coupons) { mixin(S_TRACE);
+		if (coupons == this.coupons) return;
 		_undoCoupons.reset();
+		_coupons.removeAll();
 		foreach (c; coupons) { mixin(S_TRACE);
 			appendCoupon(c);
 		}

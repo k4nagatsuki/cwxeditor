@@ -1339,8 +1339,9 @@ class Skin {
 
 	/// 種族。
 	@property
-	Race[] races() { mixin(S_TRACE);
-		return _races.dup;
+	inout
+	inout(Race)[] races() { mixin(S_TRACE);
+		return _races;
 	}
 
 	/// バトルを作成した際、最初に設定されているBGMの名前。
