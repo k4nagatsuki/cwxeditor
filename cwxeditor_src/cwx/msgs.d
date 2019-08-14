@@ -2981,6 +2981,7 @@ class Msgs : Properties {
 	auto menuTextCopyVariablePath = Msg("menuTextCopyVariablePath", "状態変数のパスをコピー");
 	auto menuTextUp = Msg("menuTextUp", "選択中のアイテムを上へ移動");
 	auto menuTextDown = Msg("menuTextDown", "選択中のアイテムを下へ移動");
+	auto menuTextAddInitialCoupons = Msg("menuTextAddInitialCoupons", "種族と年代の初期クーポンを追加");
 	auto menuTextReverse = Msg("menuTextReverse", "逆順にする");
 	auto menuTextSwapToParent = Msg("menuTextSwapToParent", "親コンテントと入れ替える");
 	auto menuTextSwapToChild = Msg("menuTextSwapToChild", "子コンテントと入れ替える");

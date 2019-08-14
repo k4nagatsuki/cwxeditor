@@ -43,6 +43,7 @@ public:
 				coupon.owner = r;
 				r._coupons ~= coupon;
 			};
+			node.parse();
 		};
 		node.onTag["Coefficient"] = (ref XNode node) { mixin(S_TRACE);
 			r._levelCoefficient = node.attr!double("level", false, 1.0);

@@ -1046,7 +1046,7 @@ private:
 			// Wsn.2
 			_couponViewCL.fillVertical = true;
 
-			_couponView = new CouponView!(CVType.NoValued)(comm, summ, _uc, _couponViewComp, SWT.NONE, &catchMod, false);
+			_couponView = new CouponView!(CVType.NoValued)(comm, summ, _uc, _couponViewComp, SWT.NONE, &catchMod, null);
 			mod(_couponView);
 			_couponView.modEvent ~= &refreshWarning;
 			_couponView.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -2996,7 +2996,7 @@ Composite createValueEditor(Commons comm, Summary summ, UseCounter uc, Composite
 	initValue.setMaximum(comm.prop.var.etc.couponValueMax);
 	initValue.setSelection(1);
 	initValue.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-	couponView = new CouponView!(CVType.Valued)(comm, summ, uc, grp, SWT.NONE, catchMod, false);
+	couponView = new CouponView!(CVType.Valued)(comm, summ, uc, grp, SWT.NONE, catchMod, null);
 	auto gd = new GridData(GridData.FILL_BOTH);
 	gd.horizontalSpan = 2;
 	couponView.setLayoutData(gd);

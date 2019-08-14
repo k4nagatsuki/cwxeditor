@@ -1,42 +1,43 @@
 
 module cwx.editor.gui.dwt.couponview;
 
-import cwx.coupon;
 import cwx.card;
-import cwx.types;
+import cwx.coupon;
 import cwx.features;
-import cwx.utils;
-import cwx.race;
-import cwx.xml;
-import cwx.skin;
-import cwx.path;
 import cwx.menu;
+import cwx.path;
+import cwx.race;
+import cwx.skin;
+import cwx.summary;
+import cwx.system;
+import cwx.types;
 import cwx.types;
 import cwx.usecounter;
-import cwx.system;
-import cwx.summary;
+import cwx.utils;
 import cwx.warning;
+import cwx.xml;
 
+import cwx.editor.gui.dwt.absdialog;
+import cwx.editor.gui.dwt.centerlayout;
+import cwx.editor.gui.dwt.chooser;
+import cwx.editor.gui.dwt.commons;
+import cwx.editor.gui.dwt.customtable;
+import cwx.editor.gui.dwt.customtext;
+import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.dutils;
-import cwx.editor.gui.dwt.commons;
-import cwx.editor.gui.dwt.customtext;
-import cwx.editor.gui.dwt.customtable;
-import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.radarspinner;
-import cwx.editor.gui.dwt.xmlbytestransfer;
-import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.undo;
-import cwx.editor.gui.dwt.dmenu;
-import cwx.editor.gui.dwt.chooser;
+import cwx.editor.gui.dwt.xmlbytestransfer;
 
 static import std.algorithm;
 import std.algorithm : map;
 import std.array;
+import std.conv;
 import std.datetime;
 import std.string;
-import std.conv;
+import std.typecons;
 
 import org.eclipse.swt.all;
 
@@ -69,6 +70,7 @@ class CouponView(CVType Type) : Composite {
 	private UseCounter _uc;
 	private bool _isHistoryView; /// キャラクターの経歴欄か。評価条件などの場合はfalse。
 	private KeyDownFilter _kdFilter;
+	private Tuple!(Period, const(Race)) delegate() _getFeature;
 
 	private UndoManager _undoCoupons;
 
@@ -388,6 +390,50 @@ class CouponView(CVType Type) : Composite {
 		raiseModifyEvent();
 		_comm.refreshToolBar();
 	}
+	@property
+	private bool canAddInitialCoupons() { mixin(S_TRACE);
+		if (_readOnly) return false;
+		if (!_getFeature) return false;
+		bool[string] names;
+		foreach (name; couponNames) names[name] = true;
+
+		auto skin = _comm.skin;
+		auto f = _getFeature();
+		auto coupons = (f[1] ? f[1].coupons : []) ~ skin.periodInitialCoupons(_comm.prop.sys, f[0]);
+		foreach (coupon; coupons) { mixin(S_TRACE);
+			if (coupon.name !in names) return true;
+		}
+		return false;
+	}
+	@property
+	private void addInitialCoupons() { mixin(S_TRACE);
+		if (_readOnly) return;
+		if (!_getFeature) return;
+
+		if (_tte1.isEditing) _tte1.enter();
+		static if (CVType.NoValued != Type) {
+			if (_tte2.isEditing) _tte2.enter();
+		}
+		auto stored = false;
+		bool[string] names;
+		foreach (name; couponNames) names[name] = true;
+
+		auto skin = _comm.skin;
+		auto f = _getFeature();
+		auto coupons = (f[1] ? f[1].coupons : []) ~ skin.periodInitialCoupons(_comm.prop.sys, f[0]);
+		TableItem[] itms;
+		foreach_reverse (coupon; coupons) { mixin(S_TRACE);
+			if (coupon.name in names) continue;
+			if (!stored) storeCoupons();
+			stored = true;
+			itms ~= appendCoupon(coupon, 0);
+			updateWarning(itms[$ - 1]);
+		}
+		_coupons.setSelection(itms);
+		_coupons.showSelection();
+		_comm.refreshToolBar();
+	}
+
 	private void reverseCoupons() { mixin(S_TRACE);
 		if (_coupons.getItemCount() < 2) return;
 		if (_tte1.isEditing) _tte1.enter();
@@ -629,9 +675,10 @@ class CouponView(CVType Type) : Composite {
 	private class HTBKeyDown : Listener {
 		override void handleEvent(Event e) { e.doit = true; }
 	}
-	this (Commons comm, Summary summ, UseCounter uc, Composite parent, int style, bool delegate() catchMod, bool isHistoryView) { mixin(S_TRACE);
+	this (Commons comm, Summary summ, UseCounter uc, Composite parent, int style, bool delegate() catchMod, Tuple!(Period, const(Race)) delegate() getFeature) { mixin(S_TRACE);
 		super (parent, style);
-		_isHistoryView = isHistoryView;
+		_isHistoryView = getFeature !is null;
+		_getFeature = getFeature;
 
 		_id = .objectIDValue(this);
 
@@ -773,6 +820,10 @@ class CouponView(CVType Type) : Composite {
 				createMenuItem(_comm, menu, MenuID.Up, &upCoupon, &canUp);
 				createMenuItem(_comm, menu, MenuID.Down, &downCoupon, &canDown);
 				static if (Type is CVType.Cast) {
+					if (_getFeature) { mixin(S_TRACE);
+						new MenuItem(menu, SWT.SEPARATOR);
+						createMenuItem(_comm, menu, MenuID.AddInitialCoupons, &addInitialCoupons, &canAddInitialCoupons);
+					}
 					new MenuItem(menu, SWT.SEPARATOR);
 					createMenuItem(_comm, menu, MenuID.Reverse, &reverseCoupons, () => !_readOnly && 2 <= _coupons.getItemCount());
 				}

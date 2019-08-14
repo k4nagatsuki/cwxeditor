@@ -657,6 +657,7 @@ public:
 		case MenuID.CopyVariablePath: return imgd!("copy_path.png");
 		case MenuID.Up: return imgd!("up.png");
 		case MenuID.Down: return imgd!("down.png");
+		case MenuID.AddInitialCoupons: return imgd!("add_initial_coupons.png");
 		case MenuID.Reverse: return imgd!("reverse.png");
 		case MenuID.SwapToParent: return imgd!("swap_parent.png");
 		case MenuID.SwapToChild: return imgd!("swap_child.png");

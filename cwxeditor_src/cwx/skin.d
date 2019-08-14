@@ -3,6 +3,7 @@ module cwx.skin;
 
 import cwx.background;
 import cwx.card;
+import cwx.coupon;
 import cwx.features;
 import cwx.imagesize;
 import cwx.props;
@@ -1654,6 +1655,17 @@ class Skin {
 		return _prop.sys.mentalMod!E(legacyName).get(e, init).get(mtl, 0.0);
 	}
 
+	/// 年代ごとの初期クーポンを返す。
+	@property
+	const
+	const(Coupon)[] periodInitialCoupons(in System sys, Period p) { mixin(S_TRACE);
+		if (!legacy) { mixin(S_TRACE);
+			auto pt = _periods.get(p, null);
+			return pt ? pt.coupons : [];
+		}
+		return sys.periodInitialCoupons(p, legacyName);
+	}
+
 	/// パーティ先頭のメンバを指すシステムクーポンを返す。
 	@property
 	const
@@ -1836,8 +1848,9 @@ private class ModData {
 	private bool _special = false; /// 特殊型か。型特性である時のみ有効。
 	private int[Physical] _physical; /// 身体能力の変動値。
 	private double[Mental] _mental; /// 精神特徴の変動値。
+	private Coupon[] _coupons; /// 初期クーポン。
 
-	private this () {}
+	private this () { }
 
 	/// 特性名。
 	@property
@@ -1858,6 +1871,11 @@ private class ModData {
 	@property
 	const
 	const(double[Mental]) mental() { return _mental; }
+
+	/// 初期クーポン
+	@property
+	const
+	const(Coupon)[] coupons() { return _coupons; }
 
 	/// nodeからデータを生成する。
 	static ModData fromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
@@ -1881,6 +1899,12 @@ private class ModData {
 			mod._mental[Mental.Cautious] = node.attr!double("cautious", false, 0);
 			mod._mental[Mental.Cheerful] = node.attr!double("cheerful", false, 0);
 			mod._mental[Mental.Trickish] = node.attr!double("trickish", false, 0);
+		};
+		node.onTag[Coupon.XML_NAME_M] = (ref XNode node) { mixin(S_TRACE);
+			node.onTag[Coupon.XML_NAME] = (ref XNode node) { mixin(S_TRACE);
+				mod._coupons ~= Coupon.fromNode(node, ver);
+			};
+			node.parse();
 		};
 		node.parse();
 

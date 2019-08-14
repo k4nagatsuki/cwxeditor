@@ -1761,6 +1761,7 @@ enum MenuID {
 	CopyVariablePath,
 	Up,
 	Down,
+	AddInitialCoupons,
 	Reverse,
 	SwapToParent,
 	SwapToChild,

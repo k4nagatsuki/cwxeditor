@@ -163,6 +163,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.CopyVariablePath] = "V";
 		_mnemonic[MenuID.Up] = "K";
 		_mnemonic[MenuID.Down] = "J";
+		_mnemonic[MenuID.AddInitialCoupons] = "A";
 		_mnemonic[MenuID.Reverse] = "R";
 		_mnemonic[MenuID.SwapToParent] = "S";
 		_mnemonic[MenuID.SwapToChild] = "W";
@@ -408,6 +409,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.CopyVariablePath] = "";
 		_hotkey[MenuID.Up] = "Ctrl+Arrow_Up";
 		_hotkey[MenuID.Down] = "Ctrl+Arrow_Down";
+		_hotkey[MenuID.AddInitialCoupons] = "";
 		_hotkey[MenuID.Reverse] = "";
 		_hotkey[MenuID.SwapToParent] = "Ctrl+Shift+Arrow_Up";
 		_hotkey[MenuID.SwapToChild] = "Ctrl+Shift+Arrow_Down";
@@ -831,6 +833,7 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.CopyVariablePath:
 	case MenuID.Up:
 	case MenuID.Down:
+	case MenuID.AddInitialCoupons:
 	case MenuID.Reverse:
 	case MenuID.SwapToParent:
 	case MenuID.SwapToChild:
@@ -1160,6 +1163,7 @@ bool isGlobalMenu(MenuID id) {
 	case MenuID.CopyVariablePath:
 	case MenuID.Up:
 	case MenuID.Down:
+	case MenuID.AddInitialCoupons:
 	case MenuID.Reverse:
 	case MenuID.SwapToParent:
 	case MenuID.SwapToChild:
@@ -1286,6 +1290,7 @@ bool isLocalMenu(MenuID id) {
 	case MenuID.ConvertContent:
 	case MenuID.Up:
 	case MenuID.Down:
+	case MenuID.AddInitialCoupons:
 	case MenuID.Reverse:
 	case MenuID.SwapToParent:
 	case MenuID.SwapToChild:

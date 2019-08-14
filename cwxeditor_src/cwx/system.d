@@ -1,8 +1,9 @@
 
 module cwx.system;
 
-import cwx.perf;
+import cwx.coupon;
 import cwx.features;
+import cwx.perf;
 import cwx.types;
 
 import std.algorithm;
@@ -221,6 +222,15 @@ class System {
 	const
 	string makingsCoupon(Makings m, string legacyName) { mixin(S_TRACE);
 		return "＿" ~ makingsName(m, legacyName);
+	}
+
+	/// 年代ごとの初期クーポンを返す。
+	@property
+	const
+	Coupon[] periodInitialCoupons(Period p, string legacyName) { mixin(S_TRACE);
+		if (p == Period(2)) return [new Coupon("熟練", 2)];
+		if (p == Period(3)) return [new Coupon("老獪", 4)];
+		return [];
 	}
 
 	/// パーティ先頭のメンバを指すシステムクーポンを返す。

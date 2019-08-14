@@ -494,7 +494,18 @@ private:
 			grp.setText(_prop.msgs.coupons);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			grp.setLayout(normalGridLayout(1, true));
-			_couponView = new CouponView!(CVType.Cast)(_comm, _summ, _summ.useCounter, grp, _readOnly, &catchMod, true);
+			_couponView = new CouponView!(CVType.Cast)(_comm, _summ, _summ.useCounter, grp, _readOnly, &catchMod, { mixin(S_TRACE);
+				auto p = Period(-1);
+				foreach (f, b; _period) { mixin(S_TRACE);
+					if (b.getSelection()) { mixin(S_TRACE);
+						p = f;
+						break;
+					}
+				}
+				if (_race.getSelectionIndex() <= 0) return .tuple(p, cast(const(Race))null);
+				auto skin = summSkin;
+				return .tuple(p, cast(const)skin.races[_race.getSelectionIndex() - 1]);
+			});
 			_couponView.setLayoutData(new GridData(GridData.FILL_BOTH));
 			mod(_couponView);
 			_couponView.modEvent ~= &refreshWarning;
