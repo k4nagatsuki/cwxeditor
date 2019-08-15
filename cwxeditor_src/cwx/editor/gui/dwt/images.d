@@ -3595,6 +3595,7 @@ public:
 	}
 	void set(int index, PileImage img) { mixin(S_TRACE);
 		assert (img._targetScale == _drawingScale);
+		addRedraw(backs[index].x, backs[index].y, backs[index].width, backs[index].height);
 		backs[index].dispose();
 		removeDragImage(backs[index]);
 		this.backs[index] = img;
