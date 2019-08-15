@@ -2300,6 +2300,7 @@ private:
 	int _imageScale = 1;
 	int _drawingScale = 1;
 	bool _drawXORSelectionLine = true;
+	bool _resizingImageWithRatio = true;
 
 	int _gridX = 0, _gridY = 0;
 	int _gridRange = 5;
@@ -2534,17 +2535,67 @@ private:
 					}
 				}
 				resetGrid();
-				foreach (img; dragImgs.keys) { mixin(S_TRACE);
+
+				// 旧サイズに対する新サイズの比率
+				auto ratioW = double.nan, ratioH = double.nan;
+				if (_resizingImageWithRatio && dragTgl !is Toggle.MOVE) { mixin(S_TRACE);
+					ratioW = _mouseP.width ? (cast(double)_mouseP.width + movX) / _mouseP.width : double.nan;
+					ratioH = _mouseP.height ? (cast(double)_mouseP.height + movY) / _mouseP.height : double.nan;
+					// 旧サイズが0の場合は比率が取れないが、他に選択されているイメージがある場合は
+					// そのイメージから比率を取るようにする
+					if (.isNaN(ratioW)) { mixin(S_TRACE);
+						foreach_reverse (b; backs) { mixin(S_TRACE);
+							if (auto fi = cast(FlexImage)b) { mixin(S_TRACE);
+								if (!fi.width) continue;
+								ratioW = (cast(double)fi.width + movX) / fi.width;
+								break;
+							}
+						}
+					}
+					if (.isNaN(ratioH)) { mixin(S_TRACE);
+						foreach_reverse (b; backs) { mixin(S_TRACE);
+							if (auto fi = cast(FlexImage)b) { mixin(S_TRACE);
+								if (!fi.height) continue;
+								ratioH = (cast(double)fi.height + movY) / fi.height;
+								break;
+							}
+						}
+					}
+				}
+				@property
+				bool isLeft() { mixin(S_TRACE);
+					return dragTgl is Toggle.LEFT_TOP || dragTgl is Toggle.LEFT_MIDDLE || dragTgl is Toggle.LEFT_BOTTOM;
+				}
+				@property
+				bool isTop() { mixin(S_TRACE);
+					return dragTgl is Toggle.LEFT_TOP || dragTgl is Toggle.MIDDLE_TOP || dragTgl is Toggle.RIGHT_TOP;
+				}
+				@property
+				bool isRight() { mixin(S_TRACE);
+					return dragTgl is Toggle.RIGHT_TOP || dragTgl is Toggle.RIGHT_MIDDLE || dragTgl is Toggle.RIGHT_BOTTOM;
+				}
+				@property
+				bool isBottom() { mixin(S_TRACE);
+					return dragTgl is Toggle.LEFT_BOTTOM || dragTgl is Toggle.MIDDLE_BOTTOM || dragTgl is Toggle.RIGHT_BOTTOM;
+				}
+				foreach (img; dragImgs.byKey()) { mixin(S_TRACE);
 					if (img.selected && !img.fixed && img.visible) { mixin(S_TRACE);
+						auto movX2 = movX;
+						auto movY2 = movY;
+						if (!.isNaN(ratioW) && img.width) movX2 = cast(int)(img.width * ratioW) - img.width;
+						if (!.isNaN(ratioH) && img.height) movY2 = cast(int)(img.height * ratioH) - img.height;
+						auto newArea = img.drawNewArea;
+						addRedraw(newArea.x, newArea.y, newArea.width, newArea.height);
+
 						auto rect = dragImgs[img];
 						auto newRect = new Rectangle(img.x, img.y, img.width, img.height);
 						switch (dragTgl) {
 						case Toggle.LEFT_TOP, Toggle.LEFT_MIDDLE, Toggle.LEFT_BOTTOM:
-							int w = rect.width - movX;
+							int w = rect.width - movX2;
 							newRect.width = img.roundMWidth(w);
 							break;
 						case Toggle.RIGHT_TOP, Toggle.RIGHT_MIDDLE, Toggle.RIGHT_BOTTOM:
-							int w = rect.width + movX;
+							int w = rect.width + movX2;
 							newRect.width = img.roundMWidth(w);
 							break;
 						default:
@@ -2552,11 +2603,11 @@ private:
 						}
 						switch (dragTgl) {
 						case Toggle.LEFT_TOP, Toggle.MIDDLE_TOP, Toggle.RIGHT_TOP:
-							int h = rect.height - movY;
+							int h = rect.height - movY2;
 							newRect.height = img.roundMHeight(h);
 							break;
 						case Toggle.LEFT_BOTTOM, Toggle.MIDDLE_BOTTOM, Toggle.RIGHT_BOTTOM:
-							int h = rect.height + movY;
+							int h = rect.height + movY2;
 							newRect.height = img.roundMHeight(h);
 							break;
 						default:
@@ -2564,6 +2615,7 @@ private:
 						}
 						uint newScale = img.newScale;
 						void roundH(int width, int height) { mixin(S_TRACE);
+							if (!width) return;
 							uint scale = newRect.width * 100 / width;
 							if (img.scaleMode) { mixin(S_TRACE);
 								scale = .min(scale, img.maximumScale);
@@ -2574,6 +2626,7 @@ private:
 							newScale = scale;
 						}
 						void roundW(int width, int height) { mixin(S_TRACE);
+							if (!height) return;
 							uint scale = newRect.height * 100 / height;
 							if (img.scaleMode) { mixin(S_TRACE);
 								scale = .min(scale, img.maximumScale);
@@ -2644,22 +2697,6 @@ private:
 									if (.abs(gb - b) <= _gridRange) newRect.y = gb - newRect.height;
 								}
 							} else { mixin(S_TRACE);
-								@property
-								bool isLeft() { mixin(S_TRACE);
-									return dragTgl is Toggle.LEFT_TOP || dragTgl is Toggle.LEFT_MIDDLE || dragTgl is Toggle.LEFT_BOTTOM;
-								}
-								@property
-								bool isTop() { mixin(S_TRACE);
-									return dragTgl is Toggle.LEFT_TOP || dragTgl is Toggle.MIDDLE_TOP || dragTgl is Toggle.RIGHT_TOP;
-								}
-								@property
-								bool isRight() { mixin(S_TRACE);
-									return dragTgl is Toggle.RIGHT_TOP || dragTgl is Toggle.RIGHT_MIDDLE || dragTgl is Toggle.RIGHT_BOTTOM;
-								}
-								@property
-								bool isBottom() { mixin(S_TRACE);
-									return dragTgl is Toggle.LEFT_BOTTOM || dragTgl is Toggle.MIDDLE_BOTTOM || dragTgl is Toggle.RIGHT_BOTTOM;
-								}
 								int r = newRect.x + newRect.width;
 								int b = newRect.y + newRect.height;
 								if (isLeft) { mixin(S_TRACE);
@@ -2703,18 +2740,45 @@ private:
 							}
 							redrawGrid(newRect);
 						}
-
-						auto oldArea = img.drawNewArea;
 						if (img.scaleMode) { mixin(S_TRACE);
 							img.newBoundsWithScale(newRect.x, newRect.y, newScale);
 						} else { mixin(S_TRACE);
 							img.newBounds = newRect;
 						}
+					}
+				}
+				if (_resizingImageWithRatio && dragTgl !is Toggle.MOVE) { mixin(S_TRACE);
+					// 各イメージの相対位置を維持する
+					foreach (img; dragImgs.byKey()) { mixin(S_TRACE);
+						if (_mouseP is img) continue;
+						if (img.selected && !img.fixed && img.visible) { mixin(S_TRACE);
+							auto rW = img.width ? (cast(double)img.newWidth) / img.width : 1.0;
+							auto disX = img.newX;
+							if (isLeft) { mixin(S_TRACE);
+								disX = cast(int)((img.x - _mouseP.x) * rW);
+							} else { mixin(S_TRACE);
+								disX = cast(int)((img.x - _mouseP.newX) * rW);
+							}
+							img.newX = _mouseP.newX + disX;
+
+							auto rH = img.height ? (cast(double)img.newHeight) / img.height : 1.0;
+							auto disY = img.newY;
+							if (isTop) { mixin(S_TRACE);
+								disY = cast(int)((img.y - _mouseP.y) * rH);
+							} else { mixin(S_TRACE);
+								disY = cast(int)((img.y - _mouseP.newY) * rH);
+							}
+							img.newY = _mouseP.newY + disY;
+						}
+					}
+				}
+				foreach (img; dragImgs.byKey()) { mixin(S_TRACE);
+					if (img.selected && !img.fixed && img.visible) { mixin(S_TRACE);
 						auto newArea = img.drawNewArea;
-						addRedraw(oldArea.x, oldArea.y, oldArea.width, oldArea.height);
 						addRedraw(newArea.x, newArea.y, newArea.width, newArea.height);
 					}
 				}
+
 				redrawGridHighlight();
 				moved = true;
 			} else { mixin(S_TRACE);
@@ -3311,6 +3375,16 @@ public:
 			return _drawXORSelectionLine;
 		}
 	}
+
+	/// 複数のイメージを同時にサイズ変更する時、直接の操作対象となっている
+	/// イメージに対する旧サイズと新サイズの比率によって他のイメージの処理を行う。
+	/// 例えば、幅100のイメージを幅200にする時、同時にサイズ変更した幅50のイメージは幅100となる。
+	@property
+	void resizingImageWithRatio(bool v) { _resizingImageWithRatio = v; }
+	/// ditto
+	@property
+	const
+	bool resizingImageWithRatio() { return _resizingImageWithRatio; }
 
 	@property
 	PileImage[] images() { mixin(S_TRACE);

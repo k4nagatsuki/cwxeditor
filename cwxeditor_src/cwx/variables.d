@@ -508,6 +508,7 @@ class FlexEtcProps : Properties {
 	auto saveNeedChanged = Prop!(bool)("saveNeedChanged", true);
 	auto canVanishWorkAreaInMainWindow = Prop!(bool)("canVanishWorkAreaInMainWindow", false);
 	auto switchFixedWithCheckBox = Prop!(bool)("switchFixedWithCheckBox", true);
+	auto resizingImageWithRatio = Prop!(bool)("resizingImageWithRatio", true);
 	auto drawXORSelectionLine = Prop!(bool)("drawXORSelectionLine", false);
 	auto showSceneViewSelectionFilter = Prop!(bool)("showSceneViewSelectionFilter", true);
 	auto showItemNumberOfSceneAndEventView = Prop!(bool)("showItemNumberOfSceneAndEventView", true);

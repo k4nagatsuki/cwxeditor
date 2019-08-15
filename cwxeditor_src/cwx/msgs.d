@@ -2428,6 +2428,7 @@ class Msgs : Properties {
 
 	auto etcSettingsScene = Msg("etcSettingsScene", "シーンビューの設定");
 	auto switchFixedWithCheckBox = Msg("switchFixedWithCheckBox", "チェックボックスで個別のカードと背景セルの固定状態を切り替える");
+	auto resizingImageWithRatio = Msg("resizingImageWithRatio", "複数のカードと背景セルのサイズ変更時に相対的な位置とサイズを維持する");
 	auto showSceneViewSelectionFilter = Msg("showSceneViewSelectionFilter", "選択されたカードの上に半透明のカーテンをかける");
 	auto drawXORSelectionLine = Msg("drawXORSelectionLine", "選択枠を色の反転で描画する");
 	auto smoothingCard = Msg("smoothingCard", "カードのサイズ変更時にスムージングを行う");

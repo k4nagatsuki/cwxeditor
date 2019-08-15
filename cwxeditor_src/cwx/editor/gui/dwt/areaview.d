@@ -1989,6 +1989,7 @@ private:
 		auto vs = _prop.looks.viewSize;
 		_imgp = new ImagePane(sc, SWT.BORDER | SWT.NO_BACKGROUND | _readOnly, vs.width, vs.height, _prop.var.etc.imageScale, _prop.drawingScale);
 		_imgp.drawXORSelectionLine = _prop.var.etc.drawXORSelectionLine;
+		_imgp.resizingImageWithRatio = _prop.var.etc.resizingImageWithRatio;
 
 		void refImageScale() { mixin(S_TRACE);
 			auto vs = _prop.looks.viewSize;
@@ -2029,12 +2030,15 @@ private:
 		}
 		static if (UseCards) {
 			void refImagePaneSelectionFilter() { mixin(S_TRACE);
+				_imgp.resizingImageWithRatio = _prop.var.etc.resizingImageWithRatio;
 				_imgp.drawXORSelectionLine = _prop.var.etc.drawXORSelectionLine;
 				foreach (i, itm; _cards.getItems()) { mixin(S_TRACE);
 					auto fi = cast(FlexImage)_imgp.images[cardsIndex + i];
 					assert (fi !is null);
-					fi.hasSelectionFilter = _prop.var.etc.showSceneViewSelectionFilter;
-					if (fi.selected && fi.visible) _imgp.redrawImage(fi);
+					if (fi.hasSelectionFilter != _prop.var.etc.showSceneViewSelectionFilter) { mixin(S_TRACE);
+						fi.hasSelectionFilter = _prop.var.etc.showSceneViewSelectionFilter;
+						if (fi.selected && fi.visible) _imgp.redrawImage(fi);
+					}
 				}
 			}
 		}

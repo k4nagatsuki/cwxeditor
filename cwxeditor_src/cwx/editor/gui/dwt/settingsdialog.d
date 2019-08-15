@@ -1700,6 +1700,7 @@ struct OldSettings {
 	string stepValueName;
 	bool showCurrentValueOnTopAlways;
 	bool switchFixedWithCheckBox;
+	bool resizingImageWithRatio;
 	bool drawXORSelectionLine;
 	bool showSceneViewSelectionFilter;
 	bool saveSkinName;
@@ -1724,6 +1725,7 @@ struct OldSettings {
 		this.oldIgnorePaths = prop.var.etc.ignorePaths;
 		this.oldSmoothingCard = prop.var.etc.smoothingCard;
 		this.switchFixedWithCheckBox = prop.var.etc.switchFixedWithCheckBox;
+		this.resizingImageWithRatio = prop.var.etc.resizingImageWithRatio;
 		this.drawXORSelectionLine = prop.var.etc.drawXORSelectionLine;
 		this.showSceneViewSelectionFilter = prop.var.etc.showSceneViewSelectionFilter;
 		this.oldLogicalSort = prop.var.etc.logicalSort;
@@ -1853,7 +1855,7 @@ struct OldSettings {
 		if (switchFixedWithCheckBox != prop.var.etc.switchFixedWithCheckBox) { mixin(S_TRACE);
 			comm.refSwitchFixedWithCheckBox.call();
 		}
-		if (drawXORSelectionLine != prop.var.etc.drawXORSelectionLine || showSceneViewSelectionFilter != prop.var.etc.showSceneViewSelectionFilter) { mixin(S_TRACE);
+		if (resizingImageWithRatio != prop.var.etc.resizingImageWithRatio || drawXORSelectionLine != prop.var.etc.drawXORSelectionLine || showSceneViewSelectionFilter != prop.var.etc.showSceneViewSelectionFilter) { mixin(S_TRACE);
 			comm.refImagePaneSelectionFilter.call();
 		}
 		if (oldLogicalSort != prop.var.etc.logicalSort) { mixin(S_TRACE);
