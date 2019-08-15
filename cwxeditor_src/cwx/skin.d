@@ -1838,6 +1838,7 @@ class Skin {
 			printStackTrace();
 			debugln(fname);
 			debugln(e);
+			throw new Exception("Invalid Skin.xml.", __FILE__, __LINE__);
 		}
 	}
 }
