@@ -1834,7 +1834,7 @@ class Skin {
 				node.parse();
 			};
 			sNode.parse();
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			printStackTrace();
 			debugln(fname);
 			debugln(e);
