@@ -2752,23 +2752,27 @@ private:
 					foreach (img; dragImgs.byKey()) { mixin(S_TRACE);
 						if (_mouseP is img) continue;
 						if (img.selected && !img.fixed && img.visible) { mixin(S_TRACE);
-							auto rW = img.width ? (cast(double)img.newWidth) / img.width : 1.0;
-							auto disX = img.newX;
-							if (isLeft) { mixin(S_TRACE);
-								disX = cast(int)((img.x - _mouseP.x) * rW);
-							} else { mixin(S_TRACE);
-								disX = cast(int)((img.x - _mouseP.newX) * rW);
+							if (_mouseP.width != _mouseP.newWidth) { mixin(S_TRACE);
+								auto rW = img.width ? (cast(double)img.newWidth) / img.width : 1.0;
+								auto disX = img.newX;
+								if (isLeft) { mixin(S_TRACE);
+									disX = cast(int)((img.x - _mouseP.x) * rW);
+								} else { mixin(S_TRACE);
+									disX = cast(int)((img.x - _mouseP.newX) * rW);
+								}
+								img.newX = _mouseP.newX + disX;
 							}
-							img.newX = _mouseP.newX + disX;
 
-							auto rH = img.height ? (cast(double)img.newHeight) / img.height : 1.0;
-							auto disY = img.newY;
-							if (isTop) { mixin(S_TRACE);
-								disY = cast(int)((img.y - _mouseP.y) * rH);
-							} else { mixin(S_TRACE);
-								disY = cast(int)((img.y - _mouseP.newY) * rH);
+							if (_mouseP.height != _mouseP.newHeight) { mixin(S_TRACE);
+								auto rH = img.height ? (cast(double)img.newHeight) / img.height : 1.0;
+								auto disY = img.newY;
+								if (isTop) { mixin(S_TRACE);
+									disY = cast(int)((img.y - _mouseP.y) * rH);
+								} else { mixin(S_TRACE);
+									disY = cast(int)((img.y - _mouseP.newY) * rH);
+								}
+								img.newY = _mouseP.newY + disY;
 							}
-							img.newY = _mouseP.newY + disY;
 						}
 					}
 				}
