@@ -2511,11 +2511,11 @@ private BgImage[] readBgImages(in RData d, ref ByteIO f, int dataVersion, bool a
 BgImage[] convInheritCellsR(BgImage[] cells) { mixin(S_TRACE);
 	// データバージョン4からWSN形式への変換時、
 	// 前面である事以外背景不継承条件を満たしているセルがあったら、
-	// サイズ0のイメージセルを挿入して強制的に背景継承状態にする。
+	// サイズ0のセルを挿入して強制的に背景継承状態にする。
 	if (cells.length) { mixin(S_TRACE);
 		auto b = cast(ImageCell)cells[0];
 		if (b && b.flag == "" && b.x == 0 && b.y == 0 && b.width == 632 && b.height == 420 && !b.mask && b.cellName == "" && b.layer != LAYER_BACK_CELL) { mixin(S_TRACE);
-			cells = new ImageCell("", "", 0, 0, 0, 0, false) ~ cells;
+			cells = new ColorCell(BlendMode.Normal, GradientDir.None, CRGB(0, 0, 0, 255), CRGB(0, 0, 0, 255), "", 0, 0, 0, 0, false) ~ cells;
 		}
 	}
 	return cells;
