@@ -2500,14 +2500,27 @@ private BgImage[] readBgImages(in RData d, ref ByteIO f, int dataVersion, bool a
 	}
 	auto b = cast(ImageCell)bgImgs[0u];
 	if (b && b.path == "" && b.flag == ""
-			&& b.x == 0 && b.y == 0 && b.width == 632 && b.height == 420 && !b.mask && b.cellName == "") { mixin(S_TRACE);
+			&& b.x == 0 && b.y == 0 && b.width == 632 && b.height == 420 && !b.mask && b.cellName == "" && b.layer == LAYER_BACK_CELL) { mixin(S_TRACE);
 		// クラシックなエンジンでは必ず1枚以上の背景画像が必要であるため、
 		// 背景継承時はダミーのイメージが挿入されている
-		return bgImgs[1u .. $];
+		return .convInheritCellsR(bgImgs[1u .. $]);
 	} else { mixin(S_TRACE);
-		return bgImgs;
+		return .convInheritCellsR(bgImgs);
 	}
 }
+BgImage[] convInheritCellsR(BgImage[] cells) { mixin(S_TRACE);
+	// データバージョン4からWSN形式への変換時、
+	// 前面である事以外背景不継承条件を満たしているセルがあったら、
+	// サイズ0のイメージセルを挿入して強制的に背景継承状態にする。
+	if (cells.length) { mixin(S_TRACE);
+		auto b = cast(ImageCell)cells[0];
+		if (b && b.flag == "" && b.x == 0 && b.y == 0 && b.width == 632 && b.height == 420 && !b.mask && b.cellName == "" && b.layer != LAYER_BACK_CELL) { mixin(S_TRACE);
+			cells = new ImageCell("", "", 0, 0, 0, 0, false) ~ cells;
+		}
+	}
+	return cells;
+}
+
 private void readAreaHeader(ref RData d, ref ByteIO f, out ulong id, out string name) { mixin(S_TRACE);
 	auto tb = f.readUByte;
 	if (tb == 0xFF) { mixin(S_TRACE);
@@ -5202,6 +5215,7 @@ private void writeBgImage(ref SData d, ref ByteIO f, BgImage b) { mixin(S_TRACE)
 	}
 }
 private void writeBgImages(ref SData d, ref ByteIO f, BgImage[] backs, bool replBgImg = false) { mixin(S_TRACE);
+	backs = .convInheritCellsW(backs);
 	if (replBgImg)  { mixin(S_TRACE);
 		f.writeExUInt(cast(uint)backs.length);
 	} else { mixin(S_TRACE);
@@ -5226,6 +5240,19 @@ private void writeBgImages(ref SData d, ref ByteIO f, BgImage[] backs, bool repl
 		writeBgImage(d, f, back);
 	}
 }
+BgImage[] convInheritCellsW(BgImage[] cells) { mixin(S_TRACE);
+	// WSN形式からデータバージョン4への変換時、
+	// 前面位置にあって背景不継承条件を満たしているセルがあったら、
+	// レイヤ0の全面イメージセルを1番目に挿入して強制的に背景不継承にする。
+	if (cells.length) { mixin(S_TRACE);
+		auto b = cast(ImageCell)cells[0];
+		if (b && b.flag == "" && b.x == 0 && b.y == 0 && b.width == 632 && b.height == 420 && !b.mask && b.cellName == "" && LAYER_MENU_CARD < b.layer) { mixin(S_TRACE);
+			cells = new ImageCell("Black.bmp", "", 0, 0, 632, 420, false) ~ cells;
+		}
+	}
+	return cells;
+}
+
 private void writeArea(ref SData d, ref ByteIO f, Area a) { mixin(S_TRACE);
 	if (d.opt.dataVersion < 7) { mixin(S_TRACE);
 		f.writeL(cast(byte)0x0);
