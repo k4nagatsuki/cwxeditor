@@ -705,8 +705,10 @@ private void initBass() { mixin(S_TRACE);
 		try { mixin(S_TRACE);
 			bass = dlopen(_initBassDir.buildPath("bass.dll"));
 			if (!bass) { mixin(S_TRACE);
+				debugln("LoadLibrary(%s) Failure 1: %s".format(_initBassDir.buildPath("bass.dll"), GetLastError()));
 				bass = dlopen("bass.dll");
 				if (!bass) { mixin(S_TRACE);
+					debugln("LoadLibrary(bass.dll) Failure 2: %s".format(GetLastError()));
 					disposeBass();
 					return;
 				}
@@ -714,13 +716,16 @@ private void initBass() { mixin(S_TRACE);
 			// 読込失敗でも続行
 			bassMidi = dlopen(_initBassDir.buildPath("bassmidi.dll"));
 			if (!bassMidi) { mixin(S_TRACE);
+				debugln("LoadLibrary(%s) Failure 1: %s".format(_initBassDir.buildPath("bassmidi.dll"), GetLastError()));
 				bassMidi = dlopen("bassmidi.dll");
 				if (!bassMidi) { mixin(S_TRACE);
+					debugln("LoadLibrary(bassmidi.dll) Failure 2: %s".format(GetLastError()));
 					disposeBass();
 					return;
 				}
 			}
 			if (!getSymbol!(BASS_Init)(bass, "BASS_Init")(-1, 44100, BASS_DEVICE_DEFAULT, null, null)) { mixin(S_TRACE);
+				debugln("BASS_Init Failure: %s".format(getSymbol!(BASS_ErrorGetCode)(bass, "BASS_ErrorGetCode")()));
 				disposeBass();
 				return;
 			}
@@ -747,7 +752,10 @@ private bool loadBassSoundFont(in string[] soundFonts) { mixin(S_TRACE);
 			releaseBassSoundFont();
 			foreach (soundFont; soundFonts) { mixin(S_TRACE);
 				auto sfont = getSymbol!(BASS_MIDI_FontInit)(bassMidi, "BASS_MIDI_FontInit")(soundFont.toMBSz(), 0);
-				if (!sfont) continue;
+				if (!sfont) { mixin(S_TRACE);
+					debugln("BASS_MIDI_FontInit Failure: %s".format(getSymbol!(BASS_ErrorGetCode)(bass, "BASS_ErrorGetCode")()));
+					continue;
+				}
 				.soundFonts ~= BASS_MIDI_FONT(sfont, -1, 0);
 			}
 			return 0 < .soundFonts.length;
@@ -764,7 +772,7 @@ private void releaseBassSoundFont() { mixin(S_TRACE);
 		try { mixin(S_TRACE);
 			foreach (sf; soundFonts) { mixin(S_TRACE);
 				if (!getSymbol!(BASS_MIDI_FontFree)(bassMidi, "BASS_MIDI_FontFree")(sf.font)) { mixin(S_TRACE);
-					debugln("BASS_MIDI_FontFree error");
+					debugln("BASS_MIDI_FontFree Failure.");
 				}
 			}
 			soundFonts = [];
@@ -1120,6 +1128,7 @@ version (Windows) {
 		alias HSOUNDFONT function(const void *file, DWORD flags) BASS_MIDI_FontInit;
 		alias BOOL function(HSOUNDFONT handle) BASS_MIDI_FontFree;
 		alias BOOL function(int device, DWORD freq, DWORD flags, HWND win, GUID* clsid) BASS_Init;
+		alias c_int function() BASS_ErrorGetCode;
 		alias BOOL function(DWORD handle, BOOL restart) BASS_ChannelPlay;
 		alias BOOL function(DWORD handle) BASS_ChannelStop;
 		alias HSTREAM function(BOOL mem, const void* file, QWORD offset, QWORD length, DWORD flags) BASS_StreamCreateFile;
