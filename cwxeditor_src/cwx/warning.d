@@ -35,7 +35,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	if (!isClassic) targVer = "";
 	auto sPath = summ ? summ.scenarioPath : "";
 	auto froot = summ ? summ.flagDirRoot : null;
-	auto is160 = isClassic && prop.targetVersion("1.60", targVer);
+	auto is160 = isClassic && CLASSIC_VERSIONS.contains(targVer) && prop.targetVersion("1.60", targVer);
 	string[] r;
 
 	void putCardImages(in CardImage[] imagePaths, bool includeType) { mixin(S_TRACE);
@@ -1282,7 +1282,7 @@ TextWarnings textWarnings(in CProps prop, in Skin skin, in Summary summ, in UseC
 	auto sPath = summ ? summ.scenarioPath : "";
 	auto spChars = skin.spChars;
 	auto froot = summ ? summ.flagDirRoot : null;
-	auto is160 = isClassic && prop.targetVersion("1.60", targVer);
+	auto is160 = isClassic && CLASSIC_VERSIONS.contains(targVer) && prop.targetVersion("1.60", targVer);
 
 	auto sw = .sjisWarnings(prop, isClassic, text, prop.msgs.message);
 	all ~= sw;
