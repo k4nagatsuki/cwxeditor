@@ -803,24 +803,24 @@ class Skin {
 
 	/// CWPyのSettings.xmlからサウンドフォントのリストを読み込んで返す。
 	const
-	string[] loadSoundFonts(string defaultSoundFont) { mixin(S_TRACE);
+	SoundFontWithVolume[] loadSoundFonts(string defaultSoundFont) { mixin(S_TRACE);
 		if (!_enginePath.length) return [];
 		auto path = _enginePath.dirName().buildPath("Settings.xml");
-		if (!path.exists()) return [];
+		if (!path.exists()) return [SoundFontWithVolume(defaultSoundFont, 100)];
 		auto node = XNode.parse(std.file.readText(path));
-		string[] r;
+		SoundFontWithVolume[] r;
 		auto hasElement = false;
 		node.onTag["SoundFonts"] = (ref XNode node) { mixin(S_TRACE);
 			hasElement = true;
 			node.onTag["SoundFont"] = (ref XNode node) { mixin(S_TRACE);
 				if (node.attr!bool("enabled", false, true) && node.value != "") { mixin(S_TRACE);
-					r ~= node.value;
+					r ~= SoundFontWithVolume(node.value, node.attr!uint("volume", false, 100));
 				}
 			};
 			node.parse();
 		};
 		node.parse();
-		return hasElement ? r : [defaultSoundFont];
+		return hasElement ? r : [SoundFontWithVolume(defaultSoundFont, 100)];
 	}
 
 	/// エンジン内のリソースを使用している場合はtrue。

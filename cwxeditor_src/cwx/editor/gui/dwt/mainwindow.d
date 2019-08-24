@@ -2314,7 +2314,7 @@ private:
 		if (SOUND_TYPE_SAME_BGM == seType) seType = bgmType;
 		version (Windows) {
 			int engineTypeBGM = summary.legacy ? SOUND_TYPE_MCI : SOUND_TYPE_SDL;
-			string[] sfont = [];
+			SoundFontWithVolume[] sfont = [];
 			string sfontDir = "";
 		} else { mixin(S_TRACE);
 			int engineTypeBGM = SOUND_TYPE_SDL;
@@ -2349,7 +2349,7 @@ private:
 						try { mixin(S_TRACE);
 							foreach (rec; .csvReader!string(settings.get("soundfont", "").strip())) { mixin(S_TRACE);
 								foreach (s; rec) { mixin(S_TRACE);
-									sfont ~= s;
+									sfont ~= SoundFontWithVolume(s, 100);
 								}
 							}
 						} catch (Exception e) {
@@ -2372,12 +2372,12 @@ private:
 		version (Windows) {
 			if (SOUND_TYPE_BASS == bgmType || SOUND_TYPE_BASS == seType) { mixin(S_TRACE);
 				foreach (ref s; sfont) { mixin(S_TRACE);
-					if (!isAbsolute(s)) { mixin(S_TRACE);
-						auto s2 = sfontDir.buildPath(s);
+					if (!isAbsolute(s.path)) { mixin(S_TRACE);
+						auto s2 = sfontDir.buildPath(s.path);
 						if (s2.exists()) { mixin(S_TRACE);
-							s = s2;
+							s.path = s2;
 						} else if (_comm.skin.legacy) { mixin(S_TRACE);
-							s = sfontDir.buildPath("SoundFont").buildPath(s);
+							s.path = sfontDir.buildPath("SoundFont").buildPath(s.path);
 						}
 					}
 				}

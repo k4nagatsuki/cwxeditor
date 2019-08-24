@@ -10,6 +10,7 @@ import cwx.xml;
 import std.ascii;
 import std.conv;
 import std.path;
+import std.typecons;
 
 /// 壁紙のスタイル。
 enum WallpaperStyle {
@@ -1471,3 +1472,6 @@ struct Tool {
 		}
 	}
 }
+
+/// サウンドフォントのパスと音量(%)。
+alias Tuple!(string, "path", uint, "volume") SoundFontWithVolume;

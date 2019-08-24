@@ -20,6 +20,7 @@ import core.sync.mutex;
 import core.stdc.wchar_;
 
 import cwx.utils;
+import cwx.structs;
 
 alias double c_double;
 
@@ -681,7 +682,7 @@ version (Windows) {
 }
 
 /// 指定されたディレクトリにあるBASSのDLLをロードし、初期化する。
-bool initBass(string bassDir, in string[] bassSoundFonts) { mixin(S_TRACE);
+bool initBass(string bassDir, in SoundFontWithVolume[] bassSoundFonts) { mixin(S_TRACE);
 	version (Windows) {
 		_initBassDir = bassDir;
 		_initBassSFont = bassSoundFonts.dup;
@@ -745,16 +746,19 @@ private void initBass() { mixin(S_TRACE);
 	}
 }
 /// BASSのMIDI再生で使用するサウンドフォントを変更する。
-private bool loadBassSoundFont(in string[] soundFonts) { mixin(S_TRACE);
+private bool loadBassSoundFont(in SoundFontWithVolume[] soundFonts) { mixin(S_TRACE);
 	version (Windows) {
 		try { mixin(S_TRACE);
 			if (!bassMidi) return false;
 			releaseBassSoundFont();
 			foreach (soundFont; soundFonts) { mixin(S_TRACE);
-				auto sfont = getSymbol!(BASS_MIDI_FontInit)(bassMidi, "BASS_MIDI_FontInit")(soundFont.toMBSz(), 0);
+				auto sfont = getSymbol!(BASS_MIDI_FontInit)(bassMidi, "BASS_MIDI_FontInit")(soundFont.path.toMBSz(), 0);
 				if (!sfont) { mixin(S_TRACE);
 					debugln("BASS_MIDI_FontInit Failure: %s".format(getSymbol!(BASS_ErrorGetCode)(bass, "BASS_ErrorGetCode")()));
 					continue;
+				}
+				if (!getSymbol!(BASS_MIDI_FontSetVolume)(bassMidi, "BASS_MIDI_FontSetVolume")(sfont, soundFont.volume / 100.0F)) { mixin(S_TRACE);
+					debugln("BASS_Init BASS_MIDI_FontSetVolume: %s".format(getSymbol!(BASS_ErrorGetCode)(bass, "BASS_ErrorGetCode")()));
 				}
 				.soundFonts ~= BASS_MIDI_FONT(sfont, -1, 0);
 			}
@@ -827,7 +831,7 @@ version (Windows) {
 	private __gshared HSTREAM bassBGMStream = 0;
 	private __gshared HSTREAM bassSEStream = 0;
 	private __gshared _initBassDir = "";
-	private __gshared const(string)[] _initBassSFont = [];
+	private __gshared const(SoundFontWithVolume)[] _initBassSFont = [];
 	private __gshared uint[string] loopCounts;
 	private __gshared ptrdiff_t[string] loopStarts;
 
@@ -1126,6 +1130,7 @@ version (Windows) {
 		}
 		alias BOOL function(HSTREAM handle, BASS_MIDI_FONT *fonts, DWORD count) BASS_MIDI_StreamSetFonts;
 		alias HSOUNDFONT function(const void *file, DWORD flags) BASS_MIDI_FontInit;
+		alias BOOL function(HSOUNDFONT handle, float volume) BASS_MIDI_FontSetVolume;
 		alias BOOL function(HSOUNDFONT handle) BASS_MIDI_FontFree;
 		alias BOOL function(int device, DWORD freq, DWORD flags, HWND win, GUID* clsid) BASS_Init;
 		alias c_int function() BASS_ErrorGetCode;
