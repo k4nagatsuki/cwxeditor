@@ -526,6 +526,7 @@ class FlexEtcProps : Properties {
 	auto soundEffectPlayType = Prop!(int)("soundEffectPlayType", -1);
 	auto bgmVolume = Prop!(int)("bgmVolume", 100);
 	auto seVolume = Prop!(int)("seVolume", 100);
+	auto cardWirthPyDefaultSoundFont = Prop!(string, true)("cardWirthPyDefaultSoundFont", "Data/SoundFont/005.6mg_Aspirin_Stereo_V1.2_Bank.sf2");
 
 	auto loopCountMax = Prop!(uint)("loopCountMax", 100, true);
 	auto fadeInMax = Prop!(uint)("fadeInMax", 1000, true);

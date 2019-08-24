@@ -803,13 +803,15 @@ class Skin {
 
 	/// CWPyのSettings.xmlからサウンドフォントのリストを読み込んで返す。
 	const
-	string[] loadSoundFonts() { mixin(S_TRACE);
+	string[] loadSoundFonts(string defaultSoundFont) { mixin(S_TRACE);
 		if (!_enginePath.length) return [];
 		auto path = _enginePath.dirName().buildPath("Settings.xml");
 		if (!path.exists()) return [];
 		auto node = XNode.parse(std.file.readText(path));
 		string[] r;
+		auto hasElement = false;
 		node.onTag["SoundFonts"] = (ref XNode node) { mixin(S_TRACE);
+			hasElement = true;
 			node.onTag["SoundFont"] = (ref XNode node) { mixin(S_TRACE);
 				if (node.attr!bool("enabled", false, true) && node.value != "") { mixin(S_TRACE);
 					r ~= node.value;
@@ -818,7 +820,7 @@ class Skin {
 			node.parse();
 		};
 		node.parse();
-		return r;
+		return hasElement ? r : [defaultSoundFont];
 	}
 
 	/// エンジン内のリソースを使用している場合はtrue。

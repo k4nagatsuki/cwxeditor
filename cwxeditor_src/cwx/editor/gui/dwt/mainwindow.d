@@ -2359,7 +2359,7 @@ private:
 					}
   				} else { mixin(S_TRACE);
 					sfontDir = _comm.skin.engine.nabs().dirName();
-					sfont = _comm.skin.loadSoundFonts();
+					sfont = _comm.skin.loadSoundFonts(_prop.var.etc.cardWirthPyDefaultSoundFont);
   					if (sfont.length) { mixin(S_TRACE);
 						engineTypeBGM = SOUND_TYPE_BASS;
 						engineTypeSE = SOUND_TYPE_BASS;
