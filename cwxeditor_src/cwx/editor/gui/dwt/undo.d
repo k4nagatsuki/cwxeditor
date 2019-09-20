@@ -75,7 +75,7 @@ class UndoManager {
 	this (size_t max) { mixin(S_TRACE);
 		_max = max;
 	}
-	void opCatAssign(Undo undo) { mixin(S_TRACE);
+	void opOpAssign(string op)(Undo undo) if (op == "~") { mixin(S_TRACE);
 		add(undo);
 	}
 	@property
