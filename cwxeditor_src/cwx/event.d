@@ -1868,13 +1868,17 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		static if (is(typeof(val.changeHandler(null)))) {
 			val.changeHandler = changeHandler;
 		}
-		static if (!is(T : Motion)) {
-			static if (is(typeof(val.setUseCounter(uc)))) {
+		static if (!is(T:Motion)) {
+			static if (is(typeof(val.setUseCounter(uc))) || is(typeof(val.setUseCounter(uc, _ucOwner)))) {
 				if (val.useCounter || !uc) { mixin(S_TRACE);
 					val.removeUseCounter();
 				}
 				if (uc) { mixin(S_TRACE);
-					val.setUseCounter(uc);
+					static if (is(typeof(val.setUseCounter(uc)))) {
+						val.setUseCounter(uc);
+					} else static if (is(typeof(val.setUseCounter(uc, _ucOwner)))) {
+						val.setUseCounter(uc, _ucOwner);
+					} else static assert (0);
 				}
 				static if (is(typeof(val.parent))) {
 					if (c && val.parent) throw new EventException("used other event.");
