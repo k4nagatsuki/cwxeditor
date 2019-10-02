@@ -1010,7 +1010,7 @@ class Msgs : Properties {
 	auto motionDescDisAntiMagic = Msg("motionDescDisAntiMagic", "対象の魔法無効化状態を解除します。");
 	auto motionDescEnhanceAction = Msg("motionDescEnhanceAction", "対象の行動力を変化させます。行動力の増減は行動の成功判定や能力判定の結果に影響します。");
 	auto motionDescEnhanceAvoid = Msg("motionDescEnhanceAvoid", "対象の回避力を変化させます。回避力の増減は効果の回避判定の結果に影響します。+10の場合は必ず回避が成功します。-10の場合は必ず失敗します。");
-	auto motionDescEnhanceDefense = Msg("motionDescEnhanceDefense", "対象の防御力を変化させます。防御力の増減はダメージ計算の結果に影響します。+10の場合はダメージを受けません。-10の場合は3倍のダメージを受けます。");
+	auto motionDescEnhanceDefense = Msg("motionDescEnhanceDefense", "対象の防御力を変化させます。防御力の増減はダメージ計算の結果に影響します。+10の場合はダメージを受けません。-10の場合は4倍のダメージを受けます。");
 	auto motionDescEnhanceResist = Msg("motionDescEnhanceResist", "対象の抵抗力を変化させます。抵抗力の増減は効果への抵抗判定の結果に影響します。+10の場合は必ず抵抗が成功します。-10の場合は必ず失敗します。");
 	auto motionDescVanishTarget = Msg("motionDescVanishTarget", "対象を消去します。消去されたキャラクタが戻ってくる事はありません。");
 	auto motionDescVanishCard = Msg("motionDescVanishCard", "対象の手札を消去します。対象は、次のラウンドで消去された分だけ山札からカードを引きます。");
