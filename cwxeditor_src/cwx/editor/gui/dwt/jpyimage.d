@@ -125,7 +125,7 @@ private ImageDataWithScale loadJPYImageImpl(Props prop, in Skin skin, in Summary
 			case Dirtype.SCENARIO: { mixin(S_TRACE);
 				if (!summ) continue;
 				auto dir = summ.scenarioPath;
-				for (int dp = 0; dp < sec.dirdepth; dp++) { mixin(S_TRACE);
+				for (int dp = 0; dp < jpy.dirdepth; dp++) { mixin(S_TRACE);
 					dir = dirName(dir);
 				}
 				dirs = [dir];

@@ -305,6 +305,13 @@ struct Jpy1 {
 	/// ファイルが本来はShift JISであればtrue。
 	bool isSJIS;
 
+	/// dirdepthがある行。ファイルの更新に使用する。
+	ptrdiff_t dirdepthIndex = -1;
+	/// dirdepthがある行の内容。ファイルの更新に使用する。
+	string dirdepthLine = "dirdepth=";
+	/// ファイル階層を示すJPY1パラメータ。
+	int dirdepth = 0;
+
 	/// jpy1PathからJpy1を読込む。
 	static Jpy1 load(in CProps prop, string sPath, string jpy1Path) { mixin(S_TRACE);
 		Jpy1 r;
@@ -356,9 +363,11 @@ struct Jpy1 {
 				case "height": height = intVal(value, prop, jpy1Path, lineNum, errInfo); break;
 				case "color": color = rgbVal(value, prop, jpy1Path, lineNum, errInfo); break;
 				case "dirdepth":
-					dirdepth = intVal(value, prop, jpy1Path, lineNum, errInfo);
-					dirdepthIndex = i;
-					dirdepthLine = origLine;
+					if (r.sections.length == 1 && r.sections[$ - 1].label == "init") { mixin(S_TRACE);
+						r.dirdepth = intVal(value, prop, jpy1Path, lineNum, errInfo);
+						r.dirdepthIndex = i;
+						r.dirdepthLine = origLine;
+					}
 					break;
 				case "filename":
 					filename = strVal(value, prop, jpy1Path, lineNum, errInfo);
@@ -412,6 +421,7 @@ struct Jpy1 {
 		if (errInfo.errors.length) throw errInfo;
 
 		foreach (ref sec; r.sections) { mixin(S_TRACE);
+			sec.dirdepth = r.dirdepth;
 			sec.path = sec.toMaterialPath;
 			sec.needUpdate = false;
 		}
@@ -482,7 +492,7 @@ struct Jpy1 {
 					lines[sec.filenameIndex] = sec.filenameLine[0 .. eq+1] ~ sec.filename ~ ret;
 					update = true;
 				}
-				if (sec.dirdepthIndex == -1 && sec.dirdepth != 0) { mixin(S_TRACE);
+/+				if (sec.dirdepthIndex == -1 && sec.dirdepth != 0) { mixin(S_TRACE);
 					sec.dirdepthIndex = lines.length;
 					sec.dirdepthLine = .format("dirdepth=%s%s", sec.dirdepth, dirSeparator);
 					lines ~= sec.dirdepthLine;
@@ -494,7 +504,7 @@ struct Jpy1 {
 					lines[sec.dirdepthIndex] = sec.dirdepthLine[0 .. eq+1] ~ .text(sec.dirdepth) ~ ret;
 					update = true;
 				}
-				sec.needUpdate = false;
++/				sec.needUpdate = false;
 			}
 		}
 		if (update && rewrite) { mixin(S_TRACE);
@@ -532,18 +542,12 @@ class Jpy1Sec : PathUser, CWXPath {
 	override
 	CWXPath cwxParent() { return null; }
 
-	private struct FromMaterialPathResult {
-		string filename;
-		int dirdepth;
-	}
-
 	override
 	bool change(PathId newVal) { mixin(S_TRACE);
 		super.change(newVal);
 		auto newName = fromMaterialPath(cast(string)newVal);
-		if (newName.filename != filename || newName.dirdepth != dirdepth) { mixin(S_TRACE);
-			filename = newName.filename;
-			dirdepth = newName.dirdepth;
+		if (newName != filename) { mixin(S_TRACE);
+			filename = newName;
 			needUpdate = true;
 		}
 		return true;
@@ -554,9 +558,8 @@ class Jpy1Sec : PathUser, CWXPath {
 	void path(string path) { mixin(S_TRACE);
 		super.path(path);
 		auto newName = fromMaterialPath(path);
-		if (newName.filename != filename || newName.dirdepth != dirdepth) { mixin(S_TRACE);
-			filename = newName.filename;
-			dirdepth = newName.dirdepth;
+		if (newName != filename) { mixin(S_TRACE);
+			filename = newName;
 			needUpdate = true;
 		}
 	}
@@ -615,11 +618,11 @@ class Jpy1Sec : PathUser, CWXPath {
 	}
 
 	/// シナリオ内の相対パスをJPY1内のfilenameへ変換する。
-	private FromMaterialPathResult fromMaterialPath(string filename) { mixin(S_TRACE);
+	private string fromMaterialPath(string filename) { mixin(S_TRACE);
 		return fromMaterialPathImpl(filename, sPath, fPath, dirtype, dirdepth);
 	}
 	/// ditto
-	private static FromMaterialPathResult fromMaterialPathImpl(string filename, string sPath, string fPath, Dirtype dirtype, int dirdepth) { mixin(S_TRACE);
+	private static string fromMaterialPathImpl(string filename, string sPath, string fPath, Dirtype dirtype, int dirdepth) { mixin(S_TRACE);
 		string relPath(string sPath, string path) { mixin(S_TRACE);
 			if (sPath == "") return path;
 			auto nsPath = nabs(sPath);
@@ -628,12 +631,12 @@ class Jpy1Sec : PathUser, CWXPath {
 		}
 		switch (dirtype) {
 		case Dirtype.CURRENT: { mixin(S_TRACE);
-			return FromMaterialPathResult(relPath(dirName(fPath.abs2rel(sPath)), dirName(filename)).buildPath(filename.baseName()), dirdepth);
+			return relPath(dirName(fPath.abs2rel(sPath)), dirName(filename)).buildPath(filename.baseName());
 		}
 		case Dirtype.TABLE:
 		case Dirtype.SCHEME: break;
 		case Dirtype.SCENARIO: { mixin(S_TRACE);
-			string dir = dirName(fPath);
+			auto dir = dirName(fPath);
 			for (int dp = 0; dp < dirdepth; dp++) { mixin(S_TRACE);
 				if (.cfnmatch(.nabs(dir), .nabs(sPath))) { mixin(S_TRACE);
 					dirdepth = dp;
@@ -642,38 +645,38 @@ class Jpy1Sec : PathUser, CWXPath {
 				dir = dirName(dir);
 			}
 			dir = relPath(sPath, dir);
-			return FromMaterialPathResult(relPath(dir, filename), dirdepth);
+			return relPath(dir, filename);
 		}
 		case Dirtype.WAV: break;
 		case Dirtype.PARENT: { mixin(S_TRACE);
 			string dir = dirName(dirName(fPath.abs2rel(sPath)));
-			return FromMaterialPathResult(relPath(dir, filename), dirdepth);
+			return relPath(dir, filename);
 		}
 		case Dirtype.PROGRAM: break;
 		default: break;
 		}
-		return FromMaterialPathResult(filename.decodePath(), dirdepth);
+		return filename.decodePath();
 	} unittest { mixin(S_TRACE);
 		debug mixin(UTPerf);
 		string p;
 
-		p = fromMaterialPathImpl("a.bmp", "/dir/sc", "/dir/sc/b.jpy1", Dirtype.CURRENT, 0).filename.encodePath();
+		p = fromMaterialPathImpl("a.bmp", "/dir/sc", "/dir/sc/b.jpy1", Dirtype.CURRENT, 0).encodePath();
 		assert (p == "a.bmp", p);
-		p = fromMaterialPathImpl("c/a.bmp", "/dir/sc", "/dir/sc/c/b.jpy1", Dirtype.CURRENT, 0).filename.encodePath();
+		p = fromMaterialPathImpl("c/a.bmp", "/dir/sc", "/dir/sc/c/b.jpy1", Dirtype.CURRENT, 0).encodePath();
 		assert (p == "a.bmp", p);
-		p = fromMaterialPathImpl("a/b/c/a.bmp", "/dir/sc", "/dir/sc/a/b/c/b.jpy1", Dirtype.SCENARIO, 0).filename.encodePath();
+		p = fromMaterialPathImpl("a/b/c/a.bmp", "/dir/sc", "/dir/sc/a/b/c/b.jpy1", Dirtype.SCENARIO, 0).encodePath();
 		assert (p == "a.bmp", p);
-		p = fromMaterialPathImpl("a/b/a.bmp", "/dir/sc", "/dir/sc/a/b/c/b.jpy1", Dirtype.SCENARIO, 1).filename.encodePath();
+		p = fromMaterialPathImpl("a/b/a.bmp", "/dir/sc", "/dir/sc/a/b/c/b.jpy1", Dirtype.SCENARIO, 1).encodePath();
 		assert (p == "a.bmp", p);
-		p = fromMaterialPathImpl("a.bmp", "/dir/sc", "/dir/sc/a/b/c/b.jpy1", Dirtype.SCENARIO, 3).filename.encodePath();
+		p = fromMaterialPathImpl("a.bmp", "/dir/sc", "/dir/sc/a/b/c/b.jpy1", Dirtype.SCENARIO, 3).encodePath();
 		assert (p == "a.bmp", p);
-		p = fromMaterialPathImpl("d/e/f/a.bmp", "/dir/sc", "/dir/sc/a/b/c/b.jpy1", Dirtype.SCENARIO, 1).filename.encodePath();
+		p = fromMaterialPathImpl("d/e/f/a.bmp", "/dir/sc", "/dir/sc/a/b/c/b.jpy1", Dirtype.SCENARIO, 1).encodePath();
 		assert (p == "../../d/e/f/a.bmp", p);
-		p = fromMaterialPathImpl("d/e/f/a.bmp", "/dir/sc", "/dir/sc/a/b/c/b.jpy1", Dirtype.SCENARIO, 3).filename.encodePath();
+		p = fromMaterialPathImpl("d/e/f/a.bmp", "/dir/sc", "/dir/sc/a/b/c/b.jpy1", Dirtype.SCENARIO, 3).encodePath();
 		assert (p == "d/e/f/a.bmp", p);
-		p = fromMaterialPathImpl("a/b/a.bmp", "/dir/sc", "/dir/sc/a/b/c/b.jpy1", Dirtype.PARENT, 0).filename.encodePath();
+		p = fromMaterialPathImpl("a/b/a.bmp", "/dir/sc", "/dir/sc/a/b/c/b.jpy1", Dirtype.PARENT, 0).encodePath();
 		assert (p == "a.bmp", p);
-		p = fromMaterialPathImpl("a/b/a.bmp", "/dir/sc", "/dir/sc/a/b/c/b.jpy1", Dirtype.TABLE, 0).filename.encodePath();
+		p = fromMaterialPathImpl("a/b/a.bmp", "/dir/sc", "/dir/sc/a/b/c/b.jpy1", Dirtype.TABLE, 0).encodePath();
 		assert (p == "a/b/a.bmp", p);
 	}
 
@@ -687,10 +690,6 @@ class Jpy1Sec : PathUser, CWXPath {
 	ptrdiff_t filenameIndex = -1;
 	/// filenameがある行の内容。ファイルの更新に使用する。
 	string filenameLine = "filename=";
-	/// dirdepthがある行。ファイルの更新に使用する。
-	ptrdiff_t dirdepthIndex = -1;
-	/// dirdepthがある行の内容。ファイルの更新に使用する。
-	string dirdepthLine = "dirdepth=";
 	/// filenameが更新されたためファイルの上書きが必要な場合はtrue。
 	bool needUpdate = false;
 
@@ -707,7 +706,6 @@ class Jpy1Sec : PathUser, CWXPath {
 //	CRGB color = CRGB(255, 255, 255);
 	CRGB color = CRGB(0, 0, 0);
 
-	int dirdepth = 0;
 	string filename = "";
 	Dirtype dirtype = Dirtype.CURRENT; // これのみ0が無い
 	Cache loadcache = Cache.NONE;
@@ -738,6 +736,8 @@ class Jpy1Sec : PathUser, CWXPath {
 	bool mirror = false;
 
 	string comment = "";
+
+	private int dirdepth = 0;
 }
 
 private struct JptxTag {
