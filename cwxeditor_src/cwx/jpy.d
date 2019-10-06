@@ -492,19 +492,7 @@ struct Jpy1 {
 					lines[sec.filenameIndex] = sec.filenameLine[0 .. eq+1] ~ sec.filename ~ ret;
 					update = true;
 				}
-/+				if (sec.dirdepthIndex == -1 && sec.dirdepth != 0) { mixin(S_TRACE);
-					sec.dirdepthIndex = lines.length;
-					sec.dirdepthLine = .format("dirdepth=%s%s", sec.dirdepth, dirSeparator);
-					lines ~= sec.dirdepthLine;
-					update = true;
-				} else if (sec.dirdepthIndex != -1) { mixin(S_TRACE);
-					auto eq = sec.dirdepthLine.cCountUntil('=');
-					assert (eq != -1);
-					auto ret = sec.dirdepthLine[sec.dirdepthLine.chomp().length .. $];
-					lines[sec.dirdepthIndex] = sec.dirdepthLine[0 .. eq+1] ~ .text(sec.dirdepth) ~ ret;
-					update = true;
-				}
-+/				sec.needUpdate = false;
+				sec.needUpdate = false;
 			}
 		}
 		if (update && rewrite) { mixin(S_TRACE);
