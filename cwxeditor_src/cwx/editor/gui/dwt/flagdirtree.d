@@ -513,18 +513,19 @@ public:
 					auto tblSelsV = flags.selectionVariantIndices;
 					auto ver = new XMLInfo(prop.sys, LATEST_VERSION);
 					switch (cur.appendFromXML(c, ver, true, true, false, cFlags, cSteps, cVariants, newPath, rootId)) {
-					case FlagDir.AppendXmlResult.DIR_SUCCESS:
+					case FlagDir.AppendXmlResult.DIR_SUCCESS: { mixin(S_TRACE);
 						refresh(newPath);
 						assert (root !is null);
 						auto dir = root.findPath(newPath, false);
 						assert (dir !is null);
+						assert (dir.parent !is null);
 						storeInsert(dir.parent, tblSelsF, tblSelsS, tblSelsV, [dir.parent.indexOf(dir)], [], [], []);
 						_comm.refFlagDir.call(this, [dir]);
 						refresh();
 						auto itm = find(current);
 						if (itm) treeExpandedAll(itm);
-						break;
-					case FlagDir.AppendXmlResult.FLAG_STEP_SUCCESS:
+					} break;
+					case FlagDir.AppendXmlResult.FLAG_STEP_SUCCESS: { mixin(S_TRACE);
 						ptrdiff_t[] flagIndices;
 						ptrdiff_t[] stepIndices;
 						ptrdiff_t[] variantIndices;
@@ -542,7 +543,7 @@ public:
 						}
 						storeInsert(cur, tblSelsF, tblSelsS, tblSelsV, [], flagIndices, stepIndices, variantIndices);
 						flags.refresh();
-						break;
+					} break;
 					case FlagDir.AppendXmlResult.FLAG_STEP_ON_DIR:
 					case FlagDir.AppendXmlResult.ON_DIR:
 						assert (false);
