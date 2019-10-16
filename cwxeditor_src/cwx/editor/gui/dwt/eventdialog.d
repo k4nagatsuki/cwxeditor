@@ -884,7 +884,11 @@ private:
 	Composite _couponViewComp;
 	Combo _name = null;
 	Button _expandSPChars = null;
-	CouponView!(CVType.NoValued) _couponView = null;
+	static if (Type is CType.LoseCoupon) {
+		CouponView!(CVType.NoValued) _couponView = null;
+	} else {
+		CouponView!(CVType.Branch) _couponView = null;
+	}
 	CenterLayout _couponViewCL = null;
 	Combo _nameEditor = null;
 	Button[MatchingType] _matchType = null; /// マッチングタイプ(Wsn.2)
@@ -1046,7 +1050,11 @@ private:
 			// Wsn.2
 			_couponViewCL.fillVertical = true;
 
-			_couponView = new CouponView!(CVType.NoValued)(comm, summ, _uc, _couponViewComp, SWT.NONE, &catchMod, null);
+			static if (Type is CType.LoseCoupon) {
+				_couponView = new CouponView!(CVType.NoValued)(comm, summ, _uc, _couponViewComp, SWT.NONE, &catchMod, null);
+			} else {
+				_couponView = new CouponView!(CVType.Branch)(comm, summ, _uc, _couponViewComp, SWT.NONE, &catchMod, null);
+			}
 			mod(_couponView);
 			_couponView.modEvent ~= &refreshWarning;
 			_couponView.setLayoutData(new GridData(GridData.FILL_BOTH));

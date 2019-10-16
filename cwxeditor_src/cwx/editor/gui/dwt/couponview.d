@@ -48,7 +48,8 @@ public:
 enum CVType {
 	Cast, /// 得点付きクーポンのビュー(キャストカードの経歴)。
 	Valued, /// 得点付きクーポンのビュー(評価条件)。
-	NoValued /// 得点無し・クーポン分岐用(Wsn.2)。
+	NoValued, /// 得点無し・クーポン分岐用(Wsn.2)。
+	Branch /// クーポン所持分岐用。
 }
 
 /// クーポンのビュー。
@@ -111,7 +112,7 @@ class CouponView(CVType Type) : Composite {
 		}
 		private void impl() { mixin(S_TRACE);
 			if (_tte1.isEditing) _tte1.cancel();
-			static if (CVType.NoValued != Type) {
+			static if (CVType.NoValued != Type && CVType.Branch != Type) {
 				if (_tte2.isEditing) _tte2.cancel();
 			}
 			auto coupons = _coupons;
@@ -139,7 +140,7 @@ class CouponView(CVType Type) : Composite {
 	}
 	private void undoCoupons() { mixin(S_TRACE);
 		if (_tte1.isEditing) _tte1.cancel();
-		static if (CVType.NoValued != Type) {
+		static if (CVType.NoValued != Type && CVType.Branch != Type) {
 			if (_tte2.isEditing) _tte2.cancel();
 		}
 		_undoCoupons.undo();
@@ -147,7 +148,7 @@ class CouponView(CVType Type) : Composite {
 	}
 	private void redoCoupons() { mixin(S_TRACE);
 		if (_tte1.isEditing) _tte1.cancel();
-		static if (CVType.NoValued != Type) {
+		static if (CVType.NoValued != Type && CVType.Branch != Type) {
 			if (_tte2.isEditing) _tte2.cancel();
 		}
 		_undoCoupons.redo();
@@ -166,7 +167,7 @@ class CouponView(CVType Type) : Composite {
 			itm = new TableItem(_coupons, SWT.NONE);
 		}
 
-		static if (CVType.NoValued != Type) {
+		static if (CVType.NoValued != Type && CVType.Branch != Type) {
 			itm.setText(0, coupon.name);
 			itm.setText(1, to!(string)(coupon.value));
 		} else {
@@ -185,7 +186,7 @@ class CouponView(CVType Type) : Composite {
 	private void addCoupon() { mixin(S_TRACE);
 		if (_newCoupon.getText().length > 0) { mixin(S_TRACE);
 			if (_tte1.isEditing) _tte1.enter();
-			static if (CVType.NoValued != Type) {
+			static if (CVType.NoValued != Type && CVType.Branch != Type) {
 				if (_tte2.isEditing) _tte2.enter();
 			}
 			string name = createNewName(_newCoupon.getText(), (string s) { mixin(S_TRACE);
@@ -197,7 +198,7 @@ class CouponView(CVType Type) : Composite {
 			}, true);
 			storeCoupons();
 
-			static if (CVType.NoValued != Type) {
+			static if (CVType.NoValued != Type && CVType.Branch != Type) {
 				auto coupon = new Coupon(name, _couponVal.getSelection());
 			} else {
 				auto coupon = new Coupon(name, 0);
@@ -216,7 +217,7 @@ class CouponView(CVType Type) : Composite {
 		int index = _coupons.getSelectionIndex();
 		if (_newCoupon.getText().length > 0 && index >= 0) { mixin(S_TRACE);
 			if (_tte1.isEditing) _tte1.enter();
-			static if (CVType.NoValued != Type) {
+			static if (CVType.NoValued != Type && CVType.Branch != Type) {
 				if (_tte2.isEditing) _tte2.enter();
 			}
 			foreach (i, itm; _coupons.getItems()) { mixin(S_TRACE);
@@ -227,7 +228,7 @@ class CouponView(CVType Type) : Composite {
 			}
 			storeCoupons();
 			auto itm = _coupons.getItem(index);
-			static if (CVType.NoValued != Type) {
+			static if (CVType.NoValued != Type && CVType.Branch != Type) {
 				auto coupon = new Coupon(_newCoupon.getText(), _couponVal.getSelection());
 				itm.setText(0, coupon.name);
 				itm.setText(1, .to!(string)(coupon.value));
@@ -244,7 +245,7 @@ class CouponView(CVType Type) : Composite {
 	}
 	void addCoupon(Coupon coupon) { mixin(S_TRACE);
 		if (_tte1.isEditing) _tte1.enter();
-		static if (CVType.NoValued != Type) {
+		static if (CVType.NoValued != Type && CVType.Branch != Type) {
 			if (_tte2.isEditing) _tte2.enter();
 		}
 		string name = createNewName(coupon.name, (string s) { mixin(S_TRACE);
@@ -267,7 +268,7 @@ class CouponView(CVType Type) : Composite {
 		_coupons.setRedraw(false);
 		scope (exit) _coupons.setRedraw(true);
 		if (_tte1.isEditing) _tte1.enter();
-		static if (CVType.NoValued != Type) {
+		static if (CVType.NoValued != Type && CVType.Branch != Type) {
 			if (_tte2.isEditing) _tte2.enter();
 		}
 		storeCoupons();
@@ -290,7 +291,7 @@ class CouponView(CVType Type) : Composite {
 				auto c = cast(Coupon)_coupons.getItem(i).getData();
 				_newCoupon.setText(c.name);
 				_newCouponTM.reset();
-				static if (CVType.NoValued != Type) {
+				static if (CVType.NoValued != Type && CVType.Branch != Type) {
 					_couponVal.setSelection(c.value);
 				}
 				updateCouponType();
@@ -351,7 +352,7 @@ class CouponView(CVType Type) : Composite {
 		_coupons.setRedraw(false);
 		scope (exit) _coupons.setRedraw(true);
 		if (_tte1.isEditing) _tte1.enter();
-		static if (CVType.NoValued != Type) {
+		static if (CVType.NoValued != Type && CVType.Branch != Type) {
 			if (_tte2.isEditing) _tte2.enter();
 		}
 		auto indices = _coupons.getSelectionIndices();
@@ -377,7 +378,7 @@ class CouponView(CVType Type) : Composite {
 		_coupons.setRedraw(false);
 		scope (exit) _coupons.setRedraw(true);
 		if (_tte1.isEditing) _tte1.enter();
-		static if (CVType.NoValued != Type) {
+		static if (CVType.NoValued != Type && CVType.Branch != Type) {
 			if (_tte2.isEditing) _tte2.enter();
 		}
 		auto indices = _coupons.getSelectionIndices();
@@ -411,7 +412,7 @@ class CouponView(CVType Type) : Composite {
 		if (!_getFeature) return;
 
 		if (_tte1.isEditing) _tte1.enter();
-		static if (CVType.NoValued != Type) {
+		static if (CVType.NoValued != Type && CVType.Branch != Type) {
 			if (_tte2.isEditing) _tte2.enter();
 		}
 		auto stored = false;
@@ -437,7 +438,7 @@ class CouponView(CVType Type) : Composite {
 	private void reverseCoupons() { mixin(S_TRACE);
 		if (_coupons.getItemCount() < 2) return;
 		if (_tte1.isEditing) _tte1.enter();
-		static if (CVType.NoValued != Type) {
+		static if (CVType.NoValued != Type && CVType.Branch != Type) {
 			if (_tte2.isEditing) _tte2.enter();
 		}
 		storeCoupons();
@@ -448,7 +449,7 @@ class CouponView(CVType Type) : Composite {
 		std.algorithm.reverse(coupons);
 		foreach (i, itm; _coupons.getItems()) { mixin(S_TRACE);
 			auto coupon = coupons[i];
-			static if (CVType.NoValued != Type) {
+			static if (CVType.NoValued != Type && CVType.Branch != Type) {
 				itm.setText(0, coupon.name);
 				itm.setText(1, .text(coupon.value));
 			} else {
@@ -502,7 +503,7 @@ class CouponView(CVType Type) : Composite {
 		_coupons.setRedraw(false);
 		scope (exit) _coupons.setRedraw(true);
 		if (_tte1.isEditing) _tte1.enter();
-		static if (CVType.NoValued != Type) {
+		static if (CVType.NoValued != Type && CVType.Branch != Type) {
 			if (_tte2.isEditing) _tte2.enter();
 		}
 		storeCoupons();
@@ -543,7 +544,7 @@ class CouponView(CVType Type) : Composite {
 		override void dragFinished(DragSourceEvent e) { mixin(S_TRACE);
 			if (!_readOnly && e.detail == DND.DROP_MOVE) { mixin(S_TRACE);
 				if (_tte1.isEditing) _tte1.enter();
-				static if (CVType.NoValued != Type) {
+				static if (CVType.NoValued != Type && CVType.Branch != Type) {
 					if (_tte2.isEditing) _tte2.enter();
 				}
 				_coupons.setRedraw(false);
@@ -601,7 +602,7 @@ class CouponView(CVType Type) : Composite {
 					scope (exit) _coupons.setRedraw(true);
 					storeCoupons();
 					if (_tte1.isEditing) _tte1.enter();
-					static if (CVType.NoValued != Type) {
+					static if (CVType.NoValued != Type && CVType.Branch != Type) {
 						if (_tte2.isEditing) _tte2.enter();
 					}
 					auto index = _coupons.getSelectionIndex();
@@ -782,14 +783,14 @@ class CouponView(CVType Type) : Composite {
 			}
 			_newCoupon.setEnabled(!_readOnly);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
-			static if (CVType.NoValued != Type) {
+			static if (CVType.NoValued != Type && CVType.Branch != Type) {
 				gd.horizontalSpan = 2;
 			} else { mixin(S_TRACE);
 				gd.horizontalSpan = 3;
 			}
 			_newCoupon.setLayoutData(gd);
 
-			static if (CVType.NoValued != Type) {
+			static if (CVType.NoValued != Type && CVType.Branch != Type) {
 				_couponVal = new Spinner(this, SWT.BORDER | _readOnly);
 				initSpinner(_couponVal);
 				_couponVal.setMinimum(cast(int) _prop.var.etc.couponValueMax * -1);
@@ -807,7 +808,7 @@ class CouponView(CVType Type) : Composite {
 			gd.heightHint = _prop.var.etc.couponHeight;
 			_coupons.setLayoutData(gd);
 			auto cc = new FullTableColumn(_coupons, SWT.NONE);
-			static if (CVType.NoValued != Type) {
+			static if (CVType.NoValued != Type && CVType.Branch != Type) {
 				auto cv = new TableColumn(_coupons, SWT.NONE);
 				cv.setWidth(_prop.var.etc.couponValueColumnWidth);
 				saveColumnWidth!("prop.var.etc.couponValueColumn")(_prop, cv);
@@ -835,7 +836,7 @@ class CouponView(CVType Type) : Composite {
 			_coupons.setMenu(menu);
 			if (!_readOnly) { mixin(S_TRACE);
 				_tte1 = new TableTCEdit(_comm, _coupons, 0, &nameCreateEditor, &nameEditEnd, (itm, column) => true);
-				static if (CVType.NoValued != Type) {
+				static if (CVType.NoValued != Type && CVType.Branch != Type) {
 					_tte2 = new TableTCEdit(_comm, _coupons, 1, &valueCreateEditor, &valueEditEnd, (itm, column) => true);
 				}
 			}
@@ -852,7 +853,7 @@ class CouponView(CVType Type) : Composite {
 		}
 		_coupons.addSelectionListener(new SelCoupon);
 		if (!_readOnly) { mixin(S_TRACE);
-			static if (CVType.NoValued != Type) {
+			static if (CVType.NoValued != Type && CVType.Branch != Type) {
 				this.setTabList([cast(Control)_toolbar, _newCoupon, _couponType, _couponVal, _coupons]);
 			} else {
 				this.setTabList([cast(Control)_toolbar, _newCoupon, _couponType, _coupons]);
@@ -991,7 +992,7 @@ class CouponView(CVType Type) : Composite {
 	void enabled(bool e) { mixin(S_TRACE);
 		_newCoupon.setEnabled(!_readOnly && e);
 		_couponType.setEnabled(!_readOnly && e);
-		static if (CVType.NoValued != Type) {
+		static if (CVType.NoValued != Type && CVType.Branch != Type) {
 			_couponVal.setEnabled(!_readOnly && e);
 		}
 		_coupons.setEnabled(e);
@@ -1080,7 +1081,7 @@ class CouponView(CVType Type) : Composite {
 		initSpinner(spn);
 		auto coupon = cast(Coupon)itm.getData();
 		assert (coupon !is null);
-		static if (CVType.NoValued != Type) {
+		static if (CVType.NoValued != Type && CVType.Branch != Type) {
 			spn.setMaximum(_couponVal.getMaximum());
 			spn.setMinimum(_couponVal.getMinimum());
 		}
@@ -1104,7 +1105,7 @@ class CouponView(CVType Type) : Composite {
 		foreach (itm2; itms) { mixin(S_TRACE);
 			auto coupon = cast(Coupon)itm2.getData();
 			coupon = new Coupon(coupon.name, value);
-			static if (CVType.NoValued != Type) {
+			static if (CVType.NoValued != Type && CVType.Branch != Type) {
 				itm2.setText(1, .text(value));
 			} else {
 				itm2.setText(0, coupon.name);
@@ -1120,12 +1121,10 @@ class CouponView(CVType Type) : Composite {
 		auto coupon = cast(Coupon)itm.getData();
 		assert (coupon !is null);
 
-		static if (CVType.NoValued != Type) {
-			itm.setImage(0, couponImage(coupon.value));
-		}
-
 		if (warningsImpl(coupon.name).length) { mixin(S_TRACE);
 			itm.setImage(0, _prop.images.warning);
+		} else { mixin(S_TRACE);
+			itm.setImage(0, couponImage(coupon.value));
 		}
 	}
 	private void refDataVersion() { mixin(S_TRACE);
@@ -1174,10 +1173,10 @@ class CouponView(CVType Type) : Composite {
 			auto isClassic = _summ && _summ.legacy;
 			auto wsnVer = _summ ? _summ.dataVersion : LATEST_VERSION;
 			ws ~= .couponWarnings(_prop.parent, isClassic, wsnVer, _prop.var.etc.targetVersion, name, false, _prop.msgs.valued);
-		} else static if (Type == CVType.NoValued) {
+		} else static if (Type == CVType.NoValued || Type == CVType.Branch) {
 			auto isClassic = _summ && _summ.legacy;
 			auto wsnVer = _summ ? _summ.dataVersion : LATEST_VERSION;
-			ws ~= .couponWarnings(_prop.parent, isClassic, wsnVer, _prop.var.etc.targetVersion, name, true, _prop.msgs.couponName);
+			ws ~= .couponWarnings(_prop.parent, isClassic, wsnVer, _prop.var.etc.targetVersion, name, Type !is CVType.Branch, _prop.msgs.couponName);
 		} else static assert (0);
 		return ws;
 	}
