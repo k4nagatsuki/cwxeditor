@@ -1761,6 +1761,7 @@ public:
 				_cards.addPaintListener(initTools);
 				setupToolBar0(); // レイアウトのため最初のアイテムだけ生成しておく
 			} else { mixin(S_TRACE);
+				setupToolBar0();
 				setupToolBar();
 			}
 		}
