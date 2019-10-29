@@ -2983,6 +2983,7 @@ class Msgs : Properties {
 	auto menuTextUp = Msg("menuTextUp", "選択中のアイテムを上へ移動");
 	auto menuTextDown = Msg("menuTextDown", "選択中のアイテムを下へ移動");
 	auto menuTextAddInitialCoupons = Msg("menuTextAddInitialCoupons", "種族と年代の初期クーポンを追加");
+	auto menuTextReverseSignOfValues = Msg("menuTextReverseSignOfValues", "得点の正負を反転する");
 	auto menuTextReverse = Msg("menuTextReverse", "逆順にする");
 	auto menuTextSwapToParent = Msg("menuTextSwapToParent", "親コンテントと入れ替える");
 	auto menuTextSwapToChild = Msg("menuTextSwapToChild", "子コンテントと入れ替える");

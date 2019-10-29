@@ -3269,6 +3269,7 @@ public:
 						case MenuID.Up:
 						case MenuID.Down:
 						case MenuID.AddInitialCoupons:
+						case MenuID.ReverseSignOfValues:
 						case MenuID.Reverse:
 						case MenuID.SelectConnectedResource:
 						case MenuID.FindID:

@@ -460,6 +460,44 @@ class CouponView(CVType Type) : Composite {
 		}
 	}
 
+	static if (CVType.Valued == Type) {
+		@property
+		private bool canReverseSignOfValues() { mixin(S_TRACE);
+			if (_readOnly) return false;
+			foreach (i; _coupons.getSelectionIndices()) { mixin(S_TRACE);
+				if (auto coupon = cast(Coupon)_coupons.getItem(i).getData()) { mixin(S_TRACE);
+					if (coupon.value != 0) return true;
+				}
+			}
+			return false;
+		}
+		@property
+		private void reverseSignOfValues() { mixin(S_TRACE);
+			if (_readOnly) return;
+
+			if (_tte1.isEditing) _tte1.enter();
+			static if (CVType.NoValued != Type && CVType.Branch != Type) {
+				if (_tte2.isEditing) _tte2.enter();
+			}
+			auto stored = false;
+
+			foreach (i; _coupons.getSelectionIndices()) { mixin(S_TRACE);
+				auto itm = _coupons.getItem(i);
+				if (auto coupon = cast(Coupon)itm.getData()) { mixin(S_TRACE);
+					if (coupon.value == 0) continue;
+					if (!stored) storeCoupons();
+					stored = true;
+					itm.setData(new Coupon(coupon.name, -coupon.value));
+					itm.setText(1, .text(-coupon.value));
+					updateWarning(itm);
+				}
+			}
+			if (!stored) return;
+			raiseModifyEvent();
+			_comm.refreshToolBar();
+		}
+	}
+
 	private class CDropListener : DropTargetAdapter {
 		override void dragEnter(DropTargetEvent e) { mixin(S_TRACE);
 			e.detail = _readOnly ? DND.DROP_NONE : DND.DROP_MOVE;
@@ -827,6 +865,9 @@ class CouponView(CVType Type) : Composite {
 					}
 					new MenuItem(menu, SWT.SEPARATOR);
 					createMenuItem(_comm, menu, MenuID.Reverse, &reverseCoupons, () => !_readOnly && 2 <= _coupons.getItemCount());
+				} else static if (Type is CVType.Valued) {
+					new MenuItem(menu, SWT.SEPARATOR);
+					createMenuItem(_comm, menu, MenuID.ReverseSignOfValues, &reverseSignOfValues, &canReverseSignOfValues);
 				}
 				new MenuItem(menu, SWT.SEPARATOR);
 				appendMenuTCPD(_comm, menu, new CouponTCPD, true, true, true, true, true);

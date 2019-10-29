@@ -1762,6 +1762,7 @@ enum MenuID {
 	Up,
 	Down,
 	AddInitialCoupons,
+	ReverseSignOfValues,
 	Reverse,
 	SwapToParent,
 	SwapToChild,

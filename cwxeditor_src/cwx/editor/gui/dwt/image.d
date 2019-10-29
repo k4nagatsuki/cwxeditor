@@ -658,6 +658,7 @@ public:
 		case MenuID.Up: return imgd!("up.png");
 		case MenuID.Down: return imgd!("down.png");
 		case MenuID.AddInitialCoupons: return imgd!("add_initial_coupons.png");
+		case MenuID.ReverseSignOfValues: return imgd!("reverse_sign_of_values.png");
 		case MenuID.Reverse: return imgd!("reverse.png");
 		case MenuID.SwapToParent: return imgd!("swap_parent.png");
 		case MenuID.SwapToChild: return imgd!("swap_child.png");
