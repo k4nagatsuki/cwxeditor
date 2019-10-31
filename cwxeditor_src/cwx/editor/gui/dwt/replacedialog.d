@@ -4745,9 +4745,9 @@ public:
 					auto oldID = F.toID(oldPath);
 					auto newID = F.toID(newPath);
 					foreach (v; flag.useCounter.values(oldID)) { mixin(S_TRACE);
+						v.change(newID);
 						storeID(parent, null, v, oldID, newID, &v.id);
 					}
-					flag.useCounter.change(oldID, newID, false);
 				};
 			}
 			return true;
