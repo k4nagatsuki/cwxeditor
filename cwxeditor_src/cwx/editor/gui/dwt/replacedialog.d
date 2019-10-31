@@ -4601,18 +4601,23 @@ public:
 		addResultUse.count = count;
 		_display.syncExec(addResultUse);
 	}
-	private bool repl(CWXPath parent, CWXPath path, string cwxPath, string text, void delegate(string) set, ref size_t count, ref Undo[] uArr, bool storeToArr = false) { mixin(S_TRACE);
+	private bool repl(CWXPath parent, CWXPath path, string cwxPath, string text, void delegate(string) set, ref size_t count, ref Undo[] uArr, bool storeToArr = false, bool isVariablePath = false) { mixin(S_TRACE);
+		auto isLocal = isVariablePath && _prop.sys.isLocalVariable(text);
+		auto origText = text;
+		if (isLocal) text = text[(FlagDir.SEPARATOR ~ _prop.sys.localVariablePrefix ~ FlagDir.SEPARATOR).length .. $];
+
 		auto c = fTextCount(text);
 		count += c;
 		if (c > 0) { mixin(S_TRACE);
 			string n;
 			if (_replMode && set) { mixin(S_TRACE);
 				n = fTextRepl(text);
-				if (!path || storeToArr) uArr ~= new StrUndo(text, n, set);
+				if (isLocal) n = FlagDir.SEPARATOR ~ _prop.sys.localVariablePrefix ~ FlagDir.SEPARATOR ~ n;
+				if (!path || storeToArr) uArr ~= new StrUndo(origText, n, set);
 				set(n);
 			}
 			if (path) { mixin(S_TRACE);
-				if (_replMode && set && !storeToArr) store(parent, path, cwxPath, text, n, set);
+				if (_replMode && set && !storeToArr) store(parent, path, cwxPath, origText, n, set);
 				size_t dmy = 0;
 				addResult(parent, path, cwxPath, dmy);
 			}
@@ -4690,7 +4695,7 @@ public:
 					foreach (oldPath, newPath; .zip(oldFPaths, newFPaths)) { mixin(S_TRACE);
 						auto oldID = cwx.flag.Flag.toID(oldPath);
 						auto newID = cwx.flag.Flag.toID(newPath);
-						foreach (v; _summ.useCounter.values(oldID)) { mixin(S_TRACE);
+						foreach (v; dir.useCounter.values(oldID)) { mixin(S_TRACE);
 							v.id = newID;
 							storeID(parent, null, v, oldID, newID, &v.id);
 						}
@@ -4698,7 +4703,7 @@ public:
 					foreach (oldPath, newPath; .zip(oldSPaths, newSPaths)) { mixin(S_TRACE);
 						auto oldID = Step.toID(oldPath);
 						auto newID = Step.toID(newPath);
-						foreach (v; _summ.useCounter.values(oldID)) { mixin(S_TRACE);
+						foreach (v; dir.useCounter.values(oldID)) { mixin(S_TRACE);
 							v.id = newID;
 							storeID(parent, null, v, oldID, newID, &v.id);
 						}
@@ -4706,7 +4711,7 @@ public:
 					foreach (oldPath, newPath; .zip(oldVPaths, newVPaths)) { mixin(S_TRACE);
 						auto oldID = cwx.flag.Variant.toID(oldPath);
 						auto newID = cwx.flag.Variant.toID(newPath);
-						foreach (v; _summ.useCounter.values(oldID)) { mixin(S_TRACE);
+						foreach (v; dir.useCounter.values(oldID)) { mixin(S_TRACE);
 							v.id = newID;
 							storeID(parent, null, v, oldID, newID, &v.id);
 						}
@@ -4739,10 +4744,10 @@ public:
 					string newPath = flag.path;
 					auto oldID = F.toID(oldPath);
 					auto newID = F.toID(newPath);
-					foreach (v; _summ.useCounter.values(oldID)) { mixin(S_TRACE);
-						v.id = newID;
+					foreach (v; flag.useCounter.values(oldID)) { mixin(S_TRACE);
 						storeID(parent, null, v, oldID, newID, &v.id);
 					}
+					flag.useCounter.change(oldID, newID, false);
 				};
 			}
 			return true;
@@ -4986,32 +4991,30 @@ public:
 		Undo[] nArr;
 		bool r = false;
 		if (_varNameSel && !_msgSel) { mixin(S_TRACE);
-			if (_flagDirOnRange) { mixin(S_TRACE);
-				// Flag/Step/VariantについてはUseCounter経由で置換される
-				auto fps = th.flagsInText;
-				foreach (i, p; fps) { mixin(S_TRACE);
+			// 状態変数名が置換対象に入っている場合、
+			// Flag/Step/VariantについてはUseCounter経由で置換される
+			auto fps = th.flagsInText;
+			foreach (i, p; fps) { mixin(S_TRACE);
+				if (_flagDirOnRange) { mixin(S_TRACE);
 					r |= repl(parent, null, "", p, null, count, nArr);
+				} else { mixin(S_TRACE);
+					r |= repl(parent, null, "", p, (string n) { th.changeInText(i, toFlagId(p)); }, count, nArr, false, true);
 				}
-				auto sps = th.stepsInText;
-				foreach (i, p; sps) { mixin(S_TRACE);
+			}
+			auto sps = th.stepsInText;
+			foreach (i, p; sps) { mixin(S_TRACE);
+				if (_flagDirOnRange) { mixin(S_TRACE);
 					r |= repl(parent, null, "", p, null, count, nArr);
+				} else { mixin(S_TRACE);
+					r |= repl(parent, null, "", p, (string n) { th.changeInText(i, toStepId(p)); }, count, nArr, false, true);
 				}
-				auto vps = th.variantsInText;
-				foreach (i, p; vps) { mixin(S_TRACE);
+			}
+			auto vps = th.variantsInText;
+			foreach (i, p; vps) { mixin(S_TRACE);
+				if (_flagDirOnRange) { mixin(S_TRACE);
 					r |= repl(parent, null, "", p, null, count, nArr);
-				}
-			} else { mixin(S_TRACE);
-				auto fps = th.flagsInText;
-				foreach (i, p; fps) { mixin(S_TRACE);
-					r |= repl(parent, null, "", p, (string n) { th.changeInText(i, toFlagId(p)); }, count, nArr);
-				}
-				auto sps = th.stepsInText;
-				foreach (i, p; sps) { mixin(S_TRACE);
-					r |= repl(parent, null, "", p, (string n) { th.changeInText(i, toStepId(p)); }, count, nArr);
-				}
-				auto vps = th.variantsInText;
-				foreach (i, p; vps) { mixin(S_TRACE);
-					r |= repl(parent, null, "", p, (string n) { th.changeInText(i, toVariantId(p)); }, count, nArr);
+				} else { mixin(S_TRACE);
+					r |= repl(parent, null, "", p, (string n) { th.changeInText(i, toVariantId(p)); }, count, nArr, false, true);
 				}
 			}
 		}
@@ -5028,19 +5031,42 @@ public:
 			r |= repl(parent, null, "", e.name, name => e.setName(_prop.parent, name), count, uArr2);
 		}
 		if (_varNameSel) { mixin(S_TRACE);
-			if (_flagDirOnRange) { mixin(S_TRACE);
-				// Flag/Step/VariantについてはUseCounter経由で置換される
-				if (d.use(CArg.Flag)) r |= repl(parent, null, "", e.flag, null, count, uArr2);
-				if (d.use(CArg.Step)) r |= repl(parent, null, "", e.step, null, count, uArr2);
-				if (d.use(CArg.Variant)) r |= repl(parent, null, "", e.variant, null, count, uArr2);
-				if (d.use(CArg.Flag2)) r |= repl(parent, null, "", e.flag2, null, count, uArr2);
-				if (d.use(CArg.Step2)) r |= repl(parent, null, "", e.step2, null, count, uArr2);
-			} else { mixin(S_TRACE);
-				if (d.use(CArg.Flag)) r |= repl(parent, null, "", e.flag, &e.flag, count, uArr2);
-				if (d.use(CArg.Step)) r |= repl(parent, null, "", e.step, &e.step, count, uArr2);
-				if (d.use(CArg.Variant)) r |= repl(parent, null, "", e.variant, &e.variant, count, uArr2);
-				if (d.use(CArg.Flag2)) r |= repl(parent, null, "", e.flag2, &e.flag2, count, uArr2);
-				if (d.use(CArg.Step2)) r |= repl(parent, null, "", e.step2, &e.step2, count, uArr2);
+			// 状態変数名が置換対象に入っている場合、
+			// Flag/Step/VariantについてはUseCounter経由で置換される
+			if (d.use(CArg.Flag)) { mixin(S_TRACE);
+				if (_flagDirOnRange) { mixin(S_TRACE);
+					r |= repl(parent, null, "", e.flag, null, count, uArr2);
+				} else { mixin(S_TRACE);
+					r |= repl(parent, null, "", e.flag, &e.flag, count, uArr2, false, true);
+				}
+			}
+			if (d.use(CArg.Step)) { mixin(S_TRACE);
+				if (_flagDirOnRange) { mixin(S_TRACE);
+					r |= repl(parent, null, "", e.step, null, count, uArr2);
+				} else { mixin(S_TRACE);
+					r |= repl(parent, null, "", e.step, &e.step, count, uArr2, false, true);
+				}
+			}
+			if (d.use(CArg.Variant)) { mixin(S_TRACE);
+				if (_flagDirOnRange) { mixin(S_TRACE);
+					r |= repl(parent, null, "", e.variant, null, count, uArr2);
+				} else { mixin(S_TRACE);
+					r |= repl(parent, null, "", e.variant, &e.variant, count, uArr2, false, true);
+				}
+			}
+			if (d.use(CArg.Flag2)) { mixin(S_TRACE);
+				if (_flagDirOnRange) { mixin(S_TRACE);
+					r |= repl(parent, null, "", e.flag2, null, count, uArr2);
+				} else { mixin(S_TRACE);
+					r |= repl(parent, null, "", e.flag2, &e.flag2, count, uArr2, false, true);
+				}
+			}
+			if (d.use(CArg.Step2)) { mixin(S_TRACE);
+				if (_flagDirOnRange) { mixin(S_TRACE);
+					r |= repl(parent, null, "", e.step2, null, count, uArr2);
+				} else { mixin(S_TRACE);
+					r |= repl(parent, null, "", e.step2, &e.step2, count, uArr2, false, true);
+				}
 			}
 		}
 		if (_startSel) { mixin(S_TRACE);

@@ -591,6 +591,8 @@ class System {
 	}
 	/// ローカル変数のプレフィクス。
 	@property const string localVariablePrefix() { return "Local"; }
+	/// ローカル変数か。
+	@property const bool isLocalVariable(string path) { return path.startsWith("\\" ~ localVariablePrefix ~ "\\"); }
 	/// フラグ・ステップ値のランダム値ソース名。
 	@property const string randomValue() { mixin(S_TRACE);
 		return "??Random";
