@@ -2303,13 +2303,13 @@ class UseCounter {
 	/// ID・Tの変更を通知する。
 	void change(ID)(ID oldId, ID newId, bool dup = false) { mixin(S_TRACE);
 		if (_local) { mixin(S_TRACE);
+			_local.change(oldId, newId, dup);
 			if (oldId in localIDs!ID) { mixin(S_TRACE);
 				localIDs!ID.remove(oldId);
 				if (_sub) _sub.localIDs!ID.remove(oldId);
 				localIDs!ID[newId] = true;
 				if (_sub) _sub.localIDs!ID[newId] = true;
 			}
-			_local.change(oldId, newId, dup);
 			if (_sub) _sub._local.change(oldId, newId, dup);
 		} else { mixin(S_TRACE);
 			_global.change(oldId, newId, dup);
@@ -2413,6 +2413,7 @@ class UseCounter {
 		if (_local && id in localIDs!ID) { mixin(S_TRACE);
 			_local.remove(id, user);
 		} else { mixin(S_TRACE);
+			assert(_global);
 			_global.remove(id, user);
 		}
 	}
