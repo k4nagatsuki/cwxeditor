@@ -134,12 +134,18 @@ private:
 		}
 		void undo() { mixin(S_TRACE);
 			size_t dmy = 0;
+			_undoAfter.length = 0;
 			foreach_reverse (u; _uArr) u.undo();
+			foreach (d; _undoAfter) d();
+			_undoAfter.length = 0;
 			_result.clearAll();
 		}
 		void redo() { mixin(S_TRACE);
 			size_t dmy = 0;
+			_undoAfter.length = 0;
 			foreach_reverse (u; _uArr) u.redo();
+			foreach (d; _undoAfter) d();
+			_undoAfter.length = 0;
 			_result.clearAll();
 		}
 		void dispose() { mixin(S_TRACE);
@@ -173,6 +179,7 @@ private:
 	bool _inUndo = false;
 	Undo[] _rUndo;
 	void delegate()[] _after;
+	void delegate()[] _undoAfter;
 	void delegate()[] _refCall;
 	core.thread.Thread _uiThread;
 
@@ -4664,18 +4671,24 @@ public:
 	}
 
 	private bool replFlagDirName(CWXPath parent, FlagDir dir, ref size_t count, ref Undo[] uArr) { mixin(S_TRACE);
+		if (dir.localOwner && !dir.parent) { mixin(S_TRACE);
+			return false;
+		}
 		string text = dir.name;
 		auto c = fTextCount(text);
 		count += c;
 		if (c > 0) { mixin(S_TRACE);
 			if (_replMode) { mixin(S_TRACE);
-				auto parentDir= dir.parent;
+				auto parentDir = dir.parent;
 				auto flags = dir.allFlags;
 				auto steps = dir.allSteps;
 				auto variants = dir.allVariants;
 				auto oldFPaths = .map!(a => a.path)(flags).array();
 				auto oldSPaths = .map!(a => a.path)(steps).array();
 				auto oldVPaths = .map!(a => a.path)(variants).array();
+				string[] newFPaths;
+				string[] newSPaths;
+				string[] newVPaths;
 				string n = fTextRepl(text);
 				uArr ~= new StrUndo(text, n, (string name) { mixin(S_TRACE);
 					if (parentDir) { mixin(S_TRACE);
@@ -4683,38 +4696,60 @@ public:
 					} else { mixin(S_TRACE);
 						dir.name = name;
 					}
+					if (!_prop.sys.isLocalVariable(dir.path)) return;
+					foreach (oldPath, newPath; .zip(oldFPaths, newFPaths)) { mixin(S_TRACE);
+						auto oldID = cwx.flag.Flag.toID(oldPath);
+						auto newID = cwx.flag.Flag.toID(newPath);
+						dir.useCounter.deleteID(newID);
+						dir.useCounter.createID(oldID);
+					}
+					foreach (oldPath, newPath; .zip(oldSPaths, newSPaths)) { mixin(S_TRACE);
+						auto oldID = Step.toID(oldPath);
+						auto newID = Step.toID(newPath);
+						dir.useCounter.deleteID(newID);
+						dir.useCounter.createID(oldID);
+					}
+					foreach (oldPath, newPath; .zip(oldVPaths, newVPaths)) { mixin(S_TRACE);
+						auto oldID = cwx.flag.Variant.toID(oldPath);
+						auto newID = cwx.flag.Variant.toID(newPath);
+						dir.useCounter.deleteID(newID);
+						dir.useCounter.createID(oldID);
+					}
+					std.algorithm.swap(oldFPaths, newFPaths);
+					std.algorithm.swap(oldSPaths, newSPaths);
+					std.algorithm.swap(oldVPaths, newVPaths);
 				});
 				dir.name = parentDir.validName(n);
 				_refCall ~= { mixin(S_TRACE);
 					_comm.refFlagAndStep.call(flags, steps, variants);
 				};
+				newFPaths = .map!(a => a.path)(flags).array();
+				newSPaths = .map!(a => a.path)(steps).array();
+				newVPaths = .map!(a => a.path)(variants).array();
 				_after ~= { mixin(S_TRACE);
-					auto newFPaths = .map!(a => a.path)(flags).array();
-					auto newSPaths = .map!(a => a.path)(steps).array();
-					auto newVPaths = .map!(a => a.path)(variants).array();
 					foreach (oldPath, newPath; .zip(oldFPaths, newFPaths)) { mixin(S_TRACE);
 						auto oldID = cwx.flag.Flag.toID(oldPath);
 						auto newID = cwx.flag.Flag.toID(newPath);
 						foreach (v; dir.useCounter.values(oldID)) { mixin(S_TRACE);
-							v.id = newID;
 							storeID(parent, null, v, oldID, newID, &v.id);
 						}
+						dir.useCounter.change(oldID, newID);
 					}
 					foreach (oldPath, newPath; .zip(oldSPaths, newSPaths)) { mixin(S_TRACE);
 						auto oldID = Step.toID(oldPath);
 						auto newID = Step.toID(newPath);
 						foreach (v; dir.useCounter.values(oldID)) { mixin(S_TRACE);
-							v.id = newID;
 							storeID(parent, null, v, oldID, newID, &v.id);
 						}
+						dir.useCounter.change(oldID, newID);
 					}
 					foreach (oldPath, newPath; .zip(oldVPaths, newVPaths)) { mixin(S_TRACE);
 						auto oldID = cwx.flag.Variant.toID(oldPath);
 						auto newID = cwx.flag.Variant.toID(newPath);
 						foreach (v; dir.useCounter.values(oldID)) { mixin(S_TRACE);
-							v.id = newID;
 							storeID(parent, null, v, oldID, newID, &v.id);
 						}
+						dir.useCounter.change(oldID, newID);
 					}
 				};
 			}
@@ -4730,6 +4765,7 @@ public:
 		if (c > 0) { mixin(S_TRACE);
 			if (_replMode) { mixin(S_TRACE);
 				string oldPath = flag.path;
+				string newPath = "";
 				string n = fTextRepl(text);
 				uArr ~= new StrUndo(text, n, (string name) { mixin(S_TRACE);
 					auto parent = flag.parent;
@@ -4738,16 +4774,23 @@ public:
 					} else { mixin(S_TRACE);
 						flag.name = name;
 					}
+					if (_prop.sys.isLocalVariable(oldPath)) { mixin(S_TRACE);
+						auto oldID = F.toID(oldPath);
+						auto newID = F.toID(newPath);
+						flag.useCounter.deleteID(newID);
+						flag.useCounter.createID(oldID);
+					}
+					std.algorithm.swap(oldPath, newPath);
 				});
 				flag.name = parentDir.validName(n);
+				newPath = flag.path;
 				_after ~= { mixin(S_TRACE);
-					string newPath = flag.path;
 					auto oldID = F.toID(oldPath);
 					auto newID = F.toID(newPath);
 					foreach (v; flag.useCounter.values(oldID)) { mixin(S_TRACE);
-						v.change(newID);
 						storeID(parent, null, v, oldID, newID, &v.id);
 					}
+					flag.useCounter.change(oldID, newID);
 				};
 			}
 			return true;
