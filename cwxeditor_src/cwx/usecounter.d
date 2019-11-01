@@ -2302,19 +2302,19 @@ class UseCounter {
 
 	/// ID・Tの変更を通知する。
 	void change(ID)(ID oldId, ID newId, bool dup = false) { mixin(S_TRACE);
+		if (oldId == newId) return;
 		if (_local) { mixin(S_TRACE);
-			_local.change(oldId, newId, dup);
 			if (oldId in localIDs!ID) { mixin(S_TRACE);
-				localIDs!ID.remove(oldId);
-				if (_sub) _sub.localIDs!ID.remove(oldId);
-				localIDs!ID[newId] = true;
-				if (_sub) _sub.localIDs!ID[newId] = true;
+				deleteID(oldId);
+				_global.change(oldId, newId, dup);
+				createID(newId);
+			} else { mixin(S_TRACE);
+				_local.change(oldId, newId, dup);
 			}
-			if (_sub) _sub._local.change(oldId, newId, dup);
 		} else { mixin(S_TRACE);
 			_global.change(oldId, newId, dup);
-			if (_sub) _sub._global.change(oldId, newId, dup);
 		}
+		if (_sub) _sub.change(oldId, newId, dup);
 	}
 	/// userが持つIDの変更を行う。
 	static void replaceID(ID, User)(ID id, User user) if (is(User:IDToUser!ID)) { mixin(S_TRACE);
