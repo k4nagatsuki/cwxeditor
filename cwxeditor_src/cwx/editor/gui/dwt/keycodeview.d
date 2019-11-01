@@ -522,6 +522,17 @@ class KeyCodeView : Composite {
 		return true;
 	}
 
+	@property
+	bool canSelectAll() { mixin(S_TRACE);
+		if (!_keyCodes || _keyCodes.isDisposed()) return false;
+		return _keyCodes.getSelectionCount() != _keyCodes.getItemCount();
+	}
+	void selectAll() { mixin(S_TRACE);
+		if (!canSelectAll) return;
+		_keyCodes.selectAll();
+		_comm.refreshToolBar();
+	}
+
 	private class HTBTraverse : Listener {
 		override void handleEvent(Event e) { e.doit = true; }
 	}
@@ -588,8 +599,12 @@ class KeyCodeView : Composite {
 				createMenuItem(_comm, menu, MenuID.Down, &down, &canDown);
 				new MenuItem(menu, SWT.SEPARATOR);
 				appendMenuTCPD(_comm, menu, new KeyCodeTCPD, true, true, true, true, false);
+				new MenuItem(menu, SWT.SEPARATOR);
+				createMenuItem(_comm, menu, MenuID.SelectAll, &selectAll, &canSelectAll);
 			} else { mixin(S_TRACE);
 				appendMenuTCPD(_comm, menu, new KeyCodeTCPD, false, true, false, false, false);
+				new MenuItem(menu, SWT.SEPARATOR);
+				createMenuItem(_comm, menu, MenuID.SelectAll, &selectAll, &canSelectAll);
 			}
 			_keyCodes.setMenu(menu);
 			.listener(_keyCodes, SWT.Selection, { _comm.refreshToolBar(); });

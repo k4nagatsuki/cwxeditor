@@ -871,8 +871,12 @@ class CouponView(CVType Type) : Composite {
 				}
 				new MenuItem(menu, SWT.SEPARATOR);
 				appendMenuTCPD(_comm, menu, new CouponTCPD, true, true, true, true, true);
+				new MenuItem(menu, SWT.SEPARATOR);
+				createMenuItem(_comm, menu, MenuID.SelectAll, &selectAll, &canSelectAll);
 			} else { mixin(S_TRACE);
 				appendMenuTCPD(_comm, menu, new CouponTCPD, false, true, false, false, false);
+				new MenuItem(menu, SWT.SEPARATOR);
+				createMenuItem(_comm, menu, MenuID.SelectAll, &selectAll, &canSelectAll);
 			}
 			_coupons.setMenu(menu);
 			if (!_readOnly) { mixin(S_TRACE);
@@ -1220,5 +1224,16 @@ class CouponView(CVType Type) : Composite {
 			ws ~= .couponWarnings(_prop.parent, isClassic, wsnVer, _prop.var.etc.targetVersion, name, Type !is CVType.Branch, _prop.msgs.couponName);
 		} else static assert (0);
 		return ws;
+	}
+
+	@property
+	bool canSelectAll() { mixin(S_TRACE);
+		if (!_coupons || _coupons.isDisposed()) return false;
+		return _coupons.getSelectionCount() != _coupons.getItemCount();
+	}
+	void selectAll() { mixin(S_TRACE);
+		if (!canSelectAll) return;
+		_coupons.selectAll();
+		_comm.refreshToolBar();
 	}
 }

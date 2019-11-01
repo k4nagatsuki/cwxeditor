@@ -448,9 +448,13 @@ class RoundView : Composite {
 				new MenuItem(menu, SWT.SEPARATOR);
 				appendMenuTCPD(_comm, menu, new RoundTCPD, true, true, true, true, false);
 				new MenuItem(menu, SWT.SEPARATOR);
+				createMenuItem(_comm, menu, MenuID.SelectAll, &selectAll, &canSelectAll);
+				new MenuItem(menu, SWT.SEPARATOR);
 				createMenuItem(_comm, menu, MenuID.AddRangeOfRound, &addManyRounds, &canAddRound);
 			} else { mixin(S_TRACE);
 				appendMenuTCPD(_comm, menu, new RoundTCPD, false, true, false, false, false);
+				new MenuItem(menu, SWT.SEPARATOR);
+				createMenuItem(_comm, menu, MenuID.SelectAll, &selectAll, &canSelectAll);
 			}
 			_rounds.setMenu(menu);
 			.listener(_rounds, SWT.Selection, { _comm.refreshToolBar(); });
@@ -518,6 +522,17 @@ class RoundView : Composite {
 
 	private void refUndoMax() { mixin(S_TRACE);
 		_undo.max = _prop.var.etc.undoMaxEtc;
+	}
+
+	@property
+	bool canSelectAll() { mixin(S_TRACE);
+		if (!_rounds || _rounds.isDisposed()) return false;
+		return _rounds.getSelectionCount() != _rounds.getItemCount();
+	}
+	void selectAll() { mixin(S_TRACE);
+		if (!canSelectAll) return;
+		_rounds.selectAll();
+		_comm.refreshToolBar();
 	}
 
 	private void addManyRounds() { mixin(S_TRACE);
