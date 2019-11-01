@@ -94,15 +94,21 @@ public:
 		return _colors;
 	}
 
-	/// 使用回数カウンタを設定する。
 	@property
 	override
-	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+	inout
+	inout(CWXPath) ucOwner() { return super.ucOwner; }
+
+	override
+	void setUseCounter(UseCounter uc, CWXPath ucOwner) { mixin(S_TRACE);
 		foreach (u; _fontusers) { mixin(S_TRACE);
 			u.setUseCounter(uc);
 		}
-		super.setUseCounter(uc);
+		super.setUseCounter(uc, ucOwner);
 	}
+	override
+	void removeUseCounter() { super.removeUseCounter(); }
+
 	override
 	protected void removeTextUseCounter() { mixin(S_TRACE);
 		if (_uc) { mixin(S_TRACE);
@@ -147,7 +153,8 @@ private:
 	FlagUser[] _flagusers;
 	StepUser[] _stepusers;
 	VariantUser[] _variantusers;
-	UseCounter _uc;
+	UseCounter _uc = null;
+	CWXPath _ucOwner = null;
 	string _cwxPathCategory;
 	void delegate() _changed;
 public:
@@ -254,9 +261,15 @@ public:
 	@property
 	inout
 	inout(UseCounter) useCounter() { return _uc; }
-	/// 使用回数カウンタを設定する。
+
 	@property
-	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+	override
+	inout
+	inout(CWXPath) ucOwner() { return _ucOwner; }
+
+	@property
+	override
+	void setUseCounter(UseCounter uc, CWXPath ucOwner) { mixin(S_TRACE);
 		foreach (u; _flagusers) { mixin(S_TRACE);
 			u.setUseCounter(uc);
 		}
@@ -267,6 +280,7 @@ public:
 			u.setUseCounter(uc);
 		}
 		_uc = uc;
+		_ucOwner = ucOwner;
 	}
 	/// 状態変数ユーザの使用回数カウンタを除去する。
 	protected void removeTextUseCounter() { mixin(S_TRACE);
@@ -282,10 +296,11 @@ public:
 			}
 		}
 	}
-	/// 使用回数カウンタを除去。
+	override
 	void removeUseCounter() { mixin(S_TRACE);
 		removeTextUseCounter();
 		_uc = null;
+		_ucOwner = null;
 	}
 	/// 個別に状態変数パスを変更する。
 	void changeInText(size_t index, FlagId id) { mixin(S_TRACE);

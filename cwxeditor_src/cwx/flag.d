@@ -213,8 +213,8 @@ public:
 	void useCounter(UseCounter uc) { mixin(S_TRACE);
 		_uc = uc;
 		if (expandSPChars && uc) { mixin(S_TRACE);
-			_on.setUseCounter(uc);
-			_off.setUseCounter(uc);
+			_on.setUseCounter(uc, this);
+			_off.setUseCounter(uc, this);
 		} else { mixin(S_TRACE);
 			_on.removeUseCounter();
 			_off.removeUseCounter();
@@ -299,8 +299,8 @@ public:
 			changed();
 			_expandSPChars = val;
 			if (expandSPChars && _uc) { mixin(S_TRACE);
-				_on.setUseCounter(_uc);
-				_off.setUseCounter(_uc);
+				_on.setUseCounter(_uc, this);
+				_off.setUseCounter(_uc, this);
 			} else { mixin(S_TRACE);
 				_on.removeUseCounter();
 				_off.removeUseCounter();
@@ -553,7 +553,7 @@ public:
 				foreach (i; _vals.length .. vals.length) { mixin(S_TRACE);
 					auto th = new TextHolder(this);
 					th.changeHandler = &changed;
-					if (expandSPChars && _uc) th.setUseCounter(_uc);
+					if (expandSPChars && _uc) th.setUseCounter(_uc, this);
 					_vals ~= th;
 				}
 			}
@@ -573,7 +573,7 @@ public:
 			_expandSPChars = val;
 			foreach (th; _vals) { mixin(S_TRACE);
 				if (expandSPChars && _uc) { mixin(S_TRACE);
-					th.setUseCounter(_uc);
+					th.setUseCounter(_uc, this);
 				} else { mixin(S_TRACE);
 					th.removeUseCounter();
 				}
@@ -626,7 +626,7 @@ public:
 		_uc = uc;
 		foreach (th; _vals) { mixin(S_TRACE);
 			if (expandSPChars && uc) { mixin(S_TRACE);
-				th.setUseCounter(uc);
+				th.setUseCounter(uc, this);
 			} else { mixin(S_TRACE);
 				th.removeUseCounter();
 			}

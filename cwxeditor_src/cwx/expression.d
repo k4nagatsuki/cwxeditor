@@ -215,8 +215,13 @@ public:
 	@property
 	inout
 	inout(UseCounter) useCounter() { return _uc; }
-	/// 使用回数カウンタを設定する。
+
 	@property
+	override
+	inout
+	inout(CWXPath) ucOwner() { return _ucOwner; }
+	@property
+	override
 	void setUseCounter(UseCounter uc, CWXPath ucOwner) { mixin(S_TRACE);
 		.each!(u => u.setUseCounter(uc))(_flags);
 		.each!(u => u.setUseCounter(uc))(_steps);
@@ -233,7 +238,7 @@ public:
 		.each!(u => u.removeUseCounter())(_coupons);
 		.each!(u => u.removeUseCounter())(_gossips);
 	}
-	/// 使用回数カウンタを除去。
+	override
 	void removeUseCounter() { mixin(S_TRACE);
 		removeTextUseCounter();
 		_uc = null;

@@ -426,16 +426,21 @@ public:
 	@property
 	inout
 	inout(UseCounter) useCounter() { return _text.useCounter; }
-	/// 使用回数カウンタを設定・除去する。
+
+	/// 名称・称号の検索範囲を限定するための情報。
+	@property
+	inout
+	inout(CWXPath) ucOwner() { return _ucOwner; }
+	/// 使用回数カウンタを設定する。
 	@property
 	void setUseCounter(UseCounter uc, CWXPath ucOwner) { mixin(S_TRACE);
-		_text.setUseCounter(uc);
+		_text.setUseCounter(uc, ucOwner);
 		foreach (ref c; _rCoupons) { mixin(S_TRACE);
 			c.setUseCounter(useCounter, ucOwner);
 		}
 		_ucOwner = .renameInfo(ucOwner);
 	}
-	/// ditto
+	/// 使用回数カウンタを除去する。
 	void removeUseCounter() { mixin(S_TRACE);
 		_text.removeUseCounter();
 		foreach (ref c; _rCoupons) { mixin(S_TRACE);
@@ -2383,8 +2388,13 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 			}
 		}
 	}
-	/// 使用回数カウンタを設定・除去する。
+
 	@property
+	override
+	inout
+	inout(CWXPath) ucOwner() { return _ucOwner; }
+	@property
+	override
 	void setUseCounter(UseCounter uc, CWXPath ucOwner) { mixin(S_TRACE);
 		auto c = this;
 		while (true) { mixin(S_TRACE);
@@ -2411,7 +2421,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 			}
 		}
 	}
-	/// ditto
+	override
 	void removeUseCounter() { mixin(S_TRACE);
 		setUseCounter(null, null);
 		_uc = null;

@@ -513,7 +513,7 @@ public:
 	@property
 	override void setUseCounter(UseCounter uc, CWXPath ucOwner) { mixin(S_TRACE);
 		_user.setUseCounter(uc);
-		_overrideName.setUseCounter(uc.global);
+		_overrideName.setUseCounter(uc.global, ucOwner);
 		foreach (path; _overrideImages) { mixin(S_TRACE);
 			path.setUseCounter(uc);
 		}
@@ -751,7 +751,7 @@ public:
 			changed();
 			_expandSPChars = val;
 			if (_expandSPChars && useCounter) { mixin(S_TRACE);
-				_name.setUseCounter(useCounter.global);
+				_name.setUseCounter(useCounter.global, ucOwner);
 			} else { mixin(S_TRACE);
 				_name.removeUseCounter();
 			}
@@ -822,7 +822,7 @@ public:
 			path.setUseCounter(uc);
 		}
 		if (expandSPChars) { mixin(S_TRACE);
-			_name.setUseCounter(uc.global);
+			_name.setUseCounter(uc.global, ucOwner);
 		}
 		super.setUseCounter(uc, ucOwner);
 	}

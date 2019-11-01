@@ -437,8 +437,13 @@ public:
 	}
 
 	@property
+	override
+	inout
+	inout(CWXPath) ucOwner() { return super.ucOwner; }
+
+	@property
 	override void setUseCounter(UseCounter uc, CWXPath ucOwner) { mixin(S_TRACE);
-		_text.setUseCounter(uc.global);
+		_text.setUseCounter(uc.global, ucOwner);
 		super.setUseCounter(uc, ucOwner);
 	}
 	override void removeUseCounter() { mixin(S_TRACE);
@@ -984,6 +989,10 @@ public:
 		_flag.removeUseCounter();
 		_cellName.removeUseCounter();
 	}
+	/// 名称・称号の検索範囲を限定するための情報。
+	@property
+	inout
+	inout(CWXPath) ucOwner() { return _cellName.ucOwner; }
 
 	/// フラグ。
 	@property

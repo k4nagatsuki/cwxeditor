@@ -153,7 +153,18 @@ public:
 /// Chg*Callbackを実装する場合、change()が呼び出された
 /// 際にコールバックを受ける事ができる。
 interface TChgCallback(T) {
+	/// 参照の変更時に呼び出される。
 	bool changeCallback(T, T);
+
+	/// 名称・称号の検索範囲を限定するための情報。
+	@property
+	inout
+	inout(CWXPath) ucOwner();
+
+	/// 使用回数カウンタを設定する。
+	void setUseCounter(UseCounter uc, CWXPath ucOwner);
+	/// 使用回数カウンタを除去する。
+	void removeUseCounter();
 }
 /// ditto
 alias TChgCallback!(AreaId) ChgAreaCallback;
@@ -1576,7 +1587,7 @@ public:
 			changed();
 			_expandSPChars = val;
 			if (_expandSPChars && _uc) { mixin(S_TRACE);
-				_coupon.setUseCounter(_uc);
+				_coupon.setUseCounter(_uc, ucOwner);
 			} else { mixin(S_TRACE);
 				_coupon.removeUseCounter();
 			}
@@ -1610,7 +1621,7 @@ public:
 		if (uc && _coupon.text != "") { mixin(S_TRACE);
 			uc.add(toCouponId(_coupon.text), this);
 		}
-		if (expandSPChars) _coupon.setUseCounter(uc);
+		if (expandSPChars) _coupon.setUseCounter(uc, ucOwner);
 		_uc = uc;
 		_ucOwner = .renameInfo(ucOwner);
 	}
@@ -1625,6 +1636,7 @@ public:
 	}
 	/// この使用者の所属先。必ずエリア・バトル・パッケージまたは
 	/// 効果内の召喚獣カードを除く効果系カードになる。
+	@property
 	inout
 	inout(CWXPath) ucOwner() { return _ucOwner; }
 
@@ -1712,7 +1724,7 @@ public:
 			changed();
 			_expandSPChars = val;
 			if (_expandSPChars && _uc) { mixin(S_TRACE);
-				_gossip.setUseCounter(_uc);
+				_gossip.setUseCounter(_uc, ucOwner);
 			} else { mixin(S_TRACE);
 				_gossip.removeUseCounter();
 			}
@@ -1746,7 +1758,7 @@ public:
 		if (uc && _gossip.text != "") { mixin(S_TRACE);
 			uc.add(toGossipId(_gossip.text), this);
 		}
-		if (expandSPChars) _gossip.setUseCounter(uc);
+		if (expandSPChars) _gossip.setUseCounter(uc, ucOwner);
 		_uc = uc;
 		_ucOwner = .renameInfo(ucOwner);
 	}
@@ -2238,7 +2250,8 @@ class UseCounter {
 		this (owner, new SingleUseCounter, null, true);
 	}
 
-	/// 親リソースの使用回数カウンタをグローバル用
+	/// 親リソースの使用回数カウンタをグローバル用に指定して
+	/// ローカル変数の使用回数カウンタを生成する。
 	this (CWXPath owner, UseCounter global) { mixin(S_TRACE);
 		_globalUC = global;
 		this (owner, global._global, new SingleUseCounter, true);
@@ -2276,6 +2289,9 @@ class UseCounter {
 
 	/// ローカルIDの発生を通知する。
 	void createID(ID)(ID id) in (!_local || id !in localIDs!ID) { mixin(S_TRACE);
+		createIDImpl(id, true);
+	}
+	void createIDImpl(ID)(ID id, bool sub) in (!_local || id !in localIDs!ID) { mixin(S_TRACE);
 		if (_local) { mixin(S_TRACE);
 			localIDs!ID[id] = true;
 			foreach (u; _global.values(id)) { mixin(S_TRACE);
@@ -2284,10 +2300,14 @@ class UseCounter {
 				_local.add(id, u);
 			}
 		}
-		if (_sub) _sub.createID(id);
+		if (sub && _sub) _sub.createID(id);
 	}
 	/// ローカルIDの消滅を通知する。
 	void deleteID(ID)(ID id) in (!_local || id in localIDs!ID) { mixin(S_TRACE);
+		deleteIDImpl(id, true);
+	}
+	/// ditto
+	void deleteIDImpl(ID)(ID id, bool sub) in (!_local || id in localIDs!ID) { mixin(S_TRACE);
 		if (_local) { mixin(S_TRACE);
 			localIDs!ID.remove(id);
 			foreach (u; _local.values(id)) { mixin(S_TRACE);
@@ -2297,7 +2317,7 @@ class UseCounter {
 			}
 			assert (_local.get(id) == 0);
 		}
-		if (_sub) _sub.deleteID(id);
+		if (sub && _sub) _sub.deleteID(id);
 	}
 
 	/// ID・Tの変更を通知する。
@@ -2305,9 +2325,40 @@ class UseCounter {
 		if (oldId == newId) return;
 		if (_local) { mixin(S_TRACE);
 			if (oldId in localIDs!ID) { mixin(S_TRACE);
-				deleteID(oldId);
-				_global.change(oldId, newId, dup);
-				createID(newId);
+				assert (_local.get(newId) == 0);
+				auto us = _local.values(oldId);
+				typeof(us) us2;
+				TChgCallback!ID[] cbs;
+
+				foreach (u; us) { mixin(S_TRACE);
+					assert (u.useCounter is this || !u.useCounter);
+					auto cb = cast(TChgCallback!ID)u.owner;
+					if (cb) { mixin(S_TRACE);
+						// コールバックによるカウンタの再設定を避けるため
+						// 所有者からもカウンタを取り除く
+						cb.removeUseCounter();
+						cbs ~= cb;
+					} else { mixin(S_TRACE);
+						u.removeUseCounter();
+						us2 ~= u;
+					}
+					u.change(newId);
+				}
+				assert (_local.get(oldId) == 0);
+				deleteIDImpl(oldId, false);
+				createIDImpl(newId, false);
+				assert (_local.get(newId) == 0);
+				foreach (cb; cbs) { mixin(S_TRACE);
+					cb.setUseCounter(this, cb.ucOwner);
+				}
+				foreach (u; us2) { mixin(S_TRACE);
+					static if (is(typeof(u.ucOwner))) {
+						u.setUseCounter(this, u.ucOwner);
+					} else {
+						u.setUseCounter(this);
+					}
+				}
+				assert (_local.get(newId) == us.length);
 			} else { mixin(S_TRACE);
 				_local.change(oldId, newId, dup);
 			}
