@@ -370,150 +370,84 @@ void build(string[] args) {
 		exec(cmd ~ NO_DEBUG_SYMBOLS_FLAGS ~ res ~ noDebugSymbols ~ "-odobjs" ~ dmdOption);
 	}
 	version (Windows) {
-		static immutable mscoffbug = 2068 <= __VERSION__ && __VERSION__ <= 2073;
+		static immutable mscoffbug = 2068 <= __VERSION__ && __VERSION__ <= 2073 || __VERSION__ == 2089;
 	} else {
 		static immutable mscoffbug = true;
 	}
 	static if (mscoffbug) {
-		// Internal error: backend\mscoffobj.c 2176 by dmd 2.068-2.069
+		// Internal error: backend\mscoffobj.c 2176 by dmd 2.068-2.069, 2.089.0
 		// まとめてコンパイルするとエラーが出るため分割する
 		immutable SPLITS = [
 			[
 				"absdialog.d",
-			],
-			[
 				"areatable.d",
 				"areaviewutils.d",
-			],
-			[
 				"areaview.d",
-			],
-			[
 				"areawindow.d",
-			],
-			[
 				"bgimagedialog.d",
 				"cardlist.d",
-			],
-			[
 				"cardpane.d",
 				"cardwindow.d",
 				"centerlayout.d",
 				"chooser.d",
-			],
-			[
 				"commons.d",
 				"couponview.d",
 				"customtable.d",
-			],
-			[
 				"customtoolbar.d",
-			],
-			[
 				"customtext.d",
 				"castcarddialog.d",
 				"cwxeditor.d",
 				"datawindow.d",
-			],
-			[
 				"directorywindow.d",
-			],
-			[
 				"dmenu.d",
-			],
-			[
 				"dockingfolder.d",
-			],
-			[
 				"dprops.d",
 			],
 			[
 				"dskin.d",
-			],
-			[
 				"dutils.d",
 				"effectcarddialog.d",
 				"etcsettings.d",
-			],
-			[
 				"eventdialog.d",
-			],
-			[
 				"eventeditor.d",
-			],
-			[
 				"eventtreeview.d",
-			],
-			[
 				"eventview.d",
-			],
-			[
 				"eventwindow.d",
+			],
+			[
 				"flagdirtree.d",
-			],
-			[
 				"flagspane.d",
-			],
-			[
 				"flagtable.d",
-			],
-			[
 				"image.d",
-			],
-			[
 				"imagelistwindow.d",
-			],
-			[
 				"images.d",
 				"imageselect.d",
 				"incsearch.d",
 				"infocarddialog.d",
-			],
-			[
 				"jpyimage.d",
 				"incsearch.d",
-			],
-			[
 				"loader.d",
 			],
 			[
 				"mainwindow.d",
-			],
-			[
 				"materialselect.d",
-			],
-			[
 				"messageutils.d",
-			],
-			[
 				"motionview.d",
-			],
-			[
 				"properties.d",
 				"radarspinner.d",
-			],
-			[
 				"replacedialog.d",
-				"sbshell.d",
 			],
 			[
+				"sbshell.d",
 				"scales.d",
 				"scripterrordialog.d",
-			],
-			[
 				"settingsdialog.d",
 				"smalldialogs.d",
-			],
-			[
 				"imagelayer.d",
 				"keycodeview.d",
-			],
-			[
 				"spcarddialog.d",
 				"splitpane.d",
 				"summarydialog.d",
-			],
-			[
 				"textdialog.d",
 				"timebar.d",
 				"undo.d",
@@ -522,118 +456,31 @@ void build(string[] args) {
 		];
 		immutable SPLITS_R = SPLITS ~ cast(immutable)[
 			[
-				"archive.d",
-				"area.d",
-				"background.d",
-			],
-			[
-				"binary.d",
-				"cab.d",
-				"card.d",
-				"coupon.d",
-			],
-			[
-				"cwl.d",
-			],
-			[
-				"event.d",
-				"features.d",
-				"flag.d",
-				"graphics.d",
-				"imagesize.d",
-				"importutils.d",
-				"jpy.d",
-				"menu.d",
-				"motion.d",
-			],
-			[
-				"msgs.d",
-			],
-			[
-				"msgutils.d",
-			],
-			[
-				"path.d",
-				"perf.d",
-				"props.d",
-				"race.d",
-				"script.d",
-			],
-			[
-				"settings.d",
-				"sjis.d",
-			],
-			[
-				"skin.d",
-				"structs.d",
-				"summary.d",
-				"system.d",
-				"textholder.d",
-				"types.d",
-				"usecounter.d",
-			],
-			[
-				"utils.d",
-			],
-			[
-				"variables.d",
-			],
-			[
-				"versioninfo.d",
-			],
-			[
-				"warning.d",
-				"win32res.d",
-				"xml.d",
 			],
 		];
 	}
 	foreach (dir, array; files) {
 		if (!array.length) continue;
 		static if (mscoffbug) {
-			if (m64) {
-				auto splits = new string[][SPLITS_R.length];
-				string[] array2;
-				foreach (file; array) {
-					bool add = false;
-					foreach (i, split; SPLITS_R) {
-						if (split.has(file.baseName())) {
-							splits[i] ~= file;
-							add = true;
-							break;
-						}
-					}
-					if (!add) {
-						array2 ~= file;
+			auto splits = new string[][SPLITS_R.length];
+			string[] array2;
+			foreach (file; array) {
+				bool add = false;
+				foreach (i, split; SPLITS_R) {
+					if (split.has(file.baseName())) {
+						splits[i] ~= file;
+						add = true;
+						break;
 					}
 				}
-				foreach (array1; splits) {
-					if (array1.length) exec(cmd ~ flags ~ array1 ~ res ~ "-odobjs" ~ dmdOption);
+				if (!add) {
+					array2 ~= file;
 				}
-				if (array2.length) exec(cmd ~ flags ~ array2 ~ res ~ "-odobjs" ~ dmdOption);
-			} else if (m64) {
-				auto splits = new string[][SPLITS.length];
-				string[] array2;
-				foreach (file; array) {
-					bool add = false;
-					foreach (i, split; SPLITS) {
-						if (split.has(file.baseName())) {
-							splits[i] ~= file;
-							add = true;
-							break;
-						}
-					}
-					if (!add) {
-						array2 ~= file;
-					}
-				}
-				foreach (array1; splits) {
-					if (array1.length) exec(cmd ~ flags ~ array1 ~ res ~ "-odobjs" ~ dmdOption);
-				}
-				if (array2.length) exec(cmd ~ flags ~ array2 ~ res ~ "-odobjs" ~ dmdOption);
-			} else {
-				exec(cmd ~ flags ~ array ~ res ~ "-odobjs" ~ dmdOption);
 			}
+			foreach (array1; splits) {
+				if (array1.length) exec(cmd ~ flags ~ array1 ~ res ~ "-odobjs" ~ dmdOption);
+			}
+			if (array2.length) exec(cmd ~ flags ~ array2 ~ res ~ "-odobjs" ~ dmdOption);
 		} else {
 			exec(cmd ~ flags ~ array ~ res ~ "-odobjs" ~ dmdOption);
 		}

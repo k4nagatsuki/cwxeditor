@@ -1154,7 +1154,8 @@ private:
 		auto a = edits.keys[0];
 		auto r = mixin(T);
 		auto vs = views();
-		foreach (a, i; edits) { mixin(S_TRACE);
+		foreach (a2, i; edits) { mixin(S_TRACE);
+			a = a2;
 			auto fi = cast(FlexImage)_imgp.images[startIndex(this) + i];
 			mixin(SetFlexImage);
 			_imgp.redrawImage(fi);
