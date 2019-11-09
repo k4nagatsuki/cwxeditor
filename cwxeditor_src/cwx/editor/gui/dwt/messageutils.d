@@ -2241,10 +2241,19 @@ immutable SPCHAR_ALL = [
 	SPChar.Y,
 ];
 
+immutable SPCHAR_TEXT_CLASSIC = [
+	SPChar.M,
+	SPChar.U,
+	SPChar.R,
+	SPChar.T,
+	SPChar.Y,
+];
+
 immutable SPCHAR_TEXT = [
 	SPChar.M,
 	SPChar.U,
 	SPChar.R,
+	SPChar.C,
 	SPChar.T,
 	SPChar.Y,
 ];
@@ -2344,7 +2353,7 @@ class PreviewValues : Composite {
 				_comm.refFlagAndStep.remove(&refFlagAndStep);
 				_comm.delFlagAndStep.remove(&refFlagAndStep);
 			}
-			_comm.refDataVersion.remove(&refreshFlags);
+			_comm.refDataVersion.remove(&refDataVersion);
 			savePreviewValues();
 		}
 	}
@@ -2416,15 +2425,6 @@ class PreviewValues : Composite {
 	}
 
 	private void refreshFlags() { mixin(S_TRACE);
-		_values.setRedraw(false);
-		scope (exit) _values.setRedraw(true);
-		int topIndex = _values.getTopIndex();
-		scope (exit) {
-			if (_values.getItemCount() <= topIndex) {
-				topIndex = _values.getItemCount() - 1;
-			}
-			_values.setTopIndex(topIndex);
-		}
 		int[string] pvs;
 		VariantVal[string] pvvs;
 		bool[string] selPaths;
@@ -2551,6 +2551,72 @@ class PreviewValues : Composite {
 	}
 	private void refFlagAndStep(cwx.flag.Flag[] flags, Step[] steps, cwx.flag.Variant[] variants) { mixin(S_TRACE);
 		_undo.reset();
+		_values.setRedraw(false);
+		scope (exit) _values.setRedraw(true);
+		int topIndex = _values.getTopIndex();
+		scope (exit) {
+			if (_values.getItemCount() <= topIndex) {
+				topIndex = _values.getItemCount() - 1;
+			}
+			_values.setTopIndex(topIndex);
+		}
+		refreshFlags();
+		raiseModEvent();
+	}
+	private void refDataVersion() { mixin(S_TRACE);
+		_undo.reset();
+		_values.setRedraw(false);
+		scope (exit) _values.setRedraw(true);
+		int topIndex = _values.getTopIndex();
+		scope (exit) {
+			if (_values.getItemCount() <= topIndex) {
+				topIndex = _values.getItemCount() - 1;
+			}
+			_values.setTopIndex(topIndex);
+		}
+		_targetChars = _isMessage ? SPCHAR_ALL : (!_summ || !_summ.legacy ? SPCHAR_TEXT : SPCHAR_TEXT_CLASSIC);
+		_values.removeAll();
+		foreach (i; _targetChars) { mixin(S_TRACE);
+			_indexTable[cast(SPChar)i] = _values.getItemCount();
+			auto itm = new TableItem(_values, SWT.NONE);
+			final switch (cast(SPChar)i) {
+			case SPChar.M:
+				itm.setImage(0, _prop.images.scTalker(Talker.Selected));
+				itm.setText(0, _prop.msgs.scTalkerName(Talker.Selected));
+				itm.setText(1, _prop.var.etc.messageVarSelected);
+				break;
+			case SPChar.U:
+				itm.setImage(0, _prop.images.scTalker(Talker.Unselected));
+				itm.setText(0, _prop.msgs.scTalkerName(Talker.Unselected));
+				itm.setText(1, _prop.var.etc.messageVarUnselected);
+				break;
+			case SPChar.R:
+				itm.setImage(0, _prop.images.scTalker(Talker.Random));
+				itm.setText(0, _prop.msgs.scTalkerName(Talker.Random));
+				itm.setText(1, _prop.var.etc.messageVarRandom);
+				break;
+			case SPChar.C:
+				itm.setImage(0, _prop.images.scTalker(Talker.Card));
+				itm.setText(0, _prop.msgs.scTalkerName(Talker.Card));
+				itm.setText(1, _prop.var.etc.messageVarCard);
+				break;
+			case SPChar.I:
+				itm.setImage(0, _prop.images.scRef);
+				itm.setText(0, _prop.msgs.scRef);
+				itm.setText(1, _prop.var.etc.messageVarRef);
+				break;
+			case SPChar.T:
+				itm.setImage(0, _prop.images.scTeam);
+				itm.setText(0, _prop.msgs.scTeam);
+				itm.setText(1, _prop.var.etc.messageVarTeam);
+				break;
+			case SPChar.Y:
+				itm.setImage(0, _prop.images.scYado);
+				itm.setText(0, _prop.msgs.scYado);
+				itm.setText(1, _prop.var.etc.messageVarYado);
+				break;
+			}
+		}
 		refreshFlags();
 		raiseModEvent();
 	}
@@ -2928,7 +2994,7 @@ class PreviewValues : Composite {
 		_summ = summ;
 		_uc = uc;
 		_isMessage = message;
-		_targetChars = message ? SPCHAR_ALL : SPCHAR_TEXT;
+		_targetChars = message ? SPCHAR_ALL : (!summ || !summ.legacy ? SPCHAR_TEXT : SPCHAR_TEXT_CLASSIC);
 
 		this.setLayout(zeroGridLayout(1, true));
 
@@ -2963,54 +3029,13 @@ class PreviewValues : Composite {
 			valueCol.setWidth(_prop.var.etc.textVarValueColumn);
 		}
 
-		foreach (i; _targetChars) { mixin(S_TRACE);
-			_indexTable[cast(SPChar)i] = _values.getItemCount();
-			auto itm = new TableItem(_values, SWT.NONE);
-			final switch (cast(SPChar)i) {
-			case SPChar.M:
-				itm.setImage(0, _prop.images.scTalker(Talker.Selected));
-				itm.setText(0, _prop.msgs.scTalkerName(Talker.Selected));
-				itm.setText(1, _prop.var.etc.messageVarSelected);
-				break;
-			case SPChar.U:
-				itm.setImage(0, _prop.images.scTalker(Talker.Unselected));
-				itm.setText(0, _prop.msgs.scTalkerName(Talker.Unselected));
-				itm.setText(1, _prop.var.etc.messageVarUnselected);
-				break;
-			case SPChar.R:
-				itm.setImage(0, _prop.images.scTalker(Talker.Random));
-				itm.setText(0, _prop.msgs.scTalkerName(Talker.Random));
-				itm.setText(1, _prop.var.etc.messageVarRandom);
-				break;
-			case SPChar.C:
-				itm.setImage(0, _prop.images.scTalker(Talker.Card));
-				itm.setText(0, _prop.msgs.scTalkerName(Talker.Card));
-				itm.setText(1, _prop.var.etc.messageVarCard);
-				break;
-			case SPChar.I:
-				itm.setImage(0, _prop.images.scRef);
-				itm.setText(0, _prop.msgs.scRef);
-				itm.setText(1, _prop.var.etc.messageVarRef);
-				break;
-			case SPChar.T:
-				itm.setImage(0, _prop.images.scTeam);
-				itm.setText(0, _prop.msgs.scTeam);
-				itm.setText(1, _prop.var.etc.messageVarTeam);
-				break;
-			case SPChar.Y:
-				itm.setImage(0, _prop.images.scYado);
-				itm.setText(0, _prop.msgs.scYado);
-				itm.setText(1, _prop.var.etc.messageVarYado);
-				break;
-			}
-		}
-		refreshFlags();
+		refDataVersion();
 		_comm.refUndoMax.add(&refUndoMax);
 		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
 			_comm.refFlagAndStep.add(&refFlagAndStep);
 			_comm.delFlagAndStep.add(&refFlagAndStep);
 		}
-		_comm.refDataVersion.add(&refreshFlags);
+		_comm.refDataVersion.add(&refDataVersion);
 
 		new TableTCEdit(_comm, _values, 1, &createEditor, &editEnd, null);
 	}
@@ -3766,7 +3791,7 @@ void setupSPCharsMenu(Commons comm, Summary summ, UseCounter uc, Control ctrl, M
 		}
 
 		// カード名等
-		foreach (spc; expandSharps ? (full ? SPCHAR_ALL : SPCHAR_TEXT) : []) { mixin(S_TRACE);
+		foreach (spc; expandSharps ? (full ? SPCHAR_ALL : (!summ || !summ.legacy ? SPCHAR_TEXT : SPCHAR_TEXT_CLASSIC)) : []) { mixin(S_TRACE);
 			void createMI(SPChar spc) { mixin(S_TRACE);
 				void put() { mixin(S_TRACE);
 					insert("#" ~ .C_TBL[spc]);

@@ -153,6 +153,11 @@ private string formatMsgImpl(string text,
 				}
 			} else { mixin(S_TRACE);
 				switch (nc) {
+				case 'C':
+					if (isTargetVersion && isTargetVersion("")) { mixin(S_TRACE);
+						goto case 'M';
+					}
+					break;
 				case 'M', 'R', 'U', 'T', 'Y':
 					result ~= to!dstring(getName(cast(char) nc));
 					i++;
