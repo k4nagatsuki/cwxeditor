@@ -361,7 +361,9 @@ class Msgs : Properties {
 	auto searchResultJpy1 = Msg("searchResultJpy1", "JPY1ファイル「%1$s」");
 	auto searchResultJpdc = Msg("searchResultJpdc", "JPDCファイル「%1$s」");
 
-	auto searchErrorReversalLevel = Msg("searchErrorReversalLevel", "レベルの上限と下限が逆転しています。");
+	auto searchErrorReversalLevel = Msg("searchErrorReversalLevel", "対象レベルの上限と下限が逆転しています。");
+	auto warningNoLevelMax = Msg("warningNoLevelMax", "最大対象レベルが設定されていません。");
+	auto warningNoLevelMin = Msg("warningNoLevelMin", "最小対象レベルが設定されていません。");
 	auto searchErrorNoImage = Msg("searchErrorNoImage", "イメージが指定されていません。");
 	auto searchErrorImageNotFound = Msg("searchErrorImageNotFound", "存在しないイメージファイル(%1$s)が指定されています。");
 	auto searchErrorBGMNotFound = Msg("searchErrorBGMNotFound", "存在しないBGMファイル(%1$s)が指定されています。");

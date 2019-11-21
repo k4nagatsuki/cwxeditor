@@ -2431,7 +2431,10 @@ public:
 			storeEdit(0UL, null);
 		};
 		_summDlg.appliedEvent ~= { mixin(S_TRACE);
-			if (showSummary) refresh();
+			if (_dirTree) _dirTree.redraw();
+			if (showSummary) { mixin(S_TRACE);
+				refresh();
+			}
 			if (_areas && !_areas.isDisposed()) updateAreaImage();
 		};
 		_summDlg.closeEvent ~= { mixin(S_TRACE);

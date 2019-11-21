@@ -62,15 +62,22 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	auto psumm = cast(Summary)path;
 	if (psumm) { mixin(S_TRACE);
 		putCardImages(psumm.imagePaths, true);
-		if (psumm.levelMin > psumm.levelMax) { mixin(S_TRACE);
-			r ~= prop.msgs.searchErrorReversalLevel;
-		}
 		if (!psumm.area(psumm.startArea)) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorStartAreaNotFound;
 		}
 		r ~= .sjisWarnings(prop, isClassic, psumm.scenarioName, prop.msgs.title);
-		r ~= .sjisWarnings(prop, isClassic, psumm.desc, prop.msgs.desc);
 		r ~= .sjisWarnings(prop, isClassic, psumm.author, prop.msgs.author);
+		if ((psumm.levelMin != 0 || psumm.levelMax != 0) && psumm.legacy) { mixin(S_TRACE);
+			if (psumm.levelMin == 0) { mixin(S_TRACE);
+				r ~= prop.msgs.warningNoLevelMin;
+			} else if (psumm.levelMax == 0) { mixin(S_TRACE);
+				r ~= prop.msgs.warningNoLevelMax;
+			}
+		}
+		if ((psumm.levelMin != 0 && psumm.levelMax != 0) && psumm.levelMin > psumm.levelMax) { mixin(S_TRACE);
+			r ~= prop.msgs.searchErrorReversalLevel;
+		}
+		r ~= .sjisWarnings(prop, isClassic, psumm.desc, prop.msgs.desc);
 		foreach (rc; psumm.rCoupons) { mixin(S_TRACE);
 			r ~= .sjisWarnings(prop, isClassic, rc, prop.msgs.rCoupons);
 		}

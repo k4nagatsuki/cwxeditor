@@ -92,8 +92,18 @@ private:
 			}
 		}
 		ws ~= .sjisWarnings(_prop.parent, _summ, _sname.getText(), _prop.msgs.title);
-		ws ~= .sjisWarnings(_prop.parent, _summ, _desc.getRRText(), _prop.msgs.desc);
 		ws ~= .sjisWarnings(_prop.parent, _summ, _author.getText(), _prop.msgs.author);
+		if ((_levMin.getSelection() != 0 || _levMax.getSelection() != 0) && _summ.legacy) { mixin(S_TRACE);
+			if (_levMin.getSelection() == 0) { mixin(S_TRACE);
+				ws ~= _prop.msgs.warningNoLevelMin;
+			} else if (_levMax.getSelection() == 0) { mixin(S_TRACE);
+				ws ~= _prop.msgs.warningNoLevelMax;
+			}
+		}
+		if ((_levMin.getSelection() != 0 && _levMax.getSelection() != 0) && _levMin.getSelection() > _levMax.getSelection()) { mixin(S_TRACE);
+			ws ~= _prop.msgs.searchErrorReversalLevel;
+		}
+		ws ~= .sjisWarnings(_prop.parent, _summ, _desc.getRRText(), _prop.msgs.desc);
 		ws ~= .sjisWarnings(_prop.parent, _summ, _rCoupons.getText(), _prop.msgs.rCoupons);
 		warning = ws;
 	}
@@ -291,7 +301,9 @@ private:
 					}
 					if (!_readOnly) { mixin(S_TRACE);
 						.listener(_levMin, SWT.Modify, &refreshPreview);
+						.listener(_levMin, SWT.Modify, &refreshWarning);
 						.listener(_levMax, SWT.Modify, &refreshPreview);
+						.listener(_levMax, SWT.Modify, &refreshWarning);
 					}
 
 					auto hint = new Label(grp, SWT.NONE);
