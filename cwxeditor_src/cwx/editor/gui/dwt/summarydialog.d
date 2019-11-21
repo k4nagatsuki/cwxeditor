@@ -860,6 +860,9 @@ private class SummaryPreview : Composite {
 				gc.setAlpha(alpha);
 				int levL = _levMin();
 				int levH = _levMax();
+				if (_summ.legacy && (levH < levL || levL == 0 && levH != 0)) { mixin(S_TRACE);
+					levH = levL;
+				}
 				string levText;
 				if (levL > 0 && levL == levH) { mixin(S_TRACE);
 					levText = .tryFormat(_prop.msgs.targetLevelSame, levL);
