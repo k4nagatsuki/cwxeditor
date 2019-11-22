@@ -432,6 +432,8 @@ void build(string[] args) {
 				"mainwindow.d",
 				"materialselect.d",
 				"messageutils.d",
+			],
+			[
 				"motionview.d",
 				"properties.d",
 				"radarspinner.d",
