@@ -167,6 +167,7 @@ class FlexEtcProps : Properties {
 	auto localFlagCountColumn = Prop!(int, false, true)("localFlagCountColumn", 60);
 	auto localVariablesSashL = Prop!(int)("localVariablesSashL", 1);
 	auto localVariablesSashR = Prop!(int)("localVariablesSashR", 4);
+	auto limitForNumberOfVariant = Prop!(uint, true)("limitForNumberOfVariant", 12);
 	auto filesWidth = Prop!(int, true, true)("filesWidth", 150);
 	auto filesHeight = Prop!(int, true, true)("filesHeight", 150);
 	auto talkersWidth = Prop!(int, true, true)("talkersWidth", 100);

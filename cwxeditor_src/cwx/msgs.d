@@ -587,6 +587,7 @@ class Msgs : Properties {
 	auto flagValue = Msg("flagValue", "値");
 	auto stepValue = Msg("stepValue", "段階");
 	auto spChars = Msg("spChars", "特殊文字");
+	auto warningLimitForNumberOfVariant = Msg("warningLimitForNumberOfVariant", "数値の桁数が大きすぎるため、ビット数の制限による誤差が発生する可能性があります。");
 	auto expandSPChars = Msg("expandSPChars", "特殊文字を展開する");
 	auto expandSPCharsHint = Msg("expandSPCharsHint", "#M = 選択メンバ名, #R = ランダムメンバ名 ...");
 	auto selectMember = Msg("selectMember", "選択対象");

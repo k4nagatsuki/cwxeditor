@@ -1116,6 +1116,13 @@ private:
 		if (!_comm.prop.isTargetVersion(_summ, "4")) { mixin(S_TRACE);
 			ws ~= _comm.prop.msgs.warningVariant;
 		}
+		if (_typeNum.getSelection()) { mixin(S_TRACE);
+			auto s = _numVal.getText();
+			auto len = s.strip().replace(".", "").replace("-", "").stripLeft("0").length;
+			if (_comm.prop.var.etc.limitForNumberOfVariant < len) { mixin(S_TRACE);
+				ws ~= _comm.prop.msgs.warningLimitForNumberOfVariant;
+			}
+		}
 		ws ~= .sjisWarnings(_comm.prop.parent, _summ, _name.getText(), _comm.prop.msgs.variantName);
 		ws ~= .sjisWarnings(_comm.prop.parent, _summ, _strVal.getText(), _comm.prop.msgs.stringValue);
 		warning = ws;
@@ -1200,6 +1207,7 @@ protected:
 			_typeNum.setEnabled(!_readOnly);
 			_typeNum.setText(_comm.prop.msgs.numberValue);
 			.listener(_typeNum, SWT.Selection, &updateEnabled);
+			.listener(_typeNum, SWT.Selection, &refreshWarning);
 			_numVal = .createNumberEditor(_comm, comp, SWT.BORDER | _readOnly, &catchMod);
 			mod(_numVal);
 			auto ngd = grabVGD(GridData.HORIZONTAL_ALIGN_BEGINNING);
@@ -1222,6 +1230,7 @@ protected:
 			mod(_typeStr);
 			_typeStr.setEnabled(!_readOnly);
 			.listener(_typeStr, SWT.Selection, &updateEnabled);
+			.listener(_typeStr, SWT.Selection, &refreshWarning);
 			_typeStr.setText(_comm.prop.msgs.stringValue);
 			_strVal = new Text(comp, SWT.BORDER | _readOnly);
 			mod(_strVal);
@@ -1233,6 +1242,7 @@ protected:
 			mod(_typeBool);
 			_typeBool.setEnabled(!_readOnly);
 			.listener(_typeBool, SWT.Selection, &updateEnabled);
+			.listener(_typeBool, SWT.Selection, &refreshWarning);
 			_typeBool.setText(_comm.prop.msgs.booleanValue);
 			_boolVal = new Combo(comp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
 			mod(_boolVal);
