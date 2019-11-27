@@ -54,6 +54,7 @@ public:
 	@property
 	override
 	void text(string text) { mixin(S_TRACE);
+		text = text.replace("\r\n", "\n").replace("\r", "\n");
 		if (_text == text) return;
 		changed();
 		removeTextUseCounter();
