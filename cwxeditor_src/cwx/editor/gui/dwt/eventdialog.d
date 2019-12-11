@@ -4257,7 +4257,7 @@ protected:
 			grp.setLayoutData(gd);
 			grp.setLayout(normalGridLayout(1, true));
 
-			_keyCode = createKeyCodeCombo(comm, summ, grp, &catchMod, _evt ? _evt.keyCode : "");
+			_keyCode = createKeyCodeCombo(comm, summ, grp, &catchMod, _evt ? _evt.keyCode : "", false);
 			mod(_keyCode);
 			auto kgd = new GridData(GridData.FILL_HORIZONTAL);
 			kgd.widthHint = _prop.var.etc.nameWidth;

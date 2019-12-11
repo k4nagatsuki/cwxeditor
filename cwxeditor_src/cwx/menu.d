@@ -163,6 +163,18 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.CopyVariablePath] = "V";
 		_mnemonic[MenuID.Up] = "K";
 		_mnemonic[MenuID.Down] = "J";
+		_mnemonic[MenuID.ConvertCouponType] = "O";
+		_mnemonic[MenuID.ConvertCouponTypeNormal] = "N";
+		_mnemonic[MenuID.ConvertCouponTypeHide] = "H";
+		_mnemonic[MenuID.ConvertCouponTypeSystem] = "S";
+		_mnemonic[MenuID.ConvertCouponTypeDur] = "D";
+		_mnemonic[MenuID.ConvertCouponTypeDurBattle] = "B";
+		_mnemonic[MenuID.CopyTypeConvertedCoupon] = "N";
+		_mnemonic[MenuID.CopyTypeConvertedCouponNormal] = "N";
+		_mnemonic[MenuID.CopyTypeConvertedCouponHide] = "H";
+		_mnemonic[MenuID.CopyTypeConvertedCouponSystem] = "S";
+		_mnemonic[MenuID.CopyTypeConvertedCouponDur] = "D";
+		_mnemonic[MenuID.CopyTypeConvertedCouponDurBattle] = "B";
 		_mnemonic[MenuID.AddInitialCoupons] = "A";
 		_mnemonic[MenuID.ReverseSignOfValues] = "R";
 		_mnemonic[MenuID.Reverse] = "R";
@@ -225,6 +237,11 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.KeyCodeTimingSuccess] = "S";
 		_mnemonic[MenuID.KeyCodeTimingFailure] = "F";
 		_mnemonic[MenuID.KeyCodeTimingHasNot] = "H";
+		_mnemonic[MenuID.CopyTimingConvertedKeyCode] = "O";
+		_mnemonic[MenuID.CopyTimingConvertedKeyCodeUse] = "U";
+		_mnemonic[MenuID.CopyTimingConvertedKeyCodeSuccess] = "S";
+		_mnemonic[MenuID.CopyTimingConvertedKeyCodeFailure] = "F";
+		_mnemonic[MenuID.CopyTimingConvertedKeyCodeHasNot] = "H";
 		_mnemonic[MenuID.KeyCodeCond] = "O";
 		_mnemonic[MenuID.KeyCodeCondOr] = "O";
 		_mnemonic[MenuID.KeyCodeCondAnd] = "A";
@@ -410,6 +427,18 @@ class MenuProps : Properties {
 		_hotkey[MenuID.CopyVariablePath] = "";
 		_hotkey[MenuID.Up] = "Ctrl+Arrow_Up";
 		_hotkey[MenuID.Down] = "Ctrl+Arrow_Down";
+		_hotkey[MenuID.ConvertCouponType] = "";
+		_hotkey[MenuID.ConvertCouponTypeNormal] = "";
+		_hotkey[MenuID.ConvertCouponTypeHide] = "";
+		_hotkey[MenuID.ConvertCouponTypeSystem] = "";
+		_hotkey[MenuID.ConvertCouponTypeDur] = "";
+		_hotkey[MenuID.ConvertCouponTypeDurBattle] = "";
+		_hotkey[MenuID.CopyTypeConvertedCoupon] = "";
+		_hotkey[MenuID.CopyTypeConvertedCouponNormal] = "";
+		_hotkey[MenuID.CopyTypeConvertedCouponHide] = "";
+		_hotkey[MenuID.CopyTypeConvertedCouponSystem] = "";
+		_hotkey[MenuID.CopyTypeConvertedCouponDur] = "";
+		_hotkey[MenuID.CopyTypeConvertedCouponDurBattle] = "";
 		_hotkey[MenuID.AddInitialCoupons] = "";
 		_hotkey[MenuID.ReverseSignOfValues] = "";
 		_hotkey[MenuID.Reverse] = "";
@@ -473,6 +502,11 @@ class MenuProps : Properties {
 		_hotkey[MenuID.KeyCodeTimingSuccess] = "";
 		_hotkey[MenuID.KeyCodeTimingFailure] = "";
 		_hotkey[MenuID.KeyCodeTimingHasNot] = "";
+		_hotkey[MenuID.CopyTimingConvertedKeyCode] = "";
+		_hotkey[MenuID.CopyTimingConvertedKeyCodeUse] = "";
+		_hotkey[MenuID.CopyTimingConvertedKeyCodeSuccess] = "";
+		_hotkey[MenuID.CopyTimingConvertedKeyCodeFailure] = "";
+		_hotkey[MenuID.CopyTimingConvertedKeyCodeHasNot] = "";
 		_hotkey[MenuID.KeyCodeCond] = "";
 		_hotkey[MenuID.KeyCodeCondOr] = "";
 		_hotkey[MenuID.KeyCodeCondAnd] = "";
@@ -835,6 +869,18 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.CopyVariablePath:
 	case MenuID.Up:
 	case MenuID.Down:
+	case MenuID.ConvertCouponType:
+	case MenuID.ConvertCouponTypeNormal:
+	case MenuID.ConvertCouponTypeHide:
+	case MenuID.ConvertCouponTypeSystem:
+	case MenuID.ConvertCouponTypeDur:
+	case MenuID.ConvertCouponTypeDurBattle:
+	case MenuID.CopyTypeConvertedCoupon:
+	case MenuID.CopyTypeConvertedCouponNormal:
+	case MenuID.CopyTypeConvertedCouponHide:
+	case MenuID.CopyTypeConvertedCouponSystem:
+	case MenuID.CopyTypeConvertedCouponDur:
+	case MenuID.CopyTypeConvertedCouponDurBattle:
 	case MenuID.AddInitialCoupons:
 	case MenuID.ReverseSignOfValues:
 	case MenuID.Reverse:
@@ -980,6 +1026,11 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.KeyCodeTimingSuccess:
 	case MenuID.KeyCodeTimingFailure:
 	case MenuID.KeyCodeTimingHasNot:
+	case MenuID.CopyTimingConvertedKeyCode:
+	case MenuID.CopyTimingConvertedKeyCodeUse:
+	case MenuID.CopyTimingConvertedKeyCodeSuccess:
+	case MenuID.CopyTimingConvertedKeyCodeFailure:
+	case MenuID.CopyTimingConvertedKeyCodeHasNot:
 	case MenuID.KeyCodeCond:
 	case MenuID.KeyCodeCondOr:
 	case MenuID.KeyCodeCondAnd:
@@ -1166,6 +1217,18 @@ bool isGlobalMenu(MenuID id) {
 	case MenuID.CopyVariablePath:
 	case MenuID.Up:
 	case MenuID.Down:
+	case MenuID.ConvertCouponType:
+	case MenuID.ConvertCouponTypeNormal:
+	case MenuID.ConvertCouponTypeHide:
+	case MenuID.ConvertCouponTypeSystem:
+	case MenuID.ConvertCouponTypeDur:
+	case MenuID.ConvertCouponTypeDurBattle:
+	case MenuID.CopyTypeConvertedCoupon:
+	case MenuID.CopyTypeConvertedCouponNormal:
+	case MenuID.CopyTypeConvertedCouponHide:
+	case MenuID.CopyTypeConvertedCouponSystem:
+	case MenuID.CopyTypeConvertedCouponDur:
+	case MenuID.CopyTypeConvertedCouponDurBattle:
 	case MenuID.AddInitialCoupons:
 	case MenuID.ReverseSignOfValues:
 	case MenuID.Reverse:
@@ -1228,6 +1291,11 @@ bool isGlobalMenu(MenuID id) {
 	case MenuID.KeyCodeTimingSuccess:
 	case MenuID.KeyCodeTimingFailure:
 	case MenuID.KeyCodeTimingHasNot:
+	case MenuID.CopyTimingConvertedKeyCode:
+	case MenuID.CopyTimingConvertedKeyCodeUse:
+	case MenuID.CopyTimingConvertedKeyCodeSuccess:
+	case MenuID.CopyTimingConvertedKeyCodeFailure:
+	case MenuID.CopyTimingConvertedKeyCodeHasNot:
 	case MenuID.KeyCodeCond:
 	case MenuID.KeyCodeCondOr:
 	case MenuID.KeyCodeCondAnd:

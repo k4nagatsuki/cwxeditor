@@ -1887,6 +1887,8 @@ private int ncmpImpl(C1, C2, alias Cmp)(in C1[] a0, in C2[] b0) { mixin(S_TRACE)
 	assert (ncmp("abc4a", "abc4b") < 0);
 	assert (ncmp("abc4", "abc4b") < 0);
 	assert (ncmp("abc", "def") < 0);
+	assert (ncmp("cw 1", "cw !") > 0);
+	assert (ncmp("cw 1", "cw a") < 0);
 }
 
 private C[] zfill_(C)(in C[] str, size_t width) { mixin(S_TRACE);

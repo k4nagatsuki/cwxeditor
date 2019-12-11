@@ -232,6 +232,10 @@ public:
 	@property Image couponHigh() { return imgd!("coupon_high.png"); }
 	@property Image couponDelete() { return imgd!("del_res.png"); }
 
+	@property Image couponSystem() { return imgd!("coupon_system.png"); }
+	@property Image couponDur() { return imgd!("coupon_dur.png"); }
+	@property Image couponDurBattle() { return imgd!("coupon_dur_battle.png"); }
+
 	@property Image gossip() { return imgd!("gossip.png"); }
 	@property Image endScenario() { return imgd!("end.png"); }
 
@@ -657,6 +661,18 @@ public:
 		case MenuID.CopyVariablePath: return imgd!("copy_path.png");
 		case MenuID.Up: return imgd!("up.png");
 		case MenuID.Down: return imgd!("down.png");
+		case MenuID.ConvertCouponType: return imgd!("coupon_conv.png");
+		case MenuID.ConvertCouponTypeNormal: return imgd!("coupon_n.png");
+		case MenuID.ConvertCouponTypeHide: return imgd!("coupon_hidden.png");
+		case MenuID.ConvertCouponTypeSystem: return imgd!("coupon_system.png");
+		case MenuID.ConvertCouponTypeDur: return imgd!("coupon_dur.png");
+		case MenuID.ConvertCouponTypeDurBattle: return imgd!("coupon_dur_battle.png");
+		case MenuID.CopyTypeConvertedCoupon: return imgd!("coupon_copy_conv.png");
+		case MenuID.CopyTypeConvertedCouponNormal: return imgd!("coupon_n.png");
+		case MenuID.CopyTypeConvertedCouponHide: return imgd!("coupon_hidden.png");
+		case MenuID.CopyTypeConvertedCouponSystem: return imgd!("coupon_system.png");
+		case MenuID.CopyTypeConvertedCouponDur: return imgd!("coupon_dur.png");
+		case MenuID.CopyTypeConvertedCouponDurBattle: return imgd!("coupon_dur_battle.png");
 		case MenuID.AddInitialCoupons: return imgd!("add_initial_coupons.png");
 		case MenuID.ReverseSignOfValues: return imgd!("reverse_sign_of_values.png");
 		case MenuID.Reverse: return imgd!("reverse.png");
@@ -714,11 +730,16 @@ public:
 		case MenuID.PlayBGM: return imgd!("sound_play.png");
 		case MenuID.NewEvent: return imgd!("new_event_tree.png");
 		case MenuID.NewEventWithDialog: return imgd!("new_event_tree.png");
-		case MenuID.KeyCodeTiming: return imgd!("key_code.png");
+		case MenuID.KeyCodeTiming: return imgd!("key_code_conv.png");
 		case MenuID.KeyCodeTimingUse: return imgd!("key_code.png");
 		case MenuID.KeyCodeTimingSuccess: return imgd!("key_code_suc.png");
 		case MenuID.KeyCodeTimingFailure: return imgd!("key_code_fail.png");
 		case MenuID.KeyCodeTimingHasNot: return imgd!("key_code_hasnot.png");
+		case MenuID.CopyTimingConvertedKeyCode: return imgd!("key_code_copy_conv.png");
+		case MenuID.CopyTimingConvertedKeyCodeUse: return imgd!("key_code.png");
+		case MenuID.CopyTimingConvertedKeyCodeSuccess: return imgd!("key_code_suc.png");
+		case MenuID.CopyTimingConvertedKeyCodeFailure: return imgd!("key_code_fail.png");
+		case MenuID.CopyTimingConvertedKeyCodeHasNot: return imgd!("key_code_hasnot.png");
 		case MenuID.KeyCodeCond: return imgd!("key_code_cond.png");
 		case MenuID.KeyCodeCondOr: return imgd!("key_code_or.png");
 		case MenuID.KeyCodeCondAnd: return imgd!("key_code_and.png");

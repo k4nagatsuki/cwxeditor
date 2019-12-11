@@ -3268,6 +3268,18 @@ public:
 						case MenuID.ToScriptAll:
 						case MenuID.Up:
 						case MenuID.Down:
+						case MenuID.ConvertCouponType:
+						case MenuID.ConvertCouponTypeNormal:
+						case MenuID.ConvertCouponTypeHide:
+						case MenuID.ConvertCouponTypeSystem:
+						case MenuID.ConvertCouponTypeDur:
+						case MenuID.ConvertCouponTypeDurBattle:
+						case MenuID.CopyTypeConvertedCoupon:
+						case MenuID.CopyTypeConvertedCouponNormal:
+						case MenuID.CopyTypeConvertedCouponHide:
+						case MenuID.CopyTypeConvertedCouponSystem:
+						case MenuID.CopyTypeConvertedCouponDur:
+						case MenuID.CopyTypeConvertedCouponDurBattle:
 						case MenuID.AddInitialCoupons:
 						case MenuID.ReverseSignOfValues:
 						case MenuID.Reverse:
@@ -3414,6 +3426,11 @@ public:
 						case MenuID.KeyCodeTimingSuccess:
 						case MenuID.KeyCodeTimingFailure:
 						case MenuID.KeyCodeTimingHasNot:
+						case MenuID.CopyTimingConvertedKeyCode:
+						case MenuID.CopyTimingConvertedKeyCodeUse:
+						case MenuID.CopyTimingConvertedKeyCodeSuccess:
+						case MenuID.CopyTimingConvertedKeyCodeFailure:
+						case MenuID.CopyTimingConvertedKeyCodeHasNot:
 						case MenuID.KeyCodeCond:
 						case MenuID.KeyCodeCondOr:
 						case MenuID.KeyCodeCondAnd:

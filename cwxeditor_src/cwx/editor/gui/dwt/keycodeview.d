@@ -168,7 +168,7 @@ class KeyCodeView : Composite {
 	}
 
 	private Control createEditor(TableItem itm, int editC) { mixin(S_TRACE);
-		auto combo = createKeyCodeCombo!Combo(_comm, _summ, _keyCodes, _catchMod, itm.getText());
+		auto combo = createKeyCodeCombo!Combo(_comm, _summ, _keyCodes, _catchMod, itm.getText(), _withIgnitionType);
 		combo.setText(itm.getText());
 		return combo;
 	}
@@ -381,6 +381,7 @@ class KeyCodeView : Composite {
 					if (keyCode == "") continue;
 				}
 				keyCodes2 ~= keyCode;
+				eKeyCodes[keyCode] = true;
 			}
 			if (!keyCodes2.length) return false;
 		}
@@ -601,11 +602,34 @@ class KeyCodeView : Composite {
 				appendMenuTCPD(_comm, menu, new KeyCodeTCPD, true, true, true, true, false);
 				new MenuItem(menu, SWT.SEPARATOR);
 				createMenuItem(_comm, menu, MenuID.SelectAll, &selectAll, &canSelectAll);
+
+				new MenuItem(menu, SWT.SEPARATOR);
+				if (withIgnitionType) { mixin(S_TRACE);
+					void delegate() dlg = null;
+					auto cascade = createMenuItem(_comm, menu, MenuID.KeyCodeTiming, dlg, () => canConvKeyCode!(FKCKind.Use) || canConvKeyCode!(FKCKind.Success) || canConvKeyCode!(FKCKind.Failure) || canConvKeyCode!(FKCKind.HasNot), SWT.CASCADE);
+					auto sub = new Menu(parent.getShell(), SWT.DROP_DOWN);
+					cascade.setMenu(sub);
+					createMenuItem(_comm, sub, MenuID.KeyCodeTimingUse, &convKeyCode!(FKCKind.Use), &canConvKeyCode!(FKCKind.Use));
+					createMenuItem(_comm, sub, MenuID.KeyCodeTimingSuccess, &convKeyCode!(FKCKind.Success), &canConvKeyCode!(FKCKind.Success));
+					createMenuItem(_comm, sub, MenuID.KeyCodeTimingFailure, &convKeyCode!(FKCKind.Failure), &canConvKeyCode!(FKCKind.Failure));
+					createMenuItem(_comm, sub, MenuID.KeyCodeTimingHasNot, &convKeyCode!(FKCKind.HasNot), &canConvKeyCode!(FKCKind.HasNot));
+				}
 			} else { mixin(S_TRACE);
 				appendMenuTCPD(_comm, menu, new KeyCodeTCPD, false, true, false, false, false);
 				new MenuItem(menu, SWT.SEPARATOR);
 				createMenuItem(_comm, menu, MenuID.SelectAll, &selectAll, &canSelectAll);
+				new MenuItem(menu, SWT.SEPARATOR);
 			}
+
+			void delegate() dlg = null;
+			auto cascade = createMenuItem(_comm, menu, MenuID.CopyTimingConvertedKeyCode, dlg, &canCopyWith, SWT.CASCADE);
+			auto sub = new Menu(parent.getShell(), SWT.DROP_DOWN);
+			cascade.setMenu(sub);
+			createMenuItem(_comm, sub, MenuID.CopyTimingConvertedKeyCodeUse, &copyKeyCodeWith!(FKCKind.Use), &canCopyWith);
+			createMenuItem(_comm, sub, MenuID.CopyTimingConvertedKeyCodeSuccess, &copyKeyCodeWith!(FKCKind.Success), &canCopyWith);
+			createMenuItem(_comm, sub, MenuID.CopyTimingConvertedKeyCodeFailure, &copyKeyCodeWith!(FKCKind.Failure), &canCopyWith);
+			createMenuItem(_comm, sub, MenuID.CopyTimingConvertedKeyCodeHasNot, &copyKeyCodeWith!(FKCKind.HasNot), &canCopyWith);
+
 			_keyCodes.setMenu(menu);
 			.listener(_keyCodes, SWT.Selection, { _comm.refreshToolBar(); });
 			if (!_readOnly) { mixin(S_TRACE);
@@ -757,5 +781,85 @@ class KeyCodeView : Composite {
 			}
 		}
 		return ws2;
+	}
+
+	@property
+	private bool canConvKeyCode(FKCKind Kind)() { mixin(S_TRACE);
+		if (_readOnly) return false;
+		if (_canDuplicate) { mixin(S_TRACE);
+			foreach (itm; _keyCodes.getSelection()) { mixin(S_TRACE);
+				auto name = itm.getText(0);
+				if (name == "") continue;
+				if (name != _prop.sys.convFireKeyCode(name, Kind)) return true;
+			}
+			return false;
+		} else { mixin(S_TRACE);
+			bool[string] table;
+			foreach (name; this.keyCodes) { mixin(S_TRACE);
+				if (name == "") continue;
+				table[name] = true;
+			}
+			foreach (itm; _keyCodes.getSelection()) { mixin(S_TRACE);
+				auto name = itm.getText(0);
+				if (name == "") continue;
+				auto name2 = _prop.sys.convFireKeyCode(name, Kind);
+				if (name2 !in table) return true;
+				table.remove(name);
+				table[name2] = true;
+			}
+			return false;
+		}
+	}
+	private void convKeyCode(FKCKind Kind)() { mixin(S_TRACE);
+		if (!canConvKeyCode!Kind) return;
+		_keyCodes.setRedraw(false);
+		scope (exit) _keyCodes.setRedraw(true);
+		if (_tte && _tte.isEditing) _tte.enter();
+		if (_tce && _tce.isEditing) _tce.enter();
+		storeKeyCodes();
+
+		if (_canDuplicate) { mixin(S_TRACE);
+			foreach (itm; _keyCodes.getSelection()) { mixin(S_TRACE);
+				auto name = itm.getText(0);
+				if (name == "") continue;
+				name = _prop.sys.convFireKeyCode(name, Kind);
+				setKeyCode(itm, name);
+			}
+		} else { mixin(S_TRACE);
+			bool[string] table;
+			foreach (name; this.keyCodes) { mixin(S_TRACE);
+				if (name == "") continue;
+				table[name] = true;
+			}
+			foreach (itm; _keyCodes.getSelection()) { mixin(S_TRACE);
+				auto name = itm.getText(0);
+				if (name == "") continue;
+				table.remove(name);
+				name = _prop.sys.convFireKeyCode(name, Kind);
+				if (name in table) continue;
+				table[name] = true;
+				setKeyCode(itm, name);
+			}
+		}
+		refreshWarning();
+		raiseModifyEvent();
+		_comm.refreshToolBar();
+	}
+	@property
+	private bool canCopyWith() { mixin(S_TRACE);
+		foreach (i; _keyCodes.getSelectionIndices()) { mixin(S_TRACE);
+			if (_keyCodes.getItem(i).getText(0) != "") return true;
+		}
+		return false;
+	}
+	private void copyKeyCodeWith(FKCKind Kind)() { mixin(S_TRACE);
+		if (!canCopyWith) return;
+		auto keyCodes = _keyCodes.getSelection().filter!(itm => itm.getText(0) != "")().map!(itm => _prop.sys.convFireKeyCode(itm.getText(0), Kind))().array();
+		if (keyCodes.length) { mixin(S_TRACE);
+			if (_tte && _tte.isEditing) _tte.enter();
+			if (_tce && _tce.isEditing) _tce.enter();
+			XMLtoCB(_prop, _comm.clipboard, keyCodesToXML(keyCodes));
+			_comm.refreshToolBar();
+		}
 	}
 }

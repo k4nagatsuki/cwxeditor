@@ -154,7 +154,16 @@ class CouponView(CVType Type) : Composite {
 		_undoCoupons.redo();
 		_comm.refreshToolBar();
 	}
-	private Image couponImage(int value) { mixin(S_TRACE);
+	private Image couponImage(string name, int value) { mixin(S_TRACE);
+		static if (Type !is CVType.Valued) {
+			if (_prop.sys.isCouponType(name, CouponType.System)) { mixin(S_TRACE);
+				return _prop.images.couponSystem;
+			} else if (_prop.sys.isCouponType(name, CouponType.Dur)) { mixin(S_TRACE);
+				return _prop.images.couponDur;
+			} else if (_prop.sys.isCouponType(name, CouponType.DurBattle)) { mixin(S_TRACE);
+				return _prop.images.couponDurBattle;
+			}
+		}
 		return value > 1 ? _prop.images.couponHigh
 			: (value > 0 ? _prop.images.couponPlus
 			: (value < 0 ? _prop.images.couponMinus : _prop.images.couponNormal));
@@ -763,9 +772,9 @@ class CouponView(CVType Type) : Composite {
 				_couponType.setText(_prop.msgs.couponHide);
 				.listener(_couponType, SWT.Selection, { mixin(S_TRACE);
 					if (_couponType.getSelection()) { mixin(S_TRACE);
-						_newCoupon.setText(_prop.sys.convCoupon(_newCoupon.getText(), CouponType.Hide, true));
+						_newCoupon.setText(_prop.sys.convCoupon(_newCoupon.getText(), CouponType.Hide, false));
 					} else { mixin(S_TRACE);
-						_newCoupon.setText(_prop.sys.convCoupon(_newCoupon.getText(), CouponType.Normal, true));
+						_newCoupon.setText(_prop.sys.convCoupon(_newCoupon.getText(), CouponType.Normal, false));
 					}
 				});
 			} else { mixin(S_TRACE);
@@ -873,12 +882,42 @@ class CouponView(CVType Type) : Composite {
 				appendMenuTCPD(_comm, menu, new CouponTCPD, true, true, true, true, true);
 				new MenuItem(menu, SWT.SEPARATOR);
 				createMenuItem(_comm, menu, MenuID.SelectAll, &selectAll, &canSelectAll);
+
+				new MenuItem(menu, SWT.SEPARATOR);
+				void delegate() dlg = null;
+				static if (Type is CVType.Cast) {
+					auto cascade = createMenuItem(_comm, menu, MenuID.ConvertCouponType, dlg, () => canConvType!(CouponType.Normal) || canConvType!(CouponType.Hide) || canConvType!(CouponType.System), SWT.CASCADE);
+				} else {
+					auto cascade = createMenuItem(_comm, menu, MenuID.ConvertCouponType, dlg, () => canConvType!(CouponType.Normal) || canConvType!(CouponType.Hide) || canConvType!(CouponType.System) || canConvType!(CouponType.Dur) || canConvType!(CouponType.DurBattle), SWT.CASCADE);
+				}
+				auto sub = new Menu(parent.getShell(), SWT.DROP_DOWN);
+				cascade.setMenu(sub);
+				createMenuItem(_comm, sub, MenuID.ConvertCouponTypeNormal, &convType!(CouponType.Normal), &canConvType!(CouponType.Normal));
+				createMenuItem(_comm, sub, MenuID.ConvertCouponTypeHide, &convType!(CouponType.Hide), &canConvType!(CouponType.Hide));
+				createMenuItem(_comm, sub, MenuID.ConvertCouponTypeSystem, &convType!(CouponType.System), &canConvType!(CouponType.System));
+				static if (Type !is CVType.Cast) {
+					createMenuItem(_comm, sub, MenuID.ConvertCouponTypeDur, &convType!(CouponType.Dur), &canConvType!(CouponType.Dur));
+					createMenuItem(_comm, sub, MenuID.ConvertCouponTypeDurBattle, &convType!(CouponType.DurBattle), &canConvType!(CouponType.DurBattle));
+				}
 			} else { mixin(S_TRACE);
 				appendMenuTCPD(_comm, menu, new CouponTCPD, false, true, false, false, false);
 				new MenuItem(menu, SWT.SEPARATOR);
 				createMenuItem(_comm, menu, MenuID.SelectAll, &selectAll, &canSelectAll);
+				new MenuItem(menu, SWT.SEPARATOR);
 			}
+
+			void delegate() dlg = null;
+			auto cascade = createMenuItem(_comm, menu, MenuID.CopyTypeConvertedCoupon, dlg, &canCopyWith, SWT.CASCADE);
+			auto sub = new Menu(parent.getShell(), SWT.DROP_DOWN);
+			cascade.setMenu(sub);
+			createMenuItem(_comm, sub, MenuID.CopyTypeConvertedCouponNormal, &copyWithType!(CouponType.Normal), &canCopyWith);
+			createMenuItem(_comm, sub, MenuID.CopyTypeConvertedCouponHide, &copyWithType!(CouponType.Hide), &canCopyWith);
+			createMenuItem(_comm, sub, MenuID.CopyTypeConvertedCouponSystem, &copyWithType!(CouponType.System), &canCopyWith);
+			createMenuItem(_comm, sub, MenuID.CopyTypeConvertedCouponDur, &copyWithType!(CouponType.Dur), &canCopyWith);
+			createMenuItem(_comm, sub, MenuID.CopyTypeConvertedCouponDurBattle, &copyWithType!(CouponType.DurBattle), &canCopyWith);
+
 			_coupons.setMenu(menu);
+
 			if (!_readOnly) { mixin(S_TRACE);
 				_tte1 = new TableTCEdit(_comm, _coupons, 0, &nameCreateEditor, &nameEditEnd, (itm, column) => true);
 				static if (CVType.NoValued != Type && CVType.Branch != Type) {
@@ -1133,7 +1172,7 @@ class CouponView(CVType Type) : Composite {
 		spn.setSelection(coupon.value);
 		return spn;
 	}
-	void valueEditEnd(TableItem itm, int column, Control ctrl) { mixin(S_TRACE);
+	private void valueEditEnd(TableItem itm, int column, Control ctrl) { mixin(S_TRACE);
 		assert (!_readOnly);
 		assert (cast(Spinner)ctrl !is null);
 		auto value = (cast(Spinner)ctrl).getSelection();
@@ -1169,7 +1208,7 @@ class CouponView(CVType Type) : Composite {
 		if (warningsImpl(coupon.name).length) { mixin(S_TRACE);
 			itm.setImage(0, _prop.images.warning);
 		} else { mixin(S_TRACE);
-			itm.setImage(0, couponImage(coupon.value));
+			itm.setImage(0, couponImage(coupon.name, coupon.value));
 		}
 	}
 	private void refDataVersion() { mixin(S_TRACE);
@@ -1235,5 +1274,65 @@ class CouponView(CVType Type) : Composite {
 		if (!canSelectAll) return;
 		_coupons.selectAll();
 		_comm.refreshToolBar();
+	}
+
+	@property
+	private bool canConvType(CouponType Type)() { mixin(S_TRACE);
+		if (_readOnly) return false;
+		bool[string] coupons;
+		foreach (coupon; couponNames) { mixin(S_TRACE);
+			coupons[coupon] = true;
+		}
+		foreach (itm; _coupons.getSelection()) { mixin(S_TRACE);
+			auto name = itm.getText(0);
+			auto name2 = _prop.sys.convCoupon(name, Type, false);
+			if (name2 !in coupons) return true;
+			coupons.remove(name);
+			coupons[name2] = true;
+		}
+		return false;
+	}
+	private void convType(CouponType Type)() { mixin(S_TRACE);
+		if (!canConvType!Type) return;
+		if (_tte1.isEditing) _tte1.enter();
+		_coupons.setRedraw(false);
+		scope (exit) _coupons.setRedraw(true);
+		storeCoupons();
+		bool[string] coupons;
+		foreach (coupon; couponNames) { mixin(S_TRACE);
+			coupons[coupon] = true;
+		}
+		foreach (itm; _coupons.getSelection()) { mixin(S_TRACE);
+			auto coupon = cast(Coupon)itm.getData();
+			auto name = coupon.name;
+			coupons.remove(name);
+			name = _prop.sys.convCoupon(name, Type, false);
+			if (name in coupons) continue;
+			coupons[name] = true;
+			itm.setText(0, name);
+			itm.setData(new Coupon(name, coupon.value));
+			updateWarning(itm);
+		}
+		raiseModifyEvent();
+		_comm.refreshToolBar();
+	}
+	@property
+	private bool canCopyWith() { mixin(S_TRACE);
+		return _coupons.getSelectionIndex() != -1;
+	}
+	private void copyWithType(CouponType Type)() { mixin(S_TRACE);
+		if (!canCopyWith) return;
+		auto cs = map!((itm) => cast(Coupon)itm.getData())(_coupons.getSelection());
+		if (cs.length) { mixin(S_TRACE);
+			if (_tte1.isEditing) _tte1.enter();
+			auto node = XNode.create(Coupon.XML_NAME_M);
+			foreach (c; cs) { mixin(S_TRACE);
+				// 当面、変換の結果重複が起こる場合でも排除せず重複したままコピーする
+				auto name = _prop.sys.convCoupon(c.name, Type, false);
+				(new Coupon(name, c.value)).toNode(node);
+			}
+			XMLtoCB(_prop, _comm.clipboard, node.text);
+			_comm.refreshToolBar();
+		}
 	}
 }

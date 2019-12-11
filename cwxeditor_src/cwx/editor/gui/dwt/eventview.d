@@ -1017,14 +1017,23 @@ private:
 	}
 	Control createEditor(TreeItem itm) { mixin(S_TRACE);
 		if (_readOnly) return null;
-		if (cast(EventTree)itm.getData() || cast(KeyCodeObj)itm.getData()) { mixin(S_TRACE);
-			return createTextEditor(_comm, _prop, _cards, itm.getText());
+		if (cast(EventTree)itm.getData()) { mixin(S_TRACE);
+			return .createTextEditor(_comm, _prop, _cards, itm.getText());
+		} else if (cast(KeyCodeObj)itm.getData()) { mixin(S_TRACE);
+			auto combo = .createKeyCodeCombo!Combo(_comm, _summ, _cards, null, itm.getText(), true);
+			combo.setText(itm.getText());
+			return combo;
 		}
 		return null;
 	}
 	void editEnd(TreeItem itm, Control c) { mixin(S_TRACE);
 		if (_readOnly) return;
-		string text = (cast(Text)c).getText();
+		string text;
+		if (auto t = cast(Text)c) { mixin(S_TRACE);
+			text = t.getText();
+		} else if (auto t = cast(Combo)c) { mixin(S_TRACE);
+			text = t.getText();
+		} else assert (0);
 		if (!text) text = "";
 		auto tree = cast(EventTree)itm.getData();
 		if (tree) { mixin(S_TRACE);
@@ -1453,6 +1462,15 @@ private:
 		}
 		return true;
 	}
+	void copyKeyCodeTim(FKCKind Kind)() { mixin(S_TRACE);
+		auto itm = selectionKeyCode;
+		if (!itm) return;
+		auto keyCode = (cast(KeyCodeObj)itm.getData()).array.idup;
+		auto conv = _prop.sys.convFireKeyCode(keyCode, Kind);
+		auto node = EventTree.keyCodeToNode(_prop.sys.toFKeyCode(conv), _prop.sys);
+		XMLtoCB(_prop, _comm.clipboard, node.text);
+		_comm.refreshToolBar();
+	}
 	void setKeyCodeCond(MatchingType Type)() { mixin(S_TRACE);
 		if (_readOnly) return;
 		auto eItm = selectionEventTree;
@@ -1630,6 +1648,16 @@ public:
 
 			auto shell = _cards.getShell();
 			auto menu = new Menu(shell, SWT.POP_UP);
+			void createCopyKeyCodeMenu() { mixin(S_TRACE);
+				void delegate() dlg = null;
+				auto cascade = createMenuItem(_comm, menu, MenuID.CopyTimingConvertedKeyCode, dlg, () => selectionKeyCode !is null, SWT.CASCADE);
+				auto sub = new Menu(parent.getShell(), SWT.DROP_DOWN);
+				cascade.setMenu(sub);
+				createMenuItem(_comm, sub, MenuID.CopyTimingConvertedKeyCodeUse, &copyKeyCodeTim!(FKCKind.Use), () => selectionKeyCode !is null);
+				createMenuItem(_comm, sub, MenuID.CopyTimingConvertedKeyCodeSuccess, &copyKeyCodeTim!(FKCKind.Success), () => selectionKeyCode !is null);
+				createMenuItem(_comm, sub, MenuID.CopyTimingConvertedKeyCodeFailure, &copyKeyCodeTim!(FKCKind.Failure), () => selectionKeyCode !is null);
+				createMenuItem(_comm, sub, MenuID.CopyTimingConvertedKeyCodeHasNot, &copyKeyCodeTim!(FKCKind.HasNot), () => selectionKeyCode !is null);
+			}
 			if (!_readOnly) { mixin(S_TRACE);
 				auto sys = _area.canHasFireEnter || _area.canHasFireLose || _area.canHasFireEscape || _area.canHasFireEveryRound || _area.canHasFireRoundEnd || _area.canHasFireRound0;
 				auto kc = _area.canHasFireKeyCode;
@@ -1644,10 +1672,11 @@ public:
 				createMenuItem(_comm, menu, MenuID.Redo, &this.redo, () => _undo.canRedo && !_readOnly);
 				new MenuItem(menu, SWT.SEPARATOR);
 				appendMenuTCPD(_comm, menu, this, true, true, true, true, true);
+
 				if (cast(Area)_area || cast(Battle)_area) { mixin(S_TRACE);
 					new MenuItem(menu, SWT.SEPARATOR);
 					void delegate() dlg = null;
-					auto cascade = createMenuItem(_comm, menu, MenuID.KeyCodeTiming, dlg, () => !_readOnly && selectionKeyCode !is null, SWT.CASCADE);
+					auto cascade = createMenuItem(_comm, menu, MenuID.KeyCodeTiming, dlg, () => canConvKeyCode!(FKCKind.Use) || canConvKeyCode!(FKCKind.Success) || canConvKeyCode!(FKCKind.Failure) || canConvKeyCode!(FKCKind.HasNot), SWT.CASCADE);
 					auto sub = new Menu(parent.getShell(), SWT.DROP_DOWN);
 					cascade.setMenu(sub);
 					createMenuItem(_comm, sub, MenuID.KeyCodeTimingUse, &keyCodeTimUse, &canConvKeyCode!(FKCKind.Use));
@@ -1655,6 +1684,9 @@ public:
 					createMenuItem(_comm, sub, MenuID.KeyCodeTimingFailure, &keyCodeTimFailure, &canConvKeyCode!(FKCKind.Failure));
 					createMenuItem(_comm, sub, MenuID.KeyCodeTimingHasNot, &keyCodeTimHasNot, &canConvKeyCode!(FKCKind.HasNot));
 
+					createCopyKeyCodeMenu();
+
+					new MenuItem(menu, SWT.SEPARATOR);
 					auto cascade2 = createMenuItem(_comm, menu, MenuID.KeyCodeCond, dlg, () => !_readOnly && selectionEventTree !is null, SWT.CASCADE);
 					auto sub2 = new Menu(parent.getShell(), SWT.DROP_DOWN);
 					cascade2.setMenu(sub2);
@@ -1664,6 +1696,8 @@ public:
 				new MenuItem(menu, SWT.SEPARATOR);
 			} else { mixin(S_TRACE);
 				appendMenuTCPD(_comm, menu, this, false, true, false, false, false);
+				new MenuItem(menu, SWT.SEPARATOR);
+				createCopyKeyCodeMenu();
 				new MenuItem(menu, SWT.SEPARATOR);
 			}
 			createMenuItem(_comm, menu, MenuID.ToScript, &toScript, &canToScript);
@@ -2550,7 +2584,7 @@ public:
 		return c;
 	}
 	private void createKCCombo() { mixin(S_TRACE);
-		auto combo = createKeyCodeCombo!CCombo(_comm, _summ, _toolbar, null, "");
+		auto combo = createKeyCodeCombo!CCombo(_comm, _summ, _toolbar, null, "", true);
 		combo.setEnabled(!_readOnly);
 		setFireControl(combo);
 		if (combo.getItemCount()) { mixin(S_TRACE);

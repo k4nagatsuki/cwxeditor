@@ -86,6 +86,60 @@ T createCouponCombo(T = Combo)(Commons comm, Summary summ, UseCounter uc, Compos
 	combo.setMenu(menu);
 	tmm = createTextMenu!T(comm, comm.prop, combo, catchMod);
 
+	@property
+	bool canConvType(CouponType Type)() { mixin(S_TRACE);
+		auto name = combo.getText();
+		if (name == "") return false;
+		return name != comm.prop.sys.convCoupon(name, Type, false);
+	}
+	void convType(CouponType Type)() { mixin(S_TRACE);
+		if (!canConvType!Type) return;
+		auto name = combo.getText();
+		if (name == "") return;
+		name = comm.prop.sys.convCoupon(name, Type, false);
+		combo.setText(name);
+		auto p = cast(int)name.to!dstring.length;
+		combo.setSelection(new Point(p, p));
+		comm.refreshToolBar();
+	}
+	@property
+	bool canCopyWith() { mixin(S_TRACE);
+		auto name = combo.getText();
+		return name != "";
+	}
+	void copyWithType(CouponType Type)() { mixin(S_TRACE);
+		if (!canCopyWith) return;
+		auto name = comm.prop.sys.convCoupon(combo.getText(), Type, false);
+		auto text = new ArrayWrapperString(name);
+		comm.clipboard.setContents([text], [TextTransfer.getInstance()]);
+		comm.refreshToolBar();
+	}
+
+	new MenuItem(menu, SWT.SEPARATOR);
+	{ mixin(S_TRACE);
+		void delegate() dlg = null;
+		auto cascade = createMenuItem(comm, menu, MenuID.ConvertCouponType, dlg, () => combo.getText() != "", SWT.CASCADE);
+		auto sub = new Menu(parent.getShell(), SWT.DROP_DOWN);
+		cascade.setMenu(sub);
+		createMenuItem(comm, sub, MenuID.ConvertCouponTypeNormal, &convType!(CouponType.Normal), &canConvType!(CouponType.Normal));
+		createMenuItem(comm, sub, MenuID.ConvertCouponTypeHide, &convType!(CouponType.Hide), &canConvType!(CouponType.Hide));
+		createMenuItem(comm, sub, MenuID.ConvertCouponTypeSystem, &convType!(CouponType.System), &canConvType!(CouponType.System));
+		if (type !is CouponComboType.Cast) { mixin(S_TRACE);
+			createMenuItem(comm, sub, MenuID.ConvertCouponTypeDur, &convType!(CouponType.Dur), &canConvType!(CouponType.Dur));
+			createMenuItem(comm, sub, MenuID.ConvertCouponTypeDurBattle, &convType!(CouponType.DurBattle), &canConvType!(CouponType.DurBattle));
+		}
+	}
+	{ mixin(S_TRACE);
+		void delegate() dlg = null;
+		auto cascade = createMenuItem(comm, menu, MenuID.CopyTypeConvertedCoupon, dlg, &canCopyWith, SWT.CASCADE);
+		auto sub = new Menu(parent.getShell(), SWT.DROP_DOWN);
+		cascade.setMenu(sub);
+		createMenuItem(comm, sub, MenuID.CopyTypeConvertedCouponNormal, &copyWithType!(CouponType.Normal), &canCopyWith);
+		createMenuItem(comm, sub, MenuID.CopyTypeConvertedCouponHide, &copyWithType!(CouponType.Hide), &canCopyWith);
+		createMenuItem(comm, sub, MenuID.CopyTypeConvertedCouponSystem, &copyWithType!(CouponType.System), &canCopyWith);
+		createMenuItem(comm, sub, MenuID.CopyTypeConvertedCouponDur, &copyWithType!(CouponType.Dur), &canCopyWith);
+		createMenuItem(comm, sub, MenuID.CopyTypeConvertedCouponDurBattle, &copyWithType!(CouponType.DurBattle), &canCopyWith);
+	}
 	if (expandSPChars) { mixin(S_TRACE);
 		new MenuItem(menu, SWT.SEPARATOR);
 		.setupSPCharsMenu(comm, summ, uc, combo, menu, false, true, () => true);
@@ -322,7 +376,7 @@ string[] allCompleteStamps(Commons comm, Summary summ) { mixin(S_TRACE);
 	return cs;
 }
 
-T createKeyCodeCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, string initValue) { mixin(S_TRACE);
+T createKeyCodeCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, string initValue, bool withIgnitionType) { mixin(S_TRACE);
 	auto combo = new T(parent, SWT.BORDER | SWT.DROP_DOWN);
 	combo.setVisibleItemCount(comm.prop.var.etc.comboVisibleItemCount);
 	auto hasItem = false;
@@ -385,6 +439,55 @@ T createKeyCodeCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bo
 	new MenuItem(menu, SWT.SEPARATOR);
 	combo.setMenu(menu);
 	createTextMenu!T(comm, comm.prop, combo, catchMod);
+
+	@property
+	bool canConvKeyCode(FKCKind Kind)() { mixin(S_TRACE);
+		auto name = combo.getText();
+		if (name == "") return false;
+		return name != comm.prop.sys.convFireKeyCode(name, Kind);
+	}
+	void convKeyCode(FKCKind Kind)() { mixin(S_TRACE);
+		if (!canConvKeyCode!Kind) return;
+		auto name = combo.getText();
+		if (name == "") return;
+		name = comm.prop.sys.convFireKeyCode(name, Kind);
+		combo.setText(name);
+		auto p = cast(int)name.to!dstring.length;
+		combo.setSelection(new Point(p, p));
+		comm.refreshToolBar();
+	}
+	@property
+	bool canCopyWith() { mixin(S_TRACE);
+		auto name = combo.getText();
+		return name != "";
+	}
+	void copyKeyCodeWith(FKCKind Kind)() { mixin(S_TRACE);
+		if (!canCopyWith) return;
+		auto name = comm.prop.sys.convFireKeyCode(combo.getText(), Kind);
+		auto text = new ArrayWrapperString(name);
+		comm.clipboard.setContents([text], [TextTransfer.getInstance()]);
+		comm.refreshToolBar();
+	}
+
+	new MenuItem(menu, SWT.SEPARATOR);
+	if (withIgnitionType) { mixin(S_TRACE);
+		void delegate() dlg = null;
+		auto cascade = createMenuItem(comm, menu, MenuID.KeyCodeTiming, dlg, () => combo.getText() != "", SWT.CASCADE);
+		auto sub = new Menu(parent.getShell(), SWT.DROP_DOWN);
+		cascade.setMenu(sub);
+		createMenuItem(comm, sub, MenuID.KeyCodeTimingUse, &convKeyCode!(FKCKind.Use), &canConvKeyCode!(FKCKind.Use));
+		createMenuItem(comm, sub, MenuID.KeyCodeTimingSuccess, &convKeyCode!(FKCKind.Success), &canConvKeyCode!(FKCKind.Success));
+		createMenuItem(comm, sub, MenuID.KeyCodeTimingFailure, &convKeyCode!(FKCKind.Failure), &canConvKeyCode!(FKCKind.Failure));
+		createMenuItem(comm, sub, MenuID.KeyCodeTimingHasNot, &convKeyCode!(FKCKind.HasNot), &canConvKeyCode!(FKCKind.HasNot));
+	}
+	void delegate() dlg = null;
+	auto cascade = createMenuItem(comm, menu, MenuID.CopyTimingConvertedKeyCode, dlg, &canCopyWith, SWT.CASCADE);
+	auto sub = new Menu(parent.getShell(), SWT.DROP_DOWN);
+	cascade.setMenu(sub);
+	createMenuItem(comm, sub, MenuID.CopyTimingConvertedKeyCodeUse, &copyKeyCodeWith!(FKCKind.Use), &canCopyWith);
+	createMenuItem(comm, sub, MenuID.CopyTimingConvertedKeyCodeSuccess, &copyKeyCodeWith!(FKCKind.Success), &canCopyWith);
+	createMenuItem(comm, sub, MenuID.CopyTimingConvertedKeyCodeFailure, &copyKeyCodeWith!(FKCKind.Failure), &canCopyWith);
+	createMenuItem(comm, sub, MenuID.CopyTimingConvertedKeyCodeHasNot, &copyKeyCodeWith!(FKCKind.HasNot), &canCopyWith);
 
 	refStandardKeyCodes();
 
