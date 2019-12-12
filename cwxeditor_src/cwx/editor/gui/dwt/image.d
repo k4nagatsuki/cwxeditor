@@ -664,15 +664,15 @@ public:
 		case MenuID.ConvertCouponType: return imgd!("coupon_conv.png");
 		case MenuID.ConvertCouponTypeNormal: return imgd!("coupon_n.png");
 		case MenuID.ConvertCouponTypeHide: return imgd!("coupon_hidden.png");
-		case MenuID.ConvertCouponTypeSystem: return imgd!("coupon_system.png");
 		case MenuID.ConvertCouponTypeDur: return imgd!("coupon_dur.png");
 		case MenuID.ConvertCouponTypeDurBattle: return imgd!("coupon_dur_battle.png");
+		case MenuID.ConvertCouponTypeSystem: return imgd!("coupon_system.png");
 		case MenuID.CopyTypeConvertedCoupon: return imgd!("coupon_copy_conv.png");
 		case MenuID.CopyTypeConvertedCouponNormal: return imgd!("coupon_n.png");
 		case MenuID.CopyTypeConvertedCouponHide: return imgd!("coupon_hidden.png");
-		case MenuID.CopyTypeConvertedCouponSystem: return imgd!("coupon_system.png");
 		case MenuID.CopyTypeConvertedCouponDur: return imgd!("coupon_dur.png");
 		case MenuID.CopyTypeConvertedCouponDurBattle: return imgd!("coupon_dur_battle.png");
+		case MenuID.CopyTypeConvertedCouponSystem: return imgd!("coupon_system.png");
 		case MenuID.AddInitialCoupons: return imgd!("add_initial_coupons.png");
 		case MenuID.ReverseSignOfValues: return imgd!("reverse_sign_of_values.png");
 		case MenuID.Reverse: return imgd!("reverse.png");

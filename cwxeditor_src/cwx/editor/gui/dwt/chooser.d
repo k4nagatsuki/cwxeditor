@@ -123,11 +123,9 @@ T createCouponCombo(T = Combo)(Commons comm, Summary summ, UseCounter uc, Compos
 		cascade.setMenu(sub);
 		createMenuItem(comm, sub, MenuID.ConvertCouponTypeNormal, &convType!(CouponType.Normal), &canConvType!(CouponType.Normal));
 		createMenuItem(comm, sub, MenuID.ConvertCouponTypeHide, &convType!(CouponType.Hide), &canConvType!(CouponType.Hide));
+		createMenuItem(comm, sub, MenuID.ConvertCouponTypeDur, &convType!(CouponType.Dur), &canConvType!(CouponType.Dur));
+		createMenuItem(comm, sub, MenuID.ConvertCouponTypeDurBattle, &convType!(CouponType.DurBattle), &canConvType!(CouponType.DurBattle));
 		createMenuItem(comm, sub, MenuID.ConvertCouponTypeSystem, &convType!(CouponType.System), &canConvType!(CouponType.System));
-		if (type !is CouponComboType.Cast) { mixin(S_TRACE);
-			createMenuItem(comm, sub, MenuID.ConvertCouponTypeDur, &convType!(CouponType.Dur), &canConvType!(CouponType.Dur));
-			createMenuItem(comm, sub, MenuID.ConvertCouponTypeDurBattle, &convType!(CouponType.DurBattle), &canConvType!(CouponType.DurBattle));
-		}
 	}
 	{ mixin(S_TRACE);
 		void delegate() dlg = null;
@@ -136,9 +134,9 @@ T createCouponCombo(T = Combo)(Commons comm, Summary summ, UseCounter uc, Compos
 		cascade.setMenu(sub);
 		createMenuItem(comm, sub, MenuID.CopyTypeConvertedCouponNormal, &copyWithType!(CouponType.Normal), &canCopyWith);
 		createMenuItem(comm, sub, MenuID.CopyTypeConvertedCouponHide, &copyWithType!(CouponType.Hide), &canCopyWith);
-		createMenuItem(comm, sub, MenuID.CopyTypeConvertedCouponSystem, &copyWithType!(CouponType.System), &canCopyWith);
 		createMenuItem(comm, sub, MenuID.CopyTypeConvertedCouponDur, &copyWithType!(CouponType.Dur), &canCopyWith);
 		createMenuItem(comm, sub, MenuID.CopyTypeConvertedCouponDurBattle, &copyWithType!(CouponType.DurBattle), &canCopyWith);
+		createMenuItem(comm, sub, MenuID.CopyTypeConvertedCouponSystem, &copyWithType!(CouponType.System), &canCopyWith);
 	}
 	if (expandSPChars) { mixin(S_TRACE);
 		new MenuItem(menu, SWT.SEPARATOR);

@@ -3271,15 +3271,15 @@ public:
 						case MenuID.ConvertCouponType:
 						case MenuID.ConvertCouponTypeNormal:
 						case MenuID.ConvertCouponTypeHide:
-						case MenuID.ConvertCouponTypeSystem:
 						case MenuID.ConvertCouponTypeDur:
 						case MenuID.ConvertCouponTypeDurBattle:
+						case MenuID.ConvertCouponTypeSystem:
 						case MenuID.CopyTypeConvertedCoupon:
 						case MenuID.CopyTypeConvertedCouponNormal:
 						case MenuID.CopyTypeConvertedCouponHide:
-						case MenuID.CopyTypeConvertedCouponSystem:
 						case MenuID.CopyTypeConvertedCouponDur:
 						case MenuID.CopyTypeConvertedCouponDurBattle:
+						case MenuID.CopyTypeConvertedCouponSystem:
 						case MenuID.AddInitialCoupons:
 						case MenuID.ReverseSignOfValues:
 						case MenuID.Reverse:

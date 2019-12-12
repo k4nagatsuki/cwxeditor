@@ -1272,6 +1272,7 @@ private:
 			tree.round0 = true;
 		} else if (cast(KeyCodeObj)fire) { mixin(S_TRACE);
 			tree.addKeyCode(_prop.sys.toFKeyCode((cast(KeyCodeObj)fire).array.idup));
+			_comm.refKeyCodes.call();
 		} else { mixin(S_TRACE);
 			assert (cast(RoundObj)fire);
 			tree.addRound((cast(RoundObj)fire).intValue());

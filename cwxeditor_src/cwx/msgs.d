@@ -2988,15 +2988,15 @@ class Msgs : Properties {
 	auto menuTextConvertCouponType = Msg("menuTextConvertCouponType", "クーポンの種類の変更");
 	auto menuTextConvertCouponTypeNormal = Msg("menuTextConvertCouponTypeNormal", "ノーマル");
 	auto menuTextConvertCouponTypeHide = Msg("menuTextConvertCouponTypeHide", "[＿...] 隠蔽");
-	auto menuTextConvertCouponTypeSystem = Msg("menuTextConvertCouponTypeSystem", "[＠...] システム");
 	auto menuTextConvertCouponTypeDur = Msg("menuTextConvertCouponTypeDur", "[：...] 時限");
 	auto menuTextConvertCouponTypeDurBattle = Msg("menuTextConvertCouponTypeDurBattle", "[；...] 戦闘中時限");
+	auto menuTextConvertCouponTypeSystem = Msg("menuTextConvertCouponTypeSystem", "[＠...] システム");
 	auto menuTextCopyTypeConvertedCoupon = Msg("menuTextCopyTypeConvertedCoupon", "種類を指定してコピー");
 	auto menuTextCopyTypeConvertedCouponNormal = Msg("menuTextCopyTypeConvertedCouponNormal", "ノーマル");
 	auto menuTextCopyTypeConvertedCouponHide = Msg("menuTextCopyTypeConvertedCouponHide", "[＿...] 隠蔽");
-	auto menuTextCopyTypeConvertedCouponSystem = Msg("menuTextCopyTypeConvertedCouponSystem", "[＠...] システム");
 	auto menuTextCopyTypeConvertedCouponDur = Msg("menuTextCopyTypeConvertedCouponDur", "[：...] 時限");
 	auto menuTextCopyTypeConvertedCouponDurBattle = Msg("menuTextCopyTypeConvertedCouponDurBattle", "[；...] 戦闘中時限");
+	auto menuTextCopyTypeConvertedCouponSystem = Msg("menuTextCopyTypeConvertedCouponSystem", "[＠...] システム");
 	auto menuTextAddInitialCoupons = Msg("menuTextAddInitialCoupons", "種族と年代の初期クーポンを追加");
 	auto menuTextReverseSignOfValues = Msg("menuTextReverseSignOfValues", "得点の正負を反転する");
 	auto menuTextReverse = Msg("menuTextReverse", "逆順にする");
