@@ -49,9 +49,11 @@ class StrArrUndo : TUndo!(string[]) {
 class UndoArr : Undo {
 	private Undo[] _array;
 	private bool _rev;
-	this (Undo[] array, bool rev = true) { mixin(S_TRACE);
+	private void delegate() _after;
+	this (Undo[] array, bool rev = true, void delegate() after = null) { mixin(S_TRACE);
 		_array = array;
 		_rev = rev;
+		_after = after;
 	}
 	void undo() { mixin(S_TRACE);
 		if (_rev) { mixin(S_TRACE);
@@ -59,9 +61,11 @@ class UndoArr : Undo {
 		} else { mixin(S_TRACE);
 			foreach (u; _array) u.undo();
 		}
+		if (_after) _after();
 	}
 	void redo() { mixin(S_TRACE);
 		foreach (u; _array) u.redo();
+		if (_after) _after();
 	}
 	void dispose() { mixin(S_TRACE);
 		foreach (u; _array) u.dispose();

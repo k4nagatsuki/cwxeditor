@@ -26,6 +26,7 @@ import cwx.warning;
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.centerlayout;
+import cwx.editor.gui.dwt.chooser;
 import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.dskin;
@@ -773,7 +774,6 @@ private:
 	}
 	private void updateIDCombo() { mixin(S_TRACE);
 		if (idKindIsString) { mixin(S_TRACE);
-			if (_fromID && !(_fromID.getStyle() & SWT.READ_ONLY)) return;
 			if (_fromID) { mixin(S_TRACE);
 				_fromID.dispose();
 				_toID.dispose();
@@ -784,7 +784,6 @@ private:
 			_toID = new Combo(_toIDComp, SWT.BORDER | SWT.DROP_DOWN);
 			_toID.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 		} else { mixin(S_TRACE);
-			if (_fromID && (_fromID.getStyle() & SWT.READ_ONLY)) return;
 			if (_fromID) { mixin(S_TRACE);
 				_fromID.dispose();
 				_toID.dispose();
@@ -796,17 +795,26 @@ private:
 			_toID.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 			_toID.addSelectionListener(new SelID(_toIDVal));
 		}
-		auto fMenu = new Menu(_win, SWT.POP_UP);
-		_fromID.setMenu(fMenu);
-		createMenuItem(_comm, fMenu, MenuID.IncSearch, &fromIDIncSearch, () => _hasID);
-		new MenuItem(fMenu, SWT.SEPARATOR);
-		createTextMenu!Combo(_comm, _prop, _fromID, &catchMod);
 
-		auto tMenu = new Menu(_win, SWT.POP_UP);
-		_toID.setMenu(tMenu);
-		createMenuItem(_comm, tMenu, MenuID.IncSearch, &toIDIncSearch, () => _hasID);
-		new MenuItem(tMenu, SWT.SEPARATOR);
-		createTextMenu!Combo(_comm, _prop, _toID, &catchMod);
+		void setupMenu(Combo combo, void delegate() incSearch) { mixin(S_TRACE);
+			auto menu = new Menu(_win, SWT.POP_UP);
+			combo.setMenu(menu);
+			createMenuItem(_comm, menu, MenuID.IncSearch, incSearch, () => _hasID);
+			new MenuItem(menu, SWT.SEPARATOR);
+			createTextMenu!Combo(_comm, _prop, combo, &catchMod);
+
+			auto index = _idKind.getSelectionIndex();
+			if (index == ID_COUPON) { mixin(S_TRACE);
+				new MenuItem(menu, SWT.SEPARATOR);
+				.createCouponTypeMenu(_comm, combo, true, true);
+			} else if (index == ID_KEY_CODE) { mixin(S_TRACE);
+				new MenuItem(menu, SWT.SEPARATOR);
+				.createKeyCodeTimingMenu(_comm, combo, false, true);
+			}
+		}
+
+		setupMenu(_fromID, &fromIDIncSearch);
+		setupMenu(_toID, &toIDIncSearch);
 
 		_fromIDIncSearch = new IncSearch(_comm, _fromID, () => _hasID);
 		_fromIDIncSearch.modEvent ~= () => setupIDs(false, true, false);
@@ -3305,13 +3313,15 @@ public:
 		private CouponParams[] _results;
 		private KeyType _oldVal, _newVal;
 		private ReplaceDialog _dlg;
+		private bool _callRef;
 		User[] users;
-		this (Commons comm, Summary summ, KeyType oldVal, KeyType newVal, ReplaceDialog dlg) { mixin(S_TRACE);
+		this (Commons comm, Summary summ, KeyType oldVal, KeyType newVal, ReplaceDialog dlg, bool callRef) { mixin(S_TRACE);
 			_comm = comm;
 			_summ = summ;
 			_oldVal = oldVal;
 			_newVal = newVal;
 			_dlg = dlg;
+			_callRef = callRef;
 			save();
 		}
 		private void save() { mixin(S_TRACE);
@@ -3348,22 +3358,24 @@ public:
 			if (_dlg) { mixin(S_TRACE);
 				_dlg.refResultStatus(_dlg._result.getItemCount(), false);
 			}
-			_comm.replText.call();
-			_summ.changed();
+			if (_callRef) { mixin(S_TRACE);
+				_comm.replText.call();
+				_summ.changed();
 
-			static if (is(KeyType:CouponId)) { mixin(S_TRACE);
-				_comm.refCoupons.call();
-			} else static if (is(KeyType:GossipId)) { mixin(S_TRACE);
-				_comm.refGossips.call();
-			} else static if (is(KeyType:CompleteStampId)) { mixin(S_TRACE);
-				_comm.refCompleteStamps.call();
-			} else static if (is(KeyType:KeyCodeId)) { mixin(S_TRACE);
-				_comm.refKeyCodes.call();
-			} else static if (is(KeyType:CellNameId)) { mixin(S_TRACE);
-				_comm.refCellNames.call();
-			} else static if (is(KeyType:CardGroupId)) { mixin(S_TRACE);
-				_comm.refCardGroups.call();
-			} else static assert (0);
+				static if (is(KeyType:CouponId)) { mixin(S_TRACE);
+					_comm.refCoupons.call();
+				} else static if (is(KeyType:GossipId)) { mixin(S_TRACE);
+					_comm.refGossips.call();
+				} else static if (is(KeyType:CompleteStampId)) { mixin(S_TRACE);
+					_comm.refCompleteStamps.call();
+				} else static if (is(KeyType:KeyCodeId)) { mixin(S_TRACE);
+					_comm.refKeyCodes.call();
+				} else static if (is(KeyType:CellNameId)) { mixin(S_TRACE);
+					_comm.refCellNames.call();
+				} else static if (is(KeyType:CardGroupId)) { mixin(S_TRACE);
+					_comm.refCardGroups.call();
+				} else static assert (0);
+			}
 		}
 		void undo() { mixin(S_TRACE);
 			impl();
@@ -3373,11 +3385,11 @@ public:
 		}
 		void dispose() { }
 	}
-	static void renameCoupon(KeyType, RType)(Commons comm, Summary summ, TableItem itm, KeyType oldVal, KeyType newVal, UndoManager undoManager, in bool[CWXPath] rangeT, bool useRangeT, Table list, ReplaceDialog dlg, RType[] nameList) { mixin(S_TRACE);
-		if (cast(string)oldVal == cast(string)newVal) return;
-		if (cast(string)newVal == "") return;
+	static auto renameCoupon(KeyType, RType)(Commons comm, Summary summ, TableItem itm, KeyType oldVal, KeyType newVal, UndoManager undoManager, in bool[CWXPath] rangeT, bool useRangeT, Table list, ReplaceDialog dlg, RType[] nameList, bool callRef = true) { mixin(S_TRACE);
+		if (cast(string)oldVal == cast(string)newVal) return null;
+		if (cast(string)newVal == "") return null;
 		auto uc = summ.useCounter;
-		auto undo = new CouponUndo!(ForeachType!(typeof(uc.values(oldVal))), KeyType)(comm, summ, oldVal, newVal, dlg);
+		auto undo = new CouponUndo!(ForeachType!(typeof(uc.values(oldVal))), KeyType)(comm, summ, oldVal, newVal, dlg, callRef);
 		foreach (u; uc.values(oldVal)) { mixin(S_TRACE);
 			if (!useRangeT || dec(u.owner, rangeT)) { mixin(S_TRACE);
 				UseCounter.replaceID(newVal, u);
@@ -3391,7 +3403,7 @@ public:
 				undo.users ~= u;
 			}
 		}
-		undoManager ~= undo;
+		if (undoManager) undoManager ~= undo;
 		// 変更の結果、他のキーと同一の名前になったら統合する
 		auto i1 = list.indexOf(itm);
 		foreach (i, itm2; list.getItems()) { mixin(S_TRACE);
@@ -3409,6 +3421,7 @@ public:
 				break;
 			}
 		}
+		return undo;
 	}
 	private void searchCouponImpl(KeyType)(in KeyType[] keys, UseCounter uc, in bool[CWXPath] rangeT, Image delegate() image, ref size_t count) { mixin(S_TRACE);
 		foreach (key; std.algorithm.sort(keys.dup)) { mixin(S_TRACE);

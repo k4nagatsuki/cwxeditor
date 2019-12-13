@@ -454,7 +454,7 @@ class KeyCodeView : Composite {
 				if (_tte && _tte.isEditing) _tte.enter();
 				if (_tce && _tce.isEditing) _tce.enter();
 				auto keyCodes = _keyCodes.getSelection().map!(itm => itm.getText())().array();
-				XMLtoCB(_prop, _comm.clipboard, keyCodesToXML(keyCodes));
+				XMLtoCB(_prop, _comm.clipboard, .keyCodesToXML(keyCodes));
 				_comm.refreshToolBar();
 			}
 		}
@@ -854,11 +854,11 @@ class KeyCodeView : Composite {
 	}
 	private void copyKeyCodeWith(FKCKind Kind)() { mixin(S_TRACE);
 		if (!canCopyWith) return;
+		if (_tte && _tte.isEditing) _tte.enter();
+		if (_tce && _tce.isEditing) _tce.enter();
 		auto keyCodes = _keyCodes.getSelection().filter!(itm => itm.getText(0) != "")().map!(itm => _prop.sys.convFireKeyCode(itm.getText(0), Kind))().array();
 		if (keyCodes.length) { mixin(S_TRACE);
-			if (_tte && _tte.isEditing) _tte.enter();
-			if (_tce && _tce.isEditing) _tce.enter();
-			XMLtoCB(_prop, _comm.clipboard, keyCodesToXML(keyCodes));
+			XMLtoCB(_prop, _comm.clipboard, .keyCodesToXML(keyCodes));
 			_comm.refreshToolBar();
 		}
 	}
