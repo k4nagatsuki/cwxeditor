@@ -615,9 +615,9 @@ public:
 		try { mixin(S_TRACE);
 			ctrl.setFocus();
 			if (_canOpenCombo && _comm.prop.var.etc.comboListVisible) { mixin(S_TRACE);
-				auto combo = cast(Combo) ctrl;
+				auto combo = cast(Combo)ctrl;
 				if (combo) combo.setListVisible(true);
-				auto ccombo = cast(CCombo) ctrl;
+				auto ccombo = cast(CCombo)ctrl;
 				if (ccombo) ccombo.setListVisible(true);
 			}
 		} catch (Exception e) {
@@ -810,7 +810,7 @@ private:
 
 	void startEdit(Item itm) { mixin(S_TRACE);
 		try { mixin(S_TRACE);
-			startEdit(cast(TableItem) itm);
+			startEdit(cast(TableItem)itm);
 		} catch (Exception e) {
 			printStackTrace();
 			debugln(e);
@@ -1073,7 +1073,7 @@ public:
 	}
 	protected override void end(Control c) { mixin(S_TRACE);
 		try { mixin(S_TRACE);
-			auto combo = cast(C) c;
+			auto combo = cast(C)c;
 			if (editEnd is null) { mixin(S_TRACE);
 				_editor.getItem().setText(editC, combo.getText());
 			} else { mixin(S_TRACE);
@@ -1193,7 +1193,7 @@ private:
 	void startEdit(Item itm) { mixin(S_TRACE);
 		try { mixin(S_TRACE);
 			if (_tee !is null && !_tee.isExit) _tee.enter();
-			auto sel = cast(TreeItem) itm;
+			auto sel = cast(TreeItem)itm;
 			auto c = createEditor(sel);
 			if (c) { mixin(S_TRACE);
 				tree.showSelection();
@@ -1388,17 +1388,17 @@ bool hasFocus(Control c) { mixin(S_TRACE);
 	return false;
 }
 Shell topShell(Shell shell) { mixin(S_TRACE);
-	auto parent = cast(Shell) shell.getParent();
+	auto parent = cast(Shell)shell.getParent();
 	if (!parent) return shell;
 	while (parent.getParent()) { mixin(S_TRACE);
-		parent = cast(Shell) parent.getParent();
+		parent = cast(Shell)parent.getParent();
 	}
 	return parent;
 }
 bool isDescendant(Shell shell1, Shell shell2) { mixin(S_TRACE);
 	while (shell1 !is shell2) { mixin(S_TRACE);
 		if (!shell2) return false;
-		shell2 = cast(Shell) shell2.getParent();
+		shell2 = cast(Shell)shell2.getParent();
 	}
 	return true;
 }
@@ -1921,11 +1921,11 @@ ImageDataWithScale castCardImage(Props prop, Skin skin, in Summary summ, in Cast
 			put(.enhanceUp(skin, prop.drawingScale, enh), back);
 		} else if (value < 0 && round > 0) { mixin(S_TRACE);
 			CRGB back;
-			if (-(cast(int) prop.var.etc.enhanceMaxVal) >= value) { mixin(S_TRACE);
+			if (-(cast(int)prop.var.etc.enhanceMaxVal) >= value) { mixin(S_TRACE);
 				back = prop.var.etc.penaltyColorMax;
-			} else if (-(cast(int) prop.var.etc.enhanceHighVal) >= value) { mixin(S_TRACE);
+			} else if (-(cast(int)prop.var.etc.enhanceHighVal) >= value) { mixin(S_TRACE);
 				back = prop.var.etc.penaltyColorHigh;
-			} else if (-(cast(int) prop.var.etc.enhanceMiddleVal) >= value) { mixin(S_TRACE);
+			} else if (-(cast(int)prop.var.etc.enhanceMiddleVal) >= value) { mixin(S_TRACE);
 				back = prop.var.etc.penaltyColorMiddle;
 			} else if (-1 >= value) { mixin(S_TRACE);
 				back = prop.var.etc.penaltyColorLow;
@@ -2565,7 +2565,7 @@ void forceFocus(Widget widget, bool shellActivate) { mixin(S_TRACE);
 private void forceFocusImpl(Widget widget, Widget child, bool shellActivate) { mixin(S_TRACE);
 	if (!widget || widget.isDisposed()) return;
 	auto d = Display.getCurrent();
-	auto ti = cast(TableItem) widget;
+	auto ti = cast(TableItem)widget;
 	if (ti) { mixin(S_TRACE);
 		auto tbl = ti.getParent();
 		forceFocusImpl(tbl, null, shellActivate);
@@ -2573,7 +2573,7 @@ private void forceFocusImpl(Widget widget, Widget child, bool shellActivate) { m
 		tbl.showSelection();
 		return;
 	}
-	auto tri = cast(TreeItem) widget;
+	auto tri = cast(TreeItem)widget;
 	if (tri) { mixin(S_TRACE);
 		auto tree = tri.getParent();
 		forceFocusImpl(tree, null, shellActivate);
@@ -2581,36 +2581,36 @@ private void forceFocusImpl(Widget widget, Widget child, bool shellActivate) { m
 		tree.showSelection();
 		return;
 	}
-	auto sh = cast(Shell) widget;
+	auto sh = cast(Shell)widget;
 	if (sh) { mixin(S_TRACE);
 		if (shellActivate) { mixin(S_TRACE);
 			sh.setActive();
 		}
 		return;
 	}
-	auto tf = cast(TabFolder) widget;
+	auto tf = cast(TabFolder)widget;
 	if (tf) { mixin(S_TRACE);
 		foreach (i; tf.getItems()) { mixin(S_TRACE);
 			if (i.getControl() is child) { mixin(S_TRACE);
-				forceFocusImpl(tf.getParent(), tf, shellActivate);
 				tf.setSelection(i);
+				forceFocusImpl(tf.getParent(), tf, shellActivate);
 				return;
 			}
 		}
 		assert (0);
 	}
-	auto ctf = cast(CTabFolder) widget;
+	auto ctf = cast(CTabFolder)widget;
 	if (ctf) { mixin(S_TRACE);
 		foreach (i; ctf.getItems()) { mixin(S_TRACE);
 			if (i.getControl() is child) { mixin(S_TRACE);
-				forceFocusImpl(ctf.getParent(), ctf, shellActivate);
 				ctf.setSelection(i);
+				forceFocusImpl(ctf.getParent(), ctf, shellActivate);
 				return;
 			}
 		}
 		assert (0);
 	}
-	auto ctl = cast(Control) widget;
+	auto ctl = cast(Control)widget;
 	if (ctl) { mixin(S_TRACE);
 		forceFocusImpl(ctl.getParent(), ctl, shellActivate);
 		if (ctl.isDisposed()) return;
@@ -2630,8 +2630,8 @@ private void forceFocusImpl(Widget widget, Widget child, bool shellActivate) { m
 void writeRec(Control c, string tab = "") { mixin(S_TRACE);
 	std.stdio.writef(tab ~ c.toString());
 	std.stdio.writefln(c.isDisposed() ? " disposed" : "");
-	if (cast(Composite) c) { mixin(S_TRACE);
-		foreach (cc; (cast(Composite) c).getChildren()) { mixin(S_TRACE);
+	if (cast(Composite)c) { mixin(S_TRACE);
+		foreach (cc; (cast(Composite)c).getChildren()) { mixin(S_TRACE);
 			writeRec(cc, tab ~ "  ");
 		}
 	}
@@ -2651,7 +2651,7 @@ SplitPane changeVHSide(SplitPane sash) { mixin(S_TRACE);
 	sp.canMinimized2 = sash.canMinimized2;
 	auto ws = sash.getWeights();
 	foreach (c; sash.getChildren()) { mixin(S_TRACE);
-		if (!(cast(Sash) c)) { mixin(S_TRACE);
+		if (!(cast(Sash)c)) { mixin(S_TRACE);
 			c.setParent(sp);
 		}
 	}
@@ -2701,15 +2701,15 @@ void drawWallpaper(GC gc, Image img, Rectangle rect, WallpaperStyle style) { mix
 		break;
 	case WallpaperStyle.ExpandFull, WallpaperStyle.Expand:
 		auto data = img.getImageData();
-		real scW = cast(real) rect.width / data.width;
-		real scH = cast(real) rect.height / data.height;
+		real scW = cast(real)rect.width / data.width;
+		real scH = cast(real)rect.height / data.height;
 		int wi, hi;
 		if ((style == WallpaperStyle.ExpandFull) ? (scW < scH) : (scW >= scH)) { mixin(S_TRACE);
-			wi = cast(int) (data.width * scH);
+			wi = cast(int)(data.width * scH);
 			hi = rect.height;
 		} else { mixin(S_TRACE);
 			wi = rect.width;
-			hi = cast(int) (data.height * scW);
+			hi = cast(int)(data.height * scW);
 		}
 		if (data.width != wi || data.height != hi) { mixin(S_TRACE);
 			auto d = Display.getCurrent();
@@ -2893,7 +2893,7 @@ private:
 			e.detail = canDrop ? DND.DROP_COPY : DND.DROP_NONE;
 		}
 		override void drop(DropTargetEvent e) { mixin(S_TRACE);
-			auto arr = cast(FileNames) e.data;
+			auto arr = cast(FileNames)e.data;
 			string[] paths = arr.array.dup;
 			paths = doAll(paths);
 			string[] r;
@@ -3131,7 +3131,7 @@ RGB alphaColor(in RGB c, in RGB b, int a) { mixin(S_TRACE);
 		if (c == b) return c;
 		int mx = .max(c, b);
 		int mn = .min(c, b);
-		return mn + (mx - mn) - cast(int) ((mx - mn) * (a / 255.0));
+		return mn + (mx - mn) - cast(int)((mx - mn) * (a / 255.0));
 	}
 	return new RGB(oc(c.red, b.red), oc(c.green, b.green), oc(c.blue, b.blue));
 }
@@ -3456,7 +3456,7 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		}
 		string buf;
 		foreach (i, b; evt.backs) { mixin(S_TRACE);
-			auto ic = cast(ImageCell) b;
+			auto ic = cast(ImageCell)b;
 			if (ic) { mixin(S_TRACE);
 				buf ~= contentTextUseID!(CIDKind.Image)(comm, summ, ic.path, comm.prop.msgs.ctChangeBgImageFile, null);
 			} else { mixin(S_TRACE);
@@ -4168,7 +4168,7 @@ private class DropFiles : DropTargetAdapter {
 	}
 	override void drop(DropTargetEvent e){ mixin(S_TRACE);
 		e.detail = DND.DROP_NONE;
-		auto str = _drop((cast(FileNames) e.data).array);
+		auto str = _drop((cast(FileNames)e.data).array);
 		if (_text.getEnabled() && str.length && str != _text.getText()) { mixin(S_TRACE);
 			_text.setText(str);
 			_text.selectAll();
@@ -4904,7 +4904,7 @@ Font createFontFromPixels(string face, int pixels, bool bold = false, bool itali
 		int fStyle = SWT.NORMAL;
 		if (bold) fStyle |= SWT.BOLD;
 		if (italic) fStyle |= SWT.ITALIC;
-		auto h = cast(int) (pixels * (72.0 / d.getDPI().y) + 0.5);
+		auto h = cast(int)(pixels * (72.0 / d.getDPI().y) + 0.5);
 		auto fontData = new FontData(face, h, fStyle);
 		return new Font(d, fontData);
 	}

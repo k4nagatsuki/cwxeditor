@@ -311,7 +311,7 @@ class TLPData {
 
 TLPData tlpData(Control c) { mixin(S_TRACE);
 	while (c) { mixin(S_TRACE);
-		auto tlpData = cast(TLPData) c.getData();
+		auto tlpData = cast(TLPData)c.getData();
 		if (tlpData) { mixin(S_TRACE);
 			return tlpData;
 		}
@@ -645,7 +645,7 @@ class Commons {
 			}
 		}
 		foreach (w; _toolbars) { mixin(S_TRACE);
-			auto bar = cast(ToolBar) w;
+			auto bar = cast(ToolBar)w;
 			if (bar) { mixin(S_TRACE);
 				if (!bar.isVisible()) continue;
 				foreach (itm; bar.getItems()) { mixin(S_TRACE);
@@ -729,8 +729,8 @@ class Commons {
 				continue;
 			}
 			// 分割領域のサイズを保存するためそれ以外を優先して閉じる
-			auto tlpData = cast(TLPData) w.getData();
-			if (!(cast(SashPanel) tlpData.tlp)) { mixin(S_TRACE);
+			auto tlpData = cast(TLPData)w.getData();
+			if (!(cast(SashPanel)tlpData.tlp)) { mixin(S_TRACE);
 				close(w);
 			}
 		}
@@ -809,7 +809,7 @@ class Commons {
 	}
 
 	private void activate(Composite w, bool shellActivate) { mixin(S_TRACE);
-		auto shl = cast(Shell) w;
+		auto shl = cast(Shell)w;
 		if (shl) { mixin(S_TRACE);
 			shl.setMinimized(false);
 			if (shellActivate) shl.setActive();
@@ -821,7 +821,7 @@ class Commons {
 		foreach (w; _ws) { mixin(S_TRACE);
 			if ((cast(TLPData)w.getData()).main is m) { mixin(S_TRACE);
 				activate(w, shellActivate);
-				return cast(Window) _wos[w];
+				return cast(Window)_wos[w];
 			}
 		}
 		return null;
@@ -829,7 +829,7 @@ class Commons {
 	private Composite[] opened(Main)(Main m) { mixin(S_TRACE);
 		Composite[] ws;
 		foreach (w; _ws) { mixin(S_TRACE);
-			if ((cast(TLPData) w.getData()).main is m) { mixin(S_TRACE);
+			if ((cast(TLPData)w.getData()).main is m) { mixin(S_TRACE);
 				ws ~= w;
 			}
 		}
@@ -844,14 +844,14 @@ class Commons {
 	}
 	private Window openImpl2(string Pane, Window, Main, string Etc, Args ...)(Main m, bool shellActivate, Args args) { mixin(S_TRACE);
 		auto w = new Window(args);
-		(cast(TLPData) w.shell.getData()).main = m;
+		(cast(TLPData)w.shell.getData()).main = m;
 		static if (Etc.length) mixin(Etc);
 		open(w, Pane);
 		return w;
 	}
 	private class SCL : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-			auto shl = cast(Composite) e.widget;
+			auto shl = cast(Composite)e.widget;
 			_wos.remove(shl);
 		}
 	}
@@ -882,7 +882,7 @@ class Commons {
 		auto ws = opened(area);
 		UndoManager undo = null;
 		foreach (w; ws) { mixin(S_TRACE);
-			auto tlpData = (cast(TLPData) w.getData());
+			auto tlpData = (cast(TLPData)w.getData());
 			auto sw = cast(SceneWindow)tlpData.tlp;
 			if (sw) { mixin(S_TRACE);
 				undo = sw.undoManager;
@@ -899,8 +899,8 @@ class Commons {
 		auto ws = opened(area);
 		UndoManager undo = null;
 		foreach (w; ws) { mixin(S_TRACE);
-			auto tlpData = (cast(TLPData) w.getData());
-			auto asw = cast(Window1) tlpData.tlp;
+			auto tlpData = (cast(TLPData)w.getData());
+			auto asw = cast(Window1)tlpData.tlp;
 			if (asw) { mixin(S_TRACE);
 				if (canDuplicate) { mixin(S_TRACE);
 					undo = asw.undoManager;
@@ -909,7 +909,7 @@ class Commons {
 					return asw;
 				}
 			}
-			auto aew = cast(Window2) tlpData.tlp;
+			auto aew = cast(Window2)tlpData.tlp;
 			if (aew) undo = aew.undoManager;
 		}
 		return openAreaImpl!(A, Window1)(prop, summ, area, undo, shellActivate, canDuplicate);
@@ -955,15 +955,15 @@ class Commons {
 			}
 		}
 		static if (is(C : CastCard)) {
-			parent = cast(Shell) _castWin.shell;
+			parent = cast(Shell)_castWin.shell;
 		} else static if (is(C : SkillCard)) {
-			parent = cast(Shell) _skillWin.shell;
+			parent = cast(Shell)_skillWin.shell;
 		} else static if (is(C : ItemCard)) {
-			parent = cast(Shell) _itemWin.shell;
+			parent = cast(Shell)_itemWin.shell;
 		} else static if (is(C : BeastCard)) {
-			parent = cast(Shell) _beastWin.shell;
+			parent = cast(Shell)_beastWin.shell;
 		} else static if (is(C : InfoCard)) {
-			parent = cast(Shell) _infoWin.shell;
+			parent = cast(Shell)_infoWin.shell;
 		} else static assert (0);
 		bool readOnly = this.summary !is summ;
 		return openImpl!("work", EventWindow, C, "", Commons, Props, Summary, Composite, Shell, C, UndoManager, bool)
@@ -980,7 +980,7 @@ class Commons {
 	}
 	private void show(Composite c, string pane, Dir dir, string key,
 			TopLevelPanel delegate(Composite) create, string text, bool shellActivate) { mixin(S_TRACE);
-		auto shl = cast(Shell) c;
+		auto shl = cast(Shell)c;
 		if (shl) { mixin(S_TRACE);
 			shl.setMinimized(false);
 			shl.open();
@@ -1081,7 +1081,7 @@ class Commons {
 		_wos[tlp.shell] = tlp;
 		tlp.shell.addDisposeListener(new CloseRemover!(Composite)(_ws, tlp.shell));
 		tlp.shell.addDisposeListener(new SCL);
-		auto shl = cast(Shell) tlp.shell;
+		auto shl = cast(Shell)tlp.shell;
 		if (shl) { mixin(S_TRACE);
 			shl.open();
 		} else { mixin(S_TRACE);
@@ -1094,11 +1094,11 @@ class Commons {
 		auto a = mainWin.summary.findCWXPath(cwxPath);
 		if (!a) return null;
 		foreach (w; _ws) { mixin(S_TRACE);
-			auto tlpData = (cast(TLPData) w.getData());
-			if (tlpData.main is cast(Object) a) { mixin(S_TRACE);
-				auto asw = cast(AreaSceneWindow) tlpData.tlp;
+			auto tlpData = (cast(TLPData)w.getData());
+			if (tlpData.main is cast(Object)a) { mixin(S_TRACE);
+				auto asw = cast(AreaSceneWindow)tlpData.tlp;
 				if (asw) return tlpData.tlp;
-				auto bsw = cast(BattleSceneWindow) tlpData.tlp;
+				auto bsw = cast(BattleSceneWindow)tlpData.tlp;
 				if (bsw) return tlpData.tlp;
 			}
 		}
@@ -1109,8 +1109,8 @@ class Commons {
 		auto a = mainWin.summary.findCWXPath(cwxPath);
 		if (!a) return null;
 		foreach (w; _ws) { mixin(S_TRACE);
-			auto tlpData = (cast(TLPData) w.getData());
-			if (tlpData.main is cast(Object) a) { mixin(S_TRACE);
+			auto tlpData = (cast(TLPData)w.getData());
+			if (tlpData.main is cast(Object)a) { mixin(S_TRACE);
 				auto ew = cast(EventWindow)tlpData.tlp;
 				if (ew) return tlpData.tlp;
 			}
@@ -1123,13 +1123,13 @@ class Commons {
 		if (!a) return [];
 		typeof(return) r;
 		foreach (w; _ws) { mixin(S_TRACE);
-			auto tlpData = (cast(TLPData) w.getData());
-			if (tlpData.main is cast(Object) a) { mixin(S_TRACE);
+			auto tlpData = (cast(TLPData)w.getData());
+			if (tlpData.main is cast(Object)a) { mixin(S_TRACE);
 				static if (is(A : Area)) {
-					auto asw = cast(AreaSceneWindow) tlpData.tlp;
+					auto asw = cast(AreaSceneWindow)tlpData.tlp;
 					if (asw) r ~= asw.areaView;
 				} else static if (is(A : Battle)) {
-					auto bsw = cast(BattleSceneWindow) tlpData.tlp;
+					auto bsw = cast(BattleSceneWindow)tlpData.tlp;
 					if (bsw) r ~= bsw.areaView;
 				} else static assert (0);
 			}
@@ -1171,7 +1171,7 @@ class Commons {
 	}
 	CardWindow handCardWindowFrom(Props prop, Summary summ, CastCard c, bool open, bool shellActivate) { mixin(S_TRACE);
 		foreach (w; _ws) { mixin(S_TRACE);
-			auto tlpData = (cast(TLPData) w.getData());
+			auto tlpData = (cast(TLPData)w.getData());
 			if (tlpData.main is c) { mixin(S_TRACE);
 				return cast(CardWindow)tlpData.tlp;
 			}
@@ -1341,7 +1341,7 @@ class Commons {
 	}
 
 	void setTitle(Composite comp, string text) { mixin(S_TRACE);
-		auto shell = cast(Shell) comp;
+		auto shell = cast(Shell)comp;
 		if (shell) { mixin(S_TRACE);
 			shell.setText(text);
 		} else { mixin(S_TRACE);
@@ -1349,7 +1349,7 @@ class Commons {
 		}
 	}
 	void close(Composite comp) { mixin(S_TRACE);
-		auto shell = cast(Shell) comp;
+		auto shell = cast(Shell)comp;
 		if (shell) { mixin(S_TRACE);
 			shell.close();
 		} else { mixin(S_TRACE);
@@ -1362,8 +1362,8 @@ class Commons {
 		if (base && base.isDisposed()) return;
 		TLPData tlp(Control base) { mixin(S_TRACE);
 			TLPData data = null;
-			while (base && (data = cast(TLPData) base.getData()) is null) { mixin(S_TRACE);
-				if (cast(Shell) base) break;
+			while (base && (data = cast(TLPData)base.getData()) is null) { mixin(S_TRACE);
+				if (cast(Shell)base) break;
 				base = base.getParent();
 			}
 			return data;
