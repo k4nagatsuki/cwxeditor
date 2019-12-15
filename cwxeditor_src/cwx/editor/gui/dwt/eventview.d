@@ -1707,6 +1707,8 @@ public:
 				new MenuItem(menu, SWT.SEPARATOR);
 				createMenuItem(_comm, menu, MenuID.EventToPackage, &eventToPackage, &canEventToPackage);
 			}
+			new MenuItem(menu, SWT.SEPARATOR);
+			createMenuItem(_comm, menu, MenuID.SelectConnectedResource, &selectConnectedResource, &canSelectConnectedResource);
 			if (cast(Battle)_area) { mixin(S_TRACE);
 				if (!_readOnly) { mixin(S_TRACE);
 					new MenuItem(menu, SWT.SEPARATOR);
@@ -2831,6 +2833,19 @@ public:
 				}
 			}
 		}
+	}
+
+	@property
+	bool canSelectConnectedResource() { mixin(S_TRACE);
+		auto sel = selection;
+		return sel && cast(EventTreeOwner)sel.getData() && !cast(PlayerCardEvents)sel.getData();
+	}
+	void selectConnectedResource() { mixin(S_TRACE);
+		if (!canSelectConnectedResource) return;
+		auto eto = cast(EventTreeOwner)selection.getData();
+		assert (eto !is null);
+		if (cast(PlayerCardEvents)eto) return;
+		_comm.openCWXPath(.cpaddattr(.cpaddattr(eto.cwxPath(true), "shallow"), "only"), false);
 	}
 
 	private TreeItem _dragItm = null;
