@@ -6462,6 +6462,7 @@ public:
 			} else {
 				_openCWXPathIndices[list] = [cast(int)index];
 			}
+			.forceFocus(list, shellActivate);
 			return true;
 		}
 		static if (UseCards && is(C : MenuCard)) {
