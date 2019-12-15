@@ -119,12 +119,12 @@ private:
 			return r;
 		}
 		void updateEnabled() { mixin(S_TRACE);
-			auto sEnbl = !_summ || !_summ.legacy || !.equal(invokeCond, [Status.Alive]);
+			auto sEnbl = !_readOnly && (!_summ || !_summ.legacy || !.equal(invokeCond, [Status.Alive]));
 			foreach (b; _invokeCond.byValue()) { mixin(S_TRACE);
 				b.setEnabled(sEnbl);
 			}
-			_removeWithUncons.setEnabled(!_summ || !_summ.legacy || !_removeWithUncons.getSelection());
-			_showStyle.setEnabled(!_summ || !_summ.legacy || _showStyles[_showStyle.getSelectionIndex()] != ShowStyle.Center);
+			_removeWithUncons.setEnabled(!_readOnly && (!_summ || !_summ.legacy || !_removeWithUncons.getSelection()));
+			_showStyle.setEnabled(!_readOnly && (!_summ || !_summ.legacy || _showStyles[_showStyle.getSelectionIndex()] != ShowStyle.Center));
 		}
 	} else static assert (0);
 
