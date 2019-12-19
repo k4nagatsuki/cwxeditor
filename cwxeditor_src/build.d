@@ -153,6 +153,7 @@ version (Windows) {
 }
 
 immutable FLAGS = [
+	"-lowmem",
 	"-w",
 	"-op",
 	// BUG: dmd 2.067.0 occurs compile error.
@@ -370,14 +371,16 @@ void build(string[] args) {
 		exec(cmd ~ NO_DEBUG_SYMBOLS_FLAGS ~ res ~ noDebugSymbols ~ "-odobjs" ~ dmdOption);
 	}
 	version (Windows) {
-		static immutable mscoffbug = 2068 <= __VERSION__ && __VERSION__ <= 2073 || __VERSION__ == 2089;
+		immutable mscoffbug = 2068 <= __VERSION__ && __VERSION__ <= 2073 || (__VERSION__ == 2089 && m64 && !release);
 	} else {
-		static immutable mscoffbug = true;
+		immutable mscoffbug = true;
 	}
-	static if (mscoffbug) {
+	string[][] SPLITS;
+	string[][] SPLITS_R;
+	if (mscoffbug) {
 		// Internal error: backend\mscoffobj.c 2176 by dmd 2.068-2.069, 2.089.0
 		// まとめてコンパイルするとエラーが出るため分割する
-		immutable SPLITS = [
+		SPLITS = [
 			[
 				"absdialog.d",
 				"areatable.d",
@@ -402,8 +405,6 @@ void build(string[] args) {
 				"dmenu.d",
 				"dockingfolder.d",
 				"dprops.d",
-			],
-			[
 				"dskin.d",
 				"dutils.d",
 				"effectcarddialog.d",
@@ -413,8 +414,6 @@ void build(string[] args) {
 				"eventtreeview.d",
 				"eventview.d",
 				"eventwindow.d",
-			],
-			[
 				"flagdirtree.d",
 				"flagspane.d",
 				"flagtable.d",
@@ -427,19 +426,23 @@ void build(string[] args) {
 				"jpyimage.d",
 				"incsearch.d",
 				"loader.d",
-			],
-			[
 				"mainwindow.d",
 				"materialselect.d",
 				"messageutils.d",
 			],
 			[
+				"abilityview.d",
+				"contentinitializer.d",
+				"eventtreedialog.d",
+				"exprutils.d",
+				"history.d",
+				"namewindow.d",
+				"partyhistory.d",
+				"roundview.d",
 				"motionview.d",
 				"properties.d",
 				"radarspinner.d",
 				"replacedialog.d",
-			],
-			[
 				"sbshell.d",
 				"scales.d",
 				"scripterrordialog.d",
@@ -456,14 +459,14 @@ void build(string[] args) {
 				"xmlbytestransfer.d",
 			],
 		];
-		immutable SPLITS_R = SPLITS ~ cast(immutable)[
+		SPLITS_R = SPLITS ~ [
 			[
 			],
 		];
 	}
 	foreach (dir, array; files) {
 		if (!array.length) continue;
-		static if (mscoffbug) {
+		if (mscoffbug) {
 			auto splits = new string[][SPLITS_R.length];
 			string[] array2;
 			foreach (file; array) {
