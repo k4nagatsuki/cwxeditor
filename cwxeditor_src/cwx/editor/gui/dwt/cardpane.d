@@ -2653,10 +2653,10 @@ private:
 		_tbl.addMouseListener(new TMouse);
 		_tbl.addKeyListener(new TKey);
 		if (editMode) { mixin(S_TRACE);
-			auto dropL = new DropTarget(_list, DND.DROP_DEFAULT | DND.DROP_MOVE);
+			auto dropL = new DropTarget(_list, DND.DROP_DEFAULT | DND.DROP_MOVE | DND.DROP_COPY);
 			dropL.setTransfer([XMLBytesTransfer.getInstance()]);
 			dropL.addDropListener(new CLDTListener);
-			auto dropT = new DropTarget(_tbl, DND.DROP_DEFAULT | DND.DROP_MOVE);
+			auto dropT = new DropTarget(_tbl, DND.DROP_DEFAULT | DND.DROP_MOVE | DND.DROP_COPY);
 			dropT.setTransfer([XMLBytesTransfer.getInstance()]);
 			dropT.addDropListener(new CTDTListener);
 		}
