@@ -59,18 +59,18 @@ version (Windows) {
 	immutable DEBUG_FLAGS = [
 		"-g",
 		"-debug",
-		"-unittest",
-	];
+/+		"-unittest",
++/	];
 	immutable string[] DEBUG_FLAGS_L_32 = [
-//		"-g",
-		"-debug",
-		"-unittest",
-	];
+/+		"-g",
++/		"-debug",
+/+		"-unittest",
++/	];
 	immutable string[] DEBUG_FLAGS_L_64 = [
 		"-g",
 		"-debug",
-		"-unittest",
-	];
+/+		"-unittest",
++/	];
 	immutable CONSOLE_FLAGS_L_32 = [
 		"-L/rc:" ~ NAME,
 		"-L/NOM",
@@ -136,13 +136,13 @@ version (Windows) {
 	immutable DEBUG_FLAGS = [
 		"-g",
 		"-debug",
-		"-unittest",
-	];
+/+		"-unittest",
++/	];
 	immutable string[] DEBUG_FLAGS_L = [
 		"-g",
 		"-debug",
-		"-unittest",
-	];
+/+		"-unittest",
++/	];
 	immutable CONSOLE_FLAGS_L = [
 		"-of" ~ EXE,
 	];
@@ -173,7 +173,8 @@ immutable NO_DEBUG_SYMBOLS_FLAGS = [
 	"-c",
 	"-op",
 	"-debug",
-	"-unittest",
+/+	"-unittest",
++/
 ];
 immutable RELEASE_FLAGS = [
 	"-release",
@@ -285,6 +286,7 @@ void build(string[] args) {
 	bool clean = option.has("clean");
 	bool run = option.has("run");
 	bool m64 = dmdOption.has("-m64") || dmdOption.has("-m32mscoff");
+	bool unittests = dmdOption.has("-unittest");
 
 	if (help) {
 		writeln("Usage: rdmd build [help | clean | cui | gui | release | run | *.d]");
@@ -297,8 +299,15 @@ void build(string[] args) {
 		auto option2 = option.dup;
 		option2 = std.algorithm.remove!(a => a == "clean")(option2);
 		option2 = std.algorithm.remove!(a => a == "run")(option2);
+		option2 = std.algorithm.remove!(a => a == "cui")(option2);
+		option2 = std.algorithm.remove!(a => a == "gui")(option2);
+		if (!window) option2 ~= "cui";
+		if (window) option2 ~= "gui";
+		if (m64) option2 ~= "-m64";
+		if (unittests) option2 ~= "-unittest";
+		.sort(option2);
 		mod = "build.log".exists() && option2 != "build.log".readText().splitLines();
-		"build.log".write(option2.join("\n"));
+		if (mod || !"build.log".exists()) "build.log".write(option2.join("\n"));
 	}
 
 	if (clean || mod) {
@@ -309,7 +318,7 @@ void build(string[] args) {
 		}
 		"objs".removeFile();
 		"build.d.deps".removeFile();
-		"build.log".removeFile();
+		if (clean) "build.log".removeFile();
 		version (Windows) {
 			foreach (ext; [".exp", ".ilk", ".lib", ".pdb"]) {
 				auto path = EXE.setExtension(ext);
@@ -364,14 +373,17 @@ void build(string[] args) {
 	string[] flags = FLAGS.dup;
 	flags ~= release ? RELEASE_FLAGS : DEBUG_FLAGS;
 	flags ~= window ? WINDOW_FLAGS : CONSOLE_FLAGS;
+	if (!release && unittests) flags ~= "-unittest";
 	if (critical.length) {
 		exec(cmd ~ CRITICAL_FLAGS ~ res ~ critical ~ "-odobjs" ~ dmdOption);
 	}
 	if (noDebugSymbols.length) {
-		exec(cmd ~ NO_DEBUG_SYMBOLS_FLAGS ~ res ~ noDebugSymbols ~ "-odobjs" ~ dmdOption);
+		auto flags2 = NO_DEBUG_SYMBOLS_FLAGS.dup;
+		if (!release && unittests) flags2 ~= "-unittest";
+		exec(cmd ~ flags2 ~ res ~ noDebugSymbols ~ "-odobjs" ~ dmdOption);
 	}
 	version (Windows) {
-		immutable mscoffbug = 2068 <= __VERSION__ && __VERSION__ <= 2073 || (__VERSION__ == 2089 && m64 && !release);
+		immutable mscoffbug = 2068 <= __VERSION__ && __VERSION__ <= 2073 || (2089 <= __VERSION__ && __VERSION__ <= 2090 && m64 && !release);
 	} else {
 		immutable mscoffbug = true;
 	}
@@ -537,6 +549,10 @@ void build(string[] args) {
 	}
 
 	if (run) {
-		exec(".".buildPath(EXE));
+		if (unittests) {
+			exec(".".buildPath(EXE) ~ " --DRT-testmode=run-main");
+		} else {
+			exec(".".buildPath(EXE));
+		}
 	}
 }

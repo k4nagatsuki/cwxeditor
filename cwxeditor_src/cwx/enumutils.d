@@ -86,8 +86,8 @@ template EnumToMembers(E, alias CreateString) {
 	private static template EnumToMember(E, alias CreateString, size_t Index) {
 		private import std.traits;
 		private import std.conv;
-		private immutable Member = CreateString(EnumMembers!E[Index]);
-		static if (Index + 1 < EnumMembers!E.length) {
+		private immutable Member = CreateString(std.traits.EnumMembers!E[Index]);
+		static if (Index + 1 < std.traits.EnumMembers!E.length) {
 			immutable EnumToMember = Member ~ EnumToMember!(E, CreateString, Index + 1);
 		} else {
 			immutable EnumToMember = Member;
