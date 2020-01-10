@@ -2454,6 +2454,8 @@ bool qMaterialCopy(Commons comm, Shell shell, UseCounter uc, string toSPath, str
 					} else { mixin(S_TRACE);
 						exportedName = exportedImageName(users[0]);
 					}
+				} else if (isBinImg(key)) { mixin(S_TRACE);
+					continue;
 				}
 				auto newp = copyTo(toSPath, path, skin.materialPath, binImgToRef, exportedName);
 				if (!isBinImg(newp) && key != newp) { mixin(S_TRACE);

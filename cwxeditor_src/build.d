@@ -295,8 +295,10 @@ void build(string[] args) {
 
 	// 前回のフラグと比較・保存
 	bool mod = false;
+	string[] option2;
+	auto writeOption2 = false;
 	if (!test.length) {
-		auto option2 = option.dup;
+		option2 = option.dup;
 		option2 = std.algorithm.remove!(a => a == "clean")(option2);
 		option2 = std.algorithm.remove!(a => a == "run")(option2);
 		option2 = std.algorithm.remove!(a => a == "cui")(option2);
@@ -307,7 +309,7 @@ void build(string[] args) {
 		if (unittests) option2 ~= "-unittest";
 		.sort(option2);
 		mod = "build.log".exists() && option2 != "build.log".readText().splitLines();
-		if (mod || !"build.log".exists()) "build.log".write(option2.join("\n"));
+		writeOption2 = mod || !"build.log".exists();
 	}
 
 	if (clean || mod) {
@@ -545,6 +547,10 @@ void build(string[] args) {
 				if (path.exists()) path.remove();
 			}
 		}
+	}
+
+	if (writeOption2) {
+		"build.log".write(option2.join("\n"));
 	}
 
 	if (run) {
