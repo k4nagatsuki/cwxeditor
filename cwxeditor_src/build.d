@@ -318,7 +318,6 @@ void build(string[] args) {
 		}
 		"objs".removeFile();
 		"build.d.deps".removeFile();
-		if (clean) "build.log".removeFile();
 		version (Windows) {
 			foreach (ext; [".exp", ".ilk", ".lib", ".pdb"]) {
 				auto path = EXE.setExtension(ext);
