@@ -807,8 +807,16 @@ private void disposeBass() { mixin(S_TRACE);
 				bassMidi = null;
 			}
 			if (bass) { mixin(S_TRACE);
-				if (!getSymbol!(BASS_Free)(bass, "BASS_Free")())  { mixin(S_TRACE);
-					debugln("BASS_Free");
+				BASS_DEVICEINFO info;
+				for (auto dev = 0; getSymbol!(BASS_GetDeviceInfo)(bass, "BASS_GetDeviceInfo")(dev, &info); dev++) { mixin(S_TRACE);
+					if (info.flags & BASS_DEVICE_INIT) { mixin(S_TRACE);
+						if (!getSymbol!(BASS_SetDevice)(bass, "BASS_SetDevice")(dev)) { mixin(S_TRACE);
+							debugln("BASS_SetDevice");
+						}
+						if (!getSymbol!(BASS_Free)(bass, "BASS_Free")()) { mixin(S_TRACE);
+							debugln("BASS_Free");
+						}
+					}
 				}
 				dlclose(bass);
 				bass = null;
@@ -877,8 +885,15 @@ private bool playBass(string file, uint loopCount, bool spLoop, ref DWORD stream
 			for (auto dev = 0; getSymbol!(BASS_GetDeviceInfo)(bass, "BASS_GetDeviceInfo")(dev, &info); dev++) { mixin(S_TRACE);
 				if ((info.flags & BASS_DEVICE_ENABLED) && (info.flags & BASS_DEVICE_DEFAULT)) { mixin(S_TRACE);
 					if (dev != getSymbol!(BASS_GetDevice)(bass, "BASS_GetDevice")()) { mixin(S_TRACE);
-						getSymbol!(BASS_Init)(bass, "BASS_Init")(dev, 44100, BASS_DEFAULT, null, null);
-						getSymbol!(BASS_SetDevice)(bass, "BASS_SetDevice")(dev);
+						if (!(info.flags & BASS_DEVICE_INIT)) { mixin(S_TRACE);
+							if (!getSymbol!(BASS_Init)(bass, "BASS_Init")(dev, 44100, BASS_DEFAULT, null, null)) { mixin(S_TRACE);
+								debugln("BASS_Init");
+								continue;
+							}
+						}
+						if (!getSymbol!(BASS_SetDevice)(bass, "BASS_SetDevice")(dev)) { mixin(S_TRACE);
+							debugln("BASS_SetDevice");
+						}
 					}
 					break;
 				}
@@ -1104,6 +1119,7 @@ version (Windows) {
 		immutable BASS_DEVICE_3D = 4;
 		immutable BASS_DEVICE_ENABLED = 1;
 		immutable BASS_DEVICE_DEFAULT = 2;
+		immutable BASS_DEVICE_INIT = 4;
 		immutable BASS_DEFAULT = 0;
 		immutable BASS_SAMPLE_LOOP = 4;
 		immutable BASS_ATTRIB_VOL = 2;
