@@ -725,7 +725,7 @@ private void initBass() { mixin(S_TRACE);
 					return;
 				}
 			}
-			if (!getSymbol!(BASS_Init)(bass, "BASS_Init")(-1, 44100, BASS_DEVICE_DEFAULT, null, null)) { mixin(S_TRACE);
+			if (!getSymbol!(BASS_Init)(bass, "BASS_Init")(-1, 44100, BASS_DEFAULT, null, null)) { mixin(S_TRACE);
 				debugln("BASS_Init Failure: %s".format(getSymbol!(BASS_ErrorGetCode)(bass, "BASS_ErrorGetCode")()));
 				disposeBass();
 				return;
@@ -871,6 +871,19 @@ private bool playBass(string file, uint loopCount, bool spLoop, ref DWORD stream
 			if (!.canPlayBass(file)) { mixin(S_TRACE);
 				return false;
 			}
+
+			// 使用中のデバイスが変更されていた場合は再生先を変更する
+			BASS_DEVICEINFO info;
+			for (auto dev = 0; getSymbol!(BASS_GetDeviceInfo)(bass, "BASS_GetDeviceInfo")(dev, &info); dev++) { mixin(S_TRACE);
+				if ((info.flags & BASS_DEVICE_ENABLED) && (info.flags & BASS_DEVICE_DEFAULT)) { mixin(S_TRACE);
+					if (dev != getSymbol!(BASS_GetDevice)(bass, "BASS_GetDevice")()) { mixin(S_TRACE);
+						getSymbol!(BASS_Init)(bass, "BASS_Init")(dev, 44100, BASS_DEFAULT, null, null);
+						getSymbol!(BASS_SetDevice)(bass, "BASS_SetDevice")(dev);
+					}
+					break;
+				}
+			}
+
 			bool midi = isMidi(file);
 			int flag = BASS_MUSIC_STOPBACK | BASS_MUSIC_POSRESET | BASS_MUSIC_PRESCAN | BASS_SAMPLE_FLOAT;
 			if (midi) { mixin(S_TRACE);
@@ -1086,10 +1099,11 @@ version (Windows) {
 		alias DWORD HPLUGIN;
 		alias DWORD HSAMPLE;
 		alias ulong QWORD;
-		immutable BASS_DEVICE_DEFAULT = 0;
 		immutable BASS_DEVICE_8BITS = 1;
 		immutable BASS_DEVICE_MONO = 2;
 		immutable BASS_DEVICE_3D = 4;
+		immutable BASS_DEVICE_ENABLED = 1;
+		immutable BASS_DEVICE_DEFAULT = 2;
 		immutable BASS_DEFAULT = 0;
 		immutable BASS_SAMPLE_LOOP = 4;
 		immutable BASS_ATTRIB_VOL = 2;
@@ -1128,12 +1142,21 @@ version (Windows) {
 			HSAMPLE sample;
 			char* filename;
 		}
+		struct BASS_DEVICEINFO {
+			char* name;
+			char* driver;
+			DWORD flags;
+		}
+
 		alias BOOL function(HSTREAM handle, BASS_MIDI_FONT *fonts, DWORD count) BASS_MIDI_StreamSetFonts;
 		alias HSOUNDFONT function(const void *file, DWORD flags) BASS_MIDI_FontInit;
 		alias BOOL function(HSOUNDFONT handle, float volume) BASS_MIDI_FontSetVolume;
 		alias BOOL function(HSOUNDFONT handle) BASS_MIDI_FontFree;
 		alias BOOL function(int device, DWORD freq, DWORD flags, HWND win, GUID* clsid) BASS_Init;
 		alias c_int function() BASS_ErrorGetCode;
+		alias BOOL function(DWORD device, BASS_DEVICEINFO *info) BASS_GetDeviceInfo;
+		alias BOOL function(DWORD device) BASS_SetDevice;
+		alias DWORD function() BASS_GetDevice;
 		alias BOOL function(DWORD handle, BOOL restart) BASS_ChannelPlay;
 		alias BOOL function(DWORD handle) BASS_ChannelStop;
 		alias HSTREAM function(BOOL mem, const void* file, QWORD offset, QWORD length, DWORD flags) BASS_StreamCreateFile;
