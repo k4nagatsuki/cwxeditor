@@ -1056,7 +1056,7 @@ class Msgs : Properties {
 	auto ctIgniteWithKeyCode = Msg("ctIgniteWithKeyCode", "イベント発火あり(%1$s)");
 	auto ctRefAbility = Msg("ctRefAbility", "参照能力 = %1$sと%2$s");
 	auto ctAbsorbToSelected = Msg("ctAbsorbToSelected", "吸収者 = 選択メンバ");
-	auto ctEffect = Msg("ctEffect", "%1$s レベル%2$s %3$s/%4$s 成功率%5$s%6$s 効果 = %7$s");
+	auto ctEffectSimple = Msg("ctEffectSimple", "%1$s レベル%2$s %3$s/%4$s 成功率%5$s%6$s 効果 = %7$s");
 	auto ctEffectWith = Msg("ctEffectWith", "%1$s レベル%2$s %3$s/%4$s 成功率%5$s%6$s 効果 = %7$s %8$s");
 	auto ctEffectMotion = Msg("ctEffectMotion", "[%1$s]");
 	auto ctKeyCodes = Msg("ctKeyCodes", "キーコード = %1$s");

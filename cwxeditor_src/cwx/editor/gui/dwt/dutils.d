@@ -3550,7 +3550,7 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		if (args.length) { mixin(S_TRACE);
 			return .tryFormat(comm.prop.msgs.ctEffectWith, tt, tl, tet, tr, tsf, ts, teff, args.join(" "));
 		} else { mixin(S_TRACE);
-			return .tryFormat(comm.prop.msgs.ctEffect, tt, tl, tet, tr, tsf, ts, teff);
+			return .tryFormat(comm.prop.msgs.ctEffectSimple, tt, tl, tet, tr, tsf, ts, teff);
 		}
 	} case CType.EffectBreak: { mixin(S_TRACE);
 		return evt.consumeCard ? comm.prop.msgs.ctEffectBreakConsumeCard : comm.prop.msgs.ctEffectBreakNoConsumeCard;
