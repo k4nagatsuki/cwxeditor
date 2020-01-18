@@ -4657,6 +4657,10 @@ public:
 				initTimer.stop();
 				cwriteln(.format("Starting time: %d msecs", initTimer.peek().total!"msecs"));
 			}
+			version (Windows) {
+				size_t minimumHandleCount = 1024;
+				auto handleCountLast = MonoTime.currTime();
+			}
 			while (!_win.isDisposed()) {
 				version (nocatch) {
 					if (d.readAndDispatch()) {
@@ -4687,6 +4691,28 @@ public:
 							dlg.open();
 						} else {
 							core.thread.Thread.sleep(.dur!("msecs")(1));
+						}
+					}
+				}
+				version (Windows) {
+					// DのGCが実行されるまで各種ハンドルが開放されない問題を回避するため、
+					// 数秒に一回ハンドル数を取得し、多すぎるようならGCを実行するようにする。
+					import core.sys.windows.windows;
+					auto handleCountCur = MonoTime.currTime();
+					if (handleCountCur < handleCountLast || (handleCountLast + .dur!"seconds"(8)) <= handleCountCur) { mixin(S_TRACE);
+						handleCountLast = handleCountCur;
+						DWORD hCount;
+						if (GetProcessHandleCount(GetCurrentProcess(), &hCount)) { mixin(S_TRACE);
+							if (minimumHandleCount < hCount) { mixin(S_TRACE);
+								cdebugln("Cleaning handles.");
+								core.memory.GC.collect();
+								if (GetProcessHandleCount(GetCurrentProcess(), &hCount)) { mixin(S_TRACE);
+									if (minimumHandleCount <= hCount) {
+										minimumHandleCount = cast(size_t)(hCount * 1.2);
+										cdebugln("Updated minimum handle count: %s".format(minimumHandleCount));
+									}
+								}
+							}
 						}
 					}
 				}
