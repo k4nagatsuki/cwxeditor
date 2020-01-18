@@ -199,7 +199,7 @@ struct ByteIO {
 	void write(ubyte[] bytes) { mixin(S_TRACE);
 		.enforce(!_readOnly);
 		if (_pointer + bytes.length >= _bytes.length) { mixin(S_TRACE);
-			_bytes.length = _bytes.length * 2 + bytes.length;
+			_bytes.length = cast(size_t)(_bytes.length * 1.2) + bytes.length;
 		}
 		_bytes[_pointer .. _pointer + bytes.length] = bytes[];
 		_pointer += bytes.length;
