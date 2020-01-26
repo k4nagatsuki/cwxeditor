@@ -33,7 +33,7 @@ public:
 		_prop = prop;
 		_readOnly = readOnly;
 		_text = text;
-		super(prop, shell, title, icon, true, size, false, !readOnly);
+		super (prop, shell, title, icon, true, size, false, !readOnly);
 		if (readOnly) { mixin(S_TRACE);
 			enterClose = true;
 			firstFocusIsOK = true;

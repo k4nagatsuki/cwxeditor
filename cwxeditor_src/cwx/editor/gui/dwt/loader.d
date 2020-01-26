@@ -200,6 +200,7 @@ private class LSFFThr(bool Array) {
 			} else { mixin(S_TRACE);
 				status(.tryFormat(prop.msgs.loadErrorStatus, fname));
 			}
+			if (failure) failure();
 		}
 	}
 	Runnable working;

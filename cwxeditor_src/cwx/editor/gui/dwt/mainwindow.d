@@ -938,6 +938,7 @@ private:
 	void resetOpt() { mixin(S_TRACE);
 		_opt.openPaths.length = 0u;
 		_opt.selectfile = "";
+		_opt.scenario = "";
 		_opt.noload = false;
 	}
 
