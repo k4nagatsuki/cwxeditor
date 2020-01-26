@@ -331,7 +331,6 @@ abstract class AbsDialog {
 		calcBounds(true);
 		if (_apply && !_forceApplyEnabled) _apply.setEnabled(false);
 		_forceApplyEnabled = false;
-		auto par = cast(Shell)_win.getParent();
 		_win.open();
 		if (firstFocusIsOK) _okBtn.setFocus();
 		opened();

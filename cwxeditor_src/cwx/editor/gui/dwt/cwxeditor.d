@@ -73,7 +73,9 @@ void main(string[] args) {
 				auto comm = new Commons(prop, null);
 				dStr ~= " - " ~ .text(__LINE__);
 				auto dlg = new TextDialog(comm, prop, null, prop.msgs.dlgTitUsage, null, prop.msgs.usage ~ "\n");
+				dStr ~= " - " ~ .text(__LINE__);
 				dlg.setImages(prop.images.icon);
+				dStr ~= " - " ~ .text(__LINE__);
 				dlg.open();
 				dStr ~= " - " ~ .text(__LINE__);
 				dlg.close();

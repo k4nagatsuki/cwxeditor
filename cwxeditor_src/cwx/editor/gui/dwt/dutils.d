@@ -4794,7 +4794,7 @@ Rectangle setupWindow(Shell shell, DSize winProps, out void delegate(bool save) 
 		}
 
 		auto parent = shell.getParent();
-		auto parBounds = parent.getBounds();
+		auto parBounds = parent ? parent.getBounds() : null;
 		int width = !winProps || winProps.width == SWT.DEFAULT ? wp.x : winProps.width;
 		int height = !winProps || winProps.height == SWT.DEFAULT ? wp.y : winProps.height;
 		int x, y;
