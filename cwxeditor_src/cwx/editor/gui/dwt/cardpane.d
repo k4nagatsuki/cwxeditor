@@ -3786,13 +3786,21 @@ public:
 		}
 		udImpl(this, _comm, _owner, _cardType, indices, up);
 		if (_viewMode == CViewMode.TABLE) { mixin(S_TRACE);
+			void updateID(int index) { mixin(S_TRACE);
+				auto itm = _tbl.getItem(index);
+				itm.setText(colIndex(CardTableColumn.ID), .text((cast(Card)itm.getData()).id));
+			}
 			if (up) { mixin(S_TRACE);
 				foreach (index; indices) { mixin(S_TRACE);
 					_tbl.upItem(index);
+					updateID(index);
+					updateID(index - 1);
 				}
 			} else { mixin(S_TRACE);
 				foreach_reverse (index; indices) { mixin(S_TRACE);
 					_tbl.downItem(index);
+					updateID(index);
+					updateID(index + 1);
 				}
 			}
 			select(selIndices);
