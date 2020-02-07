@@ -2416,11 +2416,21 @@ private:
 	void updateToolTip(Event e) { mixin(S_TRACE);
 		if (_viewMode !is CViewMode.TABLE) return;
 		auto itm = _tbl.getItem(new Point(e.x, e.y));
+		string t;
 		if (itm) { mixin(S_TRACE);
 			auto card = cast(Card)itm.getData();
-			_tbl.setToolTipText(toolTip(card));
+			t = toolTip(card);
 		} else { mixin(S_TRACE);
-			_tbl.setToolTipText("");
+			t = "";
+		}
+		// BUG: そのままツールチップを設定すると異常に反応が遅れる現象が頻発する
+		if (_tbl.getToolTipText() != t) { mixin(S_TRACE);
+			_tbl.getDisplay().asyncExec(new class Runnable {
+				override void run() { mixin(S_TRACE);
+					if (_tbl.isDisposed()) return;
+					_tbl.setToolTipText(t);
+				}
+			});
 		}
 	}
 	void createCardList(Composite parent) { mixin(S_TRACE);

@@ -379,7 +379,13 @@ private:
 			}
 			auto toolTip = createToolTip(value);
 			if (toolTip != _values.getToolTipText()) { mixin(S_TRACE);
-				_values.setToolTipText(toolTip);
+				// BUG: そのままツールチップを設定すると異常に反応が遅れる現象が頻発する
+				_values.getDisplay().asyncExec(new class Runnable {
+					override void run() { mixin(S_TRACE);
+						if (_values.isDisposed()) return;
+						_values.setToolTipText(toolTip);
+					}
+				});
 			}
 		}
 	}

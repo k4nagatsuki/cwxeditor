@@ -33,7 +33,7 @@ import std.traits;
 
 import org.eclipse.swt.all;
 
-import java.lang.all : ArrayWrapperString;
+import java.lang.all : ArrayWrapperString, Runnable;
 
 /// イベントコンテントの初期値を設定する。
 class ContentInitialValueEditor : TCPD {
@@ -174,7 +174,13 @@ class ContentInitialValueEditor : TCPD {
 			toolTip = .contentText(_comm, c, _summ);
 		}
 		if (toolTip != _list.getToolTipText()) { mixin(S_TRACE);
-			_list.setToolTipText(toolTip);
+			// BUG: そのままツールチップを設定すると異常に反応が遅れる現象が頻発する
+			_list.getDisplay().asyncExec(new class Runnable {
+				override void run() { mixin(S_TRACE);
+					if (_list.isDisposed()) return;
+					_list.setToolTipText(toolTip);
+				}
+			});
 		}
 	}
 

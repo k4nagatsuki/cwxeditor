@@ -1059,7 +1059,13 @@ class CouponView(CVType Type) : Composite {
 	@property
 	void toolTip(string t) { mixin(S_TRACE);
 		if (t == toolTip) return;
-		_coupons.setToolTipText(t);
+		// BUG: そのままツールチップを設定すると異常に反応が遅れる現象が頻発する
+		_coupons.getDisplay().asyncExec(new class Runnable {
+			override void run() { mixin(S_TRACE);
+				if (_coupons.isDisposed()) return;
+				_coupons.setToolTipText(t);
+			}
+		});
 	}
 	@property
 	string toolTip() { mixin(S_TRACE);
