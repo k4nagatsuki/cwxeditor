@@ -415,6 +415,9 @@ class Preview {
 			if (region) region.dispose();
 		}
 	}
+	PileImage getImage() { mixin(S_TRACE);
+		return _image;
+	}
 	void dispose() { mixin(S_TRACE);
 		if (!_shell || _shell.isDisposed()) return;
 		close();

@@ -2202,6 +2202,7 @@ private:
 
 		auto b = itm.getBounds();
 		auto p = _tbl.toDisplay(b.x, b.y + b.height);
+		if (_preview.getImage()) _preview.getImage().dispose();
 		_preview.image(_previewI, p.x, p.y, b.height);
 		_preview.show();
 	}
