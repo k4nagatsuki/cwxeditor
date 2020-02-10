@@ -384,7 +384,7 @@ void build(string[] args) {
 		exec(cmd ~ flags2 ~ res ~ noDebugSymbols ~ "-odobjs" ~ dmdOption);
 	}
 	version (Windows) {
-		immutable mscoffbug = 2068 <= __VERSION__ && __VERSION__ <= 2073 || (2089 <= __VERSION__ && __VERSION__ <= 2090 && !release);
+		immutable mscoffbug = 2068 <= __VERSION__ && __VERSION__ <= 2073 || (2089 <= __VERSION__ && __VERSION__ <= 2090 && m64 && !release);
 	} else {
 		immutable mscoffbug = true;
 	}
