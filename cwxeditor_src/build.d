@@ -422,8 +422,6 @@ void build(string[] args) {
 				"dutils.d",
 				"effectcarddialog.d",
 				"etcsettings.d",
-			],
-			[
 				"eventdialog.d",
 				"eventeditor.d",
 				"eventtreeview.d",
@@ -441,6 +439,8 @@ void build(string[] args) {
 				"jpyimage.d",
 				"incsearch.d",
 				"loader.d",
+			],
+			[
 				"mainwindow.d",
 				"materialselect.d",
 				"messageutils.d",
@@ -452,8 +452,6 @@ void build(string[] args) {
 				"namewindow.d",
 				"partyhistory.d",
 				"roundview.d",
-			],
-			[
 				"motionview.d",
 				"properties.d",
 				"radarspinner.d",
