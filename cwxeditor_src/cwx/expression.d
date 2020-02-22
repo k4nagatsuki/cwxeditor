@@ -948,8 +948,10 @@ private const(Part)[] parseSemantics(in CProps prop, ref Token[] tokens, ref siz
 				break mLoop;
 			} else if (isOp) { mixin(S_TRACE);
 				err ~= ExprError(prop ? prop.msgs.expressionErrorNeedSymbolOrNumber : "Need symbol or number.", line, pos, __FILE__, __LINE__);
+				i++;
 			} else { mixin(S_TRACE);
 				err ~= ExprError(prop ? prop.msgs.expressionErrorNeedOperator : "Need operator.", line, pos, __FILE__, __LINE__);
+				i++;
 			}
 			continue;
 		case "true", "false": mixin(S_TRACE);
@@ -987,6 +989,8 @@ private const(Part)[] parseSemantics(in CProps prop, ref Token[] tokens, ref siz
 					printStackTrace();
 					debugln(e);
 					err ~= ExprError(prop ? prop.msgs.expressionErrorInvalidNumber : "Invalid number.", line, pos, __FILE__, __LINE__);
+					isOp = false;
+					i++;
 				}
 			} else { mixin(S_TRACE);
 				if (!isOp) err ~= ExprError(prop ? prop.msgs.expressionErrorNeedOperator : "Need operator.", line, pos, __FILE__, __LINE__);
