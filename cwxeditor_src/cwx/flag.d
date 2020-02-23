@@ -65,20 +65,20 @@ public void getNode(in FlagDir parent, in Flag[] flags, in Step[] steps, in Vari
 	e.newAttr( XML_ATT_ROOT_ID, _root.id);
 	auto fe = e.newElement("Flags");
 	foreach (flag; flags) { mixin(S_TRACE);
-		assert (flag.parent.root == _root);
-		assert (flag.parent == parent);
+		assert (flag.parent.root is _root);
+		assert (flag.parent is parent);
 		flag.toNode(fe);
 	}
 	auto se = e.newElement("Steps");
 	foreach (step; steps) { mixin(S_TRACE);
-		assert (step.parent.root == _root);
-		assert (step.parent == parent);
+		assert (step.parent.root is _root);
+		assert (step.parent is parent);
 		step.toNode(se);
 	}
 	auto ve = e.newElement("Variants");
 	foreach (variant; variants) { mixin(S_TRACE);
-		assert (variant.parent.root == _root);
-		assert (variant.parent == parent);
+		assert (variant.parent.root is _root);
+		assert (variant.parent is parent);
 		variant.toNode(ve);
 	}
 }
@@ -93,7 +93,7 @@ XNode toNode(string rootName, FlagDir dir) { mixin(S_TRACE);
 	toNode(ret, dir);
 	auto _root = dir.root;
 	ret.newAttr(XML_ATT_ROOT_ID, _root.id);
-	if (_root == dir) { mixin(S_TRACE);
+	if (_root is dir) { mixin(S_TRACE);
 		ret.newAttr(XML_ATT_ROOT_NAME, rootName);
 	}
 	return ret;
@@ -1263,12 +1263,12 @@ public:
 	/// 自分と自分より上位にあるディレクトリを自分の下に持ってくることはできない。
 	const
 	bool canAppendSub2(in FlagDir ndir) { mixin(S_TRACE);
-		if (this == ndir.parent) { mixin(S_TRACE);
+		if (this is ndir.parent) { mixin(S_TRACE);
 			return true;
 		}
 		Rebindable!(const(FlagDir)) p = this;
 		do { mixin(S_TRACE);
-			if (p.get == ndir) { mixin(S_TRACE);
+			if (p.get is ndir) { mixin(S_TRACE);
 				// 自分と自分より上位にあるディレクトリを自分の下に持ってくることはできない
 				return false;
 			}
