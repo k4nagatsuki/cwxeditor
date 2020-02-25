@@ -770,7 +770,7 @@ private:
 		comm.refreshToolBar();
 	}
 	void put(dchar put) { mixin(S_TRACE);
-		putColor(_text, put);
+		putColor(_text.widget, put);
 	}
 	void insert(string put) { mixin(S_TRACE);
 		_text.insert(put);
@@ -1348,7 +1348,7 @@ private:
 		}
 	}
 	void put(dchar put) { mixin(S_TRACE);
-		putColor(_text, put);
+		putColor(_text.widget, put);
 	}
 	void insert(string put) { mixin(S_TRACE);
 		_text.insert(put);
@@ -2098,13 +2098,21 @@ Composite createFlagStepBar(Composite parent, void delegate(string) insert, Comm
 	return bar;
 }
 
-private void putColor(FixedWidthText!Text text, dchar put) { mixin(S_TRACE);
-	auto sel = text.widget.getSelection();
+private void putColor(Control ctrl, dchar put) { mixin(S_TRACE);
+	assert (cast(Text)ctrl !is null);
+	auto text = cast(Text)ctrl;
+	auto sel = text.getSelection();
+	auto a = text.getText().toUTF16()[0 .. sel.x].toUTF32();
+	auto b = text.getText().toUTF16()[sel.x .. sel.y].toUTF32();
+	auto c = text.getText().toUTF16()[sel.y .. $].toUTF32();
 	auto old = toUTF32(text.getText());
+	sel.x = cast(int)a.length;
+	sel.y = cast(int)(a.length + b.length);
 	auto newt = cwx.msgutils.putColor(old, put, sel.x, sel.y);
 	text.setText(toUTF8(newt));
 	int nSel = sel.y + (cast(int)newt.length - cast(int)old.length);
-	text.widget.setSelection(nSel);
+	nSel = cast(int)newt[0 .. nSel].toUTF16().length;
+	text.setSelection(nSel);
 }
 
 class MsgPreviewWindow {
@@ -3780,12 +3788,14 @@ void setupSPCharsMenu(Commons comm, Summary summ, UseCounter uc, Control ctrl, M
 			if (auto t = cast(Text)ctrl) { mixin(S_TRACE);
 				t.insert(s);
 			} else if (auto t = cast(Combo)ctrl) { mixin(S_TRACE);
-				auto ds = s.to!dstring;
-				auto s2 = t.getText().to!dstring;
+				auto ws = s.to!wstring;
 				auto p = t.getSelection();
-				t.setText((s2[0 .. p.x] ~ ds ~ s2[p.y .. $]).to!string);
-				p.y += ds.length;
-				p.x = p.y;
+				auto a = t.getText().toUTF16()[0 .. p.x];
+				auto b = t.getText().toUTF16()[p.x .. p.y];
+				auto c = t.getText().toUTF16()[p.y .. $];
+				t.setText((a ~ ws ~ c).to!string);
+				p.x += ws.length;
+				p.y = p.x;
 				t.setSelection(p);
 			} else assert (0);
 		}
@@ -3908,7 +3918,7 @@ void setupSPCharsMenu(Commons comm, Summary summ, UseCounter uc, Control ctrl, M
 					case 'L': t = comm.prop.msgs.colorL; break; // CardWirth 1.50
 					case 'D': t = comm.prop.msgs.colorD; break; // CardWirth 1.50
 					}
-					createMenuItem2(comm, cMenu, t, comm.prop.images.color(c), () => insert("&" ~ c), null);
+					createMenuItem2(comm, cMenu, t, comm.prop.images.color(c), () => putColor(ctrl, c), null);
 				}
 				putC(c);
 			}

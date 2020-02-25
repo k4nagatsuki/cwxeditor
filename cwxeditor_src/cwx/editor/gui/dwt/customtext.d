@@ -229,9 +229,9 @@ class GBLimitText {
 					return;
 				}
 				if (_ed) return;
-				dstring vText;
+				wstring vText;
 				try { mixin(S_TRACE);
-					vText = toUTF32(e.text);
+					vText = toUTF16(e.text);
 				} catch (Exception e) { mixin(S_TRACE);
 					// FIXME: 時々壊れたテキストが来る
 					//        「情報」と入力したときなど
@@ -243,7 +243,7 @@ class GBLimitText {
 					// 文字数が減少するなら無条件に通す
 					e.doit = true;
 				} else { mixin(S_TRACE);
-					auto text = toUTF32(_widget.getText());
+					auto text = toUTF16(_widget.getText());
 					auto p = _widget.getSelection();
 					text = text[0 .. p.x] ~ text[p.y .. $];
 					auto st = text[0 .. e.start];
@@ -281,7 +281,6 @@ class GBLimitText {
 				if (_gc.wTextExtent(getText()).x <= _width) { mixin(S_TRACE);
 					_old = _widget.getText();
 				} else { mixin(S_TRACE);
-					dstring old32 = toUTF32(_old);
 					int cur = _widget.getCaretPosition();
 					Point sel = _widget.getSelection();
 					if (cur >= sel.x) sel.x--;

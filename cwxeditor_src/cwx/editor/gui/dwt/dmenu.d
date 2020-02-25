@@ -91,7 +91,7 @@ TextMenuModify createTextMenu(T = Text)(Commons comm, Props prop, T text, bool d
 	}, () => !readOnly && CBisText(comm.clipboard));
 	auto d = createMenuItem(comm, menu, MenuID.Delete, { mixin(S_TRACE);
 		auto p = text.getSelection();
-		auto t = to!dstring(text.getText());
+		auto t = to!wstring(text.getText());
 		if (t.length <= p.x) return;
 		if (p.x != p.y) { mixin(S_TRACE);
 			text.setText(to!string(t[0 .. p.x] ~ t[p.y .. $]));
@@ -108,7 +108,7 @@ TextMenuModify createTextMenu(T = Text)(Commons comm, Props prop, T text, bool d
 		auto t = text.getText();
 		if (t.length == 0) return false;
 		auto p = text.getSelection();
-		return p.x != 0 || p.y != to!dstring(text.getText()).length;
+		return p.x != 0 || p.y != to!wstring(text.getText()).length;
 	});
 	u.setEnabled(!readOnly);
 	r.setEnabled(!readOnly);

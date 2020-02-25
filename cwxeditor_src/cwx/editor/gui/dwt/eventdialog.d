@@ -169,7 +169,7 @@ class ContentCommentDialog : AbsDialog {
 		auto font = _comment.getFont();
 		auto fSize = font ? cast(uint) font.getFontData()[0].height : 0;
 		_comment.setFont(new Font(Display.getCurrent(), dwtData(_prop.adjustFont(_prop.looks.textDlgFont(fSize)))));
-		_comment.setSelection(cast(int)to!dstring(_comment.getText()).length);
+		_comment.setSelection(cast(int)to!wstring(_comment.getText()).length);
 		closeEvent ~= () { mixin(S_TRACE);
 			_comment.getFont().dispose();
 		};

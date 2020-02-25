@@ -142,7 +142,7 @@ void createCouponTypeMenu(T)(Commons comm, T combo, bool convert, bool copy) { m
 		if (name == "") return;
 		name = comm.prop.sys.convCoupon(name, Type, false);
 		combo.setText(name);
-		auto p = cast(int)name.to!dstring.length;
+		auto p = cast(int)name.to!wstring.length;
 		combo.setSelection(new Point(p, p));
 		comm.refreshToolBar();
 	}
@@ -497,7 +497,7 @@ void createKeyCodeTimingMenu(T)(Commons comm, T combo, bool convert, bool copy) 
 		if (name == "") return;
 		name = comm.prop.sys.convFireKeyCode(name, Kind);
 		combo.setText(name);
-		auto p = cast(int)name.to!dstring.length;
+		auto p = cast(int)name.to!wstring.length;
 		combo.setSelection(new Point(p, p));
 		comm.refreshToolBar();
 	}
