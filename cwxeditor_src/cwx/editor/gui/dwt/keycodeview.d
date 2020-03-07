@@ -769,7 +769,7 @@ class KeyCodeView : Composite {
 		if (_canDuplicate && _prop.sys.isRunAway(keyCodes)) { mixin(S_TRACE);
 			ws ~= .tryFormat(_prop.msgs.warningRunAwayCard, _prop.sys.runAway);
 		}
-		if (_summ && _summ.legacy && _prop.looks.keyCodesMaxLegacy < keyCodes.length) { mixin(S_TRACE);
+		if (_canDuplicate && _summ && _summ.legacy && _prop.looks.keyCodesMaxLegacy < keyCodes.length) { mixin(S_TRACE);
 			ws ~= .tryFormat(_prop.msgs.warningKeyCodeCount, _prop.looks.keyCodesMaxLegacy);
 		}
 		string[] ws2;
