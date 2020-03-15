@@ -99,6 +99,7 @@ private:
 
 	class SModL : ModifyListener {
 		override void modifyText(ModifyEvent e) { mixin(S_TRACE);
+			if (ignoreMod) return;
 			_selected = true;
 		}
 	};
