@@ -1007,7 +1007,7 @@ class MaterialSelect(MtType Type, D, C) {
 		void path(string path) { mixin(S_TRACE);
 			path2(path, true, true, -1, true);
 		}
-		void path2(string path, bool refreshPaths, bool updateBinImg, ptrdiff_t index = -1, bool store = true, bool subThr = true) { mixin(S_TRACE);
+		void path2(string path, bool refreshPaths, bool updateBinImg, ptrdiff_t index = -1, bool store = true) { mixin(S_TRACE);
 			if (index < 0) index = _imageIndex;
 			if (this.path(index) == path) return;
 			if (store && _store) _store();
@@ -1024,7 +1024,11 @@ class MaterialSelect(MtType Type, D, C) {
 				}
 			}
 			updateUseNoCardSizeImage();
-			this.refreshPaths(null, false, refreshPaths, subThr);
+			if (currentDir == "" && path != "") { mixin(S_TRACE);
+				auto wsnVer = _summ ? _summ.dataVersion : LATEST_VERSION;
+				_tempPath = summSkin.findImagePath(path, _summ ? _summ.scenarioPath : "", wsnVer);
+			}
+			this.refreshPaths(null, false, refreshPaths);
 		}
 		private void selectPath(string path, ptrdiff_t index = -1, bool store = true) { mixin(S_TRACE);
 			if (index < 0) index = _imageIndex;
@@ -1091,7 +1095,7 @@ class MaterialSelect(MtType Type, D, C) {
 		void path(string path) { mixin(S_TRACE);
 			path2(path, true, true);
 		}
-		void path2(string path, bool refreshPaths, bool updateBinImg, ptrdiff_t index = -1, bool store = true, bool subThr = true) { mixin(S_TRACE);
+		void path2(string path, bool refreshPaths, bool updateBinImg, ptrdiff_t index = -1, bool store = true) { mixin(S_TRACE);
 			auto old = _path;
 			scope (exit) {
 				if (old != _path) {
@@ -1109,7 +1113,11 @@ class MaterialSelect(MtType Type, D, C) {
 			static if (Type == MtType.BG_IMG) {
 				updateExcludeCardSizeImage();
 			}
-			this.refreshPaths(null, false, refreshPaths, subThr);
+			if (currentDir == "" && path != "") { mixin(S_TRACE);
+				auto wsnVer = _summ ? _summ.dataVersion : LATEST_VERSION;
+				_tempPath = summSkin.findImagePath(path, _summ ? _summ.scenarioPath : "", wsnVer);
+			}
+			this.refreshPaths(null, false, refreshPaths);
 			static if (Type == MtType.BGM || Type == MtType.SE) {
 				refDataVersion();
 			}
@@ -1153,6 +1161,7 @@ class MaterialSelect(MtType Type, D, C) {
 	}
 	@property
 	string filePath() { mixin(S_TRACE);
+		if (_tempPath != "") return _tempPath;
 		if (_loading) return "";
 		if (!_dirs || _dirs.isDisposed()) return "";
 		if (!_fileList || _fileList.isDisposed()) return "";
@@ -1782,6 +1791,7 @@ private:
 		_fileList.setEnabled(_enabled && !_readOnly && _summ);
 		_loading = false;
 		foreach (dlg; loadedEvent) dlg();
+		_tempPath = "";
 		_comm.refreshToolBar();
 	}
 	private string[] allDirs(out ptrdiff_t skinPos, out ptrdiff_t enginePosFrom, out ptrdiff_t enginePosTo) { mixin(S_TRACE);
@@ -1854,6 +1864,8 @@ private:
 				st = std.path.buildPath(_summ.scenarioPath, fromViewPath(_dirs.getText()));
 			}
 			refreshListImpl(st, forceRefresh, subThr);
+		} else { mixin(S_TRACE);
+			_tempPath = "";
 		}
 	}
 	string[] searchTarg(Skin skin, string dir, bool forceRefresh, size_t cut) { mixin(S_TRACE);
@@ -1877,13 +1889,13 @@ private:
 		}
 		return r;
 	}
-	void refreshPaths(string select = null, bool forceRefresh = false, bool updateList = true, bool subThr = true) { mixin(S_TRACE);
+	void refreshPaths(string select = null, bool forceRefresh = false, bool updateList = true) { mixin(S_TRACE);
 		void thr() { mixin(S_TRACE);
 			if (_fileList.isDisposed()) return;
 			refreshPathsImpl(select, forceRefresh, updateList);
 			_scheduleRefreshPaths = false;
 		}
-		if (updateList && subThr) { mixin(S_TRACE);
+		if (updateList) { mixin(S_TRACE);
 			if (_scheduleRefreshPaths) return;
 			_scheduleRefreshPaths = true;
 			.asyncExec(_fileList.getDisplay(), &thr);
@@ -1901,6 +1913,7 @@ private:
 					static if (is(C:Table)) {
 						_fileList.showSelection();
 					}
+					_tempPath = "";
 					return;
 				}
 			}
@@ -2232,6 +2245,7 @@ private:
 			string[] _binPaths = [""];
 		}
 	}
+	string _tempPath = "";
 	UndoManager _undo = null;
 	void delegate() _store = null;
 	bool _firstSet = true;

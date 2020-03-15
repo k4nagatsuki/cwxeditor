@@ -105,6 +105,9 @@ private:
 	};
 	class MaskListener : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
+			if (_easy.getSelectionIndex() != 1) { mixin(S_TRACE);
+				_easy.select(0);
+			}
 			updateMask();
 		}
 	}
@@ -189,7 +192,7 @@ protected:
 		auto comp2 = new Composite(grp, SWT.NONE);
 		auto rowNum = mask ? 6 : 5;
 		comp2.setLayout(normalGridLayout(rowNum, false));
-		Spinner createS(string name, int max, int min, string hint = "") { mixin(S_TRACE);
+		Spinner createS(string name, int max, int min, bool isSize, string hint = "") { mixin(S_TRACE);
 			auto comp3 = new Composite(comp2, SWT.NONE);
 			auto gl = normalGridLayout((hint == "") ? 2 : 3, false);
 			gl.marginHeight = 0;
@@ -203,6 +206,8 @@ protected:
 			spn.setMinimum(min);
 			spn.setSelection(0);
 			.listener(spn, SWT.Selection, { mixin(S_TRACE);
+				if (ignoreMod) return;
+				if (!isSize && _easy.getSelectionIndex() == 1) return;
 				_easy.select(0);
 			});
 			if (hint != "") { mixin(S_TRACE);
@@ -211,10 +216,10 @@ protected:
 			}
 			return spn;
 		}
-		_x = createS(_prop.msgs.left, _prop.var.etc.posLeftMax, -(cast(int) _prop.var.etc.posLeftMax));
-		_y = createS(_prop.msgs.top, _prop.var.etc.posTopMax, -(cast(int) _prop.var.etc.posTopMax));
-		_w = createS(_prop.msgs.width, _prop.var.etc.backWidthMax, 0);
-		_h = createS(_prop.msgs.height, _prop.var.etc.backHeightMax, 0);
+		_x = createS(_prop.msgs.left, _prop.var.etc.posLeftMax, -(cast(int) _prop.var.etc.posLeftMax), false);
+		_y = createS(_prop.msgs.top, _prop.var.etc.posTopMax, -(cast(int) _prop.var.etc.posTopMax), false);
+		_w = createS(_prop.msgs.width, _prop.var.etc.backWidthMax, 0, true);
+		_h = createS(_prop.msgs.height, _prop.var.etc.backHeightMax, 0, true);
 		if (mask) { mixin(S_TRACE);
 			_mask = new Button(comp2, SWT.TOGGLE);
 			mod(_mask);
@@ -222,7 +227,7 @@ protected:
 			_mask.setToolTipText(_prop.msgs.menuText(MenuID.Mask));
 			_mask.addSelectionListener(new MaskListener);
 		}
-		_layer = createS(_prop.msgs.layer, _prop.var.etc.layerMax, LAYER_BACK_CELL, .tryFormat(_prop.msgs.layerHint, LAYER_BACK_CELL));
+		_layer = createS(_prop.msgs.layer, _prop.var.etc.layerMax, LAYER_BACK_CELL, false, .tryFormat(_prop.msgs.layerHint, LAYER_BACK_CELL));
 		.listener(_layer, SWT.Selection, &refDataVersion);
 		_layer.setToolTipText(.tryFormat(_prop.msgs.layerValues, LAYER_BACK_CELL, LAYER_MENU_CARD, LAYER_PLAYER_CARD, LAYER_MESSAGE));
 
@@ -405,7 +410,10 @@ protected:
 					CardImagePosition.TopLeft, false, () => "", &selectEasySetting);
 				mod(_imgPath);
 				_imgPath.modEvent ~= &refreshWarning;
-				_imgPath.modEvent ~= () =>_easy.select(0);
+				_imgPath.modEvent ~= { mixin(S_TRACE);
+					if (_easy.getSelectionIndex() == 1) return;
+					_easy.select(0);
+				};
 			}
 			if (_summ) { mixin(S_TRACE);
 				auto sash = new SplitPane(comp, SWT.HORIZONTAL);
@@ -448,6 +456,8 @@ protected:
 			string file = _imgPath.filePath;
 			if (file.length > 0) { mixin(S_TRACE);
 				try { mixin(S_TRACE);
+					ignoreMod = true;
+					scope (exit) ignoreMod = false;
 					uint x, y;
 					dwtImageSize(_prop, _comm.skin, _summ, file, x, y);
 					_w.setSelection(x);
