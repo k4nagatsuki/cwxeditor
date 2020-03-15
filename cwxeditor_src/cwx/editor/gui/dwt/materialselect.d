@@ -1007,7 +1007,7 @@ class MaterialSelect(MtType Type, D, C) {
 		void path(string path) { mixin(S_TRACE);
 			path2(path, true, true, -1, true);
 		}
-		void path2(string path, bool refreshPaths, bool updateBinImg, ptrdiff_t index = -1, bool store = true) { mixin(S_TRACE);
+		void path2(string path, bool refreshPaths, bool updateBinImg, ptrdiff_t index = -1, bool store = true, bool subThr = true) { mixin(S_TRACE);
 			if (index < 0) index = _imageIndex;
 			if (this.path(index) == path) return;
 			if (store && _store) _store();
@@ -1024,7 +1024,7 @@ class MaterialSelect(MtType Type, D, C) {
 				}
 			}
 			updateUseNoCardSizeImage();
-			this.refreshPaths(null, false, refreshPaths);
+			this.refreshPaths(null, false, refreshPaths, subThr);
 		}
 		private void selectPath(string path, ptrdiff_t index = -1, bool store = true) { mixin(S_TRACE);
 			if (index < 0) index = _imageIndex;
@@ -1091,7 +1091,7 @@ class MaterialSelect(MtType Type, D, C) {
 		void path(string path) { mixin(S_TRACE);
 			path2(path, true, true);
 		}
-		void path2(string path, bool refreshPaths, bool updateBinImg, ptrdiff_t index = -1, bool store = true) { mixin(S_TRACE);
+		void path2(string path, bool refreshPaths, bool updateBinImg, ptrdiff_t index = -1, bool store = true, bool subThr = true) { mixin(S_TRACE);
 			auto old = _path;
 			scope (exit) {
 				if (old != _path) {
@@ -1109,7 +1109,7 @@ class MaterialSelect(MtType Type, D, C) {
 			static if (Type == MtType.BG_IMG) {
 				updateExcludeCardSizeImage();
 			}
-			this.refreshPaths(null, false, refreshPaths);
+			this.refreshPaths(null, false, refreshPaths, subThr);
 			static if (Type == MtType.BGM || Type == MtType.SE) {
 				refDataVersion();
 			}
@@ -1877,13 +1877,13 @@ private:
 		}
 		return r;
 	}
-	void refreshPaths(string select = null, bool forceRefresh = false, bool updateList = true) { mixin(S_TRACE);
+	void refreshPaths(string select = null, bool forceRefresh = false, bool updateList = true, bool subThr = true) { mixin(S_TRACE);
 		void thr() { mixin(S_TRACE);
 			if (_fileList.isDisposed()) return;
 			refreshPathsImpl(select, forceRefresh, updateList);
 			_scheduleRefreshPaths = false;
 		}
-		if (updateList) { mixin(S_TRACE);
+		if (updateList && subThr) { mixin(S_TRACE);
 			if (_scheduleRefreshPaths) return;
 			_scheduleRefreshPaths = true;
 			.asyncExec(_fileList.getDisplay(), &thr);
