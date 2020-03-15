@@ -883,9 +883,15 @@ private:
 			assert(_editC.length > 0);
 			return cancelSpnImpl!(T, SetFlexImage, C)(_editC, (v) => v.cardsIndex, true);
 		}
-		class SCListener : SelectionAdapter {
+		class SCListener : MouseAdapter, SelectionListener {
+			public override void widgetDefaultSelected(SelectionEvent e) { }
 			public override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 				listSelectC();
+			}
+			public override void mouseUp(MouseEvent e) { mixin(S_TRACE);
+				// BUG: 稀にアイテムがないところをクリックして
+				//      全ての選択を解除してもSelectionEventが発生しないケースがある
+				if (!_cards.getItem(new Point(e.x, e.y))) listSelectC();
 			}
 		}
 		void selectAllC() { mixin(S_TRACE);
@@ -986,9 +992,15 @@ private:
 			assert(_editB.length > 0);
 			return cancelSpnImpl!(T, SetFlexImage, BgImage)(_editB, (v) => 0, true);
 		}
-		class SBListener : SelectionAdapter {
+		class SBListener : MouseAdapter, SelectionListener {
+			public override void widgetDefaultSelected(SelectionEvent e) { }
 			public override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 				listSelectB();
+			}
+			public override void mouseUp(MouseEvent e) { mixin(S_TRACE);
+				// BUG: 稀にアイテムがないところをクリックして
+				//      全ての選択を解除してもSelectionEventが発生しないケースがある
+				if (!_backs.getItem(new Point(e.x, e.y))) listSelectB();
 			}
 		}
 		void selectAllB() { mixin(S_TRACE);
@@ -1090,6 +1102,7 @@ private:
 		auto imgs = _imgp.images;
 		typeof(edits) editsInit;
 		edits = editsInit;
+		auto oldSels = _imgp.selectedIndices;
 		for (int i = 0; i < count; i++) { mixin(S_TRACE);
 			auto img = cast(FlexImage)imgs[startIndex + i];
 			bool o = img.selected;
@@ -1101,6 +1114,7 @@ private:
 				_imgp.deselect(img);
 			}
 		}
+		if (oldSels == _imgp.selectedIndices) return;
 		static if (is(T == C)) {
 			refreshSelectedImpl(_viewCards, _cards, _editC, _area.cards, cardsIndex);
 		} else { mixin(S_TRACE);
@@ -3421,7 +3435,9 @@ public:
 						new TableComboEdit!Combo(_comm, _prop, _cards, 0, &createEnemyCombo, &enemyEditEnd, (itm, column) => 0 < _summ.casts.length, &enemyIncSearch);
 					}
 				}
-				_cards.addSelectionListener(new SCListener);
+				auto scl = new SCListener;
+				_cards.addSelectionListener(scl);
+				_cards.addMouseListener(scl);
 				static if (is(C == MenuCard)) {
 					if (!_readOnly) { mixin(S_TRACE);
 						auto target = new DropTarget(_cards, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_LINK);
@@ -3437,7 +3453,9 @@ public:
 			static if (UseBacks) {
 				_backs = createList(listsP, prop.msgs.backs,
 					prop.images.backs, btcpd, &editBack, () => _area.backs, &selectAllB);
-				_backs.addSelectionListener(new SBListener);
+				auto sbl = new SBListener;
+				_backs.addSelectionListener(sbl);
+				_backs.addMouseListener(sbl);
 				if (!_readOnly) { mixin(S_TRACE);
 					new TableComboEdit!Combo(_comm, _prop, _backs, 0, &createBgImageCombo, &bgImageEditEnd, &bgImageCanEdit, &bgImageIncSearch);
 					auto backDrop = new DropTarget(_backs, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_LINK);
