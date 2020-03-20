@@ -1,4 +1,3 @@
-syntax: glob
 cwxeditor_src/cwxeditor
 cwxeditor_src/cwxeditor.exe
 cwxeditor_src/cwxeditor.map
@@ -14,18 +13,20 @@ cwxeditor_src/org.eclipse.swt.gtk.linux.x86.a
 cwxeditor_src/Makefile
 cwxeditor_src/memo.txt
 cwxeditor_src/build.log
-
-syntax: regexp
-.*.obj$
-.*.o$
-^cwxeditor_src/private/.*$
-^cwxeditor_src/objs/.*$
-^cwxeditor_src/Scenario/.*$
-^cwxeditor_src/temp/.*$
-^cwxeditor_src/backup/.*$
-^cwxeditor_src/.*\.dll$
-^cwxeditor_src/.*\.bat$
-^cwxeditor_src/.*\.config$
-^cwxeditor_src/lang/.*$
-^cwxeditor_src/.*\.deps$
-^cwxeditor_src/x64/.*$
+cwxeditor_src/.dub
+cwxeditor_src/dub.selections.json
+cwxeditor_src/.vs
+cwxeditor_src/Scenario
+cwxeditor_src/temp
+cwxeditor_src/backup
+cwxeditor_src/private
+cwxeditor_src/objs
+cwxeditor_src/*.dll
+cwxeditor_src/*.bat
+cwxeditor_src/*.config
+cwxeditor_src/lang
+cwxeditor_src/*.deps
+cwxeditor_src/x64
+cwxeditor_src/x86
+cwxeditor_src/*.lib
+cwxeditor_src/*.suo
