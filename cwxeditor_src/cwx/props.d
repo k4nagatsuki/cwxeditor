@@ -28,7 +28,7 @@ public:
 	@property const CPoint cardNamePoint() { return CPoint(5, 5); }
 	@property const CSize cardSize() { return CSize(74, 94); }
 	@property const CSize summarySize() { return CSize(400, 370); }
-	@property const CPoint summaryImageXY() { return CPoint(163, 65); }
+	@property const CPoint summaryImageXY() { return CPoint(163, 70); }
 	@property const int summaryLevelY() { return 15; }
 	@property const int summaryTitleY() { return 35; }
 	@property const CPoint summaryDescXY() { return CPoint(65, 175); }
