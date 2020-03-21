@@ -579,7 +579,7 @@ private:
 			_motions.upItem(index);
 			_motions.showSelection();
 			_motions.redraw();
-			_comm.refreshToolBar();
+			refreshSels();
 		}
 	}
 	void down() { mixin(S_TRACE);
@@ -589,7 +589,7 @@ private:
 			_motions.downItem(index);
 			_motions.showSelection();
 			_motions.redraw();
-			_comm.refreshToolBar();
+			refreshSels();
 		}
 	}
 	void removeMotion() { mixin(S_TRACE);
