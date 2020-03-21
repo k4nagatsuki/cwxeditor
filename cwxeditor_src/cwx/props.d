@@ -31,10 +31,10 @@ public:
 	@property const CPoint summaryImageXY() { return CPoint(163, 70); }
 	@property const int summaryLevelY() { return 15; }
 	@property const int summaryTitleY() { return 35; }
-	@property const CPoint summaryDescXY() { return CPoint(65, 175); }
+	@property const CPoint summaryDescXY() { return CPoint(65, 180); }
 	@property const int summaryDescLen() { return 40; }
 	@property const int summaryDescLine() { return 11; }
-	@property const int summaryPageY() { return 340; }
+	@property const int summaryPageY() { return 342; }
 	@property const CRGB summaryLevelColor() { return CRGB(32, 128, 128); }
 	@property const CInsets castCardInsets(){ return CInsets(18, 11, 18, 10); }
 	@property const CInsets menuCardInsets(){ return CInsets(13, 3, 3, 3); }
@@ -222,13 +222,13 @@ public:
 	const CFont useCountFont(bool legacy) { return CFont(mincho(legacy), 18, true, false); }
 	@property const CPoint useCountPoint() { return CPoint(10, 90); }
 	@property const CRGB recycleNumColor() { return CRGB(255, 255, 0); }
-	const CFont summaryLevelFont(bool legacy) { return CFont(mincho(legacy), 16, true, true); }
-	const CFont summaryTitleFont(bool legacy) { return CFont(mincho(legacy), 21, true, false); }
-	const CFont summaryDescFont(bool legacy) { return CFont(mincho(legacy), 14, true, false); }
+	const CFont summaryLevelFont(bool legacy) { return CFont(pmincho(legacy), 13, true, true); }
+	const CFont summaryTitleFont(bool legacy) { return CFont(pmincho(legacy), 21, true, false); }
+	const CFont summaryDescFont(bool legacy) { return CFont(mincho(legacy), 13, true, false); }
 	@property const uint summaryDescLineHeightClassic() { mixin(S_TRACE);
 		return 15;
 	}
-	const CFont summaryPageFont(bool legacy) { return CFont(gothic(legacy), 12, true, false); }
+	const CFont summaryPageFont(bool legacy) { return CFont(mincho(legacy), 12, true, false); }
 	const CFont cardDescFont(bool legacy) { return CFont(gothic(legacy), 13, false, false); }
 	const CFont messageFont(bool legacy) { mixin(S_TRACE);
 		version (Windows) {
