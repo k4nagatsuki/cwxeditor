@@ -1369,10 +1369,10 @@ class Msgs : Properties {
 	auto summaryPreview = Msg("summaryPreview", "表示イメージ");
 	auto baseData = Msg("baseData", "基本データ");
 	auto etcData = Msg("etcData", "詳細データ");
-	auto targetLevelSame = Msg("targetLevelSame", "対象レベル %1$s");
-	auto targetLevelHL = Msg("targetLevelHL", "対象レベル %1$s～%2$s");
-	auto targetLevelL = Msg("targetLevelL", "対象レベル %1$s～");
-	auto targetLevelH = Msg("targetLevelH", "対象レベル ～%1$s");
+	auto targetLevelSame = Msg("targetLevelSame", "対象レベル:%1$s");
+	auto targetLevelHL = Msg("targetLevelHL", "対象レベル:%1$s ～ %2$s");
+	auto targetLevelL = Msg("targetLevelL", "対象レベル:%1$s ～");
+	auto targetLevelH = Msg("targetLevelH", "対象レベル: ～ %1$s");
 	auto summaryPageDummy = Msg("summaryPageDummy", "1/1");
 	auto title = Msg("title", "シナリオタイトル");
 	auto author = Msg("author", "作者名");
