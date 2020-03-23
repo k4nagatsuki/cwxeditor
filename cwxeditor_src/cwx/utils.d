@@ -912,6 +912,7 @@ T[] readBinaryFrom(T)(string fileName, out T* ptr) { mixin(S_TRACE);
 		fseek(fp, 0, SEEK_END);
 		auto len = ftell(fp);
 		auto bin = new T[len];
+		fseek(fp, 0, SEEK_SET);
 		fread(bin.ptr, len, 1, fp);
 		return bin;
 	}

@@ -6,7 +6,7 @@ import cwx.xml;
 
 import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.centerlayout;
-import cwx.editor.gui.dwt.dutils : intoDisplay;
+import cwx.editor.gui.dwt.dutils : intoDisplay, ppis;
 
 import org.eclipse.swt.all;
 
@@ -99,6 +99,9 @@ class DockingFolder(TabF, int Style) {
 	private PaneMemory[string] _pMemories;
 
 	private Canvas _canvas;
+	version (linux) {
+		private Shell _dropMark = null;
+	}
 
 	private Shell[] _subShells;
 	private Composite[Shell] _subAreas;
@@ -1187,17 +1190,47 @@ class DockingFolder(TabF, int Style) {
 		tree(area);
 		parent.layout(true);
 	}
-	private void drawDropMark(GC gc, int x, int y, int w, int h) { mixin(S_TRACE);
+	private void drawDropMark(GC gc, Canvas canvas, int x, int y, int w, int h) { mixin(S_TRACE);
+		void fillRectangle(int x, int y, int w, int h) { mixin(S_TRACE);
+			version (linux) {
+				assert (_dropMark !is null);
+				assert (_drawTabf !is null);
+				auto tabfCA = _drawTabf.getClientArea();
+				auto curL = _drawTabf.getDisplay().getCursorLocation();
+				if (!tabfCA.contains(_drawTabf.toControl(curL))) { mixin(S_TRACE);
+					auto pos = canvas.toControl(_drawTabf.toDisplay(new Point(0, 0)));
+					auto size = _drawTabf.getSize();
+					x = pos.x;
+					y = pos.y;
+					w = size.x;
+					h = size.y;
+				}
+				x = x - 5.ppis;
+				y = y - 5.ppis;
+				w = w + 10.ppis;
+				h = h + 10.ppis;
+				auto p = canvas.toDisplay(new Point(x, y));
+				_dropMark.setBounds(p.x, p.y, w, h);
+				auto region = _dropMark.getRegion();
+				if (!region) region = new Region(_dropMark.getDisplay());
+				region.add(0, 0, w, h);
+				region.subtract(5.ppis, 5.ppis, w - 10.ppis, h - 10.ppis);
+				_dropMark.setRegion(region);
+				_dropMark.setVisible(true);
+			} else {
+				gc.fillRectangle(x, y, w, h);
+			}
+		}
 		auto d = Display.getCurrent();
 		gc.setBackground(d.getSystemColor(SWT.COLOR_BLACK));
 		gc.setAlpha(0xff / 2);
 		gc.setLineWidth(5);
 		final switch (_drawPos) {
-		case DPos.C: gc.fillRectangle(x, y, w, h); break;
-		case DPos.N: gc.fillRectangle(x, y, w, h / 2); break;
-		case DPos.E: gc.fillRectangle(x + w / 2, y, w / 2, h); break;
-		case DPos.S: gc.fillRectangle(x, y + h / 2, w, h / 2); break;
-		case DPos.W: gc.fillRectangle(x, y, w / 2, h); break;
+		case DPos.C: fillRectangle(x, y, w, h); break;
+		case DPos.N: fillRectangle(x, y, w, h / 2); break;
+		case DPos.E: fillRectangle(x + w / 2, y, w / 2, h); break;
+		case DPos.S: fillRectangle(x, y + h / 2, w, h / 2); break;
+		case DPos.W: fillRectangle(x, y, w / 2, h); break;
 		case DPos.NONE: break;
 		}
 	}
@@ -1215,13 +1248,16 @@ class DockingFolder(TabF, int Style) {
 	}
 	private class PL : PaintListener {
 		override void paintControl(PaintEvent e) { mixin(S_TRACE);
-			if (!_drawTabf) return;
-			if (!canDrop(_drawTabf)) return;
 			auto canvas = cast(Canvas)e.widget;
-			if (_drawTabf.getShell() !is canvas.getShell()) return;
+			if (!_drawTabf || !canDrop(_drawTabf) || _drawTabf.getShell() !is canvas.getShell()) { mixin(S_TRACE);
+				version (linux) {
+					_dropMark.setVisible(false);
+				}
+				return;
+			}
 			auto pos = boundsOnCanvas(canvas, _drawTabf);
 			auto ca = _drawTabf.getClientArea();
-			drawDropMark(e.gc, pos.x + ca.x, pos.y + ca.y, ca.width, ca.height);
+			drawDropMark(e.gc, canvas, pos.x + ca.x, pos.y + ca.y, ca.width, ca.height);
 		}
 	}
 	private class DSL : DragSourceListener {
@@ -1237,6 +1273,16 @@ class DockingFolder(TabF, int Style) {
 				foreach (canvas; _subCanvas.byValue()) { mixin(S_TRACE);
 					canvas.setVisible(true);
 				}
+				version (linux) {
+					_dropMark = new Shell(_canvas.getShell(), SWT.NO_TRIM | SWT.ON_TOP);
+					_dropMark.addPaintListener(new class PaintListener {
+						override void paintControl(PaintEvent e) { mixin(S_TRACE);
+							e.gc.setBackground(_dropMark.getDisplay().getSystemColor(SWT.COLOR_BLACK));
+							e.gc.fillRectangle(e.x, e.y, e.width, e.height);
+						}
+					});
+					_dropMark.setAlpha(0xFF / 2);
+				}
 			}
 		}
 		override void dragSetData(DragSourceEvent e) { mixin(S_TRACE);
@@ -1249,6 +1295,11 @@ class DockingFolder(TabF, int Style) {
 			_canvas.setVisible(false);
 			foreach (canvas; _subCanvas.byValue()) { mixin(S_TRACE);
 				canvas.setVisible(false);
+			}
+			version (linux) {
+				if (_dropMark.getRegion()) _dropMark.getRegion().dispose();
+				_dropMark.dispose();
+				_dropMark = null;
 			}
 			/+_comp.layout(true);+/
 			if (e.detail == DND.DROP_MOVE) { mixin(S_TRACE);
