@@ -29,4 +29,5 @@ cwxeditor_src/*.deps
 cwxeditor_src/x64
 cwxeditor_src/x86
 cwxeditor_src/*.lib
+cwxeditor_src/*.pdb
 cwxeditor_src/*.suo

@@ -1977,7 +1977,7 @@ public:
 		_dirMode = false;
 		if (_prop.var.etc.showAreaDirTree) { mixin(S_TRACE);
 			_dirMode = true;
-			auto sash = new SplitPane(parent, (_readOnly ? _prop.var.etc.importAreaSashV : _prop.var.etc.areaSashV) ? SWT.VERTICAL : SWT.HORIZONTAL);
+			auto sash = new SplitPane(parent, (_readOnly ? _prop.var.etc.importAreaSashV.value : _prop.var.etc.areaSashV.value) ? SWT.VERTICAL : SWT.HORIZONTAL);
 			auto cl1 = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
 			cl1.fillHorizontal = true;
 			cl1.fillVertical = true;
