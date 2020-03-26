@@ -252,19 +252,21 @@ class ExecutedPartyHistoryDialog : AbsDialog, TCPD {
 			auto itm = cast(TableItem)e.item;
 			if (.existsParty(_comm, m.hist)) { mixin(S_TRACE);
 				itm.setImage(_comm.prop.images.menu(MenuID.ExecEngine));
-				// エンジンアイコン
-				if (!.cfnmatch(m.hist.enginePath.extension(), ".py")) { mixin(S_TRACE);
-					auto p = m.hist.enginePath in _icon;
-					if (p && *p) { mixin(S_TRACE);
-						itm.setImage(*p);
-					} else { mixin(S_TRACE);
-						auto imgData = .loadIcon(m.hist.enginePath, 16.ppis, 16.ppis);
-						if (imgData) { mixin(S_TRACE);
-							auto img = new Image(_list.getDisplay(), imgData);
-							itm.setImage(img);
-							_icon[m.hist.enginePath] = img;
+				version (Windows) {
+					// エンジンアイコン
+					if (!.cfnmatch(m.hist.enginePath.extension(), ".py")) { mixin(S_TRACE);
+						auto p = m.hist.enginePath in _icon;
+						if (p && *p) { mixin(S_TRACE);
+							itm.setImage(*p);
 						} else { mixin(S_TRACE);
-							_icon[m.hist.enginePath] = null;
+							auto imgData = .loadIcon(m.hist.enginePath, 16.ppis, 16.ppis);
+							if (imgData) { mixin(S_TRACE);
+								auto img = new Image(_list.getDisplay(), imgData);
+								itm.setImage(img);
+								_icon[m.hist.enginePath] = img;
+							} else { mixin(S_TRACE);
+								_icon[m.hist.enginePath] = null;
+							}
 						}
 					}
 				}
