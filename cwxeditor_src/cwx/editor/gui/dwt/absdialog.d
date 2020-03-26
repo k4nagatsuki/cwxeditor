@@ -204,8 +204,18 @@ abstract class AbsDialog {
 			ctrl.addSelectionListener(_mod);
 		} else static assert (0);
 	}
+
+	private bool _ignoreMod = false;
 	/// trueの時は適用ボタンの有効化を行わない。
-	protected bool ignoreMod = false;
+	@property
+	protected void ignoreMod(bool v) { mixin(S_TRACE);
+		_ignoreMod = v;
+		if (_area) _area.setEnabled(!v);
+	}
+	/// ditto
+	@property
+	const
+	protected bool ignoreMod() { return _ignoreMod; }
 	/// ignoreModを反転して返す。
 	@property
 	const

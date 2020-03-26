@@ -683,6 +683,7 @@ protected:
 		constructTab1(tabf);
 		constructTab2(tabf);
 		constructImage(area);
+		tabf.setSelection(0);
 
 		if (!_readOnly) { mixin(S_TRACE);
 			_comm.refScenario.add(&refScenario);

@@ -2321,6 +2321,7 @@ protected:
 		}
 
 		tabf.setLayoutData(area.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+		tabf.setSelection(0);
 		ignoreMod = true;
 		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		if (_evt) { mixin(S_TRACE);

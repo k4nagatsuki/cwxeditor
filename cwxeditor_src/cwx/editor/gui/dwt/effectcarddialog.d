@@ -904,6 +904,7 @@ protected:
 			constructBehavior(tabf);
 		}
 		constructKeyCode(tabf);
+		tabf.setSelection(0);
 
 		static if (is(C : SkillCard)) {
 			_comm.delSkill.add(&delCard);

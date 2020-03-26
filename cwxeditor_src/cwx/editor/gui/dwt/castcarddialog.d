@@ -1584,6 +1584,7 @@ protected:
 		constructMental(tabf);
 		constructEnhance(tabf);
 		constructStatus(tabf);
+		tabf.setSelection(0);
 
 		_comm.delCast.add(&delCard);
 		_comm.refScenario.add(&refScenario);

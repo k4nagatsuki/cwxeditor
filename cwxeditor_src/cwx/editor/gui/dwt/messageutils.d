@@ -1452,10 +1452,10 @@ protected:
 		wBar.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 
 		_tabf.addSelectionListener(new SL);
+		_tabf.setSelection(0);
 
 		ignoreMod = true;
 		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
-		_tabf.setSelection(0);
 		if (evt) { mixin(S_TRACE);
 			_text.setText(evt.text);
 			if (evt.cardPaths == []) { mixin(S_TRACE);
