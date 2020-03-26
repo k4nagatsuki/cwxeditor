@@ -1092,6 +1092,7 @@ public:
 			auto cardBar = createBar(_prop.msgs.msnGroupCard);
 			auto beastBar = createBar(_prop.msgs.msnGroupBeast);
 			auto etcBar = createBar(_prop.msgs.msnGroupEtc);
+			mtabf.setSelection(0);
 
 			void addDefItems(ToolBar bar) { mixin(S_TRACE);
 				createToolItem2(_comm, bar, _prop.msgs.msnDelete, _prop.images.msnDelete, &removeMotion, () => _motions.getSelectionIndex() != -1);

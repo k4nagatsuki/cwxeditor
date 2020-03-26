@@ -1330,6 +1330,7 @@ protected:
 		construct3(_tabf);
 		construct4(_tabf);
 		construct5(_tabf);
+		_tabf.setSelection(0);
 		_bgStgs.setup(_prop.var.etc.bgImageSettings, _prop.var.etc.bgImageSettingsSashL, _prop.var.etc.bgImageSettingsSashR);
 		_cEngines.setup(_prop.var.etc.classicEngines, _prop.var.etc.classicEnginesSashL, _prop.var.etc.classicEnginesSashR);
 		_tools.setup(_prop.var.etc.outerTools, _prop.var.etc.outerToolsSashL, _prop.var.etc.outerToolsSashR);
