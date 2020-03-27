@@ -5149,6 +5149,7 @@ public:
 				v.refreshStatusLine();
 				v.refreshFlags();
 			}
+			callModEvent();
 			if (_summ && _summ.scenarioPath != "") { mixin(S_TRACE);
 				_comm.refUseCount.call();
 			}
