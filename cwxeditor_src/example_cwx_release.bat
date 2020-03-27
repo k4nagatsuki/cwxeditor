@@ -16,8 +16,11 @@ rem ローカルリポジトリのパス
 set LOCAL_REPO_EDITOR=D:\path\to\cwxeditor
 rem リモートリポジトリのURL
 set MAIN_REPO_EDITOR=https://<username>@bitbucket.org/<username>/cwxeditor
-rem コミットするユーザ(hg ci -u <username>)
-set USER=<username>
+
+rem commit時のユーザ名
+set USER=username
+rem commit時のEメールアドレス
+set EMAIL=username@example.com
 
 rem テキストエディタ
 set EDITOR=notepad
@@ -29,34 +32,39 @@ if not "%2"=="test" (
 	if not "%2"=="release" exit /b -1
 )
 
-set CWX_VERSION=default
+set CWX_VERSION=master
 
 set COMMIT_MESSAGE_EDITOR=%1
 set COMMIT_MESSAGE_EDITOR=%COMMIT_MESSAGE_EDITOR:beta=β%
 set COMMIT_MESSAGE_EDITOR=%COMMIT_MESSAGE_EDITOR:a=α%
 
 pushd %DEST_DIR_EDITOR%
-hg clone %LOCAL_REPO_EDITOR% cwxeditor_temp
+git clone %LOCAL_REPO_EDITOR% cwxeditor_temp
 cd cwxeditor_temp\cwxeditor_src
+git config --local user.name "%USER%"
+git config --local user.email "%EMAIL%"
 
-hg up %CWX_VERSION%
+git checkout %CWX_VERSION%
 %EDITOR% ..\editor_history.txt
+git add ..\editor_history.txt
 %EDITOR% @version.txt
-hg ci -u %USER% -m "%COMMIT_MESSAGE_EDITOR%"
-hg tag release_%1 -u %USER%
+git add @version.txt
+git commit -m "%COMMIT_MESSAGE_EDITOR%"
+git tag release_%1
 if not "%3"=="copy_builds" (
-	if "%2"=="release" hg push %MAIN_REPO_EDITOR%
+	if "%2"=="release" git push %MAIN_REPO_EDITOR% master
 )
 rdmd build clean
 rdmd build release
 if not errorlevel = 0 goto failure
 copy cwxeditor.exe %DEST_DIR_EDITOR%
-hg clone ../ %DEST_DIR_EDITOR%\cwxeditor
+git clone ../ %DEST_DIR_EDITOR%\cwxeditor
 pushd %DEST_DIR_EDITOR%\cwxeditor
-hg up %CWX_VERSION%
-rmdir /S /Q .hg
-del .hgignore
-del .hgtags
+git config --local user.name "%USER%"
+git config --local user.email "%EMAIL%"
+git checkout %CWX_VERSION%
+rmdir /S /Q .git
+del .gitignore
 %ARCHIVER% cwxeditor_src.zip cwxeditor_src
 if "%3"=="copy_builds" (
 	mkdir ..\cwxeditor_x86
@@ -80,14 +88,15 @@ rdmd build clean
 rdmd build release -m64
 if not errorlevel = 0 goto failure
 copy cwxeditor.exe %DEST_DIR_EDITOR%
-hg clone ../ %DEST_DIR_EDITOR%\cwxeditor
+git clone ../ %DEST_DIR_EDITOR%\cwxeditor
 pushd %DEST_DIR_EDITOR%\cwxeditor
+git config --local user.name "%USER%"
+git config --local user.email "%EMAIL%"
 cd ..
 cd cwxeditor
-hg up %CWX_VERSION%
-rmdir /S /Q .hg
-del .hgignore
-del .hgtags
+git checkout %CWX_VERSION%
+rmdir /S /Q .git
+del .gitignore
 %ARCHIVER% cwxeditor_src.zip cwxeditor_src
 if "%3"=="copy_builds" (
 	mkdir ..\cwxeditor_x64
@@ -110,8 +119,8 @@ if not "%3"=="copy_builds" (
 	rmdir /S /Q cwxeditor_temp
 	if "%2"=="release" (
 		pushd %LOCAL_REPO_EDITOR%
-		hg pull upstream --update
-		hg push
+		git pull upstream master
+		git push origin master
 	)
 )
 exit /b 0
