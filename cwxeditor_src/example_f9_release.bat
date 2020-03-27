@@ -8,8 +8,6 @@ rem  * private (ƒtƒHƒ‹ƒ_)
 
 setlocal enabledelayedexpansion
 
-hg push
-
 copy private\dailybuild.log private\dailybuild_backup.log
 
 set dailybuild_datetime=0
