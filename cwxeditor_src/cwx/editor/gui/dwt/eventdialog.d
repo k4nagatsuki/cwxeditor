@@ -1080,9 +1080,6 @@ private:
 				.listener(name, SWT.Modify, &updateToolTip);
 			};
 			if (_couponView.mainNameEditor) { mixin(S_TRACE);
-				auto menu = _couponView.mainNameEditor.getMenu();
-				new MenuItem(menu, SWT.SEPARATOR);
-				.setupSPCharsMenu(_comm, _summ, _uc, _couponView.mainNameEditor, menu, false, true, () => _expandSPChars.getSelection());
 				.listener(_couponView.mainNameEditor, SWT.Modify, &updateToolTip);
 			}
 		} else { mixin(S_TRACE);

@@ -742,7 +742,7 @@ class CouponView(CVType Type) : Composite {
 			}
 			bool canDelCoupon() { mixin(S_TRACE);
 				if (!_coupons || _coupons.isDisposed()) return false;
-				return !_readOnly && _coupons.getSelectionIndex() != -1;
+				return !_readOnly && _coupons.getSelectionIndex() != -1 && (!_tte1.isEditing || (cast(Combo)_tte1.editor).getText() != "");
 			}
 			createToolItem2(_comm, _toolbar, _prop.msgs.addCoupon, _prop.images.addCoupon, &addCoupon, &canAddCoupon);
 			createToolItem2(_comm, _toolbar, _prop.msgs.altCoupon, _prop.images.altCoupon, &altCoupon, &canAltCoupon);

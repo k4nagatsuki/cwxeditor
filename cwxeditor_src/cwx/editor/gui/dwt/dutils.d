@@ -1018,6 +1018,11 @@ public:
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
+	@property
+	override
+	Text editor() { mixin(S_TRACE);
+		return cast(Text)super.editor;
+	}
 }
 /// ditto
 class TableComboEdit(C = CCombo) : AbstractTableEdit {
@@ -1084,6 +1089,11 @@ public:
 			debugln(e);
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
+	}
+	@property
+	override
+	C editor() { mixin(S_TRACE);
+		return cast(C)super.editor;
 	}
 }
 
