@@ -4555,15 +4555,15 @@ class ContentsToolBox {
 	}
 	@property
 	bool isInsert() { mixin(S_TRACE);
-		return _shiftDown && !(_comm.isMenuAccelerating & SWT.SHIFT);
+		return isShiftDown && !(_comm.isMenuAccelerating & SWT.SHIFT);
 	}
 	@property
 	bool isInsertFirst() { mixin(S_TRACE);
-		return (_ctrlDown && !(_comm.isMenuAccelerating & SWT.CTRL)) ? !_prop.var.etc.contentsInsertFirst : _prop.var.etc.contentsInsertFirst;
+		return (isCtrlDown && !(_comm.isMenuAccelerating & SWT.CTRL)) ? !_prop.var.etc.contentsInsertFirst : _prop.var.etc.contentsInsertFirst;
 	}
 	@property
 	bool isAutoOpen() { mixin(S_TRACE);
-		return (_altDown && !(_comm.isMenuAccelerating & SWT.ALT)) ? !_prop.var.etc.contentsAutoOpen : _prop.var.etc.contentsAutoOpen;
+		return (isAltDown && !(_comm.isMenuAccelerating & SWT.ALT)) ? !_prop.var.etc.contentsAutoOpen : _prop.var.etc.contentsAutoOpen;
 	}
 
 	private void arrow() { mixin(S_TRACE);
