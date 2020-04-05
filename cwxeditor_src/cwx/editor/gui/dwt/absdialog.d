@@ -210,7 +210,7 @@ abstract class AbsDialog {
 	@property
 	protected void ignoreMod(bool v) { mixin(S_TRACE);
 		_ignoreMod = v;
-		if (_area) _area.setEnabled(!v);
+		if (_area && !_area.isDisposed()) _area.setEnabled(!v);
 	}
 	/// ditto
 	@property
