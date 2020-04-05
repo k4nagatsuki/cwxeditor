@@ -2900,9 +2900,10 @@ private:
 
 	protected override void refDataVersion() { mixin(S_TRACE);
 		auto valued = _method[cast(size_t)SelectionMethod.Valued];
-		valued.setEnabled(!summ || !summ.legacy || valued.getSelection() || _couponView.coupons.length);
-		_couponView.enabled = valued.isEnabled() && valued.getSelection();
-		_initValue.setEnabled(valued.isEnabled() && valued.getSelection());
+		auto enabled = !summ || !summ.legacy || valued.getSelection() || _couponView.coupons.length;
+		valued.setEnabled(enabled);
+		_couponView.enabled = enabled && valued.getSelection();
+		_initValue.setEnabled(enabled && valued.getSelection());
 		refreshWarning();
 	}
 

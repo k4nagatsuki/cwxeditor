@@ -850,9 +850,10 @@ private:
 			}
 		}
 		_parent.layout(true);
-		_replace.setEnabled(!(sel is _tabText && _ignoreReturnCode.getSelection()) && sel !is _tabContents && sel !is _tabCoupon && sel !is _tabUnuse && sel !is _tabError);
+		auto enabled = !(sel is _tabText && _ignoreReturnCode.getSelection()) && sel !is _tabContents && sel !is _tabCoupon && sel !is _tabUnuse && sel !is _tabError;
+		_replace.setEnabled(enabled);
 		_range.setEnabled(sel !is _tabUnuse && sel !is _tabGrep);
-		_rangeAllCheck.setEnabled(_range.getEnabled());
+		_rangeAllCheck.setEnabled(enabled);
 		if (!_range.getEnabled()) _incSearch.close();
 		_comm.refreshToolBar();
 	}
