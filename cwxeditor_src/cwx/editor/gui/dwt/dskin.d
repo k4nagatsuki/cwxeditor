@@ -95,7 +95,7 @@ private static ImageDataWithScale imgd(string path, uint targetScale, MaskType m
 				data.baseData.transparentPixel = data.baseData.getPixel(data.baseData.width - 1, 0);
 			}
 		}
-		putCache(key, data);
+		putCache(key, data, data.bufferSize);
 		return data;
 	}
 }
@@ -162,7 +162,7 @@ version (Windows) {
 			} else { mixin(S_TRACE);
 				put();
 			}
-			putCache(exe, data);
+			putCache(exe, data, data.data.length + data.maskData.length + data.alphaData.length);
 			return data;
 		}
 	}
@@ -197,7 +197,7 @@ version (Windows) {
 			} else { mixin(S_TRACE);
 				auto data = .loadImageWithScale(oPath, targetScale, false);
 				setMask(data);
-				putCache(key, data);
+				putCache(key, data, data.bufferSize);
 				return data;
 			}
 		}
@@ -222,7 +222,7 @@ version (Windows) {
 			img.destroy();
 			auto sData = new ImageDataWithScale(data, 1);
 			setMask(sData);
-			putCache(path, sData);
+			putCache(path, sData, sData.bufferSize);
 			return sData;
 		}
 	}

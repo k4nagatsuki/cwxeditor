@@ -2041,31 +2041,49 @@ bool hasPath(string sPath, string path) { mixin(S_TRACE);
 	}
 }
 
+__gshared size_t cacheSize = 0; /// キャッシュサイズの全合計。
+static if (size_t.sizeof == 8) {
+	immutable CACHE_SIZE_MAX = 32 * 1024 * 1024 * 1024; /// 最大キャッシュサイズ。
+} else {
+	immutable CACHE_SIZE_MAX = 512 * 1024 * 1024; /// 最大キャッシュサイズ。
+}
+
 /// ファイルパスから取得する何らかのデータをキャッシュするための
 /// 一連の変数と関数を定義する。
-template FileCache(T ...) {
+template FileCache(T) {
 	struct Cache {
 		std.datetime.SysTime ftm;
-		static if (T.length == 1) {
-			T[0] value;
-		} else { mixin(S_TRACE);
-			T values;
-		}
+		T value;
+		size_t size;
 	}
 	static const CACHE_MAX = 1024;
 	static Cache[string] caches;
 	static string[] cachePaths;
-	void putCache(string path, T v) { mixin(S_TRACE);
+	void putCache(string path, T v, size_t size) { mixin(S_TRACE);
 		if (!exists(path)) return;
+		if (cwx.utils.CACHE_SIZE_MAX < size) return;
 		path = nabs(path);
 		static if (0 == filenameCharCmp('A', 'a')) {
 			path = std.string.toLower(path);
 		}
-		if (cachePaths.length >= CACHE_MAX) { mixin(S_TRACE);
+		while (0 < cachePaths.length && (CACHE_MAX <= cachePaths.length || (0 < size && cwx.utils.CACHE_SIZE_MAX < .cacheSize + size))) { mixin(S_TRACE);
+			cwx.utils.cacheSize -= caches[cachePaths[0u]].size;
 			caches.remove(cachePaths[0u]);
 			cachePaths = cachePaths[1u .. $];
 		}
-		caches[path] = Cache(timeLastModified(path), v);
+		static if (is(typeof(v.updateSizeEvent))) {
+			void updateSize(size_t oldSize, size_t newSize) { mixin(S_TRACE);
+				auto cache = path in caches;
+				assert (cache !is null);
+				assert (cache.size == oldSize);
+				cwx.utils.cacheSize += newSize;
+				cwx.utils.cacheSize -= oldSize;
+				cache.size = newSize;
+			}
+			v.updateSizeEvent ~= &updateSize;
+		}
+		caches[path] = Cache(timeLastModified(path), v, size);
+		cwx.utils.cacheSize += size;
 		cachePaths ~= path;
 	}
 	Cache* cache(string path) { mixin(S_TRACE);
