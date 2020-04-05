@@ -1118,7 +1118,7 @@ class Skin {
 					}
 				}
 			}
-			putCache(dir, Has(args, r));
+			putCache(dir, Has(args, r), 0);
 			return r;
 		}
 	}
@@ -1209,7 +1209,7 @@ class Skin {
 					}
 				}
 			}
-			putCache(dir, Files(flag, r));
+			putCache(dir, Files(flag, r), 0);
 			return r;
 		}
 	}

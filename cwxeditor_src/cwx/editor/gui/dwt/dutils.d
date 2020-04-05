@@ -76,6 +76,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
 class ImageDataWithScale {
+	void delegate(size_t oldSize, size_t newSize)[] updateSizeEvent;
+
 	private ImageData _data;
 	private uint _scale;
 
@@ -105,7 +107,13 @@ class ImageDataWithScale {
 			auto h = getHeight(targetScale);
 			scaled = _data.scaledTo(w, h);
 		}
+		auto oldSize = bufferSize;
 		_scaled[targetScale] = scaled;
+		auto newSize = bufferSize;
+		assert (oldSize < newSize);
+		foreach (dlg; updateSizeEvent) { mixin(S_TRACE);
+			dlg(oldSize, newSize);
+		}
 		return scaled;
 	}
 
@@ -120,6 +128,31 @@ class ImageDataWithScale {
 
 	@property
 	ImageData[] allData() { return _scaled.values; }
+
+	@property
+	const
+	size_t bufferSize() { mixin(S_TRACE);
+		size_t size = 0;
+		foreach (data; _scaled.byValue()) { mixin(S_TRACE);
+			size += data.data.length;
+			size += data.maskData.length;
+			size += data.alphaData.length;
+		}
+		return size;
+	}
+
+	void destroyAllData() { mixin(S_TRACE);
+		foreach (data; _scaled.byValue()) { mixin(S_TRACE);
+			data.data[] = 0;
+			destroy(data.data);
+			data.maskData[] = 0;
+			destroy(data.maskData);
+			data.alphaData[] = 0;
+			destroy(data.alphaData);
+			destroy(data);
+		}
+		_scaled = null;
+	}
 }
 
 bool dwtImageSize(Props prop, in Skin skin, in Summary summ, string path, out uint width, out uint height) { mixin(S_TRACE);

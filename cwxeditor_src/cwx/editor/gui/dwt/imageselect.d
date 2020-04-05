@@ -199,12 +199,11 @@ public:
 				setPreviewSize(_w, _h, insets);
 				_image.addPaintListener(new PListener);
 				.listener(_image, SWT.Dispose, { mixin(S_TRACE);
-					foreach (img; _img) { mixin(S_TRACE);
+					foreach (ref img; _img) { mixin(S_TRACE);
 						if (img) { mixin(S_TRACE);
-							foreach (data; img.allData) {mixin(S_TRACE);
-								data.data[] = 0;
-								destroy(data.data);
-							}
+							img.destroyAllData();
+							destroy(img);
+							img = null;
 						}
 					}
 					_img = [];
@@ -826,10 +825,9 @@ private:
 					if (_msel.paths.length < _paintedPaths.length) { mixin(S_TRACE);
 						foreach (i; _msel.paths.length .. _paintedPaths.length) { mixin(S_TRACE);
 							if (_img[i]) { mixin(S_TRACE);
-								foreach (data; _img[i].allData) { mixin(S_TRACE);
-									data.data[] = 0;
-									destroy(data.data);
-								}
+								_img[i].destroyAllData();
+								destroy(_img[i]);
+								_img[i] = null;
 							}
 						}
 					}
@@ -898,10 +896,9 @@ private:
 						auto drawingScale = isScenarioFile ? _prop.drawingScaleForImage(_summ) : _prop.drawingScale;
 						imgData = .loadImageWithScale(_prop, summSkin, _summ, path, drawingScale, _mask, Type is MtType.BG_IMG);
 						if (_img[i]) { mixin(S_TRACE);
-							foreach (data; _img[i].allData) { mixin(S_TRACE);
-								data.data[] = 0;
-								destroy(data.data);
-							}
+							_img[i].destroyAllData();
+							destroy(_img[i]);
+							_img[i] = null;
 						}
 						_img[i] = imgData;
 					}
