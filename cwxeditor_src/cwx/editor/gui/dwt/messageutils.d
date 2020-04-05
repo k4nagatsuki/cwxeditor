@@ -789,8 +789,9 @@ private:
 		dlg.rCoupons = rcs;
 	}
 	void updateTalker() { mixin(S_TRACE);
-		_couponView.enabled = (Talker.Valued is selectedTalker);
-		_initValue.setEnabled(_couponView.enabled);
+		auto enabled = Talker.Valued is selectedTalker;
+		_couponView.enabled = enabled;
+		_initValue.setEnabled(enabled);
 		comm.refreshToolBar();
 	}
 	class SelL : SelectionAdapter {

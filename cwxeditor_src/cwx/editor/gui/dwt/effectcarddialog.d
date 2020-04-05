@@ -1069,11 +1069,10 @@ protected:
 		}
 	}
 	private void refreshEnblOneAll() { mixin(S_TRACE);
-		_oneAllGrp.setEnabled(_targ[CardTarget.Party].getSelection()
-			|| _targ[CardTarget.Enemy].getSelection()
-			|| _targ[CardTarget.Both].getSelection());
-		_one.setEnabled(!_readOnly && _oneAllGrp.getEnabled());
-		_all.setEnabled(!_readOnly && _oneAllGrp.getEnabled());
+		auto enabled = _targ[CardTarget.Party].getSelection() || _targ[CardTarget.Enemy].getSelection() || _targ[CardTarget.Both].getSelection();
+		_oneAllGrp.setEnabled(enabled);
+		_one.setEnabled(!_readOnly && enabled);
+		_all.setEnabled(!_readOnly && enabled);
 	}
 
 	override bool apply() { mixin(S_TRACE);

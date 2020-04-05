@@ -1296,8 +1296,9 @@ private:
 	}
 	void refEngineEnabled() { mixin(S_TRACE);
 		_findEnginePath.setEnabled(0 == _enginePath.getText().length);
-		_enginePath.setEnabled(!_findEnginePath.getSelection() || _enginePath.getText().length);
-		_refEnginePath.setEnabled(_enginePath.getEnabled());
+		auto enabled = !_findEnginePath.getSelection() || _enginePath.getText().length;
+		_enginePath.setEnabled(enabled);
+		_refEnginePath.setEnabled(enabled);
 	}
 public:
 	this (Commons comm, Props prop, Shell shell, DockingFolderCTC dock, Summary summ, void delegate() sendReloadProps) { mixin(S_TRACE);
