@@ -52,7 +52,10 @@ git add @version.txt
 git commit -m "%COMMIT_MESSAGE_EDITOR%"
 git tag release_%1
 if not "%3"=="copy_builds" (
-	if "%2"=="release" git push %MAIN_REPO_EDITOR% master
+	if "%2"=="release" (
+		git push %MAIN_REPO_EDITOR% master
+		git push %MAIN_REPO_EDITOR% --tags
+	)
 )
 rdmd build clean
 rdmd build release
@@ -120,7 +123,9 @@ if not "%3"=="copy_builds" (
 	if "%2"=="release" (
 		pushd %LOCAL_REPO_EDITOR%
 		git pull upstream master
+		git pull upstream --tags
 		git push origin master
+		git push origin --tags
 	)
 )
 exit /b 0
