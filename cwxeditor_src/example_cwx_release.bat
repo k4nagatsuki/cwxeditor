@@ -53,6 +53,7 @@ git commit -m "%COMMIT_MESSAGE_EDITOR%"
 git tag release_%1
 if not "%3"=="copy_builds" (
 	if "%2"=="release" (
+		git pull %MAIN_REPO_EDITOR% master
 		git push %MAIN_REPO_EDITOR% master
 		git push %MAIN_REPO_EDITOR% --tags
 	)
