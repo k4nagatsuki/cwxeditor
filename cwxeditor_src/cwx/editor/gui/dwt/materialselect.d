@@ -1123,7 +1123,7 @@ class MaterialSelect(MtType Type, D, C) {
 			}
 		}
 		private void selectPath(string path, ptrdiff_t index = -1, bool store = true) { mixin(S_TRACE);
-			_path = path;
+			_path = path.normpath();
 		}
 		@property
 		string binPath() { mixin(S_TRACE);
