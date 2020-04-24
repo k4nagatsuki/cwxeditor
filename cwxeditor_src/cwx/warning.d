@@ -336,10 +336,10 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			if (beast.showStyle != ShowStyle.Center && !prop.isTargetVersion(isClassic, wsnVer, "4")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningShowStyleForBeastCard;
 			}
-			if (!.equal(beast.invocationCondition, [Status.Alive])) { mixin(S_TRACE);
+			if (!.equal(beast.invocationCondition, [Status.Alive]) && !prop.isTargetVersion(isClassic, wsnVer, "3")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningInvocationCondition;
 			}
-			if (!beast.removeWithUnconscious) { mixin(S_TRACE);
+			if (!beast.removeWithUnconscious && !prop.isTargetVersion(isClassic, wsnVer, "3")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningRemoveWithUnconscious;
 			}
 			if (beast.removeWithUnconscious && beast.invocationCondition.contains(Status.Unconscious)) { mixin(S_TRACE);
