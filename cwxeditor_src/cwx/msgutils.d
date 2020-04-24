@@ -96,6 +96,7 @@ private string formatMsgImpl(string text,
 			ptrdiff_t next = .countUntil(dtext[i + 1 .. $], cc);
 			if (next < 0) return false;
 			auto fl = dtext[i + 1 .. i + 1 + next];
+			if (.countUntil(fl, '\n') != -1) return false; // 改行を含むパスはありえない
 			auto fls = to!string(fl);
 			auto v = get(fls);
 			if (!v.exists) { mixin(S_TRACE);
