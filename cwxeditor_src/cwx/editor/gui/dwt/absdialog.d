@@ -342,6 +342,18 @@ abstract class AbsDialog {
 		if (_apply && !_forceApplyEnabled) _apply.setEnabled(false);
 		_forceApplyEnabled = false;
 		_win.open();
+		version (Windows) {
+			// BUG: Google日本語入力を使用しており、IMEがオンの時にダイアログを開くと、
+			//      全角スペースを入力しようとしても半角スペースが入る、
+			//      バックスペースキーが一度だけ効かないなどの不具合が発生する
+			//      バックスペースを一度だけ入力する事でなぜか回避可能
+			//      GoogleJapaneseInput-2.25.3700.0+24.7.9 with Windows 10 Pro 64-bit
+			auto keyEvt = new Event;
+			keyEvt.type = SWT.KeyDown;
+			keyEvt.character = '\b';
+			keyEvt.keyCode = SWT.BS;
+			_win.getDisplay().post(keyEvt);
+		}
 		if (firstFocusIsOK) _okBtn.setFocus();
 		opened();
 		foreach (dlg; openedEvent) { mixin(S_TRACE);
