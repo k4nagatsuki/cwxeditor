@@ -223,7 +223,7 @@ public:
 
 			if (defs) { mixin(S_TRACE);
 				_msel = new MaterialSelect!(Type, Combo, C)
-					(comm, prop, summ, _readOnly != 0, &this.refresh, defs, canInclude, isMenuCard, _undo, store);
+					(comm, prop, summ, _readOnly != 0, &refreshWithoutImageList, defs, canInclude, isMenuCard, _undo, store);
 			} else { mixin(S_TRACE);
 				defs = (included) { mixin(S_TRACE);
 					auto defs = [prop.msgs.defaultSelection(prop.msgs.imageNone)];
@@ -231,7 +231,7 @@ public:
 					return defs;
 				};
 				_msel = new MaterialSelect!(Type, Combo, C)
-					(comm, prop, summ, _readOnly != 0, &this.refresh, defs, canInclude, isMenuCard, _undo, store);
+					(comm, prop, summ, _readOnly != 0, &refreshWithoutImageList, defs, canInclude, isMenuCard, _undo, store);
 				_msel.indexOfBinPath = (included) => included ? 1 : -1;
 				static if (Type == MtType.CARD) {
 					_msel.valueFromDef = (index, included, binPath) { mixin(S_TRACE);
@@ -251,6 +251,7 @@ public:
 			_msel.modEvent ~= { mixin(S_TRACE);
 				foreach (dlg; modEvent) dlg();
 			};
+			_msel.loadedEvent ~= &refreshImageList;
 			static if (!Compact) {
 				_msel.loadedEvent ~= &_image.redraw;
 			}
@@ -941,13 +942,12 @@ private:
 			}
 		}
 	}
-	void refresh() { mixin(S_TRACE);
+	private void refreshWithoutImageList() { mixin(S_TRACE);
 		if (_refresh) _refresh();
 		_paintedPaths = [];
 		static if (!Compact) {
 			_image.redraw();
 		}
-		refreshImageList();
 		foreach (dlg; updateImageEvent) { mixin(S_TRACE);
 			dlg();
 		}
@@ -956,6 +956,10 @@ private:
 		} else static if (Type is MtType.BG_IMG) {
 			_excludeCardSize.setSelection(_msel.excludeCardSizeImage);
 		}
+	}
+	void refresh() { mixin(S_TRACE);
+		refreshWithoutImageList();
+		refreshImageList();
 	}
 	@property
 	Skin summSkin() { mixin(S_TRACE);
