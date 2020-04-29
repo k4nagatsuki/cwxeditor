@@ -2099,6 +2099,8 @@ private:
 	static const INIT = 2;
 	static const UC = 3;
 	void refreshFlags() { mixin(S_TRACE);
+		flags.setRedraw(false);
+		scope (exit) flags.setRedraw(true);
 		if (_dir) { mixin(S_TRACE);
 			int i = 0;
 			.sortedWithName(_dir.variants, prop.var.etc.logicalSort, (cwx.flag.Variant f) { mixin(S_TRACE);
