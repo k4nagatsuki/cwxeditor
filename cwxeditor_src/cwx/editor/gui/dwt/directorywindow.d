@@ -559,10 +559,10 @@ private:
 		}
 	}
 	private bool isCard(Skin skin, string file) { mixin(S_TRACE);
-		if (skin.isCardImage(file, false)) return true;
+		if (skin.isCardImage(file, false, false)) return true;
 		if (_summ && _summ.loadScaledImage) { mixin(S_TRACE);
 			auto file2 = file.noScaledPath;
-			return file2 != "" && skin.isCardImage(file2, false);
+			return file2 != "" && skin.isCardImage(file2, false, false);
 		}
 		return false;
 	}

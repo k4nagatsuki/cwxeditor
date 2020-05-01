@@ -3967,7 +3967,7 @@ void setupSPCharsMenu(Commons comm, Summary summ, UseCounter uc, Control ctrl, M
 				}
 				foreach (file; std.algorithm.sort!((a, b) => fncmp(a, b) < 0)(files)) { mixin(S_TRACE);
 					void createMI3(string file) { mixin(S_TRACE);
-						auto image = skin.isCardImage(file, false) ? comm.prop.images.cards : comm.prop.images.backs;
+						auto image = skin.isCardImage(file, false, false) ? comm.prop.images.cards : comm.prop.images.backs;
 						.createMenuItem2(comm, fontMenu, file.baseName(), image, () => insert("#%s".format(decodeFontPath(file.baseName()))), null);
 					}
 					createMI3(file);

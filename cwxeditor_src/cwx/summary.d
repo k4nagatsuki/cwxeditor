@@ -2416,7 +2416,7 @@ public:
 	private string[][immutable(ubyte[])] cardImgTable(string mtdir, string relMT, in Skin skin, UseCounter uc, out ubyte*[] ptrs) { mixin(S_TRACE);
 		string[][immutable(ubyte[])] r;
 		foreach (file; clistdir(mtdir)) { mixin(S_TRACE);
-			if (skin.isCardImage(std.path.buildPath(mtdir, file), true)) { mixin(S_TRACE);
+			if (skin.isCardImage(std.path.buildPath(mtdir, file), true, false)) { mixin(S_TRACE);
 				ubyte* ptr = null;
 				auto mBytes = readBinaryFrom!ubyte(std.path.buildPath(mtdir, file), ptr);
 				ptrs ~= ptr;
@@ -2518,7 +2518,7 @@ public:
 					mkdir(top);
 					copyAll(p, top, true);
 				} else if (!cfnmatch(.extension(p), ".wsm") && !cfnmatch(.extension(p), ".wid") && !cfnmatch(.extension(p), ".wex")) { mixin(S_TRACE);
-					if (toSkin.isCardImage(p, true)
+					if (toSkin.isCardImage(p, true, false)
 							|| toSkin.isBgImage(p)
 							|| toSkin.isBGM(p)
 							|| toSkin.isSE(p)) { mixin(S_TRACE);
