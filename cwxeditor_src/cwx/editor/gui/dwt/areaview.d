@@ -5413,7 +5413,7 @@ public:
 				private bool doFile(string path) { mixin(S_TRACE);
 					if (_readOnly) return false;
 					assert (_summ);
-					if (summSkin.isCardImage(path, true)) { mixin(S_TRACE);
+					if (summSkin.isCardImage(path, true, false)) { mixin(S_TRACE);
 						int i = cardFromFile(path, 0, 0, false);
 						if (i == -1) { mixin(S_TRACE);
 							return false;
@@ -5962,7 +5962,7 @@ public:
 			assert (_summ);
 			auto skin = summSkin;
 			static if ((UseCards && is(C == MenuCard)) && UseBacks) {
-				if (skin.isCardImage(path, false)) { mixin(S_TRACE);
+				if (skin.isCardImage(path, false, false)) { mixin(S_TRACE);
 					int i = cardFromFile(path, x, y, true);
 					if (i == -1) { mixin(S_TRACE);
 						return false;
@@ -5981,7 +5981,7 @@ public:
 					}
 				}
 			} else static if (UseCards && is(C == MenuCard)) {
-				if (skin.isCardImage(path, true)) { mixin(S_TRACE);
+				if (skin.isCardImage(path, true, false)) { mixin(S_TRACE);
 					int i = cardFromFile(path, x, y, true);
 					if (i == -1) { mixin(S_TRACE);
 						return false;

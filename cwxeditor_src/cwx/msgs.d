@@ -1396,8 +1396,8 @@ class Msgs : Properties {
 
 	auto warningIncludedPNGImage = Msg("warningIncludedPNGImage", "CardWirth 1.50以前では、格納されたPNGイメージの読み込みでエラーが発生します。メニューカード・背景セル・メッセージの話者以外では使用しないでください。");
 	auto warningIncludedGIFImage = Msg("warningIncludedGIFImage", "CardWirth 1.50以前では、格納されたGIFイメージの読み込みでエラーが発生します。メニューカード・背景セル・メッセージの話者以外では使用しないでください。");
-	auto pngMayNotCorrespond = Msg("pngMayNotCorrespond", "PNGイメージはプレイヤーの環境によって表示エラーとなる事があります。");
-	auto gifMayNotCorrespond = Msg("gifMayNotCorrespond", "GIFイメージはプレイヤーの環境によって表示エラーとなる事があります。");
+	auto pngMayNotCorrespond = Msg("pngMayNotCorrespond", "CardWirth 1.29以前では、PNGイメージの読み込みでエラーが発生します。");
+	auto gifMayNotCorrespond = Msg("gifMayNotCorrespond", "CardWirth 1.29以前では、GIFイメージの読み込みでエラーが発生します。");
 
 	auto warningInvalidFileExtensionImage = Msg("warningInvalidFileExtensionImage", "イメージとして使用できない拡張子のファイルが指定されています。");
 	auto warningInvalidFileExtensionSound = Msg("warningInvalidFileExtensionSound", "音声として使用できない拡張子のファイルが指定されています。");

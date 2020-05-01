@@ -260,7 +260,7 @@ class MaterialSelect(MtType Type, D, C) {
 				}
 				foreach (f; files) { mixin(S_TRACE);
 					static if (Type == MtType.CARD) {
-						auto isTarg = skin.isCardImage(f, true);
+						auto isTarg = skin.isCardImage(f, true, canInclude && !isMenuCard);
 						uint w, h;
 						.imageSize(f, w, h);
 						showNoCardSize |= (w != cSize.width || h != cSize.height);
@@ -327,7 +327,7 @@ class MaterialSelect(MtType Type, D, C) {
 		static if (Type == MtType.CARD) {
 			if (!_readOnly && _canInclude && _summ && _summ.legacy) { mixin(S_TRACE);
 				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(_comm, menu, MenuID.IncludeImage, &includeImage, () => filePath.length > 0 && !_readOnly);
+				createMenuItem(_comm, menu, MenuID.IncludeImage, &includeImage, () => filePath.length > 0 && !_readOnly && summSkin.canInclude(filePath));
 			}
 		} else static if (Type == MtType.BGM) {
 			new MenuItem(menu, SWT.SEPARATOR);
@@ -400,7 +400,7 @@ class MaterialSelect(MtType Type, D, C) {
 				auto wsnVer = _summ ? _summ.dataVersion : LATEST_VERSION;
 				auto p = summSkin.findImagePath(path, _summ ? _summ.scenarioPath : "", wsnVer);
 				if (p.length) { mixin(S_TRACE);
-					if (summSkin.isCardImage(p, false)) { mixin(S_TRACE);
+					if (summSkin.isCardImage(p, false, false)) { mixin(S_TRACE);
 						path2("", false, false, -1, false);
 					}
 				}
@@ -1142,7 +1142,7 @@ class MaterialSelect(MtType Type, D, C) {
 				if (!_binPaths[_imageIndex].length && path != "") { mixin(S_TRACE);
 					auto p = summSkin.findImagePath(path, _summ ? _summ.scenarioPath : "", wsnVer);
 					if (p.length) { mixin(S_TRACE);
-						if (summSkin.isCardImage(p, false)) { mixin(S_TRACE);
+						if (summSkin.isCardImage(p, false, canInclude && !isMenuCard)) { mixin(S_TRACE);
 							excludeCardSizeImage = true;
 							if (_refresh) { mixin(S_TRACE);
 								_dirs.setRedraw(false);
@@ -1386,26 +1386,26 @@ private:
 		@property const(string)[] defExts() { return summSkin.extImage; }
 		@property string[] defDirs() { return summSkin.tableDirs; }
 		@property string[] engineDefDirs() { return summSkin.wsnTableDirs(_summ ? _summ.dataVersion : LATEST_VERSION); }
-		bool isTarg(string p) { return summSkin.isCardImage(p, _noCardSize); }
-		static bool hasTarg(Skin skin, string p, bool forceRefresh, bool noCardSize) { return skin.hasCardImage(p, forceRefresh, noCardSize); }
+		bool isTarg(string p) { return summSkin.isCardImage(p, _noCardSize, canInclude && !isMenuCard); }
+		bool hasTarg(Skin skin, string p, bool forceRefresh, bool noCardSize) { return skin.hasCardImage(p, forceRefresh, noCardSize, canInclude && !isMenuCard); }
 		bool hasWsnTarg(bool forceRefresh, bool noCardSize) { return summSkin.hasWsnCardImage(_summ ? _summ.dataVersion : LATEST_VERSION, forceRefresh, noCardSize); }
-		string[] targsImpl(string dir, bool re) { return summSkin.cards(dir, _prop.var.etc.logicalSort, re, _noCardSize); }
-		@property Image image(string file) { return summSkin.isCardImage(file, false) ? _prop.images.cards : _prop.images.backs; }
+		string[] targsImpl(string dir, bool re) { return summSkin.cards(dir, _prop.var.etc.logicalSort, re, _noCardSize, canInclude && !isMenuCard); }
+		@property Image image(string file) { return summSkin.isCardImage(file, false, canInclude && !isMenuCard) ? _prop.images.cards : _prop.images.backs; }
 	} else static if (Type == MtType.BG_IMG) {
 		@property const(string)[] defExts() { return summSkin.extImage; }
 		@property string[] defDirs() { return summSkin.tableDirs; }
 		@property string[] engineDefDirs() { return summSkin.wsnTableDirs(_summ ? _summ.dataVersion : LATEST_VERSION); }
 		bool isTarg(string p) { return summSkin.isBgImage(p, excludeCardSizeImage); }
-		static bool hasTarg(Skin skin, string p, bool forceRefresh, bool excludeCardSize) { return skin.hasBgImage(p, forceRefresh, excludeCardSize); }
+		bool hasTarg(Skin skin, string p, bool forceRefresh, bool excludeCardSize) { return skin.hasBgImage(p, forceRefresh, excludeCardSize); }
 		bool hasWsnTarg(bool forceRefresh, bool excludeCardSize) { return summSkin.hasWsnBgImage(_summ ? _summ.dataVersion : LATEST_VERSION, forceRefresh, excludeCardSize); }
 		string[] targsImpl(string dir, bool re) { return summSkin.tables(dir, _prop.var.etc.logicalSort, re, excludeCardSizeImage); }
-		@property Image image(string file) { return summSkin.isCardImage(file, false) ? _prop.images.cards : _prop.images.backs; }
+		@property Image image(string file) { return summSkin.isCardImage(file, false, canInclude && !isMenuCard) ? _prop.images.cards : _prop.images.backs; }
 	} else static if (Type == MtType.BGM) {
 		@property const(string)[] defExts() { return summSkin.extBgm; }
 		@property string[] defDirs() { return summSkin.bgmDirs; }
 		@property string[] engineDefDirs() { return summSkin.wsnMusicDirs(_summ ? _summ.dataVersion : LATEST_VERSION); }
 		bool isTarg(string p) { return summSkin.isBGM(p); }
-		static bool hasTarg(Skin skin, string p, bool forceRefresh, bool noCardSize) { return skin.hasBGM(p, forceRefresh); }
+		bool hasTarg(Skin skin, string p, bool forceRefresh, bool noCardSize) { return skin.hasBGM(p, forceRefresh); }
 		bool hasWsnTarg(bool forceRefresh, bool noCardSize) { return summSkin.hasWsnBGM(_summ ? _summ.dataVersion : LATEST_VERSION, forceRefresh); }
 		string[] targsImpl(string dir, bool re) { return summSkin.musics(dir, _prop.var.etc.logicalSort, re); }
 		@property Image image() { return _prop.images.bgm; }
@@ -1414,7 +1414,7 @@ private:
 		@property string[] defDirs() { return summSkin.seDirs; }
 		@property string[] engineDefDirs() { return summSkin.wsnSoundDirs(_summ ? _summ.dataVersion : LATEST_VERSION); }
 		bool isTarg(string p) { return summSkin.isSE(p); }
-		static bool hasTarg(Skin skin, string p, bool forceRefresh, bool noCardSize) { return skin.hasSE(p, forceRefresh); }
+		bool hasTarg(Skin skin, string p, bool forceRefresh, bool noCardSize) { return skin.hasSE(p, forceRefresh); }
 		bool hasWsnTarg(bool forceRefresh, bool noCardSize) { return summSkin.hasWsnSE(_summ ? _summ.dataVersion : LATEST_VERSION, forceRefresh); }
 		string[] targsImpl(string dir, bool re) { return summSkin.sounds(dir, _prop.var.etc.logicalSort, re); }
 		@property Image image() { return _prop.images.se; }
