@@ -386,7 +386,7 @@ private:
 	}
 	class MDListener : ModifyListener {
 		public override void modifyText(ModifyEvent e) { mixin(S_TRACE);
-			if (_spn.isFocusControl() && _edit !is null && !_noEdit) { mixin(S_TRACE);
+			if (_edit !is null && !_noEdit) { mixin(S_TRACE);
 				_edit(_spn.getSelection());
 			}
 		}
