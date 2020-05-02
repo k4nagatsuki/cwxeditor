@@ -700,6 +700,9 @@ protected:
 		_comm.closeAdds.add(&closeAdds);
 		.listener(getShell(), SWT.Dispose, () => _comm.closeAdds.remove(&closeAdds));
 
+		ignoreMod = true;
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
+
 		updateDataVersion();
 		_lastImageScale = _prop.var.etc.imageScale;
 	}

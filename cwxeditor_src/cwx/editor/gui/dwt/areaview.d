@@ -1126,6 +1126,7 @@ private:
 
 	void editSpnImpl(string T, B)(int value, int[B] edits, int startIndex) { mixin(S_TRACE);
 		if (_readOnly) return;
+		if (_refreshControls) return;
 		foreach (i; edits.byValue) { mixin(S_TRACE);
 			auto a = cast(FlexImage)_imgp.images[startIndex + i];
 			_imgp.redrawImage(a);
@@ -2483,7 +2484,7 @@ private:
 	void refreshControlsImpl() { mixin(S_TRACE);
 		if (!_xSpn) return;
 		if (!_refreshControls) return;
-		_refreshControls = false;
+		scope (exit) _refreshControls = false;
 		static if (UseCards && UseBacks) {
 			if (!valid(_imgp, _xSpn, _ySpn, _wSpn, _hSpn, _layerSpn, _maskTMenu, _scaleSpn)) return;
 			_imgp.cancelFullRedraw();
