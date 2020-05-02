@@ -350,6 +350,7 @@ class SpinnerEdit {
 private:
 	Spinner _spn;
 	int _oldVal;
+	int _oldEditing;
 	void delegate(int value) _edit;
 	void delegate(int value) _enter;
 	int delegate(int oldVal) _cancel;
@@ -363,6 +364,7 @@ private:
 			_spn.setSelection(_cancel !is null ? _cancel(_oldVal) : _oldVal);
 		}
 		_oldVal = _spn.getSelection();
+		_oldEditing = _spn.getSelection();
 	}
 	class KListener : KeyAdapter {
 		public override void keyPressed(KeyEvent e) { mixin(S_TRACE);
@@ -373,12 +375,14 @@ private:
 				scope (exit) _noEdit = false;
 				_spn.setSelection(_cancel !is null ? _cancel(_oldVal) : _oldVal);
 				_oldVal = _spn.getSelection();
+				_oldEditing = _spn.getSelection();
 			}
 		}
 	}
 	class MSListener : FocusListener {
 		void focusGained(FocusEvent e) { mixin(S_TRACE);
 			_oldVal = _spn.getSelection();
+			_oldEditing = _spn.getSelection();
 		}
 		void focusLost(FocusEvent e) { mixin(S_TRACE);
 			enter();
@@ -386,9 +390,10 @@ private:
 	}
 	class MDListener : ModifyListener {
 		public override void modifyText(ModifyEvent e) { mixin(S_TRACE);
-			if (_edit !is null && !_noEdit) { mixin(S_TRACE);
+			if (_edit !is null && !_noEdit && _oldEditing != _spn.getSelection()) { mixin(S_TRACE);
 				_edit(_spn.getSelection());
 			}
+			_oldEditing = _spn.getSelection();
 		}
 	}
 public:
