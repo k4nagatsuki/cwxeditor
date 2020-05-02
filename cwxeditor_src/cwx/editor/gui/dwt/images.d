@@ -86,7 +86,7 @@ private:
 		CRGB fontColor;
 		TPos textPos = TPos.LEFT;
 		bool antialias = false;
-		byte alpha = cast(byte) 0xFF;
+		byte alpha = cast(byte)0xFF;
 		FontData fontData = null;
 		ScaleType scaleType = ScaleType.Scale;
 		uint delegate() drawingScaleOverride = null;
@@ -312,7 +312,7 @@ public:
 	/// maskX = マスク色のX位置。
 	/// maskY = マスク色のY位置。
 	/// See_Also: createImage();
-	void append(string path, CInsets insets, ScaleType scaleType, bool transparent, int maskX = 0, int maskY = 0, byte alpha = cast(byte) 0xFF,
+	void append(string path, CInsets insets, ScaleType scaleType, bool transparent, int maskX = 0, int maskY = 0, byte alpha = cast(byte)0xFF,
 			uint delegate() drawingScale = null) { mixin(S_TRACE);
 		AppImg append;
 		append.insets = insets;
@@ -326,7 +326,7 @@ public:
 		appends ~= append;
 	}
 	/// ditto
-	void append(ImageDataWithScale data, CInsets insets, ScaleType scaleType, byte alpha = cast(byte) 0xFF) { mixin(S_TRACE);
+	void append(ImageDataWithScale data, CInsets insets, ScaleType scaleType, byte alpha = cast(byte)0xFF) { mixin(S_TRACE);
 		AppImg append;
 		append.insets = insets;
 		append.data = data;
@@ -335,7 +335,7 @@ public:
 		appends ~= append;
 	}
 	/// ditto
-	void append(ImageDataWithScale data, CPoint point, ScaleType scaleType, byte alpha = cast(byte) 0xFF) { mixin(S_TRACE);
+	void append(ImageDataWithScale data, CPoint point, ScaleType scaleType, byte alpha = cast(byte)0xFF) { mixin(S_TRACE);
 		append(data, CInsets(point.y,
 			initW - (point.x + data.getWidth(NORMAL_SCALE)),
 			initH - (point.y + data.getHeight(NORMAL_SCALE)),
@@ -1123,14 +1123,14 @@ public:
 		}
 	}
 	private void turnImpl(ImageData imgData, Turn turn) { mixin(S_TRACE);
-		auto data = cast(ubyte[]) imgData.data;
-		auto alphaData = cast(ubyte[]) imgData.alphaData;
+		auto data = cast(ubyte[])imgData.data;
+		auto alphaData = cast(ubyte[])imgData.alphaData;
 		size_t iWidth = imgData.width;
 		size_t iHeight = imgData.height;
 		size_t bytesPerLine = imgData.bytesPerLine;
 		.turn(data, alphaData, iWidth, iHeight, bytesPerLine, turn, imgData.depth);
-		imgData.data = cast(byte[]) data;
-		imgData.alphaData = cast(byte[]) alphaData;
+		imgData.data = cast(byte[])data;
+		imgData.alphaData = cast(byte[])alphaData;
 		imgData.width = cast(int)iWidth;
 		imgData.height = cast(int)iHeight;
 		imgData.bytesPerLine = cast(int)bytesPerLine;
@@ -1262,7 +1262,7 @@ public:
 		gc.drawImage(img2, ds(0), ds(0), ds(width), ds(height), ds(x), ds(y), ds(width), ds(height));
 	}
 	private static ubyte roundColor(T)(T c) { mixin(S_TRACE);
-		return cast(ubyte) .max(0, .min(255, c));
+		return cast(ubyte).max(0, .min(255, c));
 	}
 	/// カラーフィルタの描画を行う。
 	private void drawFilter(ref Image buf, ref GC gc, Rectangle range) { mixin(S_TRACE);
@@ -1317,7 +1317,7 @@ public:
 				scope (exit) gc.setAlpha(olda);
 				foreach (ip; iFrom .. iFrom + iWidth) { mixin(S_TRACE);
 					int p = ip - from;
-					real per = cast(real) p / width;
+					real per = cast(real)p / width;
 					ubyte r = calcN(_color1.r, _color2.r, per);
 					ubyte g = calcN(_color1.g, _color2.g, per);
 					ubyte b = calcN(_color1.b, _color2.b, per);
@@ -1347,7 +1347,7 @@ public:
 			buf.dispose();
 
 			size_t bpp = data.bytesPerLine / data.width;
-			auto px = Pixels(cast(ubyte[]) data.data, cast(ubyte[]) data.alphaData,
+			auto px = Pixels(cast(ubyte[])data.data, cast(ubyte[])data.alphaData,
 				data.width, data.height, data.depth, data.bytesPerLine, bpp);
 
 			// グラデーション用のデータを生成
@@ -1373,7 +1373,7 @@ public:
 				colorLine = new FC[iWidth];
 				foreach (ip; iFrom .. iFrom + iWidth) { mixin(S_TRACE);
 					int p = ip - from;
-					real per = cast(real) p / width;
+					real per = cast(real)p / width;
 					ubyte r = calcN(_color1.r, _color2.r, per);
 					ubyte g = calcN(_color1.g, _color2.g, per);
 					ubyte b = calcN(_color1.b, _color2.b, per);
@@ -2200,11 +2200,13 @@ public:
 	/// Returns: トグル。
 	const
 	Toggle inToggle(int x, int y, bool move) { mixin(S_TRACE);
-		foreach (key; tgls.keys) { mixin(S_TRACE);
-			auto rect = tgls[key];
-			if (rect.x <= x && x <= (rect.x + rect.width)
-					&& rect.y <= y && y <= (rect.y + rect.height)) { mixin(S_TRACE);
-				return key;
+		if (selected) { mixin(S_TRACE);
+			foreach (key; tgls.keys) { mixin(S_TRACE);
+				auto rect = tgls[key];
+				if (rect.x <= x && x <= (rect.x + rect.width)
+						&& rect.y <= y && y <= (rect.y + rect.height)) { mixin(S_TRACE);
+					return key;
+				}
 			}
 		}
 		if (move && ds(this.x) <= x && x <= (ds(this.x) + ds(this.width))
@@ -2843,8 +2845,9 @@ private:
 				foreach (move; [false, true]) { mixin(S_TRACE);
 					foreach_reverse (t; fBacks) { mixin(S_TRACE);
 						auto pimg = t[1];
-						if (cast(FlexImage) pimg && pimg.visible) { mixin(S_TRACE);
-							auto img = cast(FlexImage) pimg;
+						if (cast(FlexImage)pimg && pimg.visible) { mixin(S_TRACE);
+							auto img = cast(FlexImage)pimg;
+							if (img.fixed || !img.visible) return;
 							Toggle tgl = img.inToggle(dx, dy, move);
 							if (tgl != Toggle.NONE) { mixin(S_TRACE);
 								setCursor(getToggleCursor(tgl));
@@ -2888,7 +2891,7 @@ private:
 							auto pimg = t[1];
 							if (cast(FlexImage)pimg) { mixin(S_TRACE);
 								img = cast(FlexImage)pimg;
-								if (img.visible) { mixin(S_TRACE);
+								if (img.visible && !img.fixed) { mixin(S_TRACE);
 									tgl = img.inToggle(dx, dy, move);
 									if (tgl !is Toggle.NONE) { mixin(S_TRACE);
 										if (!selectionImg) selectionImg = img;
@@ -2910,19 +2913,13 @@ private:
 					_rangeStartPos = new Point(x, y);
 					_rangeEndPos = new Point(x, y);
 					_rangeSelected = false;
-					updateRangeSelection();
 				} else { mixin(S_TRACE);
 					_mouseP = img;
-					if (me.button == 1) { mixin(S_TRACE);
-						if (!_ctrl && !_shift) { mixin(S_TRACE);
-							if (!selectionImg.fixed && !selectionImg.selected) doDeselectAll();
-							doSelect(selectionImg);
-						}
-						dragTgl = tgl;
-					} else if (me.button == 3) { mixin(S_TRACE);
+					if (!_ctrl && !_shift) { mixin(S_TRACE);
 						if (!selectionImg.fixed && !selectionImg.selected) doDeselectAll();
 						doSelect(selectionImg);
 					}
+					dragTgl = tgl;
 					if (_mouseP.fixed && _mouseP !is selectionImg) { mixin(S_TRACE);
 						_rangeStartPos = new Point(x, y);
 						_rangeEndPos = new Point(x, y);
@@ -2937,7 +2934,7 @@ private:
 					int i = findIndex(x, y);
 					if (i >= 0) { mixin(S_TRACE);
 						if (!(_ctrl || _shift)) doDeselectAll();
-						doSelect(cast(FlexImage) images[i]);
+						doSelect(cast(FlexImage)images[i]);
 					}
 				}
 			} else if (me.button == 3) { mixin(S_TRACE);
@@ -2994,7 +2991,7 @@ private:
 				foreach_reverse (t; fBacks) { mixin(S_TRACE);
 					auto i = t[0];
 					auto pimg = t[1];
-					auto img = cast(FlexImage) pimg;
+					auto img = cast(FlexImage)pimg;
 					if (img && img.selected) { mixin(S_TRACE);
 						scope oldRect = img.bounds;
 						if (oldRect != img.newBounds) { mixin(S_TRACE);
@@ -3386,8 +3383,8 @@ private:
 		if (tsels.length == 1 && (selectedIndices.length == 1 || ctrl) && imgs.length > 1) { mixin(S_TRACE);
 			auto i = countUntil(imgs, tsels[0]);
 			assert (i >= 0);
-			doDeselect(cast(FlexImage) images[tsels[0]]);
-			doSelect(cast(FlexImage) images[i > 0 ? imgs[i - 1] : imgs[$ - 1]]);
+			doDeselect(cast(FlexImage)images[tsels[0]]);
+			doSelect(cast(FlexImage)images[i > 0 ? imgs[i - 1] : imgs[$ - 1]]);
 			return true;
 		}
 		return false;
@@ -3476,7 +3473,7 @@ public:
 	void select(int[] indices) { mixin(S_TRACE);
 		deselectAll();
 		foreach (i; indices) { mixin(S_TRACE);
-			auto fi = cast(FlexImage) backs[i];
+			auto fi = cast(FlexImage)backs[i];
 			select(fi);
 		}
 	}
@@ -3503,19 +3500,19 @@ public:
 	}
 	private void doDeselectAll() { mixin(S_TRACE);
 		foreach_reverse (pimg; backs) { mixin(S_TRACE);
-			auto img = cast(FlexImage) pimg;
+			auto img = cast(FlexImage)pimg;
 			if (img) doDeselect(img);
 		}
 	}
 	void deselectAll() { mixin(S_TRACE);
 		foreach_reverse (pimg; backs) { mixin(S_TRACE);
-			auto img = cast(FlexImage) pimg;
+			auto img = cast(FlexImage)pimg;
 			if (img) deselect(img);
 		}
 	}
 	void deselectRange(int from, int to) { mixin(S_TRACE);
 		for (int i = from; i < to; i++) { mixin(S_TRACE);
-			auto img = cast(FlexImage) backs[i];
+			auto img = cast(FlexImage)backs[i];
 			if (img) deselect(img);
 		}
 	}
@@ -3523,7 +3520,7 @@ public:
 	int[] selectedIndices() { mixin(S_TRACE);
 		int[] r;
 		foreach (i, img; backs) { mixin(S_TRACE);
-			auto fi = cast(FlexImage) img;
+			auto fi = cast(FlexImage)img;
 			if (fi && fi.selected) r ~= cast(int)i;
 		}
 		return r;
@@ -3531,7 +3528,7 @@ public:
 	@property
 	int selectedIndex() { mixin(S_TRACE);
 		foreach_reverse (i, img; backs) { mixin(S_TRACE);
-			auto fi = cast(FlexImage) img;
+			auto fi = cast(FlexImage)img;
 			if (fi && fi.selected) return cast(int)i;
 		}
 		return -1;
@@ -3540,7 +3537,7 @@ public:
 		foreach_reverse (t; fBacks) { mixin(S_TRACE);
 			auto i = t[0];
 			auto img = t[1];
-			auto fi = cast(FlexImage) img;
+			auto fi = cast(FlexImage)img;
 			if (fi && fi.visible && fi.bounds.contains(x, y)) return cast(int)i;
 		}
 		return -1;
@@ -3550,7 +3547,7 @@ public:
 		foreach (t; fBacks) { mixin(S_TRACE);
 			auto i = t[0];
 			auto img = t[1];
-			auto fi = cast(FlexImage) img;
+			auto fi = cast(FlexImage)img;
 			if (fi && fi.visible && fi.bounds.contains(x, y)) r ~= cast(int)i;
 		}
 		return r;
@@ -3561,7 +3558,7 @@ public:
 		foreach_reverse (t; fBacks) { mixin(S_TRACE);
 			auto i = t[0];
 			auto img = t[1];
-			auto fi = cast(FlexImage) img;
+			auto fi = cast(FlexImage)img;
 			if (fi && fi.visible && fi.selected && fi.bounds.contains(x, y)) return cast(int)i;
 		}
 		return -1;
@@ -3571,7 +3568,7 @@ public:
 		foreach (t; fBacks) { mixin(S_TRACE);
 			auto i = t[0];
 			auto img = t[1];
-			auto fi = cast(FlexImage) img;
+			auto fi = cast(FlexImage)img;
 			if (fi && fi.visible && fi.selected && fi.bounds.contains(x, y)) r ~= cast(int)i;
 		}
 		return r;
@@ -3592,7 +3589,7 @@ public:
 
 	void fixedRange(bool fixed, int from, int to) { mixin(S_TRACE);
 		foreach (img; images[from .. to]) { mixin(S_TRACE);
-			auto fi = cast(FlexImage) img;
+			auto fi = cast(FlexImage)img;
 			if (fi && fi.fixed !is fixed) { mixin(S_TRACE);
 				auto newArea = fi.drawNewArea;
 				auto oldArea = fi.drawArea;
