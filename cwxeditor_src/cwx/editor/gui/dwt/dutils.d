@@ -390,7 +390,7 @@ private:
 	}
 	class MDListener : ModifyListener {
 		public override void modifyText(ModifyEvent e) { mixin(S_TRACE);
-			if (_edit !is null && !_noEdit && _oldEditing != _spn.getSelection()) { mixin(S_TRACE);
+			if (_edit !is null && !_noEdit && _oldEditing != _spn.getSelection() && _spn.isVisible() && _spn.getShell().isVisible()) { mixin(S_TRACE);
 				_edit(_spn.getSelection());
 			}
 			_oldEditing = _spn.getSelection();
