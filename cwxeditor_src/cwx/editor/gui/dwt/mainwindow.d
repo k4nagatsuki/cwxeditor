@@ -3448,6 +3448,7 @@ public:
 						case MenuID.PutContinue:
 						case MenuID.EvTemplates:
 						case MenuID.EvTemplatesOfScenario:
+						case MenuID.EditSelection:
 						case MenuID.Expand:
 						case MenuID.Collapse:
 						case MenuID.SelectCurrentEvent:

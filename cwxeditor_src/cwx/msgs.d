@@ -3103,6 +3103,7 @@ class Msgs : Properties {
 	auto menuTextToScriptAll = Msg("menuTextToScriptAll", "全てをスクリプトに変換してコピー");
 	auto menuTextEvTemplates = Msg("menuTextEvTemplates", "イベントテンプレート");
 	auto menuTextEvTemplatesOfScenario = Msg("menuTextEvTemplatesOfScenario", "シナリオのテンプレートを編集");
+	auto menuTextEditSelection = Msg("menuTextEditSelection", "選択肢の編集");
 	auto menuTextExpand = Msg("menuTextExpand", "ツリーを開く");
 	auto menuTextCollapse = Msg("menuTextCollapse", "ツリーを閉じる");
 	auto menuTextSelectCurrentEvent = Msg("menuTextSelectCurrentEvent", "表示中のイベントを選択");

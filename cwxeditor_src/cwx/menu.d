@@ -281,6 +281,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.ToScript1Content] = "O";
 		_mnemonic[MenuID.EvTemplates] = "";
 		_mnemonic[MenuID.EvTemplatesOfScenario] = "E";
+		_mnemonic[MenuID.EditSelection] = "S";
 		_mnemonic[MenuID.Expand] = "X";
 		_mnemonic[MenuID.Collapse] = "O";
 		_mnemonic[MenuID.SelectCurrentEvent] = "S";
@@ -546,6 +547,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.ToScript1Content] = "Ctrl+Shift+G";
 		_hotkey[MenuID.EvTemplates] = "";
 		_hotkey[MenuID.EvTemplatesOfScenario] = "";
+		_hotkey[MenuID.EditSelection] = "F2";
 		_hotkey[MenuID.Expand] = "Ctrl+Arrow_Right";
 		_hotkey[MenuID.Collapse] = "Ctrl+Arrow_Left";
 		_hotkey[MenuID.SelectCurrentEvent] = "";
@@ -1049,6 +1051,7 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.PutContinue:
 	case MenuID.EvTemplates:
 	case MenuID.EvTemplatesOfScenario:
+	case MenuID.EditSelection:
 	case MenuID.Expand:
 	case MenuID.Collapse:
 	case MenuID.SelectCurrentEvent:
@@ -1322,6 +1325,7 @@ bool isGlobalMenu(MenuID id) {
 	case MenuID.ToScriptAll:
 	case MenuID.ToScript1Content:
 	case MenuID.EvTemplates:
+	case MenuID.EditSelection:
 	case MenuID.Expand:
 	case MenuID.Collapse:
 	case MenuID.SelectCurrentEvent:
@@ -1373,6 +1377,7 @@ bool isLocalMenu(MenuID id) {
 	case MenuID.CopyFilePath:
 	case MenuID.ToScript:
 	case MenuID.ToScript1Content:
+	case MenuID.EditSelection:
 	case MenuID.Expand:
 	case MenuID.Collapse:
 	case MenuID.ResetValues:

@@ -1763,10 +1763,12 @@ public:
 		if (_tree.tree) { mixin(S_TRACE);
 			_tree.tree.dispose();
 			_tree.tree = null;
+			_te = null;
 		}
 		if (_tree.editor) { mixin(S_TRACE);
 			_tree.editor.dispose();
 			_tree.editor = null;
+			_ee = null;
 		}
 		if ((_summ ? _prop.var.etc.straightEventTreeView : straightEventTreeView)) { mixin(S_TRACE);
 			_tree.editor = new EventEditor(_comm, _comp, SWT.BORDER | _readOnly, _summ, null);
@@ -2278,6 +2280,19 @@ public:
 	void removeStoredLine(string eventTreeId) { mixin(S_TRACE);
 		if (_tree.editor) _tree.editor.removeStoredLine(eventTreeId);
 	}
+	@property
+	bool canEditSelection() { mixin(S_TRACE);
+		auto itm = selection;
+		return itm && canCreateEditor(itm);
+	}
+	void editSelection() { mixin(S_TRACE);
+		if (_ee) { mixin(S_TRACE);
+			_ee.startEdit();
+		} else { mixin(S_TRACE);
+			assert (_te !is null);
+			_te.startEdit();
+		}
+	}
 	void treeOpen() { mixin(S_TRACE);
 		_tree.treeExpandedAll();
 		_comm.refreshToolBar();
@@ -2630,6 +2645,27 @@ public:
 		} default:
 		}
 		return null;
+	}
+	@property
+	private bool canCreateEditor(Item itm) { mixin(S_TRACE);
+		if (_readOnly) return false;
+		auto parent = _tree.getParentItem(itm);
+		if (!parent) { mixin(S_TRACE);
+			return true; // スタートコンテント
+		}
+		auto data = cast(Content)parent.getData();
+		final switch (data.detail.nextType) {
+		case CNextType.Text:
+		case CNextType.Bool:
+		case CNextType.Step:
+		case CNextType.IdArea:
+		case CNextType.IdBattle:
+		case CNextType.Trio:
+		case CNextType.Coupon:
+			return true;
+		case CNextType.None:
+			return false;
+		}
 	}
 	/// Params:
 	/// parent = 親イベント。

@@ -1879,6 +1879,7 @@ enum MenuID {
 	ToScript1Content,
 	EvTemplates,
 	EvTemplatesOfScenario,
+	EditSelection,
 	Expand,
 	Collapse,
 	SelectCurrentEvent,
