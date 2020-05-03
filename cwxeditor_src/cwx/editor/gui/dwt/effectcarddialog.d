@@ -489,10 +489,12 @@ private:
 			grp.setLayoutData(gd);
 			grp.setLayout(new CenterLayout(SWT.HORIZONTAL));
 			grp.setText(_prop.msgs.desc);
-			_desc = new FixedWidthText!Text(_prop.adjustFont(_prop.looks.cardDescFont(summSkin.legacy)), _prop.looks.cardDescLen, grp, SWT.BORDER | _readOnly);
+			auto descComp = new Composite(grp, SWT.NONE);
+			descComp.setLayout(new CenterLayout(SWT.NONE, 0));
+			_desc = new FixedWidthText!Text(_prop.adjustFont(_prop.looks.cardDescFont(summSkin.legacy)), _prop.looks.cardDescLen, descComp, SWT.BORDER | _readOnly);
+			descComp.setLayoutData(_desc.computeTextBaseSize(.max(_prop.looks.cardDescLine(true), _prop.looks.cardDescLine(false))));
 			mod(_desc.widget);
 			createTextMenu!Text(_comm, _prop, _desc.widget, &catchMod);
-			_desc.widget.setLayoutData(_desc.computeTextBaseSize(_prop.looks.cardDescLine));
 			.listener(_desc.widget, SWT.Modify, &refreshWarning);
 		}
 		{ mixin(S_TRACE);
@@ -819,6 +821,8 @@ private:
 	void refDataVersion() { mixin(S_TRACE);
 		updateEnabled();
 		refreshWarning();
+		_desc.widget.setLayoutData(_desc.computeTextBaseSize(_prop.looks.cardDescLine(_summ && _summ.legacy)));
+		_desc.widget.getParent().layout(true);
 	}
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);

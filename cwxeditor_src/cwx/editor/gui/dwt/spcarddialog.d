@@ -37,6 +37,7 @@ import cwx.editor.gui.dwt.messageutils;
 import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 
+import std.algorithm : max;
 import std.conv;
 import std.math;
 import std.string;
@@ -142,7 +143,7 @@ private:
 		ws ~= _animationSpeed.warnings;
 		warning = ws;
 	}
-	void refDataVersion() { mixin(S_TRACE);
+	void updateEnabled() { mixin(S_TRACE);
 		_layer.setEnabled(!_summ || !_summ.legacy || _layer.getSelection() != LAYER_MENU_CARD);
 		_cardGroup.setEnabled(!_summ || !_summ.legacy || _cardGroup.getText() != "");
 		static if (is(C:MenuCard)) {
@@ -167,6 +168,13 @@ private:
 		updateToolTip();
 		refreshWarning();
 		_comm.refreshToolBar();
+	}
+	void refDataVersion() { mixin(S_TRACE);
+		updateEnabled();
+		static if (is(C:MenuCard)) {
+			_desc.widget.setLayoutData(_desc.computeTextBaseSize(_prop.looks.cardDescLine(_summ && _summ.legacy)));
+			_desc.widget.getParent().layout(true);
+		}
 	}
 
 	static if (is(C == MenuCard)) {
@@ -403,12 +411,10 @@ public:
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
-		auto cl = new CenterLayout(SWT.NONE, 0);
-		cl.fillHorizontal = true;
-		cl.fillVertical = true;
-		area.setLayout(cl);
+		area.setLayout(zeroMarginGridLayout(1, true));
 		{ mixin(S_TRACE);
 			auto comp = new Composite(area, SWT.NONE);
+			comp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			comp.setLayout(normalGridLayout(1, false));
 			{ mixin(S_TRACE);
 				auto sash = new SplitPane(comp, SWT.HORIZONTAL);
@@ -436,7 +442,7 @@ protected:
 							mod(_expandSPChars);
 							_expandSPChars.setText(_comm.prop.msgs.expandSPChars);
 							_expandSPChars.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
-							.listener(_expandSPChars, SWT.Selection, &refDataVersion);
+							.listener(_expandSPChars, SWT.Selection, &updateEnabled);
 							.listener(_expandSPChars, SWT.Selection, &updateToolTip);
 						} else static if (is(C == EnemyCard)) {
 							grp.setLayout(normalGridLayout(1, true));
@@ -552,7 +558,7 @@ protected:
 							_isOverrideName = new Button(grp, SWT.CHECK);
 							mod(_isOverrideName);
 							_isOverrideName.setText(_comm.prop.msgs.name);
-							.listener(_isOverrideName, SWT.Selection, &refDataVersion);
+							.listener(_isOverrideName, SWT.Selection, &updateEnabled);
 							.listener(_isOverrideName, SWT.Selection, &_image.redraw);
 							_overrideName = new Text(grp, SWT.BORDER);
 							mod(_overrideName);
@@ -572,7 +578,7 @@ protected:
 							_isOverrideImage = new Button(grp, SWT.CHECK);
 							mod(_isOverrideImage);
 							_isOverrideImage.setText(_comm.prop.msgs.image);
-							.listener(_isOverrideImage, SWT.Selection, &refDataVersion);
+							.listener(_isOverrideImage, SWT.Selection, &updateEnabled);
 							.listener(_isOverrideImage, SWT.Selection, &_image.redraw);
 							createImgPath(grp);
 							_imgPath.modEvent ~= &_image.redraw;
@@ -612,7 +618,7 @@ protected:
 								auto b = new Button(aComp, SWT.CHECK);
 								mod(b);
 								b.setText(skin.actionCardName(_prop.sys, type));
-								.listener(b, SWT.Selection, &refDataVersion);
+								.listener(b, SWT.Selection, &updateEnabled);
 								_actions[type] = b;
 							}
 						}
@@ -626,10 +632,10 @@ protected:
 						}
 						refSkin2();
 						void refCast(CastCard c) { mixin(S_TRACE);
-							if (c.id == _selectedID) refDataVersion();
+							if (c.id == _selectedID) updateEnabled();
 						}
 						void refItem(ItemCard c) { mixin(S_TRACE);
-							refDataVersion();
+							updateEnabled();
 						}
 						_comm.refSkin.add(&refSkin);
 						_comm.refCast.add(&refCast);
@@ -696,10 +702,12 @@ protected:
 					grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 					grp.setLayout(new CenterLayout(SWT.HORIZONTAL));
 					grp.setText(_prop.msgs.desc);
-					_desc = new FixedWidthText!Text(_prop.adjustFont(_prop.looks.cardDescFont(summSkin.legacy)), _prop.looks.cardDescLen, grp, SWT.BORDER);
+					auto descComp = new Composite(grp, SWT.NONE);
+					descComp.setLayout(new CenterLayout(SWT.NONE, 0));
+					_desc = new FixedWidthText!Text(_prop.adjustFont(_prop.looks.cardDescFont(summSkin.legacy)), _prop.looks.cardDescLen, descComp, SWT.BORDER);
+					descComp.setLayoutData(_desc.computeTextBaseSize(.max(_prop.looks.cardDescLine(true), _prop.looks.cardDescLine(false))));
 					createTextMenu!Text(_comm, _prop, _desc.widget, &catchMod);
 					mod(_desc.widget);
-					_desc.widget.setLayoutData(_desc.computeTextBaseSize(_prop.looks.cardDescLine));
 					.listener(_desc.widget, SWT.Modify, &refreshWarning);
 				}
 			}
@@ -715,8 +723,8 @@ protected:
 					_cardGroup = createCardGroupCombo(_comm, _summ, grp, &catchMod, _card ? _card.cardGroup : "");
 					mod(_cardGroup);
 					_cardGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-					.listener(_cardGroup, SWT.Selection, &refDataVersion);
-					.listener(_cardGroup, SWT.Modify, &refDataVersion);
+					.listener(_cardGroup, SWT.Selection, &updateEnabled);
+					.listener(_cardGroup, SWT.Modify, &updateEnabled);
 				}
 				{ mixin(S_TRACE);
 					auto grp = new Group(bottomComp, SWT.NONE);
@@ -728,7 +736,6 @@ protected:
 					_animationSpeed.modEvent ~= &refreshWarning;
 				}
 			}
-			comp.setLayoutData(area.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		}
 
 		static if (is(C : EnemyCard)) {

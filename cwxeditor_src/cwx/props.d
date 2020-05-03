@@ -95,7 +95,7 @@ public:
 		return r <= 10 ? r : 10;
 	}
 	@property const int cardDescLen() { return 39; }
-	@property const int cardDescLine() { return 8; }
+	@property const int cardDescLine(bool classic) { return classic ? 8 : 9; }
 
 	@property const int messageImageLen() { return 34; }
 	@property const int messageLen() { return 44; }
