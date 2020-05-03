@@ -2501,6 +2501,8 @@ public:
 				});
 			}
 			new ToolItem(bar, SWT.SEPARATOR);
+			createToolItem(_comm, bar, MenuID.EditSelection, &_etree.editSelection, &_etree.canEditSelection);
+			new ToolItem(bar, SWT.SEPARATOR);
 		}
 		createToolItem2(_comm, bar, _prop.msgs.expandTree, _prop.images.expandTree, &_etree.treeOpen, &_etree.canExpandTree);
 		createToolItem2(_comm, bar,_prop.msgs.foldTree,  _prop.images.foldTree, &_etree.treeClose, &_etree.canFoldTree);

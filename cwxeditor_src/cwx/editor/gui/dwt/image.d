@@ -779,6 +779,7 @@ public:
 		case MenuID.ToScript1Content: return imgd!("script_1content.png");
 		case MenuID.EvTemplates: return imgd!("ev_tmpl.png");
 		case MenuID.EvTemplatesOfScenario: return imgd!("new_ev_tmpl.png");
+		case MenuID.EditSelection: return imgd!("edit_selection.png");
 		case MenuID.Expand: return imgd!("expanded.png");
 		case MenuID.Collapse: return imgd!("collapsed.png");
 		case MenuID.SelectCurrentEvent: return imgd!("select_current_event.png");
