@@ -459,6 +459,11 @@ class MaterialSelect(MtType Type, D, C) {
 						volume = this.volume;
 						if (_refresh) _refresh();
 						foreach (dlg; modEvent) dlg();
+						static if (Type == MtType.BGM) { mixin(S_TRACE);
+							if (_playing != "") .bgmVolume = (_prop.var.etc.bgmVolume * volume) / 100;
+						} else {
+							if (_playing != "") .seVolume = (_prop.var.etc.seVolume * volume) / 100;
+						}
 					}
 				};
 				.listener(_volume, SWT.Modify, sel);
@@ -755,6 +760,7 @@ class MaterialSelect(MtType Type, D, C) {
 				auto volume = _volume ? _volume.getSelection() : 100;
 				auto loopCount = _loopCount ? _loopCount.getSelection() : 0;
 				auto fadeIn = this.fadeIn;
+				.stopBGM();
 				bool inPlay = playBGMCW(_prop, p, fadeIn, volume, loopCount, _comm.skin.legacy);
 				if (inPlay) { mixin(S_TRACE);
 					_playing = p;
@@ -874,8 +880,14 @@ class MaterialSelect(MtType Type, D, C) {
 				auto volume = _volume ? _volume.getSelection() : 100;
 				auto loopCount = _loopCount ? _loopCount.getSelection() : 1;
 				auto fadeIn = this.fadeIn;
-				playSECW(_prop, p, fadeIn, volume, loopCount, _comm.skin.legacy);
-				_playing = p;
+				.stopSE();
+				// 停止イベントを待ち合わせる
+				_display.asyncExec(new class Runnable {
+					override void run() { mixin(S_TRACE);
+						playSECW(_prop, p, fadeIn, volume, loopCount, _comm.skin.legacy);
+						_playing = p;
+					}
+				});
 			}
 		}
 		void stopSE() { mixin(S_TRACE);
