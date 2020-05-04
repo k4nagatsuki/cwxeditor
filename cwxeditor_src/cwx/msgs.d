@@ -1039,14 +1039,18 @@ class Msgs : Properties {
 	auto haveForStatus = Msg("haveForStatus", "状態か");
 	auto haveNotForStatus = Msg("haveNotForStatus", "状態でないか");
 
+	auto transitionWithSpeed = Msg("transitionWithSpeed", "切替方式 = %1$s ウェイト = %2$s");
+	auto transitionNoSpeed = Msg("transitionNoSpeed", "切替方式 = %1$s");
+
 	auto ctStart = Msg("ctStart", "スタートコンテント「%1$s」");
 	auto ctStartBattle = Msg("ctStartBattle", "バトルの開始「%1$s」");
 	auto ctChangeArea = Msg("ctChangeArea", "エリア移動「%1$s」 切替方式 = %2$s ウェイト = %3$s");
+	auto ctChangeAreaWithTransition = Msg("ctChangeAreaWithTransition", "エリア移動「%1$s」 %2$s");
 	auto ctChangeAreaClassic = Msg("ctChangeAreaClassic", "エリア移動「%1$s」");
 	auto ctEndComplete = Msg("ctEndComplete", "済印をつけて終了");
 	auto ctEndNoComplete = Msg("ctEndNoComplete", "済印をつけずに終了");
 	auto ctGameOver = Msg("ctGameOver", "敗北・ゲームオーバーコンテント");
-	auto ctChangeBgImage = Msg("ctChangeBgImage", "背景ファイル = %1$s 切替方式 = %2$s ウェイト = %3$s");
+	auto ctChangeBgImageWithTransition = Msg("ctChangeBgImageWithTransition", "背景ファイル = %1$s %2$s");
 	auto ctChangeBgImageClassic = Msg("ctChangeBgImageClassic", "背景ファイル = %1$s");
 	auto ctChangeBgImageFile = Msg("ctChangeBgImageFile", "[%1$s]");
 	auto ctEffectSound = Msg("ctEffectSound", "「%1$s」を再生");
@@ -1154,7 +1158,7 @@ class Msgs : Properties {
 	auto ctLoseGossipExpandSPChars = Msg("ctLoseGossipExpandSPChars", "ゴシップ「%1$s」を喪失 特殊文字を展開する"); // Wsn.4
 	auto ctShowParty = Msg("ctShowParty", "パーティの表示 %1$s");
 	auto ctHideParty = Msg("ctHideParty", "パーティの隠蔽 %1$s");
-	auto ctRedisplay = Msg("ctRedisplay", "切替方式 = %1$s ウェイト = %2$s");
+	auto ctRedisplayWithTransition = Msg("ctRedisplayWithTransition", "%1$s");
 	auto ctRedisplayClassic = Msg("ctRedisplayClassic", "画面再構築コンテント");
 	auto ctSubstituteStep = Msg("ctSubstituteStep", "ステップ [%1$s] の値をステップ [%2$s] に代入");
 	auto ctSubstituteFlag = Msg("ctSubstituteFlag", "フラグ [%1$s] の値をフラグ [%2$s] に代入 %3$s");
@@ -1180,16 +1184,16 @@ class Msgs : Properties {
 	auto noSelectFoundCard = Msg("noSelectFoundCard", "該当カードを選択しない");
 	auto ctCheckStep = Msg("ctCheckStep", "ステップ「%1$s」が[%2$s]%3$s後続のイベントが出現");
 	auto ctBranchRound = Msg("ctBranchRound", "バトルが%1$sラウンド%2$sか否かで分岐");
-	auto ctMoveAndResizeBgImage = Msg("ctMoveAndResizeBgImage", "背景「%1$s」を%2$sで右へ%3$s、下へ%4$sポイント移動し、%5$sで%6$s×%7$sにリサイズ(切替方式 = %8$s ウェイト = %9$s)");
-	auto ctMoveBgImage = Msg("ctMoveBgImage", "背景「%1$s」を%2$sで右へ%3$s、下へ%4$sポイント移動(切替方式 = %5$s ウェイト = %6$s)");
-	auto ctResizeBgImage = Msg("ctResizeBgImage", "背景「%1$s」を%2$sで%3$s×%4$sにリサイズ(切替方式 = %5$s ウェイト = %6$s)");
+	auto ctMoveAndResizeBgImageWithTransition = Msg("ctMoveAndResizeBgImageWithTransition", "背景「%1$s」を%2$sで右へ%3$s、下へ%4$sポイント移動し、%5$sで%6$s×%7$sにリサイズ %8$s");
+	auto ctMoveBgImageWithTransition = Msg("ctMoveBgImageWithTransition", "背景「%1$s」を%2$sで右へ%3$s、下へ%4$sポイント移動 %5$s");
+	auto ctResizeBgImageWithTransition = Msg("ctResizeBgImageWithTransition", "背景「%1$s」を%2$sで%3$s×%4$sにリサイズ %5$s");
 	auto ctMoveAndResizeBgImageClassic = Msg("ctMoveAndResizeBgImageClassic", "背景「%1$s」を%2$sで右へ%3$s、下へ%4$sポイント移動し、%5$sで%6$s×%7$sにリサイズ");
 	auto ctMoveBgImageClassic = Msg("ctMoveBgImageClassic", "背景「%1$s」を%2$sで右へ%3$s、下へ%4$sポイント移動");
 	auto ctResizeBgImageClassic = Msg("ctResizeBgImageClassic", "背景「%1$s」を%2$sで%3$s×%4$sにリサイズ");
 	auto ctMoveBgImageNoSet = Msg("ctMoveBgImageNoSet", "背景「%1$s」に対して何も行わない");
-	auto ctReplaceBgImage = Msg("ctReplaceBgImage", "背景「%1$s」を置換(背景ファイル = %2$s 切替方式 = %3$s ウェイト = %4$s)");
-	auto ctReplaceBgImageClassic = Msg("ctReplaceBgImageClassic", "背景「%1$s」を置換(背景ファイル = %2$s)");
-	auto ctLoseBgImage = Msg("ctLoseBgImage", "背景「%1$s」を削除(切替方式 = %2$s ウェイト = %3$s)");
+	auto ctReplaceBgImageWithTransition = Msg("ctReplaceBgImageWithTransition", "背景「%1$s」を置換 背景ファイル = %2$s %3$s");
+	auto ctReplaceBgImageClassic = Msg("ctReplaceBgImageClassic", "背景「%1$s」を置換 背景ファイル = %2$s");
+	auto ctLoseBgImageWithTransition = Msg("ctLoseBgImageWithTransition", "背景「%1$s」を削除 %2$s");
 	auto ctLoseBgImageClassic = Msg("ctLoseBgImageClassic", "背景「%1$s」を削除");
 	auto ctBranchMultiCoupon = Msg("ctBranchMultiCoupon", "%1$sの称号所有状態で分岐"); // Wsn.2
 	auto ctBranchMultiCouponExpandSPChars = Msg("ctBranchMultiCouponExpandSPChars", "%1$sの称号所有状態で分岐 特殊文字を展開する"); // Wsn.4
