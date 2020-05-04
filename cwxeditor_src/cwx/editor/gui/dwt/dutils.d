@@ -815,6 +815,7 @@ private:
 	int editC;
 	bool delegate(TableItem itm, int column) canEdit = null;
 	TextEditMFListener _mf = null;
+	TableItem[] _selectionsBeforeEdit;
 
 	Item selectionM(int x, int y) { mixin(S_TRACE);
 		try { mixin(S_TRACE);
@@ -886,6 +887,17 @@ public:
 			table.addSelectionListener(_mf);
 			table.addFocusListener(_mf);
 			table.addKeyListener(new TextEditKListener(&startEdit, &selectionK));
+			.listener(table, SWT.Selection, { mixin(S_TRACE);
+				// BUG: コンボボックス展開中にTableを左クリックすると
+				//      フォーカスが失われないまま選択アイテムが変更される
+				if (!isEditing) return;
+				table.setRedraw(false);
+				scope (exit) table.setRedraw(true);
+				auto selections = table.getSelection();
+				table.setSelection(_selectionsBeforeEdit);
+				scope (exit) table.setSelection(selections);
+				enter();
+			});
 		} catch (Exception e) {
 			printStackTrace();
 			debugln(e);
@@ -956,6 +968,7 @@ public:
 				_editor.setEditor(_tee.editor, sel, editC);
 				_tee.exitEvent ~= exitEvent;
 				_tee.setFocus();
+				_selectionsBeforeEdit = table.getSelection();
 			}
 		} catch (Exception e) {
 			printStackTrace();
