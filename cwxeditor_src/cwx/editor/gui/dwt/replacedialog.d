@@ -417,7 +417,6 @@ private:
 		void run() { mixin(S_TRACE);
 			if (cancel) return;
 			if (!_win || _win.isDisposed()) return;
-			if (_inProc && !_prop.var.etc.searchResultRealtime) resultRedraw(false);
 			refResultStatus(cast(int)count, false);
 			_results ~= this;
 			if (_prop.var.etc.searchResultRealtime) _result.setItemCount(cast(int)_results.length);
@@ -456,7 +455,6 @@ private:
 		void run() { mixin(S_TRACE);
 			if (cancel) return;
 			if (!_win || _win.isDisposed()) return;
-			if (_inProc && !_prop.var.etc.searchResultRealtime) resultRedraw(false);
 			refResultStatus(cast(int)count, false);
 			_results ~= this;
 			if (_prop.var.etc.searchResultRealtime) _result.setItemCount(cast(int)_results.length);
@@ -492,7 +490,6 @@ private:
 		void run() { mixin(S_TRACE);
 			if (cancel) return;
 			if (!_win || _win.isDisposed()) return;
-			if (_inProc && !_prop.var.etc.searchResultRealtime) resultRedraw(false);
 			refResultStatus(cast(int)count, false);
 			_results ~= this;
 			if (_prop.var.etc.searchResultRealtime) _result.setItemCount(cast(int)_results.length);
@@ -510,7 +507,6 @@ private:
 		void run() { mixin(S_TRACE);
 			if (cancel) return;
 			if (!_win || _win.isDisposed()) return;
-			if (_inProc && !_prop.var.etc.searchResultRealtime) resultRedraw(false);
 			refResultStatus(cast(int)count, false);
 			_results ~= this;
 			if (_prop.var.etc.searchResultRealtime) _result.setItemCount(cast(int)_results.length);
@@ -2228,9 +2224,8 @@ public:
 			.listener(realtime, SWT.Selection, { mixin(S_TRACE);
 				_prop.var.etc.searchResultRealtime = realtime.getSelection();
 				if (_prop.var.etc.searchResultRealtime) { mixin(S_TRACE);
-					resultRedraw(true);
-				} else if (_inProc) { mixin(S_TRACE);
-					resultRedraw(false);
+					 _result.setItemCount(cast(int)_results.length);
+					 _result.clearAll();
 				}
 			});
 			auto openDlg = new Button(comp, SWT.CHECK);
