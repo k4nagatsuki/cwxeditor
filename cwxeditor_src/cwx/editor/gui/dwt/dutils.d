@@ -3495,6 +3495,16 @@ string rangeName(in Props prop, Range range, string coupon) { mixin(S_TRACE);
 	}
 }
 
+string transitionText(in Props prop, Transition transition, uint transitionSpeed) { mixin(S_TRACE);
+	assert (transition !is Transition.Default);
+	auto name = prop.msgs.transitionName(transition);
+	if (transition is Transition.None) { mixin(S_TRACE);
+		return .tryFormat(prop.msgs.transitionNoSpeed, name);
+	} else { mixin(S_TRACE);
+		return .tryFormat(prop.msgs.transitionWithSpeed, name, transitionSpeed);
+	}
+}
+
 string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 	string loseCardCount() { mixin(S_TRACE);
 		return evt.cardNumber == 0 ? comm.prop.msgs.ctLoseCardAll : .tryFormat(comm.prop.msgs.ctLoseCardCount, evt.cardNumber);
@@ -3526,19 +3536,19 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 	} case CType.EndBadEnd: { mixin(S_TRACE);
 		return comm.prop.msgs.ctGameOver;
 	} case CType.ChangeArea: { mixin(S_TRACE);
-		if (summ && summ.legacy) { mixin(S_TRACE);
+		if (evt.transition is Transition.Default) { mixin(S_TRACE);
 			return contentTextUseID!(CIDKind.Area)(comm, summ, evt.area, comm.prop.msgs.ctChangeAreaClassic, evt);
 		} else { mixin(S_TRACE);
-			string a = contentTextUseID!(CIDKind.Area)(comm, summ, evt.area, "%s", evt);
-			string v = comm.prop.msgs.transitionName(evt.transition);
-			return .tryFormat(comm.prop.msgs.ctChangeArea, a, v, evt.transitionSpeed);
+			auto a = contentTextUseID!(CIDKind.Area)(comm, summ, evt.area, "%s", evt);
+			auto ts = .transitionText(comm.prop, evt.transition, evt.transitionSpeed);
+			return .tryFormat(comm.prop.msgs.ctChangeAreaWithTransition, a, ts);
 		}
 	} case CType.ChangeBgImage: { mixin(S_TRACE);
-		if (summ && summ.legacy) { mixin(S_TRACE);
+		if (evt.transition is Transition.Default) { mixin(S_TRACE);
 			return .tryFormat(comm.prop.msgs.ctChangeBgImageClassic, bgImageString);
 		} else { mixin(S_TRACE);
-			string v = comm.prop.msgs.transitionName(evt.transition);
-			return .tryFormat(comm.prop.msgs.ctChangeBgImage, bgImageString, v, evt.transitionSpeed);
+			auto ts = .transitionText(comm.prop, evt.transition, evt.transitionSpeed);
+			return .tryFormat(comm.prop.msgs.ctChangeBgImageWithTransition, bgImageString, ts);
 		}
 	} case CType.Effect: { mixin(S_TRACE);
 		auto tt = .rangeName(comm.prop, evt.range, evt.holdingCoupon);
@@ -3930,11 +3940,11 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 	} case CType.HideParty: { mixin(S_TRACE);
 		return .tryFormat(comm.prop.msgs.ctHideParty, .cardSpeedAttrText(comm, evt));
 	} case CType.Redisplay: { mixin(S_TRACE);
-		if (summ && summ.legacy) { mixin(S_TRACE);
+		if (evt.transition is Transition.Default) { mixin(S_TRACE);
 			return comm.prop.msgs.ctRedisplayClassic;
 		} else { mixin(S_TRACE);
-			string v = comm.prop.msgs.transitionName(evt.transition);
-			return .tryFormat(comm.prop.msgs.ctRedisplay, v, evt.transitionSpeed);
+			auto v = .transitionText(comm.prop, evt.transition, evt.transitionSpeed);
+			return .tryFormat(comm.prop.msgs.ctRedisplayWithTransition, v);
 		}
 	} case CType.SubstituteStep: { mixin(S_TRACE);
 		auto t2 = contentTextUseID!(CIDKind.Step)(comm, summ, evt.step2, "%s", evt);
@@ -4036,24 +4046,26 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		if (!cellName || !cellName.length) cellName = comm.prop.msgs.noSelectCellName;
 		string posType = comm.prop.msgs.coordinateTypeName(evt.positionType);
 		string sizeType = comm.prop.msgs.coordinateTypeName(evt.sizeType);
-		string ts = comm.prop.msgs.transitionName(evt.transition);
 		if (evt.positionType !is CoordinateType.None && evt.sizeType !is CoordinateType.None) {
-			if (summ && summ.legacy) { mixin(S_TRACE);
+			if (evt.transition is Transition.Default) { mixin(S_TRACE);
 				return .tryFormat(comm.prop.msgs.ctMoveAndResizeBgImageClassic, cellName, posType, evt.x, evt.y, sizeType, evt.width, evt.height);
 			} else { mixin(S_TRACE);
-				return .tryFormat(comm.prop.msgs.ctMoveAndResizeBgImage, cellName, posType, evt.x, evt.y, sizeType, evt.width, evt.height, ts, evt.transitionSpeed);
+				auto ts = .transitionText(comm.prop, evt.transition, evt.transitionSpeed);
+				return .tryFormat(comm.prop.msgs.ctMoveAndResizeBgImageWithTransition, cellName, posType, evt.x, evt.y, sizeType, evt.width, evt.height, ts);
 			}
 		} else if (evt.positionType !is CoordinateType.None) { mixin(S_TRACE);
-			if (summ && summ.legacy) { mixin(S_TRACE);
+			if (evt.transition is Transition.Default) { mixin(S_TRACE);
 				return .tryFormat(comm.prop.msgs.ctMoveBgImageClassic, cellName, posType, evt.x, evt.y);
 			} else { mixin(S_TRACE);
-				return .tryFormat(comm.prop.msgs.ctMoveBgImage, cellName, posType, evt.x, evt.y, ts, evt.transitionSpeed);
+				auto ts = .transitionText(comm.prop, evt.transition, evt.transitionSpeed);
+				return .tryFormat(comm.prop.msgs.ctMoveBgImageWithTransition, cellName, posType, evt.x, evt.y, ts);
 			}
 		} else if (evt.sizeType !is CoordinateType.None) { mixin(S_TRACE);
-			if (summ && summ.legacy) { mixin(S_TRACE);
+			if (evt.transition is Transition.Default) { mixin(S_TRACE);
 				return .tryFormat(comm.prop.msgs.ctResizeBgImageClassic, cellName, sizeType, evt.width, evt.height);
 			} else { mixin(S_TRACE);
-				return .tryFormat(comm.prop.msgs.ctResizeBgImage, cellName, sizeType, evt.width, evt.height, ts, evt.transitionSpeed);
+				auto ts = .transitionText(comm.prop, evt.transition, evt.transitionSpeed);
+				return .tryFormat(comm.prop.msgs.ctResizeBgImageWithTransition, cellName, sizeType, evt.width, evt.height, ts);
 			}
 		} else { mixin(S_TRACE);
 			return .tryFormat(comm.prop.msgs.ctMoveBgImageNoSet, cellName);
@@ -4061,20 +4073,20 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 	} case CType.ReplaceBgImage: { mixin(S_TRACE);
 		string cellName = evt.cellName;
 		if (!cellName || !cellName.length) cellName = comm.prop.msgs.noSelectCellName;
-		if (summ && summ.legacy) { mixin(S_TRACE);
+		if (evt.transition is Transition.Default) { mixin(S_TRACE);
 			return .tryFormat(comm.prop.msgs.ctReplaceBgImageClassic, cellName, bgImageString);
 		} else { mixin(S_TRACE);
-			string ts = comm.prop.msgs.transitionName(evt.transition);
-			return .tryFormat(comm.prop.msgs.ctReplaceBgImage, cellName, bgImageString, ts, evt.transitionSpeed);
+			auto ts = .transitionText(comm.prop, evt.transition, evt.transitionSpeed);
+			return .tryFormat(comm.prop.msgs.ctReplaceBgImageWithTransition, cellName, bgImageString, ts);
 		}
 	} case CType.LoseBgImage: { mixin(S_TRACE);
 		string cellName = evt.cellName;
 		if (!cellName || !cellName.length) cellName = comm.prop.msgs.noSelectCellName;
-		if (summ && summ.legacy) { mixin(S_TRACE);
+		if (evt.transition is Transition.Default) { mixin(S_TRACE);
 			return .tryFormat(comm.prop.msgs.ctLoseBgImageClassic, cellName);
 		} else { mixin(S_TRACE);
-			string ts = comm.prop.msgs.transitionName(evt.transition);
-			return .tryFormat(comm.prop.msgs.ctLoseBgImage, cellName, ts, evt.transitionSpeed);
+			auto ts = .transitionText(comm.prop, evt.transition, evt.transitionSpeed);
+			return .tryFormat(comm.prop.msgs.ctLoseBgImageWithTransition, cellName, ts);
 		}
 	} case CType.BranchMultiCoupon: { mixin(S_TRACE);
 		auto range = .rangeName(comm.prop, evt.range, evt.holdingCoupon);
