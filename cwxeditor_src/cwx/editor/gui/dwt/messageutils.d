@@ -470,7 +470,7 @@ private:
 	}
 	void writeAPD(Object o) { mixin(S_TRACE);
 		bool oldIgnoreMod = ignoreMod;
-		ignoreMod = true;
+		setIgnoreMod(true, false);
 		scope (exit) ignoreMod = oldIgnoreMod;
 		auto apd = cast(APData)o;
 		assert (apd);
@@ -615,7 +615,7 @@ private:
 	}
 	void selectChanged() { mixin(S_TRACE);
 		bool oldIgnoreMod = ignoreMod;
-		ignoreMod = true;
+		setIgnoreMod(true, false);
 		if (_dlgsL.getSelectionIndex() == -1) _dlgsL.select(0);
 		scope (exit) ignoreMod = oldIgnoreMod;
 		auto dlg = _dlgs[_dlgsL.getSelectionIndex()];
@@ -938,7 +938,7 @@ private:
 	}
 	void refreshDlgList() { mixin(S_TRACE);
 		bool oldIgnoreMod = ignoreMod;
-		ignoreMod = true;
+		setIgnoreMod(true, false);
 		scope (exit) ignoreMod = oldIgnoreMod;
 		int selIndex = _dlgsL.getSelectionIndex();
 		int topIndex = _dlgsL.getTopIndex();

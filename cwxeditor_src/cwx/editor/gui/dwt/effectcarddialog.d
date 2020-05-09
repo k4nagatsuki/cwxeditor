@@ -166,7 +166,7 @@ private:
 	}
 	class ResetSource : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
-			ignoreMod = true;
+			setIgnoreMod(true, false);
 			scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 			_scenario.setText(_summ.scenarioName);
 			_author.setText(_summ.author);

@@ -272,7 +272,7 @@ private:
 			refreshCasts();
 		}
 		void refreshCasts() { mixin(S_TRACE);
-			ignoreMod = true;
+			setIgnoreMod(true, false);
 			scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 			if (_summ) { mixin(S_TRACE);
 				if (!_summ.casts.length) { mixin(S_TRACE);

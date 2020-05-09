@@ -982,7 +982,7 @@ private:
 		return combo;
 	}
 	void selectMenu() { mixin(S_TRACE);
-		ignoreMod = true;
+		setIgnoreMod(true, false);
 		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		auto i = _menu.getSelectionIndex();
 		if (-1 == i) return;
@@ -994,7 +994,7 @@ private:
 		_menuDel.setEnabled(_mnemonic.getText().length || _hotkey.widget.getText().length);
 	}
 	void applyMenu() { mixin(S_TRACE);
-		ignoreMod = true;
+		setIgnoreMod(true, false);
 		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		auto i = _menu.getSelectionIndex();
 		if (i == -1) return;
@@ -1048,7 +1048,7 @@ private:
 	}
 	class DelMenuAccel : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
-			ignoreMod = true;
+			setIgnoreMod(true, false);
 			scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 			_mnemonic.setText("");
 			_hotkey.widget.setText("");

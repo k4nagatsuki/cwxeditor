@@ -214,6 +214,12 @@ abstract class AbsDialog {
 	}
 	/// ditto
 	@property
+	protected void setIgnoreMod(bool v, bool setEnabled) { mixin(S_TRACE);
+		_ignoreMod = v;
+		if (setEnabled && _area && !_area.isDisposed()) _area.setEnabled(!v);
+	}
+	/// ditto
+	@property
 	const
 	protected bool ignoreMod() { return _ignoreMod; }
 	/// ignoreModを反転して返す。
