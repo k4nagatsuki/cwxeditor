@@ -168,6 +168,8 @@ private:
 
 	Text _mnemonic;
 	HotKeyField _hotkey;
+	string[MenuID] _appliedMnemonic;
+	string[MenuID] _appliedHotkey;
 	Table _menu;
 	Button _menuApply;
 	Button _menuDel;
@@ -622,7 +624,7 @@ private:
 						int[] styles;
 						string[] names;
 						foreach (s; [WallpaperStyle.Center, WallpaperStyle.Tile, WallpaperStyle.ExpandFull, WallpaperStyle.Expand]) { mixin(S_TRACE);
-							styles ~= cast(int) s;
+							styles ~= cast(int)s;
 							names ~= _prop.msgs.wallpaperStyleName(s);
 						}
 						_wallpaperStyle = createEnumC(comp4, _prop.msgs.wallpaperStyle, styles, names, _wallpaperStyleTbl, _wallpaperStyleTbl2);
@@ -987,7 +989,7 @@ private:
 		auto i = _menu.getSelectionIndex();
 		if (-1 == i) return;
 		auto itm = _menu.getItem(i);
-		auto data = cast(SMenuData) itm.getData();
+		auto data = cast(SMenuData)itm.getData();
 		_mnemonic.setText(data.mnemonic);
 		_hotkey.accelerator = data.hotkey;
 		_menuApply.setEnabled(false);
@@ -999,31 +1001,37 @@ private:
 		auto i = _menu.getSelectionIndex();
 		if (i == -1) return;
 		auto itm = _menu.getItem(i);
-		auto data = cast(SMenuData) itm.getData();
+		auto data = cast(SMenuData)itm.getData();
 		data.mnemonic = _mnemonic.getText();
 		data.hotkey = _hotkey.acceleratorText;
 		itm.setText(MenuProps.buildMenuSample(_prop.parent, data.id, data.mnemonic, data.hotkey));
 		_menuApply.setEnabled(false);
+		_appliedMnemonic[data.id] = data.mnemonic;
+		_appliedHotkey[data.id] = data.hotkey;
 		applyEnabled();
 	}
 	void refreshMenu() { mixin(S_TRACE);
 		auto selID = MenuID.None;
 		int selIndex = _menu.getSelectionIndex();
 		if (-1 != selIndex) { mixin(S_TRACE);
-			selID = (cast(SMenuData) _menu.getItem(selIndex).getData()).id;
+			selID = (cast(SMenuData)_menu.getItem(selIndex).getData()).id;
 		}
 		_menu.removeAll();
 		foreach (id; EnumMembers!MenuID) { mixin(S_TRACE);
 			if (id !is MenuID.None && !isNoKeyBindMenu(id)) { mixin(S_TRACE);
-				string name = _prop.var.menu.buildMenuSample(_prop.parent, id);
+				auto pm = id in _appliedMnemonic;
+				auto phk = id in _appliedHotkey;
+				auto mnemonic = pm ? *pm : _prop.var.menu.mnemonic(id);
+				auto hotkey = phk ? *phk : _prop.var.menu.hotkey(id);
+				string name = MenuProps.buildMenuSample(_prop.parent, id, mnemonic, hotkey);
 				if (!_menuIncSearch.match(name)) continue;
 				auto itm = new TableItem(_menu, SWT.NONE);
 				itm.setText(name);
 				itm.setImage(_prop.images.menu(id));
 				auto data = new SMenuData();
 				data.id = id;
-				data.mnemonic = _prop.var.menu.mnemonic(id);
-				data.hotkey = _prop.var.menu.hotkey(id);
+				data.mnemonic = mnemonic;
+				data.hotkey = hotkey;
 				itm.setData(data);
 				if (id == selID) { mixin(S_TRACE);
 					_menu.select(_menu.getItemCount() - 1);
@@ -1216,32 +1224,34 @@ private:
 			{ mixin(S_TRACE);
 				auto grp = new Group(sash, SWT.NONE);
 				grp.setText(_prop.msgs.keyBind);
-				grp.setLayout(normalGridLayout(4, false));
+				grp.setLayout(new FillLayout);
+				auto menuComp = new Composite(grp, SWT.NONE);
+				menuComp.setLayout(normalGridLayout(4, false));
 
-				auto l1 = new Label(grp, SWT.NONE);
+				auto l1 = new Label(menuComp, SWT.NONE);
 				l1.setText(_prop.msgs.mnemonic);
-				_mnemonic = mnemonicText(grp, SWT.BORDER);
+				_mnemonic = mnemonicText(menuComp, SWT.BORDER);
 				createTextMenu!Text(_comm, _prop, _mnemonic, &catchMod);
 				_mnemonic.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				_mnemonic.addModifyListener(new ModMenu);
 
-				_menuApply = new Button(grp, SWT.PUSH);
+				_menuApply = new Button(menuComp, SWT.PUSH);
 				_menuApply.setText(_prop.msgs.apply);
 				_menuApply.addSelectionListener(new ApplyMenu);
-				_menuDel = new Button(grp, SWT.PUSH);
+				_menuDel = new Button(menuComp, SWT.PUSH);
 				_menuDel.setText(_prop.msgs.del);
 				_menuDel.addSelectionListener(new DelMenuAccel);
 
-				auto l2 = new Label(grp, SWT.NONE);
+				auto l2 = new Label(menuComp, SWT.NONE);
 				l2.setText(_prop.msgs.hotkey);
-				_hotkey = new HotKeyField(grp, SWT.BORDER);
+				_hotkey = new HotKeyField(menuComp, SWT.BORDER);
 				createTextMenu!Text(_comm, _prop, _hotkey.widget, &catchMod);
 				auto hgd = new GridData(GridData.FILL_HORIZONTAL);
 				hgd.horizontalSpan = 3;
 				_hotkey.widget.setLayoutData(hgd);
 				_hotkey.widget.addModifyListener(new ModMenu);
 
-				_menu = .rangeSelectableTable(grp, SWT.BORDER | SWT.SINGLE | SWT.V_SCROLL | SWT.FULL_SELECTION);
+				_menu = .rangeSelectableTable(menuComp, SWT.BORDER | SWT.SINGLE | SWT.V_SCROLL | SWT.FULL_SELECTION);
 				auto mgd = new GridData(GridData.FILL_BOTH);
 				mgd.horizontalSpan = 4;
 				mgd.heightHint = _prop.var.etc.menuSettingsHeight;
@@ -1249,7 +1259,7 @@ private:
 				new FullTableColumn(_menu, SWT.NONE);
 				_menu.addSelectionListener(new SelectMenu);
 
-				_menuIncSearch = new IncSearch(_comm, _menu, null);
+				_menuIncSearch = new IncSearch(_comm, menuComp, null);
 				_menuIncSearch.modEvent ~= &refreshMenu;
 
 				auto menu = new Menu(_menu.getShell(), SWT.POP_UP);
@@ -1257,7 +1267,7 @@ private:
 				_menu.setMenu(menu);
 				refreshMenu();
 
-				grp.setTabList([_menuApply, _menuDel, _menu]);
+				menuComp.setTabList([_menuApply, _menuDel, _menu]);
 			}
 			{ mixin(S_TRACE);
 				auto grp = new Group(sash, SWT.NONE);
@@ -1552,7 +1562,7 @@ protected:
 		_prop.var.etc.defaultAuthor = _author.getText();
 		_prop.var.etc.newAreaName = _newAreaName.getText();
 		_prop.var.etc.wallpaper = _wallpaper.getText();
-		_prop.var.etc.wallpaperStyle = cast(WallpaperStyle) _wallpaperStyleTbl2[_wallpaperStyle.getSelectionIndex()];
+		_prop.var.etc.wallpaperStyle = cast(WallpaperStyle)_wallpaperStyleTbl2[_wallpaperStyle.getSelectionIndex()];
 		_prop.var.etc.historyMax = _histMax.getSelection();
 		_prop.var.etc.searchHistoryMax = _sHistMax.getSelection();
 		_prop.var.etc.executedPartiesMax = _pHistMax.getSelection();
@@ -1615,11 +1625,13 @@ protected:
 			if (initializer.initializer.length) _prop.var.etc.contentInitializers.value ~= initializer;
 		}
 
-		foreach (itm; _menu.getItems()) { mixin(S_TRACE);
-			auto data = cast(SMenuData) itm.getData();
-			_prop.var.menu.mnemonic(data.id, data.mnemonic);
-			_prop.var.menu.hotkey(data.id, data.hotkey);
+		foreach (menuId, mnemonic; _appliedMnemonic) { mixin(S_TRACE);
+			assert (menuId in _appliedHotkey);
+			_prop.var.menu.mnemonic(menuId, mnemonic);
+			_prop.var.menu.hotkey(menuId, _appliedHotkey[menuId]);
 		}
+		_appliedMnemonic = null;
+		_appliedHotkey = null;
 		if (_summ && findCWPy(_prop, _summ.useTemp ? _summ.zipName : _summ.scenarioPath)) { mixin(S_TRACE);
 			_enginePath.setText(_prop.var.etc.enginePath);
 			_findEnginePath.setSelection(_prop.var.etc.findEnginePath);
@@ -2250,7 +2262,7 @@ private:
 				_comm.refreshToolBar();
 			}
 			void paste(SelectionEvent e) { mixin(S_TRACE);
-				auto a = cast(ArrayWrapperString) _comm.clipboard.getContents(TextTransfer.getInstance());
+				auto a = cast(ArrayWrapperString)_comm.clipboard.getContents(TextTransfer.getInstance());
 				if (!a) return;
 				pasteImpl(a.array);
 			}
@@ -2778,8 +2790,8 @@ private:
 			pgd.horizontalSpan = 4;
 			pComp.setLayoutData(pgd);
 			pComp.setLayout(zeroMarginGridLayout(8, false));
-			_bgImgX = createS(pComp, _prop.msgs.left, _prop.var.etc.posLeftMax, -(cast(int) _prop.var.etc.posLeftMax));
-			_bgImgY = createS(pComp, _prop.msgs.top, _prop.var.etc.posTopMax, -(cast(int) _prop.var.etc.posTopMax));
+			_bgImgX = createS(pComp, _prop.msgs.left, _prop.var.etc.posLeftMax, -(cast(int)_prop.var.etc.posLeftMax));
+			_bgImgY = createS(pComp, _prop.msgs.top, _prop.var.etc.posTopMax, -(cast(int)_prop.var.etc.posTopMax));
 			_bgImgW = createS(pComp, _prop.msgs.width, _prop.var.etc.backWidthMax, 0);
 			_bgImgH = createS(pComp, _prop.msgs.height, _prop.var.etc.backHeightMax, 0);
 
@@ -3116,7 +3128,7 @@ private:
 				_templScript.setLayoutData(gd);
 
 				auto font = _templScript.getFont();
-				auto fSize = font ? cast(uint) font.getFontData()[0].height : 0;
+				auto fSize = font ? cast(uint)font.getFontData()[0].height : 0;
 				auto font2 = new Font(Display.getCurrent(), dwtData(CFont(_prop.looks.monospace, fSize, false, false)));
 				_templScript.setFont(font2);
 				listener(_templScript, SWT.Dispose, { mixin(S_TRACE);
