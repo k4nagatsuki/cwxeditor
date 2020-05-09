@@ -2847,7 +2847,8 @@ private:
 						auto pimg = t[1];
 						if (cast(FlexImage)pimg && pimg.visible) { mixin(S_TRACE);
 							auto img = cast(FlexImage)pimg;
-							if (img.fixed || !img.visible) return;
+							if (!img.visible) continue;
+							if (img.fixed && !move) continue;
 							Toggle tgl = img.inToggle(dx, dy, move);
 							if (tgl != Toggle.NONE) { mixin(S_TRACE);
 								setCursor(getToggleCursor(tgl));
