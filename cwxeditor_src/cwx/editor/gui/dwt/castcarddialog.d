@@ -752,7 +752,7 @@ private:
 		tab.setControl(_physicalComp);
 	}
 	void refCastCardParameterEditStyle() { mixin(S_TRACE);
-		ignoreMod = true;
+		setIgnoreMod(true, false);
 		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		_physicalComp.setRedraw(false);
 		scope (exit) _physicalComp.setRedraw(true);

@@ -305,7 +305,7 @@ protected:
 		}
 		_comm.refTargetVersion.add(&refDataVersion);
 
-		ignoreMod = true;
+		setIgnoreMod(true, false);
 		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		if (back) { mixin(S_TRACE);
 			if (_flag) { mixin(S_TRACE);
@@ -456,7 +456,7 @@ protected:
 			string file = _imgPath.filePath;
 			if (file.length > 0) { mixin(S_TRACE);
 				try { mixin(S_TRACE);
-					ignoreMod = true;
+					setIgnoreMod(true, false);
 					scope (exit) ignoreMod = false;
 					uint x, y;
 					dwtImageSize(_prop, _comm.skin, _summ, file, x, y);
