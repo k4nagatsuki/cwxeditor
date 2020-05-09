@@ -622,7 +622,7 @@ private:
 						int[] styles;
 						string[] names;
 						foreach (s; [WallpaperStyle.Center, WallpaperStyle.Tile, WallpaperStyle.ExpandFull, WallpaperStyle.Expand]) { mixin(S_TRACE);
-							styles ~= cast(int) s;
+							styles ~= cast(int)s;
 							names ~= _prop.msgs.wallpaperStyleName(s);
 						}
 						_wallpaperStyle = createEnumC(comp4, _prop.msgs.wallpaperStyle, styles, names, _wallpaperStyleTbl, _wallpaperStyleTbl2);
@@ -987,7 +987,7 @@ private:
 		auto i = _menu.getSelectionIndex();
 		if (-1 == i) return;
 		auto itm = _menu.getItem(i);
-		auto data = cast(SMenuData) itm.getData();
+		auto data = cast(SMenuData)itm.getData();
 		_mnemonic.setText(data.mnemonic);
 		_hotkey.accelerator = data.hotkey;
 		_menuApply.setEnabled(false);
@@ -999,7 +999,7 @@ private:
 		auto i = _menu.getSelectionIndex();
 		if (i == -1) return;
 		auto itm = _menu.getItem(i);
-		auto data = cast(SMenuData) itm.getData();
+		auto data = cast(SMenuData)itm.getData();
 		data.mnemonic = _mnemonic.getText();
 		data.hotkey = _hotkey.acceleratorText;
 		itm.setText(MenuProps.buildMenuSample(_prop.parent, data.id, data.mnemonic, data.hotkey));
@@ -1010,7 +1010,7 @@ private:
 		auto selID = MenuID.None;
 		int selIndex = _menu.getSelectionIndex();
 		if (-1 != selIndex) { mixin(S_TRACE);
-			selID = (cast(SMenuData) _menu.getItem(selIndex).getData()).id;
+			selID = (cast(SMenuData)_menu.getItem(selIndex).getData()).id;
 		}
 		_menu.removeAll();
 		foreach (id; EnumMembers!MenuID) { mixin(S_TRACE);
@@ -1552,7 +1552,7 @@ protected:
 		_prop.var.etc.defaultAuthor = _author.getText();
 		_prop.var.etc.newAreaName = _newAreaName.getText();
 		_prop.var.etc.wallpaper = _wallpaper.getText();
-		_prop.var.etc.wallpaperStyle = cast(WallpaperStyle) _wallpaperStyleTbl2[_wallpaperStyle.getSelectionIndex()];
+		_prop.var.etc.wallpaperStyle = cast(WallpaperStyle)_wallpaperStyleTbl2[_wallpaperStyle.getSelectionIndex()];
 		_prop.var.etc.historyMax = _histMax.getSelection();
 		_prop.var.etc.searchHistoryMax = _sHistMax.getSelection();
 		_prop.var.etc.executedPartiesMax = _pHistMax.getSelection();
@@ -1616,7 +1616,7 @@ protected:
 		}
 
 		foreach (itm; _menu.getItems()) { mixin(S_TRACE);
-			auto data = cast(SMenuData) itm.getData();
+			auto data = cast(SMenuData)itm.getData();
 			_prop.var.menu.mnemonic(data.id, data.mnemonic);
 			_prop.var.menu.hotkey(data.id, data.hotkey);
 		}
@@ -2250,7 +2250,7 @@ private:
 				_comm.refreshToolBar();
 			}
 			void paste(SelectionEvent e) { mixin(S_TRACE);
-				auto a = cast(ArrayWrapperString) _comm.clipboard.getContents(TextTransfer.getInstance());
+				auto a = cast(ArrayWrapperString)_comm.clipboard.getContents(TextTransfer.getInstance());
 				if (!a) return;
 				pasteImpl(a.array);
 			}
@@ -2778,8 +2778,8 @@ private:
 			pgd.horizontalSpan = 4;
 			pComp.setLayoutData(pgd);
 			pComp.setLayout(zeroMarginGridLayout(8, false));
-			_bgImgX = createS(pComp, _prop.msgs.left, _prop.var.etc.posLeftMax, -(cast(int) _prop.var.etc.posLeftMax));
-			_bgImgY = createS(pComp, _prop.msgs.top, _prop.var.etc.posTopMax, -(cast(int) _prop.var.etc.posTopMax));
+			_bgImgX = createS(pComp, _prop.msgs.left, _prop.var.etc.posLeftMax, -(cast(int)_prop.var.etc.posLeftMax));
+			_bgImgY = createS(pComp, _prop.msgs.top, _prop.var.etc.posTopMax, -(cast(int)_prop.var.etc.posTopMax));
 			_bgImgW = createS(pComp, _prop.msgs.width, _prop.var.etc.backWidthMax, 0);
 			_bgImgH = createS(pComp, _prop.msgs.height, _prop.var.etc.backHeightMax, 0);
 
@@ -3116,7 +3116,7 @@ private:
 				_templScript.setLayoutData(gd);
 
 				auto font = _templScript.getFont();
-				auto fSize = font ? cast(uint) font.getFontData()[0].height : 0;
+				auto fSize = font ? cast(uint)font.getFontData()[0].height : 0;
 				auto font2 = new Font(Display.getCurrent(), dwtData(CFont(_prop.looks.monospace, fSize, false, false)));
 				_templScript.setFont(font2);
 				listener(_templScript, SWT.Dispose, { mixin(S_TRACE);
