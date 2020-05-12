@@ -22,7 +22,8 @@
 		"resource"
 	],
 	"dependencies": {
-		"dwt": "~>1.0.4"
+		"dwt": "~>1.0.4",
+		"dxml": "~>0.4.1"
 	},
 
 	"preBuildCommands-windows-x86": [

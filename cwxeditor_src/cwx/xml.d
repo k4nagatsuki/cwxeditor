@@ -4,24 +4,69 @@ module cwx.xml;
 import cwx.perf;
 import cwx.utils : debugln;
 
+import std.array;
 import std.conv;
 import std.string;
-import std.xml;
+import std.typecons;
+
+import dxml.parser;
+import dxml.util;
+import dxml.writer;
 
 /// XML文書処理用の構造体。
 struct XNode {
-	private Element _el = null;
+	private static class Node {
+		alias Tuple!(string, "name", string, "value") Attr;
 
-	private static E ps(E)(ElementParser ep) { mixin(S_TRACE);
-		auto e = new E(ep.tag);
-		ep.onText((string text) { e ~= new Text(text); });
-		ep.onCData((string cdata) { e ~= new CData(cdata); });
-		ep.onComment((string comment) { e ~= new Comment(comment); });
-		ep.onPI((string pi) { e ~= new ProcessingInstruction(pi); });
-		ep.onXI((string xi) { e.items ~= new XMLInstruction(xi); });
-		ep.onStartTag[null] = (ElementParser ep) { e ~= ps!(Element)(ep); };
-		ep.parse();
-		return e;
+		EntityType type;
+		string name;
+		string value;
+		string[string] hasAttr;
+		Attr[] attrs;
+		Node[] children;
+
+		this (EntityType type, string name, string value = "") { mixin(S_TRACE);
+			this.type = type;
+			this.name = name;
+			this.value = value;
+		}
+		void newAttr(string name, string value) { mixin(S_TRACE);
+			if (name in hasAttr) throw new Exception(name ~ " is duplicated.");
+			attrs ~= Attr(name, value);
+			hasAttr[name] = value;
+		}
+	}
+
+	private Node _node = null;
+	private bool _isRoot = false;
+
+	private static Node parseElement(Parser, Attrs)(ref Parser parser, string name, Attrs attrs) { mixin(S_TRACE);
+		auto node = new Node(EntityType.elementStart, name, "");
+		foreach (ref attr; attrs) node.newAttr(attr.name, attr.value.decodeXML());
+		while (!parser.empty) { mixin(S_TRACE);
+			auto e = parser.front;
+			parser.popFront();
+			final switch (e.type) {
+			case EntityType.cdata:
+			case EntityType.comment:
+			case EntityType.pi:
+				node.children ~= new Node(e.type, e.name, e.text);
+				break;
+			case EntityType.text:
+				node.value ~= e.text.decodeXML();
+				break;
+			case EntityType.elementEmpty:
+				node.children ~= new Node(EntityType.elementStart, e.name, "");
+				foreach (ref attr; e.attributes) node.children[$ - 1].newAttr(attr.name, attr.value.decodeXML());
+				break;
+			case EntityType.elementStart:
+				node.children ~= parseElement(parser, e.name, e.attributes);
+				break;
+			case EntityType.elementEnd:
+				return node;
+			}
+		}
+		throw new Exception("End tag not found: <" ~ name ~ ">");
 	}
 	/// xmlの処理を開始する。
 	static XNode parse(string xml) { mixin(S_TRACE);
@@ -29,83 +74,91 @@ struct XNode {
 		if (!xml.startsWith("<")) throw new Exception("Invalid XML: " ~ xml);
 		XNode node;
 		if (xml[1..$].indexOf("<") == -1) throw new Exception("Invalid XML: " ~ xml);
-		node._el = ps!(Document)(new DocumentParser(xml));
+		auto parser = .parseXML(xml);
+		while (!parser.empty && parser.front.type !is EntityType.elementStart) { mixin(S_TRACE);
+			parser.popFront();
+		}
+		if (parser.empty) return node;
+
+		auto e = parser.front;
+		parser.popFront();
+		node._node = parseElement(parser, e.name, e.attributes);
+		node._isRoot = true;
 		return node;
 	}
 	/// 新規にDOMを生成する。
 	static XNode create(string rootName, string value = "") { mixin(S_TRACE);
 		XNode node;
-		node._el = new Document(new Tag(rootName));
-		node._el ~= new Text(value);
+		node._node = new Node(EntityType.elementStart, rootName, value);
+		node._isRoot = true;
 		return node;
 	}
 
 	/// 現在処理中の要素の名前。
 	@property
 	const
-	string name() { return _el.tag.name; }
+	string name() { return _node.name; }
 
 	/// 現在処理中の要素のテキスト。
 	@property
 	const
 	string value() { mixin(S_TRACE);
-		string r = _el.text();
-		if (r == "\n") r = "";
-		return r;
+		return _node.value == "\n" ? "" : _node.value;
 	}
 	/// ditto
 	@property
 	void value(string text) { mixin(S_TRACE);
-		_el ~= new Text(text);
+		_node.value = text;
 	}
 	/// ditto
 	@property
 	const
-	T valueTo(T)() { return to!(T)(value); }
+	T valueTo(T)() { return .to!T(value); }
 
 	/// 子要素を生成する。
 	XNode newElement(T = string)(string name, T value = T.init) { mixin(S_TRACE);
-		auto e = new Element(name, to!(string)(value));
-		_el ~= e;
-		return XNode(e, null);
+		_node.children ~= new Node(EntityType.elementStart, name, .to!string(value));
+		return XNode(_node.children[$ - 1]);
 	}
 
 	/// 属性を生成する。
 	void newAttr(T)(string name, T value) { mixin(S_TRACE);
-		_el.tag.attr[name] = to!(string)(value);
+		_node.newAttr(name, .to!string(value));
 	}
 	/// 属性nameの値を返す。
 	/// nothingIsErrorにtrueを指定すると、nameが存在しなかった際に例外を投げる。
 	const
 	T attr(T = string)(string name, bool nothingIsError, lazy T defaultValue = T.init) { mixin(S_TRACE);
-		auto p = name in _el.tag.attr;
-		if (nothingIsError && !p) throw new Exception(name ~ " not found");
+		auto p = name in _node.hasAttr;
+		if (nothingIsError && !p) throw new Exception(name ~ " is not found");
 		if (!p) return defaultValue;
-		return to!(T)(*p);
+		return .to!T(*p);
 	}
 	/// 属性nameが存在すればtrueを返す。
 	const
-	bool hasAttr(string name) { return (name in _el.tag.attr) !is null; }
+	bool hasAttr(string name) { return (name in _node.hasAttr) !is null; }
 
 	unittest {
 		debug mixin(UTPerf);
 		auto node0 = XNode.create("xnode");
-		node0.newAttr("xnode_attr1", "attr1");
+		node0.newAttr("xnode_attr1", "attr&1");
 		node0.newAttr("xnode_attr2", 2);
 		auto ce = node0.newElement("children");
 		ce.newAttr("children_attr", true);
 		auto cce1 = ce.newElement("child", true);
 		cce1.newAttr("child_attr", 12.25);
-		auto cce2 = ce.newElement("child");
-		cce2.newAttr("child_attr", "attr5");
+		auto cce2 = ce.newElement("child", "1&2");
+		cce2.newAttr("child_attr", "attr\"5");
 		auto xml = node0.text;
+
+		assert (xml == "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<xnode xnode_attr1=\"attr&amp;1\" xnode_attr2=\"2\">\n<children children_attr=\"true\">\n<child child_attr=\"12.25\">true</child>\n<child child_attr=\"attr&quot;5\">1&amp;2</child>\n</children>\n</xnode>");
 
 		auto node = XNode.parse(xml);
 		assert (node.valid);
 		assert (node.name == "xnode");
 		assert (!node.hasAttr("xnode_attr0"));
 		assert (node.hasAttr("xnode_attr1"));
-		assert (node.attr("xnode_attr1", true) == "attr1");
+		assert (node.attr("xnode_attr1", true) == "attr&1");
 		assert (node.attr("xnode_attr0", false, "def") == "def");
 		try {
 			node.attr("xnode_attr0", true);
@@ -134,7 +187,7 @@ struct XNode {
 				assert (node.attr!double("child_attr", true) == 12.25);
 			} else if (count == 1) {
 				assert (node.name == "child");
-				assert (node.value == "");
+				assert (node.value == "1&2");
 				assert (!node.hasAttr("xnode_attr1"));
 				assert (node.attr("xnode_attr1", false, "def") == "def");
 				try {
@@ -142,7 +195,7 @@ struct XNode {
 					assert (0);
 				} catch (Exception e) { }
 				assert (node.hasAttr("child_attr"));
-				assert (node.attr("child_attr", true) == "attr5");
+				assert (node.attr("child_attr", true) == "attr\"5");
 			} else assert (0);
 			count++;
 		};
@@ -176,12 +229,12 @@ struct XNode {
 
 	/// 子要素nameを一つだけ探し出して返す。
 	XNode child(string name, bool nothingIsError) { mixin(S_TRACE);
-		foreach (el; _el.elements) { mixin(S_TRACE);
-			if (el.tag.name == name) { mixin(S_TRACE);
-				return XNode(el);
+		foreach (ref c; _node.children) { mixin(S_TRACE);
+			if (c.name == name) { mixin(S_TRACE);
+				return XNode(c);
 			}
 		}
-		if (nothingIsError) throw new Exception(name ~ " not found");
+		if (nothingIsError) throw new Exception(name ~ " is not found");
 		return XNode(null);
 	} unittest {
 		debug mixin(UTPerf);
@@ -215,7 +268,7 @@ struct XNode {
 	/// 有効なXNodeであればtrue。
 	@property
 	const
-	bool valid() { return _el !is null; }
+	bool valid() { return _node !is null; }
 
 	/// 要素名と、その要素を発見した際に処理を行うハンドラを登録する。
 	/// 要素名にnullを指定する事により、特に指定された要素以外を
@@ -225,17 +278,17 @@ struct XNode {
 	/// 子要素を探し、結果をハンドラに渡す。
 	void parse() { mixin(S_TRACE);
 		if (onTag.length == 0) return;
-		foreach (el; _el.elements) { mixin(S_TRACE);
-			auto p = el.tag.name in onTag;
+		foreach (ref c; _node.children) { mixin(S_TRACE);
+			auto p = c.name in onTag;
 			if (!p) p = null in onTag;
 			XNode node;
-			node._el = el;
+			node._node = c;
 			if (p) (*p)(node);
 		}
 		onTag = null;
 	} unittest {
 		debug mixin(UTPerf);
-		auto xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<xnode>\n<children attr0=\"???\">\n<child attr1=\"1\" attr2=\"attr\"/>\n<child/>\n</children>\n</xnode>";
+		auto xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<xnode>\n<children attr0=\"&amp;&amp;&amp;\">\n<child attr1=\"1\" attr2=\"attr\"/>\n<child>1&amp;2</child>\n</children>\n</xnode>";
 		auto node = XNode.parse(xml);
 		assert (node.valid);
 		auto count0 = 0;
@@ -243,7 +296,7 @@ struct XNode {
 			assert (node.valid);
 			assert (!node.isRoot);
 			assert (node.hasAttr("attr0"));
-			assert (node.attr("attr0", true) == "???");
+			assert (node.attr("attr0", true) == "&&&");
 			auto count1 = 0;
 			node.onTag["child"] = (ref node) { mixin(S_TRACE);
 				assert (!node.isRoot);
@@ -252,9 +305,11 @@ struct XNode {
 					assert (node.hasAttr("attr2"));
 					assert (node.attr("attr1", true) == "1");
 					assert (node.attr("attr2", true) == "attr");
+					assert (node.value == "");
 				} else if (count1 == 1) { mixin(S_TRACE);
 					assert (!node.hasAttr("attr1"));
 					assert (!node.hasAttr("attr2"));
+					assert (node.value == "1&2");
 				} else assert (0);
 				count1++;
 			};
@@ -273,7 +328,7 @@ struct XNode {
 	@property
 	const
 	bool isRoot() { mixin(S_TRACE);
-		return cast(Document)_el !is null;
+		return _isRoot;
 	} unittest {
 		debug mixin(UTPerf);
 		auto xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<xnode>\n<children attr0=\"???\">\n<child attr1=\"1\" attr2=\"attr\"/>\n</children>\n</xnode>";
@@ -298,10 +353,51 @@ struct XNode {
 	const
 	string text() { mixin(S_TRACE);
 		if (!isRoot) throw new Exception("Node is not Root: " ~ name);
-		return (cast(Document)_el).prolog ~ "\n" ~ std.string.join(_el.pretty(0), "\n");
+		auto a = .appender!string();
+		a.writeXMLDecl!string();
+		auto writer = .xmlWriter(a, "");
+		void writeElement(ref const Node node) { mixin(S_TRACE);
+			assert (node.type is EntityType.elementStart);
+			writer.openStartTag(node.name, Newline.yes);
+			foreach (attr; node.attrs) { mixin(S_TRACE);
+				writer.writeAttr(attr.name, attr.value.encodeAttr());
+			}
+			if (node.children.length == 0 && node.value == "") { mixin(S_TRACE);
+				writer.closeStartTag(EmptyTag.yes);
+				return;
+			}
+			writer.closeStartTag();
+			if (node.value != "") writer.writeText(node.value.encodeText(), Newline.no);
+
+			foreach (ref c; node.children) { mixin(S_TRACE);
+				final switch (c.type) {
+				case EntityType.cdata:
+					writer.writeCDATA(c.value);
+					break;
+				case EntityType.comment:
+					writer.writeComment(c.value);
+					break;
+				case EntityType.pi:
+					writer.writePI(c.value);
+					break;
+				case EntityType.elementStart:
+					writeElement(c);
+					break;
+				case EntityType.elementEmpty:
+					assert (0);
+				case EntityType.text:
+					assert (0);
+				case EntityType.elementEnd:
+					assert (0);
+				}
+			}
+			writer.writeEndTag(node.name, node.children.length ? Newline.yes : Newline.no);
+		}
+		writeElement(_node);
+		return writer.output.data;
 	} unittest {
 		debug mixin(UTPerf);
-		auto xml = "<?xml version=\"1.0\"?>\n<xnode>\n<children attr0=\"???\">\n<child attr1=\"1\" attr2=\"attr\" />\n<child />\n</children>\n</xnode>";
+		auto xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<xnode>\n<children attr0=\"&amp;&amp;&amp;\">\n<child attr1=\"1\" attr2=\"attr\"/>\n<child>1&amp;2</child>\n</children>\n</xnode>";
 		auto node = XNode.parse(xml);
 		assert (node.valid);
 		assert (xml == node.text, node.text);

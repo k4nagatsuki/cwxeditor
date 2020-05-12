@@ -2069,6 +2069,7 @@ public:
 		saveXMLsImpl(path, sys, opt, true, sync);
 	}
 	private void saveXMLsImpl(string path, const System sys, in SaveOption opt, bool callSaved, FileSync sync) { mixin(S_TRACE);
+		mixin(FPerf!0);
 		if (callSaved) _inSaving = true;
 		scope (exit) {
 			if (callSaved) {

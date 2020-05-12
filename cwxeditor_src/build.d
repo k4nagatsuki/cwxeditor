@@ -53,7 +53,8 @@ version (Windows) {
 		"opengl32.lib",
 		"shlwapi.lib",
 		"dwt_base.lib",
-		"dwt.lib"
+		"dwt.lib",
+		"dxml.lib"
 	];
 	immutable LIB_32 = LIB_64 ~ "olepro32.lib";
 	immutable DEBUG_FLAGS = [
