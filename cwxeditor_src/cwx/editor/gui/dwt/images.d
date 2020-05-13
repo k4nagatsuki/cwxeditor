@@ -2892,10 +2892,12 @@ private:
 							auto pimg = t[1];
 							if (cast(FlexImage)pimg) { mixin(S_TRACE);
 								img = cast(FlexImage)pimg;
-								if (img.visible && !img.fixed) { mixin(S_TRACE);
+								if (img.visible) { mixin(S_TRACE);
 									tgl = img.inToggle(dx, dy, move);
 									if (tgl !is Toggle.NONE) { mixin(S_TRACE);
-										if (!selectionImg) selectionImg = img;
+										if (!selectionImg || (selectionImg.fixed && !img.fixed)) { mixin(S_TRACE);
+											selectionImg = img;
+										}
 										if (img.fixed) { mixin(S_TRACE);
 											continue;
 										}
@@ -2914,6 +2916,7 @@ private:
 					_rangeStartPos = new Point(x, y);
 					_rangeEndPos = new Point(x, y);
 					_rangeSelected = false;
+					if (selectionImg) doSelect(selectionImg);
 				} else { mixin(S_TRACE);
 					_mouseP = img;
 					if (!_ctrl && !_shift) { mixin(S_TRACE);
