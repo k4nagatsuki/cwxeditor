@@ -50,7 +50,7 @@ struct XNode {
 			case EntityType.cdata:
 			case EntityType.comment:
 			case EntityType.pi:
-				node.children ~= new Node(e.type, e.name, e.text);
+				node.children ~= new Node(e.type, "", e.text);
 				break;
 			case EntityType.text:
 				node.value ~= e.text.decodeXML();
