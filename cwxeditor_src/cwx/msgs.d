@@ -1928,6 +1928,7 @@ class Msgs : Properties {
 	auto comparison3FalseNameGt = Msg("comparison3FalseNameGt", "以上");
 
 	auto dlgTitComment = Msg("dlgTitComment", "コメントの記述");
+	auto dlgTitCommentWith = Msg("dlgTitCommentWith", "[%1$s] のコメント");
 
 	/// カードウィンドウ。
 	auto cardTabName = Msg("cardTabName", "%1$s");

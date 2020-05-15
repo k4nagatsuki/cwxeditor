@@ -20,6 +20,7 @@ import cwx.xml;
 
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.centerlayout;
+import cwx.editor.gui.dwt.comment;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.customtext;
@@ -2022,6 +2023,54 @@ package class UndoEditDir : FTVUndo {
 	override void redo() { impl(); }
 	override void dispose() {}
 }
+private class UndoVariableComment : FTVUndo {
+	private const(TypeInfo) _type;
+	private string _name;
+	private string _oldComment;
+	this (FlagTable v, Commons comm, UseCounter uc, FlagDir dir, Commentable obj) { mixin(S_TRACE);
+		super (v, comm, uc, dir);
+		if (auto flag = cast(cwx.flag.Flag)obj) {
+			_type = typeid(cwx.flag.Flag);
+			_name = flag.name;
+		} else if (auto step = cast(Step)obj) { mixin(S_TRACE);
+			_type = typeid(Step);
+			_name = step.name;
+		} else if (auto variant = cast(cwx.flag.Variant)obj) { mixin(S_TRACE);
+			_type = typeid(cwx.flag.Variant);
+			_name = variant.name;
+		} else assert (0);
+		_oldComment = obj.comment;
+	}
+	private void impl() { mixin(S_TRACE);
+		auto v = view();
+		udb(v);
+		scope (exit) uda(v);
+		auto dir = this.dir();
+		auto comment = _oldComment;
+		if (_type is typeid(cwx.flag.Flag)) {
+			auto f = dir.getFlag(_name);
+			assert (f !is null);
+			_oldComment = f.comment;
+			f.comment = comment;
+			comm.refFlagAndStep.call([f], [], []);
+		} else if (_type is typeid(Step)) {
+			auto f = dir.getStep(_name);
+			assert (f !is null);
+			_oldComment = f.comment;
+			f.comment = comment;
+			comm.refFlagAndStep.call([], [f], []);
+		} else if (_type is typeid(cwx.flag.Variant)) {
+			auto f = dir.getVariant(_name);
+			assert (f !is null);
+			_oldComment = f.comment;
+			f.comment = comment;
+			comm.refFlagAndStep.call([], [], [f]);
+		} else assert (0);
+	}
+	override void undo() { impl(); }
+	override void redo() { impl(); }
+	override void dispose() {}
+}
 
 public class FlagTable : TCPD {
 public:
@@ -2042,6 +2091,9 @@ private:
 	}
 	void storeDelete(ptrdiff_t[] selectedF, ptrdiff_t[] selectedS, ptrdiff_t[] selectedV, cwx.flag.Flag[ptrdiff_t] fs, Step[ptrdiff_t] ss, cwx.flag.Variant[ptrdiff_t] vs) { mixin(S_TRACE);
 		_undo ~= new UndoInsertDelete(this, _comm, uc, _dir, selectedF, selectedS, selectedV, null, fs, ss, vs);
+	}
+	void storeComment(Commentable obj) { mixin(S_TRACE);
+		_undo ~= new UndoVariableComment(this, _comm, uc, _dir, obj);
 	}
 
 	void callCreateEvent() { mixin(S_TRACE);
@@ -2175,6 +2227,7 @@ private:
 	FlagEditDialog[cwx.flag.Flag] _editDlgsF;
 	StepEditDialog[Step] _editDlgsS;
 	VariantEditDialog[cwx.flag.Variant] _editDlgsV;
+	CommentDialog[Commentable] _commentDlgs;
 
 	IncSearch _incSearch = null;
 	private void incSearch() { mixin(S_TRACE);
@@ -2368,6 +2421,90 @@ private:
 		_editDlgsV[variant] = dlg;
 		dlg.closeEvent ~= { mixin(S_TRACE);
 			_editDlgsV.remove(variant);
+		};
+		dlg.open();
+	}
+	@property
+	bool canWriteComment() { mixin(S_TRACE);
+		if (_readOnly) return false;
+		return flags.getSelectionIndex() != -1;
+	}
+	void writeComment() { mixin(S_TRACE);
+		if (_readOnly) return;
+		auto itms = flags.getSelection();
+		if (!itms.length) return;
+		enterEdit();
+		foreach (itm; itms) writeCommentImpl(cast(Commentable)itm.getData());
+	}
+	void writeCommentImpl(Commentable obj) { mixin(S_TRACE);
+		assert (obj !is null);
+		auto p = obj in _commentDlgs;
+		if (p) { mixin(S_TRACE);
+			p.active();
+			return;
+		}
+		auto dlg = new CommentDialog(_comm, flags.getShell(), obj.comment);
+		string name;
+		if (auto f = cast(cwx.flag.Flag)obj) { mixin(S_TRACE);
+			name = f.name;
+		} else if (auto f = cast(Step)obj) { mixin(S_TRACE);
+			name = f.name;
+		} else if (auto f = cast(cwx.flag.Variant)obj) { mixin(S_TRACE);
+			name = f.name;
+		} else assert (0);
+		dlg.title = .tryFormat(prop.msgs.dlgTitCommentWith, name);
+		dlg.appliedEvent ~= { mixin(S_TRACE);
+			storeComment(obj);
+			obj.comment = dlg.comment;
+			flags.redraw();
+		};
+		void refFlagAndStep(cwx.flag.Flag[] fs, Step[] ss, cwx.flag.Variant[] vs) { mixin(S_TRACE);
+			foreach (f; fs) { mixin(S_TRACE);
+				if (f is obj) { mixin(S_TRACE);
+					dlg.title = .tryFormat(prop.msgs.dlgTitCommentWith, f.name);
+					return;
+				}
+			}
+			foreach (f; ss) { mixin(S_TRACE);
+				if (f is obj) { mixin(S_TRACE);
+					dlg.title = .tryFormat(prop.msgs.dlgTitCommentWith, f.name);
+					return;
+				}
+			}
+			foreach (f; vs) { mixin(S_TRACE);
+				if (f is obj) { mixin(S_TRACE);
+					dlg.title = .tryFormat(prop.msgs.dlgTitCommentWith, f.name);
+					return;
+				}
+			}
+		}
+		void delFlagAndStep(cwx.flag.Flag[] fs, Step[] ss, cwx.flag.Variant[] vs) { mixin(S_TRACE);
+			foreach (f; fs) { mixin(S_TRACE);
+				if (f is obj) { mixin(S_TRACE);
+					dlg.forceCancel();
+					return;
+				}
+			}
+			foreach (f; ss) { mixin(S_TRACE);
+				if (f is obj) { mixin(S_TRACE);
+					dlg.forceCancel();
+					return;
+				}
+			}
+			foreach (f; vs) { mixin(S_TRACE);
+				if (f is obj) { mixin(S_TRACE);
+					dlg.forceCancel();
+					return;
+				}
+			}
+		}
+		_commentDlgs[obj] = dlg;
+		_comm.refFlagAndStep.add(&refFlagAndStep);
+		_comm.delFlagAndStep.add(&delFlagAndStep);
+		dlg.closeEvent ~= { mixin(S_TRACE);
+			_commentDlgs.remove(obj);
+			_comm.refFlagAndStep.remove(&refFlagAndStep);
+			_comm.delFlagAndStep.remove(&delFlagAndStep);
 		};
 		dlg.open();
 	}
@@ -2799,6 +2936,9 @@ private:
 			foreach (dlg; _editDlgsV.values) { mixin(S_TRACE);
 				dlg.forceCancel();
 			}
+			foreach (dlg; _commentDlgs.values) { mixin(S_TRACE);
+				dlg.forceCancel();
+			}
 		}
 	}
 	@property
@@ -2904,6 +3044,8 @@ public:
 
 		updateIncSearchParent(incSearchParent);
 
+		.setupComment(_comm, flags, false);
+
 		flags.addKeyListener(new KListener);
 		flags.addMouseListener(new MListener);
 		auto menu = new Menu(flags.getShell(), SWT.POP_UP);
@@ -2917,6 +3059,8 @@ public:
 			createMenuItem(_comm, menu, MenuID.NewFlag, &createFlag, () => _dir !is null && (!_local || !_comm.summary || !_comm.summary.legacy));
 			createMenuItem(_comm, menu, MenuID.NewStep, &createStep, () => _dir !is null && (!_local || !_comm.summary || !_comm.summary.legacy));
 			createMenuItem(_comm, menu, MenuID.NewVariant, &createVariant, () => _dir && (!_comm.summary || !_comm.summary.legacy));
+			new MenuItem(menu, SWT.SEPARATOR);
+			createMenuItem(_comm, menu, MenuID.Comment, &writeComment, &canWriteComment);
 			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(_comm, menu, MenuID.Undo, &this.undo, &_undo.canUndo);
 			createMenuItem(_comm, menu, MenuID.Redo, &this.redo, &_undo.canRedo);
@@ -3231,6 +3375,9 @@ public:
 			dlg.forceCancel();
 		}
 		foreach (dlg; _editDlgsV.values) { mixin(S_TRACE);
+			dlg.forceCancel();
+		}
+		foreach (dlg; _commentDlgs.values) { mixin(S_TRACE);
 			dlg.forceCancel();
 		}
 		_dir = dir;
