@@ -79,7 +79,7 @@ AbstractArea[] createAreasFromNode(ref XNode e, string scenarioPath, out bool sa
 }
 
 /// メニューカードとエネミーカードの親クラス。
-public abstract class AbstractSpCard : AbstractEventTreeOwner {
+public abstract class AbstractSpCard : AbstractEventTreeOwner, Commentable {
 private:
 	int _x, _y;
 	uint _scale;
@@ -87,6 +87,7 @@ private:
 	FlagUser _user;
 	CardGroupUser _cardGroup;
 	int _animationSpeed = -1;
+	string _comment;
 
 public:
 
@@ -223,6 +224,18 @@ public:
 		_animationSpeed = v;
 	}
 
+	@property
+	const
+	override
+	string comment() { return _comment; }
+	@property
+	override
+	void comment(string v) { mixin(S_TRACE);
+		if (_comment == v) return;
+		changed();
+		_comment = v;
+	}
+
 	/// このカードと強く関係するリソースを返す。
 	/// そのようなリソースが無い場合はnullを返す。
 	inout
@@ -252,8 +265,9 @@ public:
 
 	/// 指定されたノードにProperty情報を追加する。
 	const
-	protected void appendProp(ref XNode pNode, XMLOption opt) { mixin(S_TRACE);
+	protected void appendProp(ref XNode node, ref XNode pNode, XMLOption opt) { mixin(S_TRACE);
 		assert (pNode.name == "Property", pNode.name ~ " != Property");
+		if (comment != "") node.newAttr("comment", comment);
 		pNode.newElement("Flag", _user.flag);
 		auto ln = pNode.newElement("Location");
 		ln.newAttr("left", _x);
@@ -349,6 +363,7 @@ public:
 		auto r = new EnemyCard(id, actions, flag, x, y, scale, layer, cardGroup, animationSpeed,
 			isOverrideName, overrideName, isOverrideImage, overrideImages);
 		r.deepCopyEventTreeOwner(this);
+		r.comment = comment;
 		return r;
 	}
 
@@ -592,7 +607,7 @@ public:
 				}
 			}
 		}
-		appendProp(pe, opt);
+		appendProp(e, pe, opt);
 		appendEventsToNode(e, opt);
 	}
 	/// XMLノード(EnemyCard)からインスタンスを生成。
@@ -617,6 +632,7 @@ public:
 		CardImage[] overrideImages = [];
 		bool[ActionCardType] actions;
 		EventTree[] evt;
+		string commentForEvents;
 
 		auto escStr = node.attr("escape", false);
 		if (escStr && escStr != "") actions[ActionCardType.RunAway] = parseBool(escStr);
@@ -639,13 +655,15 @@ public:
 			loadProp(pNode, flag, x, y, scale, layer, cardGroup, animationSpeed);
 		};
 		node.onTag["Events"] = (ref XNode node) { mixin(S_TRACE);
-			evt = loadEventsFromNode(node, ver);
+			evt = loadEventsFromNode(node, commentForEvents, ver);
 		};
 		node.parse();
 		if (!getId) throw new AreaException("EnemyCard ID not found");
 		auto r = new EnemyCard(id, actions, flag, x, y, scale, layer, cardGroup, animationSpeed,
 			isOverrideName, overrideName, isOverrideImage, overrideImages);
 		r.addAll(evt);
+		r.comment = node.attr("comment", false, "");
+		r.commentForEvents = commentForEvents;
 
 		return r;
 	}
@@ -703,6 +721,7 @@ public:
 	MenuCard dup() { mixin(S_TRACE);
 		auto r = new MenuCard(name, expandSPChars, paths, desc, flag, x, y, scale, layer, cardGroup, animationSpeed);
 		r.deepCopyEventTreeOwner(this);
+		r.comment = comment;
 		return r;
 	}
 
@@ -895,7 +914,7 @@ public:
 		if (expandSPChars) nNode.newAttr("spchars", expandSPChars);
 		CardImage.toNode(pNode, _paths);
 		pNode.newElement("Description", encodeLf(_desc));
-		appendProp(pNode, opt);
+		appendProp(e, pNode, opt);
 		appendEventsToNode(e, opt);
 	}
 
@@ -917,6 +936,7 @@ public:
 		string cardGroup = "";
 		int animationSpeed = -1;
 		EventTree[] evt;
+		string commentForEvents;
 
 		node.onTag["Property"] = (ref XNode pNode) { mixin(S_TRACE);
 			pNode.onTag["Name"] = (ref XNode n) { mixin(S_TRACE);
@@ -928,22 +948,25 @@ public:
 			loadProp(pNode, flag, x, y, scale, layer, cardGroup, animationSpeed);
 		};
 		node.onTag["Events"] = (ref XNode node) { mixin(S_TRACE);
-			evt = loadEventsFromNode(node, ver);
+			evt = loadEventsFromNode(node, commentForEvents, ver);
 		};
 		node.parse();
 		if (name is null) name = "";
 		auto r = new MenuCard(name, expandSPChars, paths, desc, flag, x, y, scale, layer, cardGroup, animationSpeed);
 		r.addAll(evt);
+		r.comment = node.attr("comment", false, "");
+		r.commentForEvents = commentForEvents;
 
 		return r;
 	}
 }
 
 /// エリア・パッケージ・バトルの親クラス。
-public abstract class AbstractArea : AbstractEventTreeOwner {
+public abstract class AbstractArea : AbstractEventTreeOwner, Commentable {
 	ulong _id;
 	string _name;
 	bool _changed = false;
+	string _comment;
 public:
 	/// 唯一のコンストラクタ。
 	this (ulong id, string name) { mixin(S_TRACE);
@@ -1052,6 +1075,18 @@ public:
 	@property
 	override size_t[] areaPath() { return [0]; }
 
+	@property
+	const
+	override
+	string comment() { return _comment; }
+	@property
+	override
+	void comment(string v) { mixin(S_TRACE);
+		if (_comment == v) return;
+		changed();
+		_comment = v;
+	}
+
 	/// XMLテキスト化して返す。
 	const
 	string toXML(XMLOption opt) { mixin(S_TRACE);
@@ -1081,7 +1116,8 @@ public:
 
 	/// 指定されたノードにProperty情報を追加する。
 	const
-	protected void appendProp(ref XNode pNode, XMLOption opt, string parentPath, string cutPath) { mixin(S_TRACE);
+	protected void appendProp(ref XNode node, ref XNode pNode, XMLOption opt, string parentPath, string cutPath) { mixin(S_TRACE);
+		if (comment != "") node.newAttr("comment", comment);
 		assert (pNode.name == "Property", pNode.name ~ " != Property");
 		pNode.newElement("Id", _id);
 		string name = _name;
@@ -1094,9 +1130,10 @@ public:
 		pNode.newElement("Name", name);
 	}
 	/// 指定されたノードからProperty情報を読み出す。
-	protected static void loadProp(ref XNode aNode, out ulong id, out string name) { mixin(S_TRACE);
+	protected static void loadProp(ref XNode aNode, out ulong id, out string name, out string comment) { mixin(S_TRACE);
 		string idStr = null;
 		name = null;
+		comment = aNode.attr("comment", false, "");
 		aNode.onTag["Property"] = (ref XNode pNode) { mixin(S_TRACE);
 			pNode.onTag["Id"] = (ref XNode n) { mixin(S_TRACE);
 				idStr = n.value;
@@ -1218,13 +1255,14 @@ public:
 	@property
 	const
 	override
-	AbstractArea dup() { mixin(S_TRACE);
+	Area dup() { mixin(S_TRACE);
 		auto r = new Area(id, name);
 		r.spAuto = spAuto;
 		foreach (c; cards) r.append(cast(MenuCard)c.dup);
 		foreach (b; backs) r.append(b.dup);
 		r.playerEvents.deepCopyEventTreeOwner(playerEvents);
 		r.deepCopyEventTreeOwner(this);
+		r.comment = comment;
 		return r;
 	}
 
@@ -1417,7 +1455,7 @@ public:
 	const
 	override void toNodeImpl(ref XNode e, XMLOption opt, string parentPath = "", string cutPath = "") { mixin(S_TRACE);
 		auto pNode = e.newElement("Property");
-		appendProp(pNode, opt, parentPath, cutPath);
+		appendProp(e, pNode, opt, parentPath, cutPath);
 
 		playerEvents.toNode(e, opt);
 
@@ -1460,11 +1498,14 @@ public:
 		BgImage[] bgImgs;
 		MenuCard[] cards;
 		EventTree[] evt;
+		string comment;
+		string commentForEvents;
 		EventTree[] playerEventTrees;
+		string playerEventsComment = "";
 
 		aNode.onTag["PlayerCardEvents"] = (ref XNode n) { mixin(S_TRACE);
 			n.onTag["Events"] = (ref XNode n) { mixin(S_TRACE);
-				playerEventTrees = loadEventsFromNode(n, ver);
+				playerEventTrees = loadEventsFromNode(n, playerEventsComment, ver);
 			};
 			n.parse();
 		};
@@ -1479,16 +1520,19 @@ public:
 			bgImgs = BgImage.bgImagesFromNode(n, true, ver);
 		};
 		aNode.onTag["Events"] = (ref XNode n) { mixin(S_TRACE);
-			evt = loadEventsFromNode(n, ver);
+			evt = loadEventsFromNode(n, commentForEvents, ver);
 		};
-		loadProp(aNode, id, name);
+		loadProp(aNode, id, name, comment);
 
 		auto r = new Area(id, name);
+		r.comment = comment;
 		r.addAll(evt);
 		r.playerEvents.addAll(playerEventTrees);
+		r.playerEvents.commentForEvents = playerEventsComment;
 		r.spAuto = spAuto;
 		foreach (c; cards) r.append(c);
 		foreach (b; bgImgs) r.append(b);
+		r.commentForEvents = commentForEvents;
 
 		return r;
 	}
@@ -1638,6 +1682,7 @@ public:
 	AbstractArea dup() { mixin(S_TRACE);
 		auto r = new Package(id, name);
 		r.deepCopyEventTreeOwner(this);
+		r.comment = comment;
 		return r;
 	}
 
@@ -1686,7 +1731,7 @@ public:
 	const
 	override void toNodeImpl(ref XNode e, XMLOption opt, string parentPath = "", string cutPath = "") { mixin(S_TRACE);
 		auto pNode = e.newElement("Property");
-		appendProp(pNode, opt, parentPath, cutPath);
+		appendProp(e, pNode, opt, parentPath, cutPath);
 		appendEventsToNode(e, opt);
 	}
 
@@ -1717,12 +1762,17 @@ public:
 		ulong id;
 		string name;
 		EventTree[] evt;
+		string comment;
+		string commentForEvents;
+
 		aNode.onTag["Events"] = (ref XNode node) { mixin(S_TRACE);
-			evt = loadEventsFromNode(node, ver);
+			evt = loadEventsFromNode(node, commentForEvents, ver);
 		};
-		loadProp(aNode, id, name);
+		loadProp(aNode, id, name, comment);
 		auto r = new Package(id, name);
+		r.comment = comment;
 		r.addAll(evt);
+		r.commentForEvents = commentForEvents;
 
 		return r;
 	}
@@ -1789,6 +1839,7 @@ public:
 		foreach (c; cards) r.append(cast(EnemyCard)c.dup);
 		r.playerEvents.deepCopyEventTreeOwner(playerEvents);
 		r.deepCopyEventTreeOwner(this);
+		r.comment = comment;
 		return r;
 	}
 
@@ -1996,7 +2047,7 @@ public:
 	const
 	override void toNodeImpl(ref XNode e, XMLOption opt, string parentPath = "", string cutPath = "") { mixin(S_TRACE);
 		auto pe = e.newElement("Property");
-		appendProp(pe, opt, parentPath, cutPath);
+		appendProp(e, pe, opt, parentPath, cutPath);
 
 		if (!possibleToRunAway) { mixin(S_TRACE);
 			pe.newElement("RunAway", fromBool(possibleToRunAway));
@@ -2054,11 +2105,13 @@ public:
 		bool continueBGM = false;
 		EnemyCard[] cards;
 		EventTree[] evt;
+		string commentForEvents;
 		EventTree[] playerEventTrees;
+		string playerEventsComment;
 
 		aNode.onTag["PlayerCardEvents"] = (ref XNode n) { mixin(S_TRACE);
 			n.onTag["Events"] = (ref XNode n) { mixin(S_TRACE);
-				playerEventTrees = loadEventsFromNode(n, ver);
+				playerEventTrees = loadEventsFromNode(n, playerEventsComment, ver);
 			};
 			n.parse();
 		};
@@ -2070,7 +2123,7 @@ public:
 			node.parse();
 		};
 		aNode.onTag["Events"] = (ref XNode node) { mixin(S_TRACE);
-			evt = loadEventsFromNode(node, ver);
+			evt = loadEventsFromNode(node, commentForEvents, ver);
 		};
 
 		string idStr = null;
@@ -2102,6 +2155,7 @@ public:
 		auto r = new Battle(id, name, music);
 		r.addAll(evt);
 		r.playerEvents.addAll(playerEventTrees);
+		r.playerEvents.commentForEvents = playerEventsComment;
 		foreach (c; cards) r.append(c);
 		r.spAuto = spAuto;
 		r.possibleToRunAway = possibleToRunAway;
@@ -2109,6 +2163,8 @@ public:
 		r.loopCount = loopCount;
 		r.fadeIn = fadeIn;
 		r.continueBGM = continueBGM;
+		r.comment = aNode.attr("comment", false, "");
+		r.commentForEvents = commentForEvents;
 
 		return r;
 	}

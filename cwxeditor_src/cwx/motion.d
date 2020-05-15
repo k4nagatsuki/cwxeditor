@@ -186,7 +186,7 @@ interface MotionOwner : CWXPath {
 }
 
 /// 効果クラス。
-class Motion : CWXPath, BeastOwner {
+class Motion : CWXPath, BeastOwner, Commentable {
 private:
 	MType _type;
 
@@ -203,6 +203,8 @@ private:
 	uint _round = 10u;
 	BeastCard _beast = null;
 	uint _maxNest = maxNest_init;
+
+	string _comment = "";
 
 	MotionOwner _owner = null;
 public:
@@ -269,6 +271,7 @@ public:
 		if (_beast) { mixin(S_TRACE);
 			r.newBeast = _beast.dup;
 		}
+		r.comment = comment;
 		return r;
 	}
 	override
@@ -282,6 +285,7 @@ public:
 		if (m.aValue != aValue) return false;
 		if (m.round != round) return false;
 		if (m.maxNest != maxNest) return false;
+		if (m.comment != comment) return false;
 		if (_beast) { mixin(S_TRACE);
 			if (m._beast) { mixin(S_TRACE);
 				return _beast == m._beast;
@@ -439,6 +443,18 @@ public:
 	/// ditto
 	static immutable maxNest_max = 999;
 
+	@property
+	const
+	override
+	string comment() { return _comment; }
+	@property
+	override
+	void comment(string v) { mixin(S_TRACE);
+		if (_comment == v) return;
+		changed();
+		_comment = v;
+	}
+
 	override void changed() { mixin(S_TRACE);
 		if (_change) _change();
 	}
@@ -468,6 +484,7 @@ public:
 		auto d = detail;
 		e.newAttr("type", d.name);
 		e.newAttr("element", fromElement(element));
+		if (comment != "") e.newAttr("comment", comment);
 		if (d.use(MArg.ValueType)) e.newAttr(d.attr(MArg.ValueType), fromDamageType(damageType));
 		if (d.use(MArg.UValue)) e.newAttr(d.attr(MArg.UValue), uValue);
 		if (d.use(MArg.AValue)) e.newAttr(d.attr(MArg.AValue), aValue);
@@ -507,6 +524,7 @@ public:
 		auto type = MTYPE_MAP[node.attr("type", true)];
 		auto d = MOTION_DETAILS[type];
 		auto r = new Motion(type, toElement(node.attr("element", true)));
+		r.comment = node.attr("comment", false, "");
 		if (d.use(MArg.ValueType)) r.damageType = toDamageType(node.attr(d.attr(MArg.ValueType), true));
 		if (d.use(MArg.UValue)) r.uValue = node.attr!(uint)(d.attr(MArg.UValue), true);
 		if (d.use(MArg.AValue)) r.aValue = node.attr!(int)(d.attr(MArg.AValue), true);

@@ -119,7 +119,7 @@ private void toNode(ref XNode ret, FlagDir dir) { mixin(S_TRACE);
 }
 
 /// フラグ。
-public class Flag : CWXPath {
+public class Flag : CWXPath, Commentable {
 private:
 	string _name;
 	TextHolder _on;
@@ -130,6 +130,7 @@ private:
 	FlagDir _parent;
 	void delegate() _change = null;
 	UseCounter _uc = null;
+	string _comment;
 public:
 	/// パスをIDに置換する。
 	alias toFlagId toID;
@@ -141,12 +142,7 @@ public:
 		_off = new TextHolder(this);
 		_off.changeHandler = &changed;
 
-		_name = copyBase.name;
-		_on.text = copyBase.on;
-		_off.text = copyBase.off;
-		_onOff = copyBase.onOff;
-		_expandSPChars = copyBase.expandSPChars;
-		_initialization = copyBase.initialization;
+		copyFrom(copyBase);
 	}
 	/// 名前・On/Off時のテキスト・On/Off状態を指定してインスタンスを生成。
 	this (string name, string on, string off, bool onOff) { mixin(S_TRACE);
@@ -172,17 +168,19 @@ public:
 			&& onOff == f.onOff
 			&& name == f.name
 			&& expandSPChars == f.expandSPChars
-			&& initialization == f.initialization;
+			&& initialization == f.initialization
+			&& comment == f.comment;
 	}
 
 	/// flagのパラメータをコピーする。
-	void copyFrom(Flag flag) { mixin(S_TRACE);
+	void copyFrom(in Flag flag) { mixin(S_TRACE);
 		name = flag.name;
 		on = flag.on;
 		off = flag.off;
 		onOff = flag.onOff;
 		expandSPChars = flag.expandSPChars;
 		initialization = flag.initialization;
+		comment = flag.comment;
 	}
 	/// このフラグの親ディレクトリ。
 	@property
@@ -331,6 +329,18 @@ public:
 	const
 	string[] variantsInText(bool value) { return value ? _on.variantsInText : _off.variantsInText; }
 
+	@property
+	const
+	override
+	string comment() { return _comment; }
+	@property
+	override
+	void comment(string v) { mixin(S_TRACE);
+		if (_comment == v) return;
+		changed();
+		_comment = v;
+	}
+
 	const
 	override int opCmp(Object o) { mixin(S_TRACE);
 		return cmp(name, (cast(Flag)o).name);
@@ -367,6 +377,7 @@ public:
 		auto flag = new Flag(name, tv, fv, def);
 		flag.expandSPChars = fe.attr!bool("spchars", false, false);
 		flag.initialization = toVariableInitialization(fe.attr("initialize", false, "Leave"));
+		flag.comment = fe.attr("comment", false, "");
 		return flag;
 	}
 	/// XMLノードへこのフラグのデータを追加する。
@@ -379,6 +390,7 @@ public:
 		e.newElement("Name", path);
 		e.newElement("True", on);
 		e.newElement("False", off);
+		if (comment != "") e.newAttr("comment", comment);
 	}
 	@property
 	override string cwxPath(bool id) { mixin(S_TRACE);
@@ -396,7 +408,7 @@ public:
 }
 
 /// ステップ。
-public class Step : CWXPath {
+public class Step : CWXPath, Commentable {
 private:
 	string _name;
 	TextHolder[] _vals;
@@ -406,16 +418,14 @@ private:
 	FlagDir _parent;
 	void delegate() _change = null;
 	UseCounter _uc = null;
+	string _comment;
 public:
 	/// パスをIDに置換する。
 	alias toStepId toID;
 
 	/// コピーコンストラクタ。
 	this (in Step copyBase) { mixin(S_TRACE);
-		_name = copyBase.name;
-		setValues(copyBase.values, copyBase._select);
-		_expandSPChars = copyBase.expandSPChars;
-		_initialization = copyBase.initialization;
+		copyFrom(copyBase);
 	}
 	/// ステップ名、各段階のステップ値、選択状態を指定してインスタンスを生成。
 	this (string name, string[] vals, uint select) { mixin(S_TRACE);
@@ -433,15 +443,17 @@ public:
 			&& name == f.name
 			&& values == f.values
 			&& expandSPChars == f.expandSPChars
-			&& initialization == f.initialization;
+			&& initialization == f.initialization
+			&& comment == f.comment;
 	}
 
 	/// stepのパラメータをコピーする。
-	void copyFrom(Step step) { mixin(S_TRACE);
+	void copyFrom(in Step step) { mixin(S_TRACE);
 		name = step.name;
 		setValues(step.values, step.select);
 		expandSPChars = step.expandSPChars;
 		initialization = step.initialization;
+		comment = step.comment;
 	}
 	/// このステップの親ディレクトリ。
 	@property
@@ -604,6 +616,18 @@ public:
 	const
 	string[] variantsInText(uint value) { return _vals[value].variantsInText; }
 
+	@property
+	const
+	override
+	string comment() { return _comment; }
+	@property
+	override
+	void comment(string v) { mixin(S_TRACE);
+		if (_comment == v) return;
+		changed();
+		_comment = v;
+	}
+
 	const
 	override int opCmp(Object o) { mixin(S_TRACE);
 		return cmp(name, (cast(Step)o).name);
@@ -663,6 +687,7 @@ public:
 		auto step = new Step(name, vals, def);
 		step.expandSPChars = se.attr!bool("spchars", false, false);
 		step.initialization = toVariableInitialization(se.attr("initialize", false, "Leave"));
+		step.comment = se.attr("comment", false, "");
 		return step;
 	}
 	/// 指定されたXMLノードにこのステップのデータを追加する。
@@ -676,6 +701,7 @@ public:
 		for (int i = 0; i < _vals.length; i++) { mixin(S_TRACE);
 			e.newElement("Value", _vals[i].text);
 		}
+		if (comment != "") e.newAttr("comment", comment);
 	}
 	@property
 	override string cwxPath(bool id) { mixin(S_TRACE);
@@ -693,7 +719,7 @@ public:
 }
 
 /// コモン(Wsn.4)。
-public class Variant : CWXPath {
+public class Variant : CWXPath, Commentable {
 private:
 	string _name;
 	VariantType _type;
@@ -707,6 +733,8 @@ private:
 	FlagDir _parent;
 	void delegate() _change = null;
 	UseCounter _uc = null;
+
+	string _comment;
 public:
 	/// パスをIDに置換する。
 	alias toVariantId toID;
@@ -716,12 +744,7 @@ public:
 
 	/// コピーコンストラクタ。
 	this (in Variant copyBase) { mixin(S_TRACE);
-		_name = copyBase.name;
-		_type = copyBase.type;
-		_numVal = copyBase.numVal;
-		_strVal = copyBase.strVal;
-		_boolVal = copyBase.boolVal;
-		_initialization = copyBase.initialization;
+		copyFrom(copyBase);
 	}
 	/// コモン名、初期値を指定してインスタンスを生成。
 	this (string name, double numVal) { mixin(S_TRACE);
@@ -751,6 +774,7 @@ public:
 		if (type != f.type) return false;
 		if (name != f.name) return false;
 		if (initialization != f.initialization) return false;
+		if (comment != f.comment) return false;
 		final switch (type) {
 		case VariantType.Number: return numVal.approxEqual(f.numVal);
 		case VariantType.String: return strVal == f.strVal;
@@ -761,11 +785,15 @@ public:
 	/// stepのパラメータをコピーする。
 	void copyFrom(in Variant copyBase) { mixin(S_TRACE);
 		name = copyBase.name;
-		_type = copyBase.type;
-		_numVal = copyBase.numVal;
-		_strVal = copyBase.strVal;
-		_boolVal = copyBase.boolVal;
-		_initialization = copyBase.initialization;
+		if (type != copyBase.type || _numVal != copyBase.numVal || _strVal != copyBase.strVal || _boolVal != copyBase.boolVal) { mixin(S_TRACE);
+			changed();
+			_type = copyBase.type;
+			_numVal = copyBase.numVal;
+			_strVal = copyBase.strVal;
+			_boolVal = copyBase.boolVal;
+		}
+		initialization = copyBase.initialization;
+		comment = copyBase.comment;
 	}
 	/// 親ディレクトリ。
 	@property
@@ -873,6 +901,18 @@ public:
 		_initialization = initialization;
 	}
 
+	@property
+	const
+	override
+	string comment() { return _comment; }
+	@property
+	override
+	void comment(string v) { mixin(S_TRACE);
+		if (_comment == v) return;
+		changed();
+		_comment = v;
+	}
+
 	const
 	override int opCmp(Object o) { mixin(S_TRACE);
 		return cmp(name, (cast(Variant)o).name);
@@ -928,6 +968,7 @@ public:
 			break;
 		}
 		variant.initialization = toVariableInitialization(ve.attr("initialize", false, "Leave"));
+		variant.comment = ve.attr("comment", false, "");
 		return variant;
 	}
 	/// 指定されたXMLノードにこのステップのデータを追加する。
@@ -946,6 +987,7 @@ public:
 			break;
 		}
 		e.newElement("Name", path);
+		if (comment != "") e.newAttr("comment", comment);
 	}
 	@property
 	override string cwxPath(bool id) { mixin(S_TRACE);
