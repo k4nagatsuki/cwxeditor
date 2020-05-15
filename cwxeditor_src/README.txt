@@ -3,10 +3,10 @@ CWXEditor ビルドガイド
 ----------------------
 
 ビルドツール:
- : dmd 2.090.1
+ : dmd 2.092.0
  : Digital Mars rcc
 ライブラリ:
- : DWT at GitHub
+ : DWT at GitHub, dxml at GitHub
 
 後はGitのクライアントがあると楽です。
 
@@ -33,20 +33,30 @@ DWTをGitHubから取ってきます。
     dub --build=release :base --arch=x86_64
     dub --build=release --arch=x86_64
 
-後は、`dmd2/windows/bin/sc.ini`を弄くってDWTのインポートフォルダやらリソースフォルダやらを探しに行くようにしておきましょう。
+次に、DWTと同様にdxmlを取ってきます。
+
+    git clone https://github.com/jmdavis/dxml.git
+    cd dwt
+    dub --build=release --arch=x86
+
+64ビット版のライブラリを作成する場合は次のようにします。
+
+    dub --build=release --arch=x86_64
+
+後は、`dmd2/windows/bin/sc.ini`を編集してライブラリのインポートフォルダやリソースフォルダを探しに行くようにしておきましょう。
 
 たとえば:
 
     [Environment]
 
-    DFLAGS="-I%@P%\..\..\src\phobos" "-I%@P%\..\..\src\druntime\import" "-I%@P%\..\..\import" "-I%@P%\..\..\..\lib\dwt32\base\src" "-I%@P%\..\..\..\lib\dwt32\org.eclipse.swt.win32.win32.x86\src" "-J%@P%\..\..\..\lib\dwt32\base\res" "-J%@P%\..\..\..\lib\dwt32\org.eclipse.swt.win32.win32.x86\res"
+    DFLAGS="-I%@P%\..\..\src\phobos" "-I%@P%\..\..\src\druntime\import" "-I%@P%\..\..\import" "-I%@P%\..\..\..\lib\dwt32\base\src" "-I%@P%\..\..\..\lib\dwt32\org.eclipse.swt.win32.win32.x86\src" "-J%@P%\..\..\..\lib\dwt32\base\res" "-J%@P%\..\..\..\lib\dwt32\org.eclipse.swt.win32.win32.x86\res" "-I%@P%\..\..\..\lib\dxml32\source"
       :
     [Environment32]
-    LIB=%LIB%;"%@P%\..\..\..\lib\dwt32";"%@P%\..\..\..\lib\dwt32\org.eclipse.swt.win32.win32.x86\lib"
+    LIB=%LIB%;"%@P%\..\..\..\lib\dwt32";"%@P%\..\..\..\lib\dwt32\org.eclipse.swt.win32.win32.x86\lib";"%@P%\..\..\..\lib\dxml32"
       :
     [Environment64]
       :
-    LIB=%LIB%;"%@P%\..\..\..\lib\dwt64";"%@P%\..\..\..\lib\dwt64\org.eclipse.swt.win32.win32.x86\lib"
+    LIB=%LIB%;"%@P%\..\..\..\lib\dwt64";"%@P%\..\..\..\lib\dwt64\org.eclipse.swt.win32.win32.x86\lib";"%@P%\..\..\..\lib\dxml64"
 
 最後にリソースコンパイル用のrccを入手します(32ビット版のみ)。
 
@@ -96,53 +106,44 @@ rdmd等で実行してください。
     rdmd build -m64
 
 
-### 番外: マージツールについて
-
-2018年2月現在、CWXEditorのバージョン管理には[Mercurial](https://www.mercurial-scm.org/)を使用していますが、MercurialのGUIクライアントTortoiseHgに付属しているマージツール(kdiff3)には、日本語ファイルをマージした時に内容が壊れてしまうバグが存在しています。
-
-Windowsにおける有名なマージツールに[WinMerge](http://www.geocities.co.jp/SiliconValley-SanJose/8165/winmerge.html)があるので、そちらに差し替える事をお勧めします。
-
-WinMergeをインストールしたら、TortoiseHg Workbenchを起動し、`ファイル(F) > 設定(S)`の「ユーザー設定のエクステンション」を選択し、`extdiff`にチェックを入れ、左上の「ファイルを開く」を押し、以下のように記入して保存してください。
-
-    [extensions]
-    extdiff = 
-
-    [extdiff]
-    cmd.wmdiff = <WinMergeのフルパス>/WinMergeU.exe
-    opts.wmdiff = /r /e /x /ub
-
-    [merge-tools]
-    winmerge.args = /e /ub /dl other /dr local $other $local $output
-    winmerge.regkey = Software\Thingamahoochie\WinMerge
-    winmerge.regname = Executable
-    winmerge.fixeol = True
-    winmerge.checkchanged = True
-    winmerge.gui = True
-
-
 linuxの場合
 -----------
 
 linuxでのビルドは最新のバージョンでは試されていない事が多いです。
 
-また、ビルドできたとしても全体が正常に動作する事はほとんどありませ
-ん(数箇所修正すれば動くはずではあります)。
+また、ビルドできたとしても全体が正常に動作する事はほとんどありません(数箇所修正すれば動くはずではあります)。
 
-手順はWindows側と概ね同じです。
 
 ### 事前に必要なパッケージ
 
-apt-get等で手に入れておきましょう。
+apt等で手に入れておきましょう。
 
+
+ * libcairo2-dev
+ * libglib2.0-dev
  * libgnomeui-dev
+ * libgtk2.0-dev
+ * libpango1.0-dev
+ * libxcomposite-dev
+ * libxcursor-dev
+ * libxdamage-dev
+ * libxfixes-dev
+ * libxi-dev
+ * libxinerama-dev
+ * libxrandr-dev
  * libxtst-dev
 
 
-### DライブラリとCWXEditorのビルド
+### CWXEditorのビルド
 
-DWTのビルドが完了すると、以下のライブラリファイルがlibディレクトリに生成されるはずです。
+linux側のリンカにはWindows側のOPTLINKのような問題はありません。dubを使ってビルドしてください。
 
- * libdwt_base.a
- * libdwt.a
+    dub
 
-後は"/etc/dmd.conf"のDFLAGSを弄くってDWTのインポートフォルダやらリソースやらを探しに行くようにしておきましょう。
+コンソール無し版は:
+
+    dub --build=gui
+
+リリース版は:
+
+    dub --build=release

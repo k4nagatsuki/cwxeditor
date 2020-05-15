@@ -2513,7 +2513,7 @@ private:
 			string path = _templPath.getText();
 			add(ScTemplate(name, path));
 		} else static if (is(T:EvTemplate)) {
-			string script = _templScript.getText();
+			string script = _templScript.getText().wrapReturnCode();
 			string mnemonic = _mnemonic.getText();
 			string hotkey = _hotkey.acceleratorText();
 			add(EvTemplate(name, script, mnemonic, hotkey));
