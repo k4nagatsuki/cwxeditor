@@ -2498,13 +2498,26 @@ private:
 				}
 			}
 		}
+		void replText() { mixin(S_TRACE);
+			string name;
+			if (auto f = cast(cwx.flag.Flag)obj) { mixin(S_TRACE);
+				name = f.name;
+			} else if (auto f = cast(Step)obj) { mixin(S_TRACE);
+				name = f.name;
+			} else if (auto f = cast(cwx.flag.Variant)obj) { mixin(S_TRACE);
+				name = f.name;
+			} else assert (0);
+			dlg.title = .tryFormat(prop.msgs.dlgTitCommentWith, name);
+		}
 		_commentDlgs[obj] = dlg;
 		_comm.refFlagAndStep.add(&refFlagAndStep);
 		_comm.delFlagAndStep.add(&delFlagAndStep);
+		_comm.replText.add(&replText);
 		dlg.closeEvent ~= { mixin(S_TRACE);
 			_commentDlgs.remove(obj);
 			_comm.refFlagAndStep.remove(&refFlagAndStep);
 			_comm.delFlagAndStep.remove(&delFlagAndStep);
+			_comm.replText.remove(&replText);
 		};
 		dlg.open();
 	}

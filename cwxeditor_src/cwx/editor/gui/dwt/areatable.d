@@ -1,47 +1,48 @@
 
 module cwx.editor.gui.dwt.areatable;
 
-import cwx.flag;
 import cwx.area;
-import cwx.event;
-import cwx.utils;
-import cwx.summary;
 import cwx.background;
-import cwx.usecounter;
-import cwx.xml;
-import cwx.skin;
-import cwx.path;
-import cwx.structs;
-import cwx.menu;
-import cwx.types;
 import cwx.card;
+import cwx.event;
+import cwx.flag;
+import cwx.menu;
+import cwx.path;
+import cwx.skin;
+import cwx.structs;
+import cwx.summary;
 import cwx.system;
+import cwx.types;
+import cwx.usecounter;
+import cwx.utils;
 import cwx.warning;
+import cwx.xml;
 
-import cwx.editor.gui.dwt.smalldialogs;
-import cwx.editor.gui.dwt.dprops;
-import cwx.editor.gui.dwt.dutils;
-import cwx.editor.gui.dwt.dskin;
-import cwx.editor.gui.dwt.flagtable;
 import cwx.editor.gui.dwt.areaview;
 import cwx.editor.gui.dwt.areawindow;
-import cwx.editor.gui.dwt.eventwindow;
-import cwx.editor.gui.dwt.summarydialog;
-import cwx.editor.gui.dwt.commons;
-import cwx.editor.gui.dwt.properties;
-import cwx.editor.gui.dwt.xmlbytestransfer;
-import cwx.editor.gui.dwt.undo;
-import cwx.editor.gui.dwt.dmenu;
-import cwx.editor.gui.dwt.customtable;
-import cwx.editor.gui.dwt.incsearch;
-import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.centerlayout;
+import cwx.editor.gui.dwt.comment;
+import cwx.editor.gui.dwt.commons;
+import cwx.editor.gui.dwt.customtable;
+import cwx.editor.gui.dwt.dmenu;
+import cwx.editor.gui.dwt.dprops;
+import cwx.editor.gui.dwt.dskin;
+import cwx.editor.gui.dwt.dutils;
+import cwx.editor.gui.dwt.eventwindow;
+import cwx.editor.gui.dwt.flagtable;
+import cwx.editor.gui.dwt.incsearch;
+import cwx.editor.gui.dwt.properties;
+import cwx.editor.gui.dwt.smalldialogs;
+import cwx.editor.gui.dwt.splitpane;
+import cwx.editor.gui.dwt.summarydialog;
+import cwx.editor.gui.dwt.undo;
+import cwx.editor.gui.dwt.xmlbytestransfer;
 
 import std.algorithm : max, min;
 import std.algorithm.mutation : swap;
-import std.range : iota;
 import std.array : split, array, replace;
 import std.conv;
+import std.range : iota;
 import std.string : icmp, join, toLower;
 
 import org.eclipse.swt.all;
@@ -379,6 +380,7 @@ private:
 	}
 	static class UndoEdit : ATUndo {
 		private string _name;
+		private string _comment;
 		private ulong _id;
 		private TypeInfo _type;
 
@@ -430,7 +432,9 @@ private:
 			if (0 == id) { mixin(S_TRACE);
 				_summData = SummData(comm, summ);
 			} else { mixin(S_TRACE);
-				_name = areaFromInfo(summ, id, type).name;
+				auto area = areaFromInfo(summ, id, type);
+				_name = area.name;
+				_comment = area.comment;
 			}
 			_id = id;
 			_type = type;
@@ -452,9 +456,12 @@ private:
 				if (refSkin) comm.refSkin.call();
 			} else { mixin(S_TRACE);
 				auto area = areaFromInfo(summ, uid(_id, _type), _type);
-				string oldName = area.name;
+				auto oldName = area.name;
+				auto oldComment = area.comment;
 				area.name = _name;
+				area.comment = _comment;
 				_name = oldName;
+				_comment = oldComment;
 				if (v && v._areas && !v._areas.isDisposed()) { mixin(S_TRACE);
 					auto itm = v.getItemFrom(uid(_id, _type), _type);
 					if (itm) itm.setText(NAME, area.name);
@@ -606,6 +613,10 @@ private:
 				if (itm) itm.dispose();
 			}
 			auto area = areaFromInfo(summ, uid(_id, _type), _type);
+			if (v && v._areas && !v._areas.isDisposed()) { mixin(S_TRACE);
+				auto p = area in v._commentDlgs;
+				if (p) p.forceCancel();
+			}
 			delCalls ~= area;
 			summ.remove(area);
 			if (one) comm.refUseCount.call();
@@ -1536,6 +1547,7 @@ private:
 				_comm.refUndoMax.remove(&refUndoMax);
 			}
 			_comm.refAreaTable.remove(&refreshAreas);
+			foreach (dlg; _commentDlgs.values) dlg.forceCancel();
 		}
 	}
 	static class DirTree {
@@ -1722,7 +1734,9 @@ private:
 		if (!sels.length) return;
 		auto sel = cast(DirTree)sels[0].getData();
 		if (!sel) return;
+		if (sel.path == _dir) return;
 		_dir = sel.path;
+		foreach (dlg; _commentDlgs.values) dlg.forceCancel();
 		refreshAreasImpl(true);
 	}
 	private void refreshAreas() { mixin(S_TRACE);
@@ -2086,6 +2100,8 @@ public:
 			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(_comm, menu, MenuID.SetStartArea, &setStartArea, &canSetStartArea);
 			new MenuItem(menu, SWT.SEPARATOR);
+			createMenuItem(_comm, menu, MenuID.Comment, &writeComment, &canWriteComment);
+			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(_comm, menu, MenuID.Undo, &undo, () => !_readOnly && _undo.canUndo);
 			createMenuItem(_comm, menu, MenuID.Redo, &redo, () => !_readOnly && _undo.canRedo);
 			new MenuItem(menu, SWT.SEPARATOR);
@@ -2111,6 +2127,7 @@ public:
 			drop.setTransfer([XMLBytesTransfer.getInstance()]);
 			drop.addDropListener(new DropArea);
 		}
+		.setupComment(_comm, _areas, false);
 
 		// ソート関係
 		_idSorter = new TableSorter!(Object)(idCol, &compID, &revCompID);
@@ -2468,6 +2485,7 @@ public:
 		_selectionsB = null;
 		_selectionsP = null;
 		_dir = "";
+		foreach (dlg; _commentDlgs.values) dlg.forceCancel();
 		constructDirTree(false);
 		refreshAreas();
 		_comm.refreshToolBar();
@@ -2974,6 +2992,88 @@ public:
 		return true;
 	}
 
+	private CommentDialog[Commentable] _commentDlgs;
+	@property
+	public bool canWriteComment() { mixin(S_TRACE);
+		if (_readOnly) return false;
+		foreach (itm; _areas.getSelection()) { mixin(S_TRACE);
+			if (cast(Commentable)itm.getData()) return true;
+		}
+		return false;
+	}
+	public void writeComment() { mixin(S_TRACE);
+		if (!canWriteComment) return;
+		if (_areasEdit) _areasEdit.enter();
+		foreach (index; _areas.getSelectionIndices()) { mixin(S_TRACE);
+			auto ct = cast(Commentable)_areas.getItem(index).getData();
+			if (ct) writeCommentImpl(index, ct);
+		}
+	}
+	private void writeCommentImpl(int index, Commentable ct) { mixin(S_TRACE);
+		auto p = ct in _commentDlgs;
+		if (p) { mixin(S_TRACE);
+			p.active();
+			return;
+		}
+		auto dlg = new CommentDialog(_comm, _areas.getShell(), ct.comment);
+		auto area = cast(AbstractArea)ct;
+		assert (area !is null);
+		dlg.title = .tryFormat(_prop.msgs.dlgTitCommentWith, area.name);
+		dlg.appliedEvent ~= { mixin(S_TRACE);
+			storeEdit(index);
+			ct.comment = dlg.comment;
+			_areas.redraw();
+		};
+		void refImpl(AbstractArea a) { mixin(S_TRACE);
+			if (a is ct) { mixin(S_TRACE);
+				if (a.dirName == _dir) { mixin(S_TRACE);
+					dlg.title = .tryFormat(_prop.msgs.dlgTitCommentWith, a.name);
+				} else { mixin(S_TRACE);
+					dlg.forceCancel();
+				}
+			}
+		}
+		void delImpl(AbstractArea a) { mixin(S_TRACE);
+			if (a is ct) dlg.forceCancel();
+		}
+		void refArea(Area a) { refImpl(a); }
+		void refBattle(Battle a) { refImpl(a); }
+		void refPackage(Package a) { refImpl(a); }
+		void delArea(Area a) { delImpl(a); }
+		void delBattle(Battle a) { delImpl(a); }
+		void delPackage(Package a) { delImpl(a); }
+		void replText() { mixin(S_TRACE);
+			dlg.title = .tryFormat(_prop.msgs.dlgTitCommentWith, area.name);
+		}
+		_comm.replText.add(&replText);
+		if (cast(Area)ct) { mixin(S_TRACE);
+			_comm.refArea.add(&refArea);
+			_comm.delArea.add(&delArea);
+		} else if (cast(Battle)ct) { mixin(S_TRACE);
+			_comm.refBattle.add(&refBattle);
+			_comm.delBattle.add(&delBattle);
+		} else if (cast(Package)ct) { mixin(S_TRACE);
+			_comm.refPackage.add(&refPackage);
+			_comm.delPackage.add(&delPackage);
+		} else assert (0);
+		dlg.closeEvent ~= { mixin(S_TRACE);
+			_commentDlgs.remove(ct);
+			_comm.replText.remove(&replText);
+			if (cast(Area)ct) { mixin(S_TRACE);
+				_comm.refArea.remove(&refArea);
+				_comm.delArea.remove(&delArea);
+			} else if (cast(Battle)ct) { mixin(S_TRACE);
+				_comm.refBattle.remove(&refBattle);
+				_comm.delBattle.remove(&delBattle);
+			} else if (cast(Package)ct) { mixin(S_TRACE);
+				_comm.refPackage.remove(&refPackage);
+				_comm.delPackage.remove(&delPackage);
+			} else assert (0);
+		};
+		_commentDlgs[ct] = dlg;
+		dlg.open();
+	}
+
 	override {
 		void cut(SelectionEvent se) { mixin(S_TRACE);
 			if (_dirTree && _lastFocus is _dirTree) { mixin(S_TRACE);
@@ -3268,7 +3368,7 @@ public:
 		}
 		saveSelections();
 	}
-	private void delItem(in AbstractArea area) { mixin(S_TRACE);
+	private void delItem(AbstractArea area) { mixin(S_TRACE);
 		if (_readOnly) return;
 		foreach (itm; _areas.getItems()) { mixin(S_TRACE);
 			if (itm.getData() is area) { mixin(S_TRACE);
@@ -3276,6 +3376,8 @@ public:
 				break;
 			}
 		}
+		auto p = area in _commentDlgs;
+		if (p) p.forceCancel();
 	}
 
 	/// 外部からareasを追加する。

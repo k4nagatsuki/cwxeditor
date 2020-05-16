@@ -4489,13 +4489,18 @@ public:
 				if (_area.cards[i] !is card) return;
 				dlg.forceCancel();
 			}
+			void replText() { mixin(S_TRACE);
+				dlg.title = .tryFormat(prop.msgs.dlgTitCommentWith, cardNameWithGroup(card));
+			}
 			_commentDlgsC[card] = dlg;
 			_comm.refMenuCard.add(&refMenuCard);
 			_comm.delMenuCard.add(&delMenuCard);
+			_comm.replText.add(&replText);
 			dlg.closeEvent ~= { mixin(S_TRACE);
 				_commentDlgsC.remove(card);
 				_comm.refMenuCard.remove(&refMenuCard);
 				_comm.delMenuCard.remove(&delMenuCard);
+				_comm.replText.remove(&replText);
 			};
 			dlg.open();
 		}
@@ -4861,13 +4866,18 @@ public:
 				if (_area.backs[i] !is back) return;
 				dlg.forceCancel();
 			}
+			void replText() { mixin(S_TRACE);
+				dlg.title = .tryFormat(prop.msgs.dlgTitCommentWith, back.name(_comm.prop.parent));
+			}
 			_commentDlgsB[back] = dlg;
 			_comm.refBgImage.add(&refBgImage);
 			_comm.delBgImage.add(&delBgImage);
+			_comm.replText.add(&replText);
 			dlg.closeEvent ~= { mixin(S_TRACE);
 				_commentDlgsB.remove(back);
 				_comm.refBgImage.remove(&refBgImage);
 				_comm.delBgImage.remove(&delBgImage);
+				_comm.replText.remove(&replText);
 			};
 			dlg.open();
 		}

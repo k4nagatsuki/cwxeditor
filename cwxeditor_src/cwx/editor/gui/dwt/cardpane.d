@@ -3,51 +3,52 @@
 module cwx.editor.gui.dwt.cardpane;
 
 import cwx.card;
-import cwx.summary;
-import cwx.utils;
-import cwx.usecounter;
-import cwx.types;
-import cwx.xml;
-import cwx.skin;
-import cwx.path;
-import cwx.motion;
-import cwx.menu;
-import cwx.types;
 import cwx.event;
+import cwx.menu;
+import cwx.motion;
+import cwx.path;
+import cwx.skin;
 import cwx.structs;
+import cwx.summary;
 import cwx.system;
+import cwx.types;
+import cwx.types;
+import cwx.usecounter;
+import cwx.utils;
+import cwx.xml;
 
-import cwx.editor.gui.dwt.smalldialogs;
-import cwx.editor.gui.dwt.images;
-import cwx.editor.gui.dwt.dskin;
-import cwx.editor.gui.dwt.cardlist;
-import cwx.editor.gui.dwt.dutils;
-import cwx.editor.gui.dwt.dprops;
-import cwx.editor.gui.dwt.eventwindow;
-import cwx.editor.gui.dwt.customtext;
-import cwx.editor.gui.dwt.castcarddialog;
-import cwx.editor.gui.dwt.effectcarddialog;
-import cwx.editor.gui.dwt.infocarddialog;
-import cwx.editor.gui.dwt.xmlbytestransfer;
-import cwx.editor.gui.dwt.commons;
-import cwx.editor.gui.dwt.sbshell;
-import cwx.editor.gui.dwt.undo;
-import cwx.editor.gui.dwt.cardpane;
-import cwx.editor.gui.dwt.dmenu;
-import cwx.editor.gui.dwt.customtable;
-import cwx.editor.gui.dwt.areaviewutils;
-import cwx.editor.gui.dwt.incsearch;
 import cwx.editor.gui.dwt.absdialog;
+import cwx.editor.gui.dwt.areaviewutils;
+import cwx.editor.gui.dwt.cardlist;
+import cwx.editor.gui.dwt.cardpane;
+import cwx.editor.gui.dwt.castcarddialog;
+import cwx.editor.gui.dwt.comment;
+import cwx.editor.gui.dwt.commons;
+import cwx.editor.gui.dwt.customtable;
+import cwx.editor.gui.dwt.customtext;
+import cwx.editor.gui.dwt.dmenu;
+import cwx.editor.gui.dwt.dprops;
+import cwx.editor.gui.dwt.dskin;
+import cwx.editor.gui.dwt.dutils;
+import cwx.editor.gui.dwt.effectcarddialog;
+import cwx.editor.gui.dwt.eventwindow;
+import cwx.editor.gui.dwt.images;
+import cwx.editor.gui.dwt.incsearch;
+import cwx.editor.gui.dwt.infocarddialog;
+import cwx.editor.gui.dwt.sbshell;
+import cwx.editor.gui.dwt.smalldialogs;
+import cwx.editor.gui.dwt.undo;
+import cwx.editor.gui.dwt.xmlbytestransfer;
 
 import std.algorithm;
 import std.array;
-import std.utf;
-import std.string;
-import std.datetime;
-import std.typetuple;
-import std.path;
 import std.conv;
+import std.datetime;
+import std.path;
 import std.range : zip, iota;
+import std.string;
+import std.typetuple;
+import std.utf;
 
 import org.eclipse.swt.all;
 
@@ -2456,6 +2457,7 @@ private:
 		.listener(_tbl, SWT.MouseEnter, &updateToolTip);
 		.listener(_tbl, SWT.MouseExit, &updateToolTip);
 		.listener(_tbl, SWT.Paint, &updateToolTip);
+		.setupComment(_comm, _tbl, false);
 
 		_preview = new Preview(_prop, _tbl);
 		auto closePreview = new ClosePreview;
@@ -2512,6 +2514,7 @@ private:
 				_prop.var.etc.cardsMarginY, _prop.var.etc.cardsSpaceY, _prop.var.etc.cardsTitleSpace,
 				_prop.var.etc.cardsFocusLinePadding, _prop.var.etc.cardsDefaultWrap);
 		}
+		.setupComment(_comm, _list, false);
 		void updateCardListParams() { mixin(S_TRACE);
 			updateCardListParamsImpl();
 			refreshImpl();
@@ -2927,6 +2930,9 @@ public:
 					foreach (w; _editDlgs.values) { mixin(S_TRACE);
 						(cast(AbsDialog)w).forceCancel();
 					}
+					foreach (dlg; _commentDlgs.values) { mixin(S_TRACE);
+						dlg.forceCancel();
+					}
 				}
 			});
 			pop = new Menu(parent.getShell(), SWT.POP_UP);
@@ -2978,6 +2984,8 @@ public:
 				new MenuItem(pop, SWT.SEPARATOR);
 				createMenuItem(_comm, pop, MenuID.RemoveRef, &removeRef, &canRemoveRef);
 			}
+			new MenuItem(pop, SWT.SEPARATOR);
+			createMenuItem(_comm, pop, MenuID.Comment, &writeComment, &canWriteComment);
 			new MenuItem(pop, SWT.SEPARATOR);
 			createMenuItem(_comm, pop, MenuID.Undo, &undo, &_undo.canUndo);
 			createMenuItem(_comm, pop, MenuID.Redo, &redo, &_undo.canRedo);
@@ -3757,6 +3765,106 @@ public:
 			enterEdit();
 			_comm.openHands(_prop, _summ, card, true);
 		}
+	}
+
+	private CommentDialog[Card] _commentDlgs;
+	@property
+	public bool canWriteComment() { mixin(S_TRACE);
+		if (!editMode) return false;
+		return selection !is null;
+	}
+	public void writeComment() { mixin(S_TRACE);
+		if (!canWriteComment) return;
+		enterEdit();
+		foreach (card; selectedCards) writeCommentImpl(card);
+	}
+	private void writeCommentImpl(Card card) { mixin(S_TRACE);
+		auto p = card in _commentDlgs;
+		if (p) { mixin(S_TRACE);
+			p.active();
+			return;
+		}
+		auto dlg = new CommentDialog(_comm, widget.getShell(), card.comment);
+		dlg.title = .tryFormat(_prop.msgs.dlgTitCommentWith, card.name);
+		dlg.appliedEvent ~= { mixin(S_TRACE);
+			storeEdit([card.id]);
+			card.comment = dlg.comment;
+			if (_viewMode == CViewMode.TABLE) { mixin(S_TRACE);
+				_tbl.redraw();
+			} else { mixin(S_TRACE);
+				_list.redraw();
+			}
+		};
+		void refImpl(Card c) { mixin(S_TRACE);
+			if (c is card) dlg.title = .tryFormat(_prop.msgs.dlgTitCommentWith, card.name);
+		}
+		void delImpl(Card c) { mixin(S_TRACE);
+			if (c is card) dlg.forceCancel();
+		}
+		void refCast(CastCard c) { refImpl(c); }
+		void refSkill(SkillCard c) { refImpl(c); }
+		void refItem(ItemCard c) { refImpl(c); }
+		void refBeast(BeastCard c) { refImpl(c); }
+		void refInfo(InfoCard c) { refImpl(c); }
+		void delCast(CastCard c) { delImpl(c); }
+		void delSkill(CWXPath owner, SkillCard c) { delImpl(c); }
+		void delItem(CWXPath owner, ItemCard c) { delImpl(c); }
+		void delBeast(CWXPath owner, BeastCard c) { delImpl(c); }
+		void delInfo(InfoCard c) { delImpl(c); }
+		void replText() { mixin(S_TRACE);
+			dlg.title = .tryFormat(_prop.msgs.dlgTitCommentWith, card.name);
+		}
+		_comm.replText.add(&replText);
+		final switch (_cardType) {
+		case CardType.Cast:
+			_comm.refCast.add(&refCast);
+			_comm.delCast.add(&delCast);
+			break;
+		case CardType.Skill:
+			_comm.refSkill.add(&refSkill);
+			_comm.delSkill.add(&delSkill);
+			break;
+		case CardType.Item:
+			_comm.refItem.add(&refItem);
+			_comm.delItem.add(&delItem);
+			break;
+		case CardType.Beast:
+			_comm.refBeast.add(&refBeast);
+			_comm.delBeast.add(&delBeast);
+			break;
+		case CardType.Info:
+			_comm.refInfo.add(&refInfo);
+			_comm.delInfo.add(&delInfo);
+			break;
+		}
+		dlg.closeEvent ~= { mixin(S_TRACE);
+			_commentDlgs.remove(card);
+			_comm.replText.remove(&replText);
+			final switch (_cardType) {
+			case CardType.Cast:
+				_comm.refCast.remove(&refCast);
+				_comm.delCast.remove(&delCast);
+				break;
+			case CardType.Skill:
+				_comm.refSkill.remove(&refSkill);
+				_comm.delSkill.remove(&delSkill);
+				break;
+			case CardType.Item:
+				_comm.refItem.remove(&refItem);
+				_comm.delItem.remove(&delItem);
+				break;
+			case CardType.Beast:
+				_comm.refBeast.remove(&refBeast);
+				_comm.delBeast.remove(&delBeast);
+				break;
+			case CardType.Info:
+				_comm.refInfo.remove(&refInfo);
+				_comm.delInfo.remove(&delInfo);
+				break;
+			}
+		};
+		_commentDlgs[card] = dlg;
+		dlg.open();
 	}
 
 	private void udImpl(bool up) { mixin(S_TRACE);
