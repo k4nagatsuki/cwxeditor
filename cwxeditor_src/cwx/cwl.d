@@ -3176,7 +3176,7 @@ bool isDebugYado(const CProps prop, string yadoDir) { mixin(S_TRACE);
 	return type == 2;
 }
 
-alias Tuple!(string, "comment", bool, "event") CommentData;
+alias Tuple!(string, "path", bool, "event") CommentKey;
 
 private struct SData {
 	const CProps prop;
@@ -3188,7 +3188,7 @@ private struct SData {
 	ItemCard delegate(ulong) item;
 	BeastCard delegate(ulong) beast;
 	const(SaveOption) opt;
-	CommentData[string] comment;
+	string[CommentKey] comment;
 	string[string] imageRef;
 	ulong[string] cardRef;
 	uint[string] maxNest;
@@ -3361,11 +3361,10 @@ string saveComment(in SData d) { mixin(S_TRACE);
 	if (!d.comment.length) return "";
 	auto node = XNode.create("comments");
 	node.newAttr("dataVersion", 1);
-	foreach (cwxPath; std.algorithm.sort(d.comment.keys)) { mixin(S_TRACE);
-		auto c = d.comment[cwxPath];
-		auto e = node.newElement("comment", c.comment);
-		e.newAttr("path", cwxPath);
-		if (c.event) e.newAttr("event", true);
+	foreach (t; std.algorithm.sort(d.comment.keys)) { mixin(S_TRACE);
+		auto e = node.newElement("comment", d.comment[t]);
+		e.newAttr("path", t.path);
+		if (t.event) e.newAttr("event", t.event);
 	}
 	return node.text;
 }
@@ -3421,17 +3420,20 @@ void putExData(ref SData d, CWXPath cp) { mixin(S_TRACE);
 		if (auto summ = cast(Summary)cp) { mixin(S_TRACE);
 			auto paths = summ.imagePaths;
 			if (paths.length) putInnerImagePath(d, cp, paths[0]);
-		} else if (auto m = cast(Motion)cp) { mixin(S_TRACE);
+		}
+		if (auto m = cast(Motion)cp) { mixin(S_TRACE);
 			if (Motion.maxNest_init != m.maxNest) { mixin(S_TRACE);
 				d.maxNest[m.cwxPath(true)] = m.maxNest;
 			}
-		} else if (auto e = cast(Commentable)cp) { mixin(S_TRACE);
+		}
+		if (auto e = cast(Commentable)cp) { mixin(S_TRACE);
 			if (e.comment.length) { mixin(S_TRACE);
-				d.comment[cp.cwxPath(true)] = CommentData(e.comment, false);
+				d.comment[CommentKey(cp.cwxPath(true), false)] = e.comment;
 			}
-		} else if (auto e = cast(EventTreeOwner)cp) { mixin(S_TRACE);
+		}
+		if (auto e = cast(EventTreeOwner)cp) { mixin(S_TRACE);
 			if (e.commentForEvents.length) { mixin(S_TRACE);
-				d.comment[cp.cwxPath(true)] = CommentData(e.commentForEvents, true);
+				d.comment[CommentKey(cp.cwxPath(true), true)] = e.commentForEvents;
 			}
 		} else if (auto c = cast(Card)cp) { mixin(S_TRACE);
 			auto paths = c.paths;
@@ -3827,12 +3829,12 @@ private void writeStrings(ref ByteIO f, string[] strs) { mixin(S_TRACE);
 private void writeComments(ref SData d, CWXPath path) { mixin(S_TRACE);
 	if (auto c = cast(Commentable)path) { mixin(S_TRACE);
 		if (c.comment.length) { mixin(S_TRACE);
-			d.comment[path.cwxPath(true)] = CommentData(c.comment, false);
+			d.comment[CommentKey(path.cwxPath(true), false)] = c.comment;
 		}
 	}
 	if (auto eto = cast(EventTreeOwner)path) { mixin(S_TRACE);
 		if (eto.commentForEvents.length) { mixin(S_TRACE);
-			d.comment[path.cwxPath(true)] = CommentData(eto.commentForEvents, true);
+			d.comment[CommentKey(path.cwxPath(true), true)] = eto.commentForEvents;
 		}
 	}
 }

@@ -188,28 +188,28 @@ private void setupCommentToolTip(T, Item)(Commons comm, T table, bool isEventVie
 			if (!toolTip) { mixin(S_TRACE);
 				toolTip = new ToolTip(table.getShell(), SWT.BALLOON);
 				toolTip.setAutoHide(false);
+
+				auto track = new class Runnable {
+					override void run() { mixin(S_TRACE);
+						if (table.isDisposed()) return;
+						if (!toolTip) return;
+						if (!toolTip.isVisible()) return;
+						mouseMove();
+					}
+				};
+				auto thr = new core.thread.Thread({ mixin(S_TRACE);
+					while (toolTip) { mixin(S_TRACE);
+						core.thread.Thread.sleep(.dur!"msecs"(100));
+						display.asyncExec(track);
+					}
+				});
+				thr.start();
 			}
 			toolTip.setMessage(comment);
 			auto p = table.toDisplay(pos);
 			toolTip.setLocation(p.x + ib.x + 5.ppis + ib.width / 2, p.y + ib.height / 2);
 			toolTip.setVisible(true);
 			table.redraw(pos.x, pos.y, ib.width, ib.height, false);
-
-			auto track = new class Runnable {
-				override void run() { mixin(S_TRACE);
-					if (table.isDisposed()) return;
-					if (!toolTip) return;
-					if (!toolTip.isVisible()) return;
-					mouseMove();
-				}
-			};
-			auto thr = new core.thread.Thread({ mixin(S_TRACE);
-				while (toolTip) { mixin(S_TRACE);
-					core.thread.Thread.sleep(.dur!"msecs"(100));
-					display.asyncExec(track);
-				}
-			});
-			thr.start();
 		} else if (toolTip) { mixin(S_TRACE);
 			toolTip.setVisible(false);
 		}

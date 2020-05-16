@@ -625,19 +625,20 @@ private:
 		return undo;
 	}
 	static class UndoComment : EVUndo {
-		private ObjectId _obj;
+		private size_t _ownerIndex;
+		private ptrdiff_t _index = -1;
 		private string _comment;
 		this (Commons comm, EventTreeOwner area, ObjectId obj) { mixin(S_TRACE);
 			super (comm, area);
-			_obj = obj;
-			save();
-		}
-		private void save() { mixin(S_TRACE);
-			if (auto eto = cast(EventTreeOwner)_obj) { mixin(S_TRACE);
+			if (auto eto = cast(EventTreeOwner)obj) { mixin(S_TRACE);
+				_ownerIndex = .cCountUntil!("a is b")(etos(area), eto);
 				_comment = eto.commentForEvents;
-			} else if (auto ct = cast(Commentable)_obj) { mixin(S_TRACE);
-				_comment = ct.comment;
+			} else if (auto et = cast(EventTree)obj) { mixin(S_TRACE);
+				_ownerIndex = .cCountUntil!("a is b")(etos(area), et.owner);
+				_index = .cCountUntil!("a is b")(et.owner.trees, et);
+				_comment = et.comment;
 			} else assert (0);
+			assert (_ownerIndex != -1);
 		}
 		private void impl() { mixin(S_TRACE);
 			auto vs = views();
@@ -645,10 +646,13 @@ private:
 			scope (exit) uda(vs);
 
 			auto comment = _comment;
-			save();
-			if (auto eto = cast(EventTreeOwner)_obj) { mixin(S_TRACE);
+			auto eto = etos(area)[_ownerIndex];
+			if (_index == -1) { mixin(S_TRACE);
+				_comment = eto.commentForEvents;
 				eto.commentForEvents = comment;
-			} else if (auto ct = cast(Commentable)_obj) { mixin(S_TRACE);
+			} else { mixin(S_TRACE);
+				auto ct = eto.trees[_index];
+				_comment = ct.comment;
 				ct.comment = comment;
 			}
 
