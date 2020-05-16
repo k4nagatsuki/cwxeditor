@@ -1679,6 +1679,18 @@ private:
 	private void refreshDirTree() { mixin(S_TRACE);
 		if (!_dirTree) return;
 		if (_areaDirEdit) _areaDirEdit.cancel();
+
+		bool[Object] expands;
+		void exps(TreeItem itm) { mixin(S_TRACE);
+			expands[itm.getData()] = itm.getExpanded();
+			foreach (sub; itm.getItems()) { mixin(S_TRACE);
+				exps(sub);
+			}
+		}
+		foreach (itm; _dirTree.getItems()) { mixin(S_TRACE);
+			exps(itm);
+		}
+
 		bool selSummary = false;
 		auto sel = "";
 		auto sels = _dirTree.getSelection();
@@ -1723,7 +1735,18 @@ private:
 		}
 		recurse(_dirTree, _dirs);
 
-		_dirTree.treeExpandedAll();
+		void expst(TreeItem itm) { mixin(S_TRACE);
+			if (expands.get(itm.getData(), true)) { mixin(S_TRACE);
+				itm.setExpanded(true);
+			}
+			foreach (sub; itm.getItems()) { mixin(S_TRACE);
+				expst(sub);
+			}
+		}
+		foreach (itm; _dirTree.getItems()) { mixin(S_TRACE);
+			expst(itm);
+		}
+
 		_dirTree.showSelection();
 	}
 	private Image areaImage(in Area a) {

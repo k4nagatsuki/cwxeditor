@@ -246,9 +246,7 @@ private:
 			}
 			bool[string] expands;
 			void exps(TreeItem itm) { mixin(S_TRACE);
-				if (itm.getExpanded()) { mixin(S_TRACE);
-					expands[(cast(FileNameObj) itm.getData()).array] = true;
-				}
+				expands[(cast(FileNameObj) itm.getData()).array] = itm.getExpanded();
 				foreach (sub; itm.getItems()) { mixin(S_TRACE);
 					exps(sub);
 				}
