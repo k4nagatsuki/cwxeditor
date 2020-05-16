@@ -1,15 +1,18 @@
 
 module cwx.motion;
 
-import cwx.perf;
-import cwx.types;
 import cwx.card;
-import cwx.usecounter;
-import cwx.xml;
+import cwx.event;
 import cwx.path;
+import cwx.perf;
 import cwx.system;
+import cwx.types;
+import cwx.usecounter;
+import cwx.utils;
+import cwx.xml;
 
 import std.algorithm;
+import std.conv;
 
 private bool static_this_completed = false;
 private void static_this () { mixin(S_TRACE);
@@ -186,8 +189,10 @@ interface MotionOwner : CWXPath {
 }
 
 /// 効果クラス。
-class Motion : CWXPath, BeastOwner, Commentable {
+class Motion : CWXPath, BeastOwner, Commentable, ObjectId {
 private:
+	string _objId;
+
 	MType _type;
 
 	UseCounter _uc = null;
@@ -212,12 +217,23 @@ public:
 
 	/// 唯一のコンストラクタ。
 	this (MType type, Element el) { mixin(S_TRACE);
+		static ulong idCount = 0;
+		_objId = typeid(typeof(this)).stringof ~ "-" ~ .objectIDValue(this) ~ "-" ~ to!string(idCount);
+		idCount++;
+
 		_type = type;
 		_el = el;
 		if (type == MType.GetSkillPower || type == MType.LoseSkillPower) { mixin(S_TRACE);
 			_dtyp = DamageType.Max;
 		}
 	}
+
+	/// イベントツリーのID。
+	@property
+	const
+	override
+	string objectId() { return _objId; }
+
 	/// 効果の種類。
 	@property
 	const
@@ -263,6 +279,7 @@ public:
 	const
 	Motion dup() { mixin(S_TRACE);
 		auto r = new Motion(type, element);
+		r._objId = _objId;
 		r.damageType = damageType;
 		r.uValue = uValue;
 		r.aValue = aValue;

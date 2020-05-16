@@ -2,39 +2,40 @@
 module cwx.editor.gui.dwt.motionview;
 
 import cwx.card;
+import cwx.event;
+import cwx.menu;
 import cwx.motion;
-import cwx.types;
+import cwx.path;
+import cwx.skin;
 import cwx.summary;
+import cwx.system;
+import cwx.types;
+import cwx.types;
+import cwx.usecounter;
 import cwx.utils;
 import cwx.xml;
-import cwx.skin;
-import cwx.event;
-import cwx.path;
-import cwx.menu;
-import cwx.types;
-import cwx.system;
-import cwx.usecounter;
 
+import cwx.editor.gui.dwt.absdialog;
+import cwx.editor.gui.dwt.cardpane : CardDialog;
+import cwx.editor.gui.dwt.centerlayout;
+import cwx.editor.gui.dwt.comment;
+import cwx.editor.gui.dwt.commons;
+import cwx.editor.gui.dwt.customtable;
+import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.dutils;
-import cwx.editor.gui.dwt.commons;
-import cwx.editor.gui.dwt.customtable;
-import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.effectcarddialog;
-import cwx.editor.gui.dwt.xmlbytestransfer;
-import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.eventwindow;
-import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.incsearch;
-import cwx.editor.gui.dwt.absdialog;
-import cwx.editor.gui.dwt.cardpane : CardDialog;
+import cwx.editor.gui.dwt.undo;
+import cwx.editor.gui.dwt.xmlbytestransfer;
 
 import std.algorithm : swap;
 import std.array;
-import std.string;
-import std.datetime;
 import std.conv;
+import std.datetime;
+import std.string;
 
 import org.eclipse.swt.all;
 
@@ -77,6 +78,7 @@ private:
 		protected void uda(MotionView v) { mixin(S_TRACE);
 			scope (exit) comm.refreshToolBar();
 			if (!v || v.isDisposed()) return;
+			v._motions.redraw();
 			v._motions.select(_selectedB);
 			v._motions.showSelection();
 			v.refreshSels(true);
@@ -622,6 +624,8 @@ private:
 			_oldIndex = -1;
 			_motions.redraw();
 			refreshSels();
+			auto p = m.objectId in _commentDlgs;
+			if (p) p.forceCancel();
 			if (callMod) { mixin(S_TRACE);
 				foreach (dlg; modEvent) dlg();
 			}
@@ -961,6 +965,7 @@ private:
 			foreach (m; motions) { mixin(S_TRACE);
 				if (m.cwxParent is null) m.removeUseCounter();
 			}
+			foreach (dlg; _commentDlgs) dlg.forceCancel();
 		}
 	}
 	class KeyDownFilter : Listener {
@@ -1203,6 +1208,8 @@ public:
 			_motions.setHeaderVisible(true);
 			auto menu = new Menu(_motions);
 			if (!_readOnly) { mixin(S_TRACE);
+				createMenuItem(_comm, menu, MenuID.Comment, &writeComment, &canWriteComment);
+				new MenuItem(menu, SWT.SEPARATOR);
 				createMenuItem(_comm, menu, MenuID.Undo, &this.undo, () => !_readOnly && _undo.canUndo);
 				createMenuItem(_comm, menu, MenuID.Redo, &this.redo, () => !_readOnly && _undo.canRedo);
 				new MenuItem(menu, SWT.SEPARATOR);
@@ -1216,6 +1223,7 @@ public:
 			_motions.setMenu(menu);
 			auto col = new FullTableColumn(_motions, SWT.NONE);
 			col.column.setText(_prop.msgs.motionKind);
+			.setupComment(_comm, _motions, false);
 		}
 		{ mixin(S_TRACE);
 			_motionElm = .rangeSelectableTable(this, SWT.BORDER | SWT.SINGLE | SWT.NO_SCROLL | SWT.FULL_SELECTION);
@@ -1855,6 +1863,45 @@ public:
 	}
 	void redo() { mixin(S_TRACE);
 		_undo.redo();
+	}
+
+	private CommentDialog[string] _commentDlgs;
+
+	@property
+	bool canWriteComment() { mixin(S_TRACE);
+		if (_readOnly) return false;
+		return selection !is null;
+	}
+	void writeComment() { mixin(S_TRACE);
+		if (!canWriteComment) return;
+		auto m = selection;
+		assert (m !is null);
+		auto objId = m.objectId;
+		auto p = objId in _commentDlgs;
+		if (p) { mixin(S_TRACE);
+			p.active();
+			return;
+		}
+		auto dlg = new CommentDialog(_comm, _motions.getShell(), m.comment);
+		dlg.title = .tryFormat(_prop.msgs.dlgTitCommentWith, _descs[m.type]);
+		dlg.appliedEvent ~= { mixin(S_TRACE);
+			assert (_motions.getSelectionIndex() != -1);
+			storeEdit(_motions.getSelectionIndex());
+			foreach (itm; _motions.getItems()) { mixin(S_TRACE);
+				auto m2 = cast(Motion)itm.getData();
+				assert (m2 !is null);
+				if (objId == m2.objectId) { mixin(S_TRACE);
+					m2.comment = dlg.comment;
+					_motions.redraw();
+					break;
+				}
+			}
+		};
+		_commentDlgs[objId] = dlg;
+		dlg.closeEvent ~= { mixin(S_TRACE);
+			_commentDlgs.remove(objId);
+		};
+		dlg.open();
 	}
 
 	@property
