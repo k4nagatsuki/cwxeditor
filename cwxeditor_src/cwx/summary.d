@@ -528,9 +528,9 @@ public:
 		Summary load(string p) { mixin(S_TRACE);
 			Summary r;
 			if (expand) { mixin(S_TRACE);
-				r = Summary.fromXMLs(prop.sys, std.path.buildPath(p, "Summary.xml"), opt, errorFiles);
+				r = Summary.fromXMLs(prop, std.path.buildPath(p, "Summary.xml"), opt, errorFiles);
 			} else { mixin(S_TRACE);
-				r = Summary.fromXMLs(prop.sys, p, xmls, opt, errorFiles);
+				r = Summary.fromXMLs(prop, p, xmls, opt, errorFiles);
 				r._oldXMLs = xmls;
 			}
 			return r;
@@ -2230,25 +2230,29 @@ public:
 		}
 	}
 
-	private void loadXMLCommon(A)(string xml, string name, ref A[] areas,
+	private void loadXMLCommon(A)(in CProps prop, string xml, string name, ref A[] areas,
 			UseCounter uc, void delegate() change, in XMLInfo ver) { mixin(S_TRACE);
 		auto doc = XNode.parse(xml);
 		if (doc.name == name) { mixin(S_TRACE);
-			auto area = A.createFromNode(doc, ver);
+			static if (is(A:CastCard)) {
+				auto area = A.createFromNode(prop, doc, ver);
+			} else {
+				auto area = A.createFromNode(doc, ver);
+			}
 			if (uc) area.setUseCounter(uc, null);
 			if (change) area.changeHandler = change;
 			area.owner = this;
 			areas ~= area;
 		}
 	}
-	private void loadXML1(A)(string targPath, ref string[] errorFiles, string name, ref A[] areas,
+	private void loadXML1(A)(in CProps prop, string targPath, ref string[] errorFiles, string name, ref A[] areas,
 			UseCounter uc, void delegate() change, in XMLInfo ver) { mixin(S_TRACE);
 		if (exists(targPath)) { mixin(S_TRACE);
 			foreach (file; .clistdir(targPath)) { mixin(S_TRACE);
 				auto p = std.path.buildPath(targPath, file);
 				if (!isDir(p) && cfnmatch(.extension(p), ".xml")) { mixin(S_TRACE);
 					try { mixin(S_TRACE);
-						loadXMLCommon(std.file.readText(p), name, areas, uc, change, ver);
+						loadXMLCommon(prop, std.file.readText(p), name, areas, uc, change, ver);
 					} catch (Throwable e) {
 						printStackTrace();
 						debugln(e);
@@ -2260,14 +2264,14 @@ public:
 			std.algorithm.sort(areas);
 		}
 	}
-	private void loadXML2(A)(string[string][string] xmls, ref string[] errorFiles,
+	private void loadXML2(A)(in CProps prop, string[string][string] xmls, ref string[] errorFiles,
 			string dirName, string name, ref A[] areas,
 			UseCounter uc, void delegate() change, in XMLInfo ver) { mixin(S_TRACE);
 		auto dir = dirName in xmls;
 		if (!dir) return;
 		foreach (file, xml; *dir) { mixin(S_TRACE);
 			try { mixin(S_TRACE);
-				loadXMLCommon(xml, name, areas, uc, change, ver);
+				loadXMLCommon(prop, xml, name, areas, uc, change, ver);
 			} catch (Throwable e) {
 				printStackTrace();
 				debugln(e);
@@ -2286,45 +2290,45 @@ public:
 	/// SummaryException = xmlsにSummary定義のXML文書が含まれていない、または壊れている。
 	/// XmlException = XMLパースエラー発生時。
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
-	private static Summary fromXMLs(const System sys, string sPath, string[string][string] xmls, in LoadOption opt, out string[] errorFiles) { mixin(S_TRACE);
+	private static Summary fromXMLs(in CProps prop, string sPath, string[string][string] xmls, in LoadOption opt, out string[] errorFiles) { mixin(S_TRACE);
 		auto parent = "" in xmls;
 		if (!parent) throw new SummaryException("invalid xmls");
 		auto summXML = "Summary.xml" in *parent;
 		if (!summXML) throw new SummaryException("invalid parent of xmls");
-		Summary summ = summaryFromXML(sys, sPath, *summXML);
-		auto ver = new XMLInfo(sys, summ.dataVersion);
+		Summary summ = summaryFromXML(prop.sys, sPath, *summXML);
+		auto ver = new XMLInfo(prop.sys, summ.dataVersion);
 		if (opt.summaryOnly) return summ;
 		if (!opt.cardOnly) { mixin(S_TRACE);
-			summ.loadXML2(xmls, errorFiles, PATH_AREA, "Area", summ._area, summ.useCounter, &summ.changeHandler, ver);
+			summ.loadXML2(prop, xmls, errorFiles, PATH_AREA, "Area", summ._area, summ.useCounter, &summ.changeHandler, ver);
 			summ.checkStartArea();
-			summ.loadXML2(xmls, errorFiles, PATH_BATTLE, "Battle", summ._btl, summ.useCounter, &summ.changeHandler, ver);
-			summ.loadXML2(xmls, errorFiles, PATH_PACKAGE, "Package", summ._pkg, summ.useCounter, &summ.changeHandler, ver);
+			summ.loadXML2(prop, xmls, errorFiles, PATH_BATTLE, "Battle", summ._btl, summ.useCounter, &summ.changeHandler, ver);
+			summ.loadXML2(prop, xmls, errorFiles, PATH_PACKAGE, "Package", summ._pkg, summ.useCounter, &summ.changeHandler, ver);
 		}
 
-		summ.loadXML2(xmls, errorFiles, PATH_CAST, "CastCard", summ._cast, summ.useCounter, &summ.changeHandler, ver);
-		summ.loadXML2(xmls, errorFiles, PATH_SKILL, "SkillCard", summ._skl, summ.useCounter, &summ.changeHandler, ver);
-		summ.loadXML2(xmls, errorFiles, PATH_ITEM, "ItemCard", summ._itm, summ.useCounter, &summ.changeHandler, ver);
-		summ.loadXML2(xmls, errorFiles, PATH_BEAST, "BeastCard", summ._bst, summ.useCounter, &summ.changeHandler, ver);
-		summ.loadXML2(xmls, errorFiles, PATH_INFO, "InfoCard", summ._info, summ.useCounter, &summ.changeHandler, ver);
+		summ.loadXML2(prop, xmls, errorFiles, PATH_CAST, "CastCard", summ._cast, summ.useCounter, &summ.changeHandler, ver);
+		summ.loadXML2(prop, xmls, errorFiles, PATH_SKILL, "SkillCard", summ._skl, summ.useCounter, &summ.changeHandler, ver);
+		summ.loadXML2(prop, xmls, errorFiles, PATH_ITEM, "ItemCard", summ._itm, summ.useCounter, &summ.changeHandler, ver);
+		summ.loadXML2(prop, xmls, errorFiles, PATH_BEAST, "BeastCard", summ._bst, summ.useCounter, &summ.changeHandler, ver);
+		summ.loadXML2(prop, xmls, errorFiles, PATH_INFO, "InfoCard", summ._info, summ.useCounter, &summ.changeHandler, ver);
 
 		return summ;
 	}
-	private static void fromXMLs(const System sys, Summary summ, in LoadOption opt, out string[] errorFiles) { mixin(S_TRACE);
+	private static void fromXMLs(in CProps prop, Summary summ, in LoadOption opt, out string[] errorFiles) { mixin(S_TRACE);
 		if (opt.summaryOnly) return;
 		auto path = summ.scenarioPath;
-		auto ver = new XMLInfo(sys, summ.dataVersion);
+		auto ver = new XMLInfo(prop.sys, summ.dataVersion);
 		if (!opt.cardOnly) { mixin(S_TRACE);
-			summ.loadXML1(std.path.buildPath(path, PATH_AREA), errorFiles, "Area", summ._area, summ.useCounter, &summ.changeHandler, ver);
+			summ.loadXML1(prop, std.path.buildPath(path, PATH_AREA), errorFiles, "Area", summ._area, summ.useCounter, &summ.changeHandler, ver);
 			summ.checkStartArea();
-			summ.loadXML1(std.path.buildPath(path, PATH_BATTLE), errorFiles, "Battle", summ._btl, summ.useCounter, &summ.changeHandler, ver);
-			summ.loadXML1(std.path.buildPath(path, PATH_PACKAGE), errorFiles, "Package", summ._pkg, summ.useCounter, &summ.changeHandler, ver);
+			summ.loadXML1(prop, std.path.buildPath(path, PATH_BATTLE), errorFiles, "Battle", summ._btl, summ.useCounter, &summ.changeHandler, ver);
+			summ.loadXML1(prop, std.path.buildPath(path, PATH_PACKAGE), errorFiles, "Package", summ._pkg, summ.useCounter, &summ.changeHandler, ver);
 		}
 
-		summ.loadXML1(std.path.buildPath(path, PATH_CAST), errorFiles, "CastCard", summ._cast, summ.useCounter, &summ.changeHandler, ver);
-		summ.loadXML1(std.path.buildPath(path, PATH_SKILL), errorFiles, "SkillCard", summ._skl, summ.useCounter, &summ.changeHandler, ver);
-		summ.loadXML1(std.path.buildPath(path, PATH_ITEM), errorFiles, "ItemCard", summ._itm, summ.useCounter, &summ.changeHandler, ver);
-		summ.loadXML1(std.path.buildPath(path, PATH_BEAST), errorFiles, "BeastCard", summ._bst, summ.useCounter, &summ.changeHandler, ver);
-		summ.loadXML1(std.path.buildPath(path, PATH_INFO), errorFiles, "InfoCard", summ._info, summ.useCounter, &summ.changeHandler, ver);
+		summ.loadXML1(prop, std.path.buildPath(path, PATH_CAST), errorFiles, "CastCard", summ._cast, summ.useCounter, &summ.changeHandler, ver);
+		summ.loadXML1(prop, std.path.buildPath(path, PATH_SKILL), errorFiles, "SkillCard", summ._skl, summ.useCounter, &summ.changeHandler, ver);
+		summ.loadXML1(prop, std.path.buildPath(path, PATH_ITEM), errorFiles, "ItemCard", summ._itm, summ.useCounter, &summ.changeHandler, ver);
+		summ.loadXML1(prop, std.path.buildPath(path, PATH_BEAST), errorFiles, "BeastCard", summ._bst, summ.useCounter, &summ.changeHandler, ver);
+		summ.loadXML1(prop, std.path.buildPath(path, PATH_INFO), errorFiles, "InfoCard", summ._info, summ.useCounter, &summ.changeHandler, ver);
 	}
 
 	/// XMLを元にしたインスタンスを返す。
@@ -2336,24 +2340,23 @@ public:
 	/// XmlException = XMLパースエラー発生時。
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
 	/// FileLoadException = Summary.xml以外での読込例外発生時。
-	private static Summary fromXMLs(const System sys, string path, in LoadOption opt, out string[] errorFiles) { mixin(S_TRACE);
-		auto summ = summaryFromXML(sys, dirName(path), std.file.readText(path));
+	private static Summary fromXMLs(in CProps prop, string path, in LoadOption opt, out string[] errorFiles) { mixin(S_TRACE);
+		auto summ = summaryFromXML(prop.sys, dirName(path), std.file.readText(path));
 		if (opt.summaryOnly) return summ;
-		fromXMLs(sys, summ, opt, errorFiles);
+		fromXMLs(prop, summ, opt, errorFiles);
 		return summ;
 	}
 
 	/// XMLファイルまたはクラシックなシナリオを再読込し、新しいSummaryを生成して返す。
 	Summary reloadXMLs(in CProps prop, in LoadOption opt, out string[] errorFiles) { mixin(S_TRACE);
-		auto sys = prop.sys;
 		Summary summ;
 		if (legacy) { mixin(S_TRACE);
 			int dataVersion;
 			summ = loadLScenario(scenarioPath, "", "", prop, opt, errorFiles, dataVersion, scenarioName);
 		} else { mixin(S_TRACE);
-			summ = summaryFromXML(sys, scenarioPath,
+			summ = summaryFromXML(prop.sys, scenarioPath,
 				std.file.readText(std.path.buildPath(scenarioPath, "Summary.xml")));
-			fromXMLs(sys, summ, opt, errorFiles);
+			fromXMLs(prop, summ, opt, errorFiles);
 		}
 		summ._expandXMLs = expandXMLs;
 		summ._zipName = zipName;

@@ -2,10 +2,11 @@
 module cwx.race;
 
 import cwx.coupon;
-import cwx.utils;
-import cwx.types;
-import cwx.xml;
+import cwx.props;
 import cwx.system;
+import cwx.types;
+import cwx.utils;
+import cwx.xml;
 
 /// 1レベル毎のEP増加量の標準値。
 immutable DEFAULT_EP_PER_LEVEL = 10u;
@@ -30,13 +31,13 @@ private:
 	this () {}
 public:
 	/// XMLノードから種族を生成。
-	static Race fromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
+	static Race fromNode(const(CProps) prop, ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
 		auto r = new Race;
 		r._name = null;
 		node.onTag["Name"] = (ref XNode node) { r._name = node.value; };
 		node.onTag["Description"] = (ref XNode node) { r._desc = decodeLf2(node.value); };
 		node.onTag["Feature"] = (ref XNode node) { r.loadFeature(node, ver); };
-		node.onTag["Ability"] = (ref XNode node) { r.loadAbility(node, ver); };
+		node.onTag["Ability"] = (ref XNode node) { r.loadAbility(prop, node, ver); };
 		node.onTag[Coupon.XML_NAME_M] = (ref XNode node) { mixin(S_TRACE);
 			node.onTag[Coupon.XML_NAME] = (ref XNode node) { mixin(S_TRACE);
 				auto coupon = Coupon.fromNode(node, ver);
@@ -360,46 +361,46 @@ template RaceParam(bool Set) {
 	private void loadFeature(ref XNode fNode, in XMLInfo ver) { mixin(S_TRACE);
 		assert (fNode.name == "Feature");
 		fNode.onTag["Type"] = (ref XNode tNode) { mixin(S_TRACE);
-			_undead = parseBool(tNode.attr("undead", true));
-			_automaton = parseBool(tNode.attr("automaton", true));
-			_unholy = parseBool(tNode.attr("unholy", true));
-			_constructure = parseBool(tNode.attr("constructure", true));
+			_undead = parseBool(tNode.attr("undead", false, "False"));
+			_automaton = parseBool(tNode.attr("automaton", false, "False"));
+			_unholy = parseBool(tNode.attr("unholy", false, "False"));
+			_constructure = parseBool(tNode.attr("constructure", false, "False"));
 		};
 		fNode.onTag["NoEffect"] = (ref XNode neNode) { mixin(S_TRACE);
-			_weaponRes = parseBool(neNode.attr("weapon", true));
-			_magicRes = parseBool(neNode.attr("magic", true));
+			_weaponRes = parseBool(neNode.attr("weapon", false, "False"));
+			_magicRes = parseBool(neNode.attr("magic", false, "False"));
 		};
 		fNode.onTag["Resist"] = (ref XNode rNode) { mixin(S_TRACE);
-			_res[Element.Fire] = parseBool(rNode.attr("fire", true));
-			_res[Element.Ice] = parseBool(rNode.attr("ice", true));
+			_res[Element.Fire] = parseBool(rNode.attr("fire", false, "False"));
+			_res[Element.Ice] = parseBool(rNode.attr("ice", false, "False"));
 		};
 		fNode.onTag["Weakness"] = (ref XNode wNode) { mixin(S_TRACE);
-			_weak[Element.Fire] = parseBool(wNode.attr("fire", true));
-			_weak[Element.Ice] = parseBool(wNode.attr("ice", true));
+			_weak[Element.Fire] = parseBool(wNode.attr("fire", false, "False"));
+			_weak[Element.Ice] = parseBool(wNode.attr("ice", false, "False"));
 		};
 		fNode.parse();
 	}
-	private void loadAbility(ref XNode aNode, in XMLInfo ver) { mixin(S_TRACE);
+	private void loadAbility(const(cwx.props.CProps) prop, ref XNode aNode, in XMLInfo ver) { mixin(S_TRACE);
 		assert (aNode.name == "Ability");
 		aNode.onTag["Physical"] = (ref XNode phyNode) { mixin(S_TRACE);
-			_phy[Physical.Dex] = phyNode.attr!(int)("dex", true);
-			_phy[Physical.Agl] = phyNode.attr!(int)("agl", true);
-			_phy[Physical.Int] = phyNode.attr!(int)("int", true);
-			_phy[Physical.Str] = phyNode.attr!(int)("str", true);
-			_phy[Physical.Vit] = phyNode.attr!(int)("vit", true);
-			_phy[Physical.Min] = phyNode.attr!(int)("min", true);
+			_phy[Physical.Dex] = phyNode.attr!(int)("dex", false, prop.looks.physicalNormal);
+			_phy[Physical.Agl] = phyNode.attr!(int)("agl", false, prop.looks.physicalNormal);
+			_phy[Physical.Int] = phyNode.attr!(int)("int", false, prop.looks.physicalNormal);
+			_phy[Physical.Str] = phyNode.attr!(int)("str", false, prop.looks.physicalNormal);
+			_phy[Physical.Vit] = phyNode.attr!(int)("vit", false, prop.looks.physicalNormal);
+			_phy[Physical.Min] = phyNode.attr!(int)("min", false, prop.looks.physicalNormal);
 		};
 		aNode.onTag["Mental"] = (ref XNode mtlNode) { mixin(S_TRACE);
-			_mtl[Mental.Aggressive] = mtlNode.attr!(double)("aggressive", true);
-			_mtl[Mental.Cheerful] = mtlNode.attr!(double)("cheerful", true);
-			_mtl[Mental.Brave] = mtlNode.attr!(double)("brave", true);
-			_mtl[Mental.Cautious] = mtlNode.attr!(double)("cautious", true);
-			_mtl[Mental.Trickish] = mtlNode.attr!(double)("trickish", true);
+			_mtl[Mental.Aggressive] = mtlNode.attr!(double)("aggressive", false, 0.0);
+			_mtl[Mental.Cheerful] = mtlNode.attr!(double)("cheerful", false, 0.0);
+			_mtl[Mental.Brave] = mtlNode.attr!(double)("brave", false, 0.0);
+			_mtl[Mental.Cautious] = mtlNode.attr!(double)("cautious", false, 0.0);
+			_mtl[Mental.Trickish] = mtlNode.attr!(double)("trickish", false, 0.0);
 		};
 		aNode.onTag["Enhance"] = (ref XNode enhNode) { mixin(S_TRACE);
-			_dEnh[Enhance.Avoid] = enhNode.attr!(int)("avoid", true);
-			_dEnh[Enhance.Resist] = enhNode.attr!(int)("resist", true);
-			_dEnh[Enhance.Defense] = enhNode.attr!(int)("defense", true);
+			_dEnh[Enhance.Avoid] = enhNode.attr!(int)("avoid", false, 0);
+			_dEnh[Enhance.Resist] = enhNode.attr!(int)("resist", false, 0);
+			_dEnh[Enhance.Defense] = enhNode.attr!(int)("defense", false, 0);
 		};
 		aNode.parse();
 	}

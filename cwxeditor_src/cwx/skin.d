@@ -1812,7 +1812,7 @@ class Skin {
 			};
 			sNode.onTag["Races"] = (ref XNode node) { mixin(S_TRACE);
 				node.onTag["Race"] = (ref XNode node) { mixin(S_TRACE);
-					_races ~= Race.fromNode(node, ver);
+					_races ~= Race.fromNode(prop, node, ver);
 				};
 				node.parse();
 			};

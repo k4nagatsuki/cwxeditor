@@ -116,7 +116,7 @@ public:
 	/// XMLノードからインスタンスを生成する。
 	static Coupon fromNode(in XNode node, in XMLInfo ver) { mixin(S_TRACE);
 		assert (node.name == Coupon.XML_NAME, node.name ~ " != Coupon");
-		return new Coupon(node.value, node.attr!(int)("value", true));
+		return new Coupon(node.value, node.attr!(int)("value", false, 0));
 	}
 	/// 自身をXMLノードにする。
 	const

@@ -6,6 +6,7 @@ import cwx.event;
 import cwx.flag;
 import cwx.motion;
 import cwx.path;
+import cwx.props;
 import cwx.race;
 import cwx.structs;
 import cwx.system;
@@ -1331,7 +1332,7 @@ public:
 	/// Throws:
 	/// AreaException = XML内のデータ不足時。
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
-	static CastCard createFromNode(XNode cNode, in XMLInfo ver) { mixin(S_TRACE);
+	static CastCard createFromNode(in CProps prop, XNode cNode, in XMLInfo ver) { mixin(S_TRACE);
 		if (cNode.name != XML_NAME) throw new CardException("Node is not cast card: " ~ cNode.name);
 		auto r = new CastCard(0, "", [], "", 1, 1);
 		cNode.onTag["Property"] = (ref XNode pNode) { mixin(S_TRACE);
@@ -1341,7 +1342,7 @@ public:
 				r._lifeMax = n.attr!(int)("max", true);
 			};
 			pNode.onTag["Feature"] = (ref XNode n) { r.loadFeature(n, ver); };
-			pNode.onTag["Ability"] = (ref XNode n) { r.loadAbility(n, ver); };
+			pNode.onTag["Ability"] = (ref XNode n) { r.loadAbility(prop, n, ver); };
 
 			pNode.onTag["Status"] = (ref XNode sNode) { mixin(S_TRACE);
 				sNode.onTag["Mentality"] = (ref XNode n) { mixin(S_TRACE);
