@@ -6552,6 +6552,26 @@ public:
 		_undo.redo();
 	}
 
+	@property
+	bool canWriteComment() { mixin(S_TRACE);
+		static if (UseCards) {
+			if (_cards.isFocusControl()) return canWriteCommentC;
+		}
+		static if (UseBacks) {
+			if (_backs.isFocusControl()) return canWriteCommentB;
+		}
+		return true;
+	}
+	void writeComment() { mixin(S_TRACE);
+		if (!canWriteComment) return;
+		static if (UseCards) {
+			if (_cards.isFocusControl()) writeCommentC();
+		}
+		static if (UseBacks) {
+			if (_backs.isFocusControl()) writeCommentB();
+		}
+	}
+
 	private bool _openCWXPathFocus = false;
 	private bool _openCWXPathShellActivate = false;
 	private int[][Table] _openCWXPathIndices;

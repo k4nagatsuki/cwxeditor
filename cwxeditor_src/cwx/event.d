@@ -3370,10 +3370,16 @@ private struct FKeyCodeU {
 	}
 }
 
+interface ObjectId {
+	@property
+	const
+	string objectId();
+}
+
 /// イベントツリー。発火条件と実行するイベント群を持つ。
-public class EventTree : CWXPath, Commentable {
+public class EventTree : CWXPath, Commentable, ObjectId {
 private:
-	string _id;
+	string _objId;
 
 	EventTreeOwner _owner;
 
@@ -3401,7 +3407,7 @@ private:
 	this () { mixin(S_TRACE);
 		_suc = new SUseCounter;
 		static ulong idCount = 0;
-		_id = .objectIDValue(this) ~ "-" ~ to!string(idCount);
+		_objId = typeid(typeof(this)).stringof ~ "-" ~ .objectIDValue(this) ~ "-" ~ to!string(idCount);
 		idCount++;
 	}
 public:
@@ -3440,7 +3446,8 @@ public:
 	/// イベントツリーのID。
 	@property
 	const
-	string eventTreeId() { return _id; }
+	override
+	string objectId() { return _objId; }
 
 	/// このツリーの所有者。
 	@property
@@ -3452,7 +3459,7 @@ public:
 	const
 	EventTree dup() { mixin(S_TRACE);
 		auto copy = new EventTree;
-		copy._id = _id;
+		copy._objId = _objId;
 		copy.enter = fireEnter;
 		copy.escape = fireEscape;
 		copy.lose = fireLose;

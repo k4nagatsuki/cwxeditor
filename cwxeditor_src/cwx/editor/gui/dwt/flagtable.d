@@ -2425,11 +2425,11 @@ private:
 		dlg.open();
 	}
 	@property
-	bool canWriteComment() { mixin(S_TRACE);
+	public bool canWriteComment() { mixin(S_TRACE);
 		if (_readOnly) return false;
 		return flags.getSelectionIndex() != -1;
 	}
-	void writeComment() { mixin(S_TRACE);
+	public void writeComment() { mixin(S_TRACE);
 		if (_readOnly) return;
 		auto itms = flags.getSelection();
 		if (!itms.length) return;

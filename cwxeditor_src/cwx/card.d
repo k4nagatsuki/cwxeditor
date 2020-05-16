@@ -382,7 +382,7 @@ public:
 }
 
 /// エリア等に属さない独立したカードの親クラス。
-abstract class Card : CWXPath, Commentable {
+abstract class Card : CWXPath, Commentable, ObjectId {
 private:
 	ulong _id;
 	string _objId;
@@ -403,7 +403,9 @@ public:
 	/// desc = 解説。
 	this (ulong id, string name, in CardImage[] paths, string desc) { mixin(S_TRACE);
 		static ulong idCount = 0;
-		_objId = .objectIDValue(this) ~ "-" ~ .to!string(idCount);
+		_objId = typeid(typeof(this)).stringof ~ "-" ~ .objectIDValue(this) ~ "-" ~ .to!string(idCount);
+		idCount++;
+
 		_id = id;
 		_name = name;
 		_desc = desc;

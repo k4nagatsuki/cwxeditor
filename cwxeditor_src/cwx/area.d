@@ -79,8 +79,9 @@ AbstractArea[] createAreasFromNode(ref XNode e, string scenarioPath, out bool sa
 }
 
 /// メニューカードとエネミーカードの親クラス。
-public abstract class AbstractSpCard : AbstractEventTreeOwner, Commentable {
+public abstract class AbstractSpCard : AbstractEventTreeOwner, Commentable, ObjectId {
 private:
+	string _objId;
 	int _x, _y;
 	uint _scale;
 	int _layer = LAYER_MENU_CARD;
@@ -93,6 +94,10 @@ public:
 
 	/// 唯一のコンストラクタ。
 	this (string flag, int x, int y, uint scale, int layer, string cardGroup, int animationSpeed) { mixin(S_TRACE);
+		static ulong idCount = 0;
+		_objId = typeid(typeof(this)).stringof ~ "-" ~ .objectIDValue(this) ~ "-" ~ to!string(idCount);
+		idCount++;
+
 		_user = new FlagUser(this);
 		_user.flag = flag;
 		_x = x;
@@ -103,6 +108,12 @@ public:
 		_cardGroup.cardGroup = cardGroup;
 		_animationSpeed = animationSpeed;
 	}
+
+	@property
+	const
+	override
+	string objectId() { return _objId; }
+
 	/// このカードの所属先を返す。
 	@property
 	inout
@@ -1013,17 +1024,27 @@ public:
 }
 
 /// エリア・パッケージ・バトルの親クラス。
-public abstract class AbstractArea : AbstractEventTreeOwner, Commentable {
+public abstract class AbstractArea : AbstractEventTreeOwner, Commentable, ObjectId {
 	ulong _id;
+	string _objId;
 	string _name;
 	bool _changed = false;
 	string _comment;
 public:
 	/// 唯一のコンストラクタ。
 	this (ulong id, string name) { mixin(S_TRACE);
+		static ulong idCount = 0;
+		_objId = typeid(typeof(this)).stringof ~ "-" ~ .objectIDValue(this) ~ "-" ~ to!string(idCount);
+		idCount++;
+
 		_id = id;
 		_name = name;
 	}
+
+	@property
+	const
+	override
+	string objectId() { return _objId; }
 
 	/// 変更を通知する。
 	override void changed() { mixin(S_TRACE);
@@ -1217,14 +1238,25 @@ public:
 }
 
 /// プレイヤーカードのキーコード・死亡時イベント(Wsn.2)。
-class PlayerCardEvents : AbstractEventTreeOwner {
+class PlayerCardEvents : AbstractEventTreeOwner, ObjectId {
+	private string _objId;
+
 	/// プレイヤーカードイベントが属するエリア・バトル。
 	private AbstractArea _owner;
 
 	/// 唯一のコンストラクタ。
 	this (AbstractArea owner) { mixin(S_TRACE);
+		static ulong idCount = 0;
+		_objId = typeid(typeof(this)).stringof ~ "-" ~ .objectIDValue(this) ~ "-" ~ to!string(idCount);
+		idCount++;
+
 		_owner = owner;
 	}
+
+	@property
+	const
+	override
+	string objectId() { return _objId; }
 
 	/// プレイヤーカードイベントが属するエリア・バトル。
 	inout

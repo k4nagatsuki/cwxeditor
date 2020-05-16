@@ -282,20 +282,20 @@ class EventEditor : Composite {
 		if (_et) { mixin(S_TRACE);
 			auto lineNumber = getVerticalBar().getSelection();
 			if (_selectedIndex == -1 || (lineNumber == 0 && _selectedIndex == 0)) { mixin(S_TRACE);
-				removeStoredLine(_et.eventTreeId);
+				removeStoredLine(_et.objectId);
 			} else { mixin(S_TRACE);
-				_storedLine[_et.eventTreeId] = StoredLine(lineNumber, _selectedIndex);
+				_storedLine[_et.objectId] = StoredLine(lineNumber, _selectedIndex);
 			}
 		}
 		_et = et;
 
-		if (_et && _comm.prop.var.etc.restorePositionOfEventTreeView && _et.eventTreeId in _storedLine) { mixin(S_TRACE);
+		if (_et && _comm.prop.var.etc.restorePositionOfEventTreeView && _et.objectId in _storedLine) { mixin(S_TRACE);
 			_restoreLine = true;
 		}
 		updateEventTree();
 	}
-	void removeStoredLine(string eventTreeId) { mixin(S_TRACE);
-		if (eventTreeId in _storedLine) _storedLine.remove(eventTreeId);
+	void removeStoredLine(string objectId) { mixin(S_TRACE);
+		if (objectId in _storedLine) _storedLine.remove(objectId);
 	}
 	private alias Tuple!(int, "lineNumber", int, "selected") StoredLine;
 	private StoredLine[string] _storedLine;
@@ -1397,7 +1397,7 @@ class EventEditor : Composite {
 		updatePosImpl2(true);
 		if (_pos.length) { mixin(S_TRACE);
 			if (_restoreLine) { mixin(S_TRACE);
-				if (auto p = _et.eventTreeId in _storedLine) { mixin(S_TRACE);
+				if (auto p = _et.objectId in _storedLine) { mixin(S_TRACE);
 					getVerticalBar().setSelection(p.lineNumber);
 					auto index = p.selected;
 					if (index < 0) index = 0;

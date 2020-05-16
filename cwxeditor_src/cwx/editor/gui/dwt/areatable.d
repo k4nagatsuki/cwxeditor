@@ -460,6 +460,7 @@ private:
 					if (itm) itm.setText(NAME, area.name);
 				}
 				calls ~= area;
+				staticCallRefArea(v, comm, area);
 			}
 			comm.refUseCount.call();
 		}
@@ -1991,7 +1992,7 @@ public:
 			tableParent = panel2;
 			_dirTree = new Tree(panel1, SWT.SINGLE | SWT.BORDER);
 			initTree(_comm, _dirTree, false);
-			.treeWarning(_prop, _dirTree, delegate string[] (TreeItem itm) { mixin(S_TRACE);
+			.treeWarning(_prop, _dirTree, false, delegate string[] (TreeItem itm) { mixin(S_TRACE);
 				if (auto summ = cast(Summary)itm.getData()) { mixin(S_TRACE);
 					assert (summ is _summ);
 					return .warnings(_prop.parent, summSkin, _summ, _summ, _summ.legacy, _summ.dataVersion, _prop.var.etc.targetVersion);

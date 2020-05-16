@@ -374,7 +374,7 @@ public:
 		dirs = new Tree(_comp, SWT.SINGLE | SWT.BORDER);
 		initTree(_comm, dirs, false);
 		.listener(dirs, SWT.FocusIn, gotFocus);
-		.treeWarning(_comm.prop, dirs, (itm) { mixin(S_TRACE);
+		.treeWarning(_comm.prop, dirs, false, (itm) { mixin(S_TRACE);
 			auto flagDir = cast(FlagDir)itm.getData();
 			if (!flagDir) return new string[0];
 			auto summ = _comm.summary;

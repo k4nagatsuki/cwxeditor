@@ -5021,7 +5021,7 @@ Image warningImage(Props prop, Display d, int warningImageWidth = -1) { mixin(S_
 }
 
 /// ツリーアイテムごとに警告を描画する。
-void treeWarning(Props prop, Tree tree, string[] delegate(TreeItem itm) getWarning) { mixin(S_TRACE);
+void treeWarning(Props prop, Tree tree, bool isEventView, string[] delegate(TreeItem itm) getWarning) { mixin(S_TRACE);
 	Warning[] warningRects;
 	alias Tuple!(TreeItem, string[]) WarningInfo;
 
@@ -5084,6 +5084,9 @@ void treeWarning(Props prop, Tree tree, string[] delegate(TreeItem itm) getWarni
 			e.gc.drawImage(wImg, 0, 0, prop.var.etc.warningImageWidthForTree, 1, ix, b.y, ca.width - ix, b.height);
 			int wx = .max(b.x + b.width, ca.width - bounds.width - 1);
 			if (wx < ca.width) { mixin(S_TRACE);
+				if (.commentText(cast(CWXPath)itm.getData(), isEventView)) { mixin(S_TRACE);
+					wx -= prop.images.menu(MenuID.Comment).getBounds().x + 5.ppis;
+				}
 				e.gc.drawImage(prop.images.warning, wx, b.y + (b.height - bounds.height) / 2);
 			}
 			auto rect = new Rectangle(ix, b.y, prop.var.etc.warningImageWidthForTree, b.height);
@@ -5093,4 +5096,12 @@ void treeWarning(Props prop, Tree tree, string[] delegate(TreeItem itm) getWarni
 	}
 	.listener(tree, SWT.Paint, &paintTree);
 	.listener(tree, SWT.MouseMove, &updateToolTip);
+}
+
+string commentText(in CWXPath o, bool isEventView) { mixin(S_TRACE);
+	if (isEventView) { mixin(S_TRACE);
+		if (auto eto = cast(const EventTreeOwner)o) return eto.commentForEvents;
+	}
+	if (auto c = cast(const Commentable)o) return c.comment;
+	return "";
 }

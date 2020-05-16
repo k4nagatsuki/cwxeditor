@@ -22,6 +22,7 @@ import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.areaviewutils;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.chooser;
+import cwx.editor.gui.dwt.comment;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.dprops;
@@ -410,6 +411,8 @@ private:
 				itm.setImage(v.etImage(tree));
 				v._etree.refreshTreeName();
 				v.refreshFires(itm);
+				auto p = tree.objectId in v._commentDlgs;
+				if (p) p.title = .tryFormat(comm.prop.msgs.dlgTitCommentWith, tree.name);
 			}
 			comm.refEventTree.call(tree);
 			comm.refKeyCodes.call();
@@ -513,6 +516,9 @@ private:
 				foreach (dlg; v._editDlgs.values) { mixin(S_TRACE);
 					if (dlg.eventTree is tree) dlg.forceCancel();
 				}
+				foreach (key; v._commentDlgs.keys) { mixin(S_TRACE);
+					if (key == tree.objectId) v._commentDlgs[key].forceCancel();
+				}
 				itm.dispose();
 			}
 			comm.delEventTree.call(tree);
@@ -578,7 +584,7 @@ private:
 			_tree.removeUseCounter();
 			if (_istUndo) _istUndo.dispose();
 			foreach (v; views()) { mixin(S_TRACE);
-				v.removeStoredLine(_tree.eventTreeId);
+				v.removeStoredLine(_tree.objectId);
 			}
 		}
 	}
@@ -618,6 +624,42 @@ private:
 		if (put) _undo ~= undo;
 		return undo;
 	}
+	static class UndoComment : EVUndo {
+		private ObjectId _obj;
+		private string _comment;
+		this (Commons comm, EventTreeOwner area, ObjectId obj) { mixin(S_TRACE);
+			super (comm, area);
+			_obj = obj;
+			save();
+		}
+		private void save() { mixin(S_TRACE);
+			if (auto eto = cast(EventTreeOwner)_obj) { mixin(S_TRACE);
+				_comment = eto.commentForEvents;
+			} else if (auto ct = cast(Commentable)_obj) { mixin(S_TRACE);
+				_comment = ct.comment;
+			} else assert (0);
+		}
+		private void impl() { mixin(S_TRACE);
+			auto vs = views();
+			udb(vs);
+			scope (exit) uda(vs);
+
+			auto comment = _comment;
+			save();
+			if (auto eto = cast(EventTreeOwner)_obj) { mixin(S_TRACE);
+				eto.commentForEvents = comment;
+			} else if (auto ct = cast(Commentable)_obj) { mixin(S_TRACE);
+				ct.comment = comment;
+			}
+
+			foreach (v; vs) { mixin(S_TRACE);
+				v._cards.redraw();
+			}
+		}
+		override void undo() { impl(); }
+		override void redo() { impl(); }
+		override void dispose() { }
+	}
 
 	private EventView[] views() { mixin(S_TRACE);
 		auto vs = _comm.eventViewsFrom(_area, false);
@@ -649,8 +691,8 @@ private:
 		assert (0);
 	}
 
-	void removeStoredLine(string eventTreeId) { mixin(S_TRACE);
-		_etree.removeStoredLine(eventTreeId);
+	void removeStoredLine(string objectId) { mixin(S_TRACE);
+		_etree.removeStoredLine(objectId);
 	}
 
 	void selectImpl(TreeItem itm, bool sel = true, bool forceRefresh = false) { mixin(S_TRACE);
@@ -689,6 +731,8 @@ private:
 		assert (_selItm);
 		assert (_selItm.getData() is _etree.eventTree);
 		_selItm.setText(_etree.eventTree.name);
+		auto p = _etree.eventTree.objectId in _commentDlgs;
+		if (p) p.title = .tryFormat(_prop.msgs.dlgTitCommentWith, _etree.eventTree.name);
 	}
 	class SListener : SelectionAdapter {
 		public override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
@@ -824,6 +868,8 @@ private:
 			if (itm2.getText() != et.name) { mixin(S_TRACE);
 				itm2.setText(et.name);
 				v._etree.refreshTreeName();
+				auto p = et.objectId in v._commentDlgs;
+				if (p) p.title = .tryFormat(_prop.msgs.dlgTitCommentWith, et.name);
 			}
 			v.refreshFires(itm2);
 		}
@@ -840,9 +886,9 @@ private:
 		dlg.appliedEvent ~= { mixin(S_TRACE);
 			appliedEditTree(findItem(et), undo);
 		};
-		_editDlgs[et.eventTreeId] = dlg;
+		_editDlgs[et.objectId] = dlg;
 		dlg.closeEvent ~= { mixin(S_TRACE);
-			_editDlgs.remove(et.eventTreeId);
+			_editDlgs.remove(et.objectId);
 		};
 		dlg.open();
 	}
@@ -888,9 +934,9 @@ private:
 				appliedEditTree(findItem(et), undo);
 			};
 		};
-		_editDlgs[et.eventTreeId] = dlg;
+		_editDlgs[et.objectId] = dlg;
 		dlg.closeEvent ~= { mixin(S_TRACE);
-			_editDlgs.remove(et.eventTreeId);
+			_editDlgs.remove(et.objectId);
 		};
 		dlg.open();
 	}
@@ -967,6 +1013,63 @@ private:
 		}
 		_comm.refreshToolBar();
 	}
+
+	private CommentDialog[string] _commentDlgs;
+	@property
+	private bool canWriteCommentL() { mixin(S_TRACE);
+		if (_readOnly) return false;
+		auto sel = selection;
+		if (!sel) return false;
+		if (_summ && _summ.legacy && cast(PlayerCardEvents)sel.getData()) return false;
+		return cast(EventTreeOwner)sel.getData() || cast(EventTree)sel.getData();
+	}
+	private void writeCommentL() { mixin(S_TRACE);
+		if (!canWriteCommentL) return;
+		editEnter();
+		auto sel = selection;
+		assert (sel !is null);
+		auto obj = cast(ObjectId)sel.getData();
+		assert (obj !is null);
+		auto p = obj.objectId in _commentDlgs;
+		if (p) { mixin(S_TRACE);
+			p.active();
+			return;
+		}
+		string comment;
+		string name;
+		if (auto eto = cast(EventTreeOwner)obj) { mixin(S_TRACE);
+			comment = eto.commentForEvents;
+			if (auto area = cast(AbstractArea)eto) { mixin(S_TRACE);
+				name = area.name;
+			} else if (auto card = cast(EffectCard)eto) { mixin(S_TRACE);
+				name = card.name;
+			} else if (auto card = cast(AbstractSpCard)eto) { mixin(S_TRACE);
+				name = cardName(card);
+			} else if (cast(PlayerCardEvents)eto) { mixin(S_TRACE);
+				name = _prop.msgs.playerCard;
+			} else assert (0);
+		} else if (auto et = cast(EventTree)obj) { mixin(S_TRACE);
+			comment = et.comment;
+			name = et.name;
+		} else assert (0);
+		auto dlg = new CommentDialog(_comm, _cards.getShell(), comment);
+		dlg.title = .tryFormat(_prop.msgs.dlgTitCommentWith, name);
+		dlg.appliedEvent ~= { mixin(S_TRACE);
+			_undo ~= new UndoComment(_comm, _area, obj);
+			if (auto eto = cast(EventTreeOwner)obj) { mixin(S_TRACE);
+				eto.commentForEvents = dlg.comment;
+			} else if (auto et = cast(EventTree)obj) { mixin(S_TRACE);
+				et.comment = dlg.comment;
+			} else assert (0);
+			_cards.redraw();
+		};
+		_commentDlgs[obj.objectId] = dlg;
+		dlg.closeEvent ~= { mixin(S_TRACE);
+			_commentDlgs.remove(obj.objectId);
+		};
+		dlg.open();
+	}
+
 	private static void appendTreeImpl(Commons comm, EventTreeOwner eto, EventTree tree, int index) { mixin(S_TRACE);
 		eto.insert(index, tree);
 		comm.refEventTree.call(tree);
@@ -1053,6 +1156,8 @@ private:
 			foreach (v; views()) { mixin(S_TRACE);
 				v._etree.refreshTreeName();
 				.anotherTreeItem(v._cards, itm).setText(text);
+				auto p = tree.objectId in v._commentDlgs;
+				if (p) p.title = .tryFormat(_prop.msgs.dlgTitCommentWith, tree.name);
 			}
 			_comm.refEventTree.call(tree);
 			_comm.refreshToolBar();
@@ -1334,23 +1439,34 @@ private:
 		if (_readOnly) return;
 		foreach (itm; _cards.getItems()) { mixin(S_TRACE);
 			auto data = itm.getData();
+			auto objId = "";
 			if (auto a = cast(AbstractArea)data) { mixin(S_TRACE);
 				itm.setText(a.name);
+				objId = a.objectId;
 			} else if (auto c = cast(EffectCard)data) { mixin(S_TRACE);
 				itm.setText(c.name);
+				objId = c.objectId;
 			} else if (auto c = cast(MenuCard)data) {
 				itm.setText(c.name);
+				objId = c.objectId;
 			} else if (auto c = cast(EnemyCard)data) {
 				auto castCard = _summ.cwCast(c.id);
 				itm.setText(castCard ? castCard.name : "");
+				objId = c.objectId;
 			} else { mixin(S_TRACE);
 				assert (cast(PlayerCardEvents)data);
+			}
+			if (objId) { mixin(S_TRACE);
+				auto p = objId in _commentDlgs;
+				if (p) p.title = .tryFormat(_prop.msgs.dlgTitCommentWith, itm.getText());
 			}
 			foreach (itm2; itm.getItems()) { mixin(S_TRACE);
 				auto et = cast(EventTree)itm2.getData();
 				bool chg = false;
 				if (itm2.getText() != et.name) { mixin(S_TRACE);
 					itm2.setText(et.name);
+					auto p2 = et.objectId in _commentDlgs;
+					if (p2) p2.title = .tryFormat(_prop.msgs.dlgTitCommentWith, et.name);
 					chg = true;
 				}
 				ptrdiff_t startKC = -1;
@@ -1593,6 +1709,7 @@ public:
 					} else assert (0);
 				}
 				foreach (dlg; _editDlgs.values) dlg.forceCancel();
+				foreach (dlg; _commentDlgs.values) dlg.forceCancel();
 			}
 		});
 		_sash.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -1607,13 +1724,15 @@ public:
 			initTree(_comm, _cards, false);
 			_cards.addSelectionListener(new SListener);
 			.listener(_cards, SWT.FocusIn, { _lastFocus = _cards; });
-			.treeWarning(_prop, _cards, &getWarning);
+			.treeWarning(_prop, _cards, true, &getWarning);
+			.setupComment(_comm, _cards, true);
 			_lastFocus = _cards;
 			_comm.refDataVersion.add(&_cards.redraw);
 			.listener(_cards, SWT.Dispose, { mixin(S_TRACE);
 				_comm.refDataVersion.remove(&_cards.redraw);
 			});
 			if (cast(Area)_area || cast(Battle)_area) { mixin(S_TRACE);
+				auto ib = _prop.images.menu(MenuID.Comment).getBounds();
 				.listener(_cards, SWT.Paint, (e) { mixin(S_TRACE);
 					if (_prop.var.etc.showItemNumberOfSceneAndEventView) { mixin(S_TRACE);
 						auto ti = .topItem(_cards.getTopItem());
@@ -1635,6 +1754,7 @@ public:
 							auto s = .text(i - 1);
 							auto te = e.gc.wTextExtent(s);
 							auto x = ca.width - 5.ppis - te.x;
+							if (.commentText(cast(CWXPath)itm.getData(), true)) x -= ib.width + 5.ppis;
 							auto y = b.y + (b.height - te.y) / 2;
 							e.gc.wDrawText(s, x, y, true);
 						}
@@ -1669,6 +1789,8 @@ public:
 					new MenuItem(menu, SWT.SEPARATOR);
 				}
 				createMenuItem(_comm, menu, MenuID.NewEventWithDialog, &createEvent, &canCreateEvent);
+				new MenuItem(menu, SWT.SEPARATOR);
+				createMenuItem(_comm, menu, MenuID.Comment, &writeCommentL, &canWriteCommentL);
 				new MenuItem(menu, SWT.SEPARATOR);
 				createMenuItem(_comm, menu, MenuID.Undo, &this.undo, () => _undo.canUndo && !_readOnly);
 				createMenuItem(_comm, menu, MenuID.Redo, &this.redo, () => _undo.canRedo && !_readOnly);
@@ -1851,8 +1973,12 @@ public:
 		initial();
 		if (auto area = cast(AbstractArea)_area) {
 			_cards.getItems()[0].setText(area.name);
+			auto p = area.objectId in _commentDlgs;
+			if (p) p.title = .tryFormat(_prop.msgs.dlgTitCommentWith, area.name);
 		} else if (auto card = cast(EffectCard)_area) {
 			_cards.getItems()[0].setText(card.name);
+			auto p = card.objectId in _commentDlgs;
+			if (p) p.title = .tryFormat(_prop.msgs.dlgTitCommentWith, card.name);
 		} else assert (0);
 	}
 	private void refreshTitleArea(Area area) { refreshTitle!Area(area); }
@@ -1865,6 +1991,8 @@ public:
 		initial();
 		if (area is _area) { mixin(S_TRACE);
 			_cards.getItems()[0].setText(area.name);
+			auto p = area.objectId in _commentDlgs;
+			if (p) p.title = .tryFormat(_prop.msgs.dlgTitCommentWith, area.name);
 		}
 	}
 	private string cardName(AbstractSpCard c) { mixin(S_TRACE);
@@ -1920,6 +2048,21 @@ public:
 		foreach (dlg; _editDlgs.values) { mixin(S_TRACE);
 			if (dlg.eventTreeOwner is eto) dlg.forceCancel();
 		}
+		foreach (key; _commentDlgs.keys) { mixin(S_TRACE);
+			auto oid = cast(ObjectId)eto;
+			auto dlg = _commentDlgs[key];
+			assert (oid !is null);
+			if (oid.objectId == key) { mixin(S_TRACE);
+				dlg.forceCancel();
+				continue;
+			}
+			foreach (tree; eto.trees) { mixin(S_TRACE);
+				if (tree.objectId == key) { mixin(S_TRACE);
+					dlg.forceCancel();
+					break;
+				}
+			}
+		}
 		itm.dispose();
 	}
 	private void renameCard(int index) { mixin(S_TRACE);
@@ -1928,6 +2071,8 @@ public:
 		auto card = cast(AbstractSpCard)itm.getData();
 		itm.setText(cardName(card));
 		itm.setImage(cardIcon(card));
+		auto p = card.objectId in _commentDlgs;
+		if (p) p.title = .tryFormat(_prop.msgs.dlgTitCommentWith, cardName(card));
 	}
 	private void refCast(CastCard card) { mixin(S_TRACE);
 		assert (cast(Battle)_area !is null);
@@ -1936,6 +2081,8 @@ public:
 			assert (c !is null);
 			if (c.id == card.id) { mixin(S_TRACE);
 				itm.setText(cardName(c));
+				auto p = c.objectId in _commentDlgs;
+				if (p) p.title = .tryFormat(_prop.msgs.dlgTitCommentWith, cardName(c));
 			}
 		}
 	}
@@ -1981,7 +2128,7 @@ public:
 				auto cItm = _cards.getItem(cardsIndex + cast(int)t[0]);
 				expanded[t[1]] = cItm.getExpanded();
 				foreach (i, et; (cast(C)cItm.getData()).trees) { mixin(S_TRACE);
-					etExpanded[et.eventTreeId] = cItm.getItem(cast(int)i).getExpanded();
+					etExpanded[et.objectId] = cItm.getItem(cast(int)i).getExpanded();
 				}
 			}
 			auto selItm = selection;
@@ -1996,7 +2143,7 @@ public:
 				foreach (et; c.trees) { mixin(S_TRACE);
 					auto eItm = .createTreeItem(cItm, et, et.name, etImage(et));
 					refreshFires(eItm);
-					eItm.setExpanded(etExpanded.get(et.eventTreeId, false));
+					eItm.setExpanded(etExpanded.get(et.objectId, false));
 				}
 				cItm.setExpanded(expanded.get(t[0], true));
 			}
@@ -2756,10 +2903,18 @@ public:
 	}
 	@property
 	bool canWriteComment() { mixin(S_TRACE);
-		return _etree.canWriteComment;
+		if (_cards.isFocusControl()) { mixin(S_TRACE);
+			return canWriteCommentL;
+		} else { mixin(S_TRACE);
+			return _etree.canWriteComment;
+		}
 	}
 	void writeComment() { mixin(S_TRACE);
-		_etree.writeComment();
+		if (_cards.isFocusControl()) { mixin(S_TRACE);
+			writeCommentL();
+		} else { mixin(S_TRACE);
+			_etree.writeComment();
+		}
 	}
 	@property
 	bool canStartToPackage() { mixin(S_TRACE);
@@ -3232,6 +3387,9 @@ public:
 				}
 				foreach (dlg; v._editDlgs.values) { mixin(S_TRACE);
 					if (dlg.eventTree is tree) dlg.forceCancel();
+				}
+				foreach (key; v._commentDlgs.keys) { mixin(S_TRACE);
+					if (tree.objectId == key) v._commentDlgs[key].forceCancel();
 				}
 			}
 			_comm.delEventTree.call(tree);

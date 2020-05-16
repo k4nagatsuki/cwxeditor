@@ -1605,7 +1605,7 @@ public:
 		dirsComp.setLayout(new FillLayout);
 		_dirs = new Tree(dirsComp, SWT.SINGLE | SWT.BORDER);
 		initTree(_comm, _dirs, false);
-		.treeWarning(_prop, _dirs, (itm) { mixin(S_TRACE);
+		.treeWarning(_prop, _dirs, false, (itm) { mixin(S_TRACE);
 			auto fno = cast(FileNameObj)itm.getData();
 			assert (fno !is null);
 			return .sjisWarnings(_prop.parent, _summ, fno.basename, _prop.msgs.dirName);

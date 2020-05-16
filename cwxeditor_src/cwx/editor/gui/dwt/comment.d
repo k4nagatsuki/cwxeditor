@@ -24,14 +24,6 @@ import org.eclipse.swt.all;
 
 import java.lang.all;
 
-string commentText(in CWXPath o, bool isEventView) { mixin(S_TRACE);
-	if (isEventView) { mixin(S_TRACE);
-		if (auto eto = cast(const EventTreeOwner)o) return eto.commentForEvents;
-	}
-	if (auto c = cast(const Commentable)o) return c.comment;
-	return "";
-}
-
 void setupComment(Commons comm, Table table, bool isEventView) { mixin(S_TRACE);
 	auto img = comm.prop.images.menu(MenuID.Comment);
 	auto ib = img.getBounds();
@@ -48,7 +40,7 @@ void setupComment(Commons comm, Table table, bool isEventView) { mixin(S_TRACE);
 			drawComment(isEventView, img, ib, itm, e.gc, drawing);
 		}
 	});
-	setupCommentToolTip(comm, table, isEventView, drawing);
+	setupCommentToolTip(comm, table, isEventView, drawing, pos => table.getItem(pos));
 }
 
 void setupComment(Commons comm, Tree tree, bool isEventView) {
@@ -74,10 +66,33 @@ void setupComment(Commons comm, Tree tree, bool isEventView) {
 			if (!recurse(itm)) break;
 		}
 	});
-	setupCommentToolTip(comm, tree, isEventView, drawing);
+	setupCommentToolTip(comm, tree, isEventView, drawing, (pos) { mixin(S_TRACE);
+		TreeItem curItm = null;
+		auto ca = tree.getClientArea();
+		bool recurse(TreeItem itm) { mixin(S_TRACE);
+			auto bounds = itm.getBounds();
+			if (bounds.y + bounds.height < ca.y) return true;
+			if (ca.y + ca.height <= bounds.y) return false;
+
+			if (bounds.y <= pos.y && pos.y < bounds.y + bounds.height) { mixin(S_TRACE);
+				curItm = itm;
+				return false;
+			}
+			if (!itm.getExpanded()) return true;
+			foreach (cItm; itm.getItems()) { mixin(S_TRACE);
+				if (!recurse(cItm)) break;
+			}
+			return true;
+		}
+		foreach (itm; tree.getItems()) { mixin(S_TRACE);
+			if (!recurse(itm)) break;
+		}
+		return curItm;
+	});
 }
 
-void setupComment(C)(Commons comm, CardList!C list) {
+void setupComment(C)(Commons comm, CardList!C list) { mixin(S_TRACE);
+	// TODO
 }
 
 private Point commentPos(Item)(Rectangle ib, Item itm) { mixin(S_TRACE);
@@ -99,7 +114,7 @@ private void drawComment(Item)(bool isEventView, Image img, Rectangle ib, Item i
 	gc.drawImage(img, pos.x, pos.y);
 }
 
-private void setupCommentToolTip(T, Item)(Commons comm, T table, bool isEventView, ref Item drawing) { mixin(S_TRACE);
+private void setupCommentToolTip(T, Item)(Commons comm, T table, bool isEventView, ref Item drawing, Item delegate(Point pos) hitTest) { mixin(S_TRACE);
 	auto img = comm.prop.images.menu(MenuID.Comment);
 	auto ib = img.getBounds();
 	ToolTip toolTip = null;
@@ -111,7 +126,7 @@ private void setupCommentToolTip(T, Item)(Commons comm, T table, bool isEventVie
 	void mouseMove() { mixin(S_TRACE);
 		auto curPos = display.getCursorLocation();
 		curPos = table.toControl(curPos);
-		auto itm = table.getItem(curPos);
+		auto itm = hitTest(curPos);
 		string comment;
 		if (itm) { mixin(S_TRACE);
 			comment = .commentText(cast(CWXPath)itm.getData(), isEventView);
@@ -122,7 +137,7 @@ private void setupCommentToolTip(T, Item)(Commons comm, T table, bool isEventVie
 		auto old = drawing;
 		Point pos = null;
 		if (itm) { mixin(S_TRACE);
-			pos = commentPos(ib, itm);
+			pos = .commentPos(ib, itm);
 			auto b = itm.getBounds();
 			if (pos.x <= curPos.x && curPos.x < pos.x + ib.width && pos.y <= curPos.y && curPos.y < pos.y + ib.height) { mixin(S_TRACE);
 				if (drawing is itm) return;
