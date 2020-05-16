@@ -5049,22 +5049,11 @@ void treeWarning(Props prop, Tree tree, bool isEventView, string[] delegate(Tree
 
 		auto ca = tree.getClientArea();
 
-		bool recurse(TreeItem itm) { mixin(S_TRACE);
-			auto bounds = itm.getBounds();
-			if (bounds.y + bounds.height < ca.y) return true;
-			if (ca.y + ca.height <= bounds.y) return false;
-
+		.procShowingTreeItem(tree, (itm) { mixin(S_TRACE);
 			auto warn = getWarning(itm);
 			if (warn.length) warningInfo ~= WarningInfo(itm, warn);
-			if (!itm.getExpanded()) return true;
-			foreach (cItm; itm.getItems()) { mixin(S_TRACE);
-				if (!recurse(cItm)) break;
-			}
 			return true;
-		}
-		foreach (itm; tree.getItems()) { mixin(S_TRACE);
-			if (!recurse(itm)) break;
-		}
+		});
 
 		if (!warningInfo.length) return;
 
@@ -5096,6 +5085,30 @@ void treeWarning(Props prop, Tree tree, bool isEventView, string[] delegate(Tree
 	}
 	.listener(tree, SWT.Paint, &paintTree);
 	.listener(tree, SWT.MouseMove, &updateToolTip);
+}
+
+/// 表示範囲内にあるTreeItemを処理する。
+void procShowingTreeItem(Tree tree, bool delegate(TreeItem itm) proc) { mixin(S_TRACE);
+	auto ca = tree.getClientArea();
+	bool recurse(TreeItem itm) { mixin(S_TRACE);
+		auto bounds = itm.getBounds();
+		if (ca.y + ca.height <= bounds.y) return false;
+		if (ca.y <= bounds.y + bounds.height) { mixin(S_TRACE);
+			if (!proc(itm)) return false;
+		}
+		if (itm.getExpanded()) { mixin(S_TRACE);
+			foreach (cItm; itm.getItems()) { mixin(S_TRACE);
+				if (!recurse(cItm)) return false;
+			}
+		}
+		return true;
+	}
+	auto top = tree.getTopItem();
+	if (!top) return;
+	top = topItem(top);
+	foreach (index; tree.indexOf(top) .. tree.getItemCount()) {
+		if (!recurse(tree.getItem(index))) break;
+	}
 }
 
 string commentText(in CWXPath o, bool isEventView) { mixin(S_TRACE);
