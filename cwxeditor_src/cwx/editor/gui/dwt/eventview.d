@@ -1065,7 +1065,9 @@ private:
 			} else if (auto et = cast(EventTree)obj) { mixin(S_TRACE);
 				et.comment = dlg.comment;
 			} else assert (0);
-			_cards.redraw();
+			foreach (v; views()) { mixin(S_TRACE);
+				v._cards.redraw();
+			}
 		};
 		_commentDlgs[obj.objectId] = dlg;
 		dlg.closeEvent ~= { mixin(S_TRACE);
