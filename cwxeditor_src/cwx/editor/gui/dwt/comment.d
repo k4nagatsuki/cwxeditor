@@ -51,44 +51,22 @@ void setupComment(Commons comm, Tree tree, bool isEventView) {
 	TreeItem drawing = null;
 	.listener(tree, SWT.Paint, (e) { mixin(S_TRACE);
 		auto ca = tree.getClientArea();
-		bool recurse(TreeItem itm) { mixin(S_TRACE);
-			auto bounds = itm.getBounds();
-			if (bounds.y + bounds.height < ca.y) return true;
-			if (ca.y + ca.height <= bounds.y) return false;
-
+		.procShowingTreeItem(tree, (itm) { mixin(S_TRACE);
 			drawComment(isEventView, img, ib, itm, e.gc, drawing);
-
-			if (!itm.getExpanded()) return true;
-			foreach (cItm; itm.getItems()) { mixin(S_TRACE);
-				if (!recurse(cItm)) break;
-			}
 			return true;
-		}
-		foreach (itm; tree.getItems()) { mixin(S_TRACE);
-			if (!recurse(itm)) break;
-		}
+		});
 	});
 	.setupCommentToolTip!(Tree, TreeItem)(comm, tree, isEventView, drawing, (pos) { mixin(S_TRACE);
 		TreeItem curItm = null;
 		auto ca = tree.getClientArea();
-		bool recurse(TreeItem itm) { mixin(S_TRACE);
+		.procShowingTreeItem(tree, (itm) { mixin(S_TRACE);
 			auto bounds = itm.getBounds();
-			if (bounds.y + bounds.height < ca.y) return true;
-			if (ca.y + ca.height <= bounds.y) return false;
-
 			if (bounds.y <= pos.y && pos.y < bounds.y + bounds.height) { mixin(S_TRACE);
 				curItm = itm;
 				return false;
 			}
-			if (!itm.getExpanded()) return true;
-			foreach (cItm; itm.getItems()) { mixin(S_TRACE);
-				if (!recurse(cItm)) break;
-			}
 			return true;
-		}
-		foreach (itm; tree.getItems()) { mixin(S_TRACE);
-			if (!recurse(itm)) break;
-		}
+		});
 		return curItm;
 	}, itm => .commentPos(ib, itm));
 }
@@ -152,7 +130,7 @@ private void setupCommentToolTip(T, Item)(Commons comm, T table, bool isEventVie
 	auto ib = img.getBounds();
 	ToolTip toolTip = null;
 	.listener(table, SWT.Dispose, { mixin(S_TRACE);
-		if (toolTip) toolTip.dispose();
+		if (toolTip && !toolTip.isDisposed()) toolTip.dispose();
 		toolTip = null;
 	});
 	auto display = table.getDisplay();
@@ -185,32 +163,38 @@ private void setupCommentToolTip(T, Item)(Commons comm, T table, bool isEventVie
 			table.redraw(dp.x, dp.y, ib.width, ib.height, false);
 		}
 		if (drawing) { mixin(S_TRACE);
-			if (!toolTip) { mixin(S_TRACE);
+			if (toolTip && !toolTip.isDisposed() && toolTip.getParent() !is table.getShell()) { mixin(S_TRACE);
+				toolTip.dispose();
+			}
+			if (!toolTip || toolTip.isDisposed()) { mixin(S_TRACE);
+				auto create = toolTip is null;
 				toolTip = new ToolTip(table.getShell(), SWT.BALLOON);
 				toolTip.setAutoHide(false);
 
-				auto track = new class Runnable {
-					override void run() { mixin(S_TRACE);
-						if (table.isDisposed()) return;
-						if (!toolTip) return;
-						if (!toolTip.isVisible()) return;
-						mouseMove();
-					}
-				};
-				auto thr = new core.thread.Thread({ mixin(S_TRACE);
-					while (toolTip) { mixin(S_TRACE);
-						core.thread.Thread.sleep(.dur!"msecs"(100));
-						display.asyncExec(track);
-					}
-				});
-				thr.start();
+				if (create) { mixin(S_TRACE);
+					auto track = new class Runnable {
+						override void run() { mixin(S_TRACE);
+							if (table.isDisposed()) return;
+							if (!toolTip) return;
+							if (!toolTip.isDisposed() && !toolTip.isVisible()) return;
+							mouseMove();
+						}
+					};
+					auto thr = new core.thread.Thread({ mixin(S_TRACE);
+						while (toolTip) { mixin(S_TRACE);
+							core.thread.Thread.sleep(.dur!"msecs"(100));
+							display.asyncExec(track);
+						}
+					});
+					thr.start();
+				}
 			}
 			toolTip.setMessage(comment);
 			auto p = table.toDisplay(pos);
 			toolTip.setLocation(p.x + ib.x + 5.ppis + ib.width / 2, p.y + ib.height / 2);
 			toolTip.setVisible(true);
 			table.redraw(pos.x, pos.y, ib.width, ib.height, false);
-		} else if (toolTip) { mixin(S_TRACE);
+		} else if (toolTip && !toolTip.isDisposed()) { mixin(S_TRACE);
 			toolTip.setVisible(false);
 		}
 	}
