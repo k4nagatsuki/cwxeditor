@@ -7,6 +7,7 @@ import cwx.event;
 import cwx.menu;
 import cwx.motion;
 import cwx.path;
+import cwx.props;
 import cwx.skin;
 import cwx.structs;
 import cwx.summary;
@@ -288,7 +289,7 @@ private:
 	const
 	Card createFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
 		if (node.name == CastCard.XML_NAME) { mixin(S_TRACE);
-			return CastCard.createFromNode(node, ver);
+			return CastCard.createFromNode(_prop.parent, node, ver);
 		} else if (node.name == SkillCard.XML_NAME) { mixin(S_TRACE);
 			return SkillCard.createFromNode(node, ver);
 		} else if (node.name == ItemCard.XML_NAME) { mixin(S_TRACE);
