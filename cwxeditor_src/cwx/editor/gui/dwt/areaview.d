@@ -4475,7 +4475,7 @@ public:
 			dlg.appliedEvent ~= { mixin(S_TRACE);
 				_undo ~= new UndoEdit(this, _comm, _area, _summ, [index], []);
 				card.comment = dlg.comment;
-				_cards.redraw();
+				foreach (v; views()) v._cards.redraw();
 			};
 			void refMenuCard(string cwxPath) { mixin(S_TRACE);
 				if (!.cpeq(_area.cwxPath(true), .cpparent(cwxPath))) return;
@@ -4852,7 +4852,7 @@ public:
 			dlg.appliedEvent ~= { mixin(S_TRACE);
 				_undo ~= new UndoEdit(this, _comm, _area, _summ, [], [index]);
 				back.comment = dlg.comment;
-				_backs.redraw();
+				foreach (v; views()) v._backs.redraw();
 			};
 			void refBgImage(string cwxPath) { mixin(S_TRACE);
 				if (!.cpeq(_area.cwxPath(true), .cpparent(cwxPath))) return;
