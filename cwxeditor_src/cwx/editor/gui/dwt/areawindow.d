@@ -143,6 +143,7 @@ public:
 		putMenuAction(MenuID.Refresh, &refresh, null);
 		putMenuAction(MenuID.EditProp, &edit, &canEdit);
 		putMenuAction(MenuID.SelectConnectedResource, &selectConnectedResource, &canSelectConnectedResource);
+		putMenuAction(MenuID.Comment, &_aview.writeComment, &_aview.canWriteComment);
 
 		void closeAdds(Summary summ) { mixin(S_TRACE);
 			if (_summ is summ) _comm.close(_win);

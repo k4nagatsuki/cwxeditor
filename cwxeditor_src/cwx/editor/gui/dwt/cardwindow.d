@@ -349,6 +349,7 @@ public:
 			if (_ownerType is OwnerType.Cast) { mixin(S_TRACE);
 				putMenuAction(MenuID.RemoveRef, &removeRef, &canRemoveRef);
 			}
+			putMenuAction(MenuID.Comment, &writeComment, &canWriteComment);
 		} else { mixin(S_TRACE);
 			appendMenuTCPD(_comm, this, this, false, true, false, false, false);
 			putMenuAction(MenuID.ShowProp, &edit, &canEdit);
@@ -1000,6 +1001,16 @@ public:
 	bool canRemoveRef() { mixin(S_TRACE);
 		assert (editMode);
 		return selectPane!(bool, "canRemoveRef", false)();
+	}
+
+	void writeComment() { mixin(S_TRACE);
+		assert (editMode);
+		selectPane!(void, "writeComment")();
+	}
+	@property
+	bool canWriteComment() { mixin(S_TRACE);
+		assert (editMode);
+		return selectPane!(bool, "canWriteComment")();
 	}
 
 	void editEvent(bool canDuplicate = false) { mixin(S_TRACE);

@@ -267,13 +267,24 @@ void loadComment(Summary summ) { mixin(S_TRACE);
 		node.onTag["comment"] = (ref XNode node) { mixin(S_TRACE);
 			string path = node.attr("path", false, INVALID_CWX_PATH);
 			if (INVALID_CWX_PATH == path) return;
-			auto ct = cast(Content)summ.findCWXPath(path);
-			if (!ct) return;
-			// BUG: 2.10以前のバグで\rが混在する可能性があるため置換
-			auto c = node.value.replace("\r\n", "\n").replace("\r", "");
-			if (c != "") { mixin(S_TRACE);
-				if (ct.comment.strip() != "") ct.comment = ct.comment ~ "\n";
-				ct.comment = ct.comment ~ c;
+			auto forEvents = node.attr("event", false, false);
+			if (forEvents) { mixin(S_TRACE);
+				auto eto = cast(EventTreeOwner)summ.findCWXPath(path);
+				if (!eto) return;
+				auto c = node.value;
+				if (c != "") { mixin(S_TRACE);
+					if (eto.commentForEvents.strip() != "") eto.commentForEvents = eto.commentForEvents ~ "\n";
+					eto.commentForEvents = eto.commentForEvents ~ c;
+				}
+			} else { mixin(S_TRACE);
+				auto ct = cast(Commentable)summ.findCWXPath(path);
+				if (!ct) return;
+				// BUG: 2.10以前のバグで\rが混在する可能性があるため置換
+				auto c = node.value.replace("\r\n", "\n").replace("\r", "");
+				if (c != "") { mixin(S_TRACE);
+					if (ct.comment.strip() != "") ct.comment = ct.comment ~ "\n";
+					ct.comment = ct.comment ~ c;
+				}
 			}
 		};
 		node.parse();
@@ -3165,7 +3176,9 @@ bool isDebugYado(const CProps prop, string yadoDir) { mixin(S_TRACE);
 	return type == 2;
 }
 
-struct SData {
+alias Tuple!(string, "path", bool, "event") CommentKey;
+
+private struct SData {
 	const CProps prop;
 	string sPath;
 	const Skin skin;
@@ -3175,7 +3188,7 @@ struct SData {
 	ItemCard delegate(ulong) item;
 	BeastCard delegate(ulong) beast;
 	const(SaveOption) opt;
-	string[string] comment;
+	string[CommentKey] comment;
 	string[string] imageRef;
 	ulong[string] cardRef;
 	uint[string] maxNest;
@@ -3348,9 +3361,10 @@ string saveComment(in SData d) { mixin(S_TRACE);
 	if (!d.comment.length) return "";
 	auto node = XNode.create("comments");
 	node.newAttr("dataVersion", 1);
-	foreach (cwxPath; std.algorithm.sort(d.comment.keys)) { mixin(S_TRACE);
-		auto e = node.newElement("comment", d.comment[cwxPath]);
-		e.newAttr("path", cwxPath);
+	foreach (t; std.algorithm.sort(d.comment.keys)) { mixin(S_TRACE);
+		auto e = node.newElement("comment", d.comment[t]);
+		e.newAttr("path", t.path);
+		if (t.event) e.newAttr("event", t.event);
 	}
 	return node.text;
 }
@@ -3406,13 +3420,20 @@ void putExData(ref SData d, CWXPath cp) { mixin(S_TRACE);
 		if (auto summ = cast(Summary)cp) { mixin(S_TRACE);
 			auto paths = summ.imagePaths;
 			if (paths.length) putInnerImagePath(d, cp, paths[0]);
-		} else if (auto m = cast(Motion)cp) { mixin(S_TRACE);
+		}
+		if (auto m = cast(Motion)cp) { mixin(S_TRACE);
 			if (Motion.maxNest_init != m.maxNest) { mixin(S_TRACE);
 				d.maxNest[m.cwxPath(true)] = m.maxNest;
 			}
-		} else if (auto e = cast(Content)cp) { mixin(S_TRACE);
+		}
+		if (auto e = cast(Commentable)cp) { mixin(S_TRACE);
 			if (e.comment.length) { mixin(S_TRACE);
-				d.comment[e.cwxPath(true)] = e.comment;
+				d.comment[CommentKey(cp.cwxPath(true), false)] = e.comment;
+			}
+		}
+		if (auto e = cast(EventTreeOwner)cp) { mixin(S_TRACE);
+			if (e.commentForEvents.length) { mixin(S_TRACE);
+				d.comment[CommentKey(cp.cwxPath(true), true)] = e.commentForEvents;
 			}
 		} else if (auto c = cast(Card)cp) { mixin(S_TRACE);
 			auto paths = c.paths;
@@ -3427,9 +3448,11 @@ void putExData(ref SData d, CWXPath cp) { mixin(S_TRACE);
 		if (children.length == 1) { mixin(S_TRACE);
 			// 再帰回避
 			cp = children[0];
+			if (cast(PlayerCardEvents)cp) break;
 			continue;
 		}
 		foreach (child; children) { mixin(S_TRACE);
+			if (cast(PlayerCardEvents)child) continue;
 			putExData(d, child);
 		}
 		break;
@@ -3803,6 +3826,19 @@ private void writeStrings(ref ByteIO f, string[] strs) { mixin(S_TRACE);
 	}
 }
 
+private void writeComments(ref SData d, CWXPath path) { mixin(S_TRACE);
+	if (auto c = cast(Commentable)path) { mixin(S_TRACE);
+		if (c.comment.length) { mixin(S_TRACE);
+			d.comment[CommentKey(path.cwxPath(true), false)] = c.comment;
+		}
+	}
+	if (auto eto = cast(EventTreeOwner)path) { mixin(S_TRACE);
+		if (eto.commentForEvents.length) { mixin(S_TRACE);
+			d.comment[CommentKey(path.cwxPath(true), true)] = eto.commentForEvents;
+		}
+	}
+}
+
 private void writeSummary(ref SData d, ref ByteIO f, Summary summ) { mixin(S_TRACE);
 	auto paths = summ.imagePaths;
 	writeImage(d, f, summ, paths.length && paths[0].type is CardImageType.File ? paths[0].path : "");
@@ -3816,6 +3852,7 @@ private void writeSummary(ref SData d, ref ByteIO f, Summary summ) { mixin(S_TRA
 		auto steps = summ.flagDirRoot.allSteps;
 		f.writeL(cast(uint)steps.length);
 		void putStep(Step step) { mixin(S_TRACE);
+			writeComments(d, step);
 			writeString(f, step.path);
 			f.writeL((step.select < 10u) ? cast(uint)step.select : (10u - 1u));
 			for (uint i = 0u; i < 10u; i++) { mixin(S_TRACE);
@@ -3830,6 +3867,7 @@ private void writeSummary(ref SData d, ref ByteIO f, Summary summ) { mixin(S_TRA
 		auto flags = summ.flagDirRoot.allFlags;
 		f.writeL(cast(uint)flags.length);
 		void putFlag(Flag flag) { mixin(S_TRACE);
+			writeComments(d, flag);
 			writeString(f, flag.path);
 			writeBool(f, flag.onOff);
 			writeString(f, flag.on);
@@ -3864,6 +3902,7 @@ private void writeSummary(ref SData d, ref ByteIO f, Summary summ) { mixin(S_TRA
 		auto steps = summ.flagDirRoot.allSteps;
 		f.writeExUInt(cast(uint)steps.length);
 		void putStepEx(Step step) { mixin(S_TRACE);
+			writeComments(d, step);
 			writeExString(f, step.path);
 			ubyte type = 1;
 			if (step.expandSPChars) { mixin(S_TRACE);
@@ -3891,6 +3930,7 @@ private void writeSummary(ref SData d, ref ByteIO f, Summary summ) { mixin(S_TRA
 		auto flags = summ.flagDirRoot.allFlags;
 		f.writeExUInt(cast(uint)flags.length);
 		void putFlagEx(Flag flag) { mixin(S_TRACE);
+			writeComments(d, flag);
 			writeExString(f, flag.path);
 			writeBool(f, flag.onOff);
 			writeExString(f, flag.on);
@@ -3902,6 +3942,7 @@ private void writeSummary(ref SData d, ref ByteIO f, Summary summ) { mixin(S_TRA
 	}
 }
 private void writeMotion(ref SData d, ref ByteIO f, Motion m) { mixin(S_TRACE);
+	writeComments(d, m);
 	byte tType;
 	byte type;
 	switch (m.type) {
@@ -4226,9 +4267,7 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 		f.write(type);
 		string name = e2.name;
 		writeString(f, name);
-		if (e2.comment.length) { mixin(S_TRACE);
-			d.comment[e2.cwxPath(true)] = e2.comment;
-		}
+		writeComments(d, e2);
 		lazys ~= e2;
 		if (e2.detail.owner && e2.next.length) { mixin(S_TRACE);
 			if (d.opt.dataVersion < 7) { mixin(S_TRACE);
@@ -4979,6 +5018,7 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 	}
 }
 private void writeCEventTree(ref SData d, ref ByteIO f, EventTree tree) { mixin(S_TRACE);
+	writeComments(d, tree);
 	if (d.opt.dataVersion < 7) { mixin(S_TRACE);
 		f.writeL(cast(uint)tree.starts.length);
 	} else { mixin(S_TRACE);
@@ -4989,6 +5029,7 @@ private void writeCEventTree(ref SData d, ref ByteIO f, EventTree tree) { mixin(
 	}
 }
 private void writeEventTree(ref SData d, ref ByteIO f, EventTree tree) { mixin(S_TRACE);
+	writeComments(d, tree);
 	int[] igs;
 	if (tree.fireEnter) igs ~= 1;
 	if (tree.fireEscape) igs ~= 2;
@@ -5032,6 +5073,7 @@ private void writeEventTree(ref SData d, ref ByteIO f, EventTree tree) { mixin(S
 	}
 }
 private void writeBgImage(ref SData d, ref ByteIO f, BgImage b) { mixin(S_TRACE);
+	writeComments(d, b);
 	if (d.opt.dataVersion < 7) { mixin(S_TRACE);
 		auto ic = cast(ImageCell)b;
 		if (ic) { mixin(S_TRACE);
@@ -5254,6 +5296,7 @@ BgImage[] convInheritCellsW(BgImage[] cells) { mixin(S_TRACE);
 }
 
 private void writeArea(ref SData d, ref ByteIO f, Area a) { mixin(S_TRACE);
+	writeComments(d, a);
 	if (d.opt.dataVersion < 7) { mixin(S_TRACE);
 		f.writeL(cast(byte)0x0);
 		f.writeL(cast(uint)0x0);
@@ -5266,6 +5309,7 @@ private void writeArea(ref SData d, ref ByteIO f, Area a) { mixin(S_TRACE);
 		writeBool(f, !a.spAuto);
 		f.writeL(cast(uint)a.cards.length);
 		foreach (c; a.cards) { mixin(S_TRACE);
+			writeComments(d, c);
 			f.writeL(cast(byte)0x0);
 			bool saveBinImg;
 			auto paths = c.paths;
@@ -5313,6 +5357,7 @@ private void writeArea(ref SData d, ref ByteIO f, Area a) { mixin(S_TRACE);
 		writeBool(f, !a.spAuto);
 		f.writeExUInt(cast(uint)a.cards.length);
 		foreach (c; a.cards) { mixin(S_TRACE);
+			writeComments(d, c);
 			f.write(cast(ubyte)0x80); // 不明(0x80)
 			f.write(cast(ubyte)d.opt.dataVersion); // バージョン情報？(0x07)
 			f.write(cast(ubyte)0); // 不明(0)
@@ -5370,6 +5415,7 @@ private void writeArea(ref SData d, ref ByteIO f, Area a) { mixin(S_TRACE);
 	}
 }
 private void writeBattle(ref SData d, ref ByteIO f, Battle a) { mixin(S_TRACE);
+	writeComments(d, a);
 	if (d.opt.dataVersion < 7) { mixin(S_TRACE);
 		f.writeL(cast(byte)0x1);
 		f.writeL(cast(uint)0x0);
@@ -5382,6 +5428,7 @@ private void writeBattle(ref SData d, ref ByteIO f, Battle a) { mixin(S_TRACE);
 		writeBool(f, !a.spAuto);
 		f.writeL(cast(uint)a.cards.length);
 		foreach (c; a.cards) { mixin(S_TRACE);
+			writeComments(d, c);
 			f.writeL(cast(uint)c.id);
 			f.writeL(cast(uint)c.trees.length);
 			foreach (tree; c.trees) { mixin(S_TRACE);
@@ -5407,6 +5454,7 @@ private void writeBattle(ref SData d, ref ByteIO f, Battle a) { mixin(S_TRACE);
 		writeBool(f, !a.spAuto);
 		f.writeExUInt(cast(uint)a.cards.length);
 		foreach (c; a.cards) { mixin(S_TRACE);
+			writeComments(d, c);
 			f.writeExUInt(cast(uint)c.id);
 			f.writeL(cast(uint)c.trees.length);
 			foreach (tree; c.trees) { mixin(S_TRACE);
@@ -5438,6 +5486,7 @@ private void writeBattle(ref SData d, ref ByteIO f, Battle a) { mixin(S_TRACE);
 	}
 }
 private void writePackage(ref SData d, ref ByteIO f, Package a) { mixin(S_TRACE);
+	writeComments(d, a);
 	if (d.opt.dataVersion < 7) { mixin(S_TRACE);
 		f.writeL(cast(uint)0x4);
 		writeString(f, a.name);
@@ -5454,6 +5503,7 @@ private void writePackage(ref SData d, ref ByteIO f, Package a) { mixin(S_TRACE)
 	}
 }
 private void writeCast(ref SData d, ref ByteIO f, CastCard c) { mixin(S_TRACE);
+	writeComments(d, c);
 	Coupon[] coupons;
 	bool[string] cSet;
 	foreach (cc; c.coupons) { mixin(S_TRACE);
@@ -5605,6 +5655,7 @@ private void writeCast(ref SData d, ref ByteIO f, CastCard c) { mixin(S_TRACE);
 	}
 }
 private void writeEffCard(ref SData d, ref ByteIO f, EffectCard c, byte type, ulong id) { mixin(S_TRACE);
+	writeComments(d, c);
 	if (d.opt.dataVersion < 7) { mixin(S_TRACE);
 		f.write(type);
 		auto paths = c.paths;
@@ -5756,6 +5807,7 @@ private void writeBeast(ref SData d, ref ByteIO f, BeastCard c) { mixin(S_TRACE)
 	}
 }
 private void writeInfo(ref SData d, ref ByteIO f, InfoCard c) { mixin(S_TRACE);
+	writeComments(d, c);
 	if (d.opt.dataVersion < 7) { mixin(S_TRACE);
 		f.writeL(cast(byte)0x4);
 		auto paths = c.paths;

@@ -9,7 +9,7 @@ import cwx.editor.gui.dwt.dprops;
 
 import core.thread;
 
-import std.algorithm : countUntil, max, min, each;
+import std.algorithm : countUntil, map, max, min, each;
 import std.algorithm.sorting : sort;
 import std.array;
 import std.conv;
@@ -793,6 +793,19 @@ public:
 	Rectangle getTitleBounds(int index) { mixin(S_TRACE);
 		return _items[index].titleBounds();
 	}
+
+	C[] showingCards() { mixin(S_TRACE);
+		if (_showingStartIndex == -1) return [];
+		assert (_showingEndIndex != -1);
+		return .map!(itm => cast(C)itm.getData())(_items[_showingStartIndex .. _showingEndIndex]).array();
+	}
+	@property
+	const
+	int showingStartIndex() { return _showingStartIndex; }
+	@property
+	const
+	int showingEndIndex() { return _showingEndIndex; }
+
 private:
 	void refreshToolTip() { mixin(S_TRACE);
 		if (_createToolTip) { mixin(S_TRACE);
@@ -867,6 +880,8 @@ private:
 	}
 	GC repaint(GC gc, Image canvas) { mixin(S_TRACE);
 		if (_items.length == 0) return gc;
+		_showingStartIndex = -1;
+		_showingEndIndex = -1;
 		auto rect = getClientArea();
 		int w = rect.width;
 		int index, iy, ix;
@@ -894,7 +909,12 @@ private:
 				auto itm = _items[index];
 				itm.x = x;
 				itm.y = y;
-				if (!(getStyle() | SWT.VIRTUAL) || (y < rect.y + rect.height && rect.y <= y + _itmH)) { mixin(S_TRACE);
+				auto inRect = y < rect.y + rect.height && rect.y <= y + _itmH;
+				if (inRect) { mixin(S_TRACE);
+					if (_showingStartIndex == -1) _showingStartIndex = index;
+					_showingEndIndex = index + 1;
+				}
+				if (!(getStyle() | SWT.VIRTUAL) || inRect) { mixin(S_TRACE);
 					if (gc) { mixin(S_TRACE);
 						itm.createImage();
 						auto image = itm.getImage();
@@ -1131,6 +1151,8 @@ private:
 	bool _dragging = false;
 	bool _shift = false;
 	bool _ctrl = false;
+	int _showingStartIndex = -1;
+	int _showingEndIndex = -1;
 
 	// 範囲選択周り
 	ulong _frame = 0;

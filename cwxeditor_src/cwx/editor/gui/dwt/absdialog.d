@@ -228,6 +228,8 @@ abstract class AbsDialog {
 	bool catchMod() { return !ignoreMod; }
 
 	protected Shell getShell() { return _win; }
+	void title(string title) { _win.setText(title); }
+
 	private Button _okBtn;
 	private bool _applied = false;
 	private Button _apply = null;

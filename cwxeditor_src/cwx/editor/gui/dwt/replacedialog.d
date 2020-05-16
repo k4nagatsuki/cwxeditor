@@ -517,6 +517,37 @@ private:
 			itm.setText(1, .text(use));
 		}
 	}
+	class AddResultComment : AddResult {
+		CWXPath parent;
+		CWXPath path;
+		string cwxPath;
+		string comment;
+		size_t count = 0;
+		Summary grepSumm;
+		void run() { mixin(S_TRACE);
+			if (cancel) return;
+			if (!_win || _win.isDisposed()) return;
+			refResultStatus(cast(int)count, false);
+			_results ~= this;
+			if (_prop.var.etc.searchResultRealtime) _result.setItemCount(cast(int)_results.length);
+		}
+		override void setData(TableItem itm) { mixin(S_TRACE);
+			string text1, text2;
+			Image img1, img2;
+			getPathParams(grepSumm, parent, path, text1, text2, img1, img2);
+			itm.setImage(0, _prop.images.menu(MenuID.Comment));
+			itm.setText(0, .tryFormat(_prop.msgs.commentText, comment.replace("\n", "")));
+			itm.setImage(1, img1);
+			itm.setText(1, text1);
+			string scPath = null;
+			if (grepSumm) { mixin(S_TRACE);
+				scPath = grepSumm.readOnlyPath != "" ? grepSumm.readOnlyPath : grepSumm.useTemp ? grepSumm.origZipName : grepSumm.scenarioPath;
+				itm.setText(2, .tryFormat(_prop.msgs.grepScenario, grepSumm.scenarioName, scPath));
+				itm.setImage(2, _prop.images.summary);
+			}
+			itm.setData(new CWXPathString(scPath, parent, grepSumm ? null : path, cwxPath));
+		}
+	}
 	Display _display;
 
 	class ML : MouseAdapter {
@@ -3830,6 +3861,24 @@ public:
 		ignoreMod = true;
 		scope (exit) ignoreMod = oldIgnoreMod;
 		size_t dmy = 0;
+		auto commentable = cast(Commentable)c;
+		if (_commentSel && commentable) { mixin(S_TRACE);
+			Undo[] uArr;
+			auto r = repl(parent, null, "", commentable.comment, &commentable.comment, count, uArr);
+			if (r) { mixin(S_TRACE);
+				if (_replMode) store(parent, c, icwxPath, uArr);
+				addResultComment(parent, c, icwxPath, count, commentable.comment);
+			}
+		}
+		auto eto = cast(EventTreeOwner)c;
+		if (_commentSel && eto) { mixin(S_TRACE);
+			Undo[] uArr;
+			auto r = repl(parent, null, "", eto.commentForEvents, &eto.commentForEvents, count, uArr);
+			if (r) { mixin(S_TRACE);
+				if (_replMode) store(parent, c, icwxPath, uArr);
+				addResultComment(parent, c, icwxPath, count, eto.commentForEvents);
+			}
+		}
 		auto summ = cast(Summary)c;
 		if (summ) { mixin(S_TRACE);
 			bool sr = false;
@@ -4617,6 +4666,18 @@ public:
 		addResultUse.count = count;
 		_display.syncExec(addResultUse);
 	}
+	private void addResultComment(CWXPath parent, CWXPath path, string cwxPath, ref size_t count, string comment) { mixin(S_TRACE);
+		if (cancel) return;
+		count++;
+		auto add = new AddResultComment;
+		add.grepSumm = _grepSumm;
+		add.parent = parent;
+		add.path = path;
+		add.comment = comment;
+		add.count = count;
+		_display.syncExec(add);
+	}
+
 	private bool repl(CWXPath parent, CWXPath path, string cwxPath, string text, void delegate(string) set, ref size_t count, ref Undo[] uArr, bool storeToArr = false, bool isVariablePath = false) { mixin(S_TRACE);
 		auto isLocal = isVariablePath && _prop.sys.isLocalVariable(text);
 		auto origText = text;
@@ -5193,9 +5254,6 @@ public:
 		}
 		if (_expressionSel) { mixin(S_TRACE);
 			if (d.use(CArg.Expression)) r |= repl(parent, null, "", e.expression, &e.expression, count, uArr2);
-		}
-		if (_commentSel) { mixin(S_TRACE);
-			r |= repl(parent, null, "", e.comment, &e.comment, count, uArr2);
 		}
 		if (r) { mixin(S_TRACE);
 			if (_replMode) { mixin(S_TRACE);

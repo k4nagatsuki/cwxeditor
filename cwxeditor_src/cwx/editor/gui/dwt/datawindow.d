@@ -161,6 +161,7 @@ public:
 			putMenuAction(MenuID.NewVariant, &createVariant, &canCreateVariant);
 			putMenuAction(MenuID.EditProp, &_flags.edit, &_flags.canEdit);
 			putMenuAction(MenuID.CopyVariablePath, &_flags.copyVariablePath, &_flags.canCopyVariablePath);
+			putMenuAction(MenuID.Comment, &_flags.flags.writeComment, &_flags.flags.canWriteComment);
 		}
 		putMenuAction(MenuID.ChangeVH, &changeVHSide, &canChangeVH);
 		putMenuAction(MenuID.Undo, &undo, &canUndo);

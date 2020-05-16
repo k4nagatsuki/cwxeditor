@@ -1,15 +1,18 @@
 
 module cwx.motion;
 
-import cwx.perf;
-import cwx.types;
 import cwx.card;
-import cwx.usecounter;
-import cwx.xml;
+import cwx.event;
 import cwx.path;
+import cwx.perf;
 import cwx.system;
+import cwx.types;
+import cwx.usecounter;
+import cwx.utils;
+import cwx.xml;
 
 import std.algorithm;
+import std.conv;
 
 private bool static_this_completed = false;
 private void static_this () { mixin(S_TRACE);
@@ -186,8 +189,10 @@ interface MotionOwner : CWXPath {
 }
 
 /// 効果クラス。
-class Motion : CWXPath, BeastOwner {
+class Motion : CWXPath, BeastOwner, Commentable, ObjectId {
 private:
+	string _objId;
+
 	MType _type;
 
 	UseCounter _uc = null;
@@ -204,18 +209,31 @@ private:
 	BeastCard _beast = null;
 	uint _maxNest = maxNest_init;
 
+	string _comment = "";
+
 	MotionOwner _owner = null;
 public:
 	static const XML_NAME = "Motion";
 
 	/// 唯一のコンストラクタ。
 	this (MType type, Element el) { mixin(S_TRACE);
+		static ulong idCount = 0;
+		_objId = typeid(typeof(this)).stringof ~ "-" ~ .objectIDValue(this) ~ "-" ~ to!string(idCount);
+		idCount++;
+
 		_type = type;
 		_el = el;
 		if (type == MType.GetSkillPower || type == MType.LoseSkillPower) { mixin(S_TRACE);
 			_dtyp = DamageType.Max;
 		}
 	}
+
+	/// イベントツリーのID。
+	@property
+	const
+	override
+	string objectId() { return _objId; }
+
 	/// 効果の種類。
 	@property
 	const
@@ -261,6 +279,7 @@ public:
 	const
 	Motion dup() { mixin(S_TRACE);
 		auto r = new Motion(type, element);
+		r._objId = _objId;
 		r.damageType = damageType;
 		r.uValue = uValue;
 		r.aValue = aValue;
@@ -269,6 +288,7 @@ public:
 		if (_beast) { mixin(S_TRACE);
 			r.newBeast = _beast.dup;
 		}
+		r.comment = comment;
 		return r;
 	}
 	override
@@ -282,6 +302,7 @@ public:
 		if (m.aValue != aValue) return false;
 		if (m.round != round) return false;
 		if (m.maxNest != maxNest) return false;
+		if (m.comment != comment) return false;
 		if (_beast) { mixin(S_TRACE);
 			if (m._beast) { mixin(S_TRACE);
 				return _beast == m._beast;
@@ -439,6 +460,18 @@ public:
 	/// ditto
 	static immutable maxNest_max = 999;
 
+	@property
+	const
+	override
+	string comment() { return _comment; }
+	@property
+	override
+	void comment(string v) { mixin(S_TRACE);
+		if (_comment == v) return;
+		changed();
+		_comment = v;
+	}
+
 	override void changed() { mixin(S_TRACE);
 		if (_change) _change();
 	}
@@ -468,6 +501,7 @@ public:
 		auto d = detail;
 		e.newAttr("type", d.name);
 		e.newAttr("element", fromElement(element));
+		if (comment != "") e.newAttr("comment", comment);
 		if (d.use(MArg.ValueType)) e.newAttr(d.attr(MArg.ValueType), fromDamageType(damageType));
 		if (d.use(MArg.UValue)) e.newAttr(d.attr(MArg.UValue), uValue);
 		if (d.use(MArg.AValue)) e.newAttr(d.attr(MArg.AValue), aValue);
@@ -507,6 +541,7 @@ public:
 		auto type = MTYPE_MAP[node.attr("type", true)];
 		auto d = MOTION_DETAILS[type];
 		auto r = new Motion(type, toElement(node.attr("element", true)));
+		r.comment = node.attr("comment", false, "");
 		if (d.use(MArg.ValueType)) r.damageType = toDamageType(node.attr(d.attr(MArg.ValueType), true));
 		if (d.use(MArg.UValue)) r.uValue = node.attr!(uint)(d.attr(MArg.UValue), true);
 		if (d.use(MArg.AValue)) r.aValue = node.attr!(int)(d.attr(MArg.AValue), true);

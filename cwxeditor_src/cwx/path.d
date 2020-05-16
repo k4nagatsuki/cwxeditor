@@ -35,6 +35,17 @@ interface CWXPath {
 	void changed();
 }
 
+/// コメントをつけられるオブジェクトである事を示す。
+interface Commentable {
+	/// 専らシナリオ作者が参考のために記すコメント。
+	@property
+	const
+	string comment();
+	/// ditto
+	@property
+	void comment(string v);
+}
+
 /// カテゴリを比較するための値を返す。
 private int cpTypeValue(string cate) { mixin(S_TRACE);
 	switch (cate) {

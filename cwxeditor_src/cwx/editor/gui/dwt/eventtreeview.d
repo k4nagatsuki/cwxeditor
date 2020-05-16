@@ -2277,8 +2277,8 @@ public:
 			_comm.refreshToolBar();
 		}
 	}
-	void removeStoredLine(string eventTreeId) { mixin(S_TRACE);
-		if (_tree.editor) _tree.editor.removeStoredLine(eventTreeId);
+	void removeStoredLine(string objectId) { mixin(S_TRACE);
+		if (_tree.editor) _tree.editor.removeStoredLine(objectId);
 	}
 	@property
 	bool canEditSelection() { mixin(S_TRACE);

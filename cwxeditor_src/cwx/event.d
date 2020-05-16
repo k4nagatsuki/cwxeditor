@@ -541,7 +541,7 @@ public:
 }
 
 class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHolder, IStartUser,
-		CouponsOwner, ChgAreaCallback, ChgBattleCallback, ChgCouponCallback {
+		CouponsOwner, ChgAreaCallback, ChgBattleCallback, ChgCouponCallback, Commentable {
 	private EventTree _tree = null;
 
 	/// 型と後続テキストnameを指定してインスタンスを生成。
@@ -1427,14 +1427,13 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		}
 	}
 
-	/// 専らシナリオ作者が参考のために記すコンテントのコメント。
 	private string _comment = "";
-	/// ditto
 	@property
 	const
+	override
 	string comment() { return _comment; }
-	/// ditto
 	@property
+	override
 	void comment(string v) { mixin(S_TRACE);
 		if (_comment == v) return;
 		changed();
@@ -3371,10 +3370,16 @@ private struct FKeyCodeU {
 	}
 }
 
+interface ObjectId {
+	@property
+	const
+	string objectId();
+}
+
 /// イベントツリー。発火条件と実行するイベント群を持つ。
-public class EventTree : CWXPath {
+public class EventTree : CWXPath, Commentable, ObjectId {
 private:
-	string _id;
+	string _objId;
 
 	EventTreeOwner _owner;
 
@@ -3397,10 +3402,12 @@ private:
 	SUseCounter _suc;
 	void delegate() _change = null;
 
+	string _comment;
+
 	this () { mixin(S_TRACE);
 		_suc = new SUseCounter;
 		static ulong idCount = 0;
-		_id = .objectIDValue(this) ~ "-" ~ to!string(idCount);
+		_objId = typeid(typeof(this)).stringof ~ "-" ~ .objectIDValue(this) ~ "-" ~ to!string(idCount);
 		idCount++;
 	}
 public:
@@ -3439,7 +3446,8 @@ public:
 	/// イベントツリーのID。
 	@property
 	const
-	string eventTreeId() { return _id; }
+	override
+	string objectId() { return _objId; }
 
 	/// このツリーの所有者。
 	@property
@@ -3451,7 +3459,7 @@ public:
 	const
 	EventTree dup() { mixin(S_TRACE);
 		auto copy = new EventTree;
-		copy._id = _id;
+		copy._objId = _objId;
 		copy.enter = fireEnter;
 		copy.escape = fireEscape;
 		copy.lose = fireLose;
@@ -3464,6 +3472,7 @@ public:
 		foreach (s; starts) { mixin(S_TRACE);
 			copy.add(s.dup);
 		}
+		copy.comment = comment;
 		return copy;
 	}
 	/// baseの発火条件を現在の発火条件に上書きする。
@@ -3492,6 +3501,7 @@ public:
 			&& rounds == c.rounds
 			&& keyCodes == c.keyCodes
 			&& keyCodeMatchingType == c.keyCodeMatchingType
+			&& comment == c.comment
 			&& starts == c.starts;
 	}
 
@@ -4004,6 +4014,18 @@ public:
 		return _keyCodeMatchingType;
 	}
 
+	@property
+	const
+	override
+	string comment() { return _comment; }
+	@property
+	override
+	void comment(string v) { mixin(S_TRACE);
+		if (_comment == v) return;
+		changed();
+		_comment = v;
+	}
+
 	/// イベントツリーをXMLテキストにする。
 	const
 	string toXML(XMLOption opt) { mixin(S_TRACE);
@@ -4026,6 +4048,7 @@ public:
 	const
 	private void toNodeImpl(ref XNode node, XMLOption opt) { mixin(S_TRACE);
 		assert (node.name == "Event", node.name ~ " != Event");
+		if (comment != "") node.newAttr("comment", comment);
 		if (_enter || _escape || _lose || _everyRound || _roundEnd || _round0 || _rounds.length > 0 || _keyCodes.length > 0) { mixin(S_TRACE);
 			auto ig = node.newElement("Ignitions");
 			if (MatchingType.Or !is keyCodeMatchingType) { mixin(S_TRACE);
@@ -4072,6 +4095,7 @@ public:
 	static EventTree createFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
 		assert (node.name == "Event", node.name ~ " != Event");
 		auto r = new EventTree;
+		r.comment = node.attr("comment", false, "");
 		node.onTag["Contents"] = (ref XNode node) { mixin(S_TRACE);
 			Content.createContentsFromNode(node, ver, (c) => r.add(c));
 		};
@@ -4281,6 +4305,14 @@ public interface EventTreeOwner : CWXPath {
 	@property
 	const
 	bool isEmpty();
+
+	/// イベントツリーに対するコメント。
+	@property
+	const
+	string commentForEvents();
+	/// ditto
+	@property
+	void commentForEvents(string comment);
 }
 
 /// EventTreeOwnerの仮の実装。
@@ -4290,6 +4322,7 @@ private:
 	UseCounter _uc;
 	CWXPath _ucOwner;
 	void delegate() _change;
+	string _commentForEvents;
 public:
 	@property
 	override abstract size_t[] areaPath();
@@ -4318,6 +4351,7 @@ public:
 		EventTree[] evts;
 		foreach (tree; owner.trees) evts ~= tree.dup;
 		addAll(evts);
+		commentForEvents = owner.commentForEvents;
 	}
 
 	/// 使用回数カウンタ。
@@ -4474,7 +4508,7 @@ public:
 	}
 
 	/// XMLノードからイベントツリーを読み出して返す。
-	static EventTree[] loadEventsFromNode(XNode node, in XMLInfo ver) { mixin(S_TRACE);
+	static EventTree[] loadEventsFromNode(XNode node, out string commentForEvents, in XMLInfo ver) { mixin(S_TRACE);
 		assert (node.name == "Events");
 		EventTree[] r;
 		node.onTag["Event"] = (ref XNode node) { mixin(S_TRACE);
@@ -4482,12 +4516,14 @@ public:
 			if (tree) r ~= tree;
 		};
 		node.parse();
+		commentForEvents = node.attr("comment", false, "");
 		return r;
 	}
 	/// XMLノードにイベントツリー群のデータを追加する。
 	const
 	void appendEventsToNode(ref XNode node, XMLOption opt) { mixin(S_TRACE);
 		auto ee = node.newElement("Events");
+		if (commentForEvents != "") ee.newAttr("comment", commentForEvents);
 		foreach (evt; _evts) { mixin(S_TRACE);
 			evt.toNode(ee, opt);
 		}
@@ -4500,6 +4536,16 @@ public:
 			if (!tree.isEmpty) return false;
 		}
 		return true;
+	}
+
+	@property
+	const
+	string commentForEvents() { return _commentForEvents; }
+	@property
+	void commentForEvents(string comment) { mixin(S_TRACE);
+		if (comment == _commentForEvents) return;
+		changed();
+		_commentForEvents = comment;
 	}
 }
 

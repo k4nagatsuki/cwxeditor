@@ -313,6 +313,7 @@ class Msgs : Properties {
 	auto emptyText = Msg("emptyText", "空文字列");
 	auto emptyPath = Msg("emptyPath", "空のパス");
 	auto idValue = Msg("idValue", "ID:%1$sの%2$s");
+	auto commentText = Msg("commentText", "コメント [ %1$s ]");
 	auto searchCancel = Msg("searchCancel", "キャンセル(&C)");
 	auto searchResultEmpty = Msg("searchResultEmpty", "0件の検索結果");
 	auto searchResult = Msg("searchResult", "%1$s件の検索結果(%2$s)");
@@ -1927,6 +1928,7 @@ class Msgs : Properties {
 	auto comparison3FalseNameGt = Msg("comparison3FalseNameGt", "以上");
 
 	auto dlgTitComment = Msg("dlgTitComment", "コメントの記述");
+	auto dlgTitCommentWith = Msg("dlgTitCommentWith", "[ %1$s ] へのコメント");
 
 	/// カードウィンドウ。
 	auto cardTabName = Msg("cardTabName", "%1$s");

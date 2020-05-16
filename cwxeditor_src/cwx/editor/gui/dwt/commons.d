@@ -577,7 +577,7 @@ class Commons {
 	}
 	private Control _lastFocusEditor = null;
 	@property
-	Control lastFocusEditor() { return _lastFocusEditor; }
+	Control lastFocusEditor() { return _lastFocusEditor && !_lastFocusEditor.isDisposed() ? _lastFocusEditor : null; }
 
 	void refreshToolBar() { mixin(S_TRACE);
 		refreshToolBar(null);

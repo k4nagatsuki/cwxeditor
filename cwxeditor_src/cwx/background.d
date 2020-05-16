@@ -892,7 +892,7 @@ public:
 	}
 }
 
-public abstract class BgImage : CWXPath {
+public abstract class BgImage : CWXPath, Commentable {
 private:
 	bool _mask = false;
 	int _x, _y;
@@ -901,6 +901,7 @@ private:
 	CellNameUser _cellName;
 	int _layer = LAYER_BACK_CELL;
 	void delegate() _change;
+	string _comment;
 public:
 	/// XML要素名(複数)。
 	static immutable XML_NAME_M = "BgImages";
@@ -927,7 +928,8 @@ public:
 			&& height == b.height
 			&& mask == b.mask
 			&& cellName == b.cellName
-			&& layer == b.layer;
+			&& layer == b.layer
+			&& comment == b.comment;
 	}
 
 	/// bの内容をコピーする。
@@ -940,6 +942,7 @@ public:
 		mask = b.mask;
 		cellName = b.cellName;
 		layer = b.layer;
+		comment = b.comment;
 	}
 
 	/// この背景画像を簡単に表現した名前を返す。
@@ -964,6 +967,7 @@ public:
 		cell.mask = mask;
 		cell.cellName = cellName;
 		cell.layer = layer;
+		cell.comment = comment;
 	}
 
 	/// 変更ハンドラを登録する。
@@ -1090,6 +1094,18 @@ public:
 	void layer(int v) { mixin(S_TRACE);
 		if (_layer != v) changed();
 		_layer = v;
+	}
+
+	@property
+	const
+	override
+	string comment() { return _comment; }
+	@property
+	override
+	void comment(string v) { mixin(S_TRACE);
+		if (_comment == v) return;
+		changed();
+		_comment = v;
 	}
 
 	/// この背景と強く関係するファイルパスを返す。

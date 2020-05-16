@@ -382,7 +382,7 @@ public:
 }
 
 /// エリア等に属さない独立したカードの親クラス。
-abstract class Card : CWXPath {
+abstract class Card : CWXPath, Commentable, ObjectId {
 private:
 	ulong _id;
 	string _objId;
@@ -393,6 +393,7 @@ private:
 	CardImage[] _paths;
 	UseCounter _useCounter = null;
 	CWXPath _ucOwner = null;
+	string _comment;
 public:
 	/// 唯一のコンストラクタ。
 	/// Params:
@@ -402,7 +403,9 @@ public:
 	/// desc = 解説。
 	this (ulong id, string name, in CardImage[] paths, string desc) { mixin(S_TRACE);
 		static ulong idCount = 0;
-		_objId = .objectIDValue(this) ~ "-" ~ .to!string(idCount);
+		_objId = typeid(typeof(this)).stringof ~ "-" ~ .objectIDValue(this) ~ "-" ~ .to!string(idCount);
+		idCount++;
+
 		_id = id;
 		_name = name;
 		_desc = desc;
@@ -414,6 +417,7 @@ public:
 		name = c.name;
 		desc = c.desc;
 		paths = c.paths;
+		comment = c.comment;
 	}
 
 	/// インスタンスごとにユニークなID。
@@ -432,6 +436,7 @@ public:
 		auto c = cast(const Card) o;
 		if (!c) return false;
 		return id == c.id
+			&& comment == c.comment
 			&& equalsExcludeIdCard(c);
 	}
 	/// ID以外を比較する。
@@ -573,6 +578,18 @@ public:
 		_desc = desc;
 	}
 
+	@property
+	const
+	override
+	string comment() { return _comment; }
+	@property
+	override
+	void comment(string v) { mixin(S_TRACE);
+		if (_comment == v) return;
+		changed();
+		_comment = v;
+	}
+
 	/// nodeからID情報を抽出する。存在しない場合は0。
 	static ulong readId(ref XNode node) { mixin(S_TRACE);
 		auto pNode = node.child("Property", false);
@@ -582,9 +599,10 @@ public:
 		return to!(ulong)(idStr);
 	}
 	/// nodeからID、参照先ID、ホールド情報を抽出する。存在しない場合は0。
-	private static ulong readLinkInfo(ref XNode node, out ulong linkId, out bool hold) { mixin(S_TRACE);
+	private static ulong readLinkInfo(ref XNode node, out ulong linkId, out bool hold, out string comment) { mixin(S_TRACE);
 		auto pNode = node.child("Property", false);
 		if (!pNode.valid) return 0UL;
+		comment = node.attr("comment", false, "");
 		ulong id = 0UL;
 		linkId = 0UL;
 		hold = false;
@@ -609,6 +627,7 @@ public:
 	/// 指定されたXMLノードにProperty情報を追加する。
 	const
 	protected XNode setProp(ref XNode node, XMLOption opt, in OverData od = null) { mixin(S_TRACE);
+		if (comment != "") node.newAttr("comment", comment);
 		auto pNode = node.newElement("Property");
 		pNode.newElement("Id", od && od.id != 0UL ? od.id : id);
 		pNode.newElement("Name", name);
@@ -617,7 +636,8 @@ public:
 		return pNode;
 	}
 	/// 指定されたXMLノードからProperty情報を読み出す。
-	protected void loadProp(ref XNode pNode, in XMLInfo ver, bool loadId = true) { mixin(S_TRACE);
+	protected void loadProp(ref XNode node, ref XNode pNode, in XMLInfo ver, bool loadId = true) { mixin(S_TRACE);
+		comment = node.attr("comment", false, "");
 		string idStr = null;
 		if (loadId) { mixin(S_TRACE);
 			pNode.onTag["Id"] = (ref XNode n) { idStr = n.value; };
@@ -919,7 +939,7 @@ public:
 		changed();
 		_levelCoefficient = value;
 	}
-	/// １レベル毎のEP獲得量。
+	/// 1レベル毎のEP獲得量。
 	@property
 	const
 	uint epPerLevel() { return _epPerLevel; }
@@ -1375,7 +1395,7 @@ public:
 				};
 				n.parse();
 			};
-			r.loadProp(pNode, ver);
+			r.loadProp(cNode, pNode, ver);
 			r.coupons = coupons;
 		};
 
@@ -1989,10 +2009,19 @@ public:
 	override void remove(EventTree et) { return _ceto.remove(et); }
 	override void swapEventTree(size_t index1, size_t index2) { return _ceto.swapEventTree(index1, index2); }
 
+	@property
+	override
+	const
+	string commentForEvents() { return _ceto.commentForEvents; }
+	@property
+	override
+	void commentForEvents(string comment) { _ceto.commentForEvents = comment; }
+
 	/// 指定されたXMLノードに効果カード関連の情報を追加する。
 	const
 	protected XNode setEffProp(ref XNode node, XMLOption opt, in OverData od = null) { mixin(S_TRACE);
 		if (0 != linkId && (!opt || !opt.includeCard)) { mixin(S_TRACE);
+			if (comment != "") node.newAttr("comment", comment);
 			auto pNode = node.newElement("Property");
 			pNode.newElement("Id", od && od.id != 0UL ? od.id : id);
 			pNode.newElement("LinkId", od && od.linkId != 0UL ? od.linkId : linkId);
@@ -2070,7 +2099,7 @@ public:
 		pNode.onTag["KeyCodes"] = (ref XNode n) { keyCodes = decodeLf(n.value, true); };
 		pNode.onTag["Premium"] = (ref XNode n) { _premi = toPremium(n.value); };
 		_flagDirRoot.fromXmlNode(node, ver, false);
-		loadProp(pNode, ver, loadId);
+		loadProp(node, pNode, ver, loadId);
 	}
 	/// ditto
 	protected void loadEffV(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
@@ -2083,7 +2112,9 @@ public:
 			_muser.motions = motions;
 		};
 		node.onTag["Events"] = (ref XNode n) { mixin(S_TRACE);
-			_ceto.addAll(AbstractEventTreeOwner.loadEventsFromNode(n, ver));
+			string comment;
+			_ceto.addAll(AbstractEventTreeOwner.loadEventsFromNode(n, comment, ver));
+			_ceto.commentForEvents = comment;
 		};
 		node.parse();
 	}
@@ -2167,14 +2198,14 @@ public:
 	bool opEquals(Object o) { mixin(S_TRACE);
 		auto c = cast(const SkillCard) o;
 		if (!c) return false;
-		if (0 != linkId) return linkId == c.linkId && hold == c.hold;
+		if (0 != linkId) return linkId == c.linkId && hold == c.hold && comment == c.comment;
 		return eqImpl(c) && super.opEquals(o);
 	}
 	/// ID以外を比較する。
 	const
 	bool equalsExcludeId(const(SkillCard) c) { mixin(S_TRACE);
 		if (!c) return false;
-		if (0 != linkId) return linkId == c.linkId && hold == c.hold;
+		if (0 != linkId) return linkId == c.linkId && hold == c.hold && comment == c.comment;
 		return eqImpl(c) && super.equalsExcludeIdEffect(c);
 	}
 	const
@@ -2300,11 +2331,13 @@ public:
 		auto r = new SkillCard(ver.sys, 0, "", [], "");
 		ulong id = 0UL, linkId = 0UL;
 		bool hold = false;
-		id = readLinkInfo(cNode, linkId, hold);
+		string comment = "";
+		id = readLinkInfo(cNode, linkId, hold, comment);
 		if (0 != linkId) { mixin(S_TRACE);
 			r.id = id;
 			r.linkId = linkId;
 			r.hold = hold;
+			r.comment = comment;
 			return r;
 		}
 		cNode.onTag["Property"] = (ref XNode pNode) { mixin(S_TRACE);
@@ -2403,14 +2436,14 @@ public:
 	bool opEquals(Object o) { mixin(S_TRACE);
 		auto c = cast(const ItemCard) o;
 		if (!c) return false;
-		if (0 != linkId) return linkId == c.linkId && hold == c.hold;
+		if (0 != linkId) return linkId == c.linkId && hold == c.hold && comment == c.comment;
 		return eqImpl(c) && super.opEquals(o);
 	}
 	/// ID以外を比較する。
 	const
 	bool equalsExcludeId(const(ItemCard) c) { mixin(S_TRACE);
 		if (!c) return false;
-		if (0 != linkId) return linkId == c.linkId && hold == c.hold;
+		if (0 != linkId) return linkId == c.linkId && hold == c.hold && comment == c.comment;
 		return eqImpl(c) && super.equalsExcludeIdEffect(c);
 	}
 	const
@@ -2566,11 +2599,13 @@ public:
 		auto r = new ItemCard(ver.sys, 0, "", [], "");
 		ulong id = 0UL, linkId = 0UL;
 		bool hold = false;
-		id = readLinkInfo(cNode, linkId, hold);
+		string comment = "";
+		id = readLinkInfo(cNode, linkId, hold, comment);
 		if (0 != linkId) { mixin(S_TRACE);
 			r.id = id;
 			r.linkId = linkId;
 			r.hold = hold;
+			r.comment = comment;
 			return r;
 		}
 		cNode.onTag["Property"] = (ref XNode pNode) { mixin(S_TRACE);
@@ -2669,14 +2704,14 @@ public:
 	bool opEquals(Object o) { mixin(S_TRACE);
 		auto c = cast(const BeastCard) o;
 		if (!c) return false;
-		if (0 != linkId) return linkId == c.linkId;
+		if (0 != linkId) return linkId == c.linkId && comment == c.comment;
 		return eqImpl(c) && super.opEquals(o);
 	}
 	/// ID以外を比較する。
 	const
 	bool equalsExcludeId(const(BeastCard) c) { mixin(S_TRACE);
 		if (!c) return false;
-		if (0 != linkId) return linkId == c.linkId;
+		if (0 != linkId) return linkId == c.linkId && comment == c.comment;
 		return eqImpl(c) && super.equalsExcludeIdEffect(c);
 	}
 	const
@@ -2855,10 +2890,12 @@ public:
 		auto r = new BeastCard(ver.sys, 0, "", [], "");
 		ulong id = 0UL, linkId = 0UL;
 		bool hold = false;
-		id = readLinkInfo(cNode, linkId, hold);
+		string comment = "";
+		id = readLinkInfo(cNode, linkId, hold, comment);
 		if (0 != linkId) { mixin(S_TRACE);
 			r.id = id;
 			r.linkId = linkId;
+			r.comment = comment;
 			return r;
 		}
 		cNode.onTag["Property"] = (ref XNode pNode) { mixin(S_TRACE);
@@ -2995,7 +3032,7 @@ public:
 		if (cNode.name != XML_NAME) throw new CardException("Node is not info card: " ~ cNode.name);
 		auto r = new InfoCard(0, "", [], "");
 		cNode.onTag["Property"] = (ref XNode node) { mixin(S_TRACE);
-			r.loadProp(node, ver);
+			r.loadProp(cNode, node, ver);
 		};
 		cNode.parse();
 		return r;
