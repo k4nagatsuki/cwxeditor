@@ -28,6 +28,7 @@ import cwx.editor.gui.dwt.areaviewutils;
 import cwx.editor.gui.dwt.areawindow;
 import cwx.editor.gui.dwt.bgimagedialog;
 import cwx.editor.gui.dwt.centerlayout;
+import cwx.editor.gui.dwt.comment;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.dmenu;
@@ -620,12 +621,7 @@ private:
 				C[int] cs;
 				foreach (i; indices) { mixin(S_TRACE);
 					auto c = area.cards[i];
-					static if (is(C == MenuCard)) {
-						c = new C(c.name, c.expandSPChars, c.paths, c.desc, c.flag, c.x, c.y, c.scale, c.layer, c.cardGroup, c.animationSpeed);
-					} else static if (is(C == EnemyCard)) {
-						c = new C(c.id, c.actions, c.flag, c.x, c.y, c.scale, c.layer, c.cardGroup, c.animationSpeed,
-							c.isOverrideName, c.overrideName, c.isOverrideImage, c.overrideImages);
-					} else static assert (0);
+					c = c.shallowCopy;
 					if (area.useCounter) c.setUseCounter(area.useCounter.sub, area);
 					cs[i] = c;
 				}
@@ -653,22 +649,7 @@ private:
 				foreach (i, c; _cs) { mixin(S_TRACE);
 					c.removeUseCounter();
 					auto ac = area.cards[i];
-					static if (is(C == MenuCard)) {
-						ac.name = c.name;
-						ac.paths = c.paths;
-						ac.desc = c.desc;
-						ac.flag = c.flag;
-						ac.x = c.x;
-						ac.y = c.y;
-						ac.scale = c.scale;
-					} else static if (is(C == EnemyCard)) {
-						ac.id = c.id;
-						ac.actions = c.actions;
-						ac.flag = c.flag;
-						ac.x = c.x;
-						ac.y = c.y;
-						ac.scale = c.scale;
-					} else static assert (0);
+					ac.shallowCopyFrom(c);
 					if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
 						comm.refMenuCard.call(ac.cwxPath(true));
 					}
@@ -857,6 +838,11 @@ private:
 		C[PileImage] _cardTbl;
 		int[C] _editC;
 		Table _cards;
+		static if (is(C:MenuCard)) {
+			TableTextEdit _cardEdit = null;
+		} else static if (is(C:EnemyCard)) {
+			TableComboEdit!Combo _cardEdit = null;
+		} else static assert (0);
 		MenuItem _vfcMenu;
 		ToolItem _vfcTMenu;
 		MenuItem _vcMenu;
@@ -963,6 +949,7 @@ private:
 		bool _fixedFirstB = true;
 		bool _viewBacks = true;
 		BgImage[PileImage] _backTbl;
+		TableComboEdit!Combo _backEdit = null;
 		int[BgImage] _editB;
 		Table _backs;
 		CLabel _inheritBgImgs = null;
@@ -2814,6 +2801,12 @@ private:
 					createMenuItem(_comm, menu, MenuID.NewColorCell, &createColorCell, () => !_readOnly);
 					createMenuItem(_comm, menu, MenuID.NewPCCell, &createPCCell, () => !_readOnly && !(_summ && _summ.legacy));
 				}
+				new MenuItem(menu, SWT.SEPARATOR);
+				static if (is(C:MenuCard) || is(C:EnemyCard)) {
+					createMenuItem(_comm, menu, MenuID.Comment, &writeCommentC, &canWriteCommentC);
+				} else {
+					createMenuItem(_comm, menu, MenuID.Comment, &writeCommentB, &canWriteCommentB);
+				}
 			}
 			new MenuItem(menu, SWT.SEPARATOR);
 			appendMenuTCPD(_comm, menu, tcpd, !_readOnly, true, !_readOnly, !_readOnly, !_readOnly);
@@ -2867,6 +2860,7 @@ private:
 				_inheritBgImgs.setLayoutData(ibd);
 			}
 		}
+		auto ib = _comm.prop.images.menu(MenuID.Comment).getBounds();
 		.listener(list, SWT.Paint, (e) { mixin(S_TRACE);
 			if (_prop.var.etc.showItemNumberOfSceneAndEventView) { mixin(S_TRACE);
 				auto count = list.getItemCount();
@@ -2883,11 +2877,13 @@ private:
 					auto s = .text(i + 1);
 					auto te = e.gc.wTextExtent(s);
 					auto x = cw - 5.ppis - te.x;
+					if (.commentText(cast(CWXPath)itm.getData(), false) != "") x -= ib.width + 5.ppis;
 					auto y = b.y + (b.height - te.y) / 2;
 					e.gc.wDrawText(s, x, y, true);
 				}
 			}
 		});
+		.setupComment(_comm, list, false);
 		return list;
 	}
 	static if (is(C:EnemyCard)) {
@@ -3303,12 +3299,18 @@ public:
 						foreach (dlg; _editDlgsC.values) { mixin(S_TRACE);
 							dlg.forceCancel();
 						}
+						foreach (dlg; _commentDlgsC.values) { mixin(S_TRACE);
+							dlg.forceCancel();
+						}
 					}
 					static if (UseBacks) {
 						_comm.refPreviewValues.remove(&refreshTextCell);
 						_comm.refFlagAndStep.remove(&refreshTextCellF);
 						_comm.refDataVersion.remove(&refreshTextCell);
 						foreach (dlg; _editDlgsB.values) { mixin(S_TRACE);
+							dlg.forceCancel();
+						}
+						foreach (dlg; _commentDlgsB.values) { mixin(S_TRACE);
 							dlg.forceCancel();
 						}
 					}
@@ -3409,7 +3411,7 @@ public:
 					_cards = createList(listsP, prop.msgs.menuCards,
 						prop.images.cards, ctcpd, &editCard, () => _area.cards, &selectAllC);
 					if (!_readOnly) { mixin(S_TRACE);
-							new TableTextEdit(_comm, _prop, _cards, 0, &nameEditEnd, null, (itm, editC) { mixin(S_TRACE);
+							_cardEdit = new TableTextEdit(_comm, _prop, _cards, 0, &nameEditEnd, null, (itm, editC) { mixin(S_TRACE);
 								auto card = cast(MenuCard)itm.getData();
 								auto t = createTextEditor(_comm, _prop, _cards, card.name);
 								if (card.expandSPChars) { mixin(S_TRACE);
@@ -3433,7 +3435,7 @@ public:
 					_cards = createList(listsP, prop.msgs.enemyCards,
 						prop.images.cards, ctcpd, &editCard, () => _area.cards, &selectAllC);
 					if (!_readOnly) { mixin(S_TRACE);
-						new TableComboEdit!Combo(_comm, _prop, _cards, 0, &createEnemyCombo, &enemyEditEnd, (itm, column) => 0 < _summ.casts.length, &enemyIncSearch);
+						_cardEdit = new TableComboEdit!Combo(_comm, _prop, _cards, 0, &createEnemyCombo, &enemyEditEnd, (itm, column) => 0 < _summ.casts.length, &enemyIncSearch);
 					}
 				}
 				auto scl = new SCListener;
@@ -3458,7 +3460,7 @@ public:
 				_backs.addSelectionListener(sbl);
 				_backs.addMouseListener(sbl);
 				if (!_readOnly) { mixin(S_TRACE);
-					new TableComboEdit!Combo(_comm, _prop, _backs, 0, &createBgImageCombo, &bgImageEditEnd, &bgImageCanEdit, &bgImageIncSearch);
+					_backEdit = new TableComboEdit!Combo(_comm, _prop, _backs, 0, &createBgImageCombo, &bgImageEditEnd, &bgImageCanEdit, &bgImageIncSearch);
 					auto backDrop = new DropTarget(_backs, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_LINK);
 					backDrop.setTransfer([cast(Transfer)FileTransfer.getInstance(), XMLBytesTransfer.getInstance()]);
 					backDrop.addDropListener(new BLDropTarget);
@@ -3988,6 +3990,8 @@ public:
 			} else { mixin(S_TRACE);
 				auto p = area.cards[index] in v._editDlgsC;
 				if (p) p.forceCancel();
+				auto p2 = area.cards[index] in v._commentDlgsC;
+				if (p2) p2.forceCancel();
 			}
 		}
 		private void removeCardRange(int fromIndex, int toIndex) { mixin(S_TRACE);
@@ -3999,6 +4003,8 @@ public:
 				} else { mixin(S_TRACE);
 					auto p = _area.cards[i] in _editDlgsC;
 					if (p) p.forceCancel();
+					auto p2 = _area.cards[i] in _commentDlgsC;
+					if (p2) p2.forceCancel();
 				}
 			}
 		}
@@ -4011,6 +4017,8 @@ public:
 			} else { mixin(S_TRACE);
 				auto p = area.backs[index] in v._editDlgsB;
 				if (p) p.forceCancel();
+				auto p2 = area.backs[index] in v._commentDlgsB;
+				if (p2) p2.forceCancel();
 			}
 		}
 		private void removeBackRange(int fromIndex, int toIndex) { mixin(S_TRACE);
@@ -4022,6 +4030,8 @@ public:
 				} else { mixin(S_TRACE);
 					auto p = _area.backs[i] in _editDlgsB;
 					if (p) p.forceCancel();
+					auto p2 = _area.backs[i] in _commentDlgsB;
+					if (p2) p2.forceCancel();
 				}
 			}
 		}
@@ -4438,6 +4448,57 @@ public:
 		bool isViewCards() { mixin(S_TRACE);
 			return _viewCards;
 		}
+
+		CommentDialog[C] _commentDlgsC;
+		@property
+		bool canWriteCommentC() { mixin(S_TRACE);
+			if (_readOnly) return false;
+			return _cards.getSelectionIndex() != -1;
+		}
+		void writeCommentC() { mixin(S_TRACE);
+			if (_readOnly) return;
+			auto sels = _cards.getSelectionIndices();
+			if (!sels.length) return;
+			if (_cardEdit) _cardEdit.enter();
+			foreach (index; sels) writeCommentBImpl(index);
+		}
+		void writeCommentBImpl(int index) { mixin(S_TRACE);
+			auto card = cast(C)_cards.getItem(index).getData();
+			assert (card !is null);
+			auto p = card in _commentDlgsC;
+			if (p) { mixin(S_TRACE);
+				p.active();
+				return;
+			}
+			auto dlg = new CommentDialog(_comm, _cards.getShell(), card.comment);
+			dlg.title = .tryFormat(prop.msgs.dlgTitCommentWith, cardNameWithGroup(card));
+			dlg.appliedEvent ~= { mixin(S_TRACE);
+				_undo ~= new UndoEdit(this, _comm, _area, _summ, [index], []);
+				card.comment = dlg.comment;
+				_cards.redraw();
+			};
+			void refMenuCard(string cwxPath) { mixin(S_TRACE);
+				if (!.cpeq(_area.cwxPath(true), .cpparent(cwxPath))) return;
+				auto i = .cpindex(.cpbottom(cwxPath));
+				if (_area.cards[i] !is card) return;
+				dlg.title = .tryFormat(prop.msgs.dlgTitCommentWith, cardNameWithGroup(card));
+			}
+			void delMenuCard(string cwxPath) { mixin(S_TRACE);
+				if (!.cpeq(_area.cwxPath(true), .cpparent(cwxPath))) return;
+				auto i = .cpindex(.cpbottom(cwxPath));
+				if (_area.cards[i] !is card) return;
+				dlg.forceCancel();
+			}
+			_commentDlgsC[card] = dlg;
+			_comm.refMenuCard.add(&refMenuCard);
+			_comm.delMenuCard.add(&delMenuCard);
+			dlg.closeEvent ~= { mixin(S_TRACE);
+				_commentDlgsC.remove(card);
+				_comm.refMenuCard.remove(&refMenuCard);
+				_comm.delMenuCard.remove(&delMenuCard);
+			};
+			dlg.open();
+		}
 	}
 	PImg createCardImage(PImg, C2)(in C2 card, bool smoothing) { mixin(S_TRACE);
 		static if (is(C2 : MenuCard) || is(C2 : const MenuCard)) {
@@ -4759,6 +4820,58 @@ public:
 		bool isViewBacks() { mixin(S_TRACE);
 			return _viewBacks;
 		}
+
+		CommentDialog[BgImage] _commentDlgsB;
+		@property
+		bool canWriteCommentB() { mixin(S_TRACE);
+			if (_readOnly) return false;
+			return _backs.getSelectionIndex() != -1;
+		}
+		void writeCommentB() { mixin(S_TRACE);
+			if (_readOnly) return;
+			auto sels = _backs.getSelectionIndices();
+			if (!sels.length) return;
+			if (_backEdit) _backEdit.enter();
+			foreach (index; sels) writeCommentCImpl(index);
+		}
+		void writeCommentCImpl(int index) { mixin(S_TRACE);
+			auto back = cast(BgImage)_backs.getItem(index).getData();
+			assert (back !is null);
+			auto p = back in _commentDlgsB;
+			if (p) { mixin(S_TRACE);
+				p.active();
+				return;
+			}
+			auto dlg = new CommentDialog(_comm, _backs.getShell(), back.comment);
+			dlg.title = .tryFormat(prop.msgs.dlgTitCommentWith, back.name(_comm.prop.parent));
+			dlg.appliedEvent ~= { mixin(S_TRACE);
+				_undo ~= new UndoEdit(this, _comm, _area, _summ, [], [index]);
+				back.comment = dlg.comment;
+				_backs.redraw();
+			};
+			void refBgImage(string cwxPath) { mixin(S_TRACE);
+				if (!.cpeq(_area.cwxPath(true), .cpparent(cwxPath))) return;
+				auto i = .cpindex(.cpbottom(cwxPath));
+				if (_area.backs[i] !is back) return;
+				dlg.title = .tryFormat(prop.msgs.dlgTitCommentWith, back.name(_comm.prop.parent));
+			}
+			void delBgImage(string cwxPath) { mixin(S_TRACE);
+				if (!.cpeq(_area.cwxPath(true), .cpparent(cwxPath))) return;
+				auto i = .cpindex(.cpbottom(cwxPath));
+				if (_area.backs[i] !is back) return;
+				dlg.forceCancel();
+			}
+			_commentDlgsB[back] = dlg;
+			_comm.refBgImage.add(&refBgImage);
+			_comm.delBgImage.add(&delBgImage);
+			dlg.closeEvent ~= { mixin(S_TRACE);
+				_commentDlgsB.remove(back);
+				_comm.refBgImage.remove(&refBgImage);
+				_comm.delBgImage.remove(&delBgImage);
+			};
+			dlg.open();
+		}
+
 		void refreshTextCellF(cwx.flag.Flag[] flags, Step[] steps, cwx.flag.Variant[] variants) { mixin(S_TRACE);
 			refreshTextCell();
 		}

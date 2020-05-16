@@ -38,6 +38,8 @@ void setupComment(Commons comm, Table table, bool isEventView) { mixin(S_TRACE);
 	TableItem drawing = null;
 	.listener(table, SWT.Paint, (e) { mixin(S_TRACE);
 		auto ca = table.getClientArea();
+		ca.width = 0;
+		foreach (col; table.getColumns()) ca.width += col.getWidth();
 		auto count = table.getItemCount();
 		for (auto index = table.getTopIndex(); index < count; index++) { mixin(S_TRACE);
 			auto itm = table.getItem(index);
@@ -81,8 +83,12 @@ void setupComment(C)(Commons comm, CardList!C list) {
 private Point commentPos(Item)(Rectangle ib, Item itm) { mixin(S_TRACE);
 	auto table = itm.getParent();
 	auto ca = table.getClientArea();
+	static if (is(Item:TableItem)) {
+		ca.width = 0;
+		foreach (col; table.getColumns()) ca.width += col.getWidth();
+	}
 	auto b = itm.getBounds();
-	return new Point(ca.x + ca.width - ib.width - 1, b.y + (b.height - ib.height) / 2);
+	return new Point(ca.x + ca.width - ib.width - 5.ppis, b.y + (b.height - ib.height) / 2);
 }
 
 private void drawComment(Item)(bool isEventView, Image img, Rectangle ib, Item itm, GC gc, ref Item drawing) { mixin(S_TRACE);
@@ -138,7 +144,7 @@ private void setupCommentToolTip(T, Item)(Commons comm, T table, bool isEventVie
 			}
 			toolTip.setMessage(comment);
 			auto p = table.toDisplay(pos);
-			toolTip.setLocation(p.x + ib.x + 1 + ib.width / 2, p.y + ib.height / 2);
+			toolTip.setLocation(p.x + ib.x + 5.ppis + ib.width / 2, p.y + ib.height / 2);
 			toolTip.setVisible(true);
 			table.redraw(pos.x, pos.y, ib.width, ib.height, false);
 

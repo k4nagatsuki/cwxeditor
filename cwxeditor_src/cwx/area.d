@@ -112,6 +112,21 @@ public:
 	@property
 	const
 	AbstractSpCard dup();
+	/// イベント以外のコピーを返す。
+	@property
+	const
+	AbstractSpCard shallowCopy();
+	/// イベント以外のデータをcopyBaseからこのインスタンスにコピーする。
+	void shallowCopyFrom(in AbstractSpCard copyBase) { mixin(S_TRACE);
+		flag = copyBase.flag;
+		x = copyBase.x;
+		y = copyBase.y;
+		scale = copyBase.scale;
+		layer = copyBase.layer;
+		cardGroup = copyBase.cardGroup;
+		animationSpeed = copyBase.animationSpeed;
+		comment = copyBase.comment;
+	}
 
 	@property
 	const
@@ -360,11 +375,30 @@ public:
 	const
 	override
 	EnemyCard dup() { mixin(S_TRACE);
+		auto r = shallowCopy;
+		r.deepCopyEventTreeOwner(this);
+		return r;
+	}
+	@property
+	const
+	override
+	EnemyCard shallowCopy() { mixin(S_TRACE);
 		auto r = new EnemyCard(id, actions, flag, x, y, scale, layer, cardGroup, animationSpeed,
 			isOverrideName, overrideName, isOverrideImage, overrideImages);
-		r.deepCopyEventTreeOwner(this);
 		r.comment = comment;
 		return r;
+	}
+	override
+	void shallowCopyFrom(in AbstractSpCard copyBase) { mixin(S_TRACE);
+		auto c = cast(EnemyCard)copyBase;
+		if (!c) throw new Exception("copyBase is not EnemyCard", __FILE__, __LINE__);
+		super.shallowCopyFrom(copyBase);
+		actions = c.actions;
+		id = c.id;
+		isOverrideName = c.isOverrideName;
+		overrideName = c.overrideName;
+		isOverrideImage = c.isOverrideImage;
+		overrideImages = c.overrideImages;
 	}
 
 	@property
@@ -719,10 +753,27 @@ public:
 	const
 	override
 	MenuCard dup() { mixin(S_TRACE);
-		auto r = new MenuCard(name, expandSPChars, paths, desc, flag, x, y, scale, layer, cardGroup, animationSpeed);
+		auto r = shallowCopy;
 		r.deepCopyEventTreeOwner(this);
+		return r;
+	}
+	@property
+	const
+	override
+	MenuCard shallowCopy() { mixin(S_TRACE);
+		auto r = new MenuCard(name, expandSPChars, paths, desc, flag, x, y, scale, layer, cardGroup, animationSpeed);
 		r.comment = comment;
 		return r;
+	}
+	override
+	void shallowCopyFrom(in AbstractSpCard copyBase) { mixin(S_TRACE);
+		auto c = cast(MenuCard)copyBase;
+		if (!c) throw new Exception("copyBase is not MenuCard", __FILE__, __LINE__);
+		super.shallowCopyFrom(copyBase);
+		name = c.name;
+		desc = c.desc;
+		paths = c.paths;
+		expandSPChars = c.expandSPChars;
 	}
 
 	@property
