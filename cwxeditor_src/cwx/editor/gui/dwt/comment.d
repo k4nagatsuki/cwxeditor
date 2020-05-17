@@ -45,7 +45,7 @@ void setupComment(Commons comm, Table table, bool isEventView) { mixin(S_TRACE);
 	.setupCommentToolTip!(Table, TableItem)(comm, table, isEventView, drawing, pos => table.getItem(pos), itm => .commentPos(ib, itm));
 }
 
-void setupComment(Commons comm, Tree tree, bool isEventView) {
+void setupComment(Commons comm, Tree tree, bool isEventView) { mixin(S_TRACE);
 	auto img = comm.prop.images.menu(MenuID.Comment);
 	auto ib = img.getBounds();
 	TreeItem drawing = null;
