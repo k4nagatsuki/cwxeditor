@@ -78,7 +78,7 @@ struct XNode {
 		while (!parser.empty && parser.front.type !is EntityType.elementStart) { mixin(S_TRACE);
 			parser.popFront();
 		}
-		if (parser.empty) return node;
+		if (parser.empty) throw new Exception("Invalid XML: " ~ xml);
 
 		auto e = parser.front;
 		parser.popFront();
@@ -356,13 +356,13 @@ struct XNode {
 		auto a = .appender!string();
 		a.writeXMLDecl!string();
 		auto writer = .xmlWriter(a, "");
-		void writeElement(ref const Node node) { mixin(S_TRACE);
+		void writeElement(ref const Node node, bool isRoot) { mixin(S_TRACE);
 			assert (node.type is EntityType.elementStart);
 			writer.openStartTag(node.name, Newline.yes);
 			foreach (attr; node.attrs) { mixin(S_TRACE);
 				writer.writeAttr(attr.name, attr.value.encodeAttr());
 			}
-			if (node.children.length == 0 && node.value == "") { mixin(S_TRACE);
+			if (node.children.length == 0 && node.value == "" && !isRoot) { mixin(S_TRACE);
 				writer.closeStartTag(EmptyTag.yes);
 				return;
 			}
@@ -381,7 +381,7 @@ struct XNode {
 					writer.writePI(c.value);
 					break;
 				case EntityType.elementStart:
-					writeElement(c);
+					writeElement(c, false);
 					break;
 				case EntityType.elementEmpty:
 					assert (0);
@@ -393,7 +393,7 @@ struct XNode {
 			}
 			writer.writeEndTag(node.name, node.children.length ? Newline.yes : Newline.no);
 		}
-		writeElement(_node);
+		writeElement(_node, true);
 		return writer.output.data;
 	} unittest {
 		debug mixin(UTPerf);
