@@ -778,16 +778,19 @@ public:
 		refreshToolTip();
 	}
 	Item getItem(int index) { mixin(S_TRACE);
+		if (index < 0 || _items.length <= index) throw new Exception("index out of bounds.", __FILE__, __LINE__);
 		return _items[index];
 	}
 	int indexOf(Item item) { mixin(S_TRACE);
 		return cast(int).countUntil(_items, item);
 	}
 	Rectangle getBounds(int index) { mixin(S_TRACE);
+		if (index < 0 || _items.length <= index) throw new Exception("index out of bounds.", __FILE__, __LINE__);
 		auto itm = _items[index];
 		return new Rectangle(itm.x, itm.y, itm.width, itm.height);
 	}
 	Rectangle getImageBounds(int index) { mixin(S_TRACE);
+		if (index < 0 || _items.length <= index) throw new Exception("index out of bounds.", __FILE__, __LINE__);
 		return _items[index].imageBounds();
 	}
 	Rectangle getTitleBounds(int index) { mixin(S_TRACE);
@@ -1034,6 +1037,8 @@ private:
 		if (_defItmW >= 0) _itmW = 0;
 		if (_defItmH >= 0) _itmH = 0;
 		_cur = -1;
+		_showingStartIndex = -1;
+		_showingEndIndex = -1;
 	}
 
 	void updateRangeIndices() { mixin(S_TRACE);
