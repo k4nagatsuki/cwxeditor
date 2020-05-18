@@ -1531,7 +1531,7 @@ class Msgs : Properties {
 	auto warningUpdateType = Msg("warningUpdateType", "テキストセルの更新方法の指定は、Wsn.4以降の形式のシナリオでしか行なえません。"); // Wsn.4
 	auto warningAntialiasedTextCell = Msg("warningAntialiasedTextCell", "テキストセルの文字のアンチエイリアスはWsn.4以降の形式のシナリオでしか行なえません。"); // Wsn.4
 
-	auto areaViewKeyboardHint = Msg("areaViewKeyboardHint", "選択+上下左右: 移動, Shift+上下左右: サイズ変更, Ctrl+Altで10ピクセル単位操作, Alt+クリックで範囲選択開始");
+	auto areaViewKeyboardHint = Msg("areaViewKeyboardHint", "選択+上下左右: 移動, Shift+上下左右: サイズ変更, Ctrl+Altで10ピクセル単位操作, Alt+クリックで範囲選択開始, 中クリックで背後のアイテムを選択");
 
 	/// 称号・名称ビュー。
 	auto couponTabName = Msg("couponTabName", "クーポン");
