@@ -9,31 +9,33 @@ import cwx.filesync;
 import cwx.imagesize;
 import cwx.sjis;
 
+import core.sync.mutex;
+
 import std.algorithm;
 import std.array;
+import std.array;
+import std.ascii;
+import std.base64;
 import std.bigint;
 import std.conv;
-import std.uni;
-import std.string;
-import std.format;
-import std.file;
-import std.path;
-import std.uni;
-import std.utf;
-import std.base64;
-import std.stdio;
-import std.ascii;
-import std.traits;
 import std.datetime;
-import std.regex;
-import std.array;
 import std.exception;
-import std.traits;
-import std.stdint;
-import std.range;
+import std.file;
+import std.format;
 import std.functional;
 import std.math;
+import std.path;
+import std.range;
+import std.regex;
+import std.stdint;
+import std.stdio;
+import std.string;
+import std.traits;
+import std.traits;
 import std.typecons;
+import std.uni;
+import std.uni;
+import std.utf;
 
 static if ((void*).sizeof == 8) {
 	alias int c_int;
@@ -2047,6 +2049,10 @@ static if (size_t.sizeof == 8) {
 } else {
 	immutable CACHE_SIZE_MAX = 512 * 1024 * 1024; /// 最大キャッシュサイズ。
 }
+__gshared Mutex fileCacheMutex;
+shared static this () {
+	fileCacheMutex = new Mutex;
+}
 
 /// ファイルパスから取得する何らかのデータをキャッシュするための
 /// 一連の変数と関数を定義する。
@@ -2059,6 +2065,7 @@ template FileCache(T) {
 	static const CACHE_MAX = 1024;
 	static Cache[string] caches;
 	static string[] cachePaths;
+	static Object mutex = null;
 	void putCache(string path, T v, size_t size) { mixin(S_TRACE);
 		if (!exists(path)) return;
 		if (cwx.utils.CACHE_SIZE_MAX < size) return;
@@ -2066,6 +2073,8 @@ template FileCache(T) {
 		static if (0 == filenameCharCmp('A', 'a')) {
 			path = std.string.toLower(path);
 		}
+		fileCacheMutex.lock();
+		scope (exit) fileCacheMutex.unlock();
 		while (0 < cachePaths.length && (CACHE_MAX <= cachePaths.length || (0 < size && cwx.utils.CACHE_SIZE_MAX < .cacheSize + size))) { mixin(S_TRACE);
 			cwx.utils.cacheSize -= caches[cachePaths[0u]].size;
 			caches.remove(cachePaths[0u]);
@@ -2092,6 +2101,8 @@ template FileCache(T) {
 		static if (0 == filenameCharCmp('A', 'a')) {
 			path = std.string.toLower(path);
 		}
+		fileCacheMutex.lock();
+		scope (exit) fileCacheMutex.unlock();
 		auto cache = path in caches;
 		if (!cache) return null;
 		return cache.ftm == timeLastModified(path) ? cache : null;
