@@ -2010,13 +2010,6 @@ public:
 		newR.x = x;
 		retoggle();
 	}
-	@property
-	override
-	void x(int x) { mixin(S_TRACE);
-		newX = x;
-		super.x = x;
-	}
-	alias PileImage.x x;
 
 	/// Returns: 仮の縦位置。
 	@property
@@ -2033,13 +2026,6 @@ public:
 		newR.y = y;
 		retoggle();
 	}
-	@property
-	override
-	void y(int y) { mixin(S_TRACE);
-		newY = y;
-		super.y = y;
-	}
-	alias PileImage.y y;
 
 	/// 幅を設定可能な値に丸めて返す。
 	/// 縦横比固定の影響を受けない。
@@ -2068,13 +2054,6 @@ public:
 		newR.width = roundMWidth(w);
 		retoggle();
 	}
-	@property
-	override
-	void width(int width) { mixin(S_TRACE);
-		newWidth = width;
-		super.width = width;
-	}
-	alias PileImage.width width;
 
 	/// 高さを設定可能な値に丸めて返す。
 	/// 縦横比固定の影響を受けない。
@@ -2103,13 +2082,6 @@ public:
 		newR.height = roundMHeight(h);
 		retoggle();
 	}
-	@property
-	override
-	void height(int height) { mixin(S_TRACE);
-		newHeight = height;
-		super.height = height;
-	}
-	alias PileImage.height height;
 
 	/// 位置とサイズを仮に設定する。確定するにはresize()を使用。
 	/// Params:
@@ -2140,19 +2112,6 @@ public:
 		_newScale = roundScale(scale);
 		retoggle();
 	}
-	@property
-	override
-	void bounds(Rectangle rect) { mixin(S_TRACE);
-		newBounds = rect;
-		super.rect = rect;
-	}
-	alias PileImage.bounds bounds;
-
-	override
-	void boundsWithScale(int x, int y, uint scale) { mixin(S_TRACE);
-		newBoundsWithScale(x, y, scale);
-		super.boundsWithScale(x, y, scale);
-	}
 
 	/// スケールを設定可能な値に丸めて返す。
 	const
@@ -2177,13 +2136,6 @@ public:
 	uint newScale() { mixin(S_TRACE);
 		return _newScale;
 	}
-	@property
-	override
-	void scale(uint scale) { mixin(S_TRACE);
-		newScale = scale;
-		super.scale = scale;
-	}
-	alias PileImage.scale scale;
 
 	/// Returns: 仮の位置とサイズ。
 	@property
