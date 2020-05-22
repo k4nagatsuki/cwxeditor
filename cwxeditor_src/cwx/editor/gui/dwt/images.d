@@ -1035,6 +1035,7 @@ public:
 	/// dc = キャンバス。
 	void draw(Display d, ref Image buf, ref GC gc, Rectangle range) { mixin(S_TRACE);
 		if (!_visible) return;
+		if (width == 0 || height == 0) return;
 		if (!range.intersects(ds(x), ds(y), ds(width), ds(height))) return;
 		if (_needCreate) createImageImpl();
 		final switch (_type) {
