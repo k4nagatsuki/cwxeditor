@@ -2154,7 +2154,7 @@ public:
 	const
 	Toggle inToggle(int x, int y, bool move) { mixin(S_TRACE);
 		if (selected) { mixin(S_TRACE);
-			foreach (key; tgls.keys) { mixin(S_TRACE);
+			foreach_reverse (key; .sort(tgls.keys)) { mixin(S_TRACE);
 				auto rect = tgls[key];
 				if (rect.x <= x && x <= (rect.x + rect.width)
 						&& rect.y <= y && y <= (rect.y + rect.height)) { mixin(S_TRACE);
