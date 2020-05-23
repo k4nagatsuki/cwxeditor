@@ -2741,7 +2741,16 @@ private:
 				_vfbTMenu = createToolItem(_comm, bar, MenuID.FixedCells, &reverseFixedCells, null, SWT.CHECK);
 				.setupToggle(_vfbTMenu, _prop.var.etc.fixedImagesCells);
 				_vffbTMenu = createToolItem(_comm, bar, MenuID.FixedBackground, &reverseFixedBackground, null, SWT.CHECK);
-				.setupToggle(_vffbTMenu, _prop.var.etc.fixedImagesBackground);
+				static if (is(A:Area)) {
+					.setupToggle(_vffbTMenu, _prop.var.etc.fixedImagesBackground);
+				} else static if (is(A:BgImageContainer)) {
+					auto fixed = false;
+					if (_summ) { mixin(S_TRACE);
+						.setupToggle(_vffbTMenu, _prop.var.etc.fixedImagesEventBackground);
+					} else { mixin(S_TRACE);
+						.setupToggle(_vffbTMenu, _prop.var.etc.fixedImagesDefaultBackground);
+					}
+				} else static assert (0);
 				new ToolItem(bar, SWT.SEPARATOR);
 				createToolItem(_comm, bar, MenuID.NewBack, &createBackground, () => !_readOnly);
 				createToolItem(_comm, bar, MenuID.NewTextCell, &createTextCell, () => !_readOnly);
@@ -3332,7 +3341,7 @@ public:
 				});
 			}
 		}
-		static if (is(A == Area)) {
+		static if (is(A:Area)) {
 			_viewMsg = _prop.var.etc.viewMessageArea;
 			_viewParty = _prop.var.etc.viewPartyCardsArea;
 			if (!_readOnly) { mixin(S_TRACE);
@@ -3340,18 +3349,22 @@ public:
 				_fixedB = _prop.var.etc.fixedImagesCells;
 				_fixedFirstB = _prop.var.etc.fixedImagesBackground;
 			}
-		} else static if (is(A == Battle)) {
+		} else static if (is(A:Battle)) {
 			_viewMsg = _prop.var.etc.viewMessageBattle;
 			_viewParty = _prop.var.etc.viewPartyCardsBattle;
 			if (!_readOnly) { mixin(S_TRACE);
 				_fixedC = _prop.var.etc.fixedImagesBattle;
 			}
-		} else static if (is(A == BgImageContainer)) {
+		} else static if (is(A:BgImageContainer)) {
 			_viewMsg = _prop.var.etc.viewMessageEvent;
 			_viewParty = _prop.var.etc.viewPartyCardsEvent;
 			if (!_readOnly) { mixin(S_TRACE);
 				_fixedB = _prop.var.etc.fixedImagesEvent;
-				_fixedFirstB = _prop.var.etc.fixedImagesEventBackground;
+				if (_summ) { mixin(S_TRACE);
+					_fixedFirstB = _prop.var.etc.fixedImagesEventBackground;
+				} else { mixin(S_TRACE);
+					_fixedFirstB = _prop.var.etc.fixedImagesDefaultBackground;
+				}
 			}
 		} else { mixin(S_TRACE);
 			static assert (0);
@@ -5021,9 +5034,20 @@ public:
 			}
 			static if (UseBacks) {
 				_vfbMenu = createMenuItem(_comm, mv, MenuID.FixedCells, &reverseFixedCells, null, SWT.CHECK);
-				.setupToggle(_vfbMenu, _prop.var.etc.fixedImagesBackground);
 				_vffbMenu = createMenuItem(_comm, mv, MenuID.FixedBackground, &reverseFixedBackground, null, SWT.CHECK);
-				.setupToggle(_vffbMenu, _prop.var.etc.fixedImagesBackground);
+				static if (is(A:Area)) {
+					.setupToggle(_vfbMenu, _prop.var.etc.fixedImagesBackground);
+					.setupToggle(_vffbMenu, _prop.var.etc.fixedImagesBackground);
+				} else static if (is(A:BgImageContainer)) {
+					auto fixed = false;
+					if (_summ) { mixin(S_TRACE);
+						.setupToggle(_vfbMenu, _prop.var.etc.fixedImagesEventBackground);
+						.setupToggle(_vffbMenu, _prop.var.etc.fixedImagesEventBackground);
+					} else { mixin(S_TRACE);
+						.setupToggle(_vfbMenu, _prop.var.etc.fixedImagesDefaultBackground);
+						.setupToggle(_vffbMenu, _prop.var.etc.fixedImagesDefaultBackground);
+					}
+				} else static assert (0);
 			}
 		}
 		static if (is(C : EnemyCard) || RefCards) {
@@ -5374,7 +5398,16 @@ public:
 			checked();
 			if (_vffbMenu) _vffbMenu.setSelection(_fixedFirstB);
 			if (_vffbTMenu) _vffbTMenu.setSelection(_fixedFirstB);
-			_prop.var.etc.fixedImagesBackground = _fixedFirstB;
+			static if (is(A:Area)) {
+				_prop.var.etc.fixedImagesBackground = _fixedFirstB;
+			} else static if (is(A:BgImageContainer)) {
+				auto fixed = false;
+				if (_summ) { mixin(S_TRACE);
+					_prop.var.etc.fixedImagesEventBackground = _fixedFirstB;
+				} else { mixin(S_TRACE);
+					_prop.var.etc.fixedImagesDefaultBackground = _fixedFirstB;
+				}
+			} else static assert (0);
 		}
 	}
 	void reverseShowGrid() { mixin(S_TRACE);
