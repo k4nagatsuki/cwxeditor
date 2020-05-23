@@ -1680,9 +1680,13 @@ private:
 		if (!_dirTree) return;
 		if (_areaDirEdit) _areaDirEdit.cancel();
 
-		bool[Object] expands;
+		bool[string] expands;
 		void exps(TreeItem itm) { mixin(S_TRACE);
-			expands[itm.getData()] = itm.getExpanded();
+			if (!itm.getExpanded() && itm.getItemCount()) { mixin(S_TRACE);
+				auto d = cast(DirTree)itm.getData();
+				assert (d !is null, itm.getData().text());
+				expands[d.path] = itm.getExpanded();
+			}
 			foreach (sub; itm.getItems()) { mixin(S_TRACE);
 				exps(sub);
 			}
@@ -1736,7 +1740,8 @@ private:
 		recurse(_dirTree, _dirs);
 
 		void expst(TreeItem itm) { mixin(S_TRACE);
-			if (expands.get(itm.getData(), true)) { mixin(S_TRACE);
+			auto d = cast(DirTree)itm.getData();
+			if (d && expands.get(d.path, true)) { mixin(S_TRACE);
 				itm.setExpanded(true);
 			}
 			foreach (sub; itm.getItems()) { mixin(S_TRACE);
