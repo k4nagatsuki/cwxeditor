@@ -76,6 +76,7 @@ class FlexEtcProps : Properties {
 	auto fixedImagesBattle = Prop!(bool)("fixedImagesBattle", false);
 	auto fixedImagesEvent = Prop!(bool)("fixedImagesEvent", false);
 	auto fixedImagesEventBackground = Prop!(bool)("fixedImagesEventBackground", true);
+	auto fixedImagesDefaultBackground = Prop!(bool)("fixedImagesDefaultBackground", true);
 	auto viewCards = Prop!(bool)("viewCards", true);
 	auto viewBgImages = Prop!(bool)("viewBgImages", true);
 	auto showGrid = Prop!(bool)("showGrid", false);
