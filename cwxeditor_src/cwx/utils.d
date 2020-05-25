@@ -9,8 +9,6 @@ import cwx.filesync;
 import cwx.imagesize;
 import cwx.sjis;
 
-import core.sync.mutex;
-
 import std.algorithm;
 import std.array;
 import std.array;
@@ -2049,10 +2047,6 @@ static if (size_t.sizeof == 8) {
 } else {
 	immutable CACHE_SIZE_MAX = 512 * 1024 * 1024; /// 最大キャッシュサイズ。
 }
-__gshared Mutex fileCacheMutex;
-shared static this () {
-	fileCacheMutex = new Mutex;
-}
 
 /// ファイルパスから取得する何らかのデータをキャッシュするための
 /// 一連の変数と関数を定義する。
@@ -2065,16 +2059,13 @@ template FileCache(T) {
 	static const CACHE_MAX = 1024;
 	static Cache[string] caches;
 	static string[] cachePaths;
-	static Object mutex = null;
 	void putCache(string path, T v, size_t size) { mixin(S_TRACE);
 		if (!exists(path)) return;
 		if (cwx.utils.CACHE_SIZE_MAX < size) return;
-		path = nabs(path);
+		path = .nabs(path);
 		static if (0 == filenameCharCmp('A', 'a')) {
 			path = std.string.toLower(path);
 		}
-		fileCacheMutex.lock();
-		scope (exit) fileCacheMutex.unlock();
 		while (0 < cachePaths.length && (CACHE_MAX <= cachePaths.length || (0 < size && cwx.utils.CACHE_SIZE_MAX < .cacheSize + size))) { mixin(S_TRACE);
 			cwx.utils.cacheSize -= caches[cachePaths[0u]].size;
 			caches.remove(cachePaths[0u]);
@@ -2091,18 +2082,21 @@ template FileCache(T) {
 			}
 			v.updateSizeEvent ~= &updateSize;
 		}
+		if (auto p = path in caches) { mixin(S_TRACE);
+			cwx.utils.cacheSize -= p.size;
+		} else { mixin(S_TRACE);
+			cachePaths ~= path;
+		}
 		caches[path] = Cache(timeLastModified(path), v, size);
 		cwx.utils.cacheSize += size;
-		cachePaths ~= path;
+		
 	}
 	Cache* cache(string path) { mixin(S_TRACE);
 		if (!exists(path)) return null;
-		path = nabs(path);
+		path = .nabs(path);
 		static if (0 == filenameCharCmp('A', 'a')) {
 			path = std.string.toLower(path);
 		}
-		fileCacheMutex.lock();
-		scope (exit) fileCacheMutex.unlock();
 		auto cache = path in caches;
 		if (!cache) return null;
 		return cache.ftm == timeLastModified(path) ? cache : null;
