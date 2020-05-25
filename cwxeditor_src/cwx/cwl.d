@@ -3435,7 +3435,8 @@ void putExData(ref SData d, CWXPath cp) { mixin(S_TRACE);
 			if (e.commentForEvents.length) { mixin(S_TRACE);
 				d.comment[CommentKey(cp.cwxPath(true), true)] = e.commentForEvents;
 			}
-		} else if (auto c = cast(Card)cp) { mixin(S_TRACE);
+		}
+		if (auto c = cast(Card)cp) { mixin(S_TRACE);
 			auto paths = c.paths;
 			if (paths.length) putInnerImagePath(d, cp, paths[0]);
 			if (auto ec = cast(EffectCard)cp) { mixin(S_TRACE);
