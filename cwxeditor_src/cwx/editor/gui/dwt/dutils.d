@@ -5091,6 +5091,7 @@ void treeWarning(Props prop, Tree tree, bool isEventView, string[] delegate(Tree
 void procShowingTreeItem(Tree tree, bool delegate(TreeItem itm) proc) { mixin(S_TRACE);
 	auto ca = tree.getClientArea();
 	bool recurse(TreeItem itm) { mixin(S_TRACE);
+		if (itm.isDisposed()) return true;
 		auto bounds = itm.getBounds();
 		if (ca.y + ca.height <= bounds.y) return false;
 		if (ca.y <= bounds.y + bounds.height) { mixin(S_TRACE);

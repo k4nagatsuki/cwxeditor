@@ -37,6 +37,7 @@ void setupComment(Commons comm, Table table, bool isEventView) { mixin(S_TRACE);
 		auto count = table.getItemCount();
 		for (auto index = table.getTopIndex(); index < count; index++) { mixin(S_TRACE);
 			auto itm = table.getItem(index);
+			if (itm.isDisposed()) continue;
 			auto b = itm.getBounds();
 			if (ca.y + ca.height <= b.y) break;
 			drawComment(isEventView, img, ib, itm, e.gc, drawing);
@@ -138,6 +139,9 @@ private void setupCommentToolTip(T, Item)(Commons comm, T table, bool isEventVie
 		auto curPos = display.getCursorLocation();
 		curPos = table.toControl(curPos);
 		auto itm = hitTest(curPos);
+		static if (is(typeof(itm.isDisposed()))) {
+			if (itm && itm.isDisposed()) itm = null;
+		}
 		string comment;
 		if (itm) { mixin(S_TRACE);
 			comment = .commentText(.commentable(itm), isEventView);
