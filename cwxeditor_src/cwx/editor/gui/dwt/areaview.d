@@ -6263,7 +6263,7 @@ public:
 					removeBack(v, comm, summ, area, v._backTbl, i);
 				}
 				area.removeBgImage(i);
-				foreach (v; vs)  v._backs.remove(i);
+				foreach (v; vs) v._backs.remove(i);
 			}
 		}
 		foreach (v; vs) { mixin(S_TRACE);
