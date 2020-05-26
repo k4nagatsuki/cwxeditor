@@ -5484,7 +5484,11 @@ public:
 		}
 		private void appendCards(int index, C[] cards, bool select, bool raiseEvent, bool initialize) { mixin(S_TRACE);
 			auto vs = initialize ? [this] : views();
-			foreach (vi, v; vs) {
+			foreach (vi, v; vs) { mixin(S_TRACE);
+				v._cards.setRedraw(false);
+				scope (exit) v._cards.setRedraw(true);
+				v._imgp.setRedraw(false);
+				scope (exit) v._imgp.setRedraw(true);
 				FlexImage[] imgs;
 				foreach (i, card; cards) { mixin(S_TRACE);
 					auto img = v.create(card);
@@ -5745,6 +5749,10 @@ public:
 		private void appendBgImages(int index, BgImage[] backs, bool select, bool raiseEvent, bool initialize) { mixin(S_TRACE);
 			auto vs = initialize ? [this] : views();
 			foreach (vi, v; vs) { mixin(S_TRACE);
+				v._backs.setRedraw(false);
+				scope (exit) v._backs.setRedraw(true);
+				v._imgp.setRedraw(false);
+				scope (exit) v._imgp.setRedraw(true);
 				FlexImage[] imgs;
 				foreach (back; backs) { mixin(S_TRACE);
 					imgs ~= v.create(back);
@@ -6248,6 +6256,18 @@ public:
 	}
 	private static void delImpl2(AbstractAreaView[] vs, Commons comm, Summary summ, A area, int[] cIdcs, int[] bIdcs, bool store) { mixin(S_TRACE);
 		if (store && vs.length) vs[0]._undo ~= new UndoDelete(vs[0], comm, area, summ, cIdcs, bIdcs);
+		foreach (v; vs) { mixin(S_TRACE);
+			static if (UseCards) v._cards.setRedraw(false);
+			static if (UseBacks) v._backs.setRedraw(false);
+			v._imgp.setRedraw(false);
+		}
+		scope (exit) {
+			foreach (v; vs) {
+				static if (UseCards) v._cards.setRedraw(true);
+				static if (UseBacks) v._backs.setRedraw(true);
+				v._imgp.setRedraw(true);
+			}
+		}
 		static if (UseCards) {
 			foreach_reverse (i; std.algorithm.sort(cIdcs)) { mixin(S_TRACE);
 				foreach (v; vs) { mixin(S_TRACE);
@@ -6331,6 +6351,15 @@ public:
 						auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
 						A.CBfromXML(xml, cs, bs, ver);
 						if (cs.length || bs.length) { mixin(S_TRACE);
+							auto vs = views();
+							foreach (vi, v; vs) { mixin(S_TRACE);
+								v._imgp.setRedraw(false);
+							}
+							scope (exit) {
+								foreach (vi, v; vs) {
+									v._imgp.setRedraw(true);
+								}
+							}
 							_imgp.deselectAll();
 							int[] addC, addB;
 							auto iib = insertIndex(_backs);
