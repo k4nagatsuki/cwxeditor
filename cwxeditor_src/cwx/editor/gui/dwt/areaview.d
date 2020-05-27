@@ -271,7 +271,7 @@ private:
 		protected A area;
 		protected Summary summ;
 		this (AbstractAreaView v, Commons comm, A area, Summary summ) { mixin(S_TRACE);
-			static if (!is(A : Area) && !is(A : Battle)) {
+			static if (!is(A:Area) && !is(A:Battle)) {
 				_v = v;
 			}
 			this.comm = comm;
@@ -528,7 +528,7 @@ private:
 			udb(vs);
 			scope (exit) uda(vs);
 			reselect(vs);
-			_delUndo = new UndoDelete(_v, comm, area, summ, _cIdcs, _bIdcs);
+			_delUndo = new UndoDelete(vs[0], comm, area, summ, _cIdcs, _bIdcs);
 			delImpl2(vs, comm, summ, area, _cIdcs, _bIdcs, false);
 		}
 		override void redo() { mixin(S_TRACE);
@@ -558,7 +558,7 @@ private:
 					if (area.useCounter) c.setUseCounter(area.useCounter.sub, area);
 					_cs[i] = c;
 					_cChks[i] = v ? v._cards.getItem(i).getChecked() : true;
-					_cGrys[i] = v ? v._cards.getItem(i).getGrayed() : true;
+					_cGrys[i] = v ? v._cards.getItem(i).getGrayed() : false;
 				}
 			}
 			static if (UseBacks) {
@@ -567,7 +567,7 @@ private:
 					if (area.useCounter) b.setUseCounter(area.useCounter.sub, area);
 					_bs[i] = b;
 					_bChks[i] = v ? v._backs.getItem(i).getChecked() : true;
-					_bGrys[i] = v ? v._backs.getItem(i).getGrayed() : true;
+					_bGrys[i] = v ? v._backs.getItem(i).getGrayed() : false;
 				}
 			}
 		}
@@ -585,7 +585,15 @@ private:
 					appendBgImageImpl(vs, comm, summ, area, i, _bs[i].dup, true, false, _bChks[i], _bGrys[i]);
 				}
 			}
-			foreach (v; vs) v.refreshSelected();
+			if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
+				comm.refUseCount.call();
+			}
+			foreach (v; vs) { mixin(S_TRACE);
+				v.refreshSelected();
+				v.refreshFlags();
+				v.checked();
+				v.callModEvent();
+			}
 		}
 		override void redo() { mixin(S_TRACE);
 			auto vs = views();
@@ -3979,25 +3987,21 @@ public:
 		}
 		refreshPanel();
 	}
-	private void removeImpl(T)(int index, ref T[PileImage] tbl, int startIndex) { mixin(S_TRACE);
+	private void removeImpl(T)(int index, ref T[PileImage] tbl, int startIndex, bool refresh) { mixin(S_TRACE);
 		if (_readOnly) return;
 		tbl.remove(_imgp.images[startIndex + index]);
 		_imgp.remove(startIndex + index);
-		callModEvent();
-		_comm.refreshToolBar();
-	}
-	private void removeRangeImpl(T)(int fromIndex, int toIndex, ref T[PileImage] tbl, int startIndex) { mixin(S_TRACE);
-		if (_readOnly) return;
-		for (int i = fromIndex + startIndex; i < toIndex + startIndex; i++) { mixin(S_TRACE);
-			tbl.remove(_imgp.images[i]);
+		if (refresh) { mixin(S_TRACE);
+			refreshSelected();
+			refreshFlags();
+			checked();
+			callModEvent();
+			_comm.refreshToolBar();
 		}
-		_imgp.removeRange(startIndex + fromIndex, startIndex + toIndex);
-		callModEvent();
-		_comm.refreshToolBar();
 	}
 	static if (UseCards) {
-		private static void removeCard(AbstractAreaView v, Commons comm, Summary summ, A area, ref C[PileImage] tbl, int index) { mixin(S_TRACE);
-			v.removeImpl(index, tbl, staticCardsIndex(area));
+		private static void removeCard(AbstractAreaView v, Commons comm, Summary summ, A area, ref C[PileImage] tbl, int index, bool refresh) { mixin(S_TRACE);
+			v.removeImpl(index, tbl, staticCardsIndex(area), refresh);
 			if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
 				comm.delMenuCard.call(area.cards[index].cwxPath(true));
 			} else { mixin(S_TRACE);
@@ -4007,24 +4011,10 @@ public:
 				if (p2) p2.forceCancel();
 			}
 		}
-		private void removeCardRange(int fromIndex, int toIndex) { mixin(S_TRACE);
-			if (_readOnly) return;
-			removeRangeImpl(fromIndex, toIndex, _cardTbl, cardsIndex);
-			for (int i = toIndex; i >= fromIndex; i--) { mixin(S_TRACE);
-				if (_summ && _summ.scenarioPath != "") { mixin(S_TRACE);
-					_comm.delMenuCard.call(_area.cards[i].cwxPath(true));
-				} else { mixin(S_TRACE);
-					auto p = _area.cards[i] in _editDlgsC;
-					if (p) p.forceCancel();
-					auto p2 = _area.cards[i] in _commentDlgsC;
-					if (p2) p2.forceCancel();
-				}
-			}
-		}
 	}
 	static if (UseBacks) {
-		private static void removeBack(AbstractAreaView v, Commons comm, Summary summ, A area, ref BgImage[PileImage] tbl, int index) { mixin(S_TRACE);
-			v.removeImpl(index, tbl, 0);
+		private static void removeBack(AbstractAreaView v, Commons comm, Summary summ, A area, ref BgImage[PileImage] tbl, int index, bool refresh) { mixin(S_TRACE);
+			v.removeImpl(index, tbl, 0, refresh);
 			if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
 				comm.delBgImage.call(area.backs[index].cwxPath(true));
 			} else { mixin(S_TRACE);
@@ -4032,20 +4022,6 @@ public:
 				if (p) p.forceCancel();
 				auto p2 = area.backs[index] in v._commentDlgsB;
 				if (p2) p2.forceCancel();
-			}
-		}
-		private void removeBackRange(int fromIndex, int toIndex) { mixin(S_TRACE);
-			if (_readOnly) return;
-			removeRangeImpl(fromIndex, toIndex, _backTbl, 0);
-			for (int i = toIndex; i >= fromIndex; i--) { mixin(S_TRACE);
-				if (_summ && _summ.scenarioPath != "") { mixin(S_TRACE);
-					_comm.delBgImage.call(_area.backs[i].cwxPath(true));
-				} else { mixin(S_TRACE);
-					auto p = _area.backs[i] in _editDlgsB;
-					if (p) p.forceCancel();
-					auto p2 = _area.backs[i] in _commentDlgsB;
-					if (p2) p2.forceCancel();
-				}
 			}
 		}
 	}
@@ -5466,11 +5442,14 @@ public:
 			}
 			if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
 				comm.addMenuCard.call(card.cwxPath(true));
-				comm.refUseCount.call();
+				if (refresh) comm.refUseCount.call();
 			}
-			foreach (v; vs) { mixin(S_TRACE);
-				v.refreshFlags();
-				v.callModEvent();
+			if (refresh) { mixin(S_TRACE);
+				foreach (v; vs) { mixin(S_TRACE);
+					v.refreshFlags();
+					v.checked();
+					v.callModEvent();
+				}
 			}
 		}
 		private FlexImage create(C card) { mixin(S_TRACE);
@@ -5649,12 +5628,14 @@ public:
 			}
 			if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
 				comm.addBgImage.call(back.cwxPath(true));
-				comm.refUseCount.call();
+				if (refresh) comm.refUseCount.call();
 			}
-			foreach (v; vs) { mixin(S_TRACE);
-				v.refreshFlags();
-				v.checked();
-				v.callModEvent();
+			if (refresh) { mixin(S_TRACE);
+				foreach (v; vs) { mixin(S_TRACE);
+					v.refreshFlags();
+					v.checked();
+					v.callModEvent();
+				}
 			}
 		}
 		private FlexImage create(BgImage back) { mixin(S_TRACE);
@@ -6255,7 +6236,9 @@ public:
 		_tcpd.clone(se);
 	}
 	private static void delImpl2(AbstractAreaView[] vs, Commons comm, Summary summ, A area, int[] cIdcs, int[] bIdcs, bool store) { mixin(S_TRACE);
-		if (store && vs.length) vs[0]._undo ~= new UndoDelete(vs[0], comm, area, summ, cIdcs, bIdcs);
+		if (store && vs.length) { mixin(S_TRACE);
+			vs[0]._undo ~= new UndoDelete(vs[0], comm, area, summ, cIdcs, bIdcs);
+		}
 		foreach (v; vs) { mixin(S_TRACE);
 			static if (UseCards) v._cards.setRedraw(false);
 			static if (UseBacks) v._backs.setRedraw(false);
@@ -6271,7 +6254,7 @@ public:
 		static if (UseCards) {
 			foreach_reverse (i; std.algorithm.sort(cIdcs)) { mixin(S_TRACE);
 				foreach (v; vs) { mixin(S_TRACE);
-					removeCard(v, comm, summ, area, v._cardTbl, i);
+					removeCard(v, comm, summ, area, v._cardTbl, i, false);
 				}
 				area.removeCard(i);
 				foreach (v; vs) v._cards.remove(i);
@@ -6280,7 +6263,7 @@ public:
 		static if (UseBacks) {
 			foreach_reverse (i; std.algorithm.sort(bIdcs)) { mixin(S_TRACE);
 				foreach (v; vs) { mixin(S_TRACE);
-					removeBack(v, comm, summ, area, v._backTbl, i);
+					removeBack(v, comm, summ, area, v._backTbl, i, false);
 				}
 				area.removeBgImage(i);
 				foreach (v; vs) v._backs.remove(i);
@@ -6289,12 +6272,15 @@ public:
 		foreach (v; vs) { mixin(S_TRACE);
 			v.refreshSelected();
 			v.refreshFlags();
+			v.checked();
+			v.callModEvent();
 		}
 		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
 			if (cIdcs.length) comm.refCardGroups.call();
 			if (bIdcs.length) comm.refCellNames.call();
 			comm.refUseCount.call();
 		}
+		comm.refreshToolBar();
 	}
 	@property
 	bool canDoTCPD() { mixin(S_TRACE);
