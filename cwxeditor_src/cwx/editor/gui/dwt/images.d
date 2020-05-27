@@ -2827,6 +2827,10 @@ private:
 			int dx = ds(me.x) / _imageScale;
 			int dy = ds(me.y) / _imageScale;
 			if (me.button == 1) { mixin(S_TRACE);
+				// ShiftかCtrlが押されていない場合、以下のように処理する。
+				//  * 選択されていないイメージをクリック ... 選択。ただし固定されていないイメージを優先
+				//  * すでに選択済みで固定されていないイメージをクリック ... 移動開始
+				//  * すでに選択済みで固定されているイメージをクリック ... 範囲選択開始。ただし固定されていないイメージがある場合は選択
 				rangeSelectOlds = null;
 				foreach (img, rect; dragImgs) { mixin(S_TRACE);
 					dragImgs[img] = new Rectangle(img.x, img.y, img.width, img.height);
@@ -2848,7 +2852,7 @@ private:
 								if (img.visible) { mixin(S_TRACE);
 									tgl = img.inToggle(dx, dy, move);
 									if (tgl !is Toggle.NONE) { mixin(S_TRACE);
-										if (!selectionImg || (selectionImg.fixed && !img.fixed)) { mixin(S_TRACE);
+										if ((!selectionImg || (selectionImg.fixed && !img.fixed)) && !_ctrl && !_shift) { mixin(S_TRACE);
 											selectionImg = img;
 										}
 										if (img.fixed) { mixin(S_TRACE);
@@ -2860,6 +2864,9 @@ private:
 							}
 						}
 					}
+				}
+				if (selectionImg && selectionImg.fixed) { mixin(S_TRACE);
+					tgl = Toggle.NONE;
 				}
 				if (tgl is Toggle.NONE) { mixin(S_TRACE);
 					if (!_ctrl && !_shift) { mixin(S_TRACE);
