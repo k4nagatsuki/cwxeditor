@@ -71,8 +71,7 @@ import std.regex;
 import std.string;
 import std.typecons;
 import std.utf;
-version (Win64) {
-	import std.zip;
+import std.zip;
 } else {
 	import d2std.zip;
 	static import d2std.zlib;
@@ -517,6 +516,10 @@ private:
 						arc = summ.createZipData([], true, name.extension().toLower() == ".wsn", tempData, _sync);
 						mixin(S_TRACE);
 					}
+					scope (exit) {
+						destroy(arc);
+						freeAll(tempData);
+					}
 					mixin(S_TRACE);
 					auto data = arc.build();
 					mixin(S_TRACE);
@@ -532,10 +535,6 @@ private:
 						bc--;
 						ret = true;
 					}
-					mixin(S_TRACE);
-					destroy(arc);
-					mixin(S_TRACE);
-					freeAll(tempData);
 				} else { mixin(S_TRACE);
 					auto md5 = filesMD5(summ.scenarioPath);
 					if (_oldMD5 != md5) { mixin(S_TRACE);
