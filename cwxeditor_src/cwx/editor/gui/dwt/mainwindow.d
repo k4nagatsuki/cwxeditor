@@ -71,7 +71,8 @@ import std.regex;
 import std.string;
 import std.typecons;
 import std.utf;
-import std.zip;
+version (Win64) {
+	import std.zip;
 } else {
 	import d2std.zip;
 	static import d2std.zlib;
