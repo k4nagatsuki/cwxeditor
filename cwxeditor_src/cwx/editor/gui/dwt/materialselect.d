@@ -761,6 +761,8 @@ class MaterialSelect(MtType Type, D, C) {
 				auto loopCount = _loopCount ? _loopCount.getSelection() : 0;
 				auto fadeIn = this.fadeIn;
 				.stopBGM();
+				bgmStopped(); // 再生位置表示スレッドを確実に止める
+				assert (_playThr is null);
 				bool inPlay = playBGMCW(_prop, p, fadeIn, volume, loopCount, _comm.skin.legacy);
 				if (inPlay) { mixin(S_TRACE);
 					_playing = p;
