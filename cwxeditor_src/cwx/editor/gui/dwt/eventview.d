@@ -2978,6 +2978,7 @@ public:
 				v._etree.refresh(et);
 			}
 		}
+		_comm.refUseCount.call();
 	}
 
 	@property
