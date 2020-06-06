@@ -399,7 +399,7 @@ public:
 				} else static if (Type is MtType.BG_IMG) {
 					auto cbt = createExcludeCardSize(compl);
 				}
-				auto cbtgd = new GridData(GridData.HORIZONTAL_ALIGN_END);
+				auto cbtgd = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
 				cbtgd.horizontalSpan = 3;
 				cbt.setLayoutData(cbtgd);
 			}
