@@ -1493,4 +1493,13 @@ class Commons {
 		}
 		return false;
 	}
+
+	/// テキスト置換処理中か。
+	@property
+	const
+	bool inReplaceText() { return _inReplaceText; }
+	/// ditto
+	@property
+	void inReplaceText(bool v) { _inReplaceText = v; }
+	private bool _inReplaceText = false;
 }
