@@ -2252,6 +2252,7 @@ private:
 	}
 	void refreshFlags() { mixin(S_TRACE);
 		if (!_flagList) return;
+		if (_comm.inReplaceText) return;
 		bool[string] useFlags;
 		static if (UseCards) {
 			foreach (c; _area.cards) { mixin(S_TRACE);
@@ -3833,6 +3834,8 @@ public:
 	}
 	private void replText() { mixin(S_TRACE);
 		if (!_summ || _summ.scenarioPath == "" || _readOnly) return;
+		setRedraw(false);
+		scope (exit) setRedraw(true);
 		static if (UseCards) {
 			auto skin = summSkin;
 			foreach (i, c; _area.cards) { mixin(S_TRACE);
@@ -3863,6 +3866,7 @@ public:
 			}
 			refreshTextCell();
 		}
+		refreshFlags();
 	}
 	static if (UseCards) {
 		private void refreshCard(size_t i) { mixin(S_TRACE);

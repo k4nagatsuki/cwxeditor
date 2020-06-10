@@ -105,14 +105,18 @@ private:
 			super.undo();
 			refContentText();
 			_status.setText(.tryFormat(_prop.msgs.replaceUndo, .formatNum(_result.getItemCount())));
+			_comm.inReplaceText = true;
 			foreach_reverse (d; _refCall) d();
+			_comm.inReplaceText = false;
 			_comm.replText.call();
 		}
 		override void redo() { mixin(S_TRACE);
 			super.redo();
 			refContentText();
 			_status.setText(.tryFormat(_prop.msgs.replaceRedo, .formatNum(_result.getItemCount())));
+			_comm.inReplaceText = true;
 			foreach (d; _refCall) d();
+			_comm.inReplaceText = false;
 			_comm.replText.call();
 		}
 	}
@@ -2759,6 +2763,7 @@ public:
 	private void after() { mixin(S_TRACE);
 		foreach (a; _refCall) a();
 		foreach (a; _after) a();
+		_comm.inReplaceText = false;
 		if (_after.length) { mixin(S_TRACE);
 			refContentText();
 			if (_replMode) _comm.replText.call();
@@ -4190,6 +4195,7 @@ public:
 			}
 		}
 
+		if (_replMode) _comm.inReplaceText = true;
 		auto cursors = setWaitCursors(_win);
 		auto thr = new core.thread.Thread({ mixin(S_TRACE);
 			auto exit = new class Runnable {
@@ -4200,7 +4206,10 @@ public:
 						setResultStatus(count);
 						resetCursors(cursors);
 					}
-					if (_replMode && !_after.length) _comm.replText.call();
+					if (_replMode && !_after.length) { mixin(S_TRACE);
+						_comm.inReplaceText = false;
+						_comm.replText.call();
+					}
 					after();
 				}
 			};
