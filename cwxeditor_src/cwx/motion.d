@@ -85,6 +85,15 @@ private MType[string] MTYPE_MAP() { mixin(S_TRACE);
 	return _MTYPE_MAP;
 }
 
+/// 名前から効果タイプを返す。
+MType mTypeFromName(string name) { mixin(S_TRACE);
+	return MTYPE_MAP[name];
+}
+/// 効果タイプを名前へ変換する。
+string mTypeToName(MType type) { mixin(S_TRACE);
+	return MOTION_DETAILS[type].name;
+}
+
 struct MDetail {
 	string name;
 	string[MArg] args;

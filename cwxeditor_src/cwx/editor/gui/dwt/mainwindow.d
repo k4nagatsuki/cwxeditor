@@ -3432,6 +3432,7 @@ public:
 						case MenuID.CopyTimingConvertedKeyCodeSuccess:
 						case MenuID.CopyTimingConvertedKeyCodeFailure:
 						case MenuID.CopyTimingConvertedKeyCodeHasNot:
+						case MenuID.AddKeyCodesByFeatures:
 						case MenuID.KeyCodeCond:
 						case MenuID.KeyCodeCondOr:
 						case MenuID.KeyCodeCondAnd:

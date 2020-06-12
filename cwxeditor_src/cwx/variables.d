@@ -222,6 +222,11 @@ class FlexEtcProps : Properties {
 	auto functionArgumentTypeColumn = Prop!(int, false, true)("functionArgumentTypeColumn", 80);
 	auto functionArgumentValueColumn = Prop!(int, false, true)("functionArgumentValueColumn", 120);
 	auto expressionCheckingDelay = Prop!(uint, true)("expressionCheckingDelay", 500);
+	auto keyCodesByFeaturesFeatureColumn = Prop!(int, false, true)("keyCodesByFeaturesFeatureColumn", 100);
+	auto keyCodesByFeaturesKeyCodeColumn = Prop!(int, false, true)("keyCodesByFeaturesKeyCodeColumn", 100);
+	auto keyCodesByMotionsMotionColumn = Prop!(int, false, true)("keyCodesByMotionsMotionColumn", 90);
+	auto keyCodesByMotionsElementColumn = Prop!(int, false, true)("keyCodesByMotionsElementColumn", 100);
+	auto keyCodesByMotionsKeyCodeColumn = Prop!(int, false, true)("keyCodesByMotionsKeyCodeColumn", 100);
 
 	auto partyMax = Prop!(uint, true)("partyMax", 6);
 	auto cardScaleMax = Prop!(int)("cardScaleMax", 300);
@@ -370,8 +375,12 @@ class FlexEtcProps : Properties {
 	auto bgImageSettingsSashL = Prop!(int)("bgImageSettingsSashL", 1);
 	auto bgImageSettingsSashR = Prop!(int)("bgImageSettingsSashR", 1);
 	auto selectionKeyCodeSashL = Prop!(int)("selectionKeyCodeSashL", 1);
-	auto selectionKeyCodeSashR = Prop!(int)("selectionKeyCodeSashR", 3);
-	auto bgImageSelectionSashL = Prop!(int)("bgImageSelectionSashL", 2);
+	auto selectionKeyCodeSashR = Prop!(int)("selectionKeyCodeSashR", 4);
+	auto bgImageSettingsKeyCodesSashL = Prop!(int)("bgImageSettingsKeyCodesSashL", 3);
+	auto bgImageSettingsKeyCodesSashR = Prop!(int)("bgImageSettingsKeyCodesSashR", 2);
+	auto keyCodesByFeaturesKeyCodesByMotionSashL = Prop!(int)("keyCodesByFeaturesKeyCodesByMotionSashL", 2);
+	auto keyCodesByFeaturesKeyCodesByMotionSashR = Prop!(int)("keyCodesByFeaturesKeyCodesByMotionSashR", 3);
+	auto bgImageSelectionSashL = Prop!(int)("bgImageSelectionSashL", 4);
 	auto bgImageSelectionSashR = Prop!(int)("bgImageSelectionSashR", 1);
 	auto outerToolsSashL = Prop!(int)("outerToolsSashL", 1);
 	auto outerToolsSashR = Prop!(int)("outerToolsSashR", 2);
@@ -714,6 +723,40 @@ class FlexEtcProps : Properties {
 		"",
 		"一撃",
 		"守備",
+	]);
+	auto keyCodesByFeatures = Prop!(KeyCodeByFeature[])("keyCodesByFeatures", [
+		KeyCodeByFeature("魔法である", "魔法"),
+		KeyCodeByFeature("気功法である", "気功法"),
+		KeyCodeByFeature("遠距離攻撃である", "遠距離攻撃"),
+		KeyCodeByFeature("不意打ちである", "暗殺"),
+		KeyCodeByFeature("召喚獣である", "召喚獣"),
+		KeyCodeByFeature("観察・鑑定を行う", "鑑定"),
+		KeyCodeByFeature("解錠を行う", "解錠"),
+		KeyCodeByFeature("魔法を解く", "魔法を解除"),
+	]);
+	auto keyCodesByMotions = Prop!(KeyCodeByMotion[])("keyCodesByMotions", [
+		KeyCodeByMotion(MType.Damage, false, Element.All, "攻撃"),
+		KeyCodeByMotion(MType.Absorb, false, Element.All, "攻撃"),
+		KeyCodeByMotion(MType.Heal, false, Element.All, "治療"),
+		KeyCodeByMotion(MType.VanishTarget, true, Element.Miracle, "神聖な攻撃"),
+		KeyCodeByMotion(MType.Damage, true, Element.Miracle, "魔法による攻撃"),
+		KeyCodeByMotion(MType.Absorb, true, Element.Miracle, "魔法による攻撃"),
+		KeyCodeByMotion(MType.Damage, true, Element.Magic, "魔法による攻撃"),
+		KeyCodeByMotion(MType.Absorb, true, Element.Magic, "魔法による攻撃"),
+		KeyCodeByMotion(MType.Damage, true, Element.Fire, "炎による攻撃"),
+		KeyCodeByMotion(MType.Absorb, true, Element.Fire, "炎による攻撃"),
+		KeyCodeByMotion(MType.Damage, true, Element.Ice, "冷気による攻撃"),
+		KeyCodeByMotion(MType.Absorb, true, Element.Ice, "冷気による攻撃"),
+		KeyCodeByMotion(MType.Normal, false, Element.All, "精神を回復"),
+		KeyCodeByMotion(MType.DisPoison, false, Element.All, "中毒を解除"),
+		KeyCodeByMotion(MType.DisParalyze, false, Element.All, "麻痺を解除"),
+		KeyCodeByMotion(MType.Sleep, false, Element.All, "眠り"),
+		KeyCodeByMotion(MType.Paralyze, false, Element.All, "麻痺"),
+		KeyCodeByMotion(MType.Poison, false, Element.All, "中毒"),
+		KeyCodeByMotion(MType.Bind, false, Element.All, "呪縛"),
+		KeyCodeByMotion(MType.Silence, false, Element.All, "沈黙"),
+		KeyCodeByMotion(MType.DisBind, false, Element.All, "呪縛を解除"),
+		KeyCodeByMotion(MType.DisSilence, false, Element.All, "沈黙を解除"),
 	]);
 	auto standardSelections = Prop!(string[])("standardSelections", [
 		"はい",

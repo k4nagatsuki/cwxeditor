@@ -795,7 +795,7 @@ private:
 			grp.setText(_prop.msgs.keyCodes);
 			grp.setLayout(normalGridLayout(1, true));
 
-			_keyCodes = new KeyCodeView(_comm, _summ, grp, _readOnly, true, false, &catchMod);
+			_keyCodes = new KeyCodeView(_comm, _summ, grp, _readOnly, true, false, &catchMod, () => _motions.motions);
 			_keyCodes.setLayoutData(new GridData(GridData.FILL_BOTH));
 			mod(_keyCodes);
 			_keyCodes.modEvent ~= &refreshWarning;

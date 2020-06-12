@@ -402,6 +402,7 @@ class Commons {
 	Dlg!() refUseMessageWindowColorInTextContentDialog;
 	Dlg!() refUpdateMotionBarStyle;
 	Dlg!() refMenuCardAndBgImageList;
+	Dlg!() refKeyCodesByFeatures;
 
 	Dlg!() refTableViewStyle;
 	Dlg!(Area) refArea;

@@ -24,6 +24,7 @@ import cwx.editor.gui.sound;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.areaview;
 import cwx.editor.gui.dwt.areaviewutils;
+import cwx.editor.gui.dwt.autokeycode;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.contentinitializer;
@@ -119,6 +120,8 @@ private:
 	ToolsPane!BgImageSetting _bgStgs;
 	Text _selections;
 	Text _keyCodes;
+	KeyCodeByFeatureView _keyCodesByFeatures;
+	KeyCodeByMotionView _keyCodesByMotions;
 
 	CTabItem _tabT;
 	ToolsPane!OuterTool _tools;
@@ -801,10 +804,32 @@ private:
 			defBtn.setText(_prop.msgs.setBgImagesDefault);
 			defBtn.addSelectionListener(new DefBgSetting);
 		}
+		auto sashL = new SplitPane(back, SWT.VERTICAL);
+		auto slgd = new GridData(GridData.FILL_BOTH);
+		slgd.heightHint = 0;
+		sashL.setLayoutData(slgd);
 		{ mixin(S_TRACE);
-			_bgStgs = new ToolsPane!BgImageSetting(_comm, (b) { ignoreMod = b; }, &catchMod, &applyEnabled, back, SWT.NONE);
-			_bgStgs.setLayoutData(new GridData(GridData.FILL_BOTH));
+			_bgStgs = new ToolsPane!BgImageSetting(_comm, (b) { ignoreMod = b; }, &catchMod, &applyEnabled, sashL, SWT.NONE);
 		}
+		auto sashKC = new SplitPane(sashL, SWT.HORIZONTAL);
+		{ mixin(S_TRACE);
+			auto grp = new Group(sashKC, SWT.NONE);
+			grp.setLayout(normalGridLayout(1, false));
+			grp.setText(_prop.msgs.keyCodesByFeatures);
+			_keyCodesByFeatures = new KeyCodeByFeatureView(_comm, grp, SWT.NONE, &catchMod);
+			mod(_keyCodesByFeatures);
+			_keyCodesByFeatures.setLayoutData(new GridData(GridData.FILL_BOTH));
+		}
+		{ mixin(S_TRACE);
+			auto grp = new Group(sashKC, SWT.NONE);
+			grp.setLayout(normalGridLayout(1, false));
+			grp.setText(_prop.msgs.keyCodesByMotions);
+			_keyCodesByMotions = new KeyCodeByMotionView(_comm, grp, SWT.NONE, &catchMod);
+			mod(_keyCodesByMotions);
+			_keyCodesByMotions.setLayoutData(new GridData(GridData.FILL_BOTH));
+		}
+		.setupWeights(sashL, _prop.var.etc.bgImageSettingsKeyCodesSashL, _prop.var.etc.bgImageSettingsKeyCodesSashR);
+		.setupWeights(sashKC, _prop.var.etc.keyCodesByFeaturesKeyCodesByMotionSashL, _prop.var.etc.keyCodesByFeaturesKeyCodesByMotionSashR);
 		{ mixin(S_TRACE);
 			auto sashR = new SplitPane(sash, SWT.VERTICAL);
 			{ mixin(S_TRACE);
@@ -1434,6 +1459,8 @@ protected:
 
 		_selections.setText(_prop.var.etc.standardSelections.value.join("\n") ~ "\n");
 		_keyCodes.setText(_prop.var.etc.standardKeyCodes.value.join("\n") ~ "\n");
+		_keyCodesByFeatures.values = _prop.var.etc.keyCodesByFeatures;
+		_keyCodesByMotions.values = _prop.var.etc.keyCodesByMotions;
 
 		refreshEnabled();
 	}
@@ -1613,6 +1640,8 @@ protected:
 
 		_prop.var.etc.standardSelections = _selections.getText().splitLines().stripRight("");
 		_prop.var.etc.standardKeyCodes = _keyCodes.getText().splitLines().stripRight("");
+		_prop.var.etc.keyCodesByFeatures = _keyCodesByFeatures.values;
+		_prop.var.etc.keyCodesByMotions = _keyCodesByMotions.values;
 
 		_prop.var.etc.outerTools = _tools.array;
 		_prop.var.etc.classicEngines = _cEngines.array;
@@ -1723,6 +1752,8 @@ struct OldSettings {
 	ExecutionParty[] executedParties;
 	uint executedPartiesMax;
 	bool useCoolBar;
+	KeyCodeByFeature[] keyCodesByFeatures;
+	KeyCodeByMotion[] keyCodesByMotions;
 	this (Props prop) { mixin(S_TRACE);
 		this.prop = prop;
 		this.drawingScale = prop.var.etc.drawingScale;
@@ -1806,6 +1837,7 @@ struct OldSettings {
 		this.executedParties = prop.var.etc.executedParties;
 		this.executedPartiesMax = prop.var.etc.executedPartiesMax;
 		this.useCoolBar = prop.var.etc.useCoolBar;
+		this.keyCodesByFeatures = prop.var.etc.keyCodesByFeatures;
 	}
 	void raiseEvent(Commons comm) { mixin(S_TRACE);
 		bool refSkin = false;
@@ -2034,6 +2066,9 @@ struct OldSettings {
 		}
 		if (comm.summary && comm.summary.legacy && !comm.skin.legacy && !comm.skin.sourceOfMaterialsIsClassicEngine && this.replaceClassicResourceExtension != prop.var.etc.replaceClassicResourceExtension) { mixin(S_TRACE);
 			comm.summary.changedAll();
+		}
+		if (this.keyCodesByFeatures != prop.var.etc.keyCodesByFeatures) { mixin(S_TRACE);
+			comm.refKeyCodesByFeatures.call();
 		}
 	}
 }

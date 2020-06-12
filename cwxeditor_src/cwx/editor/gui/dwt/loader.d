@@ -492,7 +492,7 @@ protected:
 			l.setText(.tryFormat(_comm.prop.msgs.scenarioLoadErrors, _summ.scenarioName, fileName));
 		}
 
-		_files = .rangeSelectableTable(area, SWT.BORDER | SWT.MULTI | SWT.FULL_SELECTION);
+		_files = .rangeSelectableTable(area, SWT.BORDER | SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
 		_files.setLayoutData(new GridData(GridData.FILL_BOTH));
 		new FullTableColumn(_files, SWT.NONE);
 		auto menu = new Menu(_files.getShell());

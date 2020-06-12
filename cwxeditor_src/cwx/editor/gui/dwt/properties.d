@@ -204,6 +204,8 @@ public class FlexProps {
 	DialogParam!("executedPartyHistoryDialog", 500, 350) executedPartyHistoryDlg;
 	DialogParam!("expressionDialog", 500, -1) expressionDlg;
 	DialogParam!("expressionWithTargetDialog", 500, -1) expressionWithTargetDlg;
+	DialogParam!("selectFeaturesDialog", 300, 300) selectFeaturesDlg;
+	DialogParam!("addKeyCodesErrorDialog", 300, 300) addKeyCodesErrorDlg;
 	MenuProps menu;
 	FlexEtcProps etc;
 
