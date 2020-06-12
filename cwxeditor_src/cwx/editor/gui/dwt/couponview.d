@@ -579,7 +579,7 @@ class CouponView(CVType Type) : Composite {
 		}
 		override void dragFinished(DragSourceEvent e) { mixin(S_TRACE);
 			if (!_readOnly && e.detail == DND.DROP_MOVE) { mixin(S_TRACE);
-				if (_tte1.isEditing) _tte1.enter();
+				if (_tte1.isEditing) _tte1.cancel();
 				static if (CVType.NoValued != Type && CVType.Branch != Type) {
 					if (_tte2.isEditing) _tte2.enter();
 				}

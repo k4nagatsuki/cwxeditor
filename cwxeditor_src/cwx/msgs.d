@@ -78,6 +78,9 @@ class Msgs : Properties {
 
 	auto filterAll = Msg("filterAll", "全てのファイル (*.*)");
 
+	auto addItem = Msg("addItem", "追加");
+	auto delItem = Msg("delItem", "削除");
+
 	auto fileCopyError = Msg("fileCopyError", "%1$sのコピー中にエラーが発生しました。");
 	auto reloadError = Msg("reloadError", "%1$sの再読込中にエラーが発生しました。");
 	auto loadProgress = Msg("loadProgress", "%2$s%% 完了 - %1$sを展開中");
@@ -2193,6 +2196,10 @@ class Msgs : Properties {
 	auto keyCodes = Msg("keyCodes", "イベント発火のキーコード");
 	auto addKeyCode = Msg("addKeyCode", "キーコードの追加");
 	auto delKeyCode = Msg("delKeyCode", "キーコードの削除");
+	auto selectFeatures = Msg("selectFeatures", "キーコードの自動生成");
+	auto selectFeaturesHint = Msg("selectFeaturesHint", "特徴と効果からキーコードを自動生成します。\n全体的な特徴を選択してください。");
+	auto addKeyCodesError = Msg("addKeyCodesError", "追加できなかったキーコード");
+	auto addKeyCodesErrorDesc = Msg("addKeyCodesErrorDesc", "クラシックなシナリオではキーコードが%1$s件までに制限されているため、次のキーコードは追加できませんでした。");
 
 	auto behaviorOfBeastCard = Msg("behaviorOfBeastCard", "発動/消滅");
 	auto invocationCondition = Msg("invocationCondition", "発動条件");
@@ -2515,6 +2522,10 @@ class Msgs : Properties {
 	auto bgImageAndSelections = Msg("bgImageAndSelections", "背景と選択肢");
 	auto standardSelections = Msg("standardSelections", "標準の選択肢");
 	auto standardKeyCode = Msg("standardKeyCode", "標準のキーコード");
+	auto keyCodesByFeatures = Msg("keyCodesByFeatures", "特徴とキーコードの対応");
+	auto cardFeature = Msg("cardFeature", "カードの特徴");
+	auto keyCodesByMotions = Msg("keyCodesByMotions", "効果とキーコードの対応");
+	auto noElement = Msg("noElement", "指定無し");
 
 	auto errorEnginePath = Msg("errorEnginePath", "%1$sの場所が正しくありません。");
 	auto errorTempPath = Msg("errorTempPath", "一時展開先が正しくありません。");
@@ -3070,6 +3081,7 @@ class Msgs : Properties {
 	auto menuTextCopyTimingConvertedKeyCodeSuccess = Msg("menuTextCopyTimingConvertedKeyCodeSuccess", "[...○] 成功");
 	auto menuTextCopyTimingConvertedKeyCodeFailure = Msg("menuTextCopyTimingConvertedKeyCodeFailure", "[...×] 失敗");
 	auto menuTextCopyTimingConvertedKeyCodeHasNot = Msg("menuTextCopyTimingConvertedKeyCodeHasNot", "[！...] 不保有");
+	auto menuTextAddKeyCodesByFeatures = Msg("menuAddKeyCodesByFeatures", "特徴と効果からキーコードを生成");
 	auto menuTextKeyCodeCond = Msg("menuTextKeyCodeCond", "キーコード発火条件");
 	auto menuTextKeyCodeCondOr = Msg("menuTextKeyCodeCondOr", "どれか一つに一致");
 	auto menuTextKeyCodeCondAnd = Msg("menuTextKeyCodeCondAnd", "全てに一致");

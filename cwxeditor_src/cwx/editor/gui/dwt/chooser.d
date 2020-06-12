@@ -261,6 +261,7 @@ string[] allCoupons(Commons comm, Summary summ, CouponComboType type) { mixin(S_
 T createGossipCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, string initValue) { mixin(S_TRACE);
 	auto combo = new T(parent, SWT.BORDER | SWT.DROP_DOWN);
 	combo.setVisibleItemCount(comm.prop.var.etc.comboVisibleItemCount);
+	combo.setText(initValue);
 	auto hasItem = false;
 	auto incSearch = new IncSearch(comm, combo, () => hasItem);
 
@@ -322,6 +323,7 @@ string[] allGossips(Commons comm, Summary summ) { mixin(S_TRACE);
 T createCompleteStampCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, string initValue) { mixin(S_TRACE);
 	auto combo = new T(parent, SWT.BORDER | SWT.DROP_DOWN);
 	combo.setVisibleItemCount(comm.prop.var.etc.comboVisibleItemCount);
+	combo.setText(initValue);
 	auto hasItem = false;
 	auto incSearch = new IncSearch(comm, combo, () => hasItem);
 
@@ -383,6 +385,7 @@ string[] allCompleteStamps(Commons comm, Summary summ) { mixin(S_TRACE);
 T createKeyCodeCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, string initValue, bool withIgnitionType) { mixin(S_TRACE);
 	auto combo = new T(parent, SWT.BORDER | SWT.DROP_DOWN);
 	combo.setVisibleItemCount(comm.prop.var.etc.comboVisibleItemCount);
+	combo.setText(initValue);
 	auto hasItem = false;
 	auto incSearch = new IncSearch(comm, combo, () => hasItem);
 
@@ -541,6 +544,7 @@ void createKeyCodeTimingMenu(T)(Commons comm, T combo, bool convert, bool copy) 
 T createCellNameCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, string initValue) { mixin(S_TRACE);
 	auto combo = new T(parent, SWT.BORDER | SWT.DROP_DOWN);
 	combo.setVisibleItemCount(comm.prop.var.etc.comboVisibleItemCount);
+	combo.setText(initValue);
 	auto hasItem = false;
 	auto incSearch = new IncSearch(comm, combo, () => hasItem);
 
@@ -598,6 +602,7 @@ string[] allCellNames(Commons comm, Summary summ) { mixin(S_TRACE);
 T createCardGroupCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, string initValue) { mixin(S_TRACE);
 	auto combo = new T(parent, SWT.BORDER | SWT.DROP_DOWN);
 	combo.setVisibleItemCount(comm.prop.var.etc.comboVisibleItemCount);
+	combo.setText(initValue);
 	auto hasItem = false;
 	auto incSearch = new IncSearch(comm, combo, () => hasItem);
 

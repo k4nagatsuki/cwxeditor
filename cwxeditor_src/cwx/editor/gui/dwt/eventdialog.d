@@ -2309,7 +2309,7 @@ protected:
 				grp.setText(prop.msgs.keyCodes);
 				grp.setLayout(normalGridLayout(1, true));
 
-				_keyCodes = new KeyCodeView(comm, summ, grp, SWT.NONE, true, false, &catchMod);
+				_keyCodes = new KeyCodeView(comm, summ, grp, SWT.NONE, true, false, &catchMod, () => _mview.motions);
 				_keyCodes.setLayoutData(new GridData(GridData.FILL_BOTH));
 				mod(_keyCodes);
 				_keyCodes.modEvent ~= &updateEnabled;

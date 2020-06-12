@@ -146,6 +146,9 @@ public:
 	@property Image toolBar() { return imgd!("tool_bar.png"); }
 	@property Image toolGroup() { return imgd!("tool_group.png"); }
 
+	@property Image addItem() { return imgd!("add_item.png"); }
+	@property Image delItem() { return imgd!("del_item.png"); }
+
 	@property Image text() { return imgd!("text.png"); }
 
 	@property Image classicEngine() { return imgd!("classic_engine.png"); }
@@ -740,6 +743,7 @@ public:
 		case MenuID.CopyTimingConvertedKeyCodeSuccess: return imgd!("key_code_suc.png");
 		case MenuID.CopyTimingConvertedKeyCodeFailure: return imgd!("key_code_fail.png");
 		case MenuID.CopyTimingConvertedKeyCodeHasNot: return imgd!("key_code_hasnot.png");
+		case MenuID.AddKeyCodesByFeatures: return imgd!("add_key_codes_by_features.png");
 		case MenuID.KeyCodeCond: return imgd!("key_code_cond.png");
 		case MenuID.KeyCodeCondOr: return imgd!("key_code_or.png");
 		case MenuID.KeyCodeCondAnd: return imgd!("key_code_and.png");

@@ -1840,6 +1840,7 @@ enum MenuID {
 	CopyTimingConvertedKeyCodeSuccess,
 	CopyTimingConvertedKeyCodeFailure,
 	CopyTimingConvertedKeyCodeHasNot,
+	AddKeyCodesByFeatures,
 	KeyCodeCond,
 	KeyCodeCondOr,
 	KeyCodeCondAnd,

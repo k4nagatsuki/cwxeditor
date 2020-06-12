@@ -1,24 +1,27 @@
 
 module cwx.editor.gui.dwt.keycodeview;
 
-import cwx.summary;
-import cwx.xml;
+import cwx.card;
 import cwx.menu;
+import cwx.motion;
+import cwx.summary;
+import cwx.system;
 import cwx.types;
 import cwx.utils;
-import cwx.card;
-import cwx.system;
 import cwx.warning;
+import cwx.xml;
 
+import cwx.editor.gui.dwt.absdialog;
+import cwx.editor.gui.dwt.chooser;
+import cwx.editor.gui.dwt.commons;
+import cwx.editor.gui.dwt.customtable;
+import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.dutils;
-import cwx.editor.gui.dwt.commons;
+import cwx.editor.gui.dwt.editablelistview;
 import cwx.editor.gui.dwt.undo;
-import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.xmlbytestransfer;
-import cwx.editor.gui.dwt.customtable;
-import cwx.editor.gui.dwt.chooser;
 
 import std.algorithm;
 import std.array;
@@ -31,189 +34,61 @@ import org.eclipse.swt.all;
 
 import java.lang.all;
 
-public:
-
 /// カードが持つキーコードのビュー。
-class KeyCodeView : Composite {
-	void delegate()[] modEvent;
-	private void raiseModifyEvent() { mixin(S_TRACE);
-		foreach (dlg; modEvent) { mixin(S_TRACE);
-			dlg();
-		}
-	}
-	private string _id;
+class KeyCodeView : AbstractEditableListView!string {
 
-	private int _readOnly = 0;
-	private bool _canDuplicate = true;
 	private bool _withIgnitionType = false;
 
 	private Commons _comm;
-	private Props _prop;
 	private Summary _summ;
-	private KeyDownFilter _kdFilter;
 
-	private UndoManager _undo;
-
-	private Table _keyCodes;
-	private ToolBar _toolbar = null;
 	private TableTextEdit _tte = null;
 	private TableComboEdit!Combo _tce = null;
 
 	private bool delegate() _catchMod;
 
-	void setKeyCode(int index, string name) { mixin(S_TRACE);
-		auto itm = _keyCodes.getItem(index);
-		assert (itm !is null);
-		setKeyCode(itm, name);
-	}
-	void setKeyCode(TableItem itm, string name) { mixin(S_TRACE);
+	private const(Motion)[] delegate() _getMotions = null;
+
+	override
+	protected void updateItem(in string value, TableItem itm) { mixin(S_TRACE);
+		auto name = value;
 		itm.setText(name);
-		auto image = _prop.images.keyCode;
+		auto image = _comm.prop.images.keyCode;
 		if (_withIgnitionType) { mixin(S_TRACE);
-			auto fkc = _prop.sys.toFKeyCode(name);
-			itm.setText(1, name == "" ? "" : _prop.msgs.keyCodeTiming(fkc.kind));
-			if (!_prop.targetVersion(_summ, "1.50") && fkc.kind is FKCKind.HasNot) { mixin(S_TRACE);
-				image = _prop.images.warning;
+			auto fkc = _comm.prop.sys.toFKeyCode(name);
+			itm.setText(1, _comm.prop.msgs.keyCodeTiming(fkc.kind));
+			if (!_comm.prop.targetVersion(_summ, "1.50") && fkc.kind is FKCKind.HasNot) { mixin(S_TRACE);
+				image = _comm.prop.images.warning;
 			} else { mixin(S_TRACE);
-				image = _prop.images.keyCodeTiming(fkc.kind);
+				image = _comm.prop.images.keyCodeTiming(fkc.kind);
 			}
 		}
 
-		if (!_canDuplicate && _keyCodes.getItem(0) is itm && name == "MatchingType=All") { mixin(S_TRACE);
-			image = _prop.images.warning;
-		} else if (_canDuplicate && _prop.sys.isRunAway([name])) { mixin(S_TRACE);
-			image = _prop.images.warning;
-		} else if (.sjisWarnings(_prop.parent, _summ, name, "").length) { mixin(S_TRACE);
-			image = _prop.images.warning;
+		if (!canDuplicate && itm.getParent().indexOf(itm) == 0 && name == "MatchingType=All") { mixin(S_TRACE);
+			image = _comm.prop.images.warning;
+		} else if (canDuplicate && _comm.prop.sys.isRunAway([name])) { mixin(S_TRACE);
+			image = _comm.prop.images.warning;
+		} else if (.sjisWarnings(_comm.prop.parent, _summ, name, "").length) { mixin(S_TRACE);
+			image = _comm.prop.images.warning;
 		}
 		itm.setImage(image);
 	}
 	void refDataVersion() { mixin(S_TRACE);
-		foreach (itm; _keyCodes.getItems()) { mixin(S_TRACE);
-			setKeyCode(itm, itm.getText());
-		}
-	}
-
-	class UndoName : Undo {
-		private int _index;
-		private string _oldName;
-		private string _newName;
-		this (int index, string oldName, string newName) { mixin(S_TRACE);
-			_index = index;
-			_oldName = oldName;
-			_newName = newName;
-		}
-		private void impl() { mixin(S_TRACE);
-			if (_tte && _tte.isEditing) _tte.cancel();
-			if (_tce && _tce.isEditing) _tce.cancel();
-			setKeyCode(_index, _oldName);
-			auto temp = _oldName;
-			_oldName = _newName;
-			_newName = temp;
-			raiseModifyEvent();
-			_comm.refreshToolBar();
-		}
-		void undo() { impl(); }
-		void redo() { impl(); }
-		void dispose() { }
-	}
-	void storeSingle(int index, string oldName, string newName) { mixin(S_TRACE);
-		_undo ~= new UndoName(index, oldName, newName);
-	}
-	private class UndoKeyCodes : Undo {
-		private string[] _keyCodes;
-		this () { mixin(S_TRACE);
-			save();
-		}
-		private void save() { mixin(S_TRACE);
-			_keyCodes = this.outer.getKeyCodes(false);
-		}
-		private void impl() { mixin(S_TRACE);
-			if (_tte && _tte.isEditing) _tte.cancel();
-			if (_tce && _tce.isEditing) _tce.cancel();
-			auto keyCodes = _keyCodes;
-			save();
-			this.outer._keyCodes.setRedraw(false);
-			scope (exit) this.outer._keyCodes.setRedraw(true);
-
-			auto n = this.outer._keyCodes.getItemCount();
-			this.outer._keyCodes.setItemCount(cast(int)keyCodes.length);
-			foreach (i, keyCode; keyCodes) { mixin(S_TRACE);
-				setKeyCode(cast(int)i, keyCode);
-			}
-			raiseModifyEvent();
-			_comm.refreshToolBar();
-		}
-		override void undo() { impl(); }
-		override void redo() { impl(); }
-		override void dispose() { mixin(S_TRACE);
-			// Nothing
-		}
-	}
-	private void storeKeyCodes() { mixin(S_TRACE);
-		_undo ~= new UndoKeyCodes;
-	}
-	private void undo() { mixin(S_TRACE);
-		_undo.undo();
-	}
-	private void redo() { mixin(S_TRACE);
-		_undo.redo();
-	}
-
-	private void refreshWarning() { mixin(S_TRACE);
-		foreach (itm; _keyCodes.getItems()) { mixin(S_TRACE);
-			// 警告アイコンの更新
-			if (itm.getText() == "MatchingType=All") setKeyCode(itm, itm.getText());
-		}
+		clearAll();
 	}
 
 	private Control createEditor(TableItem itm, int editC) { mixin(S_TRACE);
-		auto combo = createKeyCodeCombo!Combo(_comm, _summ, _keyCodes, _catchMod, itm.getText(), _withIgnitionType);
-		combo.setText(itm.getText());
-		return combo;
+		return .createKeyCodeCombo!Combo(_comm, _summ, itm.getParent(), _catchMod, itm.getText(), _withIgnitionType);
 	}
 	private void editEnd(TableItem itm, int column, string newText) { mixin(S_TRACE);
-		auto oldText = itm.getText();
-		if (newText == oldText && !_startAdd) return;
-		scope (exit) _startAdd = null;
-		if (!_canDuplicate && (_withIgnitionType ? _prop.sys.toFKeyCode(newText).keyCode : newText) == "") { mixin(S_TRACE);
-			// 空白名を許さない場合は、空文字列入力で削除を行う
-			if (!_startAdd) storeKeyCodes();
-			itm.dispose();
-			if (_startAdd) return;
-		} else { mixin(S_TRACE);
-			if (existsKeyCode(itm, newText)) { mixin(S_TRACE);
-				_startAdd = null;
-				return;
-			}
-			if (_startAdd) { mixin(S_TRACE);
-				storeKeyCodes();
-				_startAdd = null;
-			} else { mixin(S_TRACE);
-				storeSingle(_keyCodes.indexOf(itm), oldText, newText);
-			}
-			setKeyCode(itm, newText);
-		}
-		_startAdd = null;
-		raiseModifyEvent();
-		_comm.refreshToolBar();
-	}
-	private void exitEdit(bool cancel) { mixin(S_TRACE);
-		if (cancel && _startAdd) { mixin(S_TRACE);
-			_startAdd.dispose();
-			_comm.refreshToolBar();
-		}
-		_startAdd = null;
+		mainValueEditEnd(itm, newText);
 	}
 
-	private FKCKind[] _ignitionTypeTable;
 	void ignitionTypeCombo(TableItem itm, int column, out string[] strs, out string str) { mixin(S_TRACE);
-		_ignitionTypeTable = [];
 		foreach (i, kind; EnumMembers!FKCKind) { mixin(S_TRACE);
-			_ignitionTypeTable ~= kind;
-			auto v = _prop.msgs.keyCodeTiming(kind);
+			auto v = _comm.prop.msgs.keyCodeTiming(kind);
 			strs ~= v;
-			if (kind is _prop.sys.fireKeyCodeKind(itm.getText())) { mixin(S_TRACE);
+			if (kind is _comm.prop.sys.fireKeyCodeKind(itm.getText())) { mixin(S_TRACE);
 				str = v;
 			}
 		}
@@ -221,556 +96,177 @@ class KeyCodeView : Composite {
 	void ignitionTypeEditEnd(TableItem selItm, int column, Combo combo) { mixin(S_TRACE);
 		int i = combo.getSelectionIndex();
 		if (-1 == i) return;
-		assert (i < _ignitionTypeTable.length);
 		auto oldText = selItm.getText();
-		auto kind = _ignitionTypeTable[i];
-		auto newText = _prop.sys.convFireKeyCode(oldText, kind);
-		if (oldText == newText) return;
-		if (existsKeyCode(selItm, newText)) return;
-		foreach (itm2; _keyCodes.getItems()) { mixin(S_TRACE);
-			if (itm2 !is selItm && itm2.getText() == newText) { mixin(S_TRACE);
-				_keyCodes.deselectAll();
-				_keyCodes.setSelection([itm2]);
-				_keyCodes.showSelection();
-				return;
-			}
-		}
-		storeSingle(_keyCodes.indexOf(selItm), oldText, newText);
-		setKeyCode(selItm, newText);
-		raiseModifyEvent();
-		_comm.refreshToolBar();
-	}
-	private bool existsKeyCode(TableItem itm, string keyCode) { mixin(S_TRACE);
-		if (_canDuplicate) return false;
-		foreach (itm2; _keyCodes.getItems()) { mixin(S_TRACE);
-			if (itm2 !is itm && itm2.getText() == keyCode) { mixin(S_TRACE);
-				_keyCodes.deselectAll();
-				_keyCodes.setSelection([itm2]);
-				if (_startAdd) _startAdd.dispose();
-				_keyCodes.showSelection();
-				return true;
-			}
-		}
-		return false;
+		auto kind = [EnumMembers!FKCKind][i];
+		auto newText = _comm.prop.sys.convFireKeyCode(oldText, kind);
+		subValueEditEnd(selItm, newText);
 	}
 
-	private TableItem append(string keyCode, int index = -1) { mixin(S_TRACE);
-		if (_tte && _tte.isEditing) _tte.enter();
-		if (_tce && _tce.isEditing) _tce.enter();
-		TableItem itm;
-		if (index != -1) { mixin(S_TRACE);
-			itm = new TableItem(_keyCodes, SWT.NONE, index);
+	override
+	const
+	protected bool isValidValue(in string value) { mixin(S_TRACE);
+		if (_withIgnitionType) { mixin(S_TRACE);
+			return _comm.prop.sys.toFKeyCode(value).keyCode != "";
 		} else { mixin(S_TRACE);
-			itm = new TableItem(_keyCodes, SWT.NONE);
+			return canDuplicate || value != "";
 		}
-		setKeyCode(itm, keyCode);
-		return itm;
 	}
-	private TableItem _startAdd = null;
-	private void add() { mixin(S_TRACE);
-		if (_tte && _tte.isEditing) _tte.enter();
-		if (_tce && _tce.isEditing) _tce.enter();
-		auto itm = append("", -1);
-		_keyCodes.deselectAll();
-		_keyCodes.setSelection([itm]);
-		_keyCodes.showSelection();
-		_comm.refreshToolBar();
-		.forceFocus(_keyCodes, false);
-		_startAdd = itm;
-		_tte.startEdit();
-	}
-	private void del() { mixin(S_TRACE);
-		if (_tte && _tte.isEditing) _tte.enter();
-		if (_tce && _tce.isEditing) _tce.enter();
-		storeKeyCodes();
-		_keyCodes.remove(_keyCodes.getSelectionIndices());
-		refreshWarning();
-		raiseModifyEvent();
-		_comm.refreshToolBar();
-	}
-	private void up() { mixin(S_TRACE);
-		if (_tte && _tte.isEditing) _tte.enter();
-		if (_tce && _tce.isEditing) _tce.enter();
-		auto indices = _keyCodes.getSelectionIndices();
-		std.algorithm.sort(indices);
-		if (!indices.length || indices[0] <= 0) return;
-
-		storeKeyCodes();
-		foreach (index; indices) { mixin(S_TRACE);
-			_keyCodes.upItem(index);
+	override
+	const
+	protected size_t maxCount() { mixin(S_TRACE);
+		if (_summ && _summ.legacy && canDuplicate) { mixin(S_TRACE);
+			return _comm.prop.looks.keyCodesMaxLegacy;
+		} else {
+			return size_t.max;
 		}
-		indices = indices.map!(a => a - 1)().array();
-		_keyCodes.deselectAll();
-		_keyCodes.select(indices);
-		_keyCodes.showSelection();
-		refreshWarning();
-		_keyCodes.redraw();
-		raiseModifyEvent();
-		_comm.refreshToolBar();
-	}
-	private void down() { mixin(S_TRACE);
-		if (_tte && _tte.isEditing) _tte.enter();
-		if (_tce && _tce.isEditing) _tce.enter();
-		auto indices = _keyCodes.getSelectionIndices();
-		std.algorithm.sort(indices);
-		if (!indices.length || _keyCodes.getItemCount() <= indices[$ - 1] + 1) return;
-
-		storeKeyCodes();
-		foreach_reverse (index; indices) { mixin(S_TRACE);
-			_keyCodes.downItem(index);
-		}
-		indices = indices.map!(a => a + 1)().array();
-		_keyCodes.deselectAll();
-		_keyCodes.select(indices);
-		_keyCodes.showSelection();
-		refreshWarning();
-		_keyCodes.redraw();
-		raiseModifyEvent();
-		_comm.refreshToolBar();
 	}
 
-	private class CDropListener : DropTargetAdapter {
-		override void dragEnter(DropTargetEvent e){ mixin(S_TRACE);
-			e.detail = _readOnly ? DND.DROP_NONE : DND.DROP_MOVE;
-		}
-		override void dragOver(DropTargetEvent e){ mixin(S_TRACE);
-			e.detail = _readOnly ? DND.DROP_NONE : DND.DROP_MOVE;
-		}
-		override void drop(DropTargetEvent e){ mixin(S_TRACE);
-			if (!isXMLBytes(e.data)) return;
-			e.detail = DND.DROP_NONE;
-			string xml = bytesToXML(e.data);
-			try { mixin(S_TRACE);
-				auto node = XNode.parse(xml);
-				auto p = (cast(DropTarget)e.getSource()).getControl().toControl(e.x, e.y);
-				auto t = _keyCodes.getItem(p);
-				int index = t ? _keyCodes.indexOf(t) : _keyCodes.getItemCount();
-				auto samePane = _id == node.attr("paneId", false);
-				if (samePane && index == _dragIndex) return;
-				if (!appendFromNode(node, index, samePane)) return;
-
-				if (samePane) { mixin(S_TRACE);
-					e.detail = DND.DROP_MOVE;
-				} else { mixin(S_TRACE);
-					e.detail = DND.DROP_COPY;
-				}
-			} catch (Exception e) {
-				printStackTrace();
-				debugln(e);
-			}
-		}
+	override
+	protected string[] createFromNode(ref XNode node) { mixin(S_TRACE);
+		auto ver = new XMLInfo(_comm.prop.sys, LATEST_VERSION);
+		auto keyCodes = .keyCodesFromNode(node, ver);
+		return keyCodes;
 	}
-	bool appendFromNode(ref XNode node, int index, bool force) { mixin(S_TRACE);
-		if (node.name != KEY_CODES_XML_NAME) return false;
-		if (!force && _summ && _summ.legacy && _prop.looks.keyCodesMaxLegacy <= _keyCodes.getItemCount()) return false;
-		auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
-		auto keyCodes = keyCodesFromNode(node, ver);
-		if (!keyCodes.length) return false;
-
-		string[] keyCodes2;
-		if (_canDuplicate || force) { mixin(S_TRACE);
-			keyCodes2 = keyCodes;
-		} else { mixin(S_TRACE);
-			bool[string] eKeyCodes;
-			foreach (keyCode; this.keyCodes) eKeyCodes[keyCode] = true;
-			foreach (keyCode; keyCodes) { mixin(S_TRACE);
-				if (keyCode in eKeyCodes) continue;
-				if (_withIgnitionType) { mixin(S_TRACE);
-					if (_prop.sys.toFKeyCode(keyCode).keyCode == "") continue;
-				} else { mixin(S_TRACE);
-					if (keyCode == "") continue;
-				}
-				keyCodes2 ~= keyCode;
-				eKeyCodes[keyCode] = true;
-			}
-			if (!keyCodes2.length) return false;
-		}
-
-		_keyCodes.setRedraw(false);
-		scope (exit) _keyCodes.setRedraw(true);
-		if (_tte && _tte.isEditing) _tte.enter();
-		if (_tce && _tce.isEditing) _tce.enter();
-		storeKeyCodes();
-		TableItem[] itms = [];
-		foreach (keyCode; keyCodes2) { mixin(S_TRACE);
-			if (!force && _summ && _summ.legacy && _prop.looks.keyCodesMaxLegacy <= _keyCodes.getItemCount()) break;
-			itms ~= append(keyCode, index);
-			index++;
-		}
-		_keyCodes.deselectAll();
-		_keyCodes.setSelection(itms);
-		_keyCodes.showSelection();
-		refreshWarning();
-		raiseModifyEvent();
-		_comm.refreshToolBar();
-		return true;
+	override
+	const
+	protected string xmlName() { return KEY_CODES_XML_NAME; }
+	override
+	protected XNode toNode(in int[] indices) { mixin(S_TRACE);
+		auto keyCodes = indices.map!(i => value(i))().array();
+		return .keyCodesToNode(keyCodes);
 	}
-	private int _dragIndex = -1;
-	private class CDragListener : DragSourceAdapter {
-		private TableItem[] _itms;
-		override void dragStart(DragSourceEvent e) { mixin(S_TRACE);
-			auto c = cast(Table)(cast(DragSource)e.getSource()).getControl();
-			e.doit = c.isFocusControl() && c.getSelectionIndex() != -1;
-		}
-		override void dragSetData(DragSourceEvent e){ mixin(S_TRACE);
-			if (XMLBytesTransfer.getInstance().isSupportedType(e.dataType)) { mixin(S_TRACE);
-				if (_tte && _tte.isEditing) _tte.enter();
-				if (_tce && _tce.isEditing) _tce.enter();
-				auto c = cast(Table)(cast(DragSource)e.getSource()).getControl();
-				_itms = c.getSelection();
-				if (!_itms.length) return;
-				_dragIndex = c.getSelectionIndex();
-				if (_dragIndex == -1) return;
-				auto keyCodes = _itms.map!(itm => itm.getText())().array();
-				auto node = keyCodesToNode(keyCodes);
-				node.newAttr("paneId", _id);
-				e.data = bytesFromXML(node.text);
-			}
-		}
-		override void dragFinished(DragSourceEvent e) { mixin(S_TRACE);
-			if (!_readOnly && e.detail == DND.DROP_MOVE) { mixin(S_TRACE);
-				if (_tte && _tte.isEditing) _tte.enter();
-				if (_tce && _tce.isEditing) _tce.enter();
-				_keyCodes.setRedraw(false);
-				scope (exit) _keyCodes.setRedraw(true);
-				foreach_reverse (itm; _itms) itm.dispose();
-				refreshWarning();
-				raiseModifyEvent();
-				_comm.refreshToolBar();
-			}
-			_dragIndex = -1;
-			_itms = [];
-		}
-	}
-	private class KeyCodeTCPD : TCPD {
-		override void cut(SelectionEvent se) { mixin(S_TRACE);
-			if (canDoT) { mixin(S_TRACE);
-				copy(se);
-				del(se);
-			}
-		}
-		override void copy(SelectionEvent se) { mixin(S_TRACE);
-			if (canDoC) { mixin(S_TRACE);
-				if (_tte && _tte.isEditing) _tte.enter();
-				if (_tce && _tce.isEditing) _tce.enter();
-				auto keyCodes = _keyCodes.getSelection().map!(itm => itm.getText())().array();
-				XMLtoCB(_prop, _comm.clipboard, .keyCodesToXML(keyCodes));
-				_comm.refreshToolBar();
-			}
-		}
-		override void paste(SelectionEvent se) { mixin(S_TRACE);
-			auto xml = CBtoXML(_comm.clipboard);
-			if (xml) { mixin(S_TRACE);
-				if (_tte && _tte.isEditing) _tte.enter();
-				if (_tce && _tce.isEditing) _tce.enter();
-				try { mixin(S_TRACE);
-					auto node = XNode.parse(xml);
-					appendFromNode(node, _keyCodes.getItemCount(), false);
-				} catch (Exception e) {
-					printStackTrace();
-					debugln(e);
+
+	protected
+	override
+	Image addIcon() { return _comm.prop.images.addKeyCode; }
+	protected
+	override
+	const
+	string addText() { return _comm.prop.msgs.addKeyCode; }
+	protected
+	override
+	Image delIcon() { return _comm.prop.images.delKeyCode; }
+	protected
+	override
+	const
+	string delText() { return _comm.prop.msgs.delKeyCode; }
+
+	override
+	protected void initColumns(Table table) { mixin(S_TRACE);
+		new FullTableColumn(table, SWT.NONE);
+		if (_withIgnitionType) { mixin(S_TRACE);
+			auto col = new TableColumn(table, SWT.NONE);
+			auto gc = new GC(table);
+			scope (exit) gc.dispose();
+			auto w = 0;
+			auto t = "";
+			foreach (kind; EnumMembers!FKCKind) { mixin(S_TRACE);
+				auto t2 = _comm.prop.msgs.keyCodeTiming(kind);
+				auto w2 = gc.wTextExtent(t2).x;
+				if (w < w2) { mixin(S_TRACE);
+					w = w2;
+					t = t2;
 				}
 			}
-		}
-		override void del(SelectionEvent se) { mixin(S_TRACE);
-			this.outer.del();
-		}
-		override void clone(SelectionEvent se) { mixin(S_TRACE);
-			assert (0);
-		}
-		@property
-		override bool canDoTCPD() { mixin(S_TRACE);
-			return true;
-		}
-		@property
-		bool canDoT() { mixin(S_TRACE);
-			return !_readOnly && _keyCodes.getSelectionIndex() != -1;
-		}
-		@property
-		bool canDoC() { mixin(S_TRACE);
-			return _keyCodes.getSelectionIndex() != -1;
-		}
-		@property
-		bool canDoP() { mixin(S_TRACE);
-			return !_readOnly && CBisXML(_comm.clipboard) && (!_summ || !_summ.legacy || _keyCodes.getItemCount() < _prop.looks.keyCodesMaxLegacy);
-		}
-		@property
-		bool canDoD() { mixin(S_TRACE);
-			return !_readOnly && _keyCodes.getSelectionIndex() != -1;
-		}
-		@property
-		bool canDoClone() { mixin(S_TRACE);
-			return !_readOnly && canDoC;
-		}
-	}
-
-	@property
-	bool canUp() { mixin(S_TRACE);
-		if (_readOnly || _keyCodes.getSelectionIndex() == -1) return false;
-		auto indices = _keyCodes.getSelectionIndices();
-		foreach (index; indices) { mixin(S_TRACE);
-			if (index <= 0) return false;
-		}
-		return true;
-	}
-	@property
-	bool canDown() { mixin(S_TRACE);
-		if (_readOnly || _keyCodes.getSelectionIndex() == -1) return false;
-		auto indices = _keyCodes.getSelectionIndices();
-		foreach (index; indices) { mixin(S_TRACE);
-			if (_keyCodes.getItemCount() <= index + 1) return false;
-		}
-		return true;
-	}
-
-	@property
-	bool canSelectAll() { mixin(S_TRACE);
-		if (!_keyCodes || _keyCodes.isDisposed()) return false;
-		return _keyCodes.getSelectionCount() != _keyCodes.getItemCount();
-	}
-	void selectAll() { mixin(S_TRACE);
-		if (!canSelectAll) return;
-		_keyCodes.selectAll();
-		_comm.refreshToolBar();
-	}
-
-	private class HTBTraverse : Listener {
-		override void handleEvent(Event e) { e.doit = true; }
-	}
-	private class HTBKeyDown : Listener {
-		override void handleEvent(Event e) { e.doit = true; }
-	}
-
-	this (Commons comm, Summary summ, Composite parent, int style, bool canDuplicate, bool withIgnitionType, bool delegate() catchMod) { mixin(S_TRACE);
-		super (parent, style);
-
-		_id = .objectIDValue(this);
-
-		_readOnly = style & SWT.READ_ONLY;
-		_comm = comm;
-		_summ = summ;
-		_prop = comm.prop;
-		_canDuplicate = canDuplicate;
-		_withIgnitionType = withIgnitionType;
-		_catchMod = catchMod;
-		_undo = new UndoManager(_prop.var.etc.undoMaxEtc);
-		this.setLayout(zeroMarginGridLayout(1, true));
-		if (!_readOnly) { mixin(S_TRACE);
-			_toolbar = new ToolBar(this, SWT.FLAT);
-			_comm.put(_toolbar);
-			_toolbar.addListener(SWT.Traverse, new HTBTraverse);
-			_toolbar.addListener(SWT.KeyDown, new HTBKeyDown);
-			createToolItem2(_comm, _toolbar, _prop.msgs.addKeyCode, _prop.images.addKeyCode, &add, () => !_readOnly && (_keyCodes.getItemCount() < _prop.looks.keyCodesMaxLegacy || !_summ || !_summ.legacy));
-			createToolItem2(_comm, _toolbar, _prop.msgs.delKeyCode, _prop.images.delKeyCode, &del, () => !_readOnly && _keyCodes.getSelectionIndex() != -1);
-			new ToolItem(_toolbar, SWT.SEPARATOR);
-			createToolItem(_comm, _toolbar, MenuID.Up, &up, &canUp);
-			createToolItem(_comm, _toolbar, MenuID.Down, &down, &canDown);
-		}
-		{ mixin(S_TRACE);
-			_keyCodes = .rangeSelectableTable(this, SWT.BORDER | SWT.MULTI | SWT.FULL_SELECTION);
-			_keyCodes.setLayoutData(new GridData(GridData.FILL_BOTH));
-
-			new FullTableColumn(_keyCodes, SWT.NONE);
-			if (_withIgnitionType) { mixin(S_TRACE);
-				auto col = new TableColumn(_keyCodes, SWT.NONE);
-				auto gc = new GC(_keyCodes);
-				scope (exit) gc.dispose();
-				auto w = 0;
-				auto t = "";
-				foreach (kind; EnumMembers!FKCKind) { mixin(S_TRACE);
-					auto t2 = _prop.msgs.keyCodeTiming(kind);
-					auto w2 = gc.wTextExtent(t2).x;
-					if (w < w2) { mixin(S_TRACE);
-						w = w2;
-						t = t2;
-					}
+			auto l = new class Listener {
+				override void handleEvent(Event e) { mixin(S_TRACE);
+					auto itm = cast(TableItem)e.item;
+					itm.setText(1, t);
 				}
-				auto itm = new TableItem(_keyCodes, SWT.NONE);
-				itm.setText(1, t);
-				col.pack();
-				itm.dispose();
-			}
-
-			auto menu = new Menu(_keyCodes);
-			if (!_readOnly) { mixin(S_TRACE);
-				createMenuItem(_comm, menu, MenuID.Undo, &undo, () => !_readOnly && _undo.canUndo);
-				createMenuItem(_comm, menu, MenuID.Redo, &redo, () => !_readOnly && _undo.canRedo);
-				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(_comm, menu, MenuID.Up, &up, &canUp);
-				createMenuItem(_comm, menu, MenuID.Down, &down, &canDown);
-				new MenuItem(menu, SWT.SEPARATOR);
-				appendMenuTCPD(_comm, menu, new KeyCodeTCPD, true, true, true, true, false);
-				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(_comm, menu, MenuID.SelectAll, &selectAll, &canSelectAll);
-
-				new MenuItem(menu, SWT.SEPARATOR);
-				if (withIgnitionType) { mixin(S_TRACE);
-					void delegate() dlg = null;
-					auto cascade = createMenuItem(_comm, menu, MenuID.KeyCodeTiming, dlg, () => canConvKeyCode!(FKCKind.Use) || canConvKeyCode!(FKCKind.Success) || canConvKeyCode!(FKCKind.Failure) || canConvKeyCode!(FKCKind.HasNot), SWT.CASCADE);
-					auto sub = new Menu(parent.getShell(), SWT.DROP_DOWN);
-					cascade.setMenu(sub);
-					createMenuItem(_comm, sub, MenuID.KeyCodeTimingUse, &convKeyCode!(FKCKind.Use), &canConvKeyCode!(FKCKind.Use));
-					createMenuItem(_comm, sub, MenuID.KeyCodeTimingSuccess, &convKeyCode!(FKCKind.Success), &canConvKeyCode!(FKCKind.Success));
-					createMenuItem(_comm, sub, MenuID.KeyCodeTimingFailure, &convKeyCode!(FKCKind.Failure), &canConvKeyCode!(FKCKind.Failure));
-					createMenuItem(_comm, sub, MenuID.KeyCodeTimingHasNot, &convKeyCode!(FKCKind.HasNot), &canConvKeyCode!(FKCKind.HasNot));
-				}
-			} else { mixin(S_TRACE);
-				appendMenuTCPD(_comm, menu, new KeyCodeTCPD, false, true, false, false, false);
-				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(_comm, menu, MenuID.SelectAll, &selectAll, &canSelectAll);
-				new MenuItem(menu, SWT.SEPARATOR);
-			}
-
+			};
+			table.addListener(SWT.SetData, l);
+			table.setItemCount(1);
+			col.pack();
+			table.removeListener(SWT.SetData, l);
+			table.setItemCount(0);
+		}
+	}
+	override
+	protected void initEditors(Table table) { mixin(S_TRACE);
+		_tte = new TableTextEdit(_comm, _comm.prop, table, 0, &editEnd, (itm, column) => true, &createEditor);
+		if (_withIgnitionType) { mixin(S_TRACE);
+			_tce = new TableComboEdit!Combo(_comm, _comm.prop, table, 1, &ignitionTypeCombo, &ignitionTypeEditEnd, null);
+		}
+	}
+	override
+	protected void initToolBar(ToolBar bar) { mixin(S_TRACE);
+		if (!readOnly && _getMotions) { mixin(S_TRACE);
+			new ToolItem(bar, SWT.SEPARATOR);
+			createToolItem(_comm, bar, MenuID.AddKeyCodesByFeatures, &addKeyCodesByFeatures, &canAddKeyCodesByFeatures);
+		}
+	}
+	override
+	protected void initPopupMenu(Menu menu) { mixin(S_TRACE);
+		new MenuItem(menu, SWT.SEPARATOR);
+		if (!readOnly && _withIgnitionType) { mixin(S_TRACE);
 			void delegate() dlg = null;
-			auto cascade = createMenuItem(_comm, menu, MenuID.CopyTimingConvertedKeyCode, dlg, &canCopyWith, SWT.CASCADE);
+			auto cascade = createMenuItem(_comm, menu, MenuID.KeyCodeTiming, dlg, () => canConvKeyCode!(FKCKind.Use) || canConvKeyCode!(FKCKind.Success) || canConvKeyCode!(FKCKind.Failure) || canConvKeyCode!(FKCKind.HasNot), SWT.CASCADE);
 			auto sub = new Menu(parent.getShell(), SWT.DROP_DOWN);
 			cascade.setMenu(sub);
-			createMenuItem(_comm, sub, MenuID.CopyTimingConvertedKeyCodeUse, &copyKeyCodeWith!(FKCKind.Use), &canCopyWith);
-			createMenuItem(_comm, sub, MenuID.CopyTimingConvertedKeyCodeSuccess, &copyKeyCodeWith!(FKCKind.Success), &canCopyWith);
-			createMenuItem(_comm, sub, MenuID.CopyTimingConvertedKeyCodeFailure, &copyKeyCodeWith!(FKCKind.Failure), &canCopyWith);
-			createMenuItem(_comm, sub, MenuID.CopyTimingConvertedKeyCodeHasNot, &copyKeyCodeWith!(FKCKind.HasNot), &canCopyWith);
-
-			_keyCodes.setMenu(menu);
-			.listener(_keyCodes, SWT.Selection, { _comm.refreshToolBar(); });
-			if (!_readOnly) { mixin(S_TRACE);
-				.listener(_keyCodes, SWT.MouseDoubleClick, { mixin(S_TRACE);
-					if (_keyCodes.getSelectionIndex() != -1) return;
-					add();
-				});
-			}
+			createMenuItem(_comm, sub, MenuID.KeyCodeTimingUse, &convKeyCode!(FKCKind.Use), &canConvKeyCode!(FKCKind.Use));
+			createMenuItem(_comm, sub, MenuID.KeyCodeTimingSuccess, &convKeyCode!(FKCKind.Success), &canConvKeyCode!(FKCKind.Success));
+			createMenuItem(_comm, sub, MenuID.KeyCodeTimingFailure, &convKeyCode!(FKCKind.Failure), &canConvKeyCode!(FKCKind.Failure));
+			createMenuItem(_comm, sub, MenuID.KeyCodeTimingHasNot, &convKeyCode!(FKCKind.HasNot), &canConvKeyCode!(FKCKind.HasNot));
 		}
-
-		auto drag = new DragSource(_keyCodes, DND.DROP_MOVE | DND.DROP_COPY);
-		drag.setTransfer([XMLBytesTransfer.getInstance()]);
-		drag.addDragListener(new CDragListener);
-		if (!_readOnly) { mixin(S_TRACE);
-			auto drop = new DropTarget(_keyCodes, DND.DROP_DEFAULT | DND.DROP_MOVE | DND.DROP_COPY);
-			drop.setTransfer([XMLBytesTransfer.getInstance()]);
-			drop.addDropListener(new CDropListener);
+		void delegate() dlg = null;
+		auto cascade = createMenuItem(_comm, menu, MenuID.CopyTimingConvertedKeyCode, dlg, &canCopyWith, SWT.CASCADE);
+		auto sub = new Menu(parent.getShell(), SWT.DROP_DOWN);
+		cascade.setMenu(sub);
+		createMenuItem(_comm, sub, MenuID.CopyTimingConvertedKeyCodeUse, &copyKeyCodeWith!(FKCKind.Use), &canCopyWith);
+		createMenuItem(_comm, sub, MenuID.CopyTimingConvertedKeyCodeSuccess, &copyKeyCodeWith!(FKCKind.Success), &canCopyWith);
+		createMenuItem(_comm, sub, MenuID.CopyTimingConvertedKeyCodeFailure, &copyKeyCodeWith!(FKCKind.Failure), &canCopyWith);
+		createMenuItem(_comm, sub, MenuID.CopyTimingConvertedKeyCodeHasNot, &copyKeyCodeWith!(FKCKind.HasNot), &canCopyWith);
+		if (!readOnly && _getMotions) { mixin(S_TRACE);
+			new MenuItem(menu, SWT.SEPARATOR);
+			createMenuItem(_comm, menu, MenuID.AddKeyCodesByFeatures, &addKeyCodesByFeatures, &canAddKeyCodesByFeatures);
 		}
+	}
 
-		if (!_readOnly) { mixin(S_TRACE);
-			_tte = new TableTextEdit(_comm, _prop, _keyCodes, 0, &editEnd, (itm, column) => true, &createEditor);
-			_tte.exitEvent ~= &exitEdit;
-			if (_withIgnitionType) { mixin(S_TRACE);
-				_tce = new TableComboEdit!Combo(_comm, _prop, _keyCodes, 1, &ignitionTypeCombo, &ignitionTypeEditEnd, null);
-			}
-		}
+	@property
+	override
+	protected AbstractTableEdit[] editors() { return _tce ? [cast(AbstractTableEdit)_tte, _tce] : [cast(AbstractTableEdit)_tte]; }
+	@property
+	override
+	protected AbstractTableEdit mainEditor() { return _tte; }
 
-		auto d = this.getDisplay();
-		_comm.refMenu.add(&refMenu);
-		_comm.refUndoMax.add(&refUndoMax);
+	this (Commons comm, Summary summ, Composite parent, int style, bool canDuplicate, bool withIgnitionType, bool delegate() catchMod, const(Motion)[] delegate() getMotions = null) { mixin(S_TRACE);
+		_comm = comm;
+		_summ = summ;
+		_withIgnitionType = withIgnitionType;
+		_catchMod = catchMod;
+		_getMotions = getMotions;
+
+		super (comm, parent, style, canDuplicate);
+
 		_comm.refDataVersion.add(&refDataVersion);
-		_kdFilter = new KeyDownFilter();
-		d.addFilter(SWT.KeyDown, _kdFilter);
 		.listener(this, SWT.Dispose, { mixin(S_TRACE);
-			_comm.refMenu.remove(&refMenu);
-			_comm.refUndoMax.remove(&refUndoMax);
 			_comm.refDataVersion.remove(&refDataVersion);
-			d.removeFilter(SWT.KeyDown, _kdFilter);
 		});
 	}
-	private class KeyDownFilter : Listener {
-		this () { mixin(S_TRACE);
-			refMenu(MenuID.Undo);
-			refMenu(MenuID.Redo);
-		}
-		override void handleEvent(Event e) { mixin(S_TRACE);
-			if (!e.doit) return;
-			auto c = cast(Control)e.widget;
-			if (!c || c.isDisposed() || c.getShell() !is getShell()) return;
-			if (isDescendant(this.outer, c)) { mixin(S_TRACE);
-				if (c.getMenu() && findMenu(c.getMenu(), e.keyCode, e.character, e.stateMask)) return;
-				if (eqAcc(_undoAcc, e.keyCode, e.character, e.stateMask)) { mixin(S_TRACE);
-					_undo.undo();
-					e.doit = false;
-				} else if (eqAcc(_redoAcc, e.keyCode, e.character, e.stateMask)) { mixin(S_TRACE);
-					_undo.redo();
-					e.doit = false;
-				}
-			}
-		}
-	}
-	private int _undoAcc;
-	private int _redoAcc;
-	private void refMenu(MenuID id) { mixin(S_TRACE);
-		if (id == MenuID.Undo) _undoAcc = convertAccelerator(_prop.buildMenu(MenuID.Undo));
-		if (id == MenuID.Redo) _redoAcc = convertAccelerator(_prop.buildMenu(MenuID.Redo));
-	}
 
-	private void refUndoMax() { mixin(S_TRACE);
-		_undo.max = _prop.var.etc.undoMaxEtc;
-	}
-
-	@property
-	bool isNewItemEditing() { return _startAdd !is null; }
-
-	@property
-	string[] keyCodes() { mixin(S_TRACE);
-		return getKeyCodes(true);
-	}
-	private string[] getKeyCodes(bool strip) { mixin(S_TRACE);
-		string[] r;
-		if (_canDuplicate) { mixin(S_TRACE);
-			size_t count = 0;
-			foreach (itm; _keyCodes.getItems()) { mixin(S_TRACE);
-				if (_startAdd is itm) continue;
-				r ~= itm.getText();
-				if (r[$ - 1] != "") count = r.length;
-			}
-			if (strip) r.length = count;
-		} else { mixin(S_TRACE);
-			foreach (i, itm; _keyCodes.getItems()) { mixin(S_TRACE);
-				if (_startAdd is itm) continue;
-				auto keyCode = itm.getText();
-				if (keyCode != "") r ~= keyCode;
-			}
-		}
-		return r;
-	}
-	@property
-	void keyCodes(in string[] keyCodes) { mixin(S_TRACE);
-		_undo.reset();
-		foreach (c; keyCodes) { mixin(S_TRACE);
-			append(c, -1);
-		}
-	}
-
-	@property
-	void enabled(bool e) { mixin(S_TRACE);
-		_keyCodes.setEnabled(e);
-		if (_toolbar) _toolbar.setEnabled(!_readOnly && e);
-	}
-	@property
-	bool enabled() { mixin(S_TRACE);
-		return _keyCodes.isEnabled();
-	}
+	alias values keyCodes;
 
 	@property
 	string[] warnings() { mixin(S_TRACE);
+		auto keyCodes = this.keyCodes;
 		string[] ws;
 		foreach (keyCode; keyCodes) { mixin(S_TRACE);
-			ws ~= .sjisWarnings(_prop.parent, _summ, keyCode, _prop.msgs.keyCode);
-			if (_withIgnitionType && !_prop.targetVersion(_summ, "1.50")) { mixin(S_TRACE);
-				if (_prop.sys.fireKeyCodeKind(keyCode) is FKCKind.HasNot) { mixin(S_TRACE);
-					ws ~= _prop.msgs.warningHasNotKeyCode;
+			ws ~= .sjisWarnings(_comm.prop.parent, _summ, keyCode, _comm.prop.msgs.keyCode);
+			if (_withIgnitionType && !_comm.prop.targetVersion(_summ, "1.50")) { mixin(S_TRACE);
+				if (_comm.prop.sys.fireKeyCodeKind(keyCode) is FKCKind.HasNot) { mixin(S_TRACE);
+					ws ~= _comm.prop.msgs.warningHasNotKeyCode;
 					break;
 				}
 			}
 		}
-		if (!_canDuplicate) { mixin(S_TRACE);
-			foreach (keyCode; keyCodes) { mixin(S_TRACE);
-				if (keyCode == "MatchingType=All") { mixin(S_TRACE);
-					ws ~= _prop.msgs.searchErrorKeyCodeMatchingAll;
-				}
-				break;
-			}
+		if (!canDuplicate && keyCodes.length && keyCodes[0] == "MatchingType=All") { mixin(S_TRACE);
+			ws ~= _comm.prop.msgs.searchErrorKeyCodeMatchingAll;
 		}
-		if (_canDuplicate && _prop.sys.isRunAway(keyCodes)) { mixin(S_TRACE);
-			ws ~= .tryFormat(_prop.msgs.warningRunAwayCard, _prop.sys.runAway);
+		if (canDuplicate && _comm.prop.sys.isRunAway(keyCodes)) { mixin(S_TRACE);
+			ws ~= .tryFormat(_comm.prop.msgs.warningRunAwayCard, _comm.prop.sys.runAway);
 		}
-		if (_canDuplicate && _summ && _summ.legacy && _prop.looks.keyCodesMaxLegacy < keyCodes.length) { mixin(S_TRACE);
-			ws ~= .tryFormat(_prop.msgs.warningKeyCodeCount, _prop.looks.keyCodesMaxLegacy);
+		if (canDuplicate && _summ && _summ.legacy && _comm.prop.looks.keyCodesMaxLegacy < keyCodes.length) { mixin(S_TRACE);
+			ws ~= .tryFormat(_comm.prop.msgs.warningKeyCodeCount, _comm.prop.looks.keyCodesMaxLegacy);
 		}
 		string[] ws2;
 		bool[string] wSet;
@@ -785,81 +281,271 @@ class KeyCodeView : Composite {
 
 	@property
 	private bool canConvKeyCode(FKCKind Kind)() { mixin(S_TRACE);
-		if (_readOnly) return false;
-		if (_canDuplicate) { mixin(S_TRACE);
-			foreach (itm; _keyCodes.getSelection()) { mixin(S_TRACE);
-				auto name = itm.getText(0);
+		if (readOnly) return false;
+		if (canDuplicate) { mixin(S_TRACE);
+			foreach (name; keyCodes) { mixin(S_TRACE);
 				if (name == "") continue;
-				if (name != _prop.sys.convFireKeyCode(name, Kind)) return true;
+				if (name != _comm.prop.sys.convFireKeyCode(name, Kind)) return true;
 			}
 			return false;
 		} else { mixin(S_TRACE);
-			bool[string] table;
-			foreach (name; this.keyCodes) { mixin(S_TRACE);
+			bool[string] kTable;
+			foreach (name; keyCodes) { mixin(S_TRACE);
 				if (name == "") continue;
-				table[name] = true;
+				kTable[name] = true;
 			}
-			foreach (itm; _keyCodes.getSelection()) { mixin(S_TRACE);
-				auto name = itm.getText(0);
+			foreach (i; selectionIndices) { mixin(S_TRACE);
+				auto name = value(i);
 				if (name == "") continue;
-				auto name2 = _prop.sys.convFireKeyCode(name, Kind);
-				if (name2 !in table) return true;
-				table.remove(name);
-				table[name2] = true;
+				auto name2 = _comm.prop.sys.convFireKeyCode(name, Kind);
+				if (name2 !in kTable) return true;
+				kTable.remove(name);
+				kTable[name2] = true;
 			}
 			return false;
 		}
 	}
 	private void convKeyCode(FKCKind Kind)() { mixin(S_TRACE);
 		if (!canConvKeyCode!Kind) return;
-		_keyCodes.setRedraw(false);
-		scope (exit) _keyCodes.setRedraw(true);
-		if (_tte && _tte.isEditing) _tte.enter();
-		if (_tce && _tce.isEditing) _tce.enter();
-		storeKeyCodes();
+		table.setRedraw(false);
+		scope (exit) table.setRedraw(true);
+		foreach (e; editors) { mixin(S_TRACE);
+			if (e && e.isEditing) e.enter();
+		}
+		storeAll();
 
-		if (_canDuplicate) { mixin(S_TRACE);
-			foreach (itm; _keyCodes.getSelection()) { mixin(S_TRACE);
-				auto name = itm.getText(0);
+		if (canDuplicate) { mixin(S_TRACE);
+			foreach (i; selectionIndices) { mixin(S_TRACE);
+				auto name = value(i);
 				if (name == "") continue;
-				name = _prop.sys.convFireKeyCode(name, Kind);
-				setKeyCode(itm, name);
+				name = _comm.prop.sys.convFireKeyCode(name, Kind);
+				setValue(i, name);
 			}
 		} else { mixin(S_TRACE);
-			bool[string] table;
-			foreach (name; this.keyCodes) { mixin(S_TRACE);
+			bool[string] kTable;
+			foreach (name; keyCodes) { mixin(S_TRACE);
 				if (name == "") continue;
-				table[name] = true;
+				kTable[name] = true;
 			}
-			foreach (itm; _keyCodes.getSelection()) { mixin(S_TRACE);
-				auto name = itm.getText(0);
+			foreach (i; selectionIndices) { mixin(S_TRACE);
+				auto name = value(i);
 				if (name == "") continue;
-				table.remove(name);
-				name = _prop.sys.convFireKeyCode(name, Kind);
-				if (name in table) continue;
-				table[name] = true;
-				setKeyCode(itm, name);
+				kTable.remove(name);
+				name = _comm.prop.sys.convFireKeyCode(name, Kind);
+				if (name in kTable) continue;
+				kTable[name] = true;
+				setValue(i, name);
 			}
 		}
-		refreshWarning();
 		raiseModifyEvent();
 		_comm.refreshToolBar();
 	}
 	@property
 	private bool canCopyWith() { mixin(S_TRACE);
-		foreach (i; _keyCodes.getSelectionIndices()) { mixin(S_TRACE);
-			if (_keyCodes.getItem(i).getText(0) != "") return true;
+		foreach (i; selectionIndices) { mixin(S_TRACE);
+			if (value(i) != "") return true;
 		}
 		return false;
 	}
 	private void copyKeyCodeWith(FKCKind Kind)() { mixin(S_TRACE);
 		if (!canCopyWith) return;
-		if (_tte && _tte.isEditing) _tte.enter();
-		if (_tce && _tce.isEditing) _tce.enter();
-		auto keyCodes = _keyCodes.getSelection().filter!(itm => itm.getText(0) != "")().map!(itm => _prop.sys.convFireKeyCode(itm.getText(0), Kind))().array();
+		foreach (e; editors) { mixin(S_TRACE);
+			if (e && e.isEditing) e.enter();
+		}
+		auto keyCodes = selectionIndices.filter!(i => value(i) != "")().map!(i => _comm.prop.sys.convFireKeyCode(value(i), Kind))().array();
 		if (keyCodes.length) { mixin(S_TRACE);
-			XMLtoCB(_prop, _comm.clipboard, .keyCodesToXML(keyCodes));
+			XMLtoCB(_comm.prop, _comm.clipboard, .keyCodesToXML(keyCodes));
 			_comm.refreshToolBar();
 		}
+	}
+
+	private SelectCardFeaturesDialog _selectFeaturesDlg = null;
+	@property
+	private bool canAddKeyCodesByFeatures() { mixin(S_TRACE);
+		return !readOnly && _getMotions && (_comm.prop.var.etc.keyCodesByFeatures.length || _getMotions().length);
+	}
+	private void addKeyCodesByFeatures() { mixin(S_TRACE);
+		if (!canAddKeyCodesByFeatures) return;
+
+		if (_selectFeaturesDlg) { mixin(S_TRACE);
+			_selectFeaturesDlg.active();
+			return;
+		}
+		if (_comm.prop.var.etc.keyCodesByFeatures.length) { mixin(S_TRACE);
+			_selectFeaturesDlg = new SelectCardFeaturesDialog(_comm, getShell());
+			_selectFeaturesDlg.closeEvent ~= { _selectFeaturesDlg = null; };
+			_selectFeaturesDlg.appliedEvent ~= { addKeyCodesByFeatures2(_selectFeaturesDlg.keyCodes); };
+			_selectFeaturesDlg.open();
+		} else { mixin(S_TRACE);
+			addKeyCodesByFeatures2([]);
+		}
+	}
+	private void addKeyCodesByFeatures2(in string[] byFeatures) { mixin(S_TRACE);
+		foreach (e; editors) { mixin(S_TRACE);
+			if (e && e.isEditing) e.enter();
+		}
+		bool[string] keyCodes;
+		foreach (keyCode; this.keyCodes) keyCodes[keyCode] = true;
+
+		string[] add;
+		foreach (keyCode; byFeatures) { mixin(S_TRACE);
+			if (keyCode in keyCodes) continue;
+			add ~= keyCode;
+			keyCodes[keyCode] = true;
+		}
+
+		foreach (m; _getMotions()) { mixin(S_TRACE);
+			foreach (ref kcm; _comm.prop.var.etc.keyCodesByMotions) { mixin(S_TRACE);
+				if (kcm.match(m.type, m.element)) { mixin(S_TRACE);
+					if (kcm.keyCode in keyCodes) continue;
+					add ~= kcm.keyCode;
+					keyCodes[kcm.keyCode] = true;
+				}
+			}
+		}
+
+		if (!add.length) return;
+		string[] noAdd;
+		if (maxCount <= valueCount) { mixin(S_TRACE);
+			noAdd = add;
+			add = [];
+		} else if (maxCount < valueCount + add.length) { mixin(S_TRACE);
+			noAdd = add[maxCount - valueCount .. $];
+			add = add[0 .. maxCount - valueCount];
+		}
+		if (add.length) { mixin(S_TRACE);
+			storeAll();
+			appendValues(add);
+		}
+		if (noAdd.length) { mixin(S_TRACE);
+			.asyncExec(getDisplay(), { mixin(S_TRACE);
+				auto dlg = new AddKeyCodeErrorDialog(_comm, getShell(), noAdd);
+				dlg.open();
+			});
+		}
+	}
+}
+
+class SelectCardFeaturesDialog : AbsDialog {
+	private Commons _comm;
+
+	private Table _features;
+
+	private string[] _keyCodes;
+
+	private void refKeyCodesByFeatures() { mixin(S_TRACE);
+		if (_comm.prop.var.etc.keyCodesByFeatures.length == 0) { mixin(S_TRACE);
+			forceCancel();
+		} else { mixin(S_TRACE);
+			_features.setItemCount(cast(int)_comm.prop.var.etc.keyCodesByFeatures.length);
+			_features.clearAll();
+		}
+	}
+
+	this (Commons comm, Shell shell) { mixin(S_TRACE);
+		super (comm.prop, shell, false, comm.prop.msgs.selectFeatures, comm.prop.images.menu(MenuID.AddKeyCodesByFeatures), true, comm.prop.var.selectFeaturesDlg, false, true);
+		_comm = comm;
+		enterClose = true;
+	}
+
+	@property
+	const
+	const(string)[] keyCodes() { return _keyCodes; }
+
+	override void setup(Composite area) { mixin(S_TRACE);
+		auto d = area.getDisplay();
+		area.setLayout(.normalGridLayout(1, false));
+
+		auto l = new Label(area, SWT.WRAP);
+		l.setText(_comm.prop.msgs.selectFeaturesHint);
+		l.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+		_features = .rangeSelectableTable(area, SWT.MULTI | SWT.CHECK | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.VIRTUAL);
+		new FullTableColumn(_features, SWT.NONE);
+		_features.setLayoutData(new GridData(GridData.FILL_BOTH));
+		auto menu = new Menu(_features.getShell());
+		createMenuItem(_comm, menu, MenuID.SelectAll, &selectAll, () => _features.getSelectionCount() < _features.getItemCount());
+		_features.setMenu(menu);
+
+		.listener(_features, SWT.SetData, (e) { mixin(S_TRACE);
+			auto itm = cast(TableItem)e.item;
+			itm.setText(_comm.prop.var.etc.keyCodesByFeatures[e.index].feature);
+		});
+		.listener(_features, SWT.Selection, (e) { .updateChecked(e); });
+		_comm.refKeyCodesByFeatures.add(&refKeyCodesByFeatures);
+		.listener(_features, SWT.Dispose, { mixin(S_TRACE);
+			_comm.refKeyCodesByFeatures.remove(&refKeyCodesByFeatures);
+		});
+		refKeyCodesByFeatures();
+	}
+
+	private void selectAll() { mixin(S_TRACE);
+		_features.selectAll();
+	}
+
+	override
+	bool close(bool ok, out bool cancel) { mixin(S_TRACE);
+		bool[string] keyCodes;
+		foreach (i, itm; _features.getItems()) { mixin(S_TRACE);
+			if (!itm.getChecked()) continue;
+			auto feature = _comm.prop.var.etc.keyCodesByFeatures[i];
+			if (feature.keyCode in keyCodes) continue;
+			_keyCodes ~= feature.keyCode;
+			keyCodes[feature.keyCode] = true;
+		}
+		return true;
+	}
+}
+
+class AddKeyCodeErrorDialog : AbsDialog {
+
+	private Commons _comm = null;
+	private const(string)[] _keyCodes = [];
+	private Table _table = null;
+
+	this (Commons comm, Shell shell, const(string)[] keyCodes) in (keyCodes.length) { mixin(S_TRACE);
+		_comm = comm;
+		_keyCodes = keyCodes;
+		super (_comm.prop, shell, true, _comm.prop.msgs.addKeyCodesError, _comm.prop.images.warning, true, _comm.prop.var.addKeyCodesErrorDlg, false, false);
+		enterClose = true;
+		firstFocusIsOK = true;
+	}
+
+protected:
+	override void setup(Composite area) { mixin(S_TRACE);
+		area.setLayout(normalGridLayout(1, true));
+
+		auto l = new Label(area, SWT.WRAP);
+		l.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		l.setText(.tryFormat(_comm.prop.msgs.addKeyCodesErrorDesc, _comm.prop.looks.keyCodesMaxLegacy));
+
+		_table = .rangeSelectableTable(area, SWT.BORDER | SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
+		_table.setLayoutData(new GridData(GridData.FILL_BOTH));
+		new FullTableColumn(_table, SWT.NONE);
+		auto menu = new Menu(_table.getShell());
+		createMenuItem(_comm, menu, MenuID.Copy, &copy, () => _table.getSelectionIndex() != -1);
+		new MenuItem(menu, SWT.SEPARATOR);
+		createMenuItem(_comm, menu, MenuID.SelectAll, &selectAll, () => _table.getSelectionCount() < _table.getItemCount());
+		_table.setMenu(menu);
+
+		foreach (keyCode; _keyCodes) { mixin(S_TRACE);
+			auto itm = new TableItem(_table, SWT.NONE);
+			itm.setImage(_comm.prop.images.keyCode);
+			itm.setText(keyCode);
+		}
+	}
+
+	private void copy() { mixin(S_TRACE);
+		string[] keyCodes;
+		foreach (itm; _table.getSelection()) { mixin(S_TRACE);
+			keyCodes ~= itm.getText();
+		}
+		if (!keyCodes.length) return;
+		XMLtoCB(_comm.prop, _comm.clipboard, .keyCodesToXML(keyCodes));
+		_comm.refreshToolBar();
+	}
+
+	private void selectAll() { mixin(S_TRACE);
+		_table.selectAll();
 	}
 }

@@ -242,6 +242,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.CopyTimingConvertedKeyCodeSuccess] = "S";
 		_mnemonic[MenuID.CopyTimingConvertedKeyCodeFailure] = "F";
 		_mnemonic[MenuID.CopyTimingConvertedKeyCodeHasNot] = "H";
+		_mnemonic[MenuID.AddKeyCodesByFeatures] = "F";
 		_mnemonic[MenuID.KeyCodeCond] = "O";
 		_mnemonic[MenuID.KeyCodeCondOr] = "O";
 		_mnemonic[MenuID.KeyCodeCondAnd] = "A";
@@ -508,6 +509,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.CopyTimingConvertedKeyCodeSuccess] = "";
 		_hotkey[MenuID.CopyTimingConvertedKeyCodeFailure] = "";
 		_hotkey[MenuID.CopyTimingConvertedKeyCodeHasNot] = "";
+		_hotkey[MenuID.AddKeyCodesByFeatures] = "";
 		_hotkey[MenuID.KeyCodeCond] = "";
 		_hotkey[MenuID.KeyCodeCondOr] = "";
 		_hotkey[MenuID.KeyCodeCondAnd] = "";
@@ -761,6 +763,8 @@ bool isPMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.CreateArchive:
 	case MenuID.EvTemplatesOfScenario:
 	case MenuID.CustomizeToolBar:
+	case MenuID.AddRangeOfRound:
+	case MenuID.AddKeyCodesByFeatures:
 		return true;
 	default:
 		return false;
@@ -1033,6 +1037,7 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.CopyTimingConvertedKeyCodeSuccess:
 	case MenuID.CopyTimingConvertedKeyCodeFailure:
 	case MenuID.CopyTimingConvertedKeyCodeHasNot:
+	case MenuID.AddKeyCodesByFeatures:
 	case MenuID.KeyCodeCond:
 	case MenuID.KeyCodeCondOr:
 	case MenuID.KeyCodeCondAnd:
@@ -1299,6 +1304,7 @@ bool isGlobalMenu(MenuID id) {
 	case MenuID.CopyTimingConvertedKeyCodeSuccess:
 	case MenuID.CopyTimingConvertedKeyCodeFailure:
 	case MenuID.CopyTimingConvertedKeyCodeHasNot:
+	case MenuID.AddKeyCodesByFeatures:
 	case MenuID.KeyCodeCond:
 	case MenuID.KeyCodeCondOr:
 	case MenuID.KeyCodeCondAnd:

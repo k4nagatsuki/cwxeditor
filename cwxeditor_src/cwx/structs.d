@@ -1475,3 +1475,85 @@ struct Tool {
 
 /// サウンドフォントのパスと音量(%)。
 alias Tuple!(string, "path", uint, "volume") SoundFontWithVolume;
+
+/// カードの特徴とキーコードの対応。
+struct KeyCodeByFeature {
+	enum XML_NAME = "keyCodeByFeature";
+	string feature; /// 特徴。
+	string keyCode; /// 対応するキーコード。
+
+	const
+	void toNode(ref XNode e, string name = XML_NAME) { mixin(S_TRACE);
+		auto r = e.newElement(name, keyCode);
+		r.newAttr("feature", feature);
+	}
+	void fromNode(ref XNode node) { mixin(S_TRACE);
+		feature = node.attr("feature", true);
+		keyCode = node.value;
+	}
+}
+
+/// 効果・属性とキーコードの対応。
+struct KeyCodeByMotion {
+	enum XML_NAME = "keyCodeByMotion";
+
+	MType type; /// 効果タイプ。
+	bool hasElement; /// 属性が影響するか。
+	Element element; /// 属性。
+	string keyCode; /// 対応するキーコード。
+
+	/// 指定された効果と属性がキーコードにマッチするか。
+	const
+	bool match(MType type, Element element) { mixin(S_TRACE);
+		if (hasElement) { mixin(S_TRACE);
+			return type is this.type && element is this.element;
+		} else { mixin(S_TRACE);
+			return type is this.type;
+		}
+	}
+
+	const
+	void toNode(ref XNode e, string name = XML_NAME) { mixin(S_TRACE);
+		import cwx.motion;
+		auto r = e.newElement(name, keyCode);
+		r.newAttr("type", cwx.motion.mTypeToName(type));
+		if (hasElement) r.newAttr("element", .fromElement(element));
+	}
+	void fromNode(ref XNode node) { mixin(S_TRACE);
+		import cwx.motion;
+		type = cwx.motion.mTypeFromName(node.attr("type", true));
+		auto e = node.attr("element", false, "");
+		hasElement = e != "";
+		if (hasElement) { mixin(S_TRACE);
+			element = .toElement(e);
+		} else { mixin(S_TRACE);
+			element = Element.All;
+		}
+		keyCode = node.value;
+	}
+
+	const
+	bool opEquals(ref const(KeyCodeByMotion) o) { mixin(S_TRACE);
+		if (type != o.type) return false;
+		if (hasElement != o.hasElement) return false;
+		if (hasElement) { mixin(S_TRACE);
+			if (element != o.element) return false;
+		}
+		return keyCode == o.keyCode;
+	}
+
+	const
+	@safe
+	nothrow
+	hash_t toHash() {
+		hash_t hash = type;
+		hash = hash * 9 + (hasElement ? 1 : 0);
+		if (hasElement) {
+			hash = hash * 9 + element;
+		}
+		foreach (c; keyCode) {
+			hash = (hash * 9) + c;
+		}
+		return hash;
+	}
+}

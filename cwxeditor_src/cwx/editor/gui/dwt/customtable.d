@@ -358,6 +358,7 @@ Table rangeSelectableTable(Composite parent, int style) { mixin(S_TRACE);
 				auto ctrl = (e.stateMask & SWT.CTRL) != 0;
 				auto shift = (e.stateMask & SWT.SHIFT) != 0;
 				if (!ctrl && !shift && !rangeSelection) { mixin(S_TRACE);
+					if (!table.isFocusControl()) return;
 					auto itm = table.getItem(new Point(e.x, e.y));
 					if (itm && (table.getStyle() & SWT.CHECK) && e.x < itm.getImageBounds(0).x) { mixin(S_TRACE);
 						// チェックボックスをクリック

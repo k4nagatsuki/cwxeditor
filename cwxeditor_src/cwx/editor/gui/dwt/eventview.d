@@ -59,6 +59,7 @@ import java.lang.all;
 public:
 
 alias ArrayWrapperString KeyCodeObj;
+alias Integer RoundObj;
 
 class EventView : Composite, TCPD {
 private:
@@ -1130,9 +1131,7 @@ private:
 		if (cast(EventTree)itm.getData()) { mixin(S_TRACE);
 			return .createTextEditor(_comm, _prop, _cards, itm.getText());
 		} else if (cast(KeyCodeObj)itm.getData()) { mixin(S_TRACE);
-			auto combo = .createKeyCodeCombo!Combo(_comm, _summ, _cards, null, itm.getText(), true);
-			combo.setText(itm.getText());
-			return combo;
+			return .createKeyCodeCombo!Combo(_comm, _summ, _cards, null, itm.getText(), true);
 		}
 		return null;
 	}
