@@ -1823,7 +1823,8 @@ private:
 			} else { mixin(S_TRACE);
 				nstr = to!(string)(num);
 			}
-			auto mi = createMenuItem2(_comm, menu, nstr ~ " " ~ text, img, &run, null);
+			bool canOpen() { return _type is Type.Import ? summary !is null : true; }
+			auto mi = createMenuItem2(_comm, menu, nstr ~ " " ~ text, img, &run, &canOpen);
 			auto l = new class MenuAdapter {
 				override void menuShown(MenuEvent e) { mixin(S_TRACE);
 					mi.setImage(.historyImage(_prop, hist));

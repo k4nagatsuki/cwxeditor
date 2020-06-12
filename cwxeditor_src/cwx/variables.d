@@ -225,7 +225,7 @@ class FlexEtcProps : Properties {
 	auto keyCodesByFeaturesFeatureColumn = Prop!(int, false, true)("keyCodesByFeaturesFeatureColumn", 100);
 	auto keyCodesByFeaturesKeyCodeColumn = Prop!(int, false, true)("keyCodesByFeaturesKeyCodeColumn", 100);
 	auto keyCodesByMotionsMotionColumn = Prop!(int, false, true)("keyCodesByMotionsMotionColumn", 90);
-	auto keyCodesByMotionsElementColumn = Prop!(int, false, true)("keyCodesByMotionsElementColumn", 100);
+	auto keyCodesByMotionsElementColumn = Prop!(int, false, true)("keyCodesByMotionsElementColumn", 85);
 	auto keyCodesByMotionsKeyCodeColumn = Prop!(int, false, true)("keyCodesByMotionsKeyCodeColumn", 100);
 
 	auto partyMax = Prop!(uint, true)("partyMax", 6);
@@ -378,8 +378,8 @@ class FlexEtcProps : Properties {
 	auto selectionKeyCodeSashR = Prop!(int)("selectionKeyCodeSashR", 4);
 	auto bgImageSettingsKeyCodesSashL = Prop!(int)("bgImageSettingsKeyCodesSashL", 3);
 	auto bgImageSettingsKeyCodesSashR = Prop!(int)("bgImageSettingsKeyCodesSashR", 2);
-	auto keyCodesByFeaturesKeyCodesByMotionSashL = Prop!(int)("keyCodesByFeaturesKeyCodesByMotionSashL", 2);
-	auto keyCodesByFeaturesKeyCodesByMotionSashR = Prop!(int)("keyCodesByFeaturesKeyCodesByMotionSashR", 3);
+	auto keyCodesByFeaturesKeyCodesByMotionSashL = Prop!(int)("keyCodesByFeaturesKeyCodesByMotionSashL", 3);
+	auto keyCodesByFeaturesKeyCodesByMotionSashR = Prop!(int)("keyCodesByFeaturesKeyCodesByMotionSashR", 4);
 	auto bgImageSelectionSashL = Prop!(int)("bgImageSelectionSashL", 4);
 	auto bgImageSelectionSashR = Prop!(int)("bgImageSelectionSashR", 1);
 	auto outerToolsSashL = Prop!(int)("outerToolsSashL", 1);
