@@ -3586,9 +3586,8 @@ public:
 		assert (img._targetScale == _drawingScale);
 		if (auto fi = cast(FlexImage)img) { mixin(S_TRACE);
 			setSelected(fi);
-		} else { mixin(S_TRACE);
-			addRedraw(img.x, img.y, img.width, img.height);
 		}
+		addRedraw(img.x, img.y, img.width, img.height);
 	}
 
 	void insert(int index, PileImage img) { mixin(S_TRACE);
