@@ -3936,6 +3936,7 @@ public:
 				itm.setText(cardNameWithGroup(c));
 				itm.setImage(cardImg(c));
 				itm.setData(c);
+				_imgp.redrawImage(fi);
 			}
 		}
 		static if (UseBacks) {
@@ -3950,6 +3951,7 @@ public:
 				itm.setText(b.name(_prop.parent));
 				itm.setImage(backImg(b));
 				itm.setData(b);
+				_imgp.redrawImage(fi);
 			}
 			checked();
 		}
