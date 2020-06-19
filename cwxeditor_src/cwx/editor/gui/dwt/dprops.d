@@ -254,6 +254,49 @@ public:
 	string adjustFont(string face) { mixin(S_TRACE);
 		return Display.getCurrent().getFontList(face, true).length ? face : looks.alternativeFont(face);
 	}
+
+	/// スキンタイプに応じたデフォルト背景を返す。
+	BgImageS[] bgImagesDefault(string type) { mixin(S_TRACE);
+		foreach (ref stc; var.etc.settingsWithSkinTypes) { mixin(S_TRACE);
+			if (stc.type == type && stc.overrideBgImages) return stc.bgImagesDefault;
+		}
+		return var.etc.bgImagesDefault;
+	}
+	/// スキンタイプに応じた背景の簡単設定を返す。
+	BgImageSetting[] bgImageSettings(string type) { mixin(S_TRACE);
+		foreach (ref stc; var.etc.settingsWithSkinTypes) { mixin(S_TRACE);
+			if (stc.type == type && stc.overrideBgImages) return stc.bgImageSettings;
+		}
+		return var.etc.bgImageSettings;
+	}
+	/// スキンタイプに応じた標準選択肢を返す。
+	string[] standardSelections(string type) { mixin(S_TRACE);
+		foreach (ref stc; var.etc.settingsWithSkinTypes) { mixin(S_TRACE);
+			if (stc.type == type && stc.overrideSelections) return stc.standardSelections;
+		}
+		return var.etc.standardSelections;
+	}
+	/// スキンタイプに応じた標準キーコードを返す。
+	string[] standardKeyCodes(string type) { mixin(S_TRACE);
+		foreach (ref stc; var.etc.settingsWithSkinTypes) { mixin(S_TRACE);
+			if (stc.type == type && stc.overrideKeyCodes) return stc.standardKeyCodes;
+		}
+		return var.etc.standardKeyCodes;
+	}
+	/// スキンタイプに応じたカードの特徴に対応するキーコードを返す。
+	KeyCodeByFeature[] keyCodesByFeatures(string type) { mixin(S_TRACE);
+		foreach (ref stc; var.etc.settingsWithSkinTypes) { mixin(S_TRACE);
+			if (stc.type == type && stc.overrideKeyCodes) return stc.keyCodesByFeatures;
+		}
+		return var.etc.keyCodesByFeatures;
+	}
+	/// スキンタイプに応じた効果に対応するキーコードを返す。
+	KeyCodeByMotion[] keyCodesByMotions(string type) { mixin(S_TRACE);
+		foreach (ref stc; var.etc.settingsWithSkinTypes) { mixin(S_TRACE);
+			if (stc.type == type && stc.overrideKeyCodes) return stc.keyCodesByMotions;
+		}
+		return var.etc.keyCodesByMotions;
+	}
 }
 
 /// CPoint等の構造体をSWTのクラスに変換するための関数。

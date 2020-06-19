@@ -80,6 +80,30 @@ Skin[string] skinTable(const(Props) prop) { mixin(S_TRACE);
 	return Skin.table(prop.parent, prop.enginePath);
 }
 
+string[] findSkinTypes(const(Props) prop) { mixin(S_TRACE);
+	bool[string] types;
+	types[prop.var.etc.defaultSkin] = true;
+	foreach (key, value; .skinTable(prop)) { mixin(S_TRACE);
+		if (value.type != "") types[value.type] = true;
+	}
+	foreach (ref ce; prop.var.etc.classicEngines) { mixin(S_TRACE);
+		if (ce.type != "") types[ce.type] = true;
+	}
+	foreach (ref s; prop.var.etc.settingsWithSkinTypes) { mixin(S_TRACE);
+		if (s.type != "") types[s.type] = true;
+	}
+	foreach (ref stc; prop.var.etc.skinTypesByClassicEngines) { mixin(S_TRACE);
+		if (stc.type != "") types[stc.type] = true;
+	}
+	auto arr = types.keys();
+	if (prop.var.etc.logicalSort) { mixin(S_TRACE);
+		.sort!ncmp(arr);
+	} else { mixin(S_TRACE);
+		.sort!cmp(arr);
+	}
+	return arr;
+}
+
 private static ImageDataWithScale imgd(string path, uint targetScale, MaskType maskType) { mixin(S_TRACE);
 	mixin FileCache!(ImageDataWithScale);
 	auto key = path.findScaledImage(targetScale).path;

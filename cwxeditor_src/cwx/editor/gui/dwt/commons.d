@@ -66,6 +66,17 @@ Skin findSkin(Commons comm, Props prop, in Summary summ, bool legacy, string sPa
 	if (!summ) { mixin(S_TRACE);
 		return findSkin2(prop, prop.var.etc.defaultSkin, prop.var.etc.defaultSkinName);
 	}
+	if (legacy && type && type != "") { mixin(S_TRACE);
+		foreach (ce; prop.var.etc.classicEngines) { mixin(S_TRACE);
+			if (ce.type != type) continue;
+			auto enginePath = prop.toAppAbs(ce.enginePath);
+			if (!enginePath.exists()) continue;
+			auto skin = .createClassicSkin(prop, ce);
+			skin.initialize();
+			return skin;
+		}
+		type = null;
+	}
 	if (type is null) type = summ.type;
 	if (name is null) name = summ ? summ.skinName : "";
 	if (legacy && !type.length) { mixin(S_TRACE);
@@ -96,7 +107,8 @@ Skin findSkin(Commons comm, Props prop, in Summary summ, bool legacy, string sPa
 				}
 			}
 			string dataDirName = abs2rel(skin.legacyDataPath, lEngine.dirName());
-			auto ce = ClassicEngine(lEngine.baseName().stripExtension(), lEngine, dataDirName, "");
+			auto ce = ClassicEngine(lEngine.baseName().stripExtension(), lEngine, dataDirName, "", "", "",
+				.skinTypeByClassicEngine(prop.var.etc.skinTypesByClassicEngines, lEngine, prop.var.etc.defaultSkin));
 			ClassicEngine[] arr;
 			foreach (e; prop.var.etc.classicEngines) { mixin(S_TRACE);
 				arr ~= e.dup;
@@ -349,6 +361,8 @@ class Commons {
 	Dlg!() refScenarioPath;
 	Dlg!() refSkin;
 	Dlg!() refClassicSkin;
+	Dlg!() refBgImageSettings;
+	Dlg!() refSettingsWithSkinTypes;
 	Dlg!() refDataVersion;
 	Dlg!() refTargetVersion;
 	Dlg!() refStandardSelections;

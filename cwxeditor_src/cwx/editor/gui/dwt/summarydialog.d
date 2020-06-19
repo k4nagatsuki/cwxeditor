@@ -496,6 +496,7 @@ private:
 				_comm.refScenario.remove(&refScenario);
 			}
 			_comm.refSkin.remove(&refSkin);
+			_comm.refSortCondition.remove(&refreshTypes);
 			_comm.refClassicSkin.remove(&refreshTypes);
 			_comm.refDataVersion.remove(&updateDataVersion);
 			_comm.refTargetVersion.remove(&refreshWarning);
@@ -689,6 +690,7 @@ protected:
 			_comm.refScenario.add(&refScenario);
 		}
 		_comm.refSkin.add(&refSkin);
+		_comm.refSortCondition.add(&refreshTypes);
 		_comm.refClassicSkin.add(&refreshTypes);
 		_comm.refDataVersion.add(&updateDataVersion);
 		_comm.refTargetVersion.add(&refreshWarning);

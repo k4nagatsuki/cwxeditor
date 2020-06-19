@@ -1,15 +1,16 @@
 
 module cwx.editor.gui.dwt.properties;
 
-import cwx.utils;
-import cwx.xml;
-import cwx.structs;
-import cwx.settings;
+import cwx.filesync;
 import cwx.menu;
+import cwx.settings;
+import cwx.skin;
+import cwx.structs;
+import cwx.types;
+import cwx.utils;
 import cwx.variables;
 import cwx.versioninfo;
-import cwx.types;
-import cwx.filesync;
+import cwx.xml;
 
 import cwx.editor.gui.dwt.dockingfolder;
 import cwx.editor.gui.dwt.dutils : ppis, dpiMuls;
@@ -17,11 +18,11 @@ import cwx.editor.gui.dwt.dutils : ppis, dpiMuls;
 import std.algorithm : max;
 import std.ascii;
 import std.conv;
-import std.string;
+import std.datetime;
 import std.file;
 import std.path;
+import std.string;
 import std.utf;
-import std.datetime;
 
 import org.eclipse.swt.all;
 
@@ -206,6 +207,7 @@ public class FlexProps {
 	DialogParam!("expressionWithTargetDialog", 500, -1) expressionWithTargetDlg;
 	DialogParam!("selectFeaturesDialog", 300, 300) selectFeaturesDlg;
 	DialogParam!("addKeyCodesErrorDialog", 300, 300) addKeyCodesErrorDlg;
+	DialogParam!("editSkinTypeDialog", 300, -1) editSkinTypeDlg;
 	MenuProps menu;
 	FlexEtcProps etc;
 
@@ -476,6 +478,13 @@ public class FlexProps {
 				}
 				// 現在のDPI値に合わせて傾き値の補正
 				etc.eventTreeSlope.INIT = .max(etc.eventTreeSlope.INIT.ppis, etc.eventTreeSlope);
+				dStr ~= " - " ~ .text(__LINE__);
+				if (dataVersion < 2020062000) { mixin(S_TRACE);
+					// ClassicEngineにスキンタイプ追加
+					foreach (ref ce; etc.classicEngines) { mixin(S_TRACE);
+						if (ce.type == "") ce.type = .skinTypeByClassicEngine(etc.skinTypesByClassicEngines, ce.enginePath, etc.defaultSkin);
+					}
+				}
 				dStr ~= " - " ~ .text(__LINE__);
 			}
 			dStr ~= " - " ~ .text(__LINE__);

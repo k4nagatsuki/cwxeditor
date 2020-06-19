@@ -32,6 +32,7 @@ public:
 class KeyCodeByFeatureView : AbstractEditableListView!(KeyCodeByFeature) {
 
 	private Commons _comm;
+	private string delegate() _skinType;
 
 	private TableTextEdit _tfe = null;
 	private TableTextEdit _tke = null;
@@ -39,7 +40,7 @@ class KeyCodeByFeatureView : AbstractEditableListView!(KeyCodeByFeature) {
 	private bool delegate() _catchMod;
 
 	private Control createKeyCodeEditor(TableItem itm, int editC) { mixin(S_TRACE);
-		return .createKeyCodeCombo!Combo(_comm, null, itm.getParent(), _catchMod, itm.getText(1), false);
+		return .createKeyCodeCombo!Combo(_comm, null, itm.getParent(), _catchMod, itm.getText(1), false, _skinType);
 	}
 	private void featureEditEnd(TableItem itm, int column, string newText) { mixin(S_TRACE);
 		auto index = itm.getParent().indexOf(itm);
@@ -107,8 +108,9 @@ class KeyCodeByFeatureView : AbstractEditableListView!(KeyCodeByFeature) {
 		return value.feature != "";
 	}
 
-	this (Commons comm, Composite parent, int style, bool delegate() catchMod) { mixin(S_TRACE);
+	this (Commons comm, Composite parent, int style, string delegate() skinType, bool delegate() catchMod) { mixin(S_TRACE);
 		_comm = comm;
+		_skinType = skinType;
 		_catchMod = catchMod;
 
 		super (comm, parent, style, true);
@@ -118,6 +120,7 @@ class KeyCodeByFeatureView : AbstractEditableListView!(KeyCodeByFeature) {
 class KeyCodeByMotionView : AbstractEditableListView!(KeyCodeByMotion) {
 
 	private Commons _comm;
+	private string delegate() _skinType;
 
 	private TableComboEdit!Combo _tme = null;
 	private TableComboEdit!Combo _tee = null;
@@ -145,7 +148,7 @@ class KeyCodeByMotionView : AbstractEditableListView!(KeyCodeByMotion) {
 		canIncSearch = false;
 	}
 	private Control createKeyCodeEditor(TableItem itm, int editC) { mixin(S_TRACE);
-		return .createKeyCodeCombo!Combo(_comm, null, itm.getParent(), _catchMod, itm.getText(2), false);
+		return .createKeyCodeCombo!Combo(_comm, null, itm.getParent(), _catchMod, itm.getText(2), false, _skinType);
 	}
 	private void motionEditEnd(TableItem selItm, int column, Combo combo) { mixin(S_TRACE);
 		auto sel = combo.getSelectionIndex();
@@ -238,8 +241,9 @@ class KeyCodeByMotionView : AbstractEditableListView!(KeyCodeByMotion) {
 		itm.setText(2, value.keyCode);
 	}
 
-	this (Commons comm, Composite parent, int style, bool delegate() catchMod) { mixin(S_TRACE);
+	this (Commons comm, Composite parent, int style, string delegate() skinType, bool delegate() catchMod) { mixin(S_TRACE);
 		_comm = comm;
+		_skinType = skinType;
 		_catchMod = catchMod;
 
 		super (comm, parent, style, true);

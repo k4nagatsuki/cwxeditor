@@ -131,7 +131,7 @@ private:
 				if (cast(ImageCell)back || cast(PCCell)back) { mixin(S_TRACE);
 					i--;
 				}
-				auto s = _prop.var.etc.bgImageSettings[i - 1];
+				auto s = _prop.bgImageSettings(_comm.skin.type)[i - 1];
 				_x.setSelection(s.x);
 				_y.setSelection(s.y);
 				_w.setSelection(s.width);
@@ -279,11 +279,24 @@ protected:
 		if (cast(ImageCell)back || cast(PCCell)back) { mixin(S_TRACE);
 			_easy.add(_prop.msgs.defaultSelection(_prop.msgs.bgImageSettingOriginal));
 		}
-		foreach (bs; _prop.var.etc.bgImageSettings) { mixin(S_TRACE);
-			_easy.add(bs.name);
+		void refBgImageSettings() { mixin(S_TRACE);
+			auto sel = _easy.getText();
+			_easy.removeAll();
+			foreach (i, bs; _prop.bgImageSettings(_comm.skin.type)) { mixin(S_TRACE);
+				_easy.add(bs.name);
+				if (sel == bs.name) _easy.select(cast(int)i);
+			}
+			if (_easy.getSelectionIndex() == -1) _easy.select(0);
 		}
-		_easy.addSelectionListener(new SettingsListener);
+		refBgImageSettings();
 		_easy.select(0);
+		_comm.refSkin.add(&refBgImageSettings);
+		_comm.refBgImageSettings.add(&refBgImageSettings);
+		.listener(_easy, SWT.Dispose, { mixin(S_TRACE);
+			_comm.refSkin.remove(&refBgImageSettings);
+			_comm.refBgImageSettings.remove(&refBgImageSettings);
+		});
+		_easy.addSelectionListener(new SettingsListener);
 		return comp2;
 	}
 	void createPosPanel(Composite comp, bool mask, bool smoothing) { mixin(S_TRACE);

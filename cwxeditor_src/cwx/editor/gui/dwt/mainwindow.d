@@ -624,18 +624,20 @@ private:
 				auto dir = dlg.classicDir;
 				if (!dir.exists()) mkdirRecurse(dir);
 				summ = new Summary(dlg.name, dlg.skinType, dlg.skinName, dir, false, true);
-				Summary.createStartArea(summ , _prop.parent, _prop.var.etc.newAreaName != "", _prop.var.etc.newAreaName, _prop.var.etc.bgImagesDefault, null, _prop.enginePath,
+				auto skin = .findSkin(_comm, _prop, summ);
+				Summary.createStartArea(summ , _prop.parent, _prop.var.etc.newAreaName != "", _prop.var.etc.newAreaName, _prop.bgImagesDefault(skin.type), null, _prop.enginePath,
 					_prop.var.etc.classicEngineRegex, _prop.var.etc.classicDataDirRegex, _prop.var.etc.classicMatchKey,
 					_prop.var.etc.classicEngines, _prop.var.etc.defaultSkin);
 				{ mixin(S_TRACE);
 					_saveSync.lock();
 					scope (exit) _saveSync.unlock();
-					summ.saveOverwrite(_prop.parent, findSkin(_comm, _prop, summ), createSaveOpt(true), _sync);
+					summ.saveOverwrite(_prop.parent, skin, createSaveOpt(true), _sync);
 				}
 			} else { mixin(S_TRACE);
+				auto skin = .findSkin2(_prop, dlg.skinType, dlg.skinName);
 				summ = Summary.createScenario(_prop.parent, _prop.tempPath, dlg.name,
-					findSkin2(_prop, dlg.skinType, dlg.skinName), _prop.var.etc.newAreaName != "",
-					_prop.var.etc.newAreaName, _prop.var.etc.bgImagesDefault, _prop.var.etc.saveSkinName, _sync);
+					skin, _prop.var.etc.newAreaName != "",
+					_prop.var.etc.newAreaName, _prop.bgImagesDefault(skin.type), _prop.var.etc.saveSkinName, _sync);
 			}
 			summ.author = _prop.var.etc.defaultAuthor;
 			openScenario(summ, []);
@@ -1197,7 +1199,7 @@ private:
 					beforeSave();
 					auto oldClassic = summary.legacy;
 					auto oldSkin = _comm.skin;
-					auto newSkin = findSkin(_comm, _prop, summary, classic, fname, classic ? "" : summary.type);
+					auto newSkin = findSkin(_comm, _prop, summary, classic, fname, oldSkin.type);
 					if (newSkin.isEmpty) newSkin = defSkin;
 					if (!exportSc) { mixin(S_TRACE);
 						_comm.skin = newSkin;
@@ -4582,9 +4584,10 @@ public:
 				auto name = _opt.createName is null ? _prop.var.etc.newScenarioName : _opt.createName;
 				auto skinType = _opt.createSkinType is null ? _prop.var.etc.defaultSkin : _opt.createSkinType;
 				auto skinName = _opt.createSkinName is null ? _prop.var.etc.defaultSkinName : _opt.createSkinName;
+				auto skin = .findSkin2(_prop, skinType, skinName);
 				auto summ = Summary.createScenario(_prop.parent, _prop.tempPath, name,
-					findSkin2(_prop, skinType, skinName), _prop.var.etc.newAreaName != "",
-					_prop.var.etc.newAreaName, _prop.var.etc.bgImagesDefault, _prop.var.etc.saveSkinName, _sync);
+					skin, _prop.var.etc.newAreaName != "",
+					_prop.var.etc.newAreaName, _prop.bgImagesDefault(skin.type), _prop.var.etc.saveSkinName, _sync);
 				summ.author = _prop.var.etc.defaultAuthor;
 				openScenario(summ, []);
 				statusLine = "";
@@ -4600,7 +4603,7 @@ public:
 						}
 						auto summ = new Summary(name, "", "", _opt.createclassicPath, false, true);
 						summ.author = _prop.var.etc.defaultAuthor;
-						Summary.createStartArea(summ , _prop.parent, _prop.var.etc.newAreaName != "", _prop.var.etc.newAreaName, _prop.var.etc.bgImagesDefault, null, _prop.enginePath,
+						Summary.createStartArea(summ , _prop.parent, _prop.var.etc.newAreaName != "", _prop.var.etc.newAreaName, _prop.bgImagesDefault(_prop.var.etc.defaultSkin), null, _prop.enginePath,
 							_prop.var.etc.classicEngineRegex, _prop.var.etc.classicDataDirRegex, _prop.var.etc.classicMatchKey,
 							_prop.var.etc.classicEngines, _prop.var.etc.defaultSkin);
 						{ mixin(S_TRACE);

@@ -1,30 +1,30 @@
 /// FIXME: リンクエラーを避けるためdutils.dを分割
 module cwx.editor.gui.dwt.dmenu;
 
+import cwx.menu;
 import cwx.types;
 import cwx.utils;
-import cwx.menu;
 
 import cwx.editor.gui.dwt.commons;
-import cwx.editor.gui.dwt.dutils;
-import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.customtext;
+import cwx.editor.gui.dwt.dprops;
+import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.undo;
 
 import core.thread;
 
 import std.algorithm;
-import std.exception;
 import std.array;
-import std.conv;
-import std.uni;
-import std.utf;
 import std.ascii : isPrintable;
-import std.file;
+import std.conv;
 import std.datetime;
+import std.exception;
+import std.file;
 import std.path;
 import std.process;
 import std.string;
+import std.uni;
+import std.utf;
 
 import org.eclipse.swt.all;
 
@@ -44,16 +44,7 @@ TextMenuModify createTextMenu(T = Text)(Commons comm, Props prop, T text, bool d
 	}
 	bool readOnly = (text.getStyle() & SWT.READ_ONLY) != 0;
 	if (!readOnly && !undo) { mixin(S_TRACE);
-		undo = new UndoManager(prop.var.etc.undoMaxEtc);
-		void refUndoMax() { mixin(S_TRACE);
-			undo.max = prop.var.etc.undoMaxEtc;
-		}
-		comm.refUndoMax.add(&refUndoMax);
-		text.addDisposeListener(new class DisposeListener {
-			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-				comm.refUndoMax.remove(&refUndoMax);
-			}
-		});
+		undo = .createEtcUndo(comm, text);
 	}
 	TextMenuModify ml = null;
 	if (!readOnly) { mixin(S_TRACE);
@@ -118,6 +109,18 @@ TextMenuModify createTextMenu(T = Text)(Commons comm, Props prop, T text, bool d
 	text.setMenu(menu);
 
 	return ml;
+}
+
+UndoManager createEtcUndo(Commons comm, Control ctrl) { mixin(S_TRACE);
+	auto undo = new UndoManager(comm.prop.var.etc.undoMaxEtc);
+	void refUndoMax() { mixin(S_TRACE);
+		undo.max = comm.prop.var.etc.undoMaxEtc;
+	}
+	comm.refUndoMax.add(&refUndoMax);
+	.listener(ctrl, SWT.Dispose, { mixin(S_TRACE);
+		comm.refUndoMax.remove(&refUndoMax);
+	});
+	return undo;
 }
 
 interface TCPD {

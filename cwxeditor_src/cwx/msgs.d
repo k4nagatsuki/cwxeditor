@@ -2581,6 +2581,21 @@ class Msgs : Properties {
 	auto featureVariantName = Msg("featureVariantName", "バリアント");
 	auto featureManualName = Msg("featureManualName", "ユーザ設定");
 
+	auto selectSkinType = Msg("selectSkinType", "設定対象のスキンタイプ");
+	auto defaultSettings = Msg("defaultSettings", "デフォルト");
+	auto editSkinTypeName = Msg("editSkinTypeName", "スキンタイプ名の編集");
+	auto editSkinTypeNameDesc = Msg("editSkinTypeNameDesc", "スキンタイプの名前");
+	auto addSkinType = Msg("addSkinType", "スキンタイプの追加");
+	auto addSkinTypeDesc = Msg("addSkinTypeDesc", "追加するスキンタイプの名前");
+	auto delSkinType = Msg("delSkinType", "スキンタイプ別設定の削除");
+	auto delSkinTypeDesc = Msg("delSkinTypeDesc", "スキンタイプ「%1$s」の設定を削除してよろしいですか？");
+	auto cloneSkinType = Msg("cloneSkinType", "スキンタイプ別設定の複製");
+	auto cloneSkinTypeDesc = Msg("cloneSkinTypeDesc", "複製先のスキンタイプの名前");
+	auto overrideDefaultSettings = Msg("overrideDefaultSettings", "スキンタイプ別設定によるデフォルト設定の上書き");
+	auto overrideBgImagesSettings = Msg("overrideBgImagesSettings", "背景設定を上書きする");
+	auto overrideSelectionsSettings = Msg("overrideSelectionsSettings", "選択肢設定を上書きする");
+	auto overrideKeyCodesSettings = Msg("overrideKeyCodesSettings", "キーコード設定を上書きする");
+
 	auto bgImagesDefault = Msg("bgImagesDefault", "デフォルト背景");
 	auto setBgImagesDefault = Msg("setBgImagesDefault", "デフォルト背景の設定...");
 	auto dlgTitBgImagesDefault = Msg("dlgTitBgImagesDefault", "デフォルト背景の設定");

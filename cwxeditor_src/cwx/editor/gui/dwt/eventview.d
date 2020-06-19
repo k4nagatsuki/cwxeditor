@@ -1131,7 +1131,7 @@ private:
 		if (cast(EventTree)itm.getData()) { mixin(S_TRACE);
 			return .createTextEditor(_comm, _prop, _cards, itm.getText());
 		} else if (cast(KeyCodeObj)itm.getData()) { mixin(S_TRACE);
-			return .createKeyCodeCombo!Combo(_comm, _summ, _cards, null, itm.getText(), true);
+			return .createKeyCodeCombo!Combo(_comm, _summ, _cards, null, itm.getText(), true, () => summSkin.type);
 		}
 		return null;
 	}
@@ -2742,7 +2742,7 @@ public:
 		return c;
 	}
 	private void createKCCombo() { mixin(S_TRACE);
-		auto combo = createKeyCodeCombo!CCombo(_comm, _summ, _toolbar, null, "", true);
+		auto combo = createKeyCodeCombo!CCombo(_comm, _summ, _toolbar, null, "", true, () => summSkin.type);
 		combo.setEnabled(!_readOnly);
 		setFireControl(combo);
 		if (combo.getItemCount()) { mixin(S_TRACE);

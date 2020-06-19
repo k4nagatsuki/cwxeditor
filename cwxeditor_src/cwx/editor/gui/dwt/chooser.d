@@ -382,7 +382,7 @@ string[] allCompleteStamps(Commons comm, Summary summ) { mixin(S_TRACE);
 	return cs;
 }
 
-T createKeyCodeCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, string initValue, bool withIgnitionType) { mixin(S_TRACE);
+T createKeyCodeCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, string initValue, bool withIgnitionType, string delegate() skinType) { mixin(S_TRACE);
 	auto combo = new T(parent, SWT.BORDER | SWT.DROP_DOWN);
 	combo.setVisibleItemCount(comm.prop.var.etc.comboVisibleItemCount);
 	combo.setText(initValue);
@@ -394,7 +394,7 @@ T createKeyCodeCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bo
 		combo.removeAll();
 		hasItem = false;
 
-		string[] stdKCs = comm.prop.var.etc.standardKeyCodes.dup;
+		string[] stdKCs = comm.prop.standardKeyCodes(skinType()).dup;
 
 		auto kcs = summ ? summ.useCounter.keys!KeyCodeId : [];
 		string[] kcs2;
@@ -425,12 +425,14 @@ T createKeyCodeCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bo
 	}
 
 	incSearch.modEvent ~= &refStandardKeyCodes;
+	comm.refSkin.add(&refStandardKeyCodes);
 	comm.refStandardKeyCodes.add(&refStandardKeyCodes);
 	if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
 		comm.refKeyCodes.add(&refStandardKeyCodes);
 		comm.replText.add(&refStandardKeyCodes);
 	}
 	.listener(combo, SWT.Dispose, { mixin(S_TRACE);
+		comm.refSkin.remove(&refStandardKeyCodes);
 		comm.refStandardKeyCodes.remove(&refStandardKeyCodes);
 		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
 			comm.refKeyCodes.remove(&refStandardKeyCodes);
@@ -455,7 +457,7 @@ T createKeyCodeCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bo
 }
 
 string[] allKeyCodes(Commons comm, Summary summ) { mixin(S_TRACE);
-	string[] stdKCs = comm.prop.var.etc.standardKeyCodes.dup;
+	string[] stdKCs = comm.prop.standardKeyCodes(comm.skin.type).dup;
 
 	bool delegate(KeyCodeId a, KeyCodeId b) cmps;
 	if (comm.prop.var.etc.logicalSort) {
@@ -1167,7 +1169,7 @@ T createSelectionCombo(T = Combo)(Commons comm, Composite parent, bool delegate(
 		hasItem = false;
 
 		auto values = initValue == "" ? [""] : [];
-		values ~= .addInitValue(comm, comm.prop.var.etc.standardSelections.dup, initValue);
+		values ~= .addInitValue(comm, comm.prop.standardSelections(comm.skin.type).dup, initValue);
 		foreach (i, kc; values) { mixin(S_TRACE);
 			hasItem = true;
 			if (!incSearch.match(kc)) continue;
@@ -1177,8 +1179,10 @@ T createSelectionCombo(T = Combo)(Commons comm, Composite parent, bool delegate(
 	}
 
 	incSearch.modEvent ~= &refStandardSelections;
+	comm.refSkin.add(&refStandardSelections);
 	comm.refStandardSelections.add(&refStandardSelections);
 	.listener(combo, SWT.Dispose, { mixin(S_TRACE);
+		comm.refSkin.remove(&refStandardSelections);
 		comm.refStandardSelections.remove(&refStandardSelections);
 	});
 
