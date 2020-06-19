@@ -2546,7 +2546,7 @@ public:
 		saveIDs(_summ, a, b, p);
 		auto area = new Area(_summ.newAreaId, createNewName(_prop.msgs.areaNew, _summ.areas));
 		if (_dirMode) area.dirName = _dir;
-		auto bgImages = createBgImages(_comm.skin, _prop.var.etc.bgImagesDefault);
+		auto bgImages = createBgImages(_comm.skin, _prop.bgImagesDefault(summSkin.type));
 		foreach (bg; bgImages) { mixin(S_TRACE);
 			area.append(bg);
 		}

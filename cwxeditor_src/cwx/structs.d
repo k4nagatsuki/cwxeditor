@@ -503,6 +503,8 @@ string parseDollarParams(in char[] format, in string[char] params) { mixin(S_TRA
 
 /// デフォルト設定用の背景画像構造体。
 struct BgImageS {
+	enum XML_NAME = "background";
+
 	string type; /// セルのタイプ。image、text、colorのいずれか。
 	int x; /// X座標。
 	int y; /// Y座標。
@@ -558,7 +560,7 @@ struct BgImageS {
 	/// XMLノードとして取り扱うための関数群。
 	const
 	void toNode(ref XNode e) { mixin(S_TRACE);
-		auto r = e.newElement("background");
+		auto r = e.newElement(XML_NAME);
 		r.newAttr("type", type);
 		r.newAttr("x", x);
 		r.newAttr("y", y);
@@ -611,7 +613,7 @@ struct BgImageS {
 	}
 	/// ditto
 	void fromNode(ref XNode node) { mixin(S_TRACE);
-		if (node.name != "background") throw new Exception("Node is not background");
+		if (node.name != XML_NAME) throw new Exception("Node is not " ~ XML_NAME);
 		type = node.attr!(string)("type", false, "image");
 		x = node.attr!(int)("x", true);
 		y = node.attr!(int)("y", true);
@@ -681,13 +683,15 @@ struct BgImageS {
 
 /// クラシックなエンジンの情報。
 struct ClassicEngine {
-	static const XML_NAME = "classicEngine";
+	enum XML_NAME = "classicEngine";
 	string name; /// 情報名。
 	string enginePath = ""; /// 実行ファイルのパス。
 	string dataDirName = ""; /// データフォルダのパス。
 	string execute = ""; /// 実行ファイルの代わりに実行されるファイルの名称。
 	string mnemonic; /// アクセスキー。
 	string hotkey; /// ショートカット。
+
+	string type; /// スキンタイプ。
 
 	string okText = null;
 	string[string] sexName;
@@ -729,6 +733,7 @@ struct ClassicEngine {
 		ce.mnemonic = mnemonic;
 		ce.hotkey = hotkey;
 		ce.okText = okText;
+		ce.type = type;
 
 		foreach (key, value; sexName) ce.sexName[key] = value;
 		foreach (key, value; periodName) ce.periodName[key] = value;
@@ -786,6 +791,7 @@ struct ClassicEngine {
 		e.newAttr("enginePath", enginePath);
 		e.newAttr("dataDirName", dataDirName);
 		e.newAttr("execute", execute);
+		if (type != "") e.newAttr("type", type);
 		if (mnemonic.length) e.newAttr("mnemonic", mnemonic);
 		if (hotkey.length) e.newAttr("hotkey", hotkey);
 		if (okText !is null) e.newAttr("okText", okText);
@@ -911,6 +917,7 @@ struct ClassicEngine {
 		mnemonic = node.attr!string("mnemonic", false, "");
 		hotkey = node.attr!string("hotkey", false, "");
 		okText = node.attr!string("okText", false, null);
+		type = node.attr!string("type", false, "");
 		node.onTag["sexName"] = (ref XNode node) { mixin(S_TRACE);
 			node.onTag["name"] = (ref XNode node) { mixin(S_TRACE);
 				string key = node.attr!string("key", false, null);
@@ -1555,5 +1562,138 @@ struct KeyCodeByMotion {
 			hash = (hash * 9) + c;
 		}
 		return hash;
+	}
+}
+
+/// スキンタイプ別の設定。
+/// 編集中のシナリオのタイプに応じて標準の設定に上書きされる。
+struct SettingsWithSkinType {
+	enum XML_NAME = "settingsWithSkinType";
+
+	string type; /// スキンタイプ。
+
+	bool overrideBgImages; /// 背景に関する設定を上書きするか。
+	bool overrideSelections; /// 選択肢に関する設定を上書きするか。
+	bool overrideKeyCodes; /// キーコードに関する設定を上書きするか。
+
+	BgImageS[] bgImagesDefault; /// デフォルト背景。
+	BgImageSetting[] bgImageSettings; /// 背景の簡単設定。
+	string[] standardSelections; /// 標準選択肢。
+	string[] standardKeyCodes; /// 標準キーコード。
+	KeyCodeByFeature[] keyCodesByFeatures; /// カードの特徴に対応するキーコード。
+	KeyCodeByMotion[] keyCodesByMotions; /// 効果に対応するキーコード。
+
+	const
+	void toNode(ref XNode e, string name = XML_NAME) { mixin(S_TRACE);
+		auto r = e.newElement(name);
+		r.newAttr("type", type);
+		r.newAttr("bgImage", overrideBgImages ? "override" : "default");
+		r.newAttr("selection", overrideSelections ? "override" : "default");
+		r.newAttr("keyCode", overrideKeyCodes ? "override" : "default");
+		{ mixin(S_TRACE);
+			auto ce = r.newElement("bgImagesDefault");
+			foreach (ref s; bgImagesDefault) { mixin(S_TRACE);
+				s.toNode(ce);
+			}
+		}
+		if (bgImageSettings.length) { mixin(S_TRACE);
+			auto ce = r.newElement("bgImageSettings");
+			foreach (ref s; bgImageSettings) { mixin(S_TRACE);
+				s.toNode(ce);
+			}
+		}
+		if (standardSelections.length) { mixin(S_TRACE);
+			auto ce = r.newElement("standardSelections");
+			foreach (ref s; standardSelections) { mixin(S_TRACE);
+				ce.newElement("value", s);
+			}
+		}
+		if (standardKeyCodes.length) { mixin(S_TRACE);
+			auto ce = r.newElement("standardKeyCodes");
+			foreach (ref s; standardKeyCodes) { mixin(S_TRACE);
+				ce.newElement("value", s);
+			}
+		}
+		if (keyCodesByFeatures.length) { mixin(S_TRACE);
+			auto ce = r.newElement("keyCodesByFeatures");
+			foreach (ref s; keyCodesByFeatures) { mixin(S_TRACE);
+				s.toNode(ce);
+			}
+		}
+		if (keyCodesByMotions.length) { mixin(S_TRACE);
+			auto ce = r.newElement("keyCodesByMotions");
+			foreach (ref s; keyCodesByMotions) { mixin(S_TRACE);
+				s.toNode(ce);
+			}
+		}
+	}
+	void fromNode(ref XNode node) { mixin(S_TRACE);
+		type = node.attr("type", true);
+		overrideBgImages = node.attr("bgImage", false, "default") == "override";
+		overrideSelections = node.attr("selection", false, "default") == "override";
+		overrideKeyCodes = node.attr("keyCode", false, "default") == "override";
+		bgImagesDefault = [];
+		node.onTag["bgImagesDefault"] = (ref XNode node) { mixin(S_TRACE);
+			node.onTag[BgImageS.XML_NAME] = (ref XNode node) { mixin(S_TRACE);
+				bgImagesDefault.length++;
+				bgImagesDefault[$ - 1].fromNode(node);
+			};
+		};
+		bgImageSettings = [];
+		node.onTag["bgImageSettings"] = (ref XNode node) { mixin(S_TRACE);
+			node.onTag[BgImageSetting.XML_NAME] = (ref XNode node) { mixin(S_TRACE);
+				bgImageSettings.length++;
+				bgImageSettings[$ - 1].fromNode(node);
+			};
+		};
+		standardSelections = [];
+		node.onTag["standardSelections"] = (ref XNode node) { mixin(S_TRACE);
+			node.onTag["value"] = (ref XNode node) { mixin(S_TRACE);
+				standardSelections ~= node.value;
+			};
+		};
+		standardKeyCodes = [];
+		node.onTag["standardKeyCodes"] = (ref XNode node) { mixin(S_TRACE);
+			node.onTag["value"] = (ref XNode node) { mixin(S_TRACE);
+				standardKeyCodes ~= node.value;
+			};
+		};
+		keyCodesByFeatures = [];
+		node.onTag["keyCodesByFeatures"] = (ref XNode node) { mixin(S_TRACE);
+			node.onTag[KeyCodeByFeature.XML_NAME] = (ref XNode node) { mixin(S_TRACE);
+				keyCodesByFeatures.length++;
+				keyCodesByFeatures[$ - 1].fromNode(node);
+			};
+		};
+		keyCodesByMotions = [];
+		node.onTag["keyCodesByMotions"] = (ref XNode node) { mixin(S_TRACE);
+			node.onTag[KeyCodeByMotion.XML_NAME] = (ref XNode node) { mixin(S_TRACE);
+				keyCodesByMotions.length++;
+				keyCodesByMotions[$ - 1].fromNode(node);
+			};
+		};
+		node.parse();
+	}
+}
+
+/// クラシックエンジンとスキンタイプの対応。
+struct SkinTypeByClassicEngine {
+	enum XML_NAME = "skinTypeByClassicEngine";
+
+	string type; /// スキンタイプ。
+
+	string engine; /// エンジンのファイル名を正規表現でマッチングし、マッチする場合はこのタイプとする。
+	string directory; /// ディレクトリ名を正規表現でマッチングし、マッチする場合はこのタイプとする。
+
+	const
+	void toNode(ref XNode e, string name = XML_NAME) { mixin(S_TRACE);
+		auto r = e.newElement(name, type);
+		if (engine != "") r.newAttr("engine", engine);
+		if (directory != "") r.newAttr("directory", directory);
+	}
+	void fromNode(ref XNode node) { mixin(S_TRACE);
+		type = node.value;
+		engine = node.attr("engine", false, "");
+		directory = node.attr("directory", false, "");
 	}
 }

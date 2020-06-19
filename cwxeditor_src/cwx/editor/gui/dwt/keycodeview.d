@@ -78,7 +78,7 @@ class KeyCodeView : AbstractEditableListView!string {
 	}
 
 	private Control createEditor(TableItem itm, int editC) { mixin(S_TRACE);
-		return .createKeyCodeCombo!Combo(_comm, _summ, itm.getParent(), _catchMod, itm.getText(), _withIgnitionType);
+		return .createKeyCodeCombo!Combo(_comm, _summ, itm.getParent(), _catchMod, itm.getText(), _withIgnitionType, () => _comm.skin.type);
 	}
 	private void editEnd(TableItem itm, int column, string newText) { mixin(S_TRACE);
 		mainValueEditEnd(itm, newText);
@@ -362,7 +362,7 @@ class KeyCodeView : AbstractEditableListView!string {
 	private SelectCardFeaturesDialog _selectFeaturesDlg = null;
 	@property
 	private bool canAddKeyCodesByFeatures() { mixin(S_TRACE);
-		return !readOnly && _getMotions && (_comm.prop.var.etc.keyCodesByFeatures.length || _getMotions().length);
+		return !readOnly && _getMotions && (_comm.prop.keyCodesByFeatures(_comm.skin.type).length || _getMotions().length);
 	}
 	private void addKeyCodesByFeatures() { mixin(S_TRACE);
 		if (!canAddKeyCodesByFeatures) return;
@@ -371,7 +371,7 @@ class KeyCodeView : AbstractEditableListView!string {
 			_selectFeaturesDlg.active();
 			return;
 		}
-		if (_comm.prop.var.etc.keyCodesByFeatures.length) { mixin(S_TRACE);
+		if (_comm.prop.keyCodesByFeatures(_comm.skin.type).length) { mixin(S_TRACE);
 			_selectFeaturesDlg = new SelectCardFeaturesDialog(_comm, getShell());
 			_selectFeaturesDlg.closeEvent ~= { _selectFeaturesDlg = null; };
 			_selectFeaturesDlg.appliedEvent ~= { addKeyCodesByFeatures2(_selectFeaturesDlg.keyCodes); };
@@ -395,7 +395,7 @@ class KeyCodeView : AbstractEditableListView!string {
 		}
 
 		foreach (m; _getMotions()) { mixin(S_TRACE);
-			foreach (ref kcm; _comm.prop.var.etc.keyCodesByMotions) { mixin(S_TRACE);
+			foreach (ref kcm; _comm.prop.keyCodesByMotions(_comm.skin.type)) { mixin(S_TRACE);
 				if (kcm.match(m.type, m.element)) { mixin(S_TRACE);
 					if (kcm.keyCode in keyCodes) continue;
 					add ~= kcm.keyCode;
@@ -434,10 +434,10 @@ class SelectCardFeaturesDialog : AbsDialog {
 	private string[] _keyCodes;
 
 	private void refKeyCodesByFeatures() { mixin(S_TRACE);
-		if (_comm.prop.var.etc.keyCodesByFeatures.length == 0) { mixin(S_TRACE);
+		if (_comm.prop.keyCodesByFeatures(_comm.skin.type).length == 0) { mixin(S_TRACE);
 			forceCancel();
 		} else { mixin(S_TRACE);
-			_features.setItemCount(cast(int)_comm.prop.var.etc.keyCodesByFeatures.length);
+			_features.setItemCount(cast(int)_comm.prop.keyCodesByFeatures(_comm.skin.type).length);
 			_features.clearAll();
 		}
 	}
@@ -469,11 +469,13 @@ class SelectCardFeaturesDialog : AbsDialog {
 
 		.listener(_features, SWT.SetData, (e) { mixin(S_TRACE);
 			auto itm = cast(TableItem)e.item;
-			itm.setText(_comm.prop.var.etc.keyCodesByFeatures[e.index].feature);
+			itm.setText(_comm.prop.keyCodesByFeatures(_comm.skin.type)[e.index].feature);
 		});
 		.listener(_features, SWT.Selection, (e) { .updateChecked(e); });
+		_comm.refSkin.add(&refKeyCodesByFeatures);
 		_comm.refKeyCodesByFeatures.add(&refKeyCodesByFeatures);
 		.listener(_features, SWT.Dispose, { mixin(S_TRACE);
+			_comm.refSkin.remove(&refKeyCodesByFeatures);
 			_comm.refKeyCodesByFeatures.remove(&refKeyCodesByFeatures);
 		});
 		refKeyCodesByFeatures();
@@ -488,7 +490,7 @@ class SelectCardFeaturesDialog : AbsDialog {
 		bool[string] keyCodes;
 		foreach (i, itm; _features.getItems()) { mixin(S_TRACE);
 			if (!itm.getChecked()) continue;
-			auto feature = _comm.prop.var.etc.keyCodesByFeatures[i];
+			auto feature = _comm.prop.keyCodesByFeatures(_comm.skin.type)[i];
 			if (feature.keyCode in keyCodes) continue;
 			_keyCodes ~= feature.keyCode;
 			keyCodes[feature.keyCode] = true;

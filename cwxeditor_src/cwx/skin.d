@@ -122,6 +122,35 @@ BgImage[] createBgImages(in Skin skin, in BgImageS[] bgs) { mixin(S_TRACE);
 	return r;
 }
 
+/// クラシックエンジンのパスから推測したスキンタイプを返す。
+string skinTypeByClassicEngine(in SkinTypeByClassicEngine[] info, string enginePath, string defaultType) { mixin(S_TRACE);
+	auto engine = enginePath.baseName();
+	auto dir = enginePath.dirName().baseName();
+	foreach (ref sbc; info) { mixin(S_TRACE);
+		try {
+			if (sbc.engine != "") { mixin(S_TRACE);
+				if (engine.match(.regex(sbc.engine, "i"))) { mixin(S_TRACE);
+					return sbc.type;
+				}
+			}
+		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
+		}
+		try {
+			if (sbc.directory != "") { mixin(S_TRACE);
+				if (dir.match(.regex(sbc.directory, "i"))) { mixin(S_TRACE);
+					return sbc.type;
+				}
+			}
+		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
+		}
+	}
+	return defaultType;
+}
+
 /// リソースのマスク方式。
 enum MaskType {
 	NoMask, /// 背景を透明にしない。
@@ -398,10 +427,10 @@ class Skin {
 	@property
 	const
 	string name() { return _name; }
-	/// スキンのタイプ。クラシックの場合は""。
+	/// スキンのタイプ。
 	@property
 	const
-	string type() { return _type; }
+	string type() { return _type == "" ? _cEngine.type : _type; }
 	/// スキンのファイル名。クラシックの場合は""。
 	@property
 	const

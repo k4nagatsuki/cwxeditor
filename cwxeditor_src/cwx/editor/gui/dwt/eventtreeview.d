@@ -238,7 +238,7 @@ private:
 			c.convertType(type, init, _prop.parent, .toDialogStatus(_prop.var.etc.dialogStatus), skin, sPath, wsnVer);
 			auto newd = c.detail;
 			if (newd.use(CArg.BgImages) && !oldd.use(CArg.BgImages)) { mixin(S_TRACE);
-				c.backs = createBgImages(skin, _prop.var.etc.bgImagesDefault);
+				c.backs = createBgImages(skin, _prop.bgImagesDefault(summSkin.type));
 			}
 			if (newd.use(CArg.Dialogs) && !c.dialogs.length) { mixin(S_TRACE);
 				c.dialogs = [new SDialog];
@@ -1020,7 +1020,7 @@ private:
 			}
 		}
 
-		.initial(_comm, summSkin, _summ && _summ.legacy, _summ.dataVersion, _prop.var.etc.bgImagesDefault, c);
+		.initial(_comm, summSkin, _summ && _summ.legacy, _summ.dataVersion, _prop.bgImagesDefault(summSkin.type), c);
 		updateSkinMaterialsExtension(c);
 	}
 
