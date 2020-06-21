@@ -1,14 +1,12 @@
 /// エディタの設定を行なうダイアログ。
 module cwx.editor.gui.dwt.settingsdialog;
 
-import cwx.background;
 import cwx.event;
 import cwx.graphics;
 import cwx.imagesize;
 import cwx.menu;
 import cwx.props;
 import cwx.script;
-import cwx.skin;
 import cwx.structs;
 import cwx.summary;
 import cwx.types;
@@ -18,8 +16,6 @@ import cwx.variables;
 import cwx.editor.gui.sound;
 
 import cwx.editor.gui.dwt.absdialog;
-import cwx.editor.gui.dwt.areaview;
-import cwx.editor.gui.dwt.areaviewutils;
 import cwx.editor.gui.dwt.autokeycode;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.commons;
@@ -36,12 +32,13 @@ import cwx.editor.gui.dwt.history;
 import cwx.editor.gui.dwt.incsearch;
 import cwx.editor.gui.dwt.properties;
 import cwx.editor.gui.dwt.scripterrordialog;
+import cwx.editor.gui.dwt.skintypesettings;
 import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.toolspane;
 import cwx.editor.gui.dwt.undo;
 
 static import std.algorithm;
-import std.algorithm : filter, max, min, map, stripRight;
+import std.algorithm : map, max, min, stripRight;
 import std.array;
 import std.conv;
 import std.file;
@@ -129,6 +126,7 @@ private:
 	UndoManager _keyCodesUndo;
 	KeyCodeByFeatureView _keyCodesByFeaturesView;
 	KeyCodeByMotionView _keyCodesByMotionsView;
+	ElementOverrideView _elementOverrides;
 
 	CTabItem _tabT;
 	ToolsPane!OuterTool _tools;
@@ -256,7 +254,7 @@ private:
 		selectDir(_prop, _backupBeforeSaveDir, _prop.msgs.backupBeforeSaveDir, _prop.msgs.backupBeforeSaveDirDesc, _prop.backupBeforeSavePath);
 	}
 	void selectWallpaper() { mixin(S_TRACE);
-		string[] filterName = [_prop.msgs.filterWallpaper, _prop.msgs.filterAll];
+		string[] filterName = [_prop.msgs.filterImage, _prop.msgs.filterAll];
 		string[] filter = [
 			"*" ~ std.string.join(_comm.skin.extImage.dup, ";*"),
 			"*"
@@ -803,9 +801,13 @@ private:
 		});
 		_skinType.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		_skinType.selectEvent ~= &selectSkinType;
-		const
-		string selectedSkinType() { mixin(S_TRACE);
-			return _skinType.selected == -1 ? _comm.prop.var.etc.defaultSkin.value : _skinType.settingsWithSkinTypes[_skinType.selected].type;
+
+		const(string)[] standardKeyCodes() { mixin(S_TRACE);
+			return _skinType.selected == -1 ? _standardKeyCodes : _skinType.settingsWithSkinTypes[_skinType.selected].standardKeyCodes;
+		}
+		const(ElementOverride)[] elementOverrides() { mixin(S_TRACE);
+			if (_skinType.selected == -1) return [];
+			return _skinType.settingsWithSkinTypes[_skinType.selected].elementOverrides;
 		}
 
 		auto sep = new Label(comp, SWT.SEPARATOR | SWT.HORIZONTAL);
@@ -846,7 +848,17 @@ private:
 					_defBgImgDlg.active();
 					return;
 				}
-				_defBgImgDlg = new DefBgImgDialog(_comm, _prop, getShell(), _bgImagesDefault);
+				auto skinType = _skinType.selected == -1 ? _prop.var.etc.defaultSkin : _skinType.settingsWithSkinTypes[_skinType.selected].type;
+				auto skin = .findSkin2(_prop, skinType, "");
+				if (skin.isEmpty) { mixin(S_TRACE);
+					foreach (ref ce; _comm.prop.var.etc.classicEngines) { mixin(S_TRACE);
+						if (ce.type == skinType) {
+							skin = .createClassicSkin(_prop, ce);
+							break;
+						}
+					}
+				}
+				_defBgImgDlg = new DefBgImgDialog(_comm, _prop, getShell(), _skinType.selected == -1 ? _bgImagesDefault : _skinType.settingsWithSkinTypes[_skinType.selected].bgImagesDefault, skin);
 				_defBgImgDlg.appliedEvent ~= { mixin(S_TRACE);
 					if (_skinType.selected == -1) { mixin(S_TRACE);
 						_bgImagesDefault = _defBgImgDlg.backs;
@@ -882,7 +894,7 @@ private:
 			auto grp = new Group(sashKC, SWT.NONE);
 			grp.setLayout(normalGridLayout(1, false));
 			grp.setText(_prop.msgs.keyCodesByFeatures);
-			_keyCodesByFeaturesView = new KeyCodeByFeatureView(_comm, grp, SWT.NONE, &selectedSkinType, &catchMod);
+			_keyCodesByFeaturesView = new KeyCodeByFeatureView(_comm, grp, SWT.NONE, &standardKeyCodes, &catchMod);
 			mod(_keyCodesByFeaturesView);
 			_keyCodesByFeaturesView.modEvent ~= { mixin(S_TRACE);
 				if (_skinType.selected == -1) { mixin(S_TRACE);
@@ -897,7 +909,7 @@ private:
 			auto grp = new Group(sashKC, SWT.NONE);
 			grp.setLayout(normalGridLayout(1, false));
 			grp.setText(_prop.msgs.keyCodesByMotions);
-			_keyCodesByMotionsView = new KeyCodeByMotionView(_comm, grp, SWT.NONE, &selectedSkinType, &catchMod);
+			_keyCodesByMotionsView = new KeyCodeByMotionView(_comm, grp, SWT.NONE, &standardKeyCodes, &elementOverrides, &catchMod);
 			mod(_keyCodesByMotionsView);
 			_keyCodesByMotionsView.modEvent ~= { mixin(S_TRACE);
 				if (_skinType.selected == -1) { mixin(S_TRACE);
@@ -935,9 +947,9 @@ private:
 				gd.heightHint = 0;
 				_selections.setLayoutData(gd);
 			}
+			auto sashR2 = new SplitPane(sashR, SWT.VERTICAL);
 			{ mixin(S_TRACE);
-				auto grp = new Group(sashR, SWT.NONE);
-				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+				auto grp = new Group(sashR2, SWT.NONE);
 				grp.setLayout(normalGridLayout(1, false));
 				grp.setText(_prop.msgs.standardKeyCode);
 				_keyCodes = new Text(grp, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
@@ -958,7 +970,21 @@ private:
 				gd.heightHint = 0;
 				_keyCodes.setLayoutData(gd);
 			}
+			{ mixin(S_TRACE);
+				auto grp = new Group(sashR2, SWT.NONE);
+				grp.setLayout(normalGridLayout(1, false));
+				grp.setText(_prop.msgs.elementOverrides);
+				_elementOverrides = new ElementOverrideView(_comm, grp, SWT.NONE);
+				mod(_elementOverrides);
+				_elementOverrides.modEvent ~= { mixin(S_TRACE);
+					assert (_skinType.selected != -1);
+					_skinType.settingsWithSkinTypes[_skinType.selected].elementOverrides = _elementOverrides.elementOverrides;
+					_keyCodesByMotionsView.clearAll();
+				};
+				_elementOverrides.setLayoutData(new GridData(GridData.FILL_BOTH));
+			}
 			.setupWeights(sashR, _prop.var.etc.selectionKeyCodeSashL, _prop.var.etc.selectionKeyCodeSashR);
+			.setupWeights(sashR2, _prop.var.etc.keyCodesElementSashL, _prop.var.etc.keyCodesElementSashR);
 		}
 		.setupWeights(sash, _prop.var.etc.bgImageSelectionSashL, _prop.var.etc.bgImageSelectionSashR);
 	}
@@ -972,12 +998,16 @@ private:
 			_keyCodes.setText(_standardKeyCodes.join("\n") ~ "\n");
 			_keyCodesByFeaturesView.values = _keyCodesByFeatures;
 			_keyCodesByMotionsView.values = _keyCodesByMotions;
+			_elementOverrides.elementOverrides = [];
+			_elementOverrides.enabled = false;
 		} else { mixin(S_TRACE);
 			_bgStgs.array = _skinType.settingsWithSkinTypes[_skinType.selected].bgImageSettings;
 			_selections.setText(_skinType.settingsWithSkinTypes[_skinType.selected].standardSelections.join("\n") ~ "\n");
 			_keyCodes.setText(_skinType.settingsWithSkinTypes[_skinType.selected].standardKeyCodes.join("\n") ~ "\n");
 			_keyCodesByFeaturesView.values = _skinType.settingsWithSkinTypes[_skinType.selected].keyCodesByFeatures;
 			_keyCodesByMotionsView.values = _skinType.settingsWithSkinTypes[_skinType.selected].keyCodesByMotions;
+			_elementOverrides.elementOverrides = _skinType.settingsWithSkinTypes[_skinType.selected].elementOverrides;
+			_elementOverrides.enabled = true;
 		}
 		_selectionsUndo.reset();
 		_keyCodesUndo.reset();
@@ -2232,305 +2262,7 @@ struct OldSettings {
 		}
 		if (refSettingsWithSkinTypes) { mixin(S_TRACE);
 			comm.refSettingsWithSkinTypes.call();
+			comm.refElementOverrides.call();
 		}
 	}
-}
-
-class DefBgImgDialog : AbsDialog {
-private:
-	Commons _comm;
-	Props _prop;
-
-	BgImageContainer _cont;
-	BgImagesView _view;
-
-public:
-	this (Commons comm, Props prop, Shell shell, BgImageS[] bgImagesDefault) { mixin(S_TRACE);
-		super(prop, shell, false, prop.msgs.dlgTitBgImagesDefault,
-			prop.images.menu(MenuID.Settings), true, prop.var.defBgImagesDlg, true);
-		_comm = comm;
-		_prop = prop;
-
-		auto summ = new Summary("", prop.var.etc.defaultSkin, prop.var.etc.defaultSkinName, "", false, false);
-		summ.dataVersion = LATEST_VERSION;
-		auto skin = findSkin(_comm, _prop, summ);
-		_cont = new BgImageContainer(createBgImages(skin, bgImagesDefault));
-	}
-
-	@property
-	const
-	override
-	bool noScenario() { return true; }
-
-	@property
-	BgImageS[] backs() { mixin(S_TRACE);
-		return createBgImageSs(_cont.backs);
-	}
-
-protected:
-	override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(normalGridLayout(1, false));
-		{ mixin(S_TRACE);
-			_view = createBgImagesViewAndMenu(_comm, _prop, null, null, _cont, area, null, _prop.var.etc.showInheritBackground, false);
-			mod(_view);
-			_view.setLayoutData(new GridData(GridData.FILL_BOTH));
-		}
-	}
-
-	override bool apply() { mixin(S_TRACE);
-		return true;
-	}
-}
-
-class SkinTypeChooser : Composite {
-	void delegate()[] selectEvent;
-	private void raiseSelectEvent() { mixin(S_TRACE);
-		foreach (dlg; selectEvent) dlg();
-	}
-
-	private Commons _comm;
-	private SettingsWithSkinType delegate() _createSettingsFromDefault;
-
-	private Combo _type;
-	private int _lastSelected;
-	private Button _edit;
-	private Button _add;
-	private Button _del;
-	private Button _clone;
-	private bool delegate(bool del) _canSelect;
-
-	private SettingsWithSkinType[] _settingsWithSkinTypes;
-
-	this (Commons comm, Composite parent, int style, bool delegate(bool del) canSelect, SettingsWithSkinType delegate() createSettingsFromDefault) { mixin(S_TRACE);
-		super (parent, style);
-		_comm = comm;
-		_canSelect = canSelect;
-		_createSettingsFromDefault = createSettingsFromDefault;
-		_settingsWithSkinTypes = _comm.prop.var.etc.settingsWithSkinTypes.dup;
-
-		setLayout(zeroMarginGridLayout(3, false));
-
-		auto l = new Label(this, SWT.NONE);
-		l.setText(_comm.prop.msgs.selectSkinType);
-
-		_type = new Combo(this, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
-		_type.setVisibleItemCount(_comm.prop.var.etc.comboVisibleItemCount);
-		_type.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
-		auto buttons = new Composite(this, SWT.NONE);
-		buttons.setLayout(zeroMarginGridLayout(4, true));
-
-		_edit = new Button(buttons, SWT.NONE);
-		_edit.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		_edit.setImage(_comm.prop.images.menu(MenuID.EditProp));
-		_edit.setText(MenuProps.buildMenu(_comm.prop.msgs.menuText(MenuID.EditProp), _comm.prop.var.menu.mnemonic(MenuID.EditProp), "", true));
-		_comm.put(_edit, () => selected != -1);
-		.listener(_edit, SWT.Selection, { mixin(S_TRACE);
-			assert (selected != -1);
-			auto excludeTypes = .map!(s => s.type)(_settingsWithSkinTypes).array();
-			excludeTypes.remove(_settingsWithSkinTypes[selected].type);
-			auto title = _comm.prop.msgs.editSkinTypeName;
-			auto image = _comm.prop.images.menu(MenuID.EditProp);
-			auto desc = _comm.prop.msgs.editSkinTypeNameDesc;
-			auto dlg = new EditSkinTypeDialog(_comm, getShell(), title, image, desc, excludeTypes, _settingsWithSkinTypes[selected].type);
-			if (dlg.open()) { mixin(S_TRACE);
-				assert (selected != -1);
-				_settingsWithSkinTypes[selected].type = dlg.type;
-				sortTypes();
-			}
-		});
-
-		_add = new Button(buttons, SWT.NONE);
-		_add.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		_add.setImage(_comm.prop.images.addItem);
-		_add.setText(MenuProps.buildMenu(_comm.prop.msgs.addItem, "A", "", true));
-		_comm.put(_add, () => true);
-		.listener(_add, SWT.Selection, { mixin(S_TRACE);
-			auto excludeTypes = .map!(s => s.type)(_settingsWithSkinTypes).array();
-			auto title = _comm.prop.msgs.addSkinType;
-			auto image = _comm.prop.images.addItem;
-			auto desc = _comm.prop.msgs.addSkinTypeDesc;
-			auto dlg = new EditSkinTypeDialog(_comm, getShell(), title, image, desc, excludeTypes, "");
-			if (dlg.open()) { mixin(S_TRACE);
-				assert (.cCountUntil(excludeTypes, dlg.type) == -1);
-				_settingsWithSkinTypes.length += 1;
-				_settingsWithSkinTypes[$ - 1].type = dlg.type;
-				_type.add(dlg.type);
-				if (_canSelect(false)) { mixin(S_TRACE);
-					_type.select(_type.getItemCount() - 1);
-				}
-				sortTypes();
-				raiseSelectEvent();
-			}
-		});
-
-		_del = new Button(buttons, SWT.NONE);
-		_del.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		_del.setImage(_comm.prop.images.delItem);
-		_del.setText(MenuProps.buildMenu(_comm.prop.msgs.delItem, "D", "", false));
-		_comm.put(_del, () => selected != -1);
-		.listener(_del, SWT.Selection, { mixin(S_TRACE);
-			if (!_canSelect(true)) { mixin(S_TRACE);
-				return;
-			}
-			assert (selected != -1);
-			auto dlg = new MessageBox(getShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO);
-			dlg.setText(_comm.prop.msgs.delSkinType);
-			dlg.setMessage(.tryFormat(_comm.prop.msgs.delSkinTypeDesc, _settingsWithSkinTypes[selected].type));
-			if (SWT.YES == dlg.open()) { mixin(S_TRACE);
-				assert (selected != -1);
-				auto selected = this.selected;
-				_settingsWithSkinTypes = std.algorithm.remove(_settingsWithSkinTypes, selected);
-				_type.remove(selected);
-				_type.select(.min(selected, _type.getItemCount() - 1));
-				_lastSelected = _type.getSelectionIndex();
-				raiseSelectEvent();
-			}
-		});
-
-		_clone = new Button(buttons, SWT.NONE);
-		_clone.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		_clone.setImage(_comm.prop.images.menu(MenuID.Clone));
-		_clone.setText(MenuProps.buildMenu(_comm.prop.msgs.menuText(MenuID.Clone), _comm.prop.var.menu.mnemonic(MenuID.Clone), "", true));
-		_comm.put(_clone, () => true);
-		.listener(_clone, SWT.Selection, { mixin(S_TRACE);
-			auto excludeTypes = .map!(s => s.type)(_settingsWithSkinTypes).array();
-			auto title = _comm.prop.msgs.cloneSkinType;
-			auto image = _comm.prop.images.menu(MenuID.Clone);
-			auto desc = _comm.prop.msgs.cloneSkinTypeDesc;
-			auto dlg = new EditSkinTypeDialog(_comm, getShell(), title, image, desc, excludeTypes, "");
-			if (dlg.open()) { mixin(S_TRACE);
-				assert (.cCountUntil(excludeTypes, dlg.type) == -1);
-				if (selected == -1) { mixin(S_TRACE);
-					_settingsWithSkinTypes ~= _createSettingsFromDefault();
-				} else { mixin(S_TRACE);
-					_settingsWithSkinTypes ~= _settingsWithSkinTypes[selected];
-				}
-				_settingsWithSkinTypes[$ - 1].type = dlg.type;
-				_type.add(dlg.type);
-				if (_canSelect(false)) { mixin(S_TRACE);
-					_type.select(_type.getItemCount() - 1);
-				}
-				sortTypes();
-				raiseSelectEvent();
-			}
-		});
-
-		_type.add(_comm.prop.msgs.defaultSelection(_comm.prop.msgs.defaultSettings));
-		foreach (ref s; _settingsWithSkinTypes) { mixin(S_TRACE);
-			_type.add(s.type);
-		}
-		.listener(_type, SWT.Selection, { mixin(S_TRACE);
-			if (_canSelect(false)) { mixin(S_TRACE);
-				_lastSelected = _type.getSelectionIndex();
-				raiseSelectEvent();
-			} else { mixin(S_TRACE);
-				_type.select(_lastSelected);
-			}
-		});
-		_type.select(0);
-		_lastSelected = 0;
-	}
-
-	private void sortTypes() { mixin(S_TRACE);
-		auto index = selected;
-		auto sel = _type.getText();
-
-		int cmpType(ref const(SettingsWithSkinType) s1, ref const(SettingsWithSkinType) s2) { mixin(S_TRACE);
-			if (_comm.prop.var.etc.logicalSort) { mixin(S_TRACE);
-				return .ncmp(s1.type, s2.type);
-			} else { mixin(S_TRACE);
-				return .cmp(s1.type, s2.type);
-			}
-		}
-		.sort!cmpType(_settingsWithSkinTypes);
-
-		_type.removeAll();
-		_type.add(_comm.prop.msgs.defaultSelection(_comm.prop.msgs.defaultSettings));
-		foreach (i, ref s; _settingsWithSkinTypes) { mixin(S_TRACE);
-			_type.add(s.type);
-			if (index != -1 && s.type == sel) { mixin(S_TRACE);
-				_type.select(_type.getItemCount() - 1);
-			}
-		}
-		assert (_type.getSelectionIndex() != -1 || index == -1);
-		if (index == -1) { mixin(S_TRACE);
-			_type.select(0);
-		}
-		_lastSelected = _type.getSelectionIndex();
-	}
-
-	int selected() { mixin(S_TRACE);
-		return _type.getSelectionIndex() - 1;
-	}
-
-	inout
-	inout(SettingsWithSkinType)[] settingsWithSkinTypes() { return _settingsWithSkinTypes; }
-}
-
-class EditSkinTypeDialog : AbsDialog {
-	private Commons _comm;
-
-	private Combo _skinType;
-	private bool[string] _excludeTypes;
-	private string _desc;
-
-	private string _type;
-
-	this (Commons comm, Shell parent, string title, Image icon, string desc, in string[] excludeTypes, string defaultValue) { mixin(S_TRACE);
-		_comm = comm;
-		foreach (type; excludeTypes) _excludeTypes[type] = true;
-		_type = defaultValue;
-		_desc = desc;
-
-		super (_comm.prop, parent, true, title, icon, true, _comm.prop.var.editSkinTypeDlg);
-		enterClose = true;
-	}
-
-	override
-	protected void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(new GridLayout(1, true));
-
-		auto grp = new Group(area, SWT.NONE);
-		grp.setText(_desc);
-		grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-		grp.setLayout(new GridLayout(1, true));
-
-		_skinType = new Combo(grp, SWT.DROP_DOWN | SWT.BORDER);
-		_skinType.setVisibleItemCount(_comm.prop.var.etc.comboVisibleItemCount);
-		.createTextMenu!Combo(_comm, _comm.prop, _skinType, &catchMod);
-		_skinType.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		checker(_skinType, (combo) { mixin(S_TRACE);
-			auto type = combo.getText();
-			return type != "" && type !in _excludeTypes;
-		});
-		.listener(_skinType, SWT.Modify, { mixin(S_TRACE);
-			if (ignoreMod) return;
-			_type = _skinType.getText();
-		});
-
-		void refSkins() { mixin(S_TRACE);
-			auto arr = .filter!(type => type !in _excludeTypes)(.findSkinTypes(_comm.prop)).array();
-			.setComboItems(_skinType, arr);
-		}
-		refSkins();
-		_comm.refSkin.add(&refSkins);
-		_comm.refSortCondition.add(&refSkins);
-		_comm.refClassicSkin.add(&refSkins);
-		_comm.refSettingsWithSkinTypes.add(&refSkins);
-		.listener(_skinType, SWT.Dispose, { mixin(S_TRACE);
-			_comm.refSkin.remove(&refSkins);
-			_comm.refSortCondition.remove(&refSkins);
-			_comm.refClassicSkin.remove(&refSkins);
-			_comm.refSettingsWithSkinTypes.remove(&refSkins);
-		});
-
-		setIgnoreMod(true, false);
-		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
-		_skinType.setText(_type);
-	}
-
-	@property
-	const
-	string type() { return _type; }
 }

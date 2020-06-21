@@ -51,6 +51,9 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.NewAtNewWindow] = "E";
 		_mnemonic[MenuID.OpenAtNewWindow] = "P";
 		_mnemonic[MenuID.DeleteNotExistsHistory] = "N";
+		_mnemonic[MenuID.SelectIcon] = "S";
+		_mnemonic[MenuID.SelectPresetIcon] = "P";
+		_mnemonic[MenuID.DeleteIcon] = "D";
 		_mnemonic[MenuID.Close] = "X";
 		_mnemonic[MenuID.CloseWin] = "X";
 		_mnemonic[MenuID.Save] = "S";
@@ -92,6 +95,8 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.SelectAll] = "A";
 		_mnemonic[MenuID.CopyAll] = "A";
 		_mnemonic[MenuID.ToXMLText] = "X";
+		_mnemonic[MenuID.AddItem] = "A";
+		_mnemonic[MenuID.DelItem] = "R";
 		_mnemonic[MenuID.TableView] = "D";
 		_mnemonic[MenuID.VarView] = "V";
 		_mnemonic[MenuID.CardView] = "W";
@@ -357,6 +362,8 @@ class MenuProps : Properties {
 		_hotkey[MenuID.Clone] = "";
 		_hotkey[MenuID.SelectAll] = "Ctrl+A";
 		_hotkey[MenuID.CopyAll] = "Ctrl+Shift+C";
+		_hotkey[MenuID.AddItem] = "";
+		_hotkey[MenuID.DelItem] = "";
 		_hotkey[MenuID.ToXMLText] = "";
 		_hotkey[MenuID.TableView] = "";
 		_hotkey[MenuID.VarView] = "";
@@ -561,6 +568,9 @@ class MenuProps : Properties {
 		_hotkey[MenuID.AddToolGroup] = "";
 		_hotkey[MenuID.ResetToolBarSettings] = "";
 		_hotkey[MenuID.DeleteNotExistsHistory] = "";
+		_hotkey[MenuID.SelectIcon] = "";
+		_hotkey[MenuID.SelectPresetIcon] = "";
+		_hotkey[MenuID.DeleteIcon] = "";
 
 		_mnemonic_init = _mnemonic.idup;
 		_hotkey_init = _hotkey.idup;
@@ -765,6 +775,7 @@ bool isPMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.CustomizeToolBar:
 	case MenuID.AddRangeOfRound:
 	case MenuID.AddKeyCodesByFeatures:
+	case MenuID.SelectIcon:
 		return true;
 	default:
 		return false;
@@ -834,6 +845,8 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.SelectAll:
 	case MenuID.CopyAll:
 	case MenuID.ToXMLText:
+	case MenuID.AddItem:
+	case MenuID.DelItem:
 	case MenuID.TableView:
 	case MenuID.VarView:
 	case MenuID.CastView:
@@ -1068,6 +1081,9 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.AddToolGroup:
 	case MenuID.ResetToolBarSettings:
 	case MenuID.PutParty:
+	case MenuID.SelectIcon:
+	case MenuID.SelectPresetIcon:
+	case MenuID.DeleteIcon:
 		return false;
 	}
 }
@@ -1191,6 +1207,8 @@ bool isGlobalMenu(MenuID id) {
 	case MenuID.Clone:
 	case MenuID.SelectAll:
 	case MenuID.CopyAll:
+	case MenuID.AddItem:
+	case MenuID.DelItem:
 	case MenuID.LockToolBar:
 	case MenuID.ResetToolBar:
 	case MenuID.CopyAsText:
@@ -1343,6 +1361,9 @@ bool isGlobalMenu(MenuID id) {
 	case MenuID.AddToolGroup:
 	case MenuID.ResetToolBarSettings:
 	case MenuID.PutParty:
+	case MenuID.SelectIcon:
+	case MenuID.SelectPresetIcon:
+	case MenuID.DeleteIcon:
 		return false;
 	}
 }
@@ -1367,6 +1388,8 @@ bool isLocalMenu(MenuID id) {
 	case MenuID.Clone:
 	case MenuID.SelectAll:
 	case MenuID.CopyAll:
+	case MenuID.AddItem:
+	case MenuID.DelItem:
 	case MenuID.CopyAsText:
 	case MenuID.CreateContent:
 	case MenuID.ConvertContent:
@@ -1389,6 +1412,9 @@ bool isLocalMenu(MenuID id) {
 	case MenuID.ResetValues:
 	case MenuID.ResetValuesAll:
 	case MenuID.PutParty:
+	case MenuID.SelectIcon:
+	case MenuID.SelectPresetIcon:
+	case MenuID.DeleteIcon:
 		return true;
 	default:
 		return false;

@@ -22,6 +22,7 @@ import std.algorithm;
 import std.array;
 import std.range;
 import std.traits;
+import std.typecons;
 
 import org.eclipse.swt.all;
 
@@ -32,7 +33,7 @@ public:
 class KeyCodeByFeatureView : AbstractEditableListView!(KeyCodeByFeature) {
 
 	private Commons _comm;
-	private string delegate() _skinType;
+	private const(string)[] delegate() _standardKeyCodes;
 
 	private TableTextEdit _tfe = null;
 	private TableTextEdit _tke = null;
@@ -40,7 +41,7 @@ class KeyCodeByFeatureView : AbstractEditableListView!(KeyCodeByFeature) {
 	private bool delegate() _catchMod;
 
 	private Control createKeyCodeEditor(TableItem itm, int editC) { mixin(S_TRACE);
-		return .createKeyCodeCombo!Combo(_comm, null, itm.getParent(), _catchMod, itm.getText(1), false, _skinType);
+		return .createKeyCodeCombo!Combo(_comm, null, itm.getParent(), _catchMod, itm.getText(1), false, null, _standardKeyCodes);
 	}
 	private void featureEditEnd(TableItem itm, int column, string newText) { mixin(S_TRACE);
 		auto index = itm.getParent().indexOf(itm);
@@ -108,9 +109,9 @@ class KeyCodeByFeatureView : AbstractEditableListView!(KeyCodeByFeature) {
 		return value.feature != "";
 	}
 
-	this (Commons comm, Composite parent, int style, string delegate() skinType, bool delegate() catchMod) { mixin(S_TRACE);
+	this (Commons comm, Composite parent, int style, const(string)[] delegate() standardKeyCodes, bool delegate() catchMod) { mixin(S_TRACE);
 		_comm = comm;
-		_skinType = skinType;
+		_standardKeyCodes = standardKeyCodes;
 		_catchMod = catchMod;
 
 		super (comm, parent, style, true);
@@ -120,13 +121,16 @@ class KeyCodeByFeatureView : AbstractEditableListView!(KeyCodeByFeature) {
 class KeyCodeByMotionView : AbstractEditableListView!(KeyCodeByMotion) {
 
 	private Commons _comm;
-	private string delegate() _skinType;
+	private const(string)[] delegate() _standardKeyCodes;
+	private const(ElementOverride)[] delegate() _elementOverrides;
 
 	private TableComboEdit!Combo _tme = null;
 	private TableComboEdit!Combo _tee = null;
 	private TableTextEdit _tke = null;
 
 	private bool delegate() _catchMod;
+
+	private Tuple!(Image, "image", string, "path")[Element] _imgTbl;
 
 	private void createMotionEditor(TableItem itm, int column, out string[] strs, out string str, out bool canIncSearch) { mixin(S_TRACE);
 		auto index = itm.getParent().indexOf(itm);
@@ -140,15 +144,24 @@ class KeyCodeByMotionView : AbstractEditableListView!(KeyCodeByMotion) {
 		auto index = itm.getParent().indexOf(itm);
 		strs ~= _comm.prop.msgs.defaultSelection(_comm.prop.msgs.noElement);
 		str = strs[$ - 1];
+		ElementOverride[Element] eTbl;
+		foreach (ref eo; _elementOverrides()) { mixin(S_TRACE);
+			eTbl[eo.element] = eo;
+		}
 		foreach (i, element; EnumMembers!Element) { mixin(S_TRACE);
-			strs ~= _comm.prop.msgs.elementName(element);
+			auto p = element in eTbl;
+			if (p && p.name) { mixin(S_TRACE);
+				strs ~= p.name;
+			} else { mixin(S_TRACE);
+				strs ~= _comm.prop.msgs.elementName(element);
+			}
 			auto val = value(index);
 			if (val.hasElement && val.element is element) str = strs[$ - 1];
 		}
 		canIncSearch = false;
 	}
 	private Control createKeyCodeEditor(TableItem itm, int editC) { mixin(S_TRACE);
-		return .createKeyCodeCombo!Combo(_comm, null, itm.getParent(), _catchMod, itm.getText(2), false, _skinType);
+		return .createKeyCodeCombo!Combo(_comm, null, itm.getParent(), _catchMod, itm.getText(2), false, null, _standardKeyCodes);
 	}
 	private void motionEditEnd(TableItem selItm, int column, Combo combo) { mixin(S_TRACE);
 		auto sel = combo.getSelectionIndex();
@@ -230,9 +243,34 @@ class KeyCodeByMotionView : AbstractEditableListView!(KeyCodeByMotion) {
 	protected void updateItem(in KeyCodeByMotion value, TableItem itm) { mixin(S_TRACE);
 		itm.setImage(0, _comm.prop.images.motion(value.type));
 		itm.setText(0, _comm.prop.msgs.motionName(value.type));
+		ElementOverride[Element] eTbl;
+		foreach (ref eo; _elementOverrides()) { mixin(S_TRACE);
+			eTbl[eo.element] = eo;
+		}
 		if (value.hasElement) { mixin(S_TRACE);
-			itm.setImage(1, _comm.prop.images.element(value.element));
-			itm.setText(1, _comm.prop.msgs.elementName(value.element));
+			auto p = value.element in eTbl;
+			auto imgPath = p ? p.icon : "";
+			auto p2 = value.element in _imgTbl;
+			auto image = _comm.prop.images.element(value.element);
+			if (imgPath != "") { mixin(S_TRACE);
+				if (!p2 || p2.path != imgPath) { mixin(S_TRACE);
+					if (p2) { mixin(S_TRACE);
+						assert (p2.path != "");
+						p2.image.dispose();
+					}
+					image = new Image(getDisplay(), _comm.prop.elementImage(eTbl, value.element));
+					_imgTbl[value.element] = Tuple!(Image, "image", string, "path")(image, imgPath);
+				} else if (p2) { mixin(S_TRACE);
+					image = p2.image;
+				}
+			}
+			itm.setImage(1, image);
+
+			if (p && p.name != "") { mixin(S_TRACE);
+				itm.setText(1, p.name);
+			} else { mixin(S_TRACE);
+				itm.setText(1, _comm.prop.msgs.elementName(value.element));
+			}
 		} else { mixin(S_TRACE);
 			itm.setImage(1, _comm.prop.images.emptyIcon);
 			itm.setText(1, _comm.prop.msgs.defaultSelection(_comm.prop.msgs.noElement));
@@ -241,11 +279,19 @@ class KeyCodeByMotionView : AbstractEditableListView!(KeyCodeByMotion) {
 		itm.setText(2, value.keyCode);
 	}
 
-	this (Commons comm, Composite parent, int style, string delegate() skinType, bool delegate() catchMod) { mixin(S_TRACE);
+	this (Commons comm, Composite parent, int style, const(string)[] delegate() standardKeyCodes, const(ElementOverride)[] delegate() elementOverrides, bool delegate() catchMod) { mixin(S_TRACE);
 		_comm = comm;
-		_skinType = skinType;
+		_standardKeyCodes = standardKeyCodes;
+		_elementOverrides = elementOverrides;
 		_catchMod = catchMod;
 
 		super (comm, parent, style, true);
+
+		.listener(this, SWT.Dispose, { mixin(S_TRACE);
+			foreach (t; _imgTbl.byValue()) { mixin(S_TRACE);
+				t.image.dispose();
+			}
+			_imgTbl = null;
+		});
 	}
 }

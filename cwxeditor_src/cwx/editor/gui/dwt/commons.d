@@ -417,6 +417,7 @@ class Commons {
 	Dlg!() refUpdateMotionBarStyle;
 	Dlg!() refMenuCardAndBgImageList;
 	Dlg!() refKeyCodesByFeatures;
+	Dlg!() refElementOverrides;
 
 	Dlg!() refTableViewStyle;
 	Dlg!(Area) refArea;

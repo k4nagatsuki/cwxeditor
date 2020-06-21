@@ -116,7 +116,7 @@ public:
 			}
 		});
 		{ mixin(S_TRACE);
-			_eview = new typeof(_eview)(comm, prop, summ, eto, contPane, _undo, _readOnly != SWT.NONE);
+			_eview = new typeof(_eview)(comm, prop, summ, null, eto, contPane, _undo, _readOnly != SWT.NONE);
 			_eview.setLayoutData(new GridData(GridData.FILL_BOTH));
 		}
 		appendMenuTCPD(_comm, this, this, true, true, true, true, true);

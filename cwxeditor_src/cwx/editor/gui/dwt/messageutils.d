@@ -79,6 +79,7 @@ class AbstractMessageDialog : EventDialog {
 	private UndoManager _undo;
 
 	private Skin _summSkin;
+	private Skin _forceSkin;
 	@property
 	private Skin summSkin() { mixin(S_TRACE);
 		return _summSkin ? _summSkin : comm.skin;
@@ -339,10 +340,10 @@ class AbstractMessageDialog : EventDialog {
 			}
 		}
 		if (prop.var.etc.floatMessagePreview) { mixin(S_TRACE);
-			_previewWin = new MsgPreviewWindow(getShell(), comm, prop, summ, _uc, _prev, size);
+			_previewWin = new MsgPreviewWindow(getShell(), comm, prop, summ, _forceSkin, _uc, _prev, size);
 		} else { mixin(S_TRACE);
 			assert (rightGroup && !rightGroup.isDisposed());
-			_preview = new MsgPreview(rightGroup, comm, prop, summ, _uc);
+			_preview = new MsgPreview(rightGroup, comm, prop, summ, _forceSkin, _uc);
 			rightGroup.setLayout(zeroGridLayout(1, false));
 			_preview.setLayoutData(new GridData(GridData.FILL_BOTH));
 			setPreviewLData(_prev.getSelection(), false);
@@ -350,10 +351,15 @@ class AbstractMessageDialog : EventDialog {
 		refreshPreview();
 	}
 
-	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, CType type, Content parent, Content evt, DSize size) { mixin(S_TRACE);
+	this (Commons comm, Props prop, Shell shell, Summary summ, Skin forceSkin, UseCounter uc, CType type, Content parent, Content evt, DSize size) { mixin(S_TRACE);
 		super (comm, prop, shell, summ, type, parent, evt, true, size, false, !prop.var.etc.floatMessagePreview);
 		_undo = new UndoManager(prop.var.etc.undoMaxEtc);
-		_summSkin = findSkin(comm, prop, summ);
+		if (forceSkin) { mixin(S_TRACE);
+			_summSkin = forceSkin;
+			_forceSkin = forceSkin;
+		} else if (!summ || summ.scenarioPath == "") { mixin(S_TRACE);
+			_summSkin = findSkin(comm, prop, summ);
+		}
 		_uc = uc;
 	}
 
@@ -1003,9 +1009,9 @@ private:
 		_accels[id] = typeof(_accels[id])(.convertAccelerator(prop.buildMenu(id)), func, enabled);
 	}
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, Content parent, Content evt) { mixin(S_TRACE);
+	this (Commons comm, Props prop, Shell shell, Summary summ, Skin skin, UseCounter uc, Content parent, Content evt) { mixin(S_TRACE);
 		_id = .objectIDValue(this);
-		super(comm, prop, shell, summ, uc, CType.TalkDialog, parent, evt, prop.var.speakDlg);
+		super(comm, prop, shell, summ, skin, uc, CType.TalkDialog, parent, evt, prop.var.speakDlg);
 	}
 
 	override
@@ -1076,7 +1082,7 @@ protected:
 		auto leftSash = new SplitPane(left, SWT.VERTICAL);
 		leftSash.resizeControl1 = true;
 		leftSash.setLayoutData(new GridData(GridData.FILL_BOTH));
-		auto skin = comm.skin;
+		auto skin = summSkin;
 		{ mixin(S_TRACE);
 			auto grp = new Group(leftSash, SWT.NONE);
 			grp.setText(prop.msgs.toneCoupons);
@@ -1165,23 +1171,23 @@ protected:
 			gd.horizontalSpan = 3;
 			msgComp.setLayoutData(gd);
 			msgComp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
-			_text = createMessagePane(comm, prop, true, msgComp, summ);
+			_text = createMessagePane(comm, prop, true, msgComp, summ, &summSkin);
 			mod(_text.widget);
 			_text.widget.setLayoutData(_text.computeTextBaseSize(prop.looks.messageLine));
 			_text.widget.addModifyListener(new ModL);
 		}
 
-		auto sChar = createSCharBar(comm, summ, right, &insert, &put, prop, skin);
+		auto sChar = createSCharBar(comm, summ, right, &insert, &put, prop);
 		auto scgd = new GridData(GridData.FILL_HORIZONTAL);
 		scgd.horizontalSpan = 2;
 		sChar.setLayoutData(scgd);
 
-		auto skinSChar = createSkinSCharBar(comm, right, &insert, () => comm.skin);
+		auto skinSChar = createSkinSCharBar(comm, right, &insert, &summSkin);
 		auto sscgd = new GridData(GridData.FILL_HORIZONTAL);
 		sscgd.horizontalSpan = 2;
 		skinSChar.setLayoutData(sscgd);
 
-		auto var = createFlagStepBar(area, &insert, comm, prop, summ, _uc, skin, true);
+		auto var = createFlagStepBar(area, &insert, comm, prop, summ, _uc, _forceSkin, true);
 		var.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 		auto wBar = createWsnSettingsBar(area);
@@ -1242,7 +1248,7 @@ protected:
 
 		auto menu = _text.widget.getMenu();
 		new MenuItem(menu, SWT.SEPARATOR);
-		.setupSPCharsMenu(comm, summ, _uc, _text.widget, menu, true, true, () => true);
+		.setupSPCharsMenu(comm, summ, &summSkin, _uc, _text.widget, menu, true, true, () => true);
 
 		initPreview(area, prop.var.dlgPrev);
 		updateValue();
@@ -1358,8 +1364,8 @@ private:
 		_text.font = prop.adjustFont(prop.looks.messageFont(summSkin.legacy));
 	}
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, Content parent, Content evt) { mixin(S_TRACE);
-		super (comm, prop, shell, summ, uc, CType.TalkMessage, parent, evt, prop.var.msgDlg);
+	this (Commons comm, Props prop, Shell shell, Summary summ, Skin skin, UseCounter uc, Content parent, Content evt) { mixin(S_TRACE);
+		super (comm, prop, shell, summ, skin, uc, CType.TalkMessage, parent, evt, prop.var.msgDlg);
 	}
 
 	CardImage[] selectedTalkerParam() { mixin(S_TRACE);
@@ -1401,7 +1407,7 @@ protected:
 		auto gdT = new GridData(GridData.FILL_BOTH);
 		gdT.horizontalSpan = 3;
 		_tabf.setLayoutData(gdT);
-		auto skin = comm.skin;
+		auto skin = summSkin;
 		{ mixin(S_TRACE);
 			auto comp = new Composite(_tabf, SWT.NONE);
 			comp.setLayout(normalGridLayout(2, false));
@@ -1417,13 +1423,13 @@ protected:
 			_msgCompA = new Composite(comp, SWT.NONE);
 			_msgCompA.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 			_msgCompA.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
-			_text = createMessagePane(comm, prop, true, _msgCompA, summ);
+			_text = createMessagePane(comm, prop, true, _msgCompA, summ, &summSkin);
 			mod(_text.widget);
 			_text.widget.addModifyListener(new ModText);
 			createTextMenu!Text(comm, prop, _text.widget, &catchMod, _undo);
 			auto menu = _text.widget.getMenu();
 			new MenuItem(menu, SWT.SEPARATOR);
-			.setupSPCharsMenu(comm, summ, _uc, _text.widget, menu, true, true, () => true);
+			.setupSPCharsMenu(comm, summ, &summSkin, _uc, _text.widget, menu, true, true, () => true);
 			auto tab = new CTabItem(_tabf, SWT.NONE);
 			tab.setText(prop.msgs.imageMessage);
 			tab.setControl(comp);
@@ -1436,15 +1442,15 @@ protected:
 			tab.setControl(_msgCompB);
 		}
 
-		auto sChar = createSCharBar(comm, summ, area, &insert, &put, prop, skin);
+		auto sChar = createSCharBar(comm, summ, area, &insert, &put, prop);
 		sChar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-		auto skinSChar = createSkinSCharBar(comm, area, &insert, () => comm.skin);
+		auto skinSChar = createSkinSCharBar(comm, area, &insert, &summSkin);
 		auto gdS = new GridData(GridData.FILL_HORIZONTAL);
 		gdS.horizontalSpan = 3;
 		skinSChar.setLayoutData(gdS);
 
-		auto var = createFlagStepBar(area, &insert, comm, prop, summ, _uc, skin, true);
+		auto var = createFlagStepBar(area, &insert, comm, prop, summ, _uc, _forceSkin, true);
 		auto gdV = new GridData(GridData.FILL_HORIZONTAL);
 		gdV.horizontalSpan = 3;
 		var.setLayoutData(gdV);
@@ -1506,7 +1512,6 @@ private Composite createTalkerPane2(Composite parent, Commons comm, Props prop, 
 	comp.setLayout(zeroMarginGridLayout(2, false));
 	couponCombo = createCouponCombo(comm, summ, uc, comp, null, CouponComboType.Talker, "");
 	auto push = new Button(comp, SWT.PUSH);
-	auto skin = comm.skin;
 	{ mixin(S_TRACE);
 		auto gd = new GridData(GridData.FILL_HORIZONTAL);
 		gd.widthHint = prop.var.etc.talkersWidth;
@@ -1603,15 +1608,18 @@ private Composite createTalkerPane(Composite parent, Commons comm, Props prop, S
 	return comp;
 }
 
-private FixedWidthText!Text createMessagePane(Commons comm, Props prop, bool image, Composite parent, Summary summ) { mixin(S_TRACE);
+private FixedWidthText!Text createMessagePane(Commons comm, Props prop, bool image, Composite parent, Summary summ, Skin delegate() skin) { mixin(S_TRACE);
 	int len = image ? prop.looks.messageImageLen : prop.looks.messageLen;
-	auto r = new FixedWidthText!Text(prop.adjustFont(prop.looks.messageFont(comm.skin.legacy)), len, parent, SWT.BORDER, true);
+	auto r = new FixedWidthText!Text(prop.adjustFont(prop.looks.messageFont(skin().legacy)), len, parent, SWT.BORDER, true);
 	auto d = r.widget.getDisplay();
 	auto normBack = r.widget.getBackground();
 	auto normFore = r.widget.getForeground();
 	auto back = new Color(d, new RGB(prop.var.etc.msgBackR, prop.var.etc.msgBackG, prop.var.etc.msgBackB));
 	auto fore = new Color(d, new RGB(prop.var.etc.msgForeR, prop.var.etc.msgForeG, prop.var.etc.msgForeB));
 
+	void refSkin() { mixin(S_TRACE);
+		r.font = prop.adjustFont(prop.looks.messageFont(skin().legacy));
+	}
 	void updateMsgColor() { mixin(S_TRACE);
 		if (prop.var.etc.useMessageWindowColorInTextContentDialog) { mixin(S_TRACE);
 			r.widget.setBackground(back);
@@ -1623,8 +1631,10 @@ private FixedWidthText!Text createMessagePane(Commons comm, Props prop, bool ima
 	}
 	updateMsgColor();
 
+	comm.refSkin.add(&refSkin);
 	comm.refUseMessageWindowColorInTextContentDialog.add(&updateMsgColor);
 	.listener(r.widget, SWT.Dispose, { mixin(S_TRACE);
+		comm.refSkin.remove(&refSkin);
 		comm.refUseMessageWindowColorInTextContentDialog.remove(&updateMsgColor);
 		back.dispose();
 		fore.dispose();
@@ -1660,7 +1670,7 @@ private class PutColor {
 }
 
 private ToolBar createSCharBar(Commons comm, Summary summ, Composite parent,
-		void delegate(string) insert, void delegate(dchar) putColor, Props prop, Skin skin) { mixin(S_TRACE);
+		void delegate(string) insert, void delegate(dchar) putColor, Props prop) { mixin(S_TRACE);
 	auto bar = new ToolBar(parent, SWT.FLAT);
 	comm.put(bar);
 	bar.addListener(SWT.Traverse, new class Listener {
@@ -1706,7 +1716,7 @@ private ToolBar createSCharBar(Commons comm, Summary summ, Composite parent,
 }
 
 ToolBar createSimpleSCharBar(Composite parent,
-		void delegate(string) insert, Commons comm, Props prop, Summary summ, Skin skin) { mixin(S_TRACE);
+		void delegate(string) insert, Commons comm, Props prop, Summary summ) { mixin(S_TRACE);
 	auto bar = new ToolBar(parent, SWT.FLAT);
 	comm.put(bar);
 	bar.addListener(SWT.Traverse, new class Listener {
@@ -1760,7 +1770,7 @@ private ToolBar createSkinSCharBar(Commons comm, Composite parent, void delegate
 		override void handleEvent(Event e) { e.doit = true; }
 	});
 	void updateBar() { mixin(S_TRACE);
-		updateSkinSCharBar(comm, bar, insert, skin());
+		updateSkinSCharBar(comm, bar, insert, skin);
 		parent.layout();
 	}
 	comm.refSkin.add(&updateBar);
@@ -1773,13 +1783,13 @@ private ToolBar createSkinSCharBar(Commons comm, Composite parent, void delegate
 	updateBar();
 	return bar;
 }
-private void updateSkinSCharBar(Commons comm, ToolBar bar, void delegate(string) insert, Skin skin) { mixin(S_TRACE);
+private void updateSkinSCharBar(Commons comm, ToolBar bar, void delegate(string) insert, Skin delegate() skin) { mixin(S_TRACE);
 	foreach (itm; bar.getItems()) { mixin(S_TRACE);
 		itm.getImage().dispose();
 		itm.dispose();
 	}
-	foreach (spc; std.algorithm.sort(skin.spChars.keys)) { mixin(S_TRACE);
-		auto data = .spChar(skin, comm.prop.drawingScale, spc);
+	foreach (spc; std.algorithm.sort(skin().spChars.keys)) { mixin(S_TRACE);
+		auto data = .spChar(skin(), comm.prop.drawingScale, spc);
 		if (!data.valid) continue;
 		auto img = new Image(Display.getCurrent(), data.scaled(comm.prop.var.etc.imageScale));
 		string name = toUTF8("#"d ~ spc);
@@ -1789,7 +1799,7 @@ private void updateSkinSCharBar(Commons comm, ToolBar bar, void delegate(string)
 }
 
 Composite createFlagStepBar(Composite parent, void delegate(string) insert, Commons comm, Props prop,
-		Summary summ, UseCounter uc, Skin skin, bool imageFont, Button delegate(Composite, Combo, VariableType) createButton = null) { mixin(S_TRACE);
+		Summary summ, UseCounter uc, Skin forceSkin, bool imageFont, Button delegate(Composite, Combo, VariableType) createButton = null) { mixin(S_TRACE);
 	auto bar = new Composite(parent, SWT.NONE);
 	bar.setLayout(zeroMarginGridLayout((imageFont && summ) ? 2 : 1, false));
 	Composite create(Composite parent, out Combo list, out Button put, string puts, Image image, string delegate(string) lc, int colNum, VariableType varType) { mixin(S_TRACE);
@@ -1974,6 +1984,7 @@ Composite createFlagStepBar(Composite parent, void delegate(string) insert, Comm
 		ImageListWindow!(MtType.CARD) imgListWin = null;
 		void refListSPF() { mixin(S_TRACE);
 			if (!summ) return;
+			auto skin = forceSkin ? forceSkin : comm.skin;
 			auto sel = fonts.getText();
 			fonts.removeAll();
 			auto sPath = summ.scenarioPath;
@@ -2061,7 +2072,7 @@ Composite createFlagStepBar(Composite parent, void delegate(string) insert, Comm
 						return;
 					}
 					auto parent = (cast(Control)e.widget).getShell();
-					imgListWin = new ImageListWindow!(MtType.CARD)(prop, comm, summ, parent, (string path) { mixin(S_TRACE);
+					imgListWin = new ImageListWindow!(MtType.CARD)(prop, comm, summ, forceSkin, parent, (string path) { mixin(S_TRACE);
 						auto s = .tryFormat("#%s", .decodeFontPath(path));
 						insert(s);
 					}, b);
@@ -2150,7 +2161,7 @@ class MsgPreviewWindow {
 		}
 	}
 
-	this (Shell parent, Commons comm, Props prop, Summary summ, UseCounter uc, Button toggle, WSize size) { mixin(S_TRACE);
+	this (Shell parent, Commons comm, Props prop, Summary summ, Skin forceSkin, UseCounter uc, Button toggle, WSize size) { mixin(S_TRACE);
 		_comm = comm;
 		_size = size;
 		_toggle = toggle;
@@ -2174,7 +2185,7 @@ class MsgPreviewWindow {
 		});
 		_oldImageScale = comm.prop.var.etc.imageScale;
 
-		_preview = new MsgPreview(_win, comm, prop, summ, uc);
+		_preview = new MsgPreview(_win, comm, prop, summ, forceSkin, uc);
 	}
 
 	private void refImageScale() { mixin(S_TRACE);
@@ -3219,6 +3230,13 @@ void getPreviewSysSteps(in Props prop, in Summary summ, bool expandSharps, out V
 
 class MsgPreview : Composite {
 
+	private Skin _summSkin;
+	private Skin _forceSkin = null;
+	@property
+	private Skin summSkin() { mixin(S_TRACE);
+		return _summSkin ? _summSkin : _comm.skin;
+	}
+
 	private Commons _comm;
 	private Props _prop;
 	private Summary _summ;
@@ -3251,12 +3269,18 @@ class MsgPreview : Composite {
 		}
 	}
 
-	this (Composite parent, Commons comm, Props prop, Summary summ, UseCounter uc) { mixin(S_TRACE);
+	this (Composite parent, Commons comm, Props prop, Summary summ, Skin forceSkin, UseCounter uc) { mixin(S_TRACE);
 		super (parent, SWT.NONE);
 
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
+		if (forceSkin) { mixin(S_TRACE);
+			_summSkin = forceSkin;
+			_forceSkin = forceSkin;
+		} else if (!_summ || _summ.scenarioPath == "") { mixin(S_TRACE);
+			_summSkin = findSkin(_comm, _prop, _summ);
+		}
 
 		this.setLayout(zeroGridLayout(1, true));
 
@@ -3318,7 +3342,7 @@ class MsgPreview : Composite {
 			case CardImageType.File:
 				auto isSkinMaterial = false;
 				auto isEngineMaterial = false;
-				auto path = _comm.skin.findImagePathF(imgPath.path, _summ ? _summ.scenarioPath : "", _summ ? _summ.dataVersion : LATEST_VERSION,
+				auto path = summSkin.findImagePathF(imgPath.path, _summ ? _summ.scenarioPath : "", _summ ? _summ.dataVersion : LATEST_VERSION,
 					isSkinMaterial, isEngineMaterial);
 				auto drawingScale = (isSkinMaterial || isEngineMaterial) ? _prop.drawingScale : _prop.drawingScaleForImage(_summ);
 				tImg ~= .loadImageWithScale(path, drawingScale, true, false);
@@ -3338,7 +3362,7 @@ class MsgPreview : Composite {
 					break;
 				case Talker.Card:
 					auto cRect = _prop.looks.cardSize;
-					auto imgData = .menuCard(_comm.skin, _comm.prop.drawingScale);
+					auto imgData = .menuCard(summSkin, _comm.prop.drawingScale);
 					auto data = imgData.scaled(_comm.prop.drawingScale).scaledTo(_comm.prop.ds(cRect.width), _comm.prop.ds(cRect.height));
 					tImg ~= new ImageDataWithScale(data, _comm.prop.drawingScale);
 					pos ~= CardImagePosition.Default;
@@ -3351,7 +3375,7 @@ class MsgPreview : Composite {
 		string[char] names;
 		VarValue[string] flags, steps, variants, sysSteps;
 		_values.getValues(names, flags, steps, variants, sysSteps);
-		_img = new Image(d, previewMessage(_comm, _prop, _summ, tImg, pos, _message,
+		_img = new Image(d, previewMessage(_comm, _prop, _summ, &summSkin, tImg, pos, _message,
 			[], names, flags, steps, variants, sysSteps, _centerX, _centerY, _boundaryCheck).scaled(_comm.prop.var.etc.imageScale));
 	}
 
@@ -3364,13 +3388,13 @@ class MsgPreview : Composite {
 }
 
 /// メッセージのプレビューを生成する。
-ImageDataWithScale previewMessage(Commons comm, Props prop, in Summary summ, ImageDataWithScale[] talkers,
+ImageDataWithScale previewMessage(Commons comm, Props prop, in Summary summ, Skin delegate() skin, ImageDataWithScale[] talkers,
 		CardImagePosition[] poses, string message, in string[] sel, in string[char] names,
 		in VarValue[string] flags, in VarValue[string] steps, in VarValue[string] variants,
 		in VarValue[string] sysSteps, bool centerX, bool centerY, bool boundaryCheck) { mixin(S_TRACE);
 	auto d = Display.getCurrent();
 	version (Windows) {
-		bool legacy = comm.skin.legacy;
+		bool legacy = skin().legacy;
 	} else { mixin(S_TRACE);
 		bool legacy = false;
 	}
@@ -3450,7 +3474,7 @@ ImageDataWithScale previewMessage(Commons comm, Props prop, in Summary summ, Ima
 			auto c = decodeFontPath(path);
 			if (!isSJIS1ByteChar(c)) return false;
 		}
-		return comm.skin.findImagePath(path, summ ? summ.scenarioPath : "", summ ? summ.dataVersion : LATEST_VERSION).length != 0 || decodeFontPath(path) in comm.skin.spChars;
+		return skin().findImagePath(path, summ ? summ.scenarioPath : "", summ ? summ.dataVersion : LATEST_VERSION).length != 0 || decodeFontPath(path) in skin().spChars;
 	}, rFonts, rColors);
 
 	auto antialias = 2 <= prop.drawingScale;
@@ -3525,7 +3549,7 @@ ImageDataWithScale previewMessage(Commons comm, Props prop, in Summary summ, Ima
 	// フォントイメージ
 	auto wrgb = fc.getRGB();
 	void drawSPFont(CPoint pt, string path, RGB c, lazy Rectangle lDrawRect) { mixin(S_TRACE);
-		string fpath = comm.skin.findImagePath(path, sPath, summ ? summ.dataVersion : LATEST_VERSION);
+		string fpath = skin().findImagePath(path, sPath, summ ? summ.dataVersion : LATEST_VERSION);
 		ImageDataWithScale data = null;
 		if (fpath && fpath.length) { mixin(S_TRACE);
 			// シナリオ内特殊文字
@@ -3533,7 +3557,7 @@ ImageDataWithScale previewMessage(Commons comm, Props prop, in Summary summ, Ima
 		}
 		if (!data) { mixin(S_TRACE);
 			// 標準特殊文字
-			data = .spChar(comm.skin, prop.drawingScale, decodeFontPath(path));
+			data = .spChar(skin(), prop.drawingScale, decodeFontPath(path));
 			if (data) { mixin(S_TRACE);
 				auto spc = data.scaled(prop.drawingScale);
 				auto data2 = new ImageData(spc.width, spc.height, 24, new PaletteData(0xFF << 16, 0xFF << 8, 0xFF << 0));
@@ -3776,7 +3800,7 @@ ImageDataWithScale previewMessage(Commons comm, Props prop, in Summary summ, Ima
 	return new ImageDataWithScale(data, prop.drawingScale);
 }
 
-void setupSPCharsMenu(Commons comm, Summary summ, UseCounter uc, Control ctrl, Menu parentMenu, bool full, bool expandSharps, bool delegate() isExpandSPChars) { mixin(S_TRACE);
+void setupSPCharsMenu(Commons comm, Summary summ, Skin delegate() skin, UseCounter uc, Control ctrl, Menu parentMenu, bool full, bool expandSharps, bool delegate() isExpandSPChars) { mixin(S_TRACE);
 	void delegate() dummy = { };
 	auto mainMI = .createMenuItem(comm, parentMenu, MenuID.PutSPChar, dummy, isExpandSPChars, SWT.CASCADE);
 	auto menu = new Menu(mainMI);
@@ -3927,15 +3951,14 @@ void setupSPCharsMenu(Commons comm, Summary summ, UseCounter uc, Control ctrl, M
 			new MenuItem(menu, SWT.SEPARATOR);
 
 			// スキン付属の特殊文字
-			auto skMI = .createMenuItem(comm, menu, MenuID.PutSkinSPChar, dummy, () => 0 < comm.skin.spChars.length, SWT.CASCADE);
+			auto skMI = .createMenuItem(comm, menu, MenuID.PutSkinSPChar, dummy, () => 0 < skin().spChars.length, SWT.CASCADE);
 			auto skMenu = new Menu(skMI);
 			skMI.setMenu(skMenu);
 			.listener(skMenu, SWT.Show, { mixin(S_TRACE);
 				foreach (mi; skMenu.getItems()) mi.dispose();
-				auto skin = comm.skin;
-				foreach (spc; std.algorithm.sort(skin.spChars.keys)) { mixin(S_TRACE);
+				foreach (spc; std.algorithm.sort(skin().spChars.keys)) { mixin(S_TRACE);
 					void putSkinC(dchar spc) { mixin(S_TRACE);
-						auto data = .spChar(skin, comm.prop.drawingScale, spc);
+						auto data = .spChar(skin(), comm.prop.drawingScale, spc);
 						if (!data.valid) return;
 						auto img = new Image(Display.getCurrent(), data.scaled(.dpiMuls));
 						auto name = toUTF8("#"d ~ spc);
@@ -3959,7 +3982,6 @@ void setupSPCharsMenu(Commons comm, Summary summ, UseCounter uc, Control ctrl, M
 			fontMI.setMenu(fontMenu);
 			.listener(fontMenu, SWT.Show, { mixin(S_TRACE);
 				foreach (mi; fontMenu.getItems()) mi.dispose();
-				auto skin = comm.skin;
 				string[] files;
 				foreach (file; .dirEntries(summ.scenarioPath, "font_?.bmp", SpanMode.shallow)) { mixin(S_TRACE);
 					if (!file.isSPFontFile) continue;
@@ -3967,7 +3989,7 @@ void setupSPCharsMenu(Commons comm, Summary summ, UseCounter uc, Control ctrl, M
 				}
 				foreach (file; std.algorithm.sort!((a, b) => fncmp(a, b) < 0)(files)) { mixin(S_TRACE);
 					void createMI3(string file) { mixin(S_TRACE);
-						auto image = skin.isCardImage(file, false, false) ? comm.prop.images.cards : comm.prop.images.backs;
+						auto image = skin().isCardImage(file, false, false) ? comm.prop.images.cards : comm.prop.images.backs;
 						.createMenuItem2(comm, fontMenu, file.baseName(), image, () => insert("#%s".format(decodeFontPath(file.baseName()))), null);
 					}
 					createMI3(file);
@@ -3977,7 +3999,7 @@ void setupSPCharsMenu(Commons comm, Summary summ, UseCounter uc, Control ctrl, M
 	});
 }
 
-string createSPCharPreview(in Commons comm, in Summary summ, in UseCounter uc, string text, bool expandSharps, VarValue delegate(string path) overrideFlagValue, VarValue delegate(string path) overrideStepValue) { mixin(S_TRACE);
+string createSPCharPreview(in Commons comm, in Summary summ, Skin delegate() skin, in UseCounter uc, string text, bool expandSharps, VarValue delegate(string path) overrideFlagValue, VarValue delegate(string path) overrideStepValue) { mixin(S_TRACE);
 	VarValue fValue(string path) { mixin(S_TRACE);
 		if (overrideFlagValue) { mixin(S_TRACE);
 			auto v = overrideFlagValue(path);
@@ -4009,7 +4031,7 @@ string createSPCharPreview(in Commons comm, in Summary summ, in UseCounter uc, s
 			auto c = .decodeFontPath(path);
 			if (!.isSJIS1ByteChar(c)) return false;
 		}
-		return comm.skin.findImagePath(path, summ.scenarioPath, summ.dataVersion).length != 0 || .decodeFontPath(path) in comm.skin.spChars;
+		return skin().findImagePath(path, summ.scenarioPath, summ.dataVersion).length != 0 || .decodeFontPath(path) in skin().spChars;
 	}
 	string[size_t] rFonts;
 	char[size_t] rColors;

@@ -1690,6 +1690,8 @@ enum MenuID {
 	SelectAll,
 	CopyAll,
 	ToXMLText,
+	AddItem,
+	DelItem,
 	TableView,
 	VarView,
 	CardView,
@@ -1892,6 +1894,9 @@ enum MenuID {
 	AddToolGroup,
 	ResetToolBarSettings,
 	DeleteNotExistsHistory,
+	SelectIcon,
+	SelectPresetIcon,
+	DeleteIcon,
 }
 
 /// 格納カード・イメージのインポートオプション。

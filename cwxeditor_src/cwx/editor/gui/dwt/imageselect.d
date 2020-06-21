@@ -115,12 +115,15 @@ public:
 	/// defs = 画像以外の選択肢。nullの場合は「イメージ無し」になる。
 	this (Composite parent, int style, Commons comm, Props prop, Summary summ,
 			int w, int h, CInsets insets, CardImagePosition defPosType, bool canInclude, string delegate() saveName, void delegate() refresh = null,
-			string[] delegate(bool included) defs = null, bool isMenuCard = false) { mixin(S_TRACE);
+			string[] delegate(bool included) defs = null, bool isMenuCard = false, Skin forceSkin = null) { mixin(S_TRACE);
 		_readOnly = style & SWT.READ_ONLY;
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
-		if (_readOnly || !_summ || _summ.scenarioPath == "") { mixin(S_TRACE);
+		if (forceSkin) { mixin(S_TRACE);
+			_summSkin = forceSkin;
+			_forceSkin = forceSkin;
+		} else if (_readOnly || !_summ || _summ.scenarioPath == "") { mixin(S_TRACE);
 			_summSkin = findSkin(_comm, _prop, _summ);
 		}
 		_refresh = refresh;
@@ -223,7 +226,7 @@ public:
 
 			if (defs) { mixin(S_TRACE);
 				_msel = new MaterialSelect!(Type, Combo, C)
-					(comm, prop, summ, _readOnly != 0, &refreshWithoutImageList, defs, canInclude, isMenuCard, _undo, store);
+					(comm, prop, summ, _forceSkin, _readOnly != 0, &refreshWithoutImageList, defs, canInclude, isMenuCard, _undo, store);
 			} else { mixin(S_TRACE);
 				defs = (included) { mixin(S_TRACE);
 					auto defs = [prop.msgs.defaultSelection(prop.msgs.imageNone)];
@@ -231,7 +234,7 @@ public:
 					return defs;
 				};
 				_msel = new MaterialSelect!(Type, Combo, C)
-					(comm, prop, summ, _readOnly != 0, &refreshWithoutImageList, defs, canInclude, isMenuCard, _undo, store);
+					(comm, prop, summ, _forceSkin, _readOnly != 0, &refreshWithoutImageList, defs, canInclude, isMenuCard, _undo, store);
 				_msel.indexOfBinPath = (included) => included ? 1 : -1;
 				static if (Type == MtType.CARD) {
 					_msel.valueFromDef = (index, included, binPath) { mixin(S_TRACE);
@@ -726,7 +729,7 @@ private:
 					return;
 				}
 				auto parent = (cast(Control) e.widget).getShell();
-				_imgList = new ImageListWindow!Type(_prop, _comm, _summ, parent, (string path) { mixin(S_TRACE);
+				_imgList = new ImageListWindow!Type(_prop, _comm, _summ, _forceSkin, parent, (string path) { mixin(S_TRACE);
 					_msel.path2(path, false, false);
 					static if (!Compact) {
 						_image.redraw();
@@ -1037,6 +1040,7 @@ private:
 		Button _excludeCardSize;
 	}
 	Skin _summSkin = null;
+	Skin _forceSkin = null;
 	UndoManager _undo = null;
 	bool _inUndo = false;
 }

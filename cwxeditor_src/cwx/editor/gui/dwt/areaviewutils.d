@@ -147,7 +147,7 @@ PImg createCastCardImage(PImg)(Commons comm, Skin skin, in Summary summ, in Enem
 	if (card) { mixin(S_TRACE);
 		auto overrideName = "";
 		if (ec.isOverrideName) { mixin(S_TRACE);
-			overrideName = .createSPCharPreview(comm, summ, ec.useCounter, ec.overrideName, false, null, null);
+			overrideName = .createSPCharPreview(comm, summ, () => skin, ec.useCounter, ec.overrideName, false, null, null);
 		}
 		auto cImg = .castCardImage(comm.prop, skin, summ, card, dbgMode, ec.isOverrideName, overrideName, ec.isOverrideImage, ec.overrideImages);
 		r = createCardImageCommon!PImg(comm.prop, summ, cImg, matPad, x, y, scale, smoothing, layer);
@@ -194,13 +194,13 @@ PImg createMenuCardImage(PImg)(Props prop, Skin skin, in Summary summ,
 	return r;
 }
 
-BgImagesView createBgImagesViewAndMenu(Commons comm, Props prop, Summary summ, UseCounter uc, BgImageContainer cont, 
+BgImagesView createBgImagesViewAndMenu(Commons comm, Props prop, Summary summ, Skin skin, UseCounter uc, BgImageContainer cont, 
 		Composite parent, AbstractArea refTarget, bool showInheritBacks, bool readOnly) { mixin(S_TRACE);
 	auto undo = new UndoManager(prop.var.etc.undoMaxEvent);
 	void refUndoMax() { mixin(S_TRACE);
 		undo.max = prop.var.etc.undoMaxEvent;
 	}
-	auto view = new BgImagesView(comm, prop, summ, uc, cont, parent, refTarget, showInheritBacks, undo, readOnly);
+	auto view = new BgImagesView(comm, prop, summ, skin, uc, cont, parent, refTarget, showInheritBacks, undo, readOnly);
 	comm.refUndoMax.add(&refUndoMax);
 	view.addDisposeListener(new class DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
@@ -228,7 +228,7 @@ PileImage createMessageImage(Commons comm, Props prop, in Summary summ) { mixin(
 	string[char] names;
 	VarValue[string] flags, steps, variants, sysSteps;
 	// 特殊文字が無いためシナリオパス不要
-	auto imgData = previewMessage(comm, prop, null, null, null, "", [""], names, flags, steps, variants, sysSteps, false, false, false);
+	auto imgData = previewMessage(comm, prop, null, () => comm.skin, null, null, "", [""], names, flags, steps, variants, sysSteps, false, false, false);
 	auto img = new PileImage(imgData, prop.drawingScale, rect.x, rect.y, imgData.getWidth(NORMAL_SCALE), imgData.getHeight(NORMAL_SCALE), false, true);
 	img.layer = LAYER_MESSAGE * 10 - 1;
 	img.alpha = prop.var.etc.messageAlpha;

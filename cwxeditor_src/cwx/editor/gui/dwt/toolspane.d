@@ -991,10 +991,19 @@ private:
 				_skinType.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 				.createTextMenu!Combo(_comm, _prop, _skinType, _catchMod);
 				_skinType.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-				void refSkins() { mixin(S_TRACE);
+				void refSkinsImpl() { mixin(S_TRACE);
 					.setComboItems(_skinType, .findSkinTypes(_comm.prop));
 				}
-				refSkins();
+				void refSkins() { mixin(S_TRACE);
+					_ignoreMod(true);
+					scope (exit) .asyncExec(getShell().getDisplay(), { mixin(S_TRACE);
+						_ignoreMod(false);
+					});
+					auto t = _skinType.getText();
+					refSkinsImpl();
+					_skinType.setText(t);
+				}
+				refSkinsImpl();
 				_comm.refSkin.add(&refSkins);
 				_comm.refSortCondition.add(&refSkins);
 				_comm.refClassicSkin.add(&refSkins);

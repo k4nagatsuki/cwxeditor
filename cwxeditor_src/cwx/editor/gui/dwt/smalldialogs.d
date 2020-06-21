@@ -746,7 +746,7 @@ private:
 			}
 		}
 
-		foreach (keyword; .keywordInfos(_comm.prop.parent)) { mixin(S_TRACE);
+		foreach (keyword; .keywordInfos(_comm.prop.parent, _comm.prop.elementOverrides(_comm.skin.type))) { mixin(S_TRACE);
 			if (keyword.type == "") { mixin(S_TRACE);
 				strs ~= keyword.name;
 			} else { mixin(S_TRACE);

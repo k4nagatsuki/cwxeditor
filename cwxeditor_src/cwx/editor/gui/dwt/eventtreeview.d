@@ -96,6 +96,7 @@ private:
 	CType _cType = CType.Start;
 
 	Skin _summSkin;
+	Skin _forceSkin = null;
 	@property
 	Skin summSkin() { mixin(S_TRACE);
 		return _summSkin ? _summSkin : _comm.skin;
@@ -111,10 +112,10 @@ private:
 			auto conv = cTypeGroupMenu(_convM, cGrp);
 			foreach (i, cType; cs) { mixin(S_TRACE);
 				string mnemonic;
-				if (i + 1 < 10) {
-					mnemonic = .format("%s", i + 1);
+				if (i < 10) {
+					mnemonic = .format("%s", i);
 				} else {
-					mnemonic = .format("%s", cast(char)('A' + (i + 1 - 10)));
+					mnemonic = .format("%s", cast(char)('A' + (i - 10)));
 				}
 				auto text = MenuProps.buildMenu(_prop.msgs.contentName(cType), mnemonic, "", false);
 				auto img = _prop.images.content(cType);
@@ -186,8 +187,10 @@ private:
 					if (cType in puts) continue;
 
 					auto mnemonic = "";
-					if (i + 1 < 10) { mixin(S_TRACE);
-						mnemonic = .format("%s", i + 1);
+					if (i < 10) {
+						mnemonic = .format("%s", i);
+					} else {
+						mnemonic = .format("%s", cast(char)('A' + (i - 10)));
 					}
 					i++;
 
@@ -1110,7 +1113,7 @@ private:
 	}
 
 	EventDialog createEventDialog(Content evt, Content parent, bool create) { mixin(S_TRACE);
-		return .createEventDialog(_comm, _summ, _et.useCounter, _tree.control.getShell(), evt, parent, create);
+		return .createEventDialog(_comm, _summ, _forceSkin, _et.useCounter, _tree.control.getShell(), evt, parent, create);
 	}
 
 	@property
@@ -1679,7 +1682,7 @@ private:
 		ContentsToolBox.refreshTemplates(_comm, _prop, _summ, _evTemplM, widget.getShell(), () => _et !is null, &pasteScript);
 	}
 public:
-	this (Commons comm, Props prop, Summary summ, CWXPath area, Composite parent, UndoManager undo,
+	this (Commons comm, Props prop, Summary summ, Skin forceSkin, CWXPath area, Composite parent, UndoManager undo,
 			void delegate(size_t[]) forceSel,
 			void delegate() refreshTopStart,
 			Composite contentsBoxArea, bool readOnly) { mixin(S_TRACE);
@@ -1691,7 +1694,10 @@ public:
 		_area = area;
 		_undo = undo;
 		_readOnly = (readOnly || !_summ) ? SWT.READ_ONLY : SWT.NONE;
-		if (_readOnly || !_summ || _summ.scenarioPath == "") { mixin(S_TRACE);
+		if (forceSkin) { mixin(S_TRACE);
+			_summSkin = forceSkin;
+			_forceSkin = forceSkin;
+		} else if (_readOnly || !_summ || _summ.scenarioPath == "") { mixin(S_TRACE);
 			_summSkin = findSkin(_comm, _prop, _summ);
 		}
 		_forceSel = forceSel;
@@ -2563,13 +2569,13 @@ public:
 					auto t = createSelectionCombo(_comm, _tree.control, null, (cast(Content)itm.getData()).name);
 					auto menu = t.getMenu();
 					new MenuItem(menu, SWT.SEPARATOR);
-					.setupSPCharsMenu(_comm, _summ, _et.useCounter, t, menu, false, true, () => true);
+					.setupSPCharsMenu(_comm, _summ, &summSkin, _et.useCounter, t, menu, false, true, () => true);
 					return t;
 				} else { mixin(S_TRACE);
 					auto t = createTextEditor(_comm, _prop, _tree.control, (cast(Content)itm.getData()).name);
 					auto menu = t.getMenu();
 					new MenuItem(menu, SWT.SEPARATOR);
-					.setupSPCharsMenu(_comm, _summ, _et.useCounter, t, menu, false, true, () => true);
+					.setupSPCharsMenu(_comm, _summ, &summSkin, _et.useCounter, t, menu, false, true, () => true);
 					return t;
 				}
 			}

@@ -3260,6 +3260,8 @@ public:
 						case MenuID.DeleteNotExistsHistory: act = &delNotExistsScenario; can = &canDelNotExistsScenario; break;
 						case MenuID.DeleteNotExistsParties: act = &delNotExistsParty; can = &canDelNotExistsParty; break;
 						case MenuID.CopyAll:
+						case MenuID.AddItem:
+						case MenuID.DelItem:
 						case MenuID.Undo:
 						case MenuID.Redo:
 						case MenuID.Cut:
@@ -3464,6 +3466,9 @@ public:
 						case MenuID.AddToolGroup:
 						case MenuID.ResetToolBarSettings:
 						case MenuID.PutParty:
+						case MenuID.SelectIcon:
+						case MenuID.SelectPresetIcon:
+						case MenuID.DeleteIcon:
 							debugln(tool.menu);
 							continue;
 						}

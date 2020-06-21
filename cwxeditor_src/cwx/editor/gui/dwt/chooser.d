@@ -90,11 +90,11 @@ T createCouponCombo(T = Combo)(Commons comm, Summary summ, UseCounter uc, Compos
 
 	if (expandSPChars) { mixin(S_TRACE);
 		new MenuItem(menu, SWT.SEPARATOR);
-		.setupSPCharsMenu(comm, summ, uc, combo, menu, false, true, () => true);
+		.setupSPCharsMenu(comm, summ, () => comm.skin, uc, combo, menu, false, true, () => true);
 
 		void updateToolTip() { mixin(S_TRACE);
 			if (combo && !combo.isDisposed()) { mixin(S_TRACE);
-				auto toolTip = .createSPCharPreview(comm, summ, uc, combo.getText(), true, null, null);
+				auto toolTip = .createSPCharPreview(comm, summ, () => comm.skin, uc, combo.getText(), true, null, null);
 				toolTip = toolTip.replace("&", "&&");
 				if (toolTip != combo.getToolTipText()) { mixin(S_TRACE);
 					combo.setToolTipText(toolTip);
@@ -382,7 +382,9 @@ string[] allCompleteStamps(Commons comm, Summary summ) { mixin(S_TRACE);
 	return cs;
 }
 
-T createKeyCodeCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, string initValue, bool withIgnitionType, string delegate() skinType) { mixin(S_TRACE);
+T createKeyCodeCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, string initValue, bool withIgnitionType, string delegate() skinType, const(string)[] delegate() standardKeyCodes = null) { mixin(S_TRACE);
+	assert (standardKeyCodes || skinType);
+
 	auto combo = new T(parent, SWT.BORDER | SWT.DROP_DOWN);
 	combo.setVisibleItemCount(comm.prop.var.etc.comboVisibleItemCount);
 	combo.setText(initValue);
@@ -394,7 +396,7 @@ T createKeyCodeCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bo
 		combo.removeAll();
 		hasItem = false;
 
-		string[] stdKCs = comm.prop.standardKeyCodes(skinType()).dup;
+		string[] stdKCs = standardKeyCodes ? standardKeyCodes().dup : comm.prop.standardKeyCodes(skinType()).dup;
 
 		auto kcs = summ ? summ.useCounter.keys!KeyCodeId : [];
 		string[] kcs2;
@@ -425,20 +427,22 @@ T createKeyCodeCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bo
 	}
 
 	incSearch.modEvent ~= &refStandardKeyCodes;
-	comm.refSkin.add(&refStandardKeyCodes);
-	comm.refStandardKeyCodes.add(&refStandardKeyCodes);
-	if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
-		comm.refKeyCodes.add(&refStandardKeyCodes);
-		comm.replText.add(&refStandardKeyCodes);
-	}
-	.listener(combo, SWT.Dispose, { mixin(S_TRACE);
-		comm.refSkin.remove(&refStandardKeyCodes);
-		comm.refStandardKeyCodes.remove(&refStandardKeyCodes);
+	if (!standardKeyCodes) { mixin(S_TRACE);
+		comm.refSkin.add(&refStandardKeyCodes);
+		comm.refStandardKeyCodes.add(&refStandardKeyCodes);
 		if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
-			comm.refKeyCodes.remove(&refStandardKeyCodes);
-			comm.replText.remove(&refStandardKeyCodes);
+			comm.refKeyCodes.add(&refStandardKeyCodes);
+			comm.replText.add(&refStandardKeyCodes);
 		}
-	});
+		.listener(combo, SWT.Dispose, { mixin(S_TRACE);
+			comm.refSkin.remove(&refStandardKeyCodes);
+			comm.refStandardKeyCodes.remove(&refStandardKeyCodes);
+			if (summ && summ.scenarioPath != "") { mixin(S_TRACE);
+				comm.refKeyCodes.remove(&refStandardKeyCodes);
+				comm.replText.remove(&refStandardKeyCodes);
+			}
+		});
+	}
 
 	auto menu = new Menu(combo.getShell(), SWT.POP_UP);
 	createMenuItem(comm, menu, MenuID.IncSearch, { mixin(S_TRACE);

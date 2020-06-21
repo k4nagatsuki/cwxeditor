@@ -4409,7 +4409,7 @@ struct CWXScriptKeyword {
 }
 
 /// キーワード情報の一覧を返す。
-CWXScriptKeyword[] keywordInfos(in CProps prop) { mixin(S_TRACE);
+CWXScriptKeyword[] keywordInfos(in CProps prop, in ElementOverride[Element] eTbl) { mixin(S_TRACE);
 	return [
 		// TRUE/FALSE
 		CWXScriptKeyword("true", "", prop.msgs.flagOn),
@@ -4492,13 +4492,13 @@ CWXScriptKeyword[] keywordInfos(in CProps prop) { mixin(S_TRACE);
 		CWXScriptKeyword("max", prop.msgs.calcType, prop.msgs.damageTypeName(DamageType.Max)),
 
 		// 属性
-		CWXScriptKeyword("all", prop.msgs.motionElement, prop.msgs.elementName(Element.All)),
-		CWXScriptKeyword("phy", prop.msgs.motionElement, prop.msgs.elementName(Element.Health)),
-		CWXScriptKeyword("mind", prop.msgs.motionElement, prop.msgs.elementName(Element.Mind)),
-		CWXScriptKeyword("holy", prop.msgs.motionElement, prop.msgs.elementName(Element.Miracle)),
-		CWXScriptKeyword("magic", prop.msgs.motionElement, prop.msgs.elementName(Element.Magic)),
-		CWXScriptKeyword("fire", prop.msgs.motionElement, prop.msgs.elementName(Element.Fire)),
-		CWXScriptKeyword("ice", prop.msgs.motionElement, prop.msgs.elementName(Element.Ice)),
+		CWXScriptKeyword("all", prop.msgs.motionElement, Element.All in eTbl && eTbl[Element.All].name != "" ? eTbl[Element.All].name : prop.msgs.elementName(Element.All)),
+		CWXScriptKeyword("phy", prop.msgs.motionElement, Element.Health in eTbl && eTbl[Element.Health].name != "" ? eTbl[Element.Health].name : prop.msgs.elementName(Element.Health)),
+		CWXScriptKeyword("mind", prop.msgs.motionElement, Element.Mind in eTbl && eTbl[Element.Mind].name != "" ? eTbl[Element.Mind].name : prop.msgs.elementName(Element.Mind)),
+		CWXScriptKeyword("holy", prop.msgs.motionElement, Element.Miracle in eTbl && eTbl[Element.Miracle].name != "" ? eTbl[Element.Miracle].name : prop.msgs.elementName(Element.Miracle)),
+		CWXScriptKeyword("magic", prop.msgs.motionElement, Element.Magic in eTbl && eTbl[Element.Magic].name != "" ? eTbl[Element.Magic].name : prop.msgs.elementName(Element.Magic)),
+		CWXScriptKeyword("fire", prop.msgs.motionElement, Element.Fire in eTbl && eTbl[Element.Fire].name != "" ? eTbl[Element.Fire].name : prop.msgs.elementName(Element.Fire)),
+		CWXScriptKeyword("ice", prop.msgs.motionElement, Element.Ice in eTbl && eTbl[Element.Ice].name != "" ? eTbl[Element.Ice].name : prop.msgs.elementName(Element.Ice)),
 
 		// 視覚効果
 		CWXScriptKeyword("none", prop.msgs.effectVisual, prop.msgs.cardVisualName(CardVisual.None)),

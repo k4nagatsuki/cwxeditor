@@ -8,6 +8,7 @@ import cwx.flag;
 import cwx.menu;
 import cwx.msgutils;
 import cwx.path;
+import cwx.skin;
 import cwx.summary;
 import cwx.types;
 import cwx.usecounter;
@@ -16,9 +17,9 @@ import cwx.warning;
 
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.chooser;
+import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.customtext;
-import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dutils;
@@ -48,6 +49,7 @@ import java.lang.all;
 class ExpressionEventDialog : EventDialog {
 private:
 	ExpressionEditor _expr;
+	Skin _forceSkin;
 	UseCounter _uc;
 
 	override
@@ -74,8 +76,9 @@ private:
 	}
 
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, Content parent, CType cType, Content evt) { mixin(S_TRACE);
+	this (Commons comm, Props prop, Shell shell, Summary summ, Skin forceSkin, UseCounter uc, Content parent, CType cType, Content evt) { mixin(S_TRACE);
 		super (comm, prop, shell, summ, cType, parent, evt, true, prop.var.expressionDlg, true);
+		_forceSkin = forceSkin;
 		_uc = uc;
 	}
 
@@ -101,7 +104,7 @@ protected:
 			cl.fillVertical = true;
 			grp.setLayout(cl);
 
-			_expr = new ExpressionEditor(comm, summ, _uc, grp, SWT.NONE);
+			_expr = new ExpressionEditor(comm, summ, _forceSkin, _uc, grp, SWT.NONE);
 			mod(_expr);
 			_expr.modEvent ~= &refreshWarning;
 			_expr.modReturnValueEvent ~= &refreshWarning;
@@ -131,6 +134,7 @@ protected:
 class SetVariantDialog : EventDialog {
 private:
 	ExpressionEditor _expr;
+	Skin _forceSkin;
 	UseCounter _uc;
 
 	Button[VariableType] _varTypes;
@@ -270,9 +274,10 @@ private:
 	}
 
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, Content parent, Content evt) { mixin(S_TRACE);
+	this (Commons comm, Props prop, Shell shell, Summary summ, Skin forceSkin, UseCounter uc, Content parent, Content evt) { mixin(S_TRACE);
 		super (comm, prop, shell, summ, CType.SetVariant, parent, evt, true, prop.var.expressionWithTargetDlg, true);
 		_uc = uc;
+		_forceSkin = forceSkin;
 	}
 
 	override
@@ -296,7 +301,7 @@ protected:
 			auto gl = normalGridLayout(1, true);
 			grpT.setLayout(gl);
 
-			_expr = new ExpressionEditor(comm, summ, _uc, grpT, SWT.NONE);
+			_expr = new ExpressionEditor(comm, summ, _forceSkin, _uc, grpT, SWT.NONE);
 			mod(_expr);
 			_expr.modEvent ~= &refreshWarning;
 			_expr.modReturnValueEvent ~= &refreshWarning;
@@ -463,7 +468,7 @@ class ExpressionEditor : Composite {
 	private Menu _stepMenu;
 	private Menu _variantMenu;
 
-	this (Commons comm, Summary summ, UseCounter uc, Composite parent, int style) { mixin(S_TRACE);
+	this (Commons comm, Summary summ, Skin forceSkin, UseCounter uc, Composite parent, int style) { mixin(S_TRACE);
 		super (parent, style);
 		_comm = comm;
 		_summ = summ;
@@ -497,7 +502,7 @@ class ExpressionEditor : Composite {
 		_variantMenu = new Menu(getShell(), SWT.NONE);
 
 		auto funcDefs = .functionDefinitions(_comm.prop.parent);
-		auto var = .createFlagStepBar(varComp, null, _comm, _comm.prop, _summ, _uc, null, false, (comp, combo, varType) { mixin(S_TRACE);
+		auto var = .createFlagStepBar(varComp, null, _comm, _comm.prop, _summ, _uc, forceSkin, false, (comp, combo, varType) { mixin(S_TRACE);
 			auto b = new Button(comp, SWT.TOGGLE);
 			immutable(FuncDef)[] funcs;
 			Menu menu = null;
