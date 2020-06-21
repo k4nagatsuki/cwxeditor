@@ -380,7 +380,7 @@ class ElementOverrideView : Composite {
 			_comm.refUndoMax.remove(&refUndoMax);
 		});
 
-		_elements = .rangeSelectableTable(this, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.VIRTUAL);
+		_elements = .rangeSelectableTable(this, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.VIRTUAL | SWT.DOUBLE_BUFFERED);
 		_elements.setLayoutData(new GridData(GridData.FILL_BOTH));
 
 		_elements.setHeaderVisible(true);
@@ -432,7 +432,8 @@ class ElementOverrideView : Composite {
 			}
 			itm.setText(1, targetType);
 		});
-		.listener(_elements, SWT.EraseItem, (e) { mixin(S_TRACE);
+		// BUG: 64-bitビルドで描画がおかしくなる
+/+		.listener(_elements, SWT.EraseItem, (e) { mixin(S_TRACE);
 			auto itm = cast(TableItem)e.item;
 			e.detail &= ~SWT.FOREGROUND;
 		});
@@ -473,6 +474,32 @@ class ElementOverrideView : Composite {
 				s = .cutText(s, e.gc, w);
 				auto h = e.gc.wTextExtent("#").y;
 				e.gc.drawText(s, x, e.y + (e.height - h) / 2, true);
+			}
+		});
++/		.listener(_elements, SWT.Paint, (e) { mixin(S_TRACE);
+			auto ca = _elements.getClientArea();
+			foreach (i; _elements.getTopIndex() .. _elements.getItemCount()) { mixin(S_TRACE);
+				auto itm = _elements.getItem(i);
+				if (itm.isDisposed()) continue;
+				auto b = itm.getBounds();
+				if (ca.y + ca.height <= b.y) break;
+
+				auto eo = _list[i];
+				auto image = itm.getImage(0);
+				auto ib = itm.getImageBounds(0);
+				e.gc.setAlpha(128);
+				if (image) { mixin(S_TRACE);
+					if (eo.icon == "") { mixin(S_TRACE);
+						e.gc.fillRectangle(ib);
+					}
+				}
+				auto w1 = _elements.getColumn(0).getWidth();
+				if (eo.name == "") { mixin(S_TRACE);
+					e.gc.fillRectangle(b.x, b.y, w1 - ib.width, ib.height);
+				}
+				if (eo.targetType == "") { mixin(S_TRACE);
+					e.gc.fillRectangle(b.x + w1 - ib.width, b.y, _elements.getColumn(1).getWidth(), ib.height);
+				}
 			}
 		});
 		.listener(_elements, SWT.Dispose, (e) { mixin(S_TRACE);
