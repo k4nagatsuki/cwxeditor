@@ -222,13 +222,13 @@ class FlexEtcProps : Properties {
 	auto functionArgumentTypeColumn = Prop!(int, false, true)("functionArgumentTypeColumn", 80);
 	auto functionArgumentValueColumn = Prop!(int, false, true)("functionArgumentValueColumn", 120);
 	auto expressionCheckingDelay = Prop!(uint, true)("expressionCheckingDelay", 500);
-	auto keyCodesByFeaturesFeatureColumn = Prop!(int, false, true)("keyCodesByFeaturesFeatureColumn", 100);
-	auto keyCodesByFeaturesKeyCodeColumn = Prop!(int, false, true)("keyCodesByFeaturesKeyCodeColumn", 100);
-	auto keyCodesByMotionsMotionColumn = Prop!(int, false, true)("keyCodesByMotionsMotionColumn", 90);
+	auto keyCodesByFeaturesFeatureColumn = Prop!(int, false, true)("keyCodesByFeaturesFeatureColumn", 95);
+	auto keyCodesByFeaturesKeyCodeColumn = Prop!(int, false, true)("keyCodesByFeaturesKeyCodeColumn", 90);
+	auto keyCodesByMotionsMotionColumn = Prop!(int, false, true)("keyCodesByMotionsMotionColumn", 85);
 	auto keyCodesByMotionsElementColumn = Prop!(int, false, true)("keyCodesByMotionsElementColumn", 85);
-	auto keyCodesByMotionsKeyCodeColumn = Prop!(int, false, true)("keyCodesByMotionsKeyCodeColumn", 100);
-	auto elementOverrideNameColumn = Prop!(int, false, true)("elementOverrideNameColumn", 60);
-	auto elementOverrideTargetTypeColumn = Prop!(int, false, true)("elementOverrideTargetTypeColumn", 100);
+	auto keyCodesByMotionsKeyCodeColumn = Prop!(int, false, true)("keyCodesByMotionsKeyCodeColumn", 90);
+	auto elementOverrideNameColumn = Prop!(int, false, true)("elementOverrideNameColumn", 50);
+	auto elementOverrideTargetTypeColumn = Prop!(int, false, true)("elementOverrideTargetTypeColumn", 110);
 	auto keyCodesElementSashL = Prop!(int)("keyCodesElementSashL", 3);
 	auto keyCodesElementSashR = Prop!(int)("keyCodesElementSashR", 2);
 
@@ -384,8 +384,8 @@ class FlexEtcProps : Properties {
 	auto bgImageSettingsKeyCodesSashR = Prop!(int)("bgImageSettingsKeyCodesSashR", 2);
 	auto keyCodesByFeaturesKeyCodesByMotionSashL = Prop!(int)("keyCodesByFeaturesKeyCodesByMotionSashL", 3);
 	auto keyCodesByFeaturesKeyCodesByMotionSashR = Prop!(int)("keyCodesByFeaturesKeyCodesByMotionSashR", 4);
-	auto bgImageSelectionSashL = Prop!(int)("bgImageSelectionSashL", 4);
-	auto bgImageSelectionSashR = Prop!(int)("bgImageSelectionSashR", 1);
+	auto bgImageSelectionSashL = Prop!(int)("bgImageSelectionSashL", 8);
+	auto bgImageSelectionSashR = Prop!(int)("bgImageSelectionSashR", 3);
 	auto outerToolsSashL = Prop!(int)("outerToolsSashL", 1);
 	auto outerToolsSashR = Prop!(int)("outerToolsSashR", 2);
 	auto outerToolShortcutSashL = Prop!(int)("outerToolShortcutSashL", 1, 2014103100);
@@ -774,7 +774,7 @@ class FlexEtcProps : Properties {
 		"Cancel",
 	]);
 
-	auto settingsWithSkinTypes = Prop!(SettingsWithSkinType[])("settingsWithSkinTypes", [
+	auto settingsWithSkinTypes = Prop!(SettingsWithSkinTypeList)("settingsWithSkinTypes", SettingsWithSkinTypeList([
 		SettingsWithSkinType("Modern", false, false, true, [ ], [ ], [ ], [
 			"攻撃",
 			"治療",
@@ -987,6 +987,105 @@ class FlexEtcProps : Properties {
 			ElementOverride(Element.Fire, "presetimage://elm_hearing.png", "音", ""),
 			ElementOverride(Element.Ice, "presetimage://elm_vision.png", "視覚", ""),
 		]),
+		SettingsWithSkinType("Oedo", true, true, true, [
+			BgImageS("MapOfWirth", 0, 0, 632, 420, false),
+		], [
+			BgImageSetting("万長屋", 116, 15, 400, 260, false, LAYER_BACK_CELL),
+			BgImageSetting("万長屋(フレーム)", 116, 14, 400, 261, true, LAYER_BACK_CELL),
+			BgImageSetting("フル", 0, 0, 632, 420, false, LAYER_BACK_CELL),
+			BgImageSetting("フル(マスク)", 0, 0, 632, 420, true, LAYER_BACK_CELL),
+			BgImageSetting("カード", 0, 0, 74, 94, true, LAYER_BACK_CELL),
+			BgImageSetting("仕事人カード", 0, 0, 95, 130, false, LAYER_BACK_CELL),
+			BgImageSetting("ゲームオーバー", 116, 55, 400, 260, false, LAYER_BACK_CELL),
+			BgImageSetting("Qubes 地面", 160, 80, 320, 160, true, LAYER_BACK_CELL),
+			BgImageSetting("Qubes 左後", 80, 0, 240, 160, true, LAYER_BACK_CELL),
+			BgImageSetting("Qubes 右後", 320, 0, 240, 160, true, LAYER_BACK_CELL),
+			BgImageSetting("Qubes 左前", 80, 80, 240, 200, true, LAYER_BACK_CELL),
+			BgImageSetting("Qubes 右前", 320, 80, 240, 200, true, LAYER_BACK_CELL)
+		], [
+			"是",
+			"認",
+			"否",
+			"きゃんせる",
+			"はい",
+			"いいえ",
+			"取り消し",
+		], [
+			"攻撃",
+			"撹乱",
+			"防御",
+			"治療",
+			"魔法",
+			"召喚獣",
+			"気功法",
+			"遠距離攻撃",
+			"神聖な攻撃",
+			"魔法による攻撃",
+			"炎による攻撃",
+			"冷気による攻撃",
+			"暗殺",
+			"対象消去",
+			"精神を回復",
+			"中毒を解除",
+			"麻痺を解除",
+			"眠り",
+			"麻痺",
+			"中毒",
+			"呪縛",
+			"沈黙",
+			"召喚",
+			"鑑定",
+			"解錠",
+			"呪縛を解除",
+			"沈黙を解除",
+			"魔法を解除",
+			"明かり",
+			"",
+			"フェイント",
+			"逃走",
+			"カード交換",
+			"ペナルティ",
+			"リサイクル",
+			"",
+			"一撃",
+			"守備",
+		], [
+			KeyCodeByFeature("魔法である", "魔法"),
+			KeyCodeByFeature("気功法である", "気功法"),
+			KeyCodeByFeature("遠距離攻撃である", "遠距離攻撃"),
+			KeyCodeByFeature("不意打ちである", "暗殺"),
+			KeyCodeByFeature("防御を行う", "防御"),
+			KeyCodeByFeature("召喚獣である", "召喚獣"),
+			KeyCodeByFeature("観察・鑑定を行う", "鑑定"),
+			KeyCodeByFeature("解錠を行う", "解錠"),
+			KeyCodeByFeature("魔法を解く", "魔法を解除"),
+			KeyCodeByFeature("光源になる", "明かり"),
+		], [
+			KeyCodeByMotion(MType.Damage, false, Element.All, "攻撃"),
+			KeyCodeByMotion(MType.Absorb, false, Element.All, "攻撃"),
+			KeyCodeByMotion(MType.Confuse, false, Element.All, "撹乱"),
+			KeyCodeByMotion(MType.Heal, false, Element.All, "治療"),
+			KeyCodeByMotion(MType.VanishTarget, true, Element.Miracle, "神聖な攻撃"),
+			KeyCodeByMotion(MType.Damage, true, Element.Miracle, "魔法による攻撃"),
+			KeyCodeByMotion(MType.Absorb, true, Element.Miracle, "魔法による攻撃"),
+			KeyCodeByMotion(MType.Damage, true, Element.Magic, "魔法による攻撃"),
+			KeyCodeByMotion(MType.Absorb, true, Element.Magic, "魔法による攻撃"),
+			KeyCodeByMotion(MType.Damage, true, Element.Fire, "炎による攻撃"),
+			KeyCodeByMotion(MType.Absorb, true, Element.Fire, "炎による攻撃"),
+			KeyCodeByMotion(MType.Damage, true, Element.Ice, "冷気による攻撃"),
+			KeyCodeByMotion(MType.Absorb, true, Element.Ice, "冷気による攻撃"),
+			KeyCodeByMotion(MType.Normal, false, Element.All, "精神を回復"),
+			KeyCodeByMotion(MType.DisPoison, false, Element.All, "中毒を解除"),
+			KeyCodeByMotion(MType.DisParalyze, false, Element.All, "麻痺を解除"),
+			KeyCodeByMotion(MType.Sleep, false, Element.All, "眠り"),
+			KeyCodeByMotion(MType.Paralyze, false, Element.All, "麻痺"),
+			KeyCodeByMotion(MType.Poison, false, Element.All, "中毒"),
+			KeyCodeByMotion(MType.Bind, false, Element.All, "呪縛"),
+			KeyCodeByMotion(MType.Silence, false, Element.All, "沈黙"),
+			KeyCodeByMotion(MType.DisBind, false, Element.All, "呪縛を解除"),
+			KeyCodeByMotion(MType.DisSilence, false, Element.All, "沈黙を解除"),
+			KeyCodeByMotion(MType.VanishTarget, false, Element.All, "対象消去"),
+		]),
 		SettingsWithSkinType("School", false, false, true, [ ], [ ], [ ], [
 			"攻撃",
 			"撹乱",
@@ -1189,108 +1288,9 @@ class FlexEtcProps : Properties {
 			KeyCodeByMotion(MType.FaceUp, true, Element.Miracle, "システム解析"),
 			KeyCodeByMotion(MType.VanishTarget, false, Element.All, "対象消去"),
 		], [
-			ElementOverride(Element.Miracle, "presetimage://elm_electronic.png", "電子", "電子的な存在"),
+			ElementOverride(Element.Miracle, "presetimage://elm_electronic.png", "電子", "電子制御された存在"),
 		]),
-		SettingsWithSkinType("Oedo", true, true, true, [
-			BgImageS("MapOfWirth", 0, 0, 632, 420, false),
-		], [
-			BgImageSetting("万長屋", 116, 15, 400, 260, false, LAYER_BACK_CELL),
-			BgImageSetting("万長屋(フレーム)", 116, 14, 400, 261, true, LAYER_BACK_CELL),
-			BgImageSetting("フル", 0, 0, 632, 420, false, LAYER_BACK_CELL),
-			BgImageSetting("フル(マスク)", 0, 0, 632, 420, true, LAYER_BACK_CELL),
-			BgImageSetting("カード", 0, 0, 74, 94, true, LAYER_BACK_CELL),
-			BgImageSetting("仕事人カード", 0, 0, 95, 130, false, LAYER_BACK_CELL),
-			BgImageSetting("ゲームオーバー", 116, 55, 400, 260, false, LAYER_BACK_CELL),
-			BgImageSetting("Qubes 地面", 160, 80, 320, 160, true, LAYER_BACK_CELL),
-			BgImageSetting("Qubes 左後", 80, 0, 240, 160, true, LAYER_BACK_CELL),
-			BgImageSetting("Qubes 右後", 320, 0, 240, 160, true, LAYER_BACK_CELL),
-			BgImageSetting("Qubes 左前", 80, 80, 240, 200, true, LAYER_BACK_CELL),
-			BgImageSetting("Qubes 右前", 320, 80, 240, 200, true, LAYER_BACK_CELL)
-		], [
-			"是",
-			"認",
-			"否",
-			"きゃんせる",
-			"はい",
-			"いいえ",
-			"取り消し",
-		], [
-			"攻撃",
-			"撹乱",
-			"防御",
-			"治療",
-			"魔法",
-			"召喚獣",
-			"気功法",
-			"遠距離攻撃",
-			"神聖な攻撃",
-			"魔法による攻撃",
-			"炎による攻撃",
-			"冷気による攻撃",
-			"暗殺",
-			"対象消去",
-			"精神を回復",
-			"中毒を解除",
-			"麻痺を解除",
-			"眠り",
-			"麻痺",
-			"中毒",
-			"呪縛",
-			"沈黙",
-			"召喚",
-			"鑑定",
-			"解錠",
-			"呪縛を解除",
-			"沈黙を解除",
-			"魔法を解除",
-			"明かり",
-			"",
-			"フェイント",
-			"逃走",
-			"カード交換",
-			"ペナルティ",
-			"リサイクル",
-			"",
-			"一撃",
-			"守備",
-		], [
-			KeyCodeByFeature("魔法である", "魔法"),
-			KeyCodeByFeature("気功法である", "気功法"),
-			KeyCodeByFeature("遠距離攻撃である", "遠距離攻撃"),
-			KeyCodeByFeature("不意打ちである", "暗殺"),
-			KeyCodeByFeature("防御を行う", "防御"),
-			KeyCodeByFeature("召喚獣である", "召喚獣"),
-			KeyCodeByFeature("観察・鑑定を行う", "鑑定"),
-			KeyCodeByFeature("解錠を行う", "解錠"),
-			KeyCodeByFeature("魔法を解く", "魔法を解除"),
-			KeyCodeByFeature("光源になる", "明かり"),
-		], [
-			KeyCodeByMotion(MType.Damage, false, Element.All, "攻撃"),
-			KeyCodeByMotion(MType.Absorb, false, Element.All, "攻撃"),
-			KeyCodeByMotion(MType.Confuse, false, Element.All, "撹乱"),
-			KeyCodeByMotion(MType.Heal, false, Element.All, "治療"),
-			KeyCodeByMotion(MType.VanishTarget, true, Element.Miracle, "神聖な攻撃"),
-			KeyCodeByMotion(MType.Damage, true, Element.Miracle, "魔法による攻撃"),
-			KeyCodeByMotion(MType.Absorb, true, Element.Miracle, "魔法による攻撃"),
-			KeyCodeByMotion(MType.Damage, true, Element.Magic, "魔法による攻撃"),
-			KeyCodeByMotion(MType.Absorb, true, Element.Magic, "魔法による攻撃"),
-			KeyCodeByMotion(MType.Damage, true, Element.Fire, "炎による攻撃"),
-			KeyCodeByMotion(MType.Absorb, true, Element.Fire, "炎による攻撃"),
-			KeyCodeByMotion(MType.Damage, true, Element.Ice, "冷気による攻撃"),
-			KeyCodeByMotion(MType.Absorb, true, Element.Ice, "冷気による攻撃"),
-			KeyCodeByMotion(MType.Normal, false, Element.All, "精神を回復"),
-			KeyCodeByMotion(MType.DisPoison, false, Element.All, "中毒を解除"),
-			KeyCodeByMotion(MType.DisParalyze, false, Element.All, "麻痺を解除"),
-			KeyCodeByMotion(MType.Sleep, false, Element.All, "眠り"),
-			KeyCodeByMotion(MType.Paralyze, false, Element.All, "麻痺"),
-			KeyCodeByMotion(MType.Poison, false, Element.All, "中毒"),
-			KeyCodeByMotion(MType.Bind, false, Element.All, "呪縛"),
-			KeyCodeByMotion(MType.Silence, false, Element.All, "沈黙"),
-			KeyCodeByMotion(MType.DisBind, false, Element.All, "呪縛を解除"),
-			KeyCodeByMotion(MType.DisSilence, false, Element.All, "沈黙を解除"),
-			KeyCodeByMotion(MType.VanishTarget, false, Element.All, "対象消去"),
-		]),
-	]);
+	]));
 
 	version (Windows) {
 		auto outerTools = Prop!(OuterTool[])("outerTools", [

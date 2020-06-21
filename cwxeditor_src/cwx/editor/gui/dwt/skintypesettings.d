@@ -130,8 +130,8 @@ class SkinTypeChooser : Composite {
 				assert (selected != -1);
 				auto selected = this.selected;
 				_settingsWithSkinTypes = std.algorithm.remove(_settingsWithSkinTypes, selected);
-				_type.remove(selected);
-				_type.select(.min(selected, _type.getItemCount() - 1));
+				_type.remove(selected + 1);
+				_type.select(.min(selected + 1, _type.getItemCount() - 1));
 				_lastSelected = _type.getSelectionIndex();
 				raiseSelectEvent();
 			}

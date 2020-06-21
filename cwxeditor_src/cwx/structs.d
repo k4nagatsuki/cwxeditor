@@ -1587,113 +1587,179 @@ struct SettingsWithSkinType {
 	ElementOverride[] elementOverrides; /// 属性の上書き。
 
 	const
-	void toNode(ref XNode e, string name = XML_NAME) { mixin(S_TRACE);
+	void toNode(ref XNode e, in SettingsWithSkinType initValue, string name = XML_NAME) { mixin(S_TRACE);
 		auto r = e.newElement(name);
 		r.newAttr("type", type);
 		r.newAttr("bgImage", overrideBgImages ? "override" : "default");
 		r.newAttr("selection", overrideSelections ? "override" : "default");
 		r.newAttr("keyCode", overrideKeyCodes ? "override" : "default");
-		{ mixin(S_TRACE);
+		if (initValue.type == "" || initValue.bgImagesDefault != bgImagesDefault) { mixin(S_TRACE);
 			auto ce = r.newElement("bgImagesDefault");
 			foreach (ref s; bgImagesDefault) { mixin(S_TRACE);
 				s.toNode(ce);
 			}
 		}
-		if (bgImageSettings.length) { mixin(S_TRACE);
+		if (initValue.type == "" || initValue.bgImageSettings != bgImageSettings) { mixin(S_TRACE);
 			auto ce = r.newElement("bgImageSettings");
 			foreach (ref s; bgImageSettings) { mixin(S_TRACE);
 				s.toNode(ce);
 			}
 		}
-		if (standardSelections.length) { mixin(S_TRACE);
+		if (initValue.type == "" || initValue.standardSelections != standardSelections) { mixin(S_TRACE);
 			auto ce = r.newElement("standardSelections");
 			foreach (ref s; standardSelections) { mixin(S_TRACE);
 				ce.newElement("value", s);
 			}
 		}
-		if (standardKeyCodes.length) { mixin(S_TRACE);
+		if (initValue.type == "" || initValue.standardKeyCodes != standardKeyCodes) { mixin(S_TRACE);
 			auto ce = r.newElement("standardKeyCodes");
 			foreach (ref s; standardKeyCodes) { mixin(S_TRACE);
 				ce.newElement("value", s);
 			}
 		}
-		if (keyCodesByFeatures.length) { mixin(S_TRACE);
+		if (initValue.type == "" || initValue.keyCodesByFeatures != keyCodesByFeatures) { mixin(S_TRACE);
 			auto ce = r.newElement("keyCodesByFeatures");
 			foreach (ref s; keyCodesByFeatures) { mixin(S_TRACE);
 				s.toNode(ce);
 			}
 		}
-		if (keyCodesByMotions.length) { mixin(S_TRACE);
+		if (initValue.type == "" || initValue.keyCodesByMotions != keyCodesByMotions) { mixin(S_TRACE);
 			auto ce = r.newElement("keyCodesByMotions");
 			foreach (ref s; keyCodesByMotions) { mixin(S_TRACE);
 				s.toNode(ce);
 			}
 		}
-		if (elementOverrides.length) { mixin(S_TRACE);
+		if (initValue.type == "" || initValue.elementOverrides != elementOverrides) { mixin(S_TRACE);
 			auto ce = r.newElement("elementOverrides");
 			foreach (ref s; elementOverrides) { mixin(S_TRACE);
 				s.toNode(ce);
 			}
 		}
 	}
-	void fromNode(ref XNode node) { mixin(S_TRACE);
+	void fromNode(ref XNode node, in SettingsWithSkinType initValue) { mixin(S_TRACE);
 		type = node.attr("type", true);
 		overrideBgImages = node.attr("bgImage", false, "default") == "override";
 		overrideSelections = node.attr("selection", false, "default") == "override";
 		overrideKeyCodes = node.attr("keyCode", false, "default") == "override";
-		bgImagesDefault = [];
+		bgImagesDefault = initValue.bgImagesDefault.dup;
 		node.onTag["bgImagesDefault"] = (ref XNode node) { mixin(S_TRACE);
+			bgImagesDefault = [];
 			node.onTag[BgImageS.XML_NAME] = (ref XNode node) { mixin(S_TRACE);
 				bgImagesDefault.length++;
 				bgImagesDefault[$ - 1].fromNode(node);
 			};
 			node.parse();
 		};
-		bgImageSettings = [];
+		bgImageSettings = initValue.bgImageSettings.dup;
 		node.onTag["bgImageSettings"] = (ref XNode node) { mixin(S_TRACE);
+			bgImageSettings = [];
 			node.onTag[BgImageSetting.XML_NAME] = (ref XNode node) { mixin(S_TRACE);
 				bgImageSettings.length++;
 				bgImageSettings[$ - 1].fromNode(node);
 			};
 			node.parse();
 		};
-		standardSelections = [];
+		standardSelections = initValue.standardSelections.dup;
 		node.onTag["standardSelections"] = (ref XNode node) { mixin(S_TRACE);
+			standardSelections = [];
 			node.onTag["value"] = (ref XNode node) { mixin(S_TRACE);
 				standardSelections ~= node.value;
 			};
 			node.parse();
 		};
-		standardKeyCodes = [];
+		standardKeyCodes = initValue.standardKeyCodes.dup;
 		node.onTag["standardKeyCodes"] = (ref XNode node) { mixin(S_TRACE);
+			standardKeyCodes = [];
 			node.onTag["value"] = (ref XNode node) { mixin(S_TRACE);
 				standardKeyCodes ~= node.value;
 			};
 			node.parse();
 		};
-		keyCodesByFeatures = [];
+		keyCodesByFeatures = initValue.keyCodesByFeatures.dup;
 		node.onTag["keyCodesByFeatures"] = (ref XNode node) { mixin(S_TRACE);
+			keyCodesByFeatures = [];
 			node.onTag[KeyCodeByFeature.XML_NAME] = (ref XNode node) { mixin(S_TRACE);
 				keyCodesByFeatures.length++;
 				keyCodesByFeatures[$ - 1].fromNode(node);
 			};
 			node.parse();
 		};
-		keyCodesByMotions = [];
+		keyCodesByMotions = initValue.keyCodesByMotions.dup;
 		node.onTag["keyCodesByMotions"] = (ref XNode node) { mixin(S_TRACE);
+			keyCodesByMotions = [];
 			node.onTag[KeyCodeByMotion.XML_NAME] = (ref XNode node) { mixin(S_TRACE);
 				keyCodesByMotions.length++;
 				keyCodesByMotions[$ - 1].fromNode(node);
 			};
 			node.parse();
 		};
-		elementOverrides = [];
+		elementOverrides = initValue.elementOverrides.dup;
 		node.onTag["elementOverrides"] = (ref XNode node) { mixin(S_TRACE);
+			elementOverrides = [];
 			node.onTag[ElementOverride.XML_NAME] = (ref XNode node) { mixin(S_TRACE);
 				elementOverrides.length++;
 				elementOverrides[$ - 1].fromNode(node);
 			};
 			node.parse();
+		};
+		node.parse();
+	}
+}
+
+/// SettingsWithSkinTypeの配列。
+/// スキンタイプごとに初期値INITとの差分のみを保存・読込する。
+struct SettingsWithSkinTypeList {
+	enum XML_NAME = "settingsWithSkinTypes";
+
+	SettingsWithSkinType[] values;
+	private const(SettingsWithSkinType)[] initValues;
+
+	alias values this;
+
+	this (SettingsWithSkinType[] values) {
+		this (values, true);
+	}
+	private this (SettingsWithSkinType[] values, bool init) {
+		this.values = values;
+		if (init) this.initValues = values.dup;
+	}
+
+	const
+	void toNode(ref XNode e, string name = XML_NAME) { mixin(S_TRACE);
+		const(SettingsWithSkinType)*[string] initTbl;
+		foreach (ref st; initValues) { mixin(S_TRACE);
+			assert (st.type !in initTbl);
+			initTbl[st.type] = &st;
+		}
+
+		auto node = e.newElement(name);
+		foreach (ref st; values) { mixin(S_TRACE);
+			auto p = st.type in initTbl;
+			if (p) { mixin(S_TRACE);
+				assert (*p);
+				st.toNode(node, **p);
+			} else { mixin(S_TRACE);
+				st.toNode(node, SettingsWithSkinType.init);
+			}
+		}
+	}
+	void fromNode(ref XNode node) { mixin(S_TRACE);
+		const(SettingsWithSkinType)*[string] initTbl;
+		foreach (ref st; initValues) { mixin(S_TRACE);
+			assert (st.type !in initTbl);
+			initTbl[st.type] = &st;
+		}
+
+		values = [];
+		node.onTag[SettingsWithSkinType.XML_NAME] = (ref XNode node) { mixin(S_TRACE);
+			values.length++;
+			auto p = node.attr("type", true) in initTbl;
+			if (p) { mixin(S_TRACE);
+				assert (*p);
+				values[$ - 1].fromNode(node, **p);
+			} else { mixin(S_TRACE);
+				values[$ - 1].fromNode(node, SettingsWithSkinType.init);
+			}
 		};
 		node.parse();
 	}

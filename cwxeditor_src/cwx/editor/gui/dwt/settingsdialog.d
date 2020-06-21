@@ -994,16 +994,16 @@ private:
 		if (_defBgImgDlg) _defBgImgDlg.forceCancel();
 		if (_skinType.selected == -1) { mixin(S_TRACE);
 			_bgStgs.array = _bgImageSettings;
-			_selections.setText(_standardSelections.join("\n") ~ "\n");
-			_keyCodes.setText(_standardKeyCodes.join("\n") ~ "\n");
+			_selections.setText(_standardSelections.join("\n").lastRet());
+			_keyCodes.setText(_standardKeyCodes.join("\n").lastRet());
 			_keyCodesByFeaturesView.values = _keyCodesByFeatures;
 			_keyCodesByMotionsView.values = _keyCodesByMotions;
 			_elementOverrides.elementOverrides = [];
 			_elementOverrides.enabled = false;
 		} else { mixin(S_TRACE);
 			_bgStgs.array = _skinType.settingsWithSkinTypes[_skinType.selected].bgImageSettings;
-			_selections.setText(_skinType.settingsWithSkinTypes[_skinType.selected].standardSelections.join("\n") ~ "\n");
-			_keyCodes.setText(_skinType.settingsWithSkinTypes[_skinType.selected].standardKeyCodes.join("\n") ~ "\n");
+			_selections.setText(_skinType.settingsWithSkinTypes[_skinType.selected].standardSelections.join("\n").lastRet());
+			_keyCodes.setText(_skinType.settingsWithSkinTypes[_skinType.selected].standardKeyCodes.join("\n").lastRet());
 			_keyCodesByFeaturesView.values = _skinType.settingsWithSkinTypes[_skinType.selected].keyCodesByFeatures;
 			_keyCodesByMotionsView.values = _skinType.settingsWithSkinTypes[_skinType.selected].keyCodesByMotions;
 			_elementOverrides.elementOverrides = _skinType.settingsWithSkinTypes[_skinType.selected].elementOverrides;
@@ -1817,7 +1817,7 @@ protected:
 		_prop.var.etc.standardKeyCodes = _standardKeyCodes.dup;
 		_prop.var.etc.keyCodesByFeatures = _keyCodesByFeatures.dup;
 		_prop.var.etc.keyCodesByMotions = _keyCodesByMotions.dup;
-		_prop.var.etc.settingsWithSkinTypes = _skinType.settingsWithSkinTypes.dup;
+		_prop.var.etc.settingsWithSkinTypes.values = _skinType.settingsWithSkinTypes.dup;
 
 		_prop.var.etc.flagInitValue = _flagInitValue.getSelectionIndex() == 0;
 		_prop.var.etc.stepInitValue = _stepInitValue.getSelectionIndex();
