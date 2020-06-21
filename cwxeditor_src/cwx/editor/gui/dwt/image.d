@@ -146,9 +146,6 @@ public:
 	@property Image toolBar() { return imgd!("tool_bar.png"); }
 	@property Image toolGroup() { return imgd!("tool_group.png"); }
 
-	@property Image addItem() { return imgd!("add_item.png"); }
-	@property Image delItem() { return imgd!("del_item.png"); }
-
 	@property Image text() { return imgd!("text.png"); }
 
 	@property Image classicEngine() { return imgd!("classic_engine.png"); }
@@ -424,6 +421,9 @@ public:
 			return imgd!("elm_ice.png");
 		}
 	}
+	Image elementHearing() { return imgd!("elm_hearing.png"); }
+	Image elementVision() { return imgd!("elm_vision.png"); }
+	Image elementElectronic() { return imgd!("elm_electronic.png"); }
 
 	Image talker(Talker t) { mixin(S_TRACE);
 		final switch (t) {
@@ -593,6 +593,8 @@ public:
 		case MenuID.SelectAll: return imgd!("select_all.png");
 		case MenuID.CopyAll: return imgd!("copy_all.png");
 		case MenuID.ToXMLText: return imgd!("toxml.png");
+		case MenuID.AddItem: return imgd!("add_item.png");
+		case MenuID.DelItem: return imgd!("del_item.png");
 		case MenuID.TableView: return imgd!("data_win.png");
 		case MenuID.VarView: return imgd!("flag_win.png");
 		case MenuID.CardView: return imgd!("card_win.png");
@@ -795,6 +797,9 @@ public:
 		case MenuID.AddToolGroup: return imgd!("add_group.png");
 		case MenuID.ResetToolBarSettings: return imgd!("reset_all.png");
 		case MenuID.DeleteNotExistsHistory: return imgd!("del_not_exists_sc.png");
+		case MenuID.SelectIcon: return imgd!("select_icon.png");
+		case MenuID.SelectPresetIcon: return imgd!("select_preset_icon.png");
+		case MenuID.DeleteIcon: return imgd!("delete_icon.png");
 		}
 	}
 

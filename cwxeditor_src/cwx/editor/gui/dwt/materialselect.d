@@ -67,13 +67,15 @@ class MaterialSelect(MtType Type, D, C) {
 	/// 格納リソースを示すdirsのindexを返す。
 	int delegate(bool included) indexOfBinPath = null;
 
-	this (Commons comm, Props prop, Summary summ, bool readOnly, void delegate() refresh, string[] delegate(bool included) defs, bool canInclude = false, bool isMenuCard = false,
+	this (Commons comm, Props prop, Summary summ, Skin skin, bool readOnly, void delegate() refresh, string[] delegate(bool included) defs, bool canInclude = false, bool isMenuCard = false,
 			UndoManager undo = null, void delegate() store = null) { mixin(S_TRACE);
 		_readOnly = readOnly ? SWT.READ_ONLY : SWT.NONE;
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
-		if (_readOnly || !_summ || _summ.scenarioPath == "") { mixin(S_TRACE);
+		if (skin) { mixin(S_TRACE);
+			_summSkin = skin;
+		} else if (_readOnly || !_summ || _summ.scenarioPath == "") { mixin(S_TRACE);
 			_summSkin = findSkin(_comm, _prop, _summ);
 		}
 		_refresh = refresh;
@@ -215,7 +217,7 @@ class MaterialSelect(MtType Type, D, C) {
 		}
 		ptrdiff_t skinPos, enginePosFrom, enginePosTo;
 		auto dirs = allDirs(skinPos, enginePosFrom, enginePosTo);
-		_fileList.setEnabled(_enabled && !_readOnly && _summ);
+		_fileList.setEnabled(_enabled && !_readOnly);
 		_fileList.addSelectionListener(new LSListener);
 		static if (is(C == Table)) {
 			static if (Type == MtType.BGM || Type == MtType.SE) {
@@ -1802,7 +1804,7 @@ private:
 		}
 		ptrdiff_t skinPos, enginePosFrom, enginePosTo;
 		auto dirs = allDirs(skinPos, enginePosFrom, enginePosTo);
-		_fileList.setEnabled(_enabled && !_readOnly && _summ);
+		_fileList.setEnabled(_enabled && !_readOnly);
 		_loading = false;
 		foreach (dlg; loadedEvent) dlg();
 		_tempPath = "";
@@ -1849,7 +1851,7 @@ private:
 		if (_dirs.getSelectionIndex() < defs.length) { mixin(S_TRACE);
 			ptrdiff_t skinPos, enginePosFrom, enginePosTo;
 			auto dirs = allDirs(skinPos, enginePosFrom, enginePosTo);
-			_fileList.setEnabled(_enabled && !_readOnly && _summ);
+			_fileList.setEnabled(_enabled && !_readOnly);
 			if (!dirs.length) { mixin(S_TRACE);
 				_loading = false;
 				foreach (dlg; loadedEvent) dlg();
@@ -2096,7 +2098,7 @@ private:
 						_dirs.setEnabled(_enabled && !_readOnly);
 						ptrdiff_t skinPos, enginePosFrom, enginePosTo;
 						auto dirs = allDirs(skinPos, enginePosFrom, enginePosTo);
-						_fileList.setEnabled(_enabled && !_readOnly && _summ);
+						_fileList.setEnabled(_enabled && !_readOnly);
 					}
 				});
 			} else { mixin(S_TRACE);

@@ -78,9 +78,6 @@ class Msgs : Properties {
 
 	auto filterAll = Msg("filterAll", "全てのファイル (*.*)");
 
-	auto addItem = Msg("addItem", "追加");
-	auto delItem = Msg("delItem", "削除");
-
 	auto fileCopyError = Msg("fileCopyError", "%1$sのコピー中にエラーが発生しました。");
 	auto reloadError = Msg("reloadError", "%1$sの再読込中にエラーが発生しました。");
 	auto loadProgress = Msg("loadProgress", "%2$s%% 完了 - %1$sを展開中");
@@ -1884,16 +1881,15 @@ class Msgs : Properties {
 	auto elementNameMagic = Msg("elementNameMagic", "魔力");
 	auto elementNameFire = Msg("elementNameFire", "炎");
 	auto elementNameIce = Msg("elementNameIce", "冷気");
-	const string elementDesc(Element id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(typeof(id), "elementDesc"));
-	}
-	auto elementDescAll = Msg("elementDescAll", "全ての存在に有効");
-	auto elementDescHealth = Msg("elementDescHealth", "肉体を持つ存在に有効");
-	auto elementDescMind = Msg("elementDescMind", "精神を持つ存在に有効");
-	auto elementDescMiracle = Msg("elementDescMiracle", "不浄な存在に有効");
-	auto elementDescMagic = Msg("elementDescMagic", "魔法的な存在に有効");
-	auto elementDescFire = Msg("elementDescFire", "炎が無効でない存在に有効");
-	auto elementDescIce = Msg("elementDescIce", "冷気が無効でない存在に有効");
+
+	auto elementNameHearing = Msg("elementNameHearing", "音");
+	auto elementNameVision = Msg("elementNameVision", "視覚");
+	auto elementNameElectronic = Msg("elementNameElectronic", "電子");
+
+	auto elementEffectiveAll = Msg("elementEffectiveAll", "全ての存在に有効");
+	auto elementNoEffective = Msg("elementNoEffective", "%1$s存在には無効");
+	auto elementEffective = Msg("elementEffective", "%1$sに有効");
+	auto elementWeaknessOrResist = Msg("elementWeaknessOrResist", "対象によって弱点または無効");
 
 	auto sexUnknown = Msg("sexUnknown", "謎/？");
 	auto periodUnknown = Msg("periodUnknown", "不明");
@@ -2089,10 +2085,7 @@ class Msgs : Properties {
 	auto weaknessText = Msg("weaknessText", "%1$sに弱い");
 	auto descResistWeapon = Msg("descResistWeapon", "(物理属性のカードが無効)");
 	auto descResistMagic = Msg("descResistMagic", "(魔法属性のカードが無効)");
-	auto descUndead = Msg("descUndead", "(肉体属性の効果が無効)");
-	auto descAutomaton = Msg("descAutomaton", "(精神属性の効果が無効)");
-	auto descUnholy = Msg("descUnholy", "(神聖属性の効果に影響)");
-	auto descConstructure = Msg("descConstructure", "(魔力属性の効果に影響)");
+	auto descEffective = Msg("descEffective", "(%1$s属性の効果が有効)");
 	auto descResist = Msg("descResist", "(%1$s属性の効果が無効)");
 	auto descWeakness = Msg("descWeakness", "(%1$s属性の効果に影響)");
 	auto basicResist = Msg("basicResist", "標準値");
@@ -2508,7 +2501,7 @@ class Msgs : Properties {
 	auto hotkey = Msg("hotkey", "ショートカット");
 
 	auto wallpaper = Msg("wallpaper", "エディタの壁紙");
-	auto filterWallpaper = Msg("filterWallpaper", "画像ファイル (*.bmp;*.jpg;*.jpeg;*.png;*.tif;*.tiff;*.ico;*.icon)");
+	auto filterImage = Msg("filterImage", "画像ファイル (*.bmp;*.jpg;*.jpeg;*.png;*.tif;*.tiff;*.ico;*.icon)");
 	auto dlgTitWallpaper = Msg("dlgTitWallpaper", "壁紙画像の選択");
 	auto wallpaperStyle = Msg("wallpaperStyle", "表示形式");
 	const string wallpaperStyleName(WallpaperStyle id) { mixin(S_TRACE);
@@ -2526,6 +2519,12 @@ class Msgs : Properties {
 	auto cardFeature = Msg("cardFeature", "カードの特徴");
 	auto keyCodesByMotions = Msg("keyCodesByMotions", "効果とキーコードの対応");
 	auto noElement = Msg("noElement", "指定無し");
+	auto elementOverrides = Msg("elementOverrides", "効果属性の上書き");
+	auto elementOverrideName = Msg("elementOverrideName", "属性名");
+	auto elementOverrideTargetType = Msg("elementOverrideTargetType", "対属性");
+	auto elementAllTargetType = Msg("elementAllTargetType", "(対属性無し)");
+	auto elementWeaknessAndResistTargetType = Msg("elementWeaknessAndResistTargetType", "(弱点または無効)");
+	auto selectElementIcon = Msg("selectElementIcon", "効果属性のアイコンを選択");
 
 	auto errorEnginePath = Msg("errorEnginePath", "%1$sの場所が正しくありません。");
 	auto errorTempPath = Msg("errorTempPath", "一時展開先が正しくありません。");
@@ -2946,6 +2945,8 @@ class Msgs : Properties {
 	auto menuTextSelectAll = Msg("menuTextSelectAll", "全て選択");
 	auto menuTextCopyAll = Msg("menuTextCopyAll", "全てコピー");
 	auto menuTextToXMLText = Msg("menuTextToXMLText", "コピーしたデータをXMLに変換");
+	auto menuTextAddItem = Msg("menuTextAddItem", "追加");
+	auto menuTextDelItem = Msg("menuTextDelItem", "削除");
 	auto menuTextTableView = Msg("menuTextTableView", "テーブルビュー");
 	auto menuTextVarView = Msg("menuTextVarView", "状態変数ビュー");
 	auto menuTextCardView = Msg("menuTextCardView", "カードビュー");
@@ -3148,6 +3149,9 @@ class Msgs : Properties {
 	auto menuTextAddToolGroup = Msg("menuTextAddToolGroup", "グループの追加");
 	auto menuTextResetToolBarSettings = Msg("menuTextResetToolBarSettings", "初期設定に戻す");
 	auto menuTextDeleteNotExistsHistory = Msg("menuTextDeleteNotExistsHistory", "存在しないシナリオを履歴から削除");
+	auto menuTextSelectIcon = Msg("menuTextSelectIcon", "アイコンを選択");
+	auto menuTextSelectPresetIcon = Msg("menuTextSelectPresetIcon", "既成のアイコンから選択");
+	auto menuTextDeleteIcon = Msg("menuTextDeleteIcon", "アイコンの削除");
 
 	auto execEngineWithLastParty = Msg("execEngineWithLastParty", "前回のパーティで開始\n(%1$s > %2$s > %3$s)");
 	auto execEngineWithParty = Msg("execEngineWithParty", "%1$s > %2$s > %3$s");

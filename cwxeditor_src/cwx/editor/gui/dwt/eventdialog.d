@@ -878,6 +878,13 @@ protected:
 /// クーポン関連イベントの設定を行うダイアログ。
 class CouponEventDialog(CType Type, bool EditValue, bool Field) : EventDialog {
 private:
+	Skin _summSkin;
+	Skin _forceSkin = null;
+	@property
+	Skin summSkin() { mixin(S_TRACE);
+		return _summSkin ? _summSkin : _comm.skin;
+	}
+
 	UseCounter _uc;
 	RangePanel _range;
 	Button[CouponType] _type;
@@ -997,7 +1004,7 @@ private:
 	string createToolTip(string text) { mixin(S_TRACE);
 		auto toolTip = "";
 		if (_expandSPChars && _expandSPChars.getSelection()) { mixin(S_TRACE);
-			toolTip = .createSPCharPreview(_comm, _summ, _uc, text, true, null, null);
+			toolTip = .createSPCharPreview(_comm, _summ, &summSkin, _uc, text, true, null, null);
 			toolTip = toolTip.replace("&", "&&");
 		}
 		return toolTip;
@@ -1076,7 +1083,7 @@ private:
 				_nameEditor = name;
 				auto menu = name.getMenu();
 				new MenuItem(menu, SWT.SEPARATOR);
-				.setupSPCharsMenu(_comm, _summ, _uc, name, menu, false, true, () => _expandSPChars.getSelection());
+				.setupSPCharsMenu(_comm, _summ, &summSkin, _uc, name, menu, false, true, () => _expandSPChars.getSelection());
 				.listener(name, SWT.Modify, &updateToolTip);
 			};
 			if (_couponView.mainNameEditor) { mixin(S_TRACE);
@@ -1104,7 +1111,7 @@ private:
 
 					auto menu = _name.getMenu();
 					new MenuItem(menu, SWT.SEPARATOR);
-					.setupSPCharsMenu(_comm, _summ, _uc, _name, menu, false, true, () => _expandSPChars.getSelection());
+					.setupSPCharsMenu(_comm, _summ, &summSkin, _uc, _name, menu, false, true, () => _expandSPChars.getSelection());
 					.listener(_name, SWT.Modify, &updateToolTip);
 				}
 				foreach (coType; [CouponType.Normal, CouponType.Hide, CouponType.Dur, CouponType.DurBattle, CouponType.System]) { mixin(S_TRACE);
@@ -1153,7 +1160,13 @@ private:
 		}
 	}
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, Content parent, Content evt) { mixin(S_TRACE);
+	this (Commons comm, Props prop, Shell shell, Summary summ, Skin forceSkin, UseCounter uc, Content parent, Content evt) { mixin(S_TRACE);
+		if (forceSkin) { mixin(S_TRACE);
+			_summSkin = forceSkin;
+			_forceSkin = forceSkin;
+		} else if (!summ || summ.scenarioPath == "") { mixin(S_TRACE);
+			_summSkin = findSkin(comm, prop, summ);
+		}
 		_uc = uc;
 		DSize dSize;
 		if (!(summ && summ.legacy) && Type is CType.BranchCoupon) { mixin(S_TRACE);
@@ -1166,7 +1179,6 @@ public:
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
 		area.setLayout(normalGridLayout(2, false));
-		auto skin = _comm.skin;
 
 		static immutable HAS_COUPON_HOLDER = Type is CType.GetCoupon || Type is CType.LoseCoupon;
 
@@ -1397,6 +1409,13 @@ private string[] textWarnings2(Commons comm, in Summary summ, in UseCounter uc, 
 /// 一つのテキストの設定を行うダイアログ。
 private class OneTextEventDialog(CType Type, string Name, string Get, string Set, string EngineVersion = "") : EventDialog {
 private:
+	Skin _summSkin;
+	Skin _forceSkin = null;
+	@property
+	Skin summSkin() { mixin(S_TRACE);
+		return _summSkin ? _summSkin : _comm.skin;
+	}
+
 	Combo _name;
 	UseCounter _uc;
 	Button _expandSPChars = null;
@@ -1442,14 +1461,20 @@ private:
 	string createToolTip(string text) { mixin(S_TRACE);
 		auto toolTip = "";
 		if (_expandSPChars && _expandSPChars.getSelection()) { mixin(S_TRACE);
-			toolTip = .createSPCharPreview(_comm, _summ, _uc, text, true, null, null);
+			toolTip = .createSPCharPreview(_comm, _summ, &summSkin, _uc, text, true, null, null);
 			toolTip = toolTip.replace("&", "&&");
 		}
 		return toolTip;
 	}
 
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, Content parent, Content evt) { mixin(S_TRACE);
+	this (Commons comm, Props prop, Shell shell, Summary summ, Skin forceSkin, UseCounter uc, Content parent, Content evt) { mixin(S_TRACE);
+		if (forceSkin) { mixin(S_TRACE);
+			_summSkin = forceSkin;
+			_forceSkin = forceSkin;
+		} else if (!summ || summ.scenarioPath == "") { mixin(S_TRACE);
+			_summSkin = findSkin(comm, prop, summ);
+		}
 		_uc = uc;
 		if (CDetail.fromType(Type).use(CArg.Gossip)) { mixin(S_TRACE);
 			super (comm, prop, shell, summ, Type, parent, evt, true, prop.var.gossipEvtDlg, true);
@@ -1487,7 +1512,7 @@ protected:
 			if (CDetail.fromType(Type).use(CArg.Gossip)) { mixin(S_TRACE);
 				auto menu = _name.getMenu();
 				new MenuItem(menu, SWT.SEPARATOR);
-				.setupSPCharsMenu(_comm, _summ, _uc, _name, menu, false, true, () => _expandSPChars.getSelection());
+				.setupSPCharsMenu(_comm, _summ, &summSkin, _uc, _name, menu, false, true, () => _expandSPChars.getSelection());
 
 				_expandSPChars = new Button(comp, SWT.CHECK);
 				mod(_expandSPChars);
@@ -1558,6 +1583,13 @@ template EndEventDialog(CType Type) {
 /// 背景変更・置換イベントの設定を行うダイアログ。
 class BgImagesDialog : EventDialog {
 private:
+	Skin _summSkin;
+	Skin _forceSkin = null;
+	@property
+	Skin summSkin() { mixin(S_TRACE);
+		return _summSkin ? _summSkin : _comm.skin;
+	}
+
 	UseCounter _uc;
 	AbstractArea _refTarget;
 
@@ -1608,7 +1640,13 @@ private:
 	}
 
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, Content parent, Content evt, AbstractArea refTarget, CType type) { mixin(S_TRACE);
+	this (Commons comm, Props prop, Shell shell, Summary summ, Skin forceSkin, UseCounter uc, Content parent, Content evt, AbstractArea refTarget, CType type) { mixin(S_TRACE);
+		if (forceSkin) { mixin(S_TRACE);
+			_summSkin = forceSkin;
+			_forceSkin = forceSkin;
+		} else if (!summ || summ.scenarioPath == "") { mixin(S_TRACE);
+			_summSkin = findSkin(comm, prop, summ);
+		}
 		_uc = uc;
 		_refTarget = refTarget;
 		super (comm, prop, shell, summ, type, parent, evt, true, prop.var.bgImagesDlg, false);
@@ -1629,10 +1667,9 @@ public:
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
 		area.setLayout(normalGridLayout(1, false));
-		auto skin = _comm.skin;
 		{ mixin(S_TRACE);
 			auto showInheritBacks = type !is CType.ReplaceBgImage && _prop.var.etc.showInheritBackground;
-			_view = createBgImagesViewAndMenu(_comm, _prop, _summ, _uc, _cont, area, _refTarget, showInheritBacks, false);
+			_view = createBgImagesViewAndMenu(_comm, _prop, _summ, null, _uc, _cont, area, _refTarget, showInheritBacks, false);
 			mod(_view);
 			_view.setLayoutData(new GridData(GridData.FILL_BOTH));
 			_view.modEvent ~= &refreshWarning;
@@ -1817,7 +1854,7 @@ protected:
 		{ mixin(S_TRACE);
 			auto skin = _comm.skin;
 			_msel = new MaterialSelect!(MtType.BGM, Combo, Table)
-				(_comm, _prop, _summ, false, null, included => [_prop.msgs.defaultSelection(_prop.msgs.bgmStop)]);
+				(_comm, _prop, _summ, null, false, null, included => [_prop.msgs.defaultSelection(_prop.msgs.bgmStop)]);
 			_msel.createDirsCombo(comp).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			mod(_msel);
 			_msel.modEvent ~= &refreshWarning;
@@ -1888,7 +1925,7 @@ protected:
 		{ mixin(S_TRACE);
 			auto skin = _comm.skin;
 			_msel = new MaterialSelect!(MtType.SE, Combo, Table)
-				(_comm, _prop, _summ, false, null, included => [_prop.msgs.defaultSelection(_prop.msgs.noSelect)]);
+				(_comm, _prop, _summ, null, false, null, included => [_prop.msgs.defaultSelection(_prop.msgs.noSelect)]);
 			_msel.createDirsCombo(comp).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			mod(_msel);
 			_msel.modEvent ~= &refreshWarning;
@@ -3401,7 +3438,7 @@ private:
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
 		auto range = this.range;
-		if (range !is Range.SelectedCard && _selectedID == 0) { mixin(S_TRACE);
+		if (range !is Range.SelectedCard && _selectedID == 0 && summ) { mixin(S_TRACE);
 			static if (is(C:SkillCard)) {
 				ws ~= prop.msgs.searchErrorNoSkill;
 			} else static if (is(C:ItemCard)) {

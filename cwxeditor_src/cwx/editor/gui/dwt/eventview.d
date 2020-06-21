@@ -72,6 +72,7 @@ private:
 	UndoManager _undo;
 
 	Skin _summSkin;
+	Skin _forceSkin;
 	@property
 	Skin summSkin() { mixin(S_TRACE);
 		return _summSkin ? _summSkin : _comm.skin;
@@ -136,12 +137,12 @@ private:
 		if (auto card = cast(MenuCard)spCard) {
 			auto name = card.name;
 			if (card.expandSPChars) { mixin(S_TRACE);
-				name = .createSPCharPreview(_comm, _summ, card.useCounter, name, false, null, null);
+				name = .createSPCharPreview(_comm, _summ, &summSkin, card.useCounter, name, false, null, null);
 			}
-			return createMenuCardImage!PileImage(_prop, _comm.skin, _summ, name,
+			return createMenuCardImage!PileImage(_prop, summSkin, _summ, name,
 				card.paths, 0, 0, 100, _prop.var.etc.smoothingCard, spCard.layer);
 		} else if (auto card = cast(EnemyCard)spCard) {
-			auto skin = _comm.skin;
+			auto skin = summSkin;
 			auto castCard = _summ.cwCast(card.id);
 			bool dbgMode = _prop.var.etc.viewEnemyCardDebug;
 			foreach (areaView; _comm.areaViewsFrom!(Battle, EnemyCard, true, is(typeof(_area.backs)))(_area.cwxPath(true), false)) { mixin(S_TRACE);
@@ -1631,7 +1632,7 @@ private:
 		layout();
 	}
 public:
-	this (Commons comm, Props prop, Summary summ, EventTreeOwner area, Composite parent, UndoManager undo, bool readOnly) { mixin(S_TRACE);
+	this (Commons comm, Props prop, Summary summ, Skin forceSkin, EventTreeOwner area, Composite parent, UndoManager undo, bool readOnly) { mixin(S_TRACE);
 		super (parent, SWT.NONE);
 		_id = .objectIDValue(this);
 		_comm = comm;
@@ -1640,7 +1641,10 @@ public:
 		_area = area;
 		_undo = undo;
 		_readOnly = readOnly ? SWT.READ_ONLY : SWT.NONE;
-		if (_readOnly || !_summ || _summ.scenarioPath == "") { mixin(S_TRACE);
+		if (forceSkin) { mixin(S_TRACE);
+			_summSkin = forceSkin;
+			_forceSkin = forceSkin;
+		} else if (_readOnly || !_summ || _summ.scenarioPath == "") { mixin(S_TRACE);
 			_summSkin = findSkin(_comm, _prop, _summ);
 		}
 
@@ -1893,7 +1897,7 @@ public:
 		{ mixin(S_TRACE);
 			auto viewArea = new Composite(_sash, SWT.NONE);
 			viewArea.setLayout(zeroGridLayout(1, true));
-			_etree = new EventTreeView(comm, prop, summ, _area, viewArea, _undo, &forceSel, &refreshTopStart, _toolbar, _readOnly != SWT.NONE);
+			_etree = new EventTreeView(comm, prop, summ, _forceSkin, _area, viewArea, _undo, &forceSel, &refreshTopStart, _toolbar, _readOnly != SWT.NONE);
 			_etree.widget.setLayoutData(new GridData(GridData.FILL_BOTH));
 			auto hint = new Label(viewArea, SWT.NONE);
 			hint.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));

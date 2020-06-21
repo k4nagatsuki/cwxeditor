@@ -1181,7 +1181,7 @@ Composite createEffectSoundPanel(Composite parent, Commons comm, Summary summ, s
 			initialEffect.setLayoutData(gd);
 		}
 
-		auto se = new SoundSelect(comm, comm.prop, summ, readOnly, null, included => [comm.prop.msgs.defaultSelection(comm.prop.msgs.soundNone)]);
+		auto se = new SoundSelect(comm, comm.prop, summ, null, readOnly, null, included => [comm.prop.msgs.defaultSelection(comm.prop.msgs.soundNone)]);
 
 		auto l = new CLabel(comp, SWT.NONE);
 		auto gdl = new GridData(GridData.FILL_HORIZONTAL);

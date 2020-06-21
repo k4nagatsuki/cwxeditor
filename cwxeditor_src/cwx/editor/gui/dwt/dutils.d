@@ -4277,17 +4277,21 @@ string dropDefault(string[] files) { mixin(S_TRACE);
 }
 /// ファイルの選択を行う。
 string selectFile(Text file, string[] name, string[] ext, string fileName, string title, string p) { mixin(S_TRACE);
-	auto dlg = new FileDialog(file.getShell(), SWT.PRIMARY_MODAL | SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.OPEN);
+	auto fname = selectFile(file.getShell(), name, ext, fileName, title, p);
+	if (fname != "") { mixin(S_TRACE);
+		file.setText(fname);
+	}
+	return fname;
+}
+/// ditto
+string selectFile(Shell shell, string[] name, string[] ext, string fileName, string title, string p) { mixin(S_TRACE);
+	auto dlg = new FileDialog(shell, SWT.PRIMARY_MODAL | SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.OPEN);
 	dlg.setFilterExtensions(ext);
 	dlg.setFilterNames(name);
 	dlg.setText(title);
 	dlg.setFilterPath(dirName(nabs(p)));
 	dlg.setFileName(fileName);
-	string fname = dlg.open();
-	if (fname) { mixin(S_TRACE);
-		file.setText(fname);
-	}
-	return fname;
+	return dlg.open();
 }
 /// ディレクトリの選択を行う。
 string selectDir(T)(Props prop, T dir, string title, string msg, string p, bool appPath = true) { mixin(S_TRACE);

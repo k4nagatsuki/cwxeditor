@@ -126,7 +126,7 @@ public:
 
 		{ mixin(S_TRACE);
 			auto pane = contPane;
-			_aview = new V(comm, prop, summ, area.useCounter, area, pane, shell ? null : this,
+			_aview = new V(comm, prop, summ, null, area.useCounter, area, pane, shell ? null : this,
 				_prop.var.etc.showInheritBackground, _undo, _readOnly != SWT.NONE);
 			_aview.setLayoutData(new GridData(GridData.FILL_BOTH));
 		}

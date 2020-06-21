@@ -62,6 +62,7 @@ private:
 	CardAnimationPanel _animationSpeed = null;
 
 	Skin _summSkin;
+	Skin _forceSkin = null;
 	@property
 	Skin summSkin() { mixin(S_TRACE);
 		return _summSkin ? _summSkin : _comm.skin;
@@ -186,7 +187,7 @@ private:
 		void updateToolTip() { mixin(S_TRACE);
 			auto toolTip = "";
 			if (_expandSPChars.getSelection()) { mixin(S_TRACE);
-				toolTip = .createSPCharPreview(_comm, _summ, null, _name.getText(), false, null, null);
+				toolTip = .createSPCharPreview(_comm, _summ, &summSkin, null, _name.getText(), false, null, null);
 			}
 			toolTip = toolTip.replace("&", "&&");
 			if (toolTip != _name.getToolTipText()) { mixin(S_TRACE);
@@ -211,7 +212,7 @@ private:
 					auto skin = _comm.skin;
 					auto overrideName = "";
 					if (_isOverrideName.getSelection()) { mixin(S_TRACE);
-						overrideName = .createSPCharPreview(_comm, _summ, null, _overrideName.getText(), false, null, null);
+						overrideName = .createSPCharPreview(_comm, _summ, &summSkin, null, _overrideName.getText(), false, null, null);
 					}
 					auto imgData = .castCardImage(_prop, skin, _summ, ec, true, _isOverrideName.getSelection(), overrideName,
 						_isOverrideImage.getSelection(), _imgPath.images);
@@ -239,7 +240,7 @@ private:
 			_cardIncSearch.startIncSearch();
 		}
 		void updateToolTip() { mixin(S_TRACE);
-			auto toolTip = .createSPCharPreview(_comm, _summ, null, _overrideName.getText(), false, null, null);
+			auto toolTip = .createSPCharPreview(_comm, _summ, &summSkin, null, _overrideName.getText(), false, null, null);
 			toolTip = toolTip.replace("&", "&&");
 			if (toolTip != _overrideName.getToolTipText()) { mixin(S_TRACE);
 				_overrideName.setToolTipText(toolTip);
@@ -378,12 +379,18 @@ private:
 		}
 	}
 public:
-	this(Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, C card, bool create) { mixin(S_TRACE);
+	this(Commons comm, Props prop, Shell shell, Summary summ, Skin forceSkin, UseCounter uc, C card, bool create) { mixin(S_TRACE);
 		_comm = comm;
 		_summ = summ;
 		_uc = uc;
 		_card = card;
 		_prop = prop;
+		if (forceSkin) { mixin(S_TRACE);
+			_summSkin = forceSkin;
+			_forceSkin = forceSkin;
+		} else if (!_summ || _summ.scenarioPath == "") { mixin(S_TRACE);
+			_summSkin = findSkin(_comm, _prop, _summ);
+		}
 		static if (is(C == MenuCard)) {
 			string text = create ? _prop.msgs.dlgTitNewMenuCard : .tryFormat(_prop.msgs.dlgTitMenuCard, _card.name);
 			auto size = _prop.var.menuCardDlg;
@@ -434,7 +441,7 @@ protected:
 							createTextMenu!Text(_comm, _prop, _name, &catchMod);
 							auto nameMenu = _name.getMenu();
 							new MenuItem(nameMenu, SWT.SEPARATOR);
-							.setupSPCharsMenu(_comm, _summ, null, _name, nameMenu, false, false, () => _expandSPChars.getSelection());
+							.setupSPCharsMenu(_comm, _summ, &summSkin, null, _name, nameMenu, false, false, () => _expandSPChars.getSelection());
 							_name.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 							.listener(_name, SWT.Modify, &refreshWarning);
 							.listener(_name, SWT.Modify, &updateToolTip);
@@ -565,7 +572,7 @@ protected:
 							createTextMenu!Text(_comm, _prop, _overrideName, &catchMod);
 							auto nameMenu = _overrideName.getMenu();
 							new MenuItem(nameMenu, SWT.SEPARATOR);
-							.setupSPCharsMenu(_comm, _summ, null, _overrideName, nameMenu, false, false, () => true);
+							.setupSPCharsMenu(_comm, _summ, &summSkin, null, _overrideName, nameMenu, false, false, () => true);
 							_overrideName.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 							.listener(_overrideName, SWT.Modify, &updateToolTip);
 							.listener(_overrideName, SWT.Modify, &_image.redraw);

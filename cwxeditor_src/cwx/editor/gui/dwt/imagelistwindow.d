@@ -25,6 +25,7 @@ class ImageListWindow(MtType Type) {
 	private Commons _comm;
 
 	Skin _summSkin = null;
+	Skin _forceSkin = null;
 	@property
 	Skin summSkin() { mixin(S_TRACE);
 		return _summSkin ? _summSkin : _comm.skin;
@@ -37,11 +38,14 @@ class ImageListWindow(MtType Type) {
 
 	private void delegate(string) _selection;
 
-	this (Props prop, Commons comm, Summary summ, Shell parent, void delegate(string) selection, Control baseControl) { mixin(S_TRACE);
+	this (Props prop, Commons comm, Summary summ, Skin forceSkin, Shell parent, void delegate(string) selection, Control baseControl) { mixin(S_TRACE);
 		_prop = prop;
 		_comm = comm;
 		_summ = summ;
-		if (!_summ || _summ.scenarioPath == "") { mixin(S_TRACE);
+		if (forceSkin) { mixin(S_TRACE);
+			_summSkin = forceSkin;
+			_forceSkin = forceSkin;
+		} else if (!_summ || _summ.scenarioPath == "") { mixin(S_TRACE);
 			_summSkin = findSkin(_comm, _prop, _summ);
 		}
 		_selection = selection;
@@ -119,21 +123,21 @@ class ImageListWindow(MtType Type) {
 		auto isEngineMaterial = false;
 		size_t defIndex = 0;
 		auto wsnVer = _summ ? _summ.dataVersion : LATEST_VERSION;
-		auto imgPath = _comm.skin.findPathF(path, defExts, defDirs, _summ ? _summ.scenarioPath : "", wsnVer, _comm.skin.wsnTableDirs(wsnVer),
+		auto imgPath = summSkin.findPathF(path, defExts, defDirs, _summ ? _summ.scenarioPath : "", wsnVer, summSkin.wsnTableDirs(wsnVer),
 			isSkinMaterial, isEngineMaterial, defIndex);
 		auto drawingScale = (isSkinMaterial || isEngineMaterial) ? _prop.drawingScale : _prop.drawingScaleForImage(_summ);
 		return .loadImageWithScale(_prop, summSkin, _summ, imgPath, drawingScale, mask, Type is MtType.BG_IMG);
 	}
 	static if (Type == MtType.CARD) {
 		@property
-		private const(string)[] defExts() { return _comm.skin.extImage; }
+		private const(string)[] defExts() { return summSkin.extImage; }
 		@property
-		private string[] defDirs() { return _comm.skin.tableDirs; }
+		private string[] defDirs() { return summSkin.tableDirs; }
 	} else static if (Type == MtType.BG_IMG) {
 		@property
-		private const(string)[] defExts() { return _comm.skin.extImage; }
+		private const(string)[] defExts() { return summSkin.extImage; }
 		@property
-		private string[] defDirs() { return _comm.skin.tableDirs; }
+		private string[] defDirs() { return summSkin.tableDirs; }
 	}
 
 	void images(string dir, string[] path) { mixin(S_TRACE);

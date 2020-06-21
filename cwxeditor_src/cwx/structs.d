@@ -1,15 +1,16 @@
 
 module cwx.structs;
 
-import cwx.perf;
-import cwx.utils : printStackTrace, fromBool, debugln;
 import cwx.features;
+import cwx.perf;
 import cwx.types;
+import cwx.utils : printStackTrace, fromBool, debugln;
 import cwx.xml;
 
 import std.ascii;
 import std.conv;
 import std.path;
+import std.traits;
 import std.typecons;
 
 /// 壁紙のスタイル。
@@ -1583,6 +1584,8 @@ struct SettingsWithSkinType {
 	KeyCodeByFeature[] keyCodesByFeatures; /// カードの特徴に対応するキーコード。
 	KeyCodeByMotion[] keyCodesByMotions; /// 効果に対応するキーコード。
 
+	ElementOverride[] elementOverrides; /// 属性の上書き。
+
 	const
 	void toNode(ref XNode e, string name = XML_NAME) { mixin(S_TRACE);
 		auto r = e.newElement(name);
@@ -1626,6 +1629,12 @@ struct SettingsWithSkinType {
 				s.toNode(ce);
 			}
 		}
+		if (elementOverrides.length) { mixin(S_TRACE);
+			auto ce = r.newElement("elementOverrides");
+			foreach (ref s; elementOverrides) { mixin(S_TRACE);
+				s.toNode(ce);
+			}
+		}
 	}
 	void fromNode(ref XNode node) { mixin(S_TRACE);
 		type = node.attr("type", true);
@@ -1638,6 +1647,7 @@ struct SettingsWithSkinType {
 				bgImagesDefault.length++;
 				bgImagesDefault[$ - 1].fromNode(node);
 			};
+			node.parse();
 		};
 		bgImageSettings = [];
 		node.onTag["bgImageSettings"] = (ref XNode node) { mixin(S_TRACE);
@@ -1645,18 +1655,21 @@ struct SettingsWithSkinType {
 				bgImageSettings.length++;
 				bgImageSettings[$ - 1].fromNode(node);
 			};
+			node.parse();
 		};
 		standardSelections = [];
 		node.onTag["standardSelections"] = (ref XNode node) { mixin(S_TRACE);
 			node.onTag["value"] = (ref XNode node) { mixin(S_TRACE);
 				standardSelections ~= node.value;
 			};
+			node.parse();
 		};
 		standardKeyCodes = [];
 		node.onTag["standardKeyCodes"] = (ref XNode node) { mixin(S_TRACE);
 			node.onTag["value"] = (ref XNode node) { mixin(S_TRACE);
 				standardKeyCodes ~= node.value;
 			};
+			node.parse();
 		};
 		keyCodesByFeatures = [];
 		node.onTag["keyCodesByFeatures"] = (ref XNode node) { mixin(S_TRACE);
@@ -1664,6 +1677,7 @@ struct SettingsWithSkinType {
 				keyCodesByFeatures.length++;
 				keyCodesByFeatures[$ - 1].fromNode(node);
 			};
+			node.parse();
 		};
 		keyCodesByMotions = [];
 		node.onTag["keyCodesByMotions"] = (ref XNode node) { mixin(S_TRACE);
@@ -1671,6 +1685,15 @@ struct SettingsWithSkinType {
 				keyCodesByMotions.length++;
 				keyCodesByMotions[$ - 1].fromNode(node);
 			};
+			node.parse();
+		};
+		elementOverrides = [];
+		node.onTag["elementOverrides"] = (ref XNode node) { mixin(S_TRACE);
+			node.onTag[ElementOverride.XML_NAME] = (ref XNode node) { mixin(S_TRACE);
+				elementOverrides.length++;
+				elementOverrides[$ - 1].fromNode(node);
+			};
+			node.parse();
 		};
 		node.parse();
 	}
@@ -1695,5 +1718,30 @@ struct SkinTypeByClassicEngine {
 		type = node.value;
 		engine = node.attr("engine", false, "");
 		directory = node.attr("directory", false, "");
+	}
+}
+
+/// スキンタイプごとに属性名とアイコンを上書きする。
+struct ElementOverride {
+	enum XML_NAME = "elementOverride";
+
+	Element element; /// 上書き対象の属性。
+	string icon; /// アイコンのパス。
+	string name; /// 属性名。
+	string targetType; /// 「命を持たない」「不浄な存在」等、対属性の名前。炎と冷気は不使用。
+
+	const
+	void toNode(ref XNode e, string name = XML_NAME) { mixin(S_TRACE);
+		auto r = e.newElement(name);
+		r.newAttr("element", .fromElement(element));
+		if (icon != "") r.newAttr("icon", icon);
+		if (this.name != "") r.newAttr("name", this.name);
+		if (targetType != "") r.newAttr("targetType", targetType);
+	}
+	void fromNode(ref XNode node) { mixin(S_TRACE);
+		element = .toElement(node.attr("element", true));
+		icon = node.attr("icon", false, "");
+		name = node.attr("name", false, "");
+		targetType = node.attr("targetType", false, "");
 	}
 }

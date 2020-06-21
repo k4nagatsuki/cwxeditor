@@ -1,4 +1,5 @@
 
+
 module cwx.editor.gui.dwt.flagtable;
 
 import cwx.card;
@@ -393,7 +394,7 @@ private:
 	string createToolTip(string text) { mixin(S_TRACE);
 		auto toolTip = "";
 		if (_expandSPChars.getSelection()) { mixin(S_TRACE);
-			toolTip = .createSPCharPreview(_comm, _summ, _dir.useCounter, text, true, null, (path) { mixin(S_TRACE);
+			toolTip = .createSPCharPreview(_comm, _summ, () => _comm.skin, _dir.useCounter, text, true, null, (path) { mixin(S_TRACE);
 				auto step = .findVar!Step(_summ ? _summ.flagDirRoot : null, _dir.useCounter, path);
 				if (step && _step is step) { mixin(S_TRACE);
 					if (_initSelected == _editIndex && _valueEditor && !_valueEditor.isDisposed()) { mixin(S_TRACE);
@@ -530,7 +531,7 @@ protected:
 				_editIndex = itm.getParent().indexOf(itm);
 				auto menu = _valueEditor.getMenu();
 				new MenuItem(menu, SWT.SEPARATOR);
-				.setupSPCharsMenu(_comm, _summ, _dir.useCounter, _valueEditor, menu, false, true, () => _expandSPChars.getSelection());
+				.setupSPCharsMenu(_comm, _summ, () => _comm.skin, _dir.useCounter, _valueEditor, menu, false, true, () => _expandSPChars.getSelection());
 				new MenuItem(menu, SWT.SEPARATOR);
 				createMenuItem(_comm, menu, MenuID.CreateStepValues, &createStepValues, &canCreateStepValues);
 				updateToolTip();
@@ -852,7 +853,7 @@ private:
 	void updateToolTipImpl(Combo combo) { mixin(S_TRACE);
 		auto toolTip = "";
 		if (_expandSPChars.getSelection()) { mixin(S_TRACE);
-			toolTip = .createSPCharPreview(_comm, _summ, dir.useCounter, combo.getText(), true, (path) { mixin(S_TRACE);
+			toolTip = .createSPCharPreview(_comm, _summ, () => _comm.skin, dir.useCounter, combo.getText(), true, (path) { mixin(S_TRACE);
 				auto flag = .findVar!(cwx.flag.Flag)(_summ ? _summ.flagDirRoot : null, dir.useCounter, path);
 				if (flag && _flag is flag) { mixin(S_TRACE);
 					return VarValue(true, flagInit.getText(), _expandSPChars.getSelection());
@@ -983,7 +984,7 @@ protected:
 			if (!_readOnly) { mixin(S_TRACE);
 				auto tMenu = flagTrue.getMenu();
 				new MenuItem(tMenu, SWT.SEPARATOR);
-				.setupSPCharsMenu(_comm, _summ, dir.useCounter, flagTrue, tMenu, false, true, () => _expandSPChars.getSelection());
+				.setupSPCharsMenu(_comm, _summ, () => _comm.skin, dir.useCounter, flagTrue, tMenu, false, true, () => _expandSPChars.getSelection());
 				auto tmod = new ModOnOff(0);
 				flagTrue.addModifyListener(tmod);
 				flagTrue.addSelectionListener(tmod);
@@ -1000,7 +1001,7 @@ protected:
 			if (!_readOnly) { mixin(S_TRACE);
 				auto fMenu = flagFalse.getMenu();
 				new MenuItem(fMenu, SWT.SEPARATOR);
-				.setupSPCharsMenu(_comm, _summ, dir.useCounter, flagFalse, fMenu, false, true, () => _expandSPChars.getSelection());
+				.setupSPCharsMenu(_comm, _summ, () => _comm.skin, dir.useCounter, flagFalse, fMenu, false, true, () => _expandSPChars.getSelection());
 				auto fmod = new ModOnOff(1);
 				flagFalse.addModifyListener(fmod);
 				flagFalse.addSelectionListener(fmod);

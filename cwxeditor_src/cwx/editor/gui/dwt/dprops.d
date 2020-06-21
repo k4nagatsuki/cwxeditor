@@ -1,14 +1,15 @@
 
 module cwx.editor.gui.dwt.dprops;
 
-import cwx.utils;
+import cwx.menu;
+import cwx.msgs;
 import cwx.props;
 import cwx.structs;
-import cwx.menu;
-import cwx.types;
-import cwx.msgs;
 import cwx.summary;
+import cwx.types;
+import cwx.utils;
 
+import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.image;
 import cwx.editor.gui.dwt.properties;
 
@@ -16,6 +17,7 @@ import std.algorithm : max, min;
 import std.conv;
 import std.file;
 import std.path;
+import std.typecons;
 
 import org.eclipse.swt.all;
 
@@ -297,6 +299,91 @@ public:
 		}
 		return var.etc.keyCodesByMotions;
 	}
+	/// スキンタイプに応じた効果属性設定を返す。
+	ElementOverride[Element] elementOverrides(string type) { mixin(S_TRACE);
+		foreach (ref stc; var.etc.settingsWithSkinTypes) { mixin(S_TRACE);
+			if (stc.type == type) { mixin(S_TRACE);
+				ElementOverride[Element] eTbl;
+				foreach (ref eo; stc.elementOverrides) eTbl[eo.element] = eo;
+				return eTbl;
+			}
+		}
+		return null;
+	}
+	/// 効果属性のアイコンを返す。
+	ImageData elementImage(in ElementOverride[Element] eTbl, Element element) { mixin(S_TRACE);
+		auto p = element in eTbl;
+		return p ? elementImage(*p) : images.element(element).getImageData();
+	}
+	/// ditto
+	ImageData elementImage(in ElementOverride eo) { mixin(S_TRACE);
+		ImageData r = null;
+		if (eo.icon != "") { mixin(S_TRACE);
+			if (eo.icon.startsWith(PRESET_IMAGE_SCHEMA)) { mixin(S_TRACE);
+				switch (eo.icon[PRESET_IMAGE_SCHEMA.length .. $]) {
+				case "elm_all.png":
+					return images.element(Element.All).getImageData();
+				case "elm_health.png":
+					return images.element(Element.Health).getImageData();
+				case "elm_mind.png":
+					return images.element(Element.Mind).getImageData();
+				case "elm_miracle.png":
+					return images.element(Element.Miracle).getImageData();
+				case "elm_magic.png":
+					return images.element(Element.Magic).getImageData();
+				case "elm_fire.png":
+					return images.element(Element.Fire).getImageData();
+				case "elm_ice.png":
+					return images.element(Element.Ice).getImageData();
+				case "elm_hearing.png":
+					return images.elementHearing.getImageData();
+				case "elm_vision.png":
+					return images.elementVision.getImageData();
+				case "elm_electronic.png":
+					return images.elementElectronic.getImageData();
+				default:
+					break;
+				}
+			} else { mixin(S_TRACE);
+				try {
+					auto path = toAppAbs(eo.icon);
+					if (.exists(path) && .isFile(path)) { mixin(S_TRACE);
+						auto info = .findScaledImage(path, .dpiMuls);
+						byte* ptr = null;
+						auto bin = readBinaryFrom!byte(info.path, ptr);
+						scope (exit) freeAll(ptr);
+						auto s = new ByteArrayInputStream(bin);
+						scope (exit) s.close();
+						auto imgData = new ImageData(s);
+						imgData.transparentPixel = imgData.getPixel(0, 0);
+						r = (new ImageDataWithScale(imgData, info.scale)).scaled(.dpiMuls);
+					}
+				} catch (Exception e) {
+					printStackTrace();
+					debugln(e);
+				}
+			}
+		}
+		return r ? r : images.element(eo.element).getImageData();
+	}
+}
+
+enum PRESET_IMAGE_SCHEMA = "presetimage://";
+
+alias Tuple!(string, "file", string, "name", Image, "image") PresetImageInfo;
+PresetImageInfo[] presetIcons(Props prop) { mixin(S_TRACE);
+	return [
+		PresetImageInfo("elm_all.png", prop.msgs.elementName(Element.All), prop.images.element(Element.All)),
+		PresetImageInfo("elm_health.png", prop.msgs.elementName(Element.Health), prop.images.element(Element.Health)),
+		PresetImageInfo("elm_mind.png", prop.msgs.elementName(Element.Mind), prop.images.element(Element.Mind)),
+		PresetImageInfo("elm_miracle.png", prop.msgs.elementName(Element.Miracle), prop.images.element(Element.Miracle)),
+		PresetImageInfo("elm_magic.png", prop.msgs.elementName(Element.Magic), prop.images.element(Element.Magic)),
+		PresetImageInfo("elm_fire.png", prop.msgs.elementName(Element.Fire), prop.images.element(Element.Fire)),
+		PresetImageInfo("elm_ice.png", prop.msgs.elementName(Element.Ice), prop.images.element(Element.Ice)),
+		PresetImageInfo("elm_hearing.png", prop.msgs.elementNameHearing, prop.images.elementHearing),
+		PresetImageInfo("elm_vision.png", prop.msgs.elementNameVision, prop.images.elementVision),
+		PresetImageInfo("elm_electronic.png", prop.msgs.elementNameElectronic, prop.images.elementElectronic),
+	];
 }
 
 /// CPoint等の構造体をSWTのクラスに変換するための関数。

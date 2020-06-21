@@ -398,6 +398,8 @@ private:
 			_race.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 			_race.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			void refSkin() { mixin(S_TRACE);
+				setIgnoreMod(true, false);
+				scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 				auto selected = _race.getSelectionIndex() <= 0 ? "" : _race.getText();
 				auto skin = summSkin;
 				_race.removeAll();
@@ -646,21 +648,80 @@ private:
 			}
 			{ mixin(S_TRACE);
 				bcomp = createButtonGroup(comp, _prop.msgs.tolerantElement, 2, 1);
-				auto gl = cast(GridLayout) bcomp.getLayout();
+				auto gl = cast(GridLayout)bcomp.getLayout();
 				gl.horizontalSpacing = _prop.var.etc.radioGroupSeparatorWidth;
-				_undead = createC(bcomp, _prop.msgs.undead, _prop.msgs.descUndead);
-				_automaton = createC(bcomp, _prop.msgs.automaton, _prop.msgs.descAutomaton);
-				_unholy = createC(bcomp, _prop.msgs.unholy, _prop.msgs.descUnholy);
-				_constructure = createC(bcomp, _prop.msgs.constructure, _prop.msgs.descConstructure);
-				foreach (e; [Element.Fire, Element.Ice]) { mixin(S_TRACE);
-					string eName = _prop.msgs.elementName(e);
-					auto res = createC(bcomp, .tryFormat(_prop.msgs.resistText, eName), .tryFormat(_prop.msgs.descResist, eName));
-					auto weak = createC(bcomp, .tryFormat(_prop.msgs.weaknessText, eName), .tryFormat(_prop.msgs.descWeakness, eName));
-					res.addSelectionListener(new ESListener(weak));
-					weak.addSelectionListener(new ESListener(res));
-					_res[e] = res;
-					_weak[e] = weak;
+				void refElementOverridesImpl() { mixin(S_TRACE);
+					auto eTbl = _prop.elementOverrides(summSkin.type);
+					auto pUndead = Element.Health in eTbl;
+					auto pAutomaton = Element.Mind in eTbl;
+					auto pUnholy = Element.Miracle in eTbl;
+					auto pConstructure = Element.Magic in eTbl;
+					auto nameHealth = pUndead && pUndead.name != "" ? pUndead.name : _prop.msgs.elementName(Element.Health);
+					auto nameMind = pAutomaton && pAutomaton.name != "" ? pAutomaton.name : _prop.msgs.elementName(Element.Mind);
+					auto nameMiracle = pUnholy && pUnholy.name != "" ? pUnholy.name : _prop.msgs.elementName(Element.Miracle);
+					auto nameMagic = pConstructure && pConstructure.name != "" ? pConstructure.name : _prop.msgs.elementName(Element.Magic);
+					auto nameUndead = pUndead && pUndead.targetType != "" ? pUndead.targetType : _prop.msgs.undead;
+					auto nameAutomaton = pAutomaton && pAutomaton.targetType != "" ? pAutomaton.targetType : _prop.msgs.automaton;
+					auto nameUnholy = pUnholy && pUnholy.targetType != "" ? pUnholy.targetType : _prop.msgs.unholy;
+					auto nameConstructure = pConstructure && pConstructure.targetType != "" ? pConstructure.targetType : _prop.msgs.constructure;
+					_undead = createC(bcomp, nameUndead, .tryFormat(_prop.msgs.descResist, nameHealth));
+					_automaton = createC(bcomp, nameAutomaton, .tryFormat(_prop.msgs.descResist, nameMind));
+					_unholy = createC(bcomp, nameUnholy, .tryFormat(_prop.msgs.descEffective, nameMiracle));
+					_constructure = createC(bcomp, nameConstructure, .tryFormat(_prop.msgs.descEffective, nameMagic));
+					foreach (e; [Element.Fire, Element.Ice]) { mixin(S_TRACE);
+						auto p = e in eTbl;
+						auto eName = _prop.msgs.elementName(e);
+						if (p && p.name != "") { mixin(S_TRACE);
+							eName = p.name;
+						}
+						auto res = createC(bcomp, .tryFormat(_prop.msgs.resistText, eName), .tryFormat(_prop.msgs.descResist, eName));
+						auto weak = createC(bcomp, .tryFormat(_prop.msgs.weaknessText, eName), .tryFormat(_prop.msgs.descWeakness, eName));
+						res.addSelectionListener(new ESListener(weak));
+						weak.addSelectionListener(new ESListener(res));
+						_res[e] = res;
+						_weak[e] = weak;
+					}
+					assert (_res.length == 2);
+					assert (_weak.length == 2);
 				}
+				void refElementOverrides() { mixin(S_TRACE);
+					setIgnoreMod(true, false);
+					scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
+					comp.setRedraw(false);
+					scope (exit) comp.setRedraw(true);
+					auto undead = _undead.getSelection();
+					auto automaton = _automaton.getSelection();
+					auto unholy = _unholy.getSelection();
+					auto constructure = _constructure.getSelection();
+					auto resFire = _res[Element.Fire].getSelection();
+					auto weakFire = _weak[Element.Fire].getSelection();
+					auto resIce = _res[Element.Ice].getSelection();
+					auto weakIce = _weak[Element.Ice].getSelection();
+					foreach (child; bcomp.getChildren()) child.dispose();
+					refElementOverridesImpl();
+					_undead.setSelection(undead);
+					_automaton.setSelection(automaton);
+					_unholy.setSelection(unholy);
+					_constructure.setSelection(constructure);
+					assert (_res.length == 2);
+					assert (_weak.length == 2);
+					_res[Element.Fire].setSelection(resFire);
+					_weak[Element.Fire].setSelection(weakFire);
+					_res[Element.Ice].setSelection(resIce);
+					_weak[Element.Ice].setSelection(weakIce);
+					comp.layout(true, true);
+				}
+				refElementOverridesImpl();
+				if (!_readOnly) { mixin(S_TRACE);
+					_comm.refSkin.add(&refElementOverrides);
+				}
+				_comm.refElementOverrides.add(&refElementOverrides);
+				.listener(bcomp, SWT.Dispose, { mixin(S_TRACE);
+					if (!_readOnly) { mixin(S_TRACE);
+						_comm.refSkin.remove(&refElementOverrides);
+					}
+					_comm.refElementOverrides.remove(&refElementOverrides);
+				});
 			}
 			auto ts = tcomp.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 			auto bs = bcomp.computeSize(SWT.DEFAULT, SWT.DEFAULT);
@@ -1414,6 +1475,8 @@ private:
 		}
 	}
 	void refSkin() { mixin(S_TRACE);
+		setIgnoreMod(true, false);
+		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
 		_desc.font = _prop.adjustFont(_prop.looks.cardDescFont(summSkin.legacy));
 		refreshSex();
 		refreshPeriod();

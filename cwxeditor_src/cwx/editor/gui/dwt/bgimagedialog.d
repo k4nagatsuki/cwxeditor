@@ -376,6 +376,13 @@ protected:
 /// イメージセルの設定を行う。
 class ImageCellDialog : BgImageDialog {
 private:
+	Skin _summSkin;
+	Skin _forceSkin = null;
+	@property
+	Skin summSkin() { mixin(S_TRACE);
+		return _summSkin ? _summSkin : _comm.skin;
+	}
+
 	ImageCell _back;
 
 	ImageSelect!(MtType.BG_IMG) _imgPath;
@@ -393,7 +400,13 @@ private:
 	}
 
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, ImageCell back, bool create) { mixin(S_TRACE);
+	this (Commons comm, Props prop, Shell shell, Summary summ, Skin forceSkin, UseCounter uc, ImageCell back, bool create) { mixin(S_TRACE);
+		if (forceSkin) { mixin(S_TRACE);
+			_summSkin = forceSkin;
+			_forceSkin = forceSkin;
+		} else if (!summ || summ.scenarioPath == "") { mixin(S_TRACE);
+			_summSkin = findSkin(comm, prop, summ);
+		}
 		_back = back;
 		DSize size;
 		if (summ) { mixin(S_TRACE);
@@ -413,14 +426,13 @@ public:
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
 		area.setLayout(zeroGridLayout(1));
-		auto skin = _comm.skin;
 		{ mixin(S_TRACE);
 			auto comp = new Composite(area, SWT.NONE);
 			comp.setLayout(normalGridLayout(1, false));
 			void imgs(Composite parent) { mixin(S_TRACE);
 				_imgPath = new ImageSelect!(MtType.BG_IMG)(parent, SWT.NONE, _comm, _prop, _summ,
 					_prop.var.etc.bgImageSampleWidth, _prop.var.etc.bgImageSampleHeight, CInsets(0, 0, 0, 0),
-					CardImagePosition.TopLeft, false, () => "", &selectEasySetting);
+					CardImagePosition.TopLeft, false, () => "", &selectEasySetting, null, false, _forceSkin);
 				mod(_imgPath);
 				_imgPath.modEvent ~= &refreshWarning;
 				_imgPath.modEvent ~= { mixin(S_TRACE);
@@ -472,7 +484,7 @@ protected:
 					setIgnoreMod(true, false);
 					scope (exit) ignoreMod = false;
 					uint x, y;
-					dwtImageSize(_prop, _comm.skin, _summ, file, x, y);
+					dwtImageSize(_prop, summSkin, _summ, file, x, y);
 					_w.setSelection(x);
 					_h.setSelection(y);
 					_selected = true;
@@ -526,6 +538,7 @@ private:
 	UpdateType[] _updateTypes;
 
 	Skin _summSkin;
+	Skin _forceSkin = null;
 	@property
 	Skin summSkin() { mixin(S_TRACE);
 		return _summSkin ? _summSkin : _comm.skin;
@@ -641,9 +654,14 @@ private:
 		}
 	}
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, TextCell back, bool create) { mixin(S_TRACE);
+	this (Commons comm, Props prop, Shell shell, Summary summ, Skin forceSkin, UseCounter uc, TextCell back, bool create) { mixin(S_TRACE);
+		if (forceSkin) { mixin(S_TRACE);
+			_summSkin = forceSkin;
+			_forceSkin = forceSkin;
+		} else if (!summ || summ.scenarioPath == "") { mixin(S_TRACE);
+			_summSkin = findSkin(comm, prop, summ);
+		}
 		_back = back;
-		_summSkin = findSkin(comm, prop, summ);
 		DSize size;
 		if (summ) { mixin(S_TRACE);
 			size = prop.var.areaTextCellDlg;
@@ -663,7 +681,6 @@ public:
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
 		area.setLayout(zeroGridLayout(1));
-		auto skin = summSkin;
 		auto comp = new Composite(area, SWT.NONE);
 		comp.setLayout(normalGridLayout(1, false));
 		auto sash = new SplitPane(comp, SWT.VERTICAL);
@@ -846,7 +863,7 @@ protected:
 			createTextMenu!Text(_comm, _prop, _text, &catchMod);
 			auto menu = _text.getMenu();
 			new MenuItem(menu, SWT.SEPARATOR);
-			.setupSPCharsMenu(_comm, _summ, null, _text, menu, false, true, () => true);
+			.setupSPCharsMenu(_comm, _summ, &summSkin, null, _text, menu, false, true, () => true);
 			auto gd1 = new GridData(GridData.FILL_BOTH);
 			gd1.widthHint = _prop.var.etc.textCellBoxWidth;
 			gd1.heightHint = _prop.var.etc.textCellBoxHeight;
@@ -854,9 +871,9 @@ protected:
 			_text.setLayoutData(gd1);
 			.listener(_text, SWT.Modify, &refreshWarning);
 			.listener(_text, SWT.Modify, &updatePreview);
-			createSimpleSCharBar(grp, &_text.insert, _comm, _prop, _summ, skin);
+			createSimpleSCharBar(grp, &_text.insert, _comm, _prop, _summ);
 			if (_summ) { mixin(S_TRACE);
-				createFlagStepBar(grp, &_text.insert, _comm, _prop, _summ, null, skin, false).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				createFlagStepBar(grp, &_text.insert, _comm, _prop, _summ, null, _forceSkin, false).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			}
 
 			_values = new PreviewValues(sash2, _comm, _prop, _summ, null, false);
@@ -1300,6 +1317,12 @@ class ColorPicker : Composite {
 /// プレイヤーキャラクタセルの設定を行う。
 class PCCellDialog : BgImageDialog {
 private:
+	Skin _summSkin;
+	@property
+	Skin summSkin() { mixin(S_TRACE);
+		return _summSkin ? _summSkin : _comm.skin;
+	}
+
 	PCCell _back;
 
 	Canvas _prevPanel;
@@ -1317,11 +1340,16 @@ private:
 	class Paint : PaintListener {
 		override void paintControl(PaintEvent e) { mixin(S_TRACE);
 			auto pcNum = _pcNumber.getSelectionIndex() + 1;
-			drawCenterText(dwtData(_prop.adjustFont(_prop.looks.pcNumberFont(_comm.skin.legacy))), e.gc, _prevPanel.getClientArea(), .text(pcNum));
+			drawCenterText(dwtData(_prop.adjustFont(_prop.looks.pcNumberFont(summSkin.legacy))), e.gc, _prevPanel.getClientArea(), .text(pcNum));
 		}
 	}
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, PCCell back, bool create) { mixin(S_TRACE);
+	this (Commons comm, Props prop, Shell shell, Summary summ, Skin skin, UseCounter uc, PCCell back, bool create) { mixin(S_TRACE);
+		if (skin) { mixin(S_TRACE);
+			_summSkin = skin;
+		} else if (!summ || summ.scenarioPath == "") { mixin(S_TRACE);
+			_summSkin = findSkin(comm, prop, summ);
+		}
 		_back = back;
 		DSize size;
 		if (summ) { mixin(S_TRACE);
@@ -1374,6 +1402,10 @@ protected:
 				ppgd.widthHint = _prop.var.etc.cellPCNumberWidth;
 				_prevPanel.setLayoutData(ppgd);
 				.listener(_pcNumber, SWT.Selection, &_prevPanel.redraw);
+				_comm.refSkin.add(&_prevPanel.redraw);
+				.listener(_prevPanel, SWT.Dispose, { mixin(S_TRACE);
+					_comm.refSkin.remove(&_prevPanel.redraw);
+				});
 
 				_expand = new Button(grp, SWT.CHECK);
 				_expand.setText(_prop.msgs.pcCellExpanding);

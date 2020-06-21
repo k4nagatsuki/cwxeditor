@@ -36,6 +36,8 @@ import std.array;
 import std.conv;
 import std.datetime;
 import std.string;
+import std.traits;
+import std.typecons;
 
 import org.eclipse.swt.all;
 
@@ -1226,29 +1228,116 @@ public:
 			.setupComment(_comm, _motions, false);
 		}
 		{ mixin(S_TRACE);
-			_motionElm = .rangeSelectableTable(this, SWT.BORDER | SWT.SINGLE | SWT.NO_SCROLL | SWT.FULL_SELECTION);
+			_motionElm = .rangeSelectableTable(this, SWT.BORDER | SWT.SINGLE | SWT.NO_SCROLL | SWT.FULL_SELECTION | SWT.VIRTUAL);
 			_motionElm.setHeaderVisible(true);
 			_motionElm.addSelectionListener(new SelElement);
 			_motionElm.setEnabled(false);
 			auto col = new FullTableColumn(_motionElm, SWT.NONE);
 			col.column.setText(_prop.msgs.motionElement);
-			string[] toolTip;
-			foreach (i, elm; [Element.All, Element.Health, Element.Mind,
-					Element.Miracle, Element.Magic, Element.Fire, Element.Ice]) { mixin(S_TRACE);
-				auto itm = new TableItem(_motionElm, SWT.NONE);
-				itm.setImage(_prop.images.element(elm));
-				itm.setText(_prop.msgs.elementName(elm));
-				itm.setData(new Integer(elm));
-				toolTip ~= _prop.msgs.elementDesc(elm);
-			}
-			.listener(_motionElm, SWT.MouseMove, (Event e) { mixin(S_TRACE);
-				auto itm = _motionElm.getItem(new Point(e.x, e.y));
-				if (itm) { mixin(S_TRACE);
-					_motionElm.setToolTipText(.replace(toolTip[_motionElm.indexOf(itm)], "&", "&&"));
-				} else { mixin(S_TRACE);
-					_motionElm.setToolTipText(null);
+			string[[EnumMembers!Element].length] toolTip;
+			Tuple!(Image, "image", string, "path")[Element] imgTbl;
+			auto eTbl = _comm.prop.elementOverrides(summSkin.type);
+			auto lastIndex = -1;
+			void updateToolTip() { mixin(S_TRACE);
+				auto p = _motionElm.toControl(_motionElm.getDisplay().getCursorLocation());
+				auto itm = _motionElm.getItem(p);
+				auto index = itm ? _motionElm.indexOf(itm) : -1;
+				if (index != lastIndex) { mixin(S_TRACE);
+					auto s = index == -1 ? "" : .replace(toolTip[index], "&", "&&");
+					_motionElm.setToolTipText(s);
+					lastIndex = index;
 				}
+			}
+			.listener(_motionElm, SWT.SetData, (e) { mixin(S_TRACE);
+				auto itm = cast(TableItem)e.item;
+				auto element = [EnumMembers!Element][e.index];
+				auto p = element in eTbl;
+
+				auto imgPath = p ? p.icon : "";
+				auto p2 = element in imgTbl;
+				auto image = _prop.images.element(element);
+				if (imgPath != "") { mixin(S_TRACE);
+					if (!p2 || p2.path != imgPath) { mixin(S_TRACE);
+						if (p2) { mixin(S_TRACE);
+							assert (p2.path != "");
+							p2.image.dispose();
+						}
+						image = new Image(_motionElm.getDisplay(), _prop.elementImage(eTbl, element));
+						imgTbl[element] = Tuple!(Image, "image", string, "path")(image, imgPath);
+					} else if (p2) { mixin(S_TRACE);
+						image = p2.image;
+					}
+				}
+				itm.setImage(image);
+
+				auto name = _prop.msgs.elementName(element);
+				if (p && p.name != "") { mixin(S_TRACE);
+					name = p.name;
+				}
+				itm.setText(name);
+				auto targetType = "";
+				final switch (element) {
+				case Element.All:
+					break;
+				case Element.Health:
+					targetType = p && p.targetType != "" ? p.targetType : _prop.msgs.undead;
+					break;
+				case Element.Mind:
+					targetType = p && p.targetType != "" ? p.targetType : _prop.msgs.automaton;
+					break;
+				case Element.Miracle:
+					targetType = p && p.targetType != "" ? p.targetType : _prop.msgs.unholy;
+					break;
+				case Element.Magic:
+					targetType = p && p.targetType != "" ? p.targetType : _prop.msgs.constructure;
+					break;
+				case Element.Fire:
+				case Element.Ice:
+					break;
+				}
+				final switch (element) {
+				case Element.All:
+					toolTip[e.index] = _prop.msgs.elementEffectiveAll;
+					break;
+				case Element.Health:
+				case Element.Mind:
+					toolTip[e.index] = .tryFormat(_prop.msgs.elementNoEffective, targetType);
+					break;
+				case Element.Miracle:
+				case Element.Magic:
+					toolTip[e.index] = .tryFormat(_prop.msgs.elementEffective, targetType);
+					break;
+				case Element.Fire:
+				case Element.Ice:
+					toolTip[e.index] = _prop.msgs.elementWeaknessOrResist;
+					break;
+				}
+				itm.setData(new Integer(element));
 			});
+			void refElementOverrides() { mixin(S_TRACE);
+				eTbl = _comm.prop.elementOverrides(summSkin.type);
+				_motionElm.clearAll();
+				_motionElm.setToolTipText("");
+				lastIndex = -1;
+				updateToolTip();
+			}
+			if (!_readOnly) { mixin(S_TRACE);
+				_comm.refSkin.add(&refElementOverrides);
+			}
+			_comm.refElementOverrides.add(&refElementOverrides);
+			.listener(_motionElm, SWT.Dispose, { mixin(S_TRACE);
+				if (!_readOnly) { mixin(S_TRACE);
+					_comm.refSkin.remove(&refElementOverrides);
+				}
+				_comm.refElementOverrides.remove(&refElementOverrides);
+
+				foreach (t; imgTbl.byValue()) { mixin(S_TRACE);
+					t.image.dispose();
+				}
+				imgTbl = null;
+			});
+			.listener(_motionElm, SWT.MouseMove, &updateToolTip);
+			_motionElm.setItemCount([EnumMembers!Element].length);
 			auto gd = new GridData(GridData.FILL_VERTICAL);
 			gd.widthHint = _motionElm.computeSize(SWT.DEFAULT, SWT.DEFAULT).x.ppis;
 			_motionElm.setLayoutData(gd);

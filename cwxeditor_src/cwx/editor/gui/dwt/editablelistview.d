@@ -688,7 +688,7 @@ abstract class AbstractEditableListView(T, bool Sort = false) : Composite {
 	@property
 	bool isNewItemEditing() { return _startAdd !is null; }
 
-	protected void clearAll() { _table.clearAll(); }
+	void clearAll() { _table.clearAll(); }
 
 	@property
 	T[] values() { mixin(S_TRACE);
@@ -710,6 +710,7 @@ abstract class AbstractEditableListView(T, bool Sort = false) : Composite {
 		}
 		_table.setItemCount(cast(int)_list.length);
 		_table.clearAll();
+		if (_list.length) _table.setTopIndex(0);
 	}
 	@property
 	const
@@ -750,15 +751,15 @@ abstract class AbstractEditableListView(T, bool Sort = false) : Composite {
 	protected string xmlName();
 
 	protected
-	Image addIcon() { return _comm.prop.images.addItem; }
+	Image addIcon() { return _comm.prop.images.menu(MenuID.AddItem); }
 	protected
 	const
-	string addText() { return _comm.prop.msgs.addItem; }
+	string addText() { return _comm.prop.msgs.menuText(MenuID.AddItem); }
 	protected
-	Image delIcon() { return _comm.prop.images.delItem; }
+	Image delIcon() { return _comm.prop.images.menu(MenuID.DelItem); }
 	protected
 	const
-	string delText() { return _comm.prop.msgs.delItem; }
+	string delText() { return _comm.prop.msgs.menuText(MenuID.DelItem); }
 
 	protected void initColumns(Table table);
 	protected void initEditors(Table table);

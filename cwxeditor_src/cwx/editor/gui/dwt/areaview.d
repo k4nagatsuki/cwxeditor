@@ -727,6 +727,7 @@ private:
 	int _readOnly = SWT.NONE;
 
 	Skin _summSkin;
+	Skin _forceSkin = null;
 	@property
 	Skin summSkin() { mixin(S_TRACE);
 		return _summSkin ? _summSkin : _comm.skin;
@@ -2907,7 +2908,7 @@ private:
 	static if (is(C:EnemyCard)) {
 		Composite createBgmPane(Composite parent) { mixin(S_TRACE);
 			auto skin = summSkin;
-			_bgm = new MaterialSelect!(MtType.BGM, Combo, Combo)(_comm, _prop, _summ, _readOnly != 0, &selectBGM, included => [_prop.msgs.defaultSelection(_prop.msgs.bgmNone)]);
+			_bgm = new MaterialSelect!(MtType.BGM, Combo, Combo)(_comm, _prop, _summ, _forceSkin, _readOnly != 0, &selectBGM, included => [_prop.msgs.defaultSelection(_prop.msgs.bgmNone)]);
 			_bgm.canContinue = !_summ || !_summ.legacy;
 
 			auto comp = new Composite(parent, SWT.NONE);
@@ -3261,7 +3262,7 @@ private:
 
 	private TopLevelPanel _tlp;
 public:
-	this(Commons comm, Props prop, Summary summ, UseCounter uc, A area, Composite parent, TopLevelPanel tlp, bool showInheritBacks, UndoManager undo, bool readOnly) { mixin(S_TRACE);
+	this(Commons comm, Props prop, Summary summ, Skin forceSkin, UseCounter uc, A area, Composite parent, TopLevelPanel tlp, bool showInheritBacks, UndoManager undo, bool readOnly) { mixin(S_TRACE);
 		super(parent, SWT.NONE);
 		_readOnly = readOnly ? SWT.READ_ONLY : SWT.NONE;
 		_id = .objectIDValue(this);
@@ -3273,7 +3274,10 @@ public:
 		_undo = undo;
 		_tlp = tlp;
 		static if (UseBacks) _showInheritBacks = showInheritBacks;
-		if (_readOnly || !_summ || _summ.scenarioPath == "") { mixin(S_TRACE);
+		if (forceSkin) { mixin(S_TRACE);
+			_summSkin = forceSkin;
+			_forceSkin = forceSkin;
+		} else if (_readOnly || !_summ || _summ.scenarioPath == "") { mixin(S_TRACE);
 			_summSkin = findSkin(_comm, _prop, _summ);
 		}
 		if (_summ && _summ.scenarioPath != "" && !_readOnly) { mixin(S_TRACE);
@@ -3439,9 +3443,9 @@ public:
 								if (card.expandSPChars) { mixin(S_TRACE);
 									auto nameMenu = t.getMenu();
 									new MenuItem(nameMenu, SWT.SEPARATOR);
-									.setupSPCharsMenu(_comm, _summ, _uc, t, nameMenu, false, false, () => card.expandSPChars);
+									.setupSPCharsMenu(_comm, _summ, &summSkin, _uc, t, nameMenu, false, false, () => card.expandSPChars);
 									void updateToolTip() { mixin(S_TRACE);
-										auto toolTip = .createSPCharPreview(_comm, _summ, _uc, t.getText(), false, null, null);
+										auto toolTip = .createSPCharPreview(_comm, _summ, &summSkin, _uc, t.getText(), false, null, null);
 										toolTip = toolTip.replace("&", "&&");
 										if (toolTip != t.getToolTipText()) { mixin(S_TRACE);
 											t.setToolTipText(toolTip);
@@ -4285,7 +4289,7 @@ public:
 				if (_summ.casts.length == 0) return;
 				auto c = new EnemyCard(0, (bool[ActionCardType]).init, "", 0, 0, 100, LAYER_MENU_CARD, "", -1, false, "", false, []);
 			} else static assert (0);
-			auto dlg = new SpCardDialog!(C)(_comm, _prop, getShell(), _summ, _uc, c, true);
+			auto dlg = new SpCardDialog!(C)(_comm, _prop, getShell(), _summ, _forceSkin, _uc, c, true);
 			dlg.appliedEvent ~= { mixin(S_TRACE);
 				auto c = dlg.card;
 				int index = insertIndex(_cards);
@@ -4334,7 +4338,7 @@ public:
 				}
 			}
 			UndoEdit undo = null;
-			auto dlg = new SpCardDialog!(C)(_comm, _prop, getShell(), _summ, _uc, card, false);
+			auto dlg = new SpCardDialog!(C)(_comm, _prop, getShell(), _summ, _forceSkin, _uc, card, false);
 			dlg.applyEvent ~= { mixin(S_TRACE);
 				undo = new UndoEdit(this, _comm, _area, _summ, [cast(int)cCountUntil!("a is b")(_area.cards, card)], []);
 			};
@@ -4502,7 +4506,7 @@ public:
 		static if (is(C2 : MenuCard) || is(C2 : const MenuCard)) {
 			auto name = card.name;
 			if (card.expandSPChars) { mixin(S_TRACE);
-				name = .createSPCharPreview(_comm, _summ, _uc, name, false, null, null);
+				name = .createSPCharPreview(_comm, _summ, &summSkin, _uc, name, false, null, null);
 			}
 			return createMenuCardImage!PImg(prop, summSkin, summary, name,
 				cardImagePath(card), card.x, card.y, card.scale, smoothing, card.layer);
@@ -4604,14 +4608,14 @@ public:
 			final switch (type) {
 			case 0:
 				auto ic = new ImageCell;
-				dlg = new ImageCellDialog(_comm, _prop, getShell(), _summ, _uc, ic, true);
+				dlg = new ImageCellDialog(_comm, _prop, getShell(), _summ, _forceSkin, _uc, ic, true);
 				b = ic;
 				break;
 			case 1:
 				auto tc = new TextCell;
 				tc.width = _prop.var.etc.textCellDefaultWidth;
 				tc.height = _prop.var.etc.textCellDefaultHeight;
-				dlg = new TextCellDialog(_comm, _prop, getShell(), _summ, _uc, tc, true);
+				dlg = new TextCellDialog(_comm, _prop, getShell(), _summ, _forceSkin, _uc, tc, true);
 				b = tc;
 				break;
 			case 2:
@@ -4625,7 +4629,7 @@ public:
 				auto pc = new PCCell;
 				pc.width = _prop.looks.cardSize.width;
 				pc.height = _prop.looks.cardSize.height;
-				dlg = new PCCellDialog(_comm, _prop, getShell(), _summ, _uc, pc, true);
+				dlg = new PCCellDialog(_comm, _prop, getShell(), _summ, _forceSkin, _uc, pc, true);
 				b = pc;
 				break;
 			}
@@ -4674,11 +4678,11 @@ public:
 			BgImageDialog dlg = null;
 			auto ic = cast(ImageCell)back;
 			if (ic) { mixin(S_TRACE);
-				dlg = new ImageCellDialog(_comm, _prop, getShell(), _summ, _uc, ic, false);
+				dlg = new ImageCellDialog(_comm, _prop, getShell(), _summ, _forceSkin, _uc, ic, false);
 			}
 			auto tc = cast(TextCell)back;
 			if (tc) { mixin(S_TRACE);
-				dlg = new TextCellDialog(_comm, _prop, getShell(), _summ, _uc, tc, false);
+				dlg = new TextCellDialog(_comm, _prop, getShell(), _summ, _forceSkin, _uc, tc, false);
 			}
 			auto cc = cast(ColorCell)back;
 			if (cc) { mixin(S_TRACE);
@@ -4686,7 +4690,7 @@ public:
 			}
 			auto pc = cast(PCCell)back;
 			if (pc) { mixin(S_TRACE);
-				dlg = new PCCellDialog(_comm, _prop, getShell(), _summ, _uc, pc, false);
+				dlg = new PCCellDialog(_comm, _prop, getShell(), _summ, _forceSkin, _uc, pc, false);
 			}
 			dlg.applyEvent ~= { mixin(S_TRACE);
 				undo = new UndoEdit(this, _comm, _area, _summ, [], [cast(int)cCountUntil!("a is b")(_area.backs, back)]);
@@ -4774,6 +4778,8 @@ public:
 			string p = summSkin.findImagePath(b.path, _summ ? _summ.scenarioPath : null, _summ ? _summ.dataVersion : LATEST_VERSION);
 			p = nabs(p);
 			foreach (t; summSkin.tables(_prop.var.etc.logicalSort)) { mixin(S_TRACE);
+				// スケーリングされたイメージファイルを除外
+				if (t.noScaledPath != "") continue;
 				strs ~= t;
 				foreach (tableDir; summSkin.tableDirs) {mixin(S_TRACE);
 					if (cfnmatch(p, nabs(std.path.buildPath(tableDir, t)))) { mixin(S_TRACE);
@@ -4789,6 +4795,10 @@ public:
 					if (containsPath(_prop.var.etc.ignorePaths, file)) continue;
 					string full = std.path.buildPath(dir, file);
 					string sFile = sDir ~ file;
+					if (!_summ || _summ.scenarioPath == "" || (!_summ.legacy && _summ.loadScaledImage)) { mixin(S_TRACE);
+						// スケーリングされたイメージファイルを除外
+						if (sFile.noScaledPath != "") continue;
+					}
 					if (isDir(full)) { mixin(S_TRACE);
 						recurse(full, sFile ~ std.path.dirSeparator);
 					} else { mixin(S_TRACE);
@@ -6748,10 +6758,10 @@ alias AbstractAreaView!(Area, MenuCard, true, true) AreaView;
 alias AbstractAreaView!(Battle, EnemyCard, true, false) BattleView;
 
 class BgImagesView : AbstractAreaView!(BgImageContainer, void, false, true) {
-	this(Commons comm, Props prop, Summary summ, UseCounter uc, BgImageContainer bic, Composite parent, AbstractArea refTarget, bool showInheritBacks, UndoManager undo, bool readOnly) { mixin(S_TRACE);
+	this(Commons comm, Props prop, Summary summ, Skin skin, UseCounter uc, BgImageContainer bic, Composite parent, AbstractArea refTarget, bool showInheritBacks, UndoManager undo, bool readOnly) { mixin(S_TRACE);
 		if (prop.var.etc.refCardsAtEditBgImage) { mixin(S_TRACE);
 			_refTarget = refTarget;
 		}
-		super (comm, prop, summ, uc, bic, parent, null, showInheritBacks, undo, readOnly);
+		super (comm, prop, summ, skin, uc, bic, parent, null, showInheritBacks, undo, readOnly);
 	}
 }
