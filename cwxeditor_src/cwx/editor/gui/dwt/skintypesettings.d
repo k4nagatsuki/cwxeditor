@@ -396,24 +396,10 @@ class ElementOverrideView : Composite {
 			auto itm = cast(TableItem)e.item;
 			auto eo = _list[e.index];
 
-			auto p = eo.element in imgTbl;
-			auto imgPath = eo.icon;
-			auto image = _comm.prop.images.element(eo.element);
-			if (imgPath != "") { mixin(S_TRACE);
-				if (!p || p.path != imgPath) { mixin(S_TRACE);
-					if (p) { mixin(S_TRACE);
-						assert (p.path != "");
-						p.image.dispose();
-					}
-					image = new Image(getDisplay(), _comm.prop.elementImage(eo));
-					imgTbl[eo.element] = Tuple!(Image, "image", string, "path")(image, imgPath);
-				} else if (p) { mixin(S_TRACE);
-					image = p.image;
-				}
-			}
-			itm.setImage(0, image);
+			itm.setImage(0, _comm.prop.elementImage(eo, imgTbl));
 
 			auto name = _comm.prop.msgs.elementName(eo.element);
+			auto p = eo.element in imgTbl;
 			if (eo.name != "") { mixin(S_TRACE);
 				name = eo.name;
 			}

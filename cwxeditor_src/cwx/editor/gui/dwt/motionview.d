@@ -945,6 +945,8 @@ private:
 					}
 				}
 				m.element = [EnumMembers!Element][i];
+				auto b = _motions.getItem(_motions.getSelectionIndex()).getBounds();
+				_motions.redraw(b.x, b.y, b.width, b.height, false);
 				foreach (dlg; modEvent) dlg();
 			}
 		}
@@ -1202,6 +1204,8 @@ public:
 				_comm.refUpdateMotionBarStyle.remove(createBars2);
 			});
 		}
+		Tuple!(Image, "image", string, "path")[Element] imgTbl;
+		auto eTbl = _prop.elementOverrides(summSkin.type);
 		{ mixin(S_TRACE);
 			_motions = .rangeSelectableTable(this, SWT.BORDER | SWT.SINGLE | SWT.V_SCROLL | SWT.FULL_SELECTION);
 			auto gd = new GridData(GridData.FILL_BOTH);
@@ -1226,6 +1230,26 @@ public:
 			auto col = new FullTableColumn(_motions, SWT.NONE);
 			col.column.setText(_prop.msgs.motionKind);
 			.setupComment(_comm, _motions, false);
+
+			.listener(_motions, SWT.PaintItem, (e) { mixin(S_TRACE);
+				auto itm = cast(TableItem)e.item;
+				assert (e.index == 0);
+				auto m = cast(Motion)itm.getData();
+				assert (m !is null);
+
+				auto image = _prop.elementImage(eTbl, m.element, imgTbl);
+
+				auto x = _motions.getColumn(e.index).getWidth();
+				auto ib = image.getBounds();
+				x -= 5.ppis;
+				x -= ib.width;
+				if (.commentText(m, false) != "") { mixin(S_TRACE);
+					auto ib2 = _prop.images.menu(MenuID.Comment).getBounds();
+					x -= ib2.width + 5.ppis;
+				}
+				e.gc.setAlpha(128);
+				e.gc.drawImage(image, x, e.y + (e.height - ib.height) / 2);
+			});
 		}
 		{ mixin(S_TRACE);
 			_motionElm = .rangeSelectableTable(this, SWT.BORDER | SWT.SINGLE | SWT.NO_SCROLL | SWT.FULL_SELECTION | SWT.VIRTUAL);
@@ -1235,8 +1259,6 @@ public:
 			auto col = new FullTableColumn(_motionElm, SWT.NONE);
 			col.column.setText(_prop.msgs.motionElement);
 			string[[EnumMembers!Element].length] toolTip;
-			Tuple!(Image, "image", string, "path")[Element] imgTbl;
-			auto eTbl = _comm.prop.elementOverrides(summSkin.type);
 			auto lastIndex = -1;
 			void updateToolTip() { mixin(S_TRACE);
 				auto p = _motionElm.toControl(_motionElm.getDisplay().getCursorLocation());
@@ -1251,26 +1273,10 @@ public:
 			.listener(_motionElm, SWT.SetData, (e) { mixin(S_TRACE);
 				auto itm = cast(TableItem)e.item;
 				auto element = [EnumMembers!Element][e.index];
-				auto p = element in eTbl;
-
-				auto imgPath = p ? p.icon : "";
-				auto p2 = element in imgTbl;
-				auto image = _prop.images.element(element);
-				if (imgPath != "") { mixin(S_TRACE);
-					if (!p2 || p2.path != imgPath) { mixin(S_TRACE);
-						if (p2) { mixin(S_TRACE);
-							assert (p2.path != "");
-							p2.image.dispose();
-						}
-						image = new Image(_motionElm.getDisplay(), _prop.elementImage(eTbl, element));
-						imgTbl[element] = Tuple!(Image, "image", string, "path")(image, imgPath);
-					} else if (p2) { mixin(S_TRACE);
-						image = p2.image;
-					}
-				}
-				itm.setImage(image);
+				itm.setImage(_prop.elementImage(eTbl, element, imgTbl));
 
 				auto name = _prop.msgs.elementName(element);
+				auto p = element in eTbl;
 				if (p && p.name != "") { mixin(S_TRACE);
 					name = p.name;
 				}
@@ -1317,6 +1323,7 @@ public:
 				eTbl = _comm.prop.elementOverrides(summSkin.type);
 				_motionElm.clearAll();
 				_motionElm.setToolTipText("");
+				_motions.redraw();
 				lastIndex = -1;
 				updateToolTip();
 			}
