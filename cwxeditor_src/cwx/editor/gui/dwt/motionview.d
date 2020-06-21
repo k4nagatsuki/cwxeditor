@@ -310,7 +310,7 @@ private:
 	void motion(size_t index, Motion m, bool store) { mixin(S_TRACE);
 		if (store) storeEdit(index);
 		auto itm = _motions.getItem(cast(int)index);
-		auto o = cast(Motion) itm.getData();
+		auto o = cast(Motion)itm.getData();
 		assert (o);
 		if (_summ && _summ.scenarioPath != "" && o.beast) { mixin(S_TRACE);
 			_comm.delBeast.call(o, o.beast);
@@ -484,7 +484,7 @@ private:
 			}
 		}
 		override void mouseDown(MouseEvent e) { mixin(S_TRACE);
-			auto ctrl = cast(Control) e.widget;
+			auto ctrl = cast(Control)e.widget;
 			ctrl.setFocus();
 		}
 		override void mouseUp(MouseEvent e) { mixin(S_TRACE);
@@ -612,7 +612,7 @@ private:
 		}
 		if (index >= 0) { mixin(S_TRACE);
 			if (store) storeDelete(index);
-			auto m = cast(Motion) _motions.getItem(index).getData();
+			auto m = cast(Motion)_motions.getItem(index).getData();
 			assert (m);
 			if (_summ && _summ.scenarioPath != "" && m.beast) { mixin(S_TRACE);
 				_comm.delBeast.call(m, m.beast);
@@ -673,7 +673,7 @@ private:
 	void refreshSels(bool force = false) { mixin(S_TRACE);
 		scope(exit) refEnabled();
 		auto sels = _motions.getSelection();
-		auto stack = cast(StackLayout) _editComp.getLayout();
+		auto stack = cast(StackLayout)_editComp.getLayout();
 		_motionElm.setEnabled(!_readOnly && sels.length > 0);
 		if (sels.length == 0) { mixin(S_TRACE);
 			_motionElm.deselectAll();
@@ -682,9 +682,9 @@ private:
 			_oldIndex = -1;
 		} else if (force || _oldIndex != _motions.getSelectionIndex()) { mixin(S_TRACE);
 			_oldIndex = _motions.getSelectionIndex();
-			auto m = cast(Motion) _motions.getItem(_oldIndex).getData();
+			auto m = cast(Motion)_motions.getItem(_oldIndex).getData();
 			foreach (i, itm; _motionElm.getItems()) { mixin(S_TRACE);
-				if ((cast(Element) (cast(Integer) itm.getData()).intValue()) == m.element) { mixin(S_TRACE);
+				if ([EnumMembers!Element][i] is m.element) { mixin(S_TRACE);
 					_motionElm.select(cast(int)i);
 					break;
 				}
@@ -749,7 +749,7 @@ private:
 		if (_selectedBeast) return true;
 		int mi = _motions.getSelectionIndex();
 		if (-1 == mi) return false;
-		auto sb = cast(Motion) _motions.getItem(mi).getData();
+		auto sb = cast(Motion)_motions.getItem(mi).getData();
 		// 召喚獣無しを設定する場合
 		return sb.beast !is null;
 	}
@@ -857,7 +857,7 @@ private:
 			try { mixin(S_TRACE);
 				auto node = XNode.parse(xml);
 				if (node.name != Motion.XML_NAME) return;
-				scope p = (cast(DropTarget) e.getSource()).getControl().toControl(e.x, e.y);
+				scope p = (cast(DropTarget)e.getSource()).getControl().toControl(e.x, e.y);
 				auto t = _motions.getItem(p);
 				int index = t ? _motions.indexOf(t) : _motions.getItemCount();
 				auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
@@ -887,14 +887,14 @@ private:
 	class MDragListener : DragSourceAdapter {
 		private TableItem _itm;
 		override void dragStart(DragSourceEvent e) { mixin(S_TRACE);
-			e.doit = (cast(DragSource) e.getSource()).getControl().isFocusControl();
+			e.doit = (cast(DragSource)e.getSource()).getControl().isFocusControl();
 		}
 		override void dragSetData(DragSourceEvent e){ mixin(S_TRACE);
 			if (XMLBytesTransfer.getInstance().isSupportedType(e.dataType)) { mixin(S_TRACE);
-				auto c = cast(Table) (cast(DragSource) e.getSource()).getControl();
+				auto c = cast(Table)(cast(DragSource)e.getSource()).getControl();
 				int index = c.getSelectionIndex();
 				if (index >= 0) { mixin(S_TRACE);
-					auto m = cast(Motion) c.getItem(index).getData();
+					auto m = cast(Motion)c.getItem(index).getData();
 					_dragIndex = index;
 					auto node = m.toNode(new XMLOption(_prop.sys, LATEST_VERSION));
 					node.newAttr("paneId", _id);
@@ -923,7 +923,7 @@ private:
 	@property
 	bool hasVan() { mixin(S_TRACE);
 		foreach (itm; _motions.getItems()) { mixin(S_TRACE);
-			auto m = cast(Motion) itm.getData();
+			auto m = cast(Motion)itm.getData();
 			assert (m);
 			if ((m.element !is Element.Miracle) && (m.type is MType.VanishTarget)) { mixin(S_TRACE);
 				return true;
@@ -944,7 +944,7 @@ private:
 						foreach (we; warningEvent) we();
 					}
 				}
-				m.element = cast(Element) (cast(Integer) _motionElm.getItem(i).getData()).intValue();
+				m.element = [EnumMembers!Element][i];
 				foreach (dlg; modEvent) dlg();
 			}
 		}
@@ -1312,7 +1312,6 @@ public:
 					toolTip[e.index] = _prop.msgs.elementWeaknessOrResist;
 					break;
 				}
-				itm.setData(new Integer(element));
 			});
 			void refElementOverrides() { mixin(S_TRACE);
 				eTbl = _comm.prop.elementOverrides(summSkin.type);
