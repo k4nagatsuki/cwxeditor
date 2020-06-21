@@ -311,41 +311,55 @@ public:
 		return null;
 	}
 	/// 効果属性のアイコンを返す。
-	ImageData elementImage(in ElementOverride[Element] eTbl, Element element) { mixin(S_TRACE);
+	/// imgTblに入ったイメージはimgTbl破棄時に解放しなければならない。
+	Image elementImage(in ElementOverride[Element] eTbl, Element element, ref Tuple!(Image, "image", string, "path")[Element] imgTbl) { mixin(S_TRACE);
 		auto p = element in eTbl;
-		return p ? elementImage(*p) : images.element(element).getImageData();
+		return p ? elementImage(*p, imgTbl) : images.element(element);
 	}
 	/// ditto
-	ImageData elementImage(in ElementOverride eo) { mixin(S_TRACE);
-		ImageData r = null;
+	Image elementImage(in ElementOverride eo, ref Tuple!(Image, "image", string, "path")[Element] imgTbl) { mixin(S_TRACE);
+		void releaseImage() { mixin(S_TRACE);
+			if (auto p = eo.element in imgTbl) { mixin(S_TRACE);
+				assert (p.path != "");
+				p.image.dispose();
+				imgTbl.remove(eo.element);
+			}
+		}
+		Image r = null;
 		if (eo.icon != "") { mixin(S_TRACE);
 			if (eo.icon.startsWith(PRESET_IMAGE_SCHEMA)) { mixin(S_TRACE);
+				releaseImage();
 				switch (eo.icon[PRESET_IMAGE_SCHEMA.length .. $]) {
 				case "elm_all.png":
-					return images.element(Element.All).getImageData();
+					return images.element(Element.All);
 				case "elm_health.png":
-					return images.element(Element.Health).getImageData();
+					return images.element(Element.Health);
 				case "elm_mind.png":
-					return images.element(Element.Mind).getImageData();
+					return images.element(Element.Mind);
 				case "elm_miracle.png":
-					return images.element(Element.Miracle).getImageData();
+					return images.element(Element.Miracle);
 				case "elm_magic.png":
-					return images.element(Element.Magic).getImageData();
+					return images.element(Element.Magic);
 				case "elm_fire.png":
-					return images.element(Element.Fire).getImageData();
+					return images.element(Element.Fire);
 				case "elm_ice.png":
-					return images.element(Element.Ice).getImageData();
+					return images.element(Element.Ice);
 				case "elm_hearing.png":
-					return images.elementHearing.getImageData();
+					return images.elementHearing;
 				case "elm_vision.png":
-					return images.elementVision.getImageData();
+					return images.elementVision;
 				case "elm_electronic.png":
-					return images.elementElectronic.getImageData();
+					return images.elementElectronic;
 				default:
 					break;
 				}
 			} else { mixin(S_TRACE);
 				try {
+					if (auto p = eo.element in imgTbl) { mixin(S_TRACE);
+						if (p.path == eo.icon) { mixin(S_TRACE);
+							return p.image;
+						}
+					}
 					auto path = toAppAbs(eo.icon);
 					if (.exists(path) && .isFile(path)) { mixin(S_TRACE);
 						auto info = .findScaledImage(path, .dpiMuls);
@@ -356,7 +370,10 @@ public:
 						scope (exit) s.close();
 						auto imgData = new ImageData(s);
 						imgData.transparentPixel = imgData.getPixel(0, 0);
-						r = (new ImageDataWithScale(imgData, info.scale)).scaled(.dpiMuls);
+						imgData = (new ImageDataWithScale(imgData, info.scale)).scaled(.dpiMuls);
+						r = new Image(Display.getCurrent(), imgData);
+						releaseImage();
+						imgTbl[eo.element] = Tuple!(Image, "image", string, "path")(r, eo.icon);
 					}
 				} catch (Exception e) {
 					printStackTrace();
@@ -364,7 +381,8 @@ public:
 				}
 			}
 		}
-		return r ? r : images.element(eo.element).getImageData();
+		if (!r) releaseImage();
+		return r ? r : images.element(eo.element);
 	}
 }
 

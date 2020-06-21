@@ -248,24 +248,9 @@ class KeyCodeByMotionView : AbstractEditableListView!(KeyCodeByMotion) {
 			eTbl[eo.element] = eo;
 		}
 		if (value.hasElement) { mixin(S_TRACE);
-			auto p = value.element in eTbl;
-			auto imgPath = p ? p.icon : "";
-			auto p2 = value.element in _imgTbl;
-			auto image = _comm.prop.images.element(value.element);
-			if (imgPath != "") { mixin(S_TRACE);
-				if (!p2 || p2.path != imgPath) { mixin(S_TRACE);
-					if (p2) { mixin(S_TRACE);
-						assert (p2.path != "");
-						p2.image.dispose();
-					}
-					image = new Image(getDisplay(), _comm.prop.elementImage(eTbl, value.element));
-					_imgTbl[value.element] = Tuple!(Image, "image", string, "path")(image, imgPath);
-				} else if (p2) { mixin(S_TRACE);
-					image = p2.image;
-				}
-			}
-			itm.setImage(1, image);
+			itm.setImage(1, _comm.prop.elementImage(eTbl, value.element, _imgTbl));
 
+			auto p = value.element in eTbl;
 			if (p && p.name != "") { mixin(S_TRACE);
 				itm.setText(1, p.name);
 			} else { mixin(S_TRACE);
