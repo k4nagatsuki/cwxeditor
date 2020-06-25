@@ -32,7 +32,7 @@ import std.stdio : writeln, writefln;
 import std.string : splitLines;
 
 version (Windows) {
-	immutable RCC = "rcc";
+	immutable RCC = "rcc -32";
 	immutable RCEXE = "rc";
 	immutable RC = NAME.setExtension("rc");
 	immutable RES = NAME.setExtension("res");
@@ -317,6 +317,7 @@ void build(string[] args) {
 		// クリーン
 		EXE.removeFile();
 		version (Windows) {
+			RC.removeFile();
 			RES.removeFile();
 		}
 		"objs".removeFile();
@@ -337,6 +338,7 @@ void build(string[] args) {
 	string[] noDebugSymbols; // リンクエラーになるので-gが使えないファイル
 	string[] res; // リソースのディレクトリ
 	foreach (string file; ".".dirEntries(SpanMode.depth)) {
+		if (file.dirName() == ".") continue;
 		if (file.isDir()) continue;
 		if (!file.extension().equalsFilename(".d")) continue;
 		file = file.buildNormalizedPath();
@@ -359,7 +361,8 @@ void build(string[] args) {
 
 	version (Windows) {
 		// リソースファイル
-		if (RC.length && RC.newer(RES)) {
+		if ("@version.txt".newer(RC)) {
+			exec([DMD, "-J.", "-run", "createrc.d"]);
 			if (m64) {
 				cmd = [RCEXE];
 			} else {
