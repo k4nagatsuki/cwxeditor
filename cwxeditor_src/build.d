@@ -553,10 +553,12 @@ void build(string[] args) {
 	}
 
 	if (run) {
+		auto line = ".".buildPath(EXE);
 		if (unittests) {
-			exec(".".buildPath(EXE) ~ " --DRT-testmode=run-main");
-		} else {
-			exec(".".buildPath(EXE));
+			line ~= " --DRT-testmode=run-main";
 		}
+		writeln(line);
+		auto pid = .spawnShell(line);
+		if (!window) pid.wait();
 	}
 }
