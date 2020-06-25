@@ -9,7 +9,7 @@
       name="CWXEditor"
       type="win32"
   />
-  <description>Scenario editor for CardWirthPy.</description>
+  <description>Scenario Editor for WSN and CardWirth 1.28-1.50.</description>
   <dependency>
     <dependentAssembly>
       <assemblyIdentity

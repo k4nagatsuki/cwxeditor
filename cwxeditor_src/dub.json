@@ -15,6 +15,7 @@
 	],
 	"excludedSourceFiles": [
 		"build.d",
+		"createrc.d",
 		"private/*"
 	],
 	"stringImportPaths": [
@@ -27,6 +28,7 @@
 	},
 
 	"preBuildCommands-windows-x86": [
+		"rdmd -J. createrc.d",
 		"rcc cwxeditor.rc"
 	],
 	"lflags-windows-x86": [
@@ -35,6 +37,7 @@
 	],
 
 	"preBuildCommands-windows-x86_64": [
+		"rdmd -J. createrc.d",
 		"rc cwxeditor.rc"
 	],
 	"lflags-windows-x86_64": [
