@@ -380,7 +380,7 @@ class ElementOverrideView : Composite {
 			_comm.refUndoMax.remove(&refUndoMax);
 		});
 
-		_elements = .rangeSelectableTable(this, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.VIRTUAL | SWT.DOUBLE_BUFFERED);
+		_elements = .rangeSelectableTable(this, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.VIRTUAL);
 		_elements.setLayoutData(new GridData(GridData.FILL_BOTH));
 
 		_elements.setHeaderVisible(true);
@@ -393,10 +393,7 @@ class ElementOverrideView : Composite {
 
 		Tuple!(Image, "image", string, "path")[Element] imgTbl;
 		.listener(_elements, SWT.SetData, (e) { mixin(S_TRACE);
-			// BUG: 64-bitビルドで描画がおかしくなる
 			auto itm = cast(TableItem)e.item;
-			itm.setImage(0, _comm.prop.images.emptyIcon);
-/+			auto itm = cast(TableItem)e.item;
 			auto eo = _list[e.index];
 
 			itm.setImage(0, _comm.prop.elementImage(eo, imgTbl));
@@ -434,9 +431,8 @@ class ElementOverrideView : Composite {
 				targetType = eo.targetType;
 			}
 			itm.setText(1, targetType);
-+/		});
-		// BUG: 64-bitビルドで描画がおかしくなる
-/+		.listener(_elements, SWT.EraseItem, (e) { mixin(S_TRACE);
+		});
+		.listener(_elements, SWT.EraseItem, (e) { mixin(S_TRACE);
 			auto itm = cast(TableItem)e.item;
 			e.detail &= ~SWT.FOREGROUND;
 		});
@@ -446,19 +442,15 @@ class ElementOverrideView : Composite {
 			auto eo = _list[index];
 			auto column = e.index;
 			auto image = itm.getImage(column);
-			auto x = e.x;
 			auto w = _elements.getColumn(column).getWidth();
 			e.gc.setClipping(e.x, e.y, w, e.height);
 			if (image) { mixin(S_TRACE);
 				if (eo.icon == "") { mixin(S_TRACE);
 					e.gc.setAlpha(128);
 				}
-				auto ib = image.getBounds();
-				e.gc.drawImage(image, e.x, e.y + (e.height - ib.height) / 2);
+				auto ib = itm.getImageBounds(column);
+				e.gc.drawImage(image, ib.x, ib.y + (ib.height - image.getBounds().height) / 2);
 				e.gc.setAlpha(255);
-				ib = itm.getImageBounds(column);
-				x += ib.width;
-				w -= ib.width;
 			}
 			auto s = itm.getText(column);
 			if (s != "") { mixin(S_TRACE);
@@ -474,81 +466,10 @@ class ElementOverrideView : Composite {
 					}
 					break;
 				}
-				s = .cutText(s, e.gc, w);
+				auto tb = itm.getTextBounds(column);
+				s = .cutText(s, e.gc, tb.width);
 				auto h = e.gc.wTextExtent("#").y;
-				e.gc.drawText(s, x, e.y + (e.height - h) / 2, true);
-			}
-		});
-+/		.listener(_elements, SWT.Paint, (e) { mixin(S_TRACE);
-			auto ca = _elements.getClientArea();
-			auto th = e.gc.wTextExtent("#").y;
-			foreach (i; _elements.getTopIndex() .. _elements.getItemCount()) { mixin(S_TRACE);
-				auto itm = _elements.getItem(i);
-				if (itm.isDisposed()) continue;
-				auto b = itm.getBounds();
-				if (ca.y + ca.height <= b.y) break;
-
-				auto eo = _list[i];
-
-				e.gc.setAdvanced(true);
-				auto ib = itm.getImageBounds(0);
-				auto image = _comm.prop.elementImage(eo, imgTbl);
-				if (image) { mixin(S_TRACE);
-					if (eo.icon == "") { mixin(S_TRACE);
-						e.gc.setAlpha(128);
-					} else { mixin(S_TRACE);
-						e.gc.setAlpha(255);
-					}
-					e.gc.setClipping(ib.x, b.y, ib.width + b.width, b.height);
-					e.gc.drawImage(image, ib.x, b.y + (b.height - image.getBounds().height) / 2);
-				}
-				auto w1 = _elements.getColumn(0).getWidth();
-				auto w2 = _elements.getColumn(1).getWidth();
-
-				auto name = _comm.prop.msgs.elementName(eo.element);
-				auto p = eo.element in imgTbl;
-				if (eo.name == "") { mixin(S_TRACE);
-					e.gc.setAlpha(160);
-				} else { mixin(S_TRACE);
-					name = eo.name;
-					e.gc.setAlpha(255);
-				}
-				name = .cutText(name, e.gc, w1 - ib.width - 2);
-				e.gc.setClipping(b.x, b.y, w1 - ib.width - 2, b.height);
-				e.gc.drawText(name, b.x, b.y + (b.height - th) / 2, true);
-				b.x = ib.x + w1;
-
-				auto targetType = "";
-				final switch (eo.element) {
-				case Element.All:
-					targetType = _comm.prop.msgs.elementAllTargetType;
-					break;
-				case Element.Health:
-					targetType = _comm.prop.msgs.undead;
-					break;
-				case Element.Mind:
-					targetType = _comm.prop.msgs.automaton;
-					break;
-				case Element.Miracle:
-					targetType = _comm.prop.msgs.unholy;
-					break;
-				case Element.Magic:
-					targetType = _comm.prop.msgs.constructure;
-					break;
-				case Element.Fire:
-				case Element.Ice:
-					targetType = _comm.prop.msgs.elementWeaknessAndResistTargetType;
-					break;
-				}
-				if (eo.targetType == "") { mixin(S_TRACE);
-					e.gc.setAlpha(160);
-				} else { mixin(S_TRACE);
-					targetType = eo.targetType;
-					e.gc.setAlpha(255);
-				}
-				targetType = .cutText(targetType, e.gc, w2 - 2);
-				e.gc.setClipping(b.x, b.y, w2 - 2, b.height);
-				e.gc.drawText(targetType, b.x, b.y + (b.height - th) / 2, true);
+				e.gc.drawText(s, tb.x, tb.y + (tb.height - h) / 2, true);
 			}
 		});
 		.listener(_elements, SWT.Dispose, (e) { mixin(S_TRACE);

@@ -1231,8 +1231,7 @@ public:
 			col.column.setText(_prop.msgs.motionKind);
 			.setupComment(_comm, _motions, false);
 
-			// BUG: 64-bitビルドで描画がおかしくなる
-/+			.listener(_motions, SWT.PaintItem, (e) { mixin(S_TRACE);
+			.listener(_motions, SWT.PaintItem, (e) { mixin(S_TRACE);
 				auto itm = cast(TableItem)e.item;
 				assert (e.index == 0);
 				auto m = cast(Motion)itm.getData();
@@ -1250,30 +1249,6 @@ public:
 				}
 				e.gc.setAlpha(128);
 				e.gc.drawImage(image, x, e.y + (e.height - ib.height) / 2);
-			});
-+/			.listener(_motions, SWT.Paint, (e) { mixin(S_TRACE);
-				auto ca = _motions.getClientArea();
-				foreach (i; _motions.getTopIndex() .. _motions.getItemCount()) { mixin(S_TRACE);
-					auto itm = _motions.getItem(i);
-					if (itm.isDisposed()) continue;
-					auto b = itm.getBounds();
-					if (ca.y + ca.height <= b.y) break;
-					auto m = cast(Motion)itm.getData();
-					assert (m !is null);
-
-					auto image = _prop.elementImage(eTbl, m.element, imgTbl);
-
-					auto x = _motions.getColumn(0).getWidth();
-					auto ib = image.getBounds();
-					x -= 5.ppis;
-					x -= ib.width;
-					if (.commentText(m, false) != "") { mixin(S_TRACE);
-						auto ib2 = _prop.images.menu(MenuID.Comment).getBounds();
-						x -= ib2.width + 5.ppis;
-					}
-					e.gc.setAlpha(128);
-					e.gc.drawImage(image, x, b.y + (b.height - ib.height) / 2);
-				}
 			});
 		}
 		{ mixin(S_TRACE);
