@@ -92,6 +92,7 @@ class TimeBar : Canvas {
 	private void onMouseMove(Event e) { mixin(S_TRACE);
 		if (!_moving) return;
 		auto w = getClientArea().width;
+		if (w <= 0) return;
 		_setCur = dur!"seconds"(cast(int)((cast(real)e.x / w) * length.total!"seconds"));
 		redraw();
 	}
@@ -133,6 +134,7 @@ class TimeBar : Canvas {
 		e.gc.fillRectangle(ca);
 		e.gc.drawRectangle(ca.x, ca.y, ca.width - 1, ca.height - 1);
 		for (auto i = 0; i < total; i += 5) { mixin(S_TRACE);
+			assert (0 < total);
 			auto x = cast(int)((cast(real)ca.width / total) * i);
 			if (i % 30 == 0) { mixin(S_TRACE);
 				e.gc.drawLine(x, ca.height, x, ca.height - 8);
@@ -159,14 +161,16 @@ class TimeBar : Canvas {
 			e.gc.drawText(_warning, sx, sy, true);
 		} else { mixin(S_TRACE);
 			auto cur = current.total!"seconds";
-			auto x = cast(int)((cast(real)ca.width / total) * cur);
-			e.gc.drawLine(x, 0, x, ca.height);
-
-			if (_moving || _keyMoving) { mixin(S_TRACE);
-				cur = _setCur.total!"seconds";
-				x = cast(int)((cast(real)ca.width / total) * cur);
-				e.gc.setLineStyle(SWT.LINE_DOT);
+			if (0 < total) { mixin(S_TRACE);
+				auto x = cast(int)((cast(real)ca.width / total) * cur);
 				e.gc.drawLine(x, 0, x, ca.height);
+
+				if (_moving || _keyMoving) { mixin(S_TRACE);
+					cur = _setCur.total!"seconds";
+					x = cast(int)((cast(real)ca.width / total) * cur);
+					e.gc.setLineStyle(SWT.LINE_DOT);
+					e.gc.drawLine(x, 0, x, ca.height);
+				}
 			}
 
 			int hour, minute, second;
