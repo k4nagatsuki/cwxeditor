@@ -819,12 +819,15 @@ private:
 			grp.setText(_prop.msgs.overrideDefaultSettings);
 			grp.setLayout(new GridLayout(3, true));
 			_overrideBgImages = new Button(grp, SWT.CHECK);
+			mod(_overrideBgImages);
 			_overrideBgImages.setText(_prop.msgs.overrideBgImagesSettings);
 			.listener(_overrideBgImages, SWT.Selection, &updateOverrideBgImages);
 			_overrideSelections = new Button(grp, SWT.CHECK);
+			mod(_overrideSelections);
 			_overrideSelections.setText(_prop.msgs.overrideSelectionsSettings);
 			.listener(_overrideSelections, SWT.Selection, &updateOverrideSelections);
 			_overrideKeyCodes = new Button(grp, SWT.CHECK);
+			mod(_overrideKeyCodes);
 			_overrideKeyCodes.setText(_prop.msgs.overrideKeyCodesSettings);
 			.listener(_overrideKeyCodes, SWT.Selection, &updateOverrideKeyCodes);
 		}
