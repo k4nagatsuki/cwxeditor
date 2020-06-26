@@ -32,8 +32,7 @@
 		"rcc cwxeditor.rc"
 	],
 	"lflags-windows-x86": [
-		"/rc:cwxeditor.res",
-		"bassloop32.obj"
+		"/rc:cwxeditor.res"
 	],
 
 	"preBuildCommands-windows-x86_64": [
@@ -42,7 +41,6 @@
 	],
 	"lflags-windows-x86_64": [
 		"cwxeditor.res",
-		"bassloop64.obj",
 		"-L/STACK:4194304"
 	],
 	"libs-linux": [

@@ -18,6 +18,10 @@ immutable string[] RES_DIR = [
 immutable string[] IGNORE_DIR = [
 	"private",
 ];
+immutable string[] IGNORE_FILE = [
+	"build.d",
+	"createrc.d",
+];
 
 import std.algorithm;
 import std.array;
@@ -77,21 +81,18 @@ version (Windows) {
 		"-L/NOM",
 		"-of" ~ EXE,
 		"-L/exet:nt/su:console:4.0",
-		"bassloop32.obj",
 	];
 	immutable CONSOLE_FLAGS_L_64 = [
 		"-L" ~ NAME ~ ".res",
 		"-of" ~ EXE,
 		"-L/SUBSYSTEM:CONSOLE",
 		"-L/STACK:4194304",
-		"bassloop64.obj",
 	];
 	immutable string[] WINDOW_FLAGS_L_32 = [
 		"-L/rc:" ~ NAME,
 		"-L/NOM",
 		"-of" ~ EXE,
 		"-L/exet:nt/su:windows:4.0",
-		"bassloop32.obj",
 	];
 	immutable string[] WINDOW_FLAGS_L_64 = [
 		"-L" ~ NAME ~ ".res",
@@ -99,7 +100,6 @@ version (Windows) {
 		"-L/SUBSYSTEM:Windows",
 		"-L/ENTRY:mainCRTStartup",
 		"-L/STACK:4194304",
-		"bassloop64.obj",
 	];
 	immutable O = "obj";
 } else {
@@ -322,6 +322,7 @@ void build(string[] args) {
 		}
 		"objs".removeFile();
 		"build.d.deps".removeFile();
+		if (clean) "build.log".removeFile();
 		version (Windows) {
 			foreach (ext; [".exp", ".ilk", ".lib", ".pdb"]) {
 				auto path = EXE.setExtension(ext);
@@ -338,11 +339,10 @@ void build(string[] args) {
 	string[] noDebugSymbols; // リンクエラーになるので-gが使えないファイル
 	string[] res; // リソースのディレクトリ
 	foreach (string file; ".".dirEntries(SpanMode.depth)) {
-		if (file.dirName() == ".") continue;
 		if (file.isDir()) continue;
 		if (!file.extension().equalsFilename(".d")) continue;
 		file = file.buildNormalizedPath();
-		if (file.equalsFilename(__FILE__)) continue;
+		if (-1 != IGNORE_FILE.countUntil!equalsFilename(file)) continue;
 		if (-1 != CRITICAL.countUntil!equalsFilename(file)) {
 			critical ~= put(file, objs, test);
 			continue;

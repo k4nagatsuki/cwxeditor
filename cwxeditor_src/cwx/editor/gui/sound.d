@@ -51,6 +51,8 @@ version (Windows) {
 	}
 	private const __gshared MCI_NOTIFY_SUCCESSFUL = 0x0001;
 	private const __gshared MM_MCINOTIFY = 0x03B9;
+	private __gshared uint[string] loopCountsMM;
+	private __gshared ptrdiff_t[string] loopStartsMM;
 	/// playBGM()は_mciNotifyHandleに設定されたウィンドウに対して
 	/// 再生イベントを通知する。
 	private HWND _mciNotifyHandleBGM = null;
@@ -71,9 +73,9 @@ version (Windows) {
 			if (!handler || !winmm || !_mciSendString || !playingMCI || MM_MCINOTIFY != message || MCI_NOTIFY_SUCCESSFUL != wParam) {
 				return DefWindowProcW(hWnd, message, wParam, lParam);
 			}
-			auto loops = loopCounts.get(name, 1);
+			auto loops = loopCountsMM.get(name, 1);
 			if (loops != 1) {
-				if (0 < loops) loopCounts[name] = loops - 1;
+				if (0 < loops) loopCountsMM[name] = loops - 1;
 				auto seek = ("seek " ~ to!wstring(name) ~ " to 0\0"w).ptr;
 				if (loops == 1) {
 					auto play = ("play " ~ to!wstring(name) ~ "\0"w).ptr;
@@ -545,7 +547,7 @@ private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref clock_t start,
 +/				_mciSendString(toUTFz!(wchar*)("set " ~ mciName ~ " time format milliseconds"), null, 0, null);
 				string p = "play " ~ mciName;
 				auto handler = isBGM ? _mciNotifyHandleBGM : _mciNotifyHandleSE;
-				loopCounts[mciName] = loopCount;
+				loopCountsMM[mciName] = loopCount;
 				if (handler) { mixin(S_TRACE);
 					p ~= " notify";
 					enforce(0 == _mciSendString(toUTFz!(wchar*)(p), null, 0, handler),
@@ -734,7 +736,7 @@ private void initBass() { mixin(S_TRACE);
 				disposeBass();
 				return;
 			}
-			set_BASS_ChannelSetPosition(getSymbol!(BASS_ChannelSetPosition)(bass, "BASS_ChannelSetPosition"));
+			_BASS_ChannelSetPosition = getSymbol!(BASS_ChannelSetPosition)(bass, "BASS_ChannelSetPosition");
 
 		} catch (Exception e) {
 			printStackTrace();
@@ -800,7 +802,7 @@ private void disposeBass() { mixin(S_TRACE);
 		try { mixin(S_TRACE);
 			stopBGM();
 			stopSE();
-			set_BASS_ChannelSetPosition(null);
+			_BASS_ChannelSetPosition = null;
 			if (bassMidi) { mixin(S_TRACE);
 				releaseBassSoundFont();
 				dlclose(bassMidi);
@@ -840,30 +842,21 @@ version (Windows) {
 	private __gshared HSTREAM bassSEStream = 0;
 	private __gshared _initBassDir = "";
 	private __gshared const(SoundFontWithVolume)[] _initBassSFont = [];
-	private __gshared uint[string] loopCounts;
-	private __gshared ptrdiff_t[string] loopStarts;
-
+	private __gshared QWORD[2] loopStarts;
+	private __gshared int32_t[2] loopCounts;
 	private __gshared ptrdiff_t[2] loopEnds;
-	// FIXME: GCが動くとbassLoopコールバックでアクセス違反。
-	//        GCを無効にする事で対策できるが、確実にメモリ不足に陥る。
-	//        Cのオブジェクト上にループ処理を配置する事で問題を回避する。
-	private __gshared extern (C) void setLoopStart(size_t index, ulong loopStart);
-	private __gshared extern (C) void setLoopCount(size_t index, uint loopCount);
-	private __gshared extern (C) void set_BASS_ChannelSetPosition(BASS_ChannelSetPosition func);
-	private __gshared extern (Windows) void bassLoop(HSYNC handle, DWORD channel, DWORD data, void* user);
-/+	private __gshared extern (Windows) void bassLoop(HSYNC handle, DWORD channel, DWORD data, void* user) {
-		assert (_BASS_ChannelSetPosition !is null);
-		auto loopKey = fromStringz(cast(immutable(char)*)user);
-		auto pos = loopStarts[loopKey];
-		auto loops = loopCounts[loopKey];
-		if (loops != 1) { mixin(S_TRACE);
-			if (0 < loops) loopCounts[loopKey] = loops - 1;
+
+	private __gshared BASS_ChannelSetPosition _BASS_ChannelSetPosition;
+
+	private extern (Windows) void bassLoop(HSYNC handle, DWORD channel, DWORD data, void *user) {
+		auto index = cast(size_t)user;
+		auto pos = loopStarts[index];
+		auto loops = loopCounts[index];
+		if (loops != 1) {
+			if (0 < loops) loopCounts[index] = loops - 1;
 			_BASS_ChannelSetPosition(channel, pos, BASS_POS_BYTE);
-		} else { mixin(S_TRACE);
-			//core.memory.GC.enable();
 		}
 	}
-+/
 }
 
 /// fileがMIDIファイルであればtrue。
@@ -939,20 +932,19 @@ private bool playBass(string file, uint loopCount, bool spLoop, ref DWORD stream
 			case "cwse": loopIndex = 1; break;
 			default: throw new Exception("Invalid loop key: " ~ loopKey);
 			}
-			setLoopCount(loopIndex, loopCount);
+			loopCounts[loopIndex] = loopCount;
 
-			//core.memory.GC.disable();
 			if (loopStart != -1 && loopEnd != -1) { mixin(S_TRACE);
-				setLoopStart(loopIndex, loopStart);
+				loopStarts[loopIndex] = loopStart;
 				loopEnds[loopIndex] = loopEnd;
 				BASS_ChannelSetSync(stream, BASS_SYNC_POS | BASS_SYNC_MIXTIME, loopEnd, &bassLoop, cast(void*)loopIndex);
 				BASS_ChannelSetSync(stream, BASS_SYNC_END | BASS_SYNC_MIXTIME, 0, &bassLoop, cast(void*)loopIndex);
 			} else if (loopStart != -1) { mixin(S_TRACE);
-				setLoopStart(loopIndex, loopStart);
+				loopStarts[loopIndex] = loopStart;
 				loopEnds[loopIndex] = -1;
 				BASS_ChannelSetSync(stream, BASS_SYNC_END | BASS_SYNC_MIXTIME, 0, &bassLoop, cast(void*)loopIndex);
 			} else { mixin(S_TRACE);
-				setLoopStart(loopIndex, 0);
+				loopStarts[loopIndex] = 0;
 				loopEnds[loopIndex] = -1;
 				BASS_ChannelSetSync(stream, BASS_SYNC_END | BASS_SYNC_MIXTIME, 0, &bassLoop, cast(void*)loopIndex);
 			}
@@ -1076,7 +1068,6 @@ private void getLoopInfo(string file, bool midi, HSTREAM stream, out ptrdiff_t l
 }
 
 private void stopBass(ref DWORD stream) { mixin(S_TRACE);
-	//core.memory.GC.enable();
 	version (Windows) {
 		try { mixin(S_TRACE);
 			if (!bass) return;
