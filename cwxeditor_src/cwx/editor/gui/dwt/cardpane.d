@@ -478,11 +478,17 @@ private:
 			saveIDs(v);
 		}
 		private void saveIDs(CardPane v) { mixin(S_TRACE);
-			_ids.length = 0;
-			foreach (c; cardsFrom(cardType, owner)) _ids ~= c.id;
+			ulong[] ids;
+			foreach (c; cardsFrom(cardType, owner)) ids ~= c.id;
+			ulong[] sels;
 			if (v && v.widget && !v.widget.isDisposed()) { mixin(S_TRACE);
-				_sel = v.selectionIDs;
+				sels = v.selectionIDs;
 			}
+			storeIDs(ids, sels);
+		}
+		protected void storeIDs(ulong[] ids, ulong[] selectedIDs) { mixin(S_TRACE);
+			_ids = ids;
+			_sel = selectedIDs;
 		}
 		abstract override void undo();
 		abstract override void redo();
@@ -767,13 +773,15 @@ private:
 		private Card[] _cards = [];
 		private int[] _indices;
 
-		this (CardPane v, Commons comm, CWXPath owner, ulong[] ids, bool insert) { mixin(S_TRACE);
+		this (CardPane v, Commons comm, CWXPath owner, ulong[] ids, bool insert, ulong[] oldIDs, ulong[] selectedIDs) { mixin(S_TRACE);
 			super (v, comm, owner);
 			_insert = insert;
 			_ids = ids.dup;
 			std.algorithm.sort(_ids);
 
-			if (!insert) { mixin(S_TRACE);
+			if (insert) { mixin(S_TRACE);
+				storeIDs(oldIDs, selectedIDs);
+			} else { mixin(S_TRACE);
 				initUndoDelete();
 			}
 		}
@@ -843,13 +851,13 @@ private:
 			}
 		}
 	}
-	void storeInsert(ulong[] ids) { mixin(S_TRACE);
+	void storeInsert(ulong[] ids, ulong[] oldIDs, ulong[] selectedIDs) { mixin(S_TRACE);
 		assert (editMode);
-		_undo ~= new UndoInsertDelete(this, _comm, _owner, ids, true);
+		_undo ~= new UndoInsertDelete(this, _comm, _owner, ids, true, oldIDs, selectedIDs);
 	}
 	void storeDelete(ulong[] ids) { mixin(S_TRACE);
 		assert (editMode);
-		_undo ~= new UndoInsertDelete(this, _comm, _owner, ids, false);
+		_undo ~= new UndoInsertDelete(this, _comm, _owner, ids, false, [], []);
 	}
 
 	string _id;
@@ -1668,6 +1676,9 @@ private:
 						foreach (cardType, arr; adds) { mixin(S_TRACE);
 							auto pane = openSameLevelPane(cardType, lastType is cardType);
 							assert (pane._cardType is cardType);
+							ulong[] oldIDs2;
+							foreach (c; pane.cardsFrom(pane.cardType, pane.owner)) oldIDs2 ~= c.id;
+							auto selectedIDs = pane.selectionIDs;
 							ulong[] ids;
 							auto paneIndex = pane is this.outer ? index : cast(int)pane.cards.length;
 							foreach (i, card; arr) { mixin(S_TRACE);
@@ -1677,7 +1688,7 @@ private:
 								arr[i] = pane.cards[paneIndex];
 								paneIndex++;
 							}
-							pane.storeInsert(ids);
+							pane.storeInsert(ids, oldIDs2, selectedIDs);
 							pane.insert(arr[$ - 1], false);
 							pane.sort();
 							foreach (i, card; arr) { mixin(S_TRACE);
@@ -3340,6 +3351,9 @@ public:
 		auto absDlg = cast(AbsDialog)dlg;
 		assert (absDlg !is null);
 		absDlg.appliedEvent ~= { mixin(S_TRACE);
+			ulong[] oldIDs;
+			foreach (c; cardsFrom(cardType, owner)) oldIDs ~= c.id;
+			auto selectedIDs = selectionIDs;
 			open(false);
 			auto c = dlg.card;
 			ulong id;
@@ -3357,7 +3371,7 @@ public:
 			} else { mixin(S_TRACE);
 				add(cast(Summary)_owner, c);
 			}
-			storeInsert([c.id]);
+			storeInsert([c.id], oldIDs, selectedIDs);
 			refresh();
 			deselectAll();
 			selectID(c.id);
@@ -3483,6 +3497,9 @@ public:
 		foreach (cardType, arr; adds) { mixin(S_TRACE);
 			if (!arr.length) continue;
 			auto pane = openSameLevelPane(cardType, lastType is cardType);
+			ulong[] oldIDs;
+			foreach (c; pane.cardsFrom(pane.cardType, pane.owner)) oldIDs ~= c.id;
+			auto selectedIDs = pane.selectionIDs;
 			ulong[] ids;
 			foreach (ref card; arr) { mixin(S_TRACE);
 				pane.refreshLink(card, samePane, sameSc, topLevel);
@@ -3498,7 +3515,7 @@ public:
 				ids ~= card.id;
 				pane.refCard(card);
 			}
-			pane.storeInsert(ids);
+			pane.storeInsert(ids, oldIDs, selectedIDs);
 			pane.pasteRefresh(arr);
 			_comm.refUseCount.call();
 			if (pane._ownerType is OwnerType.Cast && (pane._cardType is CardType.Skill || pane._cardType is CardType.Item || pane._cardType is CardType.Beast)) { mixin(S_TRACE);
