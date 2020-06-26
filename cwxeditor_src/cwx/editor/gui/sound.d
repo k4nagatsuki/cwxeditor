@@ -445,7 +445,7 @@ private void setPos(in Mix_Chunk* chunk, bool playingMCI, string mciName, HSTREA
 		getSymbol!(Mix_SetMusicPosition)(mixer, "Mix_SetMusicPosition")(msecs * 1000.0);
 	}
 }
-private ulong len(in Mix_Chunk* chunk, bool playingMCI, string mciName, HSTREAM bassStream) { mixin(S_TRACE);
+private long len(in Mix_Chunk* chunk, bool playingMCI, string mciName, HSTREAM bassStream) { mixin(S_TRACE);
 	version (Windows) {
 		if (bassStream) { mixin(S_TRACE);
 			auto v = getSymbol!(BASS_ChannelGetLength)(bass, "BASS_ChannelGetLength")(bassStream, BASS_POS_BYTE);
@@ -462,9 +462,10 @@ private ulong len(in Mix_Chunk* chunk, bool playingMCI, string mciName, HSTREAM 
 	}
 	if (chunk) { mixin(S_TRACE);
 		auto bps = sdl_frequency * ((sdl_format & 0xFF) == 0x08 ? 1 : 2) * sdl_channels;
+		if (bps == 0) return -1;
 		return chunk.alen * 1000UL / bps;
 	}
-	return 0;
+	return -1;
 }
 
 /// 現在再生中のBGMの再生位置(msecs)。
@@ -480,7 +481,7 @@ void bgmPos(ulong pos) { mixin(S_TRACE);
 }
 /// 現在再生中のBGMの再生時間(msecs)を取得する。
 @property
-ulong bgmLen() { mixin(S_TRACE);
+long bgmLen() { mixin(S_TRACE);
 	return len(bgmChunk, _bgmPlayingMCI, CWBGM, bassBGMStream);
 }
 /// 現在再生中の効果音の再生位置(msecs)。
@@ -496,7 +497,7 @@ void sePos(ulong pos) { mixin(S_TRACE);
 }
 /// 現在再生中の効果音の再生時間(msecs)を取得する。
 @property
-ulong seLen() { mixin(S_TRACE);
+long seLen() { mixin(S_TRACE);
 	return len(seChunk, _sePlayingMCI, CWSE, bassSEStream);
 }
 

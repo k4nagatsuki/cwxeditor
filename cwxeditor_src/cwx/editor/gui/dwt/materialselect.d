@@ -776,10 +776,12 @@ class MaterialSelect(MtType Type, D, C) {
 						if (!_display) { mixin(S_TRACE);
 							_display = _playBar.getDisplay();
 						}
-						_updatePlayBar.len = cast(int)(.bgmLen / 1000.0);
-						if (_updatePlayBar.len <= 0) { mixin(S_TRACE);
+						auto len = .bgmLen;
+						if (len < 0) { mixin(S_TRACE);
+							_updatePlayBar.len = 0;
 							_playBar.setWarning(_prop.images.warning, _prop.msgs.canNotGetMusicLength);
 						} else { mixin(S_TRACE);
+							_updatePlayBar.len = cast(int)(len / 1000.0);
 							_playBar.clearWarning();
 							_playBar.length = dur!"seconds"(_updatePlayBar.len);
 							_playBar.current = dur!"seconds"(cast(int)(.bgmPos / 1000.0));
