@@ -1590,9 +1590,9 @@ struct SettingsWithSkinType {
 	void toNode(ref XNode e, in SettingsWithSkinType initValue, string name = XML_NAME) { mixin(S_TRACE);
 		auto r = e.newElement(name);
 		r.newAttr("type", type);
-		r.newAttr("bgImage", overrideBgImages ? "override" : "default");
-		r.newAttr("selection", overrideSelections ? "override" : "default");
-		r.newAttr("keyCode", overrideKeyCodes ? "override" : "default");
+		if (initValue.type == "" || initValue.overrideBgImages != overrideBgImages) r.newAttr("bgImage", overrideBgImages ? "override" : "default");
+		if (initValue.type == "" || initValue.overrideSelections != overrideSelections) r.newAttr("selection", overrideSelections ? "override" : "default");
+		if (initValue.type == "" || initValue.overrideKeyCodes != overrideKeyCodes) r.newAttr("keyCode", overrideKeyCodes ? "override" : "default");
 		if (initValue.type == "" || initValue.bgImagesDefault != bgImagesDefault) { mixin(S_TRACE);
 			auto ce = r.newElement("bgImagesDefault");
 			foreach (ref s; bgImagesDefault) { mixin(S_TRACE);
@@ -1638,9 +1638,9 @@ struct SettingsWithSkinType {
 	}
 	void fromNode(ref XNode node, in SettingsWithSkinType initValue) { mixin(S_TRACE);
 		type = node.attr("type", true);
-		overrideBgImages = node.attr("bgImage", false, "default") == "override";
-		overrideSelections = node.attr("selection", false, "default") == "override";
-		overrideKeyCodes = node.attr("keyCode", false, "default") == "override";
+		overrideBgImages = node.attr("bgImage", false, initValue.overrideBgImages ? "override" : "default") == "override";
+		overrideSelections = node.attr("selection", false, initValue.overrideSelections ? "override" : "default") == "override";
+		overrideKeyCodes = node.attr("keyCode", false, initValue.overrideKeyCodes ? "override" : "default") == "override";
 		bgImagesDefault = initValue.bgImagesDefault.dup;
 		node.onTag["bgImagesDefault"] = (ref XNode node) { mixin(S_TRACE);
 			bgImagesDefault = [];
