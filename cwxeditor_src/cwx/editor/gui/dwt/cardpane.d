@@ -2764,13 +2764,18 @@ private:
 			addFromNode(doc, ver);
 		}, null);
 	}
-	void refreshAddHand() { mixin(S_TRACE);
+	void clearAddHand() { mixin(S_TRACE);
 		assert (_ownerType is OwnerType.Cast);
 		assert (editMode);
-		if (!_summ) return;
 		foreach (itm; _addHandMenu.getItems()) { mixin(S_TRACE);
 			itm.dispose();
 		}
+	}
+	void refreshAddHand() { mixin(S_TRACE);
+		assert (_ownerType is OwnerType.Cast);
+		assert (editMode);
+		clearAddHand();
+		if (!_summ) return;
 		foreach (card; pOwnerCards) { mixin(S_TRACE);
 			refAddHandMenu(card);
 		}
@@ -2993,6 +2998,8 @@ public:
 				auto addHandMI = createMenuItem(_comm, pop, MenuID.AddHand, dummy, () => _owner && _summ && pOwnerCards.length, SWT.CASCADE);
 				_addHandMenu = new Menu(addHandMI);
 				addHandMI.setMenu(_addHandMenu);
+				.listener(_addHandMenu, SWT.Show, &refreshAddHand);
+				.listener(pop, SWT.Hide, &clearAddHand);
 				new MenuItem(pop, SWT.SEPARATOR);
 				createMenuItem(_comm, pop, MenuID.RemoveRef, &removeRef, &canRemoveRef);
 			}
@@ -3088,9 +3095,6 @@ public:
 	private void refCardCallback(Object sender, Card c) { mixin(S_TRACE);
 		assert (editMode);
 		if (sender is this) return;
-		if (_ownerType is OwnerType.Cast) { mixin(S_TRACE);
-			refreshAddHand();
-		}
 		refresh(c);
 		sort();
 	}
@@ -3565,11 +3569,6 @@ public:
 		_owner = owner;
 		_summ = summ;
 		refresh();
-		if (_ownerType is OwnerType.Cast) { mixin(S_TRACE);
-			if (editMode) { mixin(S_TRACE);
-				refreshAddHand();
-			}
-		}
 	}
 
 	@property

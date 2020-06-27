@@ -3016,8 +3016,10 @@ string wrapReturnCode(string str) { mixin(S_TRACE);
 int ppis(int value) { mixin(S_TRACE);
 	return value * dpiMuls;
 }
+private int _dpiMuls = 0;
 @property
 int dpiMuls() { mixin(S_TRACE);
+	if (_dpiMuls) return _dpiMuls;
 	auto d = Display.getCurrent();
 	auto dpi = d.getDPI().x;
 	immutable base = 96;
@@ -3025,7 +3027,8 @@ int dpiMuls() { mixin(S_TRACE);
 	while (base * exp <= dpi) { mixin(S_TRACE);
 		exp *= 2;
 	}
-	return exp / 2;
+	_dpiMuls = exp / 2;
+	return _dpiMuls;
 }
 
 GridLayout zeroGridLayout(int col, bool eqWid = false) { mixin(S_TRACE);
