@@ -2700,6 +2700,7 @@ public:
 	}
 	void openAreaScene(bool shellActivate, bool canDuplicate = false) { mixin(S_TRACE);
 		foreach (area; getSelectionAreas()) { mixin(S_TRACE);
+			if (_comm.stopOpen) break;
 			if (area) { mixin(S_TRACE);
 				auto a = cast(Area)area;
 				if (a) { mixin(S_TRACE);
@@ -2736,6 +2737,7 @@ public:
 	}
 	void openAreaEvent(bool shellActivate, bool canDuplicate = false) { mixin(S_TRACE);
 		foreach (area; getSelectionAreas()) { mixin(S_TRACE);
+			if (_comm.stopOpen) break;
 			openAreaEvent(area, shellActivate, canDuplicate);
 		}
 	}
@@ -3530,7 +3532,7 @@ public:
 		if (_summ && showSummary && 0 == _areas.getSelectionIndex()) { mixin(S_TRACE);
 			r ~= _summ.cwxPath(true);
 		}
-		foreach (area; getSelectionAreas()) {
+		foreach (area; getSelectionAreas()) { mixin(S_TRACE);
 			r ~= cpaddattr(area.cwxPath(true), "shallow");
 		}
 		return r;

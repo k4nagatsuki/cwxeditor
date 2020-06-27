@@ -63,6 +63,8 @@ class Msgs : Properties {
 		~ "エラーの内容は%1$sに記録されます。");
 	auto shutdown = Msg("shutdown", "強制終了");
 
+	auto warningWindowsHandleCount = Msg("warningWindowsHandleCount", "大量のタブやウィンドウを開いているため、Windowsハンドルを大量に消費しています。\nこのままハンドルを消費し続けると強制終了する恐れがあるため、不要なタブやウィンドウを閉じる事をお勧めします。");
+
 	auto targetVersion = Msg("targetVersion", "対象エンジン");
 	auto targetVersionHint = Msg("targetVersion", "※ 警告と誤り検索の結果に影響します");
 	auto cardWirthPy = Msg("cardWirthPy", "CardWirthPy");

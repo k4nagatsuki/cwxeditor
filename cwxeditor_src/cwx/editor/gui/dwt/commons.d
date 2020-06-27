@@ -1518,4 +1518,45 @@ class Commons {
 	@property
 	void inReplaceText(bool v) { _inReplaceText = v; }
 	private bool _inReplaceText = false;
+
+	/// ウィンドウやタブの連続オープン処理を止めるべき状況か。
+	@property
+	bool stopOpen() { mixin(S_TRACE);
+		version (Windows) {
+			if (!warningHandleCount) { mixin(S_TRACE);
+				import core.sys.windows.windows;
+				DWORD hCount;
+				if (GetProcessHandleCount(GetCurrentProcess(), &hCount)) { mixin(S_TRACE);
+					if (prop.var.etc.warningWindowsHandleCount < hCount) {
+						warningHandleCount = true;
+					}
+				}
+			}
+		}
+		return _stopOpen;
+	}
+	/// ditto
+	@property
+	void stopOpen(bool v) { _stopOpen = v; }
+	private bool _stopOpen = false;
+
+	version (Windows) {
+		/// ハンドル数が警告状態か。
+		@property
+		const
+		bool warningHandleCount() { return _warningHandleCount; }
+		/// ditto
+		@property
+		void warningHandleCount(bool v) { mixin(S_TRACE);
+			if (_warningHandleCount is v) return;
+			_warningHandleCount = v;
+			if (_warningHandleCount) { mixin(S_TRACE);
+				_stopOpen = true;
+				auto fc = Display.getCurrent().getFocusControl();
+				auto shell = fc ? fc.getShell() : _main.shell;
+				DWTMessageBox.showWarning(prop.msgs.warningWindowsHandleCount, prop.msgs.dlgTitWarning, shell);
+			}
+		}
+		private bool _warningHandleCount = false;
+	}
 }
