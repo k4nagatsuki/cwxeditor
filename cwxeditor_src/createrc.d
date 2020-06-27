@@ -45,7 +45,7 @@ void main() {
 		`            VALUE "CompanyName", "CWXEditor Developers.\0"`,
 		`            VALUE "FileDescription", "CWXEditor\0"`,
 		`            VALUE "InternalName", "CWXEditor\0"`,
-		`            VALUE "LegalCopyright", "See Also: editor_history.txt\0"`,
+		`            VALUE "LegalCopyright", "See Also: editor_license.txt\0"`,
 		`            VALUE "OriginalFilename", "cwxeditor.exe\0"`,
 		`            VALUE "ProductName", "CWXEditor\0"`,
 		`            VALUE "ProductVersion", "` ~ majorVer ~ `.` ~ minorVer ~ `\0"`,
