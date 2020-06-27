@@ -198,7 +198,7 @@ private void setupCommentToolTip(T, Item)(Commons comm, T table, bool isEventVie
 			toolTip.setLocation(p.x + ib.x + 5.ppis + ib.width / 2, p.y + ib.height / 2);
 			toolTip.setVisible(true);
 			table.redraw(pos.x, pos.y, ib.width, ib.height, false);
-		} else if (toolTip && !toolTip.isDisposed()) { mixin(S_TRACE);
+		} else if (toolTip && !toolTip.isDisposed() && toolTip.isVisible()) { mixin(S_TRACE);
 			toolTip.setVisible(false);
 		}
 	}
