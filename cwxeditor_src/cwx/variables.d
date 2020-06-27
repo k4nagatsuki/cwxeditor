@@ -17,6 +17,9 @@ class FlexEtcProps : Properties {
 	auto languageFile = Prop!(string)("languageFile", "");
 	auto useSystemLanguage = Prop!(bool)("useSystemLanguage", true);
 
+	auto warningWindowsHandleCount = Prop!(uint, false)("warningWindowsHandleCount", 1536);
+	auto liftWarningWindowsHandleCount = Prop!(uint, false)("liftWarningWindowsHandleCount", 1536);
+	
 	auto targetVersion = Prop!(string)("targetVersion", "1.50");
 	auto imeMode = Prop!(int)("imeMode", 0);
 	auto imageScale = Prop!(uint)("imageScale", 1, 2016091800);

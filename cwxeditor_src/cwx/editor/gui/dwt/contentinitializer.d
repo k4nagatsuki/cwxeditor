@@ -242,6 +242,7 @@ class ContentInitialValueEditor : TCPD {
 	void editContent() { mixin(S_TRACE);
 		if (!canEditContent) return;
 		foreach (sel; _list.getSelection()) { mixin(S_TRACE);
+			if (_comm.stopOpen) break;
 			editContentImpl(sel);
 		}
 	}

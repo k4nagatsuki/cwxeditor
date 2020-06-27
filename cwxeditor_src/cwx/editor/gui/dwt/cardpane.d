@@ -3035,6 +3035,7 @@ public:
 			if (_cardType is CardType.Cast) { mixin(S_TRACE);
 				createMenuItem(_comm, pop, MenuID.OpenHand, { mixin(S_TRACE);
 					foreach (card; selectedCards) { mixin(S_TRACE);
+						if (_comm.stopOpen) break;
 						assert (cast(CastCard)card);
 						_openHand(cast(CastCard)card);
 					}
@@ -3718,6 +3719,7 @@ public:
 		CardDialog dlg = null;
 		if (index == -1) { mixin(S_TRACE);
 			foreach (card; selectedCards) { mixin(S_TRACE);
+				if (_comm.stopOpen) break;
 				dlg = edit(card);
 			}
 		} else { mixin(S_TRACE);
@@ -3769,6 +3771,7 @@ public:
 		assert (editMode);
 		enterEdit();
 		foreach (card; selectedCards) { mixin(S_TRACE);
+			if (_comm.stopOpen) break;
 			assert(cast(CastCard)card !is null);
 			_comm.openHands(_prop, _summ, cast(CastCard)card, true);
 		}
@@ -3793,7 +3796,10 @@ public:
 	public void writeComment() { mixin(S_TRACE);
 		if (!canWriteComment) return;
 		enterEdit();
-		foreach (card; selectedCards) writeCommentImpl(card);
+		foreach (card; selectedCards) { mixin(S_TRACE);
+			if (_comm.stopOpen) break;
+			writeCommentImpl(card);
+		}
 	}
 	private void writeCommentImpl(Card card) { mixin(S_TRACE);
 		auto p = card in _commentDlgs;

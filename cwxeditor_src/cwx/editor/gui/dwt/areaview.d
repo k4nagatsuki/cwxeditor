@@ -3030,6 +3030,7 @@ private:
 			if (!cell) return;
 			if (selectConnectedResourceImpl(cell)) return;
 			foreach (item; _backs.getSelection()) { mixin(S_TRACE);
+				if (_comm.stopOpen) break;
 				auto c = cast(BgImage)item.getData();
 				if (!c) continue;
 				if (selectConnectedResourceImpl(c)) return;
@@ -3071,6 +3072,7 @@ private:
 			if (!card) return;
 			if (selectConnectedResourceImpl(card)) return;
 			foreach (item; _cards.getSelection()) { mixin(S_TRACE);
+				if (_comm.stopOpen) break;
 				auto c = cast(AbstractSpCard)item.getData();
 				if (!c) continue;
 				if (selectConnectedResourceImpl(c)) return;
@@ -4317,6 +4319,7 @@ public:
 				if (!_summ.casts.length) return;
 			}
 			foreach (i; indices) { mixin(S_TRACE);
+				if (_comm.stopOpen) break;
 				editCard(_area.cards[i]);
 			}
 		}
@@ -4457,7 +4460,10 @@ public:
 			auto sels = _cards.getSelectionIndices();
 			if (!sels.length) return;
 			if (_cardEdit) _cardEdit.enter();
-			foreach (index; sels) writeCommentBImpl(index);
+			foreach (index; sels) { mixin(S_TRACE);
+				if (_comm.stopOpen) break;
+				writeCommentBImpl(index);
+			}
 		}
 		void writeCommentBImpl(int index) { mixin(S_TRACE);
 			auto card = cast(C)_cards.getItem(index).getData();
@@ -4657,6 +4663,7 @@ public:
 		void editBack(int[] indices) { mixin(S_TRACE);
 			if (_readOnly) return;
 			foreach (i; indices) { mixin(S_TRACE);
+				if (_comm.stopOpen) break;
 				editBack(_area.backs[i]);
 			}
 		}
@@ -4840,7 +4847,10 @@ public:
 			auto sels = _backs.getSelectionIndices();
 			if (!sels.length) return;
 			if (_backEdit) _backEdit.enter();
-			foreach (index; sels) writeCommentCImpl(index);
+			foreach (index; sels) { mixin(S_TRACE);
+				if (_comm.stopOpen) break;
+				writeCommentCImpl(index);
+			}
 		}
 		void writeCommentCImpl(int index) { mixin(S_TRACE);
 			auto back = cast(BgImage)_backs.getItem(index).getData();

@@ -844,6 +844,7 @@ private:
 					statusLine = .tryFormat(_prop.msgs.reconstructionStatus, 0, paths.length);
 					dStr ~= " - " ~ .text(__LINE__);
 					foreach (i, cwxPath; paths) { mixin(S_TRACE);
+						if (_comm.stopOpen) break;
 						dStr ~= " - " ~ .text(__LINE__);
 						dStr ~= " - " ~ cwxPath;
 						if (openCWXPath(cwxPath, false)) { mixin(S_TRACE);
@@ -863,6 +864,7 @@ private:
 				_dirWin.select(_opt.selectfile, true);
 			}
 			foreach (path; _opt.openPaths) { mixin(S_TRACE);
+				if (_comm.stopOpen) break;
 				try { mixin(S_TRACE);
 					if (openCWXPath(path, true)) { mixin(S_TRACE);
 						continue;
@@ -4321,7 +4323,7 @@ public:
 	Image image() { return _win.getImage(); }
 	@property
 	override
-	Composite shell() { return _win; }
+	Shell shell() { return _win; }
 	@property
 	override
 	void delegate(string) statusText() { return &_sbshl.statusLine; }
@@ -4685,6 +4687,9 @@ public:
 					try {
 						if (d.readAndDispatch()) {
 							_catchedChanging = false;
+							version (Windows) {
+								_comm.stopOpen = false;
+							}
 						} else {
 							d.sleep();
 						}
@@ -4723,6 +4728,13 @@ public:
 										minimumHandleCount = cast(size_t)(hCount * 1.2);
 										cdebugln("Updated minimum handle count: %s".format(minimumHandleCount));
 									}
+								}
+							}
+							if (0 < _prop.var.etc.warningWindowsHandleCount && _prop.var.etc.liftWarningWindowsHandleCount <= _prop.var.etc.warningWindowsHandleCount) { mixin(S_TRACE);
+								if (_prop.var.etc.warningWindowsHandleCount < hCount && !_comm.warningHandleCount) { mixin(S_TRACE);
+									_comm.warningHandleCount = true;
+								} else if (hCount <= _prop.var.etc.liftWarningWindowsHandleCount && _comm.warningHandleCount) {mixin(S_TRACE);
+									_comm.warningHandleCount = false;
 								}
 							}
 						}

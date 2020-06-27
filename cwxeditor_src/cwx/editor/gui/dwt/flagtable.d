@@ -2435,7 +2435,10 @@ private:
 		auto itms = flags.getSelection();
 		if (!itms.length) return;
 		enterEdit();
-		foreach (itm; itms) writeCommentImpl(cast(Commentable)itm.getData());
+		foreach (itm; itms) { mixin(S_TRACE);
+			if (_comm.stopOpen) break;
+			writeCommentImpl(cast(Commentable)itm.getData());
+		}
 	}
 	void writeCommentImpl(Commentable obj) { mixin(S_TRACE);
 		assert (obj !is null);
@@ -3345,6 +3348,7 @@ public:
 	void edit() { mixin(S_TRACE);
 		if (_dir !is null) { mixin(S_TRACE);
 			foreach (index; flags.getSelectionIndices()) { mixin(S_TRACE);
+				if (_comm.stopOpen) break;
 				auto d = flags.getItem(index).getData();
 				if (auto variant = cast(cwx.flag.Variant)d) { mixin(S_TRACE);
 					editVariant(variant.parent, variant);
