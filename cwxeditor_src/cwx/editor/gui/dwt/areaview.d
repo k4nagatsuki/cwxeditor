@@ -35,6 +35,7 @@ import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.dutils;
+import cwx.editor.gui.dwt.eventwindow;
 import cwx.editor.gui.dwt.images;
 import cwx.editor.gui.dwt.incsearch;
 import cwx.editor.gui.dwt.jpyimage;
@@ -256,8 +257,12 @@ private:
 		void openRefAreaView() { mixin(S_TRACE);
 			if (!_refTarget) return;
 			try { mixin(S_TRACE);
-				if (auto a = cast(Area)_refTarget)_comm.openAreaScene(_prop, _summ, a, false, false);
-				if (auto a = cast(Battle)_refTarget)_comm.openAreaScene(_prop, _summ, a, false, false);
+				if (auto a = cast(Area)_refTarget) { mixin(S_TRACE);
+					_comm.openAreaScene(_prop, _summ, a, false, null);
+				}
+				if (auto a = cast(Battle)_refTarget) { mixin(S_TRACE);
+					_comm.openAreaScene(_prop, _summ, a, false, null);
+				}
 			} catch (Exception e) {
 				printStackTrace();
 				debugln(e);
@@ -3816,10 +3821,11 @@ public:
 	Summary summary() { mixin(S_TRACE);
 		return _summ;
 	}
-	static if (is(A : Area) || is(A : Battle)) {
+	static if (is(A:Area) || is(A:Battle)) {
 		void openEvent(bool canDuplicate = false) { mixin(S_TRACE);
 			if (!_summ) return;
-			auto tlp = _comm.openAreaEvent(_prop, _summ, _area, false, canDuplicate);
+			auto duplicateBase = canDuplicate ? cast(EventWindow)_comm.eventWindowFrom(_area.cwxPath(true), false) : null;
+			auto tlp = _comm.openAreaEvent(_prop, _summ, _area, false, duplicateBase);
 			auto i = _cards.getSelectionIndex();
 			if (-1 != i) { mixin(S_TRACE);
 				string path;
@@ -3832,7 +3838,12 @@ public:
 			}
 		}
 		void openDup() { mixin(S_TRACE);
-			_comm.openAreaScene(_prop, _summ, _area, false, true);
+			static if (is(A:Area)) {
+				alias AreaSceneWindow SceneWindow;
+			} else static if (is(A:Battle)) {
+				alias BattleSceneWindow SceneWindow;
+			} else static assert (0);
+			_comm.openAreaScene(_prop, _summ, _area, false, cast(SceneWindow)tlpData(this).tlp);
 		}
 	}
 	void refreshR(string from, string to) { mixin(S_TRACE);

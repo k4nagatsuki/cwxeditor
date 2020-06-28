@@ -20,6 +20,7 @@ import cwx.xml;
 
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.areaviewutils;
+import cwx.editor.gui.dwt.areawindow;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.chooser;
 import cwx.editor.gui.dwt.comment;
@@ -2494,20 +2495,22 @@ public:
 
 	private void openScene(bool canDuplicate = false) { mixin(S_TRACE);
 		if (auto area = cast(Area)_area) { mixin(S_TRACE);
-			_comm.openAreaScene(_prop, _summ, area, true, canDuplicate);
+			auto duplicateBase = canDuplicate ? cast(AreaSceneWindow)_comm.areaWindowFrom(area.cwxPath(true), false) : null;
+			_comm.openAreaScene(_prop, _summ, area, true, duplicateBase);
 		} else if (auto area = cast(Battle)_area) { mixin(S_TRACE);
-			_comm.openAreaScene(_prop, _summ, area, true, canDuplicate);
+			auto duplicateBase = canDuplicate ? cast(BattleSceneWindow)_comm.areaWindowFrom(area.cwxPath(true), false) : null;
+			_comm.openAreaScene(_prop, _summ, area, true, duplicateBase);
 		}
 	}
 	void openDup() { mixin(S_TRACE);
 		if (auto area = cast(Area)_area) { mixin(S_TRACE);
-			_comm.openAreaEvent(_prop, _summ, area, true, true);
+			_comm.openAreaEvent(_prop, _summ, area, true, cast(EventWindow)tlpData(this).tlp);
 		} else if (auto area = cast(Battle)_area) { mixin(S_TRACE);
-			_comm.openAreaEvent(_prop, _summ, area, true, true);
+			_comm.openAreaEvent(_prop, _summ, area, true, cast(EventWindow)tlpData(this).tlp);
 		} else if (auto area = cast(Package)_area) { mixin(S_TRACE);
-			_comm.openArea(_prop, _summ, area, true, true);
+			_comm.openArea(_prop, _summ, area, true, cast(EventWindow)tlpData(this).tlp);
 		} else if (auto card = cast(EffectCard)_area) {
-			_comm.openUseEvents(_prop, _summ, card, true, true);
+			_comm.openUseEvents(_prop, _summ, card, true, cast(EventWindow)tlpData(this).tlp);
 		} else assert (0);
 	}
 
