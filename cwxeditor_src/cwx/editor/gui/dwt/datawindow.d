@@ -604,8 +604,8 @@ public:
 			static if (UseArea) {
 				if (index >= _summ.areas.length) return false;
 				auto a = _summ.areas[index];
-				return openCWXPathAf(_comm.openAreaScene(_prop, _summ, a, shellActivate, false),
-					_comm.openAreaEvent(_prop, _summ, a, shellActivate, false),
+				return openCWXPathAf(_comm.openAreaScene(_prop, _summ, a, shellActivate, null),
+					_comm.openAreaEvent(_prop, _summ, a, shellActivate, null),
 					a, path, shellActivate);
 			} else {
 				break;
@@ -615,8 +615,8 @@ public:
 			static if (UseArea) {
 				auto a = _summ.area(index);
 				if (!a) return false;
-				return openCWXPathAf(_comm.openAreaScene(_prop, _summ, a, shellActivate, false),
-					_comm.openAreaEvent(_prop, _summ, a, shellActivate, false),
+				return openCWXPathAf(_comm.openAreaScene(_prop, _summ, a, shellActivate, null),
+					_comm.openAreaEvent(_prop, _summ, a, shellActivate, null),
 					a, path, shellActivate);
 			} else {
 				break;
@@ -626,8 +626,8 @@ public:
 			static if (UseArea) {
 				if (index >= _summ.battles.length) return false;
 				auto a = _summ.battles[index];
-				return openCWXPathAf(_comm.openAreaScene(_prop, _summ, a, shellActivate, false),
-					_comm.openAreaEvent(_prop, _summ, a, shellActivate, false),
+				return openCWXPathAf(_comm.openAreaScene(_prop, _summ, a, shellActivate, null),
+					_comm.openAreaEvent(_prop, _summ, a, shellActivate, null),
 					a, path, shellActivate);
 			} else {
 				break;
@@ -637,8 +637,8 @@ public:
 			static if (UseArea) {
 				auto a = _summ.battle(index);
 				if (!a) return false;
-				return openCWXPathAf(_comm.openAreaScene(_prop, _summ, a, shellActivate, false),
-					_comm.openAreaEvent(_prop, _summ, a, shellActivate, false),
+				return openCWXPathAf(_comm.openAreaScene(_prop, _summ, a, shellActivate, null),
+					_comm.openAreaEvent(_prop, _summ, a, shellActivate, null),
 					a, path, shellActivate);
 			} else {
 				break;
@@ -648,7 +648,7 @@ public:
 			static if (UseArea) {
 				if (index >= _summ.packages.length) return false;
 				auto a = _summ.packages[index];
-				return openCWXPathAf(_comm.openArea(_prop, _summ, a, shellActivate, false),
+				return openCWXPathAf(_comm.openArea(_prop, _summ, a, shellActivate, null),
 					a, path, shellActivate);
 			} else {
 				break;
@@ -658,7 +658,7 @@ public:
 			static if (UseArea) {
 				auto a = _summ.cwPackage(index);
 				if (!a) return false;
-				return openCWXPathAf(_comm.openArea(_prop, _summ, a, shellActivate, false),
+				return openCWXPathAf(_comm.openArea(_prop, _summ, a, shellActivate, null),
 					a, path, shellActivate);
 			} else {
 				break;

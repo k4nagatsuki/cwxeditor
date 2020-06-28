@@ -3734,6 +3734,7 @@ public:
 	}
 	void editUseEvent(Card c, bool canDuplicate = false) { mixin(S_TRACE);
 		assert (_cardType is CardType.Skill || _cardType is CardType.Item || _cardType is CardType.Beast);
+		assert (cast(EffectCard)c !is null);
 		enterEdit();
 		if (0 != linkId(c)) { mixin(S_TRACE);
 			if (editMode) { mixin(S_TRACE);
@@ -3763,7 +3764,9 @@ public:
 				if (!c) return;
 			}
 		}
-		_comm.openUseEvents(_prop, _summ, cast(EffectCard)c, true, canDuplicate);
+		auto duplicateBase = canDuplicate ? cast(EventWindow)_comm.eventWindowFrom(c.cwxPath(true), false) : null;
+		assert (!duplicateBase || duplicateBase.eventTreeOwner is cast(EffectCard)c);
+		_comm.openUseEvents(_prop, _summ, cast(EffectCard)c, true, duplicateBase);
 	}
 
 	void editHand() { mixin(S_TRACE);

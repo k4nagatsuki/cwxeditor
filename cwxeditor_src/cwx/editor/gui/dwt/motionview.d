@@ -281,9 +281,9 @@ private:
 		if (0 != beast.linkId) { mixin(S_TRACE);
 			auto b = _summ.beast(beast.linkId);
 			if (!b) return null;
-			return _comm.openUseEvents(_prop, _summ, b, true, false);
+			return _comm.openUseEvents(_prop, _summ, b, true, null);
 		}
-		auto w = _comm.openUseEvents(_prop, _summ, beast, true, false);
+		auto w = _comm.openUseEvents(_prop, _summ, beast, true, null);
 		if (_beWin.contains(w)) return w;
 		w.shell.addDisposeListener(new CloseRemover!EventWindow(_beWin, w));
 		_beWin.add(w);

@@ -4323,7 +4323,7 @@ public:
 	Image image() { return _win.getImage(); }
 	@property
 	override
-	Shell shell() { return _win; }
+	Composite shell() { return _win; }
 	@property
 	override
 	void delegate(string) statusText() { return &_sbshl.statusLine; }

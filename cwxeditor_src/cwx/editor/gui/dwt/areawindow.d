@@ -194,7 +194,7 @@ public:
 	void undo() { _undo.undo(); }
 	void redo() { _undo.redo(); }
 
-	void openEvent(bool canDuplicate) { mixin(S_TRACE);
+	void openEvent(bool canDuplicate = false) { mixin(S_TRACE);
 		_aview.openEvent(canDuplicate);
 	}
 	void openDup() { mixin(S_TRACE);

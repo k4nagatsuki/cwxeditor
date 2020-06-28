@@ -4,21 +4,22 @@ module cwx.editor.gui.dwt.eventwindow;
 import cwx.area;
 import cwx.card;
 import cwx.event;
-import cwx.summary;
-import cwx.skin;
-import cwx.utils;
-import cwx.path;
-import cwx.types;
 import cwx.menu;
+import cwx.path;
+import cwx.skin;
+import cwx.summary;
+import cwx.types;
+import cwx.utils;
 
-import cwx.editor.gui.dwt.dutils;
-import cwx.editor.gui.dwt.dskin;
-import cwx.editor.gui.dwt.dprops;
+import cwx.editor.gui.dwt.areawindow;
 import cwx.editor.gui.dwt.commons;
-import cwx.editor.gui.dwt.eventview;
-import cwx.editor.gui.dwt.eventtreeview;
-import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.dmenu;
+import cwx.editor.gui.dwt.dprops;
+import cwx.editor.gui.dwt.dskin;
+import cwx.editor.gui.dwt.dutils;
+import cwx.editor.gui.dwt.eventtreeview;
+import cwx.editor.gui.dwt.eventview;
+import cwx.editor.gui.dwt.undo;
 
 import std.conv;
 
@@ -176,11 +177,13 @@ public:
 	UndoManager undoManager() { mixin(S_TRACE);
 		return _undo;
 	}
-	private void openScene(bool canDuplicate = false) { mixin(S_TRACE);
-		if (auto area = cast(Area)_eto) {
-			_comm.openAreaScene(_prop, _summ, area, true, canDuplicate);
-		} else if (auto area = cast(Battle)_eto) {
-			_comm.openAreaScene(_prop, _summ, area, true, canDuplicate);
+	private void openScene(bool canDuplicate) { mixin(S_TRACE);
+		if (auto area = cast(Area)_eto) { mixin(S_TRACE);
+			auto duplicateBase = canDuplicate ? cast(AreaSceneWindow)_comm.areaWindowFrom(area.cwxPath(true), false) : null;
+			_comm.openAreaScene(_prop, _summ, area, true, duplicateBase);
+		} else if (auto area = cast(Battle)_eto) { mixin(S_TRACE);
+			auto duplicateBase = canDuplicate ? cast(BattleSceneWindow)_comm.areaWindowFrom(area.cwxPath(true), false) : null;
+			_comm.openAreaScene(_prop, _summ, area, true, duplicateBase);
 		} else assert (0);
 	}
 	private void openDup() { mixin(S_TRACE);

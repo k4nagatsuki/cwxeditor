@@ -1118,7 +1118,7 @@ public:
 			if (cate == "variable" || cate == "event") { mixin(S_TRACE);
 				if (!cphasattr(path, "nofocus")) .forceFocus(_paneTbl[cardType].widget, shellActivate);
 				assert (cast(EffectCard)card !is null);
-				return _comm.openUseEvents(_prop, _summ, cast(EffectCard)card, shellActivate, false).openCWXPath(path, shellActivate);
+				return _comm.openUseEvents(_prop, _summ, cast(EffectCard)card, shellActivate, null).openCWXPath(path, shellActivate);
 			}
 		}
 		return false;
