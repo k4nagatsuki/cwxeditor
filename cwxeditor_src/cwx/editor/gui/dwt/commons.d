@@ -1168,6 +1168,7 @@ class Commons {
 		if (!et) { mixin(S_TRACE);
 			EventTreeView[] r;
 			foreach (v; eventViewsFrom(path, shellActivate)) { mixin(S_TRACE);
+				if (v.eventTreeView.eventTree) continue;
 				r ~= v.eventTreeView;
 			}
 			return r;
@@ -1180,7 +1181,7 @@ class Commons {
 			auto tlpData = (cast(TLPData)w.getData());
 			if (tlpData.main is cast(Object)owner) { mixin(S_TRACE);
 				auto ew = cast(EventWindow)tlpData.tlp;
-				if (ew) r ~= ew.eventTreeView;
+				if (ew && ew.eventTreeView.eventTree is et) r ~= ew.eventTreeView;
 			}
 		}
 		return r;
