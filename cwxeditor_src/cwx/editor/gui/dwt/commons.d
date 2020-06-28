@@ -854,11 +854,11 @@ class Commons {
 	private Window openImpl(string Pane, Window, Main, string Etc, Args ...)(Main m, bool shellActivate, Window duplicateBase, Args args) { mixin(S_TRACE);
 		Window w = duplicateBase ? null : rOpen!(Window)(m, shellActivate);
 		if (!w) { mixin(S_TRACE);
-			w = openImpl2!(Pane, Window, Main, Etc, Args)(m, shellActivate, args);
+			w = openImpl2!(Pane, Window, Main, Etc, Args)(m, shellActivate, duplicateBase, args);
 		}
 		return w;
 	}
-	private Window openImpl2(string Pane, Window, Main, string Etc, Args ...)(Main m, bool shellActivate, Args args) { mixin(S_TRACE);
+	private Window openImpl2(string Pane, Window, Main, string Etc, Args ...)(Main m, bool shellActivate, Window duplicateBase, Args args) { mixin(S_TRACE);
 		auto w = new Window(args);
 		(cast(TLPData)w.shell.getData()).main = m;
 		static if (Etc.length) mixin(Etc);
@@ -877,22 +877,35 @@ class Commons {
 		return mainWorks.length ? mainWorks[0] : _main.dock.findPane("work", true)[0];
 	}
 	@property
-	private Composite workPane() { mixin(S_TRACE);
+	private Composite workPane(Shell priorityShell) { mixin(S_TRACE);
 		if (!_main.dock) return _main.shell;
-		return _main.dock.pane(workPaneKey);
+		return _main.dock.pane(workPaneKey, priorityShell);
 	}
 	@property
 	Composite sidePane() { mixin(S_TRACE);
 		if (!_main.dock) return _main.shell;
+		Shell shell = null;
+		if (auto fc = _main.shell.getDisplay().getFocusControl()) { mixin(S_TRACE);
+			if (auto tlpData = .tlpData(fc)) { mixin(S_TRACE);
+				shell = tlpData.tlp.shell.getShell();
+			}
+		}
+		auto side = _main.dock.pane("side", shell);
+		if (side) return side;
 		auto pane = workPaneKey;
 		return _main.dock.addPaneFromCtrlMemory(pane, Dir.E, 3, 1, "side", "side");
 	}
 	private Window openAreaImpl(A, Window)(Props prop, Summary summ, A area, UndoManager undo, bool shellActivate, Window duplicateBase) { mixin(S_TRACE);
 		if (!area) return null;
 		bool readOnly = this.summary !is summ;
+		auto shell = cast(Shell)_tableWin.shell;
+		if (auto fc = _main.shell.getDisplay().getFocusControl()) { mixin(S_TRACE);
+			if (auto tlpData = .tlpData(fc)) { mixin(S_TRACE);
+				shell = tlpData.tlp.shell.getShell();
+			}
+		}
 		return openImpl!("work", Window, A, "", Commons, Props, Summary, Composite, Shell, A, UndoManager, bool)
-			(area, shellActivate, duplicateBase, this, prop, summ, workPane,
-			cast(Shell)_tableWin.shell, area, undo, readOnly);
+			(area, shellActivate, duplicateBase, this, prop, summ, workPane(shell), shell, area, undo, readOnly);
 	}
 	private BindWindow openAreaB(A, BindWindow, SceneWindow)(Props prop, Summary summ, A area, bool shellActivate, Window duplicateBase) { mixin(S_TRACE);
 		auto ws = opened(area);
@@ -949,14 +962,26 @@ class Commons {
 	CardWindow openHands(Props prop, Summary summ, CastCard c, bool shellActivate) { mixin(S_TRACE);
 		auto w = rOpen!(CardWindow)(c, shellActivate);
 		if (w) return w;
+		Shell shell = null;
+		if (auto fc = _main.shell.getDisplay().getFocusControl()) { mixin(S_TRACE);
+			if (auto tlpData = .tlpData(fc)) { mixin(S_TRACE);
+				shell = tlpData.tlp.shell.getShell();
+			}
+		}
 		return openImpl2!("side", CardWindow, CastCard, "w.refresh(args[3], m);", Commons, Props, CardWindowKind, Summary, Composite)
-			(c, shellActivate, this, prop, CardWindowKind.Hand, summ, sidePane);
+			(c, shellActivate, null, this, prop, CardWindowKind.Hand, summ, sidePane);
 	}
 	CardWindow openAddHands(Props prop, Summary summ, CastCard c, Summary toc, bool shellActivate) { mixin(S_TRACE);
 		auto w = rOpen!(CardWindow)(c, shellActivate);
 		if (w) return w;
+		Shell shell = null;
+		if (auto fc = _main.shell.getDisplay().getFocusControl()) { mixin(S_TRACE);
+			if (auto tlpData = .tlpData(fc)) { mixin(S_TRACE);
+				shell = tlpData.tlp.shell.getShell();
+			}
+		}
 		return openImpl2!("side", CardWindow, CastCard, "", Commons, Props, CardWindowKind, Composite, Summary, CastCard, Summary)
-			(c, shellActivate, this, prop, CardWindowKind.ImportSourceHand, sidePane, summ, c, toc);
+			(c, shellActivate, null, this, prop, CardWindowKind.ImportSourceHand, sidePane, summ, c, toc);
 	}
 
 	private EventWindow openUseEventImpl(C)(Props prop, Summary summ, C c, bool shellActivate, EventWindow duplicateBase) { mixin(S_TRACE);
@@ -981,9 +1006,14 @@ class Commons {
 		} else static if (is(C : InfoCard)) {
 			parent = cast(Shell)_infoWin.shell;
 		} else static assert (0);
+		if (auto fc = _main.shell.getDisplay().getFocusControl()) { mixin(S_TRACE);
+			if (auto tlpData = .tlpData(fc)) { mixin(S_TRACE);
+				parent = tlpData.tlp.shell.getShell();
+			}
+		}
 		bool readOnly = this.summary !is summ;
 		return openImpl!("work", EventWindow, C, "", Commons, Props, Summary, Composite, Shell, C, UndoManager, bool)
-			(c, shellActivate, duplicateBase, this, prop, summ, workPane, parent, c, undo, readOnly);
+			(c, shellActivate, duplicateBase, this, prop, summ, workPane(parent), parent, c, undo, readOnly);
 	}
 	EventWindow openUseEvents(Props prop, Summary summ, EffectCard c, bool shellActivate, EventWindow duplicateBase) { mixin(S_TRACE);
 		if (auto card = cast(SkillCard)c) { mixin(S_TRACE);
@@ -1554,7 +1584,7 @@ class Commons {
 			if (_warningHandleCount) { mixin(S_TRACE);
 				_stopOpen = true;
 				auto fc = Display.getCurrent().getFocusControl();
-				auto shell = fc ? fc.getShell() : _main.shell;
+				auto shell = fc ? fc.getShell() : mainShell;
 				DWTMessageBox.showWarning(prop.msgs.warningWindowsHandleCount, prop.msgs.dlgTitWarning, shell);
 			}
 		}

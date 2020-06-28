@@ -252,10 +252,19 @@ class DockingFolder(TabF, int Style) {
 	string[] paneKeys() { return _tKeys.keys; }
 	/// keyに該当するペインを返す。
 	/// 存在しない場合はnullを返す。
-	Composite pane(string key) { mixin(S_TRACE);
+	Composite pane(string key, Shell priorityShell = null) { mixin(S_TRACE);
+		if (priorityShell) { mixin(S_TRACE);
+			foreach (key2, pane; _tKeys) { mixin(S_TRACE);
+				assert (pane.getShell() !is null);
+				if (prefix(key) == prefix(key2) && pane.getShell() is priorityShell) { mixin(S_TRACE);
+					return pane;
+				}
+			}
+		}
 		auto p = key in _tKeys;
 		return p ? *p : null;
 	}
+	/// ditto
 	/// ペインのkeyを返す。
 	/// 非対象のペインであれば""を返す。
 	string key(Composite pane) { mixin(S_TRACE);
