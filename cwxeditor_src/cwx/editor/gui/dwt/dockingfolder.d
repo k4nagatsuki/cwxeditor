@@ -264,7 +264,6 @@ class DockingFolder(TabF, int Style) {
 		auto p = key in _tKeys;
 		return p ? *p : null;
 	}
-	/// ditto
 	/// ペインのkeyを返す。
 	/// 非対象のペインであれば""を返す。
 	string key(Composite pane) { mixin(S_TRACE);

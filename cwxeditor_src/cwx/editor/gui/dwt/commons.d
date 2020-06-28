@@ -904,8 +904,20 @@ class Commons {
 				shell = tlpData.tlp.shell.getShell();
 			}
 		}
-		return openImpl!("work", Window, A, "", Commons, Props, Summary, Composite, Shell, A, UndoManager, bool)
+		auto r = openImpl!("work", Window, A, "", Commons, Props, Summary, Composite, Shell, A, UndoManager, bool)
 			(area, shellActivate, duplicateBase, this, prop, summ, workPane(shell), shell, area, undo, readOnly);
+		if (duplicateBase && r && duplicateBase !is r) { mixin(S_TRACE);
+			r.shell.setRedraw(false);
+			scope (exit) r.shell.setRedraw(true);
+			auto cwxPaths = duplicateBase.openedCWXPath;
+			auto ownerCWXPath = duplicateBase.eventTreeOwner.cwxPath(true);
+			foreach (cwxPath; cwxPaths) { mixin(S_TRACE);
+				auto rel = .cprel(cwxPath, ownerCWXPath);
+				if (rel == "") continue;
+				r.openCWXPath(rel, false);
+			}
+		}
+		return r;
 	}
 	private BindWindow openAreaB(A, BindWindow, SceneWindow)(Props prop, Summary summ, A area, bool shellActivate, Window duplicateBase) { mixin(S_TRACE);
 		auto ws = opened(area);
