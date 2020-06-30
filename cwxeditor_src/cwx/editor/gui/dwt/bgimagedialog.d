@@ -113,7 +113,7 @@ private:
 	}
 	class SettingsListener : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
-			auto c = cast(Combo) e.widget;
+			auto c = cast(Combo)e.widget;
 			int i = c.getSelectionIndex();
 			switch (i) {
 			case 0:
@@ -276,20 +276,30 @@ protected:
 			_easy.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 		}
 		_easy.add(_prop.msgs.defaultSelection(_prop.msgs.bgImageSettingCustom));
+		auto defCount = 1;
 		if (cast(ImageCell)back || cast(PCCell)back) { mixin(S_TRACE);
 			_easy.add(_prop.msgs.defaultSelection(_prop.msgs.bgImageSettingOriginal));
+			defCount++;
 		}
 		void refBgImageSettings() { mixin(S_TRACE);
-			auto sel = _easy.getText();
-			_easy.removeAll();
-			foreach (i, bs; _prop.bgImageSettings(_comm.skin.type)) { mixin(S_TRACE);
+			auto selIndex = _easy.getSelectionIndex();
+			auto sel = defCount <= selIndex ? _easy.getText() : "";
+			_easy.remove(defCount, _easy.getItemCount() - 1);
+			foreach (bs; _prop.bgImageSettings(_comm.skin.type)) { mixin(S_TRACE);
 				_easy.add(bs.name);
-				if (sel == bs.name) _easy.select(cast(int)i);
+				if (defCount <= selIndex && sel == bs.name) {
+					if (_x.getSelection() != bs.x) continue;
+					if (_y.getSelection() != bs.y) continue;
+					if (_w.getSelection() != bs.width) continue;
+					if (_h.getSelection() != bs.height) continue;
+					if (_mask && _mask.getSelection !is bs.mask) continue;
+					if (_layer.getSelection() != bs.layer) continue;
+					_easy.select(_easy.getItemCount() - 1);
+				}
 			}
 			if (_easy.getSelectionIndex() == -1) _easy.select(0);
 		}
 		refBgImageSettings();
-		_easy.select(0);
 		_comm.refSkin.add(&refBgImageSettings);
 		_comm.refBgImageSettings.add(&refBgImageSettings);
 		.listener(_easy, SWT.Dispose, { mixin(S_TRACE);
