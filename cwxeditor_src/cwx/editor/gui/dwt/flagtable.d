@@ -251,7 +251,9 @@ private:
 		}
 		ws ~= .sjisWarnings(_comm.prop.parent, _summ, _name.getText(), _comm.prop.msgs.dlgLblStepName);
 		void editing(string[] vals) { mixin(S_TRACE);
-			if (_editIndex != -1) vals[_editIndex] = _valueEditor.getText();
+			if (_editIndex != -1 && _valueEditor && !_valueEditor.isDisposed()) { mixin(S_TRACE);
+				vals[_editIndex] = _valueEditor.getText();
+			}
 		}
 		if (_expandSPChars.getSelection()) { mixin(S_TRACE);
 			bool[string] ws2;
