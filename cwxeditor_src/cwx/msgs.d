@@ -351,6 +351,7 @@ class Msgs : Properties {
 	auto searchResultColorCell = Msg("searchResultColorCell", "カラーセル「%1$s」");
 	auto searchResultPCCell = Msg("searchResultPCCell", "プレイヤーキャラクタセル「%1$s」");
 	auto searchResultIds = Msg("searchResultIds", "%1$s「%2$s.%3$s」");
+	auto searchResultIdsWithDesc = Msg("searchResultIdsWithDesc", "%1$s「%2$s.%3$s」 - %4$s");
 
 	auto searchResultFlag = Msg("searchResultFlag", "フラグ「%1$s」");
 	auto searchResultStep = Msg("searchResultStep", "ステップ「%1$s」");
