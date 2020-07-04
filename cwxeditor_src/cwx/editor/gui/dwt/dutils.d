@@ -4496,33 +4496,53 @@ void getSymbols(Commons comm, Summary summ, CWXPath path, bool desc, out string 
 	auto cas = cast(CastCard)path;
 	if (cas) { mixin(S_TRACE);
 		img = prop.images.casts;
-		text = .tryFormat(prop.msgs.searchResultIds, prop.msgs.cwCast, cas.id, cas.name);
+		if (!desc || cas.desc == "") { mixin(S_TRACE);
+			text = .tryFormat(prop.msgs.searchResultIds, prop.msgs.cwCast, cas.id, cas.name);
+		} else { mixin(S_TRACE);
+			text = .tryFormat(prop.msgs.searchResultIdsWithDesc, prop.msgs.cwCast, cas.id, cas.name, .singleLine(cas.desc));
+		}
 	}
 	auto ski = cast(SkillCard)path;
 	if (ski) { mixin(S_TRACE);
 		if (ski.linkId != 0) ski = summ.skill(ski.linkId);
 		if (!ski) return;
 		img = prop.images.skill;
-		text = .tryFormat(prop.msgs.searchResultIds, prop.msgs.skill, ski.id, ski.name);
+		if (!desc || ski.desc == "") { mixin(S_TRACE);
+			text = .tryFormat(prop.msgs.searchResultIds, prop.msgs.skill, ski.id, ski.name);
+		} else { mixin(S_TRACE);
+			text = .tryFormat(prop.msgs.searchResultIdsWithDesc, prop.msgs.skill, ski.id, ski.name, .singleLine(ski.desc));
+		}
 	}
 	auto ite = cast(ItemCard)path;
 	if (ite) { mixin(S_TRACE);
 		if (ite.linkId != 0) ite = summ.item(ite.linkId);
 		if (!ite) return;
 		img = prop.images.item;
-		text = .tryFormat(prop.msgs.searchResultIds, prop.msgs.item, ite.id, ite.name);
+		if (!desc || ite.desc == "") { mixin(S_TRACE);
+			text = .tryFormat(prop.msgs.searchResultIds, prop.msgs.item, ite.id, ite.name);
+		} else { mixin(S_TRACE);
+			text = .tryFormat(prop.msgs.searchResultIdsWithDesc, prop.msgs.item, ite.id, ite.name, .singleLine(ite.desc));
+		}
 	}
 	auto bea = cast(BeastCard)path;
 	if (bea) { mixin(S_TRACE);
 		if (bea.linkId != 0) bea = summ.beast(bea.linkId);
 		if (!bea) return;
 		img = prop.images.beast;
-		text = .tryFormat(prop.msgs.searchResultIds, prop.msgs.beast, bea.id, bea.name);
+		if (!desc || bea.desc == "") { mixin(S_TRACE);
+			text = .tryFormat(prop.msgs.searchResultIds, prop.msgs.beast, bea.id, bea.name);
+		} else { mixin(S_TRACE);
+			text = .tryFormat(prop.msgs.searchResultIdsWithDesc, prop.msgs.beast, bea.id, bea.name, .singleLine(bea.desc));
+		}
 	}
 	auto inf = cast(InfoCard)path;
 	if (inf) { mixin(S_TRACE);
 		img = prop.images.info;
-		text = .tryFormat(prop.msgs.searchResultIds, prop.msgs.info, inf.id, inf.name);
+		if (!desc || inf.desc == "") { mixin(S_TRACE);
+			text = .tryFormat(prop.msgs.searchResultIds, prop.msgs.info, inf.id, inf.name);
+		} else { mixin(S_TRACE);
+			text = .tryFormat(prop.msgs.searchResultIdsWithDesc, prop.msgs.info, inf.id, inf.name, .singleLine(inf.desc));
+		}
 	}
 	auto con = cast(Content)path;
 	if (con) { mixin(S_TRACE);
