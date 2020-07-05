@@ -845,6 +845,7 @@ private Summary loadSummary(ref RData d, ref ByteIO f, out ulong startAreaId) { 
 	auto area = f.readUIntL;
 	if (area < 19999) { mixin(S_TRACE);
 		d.dataVersion = 0;
+		startAreaId = area;
 	} else if (area < 39999) { mixin(S_TRACE);
 		d.dataVersion = 2;
 		startAreaId = area - 20000u;
@@ -1402,7 +1403,7 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			ulong id = dataVersion < 7 ? readUIntL(f) : readExUInt(f);
 			if (dataVersion <= 2) { mixin(S_TRACE);
 				e = new Content(CType.BranchSkill, name);
-				e.item = id;
+				e.skill = id;
 				e.range = Range.PartyAndBackpack;
 				e.cardNumber = 1;
 				break;
@@ -1423,7 +1424,7 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			ulong id = dataVersion < 7 ? readUIntL(f) : readExUInt(f);
 			if (dataVersion <= 2) { mixin(S_TRACE);
 				e = new Content(CType.BranchBeast, name);
-				e.item = id;
+				e.beast = id;
 				e.range = Range.PartyAndBackpack;
 				e.cardNumber = 1;
 				break;
@@ -1476,7 +1477,7 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			ulong id = dataVersion < 7 ? readUIntL(f) : readExUInt(f);
 			if (dataVersion <= 2) { mixin(S_TRACE);
 				e = new Content(CType.GetSkill, name);
-				e.item = id;
+				e.skill = id;
 				e.range = Range.PartyAndBackpack;
 				e.cardNumber = 1;
 				break;
@@ -1497,7 +1498,7 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			ulong id = dataVersion < 7 ? readUIntL(f) : readExUInt(f);
 			if (dataVersion <= 2) { mixin(S_TRACE);
 				e = new Content(CType.GetBeast, name);
-				e.item = id;
+				e.beast = id;
 				e.range = Range.PartyAndBackpack;
 				e.cardNumber = 1;
 				break;
@@ -1550,7 +1551,7 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			ulong id = dataVersion < 7 ? readUIntL(f) : readExUInt(f);
 			if (dataVersion <= 2) { mixin(S_TRACE);
 				e = new Content(CType.LoseSkill, name);
-				e.item = id;
+				e.skill = id;
 				e.range = Range.PartyAndBackpack;
 				e.cardNumber = 1;
 				break;
@@ -1571,7 +1572,7 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			ulong id = dataVersion < 7 ? readUIntL(f) : readExUInt(f);
 			if (dataVersion <= 2) { mixin(S_TRACE);
 				e = new Content(CType.LoseBeast, name);
-				e.item = id;
+				e.beast = id;
 				e.range = Range.PartyAndBackpack;
 				e.cardNumber = 1;
 				break;
