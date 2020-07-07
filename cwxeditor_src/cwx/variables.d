@@ -480,6 +480,7 @@ class FlexEtcProps : Properties {
 	auto expandXMLs = Prop!(bool)("expandXMLs", false);
 	auto xmlCopy = Prop!(bool)("xmlCopy", false);
 	auto showSpNature = Prop!(bool)("showSpNature", false);
+	auto saveChangedOnlyWsn = Prop!(bool)("saveChangedOnlyWsn", true);
 	auto saveChangedOnly = Prop!(bool)("saveChangedOnly", false);
 	auto xmlFileNameIsIDOnly = Prop!(bool)("xmlFileNameIsIDOnly", false);
 	auto archiveInNewThread = Prop!(bool)("archiveInNewThread", true);
