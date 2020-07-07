@@ -2415,7 +2415,8 @@ class Msgs : Properties {
 	auto doubleIO = Msg("doubleIO", "分割読込・保存を行う(デュアルコア以上の環境で高速化)");
 	auto cautionToScenarioLoadErrors = Msg("cautionToScenarioLoadErrors", "シナリオの一部ファイルの読み込みに失敗した場合に警告する");
 	auto archiveInNewThread = Msg("archiveInNewThread", "保存時の圧縮を別スレッドで行う(圧縮シナリオの保存の高速化)");
-	auto saveChangedOnly = Msg("saveChangedOnly", "上書き時に更新されたファイルだけを保存する");
+	auto saveChangedOnlyWsn = Msg("saveChangedOnlyWsn", "WSN形式のシナリオの上書き時に更新されたファイルだけを保存する");
+	auto saveChangedOnlyClassic = Msg("saveChangedOnlyClassic", "クラシックなシナリオの上書き時に更新されたファイルだけを保存する");
 	auto expandXMLs = Msg("expandXMLs", "圧縮されたシナリオの読込み時にXMLファイルを展開する");
 	auto xmlFileNameIsIDOnly = Msg("xmlFileNameIsIDOnly", "XMLファイルの名前にエリア名などを含めずIDのみで設定する");
 	auto replaceClassicResourceExtension = Msg("replaceClassicResourceExtension", "クラシックなシナリオの保存時にスキン付属リソースの拡張子を変換する");

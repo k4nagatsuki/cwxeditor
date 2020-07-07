@@ -631,7 +631,7 @@ private:
 				{ mixin(S_TRACE);
 					_saveSync.lock();
 					scope (exit) _saveSync.unlock();
-					summ.saveOverwrite(_prop.parent, skin, createSaveOpt(true), _sync);
+					summ.saveOverwrite(_prop.parent, skin, createSaveOpt(summ.legacy, true), _sync);
 				}
 			} else { mixin(S_TRACE);
 				auto skin = .findSkin2(_prop, dlg.skinType, dlg.skinName);
@@ -994,12 +994,16 @@ private:
 	void savec(Shell shell) { mixin(S_TRACE);
 		save(shell);
 	}
-	SaveOption createSaveOpt(bool initial) { mixin(S_TRACE);
+	SaveOption createSaveOpt(bool isClassic, bool initial) { mixin(S_TRACE);
 		SaveOption opt;
 		opt.doubleIO = _prop.var.etc.doubleIO;
 		opt.saveInnerImagePath = _prop.var.etc.saveInnerImagePath;
 		opt.logicalSort = _prop.var.etc.logicalSort;
-		opt.saveChangedOnly = _prop.var.etc.saveChangedOnly && !initial;
+		if (initial) { mixin(S_TRACE);
+			opt.saveChangedOnly = false;
+		} else { mixin(S_TRACE);
+			opt.saveChangedOnly = isClassic ? _prop.var.etc.saveChangedOnly : _prop.var.etc.saveChangedOnlyWsn;
+		}
 		opt.xmlFileNameIsIDOnly = _prop.var.etc.xmlFileNameIsIDOnly;
 		opt.backup = _prop.var.etc.backupBeforeSaveEnabled && !initial;
 		opt.backupDir = _prop.backupBeforeSavePath.buildPath(_prop.var.etc.backupBeforeSaveDir);
@@ -1066,7 +1070,7 @@ private:
 					{ mixin(S_TRACE);
 						_saveSync.lock();
 						scope (exit) _saveSync.unlock();
-						summary.saveOverwrite(_prop.parent, _comm.skin, createSaveOpt(false), _sync);
+						summary.saveOverwrite(_prop.parent, _comm.skin, createSaveOpt(summary.legacy, false), _sync);
 					}
 					_comm.saved.call();
 					refreshTitle();
@@ -1211,13 +1215,13 @@ private:
 						_saveSync.lock();
 						scope (exit) _saveSync.unlock();
 						if (exportSc) { mixin(S_TRACE);
-							auto opt = createSaveOpt(false);
+							auto opt = createSaveOpt(summary.legacy, false);
 							opt.dataVersion = 7;
 							summary.exportClassicScenario(_prop.parent, newSkin, opt, fname, tempPath, (string msg) { mixin(S_TRACE);
 								DWTMessageBox.showWarning(msg, _prop.msgs.dlgTitWarning, shell);
 							}, _sync);
 						} else { mixin(S_TRACE);
-							summary.saveWithName(_prop.parent, newSkin, createSaveOpt(false),
+							summary.saveWithName(_prop.parent, newSkin, createSaveOpt(summary.legacy, false),
 								fname, tempPath, expandXMLs, defSkin, (string msg) { mixin(S_TRACE);
 									DWTMessageBox.showWarning(msg, _prop.msgs.dlgTitWarning, shell);
 								}, classic, _sync);
@@ -4616,7 +4620,7 @@ public:
 						{ mixin(S_TRACE);
 							_saveSync.lock();
 							scope (exit) _saveSync.unlock();
-							summ.saveOverwrite(_prop.parent, findSkin(_comm, _prop, summ), createSaveOpt(true), _sync);
+							summ.saveOverwrite(_prop.parent, findSkin(_comm, _prop, summ), createSaveOpt(summ.legacy, true), _sync);
 						}
 						openScenario(summ, []);
 						statusLine = "";

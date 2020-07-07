@@ -129,7 +129,8 @@ class EtcSettings : Composite {
 		boolSetting(comp, prop.var.etc.doubleIO, prop.msgs.doubleIO);
 		boolSetting(comp, prop.var.etc.cautionToScenarioLoadErrors, prop.msgs.cautionToScenarioLoadErrors);
 		boolSetting(comp, prop.var.etc.archiveInNewThread, prop.msgs.archiveInNewThread);
-		boolSetting(comp, prop.var.etc.saveChangedOnly, prop.msgs.saveChangedOnly);
+		boolSetting(comp, prop.var.etc.saveChangedOnlyWsn, prop.msgs.saveChangedOnlyWsn);
+		boolSetting(comp, prop.var.etc.saveChangedOnly, prop.msgs.saveChangedOnlyClassic);
 		boolSetting(comp, prop.var.etc.xmlFileNameIsIDOnly, prop.msgs.xmlFileNameIsIDOnly);
 		boolSetting(comp, prop.var.etc.expandXMLs, prop.msgs.expandXMLs);
 		boolSetting(comp, prop.var.etc.replaceClassicResourceExtension, prop.msgs.replaceClassicResourceExtension);
