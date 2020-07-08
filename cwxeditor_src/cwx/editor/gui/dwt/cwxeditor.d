@@ -26,7 +26,7 @@ void main(string[] args) {
 	version (Console) {
 		string log = "Executed: " ~ appPath;
 		cwriteln(log);
-		debug {
+		version (unittest) {
 			cwriteln(.tryFormat("unittest success: %d msec", utperf));
 		}
 	} else {
