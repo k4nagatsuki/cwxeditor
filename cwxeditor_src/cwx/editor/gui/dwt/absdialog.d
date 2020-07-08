@@ -354,13 +354,17 @@ abstract class AbsDialog {
 			// BUG: Google日本語入力を使用しており、IMEがオンの時にダイアログを開くと、
 			//      全角スペースを入力しようとしても半角スペースが入る、
 			//      バックスペースキーが一度だけ効かないなどの不具合が発生する
-			//      バックスペースを一度だけ入力する事でなぜか回避可能
+			//      バックスペースキー、CapsLockキー、半角/全角キーなど押す事でなぜか回避可能
 			//      GoogleJapaneseInput-2.25.3700.0+24.7.9 with Windows 10 Pro 64-bit
-			auto keyEvt = new Event;
-			keyEvt.type = SWT.KeyDown;
-			keyEvt.character = '\b';
-			keyEvt.keyCode = SWT.BS;
-			_win.getDisplay().post(keyEvt);
+			.asyncExec(_win.getDisplay(), { mixin(S_TRACE);
+				if (_win.getDisplay().getActiveShell() is _win) { mixin(S_TRACE);
+					auto keyEvt = new Event;
+					keyEvt.type = SWT.KeyDown;
+					keyEvt.character = '\b';
+					keyEvt.keyCode = SWT.BS;
+					_win.getDisplay().post(keyEvt);
+				}
+			});
 		}
 		if (firstFocusIsOK) _okBtn.setFocus();
 		opened();
