@@ -358,6 +358,8 @@ abstract class AbsDialog {
 			//      GoogleJapaneseInput-2.25.3700.0+24.7.9 with Windows 10 Pro 64-bit
 			.asyncExec(_win.getDisplay(), { mixin(S_TRACE);
 				if (_win.getDisplay().getActiveShell() is _win) { mixin(S_TRACE);
+					auto fc = _win.getDisplay().getFocusControl();
+					if (cast(Spinner)fc) return;
 					auto keyEvt = new Event;
 					keyEvt.type = SWT.KeyDown;
 					keyEvt.character = '\b';

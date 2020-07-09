@@ -4683,6 +4683,9 @@ public:
 				version (nocatch) {
 					if (d.readAndDispatch()) {
 						_catchedChanging = false;
+						version (Windows) {
+							_comm.stopOpen = false;
+						}
 					} else {
 						d.sleep();
 					}
