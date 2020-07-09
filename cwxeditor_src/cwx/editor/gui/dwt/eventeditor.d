@@ -391,21 +391,30 @@ class EventEditor : Composite {
 	private void updateEventTree() { mixin(S_TRACE);
 		_items = null;
 		updatePosAll();
+		if (_doUpdateEventTree) return;
+		_doUpdateEventTree = true;
 		.asyncExec(getDisplay(), { mixin(S_TRACE);
+			_doUpdateEventTree = false;
 			if (isDisposed()) return;
 			redraw();
 		});
 	}
+	private bool _doUpdateEventTree = false;
+
 	void updateEventText() { mixin(S_TRACE);
 		_updateEventText = true;
+		if (_doUpdateEventText) return;
+		_doUpdateEventText = true;
 		getDisplay.asyncExec(new class Runnable {
 			override void run() { mixin(S_TRACE);
+				_doUpdateEventText = false;
 				if (isDisposed()) return;
 				updatePosImpl2(false);
 				redraw();
 			}
 		});
 	}
+	private bool _doUpdateEventText = false;
 
 	private void updateEventTextImpl() { mixin(S_TRACE);
 		if (!_updateEventText) return;
@@ -476,25 +485,34 @@ class EventEditor : Composite {
 	void updatePosOne(in Content c) { mixin(S_TRACE);
 		auto eventId = c.parentStart.eventId;
 		_updateContents[eventId] = true;
+		if (_doUpdatePosOne) return;
+		_doUpdatePosOne = true;
 		getDisplay.asyncExec(new class Runnable {
 			override void run() { mixin(S_TRACE);
+				_doUpdatePosOne = false;
 				if (isDisposed()) return;
 				updatePosImpl2(false);
 				redraw();
 			}
 		});
 	}
+	private bool _doUpdatePosOne = false;
+
 	/// 次の再描画で全ての位置計算をやり直す事を通知する。
 	private void updatePosAll() { mixin(S_TRACE);
 		_updatePosAll = true;
+		if (_doUpdatePosAll) return;
+		_doUpdatePosAll = true;
 		getDisplay.asyncExec(new class Runnable {
 			override void run() { mixin(S_TRACE);
+				_doUpdatePosAll = false;
 				if (isDisposed()) return;
 				updatePosImpl2(false);
 				redraw();
 			}
 		});
 	}
+	private bool _doUpdatePosAll = false;
 
 	private int calcEventTextWidth(GC gc, Content c, out string s) { mixin(S_TRACE);
 		auto eventTextWidth = 0;
@@ -622,23 +640,29 @@ class EventEditor : Composite {
 		updateScrollBar();
 		if (_pos.length && _pos[$ - 1].content.type is CType.Start) { mixin(S_TRACE);
 			// FIXME: 末尾にスタートコンテントがあると縦スクロールバーの幅がおかしくなる事があるので
-			auto isShowSelection = _showSelection;
-			getDisplay.asyncExec(new class Runnable {
-				override void run() { mixin(S_TRACE);
-					if (isDisposed()) return;
-					updateScrollBar();
-					if (isShowSelection) { mixin(S_TRACE);
-						showSelection();
+			_isShowSelection = _showSelection;
+			if (!_doUpdatePosImpl2) { mixin(S_TRACE);
+				_doUpdatePosImpl2 = true;
+				getDisplay.asyncExec(new class Runnable {
+					override void run() { mixin(S_TRACE);
+						_doUpdatePosImpl2 = false;
+						if (isDisposed()) return;
+						updateScrollBar();
+						if (_isShowSelection) { mixin(S_TRACE);
+							showSelection();
+						}
+						redraw();
 					}
-					redraw();
-				}
-			});
+				});
+			}
 		}
 		if (!fromRedraw) redraw();
 		if (_selected !is oldSel && _selected) { mixin(S_TRACE);
 			callSelectChanged();
 		}
 	}
+	private bool _isShowSelection = false;
+	private bool _doUpdatePosImpl2 = false;
 
 	/// 部分再描画処理。スタートコンテントを挿入・更新する。
 	private void updateStartInfo(GC gc, ref int[] posY) { mixin(S_TRACE);
@@ -1144,8 +1168,11 @@ class EventEditor : Composite {
 		removeListener(SWT.Collapse, listener);
 	}
 	private void callExpandedChanged(EventEditorItem itm) { mixin(S_TRACE);
+		if (_doCallExpandedChanged) return;
+		_doCallExpandedChanged = true;
 		getDisplay().asyncExec(new class Runnable {
 			override void run() { mixin(S_TRACE);
+				_doCallExpandedChanged = false;
 				if (isDisposed()) return;
 				auto se = new Event;
 				se.item = itm;
@@ -1156,6 +1183,7 @@ class EventEditor : Composite {
 			}
 		});
 	}
+	private bool _doCallExpandedChanged = false;
 
 	/// ツリーを全て開く・閉じる操作が可能か。
 	/// 例えば全て閉じられていた場合は全て閉じる操作は行えない
@@ -1380,12 +1408,16 @@ class EventEditor : Composite {
 			val -= 1;
 		}
 		vbar.setSelection(val);
+		if (_doOnMouseWheel) return;
+		_doOnMouseWheel = true;
 		.asyncExec(getDisplay(), { mixin(S_TRACE);
+			_doOnMouseWheel = false;
 			if (isDisposed()) return;
 			setRedraw(true);
 			updateLightup();
 		});
 	}
+	private bool _doOnMouseWheel = false;
 
 	private void nameVisible(int index, bool visible) { mixin(S_TRACE);
 		_pos[index].nameVisible = visible;
