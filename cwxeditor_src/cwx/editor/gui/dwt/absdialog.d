@@ -357,7 +357,7 @@ abstract class AbsDialog {
 			//      バックスペースキー、CapsLockキー、半角/全角キーなど押す事でなぜか回避可能
 			//      GoogleJapaneseInput-2.25.3700.0+24.7.9 with Windows 10 Pro 64-bit
 			.asyncExec(_win.getDisplay(), { mixin(S_TRACE);
-				if (_win.getDisplay().getActiveShell() is _win) { mixin(S_TRACE);
+				if (!_win.isDisposed() && _win.getDisplay().getActiveShell() is _win) { mixin(S_TRACE);
 					auto fc = _win.getDisplay().getFocusControl();
 					if (cast(Spinner)fc) return;
 					auto keyEvt = new Event;
