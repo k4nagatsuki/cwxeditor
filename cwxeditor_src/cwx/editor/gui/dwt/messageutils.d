@@ -476,7 +476,7 @@ private:
 	}
 	void writeAPD(Object o) { mixin(S_TRACE);
 		bool oldIgnoreMod = ignoreMod;
-		setIgnoreMod(true, false);
+		ignoreMod = true;
 		scope (exit) ignoreMod = oldIgnoreMod;
 		auto apd = cast(APData)o;
 		assert (apd);
@@ -621,7 +621,7 @@ private:
 	}
 	void selectChanged() { mixin(S_TRACE);
 		bool oldIgnoreMod = ignoreMod;
-		setIgnoreMod(true, false);
+		ignoreMod = true;
 		if (_dlgsL.getSelectionIndex() == -1) _dlgsL.select(0);
 		scope (exit) ignoreMod = oldIgnoreMod;
 		auto dlg = _dlgs[_dlgsL.getSelectionIndex()];
@@ -944,7 +944,7 @@ private:
 	}
 	void refreshDlgList() { mixin(S_TRACE);
 		bool oldIgnoreMod = ignoreMod;
-		setIgnoreMod(true, false);
+		ignoreMod = true;
 		scope (exit) ignoreMod = oldIgnoreMod;
 		int selIndex = _dlgsL.getSelectionIndex();
 		int topIndex = _dlgsL.getTopIndex();
@@ -1204,7 +1204,7 @@ protected:
 		});
 
 		ignoreMod = true;
-		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
+		scope (exit) ignoreMod = false;
 		if (evt) { mixin(S_TRACE);
 			switch (evt.talkerNC) {
 			case Talker.Selected:
@@ -1462,7 +1462,7 @@ protected:
 		_tabf.setSelection(0);
 
 		ignoreMod = true;
-		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
+		scope (exit) ignoreMod = false;
 		if (evt) { mixin(S_TRACE);
 			_text.setText(evt.text);
 			if (evt.cardPaths == []) { mixin(S_TRACE);

@@ -2374,7 +2374,7 @@ public:
 		});
 
 		ignoreMod = true;
-		scope (exit) .asyncExec(_tabf.getDisplay(), { ignoreMod = false; });
+		scope (exit) ignoreMod = false;
 		setComboItems(_from, _prop.var.etc.searchHistories.dup);
 		setComboItems(_to, _prop.var.etc.replaceHistories.dup);
 		setComboItems(_grepDir, _prop.var.etc.grepDirHistories.dup);
