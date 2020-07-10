@@ -171,7 +171,7 @@ protected:
 	private void refCard(InfoCard card) { mixin(S_TRACE);
 		if (_card && _card !is card) return;
 		ignoreMod = true;
-		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
+		scope (exit) ignoreMod = false;
 		if (_card) { mixin(S_TRACE);
 			_imgPath.images = _card.paths;
 			_name.setText(_card.name);

@@ -208,20 +208,13 @@ abstract class AbsDialog {
 	private bool _ignoreMod = false;
 	/// trueの時は適用ボタンの有効化を行わない。
 	@property
-	protected void ignoreMod(bool v) { mixin(S_TRACE);
+	void ignoreMod(bool v) { mixin(S_TRACE);
 		_ignoreMod = v;
-		if (_area && !_area.isDisposed()) _area.setEnabled(!v);
-	}
-	/// ditto
-	@property
-	protected void setIgnoreMod(bool v, bool setEnabled) { mixin(S_TRACE);
-		_ignoreMod = v;
-		if (setEnabled && _area && !_area.isDisposed()) _area.setEnabled(!v);
 	}
 	/// ditto
 	@property
 	const
-	protected bool ignoreMod() { return _ignoreMod; }
+	bool ignoreMod() { return _ignoreMod; }
 	/// ignoreModを反転して返す。
 	@property
 	const

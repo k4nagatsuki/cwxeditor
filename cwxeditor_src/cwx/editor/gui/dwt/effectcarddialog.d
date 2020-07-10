@@ -166,8 +166,8 @@ private:
 	}
 	class ResetSource : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
-			setIgnoreMod(true, false);
-			scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
+			ignoreMod = true;
+			scope (exit) ignoreMod = false;
 			_scenario.setText(_summ.scenarioName);
 			_author.setText(_summ.author);
 			_scenarioTM.reset();
@@ -949,7 +949,7 @@ protected:
 	private void refCard(C card) { mixin(S_TRACE);
 		if (_card && _card !is card) return;
 		ignoreMod = true;
-		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
+		scope (exit) ignoreMod = false;
 		auto skin = summSkin;
 		if (_card) { mixin(S_TRACE);
 			_imgPath.images = _card.paths;

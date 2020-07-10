@@ -274,8 +274,8 @@ class EditSkinTypeDialog : AbsDialog {
 			_comm.refSettingsWithSkinTypes.remove(&refSkins);
 		});
 
-		setIgnoreMod(true, false);
-		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
 		_skinType.setText(_type);
 	}
 

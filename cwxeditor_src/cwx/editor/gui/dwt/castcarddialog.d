@@ -398,8 +398,8 @@ private:
 			_race.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 			_race.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			void refSkin() { mixin(S_TRACE);
-				setIgnoreMod(true, false);
-				scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
+				ignoreMod = true;
+				scope (exit) ignoreMod = false;
 				auto selected = _race.getSelectionIndex() <= 0 ? "" : _race.getText();
 				auto skin = summSkin;
 				_race.removeAll();
@@ -685,8 +685,8 @@ private:
 					assert (_weak.length == 2);
 				}
 				void refElementOverrides() { mixin(S_TRACE);
-					setIgnoreMod(true, false);
-					scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
+					ignoreMod = true;
+					scope (exit) ignoreMod = false;
 					comp.setRedraw(false);
 					scope (exit) comp.setRedraw(true);
 					auto undead = _undead.getSelection();
@@ -813,8 +813,8 @@ private:
 		tab.setControl(_physicalComp);
 	}
 	void refCastCardParameterEditStyle() { mixin(S_TRACE);
-		setIgnoreMod(true, false);
-		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
 		_physicalComp.setRedraw(false);
 		scope (exit) _physicalComp.setRedraw(true);
 		_mentalComp.setRedraw(false);
@@ -1475,8 +1475,8 @@ private:
 		}
 	}
 	void refSkin() { mixin(S_TRACE);
-		setIgnoreMod(true, false);
-		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
 		_desc.font = _prop.adjustFont(_prop.looks.cardDescFont(summSkin.legacy));
 		refreshSex();
 		refreshPeriod();
@@ -1682,7 +1682,7 @@ protected:
 	private void refCard(CastCard card) { mixin(S_TRACE);
 		if (_card && _card !is card) return;
 		ignoreMod = true;
-		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
+		scope (exit) ignoreMod = false;
 		auto skin = summSkin;
 		if (_card) { mixin(S_TRACE);
 			_imgPath.images = _card.paths;

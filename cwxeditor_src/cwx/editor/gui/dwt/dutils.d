@@ -2929,6 +2929,13 @@ void initSpinner(Spinner spn) { mixin(S_TRACE);
 	spn.getDisplay().asyncExec(new class Runnable {
 		override void run() { mixin(S_TRACE);
 			if (spn.isDisposed()) return;
+			auto shl = spn.getShell();
+			if (!shl) return;
+			auto absDlg = cast(AbsDialog)shl.getData();
+			if (!absDlg) return;
+			auto mod = absDlg.catchMod();
+			absDlg.ignoreMod = true;
+			scope (exit) absDlg.ignoreMod(!mod);
 			spn.setSelection(spn.getSelection());
 		}
 	});

@@ -992,8 +992,8 @@ private:
 		.setupWeights(sash, _prop.var.etc.bgImageSelectionSashL, _prop.var.etc.bgImageSelectionSashR);
 	}
 	void selectSkinType() { mixin(S_TRACE);
-		setIgnoreMod(true, false);
-		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
 		if (_defBgImgDlg) _defBgImgDlg.forceCancel();
 		if (_skinType.selected == -1) { mixin(S_TRACE);
 			_bgStgs.array = _bgImageSettings;
@@ -1189,8 +1189,8 @@ private:
 		return combo;
 	}
 	void selectMenu() { mixin(S_TRACE);
-		setIgnoreMod(true, false);
-		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
 		auto i = _menu.getSelectionIndex();
 		if (-1 == i) return;
 		auto itm = _menu.getItem(i);
@@ -1201,8 +1201,8 @@ private:
 		_menuDel.setEnabled(_mnemonic.getText().length || _hotkey.widget.getText().length);
 	}
 	void applyMenu() { mixin(S_TRACE);
-		setIgnoreMod(true, false);
-		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
 		auto i = _menu.getSelectionIndex();
 		if (i == -1) return;
 		auto itm = _menu.getItem(i);
@@ -1261,8 +1261,8 @@ private:
 	}
 	class DelMenuAccel : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
-			setIgnoreMod(true, false);
-			scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
+			ignoreMod = true;
+			scope (exit) ignoreMod = false;
 			_mnemonic.setText("");
 			_hotkey.widget.setText("");
 			applyMenu();

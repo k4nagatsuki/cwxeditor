@@ -328,8 +328,8 @@ protected:
 		}
 		_comm.refTargetVersion.add(&refDataVersion);
 
-		setIgnoreMod(true, false);
-		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
 		if (back) { mixin(S_TRACE);
 			if (_flag) { mixin(S_TRACE);
 				_flag.selected = back.flag;
@@ -470,7 +470,7 @@ protected:
 		setFirstParams(area);
 
 		ignoreMod = true;
-		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
+		scope (exit) ignoreMod = false;
 		if (_back) { mixin(S_TRACE);
 			_imgPath.image = _back.path;
 			_imgPath.mask = _back.mask;
@@ -491,7 +491,7 @@ protected:
 			string file = _imgPath.filePath;
 			if (file.length > 0) { mixin(S_TRACE);
 				try { mixin(S_TRACE);
-					setIgnoreMod(true, false);
+					ignoreMod = true;
 					scope (exit) ignoreMod = false;
 					uint x, y;
 					dwtImageSize(_prop, summSkin, _summ, file, x, y);
@@ -925,7 +925,7 @@ protected:
 		setFirstParams(area);
 
 		ignoreMod = true;
-		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
+		scope (exit) ignoreMod = false;
 		if (!_create) { mixin(S_TRACE);
 			_text.setText(_back.text);
 			_fontName.setText(_back.fontName);
@@ -1197,7 +1197,7 @@ protected:
 		setFirstParams(area);
 
 		ignoreMod = true;
-		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
+		scope (exit) ignoreMod = false;
 		if (!_create) { mixin(S_TRACE);
 			auto blendMode = _back.blendMode;
 			if (_back.blendMode is BlendMode.Mask || _back.mask) { mixin(S_TRACE);
@@ -1429,7 +1429,7 @@ protected:
 		setFirstParams(area);
 
 		ignoreMod = true;
-		scope (exit) .asyncExec(getShell().getDisplay(), { ignoreMod = false; });
+		scope (exit) ignoreMod = false;
 		if (!_create) { mixin(S_TRACE);
 			_pcNumber.select(.min(_back.pcNumber - 1, _pcNumber.getItemCount() - 1));
 			_expand.setSelection(_back.expand);
