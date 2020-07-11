@@ -452,10 +452,13 @@ private void addRefMenu(Commons comm, MenuItem itm) { mixin(S_TRACE);
 }
 class MenuShown : MenuAdapter {
 	private MenuItem _itm;
-	this (MenuItem itm) { mixin(S_TRACE);
+	private Image _img;
+	this (MenuItem itm, Image img) { mixin(S_TRACE);
 		_itm = itm;
+		_img = img;
 	}
 	override void menuShown(MenuEvent e) { mixin(S_TRACE);
+		if (!_itm.getImage() && _img) _itm.setImage(_img);
 		auto d = cast(MenuData)_itm.getData();
 		if (!d) return;
 		if (!d.enabled) return;
@@ -463,18 +466,17 @@ class MenuShown : MenuAdapter {
 	}
 }
 private MenuItem createMenuItemImpl(Dlg)(Commons comm, Menu sub, string text, Image img,
-	Dlg func, int style, MenuID id, bool delegate() enabled, int index = -1) { mixin(S_TRACE);
+		Dlg func, int style, MenuID id, bool delegate() enabled, int index = -1) { mixin(S_TRACE);
 	auto itm = 0 <= index ? new MenuItem(sub, style, index) : new MenuItem(sub, style);
 	itm.setText(text);
 	if (func) { mixin(S_TRACE);
 		itm.addSelectionListener(new MenuSel!(Dlg)(func));
 	}
-	if (img) itm.setImage(img);
-	auto d = new MenuData();
+	auto d = new MenuData;
 	d.id = id;
 	d.enabled = enabled;
-	if (enabled) { mixin(S_TRACE);
-		auto menuShown = new MenuShown(itm);
+	if (enabled || img) { mixin(S_TRACE);
+		auto menuShown = new MenuShown(itm, img);
 		class Dispose : DisposeListener {
 			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 				sub.removeMenuListener(menuShown);
@@ -511,7 +513,7 @@ private Menu createMenu2(Commons comm, Menu bar, string text, out MenuItem mi) {
 	mi = new MenuItem(bar, SWT.CASCADE);
 	mi.setText(text);
 	mi.setMenu(menu);
-	auto d = new MenuData();
+	auto d = new MenuData;
 	d.id = MenuID.None;
 	mi.setData(d);
 	return menu;
