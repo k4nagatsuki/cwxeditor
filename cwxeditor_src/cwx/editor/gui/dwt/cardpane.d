@@ -2999,7 +2999,9 @@ public:
 				_addHandMenu = new Menu(addHandMI);
 				addHandMI.setMenu(_addHandMenu);
 				.listener(_addHandMenu, SWT.Show, &refreshAddHand);
-				.listener(pop, SWT.Hide, &clearAddHand);
+				.listener(pop, SWT.Hide, { mixin(S_TRACE);
+					.asyncExec(pop.getDisplay(), &clearAddHand);
+				});
 				new MenuItem(pop, SWT.SEPARATOR);
 				createMenuItem(_comm, pop, MenuID.RemoveRef, &removeRef, &canRemoveRef);
 			}
