@@ -266,7 +266,7 @@ private:
 			}
 		}
 
-		if (0 < _prop.var.etc.executedPartiesMax) { mixin(S_TRACE);
+		if (mWithParty && 0 < _prop.var.etc.executedPartiesMax) { mixin(S_TRACE);
 			if (mWithParty.getItemCount()) new MenuItem(mWithParty, SWT.SEPARATOR);
 			.createMenuItem(_comm, mWithParty, MenuID.EditExecutedPartyHistory, &editExecutedPartyHistory, &canEditExecutedPartyHistory);
 		}
