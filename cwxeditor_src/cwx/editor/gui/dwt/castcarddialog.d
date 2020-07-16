@@ -1460,6 +1460,7 @@ private:
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			_comm.refCastCardParameterEditStyle.remove(&refCastCardParameterEditStyle);
 			_comm.refRadarStyle.remove(&initEnhance);
+			_comm.refCast.remove(&updateTitle);
 			_comm.delCast.remove(&delCard);
 			_comm.refScenario.remove(&refScenario);
 			_comm.refSkin.remove(&refSkin);
@@ -1620,7 +1621,7 @@ public:
 		if (_readOnly || !_summ || _summ.scenarioPath == "") { mixin(S_TRACE);
 			_summSkin = findSkin(_comm, _prop, _summ);
 		}
-		super(prop, shell, _readOnly, false, _card ? .tryFormat(_prop.msgs.dlgTitCast, _card.name) : _prop.msgs.dlgTitNewCast,
+		super(prop, shell, _readOnly, false, _card ? .tryFormat(_prop.msgs.dlgTitCast, .tryFormat(_prop.msgs.nameWithID, _card.id, _card.name)) : _prop.msgs.dlgTitNewCast,
 			_prop.images.casts, true, _prop.var.castCardDlg, true);
 		if (!_card) applyEnabled(true);
 	}
@@ -1649,6 +1650,7 @@ protected:
 		constructStatus(tabf);
 		tabf.setSelection(0);
 
+		_comm.refCast.add(&updateTitle);
 		_comm.delCast.add(&delCard);
 		_comm.refScenario.add(&refScenario);
 		_comm.refSkin.add(&refSkin);
@@ -1679,6 +1681,12 @@ protected:
 		refDataVersion();
 		updateAptitudes();
 	}
+
+	private void updateTitle(CastCard card) { mixin(S_TRACE);
+		if (card !is _card) return;
+		getShell().setText(.tryFormat(_prop.msgs.dlgTitCast, .tryFormat(_prop.msgs.nameWithID, _card.id, _card.name)));
+	}
+
 	private void refCard(CastCard card) { mixin(S_TRACE);
 		if (_card && _card !is card) return;
 		ignoreMod = true;
@@ -1790,6 +1798,7 @@ protected:
 			changeLiveEnhance();
 			changeMentality();
 			changeLifeUseMax();
+			updateTitle(_card);
 		} else { mixin(S_TRACE);
 			_imgPath.images = [];
 			if (_race) _race.select(0);
@@ -1934,7 +1943,6 @@ protected:
 		.updateCoefficients(_comm, [_card]);
 
 		_comm.refCoupons.call();
-		getShell().setText(.tryFormat(_prop.msgs.dlgTitCast, _card.name));
 		return true;
 	}
 }

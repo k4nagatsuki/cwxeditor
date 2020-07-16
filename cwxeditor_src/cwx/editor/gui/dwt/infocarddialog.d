@@ -76,6 +76,7 @@ private:
 	}
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
+			_comm.refInfo.remove(&updateTitle);
 			_comm.delInfo.remove(&delCard);
 			_comm.refScenario.remove(&refScenario);
 			_comm.refSkin.remove(&refSkin);
@@ -157,6 +158,7 @@ protected:
 			mod(_desc.widget);
 			.listener(_desc.widget, SWT.Modify, &refreshWarning);
 		}
+		_comm.refInfo.add(&updateTitle);
 		_comm.delInfo.add(&delCard);
 		_comm.refScenario.add(&refScenario);
 		_comm.refSkin.add(&refSkin);
@@ -168,6 +170,10 @@ protected:
 
 		refDataVersion();
 	}
+	private void updateTitle(InfoCard card) { mixin(S_TRACE);
+		if (_card !is card) return;
+		getShell().setText(.tryFormat(_prop.msgs.dlgTitInfo, .tryFormat(_prop.msgs.nameWithID, _card.id, _card.name)));
+	}
 	private void refCard(InfoCard card) { mixin(S_TRACE);
 		if (_card && _card !is card) return;
 		ignoreMod = true;
@@ -176,6 +182,7 @@ protected:
 			_imgPath.images = _card.paths;
 			_name.setText(_card.name);
 			_desc.setText(_card.desc);
+			updateTitle(_card);
 		} else { mixin(S_TRACE);
 			_imgPath.images = [];
 		}
@@ -192,7 +199,6 @@ protected:
 			_card = new InfoCard(_summ.newId!(InfoCard), _name.getText(),
 				images.images, wrapReturnCode(_desc.getText()));
 		}
-		getShell().setText(.tryFormat(_prop.msgs.dlgTitInfo, _card.name));
 		return true;
 	}
 }
