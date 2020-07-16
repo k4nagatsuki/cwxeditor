@@ -826,11 +826,14 @@ private:
 	}
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-			static if (is(C : SkillCard)) {
+			static if (is(C:SkillCard)) {
+				_comm.refSkill.remove(&updateTitle);
 				_comm.delSkill.remove(&delCard);
-			} else static if (is(C : ItemCard)) {
+			} else static if (is(C:ItemCard)) {
+				_comm.refItem.remove(&updateTitle);
 				_comm.delItem.remove(&delCard);
-			} else static if (is(C : BeastCard)) {
+			} else static if (is(C:BeastCard)) {
+				_comm.refBeast.remove(&updateTitle);
 				_comm.delBeast.remove(&delCard);
 			} else static assert (0);
 			_comm.refSkin.remove(&refSkin);
@@ -910,11 +913,14 @@ protected:
 		constructKeyCode(tabf);
 		tabf.setSelection(0);
 
-		static if (is(C : SkillCard)) {
+		static if (is(C:SkillCard)) {
+			_comm.refSkill.add(&updateTitle);
 			_comm.delSkill.add(&delCard);
-		} else static if (is(C : ItemCard)) {
+		} else static if (is(C:ItemCard)) {
+			_comm.refItem.add(&updateTitle);
 			_comm.delItem.add(&delCard);
-		} else static if (is(C : BeastCard)) {
+		} else static if (is(C:BeastCard)) {
+			_comm.refBeast.add(&updateTitle);
 			_comm.delBeast.add(&delCard);
 		} else static assert (0);
 		_comm.refSkin.add(&refSkin);
@@ -945,6 +951,19 @@ protected:
 		refCard(_card);
 
 		refDataVersion();
+	}
+	private void updateTitle(C card) { mixin(S_TRACE);
+		if (_card !is card) return;
+		static if (is(C:SkillCard)) {
+			string text = .tryFormat(_prop.msgs.dlgTitSkill, .tryFormat(_prop.msgs.nameWithID, _card.id, _card.name));
+		} else static if (is(C:ItemCard)) {
+			string text = .tryFormat(_prop.msgs.dlgTitItem, .tryFormat(_prop.msgs.nameWithID, _card.id, _card.name));
+		} else static if (is(C:BeastCard)) {
+			string text = .tryFormat(_prop.msgs.dlgTitBeast, .tryFormat(_prop.msgs.nameWithID, _card.id, _card.name));
+		} else { mixin(S_TRACE);
+			static assert (0);
+		}
+		getShell().setText(text);
 	}
 	private void refCard(C card) { mixin(S_TRACE);
 		if (_card && _card !is card) return;
@@ -1024,6 +1043,7 @@ protected:
 			_se2.volume = _card.volume2;
 			_se2.loopCount = _card.loopCount2;
 			_keyCodes.keyCodes = _card.keyCodes;
+			updateTitle(_card);
 			refreshWarning();
 		} else { mixin(S_TRACE);
 			_imgPath.images = [];
@@ -1147,17 +1167,6 @@ protected:
 		_card.keyCodes = _keyCodes.keyCodes;
 
 		_comm.refKeyCodes.call();
-
-		static if (is(C == SkillCard)) {
-			string text = .tryFormat(_prop.msgs.dlgTitSkill, _card.name);
-		} else static if (is(C == ItemCard)) {
-			string text = .tryFormat(_prop.msgs.dlgTitItem, _card.name);
-		} else static if (is(C == BeastCard)) {
-			string text = .tryFormat(_prop.msgs.dlgTitBeast, _card.name);
-		} else { mixin(S_TRACE);
-			static assert (0);
-		}
-		getShell().setText(text);
 		return true;
 	}
 }
