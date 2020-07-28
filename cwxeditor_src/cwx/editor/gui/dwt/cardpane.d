@@ -2879,12 +2879,18 @@ public:
 			_comm.delPaths.add(&refreshImpl);
 			_comm.replPath.add(&refreshR);
 			_comm.replText.add(&refreshImpl);
+			if (_ownerType is OwnerType.Cast) { mixin(S_TRACE);
+				_comm.replID.add(&refreshImpl);
+			}
 			_list.addDisposeListener(new class DisposeListener {
 				override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 					_comm.refSkin.remove(&refreshImpl);
 					_comm.delPaths.remove(&refreshImpl);
 					_comm.replPath.remove(&refreshR);
 					_comm.replText.remove(&refreshImpl);
+					if (_ownerType is OwnerType.Cast) { mixin(S_TRACE);
+						_comm.replID.remove(&refreshImpl);
+					}
 				}
 			});
 		}
