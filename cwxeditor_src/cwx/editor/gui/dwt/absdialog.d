@@ -352,7 +352,20 @@ abstract class AbsDialog {
 			.asyncExec(_win.getDisplay(), { mixin(S_TRACE);
 				if (!_win.isDisposed() && _win.getDisplay().getActiveShell() is _win) { mixin(S_TRACE);
 					auto fc = _win.getDisplay().getFocusControl();
+					if (auto c = cast(CCombo)fc) { mixin(S_TRACE);
+						if (!(c.getStyle() & SWT.READ_ONLY)) return;
+					}
+					if (auto c = cast(Combo)fc) { mixin(S_TRACE);
+						if (!(c.getStyle() & SWT.READ_ONLY)) return;
+					}
+					if (auto c = cast(Text)fc) { mixin(S_TRACE);
+						if (!(c.getStyle() & SWT.READ_ONLY)) return;
+					}
+					if (auto c = cast(StyledText)fc) { mixin(S_TRACE);
+						if (!(c.getStyle() & SWT.READ_ONLY)) return;
+					}
 					if (cast(Spinner)fc) return;
+					if (cast(Tree)fc) return;
 					auto keyEvt = new Event;
 					keyEvt.type = SWT.KeyDown;
 					keyEvt.character = '\b';
