@@ -1,10 +1,12 @@
 
 module cwx.editor.gui.dwt.absdialog;
 
+import cwx.menu;
 import cwx.structs;
 import cwx.types;
 import cwx.utils;
 
+import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dutils;
 
@@ -354,9 +356,15 @@ abstract class AbsDialog {
 			.asyncExec(_win.getDisplay(), { mixin(S_TRACE);
 				if (!_win.isDisposed() && _win.getDisplay().getActiveShell() is _win) { mixin(S_TRACE);
 					foreach (id; EnumMembers!MenuID) { mixin(S_TRACE);
-						if (_prop.var.menu.hotkey(id) == "Backspace") return;
+						if (.isGlobalMenu(id) && _prop.var.menu.hotkey(id) == "Backspace") return;
 					}
 					auto fc = _win.getDisplay().getFocusControl();
+					if (fc) { mixin(S_TRACE);
+						auto menu = fc.getMenu();
+						if (menu) { mixin(S_TRACE);
+							if (.findMenu(menu, SWT.BS, '\b', 0)) return;
+						}
+					}
 					if (auto c = cast(CCombo)fc) { mixin(S_TRACE);
 						if (!(c.getStyle() & SWT.READ_ONLY)) return;
 					}
