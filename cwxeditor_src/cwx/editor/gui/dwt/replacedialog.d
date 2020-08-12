@@ -557,14 +557,14 @@ private:
 	class ML : MouseAdapter {
 		public override void mouseDoubleClick(MouseEvent e) { mixin(S_TRACE);
 			if (_result.isFocusControl() && e.button == 1) { mixin(S_TRACE);
-				openPath();
+				openPath((e.stateMask & SWT.SHIFT) != 0);
 			}
 		}
 	}
 	class KL : KeyAdapter {
 		public override void keyPressed(KeyEvent e) { mixin(S_TRACE);
 			if (_result.isFocusControl() && .isEnterKey(e.keyCode)) { mixin(S_TRACE);
-				openPath();
+				openPath((e.stateMask & SWT.SHIFT) != 0);
 			}
 		}
 	}
@@ -2265,6 +2265,7 @@ public:
 			});
 			auto openDlg = new Button(comp, SWT.CHECK);
 			openDlg.setText(_prop.msgs.searchOpenDialog);
+			openDlg.setToolTipText(_prop.msgs.searchOpenDialogHint);
 			openDlg.setSelection(_prop.var.etc.searchOpenDialog);
 			openDlg.addSelectionListener(new class SelectionAdapter {
 				override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
@@ -4503,7 +4504,10 @@ public:
 		}
 		return false;
 	}
-	private void openPath() { mixin(S_TRACE);
+	private void openPath(SelectionEvent e) { mixin(S_TRACE);
+		openPath((e.stateMask & SWT.SHIFT) != 0);
+	}
+	private void openPath(bool shift) { mixin(S_TRACE);
 		auto i = _result.getSelectionIndex();
 		if (-1 == i) return;
 		foreach (itm; [_result.getItem(i)] ~ _result.getItems()) { mixin(S_TRACE);
@@ -4518,7 +4522,9 @@ public:
 					return;
 				}
 				auto path = rp.array;
-				if (_prop.var.etc.searchOpenDialog) { mixin(S_TRACE);
+				auto searchOpenDialog = _prop.var.etc.searchOpenDialog;
+				if (shift) searchOpenDialog = !searchOpenDialog;
+				if (searchOpenDialog) { mixin(S_TRACE);
 					path = cpaddattr(path, "opendialog");
 				}
 				path = cpaddattr(path, "only");
@@ -4529,7 +4535,7 @@ public:
 				if (!_summ) return;
 				try { mixin(S_TRACE);
 					if (_comm.openCWXPath(path, false)) { mixin(S_TRACE);
-						if (!_prop.var.etc.searchOpenDialog) _win.setActive();
+						if (!searchOpenDialog) _win.setActive();
 						return;
 					}
 				} catch (Exception e) {
