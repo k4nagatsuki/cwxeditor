@@ -423,6 +423,7 @@ class Msgs : Properties {
 	auto searchErrorNoExpression = Msg("searchErrorNoExpression", "式がありません。");
 
 	auto searchOpenDialog = Msg("searchOpenDialog", "検索結果へジャンプする時、ダイアログを開く(&J)");
+	auto searchOpenDialogHint = Msg("searchOpenDialogHint", "Shiftキーで一時的に切り替え");
 
 	/// イベント設定。
 	auto dlgTitContent = Msg("dlgTitContent", "イベントの設定 [ %1$s ]");
