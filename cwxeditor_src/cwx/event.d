@@ -3490,7 +3490,7 @@ public:
 
 	override
 	bool opEquals(Object o) { mixin(S_TRACE);
-		auto c = cast(const(EventTree)) o;
+		auto c = cast(const(EventTree))o;
 		if (!c) return false;
 		return fireEnter == c.fireEnter
 			&& fireEscape == c.fireEscape
