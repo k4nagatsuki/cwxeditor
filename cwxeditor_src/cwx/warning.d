@@ -177,6 +177,11 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				}
 			}
 		}
+		if (cast(Package)eventTree.owner is null && cast(EffectCard)eventTree.owner is null) { mixin(S_TRACE);
+			if (!eventTree.fireEnter && !eventTree.fireEscape && !eventTree.fireLose && !eventTree.fireEveryRound && !eventTree.fireRoundEnd && !eventTree.fireRound0 && !eventTree.rounds.length && !eventTree.keyCodes.length) { mixin(S_TRACE);
+				r ~= prop.msgs.warningNoIgnition;
+			}
+		}
 	}
 	auto playerEvents = cast(PlayerCardEvents)path;
 	if (playerEvents) { mixin(S_TRACE);

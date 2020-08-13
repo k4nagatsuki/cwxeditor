@@ -2814,9 +2814,16 @@ public:
 		}
 
 		if (auto et = cast(EventTree)itm.getData()) { mixin(S_TRACE);
-			if (et.keyCodeMatchingType is MatchingType.And && !_prop.targetVersion(_summ, "1.50")) { mixin(S_TRACE);
-				return [cast(string)_prop.msgs.warningKeyCodeMatchingTypeAnd];
+			string[] ws;
+			if (cast(Package)et.owner is null && cast(EffectCard)et.owner is null) { mixin(S_TRACE);
+				if (!et.fireEnter && !et.fireEscape && !et.fireLose && !et.fireEveryRound && !et.fireRoundEnd && !et.fireRound0 && !et.rounds.length && !et.keyCodes.length) { mixin(S_TRACE);
+					ws ~= _prop.msgs.warningNoIgnition;
+				}
 			}
+			if (et.keyCodeMatchingType is MatchingType.And && !_prop.targetVersion(_summ, "1.50")) { mixin(S_TRACE);
+				ws ~= cast(string)_prop.msgs.warningKeyCodeMatchingTypeAnd;
+			}
+			return ws;
 		}
 
 		if (auto kco = cast(KeyCodeObj)itm.getData()) { mixin(S_TRACE);
