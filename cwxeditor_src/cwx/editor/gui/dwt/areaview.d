@@ -2203,7 +2203,7 @@ private:
 		label.setText(_prop.msgs.refFlags);
 		label.setImage(_prop.images.flag);
 
-		_flagList = .rangeSelectableTable(comp, SWT.SINGLE | SWT.CHECK | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
+		_flagList = .rangeSelectableTable(comp, SWT.MULTI | SWT.CHECK | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
 		new FullTableColumn(_flagList, SWT.NONE);
 		auto gd = new GridData(GridData.FILL_BOTH);
 		gd.widthHint = 0;
