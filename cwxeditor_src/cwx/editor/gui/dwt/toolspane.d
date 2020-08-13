@@ -339,7 +339,7 @@ private:
 	void selected() { mixin(S_TRACE);
 		_ignoreMod(true);
 		scope (exit) .asyncExec(getShell().getDisplay(), { mixin(S_TRACE);
-			if (getShell().isDisposed()) return;
+			if (_alt.isDisposed()) return;
 			_canApply = false;
 			_alt.setEnabled(false);
 			_altEnabled = false;
@@ -998,7 +998,7 @@ private:
 				void refSkins() { mixin(S_TRACE);
 					_ignoreMod(true);
 					scope (exit) .asyncExec(getShell().getDisplay(), { mixin(S_TRACE);
-						if (getShell().isDisposed()) return;
+						if (_skinType.isDisposed()) return;
 						_ignoreMod(false);
 					});
 					auto t = _skinType.getText();
