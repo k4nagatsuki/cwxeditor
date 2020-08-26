@@ -4,12 +4,11 @@ module build;
 
 immutable NAME = "cwxeditor";
 immutable string[] CRITICAL = [
-	"d2std" ~ dirSeparator ~ "xml.d",
-	"d2std" ~ dirSeparator ~ "zip.d",
-	"d2std" ~ dirSeparator ~ "zlib.d",
+	"extlib" ~ dirSeparator ~ "d2std" ~ dirSeparator ~ "zip.d",
+	"extlib" ~ dirSeparator ~ "d2std" ~ dirSeparator ~ "zlib.d",
 ];
 immutable string[] NO_DEBUG_SYMBOLS = [
-	"cwx" ~ dirSeparator ~ "msgs.d",
+	"core" ~ dirSeparator ~ "cwx" ~ dirSeparator ~ "msgs.d",
 ];
 immutable string[] RES_DIR = [
 	".",
@@ -160,19 +159,16 @@ immutable FLAGS = [
 	// BUG: dmd 2.067.0 occurs compile error.
 //	"-property",
 	"-c",
+	"-Icore",
+	"-Igui",
+	"-Iextlib",
 ];
 immutable CRITICAL_FLAGS = [
-	"-w",
-	"-c",
 	"-release",
 	"-O",
 	"-inline",
-	"-op",
 ];
 immutable NO_DEBUG_SYMBOLS_FLAGS = [
-	"-w",
-	"-c",
-	"-op",
 	"-debug",
 /+	"-unittest",
 +/
@@ -380,10 +376,10 @@ void build(string[] args) {
 	flags ~= window ? WINDOW_FLAGS : CONSOLE_FLAGS;
 	if (!release && unittests) flags ~= "-unittest";
 	if (critical.length) {
-		exec(cmd ~ CRITICAL_FLAGS ~ res ~ critical ~ "-odobjs" ~ dmdOption);
+		exec(cmd ~ FLAGS ~ CRITICAL_FLAGS ~ res ~ critical ~ "-odobjs" ~ dmdOption);
 	}
 	if (noDebugSymbols.length) {
-		auto flags2 = NO_DEBUG_SYMBOLS_FLAGS.dup;
+		auto flags2 = FLAGS ~ NO_DEBUG_SYMBOLS_FLAGS;
 		if (!release && unittests) flags2 ~= "-unittest";
 		exec(cmd ~ flags2 ~ res ~ noDebugSymbols ~ "-odobjs" ~ dmdOption);
 	}
