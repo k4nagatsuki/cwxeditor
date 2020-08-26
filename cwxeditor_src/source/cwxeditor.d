@@ -1,5 +1,5 @@
 
-module cwx.editor.gui.dwt.cwxeditor;
+module cwxeditor;
 
 private extern(C) __gshared string[] rt_options = [ "scanDataSeg=precise" ];
 

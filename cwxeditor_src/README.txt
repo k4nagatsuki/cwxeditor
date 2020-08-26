@@ -3,7 +3,7 @@ CWXEditor ビルドガイド
 ----------------------
 
 ビルドツール:
- : dmd 2.092.0
+ : dmd 2.093.1
  : Digital Mars rcc
 ライブラリ:
  : DWT at GitHub, dxml at GitHub
@@ -17,11 +17,49 @@ CWXEditor ビルドガイド
 Windowsの場合
 -------------
 
-DWTをGitHubから取ってきます。
+### リソースコンパイラの入手方法
 
-今はDWTも[dub](https://code.dlang.org/)で使えますが、CWXEditorの規模になると工夫無しではリンカがエラーを吐いてしまうので自前でライブラリを用意する必要があります。
+32ビット版のリソースコンパイルに使うrccは以下のサイトから入手できます。
 
-以下のようにしてDWTをビルドします。
+http://www.digitalmars.com//download/freecompiler.html
+
+ここからBasic Utilitiesを入手して、パスを通しましょう(「パスを通す」などのキーワードで検索する事で、具体的な情報が見つかります)。
+
+64ビット版のrcはBuild Tools for Visual Studio 2019等に入っているものが使用できます。
+
+https://visualstudio.microsoft.com/ja/downloads/
+
+
+### dubを使用してビルドする
+
+ビルドツールが揃っている場合は、`cwxeditor_src`フォルダでD言語標準のビルドツールであるdubを実行する事で簡単にビルド・実行できます。
+
+    dub
+
+ビルドだけなら:
+
+    dub build
+
+コンソール無し版は:
+
+    dub --build=gui
+
+リリース版は:
+
+    dub --build=release
+
+
+### ビルドスクリプトを使う
+
+dubは標準で64ビット版をビルドします。32ビット版をビルドしたい場合は以下のようにします。
+
+    dub --arch=x86
+
+ところが、dmd 2.093.1では謎のエラーが発生してビルドに失敗してしまいます。
+
+cwxeditorでは歴史的に独自のビルドスクリプトを使用してきましたが、そのスクリプトは今でも使用でき、こちらは32ビット版やリリース版も問題無くビルドする事が可能です。ただし、外部ライブラリをセットアップする必要があるため多少手間がかかります。
+
+まず、DWTをGitHubから取ってきてビルドします。
 
     git clone https://github.com/d-widget-toolkit/dwt.git
     cd dwt
@@ -33,7 +71,7 @@ DWTをGitHubから取ってきます。
     dub --build=release :base --arch=x86_64
     dub --build=release --arch=x86_64
 
-次に、DWTと同様にdxmlを取ってきます。
+次に、DWTと同様にdxmlを取ってきてビルドします。
 
     git clone https://github.com/jmdavis/dxml.git
     cd dwt
@@ -58,34 +96,9 @@ DWTをGitHubから取ってきます。
       :
     LIB=%LIB%;"%@P%\..\..\..\lib\dwt64";"%@P%\..\..\..\lib\dwt64\org.eclipse.swt.win32.win32.x86\lib";"%@P%\..\..\..\lib\dxml64"
 
-最後にリソースコンパイル用のrccを入手します(32ビット版のみ)。
-
-Digital MarsのサイトからBasic Utilitiesを入手して、パスを通しましょう(「パスを通す」などのキーワードで検索する事で、具体的な情報が見つかります)。
-
-http://www.digitalmars.com//download/freecompiler.html
-
----
-
-Dの処理系のバグにより音声ループ処理で問題が発生するため、その部分だけC言語のモジュールになっており、場合によってはcwxeditor本体より先にそちらをビルドする必要があります。
-
-32-bit版はrccと同じ場所で入手できるDigital Mars C/C++ Compiler(dmc)、64-bit版はVisual Studio 2015が必要です。
-
-以下のようにしてビルドします。
-
-    rem 使用するVisual C++のコンパイラを64-bit版に切り替える
-    "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
-    rem 64-bit版をビルド
-    cl /c cwx\editor\gui\bassloop.c /Ox /Fobassloop64.obj
-    rem 32-bit版をビルド
-    dmc -obassloop32 -c -o .\cwx\editor\gui\bassloop.c
-
----
-
 これでようやく準備完了です。
 
-cwxeditor本体のビルドはビルドスクリプトbuild.dで行います。
-
-rdmd等で実行してください。
+ビルドスクリプト`build.d`でビルドを実行します。rdmdはD言語のソースファイルをその場で実行するコマンドです。
 
     rdmd build
 
@@ -101,7 +114,7 @@ rdmd等で実行してください。
 
     rdmd build gui
 
-64ビット版なら`-m64`をつけます:
+64ビット版もビルドできます。`-m64`をつけて:
 
     rdmd build -m64
 
@@ -134,7 +147,7 @@ apt等で手に入れておきましょう。
  * libxtst-dev
 
 
-### CWXEditorのビルド
+### dubを使用してビルドする
 
 linux側のリンカにはWindows側のOPTLINKのような問題はありません。dubを使ってビルドしてください。
 

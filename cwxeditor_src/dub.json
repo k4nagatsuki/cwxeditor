@@ -8,24 +8,75 @@
 
 	"targetName": "cwxeditor",
 	"targetType": "executable",
-	"application": "cwx/editor/gui/dwt/cwxeditor.d",
+	"application": "cwxeditor.d",
 
-	"sourcePaths": [
-		"."
+	"dependencies": {
+		":core": "*",
+		":gui": "*",
+		":extlib": "*"
+	},
+	"subPackages": [
+		{
+			"name": "core",
+			"targetType": "library",
+
+			"sourcePaths": [
+				"core"
+			],
+			"importPaths": [
+				"core",
+				"extlib"
+			],
+			"stringImportPaths": [
+				"."
+			],
+			"dependencies": {
+				"dxml": ">=0.4.3"
+			}
+		},
+		{
+			"name": "gui",
+			"targetType": "library",
+
+			"sourcePaths": [
+				"gui"
+			],
+			"importPaths": [
+				"core",
+				"gui",
+				"extlib"
+			],
+			"stringImportPaths": [
+				".",
+				"resource"
+			],
+			"dflags-dmd": [
+				"-lowmem"
+			],
+			"dependencies": {
+				"dxml": ">=0.4.3",
+				"dwt": ">=1.0.5"
+			}
+		},
+		{
+			"name": "extlib",
+			"targetType": "library",
+
+			"sourcePaths": [
+				"extlib"
+			],
+			"importPaths": [
+				"core",
+				"extlib"
+			]
+		}
 	],
+
 	"excludedSourceFiles": [
 		"build.d",
 		"createrc.d",
 		"private/*"
 	],
-	"stringImportPaths": [
-		".",
-		"resource"
-	],
-	"dependencies": {
-		"dwt": "~>1.0.4",
-		"dxml": "~>0.4.1"
-	},
 
 	"preBuildCommands-windows-x86": [
 		"rdmd -J. createrc.d",
@@ -41,7 +92,7 @@
 	],
 	"lflags-windows-x86_64": [
 		"cwxeditor.res",
-		"-L/STACK:4194304"
+		"/STACK:4194304"
 	],
 	"libs-linux": [
 		"atk-1.0",
@@ -75,6 +126,9 @@
 	"buildTypes": {
 		"debug": {
 			"buildOptions": [
+				"debugMode"
+			],
+			"buildOptions-x86_64": [
 				"debugMode",
 				"debugInfo"
 			],
@@ -84,6 +138,9 @@
 		},
 		"gui": {
 			"buildOptions": [
+				"debugMode"
+			],
+			"buildOptions-x86_64": [
 				"debugMode",
 				"debugInfo"
 			],
@@ -97,9 +154,7 @@
 		},
 		"release": {
 			"buildOptions": [
-				"releaseMode",
-				"optimize",
-				"inline"
+				"releaseMode"
 			],
 			"lflags-windows-x86": [
 				"/exet:nt/su:windows:4.0"
