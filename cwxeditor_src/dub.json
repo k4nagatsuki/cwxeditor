@@ -50,9 +50,6 @@
 				".",
 				"resource"
 			],
-			"dflags-dmd": [
-				"-lowmem"
-			],
 			"dependencies": {
 				"dxml": ">=0.4.3",
 				"dwt": ">=1.0.5"
@@ -78,12 +75,21 @@
 		"private/*"
 	],
 
-	"preBuildCommands-windows-x86": [
+	"preBuildCommands-windows-x86-dmd": [
 		"rdmd -J. createrc.d",
 		"rcc cwxeditor.rc"
 	],
-	"lflags-windows-x86": [
+	"lflags-windows-x86-dmd": [
 		"/rc:cwxeditor.res"
+	],
+
+	"preBuildCommands-windows-x86-ldc": [
+		"rdmd -J. createrc.d",
+		"rc cwxeditor.rc"
+	],
+	"lflags-windows-x86-ldc": [
+		"cwxeditor.res",
+		"/STACK:4194304"
 	],
 
 	"preBuildCommands-windows-x86_64": [
@@ -128,8 +134,10 @@
 			"buildOptions": [
 				"debugMode"
 			],
+			"buildOptions-ldc": [
+				"debugInfo"
+			],
 			"buildOptions-x86_64": [
-				"debugMode",
 				"debugInfo"
 			],
 			"versions": [
@@ -140,12 +148,18 @@
 			"buildOptions": [
 				"debugMode"
 			],
-			"buildOptions-x86_64": [
-				"debugMode",
+			"buildOptions-ldc": [
 				"debugInfo"
 			],
-			"lflags-windows-x86": [
+			"buildOptions-x86_64": [
+				"debugInfo"
+			],
+			"lflags-windows-x86-dmd": [
 				"/exet:nt/su:windows:4.0"
+			],
+			"lflags-windows-x86-ldc": [
+				"/SUBSYSTEM:Windows",
+				"/ENTRY:mainCRTStartup"
 			],
 			"lflags-windows-x86_64": [
 				"/SUBSYSTEM:Windows",
@@ -156,8 +170,16 @@
 			"buildOptions": [
 				"releaseMode"
 			],
-			"lflags-windows-x86": [
+			"buildOptions-ldc": [
+				"optimize",
+				"inline"
+			],
+			"lflags-windows-x86-dmd": [
 				"/exet:nt/su:windows:4.0"
+			],
+			"lflags-windows-x86-ldc": [
+				"/SUBSYSTEM:Windows",
+				"/ENTRY:mainCRTStartup"
 			],
 			"lflags-windows-x86_64": [
 				"/SUBSYSTEM:Windows",
