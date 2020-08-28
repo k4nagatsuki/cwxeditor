@@ -2923,6 +2923,9 @@ public:
 		auto parParNType = fromCNextType(parPar.detail.nextType);
 		auto parIndex = parPar.next.cCountUntil!"a is b"(par);
 
+		// 子の子が1件以下であれば後続テキストも入れ替える
+		auto replaceName = next.next.length <= 1;
+
 		auto vs = views();
 		foreach (v; vs) v.editEnter();
 		store(parPar);
@@ -2930,17 +2933,34 @@ public:
 		// 入れ替え
 		parPar.remove(par);
 		par.remove(next);
-		foreach (c; next.next.dup) { mixin(S_TRACE);
-			next.remove(c);
-			adjustText(par, c, nextNType);
-			par.add(_prop.parent, c);
+		if (replaceName) { mixin(S_TRACE);
+			assert (next.next.length <= 1);
+			auto cName = "";
+			if (next.next.length == 1) { mixin(S_TRACE);
+				auto c = next.next[0];
+				cName = c.name;
+				next.remove(c);
+				c.setName(_prop.parent, nextName);
+				par.add(_prop.parent, c);
+			}
+			next.setName(_prop.parent, parName);
+			par.setName(_prop.parent, cName);
+			adjustText(next, par, nextNType);
+			parPar.insert(_prop.parent, parIndex, next);
+			next.add(_prop.parent, par);
+		} else { mixin(S_TRACE);
+			foreach (c; next.next.dup) { mixin(S_TRACE);
+				next.remove(c);
+				adjustText(par, c, nextNType);
+				par.add(_prop.parent, c);
+			}
+			par.setName(_prop.parent, nextName);
+			next.setName(_prop.parent, parName);
+			adjustText(parPar, next, parParNType); // すでに名前を入れ替えているためlastNextTypeも入れ替わる
+			parPar.insert(_prop.parent, parIndex, next);
+			adjustText(next, par, parNType);
+			next.add(_prop.parent, par);
 		}
-		par.setName(_prop.parent, nextName);
-		next.setName(_prop.parent, parName);
-		adjustText(parPar, next, parParNType); // すでに名前を入れ替えているためlastNextTypeも入れ替わる
-		parPar.insert(_prop.parent, parIndex, next);
-		adjustText(next, par, parNType);
-		next.add(_prop.parent, par);
 
 		// 表示の更新
 		foreach (v; vs) { mixin(S_TRACE);
