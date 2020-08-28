@@ -21,7 +21,35 @@ import std.conv;
 
 import org.eclipse.swt.widgets.Display;
 
-void main(string[] args) {
+version (LDC) {
+	version (Windows) {
+		// LDCで /SUBSYSTEM:Windows /ENTRY:mainCRTStartup を指定した時の
+		// エントリポイントはCのmainである必要がある
+		import core.stdc.string;
+		extern (C) c_int main(c_int argc, const char** argv) {
+			import core.runtime;
+			Runtime.initialize();
+			scope (exit) Runtime.terminate();
+
+			string[] args;
+			foreach (i; 0 .. argc) {
+				args ~= argv[i][0 .. .strlen(argv[i])].idup;
+			}
+			try {
+				mainImpl(args);
+				return 0;
+			} catch (Throwable e) {
+				return -1;
+			}
+		}
+	} else {
+		void main(string[] args) { mainImpl(args); }
+	}
+} else {
+	void main(string[] args) { mainImpl(args); }
+}
+
+private void mainImpl(string[] args) {
 	string appPath = exeName(args[0]);
 	version (Console) {
 		string log = "Executed: " ~ appPath;
