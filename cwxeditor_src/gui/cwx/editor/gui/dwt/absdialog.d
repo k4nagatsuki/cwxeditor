@@ -347,7 +347,7 @@ abstract class AbsDialog {
 		if (_apply && !_forceApplyEnabled) _apply.setEnabled(false);
 		_forceApplyEnabled = false;
 		_win.open();
-		version (Windows) {
+/+		version (Windows) {
 			// BUG: Google日本語入力を使用しており、IMEがオンの時にダイアログを開くと、
 			//      全角スペースを入力しようとしても半角スペースが入る、
 			//      バックスペースキーが一度だけ効かないなどの不具合が発生する
@@ -387,7 +387,7 @@ abstract class AbsDialog {
 				}
 			});
 		}
-		if (firstFocusIsOK) _okBtn.setFocus();
++/		if (firstFocusIsOK) _okBtn.setFocus();
 		opened();
 		foreach (dlg; openedEvent) { mixin(S_TRACE);
 			dlg();
