@@ -20,13 +20,13 @@ Windowsの場合
 
 ### リソースコンパイラの入手方法
 
-32ビット版のリソースコンパイルに使うrccは以下のサイトから入手できます。
+dmdの32ビット版でビルドする時のリソースコンパイルに使うDigital Mars rccは以下のサイトから入手できます。
 
 http://www.digitalmars.com//download/freecompiler.html
 
 ここからBasic Utilitiesを入手して、パスを通しましょう(「パスを通す」などのキーワードで検索する事で、具体的な情報が見つかります)。
 
-64ビット版のrcはBuild Tools for Visual Studio 2019等に入っているものが使用できます。
+64ビット版、またはLDCでのビルドで使用するMicrosoft Windows Resource Compilerは、Build Tools for Visual Studio 2019等に入っているものが使用できます。
 
 https://visualstudio.microsoft.com/ja/downloads/
 
@@ -56,7 +56,7 @@ dubは標準で64ビット版をビルドします。32ビット版をビルド�
 
     dub --arch=x86
 
-ところが、dmd 2.093.1では謎のエラーが発生してビルドに失敗してしまいます(LDCではビルド可能ですが、x86版とx86_64版のコンパイラを使い分ける必要があります)。
+ところが、dmd 2.093.1では謎のエラーが発生してビルドに失敗してしまいます(LDCなら問題ありません。ただし64ビット版と32ビット版の両方をビルドするならmultilib版を使いましょう)。
 
 cwxeditorでは歴史的に独自のビルドスクリプトを使用してきましたが、そのスクリプトは今でも使用でき、こちらはdmdによる32ビット版ビルドも問題無く行う事が可能です。ただし、外部ライブラリをセットアップする必要があるため多少手間がかかります。
 
