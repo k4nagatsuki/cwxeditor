@@ -3,21 +3,22 @@ module cwxeditor;
 
 private extern(C) __gshared string[] rt_options = [ "scanDataSeg=precise" ];
 
-import cwx.utils;
-import cwx.system;
 import cwx.props;
+import cwx.sjis;
 import cwx.structs;
+import cwx.system;
+import cwx.utils;
 
+import cwx.editor.gui.dwt.commons;
+import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.mainwindow;
 import cwx.editor.gui.dwt.textdialog;
-import cwx.editor.gui.dwt.dprops;
-import cwx.editor.gui.dwt.commons;
 
+import std.conv;
+import std.exception;
 import std.file;
 import std.path;
 import std.stdio;
-import std.exception;
-import std.conv;
 
 import org.eclipse.swt.widgets.Display;
 
@@ -25,15 +26,16 @@ version (LDC) {
 	version (Windows) {
 		// LDCで /SUBSYSTEM:Windows /ENTRY:mainCRTStartup を指定した時の
 		// エントリポイントはCのmainである必要がある
+		import core.runtime;
 		import core.stdc.string;
-		extern (C) c_int main(c_int argc, const char** argv) {
-			import core.runtime;
-			Runtime.initialize();
-			scope (exit) Runtime.terminate();
+		import std.windows.charset;
+		extern (C) c_int main(c_int argc, immutable char** argv) {
+			.Runtime.initialize();
+			scope (exit) .Runtime.terminate();
 
 			string[] args;
 			foreach (i; 0 .. argc) {
-				args ~= argv[i][0 .. .strlen(argv[i])].idup;
+				args ~= .fromMBSz(argv[i]).to!string();
 			}
 			try {
 				mainImpl(args);
