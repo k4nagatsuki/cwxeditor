@@ -58,8 +58,8 @@ if not "%3"=="copy_builds" (
 		git push %MAIN_REPO_EDITOR% --tags
 	)
 )
-rdmd build clean
-rdmd build release
+dub clean
+dub build --compiler=ldc2 --build=release --arch=x86
 if not errorlevel = 0 goto failure
 copy cwxeditor.exe %DEST_DIR_EDITOR%
 git clone ../ %DEST_DIR_EDITOR%\cwxeditor
@@ -88,8 +88,8 @@ set CWX_DATE=
 rmdir /S /Q cwxeditor
 popd
 
-rdmd build clean
-rdmd build release -m64
+dub clean
+dub build --compiler=ldc2 --build=release --arch=x86_64
 if not errorlevel = 0 goto failure
 copy cwxeditor.exe %DEST_DIR_EDITOR%
 git clone ../ %DEST_DIR_EDITOR%\cwxeditor

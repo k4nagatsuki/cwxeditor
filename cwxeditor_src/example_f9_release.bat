@@ -83,6 +83,8 @@ if not !dailybuild_sub! == a (
 
 @echo on
 
+dub upgrade
+
 call f9_release64.bat %BUILD_N%
 if not errorlevel = 0 goto failure
 pushd %~dp0

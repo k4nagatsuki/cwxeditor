@@ -11,10 +11,10 @@ rem -----------------------------------------------------------------------
 
 set CWX_VERSION=default
 git checkout %CWX_VERSION%
-rdmd build clean cui -m64
+dub build --compiler=ldc2 --arch=x86_64
 if not errorlevel = 0 goto failure
 copy cwxeditor.exe %DEST_DIR%\cwxeditor_fnine_x64.exe
-rdmd build clean gui -m64
+dub build --compiler=ldc2 --build=gui --arch=x86_64
 if not errorlevel = 0 goto failure
 copy cwxeditor.exe %DEST_DIR%\cwxeditor_fnine_win_x64.exe
 copy fnine_readme.txt %DEST_DIR%

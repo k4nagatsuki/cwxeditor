@@ -52,7 +52,7 @@
 			],
 			"dependencies": {
 				"dxml": ">=0.4.3",
-				"dwt": ">=1.0.5"
+				"dwt": "~master"
 			}
 		},
 		{
