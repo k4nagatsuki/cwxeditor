@@ -620,6 +620,7 @@ void createExecEngineMenu(Commons comm, Menu menu, Menu mWithParty,
 			auto yadoDir = path.dirName().buildPath(comm.prop.sys.yadoName(path.baseName()));
 			if (!yadoDir.exists() || !yadoDir.isDir()) return;
 			auto mi = createMenuItem2(comm, mWithParty, name, img, dummy, delegate bool() { mixin(S_TRACE);
+				if (!canExecWithParty()) return false;
 				if (canExecClassic()) { mixin(S_TRACE);
 					try { mixin(S_TRACE);
 						foreach (yado; .clistdir(yadoDir)) { mixin(S_TRACE);
@@ -699,6 +700,7 @@ void createExecEngineMenu(Commons comm, Menu menu, Menu mWithParty,
 			}
 			void delegate() dummy = null;
 			auto mi = createMenuItem(comm, mWithParty, MenuID.ExecEngineMain, dummy, delegate bool() { mixin(S_TRACE);
+				if (!canExecWithParty()) return false;
 				try { mixin(S_TRACE);
 					auto dir = comm.prop.var.etc.enginePath.value.dirName().buildPath("Yado");
 					if (!dir.exists() || !dir.isDir()) return false;

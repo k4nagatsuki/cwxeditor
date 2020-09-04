@@ -227,7 +227,7 @@ private:
 			}
 		}
 
-		.createExecEngineMenu(_comm, menu, mWithParty, () => summary !is null, &origScenarioPath, epKey => true, &execEngineP, &canExecClassic);
+		.createExecEngineMenu(_comm, menu, mWithParty, &canExecEngineWithParty, &origScenarioPath, epKey => true, &execEngineP, &canExecClassic);
 
 		if (mWithParty && (_prop.var.etc.executedPartyBookmarks.length || _prop.var.etc.executedParties.length)) { mixin(S_TRACE);
 			auto num = 0;
@@ -1336,8 +1336,7 @@ private:
 	}
 	@property
 	bool canExecEngineWithLastParty() { mixin(S_TRACE);
-		if (!summary || (summary.useTemp && summary.origZipName == "")) return false;
-		if (summary.readOnlyPath != "") return false;
+		if (!canExecEngineWithParty) return false;
 		if (_prop.var.etc.lastExecutedParty.enginePath == "") return false;
 		auto ep = _prop.var.etc.lastExecutedParty;
 		return summary && ep.enginePath != "" && ep.enginePath.exists() && ep.enginePath.isFile();
@@ -1350,11 +1349,14 @@ private:
 		return !ep.isClassic || canExecClassic;
 	}
 	@property
+	bool canExecEngineWithPartyMenu() { mixin(S_TRACE);
+		if (canExecEngineWithParty) return true;
+		return canExecEngine || _prop.var.etc.classicEngines.length || _prop.var.etc.executedPartyBookmarks.length || _prop.var.etc.executedParties.length;
+	}
+	@property
 	bool canExecEngineWithParty() { mixin(S_TRACE);
-		if (_prop.var.etc.classicEngines.length) return true;
 		if (!summary || (summary.useTemp && summary.origZipName == "")) return false;
 		if (summary.readOnlyPath != "") return false;
-		if (!canExecEngine && !_prop.var.etc.classicEngines.length) return false;
 		return true;
 	}
 	void execEngine() { mixin(S_TRACE);
@@ -2983,7 +2985,7 @@ public:
 				_menu[MenuID.ExecEngine] = eemi;
 				_mExecEngine = new Menu(eemi);
 				eemi.setMenu(_mExecEngine);
-				auto eewpmi = createMenuItem(_comm, mt, MenuID.ExecEngineWithParty, dummy, () => canExecEngineWithParty, SWT.CASCADE);
+				auto eewpmi = createMenuItem(_comm, mt, MenuID.ExecEngineWithParty, dummy, &canExecEngineWithPartyMenu, SWT.CASCADE);
 				_menu[MenuID.ExecEngineWithParty] = eewpmi;
 				_mExecEngineWithParty = new Menu(eewpmi);
 				eewpmi.setMenu(_mExecEngineWithParty);
@@ -3541,7 +3543,7 @@ public:
 	}
 	private void createExecEngineWithPartyTI(ToolBar bar) { mixin(S_TRACE);
 		_mainMenu.add(MenuID.ExecEngineWithParty);
-		_tiExecEngineWithParty = createDropDownItem(_comm, bar, MenuID.ExecEngineWithParty, &execEngineWithLastParty, _tmExecEngineWithParty, () => canExecEngineWithLastParty || canExecEngineWithParty);
+		_tiExecEngineWithParty = createDropDownItem(_comm, bar, MenuID.ExecEngineWithParty, &execEngineWithLastParty, _tmExecEngineWithParty, () => canExecEngineWithLastParty || canExecEngineWithPartyMenu);
 		_tool[MenuID.ExecEngineWithParty] = _tiExecEngineWithParty;
 		listener(_tiExecEngineWithParty, SWT.Dispose, (e) { mixin(S_TRACE);
 			auto tiExecEngineWithParty = cast(ToolItem)e.widget;
@@ -4212,7 +4214,7 @@ public:
 				continue;
 			}
 			if (id is MenuID.ExecEngineWithParty) { mixin(S_TRACE);
-				itm.setEnabled(canExecEngineWithParty);
+				itm.setEnabled(canExecEngineWithPartyMenu);
 				continue;
 			}
 			if (id is MenuID.OuterTools) { mixin(S_TRACE);
