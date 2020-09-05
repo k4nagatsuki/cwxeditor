@@ -81,6 +81,18 @@ class IncSearch {
 	private bool _inMod = false;
 	private bool delegate() _enabled = null;
 
+	private class Start : Runnable {
+		wchar[] text;
+		override void run() { mixin(S_TRACE);
+			_start = null;
+			if (!_enabled || _enabled()) { mixin(S_TRACE);
+				auto t = text.to!string();
+				startIncSearch(t);
+			}
+		}
+	}
+	private Start _start = null;
+
 	this (Commons comm, Control parent, bool delegate() enabled, AdditionMatcher[] addition = []) { mixin(S_TRACE);
 		_comm = comm;
 		_parent = parent;
@@ -91,16 +103,6 @@ class IncSearch {
 
 		// 文字列入力による絞り込み検索開始
 		auto keyDown = new class Listener {
-			private class Start : Runnable {
-				wchar[] text;
-				override void run() { mixin(S_TRACE);
-					_start = null;
-					if (!_enabled || _enabled()) { mixin(S_TRACE);
-						startIncSearch(text.text());
-					}
-				}
-			}
-			private Start _start = null;
 			override void handleEvent(Event e) { mixin(S_TRACE);
 				if (_open) return;
 				if (!_comm.prop.var.etc.startIncrementalSearchWhenKeyDown) return;
