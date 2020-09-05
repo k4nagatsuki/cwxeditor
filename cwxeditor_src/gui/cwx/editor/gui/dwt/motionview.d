@@ -584,6 +584,7 @@ private:
 			_motions.showSelection();
 			_motions.redraw();
 			refreshSels();
+			foreach (dlg; modEvent) dlg();
 		}
 	}
 	void down() { mixin(S_TRACE);
@@ -594,6 +595,7 @@ private:
 			_motions.showSelection();
 			_motions.redraw();
 			refreshSels();
+			foreach (dlg; modEvent) dlg();
 		}
 	}
 	void removeMotion() { mixin(S_TRACE);
