@@ -455,6 +455,7 @@ class FlexEtcProps : Properties {
 	}
 	auto engineScript = Prop!(string, true)("engineScript", "cardwirth.py");
 	auto enginePath = Prop!(string)("enginePath", "");
+	auto pythonCommand = Prop!(string, true)("pythonCommand", "python");
 	auto lastExecutedParty = Prop!(ExecutionParty)("lastExecutedParty", ExecutionParty.init);
 	auto executedParties = Prop!(ExecutionParty[])("executedParties", []);
 	auto executedPartyBookmarks = Prop!(ExecutionParty[])("executedPartyBookmarks", []);

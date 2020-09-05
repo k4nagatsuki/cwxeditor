@@ -1287,7 +1287,7 @@ private:
 		string path2 = path;
 		string dir = dirName(nabs(path));
 		if (path.extension().toLower() == ".py") { mixin(S_TRACE);
-			path2 = .tryFormat("python \"%s\"", path);
+			path2 = .tryFormat(_prop.var.etc.pythonCommand ~ " \"%s\"", path);
 		}
 		if (scenario != "") { mixin(S_TRACE);
 			auto params = [

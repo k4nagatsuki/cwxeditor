@@ -1990,6 +1990,10 @@ version (Windows) {
 			flag |= CREATE_NEW_CONSOLE;
 		}
 
+		version (Console) {
+			debug .cwriteln("Execute: " ~ process);
+			debug .cwriteln("WorkDir: " ~ workDir);
+		}
 		auto r = CreateProcessW(null, toUTFz!(wchar*)(process), null, null, false, flag, null,
 			workDir.length ? toUTFz!(wchar*)(workDir) : null, &setup, &info);
 		if (r) { mixin(S_TRACE);
@@ -2014,6 +2018,10 @@ version (Windows) {
 		if (pid < 0) { mixin(S_TRACE);
 			return false;
 		} else if (pid > 0) { mixin(S_TRACE);
+			version (Console) {
+				debug .cwriteln("Execute: " ~ process);
+				debug .cwriteln("WorkDir: " ~ workDir);
+			}
 			return true;
 		} else { mixin(S_TRACE);
 			assert (pid == 0);
