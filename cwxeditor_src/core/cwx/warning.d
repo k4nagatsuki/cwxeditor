@@ -627,6 +627,44 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				r ~= checkTextRes2("", c.useCounter, fit, sit, vit, [], []);
 			}
 		}
+		if (c.parent && c.parent.detail.nextType == CNextType.Step && c.parent.step != "") { mixin(S_TRACE);
+			if (auto s = .findVar!Step(froot, c.useCounter, c.parent.step)) { mixin(S_TRACE);
+				try { mixin(S_TRACE);
+					auto val = c.name == prop.sys.evtChildDefault ? -1L : .to!(long)(c.name);
+					if (0 <= val) { mixin(S_TRACE);
+						if (s.count <= val) { mixin(S_TRACE);
+							r ~= .tryFormat(prop.msgs.searchErrorStepValueNotFound, val);
+						}
+					}
+				} catch (Exception e) {
+					r ~= .tryFormat(prop.msgs.searchErrorStepValueNotFound, c.name);
+				}
+			}
+		}
+		if (c.parent && c.parent.detail.nextType == CNextType.IdArea) { mixin(S_TRACE);
+			try { mixin(S_TRACE);
+				auto val = c.name == prop.sys.evtChildDefault ? -1L : .to!(long)(c.name);
+				if (0 <= val) { mixin(S_TRACE);
+					if (!summ.area(val)) { mixin(S_TRACE);
+						r ~= .tryFormat(prop.msgs.searchErrorAreaNotFound, val);
+					}
+				}
+			} catch (Exception e) {
+				r ~= .tryFormat(prop.msgs.searchErrorBattleNotFound, c.name);
+			}
+		}
+		if (c.parent && c.parent.detail.nextType == CNextType.IdBattle) { mixin(S_TRACE);
+			try { mixin(S_TRACE);
+				auto val = c.name == prop.sys.evtChildDefault ? -1L : .to!(long)(c.name);
+				if (0 <= val) { mixin(S_TRACE);
+					if (!summ.battle(val)) { mixin(S_TRACE);
+						r ~= .tryFormat(prop.msgs.searchErrorBattleNotFound, val);
+					}
+				}
+			} catch (Exception e) {
+				r ~= .tryFormat(prop.msgs.searchErrorBattleNotFound, c.name);
+			}
+		}
 
 		void couponWarnings(string coupon, bool getLose, string name) { mixin(S_TRACE);
 			r ~= .couponWarnings(prop, isClassic, wsnVer, targVer, coupon, getLose, name);

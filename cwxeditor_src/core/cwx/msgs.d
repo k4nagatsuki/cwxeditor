@@ -374,8 +374,9 @@ class Msgs : Properties {
 	auto searchErrorSENotFound = Msg("searchErrorSENotFound", "存在しない効果音ファイル(%1$s)が指定されています。");
 	auto searchErrorStartAreaNotFound = Msg("searchErrorStartAreaNotFound", "開始エリアが設定されていません。");
 	auto searchErrorFlagNotFound = Msg("searchErrorFlagNotFound", "存在しないフラグ(%1$s)が指定されています。");
-	auto searchErrorStepNotFound = Msg("searchErrorStepNotFound", "存在しないステップ(%1$s)が指定されています");
-	auto searchErrorVariantNotFound = Msg("searchErrorVariantNotFound", "存在しないコモン(%1$s)が指定されています");
+	auto searchErrorStepNotFound = Msg("searchErrorStepNotFound", "存在しないステップ(%1$s)が指定されています。");
+	auto searchErrorStepValueNotFound = Msg("searchErrorStepValueNotFound", "存在しないステップ値(%1$s)が指定されています。");
+	auto searchErrorVariantNotFound = Msg("searchErrorVariantNotFound", "存在しないコモン(%1$s)が指定されています。");
 	auto searchErrorDupNextContent = Msg("searchErrorDupNextContent", "分岐条件が重複しています。");
 	auto searchErrorSPFontIsNotSJIS1ByteChar = Msg("searchErrorSPFontIsNotSJIS1ByteChar", "「%1$s」は無効です。クラシックなシナリオの特殊フォント指定にはShift JISの1バイト文字しか使用できません。");
 	auto searchErrorSPFontNotFound = Msg("searchErrorSPFontNotFound", "特殊フォントイメージ(%1$s)が見つかりません。");
