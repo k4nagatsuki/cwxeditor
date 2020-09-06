@@ -116,7 +116,7 @@ class RadarSpinner : Composite {
 					if (e.button == 1) { mixin(S_TRACE);
 						_onDrag = cursorFromPos(e.x, e.y);
 						if (_onDrag >= 0) { mixin(S_TRACE);
-							(cast(Spinner) _spns[_onDrag]).setFocus();
+							(cast(Spinner)_spns[_onDrag]).setFocus();
 						}
 					}
 				}
@@ -263,7 +263,7 @@ class RadarSpinner : Composite {
 		this(int index) { _index = index; }
 		override void handleEvent(Event e) { mixin(S_TRACE);
 			foreach (h; _modHandler) { mixin(S_TRACE);
-				h(_index, (cast(Spinner) e.widget).getSelection());
+				h(_index, (cast(Spinner)e.widget).getSelection());
 			}
 		}
 	}
@@ -399,11 +399,11 @@ class RadarSpinner : Composite {
 		foreach (i, comp; _comps) { mixin(S_TRACE);
 			int old;
 			if (_readOnly) { mixin(S_TRACE);
-				old = (cast(Integer) _spns[i].getData()).intValue();
-				auto sspn = cast(Label) _spns[i];
+				old = (cast(Integer)_spns[i].getData()).intValue();
+				auto sspn = cast(Label)_spns[i];
 				sspn.setText(to!(string)(v));
 			} else { mixin(S_TRACE);
-				auto sspn = (cast(Spinner) _spns[i]);
+				auto sspn = (cast(Spinner)_spns[i]);
 				old = sspn.getMaximum();
 				if (v < 0) { mixin(S_TRACE);
 					// Spinner#computeSize()で'-'を無視してくれるので
@@ -414,9 +414,9 @@ class RadarSpinner : Composite {
 			}
 			scope s = comp.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 			if (_readOnly) { mixin(S_TRACE);
-				(cast(Label) _spns[i]).setText(to!(string)(old));
+				(cast(Label)_spns[i]).setText(to!(string)(old));
 			} else { mixin(S_TRACE);
-				(cast(Spinner) _spns[i]).setMaximum(old);
+				(cast(Spinner)_spns[i]).setMaximum(old);
 			}
 			if (s.x > _maxSize.x) _maxSize.x = s.x;
 			if (s.y > _maxSize.y) _maxSize.y = s.y;
@@ -438,10 +438,10 @@ class RadarSpinner : Composite {
 
 			// 縦横比を適正にする
 			if (h * MAX_GAP < w) { mixin(S_TRACE);
-				w = cast(int) (h * MAX_GAP);
+				w = cast(int)(h * MAX_GAP);
 			}
 			if (w * MAX_GAP_3H < h) { mixin(S_TRACE);
-				h = cast(int) (w * MAX_GAP_3H);
+				h = cast(int)(w * MAX_GAP_3H);
 			}
 			int xs = (client.width - w) / 2;
 			int ys = (client.height - h) / 2;
@@ -475,9 +475,9 @@ class RadarSpinner : Composite {
 			double r3 = atan2(y3 - cy, x3 - cx);
 
 			// LabelとSpinnerの位置。
-			_comps[0].setBounds(xs + cast(int) (x1 - _maxSize.x / 2), ys + cast(int) (y1 - _maxSize.y / 2), _maxSize.x, _maxSize.y);
-			_comps[1].setBounds(xs + cast(int) (x2 - _maxSize.x / 2), ys + cast(int) (y2 - _maxSize.y / 2), _maxSize.x, _maxSize.y);
-			_comps[2].setBounds(xs + cast(int) (x3 - _maxSize.x / 2), ys + cast(int) (y3 - _maxSize.y / 2), _maxSize.x, _maxSize.y);
+			_comps[0].setBounds(xs + cast(int)(x1 - _maxSize.x / 2), ys + cast(int)(y1 - _maxSize.y / 2), _maxSize.x, _maxSize.y);
+			_comps[1].setBounds(xs + cast(int)(x2 - _maxSize.x / 2), ys + cast(int)(y2 - _maxSize.y / 2), _maxSize.x, _maxSize.y);
+			_comps[2].setBounds(xs + cast(int)(x3 - _maxSize.x / 2), ys + cast(int)(y3 - _maxSize.y / 2), _maxSize.x, _maxSize.y);
 
 			double dis = TOGGLE_SIZE.ppis + MARGIN.ppis + ((_maxSize.x + _maxSize.y) / 2) / 2;
 			x1 -= dis * cos(r1);
@@ -495,12 +495,12 @@ class RadarSpinner : Composite {
 
 			// レーダーの各座標位置
 			foreach (s; 0 .. _step_c) { mixin(S_TRACE);
-				int x1i = cast(int) (x1 + x1d * s);
-				int y1i = cast(int) (y1 + y1d * s);
-				int x2i = cast(int) (x2 + x2d * s);
-				int y2i = cast(int) (y2 + y2d * s);
-				int x3i = cast(int) (x3 + x3d * s);
-				int y3i = cast(int) (y3 + y3d * s);
+				int x1i = cast(int)(x1 + x1d * s);
+				int y1i = cast(int)(y1 + y1d * s);
+				int x2i = cast(int)(x2 + x2d * s);
+				int y2i = cast(int)(y2 + y2d * s);
+				int x3i = cast(int)(x3 + x3d * s);
+				int y3i = cast(int)(y3 + y3d * s);
 				_polys[s][0 * 2] = xs + x1i;
 				_polys[s][0 * 2 + 1] = ys + y1i;
 				_polys[s][1 * 2] = xs + x2i;
@@ -533,10 +533,7 @@ class RadarSpinner : Composite {
 				r += 360;
 				r %= 360;
 				double cosR = .cos(r * PI / 180);
-				// FIXME: rが180の時にrを使って計算すると結果が1.22461e-16になる
-				//        正しくは-5.42101e-20
-				//double sinR = .sin(r * PI / 180);
-				double sinR = r == 180 ? .sin(180 * PI / 180) : .sin(r * PI / 180);
+				double sinR = r == 180 ? 0.0 : .sin(r * PI / 180);
 				double disBaseX, disBaseY;
 				if (r < 90) { mixin(S_TRACE);
 					disBaseX = +(cw - bw);
@@ -554,19 +551,19 @@ class RadarSpinner : Composite {
 				// 第一象限の場合
 				// 0(左端) = (ovalW + disW) * cos(r) + (cw / 2) + (bw / 2)
 				// 0(上端) = (ovalH + disH) * sin(r) + (ch / 2) + (bh / 2)
-				if (0 != cosR) ovalWr = .min(ovalWr, disBaseX / (cosR * 2) - disW);
-				if (0 != sinR) ovalHr = .min(ovalHr, disBaseY / (sinR * 2) - disH);
+				if (!cosR.approxEqual(0.0)) ovalWr = .min(ovalWr, disBaseX / (cosR * 2) - disW);
+				if (!sinR.approxEqual(0.0)) ovalHr = .min(ovalHr, disBaseY / (sinR * 2) - disH);
 			}
-			if (SWT.DEFAULT == _ovalW) ovalW = .max(0, cast(int) (ovalWr * 2));
-			if (SWT.DEFAULT == _ovalH) ovalH = .max(0, cast(int) (ovalHr * 2));
+			if (SWT.DEFAULT == _ovalW) ovalW = .max(0, cast(int)(ovalWr * 2));
+			if (SWT.DEFAULT == _ovalH) ovalH = .max(0, cast(int)(ovalHr * 2));
 		}
 		if (SWT.DEFAULT == _ovalW && SWT.DEFAULT == _ovalH) { mixin(S_TRACE);
 			// 縦横比を1:1.5以内にする
 			if (.min(ovalW, ovalH) * MAX_GAP < .max(ovalW, ovalH)) { mixin(S_TRACE);
 				if (ovalW < ovalH) { mixin(S_TRACE);
-					ovalH = cast(int) (ovalW * MAX_GAP);
+					ovalH = cast(int)(ovalW * MAX_GAP);
 				} else { mixin(S_TRACE);
-					ovalW = cast(int) (ovalH * MAX_GAP);
+					ovalW = cast(int)(ovalH * MAX_GAP);
 				}
 			}
 		}
@@ -591,10 +588,10 @@ class RadarSpinner : Composite {
 		double y = tgs_d + MARGIN.ppis + sp.y + posY;
 		for (int s = 0; s < _step_c; s++) { mixin(S_TRACE);
 			if (_oval) { mixin(S_TRACE);
-				_ovals[s].x = cast(int) x;
-				_ovals[s].y = cast(int) y;
-				_ovals[s].width = cast(int) oval_x + 1;
-				_ovals[s].height = cast(int) oval_y + 1;
+				_ovals[s].x = cast(int)x;
+				_ovals[s].y = cast(int)y;
+				_ovals[s].width = cast(int)oval_x + 1;
+				_ovals[s].height = cast(int)oval_y + 1;
 			}
 			double rw = oval_x / 2.0;
 			double rh = oval_y / 2.0;
@@ -603,8 +600,8 @@ class RadarSpinner : Composite {
 				double px = x + rw + rw * cos(PI * 2.0 * n / _param_c);
 				double py = y + rh + rh * sin(PI * 2.0 * n / _param_c);
 				auto t = _tgls[i][$ - 1 - s];
-				t.x = cast(int) px;
-				t.y = cast(int) py;
+				t.x = cast(int)px;
+				t.y = cast(int)py;
 				if (!_oval) { mixin(S_TRACE);
 					_polys[s][i * 2] = t.x;
 					_polys[s][i * 2 + 1] = t.y;
@@ -629,7 +626,7 @@ class RadarSpinner : Composite {
 			double px = x + rw + rw * cos(PI * 2.0 * n / _param_c);
 			double py = y + rh + rh * sin(PI * 2.0 * n / _param_c);
 			_comps[i].setBounds
-				(cast(int) rndtol(px - sp.x / 2), cast(int) rndtol(py - sp.y / 2), sp.x, sp.y);
+				(cast(int)rndtol(px - sp.x / 2), cast(int)rndtol(py - sp.y / 2), sp.x, sp.y);
 		}
 		redraw();
 	}
@@ -639,10 +636,10 @@ class RadarSpinner : Composite {
 	/// value = 値。
 	void setValue(size_t index, int value) { mixin(S_TRACE);
 		if (_readOnly) { mixin(S_TRACE);
-			(cast(Label) _spns[index]).setText(to!(string)(value));
+			(cast(Label)_spns[index]).setText(to!(string)(value));
 			_spns[index].setData(new Integer(value));
 		} else { mixin(S_TRACE);
-			(cast(Spinner) _spns[index]).setSelection(value);
+			(cast(Spinner)_spns[index]).setSelection(value);
 		}
 		redraw();
 	}
@@ -652,10 +649,10 @@ class RadarSpinner : Composite {
 	void setValues(int[] value) { mixin(S_TRACE);
 		foreach (i, spn; _spns) { mixin(S_TRACE);
 			if (_readOnly) { mixin(S_TRACE);
-				(cast(Label) spn).setText(to!(string)(value[i]));
+				(cast(Label)spn).setText(to!(string)(value[i]));
 				spn.setData(new Integer(value[i]));
 			} else { mixin(S_TRACE);
-				(cast(Spinner) spn).setSelection(value[i]);
+				(cast(Spinner)spn).setSelection(value[i]);
 			}
 		}
 		redraw();
@@ -666,9 +663,9 @@ class RadarSpinner : Composite {
 	/// Returns: 値。
 	int getValue(size_t index) { mixin(S_TRACE);
 		if (_readOnly) { mixin(S_TRACE);
-			return (cast(Integer) _spns[index].getData()).intValue();
+			return (cast(Integer)_spns[index].getData()).intValue();
 		} else { mixin(S_TRACE);
-			return (cast(Spinner) _spns[index]).getSelection();
+			return (cast(Spinner)_spns[index]).getSelection();
 		}
 	}
 	/// 全ての値を返す。
@@ -837,8 +834,8 @@ class RadarSpinner : Composite {
 			double rh = oval_y / 2.0;
 			double px = x + rw + rw * cos(PI * 2.0 * n / _param_c);
 			double py = y + rh + rh * sin(PI * 2.0 * n / _param_c);
-			int cl = cast(int) px - sp.x / 2;
-			int ct = cast(int) py - sp.y / 2;
+			int cl = cast(int)px - sp.x / 2;
+			int ct = cast(int)py - sp.y / 2;
 			int cr = cl + sp.x;
 			int cb = ct + sp.y;
 			if (cl < minL) minL = cl;
