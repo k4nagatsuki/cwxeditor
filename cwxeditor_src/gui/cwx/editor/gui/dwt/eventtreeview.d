@@ -4137,12 +4137,13 @@ private string evtChildBrArea(in Props prop, in Area[] areas, ref string text) {
 	if (text.length > 0) { mixin(S_TRACE);
 		try { mixin(S_TRACE);
 			long val = text == prop.sys.evtChildDefault ? -1 : (isNumeric(text) ? to!(long)(text) : -1);
-			if (val >= 0) { mixin(S_TRACE);
+			if (0 <= val) { mixin(S_TRACE);
 				foreach (a; areas) { mixin(S_TRACE);
 					if (a.id == val) { mixin(S_TRACE);
 						return .tryFormat(prop.msgs.branchAreaWithId, a.id, a.name);
 					}
 				}
+				return .tryFormat(prop.msgs.noArea, val);
 			}
 		} catch (Exception e) {
 			printStackTrace();
@@ -4156,12 +4157,13 @@ private string evtChildBrBattle(in Props prop, in Battle[] btls, ref string text
 	if (text.length > 0) { mixin(S_TRACE);
 		try { mixin(S_TRACE);
 			long val = text == prop.sys.evtChildDefault ? -1 : (isNumeric(text) ? to!(long)(text) : -1);
-			if (val >= 0) { mixin(S_TRACE);
+			if (0 <= val) { mixin(S_TRACE);
 				foreach (b; btls) { mixin(S_TRACE);
 					if (b.id == val) { mixin(S_TRACE);
 						return .tryFormat(prop.msgs.branchBattleWithId, b.id, b.name);
 					}
 				}
+				return .tryFormat(prop.msgs.noBattle, val);
 			}
 		} catch (Exception e) {
 			printStackTrace();
