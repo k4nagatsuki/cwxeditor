@@ -2491,7 +2491,9 @@ public:
 		vals[0] = mixin(Create);
 		name = _prop.sys.evtChildFalse;
 		vals[1] = mixin(Create);
-		return createComboEditor(_comm, _prop, _tree.control, vals, vals[child.name == _prop.sys.evtChildTrue ? 0 : 1]);
+		auto combo = createComboEditor(_comm, _prop, _tree.control, vals, vals[0]);
+		combo.select(child.name == _prop.sys.evtChildTrue ? 0 : 1); // TRUE値とFALSE値が同一文字列のケースがあるのでindexで指定する
+		return combo;
 	}
 	private Combo createBoolEditor2(string Create)(Content evt, Content child) { mixin(S_TRACE);
 		if (_readOnly) return null;
@@ -2501,7 +2503,9 @@ public:
 		vals[0] = mixin(Create);
 		name = _prop.sys.evtChildFalse;
 		vals[1] = mixin(Create);
-		return createComboEditor(_comm, _prop, _tree.control, vals, vals[child.name == _prop.sys.evtChildTrue ? 0 : 1]);
+		auto combo = createComboEditor(_comm, _prop, _tree.control, vals, vals[0]);
+		combo.select(child.name == _prop.sys.evtChildTrue ? 0 : 1); // TRUE値とFALSE値が同一文字列のケースがあるのでindexで指定する
+		return combo;
 	}
 	private Combo createNumEditor(string Create)(Content evt, Content child, ulong[] nums) { mixin(S_TRACE);
 		if (_readOnly) return null;
@@ -2517,7 +2521,9 @@ public:
 		}
 		string name = _prop.sys.evtChildDefault;
 		vals[$ - 1] = mixin(Create);
-		return createComboEditor(_comm, _prop, _tree.control, vals, vals[index]);
+		auto combo = createComboEditor(_comm, _prop, _tree.control, vals, vals[0]);
+		combo.select(cast(int)index); // 各値が同一文字列のケースがあるのでindexで指定する
+		return combo;
 	}
 	private Combo createAreaSelectEditor(string Create, A)(Content evt, Content child, A[] areas) { mixin(S_TRACE);
 		if (_readOnly) return null;
