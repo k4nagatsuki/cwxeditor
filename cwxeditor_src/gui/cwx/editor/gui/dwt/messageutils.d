@@ -2426,12 +2426,20 @@ class PreviewValues : Composite {
 			auto o = _itm.getData();
 			if (auto vd = cast(VariantData)o) { mixin(S_TRACE);
 				auto val = .variantValueFromText(text);
+				vd.val = val;
 				if (val.valid) { mixin(S_TRACE);
 					_itm.setText(1, .variantValueToText(val));
 				} else { mixin(S_TRACE);
 					_itm.setText(1, .variantValueToText(vd.val));
 				}
 			} else { mixin(S_TRACE);
+				if (auto fd = cast(FlagData)o) { mixin(S_TRACE);
+					auto combo = cast(Combo)ctrl;
+					fd.onOff = combo.getSelectionIndex() == 0;
+				} else if (auto sd = cast(StepData)o) { mixin(S_TRACE);
+					auto combo = cast(Combo)ctrl;
+					sd.select = combo.getSelectionIndex();
+				}
 				_itm.setText(1, text);
 			}
 			if (old != _itm.getText(1)) { mixin(S_TRACE);
@@ -2645,11 +2653,13 @@ class PreviewValues : Composite {
 		auto o = itm.getData();
 		if (auto fd = cast(FlagData)o) { mixin(S_TRACE);
 			auto text = createComboEditor!Combo(_comm, _prop, itm.getParent(), [fd.flag.on, fd.flag.off], itm.getText(1));
+			text.select(fd.onOff ? 0 : 1); // TRUE値とFALSE値が同一文字列のケースがあるのでindexで指定する
 			text.addModifyListener(new Mod(itm));
 			return text;
 		}
 		if (auto sd = cast(StepData)o) { mixin(S_TRACE);
 			auto text = createComboEditor!Combo(_comm, _prop, itm.getParent(), sd.step.values, itm.getText(1));
+			text.select(sd.select); // 各値が同一文字列のケースがあるのでindexで指定する
 			text.addModifyListener(new Mod(itm));
 			return text;
 		}
