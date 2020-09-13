@@ -1159,7 +1159,7 @@ class Msgs : Properties {
 	auto ctLoseMoney = Msg("ctLoseMoney", "喪失金額 = %1$ssp");
 	auto ctLoseCoupon = Msg("ctLoseCoupon", "称号「%1$s」を喪失(%2$s)");
 	auto ctLoseCouponExpandSPChars = Msg("ctLoseCouponExpandSPChars", "称号「%1$s」を喪失(%2$s) 特殊文字を展開する"); // Wsn.4
-	auto ctLoseCompleteStamp = Msg("ctLoseCompleteStamp", "シナリオ%1$sの終了印を削除");
+	auto ctLoseCompleteStamp = Msg("ctLoseCompleteStamp", "シナリオ「%1$s」の終了印を削除");
 	auto ctLoseGossip = Msg("ctLoseGossip", "ゴシップ「%1$s」を喪失");
 	auto ctLoseGossipExpandSPChars = Msg("ctLoseGossipExpandSPChars", "ゴシップ「%1$s」を喪失 特殊文字を展開する"); // Wsn.4
 	auto ctShowParty = Msg("ctShowParty", "パーティの表示 %1$s");
