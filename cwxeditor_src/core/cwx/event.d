@@ -1047,13 +1047,32 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 
 		auto d = detail;
 
-		string oldPath;
-		if (od.use(CArg.BgmPath)) oldPath = bgmPath;
-		if (od.use(CArg.SoundPath)) { mixin(S_TRACE);
+		auto oldPath = "";
+		if (od.use(CArg.BgmPath) && bgmPath != "") { mixin(S_TRACE);
+			oldPath = bgmPath;
+		} else if (od.use(CArg.SoundPath) && soundPath != "") { mixin(S_TRACE);
 			oldPath = soundPath;
 			if (d.use(CArg.InitialSoundPath) && skin.findPath(oldPath, skin.extSound, skin.seDirs, sPath, wsnVer, skin.wsnSoundDirs(wsnVer)) == "") { mixin(S_TRACE);
-			oldPath = initialSoundPath;
+				oldPath = initialSoundPath;
 			}
+		}
+		auto oldText = "";
+		if (od.use(CArg.Coupon) && coupon != "") { mixin(S_TRACE);
+			oldText = coupon;
+		} else if (od.use(CArg.Gossip) && gossip != "") { mixin(S_TRACE);
+			oldText = gossip;
+		} else if (od.use(CArg.CompleteStamp) && completeStamp != "") { mixin(S_TRACE);
+			oldText = completeStamp;
+		} else if (od.use(CArg.KeyCode) && keyCode != "") { mixin(S_TRACE);
+			oldText = keyCode;
+		} else if (od.use(CArg.Coupons) && coupons.length && .any!(c => c.name != "")(coupons)) { mixin(S_TRACE);
+			oldText = .filter!(c => c.name != "")(coupons).front.name;
+		} else if (od.use(CArg.CellName) && cellName != "") { mixin(S_TRACE);
+			oldText = cellName;
+		} else if (od.use(CArg.CouponNames) && couponNames.length && .any!(name => name != "")(couponNames)) { mixin(S_TRACE);
+			oldText = .filter!(name => name != "")(couponNames).front;
+		} else if (od.use(CArg.CardGroup) && cardGroup != "") { mixin(S_TRACE);
+			oldText = cardGroup;
 		}
 
 		resetValue!(CArg.Area, ulong, 0)(d, od, &area, base, base.area);
@@ -1282,6 +1301,38 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		}
 		if (d.use(CArg.SoundPath) && skin.findPath(oldPath, skin.extSound, skin.seDirs, sPath, wsnVer, skin.wsnSoundDirs(wsnVer)) != "") { mixin(S_TRACE);
 			soundPath = oldPath;
+		}
+
+		// 称号等テキストの相互変換
+		if (oldText != "") { mixin(S_TRACE);
+			if (d.use(CArg.Coupon) && coupon == "") { mixin(S_TRACE);
+				coupon = oldText;
+			} else if (d.use(CArg.Gossip) && gossip == "") { mixin(S_TRACE);
+				gossip = oldText;
+			} else if (d.use(CArg.CompleteStamp) && completeStamp == "") { mixin(S_TRACE);
+				completeStamp = oldText;
+			} else if (d.use(CArg.KeyCode) && keyCode == "") { mixin(S_TRACE);
+				keyCode = oldText;
+			} else if (d.use(CArg.Coupons) && !coupons.length) { mixin(S_TRACE);
+				coupons = [new Coupon(oldText, 0)];
+			} else if (d.use(CArg.CellName) && cellName == "") { mixin(S_TRACE);
+				cellName = oldText;
+			} else if (d.use(CArg.CouponNames) && !couponNames.length) { mixin(S_TRACE);
+				couponNames = [oldText];
+			} else if (d.use(CArg.CardGroup) && cardGroup == "") { mixin(S_TRACE);
+				cardGroup = oldText;
+			}
+		}
+		if ((od.use(CArg.Gossip) || od.use(CArg.CompleteStamp) || od.use(CArg.CellName) || od.use(CArg.CardGroup)) && !od.use(CArg.Range)) { mixin(S_TRACE);
+			if (type == CType.BranchCoupon) { mixin(S_TRACE);
+				// ゴシップ等の所持分岐をクーポン所持分岐に変換する時は範囲を「誰か一人」にする
+				assert (d.use(CArg.Range));
+				range = Range.Random;
+			} else if (.among!(CType.GetCoupon, CType.LoseCoupon)(type)) { mixin(S_TRACE);
+				// ゴシップ等の所持分岐をクーポン獲得・喪失に変換する時は範囲を「パーティ全員」にする
+				assert (d.use(CArg.Range));
+				range = Range.Party;
+			}
 		}
 
 		// いずれかの状態変数を選択する場合
