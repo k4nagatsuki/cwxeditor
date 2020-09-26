@@ -377,8 +377,8 @@ ImportResult importResource(in CProps prop, Summary to, Summary from, in string[
 			auto ext = imageType(bytes);
 			auto fileName = createNewName(cleanFileName(name), (name) { mixin(S_TRACE);
 				auto path = to.scenarioPath.buildPath(newFolder.buildPath(name)) ~ ext;
-				foreach (file; r.materials) {
-					if (cfnmatch(file.dst, path)) {
+				foreach (file; r.materials) { mixin(S_TRACE);
+					if (cfnmatch(file.dst, path)) { mixin(S_TRACE);
 						return false;
 					}
 				}

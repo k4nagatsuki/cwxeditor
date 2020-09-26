@@ -779,8 +779,8 @@ private:
 								string p1 = toRelPath(from);
 								string p2 = toRelPath(to);
 								updatePaths(p1, p2);
-								_comm.refPath.call(p1, p2, false);
 								std.file.rename(from, to);
+								_comm.refPath.call(p1, p2, false);
 								if (_summ) _summ.renameFile(from, to);
 							}
 						}
@@ -935,7 +935,7 @@ private:
 
 	string pathRename(T)(T itm, string newName) { mixin(S_TRACE);
 		clearCut();
-		auto path = (cast(FileNameObj) itm.getData()).array;
+		auto path = (cast(FileNameObj)itm.getData()).array;
 		string frp = toRelPath(path);
 		string frd = nabs(path);
 		newName = std.array.replace(newName, dirSeparator, "");
@@ -943,7 +943,7 @@ private:
 			newName = std.array.replace(newName, altDirSeparator, "");
 		}
 		auto to = std.path.buildPath(dirName(path), newName);
-		bool isdir = cast(bool) .isDir(path);
+		bool isdir = cast(bool).isDir(path);
 		if (!isdir && .extension(path).length > 0) { mixin(S_TRACE);
 			to = to ~ .extension(path);
 		}
@@ -972,16 +972,14 @@ private:
 					string p1 = toRelPath(oldP);
 					string p2 = toRelPath(file);
 					updatePaths(p1, p2);
+					_comm.refPath.call(p1, p2, false);
 				}
 			}
 			foreach (c; clistdir(to)) { mixin(S_TRACE);
 				pchange(std.path.buildPath(to, c));
 			}
 		} else { mixin(S_TRACE);
-			string p1 = frp;
-			string p2 = toRelPath(to);
-			updatePaths(p1, p2);
-			_comm.refPath.call(p1, p2, false);
+			updatePaths(frp, trp);
 		}
 		// Jpy1ファイルの内容を更新
 		if (_summ) _summ.updateJpy1Files(_prop.parent, _prop.var.etc.autoUpdateJpy1File, _comm.sync);
