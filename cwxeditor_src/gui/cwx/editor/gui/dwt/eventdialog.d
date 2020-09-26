@@ -1647,7 +1647,8 @@ public:
 		} else if (!summ || summ.scenarioPath == "") { mixin(S_TRACE);
 			_summSkin = findSkin(comm, prop, summ);
 		}
-		_uc = uc;
+		_uc = uc ? uc.sub : null;
+		assert (!summ || summ.useCounter !is _uc);
 		_refTarget = refTarget;
 		super (comm, prop, shell, summ, type, parent, evt, true, prop.var.bgImagesDlg, false);
 
@@ -1655,7 +1656,8 @@ public:
 		if (evt) { mixin(S_TRACE);
 			bgImages = .map!(b => b.dup)(evt.backs).array();
 		}
-		_cont = new BgImageContainer(bgImages, uc ? uc.sub : null);
+		_cont = new BgImageContainer(bgImages, _uc);
+		assert (!summ || !bgImages.length || bgImages[0].useCounter !is summ.useCounter);
 	}
 
 	override
