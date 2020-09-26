@@ -2254,13 +2254,14 @@ class UseCounter {
 	this (CWXPath owner, UseCounter global) in (global !is null) { mixin(S_TRACE);
 		this (owner, global, global._global, new SingleUseCounter, true);
 	}
-	private this (CWXPath owner, UseCounter globalUC, SingleUseCounter global, SingleUseCounter local, bool createSub) in (globalUC !is null && global !is null) { mixin(S_TRACE);
+	private this (CWXPath owner, UseCounter globalUC, SingleUseCounter global, SingleUseCounter local, bool createSub) in (global !is null) { mixin(S_TRACE);
 		_owner = owner;
 		_globalUC = globalUC;
 		_global = global;
 		_local = local;
 		if (createSub) { mixin(S_TRACE);
-			_sub = new UseCounter(owner, globalUC.sub, global.sub, local ? local.sub : null, false);
+			_sub = new UseCounter(owner, globalUC is this ? null : globalUC.sub, global.sub, local ? local.sub : null, false);
+			if (!_sub._globalUC) _sub._globalUC = _sub;
 		}
 	}
 
