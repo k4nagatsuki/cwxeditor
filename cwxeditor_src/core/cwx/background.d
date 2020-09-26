@@ -1264,10 +1264,12 @@ interface BgImageOwner : CWXPath {
 class BgImageContainer : BgImageOwner {
 private:
 	BgImage[] _bgImgs;
+	UseCounter _uc;
 public:
 	/// 唯一のコンストラクタ。
-	this (BgImage[] bgImgs) { mixin(S_TRACE);
-		_bgImgs = bgImgs;
+	this (BgImage[] bgImgs, UseCounter uc) { mixin(S_TRACE);
+		_uc = uc;
+		this.backs = bgImgs;
 	}
 	@property
 	override string cwxPath(bool id) { return ""; }
@@ -1294,10 +1296,14 @@ public:
 	@property
 	CWXPath cwxParent() { return null; }
 
-	/// 使用回数カウンタ(不対応)。
+	/// 使用回数カウンタ。
 	@property
 	inout
-	inout(UseCounter) useCounter() { return null; }
+	inout(UseCounter) useCounter() { return _uc; }
+	/// 使用回数カウンタからこのインスタンスが持つ背景セルを取り除く。
+	void dispose() { mixin(S_TRACE);
+		backs = [];
+	}
 
 	/// 背景イメージ群。
 	@property
@@ -1310,15 +1316,18 @@ public:
 	void backs(BgImage[] bgImgs) { mixin(S_TRACE);
 		foreach (b; _bgImgs) { mixin(S_TRACE);
 			b.owner = null;
+			b.removeUseCounter();
 		}
 		foreach (b; bgImgs) { mixin(S_TRACE);
 			b.owner = this;
+			if (_uc) b.setUseCounter(_uc, this);
 		}
 		_bgImgs = bgImgs;
 	}
 	/// 背景イメージを追加。
 	void append(BgImage back) { mixin(S_TRACE);
 		back.owner = this;
+		if (_uc) back.setUseCounter(_uc, this);
 		_bgImgs ~= back;
 	}
 	/// ditto
@@ -1327,6 +1336,7 @@ public:
 			append(back);
 		} else { mixin(S_TRACE);
 			back.owner = this;
+			if (_uc) back.setUseCounter(_uc, this);
 			_bgImgs = _bgImgs[0 .. index] ~ back ~ _bgImgs[index .. $];
 		}
 	}
@@ -1334,11 +1344,13 @@ public:
 	void set(size_t index, BgImage back) { mixin(S_TRACE);
 		_bgImgs[index].owner = null;
 		back.owner = this;
+		if (_uc) back.setUseCounter(_uc, this);
 		_bgImgs[index] = back;
 	}
 	/// 背景イメージを除外。
 	void removeBgImage(size_t index) { mixin(S_TRACE);
 		_bgImgs[index].owner = null;
+		_bgImgs[index].removeUseCounter();
 		_bgImgs = _bgImgs[0 .. index] ~ _bgImgs[index + 1 .. $];
 	}
 	/// 背景イメージのインデックスを交換。

@@ -44,7 +44,7 @@ import cwx.editor.gui.dwt.spcarddialog;
 import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.undo;
 
-import std.algorithm : countUntil, max;
+import std.algorithm : countUntil, map, max;
 import std.array;
 import std.conv;
 import std.math;
@@ -1653,11 +1653,9 @@ public:
 
 		BgImage[] bgImages;
 		if (evt) { mixin(S_TRACE);
-			foreach (b; evt.backs) { mixin(S_TRACE);
-				bgImages ~= b.dup;
-			}
+			bgImages = .map!(b => b.dup)(evt.backs).array();
 		}
-		_cont = new BgImageContainer(bgImages);
+		_cont = new BgImageContainer(bgImages, uc ? uc.sub : null);
 	}
 
 	override
@@ -1710,13 +1708,20 @@ protected:
 		}
 		void refPath(string oldPath, string newPath, bool isDir) { refreshWarning(); }
 		void refPaths(string dir) { refreshWarning(); }
+		void refFlagAndStep(cwx.flag.Flag[] f, Step[] s, cwx.flag.Variant[] v) { refreshWarning(); }
 		_comm.delPaths.add(&refreshWarning);
 		_comm.refPath.add(&refPath);
 		_comm.refPaths.add(&refPaths);
+		_comm.refFlagAndStep.add(&refFlagAndStep);
+		_comm.delFlagAndStep.add(&refFlagAndStep);
 		.listener(area, SWT.Dispose, { mixin(S_TRACE);
 			_comm.delPaths.remove(&refreshWarning);
 			_comm.refPath.remove(&refPath);
 			_comm.refPaths.remove(&refPaths);
+			_comm.refFlagAndStep.remove(&refFlagAndStep);
+			_comm.delFlagAndStep.remove(&refFlagAndStep);
+
+			_cont.dispose();
 		});
 
 		ignoreMod = true;
@@ -1735,7 +1740,7 @@ protected:
 	}
 
 	override bool apply() { mixin(S_TRACE);
-		_evt.backs = _cont.backs;
+		_evt.backs = .map!(b => b.dup)(_cont.backs).array();
 		_evt.transition = _transition.transition;
 		_evt.transitionSpeed = _transition.transitionSpeed;
 		if (_cellName) { mixin(S_TRACE);

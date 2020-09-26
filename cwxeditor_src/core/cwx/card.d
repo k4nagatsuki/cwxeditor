@@ -1937,6 +1937,7 @@ public:
 	inout(UseCounter) useCounter() { return super.useCounter; }
 	@property
 	override void setUseCounter(UseCounter uc, CWXPath ucOwner) { mixin(S_TRACE);
+		assert (uc !is null);
 		auto uc2 = new UseCounter(this, uc);
 		foreach (f; flagDirRoot.allFlags) uc2.createID(toFlagId(f.path));
 		foreach (f; flagDirRoot.allSteps) uc2.createID(toStepId(f.path));

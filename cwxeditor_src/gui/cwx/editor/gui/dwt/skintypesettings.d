@@ -300,7 +300,7 @@ public:
 		_comm = comm;
 		_prop = prop;
 		_skin = skin;
-		_cont = new BgImageContainer(createBgImages(skin, bgImagesDefault));
+		_cont = new BgImageContainer(createBgImages(skin, bgImagesDefault), null);
 	}
 
 	@property
