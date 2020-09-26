@@ -2246,21 +2246,22 @@ class UseCounter {
 
 	/// インスタンスを生成する。
 	this (CWXPath owner) { mixin(S_TRACE);
-		_globalUC = this;
-		this (owner, new SingleUseCounter, null, true);
+		this (owner, this, new SingleUseCounter, null, true);
 	}
 
 	/// 親リソースの使用回数カウンタをグローバル用に指定して
 	/// ローカル変数の使用回数カウンタを生成する。
-	this (CWXPath owner, UseCounter global) { mixin(S_TRACE);
-		_globalUC = global;
-		this (owner, global._global, new SingleUseCounter, true);
+	this (CWXPath owner, UseCounter global) in (global !is null) { mixin(S_TRACE);
+		this (owner, global, global._global, new SingleUseCounter, true);
 	}
-	private this (CWXPath owner, SingleUseCounter global, SingleUseCounter local, bool createSub) { mixin(S_TRACE);
+	private this (CWXPath owner, UseCounter globalUC, SingleUseCounter global, SingleUseCounter local, bool createSub) in (globalUC !is null && global !is null) { mixin(S_TRACE);
 		_owner = owner;
+		_globalUC = globalUC;
 		_global = global;
 		_local = local;
-		if (createSub) _sub = new UseCounter(owner, global.sub, local ? local.sub : null, false);
+		if (createSub) { mixin(S_TRACE);
+			_sub = new UseCounter(owner, globalUC.sub, global.sub, local ? local.sub : null, false);
+		}
 	}
 
 	/// この使用回数カウンタの所有者を返す。
@@ -2272,7 +2273,10 @@ class UseCounter {
 	/// グローバルの使用回数カウンタ。
 	@property
 	inout
-	inout(UseCounter) global() { return _globalUC; }
+	inout(UseCounter) global() { mixin(S_TRACE);
+		assert (_globalUC !is null);
+		return _globalUC;
+	}
 
 	/// 「アンドゥリストの中にあるのでカウントはしないが、パスの更新は反映したい」
 	/// 等の場合に使う。

@@ -3103,24 +3103,11 @@ private:
 				}
 				auto cell = cast(ImageCell)itm.getData();
 				if (!cell) continue;
-				if (_area.useCounter) { mixin(S_TRACE);
-					// エリアのシーンビュー等、データを直接編集している場合は
-					// ファイル名の変更通知が来た時点で自動的に
-					// 新しいパスがImageCellに反映されている
-					if (.cfnmatch(cell.path, newPath)) { mixin(S_TRACE);
-						itm.setText(cell.name(_prop.parent));
-					}
-				} else { mixin(S_TRACE);
-					// 背景変更コンテント編集ダイアログ等、自動的に新しいパスが反映されないケース
-					if (.cfnmatch(cell.path, oldPath)) { mixin(S_TRACE);
-						cell.path = newPath;
-						itm.setText(cell.name(_prop.parent));
-						callMod = true;
-					}
+				if (.cfnmatch(cell.path, newPath)) { mixin(S_TRACE);
+					itm.setText(cell.name(_prop.parent));
 				}
 			}
 		}
-		if (callMod) callModEvent();
 	}
 	private bool canSelectConnectedResourceImpl(CWXPath c) { mixin(S_TRACE);
 		if (!_summ) return false;
@@ -5335,7 +5322,8 @@ public:
 	}
 	private void refreshFlag() { mixin(S_TRACE);
 		if (!_flag) return;
-		string f = _flag.getText();
+		_flag.setRedraw(false);
+		scope (exit) _flag.setRedraw(true);
 		_flag.removeAll();
 		_hasFlag = false;
 		_flag.add(_prop.msgs.defaultSelection(_prop.msgs.noFlagRef));
@@ -5345,8 +5333,8 @@ public:
 			_hasFlag = true;
 			if (!_flagIncSearch.match(path)) return;
 			_flag.add(path);
-			if (path == f) _flag.setText(path);
 		});
+		updateFlagCombo();
 	}
 
 	void reverseViewParty() { mixin(S_TRACE);
