@@ -1708,6 +1708,16 @@ protected:
 			comp.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 			.listener(_ignoreEffectBooster, SWT.Selection, &refreshWarning);
 		}
+		void refPath(string oldPath, string newPath, bool isDir) { refreshWarning(); }
+		void refPaths(string dir) { refreshWarning(); }
+		_comm.delPaths.add(&refreshWarning);
+		_comm.refPath.add(&refPath);
+		_comm.refPaths.add(&refPaths);
+		.listener(area, SWT.Dispose, { mixin(S_TRACE);
+			_comm.delPaths.remove(&refreshWarning);
+			_comm.refPath.remove(&refPath);
+			_comm.refPaths.remove(&refPaths);
+		});
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;

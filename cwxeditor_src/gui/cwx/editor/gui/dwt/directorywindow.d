@@ -246,7 +246,7 @@ private:
 			}
 			bool[string] expands;
 			void exps(TreeItem itm) { mixin(S_TRACE);
-				expands[(cast(FileNameObj) itm.getData()).array] = itm.getExpanded();
+				expands[(cast(FileNameObj)itm.getData()).array] = itm.getExpanded();
 				foreach (sub; itm.getItems()) { mixin(S_TRACE);
 					exps(sub);
 				}
@@ -260,7 +260,7 @@ private:
 			auto topItm = _dirs.getTopItem();
 			string top = null;
 			if (topItm) { mixin(S_TRACE);
-				top = (cast(FileNameObj) topItm.getData()).array;
+				top = (cast(FileNameObj)topItm.getData()).array;
 				if (!.exists(top)) top = null;
 			}
 			TreeItem nTopItm = null;
@@ -344,7 +344,7 @@ private:
 				}
 				int count = 0;
 				int oldC = _files.getItemCount();
-				bool sp = cast(bool) cfnmatch(nabs(path), nabs(_summ.scenarioPath));
+				bool sp = cast(bool)cfnmatch(nabs(path), nabs(_summ.scenarioPath));
 				Skin skin = _comm.skin;
 				foreach (p; list) { mixin(S_TRACE);
 					if (sp) { mixin(S_TRACE);
@@ -417,7 +417,7 @@ private:
 			itm.setImage(_prop.images.folder);
 		}
 		string abs = nabs(_summ.scenarioPath);
-		bool sp = cast(bool) cfnmatch(full, abs);
+		bool sp = cast(bool)cfnmatch(full, abs);
 		if (sp) { mixin(S_TRACE);
 			itm.setText("Scenario");
 		} else { mixin(S_TRACE);
@@ -434,7 +434,7 @@ private:
 		bool s = false;
 		foreach (p; subs) { mixin(S_TRACE);
 			if (sp) { mixin(S_TRACE);
-				if (isDef(p, cast(bool) isDir(p))) continue;
+				if (isDef(p, cast(bool)isDir(p))) continue;
 			} else { mixin(S_TRACE);
 				if (isIgnore(p)) continue;
 			}
@@ -601,12 +601,12 @@ private:
 		void select() { mixin(S_TRACE);
 			int index = _files.getSelectionIndex();
 			if (index >= 0) { mixin(S_TRACE);
-				auto path = (cast(FileNameObj) _files.getItem(index).getData()).array;
+				auto path = (cast(FileNameObj)_files.getItem(index).getData()).array;
 				if (.isDir(path)) { mixin(S_TRACE);
 					auto sels = _dirs.getSelection();
 					if (!sels.length) return;
 					foreach (itm; sels[0].getItems()) { mixin(S_TRACE);
-						if (cfnmatch((cast(FileNameObj) itm.getData()).array, path)) { mixin(S_TRACE);
+						if (cfnmatch((cast(FileNameObj)itm.getData()).array, path)) { mixin(S_TRACE);
 							_dirs.setSelection(itm);
 							refreshFiles([]);
 							return;
@@ -622,7 +622,7 @@ private:
 		void mouseUp(MouseEvent e) {}
 		void mouseDown(MouseEvent e) {}
 		void mouseDoubleClick(MouseEvent e) { mixin(S_TRACE);
-			if ((cast(Control) e.widget).isFocusControl() && e.button == 1) { mixin(S_TRACE);
+			if ((cast(Control)e.widget).isFocusControl() && e.button == 1) { mixin(S_TRACE);
 				select();
 			}
 		}
@@ -635,16 +635,15 @@ private:
 
 	class FilesDrag(C) : DragSourceAdapter {
 		override void dragStart(DragSourceEvent e) { mixin(S_TRACE);
-			e.doit = (cast(DragSource) e.getSource()).getControl().isFocusControl();
+			e.doit = (cast(DragSource)e.getSource()).getControl().isFocusControl();
 		}
 		override void dragSetData(DragSourceEvent e) { mixin(S_TRACE);
-			auto itms
-				= (cast(C) (cast(DragSource) e.getSource()).getControl()).getSelection();
+			auto itms = (cast(C)(cast(DragSource)e.getSource()).getControl()).getSelection();
 			if (itms.length == 0) return;
 			string[] data;
 			data.length = itms.length;
 			foreach (i, itm; itms) { mixin(S_TRACE);
-				data[i] = (cast(FileNameObj) itm.getData()).array;
+				data[i] = (cast(FileNameObj)itm.getData()).array;
 			}
 			e.data = new FileNames(data);
 		}
@@ -696,7 +695,7 @@ private:
 			scope (exit) resumeTrace();
 			fromOut = false;
 			scope pfull = nabs(_summ.scenarioPath);
-			bool top = cast(bool) cfnmatch(nabs(targ), pfull);
+			bool top = cast(bool)cfnmatch(nabs(targ), pfull);
 			try { mixin(S_TRACE);
 				string[] paths;
 				string[] exists;
@@ -709,13 +708,13 @@ private:
 					}
 					auto to = std.path.buildPath(targ, baseName(file));
 					if (top) { mixin(S_TRACE);
-						if (isDef(to, cast(bool) isDir(file))) continue;
+						if (isDef(to, cast(bool)isDir(file))) continue;
 					} else { mixin(S_TRACE);
 						if (isIgnore(to)) continue;
 					}
 					if (.exists(to)) { mixin(S_TRACE);
-						bool tisdir = cast(bool) isDir(to);
-						if (tisdir ==  cast(bool) isDir(file)) { mixin(S_TRACE);
+						bool tisdir = cast(bool)isDir(to);
+						if (tisdir ==  cast(bool)isDir(file)) { mixin(S_TRACE);
 							auto par = dirName(file);
 							if (cfnmatch(par, targ)) { mixin(S_TRACE);
 								if (!move && !(0 == filenameCharCmp('A', 'a')
@@ -757,7 +756,7 @@ private:
 					fromOut |= fout;
 					void copy(string parent, string from) { mixin(S_TRACE);
 						auto to = std.path.buildPath(parent, baseName(from));
-						if (.exists(to) && cast(bool) isDir(to) == cast(bool) isDir(from) && !over) { mixin(S_TRACE);
+						if (.exists(to) && cast(bool)isDir(to) == cast(bool)isDir(from) && !over) { mixin(S_TRACE);
 							return;
 						}
 						if (isDir(from)) { mixin(S_TRACE);
@@ -779,8 +778,8 @@ private:
 								string p1 = toRelPath(from);
 								string p2 = toRelPath(to);
 								updatePaths(p1, p2);
-								_comm.refPath.call(p1, p2, false);
 								std.file.rename(from, to);
+								_comm.refPath.call(p1, p2, false);
 								if (_summ) _summ.renameFile(from, to);
 							}
 						}
@@ -790,7 +789,7 @@ private:
 				}
 				foreach (file; copys) { mixin(S_TRACE);
 					void renameCopy(string parent, string from) { mixin(S_TRACE);
-						bool isdir = cast(bool) isDir(from);
+						bool isdir = cast(bool)isDir(from);
 						string to = std.path.buildPath(parent, baseName(from));
 						to = createNewFileName(to, isdir);
 						if (isdir) { mixin(S_TRACE);
@@ -833,7 +832,7 @@ private:
 		if (_win && !_win.isDisposed()) { mixin(S_TRACE);
 			auto sels = _dirs.getSelection();
 			if (sels.length) { mixin(S_TRACE);
-				return (cast(FileNameObj) sels[0].getData()).array;
+				return (cast(FileNameObj)sels[0].getData()).array;
 			}
 		}
 		return null;
@@ -845,7 +844,7 @@ private:
 			auto sels = _files.getSelection();
 			r.length = sels.length;
 			foreach (i, itm; sels) { mixin(S_TRACE);
-				r[i] = (cast(FileNameObj) itm.getData()).array;
+				r[i] = (cast(FileNameObj)itm.getData()).array;
 			}
 		}
 		return r;
@@ -935,7 +934,7 @@ private:
 
 	string pathRename(T)(T itm, string newName) { mixin(S_TRACE);
 		clearCut();
-		auto path = (cast(FileNameObj) itm.getData()).array;
+		auto path = (cast(FileNameObj)itm.getData()).array;
 		string frp = toRelPath(path);
 		string frd = nabs(path);
 		newName = std.array.replace(newName, dirSeparator, "");
@@ -943,11 +942,11 @@ private:
 			newName = std.array.replace(newName, altDirSeparator, "");
 		}
 		auto to = std.path.buildPath(dirName(path), newName);
-		bool isdir = cast(bool) .isDir(path);
+		bool isdir = cast(bool).isDir(path);
 		if (!isdir && .extension(path).length > 0) { mixin(S_TRACE);
 			to = to ~ .extension(path);
 		}
-		if (.exists(to) && cast(bool) .isDir(to) == cast(bool) .isDir(path)) return null;
+		if (.exists(to) && cast(bool).isDir(to) == cast(bool).isDir(path)) return null;
 		try { mixin(S_TRACE);
 			std.file.rename(path, to);
 			auto p1 = nabs(path);
@@ -972,16 +971,14 @@ private:
 					string p1 = toRelPath(oldP);
 					string p2 = toRelPath(file);
 					updatePaths(p1, p2);
+					_comm.refPath.call(p1, p2, false);
 				}
 			}
 			foreach (c; clistdir(to)) { mixin(S_TRACE);
 				pchange(std.path.buildPath(to, c));
 			}
 		} else { mixin(S_TRACE);
-			string p1 = frp;
-			string p2 = toRelPath(to);
-			updatePaths(p1, p2);
-			_comm.refPath.call(p1, p2, false);
+			updatePaths(frp, trp);
 		}
 		// Jpy1ファイルの内容を更新
 		if (_summ) _summ.updateJpy1Files(_prop.parent, _prop.var.etc.autoUpdateJpy1File, _comm.sync);
@@ -1005,16 +1002,16 @@ private:
 		_summ.changed();
 	}
 	void dirsEditEnd(TreeItem itm, Control c) { mixin(S_TRACE);
-		string text = (cast(Text) c).getText();
+		string text = (cast(Text)c).getText();
 		if (!text) text = "";
 		if (text.length == 0) return;
-		auto from = (cast(FileNameObj) itm.getData()).array;
+		auto from = (cast(FileNameObj)itm.getData()).array;
 		string frd = nabs(from);
 		auto to = pathRename(itm, text);
 		if (to) { mixin(S_TRACE);
 			string tod = nabs(to);
 			void drename(TreeItem itm) { mixin(S_TRACE);
-				itm.setData(new FileNameObj(tod ~ (cast(FileNameObj) itm.getData()).array[frd.length .. $]));
+				itm.setData(new FileNameObj(tod ~ (cast(FileNameObj)itm.getData()).array[frd.length .. $]));
 				foreach (c; itm.getItems()) { mixin(S_TRACE);
 					drename(c);
 				}
@@ -1023,7 +1020,7 @@ private:
 				drename(cc);
 			}
 			foreach (t; _files.getItems()) { mixin(S_TRACE);
-				t.setData(new FileNameObj(std.path.buildPath(tod, (cast(FileNameObj) t.getData()).basename)));
+				t.setData(new FileNameObj(std.path.buildPath(tod, (cast(FileNameObj)t.getData()).basename)));
 			}
 		}
 	}
@@ -1050,7 +1047,7 @@ private:
 		auto update = false;
 		foreach (itm; _files.getItems()) { mixin(S_TRACE);
 			try { mixin(S_TRACE);
-				auto file = cast(FileNameObj) itm.getData();
+				auto file = cast(FileNameObj)itm.getData();
 				if (!.exists(file.array) || !file.material) continue;
 				auto c = _summ.useCounter.get(toUCPath(file));
 				auto s = to!(string)(c);
@@ -1166,7 +1163,7 @@ private:
 		refreshDirs(selDirPath);
 		refreshFiles(files);
 		foreach (itm; _files.getItems()) { mixin(S_TRACE);
-			if (cfnmatch((cast(FileNameObj) itm.getData()).array, fp)) { mixin(S_TRACE);
+			if (cfnmatch((cast(FileNameObj)itm.getData()).array, fp)) { mixin(S_TRACE);
 				.forceFocus(_files, true);
 				_filesEdit.startEdit(itm);
 				break;
@@ -1794,7 +1791,7 @@ public:
 		if (!_summ) return;
 		int sel = _files.getSelectionIndex();
 		if (-1 == sel) return;
-		auto fno = cast(FileNameObj) _files.getItem(sel).getData();
+		auto fno = cast(FileNameObj)_files.getItem(sel).getData();
 		_comm.clipboard.setContents([new PathString(encodePath(fno.relPath))],
 			[TextTransfer.getInstance()]);
 		_comm.refreshToolBar();
@@ -1802,7 +1799,7 @@ public:
 	void replace() { mixin(S_TRACE);
 		if (!_summ) return;
 		if (_files.getSelectionIndex() >= 0) { mixin(S_TRACE);
-			replaceImpl((cast(FileNameObj) _files.getItem(_files.getSelectionIndex()).getData()).relPath);
+			replaceImpl((cast(FileNameObj)_files.getItem(_files.getSelectionIndex()).getData()).relPath);
 		} else { mixin(S_TRACE);
 			replaceImpl(null);
 		}
@@ -1911,7 +1908,7 @@ public:
 
 	private bool selectImpl(T)(T tree, string path) { mixin(S_TRACE);
 		foreach (itm; tree.getItems()) { mixin(S_TRACE);
-			auto fno = cast(FileNameObj) itm.getData();
+			auto fno = cast(FileNameObj)itm.getData();
 			if (cfnmatch(fno.array, path)) { mixin(S_TRACE);
 				_dirs.select(itm);
 				refreshFiles(selFiles);
@@ -1938,7 +1935,7 @@ public:
 					_dirs.showSelection();
 					if (!isdir) { mixin(S_TRACE);
 						foreach (i, itm; _files.getItems()) { mixin(S_TRACE);
-							auto fno = cast(FileNameObj) itm.getData();
+							auto fno = cast(FileNameObj)itm.getData();
 							if (cfnmatch(fno.array, path)) { mixin(S_TRACE);
 								if (deselectEtc) _files.deselectAll();
 								_files.select(cast(int)i);
@@ -2100,7 +2097,7 @@ public:
 				assert (_lastFocus is _files);
 				bool isdir = false;
 				foreach (itm; _files.getSelection()) { mixin(S_TRACE);
-					auto p = (cast(FileNameObj) itm.getData()).array;
+					auto p = (cast(FileNameObj)itm.getData()).array;
 					itm.setImage(sfimage(itm.getImage()));
 					static if (0 == filenameCharCmp('A', 'a')) {
 						_cuts.add(.toLower(nabs(p)));
@@ -2152,8 +2149,8 @@ public:
 	override void paste(SelectionEvent se) { mixin(S_TRACE);
 		if (!canDoTCPD) return;
 		auto c = _comm.clipboard.getContents(FileTransfer.getInstance());
-		if (c && cast(FileNames) c) { mixin(S_TRACE);
-			pasteImpl((cast(FileNames) c).array);
+		if (c && cast(FileNames)c) { mixin(S_TRACE);
+			pasteImpl((cast(FileNames)c).array);
 		}
 	}
 	private void pasteImpl(string[] array) { mixin(S_TRACE);
@@ -2243,7 +2240,7 @@ public:
 		if (_lastFocus is _dirs) { mixin(S_TRACE);
 			auto parItm = _dirs.getSelection()[0].getParentItem();
 			if (parItm) { mixin(S_TRACE);
-				select((cast(FileNameObj) parItm.getData()).array, false);
+				select((cast(FileNameObj)parItm.getData()).array, false);
 			}
 		}
 		pasteImpl(files);

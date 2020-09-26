@@ -3086,6 +3086,7 @@ private:
 	}
 	void refPath(string oldPath, string newPath, bool isDir) { mixin(S_TRACE);
 		if (isDir) return;
+		auto callMod = false;
 		static if (UseCards) {
 			foreach (i, itm; _cards.getItems()) { mixin(S_TRACE);
 				auto img = _imgp.images[cardsIndex + i];
@@ -3102,11 +3103,24 @@ private:
 				}
 				auto cell = cast(ImageCell)itm.getData();
 				if (!cell) continue;
-				if (cell.path == newPath) {
-					itm.setText(cell.path);
+				if (_area.useCounter) { mixin(S_TRACE);
+					// エリアのシーンビュー等、データを直接編集している場合は
+					// ファイル名の変更通知が来た時点で自動的に
+					// 新しいパスがImageCellに反映されている
+					if (.cfnmatch(cell.path, newPath)) { mixin(S_TRACE);
+						itm.setText(cell.name(_prop.parent));
+					}
+				} else { mixin(S_TRACE);
+					// 背景変更コンテント編集ダイアログ等、自動的に新しいパスが反映されないケース
+					if (.cfnmatch(cell.path, oldPath)) { mixin(S_TRACE);
+						cell.path = newPath;
+						itm.setText(cell.name(_prop.parent));
+						callMod = true;
+					}
 				}
 			}
 		}
+		if (callMod) callModEvent();
 	}
 	private bool canSelectConnectedResourceImpl(CWXPath c) { mixin(S_TRACE);
 		if (!_summ) return false;
