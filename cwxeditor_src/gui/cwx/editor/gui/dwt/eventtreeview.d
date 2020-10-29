@@ -745,6 +745,7 @@ private:
 		_undo ~= undo;
 		auto cwxPath = c.cwxPath(true);
 		foreach (v; views()) { mixin(S_TRACE);
+			v.editCancel();
 			auto itm = v.fromPath(cwxPath);
 			assert (c is itm.getData());
 			foreach (childItm; v._tree.getItems(itm)) { mixin(S_TRACE);
@@ -804,6 +805,7 @@ private:
 					_et.insert(index, cast(Content)evt);
 					auto img = _prop.images.content(CType.Start);
 					foreach (v; views()) { mixin(S_TRACE);
+						v.editCancel();
 						Item sItm;
 						if (v._tree.tree) { mixin(S_TRACE);
 							sItm = createTreeItem(v._tree.tree, evt, evt.name, img, index);
@@ -1156,7 +1158,8 @@ private:
 	}
 	class SListener : SelectionAdapter {
 		public override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
-			assert (cast(Content) e.item.getData());
+			assert (cast(Content)e.item.getData());
+			editEnter();
 			refreshStatusLine();
 			_comm.refreshToolBar();
 		}
@@ -1762,6 +1765,7 @@ public:
 	private void refEventTreeViewStyle() { mixin(S_TRACE);
 		_comp.setRedraw(false);
 		scope (exit) _comp.setRedraw(true);
+		editEnter();
 		auto sel = selection;
 		size_t[] ctPath = sel ? (cast(Content)sel.getData()).ctPath : [];
 		auto et = _et;
@@ -1955,7 +1959,7 @@ public:
 		void createCWXPath() { mixin(S_TRACE);
 			auto itm = selection;
 			if (itm) { mixin(S_TRACE);
-				auto c = cast(Content) itm.getData();
+				auto c = cast(Content)itm.getData();
 				_comm.clipboard.setContents([new ArrayWrapperString(c.cwxPath(true))], [TextTransfer.getInstance()]);
 				_comm.refreshToolBar();
 			}
@@ -2300,10 +2304,12 @@ public:
 		}
 	}
 	void treeOpen() { mixin(S_TRACE);
+		editEnter();
 		_tree.treeExpandedAll();
 		_comm.refreshToolBar();
 	}
 	void treeClose() { mixin(S_TRACE);
+		editEnter();
 		if (_tree.editor) { mixin(S_TRACE);
 			_tree.editor.foldAll();
 		} else {
@@ -2353,6 +2359,7 @@ public:
 		if (!canExpand) return;
 		auto itm = selection;
 		if (!itm) return;
+		editEnter();
 		_tree.setExpanded(itm, true);
 		_comm.refreshToolBar();
 	}
@@ -2360,6 +2367,7 @@ public:
 		if (!canCollapse) return;
 		auto itm = selection;
 		if (!itm) return;
+		editEnter();
 		_tree.setExpanded(itm, false);
 		_comm.refreshToolBar();
 	}
@@ -2869,6 +2877,7 @@ public:
 	void showEventTreeDetail(bool v) { mixin(S_TRACE);
 		_showEventTreeDetail = v;
 		if (_tree.editor) { mixin(S_TRACE);
+			editEnter();
 			_tree.editor.showEventTreeDetail = v;
 		}
 		_prop.var.etc.showEventTreeDetail = _showEventTreeDetail;
@@ -2889,6 +2898,7 @@ public:
 	@property
 	void eventTreeSlope(int value) { mixin(S_TRACE);
 		if (_tree.editor) { mixin(S_TRACE);
+			editEnter();
 			_tree.editor.slope = value;
 		}
 	}
@@ -3814,6 +3824,7 @@ public:
 				itm = itm ? _tree.getItem(itm, cast(int)index) : _tree.getItem(cast(int)index);
 				path = cpbottom(path);
 				if (cpempty(path) || cpcategory(path) != "") { mixin(S_TRACE);
+					editEnter();
 					if (!cphasattr(path, "nofocus")) .forceFocus(_tree.control, shellActivate);
 					if (_tree.editor) _tree.editor.clearRestore();
 					_tree.select(itm);
