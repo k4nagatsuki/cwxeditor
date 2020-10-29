@@ -2430,6 +2430,8 @@ public:
 			d.setAppName(_prop.msgs.application);
 
 			dStr ~= " - " ~ .text(__LINE__);
+			_sendToPipeMutex = new Object;
+			dStr ~= " - " ~ .text(__LINE__);
 			decScenarioPath(opt.scenario, opt.openPaths, _prop.var.etc.clickIsOpenEvent);
 			/// すでにopt.scenarioを開いている
 			/// 既存のcwxeditorプロセスがある場合、
@@ -4645,7 +4647,6 @@ public:
 			if (_pipeName.length) { mixin(S_TRACE);
 				pipe.start();
 			}
-			_sendToPipeMutex = new Object;
 			auto sendPipeThr = new core.thread.Thread(&this.sendPipeThr);
 			sendPipeThr.start();
 			auto backup = new core.thread.Thread(&backupThr);
