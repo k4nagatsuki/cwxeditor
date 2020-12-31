@@ -591,9 +591,6 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (!c.parent || c.parent.detail.nextType is CNextType.Text || c.parent.detail.nextType is CNextType.Coupon) { mixin(S_TRACE);
 			r ~= .sjisWarnings(prop, isClassic, c.name, prop.msgs.contentNameForWarning);
 		}
-		if (isClassic && !is160 && c.type == CType.Wait && !c.next.length) { mixin(S_TRACE);
-			r ~= prop.msgs.searchErrorIgnoreWait;
-		}
 		if (c.parent) { mixin(S_TRACE);
 			auto wNC = .warningNextCondition(prop, c.parent.detail.nextType, c.name);
 			if (wNC) r ~= wNC;

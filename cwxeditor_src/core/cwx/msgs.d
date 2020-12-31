@@ -390,7 +390,6 @@ class Msgs : Properties {
 	auto searchErrorBeastNotFound = Msg("searchErrorBeastNotFound", "存在しない召喚獣カード(ID:%1$s)が指定されています。");
 	auto searchErrorInfoNotFound = Msg("searchErrorInfoNotFound", "存在しない情報カード(ID:%1$s)が指定されています。");
 	auto searchErrorStartNotFound = Msg("searchErrorStartNotFound", "存在しないスタートコンテント「%1$s」が指定されています。");
-	auto searchErrorIgnoreWait = Msg("searchErrorIgnoreWait", "後続コンテントが無いため、空白時間が無視されます。");
 	auto searchErrorLinkIdSkillNotFound = Msg("searchErrorLinkIdSkillNotFound", "参照先の特殊技能カード(ID:%1$s)が見つかりません。");
 	auto searchErrorLinkIdItemNotFound = Msg("searchErrorLinkIdItemNotFound", "参照先のアイテムカード(ID:%1$s)が見つかりません。");
 	auto searchErrorLinkIdBeastNotFound = Msg("searchErrorLinkIdBeastNotFound", "参照先の召喚獣カード(ID:%1$s)が見つかりません。");
