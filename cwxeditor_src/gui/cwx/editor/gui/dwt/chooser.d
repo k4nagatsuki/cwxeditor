@@ -1477,10 +1477,8 @@ class AreaChooser(A, bool StartArea) : Composite {
 		if (!has && firstItem) { mixin(S_TRACE);
 			if (_tree) { mixin(S_TRACE);
 				_tree.setSelection([cast(TreeItem)firstItem]);
-				_tree.showSelection();
 			} else { mixin(S_TRACE);
 				_list.setSelection([cast(TableItem)firstItem]);
-				_list.showSelection();
 			}
 			auto a = cast(A)firstItem.getData();
 			if (a) { mixin(S_TRACE);
@@ -1489,6 +1487,11 @@ class AreaChooser(A, bool StartArea) : Composite {
 				_selected = 0UL;
 			}
 			firstItem.setImage(image(firstItem));
+		}
+		if (_tree) { mixin(S_TRACE);
+			_tree.showSelection();
+		} else { mixin(S_TRACE);
+			_list.showSelection();
 		}
 
 		if (_tree && !_tree.isDisposed()) { mixin(S_TRACE);
