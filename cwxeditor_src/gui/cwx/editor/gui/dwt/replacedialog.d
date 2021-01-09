@@ -4688,12 +4688,13 @@ public:
 		add.grepSumm = _grepSumm;
 		add.parent = parent;
 		add.path = path;
+		add.cwxPath = cwxPath;
 		add.comment = comment;
 		add.count = count;
 		_display.syncExec(add);
 	}
 
-	private bool repl(CWXPath parent, CWXPath path, string cwxPath, string text, void delegate(string) set, ref size_t count, ref Undo[] uArr, bool storeToArr = false, bool isVariablePath = false) { mixin(S_TRACE);
+	private bool repl(CWXPath parent, CWXPath path, lazy string cwxPath, string text, void delegate(string) set, ref size_t count, ref Undo[] uArr, bool storeToArr = false, bool isVariablePath = false) { mixin(S_TRACE);
 		auto isLocal = isVariablePath && _prop.sys.isLocalVariable(text);
 		auto origText = text;
 		if (isLocal) text = text[(FlagDir.SEPARATOR ~ _prop.sys.localVariablePrefix ~ FlagDir.SEPARATOR).length .. $];
