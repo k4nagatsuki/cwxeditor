@@ -1404,7 +1404,7 @@ class Commons {
 		if (shell) { mixin(S_TRACE);
 			shell.setText(text);
 		} else { mixin(S_TRACE);
-			_main.dock.tabText(_main.dock.keyFromCtrl(comp), text);
+			_main.dock.setTabText(_main.dock.keyFromCtrl(comp), text);
 		}
 	}
 	void close(Composite comp) { mixin(S_TRACE);

@@ -221,7 +221,7 @@ struct ByteIO {
 	/// ditto
 	void writeL(void[] val) { write(val); }
 	@property
-	private I readBytesB_(I)() { mixin(S_TRACE);
+	I readBytesBImpl(I)() { mixin(S_TRACE);
 		enforce(_pointer + I.sizeof <= _constBytes.length,
 			new Exception(format("read over: 0x%X + %d", _pointer, I.sizeof), __FILE__, __LINE__));
 		I i = _constBytes[_pointer++];
@@ -229,7 +229,7 @@ struct ByteIO {
 		return i;
 	}
 	@property
-	private I readBytesL_(I)() { mixin(S_TRACE);
+	I readBytesLImpl(I)() { mixin(S_TRACE);
 		enforce(_pointer + I.sizeof <= _constBytes.length,
 			new Exception(format("read over: 0x%X + %d", _pointer, I.sizeof), __FILE__, __LINE__));
 		I i;
@@ -237,14 +237,14 @@ struct ByteIO {
 		mixin(ReadBytesL!(I));
 		return i;
 	}
-	private void writeBytesB_(I)(I val) { mixin(S_TRACE);
+	void writeBytesBImpl(I)(I val) { mixin(S_TRACE);
 		.enforce(!_readOnly);
 		if (_pointer + I.sizeof >= _bytes.length) { mixin(S_TRACE);
 			_bytes.length = _bytes.length * 2 + I.sizeof;
 		}
 		mixin(WriteBytesB!(I));
 	}
-	private void writeBytesL_(I)(I val) { mixin(S_TRACE);
+	void writeBytesLImpl(I)(I val) { mixin(S_TRACE);
 		.enforce(!_readOnly);
 		if (_pointer + I.sizeof >= _bytes.length) { mixin(S_TRACE);
 			_bytes.length = _bytes.length * 2 + I.sizeof;
@@ -255,23 +255,23 @@ struct ByteIO {
 		/// 複数のByteを読み書きする。
 		/// 関数名の末尾がBの場合はビッグエンディアン、
 		/// Lの場合はリトルエンディアンとして読込む。
-		public alias readBytesL_ readBytesB;
+		public alias readBytesLImpl readBytesB;
 		/// ditto
-		public alias readBytesB_ readBytesL;
+		public alias readBytesBImpl readBytesL;
 		/// ditto
-		public alias writeBytesL_ writeBytesB;
+		public alias writeBytesLImpl writeBytesB;
 		/// ditto
-		public alias writeBytesB_ writeBytesL;
+		public alias writeBytesBImpl writeBytesL;
 	} else version (LittleEndian) {
 		/// 複数のByteを読み書きする。
 		/// 関数名の末尾がBの場合はビッグエンディアン、
 		/// Lの場合はリトルエンディアンとして処理する。
-		public alias readBytesB_ readBytesB;
+		public alias readBytesBImpl readBytesB;
 		/// ditto
-		public alias readBytesL_ readBytesL;
-		public alias writeBytesB_ writeBytesB;
+		public alias readBytesLImpl readBytesL;
+		public alias writeBytesBImpl writeBytesB;
 		/// ditto
-		public alias writeBytesL_ writeBytesL;
+		public alias writeBytesLImpl writeBytesL;
 	} else static assert (0);
 
 	/// 型毎に用意されたreadBytesB()・readBytesL()の別名。
