@@ -470,7 +470,8 @@ private:
 	private void addResultImpl(TableItem itm, Summary grepSumm, CWXPath parent, CWXPath path, string cwxPath, string desc = "") {
 		string text1, text2;
 		Image img1, img2;
-		getPathParams(grepSumm, parent, path, text1, text2, img1, img2);
+		auto includePath = !cast(Content)path && cast(Content)path.cwxParent;
+		getPathParams(grepSumm, parent, path, text1, text2, img1, img2, includePath ? path.cwxParent : null);
 		itm.setImage(0, img1);
 		itm.setText(0, text1);
 		itm.setImage(1, img2);
@@ -538,11 +539,11 @@ private:
 		override void setData(TableItem itm) { mixin(S_TRACE);
 			string text1, text2;
 			Image img1, img2;
-			getPathParams(grepSumm, parent, path, text1, text2, img1, img2);
+			getPathParams(grepSumm, parent, path, text1, text2, img1, img2, path);
 			itm.setImage(0, _prop.images.menu(MenuID.Comment));
 			itm.setText(0, .tryFormat(_prop.msgs.commentText, comment.replace("\n", "")));
-			itm.setImage(1, img1);
-			itm.setText(1, text1);
+			itm.setImage(1, img2);
+			itm.setText(1, text2);
 			string scPath = null;
 			if (grepSumm) { mixin(S_TRACE);
 				scPath = grepSumm.readOnlyPath != "" ? grepSumm.readOnlyPath : grepSumm.useTemp ? grepSumm.origZipName : grepSumm.scenarioPath;
@@ -4597,7 +4598,8 @@ public:
 			if (c) { mixin(S_TRACE);
 				string text1, text2;
 				Image img1, img2;
-				getPathParams(_summ, c.parent, c.path, text1, text2, img1, img2);
+				auto includePath = !cast(Content)c.path && cast(Content)c.path.cwxParent;
+				getPathParams(_summ, c.parent, c.path, text1, text2, img1, img2, includePath ? c.path.cwxParent : null);
 				itm.setImage(0, img1);
 				itm.setText(0, text1);
 				itm.setImage(1, img2);
@@ -4605,7 +4607,7 @@ public:
 			}
 		}
 	}
-	private void getPathParams(Summary grepSumm, CWXPath parent, CWXPath path, out string text, out string text2, out Image img, out Image img2) { mixin(S_TRACE);
+	private void getPathParams(Summary grepSumm, CWXPath parent, CWXPath path, out string text, out string text2, out Image img, out Image img2, CWXPath includeRoutePath) { mixin(S_TRACE);
 		if (!path) return;
 		auto summ = grepSumm ? grepSumm : _summ;
 		getSymbols(_comm, summ, path, true, text, img);
@@ -4614,6 +4616,7 @@ public:
 				// 所属先を最上位からの経路で表示する
 				auto par = path.cwxParent;
 				CWXPath[] route;
+				if (includeRoutePath) route ~= includeRoutePath;
 				while (par && !cast(Summary)par) { mixin(S_TRACE);
 					if (auto c = cast(Content)par) { mixin(S_TRACE);
 						if (c.type !is CType.Start) { mixin(S_TRACE);
