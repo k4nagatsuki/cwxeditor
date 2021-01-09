@@ -358,7 +358,7 @@ class DockingFolder(TabF, int Style) {
 	}
 	/// keyに該当するControlタブのテキストを設定する。
 	/// 該当するControlが存在しなければfalseを返す。
-	bool tabText(string key, string text) { mixin(S_TRACE);
+	bool setTabText(string key, string text) { mixin(S_TRACE);
 		auto t = tab(key);
 		if (t) { mixin(S_TRACE);
 			t.setText(text);
@@ -372,7 +372,7 @@ class DockingFolder(TabF, int Style) {
 	}
 	/// keyに該当するControlタブのテキストを返す。
 	/// 該当するControlが存在しなければnullを返す。
-	string tabText(string key) { mixin(S_TRACE);
+	string getTabText(string key) { mixin(S_TRACE);
 		auto t = tab(key);
 		return t ? t.getText() : null;
 	}
