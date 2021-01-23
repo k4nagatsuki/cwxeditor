@@ -203,7 +203,7 @@ bool jpgSize(T)(in T file, out uint x, out uint y) if (isSomeString!T || is(T:ub
 				return true;
 			} else { mixin(S_TRACE);
 				auto s = readUShortB(inp);
-				if (s <= 2) return false;
+				if (s < 2) return false;
 				inp.seekCur(s - 2);
 			}
 		} while (inp.tell + 2 < size);
