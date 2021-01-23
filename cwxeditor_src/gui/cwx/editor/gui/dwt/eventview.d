@@ -1961,7 +1961,7 @@ public:
 			override void handleEvent(Event e) { mixin(S_TRACE);
 				if (_prop.var.etc.contentsAutoHide || _prop.var.etc.contentsFloat) {
 					auto c = cast(Control)e.widget;
-					if (c && .isDescendant(this.outer, c)) {
+					if (c && !c.isDisposed() && .isDescendant(this.outer, c)) {
 						_etree.openToolWindow(true);
 					}
 				}

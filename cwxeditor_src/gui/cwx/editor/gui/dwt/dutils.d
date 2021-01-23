@@ -1459,6 +1459,7 @@ Shell topShell(Shell shell) { mixin(S_TRACE);
 bool isDescendant(Shell shell1, Shell shell2) { mixin(S_TRACE);
 	while (shell1 !is shell2) { mixin(S_TRACE);
 		if (!shell2) return false;
+		if (shell2.isDisposed()) return false;
 		shell2 = cast(Shell)shell2.getParent();
 	}
 	return true;
@@ -1466,6 +1467,7 @@ bool isDescendant(Shell shell1, Shell shell2) { mixin(S_TRACE);
 bool isDescendant(Composite comp, Control ctrl) { mixin(S_TRACE);
 	while (comp !is ctrl) { mixin(S_TRACE);
 		if (!ctrl) return false;
+		if (ctrl.isDisposed()) return false;
 		ctrl = ctrl.getParent();
 	}
 	return true;
