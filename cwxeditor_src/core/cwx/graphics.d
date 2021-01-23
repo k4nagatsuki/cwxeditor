@@ -98,6 +98,15 @@ struct FCu {
 	}
 }
 
+/// doubleを使用するRGB。
+struct FCf {
+	double r, g, b, a;
+	const
+	bool eqRgb(in FC fc) { mixin(S_TRACE);
+		return r == fc.r && g == fc.g && b == fc.b;
+	}
+}
+
 /// Turnの効果を適用する。
 void turn(ref ubyte[] data, ref ubyte[] alpha, ref size_t width, ref size_t height, ref size_t bytesPerLine, Turn f, size_t depth) { mixin(S_TRACE);
 	if (f is Turn.NONE || width < 1 || height < 1) return;

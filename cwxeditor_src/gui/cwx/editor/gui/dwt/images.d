@@ -14,14 +14,15 @@ import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dmenu;
 
 import std.algorithm;
-import std.math;
-import std.file;
-import std.path;
 import std.conv;
-import std.string;
-import std.utf;
-import std.typecons : Tuple;
+import std.file;
+import std.math;
+import std.path;
 import std.range;
+import std.string;
+import std.traits;
+import std.typecons : Tuple;
+import std.utf;
 
 import org.eclipse.swt.all;
 
@@ -1263,7 +1264,11 @@ public:
 		gc.drawImage(img2, ds(0), ds(0), ds(width), ds(height), ds(x), ds(y), ds(width), ds(height));
 	}
 	private static ubyte roundColor(T)(T c) { mixin(S_TRACE);
-		return cast(ubyte).max(0, .min(255, c));
+		static if (.isFloatingPoint!T) {
+			return roundTo!ubyte(.max(0, .min(255, c)));
+		} else {
+			return cast(ubyte).max(0, .min(255, c));
+		}
 	}
 	/// カラーフィルタの描画を行う。
 	private void drawFilter(ref Image buf, ref GC gc, Rectangle range) { mixin(S_TRACE);
@@ -1272,11 +1277,12 @@ public:
 		if (transparent) { mixin(S_TRACE);
 			bMode = BlendMode.Mask;
 		}
-		ubyte calcN(int f, int t, real per) { mixin(S_TRACE);
+		double calcN(int f, int t, double per) { mixin(S_TRACE);
 			if (f == t) { mixin(S_TRACE);
-				return roundColor(f);
+				return f;
 			}
-			return roundColor(f + .roundTo!int((t - f) * per));
+			auto c = f + ((t - f) * per);
+			return .max(0.0, .min(255.0, c));
 		}
 
 		final switch (bMode) {
@@ -1318,12 +1324,12 @@ public:
 				scope (exit) gc.setAlpha(olda);
 				foreach (ip; iFrom .. iFrom + iWidth) { mixin(S_TRACE);
 					int p = ip - from;
-					real per = cast(real)p / width;
-					ubyte r = calcN(_color1.r, _color2.r, per);
-					ubyte g = calcN(_color1.g, _color2.g, per);
-					ubyte b = calcN(_color1.b, _color2.b, per);
-					ubyte a = calcN(_color1.a, _color2.a, per);
-					if (a == 0) continue;
+					auto per = cast(double)p / width;
+					auto r = .roundTo!int(calcN(_color1.r, _color2.r, per));
+					auto g = .roundTo!int(calcN(_color1.g, _color2.g, per));
+					auto b = .roundTo!int(calcN(_color1.b, _color2.b, per));
+					auto a = .roundTo!int(calcN(_color1.a, _color2.a, per));
+					if (a == 0.0) continue;
 					if (cr != r || cg != g || cb != b) { mixin(S_TRACE);
 						color.dispose();
 						color = new Color(cur, r, g, b);
@@ -1352,8 +1358,8 @@ public:
 				data.width, data.height, data.depth, data.bytesPerLine, bpp);
 
 			// グラデーション用のデータを生成
-			FC fc1 = FC(cast(ubyte)_color1.r, cast(ubyte)_color1.g, cast(ubyte)_color1.b, cast(ubyte)_color1.a);
-			FC[] colorLine = null;
+			auto fc1 = FCf(_color1.r, _color1.g, _color1.b, _color1.a);
+			FCf[] colorLine = null;
 			int from, width, iFrom, iWidth;
 			final switch (gradientDir) {
 			case GradientDir.None:
@@ -1371,20 +1377,20 @@ public:
 					iFrom = iRect.y;
 					iWidth = iRect.height;
 				}
-				colorLine = new FC[iWidth];
+				colorLine = new FCf[iWidth];
 				foreach (ip; iFrom .. iFrom + iWidth) { mixin(S_TRACE);
 					int p = ip - from;
-					real per = cast(real)p / width;
-					ubyte r = calcN(_color1.r, _color2.r, per);
-					ubyte g = calcN(_color1.g, _color2.g, per);
-					ubyte b = calcN(_color1.b, _color2.b, per);
-					ubyte a = calcN(_color1.a, _color2.a, per);
-					colorLine[ip - iFrom] = FC(r, g, b, a);
+					auto per = cast(double)p / width;
+					auto r = .roundTo!int(calcN(_color1.r, _color2.r, per));
+					auto g = .roundTo!int(calcN(_color1.g, _color2.g, per));
+					auto b = .roundTo!int(calcN(_color1.b, _color2.b, per));
+					auto a = .roundTo!int(calcN(_color1.a, _color2.a, per));
+					colorLine[ip - iFrom] = FCf(r, g, b, a);
 				}
 			}
 
 			// このセルにおける該当箇所の色を取得
-			FC color(int ix, int iy) { mixin(S_TRACE);
+			FCf color(int ix, int iy) { mixin(S_TRACE);
 				final switch (gradientDir) {
 				case GradientDir.None:
 					return fc1;
@@ -1402,22 +1408,22 @@ public:
 					int y = iy - ds(this.y);
 					auto fc = px.get(ix, iy);
 					auto tfc = color(ix, iy);
-					if (tfc.a == 0) continue;
+					if (tfc.a == 0.0) continue;
 
 					final switch (bMode) {
 					case BlendMode.Normal:
 					case BlendMode.Mask:
 						assert (0);
 					case BlendMode.Add:
-						if (tfc.a != 255) { mixin(S_TRACE);
+						if (tfc.a != 255.0) { mixin(S_TRACE);
 							// アルファブレンド
 							// 一般的な方式ではないが1.50の処理に合わせる
 /+							fc.r = roundColor(fc.r + (tfc.r * tfc.a >>> 8));
 							fc.g = roundColor(fc.g + (tfc.g * tfc.a >>> 8));
 							fc.b = roundColor(fc.b + (tfc.b * tfc.a >>> 8));
-+/							fc.r = roundColor((fc.r * (255 - tfc.a) >>> 8) + (roundColor(fc.r + tfc.r) * tfc.a >>> 8));
-							fc.g = roundColor((fc.g * (255 - tfc.a) >>> 8) + (roundColor(fc.g + tfc.g) * tfc.a >>> 8));
-							fc.b = roundColor((fc.b * (255 - tfc.a) >>> 8) + (roundColor(fc.b + tfc.b) * tfc.a >>> 8));
++/							fc.r = roundColor(((fc.r * (255 - tfc.a)) + ((fc.r + tfc.r) * tfc.a)) / 255);
+							fc.g = roundColor(((fc.g * (255 - tfc.a)) + ((fc.g + tfc.g) * tfc.a)) / 255);
+							fc.b = roundColor(((fc.b * (255 - tfc.a)) + ((fc.b + tfc.b) * tfc.a)) / 255);
 						} else { mixin(S_TRACE);
 							fc.r = roundColor(fc.r + tfc.r);
 							fc.g = roundColor(fc.g + tfc.g);
@@ -1425,15 +1431,15 @@ public:
 						}
 						break;
 					case BlendMode.Subtract:
-						if (tfc.a != 255) { mixin(S_TRACE);
+						if (tfc.a != 255.0) { mixin(S_TRACE);
 							// アルファブレンド
 							// 一般的な方式ではないが1.50の処理に合わせる
 /+							fc.r = roundColor(fc.r - (tfc.r * tfc.a >>> 8));
 							fc.g = roundColor(fc.g - (tfc.g * tfc.a >>> 8));
 							fc.b = roundColor(fc.b - (tfc.b * tfc.a >>> 8));
-+/							fc.r = max(roundColor(fc.r * (255 - tfc.a) >>> 8), roundColor(fc.r - (tfc.r * tfc.a >>> 8)));
-							fc.g = max(roundColor(fc.g * (255 - tfc.a) >>> 8), roundColor(fc.g - (tfc.g * tfc.a >>> 8)));
-							fc.b = max(roundColor(fc.b * (255 - tfc.a) >>> 8), roundColor(fc.b - (tfc.b * tfc.a >>> 8)));
++/							fc.r = max(roundColor(fc.r * (255 - tfc.a) / 255), roundColor(fc.r - (tfc.r * tfc.a / 255)));
+							fc.g = max(roundColor(fc.g * (255 - tfc.a) / 255), roundColor(fc.g - (tfc.g * tfc.a / 255)));
+							fc.b = max(roundColor(fc.b * (255 - tfc.a) / 255), roundColor(fc.b - (tfc.b * tfc.a / 255)));
 						} else { mixin(S_TRACE);
 							fc.r = roundColor(fc.r - tfc.r);
 							fc.g = roundColor(fc.g - tfc.g);
@@ -1441,15 +1447,15 @@ public:
 						}
 						break;
 					case BlendMode.Multiply:
-						if (tfc.a != 255) { mixin(S_TRACE);
+						if (tfc.a != 255.0) { mixin(S_TRACE);
 							// アルファブレンド
-							tfc.r = roundColor(((tfc.r * tfc.a) + (((1 << 8) - tfc.a) << 8)) >>> 8);
-							tfc.g = roundColor(((tfc.g * tfc.a) + (((1 << 8) - tfc.a) << 8)) >>> 8);
-							tfc.b = roundColor(((tfc.b * tfc.a) + (((1 << 8) - tfc.a) << 8)) >>> 8);
+							tfc.r = roundColor(((tfc.r * tfc.a) + ((255 - tfc.a) * 255)) / 255);
+							tfc.g = roundColor(((tfc.g * tfc.a) + ((255 - tfc.a) * 255)) / 255);
+							tfc.b = roundColor(((tfc.b * tfc.a) + ((255 - tfc.a) * 255)) / 255);
 						}
-						fc.r = roundColor(fc.r * tfc.r >>> 8);
-						fc.g = roundColor(fc.g * tfc.g >>> 8);
-						fc.b = roundColor(fc.b * tfc.b >>> 8);
+						fc.r = roundColor(fc.r * tfc.r / 255);
+						fc.g = roundColor(fc.g * tfc.g / 255);
+						fc.b = roundColor(fc.b * tfc.b / 255);
 						break;
 					}
 					px.set(ix, iy, fc);
