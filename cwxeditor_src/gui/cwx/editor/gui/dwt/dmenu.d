@@ -428,7 +428,7 @@ private class MenuSel(Dlg) : SelectionAdapter {
 		} else static assert (0);
 	}
 }
-private void addRefMenu(Commons comm, MenuItem itm) { mixin(S_TRACE);
+private void addRefMenu(Item)(Commons comm, Item itm) if (is(Item:MenuItem) || is(Item:ToolItem)) { mixin(S_TRACE);
 	auto d = cast(MenuData)itm.getData();
 	enforce(d);
 	if (d.id == MenuID.None) return;
@@ -438,9 +438,15 @@ private void addRefMenu(Commons comm, MenuItem itm) { mixin(S_TRACE);
 		enforce(d);
 		enforce(d.id != MenuID.None);
 		if (d.id != id) return;
-		string t = comm.prop.buildMenu(d.id);
-		if (d.format) t = d.format(t);
-		itm.setText(t);
+		static if (is(Item:MenuItem)) {
+			auto t = comm.prop.buildMenu(d.id);
+			if (d.format) t = d.format(t);
+			itm.setText(t);
+		} else static if (is(Item:ToolItem)) {
+			auto t = comm.prop.buildTool(d.id);
+			if (d.format) t = d.format(t);
+			itm.setToolTipText(t);
+		} else static assert (0);
 	}
 	class RefMenu : DisposeListener {
 		override void widgetDisposed(DisposeEvent d) { mixin(S_TRACE);
@@ -527,7 +533,9 @@ Menu createMenu(Commons comm, Menu bar, MenuID id) { mixin(S_TRACE);
 }
 
 ToolItem createDropDownItem(Commons comm, ToolBar bar, MenuID id, void delegate() func, out Menu menu, bool delegate() enabled, bool delegate(bool arrow) openArrow = null) { mixin(S_TRACE);
-	return createDropDownItem2(comm, bar, comm.prop.buildTool(id), comm.prop.images.menu(id), func, menu, id, enabled, openArrow);
+	auto ti = createDropDownItem2(comm, bar, comm.prop.buildTool(id), comm.prop.images.menu(id), func, menu, id, enabled, openArrow);
+	addRefMenu(comm, ti);
+	return ti;
 }
 ToolItem createDropDownItem2(Commons comm, ToolBar bar, string text, Image img, void delegate() func, out Menu menu, MenuID id, bool delegate() enabled, bool delegate(bool arrow) openArrow = null) { mixin(S_TRACE);
 	auto ti = new ToolItem(bar, SWT.DROP_DOWN);
@@ -616,17 +624,22 @@ ToolItem createToolItem2(Commons comm, ToolBar bar, string tip, string text, Ima
 
 ToolItem createToolItem(Commons comm, ToolBar bar, MenuID id,
 		void delegate(ToolItem) func, bool delegate() enabled, int style = SWT.PUSH) { mixin(S_TRACE);
-	auto m = createToolItem2(comm, bar, comm.prop.buildTool(id), null, comm.prop.images.menu(id), func, enabled, style);
-	(cast(MenuData)m.getData()).id = id;
-	return m;
+	auto ti = createToolItem2(comm, bar, comm.prop.buildTool(id), null, comm.prop.images.menu(id), func, enabled, style);
+	(cast(MenuData)ti.getData()).id = id;
+	addRefMenu(comm, ti);
+	return ti;
 }
 ToolItem createToolItem(Commons comm, ToolBar bar, MenuID id,
 		void delegate(SelectionEvent se) func, bool delegate() enabled, int style = SWT.PUSH) { mixin(S_TRACE);
-	return createToolItemImpl(comm, bar, comm.prop.buildTool(id), null, comm.prop.images.menu(id), func, style, id, enabled);
+	auto ti = createToolItemImpl(comm, bar, comm.prop.buildTool(id), null, comm.prop.images.menu(id), func, style, id, enabled);
+	addRefMenu(comm, ti);
+	return ti;
 }
 ToolItem createToolItem(Commons comm, ToolBar bar, MenuID id,
 		void delegate() func, bool delegate() enabled, int style = SWT.PUSH) { mixin(S_TRACE);
-	return createToolItemImpl(comm, bar, comm.prop.buildTool(id), null, comm.prop.images.menu(id), func, style, id, enabled);
+	auto ti = createToolItemImpl(comm, bar, comm.prop.buildTool(id), null, comm.prop.images.menu(id), func, style, id, enabled);
+	addRefMenu(comm, ti);
+	return ti;
 }
 
 /// マウスで配置を操作すると、たまに折り返し位置が

@@ -36,9 +36,10 @@ import cwx.editor.gui.dwt.properties;
 import cwx.editor.gui.dwt.splitpane;
 
 import std.algorithm : any, countUntil, min;
-import std.traits;
 import std.conv;
 import std.string;
+import std.traits;
+import std.typecons : Tuple;
 
 import org.eclipse.swt.all;
 
@@ -1082,6 +1083,59 @@ private:
 			e.gc.drawImage(image, 0, 0);
 		}
 	}
+
+	void copyColor1ToColor2() { mixin(S_TRACE);
+		_color2.color = _color1.color;
+		_color2.alpha = _color1.alpha;
+		updatePreview();
+		refreshWarning();
+	}
+	void copyColor2ToColor1() { mixin(S_TRACE);
+		_color1.color = _color2.color;
+		_color1.alpha = _color2.alpha;
+		updatePreview();
+		refreshWarning();
+	}
+	void exchangeColors() { mixin(S_TRACE);
+		auto rgb = _color1.color;
+		auto alpha = _color1.alpha;
+		_color1.color = _color2.color;
+		_color1.alpha = _color2.alpha;
+		_color2.color = rgb;
+		_color2.alpha = alpha;
+		updatePreview();
+		refreshWarning();
+	}
+	private class KeyDownFilter : Listener {
+		this () { mixin(S_TRACE);
+			refMenu(MenuID.CopyColor1ToColor2);
+			refMenu(MenuID.CopyColor2ToColor1);
+			refMenu(MenuID.ExchangeColors);
+		}
+		override void handleEvent(Event e) { mixin(S_TRACE);
+			if (!e.doit) return;
+			auto c = cast(Control)e.widget;
+			if (!c || c.isDisposed() || c.getShell() !is getShell()) return;
+			if (.isDescendant(this.outer.getShell(), c)) { mixin(S_TRACE);
+				if (c.getMenu() && .findMenu(c.getMenu(), e.keyCode, e.character, e.stateMask)) return;
+				foreach (id, accAndDlg; _acc) { mixin(S_TRACE);
+					if (.eqAcc(accAndDlg.accelerator, e.keyCode, e.character, e.stateMask)) { mixin(S_TRACE);
+						accAndDlg.func();
+						e.doit = false;
+						break;
+					}
+				}
+			}
+		}
+	}
+	alias Tuple!(int, "accelerator", void delegate(), "func") AccAndDlg;
+	void refMenu(MenuID id) { mixin(S_TRACE);
+		if (id is MenuID.CopyColor1ToColor2) _acc[id] = AccAndDlg(.convertAccelerator(_prop.buildMenu(id)), &copyColor1ToColor2);
+		if (id is MenuID.CopyColor2ToColor1) _acc[id] = AccAndDlg(.convertAccelerator(_prop.buildMenu(id)), &copyColor2ToColor1);
+		if (id is MenuID.ExchangeColors) _acc[id] = AccAndDlg(.convertAccelerator(_prop.buildMenu(id)), &exchangeColors);
+	}
+	AccAndDlg[MenuID] _acc;
+
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, UseCounter uc, ColorCell back, bool create) { mixin(S_TRACE);
 		_back = back;
@@ -1121,9 +1175,10 @@ protected:
 				}
 				auto sq = new Composite(comp, SWT.NONE);
 				sq.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-				sq.setLayout(zeroMarginGridLayout(2, false));
+				sq.setLayout(zeroMarginGridLayout(3, false));
+				auto blendModeGrp = new Group(sq, SWT.NONE);
 				{ mixin(S_TRACE);
-					auto grp = new Group(sq, SWT.NONE);
+					auto grp = blendModeGrp;
 					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 					grp.setText(_prop.msgs.blendMode);
 					grp.setLayout(new CenterLayout);
@@ -1141,8 +1196,9 @@ protected:
 						}
 					}
 				}
+				auto color1Grp = new Group(sq, SWT.NONE);
 				{ mixin(S_TRACE);
-					auto grp = new Group(sq, SWT.NONE);
+					auto grp = color1Grp;
 					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 					grp.setLayout(new CenterLayout);
 					grp.setText(_prop.msgs.colorCellBaseColor);
@@ -1151,8 +1207,23 @@ protected:
 					_color1.modEvent ~= &updatePreview;
 					_color1.modEvent ~= &refreshWarning;
 				}
+				auto moveColorsGrp = new Group(sq, SWT.NONE);
 				{ mixin(S_TRACE);
-					auto grp = new Group(sq, SWT.NONE);
+					auto grp = moveColorsGrp;
+					auto gd = new GridData(GridData.FILL_VERTICAL);
+					gd.verticalSpan = 2;
+					grp.setLayoutData(gd);
+					grp.setText(_prop.msgs.moveColors);
+					grp.setLayout(new CenterLayout);
+					auto bar = new ToolBar(grp, SWT.FLAT | SWT.VERTICAL);
+					.createToolItem(_comm, bar, MenuID.CopyColor1ToColor2, &copyColor1ToColor2, null);
+					.createToolItem(_comm, bar, MenuID.CopyColor2ToColor1, &copyColor2ToColor1, null);
+					new ToolItem(bar, SWT.SEPARATOR);
+					.createToolItem(_comm, bar, MenuID.ExchangeColors, &exchangeColors, null);
+				}
+				auto gradientGrp = new Group(sq, SWT.NONE);
+				{ mixin(S_TRACE);
+					auto grp = gradientGrp;
 					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 					grp.setText(_prop.msgs.gradient);
 					grp.setLayout(new CenterLayout);
@@ -1172,8 +1243,9 @@ protected:
 					.listener(_gradientDir, SWT.Selection, &updatePreview);
 					.listener(_gradientDir, SWT.Selection, &refreshWarning);
 				}
+				auto color2Grp = new Group(sq, SWT.NONE);
 				{ mixin(S_TRACE);
-					auto grp = new Group(sq, SWT.NONE);
+					auto grp = color2Grp;
 					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 					grp.setLayout(new CenterLayout);
 					grp.setText(_prop.msgs.endColor);
@@ -1181,6 +1253,7 @@ protected:
 					mod(_color2);
 					_color2.modEvent ~= &updatePreview;
 				}
+				sq.setTabList([blendModeGrp, gradientGrp, color1Grp, color2Grp, moveColorsGrp]);
 				return comp;
 			}
 			if (_summ) { mixin(S_TRACE);
@@ -1196,8 +1269,13 @@ protected:
 		}
 		createPosPanel(comp, false, false);
 
+		_comm.refMenu.add(&refMenu);
+		auto kdFilter = new KeyDownFilter();
+		area.getDisplay().addFilter(SWT.KeyDown, kdFilter);
 		.listener(area, SWT.Dispose, { mixin(S_TRACE);
 			if (_preview) _preview.dispose();
+			_comm.refMenu.remove(&refMenu);
+			area.getDisplay().removeFilter(SWT.KeyDown, kdFilter);
 		});
 
 		setFirstParams(area);

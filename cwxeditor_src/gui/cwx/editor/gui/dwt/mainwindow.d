@@ -3433,6 +3433,9 @@ public:
 						case MenuID.ScaleBig:
 						case MenuID.ScaleSmall:
 						case MenuID.ExpandBack:
+						case MenuID.CopyColor1ToColor2:
+						case MenuID.CopyColor2ToColor1:
+						case MenuID.ExchangeColors:
 						case MenuID.StopBGM:
 						case MenuID.PlayBGM:
 						case MenuID.NewEvent:
