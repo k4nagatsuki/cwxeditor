@@ -444,6 +444,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (!prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
 			r ~= prop.msgs.warningColorCell;
 		}
+		if (isClassic && cc.blendMode !is BlendMode.Normal && cc.gradientDir is GradientDir.None && cc.color1.a != 255) { mixin(S_TRACE);
+			r ~= prop.msgs.warningColorCellNoGradientAlphaBlend160;
+		}
 	}
 	auto pc = cast(PCCell)path;
 	if (pc) { mixin(S_TRACE);

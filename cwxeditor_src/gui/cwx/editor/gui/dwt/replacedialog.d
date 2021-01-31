@@ -437,13 +437,13 @@ private:
 			string text = encodePath(path);
 			itm.setText(0, text);
 			if (desc.length) { mixin(S_TRACE);
-				itm.setText(2, desc);
+				itm.setText(2, desc.replace("\n", ""));
 				itm.setImage(2, _prop.images.warning);
 			}
 			if (grepSumm) { mixin(S_TRACE);
 				scPath = grepSumm.readOnlyPath != "" ? grepSumm.readOnlyPath : grepSumm.useTemp ? grepSumm.origZipName : grepSumm.scenarioPath;
 				text = .tryFormat(_prop.msgs.grepScenario, grepSumm.scenarioName, scPath);
-				itm.setText(2, text);
+				itm.setText(2, text.replace("\n", ""));
 				itm.setImage(2, _prop.images.summary);
 			}
 			itm.setData(new FilePathString(scPath, path));
@@ -477,7 +477,7 @@ private:
 		itm.setImage(1, img2);
 		itm.setText(1, text2);
 		if (desc.length) { mixin(S_TRACE);
-			itm.setText(2, desc);
+			itm.setText(2, desc.replace("\n", ""));
 			itm.setImage(2, _prop.images.warning);
 		}
 		string scPath = null;

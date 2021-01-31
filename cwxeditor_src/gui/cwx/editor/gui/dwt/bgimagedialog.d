@@ -35,7 +35,7 @@ import cwx.editor.gui.dwt.messageutils;
 import cwx.editor.gui.dwt.properties;
 import cwx.editor.gui.dwt.splitpane;
 
-import std.algorithm : countUntil, min;
+import std.algorithm : any, countUntil, min;
 import std.traits;
 import std.conv;
 import std.string;
@@ -1043,6 +1043,9 @@ private:
 		if (!_prop.targetVersion(_summ, "1.50")) { mixin(S_TRACE);
 			ws ~= _prop.msgs.warningColorCell;
 		}
+		if (.any!(b => b.getSelection())(_blendMode.byValue()) && _summ && _summ.legacy && getRadioValue(_blendMode) !is BlendMode.Normal && _gradientDirs[_gradientDir.getSelectionIndex()] is GradientDir.None && _color1.alpha != 255) { mixin(S_TRACE);
+			ws ~= _prop.msgs.warningColorCellNoGradientAlphaBlend160;
+		}
 		warning = ws;
 	}
 	void updatePreview() { mixin(S_TRACE);
@@ -1132,6 +1135,7 @@ protected:
 							auto radio = new Button(comp2, SWT.RADIO);
 							mod(radio);
 							.listener(radio, SWT.Selection, &updatePreview);
+							.listener(radio, SWT.Selection, &refreshWarning);
 							radio.setText(_prop.msgs.blendModeName(mode));
 							_blendMode[mode] = radio;
 						}
@@ -1145,6 +1149,7 @@ protected:
 					_color1 = new ColorPicker(_prop, grp, true);
 					mod(_color1);
 					_color1.modEvent ~= &updatePreview;
+					_color1.modEvent ~= &refreshWarning;
 				}
 				{ mixin(S_TRACE);
 					auto grp = new Group(sq, SWT.NONE);
@@ -1165,6 +1170,7 @@ protected:
 						_gradientDirs ~= gradientDir;
 					}
 					.listener(_gradientDir, SWT.Selection, &updatePreview);
+					.listener(_gradientDir, SWT.Selection, &refreshWarning);
 				}
 				{ mixin(S_TRACE);
 					auto grp = new Group(sq, SWT.NONE);
