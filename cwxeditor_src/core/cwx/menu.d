@@ -233,6 +233,9 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.ScaleBig] = "R";
 		_mnemonic[MenuID.ScaleSmall] = "M";
 		_mnemonic[MenuID.ExpandBack] = "X";
+		_mnemonic[MenuID.CopyColor1ToColor2] = "1";
+		_mnemonic[MenuID.CopyColor2ToColor1] = "2";
+		_mnemonic[MenuID.ExchangeColors] = "E";
 		_mnemonic[MenuID.StopBGM] = "P";
 		_mnemonic[MenuID.PlayBGM] = "P";
 		_mnemonic[MenuID.NewEvent] = "E";
@@ -502,6 +505,9 @@ class MenuProps : Properties {
 		_hotkey[MenuID.ScaleBig] = "";
 		_hotkey[MenuID.ScaleSmall] = "";
 		_hotkey[MenuID.ExpandBack] = "";
+		_hotkey[MenuID.CopyColor1ToColor2] = "Ctrl+Shift+1";
+		_hotkey[MenuID.CopyColor2ToColor1] = "Ctrl+Shift+2";
+		_hotkey[MenuID.ExchangeColors] = "Ctrl+Shift+E";
 		_hotkey[MenuID.StopBGM] = "";
 		_hotkey[MenuID.PlayBGM] = "";
 		_hotkey[MenuID.NewEvent] = "";
@@ -1036,6 +1042,9 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.ScaleBig:
 	case MenuID.ScaleSmall:
 	case MenuID.ExpandBack:
+	case MenuID.CopyColor1ToColor2:
+	case MenuID.CopyColor2ToColor1:
+	case MenuID.ExchangeColors:
 	case MenuID.StopBGM:
 	case MenuID.PlayBGM:
 	case MenuID.NewEvent:
@@ -1308,6 +1317,9 @@ bool isGlobalMenu(MenuID id) {
 	case MenuID.ScaleBig:
 	case MenuID.ScaleSmall:
 	case MenuID.ExpandBack:
+	case MenuID.CopyColor1ToColor2:
+	case MenuID.CopyColor2ToColor1:
+	case MenuID.ExchangeColors:
 	case MenuID.StopBGM:
 	case MenuID.PlayBGM:
 	case MenuID.NewEvent:

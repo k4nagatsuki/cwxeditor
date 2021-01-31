@@ -731,6 +731,9 @@ public:
 		case MenuID.ScaleBig: return imgd!("scale_even_big.png");
 		case MenuID.ScaleSmall: return imgd!("scale_even_small.png");
 		case MenuID.ExpandBack: return imgd!("expand_back.png");
+		case MenuID.CopyColor1ToColor2: return imgd!("copy_color1_to_color2.png");
+		case MenuID.CopyColor2ToColor1: return imgd!("copy_color2_to_color1.png");
+		case MenuID.ExchangeColors: return imgd!("exchange_colors.png");
 		case MenuID.StopBGM: return imgd!("sound_stop.png");
 		case MenuID.PlayBGM: return imgd!("sound_play.png");
 		case MenuID.NewEvent: return imgd!("new_event_tree.png");

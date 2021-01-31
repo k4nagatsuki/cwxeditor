@@ -706,6 +706,8 @@ class Msgs : Properties {
 	auto gradientDirNameLeftToRight = Msg("gradientDirNameLeftToRight", "左から右へ");
 	auto gradientDirNameTopToBottom = Msg("gradientDirNameTopToBottom", "上から下へ");
 
+	auto moveColors = Msg("moveColors", "色");
+
 	const string borderingTypeName(BorderingType id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(typeof(id), "borderingTypeName"));
 	}
@@ -3090,6 +3092,9 @@ class Msgs : Properties {
 	auto menuTextScaleBig = Msg("menuTextScaleBig", "大きく揃える");
 	auto menuTextScaleSmall = Msg("menuTextScaleSmall", "小さく揃える");
 	auto menuTextExpandBack = Msg("menuTextExpandBack", "背景セルを最大化");
+	auto menuTextCopyColor1ToColor2 = Msg("menuTextCopyColor1ToColor2", "基本色を終端色へコピー");
+	auto menuTextCopyColor2ToColor1 = Msg("menuTextCopyColor2ToColor1", "終端色を基本色へコピー");
+	auto menuTextExchangeColors = Msg("menuTextExchangeColors", "終端色と基本色を交換");
 	auto menuTextStopBGM = Msg("menuTextStopBGM", "%1$sの再生を停止");
 	auto menuTextPlayBGM = Msg("menuTextPlayBGM", "再生");
 	auto menuTextNewEvent = Msg("menuTextNewEvent", "イベントの作成");
