@@ -2347,7 +2347,7 @@ private BgImage readBgImage(in RData d, ref ByteIO f, bool area, size_t index) {
 			auto r = f.readUByte;
 			auto a = f.readUByte;
 			auto color1 = CRGB(r, g, b, a);
-			auto color2 = CRGB(0, 0, 0, 255);
+			auto color2 = CRGB(r, g, b, a);
 			if (gradient !is GradientDir.None) { mixin(S_TRACE);
 				b = f.readUByte;
 				g = f.readUByte;
@@ -2464,7 +2464,7 @@ private BgImage readBgImage(in RData d, ref ByteIO f, bool area, size_t index) {
 			auto r = f.readUByte;
 			auto a = f.readUByte;
 			auto color1 = CRGB(r, g, b, a);
-			auto color2 = CRGB(0, 0, 0, 255);
+			auto color2 = CRGB(r, g, b, a);
 			if (gradient !is GradientDir.None) { mixin(S_TRACE);
 				b = f.readUByte;
 				g = f.readUByte;

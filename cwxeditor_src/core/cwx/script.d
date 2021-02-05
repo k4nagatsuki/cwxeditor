@@ -2364,7 +2364,7 @@ fi`;
 				BlendMode blendMode = parseAttr!(BlendMode)(opt, vals, j, BlendMode.Normal, varTable, msgWidth);
 				CRGB color1 = parseAttr!(CRGB)(opt, vals, j, CRGB(255, 255, 255, 255), varTable, msgWidth);
 				GradientDir gradientDir = GradientDir.None;
-				CRGB color2 = CRGB(0, 0, 0, 255);
+				CRGB color2 = color1;
 				if (j < vals.length && vals[j].token.kind is Kind.SYMBOL) { mixin(S_TRACE);
 					gradientDir = parseAttr!(GradientDir)(opt, vals, j, gradientDir, varTable, msgWidth);
 					color2 = parseAttr!(CRGB)(opt, vals, j, color2, varTable, msgWidth);

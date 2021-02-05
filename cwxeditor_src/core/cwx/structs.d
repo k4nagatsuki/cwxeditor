@@ -657,6 +657,7 @@ struct BgImageS {
 			node.parse();
 			break;
 		case "color":
+			auto hasColor2 = false;
 			blendMode = toBlendMode(node.attr("blendMode", true));
 			node.onTag["rgb"] = (ref XNode node) { mixin(S_TRACE);
 				color1.fromNode(node);
@@ -665,10 +666,14 @@ struct BgImageS {
 				gradientDir = toGradientDir(node.attr("direction", true));
 				node.onTag["rgb"] = (ref XNode node) { mixin(S_TRACE);
 					color2.fromNode(node);
+					hasColor2 = true;
 				};
 				node.parse();
 			};
 			node.parse();
+			if (!hasColor2) { mixin(S_TRACE);
+				color2 = color1;
+			}
 			break;
 		case "pc":
 			pcNumber = node.attr!(uint)("pcNumber", true);
