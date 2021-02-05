@@ -729,7 +729,8 @@ public:
 		BlendMode blendMode = BlendMode.Normal;
 		GradientDir gradientDir = GradientDir.None;
 		CRGB color1 = CRGB(255, 255, 255, 255);
-		CRGB color2 = CRGB(0, 0, 0, 255);
+		CRGB color2 = CRGB(255, 255, 255, 255);
+		auto hasEndColor = false;
 
 		node.onTag["BlendMode"] = (ref XNode n) { mixin(S_TRACE);
 			blendMode = toBlendMode(n.value);
@@ -748,11 +749,15 @@ public:
 				color2.g = n.attr!uint("g", true);
 				color2.b = n.attr!uint("b", true);
 				color2.a = n.attr!uint("a", false, color2.a);
+				hasEndColor = true;
 			};
 			n.parse();
 		};
 		node.parse();
 
+		if (!hasEndColor) { mixin(S_TRACE);
+			color2 = color1;
+		}
 		auto r = new ColorCell(blendMode, gradientDir, color1, color2, "", 0, 0, 0, 0, false);
 		r.fromNodeCommon(node);
 		return r;

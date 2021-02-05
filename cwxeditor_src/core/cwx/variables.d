@@ -330,7 +330,7 @@ class FlexEtcProps : Properties {
 	auto colorCellDefaultWidth = Prop!(int, true)("colorCellDefaultWidth", 100);
 	auto colorCellDefaultHeight = Prop!(int, true)("colorCellDefaultHeight", 100);
 	auto colorCellDefaultColor1 = Prop!(CRGB, true)("colorCellDefaultColor1", CRGB(255, 255, 255, 255));
-	auto colorCellDefaultColor2 = Prop!(CRGB, true)("colorCellDefaultColor2", CRGB(0, 0, 0, 255));
+	auto colorCellDefaultColor2 = Prop!(CRGB, true)("colorCellDefaultColor2", CRGB(255, 255, 255, 255));
 
 	auto noFileName = Prop!(string, true)("noFileName", "_");
 
