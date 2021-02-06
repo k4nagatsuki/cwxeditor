@@ -1749,7 +1749,7 @@ public:
 			.listener(_cards, SWT.FocusIn, { _lastFocus = _cards; });
 			.setupComment(_comm, _cards, true, &getWarnings);
 			_lastFocus = _cards;
-			_comm.refDataVersion.add(&_cacwxrds.redraw);
+			_comm.refDataVersion.add(&_cards.redraw);
 			_comm.refTargetVersion.add(&_cards.redraw);
 			.listener(_cards, SWT.Dispose, { mixin(S_TRACE);
 				_comm.refDataVersion.remove(&_cards.redraw);
