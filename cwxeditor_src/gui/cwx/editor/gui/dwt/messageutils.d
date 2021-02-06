@@ -25,6 +25,7 @@ import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.chooser;
+import cwx.editor.gui.dwt.comment;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.couponview;
 import cwx.editor.gui.dwt.customtable;
@@ -544,10 +545,7 @@ private:
 			auto dws = textWarnings(dlg.text, dlg.flagsInText, dlg.stepsInText, dlg.variantsInText, dlg.fontsInText, dlg.colorsInText,
 				wFlags, wSteps, wVariants, wFonts, wColors);
 			if (dws.all.length) { mixin(S_TRACE);
-				_dlgsL.getItem(cast(int)i).setImage(prop.images.warning);
 				_dlgWarnings ~= dws.all;
-			} else { mixin(S_TRACE);
-				_dlgsL.getItem(cast(int)i).setImage(prop.images.content(CType.TalkDialog));
 			}
 			ws ~= dws.noDup;
 
@@ -556,6 +554,7 @@ private:
 				auto wsnVer = summ ? summ.dataVersion : LATEST_VERSION;
 				ws ~= couponWarnings(prop.parent, isClassic, wsnVer, prop.var.etc.targetVersion, coupon, false, prop.msgs.toneCoupons);
 			}
+			_dlgsL.getItem(cast(int)i).redraw();
 		}
 
 		if (selectedTalker is Talker.Valued) { mixin(S_TRACE);
@@ -568,6 +567,28 @@ private:
 		ws ~= warnings;
 
 		warning = ws.sort().uniq().array();
+	}
+
+	string[] getWarnings(TableItem itm) { mixin(S_TRACE);
+		string[] ws;
+		auto dlg = cast(SDialog)itm.getData();
+		assert (dlg !is null);
+
+		bool[string] wFlags;
+		bool[string] wSteps;
+		bool[string] wVariants;
+		bool[string] wFonts;
+		bool[char] wColors;
+		auto dws = textWarnings(dlg.text, dlg.flagsInText, dlg.stepsInText, dlg.variantsInText, dlg.fontsInText, dlg.colorsInText,
+			wFlags, wSteps, wVariants, wFonts, wColors);
+		ws ~= dws.all;
+
+		foreach (coupon; dlg.rCoupons) { mixin(S_TRACE);
+			auto isClassic = summ && summ.legacy;
+			auto wsnVer = summ ? summ.dataVersion : LATEST_VERSION;
+			ws ~= couponWarnings(prop.parent, isClassic, wsnVer, prop.var.etc.targetVersion, coupon, false, prop.msgs.toneCoupons);
+		}
+		return ws;
 	}
 
 	class MouseMoveDlgsL : MouseTrackAdapter, MouseMoveListener {
@@ -649,6 +670,7 @@ private:
 		_dlgs = _dlgs[0 .. index] ~ dlg ~ _dlgs[index .. $];
 		auto itm = new TableItem(_dlgsL, SWT.NONE, index);
 		itm.setImage(prop.images.content(CType.TalkDialog));
+		itm.setData(dlg);
 		_dlgsL.setSelection([itm]);
 		_dlgsL.showSelection();
 		selectChanged();
@@ -952,6 +974,7 @@ private:
 		_dlgsL.removeAll();
 		foreach (dlg; _dlgs) { mixin(S_TRACE);
 			auto itm = new TableItem(_dlgsL, SWT.NONE);
+			itm.setData(dlg);
 			itm.setImage(prop.images.content(CType.TalkDialog));
 			string text = dlg.text.singleLine;
 			// FIXME: ""をsetTextするとArgument cannot be null
@@ -1119,6 +1142,7 @@ protected:
 			auto mmdl = new MouseMoveDlgsL;
 			_dlgsL.addMouseMoveListener(mmdl);
 			_dlgsL.addMouseTrackListener(mmdl);
+			.setupComment(comm, _dlgsL, false, &getWarnings);
 
 			auto drag = new DragSource(_dlgsL, DND.DROP_MOVE | DND.DROP_COPY);
 			drag.setTransfer([XMLBytesTransfer.getInstance()]);

@@ -10,6 +10,7 @@ import cwx.warning;
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.image;
 import cwx.editor.gui.dwt.dprops;
+import cwx.editor.gui.dwt.comment;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.eventtreeview;
 import cwx.editor.gui.dwt.cardlist : cutText;
@@ -190,6 +191,8 @@ class EventEditor : Composite {
 	private Image _warningImage = null;
 
 	private Warning[] _warningRects;
+	private ToolTip _warningToolTip = null;
+	private Rectangle _lastWarningRect = null;
 
 	private bool _expandedOperation = false;
 	private bool _showEventTreeDetail = true;
@@ -250,6 +253,8 @@ class EventEditor : Composite {
 			_lightupColor.dispose();
 			color.dispose();
 			_warningImage.dispose();
+			if (_warningToolTip && !_warningToolTip.isDisposed()) _warningToolTip.dispose();
+			_warningToolTip = null;
 			clearInfo();
 			if (_summ) _comm.refEventEditorStyle.remove(&updatePosAll);
 		});
@@ -315,6 +320,8 @@ class EventEditor : Composite {
 		_firstStartInfo = null;
 		_items = null;
 		_warningRects = [];
+		_lastWarningRect = null;
+		if (_warningToolTip && !_warningToolTip.isDisposed()) _warningToolTip.setVisible(false);
 	}
 
 	void expandAll() { mixin(S_TRACE);
@@ -943,12 +950,16 @@ class EventEditor : Composite {
 	private void updateToolTip() { mixin(S_TRACE);
 		auto p = getDisplay().getCursorLocation();
 		p = toControl(p);
-		string toolTip = "";
+		auto toolTip = "";
+		auto warningToolTip = "";
+		Rectangle warnRect = null;
 		auto ca = getClientArea();
 		if (!_moveDetailLine && !_changeCursor && ca.contains(p)) { mixin(S_TRACE);
 			foreach (warn; _warningRects) { mixin(S_TRACE);
 				if (warn.rect.contains(p)) { mixin(S_TRACE);
-					toolTip = std.string.join(warn.warnings, .newline);
+					warningToolTip =  warn.warnings.sort().uniq().join(.newline);
+					warnRect = warn.rect;
+					toolTip = "";
 					break;
 				}
 			}
@@ -973,6 +984,12 @@ class EventEditor : Composite {
 		toolTip = .replace(toolTip, "&", "&&");
 		if (getToolTipText() != toolTip) { mixin(S_TRACE);
 			setToolTipText(toolTip);
+		}
+		if (!warnRect || !_lastWarningRect || warnRect != _lastWarningRect) { mixin(S_TRACE);
+			if (_lastWarningRect) redraw(_lastWarningRect.x, _lastWarningRect.y, _lastWarningRect.width, _lastWarningRect.height, false);
+			if (warnRect) redraw(warnRect.x, warnRect.y, warnRect.width, warnRect.height, false);
+			.createOrDestroyToolTip(this, warningToolTip, _warningToolTip, warnRect, &updateToolTip);
+			_lastWarningRect = warnRect;
 		}
 	}
 
@@ -1333,7 +1350,6 @@ class EventEditor : Composite {
 		clearLightup();
 	}
 	private void onFocusInOut(Event e) { mixin(S_TRACE);
-		auto ca = getClientArea();
 		if (_selected && _selected.eventId in _posTable) { mixin(S_TRACE);
 			auto pos = _posTable[_selected.eventId];
 			if (pos.index == -1) return; // 折りたたまれている
@@ -1792,8 +1808,19 @@ class EventEditor : Composite {
 					int wiw = ca.width - detailAreaWidth - wix;
 					if (wiw <= 0) continue;
 					e.gc.drawImage(_warningImage, 0, 0, ww, 1, wix, (startInfo.y + pos.relY) - sy, wiw, _lineHeight + 1);
-					e.gc.drawImage(_comm.prop.images.warning, wix + wiw - _imageWidth - 4.ppis, (startInfo.y + pos.relY) + _imgPos - sy);
-					auto rect = new Rectangle(ca.x, (startInfo.y + pos.relY) - sy, ca.width - detailAreaWidth, _lineHeight);
+					auto wx = wix + wiw - _imageWidth - 4.ppis;
+					auto wy = (startInfo.y + pos.relY) + _imgPos - sy;
+					auto wib = _comm.prop.images.warning.getBounds();
+					auto rect = new Rectangle(wx, wy, wib.width, wib.height);
+					auto cursorPos = getDisplay().getCursorLocation();
+					cursorPos = toControl(cursorPos);
+					if (rect.contains(cursorPos)) { mixin(S_TRACE);
+						e.gc.drawImage(_comm.prop.images.warning, wx, wy);
+					} else { mixin(S_TRACE);
+						setAlpha(128);
+						e.gc.drawImage(_comm.prop.images.warning, wx, wy);
+						setAlpha(255);
+					}
 					_warningRects ~= Warning(rect, warnings);
 				}
 			}

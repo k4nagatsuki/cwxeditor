@@ -1231,7 +1231,7 @@ public:
 			_motions.setMenu(menu);
 			auto col = new FullTableColumn(_motions, SWT.NONE);
 			col.column.setText(_prop.msgs.motionKind);
-			.setupComment(_comm, _motions, false);
+			.setupComment(_comm, _motions, false, &getWarnings);
 
 			.listener(_motions, SWT.PaintItem, (e) { mixin(S_TRACE);
 				auto itm = cast(TableItem)e.item;
@@ -1247,6 +1247,10 @@ public:
 				x -= ib.width;
 				if (.commentText(m, false) != "") { mixin(S_TRACE);
 					auto ib2 = _prop.images.menu(MenuID.Comment).getBounds();
+					x -= ib2.width + 5.ppis;
+				}
+				if (getWarnings(itm).length) { mixin(S_TRACE);
+					auto ib2 = _prop.images.warning;
 					x -= ib2.width + 5.ppis;
 				}
 				e.gc.setAlpha(128);
@@ -2026,6 +2030,24 @@ public:
 					&& m.damageType !is DamageType.Max && !_prop.isTargetVersion(_summ, "1")) { mixin(S_TRACE);
 				put(_prop.msgs.warningSkillPowerWithFixedValue);
 			}
+		}
+		return ws;
+	}
+	private string[] getWarnings(TableItem itm) { mixin(S_TRACE);
+		auto m = cast(Motion)itm.getData();
+		string[] ws;
+		if (m.type is MType.CancelAction && !_prop.targetVersion(_summ, "1.50")) { mixin(S_TRACE);
+			ws ~= .tryFormat(_prop.msgs.warningUnknownMotion, _prop.msgs.motionName(m.type), "1.50");
+		}
+		if (m.type is MType.NoEffect && !_prop.isTargetVersion(_summ, "2")) { mixin(S_TRACE);
+			ws ~= .tryFormat(_prop.msgs.warningUnknownMotionWsn, _prop.msgs.motionName(m.type), "2");
+		}
+		if (m.type == MType.SummonBeast && m.beast && 0 != m.beast.linkId && !(_summ && _summ.beast(m.beast.linkId))) { mixin(S_TRACE);
+			ws ~= .tryFormat(_prop.msgs.searchErrorLinkIdBeastNotFound, m.beast.linkId);
+		}
+		if ((m.type == MType.GetSkillPower || m.type == MType.LoseSkillPower)
+				&& m.damageType !is DamageType.Max && !_prop.isTargetVersion(_summ, "1")) { mixin(S_TRACE);
+			ws ~= _prop.msgs.warningSkillPowerWithFixedValue;
 		}
 		return ws;
 	}

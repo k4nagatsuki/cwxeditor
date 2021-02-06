@@ -24,6 +24,7 @@ import cwx.xml;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.chooser;
+import cwx.editor.gui.dwt.comment;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.contentinitializer;
 import cwx.editor.gui.dwt.dmenu;
@@ -88,6 +89,8 @@ private:
 	void delegate() _refreshTopStart;
 
 	Warning[] _warningRects;
+	ToolTip _warningToolTip = null;
+	Rectangle _lastWarningRect = null;
 
 	string _statusLine;
 
@@ -364,18 +367,22 @@ private:
 		if (!_tree.tree) return;
 		auto p = _tree.control.getDisplay().getCursorLocation();
 		p = _tree.control.toControl(p);
-		string toolTip = "";
+		auto warnings = "";
+		Rectangle warnRect = null;
 		if (_tree.control.getClientArea().contains(p)) { mixin(S_TRACE);
 			foreach (warn; _warningRects) { mixin(S_TRACE);
 				if (warn.rect.contains(p)) { mixin(S_TRACE);
-					toolTip = std.string.join(warn.warnings, .newline);
+					warnings = warn.warnings.sort().uniq().join(.newline);
+					warnRect = warn.rect;
 					break;
 				}
 			}
 		}
-		toolTip = .replace(toolTip, "&", "&&");
-		if (_tree.control.getToolTipText() != toolTip) { mixin(S_TRACE);
-			_tree.control.setToolTipText(toolTip);
+		if (!warnRect || !_lastWarningRect || warnRect != _lastWarningRect) { mixin(S_TRACE);
+			if (_lastWarningRect) _tree.control.redraw(_lastWarningRect.x, _lastWarningRect.y, _lastWarningRect.width, _lastWarningRect.height, false);
+			if (warnRect) _tree.control.redraw(warnRect.x, warnRect.y, warnRect.width, warnRect.height, false);
+			.createOrDestroyToolTip(_tree.control, warnings, _warningToolTip, warnRect, &updateToolTip);
+			_lastWarningRect = warnRect;
 		}
 	}
 
@@ -1619,11 +1626,20 @@ private:
 					int ix = .max(ib.x, ca.width - _prop.var.etc.warningImageWidth);
 					e.gc.drawImage(img, 0, 0, _prop.var.etc.warningImageWidth, 1, ix, b.y, ca.width - ix, itmH);
 					auto bounds = _prop.images.warning.getBounds();
-					int wx = .max(b.x + b.width, ca.width - bounds.width - 1);
-					if (wx < ca.width) { mixin(S_TRACE);
-						e.gc.drawImage(_prop.images.warning, wx, b.y + (itmH - bounds.height) / 2);
+					int wx = .max(b.x + b.width, ca.width - bounds.width - 5.ppis);
+					auto wib = _prop.images.warning.getBounds();
+					auto rect = new Rectangle(wx, b.y + (itmH - bounds.height) / 2, wib.width, wib.height);
+					if (rect.x < ca.width) { mixin(S_TRACE);
+						auto cursorPos = _tree.tree.getDisplay().getCursorLocation();
+						cursorPos = _tree.tree.toControl(cursorPos);
+						if (rect.contains(cursorPos)) { mixin(S_TRACE);
+							e.gc.drawImage(_comm.prop.images.warning, rect.x, rect.y);
+						} else { mixin(S_TRACE);
+							setAlpha(128);
+							e.gc.drawImage(_comm.prop.images.warning, rect.x, rect.y);
+							setAlpha(255);
+						}
 					}
-					auto rect = new Rectangle(ix, b.y, _prop.var.etc.warningImageWidth, b.height);
 					_warningRects ~= Warning(rect, warnings);
 				}
 			}
@@ -1796,6 +1812,11 @@ public:
 			if (!_grayFont) { mixin(S_TRACE);
 				_grayFont = new Color(_tree.control.getDisplay(), alphaColor(_tree.tree.getForeground().getRGB(), _tree.tree.getBackground().getRGB(), 128));
 			}
+			.listener(_tree.tree, SWT.Dispose, { mixin(S_TRACE);
+				if (_warningToolTip && !_warningToolTip.isDisposed()) _warningToolTip.dispose();
+				_warningToolTip = null;
+				_lastWarningRect = null;
+			});
 		}
 		_tree.control.setLayoutData(new GridData(GridData.FILL_BOTH));
 		_tree.control.addMouseListener(new CreateL);
@@ -2271,6 +2292,9 @@ public:
 						_tree.setExpanded(itm, true);
 					}
 				}
+				if (_warningToolTip && !_warningToolTip.isDisposed()) _warningToolTip.dispose();
+				_warningToolTip = null;
+				_lastWarningRect = null;
 			} else { mixin(S_TRACE);
 				_tree.editor.eventTree = _et;
 			}

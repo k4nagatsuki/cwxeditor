@@ -15,6 +15,7 @@ import cwx.warning;
 
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.dprops;
+import cwx.editor.gui.dwt.comment;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.flagtable;
 import cwx.editor.gui.dwt.xmlbytestransfer;
@@ -374,7 +375,7 @@ public:
 		dirs = new Tree(_comp, SWT.SINGLE | SWT.BORDER);
 		initTree(_comm, dirs, false);
 		.listener(dirs, SWT.FocusIn, gotFocus);
-		.treeWarning(_comm.prop, dirs, false, (itm) { mixin(S_TRACE);
+		.setupComment(_comm, dirs, false, (itm) { mixin(S_TRACE);
 			auto flagDir = cast(FlagDir)itm.getData();
 			if (!flagDir) return new string[0];
 			auto summ = _comm.summary;

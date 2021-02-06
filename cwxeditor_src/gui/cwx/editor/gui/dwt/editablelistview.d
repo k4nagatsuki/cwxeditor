@@ -7,6 +7,7 @@ import cwx.types;
 import cwx.utils;
 import cwx.xml;
 
+import cwx.editor.gui.dwt.comment;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.dmenu;
@@ -626,6 +627,7 @@ abstract class AbstractEditableListView(T, bool Sort = false) : Composite {
 					add();
 				});
 			}
+			.setupComment(_comm, _table, false, &getWarnings);
 		}
 
 		auto drag = new DragSource(_table, DND.DROP_MOVE | DND.DROP_COPY);
@@ -780,4 +782,5 @@ abstract class AbstractEditableListView(T, bool Sort = false) : Composite {
 		cancel = false;
 		return T.init;
 	}
+	protected string[] getWarnings(TableItem itm) { return []; }
 }

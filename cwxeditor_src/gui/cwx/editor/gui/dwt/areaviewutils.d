@@ -243,7 +243,7 @@ private string createFlagName(in Commons comm, in Summary summ, in UseCounter uc
 		auto f = .findVar!(cwx.flag.Flag)(summ.flagDirRoot, uc, path);
 		if (f) return .tryFormat(comm.prop.msgs.areaViewStatusWithFlag, path);
 	}
-	return .tryFormat(comm.prop.msgs.areaViewStatusInvalidFlag, path);
+	return .tryFormat(comm.prop.msgs.noFlag, path);
 }
 string createAreaViewStatusLine(in Commons comm, in Summary summ, in Skin skin, in MenuCard card) { mixin(S_TRACE);
 	string path(in MenuCard card) { mixin(S_TRACE);
