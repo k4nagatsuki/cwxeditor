@@ -561,7 +561,11 @@ private:
 		auto fno = cast(FileNameObj)itm.getData();
 		assert (fno !is null);
 		auto file = fno.array;
-		return .sjisWarnings(_prop.parent, _summ, file.baseName(), "") ~ .fileExtensionWarnings(_prop.parent, file);
+		auto ws = .sjisWarnings(_prop.parent, _summ, file.baseName(), "");
+		if (file.exists() && file.isFile()) { mixin(S_TRACE);
+			ws ~= .fileExtensionWarnings(_prop.parent, file);
+		}
+		return ws;
 	}
 	private bool isCutted(string file) { mixin(S_TRACE);
 		static if (0 == filenameCharCmp('A', 'a')) {
