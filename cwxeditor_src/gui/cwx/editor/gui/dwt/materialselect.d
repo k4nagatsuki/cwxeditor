@@ -16,6 +16,7 @@ import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.centerlayout;
+import cwx.editor.gui.dwt.comment;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.dmenu;
@@ -205,6 +206,7 @@ class MaterialSelect(MtType Type, D, C) {
 		static if (is(C == Table)) {
 			_fileList = new C(parent, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL | SWT.SINGLE | SWT.FULL_SELECTION);
 			new FullTableColumn(_fileList, SWT.NONE);
+			.setupComment(_comm, _fileList, false, &getWarnings);
 		} else static if (is(C == Combo)) {
 			_fileList = new C(parent, SWT.BORDER | SWT.READ_ONLY | SWT.DROP_DOWN);
 			_fileList.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
@@ -1761,6 +1763,17 @@ private:
 			find();
 		}
 	}
+	class WarningsObj {
+		string[] warnings;
+		this (string[] warnings) { mixin(S_TRACE);
+			this.warnings = warnings;
+		}
+	}
+	string[] getWarnings(TableItem itm) { mixin(S_TRACE);
+		auto ws = cast(WarningsObj)itm.getData();
+		assert (ws !is null);
+		return ws.warnings;
+	}
 	void refreshListImpl2(string[] tgs) { mixin(S_TRACE);
 		auto skin = summSkin;
 		auto legacy = _summ && _summ.legacy;
@@ -1772,11 +1785,8 @@ private:
 					auto ws = skin.warningImage(_prop.parent, f, legacy, canInclude && !isMenuCard, _prop.var.etc.targetVersion);
 					if (!ws.length) ws = .sjisWarnings(_prop.parent, _summ, f, "");
 					if (!ws.length) ws = .fileExtensionWarnings(_prop.parent, toFilePath(f));
-					if (ws.length) { mixin(S_TRACE);
-						itm.setImage(_prop.images.warning);
-					} else { mixin(S_TRACE);
-						itm.setImage(image(toFilePath(f)));
-					}
+					itm.setData(new WarningsObj(ws));
+					itm.setImage(image(toFilePath(f)));
 				} else { mixin(S_TRACE);
 					itm.setImage(image);
 				}

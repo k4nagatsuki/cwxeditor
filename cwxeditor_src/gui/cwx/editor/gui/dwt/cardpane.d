@@ -16,6 +16,7 @@ import cwx.types;
 import cwx.types;
 import cwx.usecounter;
 import cwx.utils;
+import cwx.warning;
 import cwx.xml;
 
 import cwx.editor.gui.dwt.absdialog;
@@ -1378,6 +1379,11 @@ private:
 		}
 		itm.setImage(colIndex(CardTableColumn.Name), warn ? _prop.images.warning : null);
 	}
+	string[] getWarnings(Card card) { mixin(S_TRACE);
+		auto summ = ownerScenario;
+		auto skin = _skinTemp ? _skinTemp : _comm.skin;
+		return .warnings(_prop.parent, skin, summ, card, summ && summ.legacy, summ ? summ.dataVersion : LATEST_VERSION, _prop.var.etc.targetVersion);
+	}
 	template CopyAndPaste() {
 		override void cut(SelectionEvent se) { mixin(S_TRACE);
 			if (editMode) { mixin(S_TRACE);
@@ -2469,7 +2475,7 @@ private:
 		.listener(_tbl, SWT.MouseEnter, &updateToolTip);
 		.listener(_tbl, SWT.MouseExit, &updateToolTip);
 		.listener(_tbl, SWT.Paint, &updateToolTip);
-		.setupComment(_comm, _tbl, false);
+		.setupComment(_comm, _tbl, false, (itm) => getWarnings(cast(Card)itm.getData()));
 
 		_preview = new Preview(_prop, _tbl);
 		auto closePreview = new ClosePreview;
@@ -2526,7 +2532,7 @@ private:
 				_prop.var.etc.cardsMarginY, _prop.var.etc.cardsSpaceY, _prop.var.etc.cardsTitleSpace,
 				_prop.var.etc.cardsFocusLinePadding, _prop.var.etc.cardsDefaultWrap);
 		}
-		.setupComment(_comm, _list, false);
+		.setupComment(_comm, _list, false, &getWarnings);
 		void updateCardListParams() { mixin(S_TRACE);
 			updateCardListParamsImpl();
 			refreshImpl();

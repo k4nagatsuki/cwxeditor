@@ -1455,10 +1455,12 @@ private:
 				objId = c.objectId;
 			} else if (auto c = cast(MenuCard)data) {
 				itm.setText(c.name);
+				itm.setImage(cardIcon(c));
 				objId = c.objectId;
 			} else if (auto c = cast(EnemyCard)data) {
 				auto castCard = _summ.cwCast(c.id);
 				itm.setText(castCard ? castCard.name : "");
+				itm.setImage(cardIcon(c));
 				objId = c.objectId;
 			} else { mixin(S_TRACE);
 				assert (cast(PlayerCardEvents)data);
@@ -1734,22 +1736,25 @@ public:
 			initTree(_comm, _cards, false);
 			_cards.addSelectionListener(new SListener);
 			.listener(_cards, SWT.FocusIn, { _lastFocus = _cards; });
-			.treeWarning(_prop, _cards, true, &getWarning);
-			.setupComment(_comm, _cards, true);
+			.setupComment(_comm, _cards, true, &getWarnings);
 			_lastFocus = _cards;
 			_comm.refDataVersion.add(&_cards.redraw);
 			.listener(_cards, SWT.Dispose, { mixin(S_TRACE);
 				_comm.refDataVersion.remove(&_cards.redraw);
 			});
 			if (cast(Area)_area || cast(Battle)_area) { mixin(S_TRACE);
-				auto ib = _prop.images.menu(MenuID.Comment).getBounds();
+				auto cib = _prop.images.menu(MenuID.Comment).getBounds();
+				auto wib = _prop.images.warning.getBounds();
 				.listener(_cards, SWT.Paint, (e) { mixin(S_TRACE);
 					if (_prop.var.etc.showItemNumberOfSceneAndEventView) { mixin(S_TRACE);
 						auto ti = .topItem(_cards.getTopItem());
 						auto count = _cards.getItemCount();
 						auto h = _cards.getSize().y;
 						auto ca = _cards.getClientArea();
-						e.gc.setForeground(_cards.getDisplay().getSystemColor(SWT.COLOR_GRAY));
+						auto rgb = _cards.getBackground().getRGB();
+						auto whiteBack = 128 <= (rgb.red + rgb.green + rgb.blue) / 3;
+						e.gc.setForeground(_cards.getDisplay().getSystemColor(whiteBack ? SWT.COLOR_BLACK : SWT.COLOR_WHITE));
+						e.gc.setAlpha(128);
 						for (auto i = _cards.indexOf(ti); i < count; i++) { mixin(S_TRACE);
 							auto itm = _cards.getItem(i);
 							if (itm.isDisposed()) continue;
@@ -1764,10 +1769,12 @@ public:
 							auto s = .text(i - 1);
 							auto te = e.gc.wTextExtent(s);
 							auto x = ca.width - 5.ppis - te.x;
-							if (.commentText(cast(CWXPath)itm.getData(), true)) x -= ib.width + 5.ppis;
+							if (.commentText(cast(CWXPath)itm.getData(), true)) x -= cib.width + 5.ppis;
+							if (getWarnings(itm).length) x -= wib.width + 5.ppis;
 							auto y = b.y + (b.height - te.y) / 2;
 							e.gc.wDrawText(s, x, y, true);
 						}
+						e.gc.setAlpha(255);
 					}
 				});
 				_comm.refMenuCardAndBgImageList.add(&_cards.redraw);
@@ -2266,7 +2273,7 @@ public:
 		_comm.refreshToolBar();
 	}
 	private Image cardIcon(AbstractSpCard card) { mixin(S_TRACE);
-		return .cardIcon(_prop, card);
+		return .cardIcon(_prop, summSkin, _summ, card, true);
 	}
 
 	void editEnter() { mixin(S_TRACE);
@@ -2799,7 +2806,7 @@ public:
 		}
 	}
 
-	private string[] getWarning(TreeItem itm) { mixin(S_TRACE);
+	private string[] getWarnings(TreeItem itm) { mixin(S_TRACE);
 		if (!cast(Area)_area && !cast(Battle)_area) return [];
 
 		if (auto playerEvents = cast(PlayerCardEvents)itm.getData()) { mixin(S_TRACE);
@@ -2815,6 +2822,7 @@ public:
 
 		if (auto et = cast(EventTree)itm.getData()) { mixin(S_TRACE);
 			string[] ws;
+			ws ~= .sjisWarnings(_prop.parent, _summ, et.starts[0].name, _prop.msgs.eventName);
 			if (cast(Package)et.owner is null && cast(EffectCard)et.owner is null) { mixin(S_TRACE);
 				if (!et.fireEnter && !et.fireEscape && !et.fireLose && !et.fireEveryRound && !et.fireRoundEnd && !et.fireRound0 && !et.rounds.length && !et.keyCodes.length) { mixin(S_TRACE);
 					ws ~= _prop.msgs.warningNoIgnition;

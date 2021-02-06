@@ -1329,7 +1329,9 @@ class FlexEtcProps : Properties {
 	auto drawContentIconOnDetail = Prop!(bool)("drawContentIconOnDetail", true);
 	auto commentBoxDistance = Prop!(int, true, true)("commentBoxDistance", 50);
 	auto warningImageWidth = Prop!(int, true, true)("warningImageWidth", 200);
+	auto warningImageWidthForTable = Prop!(int, true, true)("warningImageWidthForTable", 80);
 	auto warningImageWidthForTree = Prop!(int, true, true)("warningImageWidthForTree", 80);
+	auto warningImageWidthForCardList = Prop!(int, true, true)("warningImageWidthForCardList", 50);
 	auto warningImageColor = Prop!(CRGB, true)("warningImageColor", CRGB(255, 128, 128));
 
 	auto doubleIO = Prop!(bool)("doubleIO", true);

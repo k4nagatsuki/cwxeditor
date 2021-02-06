@@ -13,6 +13,7 @@ import cwx.xml;
 
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.chooser;
+import cwx.editor.gui.dwt.comment;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.dmenu;
@@ -57,23 +58,12 @@ class KeyCodeView : AbstractEditableListView!string {
 		if (_withIgnitionType) { mixin(S_TRACE);
 			auto fkc = _comm.prop.sys.toFKeyCode(name);
 			itm.setText(1, _comm.prop.msgs.keyCodeTiming(fkc.kind));
-			if (!_comm.prop.targetVersion(_summ, "1.50") && fkc.kind is FKCKind.HasNot) { mixin(S_TRACE);
-				image = _comm.prop.images.warning;
-			} else { mixin(S_TRACE);
-				image = _comm.prop.images.keyCodeTiming(fkc.kind);
-			}
-		}
-
-		if (!canDuplicate && itm.getParent().indexOf(itm) == 0 && name == "MatchingType=All") { mixin(S_TRACE);
-			image = _comm.prop.images.warning;
-		} else if (canDuplicate && _comm.prop.sys.isRunAway([name])) { mixin(S_TRACE);
-			image = _comm.prop.images.warning;
-		} else if (.sjisWarnings(_comm.prop.parent, _summ, name, "").length) { mixin(S_TRACE);
-			image = _comm.prop.images.warning;
+			image = _comm.prop.images.keyCodeTiming(fkc.kind);
 		}
 		itm.setImage(image);
+		itm.redraw();
 	}
-	void refDataVersion() { mixin(S_TRACE);
+	private void refDataVersion() { mixin(S_TRACE);
 		clearAll();
 	}
 
@@ -277,6 +267,25 @@ class KeyCodeView : AbstractEditableListView!string {
 			}
 		}
 		return ws2;
+	}
+
+	protected override string[] getWarnings(TableItem itm) { mixin(S_TRACE);
+		auto keyCode = itm.getText();
+		string[] ws;
+		ws ~= .sjisWarnings(_comm.prop.parent, _summ, keyCode, _comm.prop.msgs.keyCode);
+		if (_withIgnitionType && !_comm.prop.targetVersion(_summ, "1.50")) { mixin(S_TRACE);
+			if (_comm.prop.sys.fireKeyCodeKind(keyCode) is FKCKind.HasNot) { mixin(S_TRACE);
+				ws ~= _comm.prop.msgs.warningHasNotKeyCode;
+			}
+		}
+		auto table = itm.getParent();
+		if (!canDuplicate && table.getItemCount() && itm is table.getItem(0) && keyCode == "MatchingType=All") { mixin(S_TRACE);
+			ws ~= _comm.prop.msgs.searchErrorKeyCodeMatchingAll;
+		}
+		if (canDuplicate && _comm.prop.sys.isRunAway([keyCode])) { mixin(S_TRACE);
+			ws ~= .tryFormat(_comm.prop.msgs.warningRunAwayCard, _comm.prop.sys.runAway);
+		}
+		return ws;
 	}
 
 	@property

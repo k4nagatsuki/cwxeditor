@@ -20,6 +20,7 @@ import cwx.xml;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.chooser;
+import cwx.editor.gui.dwt.comment;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.customtext;
@@ -178,6 +179,7 @@ class CouponView(CVType Type) : Composite {
 			itm.setText(0, coupon.name);
 		}
 		itm.setData(new Coupon(coupon));
+		itm.setImage(0, couponImage(coupon.name, coupon.value));
 		updateWarning(itm);
 		if (select) { mixin(S_TRACE);
 			_coupons.setSelection([itm]);
@@ -242,6 +244,7 @@ class CouponView(CVType Type) : Composite {
 			}
 
 			itm.setData(coupon);
+			itm.setImage(0, couponImage(coupon.name, coupon.value));
 			updateWarning(itm);
 			raiseModifyEvent();
 			_comm.refreshToolBar();
@@ -426,7 +429,6 @@ class CouponView(CVType Type) : Composite {
 			if (!stored) storeCoupons();
 			stored = true;
 			itms ~= appendCoupon(coupon, 0);
-			updateWarning(itms[$ - 1]);
 		}
 		_coupons.setSelection(itms);
 		_coupons.showSelection();
@@ -454,6 +456,7 @@ class CouponView(CVType Type) : Composite {
 				itm.setText(0, coupon.name);
 			}
 			itm.setData(coupon);
+			itm.setImage(0, couponImage(coupon.name, coupon.value));
 			updateWarning(itm);
 		}
 	}
@@ -487,6 +490,7 @@ class CouponView(CVType Type) : Composite {
 					stored = true;
 					itm.setData(new Coupon(coupon.name, -coupon.value));
 					itm.setText(1, .text(-coupon.value));
+					itm.setImage(0, couponImage(coupon.name, -coupon.value));
 					updateWarning(itm);
 				}
 			}
@@ -887,6 +891,8 @@ class CouponView(CVType Type) : Composite {
 
 			_coupons.setMenu(menu);
 
+			.setupComment(_comm, _coupons, false, &getWarnings);
+
 			if (!_readOnly) { mixin(S_TRACE);
 				_tte1 = new TableTCEdit(_comm, _coupons, 0, &nameCreateEditor, &nameEditEnd, (itm, column) => true);
 				static if (CVType.NoValued != Type && CVType.Branch != Type) {
@@ -1128,6 +1134,7 @@ class CouponView(CVType Type) : Composite {
 			coupon = new Coupon(name, coupon.value);
 			itm2.setText(0, name);
 			itm2.setData(coupon);
+			itm2.setImage(0, couponImage(coupon.name, coupon.value));
 			updateWarning(itm2);
 		}
 		raiseModifyEvent();
@@ -1170,21 +1177,21 @@ class CouponView(CVType Type) : Composite {
 				itm2.setText(0, coupon.name);
 			}
 			itm2.setData(coupon);
+			itm2.setImage(0, couponImage(coupon.name, coupon.value));
 			updateWarning(itm2);
 		}
 		raiseModifyEvent();
 		_comm.refreshToolBar();
 	}
 
-	private void updateWarning(TableItem itm) { mixin(S_TRACE);
+	private string[] getWarnings(TableItem itm) { mixin(S_TRACE);
 		auto coupon = cast(Coupon)itm.getData();
 		assert (coupon !is null);
+		return warningsImpl(coupon.name);
+	}
 
-		if (warningsImpl(coupon.name).length) { mixin(S_TRACE);
-			itm.setImage(0, _prop.images.warning);
-		} else { mixin(S_TRACE);
-			itm.setImage(0, couponImage(coupon.name, coupon.value));
-		}
+	private void updateWarning(TableItem itm) { mixin(S_TRACE);
+		itm.redraw();
 	}
 	private void refDataVersion() { mixin(S_TRACE);
 		if (!_coupons || _coupons.isDisposed()) return;
@@ -1286,6 +1293,7 @@ class CouponView(CVType Type) : Composite {
 			coupons[name] = true;
 			itm.setText(0, name);
 			itm.setData(new Coupon(name, coupon.value));
+			itm.setImage(0, couponImage(coupon.name, coupon.value));
 			updateWarning(itm);
 		}
 		raiseModifyEvent();

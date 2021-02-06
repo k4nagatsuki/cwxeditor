@@ -1443,7 +1443,6 @@ class Msgs : Properties {
 	auto areaViewStatus = Msg("areaViewStatus", "%1$s [%2$s] - %3$s");
 	auto areaViewStatusNoSummary = Msg("areaViewStatusNoSummary", "%1$s [%2$s]");
 	auto areaViewStatusNoFlag = Msg("areaViewStatusNoFlag", "フラグ指定無し");
-	auto areaViewStatusInvalidFlag = Msg("areaViewStatusInvalidFlag", "存在しないフラグ(%1$s)");
 	auto areaViewStatusWithFlag = Msg("areaViewStatusWithFlag", "フラグ = %1$s");
 	auto areaViewStatusWithLayer = Msg("areaViewStatusWithLayer", "レイヤ = %1$s"); // Wsn.1
 	auto areaViewStatusWithCardSpeed = Msg("areaViewStatusWithCardSpeed", "速度 = %1$s"); // Wsn.4
@@ -2225,7 +2224,7 @@ class Msgs : Properties {
 	auto warningValuedTalker = Msg("warningValuedTalker", "評価メンバは、CardWirth 1.50より前のバージョンでは使用できません。");
 	auto warningTextCell = Msg("warningTextCell", "テキストセルは、CardWirth 1.50より前のバージョンでは使用できません。");
 	auto warningColorCell = Msg("warningColorCell", "カラーセルは、CardWirth 1.50より前のバージョンでは使用できません。");
-	auto warningColorCellNoGradientAlphaBlend160 = Msg("warningColorCellNoGradientAlphaBlend160", "CardWirth 1.60では「通常」以外の合成方法で不透明度が255未満、かつグラデーション無しの時に合成結果がおかしくなります。\nこの問題は基本色と終端色が同色のグラデーションを設定する事で回避できます。");
+	auto warningColorCellNoGradientAlphaBlend160 = Msg("warningColorCellNoGradientAlphaBlend160", "CardWirth 1.60では「通常」以外の合成方法で不透明度255未満、かつグラデーション無しの時に表示がおかしくなります。基本色と終端色が同色のグラデーションにする事で回避できます。");
 	auto warningPCCell = Msg("warningPCCell", "プレイヤーキャラクタセルは、Wsn.1以降の形式のシナリオでしか使用できません。");
 	auto warningExpandedPCCell = Msg("warningExpandedPCCell", "セルに合わせて拡大・縮小するプレイヤーキャラクタセルは、Wsn.1以降の形式のシナリオでしか使用できません。");
 	auto warningEffectBoosterFileWithReplaceBgImage = Msg("warningEffectBoosterFileWithReplaceBgImage", "エフェクトブースター関係の背景セルは無視するように指定されています。");

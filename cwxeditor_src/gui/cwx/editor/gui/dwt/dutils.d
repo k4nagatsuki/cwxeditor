@@ -4667,7 +4667,7 @@ private string talkDialogText(in Commons comm, in Content evt, in SDialog sdlg) 
 }
 
 /// シーンビュー・イベントビューに表示されるカードのアイコンを返す。
-Image cardIcon(Props prop, in AbstractSpCard card) { mixin(S_TRACE);
+Image cardIcon(Props prop, in Skin skin, in Summary summ, in AbstractSpCard card, bool isEventView) { mixin(S_TRACE);
 	if (auto eCard = cast(const EnemyCard)card) { mixin(S_TRACE);
 		if (eCard.action(ActionCardType.RunAway)) { mixin(S_TRACE);
 			return eCard.flag == "" ? prop.images.runAwayableEnemyCard : prop.images.runAwayableEnemyCardWithFlag;
@@ -5054,73 +5054,6 @@ Image warningImage(Props prop, Display d, int warningImageWidth = -1) { mixin(S_
 	auto imgData = buf.getImageData();
 	imgData.setAlphas(0, 0, warningImageWidth * height, alphas, 0);
 	return new Image(d, imgData);
-}
-
-/// ツリーアイテムごとに警告を描画する。
-void treeWarning(Props prop, Tree tree, bool isEventView, string[] delegate(TreeItem itm) getWarning) { mixin(S_TRACE);
-	Warning[] warningRects;
-	alias Tuple!(TreeItem, string[]) WarningInfo;
-
-	void updateToolTip() { mixin(S_TRACE);
-		auto p = tree.getDisplay().getCursorLocation();
-		p = tree.toControl(p);
-		auto toolTip = "";
-		if (tree.getClientArea().contains(p)) { mixin(S_TRACE);
-			foreach (warn; warningRects) { mixin(S_TRACE);
-				if (warn.rect.contains(p)) { mixin(S_TRACE);
-					toolTip = std.string.join(warn.warnings, .newline);
-					break;
-				}
-			}
-		}
-		toolTip = .replace(toolTip, "&", "&&");
-		if (tree.getToolTipText() != toolTip) { mixin(S_TRACE);
-			tree.setToolTipText(toolTip);
-		}
-	}
-	void paintTree(Event e) { mixin(S_TRACE);
-		warningRects = [];
-		WarningInfo[] warningInfo;
-		if (!prop.var.etc.drawContentWarnings) return;
-
-		auto ca = tree.getClientArea();
-
-		.procShowingTreeItem(tree, (itm) { mixin(S_TRACE);
-			auto warn = getWarning(itm);
-			if (warn.length) warningInfo ~= WarningInfo(itm, warn);
-			return true;
-		});
-
-		if (!warningInfo.length) return;
-
-		auto wImg = .warningImage(prop, tree.getDisplay(), prop.var.etc.warningImageWidthForTree);
-		scope (exit) wImg.dispose();
-		auto bounds = prop.images.warning.getBounds();
-		foreach (info; warningInfo) { mixin(S_TRACE);
-			auto itm = info[0];
-			auto warnings = info[1];
-			warnings = std.algorithm.sort(warnings).uniq().array();
-			auto b = itm.getBounds();
-			if (b.y + b.height <= ca.y) continue;
-			if (ca.y + ca.height < b.y) continue;
-			auto ib = itm.getImageBounds(0);
-			if (ca.width <= ib.x) continue;
-			int ix = .max(ib.x, ca.width - prop.var.etc.warningImageWidthForTree);
-			e.gc.drawImage(wImg, 0, 0, prop.var.etc.warningImageWidthForTree, 1, ix, b.y, ca.width - ix, b.height);
-			int wx = .max(b.x + b.width, ca.width - bounds.width - 1);
-			if (wx < ca.width) { mixin(S_TRACE);
-				if (.commentText(cast(CWXPath)itm.getData(), isEventView)) { mixin(S_TRACE);
-					wx -= prop.images.menu(MenuID.Comment).getBounds().x + 5.ppis;
-				}
-				e.gc.drawImage(prop.images.warning, wx, b.y + (b.height - bounds.height) / 2);
-			}
-			auto rect = new Rectangle(ix, b.y, prop.var.etc.warningImageWidthForTree, b.height);
-			warningRects ~= Warning(rect, warnings);
-		}
-		updateToolTip();
-	}
-	.listener(tree, SWT.Paint, &paintTree);
-	.listener(tree, SWT.MouseMove, &updateToolTip);
 }
 
 /// 表示範囲内にあるTreeItemを処理する。

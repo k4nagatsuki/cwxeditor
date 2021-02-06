@@ -19,6 +19,7 @@ import cwx.system;
 import cwx.types;
 import cwx.usecounter;
 import cwx.utils;
+import cwx.warning;
 import cwx.xml;
 
 import cwx.editor.gui.sound;
@@ -1255,7 +1256,7 @@ private:
 	}
 	static if (UseCards) {
 		private Image cardImg(C c) { mixin(S_TRACE);
-			return .cardIcon(_prop, c);
+			return .cardIcon(_prop, summSkin, _summ, c, false);
 		}
 		private void refreshCards() { mixin(S_TRACE);
 			_cards.setRedraw(false);
@@ -2209,6 +2210,7 @@ private:
 		gd.widthHint = 0;
 		gd.heightHint = 0;
 		_flagList.setLayoutData(gd);
+		.setupComment(_comm, _flagList, false, itm => cast(FlagNotFound)itm.getData() ? [.tryFormat(_prop.msgs.noFlag, (cast(FlagNotFound)itm.getData()).path)] : []);
 
 		_refFlagIncSearch = new IncSearch(_comm, _flagList, () => _hasFlags);
 		_refFlagIncSearch.modEvent ~= &refreshFlags;
@@ -2255,6 +2257,12 @@ private:
 		if (!_summ) return;
 		if (!f.length) return;
 		refreshFlags();
+	}
+	private class FlagNotFound {
+		string path;
+		this (string path) { mixin(S_TRACE);
+			this.path = path;
+		}
 	}
 	void refreshFlags() { mixin(S_TRACE);
 		if (!_flagList) return;
@@ -2303,11 +2311,11 @@ private:
 				_hasFlags = true;
 				if (!_refFlagIncSearch.match(path)) continue;
 				auto itm = new TableItem(_flagList, SWT.NONE);
-				itm.setData(flag);
+				itm.setImage(_prop.images.flag);
 				if (flag) { mixin(S_TRACE);
-					itm.setImage(_prop.images.flag);
+					itm.setData(flag);
 				} else { mixin(S_TRACE);
-					itm.setImage(_prop.images.warning);
+					itm.setData(new FlagNotFound(path));
 				}
 				itm.setText(path);
 			}
@@ -2631,9 +2639,12 @@ private:
 		_comm.refreshToolBar();
 	}
 	void refDataVersion() { mixin(S_TRACE);
+		if (_readOnly) return;
 		static if (is(A:Battle)) { mixin(S_TRACE);
 			_bgm.canContinue = !_summ || !_summ.legacy;
 		}
+		static if (UseCards) cardList.redraw();
+		static if (UseBacks) backList.redraw();
 	}
 
 	void refreshStatusLine() { mixin(S_TRACE);
@@ -2884,13 +2895,27 @@ private:
 				_inheritBgImgs.setLayoutData(ibd);
 			}
 		}
-		auto ib = _comm.prop.images.menu(MenuID.Comment).getBounds();
+		string[] getWarnings(TableItem itm) { mixin(S_TRACE);
+			if (auto card = cast(AbstractSpCard)itm.getData()) { mixin(S_TRACE);
+				return .warnings(_prop.parent, summSkin, _summ, card, _summ && _summ.legacy, _summ ? _summ.dataVersion : LATEST_VERSION, _prop.var.etc.targetVersion);
+			}
+			if (auto back = cast(BgImage)itm.getData()) { mixin(S_TRACE);
+				return .warnings(_prop.parent, summSkin, _summ, back, _summ && _summ.legacy, _summ ? _summ.dataVersion : LATEST_VERSION, _prop.var.etc.targetVersion);
+			}
+			return [];
+		}
+		.setupComment(_comm, list, false, &getWarnings);
+		auto cib = _comm.prop.images.menu(MenuID.Comment).getBounds();
+		auto wib = _comm.prop.images.warning.getBounds();
 		.listener(list, SWT.Paint, (e) { mixin(S_TRACE);
 			if (_prop.var.etc.showItemNumberOfSceneAndEventView) { mixin(S_TRACE);
 				auto count = list.getItemCount();
 				auto h = list.getSize().y;
 				auto cw = list.getColumn(0).getWidth();
-				e.gc.setForeground(list.getDisplay().getSystemColor(SWT.COLOR_GRAY));
+				auto rgb = list.getBackground().getRGB();
+				auto whiteBack = 128 <= (rgb.red + rgb.green + rgb.blue) / 3;
+				e.gc.setForeground(list.getDisplay().getSystemColor(whiteBack ? SWT.COLOR_BLACK : SWT.COLOR_WHITE));
+				e.gc.setAlpha(128);
 				for (auto i = list.getTopIndex(); i < count; i++) { mixin(S_TRACE);
 					auto itm = list.getItem(i);
 					if (itm.isDisposed()) continue;
@@ -2901,13 +2926,14 @@ private:
 					auto s = .text(i + 1);
 					auto te = e.gc.wTextExtent(s);
 					auto x = cw - 5.ppis - te.x;
-					if (.commentText(cast(CWXPath)itm.getData(), false) != "") x -= ib.width + 5.ppis;
+					if (.commentText(cast(CWXPath)itm.getData(), false) != "") x -= cib.width + 5.ppis;
+					if (getWarnings(itm).length) x -= wib.width + 5.ppis;
 					auto y = b.y + (b.height - te.y) / 2;
 					e.gc.wDrawText(s, x, y, true);
 				}
+				e.gc.setAlpha(255);
 			}
 		});
-		.setupComment(_comm, list, false);
 		return list;
 	}
 	static if (is(C:EnemyCard)) {
@@ -3309,6 +3335,7 @@ public:
 			_comm.refFlagAndStep.add(&refFlag);
 			_comm.delFlagAndStep.add(&refFlag);
 			_comm.refDataVersion.add(&refDataVersion);
+			_comm.refTargetVersion.add(&refDataVersion);
 		}
 		_preview = new Preview(_prop, this);
 		addDisposeListener(new class DisposeListener {
@@ -3347,6 +3374,7 @@ public:
 					_comm.refFlagAndStep.remove(&refFlag);
 					_comm.delFlagAndStep.remove(&refFlag);
 					_comm.refDataVersion.remove(&refDataVersion);
+					_comm.refTargetVersion.remove(&refDataVersion);
 				}
 			}
 		});
@@ -3857,8 +3885,10 @@ public:
 		static if (UseCards) {
 			auto skin = summSkin;
 			foreach (i, c; _area.cards) { mixin(S_TRACE);
-				string name = cardName(c);
 				auto itm = cardList.getItem(cast(int)i);
+				// 置換でフラグ名が消失する可能性があるため
+				itm.setImage(cardImg(c));
+				auto name = cardName(c);
 				if (itm.getText() != name) { mixin(S_TRACE);
 					auto img = _imgp.images[cardsIndex + i];
 					static if (is(C:EnemyCard)) {
@@ -3873,14 +3903,13 @@ public:
 					_imgp.redrawImage(img);
 					_comm.refMenuCard.call(c.cwxPath(true));
 				}
-				// 置換でフラグ名が消失する可能性があるため
-				itm.setImage(cardImg(c));
 			}
 		}
 		static if (UseBacks) {
 			foreach (i, b; _area.backs) { mixin(S_TRACE);
-				backList.getItem(cast(int)i).setImage(backImg(b));
-				backList.getItem(cast(int)i).setText(b.name(_prop.parent));
+				auto itm = backList.getItem(cast(int)i);
+				itm.setImage(backImg(b));
+				itm.setText(b.name(_prop.parent));
 			}
 			refreshTextCell();
 		}
