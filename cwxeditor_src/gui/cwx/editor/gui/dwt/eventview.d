@@ -731,6 +731,7 @@ private:
 				if (c.getSelectionIndex() == -1) c.select(0);
 			}
 		}
+		kindSelected();
 		_comm.refreshToolBar();
 	}
 
@@ -743,7 +744,7 @@ private:
 	}
 	class SListener : SelectionAdapter {
 		public override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
-			selectImpl(cast(TreeItem) e.item, false);
+			selectImpl(cast(TreeItem)e.item, false);
 		}
 	}
 	static int before(T)(T parent, int index) { mixin(S_TRACE);
@@ -1099,7 +1100,7 @@ private:
 		selectImpl(treeItm);
 	}
 	void refreshTrees(TreeItem parItm) { mixin(S_TRACE);
-		auto par = cast(EventTreeOwner) parItm.getData();
+		auto par = cast(EventTreeOwner)parItm.getData();
 		parItm.removeAll();
 		foreach (index, tree; par.trees) { mixin(S_TRACE);
 			appendTreeItem(parItm, cast(int)index, null, true);
@@ -1183,7 +1184,7 @@ private:
 				return;
 			}
 		}
-		tree = cast(EventTree) p.getData();
+		tree = cast(EventTree)p.getData();
 		auto kcIndex = p.indexOf(itm) - keyCodesIndex(p);
 		auto old = tree.keyCodes[kcIndex];
 		if (_prop.sys.convFireKeyCode(old) == text) return;
@@ -1193,7 +1194,7 @@ private:
 		foreach (v; views()) { mixin(S_TRACE);
 			auto another = .anotherTreeItem(v._cards, itm);
 			auto obj2 = cast(KeyCodeObj)another.getData();
-			another.setImage(v.keyCodeImage(text));
+			another.setImage(v.keyCodeImage(another, text));
 			another.setText(text);
 			obj2.array = text.dup;
 		}
@@ -1293,6 +1294,9 @@ private:
 
 	Object addKeyCodes() { mixin(S_TRACE);
 		auto kc = (cast(CCombo)_fireItm.getControl()).getText();
+		if (!_keyCodeTim.getEnabled()) { mixin(S_TRACE);
+			return kc != "" ? new KeyCodeObj(kc) : null;
+		}
 		final switch (_keyCodeTim.getSelectionIndex()) {
 		case 0:
 			// 入力値をそのまま使用
@@ -1370,7 +1374,7 @@ private:
 		_comm.refreshToolBar();
 	}
 	void addFire(TreeItem treeItm, Object fire) { mixin(S_TRACE);
-		auto tree = cast(EventTree) treeItm.getData();
+		auto tree = cast(EventTree)treeItm.getData();
 		if (fire is ENTER) { mixin(S_TRACE);
 			tree.enter = true;
 		} else if (fire is ESCAPE) { mixin(S_TRACE);
@@ -1428,7 +1432,12 @@ private:
 			}
 		}
 	}
-	Image keyCodeImage(string keyCode) { mixin(S_TRACE);
+	Image keyCodeImage(TreeItem parentOrKeyCodeItem, string keyCode) { mixin(S_TRACE);
+		assert (parentOrKeyCodeItem !is null);
+		auto data = topParent(parentOrKeyCodeItem).getData();
+		if (!cast(EnemyCard)data && !cast(PlayerCardEvents)data) { mixin(S_TRACE);
+			return _prop.images.keyCode;
+		}
 		final switch (_prop.sys.fireKeyCodeKind(keyCode)) {
 		case FKCKind.Use: return _prop.images.keyCode;
 		case FKCKind.Success: return _prop.images.menu(MenuID.KeyCodeTimingSuccess);
@@ -1439,7 +1448,7 @@ private:
 	void createKeyCodeItem(T)(TreeItem parent, T a) { mixin(S_TRACE);
 		foreach (keyCode; a.keyCodes) { mixin(S_TRACE);
 			string kc = _prop.sys.convFireKeyCode(keyCode);
-			createTreeItem(parent, new KeyCodeObj(kc), kc, keyCodeImage(kc));
+			createTreeItem(parent, new KeyCodeObj(kc), kc, keyCodeImage(parent, kc));
 		}
 	}
 	void replText() { mixin(S_TRACE);
@@ -1492,14 +1501,14 @@ private:
 						auto kcWithTiming = _prop.sys.convFireKeyCode(et.keyCodes[i - startKC]);
 						itm3.setText(kcWithTiming);
 						kc.array = kcWithTiming.dup;
-						itm3.setImage(keyCodeImage(kcWithTiming));
+						itm3.setImage(keyCodeImage(itm3, kcWithTiming));
 						chg = true;
 					}
 				}
 				if (keyCodes < et.keyCodes.length) { mixin(S_TRACE);
 					foreach (keyCode; et.keyCodes[keyCodes .. $]) { mixin(S_TRACE);
 						auto kc = _prop.sys.convFireKeyCode(keyCode);
-						createTreeItem(itm2, new KeyCodeObj(kc), kc, keyCodeImage(kc));
+						createTreeItem(itm2, new KeyCodeObj(kc), kc, keyCodeImage(itm2, kc));
 					}
 				}
 				if (chg) { mixin(S_TRACE);
@@ -1515,11 +1524,11 @@ private:
 		auto etItm = selectionEventTree;
 		if (!etItm) return;
 		auto parItm = selectionParent;
-		if (!parItm || !(cast(Battle) parItm.getData())) return;
+		if (!parItm || !(cast(Battle)parItm.getData())) return;
 		foreach (v; views()) v.editEnter();
 		auto dlg = new ManyRoundsDialog(_prop, _cards.getShell());
 		if (dlg.open()) { mixin(S_TRACE);
-			auto et = cast(EventTree) etItm.getData();
+			auto et = cast(EventTree)etItm.getData();
 			store(et);
 			assert (et);
 			et.addRounds(dlg.rounds);
@@ -1550,7 +1559,7 @@ private:
 		foreach (v; views()) { mixin(S_TRACE);
 			auto itm2 = .anotherTreeItem(v._cards, itm);
 			itm2.setText(keyCode);
-			itm2.setImage(keyCodeImage(keyCode));
+			itm2.setImage(keyCodeImage(itm2, keyCode));
 			auto kc2 = cast(KeyCodeObj)itm2.getData();
 			kc2.array = keyCode.dup;
 		}
@@ -1573,6 +1582,8 @@ private:
 		if (_readOnly) return false;
 		auto itm = selectionKeyCode;
 		if (!itm) return false;
+		auto data = topParent(itm).getData();
+		if (!cast(EnemyCard)data && !cast(PlayerCardEvents)data) return false;
 		auto keyCode = (cast(KeyCodeObj)itm.getData()).array.idup;
 		if (Kind is _prop.sys.fireKeyCodeKind(keyCode)) { mixin(S_TRACE);
 			return false;
@@ -1615,7 +1626,7 @@ private:
 		if (_readOnly) return false;
 		auto eItm = selectionEventTree;
 		if (!eItm) return false;
-		auto et = cast(EventTree) eItm.getData();
+		auto et = cast(EventTree)eItm.getData();
 		assert (et !is null);
 		return et.keyCodeMatchingType !is Type;
 	}
@@ -1738,9 +1749,11 @@ public:
 			.listener(_cards, SWT.FocusIn, { _lastFocus = _cards; });
 			.setupComment(_comm, _cards, true, &getWarnings);
 			_lastFocus = _cards;
-			_comm.refDataVersion.add(&_cards.redraw);
+			_comm.refDataVersion.add(&_cacwxrds.redraw);
+			_comm.refTargetVersion.add(&_cards.redraw);
 			.listener(_cards, SWT.Dispose, { mixin(S_TRACE);
 				_comm.refDataVersion.remove(&_cards.redraw);
+				_comm.refTargetVersion.remove(&_cards.redraw);
 			});
 			if (cast(Area)_area || cast(Battle)_area) { mixin(S_TRACE);
 				auto cib = _prop.images.menu(MenuID.Comment).getBounds();
@@ -2358,7 +2371,7 @@ public:
 				} else { mixin(S_TRACE);
 					if (cast(KeyCodeObj)data) { mixin(S_TRACE);
 						// キーコード
-						auto tree = cast(EventTree) parent.getData();
+						auto tree = cast(EventTree)parent.getData();
 						int keyCodeLen = cast(int)tree.keyCodes.length;
 						from -= keyCodesIndex(parent);
 						to -= keyCodesIndex(parent);
@@ -2746,7 +2759,9 @@ public:
 		if (readOnly) style |= SWT.READ_ONLY;
 		auto c = new CCombo(_toolbar, style);
 		c.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
-		c.setEnabled(!_readOnly);
+		auto parItm = selectionParent();
+		auto enabled = parItm && cast(PlayerCardEvents)parItm.getData() && _summ && _summ.legacy;
+		c.setEnabled(!_readOnly && enabled);
 		foreach (i, v; vals) { mixin(S_TRACE);
 			c.add(v);
 			if (i == 0) c.setText(v);
@@ -2770,29 +2785,32 @@ public:
 		}
 	}
 	private void kindSelected() { mixin(S_TRACE);
-		if (cast(Area)_area) {
+		if (!_treeKind) return;
+		auto parItm = selectionParent();
+		auto withKeyCodeIgnitionType = parItm && (cast(EnemyCard)parItm.getData() || cast(PlayerCardEvents)parItm.getData());
+		if (cast(Area)_area) { mixin(S_TRACE);
 			switch (_treeKind.getSelectionIndex()) {
-			case 0:
+			case 0: // システム
 				createCombo(true, startDefVals);
 				_keyCodeTim.setEnabled(false);
 				break;
-			case 1:
+			case 1: // キーコード
 				createKCCombo();
-				_keyCodeTim.setEnabled(!_readOnly);
+				_keyCodeTim.setEnabled(!_readOnly && withKeyCodeIgnitionType);
 				break;
 			default: assert (0);
 			}
-		} else if (cast(Battle)_area) {
+		} else if (cast(Battle)_area) { mixin(S_TRACE);
 			switch (_treeKind.getSelectionIndex()) {
-			case 0:
+			case 0: // システム
 				createCombo(true, startDefVals);
 				_keyCodeTim.setEnabled(false);
 				break;
-			case 1:
+			case 1: // キーコード
 				createKCCombo();
-				_keyCodeTim.setEnabled(!_readOnly);
+				_keyCodeTim.setEnabled(!_readOnly && withKeyCodeIgnitionType);
 				break;
-			case 2:
+			case 2: // ラウンド
 				auto spn = new Spinner(_toolbar, SWT.BORDER);
 				initSpinner(spn);
 				spn.setMaximum(9999);
@@ -2801,7 +2819,8 @@ public:
 				setFireControl(spn);
 				_keyCodeTim.setEnabled(false);
 				break;
-			default: assert (0);
+			default:
+				assert (0);
 			}
 		}
 	}
@@ -2835,6 +2854,7 @@ public:
 		}
 
 		if (auto kco = cast(KeyCodeObj)itm.getData()) { mixin(S_TRACE);
+			auto withKeyCodeIgnitionType = cast(EnemyCard)topParent(itm).getData() || cast(PlayerCardEvents)topParent(itm).getData();
 			auto keyCode = kco.array.idup;
 			string[] kcw;
 			kcw ~= .sjisWarnings(_prop.parent, _summ, keyCode, _prop.msgs.keyCode);
@@ -2846,7 +2866,7 @@ public:
 					kcw ~= _prop.msgs.searchErrorKeyCodeMatchingAll;
 				}
 			}
-			if (_prop.sys.fireKeyCodeKind(keyCode) is FKCKind.HasNot && !_prop.targetVersion(_summ, "1.50")) { mixin(S_TRACE);
+			if (withKeyCodeIgnitionType && _prop.sys.fireKeyCodeKind(keyCode) is FKCKind.HasNot && !_prop.targetVersion(_summ, "1.50")) { mixin(S_TRACE);
 				kcw ~= _prop.msgs.warningHasNotKeyCode;
 			}
 			return kcw;
@@ -3043,7 +3063,7 @@ public:
 		override void dragStart(DragSourceEvent e) { mixin(S_TRACE);
 			auto itm = selection;
 			e.doit = !_readOnly && itm && !cast(EventTreeOwner)itm.getData()
-				&& (cast(DragSource) e.getSource()).getControl().isFocusControl();
+				&& (cast(DragSource)e.getSource()).getControl().isFocusControl();
 			if (e.doit) { mixin(S_TRACE);
 				_targ = itm;
 				_dragItm = _targ;
@@ -3240,7 +3260,7 @@ public:
 		auto par = parItm.getData();
 		auto data = itm.getData();
 		XNode node;
-		if (cast(EventTree) data) { mixin(S_TRACE);
+		if (cast(EventTree)data) { mixin(S_TRACE);
 			node = (cast(EventTree)data).toNode(new XMLOption(_prop.sys, LATEST_VERSION));
 		} else if (!canFire) { mixin(S_TRACE);
 			assert (cast(EventTree)par !is null);
