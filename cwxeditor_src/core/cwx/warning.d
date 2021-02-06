@@ -169,9 +169,10 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (eventTree.keyCodes.length && prop.sys.convFireKeyCode(eventTree.keyCodes[0]) == "MatchingType=All") { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorKeyCodeMatchingAll;
 		}
+		auto withKeyCodeIgnitionType = cast(EnemyCard)eventTree.owner || cast(PlayerCardEvents)eventTree.owner;
 		foreach (keyCode; eventTree.keyCodes) { mixin(S_TRACE);
 			r ~= .sjisWarnings(prop, isClassic, keyCode.keyCode, prop.msgs.keyCode);
-			if (!prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
+			if (withKeyCodeIgnitionType && !prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
 				if (keyCode.kind is FKCKind.HasNot) { mixin(S_TRACE);
 					r ~= prop.msgs.warningHasNotKeyCode;
 				}
