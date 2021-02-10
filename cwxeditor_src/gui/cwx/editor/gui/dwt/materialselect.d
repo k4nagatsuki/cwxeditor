@@ -1771,8 +1771,7 @@ private:
 	}
 	string[] getWarnings(TableItem itm) { mixin(S_TRACE);
 		auto ws = cast(WarningsObj)itm.getData();
-		assert (ws !is null);
-		return ws.warnings;
+		return ws ? ws.warnings : [];
 	}
 	void refreshListImpl2(string[] tgs) { mixin(S_TRACE);
 		auto skin = summSkin;
@@ -1783,9 +1782,9 @@ private:
 				itm.setText(f);
 				static if (Type == MtType.CARD || Type == MtType.BG_IMG) {
 					auto ws = skin.warningImage(_prop.parent, f, legacy, canInclude && !isMenuCard, _prop.var.etc.targetVersion);
-					if (!ws.length) ws = .sjisWarnings(_prop.parent, _summ, f, "");
-					if (!ws.length) ws = .fileExtensionWarnings(_prop.parent, toFilePath(f));
-					itm.setData(new WarningsObj(ws));
+					ws ~= .sjisWarnings(_prop.parent, _summ, f, "");
+					ws ~= .fileExtensionWarnings(_prop.parent, toFilePath(f));
+					if (ws.length) itm.setData(new WarningsObj(ws));
 					itm.setImage(image(toFilePath(f)));
 				} else { mixin(S_TRACE);
 					itm.setImage(image);
