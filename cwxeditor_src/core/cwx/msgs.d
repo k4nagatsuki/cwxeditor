@@ -684,6 +684,7 @@ class Msgs : Properties {
 	}
 	auto functionCategoryNameStringOperation = Msg("functionCategoryNameStringOperation", "文字列操作");
 	auto functionCategoryNameNumberOperation = Msg("functionCategoryNameNumberOperation", "数値操作");
+	auto functionCategoryNameListOperation = Msg("functionCategoryNameListOperation", "リスト操作"); // Wsn.5
 	auto functionCategoryNameConversion = Msg("functionCategoryNameConversion", "型変換");
 	auto functionCategoryNameVariableOperation = Msg("functionCategoryNameVariableOperation", "状態変数");
 	auto functionCategoryNameCardInformation = Msg("functionCategoryNameCardInformation", "カード情報");
@@ -1371,6 +1372,7 @@ class Msgs : Properties {
 	auto numberValue = Msg("numberValue", "数値");
 	auto stringValue = Msg("stringValue", "文字列値");
 	auto booleanValue = Msg("booleanValue", "真偽値");
+	auto listValue = Msg("listValue", "リスト"); // Wsn.5
 
 	auto variantValueHint = Msg("variantValueHint", "書式:\n数値 = 9999\n文字列 = \"文字列\"\n真偽値 = TRUE または FALSE\n※ 文字列内に\"を入れる時は\"\"と記述");
 	auto warningInvalidVariantValue = Msg("warningInvalidVariantValue", "書式が正しくありません。\n\n%1$s");
@@ -2733,9 +2735,12 @@ class Msgs : Properties {
 	auto jpyErrorLabelNotFound = Msg("jpyErrorLabelNotFound", "セクションがありません。");
 
 	/// 式。
+	auto expressionErrorFunctionIsNotExistsInTargetVersion = Msg("expressionErrorFunctionIsNotExistsInTargetVersion", "%1$sはWsn.%2$s以降でなければ使用できません。");
 	auto expressionErrorFunctionIsNotDefined = Msg("expressionErrorFunctionIsNotDefined", "%1$sという名前の関数はありません。");
-	auto expressionErrorValueIsNotNumber = Msg("expressionErrorValueIsNotNumber", "数値ではありません。");
-	auto expressionErrorValueIsNotBoolean = Msg("expressionErrorValueIsNotBoolean", "真偽値ではありません。");
+	auto expressionErrorValueIsNotString = Msg("expressionErrorValueIsNotString", "演算対象が文字列ではありません。"); // Wsn.5
+	auto expressionErrorValueIsNotNumber = Msg("expressionErrorValueIsNotNumber", "演算対象が数値ではありません。");
+	auto expressionErrorValueIsNotBoolean = Msg("expressionErrorValueIsNotBoolean", "演算対象が真偽値ではありません。");
+	auto expressionErrorValueIsNotList = Msg("expressionErrorValueIsNotList", "演算対象がリストではありません。"); // Wsn.5
 	auto expressionErrorDivisionByZero = Msg("expressionErrorDivisionByZero", "ゼロによる除算が行われました。");
 	auto expressionErrorInvalidCharacter = Msg("expressionErrorInvalidCharacter", "式に使用できない文字が含まれています。");
 	auto expressionErrorInvalidFunctionCall = Msg("expressionErrorInvalidFunctionCall", "関数の呼び出し方が正しくありません。");
@@ -2751,6 +2756,7 @@ class Msgs : Properties {
 	auto expressionErrorArgumentIsNotNumber = Msg("expressionErrorArgumentIsNotNumber", "%1$sの%2$s番目の引数は数値でなければなりません。");
 	auto expressionErrorArgumentIsNotString = Msg("expressionErrorArgumentIsNotString", "%1$sの%2$s番目の引数は文字列でなければなりません。");
 	auto expressionErrorArgumentIsNotBoolean = Msg("expressionErrorArgumentIsNotBoolean", "%1$sの%2$s番目の引数は真偽値でなければなりません。");
+	auto expressionErrorArgumentIsNotList = Msg("expressionErrorArgumentIsNotList", "%1$sの%2$s番目の引数はリストでなければなりません。"); // Wsn.5
 	auto expressionErrorMinimumValue = Msg("expressionErrorMinimumValue", "%1$sの%2$s番目の引数は%3$s以上でなければなりません: %4$s < %3$s");
 	auto expressionErrorNoArgumentWithFunctionName = Msg("expressionErrorNoArgumentWithFunctionName", "%1$sの引数がありません。");
 	auto expressionErrorConversionToNumber = Msg("expressionErrorConversionToNumber", "数値に変換できません: %1$s");
@@ -2758,6 +2764,7 @@ class Msgs : Properties {
 	auto expressionErrorFlagNotFound = Msg("expressionErrorFlagNotFound", "フラグ「%1$s」は存在しません。");
 	auto expressionErrorStepNotFound = Msg("expressionErrorStepNotFound", "ステップ「%1$s」は存在しません。");
 	auto expressionErrorInvalidStepValue = Msg("expressionErrorInvalidStepValue", "ステップ「%1$s」の最大値より大きな値です: %2$s");
+	auto expressionErrorListIndexIsOutOfRange = Msg("expressionErrorListIndexIsOutOfRange", "リストに%1$s番目の要素は存在しません: リストの長さ = %2$s"); // Wsn.5
 	auto warningExpression = Msg("warningExpression", "%1$s → %2$s");
 	auto warningExpressionPosition = Msg("warningExpressionPosition", " >>>");
 	auto warningExpressionEnd = Msg("warningExpressionEnd", " <<<");
@@ -2773,6 +2780,7 @@ class Msgs : Properties {
 	auto argStep = Msg("argStep", "ステップ名");
 	auto argVariant = Msg("argVariant", "コモン名");
 	auto argBoolean = Msg("argBoolean", "真偽値");
+	auto argList = Msg("argList", "リスト"); // Wsn.5
 	auto argAny = Msg("argAny", "任意の値");
 	auto argNumberOrString = Msg("argNumberOrString", "文字列または数値");
 	auto functionAs = Msg("functionAs", "%1$s → %2$s");
@@ -2803,6 +2811,13 @@ class Msgs : Properties {
 	auto funcDescFindGossip = Msg("funcDescFindGossip", "ゴシップを検索し、ゴシップ番号を返します。見つからなかった場合は0を返します。次の特殊文字が使用できます。\n* = 任意文字列, ? = 任意1文字, [ABC] = A・B・Cのいずれか1文字, [!ABC] = A・B・Cのいずれでもない1文字。\n特殊文字を普通の文字のように検索したい時は[[]のように[]で囲います。");
 	auto funcDescGossipText = Msg("funcDescGossipText", "ゴシップの名前を返します。見つからなかった場合は空文字列を返します。");
 	auto funcDescPartyName = Msg("funcDescPartyName", "操作中のパーティの名前を返します。");
+	auto funcDescList = Msg("funcDescList", "リストを生成します。"); // Wsn.5
+	auto funcDescAt = Msg("funcDescAt", "リストの要素を返します。"); // Wsn.5
+	auto funcDescLLen = Msg("funcDescLLen", "リストの長さ(要素数)を返します。"); // Wsn.5
+	auto funcDescLFind = Msg("funcDescLFind", "対象リスト内に検索値があった場合は位置(1～)を返します。見つからなかった場合は0を返します。"); // Wsn.5
+	auto funcDescLLeft = Msg("funcDescLLeft", "リストの左側を返します。"); // Wsn.5
+	auto funcDescLRight = Msg("funcDescLRight", "リストの右側を返します。"); // Wsn.5
+	auto funcDescLMid = Msg("funcDescLMid", "リストの中間部分を返します。長さを省略した場合は、指定位置より右側を返します。"); // Wsn.5
 
 	auto funcShortDescLen = Msg("funcShortDescLen", "文字列の長さを返す");
 	auto funcShortDescFind = Msg("funcDescFind", "文字列内を検索");
@@ -2830,6 +2845,13 @@ class Msgs : Properties {
 	auto funcShortDescFindGossip = Msg("funcShortDescFindGossip", "ゴシップを検索");
 	auto funcShortDescGossipText = Msg("funcShortDescGossipText", "ゴシップ名を取得");
 	auto funcShortDescPartyName = Msg("funcShortDescPartyName", "パーティ名を取得");
+	auto funcShortDescList = Msg("funcShortDescList", "リストを生成する"); // Wsn.5
+	auto funcShortDescAt = Msg("funcShortDescAt", "リストの要素を返す"); // Wsn.5
+	auto funcShortDescLLen = Msg("funcShortDescLLen", "リストの長さを返す"); // Wsn.5
+	auto funcShortDescLFind = Msg("funcDescLFind", "リスト内を検索"); // Wsn.5
+	auto funcShortDescLLeft = Msg("funcShortDescLLeft", "リストの左側を返す"); // Wsn.5
+	auto funcShortDescLRight = Msg("funcShortDescLRight", "リストの右側を返す"); // Wsn.5
+	auto funcShortDescLMid = Msg("funcShortDescLMid", "リストの中間部分を返す"); // Wsn.5
 
 	auto funcExampleLen = Msg("funcExampleLen", "LEN(\"対象文字列\") = 5");
 	auto funcExampleFind = Msg("funcExampleFind", "FIND(\"文字\", \"対象文字列\") = 3");
@@ -2857,6 +2879,13 @@ class Msgs : Properties {
 	auto funcExampleFindGossip = Msg("funcExampleFindGossip", "FINDGOSSIP(\"*生存\") <> 0");
 	auto funcExampleGossipText = Msg("funcExampleGossipText", "GOSSIPTEXT(FINDGOSSIP(\"*生存\")) = \"ゴブリン生存\"");
 	auto funcExamplePartyName = Msg("funcExamplePartyName", "PARTYNAME()");
+	auto funcExampleList = Msg("funcExampleList", "LIST(42, \"STR\", TRUE)"); // Wsn.5
+	auto funcExampleAt = Msg("funcExampleAt", "AT(LIST(41, 42, 43), 2) = 42"); // Wsn.5
+	auto funcExampleLLen = Msg("funcExampleLLen", "LLEN(LIST(1, 2, 3, 5)) = 4"); // Wsn.5
+	auto funcExampleLFind = Msg("funcExampleLFind", "LFIND(42, LIST(41, 42, 43)) = 2"); // Wsn.5
+	auto funcExampleLLeft = Msg("funcExampleLLeft", "LEFT(LIST(1, 2, 3), 2) = LIST(1, 2)"); // Wsn.5
+	auto funcExampleLRight = Msg("funcExampleLRight", "RIGHT(LIST(1, 2, 3), 2) = LIST(2, 3)"); // Wsn.5
+	auto funcExampleLMid = Msg("funcExampleLMid", "MID(LIST(1, 2, 3, 4, 5), 2, 3) = LIST(2, 3, 4)"); // Wsn.5
 
 	auto exprStringDesc = Msg("exprStringDesc", "文字列");
 	auto exprFindStringDesc = Msg("exprFindStringDesc", "検索文字列");
@@ -2881,6 +2910,10 @@ class Msgs : Properties {
 	auto exprCouponNumberDesc = Msg("exprCouponNumberDesc", "クーポン番号");
 	auto exprGossipNumberDesc = Msg("exprGossipNumberDesc", "ゴシップ番号");
 	auto exprFindStartPositionDesc = Msg("exprFindStartPositionDesc", "検索開始位置");
+	auto exprListDesc = Msg("exprListDesc", "リスト"); // Wsn.5
+	auto exprAnyFindValueDesc = Msg("exprAnyFindValueDesc", "検索値"); // Wsn.5
+	auto exprListLengthDesc = Msg("exprListLengthDesc", "長さ(要素数)"); // Wsn.5
+	auto exprListPositionDesc = Msg("exprListPositionDesc", "位置(1～)"); // Wsn.5
 
 	/// メニュー。
 	const string menuText(MenuID id) { mixin(S_TRACE);

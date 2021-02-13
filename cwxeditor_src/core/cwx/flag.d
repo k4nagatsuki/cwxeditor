@@ -727,6 +727,7 @@ private:
 	double _numVal = 0.0;
 	string _strVal = "";
 	bool _boolVal = true;
+	const(VariantVal)[] _listVal = [];
 
 	VariableInitialization _initialization = VariableInitialization.Leave;
 
@@ -764,6 +765,12 @@ public:
 		_type = VariantType.Boolean;
 		_boolVal = boolVal;
 	}
+	/// ditto
+	this (string name, in VariantVal[] listVal) { mixin(S_TRACE);
+		_name = FlagDir.validName(name);
+		_type = VariantType.List;
+		_listVal = listVal;
+	}
 
 	const
 	override
@@ -779,18 +786,20 @@ public:
 		case VariantType.Number: return numVal.approxEqual(f.numVal);
 		case VariantType.String: return strVal == f.strVal;
 		case VariantType.Boolean: return boolVal == f.boolVal;
+		case VariantType.List: return listVal == f.listVal;
 		}
 	}
 
 	/// stepのパラメータをコピーする。
 	void copyFrom(in Variant copyBase) { mixin(S_TRACE);
 		name = copyBase.name;
-		if (type != copyBase.type || _numVal != copyBase.numVal || _strVal != copyBase.strVal || _boolVal != copyBase.boolVal) { mixin(S_TRACE);
+		if (type != copyBase.type || _numVal != copyBase.numVal || _strVal != copyBase.strVal || _boolVal != copyBase.boolVal || _listVal != copyBase.listVal) { mixin(S_TRACE);
 			changed();
 			_type = copyBase.type;
 			_numVal = copyBase.numVal;
 			_strVal = copyBase.strVal;
 			_boolVal = copyBase.boolVal;
+			_listVal = copyBase.listVal;
 		}
 		initialization = copyBase.initialization;
 		comment = copyBase.comment;
@@ -869,6 +878,15 @@ public:
 			_boolVal = boolVal;
 		}
 	}
+	/// ditto
+	@property
+	void value(const(VariantVal)[] listVal) { mixin(S_TRACE);
+		if (_type !is VariantType.List || _listVal != listVal) { mixin(S_TRACE);
+			changed();
+			_type = VariantType.List;
+			_listVal = listVal;
+		}
+	}
 
 	/// 値の型。
 	@property
@@ -887,6 +905,10 @@ public:
 	@property
 	const
 	bool boolVal() { return _boolVal; }
+	/// ditto
+	@property
+	const
+	const(VariantVal)[] listVal() { return _listVal; }
 
 	/// 初期化タイミング。
 	@property
@@ -966,6 +988,32 @@ public:
 		case VariantType.Boolean:
 			variant = new Variant(name, .parseBool(defValue));
 			break;
+		case VariantType.List:
+			VariantVal[] listVal;
+			static void parseList(ref XNode n, const(VariantVal)[] listVal) { mixin(S_TRACE);
+				auto type = toVariantType(n.attr!string("type", true));
+				auto value = n.attr!string("value", true);
+				auto val = VariantVal(type);
+				final switch (type) {
+				case VariantType.Number:
+					val.numVal = .to!double(value);
+					break;
+				case VariantType.String:
+					val.strVal = value;
+					break;
+				case VariantType.Boolean:
+					val.boolVal = .parseBool(value);
+					break;
+				case VariantType.List:
+					n.onTag["Value"] = (ref XNode n) => parseList(n, val.listVal);
+					n.parse();
+					break;
+				}
+			}
+			ve.onTag["Value"] = (ref XNode n) => parseList(n, listVal);
+			ve.parse();
+			variant = new Variant(name, listVal);
+			break;
 		}
 		variant.initialization = toVariableInitialization(ve.attr("initialize", false, "Leave"));
 		variant.comment = ve.attr("comment", false, "");
@@ -984,6 +1032,27 @@ public:
 			break;
 		case VariantType.Boolean:
 			e.newAttr("defaultvalue", .fromBool(boolVal));
+			break;
+		case VariantType.List:
+			static void listToNode(ref XNode n, in VariantVal[] listVal) { mixin(S_TRACE);
+				auto e = n.newElement("Value");
+				e.newAttr("type", .fromVariantType(VariantType.List));
+				foreach (ref val; listVal) { mixin(S_TRACE);
+					final switch (val.type) {
+					case VariantType.Number:
+					case VariantType.String:
+						e.newAttr("value", .variantValueToPreviewText(val));
+						break;
+					case VariantType.Boolean:
+						e.newAttr("value", .fromBool(val.boolVal));
+						break;
+					case VariantType.List:
+						listToNode(e, val.listVal);
+						break;
+					}
+				}
+			}
+			listToNode(e, listVal);
 			break;
 		}
 		e.newElement("Name", path);
