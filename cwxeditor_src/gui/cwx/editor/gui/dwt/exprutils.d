@@ -69,6 +69,9 @@ private:
 				break;
 			case VariantType.Boolean:
 				assert (0);
+			case VariantType.List:
+				ws ~= .tryFormat(prop.msgs.warningExpressionNeedBooleanReturnType, prop.msgs.listValue, prop.msgs.contentName(type));
+				break;
 			}
 		}
 		ws ~= _expr.warnings;
@@ -173,6 +176,9 @@ private:
 					break;
 				case VariantType.Boolean:
 					assert (0);
+				case VariantType.List:
+					ws ~= .tryFormat(prop.msgs.warningExpressionToFlag, prop.msgs.listValue);
+					break;
 				}
 			}
 		} else if (_step) { mixin(S_TRACE);
@@ -186,6 +192,9 @@ private:
 					break;
 				case VariantType.Boolean:
 					ws ~= .tryFormat(prop.msgs.warningExpressionToStep, prop.msgs.booleanValue);
+					break;
+				case VariantType.List:
+					ws ~= .tryFormat(prop.msgs.warningExpressionToStep, prop.msgs.listValue);
 					break;
 				}
 			}
@@ -453,6 +462,9 @@ class ExpressionEditor : Composite {
 	private void refFlagAndStep(cwx.flag.Flag[] flags, Step[] steps, cwx.flag.Variant[] variants) { mixin(S_TRACE);
 		checkExpressionImpl(true);
 	}
+	private void refDataVersion() { mixin(S_TRACE);
+		checkExpressionImpl(true);
+	}
 
 	private Commons _comm;
 	private Summary _summ;
@@ -638,12 +650,14 @@ class ExpressionEditor : Composite {
 
 		_comm.refFlagAndStep.add(&refFlagAndStep);
 		_comm.delFlagAndStep.add(&refFlagAndStep);
+		_comm.refDataVersion.add(&refDataVersion);
 		.listener(this, SWT.Dispose, { mixin(S_TRACE);
 			_quit = true;
 			checkThr.join();
 
 			_comm.refFlagAndStep.remove(&refFlagAndStep);
 			_comm.delFlagAndStep.remove(&refFlagAndStep);
+			_comm.refDataVersion.remove(&refDataVersion);
 		});
 	}
 
@@ -956,6 +970,9 @@ private class FunctionCallEditor {
 					case ArgType.VariantRef:
 						args ~= "@\"" ~ t.replace("\"", "\"\"") ~ "\"";
 						break;
+					case ArgType.List:
+						args ~= t;
+						break;
 					case ArgType.NoArgument:
 						break;
 					case ArgType.Any:
@@ -1020,6 +1037,9 @@ private class FunctionCallEditor {
 			case ArgType.NumberOrString:
 				argTypes = [ArgType.String, ArgType.Number, ArgType.VariantRef];
 				break;
+			case ArgType.List:
+				argTypes = [ArgType.List, ArgType.VariantRef];
+				break;
 			case ArgType.VariantRef:
 			case ArgType.NoArgument:
 				assert (0);
@@ -1073,6 +1093,8 @@ private class FunctionCallEditor {
 			return _comm.prop.msgs.argVariant;
 		case ArgType.Boolean:
 			return _comm.prop.msgs.argBoolean;
+		case ArgType.List:
+			return _comm.prop.msgs.argList;
 		case ArgType.NumberOrString:
 			assert (0);
 		case ArgType.Any:
@@ -1197,6 +1219,7 @@ private class FunctionCallEditor {
 			t.setText(val);
 			return t;
 		case ArgType.String:
+		case ArgType.List:
 			return .createTextEditor(_comm, _comm.prop, _args, val);
 		case ArgType.Flag:
 			return createIDEditor!(cwx.flag.Flag)();

@@ -1311,6 +1311,8 @@ protected:
 				_typeBool.setSelection(true);
 				_boolVal.select(_variant.boolVal ? 0 : 1);
 				break;
+			case VariantType.List:
+				assert (0);
 			}
 			_initTim.select(cast(int)_initTims.cCountUntil(_variant.initialization));
 		} else { mixin(S_TRACE);
@@ -1519,6 +1521,8 @@ package class UndoEditN {
 				case VariantType.Boolean:
 					variant.value = val.boolVal;
 					break;
+				case VariantType.List:
+					assert (0);
 				}
 			}
 			_f = variant;
@@ -1574,6 +1578,8 @@ package class UndoEditN {
 				case VariantType.Boolean:
 					refVal |= o.boolVal != v.boolVal;
 					break;
+				case VariantType.List:
+					assert (0);
 				}
 			}
 			newName = o.name;
@@ -2859,6 +2865,8 @@ private:
 				case VariantType.Boolean:
 					v.value = val.boolVal;
 					break;
+				case VariantType.List:
+					assert (0);
 				}
 				itm.setText(column, .variantValueToText(v));
 				refV ~= v;

@@ -475,7 +475,7 @@ private class NumberValue : Part {
 	@property
 	const
 	override
-	string stringValue() { return .variantValueToPreviewTextImpl(VariantType.Number, numVal, "", false); }
+	string stringValue() { return .variantValueToPreviewTextImpl(VariantType.Number, numVal, "", false, []); }
 
 	override
 	const
@@ -517,6 +517,24 @@ private class BooleanValue : Part {
 	const
 	string toString() { return stringValue; }
 }
+/// ditto
+private class ListValue : Part {
+	const Part[] listVal;
+
+	this (in Token token, const(Part)[] listVal) { mixin(S_TRACE);
+		super (token);
+		this.listVal = listVal;
+	}
+
+	@property
+	const
+	override
+	string stringValue() { return "LIST(" ~ listVal.map!(v => v.toString()).join(", ") ~ ")"; }
+
+	override
+	const
+	string toString() { return stringValue; }
+}
 /// エラーチェック時に一時的に使用される不明型。
 private class UnknownValue : Part {
 	this (in Token token) { mixin(S_TRACE);
@@ -538,6 +556,7 @@ private class Function : Part {
 	private static immutable typeof(&.funcLen)[string] FUNCS;
 	shared static this () {
 		FUNCS = [
+			// Wsn.4
 			"len": &.funcLen,
 			"find": &.funcFind,
 			"left": &.funcLeft,
@@ -564,6 +583,14 @@ private class Function : Part {
 			"findgossip": &.funcFindGossip,
 			"gossiptext": &.funcGossipText,
 			"partyname": &.funcPartyName,
+			// Wsn.5
+			"list": &.funcList,
+			"at": &.funcAt,
+			"llen": &.funcLLen,
+			"lfind": &.funcLFind,
+			"lleft": &.funcLLeft,
+			"lright": &.funcLRight,
+			"lmid": &.funcLMid,
 		];
 	}
 
@@ -657,35 +684,113 @@ private class Operator : Part {
 		this.operator = operator;
 	}
 
+	private alias Tuple!(bool, "valid", string, "lhs", string, "rhs") StrVals;
+	private alias Tuple!(bool, "valid", double, "lhs", double, "rhs") NumVals;
+	private alias Tuple!(bool, "valid", bool, "lhs", bool, "rhs") BoolVals;
+	private static StrVals strValsImpl(in CProps prop, in Part lhs, in Part rhs, ref ExprError[] err) { mixin(S_TRACE);
+		if (auto l = cast(StringValue)lhs) { mixin(S_TRACE);
+			if (auto r = cast(StringValue)rhs) { mixin(S_TRACE);
+				return StrVals(true, l.strVal, r.strVal);
+			} else { mixin(S_TRACE);
+				if (!cast(UnknownValue)rhs) err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorValueIsNotString : "Value is not string: %s", rhs.token.token), rhs.token.line, rhs.token.pos, __FILE__, __LINE__);
+			}
+		} else { mixin(S_TRACE);
+			if (!cast(UnknownValue)lhs) err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorValueIsNotString : "Value is not string: %s", lhs.token.token), lhs.token.line, lhs.token.pos, __FILE__, __LINE__);
+		}
+		return StrVals(false, "", "");
+	}
+	private static NumVals numValsImpl(in CProps prop, in Part lhs, in Part rhs, ref ExprError[] err) { mixin(S_TRACE);
+		if (auto l = cast(NumberValue)lhs) { mixin(S_TRACE);
+			if (auto r = cast(NumberValue)rhs) { mixin(S_TRACE);
+				return NumVals(true, l.numVal, r.numVal);
+			} else { mixin(S_TRACE);
+				if (!cast(UnknownValue)rhs) err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorValueIsNotNumber : "Value is not number: %s", rhs.token.token), rhs.token.line, rhs.token.pos, __FILE__, __LINE__);
+			}
+		} else { mixin(S_TRACE);
+			if (!cast(UnknownValue)lhs) err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorValueIsNotNumber : "Value is not number: %s", lhs.token.token), lhs.token.line, lhs.token.pos, __FILE__, __LINE__);
+		}
+		return NumVals(false, 0, 0);
+	}
+	private static BoolVals boolValsImpl(in CProps prop, in Part lhs, in Part rhs, ref ExprError[] err) { mixin(S_TRACE);
+		if (auto l = cast(BooleanValue)lhs) { mixin(S_TRACE);
+			if (auto r = cast(BooleanValue)rhs) { mixin(S_TRACE);
+				return BoolVals(true, l.boolVal, r.boolVal);
+			} else { mixin(S_TRACE);
+				if (!cast(UnknownValue)rhs) err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorValueIsNotBoolean : "Value is not boolean: %s", rhs.token.token), rhs.token.line, rhs.token.pos, __FILE__, __LINE__);
+			}
+		} else { mixin(S_TRACE);
+			if (!cast(UnknownValue)lhs) err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorValueIsNotBoolean : "Value is not boolean: %s", lhs.token.token), lhs.token.line, lhs.token.pos, __FILE__, __LINE__);
+		}
+		return BoolVals(false, false, false);
+	}
+	private static const(ListValue) listValImpl(in CProps prop, in Part rhs, ref ExprError[] err) { mixin(S_TRACE);
+		auto r = cast(ListValue)rhs;
+		if (!r) { mixin(S_TRACE);
+			if (!cast(UnknownValue)rhs) err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorValueIsNotList : "Value is not list: %s", rhs.token.token), rhs.token.line, rhs.token.pos, __FILE__, __LINE__);
+		}
+		return r;
+	}
+
+	private static bool equalsImpl(in CProps prop, EvalMode mode, in Part lhs, in Part rhs, string operator, bool inList, ref ExprError[] err) { mixin(S_TRACE);
+		ExprError[] err2;
+		scope (exit) {
+			if (!inList) err ~= err2;
+		}
+		if (cast(ListValue)lhs) { mixin(S_TRACE);
+			auto l = listValImpl(prop, lhs, err2);
+			if (!l) return false;
+			auto r = listValImpl(prop, rhs, err2);
+			if (!r) return false;
+			foreach (i; 0 .. .min(l.listVal.length, r.listVal.length)) { mixin(S_TRACE);
+				auto b = equalsImpl(prop, mode, l.listVal[i], r.listVal[i], "=", true, err2);
+				if (!b) { mixin(S_TRACE);
+					if (operator == "<>") b = true;
+					return b;
+				}
+			}
+			auto b = l.listVal.length == r.listVal.length;
+			if (operator == "<>") b = !b;
+			return b;
+		}
+		auto r = false;
+		if (!inList && (cast(StringValue)lhs || cast(StringValue)rhs)) { mixin(S_TRACE);
+			r = lhs.stringValue == rhs.stringValue;
+		} else if (cast(StringValue)lhs) { mixin(S_TRACE);
+			auto n = strValsImpl(prop, lhs, rhs, err2);
+			if (n.valid) { mixin(S_TRACE);
+				r = n.lhs == n.rhs;
+			} else { mixin(S_TRACE);
+				r = false;
+			}
+		} else if (cast(BooleanValue)lhs) { mixin(S_TRACE);
+			auto n = boolValsImpl(prop, lhs, rhs, err2);
+			if (n.valid) { mixin(S_TRACE);
+				r = n.lhs is n.rhs;
+			} else { mixin(S_TRACE);
+				r = false;
+			}
+		} else { mixin(S_TRACE);
+			auto n = numValsImpl(prop, lhs, rhs, err2);
+			if (n.valid) { mixin(S_TRACE);
+				r = n.lhs == n.rhs;
+			} else { mixin(S_TRACE);
+				r = false;
+			}
+		}
+		if (operator == "<>") r = !r;
+		return r;
+	}
+
 	/// 演算を実行する。
 	const
 	const(Part) call(in CProps prop, EvalMode mode, in Part lhs, in Part rhs, ref ExprError[] err) { mixin(S_TRACE);
-		alias Tuple!(bool, "valid", double, "lhs", double, "rhs") NumVals;
-		alias Tuple!(bool, "valid", bool, "lhs", bool, "rhs") BoolVals;
-		NumVals numVals() { mixin(S_TRACE);
-			if (auto l = cast(NumberValue)lhs) { mixin(S_TRACE);
-				if (auto r = cast(NumberValue)rhs) { mixin(S_TRACE);
-					return NumVals(true, l.numVal, r.numVal);
-				} else { mixin(S_TRACE);
-					if (!cast(UnknownValue)rhs) err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorValueIsNotNumber : "Value is not number: %s", rhs.token.token), rhs.token.line, rhs.token.pos, __FILE__, __LINE__);
-				}
-			} else { mixin(S_TRACE);
-				if (!cast(UnknownValue)lhs) err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorValueIsNotNumber : "Value is not number: %s", lhs.token.token), lhs.token.line, lhs.token.pos, __FILE__, __LINE__);
-			}
-			return NumVals(false, 0, 0);
-		}
-		BoolVals boolVals() { mixin(S_TRACE);
-			if (auto l = cast(BooleanValue)lhs) { mixin(S_TRACE);
-				if (auto r = cast(BooleanValue)rhs) { mixin(S_TRACE);
-					return BoolVals(true, l.boolVal, r.boolVal);
-				} else { mixin(S_TRACE);
-					if (!cast(UnknownValue)rhs) err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorValueIsNotBoolean : "Value is not boolean: %s", rhs.token.token), rhs.token.line, rhs.token.pos, __FILE__, __LINE__);
-				}
-			} else { mixin(S_TRACE);
-				if (!cast(UnknownValue)lhs) err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorValueIsNotBoolean : "Value is not boolean: %s", lhs.token.token), lhs.token.line, lhs.token.pos, __FILE__, __LINE__);
-			}
-			return BoolVals(false, false, false);
-		}
+		return callImpl(prop, token, mode, lhs, rhs, operator, err);
+	}
+	/// ditto
+	private static const(Part) callImpl(in CProps prop, in Token token, EvalMode mode, in Part lhs, in Part rhs, string operator, ref ExprError[] err) { mixin(S_TRACE);
+		NumVals numVals() { return numValsImpl(prop, lhs, rhs, err); }
+		BoolVals boolVals() { return boolValsImpl(prop, lhs, rhs, err); }
+		const(ListValue) listVal(in Part rhs) { return listValImpl(prop, rhs, err); }
 
 		final switch (operator.toLower()) {
 		case "+":
@@ -730,8 +835,26 @@ private class Operator : Part {
 			}
 			return new NumberValue(token, 0);
 		case "~":
+			if (auto l = cast(ListValue)lhs) { mixin(S_TRACE);
+				if (auto r = cast(ListValue)rhs) { mixin(S_TRACE);
+					return new ListValue(token, l.listVal ~ r.listVal);
+				} else { mixin(S_TRACE);
+					return new ListValue(token, l.listVal ~ rhs);
+				}
+			} else if (auto r = cast(ListValue)rhs) { mixin(S_TRACE);
+				return new ListValue(token, lhs ~ r.listVal);
+			}
 			return new StringValue(token, lhs.stringValue ~ rhs.stringValue);
 		case "<=":
+			if (auto l = cast(ListValue)lhs) { mixin(S_TRACE);
+				auto r = listVal(rhs);
+				if (!r) return new BooleanValue(token, false);
+				foreach (i; 0 .. .min(l.listVal.length, r.listVal.length)) { mixin(S_TRACE);
+					auto b = cast(BooleanValue)callImpl(prop, token, mode, l.listVal[i], r.listVal[i], "<", err);
+					if (b.boolVal) return b;
+				}
+				return new BooleanValue(token, l.listVal.length <= r.listVal.length);
+			}
 			auto n = numVals();
 			if (n.valid) { mixin(S_TRACE);
 				return new BooleanValue(token, n.lhs <= n.rhs);
@@ -739,6 +862,15 @@ private class Operator : Part {
 				return new BooleanValue(token, false);
 			}
 		case ">=":
+			if (auto l = cast(ListValue)lhs) { mixin(S_TRACE);
+				auto r = listVal(rhs);
+				if (!r) return new BooleanValue(token, false);
+				foreach (i; 0 .. .min(l.listVal.length, r.listVal.length)) { mixin(S_TRACE);
+					auto b = cast(BooleanValue)callImpl(prop, token, mode, l.listVal[i], r.listVal[i], ">", err);
+					if (b.boolVal) return b;
+				}
+				return new BooleanValue(token, l.listVal.length >= r.listVal.length);
+			}
 			auto n = numVals();
 			if (n.valid) { mixin(S_TRACE);
 				return new BooleanValue(token, n.lhs >= n.rhs);
@@ -746,6 +878,15 @@ private class Operator : Part {
 				return new BooleanValue(token, false);
 			}
 		case "<":
+			if (auto l = cast(ListValue)lhs) { mixin(S_TRACE);
+				auto r = listVal(rhs);
+				if (!r) return new BooleanValue(token, false);
+				foreach (i; 0 .. .min(l.listVal.length, r.listVal.length)) { mixin(S_TRACE);
+					auto b = cast(BooleanValue)callImpl(prop, token, mode, l.listVal[i], r.listVal[i], "<", err);
+					if (b.boolVal) return b;
+				}
+				return new BooleanValue(token, l.listVal.length < r.listVal.length);
+			}
 			auto n = numVals();
 			if (n.valid) { mixin(S_TRACE);
 				return new BooleanValue(token, n.lhs < n.rhs);
@@ -753,6 +894,15 @@ private class Operator : Part {
 				return new BooleanValue(token, false);
 			}
 		case ">":
+			if (auto l = cast(ListValue)lhs) { mixin(S_TRACE);
+				auto r = listVal(rhs);
+				if (!r) return new BooleanValue(token, false);
+				foreach (i; 0 .. .min(l.listVal.length, r.listVal.length)) { mixin(S_TRACE);
+					auto b = cast(BooleanValue)callImpl(prop, token, mode, l.listVal[i], r.listVal[i], ">", err);
+					if (b.boolVal) return b;
+				}
+				return new BooleanValue(token, l.listVal.length > r.listVal.length);
+			}
 			auto n = numVals();
 			if (n.valid) { mixin(S_TRACE);
 				return new BooleanValue(token, n.lhs > n.rhs);
@@ -760,25 +910,7 @@ private class Operator : Part {
 				return new BooleanValue(token, false);
 			}
 		case "=", "<>":
-			auto r = false;
-			if (cast(StringValue)lhs || cast(StringValue)rhs) { mixin(S_TRACE);
-				r = lhs.stringValue == rhs.stringValue;
-			} else if (cast(BooleanValue)lhs || cast(BooleanValue)rhs) { mixin(S_TRACE);
-				auto n = boolVals();
-				if (n.valid) { mixin(S_TRACE);
-					r = n.lhs is n.rhs;
-				} else { mixin(S_TRACE);
-					return new BooleanValue(token, false);
-				}
-			} else { mixin(S_TRACE);
-				auto n = numVals();
-				if (n.valid) { mixin(S_TRACE);
-					r = n.lhs == n.rhs;
-				} else { mixin(S_TRACE);
-					return new BooleanValue(token, false);
-				}
-			}
-			if (operator == "<>") r = !r;
+			auto r = equalsImpl(prop, mode, lhs, rhs, operator, false, err);
 			return new BooleanValue(token, r);
 		case "and":
 			auto n = boolVals();
@@ -1041,6 +1173,7 @@ struct VariantVal {
 	double numVal = 0; /// 数値。
 	string strVal = ""; /// 文字列値
 	bool boolVal = false; /// 真偽値。
+	const(VariantVal)[] listVal = []; /// リスト。
 
 	/// 有効かどうかを指定して初期化する。
 	this (bool valid) {
@@ -1058,49 +1191,56 @@ struct VariantVal {
 		this.numVal = v.numVal;
 		this.strVal = v.strVal;
 		this.boolVal = v.boolVal;
+		this.listVal = v.listVal;
 	}
 }
 
 /// 計算中に評価される状態変数の値を取得するための情報。
 struct VariableInfo {
+	/// シナリオはwsnVer以上のWSN形式か。
+	bool delegate(string wsnVer) isTargetWsnVersion;
+
 	/// 状態変数が実在するか。
-	private bool delegate(string path) existsFlag;
+	private const bool delegate(string path) existsFlag;
 	/// ditto
-	private bool delegate(string path) existsStep;
+	private const bool delegate(string path) existsStep;
 	/// ditto
-	private bool delegate(string path) existsVariant;
+	private const bool delegate(string path) existsVariant;
 	/// フラグのテキストを取得。
-	private string delegate(string path, bool value) flagText;
+	private const string delegate(string path, bool value) flagText;
 	/// ステップのテキストを取得。
-	private string delegate(string path, uint value) stepText;
+	private const string delegate(string path, uint value) stepText;
 	/// ステップの値を最大値を取得。
-	private uint delegate(string path) stepMax;
+	private const uint delegate(string path) stepMax;
 
 	/// コモン値を取得。
-	VariantVal delegate(string path) variantValue;
+	const VariantVal delegate(string path) variantValue;
 	/// フラグの値を取得。
-	bool delegate(string path) flagValue;
+	const bool delegate(string path) flagValue;
 	/// ステップの値を取得。
-	uint delegate(string path) stepValue;
+	const uint delegate(string path) stepValue;
 	/// 選択メンバの番号を取得。
-	uint delegate() selectedPlayerCardNumber;
+	const uint delegate() selectedPlayerCardNumber;
 
 	/// クーポンの検索。
-	uint delegate(uint castNumber, string pattern, uint startPos) findCoupon;
+	const uint delegate(uint castNumber, string pattern, uint startPos) findCoupon;
 	/// クーポンの取得。
-	string delegate(uint castNumber, uint couponNumber) couponText;
+	const string delegate(uint castNumber, uint couponNumber) couponText;
 	/// ゴシップの検索。
-	uint delegate(string pattern, uint startPos) findGossip;
+	const uint delegate(string pattern, uint startPos) findGossip;
 	/// ゴシップの取得。
-	string delegate(uint gossipNumber) gossipText;
+	const string delegate(uint gossipNumber) gossipText;
 
 	/// キャラクター名を取得。
-	string delegate(uint) castName;
+	const string delegate(uint) castName;
 	/// パーティ名の取得。
-	string delegate() partyName;
+	const string delegate() partyName;
 
 	/// インスタンスを生成する。
 	this (in CProps prop, in Summary summ, in UseCounter uc, string targVer, string[char] names, VarValue[string] flags, VarValue[string] steps, VarValue[string] variants, VarValue[string] sysSteps) { mixin(S_TRACE);
+		isTargetWsnVersion = (string wsnVer) { mixin(S_TRACE);
+			return prop ? prop.isTargetVersion(summ, targVer, wsnVer) : true;
+		};
 		existsFlag = path => .findVar!(cwx.flag.Flag)(summ ? summ.flagDirRoot : null, uc, path) !is null;
 		existsStep = path => .findVar!Step(summ ? summ.flagDirRoot : null, uc, path)  !is null;
 		existsVariant = path => .findVar!Variant(summ ? summ.flagDirRoot : null, uc, path) !is null;
@@ -1205,9 +1345,24 @@ private VariantVal partToVariantVal(in Part r) { mixin(S_TRACE);
 		auto val = VariantVal(VariantType.Boolean);
 		val.boolVal = a.boolVal;
 		return val;
+	} else if (auto a = cast(ListValue)r) { mixin(S_TRACE);
+		auto val = VariantVal(VariantType.List);
+		val.listVal = a.listVal.map!(a => a.partToVariantVal()).array();
+		return val;
 	} else if (auto a = cast(UnknownValue)r) { mixin(S_TRACE);
 		return VariantVal(false);
 	} else assert (0);
+}
+
+/// 対象バージョンでなければエラーを追加する。
+private void checkWsnVersion(in VariableInfo vInfo, in Function func, string wsnVer, lazy string errMsg, ref ExprError[] err) { mixin(S_TRACE);
+	if (vInfo.isTargetWsnVersion && !vInfo.isTargetWsnVersion(wsnVer)) { mixin(S_TRACE);
+		err ~= ExprError(errMsg, func.token.line, func.token.pos, __FILE__, __LINE__);
+	}
+}
+/// ditto
+private void checkWsnVersionForFunctionExists(in CProps prop, in VariableInfo vInfo, in Function func, string wsnVer, ref ExprError[] err) { mixin(S_TRACE);
+	checkWsnVersion(vInfo, func, wsnVer, .tryFormat(prop ? prop.msgs.expressionErrorFunctionIsNotExistsInTargetVersion : "Function %1$s is not exists in Wsn.%2$s.", func.funcName, wsnVer), err);
 }
 
 /// 引数のチェックを行う。
@@ -1251,6 +1406,15 @@ private const(BooleanValue) checkBoolean(in CProps prop, in Function func, in Pa
 	}
 	if (cast(UnknownValue)args[index]) return new BooleanValue(args[index].token, false);
 	err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorArgumentIsNotBoolean : "Argument is not boolean: %s, %s", func.funcName.toUpper(), index + 1), args[index].token.line, args[index].token.pos, __FILE__, __LINE__);
+	return null;
+}
+/// ditto
+private const(ListValue) checkList(in CProps prop, in Function func, in Part[] args, size_t index, ref ExprError[] err) { mixin(S_TRACE);
+	if (auto a = cast(ListValue)args[index]) { mixin(S_TRACE);
+		return a;
+	}
+	if (cast(UnknownValue)args[index]) return null;
+	err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorArgumentIsNotList : "Argument is not list: %s, %s", func.funcName.toUpper(), index + 1), args[index].token.line, args[index].token.pos, __FILE__, __LINE__);
 	return null;
 }
 /// ditto
@@ -1454,14 +1618,19 @@ private const(Part) funcVar(in CProps prop, EvalMode mode, in VariableInfo vInfo
 		return new NumberValue(func.token, 0);
 	}
 	auto val = vInfo.variantValue(path);
+	return variantValToValueObj(func.token, val);
+}
+private const(Part) variantValToValueObj(in Token token, in VariantVal val) { mixin(S_TRACE);
 	assert (val.valid);
 	final switch (val.type) {
 	case VariantType.Number:
-		return new NumberValue(func.token, val.numVal);
+		return new NumberValue(token, val.numVal);
 	case VariantType.String:
-		return new StringValue(func.token, val.strVal);
+		return new StringValue(token, val.strVal);
 	case VariantType.Boolean:
-		return new BooleanValue(func.token, val.boolVal);
+		return new BooleanValue(token, val.boolVal);
+	case VariantType.List:
+		return new ListValue(token, val.listVal.map!(val => variantValToValueObj(token, val))().array());
 	}
 }
 
@@ -1713,11 +1882,117 @@ private const(Part) funcPartyName(in CProps prop, EvalMode mode, in VariableInfo
 	return new StringValue(func.token, vInfo.partyName());
 }
 
+/// 引数からリストを生成する。
+private const(Part) funcList(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
+	return new ListValue(func.token, args);
+}
+
+/// リストの要素を取り出す。
+private const(Part) funcAt(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	if (!checkArgCount(prop, func, args, 2, err)) return new UnknownValue(func.token);
+	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
+	auto l = checkList(prop, func, args, 0, err);
+	if (!l) return new UnknownValue(func.token);
+
+	auto a = checkMinValue(prop, mode, func, args, 1, 1, err);
+	if (!a) return new UnknownValue(func.token);
+	auto index = cast(size_t)a.numVal - 1;
+
+	if (l.listVal.length <= index) { mixin(S_TRACE);
+		err ~= ExprError(.tryFormat(prop ? .tryFormat(prop.msgs.expressionErrorListIndexIsOutOfRange, index + 1, l.listVal.length) : "List index is out of range: %s, %s", func.funcName.toUpper(), 1), a.token.line, a.token.pos, __FILE__, __LINE__);
+		return new UnknownValue(func.token);
+	}
+	return l.listVal[index];
+}
+
+/// リストの長さを返す。
+private const(Part) funcLLen(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	if (!checkArgCount(prop, func, args, 1, err)) return new NumberValue(func.token, 0);
+	auto a = checkList(prop, func, args, 0, err);
+	if (!a) return new NumberValue(func.token, 0);
+	return new NumberValue(func.token, a.listVal.length);
+}
+
+/// リスト内を検索する。
+private const(Part) funcLFind(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	if (!checkArgCount2(prop, func, args, 2, 3, err)) return new NumberValue(func.token, 0);
+	auto l = checkList(prop, func, args, 1, err);
+	if (!l) return new NumberValue(func.token, 0);
+	size_t start = 0;
+	if (2 < args.length) { mixin(S_TRACE);
+		auto s = checkMinValue(prop, mode, func, args, 2, 0, err);
+		if (!s) return new NumberValue(func.token, 0);
+		start = cast(size_t)s.numVal;
+		if (start == 0) return new NumberValue(func.token, 0);
+		start--;
+		if (l.listVal.length <= start) return new NumberValue(func.token, 0);
+	}
+	foreach (i, v; l.listVal[start .. $]) { mixin(S_TRACE);
+		ExprError[] err2;
+		if (Operator.equalsImpl(prop, mode, v, args[0], "=", true, err2)) { mixin(S_TRACE);
+			return new NumberValue(func.token, i + start + 1);
+		}
+	}
+	return new NumberValue(func.token, 0);
+}
+
+/// リストの左側を取り出す。
+private const(Part) funcLLeft(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	if (!checkArgCount(prop, func, args, 2, err)) return new ListValue(func.token, []);
+	auto l = checkList(prop, func, args, 0, err);
+	if (!l) return new ListValue(func.token, []);
+	auto n = checkMinValue(prop, mode, func, args, 1, 0, err);
+	if (!n) return new ListValue(func.token, []);
+	auto v = .min(cast(size_t)n.numVal, l.listVal.length);
+	return new ListValue(func.token, l.listVal[0 .. v]);
+}
+
+/// リストの右側を取り出す。
+private const(Part) funcLRight(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	if (!checkArgCount(prop, func, args, 2, err)) return new ListValue(func.token, []);
+	auto l = checkList(prop, func, args, 0, err);
+	if (!l) return new ListValue(func.token, []);
+	auto n = checkMinValue(prop, mode, func, args, 1, 0, err);
+	if (!n) return new ListValue(func.token, []);
+
+	auto v = l.listVal.length - .min(cast(size_t)n.numVal, l.listVal.length);
+	return new ListValue(func.token, l.listVal[v .. $]);
+}
+
+/// リストの[N1-1:N1+N2]の範囲を取り出す。
+private const(Part) funcLMid(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	if (!checkArgCount2(prop, func, args, 2, 3, err)) return new ListValue(func.token, []);
+	auto l = checkList(prop, func, args, 0, err);
+	if (!l) return new ListValue(func.token, []);
+	auto a1 = checkMinValue(prop, mode, func, args, 1, 1, err);
+	if (!a1) return new ListValue(func.token, []);
+	auto n1 = cast(size_t)a1.numVal;
+	auto v = n1 - 1;
+
+	if (l.listVal.length + 1 <= n1) { mixin(S_TRACE);
+		return new ListValue(func.token, []);
+	} else { mixin(S_TRACE);
+		auto a = l.listVal[v .. $];
+
+		if (args.length == 3) { mixin(S_TRACE);
+			auto a2 = checkMinValue(prop, mode, func, args, 2, 0, err);
+			if (!a2) return new ListValue(func.token, []);
+			auto n2 = cast(size_t)a2.numVal;
+
+			v = .min(n2, a.length);
+			a = a[0 .. v];
+		}
+		return new ListValue(func.token, a);
+	}
+}
+
 /// 入力支援用に関数の引数の型を表現する。
 enum ArgType {
 	Number, /// 数値。
 	String, /// 文字列。
 	Boolean, /// 真偽値。
+	List, /// リスト。
 	NumberOrString, /// 数値または文字列。
 	Any, /// 任意の型。
 	Flag, /// フラグ名。
@@ -1748,6 +2023,7 @@ struct FuncDef {
 /// 全ての関数定義を返す。
 immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 	return [
+		// Wsn.4
 		FuncDef([FunctionCategory.StringOperation], "LEN", prop.msgs.funcDescLen, prop.msgs.funcShortDescLen, prop.msgs.funcExampleLen, [
 			ArgDef(ArgType.String, prop.msgs.exprStringDesc, "", false),
 		], ArgType.Number),
@@ -1778,6 +2054,34 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 		FuncDef([FunctionCategory.NumberOperation, FunctionCategory.Conversion], "INT", prop.msgs.funcDescInt, prop.msgs.funcShortDescInt, prop.msgs.funcExampleInt, [
 			ArgDef(ArgType.NumberOrString, prop.msgs.exprValueArgDesc, "0", false),
 		], ArgType.Number),
+		FuncDef([FunctionCategory.ListOperation], "LIST", prop.msgs.funcDescList, prop.msgs.funcShortDescList, prop.msgs.funcExampleList, [
+			ArgDef(ArgType.Any, prop.msgs.exprAnyValueDesc, "", false, true),
+		], ArgType.List), // Wsn.5
+		FuncDef([FunctionCategory.ListOperation], "AT", prop.msgs.funcDescAt, prop.msgs.funcShortDescAt, prop.msgs.funcExampleAt, [
+			ArgDef(ArgType.List, prop.msgs.exprListDesc, "", false),
+			ArgDef(ArgType.Number, prop.msgs.exprListPositionDesc, "1", false),
+		], ArgType.Any), // Wsn.5
+		FuncDef([FunctionCategory.ListOperation], "LLEN", prop.msgs.funcDescLLen, prop.msgs.funcShortDescLLen, prop.msgs.funcExampleLLen, [
+			ArgDef(ArgType.List, prop.msgs.exprListDesc, "", false),
+		], ArgType.Number), // Wsn.5
+		FuncDef([FunctionCategory.ListOperation], "LFIND", prop.msgs.funcDescLFind, prop.msgs.funcShortDescLFind, prop.msgs.funcExampleLFind, [
+			ArgDef(ArgType.Any, prop.msgs.exprAnyFindValueDesc, "", false),
+			ArgDef(ArgType.List, prop.msgs.exprListDesc, "", false),
+			ArgDef(ArgType.Number, prop.msgs.exprFindStartPositionDesc, "1", true),
+		], ArgType.List), // Wsn.5
+		FuncDef([FunctionCategory.ListOperation], "LLEFT", prop.msgs.funcDescLLeft, prop.msgs.funcShortDescLLeft, prop.msgs.funcExampleLLeft, [
+			ArgDef(ArgType.List, prop.msgs.exprListDesc, "", false),
+			ArgDef(ArgType.Number, prop.msgs.exprListLengthDesc, "0", false),
+		], ArgType.List), // Wsn.5
+		FuncDef([FunctionCategory.ListOperation], "LRIGHT", prop.msgs.funcDescLRight, prop.msgs.funcShortDescLRight, prop.msgs.funcExampleLRight, [
+			ArgDef(ArgType.List, prop.msgs.exprListDesc, "", false),
+			ArgDef(ArgType.Number, prop.msgs.exprListLengthDesc, "0", false),
+		], ArgType.List), // Wsn.5
+		FuncDef([FunctionCategory.ListOperation], "LMID", prop.msgs.funcDescLMid, prop.msgs.funcShortDescLMid, prop.msgs.funcExampleLMid, [
+			ArgDef(ArgType.List, prop.msgs.exprListDesc, "", false),
+			ArgDef(ArgType.Number, prop.msgs.exprListPositionDesc, "1", false),
+			ArgDef(ArgType.Number, prop.msgs.exprListLengthDesc, "0", true),
+		], ArgType.List), // Wsn.5
 		FuncDef([FunctionCategory.Etc], "IF", prop.msgs.funcDescIf, prop.msgs.funcShortDescIf, prop.msgs.funcExampleIf, [
 			ArgDef(ArgType.Boolean, prop.msgs.exprBooleanDesc, "TRUE", false),
 			ArgDef(ArgType.Any, prop.msgs.exprIfTrueDesc, "", false),
@@ -1931,20 +2235,82 @@ unittest { mixin(UTPerf);
 	assert (checkN(.eval(prop, EvalMode.All, vInfo, "INT(\" -42.9  \")"), -42));
 	assert (checkN(.eval(prop, EvalMode.All, vInfo, "IF(1=2,99,88)"), 88));
 	assert (checkN(.eval(prop, EvalMode.All, vInfo, "IF(2=2,99,88)"), 99));
+
+	auto l1 = .eval(prop, EvalMode.All, vInfo, `LIST("STR", 42, TRUE)`);
+	assert (l1.type == VariantType.List);
+	assert (l1.listVal.length == 3);
+	assert (checkS(l1.listVal[0], "STR"));
+	assert (checkN(l1.listVal[1], 42));
+	assert (checkB(l1.listVal[2], true));
+
+	auto l2 = .eval(prop, EvalMode.All, vInfo, `LIST(LIST(1, 2, 3), LIST(3, 4, 5))`);
+	assert (l2.type == VariantType.List);
+	assert (l2.listVal.length == 2);
+	assert (l2.listVal[0].type == VariantType.List);
+	assert (l2.listVal[0].listVal.length == 3);
+	assert (checkN(l2.listVal[0].listVal[0], 1));
+	assert (checkN(l2.listVal[0].listVal[1], 2));
+	assert (checkN(l2.listVal[0].listVal[2], 3));
+	assert (l2.listVal[1].type == VariantType.List);
+	assert (l2.listVal[1].listVal.length == 3);
+	assert (checkN(l2.listVal[1].listVal[0], 3));
+	assert (checkN(l2.listVal[1].listVal[1], 4));
+	assert (checkN(l2.listVal[1].listVal[2], 5));
+
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `LIST(1, 2, 3) = LIST(1, 2, 3)`), true));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `LIST(1, 2, 3) = LIST(1, "2", 3)`), false));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `LIST(1, 2, 3) = LIST(1, 2)`), false));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `LIST(1, 2) = LIST(1, 2, 3)`), false));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `LIST(1, 2, 3) <> LIST(1, 2, 3)`), false));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `LIST(1, 2, 3) <> LIST(1, "2", 3)`), true));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `LIST(1, 2, 3) <> LIST(1, 2)`), true));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `LIST(1, 2) <> LIST(1, 2, 3)`), true));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `LIST(1, 2, 3) < LIST(1, 2, 3)`), false));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `LIST(1, 2, 3) < LIST(1, 2)`), false));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `LIST(1, 2, 3) < LIST(1, 3)`), true));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `LIST(1, 2) < LIST(1, 2, 3)`), true));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `LIST(1, 2, 3) <= LIST(1, 2, 3)`), true));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `LIST(1, 2, 3) <= LIST(1, 2)`), false));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `LIST(1, 2, 3) <= LIST(1, 3)`), true));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `LIST(1, 2) <= LIST(1, 2, 3)`), true));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `LIST(1, 2, 3) > LIST(1, 2, 3)`), false));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `LIST(1, 2, 3) > LIST(1, 2)`), true));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `LIST(1, 2) > LIST(1, 2, 3)`), false));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `LIST(1, 3) > LIST(1, 2, 3)`), true));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `LIST(1, 2, 3) >= LIST(1, 2, 3)`), true));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `LIST(1, 2, 3) >= LIST(1, 2)`), true));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `LIST(1, 2) >= LIST(1, 2, 3)`), false));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `LIST(1, 3) >= LIST(1, 2, 3)`), true));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `LIST(1, 2, 3) ~ LIST(4, 5, 6) = LIST(1, 2, 3, 4, 5, 6)`), true));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `LIST(1, 2, 3) ~ LIST(4, 5, 6) ~ LIST(7) = LIST(1, 2, 3, 4, 5, 6, 7)`), true));
+
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `AT(LIST(TRUE, 42, "STR"), 1)`), true));
+	assert (checkN(.eval(prop, EvalMode.All, vInfo, `AT(LIST(TRUE, 42, "STR"), 2)`), 42));
+	assert (checkS(.eval(prop, EvalMode.All, vInfo, `AT(LIST(TRUE, 42, "STR"), 3)`), "STR"));
+	assert (checkN(.eval(prop, EvalMode.All, vInfo, `LLEN(LIST(1, 2, 3))`), 3));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `LLEFT(LIST(1, 2, 3), 2) = LIST(1, 2)`), true));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `LRIGHT(LIST(1, 2, 3), 2) = LIST(2, 3)`), true));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `LMID(LIST(1, 2, 3, 4), 2, 2) = LIST(2, 3)`), true));
+	assert (checkN(.eval(prop, EvalMode.All, vInfo, `LFIND(3, LIST(1, 2, 3, 4))`), 3));
+	assert (checkN(.eval(prop, EvalMode.All, vInfo, `LFIND(5, LIST(1, 2, 3, 4))`), 0));
+	assert (checkN(.eval(prop, EvalMode.All, vInfo, `LFIND("TEST", LIST(1, 2, "TEST", 4))`), 3));
+	assert (checkN(.eval(prop, EvalMode.All, vInfo, `LFIND(LIST(99), LIST(1, 2, LIST(99), 4))`), 3));
+	assert (checkN(.eval(prop, EvalMode.All, vInfo, `LFIND(42, LIST(42, 42, 4, 42), 3)`), 4));
+	assert (checkN(.eval(prop, EvalMode.All, vInfo, `LFIND(42, LIST(42, 42, 42, 4), 3)`), 3));
 }
 
 /// vの値の文字列表現(式内に記述できるもの)を返す。
 @property
 string variantValueToText(in Variant v) { mixin(S_TRACE);
-	return variantValueToTextImpl(v.type, v.numVal, v.strVal, v.boolVal);
+	return variantValueToTextImpl(v.type, v.numVal, v.strVal, v.boolVal, v.listVal);
 }
 /// ditto
 @property
 string variantValueToText(in VariantVal v) { mixin(S_TRACE);
-	return variantValueToTextImpl(v.type, v.numVal, v.strVal, v.boolVal);
+	return variantValueToTextImpl(v.type, v.numVal, v.strVal, v.boolVal, v.listVal);
 }
 /// ditto
-private string variantValueToTextImpl(VariantType type, double numVal, string strVal, bool boolVal) { mixin(S_TRACE);
+private string variantValueToTextImpl(VariantType type, double numVal, string strVal, bool boolVal, in VariantVal[] listVal) { mixin(S_TRACE);
 	final switch (type) {
 	case VariantType.Number:
 		auto r = .format("%." ~ .text(Variant.DECIMAL_PLACES) ~ "f", numVal).stripRight("0").stripRight(".");
@@ -1954,19 +2320,36 @@ private string variantValueToTextImpl(VariantType type, double numVal, string st
 		return `"%s"`.format(strVal.replace("\"", "\"\""));
 	case VariantType.Boolean:
 		return boolVal.text().toUpper();
+	case VariantType.List:
+		return "LIST(" ~ listVal.map!(v => v.variantValueToText()).join(", ") ~ ")";
 	}
 } unittest { mixin(UTPerf);
-	assert (.variantValueToTextImpl(VariantType.Number, 12.345, "", false) == "12.345");
-	assert (.variantValueToTextImpl(VariantType.Number, 100.000, "", false) == "100");
-	assert (.variantValueToTextImpl(VariantType.Number, 100.010, "", false) == "100.01");
-	assert (.variantValueToTextImpl(VariantType.Number, 100.12345600001, "", false) == "100.123456");
-	assert (.variantValueToTextImpl(VariantType.Number, 0.0, "", false) == "0");
-	assert (.variantValueToTextImpl(VariantType.Number, 0.000000000000001, "", false) == "0");
-	assert (.variantValueToTextImpl(VariantType.Number, 0.01, "", false) == "0.01");
-	assert (.variantValueToTextImpl(VariantType.String, 0, "TEST", false) == "\"TEST\"");
-	assert (.variantValueToTextImpl(VariantType.String, 0, "TE\"ST", false) == "\"TE\"\"ST\"");
-	assert (.variantValueToTextImpl(VariantType.Boolean, 0, "", true) == "TRUE");
-	assert (.variantValueToTextImpl(VariantType.Boolean, 0, "", false) == "FALSE");
+	assert (.variantValueToTextImpl(VariantType.Number, 12.345, "", false, []) == "12.345");
+	assert (.variantValueToTextImpl(VariantType.Number, 100.000, "", false, []) == "100");
+	assert (.variantValueToTextImpl(VariantType.Number, 100.010, "", false, []) == "100.01");
+	assert (.variantValueToTextImpl(VariantType.Number, 100.12345600001, "", false, []) == "100.123456");
+	assert (.variantValueToTextImpl(VariantType.Number, 0.0, "", false, []) == "0");
+	assert (.variantValueToTextImpl(VariantType.Number, 0.000000000000001, "", false, []) == "0");
+	assert (.variantValueToTextImpl(VariantType.Number, 0.01, "", false, []) == "0.01");
+	assert (.variantValueToTextImpl(VariantType.String, 0, "TEST", false, []) == "\"TEST\"");
+	assert (.variantValueToTextImpl(VariantType.String, 0, "TE\"ST", false, []) == "\"TE\"\"ST\"");
+	assert (.variantValueToTextImpl(VariantType.Boolean, 0, "", true, []) == "TRUE");
+	assert (.variantValueToTextImpl(VariantType.Boolean, 0, "", false, []) == "FALSE");
+	auto v1 = VariantVal(VariantType.Number);
+	v1.numVal = 42.0;
+	auto v2 = VariantVal(VariantType.String);
+	v2.strVal = "STR";
+	auto v3 = VariantVal(VariantType.Boolean);
+	v3.boolVal = true;
+	auto v4 = VariantVal(VariantType.List);
+	auto vv1 = VariantVal(VariantType.Number);
+	vv1.numVal = 42.1;
+	auto vv2 = VariantVal(VariantType.String);
+	vv2.strVal = "STR2";
+	auto vv3 = VariantVal(VariantType.Boolean);
+	vv3.boolVal = false;
+	v4.listVal = [vv1, vv2, vv3];
+	assert (.variantValueToTextImpl(VariantType.List, 0, "", false, [v1, v2, v3, v4]) == `LIST(42, "STR", TRUE, LIST(42.1, "STR2", FALSE))`);
 }
 /// 文字列表現textからコモン値を生成する。
 @property
@@ -2001,26 +2384,29 @@ VariantVal variantValueFromText(string text) { mixin(S_TRACE);
 			return v;
 		}
 	}
+	// TODO: list?
 	return VariantVal(false);
 }
 
 /// vの値の文字列表現(STR(v)の結果)を返す。
 @property
 string variantValueToPreviewText(in cwx.flag.Variant v) { mixin(S_TRACE);
-	return variantValueToPreviewTextImpl(v.type, v.numVal, v.strVal, v.boolVal);
+	return variantValueToPreviewTextImpl(v.type, v.numVal, v.strVal, v.boolVal, v.listVal);
 }
 /// ditto
 @property
 string variantValueToPreviewText(in VariantVal v) { mixin(S_TRACE);
-	return variantValueToPreviewTextImpl(v.type, v.numVal, v.strVal, v.boolVal);
+	return variantValueToPreviewTextImpl(v.type, v.numVal, v.strVal, v.boolVal, v.listVal);
 }
-private string variantValueToPreviewTextImpl(VariantType type, double numVal, string strVal, bool boolVal) { mixin(S_TRACE);
+private string variantValueToPreviewTextImpl(VariantType type, double numVal, string strVal, bool boolVal, in VariantVal[] listVal) { mixin(S_TRACE);
 	final switch (type) {
 	case VariantType.Number:
-		return .variantValueToTextImpl(type, numVal, strVal, boolVal);
+		return .variantValueToTextImpl(type, numVal, strVal, boolVal, listVal);
 	case VariantType.String:
 		return strVal;
 	case VariantType.Boolean:
 		return boolVal.text().toUpper();
+	case VariantType.List:
+		return "LIST(" ~ listVal.map!(v => v.variantValueToPreviewText()).join(", ") ~ ")";
 	}
 }

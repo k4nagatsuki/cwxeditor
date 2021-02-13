@@ -4,12 +4,13 @@ module createrc;
 import std.ascii;
 import std.exception;
 import std.file;
+import std.regex;
 import std.string;
 
 void main() {
 	auto ver = import("@version.txt").splitLines()[0];
 	.enforce(ver.startsWith("Version."));
-	auto vers = ver["Version.".length .. $].split(".");
+	auto vers = ver["Version.".length .. $].split(.ctRegex!("[.αβ]"));
 	auto majorVer = vers[0];
 	auto minorVer = vers[1];
 	auto rc = [

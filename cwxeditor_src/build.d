@@ -16,6 +16,7 @@ immutable string[] RES_DIR = [
 ];
 immutable string[] IGNORE_DIR = [
 	"private",
+	".dub",
 ];
 immutable string[] IGNORE_FILE = [
 	"build.d",

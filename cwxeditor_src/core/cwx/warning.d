@@ -1218,6 +1218,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 								break;
 							case VariantType.Boolean:
 								break;
+							case VariantType.List:
+								r ~= .tryFormat(prop.msgs.warningExpressionToFlag, prop.msgs.listValue);
+								break;
 							}
 						}
 					} else if (c.step != "") { mixin(S_TRACE);
@@ -1231,6 +1234,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 								break;
 							case VariantType.Boolean:
 								r ~= .tryFormat(prop.msgs.warningExpressionToStep, prop.msgs.booleanValue);
+								break;
+							case VariantType.List:
+								r ~= .tryFormat(prop.msgs.warningExpressionToStep, prop.msgs.listValue);
 								break;
 							}
 						}
@@ -1247,6 +1253,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 						r ~= .tryFormat(prop.msgs.warningExpressionNeedBooleanReturnType, prop.msgs.stringValue, prop.msgs.contentName(c.type));
 						break;
 					case VariantType.Boolean:
+						break;
+					case VariantType.List:
+						r ~= .tryFormat(prop.msgs.warningExpressionNeedBooleanReturnType, prop.msgs.listValue, prop.msgs.contentName(c.type));
 						break;
 					}
 					break;

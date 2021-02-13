@@ -1225,6 +1225,7 @@ enum VariantType {
 	Number, /// 数値。
 	String, /// 文字列。
 	Boolean, /// 真偽値。
+	List, /// リスト。
 }
 /// ditto
 VariantType toVariantType(string name) { mixin(S_TRACE);
@@ -1232,6 +1233,7 @@ VariantType toVariantType(string name) { mixin(S_TRACE);
 	case "Number": return VariantType.Number;
 	case "String": return VariantType.String;
 	case "Boolean": return VariantType.Boolean;
+	case "List": return VariantType.List;
 	default: throw new Exception("Unknown variant type: " ~ name);
 	}
 }
@@ -1241,6 +1243,7 @@ string fromVariantType(VariantType t) { mixin(S_TRACE);
 	case VariantType.Number: return "Number";
 	case VariantType.String: return "String";
 	case VariantType.Boolean: return "Boolean";
+	case VariantType.List: return "List";
 	}
 }
 
@@ -1281,6 +1284,7 @@ enum AbsorbTo {
 enum FunctionCategory {
 	StringOperation, /// 文字列操作。
 	NumberOperation, /// 数値操作。
+	ListOperation, /// リスト操作。
 	Conversion, /// 型変換。
 	VariableOperation, /// 状態変数。
 	CardInformation, /// カード情報。
