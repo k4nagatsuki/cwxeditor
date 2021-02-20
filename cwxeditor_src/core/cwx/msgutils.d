@@ -514,14 +514,17 @@ string wrapMsg(string text, size_t width, size_t delegate(string) getWidth,
 	mixin(UTPerf);
 	size_t width(string s) { mixin(S_TRACE);
 		size_t w = 0;
-		foreach (dchar c; s) w += c <= 256 ? 1 : 2;
+		foreach (i, dchar c; s) { mixin(S_TRACE);
+			if (0 < i && .combiningClass(c)) continue;
+			w += c <= 256 ? 1 : 2;
+		}
 		return w;
 	}
 	string[size_t] f;
 	char[size_t] c;
 	auto op = "[\"'"d;
 	auto cl = "\"]!?.,。'"d;
-	auto wd = "[a-z0-9_]+|[ａ-ｚＡ-Ｚ０-９＿]+|."d;
+	auto wd = r"([a-z0-9_](\p{M})*)+|([ａ-ｚＡ-Ｚ０-９＿](\p{M})*)+|.(\p{M})*"d;
 	assert (wrapMsg("ABC.DEFG.H,IKLM?", 3, &width, true, op, cl, wd, f, c) == "ABC.\nDEF-\nG.H,\nIKL-\nM?");
 	assert (wrapMsg("[abc..]\ndefg", 3, &width, true, op, cl, wd, f, c) == "[ab-\nc..]\ndef-\ng");
 	assert (wrapMsg("abc..\ndefghij", 3, &width, true, op, cl, wd, f, c) == "abc.\n.\ndef-\nghi-\nj");
@@ -536,6 +539,7 @@ string wrapMsg(string text, size_t width, size_t delegate(string) getWidth,
 	assert (wrapMsg("あいうえおA.かきくけこ", 11, &width, true, op, cl, wd, f, c) == "あいうえおA.\nかきくけこ");
 	assert (wrapMsg("あいうえおA。かきくけこ", 11, &width, true, op, cl, wd, f, c) == "あいうえお\nA。かきくけ\nこ");
 	assert (wrapMsg("ｐｑｒ pqr ＰＱＲ", 6, &width, true, op, cl, wd, f, c) == "ｐｑｒ \npqr \nＰＱＲ");
+	assert (wrapMsg("あ゙い゙ゔえ゙お゙か゚き゚く゚け゚こ゚", 6, &width, true, op, cl, wd, f, c) == "あ゙い゙ゔ\nえ゙お゙か゚\nき゚く゚け゚\nこ゚");
 
 	f[5] = "#W";
 	c[18] = 'L';

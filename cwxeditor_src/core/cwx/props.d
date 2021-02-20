@@ -103,7 +103,7 @@ public:
 
 	@property const dstring openChars() { return "\"'(<[`{‘“〈《≪「『【〔（＜［｛｢"d; }
 	@property const dstring closeChars() { return "!\"'),.:;>?]`}゜’”′″、。々＞》≫」』】〕〟゛°ゝゞヽヾ〻！），．：；＞？］｝｡｣､ﾞﾟぁぃぅぇぉァィゥェォｧｨｩｪｫヵっッｯゃゅょャュョｬｭｮゎヮㇵㇶㇷㇸㇹㇺ…―ーｰ"d; }
-	@property const dstring wordRegex() { return "[a-z0-9_]+|[ａ-ｚＡ-Ｚ０-９＿]+|."d; }
+	@property const dstring wordRegex() { return r"([a-z0-9_]\p{M}*)+|([ａ-ｚＡ-Ｚ０-９＿]\p{M}*)+|.\p{M}*"d; }
 
 	@property const int stepMaxCount() { return 10; }
 
