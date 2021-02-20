@@ -3533,8 +3533,6 @@ ImageDataWithScale previewMessage(Commons comm, Props prop, in Summary summ, Ski
 		msgLen = int.max;
 	}
 
-	auto dmsg = to!dstring(message);
-
 	auto cr = d.getSystemColor(SWT.COLOR_RED);
 	auto cb = d.getSystemColor(SWT.COLOR_CYAN);
 	auto cg = d.getSystemColor(SWT.COLOR_GREEN);
@@ -3635,6 +3633,7 @@ ImageDataWithScale previewMessage(Commons comm, Props prop, in Summary summ, Ski
 
 	auto foreground = fc;
 	lineH = prop.ds(prop.looks.messageLineHeight);
+	auto dmsg = message.byGrapheme().array();
 	for (size_t i = 0; i < dmsg.length; i++) { mixin(S_TRACE);
 		if (!centerY && rect.height - prop.ds(6) < y + lineH) { mixin(S_TRACE);
 			// 行数オーバー
@@ -3643,13 +3642,13 @@ ImageDataWithScale previewMessage(Commons comm, Props prop, in Summary summ, Ski
 		auto cf = i in rFonts;
 		if (cf) { mixin(S_TRACE);
 			// 特殊文字の描画位置を記憶
-			string s1 = to!string(dmsg[i]);
+			string s1 = to!string(dmsg[i].array);
 			i++;
-			string s2 = to!string(dmsg[i]);
+			string s2 = to!string(dmsg[i].array);
 			auto w = prop.looks.messageCharWidth;
 			if (msgLen < writeLen + 2) { mixin(S_TRACE);
 				// 列数オーバー
-				if (dmsg[i] != '\n') { mixin(S_TRACE);
+				if (dmsg[i].array != "\n") { mixin(S_TRACE);
 					ret();
 				}
 				if (!centerY && rect.height - prop.ds(6) < y + lineH) { mixin(S_TRACE);
@@ -3680,9 +3679,9 @@ ImageDataWithScale previewMessage(Commons comm, Props prop, in Summary summ, Ski
 			i++;
 			continue;
 		}
-		auto c = dmsg[i];
+		auto c = dmsg[i].array;
 		switch (c) {
-		case '\n':
+		case "\n":
 			ret();
 			break;
 		default:
@@ -3694,7 +3693,7 @@ ImageDataWithScale previewMessage(Commons comm, Props prop, in Summary summ, Ski
 			// 行末が半角スペースの時だけ特別扱いする(CardWirthの挙動に合わせた処理)
 			if (msgLen < writeLen + (s == " " ? len - 1 : len)) { mixin(S_TRACE);
 				// 列数オーバー
-				if (dmsg[i] != '\n') { mixin(S_TRACE);
+				if (dmsg[i].array != "\n") { mixin(S_TRACE);
 					ret();
 				}
 				if (rect.height - prop.ds(6) < y + lineH) { mixin(S_TRACE);
