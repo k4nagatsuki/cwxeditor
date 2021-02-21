@@ -73,16 +73,16 @@ class SBShell {
 				auto p = _shl.getSize();
 				auto s = (p.y << 16) | p.x;
 				if (_shl.getMaximized()) { mixin(S_TRACE);
-					OS.SendMessage(_hsbar, OS.WM_SIZE, OS.SIZE_MAXIMIZED, s);
+					OS.SendMessageW(_hsbar, OS.WM_SIZE, OS.SIZE_MAXIMIZED, s);
 				} else { mixin(S_TRACE);
-					OS.SendMessage(_hsbar, OS.WM_SIZE, OS.SIZE_RESTORED, s);
+					OS.SendMessageW(_hsbar, OS.WM_SIZE, OS.SIZE_RESTORED, s);
 				}
 			}
 		}
 		@property
 		void statusLine(string text) { mixin(S_TRACE);
 			if (_hsbar == INVALID_HANDLE_VALUE) return;
-			OS.SendMessage(_hsbar, SB_SETTEXT, 0, tosjismz(text));
+			OS.SendMessageW(_hsbar, SB_SETTEXTW, 0, cast(.LPARAM).toUTFz!(wchar*)(text));
 		}
 	} else {
 		private Label _sbar;
