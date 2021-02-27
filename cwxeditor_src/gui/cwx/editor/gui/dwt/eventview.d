@@ -2760,7 +2760,7 @@ public:
 		auto c = new CCombo(_toolbar, style);
 		c.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 		auto parItm = selectionParent();
-		auto enabled = parItm && cast(PlayerCardEvents)parItm.getData() && _summ && _summ.legacy;
+		auto enabled = parItm && !(cast(PlayerCardEvents)parItm.getData() && _summ && _summ.legacy);
 		c.setEnabled(!_readOnly && enabled);
 		foreach (i, v; vals) { mixin(S_TRACE);
 			c.add(v);
