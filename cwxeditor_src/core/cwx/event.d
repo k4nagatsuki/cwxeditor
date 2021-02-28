@@ -2367,7 +2367,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	/// 荷物袋の使用可否(Wsn.4)。
 	mixin Prop!(EnvironmentStatus, "backpackEnabled", EnvironmentStatus.NotSet);
 
-	/// ゲームオーバーの有無(Wsn.5)。
+	/// 敗北・ゲームオーバーの有無(Wsn.5)。
 	mixin Prop!(EnvironmentStatus, "gameOverEnabled", EnvironmentStatus.NotSet);
 
 	/// 背景画像群。
