@@ -1052,6 +1052,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				r ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(CType.ChangeEnvironment), "4");
 			}
 		}
+		if (c.type is CType.ChangeEnvironment && c.gameOverEnabled !is EnvironmentStatus.NotSet && !prop.isTargetVersion(isClassic, wsnVer, "5")) { mixin(S_TRACE);
+			r ~= prop.msgs.warningGameOverEnabled;
+		}
 		if (c.type is CType.BranchVariant && !prop.isTargetVersion(isClassic, wsnVer, "4")) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(CType.BranchVariant), "4");
 		}

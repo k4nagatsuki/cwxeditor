@@ -219,7 +219,7 @@ private void static_this () { mixin(S_TRACE);
 		CType.BranchMultiCoupon:CDetail("Branch", "MultiCoupon", CNextType.Coupon, true , [CArg.Range:"targets", CArg.ExpandSPChars:"spchars"]), // Wsn.2
 		CType.BranchMultiRandom:CDetail("Branch", "MultiRandom", CNextType.None, true), // Wsn.2
 		CType.MoveCard:CDetail("Move", "Card", CNextType.None, true, [CArg.CardGroup:"cardgroup", CArg.PositionType:"positiontype", CArg.X:"x", CArg.Y:"y", CArg.Scale:"scale", CArg.Layer:"layer", CArg.CardSpeed:"cardspeed", CArg.OverrideCardSpeed:"overridecardspeed"]), // Wsn.3
-		CType.ChangeEnvironment:CDetail("Change", "Environment", CNextType.None, true, [CArg.BackpackEnabled:"backpack"]), // Wsn.4
+		CType.ChangeEnvironment:CDetail("Change", "Environment", CNextType.None, true, [CArg.BackpackEnabled:"backpack", CArg.GameOverEnabled:"gameover"]), // Wsn.4
 		CType.BranchVariant:CDetail("Branch", "Variant", CNextType.Bool, true, [CArg.Expression:null]), // Wsn.4
 		CType.SetVariant:CDetail("Set", "Variant", CNextType.None, true, [CArg.Variant:"variant", CArg.Flag:"flag", CArg.Step:"step", CArg.Expression:null]), // Wsn.4
 		CType.CheckVariant:CDetail("Check", "Variant", CNextType.None, true, [CArg.Expression:null]), // Wsn.4
@@ -694,6 +694,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		this.consumeCard = c.consumeCard;
 
 		this.backpackEnabled = c.backpackEnabled;
+		this.gameOverEnabled = c.gameOverEnabled;
 
 		Motion[] motions;
 		foreach (m; c.motions) { mixin(S_TRACE);
@@ -864,6 +865,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 			&& (!d.use(CArg.SelectTalker) || selectTalker == c.selectTalker)
 			&& (!d.use(CArg.InvertResult) || invertResult == c.invertResult)
 			&& (!d.use(CArg.BackpackEnabled) || backpackEnabled == c.backpackEnabled)
+			&& (!d.use(CArg.GameOverEnabled) || gameOverEnabled == c.gameOverEnabled)
 
 			&& (!d.use(CArg.ConsumeCard) || consumeCard == c.consumeCard)
 
@@ -1199,6 +1201,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		resetValue!(CArg.SelectTalker, bool, false)(d, od, &selectTalker, base, base.selectTalker);
 		resetValue!(CArg.InvertResult, bool, false)(d, od, &invertResult, base, base.invertResult);
 		resetValue!(CArg.BackpackEnabled, EnvironmentStatus, EnvironmentStatus.NotSet)(d, od, &backpackEnabled, base, base.backpackEnabled);
+		resetValue!(CArg.GameOverEnabled, EnvironmentStatus, EnvironmentStatus.NotSet)(d, od, &gameOverEnabled, base, base.gameOverEnabled);
 
 		resetValue!(CArg.ConsumeCard, bool, true)(d, od, &consumeCard, base, base.consumeCard);
 
@@ -2364,6 +2367,9 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	/// 荷物袋の使用可否(Wsn.4)。
 	mixin Prop!(EnvironmentStatus, "backpackEnabled", EnvironmentStatus.NotSet);
 
+	/// ゲームオーバーの有無(Wsn.5)。
+	mixin Prop!(EnvironmentStatus, "gameOverEnabled", EnvironmentStatus.NotSet);
+
 	/// 背景画像群。
 	mixin Prop!(BgImage[], "backs", []);
 
@@ -2875,6 +2881,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		atnPutD!(CArg.SelectTalker, "selectTalker", "fromBool", false)(e, d);
 		atnPutD!(CArg.InvertResult, "invertResult", "fromBool", false)(e, d);
 		atnPutD!(CArg.BackpackEnabled, "backpackEnabled", "fromEnvironmentStatus", EnvironmentStatus.NotSet)(e, d);
+		atnPutD!(CArg.GameOverEnabled, "gameOverEnabled", "fromEnvironmentStatus", EnvironmentStatus.NotSet)(e, d);
 
 		atnPutD!(CArg.ConsumeCard, "consumeCard", "fromBool", true)(e, d);
 
@@ -3195,6 +3202,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		cfnPutD!(CArg.SelectTalker, "selectTalker", "parseBool", false)(en, d, r);
 		cfnPutD!(CArg.InvertResult, "invertResult", "parseBool", false)(en, d, r);
 		cfnPutD!(CArg.BackpackEnabled, "backpackEnabled", "toEnvironmentStatus", EnvironmentStatus.NotSet)(en, d, r);
+		cfnPutD!(CArg.GameOverEnabled, "gameOverEnabled", "toEnvironmentStatus", EnvironmentStatus.NotSet)(en, d, r);
 
 		cfnPutD!(CArg.ConsumeCard, "consumeCard", "parseBool", true)(en, d, r);
 
