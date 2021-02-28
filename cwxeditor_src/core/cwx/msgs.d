@@ -644,6 +644,14 @@ class Msgs : Properties {
 	auto environmentStatusNameEnable = Msg("environmentStatusNameEnable", "使用可能にする");
 	auto environmentStatusNameDisable = Msg("environmentStatusNameDisable", "使用不能にする");
 	auto backpack = Msg("backpack", "荷物袋");
+	const string environmentStatusNameEnabled(EnvironmentStatus id) { mixin(S_TRACE);
+		mixin(EnumToStringSwitch!(typeof(id), "environmentStatusNameEnabled"));
+	}
+	auto environmentStatusNameEnabledNotSet = Msg("environmentStatusNameEnabledNotSet", "設定しない");
+	auto environmentStatusNameEnabledEnable = Msg("environmentStatusNameEnabledEnable", "有効にする");
+	auto environmentStatusNameEnabledDisable = Msg("environmentStatusNameEnabledDisable", "無効にする");
+	auto gameOver = Msg("gameOver", "ゲームオーバー");
+	auto warningGameOverEnabled = Msg("warningGameOverEnabled", "ゲームオーバーの有効・無効はWsn.5以降の形式のシナリオでしか設定できません。");
 
 	auto expression = Msg("expression", "式");
 	auto operators = Msg("operators", "演算子:");
@@ -1217,6 +1225,7 @@ class Msgs : Properties {
 	auto ctChangeEnvironmentNotSet = Msg("ctChangeEnvironmentNotSet", "状況を変更しない"); // Wsn.4
 	auto ctChangeEnvironment = Msg("ctChangeEnvironment", "%1$s"); // Wsn.4
 	auto ctEnvironmentBackpack = Msg("ctEnvironmentBackpack", "荷物袋を%1$s"); // Wsn.4
+	auto ctEnvironmentGameOver = Msg("ctEnvironmentGameOver", "ゲームオーバーを%1$s"); // Wsn.5
 	auto ctBranchVariant = Msg("ctBranchVariant", "式〔 %1$s 〕"); // Wsn.4
 	auto ctSetVariant = Msg("ctSetVariant", "%1$s =〔 %2$s 〕"); // Wsn.4
 	auto ctFlagName = Msg("ctFlagName", "フラグ「%1$s」"); // Wsn.4

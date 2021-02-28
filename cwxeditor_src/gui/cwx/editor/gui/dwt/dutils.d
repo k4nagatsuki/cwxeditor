@@ -4136,6 +4136,9 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		if (evt.backpackEnabled !is EnvironmentStatus.NotSet) { mixin(S_TRACE);
 			params ~= .tryFormat(comm.prop.msgs.ctEnvironmentBackpack, comm.prop.msgs.environmentStatusName(evt.backpackEnabled));
 		}
+		if (evt.gameOverEnabled !is EnvironmentStatus.NotSet) { mixin(S_TRACE);
+			params ~= .tryFormat(comm.prop.msgs.ctEnvironmentGameOver, comm.prop.msgs.environmentStatusNameEnabled(evt.gameOverEnabled));
+		}
 		if (params.length) { mixin(S_TRACE);
 			return .tryFormat(comm.prop.msgs.ctChangeEnvironment, params.join(" "));
 		} else { mixin(S_TRACE);

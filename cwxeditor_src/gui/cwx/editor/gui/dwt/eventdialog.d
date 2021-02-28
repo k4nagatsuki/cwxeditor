@@ -4958,12 +4958,17 @@ class ChangeEnvironmentDialog : EventDialog {
 private:
 	Combo _backpackEnabled;
 	EnvironmentStatus[] _backpackEnableds;
+	Combo _gameOverEnabled;
+	EnvironmentStatus[] _gameOverEnableds;
 
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
 		if (!prop.isTargetVersion(summ, "4")) { mixin(S_TRACE);
 			ws ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(CType.ChangeEnvironment), "4");
+		}
+		if (_gameOverEnableds[_gameOverEnabled.getSelectionIndex()] !is EnvironmentStatus.NotSet && !prop.isTargetVersion(summ, "5")) { mixin(S_TRACE);
+			ws ~= .tryFormat(prop.msgs.warningGameOverEnabled);
 		}
 		warning = ws;
 	}
@@ -4985,24 +4990,36 @@ protected:
 			auto comp = new Composite(grp, SWT.NONE);
 			comp.setLayout(zeroMarginGridLayout(2, false));
 
-			auto l = new Label(comp, SWT.NONE);
-			l.setText(prop.msgs.backpack);
-
+			(new Label(comp, SWT.NONE)).setText(prop.msgs.backpack);
 			_backpackEnabled = new Combo(comp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
 			mod(_backpackEnabled);
 			_backpackEnabled.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
+			_backpackEnabled.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			foreach (s; [EnvironmentStatus.NotSet, EnvironmentStatus.Enable, EnvironmentStatus.Disable]) { mixin(S_TRACE);
 				_backpackEnabled.add(prop.msgs.environmentStatusName(s));
 				_backpackEnableds ~= s;
 			}
+
+			(new Label(comp, SWT.NONE)).setText(prop.msgs.gameOver);
+			_gameOverEnabled = new Combo(comp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+			mod(_gameOverEnabled);
+			_gameOverEnabled.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
+			_gameOverEnabled.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			foreach (s; [EnvironmentStatus.NotSet, EnvironmentStatus.Enable, EnvironmentStatus.Disable]) { mixin(S_TRACE);
+				_gameOverEnabled.add(prop.msgs.environmentStatusNameEnabled(s));
+				_gameOverEnableds ~= s;
+			}
+			.listener(_gameOverEnabled, SWT.Selection, &refreshWarning);
 		}
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_evt) { mixin(S_TRACE);
 			_backpackEnabled.select(cast(int)_backpackEnableds.countUntil(_evt.backpackEnabled));
+			_gameOverEnabled.select(cast(int)_gameOverEnableds.countUntil(_evt.gameOverEnabled));
 		} else { mixin(S_TRACE);
 			_backpackEnabled.select(cast(int)_backpackEnableds.countUntil(EnvironmentStatus.NotSet));
+			_gameOverEnabled.select(cast(int)_gameOverEnableds.countUntil(EnvironmentStatus.NotSet));
 		}
 
 		refDataVersion();
@@ -5011,6 +5028,7 @@ protected:
 	override bool apply() { mixin(S_TRACE);
 		if (!_evt) _evt = new Content(CType.ChangeEnvironment, "");
 		_evt.backpackEnabled = _backpackEnableds[_backpackEnabled.getSelectionIndex()];
+		_evt.gameOverEnabled = _gameOverEnableds[_gameOverEnabled.getSelectionIndex()];
 		return true;
 	}
 }

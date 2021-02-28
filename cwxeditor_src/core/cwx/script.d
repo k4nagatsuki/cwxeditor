@@ -3203,6 +3203,9 @@ fi`;
 			if (detail.use(CArg.BackpackEnabled)) { mixin(S_TRACE);
 				c.backpackEnabled = parseAttr!(EnvironmentStatus)(opt, node.attr, i, c.backpackEnabled, varTable, 0);
 			}
+			if (detail.use(CArg.GameOverEnabled)) { mixin(S_TRACE);
+				c.gameOverEnabled = parseAttr!(EnvironmentStatus)(opt, node.attr, i, c.gameOverEnabled, varTable, 0);
+			}
 			if (detail.use(CArg.Expression)) { mixin(S_TRACE);
 				c.expression = parseAttr!(string)(opt, node.attr, i, c.expression, varTable, 0);
 			}
@@ -4268,6 +4271,9 @@ fi`;
 			}
 			if (detail.use(CArg.BackpackEnabled)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.backpackEnabled, indentValue, vars);
+			}
+			if (detail.use(CArg.GameOverEnabled)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.gameOverEnabled, indentValue, vars);
 			}
 			if (detail.use(CArg.Expression)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.expression, indentValue, vars, 0, false, true);
