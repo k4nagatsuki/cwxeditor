@@ -2828,6 +2828,7 @@ class Msgs : Properties {
 	auto funcDescLRight = Msg("funcDescLRight", "リストの右側を返します。"); // Wsn.5
 	auto funcDescLMid = Msg("funcDescLMid", "リストの中間部分を返します。長さを省略した場合は、指定位置より右側を返します。"); // Wsn.5
 	auto funcDescPartyMoney = Msg("funcDescPartyMoney", "操作中のパーティの所持金を返します。"); // Wsn.5
+	auto funcDescYadoName = Msg("funcDescYadoName", "操作中の拠点名を返します。"); // Wsn.5
 
 	auto funcShortDescLen = Msg("funcShortDescLen", "文字列の長さを返す");
 	auto funcShortDescFind = Msg("funcDescFind", "文字列内を検索");
@@ -2863,6 +2864,7 @@ class Msgs : Properties {
 	auto funcShortDescLRight = Msg("funcShortDescLRight", "リストの右側を返す"); // Wsn.5
 	auto funcShortDescLMid = Msg("funcShortDescLMid", "リストの中間部分を返す"); // Wsn.5
 	auto funcShortDescPartyMoney = Msg("funcShortDescPartyMoney", "パーティの所持金を取得"); // Wsn.5
+	auto funcShortDescYadoName = Msg("funcShortDescYadoName", "拠点名を取得"); // Wsn.5
 
 	auto funcExampleLen = Msg("funcExampleLen", "LEN(\"対象文字列\") = 5");
 	auto funcExampleFind = Msg("funcExampleFind", "FIND(\"文字\", \"対象文字列\") = 3");
@@ -2898,6 +2900,7 @@ class Msgs : Properties {
 	auto funcExampleLRight = Msg("funcExampleLRight", "RIGHT(LIST(1, 2, 3), 2) = LIST(2, 3)"); // Wsn.5
 	auto funcExampleLMid = Msg("funcExampleLMid", "MID(LIST(1, 2, 3, 4, 5), 2, 3) = LIST(2, 3, 4)"); // Wsn.5
 	auto funcExamplePartyMoney = Msg("funcExamplePartyMoney", "PARTYMONEY()");
+	auto funcExampleYadoName = Msg("funcExampleYadoName", "YADONAME()");
 
 	auto exprStringDesc = Msg("exprStringDesc", "文字列");
 	auto exprFindStringDesc = Msg("exprFindStringDesc", "検索文字列");

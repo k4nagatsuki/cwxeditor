@@ -592,6 +592,7 @@ private class Function : Part {
 			"lright": &.funcLRight,
 			"lmid": &.funcLMid,
 			"partymoney": &.funcPartyMoney,
+			"yadoname": &.funcYadoName,
 		];
 	}
 
@@ -1236,6 +1237,8 @@ struct VariableInfo {
 	const string delegate(uint) castName;
 	/// パーティ名の取得。
 	const string delegate() partyName;
+	/// 拠点名の取得。
+	const string delegate() yadoName;
 
 	/// インスタンスを生成する。
 	this (in CProps prop, in Summary summ, in UseCounter uc, string targVer, string[char] names, VarValue[string] flags, VarValue[string] steps, VarValue[string] variants, VarValue[string] sysSteps) { mixin(S_TRACE);
@@ -1281,6 +1284,7 @@ struct VariableInfo {
 
 		castName = (castNumber) => "";
 		partyName = () => "";
+		yadoName = () => "";
 	}
 }
 
@@ -1994,6 +1998,18 @@ private const(Part) funcPartyMoney(in CProps prop, EvalMode mode, in VariableInf
 	return new NumberValue(func.token, 0);
 }
 
+/// 拠点名を返す。拠点無しの場合は空文字列を返す。
+private const(Part) funcYadoName(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
+	if (mode !is EvalMode.TypeCheck) { mixin(S_TRACE);
+		if (!vInfo.yadoName) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
+	}
+	if (!checkArgCount(prop, func, args, 0, err)) return new StringValue(func.token, "");
+	if (mode is EvalMode.TypeCheck) return new StringValue(func.token, "");
+
+	return new StringValue(func.token, vInfo.yadoName());
+}
+
 /// 入力支援用に関数の引数の型を表現する。
 enum ArgType {
 	Number, /// 数値。
@@ -2151,6 +2167,8 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 		FuncDef([FunctionCategory.Etc], "PARTYNAME", prop.msgs.funcDescPartyName, prop.msgs.funcShortDescPartyName, prop.msgs.funcExamplePartyName, [
 		], ArgType.String),
 		FuncDef([FunctionCategory.Etc], "PARTYMONEY", prop.msgs.funcDescPartyMoney, prop.msgs.funcShortDescPartyMoney, prop.msgs.funcExamplePartyMoney, [
+		], ArgType.Number), // Wsn.5
+		FuncDef([FunctionCategory.Etc], "YADONAME", prop.msgs.funcDescYadoName, prop.msgs.funcShortDescYadoName, prop.msgs.funcExampleYadoName, [
 		], ArgType.Number), // Wsn.5
 	];
 }
