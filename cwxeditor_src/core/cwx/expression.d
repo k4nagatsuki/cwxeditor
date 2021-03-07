@@ -594,6 +594,7 @@ private class Function : Part {
 			"partymoney": &.funcPartyMoney,
 			"partynumber": &.funcPartyNumber,
 			"yadoname": &.funcYadoName,
+			"battleround": &.funcBattleRound,
 		];
 	}
 
@@ -2017,6 +2018,12 @@ private const(Part) funcYadoName(in CProps prop, EvalMode mode, in VariableInfo 
 	return new StringValue(func.token, vInfo.yadoName());
 }
 
+/// 現バトルのラウンド数を返す。バトル中ではない場合は -1 を返す。
+private const(Part) funcBattleRound(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
+	return new NumberValue(func.token, 0);
+}
+
 /// 入力支援用に関数の引数の型を表現する。
 enum ArgType {
 	Number, /// 数値。
@@ -2179,6 +2186,8 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 		], ArgType.Number), // Wsn.5
 		FuncDef([FunctionCategory.Etc], "YADONAME", prop.msgs.funcDescYadoName, prop.msgs.funcShortDescYadoName, prop.msgs.funcExampleYadoName, [
 		], ArgType.String), // Wsn.5
+		FuncDef([FunctionCategory.Etc], "BATTLEROUND", prop.msgs.funcDescBattleRound, prop.msgs.funcShortDescBattleRound, prop.msgs.funcExampleBattleRound, [
+		], ArgType.Number), // Wsn.5
 	];
 }
 
