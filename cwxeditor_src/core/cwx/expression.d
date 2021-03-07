@@ -592,6 +592,7 @@ private class Function : Part {
 			"lright": &.funcLRight,
 			"lmid": &.funcLMid,
 			"partymoney": &.funcPartyMoney,
+			"partynumber": &.funcPartyNumber,
 			"yadoname": &.funcYadoName,
 		];
 	}
@@ -1998,6 +1999,12 @@ private const(Part) funcPartyMoney(in CProps prop, EvalMode mode, in VariableInf
 	return new NumberValue(func.token, 0);
 }
 
+/// パーティーの人数を返す。パーティー非編成時は 0 を返す。
+private const(Part) funcPartyNumber(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
+	return new NumberValue(func.token, 0);
+}
+
 /// 拠点名を返す。拠点無しの場合は空文字列を返す。
 private const(Part) funcYadoName(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
 	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
@@ -2167,6 +2174,8 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 		FuncDef([FunctionCategory.Etc], "PARTYNAME", prop.msgs.funcDescPartyName, prop.msgs.funcShortDescPartyName, prop.msgs.funcExamplePartyName, [
 		], ArgType.String),
 		FuncDef([FunctionCategory.Etc], "PARTYMONEY", prop.msgs.funcDescPartyMoney, prop.msgs.funcShortDescPartyMoney, prop.msgs.funcExamplePartyMoney, [
+		], ArgType.Number), // Wsn.5
+		FuncDef([FunctionCategory.Etc], "PARTYNUMBER", prop.msgs.funcDescPartyNumber, prop.msgs.funcShortDescPartyNumber, prop.msgs.funcExamplePartyNumber, [
 		], ArgType.Number), // Wsn.5
 		FuncDef([FunctionCategory.Etc], "YADONAME", prop.msgs.funcDescYadoName, prop.msgs.funcShortDescYadoName, prop.msgs.funcExampleYadoName, [
 		], ArgType.String), // Wsn.5
