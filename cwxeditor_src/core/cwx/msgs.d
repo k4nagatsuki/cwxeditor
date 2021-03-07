@@ -2827,7 +2827,7 @@ class Msgs : Properties {
 	auto funcDescLLeft = Msg("funcDescLLeft", "リストの左側を返します。"); // Wsn.5
 	auto funcDescLRight = Msg("funcDescLRight", "リストの右側を返します。"); // Wsn.5
 	auto funcDescLMid = Msg("funcDescLMid", "リストの中間部分を返します。長さを省略した場合は、指定位置より右側を返します。"); // Wsn.5
-	auto funcDescPartyMoney = Msg("funcPartyMoney", "操作中のパーティの所持金を返します。"); // Wsn.5
+	auto funcDescPartyMoney = Msg("funcDescPartyMoney", "操作中のパーティの所持金を返します。"); // Wsn.5
 
 	auto funcShortDescLen = Msg("funcShortDescLen", "文字列の長さを返す");
 	auto funcShortDescFind = Msg("funcDescFind", "文字列内を検索");
