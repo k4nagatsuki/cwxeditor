@@ -2169,7 +2169,7 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 		FuncDef([FunctionCategory.Etc], "PARTYMONEY", prop.msgs.funcDescPartyMoney, prop.msgs.funcShortDescPartyMoney, prop.msgs.funcExamplePartyMoney, [
 		], ArgType.Number), // Wsn.5
 		FuncDef([FunctionCategory.Etc], "YADONAME", prop.msgs.funcDescYadoName, prop.msgs.funcShortDescYadoName, prop.msgs.funcExampleYadoName, [
-		], ArgType.Number), // Wsn.5
+		], ArgType.String), // Wsn.5
 	];
 }
 
