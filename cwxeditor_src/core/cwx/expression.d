@@ -591,6 +591,7 @@ private class Function : Part {
 			"lleft": &.funcLLeft,
 			"lright": &.funcLRight,
 			"lmid": &.funcLMid,
+			"partymoney": &.funcPartyMoney,
 		];
 	}
 
@@ -1987,6 +1988,12 @@ private const(Part) funcLMid(in CProps prop, EvalMode mode, in VariableInfo vInf
 	}
 }
 
+/// パーティーの所持金を返す。パーティー非編成時は -1 を返す。
+private const(Part) funcPartyMoney(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
+	return new NumberValue(func.token, 0);
+}
+
 /// 入力支援用に関数の引数の型を表現する。
 enum ArgType {
 	Number, /// 数値。
@@ -2143,6 +2150,8 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 		], ArgType.String),
 		FuncDef([FunctionCategory.Etc], "PARTYNAME", prop.msgs.funcDescPartyName, prop.msgs.funcShortDescPartyName, prop.msgs.funcExamplePartyName, [
 		], ArgType.String),
+		FuncDef([FunctionCategory.Etc], "PARTYMONEY", prop.msgs.funcDescPartyMoney, prop.msgs.funcShortDescPartyMoney, prop.msgs.funcExamplePartyMoney, [
+		], ArgType.Number), // Wsn.5
 	];
 }
 
