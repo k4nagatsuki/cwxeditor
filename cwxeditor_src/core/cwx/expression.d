@@ -595,6 +595,7 @@ private class Function : Part {
 			"partynumber": &.funcPartyNumber,
 			"yadoname": &.funcYadoName,
 			"battleround": &.funcBattleRound,
+			"castlevel": &.funcCastLevel,
 		];
 	}
 
@@ -2024,6 +2025,17 @@ private const(Part) funcBattleRound(in CProps prop, EvalMode mode, in VariableIn
 	return new NumberValue(func.token, 0);
 }
 
+/// キャラクター番号からキャラクターのレベルを返す。存在しない場合は 0 を返す。
+private const(Part) funcCastLevel(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
+	if (!checkArgCount(prop, func, args, 1, err)) return new NumberValue(func.token, 0);
+	auto n = checkMinValue(prop, mode, func, args, 0, 0, err);
+	if (!n) return new NumberValue(func.token, 0);
+	auto v = cast(uint)n.numVal;
+	if (v == 0) return new NumberValue(func.token, 0);
+	return new NumberValue(func.token, 1);
+}
+
 /// 入力支援用に関数の引数の型を表現する。
 enum ArgType {
 	Number, /// 数値。
@@ -2162,6 +2174,9 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 		FuncDef([FunctionCategory.CardInformation], "CASTNAME", prop.msgs.funcDescCastName, prop.msgs.funcShortDescCastName, prop.msgs.funcExampleCastName, [
 			ArgDef(ArgType.Number, prop.msgs.exprCastNumberDesc, "1", false),
 		], ArgType.String),
+		FuncDef([FunctionCategory.CardInformation], "CASTLEVEL", prop.msgs.funcDescCastLevel, prop.msgs.funcShortDescCastLevel, prop.msgs.funcExampleCastLevel, [
+			ArgDef(ArgType.Number, prop.msgs.exprCastNumberDesc, "1", false),
+		], ArgType.Number),
 		FuncDef([FunctionCategory.CouponInformation], "FINDCOUPON", prop.msgs.funcDescFindCoupon, prop.msgs.funcShortDescFindCoupon, prop.msgs.funcExampleFindCoupon, [
 			ArgDef(ArgType.Number, prop.msgs.exprCastNumberDesc, "1", false),
 			ArgDef(ArgType.String, prop.msgs.exprFindPatternDesc, "*", false),

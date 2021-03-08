@@ -2831,6 +2831,7 @@ class Msgs : Properties {
 	auto funcDescPartyNumber = Msg("funcDescPartyNumber", "操作中のパーティの人数を返します。"); // Wsn.5
 	auto funcDescYadoName = Msg("funcDescYadoName", "操作中の拠点名を返します。"); // Wsn.5
 	auto funcDescBattleRound = Msg("funcDescBattleRound", "現在のバトルのラウンド数を返します。バトル中ではない場合は-1を返します。"); // Wsn.5
+	auto funcDescCastLevel = Msg("funcDescCastLevel", "キャラクターのレベルを返します。該当者がいない場合は0を返します。"); // Wsn.5
 
 	auto funcShortDescLen = Msg("funcShortDescLen", "文字列の長さを返す");
 	auto funcShortDescFind = Msg("funcDescFind", "文字列内を検索");
@@ -2869,6 +2870,7 @@ class Msgs : Properties {
 	auto funcShortDescPartyNumber = Msg("funcShortDescPartyNumber", "パーティの人数を取得"); // Wsn.5
 	auto funcShortDescYadoName = Msg("funcShortDescYadoName", "拠点名を取得"); // Wsn.5
 	auto funcShortDescBattleRound = Msg("funcShortDescBattleRound", "バトルラウンドを取得"); // Wsn.5
+	auto funcShortDescCastLevel = Msg("funcShortDescCastLevel", "キャラクターのレベルを返す"); // Wsn.5
 
 	auto funcExampleLen = Msg("funcExampleLen", "LEN(\"対象文字列\") = 5");
 	auto funcExampleFind = Msg("funcExampleFind", "FIND(\"文字\", \"対象文字列\") = 3");
@@ -2907,6 +2909,7 @@ class Msgs : Properties {
 	auto funcExamplePartyNumber = Msg("funcExamplePartyNumber", "PARTYNUMBER()");
 	auto funcExampleYadoName = Msg("funcExampleYadoName", "YADONAME()");
 	auto funcExampleBattleRound = Msg("funcExampleBattleRound", "BATTLEROUND()");
+	auto funcExampleCastLevel = Msg("funcExampleCastLevel", "CASTLEVEL(SELECTED()) = 1");
 
 	auto exprStringDesc = Msg("exprStringDesc", "文字列");
 	auto exprFindStringDesc = Msg("exprFindStringDesc", "検索文字列");
