@@ -697,6 +697,7 @@ class Msgs : Properties {
 	auto functionCategoryNameVariableOperation = Msg("functionCategoryNameVariableOperation", "状態変数");
 	auto functionCategoryNameCardInformation = Msg("functionCategoryNameCardInformation", "カード情報");
 	auto functionCategoryNameCouponInformation = Msg("functionCategoryNameCouponInformation", "称号情報");
+	auto functionCategoryNamePlayingInformation = Msg("functionCategoryNamePlayingOperation", "プレイ情報"); // Wsn.5
 	auto functionCategoryNameEtc = Msg("functionCategoryNameEtc", "その他");
 
 	const string blendModeName(BlendMode id) { mixin(S_TRACE);

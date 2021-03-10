@@ -2193,15 +2193,15 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 		FuncDef([FunctionCategory.CouponInformation], "GOSSIPTEXT", prop.msgs.funcDescGossipText, prop.msgs.funcShortDescGossipText, prop.msgs.funcExampleGossipText, [
 			ArgDef(ArgType.Number, prop.msgs.exprGossipNumberDesc, "1", false),
 		], ArgType.String),
-		FuncDef([FunctionCategory.Etc], "PARTYNAME", prop.msgs.funcDescPartyName, prop.msgs.funcShortDescPartyName, prop.msgs.funcExamplePartyName, [
+		FuncDef([FunctionCategory.PlayingInformation], "PARTYNAME", prop.msgs.funcDescPartyName, prop.msgs.funcShortDescPartyName, prop.msgs.funcExamplePartyName, [
 		], ArgType.String),
-		FuncDef([FunctionCategory.Etc], "PARTYMONEY", prop.msgs.funcDescPartyMoney, prop.msgs.funcShortDescPartyMoney, prop.msgs.funcExamplePartyMoney, [
+		FuncDef([FunctionCategory.PlayingInformation], "PARTYMONEY", prop.msgs.funcDescPartyMoney, prop.msgs.funcShortDescPartyMoney, prop.msgs.funcExamplePartyMoney, [
 		], ArgType.Number), // Wsn.5
-		FuncDef([FunctionCategory.Etc], "PARTYNUMBER", prop.msgs.funcDescPartyNumber, prop.msgs.funcShortDescPartyNumber, prop.msgs.funcExamplePartyNumber, [
+		FuncDef([FunctionCategory.PlayingInformation], "PARTYNUMBER", prop.msgs.funcDescPartyNumber, prop.msgs.funcShortDescPartyNumber, prop.msgs.funcExamplePartyNumber, [
 		], ArgType.Number), // Wsn.5
-		FuncDef([FunctionCategory.Etc], "YADONAME", prop.msgs.funcDescYadoName, prop.msgs.funcShortDescYadoName, prop.msgs.funcExampleYadoName, [
+		FuncDef([FunctionCategory.PlayingInformation], "YADONAME", prop.msgs.funcDescYadoName, prop.msgs.funcShortDescYadoName, prop.msgs.funcExampleYadoName, [
 		], ArgType.String), // Wsn.5
-		FuncDef([FunctionCategory.Etc], "BATTLEROUND", prop.msgs.funcDescBattleRound, prop.msgs.funcShortDescBattleRound, prop.msgs.funcExampleBattleRound, [
+		FuncDef([FunctionCategory.PlayingInformation], "BATTLEROUND", prop.msgs.funcDescBattleRound, prop.msgs.funcShortDescBattleRound, prop.msgs.funcExampleBattleRound, [
 		], ArgType.Number), // Wsn.5
 	];
 }
