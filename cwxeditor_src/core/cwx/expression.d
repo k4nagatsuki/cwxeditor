@@ -183,7 +183,7 @@ public:
 		ExprError[] err;
 		string[char] names;
 		VarValue[string] flags, steps, variants, sysSteps;
-		auto vInfo = VariableInfo(prop, null, null, "1.50", names, flags, steps, variants, sysSteps);
+		auto vInfo = VariableInfo(prop, null, null, "1.50", names, flags, steps, variants, sysSteps, () => "", () => "");
 		return .partToVariantVal(.calculate(prop, EvalMode.TypeCheck, vInfo, _expr, err));
 	}
 
@@ -1244,7 +1244,7 @@ struct VariableInfo {
 	const string delegate() yadoName;
 
 	/// インスタンスを生成する。
-	this (in CProps prop, in Summary summ, in UseCounter uc, string targVer, string[char] names, VarValue[string] flags, VarValue[string] steps, VarValue[string] variants, VarValue[string] sysSteps) { mixin(S_TRACE);
+	this (in CProps prop, in Summary summ, in UseCounter uc, string targVer, string[char] names, VarValue[string] flags, VarValue[string] steps, VarValue[string] variants, VarValue[string] sysSteps, string delegate() ptName, string delegate() ydName) { mixin(S_TRACE);
 		isTargetWsnVersion = (string wsnVer) { mixin(S_TRACE);
 			return prop ? prop.isTargetVersion(summ, targVer, wsnVer) : true;
 		};
@@ -1286,8 +1286,8 @@ struct VariableInfo {
 		gossipText = (gossipNumber) => "";
 
 		castName = (castNumber) => "";
-		partyName = () => "";
-		yadoName = () => "";
+		partyName = ptName;
+		yadoName = ydName;
 	}
 }
 

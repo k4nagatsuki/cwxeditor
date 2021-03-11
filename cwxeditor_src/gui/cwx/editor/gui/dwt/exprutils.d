@@ -437,7 +437,7 @@ class ExpressionEditor : Composite {
 		expr.text = text;
 		string[char] names;
 		VarValue[string] flags, steps, variants, sysSteps;
-		auto err = expr.getExpressionErrors(_comm.prop.parent, VariableInfo(_comm.prop.parent, _summ, _uc, _comm.prop.var.etc.targetVersion, names, flags, steps, variants, sysSteps));
+		auto err = expr.getExpressionErrors(_comm.prop.parent, VariableInfo(_comm.prop.parent, _summ, _uc, _comm.prop.var.etc.targetVersion, names, flags, steps, variants, sysSteps, () => cast(string)_comm.prop.var.etc.messageVarTeam, () => cast(string)_comm.prop.var.etc.messageVarYado));
 		_ws ~= .exprErrorToWarnings(_comm.prop.parent, text, err);
 
 		bool[string] wFlags;
