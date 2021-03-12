@@ -183,7 +183,7 @@ public:
 		ExprError[] err;
 		string[char] names;
 		VarValue[string] flags, steps, variants, sysSteps;
-		auto vInfo = VariableInfo(prop, null, null, "1.50", names, flags, steps, variants, sysSteps);
+		auto vInfo = VariableInfo(prop, null, null, "1.50", names, flags, steps, variants, sysSteps, () => "", () => "");
 		return .partToVariantVal(.calculate(prop, EvalMode.TypeCheck, vInfo, _expr, err));
 	}
 
@@ -592,6 +592,10 @@ private class Function : Part {
 			"lright": &.funcLRight,
 			"lmid": &.funcLMid,
 			"partymoney": &.funcPartyMoney,
+			"partynumber": &.funcPartyNumber,
+			"yadoname": &.funcYadoName,
+			"battleround": &.funcBattleRound,
+			"castlevel": &.funcCastLevel,
 		];
 	}
 
@@ -1236,9 +1240,11 @@ struct VariableInfo {
 	const string delegate(uint) castName;
 	/// パーティ名の取得。
 	const string delegate() partyName;
+	/// 拠点名の取得。
+	const string delegate() yadoName;
 
 	/// インスタンスを生成する。
-	this (in CProps prop, in Summary summ, in UseCounter uc, string targVer, string[char] names, VarValue[string] flags, VarValue[string] steps, VarValue[string] variants, VarValue[string] sysSteps) { mixin(S_TRACE);
+	this (in CProps prop, in Summary summ, in UseCounter uc, string targVer, string[char] names, VarValue[string] flags, VarValue[string] steps, VarValue[string] variants, VarValue[string] sysSteps, string delegate() ptName, string delegate() ydName) { mixin(S_TRACE);
 		isTargetWsnVersion = (string wsnVer) { mixin(S_TRACE);
 			return prop ? prop.isTargetVersion(summ, targVer, wsnVer) : true;
 		};
@@ -1280,7 +1286,8 @@ struct VariableInfo {
 		gossipText = (gossipNumber) => "";
 
 		castName = (castNumber) => "";
-		partyName = () => "";
+		partyName = ptName;
+		yadoName = ydName;
 	}
 }
 
@@ -1994,6 +2001,41 @@ private const(Part) funcPartyMoney(in CProps prop, EvalMode mode, in VariableInf
 	return new NumberValue(func.token, 0);
 }
 
+/// パーティーの人数を返す。パーティー非編成時は 0 を返す。
+private const(Part) funcPartyNumber(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
+	return new NumberValue(func.token, 0);
+}
+
+/// 拠点名を返す。拠点無しの場合は空文字列を返す。
+private const(Part) funcYadoName(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
+	if (mode !is EvalMode.TypeCheck) { mixin(S_TRACE);
+		if (!vInfo.yadoName) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
+	}
+	if (!checkArgCount(prop, func, args, 0, err)) return new StringValue(func.token, "");
+	if (mode is EvalMode.TypeCheck) return new StringValue(func.token, "");
+
+	return new StringValue(func.token, vInfo.yadoName());
+}
+
+/// 現バトルのラウンド数を返す。バトル中ではない場合は -1 を返す。
+private const(Part) funcBattleRound(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
+	return new NumberValue(func.token, 0);
+}
+
+/// キャラクター番号からキャラクターのレベルを返す。存在しない場合は 0 を返す。
+private const(Part) funcCastLevel(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
+	if (!checkArgCount(prop, func, args, 1, err)) return new NumberValue(func.token, 0);
+	auto n = checkMinValue(prop, mode, func, args, 0, 0, err);
+	if (!n) return new NumberValue(func.token, 0);
+	auto v = cast(uint)n.numVal;
+	if (v == 0) return new NumberValue(func.token, 0);
+	return new NumberValue(func.token, 1);
+}
+
 /// 入力支援用に関数の引数の型を表現する。
 enum ArgType {
 	Number, /// 数値。
@@ -2132,6 +2174,9 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 		FuncDef([FunctionCategory.CardInformation], "CASTNAME", prop.msgs.funcDescCastName, prop.msgs.funcShortDescCastName, prop.msgs.funcExampleCastName, [
 			ArgDef(ArgType.Number, prop.msgs.exprCastNumberDesc, "1", false),
 		], ArgType.String),
+		FuncDef([FunctionCategory.CardInformation], "CASTLEVEL", prop.msgs.funcDescCastLevel, prop.msgs.funcShortDescCastLevel, prop.msgs.funcExampleCastLevel, [
+			ArgDef(ArgType.Number, prop.msgs.exprCastNumberDesc, "1", false),
+		], ArgType.Number),
 		FuncDef([FunctionCategory.CouponInformation], "FINDCOUPON", prop.msgs.funcDescFindCoupon, prop.msgs.funcShortDescFindCoupon, prop.msgs.funcExampleFindCoupon, [
 			ArgDef(ArgType.Number, prop.msgs.exprCastNumberDesc, "1", false),
 			ArgDef(ArgType.String, prop.msgs.exprFindPatternDesc, "*", false),
@@ -2148,9 +2193,15 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 		FuncDef([FunctionCategory.CouponInformation], "GOSSIPTEXT", prop.msgs.funcDescGossipText, prop.msgs.funcShortDescGossipText, prop.msgs.funcExampleGossipText, [
 			ArgDef(ArgType.Number, prop.msgs.exprGossipNumberDesc, "1", false),
 		], ArgType.String),
-		FuncDef([FunctionCategory.Etc], "PARTYNAME", prop.msgs.funcDescPartyName, prop.msgs.funcShortDescPartyName, prop.msgs.funcExamplePartyName, [
+		FuncDef([FunctionCategory.PlayingInformation], "PARTYNAME", prop.msgs.funcDescPartyName, prop.msgs.funcShortDescPartyName, prop.msgs.funcExamplePartyName, [
 		], ArgType.String),
-		FuncDef([FunctionCategory.Etc], "PARTYMONEY", prop.msgs.funcDescPartyMoney, prop.msgs.funcShortDescPartyMoney, prop.msgs.funcExamplePartyMoney, [
+		FuncDef([FunctionCategory.PlayingInformation], "PARTYMONEY", prop.msgs.funcDescPartyMoney, prop.msgs.funcShortDescPartyMoney, prop.msgs.funcExamplePartyMoney, [
+		], ArgType.Number), // Wsn.5
+		FuncDef([FunctionCategory.PlayingInformation], "PARTYNUMBER", prop.msgs.funcDescPartyNumber, prop.msgs.funcShortDescPartyNumber, prop.msgs.funcExamplePartyNumber, [
+		], ArgType.Number), // Wsn.5
+		FuncDef([FunctionCategory.PlayingInformation], "YADONAME", prop.msgs.funcDescYadoName, prop.msgs.funcShortDescYadoName, prop.msgs.funcExampleYadoName, [
+		], ArgType.String), // Wsn.5
+		FuncDef([FunctionCategory.PlayingInformation], "BATTLEROUND", prop.msgs.funcDescBattleRound, prop.msgs.funcShortDescBattleRound, prop.msgs.funcExampleBattleRound, [
 		], ArgType.Number), // Wsn.5
 	];
 }
