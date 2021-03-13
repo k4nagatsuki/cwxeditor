@@ -14,7 +14,6 @@ import std.string;
 import std.ascii;
 import std.array;
 import std.regex;
-import std.algorithm;
 import std.range;
 
 /// "font_X.bmp"から"X"の部分を抽出する。
@@ -89,30 +88,30 @@ private string formatMsgImpl(string text,
 		size_t startIndex,
 		size_t stack) { mixin(S_TRACE);
 	dchar[] result;
-	dstring dtext = to!dstring(text);
+	auto dtext = to!dstring(text).toGraphemeArray();
 	for (size_t i = 0; i < dtext.length; i++) { mixin(S_TRACE);
-		dchar c = dtext[i];
-		bool variable(VarValue delegate(string) get, dchar cc) { mixin(S_TRACE);
-			ptrdiff_t next = .countUntil(dtext[i + 1 .. $], cc);
+		auto c = dtext[i].array;
+		bool variable(VarValue delegate(string) get, dstring cc) { mixin(S_TRACE);
+			ptrdiff_t next = .countUntil(dtext[i + 1 .. $].map!(g => g.array)(), cc);
 			if (next < 0) return false;
 			auto fl = dtext[i + 1 .. i + 1 + next];
-			if (.countUntil(fl, '\n') != -1) return false; // 改行を含むパスはありえない
-			auto fls = to!string(fl);
+			if (.countUntil(fl.map!(g => g.array)(), "\n"d) != -1) return false; // 改行を含むパスはありえない
+			auto fls = fl.map!(g => g.array.text).join("");
 			auto v = get(fls);
 			if (!v.exists) { mixin(S_TRACE);
-				if ((!isTargetVersion || isTargetVersion("2")) && c == '$' && prefixSystemVarName != "" && fls.startsWith(prefixSystemVarName)) { mixin(S_TRACE);
+				if ((!isTargetVersion || isTargetVersion("2")) && c == "$"d && prefixSystemVarName != "" && fls.startsWith(prefixSystemVarName)) { mixin(S_TRACE);
 					// CardWirth 1.60では、"??"で始まるステップ名は
 					// 該当ステップが存在しない場合、空文字列になる
 					i = i + 1 + next;
 					return true;
 				}
 				if (!full) { mixin(S_TRACE);
-					if (cc == '$' || cc == '%') { mixin(S_TRACE);
+					if (cc == "$"d || cc == "%"d) { mixin(S_TRACE);
 						// BUG: 選択肢などでは最初の1文字が欠ける(CardWirth 1.50)
-						result ~= fl ~ cc;
+						result ~= fl.map!(g => g.array).join(""d) ~ cc;
 					} else { mixin(S_TRACE);
 						// コモンは最初の一文字が欠けないようにする
-						result ~= cc ~ fl ~ cc;
+						result ~= cc ~ fl.map!(g => g.array).join(""d) ~ cc;
 					}
 					i = i + 1 + next;
 					return true;
@@ -129,19 +128,19 @@ private string formatMsgImpl(string text,
 			return true;
 		}
 		switch (c) {
-		case '#':
+		case "#"d:
 			if (i + 1 == dtext.length) goto default;
-			if ('\n' == dtext[i + 1]) goto default;
-			auto nc = std.ascii.toUpper(dtext[i + 1]);
+			if ("\n"d == dtext[i + 1].array) goto default;
+			auto nc = std.uni.toUpper(dtext[i + 1].array);
 			if (full) { mixin(S_TRACE);
-				auto path = encodeFontPath(dtext[i + 1], ".bmp");
+				auto path = dtext[i + 1].array.length == 1 ? .encodeFontPath(dtext[i + 1].array[0], ".bmp") : "";
 				if (path != "") { mixin(S_TRACE);
 					if (hasMaterial && hasMaterial(path)) { mixin(S_TRACE);
 						fonts[result.length + startIndex] = path;
 					} else { mixin(S_TRACE);
 						switch (nc) {
-						case 'M', 'R', 'U', 'C', 'I', 'T', 'Y':
-							result ~= to!dstring(getName(cast(char)nc));
+						case "M"d, "R"d, "U"d, "C"d, "I"d, "T"d, "Y"d:
+							result ~= to!dstring(getName(cast(char)nc[0]));
 							i++;
 							continue;
 						default:
@@ -154,13 +153,13 @@ private string formatMsgImpl(string text,
 				}
 			} else { mixin(S_TRACE);
 				switch (nc) {
-				case 'C':
+				case "C"d:
 					if (isTargetVersion && isTargetVersion("")) { mixin(S_TRACE);
-						goto case 'M';
+						goto case "M"d;
 					}
 					break;
-				case 'M', 'R', 'U', 'T', 'Y':
-					result ~= to!dstring(getName(cast(char) nc));
+				case "M"d, "R"d, "U"d, "T"d, "Y"d:
+					result ~= to!dstring(getName(cast(char)nc[0]));
 					i++;
 					continue;
 				default:
@@ -168,26 +167,26 @@ private string formatMsgImpl(string text,
 				}
 			}
 			goto default;
-		case '%':
-			if (!variable(getFlag, '%')) goto default;
+		case "%"d:
+			if (!variable(getFlag, "%"d)) goto default;
 			break;
-		case '$':
-			if (!variable(getStep, '$')) goto default;
+		case "$"d:
+			if (!variable(getStep, "$"d)) goto default;
 			break;
-		case '@':
-			if (!variable(getVariant, '@')) goto default;
+		case "@"d:
+			if (!variable(getVariant, "@"d)) goto default;
 			break;
-		case '&':
+		case "&"d:
 			if (!full) goto default;
 			if (i + 1 == dtext.length) goto default;
-			if ('\n' == dtext[i + 1]) goto default;
-			if (.isASCII(dtext[i + 1])) { mixin(S_TRACE);
-				auto nc = std.ascii.toUpper(dtext[i + 1]);
-				colors[result.length + startIndex] = cast(char)nc;
+			if ("\n"d == dtext[i + 1].array) goto default;
+			if (dtext[i + 1].length == 1 && .isASCII(dtext[i + 1].array[0])) { mixin(S_TRACE);
+				auto nc = std.uni.toUpper(dtext[i + 1].array);
+				colors[result.length + startIndex] = cast(char)nc[0];
 			}
 			goto default;
 		default:
-			if (c !is dchar.init) result ~= c;
+			result ~= c;
 			break;
 		}
 	}
@@ -213,8 +212,29 @@ private string formatMsgImpl(string text,
 	assert (rFonts == [cast(size_t) 41:"font_v.bmp", cast(size_t) 45:"font_+.bmp"]);
 	assert (rColors == [cast(size_t) 23:'R', cast(size_t) 27:'W'], .text(rColors));
 }
+
+/// Unicode文字列を表示単位で分割する。
+/// ただしShift JISの'ﾟ'及び'ﾞ'に限り、独立した文字として扱う。
+Grapheme[] toGraphemeArray(String)(String str) { mixin(S_TRACE);
+	Grapheme[] arr;
+	foreach (g; str.byGrapheme()) { mixin(S_TRACE);
+		auto dstr = g.array.to!dstring();
+		if (1 < dstr.length && (dstr[1] == 'ﾟ' || dstr[1] == 'ﾞ')) { mixin(S_TRACE);
+			arr ~= Grapheme(dstr[0 .. 1].to!String());
+			arr ~= dstr[1 .. $].toGraphemeArray();
+		} else { mixin(S_TRACE);
+			arr ~= g;
+		}
+	}
+	return arr;
+} unittest { mixin(S_TRACE);
+	debug mixin(UTPerf);
+	assert ("ﾟﾞﾞﾞ".toGraphemeArray().map!(g => g.array).array() == ["ﾟ"d, "ﾞ"d, "ﾞ"d, "ﾞ"d]);
+	assert ("aﾟﾞﾞﾞ".toGraphemeArray().map!(g => g.array).array() == ["a"d, "ﾟ"d, "ﾞ"d, "ﾞ", "ﾞ"d]);
+}
+
 /// BUG: 信じがたい事にstd.algorithm.sortはchar[]のソートができない(dmd 2.072)
-void sortChars(char[] chars) {
+void sortChars(char[] chars) { mixin(S_TRACE);
 	char[][] ss;
 	foreach (c; chars) ss ~= [c];
 	std.algorithm.sort(ss);
@@ -540,6 +560,8 @@ string wrapMsg(string text, size_t width, size_t delegate(string) getWidth,
 	assert (wrapMsg("あいうえおA。かきくけこ", 11, &width, true, op, cl, wd, f, c) == "あいうえお\nA。かきくけ\nこ");
 	assert (wrapMsg("ｐｑｒ pqr ＰＱＲ", 6, &width, true, op, cl, wd, f, c) == "ｐｑｒ \npqr \nＰＱＲ");
 	assert (wrapMsg("あ゙い゙ゔえ゙お゙か゚き゚く゚け゚こ゚", 6, &width, true, op, cl, wd, f, c) == "あ゙い゙ゔ\nえ゙お゙か゚\nき゚く゚け゚\nこ゚");
+	assert (wrapMsg("あ゛い゛う゛え゛お゛か゜き゜く゜け゜こ゜", 6, &width, true, op, cl, wd, f, c) == "あ゛い\n゛う゛\nえ゛お\n゛か゜\nき゜く\n゜け゜\nこ゜");
+	assert (wrapMsg("あﾞいﾞうﾞえﾞおﾞかﾟきﾟくﾟけﾟこﾟ", 6, &width, true, op, cl, wd, f, c) == "あﾞい\nﾞうﾞ\nえﾞお\nﾞかﾟ\nきﾟく\nﾟけﾟ\nこﾟ");
 
 	f[5] = "#W";
 	c[18] = 'L';

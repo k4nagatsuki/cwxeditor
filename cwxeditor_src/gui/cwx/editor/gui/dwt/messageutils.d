@@ -3633,17 +3633,20 @@ ImageDataWithScale previewMessage(Commons comm, Props prop, in Summary summ, Ski
 
 	auto foreground = fc;
 	lineH = prop.ds(prop.looks.messageLineHeight);
-	auto dmsg = message.byGrapheme().array();
+	auto dmsg = message.toGraphemeArray();
+	size_t si = 0;
 	for (size_t i = 0; i < dmsg.length; i++) { mixin(S_TRACE);
 		if (!centerY && rect.height - prop.ds(6) < y + lineH) { mixin(S_TRACE);
 			// 行数オーバー
 			break;
 		}
-		auto cf = i in rFonts;
+		auto cf = si in rFonts;
 		if (cf) { mixin(S_TRACE);
 			// 特殊文字の描画位置を記憶
+			si += dmsg[i].array.length;
 			string s1 = to!string(dmsg[i].array);
 			i++;
+			si += dmsg[i].array.length;
 			string s2 = to!string(dmsg[i].array);
 			auto w = prop.looks.messageCharWidth;
 			if (msgLen < writeLen + 2) { mixin(S_TRACE);
@@ -3661,7 +3664,7 @@ ImageDataWithScale previewMessage(Commons comm, Props prop, in Summary summ, Ski
 			x += w;
 			continue;
 		}
-		auto colorP = i in rColors;
+		auto colorP = si in rColors;
 		if (colorP) { mixin(S_TRACE);
 			// フォント色変更
 			switch (*colorP) {
@@ -3676,7 +3679,9 @@ ImageDataWithScale previewMessage(Commons comm, Props prop, in Summary summ, Ski
 			case 'D': foreground = cd; break;
 			default: break;
 			}
+			si += dmsg[i].array.length;
 			i++;
+			si += dmsg[i].array.length;
 			continue;
 		}
 		auto c = dmsg[i].array;
@@ -3738,6 +3743,7 @@ ImageDataWithScale previewMessage(Commons comm, Props prop, in Summary summ, Ski
 			x += w;
 			break;
 		}
+		si += dmsg[i].array.length;
 	}
 
 	int slideX = prop.ds(0), slideY = prop.ds(0);
