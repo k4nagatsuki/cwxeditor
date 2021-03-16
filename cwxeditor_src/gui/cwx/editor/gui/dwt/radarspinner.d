@@ -551,8 +551,8 @@ class RadarSpinner : Composite {
 				// 第一象限の場合
 				// 0(左端) = (ovalW + disW) * cos(r) + (cw / 2) + (bw / 2)
 				// 0(上端) = (ovalH + disH) * sin(r) + (ch / 2) + (bh / 2)
-				if (!cosR.approxEqual(0.0)) ovalWr = .min(ovalWr, disBaseX / (cosR * 2) - disW);
-				if (!sinR.approxEqual(0.0)) ovalHr = .min(ovalHr, disBaseY / (sinR * 2) - disH);
+				if (!cosR.isClose(0.0)) ovalWr = .min(ovalWr, disBaseX / (cosR * 2) - disW);
+				if (!sinR.isClose(0.0)) ovalHr = .min(ovalHr, disBaseY / (sinR * 2) - disH);
 			}
 			if (SWT.DEFAULT == _ovalW) ovalW = .max(0, cast(int)(ovalWr * 2));
 			if (SWT.DEFAULT == _ovalH) ovalH = .max(0, cast(int)(ovalHr * 2));

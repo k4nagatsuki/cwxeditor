@@ -783,7 +783,7 @@ public:
 		if (initialization != f.initialization) return false;
 		if (comment != f.comment) return false;
 		final switch (type) {
-		case VariantType.Number: return numVal.approxEqual(f.numVal);
+		case VariantType.Number: return numVal.isClose(f.numVal);
 		case VariantType.String: return strVal == f.strVal;
 		case VariantType.Boolean: return boolVal == f.boolVal;
 		case VariantType.List: return listVal == f.listVal;
