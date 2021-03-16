@@ -2209,7 +2209,7 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 unittest { mixin(UTPerf);
 	auto prop = new CProps("", null);
 	VariableInfo vInfo;
-	bool checkN(in VariantVal r, double val) { return r.type is VariantType.Number && r.numVal.approxEqual(val); }
+	bool checkN(in VariantVal r, double val) { return r.type is VariantType.Number && r.numVal.isClose(val); }
 	bool checkS(in VariantVal r, string val) { return r.type is VariantType.String && r.strVal == val; }
 	bool checkB(in VariantVal r, bool val) { return r.type is VariantType.Boolean && r.boolVal is val; }
 
