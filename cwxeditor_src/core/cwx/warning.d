@@ -1053,7 +1053,10 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			}
 		}
 		if (c.type is CType.ChangeEnvironment && c.gameOverEnabled !is EnvironmentStatus.NotSet && !prop.isTargetVersion(isClassic, wsnVer, "5")) { mixin(S_TRACE);
-			r ~= prop.msgs.warningGameOverEnabled;
+			r ~= .tryFormat(prop.msgs.warningEnvironmentEnabled, prop.msgs.gameOver, "5");
+		}
+		if (c.type is CType.ChangeEnvironment && c.runAwayEnabled !is EnvironmentStatus.NotSet && !prop.isTargetVersion(isClassic, wsnVer, "5")) { mixin(S_TRACE);
+			r ~= .tryFormat(prop.msgs.warningEnvironmentEnabled, prop.msgs.runAway, "5");
 		}
 		if (c.type is CType.BranchVariant && !prop.isTargetVersion(isClassic, wsnVer, "4")) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(CType.BranchVariant), "4");

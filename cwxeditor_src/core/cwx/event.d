@@ -219,7 +219,7 @@ private void static_this () { mixin(S_TRACE);
 		CType.BranchMultiCoupon:CDetail("Branch", "MultiCoupon", CNextType.Coupon, true , [CArg.Range:"targets", CArg.ExpandSPChars:"spchars"]), // Wsn.2
 		CType.BranchMultiRandom:CDetail("Branch", "MultiRandom", CNextType.None, true), // Wsn.2
 		CType.MoveCard:CDetail("Move", "Card", CNextType.None, true, [CArg.CardGroup:"cardgroup", CArg.PositionType:"positiontype", CArg.X:"x", CArg.Y:"y", CArg.Scale:"scale", CArg.Layer:"layer", CArg.CardSpeed:"cardspeed", CArg.OverrideCardSpeed:"overridecardspeed"]), // Wsn.3
-		CType.ChangeEnvironment:CDetail("Change", "Environment", CNextType.None, true, [CArg.BackpackEnabled:"backpack", CArg.GameOverEnabled:"gameover"]), // Wsn.4
+		CType.ChangeEnvironment:CDetail("Change", "Environment", CNextType.None, true, [CArg.BackpackEnabled:"backpack", CArg.GameOverEnabled:"gameover", CArg.RunAwayEnabled:"runaway"]), // Wsn.4
 		CType.BranchVariant:CDetail("Branch", "Variant", CNextType.Bool, true, [CArg.Expression:null]), // Wsn.4
 		CType.SetVariant:CDetail("Set", "Variant", CNextType.None, true, [CArg.Variant:"variant", CArg.Flag:"flag", CArg.Step:"step", CArg.Expression:null]), // Wsn.4
 		CType.CheckVariant:CDetail("Check", "Variant", CNextType.None, true, [CArg.Expression:null]), // Wsn.4
@@ -695,6 +695,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 
 		this.backpackEnabled = c.backpackEnabled;
 		this.gameOverEnabled = c.gameOverEnabled;
+		this.runAwayEnabled = c.runAwayEnabled;
 
 		Motion[] motions;
 		foreach (m; c.motions) { mixin(S_TRACE);
@@ -866,6 +867,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 			&& (!d.use(CArg.InvertResult) || invertResult == c.invertResult)
 			&& (!d.use(CArg.BackpackEnabled) || backpackEnabled == c.backpackEnabled)
 			&& (!d.use(CArg.GameOverEnabled) || gameOverEnabled == c.gameOverEnabled)
+			&& (!d.use(CArg.RunAwayEnabled) || runAwayEnabled == c.runAwayEnabled)
 
 			&& (!d.use(CArg.ConsumeCard) || consumeCard == c.consumeCard)
 
@@ -1201,7 +1203,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		resetValue!(CArg.SelectTalker, bool, false)(d, od, &selectTalker, base, base.selectTalker);
 		resetValue!(CArg.InvertResult, bool, false)(d, od, &invertResult, base, base.invertResult);
 		resetValue!(CArg.BackpackEnabled, EnvironmentStatus, EnvironmentStatus.NotSet)(d, od, &backpackEnabled, base, base.backpackEnabled);
-		resetValue!(CArg.GameOverEnabled, EnvironmentStatus, EnvironmentStatus.NotSet)(d, od, &gameOverEnabled, base, base.gameOverEnabled);
+		resetValue!(CArg.RunAwayEnabled, EnvironmentStatus, EnvironmentStatus.NotSet)(d, od, &runAwayEnabled, base, base.runAwayEnabled);
 
 		resetValue!(CArg.ConsumeCard, bool, true)(d, od, &consumeCard, base, base.consumeCard);
 
@@ -2370,6 +2372,10 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	/// 敗北・ゲームオーバーの有無(Wsn.5)。
 	mixin Prop!(EnvironmentStatus, "gameOverEnabled", EnvironmentStatus.NotSet);
 
+	/// 逃走の有無(Wsn.5)。
+	/// バトル自体が逃走不可に設定されている場合は影響を及ぼさない。
+	mixin Prop!(EnvironmentStatus, "runAwayEnabled", EnvironmentStatus.NotSet);
+
 	/// 背景画像群。
 	mixin Prop!(BgImage[], "backs", []);
 
@@ -2882,6 +2888,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		atnPutD!(CArg.InvertResult, "invertResult", "fromBool", false)(e, d);
 		atnPutD!(CArg.BackpackEnabled, "backpackEnabled", "fromEnvironmentStatus", EnvironmentStatus.NotSet)(e, d);
 		atnPutD!(CArg.GameOverEnabled, "gameOverEnabled", "fromEnvironmentStatus", EnvironmentStatus.NotSet)(e, d);
+		atnPutD!(CArg.RunAwayEnabled, "runAwayEnabled", "fromEnvironmentStatus", EnvironmentStatus.NotSet)(e, d);
 
 		atnPutD!(CArg.ConsumeCard, "consumeCard", "fromBool", true)(e, d);
 
@@ -3203,6 +3210,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		cfnPutD!(CArg.InvertResult, "invertResult", "parseBool", false)(en, d, r);
 		cfnPutD!(CArg.BackpackEnabled, "backpackEnabled", "toEnvironmentStatus", EnvironmentStatus.NotSet)(en, d, r);
 		cfnPutD!(CArg.GameOverEnabled, "gameOverEnabled", "toEnvironmentStatus", EnvironmentStatus.NotSet)(en, d, r);
+		cfnPutD!(CArg.RunAwayEnabled, "runAwayEnabled", "toEnvironmentStatus", EnvironmentStatus.NotSet)(en, d, r);
 
 		cfnPutD!(CArg.ConsumeCard, "consumeCard", "parseBool", true)(en, d, r);
 

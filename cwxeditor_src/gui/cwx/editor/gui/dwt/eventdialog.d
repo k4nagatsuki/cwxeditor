@@ -4960,6 +4960,8 @@ private:
 	EnvironmentStatus[] _backpackEnableds;
 	Combo _gameOverEnabled;
 	EnvironmentStatus[] _gameOverEnableds;
+	Combo _runAwayEnabled;
+	EnvironmentStatus[] _runAwayEnableds;
 
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
@@ -4968,7 +4970,10 @@ private:
 			ws ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(CType.ChangeEnvironment), "4");
 		}
 		if (_gameOverEnableds[_gameOverEnabled.getSelectionIndex()] !is EnvironmentStatus.NotSet && !prop.isTargetVersion(summ, "5")) { mixin(S_TRACE);
-			ws ~= .tryFormat(prop.msgs.warningGameOverEnabled);
+			ws ~= .tryFormat(prop.msgs.warningEnvironmentEnabled, prop.msgs.gameOver, "5");
+		}
+		if (_runAwayEnableds[_runAwayEnabled.getSelectionIndex()] !is EnvironmentStatus.NotSet && !prop.isTargetVersion(summ, "5")) { mixin(S_TRACE);
+			ws ~= .tryFormat(prop.msgs.warningEnvironmentEnabled, prop.msgs.runAway, "5");
 		}
 		warning = ws;
 	}
@@ -4990,26 +4995,22 @@ protected:
 			auto comp = new Composite(grp, SWT.NONE);
 			comp.setLayout(zeroMarginGridLayout(2, false));
 
-			(new Label(comp, SWT.NONE)).setText(prop.msgs.backpack);
-			_backpackEnabled = new Combo(comp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
-			mod(_backpackEnabled);
-			_backpackEnabled.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
-			_backpackEnabled.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			foreach (s; [EnvironmentStatus.NotSet, EnvironmentStatus.Enable, EnvironmentStatus.Disable]) { mixin(S_TRACE);
-				_backpackEnabled.add(prop.msgs.environmentStatusName(s));
-				_backpackEnableds ~= s;
+			void createCombo(string name, ref Combo combo, ref EnvironmentStatus[] enableds, string delegate(EnvironmentStatus) statusName, bool warning) { mixin(S_TRACE);
+				(new Label(comp, SWT.NONE)).setText(name);
+				combo = new Combo(comp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+				mod(combo);
+				combo.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
+				combo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				foreach (s; [EnvironmentStatus.NotSet, EnvironmentStatus.Enable, EnvironmentStatus.Disable]) { mixin(S_TRACE);
+					combo.add(statusName(s));
+					enableds ~= s;
+				}
+				if (warning) .listener(combo, SWT.Selection, &refreshWarning);
 			}
 
-			(new Label(comp, SWT.NONE)).setText(prop.msgs.gameOver);
-			_gameOverEnabled = new Combo(comp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
-			mod(_gameOverEnabled);
-			_gameOverEnabled.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
-			_gameOverEnabled.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			foreach (s; [EnvironmentStatus.NotSet, EnvironmentStatus.Enable, EnvironmentStatus.Disable]) { mixin(S_TRACE);
-				_gameOverEnabled.add(prop.msgs.environmentStatusNameEnabled(s));
-				_gameOverEnableds ~= s;
-			}
-			.listener(_gameOverEnabled, SWT.Selection, &refreshWarning);
+			createCombo(prop.msgs.backpack, _backpackEnabled, _backpackEnableds, &prop.msgs.environmentStatusName, false);
+			createCombo(prop.msgs.gameOver, _gameOverEnabled, _gameOverEnableds, &prop.msgs.environmentStatusNameEnabled, true);
+			createCombo(prop.msgs.runAway, _runAwayEnabled, _runAwayEnableds, &prop.msgs.environmentStatusNameEnabled, true);
 		}
 
 		ignoreMod = true;
@@ -5017,9 +5018,11 @@ protected:
 		if (_evt) { mixin(S_TRACE);
 			_backpackEnabled.select(cast(int)_backpackEnableds.countUntil(_evt.backpackEnabled));
 			_gameOverEnabled.select(cast(int)_gameOverEnableds.countUntil(_evt.gameOverEnabled));
+			_runAwayEnabled.select(cast(int)_runAwayEnableds.countUntil(_evt.runAwayEnabled));
 		} else { mixin(S_TRACE);
 			_backpackEnabled.select(cast(int)_backpackEnableds.countUntil(EnvironmentStatus.NotSet));
 			_gameOverEnabled.select(cast(int)_gameOverEnableds.countUntil(EnvironmentStatus.NotSet));
+			_runAwayEnabled.select(cast(int)_runAwayEnableds.countUntil(EnvironmentStatus.NotSet));
 		}
 
 		refDataVersion();
@@ -5029,6 +5032,7 @@ protected:
 		if (!_evt) _evt = new Content(CType.ChangeEnvironment, "");
 		_evt.backpackEnabled = _backpackEnableds[_backpackEnabled.getSelectionIndex()];
 		_evt.gameOverEnabled = _gameOverEnableds[_gameOverEnabled.getSelectionIndex()];
+		_evt.runAwayEnabled = _runAwayEnableds[_runAwayEnabled.getSelectionIndex()];
 		return true;
 	}
 }

@@ -4134,10 +4134,13 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 	} case CType.ChangeEnvironment: { mixin(S_TRACE);
 		string[] params = [];
 		if (evt.backpackEnabled !is EnvironmentStatus.NotSet) { mixin(S_TRACE);
-			params ~= .tryFormat(comm.prop.msgs.ctEnvironmentBackpack, comm.prop.msgs.environmentStatusName(evt.backpackEnabled));
+			params ~= .tryFormat(comm.prop.msgs.ctEnvironmentEnabled, comm.prop.msgs.backpack, comm.prop.msgs.environmentStatusName(evt.backpackEnabled));
 		}
 		if (evt.gameOverEnabled !is EnvironmentStatus.NotSet) { mixin(S_TRACE);
-			params ~= .tryFormat(comm.prop.msgs.ctEnvironmentGameOver, comm.prop.msgs.environmentStatusNameEnabled(evt.gameOverEnabled));
+			params ~= .tryFormat(comm.prop.msgs.ctEnvironmentEnabled, comm.prop.msgs.gameOver, comm.prop.msgs.environmentStatusNameEnabled(evt.gameOverEnabled));
+		}
+		if (evt.runAwayEnabled !is EnvironmentStatus.NotSet) { mixin(S_TRACE);
+			params ~= .tryFormat(comm.prop.msgs.ctEnvironmentEnabled, comm.prop.msgs.runAway, comm.prop.msgs.environmentStatusNameEnabled(evt.runAwayEnabled));
 		}
 		if (params.length) { mixin(S_TRACE);
 			return .tryFormat(comm.prop.msgs.ctChangeEnvironment, params.join(" "));
