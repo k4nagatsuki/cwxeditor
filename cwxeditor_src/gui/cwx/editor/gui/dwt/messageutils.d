@@ -1490,7 +1490,13 @@ protected:
 			mod(_text.widget);
 			_text.widget.addModifyListener(new ModText);
 			.listener(_text.widget, SWT.Verify, (e) { mixin(S_TRACE);
-				if (singleLine && e.text != "") e.text = e.text.splitLines()[0];
+				if (singleLine && e.text != "") { mixin(S_TRACE);
+					version (Windows) {
+						// BUG: '」'が改行に化けて入力できない
+					} else {
+						e.text = e.text.splitLines()[0];
+					}
+				}
 			});
 			createTextMenu!Text(comm, prop, _text.widget, &catchMod, _undo);
 			auto menu = _text.widget.getMenu();
