@@ -2806,25 +2806,37 @@ fi`;
 			size_t i = 0;
 			auto detail = c.detail;
 			if (detail.use(CArg.TalkerC)) { mixin(S_TRACE);
-				CardImage[] paths;
-				foreach (path; parseAttr!(CardImage[])(opt, node.attr, i, c.cardPaths, varTable, 0)) {
-					final switch (path.type) {
-					case CardImageType.File:
-						if (path.path != "") paths ~= path;
-						break;
-					case CardImageType.PCNumber:
-						if (0 < path.pcNumber) paths ~= path;
-						break;
-					case CardImageType.Talker:
-						paths ~= path;
-						break;
+				if (node.attr[i].token.kind is Kind.SYMBOL) { mixin(S_TRACE);
+					auto value = attrValue(node.attr[i], varTable, 0);
+					if (value == "single") { mixin(S_TRACE);
+						c.singleLine = true;
+						i++;
 					}
 				}
-				c.cardPaths = paths;
+				if (!c.singleLine) { mixin(S_TRACE);
+					CardImage[] paths;
+					foreach (path; parseAttr!(CardImage[])(opt, node.attr, i, c.cardPaths, varTable, 0)) {
+						final switch (path.type) {
+						case CardImageType.File:
+							if (path.path != "") paths ~= path;
+							break;
+						case CardImageType.PCNumber:
+							if (0 < path.pcNumber) paths ~= path;
+							break;
+						case CardImageType.Talker:
+							paths ~= path;
+							break;
+						}
+					}
+					c.cardPaths = paths;
+				}
 			}
 			if (detail.use(CArg.Text)) { mixin(S_TRACE);
 				c.text = parseAttr!(string)(opt, node.attr, i, c.text, varTable,
 					c.cardPaths.length ? _prop.looks.messageImageLen : _prop.looks.messageLen);
+				if (detail.use(CArg.SingleLine) && c.singleLine && c.text != "") { mixin(S_TRACE);
+					c.text = c.text.splitLines()[0];
+				}
 			}
 			if (detail.use(CArg.TalkerNC)) { mixin(S_TRACE);
 				c.talkerNC = parseAttr!(Talker, true)(opt, node.attr, i, c.talkerNC, varTable, 0);
@@ -3455,7 +3467,7 @@ fi`;
 			default: assert (0);
 			}
 		} else static if (is(T : Talker)) {
-			attrs ~= toAttrTalker([new CardImage(value)], indentValue, vars);
+			attrs ~= toAttrTalker([new CardImage(value)], false, indentValue, vars);
 		} else static if (is(T : MType)) {
 			switch (value) {
 			case MType.Heal: attrs ~= "heal"; break;
@@ -3755,7 +3767,8 @@ fi`;
 		return attrs;
 	}
 	const
-	private string toAttrTalker(in CardImage[] cardPaths, string indentValue, VarTable vars) { mixin(S_TRACE);
+	private string toAttrTalker(in CardImage[] cardPaths, bool singleLine, string indentValue, VarTable vars) { mixin(S_TRACE);
+		if (singleLine) return "single";
 		if (!cardPaths.length) return "none";
 		string[] r;
 		foreach (cardPath; cardPaths) { mixin(S_TRACE);
@@ -3889,7 +3902,7 @@ fi`;
 			}
 			size_t msgLen = 0;
 			if (detail.use(CArg.TalkerC)) { mixin(S_TRACE);
-				attrs ~= toAttrTalker(c.cardPaths, indentValue, vars);
+				attrs ~= toAttrTalker(c.cardPaths, c.singleLine, indentValue, vars);
 				if (c.cardPaths.length) { mixin(S_TRACE);
 					msgLen = _prop.looks.messageImageLen;
 				} else { mixin(S_TRACE);

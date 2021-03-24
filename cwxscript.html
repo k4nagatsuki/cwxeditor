@@ -787,7 +787,7 @@
 	<dd>効果</dd>
 	<dt class="content"><a href="#BREA">break <span class="args"><span class="arg">&lt;カード消費の有無&gt;</span></span></a></dt>
 	<dd>イベントの中断</dd>
-	<dt class="content"><a href="#CHENV">chenv <span class="args"><span class="arg">&lt;荷物袋の使用可否&gt;</span></span></a></dt>
+	<dt class="content"><a href="#CHENV">chenv <span class="args"><span class="arg">&lt;荷物袋の使用可否&gt;</span>, <span class="arg">&lt;敗北・ゲームオーバーの有無&gt;</span>, <span class="arg">&lt;逃走の可否&gt;</span></span></a></dt>
 	<dd>状況の設定</dd>
 	<dt class="content"><a href="#GOSTART">gostart <span class="args"><span class="arg">&lt;スタート名&gt;</span></span></a></dt>
 	<dd>スタートコンテントへの移動</dd>
@@ -1306,7 +1306,7 @@
 
 <pre><code class="samplecode"><span class="keywords">break</span> <span class="comment">// 中断</span></code></pre>
 
-<h3 class="content"><a id="CHENV" name="CHENV">chenv <span class="args"><span class="arg">&lt;荷物袋の使用可否&gt;</span></span></a></h3>
+<h3 class="content"><a id="CHENV" name="CHENV">chenv <span class="args"><span class="arg">&lt;荷物袋の使用可否&gt;</span>, <span class="arg">&lt;敗北・ゲームオーバーの有無&gt;</span>, <span class="arg">&lt;逃走の可否&gt;</span></span></a></h3>
 
 <p class="fullname">(Change Environment)</p>
 <p class="desc">パーティの状況を設定します。</p>
@@ -1315,6 +1315,9 @@
 <h4 class="argments">パラメータ</h4>
 
 <p class="desc">荷物袋の使用可否に<span class="code">off</span>を指定すると、このイベントコンテントの実行後に荷物袋が使用できなくなります。<span class="code">on</span>を指定した場合は、使用できない状況を解除できます。<span class="code">none</span>を指定した場合は状況が継続されます。省略した場合は<span class="code">none</span>になります。</p>
+<p class="desc">敗北・ゲームオーバーの有無に<span class="code">off</span>を指定すると、このイベントコンテントの実行後に全滅時の敗北・ゲームオーバーが発生しなくなります。<span class="code">on</span>を指定した場合は、使用できない状況を解除できます。<span class="code">none</span>を指定した場合は状況が継続されます。省略した場合は<span class="code">none</span>になります。</p>
+<p class="desc">逃走の可否に<span class="code">off</span>を指定すると、このイベントコンテントの実行後にバトルからの逃走ができなくなります。<span class="code">on</span>を指定した場合は、使用できない状況を解除できます。<span class="code">none</span>を指定した場合は状況が継続されます。省略した場合は<span class="code">none</span>になります。</p>
+<p class="desc"><em class="warning">敗北・ゲームオーバーの有無及び逃走の可否はWsn.5以降のWSN形式シナリオでのみ機能します。</em></p>
 
 <h4 class="example">例</h4>
 
@@ -1372,6 +1375,8 @@
 	<dd class="worddesc">イメージファイル名と解釈し、そのイメージを話者とします。</dd>
 	<dt class="keyword"><span class="array">[<span class="arg">&lt;文字列&gt;</span>, <span class="arg">&lt;配置方式&gt;</span>]</span></dt>
 	<dd class="worddesc">イメージファイル名に加えて配置方式を指定します。<em class="warning">配置方式はWsn.2以降のWSN形式シナリオでのみ機能します。</em></dd>
+	<dt class="keyword"><code>single</code></dt>
+	<dd class="worddesc">このメッセージを単行メッセージとして表示します。<em class="warning">Wsn.5以降のWSN形式シナリオでのみ機能します。</em></dd>
 </dl>
 <p class="desc">イメージの配置方式には以下のいずれかが指定できます。省略した場合は<code>default</code>になります。</p>
 
@@ -3602,6 +3607,7 @@ select
 selected
 shave
 silence
+single
 sleep
 step
 stop

@@ -89,18 +89,20 @@ class AbstractMessageDialog : EventDialog {
 	protected override void refDataVersion() { mixin(S_TRACE);
 		_selectionColumns.setEnabled(!summ || !summ.legacy || _selectionColumns.getSelection() != 1);
 		_centerX.setEnabled(!summ || !summ.legacy || _centerX.getSelection());
-		_centerY.setEnabled(!summ || !summ.legacy || _centerY.getSelection());
-		_boundaryCheck.setEnabled(!summ || !summ.legacy || _boundaryCheck.getSelection());
+		_centerY.setEnabled((!summ || !summ.legacy || _centerY.getSelection()) && !singleLine);
+		_boundaryCheck.setEnabled((!summ || !summ.legacy || _boundaryCheck.getSelection()) && !singleLine);
 		updateSelectTalkerEnabled();
 		refreshWarning();
 	}
 
 	protected void updateSelectTalkerEnabled() { mixin(S_TRACE);
-		_selectTalker.setEnabled((!summ || !summ.legacy || _selectTalker.getSelection()) && hasCharacterTalker);
+		_selectTalker.setEnabled((!summ || !summ.legacy || _selectTalker.getSelection()) && hasCharacterTalker && !singleLine);
 	}
 
 	@property
 	protected bool hasCharacterTalker() { return true; }
+	@property
+	protected bool singleLine() { return false; }
 
 	@property
 	private string[] warnings() { mixin(S_TRACE);
@@ -155,10 +157,10 @@ class AbstractMessageDialog : EventDialog {
 	private void updatePreview() { mixin(S_TRACE);
 		auto s = wrapReturnCode(text);
 		if (_previewWin) { mixin(S_TRACE);
-			_previewWin.text(imgPaths, s, _centerX.getSelection(), _centerY.getSelection(), _boundaryCheck.getSelection());
-			_previewWin.text(imgPaths, s, _centerX.getSelection(), _centerY.getSelection(), _boundaryCheck.getSelection());
+			_previewWin.text(imgPaths, singleLine, s, _centerX.getSelection(), _centerY.getSelection(), _boundaryCheck.getSelection());
+			_previewWin.text(imgPaths, singleLine, s, _centerX.getSelection(), _centerY.getSelection(), _boundaryCheck.getSelection());
 		} else { mixin(S_TRACE);
-			_preview.text(imgPaths, s, _centerX.getSelection(), _centerY.getSelection(), _boundaryCheck.getSelection());
+			_preview.text(imgPaths, singleLine, s, _centerX.getSelection(), _centerY.getSelection(), _boundaryCheck.getSelection());
 		}
 	}
 	private void updateShowPreview() { mixin(S_TRACE);
@@ -1307,13 +1309,39 @@ protected:
 class MessageDialog : AbstractMessageDialog {
 private:
 	CTabFolder _tabf;
-	Composite _msgCompA, _msgCompB;
+	Composite _msgCompA, _msgCompB, _msgCompC = null;
 	FixedWidthText!Text _text;
 	ImageSelect!(MtType.CARD, Combo) _msel;
+
+	protected override void refDataVersion() { mixin(S_TRACE);
+		disposeSingleLine();
+		super.refDataVersion();
+	}
+	private void disposeSingleLine() { mixin(S_TRACE);
+		if (!singleLine && _tabf.getItemCount() == 3 && summ && summ.legacy) { mixin(S_TRACE);
+			_tabf.getItem(2).dispose();
+			_msgCompC = null;
+		} else if (!(summ && summ.legacy) && _tabf.getItemCount() == 2) { mixin(S_TRACE);
+			createSingleLineTab();
+		}
+	}
+	void createSingleLineTab() { mixin(S_TRACE);
+		assert (_tabf.getItemCount() == 2);
+		assert (_msgCompC is null);
+		_msgCompC = new Composite(_tabf, SWT.NONE);
+		_msgCompC.setLayout(new CenterLayout);
+		auto tab = new CTabItem(_tabf, SWT.NONE);
+		tab.setText(prop.msgs.singleLineMessage);
+		tab.setControl(_msgCompC);
+	}
 
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
+
+		if (singleLine && !prop.isTargetVersion(summ, "5")) { mixin(S_TRACE);
+			ws ~= prop.msgs.warningSingleLineMessage;
+		}
 
 		ws ~= _msel.warnings;
 
@@ -1345,8 +1373,13 @@ private:
 		}
 		return false;
 	}
+	@property
+	protected override bool singleLine() { mixin(S_TRACE);
+		return _tabf.getSelectionIndex() == 2;
+	}
 
 	void tabChanged() { mixin(S_TRACE);
+		auto line = prop.looks.messageLine;
 		switch (_tabf.getSelectionIndex()) {
 		case 0:
 			_text.num = prop.looks.messageImageLen;
@@ -1356,15 +1389,20 @@ private:
 			_text.num = prop.looks.messageLen;
 			_text.widget.setParent(_msgCompB);
 			break;
+		case 2:
+			_text.num = prop.looks.messageLen;
+			line = 1;
+			_text.widget.setParent(_msgCompC);
+			break;
 		default: return;
 		}
-		_text.widget.setLayoutData(_text.computeTextBaseSize(prop.looks.messageLine));
+		disposeSingleLine();
+		_text.widget.setLayoutData(_text.computeTextBaseSize(line));
 		_text.widget.getParent().layout();
 		if (0 == _tabf.getSelectionIndex()) { mixin(S_TRACE);
 			_text.widget.getParent().getParent().layout();
 		}
-		updateSelectTalkerEnabled();
-		refreshWarning();
+		refDataVersion();
 		refreshPreview();
 	}
 	class SL : SelectionAdapter {
@@ -1397,6 +1435,7 @@ public:
 		case 0:
 			return _msel.images;
 		case 1:
+		case 2:
 			return [];
 		default: assert (0);
 		}
@@ -1450,6 +1489,9 @@ protected:
 			_text = createMessagePane(comm, prop, true, _msgCompA, summ, &summSkin);
 			mod(_text.widget);
 			_text.widget.addModifyListener(new ModText);
+			.listener(_text.widget, SWT.Verify, (e) { mixin(S_TRACE);
+				if (singleLine && e.text != "") e.text = e.text.splitLines()[0];
+			});
 			createTextMenu!Text(comm, prop, _text.widget, &catchMod, _undo);
 			auto menu = _text.widget.getMenu();
 			new MenuItem(menu, SWT.SEPARATOR);
@@ -1464,6 +1506,9 @@ protected:
 			auto tab = new CTabItem(_tabf, SWT.NONE);
 			tab.setText(prop.msgs.noImageMessage);
 			tab.setControl(_msgCompB);
+		}
+		if (!(summ && summ.legacy) || (evt && evt.singleLine)) { mixin(S_TRACE);
+			createSingleLineTab();
 		}
 
 		auto sChar = createSCharBar(comm, summ, area, &insert, &put, prop);
@@ -1489,7 +1534,10 @@ protected:
 		scope (exit) ignoreMod = false;
 		if (evt) { mixin(S_TRACE);
 			_text.setText(evt.text);
-			if (evt.cardPaths == []) { mixin(S_TRACE);
+			if (evt.singleLine) { mixin(S_TRACE);
+				assert (_msgCompC !is null);
+				_tabf.setSelection(2);
+			} else if (evt.cardPaths == []) { mixin(S_TRACE);
 				_tabf.setSelection(1);
 			}
 			_selectionColumns.setSelection(evt.selectionColumns);
@@ -1515,17 +1563,21 @@ protected:
 	}
 
 	override bool apply() { mixin(S_TRACE);
-		string text;
-		auto paths = selectedTalkerParam();
-		text = lastRet(wrapReturnCode(_text.getText()));
+		auto text = _text.getText();
+		if (singleLine && text != "") { mixin(S_TRACE);
+			text = text.splitLines()[0];
+		} else { mixin(S_TRACE);
+			text = lastRet(wrapReturnCode(text));
+		}
 		if (!evt) evt = new Content(CType.TalkMessage, "");
 		evt.text = text;
-		evt.cardPaths = paths;
+		evt.cardPaths = selectedTalkerParam();
 		evt.selectionColumns = _selectionColumns.getSelection();
 		evt.centeringX = _centerX.getSelection();
 		evt.centeringY = _centerY.getSelection();
 		evt.boundaryCheck = _boundaryCheck.getSelection();
 		evt.selectTalker = _selectTalker.getSelection();
+		evt.singleLine = singleLine;
 		return true;
 	}
 }
@@ -2256,8 +2308,8 @@ class MsgPreviewWindow {
 		_win.dispose();
 	}
 
-	void text(CardImage[] imgPaths, string message, bool centerX, bool centerY, bool boundaryCheck) { mixin(S_TRACE);
-		_preview.text(imgPaths, message, centerX, centerY, boundaryCheck);
+	void text(CardImage[] imgPaths, bool singleLine, string message, bool centerX, bool centerY, bool boundaryCheck) { mixin(S_TRACE);
+		_preview.text(imgPaths, singleLine, message, centerX, centerY, boundaryCheck);
 	}
 
 	private void refresh() { mixin(S_TRACE);
@@ -3280,6 +3332,7 @@ class MsgPreview : Composite {
 	private PreviewValues _values;
 
 	private CardImage[] _imgPaths = [];
+	private bool _singleLine = false;
 	private string _message = "";
 	private bool _centerX = false;
 	private bool _centerY = false;
@@ -3289,7 +3342,7 @@ class MsgPreview : Composite {
 		override void paintControl(PaintEvent e) { mixin(S_TRACE);
 			refreshImpl();
 			auto b = _canvas.getBounds();
-			auto rect = _prop.looks.messageBounds;
+			auto rect = _singleLine ? _prop.looks.singleLineMessageBounds : _prop.looks.messageBounds;
 			e.gc.drawImage(_img, (b.width - _prop.s(rect.width)) / 2, (b.height - _prop.s(rect.height)) / 2);
 		}
 	}
@@ -3347,11 +3400,12 @@ class MsgPreview : Composite {
 		_canvas.setLayoutData(cgd);
 	}
 
-	void text(CardImage[] imgPaths, string message, bool centerX, bool centerY, bool boundaryCheck) { mixin(S_TRACE);
-		if (imgPaths == _imgPaths && message == _message && centerX is _centerX && centerY is _centerY && boundaryCheck is _boundaryCheck) { mixin(S_TRACE);
+	void text(CardImage[] imgPaths, bool singleLine, string message, bool centerX, bool centerY, bool boundaryCheck) { mixin(S_TRACE);
+		if (imgPaths == _imgPaths && singleLine == _singleLine && message == _message && centerX is _centerX && centerY is _centerY && boundaryCheck is _boundaryCheck) { mixin(S_TRACE);
 			return;
 		}
 		_imgPaths = imgPaths;
+		_singleLine = singleLine;
 		_message = message;
 		_centerX = centerX;
 		_centerY = centerY;
@@ -3409,7 +3463,7 @@ class MsgPreview : Composite {
 		string[char] names;
 		VarValue[string] flags, steps, variants, sysSteps;
 		_values.getValues(names, flags, steps, variants, sysSteps);
-		_img = new Image(d, previewMessage(_comm, _prop, _summ, &summSkin, tImg, pos, _message,
+		_img = new Image(d, previewMessage(_comm, _prop, _summ, &summSkin, tImg, pos, _singleLine, _message,
 			[], names, flags, steps, variants, sysSteps, _centerX, _centerY, _boundaryCheck).scaled(_comm.prop.var.etc.imageScale));
 	}
 
@@ -3423,7 +3477,7 @@ class MsgPreview : Composite {
 
 /// メッセージのプレビューを生成する。
 ImageDataWithScale previewMessage(Commons comm, Props prop, in Summary summ, Skin delegate() skin, ImageDataWithScale[] talkers,
-		CardImagePosition[] poses, string message, in string[] sel, in string[char] names,
+		CardImagePosition[] poses, bool singleLine, string message, in string[] sel, in string[char] names,
 		in VarValue[string] flags, in VarValue[string] steps, in VarValue[string] variants,
 		in VarValue[string] sysSteps, bool centerX, bool centerY, bool boundaryCheck) { mixin(S_TRACE);
 	auto d = Display.getCurrent();
@@ -3432,8 +3486,15 @@ ImageDataWithScale previewMessage(Commons comm, Props prop, in Summary summ, Ski
 	} else { mixin(S_TRACE);
 		bool legacy = false;
 	}
+	CRect rect;
+	if (singleLine) { mixin(S_TRACE);
+		centerY = false;
+		boundaryCheck = false;
+		rect = prop.ds(prop.looks.singleLineMessageBounds);
+	} else { mixin(S_TRACE);
+		rect = prop.ds(prop.looks.messageBounds);
+	}
 	auto sPath = summ ? summ.scenarioPath : "";
-	auto rect = prop.ds(prop.looks.messageBounds);
 	auto bh = prop.ds(prop.looks.messageButtonHeight);
 	auto canvas = new Image(d, rect.width, rect.height + bh * cast(int)sel.length);
 	scope (exit) canvas.dispose();

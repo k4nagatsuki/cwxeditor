@@ -3644,7 +3644,14 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 	} case CType.TalkMessage: { mixin(S_TRACE);
 		string text = evt.text;
 		text = (text == "") ? comm.prop.msgs.noText : text.singleLine;
-		if (evt.cardPaths.length) {
+		if (evt.singleLine) { mixin(S_TRACE);
+			auto attrs = .msgAttrText(comm.prop, evt);
+			if (attrs == "") { mixin(S_TRACE);
+				return .tryFormat(comm.prop.msgs.ctTalkMessageSingleLine, text);
+			} else { mixin(S_TRACE);
+				return .tryFormat(comm.prop.msgs.ctTalkMessageSingleLineWithAttrs, text, attrs);
+			}
+		} else if (evt.cardPaths.length) { mixin(S_TRACE);
 			auto t = contentTextUseID!(CIDKind.CardImages)(comm, summ, evt.cardPaths, comm.prop.msgs.ctTalkMessageImage, evt);
 			auto attrs = .msgAttrText(comm.prop, evt);
 			if (attrs == "") { mixin(S_TRACE);
@@ -3652,7 +3659,7 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 			} else { mixin(S_TRACE);
 				return .tryFormat(comm.prop.msgs.ctTalkMessageWithAttrs, t, text, attrs);
 			}
-		} else {
+		} else { mixin(S_TRACE);
 			auto attrs = .msgAttrText(comm.prop, evt);
 			if (attrs == "") { mixin(S_TRACE);
 				return .tryFormat(comm.prop.msgs.ctTalkMessageNarration, text);
@@ -4171,16 +4178,16 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 string msgAttrText(in Props prop, in Content evt) { mixin(S_TRACE);
 	if (!evt) return "";
 	string[] attrs;
-	if (evt.centeringX && evt.centeringY) { mixin(S_TRACE);
+	if (evt.centeringX && evt.centeringY && !evt.singleLine) { mixin(S_TRACE);
 		if (prop.msgs.centeringXYOn != "") attrs ~= prop.msgs.centeringXYOn;
 	} else if (evt.centeringX) { mixin(S_TRACE);
 		if (prop.msgs.centeringXOn != "") attrs ~= prop.msgs.centeringXOn;
-	} else if (evt.centeringY) { mixin(S_TRACE);
+	} else if (evt.centeringY && !evt.singleLine) { mixin(S_TRACE);
 		if (prop.msgs.centeringYOn != "") attrs ~= prop.msgs.centeringYOn;
 	}
-	if (evt.boundaryCheck && prop.msgs.boundaryCheckOn != "") attrs ~= prop.msgs.boundaryCheckOn;
+	if (evt.boundaryCheck && prop.msgs.boundaryCheckOn != "" && !evt.singleLine) attrs ~= prop.msgs.boundaryCheckOn;
 	if (evt.selectionColumns != 1 && prop.msgs.ctColumns != "") attrs ~= .tryFormat(prop.msgs.ctColumns, evt.selectionColumns);
-	if (evt.selectTalker && hasCharacterTalker(evt) && prop.msgs.ctSelectTalker != "") attrs ~= prop.msgs.ctSelectTalker;
+	if (evt.selectTalker && hasCharacterTalker(evt) && prop.msgs.ctSelectTalker != "" && !evt.singleLine) attrs ~= prop.msgs.ctSelectTalker;
 	return attrs.join(" ");
 }
 

@@ -957,6 +957,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (cd.nextType is CNextType.Text && maxNextLen(c) < rows(c)) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.warningSelectionBarIsMany, rows(c), maxNextLen(c));
 		}
+		if (cd.use(CArg.SingleLine) && c.singleLine && !prop.isTargetVersion(isClassic, wsnVer, "5")) { mixin(S_TRACE);
+			r ~= prop.msgs.warningSingleLineMessage;
+		}
 		if (cd.nextType is CNextType.Text && c.selectionColumns != 1 && !prop.isTargetVersion(isClassic, wsnVer, "1") && !is160) { mixin(S_TRACE);
 			r ~= prop.msgs.warningSelectionColumns;
 		}

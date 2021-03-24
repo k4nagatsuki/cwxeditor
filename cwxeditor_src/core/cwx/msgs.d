@@ -526,6 +526,7 @@ class Msgs : Properties {
 
 	auto imageMessage = Msg("imageMessage", "イメージ付きメッセージ");
 	auto noImageMessage = Msg("noImageMessage", "イメージ無しメッセージ");
+	auto singleLineMessage = Msg("singleLineMessage", "単行メッセージ");
 	auto spCharsTitle = Msg("spCharsTitle", "特殊文字");
 	auto colorW = Msg("colorW", "デフォルト(&W)");
 	auto colorR = Msg("colorR", "赤色(&R)");
@@ -1094,6 +1095,8 @@ class Msgs : Properties {
 	auto ctTalkMessageWithAttrs = Msg("ctTalkMessageWithAttrs", "%1$s: %2$s (%3$s)");
 	auto ctTalkMessageNarration = Msg("ctTalkMessageNarration", "%1$s");
 	auto ctTalkMessageNarrationWithAttrs = Msg("ctTalkMessageNarrationWithAttrs", "%1$s (%2$s)");
+	auto ctTalkMessageSingleLine = Msg("ctTalkMessageSingleLine", "[単行]: %1$s");
+	auto ctTalkMessageSingleLineWithAttrs = Msg("ctTalkMessageSingleLineWithAttrs", "[単行]: %1$s (%2$s)");
 	auto ctTalkDialog = Msg("ctTalkDialog", "%1$s %2$s: %3$s");
 	auto ctTalkDialogWithAttrs = Msg("ctTalkDialogWithAttrs", "%1$s %2$s: %3$s (%4$s)");
 	auto ctTalkDialogNoCoupon = Msg("ctTalkDialogNoCoupon", "%1$s: %2$s");
@@ -2258,6 +2261,7 @@ class Msgs : Properties {
 	auto warningSkillPowerWithFixedValue = Msg("warningSkillPowerWithFixedValue", "精神力操作の固定値指定は、Wsn.1以降の形式のシナリオしか行えません。"); // Wsn.1
 	auto warningIncludedImage = Msg("warningIncludedImage", "WSN形式のシナリオでは格納イメージは使用できません。");
 	auto warningTransitionType = Msg("warningTransitionType", "背景切替方式の指定は、WSN形式のシナリオでしか行なえません。");
+	auto warningSingleLineMessage = Msg("warningSingleLineMessage", "単行メッセージは、Wsn.5以降の形式のシナリオでしか使用できません。");
 	auto warningSelectionColumns = Msg("warningSelectionColumns", "選択肢の複数列表示は、Wsn.1以降の形式のシナリオしか行えません。");
 	auto warningRunAwayCard = Msg("warningRunAwayCard", "キーコード「%1$s」付きのカードは死亡イベントを発生させないため、シナリオを誤動作させる可能性があります。");
 	auto warningEndOrChangeAreaInRound0 = Msg("warningEndOrChangeAreaInRound0", "クラシックエンジンのバグにより、バトル開始イベント中にシナリオ終了やエリア移動を行うと、プレイヤーのデータの破損を含めた異常が発生する可能性があります。");

@@ -1536,6 +1536,7 @@ enum CArg {
 	AbsorbTo, /// 吸収効果での吸収者(Wsn.4)。
 	GameOverEnabled, /// 敗北・ゲームオーバーの有効・無効(Wsn.5)。
 	RunAwayEnabled, /// 逃走の有効・無効(Wsn.5)。
+	SingleLine, /// 単行メッセージ(Wsn.5)。
 }
 
 /// 後続コンテントのnameの型。
