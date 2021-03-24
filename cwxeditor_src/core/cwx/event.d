@@ -149,7 +149,7 @@ private void static_this () { mixin(S_TRACE);
 		CType.EffectBreak:CDetail("Effect", "Break", CNextType.None, false, [CArg.ConsumeCard:"consumecard"]),
 		CType.LinkStart:CDetail("Link", "Start", CNextType.None, false, [CArg.Start:"link"]),
 		CType.LinkPackage:CDetail("Link", "Package", CNextType.None, false, [CArg.Package:"link"]),
-		CType.TalkMessage:CDetail("Talk", "Message", CNextType.Text, true, [CArg.TalkerC:_("path"), CArg.Text:null, CArg.SelectionColumns:"columns", CArg.BoundaryCheck:"boundarycheck", CArg.CenteringX:"centeringx", CArg.CenteringY:"centeringy", CArg.SelectTalker:"selecttalker"]),
+		CType.TalkMessage:CDetail("Talk", "Message", CNextType.Text, true, [CArg.TalkerC:_(null), CArg.Text:null, CArg.SelectionColumns:"columns", CArg.BoundaryCheck:"boundarycheck", CArg.CenteringX:"centeringx", CArg.CenteringY:"centeringy", CArg.SelectTalker:"selecttalker", CArg.SingleLine:"singleline"]),
 		CType.TalkDialog:CDetail("Talk", "Dialog", CNextType.Text, true, [CArg.TalkerNC:_("targetm"), CArg.Dialogs:null, CArg.Coupons:null, CArg.InitValue:"initialValue", CArg.SelectionColumns:"columns", CArg.BoundaryCheck:"boundarycheck", CArg.CenteringX:"centeringx", CArg.CenteringY:"centeringy", CArg.SelectTalker:"selecttalker"]),
 		CType.PlayBgm:CDetail("Play", "Bgm", CNextType.None, true, [CArg.BgmPath:"path", CArg.BgmChannel:"channel", CArg.BgmVolume:"volume", CArg.BgmLoopCount:"loopcount", CArg.BgmFadeIn:"fadein"]),
 		CType.PlaySound:CDetail("Play", "Sound", CNextType.None, true, [CArg.SoundPath:"path", CArg.SoundChannel:"channel", CArg.SoundVolume:"volume", CArg.SoundLoopCount:"loopcount", CArg.SoundFadeIn:"fadein"]),
@@ -671,6 +671,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		this.doAnime = c.doAnime;
 		this.ignoreEffectBooster = c.ignoreEffectBooster;
 
+		this.singleLine = c.singleLine;
 		this.selectionColumns = c.selectionColumns;
 		this.centeringX = c.centeringX;
 		this.centeringY = c.centeringY;
@@ -846,6 +847,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 			&& (!d.use(CArg.DoAnime) || doAnime == c.doAnime)
 			&& (!d.use(CArg.IgnoreEffectBooster) || ignoreEffectBooster == c.ignoreEffectBooster)
 
+			&& (!d.use(CArg.SingleLine) || singleLine == c.singleLine)
 			&& (!d.use(CArg.SelectionColumns) || selectionColumns == c.selectionColumns)
 			&& (!d.use(CArg.CenteringX) || centeringX == c.centeringX)
 			&& (!d.use(CArg.CenteringY) || centeringY == c.centeringY)
@@ -1184,6 +1186,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		resetValue!(CArg.DoAnime, bool, false)(d, od, &doAnime, base, base.doAnime);
 		resetValue!(CArg.IgnoreEffectBooster, bool, true)(d, od, &ignoreEffectBooster, base, base.ignoreEffectBooster);
 
+		resetValue!(CArg.SingleLine, bool, false)(d, od, &singleLine, base, base.singleLine);
 		resetValue!(CArg.SelectionColumns, uint, 1)(d, od, &selectionColumns, base, base.selectionColumns);
 		resetValue!(CArg.CenteringX, bool, false)(d, od, &centeringX, base, base.centeringX);
 		resetValue!(CArg.CenteringY, bool, false)(d, od, &centeringY, base, base.centeringY);
@@ -2313,6 +2316,8 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 	/// エフェクトブースター関係のセルを無視する(Wsn.1)。
 	mixin Prop!(bool, "ignoreEffectBooster", false);
 
+	/// メッセージを単行で表示するか(Wsn.5)。
+	mixin Prop!(bool, "singleLine", false);
 	/// 後続選択肢の列数(Wsn.1)。
 	mixin Prop!(uint, "selectionColumns", 1);
 	mixin MaxMin!(uint, "selectionColumns", uint.max, 1u);
@@ -2914,7 +2919,11 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 
 		atnPut!(CArg.TargetS, "targetS", "fromTarget")(e, d);
 		if (d.use(CArg.TalkerC)) { mixin(S_TRACE);
-			CardImage.toNode(e, _cardPaths, true);
+			if (d.use(CArg.SingleLine) && singleLine) { mixin(S_TRACE);
+				atnPut!(CArg.SingleLine, "singleLine", "fromBool")(e, d);
+			} else { mixin(S_TRACE);
+				CardImage.toNode(e, _cardPaths, true);
+			}
 		}
 		atnPut!(CArg.TalkerNC, "talkerNC", "fromTalker")(e, d);
 
@@ -3249,7 +3258,10 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 			};
 		}
 		if (d.use(CArg.Text)) { mixin(S_TRACE);
-			en.onTag["Text"] = (ref XNode node) { r.text = decodeLf2(node.value); };
+			en.onTag["Text"] = (ref XNode node) { mixin(S_TRACE);
+				r.text = decodeLf2(node.value);
+				if (r.singleLine && r.text != "") r.text = r.text.splitLines()[0];
+			};
 		}
 		if (d.use(CArg.Dialogs)) { mixin(S_TRACE);
 			en.onTag["Dialogs"] = (ref XNode node) { mixin(S_TRACE);
@@ -3291,7 +3303,10 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		}
 		CardImage[] cardPaths;
 		if (d.use(CArg.TalkerC)) { mixin(S_TRACE);
-			CardImage.setOnTag(en, cardPaths, true);
+			cfnPutD!(CArg.SingleLine, "singleLine", "parseBool", false)(en, d, r);
+			if (!r.singleLine) { mixin(S_TRACE);
+				CardImage.setOnTag(en, cardPaths, true);
+			}
 		}
 
 		if (d.use(CArg.BgImages)) { mixin(S_TRACE);

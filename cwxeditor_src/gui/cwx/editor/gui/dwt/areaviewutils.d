@@ -228,7 +228,7 @@ PileImage createMessageImage(Commons comm, Props prop, in Summary summ) { mixin(
 	string[char] names;
 	VarValue[string] flags, steps, variants, sysSteps;
 	// 特殊文字が無いためシナリオパス不要
-	auto imgData = previewMessage(comm, prop, null, () => comm.skin, null, null, "", [""], names, flags, steps, variants, sysSteps, false, false, false);
+	auto imgData = previewMessage(comm, prop, null, () => comm.skin, null, null, false, "", [""], names, flags, steps, variants, sysSteps, false, false, false);
 	auto img = new PileImage(imgData, prop.drawingScale, rect.x, rect.y, imgData.getWidth(NORMAL_SCALE), imgData.getHeight(NORMAL_SCALE), false, true);
 	img.layer = LAYER_MESSAGE * 10 - 1;
 	img.alpha = prop.var.etc.messageAlpha;

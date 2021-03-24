@@ -54,6 +54,7 @@ public:
 	@property const CRect castCardNameArea() { return CRect(5, 5, 85, 15); }
 
 	@property const CRect messageBounds() { return CRect(81, 50, 470, 180); }
+	@property const CRect singleLineMessageBounds() { return CRect(81, 50, 470, 40); }
 	@property const int messageButtonHeight() { return 25; }
 	const CPoint messageStartPos(bool legacy, bool withTalker, bool centerX) { mixin(S_TRACE);
 		if (centerX) { mixin(S_TRACE);
