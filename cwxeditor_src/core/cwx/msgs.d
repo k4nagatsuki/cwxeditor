@@ -2838,6 +2838,7 @@ class Msgs : Properties {
 	auto funcDescBattleRound = Msg("funcDescBattleRound", "現在のバトルのラウンド数を返します。バトル中ではない場合は-1を返します。"); // Wsn.5
 	auto funcDescCastLevel = Msg("funcDescCastLevel", "キャラクターのレベルを返します。該当者がいない場合は0を返します。"); // Wsn.5
 	auto funcDescCouponValue = Msg("funcDescCouponValue", "キャラクターの所持するクーポン名の点数を返します。該当者及びクーポンが見つからなかった場合は0を返します。"); // Wsn.5
+	auto funcDescLifeRatio = Msg("funcDescLifeRatio", "キャラクターのライフ残量を0～1の割合で返します。該当者がいない場合は-1を返します。"); // Wsn.5
 
 	auto funcShortDescLen = Msg("funcShortDescLen", "文字列の長さを返す");
 	auto funcShortDescFind = Msg("funcDescFind", "文字列内を検索");
@@ -2878,6 +2879,7 @@ class Msgs : Properties {
 	auto funcShortDescBattleRound = Msg("funcShortDescBattleRound", "バトルラウンドを取得"); // Wsn.5
 	auto funcShortDescCastLevel = Msg("funcShortDescCastLevel", "キャラクターのレベルを返す"); // Wsn.5
 	auto funcShortDescCouponValue = Msg("funcShortDescCouponValue", "クーポンの点数を返す"); // Wsn.5
+	auto funcShortDescLifeRatio = Msg("funcShortDescLifeRatio", "キャラクターのライフ残量を返す"); // Wsn.5
 
 	auto funcExampleLen = Msg("funcExampleLen", "LEN(\"対象文字列\") = 5");
 	auto funcExampleFind = Msg("funcExampleFind", "FIND(\"文字\", \"対象文字列\") = 3");
@@ -2918,6 +2920,7 @@ class Msgs : Properties {
 	auto funcExampleBattleRound = Msg("funcExampleBattleRound", "BATTLEROUND()"); // Wsn.5
 	auto funcExampleCastLevel = Msg("funcExampleCastLevel", "CASTLEVEL(SELECTED()) = 1"); // Wsn.5
 	auto funcExampleCouponValue = Msg("funcExampleCouponValue", "COUPONVALUE(SELECTED(), \"ゴブリン退治\")"); // Wsn.5
+	auto funcExampleLifeRatio = Msg("funcExampleLifeRatio", "LIFERATIO(SELECTED())"); // Wsn.5
 
 	auto exprStringDesc = Msg("exprStringDesc", "文字列");
 	auto exprFindStringDesc = Msg("exprFindStringDesc", "検索文字列");

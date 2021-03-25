@@ -597,6 +597,7 @@ private class Function : Part {
 			"battleround": &.funcBattleRound,
 			"castlevel": &.funcCastLevel,
 			"couponvalue": &.funcCouponValue,
+			"liferatio": &.funcLifeRatio,
 		];
 	}
 
@@ -2043,6 +2044,12 @@ private const(Part) funcCouponValue(in CProps prop, EvalMode mode, in VariableIn
 	return new NumberValue(func.token, 0);
 }
 
+/// キャラクター番号からキャラクターのライフ残量を割合で返す。存在しない場合は -1 を返す。
+private const(Part) funcLifeRatio(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
+	return new NumberValue(func.token, 1);
+}
+
 /// 入力支援用に関数の引数の型を表現する。
 enum ArgType {
 	Number, /// 数値。
@@ -2184,6 +2191,9 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 		FuncDef([FunctionCategory.CardInformation], "CASTLEVEL", prop.msgs.funcDescCastLevel, prop.msgs.funcShortDescCastLevel, prop.msgs.funcExampleCastLevel, [
 			ArgDef(ArgType.Number, prop.msgs.exprCastNumberDesc, "1", false),
 		], ArgType.Number),
+		FuncDef([FunctionCategory.CardInformation], "LIFERATIO", prop.msgs.funcDescLifeRatio, prop.msgs.funcShortDescLifeRatio, prop.msgs.funcExampleLifeRatio, [
+			ArgDef(ArgType.Number, prop.msgs.exprCastNumberDesc, "1", false),
+		], ArgType.Number), // Wsn.5
 		FuncDef([FunctionCategory.CouponInformation], "FINDCOUPON", prop.msgs.funcDescFindCoupon, prop.msgs.funcShortDescFindCoupon, prop.msgs.funcExampleFindCoupon, [
 			ArgDef(ArgType.Number, prop.msgs.exprCastNumberDesc, "1", false),
 			ArgDef(ArgType.String, prop.msgs.exprFindPatternDesc, "*", false),
