@@ -596,6 +596,7 @@ private class Function : Part {
 			"yadoname": &.funcYadoName,
 			"battleround": &.funcBattleRound,
 			"castlevel": &.funcCastLevel,
+			"couponvalue": &.funcCouponValue,
 		];
 	}
 
@@ -2036,6 +2037,12 @@ private const(Part) funcCastLevel(in CProps prop, EvalMode mode, in VariableInfo
 	return new NumberValue(func.token, 1);
 }
 
+/// キャラクター番号からキャラクターの所持するクーポン名の点数を返す。キャラクター及びクーポンが存在しない場合は 0 を返す。
+private const(Part) funcCouponValue(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
+	return new NumberValue(func.token, 0);
+}
+
 /// 入力支援用に関数の引数の型を表現する。
 enum ArgType {
 	Number, /// 数値。
@@ -2193,6 +2200,10 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 		FuncDef([FunctionCategory.CouponInformation], "GOSSIPTEXT", prop.msgs.funcDescGossipText, prop.msgs.funcShortDescGossipText, prop.msgs.funcExampleGossipText, [
 			ArgDef(ArgType.Number, prop.msgs.exprGossipNumberDesc, "1", false),
 		], ArgType.String),
+		FuncDef([FunctionCategory.CouponInformation], "COUPONVALUE", prop.msgs.funcDescCouponValue, prop.msgs.funcShortDescCouponValue, prop.msgs.funcExampleCouponValue, [
+			ArgDef(ArgType.Number, prop.msgs.exprCastNumberDesc, "1", false),
+			ArgDef(ArgType.String, prop.msgs.exprStringDesc, "", false),
+		], ArgType.Number), // Wsn.5
 		FuncDef([FunctionCategory.PlayingInformation], "PARTYNAME", prop.msgs.funcDescPartyName, prop.msgs.funcShortDescPartyName, prop.msgs.funcExamplePartyName, [
 		], ArgType.String),
 		FuncDef([FunctionCategory.PlayingInformation], "PARTYMONEY", prop.msgs.funcDescPartyMoney, prop.msgs.funcShortDescPartyMoney, prop.msgs.funcExamplePartyMoney, [

@@ -2837,6 +2837,7 @@ class Msgs : Properties {
 	auto funcDescYadoName = Msg("funcDescYadoName", "操作中の拠点名を返します。"); // Wsn.5
 	auto funcDescBattleRound = Msg("funcDescBattleRound", "現在のバトルのラウンド数を返します。バトル中ではない場合は-1を返します。"); // Wsn.5
 	auto funcDescCastLevel = Msg("funcDescCastLevel", "キャラクターのレベルを返します。該当者がいない場合は0を返します。"); // Wsn.5
+	auto funcDescCouponValue = Msg("funcDescCouponValue", "キャラクターの所持するクーポン名の点数を返します。該当者及びクーポンが見つからなかった場合は0を返します。"); // Wsn.5
 
 	auto funcShortDescLen = Msg("funcShortDescLen", "文字列の長さを返す");
 	auto funcShortDescFind = Msg("funcDescFind", "文字列内を検索");
@@ -2876,6 +2877,7 @@ class Msgs : Properties {
 	auto funcShortDescYadoName = Msg("funcShortDescYadoName", "拠点名を取得"); // Wsn.5
 	auto funcShortDescBattleRound = Msg("funcShortDescBattleRound", "バトルラウンドを取得"); // Wsn.5
 	auto funcShortDescCastLevel = Msg("funcShortDescCastLevel", "キャラクターのレベルを返す"); // Wsn.5
+	auto funcShortDescCouponValue = Msg("funcShortDescCouponValue", "クーポンの点数を返す"); // Wsn.5
 
 	auto funcExampleLen = Msg("funcExampleLen", "LEN(\"対象文字列\") = 5");
 	auto funcExampleFind = Msg("funcExampleFind", "FIND(\"文字\", \"対象文字列\") = 3");
@@ -2910,11 +2912,12 @@ class Msgs : Properties {
 	auto funcExampleLLeft = Msg("funcExampleLLeft", "LEFT(LIST(1, 2, 3), 2) = LIST(1, 2)"); // Wsn.5
 	auto funcExampleLRight = Msg("funcExampleLRight", "RIGHT(LIST(1, 2, 3), 2) = LIST(2, 3)"); // Wsn.5
 	auto funcExampleLMid = Msg("funcExampleLMid", "MID(LIST(1, 2, 3, 4, 5), 2, 3) = LIST(2, 3, 4)"); // Wsn.5
-	auto funcExamplePartyMoney = Msg("funcExamplePartyMoney", "PARTYMONEY()");
-	auto funcExamplePartyNumber = Msg("funcExamplePartyNumber", "PARTYNUMBER()");
-	auto funcExampleYadoName = Msg("funcExampleYadoName", "YADONAME()");
-	auto funcExampleBattleRound = Msg("funcExampleBattleRound", "BATTLEROUND()");
-	auto funcExampleCastLevel = Msg("funcExampleCastLevel", "CASTLEVEL(SELECTED()) = 1");
+	auto funcExamplePartyMoney = Msg("funcExamplePartyMoney", "PARTYMONEY()"); // Wsn.5
+	auto funcExamplePartyNumber = Msg("funcExamplePartyNumber", "PARTYNUMBER()"); // Wsn.5
+	auto funcExampleYadoName = Msg("funcExampleYadoName", "YADONAME()"); // Wsn.5
+	auto funcExampleBattleRound = Msg("funcExampleBattleRound", "BATTLEROUND()"); // Wsn.5
+	auto funcExampleCastLevel = Msg("funcExampleCastLevel", "CASTLEVEL(SELECTED()) = 1"); // Wsn.5
+	auto funcExampleCouponValue = Msg("funcExampleCouponValue", "COUPONVALUE(SELECTED(), \"ゴブリン退治\")"); // Wsn.5
 
 	auto exprStringDesc = Msg("exprStringDesc", "文字列");
 	auto exprFindStringDesc = Msg("exprFindStringDesc", "検索文字列");
