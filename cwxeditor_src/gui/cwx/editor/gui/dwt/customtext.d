@@ -196,7 +196,7 @@ class FixedWidthText(T = Text) {
 	}
 }
 
-/// 入力された文字列の長さを検証し、制限をかける。
+/// 入力された文字列の長さを検証し、制限を超えたか制限内に収まった時に通知する。
 class GBLimitText {
 	/// 入力された文字列の長さが制限を超えたか、
 	/// または制限内に収まったときに呼び出される。
@@ -214,81 +214,23 @@ class GBLimitText {
 	/// Params:
 	/// font = 検証に使用するフォント。
 	/// num = 最大文字数。[' 'の幅 * num]が入力可能な文字列幅となる。
-	/// cut = trueの場合、制限を超えた分は無条件にカットする。
-	this (string font, int num, bool cut, Composite parent, int style) { mixin(S_TRACE);
+	this (string font, int num, Composite parent, int style) { mixin(S_TRACE);
 		_widget = new Text(parent, style | SWT.NO_BACKGROUND);
-		_cut = cut;
 		_gc = new GC(_widget);
 		_gc.setFont(new Font(Display.getCurrent(), new FontData(font, 10, SWT.NORMAL)));
 		_width = _gc.wTextExtent(" ").x * num;
 
-		_widget.addListener(SWT.Verify, new class Listener {
-			override void handleEvent(Event e) { mixin(S_TRACE);
-				if (!_cut) { mixin(S_TRACE);
-					e.doit = true;
-					return;
-				}
-				if (_ed) return;
-				wstring vText;
-				try { mixin(S_TRACE);
-					vText = toUTF16(e.text);
-				} catch (Exception e) { mixin(S_TRACE);
-					// FIXME: 時々壊れたテキストが来る
-					//        「情報」と入力したときなど
-					printStackTrace();
-					debugln(e);
-					return;
-				}
-				if (vText.length < e.end - e.start) { mixin(S_TRACE);
-					// 文字数が減少するなら無条件に通す
-					e.doit = true;
-				} else { mixin(S_TRACE);
-					auto text = toUTF16(_widget.getText());
-					auto p = _widget.getSelection();
-					text = text[0 .. p.x] ~ text[p.y .. $];
-					auto st = text[0 .. e.start];
-					auto el = text[e.end .. $];
-					if (vText.length > 1) { mixin(S_TRACE);
-						// 複数文字挿入。ペーストのみ。
-						while (_gc.wTextExtent(toUTF8(st ~ vText ~ el)).x > _width && vText.length > 0) { mixin(S_TRACE);
-							vText = vText[0 .. $ - 1];
-						}
-						e.text = toUTF8(vText);
-						e.doit = true;
-					} else { mixin(S_TRACE);
-						// 単字。FIXME: 日本語入力ではe.textが化けるみたい。
-						e.doit = _gc.wTextExtent(toUTF8(st ~ vText ~ el)).x <= _width;
-					}
-				}
-			}
-		});
 		// FIXME: 全角スペース入力でVerifyEventが入力文字を取れないようなので暫定
 		_widget.addListener(SWT.Modify, new class Listener {
 			override void handleEvent(Event e) { mixin(S_TRACE);
-				if (!_cut) { mixin(S_TRACE);
-					bool over = _gc.wTextExtent(getText()).x > _width;
-					if (_over != over) { mixin(S_TRACE);
-						_over = over;
-						foreach (le; limitEvent) { mixin(S_TRACE);
-							le();
-						}
-					} else { mixin(S_TRACE);
-						_over = over;
+				bool over = _gc.wTextExtent(getText()).x > _width;
+				if (_over != over) { mixin(S_TRACE);
+					_over = over;
+					foreach (le; limitEvent) { mixin(S_TRACE);
+						le();
 					}
-					return;
-				}
-				if (_ed) return;
-				if (_gc.wTextExtent(getText()).x <= _width) { mixin(S_TRACE);
-					_old = _widget.getText();
 				} else { mixin(S_TRACE);
-					int cur = _widget.getCaretPosition();
-					Point sel = _widget.getSelection();
-					if (cur >= sel.x) sel.x--;
-					if (cur >= sel.y) sel.y--;
-					_ed = true;
-					_widget.setText(_old);
-					_ed = false;
-					_widget.setSelection(sel);
+					_over = over;
 				}
 			}
 		});
