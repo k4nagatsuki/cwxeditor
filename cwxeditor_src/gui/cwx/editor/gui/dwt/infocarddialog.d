@@ -119,7 +119,7 @@ protected:
 			grp.setLayout(normalGridLayout(1, false));
 			grp.setText(_prop.msgs.name);
 			_name = new GBLimitText(_prop.looks.monospace,
-				_prop.looks.nameLimit, false, grp, SWT.BORDER | _readOnly);
+				_prop.looks.nameLimit, grp, SWT.BORDER | _readOnly);
 			mod(_name.widget);
 			createTextMenu!Text(_comm, _prop, _name.widget, &catchMod);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
