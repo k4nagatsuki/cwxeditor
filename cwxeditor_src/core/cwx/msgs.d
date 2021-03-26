@@ -2942,6 +2942,7 @@ class Msgs : Properties {
 	auto exprStepValueDesc = Msg("exprStepValueDesc", "ステップ値");
 	auto exprCastNumberDesc = Msg("exprCastNumberDesc", "キャラクター番号");
 	auto exprFindPatternDesc = Msg("exprFindPatternDesc", "検索文字列");
+	auto exprCouponNameDesc = Msg("exprCouponNameDesc", "クーポン名");
 	auto exprCouponNumberDesc = Msg("exprCouponNumberDesc", "クーポン番号");
 	auto exprGossipNumberDesc = Msg("exprGossipNumberDesc", "ゴシップ番号");
 	auto exprFindStartPositionDesc = Msg("exprFindStartPositionDesc", "検索開始位置");

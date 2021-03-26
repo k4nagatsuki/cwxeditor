@@ -2205,7 +2205,7 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 		], ArgType.String),
 		FuncDef([FunctionCategory.CouponInformation], "COUPONVALUE", prop.msgs.funcDescCouponValue, prop.msgs.funcShortDescCouponValue, prop.msgs.funcExampleCouponValue, [
 			ArgDef(ArgType.Number, prop.msgs.exprCastNumberDesc, "1", false),
-			ArgDef(ArgType.String, prop.msgs.exprStringDesc, "", false),
+			ArgDef(ArgType.String, prop.msgs.exprCouponNameDesc, "", false),
 		], ArgType.Number), // Wsn.5
 		FuncDef([FunctionCategory.CouponInformation], "FINDGOSSIP", prop.msgs.funcDescFindGossip, prop.msgs.funcShortDescFindGossip, prop.msgs.funcExampleFindGossip, [
 			ArgDef(ArgType.String, prop.msgs.exprFindPatternDesc, "*", false),
