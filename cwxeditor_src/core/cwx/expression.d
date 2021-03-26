@@ -2203,6 +2203,10 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 			ArgDef(ArgType.Number, prop.msgs.exprCastNumberDesc, "1", false),
 			ArgDef(ArgType.Number, prop.msgs.exprCouponNumberDesc, "1", false),
 		], ArgType.String),
+		FuncDef([FunctionCategory.CouponInformation], "COUPONVALUE", prop.msgs.funcDescCouponValue, prop.msgs.funcShortDescCouponValue, prop.msgs.funcExampleCouponValue, [
+			ArgDef(ArgType.Number, prop.msgs.exprCastNumberDesc, "1", false),
+			ArgDef(ArgType.String, prop.msgs.exprStringDesc, "", false),
+		], ArgType.Number), // Wsn.5
 		FuncDef([FunctionCategory.CouponInformation], "FINDGOSSIP", prop.msgs.funcDescFindGossip, prop.msgs.funcShortDescFindGossip, prop.msgs.funcExampleFindGossip, [
 			ArgDef(ArgType.String, prop.msgs.exprFindPatternDesc, "*", false),
 			ArgDef(ArgType.Number, prop.msgs.exprFindStartPositionDesc, "", true),
@@ -2210,10 +2214,6 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 		FuncDef([FunctionCategory.CouponInformation], "GOSSIPTEXT", prop.msgs.funcDescGossipText, prop.msgs.funcShortDescGossipText, prop.msgs.funcExampleGossipText, [
 			ArgDef(ArgType.Number, prop.msgs.exprGossipNumberDesc, "1", false),
 		], ArgType.String),
-		FuncDef([FunctionCategory.CouponInformation], "COUPONVALUE", prop.msgs.funcDescCouponValue, prop.msgs.funcShortDescCouponValue, prop.msgs.funcExampleCouponValue, [
-			ArgDef(ArgType.Number, prop.msgs.exprCastNumberDesc, "1", false),
-			ArgDef(ArgType.String, prop.msgs.exprStringDesc, "", false),
-		], ArgType.Number), // Wsn.5
 		FuncDef([FunctionCategory.PlayingInformation], "PARTYNAME", prop.msgs.funcDescPartyName, prop.msgs.funcShortDescPartyName, prop.msgs.funcExamplePartyName, [
 		], ArgType.String),
 		FuncDef([FunctionCategory.PlayingInformation], "PARTYMONEY", prop.msgs.funcDescPartyMoney, prop.msgs.funcShortDescPartyMoney, prop.msgs.funcExamplePartyMoney, [
