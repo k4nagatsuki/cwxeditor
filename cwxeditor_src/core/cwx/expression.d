@@ -2038,7 +2038,7 @@ private const(Part) funcCastLevel(in CProps prop, EvalMode mode, in VariableInfo
 	return new NumberValue(func.token, 1);
 }
 
-/// キャラクター番号からキャラクターの所持するクーポン名の点数を返す。キャラクター及びクーポンが存在しない場合は 0 を返す。
+/// キャラクター番号からキャラクターの所持するクーポン名の点数を返す。キャラクターまたはクーポンが存在しない場合は 0 を返す。
 private const(Part) funcCouponValue(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
 	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
 	return new NumberValue(func.token, 0);

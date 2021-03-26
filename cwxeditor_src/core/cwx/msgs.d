@@ -2837,8 +2837,8 @@ class Msgs : Properties {
 	auto funcDescYadoName = Msg("funcDescYadoName", "操作中の拠点名を返します。"); // Wsn.5
 	auto funcDescBattleRound = Msg("funcDescBattleRound", "現在のバトルのラウンド数を返します。バトル中ではない場合は-1を返します。"); // Wsn.5
 	auto funcDescCastLevel = Msg("funcDescCastLevel", "キャラクターのレベルを返します。該当者がいない場合は0を返します。"); // Wsn.5
-	auto funcDescCouponValue = Msg("funcDescCouponValue", "キャラクターの所持するクーポン名の点数を返します。該当者及びクーポンが見つからなかった場合は0を返します。"); // Wsn.5
-	auto funcDescLifeRatio = Msg("funcDescLifeRatio", "キャラクターのライフ残量を0～1の割合で返します。該当者がいない場合は-1を返します。"); // Wsn.5
+	auto funcDescCouponValue = Msg("funcDescCouponValue", "キャラクターの所持するクーポン名の点数を返します。該当者またはクーポンが見つからなかった場合は0を返します。"); // Wsn.5
+	auto funcDescLifeRatio = Msg("funcDescLifeRatio", "キャラクターのライフ残量を0.0～1.0の割合で返します。該当者がいない場合は-1を返します。"); // Wsn.5
 
 	auto funcShortDescLen = Msg("funcShortDescLen", "文字列の長さを返す");
 	auto funcShortDescFind = Msg("funcDescFind", "文字列内を検索");
