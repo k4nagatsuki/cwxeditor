@@ -3526,6 +3526,7 @@ private byte fromRange(Range v) { mixin(S_TRACE);
 	case Range.CouponHolder: return 0; // Wsn.2
 	case Range.CardTarget: return 0; // Wsn.2
 	case Range.SelectedCard: return 0; // Wsn.3
+	case Range.Npc: return 0; // Wsn.5
 	}
 }
 private byte fromRangeEffectContent(Range v) { mixin(S_TRACE);
@@ -3539,6 +3540,7 @@ private byte fromRangeEffectContent(Range v) { mixin(S_TRACE);
 	case Range.CouponHolder: return 0;
 	case Range.CardTarget: return 3;
 	case Range.SelectedCard: return 0;
+	case Range.Npc: return 0;
 	}
 }
 /// CardWirth 1.50
@@ -3560,6 +3562,7 @@ private byte fromCouponRange(Range v) { mixin(S_TRACE);
 	case Range.Random: return 1;
 	case Range.Party: return 2;
 	case Range.Field: return 3;
+	case Range.Npc: return 0; // Wsn.5
 	default: throw new SummaryException("Unknown range value: " ~ to!(string)(cast(int)v));
 	}
 }

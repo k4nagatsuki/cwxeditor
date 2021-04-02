@@ -233,7 +233,7 @@ private class RangePanel : Composite {
 
 	private void refDataVersion() { mixin(S_TRACE);
 		auto range = this.range;
-		if ((range is Range.CouponHolder || range is Range.CardTarget) && _summ.legacy) { mixin(S_TRACE);
+		if ((range is Range.CouponHolder || range is Range.CardTarget || range is Range.Npc) && _summ.legacy) { mixin(S_TRACE);
 			_radioGrp.select(_range[_ranges[0]]);
 		}
 		updateEnabled();
@@ -250,9 +250,11 @@ private class RangePanel : Composite {
 			}
 			b.setEnabled(!_summ.legacy);
 		}
-		b = _range.get(Range.CardTarget, null);
-		if (b) { mixin(S_TRACE);
-			b.setEnabled(!_summ.legacy);
+		foreach (range; [Range.CardTarget, Range.Npc]) { mixin(S_TRACE);
+			b = _range.get(range, null);
+			if (b) { mixin(S_TRACE);
+				b.setEnabled(!_summ.legacy);
+			}
 		}
 	}
 
@@ -939,6 +941,9 @@ private:
 					ws ~= prop.msgs.warningBranchCouponAtField;
 				}
 			}
+			if (_range.range is Range.Npc && !_comm.prop.isTargetVersion(_summ, "5")) { mixin(S_TRACE);
+				ws ~= _comm.prop.msgs.warningBranchCouponAtNpc;
+			}
 		}
 		static if (Type is CType.BranchCoupon) {
 			if(!prop.isTargetVersion(summ, "4") && _invertResult.getSelectionIndex() == 1) { mixin(S_TRACE);
@@ -1196,6 +1201,7 @@ protected:
 			auto ranges = RANGE_MEMBER.dup;
 			static if (Field) {
 				ranges ~= Range.Field;
+				ranges ~= Range.Npc;
 			}
 			static if (Type is CType.GetCoupon || Type is CType.LoseCoupon) {
 				ranges ~= Range.CouponHolder;
@@ -4873,6 +4879,9 @@ private:
 		if (!prop.isTargetVersion(summ, "2")) { mixin(S_TRACE);
 			ws ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(CType.BranchMultiCoupon), "2");
 		}
+		if (_range.range is Range.Npc && !_comm.prop.isTargetVersion(summ, "5")) { mixin(S_TRACE);
+			ws ~= _comm.prop.msgs.warningBranchCouponAtNpc;
+		}
 		if (_expandSPChars.getSelection()) { mixin(S_TRACE);
 			if (!_comm.prop.isTargetVersion(_summ, "4")) { mixin(S_TRACE);
 				ws ~= _comm.prop.msgs.warningExpandSPCharsInCoupon;
@@ -4890,7 +4899,7 @@ protected:
 	override void setup(Composite area) { mixin(S_TRACE);
 		area.setLayout(normalGridLayout(2, false));
 
-		auto ranges = [Range.Selected, Range.Random, Range.Party, Range.Field];
+		auto ranges = [Range.Selected, Range.Random, Range.Party, Range.Field, Range.Npc];
 		auto title = _prop.msgs.judgeTarget;
 		_range = new RangePanel(comm, summ, _uc, area, ranges, "", title, false, this, evt, &catchMod, &refreshWarning, type);
 		_range.setLayoutData(new GridData(GridData.FILL_BOTH));

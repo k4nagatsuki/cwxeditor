@@ -1980,6 +1980,10 @@ fi`;
 				static if (Within) goto default;
 				i++;
 				return Range.Field;
+			case "npc":
+				static if (Within) goto default;
+				i++;
+				return Range.Npc;
 			case "selcard": i++; return Range.SelectedCard;
 			default: throwError(_prop.msgs.scriptErrorInvalidRange, attr[i].token);
 			}
@@ -3377,6 +3381,7 @@ fi`;
 			case Range.CouponHolder: attrs ~= "coupon"; break; // Wsn.2
 			case Range.CardTarget: attrs ~= "card"; break; // Wsn.2
 			case Range.SelectedCard: attrs ~= "selcard"; break; // Wsn.3
+			case Range.Npc: attrs ~= "npc"; break; // Wsn.5
 			default: assert (0);
 			}
 		} else static if (is(T : CastRange)) {
@@ -4579,6 +4584,7 @@ CWXScriptKeyword[] keywordInfos(in CProps prop, in ElementOverride[Element] eTbl
 		CWXScriptKeyword("party", prop.msgs.range, prop.msgs.rangeName(Range.PartyAndBackpack)),
 		CWXScriptKeyword("field", prop.msgs.range, prop.msgs.rangeName(Range.Field)),
 		CWXScriptKeyword("selcard", prop.msgs.range, prop.msgs.rangeName(Range.SelectedCard)),
+		CWXScriptKeyword("npc", prop.msgs.range, prop.msgs.rangeName(Range.Npc)),
 
 		// 身体特性
 		CWXScriptKeyword("dex", prop.msgs.aptPhysical, prop.msgs.physicalName(Physical.Dex)),

@@ -964,6 +964,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 			case Range.Random:
 			case Range.Party:
 			case Range.Field:
+			case Range.Npc:
 				break;
 			default:
 				_range = Range.Selected;
@@ -1279,8 +1280,8 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 
 		resetValue!(CArg.Coupons, Coupon[], [])(d, od, &coupons, base, base.coupons);
 
-		if ((type is CType.GetCoupon || type is CType.LoseCoupon) && range is Range.Field) { mixin(S_TRACE);
-			// 称号獲得・喪失コンテントでは「フィールド全体」は使用不可
+		if ((type is CType.GetCoupon || type is CType.LoseCoupon) && (range is Range.Field || range is Range.Npc)) { mixin(S_TRACE);
+			// 称号獲得・喪失コンテントでは「フィールド全体」「同行キャスト」は使用不可
 			range = Range.Selected;
 		}
 		if (type is CType.BranchCoupon && !od.use(CArg.Range)) { mixin(S_TRACE);
