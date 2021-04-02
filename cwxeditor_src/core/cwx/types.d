@@ -621,6 +621,7 @@ enum Range {
 	CouponHolder, /// 称号所有者(Wsn.2)。
 	CardTarget, /// カードの効果対象(Wsn.2)。
 	SelectedCard, /// 選択カード(Wsn.3)。
+	Npc, /// 同行キャスト(Wsn.5)。
 }
 /// 文字列から適用範囲を生成。
 Range toRange(string name) { mixin(S_TRACE);
@@ -643,6 +644,8 @@ Range toRange(string name) { mixin(S_TRACE);
 		return Range.CardTarget;
 	case "SelectedCard":
 		return Range.SelectedCard;
+	case "Npc":
+		return Range.Npc;
 	default:
 		throw new MotionException("Unknown targets: " ~ name);
 	}
@@ -668,6 +671,8 @@ string fromRange(Range r) { mixin(S_TRACE);
 		return "CardTarget";
 	case Range.SelectedCard:
 		return "SelectedCard";
+	case Range.Npc:
+		return "Npc";
 	}
 }
 /// 効果対象や話者選択時に現れる適用範囲。

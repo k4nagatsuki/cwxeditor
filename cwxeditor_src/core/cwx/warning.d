@@ -977,6 +977,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (c.range == Range.Field && cd.use(CArg.Coupon) && !prop.targetVersion("1.30", targVer)) { mixin(S_TRACE);
 			r ~= prop.msgs.warningBranchCouponAtField;
 		}
+		if (c.range == Range.Npc && (c.type is CType.BranchCoupon || c.type is CType.BranchMultiCoupon) && !prop.isTargetVersion(isClassic, wsnVer, "5")) { mixin(S_TRACE);
+			r ~= prop.msgs.warningBranchCouponAtNpc;
+		}
 		if (c.selectionMethod is SelectionMethod.Valued && !prop.isTargetVersion(isClassic, wsnVer, "1")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningValuedSelectionMethod;
 		}

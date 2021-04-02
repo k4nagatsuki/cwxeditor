@@ -1895,6 +1895,7 @@ class Msgs : Properties {
 	auto rangeNameCouponHolder = Msg("rangeNameCouponHolder", "称号所有者");
 	auto rangeNameCardTarget = Msg("rangeNameCardTarget", "カードの使用対象"); // Wsn.2
 	auto rangeNameSelectedCard = Msg("rangeNameSelectedCard", "選択カード"); // Wsn.3
+	auto rangeNameNpc = Msg("rangeNameNpc", "同行キャスト"); // Wsn.5
 	auto rangeWithCoupon = Msg("rangeWithCoupon", "称号所有者(%1$s)");
 	auto rangeWithNoCoupon = Msg("rangeWithNoCoupon", "称号所有者(指定無し)");
 	auto rangeDescField = Msg("rangeDescField", "パーティ・荷物袋・エネミーカードを含む");
@@ -2249,6 +2250,7 @@ class Msgs : Properties {
 	auto warningUnknownContent = Msg("warningUnknownContent", "イベント [%1$s] はCardWirth %2$sより前のバージョンでは使用できません。");
 	auto warningUnknownContentWsn = Msg("warningUnknownContentWsn", "イベント [%1$s] はWsn.%2$sより前のバージョンでは使用できません。");
 	auto warningBranchCouponAtField = Msg("warningBranchCouponAtField", "フィールド全体でのクーポン所持判定は、CardWirth 1.30より前のバージョンでは使用できません。");
+	auto warningBranchCouponAtNpc = Msg("warningBranchCouponAtNpc", "同行キャストのクーポン所持判定は、Wsn.5以降の形式のシナリオでしか行えません。");
 	auto warningSexCoupon = Msg("warningSexCoupon", "「%1$s」は性別を示すクーポンであるため、経歴に使用できません。");
 	auto warningPeriodCoupon = Msg("warningPeriodCoupon", "「%1$s」は年代を示すクーポンであるため、経歴に使用できません。");
 	auto warningNatureCoupon = Msg("warningNatureCoupon", "「%1$s」は素質を示すクーポンであるため、経歴に使用できません。");
