@@ -188,14 +188,16 @@ class KeyCodeView : AbstractEditableListView!string {
 	override
 	protected void initPopupMenu(Menu menu) { mixin(S_TRACE);
 		new MenuItem(menu, SWT.SEPARATOR);
-		if (!readOnly && _withIgnitionType) { mixin(S_TRACE);
+		if (!readOnly && !canDuplicate) { mixin(S_TRACE);
 			void delegate() dlg = null;
 			auto cascade = createMenuItem(_comm, menu, MenuID.KeyCodeTiming, dlg, () => canConvKeyCode!(FKCKind.Use) || canConvKeyCode!(FKCKind.Success) || canConvKeyCode!(FKCKind.Failure) || canConvKeyCode!(FKCKind.HasNot), SWT.CASCADE);
 			auto sub = new Menu(parent.getShell(), SWT.DROP_DOWN);
 			cascade.setMenu(sub);
 			createMenuItem(_comm, sub, MenuID.KeyCodeTimingUse, &convKeyCode!(FKCKind.Use), &canConvKeyCode!(FKCKind.Use));
-			createMenuItem(_comm, sub, MenuID.KeyCodeTimingSuccess, &convKeyCode!(FKCKind.Success), &canConvKeyCode!(FKCKind.Success));
-			createMenuItem(_comm, sub, MenuID.KeyCodeTimingFailure, &convKeyCode!(FKCKind.Failure), &canConvKeyCode!(FKCKind.Failure));
+			if (_withIgnitionType) { mixin(S_TRACE);
+				createMenuItem(_comm, sub, MenuID.KeyCodeTimingSuccess, &convKeyCode!(FKCKind.Success), &canConvKeyCode!(FKCKind.Success));
+				createMenuItem(_comm, sub, MenuID.KeyCodeTimingFailure, &convKeyCode!(FKCKind.Failure), &canConvKeyCode!(FKCKind.Failure));
+			}
 			createMenuItem(_comm, sub, MenuID.KeyCodeTimingHasNot, &convKeyCode!(FKCKind.HasNot), &canConvKeyCode!(FKCKind.HasNot));
 		}
 		void delegate() dlg = null;
@@ -298,6 +300,7 @@ class KeyCodeView : AbstractEditableListView!string {
 			}
 			return false;
 		} else { mixin(S_TRACE);
+			if (!_withIgnitionType && Kind !is FKCKind.HasNot && Kind !is FKCKind.Use) return false;
 			bool[string] kTable;
 			foreach (name; keyCodes) { mixin(S_TRACE);
 				if (name == "") continue;
