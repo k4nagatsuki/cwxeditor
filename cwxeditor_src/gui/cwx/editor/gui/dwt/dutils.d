@@ -4033,14 +4033,15 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		auto selectCard = evt.selectCard ? comm.prop.msgs.ctSelectFoundCard : comm.prop.msgs.noSelectFoundCard;
 		string resultType = evt.invertResult ? comm.prop.msgs.haveNot : comm.prop.msgs.have;
 		if (evt.keyCodeRange is Range.SelectedCard) { mixin(S_TRACE);
-			resultType = evt.invertResult ? comm.prop.msgs.haveNotForSelectedCard : comm.prop.msgs.haveForSelectedCard;
+			resultType = evt.invertResult ? comm.prop.msgs.notExists : comm.prop.msgs.exists;
 		}
+		auto condition = evt.matchingCondition is MatchingCondition.Has ? comm.prop.msgs.contains : comm.prop.msgs.notContains;
 		if (evt.targetIsSkill && evt.targetIsItem && evt.targetIsBeast && evt.targetIsHand) { mixin(S_TRACE);
 			if (evt.keyCodeRange is Range.SelectedCard) { mixin(S_TRACE);
-				return .tryFormat(comm.prop.msgs.ctBranchKeyCodeAllTypeForSelectedCard, name, resultType, selectCard);
+				return .tryFormat(comm.prop.msgs.ctBranchKeyCodeWithConditionAllTypeForSelectedCard, name, condition, resultType);
 			} else { mixin(S_TRACE);
 				auto range = .rangeName(comm.prop, evt.keyCodeRange, evt.holdingCoupon);
-				return .tryFormat(comm.prop.msgs.ctBranchKeyCodeAllType, name, resultType, range, selectCard);
+				return .tryFormat(comm.prop.msgs.ctBranchKeyCodeWithConditionAllType, name, condition, resultType, range, selectCard);
 			}
 		} else { mixin(S_TRACE);
 			string[] targets;
@@ -4053,10 +4054,10 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 				target = targets.join(comm.prop.msgs.targetSeparator.value);
 			}
 			if (evt.keyCodeRange is Range.SelectedCard) { mixin(S_TRACE);
-				return .tryFormat(comm.prop.msgs.ctBranchKeyCodeForSelectedCard, name, resultType, target, selectCard);
+				return .tryFormat(comm.prop.msgs.ctBranchKeyCodeWithConditionForSelectedCard, name, condition, target, resultType);
 			} else { mixin(S_TRACE);
 				auto range = .rangeName(comm.prop, evt.keyCodeRange, evt.holdingCoupon);
-				return .tryFormat(comm.prop.msgs.ctBranchKeyCode, name, target, resultType, range, selectCard);
+				return .tryFormat(comm.prop.msgs.ctBranchKeyCodeWithCondition, name, condition, target, resultType, range, selectCard);
 			}
 		}
 	} case CType.CheckStep: { mixin(S_TRACE);

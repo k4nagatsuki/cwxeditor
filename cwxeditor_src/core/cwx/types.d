@@ -1538,6 +1538,7 @@ enum CArg {
 	GameOverEnabled, /// 敗北・ゲームオーバーの有効・無効(Wsn.5)。
 	RunAwayEnabled, /// 逃走の有効・無効(Wsn.5)。
 	SingleLine, /// 単行メッセージ(Wsn.5)。
+	MatchingCondition, /// マッチング条件(Wsn.5)。
 }
 
 /// 後続コンテントのnameの型。
@@ -1944,6 +1945,7 @@ enum CardImagePosition {
 	Center, /// 中央寄せ。
 	TopLeft /// 左上起点。
 }
+
 /// マッチングタイプ(Wsn.2)。
 enum MatchingType {
 	And, /// 全てに一致。
@@ -1957,7 +1959,7 @@ MatchingType toMatchingType(string name) { mixin(S_TRACE);
 	case "Or":
 		return MatchingType.Or;
 	default:
-		throw new MotionException("Unknown matchingType: " ~ name);
+		throw new MotionException("Unknown matching type: " ~ name);
 	}
 }
 /// マッチングタイプを文字列へ変換。
@@ -1967,5 +1969,31 @@ string fromMatchingType(MatchingType r) { mixin(S_TRACE);
 		return "And";
 	case MatchingType.Or:
 		return "Or";
+	}
+}
+
+/// マッチング条件(Wsn.5)。
+enum MatchingCondition {
+	Has, /// 保有。
+	HasNot /// 不保有。
+}
+/// 文字列からマッチングタイプを生成。
+MatchingCondition toMatchingCondition(string name) { mixin(S_TRACE);
+	switch (name) {
+	case "Has":
+		return MatchingCondition.Has;
+	case "HasNot":
+		return MatchingCondition.HasNot;
+	default:
+		throw new MotionException("Unknown matching condition: " ~ name);
+	}
+}
+/// マッチングタイプを文字列へ変換。
+string fromMatchingCondition(MatchingCondition r) { mixin(S_TRACE);
+	final switch (r) {
+	case MatchingCondition.Has:
+		return "Has";
+	case MatchingCondition.HasNot:
+		return "HasNot";
 	}
 }

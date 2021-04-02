@@ -2541,6 +2541,14 @@ fi`;
 			default: throwError(_prop.msgs.scriptErrorInvalidMatchingType, attr[i].token);
 			}
 			return T.init;
+		} else static if (is(T:MatchingCondition)) { // Wsn.5
+			auto value = attrValue(attr[i], varTable, msgWidth);
+			switch (value) {
+			case "has": i++; return MatchingCondition.Has;
+			case "hasnot": i++; return MatchingCondition.HasNot;
+			default: throwError(_prop.msgs.scriptErrorInvalidMatchingCondition, attr[i].token);
+			}
+			return T.init;
 		} else static if (is(T:UpdateType)) { // Wsn.4
 			if (attr[i].token.kind == Kind.SYMBOL) { mixin(S_TRACE);
 				switch (attrValue(attr[i], varTable, 0)) {
@@ -3156,6 +3164,9 @@ fi`;
 			if (detail.use(CArg.InvertResult)) { mixin(S_TRACE);
 				c.invertResult = parseAttr!(bool)(opt, node.attr, i, c.invertResult, varTable, 0);
 			}
+			if (detail.use(CArg.MatchingCondition)) { mixin(S_TRACE);
+				c.matchingCondition = parseAttr!(MatchingCondition)(opt, node.attr, i, c.matchingCondition, varTable, 0);
+			}
 			if (detail.use(CArg.StartAction)) { mixin(S_TRACE);
 				c.startAction = parseAttr!(StartAction)(opt, node.attr, i, c.startAction, varTable, 0);
 			}
@@ -3732,6 +3743,12 @@ fi`;
 			case MatchingType.Or: attrs ~= "or"; break;
 			default: assert (0);
 			}
+		} else static if (is(T:MatchingCondition)) { //Wsn.5
+			switch (value) {
+			case MatchingCondition.Has: attrs ~= "has"; break;
+			case MatchingCondition.HasNot: attrs ~= "hasnot"; break;
+			default: assert (0);
+			}
 		} else static if (is(T : UpdateType)) { //Wsn.4
 			final switch (value) {
 			case UpdateType.Fixed: attrs ~= "fixed"; break;
@@ -4233,6 +4250,9 @@ fi`;
 			if (detail.use(CArg.InvertResult)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.invertResult, indentValue, vars);
 			}
+			if (detail.use(CArg.MatchingCondition)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.matchingCondition, indentValue, vars);
+			}
 			if (detail.use(CArg.StartAction)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.startAction, indentValue, vars);
 			}
@@ -4625,6 +4645,10 @@ CWXScriptKeyword[] keywordInfos(in CProps prop, in ElementOverride[Element] eTbl
 		// マッチングタイプ (Wsn.2)
 		CWXScriptKeyword("and", prop.msgs.matchingType, prop.msgs.matchingTypeName(MatchingType.And)),
 		CWXScriptKeyword("or", prop.msgs.matchingType, prop.msgs.matchingTypeName(MatchingType.Or)),
+
+		// マッチング条件 (Wsn.5)
+		CWXScriptKeyword("has", prop.msgs.matchingCondition, prop.msgs.matchingConditionName(MatchingCondition.Has)),
+		CWXScriptKeyword("hasnot", prop.msgs.matchingCondition, prop.msgs.matchingConditionName(MatchingCondition.HasNot)),
 
 		// 更新タイプ(Wsn.4)
 		CWXScriptKeyword("fixed", prop.msgs.updateType, prop.msgs.updateTypeName(UpdateType.Fixed)),

@@ -1199,7 +1199,16 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			r ~= prop.msgs.warningSelectTalker;
 		}
 		if (cd.use(CArg.InvertResult) && c.invertResult && c.invertResult && !prop.isTargetVersion(isClassic, wsnVer, "4") && !(is160 && c.type is CType.BranchCoupon)) { mixin(S_TRACE);
-			r ~= prop.msgs.warningInvertResult;
+			if (c.type is CType.BranchKeyCode) { mixin(S_TRACE);
+				r ~= prop.msgs.warningInvertResultBranchKeyCode;
+			} else { mixin(S_TRACE);
+				r ~= prop.msgs.warningInvertResult;
+			}
+		}
+		if (cd.use(CArg.MatchingCondition) && c.matchingCondition && c.matchingCondition !is MatchingCondition.Has && !prop.isTargetVersion(isClassic, wsnVer, "5")) { mixin(S_TRACE);
+			assert (c.type is CType.BranchKeyCode);
+			assert (c.matchingCondition is MatchingCondition.HasNot);
+			r ~= prop.msgs.warningHasNotBranchKeyCode;
 		}
 		if (cd.use(CArg.ConsumeCard) && !c.consumeCard && !prop.isTargetVersion(isClassic, wsnVer, "3")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningConsumeCard;

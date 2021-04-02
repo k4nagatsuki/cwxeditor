@@ -861,7 +861,7 @@
 	<dd>終了印有無分岐</dd>
 	<dt class="content"><a href="#BRGOSSIP">brgossip <span class="args"><span class="arg">&lt;ゴシップ名&gt;</span>, <span class="arg">&lt;特殊文字の展開&gt;</span></span></a></dt>
 	<dd>ゴシップ有無分岐</dd>
-	<dt class="content"><a href="#BRKEYCODE">brkeycode <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;カード種別&gt;</span> ..., <span class="arg">&lt;キーコード&gt;</span>, <span class="arg">&lt;カード選択の有無&gt;</span>, <span class="arg">&lt;条件の反転&gt;</span></span></a></dt>
+	<dt class="content"><a href="#BRKEYCODE">brkeycode <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;カード種別&gt;</span> ..., <span class="arg">&lt;キーコード&gt;</span>, <span class="arg">&lt;カード選択の有無&gt;</span>, <span class="arg">&lt;マッチカード不保有で成功&gt;</span>, <span class="arg">&lt;カードのマッチング条件&gt;</span></span></a></dt>
 	<dd>キーコード所持分岐</dd>
 	<dt class="content"><a href="#SETFLAG">setflag <span class="args"><span class="arg">&lt;フラグ名&gt;</span>, <span class="arg">&lt;値&gt;</span>, <span class="arg">&lt;カード速度&gt;</span>, <span class="arg">&lt;速度の優先&gt;</span></span></a></dt>
 	<dd>フラグ値の設定</dd>
@@ -2422,7 +2422,7 @@
     <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">// 分岐終了</span></code></pre>
 
-<h3 class="content"><a id="BRKEYCODE" name="BRKEYCODE">brkeycode <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;カード種別&gt;</span> ..., <span class="arg">&lt;キーコード&gt;</span>, <span class="arg">&lt;カード選択の有無&gt;</span>, <span class="arg">&lt;条件の反転&gt;</span></span></a></h3>
+<h3 class="content"><a id="BRKEYCODE" name="BRKEYCODE">brkeycode <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;カード種別&gt;</span> ..., <span class="arg">&lt;キーコード&gt;</span>, <span class="arg">&lt;カード選択の有無&gt;</span>, <span class="arg">&lt;マッチカード不保有で成功&gt;</span>, <span class="arg">&lt;カードのマッチング条件&gt;</span></span></a></h3>
 
 <p class="fullname">(Branch with Key Code)</p>
 
@@ -2459,7 +2459,8 @@
 </dl>
 <p class="desc">キーコードには、判定対象のキーコードを指定します。</p>
 <p class="desc">カード選択の有無に<code class="code">true</code>を指定すると、見つかったカードが選択状態になります。省略した場合は<code class="code">false</code>になります。<em class="warning">このパラメータはWsn.3以降のWSN形式シナリオでしか機能しません。</em></p>
-<p class="desc">条件の反転に<code class="code">true</code>を指定すると、指定されたキーコードのあるカードを持たない場合が成功として扱われます。省略した場合は<code class="code">false</code>になります。<em class="warning">このパラメータはWsn.4以降のWSN形式シナリオでしか機能しません。</em></p>
+<p class="desc">マッチカード不保有で成功に<code class="code">true</code>を指定すると、条件にマッチするカードを持たない場合が成功として扱われます。省略した場合は<code class="code">false</code>になります。<em class="warning">このパラメータはWsn.4以降のWSN形式シナリオでしか機能しません。</em></p>
+<p class="desc">カードのマッチング条件に<code class="code">has</code>を指定すると、指定されたキーコードのあるカードが条件にマッチするカードとして扱われます。<code class="code">hasnot</code>を指定すると、指定キーコードのないカードがマッチするものとして扱われます。省略した場合は<code class="code">has</code>になります。<em class="warning">このパラメータはWsn.5以降のWSN形式シナリオでしか機能しません。</em></p>
 
 <h4 class="example">例</h4>
 

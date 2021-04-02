@@ -4113,6 +4113,7 @@ private:
 	Button[EffectCardType] _effectCardTypeWsn1 = null;
 	Button[EffectCardType] _effectCardTypeWsn2 = null;
 	Composite _typeComp;
+	Combo _matchingCondition;
 	Combo _invertResult;
 	Combo _keyCode;
 	Button _selectCard;
@@ -4147,6 +4148,9 @@ private:
 		}
 		if (!_prop.isTargetVersion(summ, "3") && range is Range.SelectedCard) { mixin(S_TRACE);
 			ws ~= .tryFormat(_prop.msgs.warningRangeSelectedCard);
+		}
+		if(!prop.isTargetVersion(summ, "5") && _matchingCondition.getSelectionIndex() == 1) { mixin(S_TRACE);
+			ws ~= prop.msgs.warningHasNotBranchKeyCode;
 		}
 		if(!prop.isTargetVersion(summ, "4") && _invertResult.getSelectionIndex() == 1) { mixin(S_TRACE);
 			ws ~= prop.msgs.warningInvertResult;
@@ -4219,6 +4223,7 @@ private:
 	private void updateEnabled() { mixin(S_TRACE);
 		auto b = _keyCodeRange[Range.SelectedCard];
 		b.setEnabled(!summ || !summ.legacy || b.getSelection());
+		_matchingCondition.setEnabled(!summ || !summ.legacy || _matchingCondition.getSelectionIndex() != 0);
 		_invertResult.setEnabled(!summ || !summ.legacy || _invertResult.getSelectionIndex() != 0);
 		_selectCard.setEnabled(!b.getSelection() && (!summ || !summ.legacy || _selectCard.getSelection()) && _invertResult.getSelectionIndex() == 0);
 	}
@@ -4228,7 +4233,7 @@ private:
 			auto radio = new Button(_typeComp, SWT.RADIO);
 			mod(radio);
 			radio.setText(_prop.msgs.effectCardTypeName(r));
-			radio.setLayoutData(new GridData(GridData.FILL_BOTH));
+			radio.setLayoutData(new GridData(GridData.GRAB_VERTICAL));
 			.listener(radio, SWT.Selection, &refreshWarning);
 			_effectCardTypeWsn1[r] = radio;
 		}
@@ -4238,7 +4243,7 @@ private:
 			auto check = new Button(_typeComp, SWT.CHECK);
 			mod(check);
 			check.setText(_prop.msgs.effectCardTypeName(r));
-			check.setLayoutData(new GridData(GridData.FILL_BOTH));
+			check.setLayoutData(new GridData(GridData.GRAB_VERTICAL));
 			.listener(check, SWT.Selection, &refreshWarning);
 			_effectCardTypeWsn2[r] = check;
 		}
@@ -4257,10 +4262,10 @@ protected:
 		{ mixin(S_TRACE);
 			auto grp = new Group(area, SWT.NONE);
 			grp.setText(_prop.msgs.range);
-			auto gd = new GridData(GridData.FILL_BOTH);
-			gd.verticalSpan = 2;
-			grp.setLayoutData(gd);
-			grp.setLayout(new CenterLayout(SWT.HORIZONTAL));
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			auto cl = new CenterLayout(SWT.HORIZONTAL);
+			cl.fillVertical = true;
+			grp.setLayout(cl);
 			auto comp = new Composite(grp, SWT.NONE);
 			comp.setLayout(zeroMarginGridLayout(1, true));
 			foreach (r; [Range.Selected, Range.Random, Range.Backpack,
@@ -4268,7 +4273,7 @@ protected:
 				auto radio = new Button(comp, SWT.RADIO);
 				mod(radio);
 				radio.setText(_prop.msgs.rangeName(r));
-				radio.setLayoutData(new GridData(GridData.FILL_BOTH));
+				radio.setLayoutData(new GridData(GridData.GRAB_VERTICAL));
 				.listener(radio, SWT.Selection, { mixin(S_TRACE);
 					refreshWarning();
 					updateEnabled();
@@ -4280,27 +4285,16 @@ protected:
 			auto grp = new Group(area, SWT.NONE);
 			grp.setText(_prop.msgs.cardType);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-			grp.setLayout(new CenterLayout(SWT.HORIZONTAL));
+			auto cl = new CenterLayout(SWT.HORIZONTAL);
+			cl.fillVertical = true;
+			grp.setLayout(cl);
 			_typeComp = new Composite(grp, SWT.NONE);
-			_typeComp.setLayout(zeroMarginGridLayout(1, true));
+			_typeComp.setLayout(normalGridLayout(1, true));
 			if (summ && summ.legacy) { mixin(S_TRACE);
 				createWsn1Panel();
 			} else { mixin(S_TRACE);
 				createWsn2Panel();
 			}
-		}
-		{ mixin(S_TRACE);
-			auto grp = new Group(area, SWT.NONE);
-			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			grp.setText(_prop.msgs.resultType);
-			grp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL));
-			_invertResult = new Combo(grp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
-			mod(_invertResult);
-			_invertResult.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
-			_invertResult.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			_invertResult.add(_prop.msgs.resultTypeNormal);
-			_invertResult.add(_prop.msgs.resultTypeInvert);
-			.listener(_invertResult, SWT.Selection, &refDataVersion);
 		}
 		{ mixin(S_TRACE);
 			auto grp = new Group(area, SWT.NONE);
@@ -4316,6 +4310,34 @@ protected:
 			kgd.widthHint = _prop.var.etc.nameWidth;
 			_keyCode.setLayoutData(kgd);
 			.listener(_keyCode, SWT.Modify, &refreshWarning);
+		}
+		{ mixin(S_TRACE);
+			auto grp = new Group(area, SWT.NONE);
+			auto gd = new GridData(GridData.FILL_HORIZONTAL);
+			gd.horizontalSpan = 2;
+			grp.setLayoutData(gd);
+			grp.setText(_prop.msgs.resultType);
+			grp.setLayout(normalGridLayout(2, false));
+
+			auto l1 = new Label(grp, SWT.NONE);
+			l1.setText(prop.msgs.matchingConditionForKeyCode);
+			_matchingCondition = new Combo(grp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+			mod(_matchingCondition);
+			_matchingCondition.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
+			_matchingCondition.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			_matchingCondition.add(_prop.msgs.matchingConditionForKeyCodeNormalDesc);
+			_matchingCondition.add(_prop.msgs.matchingConditionForKeyCodeInvertDesc);
+			.listener(_matchingCondition, SWT.Selection, &refDataVersion);
+
+			auto l2 = new Label(grp, SWT.NONE);
+			l2.setText(prop.msgs.matchedCard);
+			_invertResult = new Combo(grp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+			mod(_invertResult);
+			_invertResult.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
+			_invertResult.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			_invertResult.add(_prop.msgs.resultTypeNormalDesc);
+			_invertResult.add(_prop.msgs.resultTypeInvertDesc);
+			.listener(_invertResult, SWT.Selection, &refDataVersion);
 		}
 		{ mixin(S_TRACE);
 			_selectCard = new Button(area, SWT.CHECK);
@@ -4353,6 +4375,7 @@ protected:
 				_effectCardTypeWsn2[EffectCardType.Beast].setSelection(_evt.targetIsBeast);
 				_effectCardTypeWsn2[EffectCardType.Hand].setSelection(_evt.targetIsHand);
 			}
+			_matchingCondition.select(_evt.matchingCondition is MatchingCondition.HasNot ? 1 : 0);
 			_invertResult.select(_evt.invertResult ? 1 : 0);
 			_keyCode.setText(_evt.keyCode);
 			_selectCard.setSelection(_evt.selectCard);
@@ -4367,6 +4390,7 @@ protected:
 				_effectCardTypeWsn2[EffectCardType.Beast].setSelection(true);
 				_effectCardTypeWsn2[EffectCardType.Hand].setSelection(false);
 			}
+			_matchingCondition.select(0);
 			_invertResult.select(0);
 			_keyCode.setText("");
 			_selectCard.setSelection(false);
@@ -4413,6 +4437,7 @@ protected:
 			_evt.targetIsBeast = _effectCardTypeWsn2[EffectCardType.Beast].getSelection();
 			_evt.targetIsHand = _effectCardTypeWsn2[EffectCardType.Hand].getSelection();
 		}
+		_evt.matchingCondition = _matchingCondition.getSelectionIndex() == 1 ? MatchingCondition.HasNot : MatchingCondition.Has;
 		_evt.invertResult = _invertResult.getSelectionIndex() == 1;
 		_evt.selectCard = _selectCard.getSelection();
 
