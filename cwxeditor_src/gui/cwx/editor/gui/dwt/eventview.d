@@ -1436,7 +1436,11 @@ private:
 		assert (parentOrKeyCodeItem !is null);
 		auto data = topParent(parentOrKeyCodeItem).getData();
 		if (!cast(EnemyCard)data && !cast(PlayerCardEvents)data) { mixin(S_TRACE);
-			return _prop.images.keyCode;
+			if (_prop.sys.fireKeyCodeKind(keyCode) is FKCKind.HasNot) { mixin(S_TRACE);
+				return _prop.images.menu(MenuID.KeyCodeTimingHasNot);
+			} else { mixin(S_TRACE);
+				return _prop.images.keyCode;
+			}
 		}
 		final switch (_prop.sys.fireKeyCodeKind(keyCode)) {
 		case FKCKind.Use: return _prop.images.keyCode;
@@ -1583,7 +1587,7 @@ private:
 		auto itm = selectionKeyCode;
 		if (!itm) return false;
 		auto data = topParent(itm).getData();
-		if (!cast(EnemyCard)data && !cast(PlayerCardEvents)data) return false;
+		if (!cast(EnemyCard)data && !cast(PlayerCardEvents)data && Kind !is FKCKind.HasNot && Kind !is FKCKind.Use) return false;
 		auto keyCode = (cast(KeyCodeObj)itm.getData()).array.idup;
 		if (Kind is _prop.sys.fireKeyCodeKind(keyCode)) { mixin(S_TRACE);
 			return false;
