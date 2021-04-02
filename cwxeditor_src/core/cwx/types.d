@@ -1301,74 +1301,74 @@ enum FKCKind {
 	HasNot, /// 不保有。
 }
 
-/// コンテントのタイプ。
+/// イベントコンテントのタイプ。
 enum CType {
-	Start,
-	StartBattle,
-	End,
-	EndBadEnd,
-	ChangeArea,
-	ChangeBgImage,
-	Effect,
-	EffectBreak,
-	LinkStart,
-	LinkPackage,
-	TalkMessage,
-	TalkDialog,
-	PlayBgm,
-	PlaySound,
-	Wait,
-	ElapseTime,
-	CallStart,
-	CallPackage,
-	BranchFlag,
-	BranchMultiStep,
-	BranchStep,
-	BranchSelect,
-	BranchAbility,
-	BranchRandom,
-	BranchLevel,
-	BranchStatus,
-	BranchPartyNumber,
-	BranchArea,
-	BranchBattle,
-	BranchIsBattle,
-	BranchCast,
-	BranchItem,
-	BranchSkill,
-	BranchInfo,
-	BranchBeast,
-	BranchMoney,
-	BranchCoupon,
-	BranchCompleteStamp,
-	BranchGossip,
-	SetFlag,
-	SetStep,
-	SetStepUp,
-	SetStepDown,
-	ReverseFlag,
-	CheckFlag,
-	GetCast,
-	GetItem,
-	GetSkill,
-	GetInfo,
-	GetBeast,
-	GetMoney,
-	GetCoupon,
-	GetCompleteStamp,
-	GetGossip,
-	LoseCast,
-	LoseItem,
-	LoseSkill,
-	LoseInfo,
-	LoseBeast,
-	LoseMoney,
-	LoseCoupon,
-	LoseCompleteStamp,
-	LoseGossip,
-	ShowParty,
-	HideParty,
-	Redisplay,
+	Start, /// スタート。
+	StartBattle, /// バトル開始。
+	End, /// シナリオクリア。
+	EndBadEnd, /// 敗北・ゲームオーバー。
+	ChangeArea, /// エリア移動。
+	ChangeBgImage, /// 背景変更。
+	Effect, /// 効果。
+	EffectBreak, /// 効果中断。
+	LinkStart, /// スタートへのリンク。
+	LinkPackage, /// パッケージへのリンク。
+	TalkMessage, /// メッセージ。
+	TalkDialog, /// セリフ。
+	PlayBgm, /// BGM変更。
+	PlaySound, /// 効果音。
+	Wait, /// 空白時間挿入。
+	ElapseTime, /// 時間経過。
+	CallStart, /// スタートの呼び出し。
+	CallPackage, /// パッケージの呼び出し。
+	BranchFlag, /// フラグ分岐。
+	BranchMultiStep, /// ステップ多岐分岐。
+	BranchStep, /// ステップ上下分岐。
+	BranchSelect, /// メンバ選択分岐。
+	BranchAbility, /// 能力判定分岐。
+	BranchRandom, /// ランダム分岐。
+	BranchLevel, /// レベル判定分岐。
+	BranchStatus, /// 状態判定分岐。
+	BranchPartyNumber, /// 人数判定分岐。
+	BranchArea, /// エリア分岐。
+	BranchBattle, /// バトル分岐。
+	BranchIsBattle, /// バトル判定分岐。
+	BranchCast, /// キャスト存在分岐。
+	BranchItem, /// アイテム所持分岐。
+	BranchSkill, /// スキル所持分岐。
+	BranchInfo, /// 情報所持分岐。
+	BranchBeast, /// 召喚獣存在分岐。
+	BranchMoney, /// 所持金分岐。
+	BranchCoupon, /// クーポン分岐。
+	BranchCompleteStamp, /// 終了シナリオ分岐。
+	BranchGossip, /// ゴシップ分岐。
+	SetFlag, /// フラグ変更。
+	SetStep, /// ステップ変更。
+	SetStepUp, /// ステップ増加。
+	SetStepDown, /// ステップ減少。
+	ReverseFlag, /// フラグ反転。
+	CheckFlag, /// フラグ判定。
+	GetCast, /// キャスト加入。
+	GetItem, /// アイテム入手。
+	GetSkill, /// スキル取得。
+	GetInfo, /// 情報入手。
+	GetBeast, /// 召喚獣獲得。
+	GetMoney, /// 所持金増加。
+	GetCoupon, /// クーポン取得。
+	GetCompleteStamp, /// 終了シナリオ設定。
+	GetGossip, /// ゴシップ追加。
+	LoseCast, /// キャスト離脱。
+	LoseItem, /// アイテム喪失。
+	LoseSkill, /// スキル喪失。
+	LoseInfo, /// 情報喪失。
+	LoseBeast, /// 召喚獣消去。
+	LoseMoney, /// 所持金減少。
+	LoseCoupon, /// クーポン削除。
+	LoseCompleteStamp, /// 終了シナリオ削除。
+	LoseGossip, /// ゴシップ削除。
+	ShowParty, /// パーティ表示。
+	HideParty, /// パーティ隠蔽。
+	Redisplay, /// 画面再構築。
 	SubstituteStep, /// ステップ代入(CardWirth Extender 1.30)。
 	SubstituteFlag, /// フラグ代入(CardWirth Extender 1.30)。
 	BranchStepCmp, /// ステップ値分岐(CardWirth Extender 1.30)。
@@ -1422,62 +1422,63 @@ enum CTypeGroup {
 	Variant = 8, // 演算。
 }
 
+/// イベントコンテントのパラメータ。
 enum CArg {
-	Area,
-	Battle,
-	Package,
-	Flag,
-	Step,
-	BgmPath,
-	BgmChannel,
-	BgmVolume,
-	BgmLoopCount,
-	BgmFadeIn,
-	SoundPath,
-	SoundChannel,
-	SoundVolume,
-	SoundLoopCount,
-	SoundFadeIn,
-	Cast,
-	Item,
-	Skill,
-	Beast,
-	Info,
-	Motions,
-	Text,
-	Dialogs,
-	Start,
-	Coupon,
-	Gossip,
-	CompleteStamp,
-	Mental,
-	Physical,
-	Status,
-	Range,
-	CardVisual,
-	TargetS,
-	TalkerC,
-	TalkerNC,
-	EffectType,
-	Resist,
-	Transition,
-	TargetAll,
-	SelectionMethod,
-	Average,
-	Complete,
-	UnsignedLevel,
-	SignedLevel,
-	SuccessRate,
-	TransitionSpeed,
-	Percent,
-	FlagValue,
-	StepValue,
-	CouponValue,
-	PartyNumber,
-	CardNumber,
-	Money,
-	Wait,
-	BgImages,
+	Area, /// エリアID。
+	Battle, /// バトルID。
+	Package, /// パッケージID。
+	Flag, /// フラグパス。
+	Step, /// ステップパス。
+	BgmPath, /// BGMファイルパス。
+	BgmChannel, /// BGM再生チャンネル(Wsn.1～)。
+	BgmVolume, /// BGM音量(%)(Wsn.1～)。
+	BgmLoopCount, /// BGMループ回数(Wsn.1～)。
+	BgmFadeIn, /// BGMフェードイン時間(ミリ秒)(Wsn.1～)。
+	SoundPath, /// 効果音ファイルパス。
+	SoundChannel, /// 効果音再生チャンネル(Wsn.1～)。
+	SoundVolume, /// 効果音音量(%)(Wsn.1～)。
+	SoundLoopCount, /// 効果音ループ回数(Wsn.1～)。
+	SoundFadeIn, /// 効果音フェードイン時間(ミリ秒)(Wsn.1～)。
+	Cast, /// キャストカードID。
+	Item, /// アイテムカードID。
+	Skill, /// 特殊技能カードID。
+	Beast, /// 召喚獣カードID。
+	Info, /// 情報カードID。
+	Motions, /// 効果群。
+	Text, /// メッセージ。
+	Dialogs, /// セリフ。
+	Start, /// スタートコンテント名。
+	Coupon, /// クーポン名。
+	Gossip, /// ゴシップ名。
+	CompleteStamp, /// 終了印のついたシナリオ名。
+	Mental, /// 精神適性。
+	Physical, /// 身体適性。
+	Status, /// 状態。
+	Range, /// 操作対象・対象範囲。
+	CardVisual, /// カード視覚効果。
+	TargetS, /// 操作対象・対象範囲(カード操作関係及びクーポン多岐分岐)。
+	TalkerC, /// メッセージ話者。
+	TalkerNC, /// セリフ話者。
+	EffectType, /// 効果属性。
+	Resist, /// 抵抗属性。
+	Transition, /// 画面切替方式(Wsn.0～)。
+	TargetAll, /// 全体か。
+	SelectionMethod, /// メンバ選択方法(自動または手動)。
+	Average, /// 平均値を取るか。
+	Complete, /// 済印をつけるか。
+	UnsignedLevel, /// レベル(マイナス値無し)。
+	SignedLevel, /// レベル(マイナス値あり)。
+	SuccessRate, /// 成功率(-5～+5)。
+	TransitionSpeed, /// 画面切替速度(Wsn.0～)。
+	Percent, /// パーセンテージ値。
+	FlagValue, /// フラグ値。
+	StepValue, /// ステップ値。
+	CouponValue, /// クーポン点数。
+	PartyNumber, /// パーティ人数。
+	CardNumber, /// カード枚数。
+	Money, /// 金額。
+	Wait, /// 空白時間(0.1秒)。
+	BgImages, /// 背景セル群。
 	Step2, /// 操作ターゲットステップ(CardWirth Extender 1.30～)。
 	Flag2, /// 操作ターゲットフラグ(CardWirth Extender 1.30～)。
 	CastRange, /// キャスト選択範囲(CardWirth Extender 1.30～)。
@@ -1578,50 +1579,52 @@ string fromCNextType(CNextType t) { mixin(S_TRACE);
 	}
 }
 
+/// 効果のタイプ。
 enum MType {
-	Heal,
-	Damage,
-	Absorb,
-	Paralyze,
-	DisParalyze,
-	Poison,
-	DisPoison,
-	GetSkillPower,
-	LoseSkillPower,
-	Sleep,
-	Confuse,
-	Overheat,
-	Brave,
-	Panic,
-	Normal,
-	Bind,
-	DisBind,
-	Silence,
-	DisSilence,
-	FaceUp,
-	FaceDown,
-	AntiMagic,
-	DisAntiMagic,
-	EnhanceAction,
-	EnhanceAvoid,
-	EnhanceResist,
-	EnhanceDefense,
-	VanishTarget,
-	VanishCard,
-	VanishBeast,
-	DealAttackCard,
-	DealPowerfulAttackCard,
-	DealCriticalAttackCard,
-	DealFeintCard,
-	DealDefenseCard,
-	DealDistanceCard,
-	DealConfuseCard,
-	DealSkillCard,
-	SummonBeast,
-	CancelAction, // CardWirth 1.50
-	NoEffect, // Wsn.2
+	Heal, /// 回復。
+	Damage, /// ダメージ。
+	Absorb, /// 吸収。
+	Paralyze, /// 麻痺。
+	DisParalyze, /// 麻痺解除。
+	Poison, /// 中毒。
+	DisPoison, /// 中毒解除。
+	GetSkillPower, /// 精神力回復。
+	LoseSkillPower, /// 精神力喪失。
+	Sleep, /// 睡眠。
+	Confuse, /// 混乱。
+	Overheat, /// 激昂。
+	Brave, /// 勇敢。
+	Panic, /// 混乱。
+	Normal, /// 精神正常。
+	Bind, /// 呪縛。
+	DisBind, /// 呪縛解除。
+	Silence, /// 沈黙。
+	DisSilence, /// 沈黙解除。
+	FaceUp, /// 暴露。
+	FaceDown, /// 暴露解除。
+	AntiMagic, /// 魔法無効化。
+	DisAntiMagic, /// 魔法無効化解除。
+	EnhanceAction, /// 行動力変化。
+	EnhanceAvoid, /// 回避力変化。
+	EnhanceResist, /// 抵抗力変化。
+	EnhanceDefense, /// 防御力変化。
+	VanishTarget, /// 対象消去。
+	VanishCard, /// 手札消去。
+	VanishBeast, /// 召喚獣消去。
+	DealAttackCard, /// 攻撃カード配付。
+	DealPowerfulAttackCard, /// 渾身の一撃カード配付。
+	DealCriticalAttackCard, /// 会心の一撃カード配付。
+	DealFeintCard, /// フェイントカード配付。
+	DealDefenseCard, /// 防御カード配付。
+	DealDistanceCard, /// 見切りカード配付。
+	DealConfuseCard, /// 混乱カード配付。
+	DealSkillCard, /// 特殊技能カード配付。
+	SummonBeast, /// 召喚獣召喚。
+	CancelAction, /// 行動キャンセル(CardWirth 1.50～)。
+	NoEffect, /// 効果無し(Wsn.2～)。
 }
 
+/// 効果値タイプ。
 enum MArg {
 	ValueType, /// レベル比・直接等、値のタイプ。
 	UValue, /// ダメージ・回復量。
