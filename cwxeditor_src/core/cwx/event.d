@@ -210,7 +210,7 @@ private void static_this () { mixin(S_TRACE);
 		CType.BranchStepCmp:CDetail("Branch", "StepValue", CNextType.Trio, true, [CArg.Step:"from", CArg.Step2:"to"]),
 		CType.BranchFlagCmp:CDetail("Branch", "FlagValue", CNextType.Bool, true, [CArg.Flag:"from", CArg.Flag2:"to"]),
 		CType.BranchRandomSelect:CDetail("Branch", "RandomSelect", CNextType.Bool, true, [CArg.CastRange:null, CArg.LevelMin:"minLevel", CArg.LevelMax:"maxLevel", CArg.Status:"status", CArg.InvertResult:"invert"]),
-		CType.BranchKeyCode:CDetail("Branch", "KeyCode", CNextType.Bool, true, [CArg.KeyCodeRange:"targetkc", CArg.TargetIsSkill:"skill", CArg.TargetIsItem:"item", CArg.TargetIsBeast:"beast", CArg.TargetIsHand:"hand", CArg.KeyCode:"keyCode", CArg.SelectCard:"selectcard", CArg.InvertResult:"invert"]),
+		CType.BranchKeyCode:CDetail("Branch", "KeyCode", CNextType.Bool, true, [CArg.KeyCodeRange:"targetkc", CArg.TargetIsSkill:"skill", CArg.TargetIsItem:"item", CArg.TargetIsBeast:"beast", CArg.TargetIsHand:"hand", CArg.KeyCode:"keyCode", CArg.SelectCard:"selectcard", CArg.InvertResult:"invert", CArg.MatchingCondition:"condition"]),
 		CType.CheckStep:CDetail("Check", "Step", CNextType.None, true, [CArg.Step:"step", CArg.StepValue:"value", CArg.Comparison4:"comparison"]),
 		CType.BranchRound:CDetail("Branch", "Round", CNextType.Bool, true, [CArg.Round:"round", CArg.Comparison3:"comparison"]),
 		CType.MoveBgImage:CDetail("Move", "BgImage", CNextType.None, true, [CArg.CellName:"cellname", CArg.PositionType:"positiontype", CArg.X:"x", CArg.Y:"y", CArg.SizeType:"sizetype", CArg.Width:"width", CArg.Height:"height", CArg.Transition:"transition", CArg.TransitionSpeed:"transitionspeed", CArg.DoAnime:"doanime", CArg.IgnoreEffectBooster:"ignoreeffectbooster"]),
@@ -691,6 +691,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		this.selectCard = c.selectCard;
 		this.selectTalker = c.selectTalker;
 		this.invertResult = c.invertResult;
+		this.matchingCondition = c.matchingCondition;
 
 		this.consumeCard = c.consumeCard;
 
@@ -867,6 +868,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 			&& (!d.use(CArg.SelectCard) || selectCard == c.selectCard)
 			&& (!d.use(CArg.SelectTalker) || selectTalker == c.selectTalker)
 			&& (!d.use(CArg.InvertResult) || invertResult == c.invertResult)
+			&& (!d.use(CArg.MatchingCondition) || matchingCondition == c.matchingCondition)
 			&& (!d.use(CArg.BackpackEnabled) || backpackEnabled == c.backpackEnabled)
 			&& (!d.use(CArg.GameOverEnabled) || gameOverEnabled == c.gameOverEnabled)
 			&& (!d.use(CArg.RunAwayEnabled) || runAwayEnabled == c.runAwayEnabled)
@@ -1205,6 +1207,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		resetValue!(CArg.SelectCard, bool, false)(d, od, &selectCard, base, base.selectCard);
 		resetValue!(CArg.SelectTalker, bool, false)(d, od, &selectTalker, base, base.selectTalker);
 		resetValue!(CArg.InvertResult, bool, false)(d, od, &invertResult, base, base.invertResult);
+		resetValue!(CArg.MatchingCondition, MatchingCondition, MatchingCondition.Has)(d, od, &matchingCondition, base, base.matchingCondition);
 		resetValue!(CArg.BackpackEnabled, EnvironmentStatus, EnvironmentStatus.NotSet)(d, od, &backpackEnabled, base, base.backpackEnabled);
 		resetValue!(CArg.RunAwayEnabled, EnvironmentStatus, EnvironmentStatus.NotSet)(d, od, &runAwayEnabled, base, base.runAwayEnabled);
 
@@ -2367,6 +2370,8 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 
 	/// 条件に合わない場合に成功とする(Wsn.4)。
 	mixin Prop!(bool, "invertResult", false);
+	/// マッチング条件(Wsn.5)。
+	mixin Prop!(MatchingCondition, "matchingCondition", MatchingCondition.Has);
 
 	/// 使用中のカードを消費するか(Wsn.3)。
 	mixin Prop!(bool, "consumeCard", true);
@@ -2891,6 +2896,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		atnPutD!(CArg.SelectCard, "selectCard", "fromBool", false)(e, d);
 		atnPutD!(CArg.SelectTalker, "selectTalker", "fromBool", false)(e, d);
 		atnPutD!(CArg.InvertResult, "invertResult", "fromBool", false)(e, d);
+		atnPutD!(CArg.MatchingCondition, "matchingCondition", "fromMatchingCondition", MatchingCondition.Has)(e, d);
 		atnPutD!(CArg.BackpackEnabled, "backpackEnabled", "fromEnvironmentStatus", EnvironmentStatus.NotSet)(e, d);
 		atnPutD!(CArg.GameOverEnabled, "gameOverEnabled", "fromEnvironmentStatus", EnvironmentStatus.NotSet)(e, d);
 		atnPutD!(CArg.RunAwayEnabled, "runAwayEnabled", "fromEnvironmentStatus", EnvironmentStatus.NotSet)(e, d);
@@ -3217,6 +3223,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		cfnPutD!(CArg.SelectCard, "selectCard", "parseBool", false)(en, d, r);
 		cfnPutD!(CArg.SelectTalker, "selectTalker", "parseBool", false)(en, d, r);
 		cfnPutD!(CArg.InvertResult, "invertResult", "parseBool", false)(en, d, r);
+		cfnPutD!(CArg.MatchingCondition, "matchingCondition", "toMatchingCondition", MatchingCondition.Has)(en, d, r);
 		cfnPutD!(CArg.BackpackEnabled, "backpackEnabled", "toEnvironmentStatus", EnvironmentStatus.NotSet)(en, d, r);
 		cfnPutD!(CArg.GameOverEnabled, "gameOverEnabled", "toEnvironmentStatus", EnvironmentStatus.NotSet)(en, d, r);
 		cfnPutD!(CArg.RunAwayEnabled, "runAwayEnabled", "toEnvironmentStatus", EnvironmentStatus.NotSet)(en, d, r);

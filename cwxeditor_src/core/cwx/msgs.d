@@ -443,6 +443,12 @@ class Msgs : Properties {
 	auto resultType = Msg("resultType", "成功条件");
 	auto resultTypeNormal = Msg("resultTypeNormal", "所有している");
 	auto resultTypeInvert = Msg("resultTypeInvert", "所有していない");
+	auto matchingConditionForKeyCode = Msg("matchingConditionForKeyCode", "カードのマッチング");
+	auto matchingConditionForKeyCodeNormalDesc = Msg("matchingConditionForKeyCodeNormalDesc", "キーコードを含む場合に成功");
+	auto matchingConditionForKeyCodeInvertDesc = Msg("matchingConditionForKeyCodeInvertDesc", "キーコードを含まない場合に成功");
+	auto matchedCard = Msg("matchedCard", "マッチしたカード");
+	auto resultTypeNormalDesc = Msg("resultTypeNormalDesc", "所有している場合に成功");
+	auto resultTypeInvertDesc = Msg("resultTypeInvertDesc", "所有していない場合に成功");
 	auto resultTypeNormalForStatus = Msg("resultTypeNormalForStatus", "状態を持つ");
 	auto resultTypeInvertForStatus = Msg("resultTypeInvertForStatus", "状態を持たない");
 	auto resultTypeInvertForAbility = Msg("resultTypeInvertForAbility", "能力不足時に成功する");
@@ -475,8 +481,21 @@ class Msgs : Properties {
 	auto selectFoundCard = Msg("selectFoundCard", "見つかったカードを選択状態にする"); // Wsn.3
 	auto selectTalker = Msg("selectTalker", "話者を選択状態にする");// Wsn.3
 	auto invertResult = Msg("invertResult", "条件に合わない場合に成功とする");// Wsn.4
+	auto matchingCondition = Msg("matchingCondition", "マッチ条件");// Wsn.5
 	auto changeLayer = Msg("changeLayer", "レイヤを変更する");
 	auto changeScale = Msg("changeScale", "拡大率を変更する");
+
+	const string matchingConditionName(MatchingCondition id) { mixin(S_TRACE);
+		mixin(EnumToStringSwitch!(typeof(id), "matchingConditionName"));
+	}
+	auto matchingConditionNameHas = Msg("matchingConditionNameHas", "保有");
+	auto matchingConditionNameHasNot = Msg("matchingConditionNameHasNot", "不保有");
+
+	const string matchingConditionKeyCodeDesc(MatchingCondition id) { mixin(S_TRACE);
+		mixin(EnumToStringSwitch!(typeof(id), "matchingConditionKeyCodeDesc"));
+	}
+	auto matchingConditionKeyCodeDescHas = Msg("matchingConditionKeyCodeDescHas", "指定キーコードを持つ");
+	auto matchingConditionKeyCodeDescHasNot = Msg("matchingConditionKeyCodeDescHasNot", "指定キーコードを持たない");
 
 	auto canNotGetMusicLength = Msg("canNotGetMusicLength", "SDL方式では音声の長さを取得できません");
 
@@ -1051,8 +1070,10 @@ class Msgs : Properties {
 
 	auto have = Msg("have", "所有");
 	auto haveNot = Msg("haveNot", "不所有");
-	auto haveForSelectedCard = Msg("have2", "含む");
-	auto haveNotForSelectedCard = Msg("haveNot2", "含まない");
+	auto contains = Msg("contains", "含む");
+	auto notContains = Msg("notContains", "含まない");
+	auto exists = Msg("exists", "存在する");
+	auto notExists = Msg("notExists", "存在しない");
 	auto matchCard = Msg("matchCard", "一致");
 	auto notMatchCard = Msg("notMatchCard", "不一致");
 	auto haveForStatus = Msg("haveForStatus", "状態か");
@@ -1197,10 +1218,10 @@ class Msgs : Properties {
 	auto castRange1 = Msg("castRange1", "%1$s全体");
 	auto castRange2 = Msg("castRange2", "%1$s全体または%2$s全体");
 	auto castRange3 = Msg("castRange3", "フィールド全体");
-	auto ctBranchKeyCodeAllType = Msg("ctBranchKeyCodeAllType", "キーコード「%1$s」を含むカードの%2$sで分岐(%3$s) %4$s");
-	auto ctBranchKeyCode = Msg("ctBranchKeyCode", "キーコード「%1$s」を含む%2$sの%3$sで分岐(%4$s) %5$s");
-	auto ctBranchKeyCodeAllTypeForSelectedCard = Msg("ctBranchKeyCodeAllTypeForSelectedCard", "選択カードがキーコード「%1$s」を%2$sか否かで分岐 %3$s");
-	auto ctBranchKeyCodeForSelectedCard = Msg("ctBranchKeyCodeForSelectedCard", "選択カードがキーコード「%1$s」を%2$sか否かで分岐 %3$s");
+	auto ctBranchKeyCodeWithConditionAllType = Msg("ctBranchKeyCodeWithConditionAllType", "キーコード「%1$s」を%2$sカードの%3$sで分岐(%4$s) %5$s");
+	auto ctBranchKeyCodeWithCondition = Msg("ctBranchKeyCodeWithCondition", "キーコード「%1$s」を%2$s%3$sカードの%4$sで分岐(%5$s) %6$s");
+	auto ctBranchKeyCodeWithConditionAllTypeForSelectedCard = Msg("ctBranchKeyCodeWithConditionAllTypeForSelectedCard", "キーコード「%1$s」を%2$s選択カードが%3$sか否かで分岐");
+	auto ctBranchKeyCodeWithConditionForSelectedCard = Msg("ctBranchKeyCodeWithConditionForSelectedCard", "キーコード「%1$s」を%2$s%3$sの選択カードが%4$sか否かで分岐");
 	auto ctSelectFoundCard = Msg("ctSelectFoundCard", "該当カードを選択する");
 	auto noSelectFoundCard = Msg("noSelectFoundCard", "該当カードを選択しない");
 	auto ctCheckStep = Msg("ctCheckStep", "ステップ「%1$s」が[%2$s]%3$s後続のイベントが出現");
@@ -1696,14 +1717,14 @@ class Msgs : Properties {
 	auto randomSelectCondition1 = Msg("randomSelectCondition1", "レベル%1$s～%2$s");
 	auto randomSelectCondition2 = Msg("randomSelectCondition2", "状態が%1$s");
 	auto randomSelectCondition3 = Msg("randomSelectCondition3", "レベル%1$s～%2$sで状態が%3$s");
-	auto branchKeyCodeAllTypeSuccess = Msg("branchKeyCodeAllTypeSuccess", "キーコード「%1$s」を含むカードを所有している(%2$s)");
-	auto branchKeyCodeAllTypeFailure = Msg("branchKeyCodeAllTypeFailure", "キーコード「%1$s」を含むカードを所有していない(%2$s)");
-	auto branchKeyCodeSuccess = Msg("branchKeyCodeSuccess", "キーコード「%1$s」を含む%2$sを所有している(%3$s)");
-	auto branchKeyCodeFailure = Msg("branchKeyCodeFailure", "キーコード「%1$s」を含む%2$sを所有していない(%3$s)");
-	auto branchKeyCodeAllTypeForSelectedCardSuccess = Msg("branchKeyCodeAllTypeForSelectedCardSuccess", "選択カードがキーコード「%1$s」を含む");
-	auto branchKeyCodeAllTypeForSelectedCardFailure = Msg("branchKeyCodeAllTypeForSelectedCardFailure", "選択カードがキーコード「%1$s」を含まない");
-	auto branchKeyCodeForSelectedCardSuccess = Msg("branchKeyCodeForSelectedCardSuccess", "選択カードはキーコード「%1$s」を含む%2$sである");
-	auto branchKeyCodeForSelectedCardFailure = Msg("branchKeyCodeForSelectedCardFailure", "選択カードはキーコード「%1$s」を含む%2$sではない");
+	auto branchKeyCodeWithConditionAllTypeSuccess = Msg("branchKeyCodeWithConditionAllTypeSuccess", "キーコード「%1$s」を%2$sカードを所有している(%3$s)");
+	auto branchKeyCodeWithConditionAllTypeFailure = Msg("branchKeyCodeWithConditionAllTypeFailure", "キーコード「%1$s」を%2$sカードを所有していない(%3$s)");
+	auto branchKeyCodeWithConditionSuccess = Msg("branchKeyCodeWithConditionSuccess", "キーコード「%1$s」を%2$s%3$sを所有している(%4$s)");
+	auto branchKeyCodeWithConditionFailure = Msg("branchKeyCodeWithConditionFailure", "キーコード「%1$s」を%2$s%3$sを所有していない(%4$s)");
+	auto branchKeyCodeWithConditionAllTypeForSelectedCardSuccess = Msg("branchKeyCodeWithConditionAllTypeForSelectedCardSuccess", "キーコード「%1$s」を%2$s選択カードが存在する");
+	auto branchKeyCodeWithConditionAllTypeForSelectedCardFailure = Msg("branchKeyCodeWithConditionAllTypeForSelectedCardFailure", "キーコード「%1$s」を%2$s選択カードが存在しない");
+	auto branchKeyCodeWithConditionForSelectedCardSuccess = Msg("branchKeyCodeWithConditionForSelectedCardSuccess", "キーコード「%1$s」を%2$s%3$sの選択カードが存在する");
+	auto branchKeyCodeWithConditionForSelectedCardFailure = Msg("branchKeyCodeWithConditionForSelectedCardFailure", "キーコード「%1$s」を%2$s%3$sの選択カードが存在しない");
 	auto targetIsSkill = Msg("targetIsSkill", "特殊技能");
 	auto targetIsItem = Msg("targetIsItem", "アイテム");
 	auto targetIsBeast = Msg("targetIsBeast", "召喚獣");
@@ -2291,7 +2312,9 @@ class Msgs : Properties {
 	auto warningSelectCard = Msg("warningSelectCard", "選択カードの変更は、Wsn.3以降の形式のシナリオしか行えません。"); // Wsn.3
 	auto warningRangeSelectedCard = Msg("warningRangeSelectedCard", "選択カードは、Wsn.3以降の形式のシナリオでしか指定できません。"); // Wsn.3
 	auto warningSelectTalker = Msg("warningSelectTalker", "話者の選択は、Wsn.3以降の形式のシナリオしか行えません。"); // Wsn.3
-	auto warningInvertResult = Msg("warningInvertResult", "条件に合わない場合に成功とする事は、Wsn.4以降の形式のシナリオでしか行えません。"); // Wsn.4
+	auto warningInvertResult = Msg("warningInvertResult", "条件に合わない場合に成功とする事は、Wsn.4以降の形式のシナリオでしかできません。"); // Wsn.4
+	auto warningInvertResultBranchKeyCode = Msg("warningInvertResultBranchKeyCode", "条件該当カードの不保有で成功とする事は、Wsn.4以降の形式のシナリオでしかできません。"); // Wsn.4
+	auto warningHasNotBranchKeyCode = Msg("warningHasNotBranchKeyCode", "キーコードを持たないカードで成功とする事は、Wsn.5以降の形式のシナリオでしかできません。"); // Wsn.5
 	auto warningInvocationCondition = Msg("warningInvocationCondition", "「生存」以外の条件で発動する召喚獣は、Wsn.3以降の形式のシナリオでしか機能しません。"); // Wsn.3
 	auto warningRemoveWithUnconscious = Msg("warningRemoveWithUnconscious", "意識不明時に消滅しない召喚獣は、Wsn.3以降の形式のシナリオでしか機能しません。"); // Wsn.3
 	auto warningInconsistencyStatus = Msg("warningInconsistencyStatus", "%1$s状態と%2$s状態を同時に設定する事はできません。");
@@ -2718,6 +2741,7 @@ class Msgs : Properties {
 	auto scriptErrorInvalidCardImagePosition = Msg("scriptErrorInvalidCardImagePosition", "イメージの配置形式が正しくありません。");
 	auto scriptErrorInvalidStartAction = Msg("scriptErrorInvalidStartAction", "未知の戦闘行動開始タイミングです。"); // Wsn.2
 	auto scriptErrorInvalidMatchingType = Msg("scriptErrorInvalidMatchingType", "未知の判定条件です。"); // Wsn.2
+	auto scriptErrorInvalidMatchingCondition = Msg("scriptErrorInvalidMatchingCondition", "未知のマッチング条件です。"); // Wsn.5
 	auto scriptErrorInvalidUpdateType = Msg("scriptErrorInvalidUpdateType", "未知の更新タイプです。"); // Wsn.4
 	auto scriptErrorInvalidEnvironmentStatus = Msg("scriptErrorInvalidEnvironmentStatus", "未知の状況です。"); // Wsn.4
 	auto scriptErrorInvalidVariableType = Msg("scriptErrorInvalidVariableType", "未知の状態変数です。"); // Wsn.4
