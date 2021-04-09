@@ -72,6 +72,9 @@ private:
 			case VariantType.List:
 				ws ~= .tryFormat(prop.msgs.warningExpressionNeedBooleanReturnType, prop.msgs.listValue, prop.msgs.contentName(type));
 				break;
+			case VariantType.Structure:
+				ws ~= .tryFormat(prop.msgs.warningExpressionNeedBooleanReturnType, .tryFormat(prop.msgs.structValue, val.structName), prop.msgs.contentName(type));
+				break;
 			}
 		}
 		ws ~= _expr.warnings;
@@ -179,6 +182,9 @@ private:
 				case VariantType.List:
 					ws ~= .tryFormat(prop.msgs.warningExpressionToFlag, prop.msgs.listValue);
 					break;
+				case VariantType.Structure:
+					ws ~= .tryFormat(prop.msgs.warningExpressionToFlag, .tryFormat(prop.msgs.structValue, val.structName));
+					break;
 				}
 			}
 		} else if (_step) { mixin(S_TRACE);
@@ -195,6 +201,9 @@ private:
 					break;
 				case VariantType.List:
 					ws ~= .tryFormat(prop.msgs.warningExpressionToStep, prop.msgs.listValue);
+					break;
+				case VariantType.Structure:
+					ws ~= .tryFormat(prop.msgs.warningExpressionToStep, .tryFormat(prop.msgs.structValue, val.structName));
 					break;
 				}
 			}
@@ -471,7 +480,7 @@ class ExpressionEditor : Composite {
 	private UseCounter _uc;
 
 	private Text _expr;
-	private VariantVal _returnValue = VariantVal(false);
+	private VariantVal _returnValue = VariantVal.invalidValue;
 	private string[] _ws;
 
 	private FunctionCallEditor _funcEdit = null;
@@ -973,6 +982,9 @@ private class FunctionCallEditor {
 					case ArgType.List:
 						args ~= t;
 						break;
+					case ArgType.CardInfo:
+						args ~= t == "" ? "SELECTEDCARD()" : t;
+						break;
 					case ArgType.NoArgument:
 						break;
 					case ArgType.Any:
@@ -1040,6 +1052,9 @@ private class FunctionCallEditor {
 			case ArgType.List:
 				argTypes = [ArgType.List, ArgType.VariantRef];
 				break;
+			case ArgType.CardInfo:
+				argTypes = [ArgType.CardInfo, ArgType.VariantRef];
+				break;
 			case ArgType.VariantRef:
 			case ArgType.NoArgument:
 				assert (0);
@@ -1095,6 +1110,8 @@ private class FunctionCallEditor {
 			return _comm.prop.msgs.argBoolean;
 		case ArgType.List:
 			return _comm.prop.msgs.argList;
+		case ArgType.CardInfo:
+			return _comm.prop.msgs.argCardInfo;
 		case ArgType.NumberOrString:
 			assert (0);
 		case ArgType.Any:
@@ -1220,6 +1237,7 @@ private class FunctionCallEditor {
 			return t;
 		case ArgType.String:
 		case ArgType.List:
+		case ArgType.CardInfo:
 			return .createTextEditor(_comm, _comm.prop, _args, val);
 		case ArgType.Flag:
 			return createIDEditor!(cwx.flag.Flag)();
@@ -1228,11 +1246,8 @@ private class FunctionCallEditor {
 		case ArgType.Variant:
 			return createIDEditor!(cwx.flag.Variant)();
 		case ArgType.Boolean:
-			auto v = VariantVal(VariantType.Boolean);
-			v.boolVal = true;
-			auto trueVal = .variantValueToText(v);
-			v.boolVal = false;
-			auto falseVal = .variantValueToText(v);
+			auto trueVal = .variantValueToText(VariantVal.boolValue(true));
+			auto falseVal = .variantValueToText(VariantVal.boolValue(false));
 			return .createComboEditor!Combo(_comm, _comm.prop, _args, [trueVal, falseVal], val);
 		case ArgType.VariantRef:
 			return createIDEditor!(cwx.flag.Variant)();

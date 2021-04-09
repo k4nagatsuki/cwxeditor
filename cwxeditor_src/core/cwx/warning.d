@@ -1242,6 +1242,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 							case VariantType.List:
 								r ~= .tryFormat(prop.msgs.warningExpressionToFlag, prop.msgs.listValue);
 								break;
+							case VariantType.Structure:
+								r ~= .tryFormat(prop.msgs.warningExpressionToFlag, .tryFormat(prop.msgs.structValue, val.structName));
+								break;
 							}
 						}
 					} else if (c.step != "") { mixin(S_TRACE);
@@ -1258,6 +1261,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 								break;
 							case VariantType.List:
 								r ~= .tryFormat(prop.msgs.warningExpressionToStep, prop.msgs.listValue);
+								break;
+							case VariantType.Structure:
+								r ~= .tryFormat(prop.msgs.warningExpressionToStep, .tryFormat(prop.msgs.structValue, val.structName));
 								break;
 							}
 						}
@@ -1277,6 +1283,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 						break;
 					case VariantType.List:
 						r ~= .tryFormat(prop.msgs.warningExpressionNeedBooleanReturnType, prop.msgs.listValue, prop.msgs.contentName(c.type));
+						break;
+					case VariantType.Structure:
+						r ~= .tryFormat(prop.msgs.warningExpressionNeedBooleanReturnType, .tryFormat(prop.msgs.structValue, val.structName), prop.msgs.contentName(c.type));
 						break;
 					}
 					break;

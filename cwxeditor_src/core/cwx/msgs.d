@@ -1407,6 +1407,7 @@ class Msgs : Properties {
 	auto stringValue = Msg("stringValue", "文字列値");
 	auto booleanValue = Msg("booleanValue", "真偽値");
 	auto listValue = Msg("listValue", "リスト"); // Wsn.5
+	auto structValue = Msg("structValue", "構造体(%$1s)"); // Wsn.5
 
 	auto variantValueHint = Msg("variantValueHint", "書式:\n数値 = 9999\n文字列 = \"文字列\"\n真偽値 = TRUE または FALSE\n※ 文字列内に\"を入れる時は\"\"と記述");
 	auto warningInvalidVariantValue = Msg("warningInvalidVariantValue", "書式が正しくありません。\n\n%1$s");
@@ -2781,6 +2782,7 @@ class Msgs : Properties {
 	auto expressionErrorValueIsNotNumber = Msg("expressionErrorValueIsNotNumber", "演算対象が数値ではありません。");
 	auto expressionErrorValueIsNotBoolean = Msg("expressionErrorValueIsNotBoolean", "演算対象が真偽値ではありません。");
 	auto expressionErrorValueIsNotList = Msg("expressionErrorValueIsNotList", "演算対象がリストではありません。"); // Wsn.5
+	auto expressionErrorValueIsNotStructure = Msg("expressionErrorValueIsNotStructure", "構造体ではありません。"); // Wsn.5
 	auto expressionErrorDivisionByZero = Msg("expressionErrorDivisionByZero", "ゼロによる除算が行われました。");
 	auto expressionErrorInvalidCharacter = Msg("expressionErrorInvalidCharacter", "式に使用できない文字が含まれています。");
 	auto expressionErrorInvalidFunctionCall = Msg("expressionErrorInvalidFunctionCall", "関数の呼び出し方が正しくありません。");
@@ -2791,12 +2793,14 @@ class Msgs : Properties {
 	auto expressionErrorNeedOperator = Msg("expressionErrorNeedOperator", "演算子が必要です。");
 	auto expressionErrorInvalidNumber = Msg("expressionErrorInvalidNumber", "数値が大きすぎます。");
 	auto expressionErrorInvalidSemantics = Msg("expressionErrorInvalidSemantics", "式の構文が正しくありません。");
+	auto expressionErrorUnknownSymbol = Msg("expressionErrorUnknownSymbol", "未知のシンボルです: %1$s");
 	auto expressionErrorInvalidArgumentCount = Msg("expressionErrorInvalidArgumentCount", "%1$sの引数は%2$s件でなければなりません。");
 	auto expressionErrorInvalidArgumentCount2 = Msg("expressionErrorInvalidArgumentCount2", "%1$sの引数は%2$s～%3$s件でなければなりません。");
 	auto expressionErrorArgumentIsNotNumber = Msg("expressionErrorArgumentIsNotNumber", "%1$sの%2$s番目の引数は数値でなければなりません。");
 	auto expressionErrorArgumentIsNotString = Msg("expressionErrorArgumentIsNotString", "%1$sの%2$s番目の引数は文字列でなければなりません。");
 	auto expressionErrorArgumentIsNotBoolean = Msg("expressionErrorArgumentIsNotBoolean", "%1$sの%2$s番目の引数は真偽値でなければなりません。");
 	auto expressionErrorArgumentIsNotList = Msg("expressionErrorArgumentIsNotList", "%1$sの%2$s番目の引数はリストでなければなりません。"); // Wsn.5
+	auto expressionErrorArgumentIsNotStructure = Msg("expressionErrorArgumentIsNotStructure", "%1$sの%2$s番目の引数は%3$sでなければなりません。"); // Wsn.5
 	auto expressionErrorMinimumValue = Msg("expressionErrorMinimumValue", "%1$sの%2$s番目の引数は%3$s以上でなければなりません: %4$s < %3$s");
 	auto expressionErrorNoArgumentWithFunctionName = Msg("expressionErrorNoArgumentWithFunctionName", "%1$sの引数がありません。");
 	auto expressionErrorConversionToNumber = Msg("expressionErrorConversionToNumber", "数値に変換できません: %1$s");
@@ -2805,6 +2809,9 @@ class Msgs : Properties {
 	auto expressionErrorStepNotFound = Msg("expressionErrorStepNotFound", "ステップ「%1$s」は存在しません。");
 	auto expressionErrorInvalidStepValue = Msg("expressionErrorInvalidStepValue", "ステップ「%1$s」の最大値より大きな値です: %2$s");
 	auto expressionErrorListIndexIsOutOfRange = Msg("expressionErrorListIndexIsOutOfRange", "リストに%1$s番目の要素は存在しません: リストの長さ = %2$s"); // Wsn.5
+	auto expressionErrorCompareDifferentStructures = Msg("expressionErrorCompareDifferentStructures", "異なる種類の構造体を比較しようとしました: %1$s <> %2$s"); // Wsn.5
+	auto expressionErrorTokenIsNotStructureMemberName = Msg("expressionErrorTokenIsNotStructureMemberName", "構造体のメンバ名が正しくありません: %1$s"); // Wsn.5
+	auto expressionErrorSymbolIsNotStructureMemberName = Msg("expressionErrorSymbolIsNotStructureMemberName", "構造体%1$sのメンバ名が正しくありません。%2$sのいずれかである必要があります。"); // Wsn.5
 	auto warningExpression = Msg("warningExpression", "%1$s → %2$s");
 	auto warningExpressionPosition = Msg("warningExpressionPosition", " >>>");
 	auto warningExpressionEnd = Msg("warningExpressionEnd", " <<<");
@@ -2821,6 +2828,7 @@ class Msgs : Properties {
 	auto argVariant = Msg("argVariant", "コモン名");
 	auto argBoolean = Msg("argBoolean", "真偽値");
 	auto argList = Msg("argList", "リスト"); // Wsn.5
+	auto argCardInfo = Msg("argCardInfo", "カード情報"); // Wsn.5
 	auto argAny = Msg("argAny", "任意の値");
 	auto argNumberOrString = Msg("argNumberOrString", "文字列または数値");
 	auto functionAs = Msg("functionAs", "%1$s → %2$s");

@@ -2379,7 +2379,7 @@ class PreviewValues : Composite {
 	}
 	private static class VariantData {
 		cwx.flag.Variant variant;
-		VariantVal val;
+		VariantVal val = VariantVal.invalidValue;
 	}
 
 	private static class PlayerCardName {

@@ -1230,7 +1230,8 @@ enum VariantType {
 	Number, /// 数値。
 	String, /// 文字列。
 	Boolean, /// 真偽値。
-	List, /// リスト。
+	List, /// リスト(Wsn.5)。
+	Structure, /// 構造体(Wsn.5)。
 }
 /// ditto
 VariantType toVariantType(string name) { mixin(S_TRACE);
@@ -1239,6 +1240,7 @@ VariantType toVariantType(string name) { mixin(S_TRACE);
 	case "String": return VariantType.String;
 	case "Boolean": return VariantType.Boolean;
 	case "List": return VariantType.List;
+	case "Structure": return VariantType.Structure;
 	default: throw new Exception("Unknown variant type: " ~ name);
 	}
 }
@@ -1249,6 +1251,7 @@ string fromVariantType(VariantType t) { mixin(S_TRACE);
 	case VariantType.String: return "String";
 	case VariantType.Boolean: return "Boolean";
 	case VariantType.List: return "List";
+	case VariantType.Structure: return "Structure";
 	}
 }
 
