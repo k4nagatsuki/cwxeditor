@@ -1295,6 +1295,7 @@ enum FunctionCategory {
 	ListOperation, /// リスト操作。
 	Conversion, /// 型変換。
 	VariableOperation, /// 状態変数。
+	CastInformation, /// キャラクター情報。
 	CardInformation, /// カード情報。
 	CouponInformation, /// 称号情報。
 	PlayingInformation, /// プレイ情報。

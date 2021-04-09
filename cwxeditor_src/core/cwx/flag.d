@@ -1022,44 +1022,13 @@ public:
 			variant = new Variant(name, .parseBool(defValue));
 			break;
 		case VariantType.List:
-			variant = new Variant(name, toListVal(ve).listVal);
-			break;
 		case VariantType.Structure:
-			auto val = toStructVal(ve);
-			variant = new Variant(name, val.structName, val.structVal);
-			break;
+			// リストと構造体はコモンの初期値にできない
+			throw new Exception("Can not initialize variant with list or structure.");
 		}
 		variant.initialization = toVariableInitialization(ve.attr("initialize", false, "Leave"));
 		variant.comment = ve.attr("comment", false, "");
 		return variant;
-	}
-	private static const(VariantVal) toListVal(ref XNode n) { mixin(S_TRACE);
-		auto val = VariantVal(VariantType.List);
-		n.onTag["Value"] = (ref XNode n) { mixin(S_TRACE);
-			val.listVal ~= toVariantVal(n);
-		};
-		n.parse();
-		return val;
-	}
-	private static const(VariantVal) toStructVal(ref XNode n) { mixin(S_TRACE);
-		string origStructName;
-		string[] memberNames;
-		auto val = VariantVal(VariantType.Structure);
-		n.onTag["StructureName"] = (ref XNode n) { mixin(S_TRACE);
-			origStructName = n.value;
-			val.structName = n.value.toLower();
-		};
-		n.onTag["Member"] = (ref XNode n) { mixin(S_TRACE);
-			memberNames ~= n.attr("name", true);
-			val.structVal ~= toVariantVal(n);
-		};
-		n.parse();
-		if (!.isValidStructure(val.structName, memberNames, val.structVal)) { mixin(S_TRACE);
-			throw new Exception("Invalid structure %s member: %s".format(origStructName, memberNames.join(", ")));
-		}
-		auto members = .structureMembers(val.structName);
-		foreach (i; val.structVal.length .. members.length) val.structVal ~= members[i].defaultValue;
-		return val;
 	}
 	private static const(VariantVal) toVariantVal(ref XNode n) { mixin(S_TRACE);
 		auto type = toVariantType(n.attr!string("type", true));
@@ -1072,9 +1041,9 @@ public:
 		case VariantType.Boolean:
 			return VariantVal.boolValue(.parseBool(value));
 		case VariantType.List:
-			return toListVal(n);
 		case VariantType.Structure:
-			return toStructVal(n);
+			// リストと構造体はコモンの初期値にできない
+			throw new Exception("Can not initialize variant with list or structure.");
 		}
 	}
 
@@ -1094,29 +1063,12 @@ public:
 			e.newAttr("defaultvalue", .fromBool(boolVal));
 			break;
 		case VariantType.List:
-			fromListVal(e, listVal);
-			break;
 		case VariantType.Structure:
-			fromStructVal(e, structName, structVal);
-			break;
+			// リストと構造体はコモンの初期値にできない
+			throw new Exception("Can not initialize variant with list or structure.");
 		}
 		e.newElement("Name", path);
 		if (comment != "") e.newAttr("comment", comment);
-	}
-	private static void fromListVal(ref XNode n, in VariantVal[] vals) { mixin(S_TRACE);
-		foreach (ref val; vals) { mixin(S_TRACE);
-			auto ve = n.newElement("Value");
-			ve.newAttr("type", .fromVariantType(val.type));
-			fromVariantVal(ve, val);
-		}
-	}
-	private static void fromStructVal(ref XNode n, string name, in VariantVal[] vals) { mixin(S_TRACE);
-		n.newElement("StructureName", name.toUpper());
-		foreach (i, mem; .structureMembers(name)) { mixin(S_TRACE);
-			auto ve = n.newElement("Member");
-			ve.newAttr("name", mem.name.toUpper());
-			fromVariantVal(ve, vals[i]);
-		}
 	}
 	private static void fromVariantVal(ref XNode n, in VariantVal val) { mixin(S_TRACE);
 		final switch (val.type) {
@@ -1128,11 +1080,9 @@ public:
 			n.newAttr("value", .fromBool(val.boolVal));
 			break;
 		case VariantType.List:
-			fromListVal(n, val.listVal);
-			break;
 		case VariantType.Structure:
-			fromStructVal(n, val.structName, val.structVal);
-			break;
+			// リストと構造体はコモンの初期値にできない
+			throw new Exception("Can not initialize variant with list or structure.");
 		}
 	}
 

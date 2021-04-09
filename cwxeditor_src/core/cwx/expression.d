@@ -185,7 +185,7 @@ public:
 		ExprError[] err;
 		string[char] names;
 		VarValue[string] flags, steps, variants, sysSteps;
-		auto vInfo = VariableInfo(prop, null, null, "1.50", names, flags, steps, variants, sysSteps, () => "", () => "");
+		auto vInfo = VariableInfo(prop, null, null, "1.50", names, flags, steps, variants, sysSteps, (uint) => "", (int, uint) => "", () => "", () => "");
 		return .partToVariantVal(.calculate(prop, EvalMode.TypeCheck, vInfo, _expr, err));
 	}
 
@@ -600,6 +600,13 @@ private class Function : Part {
 			"castlevel": &.funcCastLevel,
 			"couponvalue": &.funcCouponValue,
 			"liferatio": &.funcLifeRatio,
+			"selectedcard": &.funcSelectedCard,
+			"cardname": &.funcCardName,
+			"cardtype": &.funcCardType,
+			"cardrarity": &.funcCardRarity,
+			"cardprice": &.funcCardPrice,
+			"cardlevel": &.funcCardLevel,
+			"cardcount": &.funcCardCount,
 		];
 	}
 
@@ -629,7 +636,7 @@ private class Function : Part {
 		if (auto p = funcName.toLower() in FUNCS) { mixin(S_TRACE);
 			return (*p)(prop, mode, vInfo, this, args, err);
 		} else if (auto p = funcName.toLower() in STRUCTS) { mixin(S_TRACE);
-			return .createStructure(prop, mode, vInfo, this, *p, args, err);
+			return .createStructure(prop, mode, vInfo, this, *p, args, true, err);
 		} else { mixin(S_TRACE);
 			err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorFunctionIsNotDefined : "Function is not defined: %s", funcName), token.line, token.pos, __FILE__, __LINE__);
 			return new NumberValue(token, 0);
@@ -681,7 +688,7 @@ private shared immutable StructureInfo[string] STRUCTS;
 shared static this () {
 	auto tbl = [
 		"cardinfo":StructureInfo("cardinfo", "5", [
-			StructureMember("castindex", "5", VariantVal.numValue(0.0), true, VariantType.Number, 0.0),
+			StructureMember("castindex", "5", VariantVal.numValue(0.0), true, VariantType.Number, -2.0),
 			StructureMember("cardindex", "5", VariantVal.numValue(0.0), true, VariantType.Number, 0.0),
 		], 2),
 	];
@@ -728,8 +735,8 @@ bool isValidStructure(string structName, in string[] memberNames, in VariantVal[
 	assert (!.isValidStructure("cardinfo", ["cardindex", "castindex"], [VariantVal.numValue(4), VariantVal.numValue(2)]));
 	assert (!.isValidStructure("cardinfo", ["castindex", "cardindex"], [VariantVal.strValue(""), VariantVal.numValue(2)]));
 	assert (!.isValidStructure("cardinfo", ["castindex", "cardindex"], [VariantVal.numValue(4), VariantVal.boolValue(false)]));
-	assert (.isValidStructure("cardinfo", ["castindex", "cardindex"], [VariantVal.numValue(0), VariantVal.numValue(0)]));
-	assert (!.isValidStructure("cardinfo", ["castindex", "cardindex"], [VariantVal.numValue(-1), VariantVal.numValue(2)]));
+	assert (.isValidStructure("cardinfo", ["castindex", "cardindex"], [VariantVal.numValue(-2), VariantVal.numValue(0)]));
+	assert (!.isValidStructure("cardinfo", ["castindex", "cardindex"], [VariantVal.numValue(-2.1), VariantVal.numValue(2)]));
 	assert (!.isValidStructure("cardinfo", ["castindex", "cardindex"], [VariantVal.numValue(0), VariantVal.numValue(-0.1)]));
 }
 
@@ -1500,13 +1507,22 @@ struct VariableInfo {
 
 	/// キャラクター名を取得。
 	const string delegate(uint) castName;
+	/// カード名を取得。
+	const string delegate(int, uint) cardName;
 	/// パーティ名の取得。
 	const string delegate() partyName;
 	/// 拠点名の取得。
 	const string delegate() yadoName;
 
 	/// インスタンスを生成する。
-	this (in CProps prop, in Summary summ, in UseCounter uc, string targVer, string[char] names, VarValue[string] flags, VarValue[string] steps, VarValue[string] variants, VarValue[string] sysSteps, string delegate() ptName, string delegate() ydName) { mixin(S_TRACE);
+	this (in CProps prop, in Summary summ, in UseCounter uc, string targVer,
+			string[char] names,
+			VarValue[string] flags, VarValue[string] steps, VarValue[string] variants,
+			VarValue[string] sysSteps,
+			string delegate(uint) castName,
+			string delegate(int, uint) cardName,
+			string delegate() partyName,
+			string delegate() yadoName) { mixin(S_TRACE);
 		isTargetWsnVersion = (string wsnVer) { mixin(S_TRACE);
 			return prop ? prop.isTargetVersion(summ, targVer, wsnVer) : true;
 		};
@@ -1547,9 +1563,10 @@ struct VariableInfo {
 		findGossip = (pattern, startPos) => 0u;
 		gossipText = (gossipNumber) => "";
 
-		castName = (castNumber) => "";
-		partyName = ptName;
-		yadoName = ydName;
+		this.castName = castName;
+		this.cardName = cardName;
+		this.partyName = partyName;
+		this.yadoName = yadoName;
 	}
 }
 
@@ -1624,9 +1641,9 @@ private VariantVal partToVariantVal(in Part r) { mixin(S_TRACE);
 }
 
 /// 対象バージョンでなければエラーを追加する。
-private void checkWsnVersion(in VariableInfo vInfo, in Function func, string wsnVer, lazy string errMsg, ref ExprError[] err) { mixin(S_TRACE);
+private void checkWsnVersion(in VariableInfo vInfo, in Part part, string wsnVer, lazy string errMsg, ref ExprError[] err) { mixin(S_TRACE);
 	if (vInfo.isTargetWsnVersion && !vInfo.isTargetWsnVersion(wsnVer)) { mixin(S_TRACE);
-		err ~= ExprError(errMsg, func.token.line, func.token.pos, __FILE__, __LINE__);
+		err ~= ExprError(errMsg, part.token.line, part.token.pos, __FILE__, __LINE__);
 	}
 }
 /// ditto
@@ -2273,13 +2290,15 @@ private const(Part) funcLMid(in CProps prop, EvalMode mode, in VariableInfo vInf
 /// パーティーの所持金を返す。パーティー非編成時は -1 を返す。
 private const(Part) funcPartyMoney(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
 	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
+	if (!checkArgCount(prop, func, args, 0, err)) return new NumberValue(func.token, 0);
 	return new NumberValue(func.token, 0);
 }
 
 /// パーティーの人数を返す。パーティー非編成時は 0 を返す。
 private const(Part) funcPartyNumber(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
 	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
-	return new NumberValue(func.token, 0);
+	if (!checkArgCount(prop, func, args, 0, err)) return new NumberValue(func.token, 0);
+	return new NumberValue(func.token, prop.looks.partyMax);
 }
 
 /// 拠点名を返す。拠点無しの場合は空文字列を返す。
@@ -2297,6 +2316,7 @@ private const(Part) funcYadoName(in CProps prop, EvalMode mode, in VariableInfo 
 /// 現バトルのラウンド数を返す。バトル中ではない場合は -1 を返す。
 private const(Part) funcBattleRound(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
 	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
+	if (!checkArgCount(prop, func, args, 0, err)) return new NumberValue(func.token, 0);
 	return new NumberValue(func.token, 0);
 }
 
@@ -2314,18 +2334,107 @@ private const(Part) funcCastLevel(in CProps prop, EvalMode mode, in VariableInfo
 /// キャラクター番号からキャラクターの所持するクーポン名の点数を返す。キャラクターまたはクーポンが存在しない場合は 0 を返す。
 private const(Part) funcCouponValue(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
 	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
+	if (!checkArgCount(prop, func, args, 2, err)) return new NumberValue(func.token, 0);
+	auto ca = checkMinValue(prop, mode, func, args, 0, 0, err);
+	if (!ca) return new NumberValue(func.token, 0);
+	auto co = checkString(prop, func, args, 1, err);
+	if (!co) return new NumberValue(func.token, 0);
 	return new NumberValue(func.token, 0);
 }
 
 /// キャラクター番号からキャラクターのライフ残量を割合で返す。存在しない場合は -1 を返す。
 private const(Part) funcLifeRatio(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
 	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
+	if (!checkArgCount(prop, func, args, 2, err)) return new NumberValue(func.token, 0);
+	auto ca = checkMinValue(prop, mode, func, args, 0, 0, err);
+	if (!ca) return new NumberValue(func.token, 0);
 	return new NumberValue(func.token, 1);
 }
 
+/// 選択カードがある場合はカード情報を返す。存在しない場合は無効なカード情報を返す。
+private const(Part) funcSelectedCard(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
+	.checkArgCount(prop, func, args, 0, err);
+	auto info = STRUCTS["cardinfo"];
+	auto args2 = info.members.map!(m => .variantValToValueObj(func.token, m.defaultValue)).array();
+	return .createStructure(prop, mode, vInfo, func, info, args2, false, err);
+}
+
+/// カード名を返す。カード情報が無効の場合は空文字列を返す。
+private const(Part) funcCardName(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
+	if (!checkArgCount(prop, func, args, 1, err)) return new StringValue(func.token, "");
+	auto ci = .checkStructure(prop, func, args, 0, "cardinfo", err);
+	if (!ci) return new StringValue(func.token, "");
+	auto info = STRUCTS["cardinfo"];
+	auto castIndexV = cast(NumberValue)ci.structVal[info.indexOf("castindex")];
+	assert (castIndexV !is null);
+	auto castIndex = cast(uint)castIndexV.numVal;
+	auto cardIndexV = cast(NumberValue)ci.structVal[info.indexOf("cardindex")];
+	assert (cardIndexV !is null);
+	auto cardIndex = cast(int)cardIndexV.numVal;
+	if (castIndex == 0 || cardIndex == 0) return new StringValue(func.token, "");
+
+	if (mode !is EvalMode.TypeCheck) { mixin(S_TRACE);
+		if (!vInfo.cardName) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
+	}
+	if (mode is EvalMode.TypeCheck) return new StringValue(func.token, "");
+
+	return new StringValue(func.token, vInfo.cardName(castIndex, cardIndex));
+}
+
+/// カードのタイプを返す(特殊技能=1, アイテム=2, 召喚獣=3)。
+/// カード情報が無効の場合は0を返す。
+private const(Part) funcCardType(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
+	if (!checkArgCount(prop, func, args, 1, err)) return new NumberValue(func.token, 0);
+	.checkStructure(prop, func, args, 0, "cardinfo", err);
+	return new NumberValue(func.token, 0);
+}
+
+/// カードの希少度を返す(一般=1, レア=2, プレミア=3)。
+/// カード情報が無効の場合は0を返す。
+private const(Part) funcCardRarity(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
+	if (!checkArgCount(prop, func, args, 1, err)) return new NumberValue(func.token, 0);
+	.checkStructure(prop, func, args, 0, "cardinfo", err);
+	return new NumberValue(func.token, 1);
+}
+
+/// カードの価格を返す。
+/// カード情報が無効の場合は-1を返す。
+private const(Part) funcCardPrice(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
+	if (!checkArgCount(prop, func, args, 1, err)) return new NumberValue(func.token, 0);
+	.checkStructure(prop, func, args, 0, "cardinfo", err);
+	return new NumberValue(func.token, 0);
+}
+
+/// カードのレベルを返す。
+/// カード情報が無効か、特殊技能カードでない場合は-1を返す。
+private const(Part) funcCardLevel(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
+	if (!checkArgCount(prop, func, args, 1, err)) return new NumberValue(func.token, 0);
+	auto ci = .checkStructure(prop, func, args, 0, "cardinfo", err);
+	if (!ci) return new NumberValue(func.token, 0);
+	return new NumberValue(func.token, 0);
+}
+
+/// カードの残り使用回数を返す。
+/// カード情報が無効の場合は-1を返す。
+private const(Part) funcCardCount(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
+	if (!checkArgCount(prop, func, args, 1, err)) return new NumberValue(func.token, 0);
+	auto ci = .checkStructure(prop, func, args, 0, "cardinfo", err);
+	if (!ci) return new NumberValue(func.token, 0);
+	return new NumberValue(func.token, 0);
+}
+
 /// 構造体のインスタンスを生成する。
-private const(Part) createStructure(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in StructureInfo info, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
-	.checkWsnVersionForFunctionExists(prop, vInfo, func, info.dataVersion, err);
+private const(Part) createStructure(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in StructureInfo info, in Part[] args, bool checkDataVersion, ref ExprError[] err) { mixin(S_TRACE);
+	if (checkDataVersion) { mixin(S_TRACE);
+		.checkWsnVersion(vInfo, func, info.dataVersion, .tryFormat(prop ? prop.msgs.expressionErrorStructureIsNotExistsInTargetVersion : "Structure %1$s is not exists in Wsn.%2$s.", info.name.toUpper(), info.dataVersion), err);
+	}
 	const(Part)[] args2 = args;
 	if (!checkArgCount2(prop, func, args, info.requiredMemberNum, info.members.length, err)) { mixin(S_TRACE);
 		if (info.members.length < args.length) args2 = args[0 .. info.members.length];
@@ -2333,7 +2442,9 @@ private const(Part) createStructure(in CProps prop, EvalMode mode, in VariableIn
 	const(Part)[] args3;
 	foreach (i, arg; args2) { mixin(S_TRACE);
 		auto m = info.members[i];
-		.checkWsnVersionForFunctionExists(prop, vInfo, func, m.dataVersion, err);
+		if (checkDataVersion && info.dataVersion != m.dataVersion) { mixin(S_TRACE);
+			.checkWsnVersion(vInfo, arg, m.dataVersion, .tryFormat(prop ? prop.msgs.expressionErrorStructureMemberIsNotExistsInTargetVersion : "Structure member %1$s.%2$s is not exists in Wsn.%3$s.", info.name.toUpper(), m.name.toUpper(), m.dataVersion), err);
+		}
 		if (m.typeCheck) { mixin(S_TRACE);
 			Rebindable!(const(Part)) arg2;
 			final switch (m.type) {
@@ -2408,37 +2519,36 @@ struct FuncDef {
 /// 全ての関数定義を返す。
 immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 	return [
-		// Wsn.4
 		FuncDef([FunctionCategory.StringOperation], "LEN", prop.msgs.funcDescLen, prop.msgs.funcShortDescLen, prop.msgs.funcExampleLen, [
 			ArgDef(ArgType.String, prop.msgs.exprStringDesc, "", false),
-		], ArgType.Number),
+		], ArgType.Number), // Wsn.4
 		FuncDef([FunctionCategory.StringOperation], "FIND", prop.msgs.funcDescFind, prop.msgs.funcShortDescFind, prop.msgs.funcExampleFind, [
 			ArgDef(ArgType.String, prop.msgs.exprFindStringDesc, "", false),
 			ArgDef(ArgType.String, prop.msgs.exprTargetStringDesc, "", false),
 			ArgDef(ArgType.Number, prop.msgs.exprFindStartPositionDesc, "1", true),
-		], ArgType.Number),
+		], ArgType.Number), // Wsn.4
 		FuncDef([FunctionCategory.StringOperation], "LEFT", prop.msgs.funcDescLeft, prop.msgs.funcShortDescLeft, prop.msgs.funcExampleLeft, [
 			ArgDef(ArgType.String, prop.msgs.exprStringDesc, "", false),
 			ArgDef(ArgType.Number, prop.msgs.exprStringLengthDesc, "0", false),
-		], ArgType.String),
+		], ArgType.String), // Wsn.4
 		FuncDef([FunctionCategory.StringOperation], "RIGHT", prop.msgs.funcDescRight, prop.msgs.funcShortDescRight, prop.msgs.funcExampleRight, [
 			ArgDef(ArgType.String, prop.msgs.exprStringDesc, "", false),
 			ArgDef(ArgType.Number, prop.msgs.exprStringLengthDesc, "0", false),
-		], ArgType.String),
+		], ArgType.String), // Wsn.4
 		FuncDef([FunctionCategory.StringOperation], "MID", prop.msgs.funcDescMid, prop.msgs.funcShortDescMid, prop.msgs.funcExampleMid, [
 			ArgDef(ArgType.String, prop.msgs.exprStringDesc, "", false),
 			ArgDef(ArgType.Number, prop.msgs.exprStringPositionDesc, "1", false),
 			ArgDef(ArgType.Number, prop.msgs.exprStringLengthDesc, "0", true),
-		], ArgType.String),
+		], ArgType.String), // Wsn.4
 		FuncDef([FunctionCategory.StringOperation, FunctionCategory.Conversion], "STR", prop.msgs.funcDescStr, prop.msgs.funcShortDescStr, prop.msgs.funcExampleStr, [
 			ArgDef(ArgType.Any, prop.msgs.exprAnyValueDesc, "", false),
-		], ArgType.String),
+		], ArgType.String), // Wsn.4
 		FuncDef([FunctionCategory.NumberOperation, FunctionCategory.Conversion], "VALUE", prop.msgs.funcDescValue, prop.msgs.funcShortDescValue, prop.msgs.funcExampleValue, [
 			ArgDef(ArgType.NumberOrString, prop.msgs.exprValueArgDesc, "0", false),
-		], ArgType.Number),
+		], ArgType.Number), // Wsn.4
 		FuncDef([FunctionCategory.NumberOperation, FunctionCategory.Conversion], "INT", prop.msgs.funcDescInt, prop.msgs.funcShortDescInt, prop.msgs.funcExampleInt, [
 			ArgDef(ArgType.NumberOrString, prop.msgs.exprValueArgDesc, "0", false),
-		], ArgType.Number),
+		], ArgType.Number), // Wsn.4
 		FuncDef([FunctionCategory.ListOperation], "LIST", prop.msgs.funcDescList, prop.msgs.funcShortDescList, prop.msgs.funcExampleList, [
 			ArgDef(ArgType.Any, prop.msgs.exprAnyValueDesc, "", false, true),
 		], ArgType.List), // Wsn.5
@@ -2471,60 +2581,80 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 			ArgDef(ArgType.Boolean, prop.msgs.exprBooleanDesc, "TRUE", false),
 			ArgDef(ArgType.Any, prop.msgs.exprIfTrueDesc, "", false),
 			ArgDef(ArgType.Any, prop.msgs.exprIfFalseDesc, "", false),
-		], ArgType.Any),
+		], ArgType.Any), // Wsn.4
 		FuncDef([FunctionCategory.NumberOperation], "DICE", prop.msgs.funcDescDice, prop.msgs.funcShortDescDice, prop.msgs.funcExampleDice, [
 			ArgDef(ArgType.Number, prop.msgs.exprDiceTimesDesc, "1", false),
 			ArgDef(ArgType.Number, prop.msgs.exprDiceSidesDesc, "6", false),
-		], ArgType.Number),
+		], ArgType.Number), // Wsn.4
 		FuncDef([FunctionCategory.NumberOperation], "MAX", prop.msgs.funcDescMax, prop.msgs.funcShortDescMax, prop.msgs.funcExampleMax, [
 			ArgDef(ArgType.Number, prop.msgs.exprVariableLengthNumberDesc, "0", false, true),
-		], ArgType.Number),
+		], ArgType.Number), // Wsn.4
 		FuncDef([FunctionCategory.NumberOperation], "MIN", prop.msgs.funcDescMin, prop.msgs.funcShortDescMin, prop.msgs.funcExampleMin, [
 			ArgDef(ArgType.Number, prop.msgs.exprVariableLengthNumberDesc, "0", false, true),
-		], ArgType.Number),
+		], ArgType.Number), // Wsn.4
 		FuncDef([FunctionCategory.VariableOperation], "VAR", prop.msgs.funcDescVar, prop.msgs.funcShortDescVar, prop.msgs.funcExampleVar, [
 			ArgDef(ArgType.Variant, prop.msgs.exprVariantDesc, "", false),
-		], ArgType.Any),
+		], ArgType.Any), // Wsn.4
 		FuncDef([FunctionCategory.VariableOperation], "FLAGVALUE", prop.msgs.funcDescFlagValue, prop.msgs.funcShortDescFlagValue, prop.msgs.funcExampleFlagValue, [
 			ArgDef(ArgType.Flag, prop.msgs.exprFlagDesc, "", false),
-		], ArgType.Boolean),
+		], ArgType.Boolean), // Wsn.4
 		FuncDef([FunctionCategory.VariableOperation], "FLAGTEXT", prop.msgs.funcDescFlagText, prop.msgs.funcShortDescFlagText, prop.msgs.funcExampleFlagText, [
 			ArgDef(ArgType.Flag, prop.msgs.exprFlagDesc, "", false),
 			ArgDef(ArgType.Boolean, prop.msgs.exprFlagValueDesc, "TRUE", true),
-		], ArgType.String),
+		], ArgType.String), // Wsn.4
 		FuncDef([FunctionCategory.VariableOperation], "STEPVALUE", prop.msgs.funcDescStepValue, prop.msgs.funcShortDescStepValue, prop.msgs.funcExampleStepValue, [
 			ArgDef(ArgType.Step, prop.msgs.exprStepDesc, "", false),
-		], ArgType.Number),
+		], ArgType.Number), // Wsn.4
 		FuncDef([FunctionCategory.VariableOperation], "STEPTEXT", prop.msgs.funcDescStepText, prop.msgs.funcShortDescStepText, prop.msgs.funcExampleStepText, [
 			ArgDef(ArgType.Step, prop.msgs.exprStepDesc, "", false),
 			ArgDef(ArgType.Number, prop.msgs.exprStepValueDesc, "0", true),
-		], ArgType.String),
+		], ArgType.String), // Wsn.4
 		FuncDef([FunctionCategory.VariableOperation], "STEPMAX", prop.msgs.funcDescStepMax, prop.msgs.funcShortDescStepMax, prop.msgs.funcExampleStepMax, [
 			ArgDef(ArgType.Step, prop.msgs.exprStepDesc, "", false),
-		], ArgType.Number),
-		FuncDef([FunctionCategory.CardInformation], "SELECTED", prop.msgs.funcDescSelected, prop.msgs.funcShortDescSelected, prop.msgs.funcExampleSelected, [
-		], ArgType.Number),
-		FuncDef([FunctionCategory.CardInformation], "CASTTYPE", prop.msgs.funcDescCastType, prop.msgs.funcShortDescCastType, prop.msgs.funcExampleCastType, [
+		], ArgType.Number), // Wsn.4
+		FuncDef([FunctionCategory.CastInformation], "SELECTED", prop.msgs.funcDescSelected, prop.msgs.funcShortDescSelected, prop.msgs.funcExampleSelected, [
+		], ArgType.Number), // Wsn.4
+		FuncDef([FunctionCategory.CastInformation], "CASTTYPE", prop.msgs.funcDescCastType, prop.msgs.funcShortDescCastType, prop.msgs.funcExampleCastType, [
 			ArgDef(ArgType.Number, prop.msgs.exprCastNumberDesc, "1", false),
-		], ArgType.Number),
-		FuncDef([FunctionCategory.CardInformation], "CASTNAME", prop.msgs.funcDescCastName, prop.msgs.funcShortDescCastName, prop.msgs.funcExampleCastName, [
+		], ArgType.Number), // Wsn.4
+		FuncDef([FunctionCategory.CastInformation], "CASTNAME", prop.msgs.funcDescCastName, prop.msgs.funcShortDescCastName, prop.msgs.funcExampleCastName, [
 			ArgDef(ArgType.Number, prop.msgs.exprCastNumberDesc, "1", false),
-		], ArgType.String),
-		FuncDef([FunctionCategory.CardInformation], "CASTLEVEL", prop.msgs.funcDescCastLevel, prop.msgs.funcShortDescCastLevel, prop.msgs.funcExampleCastLevel, [
+		], ArgType.String), // Wsn.4
+		FuncDef([FunctionCategory.CastInformation], "CASTLEVEL", prop.msgs.funcDescCastLevel, prop.msgs.funcShortDescCastLevel, prop.msgs.funcExampleCastLevel, [
 			ArgDef(ArgType.Number, prop.msgs.exprCastNumberDesc, "1", false),
-		], ArgType.Number),
-		FuncDef([FunctionCategory.CardInformation], "LIFERATIO", prop.msgs.funcDescLifeRatio, prop.msgs.funcShortDescLifeRatio, prop.msgs.funcExampleLifeRatio, [
+		], ArgType.Number), // Wsn.5
+		FuncDef([FunctionCategory.CastInformation], "LIFERATIO", prop.msgs.funcDescLifeRatio, prop.msgs.funcShortDescLifeRatio, prop.msgs.funcExampleLifeRatio, [
 			ArgDef(ArgType.Number, prop.msgs.exprCastNumberDesc, "1", false),
+		], ArgType.Number), // Wsn.5
+		FuncDef([FunctionCategory.CardInformation], "SELECTEDCARD", prop.msgs.funcDescSelectedCard, prop.msgs.funcShortDescSelectedCard, prop.msgs.funcExampleSelectedCard, [
+		], ArgType.CardInfo), // Wsn.5
+		FuncDef([FunctionCategory.CardInformation], "CARDNAME", prop.msgs.funcDescCardName, prop.msgs.funcShortDescCardName, prop.msgs.funcExampleCardName, [
+			ArgDef(ArgType.CardInfo, prop.msgs.exprCardInfoDesc, "SELECTEDCARD()", false),
+		], ArgType.String), // Wsn.5
+		FuncDef([FunctionCategory.CardInformation], "CARDTYPE", prop.msgs.funcDescCardType, prop.msgs.funcShortDescCardType, prop.msgs.funcExampleCardType, [
+			ArgDef(ArgType.CardInfo, prop.msgs.exprCardInfoDesc, "SELECTEDCARD()", false),
+		], ArgType.Number), // Wsn.5
+		FuncDef([FunctionCategory.CardInformation], "CARDRARITY", prop.msgs.funcDescCardRarity, prop.msgs.funcShortDescCardRarity, prop.msgs.funcExampleCardRarity, [
+			ArgDef(ArgType.CardInfo, prop.msgs.exprCardInfoDesc, "SELECTEDCARD()", false),
+		], ArgType.Number), // Wsn.5
+		FuncDef([FunctionCategory.CardInformation], "CARDPRICE", prop.msgs.funcDescCardPrice, prop.msgs.funcShortDescCardPrice, prop.msgs.funcExampleCardPrice, [
+			ArgDef(ArgType.CardInfo, prop.msgs.exprCardInfoDesc, "SELECTEDCARD()", false),
+		], ArgType.Number), // Wsn.5
+		FuncDef([FunctionCategory.CardInformation], "CARDLEVEL", prop.msgs.funcDescCardLevel, prop.msgs.funcShortDescCardLevel, prop.msgs.funcExampleCardLevel, [
+			ArgDef(ArgType.CardInfo, prop.msgs.exprCardInfoDesc, "SELECTEDCARD()", false),
+		], ArgType.Number), // Wsn.5
+		FuncDef([FunctionCategory.CardInformation], "CARDCOUNT", prop.msgs.funcDescCardCount, prop.msgs.funcShortDescCardCount, prop.msgs.funcExampleCardCount, [
+			ArgDef(ArgType.CardInfo, prop.msgs.exprCardInfoDesc, "SELECTEDCARD()", false),
 		], ArgType.Number), // Wsn.5
 		FuncDef([FunctionCategory.CouponInformation], "FINDCOUPON", prop.msgs.funcDescFindCoupon, prop.msgs.funcShortDescFindCoupon, prop.msgs.funcExampleFindCoupon, [
 			ArgDef(ArgType.Number, prop.msgs.exprCastNumberDesc, "1", false),
 			ArgDef(ArgType.String, prop.msgs.exprFindPatternDesc, "*", false),
 			ArgDef(ArgType.Number, prop.msgs.exprFindStartPositionDesc, "", true),
-		], ArgType.Number),
+		], ArgType.Number), // Wsn.4
 		FuncDef([FunctionCategory.CouponInformation], "COUPONTEXT", prop.msgs.funcDescCouponText, prop.msgs.funcShortDescCouponText, prop.msgs.funcExampleCouponText, [
 			ArgDef(ArgType.Number, prop.msgs.exprCastNumberDesc, "1", false),
 			ArgDef(ArgType.Number, prop.msgs.exprCouponNumberDesc, "1", false),
-		], ArgType.String),
+		], ArgType.String), // Wsn.4
 		FuncDef([FunctionCategory.CouponInformation], "COUPONVALUE", prop.msgs.funcDescCouponValue, prop.msgs.funcShortDescCouponValue, prop.msgs.funcExampleCouponValue, [
 			ArgDef(ArgType.Number, prop.msgs.exprCastNumberDesc, "1", false),
 			ArgDef(ArgType.String, prop.msgs.exprCouponNameDesc, "", false),
@@ -2532,12 +2662,12 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 		FuncDef([FunctionCategory.CouponInformation], "FINDGOSSIP", prop.msgs.funcDescFindGossip, prop.msgs.funcShortDescFindGossip, prop.msgs.funcExampleFindGossip, [
 			ArgDef(ArgType.String, prop.msgs.exprFindPatternDesc, "*", false),
 			ArgDef(ArgType.Number, prop.msgs.exprFindStartPositionDesc, "", true),
-		], ArgType.Number),
+		], ArgType.Number), // Wsn.4
 		FuncDef([FunctionCategory.CouponInformation], "GOSSIPTEXT", prop.msgs.funcDescGossipText, prop.msgs.funcShortDescGossipText, prop.msgs.funcExampleGossipText, [
 			ArgDef(ArgType.Number, prop.msgs.exprGossipNumberDesc, "1", false),
-		], ArgType.String),
+		], ArgType.String), // Wsn.4
 		FuncDef([FunctionCategory.PlayingInformation], "PARTYNAME", prop.msgs.funcDescPartyName, prop.msgs.funcShortDescPartyName, prop.msgs.funcExamplePartyName, [
-		], ArgType.String),
+		], ArgType.String), // Wsn.4
 		FuncDef([FunctionCategory.PlayingInformation], "PARTYMONEY", prop.msgs.funcDescPartyMoney, prop.msgs.funcShortDescPartyMoney, prop.msgs.funcExamplePartyMoney, [
 		], ArgType.Number), // Wsn.5
 		FuncDef([FunctionCategory.PlayingInformation], "PARTYNUMBER", prop.msgs.funcDescPartyNumber, prop.msgs.funcShortDescPartyNumber, prop.msgs.funcExamplePartyNumber, [

@@ -446,7 +446,13 @@ class ExpressionEditor : Composite {
 		expr.text = text;
 		string[char] names;
 		VarValue[string] flags, steps, variants, sysSteps;
-		auto err = expr.getExpressionErrors(_comm.prop.parent, VariableInfo(_comm.prop.parent, _summ, _uc, _comm.prop.var.etc.targetVersion, names, flags, steps, variants, sysSteps, () => cast(string)_comm.prop.var.etc.messageVarTeam, () => cast(string)_comm.prop.var.etc.messageVarYado));
+		auto vInfo = VariableInfo(_comm.prop.parent, _summ, _uc, _comm.prop.var.etc.targetVersion,
+			names, flags, steps, variants, sysSteps,
+			(uint) => _comm.prop.var.etc.messageVarSelected.value,
+			(int, uint) => _comm.prop.var.etc.messageVarCard.value,
+			() => _comm.prop.var.etc.messageVarTeam.value,
+			() => _comm.prop.var.etc.messageVarYado.value);
+		auto err = expr.getExpressionErrors(_comm.prop.parent, vInfo);
 		_ws ~= .exprErrorToWarnings(_comm.prop.parent, text, err);
 
 		bool[string] wFlags;
@@ -983,7 +989,7 @@ private class FunctionCallEditor {
 						args ~= t;
 						break;
 					case ArgType.CardInfo:
-						args ~= t == "" ? "SELECTEDCARD()" : t;
+						args ~= t;
 						break;
 					case ArgType.NoArgument:
 						break;

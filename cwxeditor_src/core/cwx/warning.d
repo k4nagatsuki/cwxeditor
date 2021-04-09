@@ -1292,7 +1292,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				default:
 					assert (0);
 				}
-				r ~= .exprErrorToWarnings(prop, c.expression, c.getExpressionErrors(prop, VariableInfo(prop, summ, c.useCounter, targVer, names, flags, steps, variants, sysSteps, () => "", () => "")));
+				r ~= .exprErrorToWarnings(prop, c.expression, c.getExpressionErrors(prop, VariableInfo(prop, summ, c.useCounter, targVer, names, flags, steps, variants, sysSteps, (uint) => "", (int, uint) => "", () => "", () => "")));
 				r ~= checkTextRes2(c.expression, c.useCounter, c.flagsInExpression, c.stepsInExpression, c.variantsInExpression, [], []);
 			}
 		}
