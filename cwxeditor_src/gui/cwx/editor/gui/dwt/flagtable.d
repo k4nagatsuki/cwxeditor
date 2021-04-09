@@ -1257,11 +1257,8 @@ protected:
 			_boolVal = new Combo(comp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
 			mod(_boolVal);
 			_boolVal.setVisibleItemCount(_comm.prop.var.etc.comboVisibleItemCount);
-			auto v = VariantVal(VariantType.Boolean);
-			v.boolVal = true;
-			_boolVal.add(.variantValueToText(v));
-			v.boolVal = false;
-			_boolVal.add(.variantValueToText(v));
+			_boolVal.add(.variantValueToText(VariantVal.boolValue(true)));
+			_boolVal.add(.variantValueToText(VariantVal.boolValue(false)));
 			_boolVal.setLayoutData(grabVGD(GridData.HORIZONTAL_ALIGN_BEGINNING));
 		}
 		(new Label(area, SWT.SEPARATOR | SWT.HORIZONTAL)).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -1312,6 +1309,7 @@ protected:
 				_boolVal.select(_variant.boolVal ? 0 : 1);
 				break;
 			case VariantType.List:
+			case VariantType.Structure:
 				assert (0);
 			}
 			_initTim.select(cast(int)_initTims.cCountUntil(_variant.initialization));
@@ -1522,6 +1520,7 @@ package class UndoEditN {
 					variant.value = val.boolVal;
 					break;
 				case VariantType.List:
+				case VariantType.Structure:
 					assert (0);
 				}
 			}
@@ -1579,6 +1578,7 @@ package class UndoEditN {
 					refVal |= o.boolVal != v.boolVal;
 					break;
 				case VariantType.List:
+				case VariantType.Structure:
 					assert (0);
 				}
 			}
@@ -1604,7 +1604,7 @@ package class UndoEdit : FTVUndo {
 		super (v, comm, uc, dir);
 		foreach (i, idx; index) { mixin(S_TRACE);
 			_impl ~= new UndoEditN(dir, idx, oldName[i], oldValues.length ? oldValues[i] : -1, oldNames.length ? oldNames[i] : [],
-				oldVals.length ? oldVals[i] : VariantVal(false));
+				oldVals.length ? oldVals[i] : VariantVal.invalidValue);
 		}
 	}
 	private void impl() { mixin(S_TRACE);
@@ -2089,7 +2089,7 @@ private:
 	void storeEdit(int[] index, string[] oldName, int[] oldValues = [], string[][] oldNames = [], VariantVal[] oldVals = []) { mixin(S_TRACE);
 		_undo ~= new UndoEdit(this, _comm, uc, _dir, index, oldName, oldValues, oldNames, oldVals);
 	}
-	void storeEdit(int index, string oldName, int oldValue, string[] oldNames = [], VariantVal oldVal = VariantVal(false)) { mixin(S_TRACE);
+	void storeEdit(int index, string oldName, int oldValue, string[] oldNames = [], VariantVal oldVal = VariantVal.invalidValue) { mixin(S_TRACE);
 		_undo ~= new UndoEdit(this, _comm, uc, _dir, [index], [oldName], oldValue != -1 ? [oldValue] : [], oldNames.length ? [oldNames] : [], oldVal.valid ? [oldVal] : []);
 	}
 	void storeEditParams(cwx.flag.Flag[] oldFlags, Step[] oldSteps, cwx.flag.Variant[] oldVariants) { mixin(S_TRACE);
@@ -2390,7 +2390,7 @@ private:
 		}
 		auto dlg = new VariantEditDialog(_comm, _comm.summary, dlgParShl, _readOnly != SWT.NONE, _local, parent, variant);
 		auto oldName = "";
-		auto oldValue = VariantVal(false);
+		auto oldValue = VariantVal.invalidValue;
 		dlg.applyEvent ~= { mixin(S_TRACE);
 			int i = indexOf(parent, variant);
 			if (-1 != i) { mixin(S_TRACE);
@@ -2806,7 +2806,7 @@ private:
 	}
 	void initEditEnd(TableItem selItm, int column, Control ctrl) { mixin(S_TRACE);
 		auto i = -1;
-		auto val = VariantVal(false);
+		auto val = VariantVal.invalidValue;
 		if (auto combo = cast(Combo)ctrl) { mixin(S_TRACE);
 			i = combo.getSelectionIndex();
 			if (-1 == i) return;
@@ -2866,6 +2866,7 @@ private:
 					v.value = val.boolVal;
 					break;
 				case VariantType.List:
+				case VariantType.Structure:
 					assert (0);
 				}
 				itm.setText(column, .variantValueToText(v));

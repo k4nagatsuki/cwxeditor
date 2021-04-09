@@ -15,8 +15,10 @@ import std.algorithm;
 import std.array;
 import std.ascii;
 import std.conv;
+import std.exception;
 import std.math;
 import std.random;
+import std.range;
 import std.regex;
 import std.string;
 import std.typecons;
@@ -410,7 +412,7 @@ struct ExprError {
 /// ditto
 class ExprException : Exception {
 	this (string file, size_t line, string expression, const ExprError[] errors) { mixin(S_TRACE);
-		super ("expression error", file, line);
+		super ("expression error: %s, %s".format(expression, errors), file, line);
 		_expression = expression;
 		_errors = errors;
 	}
@@ -475,7 +477,7 @@ private class NumberValue : Part {
 	@property
 	const
 	override
-	string stringValue() { return .variantValueToPreviewTextImpl(VariantType.Number, numVal, "", false, []); }
+	string stringValue() { return .variantValueToPreviewTextImpl(VariantType.Number, numVal, "", false, [], "", []); }
 
 	override
 	const
@@ -624,9 +626,10 @@ private class Function : Part {
 			}
 		}
 
-		auto p = funcName.toLower() in FUNCS;
-		if (p) { mixin(S_TRACE);
+		if (auto p = funcName.toLower() in FUNCS) { mixin(S_TRACE);
 			return (*p)(prop, mode, vInfo, this, args, err);
+		} else if (auto p = funcName.toLower() in STRUCTS) { mixin(S_TRACE);
+			return .createStructure(prop, mode, vInfo, this, *p, args, err);
 		} else { mixin(S_TRACE);
 			err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorFunctionIsNotDefined : "Function is not defined: %s", funcName), token.line, token.pos, __FILE__, __LINE__);
 			return new NumberValue(token, 0);
@@ -639,6 +642,145 @@ private class Function : Part {
 		return "%s(%s)".format(funcName, .map!(a => (cast(Object)a).toString())(args).join(", "));
 	}
 }
+
+/// 構造体メンバ定義。
+struct StructureMember {
+	string name; /// 構造体メンバ名。
+	string dataVersion; /// 対応データバージョン。
+	const VariantVal defaultValue; /// 未指定時の値。
+	bool typeCheck; /// 型チェックを行うか。
+	VariantType type; /// 型。
+	double minValue = double.nan; /// 数値型の時の下限値。下限がない場合はdouble.nan。
+	string structName = ""; /// 構造体型の時の構造体名。
+}
+/// 構造体定義。
+struct StructureInfo {
+	string name; /// 構造体名。
+	string dataVersion; /// 対応データバージョン。
+	const(StructureMember)[] members; /// メンバ定義。
+	size_t requiredMemberNum; /// 生成時に必ず値を指定しなければならないメンバの数。
+
+	private size_t[string] indexTable;
+
+	this (string name, string dataVersion, in StructureMember[] members, size_t requiredMemberNum) in (requiredMemberNum <= members.length) {
+		this.name = name;
+		this.dataVersion = dataVersion;
+		this.members = members;
+		this.requiredMemberNum = requiredMemberNum;
+		foreach (index, ref mem; members) indexTable[mem.name] = index;
+	}
+
+	const
+	ptrdiff_t indexOf(string memberName) {
+		auto p = memberName in indexTable;
+		return p ? *p : -1;
+	}
+}
+
+private shared immutable StructureInfo[string] STRUCTS;
+shared static this () {
+	auto tbl = [
+		"cardinfo":StructureInfo("cardinfo", "5", [
+			StructureMember("castindex", "5", VariantVal.numValue(0.0), true, VariantType.Number, 0.0),
+			StructureMember("cardindex", "5", VariantVal.numValue(0.0), true, VariantType.Number, 0.0),
+		], 2),
+	];
+	STRUCTS = .assumeUnique(tbl);
+	assert (STRUCTS.byKey().map!(key => STRUCTS[key].name == key).all());
+}
+
+/// 構造体のメンバ情報を返す。
+const(StructureMember[]) structureMembers(string structName) { mixin(S_TRACE);
+	auto p = structName.toLower() in STRUCTS;
+	if (!p) throw new Exception("Structure %s has been declared.");
+	return p.members;
+}
+/// 構造体名及びメンバ名及び値をチェックし、正しければtrueを返す。
+bool isValidStructure(string structName, in string[] memberNames, in VariantVal[] vals) in (memberNames.length == vals.length) { mixin(S_TRACE);
+	auto p = structName.toLower() in STRUCTS;
+	if (!p) return false;
+	if (p.members.length < memberNames.length) return false;
+	foreach (i, ref m; p.members) { mixin(S_TRACE);
+		if (memberNames.length <= i) { mixin(S_TRACE);
+			return p.requiredMemberNum <= i;
+		}
+		if (m.name != memberNames[i].toLower()) return false;
+		if (m.typeCheck) { mixin(S_TRACE);
+			if (!vals[i].valid) return false;
+			if (m.type != vals[i].type) { mixin(S_TRACE);
+				return false;
+			}
+			if (m.type is VariantType.Number && !m.minValue.isNaN && vals[i].numVal < m.minValue) { mixin(S_TRACE);
+				return false;
+			}
+			if (m.type is VariantType.Structure && m.structName != vals[i].structName) { mixin(S_TRACE);
+				return false;
+			}
+		}
+	}
+	return true;
+} unittest { mixin(UTPerf);
+	assert (.isValidStructure("cardinfo", ["castindex", "cardindex"], [VariantVal.numValue(4), VariantVal.numValue(2)]));
+	assert (.isValidStructure("CardInfo", ["CastIndex", "CardIndex"], [VariantVal.numValue(4), VariantVal.numValue(2)]));
+	assert (!.isValidStructure("cardinfo_", ["castindex", "cardindex"], [VariantVal.numValue(4), VariantVal.numValue(2)]));
+	assert (!.isValidStructure("cardinfo", ["castindex", "cardindex", "dummy"], [VariantVal.numValue(4), VariantVal.numValue(2), VariantVal.numValue(0)]));
+	assert (!.isValidStructure("cardinfo", ["castindex"], [VariantVal.numValue(4)]));
+	assert (!.isValidStructure("cardinfo", ["cardindex", "castindex"], [VariantVal.numValue(4), VariantVal.numValue(2)]));
+	assert (!.isValidStructure("cardinfo", ["castindex", "cardindex"], [VariantVal.strValue(""), VariantVal.numValue(2)]));
+	assert (!.isValidStructure("cardinfo", ["castindex", "cardindex"], [VariantVal.numValue(4), VariantVal.boolValue(false)]));
+	assert (.isValidStructure("cardinfo", ["castindex", "cardindex"], [VariantVal.numValue(0), VariantVal.numValue(0)]));
+	assert (!.isValidStructure("cardinfo", ["castindex", "cardindex"], [VariantVal.numValue(-1), VariantVal.numValue(2)]));
+	assert (!.isValidStructure("cardinfo", ["castindex", "cardindex"], [VariantVal.numValue(0), VariantVal.numValue(-0.1)]));
+}
+
+/// 構造体。
+private class StructureValue : Part {
+	string structName; /// 構造体名。
+	const(Part)[] structVal; /// メンバー値。
+
+	this (in Token token, string structName, in Part[] structVal)
+		in (structName.toLower() in STRUCTS)
+		in (STRUCTS[structName.toLower()].requiredMemberNum <= structVal.length)
+	{ mixin(S_TRACE);
+		super (token);
+		this.structName = structName.toLower();
+		this.structVal = structVal;
+		foreach (ref member; STRUCTS[this.structName].members[structVal.length .. $]) { mixin(S_TRACE);
+			this.structVal ~= .variantValToValueObj(token, member.defaultValue);
+		}
+	}
+
+	@property
+	const
+	override
+	string stringValue() { mixin(S_TRACE);
+		return "%s(%s)".format(structName.toUpper(), .map!(val => val.toString())(structVal).join(", "));
+	}
+
+	override
+	const
+	string toString() { return stringValue; }
+}
+
+/// その他シンボル。
+private class Symbol : Part {
+	const string symbol;
+
+	this (in Token token, string symbol) { mixin(S_TRACE);
+		super (token);
+		this.symbol = symbol;
+	}
+
+	@property
+	const
+	override
+	string stringValue() { return ""; }
+
+	override
+	const
+	string toString() { return symbol.toUpper(); }
+}
+
 /// 単項演算子。
 private class UnaryOperator : Part {
 	const string operator;
@@ -651,6 +793,9 @@ private class UnaryOperator : Part {
 	/// 演算を実行する。
 	const
 	const(Part) call(in CProps prop, in Part rhs, ref ExprError[] err) { mixin(S_TRACE);
+		if (cast(Symbol)rhs) { mixin(S_TRACE);
+			err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorUnknownSymbol : "Unknown symbol: %s", rhs.token.token), rhs.token.line, rhs.token.pos, __FILE__, __LINE__);
+		}
 		final switch (operator.toLower()) {
 		case "+":
 			if (auto num = cast(NumberValue)rhs) { mixin(S_TRACE);
@@ -737,8 +882,15 @@ private class Operator : Part {
 		}
 		return r;
 	}
+	private static const(StructureValue) structValImpl(in CProps prop, in Part lhs, ref ExprError[] err) { mixin(S_TRACE);
+		auto r = cast(StructureValue)lhs;
+		if (!r) { mixin(S_TRACE);
+			if (!cast(UnknownValue)lhs) err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorValueIsNotStructure : "Value is not structure: %s", lhs.token.token), lhs.token.line, lhs.token.pos, __FILE__, __LINE__);
+		}
+		return r;
+	}
 
-	private static bool equalsImpl(in CProps prop, EvalMode mode, in Part lhs, in Part rhs, string operator, bool inList, ref ExprError[] err) { mixin(S_TRACE);
+	private static bool equalsImpl(in CProps prop, EvalMode mode, in Part lhs, in Part rhs, string operator, bool inList, ref ExprError[] err) in (operator == "=" || operator == "<>") { mixin(S_TRACE);
 		ExprError[] err2;
 		scope (exit) {
 			if (!inList) err ~= err2;
@@ -758,6 +910,24 @@ private class Operator : Part {
 			auto b = l.listVal.length == r.listVal.length;
 			if (operator == "<>") b = !b;
 			return b;
+		} else if (cast(StructureValue)lhs) { mixin(S_TRACE);
+			auto l = structValImpl(prop, lhs, err2);
+			if (!l) return false;
+			auto r = structValImpl(prop, rhs, err2);
+			if (!r) return false;
+			if (l.structName != r.structName) { mixin(S_TRACE);
+				err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorCompareDifferentStructures : "Compare different structures: %s <> %s", l.structName, r.structName), rhs.token.line, rhs.token.pos, __FILE__, __LINE__);
+				return false;
+			}
+			assert (l.structVal.length == r.structVal.length);
+			foreach (val1, val2; .zip(l.structVal, r.structVal)) { mixin(S_TRACE);
+				auto b = equalsImpl(prop, mode, val1, val2, "=", true, err2);
+				if (!b) { mixin(S_TRACE);
+					if (operator == "<>") b = true;
+					return b;
+				}
+			}
+			return operator == "=";
 		}
 		auto r = false;
 		if (!inList && (cast(StringValue)lhs || cast(StringValue)rhs)) { mixin(S_TRACE);
@@ -798,8 +968,30 @@ private class Operator : Part {
 		NumVals numVals() { return numValsImpl(prop, lhs, rhs, err); }
 		BoolVals boolVals() { return boolValsImpl(prop, lhs, rhs, err); }
 		const(ListValue) listVal(in Part rhs) { return listValImpl(prop, rhs, err); }
+		const(StructureValue) structVal(in Part lhs) { return structValImpl(prop, lhs, err); }
+		if (cast(Symbol)lhs) { mixin(S_TRACE);
+			err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorUnknownSymbol : "Unknown symbol: %s", lhs.token.token), lhs.token.line, lhs.token.pos, __FILE__, __LINE__);
+		}
+		if (operator != "." && cast(Symbol)rhs) { mixin(S_TRACE);
+			err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorUnknownSymbol : "Unknown symbol: %s", rhs.token.token), rhs.token.line, rhs.token.pos, __FILE__, __LINE__);
+		}
 
 		final switch (operator.toLower()) {
+		case ".":
+			auto s = structValImpl(prop, lhs, err);
+			if (!s) return new UnknownValue(rhs.token);
+			auto symbol = cast(Symbol)rhs;
+			if (!symbol) { mixin(S_TRACE);
+				err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorTokenIsNotStructureMemberName : "Token is not structure member name: %s", rhs.token.token), rhs.token.line, rhs.token.pos, __FILE__, __LINE__);
+				return new UnknownValue(rhs.token);
+			}
+			auto index = STRUCTS[s.structName].indexOf(symbol.symbol.toLower());
+			if (index == -1) { mixin(S_TRACE);
+				auto members = structureMembers(s.structName).map!(mem => mem.name.toUpper()).join(", ");
+				err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorSymbolIsNotStructureMemberName : "Symbol is not structure member name: %s (%s)", rhs.token.token, members), rhs.token.line, rhs.token.pos, __FILE__, __LINE__);
+				return new UnknownValue(rhs.token);
+			}
+			return s.structVal[index];
 		case "+":
 			auto n = numVals();
 			if (n.valid) { mixin(S_TRACE);
@@ -950,7 +1142,7 @@ private const(Part)[] parseExpression(in CProps prop, string s, ref ExprError[] 
 	size_t line = 1;
 	size_t pos = 1;
 	auto s2 = s.replace("\r\n", "\n").replace("\r", "\n");
-	static immutable RE = .ctRegex!("[0-9]+(\\.[0-9]+)?|[a-z_][a-z_0-9]*|[\\+\\-\\*\\/\\%\\~]|[\\(\\)]|,|\\@?\"([^\"]|\"\")*\"|or|and|<=|>=|<>|<|>|=|true|false|\\n|\\s+", "i");
+	static immutable RE = .ctRegex!("[0-9]+(\\.[0-9]+)?|[a-z_][a-z_0-9]*|[\\+\\-\\*\\/\\%\\~\\.]|[\\(\\)]|,|\\@?\"([^\"]|\"\")*\"|or|and|<=|>=|<>|<|>|=|true|false|\\n|\\s+", "i");
 	foreach (m; .matchAll(s2, RE)) { mixin(S_TRACE);
 		if (m.pre.length != bPos) { mixin(S_TRACE);
 			err ~= ExprError(prop ? prop.msgs.expressionErrorInvalidCharacter : "Invalid character.", line, pos, __FILE__, __LINE__);
@@ -1029,6 +1221,11 @@ private const(Part)[] parseSemantics(in CProps prop, ref Token[] tokens, ref siz
 			// 真偽値反転演算子
 			opLevel = 2;
 			unary = true;
+			break;
+		case ".": mixin(S_TRACE);
+			if (isOp) err ~= ExprError(prop ? prop.msgs.expressionErrorNeedSymbolOrNumber : "Need symbol or number.", line, pos, __FILE__, __LINE__);
+			// 構造体メンバアクセス
+			opLevel = 100;
 			break;
 		case "-", "+": mixin(S_TRACE);
 			if (isOp) { mixin(S_TRACE);
@@ -1134,8 +1331,14 @@ private const(Part)[] parseSemantics(in CProps prop, ref Token[] tokens, ref siz
 			} else { mixin(S_TRACE);
 				if (!isOp) err ~= ExprError(prop ? prop.msgs.expressionErrorNeedOperator : "Need operator.", line, pos, __FILE__, __LINE__);
 				// その他シンボル
-				// 現在は関数呼び出しのみ
-				num ~= new Function(tokens[i], t, .parseArguments(prop, tokens, i, err));
+				if (i + 1 < tokens.length && tokens[i + 1].token == "(") { mixin(S_TRACE);
+					// 関数呼び出し
+					num ~= new Function(tokens[i], t, .parseArguments(prop, tokens, i, err));
+				} else { mixin(S_TRACE);
+					// 構造体メンバ名
+					num ~= new Symbol(tokens[i], t);
+					i++;
+				}
 				isOp = false;
 			}
 			continue;
@@ -1182,14 +1385,69 @@ struct VariantVal {
 	bool boolVal = false; /// 真偽値。
 	const(VariantVal)[] listVal = []; /// リスト。
 
-	/// 有効かどうかを指定して初期化する。
-	this (bool valid) {
-		this.valid = valid;
+	string structName; /// 構造体名。
+	const(VariantVal)[] structVal = null; /// 構造体値。
+
+	/// 不正な値。
+	@property
+	@safe
+	nothrow
+	static VariantVal invalidValue() {
+		auto val = VariantVal(VariantType.init);
+		val.valid = false;
+		return val;
 	}
+
+	@disable
+	private this ();
+
 	/// 型を指定して初期化する。
-	this (VariantType type) { mixin(S_TRACE);
+	@safe
+	nothrow
+	this (VariantType type) {
 		this.valid = true;
 		this.type = type;
+	}
+	/// 値を指定して初期化する。
+	@safe
+	nothrow
+	static VariantVal numValue(double numVal) {
+		auto val = VariantVal(VariantType.Number);
+		val.numVal = numVal;
+		return val;
+	}
+	/// ditto
+	@safe
+	nothrow
+	static VariantVal strValue(string strVal) {
+		auto val = VariantVal(VariantType.String);
+		val.strVal = strVal;
+		return val;
+	}
+	/// ditto
+	@safe
+	nothrow
+	static VariantVal boolValue(bool boolVal) {
+		auto val = VariantVal(VariantType.Boolean);
+		val.boolVal = boolVal;
+		return val;
+	}
+	/// ditto
+	@safe
+	nothrow
+	static VariantVal listValue(in VariantVal[] listVal) {
+		auto val = VariantVal(VariantType.List);
+		val.listVal = listVal;
+		return val;
+	}
+	/// ditto
+	@safe
+	nothrow
+	static VariantVal structValue(string structName, in VariantVal[] structVal) {
+		auto val = VariantVal(VariantType.Structure);
+		val.structName = structName;
+		val.structVal = structVal;
+		return val;
 	}
 	/// vの値によって初期化する。
 	this (in Variant v) { mixin(S_TRACE);
@@ -1199,6 +1457,8 @@ struct VariantVal {
 		this.strVal = v.strVal;
 		this.boolVal = v.boolVal;
 		this.listVal = v.listVal;
+		this.structName = v.structName;
+		this.structVal = v.structVal;
 	}
 }
 
@@ -1253,7 +1513,7 @@ struct VariableInfo {
 		existsFlag = path => .findVar!(cwx.flag.Flag)(summ ? summ.flagDirRoot : null, uc, path) !is null;
 		existsStep = path => .findVar!Step(summ ? summ.flagDirRoot : null, uc, path)  !is null;
 		existsVariant = path => .findVar!Variant(summ ? summ.flagDirRoot : null, uc, path) !is null;
-		variantValue = path => summ ? VariantVal(.findVar!Variant(summ ? summ.flagDirRoot : null, uc, path)) : VariantVal(false);
+		variantValue = path => summ ? VariantVal(.findVar!Variant(summ ? summ.flagDirRoot : null, uc, path)) : VariantVal.invalidValue;
 		flagText = (path, value) { mixin(S_TRACE);
 			if (!summ) return "";
 			auto f = .findVar!(cwx.flag.Flag)(summ ? summ.flagDirRoot : null, uc, path);
@@ -1328,7 +1588,12 @@ private const(Part) calculate(in CProps prop, EvalMode mode, in VariableInfo vIn
 	if (!op.length) { mixin(S_TRACE);
 		return new NumberValue(Token(false), 0);
 	}
-	return op[$ - 1];
+	auto t = op[$ - 1];
+	if (cast(Symbol)t) { mixin(S_TRACE);
+		err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorUnknownSymbol : "Unknown symbol: %s", t.token), t.token.line, t.token.pos, __FILE__, __LINE__);
+		return new NumberValue(Token(false), 0);
+	}
+	return t;
 }
 
 /// expressionをパースして実行する。
@@ -1336,7 +1601,7 @@ VariantVal eval(in CProps prop, EvalMode mode, in VariableInfo vInfo, string exp
 	ExprError[] err;
 	auto expr = .parseExpression(prop, expression, err);
 	if (err.length) throw new ExprException(__FILE__, __LINE__, expression, err);
-	if (!expr.length) return VariantVal(false);
+	if (!expr.length) return VariantVal.invalidValue;
 	auto r = .calculate(prop, mode, vInfo, expr, err);
 	if (err.length) throw new ExprException(__FILE__, __LINE__, expression, err);
 	return .partToVariantVal(r);
@@ -1344,24 +1609,18 @@ VariantVal eval(in CProps prop, EvalMode mode, in VariableInfo vInfo, string exp
 /// 値を表すPartをVariantValへ変換する。
 private VariantVal partToVariantVal(in Part r) { mixin(S_TRACE);
 	if (auto a = cast(NumberValue)r) { mixin(S_TRACE);
-		auto val = VariantVal(VariantType.Number);
-		val.numVal = a.numVal;
-		return val;
+		return VariantVal.numValue(a.numVal);
 	} else if (auto a = cast(StringValue)r) { mixin(S_TRACE);
-		auto val = VariantVal(VariantType.String);
-		val.strVal = a.strVal;
-		return val;
+		return VariantVal.strValue(a.strVal);
 	} else if (auto a = cast(BooleanValue)r) { mixin(S_TRACE);
-		auto val = VariantVal(VariantType.Boolean);
-		val.boolVal = a.boolVal;
-		return val;
+		return VariantVal.boolValue(a.boolVal);
 	} else if (auto a = cast(ListValue)r) { mixin(S_TRACE);
-		auto val = VariantVal(VariantType.List);
-		val.listVal = a.listVal.map!(a => a.partToVariantVal()).array();
-		return val;
+		return VariantVal.listValue(a.listVal.map!(a => a.partToVariantVal()).array());
+	} else if (auto a = cast(StructureValue)r) { mixin(S_TRACE);
+		return VariantVal.structValue(a.structName, a.structVal.map!(a => a.partToVariantVal()).array());
 	} else if (auto a = cast(UnknownValue)r) { mixin(S_TRACE);
-		return VariantVal(false);
-	} else assert (0);
+		return VariantVal.invalidValue;
+	} else assert (0, r.text);
 }
 
 /// 対象バージョンでなければエラーを追加する。
@@ -1385,6 +1644,7 @@ private bool checkArgCount(in CProps prop, in Function func, in Part[] args, siz
 }
 /// ditto
 private bool checkArgCount2(in CProps prop, in Function func, in Part[] args, size_t countMin, size_t countMax, ref ExprError[] err) { mixin(S_TRACE);
+	if (countMin == countMax) return .checkArgCount(prop, func, args, countMin, err);
 	if (args.length < countMin || countMax < args.length) { mixin(S_TRACE);
 		err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorInvalidArgumentCount2 : "Invalid argument count: %s, %s-%s", func.funcName.toUpper(), countMin, countMax), func.token.line, func.token.pos, __FILE__, __LINE__);
 		return false;
@@ -1425,6 +1685,17 @@ private const(ListValue) checkList(in CProps prop, in Function func, in Part[] a
 	}
 	if (cast(UnknownValue)args[index]) return null;
 	err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorArgumentIsNotList : "Argument is not list: %s, %s", func.funcName.toUpper(), index + 1), args[index].token.line, args[index].token.pos, __FILE__, __LINE__);
+	return null;
+}
+/// ditto
+private const(StructureValue) checkStructure(in CProps prop, in Function func, in Part[] args, size_t index, string structName, ref ExprError[] err) { mixin(S_TRACE);
+	if (auto a = cast(StructureValue)args[index]) { mixin(S_TRACE);
+		if (a.structName == structName) { mixin(S_TRACE);
+			return a;
+		}
+	}
+	if (cast(UnknownValue)args[index]) return null;
+	err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorArgumentIsNotStructure : "Argument is not structure %3$s: %1$s, %2$s", func.funcName.toUpper(), index + 1, structName.toUpper()), args[index].token.line, args[index].token.pos, __FILE__, __LINE__);
 	return null;
 }
 /// ditto
@@ -1641,6 +1912,8 @@ private const(Part) variantValToValueObj(in Token token, in VariantVal val) { mi
 		return new BooleanValue(token, val.boolVal);
 	case VariantType.List:
 		return new ListValue(token, val.listVal.map!(val => variantValToValueObj(token, val))().array());
+	case VariantType.Structure:
+		return new StructureValue(token, val.structName, val.structVal.map!(val => variantValToValueObj(token, val))().array());
 	}
 }
 
@@ -2050,12 +2323,61 @@ private const(Part) funcLifeRatio(in CProps prop, EvalMode mode, in VariableInfo
 	return new NumberValue(func.token, 1);
 }
 
+/// 構造体のインスタンスを生成する。
+private const(Part) createStructure(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in StructureInfo info, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	.checkWsnVersionForFunctionExists(prop, vInfo, func, info.dataVersion, err);
+	const(Part)[] args2 = args;
+	if (!checkArgCount2(prop, func, args, info.requiredMemberNum, info.members.length, err)) { mixin(S_TRACE);
+		if (info.members.length < args.length) args2 = args[0 .. info.members.length];
+	}
+	const(Part)[] args3;
+	foreach (i, arg; args2) { mixin(S_TRACE);
+		auto m = info.members[i];
+		.checkWsnVersionForFunctionExists(prop, vInfo, func, m.dataVersion, err);
+		if (m.typeCheck) { mixin(S_TRACE);
+			Rebindable!(const(Part)) arg2;
+			final switch (m.type) {
+			case VariantType.Number:
+				if (!m.minValue.isNaN) { mixin(S_TRACE);
+					arg2 = .checkMinValue(prop, mode, func, args2, i, m.minValue, err);
+				} else { mixin(S_TRACE);
+					arg2 = .checkNumber(prop, func, args2, i, err);
+				}
+				break;
+			case VariantType.String:
+				arg2 = .checkString(prop, func, args2, i, err);
+				break;
+			case VariantType.Boolean:
+				arg2 = .checkBoolean(prop, func, args2, i, err);
+				break;
+			case VariantType.List:
+				arg2 = .checkList(prop, func, args2, i, err);
+				break;
+			case VariantType.Structure:
+				arg2 = .checkStructure(prop, func, args2, i, m.structName, err);
+				break;
+			}
+			if (arg2.get is null) { mixin(S_TRACE);
+				arg2 = .variantValToValueObj(func.token, m.defaultValue);
+			}
+			args3 ~= arg2;
+		} else { mixin(S_TRACE);
+			args3 ~= arg;
+		}
+	}
+	foreach (ref m; info.members[args3.length .. $]) { mixin(S_TRACE);
+		args3 ~= .variantValToValueObj(func.token, m.defaultValue);
+	}
+	return new StructureValue(func.token, info.name, args3);
+}
+
 /// 入力支援用に関数の引数の型を表現する。
 enum ArgType {
 	Number, /// 数値。
 	String, /// 文字列。
 	Boolean, /// 真偽値。
 	List, /// リスト。
+	CardInfo, /// カード情報。
 	NumberOrString, /// 数値または文字列。
 	Any, /// 任意の型。
 	Flag, /// フラグ名。
@@ -2378,20 +2700,36 @@ unittest { mixin(UTPerf);
 	assert (checkN(.eval(prop, EvalMode.All, vInfo, `LFIND(LIST(99), LIST(1, 2, LIST(99), 4))`), 3));
 	assert (checkN(.eval(prop, EvalMode.All, vInfo, `LFIND(42, LIST(42, 42, 4, 42), 3)`), 4));
 	assert (checkN(.eval(prop, EvalMode.All, vInfo, `LFIND(42, LIST(42, 42, 42, 4), 3)`), 3));
+
+	assert (checkN(.eval(prop, EvalMode.All, vInfo, `CARDINFO(4, 2).CASTINDEX`), 4));
+	assert (checkN(.eval(prop, EvalMode.All, vInfo, `CARDINFO(4, 2).CARDINDEX`), 2));
+	assert (checkN(.eval(prop, EvalMode.All, vInfo, `-CARDINFO(4, 2).CASTINDEX`), -4));
+	assert (checkN(.eval(prop, EvalMode.All, vInfo, `---CARDINFO(4, 2).CASTINDEX`), -4));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `CARDINFO(4, 2).CASTINDEX = 4`), true));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `CARDINFO(4, 2) = CARDINFO(4, 2)`), true));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `CARDINFO(4, 2) <> CARDINFO(4, 2)`), false));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `CARDINFO(4, 2) = CARDINFO(5, 2)`), false));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `CARDINFO(4, 2) <> CARDINFO(5, 2)`), true));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `CARDINFO(4, 2) = CARDINFO(4, 3)`), false));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `CARDINFO(4, 2) <> CARDINFO(4, 3)`), true));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `LIST(CARDINFO(4, 2), CARDINFO(4, 2)) = LIST(CARDINFO(4, 2), CARDINFO(4, 2))`), true));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `LIST(CARDINFO(4, 2), CARDINFO(4, 2)) <> LIST(CARDINFO(4, 2), CARDINFO(4, 2))`), false));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `LIST(CARDINFO(4, 2), CARDINFO(4, 2)) = LIST(CARDINFO(4, 2), CARDINFO(4, 3))`), false));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `LIST(CARDINFO(4, 2), CARDINFO(4, 2)) <> LIST(CARDINFO(4, 2), CARDINFO(4, 3))`), true));
 }
 
 /// vの値の文字列表現(式内に記述できるもの)を返す。
 @property
 string variantValueToText(in Variant v) { mixin(S_TRACE);
-	return variantValueToTextImpl(v.type, v.numVal, v.strVal, v.boolVal, v.listVal);
+	return variantValueToTextImpl(v.type, v.numVal, v.strVal, v.boolVal, v.listVal, v.structName, v.structVal);
 }
 /// ditto
 @property
 string variantValueToText(in VariantVal v) { mixin(S_TRACE);
-	return variantValueToTextImpl(v.type, v.numVal, v.strVal, v.boolVal, v.listVal);
+	return variantValueToTextImpl(v.type, v.numVal, v.strVal, v.boolVal, v.listVal, v.structName, v.structVal);
 }
 /// ditto
-private string variantValueToTextImpl(VariantType type, double numVal, string strVal, bool boolVal, in VariantVal[] listVal) { mixin(S_TRACE);
+private string variantValueToTextImpl(VariantType type, double numVal, string strVal, bool boolVal, in VariantVal[] listVal, string structName, in VariantVal[] structVal) { mixin(S_TRACE);
 	final switch (type) {
 	case VariantType.Number:
 		auto r = .format("%." ~ .text(Variant.DECIMAL_PLACES) ~ "f", numVal).stripRight("0").stripRight(".");
@@ -2403,35 +2741,34 @@ private string variantValueToTextImpl(VariantType type, double numVal, string st
 		return boolVal.text().toUpper();
 	case VariantType.List:
 		return "LIST(" ~ listVal.map!(v => v.variantValueToText()).join(", ") ~ ")";
+	case VariantType.Structure:
+		structName = structName.toLower();
+		assert (structName in STRUCTS);
+		assert (STRUCTS[structName].members.length == structVal.length);
+		return structName.toUpper() ~ "(" ~ structVal.map!(val => val.variantValueToText()).join(", ") ~ ")";
 	}
 } unittest { mixin(UTPerf);
-	assert (.variantValueToTextImpl(VariantType.Number, 12.345, "", false, []) == "12.345");
-	assert (.variantValueToTextImpl(VariantType.Number, 100.000, "", false, []) == "100");
-	assert (.variantValueToTextImpl(VariantType.Number, 100.010, "", false, []) == "100.01");
-	assert (.variantValueToTextImpl(VariantType.Number, 100.12345600001, "", false, []) == "100.123456");
-	assert (.variantValueToTextImpl(VariantType.Number, 0.0, "", false, []) == "0");
-	assert (.variantValueToTextImpl(VariantType.Number, 0.000000000000001, "", false, []) == "0");
-	assert (.variantValueToTextImpl(VariantType.Number, 0.01, "", false, []) == "0.01");
-	assert (.variantValueToTextImpl(VariantType.String, 0, "TEST", false, []) == "\"TEST\"");
-	assert (.variantValueToTextImpl(VariantType.String, 0, "TE\"ST", false, []) == "\"TE\"\"ST\"");
-	assert (.variantValueToTextImpl(VariantType.Boolean, 0, "", true, []) == "TRUE");
-	assert (.variantValueToTextImpl(VariantType.Boolean, 0, "", false, []) == "FALSE");
-	auto v1 = VariantVal(VariantType.Number);
-	v1.numVal = 42.0;
-	auto v2 = VariantVal(VariantType.String);
-	v2.strVal = "STR";
-	auto v3 = VariantVal(VariantType.Boolean);
-	v3.boolVal = true;
-	auto v4 = VariantVal(VariantType.List);
-	auto vv1 = VariantVal(VariantType.Number);
-	vv1.numVal = 42.1;
-	auto vv2 = VariantVal(VariantType.String);
-	vv2.strVal = "STR2";
-	auto vv3 = VariantVal(VariantType.Boolean);
-	vv3.boolVal = false;
-	v4.listVal = [vv1, vv2, vv3];
-	assert (.variantValueToTextImpl(VariantType.List, 0, "", false, [v1, v2, v3, v4]) == `LIST(42, "STR", TRUE, LIST(42.1, "STR2", FALSE))`);
+	assert (.variantValueToTextImpl(VariantType.Number, 12.345, "", false, [], "", []) == "12.345");
+	assert (.variantValueToTextImpl(VariantType.Number, 100.000, "", false, [], "", []) == "100");
+	assert (.variantValueToTextImpl(VariantType.Number, 100.010, "", false, [], "", []) == "100.01");
+	assert (.variantValueToTextImpl(VariantType.Number, 100.12345600001, "", false, [], "", []) == "100.123456");
+	assert (.variantValueToTextImpl(VariantType.Number, 0.0, "", false, [], "", []) == "0");
+	assert (.variantValueToTextImpl(VariantType.Number, 0.000000000000001, "", false, [], "", []) == "0");
+	assert (.variantValueToTextImpl(VariantType.Number, 0.01, "", false, [], "", []) == "0.01");
+	assert (.variantValueToTextImpl(VariantType.String, 0, "TEST", false, [], "", []) == "\"TEST\"");
+	assert (.variantValueToTextImpl(VariantType.String, 0, "TE\"ST", false, [], "", []) == "\"TE\"\"ST\"");
+	assert (.variantValueToTextImpl(VariantType.Boolean, 0, "", true, [], "", []) == "TRUE");
+	assert (.variantValueToTextImpl(VariantType.Boolean, 0, "", false, [], "", []) == "FALSE");
+
+	auto v1 = VariantVal.numValue(42.0);
+	auto v2 = VariantVal.strValue("STR");
+	auto v3 = VariantVal.boolValue(true);
+	auto v4 = VariantVal.listValue([VariantVal.numValue(42.1), VariantVal.strValue("STR2"), VariantVal.boolValue(false)]);
+	assert (.variantValueToTextImpl(VariantType.List, 0, "", false, [v1, v2, v3, v4], "", []) == `LIST(42, "STR", TRUE, LIST(42.1, "STR2", FALSE))`);
+
+	assert (.variantValueToTextImpl(VariantType.Structure, 0, "", false, [], "cardinfo", [VariantVal.numValue(4), VariantVal.numValue(2)]) == `CARDINFO(4, 2)`);
 }
+
 /// 文字列表現textからコモン値を生成する。
 @property
 VariantVal variantValueFromText(string text) { mixin(S_TRACE);
@@ -2441,53 +2778,49 @@ VariantVal variantValueFromText(string text) { mixin(S_TRACE);
 	if (auto m = .match(text, NUM)) { mixin(S_TRACE);
 		if (!m.empty) { mixin(S_TRACE);
 			try {
-				auto v = VariantVal(VariantType.Number);
-				v.numVal = .to!double(m.hit);
-				return v;
+				return VariantVal.numValue(.to!double(m.hit));
 			} catch (Exception e) {
 				printStackTrace();
 				debugln(e);
-				return VariantVal(false);
+				return VariantVal.invalidValue;
 			}
 		}
 	}
 	if (auto m = .match(text, STR)) { mixin(S_TRACE);
 		if (!m.empty) { mixin(S_TRACE);
-			auto v = VariantVal(VariantType.String);
-			v.strVal = m.hit[1 .. $ - 1].replace("\"\"", "\"");
-			return v;
+			return VariantVal.strValue(m.hit[1 .. $ - 1].replace("\"\"", "\""));
 		}
 	}
 	if (auto m = .match(text, BOOL)) { mixin(S_TRACE);
 		if (!m.empty) { mixin(S_TRACE);
-			auto v = VariantVal(VariantType.Boolean);
-			v.boolVal = m.hit.toLower() == "true";
-			return v;
+			return VariantVal.boolValue(m.hit.toLower() == "true");
 		}
 	}
-	// TODO: list?
-	return VariantVal(false);
+	// TODO: 式からの生成
+	return VariantVal.invalidValue;
 }
 
 /// vの値の文字列表現(STR(v)の結果)を返す。
 @property
 string variantValueToPreviewText(in cwx.flag.Variant v) { mixin(S_TRACE);
-	return variantValueToPreviewTextImpl(v.type, v.numVal, v.strVal, v.boolVal, v.listVal);
+	return variantValueToPreviewTextImpl(v.type, v.numVal, v.strVal, v.boolVal, v.listVal, v.structName, v.structVal);
 }
 /// ditto
 @property
 string variantValueToPreviewText(in VariantVal v) { mixin(S_TRACE);
-	return variantValueToPreviewTextImpl(v.type, v.numVal, v.strVal, v.boolVal, v.listVal);
+	return variantValueToPreviewTextImpl(v.type, v.numVal, v.strVal, v.boolVal, v.listVal, v.structName, v.structVal);
 }
-private string variantValueToPreviewTextImpl(VariantType type, double numVal, string strVal, bool boolVal, in VariantVal[] listVal) { mixin(S_TRACE);
+private string variantValueToPreviewTextImpl(VariantType type, double numVal, string strVal, bool boolVal, in VariantVal[] listVal, string structName, in VariantVal[] structVal) { mixin(S_TRACE);
 	final switch (type) {
 	case VariantType.Number:
-		return .variantValueToTextImpl(type, numVal, strVal, boolVal, listVal);
+		return .variantValueToTextImpl(type, numVal, strVal, boolVal, listVal, structName, structVal);
 	case VariantType.String:
 		return strVal;
 	case VariantType.Boolean:
 		return boolVal.text().toUpper();
 	case VariantType.List:
 		return "LIST(" ~ listVal.map!(v => v.variantValueToPreviewText()).join(", ") ~ ")";
+	case VariantType.Structure:
+		return structName.toUpper() ~ "(" ~ structVal.map!(val => val.variantValueToPreviewText()).join(", ") ~ ")";
 	}
 }

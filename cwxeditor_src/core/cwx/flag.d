@@ -729,6 +729,9 @@ private:
 	bool _boolVal = true;
 	const(VariantVal)[] _listVal = [];
 
+	string _structName = "";
+	const(VariantVal)[] _structVal = null;
+
 	VariableInitialization _initialization = VariableInitialization.Leave;
 
 	FlagDir _parent;
@@ -771,6 +774,13 @@ public:
 		_type = VariantType.List;
 		_listVal = listVal;
 	}
+	/// ditto
+	this (string name, string structName, in VariantVal[] structVal) { mixin(S_TRACE);
+		_name = FlagDir.validName(name);
+		_type = VariantType.Structure;
+		_structName = structName;
+		_structVal = structVal;
+	}
 
 	const
 	override
@@ -787,19 +797,24 @@ public:
 		case VariantType.String: return strVal == f.strVal;
 		case VariantType.Boolean: return boolVal == f.boolVal;
 		case VariantType.List: return listVal == f.listVal;
+		case VariantType.Structure:
+			if (structName != f.structName) return false;
+			return structVal == f.structVal;
 		}
 	}
 
 	/// stepのパラメータをコピーする。
 	void copyFrom(in Variant copyBase) { mixin(S_TRACE);
 		name = copyBase.name;
-		if (type != copyBase.type || _numVal != copyBase.numVal || _strVal != copyBase.strVal || _boolVal != copyBase.boolVal || _listVal != copyBase.listVal) { mixin(S_TRACE);
+		if (type != copyBase.type || _numVal != copyBase.numVal || _strVal != copyBase.strVal || _boolVal != copyBase.boolVal || _listVal != copyBase.listVal || _structName != copyBase.structName || _structVal != copyBase.structVal) { mixin(S_TRACE);
 			changed();
 			_type = copyBase.type;
 			_numVal = copyBase.numVal;
 			_strVal = copyBase.strVal;
 			_boolVal = copyBase.boolVal;
 			_listVal = copyBase.listVal;
+			_structName = copyBase.structName;
+			_structVal = copyBase.structVal;
 		}
 		initialization = copyBase.initialization;
 		comment = copyBase.comment;
@@ -887,6 +902,15 @@ public:
 			_listVal = listVal;
 		}
 	}
+	/// ditto
+	void setStructValue(string structName, in VariantVal[] structVal) { mixin(S_TRACE);
+		if (_type !is VariantType.Structure || _structName != structName || _structVal != structVal) { mixin(S_TRACE);
+			changed();
+			_type = VariantType.Structure;
+			_structName = structName;
+			_structVal = structVal;
+		}
+	}
 
 	/// 値の型。
 	@property
@@ -909,6 +933,14 @@ public:
 	@property
 	const
 	const(VariantVal)[] listVal() { return _listVal; }
+	/// ditto
+	@property
+	const
+	string structName() { return _structName; }
+	/// ditto
+	@property
+	const
+	const(VariantVal)[] structVal() { return _structVal; }
 
 	/// 初期化タイミング。
 	@property
@@ -977,6 +1009,7 @@ public:
 		ve.onTag["Name"] = (ref XNode n) { name = FlagDir.basename(n.value); };
 		ve.parse();
 		if (!name) throw new FlagException("Variant name not found.");
+
 		Variant variant = null;
 		final switch (defType) {
 		case VariantType.Number:
@@ -989,42 +1022,69 @@ public:
 			variant = new Variant(name, .parseBool(defValue));
 			break;
 		case VariantType.List:
-			VariantVal[] listVal;
-			static void parseList(ref XNode n, const(VariantVal)[] listVal) { mixin(S_TRACE);
-				auto type = toVariantType(n.attr!string("type", true));
-				auto value = n.attr!string("value", true);
-				auto val = VariantVal(type);
-				final switch (type) {
-				case VariantType.Number:
-					val.numVal = .to!double(value);
-					break;
-				case VariantType.String:
-					val.strVal = value;
-					break;
-				case VariantType.Boolean:
-					val.boolVal = .parseBool(value);
-					break;
-				case VariantType.List:
-					n.onTag["Value"] = (ref XNode n) => parseList(n, val.listVal);
-					n.parse();
-					break;
-				}
-			}
-			ve.onTag["Value"] = (ref XNode n) => parseList(n, listVal);
-			ve.parse();
-			variant = new Variant(name, listVal);
+			variant = new Variant(name, toListVal(ve).listVal);
+			break;
+		case VariantType.Structure:
+			auto val = toStructVal(ve);
+			variant = new Variant(name, val.structName, val.structVal);
 			break;
 		}
 		variant.initialization = toVariableInitialization(ve.attr("initialize", false, "Leave"));
 		variant.comment = ve.attr("comment", false, "");
 		return variant;
 	}
+	private static const(VariantVal) toListVal(ref XNode n) { mixin(S_TRACE);
+		auto val = VariantVal(VariantType.List);
+		n.onTag["Value"] = (ref XNode n) { mixin(S_TRACE);
+			val.listVal ~= toVariantVal(n);
+		};
+		n.parse();
+		return val;
+	}
+	private static const(VariantVal) toStructVal(ref XNode n) { mixin(S_TRACE);
+		string origStructName;
+		string[] memberNames;
+		auto val = VariantVal(VariantType.Structure);
+		n.onTag["StructureName"] = (ref XNode n) { mixin(S_TRACE);
+			origStructName = n.value;
+			val.structName = n.value.toLower();
+		};
+		n.onTag["Member"] = (ref XNode n) { mixin(S_TRACE);
+			memberNames ~= n.attr("name", true);
+			val.structVal ~= toVariantVal(n);
+		};
+		n.parse();
+		if (!.isValidStructure(val.structName, memberNames, val.structVal)) { mixin(S_TRACE);
+			throw new Exception("Invalid structure %s member: %s".format(origStructName, memberNames.join(", ")));
+		}
+		auto members = .structureMembers(val.structName);
+		foreach (i; val.structVal.length .. members.length) val.structVal ~= members[i].defaultValue;
+		return val;
+	}
+	private static const(VariantVal) toVariantVal(ref XNode n) { mixin(S_TRACE);
+		auto type = toVariantType(n.attr!string("type", true));
+		auto value = n.attr!string("value", true);
+		final switch (type) {
+		case VariantType.Number:
+			return VariantVal.numValue(.to!double(value));
+		case VariantType.String:
+			return VariantVal.strValue(value);
+		case VariantType.Boolean:
+			return VariantVal.boolValue(.parseBool(value));
+		case VariantType.List:
+			return toListVal(n);
+		case VariantType.Structure:
+			return toStructVal(n);
+		}
+	}
+
 	/// 指定されたXMLノードにこのステップのデータを追加する。
 	const
 	void toNode(ref XNode node) { mixin(S_TRACE);
 		auto e = node.newElement("Variant");
 		e.newAttr("defaulttype", .fromVariantType(type));
 		if (initialization !is VariableInitialization.Leave) e.newAttr("initialize", fromVariableInitialization(initialization));
+
 		final switch (type) {
 		case VariantType.Number:
 		case VariantType.String:
@@ -1034,30 +1094,48 @@ public:
 			e.newAttr("defaultvalue", .fromBool(boolVal));
 			break;
 		case VariantType.List:
-			static void listToNode(ref XNode n, in VariantVal[] listVal) { mixin(S_TRACE);
-				auto e = n.newElement("Value");
-				e.newAttr("type", .fromVariantType(VariantType.List));
-				foreach (ref val; listVal) { mixin(S_TRACE);
-					final switch (val.type) {
-					case VariantType.Number:
-					case VariantType.String:
-						e.newAttr("value", .variantValueToPreviewText(val));
-						break;
-					case VariantType.Boolean:
-						e.newAttr("value", .fromBool(val.boolVal));
-						break;
-					case VariantType.List:
-						listToNode(e, val.listVal);
-						break;
-					}
-				}
-			}
-			listToNode(e, listVal);
+			fromListVal(e, listVal);
+			break;
+		case VariantType.Structure:
+			fromStructVal(e, structName, structVal);
 			break;
 		}
 		e.newElement("Name", path);
 		if (comment != "") e.newAttr("comment", comment);
 	}
+	private static void fromListVal(ref XNode n, in VariantVal[] vals) { mixin(S_TRACE);
+		foreach (ref val; vals) { mixin(S_TRACE);
+			auto ve = n.newElement("Value");
+			ve.newAttr("type", .fromVariantType(val.type));
+			fromVariantVal(ve, val);
+		}
+	}
+	private static void fromStructVal(ref XNode n, string name, in VariantVal[] vals) { mixin(S_TRACE);
+		n.newElement("StructureName", name.toUpper());
+		foreach (i, mem; .structureMembers(name)) { mixin(S_TRACE);
+			auto ve = n.newElement("Member");
+			ve.newAttr("name", mem.name.toUpper());
+			fromVariantVal(ve, vals[i]);
+		}
+	}
+	private static void fromVariantVal(ref XNode n, in VariantVal val) { mixin(S_TRACE);
+		final switch (val.type) {
+		case VariantType.Number:
+		case VariantType.String:
+			n.newAttr("value", .variantValueToPreviewText(val));
+			break;
+		case VariantType.Boolean:
+			n.newAttr("value", .fromBool(val.boolVal));
+			break;
+		case VariantType.List:
+			fromListVal(n, val.listVal);
+			break;
+		case VariantType.Structure:
+			fromStructVal(n, val.structName, val.structVal);
+			break;
+		}
+	}
+
 	@property
 	override string cwxPath(bool id) { mixin(S_TRACE);
 		return .cpjoin(_parent, "variant", .cCountUntil!("a is b")(_parent.variants, this), id);
