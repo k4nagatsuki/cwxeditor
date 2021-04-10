@@ -1393,7 +1393,7 @@ struct VariantVal {
 	const(VariantVal)[] listVal = []; /// リスト。
 
 	string structName; /// 構造体名。
-	const(VariantVal)[] structVal = null; /// 構造体値。
+	const(VariantVal)[] structVal = []; /// 構造体値。
 
 	/// 不正な値。
 	@property
@@ -1404,9 +1404,6 @@ struct VariantVal {
 		val.valid = false;
 		return val;
 	}
-
-	@disable
-	private this ();
 
 	/// 型を指定して初期化する。
 	@safe
