@@ -716,7 +716,8 @@ class Msgs : Properties {
 	auto functionCategoryNameListOperation = Msg("functionCategoryNameListOperation", "リスト操作"); // Wsn.5
 	auto functionCategoryNameConversion = Msg("functionCategoryNameConversion", "型変換");
 	auto functionCategoryNameVariableOperation = Msg("functionCategoryNameVariableOperation", "状態変数");
-	auto functionCategoryNameCardInformation = Msg("functionCategoryNameCardInformation", "カード情報");
+	auto functionCategoryNameCastInformation = Msg("functionCategoryNameCastInformation", "キャラクター情報");
+	auto functionCategoryNameCardInformation = Msg("functionCategoryNameCardInformation", "カード情報"); // Wsn.5
 	auto functionCategoryNameCouponInformation = Msg("functionCategoryNameCouponInformation", "称号情報");
 	auto functionCategoryNamePlayingInformation = Msg("functionCategoryNamePlayingOperation", "プレイ情報"); // Wsn.5
 	auto functionCategoryNameEtc = Msg("functionCategoryNameEtc", "その他");
@@ -2777,6 +2778,8 @@ class Msgs : Properties {
 
 	/// 式。
 	auto expressionErrorFunctionIsNotExistsInTargetVersion = Msg("expressionErrorFunctionIsNotExistsInTargetVersion", "%1$sはWsn.%2$s以降でなければ使用できません。");
+	auto expressionErrorStructureIsNotExistsInTargetVersion = Msg("expressionErrorStructureIsNotExistsInTargetVersion", "%1$sはWsn.%2$s以降でなければ使用できません。");
+	auto expressionErrorStructureMemberIsNotExistsInTargetVersion = Msg("expressionErrorStructureMemberIsNotExistsInTargetVersion", "%1$s.%2$sはWsn.%3$s以降でなければ使用できません。");
 	auto expressionErrorFunctionIsNotDefined = Msg("expressionErrorFunctionIsNotDefined", "%1$sという名前の関数はありません。");
 	auto expressionErrorValueIsNotString = Msg("expressionErrorValueIsNotString", "演算対象が文字列ではありません。"); // Wsn.5
 	auto expressionErrorValueIsNotNumber = Msg("expressionErrorValueIsNotNumber", "演算対象が数値ではありません。");
@@ -2873,6 +2876,13 @@ class Msgs : Properties {
 	auto funcDescCastLevel = Msg("funcDescCastLevel", "キャラクターのレベルを返します。該当者がいない場合は0を返します。"); // Wsn.5
 	auto funcDescCouponValue = Msg("funcDescCouponValue", "キャラクターの所持するクーポン名の点数を返します。該当者またはクーポンが見つからなかった場合は0を返します。"); // Wsn.5
 	auto funcDescLifeRatio = Msg("funcDescLifeRatio", "キャラクターのライフ残量を0.0～1.0の割合で返します。該当者がいない場合は-1を返します。"); // Wsn.5
+	auto funcDescSelectedCard = Msg("funcDescSelectedCard", "選択カードのカード情報を返します。選択カードが存在しない場合は無効なカード情報を返します。"); // Wsn.5
+	auto funcDescCardName = Msg("funcDescCardName", "カード名を返します。カード情報が無効な場合は空文字列を返します。"); // Wsn.5
+	auto funcDescCardType = Msg("funcDescCardType", "カードのタイプを返します(1=特殊技能, 2=アイテム, 3=召喚獣)。カード情報が無効な場合は0を返します。"); // Wsn.5
+	auto funcDescCardRarity = Msg("funcDescCardRarity", "カードの希少度を返します(1=一般, 2=レア, 3=プレミア)。カード情報が無効な場合は0を返します。"); // Wsn.5
+	auto funcDescCardPrice = Msg("funcDescCardPrice", "カードの価格を返します。カード情報が無効な場合は-1を返します。"); // Wsn.5
+	auto funcDescCardLevel = Msg("funcDescCardLevel", "特殊技能カードのレベルを返します。カード情報が無効か、特殊技能カードでない場合は-1を返します。"); // Wsn.5
+	auto funcDescCardCount = Msg("funcDescCardCount", "カードの残り使用回数を返します。カード情報が無効な場合は-1を返します。\n使用回数0のアイテムカードと召喚獣は無限に使用できるカードとなりますが、リサイクルカードの場合は例外として使用できない状態になります。"); // Wsn.5
 
 	auto funcShortDescLen = Msg("funcShortDescLen", "文字列の長さを返す");
 	auto funcShortDescFind = Msg("funcDescFind", "文字列内を検索");
@@ -2914,6 +2924,13 @@ class Msgs : Properties {
 	auto funcShortDescCastLevel = Msg("funcShortDescCastLevel", "キャラクターのレベルを返す"); // Wsn.5
 	auto funcShortDescCouponValue = Msg("funcShortDescCouponValue", "クーポンの点数を返す"); // Wsn.5
 	auto funcShortDescLifeRatio = Msg("funcShortDescLifeRatio", "キャラクターのライフ残量を返す"); // Wsn.5
+	auto funcShortDescSelectedCard = Msg("funcShortDescSelectedCard", "選択カードを返す。"); // Wsn.5
+	auto funcShortDescCardName = Msg("funcShortDescCardName", "カード名を返す。"); // Wsn.5
+	auto funcShortDescCardType = Msg("funcShortDescCardType", "カードのタイプを返す。"); // Wsn.5
+	auto funcShortDescCardRarity = Msg("funcShortDescCardRarity", "カードの希少度を返す。"); // Wsn.5
+	auto funcShortDescCardPrice = Msg("funcShortDescCardPrice", "カードの価格を返す。"); // Wsn.5
+	auto funcShortDescCardLevel = Msg("funcShortDescCardLevel", "カードのレベルを返す。"); // Wsn.5
+	auto funcShortDescCardCount = Msg("funcShortDescCardCount", "カードの使用回数を返す。"); // Wsn.5
 
 	auto funcExampleLen = Msg("funcExampleLen", "LEN(\"対象文字列\") = 5");
 	auto funcExampleFind = Msg("funcExampleFind", "FIND(\"文字\", \"対象文字列\") = 3");
@@ -2948,13 +2965,20 @@ class Msgs : Properties {
 	auto funcExampleLLeft = Msg("funcExampleLLeft", "LEFT(LIST(1, 2, 3), 2) = LIST(1, 2)"); // Wsn.5
 	auto funcExampleLRight = Msg("funcExampleLRight", "RIGHT(LIST(1, 2, 3), 2) = LIST(2, 3)"); // Wsn.5
 	auto funcExampleLMid = Msg("funcExampleLMid", "MID(LIST(1, 2, 3, 4, 5), 2, 3) = LIST(2, 3, 4)"); // Wsn.5
-	auto funcExamplePartyMoney = Msg("funcExamplePartyMoney", "PARTYMONEY()"); // Wsn.5
-	auto funcExamplePartyNumber = Msg("funcExamplePartyNumber", "PARTYNUMBER()"); // Wsn.5
+	auto funcExamplePartyMoney = Msg("funcExamplePartyMoney", "PARTYMONEY() < 4000"); // Wsn.5
+	auto funcExamplePartyNumber = Msg("funcExamplePartyNumber", "PARTYNUMBER() = 1"); // Wsn.5
 	auto funcExampleYadoName = Msg("funcExampleYadoName", "YADONAME()"); // Wsn.5
-	auto funcExampleBattleRound = Msg("funcExampleBattleRound", "BATTLEROUND()"); // Wsn.5
+	auto funcExampleBattleRound = Msg("funcExampleBattleRound", "BATTLEROUND() = 1"); // Wsn.5
 	auto funcExampleCastLevel = Msg("funcExampleCastLevel", "CASTLEVEL(SELECTED()) = 1"); // Wsn.5
 	auto funcExampleCouponValue = Msg("funcExampleCouponValue", "COUPONVALUE(SELECTED(), \"ゴブリン退治\")"); // Wsn.5
-	auto funcExampleLifeRatio = Msg("funcExampleLifeRatio", "LIFERATIO(SELECTED())"); // Wsn.5
+	auto funcExampleLifeRatio = Msg("funcExampleLifeRatio", "LIFERATIO(SELECTED()) < 0.5"); // Wsn.5
+	auto funcExampleSelectedCard = Msg("funcExampleSelectedCard", "SELECTEDCARD()"); // Wsn.5
+	auto funcExampleCardName = Msg("funcExampleCardName", "CARDNAME(SELECTEDCARD()) = \"居合斬り\""); // Wsn.5
+	auto funcExampleCardType = Msg("funcExampleCardType", "CARDTYPE(SELECTEDCARD()) = 1"); // Wsn.5
+	auto funcExampleCardRarity = Msg("funcExampleCardRarity", "CARDRARITY(SELECTEDCARD()) = 2"); // Wsn.5
+	auto funcExampleCardPrice = Msg("funcExampleCardPrice", "CARDPRICE(SELECTEDCARD()) < 2200"); // Wsn.5
+	auto funcExampleCardLevel = Msg("funcExampleCardLevel", "CARDLEVEL(SELECTEDCARD()) < 3"); // Wsn.5
+	auto funcExampleCardCount = Msg("funcExampleCardCount", "CARDCOUNT(SELECTEDCARD()) = 0"); // Wsn.5
 
 	auto exprStringDesc = Msg("exprStringDesc", "文字列");
 	auto exprFindStringDesc = Msg("exprFindStringDesc", "検索文字列");
@@ -2984,6 +3008,7 @@ class Msgs : Properties {
 	auto exprAnyFindValueDesc = Msg("exprAnyFindValueDesc", "検索値"); // Wsn.5
 	auto exprListLengthDesc = Msg("exprListLengthDesc", "長さ(要素数)"); // Wsn.5
 	auto exprListPositionDesc = Msg("exprListPositionDesc", "位置(1～)"); // Wsn.5
+	auto exprCardInfoDesc = Msg("exprCardInfoDesc", "カード情報"); // Wsn.5
 
 	/// メニュー。
 	const string menuText(MenuID id) { mixin(S_TRACE);
