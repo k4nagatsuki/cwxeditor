@@ -654,6 +654,7 @@ private class Function : Part {
 struct StructureMember {
 	string name; /// 構造体メンバ名。
 	string dataVersion; /// 対応データバージョン。
+	bool isPublic; /// ユーザがアクセス可能なメンバか。
 	const VariantVal defaultValue; /// 未指定時の値。
 	bool typeCheck; /// 型チェックを行うか。
 	VariantType type; /// 型。
@@ -664,14 +665,16 @@ struct StructureMember {
 struct StructureInfo {
 	string name; /// 構造体名。
 	string dataVersion; /// 対応データバージョン。
+	bool isPublic; /// ユーザが作成可能な構造体か。
 	const(StructureMember)[] members; /// メンバ定義。
 	size_t requiredMemberNum; /// 生成時に必ず値を指定しなければならないメンバの数。
 
 	private size_t[string] indexTable;
 
-	this (string name, string dataVersion, in StructureMember[] members, size_t requiredMemberNum) in (requiredMemberNum <= members.length) {
+	this (string name, string dataVersion, bool isPublic, in StructureMember[] members, size_t requiredMemberNum) in (requiredMemberNum <= members.length) {
 		this.name = name;
 		this.dataVersion = dataVersion;
+		this.isPublic = isPublic;
 		this.members = members;
 		this.requiredMemberNum = requiredMemberNum;
 		foreach (index, ref mem; members) indexTable[mem.name] = index;
@@ -687,20 +690,40 @@ struct StructureInfo {
 private shared immutable StructureInfo[string] STRUCTS;
 shared static this () {
 	auto tbl = [
-		"cardinfo":StructureInfo("cardinfo", "5", [
-			StructureMember("castindex", "5", VariantVal.numValue(0.0), true, VariantType.Number, -2.0),
-			StructureMember("cardindex", "5", VariantVal.numValue(0.0), true, VariantType.Number, 0.0),
+		"cardinfo":StructureInfo("cardinfo", "5", false, [
+			StructureMember("castindex", "5", false, VariantVal.numValue(0.0), true, VariantType.Number, -2.0),
+			StructureMember("cardindex", "5", false, VariantVal.numValue(0.0), true, VariantType.Number, 0.0),
+			StructureMember("actioncardid", "5", false, VariantVal.numValue(-2.0), true, VariantType.Number),
 		], 2),
 	];
 	STRUCTS = .assumeUnique(tbl);
 	assert (STRUCTS.byKey().map!(key => STRUCTS[key].name == key).all());
 }
 
-/// 構造体のメンバ情報を返す。
-const(StructureMember[]) structureMembers(string structName) { mixin(S_TRACE);
+/// 構造体情報を返す。
+const(StructureInfo) structureInfo(string structName) { mixin(S_TRACE);
 	auto p = structName.toLower() in STRUCTS;
 	if (!p) throw new Exception("Structure %s has been declared.");
-	return p.members;
+	return *p;
+}
+/// 構造体のメンバ情報を返す。
+const(StructureMember[]) structureMembers(string structName) { mixin(S_TRACE);
+	return structureInfo(structName).members;
+}
+/// valueの後方にオプショナル項目のデフォルト値があれば削って返す。
+inout(VariantVal)[] cutOptionalMembers(string structName, inout(VariantVal)[] value) { mixin(S_TRACE);
+	auto info = structureInfo(structName);
+	assert (info.members.length == value.length);
+	foreach_reverse (i; 0 .. info.members.length) { mixin(S_TRACE);
+		if (i < info.requiredMemberNum || info.members[i].defaultValue != value[i]) { mixin(S_TRACE);
+			break;
+		}
+		value = value[0 .. i];
+	}
+	return value;
+} unittest { mixin(UTPerf);
+	assert (.cutOptionalMembers("cardinfo", [VariantVal.numValue(0.0), VariantVal.numValue(0.0), VariantVal.numValue(-2.0)]) == [VariantVal.numValue(0.0), VariantVal.numValue(0.0)]);
+	assert (.cutOptionalMembers("cardinfo", [VariantVal.numValue(0.0), VariantVal.numValue(0.0), VariantVal.numValue(-2.1)]) == [VariantVal.numValue(0.0), VariantVal.numValue(0.0), VariantVal.numValue(-2.1)]);
 }
 /// 構造体名及びメンバ名及び値をチェックし、正しければtrueを返す。
 bool isValidStructure(string structName, in string[] memberNames, in VariantVal[] vals) in (memberNames.length == vals.length) { mixin(S_TRACE);
@@ -761,7 +784,7 @@ private class StructureValue : Part {
 	const
 	override
 	string stringValue() { mixin(S_TRACE);
-		return "%s(%s)".format(structName.toUpper(), .map!(val => val.toString())(structVal).join(", "));
+		return .variantValueToText(.partToVariantVal(this));
 	}
 
 	override
@@ -992,11 +1015,22 @@ private class Operator : Part {
 				err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorTokenIsNotStructureMemberName : "Token is not structure member name: %s", rhs.token.token), rhs.token.line, rhs.token.pos, __FILE__, __LINE__);
 				return new UnknownValue(rhs.token);
 			}
-			auto index = STRUCTS[s.structName].indexOf(symbol.symbol.toLower());
+			auto info = STRUCTS[s.structName];
+			auto index = info.indexOf(symbol.symbol.toLower());
 			if (index == -1) { mixin(S_TRACE);
-				auto members = structureMembers(s.structName).map!(mem => mem.name.toUpper()).join(", ");
-				err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorSymbolIsNotStructureMemberName : "Symbol is not structure member name: %s (%s)", rhs.token.token, members), rhs.token.line, rhs.token.pos, __FILE__, __LINE__);
+				auto members = structureMembers(s.structName).filter!(mem => mem.isPublic).map!(mem => mem.name.toUpper()).join(", ");
+				if (members.length == 1) { mixin(S_TRACE);
+					err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorSymbolIsNotStructureMemberNameOne : "Symbol is not structure member name: %s (%s)", rhs.token.token, members), rhs.token.line, rhs.token.pos, __FILE__, __LINE__);
+				} else if (members.length) { mixin(S_TRACE);
+					err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorSymbolIsNotStructureMemberName : "Symbol is not structure member name: %s (%s)", rhs.token.token, members), rhs.token.line, rhs.token.pos, __FILE__, __LINE__);
+				} else { mixin(S_TRACE);
+					err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorStructureHasNotPublicMember : "Structure %s has not public member.", info.name.toUpper()), rhs.token.line, rhs.token.pos, __FILE__, __LINE__);
+				}
 				return new UnknownValue(rhs.token);
+			}
+			auto m = info.members[index];
+			if (!m.isPublic && mode !is EvalMode.All) { mixin(S_TRACE);
+				err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorPermissionOfStructureMember : "Structure member %s.%s is not accessible.", info.name.toUpper(), m.name.toUpper()), token.line, token.pos, __FILE__, __LINE__);
 			}
 			return s.structVal[index];
 		case "+":
@@ -2431,6 +2465,14 @@ private const(Part) funcCardCount(in CProps prop, EvalMode mode, in VariableInfo
 private const(Part) createStructure(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in StructureInfo info, in Part[] args, bool checkDataVersion, ref ExprError[] err) { mixin(S_TRACE);
 	if (checkDataVersion) { mixin(S_TRACE);
 		.checkWsnVersion(vInfo, func, info.dataVersion, .tryFormat(prop ? prop.msgs.expressionErrorStructureIsNotExistsInTargetVersion : "Structure %1$s is not exists in Wsn.%2$s.", info.name.toUpper(), info.dataVersion), err);
+		if (!info.isPublic && mode !is EvalMode.All) { mixin(S_TRACE);
+			err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorPermissionOfStructure : "Structure %s is not accessible.", info.name.toUpper()), func.token.line, func.token.pos, __FILE__, __LINE__);
+			const(Part)[] args2;
+			foreach (ref m; info.members) { mixin(S_TRACE);
+				args2 ~= .variantValToValueObj(func.token, m.defaultValue);
+			}
+			return new StructureValue(func.token, info.name, args2);
+		}
 	}
 	const(Part)[] args2 = args;
 	if (!checkArgCount2(prop, func, args, info.requiredMemberNum, info.members.length, err)) { mixin(S_TRACE);
@@ -2872,7 +2914,8 @@ private string variantValueToTextImpl(VariantType type, double numVal, string st
 		structName = structName.toLower();
 		assert (structName in STRUCTS);
 		assert (STRUCTS[structName].members.length == structVal.length);
-		return structName.toUpper() ~ "(" ~ structVal.map!(val => val.variantValueToText()).join(", ") ~ ")";
+		auto structVal2 = .cutOptionalMembers(structName, structVal);
+		return structName.toUpper() ~ "(" ~ structVal2.map!(val => val.variantValueToText()).join(", ") ~ ")";
 	}
 } unittest { mixin(UTPerf);
 	assert (.variantValueToTextImpl(VariantType.Number, 12.345, "", false, [], "", []) == "12.345");
@@ -2893,7 +2936,10 @@ private string variantValueToTextImpl(VariantType type, double numVal, string st
 	auto v4 = VariantVal.listValue([VariantVal.numValue(42.1), VariantVal.strValue("STR2"), VariantVal.boolValue(false)]);
 	assert (.variantValueToTextImpl(VariantType.List, 0, "", false, [v1, v2, v3, v4], "", []) == `LIST(42, "STR", TRUE, LIST(42.1, "STR2", FALSE))`);
 
-	assert (.variantValueToTextImpl(VariantType.Structure, 0, "", false, [], "cardinfo", [VariantVal.numValue(4), VariantVal.numValue(2)]) == `CARDINFO(4, 2)`);
+	assert (.variantValueToTextImpl(VariantType.Structure, 0, "", false, [], "cardinfo", [VariantVal.numValue(4), VariantVal.numValue(2), VariantVal.numValue(3)]) == `CARDINFO(4, 2, 3)`);
+	assert (.variantValueToTextImpl(VariantType.Structure, 0, "", false, [], "cardinfo", [VariantVal.numValue(4), VariantVal.numValue(2), VariantVal.numValue(-2)]) == `CARDINFO(4, 2)`);
+	assert (.variantValueToTextImpl(VariantType.Structure, 0, "", false, [], "cardinfo", [VariantVal.numValue(0), VariantVal.numValue(0), VariantVal.numValue(-2)]) == `CARDINFO(0, 0)`);
+	assert (.variantValueToTextImpl(VariantType.Structure, 0, "", false, [], "cardinfo", [VariantVal.numValue(0), VariantVal.numValue(0), VariantVal.numValue(0)]) == `CARDINFO(0, 0, 0)`);
 }
 
 /// 文字列表現textからコモン値を生成する。
@@ -2948,6 +2994,7 @@ private string variantValueToPreviewTextImpl(VariantType type, double numVal, st
 	case VariantType.List:
 		return "LIST(" ~ listVal.map!(v => v.variantValueToPreviewText()).join(", ") ~ ")";
 	case VariantType.Structure:
-		return structName.toUpper() ~ "(" ~ structVal.map!(val => val.variantValueToPreviewText()).join(", ") ~ ")";
+		auto structVal2 = .cutOptionalMembers(structName, structVal);
+		return structName.toUpper() ~ "(" ~ structVal2.map!(val => val.variantValueToPreviewText()).join(", ") ~ ")";
 	}
 }
