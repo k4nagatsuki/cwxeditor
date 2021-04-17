@@ -2780,6 +2780,8 @@ class Msgs : Properties {
 	auto expressionErrorFunctionIsNotExistsInTargetVersion = Msg("expressionErrorFunctionIsNotExistsInTargetVersion", "%1$sはWsn.%2$s以降でなければ使用できません。");
 	auto expressionErrorStructureIsNotExistsInTargetVersion = Msg("expressionErrorStructureIsNotExistsInTargetVersion", "%1$sはWsn.%2$s以降でなければ使用できません。");
 	auto expressionErrorStructureMemberIsNotExistsInTargetVersion = Msg("expressionErrorStructureMemberIsNotExistsInTargetVersion", "%1$s.%2$sはWsn.%3$s以降でなければ使用できません。");
+	auto expressionErrorPermissionOfStructure = Msg("expressionErrorPermissionOfStructure", "%1$sは関数で生成しなければなりません。");
+	auto expressionErrorPermissionOfStructureMember = Msg("expressionErrorPermissionOfStructureMember", "%1$s.%2$sは参照できません。");
 	auto expressionErrorFunctionIsNotDefined = Msg("expressionErrorFunctionIsNotDefined", "%1$sという名前の関数はありません。");
 	auto expressionErrorValueIsNotString = Msg("expressionErrorValueIsNotString", "演算対象が文字列ではありません。"); // Wsn.5
 	auto expressionErrorValueIsNotNumber = Msg("expressionErrorValueIsNotNumber", "演算対象が数値ではありません。");
@@ -2814,7 +2816,9 @@ class Msgs : Properties {
 	auto expressionErrorListIndexIsOutOfRange = Msg("expressionErrorListIndexIsOutOfRange", "リストに%1$s番目の要素は存在しません: リストの長さ = %2$s"); // Wsn.5
 	auto expressionErrorCompareDifferentStructures = Msg("expressionErrorCompareDifferentStructures", "異なる種類の構造体を比較しようとしました: %1$s <> %2$s"); // Wsn.5
 	auto expressionErrorTokenIsNotStructureMemberName = Msg("expressionErrorTokenIsNotStructureMemberName", "構造体のメンバ名が正しくありません: %1$s"); // Wsn.5
-	auto expressionErrorSymbolIsNotStructureMemberName = Msg("expressionErrorSymbolIsNotStructureMemberName", "構造体%1$sのメンバ名が正しくありません。%2$sのいずれかである必要があります。"); // Wsn.5
+	auto expressionErrorSymbolIsNotStructureMemberNameOne = Msg("expressionErrorSymbolIsNotStructureMemberNameOne", "%1$sのメンバ名が正しくありません。%2$sのみ参照可能です。"); // Wsn.5
+	auto expressionErrorSymbolIsNotStructureMemberName = Msg("expressionErrorSymbolIsNotStructureMemberName", "%1$sのメンバ名が正しくありません。%2$sのいずれかである必要があります。"); // Wsn.5
+	auto expressionErrorStructureHasNotPublicMember = Msg("expressionErrorStructureHasNotPublicMember", "%1$sには参照可能なメンバがありません。"); // Wsn.5
 	auto warningExpression = Msg("warningExpression", "%1$s → %2$s");
 	auto warningExpressionPosition = Msg("warningExpressionPosition", " >>>");
 	auto warningExpressionEnd = Msg("warningExpressionEnd", " <<<");
