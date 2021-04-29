@@ -2376,7 +2376,7 @@ private const(Part) funcCouponValue(in CProps prop, EvalMode mode, in VariableIn
 /// キャラクター番号からキャラクターのライフ残量を割合で返す。存在しない場合は -1 を返す。
 private const(Part) funcLifeRatio(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
 	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
-	if (!checkArgCount(prop, func, args, 2, err)) return new NumberValue(func.token, 0);
+	if (!checkArgCount(prop, func, args, 1, err)) return new NumberValue(func.token, 0);
 	auto ca = checkMinValue(prop, mode, func, args, 0, 0, err);
 	if (!ca) return new NumberValue(func.token, 0);
 	return new NumberValue(func.token, 1);
