@@ -444,6 +444,9 @@ private abstract class Part {
 
 	this (in Token token) { this.token = token; }
 
+	const
+	const(Part) toValueObj(in CProps prop, ref ExprError[] err) { return this; }
+
 	@property
 	const
 	string stringValue() { throw new Exception("No supported.", __FILE__, __LINE__); }
@@ -629,7 +632,7 @@ private class Function : Part {
 			} else if (auto expr = cast(Expr)arg) { mixin(S_TRACE);
 				args ~= .calculate(prop, mode, vInfo, expr.parts, err);
 			} else { mixin(S_TRACE);
-				args ~= arg;
+				args ~= arg.toValueObj(prop, err);
 			}
 		}
 
@@ -794,11 +797,38 @@ private class StructureValue : Part {
 
 /// その他シンボル。
 private class Symbol : Part {
+	private static immutable VariantVal[string] SYMBOLS;
+	shared static this () {
+		SYMBOLS = cast(immutable) [
+			// Wsn.5
+			"player": VariantVal.numValue(1),
+			"enemy": VariantVal.numValue(2),
+			"friend": VariantVal.numValue(3),
+			"skill": VariantVal.numValue(1),
+			"item": VariantVal.numValue(2),
+			"beast": VariantVal.numValue(3),
+			"rare": VariantVal.numValue(1),
+			"premier": VariantVal.numValue(2),
+		];
+	}
+
 	const string symbol;
 
 	this (in Token token, string symbol) { mixin(S_TRACE);
 		super (token);
 		this.symbol = symbol;
+	}
+
+	const
+	override
+	const(Part) toValueObj(in CProps prop, ref ExprError[] err) { mixin(S_TRACE);
+		auto p = this.symbol.toLower() in SYMBOLS;
+		if (p) { mixin(S_TRACE);
+			return .variantValToValueObj(token, *p);
+		} else { mixin(S_TRACE);
+			err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorUnknownSymbol : "Unknown symbol: %s", symbol), token.line, token.pos, __FILE__, __LINE__);
+			return new NumberValue(token, 0);
+		}
 	}
 
 	@property
@@ -1376,7 +1406,7 @@ private const(Part)[] parseSemantics(in CProps prop, ref Token[] tokens, ref siz
 					// 関数呼び出し
 					num ~= new Function(tokens[i], t, .parseArguments(prop, tokens, i, err));
 				} else { mixin(S_TRACE);
-					// 構造体メンバ名
+					// シンボル・構造体メンバ名
 					num ~= new Symbol(tokens[i], t);
 					i++;
 				}
@@ -1614,20 +1644,24 @@ private const(Part) calculate(in CProps prop, EvalMode mode, in VariableInfo vIn
 			}
 			auto rhs = op[$ - 1];
 			op = op[0 .. $ - 1];
-			op ~= operator.call(prop, rhs, err);
+			op ~= operator.call(prop, rhs.toValueObj(prop, err), err);
 		} else if (auto operator = cast(Operator)t) { mixin(S_TRACE);
 			if (!op.length) { mixin(S_TRACE);
 				err ~= ExprError(prop ? prop.msgs.expressionErrorInvalidSemantics : "Invalid semantics.", t.token.line, t.token.pos, __FILE__, __LINE__);
 				return new NumberValue(t.token, 0);
 			}
-			auto rhs = op[$ - 1];
+			auto rhs = .rebindable(op[$ - 1]);
 			op = op[0 .. $ - 1];
 			if (!op.length) { mixin(S_TRACE);
 				err ~= ExprError(prop ? prop.msgs.expressionErrorInvalidSemantics : "Invalid semantics.", t.token.line, t.token.pos, __FILE__, __LINE__);
 				return new NumberValue(t.token, 0);
 			}
-			auto lhs = op[$ - 1];
+			auto lhs = .rebindable(op[$ - 1]);
 			op = op[0 .. $ - 1];
+			lhs = lhs.toValueObj(prop, err);
+			if (operator.operator != ".") { mixin(S_TRACE);
+				rhs = rhs.toValueObj(prop, err);
+			}
 			op ~= operator.call(prop, mode, lhs, rhs, err);
 		} else { mixin(S_TRACE);
 			op ~= t;
@@ -1636,12 +1670,7 @@ private const(Part) calculate(in CProps prop, EvalMode mode, in VariableInfo vIn
 	if (!op.length) { mixin(S_TRACE);
 		return new NumberValue(Token(false), 0);
 	}
-	auto t = op[$ - 1];
-	if (cast(Symbol)t) { mixin(S_TRACE);
-		err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorUnknownSymbol : "Unknown symbol: %s", t.token), t.token.line, t.token.pos, __FILE__, __LINE__);
-		return new NumberValue(Token(false), 0);
-	}
-	return t;
+	return op[$ - 1].toValueObj(prop, err);
 }
 
 /// expressionをパースして実行する。
@@ -2423,20 +2452,20 @@ private const(Part) funcCardType(in CProps prop, EvalMode mode, in VariableInfo 
 	return new NumberValue(func.token, 0);
 }
 
-/// カードの希少度を返す(一般=1, レア=2, プレミア=3)。
-/// カード情報が無効の場合は0を返す。
+/// カードの希少度を返す(一般=0, レア=1, プレミア=2)。
+/// カード情報が無効の場合は-1を返す。
 private const(Part) funcCardRarity(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
 	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
-	if (!checkArgCount(prop, func, args, 1, err)) return new NumberValue(func.token, 0);
+	if (!checkArgCount(prop, func, args, 1, err)) return new NumberValue(func.token, -1);
 	.checkStructure(prop, func, args, 0, "cardinfo", err);
-	return new NumberValue(func.token, 1);
+	return new NumberValue(func.token, 0);
 }
 
 /// カードの価格を返す。
 /// カード情報が無効の場合は-1を返す。
 private const(Part) funcCardPrice(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
 	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
-	if (!checkArgCount(prop, func, args, 1, err)) return new NumberValue(func.token, 0);
+	if (!checkArgCount(prop, func, args, 1, err)) return new NumberValue(func.token, -1);
 	.checkStructure(prop, func, args, 0, "cardinfo", err);
 	return new NumberValue(func.token, 0);
 }
@@ -2445,7 +2474,7 @@ private const(Part) funcCardPrice(in CProps prop, EvalMode mode, in VariableInfo
 /// カード情報が無効か、特殊技能カードでない場合は-1を返す。
 private const(Part) funcCardLevel(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
 	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
-	if (!checkArgCount(prop, func, args, 1, err)) return new NumberValue(func.token, 0);
+	if (!checkArgCount(prop, func, args, 1, err)) return new NumberValue(func.token, -1);
 	auto ci = .checkStructure(prop, func, args, 0, "cardinfo", err);
 	if (!ci) return new NumberValue(func.token, 0);
 	return new NumberValue(func.token, 0);
@@ -2455,7 +2484,7 @@ private const(Part) funcCardLevel(in CProps prop, EvalMode mode, in VariableInfo
 /// カード情報が無効の場合は-1を返す。
 private const(Part) funcCardCount(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
 	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
-	if (!checkArgCount(prop, func, args, 1, err)) return new NumberValue(func.token, 0);
+	if (!checkArgCount(prop, func, args, 1, err)) return new NumberValue(func.token, -1);
 	auto ci = .checkStructure(prop, func, args, 0, "cardinfo", err);
 	if (!ci) return new NumberValue(func.token, 0);
 	return new NumberValue(func.token, 0);
@@ -2885,6 +2914,22 @@ unittest { mixin(UTPerf);
 	assert (checkB(.eval(prop, EvalMode.All, vInfo, `LIST(CARDINFO(4, 2), CARDINFO(4, 2)) <> LIST(CARDINFO(4, 2), CARDINFO(4, 2))`), false));
 	assert (checkB(.eval(prop, EvalMode.All, vInfo, `LIST(CARDINFO(4, 2), CARDINFO(4, 2)) = LIST(CARDINFO(4, 2), CARDINFO(4, 3))`), false));
 	assert (checkB(.eval(prop, EvalMode.All, vInfo, `LIST(CARDINFO(4, 2), CARDINFO(4, 2)) <> LIST(CARDINFO(4, 2), CARDINFO(4, 3))`), true));
+
+	assert (checkN(.eval(prop, EvalMode.All, vInfo, `PLAYER`), 1));
+	assert (checkN(.eval(prop, EvalMode.All, vInfo, `ENEMY`), 2));
+	assert (checkN(.eval(prop, EvalMode.All, vInfo, `FRIEND`), 3));
+	assert (checkN(.eval(prop, EvalMode.All, vInfo, `SKILL`), 1));
+	assert (checkN(.eval(prop, EvalMode.All, vInfo, `ITEM`), 2));
+	assert (checkN(.eval(prop, EvalMode.All, vInfo, `BEAST`), 3));
+	assert (checkN(.eval(prop, EvalMode.All, vInfo, `RARE`), 1));
+	assert (checkN(.eval(prop, EvalMode.All, vInfo, `PREMIER`), 2));
+	assert (checkN(.eval(prop, EvalMode.All, vInfo, `-PREMIER`), -2));
+	assert (checkN(.eval(prop, EvalMode.All, vInfo, `-+--PREMIER + PLAYER`), -1));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `PLAYER = SKILL`), true));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `ENEMY > SKILL`), true));
+	assert (checkN(.eval(prop, EvalMode.All, vInfo, `ENEMY + SKILL + PREMIER`), 5));
+	assert (checkS(.eval(prop, EvalMode.All, vInfo, `MID("_test_", enemy, Friend)`), "tes"));
+	assert (checkB(.eval(prop, EvalMode.All, vInfo, `LIST(FRIEND - RARE, "X" ~ PREMIER ~ PLAYER) = LIST(2, "X21")`), true));
 }
 
 /// vの値の文字列表現(式内に記述できるもの)を返す。

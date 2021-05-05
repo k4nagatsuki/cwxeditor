@@ -2859,7 +2859,7 @@ class Msgs : Properties {
 	auto funcDescStepText = Msg("funcDescStepText", "ステップの値のテキストを返します。2つめの引数を省略した場合は、ステップの現在値のテキストを返します。");
 	auto funcDescStepMax = Msg("funcDescStepMax", "ステップの最大値を返します。");
 	auto funcDescSelected = Msg("funcDescSelected", "選択メンバの番号を1以上の数値で返します。選択メンバがいない場合は0を返します。");
-	auto funcDescCastType = Msg("funcDescCastType", "キャラクターのタイプを返します(1=プレイヤー, 2=エネミー, 3=同行キャスト)。該当者がいない場合は0を返します。");
+	auto funcDescCastType = Msg("funcDescCastType", "キャラクターのタイプを返します(PLAYER(1)=プレイヤー, ENEMY(2)=エネミー, FRIEND(3)=同行キャスト)。該当者がいない場合は0を返します。");
 	auto funcDescCastName = Msg("funcDescCastName", "キャラクターの名前を返します。該当者がいない場合は空文字列を返します。");
 	auto funcDescFindCoupon = Msg("funcDescFindCoupon", "キャラクターの所持するクーポンを検索し、クーポン番号を返します。見つからなかった場合は0を返します。次の特殊文字が使用できます。\n* = 任意文字列, ? = 任意1文字, [ABC] = A・B・Cのいずれか1文字, [!ABC] = A・B・Cのいずれでもない1文字。\n特殊文字を普通の文字のように検索したい時は[[]のように[]で囲います。");
 	auto funcDescCouponText = Msg("funcDescCouponText", "キャラクターの所持するクーポンの名前を返します。見つからなかった場合は空文字列を返します。");
@@ -2882,8 +2882,8 @@ class Msgs : Properties {
 	auto funcDescLifeRatio = Msg("funcDescLifeRatio", "キャラクターのライフ残量を0.0～1.0の割合で返します。該当者がいない場合は-1を返します。"); // Wsn.5
 	auto funcDescSelectedCard = Msg("funcDescSelectedCard", "選択カードのカード情報を返します。選択カードが存在しない場合は無効なカード情報を返します。"); // Wsn.5
 	auto funcDescCardName = Msg("funcDescCardName", "カード名を返します。カード情報が無効な場合は空文字列を返します。"); // Wsn.5
-	auto funcDescCardType = Msg("funcDescCardType", "カードのタイプを返します(1=特殊技能, 2=アイテム, 3=召喚獣)。カード情報が無効な場合は0を返します。"); // Wsn.5
-	auto funcDescCardRarity = Msg("funcDescCardRarity", "カードの希少度を返します(1=一般, 2=レア, 3=プレミア)。カード情報が無効な場合は0を返します。"); // Wsn.5
+	auto funcDescCardType = Msg("funcDescCardType", "カードのタイプを返します(SKILL(1)=特殊技能, ITEM(2)=アイテム, BEAST(3)=召喚獣)。カード情報が無効な場合は0を返します。"); // Wsn.5
+	auto funcDescCardRarity = Msg("funcDescCardRarity", "カードの希少度を返します(0=一般, RARE(1)=レア, PREMIER(2)=プレミア)。カード情報が無効な場合は-1を返します。"); // Wsn.5
 	auto funcDescCardPrice = Msg("funcDescCardPrice", "カードの価格を返します。カード情報が無効な場合は-1を返します。"); // Wsn.5
 	auto funcDescCardLevel = Msg("funcDescCardLevel", "特殊技能カードのレベルを返します。カード情報が無効か、特殊技能カードでない場合は-1を返します。"); // Wsn.5
 	auto funcDescCardCount = Msg("funcDescCardCount", "カードの残り使用回数を返します。カード情報が無効な場合は-1を返します。\n使用回数0のアイテムカードと召喚獣は無限に使用できるカードとなりますが、リサイクルカードの場合は例外として使用できない状態になります。"); // Wsn.5
@@ -2955,7 +2955,7 @@ class Msgs : Properties {
 	auto funcExampleStepText = Msg("funcExampleStepText", "STEPTEXT(\"ステップA\", 5) = \"Step - 5\"");
 	auto funcExampleStepMax = Msg("funcExampleStepMax", "STEPMAX(\"ステップA\") = 9");
 	auto funcExampleSelected = Msg("funcExampleSelected", "SELECTED() <> 0");
-	auto funcExampleCastType = Msg("funcExampleCastType", "CASTTYPE(SELECTED()) = 1");
+	auto funcExampleCastType = Msg("funcExampleCastType", "CASTTYPE(SELECTED()) = ENEMY");
 	auto funcExampleCastName = Msg("funcExampleCastName", "CASTNAME(SELECTED()) = \"コボルト\"");
 	auto funcExampleFindCoupon = Msg("funcExampleFindCoupon", "FINDCOUPON(SELECTED(), \"*退治\") <> 0");
 	auto funcExampleCouponText = Msg("funcExampleCouponText", "COUPONTEXT(SELECTED(), FINDCOUPON(SELECTED(), \"*退治\")) = \"ゴブリン退治\"");
@@ -2978,8 +2978,8 @@ class Msgs : Properties {
 	auto funcExampleLifeRatio = Msg("funcExampleLifeRatio", "LIFERATIO(SELECTED()) < 0.5"); // Wsn.5
 	auto funcExampleSelectedCard = Msg("funcExampleSelectedCard", "SELECTEDCARD()"); // Wsn.5
 	auto funcExampleCardName = Msg("funcExampleCardName", "CARDNAME(SELECTEDCARD()) = \"居合斬り\""); // Wsn.5
-	auto funcExampleCardType = Msg("funcExampleCardType", "CARDTYPE(SELECTEDCARD()) = 1"); // Wsn.5
-	auto funcExampleCardRarity = Msg("funcExampleCardRarity", "CARDRARITY(SELECTEDCARD()) = 2"); // Wsn.5
+	auto funcExampleCardType = Msg("funcExampleCardType", "CARDTYPE(SELECTEDCARD()) = SKILL"); // Wsn.5
+	auto funcExampleCardRarity = Msg("funcExampleCardRarity", "CARDRARITY(SELECTEDCARD()) = PREMIER"); // Wsn.5
 	auto funcExampleCardPrice = Msg("funcExampleCardPrice", "CARDPRICE(SELECTEDCARD()) < 2200"); // Wsn.5
 	auto funcExampleCardLevel = Msg("funcExampleCardLevel", "CARDLEVEL(SELECTEDCARD()) < 3"); // Wsn.5
 	auto funcExampleCardCount = Msg("funcExampleCardCount", "CARDCOUNT(SELECTEDCARD()) = 0"); // Wsn.5
