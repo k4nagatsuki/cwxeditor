@@ -2876,6 +2876,7 @@ class Msgs : Properties {
 	auto funcDescPartyMoney = Msg("funcDescPartyMoney", "操作中のパーティの所持金を返します。"); // Wsn.5
 	auto funcDescPartyNumber = Msg("funcDescPartyNumber", "操作中のパーティの人数を返します。"); // Wsn.5
 	auto funcDescYadoName = Msg("funcDescYadoName", "操作中の拠点名を返します。"); // Wsn.5
+	auto funcDescSkinType = Msg("funcDescSkinType", "操作中のスキンタイプの名称を返します。戻り値は以下の通りです。\n\n中世ファンタジーⅠ型→\"MedievalFantasy\"\n現代Ⅰ型→\"Modern\"\n現代学園ものバリアントエンジン→\"School\"\nカアドワアス大江戸バリアント→\"Oedo\"\nＳＦバリアント→\"ScienceFiction\"\n妖魔バリアント→\"Monsters\""); // Wsn.5
 	auto funcDescBattleRound = Msg("funcDescBattleRound", "現在のバトルのラウンド数を返します。バトル中ではない場合は-1を返します。"); // Wsn.5
 	auto funcDescCastLevel = Msg("funcDescCastLevel", "キャラクターのレベルを返します。該当者がいない場合は0を返します。"); // Wsn.5
 	auto funcDescCouponValue = Msg("funcDescCouponValue", "キャラクターの所持するクーポン名の点数を返します。該当者またはクーポンが見つからなかった場合は0を返します。"); // Wsn.5
@@ -2924,6 +2925,7 @@ class Msgs : Properties {
 	auto funcShortDescPartyMoney = Msg("funcShortDescPartyMoney", "パーティの所持金を取得"); // Wsn.5
 	auto funcShortDescPartyNumber = Msg("funcShortDescPartyNumber", "パーティの人数を取得"); // Wsn.5
 	auto funcShortDescYadoName = Msg("funcShortDescYadoName", "拠点名を取得"); // Wsn.5
+	auto funcShortDescSkinType = Msg("funcShortDescSkinType", "スキンタイプを取得"); // Wsn.5
 	auto funcShortDescBattleRound = Msg("funcShortDescBattleRound", "バトルラウンドを取得"); // Wsn.5
 	auto funcShortDescCastLevel = Msg("funcShortDescCastLevel", "キャラクターのレベルを返す"); // Wsn.5
 	auto funcShortDescCouponValue = Msg("funcShortDescCouponValue", "クーポンの点数を返す"); // Wsn.5
@@ -2972,6 +2974,7 @@ class Msgs : Properties {
 	auto funcExamplePartyMoney = Msg("funcExamplePartyMoney", "PARTYMONEY() < 4000"); // Wsn.5
 	auto funcExamplePartyNumber = Msg("funcExamplePartyNumber", "PARTYNUMBER() = 1"); // Wsn.5
 	auto funcExampleYadoName = Msg("funcExampleYadoName", "YADONAME()"); // Wsn.5
+	auto funcExampleSkinType = Msg("funcExampleSkinType", "SKINTYPE() = \"MedievalFantasy\""); // Wsn.5
 	auto funcExampleBattleRound = Msg("funcExampleBattleRound", "BATTLEROUND() = 1"); // Wsn.5
 	auto funcExampleCastLevel = Msg("funcExampleCastLevel", "CASTLEVEL(SELECTED()) = 1"); // Wsn.5
 	auto funcExampleCouponValue = Msg("funcExampleCouponValue", "COUPONVALUE(SELECTED(), \"ゴブリン退治\")"); // Wsn.5

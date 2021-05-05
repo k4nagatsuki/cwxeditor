@@ -596,6 +596,7 @@ private class Function : Part {
 			"partymoney": &.funcPartyMoney,
 			"partynumber": &.funcPartyNumber,
 			"yadoname": &.funcYadoName,
+			"skintype": &.funcSkinType,
 			"battleround": &.funcBattleRound,
 			"castlevel": &.funcCastLevel,
 			"couponvalue": &.funcCouponValue,
@@ -2344,6 +2345,13 @@ private const(Part) funcYadoName(in CProps prop, EvalMode mode, in VariableInfo 
 	return new StringValue(func.token, vInfo.yadoName());
 }
 
+/// スキン種別の名称を返す。
+private const(Part) funcSkinType(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
+	if (!checkArgCount(prop, func, args, 0, err)) return new StringValue(func.token, "");
+	return new StringValue(func.token, "");
+}
+
 /// 現バトルのラウンド数を返す。バトル中ではない場合は -1 を返す。
 private const(Part) funcBattleRound(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
 	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
@@ -2712,6 +2720,8 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 		FuncDef([FunctionCategory.PlayingInformation], "PARTYNUMBER", prop.msgs.funcDescPartyNumber, prop.msgs.funcShortDescPartyNumber, prop.msgs.funcExamplePartyNumber, [
 		], ArgType.Number), // Wsn.5
 		FuncDef([FunctionCategory.PlayingInformation], "YADONAME", prop.msgs.funcDescYadoName, prop.msgs.funcShortDescYadoName, prop.msgs.funcExampleYadoName, [
+		], ArgType.String), // Wsn.5
+		FuncDef([FunctionCategory.PlayingInformation], "SKINTYPE", prop.msgs.funcDescSkinType, prop.msgs.funcShortDescSkinType, prop.msgs.funcExampleSkinType, [
 		], ArgType.String), // Wsn.5
 		FuncDef([FunctionCategory.PlayingInformation], "BATTLEROUND", prop.msgs.funcDescBattleRound, prop.msgs.funcShortDescBattleRound, prop.msgs.funcExampleBattleRound, [
 		], ArgType.Number), // Wsn.5
