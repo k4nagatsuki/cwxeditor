@@ -2890,6 +2890,7 @@ class Msgs : Properties {
 	auto funcDescCardPrice = Msg("funcDescCardPrice", "カードの価格を返します。カード情報が無効な場合は-1を返します。"); // Wsn.5
 	auto funcDescCardLevel = Msg("funcDescCardLevel", "特殊技能カードのレベルを返します。カード情報が無効か、特殊技能カードでない場合は-1を返します。"); // Wsn.5
 	auto funcDescCardCount = Msg("funcDescCardCount", "カードの残り使用回数を返します。カード情報が無効な場合は-1を返します。\n使用回数0のアイテムカードと召喚獣は無限に使用できるカードとなりますが、リサイクルカードの場合は例外として使用できない状態になります。"); // Wsn.5
+	auto funcDescFindKeyCode = Msg("funcDescFindKeyCode", "カードのキーコードを検索し、キーコード番号を返します。見つからなかった場合は0を返します。次の特殊文字が使用できます。\n* = 任意文字列, ? = 任意1文字, [ABC] = A・B・Cのいずれか1文字, [!ABC] = A・B・Cのいずれでもない1文字。\n特殊文字を普通の文字のように検索したい時は[[]のように[]で囲います。"); // Wsn.5
 
 	auto funcShortDescLen = Msg("funcShortDescLen", "文字列の長さを返す");
 	auto funcShortDescFind = Msg("funcDescFind", "文字列内を検索");
@@ -2941,6 +2942,7 @@ class Msgs : Properties {
 	auto funcShortDescCardPrice = Msg("funcShortDescCardPrice", "カードの価格を返す。"); // Wsn.5
 	auto funcShortDescCardLevel = Msg("funcShortDescCardLevel", "カードのレベルを返す。"); // Wsn.5
 	auto funcShortDescCardCount = Msg("funcShortDescCardCount", "カードの使用回数を返す。"); // Wsn.5
+	auto funcShortDescFindKeyCode = Msg("funcShortDescFindKeyCode", "キーコードを検索"); // Wsn.5
 
 	auto funcExampleLen = Msg("funcExampleLen", "LEN(\"対象文字列\") = 5");
 	auto funcExampleFind = Msg("funcExampleFind", "FIND(\"文字\", \"対象文字列\") = 3");
@@ -2992,6 +2994,7 @@ class Msgs : Properties {
 	auto funcExampleCardPrice = Msg("funcExampleCardPrice", "CARDPRICE(SELECTEDCARD()) < 2200"); // Wsn.5
 	auto funcExampleCardLevel = Msg("funcExampleCardLevel", "CARDLEVEL(SELECTEDCARD()) < 3"); // Wsn.5
 	auto funcExampleCardCount = Msg("funcExampleCardCount", "CARDCOUNT(SELECTEDCARD()) = 0"); // Wsn.5
+	auto funcExampleFindKeyCode = Msg("funcExampleFindKeyCode", "FINDKEYCODE(SELECTEDCARD(), \"*攻撃\") <> 0"); // Wsn.5
 
 	auto exprStringDesc = Msg("exprStringDesc", "文字列");
 	auto exprFindStringDesc = Msg("exprFindStringDesc", "検索文字列");

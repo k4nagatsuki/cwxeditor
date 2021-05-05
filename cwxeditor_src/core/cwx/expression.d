@@ -34,6 +34,7 @@ private:
 	VariantUser[] _variants;
 	CouponUser[] _coupons;
 	GossipUser[] _gossips;
+	KeyCodeUser[] _keyCodes;
 	UseCounter _uc = null;
 	CWXPath _ucOwner = null;
 	void delegate() _changed = null;
@@ -68,6 +69,7 @@ public:
 		_variants = [];
 		_coupons = [];
 		_gossips = [];
+		_keyCodes = [];
 
 		ExprError[] err;
 		_expr = .parseExpression(null, text, err);
@@ -124,6 +126,12 @@ public:
 					if (_uc) u.setUseCounter(_uc, _ucOwner);
 					u.gossip = id;
 					_gossips ~= u;
+					break;
+				case "findkeycode":
+					auto u = new KeyCodeUser(this);
+					if (_uc) u.setUseCounter(_uc, _ucOwner);
+					u.keyCode = id;
+					_keyCodes ~= u;
 					break;
 				default:
 					break;
@@ -213,6 +221,10 @@ public:
 	const string[] gossipsInText() { mixin(S_TRACE);
 		return .map!(u => u.gossip)(_gossips).array();
 	}
+	@property
+	const string[] keyCodesInText() { mixin(S_TRACE);
+		return .map!(u => u.keyCode)(_keyCodes).array();
+	}
 
 	/// 使用回数カウンタ。
 	@property
@@ -231,6 +243,7 @@ public:
 		.each!(u => u.setUseCounter(uc))(_variants);
 		.each!(u => u.setUseCounter(uc, ucOwner))(_coupons);
 		.each!(u => u.setUseCounter(uc, ucOwner))(_gossips);
+		.each!(u => u.setUseCounter(uc, ucOwner))(_keyCodes);
 		_uc = uc;
 		_ucOwner = ucOwner;
 	}
@@ -240,6 +253,7 @@ public:
 		.each!(u => u.removeUseCounter())(_variants);
 		.each!(u => u.removeUseCounter())(_coupons);
 		.each!(u => u.removeUseCounter())(_gossips);
+		.each!(u => u.removeUseCounter())(_keyCodes);
 	}
 	override
 	void removeUseCounter() { mixin(S_TRACE);
@@ -610,6 +624,7 @@ private class Function : Part {
 			"cardprice": &.funcCardPrice,
 			"cardlevel": &.funcCardLevel,
 			"cardcount": &.funcCardCount,
+			"findkeycode": &.funcFindKeyCode,
 		];
 	}
 
@@ -1538,6 +1553,8 @@ struct VariableInfo {
 	const uint delegate(string pattern, uint startPos) findGossip;
 	/// ゴシップの取得。
 	const string delegate(uint gossipNumber) gossipText;
+	/// キーコードの検索。
+	const uint delegate(const(StructureValue) card, string pattern, uint startPos) findKeyCode;
 
 	/// キャラクター名を取得。
 	const string delegate(uint) castName;
@@ -1596,6 +1613,7 @@ struct VariableInfo {
 		couponText = (castNumber, couponNumber) => "";
 		findGossip = (pattern, startPos) => 0u;
 		gossipText = (gossipNumber) => "";
+		findKeyCode = (card, pattern, startPos) => 0u;
 
 		this.castName = castName;
 		this.cardName = cardName;
@@ -2493,6 +2511,31 @@ private const(Part) funcCardCount(in CProps prop, EvalMode mode, in VariableInfo
 	return new NumberValue(func.token, 0);
 }
 
+/// カードのキーコードをpatternで検索して見つかった位置（1～）を返す。
+/// キーコードが見つからない・カード情報が無効の場合は 0 を返す。
+private const(Part) funcFindKeyCode(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
+	if (mode !is EvalMode.TypeCheck) { mixin(S_TRACE);
+		if (!vInfo.findKeyCode) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
+	}
+	if (!checkArgCount2(prop, func, args, 2, 3, err)) return new NumberValue(func.token, 0);
+	auto ci = .checkStructure(prop, func, args, 0, "cardinfo", err);
+	if (!ci) return new NumberValue(func.token, 0);
+	auto p = checkString(prop, func, args, 1, err);
+	if (!p) return new NumberValue(func.token, 0);
+
+	if (args.length < 3) { mixin(S_TRACE);
+		if (mode is EvalMode.TypeCheck) return new NumberValue(func.token, 0);
+		return new NumberValue(func.token, vInfo.findKeyCode(ci, p.strVal, 1));
+	} else { mixin(S_TRACE);
+		auto pos = checkMinValue(prop, mode, func, args, 2, 0, err);
+		if (!pos) return new NumberValue(func.token, 0);
+		if (cast(uint)pos.numVal == 0) return new NumberValue(func.token, 0);
+		if (mode is EvalMode.TypeCheck) return new NumberValue(func.token, 0);
+		return new NumberValue(func.token, vInfo.findKeyCode(ci, p.strVal, cast(uint)pos.numVal));
+	}
+}
+
 /// 構造体のインスタンスを生成する。
 private const(Part) createStructure(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in StructureInfo info, in Part[] args, bool checkDataVersion, ref ExprError[] err) { mixin(S_TRACE);
 	if (checkDataVersion) { mixin(S_TRACE);
@@ -2724,6 +2767,11 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 		], ArgType.Number), // Wsn.5
 		FuncDef([FunctionCategory.CardInformation], "CARDCOUNT", prop.msgs.funcDescCardCount, prop.msgs.funcShortDescCardCount, prop.msgs.funcExampleCardCount, [
 			ArgDef(ArgType.CardInfo, prop.msgs.exprCardInfoDesc, "SELECTEDCARD()", false),
+		], ArgType.Number), // Wsn.5
+		FuncDef([FunctionCategory.CardInformation], "FINDKEYCODE", prop.msgs.funcDescFindKeyCode, prop.msgs.funcShortDescFindKeyCode, prop.msgs.funcExampleFindKeyCode, [
+			ArgDef(ArgType.CardInfo, prop.msgs.exprCardInfoDesc, "SELECTEDCARD()", false),
+			ArgDef(ArgType.String, prop.msgs.exprFindPatternDesc, "*", false),
+			ArgDef(ArgType.Number, prop.msgs.exprFindStartPositionDesc, "", true),
 		], ArgType.Number), // Wsn.5
 		FuncDef([FunctionCategory.CouponInformation], "FINDCOUPON", prop.msgs.funcDescFindCoupon, prop.msgs.funcShortDescFindCoupon, prop.msgs.funcExampleFindCoupon, [
 			ArgDef(ArgType.Number, prop.msgs.exprCastNumberDesc, "1", false),
