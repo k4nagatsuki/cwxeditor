@@ -2890,7 +2890,8 @@ class Msgs : Properties {
 	auto funcDescCardPrice = Msg("funcDescCardPrice", "カードの価格を返します。カード情報が無効な場合は-1を返します。"); // Wsn.5
 	auto funcDescCardLevel = Msg("funcDescCardLevel", "特殊技能カードのレベルを返します。カード情報が無効か、特殊技能カードでない場合は-1を返します。"); // Wsn.5
 	auto funcDescCardCount = Msg("funcDescCardCount", "カードの残り使用回数を返します。カード情報が無効な場合は-1を返します。\n使用回数0のアイテムカードと召喚獣は無限に使用できるカードとなりますが、リサイクルカードの場合は例外として使用できない状態になります。"); // Wsn.5
-	auto funcDescFindKeyCode = Msg("funcDescFindKeyCode", "カードのキーコードを検索し、キーコード番号を返します。見つからなかった場合は0を返します。次の特殊文字が使用できます。\n* = 任意文字列, ? = 任意1文字, [ABC] = A・B・Cのいずれか1文字, [!ABC] = A・B・Cのいずれでもない1文字。\n特殊文字を普通の文字のように検索したい時は[[]のように[]で囲います。"); // Wsn.5
+	auto funcDescFindKeyCode = Msg("funcDescFindKeyCode", "カードのキーコードを検索し、キーコード番号(1～)を返します。見つからなかった場合は0を返します。次の特殊文字が使用できます。\n* = 任意文字列, ? = 任意1文字, [ABC] = A・B・Cのいずれか1文字, [!ABC] = A・B・Cのいずれでもない1文字。\n特殊文字を普通の文字のように検索したい時は[[]のように[]で囲います。"); // Wsn.5
+	auto funcDescKeyCodeText = Msg("funcFindKeyCodeText", "カードのキーコード名を返します。見つからなかった場合は空文字列を返します。"); // Wsn.5
 
 	auto funcShortDescLen = Msg("funcShortDescLen", "文字列の長さを返す");
 	auto funcShortDescFind = Msg("funcDescFind", "文字列内を検索");
@@ -2943,6 +2944,7 @@ class Msgs : Properties {
 	auto funcShortDescCardLevel = Msg("funcShortDescCardLevel", "カードのレベルを返す。"); // Wsn.5
 	auto funcShortDescCardCount = Msg("funcShortDescCardCount", "カードの使用回数を返す。"); // Wsn.5
 	auto funcShortDescFindKeyCode = Msg("funcShortDescFindKeyCode", "キーコードを検索"); // Wsn.5
+	auto funcShortDescKeyCodeText = Msg("funcShortDescKeyCodeText", "キーコード名を取得"); // Wsn.5
 
 	auto funcExampleLen = Msg("funcExampleLen", "LEN(\"対象文字列\") = 5");
 	auto funcExampleFind = Msg("funcExampleFind", "FIND(\"文字\", \"対象文字列\") = 3");
@@ -2995,6 +2997,7 @@ class Msgs : Properties {
 	auto funcExampleCardLevel = Msg("funcExampleCardLevel", "CARDLEVEL(SELECTEDCARD()) < 3"); // Wsn.5
 	auto funcExampleCardCount = Msg("funcExampleCardCount", "CARDCOUNT(SELECTEDCARD()) = 0"); // Wsn.5
 	auto funcExampleFindKeyCode = Msg("funcExampleFindKeyCode", "FINDKEYCODE(SELECTEDCARD(), \"*攻撃\") <> 0"); // Wsn.5
+	auto funcExampleKeyCodeText = Msg("funcExampleKeyCodeText", "KEYCODETEXT(SELECTEDCARD(), 1)"); // Wsn.5
 
 	auto exprStringDesc = Msg("exprStringDesc", "文字列");
 	auto exprFindStringDesc = Msg("exprFindStringDesc", "検索文字列");
@@ -3019,6 +3022,7 @@ class Msgs : Properties {
 	auto exprCouponNameDesc = Msg("exprCouponNameDesc", "クーポン名");
 	auto exprCouponNumberDesc = Msg("exprCouponNumberDesc", "クーポン番号");
 	auto exprGossipNumberDesc = Msg("exprGossipNumberDesc", "ゴシップ番号");
+	auto exprKeyCodeNumberDesc = Msg("exprKeyCodeNumberDesc", "キーコード番号"); // Wsn.5
 	auto exprFindStartPositionDesc = Msg("exprFindStartPositionDesc", "検索開始位置");
 	auto exprListDesc = Msg("exprListDesc", "リスト"); // Wsn.5
 	auto exprAnyFindValueDesc = Msg("exprAnyFindValueDesc", "検索値"); // Wsn.5

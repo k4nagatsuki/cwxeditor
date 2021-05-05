@@ -625,6 +625,7 @@ private class Function : Part {
 			"cardlevel": &.funcCardLevel,
 			"cardcount": &.funcCardCount,
 			"findkeycode": &.funcFindKeyCode,
+			"keycodetext": &.funcKeyCodeText,
 		];
 	}
 
@@ -1555,6 +1556,8 @@ struct VariableInfo {
 	const string delegate(uint gossipNumber) gossipText;
 	/// キーコードの検索。
 	const uint delegate(const(StructureValue) card, string pattern, uint startPos) findKeyCode;
+	/// キーコードの取得。
+	const string delegate(const(StructureValue) card, uint gossipNumber) KeyCodeText;
 
 	/// キャラクター名を取得。
 	const string delegate(uint) castName;
@@ -1614,6 +1617,7 @@ struct VariableInfo {
 		findGossip = (pattern, startPos) => 0u;
 		gossipText = (gossipNumber) => "";
 		findKeyCode = (card, pattern, startPos) => 0u;
+		KeyCodeText = (card, keyCodeNumber) => "";
 
 		this.castName = castName;
 		this.cardName = cardName;
@@ -2536,6 +2540,22 @@ private const(Part) funcFindKeyCode(in CProps prop, EvalMode mode, in VariableIn
 	}
 }
 
+/// カードのキーコード名を位置番号指定で返す。位置指定が無効の場合は空文字を返す。
+private const(Part) funcKeyCodeText(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
+	if (mode !is EvalMode.TypeCheck) { mixin(S_TRACE);
+		if (!vInfo.KeyCodeText) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
+	}
+	if (!checkArgCount(prop, func, args, 2, err)) return new StringValue(func.token, "");
+	auto ci = .checkStructure(prop, func, args, 0, "cardinfo", err);
+	if (!ci) return new StringValue(func.token, "");
+	auto kn = checkMinValue(prop, mode, func, args, 1, 0, err);
+	if (!kn) return new StringValue(func.token, "");
+	if (mode is EvalMode.TypeCheck) return new StringValue(func.token, "");
+
+	return new StringValue(func.token, vInfo.KeyCodeText(ci, cast(uint)kn.numVal));
+}
+
 /// 構造体のインスタンスを生成する。
 private const(Part) createStructure(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in StructureInfo info, in Part[] args, bool checkDataVersion, ref ExprError[] err) { mixin(S_TRACE);
 	if (checkDataVersion) { mixin(S_TRACE);
@@ -2773,6 +2793,10 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 			ArgDef(ArgType.String, prop.msgs.exprFindPatternDesc, "*", false),
 			ArgDef(ArgType.Number, prop.msgs.exprFindStartPositionDesc, "", true),
 		], ArgType.Number), // Wsn.5
+		FuncDef([FunctionCategory.CardInformation], "KEYCODETEXT", prop.msgs.funcDescKeyCodeText, prop.msgs.funcShortDescKeyCodeText, prop.msgs.funcExampleKeyCodeText, [
+			ArgDef(ArgType.CardInfo, prop.msgs.exprCardInfoDesc, "SELECTEDCARD()", false),
+			ArgDef(ArgType.Number, prop.msgs.exprKeyCodeNumberDesc, "1", false),
+		], ArgType.String), // Wsn.5
 		FuncDef([FunctionCategory.CouponInformation], "FINDCOUPON", prop.msgs.funcDescFindCoupon, prop.msgs.funcShortDescFindCoupon, prop.msgs.funcExampleFindCoupon, [
 			ArgDef(ArgType.Number, prop.msgs.exprCastNumberDesc, "1", false),
 			ArgDef(ArgType.String, prop.msgs.exprFindPatternDesc, "*", false),
