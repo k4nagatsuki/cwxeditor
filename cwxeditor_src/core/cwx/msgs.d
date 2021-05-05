@@ -2881,6 +2881,7 @@ class Msgs : Properties {
 	auto funcDescCastLevel = Msg("funcDescCastLevel", "キャラクターのレベルを返します。該当者がいない場合は0を返します。"); // Wsn.5
 	auto funcDescCouponValue = Msg("funcDescCouponValue", "キャラクターの所持するクーポン名の点数を返します。該当者またはクーポンが見つからなかった場合は0を返します。"); // Wsn.5
 	auto funcDescLifeRatio = Msg("funcDescLifeRatio", "キャラクターのライフ残量を0.0～1.0の割合で返します。該当者がいない場合は-1を返します。"); // Wsn.5
+	auto funcDescStatusValue = Msg("funcDescStatusValue", "キャラクターの状態の強度・修正値を返します。該当者がいない・指定した状態ではない場合は0を返します。強度・修正値を持たない状態にある場合は1を返します。二番目の引数に与える数値は以下の通りです。\n\n中毒→8\n睡眠→9\n呪縛→10\n麻痺・石化→11\n混乱→12\n激昂→13\n勇敢→14\n恐慌→15\n沈黙→16\n暴露→17\n魔法無効化→18\n行動力上昇→19\n回避力上昇→20\n抵抗力上昇→21\n防御力上昇→22\n行動力低下→23\n回避力低下→24\n抵抗力低下→25\n防御力低下→26"); // Wsn.5
 	auto funcDescSelectedCard = Msg("funcDescSelectedCard", "選択カードのカード情報を返します。選択カードが存在しない場合は無効なカード情報を返します。"); // Wsn.5
 	auto funcDescCardName = Msg("funcDescCardName", "カード名を返します。カード情報が無効な場合は空文字列を返します。"); // Wsn.5
 	auto funcDescCardType = Msg("funcDescCardType", "カードのタイプを返します(1=特殊技能, 2=アイテム, 3=召喚獣)。カード情報が無効な場合は0を返します。"); // Wsn.5
@@ -2930,6 +2931,7 @@ class Msgs : Properties {
 	auto funcShortDescCastLevel = Msg("funcShortDescCastLevel", "キャラクターのレベルを返す"); // Wsn.5
 	auto funcShortDescCouponValue = Msg("funcShortDescCouponValue", "クーポンの点数を返す"); // Wsn.5
 	auto funcShortDescLifeRatio = Msg("funcShortDescLifeRatio", "キャラクターのライフ残量を返す"); // Wsn.5
+	auto funcShortDescStatusValue = Msg("funcShortDescStatusValue", "キャラクターの状態の強度・修正値を返す"); // Wsn.5
 	auto funcShortDescSelectedCard = Msg("funcShortDescSelectedCard", "選択カードを返す。"); // Wsn.5
 	auto funcShortDescCardName = Msg("funcShortDescCardName", "カード名を返す。"); // Wsn.5
 	auto funcShortDescCardType = Msg("funcShortDescCardType", "カードのタイプを返す。"); // Wsn.5
@@ -2979,6 +2981,7 @@ class Msgs : Properties {
 	auto funcExampleCastLevel = Msg("funcExampleCastLevel", "CASTLEVEL(SELECTED()) = 1"); // Wsn.5
 	auto funcExampleCouponValue = Msg("funcExampleCouponValue", "COUPONVALUE(SELECTED(), \"ゴブリン退治\")"); // Wsn.5
 	auto funcExampleLifeRatio = Msg("funcExampleLifeRatio", "LIFERATIO(SELECTED()) < 0.5"); // Wsn.5
+	auto funcExampleStatusValue = Msg("funcExampleStatusValue", "STATUSVALUE(SELECTED(), 8) > 20"); // Wsn.5
 	auto funcExampleSelectedCard = Msg("funcExampleSelectedCard", "SELECTEDCARD()"); // Wsn.5
 	auto funcExampleCardName = Msg("funcExampleCardName", "CARDNAME(SELECTEDCARD()) = \"居合斬り\""); // Wsn.5
 	auto funcExampleCardType = Msg("funcExampleCardType", "CARDTYPE(SELECTEDCARD()) = 1"); // Wsn.5
@@ -3016,6 +3019,7 @@ class Msgs : Properties {
 	auto exprListLengthDesc = Msg("exprListLengthDesc", "長さ(要素数)"); // Wsn.5
 	auto exprListPositionDesc = Msg("exprListPositionDesc", "位置(1～)"); // Wsn.5
 	auto exprCardInfoDesc = Msg("exprCardInfoDesc", "カード情報"); // Wsn.5
+	auto exprCastStatusDesc = Msg("exprCastStatusDesc", "状態の番号"); // Wsn.5
 
 	/// メニュー。
 	const string menuText(MenuID id) { mixin(S_TRACE);

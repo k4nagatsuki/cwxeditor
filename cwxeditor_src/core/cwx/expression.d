@@ -601,6 +601,7 @@ private class Function : Part {
 			"castlevel": &.funcCastLevel,
 			"couponvalue": &.funcCouponValue,
 			"liferatio": &.funcLifeRatio,
+			"statusvalue": &.funcStatusValue,
 			"selectedcard": &.funcSelectedCard,
 			"cardname": &.funcCardName,
 			"cardtype": &.funcCardType,
@@ -2390,6 +2391,17 @@ private const(Part) funcLifeRatio(in CProps prop, EvalMode mode, in VariableInfo
 	return new NumberValue(func.token, 1);
 }
 
+/// キャラクター番号からキャラクターの状態の強度・修正値を返す。存在しない・指定した状態にない場合は 0 を返す。強度・修正値を持たない状態にあっては 1 を返す。
+private const(Part) funcStatusValue(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
+	if (!checkArgCount(prop, func, args, 2, err)) return new NumberValue(func.token, 0);
+	auto ca = checkMinValue(prop, mode, func, args, 0, 0, err);
+	if (!ca) return new NumberValue(func.token, 0);
+	auto n = checkMinValue(prop, mode, func, args, 1, 0, err);
+	if (!n) return new NumberValue(func.token, 0);
+	return new NumberValue(func.token, 1);
+}
+
 /// 選択カードがある場合はカード情報を返す。存在しない場合は無効なカード情報を返す。
 private const(Part) funcSelectedCard(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
 	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
@@ -2672,6 +2684,10 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 		], ArgType.Number), // Wsn.5
 		FuncDef([FunctionCategory.CastInformation], "LIFERATIO", prop.msgs.funcDescLifeRatio, prop.msgs.funcShortDescLifeRatio, prop.msgs.funcExampleLifeRatio, [
 			ArgDef(ArgType.Number, prop.msgs.exprCastNumberDesc, "1", false),
+		], ArgType.Number), // Wsn.5
+		FuncDef([FunctionCategory.CastInformation], "STATUSVALUE", prop.msgs.funcDescStatusValue, prop.msgs.funcShortDescStatusValue, prop.msgs.funcExampleStatusValue, [
+			ArgDef(ArgType.Number, prop.msgs.exprCastNumberDesc, "1", false),
+			ArgDef(ArgType.Number, prop.msgs.exprCastStatusDesc, "8", false),
 		], ArgType.Number), // Wsn.5
 		FuncDef([FunctionCategory.CardInformation], "SELECTEDCARD", prop.msgs.funcDescSelectedCard, prop.msgs.funcShortDescSelectedCard, prop.msgs.funcExampleSelectedCard, [
 		], ArgType.CardInfo), // Wsn.5
