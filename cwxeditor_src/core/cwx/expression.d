@@ -602,6 +602,7 @@ private class Function : Part {
 			"couponvalue": &.funcCouponValue,
 			"liferatio": &.funcLifeRatio,
 			"statusvalue": &.funcStatusValue,
+			"statusround": &.funcStatusRound,
 			"selectedcard": &.funcSelectedCard,
 			"cardname": &.funcCardName,
 			"cardtype": &.funcCardType,
@@ -2402,6 +2403,17 @@ private const(Part) funcStatusValue(in CProps prop, EvalMode mode, in VariableIn
 	return new NumberValue(func.token, 1);
 }
 
+/// キャラクター番号からキャラクターの状態の残ラウンド数を返す。存在しない・指定した状態にない場合は 0 を返す。
+private const(Part) funcStatusRound(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
+	if (!checkArgCount(prop, func, args, 2, err)) return new NumberValue(func.token, 0);
+	auto ca = checkMinValue(prop, mode, func, args, 0, 0, err);
+	if (!ca) return new NumberValue(func.token, 0);
+	auto n = checkMinValue(prop, mode, func, args, 1, 0, err);
+	if (!n) return new NumberValue(func.token, 0);
+	return new NumberValue(func.token, 1);
+}
+
 /// 選択カードがある場合はカード情報を返す。存在しない場合は無効なカード情報を返す。
 private const(Part) funcSelectedCard(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
 	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
@@ -2686,6 +2698,10 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 			ArgDef(ArgType.Number, prop.msgs.exprCastNumberDesc, "1", false),
 		], ArgType.Number), // Wsn.5
 		FuncDef([FunctionCategory.CastInformation], "STATUSVALUE", prop.msgs.funcDescStatusValue, prop.msgs.funcShortDescStatusValue, prop.msgs.funcExampleStatusValue, [
+			ArgDef(ArgType.Number, prop.msgs.exprCastNumberDesc, "1", false),
+			ArgDef(ArgType.Number, prop.msgs.exprCastStatusDesc, "8", false),
+		], ArgType.Number), // Wsn.5
+		FuncDef([FunctionCategory.CastInformation], "STATUSROUND", prop.msgs.funcDescStatusRound, prop.msgs.funcShortDescStatusRound, prop.msgs.funcExampleStatusRound, [
 			ArgDef(ArgType.Number, prop.msgs.exprCastNumberDesc, "1", false),
 			ArgDef(ArgType.Number, prop.msgs.exprCastStatusDesc, "8", false),
 		], ArgType.Number), // Wsn.5
