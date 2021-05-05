@@ -34,6 +34,7 @@ private:
 	VariantUser[] _variants;
 	CouponUser[] _coupons;
 	GossipUser[] _gossips;
+	KeyCodeUser[] _keyCodes;
 	UseCounter _uc = null;
 	CWXPath _ucOwner = null;
 	void delegate() _changed = null;
@@ -68,6 +69,7 @@ public:
 		_variants = [];
 		_coupons = [];
 		_gossips = [];
+		_keyCodes = [];
 
 		ExprError[] err;
 		_expr = .parseExpression(null, text, err);
@@ -124,6 +126,12 @@ public:
 					if (_uc) u.setUseCounter(_uc, _ucOwner);
 					u.gossip = id;
 					_gossips ~= u;
+					break;
+				case "findkeycode":
+					auto u = new KeyCodeUser(this);
+					if (_uc) u.setUseCounter(_uc, _ucOwner);
+					u.keyCode = id;
+					_keyCodes ~= u;
 					break;
 				default:
 					break;
@@ -213,6 +221,10 @@ public:
 	const string[] gossipsInText() { mixin(S_TRACE);
 		return .map!(u => u.gossip)(_gossips).array();
 	}
+	@property
+	const string[] keyCodesInText() { mixin(S_TRACE);
+		return .map!(u => u.keyCode)(_keyCodes).array();
+	}
 
 	/// 使用回数カウンタ。
 	@property
@@ -231,6 +243,7 @@ public:
 		.each!(u => u.setUseCounter(uc))(_variants);
 		.each!(u => u.setUseCounter(uc, ucOwner))(_coupons);
 		.each!(u => u.setUseCounter(uc, ucOwner))(_gossips);
+		.each!(u => u.setUseCounter(uc, ucOwner))(_keyCodes);
 		_uc = uc;
 		_ucOwner = ucOwner;
 	}
@@ -240,6 +253,7 @@ public:
 		.each!(u => u.removeUseCounter())(_variants);
 		.each!(u => u.removeUseCounter())(_coupons);
 		.each!(u => u.removeUseCounter())(_gossips);
+		.each!(u => u.removeUseCounter())(_keyCodes);
 	}
 	override
 	void removeUseCounter() { mixin(S_TRACE);
@@ -599,10 +613,13 @@ private class Function : Part {
 			"partymoney": &.funcPartyMoney,
 			"partynumber": &.funcPartyNumber,
 			"yadoname": &.funcYadoName,
+			"skintype": &.funcSkinType,
 			"battleround": &.funcBattleRound,
 			"castlevel": &.funcCastLevel,
 			"couponvalue": &.funcCouponValue,
 			"liferatio": &.funcLifeRatio,
+			"statusvalue": &.funcStatusValue,
+			"statusround": &.funcStatusRound,
 			"selectedcard": &.funcSelectedCard,
 			"cardname": &.funcCardName,
 			"cardtype": &.funcCardType,
@@ -610,6 +627,8 @@ private class Function : Part {
 			"cardprice": &.funcCardPrice,
 			"cardlevel": &.funcCardLevel,
 			"cardcount": &.funcCardCount,
+			"findkeycode": &.funcFindKeyCode,
+			"keycodetext": &.funcKeyCodeText,
 		];
 	}
 
@@ -1565,6 +1584,10 @@ struct VariableInfo {
 	const uint delegate(string pattern, uint startPos) findGossip;
 	/// ゴシップの取得。
 	const string delegate(uint gossipNumber) gossipText;
+	/// キーコードの検索。
+	const uint delegate(const(StructureValue) card, string pattern, uint startPos) findKeyCode;
+	/// キーコードの取得。
+	const string delegate(const(StructureValue) card, uint gossipNumber) KeyCodeText;
 
 	/// キャラクター名を取得。
 	const string delegate(uint) castName;
@@ -1623,6 +1646,8 @@ struct VariableInfo {
 		couponText = (castNumber, couponNumber) => "";
 		findGossip = (pattern, startPos) => 0u;
 		gossipText = (gossipNumber) => "";
+		findKeyCode = (card, pattern, startPos) => 0u;
+		KeyCodeText = (card, keyCodeNumber) => "";
 
 		this.castName = castName;
 		this.cardName = cardName;
@@ -2373,6 +2398,13 @@ private const(Part) funcYadoName(in CProps prop, EvalMode mode, in VariableInfo 
 	return new StringValue(func.token, vInfo.yadoName());
 }
 
+/// スキン種別の名称を返す。
+private const(Part) funcSkinType(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
+	if (!checkArgCount(prop, func, args, 0, err)) return new StringValue(func.token, "");
+	return new StringValue(func.token, "");
+}
+
 /// 現バトルのラウンド数を返す。バトル中ではない場合は -1 を返す。
 private const(Part) funcBattleRound(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
 	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
@@ -2408,6 +2440,28 @@ private const(Part) funcLifeRatio(in CProps prop, EvalMode mode, in VariableInfo
 	if (!checkArgCount(prop, func, args, 1, err)) return new NumberValue(func.token, 0);
 	auto ca = checkMinValue(prop, mode, func, args, 0, 0, err);
 	if (!ca) return new NumberValue(func.token, 0);
+	return new NumberValue(func.token, 1);
+}
+
+/// キャラクター番号からキャラクターの状態の強度・修正値を返す。存在しない・指定した状態にない場合は 0 を返す。強度・修正値を持たない状態にあっては 1 を返す。
+private const(Part) funcStatusValue(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
+	if (!checkArgCount(prop, func, args, 2, err)) return new NumberValue(func.token, 0);
+	auto ca = checkMinValue(prop, mode, func, args, 0, 0, err);
+	if (!ca) return new NumberValue(func.token, 0);
+	auto n = checkMinValue(prop, mode, func, args, 1, 0, err);
+	if (!n) return new NumberValue(func.token, 0);
+	return new NumberValue(func.token, 1);
+}
+
+/// キャラクター番号からキャラクターの状態の残ラウンド数を返す。存在しない・指定した状態にない場合は 0 を返す。
+private const(Part) funcStatusRound(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
+	if (!checkArgCount(prop, func, args, 2, err)) return new NumberValue(func.token, 0);
+	auto ca = checkMinValue(prop, mode, func, args, 0, 0, err);
+	if (!ca) return new NumberValue(func.token, 0);
+	auto n = checkMinValue(prop, mode, func, args, 1, 0, err);
+	if (!n) return new NumberValue(func.token, 0);
 	return new NumberValue(func.token, 1);
 }
 
@@ -2488,6 +2542,47 @@ private const(Part) funcCardCount(in CProps prop, EvalMode mode, in VariableInfo
 	auto ci = .checkStructure(prop, func, args, 0, "cardinfo", err);
 	if (!ci) return new NumberValue(func.token, 0);
 	return new NumberValue(func.token, 0);
+}
+
+/// カードのキーコードをpatternで検索して見つかった位置（1～）を返す。
+/// キーコードが見つからない・カード情報が無効の場合は 0 を返す。
+private const(Part) funcFindKeyCode(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
+	if (mode !is EvalMode.TypeCheck) { mixin(S_TRACE);
+		if (!vInfo.findKeyCode) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
+	}
+	if (!checkArgCount2(prop, func, args, 2, 3, err)) return new NumberValue(func.token, 0);
+	auto ci = .checkStructure(prop, func, args, 0, "cardinfo", err);
+	if (!ci) return new NumberValue(func.token, 0);
+	auto p = checkString(prop, func, args, 1, err);
+	if (!p) return new NumberValue(func.token, 0);
+
+	if (args.length < 3) { mixin(S_TRACE);
+		if (mode is EvalMode.TypeCheck) return new NumberValue(func.token, 0);
+		return new NumberValue(func.token, vInfo.findKeyCode(ci, p.strVal, 1));
+	} else { mixin(S_TRACE);
+		auto pos = checkMinValue(prop, mode, func, args, 2, 0, err);
+		if (!pos) return new NumberValue(func.token, 0);
+		if (cast(uint)pos.numVal == 0) return new NumberValue(func.token, 0);
+		if (mode is EvalMode.TypeCheck) return new NumberValue(func.token, 0);
+		return new NumberValue(func.token, vInfo.findKeyCode(ci, p.strVal, cast(uint)pos.numVal));
+	}
+}
+
+/// カードのキーコード名を位置番号指定で返す。位置指定が無効の場合は空文字を返す。
+private const(Part) funcKeyCodeText(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
+	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
+	if (mode !is EvalMode.TypeCheck) { mixin(S_TRACE);
+		if (!vInfo.KeyCodeText) throw new Exception(func.funcName.toUpper() ~ " is not callable.", __FILE__, __LINE__);
+	}
+	if (!checkArgCount(prop, func, args, 2, err)) return new StringValue(func.token, "");
+	auto ci = .checkStructure(prop, func, args, 0, "cardinfo", err);
+	if (!ci) return new StringValue(func.token, "");
+	auto kn = checkMinValue(prop, mode, func, args, 1, 0, err);
+	if (!kn) return new StringValue(func.token, "");
+	if (mode is EvalMode.TypeCheck) return new StringValue(func.token, "");
+
+	return new StringValue(func.token, vInfo.KeyCodeText(ci, cast(uint)kn.numVal));
 }
 
 /// 構造体のインスタンスを生成する。
@@ -2694,6 +2789,14 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 		FuncDef([FunctionCategory.CastInformation], "LIFERATIO", prop.msgs.funcDescLifeRatio, prop.msgs.funcShortDescLifeRatio, prop.msgs.funcExampleLifeRatio, [
 			ArgDef(ArgType.Number, prop.msgs.exprCastNumberDesc, "1", false),
 		], ArgType.Number), // Wsn.5
+		FuncDef([FunctionCategory.CastInformation], "STATUSVALUE", prop.msgs.funcDescStatusValue, prop.msgs.funcShortDescStatusValue, prop.msgs.funcExampleStatusValue, [
+			ArgDef(ArgType.Number, prop.msgs.exprCastNumberDesc, "1", false),
+			ArgDef(ArgType.Number, prop.msgs.exprCastStatusDesc, "8", false),
+		], ArgType.Number), // Wsn.5
+		FuncDef([FunctionCategory.CastInformation], "STATUSROUND", prop.msgs.funcDescStatusRound, prop.msgs.funcShortDescStatusRound, prop.msgs.funcExampleStatusRound, [
+			ArgDef(ArgType.Number, prop.msgs.exprCastNumberDesc, "1", false),
+			ArgDef(ArgType.Number, prop.msgs.exprCastStatusDesc, "8", false),
+		], ArgType.Number), // Wsn.5
 		FuncDef([FunctionCategory.CardInformation], "SELECTEDCARD", prop.msgs.funcDescSelectedCard, prop.msgs.funcShortDescSelectedCard, prop.msgs.funcExampleSelectedCard, [
 		], ArgType.CardInfo), // Wsn.5
 		FuncDef([FunctionCategory.CardInformation], "CARDNAME", prop.msgs.funcDescCardName, prop.msgs.funcShortDescCardName, prop.msgs.funcExampleCardName, [
@@ -2714,6 +2817,15 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 		FuncDef([FunctionCategory.CardInformation], "CARDCOUNT", prop.msgs.funcDescCardCount, prop.msgs.funcShortDescCardCount, prop.msgs.funcExampleCardCount, [
 			ArgDef(ArgType.CardInfo, prop.msgs.exprCardInfoDesc, "SELECTEDCARD()", false),
 		], ArgType.Number), // Wsn.5
+		FuncDef([FunctionCategory.CardInformation], "FINDKEYCODE", prop.msgs.funcDescFindKeyCode, prop.msgs.funcShortDescFindKeyCode, prop.msgs.funcExampleFindKeyCode, [
+			ArgDef(ArgType.CardInfo, prop.msgs.exprCardInfoDesc, "SELECTEDCARD()", false),
+			ArgDef(ArgType.String, prop.msgs.exprFindPatternDesc, "*", false),
+			ArgDef(ArgType.Number, prop.msgs.exprFindStartPositionDesc, "", true),
+		], ArgType.Number), // Wsn.5
+		FuncDef([FunctionCategory.CardInformation], "KEYCODETEXT", prop.msgs.funcDescKeyCodeText, prop.msgs.funcShortDescKeyCodeText, prop.msgs.funcExampleKeyCodeText, [
+			ArgDef(ArgType.CardInfo, prop.msgs.exprCardInfoDesc, "SELECTEDCARD()", false),
+			ArgDef(ArgType.Number, prop.msgs.exprKeyCodeNumberDesc, "1", false),
+		], ArgType.String), // Wsn.5
 		FuncDef([FunctionCategory.CouponInformation], "FINDCOUPON", prop.msgs.funcDescFindCoupon, prop.msgs.funcShortDescFindCoupon, prop.msgs.funcExampleFindCoupon, [
 			ArgDef(ArgType.Number, prop.msgs.exprCastNumberDesc, "1", false),
 			ArgDef(ArgType.String, prop.msgs.exprFindPatternDesc, "*", false),
@@ -2741,6 +2853,8 @@ immutable(FuncDef[]) functionDefinitions(in CProps prop) { mixin(S_TRACE);
 		FuncDef([FunctionCategory.PlayingInformation], "PARTYNUMBER", prop.msgs.funcDescPartyNumber, prop.msgs.funcShortDescPartyNumber, prop.msgs.funcExamplePartyNumber, [
 		], ArgType.Number), // Wsn.5
 		FuncDef([FunctionCategory.PlayingInformation], "YADONAME", prop.msgs.funcDescYadoName, prop.msgs.funcShortDescYadoName, prop.msgs.funcExampleYadoName, [
+		], ArgType.String), // Wsn.5
+		FuncDef([FunctionCategory.PlayingInformation], "SKINTYPE", prop.msgs.funcDescSkinType, prop.msgs.funcShortDescSkinType, prop.msgs.funcExampleSkinType, [
 		], ArgType.String), // Wsn.5
 		FuncDef([FunctionCategory.PlayingInformation], "BATTLEROUND", prop.msgs.funcDescBattleRound, prop.msgs.funcShortDescBattleRound, prop.msgs.funcExampleBattleRound, [
 		], ArgType.Number), // Wsn.5
