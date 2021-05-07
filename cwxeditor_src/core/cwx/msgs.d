@@ -2893,7 +2893,7 @@ class Msgs : Properties {
 	auto funcDescCardPrice = Msg("funcDescCardPrice", "カードの価格を返します。カード情報が無効な場合は-1を返します。"); // Wsn.5
 	auto funcDescCardLevel = Msg("funcDescCardLevel", "特殊技能カードのレベルを返します。カード情報が無効か、特殊技能カードでない場合は-1を返します。"); // Wsn.5
 	auto funcDescCardCount = Msg("funcDescCardCount", "カードの残り使用回数を返します。カード情報が無効な場合は-1を返します。\n使用回数0のアイテムカードと召喚獣は無限に使用できるカードとなりますが、リサイクルカードの場合は例外として使用できない状態になります。"); // Wsn.5
-	auto funcDescFindKeyCode = Msg("funcDescFindKeyCode", "カードのキーコードを検索し、キーコード番号(1～)を返します。見つからなかった場合は0を返します。" ~ footerSpecialCharacter); // Wsn.5
+	auto funcDescFindKeyCode = Msg("funcDescFindKeyCode", "カードのキーコードを検索し、キーコード番号(1～)を返します。空文字列のキーコードは検索されません。見つからなかった場合は0を返します。" ~ footerSpecialCharacter); // Wsn.5
 	auto funcDescKeyCodeText = Msg("funcFindKeyCodeText", "カードのキーコード名を返します。見つからなかった場合は空文字列を返します。"); // Wsn.5
 
 	auto funcShortDescLen = Msg("funcShortDescLen", "文字列の長さを返す");

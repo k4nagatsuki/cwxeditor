@@ -2515,7 +2515,7 @@ private const(Part) funcCardCount(in CProps prop, EvalMode mode, in VariableInfo
 	return new NumberValue(func.token, 0);
 }
 
-/// カードのキーコードをpatternで検索して見つかった位置（1～）を返す。
+/// カードのキーコードをpatternで検索して見つかった位置（1～）を返す。キーコードが空文字列の場合は無視される。
 /// キーコードが見つからない・カード情報が無効の場合は 0 を返す。
 private const(Part) funcFindKeyCode(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
 	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
@@ -2540,7 +2540,7 @@ private const(Part) funcFindKeyCode(in CProps prop, EvalMode mode, in VariableIn
 	}
 }
 
-/// カードのキーコード名を位置番号指定で返す。位置指定が無効の場合は空文字を返す。
+/// カードのキーコード名を位置番号指定で返す。空文字列のキーコードがある位置は無視される。位置指定が無効の場合は空文字を返す。
 private const(Part) funcKeyCodeText(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
 	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
 	if (mode !is EvalMode.TypeCheck) { mixin(S_TRACE);
