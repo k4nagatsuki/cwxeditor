@@ -2840,6 +2840,9 @@ class Msgs : Properties {
 	auto argNumberOrString = Msg("argNumberOrString", "文字列または数値");
 	auto functionAs = Msg("functionAs", "%1$s → %2$s");
 
+	const string footerSpecialCharacter = "次の特殊文字が使用できます。\n* = 任意文字列, ? = 任意1文字, [ABC] = A・B・Cのいずれか1文字, [!ABC] = A・B・Cのいずれでもない1文字。\n特殊文字を普通の文字のように検索したい時は[[]のように[]で囲います。";
+	const string footerStatusArgument = "状態の番号として与える数値は以下の通りです。\n\n中毒→8\n睡眠→9\n呪縛→10\n麻痺・石化→11\n混乱→12\n激昂→13\n勇敢→14\n恐慌→15\n沈黙→16\n暴露→17\n魔法無効化→18\n行動力変化→19\n回避力変化→20\n抵抗力変化→21\n防御力変化→22";
+
 	auto funcDescLen = Msg("funcDescLen", "文字列の長さ(文字数)を返します。");
 	auto funcDescFind = Msg("funcDescFind", "対象文字列内に検索文字列があった場合は位置(1～)を返します。見つからなかった場合は0を返します。");
 	auto funcDescLeft = Msg("funcDescLeft", "文字列の左側を返します。");
@@ -2861,9 +2864,9 @@ class Msgs : Properties {
 	auto funcDescSelected = Msg("funcDescSelected", "選択メンバの番号を1以上の数値で返します。選択メンバがいない場合は0を返します。");
 	auto funcDescCastType = Msg("funcDescCastType", "キャラクターのタイプを返します(1=プレイヤー, 2=エネミー, 3=同行キャスト)。該当者がいない場合は0を返します。");
 	auto funcDescCastName = Msg("funcDescCastName", "キャラクターの名前を返します。該当者がいない場合は空文字列を返します。");
-	auto funcDescFindCoupon = Msg("funcDescFindCoupon", "キャラクターの所持するクーポンを検索し、クーポン番号を返します。見つからなかった場合は0を返します。次の特殊文字が使用できます。\n* = 任意文字列, ? = 任意1文字, [ABC] = A・B・Cのいずれか1文字, [!ABC] = A・B・Cのいずれでもない1文字。\n特殊文字を普通の文字のように検索したい時は[[]のように[]で囲います。");
+	auto funcDescFindCoupon = Msg("funcDescFindCoupon", "キャラクターの所持するクーポンを検索し、クーポン番号を返します。見つからなかった場合は0を返します。" ~ footerSpecialCharacter);
 	auto funcDescCouponText = Msg("funcDescCouponText", "キャラクターの所持するクーポンの名前を返します。見つからなかった場合は空文字列を返します。");
-	auto funcDescFindGossip = Msg("funcDescFindGossip", "ゴシップを検索し、ゴシップ番号を返します。見つからなかった場合は0を返します。次の特殊文字が使用できます。\n* = 任意文字列, ? = 任意1文字, [ABC] = A・B・Cのいずれか1文字, [!ABC] = A・B・Cのいずれでもない1文字。\n特殊文字を普通の文字のように検索したい時は[[]のように[]で囲います。");
+	auto funcDescFindGossip = Msg("funcDescFindGossip", "ゴシップを検索し、ゴシップ番号を返します。見つからなかった場合は0を返します。" ~ footerSpecialCharacter);
 	auto funcDescGossipText = Msg("funcDescGossipText", "ゴシップの名前を返します。見つからなかった場合は空文字列を返します。");
 	auto funcDescPartyName = Msg("funcDescPartyName", "操作中のパーティの名前を返します。");
 	auto funcDescList = Msg("funcDescList", "リストを生成します。"); // Wsn.5
@@ -2876,10 +2879,13 @@ class Msgs : Properties {
 	auto funcDescPartyMoney = Msg("funcDescPartyMoney", "操作中のパーティの所持金を返します。"); // Wsn.5
 	auto funcDescPartyNumber = Msg("funcDescPartyNumber", "操作中のパーティの人数を返します。"); // Wsn.5
 	auto funcDescYadoName = Msg("funcDescYadoName", "操作中の拠点名を返します。"); // Wsn.5
+	auto funcDescSkinType = Msg("funcDescSkinType", "操作中のスキン種別を返します。戻り値は以下の通りです。\n\n中世ファンタジーⅠ型→\"MedievalFantasy\"\n現代Ⅰ型→\"Modern\"\n現代学園ものバリアントエンジン→\"School\"\nカアドワアス大江戸バリアント→\"Oedo\"\nＳＦバリアント→\"ScienceFiction\"\n妖魔バリアント→\"Monsters\""); // Wsn.5
 	auto funcDescBattleRound = Msg("funcDescBattleRound", "現在のバトルのラウンド数を返します。バトル中ではない場合は-1を返します。"); // Wsn.5
 	auto funcDescCastLevel = Msg("funcDescCastLevel", "キャラクターのレベルを返します。該当者がいない場合は0を返します。"); // Wsn.5
 	auto funcDescCouponValue = Msg("funcDescCouponValue", "キャラクターの所持するクーポン名の点数を返します。該当者またはクーポンが見つからなかった場合は0を返します。"); // Wsn.5
 	auto funcDescLifeRatio = Msg("funcDescLifeRatio", "キャラクターのライフ残量を0.0～1.0の割合で返します。該当者がいない場合は-1を返します。"); // Wsn.5
+	auto funcDescStatusValue = Msg("funcDescStatusValue", "キャラクターの状態の強度・修正値を返します。該当者がいない・指定した状態ではない場合は0を返します。強度・修正値を持たない状態にある場合は残りラウンド数を返します。二番目の引数に" ~ footerStatusArgument); // Wsn.5
+	auto funcDescStatusRound = Msg("funcDescStatusRound", "キャラクターの状態の残りラウンド数を返します。該当者がいない・指定した状態ではない場合は0を返します。二番目の引数に" ~ footerStatusArgument); // Wsn.5
 	auto funcDescSelectedCard = Msg("funcDescSelectedCard", "選択カードのカード情報を返します。選択カードが存在しない場合は無効なカード情報を返します。"); // Wsn.5
 	auto funcDescCardName = Msg("funcDescCardName", "カード名を返します。カード情報が無効な場合は空文字列を返します。"); // Wsn.5
 	auto funcDescCardType = Msg("funcDescCardType", "カードのタイプを返します(1=特殊技能, 2=アイテム, 3=召喚獣)。カード情報が無効な場合は0を返します。"); // Wsn.5
@@ -2887,6 +2893,8 @@ class Msgs : Properties {
 	auto funcDescCardPrice = Msg("funcDescCardPrice", "カードの価格を返します。カード情報が無効な場合は-1を返します。"); // Wsn.5
 	auto funcDescCardLevel = Msg("funcDescCardLevel", "特殊技能カードのレベルを返します。カード情報が無効か、特殊技能カードでない場合は-1を返します。"); // Wsn.5
 	auto funcDescCardCount = Msg("funcDescCardCount", "カードの残り使用回数を返します。カード情報が無効な場合は-1を返します。\n使用回数0のアイテムカードと召喚獣は無限に使用できるカードとなりますが、リサイクルカードの場合は例外として使用できない状態になります。"); // Wsn.5
+	auto funcDescFindKeyCode = Msg("funcDescFindKeyCode", "カードのキーコードを検索し、キーコード番号(1～)を返します。空文字列のキーコードは検索されません。見つからなかった場合は0を返します。" ~ footerSpecialCharacter); // Wsn.5
+	auto funcDescKeyCodeText = Msg("funcFindKeyCodeText", "カードのキーコード名を返します。見つからなかった場合は空文字列を返します。"); // Wsn.5
 
 	auto funcShortDescLen = Msg("funcShortDescLen", "文字列の長さを返す");
 	auto funcShortDescFind = Msg("funcDescFind", "文字列内を検索");
@@ -2924,10 +2932,13 @@ class Msgs : Properties {
 	auto funcShortDescPartyMoney = Msg("funcShortDescPartyMoney", "パーティの所持金を取得"); // Wsn.5
 	auto funcShortDescPartyNumber = Msg("funcShortDescPartyNumber", "パーティの人数を取得"); // Wsn.5
 	auto funcShortDescYadoName = Msg("funcShortDescYadoName", "拠点名を取得"); // Wsn.5
+	auto funcShortDescSkinType = Msg("funcShortDescSkinType", "スキン種別を取得"); // Wsn.5
 	auto funcShortDescBattleRound = Msg("funcShortDescBattleRound", "バトルラウンドを取得"); // Wsn.5
 	auto funcShortDescCastLevel = Msg("funcShortDescCastLevel", "キャラクターのレベルを返す"); // Wsn.5
 	auto funcShortDescCouponValue = Msg("funcShortDescCouponValue", "クーポンの点数を返す"); // Wsn.5
 	auto funcShortDescLifeRatio = Msg("funcShortDescLifeRatio", "キャラクターのライフ残量を返す"); // Wsn.5
+	auto funcShortDescStatusValue = Msg("funcShortDescStatusValue", "キャラクターの状態の強度・修正値を返す"); // Wsn.5
+	auto funcShortDescStatusRound = Msg("funcShortDescStatusRound", "キャラクターの状態の残ラウンド数を返す"); // Wsn.5
 	auto funcShortDescSelectedCard = Msg("funcShortDescSelectedCard", "選択カードを返す。"); // Wsn.5
 	auto funcShortDescCardName = Msg("funcShortDescCardName", "カード名を返す。"); // Wsn.5
 	auto funcShortDescCardType = Msg("funcShortDescCardType", "カードのタイプを返す。"); // Wsn.5
@@ -2935,6 +2946,8 @@ class Msgs : Properties {
 	auto funcShortDescCardPrice = Msg("funcShortDescCardPrice", "カードの価格を返す。"); // Wsn.5
 	auto funcShortDescCardLevel = Msg("funcShortDescCardLevel", "カードのレベルを返す。"); // Wsn.5
 	auto funcShortDescCardCount = Msg("funcShortDescCardCount", "カードの使用回数を返す。"); // Wsn.5
+	auto funcShortDescFindKeyCode = Msg("funcShortDescFindKeyCode", "キーコードを検索"); // Wsn.5
+	auto funcShortDescKeyCodeText = Msg("funcShortDescKeyCodeText", "キーコード名を取得"); // Wsn.5
 
 	auto funcExampleLen = Msg("funcExampleLen", "LEN(\"対象文字列\") = 5");
 	auto funcExampleFind = Msg("funcExampleFind", "FIND(\"文字\", \"対象文字列\") = 3");
@@ -2972,10 +2985,13 @@ class Msgs : Properties {
 	auto funcExamplePartyMoney = Msg("funcExamplePartyMoney", "PARTYMONEY() < 4000"); // Wsn.5
 	auto funcExamplePartyNumber = Msg("funcExamplePartyNumber", "PARTYNUMBER() = 1"); // Wsn.5
 	auto funcExampleYadoName = Msg("funcExampleYadoName", "YADONAME()"); // Wsn.5
+	auto funcExampleSkinType = Msg("funcExampleSkinType", "SKINTYPE() = \"MedievalFantasy\""); // Wsn.5
 	auto funcExampleBattleRound = Msg("funcExampleBattleRound", "BATTLEROUND() = 1"); // Wsn.5
 	auto funcExampleCastLevel = Msg("funcExampleCastLevel", "CASTLEVEL(SELECTED()) = 1"); // Wsn.5
 	auto funcExampleCouponValue = Msg("funcExampleCouponValue", "COUPONVALUE(SELECTED(), \"ゴブリン退治\")"); // Wsn.5
 	auto funcExampleLifeRatio = Msg("funcExampleLifeRatio", "LIFERATIO(SELECTED()) < 0.5"); // Wsn.5
+	auto funcExampleStatusValue = Msg("funcExampleStatusValue", "STATUSVALUE(SELECTED(), 8) > 20"); // Wsn.5
+	auto funcExampleStatusRound = Msg("funcExampleStatusRound", "STATUSROUND(SELECTED(), 9) > 10"); // Wsn.5
 	auto funcExampleSelectedCard = Msg("funcExampleSelectedCard", "SELECTEDCARD()"); // Wsn.5
 	auto funcExampleCardName = Msg("funcExampleCardName", "CARDNAME(SELECTEDCARD()) = \"居合斬り\""); // Wsn.5
 	auto funcExampleCardType = Msg("funcExampleCardType", "CARDTYPE(SELECTEDCARD()) = 1"); // Wsn.5
@@ -2983,6 +2999,8 @@ class Msgs : Properties {
 	auto funcExampleCardPrice = Msg("funcExampleCardPrice", "CARDPRICE(SELECTEDCARD()) < 2200"); // Wsn.5
 	auto funcExampleCardLevel = Msg("funcExampleCardLevel", "CARDLEVEL(SELECTEDCARD()) < 3"); // Wsn.5
 	auto funcExampleCardCount = Msg("funcExampleCardCount", "CARDCOUNT(SELECTEDCARD()) = 0"); // Wsn.5
+	auto funcExampleFindKeyCode = Msg("funcExampleFindKeyCode", "FINDKEYCODE(SELECTEDCARD(), \"*攻撃\") <> 0"); // Wsn.5
+	auto funcExampleKeyCodeText = Msg("funcExampleKeyCodeText", "KEYCODETEXT(SELECTEDCARD(), 1)"); // Wsn.5
 
 	auto exprStringDesc = Msg("exprStringDesc", "文字列");
 	auto exprFindStringDesc = Msg("exprFindStringDesc", "検索文字列");
@@ -3007,12 +3025,14 @@ class Msgs : Properties {
 	auto exprCouponNameDesc = Msg("exprCouponNameDesc", "クーポン名");
 	auto exprCouponNumberDesc = Msg("exprCouponNumberDesc", "クーポン番号");
 	auto exprGossipNumberDesc = Msg("exprGossipNumberDesc", "ゴシップ番号");
+	auto exprKeyCodeNumberDesc = Msg("exprKeyCodeNumberDesc", "キーコード番号"); // Wsn.5
 	auto exprFindStartPositionDesc = Msg("exprFindStartPositionDesc", "検索開始位置");
 	auto exprListDesc = Msg("exprListDesc", "リスト"); // Wsn.5
 	auto exprAnyFindValueDesc = Msg("exprAnyFindValueDesc", "検索値"); // Wsn.5
 	auto exprListLengthDesc = Msg("exprListLengthDesc", "長さ(要素数)"); // Wsn.5
 	auto exprListPositionDesc = Msg("exprListPositionDesc", "位置(1～)"); // Wsn.5
 	auto exprCardInfoDesc = Msg("exprCardInfoDesc", "カード情報"); // Wsn.5
+	auto exprCastStatusDesc = Msg("exprCastStatusDesc", "状態の番号"); // Wsn.5
 
 	/// メニュー。
 	const string menuText(MenuID id) { mixin(S_TRACE);
