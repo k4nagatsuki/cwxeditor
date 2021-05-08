@@ -974,6 +974,10 @@ private class FunctionCallEditor {
 					final switch (argType) {
 					case ArgType.Number:
 					case ArgType.Boolean:
+					case ArgType.Status:
+					case ArgType.List:
+					case ArgType.Expression:
+					case ArgType.CardInfo:
 						args ~= t;
 						break;
 					case ArgType.String:
@@ -984,12 +988,6 @@ private class FunctionCallEditor {
 						break;
 					case ArgType.VariantRef:
 						args ~= "@\"" ~ t.replace("\"", "\"\"") ~ "\"";
-						break;
-					case ArgType.List:
-						args ~= t;
-						break;
-					case ArgType.CardInfo:
-						args ~= t;
 						break;
 					case ArgType.NoArgument:
 						break;
@@ -1032,35 +1030,39 @@ private class FunctionCallEditor {
 			ArgType[] argTypes;
 			final switch (arg.type) {
 			case ArgType.Number:
-				argTypes = [ArgType.Number, ArgType.VariantRef];
+				argTypes = [ArgType.Number, ArgType.Expression, ArgType.VariantRef];
 				break;
 			case ArgType.String:
-				argTypes = [ArgType.String, ArgType.VariantRef];
+				argTypes = [ArgType.String, ArgType.Expression, ArgType.VariantRef];
 				break;
 			case ArgType.Flag:
-				argTypes = [ArgType.Flag, ArgType.VariantRef];
+				argTypes = [ArgType.Flag, ArgType.Expression, ArgType.VariantRef];
 				break;
 			case ArgType.Step:
-				argTypes = [ArgType.Step, ArgType.VariantRef];
+				argTypes = [ArgType.Step, ArgType.Expression, ArgType.VariantRef];
 				break;
 			case ArgType.Variant:
-				argTypes = [ArgType.Variant, ArgType.VariantRef];
+				argTypes = [ArgType.Variant, ArgType.Expression, ArgType.VariantRef];
 				break;
 			case ArgType.Boolean:
-				argTypes = [ArgType.Boolean, ArgType.VariantRef];
+				argTypes = [ArgType.Boolean, ArgType.Expression, ArgType.VariantRef];
 				break;
 			case ArgType.Any:
-				argTypes = [ArgType.String, ArgType.Number, ArgType.Boolean, ArgType.VariantRef];
+				argTypes = [ArgType.String, ArgType.Number, ArgType.Boolean, ArgType.Expression, ArgType.VariantRef];
 				break;
 			case ArgType.NumberOrString:
-				argTypes = [ArgType.String, ArgType.Number, ArgType.VariantRef];
+				argTypes = [ArgType.String, ArgType.Number, ArgType.Expression, ArgType.VariantRef];
+				break;
+			case ArgType.Status:
+				argTypes = [ArgType.Status, ArgType.Expression, ArgType.VariantRef];
 				break;
 			case ArgType.List:
-				argTypes = [ArgType.List, ArgType.VariantRef];
+				argTypes = [ArgType.List, ArgType.Expression, ArgType.VariantRef];
 				break;
 			case ArgType.CardInfo:
-				argTypes = [ArgType.CardInfo, ArgType.VariantRef];
+				argTypes = [ArgType.CardInfo, ArgType.Expression, ArgType.VariantRef];
 				break;
+			case ArgType.Expression:
 			case ArgType.VariantRef:
 			case ArgType.NoArgument:
 				assert (0);
@@ -1069,7 +1071,7 @@ private class FunctionCallEditor {
 			auto itm = new TableItem(_args, SWT.NONE);
 			string s = arg.varArg ? .tryFormat(arg.name, 1) : arg.name;
 			itm.setText(0, s);
-			itm.setText(1, argTypeName(argTypes[0]));
+			itm.setText(1, argTypeName(arg.initValueType));
 			if (!arg.optional) itm.setText(2, arg.initValue);
 			_argDefs ~= arg;
 			_argTypes ~= argTypes;
@@ -1116,6 +1118,10 @@ private class FunctionCallEditor {
 			return _comm.prop.msgs.argBoolean;
 		case ArgType.List:
 			return _comm.prop.msgs.argList;
+		case ArgType.Expression:
+			return _comm.prop.msgs.argExpression;
+		case ArgType.Status:
+			return _comm.prop.msgs.argStatus;
 		case ArgType.CardInfo:
 			return _comm.prop.msgs.argCardInfo;
 		case ArgType.NumberOrString:
@@ -1244,6 +1250,7 @@ private class FunctionCallEditor {
 		case ArgType.String:
 		case ArgType.List:
 		case ArgType.CardInfo:
+		case ArgType.Expression:
 			return .createTextEditor(_comm, _comm.prop, _args, val);
 		case ArgType.Flag:
 			return createIDEditor!(cwx.flag.Flag)();
@@ -1255,6 +1262,8 @@ private class FunctionCallEditor {
 			auto trueVal = .variantValueToText(VariantVal.boolValue(true));
 			auto falseVal = .variantValueToText(VariantVal.boolValue(false));
 			return .createComboEditor!Combo(_comm, _comm.prop, _args, [trueVal, falseVal], val);
+		case ArgType.Status:
+			return .createComboEditor!Combo(_comm, _comm.prop, _args, .STATUS_SYMBOLS, val);
 		case ArgType.VariantRef:
 			return createIDEditor!(cwx.flag.Variant)();
 		case ArgType.NumberOrString:
