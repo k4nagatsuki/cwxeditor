@@ -2841,7 +2841,7 @@ class Msgs : Properties {
 	auto functionAs = Msg("functionAs", "%1$s → %2$s");
 
 	const string footerSpecialCharacter = "次の特殊文字が使用できます。\n* = 任意文字列, ? = 任意1文字, [ABC] = A・B・Cのいずれか1文字, [!ABC] = A・B・Cのいずれでもない1文字。\n特殊文字を普通の文字のように検索したい時は[[]のように[]で囲います。";
-	const string footerStatusArgument = "状態の番号として与える数値は以下の通りです。\n\n中毒→8\n睡眠→9\n呪縛→10\n麻痺・石化→11\n混乱→12\n激昂→13\n勇敢→14\n恐慌→15\n沈黙→16\n暴露→17\n魔法無効化→18\n行動力上昇→19\n回避力上昇→20\n抵抗力上昇→21\n防御力上昇→22\n行動力低下→23\n回避力低下→24\n抵抗力低下→25\n防御力低下→26";
+	const string footerStatusArgument = "状態の番号として与える数値は以下の通りです。\n\n中毒→8\n睡眠→9\n呪縛→10\n麻痺・石化→11\n混乱→12\n激昂→13\n勇敢→14\n恐慌→15\n沈黙→16\n暴露→17\n魔法無効化→18\n行動力変化→19\n回避力変化→20\n抵抗力変化→21\n防御力変化→22";
 
 	auto funcDescLen = Msg("funcDescLen", "文字列の長さ(文字数)を返します。");
 	auto funcDescFind = Msg("funcDescFind", "対象文字列内に検索文字列があった場合は位置(1～)を返します。見つからなかった場合は0を返します。");
