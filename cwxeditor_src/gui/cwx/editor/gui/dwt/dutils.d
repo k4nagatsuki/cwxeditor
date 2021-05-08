@@ -759,7 +759,7 @@ Text createTextEditor(Commons comm, Props prop, Composite parent, string str) { 
 	}
 }
 
-C createComboEditor(C = Combo)(Commons comm, Props prop, Composite parent, string[] strs, string str, bool readOnly = true, string[] delegate(IncSearch) filter = null) { mixin(S_TRACE);
+C createComboEditor(C = Combo)(Commons comm, Props prop, Composite parent, in string[] strs, string str, bool readOnly = true, string[] delegate(IncSearch) filter = null) { mixin(S_TRACE);
 	try { mixin(S_TRACE);
 		int style = SWT.BORDER;
 		if (readOnly) style |= SWT.READ_ONLY;
