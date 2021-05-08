@@ -2884,7 +2884,7 @@ class Msgs : Properties {
 	auto funcDescCastLevel = Msg("funcDescCastLevel", "キャラクターのレベルを返します。該当者がいない場合は0を返します。"); // Wsn.5
 	auto funcDescCouponValue = Msg("funcDescCouponValue", "キャラクターの所持するクーポン名の点数を返します。該当者またはクーポンが見つからなかった場合は0を返します。"); // Wsn.5
 	auto funcDescLifeRatio = Msg("funcDescLifeRatio", "キャラクターのライフ残量を0.0～1.0の割合で返します。該当者がいない場合は-1を返します。"); // Wsn.5
-	auto funcDescStatusValue = Msg("funcDescStatusValue", "キャラクターの状態の強度・修正値を返します。該当者がいない・指定した状態ではない場合は0を返します。強度・修正値を持たない状態にある場合は1を返します。二番目の引数に" ~ footerStatusArgument); // Wsn.5
+	auto funcDescStatusValue = Msg("funcDescStatusValue", "キャラクターの状態の強度・修正値を返します。該当者がいない・指定した状態ではない場合は0を返します。強度・修正値を持たない状態にある場合は残りラウンド数を返します。二番目の引数に" ~ footerStatusArgument); // Wsn.5
 	auto funcDescStatusRound = Msg("funcDescStatusRound", "キャラクターの状態の残りラウンド数を返します。該当者がいない・指定した状態ではない場合は0を返します。二番目の引数に" ~ footerStatusArgument); // Wsn.5
 	auto funcDescSelectedCard = Msg("funcDescSelectedCard", "選択カードのカード情報を返します。選択カードが存在しない場合は無効なカード情報を返します。"); // Wsn.5
 	auto funcDescCardName = Msg("funcDescCardName", "カード名を返します。カード情報が無効な場合は空文字列を返します。"); // Wsn.5

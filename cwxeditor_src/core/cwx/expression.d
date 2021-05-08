@@ -2414,7 +2414,7 @@ private const(Part) funcLifeRatio(in CProps prop, EvalMode mode, in VariableInfo
 	return new NumberValue(func.token, 1);
 }
 
-/// キャラクター番号からキャラクターの状態の強度・修正値を返す。存在しない・指定した状態にない場合は 0 を返す。強度・修正値を持たない状態にあっては 1 を返す。
+/// キャラクター番号からキャラクターの状態の強度・修正値を返す。存在しない・指定した状態にない場合は 0 を返す。強度・修正値を持たない状態にあっては残ラウンド数を返す。
 private const(Part) funcStatusValue(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
 	.checkWsnVersionForFunctionExists(prop, vInfo, func, "5", err);
 	if (!checkArgCount(prop, func, args, 2, err)) return new NumberValue(func.token, 0);
