@@ -1011,10 +1011,16 @@ class ImportOptionDialog : AbsDialog {
 		_beastsInMotions = create(_prop.images.beast, _prop.msgs.importOptionBeastsInMotions, _prop.var.etc.importOptionBeastsInMotions, _opt.beastsInMotions);
 		auto sep = new Label(area, SWT.SEPARATOR | SWT.HORIZONTAL);
 		sep.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		_overwriteScenarioInfo = new Button(area, SWT.CHECK);
-		_overwriteScenarioInfo.setText(_prop.msgs.importOverwriteScenarioInfo);
-		_overwriteScenarioInfo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.HORIZONTAL_ALIGN_END));
-		_overwriteScenarioInfo.setSelection(_prop.var.etc.importOptionOverwriteScenarioInfo);
+		{
+			auto btnComp = new Composite(area, SWT.NONE);
+			btnComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.HORIZONTAL_ALIGN_END));
+			auto bgd = normalGridLayout(1, true);
+			bgd.marginHeight = 0.ppis;
+			btnComp.setLayout(bgd);
+			_overwriteScenarioInfo = new Button(btnComp, SWT.CHECK);
+			_overwriteScenarioInfo.setText(_prop.msgs.importOverwriteScenarioInfo);
+			_overwriteScenarioInfo.setSelection(_prop.var.etc.importOptionOverwriteScenarioInfo);
+		}
 	}
 
 	protected override bool close(bool ok) { mixin(S_TRACE);

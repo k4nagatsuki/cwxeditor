@@ -273,7 +273,7 @@ class FlexEtcProps : Properties {
 	auto imageListForBgImagesHeight = Prop!(int, false, true)("imageListForBgImagesHeight", 300);
 	auto layerListWidth = Prop!(int, false, true)("layerListWidth", 300);
 	auto layerListHeight = Prop!(int, false, true)("layerListHeight", 350);
-	auto cardLife = Prop!(bool)("cardLife", false);
+	auto cardLife = Prop!(bool)("cardLife", true);
 	auto cardDetails = Prop!(bool)("cardDetails", false);
 	auto cardsMarginX = Prop!(int, true, true)("cardsMarginX", 5);
 	auto cardsSpaceX = Prop!(int, true, true)("cardsSpaceX", 8);
@@ -359,14 +359,14 @@ class FlexEtcProps : Properties {
 
 	auto importOptionMaterials = Prop!(int)("importOptionMaterials", ImportTypeReference1.NoOverwrite);
 	auto importOptionVariables = Prop!(int)("importOptionVariables", ImportTypeReference1.Rename);
-	auto importOptionCasts = Prop!(int)("importOptionCasts", ImportTypeReference2.NoImport);
-	auto importOptionSkills = Prop!(int)("importOptionSkills", ImportTypeReference2.NoImport);
-	auto importOptionItems = Prop!(int)("importOptionItems", ImportTypeReference2.NoImport);
-	auto importOptionBeasts = Prop!(int)("importOptionBeasts", ImportTypeReference2.NoImport);
-	auto importOptionInfos = Prop!(int)("importOptionInfos", ImportTypeReference2.NoImport);
-	auto importOptionAreas = Prop!(int)("importOptionAreas", ImportTypeReference2.NoImport);
-	auto importOptionBattles = Prop!(int)("importOptionBattles", ImportTypeReference2.NoImport);
-	auto importOptionPackages = Prop!(int)("importOptionPackages", ImportTypeReference2.NoImport);
+	auto importOptionCasts = Prop!(int)("importOptionCasts", ImportTypeReference2.Rename);
+	auto importOptionSkills = Prop!(int)("importOptionSkills", ImportTypeReference2.Rename);
+	auto importOptionItems = Prop!(int)("importOptionItems", ImportTypeReference2.Rename);
+	auto importOptionBeasts = Prop!(int)("importOptionBeasts", ImportTypeReference2.Rename);
+	auto importOptionInfos = Prop!(int)("importOptionInfos", ImportTypeReference2.Rename);
+	auto importOptionAreas = Prop!(int)("importOptionAreas", ImportTypeReference2.Rename);
+	auto importOptionBattles = Prop!(int)("importOptionBattles", ImportTypeReference2.Rename);
+	auto importOptionPackages = Prop!(int)("importOptionPackages", ImportTypeReference2.Rename);
 	auto importOptionIncludedFiles = Prop!(int)("importOptionIncludedFiles", ImportTypeIncluded.AsIs);
 	auto importOptionIncludedFilesWithoutIncluding = Prop!(int)("importOptionIncludedFilesWithoutIncluding", ImportTypeIncluded.Exclude);
 	auto importOptionIncludedBgImages = Prop!(int)("importOptionIncludedBgImages", ImportTypeIncluded.AsIs);
