@@ -826,6 +826,7 @@ private class Symbol : Part {
 			"skill": VariantVal.numValue(1),
 			"item": VariantVal.numValue(2),
 			"beast": VariantVal.numValue(3),
+			"actioncard": VariantVal.numValue(-1),
 			"rare": VariantVal.numValue(1),
 			"premier": VariantVal.numValue(2),
 			"poison": VariantVal.numValue(8),
@@ -3072,6 +3073,7 @@ unittest { mixin(UTPerf);
 	assert (checkN(.eval(prop, EvalMode.All, vInfo, `SKILL`), 1));
 	assert (checkN(.eval(prop, EvalMode.All, vInfo, `ITEM`), 2));
 	assert (checkN(.eval(prop, EvalMode.All, vInfo, `BEAST`), 3));
+	assert (checkN(.eval(prop, EvalMode.All, vInfo, `ACTIONCARD`), -1));
 	assert (checkN(.eval(prop, EvalMode.All, vInfo, `RARE`), 1));
 	assert (checkN(.eval(prop, EvalMode.All, vInfo, `PREMIER`), 2));
 	assert (checkN(.eval(prop, EvalMode.All, vInfo, `-PREMIER`), -2));
