@@ -2890,7 +2890,7 @@ class Msgs : Properties {
 	auto funcDescStatusRound = Msg("funcDescStatusRound", "キャラクターの状態の残りラウンド数を返します。該当者がいない・指定した状態ではない場合は0を返します。\n%1$s"); // Wsn.5
 	auto funcDescSelectedCard = Msg("funcDescSelectedCard", "選択カードのカード情報を返します。選択カードが存在しない場合は無効なカード情報を返します。"); // Wsn.5
 	auto funcDescCardName = Msg("funcDescCardName", "カード名を返します。カード情報が無効な場合は空文字列を返します。"); // Wsn.5
-	auto funcDescCardType = Msg("funcDescCardType", "カードのタイプを返します(SKILL=特殊技能, ITEM=アイテム, BEAST=召喚獣)。カード情報が無効な場合は0を返します。"); // Wsn.5
+	auto funcDescCardType = Msg("funcDescCardType", "カードのタイプを返します(SKILL=特殊技能, ITEM=アイテム, BEAST=召喚獣, ACTIONCARD=アクションカード)。カード情報が無効な場合は0を返します。"); // Wsn.5
 	auto funcDescCardRarity = Msg("funcDescCardRarity", "カードの希少度を返します(RARE=レア, PREMIER=プレミア)。一般カードの場合は0を返します。カード情報が無効な場合は-1を返します。"); // Wsn.5
 	auto funcDescCardPrice = Msg("funcDescCardPrice", "カードの価格を返します。カード情報が無効な場合は-1を返します。"); // Wsn.5
 	auto funcDescCardLevel = Msg("funcDescCardLevel", "特殊技能カードのレベルを返します。カード情報が無効か、特殊技能カードでない場合は-1を返します。"); // Wsn.5
