@@ -82,6 +82,7 @@ CWXEditor 更新履歴
 ### 修正
 
  * 関数`PARTYMONEY`・`PARTYNUMBER`・`BATTLEROUND`・`COUPONVALUE`・`LIFERATIO`の引数の数のチェックが行われていない。
+ * 式で構造体及びリストと文字列が比較できてしまう。
 
 
 2021年4月2日 (8 α3)

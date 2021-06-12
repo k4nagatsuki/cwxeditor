@@ -2787,7 +2787,7 @@ class Msgs : Properties {
 	auto expressionErrorValueIsNotNumber = Msg("expressionErrorValueIsNotNumber", "演算対象が数値ではありません。");
 	auto expressionErrorValueIsNotBoolean = Msg("expressionErrorValueIsNotBoolean", "演算対象が真偽値ではありません。");
 	auto expressionErrorValueIsNotList = Msg("expressionErrorValueIsNotList", "演算対象がリストではありません。"); // Wsn.5
-	auto expressionErrorValueIsNotStructure = Msg("expressionErrorValueIsNotStructure", "構造体ではありません。"); // Wsn.5
+	auto expressionErrorValueIsNotStructure = Msg("expressionErrorValueIsNotStructure", "演算対象が構造体ではありません。"); // Wsn.5
 	auto expressionErrorDivisionByZero = Msg("expressionErrorDivisionByZero", "ゼロによる除算が行われました。");
 	auto expressionErrorInvalidCharacter = Msg("expressionErrorInvalidCharacter", "式に使用できない文字が含まれています。");
 	auto expressionErrorInvalidFunctionCall = Msg("expressionErrorInvalidFunctionCall", "関数の呼び出し方が正しくありません。");

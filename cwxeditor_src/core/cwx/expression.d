@@ -1026,6 +1026,15 @@ private class Operator : Part {
 		}
 		auto r = false;
 		if (!inList && (cast(StringValue)lhs || cast(StringValue)rhs)) { mixin(S_TRACE);
+			if (cast(ListValue)lhs) { mixin(S_TRACE);
+				err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorValueIsNotList : "Value is not list: %s", rhs.token.token), rhs.token.line, rhs.token.pos, __FILE__, __LINE__);
+			} else if (cast(StructureValue)lhs) { mixin(S_TRACE);
+				err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorValueIsNotStructure : "Value is not structure: %s", rhs.token.token), rhs.token.line, rhs.token.pos, __FILE__, __LINE__);
+			} else if (cast(ListValue)rhs) { mixin(S_TRACE);
+				err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorValueIsNotList : "Value is not list: %s", lhs.token.token), lhs.token.line, lhs.token.pos, __FILE__, __LINE__);
+			} else if (cast(StructureValue)rhs) { mixin(S_TRACE);
+				err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorValueIsNotStructure : "Value is not structure: %s", lhs.token.token), lhs.token.line, lhs.token.pos, __FILE__, __LINE__);
+			}
 			r = lhs.stringValue == rhs.stringValue;
 		} else if (cast(StringValue)lhs) { mixin(S_TRACE);
 			auto n = strValsImpl(prop, lhs, rhs, err2);
