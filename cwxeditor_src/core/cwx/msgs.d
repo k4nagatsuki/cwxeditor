@@ -2809,6 +2809,7 @@ class Msgs : Properties {
 	auto expressionErrorMinimumValue = Msg("expressionErrorMinimumValue", "%1$sの%2$s番目の引数は%3$s以上でなければなりません: %4$s < %3$s");
 	auto expressionErrorNoArgumentWithFunctionName = Msg("expressionErrorNoArgumentWithFunctionName", "%1$sの引数がありません。");
 	auto expressionErrorConversionToNumber = Msg("expressionErrorConversionToNumber", "数値に変換できません: %1$s");
+	auto expressionErrorConversionToString = Msg("expressionErrorConversionToString", "リストまたは構造体は文字列に変換できません: %1$s");
 	auto expressionErrorVariantNotFound = Msg("expressionErrorVariantNotFound", "コモン「%1$s」は存在しません。");
 	auto expressionErrorFlagNotFound = Msg("expressionErrorFlagNotFound", "フラグ「%1$s」は存在しません。");
 	auto expressionErrorStepNotFound = Msg("expressionErrorStepNotFound", "ステップ「%1$s」は存在しません。");

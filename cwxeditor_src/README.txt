@@ -88,7 +88,7 @@ cwxeditorでは歴史的に独自のビルドスクリプトを使用してき�
 
     [Environment]
 
-    DFLAGS="-I%@P%\..\..\src\phobos" "-I%@P%\..\..\src\druntime\import" "-I%@P%\..\..\import" "-I%@P%\..\..\..\lib\dwt32\base\src" "-I%@P%\..\..\..\lib\dwt32\org.eclipse.swt.win32.win32.x86\src" "-J%@P%\..\..\..\lib\dwt32\base\res" "-J%@P%\..\..\..\lib\dwt32\org.eclipse.swt.win32.win32.x86\res" "-I%@P%\..\..\..\lib\dxml32\source"
+    DFLAGS="-I%@P%\..\..\src\phobos" "-I%@P%\..\..\src\druntime\import" "-I%@P%\..\..\import" "-I%@P%\..\..\..\lib\dwt32\base\src" "-I%@P%\..\..\..\lib\dwt64\org.eclipse.swt\Eclipse SWT\common" "-I%@P%\..\..\..\lib\dwt64\org.eclipse.swt\Eclipse SWT Custom Widgets\common" "-I%@P%\..\..\..\lib\dwt32\org.eclipse.swt.win32.win32.x86\src" "-J%@P%\..\..\..\lib\dwt32\base\res" "-J%@P%\..\..\..\lib\dwt32\org.eclipse.swt.win32.win32.x86\res" "-I%@P%\..\..\..\lib\dxml32\source"
       :
     [Environment32]
     LIB=%LIB%;"%@P%\..\..\..\lib\dwt32";"%@P%\..\..\..\lib\dwt32\org.eclipse.swt.win32.win32.x86\lib";"%@P%\..\..\..\lib\dxml32"
