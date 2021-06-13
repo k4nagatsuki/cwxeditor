@@ -820,6 +820,7 @@ private class Symbol : Part {
 	shared static this () {
 		SYMBOLS = cast(immutable) [
 			// Wsn.5
+			"newline": VariantVal.strValue("\n"),
 			"player": VariantVal.numValue(1),
 			"enemy": VariantVal.numValue(2),
 			"friend": VariantVal.numValue(3),
@@ -3090,6 +3091,8 @@ unittest { mixin(UTPerf);
 	assert (checkN(.eval(prop, EvalMode.All, vInfo, `ACTIONCARD`), -1));
 	assert (checkN(.eval(prop, EvalMode.All, vInfo, `RARE`), 1));
 	assert (checkN(.eval(prop, EvalMode.All, vInfo, `PREMIER`), 2));
+	assert (checkS(.eval(prop, EvalMode.All, vInfo, `NEWLINE`), "\n"));
+
 	assert (checkN(.eval(prop, EvalMode.All, vInfo, `-PREMIER`), -2));
 	assert (checkN(.eval(prop, EvalMode.All, vInfo, `-+--PREMIER + PLAYER`), -1));
 	assert (checkB(.eval(prop, EvalMode.All, vInfo, `PLAYER = SKILL`), true));
@@ -3097,6 +3100,7 @@ unittest { mixin(UTPerf);
 	assert (checkN(.eval(prop, EvalMode.All, vInfo, `ENEMY + SKILL + PREMIER`), 5));
 	assert (checkS(.eval(prop, EvalMode.All, vInfo, `MID("_test_", enemy, Friend)`), "tes"));
 	assert (checkB(.eval(prop, EvalMode.All, vInfo, `LIST(FRIEND - RARE, "X" ~ PREMIER ~ PLAYER) = LIST(2, "X21")`), true));
+	assert (checkS(.eval(prop, EvalMode.All, vInfo, `"A" ~ newline ~ "B"`), "A\nB"));
 
 	assert (checkN(.eval(prop, EvalMode.All, vInfo, `POISON`), 8));
 	assert (checkN(.eval(prop, EvalMode.All, vInfo, `SLEEP`), 9));
