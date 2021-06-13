@@ -1959,6 +1959,11 @@ private const(Part) funcMid(in CProps prop, EvalMode mode, in VariableInfo vInfo
 /// 引数を文字列に変換する。
 private const(Part) funcStr(in CProps prop, EvalMode mode, in VariableInfo vInfo, in Function func, in Part[] args, ref ExprError[] err) { mixin(S_TRACE);
 	if (!checkArgCount(prop, func, args, 1, err)) return new StringValue(func.token, "");
+	foreach (arg; args) { mixin(S_TRACE);
+		if (cast(ListValue)arg || cast(StructureValue)arg) { mixin(S_TRACE);
+			err ~= ExprError(.tryFormat(prop ? prop.msgs.expressionErrorConversionToString : "Conversion to string error: %s", arg.token.token), arg.token.line, arg.token.pos, __FILE__, __LINE__);
+		}
+	}
 	return new StringValue(func.token, args[0].stringValue);
 }
 
