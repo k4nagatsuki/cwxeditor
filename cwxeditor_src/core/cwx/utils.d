@@ -2060,7 +2060,8 @@ static if (size_t.sizeof == 8) {
 /// 一連の変数と関数を定義する。
 template FileCache(T) {
 	struct Cache {
-		std.datetime.SysTime ftm;
+		static import std.datetime.systime;
+		std.datetime.systime.SysTime ftm;
 		T value;
 		size_t size;
 	}

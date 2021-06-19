@@ -433,7 +433,7 @@ in { mixin(S_TRACE);
 	dstring dnew = toUTF32(.toLower(newFont.baseName()));
 	assert(startsWith(dold, "font_"d), .text(dold));
 	assert(endsWith(dold, ".bmp"d), .text(dold));
-} body { mixin(S_TRACE);
+} do { mixin(S_TRACE);
 	if (!oldFont.isSPFontFile) return text;
 	if (!newFont.isSPFontFile) return text;
 

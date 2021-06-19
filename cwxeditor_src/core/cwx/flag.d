@@ -2262,7 +2262,7 @@ public:
 	private string[] createNewNames(F)(string base, size_t n, in string[] oldNames)
 	out (value) { mixin(S_TRACE);
 		assert (value.length == n);
-	} body { mixin(S_TRACE);
+	} do { mixin(S_TRACE);
 		auto oldSet = new HashSet!string;
 		foreach (name; oldNames) oldSet.add(name.toLower());
 		auto set = new HashSet!string;
@@ -2280,28 +2280,28 @@ public:
 	string[] createNewFlagNames(string base, size_t n, in string[] oldNames)
 	out (value) { mixin(S_TRACE);
 		assert (value.length == n);
-	} body { mixin(S_TRACE);
+	} do { mixin(S_TRACE);
 		return createNewNames!Flag(base, n, oldNames);
 	}
 	/// ditto
 	string[] createNewStepNames(string base, size_t n, in string[] oldNames)
 	out (value) { mixin(S_TRACE);
 		assert (value.length == n);
-	} body { mixin(S_TRACE);
+	} do { mixin(S_TRACE);
 		return createNewNames!Step(base, n, oldNames);
 	}
 	/// ditto
 	string[] createNewVariantNames(string base, size_t n, in string[] oldNames)
 	out (value) { mixin(S_TRACE);
 		assert (value.length == n);
-	} body { mixin(S_TRACE);
+	} do { mixin(S_TRACE);
 		return createNewNames!Variant(base, n, oldNames);
 	}
 	/// ditto
 	string[] createNewDirNames(string base, size_t n, in string[] oldNames)
 	out (value) { mixin(S_TRACE);
 		assert (value.length == n);
-	} body { mixin(S_TRACE);
+	} do { mixin(S_TRACE);
 		return createNewNames!FlagDir(base, n, oldNames);
 	}
 

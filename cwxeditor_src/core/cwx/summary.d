@@ -2655,7 +2655,7 @@ public:
 	/// 上書き保存。
 	void saveOverwrite(in CProps prop, in Skin skin, in SaveOption opt, FileSync sync) in { mixin(S_TRACE);
 		assert (isSaved);
-	} body { mixin(S_TRACE);
+	} do { mixin(S_TRACE);
 		saveProc(prop, skin, opt, useTemp, zipName, scenarioPath, scenarioPath, legacy, false, expandXMLs, false, sync);
 	}
 	/// 名前をつけて保存。

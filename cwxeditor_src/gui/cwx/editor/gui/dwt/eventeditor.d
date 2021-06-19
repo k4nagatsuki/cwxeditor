@@ -1366,7 +1366,7 @@ class EventEditor : Composite {
 		version (Windows) {
 			// FIXME: 環境によって再描画範囲に左上からの部分が描画されるので
 			//        再描画範囲を左上からにする(issue #296)
-			alias org.eclipse.swt.internal.win32.OS.OS OS;
+			import org.eclipse.swt.internal.win32.OS;
 			if (OS.WIN32_VERSION <= OS.VERSION(6, 1)) { mixin(S_TRACE);
 				h += y;
 				y = 0;
@@ -1478,7 +1478,7 @@ class EventEditor : Composite {
 
 		void setAntialias(int antialias) { mixin(S_TRACE);
 			version (Windows) {
-				alias org.eclipse.swt.internal.win32.OS.OS OS;
+				import org.eclipse.swt.internal.win32.OS;
 				if (OS.VERSION(6, 0) <= OS.WIN32_VERSION) e.gc.setAntialias(antialias);
 			} else {
 				e.gc.setAntialias(antialias);
@@ -1486,7 +1486,7 @@ class EventEditor : Composite {
 		}
 		void setAlpha(int alpha) {mixin(S_TRACE);
 			version (Windows) {
-				alias org.eclipse.swt.internal.win32.OS.OS OS;
+				import org.eclipse.swt.internal.win32.OS;
 				if (OS.VERSION(6, 0) <= OS.WIN32_VERSION) e.gc.setAlpha(alpha);
 			} else {
 				e.gc.setAlpha(alpha);

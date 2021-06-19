@@ -151,7 +151,7 @@ in
 {
     assert(-1 <= level && level <= 9);
 }
-body
+do
 {
     auto destlen = srcbuf.length + ((srcbuf.length + 1023) / 1024) + 12;
     auto destbuf = NGCArray!ubyte(destlen);
@@ -333,7 +333,7 @@ class Compress
     {
         assert(1 <= level && level <= 9);
     }
-    body
+    do
     {
         this.level = level;
         this.gzip = header == HeaderFormat.gzip;
@@ -464,7 +464,7 @@ class UnCompress
     {
         assert(!done);
     }
-    body
+    do
     {   int err;
         NGCArray!ubyte destbuf;
 

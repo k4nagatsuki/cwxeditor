@@ -3,7 +3,7 @@ CWXEditor ビルドガイド
 ----------------------
 
 ビルドツール:
- : dmd 2.096.0 または LDC 1.25.1
+ : dmd 2.097.0 または LDC 1.25.1
  : Digital Mars rcc
  : Microsoft Windows Resource Compiler (RC)
 ライブラリ:

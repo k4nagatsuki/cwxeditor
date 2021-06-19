@@ -1030,7 +1030,7 @@ private:
 	TableColumn columnFromInt(int column)
 	out (value) { mixin(S_TRACE);
 		assert (value !is null, column.to!string());
-	} body { mixin(S_TRACE);
+	} do { mixin(S_TRACE);
 		switch (column) {
 		case 0: return _tbl.getColumn(colIndex(CardTableColumn.ID));
 		case 1: return _tbl.getColumn(colIndex(CardTableColumn.Name));

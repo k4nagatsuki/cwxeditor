@@ -1531,7 +1531,7 @@ private:
 
 		void setAntialias(int antialias) { mixin(S_TRACE);
 			version (Windows) {
-				alias org.eclipse.swt.internal.win32.OS.OS OS;
+				import org.eclipse.swt.internal.win32.OS;
 				if (OS.VERSION(6, 0) <= OS.WIN32_VERSION) e.gc.setAntialias(antialias);
 			} else {
 				e.gc.setAntialias(antialias);
@@ -1539,7 +1539,7 @@ private:
 		}
 		void setAlpha(int alpha) {mixin(S_TRACE);
 			version (Windows) {
-				alias org.eclipse.swt.internal.win32.OS.OS OS;
+				import org.eclipse.swt.internal.win32.OS;
 				if (OS.VERSION(6, 0) <= OS.WIN32_VERSION) e.gc.setAlpha(alpha);
 			} else {
 				e.gc.setAlpha(alpha);
@@ -3671,7 +3671,7 @@ public:
 	}
 	private void refreshEventTextImpl(Content par, Item itm) in { mixin(S_TRACE);
 		assert (par.detail.owner);
-	} body { mixin(S_TRACE);
+	} do { mixin(S_TRACE);
 		auto e = cast(Content) itm.getData();
 		itm.setText(eventText(par, e));
 		if (e.detail.owner) { mixin(S_TRACE);
@@ -3897,7 +3897,7 @@ public:
 
 string eventText(Commons comm, Summary summ, Content parent, Content e, bool readOnly) in { mixin(S_TRACE);
 	assert (!parent || parent.detail.owner);
-} body { mixin(S_TRACE);
+} do { mixin(S_TRACE);
 	if (!parent) return e.name;
 	auto prop = comm.prop;
 	string formatSPChars(string name) { mixin(S_TRACE);

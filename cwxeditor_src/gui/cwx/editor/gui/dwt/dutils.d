@@ -46,6 +46,7 @@ import cwx.editor.gui.dwt.cardlist;
 import cwx.editor.gui.dwt.incsearch;
 import cwx.editor.gui.dwt.absdialog;
 
+import core.exception;
 import core.thread;
 
 static import std.algorithm;
@@ -300,13 +301,13 @@ ImageData loadImage(Props prop, in Skin skin, in Summary summ, string path, bool
 				data.transparentPixel = data.getPixel(maskX, maskY);
 			}
 			return data;
-		} catch (core.exception.AssertError e) {
+		} catch (AssertError e) {
 			printStackTrace();
 			debugln(e);
 		} catch (Exception e) {
 			printStackTrace();
 			debugln(e);
-		} catch (core.exception.RangeError e) {
+		} catch (RangeError e) {
 			printStackTrace();
 			debugln(e);
 		}
