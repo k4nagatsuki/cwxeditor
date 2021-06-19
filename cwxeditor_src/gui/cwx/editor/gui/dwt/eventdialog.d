@@ -83,7 +83,7 @@ abstract class EventDialog : AbsDialog {
 
 	this (Commons comm, Props prop, Shell shell, Summary summ, CType type, Content parent, Content evt, bool resizable, DSize size, bool eClose, bool rightGroup = false) in { mixin(S_TRACE);
 		assert (!evt || evt.type is type);
-	} body { mixin(S_TRACE);
+	} do { mixin(S_TRACE);
 		super (prop, shell, false, .tryFormat(prop.msgs.dlgTitContent, prop.msgs.contentName(type)), prop.images.content(type), resizable, size, true, true, [], rightGroup);
 		enterClose = eClose;
 		_comm = comm;
@@ -146,7 +146,7 @@ class ContentCommentDialog : AbsDialog {
 
 	this (Commons comm, Props prop, Shell shell, Content parent, Content evt) in { mixin(S_TRACE);
 		assert (evt);
-	} body { mixin(S_TRACE);
+	} do { mixin(S_TRACE);
 		super (prop, shell, false, prop.msgs.dlgTitComment, prop.images.menu(MenuID.Comment), true, prop.var.commentDlg, true);
 		_comm = comm;
 		_prop = prop;

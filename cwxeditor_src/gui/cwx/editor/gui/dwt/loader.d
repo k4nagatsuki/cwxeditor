@@ -468,7 +468,7 @@ class ScenarioErrorFilesDialog : AbsDialog {
 	in {
 		assert (summ !is null);
 		assert (errorFiles.length);
-	} body { mixin(S_TRACE);
+	} do { mixin(S_TRACE);
 		_comm = comm;
 		_summ = summ;
 		_errorFiles = errorFiles;

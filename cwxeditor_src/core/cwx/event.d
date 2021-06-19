@@ -1510,7 +1510,7 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 		assert (!parent || parent.detail.owner);
 		assert (parent !is this);
 		assert (type !is CType.Start);
-	} body { mixin(S_TRACE);
+	} do { mixin(S_TRACE);
 		if (_parent is parent) return;
 		bool oldAreaBr = _parent && _parent.detail.nextType == CNextType.IdArea;
 		bool newAreaBr = parent && parent.detail.nextType == CNextType.IdArea;
@@ -3510,7 +3510,7 @@ public:
 	/// コピーが生成される。
 	this (Content start) in { mixin(S_TRACE);
 		assert (start.type == CType.Start);
-	} body { mixin(S_TRACE);
+	} do { mixin(S_TRACE);
 		this ();
 		if (start.tree) { mixin(S_TRACE);
 			start = start.dup;
@@ -3522,7 +3522,7 @@ public:
 		foreach (c; starts) { mixin(S_TRACE);
 			assert (c.type is CType.Start);
 		}
-	} body { mixin(S_TRACE);
+	} do { mixin(S_TRACE);
 		this ();
 		_starts = starts;
 		foreach (s; _starts) { mixin(S_TRACE);
@@ -3686,7 +3686,7 @@ public:
 	/// スタートコンテントを追加する。
 	void add(Content evt) in { mixin(S_TRACE);
 		assert (evt.type is CType.Start);
-	} body { mixin(S_TRACE);
+	} do { mixin(S_TRACE);
 		if (_uc !is null) { mixin(S_TRACE);
 			evt.setUseCounter(_uc, _ucOwner);
 		}
@@ -3701,7 +3701,7 @@ public:
 	/// ditto
 	void insert(size_t index, Content evt) in { mixin(S_TRACE);
 		assert (evt.type is CType.Start);
-	} body { mixin(S_TRACE);
+	} do { mixin(S_TRACE);
 		if (_uc !is null) { mixin(S_TRACE);
 			evt.setUseCounter(_uc, _ucOwner);
 		}
@@ -3718,7 +3718,7 @@ public:
 	/// スタートコンテントを除外。
 	void remove(size_t index) in { mixin(S_TRACE);
 		assert (_starts.length > 1);
-	} body { mixin(S_TRACE);
+	} do { mixin(S_TRACE);
 		removeProc(_starts[index]);
 		_starts = _starts[0 .. index] ~ _starts[index + 1 .. $];
 	}
@@ -3735,7 +3735,7 @@ public:
 	/// ditto
 	void remove(Content start) in { mixin(S_TRACE);
 		assert (start.type is CType.Start);
-	} body { mixin(S_TRACE);
+	} do { mixin(S_TRACE);
 		foreach (i, s; _starts) { mixin(S_TRACE);
 			if (s is start) { mixin(S_TRACE);
 				remove(i);
@@ -3751,7 +3751,7 @@ public:
 		foreach (c; r) { mixin(S_TRACE);
 			assert (c.type is CType.Start);
 		}
-	} body { mixin(S_TRACE);
+	} do { mixin(S_TRACE);
 		return _starts;
 	}
 	/// ditto

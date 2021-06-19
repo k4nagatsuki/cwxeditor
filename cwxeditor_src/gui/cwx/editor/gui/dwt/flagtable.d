@@ -1600,7 +1600,7 @@ package class UndoEdit : FTVUndo {
 		assert (index.length == oldName.length);
 		assert (!oldValues.length || oldValues.length == index.length);
 		assert (!oldVals.length || oldVals.length == index.length);
-	} body { mixin(S_TRACE);
+	} do { mixin(S_TRACE);
 		super (v, comm, uc, dir);
 		foreach (i, idx; index) { mixin(S_TRACE);
 			_impl ~= new UndoEditN(dir, idx, oldName[i], oldValues.length ? oldValues[i] : -1, oldNames.length ? oldNames[i] : [],

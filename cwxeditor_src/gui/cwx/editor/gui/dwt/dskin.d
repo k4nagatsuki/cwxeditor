@@ -150,6 +150,9 @@ version (Windows) {
 	}
 
 	ImageData loadIcon(string exe, int w, int h, void delegate(void delegate()) syncExec = null) { mixin(S_TRACE);
+		static import org.eclipse.swt.internal.win32.OS;
+		static import org.eclipse.swt.internal.win32.WINAPI;
+		static import org.eclipse.swt.internal.win32.WINTYPES;
 		alias org.eclipse.swt.internal.win32.OS.OS OS;
 		alias org.eclipse.swt.internal.win32.WINAPI WINAPI;
 		alias org.eclipse.swt.internal.win32.WINTYPES WINTYPES;
