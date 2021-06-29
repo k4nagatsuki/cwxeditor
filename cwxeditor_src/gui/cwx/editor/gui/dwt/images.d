@@ -137,6 +137,7 @@ private:
 	CRGB _borderingColor = CRGB(255, 255, 255, 255);
 	uint _borderingWidth = 1;
 	string delegate(string) _previewText = null;
+	string _createdPreviewText = "";
 
 	// ImageType.ColorFilter用。
 	BlendMode _blendMode = BlendMode.Normal;
@@ -860,8 +861,17 @@ public:
 		return new ImageDataWithScale(bmpData, _targetScale);
 	}
 	private ImageDataWithScale createTextImageData() { mixin(S_TRACE);
+		// 特殊文字の展開は重いのでここで行っておく
+		if (_previewText) { mixin(S_TRACE);
+			_createdPreviewText = _previewText(_title);
+		} else { mixin(S_TRACE);
+			_createdPreviewText = _title;
+		}
+
 		// BorderingType.Inlineの場合のみ、予め画像を生成する
-		if (borderingType !is BorderingType.Inline) return null;
+		if (borderingType !is BorderingType.Inline) { mixin(S_TRACE);
+			return null;
+		}
 		auto cur = Display.getCurrent();
 
 		int w, h;
@@ -894,11 +904,7 @@ public:
 		scope (exit) pathL.dispose();
 		auto pathF = new Path(cur);
 		scope (exit) pathF.dispose();
-		auto text = _title;
-		if (_previewText) { mixin(S_TRACE);
-			text = _previewText(text);
-		}
-		foreach (line; .splitLines(text)) { mixin(S_TRACE);
+		foreach (line; .splitLines(_createdPreviewText)) { mixin(S_TRACE);
 			foreach (dchar c; line) { mixin(S_TRACE);
 				immutable s = [c].toUTF8();
 				pathL.addString(s, x, y, font);
@@ -1192,11 +1198,7 @@ public:
 		auto textColor = new Color(cur, textRgb);
 		scope (exit) textColor.dispose();
 
-		auto text = _title;
-		if (_previewText) { mixin(S_TRACE);
-			text = _previewText(text);
-		}
-		auto lines = .splitLines(text);
+		auto lines = .splitLines(_createdPreviewText);
 
 		if (_antialias) { mixin(S_TRACE);
 			auto cFont2x = titFont;
