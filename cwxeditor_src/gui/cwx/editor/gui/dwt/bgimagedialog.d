@@ -639,11 +639,27 @@ private:
 	}
 	string previewText(string base) { mixin(S_TRACE);
 		string[char] names;
-		VarValue[string] flags;
-		VarValue[string] steps;
-		VarValue[string] variants;
-		VarValue[string] sysSteps;
-		_values.getValues(names, flags, steps, variants, sysSteps);
+		VarValue[string] tblFlags;
+		VarValue[string] tblSteps;
+		VarValue[string] tblVariants;
+		VarValue[string] tblSysSteps;
+		auto flags = (string path) { mixin(S_TRACE);
+			auto p = path in tblFlags;
+			return p ? *p : VarValue(false);
+		};
+		auto steps = (string path) { mixin(S_TRACE);
+			auto p = path in tblSteps;
+			return p ? *p : VarValue(false);
+		};
+		auto variants = (string path) { mixin(S_TRACE);
+			auto p = path in tblVariants;
+			return p ? *p : VarValue(false);
+		};
+		auto sysSteps = (string path) { mixin(S_TRACE);
+			auto p = path in tblSysSteps;
+			return p ? *p : VarValue(false);
+		};
+		_values.getValues(names, tblFlags, tblSteps, tblVariants, tblSysSteps);
 		return simpleFormatMsg(base, flags, steps, variants, sysSteps, names, ver => _prop.isTargetVersion(_summ, ver),
 			_prop.sys.prefixSystemVarName);
 	}

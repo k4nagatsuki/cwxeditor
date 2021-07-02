@@ -1224,7 +1224,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				r ~= prop.msgs.searchErrorNoExpression;
 			} else { mixin(S_TRACE);
 				string[char] names;
-				VarValue[string] flags, steps, variants, sysSteps;
+				VarValue delegate(string) invalidVarValue = (path) => VarValue(false);
 				switch (c.type) {
 				case CType.SetVariant:
 					if (c.flag != "") { mixin(S_TRACE);
@@ -1292,7 +1292,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				default:
 					assert (0);
 				}
-				r ~= .exprErrorToWarnings(prop, c.expression, c.getExpressionErrors(prop, VariableInfo(prop, summ, c.useCounter, targVer, names, flags, steps, variants, sysSteps, (uint) => "", (int, uint) => "", () => "", () => "")));
+				r ~= .exprErrorToWarnings(prop, c.expression, c.getExpressionErrors(prop, VariableInfo(prop, summ, c.useCounter, targVer, names, invalidVarValue, invalidVarValue, invalidVarValue, invalidVarValue, (uint) => "", (int, uint) => "", () => "", () => "")));
 				r ~= checkTextRes2(c.expression, c.useCounter, c.flagsInExpression, c.stepsInExpression, c.variantsInExpression, [], []);
 			}
 		}

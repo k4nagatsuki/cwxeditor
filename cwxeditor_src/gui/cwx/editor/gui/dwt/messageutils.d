@@ -3257,8 +3257,11 @@ Text variantValueEditor(Commons comm, Composite parent, string value) { mixin(S_
 }
 
 void getPreviewValues(in Props prop, Summary summ, UseCounter uc, in SPChar[] targetChars,
-		out string[char] names, out VarValue[string] flags, out VarValue[string] steps,
-		out VarValue[string] variants, out VarValue[string] sysSteps) { mixin(S_TRACE);
+		out string[char] names,
+		out VarValue delegate(string) flags,
+		out VarValue delegate(string) steps,
+		out VarValue delegate(string) variants,
+		out VarValue delegate(string) sysSteps) { mixin(S_TRACE);
 	foreach (c; targetChars) { mixin(S_TRACE);
 		final switch (c) {
 		case SPChar.M:
@@ -3285,35 +3288,47 @@ void getPreviewValues(in Props prop, Summary summ, UseCounter uc, in SPChar[] ta
 		}
 	}
 	if (summ) { mixin(S_TRACE);
-		.sortedWithPath(.allVars!(cwx.flag.Flag)(summ.flagDirRoot, uc), prop.var.etc.logicalSort, (cwx.flag.Flag f) { mixin(S_TRACE);
-			flags[f.path] = VarValue(true, f.onOff ? f.on : f.off, f.expandSPChars);
-		});
-		.sortedWithPath(.allVars!Step(summ.flagDirRoot, uc), prop.var.etc.logicalSort, (Step f) { mixin(S_TRACE);
-			steps[f.path] = VarValue(true, f.value, f.expandSPChars);
-		});
-		.sortedWithPath(.allVars!(cwx.flag.Variant)(summ.flagDirRoot, uc), prop.var.etc.logicalSort, (cwx.flag.Variant f) { mixin(S_TRACE);
-			variants[f.path] = VarValue(true, .variantValueToPreviewText(f), false);
-		});
+		flags = (path) { mixin(S_TRACE);
+			auto f = summ.flagDirRoot.findFlag(path);
+			return f ? VarValue(true, f.onOff ? f.on : f.off, f.expandSPChars) : VarValue(false);
+		};
+		steps = (path) { mixin(S_TRACE);
+			auto f = summ.flagDirRoot.findStep(path);
+			return f ? VarValue(true, f.value, f.expandSPChars) : VarValue(false);
+		};
+		variants = (path) { mixin(S_TRACE);
+			auto f = summ.flagDirRoot.findVariant(path);
+			return f ? VarValue(true, .variantValueToPreviewText(f), false) : VarValue(false);
+		};
+	} else { mixin(S_TRACE);
+		flags = (path) => VarValue(false);
+		steps = (path) => VarValue(false);
+		variants = (path) => VarValue(false);
 	}
-	.getPreviewSysSteps(prop, summ, true, sysSteps);
+	sysSteps = .getPreviewSysSteps(prop, summ, true);
 }
 
-void getPreviewSysSteps(in Props prop, in Summary summ, bool expandSharps, out VarValue[string] sysSteps) { mixin(S_TRACE);
-	if (prop.isTargetVersion(summ, "2")) { mixin(S_TRACE);
+VarValue delegate(string) getPreviewSysSteps(in Props prop, in Summary summ, bool expandSharps) { mixin(S_TRACE);
+	return (string path) { mixin(S_TRACE);
+		if (!prop.isTargetVersion(summ, "2")) return VarValue(false);
 		if (expandSharps) { mixin(S_TRACE);
 			// 選択メンバ番号(Wsn.2)
-			sysSteps[prop.sys.selectedPlayerCardNumber.toLower()] = VarValue(true, .text(prop.var.etc.messageVarSelectedPlayerCardNumber), false);
+			if (prop.sys.selectedPlayerCardNumber.toLower() == path) { mixin(S_TRACE);
+				return VarValue(true, .text(prop.var.etc.messageVarSelectedPlayerCardNumber), false);
+			}
 		}
 		// パーティメンバ名(Wsn.2)
 		foreach (pcn; 1 .. prop.looks.partyMax + 1) { mixin(S_TRACE);
 			auto name = prop.sys.playerCardName(cast(uint)pcn).toLower();
+			if (name != path) continue;
 			if (pcn - 1 < prop.var.etc.messageVarPlayerCardName.length) { mixin(S_TRACE);
-				sysSteps[name] = VarValue(true, prop.var.etc.messageVarPlayerCardName[pcn - 1], false);
+				return VarValue(true, prop.var.etc.messageVarPlayerCardName[pcn - 1], false);
 			} else { mixin(S_TRACE);
-				sysSteps[name] = VarValue(true, .parseDollarParams(prop.var.etc.messageVarPlayerCardNameDefault, ['N':.text(pcn)]), false);
+				return VarValue(true, .parseDollarParams(prop.var.etc.messageVarPlayerCardNameDefault, ['N':.text(pcn)]), false);
 			}
 		}
-	}
+		return VarValue(false);
+	};
 }
 
 class MsgPreview : Composite {
@@ -4110,15 +4125,14 @@ string createSPCharPreview(in Commons comm, in Summary summ, Skin delegate() ski
 		auto flag = .findVar!(cwx.flag.Flag)(summ ? summ.flagDirRoot : null, uc, path);
 		return flag ? VarValue(true, flag.onOff ? flag.on : flag.off, flag.expandSPChars) : VarValue(false);
 	}
-	VarValue[string] sysSteps;
-	.getPreviewSysSteps(comm.prop, summ, expandSharps, sysSteps);
+	auto sysSteps = .getPreviewSysSteps(comm.prop, summ, expandSharps);
 	VarValue sValue(string path) { mixin(S_TRACE);
 		if (overrideStepValue) { mixin(S_TRACE);
 			auto v = overrideStepValue(path);
 			if (v.exists) return v;
 		}
 		auto step = .findVar!Step(summ ? summ.flagDirRoot : null, uc, path);
-		return step ? VarValue(true, step.value, step.expandSPChars) : sysSteps.get(path.toLower(), VarValue(false));
+		return step ? VarValue(true, step.value, step.expandSPChars) : sysSteps(path.toLower());
 	}
 	VarValue vValue(string path) { mixin(S_TRACE);
 		auto variant = .findVar!(cwx.flag.Variant)(summ ? summ.flagDirRoot : null, uc, path);
