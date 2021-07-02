@@ -4954,12 +4954,12 @@ public:
 		}
 		string previewText(string base) { mixin(S_TRACE);
 			string[char] names;
-			VarValue[string] flags;
-			VarValue[string] steps;
-			VarValue[string] variants;
-			VarValue[string] sysSteps;
+			VarValue delegate(string) flags;
+			VarValue delegate(string) steps;
+			VarValue delegate(string) variants;
+			VarValue delegate(string) sysSteps;
 			getPreviewValues(_prop, _summ, null, SPCHAR_TEXT, names, flags, steps, variants, sysSteps);
-			return simpleFormatMsg(base, flags, steps, variants, sysSteps, names, ver => _prop.isTargetVersion(_summ, ver),
+			return .simpleFormatMsg(base, flags, steps, variants, sysSteps, names, ver => _prop.isTargetVersion(_summ, ver),
 				_prop.sys.prefixSystemVarName);
 		}
 	}

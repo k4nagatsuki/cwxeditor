@@ -3901,10 +3901,10 @@ string eventText(Commons comm, Summary summ, Content parent, Content e, bool rea
 	if (!parent) return e.name;
 	auto prop = comm.prop;
 	string formatSPChars(string name) { mixin(S_TRACE);
-		VarValue[string] flags;
-		VarValue[string] steps;
-		VarValue[string] variants;
-		VarValue[string] sysSteps;
+		VarValue delegate(string) flags;
+		VarValue delegate(string) steps;
+		VarValue delegate(string) variants;
+		VarValue delegate(string) sysSteps;
 		string[char] names;
 		getPreviewValues(prop, summ, e.useCounter, SPCHAR_TEXT, names, flags, steps, variants, sysSteps);
 		return .simpleFormatMsg(name, flags, steps, variants, sysSteps, names, ver => comm.prop.isTargetVersion(summ, ver),

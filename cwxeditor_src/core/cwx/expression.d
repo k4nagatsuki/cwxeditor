@@ -192,8 +192,9 @@ public:
 	VariantVal returnValue(in CProps prop) { mixin(S_TRACE);
 		ExprError[] err;
 		string[char] names;
+		VarValue delegate(string) invalidVarValue = (path) => VarValue(false);
 		VarValue[string] flags, steps, variants, sysSteps;
-		auto vInfo = VariableInfo(prop, null, null, "1.50", names, flags, steps, variants, sysSteps, (uint) => "", (int, uint) => "", () => "", () => "");
+		auto vInfo = VariableInfo(prop, null, null, "1.50", names, invalidVarValue, invalidVarValue, invalidVarValue, invalidVarValue, (uint) => "", (int, uint) => "", () => "", () => "");
 		return .partToVariantVal(.calculate(prop, EvalMode.TypeCheck, vInfo, _expr, err));
 	}
 
@@ -1627,8 +1628,10 @@ struct VariableInfo {
 	/// インスタンスを生成する。
 	this (in CProps prop, in Summary summ, in UseCounter uc, string targVer,
 			string[char] names,
-			VarValue[string] flags, VarValue[string] steps, VarValue[string] variants,
-			VarValue[string] sysSteps,
+			VarValue delegate(string) flags,
+			VarValue delegate(string) steps,
+			VarValue delegate(string) variants,
+			VarValue delegate(string) sysSteps,
 			string delegate(uint) castName,
 			string delegate(int, uint) cardName,
 			string delegate() partyName,

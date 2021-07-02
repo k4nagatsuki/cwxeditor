@@ -445,9 +445,9 @@ class ExpressionEditor : Composite {
 		auto expr = new Expression;
 		expr.text = text;
 		string[char] names;
-		VarValue[string] flags, steps, variants, sysSteps;
+		VarValue delegate(string) invalidVarValue = path => VarValue(false);
 		auto vInfo = VariableInfo(_comm.prop.parent, _summ, _uc, _comm.prop.var.etc.targetVersion,
-			names, flags, steps, variants, sysSteps,
+			names, invalidVarValue, invalidVarValue, invalidVarValue, invalidVarValue,
 			(uint) => _comm.prop.var.etc.messageVarSelected.value,
 			(int, uint) => _comm.prop.var.etc.messageVarCard.value,
 			() => _comm.prop.var.etc.messageVarTeam.value,

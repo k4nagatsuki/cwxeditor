@@ -51,19 +51,19 @@ string formatMsg(string text,
 	return formatMsgImpl(text, getFlag, getStep, getVariant, getName, isTargetVersion, prefixSystemVarName, hasMaterial, fonts, colors, true, 0, 0);
 }
 /// ditto
-string simpleFormatMsg(in string text, VarValue[string] flags, VarValue[string] steps, VarValue[string] variants,
-		VarValue[string] sysSteps, string[char] names,
+string simpleFormatMsg(in string text, VarValue delegate(string) flags, VarValue delegate(string) steps, VarValue delegate(string) variants,
+		VarValue delegate(string) sysSteps, string[char] names,
 		bool delegate(string ver) isTargetVersion, string prefixSystemVarName) { mixin(S_TRACE);
 	string[size_t] fonts;
 	char[size_t] colors;
 	return formatMsgImpl(text,
-		path => flags.get(path, VarValue(false)),
+		flags,
 		(path) { mixin(S_TRACE);
-			auto p = path in steps;
-			if (p) return *p;
-			return sysSteps.get(path.toLower(), VarValue(false));
+			auto val = steps(path);
+			if (val.exists) return val;
+			return sysSteps(path.toLower());
 		},
-		path => variants.get(path, VarValue(false)),
+		path => variants(path),
 		delegate string(char name) { mixin(S_TRACE);
 			auto dc = std.ascii.toUpper(name);
 			foreach (c, v; names) { mixin(S_TRACE);
