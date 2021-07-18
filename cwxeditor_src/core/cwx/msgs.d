@@ -2885,7 +2885,7 @@ class Msgs : Properties {
 	auto funcDescSkinType = Msg("funcDescSkinType", "操作中のスキン種別を返します。以下のスキン種別が一般に知られていますが、プレイヤーの環境によってはこれ以外の値が返される場合もあります。\n\"MedievalFantasy\"(中世ファンタジーⅠ型), \"Modern\"(現代Ⅰ型), \"School\"(現代学園ものバリアントエンジン), \"Oedo\"(カアドワアス大江戸バリアント), \"ScienceFiction\"(SFバリアント), \"Monsters\"(妖魔バリアント)"); // Wsn.5
 	auto funcDescBattleRound = Msg("funcDescBattleRound", "現在のバトルのラウンド数を返します。バトル中ではない場合は-1を返します。"); // Wsn.5
 	auto funcDescCastLevel = Msg("funcDescCastLevel", "キャラクターのレベルを返します。該当者がいない場合は0を返します。"); // Wsn.5
-	auto funcDescCouponValue = Msg("funcDescCouponValue", "キャラクターの所持するクーポン名の点数を返します。該当者またはクーポンが見つからなかった場合は0を返します。"); // Wsn.5
+	auto funcDescCouponValue = Msg("funcDescCouponValue", "キャラクターの所持するクーポンの点数を返します。該当者またはクーポンが見つからなかった場合は0を返します。"); // Wsn.5
 	auto funcDescLifeRatio = Msg("funcDescLifeRatio", "キャラクターのライフ残量を0.0～1.0の割合で返します。該当者がいない場合は-1を返します。"); // Wsn.5
 	auto funcDescStatusValue = Msg("funcDescStatusValue", "キャラクターの状態の強度・修正値を返します。該当者がいない・指定した状態ではない場合は0を返します。強度・修正値を持たない状態にある場合は残りラウンド数を返します。\n%1$s"); // Wsn.5
 	auto funcDescStatusRound = Msg("funcDescStatusRound", "キャラクターの状態の残りラウンド数を返します。該当者がいない・指定した状態ではない場合は0を返します。\n%1$s"); // Wsn.5
