@@ -220,7 +220,7 @@ private:
 		case CardType.Skill:
 			return (cast(SkillCard)baseCard(card)).level;
 		case CardType.Item:
-			return (cast(ItemCard)baseCard(card)).useLimitMax;
+			return (cast(ItemCard)baseCard(card)).useLimit;
 		case CardType.Beast:
 			return (cast(BeastCard)baseCard(card)).useLimit;
 		case CardType.Info:

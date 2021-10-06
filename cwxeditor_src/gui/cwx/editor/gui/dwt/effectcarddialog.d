@@ -985,12 +985,14 @@ protected:
 				_level.setSelection(_card.level);
 			}
 			static if (is(C == ItemCard)) {
-				_useCount.setSelection(_card.useLimitMax);
 				static if (SetUseCountCur) {
+					_useCount.setSelection(_card.useLimitMax);
 					_useCountCur.setSelection(_card.useLimit);
 					_useCountIsMax.setSelection(_card.useLimit == _card.useLimitMax);
 					_useCountCur.setEnabled(!_readOnly && !_useCountIsMax.getSelection());
 					updateUseLimitMax();
+				} else {
+					_useCount.setSelection(_card.useLimit);
 				}
 			} else static if (is(C == BeastCard)) {
 				auto ssi = cast(int).cCountUntil(_showStyles, _card.showStyle);
