@@ -2718,7 +2718,8 @@ class Msgs : Properties {
 	auto scriptErrorInvalidMotionType = Msg("scriptErrorInvalidMotionType", "未知の効果タイプです。");
 	auto scriptErrorInvalidMotion = Msg("scriptErrorInvalidMotion", "効果が正しくありません。");
 	auto scriptErrorInvalidElement = Msg("scriptErrorInvalidElement", "未知の属性です。");
-	auto scriptErrorInvalidDamageType = Msg("scriptErrorInvalidDamageType", "未知のダメージタイプです。");
+	auto scriptErrorInvalidDamageType = Msg("scriptErrorInvalidDamageType", "未知の効果値タイプです。");
+	auto scriptErrorInvalidUpDownSkillPowerType = Msg("scriptErrorInvalidUpDownSkillPowerType", "未知の精神力増減タイプです。");
 	auto scriptErrorInvalidEffectCardType = Msg("scriptErrorInvalidEffectCardType", "未知の効果カードタイプです。");
 	auto scriptErrorInvalidComparison4 = Msg("scriptErrorInvalidComparison4", "未知の比較条件です。");
 	auto scriptErrorInvalidComparison3 = Msg("scriptErrorInvalidComparison3", "未知の比較条件です。");
