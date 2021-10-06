@@ -2215,13 +2215,9 @@ ImageDataWithScale cardImage(C)(Props prop, Skin skin, in Summary summ, in C bas
 		}
 	}
 
-	static if (is(C : ItemCard) || is(C : BeastCard)) {
+	static if (is(C:ItemCard) || is(C:BeastCard)) {
 		bool res = prop.sys.isRecycle(c.keyCodes);
-		static if (is(C : ItemCard)) {
-			auto ul = c.useLimitMax;
-		} else static if (is(C : BeastCard)) {
-			auto ul = c.useLimit;
-		} else static assert (0);
+		auto ul = c.useLimit;
 		if (ul > 0 || res) { mixin(S_TRACE);
 			auto d = Display.getCurrent();
 			auto imgData = r.createImageData();
@@ -2326,9 +2322,7 @@ void putEventTree(C:EventTreeOwner)(Control canvas, GC gc, Props prop, in Summar
 	}
 
 	auto res = prop.sys.isRecycle(c2.keyCodes);
-	static if (is(C:ItemCard)) {
-		bool useCount = 0 < c2.useLimitMax || res;
-	} else static if (is(C:BeastCard)) {
+	static if (is(C:ItemCard) || is(C:BeastCard)) {
 		bool useCount = 0 < c2.useLimit || res;
 	} else { mixin(S_TRACE);
 		bool useCount = false;
@@ -2364,9 +2358,7 @@ Rectangle eventTreeMarkRect(C:EventTreeOwner)(Props prop, bool showMark, int lef
 	}
 
 	auto res = prop.sys.isRecycle(c2.keyCodes);
-	static if (is(C:ItemCard)) {
-		bool useCount = 0 < c2.useLimitMax || res;
-	} else static if (is(C:BeastCard)) {
+	static if (is(C:ItemCard) || is(C:BeastCard)) {
 		bool useCount = 0 < c2.useLimit || res;
 	} else { mixin(S_TRACE);
 		bool useCount = false;
