@@ -2176,6 +2176,7 @@ fi`;
 			case "level": i++; return DamageType.LevelRatio;
 			case "value": i++; return DamageType.Normal;
 			case "max": i++; return DamageType.Max;
+			case "fixed": i++; return DamageType.Fixed;
 			default: throwError(_prop.msgs.scriptErrorInvalidDamageType, attr[i].token);
 			}
 			return T.init;
@@ -2415,7 +2416,36 @@ fi`;
 			auto r = new Motion(type, Element.All);
 			auto detail = r.detail;
 			if (detail.use(MArg.ValueType)) { mixin(S_TRACE);
+				auto tok = j < vals.length ? vals[j].token : Token.init;
+				if (type is MType.GetSkillPower || type is MType.LoseSkillPower) { mixin(S_TRACE);
+					r.damageType = DamageType.Max;
+				} else { mixin(S_TRACE);
+					r.damageType = DamageType.LevelRatio;
+				}
 				r.damageType = parseAttr!(DamageType)(opt, vals, j, r.damageType, varTable, msgWidth);
+				if (type is MType.GetSkillPower || type is MType.LoseSkillPower) { mixin(S_TRACE);
+					final switch (r.damageType) {
+					case DamageType.LevelRatio:
+					case DamageType.Normal:
+						r.damageType = DamageType.Max;
+						throwError(_prop.msgs.scriptErrorInvalidUpDownSkillPowerType, tok);
+						break;
+					case DamageType.Max:
+					case DamageType.Fixed:
+						break;
+					}
+				} else { mixin(S_TRACE);
+					final switch (r.damageType) {
+					case DamageType.LevelRatio:
+					case DamageType.Normal:
+					case DamageType.Max:
+						break;
+					case DamageType.Fixed:
+						r.damageType = DamageType.LevelRatio;
+						throwError(_prop.msgs.scriptErrorInvalidDamageType, tok);
+						break;
+					}
+				}
 			}
 			if (detail.use(MArg.UValue)) { mixin(S_TRACE);
 				r.uValue = parseAttr!(int)(opt, vals, j, cast(int) r.uValue, varTable, msgWidth);
@@ -3362,16 +3392,15 @@ fi`;
 		} else static if (is(T : bool)) {
 			attrs ~= value ? "true": "false";
 		} else static if (is(T : Transition)) {
-			switch (value) {
+			final switch (value) {
 			case Transition.Default: attrs ~= "default"; break;
 			case Transition.None: attrs ~= "none"; break;
 			case Transition.Blinds: attrs ~= "thread"; break;
 			case Transition.PixelDissolve: attrs ~= "shave"; break;
 			case Transition.Fade: attrs ~= "fade"; break;
-			default: assert (0);
 			}
 		} else static if (is(T : Range)) {
-			switch (value) {
+			final switch (value) {
 			case Range.Selected: attrs ~= "M"; break;
 			case Range.Random: attrs ~= "R"; break;
 			case Range.Party: attrs ~= "T"; break;
@@ -3382,17 +3411,15 @@ fi`;
 			case Range.CardTarget: attrs ~= "card"; break; // Wsn.2
 			case Range.SelectedCard: attrs ~= "selcard"; break; // Wsn.3
 			case Range.Npc: attrs ~= "npc"; break; // Wsn.5
-			default: assert (0);
 			}
 		} else static if (is(T : CastRange)) {
-			switch (value) {
+			final switch (value) {
 			case CastRange.Party: attrs ~= "party"; break;
 			case CastRange.Enemy: attrs ~= "enemy"; break;
 			case CastRange.Npc: attrs ~= "npc"; break;
-			default: assert (0);
 			}
 		} else static if (is(T : Status)) {
-			switch (value) {
+			final switch (value) {
 			case Status.Active: attrs ~= "active"; break;
 			case Status.Inactive: attrs ~= "inactive"; break;
 			case Status.Alive: attrs ~= "alive"; break;
@@ -3421,27 +3448,24 @@ fi`;
 			case Status.DownResist: attrs ~= "downresist"; break;
 			case Status.DownDefense: attrs ~= "downdefense"; break;
 			case Status.None: attrs ~= "none"; break;
-			default: assert (0);
 			}
 		} else static if (is(T : Target)) {
-			switch (value.m) {
+			final switch (value.m) {
 			case Target.M.Selected: attrs ~= "M"; break;
 			case Target.M.Random: attrs ~= "R"; break;
 			case Target.M.Unselected: attrs ~= "U"; break;
 			case Target.M.Party: attrs ~= "T"; break;
-			default: assert (0);
 			}
 			static if (!Within) {
 				attrs ~= toAttr(value.sleep, indentValue, vars);
 			}
 		} else static if (is(T : EffectType)) {
-			switch (value) {
+			final switch (value) {
 			case EffectType.Physic: attrs ~= "physic"; break;
 			case EffectType.Magic: attrs ~= "magic"; break;
 			case EffectType.MagicalPhysic: attrs ~= "mphysic"; break;
 			case EffectType.PhysicalMagic: attrs ~= "pmagic"; break;
 			case EffectType.None: attrs ~= "none"; break;
-			default: assert (0);
 			}
 		} else static if (is(T : Resist)) {
 			switch (value) {
@@ -3451,15 +3475,14 @@ fi`;
 			default: assert (0);
 			}
 		} else static if (is(T : CardVisual)) {
-			switch (value) {
+			final switch (value) {
 			case CardVisual.None: attrs ~= "none"; break;
 			case CardVisual.Reverse: attrs ~= "reverse"; break;
 			case CardVisual.Horizontal: attrs ~= "hswing"; break;
 			case CardVisual.Vertical: attrs ~= "vswing"; break;
-			default: assert (0);
 			}
 		} else static if (is(T : Mental)) {
-			switch (value) {
+			final switch (value) {
 			case Mental.Aggressive: attrs ~= "agg"; break;
 			case Mental.Unaggressive: attrs ~= "unagg"; break;
 			case Mental.Cheerful: attrs ~= "cheerf"; break;
@@ -3470,22 +3493,20 @@ fi`;
 			case Mental.Uncautious: attrs ~= "uncaut"; break;
 			case Mental.Trickish: attrs ~= "trick"; break;
 			case Mental.Untrickish: attrs ~= "untrick"; break;
-			default: assert (0);
 			}
 		} else static if (is(T : Physical)) {
-			switch (value) {
+			final switch (value) {
 			case Physical.Dex: attrs ~= "dex"; break;
 			case Physical.Agl: attrs ~= "agl"; break;
 			case Physical.Int: attrs ~= "int"; break;
 			case Physical.Str: attrs ~= "str"; break;
 			case Physical.Vit: attrs ~= "vit"; break;
 			case Physical.Min: attrs ~= "min"; break;
-			default: assert (0);
 			}
 		} else static if (is(T : Talker)) {
 			attrs ~= toAttrTalker([new CardImage(value)], false, indentValue, vars);
 		} else static if (is(T : MType)) {
-			switch (value) {
+			final switch (value) {
 			case MType.Heal: attrs ~= "heal"; break;
 			case MType.Damage: attrs ~= "damage"; break;
 			case MType.Absorb: attrs ~= "absorb"; break;
@@ -3527,10 +3548,9 @@ fi`;
 			case MType.SummonBeast: attrs ~= "summon"; break;
 			case MType.CancelAction: attrs ~= "cancelaction"; break;
 			case MType.NoEffect: attrs ~= "noeffect"; break;
-			default: assert (0);
 			}
 		} else static if (is(T : Element)) {
-			switch (value) {
+			final switch (value) {
 			case Element.All: attrs ~= "all"; break;
 			case Element.Health: attrs ~= "phy"; break;
 			case Element.Mind: attrs ~= "mind"; break;
@@ -3538,38 +3558,34 @@ fi`;
 			case Element.Magic: attrs ~= "magic"; break;
 			case Element.Fire: attrs ~= "fire"; break;
 			case Element.Ice: attrs ~= "ice"; break;
-			default: assert (0);
 			}
 		} else static if (is(T : DamageType)) {
-			switch (value) {
+			final switch (value) {
 			case DamageType.LevelRatio: attrs ~= "level"; break;
 			case DamageType.Normal: attrs ~= "value"; break;
 			case DamageType.Max: attrs ~= "max"; break;
-			default: assert (0);
+			case DamageType.Fixed: attrs ~= "fixed"; break;
 			}
 		} else static if (is(T : EffectCardType)) {
-			switch (value) {
+			final switch (value) {
 			case EffectCardType.All: attrs ~= "all"; break;
 			case EffectCardType.Skill: attrs ~= "skill"; break;
 			case EffectCardType.Item: attrs ~= "item"; break;
 			case EffectCardType.Beast: attrs ~= "beast"; break;
 			case EffectCardType.Hand: attrs ~= "hand"; break;
-			default: assert (0);
 			}
 		} else static if (is(T : Comparison4)) {
-			switch (value) {
+			final switch (value) {
 			case Comparison4.Eq: attrs ~= createString("="); break;
 			case Comparison4.Ne: attrs ~= createString("<>"); break;
 			case Comparison4.Lt: attrs ~= createString(">"); break;
 			case Comparison4.Gt: attrs ~= createString("<"); break;
-			default: assert (0);
 			}
 		} else static if (is(T : Comparison3)) {
-			switch (value) {
+			final switch (value) {
 			case Comparison3.Eq: attrs ~= createString("="); break;
 			case Comparison3.Lt: attrs ~= createString(">"); break;
 			case Comparison3.Gt: attrs ~= createString("<"); break;
-			default: assert (0);
 			}
 		} else static if (is(T : BlendMode)) {
 			final switch (value) {
@@ -3592,18 +3608,16 @@ fi`;
 			case SelectionMethod.Valued: attrs ~= "valued"; break;
 			}
 		} else static if (is(T:StartAction)) {
-			switch (value) {
+			final switch (value) {
 			case StartAction.Now: attrs ~= "now"; break;
 			case StartAction.CurrentRound: attrs ~= "current"; break;
 			case StartAction.NextRound: attrs ~= "next"; break;
-			default: assert (0);
 			}
 		} else static if (is(T:Smoothing)) {
-			switch (value) {
+			final switch (value) {
 			case Smoothing.Default: attrs ~= "default"; break;
 			case Smoothing.True: attrs ~= "true"; break;
 			case Smoothing.False: attrs ~= "false"; break;
-			default: assert (0);
 			}
 		} else static if (is(T : CRGB)) {
 			if (value.a == 255) { mixin(S_TRACE);
@@ -3743,16 +3757,14 @@ fi`;
 			case CoordinateType.Percentage: attrs ~= "per"; break;
 			}
 		} else static if (is(T : MatchingType)) { //Wsn.2
-			switch (value) {
+			final switch (value) {
 			case MatchingType.And: attrs ~= "and"; break;
 			case MatchingType.Or: attrs ~= "or"; break;
-			default: assert (0);
 			}
 		} else static if (is(T:MatchingCondition)) { //Wsn.5
-			switch (value) {
+			final switch (value) {
 			case MatchingCondition.Has: attrs ~= "has"; break;
 			case MatchingCondition.HasNot: attrs ~= "hasnot"; break;
-			default: assert (0);
 			}
 		} else static if (is(T : UpdateType)) { //Wsn.4
 			final switch (value) {
@@ -4540,6 +4552,7 @@ CWXScriptKeyword[] keywordInfos(in CProps prop, in ElementOverride[Element] eTbl
 		CWXScriptKeyword("level", prop.msgs.calcType, prop.msgs.damageTypeName(DamageType.LevelRatio)),
 		CWXScriptKeyword("value", prop.msgs.calcType, prop.msgs.damageTypeName(DamageType.Normal)),
 		CWXScriptKeyword("max", prop.msgs.calcType, prop.msgs.damageTypeName(DamageType.Max)),
+		CWXScriptKeyword("fixed", prop.msgs.calcType, prop.msgs.damageTypeName(DamageType.Fixed)),
 
 		// 属性
 		CWXScriptKeyword("all", prop.msgs.motionElement, Element.All in eTbl && eTbl[Element.All].name != "" ? eTbl[Element.All].name : prop.msgs.elementName(Element.All)),
