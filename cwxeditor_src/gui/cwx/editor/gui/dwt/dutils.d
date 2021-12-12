@@ -3025,11 +3025,11 @@ int dpiMuls() { mixin(S_TRACE);
 	auto d = Display.getCurrent();
 	auto dpi = d.getDPI().x;
 	immutable base = 96;
-	auto exp = 2;
-	while (base * exp <= dpi) { mixin(S_TRACE);
-		exp *= 2;
+	auto i = 2;
+	while (base * i <= dpi) { mixin(S_TRACE);
+		i++;
 	}
-	_dpiMuls = exp / 2;
+	_dpiMuls = i - 1;
 	return _dpiMuls;
 }
 
