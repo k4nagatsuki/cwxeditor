@@ -755,7 +755,7 @@ private bool loadBassSoundFont(in SoundFontWithVolume[] soundFonts) { mixin(S_TR
 			if (!bassMidi) return false;
 			releaseBassSoundFont();
 			foreach (soundFont; soundFonts) { mixin(S_TRACE);
-				auto sfont = getSymbol!(BASS_MIDI_FontInit)(bassMidi, "BASS_MIDI_FontInit")(soundFont.path.toMBSz(), 0);
+				auto sfont = getSymbol!(BASS_MIDI_FontInit)(bassMidi, "BASS_MIDI_FontInit")(soundFont.path.toUTF16z(), BASS_UNICODE);
 				if (!sfont) { mixin(S_TRACE);
 					debugln("BASS_MIDI_FontInit Failure: %s".format(getSymbol!(BASS_ErrorGetCode)(bass, "BASS_ErrorGetCode")()));
 					continue;
@@ -894,24 +894,16 @@ private bool playBass(string file, uint loopCount, bool spLoop, ref DWORD stream
 			}
 
 			bool midi = isMidi(file);
-			int flag = BASS_MUSIC_STOPBACK | BASS_MUSIC_POSRESET | BASS_MUSIC_PRESCAN | BASS_SAMPLE_FLOAT;
+			int flag = BASS_MUSIC_STOPBACK | BASS_MUSIC_POSRESET | BASS_MUSIC_PRESCAN | BASS_SAMPLE_FLOAT | BASS_UNICODE;
 			if (midi) { mixin(S_TRACE);
-				stream = getSymbol!(BASS_MIDI_StreamCreateFile)(bassMidi, "BASS_MIDI_StreamCreateFile")(false, file.toMBSz(), 0, 0, flag, 44100);
+				stream = getSymbol!(BASS_MIDI_StreamCreateFile)(bassMidi, "BASS_MIDI_StreamCreateFile")(false, file.toUTF16z(), 0, 0, flag, 44100);
 				if (!stream) { mixin(S_TRACE);
-					debugln("error: BASS_MIDI_StreamCreateFile 1, " ~ file);
-					stream = getSymbol!(BASS_MIDI_StreamCreateFile)(bassMidi, "BASS_MIDI_StreamCreateFile")(false, file.toStringz(), 0, 0, flag, 44100);
-				}
-				if (!stream) { mixin(S_TRACE);
-					debugln("error: BASS_MIDI_StreamCreateFile 2, " ~ file);
+					debugln("error: BASS_MIDI_StreamCreateFile, " ~ file);
 				}
 			} else { mixin(S_TRACE);
-				stream = getSymbol!(BASS_StreamCreateFile)(bass, "BASS_StreamCreateFile")(false, file.toMBSz(), 0, 0, flag);
+				stream = getSymbol!(BASS_StreamCreateFile)(bass, "BASS_StreamCreateFile")(false, file.toUTF16z(), 0, 0, flag);
 				if (!stream) { mixin(S_TRACE);
-					debugln("error: BASS_StreamCreateFile 1, " ~ file);
-					stream = getSymbol!(BASS_StreamCreateFile)(bass, "BASS_StreamCreateFile")(false, file.toStringz(), 0, 0, flag);
-				}
-				if (!stream) { mixin(S_TRACE);
-					debugln("error: BASS_StreamCreateFile 2, " ~ file);
+					debugln("error: BASS_StreamCreateFile, " ~ file);
 				}
 			}
 			if (!stream) return false;
@@ -1133,6 +1125,7 @@ version (Windows) {
 		immutable BASS_MUSIC_PRESCAN = 0x20000;
 		immutable BASS_MUSIC_STOPBACK = 0x80000;
 		immutable BASS_STREAM_DECODE = 0x200000;
+		immutable BASS_UNICODE = 0x80000000;
 		struct  BASS_MIDI_EVENT {
 			DWORD event;
 			DWORD param;
