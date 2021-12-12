@@ -6,11 +6,12 @@ private import cwx.perf;
 private import core.stdc.stdio;
 
 private import std.algorithm : min;
+private import std.conv : to, text;
 private import std.datetime;
 private import std.exception : enforce;
-private import std.string : format, toStringz;
 private import std.stdio;
-private import std.conv : to, text;
+private import std.string : format, toStringz;
+private import std.utf;
 
 private string repeat(string s, int count) {
 	string buf;
@@ -818,7 +819,7 @@ class RawFile {
 	this (string file, in char[] mode) { mixin(S_TRACE);
 		version (Windows) {
 			import std.windows.charset;
-			_fp = .fopen(file.toMBSz(), mode.toStringz());
+			_fp = ._wfopen(file.toUTF16z(), mode.toUTF16z());
 		} else {
 			_fp = .fopen(file.toStringz(), mode.toStringz());
 		}
