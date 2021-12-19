@@ -80,7 +80,7 @@ private:
 			if (!imgData) { mixin(S_TRACE);
 				auto useScale = false;
 				foreach_reverse (i, scale; [1] ~ IMAGE_SCALES) { mixin(S_TRACE);
-					if (scale == targetScale) { mixin(S_TRACE);
+					if (scale <= targetScale) { mixin(S_TRACE);
 						useScale = true;
 					}
 					if (!useScale) continue;
