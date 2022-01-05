@@ -66,6 +66,7 @@ class Scales : Composite {
 			auto sel = new Selection(scale, spn);
 			scale.addSelectionListener(sel);
 			spn.addSelectionListener(sel);
+			spn.addModifyListener(sel);
 		}
 		auto dummy = new Composite(this, SWT.NONE);
 		auto dgd = new GridData;
@@ -81,7 +82,7 @@ class Scales : Composite {
 		_hints.setLayoutData(hgd);
 		_hints.addPaintListener(new PaintHints);
 	}
-	private class Selection : SelectionAdapter {
+	private class Selection : SelectionAdapter, ModifyListener {
 		private Scale _scale;
 		private Spinner _spn;
 		this (Scale scale, Spinner spn) { mixin(S_TRACE);
@@ -95,6 +96,10 @@ class Scales : Composite {
 				assert (_spn is e.widget);
 				_scale.setSelection(_spn.getSelection() - _spn.getMinimum());
 			}
+			foreach (dlg; modEvent) dlg();
+		}
+		override void modifyText(ModifyEvent e) { mixin(S_TRACE);
+			_scale.setSelection(_spn.getSelection() - _spn.getMinimum());
 			foreach (dlg; modEvent) dlg();
 		}
 	}
