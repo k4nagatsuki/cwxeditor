@@ -33,7 +33,14 @@ class Scales : Composite {
 	/// 値の段階はstep_cで、最小値はminで設定する。
 	void setScales(uint step_c, in string[] names, int page, int min = 0) { mixin(S_TRACE);
 		auto scStyle = SWT.NONE;
-		auto spStyle = _readOnly ? SWT.BORDER|SWT.READ_ONLY : SWT.BORDER;
+		int spStyle = 0;
+		// BUG: dmd 2.098.0 なぜかspStyleが必ずSWT.READ_ONLYになる
+		//auto spStyle = _readOnly ? SWT.BORDER|SWT.READ_ONLY : SWT.BORDER;
+		if (_readOnly) { mixin(S_TRACE);
+			spStyle = SWT.BORDER|SWT.READ_ONLY;
+		} else { mixin(S_TRACE);
+			spStyle = SWT.BORDER;
+		}
 		foreach (i; 0..names.length) { mixin(S_TRACE);
 			auto label = new Label(this, SWT.NONE);
 			label.setText(names[i]);
