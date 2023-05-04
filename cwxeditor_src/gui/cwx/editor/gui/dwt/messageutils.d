@@ -3726,7 +3726,7 @@ ImageDataWithScale previewMessage(Commons comm, Props prop, in Summary summ, Ski
 			i++;
 			si += dmsg[i].array.length;
 			string s2 = to!string(dmsg[i].array);
-			auto w = prop.looks.messageCharWidth;
+			auto w = prop.ds(prop.looks.messageCharWidth);
 			if (msgLen < writeLen + 2) { mixin(S_TRACE);
 				// 列数オーバー
 				if (dmsg[i].array != "\n") { mixin(S_TRACE);
