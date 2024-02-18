@@ -3854,7 +3854,7 @@ public:
 					_tree.select(itm);
 					_tree.showSelection();
 					refreshStatusLine();
-					if (cpcategory(path) != "name" && (cphasattr(path, "opendialog") || (!cpempty(path) && cpcategory(path) != "dialog" && cpcategory(path) != "text"))) { mixin(S_TRACE);
+					if (cpcategory(path) != "name" && (cphasattr(path, "opendialog") || (!cpempty(path) && cpcategory(path) != "dialog" && cpcategory(path) != "text" && cpcategory(path) != "coupon" && cpcategory(path) != "gossip"))) { mixin(S_TRACE);
 						auto d = edit();
 						if (!d) { mixin(S_TRACE);
 							// ダイアログ無し、もしくは開けない状態のコンテント

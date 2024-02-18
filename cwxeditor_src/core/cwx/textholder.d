@@ -157,13 +157,15 @@ private:
 	CWXPath _ucOwner = null;
 	string _cwxPathCategory;
 	void delegate() _changed;
+	size_t delegate(string text) _findIndex = null;
 public:
 	/// コンストラクタ。
-	this (CWXPath owner, TextHolderType type, string cwxPathCategory = "text") { mixin(S_TRACE);
+	this (CWXPath owner, TextHolderType type, string cwxPathCategory = "text", size_t delegate(string text) findIndex = null) { mixin(S_TRACE);
 		this.owner = owner;
 		_type = type;
 		_localOwner = owner;
 		_cwxPathCategory = cwxPathCategory;
+		_findIndex = findIndex;
 	}
 
 	/// テキストの用途。
@@ -384,7 +386,11 @@ public:
 	@property
 	string cwxPath(bool id) { mixin(S_TRACE);
 		if (_owner) { mixin(S_TRACE);
-			return cpjoin(_owner, _cwxPathCategory, id);
+			if (_findIndex) { mixin(S_TRACE);
+				return .cpjoin(_owner, _cwxPathCategory, _findIndex(text), id);
+			} else { mixin(S_TRACE);
+				return .cpjoin(_owner, _cwxPathCategory, id);
+			}
 		}
 		return "";
 	}

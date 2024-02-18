@@ -1181,6 +1181,23 @@ public:
 		}
 		super (comm, prop, shell, summ, Type, parent, evt, true, dSize, true);
 	}
+
+	override
+	bool openCWXPath(string path, bool shellActivate) { mixin(S_TRACE);
+		auto cate = .cpcategory(path);
+		if ("coupon" == cate) { mixin(S_TRACE);
+			if (_couponView) { mixin(S_TRACE);
+				auto index = cpindex(path);
+				path = .cpbottom(path);
+				.forceFocus(_couponView.widget, shellActivate);
+				return _couponView.select(cast(int)index) && .cpempty(path);
+			} else if (_name) { mixin(S_TRACE);
+				path = .cpbottom(path);
+				return .cpempty(path);
+			}
+		}
+		return super.openCWXPath(path, shellActivate);
+	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
 		area.setLayout(normalGridLayout(2, false));
@@ -1489,6 +1506,15 @@ public:
 		}
 	}
 
+	override
+	bool openCWXPath(string path, bool shellActivate) { mixin(S_TRACE);
+		auto cate = .cpcategory(path);
+		if (CDetail.fromType(Type).use(CArg.Gossip) && "gossip" == cate) { mixin(S_TRACE);
+			path = .cpbottom(path);
+			return .cpempty(path);
+		}
+		return super.openCWXPath(path, shellActivate);
+	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
 		area.setLayout(normalGridLayout(1, false));

@@ -1258,6 +1258,16 @@ class CouponView(CVType Type) : Composite {
 		_comm.refreshToolBar();
 	}
 
+	bool select(int index) { mixin(S_TRACE);
+		if (!_coupons || _coupons.isDisposed()) return false;
+		if (index <  0 || _coupons.getItemCount() <= index) return false;
+		_coupons.deselectAll();
+		_coupons.select(index);
+		_coupons.showSelection();
+		selCoupon();
+		return true;
+	}
+
 	@property
 	private bool canConvType(CouponType Type)() { mixin(S_TRACE);
 		if (_readOnly) return false;
