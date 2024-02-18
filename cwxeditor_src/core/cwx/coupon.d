@@ -195,7 +195,10 @@ public:
 			_coupons = [];
 			foreach (coupon; coupons) { mixin(S_TRACE);
 				if (coupon == "") continue;
-				auto u = new CouponUser(_cwxPath);
+				size_t findIndex(string text) { mixin(S_TRACE);
+					return cast(size_t).cCountUntil!("a == b")(this.couponNames, text);
+				}
+				auto u = new CouponUser(_cwxPath, false, &findIndex);
 				u.expandSPChars = expandSPChars;
 				u.coupon = coupon;
 				if (_uc) u.setUseCounter(_uc, _ucOwner);

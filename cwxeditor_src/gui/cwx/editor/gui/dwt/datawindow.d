@@ -547,11 +547,12 @@ public:
 		if (openCWXPathAfCommon(a, path, shellActivate)) { mixin(S_TRACE);
 			return true;
 		}
-		string cate = cpcategory(path);
-		bool isScene = cpempty(path)
-			|| ((cate == "menucard" || cate == "enemycard") && cpempty(cpbottom(path)))
+		string cate = .cpcategory(path);
+		bool isScene = .cpempty(path)
+			|| ((cate == "menucard" || cate == "enemycard") && .cpempty(.cpbottom(path)))
+			|| (cate == "menucard" && .cpcategory(.cpbottom(path)) == "name")
 			|| cate == "background";
-		if (isScene && cphasattr(path, "eventview")) { mixin(S_TRACE);
+		if (isScene && .cphasattr(path, "eventview")) { mixin(S_TRACE);
 			isScene = false;
 		}
 		string aPath = a.cwxPath(true);

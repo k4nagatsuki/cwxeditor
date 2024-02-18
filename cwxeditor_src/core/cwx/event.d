@@ -1614,6 +1614,16 @@ class Content : CWXPath, MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHold
 			if (index > 0) return null;
 			return c._text.findCWXPath(.cpbottom(path));
 		}
+		case "coupon": { mixin(S_TRACE);
+			auto index = .cpindex(path);
+			if (index > 0) return null;
+			return c._coupon.findCWXPath(.cpbottom(path));
+		}
+		case "gossip": { mixin(S_TRACE);
+			auto index = .cpindex(path);
+			if (index > 0) return null;
+			return c._gossip.findCWXPath(.cpbottom(path));
+		}
 		case "name": { mixin(S_TRACE);
 			auto index = .cpindex(path);
 			if (index > 0) return null;

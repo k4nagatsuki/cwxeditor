@@ -269,11 +269,11 @@ public:
 	}
 	override
 	bool openCWXPath(string path, bool shellActivate) { mixin(S_TRACE);
-		auto cate = cpcategory(path);
-		if (cpempty(path)) { mixin(S_TRACE);
+		auto cate = .cpcategory(path);
+		if (.cpempty(path)) { mixin(S_TRACE);
 			return _aview.openCWXPath(path, shellActivate);
-		} else if (((cate == "menucard" || cate == "enemycard")
-				&& cpempty(cpbottom(path)))
+		} else if (((cate == "menucard" || cate == "enemycard") && .cpempty(.cpbottom(path)))
+				|| (cate == "menucard" && .cpcategory(.cpbottom(path)) == "name")
 				|| cate == "background") { mixin(S_TRACE);
 			return _aview.openCWXPath(path, shellActivate);
 		}

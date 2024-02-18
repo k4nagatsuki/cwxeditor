@@ -746,7 +746,7 @@ public:
 			int x, int y, int scale, int layer, string cardGroup, int animationSpeed) { mixin(S_TRACE);
 		super (flag, x, y, scale, layer, cardGroup, animationSpeed);
 		this.paths = paths;
-		_name = new SimpleTextHolder(this, TextHolderType.CardName);
+		_name = new SimpleTextHolder(this, TextHolderType.CardName, "name");
 		_name.changeHandler = &changed;
 		_name.text = name;
 		_name.owner = this;
