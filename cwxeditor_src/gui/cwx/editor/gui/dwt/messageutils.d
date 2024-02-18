@@ -4003,7 +4003,12 @@ void setupSPCharsMenu(Commons comm, Summary summ, Skin delegate() skin, UseCount
 		new MenuItem(menu, SWT.SEPARATOR);
 
 		// フラグ
-		auto fMI = .createMenuItem(comm, menu, MenuID.PutFlagValue, dummy, &summ.flagDirRoot.hasFlag, SWT.CASCADE);
+		auto fMI = .createMenuItem(comm, menu, MenuID.PutFlagValue, dummy, { mixin(S_TRACE);
+			if (auto ec = cast(const(LocalVariableOwner))uc.owner) { mixin(S_TRACE);
+				return ec.flagDirRoot.hasFlag;
+			}
+			return summ.flagDirRoot.hasFlag;
+		}, SWT.CASCADE);
 		auto fMenu = new Menu(fMI);
 		fMI.setMenu(fMenu);
 		.listener(fMenu, SWT.Show, { mixin(S_TRACE);
@@ -4014,7 +4019,12 @@ void setupSPCharsMenu(Commons comm, Summary summ, Skin delegate() skin, UseCount
 		});
 
 		// ステップ
-		auto sMI = .createMenuItem(comm, menu, MenuID.PutStepValue, dummy, &summ.flagDirRoot.hasStep, SWT.CASCADE);
+		auto sMI = .createMenuItem(comm, menu, MenuID.PutStepValue, dummy, { mixin(S_TRACE);
+			if (auto ec = cast(const(LocalVariableOwner))uc.owner) { mixin(S_TRACE);
+				return ec.flagDirRoot.hasStep;
+			}
+			return summ.flagDirRoot.hasStep;
+		}, SWT.CASCADE);
 		auto sMenu = new Menu(sMI);
 		sMI.setMenu(sMenu);
 		.listener(sMenu, SWT.Show, { mixin(S_TRACE);
@@ -4025,7 +4035,12 @@ void setupSPCharsMenu(Commons comm, Summary summ, Skin delegate() skin, UseCount
 		});
 
 		// コモン
-		auto vMI = .createMenuItem(comm, menu, MenuID.PutVariantValue, dummy, &summ.flagDirRoot.hasVariant, SWT.CASCADE);
+		auto vMI = .createMenuItem(comm, menu, MenuID.PutVariantValue, dummy, { mixin(S_TRACE);
+			if (auto ec = cast(const(LocalVariableOwner))uc.owner) { mixin(S_TRACE);
+				return ec.flagDirRoot.hasVariant;
+			}
+			return summ.flagDirRoot.hasVariant;
+		}, SWT.CASCADE);
 		auto vMenu = new Menu(vMI);
 		vMI.setMenu(vMenu);
 		.listener(vMenu, SWT.Show, { mixin(S_TRACE);
