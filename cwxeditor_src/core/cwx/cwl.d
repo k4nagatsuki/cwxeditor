@@ -84,6 +84,91 @@ private string decodePathLegacy(string path) { mixin(S_TRACE);
 	return isBinImg(path) ? path : replace(path, "\\", dirSeparator);
 }
 
+/// WDPで使用されているRC4暗号化処理を施す(復号も同アルゴリズム)。
+/// WDPファイルの場合、復号結果はRaw DEFLATEで圧縮されたデータになる。
+/// Params:
+///  key = 展開鍵。WDPファイルの場合は4バイト～7バイト目。
+///  data = データ本体。WDPファイルの場合は8バイト目以降。
+/// Returns:
+///  復号データ。
+private ubyte[] decodeRC4OfWDP(in ubyte[] key, in ubyte[] data) {
+	import std.algorithm : map, swap;
+	import std.array : array;
+	import std.range : iota;
+
+	// Sボックスを生成
+	auto sBox = map!(n => cast(ubyte)n)(iota(0, 256)).array();
+	int j = 0;
+	int k = 0;
+	foreach (i; 0 .. sBox.length) {
+		auto si = sBox[i];
+		j = (j + si + key[k % key.length]) & 0xFF;
+		swap(sBox[i], sBox[j]);
+		k++;
+	}
+
+	int ip = 1;
+	int jp = 0;
+	ubyte genByte() {
+		ip = (ip + 1) & 0xFF;
+		jp = (jp + sBox[ip]) & 0xFF;
+		swap(sBox[ip], sBox[jp]);
+		return sBox[(sBox[ip] + sBox[jp]) & 0xFF];
+	}
+
+	// 256バイト捨てる(drop 256)
+	foreach (i; 0 .. 256) {
+		genByte();
+	}
+
+	// XOR暗号化または復号
+	return data.map!(b => cast(ubyte)(b ^ genByte())).array();
+}
+
+/// CardWirthNext/WirthBuilderで使用されている暗号化データであれば復号・伸長して返す。
+/// そうでなければそのまま返す。
+/// Params:
+///  data = CardWirthNextのデータ(*.wid等)の生バイト列。
+/// Returns:
+///  復号・伸長されたデータ。されていなければdata。
+private const(ubyte)[] decodeWDP(const(ubyte)[] data) {
+	import std.algorithm : startsWith;
+	import std.bitmanip : littleEndianToNative;
+	import std.exception : enforce;
+	import std.format : format;
+	import std.zlib : uncompress;
+
+	// 冒頭がWDP\0でなければ圧縮/暗号化はされていない
+	immutable ubyte[] WDP_HEADER = [0x57, 0x44, 0x50, 0x00];
+	if (!data.startsWith(WDP_HEADER)) {
+		return data;
+	}
+	data = data[WDP_HEADER.length .. $];
+
+	// ヘッダ部分からキーを取り出す
+	auto key = data[0 .. 4];
+	data = data[4 .. $];
+
+	// RC4復号
+	data = .decodeRC4OfWDP(key, data);
+	auto resultSize = littleEndianToNative!uint(data[0 .. 4]);
+	data = data[4 .. $];
+
+	// 圧縮データを展開
+	// Raw DEFLATEにするためウィンドウサイズは-15を指定する
+	auto result = cast(ubyte[])uncompress(data, 0LU, -15);
+	enforce(result.length == resultSize, format("Invalid WDP data size: %s != %s", result.length, resultSize));
+	return result;
+} unittest {
+	import std.conv : hexString;
+	assert (.decodeWDP(cast(const ubyte[])hexString!"574450003D0E32CB2C3F24CE3AB64ACEFB5F739CC5E989E9644F047A05")
+		== cast(const ubyte[])hexString!"07000000084578616D706C65310100");
+	assert (.decodeWDP(cast(const ubyte[])hexString!"57445000D766FB1569F76E7D96C3DC5107BA161265F858792A4F016834")
+		== cast(const ubyte[])hexString!"07000000084578616D706C65320200");
+	assert (.decodeWDP(cast(const ubyte[])hexString!"57445000A070F7D6FC32D4215ED0618DCC599803C6AEF813C0D62003B4E858A1E236A3484722BD9F5277982ED2DDC6CC61BF51E47A48673E5491DB894DDA33422B56A45906C4BD096FFB4DE6011C92E16715565324738F22C3E65F33405176194AD27063A18C6CBA736BC9FD7FCFE1E441")
+		== cast(const ubyte[])hexString!"FF07074578616D706C65010101000007000F0000008347838A83418343837883938367007111010006010000000070110100001482B182EA82CD835483938376838B82C582B70D0A010100000000010000000000000000E8130100A4010000000000000E4D61704F6657697274682E424D50000000");
+}
+
 private struct RData {
 	Rebindable!(const(CProps)) prop;
 	bool cardOnly;
@@ -156,8 +241,9 @@ Summary loadLScenario(string p, string skinType, string skinName, const CProps p
 			foreach (file; this.files) { mixin(S_TRACE);
 				try { mixin(S_TRACE);
 					ubyte* ptr = null;
-					auto bytes = readBinaryFrom!ubyte(file, ptr);
+					const(ubyte)[] bytes = readBinaryFrom!ubyte(file, ptr);
 					scope (exit) freeAll(ptr);
+					bytes = .decodeWDP(bytes); // WDP圧縮されているデータであれば復号・伸長する
 					auto f = ByteIO(bytes);
 					scope (exit) f.dispose();
 					auto base = baseName(file);
