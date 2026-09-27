@@ -156,7 +156,7 @@ private const(ubyte)[] decodeWDP(const(ubyte)[] data) {
 
 	// 圧縮データを展開
 	// Raw DEFLATEであるためウィンドウサイズは-15を指定する
-	auto result = cast(ubyte[])uncompress(data, 0LU, -15);
+	auto result = cast(ubyte[])uncompress(data, resultSize, -15);
 	enforce(result.length == resultSize, format("Invalid WDP data size: %s != %s", result.length, resultSize));
 	return result;
 } unittest {
